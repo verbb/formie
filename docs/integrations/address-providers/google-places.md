@@ -26,3 +26,5 @@ Option | Value
 --- | ---
 `componentRestrictions` | `{ "country": "au" }`
 `requestedRegion` | `"au"`
+
+Per-field **Country Default Value** settings on the Address field’s Auto-Complete sub-field apply the same restriction when the integration options table does not already define a country. Integration-level options take precedence.

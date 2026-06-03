@@ -6,7 +6,9 @@ use verbb\formie\base\Integration;
 use verbb\formie\base\ChildFieldInterface;
 use verbb\formie\fields\Address;
 use verbb\formie\fields\SingleLineText;
+use verbb\formie\fields\subfields\AddressCountry;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\integrations\addressproviders\Google;
 use verbb\formie\models\SlotTag;
 use verbb\formie\theme\context\RenderContext;
 use verbb\formie\web\twig\Extension;
@@ -40,6 +42,7 @@ class AddressAutoComplete extends SingleLineText implements ChildFieldInterface
 
     public ?string $integrationHandle = null;
     public bool $currentLocation = false;
+    public ?string $countryDefaultValue = null;
 
 
     // Public Methods
@@ -50,6 +53,7 @@ class AddressAutoComplete extends SingleLineText implements ChildFieldInterface
         $fields = parent::defineFormBuilderGeneralSchema();
 
         $addressProviderOptions = $this->_getAddressProviderOptions();
+        $googlePlacesIf = $this->_getGooglePlacesIntegrationIf();
 
         array_unshift($fields, SchemaHelper::selectField([
             'label' => Craft::t('formie', 'Auto-Complete Integration'),
@@ -62,11 +66,19 @@ class AddressAutoComplete extends SingleLineText implements ChildFieldInterface
             ),
         ]));
 
+        $fields[] = SchemaHelper::comboboxField([
+            'label' => Craft::t('formie', 'Country Default Value'),
+            'instructions' => Craft::t('formie', 'Bias Google Places address suggestions toward this country.'),
+            'name' => 'countryDefaultValue',
+            'if' => $googlePlacesIf,
+            'options' => AddressCountry::getCountryOptions(),
+        ]);
+
         $fields[] = SchemaHelper::lightswitchField([
             'label' => Craft::t('formie', 'Show Current Location Button'),
             'instructions' => Craft::t('formie', 'Whether this field should show a "Use my location" button.'),
             'name' => 'currentLocation',
-            'if' => 'integrationHandle == "googlePlaces"',
+            'if' => $googlePlacesIf,
         ]);
 
         return $fields;
@@ -156,5 +168,25 @@ class AddressAutoComplete extends SingleLineText implements ChildFieldInterface
         }
 
         return $addressProviderOptions;
+    }
+
+    private function _getGooglePlacesIntegrationIf(): string
+    {
+        $handles = [];
+        $addressProviders = Formie::$plugin->getIntegrations()->getAllIntegrationsForType(Integration::TYPE_ADDRESS_PROVIDER);
+
+        foreach ($addressProviders as $addressProvider) {
+            if ($addressProvider instanceof Google && $addressProvider->getEnabled()) {
+                $handles[] = $addressProvider->getHandle();
+            }
+        }
+
+        if ($handles === []) {
+            return 'false';
+        }
+
+        return implode(' || ', array_map(static function(string $handle): string {
+            return 'integrationHandle == "' . addslashes($handle) . '"';
+        }, $handles));
     }
 }

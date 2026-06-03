@@ -8,6 +8,7 @@ type GoogleMaps = typeof google;
 type GoogleAddressProviderOptions = {
     apiKey?: string;
     options?: Record<string, unknown>;
+    countryDefaultValue?: string;
 };
 
 const SCRIPT_ID = 'FORMIE_GOOGLE_ADDRESS_SCRIPT';
@@ -194,6 +195,37 @@ function buildAddressFromComponents(formData: Record<string, string>): {
     };
 }
 
+function hasCountryRestriction(options: Record<string, unknown>): boolean {
+    const componentRestrictions = options.componentRestrictions;
+
+    if (componentRestrictions && typeof componentRestrictions === 'object') {
+        const country = (componentRestrictions as { country?: unknown }).country;
+
+        if (Array.isArray(country) ? country.length > 0 : Boolean(country)) {
+            return true;
+        }
+    }
+
+    const includedRegionCodes = options.includedRegionCodes;
+
+    return Array.isArray(includedRegionCodes) && includedRegionCodes.length > 0;
+}
+
+export function buildGoogleAutocompleteOptions(provider: GoogleAddressProviderOptions): Record<string, unknown> {
+    const options = { types: ['geocode'], ...(provider.options || {}) };
+    const country = provider.countryDefaultValue?.trim().toLowerCase();
+
+    if (!country || hasCountryRestriction(options)) {
+        return options;
+    }
+
+    return {
+        ...options,
+        componentRestrictions: { country },
+        includedRegionCodes: [country.toUpperCase()],
+    };
+}
+
 export const googleAddressModule = defineAddressModule<
     GoogleAddressProviderOptions,
     GoogleMaps,
@@ -218,7 +250,7 @@ export const googleAddressModule = defineAddressModule<
             return null;
         }
 
-        const options = { types: ['geocode'], ...(provider.options || {}) };
+        const options = buildGoogleAutocompleteOptions(provider);
         const autocomplete = new PlaceAutocompleteElement(options);
         const inputHeight = window.getComputedStyle(input).height;
 

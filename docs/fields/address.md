@@ -9,6 +9,7 @@ Use Address when the value needs to be mapped to integrations, exported, queried
 - **Enabled sub-fields** - Choose which address parts are shown, such as address lines, city, state, postcode and country.
 - **Required sub-fields** - Require the specific address parts that matter for your workflow.
 - **Autocomplete** - Use a configured address provider to search for and populate address details.
+- **Default country (Google Places)** - Bias Google Places suggestions toward a selected country, similar to the Phone field.
 - **Current location** - Allow location-based lookup when the selected provider supports it.
 - **Country handling** - Restrict or preselect countries when the form should only accept certain regions.
 

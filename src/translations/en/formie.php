@@ -259,7 +259,7 @@ return [
   'Azerbaijan Manat' => 'Azerbaijan Manat',
   'A “Hidden” field will be hidden from view, but still rendered. A “Disabled” field will not be rendered on the page at all.' => 'A “Hidden” field will be hidden from view, but still rendered. A “Disabled” field will not be rendered on the page at all.',
   'Bachelor‘s Degree' => 'Bachelor‘s Degree',
-  'Back' => 'Back',
+  'Bias Google Places address suggestions toward this country.' => 'Bias Google Places address suggestions toward this country.',
   'Back Button Label' => 'Back Button Label',
   'Background Color' => 'Background Color',
   'Badge Type' => 'Badge Type',

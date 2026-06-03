@@ -20,6 +20,7 @@ use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\helpers\Variables;
+use verbb\formie\integrations\addressproviders\Google;
 use verbb\formie\models\ClientModuleContext;
 use verbb\formie\models\SlotTag;
 use verbb\formie\positions\AboveInput;
@@ -646,6 +647,15 @@ class Address extends FixedParentField implements PreviewableFieldInterface
 
             if (!$clientModule->targets) {
                 $clientModule->targets = $context->getTargets();
+            }
+
+            if ($integration instanceof Google) {
+                $autoComplete = $this->getFieldByHandle('autoComplete');
+                $countryDefaultValue = $autoComplete->countryDefaultValue ?? null;
+
+                if ($countryDefaultValue) {
+                    $clientModule->config['countryDefaultValue'] = $countryDefaultValue;
+                }
             }
 
             return $clientModule;

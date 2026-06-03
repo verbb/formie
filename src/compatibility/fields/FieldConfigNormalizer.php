@@ -99,6 +99,10 @@ class FieldConfigNormalizer
         if ($fieldClass === fields\subfields\AddressCountry::class && isset($config['defaultValue'])) {
             $config['defaultValue'] = self::_normalizeComboboxSingleValue($config['defaultValue']);
         }
+
+        if ($fieldClass === fields\subfields\AddressAutoComplete::class && isset($config['countryDefaultValue'])) {
+            $config['countryDefaultValue'] = self::_normalizeComboboxSingleValue($config['countryDefaultValue']);
+        }
     }
 
     private static function _normalizeComboboxMultiValue(array $value): array
