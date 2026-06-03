@@ -460,6 +460,7 @@ class FileUpload extends ElementField
             SchemaHelper::fieldWrap([
                 'label' => Craft::t('formie', 'Upload Location'),
                 'instructions' => Craft::t('formie', 'Note that the subfolder path can contain variables like {myFieldHandle}.'),
+                'required' => true,
                 'children' => [
                     SchemaHelper::selectField([
                         'name' => 'uploadLocationSource',
