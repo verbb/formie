@@ -25,6 +25,7 @@ import { clearSubmissionOnUnload, requestGraphqlRender, requestRefreshTokens, re
 import { createDebug } from '#utils/debug';
 import { createFormUnloadWarningGuard } from '#utils/unload-warning';
 import { FormieValidator } from '#validation/validator';
+import { bindSubmitReadiness } from '#validation/submit-readiness';
 
 type InternalInstanceState = {
     options: FormMountOptions;
@@ -1135,6 +1136,11 @@ export function createFormieClient(): FormieClient {
 
         if (form) {
             bindFormEvents(target, form, normalizedOptions, bus, validator, unbinds);
+
+            if (validator) {
+                unbinds.push(bindSubmitReadiness(form, validator, target));
+            }
+
             await refreshTokensIfNeeded(target, normalizedOptions, form);
         }
 

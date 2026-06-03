@@ -2362,6 +2362,8 @@ return [
   'Validate Domain (DNS)' => 'Validate Domain (DNS)',
   'Validate Form on Submit' => 'Validate Form on Submit',
   'Validate When Typing' => 'Validate When Typing',
+  'Disable Submit Button Until Valid' => 'Disable Submit Button Until Valid',
+  'Whether to disable the submit button until the current page passes validation. This can help users identify missing required fields before submitting.' => 'Whether to disable the submit button until the current page passes validation. This can help users identify missing required fields before submitting.',
   'Validation' => 'Validation',
   'Value' => 'Value',
   'Value mismatch {a}:{b}.' => 'Value mismatch {a}:{b}.',

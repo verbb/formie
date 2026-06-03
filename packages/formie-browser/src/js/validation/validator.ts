@@ -176,6 +176,10 @@ export class FormieValidator {
         return this.submitted || this.activated.has(input);
     }
 
+    isValid(inputOrSelector: Element | null = null, options: ValidateOptions = {}): boolean {
+        return this.validate(inputOrSelector, options).length === 0;
+    }
+
     validate(inputOrSelector: Element | null = null, options: ValidateOptions = {}): ValidationError[] {
         this.errors = [];
 

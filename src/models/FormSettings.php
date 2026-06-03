@@ -53,6 +53,7 @@ class FormSettings extends Model
     // Behaviour - Validation
     public bool $validationOnSubmit = true;
     public bool $validationOnFocus = false;
+    public bool $disableSubmitButtonUntilValid = false;
     public RichText $errorMessage;
     public string $errorMessagePosition = 'top-form';
 

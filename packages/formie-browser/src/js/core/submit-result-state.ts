@@ -6,6 +6,7 @@ import { addThemeClasses, removeThemeClasses, toggleThemeClasses } from '#theme/
 import { createDebug } from '#utils/debug';
 import { getFormStateEventName, normalizeFormieEventName } from '#utils/event-names';
 import type { FormieValidator } from '#validation/validator';
+import { syncSubmitReadiness } from '#validation/submit-readiness';
 
 type FormWithValidationApi = HTMLFormElement & {
     formieValidation?: FormieValidator;
@@ -287,6 +288,14 @@ export function clearSubmitLoading(form: HTMLFormElement): void {
         button.removeAttribute('data-formie-loading-indicator');
         button.removeAttribute('data-formie-loading-text');
     });
+
+    if (form.dataset.formieDisableSubmitUntilValid === 'true') {
+        const formWithValidation = form as FormWithValidationApi;
+
+        if (formWithValidation.formieValidation) {
+            syncSubmitReadiness(form, formWithValidation.formieValidation);
+        }
+    }
 }
 
 export function applyPageState(form: HTMLFormElement, nextPageId: string): void {
@@ -337,6 +346,14 @@ export function applyPageState(form: HTMLFormElement, nextPageId: string): void 
     // follow-up submits, and server recovery land on the same page.
     setHiddenInputValue(form, 'pageId', nextPageId);
     syncPageTabErrors(form);
+
+    if (form.dataset.formieDisableSubmitUntilValid === 'true') {
+        const formWithValidation = form as FormWithValidationApi;
+
+        if (formWithValidation.formieValidation) {
+            syncSubmitReadiness(form, formWithValidation.formieValidation);
+        }
+    }
 }
 
 function syncSubmissionIdentity(form: HTMLFormElement, result: FormSubmitResult): void {

@@ -630,6 +630,7 @@ class Form extends Element implements FormInterface
                 'submitMethod' => (string)$this->settings->submitMethod,
                 'validationOnFocus' => (bool)$this->settings->validationOnFocus,
                 'validationOnSubmit' => (bool)$this->settings->validationOnSubmit,
+                'disableSubmitButtonUntilValid' => (bool)$this->settings->disableSubmitButtonUntilValid,
             ],
             'modules' => Formie::$plugin->getClientModuleManifestBuilder()->buildCanonical($this, ClientModule::RENDER_TARGET_CP_EDIT),
         ];
@@ -653,6 +654,7 @@ class Form extends Element implements FormInterface
                 'validation' => [
                     'onBlur' => (bool)$this->settings->validationOnFocus,
                     'onSubmit' => (bool)$this->settings->validationOnSubmit,
+                    'disableSubmitUntilValid' => (bool)$this->settings->disableSubmitButtonUntilValid,
                     'formErrorMessage' => $this->getFrontendErrorMessage(),
                 ],
                 'progress' => [
@@ -2245,6 +2247,11 @@ class Form extends Element implements FormInterface
                 'label' => Craft::t('formie', 'Validate When Typing'),
                 'instructions' => Craft::t('formie', 'Whether to validate each field as the user types, so that errors will appear immediately.'),
                 'name' => 'settings.validationOnFocus',
+            ]),
+            SchemaHelper::lightswitchField([
+                'label' => Craft::t('formie', 'Disable Submit Button Until Valid'),
+                'instructions' => Craft::t('formie', 'Whether to disable the submit button until the current page passes validation. This can help users identify missing required fields before submitting.'),
+                'name' => 'settings.disableSubmitButtonUntilValid',
             ]),
             SchemaHelper::richTextField(array_merge([
                 'label' => Craft::t('formie', 'Error Message'),

@@ -3,6 +3,7 @@ import type { FormSubmitResult } from '#contracts/schema';
 import { EventBus } from '#events/event-bus';
 import { submitForm } from '#transport/forms-api';
 import { createDebug } from '#utils/debug';
+import { getFormPages, getValidationScope } from '#validation/scope';
 import type { FormieValidator } from '#validation/validator';
 
 export type SubmitPipelineContext = {
@@ -27,32 +28,6 @@ function getAbortedResult(stage: SubmitStage, reason?: string): FormSubmitResult
         code: 'ABORTED',
         message: reason || 'Submission aborted.',
         formErrors: [reason || 'Submission aborted.'],
-    };
-}
-
-function getPages(form: HTMLFormElement): HTMLElement[] {
-    return Array.from(form.querySelectorAll('[data-formie-page]')) as HTMLElement[];
-}
-
-function getValidationScope(form: HTMLFormElement): { scope: Element; final: boolean } {
-    const pages = getPages(form);
-
-    if (!pages.length) {
-        return {
-            scope: form,
-            final: true,
-        };
-    }
-
-    // Multi-page submits validate the visible page until the user reaches the
-    // final step, where hidden earlier pages are included again.
-    const currentPage = pages.find((page) => {
-        return !page.hasAttribute('data-formie-page-hidden');
-    }) || pages[pages.length - 1];
-
-    return {
-        scope: currentPage,
-        final: currentPage === pages[pages.length - 1],
     };
 }
 
@@ -172,7 +147,7 @@ function appendMissingFieldClears(formData: FormData, fieldNames: Set<string>): 
 }
 
 function buildSubmitFormData(form: HTMLFormElement, action: FormAction): FormData {
-    const pages = getPages(form);
+    const pages = getFormPages(form);
     const currentPage = pages.find((page) => {
         return !page.hasAttribute('data-formie-page-hidden');
     }) || null;
@@ -200,7 +175,7 @@ function isFinalSubmitAttempt(form: HTMLFormElement, action: FormAction): boolea
         return false;
     }
 
-    const pages = getPages(form);
+    const pages = getFormPages(form);
 
     if (!pages.length) {
         return true;

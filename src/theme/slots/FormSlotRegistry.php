@@ -97,6 +97,7 @@ class FormSlotRegistry extends Component
                 'data-formie-unload-warning' => Formie::$plugin->getSettings()->enableUnloadWarning ? true : false,
                 'data-formie-validation-on-focus' => $form?->settings->validationOnFocus ? true : false,
                 'data-formie-validation-on-submit' => $form?->settings->validationOnSubmit ? true : false,
+                'data-formie-disable-submit-until-valid' => $form?->settings->disableSubmitButtonUntilValid ? true : false,
                 'data-formie-scroll-to-top' => $form?->settings->scrollToTop ? true : false,
                 'data-formie-clear-submission-endpoint' => UrlHelper::actionUrl('formie/server/submissions/clear-submission'),
                 'data-formie-modules' => $moduleManifest ? Json::encode($moduleManifest) : false,

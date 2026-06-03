@@ -24,6 +24,7 @@ export declare class FormieValidator {
     getInputValue(input: ValidationInput): string | boolean;
     isDirty(input: ValidationInput): boolean;
     shouldShowError(input: ValidationInput): boolean;
+    isValid(inputOrSelector?: Element | null, options?: ValidateOptions): boolean;
     validate(inputOrSelector?: Element | null, options?: ValidateOptions): ValidationError[];
     removeAllErrors(): void;
     removeError(input: ValidationInput): void;

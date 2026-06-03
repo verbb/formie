@@ -141,6 +141,11 @@ class FormSettingsType extends ObjectType
                     'type' => Type::boolean(),
                     'description' => 'Whether to validate the form’s on focus.',
                 ],
+                'disableSubmitButtonUntilValid' => [
+                    'name' => 'disableSubmitButtonUntilValid',
+                    'type' => Type::boolean(),
+                    'description' => 'Whether to disable the submit button until the current page passes validation.',
+                ],
                 'errorMessageHtml' => [
                     'name' => 'errorMessageHtml',
                     'type' => Type::string(),
