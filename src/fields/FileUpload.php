@@ -358,20 +358,7 @@ class FileUpload extends ElementField
             return null;
         }
 
-        $extensions = [];
-        $allKinds = Assets::getAllowedFileKinds();
-
-        $allowedFileExtensions = Craft::$app->getConfig()->getGeneral()->allowedFileExtensions;
-
-        foreach ($this->allowedKinds as $allowedKind) {
-            $kind = $allKinds[$allowedKind];
-
-            foreach ($kind['extensions'] as $extension) {
-                if (in_array($extension, $allowedFileExtensions, true) && !in_array($extension, self::ACTIVE_CONTENT_EXTENSIONS, true)) {
-                    $extensions[] = ".$extension";
-                }
-            }
-        }
+        $extensions = array_map(static fn(string $extension) => ".$extension", $this->_getPermittedExtensions());
 
         return implode(', ', $extensions);
     }
@@ -412,6 +399,12 @@ class FileUpload extends ElementField
         $errors = [];
 
         if ($extension === '' || in_array($extension, self::ACTIVE_CONTENT_EXTENSIONS, true)) {
+            $errors[] = Craft::t('app', '“{filename}” is not allowed in this field.', [
+                'filename' => $filename,
+            ]);
+        }
+
+        if ($extension !== '' && !in_array($extension, Craft::$app->getConfig()->getGeneral()->allowedFileExtensions, true)) {
             $errors[] = Craft::t('app', '“{filename}” is not allowed in this field.', [
                 'filename' => $filename,
             ]);
@@ -1013,6 +1006,16 @@ class FileUpload extends ElementField
                     Formie::$plugin->getFileUploads()->trackFromFieldAsset($asset, $this, $element);
                 } else {
                     Formie::info('Couldn’t save uploaded asset due to validation errors: ' . implode(', ', $asset->getFirstErrors()));
+
+                    foreach ($asset->getFirstErrors() as $message) {
+                        $element->addError($this->valueKey(), (string)$message);
+                    }
+
+                    if (!$asset->getFirstErrors()) {
+                        $element->addError($this->valueKey(), Craft::t('formie', 'Couldn’t save uploaded file “{filename}”.', [
+                            'filename' => $file['filename'],
+                        ]));
+                    }
                 }
             }
 
@@ -1268,22 +1271,32 @@ class FileUpload extends ElementField
 
     private function _getAllowedExtensions(): array
     {
+        return $this->_getPermittedExtensions();
+    }
+
+    private function _getPermittedExtensions(): array
+    {
         if (!is_array($this->allowedKinds)) {
             return [];
         }
 
         $extensions = [];
-        $allKinds = Assets::getFileKinds();
+        $allKinds = Assets::getAllowedFileKinds();
+        $allowedFileExtensions = Craft::$app->getConfig()->getGeneral()->allowedFileExtensions;
 
         foreach ($this->allowedKinds as $allowedKind) {
-            foreach ($allKinds[$allowedKind]['extensions'] as $ext) {
-                if (!in_array($ext, self::ACTIVE_CONTENT_EXTENSIONS, true)) {
-                    $extensions[] = $ext;
+            if (!isset($allKinds[$allowedKind])) {
+                continue;
+            }
+
+            foreach ($allKinds[$allowedKind]['extensions'] as $extension) {
+                if (in_array($extension, $allowedFileExtensions, true) && !in_array($extension, self::ACTIVE_CONTENT_EXTENSIONS, true)) {
+                    $extensions[] = $extension;
                 }
             }
         }
 
-        return $extensions;
+        return array_values(array_unique($extensions));
     }
 
     private function _resolveDetectedFileKind(?string $path = null, ?string $mimeType = null): ?string

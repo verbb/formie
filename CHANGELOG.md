@@ -15,6 +15,7 @@
 - Add a default country setting for Google Places address auto-complete fields. ([#2721](https://github.com/verbb/formie/issues/2721))
 - Fix email notification preview failing when a recipient setting references a non-email field. ([#2537](https://github.com/verbb/formie/issues/2537))
 - Add a configurable maximum email attachment size, and validate notification attach assets in the form builder. ([#2697](https://github.com/verbb/formie/issues/2697))
+- Fix file upload validation allowing extensions such as `.jfif` that Craft cannot save as assets. ([#2716](https://github.com/verbb/formie/issues/2716))
 
 ## 4.0.0-beta.2 - 2026-06-03
 
