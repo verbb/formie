@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Craft;
 use Tests\Support\UploadTestHelper;
 use verbb\formie\fields\FileUpload;
 use verbb\formie\Formie;
@@ -10,11 +11,17 @@ it('requires upload location in the form builder schema', function (): void {
     $field = new FileUpload();
     $schema = $field->defineFormBuilderGeneralSchema();
 
+    $uploadLocationWrap = collect($schema)
+        ->first(fn(array $item) => ($item['$cmp'] ?? null) === 'FieldWrap' && ($item['label'] ?? null) === Craft::t('formie', 'Upload Location'));
+
     $uploadLocationField = collect($schema)
+        ->flatMap(fn(array $item) => $item['children'] ?? [$item])
         ->flatMap(fn(array $item) => $item['children'] ?? [$item])
         ->first(fn(array $item) => ($item['name'] ?? null) === 'uploadLocationSource');
 
-    expect($uploadLocationField)->not->toBeNull()
+    expect($uploadLocationWrap)->not->toBeNull()
+        ->and($uploadLocationWrap['required'] ?? false)->toBeTrue()
+        ->and($uploadLocationField)->not->toBeNull()
         ->and($uploadLocationField['required'] ?? false)->toBeTrue()
         ->and($uploadLocationField['validation'] ?? null)->toBe('required');
 });
