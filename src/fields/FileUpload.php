@@ -1046,6 +1046,7 @@ class FileUpload extends ElementField
                 $form->addSubmitData([
                     'event' => 'formie:file-upload:uploaded',
                     'data' => [
+                        'fieldHandle' => $this->handle,
                         'inputKey' => $inputKey,
                         'inputName' => $inputName,
                         'assetIds' => $assetIds,

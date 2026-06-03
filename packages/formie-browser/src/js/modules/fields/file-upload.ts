@@ -366,6 +366,47 @@ function updateUploadedAssetInputs(field: HTMLElement, input: HTMLInputElement, 
     input.value = '';
 }
 
+function getFormHandle(form: HTMLFormElement | null): string {
+    if (!form) {
+        return '';
+    }
+
+    const handleInput = form.querySelector('input[name="handle"]');
+
+    if (handleInput instanceof HTMLInputElement && handleInput.value.trim()) {
+        return handleInput.value.trim();
+    }
+
+    return form.getAttribute('data-formie-handle')?.trim() || '';
+}
+
+function buildHydrateFormData(field: HTMLElement, input: HTMLInputElement, assetIds: number[]): FormData {
+    const form = input.form;
+    const body = new FormData();
+    const handle = getFormHandle(form);
+    const fieldHandle = getFieldHandle(field);
+
+    if (handle) {
+        body.append('handle', handle);
+    }
+
+    if (fieldHandle) {
+        body.append('fieldHandle', fieldHandle);
+    }
+
+    const submissionUidInput = form?.querySelector('input[name="submissionUid"]');
+
+    if (submissionUidInput instanceof HTMLInputElement && submissionUidInput.value.trim()) {
+        body.append('submissionUid', submissionUidInput.value.trim());
+    }
+
+    assetIds.forEach((assetId) => {
+        body.append('assetIds[]', String(assetId));
+    });
+
+    return body;
+}
+
 async function hydrateUploadedAssets(field: HTMLElement, input: HTMLInputElement, uploadedAssets: UploadedAsset[]): Promise<UploadedAsset[]> {
     const assetIds = uploadedAssets.map((asset) => {
         return asset.assetId;
@@ -378,14 +419,9 @@ async function hydrateUploadedAssets(field: HTMLElement, input: HTMLInputElement
     }
 
     const hydrateEndpoint = input.getAttribute(HYDRATE_ENDPOINT_ATTR)?.trim() || '/actions/formie/file-upload/hydrate';
-    const body = new FormData();
-    assetIds.forEach((assetId) => {
-        body.append('assetIds[]', String(assetId));
-    });
-
     const response = await requestJson<FileUploadHydrateResponse>(hydrateEndpoint, {
         method: 'POST',
-        body,
+        body: buildHydrateFormData(field, input, assetIds),
     });
     const hydratedAssets = normalizeUploadedAssets(response.assets);
 
@@ -601,7 +637,21 @@ export const fileUploadModule: FormieModuleDefinition = {
             input.addEventListener('change', syncPendingFiles);
             form?.addEventListener(FILE_UPLOAD_EVENT, uploadedAssetHandler as EventListener);
             form?.addEventListener(FORM_RESET_EVENT, resetHandler as EventListener);
-            renderSummary(state);
+
+            const syncInitialState = () => {
+                const assetIdsFromDom = readUploadedAssetsFromHiddenInputs(field, input);
+                const summaryItems = readSummaryItems(state.summaryRoot);
+                state.uploadedAssets = mergeUploadedAssets(assetIdsFromDom, summaryItems);
+
+                if (state.uploadedAssets.some((asset) => asset.assetId && !asset.filename)) {
+                    void syncUploadedAssets(state.uploadedAssets);
+                    return;
+                }
+
+                renderSummary(state);
+            };
+
+            syncInitialState();
 
             return () => {
                 input.removeEventListener('change', syncPendingFiles);

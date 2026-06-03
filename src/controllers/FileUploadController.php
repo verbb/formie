@@ -159,6 +159,16 @@ class FileUploadController extends Controller
         $authorizedAssetIds = array_values(array_unique(array_map(static function(array $upload): int {
             return (int)($upload['assetId'] ?? 0);
         }, $uploads)));
+
+        $missingAssetIds = array_values(array_diff($assetIds, $authorizedAssetIds));
+
+        if ($missingAssetIds) {
+            $authorizedAssetIds = array_values(array_unique(array_merge(
+                $authorizedAssetIds,
+                $this->_resolveSubmissionAssetIds($form, $field, $missingAssetIds),
+            )));
+        }
+
         $assets = Asset::find()
             ->id(array_filter($authorizedAssetIds))
             ->status(null)
@@ -185,6 +195,35 @@ class FileUploadController extends Controller
 
     // Private Methods
     // =========================================================================
+
+    private function _resolveSubmissionAssetIds(Form $form, FileUpload $field, array $assetIds): array
+    {
+        $submissionUid = trim((string)$this->request->getBodyParam('submissionUid', ''));
+
+        if ($submissionUid === '' || !$assetIds) {
+            return [];
+        }
+
+        $submission = Submission::find()
+            ->uid($submissionUid)
+            ->formId((int)$form->id)
+            ->status(null)
+            ->one();
+
+        if (!$submission) {
+            return [];
+        }
+
+        $value = $submission->getFieldValue($field->handle);
+
+        if (!$value || !method_exists($value, 'ids')) {
+            return [];
+        }
+
+        $allowedIds = array_map('intval', $value->ids());
+
+        return array_values(array_intersect($assetIds, $allowedIds));
+    }
 
     private function _resolveUploadContext(): array
     {

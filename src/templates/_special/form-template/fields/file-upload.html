@@ -5,13 +5,13 @@
 {% set required = value and value.all() ? false : field.required %}
 
 {# Create a base hidden input to ensure that even when no files are uploaded it's still included in POST data #}
-<input type="hidden" name="{{ field.getHtmlName() }}" value="">
+<input type="hidden" name="{{ field.getHtmlName() }}" value="" data-formie-file-upload-anchor="true">
 
 {# Output any existing element IDs for already-uploaded assets, which can be overidden #}
 {# when uploading new files #}
 {% if value %}
     {% for element in value.all() %}
-        <input type="hidden" name="{{ field.getHtmlName('[]') }}" value="{{ element.id }}">
+        <input type="hidden" name="{{ field.getHtmlName('[]') }}" value="{{ element.id }}" data-formie-file-upload-asset-id="true">
     {% endfor %}
 {% endif %}
 
