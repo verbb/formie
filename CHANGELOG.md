@@ -18,6 +18,7 @@
 - Add a configurable maximum email attachment size, and validate notification attach assets in the form builder. ([#2697](https://github.com/verbb/formie/issues/2697))
 - Fix file upload validation allowing extensions such as `.jfif` that Craft cannot save as assets. ([#2716](https://github.com/verbb/formie/issues/2716))
 - Fix the Dutch translation mapping `Auto` to `Automatisch`, which incorrectly changed checkbox labels and values meaning “car”. ([#2636](https://github.com/verbb/formie/issues/2636))
+- Generate translatable date picker placeholders from the configured date and time formats when no custom placeholder is set. ([#2464](https://github.com/verbb/formie/issues/2464))
 
 ## 4.0.0-beta.2 - 2026-06-03
 

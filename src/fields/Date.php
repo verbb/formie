@@ -371,6 +371,19 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
         return $event->timeFormat;
     }
 
+    public function getEffectivePlaceholder(): ?string
+    {
+        if (trim((string)$this->placeholder) !== '') {
+            return Craft::t('formie', $this->placeholder) ?: null;
+        }
+
+        if ($this->displayType !== 'datePicker') {
+            return null;
+        }
+
+        return $this->_getFormatPlaceholderLabel();
+    }
+
     public function getPreviewHtml(mixed $value, ElementInterface $element): string
     {
         $html = '';
@@ -976,7 +989,7 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
                     'type' => 'text',
                     'id' => $id,
                     'name' => $this->getHtmlName('datetime'),
-                    'placeholder' => Craft::t('formie', $this->placeholder) ?: null,
+                    'placeholder' => $this->getEffectivePlaceholder(),
                     'required' => $this->required ? true : null,
                     'autocomplete' => 'off',
                     'data-formie-input' => true,
@@ -1371,6 +1384,17 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
         }
 
         return $modules;
+    }
+
+    protected function defineClientInput(): array
+    {
+        $input = parent::defineClientInput();
+
+        if ($placeholder = $this->getEffectivePlaceholder()) {
+            $input['placeholder'] = $placeholder;
+        }
+
+        return $input;
     }
 
     protected function defineValueClass(): ?string
@@ -1861,5 +1885,39 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
         $this->trigger(self::EVENT_REGISTER_TIME_FORMAT_OPTIONS, $event);
 
         return $event->options;
+    }
+
+    private function _getFormatPlaceholderLabel(): ?string
+    {
+        $parts = [];
+
+        if ($this->getIsDate() || $this->getIsDateTime()) {
+            $label = $this->_getFormatOptionLabel($this->getDateFormat(), $this->_getDateFormatOptions());
+
+            if ($label) {
+                $parts[] = Craft::t('formie', $label);
+            }
+        }
+
+        if ($this->getIsTime() || $this->getIsDateTime()) {
+            $label = $this->_getFormatOptionLabel($this->getTimeFormat(), $this->_getTimeFormatOptions());
+
+            if ($label) {
+                $parts[] = Craft::t('formie', $label);
+            }
+        }
+
+        return $parts ? implode(' ', $parts) : null;
+    }
+
+    private function _getFormatOptionLabel(?string $format, array $options): ?string
+    {
+        foreach ($options as $option) {
+            if (($option['value'] ?? null) === $format) {
+                return $option['label'] ?? null;
+            }
+        }
+
+        return null;
     }
 }
