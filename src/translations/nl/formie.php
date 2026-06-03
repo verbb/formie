@@ -266,7 +266,7 @@ return [
     'Austria' => 'Oostenrijk',
     'Auth ID' => 'Auth-ID',
     'Auth Secret' => 'Auth-geheim',
-    'Auto' => 'Automatisch',
+    'Auto' => 'Auto',
     'Auto-Complete' => 'Automatisch aanvullen',
     'Auto-Complete Integration' => 'Automatisch aanvullen-integratie',
     'Automatic' => 'Automatisch',
