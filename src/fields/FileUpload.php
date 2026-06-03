@@ -464,6 +464,8 @@ class FileUpload extends ElementField
                     SchemaHelper::selectField([
                         'name' => 'uploadLocationSource',
                         'options' => $this->getSourceOptions(),
+                        'validation' => 'required',
+                        'required' => true,
                     ]),
                     SchemaHelper::textField([
                         'name' => 'uploadLocationSubpath',
@@ -1098,9 +1100,34 @@ class FileUpload extends ElementField
         }
     }
 
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [
+            ['uploadLocationSource'],
+            'required',
+            'when' => fn() => empty(Formie::$plugin->getSettings()->defaultFileUploadVolume),
+            'message' => Craft::t('formie', 'Upload Location must be selected.'),
+        ];
+
+        return $rules;
+    }
+
+    private function _getEffectiveUploadLocationSource(): ?string
+    {
+        if ($this->uploadLocationSource) {
+            return $this->uploadLocationSource;
+        }
+
+        $default = Formie::$plugin->getSettings()->defaultFileUploadVolume ?? null;
+
+        return $default !== '' && $default !== null ? $default : null;
+    }
+
     private function _getVolume(): ?Volume
     {
-        $sourceKey = $this->uploadLocationSource;
+        $sourceKey = $this->_getEffectiveUploadLocationSource();
 
         if ($sourceKey && (str_starts_with($sourceKey, 'volume:') || str_starts_with($sourceKey, 'folder:'))) {
             $parts = explode(':', $sourceKey);
@@ -1185,7 +1212,7 @@ class FileUpload extends ElementField
         $volume = $this->_getVolume();
 
         if (!$volume) {
-            throw new InvalidFsException("Invalid volume: $this->uploadLocationSource");
+            throw new InvalidFsException('Invalid volume: ' . ($this->_getEffectiveUploadLocationSource() ?? ''));
         }
 
         $assetsService = Craft::$app->getAssets();
@@ -1245,7 +1272,7 @@ class FileUpload extends ElementField
     private function _uploadFolder(?ElementInterface $element = null): VolumeFolder
     {
         try {
-            if (!$this->uploadLocationSource) {
+            if (!$this->_getEffectiveUploadLocationSource()) {
                 throw new InvalidFsException();
             }
 
