@@ -1196,6 +1196,11 @@ class Date extends SubField implements InlineEditableFieldInterface, Previewable
     protected function getCalendarSubFields(): array
     {
         $fields = [];
+        $minDate = $this->getMinDate()?->format('Y-m-d');
+        $maxDate = $this->getMaxDate()?->format('Y-m-d');
+
+        $minTime = $this->getMinDate()?->format('H:i:s');
+        $maxTime = $this->getMaxDate()?->format('H:i:s');
 
         $fields[0]['fields'][] = [
             'type' => subfields\DateDate::class,
@@ -1214,6 +1219,14 @@ class Date extends SubField implements InlineEditableFieldInterface, Previewable
                 [
                     'label' => 'autocomplete',
                     'value' => 'off',
+                ],
+                [
+                    'label' => 'min',
+                    'value' => $minDate,
+                ],
+                [
+                    'label' => 'max',
+                    'value' => $maxDate,
                 ],
             ]),
         ];
@@ -1235,6 +1248,14 @@ class Date extends SubField implements InlineEditableFieldInterface, Previewable
                 [
                     'label' => 'autocomplete',
                     'value' => 'off',
+                ],
+                [
+                    'label' => 'min',
+                    'value' => $minTime,
+                ],
+                [
+                    'label' => 'max',
+                    'value' => $maxTime,
                 ],
             ],
         ];
