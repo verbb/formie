@@ -173,6 +173,18 @@ abstract class Payment extends Integration
         return Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/cp/dist/', true, "icons/payments/{$handle}.svg");
     }
 
+    public function getCpIconPath(): string
+    {
+        $category = trim((string)$this->getCategoryHandle());
+        $handle = trim((string)$this->getIntegrationHandle());
+
+        if ($category === '' || $handle === '') {
+            return '';
+        }
+
+        return "icons/{$category}/{$handle}.svg";
+    }
+
     public function getSettingsHtml(): ?string
     {
         $handle = $this->getIntegrationHandle();
