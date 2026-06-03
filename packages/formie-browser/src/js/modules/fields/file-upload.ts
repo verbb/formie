@@ -1,9 +1,9 @@
 import fileUploadCss from '#theme-css/fields/_file.css?inline';
 
 import type { FormieModuleDefinition } from '#contracts/modules';
-import { dispatchFieldEvent, getModuleFieldTarget, releaseFormValidators, retainFormValidators } from '#modules/fields/shared';
+import { dispatchFieldEvent, releaseFormValidators, retainFormValidators } from '#modules/fields/shared';
 import { ensureModuleStyles } from '#modules/styles';
-import { getFileUploadEventName, getFormStateEventName } from '#utils/event-names';
+import { getFieldModuleEventName, getFileUploadEventName, getFormStateEventName } from '#utils/event-names';
 import { requestJson } from '#utils/http';
 
 const INPUT_SELECTOR = 'input[type="file"][data-formie-file-input]';
@@ -20,6 +20,8 @@ const FILE_VALIDATORS = [
 ] as const;
 const VALIDATOR_SCOPE = 'file-upload';
 const MODULE_ID = 'file-upload';
+const REPEATER_INIT_ROW_EVENT = getFieldModuleEventName('repeater', 'init-row');
+const FIELD_HANDLE_SELECTOR = '[data-formie-field-handle]';
 
 ensureModuleStyles(MODULE_ID, [fileUploadCss]);
 
@@ -540,6 +542,118 @@ function getUploadedAssetsFromEvent(event: Event, matcher: FileUploadEventMatche
     return [];
 }
 
+function getFieldContainer(input: HTMLInputElement): HTMLElement | null {
+    const field = input.closest(FIELD_HANDLE_SELECTOR);
+
+    return field instanceof HTMLElement ? field : null;
+}
+
+function collectFileUploadInputs(root: ParentNode): HTMLInputElement[] {
+    return Array.from(root.querySelectorAll(INPUT_SELECTOR)).filter((input): input is HTMLInputElement => {
+        return input instanceof HTMLInputElement;
+    });
+}
+
+function bindFileUploadInput(field: HTMLElement, input: HTMLInputElement, form: HTMLFormElement | null): () => void {
+    const state: FileUploadState = {
+        field,
+        input,
+        summaryRoot: ensureSummaryRoot(field, input),
+        uploadedAssets: mergeUploadedAssets(
+            readUploadedAssetsFromHiddenInputs(field, input),
+            readSummaryItems(field.querySelector('[data-formie-file-summary]') as HTMLElement | null),
+        ),
+        pendingFiles: [],
+        hydrationToken: 0,
+    };
+    const syncPendingFiles = () => {
+        state.pendingFiles = Array.from(input.files || []).map((file) => {
+            return file.name;
+        });
+        renderSummary(state);
+    };
+    const syncUploadedAssets = async(uploadedAssets: UploadedAsset[]) => {
+        state.hydrationToken += 1;
+        const hydrationToken = state.hydrationToken;
+        state.pendingFiles = [];
+        state.uploadedAssets = uploadedAssets;
+        updateUploadedAssetInputs(field, input, uploadedAssets);
+        renderSummary(state);
+
+        try {
+            const hydratedAssets = await hydrateUploadedAssets(field, input, uploadedAssets);
+
+            if (hydrationToken !== state.hydrationToken) {
+                return;
+            }
+
+            state.uploadedAssets = hydratedAssets;
+            renderSummary(state);
+            dispatchFieldEvent(field, MODULE_ID, 'uploaded-assets-sync', {
+                fileUpload: field,
+                assets: hydratedAssets,
+            });
+        } catch (error) {
+            console.error('[formie] Failed to hydrate uploaded file details.', error);
+        }
+    };
+    const resetUploadedAssets = () => {
+        state.hydrationToken += 1;
+        state.pendingFiles = [];
+        state.uploadedAssets = [];
+        updateUploadedAssetInputs(field, input, []);
+        renderSummary(state);
+    };
+    const uploadedAssetHandler = (event: Event) => {
+        const fieldHandle = getFieldHandle(field);
+
+        if (!fieldHandle) {
+            return;
+        }
+
+        const uploadedAssets = getUploadedAssetsFromEvent(event, {
+            fieldHandle,
+            inputKey: getFileUploadKey(input),
+            inputName: input.name,
+            pendingFiles: state.pendingFiles,
+        });
+
+        if (!uploadedAssets.length) {
+            return;
+        }
+
+        void syncUploadedAssets(uploadedAssets);
+    };
+    const resetHandler = () => {
+        resetUploadedAssets();
+    };
+
+    input.addEventListener('change', syncPendingFiles);
+    form?.addEventListener(FILE_UPLOAD_EVENT, uploadedAssetHandler as EventListener);
+    form?.addEventListener(FORM_RESET_EVENT, resetHandler as EventListener);
+
+    const syncInitialState = () => {
+        const assetIdsFromDom = readUploadedAssetsFromHiddenInputs(field, input);
+        const summaryItems = readSummaryItems(state.summaryRoot);
+        state.uploadedAssets = mergeUploadedAssets(assetIdsFromDom, summaryItems);
+
+        if (state.uploadedAssets.some((asset) => asset.assetId && !asset.filename)) {
+            void syncUploadedAssets(state.uploadedAssets);
+            return;
+        }
+
+        renderSummary(state);
+    };
+
+    syncInitialState();
+
+    return () => {
+        input.removeEventListener('change', syncPendingFiles);
+        form?.removeEventListener(FILE_UPLOAD_EVENT, uploadedAssetHandler as EventListener);
+        form?.removeEventListener(FORM_RESET_EVENT, resetHandler as EventListener);
+    };
+}
+
 export const fileUploadModule: FormieModuleDefinition = {
     id: MODULE_ID,
     kind: 'field',
@@ -547,125 +661,53 @@ export const fileUploadModule: FormieModuleDefinition = {
         return !!ctx.target.querySelector(INPUT_SELECTOR);
     },
     setup: async(ctx) => {
-        const field = getModuleFieldTarget(ctx);
-        const scope = field || ctx.target;
-        const inputs = Array.from(scope.querySelectorAll(INPUT_SELECTOR)).filter((input): input is HTMLInputElement => {
-            return input instanceof HTMLInputElement;
-        });
         const form = ctx.form;
+        const boundInputs = new WeakSet<HTMLInputElement>();
+        const unbinds: Array<() => void> = [];
+
+        const bindInputsInRoot = (root: ParentNode) => {
+            collectFileUploadInputs(root).forEach((input) => {
+                if (boundInputs.has(input)) {
+                    return;
+                }
+
+                const field = getFieldContainer(input);
+
+                if (!field) {
+                    return;
+                }
+
+                boundInputs.add(input);
+                unbinds.push(bindFileUploadInput(field, input, form));
+            });
+        };
 
         registerValidators(form);
+        bindInputsInRoot(ctx.target);
 
-        const unbinds = inputs.map((input) => {
-            if (!(field instanceof HTMLElement)) {
-                return () => {};
+        const repeaterInitRowHandler = (event: Event) => {
+            const detail = (event as CustomEvent<unknown>).detail;
+
+            if (!isRecord(detail)) {
+                return;
             }
 
-            const state: FileUploadState = {
-                field,
-                input,
-                summaryRoot: ensureSummaryRoot(field, input),
-                uploadedAssets: mergeUploadedAssets(
-                    readUploadedAssetsFromHiddenInputs(field, input),
-                    readSummaryItems(field.querySelector('[data-formie-file-summary]') as HTMLElement | null)
-                ),
-                pendingFiles: [],
-                hydrationToken: 0,
-            };
-            const syncPendingFiles = () => {
-                state.pendingFiles = Array.from(input.files || []).map((file) => {
-                    return file.name;
-                });
-                renderSummary(state);
-            };
-            const syncUploadedAssets = async(uploadedAssets: UploadedAsset[]) => {
-                state.hydrationToken += 1;
-                const hydrationToken = state.hydrationToken;
-                state.pendingFiles = [];
-                state.uploadedAssets = uploadedAssets;
-                updateUploadedAssetInputs(field, input, uploadedAssets);
-                renderSummary(state);
+            const row = detail.row;
 
-                try {
-                    const hydratedAssets = await hydrateUploadedAssets(field, input, uploadedAssets);
+            if (row instanceof HTMLElement) {
+                bindInputsInRoot(row);
+            }
+        };
 
-                    if (hydrationToken !== state.hydrationToken) {
-                        return;
-                    }
-
-                    state.uploadedAssets = hydratedAssets;
-                    renderSummary(state);
-                    dispatchFieldEvent(field, MODULE_ID, 'uploaded-assets-sync', {
-                        fileUpload: field,
-                        assets: hydratedAssets,
-                    });
-                } catch (error) {
-                    console.error('[formie] Failed to hydrate uploaded file details.', error);
-                }
-            };
-            const resetUploadedAssets = () => {
-                state.hydrationToken += 1;
-                state.pendingFiles = [];
-                state.uploadedAssets = [];
-                updateUploadedAssetInputs(field, input, []);
-                renderSummary(state);
-            };
-            const uploadedAssetHandler = (event: Event) => {
-                const fieldHandle = getFieldHandle(field);
-
-                if (!fieldHandle) {
-                    return;
-                }
-
-                const uploadedAssets = getUploadedAssetsFromEvent(event, {
-                    fieldHandle,
-                    inputKey: getFileUploadKey(input),
-                    inputName: input.name,
-                    pendingFiles: state.pendingFiles,
-                });
-
-                if (!uploadedAssets.length) {
-                    return;
-                }
-
-                void syncUploadedAssets(uploadedAssets);
-            };
-            const resetHandler = () => {
-                resetUploadedAssets();
-            };
-
-            input.addEventListener('change', syncPendingFiles);
-            form?.addEventListener(FILE_UPLOAD_EVENT, uploadedAssetHandler as EventListener);
-            form?.addEventListener(FORM_RESET_EVENT, resetHandler as EventListener);
-
-            const syncInitialState = () => {
-                const assetIdsFromDom = readUploadedAssetsFromHiddenInputs(field, input);
-                const summaryItems = readSummaryItems(state.summaryRoot);
-                state.uploadedAssets = mergeUploadedAssets(assetIdsFromDom, summaryItems);
-
-                if (state.uploadedAssets.some((asset) => asset.assetId && !asset.filename)) {
-                    void syncUploadedAssets(state.uploadedAssets);
-                    return;
-                }
-
-                renderSummary(state);
-            };
-
-            syncInitialState();
-
-            return () => {
-                input.removeEventListener('change', syncPendingFiles);
-                form?.removeEventListener(FILE_UPLOAD_EVENT, uploadedAssetHandler as EventListener);
-                form?.removeEventListener(FORM_RESET_EVENT, resetHandler as EventListener);
-            };
-        });
+        form?.addEventListener(REPEATER_INIT_ROW_EVENT, repeaterInitRowHandler as EventListener);
 
         await ctx.emit('formie:module:file-upload:init', {
-            count: inputs.length,
+            count: unbinds.length,
         });
 
         return {
             destroy: () => {
+                form?.removeEventListener(REPEATER_INIT_ROW_EVENT, repeaterInitRowHandler as EventListener);
                 unbinds.forEach((unbind) => {
                     unbind();
                 });

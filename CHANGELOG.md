@@ -20,7 +20,8 @@
 - Fix the Dutch translation mapping `Auto` to `Automatisch`, which incorrectly changed checkbox labels and values meaning “car”. ([#2636](https://github.com/verbb/formie/issues/2636))
 - Generate translatable date picker placeholders from the configured date and time formats when no custom placeholder is set. ([#2464](https://github.com/verbb/formie/issues/2464))
 - Fix File Upload fields failing on submit when no upload location is set, by requiring the setting in the form builder and falling back to the plugin default volume when configured. ([#2597](https://github.com/verbb/formie/issues/2597))
-- Fix Ajax and multi-page File Upload fields losing their uploaded-file summary after step navigation or when editing existing submissions. ([#2742](https://github.com/verbb/formie/issues/2742), [#1856](https://github.com/verbb/formie/issues/1856))
+- Fix Ajax and multi-page File Upload fields losing their uploaded-file summary after step navigation or when editing existing submissions. ([#2742](https://github.com/verbb/formie/issues/2742), [#1856](https://github.com/verbb/formie/issues/1856), [#1910](https://github.com/verbb/formie/issues/1910))
+- Fix File Upload fields inside Repeater or Group fields not initializing upload persistence for nested inputs. ([#1448](https://github.com/verbb/formie/issues/1448))
 
 ## 4.0.0-beta.2 - 2026-06-03
 
