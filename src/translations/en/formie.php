@@ -1391,6 +1391,7 @@ return [
   'New Israeli Sheqel' => 'New Israeli Sheqel',
   'New Notification' => 'New Notification',
   'New Page' => 'New Page',
+  'No pages' => 'No pages',
   'New Status' => 'New Status',
   'New Stencil' => 'New Stencil',
   'New submission' => 'New submission',

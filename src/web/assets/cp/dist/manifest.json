@@ -62,7 +62,7 @@
     ]
   },
   "src/form-builder/formie-form-builder.js": {
-    "file": "assets/formie-form-builder-BxLv9dUG.js",
+    "file": "assets/formie-form-builder-Dakp8nle.js",
     "name": "formie-form-builder",
     "src": "src/form-builder/formie-form-builder.js",
     "isEntry": true,
@@ -77,7 +77,7 @@
     ]
   },
   "src/integration-connect/formie-integration-connect.js": {
-    "file": "assets/formie-integration-connect-CFcXEiOE.js",
+    "file": "assets/formie-integration-connect-BS1dBvZL.js",
     "name": "formie-integration-connect",
     "src": "src/integration-connect/formie-integration-connect.js",
     "isEntry": true,
@@ -91,7 +91,7 @@
     ]
   },
   "src/new-form/formie-new-form.js": {
-    "file": "assets/formie-new-form-BwO0jhEH.js",
+    "file": "assets/formie-new-form-BVgUXhih.js",
     "name": "formie-new-form",
     "src": "src/new-form/formie-new-form.js",
     "isEntry": true,

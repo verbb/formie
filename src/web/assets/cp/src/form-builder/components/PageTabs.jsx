@@ -3,7 +3,7 @@ import {
 } from 'react';
 import { useDroppable } from '@dnd-kit/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCog, faPlus } from '@fortawesome/pro-solid-svg-icons';
+import { faCog, faPlus, faTriangleExclamation } from '@fortawesome/pro-solid-svg-icons';
 
 import { Button } from '@verbb/plugin-kit-react/components';
 import { cn } from '@verbb/plugin-kit-react/utils';
@@ -80,7 +80,7 @@ function DroppablePageTab({
 
 function PageTabs({ isAnyDragActive = false }) {
     const pages = useFormValue('pages', []);
-    const { errors: formErrors, hasErrorsForPrefix } = useFormBuilderForm();
+    const { hasErrorsForPrefix, hasErrorsForFieldNames } = useFormBuilderForm();
     const { activePageHandle, activeTab, pageSettingsSchema } = useFormBuilderApp();
     const router = useUrlRouter();
 
@@ -95,6 +95,8 @@ function PageTabs({ isAnyDragActive = false }) {
 
         return getDevToolsConfig();
     }, []);
+    const hasPages = Array.isArray(pages) && pages.length > 0;
+    const hasPageListErrors = hasErrorsForFieldNames(['pages']);
 
     const getPageHandle = (page) => {
         return page?._handle ?? page?.handle ?? null;
@@ -135,7 +137,7 @@ function PageTabs({ isAnyDragActive = false }) {
     };
 
     useEffect(() => {
-        if (activeTab !== 'fields' || !pages.length) {
+        if (activeTab !== 'fields' || !hasPages) {
             return;
         }
 
@@ -153,7 +155,7 @@ function PageTabs({ isAnyDragActive = false }) {
         if (!activePageHandle || !validPageHandles.includes(activePageHandle)) {
             router.navigateToPage(firstPageHandle, { replace: true });
         }
-    }, [activeTab, activePageHandle, pages, router]);
+    }, [activeTab, activePageHandle, hasPages, pages, router]);
 
     useEffect(() => {
         if (hasInitialAutoOpenPageSettingsRunRef.current) {
@@ -164,7 +166,7 @@ function PageTabs({ isAnyDragActive = false }) {
             builderDevSettings?.enabled && builderDevSettings?.autoOpenPageSettings,
         );
 
-        if (!shouldAutoOpenPageSettings || activeTab !== 'fields' || !pages.length) {
+        if (!shouldAutoOpenPageSettings || activeTab !== 'fields' || !hasPages) {
             return;
         }
 
@@ -172,11 +174,7 @@ function PageTabs({ isAnyDragActive = false }) {
         setCreatePageOnModalOpen(false);
         setIsSettingsModalOpen(true);
         hasInitialAutoOpenPageSettingsRunRef.current = true;
-    }, [activeTab, builderDevSettings, pages]);
-
-    if (!pages || pages.length === 0) {
-        return null;
-    }
+    }, [activeTab, builderDevSettings, hasPages, pages]);
 
     return (
         <div className={cn(
@@ -189,25 +187,35 @@ function PageTabs({ isAnyDragActive = false }) {
                     'flex items-center gap-1 h-full',
                     'flex-1',
                 )}>
-                    {pages.map((page, pageIndex) => {
-                        const pageHandle = getPageHandle(page);
-                        const isActive = activePageHandle && pageHandle && activePageHandle === pageHandle;
-                        const pagePrefix = `pages.${pageIndex}.`;
-                        const hasErrors = hasErrorsForPrefix(pagePrefix);
+                    {hasPages ? (
+                        pages.map((page, pageIndex) => {
+                            const pageHandle = getPageHandle(page);
+                            const isActive = activePageHandle && pageHandle && activePageHandle === pageHandle;
+                            const pagePrefix = `pages.${pageIndex}.`;
+                            const hasErrors = hasErrorsForPrefix(pagePrefix);
 
-                        return (
-                            <DroppablePageTab
-                                key={page._handle || page.handle || page.id || `page-tab-${pageIndex}`}
-                                page={page}
-                                pageIndex={pageIndex}
-                                isActive={isActive}
-                                hasErrors={hasErrors}
-                                onTabClick={handleTabClick}
-                                onTabDoubleClick={handleTabDoubleClick}
-                                isAnyDragActive={isAnyDragActive}
-                            />
-                        );
-                    })}
+                            return (
+                                <DroppablePageTab
+                                    key={page._handle || page.handle || page.id || `page-tab-${pageIndex}`}
+                                    page={page}
+                                    pageIndex={pageIndex}
+                                    isActive={isActive}
+                                    hasErrors={hasErrors}
+                                    onTabClick={handleTabClick}
+                                    onTabDoubleClick={handleTabDoubleClick}
+                                    isAnyDragActive={isAnyDragActive}
+                                />
+                            );
+                        })
+                    ) : (
+                        <div className={cn(
+                            'flex items-center gap-1.5 px-[15px] text-[12px] font-medium uppercase',
+                            hasPageListErrors ? 'text-error' : 'text-[#64788d]',
+                        )}>
+                            {hasPageListErrors && <FontAwesomeIcon icon={faTriangleExclamation} className="size-3" />}
+                            <span>{Craft.t('formie', 'No pages')}</span>
+                        </div>
+                    )}
                 </div>
             </ScrollArea>
 
@@ -218,10 +226,11 @@ function PageTabs({ isAnyDragActive = false }) {
                 onClick={handleQuickAddPage}
                 className={cn(
                     'p-2',
-                    'text-gray-600',
-                    !isAnyDragActive && 'hover:text-gray-800',
+                    hasPageListErrors ? 'text-error border-error' : 'text-gray-600',
+                    !isAnyDragActive && (hasPageListErrors ? 'hover:text-error' : 'hover:text-gray-800'),
                 )}
                 aria-label={Craft.t('formie', 'New Page')}
+                aria-invalid={hasPageListErrors || undefined}
             >
                 <FontAwesomeIcon icon={faPlus} className="size-4" />
             </Button>
@@ -233,10 +242,11 @@ function PageTabs({ isAnyDragActive = false }) {
                 onClick={handleSettingsClick}
                 className={cn(
                     'p-2 mr-1',
-                    'text-gray-600',
-                    !isAnyDragActive && 'hover:text-gray-800',
+                    hasPageListErrors ? 'text-error border-error' : 'text-gray-600',
+                    !isAnyDragActive && (hasPageListErrors ? 'hover:text-error' : 'hover:text-gray-800'),
                 )}
                 aria-label={Craft.t('formie', 'Page Settings')}
+                aria-invalid={hasPageListErrors || undefined}
             >
                 <FontAwesomeIcon icon={faCog} className="size-4" />
             </Button>

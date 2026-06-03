@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useFormBuilderForm } from '@form-builder/contexts/FormBuilderFormContext';
 
 const useFormBuilderTabErrors = (schemaNode) => {
-    const { hasErrorsForPrefix, hasErrorsForSchema } = useFormBuilderForm();
+    const { hasErrorsForPrefix, hasErrorsForFieldNames, hasErrorsForSchema } = useFormBuilderForm();
 
     return useMemo(() => {
         const errors = {};
@@ -11,7 +11,7 @@ const useFormBuilderTabErrors = (schemaNode) => {
             return errors;
         }
 
-        const fieldsTabHasErrors = hasErrorsForPrefix('pages.');
+        const fieldsTabHasErrors = hasErrorsForFieldNames(['pages']) || hasErrorsForPrefix('pages.');
 
         Object.values(schemaNode.children).forEach((item) => {
             if (item.$cmp !== 'FormBuilderTabContent') {
@@ -37,7 +37,7 @@ const useFormBuilderTabErrors = (schemaNode) => {
         });
 
         return errors;
-    }, [schemaNode, hasErrorsForPrefix, hasErrorsForSchema]);
+    }, [schemaNode, hasErrorsForPrefix, hasErrorsForFieldNames, hasErrorsForSchema]);
 };
 
 export { useFormBuilderTabErrors };
