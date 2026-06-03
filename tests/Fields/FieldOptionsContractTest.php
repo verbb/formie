@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use verbb\formie\elements\Submission;
+use verbb\formie\content\SubmissionContentNormalizer;
 
 it('persists option field values for dropdown radio and checkboxes', function (): void {
     $options = [
@@ -56,4 +57,26 @@ it('persists option field values for dropdown radio and checkboxes', function ()
         ->and($topicsResults)->not->toBeEmpty()
         ->and((int)$choiceResults[0]->id)->toBe((int)$submission->id)
         ->and((int)$priorityResults[0]->id)->toBe((int)$submission->id);
+});
+
+it('does not restore checkbox defaults when a submitted checkbox group is explicitly unchecked', function (): void {
+    $options = [
+        ['label' => 'One', 'value' => 'one', 'default' => true],
+    ];
+
+    $form = formie()
+        ->form(['title' => 'Checkbox Defaults ' . uniqid()])
+        ->singleLineTextField('fullName')
+        ->checkboxesField('topics', ['options' => $options])
+        ->create();
+
+    $submission = new Submission();
+    $submission->setForm($form);
+
+    (new SubmissionContentNormalizer())->normalizeRequestPayload($submission, [
+        'fullName' => 'Unchecked User',
+    ], 'fields');
+
+    expect($submission->getFieldValueAsArray('topics'))->toBe([])
+        ->and(json_encode($submission->serializeFieldValues()))->not->toContain('one');
 });

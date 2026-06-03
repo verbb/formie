@@ -1,7 +1,9 @@
 <?php
 namespace verbb\formie\content;
 
+use verbb\formie\base\FieldInterface;
 use verbb\formie\elements\Submission;
+use verbb\formie\fields\Checkboxes;
 
 use Craft;
 use craft\errors\InvalidFieldException;
@@ -37,6 +39,8 @@ class SubmissionContentNormalizer
                 // field as present so `normalizeValueFromRequest()` can inspect
                 // the uploaded file instances itself.
                 $value = null;
+            } else if ($paramNamespace && $this->_shouldTreatMissingCheckboxesAsEmpty($submission, $field)) {
+                $value = [];
             } else {
                 continue;
             }
@@ -92,5 +96,26 @@ class SubmissionContentNormalizer
 
             $manager->setRawValue($submission, $field->handle, $value);
         }
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _shouldTreatMissingCheckboxesAsEmpty(Submission $submission, FieldInterface $field): bool
+    {
+        if (!$field instanceof Checkboxes) {
+            return false;
+        }
+
+        $currentPage = $submission->getForm()?->getCurrentPage();
+
+        if (!$currentPage || !method_exists($field, 'getPage')) {
+            return true;
+        }
+
+        $fieldPage = $field->getPage();
+
+        return $fieldPage && (int)$fieldPage->id === (int)$currentPage->id;
     }
 }
