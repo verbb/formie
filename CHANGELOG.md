@@ -1,5 +1,11 @@
 # Changelog
 
+## 4.0.0-beta.2 - 2026-06-03
+
+### Fixed
+- Fix front-end JS/CSS build issues.
+- Fix `ModifyFrontendJsTranslationsEvent` naming.
+
 ## 4.0.0-beta.1 - 2026-06-02
 
 ### Added
