@@ -20,6 +20,7 @@ class FieldLayoutPageSettings extends Model
     public bool $showSaveButton = false;
     public string $saveButtonStyle = 'link';
     public string $buttonsPosition = 'left';
+    public string $submitButtonPlacement = 'page-footer';
     public ?string $cssClasses = null;
     public ?array $containerAttributes = null;
     public ?array $inputAttributes = null;
@@ -89,6 +90,11 @@ class FieldLayoutPageSettings extends Model
         }
 
         return ArrayHelper::map($this->inputAttributes, 'label', 'value');
+    }
+
+    public function shouldRenderSubmitOnLastRow(bool $hasRows): bool
+    {
+        return $this->submitButtonPlacement === 'end-of-last-row' && $hasRows;
     }
 
     public function hasConditions(): bool

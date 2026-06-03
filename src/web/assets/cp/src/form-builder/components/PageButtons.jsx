@@ -29,6 +29,7 @@ const getDefaultPageSettings = (settings = {}, pageIndex = 0) => {
         showSaveButton: Boolean(settings?.showSaveButton),
         saveButtonStyle: settings?.saveButtonStyle || 'link',
         buttonsPosition: settings?.buttonsPosition || 'left',
+        submitButtonPlacement: settings?.submitButtonPlacement || 'page-footer',
     };
 };
 

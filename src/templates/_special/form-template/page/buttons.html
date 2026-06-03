@@ -1,11 +1,12 @@
 {% set prevPage = form.getPreviousPage(page) %}
+{% set inlineSubmit = page.shouldRenderSubmitOnLastRow(page.getRows(false)|length > 0) %}
 
 {% formtag 'pageButtons' %}
     {# Next button goes first. https://stackoverflow.com/a/1963285 #}
     {% formtag 'buttonContainer' %}
-        {% formtag 'submitButton' %}
-            {{ page.settings.submitButtonLabel | t('formie') }}
-        {% endformtag %}
+        {% if not inlineSubmit %}
+            {{ formieInclude('page/submit-button') }}
+        {% endif %}
 
         {% if page.settings.showBackButton and prevPage %}
             {% formtag 'backButton' %}

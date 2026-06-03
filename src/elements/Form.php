@@ -2736,6 +2736,15 @@ class Form extends Element implements FormInterface
                         ],
                     ]),
                     SchemaHelper::selectField([
+                        'label' => Craft::t('formie', 'Submit Button Placement'),
+                        'instructions' => Craft::t('formie', 'Where the submit button should appear on the page.'),
+                        'name' => 'settings.submitButtonPlacement',
+                        'options' => [
+                            ['label' => Craft::t('formie', 'Page Footer'), 'value' => 'page-footer'],
+                            ['label' => Craft::t('formie', 'End of Last Row'), 'value' => 'end-of-last-row'],
+                        ],
+                    ]),
+                    SchemaHelper::selectField([
                         'label' => Craft::t('formie', 'Save Button Style'),
                         'instructions' => Craft::t('formie', 'Select the style for the save button.'),
                         'name' => 'settings.saveButtonStyle',

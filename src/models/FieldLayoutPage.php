@@ -337,6 +337,36 @@ class FieldLayoutPage extends SavableComponent
         return ($pageSettings->enableNextButtonConditions && $pageSettings->getConditions());
     }
 
+    public function shouldRenderSubmitOnLastRow(bool $hasRows): bool
+    {
+        return $this->getPageSettings()?->shouldRenderSubmitOnLastRow($hasRows) ?? false;
+    }
+
+    public function isLastRow(FieldLayoutRow $row): bool
+    {
+        $rows = $this->getRows(false);
+
+        if (!$rows) {
+            return false;
+        }
+
+        $lastRow = $rows[array_key_last($rows)];
+
+        if ($row === $lastRow) {
+            return true;
+        }
+
+        if ($row->id !== null && $lastRow->id !== null && (string)$row->id === (string)$lastRow->id) {
+            return true;
+        }
+
+        if ($row->uid !== null && $lastRow->uid !== null && (string)$row->uid === (string)$lastRow->uid) {
+            return true;
+        }
+
+        return false;
+    }
+
     public function getSubmitButtonConditions(): array
     {
         return $this->getPageSettings()->getConditions();

@@ -82,6 +82,11 @@ class PageSettingsInterface extends BaseInterfaceType
                 'type' => Type::string(),
                 'description' => 'The page’s button (back and submit) positions.',
             ],
+            'submitButtonPlacement' => [
+                'name' => 'submitButtonPlacement',
+                'type' => Type::string(),
+                'description' => 'Where the page’s submit button should appear.',
+            ],
             'cssClasses' => [
                 'name' => 'cssClasses',
                 'type' => Type::string(),

@@ -101,6 +101,34 @@
         .formie-row[data-formie-field-count="4"] {
             grid-template-columns: repeat(4, minmax(0, 1fr));
         }
+
+        .formie-row[data-formie-field-count="5"] {
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+        }
+    }
+
+    .formie-row[data-formie-row-submit-inline] > .formie-row-submit {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+    }
+
+    @media (min-width: 40rem) {
+        .formie-row[data-formie-row-submit-inline] {
+            display: flex;
+            flex-wrap: nowrap;
+            align-items: stretch;
+            gap: var(--formie-gap-row);
+        }
+
+        .formie-row[data-formie-row-submit-inline] > [data-formie-field] {
+            flex: 1 1 0;
+            min-width: 0;
+        }
+
+        .formie-row[data-formie-row-submit-inline] > .formie-row-submit {
+            flex: 0 0 auto;
+        }
     }
 
     .formie-errors {

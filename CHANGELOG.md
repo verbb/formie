@@ -4,6 +4,7 @@
 
 ### Added
 - Add an opt-in setting to disable the submit button until the current page passes validation. ([#1514](https://github.com/verbb/formie/issues/1514))
+- Add a page setting to place the submit button at the end of the last field row. ([#2542](https://github.com/verbb/formie/issues/2542))
 
 ### Fixed
 - Fix dropdown field options not saving in the form builder when no default option is selected. ([#2795](https://github.com/verbb/formie/issues/2795))

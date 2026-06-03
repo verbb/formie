@@ -6,6 +6,7 @@ use verbb\formie\helpers\Html;
 use verbb\formie\helpers\SetPageReturnUrlHelper;
 use verbb\formie\models\ClientModule;
 use verbb\formie\models\FieldLayoutPage;
+use verbb\formie\models\FieldLayoutRow;
 use verbb\formie\models\SlotTag;
 use verbb\formie\theme\context\RenderContext;
 
@@ -46,6 +47,7 @@ class FormSlotRegistry extends Component
             'pageTitle' => $this->_pageTitle($context),
             'rows' => $this->_rows($context),
             'row' => $this->_row($context),
+            'rowSubmitButton' => $this->_rowSubmitButton($context),
             'captchaContainer' => $this->_captchaContainer($context),
             'buttonContainer' => $this->_buttonContainer($context),
             'submitButton' => $this->_submitButton($context),
@@ -495,19 +497,50 @@ class FormSlotRegistry extends Component
     private function _row(RenderContext $context): SlotTag
     {
         $row = $context->row;
+        $form = $context->form;
+        $page = $context->targetPage ?? $form?->getCurrentPage();
+        $pageSettings = $page?->getPageSettings();
         $fieldCount = $row ? count($row->getFields(false)) : null;
         $isHidden = $row ? $row->getIsHidden() : false;
+        $rows = $page ? $page->getRows(false) : [];
+        $inlineSubmit = $page instanceof FieldLayoutPage
+            && $row instanceof FieldLayoutRow
+            && $page->shouldRenderSubmitOnLastRow(count($rows) > 0)
+            && $page->isLastRow($row);
+
+        if ($inlineSubmit && $fieldCount !== null) {
+            $fieldCount++;
+        }
+
+        $core = [
+            'data-formie-row' => true,
+            'data-formie-field-count' => $fieldCount ?: null,
+            'data-formie-row-hidden' => $isHidden ? true : false,
+        ];
+
+        if ($inlineSubmit) {
+            $core['data-formie-row-submit-inline'] = true;
+        }
 
         return SlotTag::make('div')
-            ->core([
-                'data-formie-row' => true,
-                'data-formie-field-count' => $fieldCount ?: null,
-                'data-formie-row-hidden' => $isHidden ? true : false,
-            ])
+            ->core($core)
             ->theme([
                 'class' => [
                     'formie-row',
                     $isHidden ? 'formie-row-hidden' : false,
+                ],
+            ]);
+    }
+
+    private function _rowSubmitButton(RenderContext $context): SlotTag
+    {
+        return SlotTag::make('div')
+            ->core([
+                'data-formie-row-submit' => true,
+            ])
+            ->theme([
+                'class' => [
+                    'formie-row-submit',
                 ],
             ]);
     }
