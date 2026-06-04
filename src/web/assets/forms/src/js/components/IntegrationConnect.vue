@@ -124,7 +124,7 @@ export default {
                     return;
                 }
 
-                this.statusText = 'Connected';
+                this.statusText = response.data.success ? 'Connected' : 'Not connected';
             }).catch((error) => {
                 this.loading = false;
                 this.error = true;
