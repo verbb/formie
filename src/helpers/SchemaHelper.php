@@ -977,4 +977,90 @@ class SchemaHelper
 
         return $node;
     }
+
+    public static function extractSettingsSchema(mixed $schema, array $names): array
+    {
+        if ($names === []) {
+            return [];
+        }
+
+        $normalized = self::normalizeSchema($schema);
+        $found = [];
+        self::_collectExtractableSettingsFields($normalized, $names, $found, null);
+
+        $extracted = [];
+
+        foreach ($names as $name) {
+            if (!isset($found[$name])) {
+                continue;
+            }
+
+            $extracted[] = self::_prepareDefaultsSchemaNode($found[$name]);
+        }
+
+        return $extracted;
+    }
+
+    private static function _collectExtractableSettingsFields(mixed $node, array $names, array &$found, ?array $fieldWrap): void
+    {
+        if (!is_array($node)) {
+            return;
+        }
+
+        if (array_is_list($node)) {
+            foreach ($node as $child) {
+                self::_collectExtractableSettingsFields($child, $names, $found, $fieldWrap);
+            }
+
+            return;
+        }
+
+        $nextFieldWrap = (($node['$cmp'] ?? null) === 'FieldWrap') ? $node : $fieldWrap;
+
+        if (isset($node['$field'], $node['name']) && in_array($node['name'], $names, true) && !isset($found[$node['name']])) {
+            $found[$node['name']] = self::_mergeDefaultsFieldContext($node, $fieldWrap);
+        }
+
+        if (isset($node['schema'])) {
+            self::_collectExtractableSettingsFields($node['schema'], $names, $found, $nextFieldWrap);
+
+            return;
+        }
+
+        if (isset($node['children'])) {
+            self::_collectExtractableSettingsFields($node['children'], $names, $found, $nextFieldWrap);
+        }
+    }
+
+    private static function _mergeDefaultsFieldContext(array $node, ?array $fieldWrap): array
+    {
+        if (!$fieldWrap) {
+            return $node;
+        }
+
+        if (empty($node['label']) && !empty($fieldWrap['label'])) {
+            $node['label'] = $fieldWrap['label'];
+        }
+
+        if (empty($node['instructions']) && !empty($fieldWrap['instructions'])) {
+            $node['instructions'] = $fieldWrap['instructions'];
+        }
+
+        return $node;
+    }
+
+    private static function _prepareDefaultsSchemaNode(array $node): array
+    {
+        unset($node['required'], $node['validation']);
+
+        if (isset($node['defaults']) && is_array($node['defaults'])) {
+            foreach ($node['defaults'] as $key => $value) {
+                $node[$key] = $value;
+            }
+        }
+
+        unset($node['defaults']);
+
+        return $node;
+    }
 }

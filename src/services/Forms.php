@@ -240,7 +240,7 @@ class Forms extends Component
 
     public function buildStencilFormFromPost(): Form
     {
-        return $this->_populateFormFromPost(new Form());
+        return $this->_populateFormFromPost(new Form(), applyDefaultStencil: false);
     }
 
     public function getFormBuilderVariables(Form $form): array
@@ -537,10 +537,11 @@ class Forms extends Component
         return $element;
     }
 
-    private function _populateFormFromPost(Form $form): Form
+    private function _populateFormFromPost(Form $form, bool $applyDefaultStencil = true): Form
     {
         $request = Craft::$app->getRequest();
         $bodyParams = $request->getBodyParams();
+        $isNewForm = !$form->id;
 
         if ($bodyParams) {
             $this->_normalizeBuilderFieldReferences($bodyParams);
@@ -579,11 +580,17 @@ class Forms extends Component
         // Set custom field values
         $form->setFieldValuesFromRequest('fields');
 
+        if ($isNewForm) {
+            Formie::$plugin->getFormDefaults()->applyToNewForm($form, $bodyParams);
+        }
+
         // Apply a chosen stencil, which will override a few things above
         if ($stencilId = $request->getParam('applyStencilId')) {
             if ($stencil = Formie::$plugin->getStencils()->getStencilById($stencilId)) {
                 $stencil->applyStencilToForm($form, true);
             }
+        } else if ($isNewForm && $applyDefaultStencil) {
+            Formie::$plugin->getFormDefaults()->applyDefaultStencil($form);
         }
 
         return $form;

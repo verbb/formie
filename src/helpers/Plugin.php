@@ -5,6 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\base\ParentFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\web\assets\cp\CpReactAsset;
+use verbb\formie\web\assets\cp\DefaultsAsset;
 use verbb\formie\web\assets\cp\PluginSettingsAsset;
 use verbb\formie\web\assets\cp\SentNotificationsAsset;
 use verbb\formie\web\assets\cp\SubmissionsAsset;
@@ -31,6 +32,11 @@ class Plugin extends BasePlugin
     public static function registerCpNewFormAssets(): void
     {
         self::registerCpAsset('src/new-form/formie-new-form.js');
+    }
+
+    public static function registerCpDefaultsAssets(): void
+    {
+        self::registerCpAsset('src/defaults/formie-defaults.js', CpReactAsset::class, DefaultsAsset::class);
     }
 
     public static function registerCpStencilNewAssets(): void

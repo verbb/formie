@@ -3,10 +3,12 @@ namespace verbb\formie\controllers;
 
 use verbb\formie\Formie;
 use verbb\formie\fields\MissingField;
+use verbb\formie\helpers\Plugin;
 use verbb\formie\models\Settings;
 
 use Craft;
 use craft\errors\MissingComponentException;
+use craft\helpers\Json;
 
 use yii\web\BadRequestHttpException;
 use yii\web\Response;
@@ -33,10 +35,19 @@ class SettingsController extends SettingsAccessController
     {
         /* @var Settings $settings */
         $settings = Formie::$plugin->getSettings();
-        $formTemplates = Formie::$plugin->getFormTemplates()->getAllTemplates();
-        $emailTemplates = Formie::$plugin->getEmailTemplates()->getAllTemplates();
 
-        return $this->renderTemplate('formie/settings/forms', compact('settings', 'formTemplates', 'emailTemplates'));
+        return $this->renderTemplate('formie/settings/forms', compact('settings'));
+    }
+
+    public function actionDefaults(): Response
+    {
+        Plugin::registerCpDefaultsAssets();
+
+        $settings = Formie::$plugin->getFormDefaults()->getEditorConfig();
+
+        $this->view->registerJs('new Craft.Formie.Defaults(' . Json::encode($settings) . ');');
+
+        return $this->renderTemplate('formie/settings/defaults');
     }
 
     public function actionFields(): Response
@@ -84,7 +95,13 @@ class SettingsController extends SettingsAccessController
 
         /* @var Settings $settings */
         $settings = Formie::$plugin->getSettings();
-        $settings->setAttributes($request->getParam('settings'), false);
+        $settingsParams = $request->getParam('settings');
+
+        if (is_array($settingsParams)) {
+            $settingsParams = Formie::$plugin->getFormDefaults()->migrateLegacyFieldDefaults($settingsParams);
+        }
+
+        $settings->setAttributes($settingsParams, false);
 
         if (!$settings->validate()) {
             $this->setFailFlash(Craft::t('formie', 'Couldn’t save settings.'));

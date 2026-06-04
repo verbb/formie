@@ -310,7 +310,13 @@ class Notifications extends Component
         $notificationsData = Json::decodeIfJson($notificationsData) ?? [];
 
         foreach ($notificationsData as $notificationData) {
-            $notifications[] = new Notification($notificationData);
+            $notification = new Notification($notificationData);
+
+            if (empty($notificationData['id'])) {
+                Formie::$plugin->getFormDefaults()->applyToNewNotification($notification, $notificationData);
+            }
+
+            $notifications[] = $notification;
         }
 
         return $notifications;

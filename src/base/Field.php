@@ -378,6 +378,8 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
         // Config normalization
         self::normalizeConfig($config);
 
+        Formie::$plugin?->getFormDefaults()?->applyToNewField($config, static::class, $this->getSupportedDefaults());
+
         parent::__construct($config);
     }
 

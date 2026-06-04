@@ -116,6 +116,10 @@ final class UploadTestHelper
 
     private static function setDefaultUploadVolume(Volume $volume): void
     {
-        Formie::$plugin->getSettings()->defaultFileUploadVolume = 'folder:' . $volume->uid;
+        Formie::$plugin->getSettings()->fieldDefaults = [
+            \verbb\formie\fields\FileUpload::class => [
+                'uploadLocationSource' => 'folder:' . $volume->uid,
+            ],
+        ];
     }
 }

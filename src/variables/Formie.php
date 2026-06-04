@@ -206,6 +206,7 @@ class Formie
                 'general' => ['title' => Craft::t('formie', 'General Settings')],
                 'import-export' => ['title' => Craft::t('formie', 'Import/Export')],
                 'forms' => ['title' => Craft::t('formie', 'Forms')],
+                'defaults' => ['title' => Craft::t('formie', 'Defaults')],
                 'fields' => ['title' => Craft::t('formie', 'Fields')],
 
                 'behavior-heading' => ['heading' => Craft::t('formie', 'Behavior')],

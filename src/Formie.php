@@ -110,7 +110,7 @@ class Formie extends Plugin
 
     public bool $hasCpSection = true;
     public bool $hasCpSettings = true;
-    public string $schemaVersion = '4.0.10';
+    public string $schemaVersion = '4.0.11';
     public string $minVersionRequired = '2.1.5';
 
 
@@ -282,6 +282,7 @@ class Formie extends Plugin
             $event->rules['formie/settings'] = 'formie/settings/index';
             $event->rules['formie/settings/general'] = 'formie/settings/index';
             $event->rules['formie/settings/forms'] = 'formie/settings/forms';
+            $event->rules['formie/settings/defaults'] = 'formie/settings/defaults';
             $event->rules['formie/settings/fields'] = 'formie/settings/fields';
             $event->rules['formie/settings/submissions'] = 'formie/settings/submissions';
             $event->rules['formie/settings/spam'] = 'formie/settings/spam';

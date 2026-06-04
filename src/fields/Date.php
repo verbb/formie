@@ -29,7 +29,6 @@ use verbb\formie\models\ClientModule;
 use verbb\formie\models\SlotTag;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Notification;
-use verbb\formie\models\Settings;
 use verbb\formie\positions\Hidden as HiddenPosition;
 
 use verbb\formie\theme\context\RenderContext;
@@ -264,22 +263,6 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
             $config['includeTime'],
             $config['useDatePicker'],
         );
-
-        // Setup defaults from the plugin-level
-        /* @var Settings $settings */
-        $settings = Formie::$plugin->getSettings();
-
-        if (!isset($config['displayType'])) {
-            $config['displayType'] = $settings->defaultDateDisplayType ?: 'calendar';
-        }
-
-        if (!isset($config['defaultOption'])) {
-            $config['defaultOption'] = $settings->defaultDateValueOption ?: '';
-        }
-
-        if (!isset($config['defaultValue'])) {
-            $config['defaultValue'] = $settings->getDefaultDateTimeValue();
-        }
 
         // Prevent a required state set at the top-level field
         $config['required'] = false;
@@ -1011,6 +994,11 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
         }
 
         return parent::defineFieldSlotTag($key, $context);
+    }
+
+    protected function supportedDefaults(): array
+    {
+        return ['displayType', 'defaultOption', 'defaultValue'];
     }
 
     protected function getNestedLayoutBuilderLayouts(): array

@@ -9,12 +9,9 @@ use verbb\formie\positions\AboveInput;
 use Craft;
 use craft\base\Model;
 use craft\helpers\App;
-use craft\helpers\DateTimeHelper;
 use craft\helpers\FileHelper;
 
 use yii\validators\EmailValidator;
-
-use DateTime;
 
 class Settings extends Model
 {
@@ -46,7 +43,11 @@ class Settings extends Model
     // Forms
     public bool $validateCustomTemplates = true; // Allow power users to handle form template path checks on their own
     public string $defaultFormTemplate = '';
+    public string $defaultFormStencil = '';
     public string $defaultEmailTemplate = '';
+    public array $formDefaults = [];
+    public array $fieldDefaults = [];
+    public array $notificationDefaults = [];
     public bool $enableUnloadWarning = true;
     public bool $enableBackSubmission = true;
     public int $ajaxTimeout = 10;
@@ -61,11 +62,7 @@ class Settings extends Model
     public string $defaultInstructionsPosition = AboveInput::class;
 
     // Fields
-    public string $defaultFileUploadVolume = '';
     public bool $allowPublicVolumes = true;
-    public string $defaultDateDisplayType = 'calendar';
-    public string $defaultDateValueOption = '';
-    public ?DateTime $defaultDateTime = null;
     public bool $enableLargeFieldStorage = false;
     public string $plainTextHtmlSanitizationMode = self::PLAIN_TEXT_HTML_SANITIZATION_MODE_PRESERVE;
 
@@ -133,6 +130,10 @@ class Settings extends Model
             $config['submissionsBehaviour'] = 'all';
         }
 
+        if (is_array($config) && Formie::$plugin?->getFormDefaults()) {
+            $config = Formie::$plugin->getFormDefaults()->migrateLegacyFieldDefaults($config);
+        }
+
         parent::__construct($config);
     }
 
@@ -144,6 +145,10 @@ class Settings extends Model
         }
         unset($values['submissionStateMode']);
         unset($values['submissionStore']);
+
+        if (is_array($values) && Formie::$plugin?->getFormDefaults()) {
+            $values = Formie::$plugin->getFormDefaults()->migrateLegacyFieldDefaults($values);
+        }
 
         parent::setAttributes($values, $safeOnly);
     }
@@ -190,13 +195,40 @@ class Settings extends Model
         return null;
     }
 
-    public function getDefaultDateTimeValue(): ?DateTime
+    public function getNormalizedFormDefaults(): array
     {
-        if ($defaultDateTime = DateTimeHelper::toDateTime($this->defaultDateTime)) {
-            return $this->defaultDateTime = $defaultDateTime;
-        }
+        return array_replace([
+            'defaultStatus' => '',
+            'submissionTitleFormat' => '{timestamp}',
+            'collectIp' => false,
+            'collectUser' => false,
+            'submitMethod' => 'page-reload',
+            'dataRetention' => 'forever',
+            'dataRetentionValue' => null,
+            'fileUploadsAction' => 'retain',
+            'displayFormTitle' => false,
+            'displayCurrentPageTitle' => false,
+            'displayPageTabs' => false,
+            'displayPageProgress' => false,
+            'progressCalculation' => 'completion',
+            'progressPosition' => 'end',
+            'scrollToTop' => true,
+            'requiredIndicator' => 'asterisk',
+        ], $this->formDefaults);
+    }
 
-        return null;
+    public function getNormalizedNotificationDefaults(): array
+    {
+        return array_replace([
+            'fromName' => null,
+            'from' => null,
+            'replyTo' => null,
+            'replyToName' => null,
+            'subject' => null,
+            'attachFiles' => null,
+            'attachPdf' => null,
+            'enabled' => null,
+        ], $this->notificationDefaults);
     }
 
     public function shouldSaveSpam(Submission $submission): bool

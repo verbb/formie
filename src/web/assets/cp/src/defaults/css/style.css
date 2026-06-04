@@ -1,0 +1,33 @@
+@import "@verbb/plugin-kit-react/style.css";
+
+.formie-defaults-app {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.formie-defaults-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    padding: 1.5rem;
+}
+
+.formie-defaults-section-title {
+    margin: 0 0 0.25rem;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-color, #33475b);
+}
+
+.formie-defaults-section-description {
+    margin: 0 0 1rem;
+    color: var(--gray-500, #6b7280);
+    font-size: 13px;
+}
+
+.formie-defaults-note {
+    margin: 0;
+    color: var(--gray-500, #6b7280);
+    font-size: 13px;
+}

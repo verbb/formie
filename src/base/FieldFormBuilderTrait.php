@@ -130,6 +130,29 @@ trait FieldFormBuilderTrait
         ];
     }
 
+    public function getDefaultableSettingsSchema(): array
+    {
+        $names = $this->supportedDefaults();
+
+        if ($names === []) {
+            return [];
+        }
+
+        $tabSchemas = array_values(array_filter([
+            $this->defineFormBuilderGeneralSchema(),
+            $this->defineFormBuilderSettingsSchema(),
+            $this->defineFormBuilderAppearanceSchema(),
+            $this->defineFormBuilderAdvancedSchema(),
+        ]));
+
+        return SchemaHelper::extractSettingsSchema($tabSchemas, $names);
+    }
+
+    public function getSupportedDefaults(): array
+    {
+        return $this->supportedDefaults();
+    }
+
     public function defineFormBuilderPreviewSchema(): array
     {
         return [];
@@ -273,8 +296,18 @@ trait FieldFormBuilderTrait
     }
 
 
+    // Protected Methods
+    // =========================================================================
+
+    protected function supportedDefaults(): array
+    {
+        return [];
+    }
+
+
     // Private Methods
     // =========================================================================
+
     private function _isLegacyVuePreviewTemplate(string $template): bool
     {
         return str_contains($template, '${ ')

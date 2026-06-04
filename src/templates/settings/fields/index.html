@@ -1,7 +1,6 @@
 {% extends 'formie/_layouts/settings' %}
 
 {% import '_includes/forms' as forms %}
-{% import 'verbb-base/_macros' as macros %}
 
 {% block content %}
 
@@ -21,105 +20,6 @@
             options: disabledFields,
             values: settings.disabledFields,
         }) }}
-
-        <h4>{{ 'General Fields' | t('formie') }}</h4>
-
-        {{ forms.selectField({
-            label: 'Default Label Position' | t('formie'),
-            instructions: 'Fields will by default have their label position set to this option.' | t('formie'),
-            name: 'defaultLabelPosition',
-            options: craft.formie.plugin.fields.getLabelPositionsOptions(),
-            value: settings.defaultLabelPosition
-        }) }}
-
-        {{ forms.selectField({
-            label: 'Default Instructions Position' | t('formie'),
-            instructions: 'Fields will by default have their instructions position set to this option.' | t('formie'),
-            name: 'defaultInstructionsPosition',
-            options: craft.formie.plugin.fields.getInstructionsPositionsOptions(),
-            value: settings.defaultInstructionsPosition,
-        }) }}
-
-        <hr>
-
-        <h4>{{ 'File Upload Fields' | t('formie') }}</h4>
-
-        {{ forms.selectField({
-            label: 'Default File Upload Volume' | t('formie'),
-            instructions: 'Select a volume to be used as the default for all new file upload fields.' | t('formie'),
-            name: 'defaultFileUploadVolume',
-            value: settings.defaultFileUploadVolume,
-            errors: settings.getErrors('defaultFileUploadVolume'),
-            warning: macros.configWarning('defaultFileUploadVolume', 'formie'),
-            options: [{
-                label: 'Default Volume' | t('formie'),
-                value: '',
-            }] | merge(craft.app.volumes.getAllVolumes() | map(volume => {
-                label: volume.name,
-                value: 'volume:' ~ volume.uid,
-            })),
-        }) }}
-
-        <hr>
-
-        <h4>{{ 'Date/Time Fields' | t('formie') }}</h4>
-
-        {{ forms.selectField({
-            label: 'Default Date Display Type' | t('formie'),
-            instructions: 'Select a display type to be used as the default for all new date fields.' | t('formie'),
-            name: 'defaultDateDisplayType',
-            value: settings.defaultDateDisplayType,
-            errors: settings.getErrors('defaultDateDisplayType'),
-            warning: macros.configWarning('defaultDateDisplayType', 'formie'),
-            options: [{
-                label: 'Default Display Type' | t('formie'),
-                value: '',
-            },{
-                label: 'Calendar (Simple)' | t('formie'),
-                value: 'calendar',
-            },{
-                label: 'Calendar (Advanced)' | t('formie'),
-                value: 'datePicker',
-            },{
-                label: 'Dropdowns' | t('formie'),
-                value: 'dropdowns',
-            },{
-                label: 'Text Inputs' | t('formie'),
-                value: 'inputs',
-            }],
-        }) }}
-
-        {{ forms.selectField({
-            label: 'Default Date Value' | t('formie'),
-            instructions: 'Select a default value for all new date fields.' | t('formie'),
-            name: 'defaultDateValueOption',
-            value: settings.defaultDateValueOption,
-            errors: settings.getErrors('defaultDateValueOption'),
-            warning: macros.configWarning('defaultDateValueOption', 'formie'),
-            toggle: true,
-            targetPrefix: 'default-datetime-',
-            options: [{
-                label: 'None' | t('formie'),
-                value: '',
-            },{
-                label: 'Today‘s Date/Time' | t('formie'),
-                value: 'today',
-            },{
-                label: 'Specific Date/Time' | t('formie'),
-                value: 'date',
-            }],
-        }) }}
-
-        <div id="default-datetime-date" class="{{ settings.defaultDateValueOption != 'date' ? 'hidden' }}">
-            {{ forms.dateTimeField({
-                label: 'Default Date/Time' | t('formie'),
-                instructions: 'Set a default value for the field when it doesn’t have a value.' | t('formie'),
-                name: 'defaultDateTime',
-                value: settings.getDefaultDateTimeValue(),
-                errors: settings.getErrors('defaultDateTime'),
-                warning: macros.configWarning('defaultDateTime', 'formie'),
-            }) }}
-        </div>
     {% endnamespace %}
 
     <hr>

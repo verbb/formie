@@ -28,7 +28,11 @@ it('requires upload location in the form builder schema', function (): void {
 
 it('falls back to the plugin default upload volume when the field source is empty', function (): void {
     $volume = UploadTestHelper::ensureUploadVolume();
-    Formie::$plugin->getSettings()->defaultFileUploadVolume = 'folder:' . $volume->uid;
+    Formie::$plugin->getSettings()->fieldDefaults = [
+        FileUpload::class => [
+            'uploadLocationSource' => 'folder:' . $volume->uid,
+        ],
+    ];
 
     $field = new FileUpload(['uploadLocationSource' => '']);
 
@@ -39,7 +43,7 @@ it('falls back to the plugin default upload volume when the field source is empt
 });
 
 it('requires upload location when no plugin default is configured', function (): void {
-    Formie::$plugin->getSettings()->defaultFileUploadVolume = '';
+    Formie::$plugin->getSettings()->fieldDefaults = [];
 
     $field = new FileUpload([
         'label' => 'Resume',

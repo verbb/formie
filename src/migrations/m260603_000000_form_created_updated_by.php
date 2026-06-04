@@ -7,6 +7,9 @@ use craft\db\Migration;
 
 class m260603_000000_form_created_updated_by extends Migration
 {
+    // Public Methods
+    // =========================================================================
+
     public function safeUp(): bool
     {
         if (!$this->db->columnExists(Table::FORMIE_FORMS, 'createdById')) {

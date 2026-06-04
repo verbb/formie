@@ -19,6 +19,7 @@ use verbb\formie\services\Factories;
 use verbb\formie\services\FieldTypeDefinitions;
 use verbb\formie\services\Fields;
 use verbb\formie\services\FileUploads;
+use verbb\formie\services\FormDefaults;
 use verbb\formie\services\Forms;
 use verbb\formie\services\FormTemplates;
 use verbb\formie\services\Integrations;
@@ -147,6 +148,7 @@ trait PluginTrait
                 'fields' => Fields::class,
                 'fieldSlotRegistry' => FieldSlotRegistry::class,
                 'fileUploads' => FileUploads::class,
+                'formDefaults' => FormDefaults::class,
                 'forms' => Forms::class,
                 'formSlotRegistry' => FormSlotRegistry::class,
                 'clientFormBootstrapBuilder' => FormBootstrapBuilder::class,
@@ -236,6 +238,11 @@ trait PluginTrait
     public function registerCpNewFormAssets(): void
     {
         FormiePluginHelper::registerCpNewFormAssets();
+    }
+
+    public function registerCpDefaultsAssets(): void
+    {
+        FormiePluginHelper::registerCpDefaultsAssets();
     }
 
     public function registerCpStencilNewAssets(): void
@@ -336,6 +343,11 @@ trait PluginTrait
     public function getForms(): Forms
     {
         return $this->get('forms');
+    }
+
+    public function getFormDefaults(): FormDefaults
+    {
+        return $this->get('formDefaults');
     }
 
     public function getFormTemplates(): FormTemplates

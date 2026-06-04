@@ -16,7 +16,46 @@ return [
         // Forms
         'validateCustomTemplates' => true,
         'defaultFormTemplate' => '',
+        'defaultFormStencil' => '',
         'defaultEmailTemplate' => '',
+        'formDefaults' => [
+            'defaultStatus' => '',
+            'submissionTitleFormat' => '{timestamp}',
+            'collectIp' => false,
+            'collectUser' => false,
+            'submitMethod' => 'page-reload',
+            'dataRetention' => 'forever',
+            'dataRetentionValue' => null,
+            'fileUploadsAction' => 'retain',
+            'displayFormTitle' => false,
+            'displayCurrentPageTitle' => false,
+            'displayPageTabs' => false,
+            'displayPageProgress' => false,
+            'progressCalculation' => 'completion',
+            'progressPosition' => 'end',
+            'scrollToTop' => true,
+            'requiredIndicator' => 'asterisk',
+        ],
+        'fieldDefaults' => [
+            \verbb\formie\fields\FileUpload::class => [
+                'uploadLocationSource' => '',
+            ],
+            \verbb\formie\fields\Date::class => [
+                'displayType' => '',
+                'defaultOption' => '',
+                'defaultValue' => null,
+            ],
+        ],
+        'notificationDefaults' => [
+            'fromName' => null,
+            'from' => null,
+            'replyTo' => null,
+            'replyToName' => null,
+            'subject' => null,
+            'attachFiles' => null,
+            'attachPdf' => null,
+            'enabled' => null,
+        ],
         'enableUnloadWarning' => true,
         'enableBackSubmission' => true,
         'ajaxTimeout' => 10,
@@ -31,11 +70,7 @@ return [
         'defaultInstructionsPosition' => \verbb\formie\positions\AboveInput::class,
 
         // Fields
-        'defaultFileUploadVolume' => '',
         'allowPublicVolumes' => true,
-        'defaultDateDisplayType' => 'calendar',
-        'defaultDateValueOption' => '',
-        'defaultDateTime' => null,
         'enableLargeFieldStorage' => false,
         'plainTextHtmlSanitizationMode' => 'preserve',
 
@@ -97,7 +132,11 @@ return [
 ### Forms
 - `validateCustomTemplates` checks that custom form template paths exist before they are saved.
 - `defaultFormTemplate` sets the default form template handle used for new forms.
+- `defaultFormStencil` sets a stencil handle to apply automatically when new forms are created without an explicit stencil.
 - `defaultEmailTemplate` sets the default email template handle used for new email notifications.
+- `formDefaults` sets structured defaults applied to new forms and stencils, including default submission status, submission title format, privacy settings, submission method, data retention, file-upload deletion behavior, and appearance settings. Leave a value empty or `null` to inherit Formie’s built-in behaviour.
+- `fieldDefaults` sets per-field-type defaults applied when new fields are added to a form. Keys are field class names; values are arrays of setting handles and values. Field types opt in via `supportedDefaults()`. Leave a value empty or `null` to inherit Formie’s built-in behaviour.
+- `notificationDefaults` sets defaults applied when a new email notification is created. Leave a value empty or `null` to inherit Formie’s built-in behaviour.
 - `enableUnloadWarning` shows an unload warning when a user changes a front-end form and tries to leave without submitting.
 - `enableBackSubmission` submits the current page content when a user clicks the Back button on a multi-page form.
 - `ajaxTimeout` sets the timeout in seconds for Ajax requests made by Formie’s front-end JavaScript.
@@ -112,11 +151,8 @@ return [
 - `defaultInstructionsPosition` sets the default instruction position for new forms and fields.
 
 ### Fields
-- `defaultFileUploadVolume` sets the asset volume used as the default for new File Upload fields. Use the `folder:uid` format.
+- `fieldDefaults` stores per-field-type default settings. For example, set File Upload and Date defaults with `\verbb\formie\fields\FileUpload::class` and `\verbb\formie\fields\Date::class` as keys. Legacy settings such as `defaultFileUploadVolume`, `defaultDateDisplayType`, `defaultDateValueOption`, and `defaultDateTime` are migrated automatically into `fieldDefaults`.
 - `allowPublicVolumes` allows File Upload fields to use public asset volumes.
-- `defaultDateDisplayType` sets the default display type for new Date fields. Use `calendar`, `dropdowns`, or `inputs`.
-- `defaultDateValueOption` sets the default value mode for new Date fields. Use `today` or `date`.
-- `defaultDateTime` sets the default date when `defaultDateValueOption` is `date`.
 - `enableLargeFieldStorage` stores field content in large-text database columns for projects that expect very large submission payloads.
 - `plainTextHtmlSanitizationMode` controls how plain-text input values are handled when HTML is submitted. Use `preserve` or `sanitize`.
 
@@ -172,7 +208,7 @@ return [
 - `defaultExportFolder` sets the default folder used by form export console commands.
 
 ## Control Panel
-You can also manage many configuration settings through the control panel by visiting **Formie → Settings**.
+You can also manage many configuration settings through the control panel by visiting **Formie → Settings**. Form, field, and notification defaults are managed on the dedicated **Defaults** settings page.
 
 ### Alerts Configuration
 Supply a nested array for the name and email of each contact to receive alert notifications. The first value should contain the name, and the second value should contain the email address.

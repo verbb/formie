@@ -146,14 +146,6 @@ class FileUpload extends ElementField
             unset($config['restrictLocation']);
         }
 
-        // Setup defaults from the plugin-level
-        /* @var Settings $settings */
-        $settings = Formie::$plugin->getSettings();
-
-        if (!isset($config['uploadLocationSource'])) {
-            $config['uploadLocationSource'] = $settings->defaultFileUploadVolume ?? null;
-        }
-
         parent::__construct($config);
     }
 
@@ -835,6 +827,11 @@ class FileUpload extends ElementField
         return $variables;
     }
 
+    protected function supportedDefaults(): array
+    {
+        return ['uploadLocationSource'];
+    }
+
     protected function defineValueAsString(mixed $value, ElementInterface $element = null): string
     {
         return implode(', ', array_map(function($item) {
@@ -1109,7 +1106,7 @@ class FileUpload extends ElementField
         $rules[] = [
             ['uploadLocationSource'],
             'required',
-            'when' => fn() => empty(Formie::$plugin->getSettings()->defaultFileUploadVolume),
+            'when' => fn() => empty(Formie::$plugin->getFormDefaults()->resolveFieldTypeDefaults(self::class)['uploadLocationSource'] ?? null),
             'message' => Craft::t('formie', 'Upload Location must be selected.'),
         ];
 
@@ -1122,7 +1119,7 @@ class FileUpload extends ElementField
             return $this->uploadLocationSource;
         }
 
-        $default = Formie::$plugin->getSettings()->defaultFileUploadVolume ?? null;
+        $default = Formie::$plugin->getFormDefaults()->resolveFieldTypeDefaults(self::class)['uploadLocationSource'] ?? null;
 
         return $default !== '' && $default !== null ? $default : null;
     }
