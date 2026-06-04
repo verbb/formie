@@ -101,14 +101,13 @@ class SchemaHelper
 
     public static function autocompleteField(array $config = []): array
     {
-        return array_merge([
-            '$field' => 'htmlAutocomplete',
+        return self::comboboxField(array_merge([
             'label' => Craft::t('formie', 'Autocomplete'),
             'instructions' => Craft::t('formie', 'Set the [HTML autocomplete attribute](https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/autocomplete) for this field’s input. Use “Default (browser)” to omit the attribute, or add sectioned values such as `billing email` via Input Attributes in Advanced.'),
             'name' => 'autocomplete',
             'placeholder' => Craft::t('formie', 'Select or type a value…'),
             'options' => HtmlAutocomplete::getOptions(),
-        ], $config);
+        ], $config));
     }
 
     public static function numberField(array $config = []): array
