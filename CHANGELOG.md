@@ -3,6 +3,11 @@
 ## Unreleased
 
 ### Added
+- Add stencil scopes so developers can ship starter forms in project config while content editors can create and manage their own stencils in the control panel. ([#2814](https://github.com/verbb/formie/issues/2814))
+- Add **project stencils** (stored in `formie.stencils` project config) alongside regular database-backed stencils, with handles unique across both scopes.
+- Add the `formie-accessStencils` permission for managing stencils in the control panel.
+- Add read-only viewing of project stencils when admin changes are disabled, with **Save a copy** to create an editable stencil.
+- Add a **Type** column to the stencils index, showing **Project** for project stencils only.
 - Add **Form Groups** for control panel organisation. ([#1039](https://github.com/verbb/formie/issues/1039), [#662](https://github.com/verbb/formie/issues/662))
 - Add a dedicated **Settings → Defaults** control panel page for form, field, and notification defaults. ([#863](https://github.com/verbb/formie/issues/863))
 - Add structured `formDefaults`, `fieldDefaults`, and `notificationDefaults` plugin settings, applied when new forms, fields, and notifications are created.
@@ -18,6 +23,10 @@
 - Add an opt-in setting to disable the submit button until the current page passes validation. ([#1514](https://github.com/verbb/formie/issues/1514))
 - Add a page setting to place the submit button at the end of the last field row. ([#2542](https://github.com/verbb/formie/issues/2542))
 - Add regression tests for required File Upload fields submitted via GraphQL with base64 file data. ([#1130](https://github.com/verbb/formie/issues/1130))
+
+### Changed
+- Move stencil management from **Settings** to **Formie → Stencils**, including create, edit, and index routes under `formie/stencils/*`. Legacy `formie/settings/stencils/*` URLs redirect to the new paths.
+- Change **Save as stencil** from the form builder to always create an editable, database-backed stencil.
 
 ### Fixed
 - Fix legacy upgrade migrations failing on fresh Craft 5 installs that never had Craft’s `content` or `formie_tokens` tables.

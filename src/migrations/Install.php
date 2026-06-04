@@ -367,6 +367,7 @@ class Install extends Migration
             'id' => $this->primaryKey(),
             'name' => $this->string()->notNull(),
             'handle' => $this->string(64)->notNull(),
+            'scope' => $this->string(16)->notNull()->defaultValue('project'),
             'data' => $this->mediumText(),
             'templateId' => $this->integer(),
             'submitActionEntryId' => $this->integer(),

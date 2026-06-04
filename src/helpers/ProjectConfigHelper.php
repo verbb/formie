@@ -46,6 +46,10 @@ class ProjectConfigHelper
         $data = [];
 
         foreach (Formie::$plugin->getStencils()->getAllStencils() as $stencil) {
+            if (!$stencil->isProjectScope()) {
+                continue;
+            }
+
             $data[$stencil->uid] = $stencil->getConfig();
         }
 

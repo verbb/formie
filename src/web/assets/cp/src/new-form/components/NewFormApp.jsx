@@ -174,6 +174,10 @@ export const NewFormApp = ({ settings }) => {
             applyStencilId: applyStencilId || '',
         };
 
+        if (settings.scope) {
+            data.scope = settings.scope;
+        }
+
         if (settings.groupId) {
             data.groupId = settings.groupId;
         }

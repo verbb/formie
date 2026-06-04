@@ -15,14 +15,17 @@ function FormBuilderInner({
 }) {
     const formRef = useRef(null);
     const setSaveAction = useAppStore((state) => { return state.setSaveAction; });
+    const canEdit = useAppStore((state) => { return state.canEdit; });
     useFormBuilderDocumentTitle();
 
     // Set up keyboard shortcuts
     useKeyboardShortcuts({
-        onSave: () => {
-            setSaveAction('save');
-            formRef.current?.handleSubmit?.();
-        },
+        onSave: canEdit
+            ? () => {
+                setSaveAction('save');
+                formRef.current?.handleSubmit?.();
+            }
+            : undefined,
     });
 
     return (

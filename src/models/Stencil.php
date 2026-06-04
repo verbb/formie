@@ -4,6 +4,7 @@ namespace verbb\formie\models;
 use verbb\formie\base\FormInterface;
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
+use verbb\formie\services\Stencils as StencilsService;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\models\FieldLayout;
 use verbb\formie\records\Stencil as StencilRecord;
@@ -40,6 +41,7 @@ class Stencil extends Model implements FormInterface
     public ?int $id = null;
     public ?string $name = null;
     public ?string $handle = null;
+    public string $scope = StencilsService::SCOPE_PROJECT;
     public ?StencilData $data = null;
 
     public ?int $templateId = null;
@@ -92,7 +94,40 @@ class Stencil extends Model implements FormInterface
 
     public function getCpEditUrl(): ?string
     {
-        return UrlHelper::cpUrl('formie/settings/stencils/edit/' . $this->id);
+        return UrlHelper::cpUrl('formie/stencils/edit/' . $this->id);
+    }
+
+    public function isProjectScope(): bool
+    {
+        return $this->scope === StencilsService::SCOPE_PROJECT;
+    }
+
+    public function isSiteScope(): bool
+    {
+        return $this->scope === StencilsService::SCOPE_SITE;
+    }
+
+    public function getScopeLabel(): string
+    {
+        if ($this->isSiteScope()) {
+            return '';
+        }
+
+        return Craft::t('formie', 'Project');
+    }
+
+    public function canEdit(): bool
+    {
+        if ($this->isSiteScope()) {
+            return true;
+        }
+
+        return (bool)Craft::$app->getConfig()->getGeneral()->allowAdminChanges;
+    }
+
+    public function canDelete(): bool
+    {
+        return $this->canEdit();
     }
 
     public function getDisplayName(): string
@@ -271,6 +306,7 @@ class Stencil extends Model implements FormInterface
 
         $rules[] = [['name', 'handle'], 'required'];
         $rules[] = [['name', 'handle'], 'string', 'max' => 255];
+        $rules[] = [['scope'], 'in', 'range' => [StencilsService::SCOPE_PROJECT, StencilsService::SCOPE_SITE]];
         $rules[] = [
             ['handle'],
             HandleValidator::class,

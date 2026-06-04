@@ -417,27 +417,15 @@ class FormsController extends Controller
     public function actionSaveAsStencil(): ?Response
     {
         $this->requirePostRequest();
-
-        if (!Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
-            $message = Craft::t('formie', 'Stencils cannot be saved when admin changes are disabled.');
-
-            if ($this->request->getAcceptsJson()) {
-                return $this->asJson([
-                    'success' => false,
-                    'errors' => [
-                        'form' => [$message],
-                    ],
-                ]);
-            }
-
-            throw new ForbiddenHttpException($message);
-        }
+        $this->requirePermission('formie-accessStencils');
 
         $stencils = Formie::$plugin->getStencils()->getAllStencils();
         $stencilHandles = ArrayHelper::getColumn($stencils, 'handle');
         $handle = $this->request->getParam('handle');
 
-        $stencil = new Stencil();
+        $stencil = new Stencil([
+            'scope' => \verbb\formie\services\Stencils::SCOPE_SITE,
+        ]);
         $stencil->name = $this->request->getParam('title');
 
         // Resolve the handle, in case it already exists

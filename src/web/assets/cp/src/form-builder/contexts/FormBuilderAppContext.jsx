@@ -11,6 +11,10 @@ export const FormBuilderAppProvider = ({ children }) => {
     const activePageHandle = useAppStore((state) => { return state.activePageHandle; });
     const activeIntegrationHandle = useAppStore((state) => { return state.activeIntegrationHandle; });
     const allowAdminChanges = useAppStore((state) => { return state.allowAdminChanges; });
+    const canEdit = useAppStore((state) => { return state.canEdit; });
+    const readOnlyMessage = useAppStore((state) => { return state.readOnlyMessage; });
+    const stencilScope = useAppStore((state) => { return state.stencilScope; });
+    const stencilScopeLabel = useAppStore((state) => { return state.stencilScopeLabel; });
     const baseUrl = useAppStore((state) => { return state.baseUrl; });
     const viewSubmissionsUrl = useAppStore((state) => { return state.viewSubmissionsUrl; });
     const entityType = useAppStore((state) => { return state.entityType; });
@@ -52,6 +56,10 @@ export const FormBuilderAppProvider = ({ children }) => {
             activePageHandle,
             activeIntegrationHandle,
             allowAdminChanges,
+            canEdit,
+            readOnlyMessage,
+            stencilScope,
+            stencilScopeLabel,
             baseUrl,
             viewSubmissionsUrl,
             entityType,
@@ -93,6 +101,10 @@ export const FormBuilderAppProvider = ({ children }) => {
         activePageHandle,
         activeIntegrationHandle,
         allowAdminChanges,
+        canEdit,
+        readOnlyMessage,
+        stencilScope,
+        stencilScopeLabel,
         baseUrl,
         viewSubmissionsUrl,
         entityType,

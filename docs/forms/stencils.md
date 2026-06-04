@@ -18,12 +18,23 @@ Formie includes a default `Contact Form` stencil as a general starting point, an
 
 ## Creating and using stencils
 
-You can create and manage stencils in `Formie → Settings → Stencils`. Building a stencil works much like building a normal form, so you can define the layout, notifications, and form settings you want to reuse.
+Create and manage stencils under **Formie → Stencils** (requires the **Access stencils** permission). Building a stencil works much like building a normal form, so you can define the layout, notifications, and form settings you want to reuse.
 
-Once a stencil exists, it becomes an option when creating a new form. Choosing a stencil gives you a quick starting point, and from there the form becomes its own form that can be changed independently.
+Choose **New stencil** to create one you can edit in the control panel. Once a stencil exists, it becomes an option when creating a new form. Choosing a stencil gives you a quick starting point, and from there the form becomes its own form that can be changed independently.
+
+Saving a form as a stencil from the form builder creates a new stencil you can edit later.
 
 ## Shared starting points
 
 Stencils are best treated as starting templates, not shared live forms. Changes made to a stencil affect future forms created from it, not forms that already exist.
 
-Stencils are also stored in project config, which makes them useful for keeping standard starting points available across environments and across a team.
+## Project stencils (developers)
+
+Some stencils are created as **project stencils** and stored in project config (`formie.stencils`). They are useful for starter kits and defaults that should be versioned with the site and shared across a team.
+
+Handles must be unique across both regular and project stencils.
+
+On sites where admin changes are disabled, project stencils are **view-only** in the control panel. You can still open them and use **Save a copy** to create an editable stencil of your own.
+
+- **New stencil** — available to everyone with stencil access.
+- **New project stencil** — only when admin changes are enabled (typically local or staging).

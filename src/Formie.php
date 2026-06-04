@@ -111,7 +111,7 @@ class Formie extends Plugin
 
     public bool $hasCpSection = true;
     public bool $hasCpSettings = true;
-    public string $schemaVersion = '4.0.12';
+    public string $schemaVersion = '4.0.13';
     public string $minVersionRequired = '2.1.5';
 
 
@@ -200,6 +200,13 @@ class Formie extends Plugin
             $nav['subnav']['sentNotifications'] = [
                 'label' => Craft::t('formie', 'Sent Notifications'),
                 'url' => 'formie/sent-notifications',
+            ];
+        }
+
+        if (Craft::$app->getUser()->checkPermission('formie-accessStencils')) {
+            $nav['subnav']['stencils'] = [
+                'label' => Craft::t('formie', 'Stencils'),
+                'url' => 'formie/stencils',
             ];
         }
 
@@ -292,6 +299,9 @@ class Formie extends Plugin
             $event->rules['formie/settings/statuses'] = 'formie/statuses/index';
             $event->rules['formie/settings/statuses/new'] = 'formie/statuses/edit';
             $event->rules['formie/settings/statuses/edit/<id:\d+>'] = 'formie/statuses/edit';
+            $event->rules['formie/stencils'] = 'formie/stencils/index';
+            $event->rules['formie/stencils/new'] = 'formie/stencils/new';
+            $event->rules['formie/stencils/edit/<segments:.*>'] = 'formie/stencils/edit';
             $event->rules['formie/settings/stencils'] = 'formie/stencils/index';
             $event->rules['formie/settings/stencils/new'] = 'formie/stencils/new';
             $event->rules['formie/settings/stencils/edit/<segments:.*>'] = 'formie/stencils/edit';
@@ -443,6 +453,7 @@ class Formie extends Plugin
                     'formie-accessForms' => ['label' => Craft::t('formie', 'Access forms'), 'nested' => $formPermissions],
                     'formie-accessSubmissions' => ['label' => Craft::t('formie', 'Access submissions'), 'nested' => $submissionPermissions],
                     'formie-accessSentNotifications' => ['label' => Craft::t('formie', 'Access sent notifications'), 'nested' => $sentNotificationsPermissions],
+                    'formie-accessStencils' => ['label' => Craft::t('formie', 'Access stencils')],
                     'formie-accessSettings' => ['label' => Craft::t('formie', 'Access settings')],
                 ],
             ];

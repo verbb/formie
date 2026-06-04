@@ -1,0 +1,77 @@
+{% extends 'formie/_layouts' %}
+
+{% set crumbs = [
+    { label: craft.formie.getPluginName() | t('formie'), url: url('formie') },
+    { label: 'Stencils' | t('formie'), url: url('formie/stencils') },
+] %}
+
+{% set title = 'Stencils' | t('formie') %}
+{% set docTitle = title ~ ' - ' ~ (craft.formie.getPluginName() | t('formie')) %}
+{% set selectedSubnavItem = 'stencils' %}
+
+{% do view.registerAssetBundle('craft\\web\\assets\\admintable\\AdminTableAsset') %}
+{% do view.registerAssetBundle('verbb\\base\\assetbundles\\CpAsset') %}
+
+{% block actionButton %}
+    {% if allowAdminChanges %}
+        <div class="btngroup submit">
+            <a href="{{ url('formie/stencils/new') }}" class="btn submit add icon">{{ 'New stencil' | t('formie') }}</a>
+            <button type="button" class="btn submit menubtn" title="{{ 'New stencil options' | t('formie') }}" aria-label="{{ 'New stencil options' | t('formie') }}"></button>
+            <div class="menu">
+                <ul>
+                    <li><a href="{{ url('formie/stencils/new', { scope: 'project' }) }}">{{ 'New project stencil' | t('formie') }}</a></li>
+                </ul>
+            </div>
+        </div>
+    {% else %}
+        <a href="{{ url('formie/stencils/new') }}" class="btn submit add icon">{{ 'New stencil' | t('formie') }}</a>
+    {% endif %}
+{% endblock %}
+
+{% block blockContent %}
+    <div id="stencils-vue-admin-table"></div>
+{% endblock %}
+
+{% set tableData = [] %}
+{% for stencil in stencils %}
+    {% set tableData = tableData | merge([{
+        id: stencil.id,
+        labelHtml: {
+            url: stencil.getCpEditUrl(),
+            html: stencil.name | raw,
+        },
+        title: stencil.name | t('formie'),
+        url: stencil.getCpEditUrl(),
+        handle: stencil.handle | e,
+        scope: stencil.getScopeLabel(),
+        _showDelete: stencil.canDelete(),
+    }]) %}
+{% endfor %}
+
+{% js %}
+    var columns = [
+        {
+            name: 'labelHtml',
+            title: Craft.t('app', 'Name'),
+            callback: function(value) {
+                return '<a class="cell-bold" href="' + value.url + '">' + value.html + '</a>';
+            }
+        },
+        { name: '__slot:handle', title: Craft.t('app', 'Handle') },
+        {
+            name: 'scope',
+            title: Craft.t('formie', 'Type'),
+            callback: function(value) {
+                return value ? Craft.escapeHtml(String(value)) : '';
+            },
+        },
+    ];
+
+    new Craft.VueAdminTable({
+        columns: columns,
+        container: '#stencils-vue-admin-table',
+        deleteAction: 'formie/stencils/delete',
+        emptyMessage: Craft.t('formie', 'No stencils exist yet.'),
+        tableData: {{ tableData | json_encode | raw }},
+    });
+{% endjs %}

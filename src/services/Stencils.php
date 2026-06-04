@@ -7,8 +7,6 @@ use verbb\formie\events\StencilEvent;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
-use verbb\formie\models\FieldLayout;
-use verbb\formie\models\Notification;
 use verbb\formie\models\Stencil;
 use verbb\formie\records\Stencil as StencilRecord;
 
@@ -16,20 +14,18 @@ use Craft;
 use craft\db\Query;
 use craft\events\ConfigEvent;
 use craft\helpers\Db;
-use craft\helpers\DateTimeHelper;
+use craft\helpers\Json;
 
 use yii\base\Component;
-
-use Exception;
 use Throwable;
-use yii\web\ServerErrorHttpException;
-use yii\base\NotSupportedException;
-use yii\base\ErrorException;
 
 class Stencils extends Component
 {
     // Constants
     // =========================================================================
+
+    public const SCOPE_PROJECT = 'project';
+    public const SCOPE_SITE = 'site';
 
     public const EVENT_BEFORE_SAVE_STENCIL = 'beforeSaveStencil';
     public const EVENT_AFTER_SAVE_STENCIL = 'afterSaveStencil';
@@ -48,10 +44,18 @@ class Stencils extends Component
     // Public Methods
     // =========================================================================
 
+    public static function resolveScopeForNew(?string $requestedScope = null): string
+    {
+        if ($requestedScope === self::SCOPE_PROJECT && Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
+            return self::SCOPE_PROJECT;
+        }
+
+        return self::SCOPE_SITE;
+    }
+
     public function getAllStencils(bool $withTrashed = false): array
     {
-        // Get the caches items if we have them cached, and the request is for non-trashed items
-        if ($this->_stencils !== null) {
+        if ($this->_stencils !== null && !$withTrashed) {
             return $this->_stencils;
         }
 
@@ -62,7 +66,11 @@ class Stencils extends Component
             $stencils[] = new Stencil($row);
         }
 
-        return $this->_stencils = $stencils;
+        if (!$withTrashed) {
+            $this->_stencils = $stencils;
+        }
+
+        return $stencils;
     }
 
     public function getStencilArray(): array
@@ -98,7 +106,6 @@ class Stencils extends Component
     {
         $isNewStencil = !$stencil->id;
 
-        // Fire a 'beforeSaveStatus' event
         if ($this->hasEventHandlers(self::EVENT_BEFORE_SAVE_STENCIL)) {
             $this->trigger(self::EVENT_BEFORE_SAVE_STENCIL, new StencilEvent([
                 'stencil' => $stencil,
@@ -112,41 +119,27 @@ class Stencils extends Component
             return false;
         }
 
-        if ($isNewStencil) {
-            $stencilUid = StringHelper::UUID();
-        } else {
-            $stencilUid = Db::uidById(Table::FORMIE_STENCILS, $stencil->id);
-        }
+        if (!$stencil->canEdit()) {
+            $stencil->addError('name', Craft::t('formie', 'This stencil cannot be edited in the current environment.'));
 
-        // Make sure no stencils that are not archived share the handle
-        $existingStencil = $this->getStencilByHandle($stencil->handle);
-
-        if ($existingStencil && (!$stencil->id || $stencil->id != $existingStencil->id)) {
-            $stencil->addError('handle', Craft::t('formie', 'That handle is already in use'));
             return false;
         }
 
-        $projectConfig = Craft::$app->getProjectConfig();
-
-        // For new stencils, apply captcha integration defaults for consistency with new forms.
         if ($isNewStencil) {
             Formie::$plugin->getFormDefaults()->applyCaptchaDefaultsToIntegrations($stencil->data->settings->integrations);
         }
 
-        if ($stencil->dateDeleted) {
-            $configData = null;
-        } else {
-            $configData = $stencil->getConfig();
+        if ($existingStencil = $this->_findConflictingStencil($stencil)) {
+            $stencil->addError('handle', Craft::t('formie', 'That handle is already in use'));
+
+            return false;
         }
 
-        $configPath = self::CONFIG_STENCILS_KEY . '.' . $stencilUid;
-        $projectConfig->set($configPath, $configData);
-
-        if ($isNewStencil) {
-            $stencil->id = Db::idByUid(Table::FORMIE_STENCILS, $stencilUid);
+        if ($stencil->isSiteScope()) {
+            return $this->_saveSiteStencil($stencil, $isNewStencil);
         }
 
-        return true;
+        return $this->_saveProjectStencil($stencil, $isNewStencil);
     }
 
     public function handleChangedStencil(ConfigEvent $event): void
@@ -154,7 +147,6 @@ class Stencils extends Component
         $stencilUid = $event->tokenMatches[0];
         $data = $event->newValue;
 
-        // Ensure template configs are applied first
         $projectConfig = Craft::$app->getProjectConfig();
         $formTemplates = $projectConfig->get(FormTemplates::CONFIG_TEMPLATES_KEY, true) ?? [];
         $emailTemplates = $projectConfig->get(EmailTemplates::CONFIG_TEMPLATES_KEY, true) ?? [];
@@ -173,6 +165,7 @@ class Stencils extends Component
         }
 
         $transaction = Craft::$app->getDb()->beginTransaction();
+
         try {
             $stencilRecord = $this->_getStencilsRecord($stencilUid);
             $isNewStencil = $stencilRecord->getIsNewRecord();
@@ -181,8 +174,8 @@ class Stencils extends Component
             $stencilRecord->handle = $data['handle'];
             $stencilRecord->data = $data['data'];
             $stencilRecord->uid = $stencilUid;
+            $stencilRecord->scope = self::SCOPE_PROJECT;
 
-            // Handle UIDs for templates/statuses
             $submitActionEntryUid = $data['submitActionEntry'] ?? null;
             $defaultStatusUid = $data['defaultStatus'] ?? null;
             $templateUid = $data['template'] ?? null;
@@ -211,7 +204,6 @@ class Stencils extends Component
                 }
             }
 
-            // Save the stencil
             if ($wasTrashed = (bool)$stencilRecord->dateDeleted) {
                 $stencilRecord->restore();
             } else {
@@ -224,7 +216,8 @@ class Stencils extends Component
             throw $e;
         }
 
-        // Fire an 'afterSaveStatus' event
+        $this->_clearStencilCache();
+
         if ($this->hasEventHandlers(self::EVENT_AFTER_SAVE_STENCIL)) {
             $this->trigger(self::EVENT_AFTER_SAVE_STENCIL, new StencilEvent([
                 'stencil' => $this->getStencilById($stencilRecord->id),
@@ -246,14 +239,22 @@ class Stencils extends Component
 
     public function deleteStencil(Stencil $stencil): bool
     {
-        // Fire a 'beforeDeleteStencil' event
+        if (!$stencil->canDelete()) {
+            return false;
+        }
+
         if ($this->hasEventHandlers(self::EVENT_BEFORE_DELETE_STENCIL)) {
             $this->trigger(self::EVENT_BEFORE_DELETE_STENCIL, new StencilEvent([
                 'stencil' => $stencil,
             ]));
         }
 
+        if ($stencil->isSiteScope()) {
+            return $this->_deleteSiteStencil($stencil);
+        }
+
         Craft::$app->getProjectConfig()->remove(self::CONFIG_STENCILS_KEY . '.' . $stencil->uid);
+
         return true;
     }
 
@@ -263,7 +264,6 @@ class Stencils extends Component
 
         $stencil = $this->getStencilByUid($stencilUid);
 
-        // Fire a 'beforeApplyStatusDelete' event
         if ($this->hasEventHandlers(self::EVENT_BEFORE_APPLY_STENCIL_DELETE)) {
             $this->trigger(self::EVENT_BEFORE_APPLY_STENCIL_DELETE, new StencilEvent([
                 'stencil' => $stencil,
@@ -271,19 +271,18 @@ class Stencils extends Component
         }
 
         $transaction = Craft::$app->getDb()->beginTransaction();
+
         try {
             $stencilRecord = $this->_getStencilsRecord($stencilUid);
-
-            // Save the stencil
             $stencilRecord->softDelete();
-
             $transaction->commit();
         } catch (Throwable $e) {
             $transaction->rollBack();
             throw $e;
         }
 
-        // Fire an 'afterDeleteStatus' event
+        $this->_clearStencilCache();
+
         if ($this->hasEventHandlers(self::EVENT_AFTER_DELETE_STENCIL)) {
             $this->trigger(self::EVENT_AFTER_DELETE_STENCIL, new StencilEvent([
                 'stencil' => $stencil,
@@ -295,6 +294,152 @@ class Stencils extends Component
     // Private Methods
     // =========================================================================
 
+    private function _saveProjectStencil(Stencil $stencil, bool $isNewStencil): bool
+    {
+        if (!Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
+            $stencil->addError('name', Craft::t('formie', 'Project stencils cannot be saved when admin changes are disabled.'));
+
+            return false;
+        }
+
+        if ($isNewStencil) {
+            $stencilUid = StringHelper::UUID();
+            $stencil->scope = self::SCOPE_PROJECT;
+        } else {
+            $stencilUid = Db::uidById(Table::FORMIE_STENCILS, $stencil->id);
+        }
+
+        $configData = $stencil->dateDeleted ? null : $stencil->getConfig();
+        $configPath = self::CONFIG_STENCILS_KEY . '.' . $stencilUid;
+        Craft::$app->getProjectConfig()->set($configPath, $configData);
+
+        if ($isNewStencil) {
+            $stencil->id = Db::idByUid(Table::FORMIE_STENCILS, $stencilUid);
+            $stencil->uid = $stencilUid;
+        }
+
+        $this->_clearStencilCache();
+
+        return true;
+    }
+
+    private function _saveSiteStencil(Stencil $stencil, bool $isNewStencil): bool
+    {
+        $stencil->scope = self::SCOPE_SITE;
+        $config = $stencil->getConfig();
+
+        $transaction = Craft::$app->getDb()->beginTransaction();
+
+        try {
+            if ($isNewStencil) {
+                $stencilRecord = new StencilRecord();
+                $stencilRecord->uid = StringHelper::UUID();
+            } else {
+                $stencilRecord = StencilRecord::findOne($stencil->id);
+
+                if (!$stencilRecord) {
+                    throw new \Exception('Invalid stencil ID: ' . $stencil->id);
+                }
+            }
+
+            $stencilRecord->name = $config['name'];
+            $stencilRecord->handle = $config['handle'];
+            $stencilRecord->scope = self::SCOPE_SITE;
+            $stencilRecord->data = Json::encode($config['data']);
+
+            if ($defaultStatusUid = $config['defaultStatus'] ?? null) {
+                $defaultStatus = Formie::$plugin->getStatuses()->getStatusByUid($defaultStatusUid);
+                $stencilRecord->defaultStatusId = $defaultStatus?->id;
+            } else {
+                $stencilRecord->defaultStatusId = $stencil->defaultStatusId;
+            }
+
+            if ($templateUid = $config['template'] ?? null) {
+                $template = Formie::$plugin->getFormTemplates()->getTemplateByUid($templateUid);
+                $stencilRecord->templateId = $template?->id;
+            } else {
+                $stencilRecord->templateId = $stencil->templateId;
+            }
+
+            if ($submitActionEntryUid = $config['submitActionEntry'] ?? null) {
+                $submitActionEntry = Craft::$app->getElements()->getElementByUid($submitActionEntryUid);
+                $stencilRecord->submitActionEntryId = $submitActionEntry?->id;
+                $stencilRecord->submitActionEntrySiteId = $submitActionEntry?->siteId;
+            } else {
+                $stencilRecord->submitActionEntryId = $stencil->submitActionEntryId;
+                $stencilRecord->submitActionEntrySiteId = $stencil->submitActionEntrySiteId;
+            }
+
+            $stencilRecord->save(false);
+
+            $stencil->id = $stencilRecord->id;
+            $stencil->uid = $stencilRecord->uid;
+
+            $transaction->commit();
+        } catch (Throwable $e) {
+            $transaction->rollBack();
+            throw $e;
+        }
+
+        $this->_clearStencilCache();
+
+        if ($this->hasEventHandlers(self::EVENT_AFTER_SAVE_STENCIL)) {
+            $this->trigger(self::EVENT_AFTER_SAVE_STENCIL, new StencilEvent([
+                'stencil' => $this->getStencilById($stencil->id),
+                'isNew' => $isNewStencil,
+            ]));
+        }
+
+        return true;
+    }
+
+    private function _deleteSiteStencil(Stencil $stencil): bool
+    {
+        $transaction = Craft::$app->getDb()->beginTransaction();
+
+        try {
+            $stencilRecord = StencilRecord::findOne($stencil->id);
+
+            if (!$stencilRecord || $stencilRecord->scope !== self::SCOPE_SITE) {
+                $transaction->rollBack();
+
+                return false;
+            }
+
+            $stencilRecord->softDelete();
+            $transaction->commit();
+        } catch (Throwable $e) {
+            $transaction->rollBack();
+            throw $e;
+        }
+
+        $this->_clearStencilCache();
+
+        if ($this->hasEventHandlers(self::EVENT_AFTER_DELETE_STENCIL)) {
+            $this->trigger(self::EVENT_AFTER_DELETE_STENCIL, new StencilEvent([
+                'stencil' => $stencil,
+            ]));
+        }
+
+        return true;
+    }
+
+    private function _findConflictingStencil(Stencil $stencil): ?Stencil
+    {
+        $existingStencil = $this->getStencilByHandle($stencil->handle);
+
+        if ($existingStencil && (!$stencil->id || $stencil->id != $existingStencil->id)) {
+            return $existingStencil;
+        }
+
+        return null;
+    }
+
+    private function _clearStencilCache(): void
+    {
+        $this->_stencils = null;
+    }
+
     private function _createStencilsQuery(bool $withTrashed = false): Query
     {
         $query = (new Query())
@@ -302,6 +447,7 @@ class Stencils extends Component
                 'id',
                 'name',
                 'handle',
+                'scope',
                 'data',
                 'templateId',
                 'submitActionEntryId',
@@ -309,7 +455,7 @@ class Stencils extends Component
                 'dateDeleted',
                 'uid',
             ])
-            ->orderBy('name ASC')
+            ->orderBy(['scope' => SORT_ASC, 'name' => SORT_ASC])
             ->from([Table::FORMIE_STENCILS]);
 
         if (!$withTrashed) {

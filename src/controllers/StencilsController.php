@@ -9,6 +9,7 @@ use verbb\formie\helpers\Plugin;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\Stencil;
 use verbb\formie\models\StencilData;
+use verbb\formie\services\Stencils as StencilsService;
 
 use Craft;
 use craft\db\Query;
@@ -16,36 +17,57 @@ use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 use craft\web\Controller;
+use craft\web\ForbiddenHttpException;
 
 use yii\web\HttpException;
 use yii\web\Response;
 
-class StencilsController extends SettingsAccessController
+class StencilsController extends Controller
 {
+    // Properties
+    // =========================================================================
+
+    protected array|bool|int $allowAnonymous = self::ALLOW_ANONYMOUS_NEVER;
+
+
     // Public Methods
     // =========================================================================
+
+    public function beforeAction($action): bool
+    {
+        $this->requirePermission('formie-accessStencils');
+
+        return parent::beforeAction($action);
+    }
 
     public function actionIndex(): Response
     {
         $stencils = Formie::$plugin->getStencils()->getAllStencils();
+        $allowAdminChanges = Craft::$app->getConfig()->getGeneral()->allowAdminChanges;
 
-        usort($stencils, function($a, $b) {
-            return strcmp($a->name, $b->name);
-        });
-
-        return $this->renderTemplate('formie/settings/stencils', compact('stencils'));
+        return $this->renderTemplate('formie/stencils/index', compact('stencils', 'allowAdminChanges'));
     }
 
     public function actionNew(Stencil $stencil = null): ?Response
     {
-        $stencil = $stencil ?? new Stencil();
+        $requestedScope = $this->request->getParam('scope');
+        $scope = StencilsService::resolveScopeForNew($requestedScope);
+
+        if ($requestedScope === StencilsService::SCOPE_PROJECT && $scope !== StencilsService::SCOPE_PROJECT) {
+            throw new ForbiddenHttpException(Craft::t('formie', 'Project stencils cannot be created when admin changes are disabled.'));
+        }
+
+        $stencil = $stencil ?? new Stencil(['scope' => $scope]);
 
         Plugin::registerCpStencilNewAssets();
+
+        $isProjectScope = $scope === StencilsService::SCOPE_PROJECT;
 
         $settings = [
             'formId' => 'fui-new-stencil-form',
             'name' => $stencil->name,
             'handle' => $stencil->handle,
+            'scope' => $scope,
             'stencilOptions' => [],
             'showStencilSelector' => false,
             'formHandles' => $this->_getStencilHandles((int)$stencil->id),
@@ -53,10 +75,14 @@ class StencilsController extends SettingsAccessController
             'maxFormHandleLength' => HandleHelper::getMaxFormHandle(),
             'nameErrors' => $stencil->getErrors('name'),
             'handleErrors' => $stencil->getErrors('handle'),
-            'cancelUrl' => UrlHelper::cpUrl('formie/settings/stencils'),
+            'cancelUrl' => UrlHelper::cpUrl('formie/stencils'),
             'submitAction' => 'formie/stencils/save',
-            'titleText' => Craft::t('formie', 'Create your stencil'),
-            'introText' => Craft::t('formie', 'Before you get started, you’ll need a name for your stencil.'),
+            'titleText' => $isProjectScope
+                ? Craft::t('formie', 'Create a project stencil')
+                : Craft::t('formie', 'Create a stencil'),
+            'introText' => $isProjectScope
+                ? Craft::t('formie', 'Project stencils are saved in project config and can be shared with your team.')
+                : Craft::t('formie', 'Create a reusable starting point for new forms.'),
             'nameInstructions' => Craft::t('formie', 'What this stencil will be called in the control panel.'),
             'handleInstructions' => Craft::t('formie', 'How you’ll refer to this stencil in the templates.'),
             'saveErrorText' => Craft::t('formie', 'Couldn’t save stencil.'),
@@ -65,7 +91,7 @@ class StencilsController extends SettingsAccessController
 
         $this->view->registerJs('new Craft.Formie.NewForm(' . Json::encode($settings) . ');');
 
-        return $this->renderTemplate('formie/settings/stencils/_new');
+        return $this->renderTemplate('formie/stencils/_new');
     }
 
     public function actionEdit(mixed $segments = null, Stencil $stencil = null): Response
@@ -89,8 +115,9 @@ class StencilsController extends SettingsAccessController
         $variables = $this->_getStencilBuilderVariables($stencil);
         $this->view->registerJs('new Craft.Formie.FormBuilder(' . Json::encode($variables) . ');');
 
-        return $this->renderTemplate('formie/settings/stencils/_edit', [
+        return $this->renderTemplate('formie/stencils/_edit', [
             'stencil' => $stencil,
+            'canEdit' => $stencil->canEdit(),
         ]);
     }
 
@@ -100,6 +127,7 @@ class StencilsController extends SettingsAccessController
 
         $request = $this->request;
         $duplicate = (bool)$request->getParam('duplicateStencil');
+        $duplicateToSite = (bool)$request->getParam('duplicateToSite');
 
         $stencilId = $request->getParam('stencilId');
         $stencil = $stencilId ? Formie::$plugin->getStencils()->getStencilById((int)$stencilId) : null;
@@ -112,15 +140,22 @@ class StencilsController extends SettingsAccessController
 
         $originalName = $stencil->name;
 
-        if ($duplicate) {
+        if (!$stencilId) {
+            $stencil->scope = StencilsService::resolveScopeForNew($request->getParam('scope', $stencil->scope));
+        }
+
+        if ($duplicate || $duplicateToSite) {
             $stencil = clone $stencil;
             $stencil->id = null;
             $stencil->uid = null;
-            $stencil->name = Craft::t('formie', '{name} Copy', ['name' => $stencil->name]);
+            $stencil->name = Craft::t('formie', '{name} Copy', ['name' => $originalName]);
 
-            $stencils = Formie::$plugin->getStencils()->getAllStencils();
-            $stencilHandles = ArrayHelper::getColumn($stencils, 'handle');
+            $stencilHandles = ArrayHelper::getColumn(Formie::$plugin->getStencils()->getAllStencils(), 'handle');
             $stencil->handle = HandleHelper::getUniqueHandle($stencilHandles, $stencil->handle);
+
+            if ($duplicateToSite) {
+                $stencil->scope = StencilsService::SCOPE_SITE;
+            }
         }
 
         if ($templateId = $request->getParam('templateId')) {
@@ -172,7 +207,7 @@ class StencilsController extends SettingsAccessController
             return $this->asJson([
                 'success' => true,
                 'data' => $builderVariables['data'],
-                'redirect' => ($duplicate || !$request->getParam('stencilId')) ? $stencil->getCpEditUrl() : null,
+                'redirect' => ($duplicate || $duplicateToSite || !$request->getParam('stencilId')) ? $stencil->getCpEditUrl() : null,
             ]);
         }
 
@@ -190,7 +225,7 @@ class StencilsController extends SettingsAccessController
         if (Formie::$plugin->getStencils()->deleteStencilById((int)$stencilId)) {
             return $this->asJson([
                 'success' => true,
-                'redirect' => UrlHelper::cpUrl('formie/settings/stencils'),
+                'redirect' => UrlHelper::cpUrl('formie/stencils'),
             ]);
         }
 
@@ -203,6 +238,7 @@ class StencilsController extends SettingsAccessController
 
     private function _getStencilBuilderVariables(Stencil $stencil): array
     {
+        $canEdit = $stencil->canEdit();
         $now = DateTimeHelper::currentUTCDateTime();
         $form = new FormElement();
         $form->id = $stencil->id;
@@ -224,22 +260,30 @@ class StencilsController extends SettingsAccessController
         $variables['viewSubmissionsUrl'] = null;
         $variables['entityType'] = 'stencil';
         $variables['entityId'] = $stencil->id;
+        $variables['canEdit'] = $canEdit;
+        $variables['stencilScope'] = $stencil->scope;
+        $variables['stencilScopeLabel'] = $stencil->getScopeLabel();
+        $variables['readOnlyMessage'] = !$canEdit
+            ? Craft::t('formie', 'This stencil is managed by your development team and can’t be edited here. Save a copy to customize it.')
+            : null;
         $variables['newItemTitle'] = Craft::t('formie', 'New Stencil');
         $variables['saveActionUrl'] = 'formie/stencils/save';
         $variables['saveRequestData'] = [
             'stencilId' => $stencil->id,
         ];
         $variables['saveDuplicateAction'] = 'saveAsDuplicate';
-        $variables['saveDuplicateLabel'] = Craft::t('formie', 'Save as a new stencil');
-        $variables['saveDuplicateRequestData'] = [
-            'duplicateStencil' => true,
-        ];
+        $variables['saveDuplicateLabel'] = $canEdit
+            ? Craft::t('formie', 'Save as a new stencil')
+            : Craft::t('formie', 'Save a copy');
+        $variables['saveDuplicateRequestData'] = $canEdit
+            ? ['duplicateStencil' => true]
+            : ['duplicateToSite' => true];
         $variables['saveSuccessMessage'] = Craft::t('formie', 'Stencil saved.');
         $variables['deleteAction'] = 'formie/stencils/delete';
         $variables['deleteRequestData'] = [
             'id' => $stencil->id,
         ];
-        $variables['deleteRedirectUrl'] = UrlHelper::cpUrl('formie/settings/stencils');
+        $variables['deleteRedirectUrl'] = UrlHelper::cpUrl('formie/stencils');
         $variables['deleteConfirmMessage'] = Craft::t('formie', 'Are you sure you want to delete this stencil?');
         $variables['deleteErrorMessage'] = Craft::t('formie', 'Couldn’t archive stencil.');
         $variables['data'] = [
@@ -249,6 +293,7 @@ class StencilsController extends SettingsAccessController
             'title' => $stencil->name,
             'handle' => $stencil->handle,
             'isStencil' => true,
+            'stencilScope' => $stencil->scope,
             'templateId' => $stencil->templateId,
             'submitActionEntry' => array_filter([
                 array_filter([

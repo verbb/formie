@@ -218,7 +218,6 @@ class Formie
                 'spam' => ['title' => Craft::t('formie', 'Spam')],
 
                 'appearance-heading' => ['heading' => Craft::t('formie', 'Appearance')],
-                'stencils' => ['title' => Craft::t('formie', 'Stencils')],
                 'form-templates' => ['title' => Craft::t('formie', 'Form Templates')],
                 'email-templates' => ['title' => Craft::t('formie', 'Email Templates')],
                 'pdf-templates' => ['title' => Craft::t('formie', 'PDF Templates')],
