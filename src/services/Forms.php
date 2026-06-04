@@ -458,7 +458,7 @@ class Forms extends Component
                 if (isset($this->_getFormLookupCache()->elementsByIdAndSite[$cacheKey])) {
                     $element = $this->_getFormLookupCache()->elementsByIdAndSite[$cacheKey];
                 } else {
-                    $element = Craft::$app->getElements()->getElementById($elementId, $elementType, $siteId);
+                    $element = $this->_getFormUsageElement($elementId, $elementType, $siteId);
                     $this->_getFormLookupCache()->elementsByIdAndSite[$cacheKey] = $element;
                 }
 
@@ -494,35 +494,44 @@ class Forms extends Component
 
     private function _resolveFormUsageSiteIds(int $elementId, ?int $relationSiteId, string $elementType): array
     {
-        if ($relationSiteId) {
-            $element = Craft::$app->getElements()->getElementById($elementId, $elementType, $relationSiteId);
-
-            if ($element) {
-                return [$relationSiteId];
-            }
-        } else {
-            $siteIds = $this->_getEnabledElementSiteIds($elementId);
-
-            if ($siteIds !== []) {
-                return $siteIds;
-            }
+        if ($relationSiteId && $this->_getFormUsageElement($elementId, $elementType, $relationSiteId)) {
+            return [$relationSiteId];
         }
 
-        return $this->_getEnabledElementSiteIds($elementId);
+        return $this->_getElementSiteIds($elementId);
     }
 
-    private function _getEnabledElementSiteIds(int $elementId): array
+    private function _getElementSiteIds(int $elementId): array
     {
         $siteIds = (new Query())
             ->select(['siteId'])
             ->from([Table::ELEMENTS_SITES])
-            ->where([
-                'elementId' => $elementId,
-                'enabled' => true,
-            ])
+            ->where(['elementId' => $elementId])
             ->column();
 
         return array_map('intval', $siteIds);
+    }
+
+    private function _getFormUsageElement(int $elementId, string $elementType, int $siteId): ?ElementInterface
+    {
+        $elementsService = Craft::$app->getElements();
+        $element = $elementsService->getElementById($elementId, $elementType, $siteId);
+
+        if ($element) {
+            return $element;
+        }
+
+        /** @var ElementInterface|null $element */
+        $element = $elementsService->createElementQuery($elementType)
+            ->id($elementId)
+            ->siteId($siteId)
+            ->status(null)
+            ->drafts(null)
+            ->provisionalDrafts(null)
+            ->revisions(null)
+            ->one();
+
+        return $element;
     }
 
     private function _populateFormFromPost(Form $form): Form
@@ -786,7 +795,7 @@ class Forms extends Component
                     if (isset($this->_getFormLookupCache()->elementsByIdAndSite[$ownerCacheKey])) {
                         $ownerElement = $this->_getFormLookupCache()->elementsByIdAndSite[$ownerCacheKey];
                     } else {
-                        $ownerElement = Craft::$app->getElements()->getElementById($ownerId, null, $element->siteId);
+                        $ownerElement = $this->_getFormUsageElement($ownerId, $element::class, $element->siteId);
                         $this->_getFormLookupCache()->elementsByIdAndSite[$ownerCacheKey] = $ownerElement;
                     }
 
