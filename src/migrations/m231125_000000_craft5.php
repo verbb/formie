@@ -45,6 +45,12 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
     {
         App::maxPowerCaptain();
 
+        if ($this->_shouldSkipCraft5Migration()) {
+            echo "    > Craft 5 schema already in place. Skipping migration.\n";
+
+            return true;
+        }
+
         // Create the new layout/page/row/fields tables
         $this->_addNewLayoutTables();
 
@@ -689,8 +695,33 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
         return '';
     }
 
+    private function _shouldSkipCraft5Migration(): bool
+    {
+        if (!$this->db->columnExists(Table::FORMIE_FORMS, 'layoutId')) {
+            return false;
+        }
+
+        // Fresh Craft 5 installs and completed C4→C5 migrations no longer use Craft's `content` table.
+        if (!$this->db->tableExists('{{%content}}')) {
+            return true;
+        }
+
+        // Completed migrations remove the staging table used to prepare layouts.
+        if (!$this->db->tableExists('{{%formie_newlayout}}') && !$this->db->columnExists(Table::FORMIE_FORMS, 'fieldLayoutId')) {
+            return true;
+        }
+
+        return false;
+    }
+
     private function _updateFormTitles(): void
     {
+        if (!$this->db->tableExists('{{%content}}')) {
+            echo '    > Skipping form title migration; content table does not exist.' . PHP_EOL;
+
+            return;
+        }
+
         $forms = (new Query())->select('id')->from(Table::FORMIE_FORMS)->all();
 
         foreach ($forms as $form) {
@@ -1558,6 +1589,10 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
 
         if ($this->db->columnExists(Table::FORMIE_SUBMISSIONS, 'title')) {
             $this->dropColumn(Table::FORMIE_SUBMISSIONS, 'title');
+        }
+
+        if (!$this->db->tableExists('{{%content}}')) {
+            return;
         }
 
         $forms = (new Query())->select('id')->from(Table::FORMIE_FORMS)->all();
