@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Added
+- Add a stock Form Preview slide-out in the form builder, rendering the current form with Formie’s default templates, CSS, and JavaScript. ([#370](https://github.com/verbb/formie/issues/370))
 - Add synced-field support for stencils, preserving shared definition links when creating new forms from a stencil. ([#1677](https://github.com/verbb/formie/issues/1677), [#1734](https://github.com/verbb/formie/issues/1734))
 - Add stencil scopes so developers can ship starter forms in project config while content editors can create and manage their own stencils in the control panel. ([#2814](https://github.com/verbb/formie/issues/2814))
 - Add **project stencils** (stored in `formie.stencils` project config) alongside regular database-backed stencils, with handles unique across both scopes.

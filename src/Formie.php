@@ -278,6 +278,9 @@ class Formie extends Plugin
             $event->rules['formie/forms/new'] = 'formie/forms/new';
             $event->rules['formie/forms/edit/<segments:.*>'] = 'formie/forms/edit';
             $event->rules['formie/forms/template-fields-slideout'] = 'formie/forms/template-fields-slideout';
+            $event->rules['formie/forms/preview-slideout'] = 'formie/forms/preview-slideout';
+            $event->rules['formie/forms/preview-frame'] = 'formie/forms/preview-frame';
+            $event->rules['formie/forms/preview-submit'] = 'formie/forms/preview-submit';
 
             $event->rules['formie/submissions'] = 'formie/submissions/index';
             $event->rules['formie/submissions/<formHandle:{handle}>'] = 'formie/submissions/index';

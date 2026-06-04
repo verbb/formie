@@ -389,6 +389,42 @@ const serializeFormData = (data = {}) => {
     return serialized;
 };
 
+const prepareFormPreview = async(formValues, options = {}) => {
+    if (!formValues) {
+        return { ok: false, error: Craft.t('formie', 'Missing form preview data.') };
+    }
+
+    const data = serializeFormData(formValues);
+    const {
+        entityType = 'form',
+        saveRequestData = {},
+    } = options;
+
+    try {
+        const response = await Craft.sendActionRequest('POST', 'formie/forms/prepare-preview', {
+            data: {
+                ...saveRequestData,
+                ...data,
+                entityType,
+                isStencil: entityType === 'stencil',
+            },
+        });
+
+        if (response.data?.error) {
+            return { ok: false, error: response.data.error };
+        }
+
+        if (!response.data?.token) {
+            return { ok: false, error: Craft.t('formie', 'Could not prepare form preview.') };
+        }
+
+        return { ok: true, data: response.data };
+    } catch (error) {
+        console.error('Error preparing form preview:', error);
+        return { ok: false, error: getRequestErrorMessage(error, Craft.t('formie', 'Could not prepare form preview.')) };
+    }
+};
+
 const saveForm = async(formValues, options = {}) => {
     if (!formValues) {
         return { ok: false, errors: { form: ['Missing form values.'] } };
@@ -1324,6 +1360,7 @@ const useIntegrations = () => {
 export {
     normalizeFormData,
     serializeFormData,
+    prepareFormPreview,
     saveForm,
     saveAsStencil,
     deleteForm,

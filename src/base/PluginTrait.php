@@ -22,6 +22,7 @@ use verbb\formie\services\FileUploads;
 use verbb\formie\services\FormDefaults;
 use verbb\formie\services\Forms;
 use verbb\formie\services\FormGroups;
+use verbb\formie\services\FormPreview;
 use verbb\formie\services\FormTemplates;
 use verbb\formie\services\Integrations;
 use verbb\formie\services\Notifications;
@@ -155,6 +156,7 @@ trait PluginTrait
                 'clientFormBootstrapBuilder' => FormBootstrapBuilder::class,
                 'clientFormDefinitionBuilder' => FormDefinitionBuilder::class,
                 'formGroups' => FormGroups::class,
+                'formPreview' => FormPreview::class,
                 'formTemplates' => FormTemplates::class,
                 'integrations' => Integrations::class,
                 'serverRenderPayloadBuilder' => ServerRenderPayloadBuilder::class,
@@ -355,6 +357,11 @@ trait PluginTrait
     public function getFormGroups(): FormGroups
     {
         return $this->get('formGroups');
+    }
+
+    public function getFormPreview(): FormPreview
+    {
+        return $this->get('formPreview');
     }
 
     public function getFormTemplates(): FormTemplates

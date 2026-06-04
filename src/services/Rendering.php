@@ -409,7 +409,9 @@ class Rendering extends Component
 
         $templatePath = Craft::getAlias('@verbb/formie/templates/_special/form-template');
 
-        if (($template = $form->getTemplate()) && $template->useCustomTemplates && $template->template) {
+        $useStockTemplates = (bool)($this->getActiveRenderFrame()?->getRenderOptions()['useStockTemplates'] ?? false);
+
+        if (!$useStockTemplates && ($template = $form->getTemplate()) && $template->useCustomTemplates && $template->template) {
             $path = $template->template . DIRECTORY_SEPARATOR . $component;
 
             if ($view->resolveTemplate($path, View::TEMPLATE_MODE_SITE)) {

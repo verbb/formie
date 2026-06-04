@@ -27,6 +27,7 @@ use craft\helpers\Session;
 use craft\helpers\UrlHelper;
 use craft\models\Site;
 use craft\web\Controller;
+use craft\web\CpScreenResponseBehavior;
 use craft\web\Response as CraftResponse;
 
 use yii\base\Exception;
@@ -261,6 +262,115 @@ class FormsController extends Controller
                     ->tabs($formContent->getTabMenu())
                     ->contentHtml($contentHtml);
             });
+    }
+
+    public function actionPreparePreview(): Response
+    {
+        $this->requireCpRequest();
+        $this->requirePostRequest();
+        $this->requirePermission('formie-accessForms');
+
+        $bodyParams = $this->request->getBodyParams();
+
+        if (!$bodyParams) {
+            return $this->asJson([
+                'error' => Craft::t('formie', 'Missing form preview data.'),
+            ]);
+        }
+
+        try {
+            $token = Formie::$plugin->getFormPreview()->createSession($bodyParams);
+
+            return $this->asJson([
+                'token' => $token,
+            ]);
+        } catch (Throwable $e) {
+            Formie::error('Could not prepare form preview: {message}', [
+                'message' => $e->getMessage(),
+            ]);
+
+            return $this->asJson([
+                'error' => Craft::t('formie', 'Could not prepare form preview.'),
+            ]);
+        }
+    }
+
+    public function actionPreviewSlideout(): Response
+    {
+        $this->requireCpRequest();
+        $this->requirePermission('formie-accessForms');
+
+        $previewKey = (string)$this->request->getParam('previewKey');
+
+        if ($previewKey === '') {
+            throw new NotFoundHttpException('Form preview not found.');
+        }
+
+        Formie::$plugin->getFormPreview()->registerSlideoutCss();
+
+        $response = $this->asCpScreen()
+            ->docTitle(Craft::t('formie', 'Form Preview'))
+            ->title(Craft::t('formie', 'Form Preview'))
+            ->toolbarHtml(Formie::$plugin->getFormPreview()->getSlideoutToolbarHtml())
+            ->contentHtml(Formie::$plugin->getFormPreview()->getSlideoutContentHtml($previewKey))
+            ->prepareScreen(function (CraftResponse $response, string $containerId): void {
+                Formie::$plugin->getFormPreview()->registerSlideoutPaneHeader($containerId);
+            });
+
+        $screen = $response->getBehavior(CpScreenResponseBehavior::NAME);
+
+        if ($screen instanceof CpScreenResponseBehavior) {
+            $screen->slideoutBodyClass = 'so-full-details formie-form-preview-slideout';
+        }
+
+        return $response;
+    }
+
+    public function actionPreviewFrame(): Response
+    {
+        $this->requireCpRequest();
+        $this->requirePermission('formie-accessForms');
+
+        $previewKey = (string)$this->request->getParam('previewKey');
+
+        if ($previewKey === '') {
+            throw new NotFoundHttpException('Form preview not found.');
+        }
+
+        try {
+            $preview = Formie::$plugin->getFormPreview()->renderPreviewFrame($previewKey);
+        } catch (NotFoundHttpException $e) {
+            throw $e;
+        } catch (Throwable $e) {
+            Formie::error('Could not render form preview: {message}', [
+                'message' => $e->getMessage(),
+            ]);
+
+            throw new NotFoundHttpException('Form preview could not be rendered.');
+        }
+
+        $html = Craft::$app->getView()->renderTemplate('formie/forms/_preview-frame', [
+            'formHtml' => $preview['html'],
+        ]);
+
+        return $this->asRaw($html);
+    }
+
+    public function actionPreviewSubmit(): ?Response
+    {
+        $this->requirePostRequest();
+
+        $token = (string)$this->request->getParam('previewToken');
+
+        if ($token === '') {
+            throw new NotFoundHttpException('Form preview not found.');
+        }
+
+        $this->requirePermission('formie-accessForms');
+
+        Formie::$plugin->getFormPreview()->setPreviewSubmittedFlash($token);
+
+        return $this->redirect(Formie::$plugin->getFormPreview()->getPreviewFrameUrl($token));
     }
 
     public function actionTemplateFieldsSlideoutSave(): Response

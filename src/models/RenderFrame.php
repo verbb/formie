@@ -43,6 +43,8 @@ class RenderFrame
             'jsAttributes',
             'initJs',
             'useObserver',
+            'useStockTemplates',
+            'previewMode',
             'templateVars',
             'errors',
             'submission',

@@ -2,18 +2,18 @@ import { useEffect, useState } from 'react';
 import { Button, MenuButton } from '@verbb/plugin-kit-react/components';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCheck, faExternalLink, faPlus, faTableList } from '@fortawesome/pro-solid-svg-icons';
+import { faCheck, faExternalLink, faEye, faPlus, faTableList } from '@fortawesome/pro-solid-svg-icons';
 
 import { useFormBuilderApp } from '@form-builder/contexts/FormBuilderAppContext';
 import useAppStore from '@form-builder/hooks/useAppStore';
-import { deleteForm } from '@form-builder/hooks/useFormTools';
+import { deleteForm, prepareFormPreview } from '@form-builder/hooks/useFormTools';
 import { announceFormBuilderStatus } from '@form-builder/utils/accessibility';
 import { cn } from '@verbb/plugin-kit-react/utils';
 
 function FormBuilderHeader({ formRef }) {
     const {
         isSaving, saveFeedbackState, viewSubmissionsUrl, title, newItemTitle, setSaveAction, setSaving, formId, entityId, entityType,
-        allowAdminChanges, canEdit, readOnlyMessage, stencilScopeLabel, saveDuplicateAction, saveDuplicateLabel, saveDuplicateRequestData,
+        allowAdminChanges, canEdit, readOnlyMessage, stencilScopeLabel, saveDuplicateAction, saveDuplicateLabel, saveDuplicateRequestData, saveRequestData,
         deleteAction, deleteRequestData, deleteRedirectUrl, deleteConfirmMessage, deleteErrorMessage, activeTab, setIsFieldTypeSidebarOpen,
     } = useFormBuilderApp();
     const templateFieldLayoutInfo = useAppStore((state) => {
@@ -23,6 +23,7 @@ function FormBuilderHeader({ formRef }) {
         return state.selectedTemplateId;
     });
     const [showSavedState, setShowSavedState] = useState(false);
+    const [isPreparingPreview, setIsPreparingPreview] = useState(false);
     const resolvedTitle = title || newItemTitle || Craft.t('formie', 'New Form');
     const selectedTemplateInfo = selectedTemplateId ? templateFieldLayoutInfo[String(selectedTemplateId)] : null;
     const canEditTemplateFields = Boolean(selectedTemplateId && selectedTemplateInfo?.hasFields);
@@ -45,7 +46,7 @@ function FormBuilderHeader({ formRef }) {
         };
     }, [isSaving, saveFeedbackState]);
 
-    const handleDelete = async() => {
+    const handleDelete = async () => {
         const deleteId = entityId ?? formId;
 
         if (!deleteId && !deleteRequestData) {
@@ -107,6 +108,43 @@ function FormBuilderHeader({ formRef }) {
             },
         ]
         : [];
+
+    const handlePreview = async (event) => {
+        event?.currentTarget?.blur?.();
+
+        const formValues = formRef.current?.store?.state?.values;
+
+        if (!formValues || typeof formValues !== 'object') {
+            Craft.cp.displayError(Craft.t('formie', 'Missing form preview data.'));
+            return;
+        }
+
+        setIsPreparingPreview(true);
+
+        const result = await prepareFormPreview(formValues, {
+            entityType,
+            saveRequestData,
+        });
+
+        setIsPreparingPreview(false);
+
+        if (!result.ok) {
+            Craft.cp.displayError(result.error || Craft.t('formie', 'Could not prepare form preview.'));
+            announceFormBuilderStatus(result.error || Craft.t('formie', 'Could not prepare form preview.'));
+            return;
+        }
+
+        const slideout = new Craft.CpScreenSlideout('formie/forms/preview-slideout', {
+            containerElement: 'div',
+            showHeader: true,
+            params: {
+                previewKey: result.data.token,
+            },
+        });
+
+        slideout.open();
+        announceFormBuilderStatus(Craft.t('formie', 'Form Preview'));
+    };
 
     const handleEditTemplateFields = (event) => {
         event?.currentTarget?.blur?.();
@@ -174,6 +212,17 @@ function FormBuilderHeader({ formRef }) {
                             <span className="form-builder-header-action-label">{Craft.t('formie', 'Add fields')}</span>
                         </Button>
                     )}
+
+                    <Button
+                        type="button"
+                        className="form-builder-header-secondary-action form-builder-preview-action"
+                        loading={isPreparingPreview}
+                        aria-label={Craft.t('formie', 'Form Preview')}
+                        onClick={handlePreview}
+                    >
+                        <FontAwesomeIcon icon={faEye} className="size-3" />
+                        <span className="form-builder-header-action-label form-builder-header-action-label-full">{Craft.t('formie', 'Preview')}</span>
+                    </Button>
 
                     {canEdit ? (
                         <MenuButton

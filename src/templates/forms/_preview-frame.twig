@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="{{ craft.app.language }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ 'Form Preview'|t('formie') }}</title>
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            background: #fff;
+        }
+    </style>
+</head>
+<body>
+    {{ formHtml|raw }}
+</body>
+</html>
