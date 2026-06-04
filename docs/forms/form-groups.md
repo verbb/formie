@@ -57,7 +57,3 @@ When groups exist, the submissions index sidebar groups forms under their form g
 ## Form templates
 
 Form templates control front-end rendering. They are separate from form groups. The forms index no longer groups forms by template; use form groups for CP organisation and templates for rendering.
-
-## Related work
-
-Configurable field palette groups in the form builder ([#2209](https://github.com/verbb/formie/issues/2209)) are planned separately and are not part of form groups.
