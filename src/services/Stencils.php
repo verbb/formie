@@ -128,21 +128,15 @@ class Stencils extends Component
 
         $projectConfig = Craft::$app->getProjectConfig();
 
+        // For new stencils, apply captcha integration defaults for consistency with new forms.
+        if ($isNewStencil) {
+            Formie::$plugin->getFormDefaults()->applyCaptchaDefaultsToIntegrations($stencil->data->settings->integrations);
+        }
+
         if ($stencil->dateDeleted) {
             $configData = null;
         } else {
             $configData = $stencil->getConfig();
-        }
-
-        // For new stencils, check for any globally enabled captchas and set as enabled
-        if ($isNewStencil) {
-            $captchas = Formie::$plugin->getIntegrations()->getAllCaptchas();
-
-            foreach ($captchas as $captcha) {
-                if ($captcha->getEnabled()) {
-                    $configData['data']['settings']['integrations'][$captcha->handle]['enabled'] = true;
-                }
-            }
         }
 
         $configPath = self::CONFIG_STENCILS_KEY . '.' . $stencilUid;

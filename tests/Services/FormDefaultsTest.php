@@ -4,7 +4,15 @@ declare(strict_types=1);
 
 use verbb\formie\elements\Form;
 use verbb\formie\fields\Date;
+use verbb\formie\fields\Email;
+use verbb\formie\fields\Entries;
 use verbb\formie\fields\FileUpload;
+use verbb\formie\fields\Number;
+use verbb\formie\fields\Checkboxes;
+use verbb\formie\fields\Hidden;
+use verbb\formie\fields\Radio;
+use verbb\formie\fields\SingleLineText;
+use verbb\formie\fields\Users;
 use verbb\formie\Formie;
 use verbb\formie\models\Notification;
 
@@ -64,12 +72,24 @@ it('applies supported field defaults when creating new fields', function (): voi
             'defaultOption' => 'today',
             'defaultValue' => null,
         ],
+        Email::class => [
+            'validateDomain' => true,
+            'blockFreeDomains' => true,
+        ],
+        Number::class => [
+            'decimals' => 2,
+        ],
     ];
 
-    $field = new Date();
+    $dateField = new Date();
+    $emailField = new Email();
+    $numberField = new Number();
 
-    expect($field->displayType)->toBe('dropdowns')
-        ->and($field->defaultOption)->toBe('today');
+    expect($dateField->displayType)->toBe('dropdowns')
+        ->and($dateField->defaultOption)->toBe('today')
+        ->and($emailField->validateDomain)->toBeTrue()
+        ->and($emailField->blockFreeDomains)->toBeTrue()
+        ->and($numberField->decimals)->toBe(2);
 });
 
 it('does not override explicitly provided field config with defaults', function (): void {
@@ -84,13 +104,14 @@ it('does not override explicitly provided field config with defaults', function 
     expect($field->displayType)->toBe('inputs');
 });
 
-it('applies notification defaults including attachPdf', function (): void {
+it('applies notification defaults including attachPdf and pdfTemplateId', function (): void {
     Formie::$plugin->getSettings()->notificationDefaults = [
         'fromName' => 'Site Admin',
         'from' => 'admin@example.com',
         'subject' => 'New submission',
         'attachFiles' => true,
         'attachPdf' => true,
+        'pdfTemplateId' => 42,
         'enabled' => false,
     ];
 
@@ -102,6 +123,7 @@ it('applies notification defaults including attachPdf', function (): void {
         ->and($notification->subject)->toBe('New submission')
         ->and($notification->attachFiles)->toBeTrue()
         ->and((bool)$notification->attachPdf)->toBeTrue()
+        ->and($notification->pdfTemplateId)->toBe(42)
         ->and($notification->enabled)->toBeFalse();
 });
 
@@ -109,7 +131,19 @@ it('exposes schema-backed field type defaults config for supported field types',
     $fieldTypes = Formie::$plugin->getFormDefaults()->getFieldTypeDefaultsConfig();
     $types = array_column($fieldTypes, 'type');
 
-    expect($types)->toContain(Date::class, FileUpload::class, \verbb\formie\fields\Phone::class, \verbb\formie\fields\Agree::class);
+    expect($types)->toContain(
+        Date::class,
+        FileUpload::class,
+        \verbb\formie\fields\Phone::class,
+        \verbb\formie\fields\Agree::class,
+        SingleLineText::class,
+        Email::class,
+        Number::class,
+        Entries::class,
+        \verbb\formie\fields\Radio::class,
+        \verbb\formie\fields\Checkboxes::class,
+        \verbb\formie\fields\Hidden::class,
+    );
 
     $dateConfig = collect($fieldTypes)->firstWhere('type', Date::class);
 
@@ -122,7 +156,29 @@ it('exposes schema-backed form and notification defaults config', function (): v
     $service = Formie::$plugin->getFormDefaults();
 
     expect($service->getFormDefaultsSchemaConfig()['schema'] ?? null)->toHaveCount(16)
-        ->and($service->getNotificationDefaultsSchemaConfig()['schema'] ?? null)->toHaveCount(8);
+        ->and($service->getNotificationDefaultsSchemaConfig()['schema'] ?? null)->toHaveCount(9);
+});
+
+it('applies captcha integration defaults to integrations settings', function (): void {
+    $captchas = Formie::$plugin->getFormDefaults()->getIntegrationCaptchaOptions();
+
+    if ($captchas === []) {
+        expect(true)->toBeTrue();
+
+        return;
+    }
+
+    $handle = $captchas[0]['handle'];
+    Formie::$plugin->getSettings()->integrationDefaults = [
+        'captchas' => [
+            $handle => false,
+        ],
+    ];
+
+    $integrations = [];
+    Formie::$plugin->getFormDefaults()->applyCaptchaDefaultsToIntegrations($integrations);
+
+    expect($integrations[$handle]['enabled'] ?? null)->toBeFalse();
 });
 
 it('applies captcha integration defaults to new forms', function (): void {
@@ -147,6 +203,69 @@ it('applies captcha integration defaults to new forms', function (): void {
     expect($form->settings->integrations[$handle]['enabled'] ?? null)->toBeFalse();
 });
 
+it('prepares field defaults for the editor from class defaults when nothing is stored', function (): void {
+    Formie::$plugin->getSettings()->fieldDefaults = [];
+
+    $prepared = Formie::$plugin->getFormDefaults()->prepareFieldTypeDefaultsForEditor(Entries::class);
+
+    expect($prepared['displayType'] ?? null)->toBe('dropdown')
+        ->and($prepared['labelSource'] ?? null)->toBe('title')
+        ->and($prepared['orderBy'] ?? null)->toBe('title ASC')
+        ->and($prepared['layout'] ?? null)->toBeNull();
+});
+
+it('prepares select field defaults from class defaults for checkboxes hidden and users', function (): void {
+    Formie::$plugin->getSettings()->fieldDefaults = [];
+
+    $service = Formie::$plugin->getFormDefaults();
+
+    expect($service->prepareFieldTypeDefaultsForEditor(Checkboxes::class)['layout'] ?? null)->toBe('vertical')
+        ->and($service->prepareFieldTypeDefaultsForEditor(Hidden::class)['defaultOption'] ?? null)->toBe('custom');
+
+    if (!Formie::$plugin->getFields()->getRegisteredFieldByType(Users::class, false)) {
+        expect(true)->toBeTrue();
+
+        return;
+    }
+
+    expect($service->prepareFieldTypeDefaultsForEditor(Users::class)['labelSource'] ?? null)->toBe('email');
+});
+
+it('uses stored field defaults in the editor over class defaults', function (): void {
+    Formie::$plugin->getSettings()->fieldDefaults = [
+        Entries::class => [
+            'displayType' => 'radio',
+        ],
+    ];
+
+    $prepared = Formie::$plugin->getFormDefaults()->prepareFieldTypeDefaultsForEditor(Entries::class);
+
+    expect($prepared['displayType'] ?? null)->toBe('radio')
+        ->and($prepared['labelSource'] ?? null)->toBe('title');
+});
+
+it('normalizes field defaults matching class defaults back to inherit for storage', function (): void {
+    $service = Formie::$plugin->getFormDefaults();
+
+    $normalized = $service->normalizeFieldDefaultsForStorage([
+        Entries::class => [
+            'displayType' => 'dropdown',
+            'labelSource' => 'title',
+            'orderBy' => 'title ASC',
+        ],
+        Radio::class => [
+            'layout' => 'vertical',
+        ],
+        Date::class => [
+            'displayType' => 'dropdowns',
+        ],
+    ]);
+
+    expect($normalized)->not->toHaveKey(Entries::class)
+        ->and($normalized)->not->toHaveKey(Radio::class)
+        ->and($normalized[Date::class]['displayType'] ?? null)->toBe('dropdowns');
+});
+
 it('normalizes inherit boolean settings payload values for storage', function (): void {
     $service = Formie::$plugin->getFormDefaults();
 
@@ -155,6 +274,7 @@ it('normalizes inherit boolean settings payload values for storage', function ()
             'attachFiles' => '1',
             'attachPdf' => '0',
             'enabled' => '',
+            'pdfTemplateId' => '7',
         ],
         'integrationDefaults' => [
             'captchas' => [
@@ -166,6 +286,7 @@ it('normalizes inherit boolean settings payload values for storage', function ()
     expect($normalized['notificationDefaults']['attachFiles'])->toBeTrue()
         ->and($normalized['notificationDefaults']['attachPdf'])->toBeFalse()
         ->and($normalized['notificationDefaults']['enabled'])->toBeNull()
+        ->and($normalized['notificationDefaults']['pdfTemplateId'])->toBe(7)
         ->and($normalized['integrationDefaults']['captchas']['recaptcha'])->toBeTrue();
 });
 

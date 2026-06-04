@@ -43,6 +43,36 @@ const getAtPath = (values, path, fallback = '') => {
     }, values) ?? fallback;
 };
 
+const normalizeSelectFieldDefaults = (schema, values) => {
+    if (!schema?.length || !values || typeof values !== 'object') {
+        return values || {};
+    }
+
+    const normalized = { ...values };
+
+    schema.forEach((node) => {
+        if (node?.$field !== 'select' || !node?.name || !Array.isArray(node.options)) {
+            return;
+        }
+
+        const currentValue = normalized[node.name];
+
+        if (currentValue === undefined || currentValue === null || currentValue === '') {
+            return;
+        }
+
+        const match = node.options.find((option) => {
+            return String(option?.value) === String(currentValue);
+        });
+
+        if (match) {
+            normalized[node.name] = match.value;
+        }
+    });
+
+    return normalized;
+};
+
 const DefaultsSectionIntro = ({ title, description }) => {
     return (
         <div>
@@ -57,8 +87,8 @@ const SchemaDefaultsPanel = ({
 }) => {
     const hasHandledInitialChangeRef = useRef(false);
     const initialValues = useMemo(() => {
-        return values || {};
-    }, [panelKey, values]);
+        return normalizeSelectFieldDefaults(schema, values || {});
+    }, [panelKey, schema, values]);
 
     const form = useSchemaFormEngine({
         schema: schema || [],
@@ -91,7 +121,7 @@ const SchemaDefaultsPanel = ({
 
 export const DefaultsApp = ({ settings }) => {
     const [values, setValues] = useState(settings.values || {});
-    const [selectedFieldType, setSelectedFieldType] = useState(settings.initialFieldType || settings.fieldTypes?.[0]?.type || '');
+    const [selectedFieldType, setSelectedFieldType] = useState('');
     const [isSaving, setIsSaving] = useState(false);
     const valuesRef = useRef(values);
     const isSavingRef = useRef(false);
@@ -109,12 +139,15 @@ export const DefaultsApp = ({ settings }) => {
     }, [fieldTypes, selectedFieldType]);
 
     const fieldTypeOptions = useMemo(() => {
-        return fieldTypes.map((fieldType) => {
-            return {
-                label: fieldType.label,
-                value: fieldType.type,
-            };
-        });
+        return [
+            { label: Craft.t('formie', 'Select an option'), value: '' },
+            ...fieldTypes.map((fieldType) => {
+                return {
+                    label: fieldType.label,
+                    value: fieldType.type,
+                };
+            }),
+        ];
     }, [fieldTypes]);
 
     const inheritBooleanOptions = useMemo(() => {
@@ -304,7 +337,7 @@ export const DefaultsApp = ({ settings }) => {
                         />
                     </FieldLayout>
 
-                    {fieldTypeOptions.length ? (
+                    {fieldTypes.length ? (
                         <>
                             <FieldLayout
                                 name="selectedFieldType"
@@ -318,13 +351,15 @@ export const DefaultsApp = ({ settings }) => {
                                 />
                             </FieldLayout>
 
-                            <SchemaDefaultsPanel
-                                panelKey={selectedFieldType}
-                                schema={selectedFieldTypeConfig?.schema || []}
-                                schemaIndex={selectedFieldTypeConfig?.schemaIndex || null}
-                                values={(values.fieldDefaults || {})[selectedFieldType] || {}}
-                                onChange={(fieldValues) => { updateFieldDefaults(selectedFieldType, fieldValues); }}
-                            />
+                            {selectedFieldType ? (
+                                <SchemaDefaultsPanel
+                                    panelKey={selectedFieldType}
+                                    schema={selectedFieldTypeConfig?.schema || []}
+                                    schemaIndex={selectedFieldTypeConfig?.schemaIndex || null}
+                                    values={(values.fieldDefaults || {})[selectedFieldType] || {}}
+                                    onChange={(fieldValues) => { updateFieldDefaults(selectedFieldType, fieldValues); }}
+                                />
+                            ) : null}
                         </>
                     ) : (
                         <p className="formie-defaults-note">
@@ -363,7 +398,7 @@ export const DefaultsApp = ({ settings }) => {
                 <PaneTabsContent value="integrations" className="formie-defaults-panel">
                     <DefaultsSectionIntro
                         title={Craft.t('formie', 'Integration Defaults')}
-                        description={Craft.t('formie', 'Control whether captcha integrations are enabled by default on new forms. Inherit uses each integration’s global enabled state.')}
+                        description={Craft.t('formie', 'Control whether captcha integrations are enabled by default on new forms and stencils. Inherit uses each integration’s global enabled state.')}
                     />
 
                     {integrationCaptchas.length ? integrationCaptchas.map((captcha) => {
@@ -374,7 +409,7 @@ export const DefaultsApp = ({ settings }) => {
                                 key={captcha.handle}
                                 name={path}
                                 label={captcha.label}
-                                instructions={Craft.t('formie', 'Whether this captcha should be enabled when a new form is created.')}
+                                instructions={Craft.t('formie', 'Whether this captcha should be enabled when a new form or stencil is created.')}
                             >
                                 <SelectInput
                                     value={getAtPath(values, path, '')}

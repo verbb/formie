@@ -42,6 +42,7 @@ Method | Description
 `defineFormBuilderAppearanceSchema()` | Defines the schema for the `Appearance` tab in the field edit modal.
 `defineFormBuilderAdvancedSchema()` | Defines the schema for the `Advanced` tab in the field edit modal.
 `defineFormBuilderConditionsSchema()` | Defines the schema for the `Conditions` tab in the field edit modal.
+`supportedDefaults()` | Returns setting handles that can be configured as organisation-wide defaults in **Settings → Defaults**. See [Field Defaults](/developers/field-defaults).
 `defineValidationRules()` | Defines the validation rules sent to Formie’s front-end assets.
 `defineRules()` | Defines server-side Yii validation rules for the field model.
 `defineClientInput()` | Adds input-specific configuration to the client-rendered field definition.
@@ -101,6 +102,8 @@ public function defineFormBuilderGeneralSchema(): array
 ```
 
 The schema system is shared by fields, notifications, integrations and other form-builder UIs, so it is covered in more detail in [Schema](/developers/schema).
+
+To expose organisation-wide defaults for your field type, opt in with `supportedDefaults()`. See [Field Defaults](/developers/field-defaults).
 
 ## Templates
 There are also a number of rendering pieces custom fields should provide. These are namely:

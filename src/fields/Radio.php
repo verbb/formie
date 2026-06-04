@@ -186,6 +186,11 @@ class Radio extends OptionsField implements SortableFieldInterface
     // Protected Methods
     // =========================================================================
 
+    protected function supportedDefaults(): array
+    {
+        return ['layout'];
+    }
+
     protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
     {
         $form = $context->form;

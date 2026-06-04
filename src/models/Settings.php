@@ -228,6 +228,7 @@ class Settings extends Model
             'subject' => null,
             'attachFiles' => null,
             'attachPdf' => null,
+            'pdfTemplateId' => null,
             'enabled' => null,
         ], $this->notificationDefaults);
     }

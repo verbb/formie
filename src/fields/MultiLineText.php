@@ -447,6 +447,11 @@ class MultiLineText extends Field implements SortableFieldInterface, Previewable
     // Protected Methods
     // =========================================================================
 
+    protected function supportedDefaults(): array
+    {
+        return ['autocomplete'];
+    }
+
     protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
     {
         $form = $context->form;

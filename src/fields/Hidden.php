@@ -257,6 +257,11 @@ class Hidden extends Field implements SortableFieldInterface, PreviewableFieldIn
     // Protected Methods
     // =========================================================================
 
+    protected function supportedDefaults(): array
+    {
+        return ['defaultOption'];
+    }
+
     protected function defineValueForCondition(mixed $value, Submission $submission): mixed
     {
         // Prevent an infinite loop with hidden fields, as their `serializeValue()` will call this

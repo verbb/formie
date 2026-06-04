@@ -340,6 +340,11 @@ class Number extends Field implements SortableFieldInterface, PreviewableFieldIn
     // Protected Methods
     // =========================================================================
 
+    protected function supportedDefaults(): array
+    {
+        return ['decimals'];
+    }
+
     protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
     {
         $form = $context->form;

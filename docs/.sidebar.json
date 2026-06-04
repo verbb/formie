@@ -333,6 +333,7 @@
             "developers/submission-content",
             "developers/schema",
             "developers/custom-field",
+            "developers/field-defaults",
             {
                 "title": "Custom Integration",
                 "collapsable": true,

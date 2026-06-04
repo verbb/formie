@@ -369,6 +369,11 @@ class SingleLineText extends Field implements SortableFieldInterface, Previewabl
     // Protected Methods
     // =========================================================================
 
+    protected function supportedDefaults(): array
+    {
+        return ['autocomplete'];
+    }
+
     protected function defineRules(): array
     {
         $rules = parent::defineRules();

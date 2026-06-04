@@ -632,6 +632,7 @@ class Notifications extends Component
             'subject',
             'attachFiles',
             'attachPdf',
+            'pdfTemplateId',
             'enabled',
         ];
     }
@@ -647,6 +648,7 @@ class Notifications extends Component
             'replyTo' => 'replyTo',
             'attachFiles' => 'attachFiles',
             'attachPdf' => 'attachPdf',
+            'pdfTemplateId' => 'pdfTemplateId',
         ];
 
         $schema = SchemaHelper::extractDefaultsSchema([
@@ -658,15 +660,32 @@ class Notifications extends Component
         foreach ($schema as &$node) {
             $name = $node['name'] ?? null;
 
-            if (!in_array($name, ['attachFiles', 'attachPdf', 'enabled'], true)) {
+            if (in_array($name, ['attachFiles', 'attachPdf', 'enabled'], true)) {
+                $node = SchemaHelper::inheritBooleanField([
+                    'name' => $name,
+                    'label' => $node['label'] ?? null,
+                    'instructions' => $node['instructions'] ?? null,
+                ]);
+
                 continue;
             }
 
-            $node = SchemaHelper::inheritBooleanField([
-                'name' => $name,
-                'label' => $node['label'] ?? null,
-                'instructions' => $node['instructions'] ?? null,
-            ]);
+            if ($name !== 'pdfTemplateId') {
+                continue;
+            }
+
+            unset($node['if']);
+
+            $options = [
+                ['label' => Craft::t('formie', 'Default Formie Template'), 'value' => ''],
+            ];
+
+            foreach (Formie::$plugin->getPdfTemplates()->getAllTemplates() as $template) {
+                $options[] = ['label' => $template->name, 'value' => $template->id];
+            }
+
+            $node['$field'] = 'select';
+            $node['options'] = $options;
         }
         unset($node);
 

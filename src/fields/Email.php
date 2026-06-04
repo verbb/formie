@@ -271,6 +271,11 @@ class Email extends Field implements SortableFieldInterface, PreviewableFieldInt
     // Protected Methods
     // =========================================================================
 
+    protected function supportedDefaults(): array
+    {
+        return ['validateDomain', 'blockFreeDomains'];
+    }
+
     protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
     {
         $form = $context->form;

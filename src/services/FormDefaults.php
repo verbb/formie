@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\services;
 
+use verbb\formie\base\Field;
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\fields\Date;
@@ -24,6 +25,7 @@ class FormDefaults extends Component
     private ?array $_fieldTypeDefaultsConfig = null;
     private ?array $_formDefaultsSchemaConfig = null;
     private ?array $_notificationDefaultsSchemaConfig = null;
+    private array $_fieldTypeClassDefaultsCache = [];
 
 
     // Public Methods
@@ -53,7 +55,6 @@ class FormDefaults extends Component
             'notificationDefaultsSchema' => $notificationDefaultsSchema['schema'],
             'notificationDefaultsSchemaIndex' => $notificationDefaultsSchema,
             'fieldTypes' => $fieldTypes,
-            'initialFieldType' => $fieldTypes[0]['type'] ?? null,
             'submissionTitleFormatVariableConfig' => $this->getSubmissionTitleFormatVariableConfig(),
         ], Variables::getFormBuilderVariableConfig());
     }
@@ -70,6 +71,10 @@ class FormDefaults extends Component
             $settings['integrationDefaults']['captchas'] = $this->normalizeIntegrationCaptchaDefaultsForStorage(
                 $settings['integrationDefaults']['captchas'],
             );
+        }
+
+        if (isset($settings['fieldDefaults']) && is_array($settings['fieldDefaults'])) {
+            $settings['fieldDefaults'] = $this->normalizeFieldDefaultsForStorage($settings['fieldDefaults']);
         }
 
         return $settings;
@@ -92,19 +97,83 @@ class FormDefaults extends Component
 
     public function getAllFieldDefaultsValues(Settings $settings, ?array $fieldTypes = null): array
     {
-        $values = is_array($settings->fieldDefaults ?? null) ? $settings->fieldDefaults : [];
+        $values = [];
 
         foreach ($fieldTypes ?? $this->getFieldTypeDefaultsConfig() as $fieldType) {
-            $type = $fieldType['type'];
-
-            if (!isset($values[$type]) || !is_array($values[$type])) {
-                $values[$type] = $this->resolveFieldTypeDefaults($type);
-            } else {
-                $values[$type] = array_replace($this->resolveFieldTypeDefaults($type), $values[$type]);
-            }
+            $values[$fieldType['type']] = $this->prepareFieldTypeDefaultsForEditor($fieldType['type']);
         }
 
         return $values;
+    }
+
+    public function prepareFieldTypeDefaultsForEditor(string $fieldClass): array
+    {
+        $supported = $this->_getSupportedDefaults($fieldClass);
+
+        if ($supported === []) {
+            return [];
+        }
+
+        $stored = $this->resolveFieldTypeDefaults($fieldClass);
+        $classDefaults = $this->_getFieldTypeClassDefaults($fieldClass, $supported);
+        $prepared = [];
+
+        foreach ($supported as $key) {
+            if (array_key_exists($key, $stored) && !$this->_shouldInheritDefaultValue($stored[$key])) {
+                $prepared[$key] = $stored[$key];
+                continue;
+            }
+
+            if (array_key_exists($key, $classDefaults)) {
+                $prepared[$key] = $classDefaults[$key];
+            }
+        }
+
+        return $this->_formatPreparedFieldDefaultsForEditor($fieldClass, $prepared);
+    }
+
+    public function normalizeFieldDefaultsForStorage(array $fieldDefaults): array
+    {
+        $normalized = [];
+
+        foreach ($fieldDefaults as $fieldClass => $values) {
+            if (!is_string($fieldClass) || !is_array($values)) {
+                continue;
+            }
+
+            $supported = $this->_getSupportedDefaults($fieldClass);
+
+            if ($supported === []) {
+                continue;
+            }
+
+            $classDefaults = $this->_getFieldTypeClassDefaults($fieldClass, $supported);
+            $stored = [];
+
+            foreach ($supported as $key) {
+                if (!array_key_exists($key, $values)) {
+                    continue;
+                }
+
+                $value = $this->normalizeFieldDefaultValue($fieldClass, $key, $values[$key]);
+
+                if ($this->_shouldInheritDefaultValue($value)) {
+                    continue;
+                }
+
+                if ($this->_fieldDefaultValuesMatch($fieldClass, $key, $value, $classDefaults[$key] ?? null)) {
+                    continue;
+                }
+
+                $stored[$key] = $value;
+            }
+
+            if ($stored !== []) {
+                $normalized[$fieldClass] = $stored;
+            }
+        }
+
+        return $normalized;
     }
 
     public function resolveFieldTypeDefaults(string $fieldClass): array
@@ -199,6 +268,11 @@ class FormDefaults extends Component
 
     public function applyCaptchaDefaultsToNewForm(Form $form): void
     {
+        $this->applyCaptchaDefaultsToIntegrations($form->settings->integrations);
+    }
+
+    public function applyCaptchaDefaultsToIntegrations(array &$integrations): void
+    {
         $settings = Formie::$plugin->getSettings();
         $captchaDefaults = $settings->getNormalizedIntegrationDefaults()['captchas'] ?? [];
 
@@ -212,13 +286,13 @@ class FormDefaults extends Component
 
             if ($this->_shouldInheritDefaultValue($default)) {
                 if ($captcha->getEnabled()) {
-                    $form->settings->integrations[$handle]['enabled'] = true;
+                    $integrations[$handle]['enabled'] = true;
                 }
 
                 continue;
             }
 
-            $form->settings->integrations[$handle]['enabled'] = (bool)$default;
+            $integrations[$handle]['enabled'] = (bool)$default;
         }
     }
 
@@ -229,11 +303,14 @@ class FormDefaults extends Component
                 continue;
             }
 
-            if (!in_array($name, ['attachFiles', 'attachPdf', 'enabled'], true)) {
+            if (in_array($name, ['attachFiles', 'attachPdf', 'enabled'], true)) {
+                $defaults[$name] = $this->_normalizeInheritBooleanValue($defaults[$name]);
                 continue;
             }
 
-            $defaults[$name] = $this->_normalizeInheritBooleanValue($defaults[$name]);
+            if ($name === 'pdfTemplateId') {
+                $defaults[$name] = $this->_normalizeTemplateIdDefaultValue($defaults[$name]);
+            }
         }
 
         return $defaults;
@@ -247,6 +324,10 @@ class FormDefaults extends Component
             }
 
             $defaults[$name] = $this->_formatInheritBooleanForEditor($defaults[$name]);
+        }
+
+        if (array_key_exists('pdfTemplateId', $defaults)) {
+            $defaults['pdfTemplateId'] = $this->_formatTemplateIdDefaultForEditor($defaults['pdfTemplateId']);
         }
 
         return $defaults;
@@ -530,19 +611,154 @@ class FormDefaults extends Component
         return $value ? '1' : '0';
     }
 
+    private function _normalizeTemplateIdDefaultValue(mixed $value): ?int
+    {
+        if ($this->_shouldInheritDefaultValue($value)) {
+            return null;
+        }
+
+        $templateId = (int)$value;
+
+        return $templateId ?: null;
+    }
+
+    private function _formatTemplateIdDefaultForEditor(mixed $value): string
+    {
+        if ($this->_shouldInheritDefaultValue($value)) {
+            return '';
+        }
+
+        return (string)(int)$value;
+    }
+
     private function _getSupportedDefaults(string $fieldClass): array
     {
-        foreach (Formie::$plugin->getFields()->getRegisteredFields(false) as $field) {
-            if ($field instanceof MissingField) {
+        $field = Formie::$plugin->getFields()->getRegisteredFieldByType($fieldClass, false);
+
+        if ($field && !$field instanceof MissingField) {
+            return $field->getSupportedDefaults();
+        }
+
+        if (!class_exists($fieldClass) || !is_subclass_of($fieldClass, Field::class)) {
+            return [];
+        }
+
+        return (new $fieldClass([]))->getSupportedDefaults();
+    }
+
+    private function _formatPreparedFieldDefaultsForEditor(string $fieldClass, array $prepared): array
+    {
+        foreach ($this->getFieldTypeDefaultsConfig() as $fieldType) {
+            if (($fieldType['type'] ?? null) !== $fieldClass) {
                 continue;
             }
 
-            if (get_class($field) === $fieldClass) {
-                return $field->getSupportedDefaults();
+            $schema = $fieldType['schema'] ?? [];
+
+            if (!is_array($schema)) {
+                break;
+            }
+
+            foreach ($schema as $node) {
+                if (!is_array($node)) {
+                    continue;
+                }
+
+                $name = $node['name'] ?? null;
+
+                if (!is_string($name) || !array_key_exists($name, $prepared)) {
+                    continue;
+                }
+
+                if (($node['$field'] ?? null) === 'select' && is_array($node['options'] ?? null)) {
+                    $prepared[$name] = $this->_coerceSelectDefaultValueForEditor($prepared[$name], $node['options']);
+                }
+            }
+
+            break;
+        }
+
+        return $prepared;
+    }
+
+    private function _coerceSelectDefaultValueForEditor(mixed $value, array $options): mixed
+    {
+        if ($this->_shouldInheritDefaultValue($value)) {
+            return $value;
+        }
+
+        foreach ($options as $option) {
+            if (!is_array($option) || !array_key_exists('value', $option)) {
+                continue;
+            }
+
+            $optionValue = $option['value'];
+
+            if ($optionValue === $value) {
+                return $optionValue;
+            }
+
+            if ((string)$optionValue === (string)$value) {
+                return $optionValue;
             }
         }
 
-        return [];
+        return $value;
+    }
+
+    private function _getFieldTypeClassDefaults(string $fieldClass, array $supported): array
+    {
+        $cacheKey = $fieldClass . ':' . implode(',', $supported);
+
+        if (array_key_exists($cacheKey, $this->_fieldTypeClassDefaultsCache)) {
+            return $this->_fieldTypeClassDefaultsCache[$cacheKey];
+        }
+
+        if (!class_exists($fieldClass)) {
+            return $this->_fieldTypeClassDefaultsCache[$cacheKey] = [];
+        }
+
+        $settings = Formie::$plugin->getSettings();
+        $previous = $settings->fieldDefaults[$fieldClass] ?? null;
+        unset($settings->fieldDefaults[$fieldClass]);
+
+        try {
+            $field = new $fieldClass([]);
+            $config = $field->getFormBuilderSettings();
+            $defaults = [];
+
+            foreach ($supported as $key) {
+                if (array_key_exists($key, $config)) {
+                    $defaults[$key] = $config[$key];
+                }
+            }
+
+            return $this->_fieldTypeClassDefaultsCache[$cacheKey] = $defaults;
+        } finally {
+            if ($previous !== null) {
+                $settings->fieldDefaults[$fieldClass] = $previous;
+            }
+        }
+    }
+
+    private function _fieldDefaultValuesMatch(string $fieldClass, string $key, mixed $value, mixed $classDefault): bool
+    {
+        $value = $this->normalizeFieldDefaultValue($fieldClass, $key, $value);
+        $classDefault = $this->normalizeFieldDefaultValue($fieldClass, $key, $classDefault);
+
+        if ($value === $classDefault) {
+            return true;
+        }
+
+        if (is_bool($value) || is_bool($classDefault)) {
+            return (bool)$value === (bool)$classDefault;
+        }
+
+        if (is_numeric($value) && is_numeric($classDefault)) {
+            return (float)$value === (float)$classDefault;
+        }
+
+        return false;
     }
 
     private function _formTemplateOptions(): array

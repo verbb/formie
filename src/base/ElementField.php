@@ -1023,6 +1023,11 @@ abstract class ElementField extends Field implements ElementFieldInterface
         return ElementFieldValue::class;
     }
 
+    protected function supportedDefaults(): array
+    {
+        return ['displayType', 'labelSource', 'orderBy', 'limitOptions'];
+    }
+
 
     // Private Methods
     // =========================================================================

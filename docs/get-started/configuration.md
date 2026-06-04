@@ -54,6 +54,7 @@ return [
             'subject' => null,
             'attachFiles' => null,
             'attachPdf' => null,
+            'pdfTemplateId' => null,
             'enabled' => null,
         ],
         'integrationDefaults' => [
@@ -138,9 +139,9 @@ return [
 - `defaultFormStencil` sets a stencil handle to apply automatically when new forms are created without an explicit stencil.
 - `defaultEmailTemplate` sets the default email template handle used for new email notifications.
 - `formDefaults` sets structured defaults applied to new forms and stencils, including default submission status, submission title format, privacy settings, submission method, data retention, file-upload deletion behavior, and appearance settings. Leave a value empty or `null` to inherit Formie’s built-in behaviour.
-- `fieldDefaults` sets per-field-type defaults applied when new fields are added to a form. Keys are field class names; values are arrays of setting handles and values. Field types opt in via `supportedDefaults()`. Leave a value empty or `null` to inherit Formie’s built-in behaviour.
+- `fieldDefaults` sets per-field-type defaults applied when new fields are added to a form. Keys are field class names; values are arrays of setting handles and values. Field types opt in via `supportedDefaults()`. Leave a value empty or `null` to inherit Formie’s built-in behaviour. Third-party field authors should see [Field Defaults](/developers/field-defaults).
 - `notificationDefaults` sets defaults applied when a new email notification is created. Leave a value empty or `null` to inherit Formie’s built-in behaviour.
-- `integrationDefaults` controls default captcha integration states for new forms. Use `captchas[handle]` with `null` to inherit each integration’s global enabled state, or `true`/`false` to force enable or disable.
+- `integrationDefaults` controls default captcha integration states for new forms and stencils. Use `captchas[handle]` with `null` to inherit each integration’s global enabled state, or `true`/`false` to force enable or disable.
 - `enableUnloadWarning` shows an unload warning when a user changes a front-end form and tries to leave without submitting.
 - `enableBackSubmission` submits the current page content when a user clicks the Back button on a multi-page form.
 - `ajaxTimeout` sets the timeout in seconds for Ajax requests made by Formie’s front-end JavaScript.
@@ -155,7 +156,7 @@ return [
 - `defaultInstructionsPosition` sets the default instruction position for new forms and fields.
 
 ### Fields
-- `fieldDefaults` stores per-field-type default settings. For example, set File Upload, Date, Phone, and Agree defaults with their field class names as keys. Legacy settings such as `defaultFileUploadVolume`, `defaultDateDisplayType`, `defaultDateValueOption`, and `defaultDateTime` are migrated automatically into `fieldDefaults`.
+- `fieldDefaults` stores per-field-type default settings. For example, set File Upload, Date, Phone, Agree, Email, Number, element field, and other supported field defaults with their field class names as keys. Legacy settings such as `defaultFileUploadVolume`, `defaultDateDisplayType`, `defaultDateValueOption`, and `defaultDateTime` are migrated automatically into `fieldDefaults`. Custom field types can opt in via [Field Defaults](/developers/field-defaults).
 - `allowPublicVolumes` allows File Upload fields to use public asset volumes.
 - `enableLargeFieldStorage` stores field content in large-text database columns for projects that expect very large submission payloads.
 - `plainTextHtmlSanitizationMode` controls how plain-text input values are handled when HTML is submitted. Use `preserve` or `sanitize`.

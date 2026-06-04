@@ -5,9 +5,10 @@
 ### Added
 - Add a dedicated **Settings → Defaults** control panel page for form, field, and notification defaults. ([#863](https://github.com/verbb/formie/issues/863))
 - Add structured `formDefaults`, `fieldDefaults`, and `notificationDefaults` plugin settings, applied when new forms, fields, and notifications are created.
-- Add `supportedDefaults()` and schema extraction for field-type defaults, with Date, File Upload, Phone, and Agree as the initial supported field types.
-- Add schema-driven form and notification defaults extracted from the form builder and notification schemas.
-- Add captcha integration defaults for new forms via `integrationDefaults`.
+- Add `supportedDefaults()` and schema extraction for field-type defaults, with Date, File Upload, Phone, Agree, Single-Line Text, Multi-Line Text, Email, Number, Hidden, Radio, Checkboxes, and element fields (Entries, Categories, Users, Tags, Products, Variants) as supported field types.
+- Add [Field Defaults](/developers/field-defaults) developer documentation for third-party field authors.
+- Add schema-driven form and notification defaults extracted from the form builder and notification schemas, including a PDF template default for new notifications.
+- Add captcha integration defaults for new forms and stencils via `integrationDefaults`.
 - Add a migration to move legacy `defaultFileUploadVolume`, `defaultDateDisplayType`, `defaultDateValueOption`, and `defaultDateTime` settings into `fieldDefaults`.
 - Track and display who created and last updated a form in the form builder Settings tab footer and as optional forms index columns. ([Discussion #2342](https://github.com/verbb/formie/discussions/2342))
 - Add submission UID to the control panel submission sidebar and as an optional submissions index column. ([#2404](https://github.com/verbb/formie/issues/2404))
