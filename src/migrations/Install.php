@@ -142,6 +142,8 @@ class Install extends Migration
             'fileUploadsAction' => $this->enum('fileUploadsAction', ['retain', 'delete'])
                 ->defaultValue('retain')
                 ->notNull(),
+            'createdById' => $this->integer(),
+            'updatedById' => $this->integer(),
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),
             'uid' => $this->uid(),
@@ -453,6 +455,8 @@ class Install extends Migration
         $this->createIndex(null, Table::FORMIE_FORMS, 'defaultStatusId', false);
         $this->createIndex(null, Table::FORMIE_FORMS, 'submitActionEntryId', false);
         $this->createIndex(null, Table::FORMIE_FORMS, 'submitActionEntrySiteId', false);
+        $this->createIndex(null, Table::FORMIE_FORMS, 'createdById', false);
+        $this->createIndex(null, Table::FORMIE_FORMS, 'updatedById', false);
         $this->createIndex(null, Table::FORMIE_FORM_TEMPLATES, 'fieldLayoutId', false);
         $this->createIndex(null, Table::FORMIE_NOTIFICATIONS, 'formId', false);
         $this->createIndex(null, Table::FORMIE_NOTIFICATIONS, 'templateId', false);
@@ -505,6 +509,8 @@ class Install extends Migration
         $this->addForeignKey(null, Table::FORMIE_FORMS, ['templateId'], Table::FORMIE_FORM_TEMPLATES, ['id'], 'SET NULL', null);
         $this->addForeignKey(null, Table::FORMIE_FORMS, ['defaultStatusId'], Table::FORMIE_STATUSES, ['id'], 'SET NULL', null);
         $this->addForeignKey(null, Table::FORMIE_FORMS, ['submitActionEntryId'], '{{%entries}}', ['id'], 'SET NULL', null);
+        $this->addForeignKey(null, Table::FORMIE_FORMS, ['createdById'], '{{%users}}', ['id'], 'SET NULL', null);
+        $this->addForeignKey(null, Table::FORMIE_FORMS, ['updatedById'], '{{%users}}', ['id'], 'SET NULL', null);
         $this->addForeignKey(null, Table::FORMIE_FORM_TEMPLATES, ['fieldLayoutId'], '{{%fieldlayouts}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, Table::FORMIE_NOTIFICATIONS, ['formId'], Table::FORMIE_FORMS, ['id'], 'CASCADE', null);
         $this->addForeignKey(null, Table::FORMIE_NOTIFICATIONS, ['templateId'], Table::FORMIE_EMAIL_TEMPLATES, ['id'], 'SET NULL', null);

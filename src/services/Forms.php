@@ -376,6 +376,7 @@ class Forms extends Component
             'formHandles' => $form->getBuilderHandleNames(),
             'maxFormHandleLength' => HandleHelper::getMaxFormHandle(),
             'maxFieldHandleLength' => HandleHelper::getMaxFieldHandle(),
+            'formMeta' => $form->getFormMetaDetails(),
             'data' => [
                 'id' => $form->id,
                 'uid' => $form->uid,
@@ -397,6 +398,8 @@ class Forms extends Component
                 'fileUploadsAction' => $form->fileUploadsAction,
                 'dateCreated' => $form->dateCreated->format('Y-m-d H:i:s'),
                 'dateUpdated' => $form->dateUpdated->format('Y-m-d H:i:s'),
+                'createdById' => $form->createdById,
+                'updatedById' => $form->updatedById,
                 'settings' => $form->settings,
                 'notifications' => $notificationsConfig,
                 'integrations' => Formie::$plugin->getIntegrations()->getIntegrationSummariesForForm(),

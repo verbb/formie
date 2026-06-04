@@ -79,7 +79,7 @@ class FormQuery extends ElementQuery
         
         $this->joinElementTable('formie_forms');
 
-        $this->query->select([
+        $formColumns = [
             'formie_forms.id',
             'formie_forms.handle',
             'formie_forms.settings',
@@ -92,7 +92,19 @@ class FormQuery extends ElementQuery
             'formie_forms.dataRetentionValue',
             'formie_forms.userDeletedAction',
             'formie_forms.fileUploadsAction',
-        ]);
+        ];
+
+        $db = Craft::$app->getDb();
+
+        if ($db->columnExists(Table::FORMIE_FORMS, 'createdById')) {
+            $formColumns[] = 'formie_forms.createdById';
+        }
+
+        if ($db->columnExists(Table::FORMIE_FORMS, 'updatedById')) {
+            $formColumns[] = 'formie_forms.updatedById';
+        }
+
+        $this->query->select($formColumns);
 
         $pageQuery = (new Query())
             ->select(['COUNT(*)'])

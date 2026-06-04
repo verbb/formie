@@ -54,7 +54,9 @@ use craft\elements\conditions\ElementConditionInterface;
 use craft\elements\db\ElementQueryInterface;
 use craft\errors\MissingComponentException;
 use craft\events\DefineElementHtmlEvent;
+use craft\helpers\Cp;
 use craft\helpers\DateTimeHelper;
+use craft\i18n\Locale;
 use craft\helpers\Db;
 use craft\helpers\Json;
 use craft\helpers\Session;
@@ -219,6 +221,8 @@ class Form extends Element implements FormInterface
             'usageCount' => ['label' => Craft::t('formie', 'Usage Count')],
             'dateCreated' => ['label' => Craft::t('app', 'Date Created')],
             'dateUpdated' => ['label' => Craft::t('app', 'Date Updated')],
+            'createdBy' => ['label' => Craft::t('formie', 'Created By')],
+            'updatedBy' => ['label' => Craft::t('formie', 'Updated By')],
         ];
     }
 
@@ -281,6 +285,8 @@ class Form extends Element implements FormInterface
     public ?string $dataRetentionValue = null;
     public string $userDeletedAction = 'retain';
     public string $fileUploadsAction = 'retain';
+    public ?int $createdById = null;
+    public ?int $updatedById = null;
     public ?FormSettings $settings = null;
     public string $builderEntityType = self::BUILDER_ENTITY_TYPE_FORM;
 
@@ -561,6 +567,50 @@ class Form extends Element implements FormInterface
         } else {
             $this->_defaultStatus = $this->defaultStatusId = null;
         }
+    }
+
+    public function getCreatedBy(): ?User
+    {
+        if (!$this->createdById) {
+            return null;
+        }
+
+        return Craft::$app->getUsers()->getUserById($this->createdById);
+    }
+
+    public function getUpdatedBy(): ?User
+    {
+        if (!$this->updatedById) {
+            return null;
+        }
+
+        return Craft::$app->getUsers()->getUserById($this->updatedById);
+    }
+
+    public function getCreatedByLabel(): string
+    {
+        return $this->_getFormUserLabel($this->getCreatedBy());
+    }
+
+    public function getUpdatedByLabel(): string
+    {
+        return $this->_getFormUserLabel($this->getUpdatedBy());
+    }
+
+    public function getFormMetaDetails(): ?array
+    {
+        if (!$this->id) {
+            return null;
+        }
+
+        $formatter = Craft::$app->getFormatter();
+
+        return [
+            'createdBy' => $this->_getFormUserMeta($this->getCreatedBy()),
+            'updatedBy' => $this->_getFormUserMeta($this->getUpdatedBy()),
+            'dateCreated' => $formatter->asDatetime($this->dateCreated, Locale::LENGTH_SHORT),
+            'dateUpdated' => $formatter->asDatetime($this->dateUpdated, Locale::LENGTH_SHORT),
+        ];
     }
 
     public function getDefaultSubmissionTitle(?Submission $submission = null): string
@@ -1766,6 +1816,15 @@ class Form extends Element implements FormInterface
     {
         $settings = Formie::$plugin->getSettings();
         $fieldsService = Craft::$app->getFields();
+        $userId = Craft::$app->getUser()->getId();
+
+        if ($userId) {
+            if ($isNew) {
+                $this->createdById = $userId;
+            }
+
+            $this->updatedById = $userId;
+        }
 
         // Set the default template from settings, if not already set - for new forms
         if ($isNew && !$this->templateId) {
@@ -1826,6 +1885,8 @@ class Form extends Element implements FormInterface
         $record->dataRetentionValue = $this->dataRetentionValue;
         $record->fileUploadsAction = $this->fileUploadsAction;
         $record->userDeletedAction = $this->userDeletedAction;
+        $record->createdById = $this->createdById;
+        $record->updatedById = $this->updatedById;
 
         $record->save(false);
         
@@ -2576,6 +2637,13 @@ class Form extends Element implements FormInterface
                 'reservedHandles' => $reservedFormHandles,
                 'warning' => Craft::t('formie', 'Changing this may result in your {entity} not working as expected.', ['entity' => $builderEntityLabel]),
             ]),
+            [
+                '$el' => 'hr',
+                'if' => 'id',
+            ],
+            [
+                '$cmp' => 'FormMetaDetails',
+            ],
         ]);
     }
 
@@ -2929,6 +2997,8 @@ class Form extends Element implements FormInterface
         return match ($attribute) {
             'usageCount' => count(Formie::$plugin->getForms()->getFormUsage($this)),
             'pageCount' => count($this->getPages()),
+            'createdBy' => ($user = $this->getCreatedBy()) ? Cp::elementChipHtml($user) : '',
+            'updatedBy' => ($user = $this->getUpdatedBy()) ? Cp::elementChipHtml($user) : '',
             default => parent::attributeHtml($attribute),
         };
     }
@@ -2950,6 +3020,27 @@ class Form extends Element implements FormInterface
 
     // Private Methods
     // =========================================================================
+
+    private function _getFormUserMeta(?User $user): ?array
+    {
+        if (!$user) {
+            return null;
+        }
+
+        return [
+            'name' => $user->getName(),
+            'url' => $user->getCpEditUrl(),
+        ];
+    }
+
+    private function _getFormUserLabel(?User $user): string
+    {
+        if (!$user) {
+            return Craft::t('app', 'Unknown');
+        }
+
+        return $user->getName();
+    }
 
     private function _getSessionKey(string $key, bool $useSubmissionId = true): string
     {

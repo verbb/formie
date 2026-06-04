@@ -31,6 +31,9 @@ function FormBuilderContent({
     const setSelectedTemplateId = useAppStore((state) => {
         return state.setSelectedTemplateId;
     });
+    const setFormMeta = useAppStore((state) => {
+        return state.setFormMeta;
+    });
     const [errors, setErrors] = useState({});
     const isAjaxSubmissionForced = useAppStore((state) => {
         return state.isAjaxSubmissionForced;
@@ -201,6 +204,10 @@ function FormBuilderContent({
             } else if (!shouldSaveAsStencil) {
                 latestFormValuesRef.current = data;
                 captureUnloadWarningBaseline(stableSerialize(saveFormSnapshot(data)));
+            }
+
+            if (result?.data?.formMeta) {
+                setFormMeta(result.data.formMeta);
             }
 
             const resolvedSaveSuccessMessage = shouldSaveAsStencil

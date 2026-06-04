@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Added
+- Track and display who created and last updated a form in the form builder Settings tab footer and as optional forms index columns. ([Discussion #2342](https://github.com/verbb/formie/discussions/2342))
 - Add submission UID to the control panel submission sidebar and as an optional submissions index column. ([#2404](https://github.com/verbb/formie/issues/2404))
 - Add an Autocomplete setting to single-line and multi-line text fields in the form builder Settings tab, with a searchable list of HTML autocomplete tokens. ([Discussion #2764](https://github.com/verbb/formie/discussions/2764))
 - Document using `{env:FORMIE_*}` environment variable tokens in notification recipient fields. ([#2676](https://github.com/verbb/formie/issues/2676))
@@ -11,6 +12,7 @@
 - Add regression tests for required File Upload fields submitted via GraphQL with base64 file data. ([#1130](https://github.com/verbb/formie/issues/1130))
 
 ### Fixed
+- Fix legacy upgrade migrations failing on fresh Craft 5 installs that never had Craft’s `content` or `formie_tokens` tables.
 - Fix form usage counts and the form builder Usage tab omitting entries on disabled Craft sites. ([#2612](https://github.com/verbb/formie/issues/2612))
 - Fix the form builder Usage tab not listing elements that reference a form on non-primary sites, including when Craft stores a relation without a specific `sourceSiteId`. ([#2695](https://github.com/verbb/formie/issues/2695))
 - Prompt for confirmation when closing a field settings overlay with Escape (or backdrop/header close) only when the field has unsaved changes. Untouched new fields close immediately. ([#2219](https://github.com/verbb/formie/issues/2219))

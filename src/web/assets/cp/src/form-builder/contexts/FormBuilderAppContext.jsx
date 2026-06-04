@@ -28,6 +28,7 @@ export const FormBuilderAppProvider = ({ children }) => {
     const deleteConfirmMessage = useAppStore((state) => { return state.deleteConfirmMessage; });
     const deleteErrorMessage = useAppStore((state) => { return state.deleteErrorMessage; });
     const formId = useAppStore((state) => { return state.formId; });
+    const formMeta = useAppStore((state) => { return state.formMeta; });
     const isSaving = useAppStore((state) => { return state.isSaving; });
     const saveFeedbackState = useAppStore((state) => { return state.saveFeedbackState; });
     const saveAction = useAppStore((state) => { return state.saveAction; });
@@ -68,6 +69,7 @@ export const FormBuilderAppProvider = ({ children }) => {
             deleteConfirmMessage,
             deleteErrorMessage,
             formId,
+            formMeta,
             isSaving,
             saveFeedbackState,
             saveAction,
@@ -108,6 +110,7 @@ export const FormBuilderAppProvider = ({ children }) => {
         deleteConfirmMessage,
         deleteErrorMessage,
         formId,
+        formMeta,
         isSaving,
         saveFeedbackState,
         saveAction,

@@ -70,6 +70,7 @@ import {
     FormBuilderTabs, FormBuilderTabList, FormBuilderTabTrigger, FormBuilderTabContent,
 } from '@form-builder/components/FormBuilderTabs';
 import { FormUsage } from '@form-builder/components/FormUsage';
+import { FormMetaDetails } from '@form-builder/components/FormMetaDetails';
 import { Notifications } from '@form-builder/components/Notifications';
 import { NotificationPreview } from '@form-builder/components/NotificationPreview';
 import { NotificationTest } from '@form-builder/components/NotificationTest';
@@ -132,6 +133,7 @@ Craft.Formie.FormBuilder = function(settings) {
         FormBuilderTabTrigger,
         FormBuilderTabContent,
         FormUsage,
+        FormMetaDetails,
         Integrations,
         FieldBuilder,
         Notifications,

@@ -30,6 +30,7 @@ const createAppStore = (set, get) => {
         deleteConfirmMessage: null,
         deleteErrorMessage: null,
         formId: null,
+        formMeta: null,
         selectedTemplateId: null,
         isSaving: false,
         saveFeedbackState: 'idle',
@@ -60,6 +61,7 @@ const createAppStore = (set, get) => {
             set({
                 ...rest,
                 formId: data?.id ?? null,
+                formMeta: formData.formMeta ?? null,
                 title: data?.title ?? rest?.title ?? null,
                 selectedTemplateId: data?.templateId ?? null,
             });
@@ -91,6 +93,10 @@ const createAppStore = (set, get) => {
 
         setSaveAction: (saveAction) => {
             set({ saveAction });
+        },
+
+        setFormMeta: (formMeta) => {
+            set({ formMeta });
         },
 
         setActiveTab: (tab) => {
