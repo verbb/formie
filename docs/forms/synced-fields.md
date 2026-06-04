@@ -32,3 +32,9 @@ Because the field stays linked, editing it in one form means editing it everywhe
 ## Working with shared fields
 
 Formie warns you about this in the builder, but it is still worth being deliberate. If you need an independent version later, the usual answer is to create a new field rather than trying to keep changing a shared one.
+
+## Synced fields in stencils
+
+You can add synced fields while building a [stencil](/forms/stencils). The stencil stores the shared definition by handle so new forms created from that stencil link to the same field definition.
+
+Project stencils resolve synced fields by handle, so the shared definition should already exist on each environment (or Formie will create an independent copy from the stencil field settings).

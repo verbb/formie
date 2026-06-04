@@ -24,6 +24,14 @@ Choose **New stencil** to create one you can edit in the control panel. Once a s
 
 Saving a form as a stencil from the form builder creates a new stencil you can edit later.
 
+### Synced fields
+
+Stencils can include **synced fields**—the same shared field definitions you use across forms.
+
+When you add an existing field as a synced field while building a stencil, Formie remembers that link in the stencil snapshot. Creating a new form from that stencil adds a new placement that points at the same shared definition, so your site-wide email, consent, or other shared fields stay consistent.
+
+If a shared definition cannot be found on the current environment (for example, a project stencil references a handle that does not exist yet), Formie falls back to creating an independent field copy from the stencil settings.
+
 ## Shared starting points
 
 Stencils are best treated as starting templates, not shared live forms. Changes made to a stencil affect future forms created from it, not forms that already exist.

@@ -678,6 +678,8 @@ class Fields extends Component
 
         $field->afterCreateField($config);
 
+        $this->applySyncedDefinitionFromConfig($field, $config);
+
         return $field;
     }
 
@@ -935,6 +937,85 @@ class Fields extends Component
             ->one();
 
         return $fieldRecord ? $this->createField($fieldRecord) : null;
+    }
+
+    public function resolveSharedFieldDefinition(string $handle, ?int $preferredDefinitionId = null): ?FieldInterface
+    {
+        $handle = trim($handle);
+
+        if ($handle === '' && !$preferredDefinitionId) {
+            return null;
+        }
+
+        if ($preferredDefinitionId) {
+            $definition = $this->getFieldDefinitionById($preferredDefinitionId);
+
+            if ($definition && (!$handle || $definition->handle === $handle)) {
+                return $definition;
+            }
+        }
+
+        if ($handle === '') {
+            return null;
+        }
+
+        $sharedDefinitionId = (new Query())
+            ->select(['f.id'])
+            ->from(['f' => Table::FORMIE_FIELDS])
+            ->innerJoin(['ff' => Table::FORMIE_FORM_FIELDS], '[[ff.fieldId]] = [[f.id]]')
+            ->where(['f.handle' => $handle])
+            ->groupBy(['f.id'])
+            ->having('COUNT([[ff.id]]) > 1')
+            ->scalar();
+
+        if ($sharedDefinitionId) {
+            return $this->getFieldDefinitionById((int)$sharedDefinitionId);
+        }
+
+        $definitionId = (new Query())
+            ->select(['id'])
+            ->from(Table::FORMIE_FIELDS)
+            ->where(['handle' => $handle])
+            ->scalar();
+
+        return $definitionId ? $this->getFieldDefinitionById((int)$definitionId) : null;
+    }
+
+    public function applySyncedDefinitionFromConfig(FieldInterface $field, array $config): void
+    {
+        $syncedDefinitionHandle = trim((string)($config['syncedDefinitionHandle'] ?? ''));
+        $preferredDefinitionId = (int)($config['syncedDefinitionId'] ?? 0);
+
+        if (!$syncedDefinitionHandle && !$preferredDefinitionId) {
+            $isSynced = !empty($config['isSynced']);
+            $preferredDefinitionId = (int)($config['fieldId'] ?? $config['syncId'] ?? 0);
+
+            if (!$isSynced || !$preferredDefinitionId) {
+                return;
+            }
+
+            $definition = $this->getFieldDefinitionById($preferredDefinitionId);
+
+            if (!$definition) {
+                return;
+            }
+
+            $syncedDefinitionHandle = (string)$definition->handle;
+        }
+
+        $definition = $this->resolveSharedFieldDefinition($syncedDefinitionHandle, $preferredDefinitionId ?: null);
+
+        $definitionId = (int)($definition->fieldId ?: $definition->id ?? 0);
+
+        if (!$definition || !$definitionId) {
+            return;
+        }
+
+        $field->fieldId = $definitionId;
+        $field->syncId = $definitionId;
+        $field->handle = $definition->handle;
+        $field->label = $definition->label;
+        $field->isSynced = true;
     }
 
     public function getFieldByReference(string $reference): ?FieldInterface

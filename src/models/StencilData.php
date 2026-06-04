@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\models;
 
+use verbb\formie\base\FieldInterface;
 use verbb\formie\base\ParentField;
 use verbb\formie\elements\Form;
 use verbb\formie\models\FieldLayout;
@@ -52,6 +53,43 @@ class StencilData extends Model
         return $settings;
     }
 
+    public static function serializeLayoutField(FieldInterface $field): array
+    {
+        $settings = $field->getSettings();
+        $settings['label'] = $field->label;
+        $settings['handle'] = $field->handle;
+
+        if ($field instanceof ParentField) {
+            $nestedRows = [];
+
+            foreach ($field->getRows() as $row) {
+                $rowData = [];
+
+                foreach ($row->getFields() as $nestedField) {
+                    $rowData['fields'][] = static::serializeLayoutField($nestedField);
+                }
+
+                $nestedRows[] = $rowData;
+            }
+
+            $settings['rows'] = $nestedRows;
+            $settings['nestedLayoutId'] = null;
+        }
+
+        $node = [
+            'type' => get_class($field),
+            'reference' => $field->reference,
+            'settings' => $settings,
+        ];
+
+        if ($field->getIsSynced() && $field->fieldId) {
+            $node['syncedDefinitionHandle'] = $field->handle;
+            $node['syncedDefinitionId'] = $field->fieldId;
+        }
+
+        return $node;
+    }
+
     public static function getSerializedLayout(FieldLayout $layout): array
     {
         $layoutData = [];
@@ -62,21 +100,8 @@ class StencilData extends Model
             foreach ($rows as $rowKey => $row) {
                 $rowData = [];
 
-                foreach ($row->getFields() as $fieldKey => $field) {
-                    $settings = $field->getSettings();
-                    $settings['label'] = $field->label;
-                    $settings['handle'] = $field->handle;
-
-                    if ($field instanceof ParentField) {
-                        $settings['rows'] = $serializeRows($field->getRows());
-                        $settings['nestedLayoutId'] = null;
-                    }
-
-                    $rowData['fields'][] = [
-                        'type' => get_class($field),
-                        'reference' => $field->reference,
-                        'settings' => $settings,
-                    ];
+                foreach ($row->getFields() as $field) {
+                    $rowData['fields'][] = static::serializeLayoutField($field);
                 }
 
                 $pageData[] = $rowData;

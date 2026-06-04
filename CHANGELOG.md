@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Added
+- Add synced-field support for stencils, preserving shared definition links when creating new forms from a stencil. ([#1677](https://github.com/verbb/formie/issues/1677), [#1734](https://github.com/verbb/formie/issues/1734))
 - Add stencil scopes so developers can ship starter forms in project config while content editors can create and manage their own stencils in the control panel. ([#2814](https://github.com/verbb/formie/issues/2814))
 - Add **project stencils** (stored in `formie.stencils` project config) alongside regular database-backed stencils, with handles unique across both scopes.
 - Add the `formie-accessStencils` permission for managing stencils in the control panel.
