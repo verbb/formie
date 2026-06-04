@@ -13,6 +13,7 @@ use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\fields\conditions\TextFieldConditionRule;
+use verbb\formie\fields\traits\AutocompleteFieldTrait;
 use verbb\formie\elements\Submission;
 use verbb\formie\models\ClientModule;
 use verbb\formie\models\ClientModuleContext;
@@ -51,6 +52,12 @@ class SingleLineText extends Field implements SortableFieldInterface, Previewabl
     {
         return true;
     }
+
+
+    // Traits
+    // =========================================================================
+
+    use AutocompleteFieldTrait;
 
 
     // Properties
@@ -194,7 +201,7 @@ class SingleLineText extends Field implements SortableFieldInterface, Previewabl
 
     public function getSettingGqlTypes(): array
     {
-        return array_merge(parent::getSettingGqlTypes(), [
+        return array_merge(parent::getSettingGqlTypes(), $this->defineAutocompleteGqlType(), [
             'limit' => [
                 'name' => 'limit',
                 'type' => Type::boolean(),
@@ -319,6 +326,7 @@ class SingleLineText extends Field implements SortableFieldInterface, Previewabl
                 'includedTypes' => [self::class],
             ]),
             SchemaHelper::prePopulate(),
+            $this->defineAutocompleteSettingSchema(),
             SchemaHelper::includeInEmailFieldSummariesField(),
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Unique Value'),
@@ -365,6 +373,8 @@ class SingleLineText extends Field implements SortableFieldInterface, Previewabl
     {
         $rules = parent::defineRules();
 
+        $rules = array_merge($rules, $this->defineAutocompleteRules());
+
         $rules[] = [['min', 'max'], 'number', 'integerOnly' => true];
         $rules[] = [['minType', 'maxType'], 'in', 'range' => ['characters', 'words']];
 
@@ -400,6 +410,7 @@ class SingleLineText extends Field implements SortableFieldInterface, Previewabl
                     'data-formie-max-chars' => ($this->limit && $this->maxType === 'characters' && $this->max) ? $this->max : null,
                     'data-formie-min-words' => ($this->limit && $this->minType === 'words' && $this->min) ? $this->min : null,
                     'data-formie-max-words' => ($this->limit && $this->maxType === 'words' && $this->max) ? $this->max : null,
+                    'autocomplete' => $this->getAutocompleteCoreAttribute(),
                     'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
                 ])
                 ->theme([
