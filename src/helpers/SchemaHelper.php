@@ -146,6 +146,18 @@ class SchemaHelper
         ], $config);
     }
 
+    public static function inheritBooleanField(array $config = []): array
+    {
+        return array_merge([
+            '$field' => 'select',
+            'options' => [
+                ['label' => Craft::t('formie', 'Inherit'), 'value' => ''],
+                ['label' => Craft::t('app', 'Yes'), 'value' => '1'],
+                ['label' => Craft::t('app', 'No'), 'value' => '0'],
+            ],
+        ], $config);
+    }
+
     public static function colorField(array $config = []): array
     {
         return array_merge([
@@ -996,6 +1008,32 @@ class SchemaHelper
             }
 
             $extracted[] = self::_prepareDefaultsSchemaNode($found[$name]);
+        }
+
+        return $extracted;
+    }
+
+    public static function extractDefaultsSchema(mixed $schema, array $fields): array
+    {
+        if ($fields === []) {
+            return [];
+        }
+
+        $schemaNames = array_values($fields);
+        $normalized = self::normalizeSchema($schema);
+        $found = [];
+        self::_collectExtractableSettingsFields($normalized, $schemaNames, $found, null);
+
+        $extracted = [];
+
+        foreach ($fields as $outputName => $schemaName) {
+            if (!isset($found[$schemaName])) {
+                continue;
+            }
+
+            $node = $found[$schemaName];
+            $node['name'] = $outputName;
+            $extracted[] = self::_prepareDefaultsSchemaNode($node);
         }
 
         return $extracted;

@@ -22,6 +22,8 @@ class FormDefaults extends Component
     // =========================================================================
 
     private ?array $_fieldTypeDefaultsConfig = null;
+    private ?array $_formDefaultsSchemaConfig = null;
+    private ?array $_notificationDefaultsSchemaConfig = null;
 
 
     // Public Methods
@@ -31,6 +33,8 @@ class FormDefaults extends Component
     {
         $settings = Formie::$plugin->getSettings();
         $fieldTypes = $this->getFieldTypeDefaultsConfig();
+        $formDefaultsSchema = $this->getFormDefaultsSchemaConfig();
+        $notificationDefaultsSchema = $this->getNotificationDefaultsSchemaConfig();
 
         return array_merge([
             'saveAction' => 'formie/settings/save-settings',
@@ -40,23 +44,38 @@ class FormDefaults extends Component
                 'formTemplates' => $this->_formTemplateOptions(),
                 'stencils' => $this->_stencilOptions(),
                 'emailTemplates' => $this->_emailTemplateOptions(),
-                'statuses' => $this->_statusOptions(),
                 'labelPositions' => Formie::$plugin->getFields()->getLabelPositionsOptions(),
                 'instructionsPositions' => Formie::$plugin->getFields()->getInstructionsPositionsOptions(),
-                'dataRetentionOptions' => $this->_dataRetentionOptions(),
-                'submitMethodOptions' => $this->_submitMethodOptions(),
-                'fileUploadsActionOptions' => $this->_fileUploadsActionOptions(),
-                'progressCalculationOptions' => $this->_progressCalculationOptions(),
-                'progressPositionOptions' => $this->_progressPositionOptions(),
-                'requiredIndicatorOptions' => $this->_requiredIndicatorOptions(),
+                'integrationCaptchas' => $this->getIntegrationCaptchaOptions(),
             ],
+            'formDefaultsSchema' => $formDefaultsSchema['schema'],
+            'formDefaultsSchemaIndex' => $formDefaultsSchema,
+            'notificationDefaultsSchema' => $notificationDefaultsSchema['schema'],
+            'notificationDefaultsSchemaIndex' => $notificationDefaultsSchema,
             'fieldTypes' => $fieldTypes,
             'initialFieldType' => $fieldTypes[0]['type'] ?? null,
             'submissionTitleFormatVariableConfig' => $this->getSubmissionTitleFormatVariableConfig(),
         ], Variables::getFormBuilderVariableConfig());
     }
 
-    public function getEditorValues(Settings $settings): array
+    public function normalizeSettingsPayload(array $settings): array
+    {
+        $settings = $this->migrateLegacyFieldDefaults($settings);
+
+        if (isset($settings['notificationDefaults']) && is_array($settings['notificationDefaults'])) {
+            $settings['notificationDefaults'] = $this->normalizeNotificationDefaultsForStorage($settings['notificationDefaults']);
+        }
+
+        if (isset($settings['integrationDefaults']['captchas']) && is_array($settings['integrationDefaults']['captchas'])) {
+            $settings['integrationDefaults']['captchas'] = $this->normalizeIntegrationCaptchaDefaultsForStorage(
+                $settings['integrationDefaults']['captchas'],
+            );
+        }
+
+        return $settings;
+    }
+
+    public function getEditorValues(Settings $settings, ?array $fieldTypes = null): array
     {
         return [
             'defaultFormTemplate' => $settings->defaultFormTemplate,
@@ -65,16 +84,17 @@ class FormDefaults extends Component
             'defaultLabelPosition' => $settings->defaultLabelPosition,
             'defaultInstructionsPosition' => $settings->defaultInstructionsPosition,
             'formDefaults' => $settings->getNormalizedFormDefaults(),
-            'fieldDefaults' => $this->getAllFieldDefaultsValues($settings),
-            'notificationDefaults' => $settings->getNormalizedNotificationDefaults(),
+            'fieldDefaults' => $this->getAllFieldDefaultsValues($settings, $fieldTypes),
+            'notificationDefaults' => $this->prepareNotificationDefaultsForEditor($settings->getNormalizedNotificationDefaults()),
+            'integrationDefaults' => $this->prepareIntegrationDefaultsForEditor($settings->getNormalizedIntegrationDefaults()),
         ];
     }
 
-    public function getAllFieldDefaultsValues(Settings $settings): array
+    public function getAllFieldDefaultsValues(Settings $settings, ?array $fieldTypes = null): array
     {
         $values = is_array($settings->fieldDefaults ?? null) ? $settings->fieldDefaults : [];
 
-        foreach ($this->getFieldTypeDefaultsConfig() as $fieldType) {
+        foreach ($fieldTypes ?? $this->getFieldTypeDefaultsConfig() as $fieldType) {
             $type = $fieldType['type'];
 
             if (!isset($values[$type]) || !is_array($values[$type])) {
@@ -133,6 +153,137 @@ class FormDefaults extends Component
         });
 
         return $this->_fieldTypeDefaultsConfig = $fieldTypes;
+    }
+
+    public function getFormDefaultsSchemaConfig(): array
+    {
+        if ($this->_formDefaultsSchemaConfig !== null) {
+            return $this->_formDefaultsSchemaConfig;
+        }
+
+        $schema = (new Form())->getDefaultableSettingsSchema();
+        $compiledSchema = SchemaHelper::compileSchema(SchemaHelper::schemaNode($schema));
+
+        return $this->_formDefaultsSchemaConfig = $compiledSchema;
+    }
+
+    public function getNotificationDefaultsSchemaConfig(): array
+    {
+        if ($this->_notificationDefaultsSchemaConfig !== null) {
+            return $this->_notificationDefaultsSchemaConfig;
+        }
+
+        $schema = Formie::$plugin->getNotifications()->getDefaultableSettingsSchema();
+        $compiledSchema = SchemaHelper::compileSchema(SchemaHelper::schemaNode($schema));
+
+        return $this->_notificationDefaultsSchemaConfig = $compiledSchema;
+    }
+
+    public function getIntegrationCaptchaOptions(): array
+    {
+        $options = [];
+
+        foreach (Formie::$plugin->getIntegrations()->getAllCaptchas() as $captcha) {
+            if (!$captcha->hasFormSettings()) {
+                continue;
+            }
+
+            $options[] = [
+                'handle' => $captcha->handle,
+                'label' => $captcha->getName(),
+            ];
+        }
+
+        return $options;
+    }
+
+    public function applyCaptchaDefaultsToNewForm(Form $form): void
+    {
+        $settings = Formie::$plugin->getSettings();
+        $captchaDefaults = $settings->getNormalizedIntegrationDefaults()['captchas'] ?? [];
+
+        foreach (Formie::$plugin->getIntegrations()->getAllCaptchas() as $captcha) {
+            if (!$captcha->hasFormSettings()) {
+                continue;
+            }
+
+            $handle = $captcha->handle;
+            $default = array_key_exists($handle, $captchaDefaults) ? $captchaDefaults[$handle] : null;
+
+            if ($this->_shouldInheritDefaultValue($default)) {
+                if ($captcha->getEnabled()) {
+                    $form->settings->integrations[$handle]['enabled'] = true;
+                }
+
+                continue;
+            }
+
+            $form->settings->integrations[$handle]['enabled'] = (bool)$default;
+        }
+    }
+
+    public function normalizeNotificationDefaultsForStorage(array $defaults): array
+    {
+        foreach (Formie::$plugin->getNotifications()->supportedNotificationDefaults() as $name) {
+            if (!array_key_exists($name, $defaults)) {
+                continue;
+            }
+
+            if (!in_array($name, ['attachFiles', 'attachPdf', 'enabled'], true)) {
+                continue;
+            }
+
+            $defaults[$name] = $this->_normalizeInheritBooleanValue($defaults[$name]);
+        }
+
+        return $defaults;
+    }
+
+    public function prepareNotificationDefaultsForEditor(array $defaults): array
+    {
+        foreach (['attachFiles', 'attachPdf', 'enabled'] as $name) {
+            if (!array_key_exists($name, $defaults)) {
+                continue;
+            }
+
+            $defaults[$name] = $this->_formatInheritBooleanForEditor($defaults[$name]);
+        }
+
+        return $defaults;
+    }
+
+    public function prepareIntegrationDefaultsForEditor(array $defaults): array
+    {
+        $captchas = $defaults['captchas'] ?? [];
+
+        if (!is_array($captchas)) {
+            $captchas = [];
+        }
+
+        foreach ($this->getIntegrationCaptchaOptions() as $captcha) {
+            $handle = $captcha['handle'];
+
+            if (!array_key_exists($handle, $captchas)) {
+                $captchas[$handle] = '';
+            } else {
+                $captchas[$handle] = $this->_formatInheritBooleanForEditor($captchas[$handle]);
+            }
+        }
+
+        $defaults['captchas'] = $captchas;
+
+        return $defaults;
+    }
+
+    public function normalizeIntegrationCaptchaDefaultsForStorage(array $captchas): array
+    {
+        $normalized = [];
+
+        foreach ($captchas as $handle => $value) {
+            $normalized[$handle] = $this->_normalizeInheritBooleanValue($value);
+        }
+
+        return $normalized;
     }
 
     public function applyToNewForm(Form $form, array $postedValues = []): void
@@ -210,16 +361,7 @@ class FormDefaults extends Component
             }
         }
 
-        foreach ([
-            'fromName',
-            'from',
-            'replyTo',
-            'replyToName',
-            'subject',
-            'attachFiles',
-            'attachPdf',
-            'enabled',
-        ] as $name) {
+        foreach (Formie::$plugin->getNotifications()->supportedNotificationDefaults() as $name) {
             if (array_key_exists($name, $postedValues)) {
                 continue;
             }
@@ -340,20 +482,12 @@ class FormDefaults extends Component
 
     private function _formSettingsDefaultKeys(): array
     {
-        return [
-            'submissionTitleFormat',
-            'collectIp',
-            'collectUser',
-            'submitMethod',
-            'displayFormTitle',
-            'displayCurrentPageTitle',
-            'displayPageTabs',
-            'displayPageProgress',
-            'progressCalculation',
-            'progressPosition',
-            'scrollToTop',
-            'requiredIndicator',
-        ];
+        return array_values(array_diff(Form::supportedFormDefaults(), [
+            'defaultStatus',
+            'dataRetention',
+            'dataRetentionValue',
+            'fileUploadsAction',
+        ]));
     }
 
     private function _applyFormSettingDefault(Form $form, array $postedSettings, string $name, mixed $value): void
@@ -368,6 +502,32 @@ class FormDefaults extends Component
     private function _shouldInheritDefaultValue(mixed $value): bool
     {
         return $value === null || $value === '';
+    }
+
+    private function _normalizeInheritBooleanValue(mixed $value): mixed
+    {
+        if ($this->_shouldInheritDefaultValue($value)) {
+            return null;
+        }
+
+        if ($value === '1' || $value === 1 || $value === true) {
+            return true;
+        }
+
+        if ($value === '0' || $value === 0 || $value === false) {
+            return false;
+        }
+
+        return $value;
+    }
+
+    private function _formatInheritBooleanForEditor(mixed $value): string
+    {
+        if ($this->_shouldInheritDefaultValue($value)) {
+            return '';
+        }
+
+        return $value ? '1' : '0';
     }
 
     private function _getSupportedDefaults(string $fieldClass): array
@@ -422,75 +582,5 @@ class FormDefaults extends Component
         }
 
         return $options;
-    }
-
-    private function _statusOptions(): array
-    {
-        $options = [
-            ['label' => Craft::t('formie', 'System default status'), 'value' => ''],
-        ];
-
-        foreach (Formie::$plugin->getStatuses()->getAllStatuses() as $status) {
-            $options[] = [
-                'label' => $status->name,
-                'value' => $status->handle,
-                'status' => $status->color,
-            ];
-        }
-
-        return $options;
-    }
-
-    private function _dataRetentionOptions(): array
-    {
-        return [
-            ['label' => Craft::t('formie', 'Forever'), 'value' => 'forever'],
-            ['label' => Craft::t('formie', 'Number of minutes'), 'value' => 'minutes'],
-            ['label' => Craft::t('formie', 'Number of hours'), 'value' => 'hours'],
-            ['label' => Craft::t('formie', 'Number of days'), 'value' => 'days'],
-            ['label' => Craft::t('formie', 'Number of weeks'), 'value' => 'weeks'],
-            ['label' => Craft::t('formie', 'Number of months'), 'value' => 'months'],
-            ['label' => Craft::t('formie', 'Number of years'), 'value' => 'years'],
-        ];
-    }
-
-    private function _submitMethodOptions(): array
-    {
-        return [
-            ['label' => Craft::t('formie', 'Page Reload (Server-side)'), 'value' => 'page-reload'],
-            ['label' => Craft::t('formie', 'Ajax (Client-side)'), 'value' => 'ajax'],
-        ];
-    }
-
-    private function _fileUploadsActionOptions(): array
-    {
-        return [
-            ['label' => Craft::t('formie', 'Retain files'), 'value' => 'retain'],
-            ['label' => Craft::t('formie', 'Delete files'), 'value' => 'delete'],
-        ];
-    }
-
-    private function _progressCalculationOptions(): array
-    {
-        return [
-            ['label' => Craft::t('formie', 'Completion'), 'value' => 'completion'],
-            ['label' => Craft::t('formie', 'Page position'), 'value' => 'page-position'],
-        ];
-    }
-
-    private function _progressPositionOptions(): array
-    {
-        return [
-            ['label' => Craft::t('formie', 'Start of form'), 'value' => 'start'],
-            ['label' => Craft::t('formie', 'End of form'), 'value' => 'end'],
-        ];
-    }
-
-    private function _requiredIndicatorOptions(): array
-    {
-        return [
-            ['label' => Craft::t('formie', 'Asterisk for required fields'), 'value' => 'asterisk'],
-            ['label' => Craft::t('formie', 'Optional indicator for non-required fields'), 'value' => 'optional'],
-        ];
     }
 }

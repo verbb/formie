@@ -342,6 +342,11 @@ class Phone extends Field implements SortableFieldInterface, PreviewableFieldInt
     // Protected Methods
     // =========================================================================
 
+    protected function supportedDefaults(): array
+    {
+        return ['countryEnabled', 'countryDefaultValue'];
+    }
+
     protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
     {
         $form = $context->form;

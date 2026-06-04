@@ -48,6 +48,7 @@ class Settings extends Model
     public array $formDefaults = [];
     public array $fieldDefaults = [];
     public array $notificationDefaults = [];
+    public array $integrationDefaults = [];
     public bool $enableUnloadWarning = true;
     public bool $enableBackSubmission = true;
     public int $ajaxTimeout = 10;
@@ -229,6 +230,13 @@ class Settings extends Model
             'attachPdf' => null,
             'enabled' => null,
         ], $this->notificationDefaults);
+    }
+
+    public function getNormalizedIntegrationDefaults(): array
+    {
+        return array_replace([
+            'captchas' => [],
+        ], $this->integrationDefaults);
     }
 
     public function shouldSaveSpam(Submission $submission): bool

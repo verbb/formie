@@ -98,7 +98,7 @@ class SettingsController extends SettingsAccessController
         $settingsParams = $request->getParam('settings');
 
         if (is_array($settingsParams)) {
-            $settingsParams = Formie::$plugin->getFormDefaults()->migrateLegacyFieldDefaults($settingsParams);
+            $settingsParams = Formie::$plugin->getFormDefaults()->normalizeSettingsPayload($settingsParams);
         }
 
         $settings->setAttributes($settingsParams, false);

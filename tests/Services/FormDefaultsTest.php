@@ -109,13 +109,64 @@ it('exposes schema-backed field type defaults config for supported field types',
     $fieldTypes = Formie::$plugin->getFormDefaults()->getFieldTypeDefaultsConfig();
     $types = array_column($fieldTypes, 'type');
 
-    expect($types)->toContain(Date::class, FileUpload::class);
+    expect($types)->toContain(Date::class, FileUpload::class, \verbb\formie\fields\Phone::class, \verbb\formie\fields\Agree::class);
 
     $dateConfig = collect($fieldTypes)->firstWhere('type', Date::class);
 
     expect($dateConfig)->not->toBeNull()
         ->and($dateConfig['schema'] ?? null)->not->toBeEmpty()
         ->and($dateConfig['schemaIndex'] ?? null)->toBeArray();
+});
+
+it('exposes schema-backed form and notification defaults config', function (): void {
+    $service = Formie::$plugin->getFormDefaults();
+
+    expect($service->getFormDefaultsSchemaConfig()['schema'] ?? null)->toHaveCount(16)
+        ->and($service->getNotificationDefaultsSchemaConfig()['schema'] ?? null)->toHaveCount(8);
+});
+
+it('applies captcha integration defaults to new forms', function (): void {
+    $captchas = Formie::$plugin->getFormDefaults()->getIntegrationCaptchaOptions();
+
+    if ($captchas === []) {
+        expect(true)->toBeTrue();
+
+        return;
+    }
+
+    $handle = $captchas[0]['handle'];
+    Formie::$plugin->getSettings()->integrationDefaults = [
+        'captchas' => [
+            $handle => false,
+        ],
+    ];
+
+    $form = new Form();
+    Formie::$plugin->getFormDefaults()->applyCaptchaDefaultsToNewForm($form);
+
+    expect($form->settings->integrations[$handle]['enabled'] ?? null)->toBeFalse();
+});
+
+it('normalizes inherit boolean settings payload values for storage', function (): void {
+    $service = Formie::$plugin->getFormDefaults();
+
+    $normalized = $service->normalizeSettingsPayload([
+        'notificationDefaults' => [
+            'attachFiles' => '1',
+            'attachPdf' => '0',
+            'enabled' => '',
+        ],
+        'integrationDefaults' => [
+            'captchas' => [
+                'recaptcha' => '1',
+            ],
+        ],
+    ]);
+
+    expect($normalized['notificationDefaults']['attachFiles'])->toBeTrue()
+        ->and($normalized['notificationDefaults']['attachPdf'])->toBeFalse()
+        ->and($normalized['notificationDefaults']['enabled'])->toBeNull()
+        ->and($normalized['integrationDefaults']['captchas']['recaptcha'])->toBeTrue();
 });
 
 it('caches field type defaults config within the service instance', function (): void {

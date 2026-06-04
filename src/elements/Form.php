@@ -5,6 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\base\Crm;
 use verbb\formie\base\EmailMarketing;
 use verbb\formie\base\FieldInterface;
+use verbb\formie\base\FormDefaultableTrait;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\Miscellaneous;
 use verbb\formie\base\ParentFieldInterface;
@@ -91,6 +92,7 @@ class Form extends Element implements FormInterface
     // Traits
     // =========================================================================
 
+    use FormDefaultableTrait;
     use FormDeprecations;
 
 
@@ -1841,13 +1843,9 @@ class Form extends Element implements FormInterface
             return false;
         }
 
-        // If a new form, enable any globally-enabled captchas - but not if applying a stencil
+        // If a new form, apply captcha integration defaults - but not if applying a stencil
         if ($isNew && !$this->isApplyingStencil) {
-            foreach (Formie::$plugin->getIntegrations()->getAllCaptchas() as $captcha) {
-                if ($captcha->getEnabled() && $captcha->hasFormSettings()) {
-                    $this->settings->integrations[$captcha->handle]['enabled'] = true;
-                }
-            }
+            Formie::$plugin->getFormDefaults()->applyCaptchaDefaultsToNewForm($this);
         }
 
         // Save the field layout as the last step

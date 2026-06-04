@@ -279,6 +279,11 @@ class Agree extends Field implements SortableFieldInterface, PreviewableFieldInt
     // Protected Methods
     // =========================================================================
 
+    protected function supportedDefaults(): array
+    {
+        return ['defaultValue'];
+    }
+
     protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
     {
         $form = $context->form;

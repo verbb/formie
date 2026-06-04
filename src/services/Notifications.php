@@ -622,6 +622,57 @@ class Notifications extends Component
         return SchemaHelper::compileSchema(SchemaHelper::modalTabs($event->tabs));
     }
 
+    public function supportedNotificationDefaults(): array
+    {
+        return [
+            'fromName',
+            'from',
+            'replyToName',
+            'replyTo',
+            'subject',
+            'attachFiles',
+            'attachPdf',
+            'enabled',
+        ];
+    }
+
+    public function getDefaultableSettingsSchema(): array
+    {
+        $fields = [
+            'enabled' => 'enabled',
+            'subject' => 'subject',
+            'fromName' => 'fromName',
+            'from' => 'from',
+            'replyToName' => 'replyToName',
+            'replyTo' => 'replyTo',
+            'attachFiles' => 'attachFiles',
+            'attachPdf' => 'attachPdf',
+        ];
+
+        $schema = SchemaHelper::extractDefaultsSchema([
+            $this->defineContentSchema(),
+            $this->defineFormBuilderAdvancedSchema(),
+            $this->defineTemplatesSchema(),
+        ], $fields);
+
+        foreach ($schema as &$node) {
+            $name = $node['name'] ?? null;
+
+            if (!in_array($name, ['attachFiles', 'attachPdf', 'enabled'], true)) {
+                continue;
+            }
+
+            $node = SchemaHelper::inheritBooleanField([
+                'name' => $name,
+                'label' => $node['label'] ?? null,
+                'instructions' => $node['instructions'] ?? null,
+            ]);
+        }
+        unset($node);
+
+        return $schema;
+    }
+
     public function defineContentSchema(): array
     {
         return [
