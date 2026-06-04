@@ -20,6 +20,12 @@ class m231202_000000_auth_module extends Migration
     {
         Auth::getInstance()->migrator->up();
 
+        if (!$this->db->tableExists('{{%formie_tokens}}')) {
+            echo "    > Skipping token migration; formie_tokens table does not exist.\n";
+
+            return true;
+        }
+
         // Migrate Formie tokens to Auth tokens
         $tokens = (new Query())
             ->select(['*'])
