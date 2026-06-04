@@ -687,12 +687,18 @@ class Emails extends Component
                 continue;
             }
 
-            if ($path) {
-                $message->attach($path, [
-                    'fileName' => $asset->filename,
-                    'contentType' => $asset->getMimeType(),
+            if (!$path || !is_file($path)) {
+                Formie::warning('Not attaching “{filename}” because the asset file could not be read.', [
+                    'filename' => $asset->filename,
                 ]);
+
+                continue;
             }
+
+            $message->attach($path, [
+                'fileName' => $asset->filename,
+                'contentType' => $asset->getMimeType(),
+            ]);
         }
     }
 

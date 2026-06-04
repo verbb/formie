@@ -3,12 +3,15 @@
 ## Unreleased
 
 ### Added
+- Document using `{env:FORMIE_*}` environment variable tokens in notification recipient fields. ([#2676](https://github.com/verbb/formie/issues/2676))
 - Add an opt-in setting to disable the submit button until the current page passes validation. ([#1514](https://github.com/verbb/formie/issues/1514))
 - Add a page setting to place the submit button at the end of the last field row. ([#2542](https://github.com/verbb/formie/issues/2542))
 - Add regression tests for required File Upload fields submitted via GraphQL with base64 file data. ([#1130](https://github.com/verbb/formie/issues/1130))
 
 ### Fixed
 - Fix dropdown field options not saving in the form builder when no default option is selected. ([#2795](https://github.com/verbb/formie/issues/2795))
+- Validate literal email addresses in notification recipient settings so invalid addresses are caught when saving notifications. ([#2712](https://github.com/verbb/formie/issues/2712))
+- Skip notification email attachments when the asset file cannot be read, instead of failing the entire send. ([#2626](https://github.com/verbb/formie/issues/2626))
 - Fix replacing a deleted field with a new field using the same handle requiring a two-step save in the form builder. ([#1854](https://github.com/verbb/formie/issues/1854))
 - Fix submit button conditions not applying on the front end. ([#2568](https://github.com/verbb/formie/issues/2568))
 - Fix checkbox fields saving their default option values when explicitly unchecked on submit. ([#2457](https://github.com/verbb/formie/issues/2457))
