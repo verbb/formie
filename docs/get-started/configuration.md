@@ -212,6 +212,23 @@ return [
 ### Export
 - `defaultExportFolder` sets the default folder used by form export console commands.
 
+### Form groups (project config)
+
+Form groups are managed in the control panel under **Formie → Settings → Form Groups**, but their definitions are stored in project config under `formie.formGroups.{uid}`:
+
+```yaml
+formie:
+  formGroups:
+    7f3e2a1b-0000-4000-8000-000000000001:
+      name: Marketing
+      handle: marketing
+      sortOrder: 1
+```
+
+Each entry contains `name`, `handle`, and `sortOrder`. Individual forms store an optional `groupId` in the database; that ID is resolved from the project-config group UID on each environment.
+
+See [Form Groups](/forms/form-groups) for control panel behaviour.
+
 ## Control Panel
 You can also manage many configuration settings through the control panel by visiting **Formie → Settings**. Form, field, and notification defaults are managed on the dedicated **Defaults** settings page.
 

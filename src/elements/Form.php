@@ -10,6 +10,7 @@ use verbb\formie\base\FormInterface;
 use verbb\formie\base\Miscellaneous;
 use verbb\formie\base\ParentFieldInterface;
 use verbb\formie\elements\actions\DuplicateForm;
+use verbb\formie\elements\actions\MoveFormToGroup;
 use verbb\formie\elements\conditions\FormCondition;
 use verbb\formie\elements\db\FormQuery;
 use verbb\formie\events\ModifyFormSlotTagEvent;
@@ -30,6 +31,7 @@ use verbb\formie\models\ClientModule;
 use verbb\formie\models\FieldLayout as FormLayout;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\FormSettings;
+use verbb\formie\models\FormGroup;
 use verbb\formie\models\FormTemplate;
 use verbb\formie\models\Notification;
 use verbb\formie\models\Settings;
@@ -154,20 +156,30 @@ class Form extends Element implements FormInterface
             ],
         ];
 
-        $templates = Formie::$plugin->getFormTemplates()->getAllTemplates();
+        $groups = Formie::$plugin->getFormGroups()->getAllGroups();
 
-        if ($templates) {
-            $sources[] = ['heading' => Craft::t('formie', 'Templates')];
+        if ($groups) {
+            $sources[] = ['heading' => Craft::t('formie', 'Groups')];
         }
 
-        foreach ($templates as $template) {
-            $key = "template:{$template->id}";
-
+        foreach ($groups as $group) {
             $sources[] = [
-                'key' => $key,
-                'label' => $template->name,
-                'data' => ['id' => $template->id],
-                'criteria' => ['templateId' => $template->id],
+                'key' => "group:{$group->uid}",
+                'label' => $group->name,
+                'data' => [
+                    'handle' => $group->handle,
+                    'group-id' => $group->id,
+                ],
+                'criteria' => ['groupId' => $group->id],
+            ];
+        }
+
+        if ($groups) {
+            $sources[] = [
+                'key' => 'ungrouped',
+                'label' => Craft::t('formie', 'Ungrouped'),
+                'data' => ['handle' => 'ungrouped'],
+                'criteria' => ['groupId' => ':empty:'],
             ];
         }
 
@@ -193,6 +205,10 @@ class Form extends Element implements FormInterface
         $canDeleteForms = Craft::$app->getUser()->checkPermission('formie-deleteForms');
 
         $actions[] = DuplicateForm::class;
+
+        if (Formie::$plugin->getFormGroups()->getAllGroups()) {
+            $actions[] = MoveFormToGroup::class;
+        }
 
         if ($canDeleteForms) {
             $actions[] = [
@@ -280,6 +296,7 @@ class Form extends Element implements FormInterface
     public ?string $handle = null;
     public ?int $layoutId = null;
     public ?int $templateId = null;
+    public ?int $groupId = null;
     public ?int $submitActionEntryId = null;
     public ?int $submitActionEntrySiteId = null;
     public ?int $defaultStatusId = null;
@@ -298,6 +315,7 @@ class Form extends Element implements FormInterface
     private ?FieldLayout $_fieldLayout = null;
     private ?FormLayout $_formLayout = null;
     private ?FormTemplate $_template = null;
+    private ?FormGroup $_group = null;
     private ?Status $_defaultStatus = null;
     private ?Entry $_submitActionEntry = null;
     private ?array $_notifications = null;
@@ -517,6 +535,29 @@ class Form extends Element implements FormInterface
         }
     }
 
+    public function getGroup(): ?FormGroup
+    {
+        if (!$this->_group) {
+            if ($this->groupId) {
+                $this->_group = Formie::$plugin->getFormGroups()->getGroupById($this->groupId);
+            } else {
+                return null;
+            }
+        }
+
+        return $this->_group;
+    }
+
+    public function setGroup(?FormGroup $group): void
+    {
+        if ($group) {
+            $this->_group = $group;
+            $this->groupId = $group->id;
+        } else {
+            $this->_group = $this->groupId = null;
+        }
+    }
+
     public function getDefaultStatus(): ?Status
     {
         if (!$this->_defaultStatus) {
@@ -653,6 +694,7 @@ class Form extends Element implements FormInterface
             'handle' => $this->handle,
             'errors' => $this->getErrors(),
             'templateId' => $this->templateId,
+            'groupId' => $this->groupId,
             'defaultStatusId' => $this->defaultStatusId,
             'pages' => $this->getFormLayout()->getFormBuilderConfig(),
             'settings' => $this->getSettings()->getFormBuilderConfig(),
@@ -1876,6 +1918,7 @@ class Form extends Element implements FormInterface
         $record->settings = $this->getSettings();
         $record->layoutId = $this->getFormLayout()->id;
         $record->templateId = $this->templateId;
+        $record->groupId = $this->groupId ?: null;
         $record->submitActionEntryId = $this->submitActionEntryId;
         $record->submitActionEntrySiteId = $this->submitActionEntrySiteId;
         $record->defaultStatusId = $this->defaultStatusId;
@@ -2499,6 +2542,7 @@ class Form extends Element implements FormInterface
                 'name' => 'title',
                 'required' => true,
             ]),
+            ...($formGroupField = $this->_formGroupSelectSchemaField()) ? [$formGroupField] : [],
             [
                 '$el' => 'hr',
             ],
@@ -2687,6 +2731,36 @@ class Form extends Element implements FormInterface
             : Craft::t('formie', 'form');
 
         return $titleCase ? ucfirst($label) : $label;
+    }
+
+    private function _formGroupSelectSchemaField(): ?array
+    {
+        if ($this->getBuilderEntityType() !== self::BUILDER_ENTITY_TYPE_FORM) {
+            return null;
+        }
+
+        $groups = Formie::$plugin->getFormGroups()->getAllGroups();
+
+        if (!$groups) {
+            return null;
+        }
+
+        return SchemaHelper::selectField([
+            'label' => Craft::t('formie', 'Form Group'),
+            'instructions' => Craft::t('formie', 'Organise this form in the control panel forms list.'),
+            'name' => 'groupId',
+            'options' => array_merge([
+                [
+                    'value' => '',
+                    'label' => Craft::t('formie', 'Ungrouped'),
+                ],
+            ], array_map(function(FormGroup $group) {
+                return [
+                    'value' => $group->id,
+                    'label' => $group->name,
+                ];
+            }, $groups)),
+        ]);
     }
 
     public function definePageSettingsSchema(): array
@@ -2954,7 +3028,7 @@ class Form extends Element implements FormInterface
 
         $rules[] = [['title', 'handle'], 'required'];
         $rules[] = [['title'], 'string', 'max' => 255];
-        $rules[] = [['templateId', 'submitActionEntryId', 'submitActionEntrySiteId', 'defaultStatusId'], 'number', 'integerOnly' => true];
+        $rules[] = [['templateId', 'groupId', 'submitActionEntryId', 'submitActionEntrySiteId', 'defaultStatusId'], 'number', 'integerOnly' => true];
         $rules[] = [['formLayout'], 'validateFormLayout'];
         $rules[] = [['settings'], 'validateFormSettings'];
         $rules[] = [['notifications'], 'validateNotifications'];

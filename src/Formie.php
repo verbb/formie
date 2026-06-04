@@ -30,6 +30,7 @@ use verbb\formie\integrations\link\FormLinkType;
 use verbb\formie\jobs\DebuggableJobInterface;
 use verbb\formie\models\Settings;
 use verbb\formie\services\EmailTemplates as EmailTemplatesService;
+use verbb\formie\services\FormGroups as FormGroupsService;
 use verbb\formie\services\FormTemplates as FormTemplatesService;
 use verbb\formie\services\Integrations as IntegrationsService;
 use verbb\formie\services\PdfTemplates as PdfTemplatesService;
@@ -110,7 +111,7 @@ class Formie extends Plugin
 
     public bool $hasCpSection = true;
     public bool $hasCpSettings = true;
-    public string $schemaVersion = '4.0.11';
+    public string $schemaVersion = '4.0.12';
     public string $minVersionRequired = '2.1.5';
 
 
@@ -294,6 +295,9 @@ class Formie extends Plugin
             $event->rules['formie/settings/stencils'] = 'formie/stencils/index';
             $event->rules['formie/settings/stencils/new'] = 'formie/stencils/new';
             $event->rules['formie/settings/stencils/edit/<segments:.*>'] = 'formie/stencils/edit';
+            $event->rules['formie/settings/form-groups'] = 'formie/form-groups/index';
+            $event->rules['formie/settings/form-groups/new'] = 'formie/form-groups/edit';
+            $event->rules['formie/settings/form-groups/edit/<id:\d+>'] = 'formie/form-groups/edit';
             $event->rules['formie/settings/form-templates'] = 'formie/form-templates/index';
             $event->rules['formie/settings/form-templates/new'] = 'formie/form-templates/edit';
             $event->rules['formie/settings/form-templates/edit/<id:\d+>'] = 'formie/form-templates/edit';
@@ -713,6 +717,12 @@ class Formie extends Plugin
             ->onAdd(StencilsService::CONFIG_STENCILS_KEY . '.{uid}', [$stencilsService, 'handleChangedStencil'])
             ->onUpdate(StencilsService::CONFIG_STENCILS_KEY . '.{uid}', [$stencilsService, 'handleChangedStencil'])
             ->onRemove(StencilsService::CONFIG_STENCILS_KEY . '.{uid}', [$stencilsService, 'handleDeletedStencil']);
+
+        $formGroupsService = $this->getFormGroups();
+        $projectConfigService
+            ->onAdd(FormGroupsService::CONFIG_GROUPS_KEY . '.{uid}', [$formGroupsService, 'handleChangedGroup'])
+            ->onUpdate(FormGroupsService::CONFIG_GROUPS_KEY . '.{uid}', [$formGroupsService, 'handleChangedGroup'])
+            ->onRemove(FormGroupsService::CONFIG_GROUPS_KEY . '.{uid}', [$formGroupsService, 'handleDeletedGroup']);
 
         $formTemplatesService = $this->getFormTemplates();
         $projectConfigService

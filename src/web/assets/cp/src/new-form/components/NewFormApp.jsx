@@ -174,6 +174,10 @@ export const NewFormApp = ({ settings }) => {
             applyStencilId: applyStencilId || '',
         };
 
+        if (settings.groupId) {
+            data.groupId = settings.groupId;
+        }
+
         try {
             const response = await Craft.sendActionRequest('POST', settings.submitAction || 'formie/forms/save', { data });
             const payload = response?.data || {};

@@ -11,13 +11,49 @@
 {% set elementType = 'verbb\\formie\\elements\\Form' %}
 {% set selectedSubnavItem = 'forms' %}
 
-{% block actionButton %}
-    {% if currentUser.can('formie-createForms') %}
-        <div class="buttons">
-            <a class="btn submit add icon" href="{{ url('formie/forms/new') }}">
-                {{- 'New Form' | t('formie') -}}
-            </a>
-        </div>
-    {% endif %}
-{% endblock %}
+{% if canCreateForms %}
+    {% do view.registerTranslations('formie', [
+        'New Form',
+        'New form in the {group} group',
+        'New form, choose a group',
+        'New {group} form',
+    ]) %}
+{% endif %}
 
+{% js %}
+    if (typeof Craft.Formie === 'undefined') {
+        Craft.Formie = {};
+    }
+
+    Craft.Formie.canCreateForms = {{ canCreateForms ? 'true' : 'false' }};
+    Craft.Formie.editableFormGroups = {{ editableFormGroups | json_encode | raw }};
+{% endjs %}
+
+{% block initJs %}
+    (() => {
+        const initFormIndex = (attempt = 0) => {
+            if (!Craft.Formie?.FormIndex) {
+                if (attempt < 100) {
+                    setTimeout(() => initFormIndex(attempt + 1), 25);
+                }
+
+                return;
+            }
+
+            Craft.elementIndex = Craft.createElementIndex('{{ elementType|e("js") }}', $('#page-container'), {
+                canHaveDrafts: {{ canHaveDrafts ? 'true' : 'false' }},
+                context: '{{ context }}',
+                criteria: Craft.defaultIndexCriteria,
+                defaultSource: {{ (defaultSource ?? null)|json_encode|raw }},
+                defaultSourcePath: {{ (defaultSourcePath ?? null)|json_encode|raw }},
+                elementTypeName: '{{ elementDisplayName|e("js") }}',
+                elementTypePluralName: '{{ elementPluralDisplayName|e("js") }}',
+                page: {{ (page ?? null)|json_encode|raw }},
+                storageKey: 'elementindex.{{ elementType|e("js") }}',
+                toolbarSelector: '#toolbar',
+            });
+        };
+
+        initFormIndex();
+    })();
+{% endblock %}

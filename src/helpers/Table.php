@@ -16,6 +16,7 @@ abstract class Table extends CraftTable
     public const FORMIE_FORM_FIELDS = '{{%formie_form_fields}}';
     public const FORMIE_FORMS = '{{%formie_forms}}';
     public const FORMIE_FORM_TEMPLATES = '{{%formie_formtemplates}}';
+    public const FORMIE_FORM_GROUPS = '{{%formie_formgroups}}';
     public const FORMIE_INTEGRATIONS = '{{%formie_integrations}}';
     public const FORMIE_NOTIFICATIONS = '{{%formie_notifications}}';
     public const FORMIE_PAYMENTS = '{{%formie_payments}}';

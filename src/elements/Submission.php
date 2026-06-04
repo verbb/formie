@@ -182,11 +182,14 @@ class Submission extends Element
         $currentSiteId = $sitesService->getCurrentSite()->id;
         $canViewAllSubmissions = $currentUser->can('formie-viewSubmissions');
 
+        $formGroups = Formie::$plugin->getFormGroups()->getAllGroups();
+
         $cacheKey = implode(':', [
             (string)($currentUser->id ?? 0),
             (string)$currentSiteId,
             (string)$context,
             $canViewAllSubmissions ? '1' : '0',
+            (string)count($formGroups),
         ]);
 
         if (isset(self::$_sourcesCache[$cacheKey])) {
@@ -194,13 +197,19 @@ class Submission extends Element
         }
 
         // Keep source construction lightweight by avoiding full Form element hydration.
+        $formColumns = [
+            'f.id',
+            'f.uid',
+            'f.handle',
+            'es.title',
+        ];
+
+        if (Craft::$app->getDb()->columnExists(Table::FORMIE_FORMS, 'groupId')) {
+            $formColumns[] = 'f.groupId';
+        }
+
         $forms = (new Query())
-            ->select([
-                'f.id',
-                'f.uid',
-                'f.handle',
-                'es.title',
-            ])
+            ->select($formColumns)
             ->from(['f' => Table::FORMIE_FORMS])
             ->innerJoin(['e' => CraftTable::ELEMENTS], '[[e.id]] = [[f.id]]')
             ->innerJoin(['es' => CraftTable::ELEMENTS_SITES], '[[es.elementId]] = [[f.id]] AND [[es.siteId]] = :siteId', [
@@ -220,7 +229,8 @@ class Submission extends Element
             ];
         }
 
-        $formItems = [];
+        $formItemsByGroupId = [];
+        $ungroupedFormItems = [];
 
         foreach ($forms as $form) {
             $formUid = (string)($form['uid'] ?? '');
@@ -234,7 +244,7 @@ class Submission extends Element
             $formTitle = (string)($form['title'] ?? $formHandle);
             $key = "form:{$formId}";
 
-            $formItems[$key] = [
+            $formItem = [
                 'key' => $key,
                 'label' => $formTitle,
                 'data' => [
@@ -243,12 +253,45 @@ class Submission extends Element
                 'criteria' => ['formId' => $formId],
                 'defaultSort' => ['elements_sites.title', 'desc'],
             ];
+
+            $groupId = (int)($form['groupId'] ?? 0);
+
+            if ($groupId) {
+                $formItemsByGroupId[$groupId][$key] = $formItem;
+            } else {
+                $ungroupedFormItems[$key] = $formItem;
+            }
         }
 
-        if ($formItems) {
-            $sources[] = ['heading' => Craft::t('formie', 'Forms')];
+        if ($formGroups) {
+            foreach ($formGroups as $group) {
+                $groupFormItems = $formItemsByGroupId[$group->id] ?? [];
 
-            $sources += $formItems;
+                if (!$groupFormItems) {
+                    continue;
+                }
+
+                $sources[] = ['heading' => $group->name];
+                $sources += $groupFormItems;
+            }
+
+            if ($ungroupedFormItems) {
+                $sources[] = ['heading' => Craft::t('formie', 'Ungrouped')];
+                $sources += $ungroupedFormItems;
+            }
+        } else {
+            $formItems = [];
+
+            foreach ($formItemsByGroupId as $groupFormItems) {
+                $formItems += $groupFormItems;
+            }
+
+            $formItems += $ungroupedFormItems;
+
+            if ($formItems) {
+                $sources[] = ['heading' => Craft::t('formie', 'Forms')];
+                $sources += $formItems;
+            }
         }
 
         return self::$_sourcesCache[$cacheKey] = $sources;

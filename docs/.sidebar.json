@@ -16,6 +16,7 @@
         "collapsable": false,
         "children": [
             "forms/form-builder",
+            "forms/form-groups",
             {
                 "title": "Fields",
                 "collapsable": true,

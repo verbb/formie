@@ -17,6 +17,7 @@ class ProjectConfigHelper
 
         $configData['statuses'] = self::_getStatusData();
         $configData['stencils'] = self::_getStencilsData();
+        $configData['formGroups'] = self::_getFormGroupsData();
         $configData['formTemplates'] = self::_getFormTemplatesData();
         $configData['emailTemplates'] = self::_getEmailTemplatesData();
         $configData['pdfTemplates'] = self::_getPdfTemplatesData();
@@ -46,6 +47,17 @@ class ProjectConfigHelper
 
         foreach (Formie::$plugin->getStencils()->getAllStencils() as $stencil) {
             $data[$stencil->uid] = $stencil->getConfig();
+        }
+
+        return $data;
+    }
+
+    private static function _getFormGroupsData(): array
+    {
+        $data = [];
+
+        foreach (Formie::$plugin->getFormGroups()->getAllGroups() as $group) {
+            $data[$group->uid] = $group->getConfig();
         }
 
         return $data;

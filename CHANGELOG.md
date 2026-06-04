@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Added
+- Add **Form Groups** for control panel organisation. ([#1039](https://github.com/verbb/formie/issues/1039), [#662](https://github.com/verbb/formie/issues/662))
 - Add a dedicated **Settings → Defaults** control panel page for form, field, and notification defaults. ([#863](https://github.com/verbb/formie/issues/863))
 - Add structured `formDefaults`, `fieldDefaults`, and `notificationDefaults` plugin settings, applied when new forms, fields, and notifications are created.
 - Add `supportedDefaults()` and schema extraction for field-type defaults, with Date, File Upload, Phone, Agree, Single-Line Text, Multi-Line Text, Email, Number, Hidden, Radio, Checkboxes, and element fields (Entries, Categories, Users, Tags, Products, Variants) as supported field types.

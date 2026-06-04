@@ -1,0 +1,47 @@
+{% extends 'formie/_layouts/settings' %}
+
+{% block actionButton %}
+    <a href="{{ url('formie/settings/form-groups/new') }}" class="btn submit add icon">{{ 'New Form Group' | t('formie') }}</a>
+{% endblock %}
+
+{% block content %}
+    <div id="form-groups-vue-admin-table"></div>
+{% endblock %}
+
+{% set tableData = [] %}
+{% for formGroup in formGroups %}
+    {% set tableData = tableData | merge([{
+        id: formGroup.id,
+        labelHtml: {
+            url: formGroup.getCpEditUrl(),
+            html: formGroup.name,
+        },
+        title: formGroup.name | t('formie'),
+        url: formGroup.getCpEditUrl(),
+        handle: formGroup.handle | e,
+        _showDelete: formGroup.canDelete(),
+    }]) %}
+{% endfor %}
+
+{% js %}
+    var columns = [
+        {
+            name: 'labelHtml',
+            title: Craft.t('app', 'Name'),
+            callback: function(value) {
+                return '<a class="cell-bold" href="' + value.url + '">' + value.html + '</a>';
+            }
+        },
+        { name: '__slot:handle', title: Craft.t('app', 'Handle') }
+    ];
+
+    new Craft.VueAdminTable({
+        columns: columns,
+        container: '#form-groups-vue-admin-table',
+        deleteAction: 'formie/form-groups/delete',
+        reorderAction: 'formie/form-groups/reorder',
+        reorderSuccessMessage: Craft.t('formie', 'Form groups reordered.'),
+        reorderFailMessage: Craft.t('formie', 'Couldn’t reorder form groups.'),
+        tableData: {{ tableData | json_encode | raw }},
+    });
+{% endjs %}

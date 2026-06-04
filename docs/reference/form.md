@@ -12,6 +12,7 @@ Property | Description
 `configJson` | Encoded JSON used by Formie’s front-end form handling.
 `defaultStatus` | The default status for new submissions on this form.
 `template` | The form template assigned to the form, if one is set.
+`groupId` | The ID of the form group this form belongs to in the control panel, if any.
 
 ## Methods
 

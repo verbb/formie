@@ -9,6 +9,7 @@ use verbb\formie\helpers\Table;
 use verbb\formie\models\Status;
 use verbb\formie\models\Stencil;
 use verbb\formie\models\StencilData;
+use verbb\formie\services\FormGroups;
 use verbb\formie\services\Statuses;
 use verbb\formie\services\Stencils;
 
@@ -122,6 +123,18 @@ class Install extends Migration
             'uid' => $this->uid(),
         ]);
 
+        $this->archiveTableIfExists(Table::FORMIE_FORM_GROUPS);
+        $this->createTable(Table::FORMIE_FORM_GROUPS, [
+            'id' => $this->primaryKey(),
+            'name' => $this->string()->notNull(),
+            'handle' => $this->string(64)->notNull(),
+            'sortOrder' => $this->smallInteger()->unsigned(),
+            'dateDeleted' => $this->dateTime(),
+            'dateCreated' => $this->dateTime()->notNull(),
+            'dateUpdated' => $this->dateTime()->notNull(),
+            'uid' => $this->uid(),
+        ]);
+
         $this->archiveTableIfExists(Table::FORMIE_FORMS);
         $this->createTable(Table::FORMIE_FORMS, [
             'id' => $this->primaryKey(),
@@ -129,6 +142,7 @@ class Install extends Migration
             'settings' => $this->mediumText(),
             'layoutId' => $this->integer(),
             'templateId' => $this->integer(),
+            'groupId' => $this->integer(),
             'submitActionEntryId' => $this->integer(),
             'submitActionEntrySiteId' => $this->integer(),
             'defaultStatusId' => $this->integer(),
@@ -452,6 +466,7 @@ class Install extends Migration
         $this->createIndex(null, Table::FORMIE_FORM_FIELDS, 'reference', true);
         $this->createIndex(null, Table::FORMIE_FORMS, 'layoutId', false);
         $this->createIndex(null, Table::FORMIE_FORMS, 'templateId', false);
+        $this->createIndex(null, Table::FORMIE_FORMS, 'groupId', false);
         $this->createIndex(null, Table::FORMIE_FORMS, 'defaultStatusId', false);
         $this->createIndex(null, Table::FORMIE_FORMS, 'submitActionEntryId', false);
         $this->createIndex(null, Table::FORMIE_FORMS, 'submitActionEntrySiteId', false);
@@ -507,6 +522,7 @@ class Install extends Migration
         $this->addForeignKey(null, Table::FORMIE_FORMS, ['id'], '{{%elements}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, Table::FORMIE_FORMS, ['layoutId'], Table::FORMIE_FIELD_LAYOUTS, ['id'], 'SET NULL', null);
         $this->addForeignKey(null, Table::FORMIE_FORMS, ['templateId'], Table::FORMIE_FORM_TEMPLATES, ['id'], 'SET NULL', null);
+        $this->addForeignKey(null, Table::FORMIE_FORMS, ['groupId'], Table::FORMIE_FORM_GROUPS, ['id'], 'SET NULL', null);
         $this->addForeignKey(null, Table::FORMIE_FORMS, ['defaultStatusId'], Table::FORMIE_STATUSES, ['id'], 'SET NULL', null);
         $this->addForeignKey(null, Table::FORMIE_FORMS, ['submitActionEntryId'], '{{%entries}}', ['id'], 'SET NULL', null);
         $this->addForeignKey(null, Table::FORMIE_FORMS, ['createdById'], '{{%users}}', ['id'], 'SET NULL', null);
@@ -554,6 +570,7 @@ class Install extends Migration
             'formie_fieldlayouts',
             'formie_fields',
             'formie_forms',
+            'formie_formgroups',
             'formie_formtemplates',
             'formie_integrations',
             'formie_notifications',
@@ -622,6 +639,12 @@ class Install extends Migration
             foreach ($stencils as $stencilUid => $stencilData) {
                 $projectConfig->processConfigChanges(Stencils::CONFIG_STENCILS_KEY . '.' . $stencilUid, true);
             }
+
+            $formGroups = $projectConfig->get(FormGroups::CONFIG_GROUPS_KEY, true) ?? [];
+
+            foreach ($formGroups as $formGroupUid => $formGroupData) {
+                $projectConfig->processConfigChanges(FormGroups::CONFIG_GROUPS_KEY . '.' . $formGroupUid, true);
+            }
         }
     }
 
@@ -645,6 +668,7 @@ class Install extends Migration
             'formie_fieldlayouts',
             'formie_fields',
             'formie_forms',
+            'formie_formgroups',
             'formie_formtemplates',
             'formie_integrations',
             'formie_notifications',

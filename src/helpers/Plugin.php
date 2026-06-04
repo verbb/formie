@@ -6,6 +6,7 @@ use verbb\formie\base\ParentFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\web\assets\cp\CpReactAsset;
 use verbb\formie\web\assets\cp\DefaultsAsset;
+use verbb\formie\web\assets\cp\FormsIndexAsset;
 use verbb\formie\web\assets\cp\PluginSettingsAsset;
 use verbb\formie\web\assets\cp\SentNotificationsAsset;
 use verbb\formie\web\assets\cp\SubmissionsAsset;
@@ -57,6 +58,11 @@ class Plugin extends BasePlugin
     public static function registerCpPluginSettingsAssets(): void
     {
         self::registerCpAsset('src/plugin-settings/js/formie-plugin-settings.js', CpReactAsset::class, PluginSettingsAsset::class);
+    }
+
+    public static function registerCpFormsIndexAssets(): void
+    {
+        self::registerCpAsset('src/forms/js/formie-forms-index.js', CpReactAsset::class, FormsIndexAsset::class);
     }
 
     public static function registerCpSubmissionsAssets(): void

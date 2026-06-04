@@ -1,0 +1,50 @@
+{% extends 'formie/_layouts' %}
+
+{% set crumbs = [
+    { label: craft.formie.getPluginName() | t('formie'), url: url('formie') },
+    { label: 'Settings' | t('app'), url: url('formie/settings') },
+    { label: 'Form Groups' | t('formie'), url: url('formie/settings/form-groups') },
+] %}
+
+{% set selectedSubnavItem = 'settings' %}
+{% set fullPageForm = true %}
+{% set selectedTab = 'settings' %}
+{% import '_includes/forms' as forms %}
+
+{% block content %}
+
+{{ actionInput('formie/form-groups/save') }}
+{{ redirectInput('formie/settings/form-groups') }}
+
+{% if formGroup.id %}
+    {{ hiddenInput('id', formGroup.id) }}
+    {{ hiddenInput('sortOrder', formGroup.sortOrder) }}
+{% endif %}
+
+{{ forms.textField({
+    label: 'Name' | t('formie'),
+    first: true,
+    instructions: 'What this form group will be called in the control panel.' | t('formie'),
+    id: 'name',
+    name: 'name',
+    value: formGroup.name,
+    errors: formGroup.getErrors('name'),
+    required: true,
+}) }}
+
+{{ forms.textField({
+    label: 'Handle' | t('formie'),
+    instructions: 'How you’ll refer to this form group in the templates.' | t('formie'),
+    id: 'handle',
+    class: 'code',
+    name: 'handle',
+    value: formGroup.handle,
+    errors: formGroup.getErrors('handle'),
+    required: true,
+}) }}
+
+{% endblock %}
+
+{% js %}
+    {% if not formGroup.handle %}new Craft.HandleGenerator('#name', '#handle');{% endif %}
+{% endjs %}

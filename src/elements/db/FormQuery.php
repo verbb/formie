@@ -1,7 +1,9 @@
 <?php
 namespace verbb\formie\elements\db;
 
+use verbb\formie\Formie;
 use verbb\formie\helpers\Table;
+use verbb\formie\models\FormGroup;
 use verbb\formie\models\FormTemplate;
 
 use Craft;
@@ -17,6 +19,7 @@ class FormQuery extends ElementQuery
     public mixed $handle = null;
     public mixed $layoutId = null;
     public mixed $templateId = null;
+    public mixed $groupId = null;
     public mixed $pageCount = null;
 
     protected array $defaultOrderBy = ['elements.dateCreated' => SORT_DESC];
@@ -57,6 +60,28 @@ class FormQuery extends ElementQuery
     public function templateId($value): static
     {
         $this->templateId = $value;
+        return $this;
+    }
+
+    public function group($value): static
+    {
+        if ($value instanceof FormGroup) {
+            $this->groupId = $value->id;
+        } elseif ($value !== null) {
+            $groups = Formie::$plugin->getFormGroups();
+            $group = $groups->getGroupByHandle((string)$value)
+                ?? $groups->getGroupByUid((string)$value);
+            $this->groupId = $group?->id;
+        } else {
+            $this->groupId = null;
+        }
+
+        return $this;
+    }
+
+    public function groupId($value): static
+    {
+        $this->groupId = $value;
         return $this;
     }
 
@@ -104,6 +129,10 @@ class FormQuery extends ElementQuery
             $formColumns[] = 'formie_forms.updatedById';
         }
 
+        if ($db->columnExists(Table::FORMIE_FORMS, 'groupId')) {
+            $formColumns[] = 'formie_forms.groupId';
+        }
+
         $this->query->select($formColumns);
 
         $pageQuery = (new Query())
@@ -123,6 +152,14 @@ class FormQuery extends ElementQuery
 
         if ($this->templateId) {
             $this->subQuery->andWhere(Db::parseParam('formie_forms.templateId', $this->templateId));
+        }
+
+        if ($this->groupId !== null && $db->columnExists(Table::FORMIE_FORMS, 'groupId')) {
+            if ($this->groupId === ':empty:') {
+                $this->subQuery->andWhere(['formie_forms.groupId' => null]);
+            } else {
+                $this->subQuery->andWhere(Db::parseParam('formie_forms.groupId', $this->groupId));
+            }
         }
 
         if ($this->pageCount) {

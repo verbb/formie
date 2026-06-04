@@ -9,6 +9,7 @@ import TailwindShadowDOM from 'vite-plugin-tailwind-shadowdom';
 
 const cpBundleDirectories = {
     'formie-widgets': 'widgets',
+    'formie-forms-index': 'forms',
     'formie-submissions': 'submissions',
     'formie-sent-notifications': 'sent-notifications',
     'formie-plugin-settings': 'plugin-settings',
@@ -139,6 +140,7 @@ export default defineConfig(async ({ command, mode }) => {
             rollupOptions: {
                 input: {
                     'formie-form-builder': path.resolve('./src/form-builder/formie-form-builder.js'),
+                    'formie-forms-index': path.resolve('./src/forms/js/formie-forms-index.js'),
                     'formie-new-form': path.resolve('./src/new-form/formie-new-form.js'),
                     'formie-integration-connect': path.resolve('./src/integration-connect/formie-integration-connect.js'),
                     'formie-widgets': path.resolve('./src/widgets/js/formie-widgets.js'),

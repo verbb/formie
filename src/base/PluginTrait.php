@@ -21,6 +21,7 @@ use verbb\formie\services\Fields;
 use verbb\formie\services\FileUploads;
 use verbb\formie\services\FormDefaults;
 use verbb\formie\services\Forms;
+use verbb\formie\services\FormGroups;
 use verbb\formie\services\FormTemplates;
 use verbb\formie\services\Integrations;
 use verbb\formie\services\Notifications;
@@ -153,6 +154,7 @@ trait PluginTrait
                 'formSlotRegistry' => FormSlotRegistry::class,
                 'clientFormBootstrapBuilder' => FormBootstrapBuilder::class,
                 'clientFormDefinitionBuilder' => FormDefinitionBuilder::class,
+                'formGroups' => FormGroups::class,
                 'formTemplates' => FormTemplates::class,
                 'integrations' => Integrations::class,
                 'serverRenderPayloadBuilder' => ServerRenderPayloadBuilder::class,
@@ -348,6 +350,11 @@ trait PluginTrait
     public function getFormDefaults(): FormDefaults
     {
         return $this->get('formDefaults');
+    }
+
+    public function getFormGroups(): FormGroups
+    {
+        return $this->get('formGroups');
     }
 
     public function getFormTemplates(): FormTemplates

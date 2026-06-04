@@ -123,7 +123,26 @@ class FormsController extends Controller
     {
         $this->requirePermission('formie-accessForms');
 
-        return $this->renderTemplate('formie/forms/index', []);
+        $canCreateForms = Craft::$app->getUser()->checkPermission('formie-createForms');
+        $editableFormGroups = [];
+
+        if ($canCreateForms) {
+            Plugin::registerCpFormsIndexAssets();
+
+            foreach (Formie::$plugin->getFormGroups()->getAllGroups() as $group) {
+                $editableFormGroups[] = [
+                    'handle' => $group->handle,
+                    'id' => (int)$group->id,
+                    'name' => $group->name,
+                    'uid' => $group->uid,
+                ];
+            }
+        }
+
+        return $this->renderTemplate('formie/forms/index', [
+            'canCreateForms' => $canCreateForms,
+            'editableFormGroups' => $editableFormGroups,
+        ]);
     }
 
     public function actionNew(Form $form = null): Response
@@ -150,10 +169,17 @@ class FormsController extends Controller
             return $option;
         }, Formie::$plugin->getStencils()->getStencilArray()));
 
+        $groupId = $this->_resolveGroupIdFromRequest();
+
+        if ($groupId) {
+            $form->groupId = $groupId;
+        }
+
         $settings = [
             'formId' => 'fui-new-form-form',
             'name' => $form->title,
             'handle' => $form->handle,
+            'groupId' => $groupId,
             'applyStencilId' => (string)$this->request->getParam('applyStencilId', ''),
             'stencilOptions' => $stencilOptions,
             'formHandles' => ArrayHelper::getColumn(Form::find()->all(), 'handle'),
@@ -676,6 +702,25 @@ class FormsController extends Controller
             ->from([Table::FORMIE_FORMS])
             ->where(['not', ['id' => $formId]])
             ->column();
+    }
+
+    private function _resolveGroupIdFromRequest(): ?int
+    {
+        $groupId = StringHelper::toId($this->request->getParam('groupId'));
+
+        if ($groupId) {
+            return $groupId;
+        }
+
+        $source = $this->request->getParam('source');
+
+        if (is_string($source) && str_starts_with($source, 'group:')) {
+            $group = Formie::$plugin->getFormGroups()->getGroupByUid(substr($source, 6));
+
+            return $group?->id;
+        }
+
+        return null;
     }
 
 }

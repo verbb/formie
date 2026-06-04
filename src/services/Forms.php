@@ -385,6 +385,7 @@ class Forms extends Component
                 'isStencil' => false,
                 'layoutId' => $form->layoutId,
                 'templateId' => $form->templateId,
+                'groupId' => $form->groupId,
                 'submitActionEntry' =>  array_filter([
                     array_filter([
                         'id' => $form->submitActionEntryId,
@@ -551,6 +552,7 @@ class Forms extends Component
         $form->title = $request->getParam('title', $form->title);
         $form->handle = $request->getParam('handle', $form->handle);
         $form->templateId = StringHelper::toId($request->getParam('templateId', $form->templateId));
+        $form->groupId = StringHelper::toId($request->getParam('groupId', $form->groupId));
         $form->defaultStatusId = StringHelper::toId($request->getParam('defaultStatusId', $form->defaultStatusId));
         $form->userDeletedAction = $request->getParam('userDeletedAction', $form->userDeletedAction);
         $form->fileUploadsAction = $request->getParam('fileUploadsAction', $form->fileUploadsAction);

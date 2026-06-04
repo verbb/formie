@@ -89,6 +89,12 @@
       "_utils-3JUQ1_NA.js"
     ]
   },
+  "src/forms/js/formie-forms-index.js": {
+    "file": "forms/js/formie-forms-index.js",
+    "name": "formie-forms-index",
+    "src": "src/forms/js/formie-forms-index.js",
+    "isEntry": true
+  },
   "src/integration-connect/formie-integration-connect.js": {
     "file": "assets/formie-integration-connect-DHInsIMj.js",
     "name": "formie-integration-connect",
@@ -104,7 +110,7 @@
     ]
   },
   "src/new-form/formie-new-form.js": {
-    "file": "assets/formie-new-form-CJ0bujnJ.js",
+    "file": "assets/formie-new-form-hmyK14Ll.js",
     "name": "formie-new-form",
     "src": "src/new-form/formie-new-form.js",
     "isEntry": true,
