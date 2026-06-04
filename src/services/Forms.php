@@ -440,21 +440,11 @@ class Forms extends Component
         }
 
         foreach ($query->all() as $info) {
-            // Use the combined element cache, keyed solely by element id.
-            $cacheKey = $info['id'] . '_' . $info['siteId'];
-            $elementId = $info['id'];
-            $siteId = $info['siteId'];
-            
-            if (isset($this->_getFormLookupCache()->elementsByIdAndSite[$cacheKey])) {
-                $element = $this->_getFormLookupCache()->elementsByIdAndSite[$cacheKey];
-            } else {
-                $element = Craft::$app->getElements()->getElementById($elementId, $info['type'], $siteId);
-                $this->_getFormLookupCache()->elementsByIdAndSite[$cacheKey] = $element;
-            }
+            $elementId = (int)$info['id'];
+            $elementType = $info['type'];
+            $relationSiteId = $info['siteId'] !== null ? (int)$info['siteId'] : null;
+            $fieldId = (int)$info['fieldId'];
 
-            // Use the combined field cache.
-            $fieldId = $info['fieldId'];
-            
             if (isset($this->_getFormLookupCache()->fieldsById[$fieldId])) {
                 $field = $this->_getFormLookupCache()->fieldsById[$fieldId];
             } else {
@@ -462,25 +452,36 @@ class Forms extends Component
                 $this->_getFormLookupCache()->fieldsById[$fieldId] = $field;
             }
 
-            if (!$element) {
-                continue;
-            }
+            foreach ($this->_resolveFormUsageSiteIds($elementId, $relationSiteId, $elementType) as $siteId) {
+                $cacheKey = $elementId . '_' . $siteId;
 
-            if (isset($elements[$element->id . '_' . $element->siteId])) {
-                continue;
-            }
+                if (isset($this->_getFormLookupCache()->elementsByIdAndSite[$cacheKey])) {
+                    $element = $this->_getFormLookupCache()->elementsByIdAndSite[$cacheKey];
+                } else {
+                    $element = Craft::$app->getElements()->getElementById($elementId, $elementType, $siteId);
+                    $this->_getFormLookupCache()->elementsByIdAndSite[$cacheKey] = $element;
+                }
 
-            $nestedElements = [];
-            $this->_handleNestedElement($element, $field, 0, $nestedElements);
+                if (!$element) {
+                    continue;
+                }
 
-            // Sort descending by level and reassign levels.
-            usort($nestedElements, function ($a, $b) {
-                return $b['level'] <=> $a['level'];
-            });
+                if (isset($elements[$element->id . '_' . $element->siteId])) {
+                    continue;
+                }
 
-            foreach ($nestedElements as $i => $nestedElement) {
-                $nestedElement['level'] = $i;
-                $elements[$nestedElement['element']->id . '_' . $nestedElement['site']->id] = $nestedElement;
+                $nestedElements = [];
+                $this->_handleNestedElement($element, $field, 0, $nestedElements);
+
+                // Sort descending by level and reassign levels.
+                usort($nestedElements, function ($a, $b) {
+                    return $b['level'] <=> $a['level'];
+                });
+
+                foreach ($nestedElements as $i => $nestedElement) {
+                    $nestedElement['level'] = $i;
+                    $elements[$nestedElement['element']->id . '_' . $nestedElement['site']->id] = $nestedElement;
+                }
             }
         }
 
@@ -490,6 +491,39 @@ class Forms extends Component
 
     // Private Methods
     // =========================================================================
+
+    private function _resolveFormUsageSiteIds(int $elementId, ?int $relationSiteId, string $elementType): array
+    {
+        if ($relationSiteId) {
+            $element = Craft::$app->getElements()->getElementById($elementId, $elementType, $relationSiteId);
+
+            if ($element) {
+                return [$relationSiteId];
+            }
+        } else {
+            $siteIds = $this->_getEnabledElementSiteIds($elementId);
+
+            if ($siteIds !== []) {
+                return $siteIds;
+            }
+        }
+
+        return $this->_getEnabledElementSiteIds($elementId);
+    }
+
+    private function _getEnabledElementSiteIds(int $elementId): array
+    {
+        $siteIds = (new Query())
+            ->select(['siteId'])
+            ->from([Table::ELEMENTS_SITES])
+            ->where([
+                'elementId' => $elementId,
+                'enabled' => true,
+            ])
+            ->column();
+
+        return array_map('intval', $siteIds);
+    }
 
     private function _populateFormFromPost(Form $form): Form
     {
