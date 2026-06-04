@@ -307,6 +307,7 @@ class Submission extends Element
         return [
             'title' => ['label' => Craft::t('app', 'Title')],
             'id' => ['label' => Craft::t('app', 'ID')],
+            'uid' => ['label' => Craft::t('app', 'UID')],
             'form' => ['label' => Craft::t('formie', 'Form')],
             'spamReason' => ['label' => Craft::t('app', 'Spam Reason')],
             'ipAddress' => ['label' => Craft::t('app', 'IP Address')],

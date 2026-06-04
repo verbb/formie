@@ -326,6 +326,11 @@
                     <dt class="heading">{{ 'Submission ID' | t('formie') }}</dt>
                     <dd class="value">{{ submission.id }}</dd>
                 </div>
+
+                <div class="data">
+                    <dt class="heading">{{ 'Submission UID' | t('formie') }}</dt>
+                    <dd class="value"><code>{{ submission.uid }}</code></dd>
+                </div>
             {% endif %}
 
             {% if submission.isIncomplete %}

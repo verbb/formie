@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Added
+- Add submission UID to the control panel submission sidebar and as an optional submissions index column. ([#2404](https://github.com/verbb/formie/issues/2404))
 - Add an Autocomplete setting to single-line and multi-line text fields in the form builder Settings tab, with a searchable list of HTML autocomplete tokens. ([Discussion #2764](https://github.com/verbb/formie/discussions/2764))
 - Document using `{env:FORMIE_*}` environment variable tokens in notification recipient fields. ([#2676](https://github.com/verbb/formie/issues/2676))
 - Add an opt-in setting to disable the submit button until the current page passes validation. ([#1514](https://github.com/verbb/formie/issues/1514))
