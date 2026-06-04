@@ -217,6 +217,8 @@ return [
   'Are you sure you want to delete this sent notification?' => 'Are you sure you want to delete this sent notification?',
   'Are you sure you want to delete this submission?' => 'Are you sure you want to delete this submission?',
   'Are you sure you want to delete “{name}”?' => 'Are you sure you want to delete “{name}”?',
+  'Close without saving? This new field will be removed.' => 'Close without saving? This new field will be removed.',
+  'Discard unsaved changes to "{name}"?' => 'Discard unsaved changes to "{name}"?',
   'Are you sure you want to delete “{name}”? This will also delete all fields for this page, and cannot be undone.' => 'Are you sure you want to delete “{name}”? This will also delete all fields for this page, and cannot be undone.',
   'Are you sure you want to leave?' => 'Are you sure you want to leave?',
   'Argentine Peso' => 'Argentine Peso',

@@ -47,6 +47,7 @@ import useAppStore from '@form-builder/hooks/useAppStore';
 import { useBuilderActions } from '@form-builder/builder/useBuilderActions';
 import { MAX_FIELDS_PER_ROW } from '@form-builder/builder/constants';
 import { useHandleSyncOnChange } from '@form-builder/hooks/useHandleSyncOnChange';
+import { useFieldEditorDismiss } from '@form-builder/hooks/useFieldEditorDismiss';
 import {
     collectFieldHandlesFromRows,
     buildDuplicatedFieldData,
@@ -258,7 +259,15 @@ const NestedDropzone = ({
 };
 
 const NestedFieldEditModal = ({
-    field, fieldType, reservedHandles = [], shouldSanitizeSettings = true, onSave, onCancel, onDelete,
+    field,
+    fieldType,
+    reservedHandles = [],
+    shouldSanitizeSettings = true,
+    dismissAttemptRef = null,
+    onSave,
+    onCancel,
+    onDismiss,
+    onDelete,
 }) => {
     const contentRef = useRef(null);
     const hasAutofocusedRef = useRef(false);
@@ -268,6 +277,10 @@ const NestedFieldEditModal = ({
         : '';
     const showFieldTypePill = resolvedFieldTypeLabel !== '';
     const isSyncedField = Boolean(field?.isSynced || field?.syncId);
+    const shouldUseFieldLabel = activeFieldType?.hasLabel !== false;
+    const fieldDisplayLabel = shouldUseFieldLabel
+        ? (field?.label || activeFieldType?.label || Craft.t('formie', 'Field'))
+        : (activeFieldType?.label || Craft.t('formie', 'Field'));
     const hasSchemaConfig = Boolean(activeFieldType?.schemaIndex || activeFieldType?.schema);
     const rawFieldSchema = activeFieldType?.schemaIndex?.schema ?? activeFieldType?.schema ?? [];
     const sanitizedSchemaIndex = useMemo(() => {
@@ -314,6 +327,15 @@ const NestedFieldEditModal = ({
 
     form.onSuccess((data) => {
         onSave(data);
+    });
+
+    useFieldEditorDismiss({
+        field,
+        fieldDisplayLabel,
+        form,
+        onDismiss,
+        dismissAttemptRef,
+        isBaselineReady: hasSchemaConfig,
     });
 
     useEffect(() => {
@@ -416,6 +438,7 @@ const NestedFieldCard = ({
     const { errors: formErrors, hasErrorsForPrefix } = useFormBuilderForm();
     const [editing, setEditing] = useState(false);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const nestedFieldEditorDismissAttemptRef = useRef(null);
 
     const {
         ref, isDragging,
@@ -452,6 +475,18 @@ const NestedFieldCard = ({
     const nestedFieldDisplayLabel = shouldUseNestedFieldLabel
         ? (nestedField?.label || nestedFieldType?.label || Craft.t('formie', 'Field'))
         : (nestedFieldType?.label || Craft.t('formie', 'Field'));
+
+    const closeNestedFieldEditor = ({ deleteIfNew = false } = {}) => {
+        if (deleteIfNew && nestedField?._isNew) {
+            deleteNestedField(pageIndex, rowIndex, fieldIndex, nestedRowIndex, nestedFieldIndex);
+            announceFormBuilderStatus(Craft.t('formie', '{label} field deleted.', {
+                label: nestedFieldDisplayLabel,
+            }));
+        }
+
+        setEditing(false);
+    };
+
     const hasConditions = useMemo(() => {
         if (!nestedField?.enableConditions) {
             return false;
@@ -830,21 +865,17 @@ const NestedFieldCard = ({
             </div>
 
             {editing && (
-                <Dialog open={true} onOpenChange={() => {
-                    if (nestedField?._isNew) {
-                        deleteNestedField(pageIndex, rowIndex, fieldIndex, nestedRowIndex, nestedFieldIndex);
-                                announceFormBuilderStatus(Craft.t('formie', '{label} field deleted.', {
-                                    label: nestedFieldDisplayLabel,
-                                }));
+                <Dialog open={true} onOpenChange={(open) => {
+                    if (!open) {
+                        nestedFieldEditorDismissAttemptRef.current?.();
                     }
-
-                    setEditing(false);
                 }}>
                     <NestedFieldEditModal
                         field={nestedField}
                         fieldType={nestedFieldType}
                         reservedHandles={nestedReservedHandles}
                         shouldSanitizeSettings={shouldSanitizeSettings}
+                        dismissAttemptRef={nestedFieldEditorDismissAttemptRef}
                         onSave={(updatedField) => {
                             updateNestedField(pageIndex, rowIndex, fieldIndex, nestedRowIndex, nestedFieldIndex, {
                                 ...updatedField,
@@ -854,13 +885,10 @@ const NestedFieldCard = ({
                             setEditing(false);
                         }}
                         onCancel={() => {
-                            if (nestedField?._isNew) {
-                                deleteNestedField(pageIndex, rowIndex, fieldIndex, nestedRowIndex, nestedFieldIndex);
-                                announceFormBuilderStatus(Craft.t('formie', '{label} field deleted.', {
-                                    label: nestedFieldDisplayLabel,
-                                }));
-                            }
-                            setEditing(false);
+                            closeNestedFieldEditor({ deleteIfNew: true });
+                        }}
+                        onDismiss={({ deleteIfNew = false } = {}) => {
+                            closeNestedFieldEditor({ deleteIfNew });
                         }}
                         onDelete={() => {
                             const confirmationMessage = Craft.t('formie', 'Are you sure you want to delete "{name}"?', {

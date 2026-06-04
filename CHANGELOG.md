@@ -9,6 +9,7 @@
 - Add regression tests for required File Upload fields submitted via GraphQL with base64 file data. ([#1130](https://github.com/verbb/formie/issues/1130))
 
 ### Fixed
+- Prompt for confirmation when closing a field settings overlay with Escape (or backdrop/header close) only when the field has unsaved changes. Untouched new fields close immediately. ([#2219](https://github.com/verbb/formie/issues/2219))
 - Fix dropdown field options not saving in the form builder when no default option is selected. ([#2795](https://github.com/verbb/formie/issues/2795))
 - Validate literal email addresses in notification recipient settings so invalid addresses are caught when saving notifications. ([#2712](https://github.com/verbb/formie/issues/2712))
 - Skip notification email attachments when the asset file cannot be read, instead of failing the entire send. ([#2626](https://github.com/verbb/formie/issues/2626))

@@ -62,6 +62,7 @@ import { focusFirstVisibleInputIfEmpty } from '@form-builder/utils/focus';
 import { syncContainerRowsFromVariant } from '@form-builder/utils/containerLayoutVariants';
 import { announceFormBuilderStatus, focusFieldActionsTrigger } from '@form-builder/utils/accessibility';
 import { submitSchemaFormAfterPendingTableUpdates } from '@form-builder/utils/submitSchemaForm';
+import { useFieldEditorDismiss } from '@form-builder/hooks/useFieldEditorDismiss';
 import { SnapTopLeftCornerToCursor } from '@utils';
 
 import { FieldPreview } from './FieldPreview';
@@ -93,6 +94,7 @@ const Field = ({
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const hasInitialAutoOpenRunRef = useRef(false);
     const isClosingEditorRef = useRef(false);
+    const fieldEditorDismissAttemptRef = useRef(null);
     const builderDevSettings = useMemo(() => {
         if (!import.meta.env.DEV) {
             return null;
@@ -698,7 +700,7 @@ const Field = ({
             {editingField !== null && (
                 <Dialog open={true} onOpenChange={(open) => {
                     if (!open) {
-                        closeFieldEditor({ deleteIfNew: true });
+                        fieldEditorDismissAttemptRef.current?.();
                     }
                 }}>
                     <FieldEditModal
@@ -706,9 +708,13 @@ const Field = ({
                         fieldType={fieldType}
                         errors={fieldModalErrors}
                         reservedHandles={topLevelReservedHandles}
+                        dismissAttemptRef={fieldEditorDismissAttemptRef}
                         onSave={handleSaveField}
                         onCancel={() => {
                             closeFieldEditor({ deleteIfNew: true });
+                        }}
+                        onDismiss={({ deleteIfNew = false } = {}) => {
+                            closeFieldEditor({ deleteIfNew });
                         }}
                         onDelete={() => {
                             closeFieldEditor({ deleteAlways: true });
@@ -723,7 +729,15 @@ const Field = ({
 
 // Field Edit Modal Component
 const FieldEditModal = ({
-    field, fieldType, errors, reservedHandles = [], onSave, onCancel, onDelete,
+    field,
+    fieldType,
+    errors,
+    reservedHandles = [],
+    dismissAttemptRef = null,
+    onSave,
+    onCancel,
+    onDismiss,
+    onDelete,
 }) => {
     const contentRef = useRef(null);
     const hasAutofocusedRef = useRef(false);
@@ -781,6 +795,15 @@ const FieldEditModal = ({
 
     form.onSuccess((data) => {
         onSave(data);
+    });
+
+    useFieldEditorDismiss({
+        field,
+        fieldDisplayLabel,
+        form,
+        onDismiss,
+        dismissAttemptRef,
+        isBaselineReady: hasSchemaConfig ? isSchemaUiReady : true,
     });
 
     useEffect(() => {
