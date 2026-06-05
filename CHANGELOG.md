@@ -1,5 +1,23 @@
 # Changelog
 
+## 3.1.28 - 2026-06-05
+
+### Added
+- Add support for siteId for Solspace Calendar integration mapping.
+
+### Changed
+- Formie Settings now enforce an “Access Settings” user permission.
+- Update EmailOctopus API handling.
+
+### Fixed
+- Fix Stripe payment errors so short messages are shown instead of an empty string.
+- Fix integration connection handling and showing the “Connected”/“Not connected” text.
+- Fix Date field input min and max attributes.
+- Fix Group/Repeater fields and their condition evaluation handling for email templates.
+- Fix success message at “Bottom of Form” behaviour.
+- Fix Hidden field variable processing.
+- Fix Safari-visible Formie init event handling.
+
 ## 3.1.27 - 2026-05-30
 
 ### Added
