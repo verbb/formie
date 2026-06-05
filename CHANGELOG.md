@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 4.0.0-beta.3 - 2026-06-06
 
 ### Added
 - Add a configurable field palette for the form builder, with drag-and-drop group and field organisation, per-field enable/disable, and optional palette label overrides. Replaces the legacy **Disabled Field Types** settings checkboxes. ([#2209](https://github.com/verbb/formie/issues/2209))
