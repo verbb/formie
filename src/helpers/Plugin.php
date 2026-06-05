@@ -6,6 +6,7 @@ use verbb\formie\base\ParentFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\web\assets\cp\CpReactAsset;
 use verbb\formie\web\assets\cp\DefaultsAsset;
+use verbb\formie\web\assets\cp\FieldPaletteAsset;
 use verbb\formie\web\assets\cp\FormsIndexAsset;
 use verbb\formie\web\assets\cp\PluginSettingsAsset;
 use verbb\formie\web\assets\cp\SentNotificationsAsset;
@@ -38,6 +39,11 @@ class Plugin extends BasePlugin
     public static function registerCpDefaultsAssets(): void
     {
         self::registerCpAsset('src/defaults/formie-defaults.js', CpReactAsset::class, DefaultsAsset::class);
+    }
+
+    public static function registerCpFieldPaletteAssets(): void
+    {
+        self::registerCpAsset('src/field-palette/formie-field-palette.js', CpReactAsset::class, FieldPaletteAsset::class);
     }
 
     public static function registerCpStencilNewAssets(): void

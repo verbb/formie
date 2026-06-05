@@ -295,3 +295,29 @@ it('caches field type defaults config within the service instance', function ():
 
     expect($service->getFieldTypeDefaultsConfig())->toBe($service->getFieldTypeDefaultsConfig());
 });
+
+it('saves editor defaults settings through the plugin settings service', function (): void {
+    $service = Formie::$plugin->getFormDefaults();
+    $settings = Formie::$plugin->getSettings();
+
+    $saved = $service->saveEditorSettings([
+        'defaultFormTemplate' => $settings->defaultFormTemplate,
+        'defaultFormStencil' => $settings->defaultFormStencil,
+        'defaultEmailTemplate' => $settings->defaultEmailTemplate,
+        'defaultLabelPosition' => $settings->defaultLabelPosition,
+        'defaultInstructionsPosition' => $settings->defaultInstructionsPosition,
+        'formDefaults' => [
+            'collectIp' => true,
+        ],
+        'fieldDefaults' => [],
+        'notificationDefaults' => [
+            'enabled' => '',
+        ],
+        'integrationDefaults' => [
+            'captchas' => [],
+        ],
+    ]);
+
+    expect($saved)->toBeTrue()
+        ->and(Formie::$plugin->getSettings()->formDefaults['collectIp'] ?? null)->toBeTrue();
+});

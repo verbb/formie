@@ -1,0 +1,247 @@
+@import "@verbb/plugin-kit-react/style.css";
+
+.formie-field-palette-app {
+    --formie-palette-row-padding-x: 1rem;
+    --formie-palette-row-padding-y: 0.5rem;
+    --formie-palette-row-gap: 0.75rem;
+    --formie-palette-grid-columns: 24px minmax(0, 1.2fr) minmax(0, 1fr) auto auto;
+
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.formie-field-palette-groups {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.formie-field-palette-groups.is-dragging {
+    overflow: visible;
+}
+
+.formie-field-palette-groups.is-dragging .formie-field-palette-toolbar {
+    pointer-events: none;
+}
+
+.formie-field-palette-group {
+    border: 1px solid var(--gray-200, #e5e7eb);
+    border-radius: 8px;
+    background: #fff;
+    overflow: hidden;
+}
+
+.formie-field-palette-field-row.is-drag-placeholder > *,
+.formie-field-palette-group.is-drag-placeholder > * {
+    visibility: hidden;
+}
+
+.formie-field-palette-drag-ghost {
+    display: flex;
+    align-items: center;
+    gap: var(--formie-palette-row-gap);
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+    padding: var(--formie-palette-row-padding-y) var(--formie-palette-row-padding-x);
+    background: #fff;
+    border: none;
+    border-radius: 0;
+    box-shadow:
+        inset 0 1px 0 0 var(--gray-200, #e5e7eb),
+        inset 0 -1px 0 0 var(--gray-200, #e5e7eb),
+        0 1px 2px rgb(15 23 42 / 6%),
+        0 2px 6px rgb(15 23 42 / 8%);
+    pointer-events: none;
+}
+
+.formie-field-palette-drag-ghost .formie-field-palette-field-label {
+    min-width: 0;
+}
+
+[data-dnd-overlay="true"] {
+    z-index: 20;
+    box-sizing: border-box;
+    overflow: visible;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+}
+
+.formie-field-palette-group-header,
+.formie-field-palette-field-row {
+    display: grid;
+    grid-template-columns: var(--formie-palette-grid-columns);
+    align-items: center;
+    gap: var(--formie-palette-row-gap);
+    padding: var(--formie-palette-row-padding-y) var(--formie-palette-row-padding-x);
+}
+
+.formie-field-palette-group-header {
+    background: var(--gray-50, #f9fafb);
+    border-bottom: 1px solid var(--gray-200, #e5e7eb);
+}
+
+.formie-field-palette-group-name {
+    grid-column: 2 / 4;
+    min-width: 0;
+}
+
+.formie-field-palette-header-spacer {
+    display: block;
+    min-width: 0;
+}
+
+.formie-field-palette-field-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    min-height: 2.5rem;
+    padding: 0;
+}
+
+.formie-field-palette-field-list--empty {
+    min-height: 3.5rem;
+}
+
+.formie-field-palette-field-list--empty .formie-field-palette-empty {
+    flex: 1 1 auto;
+    display: flex;
+    align-items: center;
+    min-height: 3.5rem;
+}
+
+.formie-field-palette-field-row {
+    border-radius: 0;
+}
+
+.formie-field-palette-field-row:hover {
+    background: var(--gray-50, #f9fafb);
+}
+
+.formie-field-palette-field-row.is-drag-placeholder:hover {
+    background: #fff;
+}
+
+.formie-field-palette-field-row:last-child {
+    border-radius: 0 0 7px 7px;
+}
+
+.formie-field-palette-field-handle-spacer {
+    display: block;
+    width: 24px;
+    flex-shrink: 0;
+}
+
+.formie-field-palette-field-label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    min-width: 0;
+}
+
+.formie-field-palette-field-default {
+    font-size: 11px;
+    color: var(--gray-500, #6b7280);
+    word-break: break-all;
+}
+
+.formie-field-palette-field-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-color, #33475b);
+}
+
+.formie-field-palette-field-alias input {
+    width: 100%;
+}
+
+.formie-field-palette-field-enabled {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.formie-field-palette-row-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.formie-field-palette-menu-trigger {
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    color: var(--gray-500, #6b7280);
+}
+
+.formie-field-palette-menu-trigger:hover {
+    color: var(--color-blue-500, #3b82f6);
+}
+
+.formie-field-palette-empty {
+    padding: var(--formie-palette-row-padding-y) var(--formie-palette-row-padding-x);
+    color: var(--gray-500, #6b7280);
+    font-size: 13px;
+}
+
+.formie-field-palette-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.formie-field-palette-readonly {
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    background: rgb(254 243 199 / 60%);
+    color: #92400e;
+    font-size: 13px;
+}
+
+@media (max-width: 900px) {
+    .formie-field-palette-app {
+        --formie-palette-grid-columns: 24px minmax(0, 1fr) auto auto;
+    }
+
+    .formie-field-palette-group-header,
+    .formie-field-palette-field-row {
+        grid-template-columns: var(--formie-palette-grid-columns);
+        grid-template-areas:
+            "handle label enabled menu"
+            "alias alias alias alias";
+    }
+
+    .formie-field-palette-group-name {
+        grid-column: auto;
+        grid-area: label;
+    }
+
+    .formie-field-palette-header-spacer {
+        display: none;
+    }
+
+    .formie-field-palette-field-handle-spacer,
+    .formie-field-palette-field-row > :first-child,
+    .formie-field-palette-group-header > :first-child {
+        grid-area: handle;
+    }
+
+    .formie-field-palette-field-label {
+        grid-area: label;
+    }
+
+    .formie-field-palette-field-alias {
+        grid-area: alias;
+    }
+
+    .formie-field-palette-field-enabled {
+        grid-area: enabled;
+    }
+
+    .formie-field-palette-row-actions {
+        grid-area: menu;
+    }
+}

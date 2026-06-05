@@ -39,8 +39,7 @@ class FormDefaults extends Component
         $notificationDefaultsSchema = $this->getNotificationDefaultsSchemaConfig();
 
         return array_merge([
-            'saveAction' => 'formie/settings/save-settings',
-            'redirect' => 'formie/settings/defaults',
+            'payloadInputId' => 'formie-defaults-settings',
             'values' => $this->getEditorValues($settings, $fieldTypes),
             'options' => [
                 'formTemplates' => $this->_formTemplateOptions(),
@@ -78,6 +77,32 @@ class FormDefaults extends Component
         }
 
         return $settings;
+    }
+
+    public function saveEditorSettings(array $payload): bool
+    {
+        if ($payload === []) {
+            return false;
+        }
+
+        $settings = Formie::$plugin->getSettings();
+        $payload = $this->normalizeSettingsPayload($payload);
+        $attributes = [];
+
+        foreach ($this->_editorSettingKeys() as $key) {
+            if (array_key_exists($key, $payload)) {
+                $attributes[$key] = $payload[$key];
+            }
+        }
+
+        if ($attributes === []) {
+            return false;
+        }
+
+        return Craft::$app->getPlugins()->savePluginSettings(
+            Formie::$plugin,
+            array_merge($settings->toArray(), $attributes),
+        );
     }
 
     public function getEditorValues(Settings $settings, ?array $fieldTypes = null): array
@@ -560,6 +585,21 @@ class FormDefaults extends Component
 
     // Private Methods
     // =========================================================================
+
+    private function _editorSettingKeys(): array
+    {
+        return [
+            'defaultFormTemplate',
+            'defaultFormStencil',
+            'defaultEmailTemplate',
+            'defaultLabelPosition',
+            'defaultInstructionsPosition',
+            'formDefaults',
+            'fieldDefaults',
+            'notificationDefaults',
+            'integrationDefaults',
+        ];
+    }
 
     private function _formSettingsDefaultKeys(): array
     {

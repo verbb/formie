@@ -227,20 +227,7 @@ class Fields extends Component
 
     public function getFormBuilderFieldTypes(array $fullConfigTypes = []): array
     {
-        $registeredFieldTypes = $this->_getResolvedRegisteredFieldTypes();
-        $groupedFields = $this->getGroupedFieldTypeDefinitions($registeredFieldTypes);
-
-        foreach ($groupedFields as $groupKey => $group) {
-            foreach ($group['fields'] as $fieldKey => $fieldTypeDefinition) {
-                $type = $fieldTypeDefinition['type'];
-                $field = $this->_getRegisteredFieldInstance($type);
-                $fieldConfig = $field->getFieldTypeConfig(true);
-
-                $groupedFields[$groupKey]['fields'][$fieldKey] = $fieldConfig;
-            }
-        }
-
-        return $groupedFields;
+        return Formie::$plugin->getFieldPalette()->buildFormBuilderFieldTypeGroups($fullConfigTypes);
     }
 
     public function getFieldTypeDefinition(string $fieldClass): array
@@ -2151,9 +2138,9 @@ class Fields extends Component
         $resolvedFieldTypes = array_values(array_unique($event->fields));
 
         if ($excludeDisabled) {
-            $disabledFields = Formie::$plugin->getSettings()->disabledFields;
-            $resolvedFieldTypes = array_values(array_filter($resolvedFieldTypes, function(string $class) use ($disabledFields) {
-                return !in_array($class, $disabledFields, true);
+            $fieldPalette = Formie::$plugin->getFieldPalette();
+            $resolvedFieldTypes = array_values(array_filter($resolvedFieldTypes, function(string $class) use ($fieldPalette) {
+                return $fieldPalette->isFieldClassEnabled($class);
             }));
         }
 
@@ -2177,6 +2164,11 @@ class Fields extends Component
         $this->_fieldRegistryCache?->reset();
         $this->_fieldGqlCache?->reset();
         SubmissionQuery::invalidateStaticCaches();
+    }
+
+    public function resetFieldRegistryCache(): void
+    {
+        $this->_resetFieldCaches();
     }
 
     private function _getFieldConfigById(int $id): array

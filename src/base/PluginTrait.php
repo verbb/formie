@@ -17,6 +17,7 @@ use verbb\formie\services\Emails;
 use verbb\formie\services\EmailTemplates;
 use verbb\formie\services\Factories;
 use verbb\formie\services\FieldTypeDefinitions;
+use verbb\formie\services\FieldPalette;
 use verbb\formie\services\Fields;
 use verbb\formie\services\FileUploads;
 use verbb\formie\services\FormDefaults;
@@ -147,6 +148,7 @@ trait PluginTrait
                 'emailTemplates' => EmailTemplates::class,
                 'factories' => Factories::class,
                 'fieldTypeDefinitions' => FieldTypeDefinitions::class,
+                'fieldPalette' => FieldPalette::class,
                 'fields' => Fields::class,
                 'fieldSlotRegistry' => FieldSlotRegistry::class,
                 'fileUploads' => FileUploads::class,
@@ -249,6 +251,11 @@ trait PluginTrait
         FormiePluginHelper::registerCpDefaultsAssets();
     }
 
+    public function registerCpFieldPaletteAssets(): void
+    {
+        FormiePluginHelper::registerCpFieldPaletteAssets();
+    }
+
     public function registerCpStencilNewAssets(): void
     {
         FormiePluginHelper::registerCpStencilNewAssets();
@@ -307,6 +314,11 @@ trait PluginTrait
     public function getFields(): Fields
     {
         return $this->get('fields');
+    }
+
+    public function getFieldPalette(): FieldPalette
+    {
+        return $this->get('fieldPalette');
     }
 
     public function getFrontendAssets(): FrontendAssets

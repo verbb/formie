@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Added
+- Add a configurable field palette for the form builder, with drag-and-drop group and field organisation, per-field enable/disable, and optional palette label overrides. Replaces the legacy **Disabled Field Types** settings checkboxes. ([#2209](https://github.com/verbb/formie/issues/2209))
 - Add a stock Form Preview slide-out in the form builder, rendering the current form with Formie’s default templates, CSS, and JavaScript. ([#370](https://github.com/verbb/formie/issues/370))
 - Add synced-field support for stencils, preserving shared definition links when creating new forms from a stencil. ([#1677](https://github.com/verbb/formie/issues/1677), [#1734](https://github.com/verbb/formie/issues/1734))
 - Add stencil scopes so developers can ship starter forms in project config while content editors can create and manage their own stencils in the control panel. ([#2814](https://github.com/verbb/formie/issues/2814))
@@ -27,6 +28,7 @@
 - Add regression tests for required File Upload fields submitted via GraphQL with base64 file data. ([#1130](https://github.com/verbb/formie/issues/1130))
 
 ### Changed
+- Replace **Settings → Fields** disabled-field checkboxes with the new field palette editor.
 - Move stencil management from **Settings** to **Formie → Stencils**, including create, edit, and index routes under `formie/stencils/*`. Legacy `formie/settings/stencils/*` URLs redirect to the new paths.
 - Change **Save as stencil** from the form builder to always create an editable, database-backed stencil.
 

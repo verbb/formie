@@ -2,15 +2,12 @@
 namespace verbb\formie\controllers;
 
 use verbb\formie\Formie;
-use verbb\formie\fields\MissingField;
 use verbb\formie\helpers\Plugin;
 use verbb\formie\models\Settings;
 
 use Craft;
-use craft\errors\MissingComponentException;
 use craft\helpers\Json;
 
-use yii\web\BadRequestHttpException;
 use yii\web\Response;
 
 class SettingsController extends SettingsAccessController
@@ -43,32 +40,96 @@ class SettingsController extends SettingsAccessController
     {
         Plugin::registerCpDefaultsAssets();
 
-        $settings = Formie::$plugin->getFormDefaults()->getEditorConfig();
+        $editorConfig = Formie::$plugin->getFormDefaults()->getEditorConfig();
 
-        $this->view->registerJs('new Craft.Formie.Defaults(' . Json::encode($settings) . ');');
+        $this->view->registerJs('new Craft.Formie.Defaults(' . Json::encode($editorConfig) . ');');
 
-        return $this->renderTemplate('formie/settings/defaults');
+        return $this->renderTemplate('formie/settings/defaults', [
+            'defaultsSettingsPayload' => Json::encode($editorConfig['values']),
+        ]);
     }
 
     public function actionFields(): Response
     {
-        /* @var Settings $settings */
-        $settings = Formie::$plugin->getSettings();
+        Plugin::registerCpFieldPaletteAssets();
 
-        $disabledFields = [];
+        $editorConfig = Formie::$plugin->getFieldPalette()->getEditorConfig();
 
-        foreach (Formie::$plugin->getFields()->getRegisteredFields(false) as $field) {
-            if ($field instanceof MissingField) {
-                continue;
-            }
+        $this->view->registerJs('new Craft.Formie.FieldPalette(' . Json::encode($editorConfig) . ');');
 
-            $disabledFields[] = [
-                'label' => $field::displayName(),
-                'value' => get_class($field),
-            ];
+        return $this->renderTemplate('formie/settings/fields/index', [
+            'fieldPalettePayload' => Json::encode(Formie::$plugin->getFieldPalette()->getSavePayload()),
+        ]);
+    }
+
+    public function actionSaveFieldPalette(): ?Response
+    {
+        $this->requirePostRequest();
+        $this->requireAdmin(false);
+
+        if (!Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
+            $this->setFailFlash(Craft::t('formie', 'Field palette cannot be saved when allowAdminChanges is disabled.'));
+
+            return null;
         }
 
-        return $this->renderTemplate('formie/settings/fields', compact('settings', 'disabledFields'));
+        $paletteJson = $this->request->getBodyParam('palette');
+
+        if (!is_string($paletteJson) || $paletteJson === '') {
+            $this->setFailFlash(Craft::t('formie', 'Invalid field palette payload.'));
+
+            return null;
+        }
+
+        try {
+            $palette = Json::decode($paletteJson);
+        } catch (\Throwable) {
+            $this->setFailFlash(Craft::t('formie', 'Invalid field palette payload.'));
+
+            return null;
+        }
+
+        if (!is_array($palette) || !Formie::$plugin->getFieldPalette()->savePalette($palette)) {
+            $this->setFailFlash(Craft::t('formie', 'Couldn’t save field palette.'));
+
+            return null;
+        }
+
+        $this->setSuccessFlash(Craft::t('formie', 'Field palette saved.'));
+
+        return $this->redirectToPostedUrl();
+    }
+
+    public function actionSaveDefaults(): ?Response
+    {
+        $this->requirePostRequest();
+        $this->requireAdmin(false);
+
+        $settingsJson = $this->request->getBodyParam('settings');
+
+        if (!is_string($settingsJson) || $settingsJson === '') {
+            $this->setFailFlash(Craft::t('formie', 'Invalid defaults settings payload.'));
+
+            return null;
+        }
+
+        try {
+            $settings = Json::decode($settingsJson);
+        } catch (\Throwable) {
+            $this->setFailFlash(Craft::t('formie', 'Invalid defaults settings payload.'));
+
+            return null;
+        }
+
+        if (!is_array($settings) || !Formie::$plugin->getFormDefaults()->saveEditorSettings($settings)) {
+            $this->setFailFlash(Craft::t('formie', 'Couldn’t save settings.'));
+
+            return null;
+        }
+
+        $this->setSuccessFlash(Craft::t('formie', 'Settings saved.'));
+
+        return $this->redirectToPostedUrl();
     }
 
     public function actionSubmissions(): Response

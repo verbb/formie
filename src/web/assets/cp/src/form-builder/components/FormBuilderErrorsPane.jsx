@@ -1,9 +1,7 @@
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTriangleExclamation } from '@fortawesome/pro-solid-svg-icons';
-
-import { cn } from '@verbb/plugin-kit-react/utils';
 import { useMemo } from 'react';
+
 import { useFormBuilderForm } from '@form-builder/contexts/FormBuilderFormContext';
+import { FormieErrorsPane } from '@utils/FormieErrorsPane';
 
 function FormBuilderErrorsPane() {
     const { values: formValues, errors: errorMap } = useFormBuilderForm();
@@ -87,45 +85,12 @@ function FormBuilderErrorsPane() {
         return collected;
     }, [formValues, errorMap]);
 
-    const errorMessage = useMemo(() => {
-        if (errorList.length === 1) {
-            return Craft.t('formie', 'Found {num} error', { num: errorList.length });
-        }
-
-        return Craft.t('formie', 'Found {num} errors', { num: errorList.length });
-    }, [errorList.length]);
-
-    if (errorList.length === 0) {
-        return null;
-    }
-
     return (
-        <div
-            className={cn(
-                'rounded-lg shadow-[0_0_0_1px_var(--color-gray-200),_0_2px_12px_rgb(205_216_228_/_50%)] bg-white/50 py-4 px-6 mb-4',
-            )}
-            tabIndex={-1}
-            role="alert"
-            aria-live="assertive"
-            aria-atomic="true"
-            aria-labelledby="form-builder-errors-heading"
-        >
-            <div className="flex items-center gap-1.5">
-                <FontAwesomeIcon icon={faTriangleExclamation} className="size-3 text-rose-600" />
-
-                <h2 id="form-builder-errors-heading" className="text-base font-bold">
-                    {errorMessage}
-                </h2>
-            </div>
-
-            <ul className="mt-1 space-y-1 pl-4.5 text-sm text-gray-700">
-                {errorList.map((error, index) => {
-                    return (
-                        <li key={`${index}-${error}`} className="list-disc" dangerouslySetInnerHTML={{ __html: error }} />
-                    );
-                })}
-            </ul>
-        </div>
+        <FormieErrorsPane
+            errors={errorList}
+            className="mb-4"
+            headingId="form-builder-errors-heading"
+        />
     );
 }
 

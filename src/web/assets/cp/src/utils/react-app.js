@@ -123,3 +123,14 @@ export const markContainerReady = (container, readyClassName) => {
         }, 10);
     });
 };
+
+export const injectDocumentStyleText = (cssText, styleId) => {
+    if (!cssText || !styleId || document.querySelector(`style[data-formie-style-id="${styleId}"]`)) {
+        return;
+    }
+
+    const style = document.createElement('style');
+    style.setAttribute('data-formie-style-id', styleId);
+    style.textContent = cssText;
+    document.head.appendChild(style);
+};

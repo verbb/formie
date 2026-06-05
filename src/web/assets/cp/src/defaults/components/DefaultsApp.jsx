@@ -1,5 +1,5 @@
 import {
-    useCallback, useEffect, useMemo, useRef, useState,
+    useEffect, useMemo, useRef, useState,
 } from 'react';
 
 import {
@@ -11,6 +11,7 @@ import {
 } from '@verbb/plugin-kit-react/components';
 import { FieldLayout } from '@verbb/plugin-kit-react/forms/Field';
 import { SchemaFormEngine, useSchemaFormEngine } from '@verbb/plugin-kit-react/forms';
+import { useCpFormPayloadSync } from '@utils';
 
 const TABS = [
     { id: 'form', label: 'Form Defaults' },
@@ -122,11 +123,11 @@ const SchemaDefaultsPanel = ({
 export const DefaultsApp = ({ settings }) => {
     const [values, setValues] = useState(settings.values || {});
     const [selectedFieldType, setSelectedFieldType] = useState('');
-    const [isSaving, setIsSaving] = useState(false);
-    const valuesRef = useRef(values);
-    const isSavingRef = useRef(false);
 
-    valuesRef.current = values;
+    useCpFormPayloadSync({
+        inputId: settings.payloadInputId,
+        payload: values,
+    });
 
     const options = settings.options || {};
     const fieldTypes = settings.fieldTypes || [];
@@ -193,67 +194,6 @@ export const DefaultsApp = ({ settings }) => {
             };
         });
     };
-
-    const handleSave = useCallback(async () => {
-        if (isSavingRef.current) {
-            return;
-        }
-
-        isSavingRef.current = true;
-        setIsSaving(true);
-
-        try {
-            const response = await Craft.sendActionRequest('POST', settings.saveAction, {
-                data: {
-                    settings: valuesRef.current,
-                    redirect: settings.redirect,
-                },
-            });
-
-            if (response?.data?.errors) {
-                Craft.cp.displayError(Craft.t('formie', 'Couldn’t save settings.'));
-                return;
-            }
-
-            Craft.cp.displayNotice(Craft.t('formie', 'Settings saved.'));
-        } catch (error) {
-            console.error('Failed to save defaults settings.', error);
-            Craft.cp.displayError(Craft.t('formie', 'Couldn’t save settings.'));
-        } finally {
-            isSavingRef.current = false;
-            setIsSaving(false);
-        }
-    }, [settings.redirect, settings.saveAction]);
-
-    useEffect(() => {
-        const form = document.getElementById('main-form');
-
-        if (!form) {
-            return undefined;
-        }
-
-        const onSubmit = (event) => {
-            event.preventDefault();
-            handleSave();
-        };
-
-        form.addEventListener('submit', onSubmit);
-
-        return () => {
-            form.removeEventListener('submit', onSubmit);
-        };
-    }, [handleSave]);
-
-    useEffect(() => {
-        const submitButton = document.querySelector('#main-form button.submit[type="submit"]');
-
-        if (!submitButton) {
-            return;
-        }
-
-        submitButton.disabled = isSaving;
-        submitButton.textContent = isSaving ? Craft.t('formie', 'Saving…') : Craft.t('app', 'Save');
-    }, [isSaving]);
 
     return (
         <div className="formie-defaults-app">

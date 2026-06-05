@@ -25,6 +25,7 @@
     "dependencies": {
         "@dnd-kit/abstract": "^0.4.0",
         "@dnd-kit/dom": "^0.4.0",
+        "@dnd-kit/helpers": "^0.4.0",
         "@dnd-kit/react": "^0.4.0",
         "@dnd-kit/utilities": "^3.2.2",
         "@fortawesome/pro-regular-svg-icons": "^7.2.0",

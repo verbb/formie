@@ -4,7 +4,15 @@
 {% set bodyClass = 'formie-defaults-page' %}
 {% set fullPageForm = true %}
 
+{% block actionButton %}
+    <input type="submit" class="btn submit" value="{{ 'Save' | t('formie') }}">
+{% endblock %}
+
 {% block content %}
+
+{{ actionInput('formie/settings/save-defaults') }}
+{{ redirectInput('formie/settings/defaults') }}
+<input type="hidden" name="settings" id="formie-defaults-settings" value="{{ defaultsSettingsPayload|e('html_attr') }}">
 
 <div class="formie-defaults"></div>
 

@@ -22,6 +22,7 @@ class ProjectConfigHelper
         $configData['emailTemplates'] = self::_getEmailTemplatesData();
         $configData['pdfTemplates'] = self::_getPdfTemplatesData();
         $configData['integrations'] = self::_getIntegrationsData();
+        $configData['fieldPalette'] = self::_getFieldPaletteData();
 
         return array_filter($configData);
     }
@@ -111,5 +112,10 @@ class ProjectConfigHelper
         }
 
         return $data;
+    }
+
+    private static function _getFieldPaletteData(): array
+    {
+        return Formie::$plugin->getFieldPalette()->getResolvedPalette();
     }
 }
