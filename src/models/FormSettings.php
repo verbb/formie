@@ -3,6 +3,7 @@ namespace verbb\formie\models;
 
 use verbb\formie\Formie;
 use verbb\formie\base\Integration;
+use verbb\formie\helpers\CpSubmissionFieldConditions;
 use verbb\formie\base\Payment as PaymentIntegration;
 use verbb\formie\elements\Form;
 use verbb\formie\fields\Payment as PaymentField;
@@ -82,6 +83,7 @@ class FormSettings extends Model
     // Settings - Privacy
     public bool $collectIp = false;
     public bool $collectUser = false;
+    public ?string $cpSubmissionFieldConditions = null;
     public ?string $dataRetention = null;
     public ?string $dataRetentionValue = null;
     public ?string $fileUploadsAction = null;
@@ -397,6 +399,7 @@ class FormSettings extends Model
         $rules[] = [['integrations'], 'validateIntegrations'];
         $rules[] = [['submitMethod'], 'validateSubmitMethod'];
         $rules[] = [['progressCalculation'], 'in', 'range' => ['completion', 'page-position']];
+        $rules[] = [['cpSubmissionFieldConditions'], 'in', 'range' => array_merge([''], CpSubmissionFieldConditions::values())];
 
         return $rules;
     }

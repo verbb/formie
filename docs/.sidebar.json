@@ -72,6 +72,7 @@
         "collapsable": false,
         "children": [
             "submissions/overview",
+            "submissions/cp-field-conditions",
             "submissions/statuses",
             "submissions/exporting",
             "submissions/relations",

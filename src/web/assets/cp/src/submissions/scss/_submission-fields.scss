@@ -162,3 +162,61 @@
 #fields .formie-group-field {
     padding: 1rem;
 }
+
+// ==========================================================================
+// Conditional Fields (CP submission edit)
+// ==========================================================================
+
+#fields [data-formie-conditionally-hidden],
+#fields .formie-conditionally-hidden {
+    display: none !important;
+}
+
+#fields .formie-page-hidden {
+    display: none !important;
+}
+
+// Collapse row wrappers once every field inside them is hidden.
+#fields .formie-row:not(:has(> [data-formie-field]:not([data-formie-conditionally-hidden], [data-formie-page-hidden], [data-formie-row-hidden], [hidden]))),
+#fields .formie-subfield-row:not(:has(> [data-formie-field]:not([data-formie-conditionally-hidden], [data-formie-page-hidden], [data-formie-row-hidden], [hidden]))),
+#fields .formie-nested-field-row:not(:has(> [data-formie-field]:not([data-formie-conditionally-hidden], [data-formie-page-hidden], [data-formie-row-hidden], [hidden]))) {
+    display: none !important;
+}
+
+#fields .formie-row[data-formie-row-hidden],
+#fields .formie-row.formie-row-hidden,
+#fields .formie-subfield-row[data-formie-row-hidden],
+#fields .formie-subfield-row.formie-row-hidden,
+#fields .formie-nested-field-row[data-formie-row-hidden],
+#fields .formie-nested-field-row.formie-row-hidden {
+    display: none !important;
+}
+
+#fields .fui-cp-muted-conditional-field {
+    border: 1px dashed var(--gray-300);
+    border-radius: var(--large-border-radius);
+    background: var(--gray-050);
+    padding: 12px 14px;
+}
+
+#fields .fui-cp-muted-conditional-field > .heading {
+    cursor: pointer;
+    margin-bottom: 0;
+}
+
+#fields .fui-cp-muted-conditional-field > .heading::after {
+    content: attr(data-fui-cp-muted-label);
+    display: block;
+    margin-top: 4px;
+    font-size: 11px;
+    font-weight: normal;
+    color: var(--medium-text-color);
+}
+
+#fields .fui-cp-muted-conditional-field:not(.fui-cp-muted-conditional-field--expanded) > .input {
+    display: none;
+}
+
+#fields .fui-cp-muted-conditional-field.fui-cp-muted-conditional-field--expanded > .heading::after {
+    content: attr(data-fui-cp-muted-expanded-label);
+}

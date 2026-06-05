@@ -2,6 +2,7 @@
 namespace verbb\formie\client\modules;
 
 use verbb\formie\elements\Form;
+use verbb\formie\helpers\CpSubmissionFieldConditions;
 use verbb\formie\models\ClientModule;
 
 class ConditionsModuleManifest implements ModuleManifestProviderInterface
@@ -15,11 +16,22 @@ class ConditionsModuleManifest implements ModuleManifestProviderInterface
             return [];
         }
 
+        $renderTargets = [ClientModule::RENDER_TARGET_FRONTEND];
+
+        if ($form->cpSubmissionFollowsFieldConditions()) {
+            $renderTargets[] = ClientModule::RENDER_TARGET_CP_EDIT;
+        }
+
+        $cpDisplayMode = CpSubmissionFieldConditions::clientDisplayMode($form->getCpSubmissionFieldConditions());
+
         return [
             new ClientModule([
                 'id' => 'conditions',
                 'type' => 'field',
-                'renderTargets' => [ClientModule::RENDER_TARGET_FRONTEND],
+                'renderTargets' => $renderTargets,
+                'config' => [
+                    'cpDisplayMode' => $cpDisplayMode,
+                ],
                 'targets' => [[
                     'targetType' => 'form',
                     'targetId' => 'form',

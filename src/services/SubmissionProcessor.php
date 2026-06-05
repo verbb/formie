@@ -339,6 +339,8 @@ class SubmissionProcessor extends Component
             'targetPageId' => $this->_normalizeNullableInt($request->targetPageId),
             'requestToken' => $this->_normalizeNullableString($request->requestToken),
             'draftContext' => $this->_normalizeNullableString($draftContext),
+            'clearConditionallyHiddenFields' => Craft::$app->getRequest()->getIsCpRequest()
+                && $form->cpSubmissionFollowsFieldConditions(),
         ]);
     }
 

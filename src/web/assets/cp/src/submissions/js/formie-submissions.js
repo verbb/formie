@@ -22,6 +22,7 @@ const MODULE_ROOT_SELECTOR = '[data-fui-form]';
 const TEXT_LIMIT_INPUT_SELECTOR = 'input[data-formie-single-line-text-input], textarea[data-formie-multi-line-text-input]';
 const cpModuleHydrators = new WeakMap();
 let cpTextLimitDelegated = false;
+let cpMutedDelegated = false;
 
 function parseConfigAttribute(target) {
     const rawConfig = target.getAttribute('data-fui-form');
@@ -109,6 +110,26 @@ function updateCpTextLimit(input) {
     }
 }
 
+function ensureCpMutedHeadingLabels(heading) {
+    if (!(heading instanceof HTMLElement) || heading.dataset.fuiCpMutedBound === 'true') {
+        return;
+    }
+
+    heading.dataset.fuiCpMutedBound = 'true';
+    heading.dataset.fuiCpMutedLabel = Craft.t('formie', 'Hidden by conditions. Click to expand.');
+    heading.dataset.fuiCpMutedExpandedLabel = Craft.t('formie', 'Hidden by conditions. Click to collapse.');
+}
+
+function initCpMutedConditionalFields(root = document) {
+    if (!root || typeof root.querySelectorAll !== 'function') {
+        return;
+    }
+
+    root.querySelectorAll('.fui-cp-muted-conditional-field > .heading').forEach((heading) => {
+        ensureCpMutedHeadingLabels(heading);
+    });
+}
+
 function initSubmissionTextLimits(root = document) {
     if (!root || typeof root.querySelectorAll !== 'function') {
         return;
@@ -142,14 +163,45 @@ const bootstrap = () => {
         cpTextLimitDelegated = true;
     }
 
+    if (!cpMutedDelegated) {
+        document.addEventListener('click', (event) => {
+            const target = event.target;
+
+            if (!(target instanceof Element)) {
+                return;
+            }
+
+            const heading = target.closest('.fui-cp-muted-conditional-field > .heading');
+
+            if (!(heading instanceof HTMLElement)) {
+                return;
+            }
+
+            ensureCpMutedHeadingLabels(heading);
+
+            const field = heading.closest('.fui-cp-muted-conditional-field');
+
+            if (field instanceof HTMLElement) {
+                field.classList.toggle('fui-cp-muted-conditional-field--expanded');
+            }
+        });
+
+        cpMutedDelegated = true;
+    }
+
+    initCpMutedConditionalFields(document);
     initSubmissionTextLimits(document);
     document.addEventListener('formie:field:repeater:init-row', (event) => {
         const row = event instanceof CustomEvent ? event.detail?.row : null;
         if (row instanceof Element) {
             initSubmissionTextLimits(row);
+            initCpMutedConditionalFields(row);
         }
     });
-    void initSubmissionModules(document);
+
+    void initSubmissionModules(document).then(() => {
+        initCpMutedConditionalFields(document);
+    });
 };
 
 if (document.readyState === 'loading') {

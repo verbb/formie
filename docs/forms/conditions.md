@@ -37,3 +37,7 @@ Conditions are also available on notifications. You can decide whether a notific
 If a required field is hidden by conditions, Formie stops treating it as required while it is hidden.
 
 That avoids the common problem of a form being blocked by a field the person cannot even see.
+
+## Control panel submissions
+
+When editing a submission in the control panel, Formie can apply the same field and page conditions used on the front end. Configure that under **Settings → Submissions** or per form. See [Control panel field conditions](/submissions/cp-field-conditions).

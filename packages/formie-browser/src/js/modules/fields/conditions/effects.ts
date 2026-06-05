@@ -3,6 +3,9 @@ const PRESERVED_DISABLED_ATTR = 'data-formie-preserve-disabled';
 const CONDITIONAL_HIDDEN_ATTR = 'data-formie-conditionally-hidden';
 const PAGE_HIDDEN_ATTR = 'data-formie-page-hidden';
 const CONDITIONAL_HIDDEN_CLASS = 'formie-conditionally-hidden';
+const CP_MUTED_CLASS = 'fui-cp-muted-conditional-field';
+const CP_MUTED_EXPANDED_CLASS = 'fui-cp-muted-conditional-field--expanded';
+const CP_MUTED_ATTR = 'data-formie-cp-muted';
 const PAGE_HIDDEN_CLASS = 'formie-page-hidden';
 const ROW_HIDDEN_ATTR = 'data-formie-row-hidden';
 const ROW_HIDDEN_CLASS = 'formie-row-hidden';
@@ -143,6 +146,19 @@ function syncRowState(row: Element): void {
     }
 }
 
+function clearCpMutedState(node: Element): void {
+    node.removeAttribute(CP_MUTED_ATTR);
+    node.classList.remove(CP_MUTED_CLASS);
+    node.classList.remove(CP_MUTED_EXPANDED_CLASS);
+}
+
+function clearHideState(node: Element): void {
+    node.removeAttribute(CONDITIONAL_HIDDEN_ATTR);
+    node.removeAttribute(PAGE_HIDDEN_ATTR);
+    node.classList.remove(CONDITIONAL_HIDDEN_CLASS);
+    node.classList.remove(PAGE_HIDDEN_CLASS);
+}
+
 function syncAncestorRows(node: Element): void {
     let currentRow = node.closest(ROW_SELECTOR);
 
@@ -152,8 +168,26 @@ function syncAncestorRows(node: Element): void {
     }
 }
 
-export function applyConditionVisibility(node: Element, hidden: boolean, clearOnHide: boolean): boolean {
-    const stateChanged = setVisibilityState(node, hidden);
+export function applyConditionVisibility(
+    node: Element,
+    hidden: boolean,
+    clearOnHide: boolean,
+    options: { displayMode?: 'hide' | 'muted' } = {},
+): boolean {
+    if (options.displayMode === 'muted') {
+        return applyMutedConditionVisibility(node, hidden);
+    }
+
+    let stateChanged = false;
+
+    if (node.hasAttribute(CP_MUTED_ATTR)
+        || node.classList.contains(CP_MUTED_CLASS)
+        || node.classList.contains(CP_MUTED_EXPANDED_CLASS)) {
+        clearCpMutedState(node);
+        stateChanged = true;
+    }
+
+    stateChanged = setVisibilityState(node, hidden) || stateChanged;
 
     syncDisabledState(node, hidden);
     syncAncestorRows(node);
@@ -161,6 +195,49 @@ export function applyConditionVisibility(node: Element, hidden: boolean, clearOn
     if (hidden && clearOnHide && stateChanged) {
         clearConditionNodeValues(node);
     }
+
+    return stateChanged;
+}
+
+function applyMutedConditionVisibility(node: Element, hidden: boolean): boolean {
+    let stateChanged = false;
+
+    if (hidden) {
+        if (node.hasAttribute(CONDITIONAL_HIDDEN_ATTR)
+            || node.hasAttribute(PAGE_HIDDEN_ATTR)
+            || node.classList.contains(CONDITIONAL_HIDDEN_CLASS)
+            || node.classList.contains(PAGE_HIDDEN_CLASS)) {
+            clearHideState(node);
+            stateChanged = true;
+        }
+
+        if (!node.hasAttribute(CP_MUTED_ATTR)) {
+            node.setAttribute(CP_MUTED_ATTR, 'true');
+            stateChanged = true;
+        }
+
+        if (!node.classList.contains(CP_MUTED_CLASS)) {
+            node.classList.add(CP_MUTED_CLASS);
+            stateChanged = true;
+        }
+    } else {
+        if (node.hasAttribute(CP_MUTED_ATTR)
+            || node.classList.contains(CP_MUTED_CLASS)
+            || node.classList.contains(CP_MUTED_EXPANDED_CLASS)) {
+            clearCpMutedState(node);
+            stateChanged = true;
+        }
+
+        if (node.hasAttribute(CONDITIONAL_HIDDEN_ATTR)
+            || node.hasAttribute(PAGE_HIDDEN_ATTR)
+            || node.classList.contains(CONDITIONAL_HIDDEN_CLASS)
+            || node.classList.contains(PAGE_HIDDEN_CLASS)) {
+            clearHideState(node);
+            stateChanged = true;
+        }
+    }
+
+    syncAncestorRows(node);
 
     return stateChanged;
 }

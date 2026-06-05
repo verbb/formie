@@ -72,6 +72,9 @@ export const conditionsModule: FormieModuleDefinition = {
             });
         };
 
+        const cpDisplayMode = ctx.options?.cpDisplayMode === 'muted' ? 'muted' : 'hide';
+        let isApplyingConditions = false;
+
         const runEvaluationPass = (): boolean => {
             let hasStateChanges = false;
 
@@ -80,7 +83,16 @@ export const conditionsModule: FormieModuleDefinition = {
                     return queryConditionInputs(scopeRoot, entry.node, condition);
                 });
 
-                const stateChanged = applyConditionVisibility(entry.node, result.shouldHide, entry.settings.clearOnHide);
+                const displayMode = entry.node.hasAttribute('data-formie-page')
+                    ? 'hide'
+                    : cpDisplayMode;
+
+                const stateChanged = applyConditionVisibility(
+                    entry.node,
+                    result.shouldHide,
+                    entry.settings.clearOnHide,
+                    { displayMode },
+                );
                 hasStateChanges = hasStateChanges || stateChanged;
                 debug.log('Condition evaluated.', {
                     shouldHide: result.shouldHide,
@@ -100,26 +112,45 @@ export const conditionsModule: FormieModuleDefinition = {
         };
 
         const evaluateAll = (): void => {
-            for (let pass = 0; pass < MAX_EVALUATION_PASSES; pass += 1) {
-                if (!runEvaluationPass()) {
-                    break;
-                }
+            if (isApplyingConditions) {
+                return;
+            }
 
-                if (pass === MAX_EVALUATION_PASSES - 1) {
-                    debug.warn('Reached max evaluation passes.', { maxPasses: MAX_EVALUATION_PASSES });
+            isApplyingConditions = true;
+
+            try {
+                for (let pass = 0; pass < MAX_EVALUATION_PASSES; pass += 1) {
+                    if (!runEvaluationPass()) {
+                        break;
+                    }
+
+                    if (pass === MAX_EVALUATION_PASSES - 1) {
+                        debug.warn('Reached max evaluation passes.', { maxPasses: MAX_EVALUATION_PASSES });
+                    }
                 }
+            } finally {
+                isApplyingConditions = false;
             }
         };
 
         const scheduleEvaluateAll = (): void => {
+            if (isApplyingConditions) {
+                return;
+            }
+
             if (evaluationQueued) {
                 return;
             }
 
             evaluationQueued = true;
 
-            queueMicrotask(() => {
+            requestAnimationFrame(() => {
                 evaluationQueued = false;
+
+                if (isApplyingConditions) {
+                    return;
+                }
+
                 evaluateAll();
             });
         };
@@ -168,19 +199,32 @@ export const conditionsModule: FormieModuleDefinition = {
         };
 
         const scheduleRebuild = (): void => {
+            if (isApplyingConditions) {
+                return;
+            }
+
             if (rebuildQueued) {
                 return;
             }
 
             rebuildQueued = true;
 
-            queueMicrotask(() => {
+            requestAnimationFrame(() => {
                 rebuildQueued = false;
+
+                if (isApplyingConditions) {
+                    return;
+                }
+
                 rebuild();
             });
         };
 
         const observer = new MutationObserver((mutations) => {
+            if (isApplyingConditions) {
+                return;
+            }
+
             const shouldRebuild = mutations.some((mutation) => {
                 return mutation.type === 'childList' && (mutation.addedNodes.length > 0 || mutation.removedNodes.length > 0);
             });
@@ -200,8 +244,6 @@ export const conditionsModule: FormieModuleDefinition = {
             subtree: true,
             attributes: true,
             attributeFilter: [
-                'class',
-                'style',
                 'hidden',
                 'aria-hidden',
                 'data-formie-conditionally-hidden',

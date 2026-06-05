@@ -3,6 +3,7 @@ namespace verbb\formie\models;
 
 use verbb\formie\Formie;
 use verbb\formie\elements\Submission;
+use verbb\formie\helpers\CpSubmissionFieldConditions;
 use verbb\formie\helpers\Plugin;
 use verbb\formie\positions\AboveInput;
 
@@ -77,6 +78,7 @@ class Settings extends Model
     public string|array $submissionsBehaviour = 'all';
     public int $submissionStateRetentionDays = 30;
     public string $submissionSidebarFormOrder = self::SUBMISSION_SIDEBAR_FORM_ORDER_DATE_CREATED_DESC;
+    public string $defaultCpSubmissionFieldConditions = CpSubmissionFieldConditions::FOLLOW;
     public int $saveResumeTokenTtlDays = 14;
     public int $maxSavedDraftsPerSession = 10;
     public int $anonymousClientBootstrapRateLimit = 30;
@@ -215,6 +217,7 @@ class Settings extends Model
             'progressPosition' => 'end',
             'scrollToTop' => true,
             'requiredIndicator' => 'asterisk',
+            'cpSubmissionFieldConditions' => '',
         ], $this->formDefaults);
     }
 
@@ -323,6 +326,7 @@ class Settings extends Model
             self::SUBMISSION_SIDEBAR_FORM_ORDER_HANDLE_ASC,
             self::SUBMISSION_SIDEBAR_FORM_ORDER_HANDLE_DESC,
         ]];
+        $rules[] = [['defaultCpSubmissionFieldConditions'], 'in', 'range' => CpSubmissionFieldConditions::values()];
 
         return $rules;
     }

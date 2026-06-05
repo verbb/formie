@@ -26,6 +26,7 @@
 - Add an opt-in setting to disable the submit button until the current page passes validation. ([#1514](https://github.com/verbb/formie/issues/1514))
 - Add a page setting to place the submit button at the end of the last field row. ([#2542](https://github.com/verbb/formie/issues/2542))
 - Add regression tests for required File Upload fields submitted via GraphQL with base64 file data. ([#1130](https://github.com/verbb/formie/issues/1130))
+- Add control panel submission field condition behaviour with plugin and per-form settings to follow, collapse, or ignore front-end field and page conditions when editing submissions. ([#2435](https://github.com/verbb/formie/issues/2435))
 
 ### Changed
 - Replace **Settings → Fields** disabled-field checkboxes with the new field palette editor.

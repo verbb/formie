@@ -66,10 +66,12 @@ it('filters frontend-only field modules out of cp edit manifests and config', fu
         ->and($cpTextLimit['config']['allowOvertype'] ?? false)->toBeTrue();
 });
 
-it('filters conditions out of cp edit manifests by default', function (): void {
+it('filters conditions out of cp edit manifests when the form shows all fields', function (): void {
     $form = formie()->conditionForms()->optionsValueVisibility([
         'title' => 'CP Conditions Render Target',
     ]);
+    $form->settings->cpSubmissionFieldConditions = 'show-all';
+    $form->setSettings($form->settings);
 
     $builder = Formie::$plugin->getClientModuleManifestBuilder();
     $frontendModuleIds = array_values(array_map(static fn(array $module): string => (string)$module['id'], $builder->buildCanonical($form, ClientModule::RENDER_TARGET_FRONTEND)));
@@ -78,4 +80,33 @@ it('filters conditions out of cp edit manifests by default', function (): void {
     expect($frontendModuleIds)
         ->toContain('conditions')
         ->and($cpModuleIds)->not->toContain('conditions');
+});
+
+it('includes conditions in cp edit manifests when the form follows field conditions', function (): void {
+    $form = formie()->conditionForms()->optionsValueVisibility([
+        'title' => 'CP Conditions Follow Target',
+    ]);
+
+    $builder = Formie::$plugin->getClientModuleManifestBuilder();
+    $cpModules = $builder->buildCanonical($form, ClientModule::RENDER_TARGET_CP_EDIT);
+    $cpModuleIds = array_values(array_map(static fn(array $module): string => (string)$module['id'], $cpModules));
+    $conditionsModule = current(array_filter($cpModules, static fn(array $module): bool => ($module['id'] ?? null) === 'conditions')) ?: null;
+
+    expect($cpModuleIds)
+        ->toContain('conditions')
+        ->and($conditionsModule['config']['cpDisplayMode'] ?? null)->toBe('hide');
+});
+
+it('uses muted cp display mode when configured on the form', function (): void {
+    $form = formie()->conditionForms()->optionsValueVisibility([
+        'title' => 'CP Conditions Muted Target',
+    ]);
+    $form->settings->cpSubmissionFieldConditions = 'muted';
+    $form->setSettings($form->settings);
+
+    $builder = Formie::$plugin->getClientModuleManifestBuilder();
+    $cpModules = $builder->buildCanonical($form, ClientModule::RENDER_TARGET_CP_EDIT);
+    $conditionsModule = current(array_filter($cpModules, static fn(array $module): bool => ($module['id'] ?? null) === 'conditions')) ?: null;
+
+    expect($conditionsModule['config']['cpDisplayMode'] ?? null)->toBe('muted');
 });

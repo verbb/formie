@@ -34,6 +34,10 @@ Use [Relations](/submissions/relations) when a submission belongs to another Cra
 
 Use [Element Field](/submissions/element-field) when you want another Craft element to choose and store a reference to a Formie submission.
 
+### Edit submissions in the control panel
+
+When you open a submission in the control panel, Formie can honour the form’s field and page conditions. Configure that under **Settings → Submissions** or per form under **Settings → Submissions**. See [Control panel field conditions](/submissions/cp-field-conditions).
+
 ### Let users edit saved submissions
 
 If you need to render an existing submission back into the front end so a user can update it, see [Editing Submissions](/templates/editing-submissions).
@@ -47,12 +51,3 @@ If you are working with submissions in templates or custom code:
 - use [Submission Content](/developers/submission-content) when you need the right value format for output, exports, summaries, emails, or integrations
 - use [Submission](/reference/submission) for the public properties and methods available on the element itself
 
-## Related pages
-
-- [Statuses](/submissions/statuses)
-- [Exporting](/submissions/exporting)
-- [Relations](/submissions/relations)
-- [Element Field](/submissions/element-field)
-- [Editing Submissions](/templates/editing-submissions)
-- [Submission Queries](/getting-elements/submission-queries)
-- [Submission Workflow](/developers/submission-workflow)

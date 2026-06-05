@@ -83,6 +83,20 @@
             ],
             warning: macros.configWarning('submissionSidebarFormOrder', 'formie'),
         }) }}
+
+        {{ forms.selectField({
+            label: 'Control Panel Field Conditions' | t('formie'),
+            instructions: 'The default behaviour when viewing or editing submissions in the control panel for forms that do not override this setting.' | t('formie'),
+            id: 'defaultCpSubmissionFieldConditions',
+            name: 'defaultCpSubmissionFieldConditions',
+            value: settings.defaultCpSubmissionFieldConditions,
+            options: [
+                { label: 'Follow field conditions' | t('formie'), value: 'follow' },
+                { label: 'Follow field conditions (show hidden fields collapsed)' | t('formie'), value: 'muted' },
+                { label: 'Show all fields' | t('formie'), value: 'show-all' },
+            ],
+            warning: macros.configWarning('defaultCpSubmissionFieldConditions', 'formie'),
+        }) }}
     {% endnamespace %}
 
     <hr>

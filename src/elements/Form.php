@@ -18,6 +18,7 @@ use verbb\formie\deprecations\FormDeprecations;
 use verbb\formie\deprecations\ThemeConfigLegacyKeys;
 use verbb\formie\gql\interfaces\FieldInterface as GqlFieldInterface;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\CpSubmissionFieldConditions;
 use verbb\formie\helpers\ConditionsHelper;
 use verbb\formie\helpers\HandleHelper;
 use verbb\formie\helpers\Html;
@@ -851,6 +852,23 @@ class Form extends Element implements FormInterface
     public function hasConditions(): bool
     {
         return $this->hasFieldConditions() || $this->hasButtonConditions() || $this->hasPageConditions();
+    }
+
+    public function getCpSubmissionFieldConditions(): string
+    {
+        $pluginDefault = Formie::$plugin->getSettings()->defaultCpSubmissionFieldConditions;
+
+        return CpSubmissionFieldConditions::normalize($this->settings->cpSubmissionFieldConditions, $pluginDefault);
+    }
+
+    public function cpSubmissionFollowsFieldConditions(): bool
+    {
+        return $this->getCpSubmissionFieldConditions() !== CpSubmissionFieldConditions::SHOW_ALL;
+    }
+
+    public function cpSubmissionUsesMutedFieldConditions(): bool
+    {
+        return $this->getCpSubmissionFieldConditions() === CpSubmissionFieldConditions::MUTED;
     }
 
     public function hasMultiplePages(): bool
@@ -2579,6 +2597,12 @@ class Form extends Element implements FormInterface
                         Variables::STATIC_SITE,
                     ],
                 ],
+            ]),
+            SchemaHelper::selectField([
+                'label' => Craft::t('formie', 'Control Panel Field Conditions'),
+                'instructions' => Craft::t('formie', 'How field conditions should behave when viewing or editing submissions in the control panel.'),
+                'name' => 'settings.cpSubmissionFieldConditions',
+                'options' => CpSubmissionFieldConditions::formOptions(),
             ]),
             [
                 '$el' => 'hr',

@@ -95,8 +95,25 @@
         {% endif %}
 
         <div id="fields">
+            {% set cpFollowConditions = form.cpSubmissionFollowsFieldConditions() %}
             {% for page in submission.getPages() %}
-                <div id="page-{{ page.id }}"{% if not loop.first %} class="hidden"{% endif %}>
+                {% set pageClasses = not loop.first ? ['hidden'] : [] %}
+                {% set pageAttributes = {
+                    id: 'page-' ~ page.id,
+                } %}
+                {% if cpFollowConditions and page.hasConditions() %}
+                    {% set pageAttributes = pageAttributes | merge({
+                        'data-formie-page': true,
+                        'data-formie-conditions': page.getConditionsJson(),
+                    }) %}
+                    {% if page.isConditionallyHidden(submission) %}
+                        {% set pageClasses = pageClasses | merge(['formie-page-hidden', 'hidden']) %}
+                    {% endif %}
+                {% endif %}
+                {% if pageClasses %}
+                    {% set pageAttributes = pageAttributes | merge({ class: pageClasses | join(' ') }) %}
+                {% endif %}
+                <div {{ attr(pageAttributes) }}>
                     {% namespace 'fields' %}
                         <div class="formie-rows" data-formie-rows>
                             {% for row in page.getRows() %}
