@@ -9,6 +9,7 @@ use verbb\formie\positions\AboveInput;
 
 use Craft;
 use craft\base\Model;
+use craft\elements\User;
 use craft\helpers\App;
 use craft\helpers\FileHelper;
 
@@ -100,6 +101,7 @@ class Settings extends Model
     // Email Notifications
     public bool $sendEmailAlerts = false;
     public ?array $alertEmails = null;
+    public ?string $alertEmailsUserGroup = null;
     public string $emptyValuePlaceholder = 'No response.';
     public int $maxEmailAttachmentSizeMb = 15;
 
@@ -137,6 +139,8 @@ class Settings extends Model
             $config = Formie::$plugin->getFormDefaults()->migrateLegacyFieldDefaults($config);
         }
 
+        $config = $this->_normalizeFailAlertSettingsConfig($config);
+
         parent::__construct($config);
     }
 
@@ -153,31 +157,124 @@ class Settings extends Model
             $values = Formie::$plugin->getFormDefaults()->migrateLegacyFieldDefaults($values);
         }
 
+        if (is_array($values)) {
+            $values = $this->_normalizeFailAlertSettingsConfig($values);
+        }
+
         parent::setAttributes($values, $safeOnly);
     }
 
     public function validateAlertEmails($attribute): void
     {
-        if ($this->sendEmailAlerts) {
-            if (empty($this->alertEmails)) {
-                $this->addError($attribute, Craft::t('formie', 'You must enter at least one name and email.'));
+        if (!$this->sendEmailAlerts) {
+            return;
+        }
+
+        $hasManualRecipients = !empty($this->getParsedAlertEmails());
+        $hasUserGroup = !empty($this->alertEmailsUserGroup);
+
+        if (!$hasManualRecipients && !$hasUserGroup) {
+            $this->addError('alertEmails', Craft::t('formie', 'You must select a user group or enter at least one email address.'));
+            return;
+        }
+
+        $emailValidator = new EmailValidator();
+
+        foreach ($this->getParsedAlertEmails() as $email) {
+            if (!$emailValidator->validate($email)) {
+                $this->addError('alertEmails', Craft::t('formie', '“{email}” is not a valid email address.', [
+                    'email' => $email,
+                ]));
                 return;
             }
+        }
+    }
 
-            foreach ($this->alertEmails as $fromNameEmail) {
-                if ($fromNameEmail[0] === '' || $fromNameEmail[1] === '') {
-                    $this->addError($attribute, Craft::t('formie', 'The name and email cannot be blank.'));
-                    return;
-                }
+    public function getAlertEmailRows(): array
+    {
+        $rows = [];
 
-                $emailValidator = new EmailValidator();
+        foreach ($this->alertEmails ?? [] as $row) {
+            $email = $this->_extractAlertEmailValue($row);
 
-                if (!$emailValidator->validate($fromNameEmail[1])) {
-                    $this->addError($attribute, Craft::t('formie', 'An invalid email was entered.'));
-                    return;
+            if ($email === '') {
+                continue;
+            }
+
+            $rows[] = ['email' => $email];
+        }
+
+        return $rows;
+    }
+
+    public function getParsedAlertEmails(): array
+    {
+        $emails = [];
+
+        foreach ($this->alertEmails ?? [] as $row) {
+            $email = trim((string)App::parseEnv($this->_extractAlertEmailValue($row)));
+
+            if ($email === '') {
+                continue;
+            }
+
+            $emails[] = $email;
+        }
+
+        return array_values(array_unique($emails));
+    }
+
+    public function getFailAlertRecipients(): array
+    {
+        $recipients = [];
+        $seenEmails = [];
+
+        foreach ($this->getParsedAlertEmails() as $email) {
+            $normalizedEmail = strtolower($email);
+
+            if (isset($seenEmails[$normalizedEmail])) {
+                continue;
+            }
+
+            $seenEmails[$normalizedEmail] = true;
+            $recipients[] = [
+                'name' => '',
+                'email' => $email,
+            ];
+        }
+
+        if ($this->alertEmailsUserGroup) {
+            $group = Craft::$app->getUserGroups()->getGroupByUid($this->alertEmailsUserGroup);
+
+            if ($group) {
+                $users = User::find()
+                    ->groupId($group->id)
+                    ->status(null)
+                    ->all();
+
+                foreach ($users as $user) {
+                    $email = $user->email ?? '';
+
+                    if ($email === '') {
+                        continue;
+                    }
+
+                    $normalizedEmail = strtolower($email);
+
+                    if (isset($seenEmails[$normalizedEmail])) {
+                        continue;
+                    }
+
+                    $seenEmails[$normalizedEmail] = true;
+                    $recipients[] = [
+                        'name' => $user->fullName ?: $user->username,
+                        'email' => $email,
+                    ];
                 }
             }
         }
+
+        return $recipients;
     }
 
     public function getDefaultFormTemplateId(): ?int
@@ -296,7 +393,6 @@ class Settings extends Model
         return $this->maxEmailAttachmentSizeMb * 1024 * 1024;
     }
 
-
     // Protected Methods
     // =========================================================================
 
@@ -317,7 +413,7 @@ class Settings extends Model
             self::PLAIN_TEXT_HTML_SANITIZATION_MODE_PRESERVE,
             self::PLAIN_TEXT_HTML_SANITIZATION_MODE_SANITIZE,
         ]];
-        $rules[] = [['alertEmails'], 'validateAlertEmails'];
+        $rules[] = [['sendEmailAlerts'], 'validateAlertEmails'];
         $rules[] = [['submissionSidebarFormOrder'], 'in', 'range' => [
             self::SUBMISSION_SIDEBAR_FORM_ORDER_DATE_CREATED_DESC,
             self::SUBMISSION_SIDEBAR_FORM_ORDER_DATE_CREATED_ASC,
@@ -329,5 +425,60 @@ class Settings extends Model
         $rules[] = [['defaultCpSubmissionFieldConditions'], 'in', 'range' => CpSubmissionFieldConditions::values()];
 
         return $rules;
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _normalizeFailAlertSettingsConfig(array $config): array
+    {
+        if (array_key_exists('alertEmailsUserGroupUid', $config) && !array_key_exists('alertEmailsUserGroup', $config)) {
+            $config['alertEmailsUserGroup'] = $config['alertEmailsUserGroupUid'];
+        }
+
+        unset($config['alertEmailsUserGroupUid']);
+
+        if (array_key_exists('alertEmails', $config)) {
+            $config['alertEmails'] = $this->_normalizeAlertEmails($config['alertEmails']);
+        }
+
+        return $config;
+    }
+
+    private function _normalizeAlertEmails(mixed $alertEmails): ?array
+    {
+        if (!is_array($alertEmails)) {
+            return null;
+        }
+
+        $normalized = [];
+
+        foreach ($alertEmails as $row) {
+            $email = $this->_extractAlertEmailValue($row);
+
+            if ($email === '') {
+                continue;
+            }
+
+            $normalized[] = ['email' => $email];
+        }
+
+        return $normalized ?: null;
+    }
+
+    private function _extractAlertEmailValue(mixed $row): string
+    {
+        if (is_array($row)) {
+            if (array_key_exists('email', $row)) {
+                return trim((string)$row['email']);
+            }
+
+            if (array_is_list($row)) {
+                return trim((string)($row[1] ?? $row[0] ?? ''));
+            }
+        }
+
+        return trim((string)$row);
     }
 }

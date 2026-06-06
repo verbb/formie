@@ -521,11 +521,21 @@ class Emails extends Component
 
         $renderVariables = compact('notification', 'submission', 'form', 'emailResponse');
 
-        foreach ($settings->alertEmails as $alertEmail) {
+        $recipients = $settings->getFailAlertRecipients();
+
+        if (!$recipients) {
+            $error = Craft::t('formie', 'No fail alert recipients are configured.');
+
+            Formie::error($error);
+
+            return ['error' => $error];
+        }
+
+        foreach ($recipients as $recipient) {
             try {
                 $mail = Craft::$app->getMailer()
                     ->composeFromKey('formie_failed_notification', $renderVariables)
-                    ->setTo($alertEmail[1]);
+                    ->setTo($recipient['email']);
 
                 $mail->send();
             } catch (Throwable $e) {

@@ -41,23 +41,37 @@
         }) }}
 
         <div id="send-alerts" class="{{ not settings.sendEmailAlerts ? 'hidden' }}">
+            {% set groups = [{ label: 'None' | t('formie'), value: '' }] %}
+
+            {% for group in craft.app.userGroups.getAllGroups() %}
+                {% set groups = groups | merge([{ label: group.name, value: group.uid }]) %}
+            {% endfor %}
+
+            {{ forms.selectField({
+                label: 'Notification User Group' | t('formie'),
+                instructions: 'Select the user group to receive failed notification alerts. Each user in this group will receive an email.' | t('formie'),
+                id: 'alertEmailsUserGroup',
+                name: 'alertEmailsUserGroup',
+                suggestEnvVars: true,
+                value: settings.alertEmailsUserGroup,
+                options: groups,
+                errors: settings.getErrors('alertEmailsUserGroup'),
+                warning: macros.configWarning('alertEmailsUserGroup', 'formie'),
+            }) }}
+
             {{ forms.editableTableField({
-                label: 'Alert Emails' | t('formie'),
-                instructions: 'The names and email addresses that failed email notification alerts will be sent to.' | t('formie'),
+                label: 'Notification Email Addresses' | t('formie'),
+                instructions: 'Enter any additional email addresses to receive failed notification alerts. These recipients do not need to be Craft users.' | t('formie'),
                 id: 'alertEmails',
                 name: 'alertEmails',
-                cols: [
-                    {
-                        type: 'singleline',
-                        heading: 'Name' | t('formie'),
+                cols: {
+                    email: {
+                        type: 'autosuggest',
+                        heading: 'Email Address' | t('formie'),
+                        suggestEnvVars: true,
                     },
-                    {
-                        type: 'singleline',
-                        heading: 'Email' | t('formie'),
-                    },
-                ],
-                rows: settings.alertEmails,
-                addRowLabel: 'Add a name and email' | t('formie'),
+                },
+                rows: settings.getAlertEmailRows(),
                 errors: settings.getErrors('alertEmails'),
                 warning: macros.configWarning('alertEmails', 'formie'),
                 allowAdd: true,

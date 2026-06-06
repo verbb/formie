@@ -108,6 +108,7 @@ return [
         // Email Notifications
         'sendEmailAlerts' => false,
         'alertEmails' => null,
+        'alertEmailsUserGroup' => null,
         'emptyValuePlaceholder' => 'No response.',
 
         // PDFs
@@ -195,7 +196,8 @@ return [
 
 ### Email Notifications
 - `sendEmailAlerts` sends an alert email when an email notification fails to send.
-- `alertEmails` sets the name and email address pairs that should receive alert emails.
+- `alertEmails` sets additional email addresses that should receive alert emails. Each entry should be an array with an `email` key. Environment variables are supported.
+- `alertEmailsUserGroup` optionally sends alert emails to every user in a Craft user group. Additional `alertEmails` are still sent when configured. At least one of `alertEmails` or `alertEmailsUserGroup` is required when `sendEmailAlerts` is enabled.
 - `emptyValuePlaceholder` sets the placeholder used when a field has no submitted value in email output.
 
 ### PDFs
@@ -233,13 +235,14 @@ See [Form Groups](/forms/form-groups) for control panel behaviour.
 You can also manage many configuration settings through the control panel by visiting **Formie → Settings**. Form, field, and notification defaults are managed on the dedicated **Defaults** settings page.
 
 ### Alerts Configuration
-Supply a nested array for the name and email of each contact to receive alert notifications. The first value should contain the name, and the second value should contain the email address.
+Supply additional email addresses to receive alert notifications, and optionally set `alertEmailsUserGroup` to a Craft user group UID to send alerts to every user in that group.
 
 ```php
 'alertEmails' => [
-    ['Primary Name', 'admin@site.com'],
-    ['Secondary Admin Name', 'admin-alt@site.com'],
+    ['email' => 'admin@site.com'],
+    ['email' => '$FORMIE_ALERT_EMAIL'],
 ],
+'alertEmailsUserGroup' => 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
 ```
 
 ### Theme Configuration

@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Added
+- Add failed notification alert recipients by Craft user group and additional email addresses. ([#2226](https://github.com/verbb/formie/issues/2226))
+
 ### Fixed
 - Sanitize notification queue job debug data to valid UTF-8 before re-serializing failed jobs, preventing queue rows from becoming unreadable when submission content contains invalid byte sequences. ([#2344](https://github.com/verbb/formie/issues/2344))
 - Improve notification mailer failure logging when Craft returns no transport error message, including CLI/queue context to help diagnose cron-only send failures. ([#2610](https://github.com/verbb/formie/issues/2610))
