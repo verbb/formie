@@ -2,6 +2,7 @@
 namespace verbb\formie\jobs;
 
 use verbb\formie\Formie;
+use verbb\formie\helpers\QueueJobDataHelper;
 use verbb\formie\helpers\Table;
 
 use Craft;
@@ -32,6 +33,8 @@ trait DebuggableJobTrait
             $jobData = Craft::$app->getQueue()->serializer->unserialize($jobData);
 
             $this->updateDebugJobData($event->job, $jobData);
+
+            $jobData = QueueJobDataHelper::sanitizeJobObject($jobData);
 
             $jobData = Craft::$app->getQueue()->serializer->serialize($jobData);
 

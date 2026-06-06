@@ -3,6 +3,7 @@ namespace verbb\formie\jobs;
 
 use verbb\formie\Formie;
 use verbb\formie\elements\Submission;
+use verbb\formie\helpers\QueueJobDataHelper;
 use verbb\formie\models\Notification;
 
 use Craft;
@@ -112,7 +113,7 @@ class SendNotification extends CraftBaseJob implements DebuggableJobInterface
         $notificationData = $notification->toArray();
         $notificationData['content'] = $notification->getParsedContent();
 
-        return $notificationData;
+        return QueueJobDataHelper::sanitizeForSerialization($notificationData);
     }
 
     private function _getSubmissionData(Submission $submission): array
@@ -130,9 +131,9 @@ class SendNotification extends CraftBaseJob implements DebuggableJobInterface
         ]);
 
         $submissionData['form'] = $submission->getFormHandle();
-        $submissionData['fields'] = $submission->getValuesAsArray();
+        $submissionData['fields'] = QueueJobDataHelper::sanitizeForSerialization($submission->getValuesAsArray());
 
-        return $submissionData;
+        return QueueJobDataHelper::sanitizeForSerialization($submissionData);
     }
 
     private function _getReferenceMap(Submission $submission): array
