@@ -39,7 +39,8 @@ Jump directly to the sections most likely to need attention:
 - [Custom Fields](#custom-fields) if the project defines custom Formie fields.
 - [Custom Integrations](#custom-integrations) if the project defines custom integrations, captchas, address providers, or payment providers.
 - [Removed legacy captchas](#removed-legacy-captchas) if the site relied on Formie’s built-in Duplicate, JavaScript, or Honeypot captcha types.
-- [Submission Workflow](#submission-workflow) if custom code calls Formie’s payment-processing step directly.
+- [Custom Front-End Validation](#custom-front-end-validation) if the project registers custom browser validators or overrides front-end message strings.
+- [Translation Strings](#translation-strings) if the project overrides Formie messages in site translation files.
 
 ## Changes at a Glance
 
@@ -1033,6 +1034,82 @@ Single-line and multi-line text fields now use `maxType` and `max` instead of `l
 :::
 
 Learn more in [Single-Line Text](/fields/single-line-text) and [Multi-Line Text](/fields/multi-line-text).
+
+## Translation Strings
+
+Formie 4 standardizes several message keys that sites commonly override in `translations/*/formie.php`, especially for front-end validation and text-limit counters.
+
+If your project overrides these strings, update the **source keys** in your translation files. Formie looks up messages by the English source string passed to `Craft::t('formie', …)`, not by a separate message ID.
+
+### Front-end validation placeholders
+
+Formie-owned validation messages now use `{label}` for the field label placeholder instead of `{attribute}`.
+
+Update any overrides that still target the old `{attribute}` keys. The English source strings themselves also changed:
+
+Old source key (Formie 3) | New source key (Formie 4)
+--- | ---
+`{attribute} cannot be blank.` | `{label} cannot be blank.`
+`{attribute} is not a valid email address.` | `{label} is not a valid email address.`
+`{attribute} is not a valid URL.` | `{label} is not a valid URL.`
+`{attribute} is not a valid number.` | `{label} is not a valid number.`
+`{attribute} is not a valid format.` | `{label} is not a valid format.`
+`{attribute} must match {value}.` | `{label} must match {value}.`
+`{attribute} must be between {min} and {max}.` | `{label} must be between {min} and {max}.`
+`{attribute} must be no less than {min}.` | `{label} must be no less than {min}.`
+`{attribute} must be no greater than {max}.` | `{label} must be no greater than {max}.`
+`{attribute} has an invalid value.` | `{label} has an invalid value.`
+`{attribute} must select between {min} and {max}.` | `{label} must select between {min} and {max}.`
+`{attribute} must select no less than {min}.` | `{label} must select no less than {min}.`
+`{attribute} must select no greater than {max}.` | `{label} must select no greater than {max}.`
+
+These strings are included in Formie’s front-end translation seed via `Rendering::getFrontendJsTranslations()`. If you append custom strings through the [`modifyFrontendJsTranslations`](/developers/events/form-events#the-modifyfrontendjstranslations-event) event, use the new `{label}` placeholders in both the source key and your translated value.
+
+Custom per-field validation overrides in the form builder now live under **Validation** as `validationMessages.{key}` (for example `validationMessages.required` and `validationMessages.unique`). Legacy field `errorMessage` values are migrated to `validationMessages.required` automatically.
+
+If a saved override still contains `{name}` or `{attribute}`, Formie resolves those to `{label}` at runtime, but new overrides should use `{label}` directly.
+
+### Text limit counter copy
+
+Text-limit counters no longer use `{startTag}` / `{endTag}` HTML placeholders in translation strings. The count is rendered in markup; the translation covers the suffix only.
+
+Remove overrides for these **removed** source keys:
+
+- `{startTag}{num}{endTag} character left`
+- `{startTag}{num}{endTag} characters left`
+- `{startTag}{num}{endTag} word left`
+- `{startTag}{num}{endTag} words left`
+- `{num} characters left` (legacy)
+- `{num} words left` (legacy)
+
+Replace them with Craft plural syntax:
+
+Old | New
+--- | ---
+`{startTag}{num}{endTag} characters left` | `{count, plural, one{character left} other{characters left}}`
+`{startTag}{num}{endTag} words left` | `{count, plural, one{word left} other{words left}}`
+
+Example site override:
+
+```php
+// translations/de/formie.php
+return [
+    '{count, plural, one{character left} other{characters left}}' => '{count, plural, one{Zeichen übrig} other{Zeichen übrig}}',
+    '{count, plural, one{word left} other{words left}}' => '{count, plural, one{Wort übrig} other{Wörter übrig}}',
+];
+```
+
+On the front end, pass `{ count }` when translating these strings. Formie’s browser `t()` helper resolves Craft-style plural branches at runtime.
+
+### Server-side unique-value messages
+
+The default unique-value validation message source key is now:
+
+```php
+'"{label}" must be unique.'
+```
+
+If you previously overrode a field-specific unique message via translation files alone, consider using the **Unique Error Message** field on the Validation tab instead (`validationMessages.unique`), which supports `{label}` and other allowed placeholders without requiring a global translation override.
 
 ## Sub-field Label Position
 
