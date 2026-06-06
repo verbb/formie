@@ -154,6 +154,7 @@ class Html extends CosmeticField
             SchemaHelper::labelPosition($this),
             SchemaHelper::instructions(),
             SchemaHelper::instructionsPosition($this),
+            SchemaHelper::errorMessagePosition($this),
         ];
     }
 

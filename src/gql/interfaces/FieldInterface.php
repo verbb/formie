@@ -174,6 +174,11 @@ class FieldInterface extends BaseInterfaceType
                 'type' => Type::string(),
                 'description' => 'The field’s instructions position. This will be a `verbb\formie\positions` class name.',
             ],
+            'errorMessagePosition' => [
+                'name' => 'errorMessagePosition',
+                'type' => Type::string(),
+                'description' => 'The field’s validation error position. This will be a `verbb\formie\positions` class name.',
+            ],
             'cssClasses' => [
                 'name' => 'cssClasses',
                 'type' => Type::string(),

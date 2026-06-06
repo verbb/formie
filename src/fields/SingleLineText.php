@@ -297,6 +297,7 @@ class SingleLineText extends Field implements SortableFieldInterface, Previewabl
             SchemaHelper::labelPosition($this),
             SchemaHelper::instructions(),
             SchemaHelper::instructionsPosition($this),
+            SchemaHelper::errorMessagePosition($this),
         ];
     }
 

@@ -277,6 +277,18 @@ export const DefaultsApp = ({ settings }) => {
                         />
                     </FieldLayout>
 
+                    <FieldLayout
+                        name="defaultErrorMessagePosition"
+                        label={Craft.t('formie', 'Default Field Error Position')}
+                        instructions={Craft.t('formie', 'Fields will by default have their validation error position set to this option.')}
+                    >
+                        <SelectInput
+                            value={getAtPath(values, 'defaultErrorMessagePosition')}
+                            options={options.errorMessagePositions || []}
+                            onChange={(value) => { updateValue('defaultErrorMessagePosition', String(value ?? '')); }}
+                        />
+                    </FieldLayout>
+
                     {fieldTypes.length ? (
                         <>
                             <FieldLayout

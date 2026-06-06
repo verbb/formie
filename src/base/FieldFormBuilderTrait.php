@@ -51,6 +51,7 @@ trait FieldFormBuilderTrait
             'isPickable' => $baseTypeDefinition['isPickable'],
             'labelPositions' => Formie::$plugin->getFields()->getLabelPositionsOptions($this),
             'instructionsPositions' => Formie::$plugin->getFields()->getInstructionsPositionsOptions($this),
+            'errorMessagePositions' => Formie::$plugin->getFields()->getErrorMessagePositionsOptions($this),
             'referenceConfig' => $referenceConfig,
             'variableSourceConfig' => $variableSourceConfig,
 

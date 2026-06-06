@@ -77,6 +77,7 @@ class Fields extends Component
     public const EVENT_REGISTER_FIELDS = 'registerFields';
     public const EVENT_REGISTER_LABEL_POSITIONS = 'registerLabelPositions';
     public const EVENT_REGISTER_INSTRUCTIONS_POSITIONS = 'registerInstructionsPositions';
+    public const EVENT_REGISTER_ERROR_MESSAGE_POSITIONS = 'registerErrorMessagePositions';
 
 
     // Properties
@@ -1604,6 +1605,44 @@ class Fields extends Component
                 'value' => $class,
             ];
         }, $this->getInstructionsPositions($field));
+    }
+
+    public function getErrorMessagePositions(FieldInterface $field = null): array
+    {
+        $errorMessagePositions = [
+            AboveInput::class,
+            BelowInput::class,
+        ];
+
+        $event = new RegisterFieldOptionsEvent([
+            'field' => $field,
+            'options' => $errorMessagePositions,
+        ]);
+        $this->trigger(self::EVENT_REGISTER_ERROR_MESSAGE_POSITIONS, $event);
+
+        if ($field) {
+            $supportedPositions = [];
+
+            foreach ($event->options as $class) {
+                if ($class::supports($field)) {
+                    $supportedPositions[] = $class;
+                }
+            }
+
+            return $supportedPositions;
+        }
+
+        return $event->options;
+    }
+
+    public function getErrorMessagePositionsOptions(FieldInterface $field = null): array
+    {
+        return array_map(function($class) {
+            return [
+                'label' => $class::displayName(),
+                'value' => $class,
+            ];
+        }, $this->getErrorMessagePositions($field));
     }
 
     public function getReservedHandles(): array

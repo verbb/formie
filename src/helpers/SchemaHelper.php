@@ -621,6 +621,19 @@ class SchemaHelper
         ], $config));
     }
 
+    public static function errorMessagePosition(FieldInterface $field, array $config = []): array
+    {
+        return self::selectField(array_merge([
+            'label' => Craft::t('formie', 'Field Error Position'),
+            'instructions' => Craft::t('formie', 'How validation error messages for this field should be positioned relative to the input.'),
+            'name' => 'errorMessagePosition',
+            'options' => array_merge(
+                [['label' => Craft::t('formie', 'Form Default'), 'value' => '']],
+                Formie::$plugin->getFields()->getErrorMessagePositionsOptions($field)
+            ),
+        ], $config));
+    }
+
     public static function cssClasses(array $config = []): array
     {
         return self::textField(array_merge([

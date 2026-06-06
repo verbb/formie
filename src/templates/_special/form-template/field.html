@@ -4,6 +4,7 @@
 {% set labelPosition = craft.formie.getLabelPosition(field, form) %}
 {% set subFieldLabelPosition = craft.formie.getLabelPosition(field, form, true) %}
 {% set instructionsPosition = craft.formie.getInstructionsPosition(field, form) %}
+{% set errorMessagePosition = craft.formie.getErrorMessagePosition(field, form) %}
 
 {% fieldtag 'field' %}
     {% fieldtag 'fieldLayout' %}
@@ -12,16 +13,14 @@
 
         {% fieldtag 'fieldContent' %}
             {{ formieInclude('field/instructions', { position: 'above' }) }}
+            {{ formieInclude('field/errors', { position: 'above' }) }}
 
             {% fieldtag 'fieldControl' %}
                 {{ field.renderInput(form, value) }}
             {% endfieldtag %}
 
             {{ formieInclude('field/instructions', { position: 'below' }) }}
-
-            {% if errors %}
-                {{ formieInclude('field/errors') }}
-            {% endif %}
+            {{ formieInclude('field/errors', { position: 'below' }) }}
         {% endfieldtag %}
 
         {{ formieInclude('field/label', { position: 'right' }) }}

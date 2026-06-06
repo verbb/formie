@@ -129,6 +129,7 @@ class Password extends Field implements SortableFieldInterface, PreviewableField
             SchemaHelper::labelPosition($this),
             SchemaHelper::instructions(),
             SchemaHelper::instructionsPosition($this),
+            SchemaHelper::errorMessagePosition($this),
         ];
     }
 

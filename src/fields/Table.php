@@ -559,6 +559,7 @@ class Table extends Field
             SchemaHelper::labelPosition($this),
             SchemaHelper::instructions(),
             SchemaHelper::instructionsPosition($this),
+            SchemaHelper::errorMessagePosition($this),
         ];
     }
 

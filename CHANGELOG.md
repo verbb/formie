@@ -13,6 +13,7 @@
 - Standardize validation message placeholders to `{label}` across PHP validators, front-end validators, and translations (legacy `{name}` / `{attribute}` aliases remain at runtime).
 - Replace text-limit counter `{startTag}{num}{endTag}` translation strings with Craft plural syntax and wire translated counter copy on the front end. ([#2526](https://github.com/verbb/formie/issues/2526))
 - Show context-aware text-limit counter copy for empty (allowed), under-limit (left), and over-limit states on the front end and in control panel submissions.
+- Add per-field validation error position on the **Appearance** tab, with form- and plugin-level defaults (`Above Input` / `Below Input`).
 - Wire client-side validation message overrides for file-upload and checkbox/radio options-limit rules via `data-formie-validation-*-message` attributes.
 - Extend front-end `t()` to resolve Craft-style `{param, plural, …}` and `{param, number}` message syntax.
 

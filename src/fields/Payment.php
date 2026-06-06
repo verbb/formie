@@ -262,6 +262,7 @@ class Payment extends Field
             SchemaHelper::labelPosition($this),
             SchemaHelper::instructions(),
             SchemaHelper::instructionsPosition($this),
+            SchemaHelper::errorMessagePosition($this),
             SchemaHelper::paymentProviderSettingsField([
                 'name' => 'providerSettings',
                 'schemaGroup' => 'defineFormBuilderAppearanceSchema',

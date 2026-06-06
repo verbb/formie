@@ -262,6 +262,7 @@ class Checkboxes extends OptionsField
             SchemaHelper::labelPosition($this),
             SchemaHelper::instructions(),
             SchemaHelper::instructionsPosition($this),
+            SchemaHelper::errorMessagePosition($this),
         ];
     }
 

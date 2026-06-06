@@ -233,6 +233,7 @@ class Dropdown extends OptionsField implements SortableFieldInterface
             SchemaHelper::labelPosition($this),
             SchemaHelper::instructions(),
             SchemaHelper::instructionsPosition($this),
+            SchemaHelper::errorMessagePosition($this),
         ];
     }
 

@@ -36,6 +36,7 @@ class FormSettings extends Model
     public string $progressValuePosition = 'inside-center';
     public ?string $defaultLabelPosition = null;
     public ?string $defaultInstructionsPosition = null;
+    public ?string $defaultErrorMessagePosition = null;
     public string $requiredIndicator = 'asterisk';
 
     // Behaviour
@@ -173,6 +174,10 @@ class FormSettings extends Model
 
         if (!$this->defaultInstructionsPosition) {
             $this->defaultInstructionsPosition = $settings->defaultInstructionsPosition;
+        }
+
+        if (!$this->defaultErrorMessagePosition) {
+            $this->defaultErrorMessagePosition = $settings->defaultErrorMessagePosition;
         }
 
         $this->defaultEmailTemplateId = $settings->getDefaultEmailTemplateId();

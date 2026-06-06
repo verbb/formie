@@ -2,6 +2,7 @@
 namespace verbb\formie\theme\slots;
 
 use verbb\formie\base\FieldInterface;
+use verbb\formie\Formie;
 use verbb\formie\helpers\Html;
 use verbb\formie\models\SlotTag;
 use verbb\formie\theme\context\RenderContext;
@@ -74,18 +75,21 @@ class FieldSlotRegistry extends Component
         $field = $context->field;
         $labelPosition = $this->_resolvePositionValue($field->labelPosition ?? $context->get('labelPosition'));
         $instructionsPosition = $this->_resolvePositionValue($field->instructionsPosition ?? $context->get('instructionsPosition'));
+        $errorMessagePosition = $this->_resolveErrorMessagePosition($context);
 
         return SlotTag::make('div')
             ->core([
                 'data-formie-field-layout' => true,
                 'data-formie-label-position' => $labelPosition,
                 'data-formie-instructions-position' => $instructionsPosition,
+                'data-formie-error-position' => $errorMessagePosition,
             ])
             ->theme([
                 'class' => [
                     'formie-field-layout',
                     $labelPosition ? "formie-field-layout-label-{$labelPosition}" : false,
                     $instructionsPosition ? "formie-field-layout-instructions-{$instructionsPosition}" : false,
+                    $errorMessagePosition ? "formie-field-layout-errors-{$errorMessagePosition}" : false,
                 ],
             ]);
     }
@@ -299,5 +303,20 @@ class FieldSlotRegistry extends Component
         }
 
         return null;
+    }
+
+    private function _resolveErrorMessagePosition(RenderContext $context): ?string
+    {
+        $field = $context->field;
+
+        if (!$field) {
+            return null;
+        }
+
+        $positionClass = $field->errorMessagePosition
+            ?: $context->form?->settings->defaultErrorMessagePosition
+            ?: Formie::$plugin->getSettings()->defaultErrorMessagePosition;
+
+        return $this->_resolvePositionValue($positionClass);
     }
 }

@@ -296,6 +296,7 @@ class Address extends FixedParentField implements PreviewableFieldInterface
             SchemaHelper::subFieldLabelPosition(),
             SchemaHelper::instructions(),
             SchemaHelper::instructionsPosition($this),
+            SchemaHelper::errorMessagePosition($this),
         ];
     }
 

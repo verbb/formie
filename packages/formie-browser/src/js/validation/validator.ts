@@ -1,3 +1,4 @@
+import { ensureFieldErrorContainer } from '#core/field-error-container';
 import { syncPageTabErrors } from '#core/page-tab-errors';
 import rules from '#validation/rules';
 import type {
@@ -320,12 +321,11 @@ export class FormieValidator {
         let errorMessages = fieldContainer.querySelector('[data-formie-field-errors]') as HTMLElement | null;
 
         if (!errorMessages) {
-            errorMessages = document.createElement('div');
-            errorMessages.setAttribute('data-formie-field-errors', 'true');
-            if (this.config.messagesClass.length) {
-                errorMessages.classList.add(...this.config.messagesClass);
-            }
-            fieldContainer.appendChild(errorMessages);
+            errorMessages = ensureFieldErrorContainer(fieldContainer, (container) => {
+                if (this.config.messagesClass.length) {
+                    container.classList.add(...this.config.messagesClass);
+                }
+            });
         }
 
         if (this.config.messagesClass.length) {

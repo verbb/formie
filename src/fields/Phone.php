@@ -315,6 +315,7 @@ class Phone extends Field implements SortableFieldInterface, PreviewableFieldInt
             SchemaHelper::labelPosition($this),
             SchemaHelper::instructions(),
             SchemaHelper::instructionsPosition($this),
+            SchemaHelper::errorMessagePosition($this),
         ];
     }
 

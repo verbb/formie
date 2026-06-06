@@ -15,6 +15,7 @@ use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\FieldLayoutRow;
 use verbb\formie\models\Notification;
 use verbb\formie\positions\AboveInput;
+use verbb\formie\positions\BelowInput;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -161,6 +162,17 @@ class Formie
             return new $position();
         } catch (Throwable $e) {
             return new AboveInput();
+        }
+    }
+
+    public function getErrorMessagePosition(FieldInterface $field, Form $form): PositionInterface
+    {
+        try {
+            $position = $field->errorMessagePosition ?: $form->settings->defaultErrorMessagePosition;
+
+            return new $position();
+        } catch (Throwable $e) {
+            return new BelowInput();
         }
     }
 

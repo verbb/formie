@@ -1,4 +1,5 @@
 import type { FormSubmitResult } from '#contracts/schema';
+import { ensureFieldErrorContainer as resolveFieldErrorContainer } from '#core/field-error-container';
 import { syncPageTabErrors } from '#core/page-tab-errors';
 import { setFormHiddenState } from '#core/submit-result-state';
 import { addThemeClasses, removeThemeClasses } from '#theme/theme-classes';
@@ -150,16 +151,9 @@ function ensureFormSuccessContainer(form: HTMLFormElement, position: string): HT
 }
 
 function ensureFieldErrorContainer(fieldNode: Element): HTMLElement {
-    let container = fieldNode.querySelector('[data-formie-field-errors]') as HTMLElement | null;
-
-    if (!container) {
-        container = document.createElement('div');
-        container.setAttribute('data-formie-field-errors', 'true');
+    return resolveFieldErrorContainer(fieldNode, (container) => {
         addThemeClasses(container, fieldNode, 'fieldErrors');
-        fieldNode.appendChild(container);
-    }
-
-    return container;
+    });
 }
 
 function removeDescribedBy(input: HTMLElement, describedById: string): void {

@@ -348,6 +348,7 @@ class Name extends FixedParentField implements SortableFieldInterface, Previewab
             ]),
             SchemaHelper::instructions(),
             SchemaHelper::instructionsPosition($this),
+            SchemaHelper::errorMessagePosition($this),
         ];
     }
 

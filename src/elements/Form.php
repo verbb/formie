@@ -2138,6 +2138,12 @@ class Form extends Element implements FormInterface
                 'options' => Formie::$plugin->getFields()->getInstructionsPositionsOptions(),
             ]),
             SchemaHelper::selectField([
+                'label' => Craft::t('formie', 'Default Field Error Position'),
+                'instructions' => Craft::t('formie', 'Fields will by default have their validation error position set to this option.'),
+                'name' => 'settings.defaultErrorMessagePosition',
+                'options' => Formie::$plugin->getFields()->getErrorMessagePositionsOptions(),
+            ]),
+            SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'Required Field Indicator'),
                 'instructions' => Craft::t('formie', 'Select how to show required fields.'),
                 'name' => 'settings.requiredIndicator',

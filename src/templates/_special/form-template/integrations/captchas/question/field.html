@@ -2,6 +2,7 @@
 {% set value = answerValue ?? '' %}
 {% set labelPosition = craft.formie.getLabelPosition(field, form) %}
 {% set instructionsPosition = craft.formie.getInstructionsPosition(field, form) %}
+{% set errorMessagePosition = craft.formie.getErrorMessagePosition(field, form) %}
 
 {% formtag 'captcha' %}
     {% fieldtag 'field' %}
@@ -11,6 +12,7 @@
 
             {% fieldtag 'fieldContent' %}
                 {{ formieInclude('field/instructions', { position: 'above' }) }}
+                {{ formieInclude('field/errors', { position: 'above' }) }}
 
                 {% fieldtag 'fieldControl' %}
                     <input type="hidden" name="formieCaptchaQuestion[index]" value="{{ questionIndex }}">
@@ -25,10 +27,7 @@
                 {% endfieldtag %}
 
                 {{ formieInclude('field/instructions', { position: 'below' }) }}
-
-                {% if errors %}
-                    {{ formieInclude('field/errors') }}
-                {% endif %}
+                {{ formieInclude('field/errors', { position: 'below' }) }}
             {% endfieldtag %}
 
             {{ formieInclude('field/label', { position: 'right' }) }}

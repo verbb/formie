@@ -347,6 +347,7 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
     public array $validationMessages = [];
     public ?string $labelPosition = null;
     public ?string $instructionsPosition = null;
+    public ?string $errorMessagePosition = null;
     public ?string $cssClasses = null;
     public ?array $containerAttributes = null;
     public ?array $inputAttributes = null;
@@ -399,6 +400,7 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
         $names[] = 'validationMessages';
         $names[] = 'labelPosition';
         $names[] = 'instructionsPosition';
+        $names[] = 'errorMessagePosition';
         $names[] = 'cssClasses';
         $names[] = 'containerAttributes';
         $names[] = 'inputAttributes';
@@ -1159,6 +1161,13 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
             ['instructionsPosition'],
             'in',
             'range' => Formie::$plugin->getFields()->getInstructionsPositions($this),
+            'skipOnEmpty' => true,
+        ];
+
+        $rules[] = [
+            ['errorMessagePosition'],
+            'in',
+            'range' => Formie::$plugin->getFields()->getErrorMessagePositions($this),
             'skipOnEmpty' => true,
         ];
 

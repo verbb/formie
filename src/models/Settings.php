@@ -6,6 +6,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\helpers\CpSubmissionFieldConditions;
 use verbb\formie\helpers\Plugin;
 use verbb\formie\positions\AboveInput;
+use verbb\formie\positions\BelowInput;
 
 use Craft;
 use craft\base\Model;
@@ -63,6 +64,7 @@ class Settings extends Model
     public array $disabledFields = [];
     public string $defaultLabelPosition = AboveInput::class;
     public string $defaultInstructionsPosition = AboveInput::class;
+    public string $defaultErrorMessagePosition = BelowInput::class;
 
     // Fields
     public bool $allowPublicVolumes = true;

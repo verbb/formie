@@ -376,6 +376,7 @@ class MultiLineText extends Field implements SortableFieldInterface, Previewable
             SchemaHelper::labelPosition($this),
             SchemaHelper::instructions(),
             SchemaHelper::instructionsPosition($this),
+            SchemaHelper::errorMessagePosition($this),
         ];
     }
 
