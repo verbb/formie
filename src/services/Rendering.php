@@ -14,6 +14,7 @@ use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\FormTemplate;
 use verbb\formie\models\Notification;
 use verbb\formie\models\RenderFrame;
+use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\web\FieldRenderCallContext;
 
 use Craft;
@@ -405,7 +406,9 @@ class Rendering extends Component
         ]);
         $this->trigger(self::EVENT_MODIFY_FRONTEND_JS_TRANSLATIONS, $event);
 
-        return $this->_getTranslatedStrings($event->strings);
+        return ValidationMessagesHelper::applyPluginDefaultsToFrontendTranslations(
+            $this->_getTranslatedStrings($event->strings),
+        );
     }
 
     public function getFormComponentTemplatePath(Form $form, string $component): string

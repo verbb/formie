@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use verbb\formie\fields\SingleLineText;
+use verbb\formie\Formie;
 use verbb\formie\helpers\ValidationMessagesHelper;
 
 it('resolves default validation messages with field context', function (): void {
@@ -88,7 +89,10 @@ it('resolves nested field validation message overrides from the parent field', f
         'errorMessage' => 'Legacy child message.',
     ]);
 
-    $child->applyParentFieldContext($parent);
+    $reflection = new ReflectionClass($child);
+    $method = $reflection->getMethod('applyParentFieldContext');
+    $method->setAccessible(true);
+    $method->invoke($child, $parent);
 
     expect($child->getValidationMessage(ValidationMessagesHelper::KEY_REQUIRED))
         ->toBe('Please provide your Day.')
@@ -96,4 +100,61 @@ it('resolves nested field validation message overrides from the parent field', f
         ->toBe('Fix the Day part.')
         ->and(ValidationMessagesHelper::override($child, ValidationMessagesHelper::KEY_REQUIRED))
         ->toBe('Please provide your {label}.');
+});
+
+it('uses plugin validation message defaults when a field has no override', function (): void {
+    $previousDefaults = Formie::$plugin->getSettings()->validationMessageDefaults;
+    Formie::$plugin->getSettings()->validationMessageDefaults = [
+        'required' => 'Please complete {label}.',
+        'unique' => 'The {label} value is already taken.',
+    ];
+
+    try {
+        $field = new SingleLineText([
+            'label' => 'Username',
+            'handle' => 'username',
+        ]);
+
+        expect($field->getValidationMessage(ValidationMessagesHelper::KEY_REQUIRED))
+            ->toBe('Please complete Username.')
+            ->and($field->getValidationMessage(ValidationMessagesHelper::KEY_UNIQUE))
+            ->toBe('The Username value is already taken.')
+            ->and($field->getValidationMessageClientAttribute(ValidationMessagesHelper::KEY_REQUIRED))
+            ->toBe('Please complete Username.');
+    } finally {
+        Formie::$plugin->getSettings()->validationMessageDefaults = $previousDefaults;
+    }
+});
+
+it('prefers field validation message overrides over plugin defaults', function (): void {
+    $previousDefaults = Formie::$plugin->getSettings()->validationMessageDefaults;
+    Formie::$plugin->getSettings()->validationMessageDefaults = [
+        'required' => 'Plugin default for {label}.',
+    ];
+
+    try {
+        $field = new SingleLineText([
+            'label' => 'Email',
+            'handle' => 'email',
+            'validationMessages' => [
+                'required' => 'Field override for {label}.',
+            ],
+        ]);
+
+        expect($field->getValidationMessage(ValidationMessagesHelper::KEY_REQUIRED))
+            ->toBe('Field override for Email.');
+    } finally {
+        Formie::$plugin->getSettings()->validationMessageDefaults = $previousDefaults;
+    }
+});
+
+it('normalizes plugin validation message defaults for storage', function (): void {
+    expect(ValidationMessagesHelper::normalizeDefaultsForStorage([
+        'required' => 'Please enter {name}.',
+        'unique' => '',
+        'invalid' => '{label} is invalid.',
+        'unknown' => 'Ignore me.',
+    ]))->toBe([
+        'required' => 'Please enter {label}.',
+    ]);
 });

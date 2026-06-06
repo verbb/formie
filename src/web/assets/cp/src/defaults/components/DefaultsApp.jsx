@@ -16,6 +16,7 @@ import { useCpFormPayloadSync } from '@utils';
 const TABS = [
     { id: 'form', label: 'Form Defaults' },
     { id: 'fields', label: 'Field Defaults' },
+    { id: 'validation', label: 'Validation Messages' },
     { id: 'notifications', label: 'Notification Defaults' },
     { id: 'integrations', label: 'Integration Defaults' },
 ];
@@ -195,6 +196,15 @@ export const DefaultsApp = ({ settings }) => {
         });
     };
 
+    const updateValidationMessageDefaults = (validationMessageDefaults) => {
+        setValues((currentValues) => {
+            return {
+                ...currentValues,
+                validationMessageDefaults,
+            };
+        });
+    };
+
     return (
         <div className="formie-defaults-app">
             <PaneTabs defaultValue="form" className="w-full">
@@ -318,6 +328,21 @@ export const DefaultsApp = ({ settings }) => {
                             {Craft.t('formie', 'No field types expose default settings yet.')}
                         </p>
                     )}
+                </PaneTabsContent>
+
+                <PaneTabsContent value="validation" className="formie-defaults-panel">
+                    <DefaultsSectionIntro
+                        title={Craft.t('formie', 'Validation Message Defaults')}
+                        description={Craft.t('formie', 'Customize the default validation error messages used when a field has no message override. Leave fields empty to use Formie’s built-in copy.')}
+                    />
+
+                    <SchemaDefaultsPanel
+                        panelKey="validation-message-defaults"
+                        schema={settings.validationMessageDefaultsSchema || []}
+                        schemaIndex={settings.validationMessageDefaultsSchemaIndex || null}
+                        values={values.validationMessageDefaults || {}}
+                        onChange={updateValidationMessageDefaults}
+                    />
                 </PaneTabsContent>
 
                 <PaneTabsContent value="notifications" className="formie-defaults-panel">

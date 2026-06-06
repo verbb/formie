@@ -65,6 +65,7 @@ class Settings extends Model
     public string $defaultLabelPosition = AboveInput::class;
     public string $defaultInstructionsPosition = AboveInput::class;
     public string $defaultErrorMessagePosition = BelowInput::class;
+    public array $validationMessageDefaults = [];
 
     // Fields
     public bool $allowPublicVolumes = true;

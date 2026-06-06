@@ -2,6 +2,7 @@
 namespace verbb\formie\helpers;
 
 use verbb\formie\base\Field;
+use verbb\formie\Formie;
 
 use Craft;
 use craft\helpers\StringHelper;
@@ -79,6 +80,12 @@ class ValidationMessagesHelper
             return self::interpolate($override, $params);
         }
 
+        $pluginDefault = self::pluginDefault($key);
+
+        if ($pluginDefault !== null) {
+            return self::interpolate($pluginDefault, $params);
+        }
+
         $template = self::defaultTemplate($key);
 
         if ($template === null) {
@@ -86,6 +93,190 @@ class ValidationMessagesHelper
         }
 
         return Craft::t('formie', $template, $params);
+    }
+
+    public static function pluginDefault(string $key): ?string
+    {
+        if (!Formie::$plugin) {
+            return null;
+        }
+
+        $defaults = Formie::$plugin->getSettings()->validationMessageDefaults ?? [];
+        $message = trim((string)($defaults[$key] ?? ''));
+
+        return $message !== '' ? $message : null;
+    }
+
+    public static function normalizeDefaultsForStorage(array $defaults): array
+    {
+        $normalized = [];
+        $allowedKeys = array_keys(self::defaultTemplates());
+
+        foreach ($defaults as $key => $message) {
+            if (!in_array($key, $allowedKeys, true) || !is_string($message)) {
+                continue;
+            }
+
+            $message = trim(self::normalizeDefaultTokens($message));
+
+            if ($message === '') {
+                continue;
+            }
+
+            $builtin = self::defaultTemplate($key);
+
+            if ($builtin !== null && $message === $builtin) {
+                continue;
+            }
+
+            $normalized[$key] = $message;
+        }
+
+        return $normalized;
+    }
+
+    public static function normalizeDefaultTokens(string $message): string
+    {
+        return str_replace(['{name}', '{attribute}'], '{label}', $message);
+    }
+
+    public static function defaultsSchemaNodes(): array
+    {
+        return array_merge(
+            self::_defaultsSchemaSection(Craft::t('formie', 'General'), [
+                [self::KEY_REQUIRED, ['label']],
+                [self::KEY_UNIQUE, ['label']],
+                [self::KEY_MATCH, ['label', 'value']],
+                [self::KEY_INVALID, ['label']],
+            ]),
+            self::_defaultsSchemaSection(Craft::t('formie', 'Text Limits'), [
+                [self::KEY_MIN_CHARACTERS, ['label', 'limit', 'min']],
+                [self::KEY_MAX_CHARACTERS, ['label', 'limit', 'max']],
+                [self::KEY_MIN_WORDS, ['label', 'limit', 'min']],
+                [self::KEY_MAX_WORDS, ['label', 'limit', 'max']],
+            ]),
+            self::_defaultsSchemaSection(Craft::t('formie', 'Format Validation'), [
+                [self::KEY_EMAIL, ['label']],
+                [self::KEY_URL, ['label']],
+                [self::KEY_NUMBER, ['label']],
+                [self::KEY_NUMBER_MIN, ['label', 'min']],
+                [self::KEY_NUMBER_MAX, ['label', 'max']],
+                [self::KEY_BLOCKED_DOMAIN, ['domain']],
+            ]),
+            self::_defaultsSchemaSection(Craft::t('formie', 'Options'), [
+                [self::KEY_MIN_OPTIONS, ['label', 'min']],
+                [self::KEY_MAX_OPTIONS, ['label', 'max']],
+            ]),
+            self::_defaultsSchemaSection(Craft::t('formie', 'File Upload'), [
+                [self::KEY_MAX_FILES, ['files']],
+                [self::KEY_MIN_FILE_SIZE, ['filesize']],
+                [self::KEY_MAX_FILE_SIZE, ['filesize']],
+            ]),
+        );
+    }
+
+    public static function applyPluginDefaultsToFrontendTranslations(array $translations): array
+    {
+        foreach (self::defaultTemplates() as $key => $builtinTemplate) {
+            $pluginDefault = self::pluginDefault($key);
+
+            if ($pluginDefault === null) {
+                continue;
+            }
+
+            foreach (self::frontendTranslationSourceStrings($key) as $source) {
+                $translations[$source] = $pluginDefault;
+            }
+
+            if ($builtinTemplate !== null) {
+                $translations[$builtinTemplate] = $pluginDefault;
+            }
+        }
+
+        return $translations;
+    }
+
+    public static function frontendTranslationSourceStrings(string $key): array
+    {
+        return self::frontendTranslationSourceStringsMap()[$key] ?? [];
+    }
+
+    public static function frontendTranslationSourceStringsMap(): array
+    {
+        return [
+            self::KEY_REQUIRED => [
+                '{label} cannot be blank.',
+                'This field is required.',
+            ],
+            self::KEY_UNIQUE => [
+                '“{label}” must be unique.',
+            ],
+            self::KEY_MATCH => [
+                '{label} must match {value}.',
+            ],
+            self::KEY_MIN_CHARACTERS => [
+                'You must enter at least {limit} characters.',
+                '{label} must be no less than {min} characters.',
+            ],
+            self::KEY_MAX_CHARACTERS => [
+                '{label} must be no greater than {max} characters.',
+            ],
+            self::KEY_MIN_WORDS => [
+                'You must enter at least {limit} words.',
+                '{label} must be no less than {min} words.',
+            ],
+            self::KEY_MAX_WORDS => [
+                '{label} must be no greater than {max} words.',
+            ],
+            self::KEY_EMAIL => [
+                'Please enter a valid email address.',
+                '{label} is not a valid email address.',
+            ],
+            self::KEY_URL => [
+                'Please enter a valid URL.',
+                '{label} is not a valid URL.',
+            ],
+            self::KEY_NUMBER => [
+                'Please enter a valid number.',
+                '{label} is not a valid number.',
+                '{label} is not a valid format.',
+            ],
+            self::KEY_NUMBER_MIN => [
+                'Please enter a value greater than or equal to {min}.',
+                '{label} must be no less than {min}.',
+                '{label} must be between {min} and {max}.',
+            ],
+            self::KEY_NUMBER_MAX => [
+                'Please enter a value less than or equal to {max}.',
+                '{label} must be no greater than {max}.',
+                '{label} must be between {min} and {max}.',
+            ],
+            self::KEY_BLOCKED_DOMAIN => [
+                '“{domain}” is not allowed.',
+            ],
+            self::KEY_MIN_OPTIONS => [
+                '{label} should contain at least {min, number} {min, plural, one{option} other{options}}.',
+                '{label} must select no less than {min}.',
+            ],
+            self::KEY_MAX_OPTIONS => [
+                '{label} should contain at most {max, number} {max, plural, one{option} other{options}}.',
+                '{label} must select no greater than {max}.',
+            ],
+            self::KEY_MAX_FILES => [
+                'Choose up to {files} files.',
+            ],
+            self::KEY_MIN_FILE_SIZE => [
+                'File must be larger than {filesize} MB.',
+            ],
+            self::KEY_MAX_FILE_SIZE => [
+                'File must be smaller than {filesize} MB.',
+                'File {filename} must be smaller than {filesize} MB.',
+            ],
+            self::KEY_INVALID => [
+                '{label} is invalid.',
+                '{label} has an invalid value.',
+            ],
+        ];
     }
 
     public static function override(Field $field, string $key): ?string
@@ -307,6 +498,42 @@ class ValidationMessagesHelper
             self::KEY_MAX_FILE_SIZE => 'Maximum File Size Error Message',
             self::KEY_INVALID => 'Invalid Error Message',
         ];
+    }
+
+    private static function _defaultsSchemaSection(string $heading, array $fields): array
+    {
+        $nodes = [
+            [
+                '$el' => 'h3',
+                'children' => $heading,
+                'attrs' => [
+                    'class' => 'formie-defaults-subsection-title',
+                ],
+            ],
+        ];
+
+        foreach ($fields as [$key, $tokens]) {
+            $nodes[] = self::_defaultsSchemaField($key, $tokens);
+        }
+
+        return $nodes;
+    }
+
+    private static function _defaultsSchemaField(string $key, array $tokens): array
+    {
+        $defaultTemplate = self::defaultTemplate($key);
+
+        return SchemaHelper::validationMessageField([
+            'messageKey' => $key,
+            'name' => 'validationMessageDefaults.' . $key,
+            'tokens' => $tokens,
+            'instructions' => $defaultTemplate
+                ? Craft::t('formie', 'Placeholders: {tokens}. Built-in default: “{template}”.', [
+                    'tokens' => implode(', ', array_map(static fn(string $token): string => '`{' . $token . '}`', $tokens)),
+                    'template' => $defaultTemplate,
+                ])
+                : self::tokenInstructions($tokens),
+        ]);
     }
 
     private static function normalizeParams(Field $field, array $params): array

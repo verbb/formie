@@ -8,6 +8,7 @@ use verbb\formie\fields\Date;
 use verbb\formie\fields\FileUpload;
 use verbb\formie\fields\MissingField;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\Notification;
 use verbb\formie\models\Settings;
@@ -25,6 +26,7 @@ class FormDefaults extends Component
     private ?array $_fieldTypeDefaultsConfig = null;
     private ?array $_formDefaultsSchemaConfig = null;
     private ?array $_notificationDefaultsSchemaConfig = null;
+    private ?array $_validationMessageDefaultsSchemaConfig = null;
     private array $_fieldTypeClassDefaultsCache = [];
 
 
@@ -37,6 +39,7 @@ class FormDefaults extends Component
         $fieldTypes = $this->getFieldTypeDefaultsConfig();
         $formDefaultsSchema = $this->getFormDefaultsSchemaConfig();
         $notificationDefaultsSchema = $this->getNotificationDefaultsSchemaConfig();
+        $validationMessageDefaultsSchema = $this->getValidationMessageDefaultsSchemaConfig();
 
         return array_merge([
             'payloadInputId' => 'formie-defaults-settings',
@@ -54,6 +57,8 @@ class FormDefaults extends Component
             'formDefaultsSchemaIndex' => $formDefaultsSchema,
             'notificationDefaultsSchema' => $notificationDefaultsSchema['schema'],
             'notificationDefaultsSchemaIndex' => $notificationDefaultsSchema,
+            'validationMessageDefaultsSchema' => $validationMessageDefaultsSchema['schema'],
+            'validationMessageDefaultsSchemaIndex' => $validationMessageDefaultsSchema,
             'fieldTypes' => $fieldTypes,
             'submissionTitleFormatVariableConfig' => $this->getSubmissionTitleFormatVariableConfig(),
         ], Variables::getFormBuilderVariableConfig());
@@ -75,6 +80,10 @@ class FormDefaults extends Component
 
         if (isset($settings['fieldDefaults']) && is_array($settings['fieldDefaults'])) {
             $settings['fieldDefaults'] = $this->normalizeFieldDefaultsForStorage($settings['fieldDefaults']);
+        }
+
+        if (isset($settings['validationMessageDefaults']) && is_array($settings['validationMessageDefaults'])) {
+            $settings['validationMessageDefaults'] = ValidationMessagesHelper::normalizeDefaultsForStorage($settings['validationMessageDefaults']);
         }
 
         return $settings;
@@ -119,6 +128,7 @@ class FormDefaults extends Component
             'fieldDefaults' => $this->getAllFieldDefaultsValues($settings, $fieldTypes),
             'notificationDefaults' => $this->prepareNotificationDefaultsForEditor($settings->getNormalizedNotificationDefaults()),
             'integrationDefaults' => $this->prepareIntegrationDefaultsForEditor($settings->getNormalizedIntegrationDefaults()),
+            'validationMessageDefaults' => $settings->validationMessageDefaults ?? [],
         ];
     }
 
@@ -273,6 +283,17 @@ class FormDefaults extends Component
         $compiledSchema = SchemaHelper::compileSchema(SchemaHelper::schemaNode($schema));
 
         return $this->_notificationDefaultsSchemaConfig = $compiledSchema;
+    }
+
+    public function getValidationMessageDefaultsSchemaConfig(): array
+    {
+        if ($this->_validationMessageDefaultsSchemaConfig !== null) {
+            return $this->_validationMessageDefaultsSchemaConfig;
+        }
+
+        $compiledSchema = SchemaHelper::compileSchema(SchemaHelper::schemaNode(ValidationMessagesHelper::defaultsSchemaNodes()));
+
+        return $this->_validationMessageDefaultsSchemaConfig = $compiledSchema;
     }
 
     public function getIntegrationCaptchaOptions(): array
@@ -601,6 +622,7 @@ class FormDefaults extends Component
             'fieldDefaults',
             'notificationDefaults',
             'integrationDefaults',
+            'validationMessageDefaults',
         ];
     }
 

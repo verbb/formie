@@ -31,3 +31,18 @@
     color: var(--gray-500, #6b7280);
     font-size: 13px;
 }
+
+.formie-defaults-subsection-title {
+    margin: 1.5rem 0 0.75rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--gray-200, #e5e7eb);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-color, #33475b);
+}
+
+.formie-defaults-subsection-title:first-child {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
+}

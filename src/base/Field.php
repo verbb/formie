@@ -665,7 +665,8 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
 
     public function getValidationMessageClientAttribute(string $key, array $params = []): ?string
     {
-        if (ValidationMessagesHelper::override($this, $key) === null) {
+        if (ValidationMessagesHelper::override($this, $key) === null
+            && ValidationMessagesHelper::pluginDefault($key) === null) {
             return null;
         }
 

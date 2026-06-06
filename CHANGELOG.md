@@ -5,6 +5,7 @@
 ### Added
 - Add failed notification alert recipients by Craft user group and additional email addresses. ([#2226](https://github.com/verbb/formie/issues/2226))
 - Add per-rule validation message overrides via a **Validation** form builder tab and the `validationMessages` field setting, with legacy `errorMessage` values migrated to `validationMessages.required`. ([#1269](https://github.com/verbb/formie/issues/1269))
+- Add plugin-wide default validation message templates under **Settings → Defaults → Field Defaults**.
 - Add `ValidationMessagesHelper` and client `data-formie-validation-{key}-message` attributes for overridden validation copy on the front end.
 - Add unique-value, match-field, text-limit, number-limit, email-format, blocked-domain, options-limit, and file-upload validation message overrides on supported field types. ([#1475](https://github.com/verbb/formie/issues/1475))
 
