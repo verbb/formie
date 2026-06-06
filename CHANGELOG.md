@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Improve notification mailer failure logging when Craft returns no transport error message, including CLI/queue context to help diagnose cron-only send failures. ([#2610](https://github.com/verbb/formie/issues/2610))
+
 ## 4.0.0-beta.3 - 2026-06-06
 
 ### Added

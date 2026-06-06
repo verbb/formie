@@ -30,6 +30,7 @@ use yii\base\Component;
 use yii\base\Exception;
 
 use Html2Text\Html2Text;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Throwable;
 
 class Emails extends Component
@@ -421,14 +422,23 @@ class Emails extends Component
             }
 
             if (!Craft::$app->getMailer()->send($newEmail)) {
+                $mailerError = $this->_formatMailerError($newEmail);
+
+                if ($mailerError === '') {
+                    $mailerError = Craft::t('formie', 'No error message was returned by the mailer. Context: {context}. Verify mail transport settings are available when the queue runs via CLI/cron.', [
+                        'context' => $this->_getMailerFailureContext(),
+                    ]);
+                }
+
                 $error = Craft::t('formie', 'Notification email “{notification}” could not be sent for submission “{submission}”. The mailer service failed to send the notification: “{e}”.', [
-                    'e' => $newEmail->error ?? '',
+                    'e' => $mailerError,
                     'notification' => $notification->name,
                     'submission' => $submission->id ?: 'new',
                 ]);
 
                 Formie::error($error);
                 Formie::error('Email payload: ' . Json::encode($this->_serializeEmail($newEmail)));
+                Formie::error('Mailer context: ' . $this->_getMailerFailureContext());
 
                 // Save the sent notification, as failed
                 if ($createSentNotification) {
@@ -700,6 +710,39 @@ class Emails extends Component
                 'contentType' => $asset->getMimeType(),
             ]);
         }
+    }
+
+    private function _formatMailerError(Message $message): string
+    {
+        $error = $message->error ?? null;
+
+        if ($error instanceof TransportExceptionInterface || $error instanceof Throwable) {
+            return $error->getMessage();
+        }
+
+        if (is_string($error)) {
+            return $error;
+        }
+
+        return '';
+    }
+
+    private function _getMailerFailureContext(): string
+    {
+        $mailer = Craft::$app->getMailer();
+        $context = [];
+
+        $context[] = Craft::$app->getRequest()->getIsConsoleRequest() ? 'CLI/queue request' : 'web request';
+
+        if ($mailer->useFileTransport) {
+            $context[] = 'file transport enabled';
+        }
+
+        if (empty($mailer->from)) {
+            $context[] = 'mailer from address not configured';
+        }
+
+        return implode('; ', $context);
     }
 
     private function _serializeEmail($email): array

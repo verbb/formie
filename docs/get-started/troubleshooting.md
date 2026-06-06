@@ -21,6 +21,17 @@ This is worth doing not just for Formie, but for all Craft installs in general. 
 
 But you can also disable queue processing altogether, so long as you understand the implications of doing so, as per the above explanation of why this is the default behaviour for Formie. Toggle the `useQueueForNotifications` [config setting](/get-started/configuration), or toggle "Use Queue for Notifications" in the control panel via Formie → Settings → Submissions.
 
+### Notification emails fail when the queue runs via cron/CLI, but work in the control panel
+Formie sends notifications through Craft's mailer, but queue jobs run in a CLI context. If your mail transport relies on environment variables, site-specific overrides, or a plugin that only bootstraps during web requests, sending can fail when `craft queue/run` (or your cron job) processes the notification.
+
+Check the Formie log for the notification failure entry. When Craft's mailer does not return a useful error message, Formie also logs a `Mailer context` line indicating whether the job ran in CLI/queue mode and whether a from address is configured.
+
+#### What to do
+1. Confirm your mail transport works from the CLI by running `php craft queue/run` manually after submitting a test form.
+2. Ensure mail settings resolve from `.env` or project config in CLI — not only from control panel session state.
+3. Temporarily disable **Use Queue for Notifications** in Formie → Settings → Submissions to confirm the issue is queue/CLI-specific.
+4. If failures persist, enable Craft's `testToEmailAddress` config setting temporarily and retry to rule out recipient parsing issues.
+
 ### Integrations are only run when visiting the control panel
 For the same reason as above for email notifications, Integrations use the queue for sending information to third-parties.
 

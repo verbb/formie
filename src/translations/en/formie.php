@@ -1532,6 +1532,7 @@ return [
   'Notification email {id} could not be sent.' => 'Notification email {id} could not be sent.',
   'Notification email “{notification}” could not be sent for submission “{submission}”. Error: {error} {file}:{line}' => 'Notification email “{notification}” could not be sent for submission “{submission}”. Error: {error} {file}:{line}',
   'Notification email “{notification}” could not be sent for submission “{submission}”. The mailer service failed to send the notification: “{e}”.' => 'Notification email “{notification}” could not be sent for submission “{submission}”. The mailer service failed to send the notification: “{e}”.',
+  'No error message was returned by the mailer. Context: {context}. Verify mail transport settings are available when the queue runs via CLI/cron.' => 'No error message was returned by the mailer. Context: {context}. Verify mail transport settings are available when the queue runs via CLI/cron.',
   'Notification email “{notification}” for submission “{submission}” was cancelled by Formie.' => 'Notification email “{notification}” for submission “{submission}” was cancelled by Formie.',
   'Notification not found.' => 'Notification not found.',
   'Notifications' => 'Notifications',
