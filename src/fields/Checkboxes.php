@@ -308,6 +308,10 @@ class Checkboxes extends OptionsField
             if ($tag && $this->limitOptions) {
                 $tag->attributes['data-formie-min-options'] = $this->min ?: null;
                 $tag->attributes['data-formie-max-options'] = $this->max ?: null;
+                $tag->attributes = array_merge(
+                    $tag->attributes,
+                    ValidationMessagesHelper::optionsLimitClientAttributes($this, true, $this->min, $this->max),
+                );
             }
 
             return $tag;

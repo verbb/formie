@@ -31,6 +31,14 @@ function getMinMaxRule(getRule: (rule: string) => unknown): { min: number | null
     };
 }
 
+function getSelectedOptionCount(field: HTMLElement): number {
+    return Array.from(field.querySelectorAll('input[type="checkbox"]')).filter((input): input is HTMLInputElement => {
+        return input instanceof HTMLInputElement && !isToggleCheckbox(input);
+    }).filter((input) => {
+        return input.checked;
+    }).length;
+}
+
 function registerValidators(form: HTMLFormElement | null): void {
     // Several checkbox/radio module instances can exist in one form, but the
     // custom validator should only be registered once per form lifecycle.
@@ -42,12 +50,7 @@ function registerValidators(form: HTMLFormElement | null): void {
                 return true;
             }
 
-            const inputs = Array.from(field.querySelectorAll('input[type="checkbox"]')).filter((input): input is HTMLInputElement => {
-                return input instanceof HTMLInputElement && !isToggleCheckbox(input);
-            });
-            const selected = inputs.filter((input) => {
-                return input.checked;
-            }).length;
+            const selected = getSelectedOptionCount(field);
             const { min, max } = getMinMaxRule(getRule);
 
             if (min !== null && selected < min) {
@@ -61,18 +64,21 @@ function registerValidators(form: HTMLFormElement | null): void {
             return true;
         },
         ({ field, label, t, getRule }) => {
-            const { min, max } = field ? getMinMaxRule(getRule) : { min: null, max: null };
-
-            if (min !== null && max !== null) {
-                return t('{label} must select between {min} and {max}.', { label, min, max });
+            if (!field) {
+                return t('{label} has an invalid value.', { label });
             }
 
-            if (min !== null) {
-                return t('{label} must select no less than {min}.', { label, min });
+            const selected = getSelectedOptionCount(field);
+            const { min, max } = getMinMaxRule(getRule);
+
+            if (min !== null && selected < min) {
+                return field.getAttribute('data-formie-validation-min-options-message')
+                    ?? t('{label} should contain at least {min, number} {min, plural, one{option} other{options}}.', { label, min });
             }
 
-            if (max !== null) {
-                return t('{label} must select no greater than {max}.', { label, max });
+            if (max !== null && selected > max) {
+                return field.getAttribute('data-formie-validation-max-options-message')
+                    ?? t('{label} should contain at most {max, number} {max, plural, one{option} other{options}}.', { label, max });
             }
 
             return t('{label} has an invalid value.', { label });

@@ -353,6 +353,8 @@ class Rendering extends Component
             '{label} must select between {min} and {max}.',
             '{label} must select no less than {min}.',
             '{label} must select no greater than {max}.',
+            '{label} should contain at least {min, number} {min, plural, one{option} other{options}}.',
+            '{label} should contain at most {max, number} {max, plural, one{option} other{options}}.',
 
             // Custom validators
             'File {filename} must be smaller than {filesize} MB.',

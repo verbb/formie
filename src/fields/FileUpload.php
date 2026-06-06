@@ -756,7 +756,7 @@ class FileUpload extends ElementField
 
         if ($key === 'fieldInput') {
             return SlotTag::make('input')
-                ->core([
+                ->core(array_merge([
                     'type' => 'file',
                     'id' => $id,
                     'name' => $this->getHtmlName('[]'),
@@ -772,9 +772,13 @@ class FileUpload extends ElementField
                     'data-formie-size-max-limit' => $sizeMaxLimit,
                     'data-formie-file-limit' => $limitFiles,
                     'data-formie-file-upload-hydrate-endpoint' => UrlHelper::actionUrl('formie/file-upload/hydrate'),
-                    'data-formie-required-message' => $this->getValidationMessageClientAttribute(ValidationMessagesHelper::KEY_REQUIRED),
                     'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
-                ])
+                ], ValidationMessagesHelper::fileUploadValidationClientAttributes(
+                    $this,
+                    (int)$limitFiles,
+                    (float)$sizeMinLimit,
+                    (float)$sizeMaxLimit,
+                )))
                 ->theme([
                     'class' => [
                         'formie-input',

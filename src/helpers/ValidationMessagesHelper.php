@@ -193,6 +193,58 @@ class ValidationMessagesHelper
         ];
     }
 
+    public static function fileUploadValidationClientAttributes(
+        Field $field,
+        int $limitFiles,
+        float $sizeMinLimit,
+        float $sizeMaxLimit,
+    ): array {
+        $attrs = self::requiredClientAttributes($field);
+
+        if ($limitFiles) {
+            $attrs[self::clientAttribute(self::KEY_MAX_FILES)] = $field->getValidationMessageClientAttribute(self::KEY_MAX_FILES, [
+                'files' => $limitFiles,
+            ]);
+        }
+
+        if ($sizeMinLimit) {
+            $attrs[self::clientAttribute(self::KEY_MIN_FILE_SIZE)] = $field->getValidationMessageClientAttribute(self::KEY_MIN_FILE_SIZE, [
+                'filesize' => $sizeMinLimit,
+            ]);
+        }
+
+        if ($sizeMaxLimit) {
+            $attrs[self::clientAttribute(self::KEY_MAX_FILE_SIZE)] = $field->getValidationMessageClientAttribute(self::KEY_MAX_FILE_SIZE, [
+                'filesize' => $sizeMaxLimit,
+            ]);
+        }
+
+        return $attrs;
+    }
+
+    public static function optionsLimitClientAttributes(Field $field, bool $limitOptions, mixed $min, mixed $max): array
+    {
+        $attrs = [];
+
+        if (!$limitOptions) {
+            return $attrs;
+        }
+
+        if ($min) {
+            $attrs[self::clientAttribute(self::KEY_MIN_OPTIONS)] = $field->getValidationMessageClientAttribute(self::KEY_MIN_OPTIONS, [
+                'min' => $min,
+            ]);
+        }
+
+        if ($max) {
+            $attrs[self::clientAttribute(self::KEY_MAX_OPTIONS)] = $field->getValidationMessageClientAttribute(self::KEY_MAX_OPTIONS, [
+                'max' => $max,
+            ]);
+        }
+
+        return $attrs;
+    }
+
     public static function interpolate(string $template, array $params): string
     {
         $search = [];

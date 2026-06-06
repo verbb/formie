@@ -239,9 +239,10 @@ function registerValidators(form: HTMLFormElement | null): void {
 
             return input.files.length <= limit;
         }, ({ input, t }) => {
-            return t('Choose up to {files} files.', {
-                files: input.getAttribute('data-formie-file-limit') || '',
-            });
+            return input.getAttribute('data-formie-validation-max-files-message')
+                ?? t('Choose up to {files} files.', {
+                    files: input.getAttribute('data-formie-file-limit') || '',
+                });
         });
 
         validator.addValidator('fileSizeMinLimit', ({ input }) => {
@@ -256,9 +257,10 @@ function registerValidators(form: HTMLFormElement | null): void {
                 return file.size >= sizeBytes;
             });
         }, ({ input, t }) => {
-            return t('File must be larger than {filesize} MB.', {
-                filesize: input.getAttribute('data-formie-size-min-limit') || '',
-            });
+            return input.getAttribute('data-formie-validation-min-file-size-message')
+                ?? t('File must be larger than {filesize} MB.', {
+                    filesize: input.getAttribute('data-formie-size-min-limit') || '',
+                });
         });
 
         validator.addValidator('fileSizeMaxLimit', ({ input }) => {
@@ -273,9 +275,10 @@ function registerValidators(form: HTMLFormElement | null): void {
                 return file.size <= sizeBytes;
             });
         }, ({ input, t }) => {
-            return t('File must be smaller than {filesize} MB.', {
-                filesize: input.getAttribute('data-formie-size-max-limit') || '',
-            });
+            return input.getAttribute('data-formie-validation-max-file-size-message')
+                ?? t('File must be smaller than {filesize} MB.', {
+                    filesize: input.getAttribute('data-formie-size-max-limit') || '',
+                });
         });
     });
 }

@@ -18,14 +18,14 @@
       "_dndkit-CBbwzmKk.js"
     ]
   },
-  "_formie-browser-DuBFRdo-.js": {
-    "file": "assets/formie-browser-DuBFRdo-.js",
+  "_formie-browser-CEeb7dzi.js": {
+    "file": "assets/formie-browser-CEeb7dzi.js",
     "name": "formie-browser",
     "imports": [
       "_rolldown-runtime-tcWNtVWY.js"
     ],
     "dynamicImports": [
-      "_formie-browser-DuBFRdo-.js"
+      "_formie-browser-CEeb7dzi.js"
     ]
   },
   "_plugin-kit-react-jLAnHZt-.js": {
@@ -161,7 +161,7 @@
     "src": "src/submissions/js/formie-submissions.js",
     "isEntry": true,
     "imports": [
-      "_formie-browser-DuBFRdo-.js"
+      "_formie-browser-CEeb7dzi.js"
     ],
     "css": [
       "submissions/css/formie-submissions.css"
