@@ -85,6 +85,8 @@ class FormSettings extends Model
     public bool $collectIp = false;
     public bool $collectUser = false;
     public ?string $cpSubmissionFieldConditions = null;
+    public bool $enableStatusRules = false;
+    public array $statusRules = [];
     public ?string $dataRetention = null;
     public ?string $dataRetentionValue = null;
     public ?string $fileUploadsAction = null;

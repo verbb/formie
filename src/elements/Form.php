@@ -2589,6 +2589,55 @@ class Form extends Element implements FormInterface
                     ];
                 }, Formie::$plugin->getStatuses()->getAllStatuses()),
             ]),
+            SchemaHelper::lightswitchField([
+                'label' => Craft::t('formie', 'Enable Status Rules'),
+                'instructions' => Craft::t('formie', 'Automatically change the submission status when conditions match. Rules are evaluated in order; the first match wins.'),
+                'name' => 'settings.enableStatusRules',
+            ]),
+            [
+                '$field' => 'list',
+                'name' => 'settings.statusRules',
+                'if' => 'settings.enableStatusRules',
+                'label' => Craft::t('formie', 'Status Rules'),
+                'instructions' => Craft::t('formie', 'Set the submission status when the following conditions match.'),
+                'schemaChildPrefix' => 'settings.statusRules.*.',
+                'schema' => [
+                    SchemaHelper::selectField([
+                        'label' => Craft::t('formie', 'Status'),
+                        'name' => 'statusId',
+                        'required' => true,
+                        'options' => array_map(function($status) {
+                            return [
+                                'value' => $status->id,
+                                'label' => $status->name,
+                                'status' => $status->color,
+                            ];
+                        }, Formie::$plugin->getStatuses()->getAllStatuses()),
+                    ]),
+                    SchemaHelper::selectField([
+                        'label' => Craft::t('formie', 'Apply When'),
+                        'instructions' => Craft::t('formie', 'Choose whether to evaluate this rule on every page submission or only when the form is fully submitted.'),
+                        'name' => 'trigger',
+                        'options' => [
+                            ['label' => Craft::t('formie', 'Final submit'), 'value' => 'finalSubmit'],
+                            ['label' => Craft::t('formie', 'Every page'), 'value' => 'everyPage'],
+                        ],
+                    ]),
+                    SchemaHelper::lightswitchField([
+                        'label' => Craft::t('formie', 'Enable Conditions'),
+                        'name' => 'enableConditions',
+                    ]),
+                    [
+                        '$field' => 'statusRuleConditions',
+                        'name' => 'conditions',
+                        'if' => 'enableConditions',
+                        'fieldOptions' => ConditionsHelper::getConditionFieldOptions([
+                            'includeSubmissionDate' => true,
+                        ]),
+                        'conditionOptions' => ConditionsHelper::getConditionOptions(),
+                    ],
+                ],
+            ],
             SchemaHelper::variableTextField([
                 'label' => Craft::t('formie', 'Submission Title Format'),
                 'instructions' => Craft::t('formie', 'Enter the format of the auto-generated submission titles. If left blank, the date/time of submission will be used.'),

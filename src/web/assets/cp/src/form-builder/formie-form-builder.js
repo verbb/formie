@@ -83,6 +83,7 @@ import { NotificationConditionsField } from '@form-builder/fields/NotificationCo
 import { FieldSelectField } from '@form-builder/fields/FieldSelectField';
 import { FieldConditionsField } from '@form-builder/fields/FieldConditionsField';
 import { NextButtonConditionsField } from '@form-builder/fields/NextButtonConditionsField';
+import { StatusRuleConditionsField } from '@form-builder/fields/StatusRuleConditionsField';
 import { NestedLayoutField } from '@form-builder/fields/NestedLayoutField';
 import { IntegrationFieldMappingField } from '@form-builder/fields/IntegrationFieldMappingField';
 import { IntegrationRefreshSelectField } from '@form-builder/fields/IntegrationRefreshSelectField';
@@ -149,6 +150,7 @@ Craft.Formie.FormBuilder = function(settings) {
         fieldSelect: FieldSelectField,
         fieldConditions: FieldConditionsField,
         nextButtonConditions: NextButtonConditionsField,
+        statusRuleConditions: StatusRuleConditionsField,
         nestedLayout: NestedLayoutField,
         integrationFieldMapping: IntegrationFieldMappingField,
         integrationRefreshSelect: IntegrationRefreshSelectField,

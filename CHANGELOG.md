@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Added
+- Add conditional submission status rules in the form builder **Settings → Submissions** tab, evaluated on the front end during submission processing. ([#508](https://github.com/verbb/formie/issues/508))
 - Add failed notification alert recipients by Craft user group and additional email addresses. ([#2226](https://github.com/verbb/formie/issues/2226))
 - Add per-rule validation message overrides via a **Validation** form builder tab and the `validationMessages` field setting, with legacy `errorMessage` values migrated to `validationMessages.required`. ([#1269](https://github.com/verbb/formie/issues/1269))
 - Add plugin-wide default validation message templates under **Settings → Defaults → Field Defaults**.

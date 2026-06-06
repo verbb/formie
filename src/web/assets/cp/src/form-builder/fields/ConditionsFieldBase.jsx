@@ -120,6 +120,7 @@ function ConditionsFieldBase({
     defaultRuleValue,
     ruleOptions,
     subjectLabel,
+    hideRuleSelector = false,
     fieldSelectionPageScope = null,
     excludeSelfInFieldOptions = false,
     referenceContext = null,
@@ -237,21 +238,25 @@ function ConditionsFieldBase({
         >
             <div className="space-y-4">
                 <div className="flex items-center gap-2 text-sm">
-                    <span>{t('I want to')}</span>
+                    {!hideRuleSelector && (
+                        <>
+                            <span>{t('I want to')}</span>
 
-                    <SelectInput
-                        size="sm"
-                        value={settings[ruleKey]}
-                        options={ruleOptions}
-                        onChange={(nextValue) => {
-                            const nextSettings = { ...settings, [ruleKey]: nextValue };
-                            setSettings(nextSettings);
-                            setValue(nextSettings);
-                            setTouched();
-                        }}
-                    />
+                            <SelectInput
+                                size="sm"
+                                value={settings[ruleKey]}
+                                options={ruleOptions}
+                                onChange={(nextValue) => {
+                                    const nextSettings = { ...settings, [ruleKey]: nextValue };
+                                    setSettings(nextSettings);
+                                    setValue(nextSettings);
+                                    setTouched();
+                                }}
+                            />
+                        </>
+                    )}
 
-                    <span>{t(subjectLabel)}</span>
+                    <span>{hideRuleSelector ? t('Apply when') : t(subjectLabel)}</span>
 
                     <SelectInput
                         size="sm"

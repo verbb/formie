@@ -13,6 +13,7 @@ enum Task: string
     case NORMALIZE_RESOLVE_PAGE_FLOW = 'normalize.resolvePageFlow';
     case NORMALIZE_CLEAR_CONDITIONALLY_HIDDEN_FIELDS = 'normalize.clearConditionallyHiddenFields';
     case NORMALIZE_ENSURE_SUBMISSION_DEFAULTS = 'normalize.ensureSubmissionDefaults';
+    case NORMALIZE_APPLY_STATUS_RULES = 'normalize.applyStatusRules';
 
     case VALIDATE_SUBMISSION = 'validate.validateSubmission';
 
