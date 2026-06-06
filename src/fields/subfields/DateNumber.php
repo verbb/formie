@@ -23,27 +23,27 @@ class DateNumber extends Number implements ChildFieldInterface
         }
 
         if ($dateValue === null || $dateValue === '') {
-            $element->addError($this->valueKey(), Craft::t('formie', '{attribute} is invalid.', ['attribute' => $this->label]));
+            $element->addError($this->valueKey(), Craft::t('formie', '{label} is invalid.', ['label' => $this->label]));
             return;
         }
 
         if ($this->_isNotNumber($dateValue)) {
-            $element->addError($this->valueKey(), Craft::t('formie', '{attribute} is invalid.', ['attribute' => $this->label]));
+            $element->addError($this->valueKey(), Craft::t('formie', '{label} is invalid.', ['label' => $this->label]));
             return;
         }
 
         $dateValue = (int)$dateValue;
 
         if (!preg_match('/^[+-]?\d+$/', StringHelper::normalizeNumber($dateValue))) {
-            $element->addError($this->valueKey(), Craft::t('formie', '{attribute} is invalid.', ['attribute' => $this->label]));
+            $element->addError($this->valueKey(), Craft::t('formie', '{label} is invalid.', ['label' => $this->label]));
         }
 
         if ($this->min && $dateValue < $this->min) {
-            $element->addError($this->valueKey(), Craft::t('formie', '{attribute} must be no less than {min}.', ['attribute' => $this->label, 'min' => $this->min]));
+            $element->addError($this->valueKey(), Craft::t('formie', '{label} must be no less than {min}.', ['label' => $this->label, 'min' => $this->min]));
         }
 
         if ($this->max && $dateValue > $this->max) {
-            $element->addError($this->valueKey(), Craft::t('formie', '{attribute} must be no greater than {max}.', ['attribute' => $this->label, 'max' => $this->max]));
+            $element->addError($this->valueKey(), Craft::t('formie', '{label} must be no greater than {max}.', ['label' => $this->label, 'max' => $this->max]));
         }
     }
 

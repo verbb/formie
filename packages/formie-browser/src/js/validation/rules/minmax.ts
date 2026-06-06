@@ -29,18 +29,18 @@ const minmax: ValidationRuleDefinition = {
         const max = input.hasAttribute('max') ? parseFloat(input.getAttribute('max') || '') : null;
 
         if (min !== null && max !== null) {
-            return t('{attribute} must be between {min} and {max}.', { attribute: label, min, max });
+            return t('{label} must be between {min} and {max}.', { label, min, max });
         }
 
         if (min !== null) {
-            return t('{attribute} must be no less than {min}.', { attribute: label, min });
+            return t('{label} must be no less than {min}.', { label, min });
         }
 
         if (max !== null) {
-            return t('{attribute} must be no greater than {max}.', { attribute: label, max });
+            return t('{label} must be no greater than {max}.', { label, max });
         }
 
-        return t('{attribute} has an invalid value.', { attribute: label });
+        return t('{label} has an invalid value.', { label });
     },
 };
 

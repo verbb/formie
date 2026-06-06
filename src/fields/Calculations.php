@@ -10,6 +10,7 @@ use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\helpers\FieldReferenceHelper;
 use verbb\formie\helpers\References;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\ClientModule;
 use verbb\formie\models\SlotTag;
@@ -222,21 +223,7 @@ class Calculations extends Field implements PreviewableFieldInterface
     public function defineFormBuilderSettingsSchema(): array
     {
         return [
-            SchemaHelper::lightswitchField([
-                'label' => Craft::t('formie', 'Required Field'),
-                'instructions' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
-                'name' => 'required',
-            ]),
-            SchemaHelper::textField([
-                'label' => Craft::t('formie', 'Error Message'),
-                'instructions' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
-                'name' => 'errorMessage',
-                'if' => 'required',
-            ]),
             SchemaHelper::includeInEmailFieldSummariesField(),
-            SchemaHelper::matchField([
-                'includedTypes' => [self::class],
-            ]),
             SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'Formatting'),
                 'instructions' => Craft::t('formie', 'Select how to format the value calculated for this field.'),
@@ -264,6 +251,18 @@ class Calculations extends Field implements PreviewableFieldInterface
                 'name' => 'decimals',
                 'if' => 'formatting == "number"',
             ]),
+        ];
+    }
+
+    public function defineFormBuilderValidationSchema(): array
+    {
+        return [
+            SchemaHelper::requiredField(),
+            SchemaHelper::requiredValidationMessage(),
+            SchemaHelper::matchField([
+                'includedTypes' => [self::class],
+            ]),
+            SchemaHelper::matchValidationMessage(),
         ];
     }
 
@@ -308,7 +307,7 @@ class Calculations extends Field implements PreviewableFieldInterface
 
         if ($key === 'fieldInput') {
             return SlotTag::make('input')
-                ->core([
+                ->core(array_merge([
                     'type' => 'text',
                     'id' => $id,
                     'name' => $this->getHtmlName(),
@@ -319,9 +318,8 @@ class Calculations extends Field implements PreviewableFieldInterface
                     'data-formie-calculation-input' => true,
                     'data-formie-input-id' => $dataId,
                     'data-formie-input-type' => 'calculation',
-                    'data-formie-required-message' => Craft::t('formie', $this->errorMessage) ?: null,
                     'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
-                ])
+                ], ValidationMessagesHelper::requiredClientAttributes($this)))
                 ->theme([
                     'class' => [
                         'formie-input',

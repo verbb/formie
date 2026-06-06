@@ -35,20 +35,24 @@ const number: ValidationRuleDefinition = {
         const max = rule !== true && rule && typeof rule === 'object' && typeof rule.max === 'number' ? rule.max : null;
 
         if (min !== null && max !== null) {
-            return t('{attribute} must be between {min} and {max}.', { attribute: label, min, max });
+            return input.getAttribute('data-formie-validation-number-min-message')
+                ?? t('{label} must be between {min} and {max}.', { label, min, max });
         }
 
         if (min !== null) {
-            return t('{attribute} must be no less than {min}.', { attribute: label, min });
+            return input.getAttribute('data-formie-validation-number-min-message')
+                ?? t('{label} must be no less than {min}.', { label, min });
         }
 
         if (max !== null) {
-            return t('{attribute} must be no greater than {max}.', { attribute: label, max });
+            return input.getAttribute('data-formie-validation-number-max-message')
+                ?? t('{label} must be no greater than {max}.', { label, max });
         }
 
-        return input.getAttribute('data-formie-pattern-number-message')
+        return input.getAttribute('data-formie-validation-number-message')
+            ?? input.getAttribute('data-formie-pattern-number-message')
             ?? input.getAttribute('data-pattern-number-message')
-            ?? t('{attribute} is not a valid number.', { attribute: label });
+            ?? t('{label} is not a valid number.', { label });
     },
 };
 

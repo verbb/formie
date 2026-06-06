@@ -99,14 +99,16 @@ function updateCpTextLimit(input) {
     if (maxChars > 0) {
         const remaining = maxChars - metrics.graphemeCount;
         const numberClass = remaining < 0 ? 'fui-limit-number fui-limit-number-error' : 'fui-limit-number';
-        target.innerHTML = `<span class="${numberClass}">${remaining}</span> ${Math.abs(remaining) === 1 ? 'character' : 'characters'} left`;
+        const count = Math.abs(remaining);
+        target.innerHTML = `<span class="${numberClass}">${remaining}</span> ${Craft.t('formie', '{count, plural, one{character left} other{characters left}}', { count })}`;
         return;
     }
 
     if (maxWords > 0) {
         const remaining = maxWords - metrics.wordCount;
         const numberClass = remaining < 0 ? 'fui-limit-number fui-limit-number-error' : 'fui-limit-number';
-        target.innerHTML = `<span class="${numberClass}">${remaining}</span> ${Math.abs(remaining) === 1 ? 'word' : 'words'} left`;
+        const count = Math.abs(remaining);
+        target.innerHTML = `<span class="${numberClass}">${remaining}</span> ${Craft.t('formie', '{count, plural, one{word left} other{words left}}', { count })}`;
     }
 }
 

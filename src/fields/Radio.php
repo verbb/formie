@@ -7,6 +7,7 @@ use verbb\formie\base\SortableFieldInterface;
 use verbb\formie\fields\values\SingleOptionFieldValue;
 use verbb\formie\fields\definitions\FieldClientModules;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\ClientModule;
@@ -122,17 +123,6 @@ class Radio extends OptionsField implements SortableFieldInterface
     public function defineFormBuilderSettingsSchema(): array
     {
         return [
-            SchemaHelper::lightswitchField([
-                'label' => Craft::t('formie', 'Required Field'),
-                'instructions' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
-                'name' => 'required',
-            ]),
-            SchemaHelper::textField([
-                'label' => Craft::t('formie', 'Error Message'),
-                'instructions' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
-                'name' => 'errorMessage',
-                'if' => 'required',
-            ]),
             SchemaHelper::prePopulate(),
             SchemaHelper::includeInEmailFieldSummariesField(),
             SchemaHelper::emailFieldSummaryValue([
@@ -141,6 +131,14 @@ class Radio extends OptionsField implements SortableFieldInterface
                     ['label' => Craft::t('formie', 'Value'), 'value' => 'value'],
                 ],
             ]),
+        ];
+    }
+
+    public function defineFormBuilderValidationSchema(): array
+    {
+        return [
+            SchemaHelper::requiredField(),
+            SchemaHelper::requiredValidationMessage(),
         ];
     }
 
@@ -272,7 +270,7 @@ class Radio extends OptionsField implements SortableFieldInterface
             $optionValue = $this->getFieldInputOptionValue($context->toArray());
 
             return SlotTag::make('input')
-                ->core([
+                ->core(array_merge([
                     'type' => 'radio',
                     'id' => $this->getHtmlId($form, $optionValue),
                     'name' => $this->getHtmlName(($this->hasMultiNamespace ? '[]' : null)),
@@ -281,8 +279,7 @@ class Radio extends OptionsField implements SortableFieldInterface
                     'data-formie-radio-input' => true,
                     'data-formie-input-id' => $this->getHtmlDataId($form, $optionValue),
                     'data-formie-input-type' => 'radio',
-                    'data-formie-required-message' => Craft::t('formie', $this->errorMessage) ?: null,
-                ])
+                ], ValidationMessagesHelper::requiredClientAttributes($this)))
                 ->theme([
                     'class' => [
                         'formie-input',

@@ -11,6 +11,7 @@ use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\fields\values\StringFieldValue;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
+use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\fields\conditions\TextFieldConditionRule;
 use verbb\formie\fields\traits\AutocompleteFieldTrait;
@@ -132,8 +133,9 @@ class SingleLineText extends Field implements SortableFieldInterface, Previewabl
         $count = StringHelper::getCharacterCount($value);
 
         if ($count < $min) {
-            $element->addError($this->valueKey(), Craft::t('formie', 'You must enter at least {limit} characters.', [
+            $element->addError($this->valueKey(), $this->getValidationMessage(ValidationMessagesHelper::KEY_MIN_CHARACTERS, [
                 'limit' => $min,
+                'min' => $min,
             ]));
         }
     }
@@ -150,8 +152,9 @@ class SingleLineText extends Field implements SortableFieldInterface, Previewabl
         $count = StringHelper::getCharacterCount($value);
 
         if ($count > $max) {
-            $element->addError($this->valueKey(), Craft::t('formie', 'Limited to {limit} characters.', [
+            $element->addError($this->valueKey(), $this->getValidationMessage(ValidationMessagesHelper::KEY_MAX_CHARACTERS, [
                 'limit' => $max,
+                'max' => $max,
             ]));
         }
     }
@@ -168,8 +171,9 @@ class SingleLineText extends Field implements SortableFieldInterface, Previewabl
         $count = StringHelper::getWordCount($value);
 
         if ($count < $min) {
-            $element->addError($this->valueKey(), Craft::t('formie', 'You must enter at least {limit} words.', [
+            $element->addError($this->valueKey(), $this->getValidationMessage(ValidationMessagesHelper::KEY_MIN_WORDS, [
                 'limit' => $min,
+                'min' => $min,
             ]));
         }
     }
@@ -186,8 +190,9 @@ class SingleLineText extends Field implements SortableFieldInterface, Previewabl
         $count = StringHelper::getWordCount($value);
 
         if ($count > $max) {
-            $element->addError($this->valueKey(), Craft::t('formie', 'Limited to {limit} words.', [
+            $element->addError($this->valueKey(), $this->getValidationMessage(ValidationMessagesHelper::KEY_MAX_WORDS, [
                 'limit' => $max,
+                'max' => $max,
             ]));
         }
     }
@@ -258,81 +263,30 @@ class SingleLineText extends Field implements SortableFieldInterface, Previewabl
     public function defineFormBuilderSettingsSchema(): array
     {
         return [
-            SchemaHelper::lightswitchField([
-                'label' => Craft::t('formie', 'Required Field'),
-                'instructions' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
-                'name' => 'required',
-            ]),
-            SchemaHelper::textField([
-                'label' => Craft::t('formie', 'Error Message'),
-                'instructions' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
-                'name' => 'errorMessage',
-                'if' => 'required',
-            ]),
-            SchemaHelper::lightswitchField([
-                'label' => Craft::t('formie', 'Limit Value'),
-                'instructions' => Craft::t('formie', 'Whether to limit the value of this field.'),
-                'name' => 'limit',
-            ]),
-            [
-                '$el' => 'div',
-                'if' => 'limit',
-                'children' => [
-                    [
-                        '$el' => 'div',
-                        'children' => [
-                            SchemaHelper::fieldWrap([
-                                'label' => Craft::t('formie', 'Min Value'),
-                                'instructions' => Craft::t('formie', 'Set a minimum value that users must enter.'),
-                                'children' => [
-                                    SchemaHelper::numberField([
-                                        'name' => 'min',
-                                    ]),
-                                    SchemaHelper::selectField([
-                                        'name' => 'minType',
-                                        'options' => [
-                                            ['label' => Craft::t('formie', 'Characters'), 'value' => 'characters'],
-                                            ['label' => Craft::t('formie', 'Words'), 'value' => 'words'],
-                                        ],
-                                    ]),
-                                ],
-                            ]),
-                        ],
-                    ],
-                    [
-                        '$el' => 'div',
-                        'children' => [
-                            SchemaHelper::fieldWrap([
-                                'label' => Craft::t('formie', 'Max Value'),
-                                'instructions' => Craft::t('formie', 'Set a maximum value that users must enter.'),
-                                'children' => [
-                                    SchemaHelper::numberField([
-                                        'name' => 'max',
-                                    ]),
-                                    SchemaHelper::selectField([
-                                        'name' => 'maxType',
-                                        'options' => [
-                                            ['label' => Craft::t('formie', 'Characters'), 'value' => 'characters'],
-                                            ['label' => Craft::t('formie', 'Words'), 'value' => 'words'],
-                                        ],
-                                    ]),
-                                ],
-                            ]),
-                        ],
-                    ],
-                ],
-            ],
-            SchemaHelper::matchField([
-                'includedTypes' => [self::class],
-            ]),
             SchemaHelper::prePopulate(),
             $this->defineAutocompleteSettingSchema(),
             SchemaHelper::includeInEmailFieldSummariesField(),
-            SchemaHelper::lightswitchField([
-                'label' => Craft::t('formie', 'Unique Value'),
-                'instructions' => Craft::t('formie', 'Whether to limit user input to unique values only. This will require that a value entered in this field does not already exist in a submission for this field and form.'),
-                'name' => 'uniqueValue',
+        ];
+    }
+
+    public function defineFormBuilderValidationSchema(): array
+    {
+        return [
+            SchemaHelper::requiredField(),
+            SchemaHelper::requiredValidationMessage(),
+            SchemaHelper::limitValueField(),
+            SchemaHelper::textLimitMinFields(),
+            SchemaHelper::minCharactersValidationMessage(),
+            SchemaHelper::minWordsValidationMessage(),
+            SchemaHelper::textLimitMaxFields(),
+            SchemaHelper::maxCharactersValidationMessage(),
+            SchemaHelper::maxWordsValidationMessage(),
+            SchemaHelper::matchField([
+                'includedTypes' => [self::class],
             ]),
+            SchemaHelper::matchValidationMessage(),
+            SchemaHelper::uniqueValueField(),
+            SchemaHelper::uniqueValidationMessage(),
         ];
     }
 
@@ -398,7 +352,7 @@ class SingleLineText extends Field implements SortableFieldInterface, Previewabl
             $value = $context->get('value');
 
             return SlotTag::make('input')
-                ->core([
+                ->core(array_merge([
                     'type' => 'text',
                     'id' => $id,
                     'name' => $this->getHtmlName(),
@@ -410,14 +364,16 @@ class SingleLineText extends Field implements SortableFieldInterface, Previewabl
                     'data-formie-input-id' => $dataId,
                     'data-formie-input-type' => 'text',
                     'data-formie-input-error-state' => $errors ? true : false,
-                    'data-formie-required-message' => Craft::t('formie', $this->errorMessage) ?: null,
-                    'data-formie-min-chars' => ($this->limit && $this->minType === 'characters' && $this->min) ? $this->min : null,
-                    'data-formie-max-chars' => ($this->limit && $this->maxType === 'characters' && $this->max) ? $this->max : null,
-                    'data-formie-min-words' => ($this->limit && $this->minType === 'words' && $this->min) ? $this->min : null,
-                    'data-formie-max-words' => ($this->limit && $this->maxType === 'words' && $this->max) ? $this->max : null,
                     'autocomplete' => $this->getAutocompleteCoreAttribute(),
                     'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
-                ])
+                ], ValidationMessagesHelper::textLimitClientAttributes(
+                    $this,
+                    (bool)$this->limit,
+                    $this->min,
+                    $this->max,
+                    $this->minType,
+                    $this->maxType,
+                )))
                 ->theme([
                     'class' => [
                         'formie-input',

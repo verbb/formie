@@ -7,6 +7,7 @@ use verbb\formie\base\SortableFieldInterface;
 use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\fields\values\NumberFieldValue;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\SlotTag;
 
@@ -182,17 +183,21 @@ class Number extends Field implements SortableFieldInterface, PreviewableFieldIn
     public function defineFormBuilderSettingsSchema(): array
     {
         return [
-            SchemaHelper::lightswitchField([
-                'label' => Craft::t('formie', 'Required Field'),
-                'instructions' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
-                'name' => 'required',
+            SchemaHelper::numberField([
+                'label' => Craft::t('formie', 'Decimal Points'),
+                'instructions' => Craft::t('formie', 'Set the number of decimal points to format the field value.'),
+                'name' => 'decimals',
             ]),
-            SchemaHelper::textField([
-                'label' => Craft::t('formie', 'Error Message'),
-                'instructions' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
-                'name' => 'errorMessage',
-                'if' => 'required',
-            ]),
+            SchemaHelper::prePopulate(),
+            SchemaHelper::includeInEmailFieldSummariesField(),
+        ];
+    }
+
+    public function defineFormBuilderValidationSchema(): array
+    {
+        return [
+            SchemaHelper::requiredField(),
+            SchemaHelper::requiredValidationMessage(),
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Limit Numbers'),
                 'instructions' => Craft::t('formie', 'Whether to limit the numbers for this field.'),
@@ -216,6 +221,12 @@ class Number extends Field implements SortableFieldInterface, PreviewableFieldIn
                                 'instructions' => Craft::t('formie', 'Set a minimum value that users must enter.'),
                                 'name' => 'min',
                             ]),
+                            SchemaHelper::validationMessageField([
+                                'messageKey' => ValidationMessagesHelper::KEY_NUMBER_MIN,
+                                'name' => 'validationMessages.numberMin',
+                                'if' => 'limit && min',
+                                'tokens' => ['label', 'min'],
+                            ]),
                         ],
                     ],
                     [
@@ -229,25 +240,27 @@ class Number extends Field implements SortableFieldInterface, PreviewableFieldIn
                                 'instructions' => Craft::t('formie', 'Set a maximum value that users must enter.'),
                                 'name' => 'max',
                             ]),
+                            SchemaHelper::validationMessageField([
+                                'messageKey' => ValidationMessagesHelper::KEY_NUMBER_MAX,
+                                'name' => 'validationMessages.numberMax',
+                                'if' => 'limit && max',
+                                'tokens' => ['label', 'max'],
+                            ]),
                         ],
                     ],
                 ],
             ],
-            SchemaHelper::numberField([
-                'label' => Craft::t('formie', 'Decimal Points'),
-                'instructions' => Craft::t('formie', 'Set the number of decimal points to format the field value.'),
-                'name' => 'decimals',
+            SchemaHelper::validationMessageField([
+                'messageKey' => ValidationMessagesHelper::KEY_NUMBER,
+                'name' => 'validationMessages.number',
+                'tokens' => ['label'],
             ]),
             SchemaHelper::matchField([
                 'includedTypes' => [self::class],
             ]),
-            SchemaHelper::prePopulate(),
-            SchemaHelper::includeInEmailFieldSummariesField(),
-            SchemaHelper::lightswitchField([
-                'label' => Craft::t('formie', 'Unique Value'),
-                'instructions' => Craft::t('formie', 'Whether to limit user input to unique values only. This will require that a value entered in this field does not already exist in a submission for this field and form.'),
-                'name' => 'uniqueValue',
-            ]),
+            SchemaHelper::matchValidationMessage(),
+            SchemaHelper::uniqueValueField(),
+            SchemaHelper::uniqueValidationMessage(),
         ];
     }
 
@@ -355,7 +368,7 @@ class Number extends Field implements SortableFieldInterface, PreviewableFieldIn
 
         if ($key === 'fieldInput') {
             return SlotTag::make('input')
-                ->core([
+                ->core(array_merge([
                     'type' => 'number',
                     'id' => $id,
                     'name' => $this->getHtmlName(),
@@ -368,9 +381,13 @@ class Number extends Field implements SortableFieldInterface, PreviewableFieldIn
                     'data-formie-input-id' => $dataId,
                     'data-formie-input-type' => 'number',
                     'data-formie-input-error-state' => $errors ? true : false,
-                    'data-formie-required-message' => Craft::t('formie', $this->errorMessage) ?: null,
                     'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
-                ])
+                ], ValidationMessagesHelper::numberValidationClientAttributes(
+                    $this,
+                    (bool)$this->limit,
+                    $this->min,
+                    $this->max,
+                )))
                 ->theme([
                     'class' => [
                         'formie-input',

@@ -19,6 +19,7 @@ class FieldConfigNormalizer
         self::_removeUnsupportedLimitConfig($config, $fieldClass);
         self::_normalizeLegacyPositions($config);
         self::_normalizeLegacyFieldConfig($config);
+        self::_normalizeValidationMessages($config);
         self::_normalizeLegacyComboboxConfig($config, $fieldClass);
         self::_removeLegacyProperties($config);
     }
@@ -81,6 +82,38 @@ class FieldConfigNormalizer
         if (array_key_exists('subfieldLabelPosition', $config)) {
             $config['subFieldLabelPosition'] = ArrayHelper::remove($config, 'subfieldLabelPosition');
         }
+    }
+
+    private static function _normalizeValidationMessages(array &$config): void
+    {
+        if (!isset($config['validationMessages']) || !is_array($config['validationMessages'])) {
+            $config['validationMessages'] = [];
+        }
+
+        $legacyRequired = trim((string)($config['errorMessage'] ?? ''));
+
+        if ($legacyRequired !== '' && empty($config['validationMessages']['required'])) {
+            $config['validationMessages']['required'] = self::_normalizeValidationMessageTokens($legacyRequired);
+        }
+
+        foreach ($config['validationMessages'] as $key => $message) {
+            if (!is_string($message) || $message === '') {
+                continue;
+            }
+
+            $config['validationMessages'][$key] = self::_normalizeValidationMessageTokens($message);
+        }
+
+        $required = trim((string)($config['validationMessages']['required'] ?? ''));
+
+        if ($required !== '') {
+            $config['errorMessage'] = $required;
+        }
+    }
+
+    private static function _normalizeValidationMessageTokens(string $message): string
+    {
+        return str_replace(['{name}', '{attribute}'], '{label}', $message);
     }
 
     private static function _normalizeLegacyComboboxConfig(array &$config, string $fieldClass): void

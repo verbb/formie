@@ -13,10 +13,10 @@ const pattern: ValidationRuleDefinition = {
     },
     message: ({ input, label, t }) => {
         const messages = {
-            email: t('{attribute} is not a valid email address.', { attribute: label }),
-            url: t('{attribute} is not a valid URL.', { attribute: label }),
-            number: t('{attribute} is not a valid number.', { attribute: label }),
-            default: t('{attribute} is not a valid format.', { attribute: label }),
+            email: t('{label} is not a valid email address.', { label }),
+            url: t('{label} is not a valid URL.', { label }),
+            number: t('{label} is not a valid number.', { label }),
+            default: t('{label} is not a valid format.', { label }),
         };
 
         return input.getAttribute(`data-formie-pattern-${input.type}-message`)

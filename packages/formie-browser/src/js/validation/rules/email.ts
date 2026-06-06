@@ -9,9 +9,10 @@ const email: ValidationRuleDefinition = {
         return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.value);
     },
     message: ({ input, label, t }) => {
-        return input.getAttribute('data-formie-pattern-email-message')
+        return input.getAttribute('data-formie-validation-email-message')
+            ?? input.getAttribute('data-formie-pattern-email-message')
             ?? input.getAttribute('data-pattern-email-message')
-            ?? t('{attribute} is not a valid email address.', { attribute: label });
+            ?? t('{label} is not a valid email address.', { label });
     },
 };
 

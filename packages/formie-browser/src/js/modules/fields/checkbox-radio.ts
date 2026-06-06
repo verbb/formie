@@ -64,18 +64,18 @@ function registerValidators(form: HTMLFormElement | null): void {
             const { min, max } = field ? getMinMaxRule(getRule) : { min: null, max: null };
 
             if (min !== null && max !== null) {
-                return t('{attribute} must select between {min} and {max}.', { attribute: label, min, max });
+                return t('{label} must select between {min} and {max}.', { label, min, max });
             }
 
             if (min !== null) {
-                return t('{attribute} must select no less than {min}.', { attribute: label, min });
+                return t('{label} must select no less than {min}.', { label, min });
             }
 
             if (max !== null) {
-                return t('{attribute} must select no greater than {max}.', { attribute: label, max });
+                return t('{label} must select no greater than {max}.', { label, max });
             }
 
-            return t('{attribute} has an invalid value.', { attribute: label });
+            return t('{label} has an invalid value.', { label });
         },
     );
     });

@@ -18,6 +18,7 @@ use verbb\formie\gql\types\input\FileUploadInputType;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\Table;
+use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\ClientModule;
 use verbb\formie\models\SlotTag;
@@ -288,7 +289,7 @@ class FileUpload extends ElementField
         $uploadedFiles = $this->_getUploadedFiles($element);
 
         if (count($uploadedFiles) > $fileLimit) {
-            $element->addError($this->valueKey(), Craft::t('formie', 'Choose up to {files} files.', [
+            $element->addError($this->valueKey(), $this->getValidationMessage(ValidationMessagesHelper::KEY_MAX_FILES, [
                 'files' => $fileLimit,
             ]));
         }
@@ -313,7 +314,7 @@ class FileUpload extends ElementField
         }
 
         if ($filenames) {
-            $element->addError($this->valueKey(), Craft::t('formie', 'File must be larger than {filesize} MB.', [
+            $element->addError($this->valueKey(), $this->getValidationMessage(ValidationMessagesHelper::KEY_MIN_FILE_SIZE, [
                 'filesize' => $this->sizeMinLimit,
             ]));
         }
@@ -338,7 +339,7 @@ class FileUpload extends ElementField
         }
 
         if ($filenames) {
-            $element->addError($this->valueKey(), Craft::t('formie', 'File must be smaller than {filesize} MB.', [
+            $element->addError($this->valueKey(), $this->getValidationMessage(ValidationMessagesHelper::KEY_MAX_FILE_SIZE, [
                 'filesize' => $this->sizeLimit,
             ]));
         }
@@ -473,63 +474,15 @@ class FileUpload extends ElementField
 
     public function defineFormBuilderSettingsSchema(): array
     {
-        $configLimit = Craft::$app->getConfig()->getGeneral()->maxUploadFileSize;
-        $phpLimit = (max((int)ini_get('post_max_size'), (int)ini_get('upload_max_filesize'))) * 1048576;
-        $maxUpload = $this->_humanFilesize(max($phpLimit, $configLimit));
         $allowPublicVolumes = Formie::$plugin->getSettings()->allowPublicVolumes;
 
         return [
-            SchemaHelper::lightswitchField([
-                'label' => Craft::t('formie', 'Required Field'),
-                'instructions' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
-                'name' => 'required',
-            ]),
-            SchemaHelper::textField([
-                'label' => Craft::t('formie', 'Error Message'),
-                'instructions' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
-                'name' => 'errorMessage',
-                'if' => 'required',
-            ]),
             SchemaHelper::includeInEmailFieldSummariesField(),
             SchemaHelper::emailFieldSummaryValue([
                 'options' => array_values(array_filter([
                     $allowPublicVolumes ? ['label' => Craft::t('formie', 'Public URL'), 'value' => 'publicUrl'] : null,
                     ['label' => Craft::t('formie', 'Control Panel URL'), 'value' => 'cpUrl'],
                 ])),
-            ]),
-            SchemaHelper::numberField([
-                'label' => Craft::t('formie', 'Limit Number of Files'),
-                'instructions' => Craft::t('formie', 'Limit the number of files a user can upload.'),
-                'name' => 'limitFiles',
-            ]),
-            SchemaHelper::fieldWrap([
-                'label' => Craft::t('formie', 'Min File Size'),
-                'instructions' => Craft::t('formie', 'Set the minimum size of the files a user can upload.'),
-                'children' => [
-                    SchemaHelper::numberField([
-                        'name' => 'sizeMinLimit',
-                    ]),
-                    [
-                        '$el' => 'span',
-                        'attrs' => ['class' => 'text-sm text-gray-300'],
-                        'children' => Craft::t('formie', 'MB'),
-                    ],
-                ],
-            ]),
-            SchemaHelper::fieldWrap([
-                'label' => Craft::t('formie', 'Max File Size'),
-                'instructions' => Craft::t('formie', 'Set the maximum size of the files a user can upload.'),
-                'warning' => Craft::t('formie', 'Maximum allowed upload size is {size}.', ['size' => $maxUpload]),
-                'children' => [
-                    SchemaHelper::numberField([
-                        'name' => 'sizeLimit',
-                    ]),
-                    [
-                        '$el' => 'span',
-                        'attrs' => ['class' => 'text-sm text-gray-300'],
-                        'children' => Craft::t('formie', 'MB'),
-                    ],
-                ],
             ]),
             SchemaHelper::variableTextField([
                 'label' => Craft::t('formie', 'Filename Format'),
@@ -557,6 +510,70 @@ class FileUpload extends ElementField
                 'name' => 'allowedKinds',
                 'options' => $this->getFileKindOptions(),
                 'if' => 'restrictFiles',
+            ]),
+        ];
+    }
+
+    public function defineFormBuilderValidationSchema(): array
+    {
+        $configLimit = Craft::$app->getConfig()->getGeneral()->maxUploadFileSize;
+        $phpLimit = (max((int)ini_get('post_max_size'), (int)ini_get('upload_max_filesize'))) * 1048576;
+        $maxUpload = $this->_humanFilesize(max($phpLimit, $configLimit));
+
+        return [
+            SchemaHelper::requiredField(),
+            SchemaHelper::requiredValidationMessage(),
+            SchemaHelper::numberField([
+                'label' => Craft::t('formie', 'Limit Number of Files'),
+                'instructions' => Craft::t('formie', 'Limit the number of files a user can upload.'),
+                'name' => 'limitFiles',
+            ]),
+            SchemaHelper::validationMessageField([
+                'messageKey' => ValidationMessagesHelper::KEY_MAX_FILES,
+                'name' => 'validationMessages.maxFiles',
+                'if' => 'limitFiles',
+                'tokens' => ['files'],
+            ]),
+            SchemaHelper::fieldWrap([
+                'label' => Craft::t('formie', 'Min File Size'),
+                'instructions' => Craft::t('formie', 'Set the minimum size of the files a user can upload.'),
+                'children' => [
+                    SchemaHelper::numberField([
+                        'name' => 'sizeMinLimit',
+                    ]),
+                    [
+                        '$el' => 'span',
+                        'attrs' => ['class' => 'text-sm text-gray-300'],
+                        'children' => Craft::t('formie', 'MB'),
+                    ],
+                ],
+            ]),
+            SchemaHelper::validationMessageField([
+                'messageKey' => ValidationMessagesHelper::KEY_MIN_FILE_SIZE,
+                'name' => 'validationMessages.minFileSize',
+                'if' => 'sizeMinLimit',
+                'tokens' => ['filesize'],
+            ]),
+            SchemaHelper::fieldWrap([
+                'label' => Craft::t('formie', 'Max File Size'),
+                'instructions' => Craft::t('formie', 'Set the maximum size of the files a user can upload.'),
+                'warning' => Craft::t('formie', 'Maximum allowed upload size is {size}.', ['size' => $maxUpload]),
+                'children' => [
+                    SchemaHelper::numberField([
+                        'name' => 'sizeLimit',
+                    ]),
+                    [
+                        '$el' => 'span',
+                        'attrs' => ['class' => 'text-sm text-gray-300'],
+                        'children' => Craft::t('formie', 'MB'),
+                    ],
+                ],
+            ]),
+            SchemaHelper::validationMessageField([
+                'messageKey' => ValidationMessagesHelper::KEY_MAX_FILE_SIZE,
+                'name' => 'validationMessages.maxFileSize',
+                'if' => 'sizeLimit',
+                'tokens' => ['filesize'],
             ]),
         ];
     }
@@ -755,7 +772,7 @@ class FileUpload extends ElementField
                     'data-formie-size-max-limit' => $sizeMaxLimit,
                     'data-formie-file-limit' => $limitFiles,
                     'data-formie-file-upload-hydrate-endpoint' => UrlHelper::actionUrl('formie/file-upload/hydrate'),
-                    'data-formie-required-message' => Craft::t('formie', $this->errorMessage) ?: null,
+                    'data-formie-required-message' => $this->getValidationMessageClientAttribute(ValidationMessagesHelper::KEY_REQUIRED),
                     'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
                 ])
                 ->theme([

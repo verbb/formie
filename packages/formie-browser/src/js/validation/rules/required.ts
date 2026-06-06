@@ -23,7 +23,7 @@ const required: ValidationRuleDefinition = {
     message: ({ input, label, t }) => {
         return input.getAttribute('data-formie-required-message')
             ?? input.getAttribute('data-required-message')
-            ?? t('{attribute} cannot be blank.', { attribute: label });
+            ?? t('{label} cannot be blank.', { label });
     },
 };
 

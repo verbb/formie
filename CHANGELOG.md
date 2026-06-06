@@ -4,6 +4,15 @@
 
 ### Added
 - Add failed notification alert recipients by Craft user group and additional email addresses. ([#2226](https://github.com/verbb/formie/issues/2226))
+- Add per-rule validation message overrides via a **Validation** form builder tab and the `validationMessages` field setting, with legacy `errorMessage` values migrated to `validationMessages.required`. ([#1269](https://github.com/verbb/formie/issues/1269))
+- Add `ValidationMessagesHelper` and client `data-formie-validation-{key}-message` attributes for overridden validation copy on the front end.
+- Add unique-value, match-field, text-limit, number-limit, email-format, blocked-domain, options-limit, and file-upload validation message overrides on supported field types. ([#1475](https://github.com/verbb/formie/issues/1475))
+
+### Changed
+- Move field validation settings from the **Settings** tab into the **Validation** tab across all field types.
+- Standardize validation message placeholders to `{label}` across PHP validators, front-end validators, and translations (legacy `{name}` / `{attribute}` aliases remain at runtime).
+- Replace text-limit counter `{startTag}{num}{endTag}` translation strings with Craft plural syntax and wire translated counter copy on the front end.
+- Extend front-end `t()` to resolve Craft-style `{param, plural, …}` and `{param, number}` message syntax.
 
 ### Fixed
 - Sanitize notification queue job debug data to valid UTF-8 before re-serializing failed jobs, preventing queue rows from becoming unreadable when submission content contains invalid byte sequences. ([#2344](https://github.com/verbb/formie/issues/2344))

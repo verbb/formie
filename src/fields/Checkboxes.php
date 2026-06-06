@@ -6,6 +6,7 @@ use verbb\formie\base\OptionsField;
 use verbb\formie\fields\values\MultiOptionFieldValue;
 use verbb\formie\fields\definitions\FieldClientModules;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\ClientModule;
@@ -111,12 +112,10 @@ class Checkboxes extends OptionsField
             $arrayValidator = new ArrayValidator([
                 'min' => $this->min ?: null,
                 'max' => $this->max ?: null,
-                'tooFew' => $this->min ? Craft::t('app', '{attribute} should contain at least {min, number} {min, plural, one{option} other{options}}.', [
-                    'attribute' => Craft::t('formie', $this->label),
+                'tooFew' => $this->min ? $this->getValidationMessage(ValidationMessagesHelper::KEY_MIN_OPTIONS, [
                     'min' => $this->min,
                 ]) : null,
-                'tooMany' => $this->max ? Craft::t('app', '{attribute} should contain at most {max, number} {max, plural, one{option} other{options}}.', [
-                    'attribute' => Craft::t('formie', $this->label),
+                'tooMany' => $this->max ? $this->getValidationMessage(ValidationMessagesHelper::KEY_MAX_OPTIONS, [
                     'max' => $this->max,
                 ]) : null,
                 'skipOnEmpty' => false,
@@ -207,48 +206,6 @@ class Checkboxes extends OptionsField
     public function defineFormBuilderSettingsSchema(): array
     {
         return [
-            SchemaHelper::lightswitchField([
-                'label' => Craft::t('formie', 'Required Field'),
-                'instructions' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
-                'name' => 'required',
-            ]),
-            SchemaHelper::textField([
-                'label' => Craft::t('formie', 'Error Message'),
-                'instructions' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
-                'name' => 'errorMessage',
-                'if' => 'required',
-            ]),
-            SchemaHelper::lightswitchField([
-                'label' => Craft::t('formie', 'Limit Options'),
-                'instructions' => Craft::t('formie', 'Whether to limit the options users can choose for this field.'),
-                'name' => 'limitOptions',
-            ]),
-            [
-                '$el' => 'div',
-                'if' => 'limitOptions',
-                'children' => [
-                    [
-                        '$el' => 'div',
-                        'children' => [
-                            SchemaHelper::numberField([
-                                'label' => Craft::t('formie', 'Min Value'),
-                                'instructions' => Craft::t('formie', 'Set the minimum options that users must select.'),
-                                'name' => 'min',
-                            ]),
-                        ],
-                    ],
-                    [
-                        '$el' => 'div',
-                        'children' => [
-                            SchemaHelper::numberField([
-                                'label' => Craft::t('formie', 'Max Value'),
-                                'instructions' => Craft::t('formie', 'Set the maximum options that users must select.'),
-                                'name' => 'max',
-                            ]),
-                        ],
-                    ],
-                ],
-            ],
             SchemaHelper::prePopulate(),
             SchemaHelper::includeInEmailFieldSummariesField(),
             SchemaHelper::emailFieldSummaryValue([
@@ -273,6 +230,19 @@ class Checkboxes extends OptionsField
                 'name' => 'toggleCheckboxLabel',
                 'if' => 'toggleCheckbox',
             ]),
+        ];
+    }
+
+    public function defineFormBuilderValidationSchema(): array
+    {
+        return [
+            SchemaHelper::requiredField(),
+            SchemaHelper::requiredValidationMessage(),
+            SchemaHelper::limitOptionsField(),
+            SchemaHelper::optionsLimitMinField(),
+            SchemaHelper::minOptionsValidationMessage(),
+            SchemaHelper::optionsLimitMaxField(),
+            SchemaHelper::maxOptionsValidationMessage(),
         ];
     }
 
@@ -415,7 +385,7 @@ class Checkboxes extends OptionsField
             $optionValue = $this->getFieldInputOptionValue($context->toArray());
 
             return SlotTag::make('input')
-                ->core([
+                ->core(array_merge([
                     'type' => 'checkbox',
                     'id' => $this->getHtmlId($form, $optionValue),
                     'name' => $this->getHtmlName('[]'),
@@ -424,8 +394,7 @@ class Checkboxes extends OptionsField
                     'data-formie-checkbox-input' => true,
                     'data-formie-input-id' => $this->getHtmlDataId($form, $optionValue),
                     'data-formie-input-type' => 'checkbox',
-                    'data-formie-required-message' => Craft::t('formie', $this->errorMessage) ?: null,
-                ])
+                ], ValidationMessagesHelper::requiredClientAttributes($this)))
                 ->theme([
                     'class' => [
                         'formie-input',

@@ -232,6 +232,11 @@ trait FieldFormBuilderTrait
                 'content' => $this->defineFormBuilderSettingsSchema(),
             ],
             [
+                'handle' => 'validation',
+                'label' => Craft::t('formie', 'Validation'),
+                'content' => $this->defineFormBuilderValidationSchema(),
+            ],
+            [
                 'handle' => 'appearance',
                 'label' => Craft::t('formie', 'Appearance'),
                 'content' => $this->defineFormBuilderAppearanceSchema(),
@@ -278,6 +283,11 @@ trait FieldFormBuilderTrait
     public function defineFormBuilderSettingsSchema(): array
     {
         return FieldCompatibility::resolveLegacySchema($this, 'defineSettingsSchema', 'defineFormBuilderSettingsSchema');
+    }
+
+    public function defineFormBuilderValidationSchema(): array
+    {
+        return FieldCompatibility::resolveLegacySchema($this, 'defineValidationSchema', 'defineFormBuilderValidationSchema');
     }
 
     public function defineFormBuilderAppearanceSchema(): array

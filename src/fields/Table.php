@@ -533,35 +533,22 @@ class Table extends Field
     public function defineFormBuilderSettingsSchema(): array
     {
         return [
-            SchemaHelper::lightswitchField([
-                'label' => Craft::t('formie', 'Required Field'),
-                'instructions' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
-                'name' => 'required',
-            ]),
-            SchemaHelper::textField([
-                'label' => Craft::t('formie', 'Error Message'),
-                'instructions' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
-                'name' => 'errorMessage',
-                'if' => 'required',
-            ]),
             SchemaHelper::includeInEmailFieldSummariesField(),
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Static'),
                 'instructions' => Craft::t('formie', 'Whether this field should disallow adding more rows, showing only the default rows.'),
                 'name' => 'static',
             ]),
-            SchemaHelper::numberField([
-                'label' => Craft::t('formie', 'Minimum instances'),
-                'instructions' => Craft::t('formie', 'The minimum required number of rows in this table that must be completed.'),
-                'name' => 'minRows',
-                'if' => 'static != true',
-            ]),
-            SchemaHelper::numberField([
-                'label' => Craft::t('formie', 'Maximum instances'),
-                'instructions' => Craft::t('formie', 'The maximum required number of rows in this table that must be completed.'),
-                'name' => 'maxRows',
-                'if' => 'static != true',
-            ]),
+        ];
+    }
+
+    public function defineFormBuilderValidationSchema(): array
+    {
+        return [
+            SchemaHelper::requiredField(),
+            SchemaHelper::requiredValidationMessage(),
+            SchemaHelper::minRowsField(['if' => 'static != true']),
+            SchemaHelper::maxRowsField(['if' => 'static != true']),
         ];
     }
 

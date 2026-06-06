@@ -16,7 +16,7 @@ const url: ValidationRuleDefinition = {
     message: ({ input, label, t }) => {
         return input.getAttribute('data-formie-pattern-url-message')
             ?? input.getAttribute('data-pattern-url-message')
-            ?? t('{attribute} is not a valid URL.', { attribute: label });
+            ?? t('{label} is not a valid URL.', { label });
     },
 };
 

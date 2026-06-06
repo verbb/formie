@@ -206,17 +206,6 @@ class Users extends ElementField
     public function defineFormBuilderSettingsSchema(): array
     {
         return [
-            SchemaHelper::lightswitchField([
-                'label' => Craft::t('formie', 'Required Field'),
-                'instructions' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
-                'name' => 'required',
-            ]),
-            SchemaHelper::textField([
-                'label' => Craft::t('formie', 'Error Message'),
-                'instructions' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
-                'name' => 'errorMessage',
-                'if' => 'required',
-            ]),
             SchemaHelper::prePopulate(),
             SchemaHelper::includeInEmailFieldSummariesField(),
             SchemaHelper::emailFieldSummaryValue(),
@@ -242,6 +231,14 @@ class Users extends ElementField
                 'name' => 'orderBy',
                 'options' => $this->getOrderByOptions(),
             ]),
+        ];
+    }
+
+    public function defineFormBuilderValidationSchema(): array
+    {
+        return [
+            SchemaHelper::requiredField(),
+            SchemaHelper::requiredValidationMessage(),
         ];
     }
 

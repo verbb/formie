@@ -11,6 +11,7 @@ use verbb\formie\fields\values\EmailFieldValue;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\SlotTag;
 
@@ -116,7 +117,7 @@ class Email extends Field implements SortableFieldInterface, PreviewableFieldInt
         }, ArrayHelper::getColumn($this->blockedDomains, 'value')));
 
         if (in_array($domain, $blockedDomains, true)) {
-            $element->addError($this->valueKey(), Craft::t('formie', '“{domain}” is not allowed.', [
+            $element->addError($this->valueKey(), $this->getValidationMessage(ValidationMessagesHelper::KEY_BLOCKED_DOMAIN, [
                 'domain' => $domain,
             ]));
         }
@@ -133,7 +134,7 @@ class Email extends Field implements SortableFieldInterface, PreviewableFieldInt
         }
 
         if ($emailDomains->isFreeDomain($domain)) {
-            $element->addError($this->valueKey(), Craft::t('formie', '“{domain}” is not allowed.', [
+            $element->addError($this->valueKey(), $this->getValidationMessage(ValidationMessagesHelper::KEY_BLOCKED_DOMAIN, [
                 'domain' => $domain,
             ]));
         }
@@ -192,26 +193,26 @@ class Email extends Field implements SortableFieldInterface, PreviewableFieldInt
     public function defineFormBuilderSettingsSchema(): array
     {
         return [
-            SchemaHelper::lightswitchField([
-                'label' => Craft::t('formie', 'Required Field'),
-                'instructions' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
-                'name' => 'required',
-            ]),
-            SchemaHelper::textField([
-                'label' => Craft::t('formie', 'Error Message'),
-                'instructions' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
-                'name' => 'errorMessage',
-                'if' => 'required',
-            ]),
+            SchemaHelper::prePopulate(),
+            SchemaHelper::includeInEmailFieldSummariesField(),
+        ];
+    }
+
+    public function defineFormBuilderValidationSchema(): array
+    {
+        return [
+            SchemaHelper::requiredField(),
+            SchemaHelper::requiredValidationMessage(),
             SchemaHelper::matchField([
                 'includedTypes' => [self::class],
             ]),
-            SchemaHelper::prePopulate(),
-            SchemaHelper::includeInEmailFieldSummariesField(),
-            SchemaHelper::lightswitchField([
-                'label' => Craft::t('formie', 'Unique Value'),
-                'instructions' => Craft::t('formie', 'Whether to limit user input to unique values only. This will require that a value entered in this field does not already exist in a submission for this field and form.'),
-                'name' => 'uniqueValue',
+            SchemaHelper::matchValidationMessage(),
+            SchemaHelper::uniqueValueField(),
+            SchemaHelper::uniqueValidationMessage(),
+            SchemaHelper::validationMessageField([
+                'messageKey' => ValidationMessagesHelper::KEY_EMAIL,
+                'name' => 'validationMessages.email',
+                'tokens' => ['label'],
             ]),
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Validate Domain (DNS)'),
@@ -235,6 +236,11 @@ class Email extends Field implements SortableFieldInterface, PreviewableFieldInt
                 'label' => Craft::t('formie', 'Block Free Email Providers'),
                 'instructions' => Craft::t('formie', 'Whether to block email addresses from free email providers like `gmail.com` or `hotmail.com`.'),
                 'name' => 'blockFreeDomains',
+            ]),
+            SchemaHelper::validationMessageField([
+                'messageKey' => ValidationMessagesHelper::KEY_BLOCKED_DOMAIN,
+                'name' => 'validationMessages.blockedDomain',
+                'tokens' => ['domain'],
             ]),
         ];
     }
@@ -286,7 +292,7 @@ class Email extends Field implements SortableFieldInterface, PreviewableFieldInt
 
         if ($key === 'fieldInput') {
             return SlotTag::make('input')
-                ->core([
+                ->core(array_merge([
                     'type' => 'email',
                     'id' => $id,
                     'name' => $this->getHtmlName(),
@@ -298,9 +304,8 @@ class Email extends Field implements SortableFieldInterface, PreviewableFieldInt
                     'data-formie-input-id' => $dataId,
                     'data-formie-input-type' => 'email',
                     'data-formie-input-error-state' => $errors ? true : false,
-                    'data-formie-required-message' => Craft::t('formie', $this->errorMessage) ?: null,
                     'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
-                ])
+                ], ValidationMessagesHelper::emailValidationClientAttributes($this)))
                 ->theme([
                     'class' => [
                         'formie-input',

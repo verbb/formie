@@ -23,6 +23,7 @@ use verbb\formie\fields\subfields\DateYear;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\ClientModule;
@@ -780,6 +781,14 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
         ];
     }
 
+    public function defineFormBuilderValidationSchema(): array
+    {
+        return [
+            SchemaHelper::requiredField(),
+            SchemaHelper::requiredValidationMessage(),
+        ];
+    }
+
     public function defineFormBuilderAppearanceSchema(): array
     {
         return [
@@ -968,7 +977,7 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
 
         if ($key === 'fieldInput' && $this->displayType === 'datePicker') {
             return SlotTag::make('input')
-                ->core([
+                ->core(array_merge([
                     'type' => 'text',
                     'id' => $id,
                     'name' => $this->getHtmlName('datetime'),
@@ -980,9 +989,8 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
                     'data-formie-input-id' => $dataId,
                     'data-formie-input-type' => 'date',
                     'data-formie-input-error-state' => $errors ? true : false,
-                    'data-formie-required-message' => Craft::t('formie', $this->errorMessage) ?: null,
                     'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
-                ])
+                ], ValidationMessagesHelper::requiredClientAttributes($this)))
                 ->theme([
                     'class' => [
                         'formie-input',

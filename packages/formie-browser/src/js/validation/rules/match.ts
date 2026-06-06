@@ -16,8 +16,8 @@ const match: ValidationRuleDefinition = {
         const sourceField = sourceInput?.closest('[data-formie-field-handle]') as HTMLElement | null;
         const sourceLabel = getLabelText(sourceField);
 
-        return ctx.t('{name} must match {value}.', {
-            name: ctx.label,
+        return ctx.t('{label} must match {value}.', {
+            label: ctx.label,
             value: sourceLabel,
         });
     },

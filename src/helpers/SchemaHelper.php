@@ -775,6 +775,234 @@ class SchemaHelper
         ], $config));
     }
 
+    public static function validationMessageField(array $config = []): array
+    {
+        $tokens = $config['tokens'] ?? ValidationMessagesHelper::allowedTokens();
+        $messageKey = ArrayHelper::remove($config, 'messageKey');
+        unset($config['tokens']);
+
+        $label = $config['label'] ?? null;
+
+        if ($label === null && is_string($messageKey) && $messageKey !== '') {
+            $label = ValidationMessagesHelper::builderLabel($messageKey);
+        }
+
+        if ($label === null) {
+            $label = Craft::t('formie', 'Error Message');
+        }
+
+        return self::textField(array_merge([
+            'label' => $label,
+            'instructions' => ValidationMessagesHelper::tokenInstructions($tokens),
+        ], $config));
+    }
+
+    public static function requiredField(array $config = []): array
+    {
+        return self::lightswitchField(array_merge([
+            'label' => Craft::t('formie', 'Required Field'),
+            'instructions' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
+            'name' => 'required',
+        ], $config));
+    }
+
+    public static function requiredValidationMessage(array $config = []): array
+    {
+        return self::validationMessageField(array_merge([
+            'messageKey' => ValidationMessagesHelper::KEY_REQUIRED,
+            'name' => 'validationMessages.required',
+            'if' => 'required',
+            'tokens' => ['label'],
+        ], $config));
+    }
+
+    public static function uniqueValueField(array $config = []): array
+    {
+        return self::lightswitchField(array_merge([
+            'label' => Craft::t('formie', 'Unique Value'),
+            'instructions' => Craft::t('formie', 'Whether to limit user input to unique values only. This will require that a value entered in this field does not already exist in a submission for this field and form.'),
+            'name' => 'uniqueValue',
+        ], $config));
+    }
+
+    public static function uniqueValidationMessage(array $config = []): array
+    {
+        return self::validationMessageField(array_merge([
+            'messageKey' => ValidationMessagesHelper::KEY_UNIQUE,
+            'name' => 'validationMessages.unique',
+            'if' => 'uniqueValue',
+            'tokens' => ['label'],
+        ], $config));
+    }
+
+    public static function matchValidationMessage(array $config = []): array
+    {
+        return self::validationMessageField(array_merge([
+            'messageKey' => ValidationMessagesHelper::KEY_MATCH,
+            'name' => 'validationMessages.match',
+            'if' => 'matchField',
+            'tokens' => ['label', 'value'],
+        ], $config));
+    }
+
+    public static function limitValueField(array $config = []): array
+    {
+        return self::lightswitchField(array_merge([
+            'label' => Craft::t('formie', 'Limit Value'),
+            'instructions' => Craft::t('formie', 'Whether to limit the value of this field.'),
+            'name' => 'limit',
+        ], $config));
+    }
+
+    public static function textLimitMinFields(array $config = []): array
+    {
+        return self::fieldWrap(array_merge([
+            'label' => Craft::t('formie', 'Min Value'),
+            'instructions' => Craft::t('formie', 'Set a minimum value that users must enter.'),
+            'if' => 'limit',
+            'children' => [
+                self::numberField([
+                    'name' => 'min',
+                ]),
+                self::selectField([
+                    'name' => 'minType',
+                    'options' => [
+                        ['label' => Craft::t('formie', 'Characters'), 'value' => 'characters'],
+                        ['label' => Craft::t('formie', 'Words'), 'value' => 'words'],
+                    ],
+                ]),
+            ],
+        ], $config));
+    }
+
+    public static function textLimitMaxFields(array $config = []): array
+    {
+        return self::fieldWrap(array_merge([
+            'label' => Craft::t('formie', 'Max Value'),
+            'instructions' => Craft::t('formie', 'Set a maximum value that users must enter.'),
+            'if' => 'limit',
+            'children' => [
+                self::numberField([
+                    'name' => 'max',
+                ]),
+                self::selectField([
+                    'name' => 'maxType',
+                    'options' => [
+                        ['label' => Craft::t('formie', 'Characters'), 'value' => 'characters'],
+                        ['label' => Craft::t('formie', 'Words'), 'value' => 'words'],
+                    ],
+                ]),
+            ],
+        ], $config));
+    }
+
+    public static function minCharactersValidationMessage(array $config = []): array
+    {
+        return self::validationMessageField(array_merge([
+            'messageKey' => ValidationMessagesHelper::KEY_MIN_CHARACTERS,
+            'name' => 'validationMessages.minCharacters',
+            'if' => 'limit && min && minType == "characters"',
+            'tokens' => ['label', 'limit', 'min'],
+        ], $config));
+    }
+
+    public static function minWordsValidationMessage(array $config = []): array
+    {
+        return self::validationMessageField(array_merge([
+            'messageKey' => ValidationMessagesHelper::KEY_MIN_WORDS,
+            'name' => 'validationMessages.minWords',
+            'if' => 'limit && min && minType == "words"',
+            'tokens' => ['label', 'limit', 'min'],
+        ], $config));
+    }
+
+    public static function maxCharactersValidationMessage(array $config = []): array
+    {
+        return self::validationMessageField(array_merge([
+            'messageKey' => ValidationMessagesHelper::KEY_MAX_CHARACTERS,
+            'name' => 'validationMessages.maxCharacters',
+            'if' => 'limit && max && maxType == "characters"',
+            'tokens' => ['label', 'limit', 'max'],
+        ], $config));
+    }
+
+    public static function maxWordsValidationMessage(array $config = []): array
+    {
+        return self::validationMessageField(array_merge([
+            'messageKey' => ValidationMessagesHelper::KEY_MAX_WORDS,
+            'name' => 'validationMessages.maxWords',
+            'if' => 'limit && max && maxType == "words"',
+            'tokens' => ['label', 'limit', 'max'],
+        ], $config));
+    }
+
+    public static function limitOptionsField(array $config = []): array
+    {
+        return self::lightswitchField(array_merge([
+            'label' => Craft::t('formie', 'Limit Options'),
+            'instructions' => Craft::t('formie', 'Whether to limit the options users can choose for this field.'),
+            'name' => 'limitOptions',
+        ], $config));
+    }
+
+    public static function optionsLimitMinField(array $config = []): array
+    {
+        return self::numberField(array_merge([
+            'label' => Craft::t('formie', 'Min Value'),
+            'instructions' => Craft::t('formie', 'Set the minimum options that users must select.'),
+            'name' => 'min',
+            'if' => 'limitOptions',
+        ], $config));
+    }
+
+    public static function optionsLimitMaxField(array $config = []): array
+    {
+        return self::numberField(array_merge([
+            'label' => Craft::t('formie', 'Max Value'),
+            'instructions' => Craft::t('formie', 'Set the maximum options that users must select.'),
+            'name' => 'max',
+            'if' => 'limitOptions',
+        ], $config));
+    }
+
+    public static function minOptionsValidationMessage(array $config = []): array
+    {
+        return self::validationMessageField(array_merge([
+            'messageKey' => ValidationMessagesHelper::KEY_MIN_OPTIONS,
+            'name' => 'validationMessages.minOptions',
+            'if' => 'limitOptions && min',
+            'tokens' => ['label', 'min'],
+        ], $config));
+    }
+
+    public static function maxOptionsValidationMessage(array $config = []): array
+    {
+        return self::validationMessageField(array_merge([
+            'messageKey' => ValidationMessagesHelper::KEY_MAX_OPTIONS,
+            'name' => 'validationMessages.maxOptions',
+            'if' => 'limitOptions && max',
+            'tokens' => ['label', 'max'],
+        ], $config));
+    }
+
+    public static function minRowsField(array $config = []): array
+    {
+        return self::numberField(array_merge([
+            'label' => Craft::t('formie', 'Minimum instances'),
+            'instructions' => Craft::t('formie', 'The minimum required number of rows that must be completed.'),
+            'name' => 'minRows',
+        ], $config));
+    }
+
+    public static function maxRowsField(array $config = []): array
+    {
+        return self::numberField(array_merge([
+            'label' => Craft::t('formie', 'Maximum instances'),
+            'instructions' => Craft::t('formie', 'The maximum required number of rows that must be completed.'),
+            'name' => 'maxRows',
+        ], $config));
+    }
+
     public static function nestedFieldsConfigurationField(array $config = [], array $childConfig = []): array
     {
         return array_merge([

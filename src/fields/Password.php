@@ -9,6 +9,7 @@ use verbb\formie\base\SortableFieldInterface;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\values\StringFieldValue;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\models\SlotTag;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Notification;
@@ -104,22 +105,20 @@ class Password extends Field implements SortableFieldInterface, PreviewableField
     public function defineFormBuilderSettingsSchema(): array
     {
         return [
-            SchemaHelper::lightswitchField([
-                'label' => Craft::t('formie', 'Required Field'),
-                'instructions' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
-                'name' => 'required',
-            ]),
-            SchemaHelper::textField([
-                'label' => Craft::t('formie', 'Error Message'),
-                'instructions' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
-                'name' => 'errorMessage',
-                'if' => 'required',
-            ]),
+            SchemaHelper::prePopulate(),
+            SchemaHelper::includeInEmailFieldSummariesField(),
+        ];
+    }
+
+    public function defineFormBuilderValidationSchema(): array
+    {
+        return [
+            SchemaHelper::requiredField(),
+            SchemaHelper::requiredValidationMessage(),
             SchemaHelper::matchField([
                 'includedTypes' => [self::class],
             ]),
-            SchemaHelper::prePopulate(),
-            SchemaHelper::includeInEmailFieldSummariesField(),
+            SchemaHelper::matchValidationMessage(),
         ];
     }
 
@@ -172,7 +171,7 @@ class Password extends Field implements SortableFieldInterface, PreviewableField
 
         if ($key === 'fieldInput') {
             return SlotTag::make('input')
-                ->core([
+                ->core(array_merge([
                     'type' => 'password',
                     'id' => $id,
                     'name' => $this->getHtmlName(),
@@ -184,9 +183,8 @@ class Password extends Field implements SortableFieldInterface, PreviewableField
                     'data-formie-input-id' => $dataId,
                     'data-formie-input-type' => 'password',
                     'data-formie-input-error-state' => $errors ? true : false,
-                    'data-formie-required-message' => Craft::t('formie', $this->errorMessage) ?: null,
                     'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
-                ])
+                ], ValidationMessagesHelper::requiredClientAttributes($this)))
                 ->theme([
                     'class' => [
                         'formie-input',

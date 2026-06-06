@@ -29,7 +29,7 @@ class DateDropdown extends Dropdown implements ChildFieldInterface
         $valueToValidate = $value instanceof OptionValue ? $value->value : $value;
 
         if ($valueToValidate === null || $valueToValidate === '' || !in_array((string)$valueToValidate, $range, true)) {
-            $element->addError($this->valueKey(), Craft::t('formie', '{attribute} is invalid.', ['attribute' => $this->label]));
+            $element->addError($this->valueKey(), Craft::t('formie', '{label} is invalid.', ['label' => $this->label]));
         }
     }
 

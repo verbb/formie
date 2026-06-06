@@ -24,6 +24,7 @@ use verbb\formie\helpers\Table;
 use verbb\formie\helpers\References;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\ValidationHelper;
+use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\models\FieldLayout as FormLayout;
 use verbb\formie\models\Settings;
 use verbb\formie\models\Status;
@@ -1311,7 +1312,21 @@ class Submission extends Element
                     continue;
                 }
 
-                ValidationHelper::validateField($this, $field, $this->getFieldValue($field->handle), $attribute, $field->errorMessage);
+                $requiredMessage = null;
+
+                if (ValidationMessagesHelper::override($field, ValidationMessagesHelper::KEY_REQUIRED) !== null) {
+                    $requiredMessage = $field->getValidationMessage(ValidationMessagesHelper::KEY_REQUIRED);
+                } elseif ($field->errorMessage) {
+                    $requiredMessage = Craft::t('formie', $field->errorMessage);
+                }
+
+                ValidationHelper::validateField(
+                    $this,
+                    $field,
+                    $this->getFieldValue($field->handle),
+                    $attribute,
+                    $requiredMessage
+                );
             }
         }
 

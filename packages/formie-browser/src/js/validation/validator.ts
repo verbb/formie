@@ -402,7 +402,7 @@ export class FormieValidator {
 
     getErrorMessage(input: ValidationInput, validatorName: string, validator: ValidatorDefinition, opts: ValidationContext): string {
         const errorMessage = typeof validator.errorMessage === 'function' ? validator.errorMessage(opts) : validator.errorMessage;
-        return errorMessage ?? t('{attribute} is invalid.', { attribute: opts.label });
+        return errorMessage ?? t('{label} is invalid.', { label: opts.label });
     }
 
     getErrors(): ValidationError[] {

@@ -23,6 +23,7 @@ use verbb\formie\helpers\References;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
+use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\FieldLayout;
 use verbb\formie\models\FieldLayoutPage;
@@ -343,6 +344,7 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
     public mixed $defaultValue = null;
     public ?string $prePopulate = null;
     public ?string $errorMessage = null;
+    public array $validationMessages = [];
     public ?string $labelPosition = null;
     public ?string $instructionsPosition = null;
     public ?string $cssClasses = null;
@@ -394,6 +396,7 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
         $names[] = 'defaultValue';
         $names[] = 'prePopulate';
         $names[] = 'errorMessage';
+        $names[] = 'validationMessages';
         $names[] = 'labelPosition';
         $names[] = 'instructionsPosition';
         $names[] = 'cssClasses';
@@ -653,6 +656,20 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
         return $resolvedMatchField?->handle ?? null;
     }
 
+    public function getValidationMessage(string $key, array $params = []): string
+    {
+        return ValidationMessagesHelper::resolve($this, $key, $params);
+    }
+
+    public function getValidationMessageClientAttribute(string $key, array $params = []): ?string
+    {
+        if (ValidationMessagesHelper::override($this, $key) === null) {
+            return null;
+        }
+
+        return $this->getValidationMessage($key, $params);
+    }
+
     public function getElementValidationRules(): array
     {
         $rules = [];
@@ -678,8 +695,7 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
         if ($sourceValue !== $value) {
             $sourceField = $element->getFieldByHandle($fieldHandle);
 
-            $element->addError($this->valueKey(), Craft::t('formie', '{name} must match {value}.', [
-                'name' => $this->label,
+            $element->addError($this->valueKey(), $this->getValidationMessage(ValidationMessagesHelper::KEY_MATCH, [
                 'value' => $sourceField->label ?? '',
             ]));
         }
@@ -716,9 +732,7 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
         $valueExists = $event->query->exists();
 
         if ($valueExists) {
-            $element->addError($this->valueKey(), Craft::t('formie', '“{name}” must be unique.', [
-                'name' => $this->label,
-            ]));
+            $element->addError($this->valueKey(), $this->getValidationMessage(ValidationMessagesHelper::KEY_UNIQUE));
         }
     }
 
@@ -1110,6 +1124,7 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
 
         $rules[] = [['label', 'handle'], 'required'];
         $rules[] = [['placeholder', 'errorMessage', 'cssClasses'], 'string', 'max' => 255];
+        $rules[] = [['validationMessages'], 'safe'];
         $rules[] = [['handle'], HandleValidator::class, 'reservedWords' => Formie::$plugin->getFields()->getReservedHandles()];
         $rules[] = [['handle'], 'string', 'max' => 64];
         $rules[] = [['reference'], 'string', 'max' => 36];

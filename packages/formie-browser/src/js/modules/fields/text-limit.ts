@@ -5,6 +5,7 @@ import { getTextLimitMetrics } from '@verbb/formie-core';
 import type { FormieModuleDefinition } from '#contracts/modules';
 import { getModuleFieldTarget, releaseFormValidators, retainFormValidators } from '#modules/fields/shared';
 import { ensureModuleStyles } from '#modules/styles';
+import { t } from '#utils/i18n';
 
 const INPUT_SELECTOR = 'input[data-formie-single-line-text-input], textarea[data-formie-multi-line-text-input]';
 const TEXT_LIMIT_VALIDATORS = [
@@ -15,6 +16,8 @@ const TEXT_LIMIT_VALIDATORS = [
 ] as const;
 const VALIDATOR_SCOPE = 'text-limit';
 const ALLOW_OVERTYPE_ATTR = 'data-formie-text-limit-allow-overtype';
+const TEXT_LIMIT_CHARACTERS_LEFT = '{count, plural, one{character left} other{characters left}}';
+const TEXT_LIMIT_WORDS_LEFT = '{count, plural, one{word left} other{words left}}';
 const limitTargetCache = new WeakMap<HTMLInputElement | HTMLTextAreaElement, HTMLElement | null>();
 
 ensureModuleStyles('text-limit', [textLimitCss]);
@@ -69,10 +72,11 @@ function registerValidators(form: HTMLFormElement | null): void {
 
             return getTextLimitMetrics(input.value).graphemeCount >= limit;
         }, ({ label, input, t }) => {
-            return t('{attribute} must be no less than {min} characters.', {
-                attribute: label,
-                min: input.getAttribute('data-formie-min-chars') || '',
-            });
+            return input.getAttribute('data-formie-validation-min-characters-message')
+                || t('{label} must be no less than {min} characters.', {
+                    label,
+                    min: input.getAttribute('data-formie-min-chars') || '',
+                });
         });
 
         validator.addValidator('textMaxCharacterLimit', ({ input }) => {
@@ -92,10 +96,11 @@ function registerValidators(form: HTMLFormElement | null): void {
 
             return getTextLimitMetrics(input.value).graphemeCount <= limit;
         }, ({ label, input, t }) => {
-            return t('{attribute} must be no greater than {max} characters.', {
-                attribute: label,
-                max: input.getAttribute('data-formie-max-chars') || '',
-            });
+            return input.getAttribute('data-formie-validation-max-characters-message')
+                || t('{label} must be no greater than {max} characters.', {
+                    label,
+                    max: input.getAttribute('data-formie-max-chars') || '',
+                });
         });
 
         validator.addValidator('textMinWordLimit', ({ input }) => {
@@ -111,10 +116,11 @@ function registerValidators(form: HTMLFormElement | null): void {
 
             return getTextLimitMetrics(input.value).wordCount >= limit;
         }, ({ label, input, t }) => {
-            return t('{attribute} must be no less than {min} words.', {
-                attribute: label,
-                min: input.getAttribute('data-formie-min-words') || '',
-            });
+            return input.getAttribute('data-formie-validation-min-words-message')
+                || t('{label} must be no less than {min} words.', {
+                    label,
+                    min: input.getAttribute('data-formie-min-words') || '',
+                });
         });
 
         validator.addValidator('textMaxWordLimit', ({ input }) => {
@@ -134,10 +140,11 @@ function registerValidators(form: HTMLFormElement | null): void {
 
             return getTextLimitMetrics(input.value).wordCount <= limit;
         }, ({ label, input, t }) => {
-            return t('{attribute} must be no greater than {max} words.', {
-                attribute: label,
-                max: input.getAttribute('data-formie-max-words') || '',
-            });
+            return input.getAttribute('data-formie-validation-max-words-message')
+                || t('{label} must be no greater than {max} words.', {
+                    label,
+                    max: input.getAttribute('data-formie-max-words') || '',
+                });
         });
     });
 }
@@ -186,10 +193,11 @@ function renderCounter(target: HTMLElement, remaining: number, unit: 'character'
     const number = document.createElement('span');
     number.className = remaining < 0 ? 'formie-limit-number formie-limit-number-error' : 'formie-limit-number';
     number.textContent = String(remaining);
+    const messageKey = unit === 'character' ? TEXT_LIMIT_CHARACTERS_LEFT : TEXT_LIMIT_WORDS_LEFT;
 
     target.replaceChildren(
         number,
-        document.createTextNode(` ${Math.abs(remaining) === 1 ? unit : `${unit}s`} left`)
+        document.createTextNode(` ${t(messageKey, { count: Math.abs(remaining) })}`)
     );
 }
 

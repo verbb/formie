@@ -13,6 +13,7 @@ use verbb\formie\fields\definitions\FieldValueClass;
 use verbb\formie\gql\types\generators\CountryOptionGenerator;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\fields\values\PhoneFieldValue;
@@ -294,19 +295,16 @@ class Phone extends Field implements SortableFieldInterface, PreviewableFieldInt
     public function defineFormBuilderSettingsSchema(): array
     {
         return [
-            SchemaHelper::lightswitchField([
-                'label' => Craft::t('formie', 'Required Field'),
-                'instructions' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
-                'name' => 'required',
-            ]),
-            SchemaHelper::textField([
-                'label' => Craft::t('formie', 'Error Message'),
-                'instructions' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
-                'name' => 'errorMessage',
-                'if' => 'required',
-            ]),
             SchemaHelper::prePopulate(),
             SchemaHelper::includeInEmailFieldSummariesField(),
+        ];
+    }
+
+    public function defineFormBuilderValidationSchema(): array
+    {
+        return [
+            SchemaHelper::requiredField(),
+            SchemaHelper::requiredValidationMessage(),
         ];
     }
 
@@ -357,7 +355,7 @@ class Phone extends Field implements SortableFieldInterface, PreviewableFieldInt
             $dataId = $this->getHtmlDataId($form, 'number');
 
             return SlotTag::make('input')
-                ->core([
+                ->core(array_merge([
                     'type' => 'tel',
                     'id' => $id,
                     'name' => $this->getHtmlName('number'),
@@ -369,9 +367,8 @@ class Phone extends Field implements SortableFieldInterface, PreviewableFieldInt
                     'data-formie-input-id' => $dataId,
                     'data-formie-input-type' => 'tel',
                     'data-formie-input-error-state' => $errors ? true : false,
-                    'data-formie-required-message' => Craft::t('formie', $this->errorMessage) ?: null,
                     'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
-                ])
+                ], ValidationMessagesHelper::requiredClientAttributes($this)))
                 ->theme([
                     'class' => [
                         'formie-input',

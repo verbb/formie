@@ -194,16 +194,14 @@ class Repeater extends RepeatableParentField
     {
         return [
             SchemaHelper::includeInEmailFieldSummariesField(),
-            SchemaHelper::numberField([
-                'label' => Craft::t('formie', 'Minimum instances'),
-                'instructions' => Craft::t('formie', 'The minimum required number of instances of this repeater‘s fields that must be completed.'),
-                'name' => 'minRows',
-            ]),
-            SchemaHelper::numberField([
-                'label' => Craft::t('formie', 'Maximum instances'),
-                'instructions' => Craft::t('formie', 'The maximum required number of instances of this repeater‘s fields that must be completed.'),
-                'name' => 'maxRows',
-            ]),
+        ];
+    }
+
+    public function defineFormBuilderValidationSchema(): array
+    {
+        return [
+            SchemaHelper::minRowsField(),
+            SchemaHelper::maxRowsField(),
         ];
     }
 

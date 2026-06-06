@@ -10,6 +10,7 @@ use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\fields\values\BooleanFieldValue;
 use verbb\formie\helpers\RichTextHelper;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\SlotTag;
 use verbb\formie\models\IntegrationField;
@@ -231,19 +232,16 @@ class Agree extends Field implements SortableFieldInterface, PreviewableFieldInt
     public function defineFormBuilderSettingsSchema(): array
     {
         return [
-            SchemaHelper::lightswitchField([
-                'label' => Craft::t('formie', 'Required Field'),
-                'instructions' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
-                'name' => 'required',
-            ]),
-            SchemaHelper::textField([
-                'label' => Craft::t('formie', 'Error Message'),
-                'instructions' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
-                'name' => 'errorMessage',
-                'if' => 'required',
-            ]),
             SchemaHelper::prePopulate(),
             SchemaHelper::includeInEmailFieldSummariesField(),
+        ];
+    }
+
+    public function defineFormBuilderValidationSchema(): array
+    {
+        return [
+            SchemaHelper::requiredField(),
+            SchemaHelper::requiredValidationMessage(),
         ];
     }
 
@@ -361,7 +359,7 @@ class Agree extends Field implements SortableFieldInterface, PreviewableFieldInt
 
         if ($key === 'fieldInput') {
             return SlotTag::make('input')
-                ->core([
+                ->core(array_merge([
                     'type' => 'checkbox',
                     'id' => $id,
                     'name' => $this->getHtmlName(),
@@ -371,8 +369,7 @@ class Agree extends Field implements SortableFieldInterface, PreviewableFieldInt
                     'data-formie-agree-input' => true,
                     'data-formie-input-id' => $this->getHtmlDataId($form),
                     'data-formie-input-type' => 'agree',
-                    'data-formie-required-message' => Craft::t('formie', $this->errorMessage) ?: null,
-                ])
+                ], ValidationMessagesHelper::requiredClientAttributes($this)))
                 ->theme([
                     'class' => [
                         'formie-input',

@@ -3075,8 +3075,8 @@ class Form extends Element implements FormInterface
                 }
 
                 if ($query->exists()) {
-                    $error = Craft::t('formie', '{attribute} "{value}" has already been taken.', [
-                        'attribute' => $this->getAttributeLabel($attribute),
+                    $error = Craft::t('formie', '{label} "{value}" has already been taken.', [
+                        'label' => $this->getAttributeLabel($attribute),
                         'value' => $this->$attribute,
                     ]);
 
