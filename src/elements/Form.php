@@ -23,6 +23,7 @@ use verbb\formie\helpers\ConditionsHelper;
 use verbb\formie\helpers\HandleHelper;
 use verbb\formie\helpers\Html;
 use verbb\formie\helpers\References;
+use verbb\formie\helpers\SubmissionRedirectRulesHelper;
 use verbb\formie\helpers\RichTextHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
@@ -1348,6 +1349,8 @@ class Form extends Element implements FormInterface
     {
         $request = Craft::$app->getRequest();
         $url = '';
+        $submission = $this->getCurrentSubmission();
+        $matchedRedirectRule = null;
 
         // We don't want to show the redirect URL on unfinished multi-page forms, so check first
         if ($this->settings->submitMethod == 'page-reload') {
@@ -1364,18 +1367,25 @@ class Form extends Element implements FormInterface
         // Allow settings to statically set the redirect URL (from templates)
         if ($this->settings->redirectUrl) {
             $url = $this->settings->redirectUrl;
-        } else if ($this->settings->submitAction == 'entry' && $this->getRedirectEntry()) {
-            $url = $this->getRedirectEntry()->url;
-        } else if ($this->settings->submitAction == 'url' && $this->settings->submitActionUrl) {
-            $url = $this->settings->submitActionUrl;
+        } else {
+            if ($this->settings->enableRedirectRules && $submission instanceof Submission) {
+                $matchedRedirectRule = SubmissionRedirectRulesHelper::getMatchedRule($this, $submission);
+                $url = SubmissionRedirectRulesHelper::resolveMatchedRuleUrl($this, $submission, $includeQueryString) ?? '';
+            }
 
-            if (($submission = $this->getCurrentSubmission()) && is_string($url)) {
-                $url = References::parseContent($url, $submission);
+            if (!$url && $this->settings->submitAction == 'entry' && $this->getRedirectEntry()) {
+                $url = $this->getRedirectEntry()->url;
+            } else if (!$url && $this->settings->submitAction == 'url' && $this->settings->submitActionUrl) {
+                $url = $this->settings->submitActionUrl;
+
+                if ($submission instanceof Submission && is_string($url)) {
+                    $url = References::parseContent($url, $submission);
+                }
             }
         }
 
         // Add any query params to the URL automatically (think utm)
-        if ($url && $request->getIsSiteRequest() && $includeQueryString) {
+        if ($url && !$matchedRedirectRule && $request->getIsSiteRequest() && $includeQueryString) {
             // But only add query strings if they don't override any set for the redirect URL already
             // For example, the request URL might be `submissionId=12` but the redirect is `submissionId={id}`
             // we wouldn't want to overwrite the latter with the former. Specifically set URLs take precedence.
@@ -2338,6 +2348,32 @@ class Form extends Element implements FormInterface
                 'if' => 'settings.submitAction == "reset"',
                 'children' => Craft::t('formie', 'This will clear the form of values, and showing no success message.'),
             ],
+            SchemaHelper::lightswitchField([
+                'label' => Craft::t('formie', 'Enable Redirect Rules'),
+                'instructions' => Craft::t('formie', 'Override the action on submit when matching redirect rules apply. Rules are evaluated in order; the first match wins.'),
+                'name' => 'settings.enableRedirectRules',
+            ]),
+            [
+                '$field' => 'redirectRules',
+                'name' => 'settings.redirectRules',
+                'if' => 'settings.enableRedirectRules',
+                'label' => Craft::t('formie', 'Redirect Rules'),
+                'instructions' => Craft::t('formie', 'Configure redirect targets to apply when conditions match.'),
+                'fieldOptions' => ConditionsHelper::getConditionFieldOptions([
+                    'includeSubmissionDate' => true,
+                ]),
+                'conditionOptions' => ConditionsHelper::getConditionOptions(),
+            ],
+            SchemaHelper::selectField([
+                'label' => Craft::t('formie', 'Redirect Option'),
+                'instructions' => Craft::t('formie', 'How to redirect the user when a redirect rule matches, whether in the same tab, or a new tab.'),
+                'name' => 'settings.submitActionTab',
+                'if' => 'settings.enableRedirectRules && settings.submitAction != "url" && settings.submitAction != "entry"',
+                'options' => [
+                    ['label' => Craft::t('formie', 'Redirect on the same tab'), 'value' => 'same-tab'],
+                    ['label' => Craft::t('formie', 'Redirect on a new tab'), 'value' => 'new-tab'],
+                ],
+            ]),
             SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'Loading Indicator'),
                 'instructions' => Craft::t('formie', 'Whether to show a loading indicator when submitting the form. This will be shown on the submit button.'),

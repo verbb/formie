@@ -7,7 +7,8 @@ use verbb\formie\helpers\CpSubmissionFieldConditions;
 use verbb\formie\base\Payment as PaymentIntegration;
 use verbb\formie\elements\Form;
 use verbb\formie\fields\Payment as PaymentField;
-use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\SubmissionRedirectRulesHelper;
+use verbb\formie\elements\Submission;
 
 use Craft;
 use craft\base\Model;
@@ -44,6 +45,8 @@ class FormSettings extends Model
     public ?string $submitAction = 'message';
     public ?string $submitActionTab = 'same-tab';
     public ?string $submitActionUrl = null;
+    public bool $enableRedirectRules = false;
+    public array $redirectRules = [];
     public bool $submitActionFormHide = false;
     public bool $automaticSubmissionState = true;
     public RichText $submitActionMessage;
@@ -358,6 +361,17 @@ class FormSettings extends Model
     public function getFormRedirectUrl(bool $checkLastPage = true): string
     {
         return $this->getForm()->getRedirectUrl($checkLastPage);
+    }
+
+    public function getEffectiveSubmitAction(?Submission $submission = null): string
+    {
+        $form = $this->getForm();
+
+        if (!$form) {
+            return (string)$this->submitAction;
+        }
+
+        return SubmissionRedirectRulesHelper::getEffectiveSubmitAction($form, $submission);
     }
 
     public function getRedirectEntry(): ?Entry

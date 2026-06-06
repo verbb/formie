@@ -102,6 +102,16 @@ function getConfiguredSubmitAction(form: HTMLFormElement): string {
     return (form.dataset.formieSubmitAction || '').trim();
 }
 
+function getResolvedSubmitAction(form: HTMLFormElement, result: FormSubmitResult): string {
+    const fromResponse = result.meta?.effectiveSubmitAction;
+
+    if (typeof fromResponse === 'string' && fromResponse.trim() !== '') {
+        return fromResponse.trim();
+    }
+
+    return getConfiguredSubmitAction(form);
+}
+
 function shouldHideFormOnSuccess(form: HTMLFormElement): boolean {
     const rawValue = form.dataset.formieSubmitActionFormHide;
 
@@ -580,7 +590,7 @@ export function applySubmitResultState(form: HTMLFormElement, result: FormSubmit
     }
 
     if (action === 'submit' && !result.redirect?.url) {
-        const configuredSubmitAction = getConfiguredSubmitAction(form);
+        const configuredSubmitAction = getResolvedSubmitAction(form, result);
         const preserveHiddenState = configuredSubmitAction === 'message' && shouldHideFormOnSuccess(form);
 
         if (configuredSubmitAction === 'reload') {
@@ -603,7 +613,7 @@ export function applySubmitResultState(form: HTMLFormElement, result: FormSubmit
     }
 
     if (action === 'submit' && result.redirect?.url && result.redirect.target === 'new-tab') {
-        const configuredSubmitAction = getConfiguredSubmitAction(form);
+        const configuredSubmitAction = getResolvedSubmitAction(form, result);
         const preserveHiddenState = configuredSubmitAction === 'message' && shouldHideFormOnSuccess(form);
         clearPendingFinalSubmitReset(form);
         resetSubmissionState(form, { preserveHiddenState });

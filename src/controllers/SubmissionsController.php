@@ -660,12 +660,15 @@ class SubmissionsController extends Controller
         }
 
         if ($nextPageId === null) {
-            if (in_array($form->settings->submitAction, ['entry', 'url'], true)) {
+            $effectiveSubmitAction = $form->settings->getEffectiveSubmitAction($submission);
+            $payload['effectiveSubmitAction'] = $effectiveSubmitAction;
+
+            if (in_array($effectiveSubmitAction, ['entry', 'url'], true)) {
                 $payload['redirectUrl'] = $form->getRedirectUrl();
                 $payload['submitActionTab'] = $form->settings->submitActionTab;
             }
 
-            if ($form->settings->submitAction === 'message') {
+            if ($effectiveSubmitAction === 'message') {
                 $payload['submitActionMessage'] = StringHelper::sanitizeMessageHtml($form->settings->getSubmitActionMessage($submission));
             }
         }
