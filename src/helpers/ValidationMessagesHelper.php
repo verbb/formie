@@ -90,6 +90,7 @@ class ValidationMessagesHelper
 
     public static function override(Field $field, string $key): ?string
     {
+        $field = self::messageField($field);
         $messages = $field->validationMessages ?? [];
         $message = trim((string)($messages[$key] ?? ''));
 
@@ -98,6 +99,13 @@ class ValidationMessagesHelper
         }
 
         return $message !== '' ? $message : null;
+    }
+
+    public static function messageField(Field $field): Field
+    {
+        $parent = $field->getParentField();
+
+        return $parent instanceof Field ? $parent : $field;
     }
 
     public static function requiredClientAttributes(Field $field): array

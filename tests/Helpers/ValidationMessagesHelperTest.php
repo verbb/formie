@@ -68,3 +68,32 @@ it('migrates legacy errorMessage into required validation messages', function ()
         ->and($field->getValidationMessage(ValidationMessagesHelper::KEY_REQUIRED))
         ->toBe('Please enter your Name.');
 });
+
+it('resolves nested field validation message overrides from the parent field', function (): void {
+    $parent = new \verbb\formie\fields\Date([
+        'label' => 'Birthday',
+        'handle' => 'birthday',
+        'validationMessages' => [
+            'required' => 'Please provide your {label}.',
+            'invalid' => 'Fix the {label} part.',
+        ],
+    ]);
+
+    $child = new \verbb\formie\fields\subfields\DateDayNumber([
+        'label' => 'Day',
+        'handle' => 'day',
+        'validationMessages' => [
+            'required' => 'Child override should not be used.',
+        ],
+        'errorMessage' => 'Legacy child message.',
+    ]);
+
+    $child->applyParentFieldContext($parent);
+
+    expect($child->getValidationMessage(ValidationMessagesHelper::KEY_REQUIRED))
+        ->toBe('Please provide your Day.')
+        ->and($child->getValidationMessage(ValidationMessagesHelper::KEY_INVALID))
+        ->toBe('Fix the Day part.')
+        ->and(ValidationMessagesHelper::override($child, ValidationMessagesHelper::KEY_REQUIRED))
+        ->toBe('Please provide your {label}.');
+});

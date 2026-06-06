@@ -19,7 +19,7 @@ class FieldConfigNormalizer
         self::_removeUnsupportedLimitConfig($config, $fieldClass);
         self::_normalizeLegacyPositions($config);
         self::_normalizeLegacyFieldConfig($config);
-        self::_normalizeValidationMessages($config);
+        self::_normalizeValidationMessages($config, $fieldClass);
         self::_normalizeLegacyComboboxConfig($config, $fieldClass);
         self::_removeLegacyProperties($config);
     }
@@ -84,8 +84,14 @@ class FieldConfigNormalizer
         }
     }
 
-    private static function _normalizeValidationMessages(array &$config): void
+    private static function _normalizeValidationMessages(array &$config, string $fieldClass): void
     {
+        if (in_array($fieldClass, self::_childFieldTypes(), true)) {
+            unset($config['errorMessage'], $config['validationMessages']);
+
+            return;
+        }
+
         if (!isset($config['validationMessages']) || !is_array($config['validationMessages'])) {
             $config['validationMessages'] = [];
         }
@@ -219,6 +225,14 @@ class FieldConfigNormalizer
             fields\subfields\NameMiddle::class,
             fields\subfields\NameLast::class,
         ];
+    }
+
+    private static function _childFieldTypes(): array
+    {
+        return array_values(array_filter(
+            self::_supportedLimitTypes(),
+            static fn(string $class): bool => str_contains($class, '\\subfields\\'),
+        ));
     }
 
     private static function _removedProperties(): array

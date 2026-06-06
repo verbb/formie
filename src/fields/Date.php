@@ -1054,7 +1054,6 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
             'handle' => 'date',
             'required' => $this->required,
             'placeholder' => $this->placeholder,
-            'errorMessage' => $this->errorMessage,
             'defaultValue' => $initialValue,
             'labelPosition' => HiddenPosition::class,
             'inputAttributes' => array_merge(($this->inputAttributes ?? []), [
@@ -1075,7 +1074,6 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
             'handle' => 'time',
             'required' => $this->required,
             'placeholder' => $this->placeholder,
-            'errorMessage' => $this->errorMessage,
             'defaultValue' => $initialValue,
             'labelPosition' => HiddenPosition::class,
             'inputAttributes' => [

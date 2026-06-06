@@ -3,8 +3,8 @@ namespace verbb\formie\fields\subfields;
 
 use verbb\formie\base\ChildFieldInterface;
 use verbb\formie\fields\Number;
+use verbb\formie\helpers\ValidationMessagesHelper;
 
-use Craft;
 use craft\base\ElementInterface;
 use craft\helpers\StringHelper;
 
@@ -23,27 +23,33 @@ class DateNumber extends Number implements ChildFieldInterface
         }
 
         if ($dateValue === null || $dateValue === '') {
-            $element->addError($this->valueKey(), Craft::t('formie', '{label} is invalid.', ['label' => $this->label]));
+            $element->addError($this->valueKey(), $this->getValidationMessage(ValidationMessagesHelper::KEY_INVALID));
+
             return;
         }
 
         if ($this->_isNotNumber($dateValue)) {
-            $element->addError($this->valueKey(), Craft::t('formie', '{label} is invalid.', ['label' => $this->label]));
+            $element->addError($this->valueKey(), $this->getValidationMessage(ValidationMessagesHelper::KEY_INVALID));
+
             return;
         }
 
         $dateValue = (int)$dateValue;
 
         if (!preg_match('/^[+-]?\d+$/', StringHelper::normalizeNumber($dateValue))) {
-            $element->addError($this->valueKey(), Craft::t('formie', '{label} is invalid.', ['label' => $this->label]));
+            $element->addError($this->valueKey(), $this->getValidationMessage(ValidationMessagesHelper::KEY_INVALID));
         }
 
         if ($this->min && $dateValue < $this->min) {
-            $element->addError($this->valueKey(), Craft::t('formie', '{label} must be no less than {min}.', ['label' => $this->label, 'min' => $this->min]));
+            $element->addError($this->valueKey(), $this->getValidationMessage(ValidationMessagesHelper::KEY_NUMBER_MIN, [
+                'min' => $this->min,
+            ]));
         }
 
         if ($this->max && $dateValue > $this->max) {
-            $element->addError($this->valueKey(), Craft::t('formie', '{label} must be no greater than {max}.', ['label' => $this->label, 'max' => $this->max]));
+            $element->addError($this->valueKey(), $this->getValidationMessage(ValidationMessagesHelper::KEY_NUMBER_MAX, [
+                'max' => $this->max,
+            ]));
         }
     }
 

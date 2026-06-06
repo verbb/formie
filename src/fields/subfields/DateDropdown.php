@@ -4,8 +4,8 @@ namespace verbb\formie\fields\subfields;
 use verbb\formie\base\ChildFieldInterface;
 use verbb\formie\fields\values\OptionValue;
 use verbb\formie\fields\Dropdown;
+use verbb\formie\helpers\ValidationMessagesHelper;
 
-use Craft;
 use craft\base\ElementInterface;
 
 class DateDropdown extends Dropdown implements ChildFieldInterface
@@ -29,7 +29,7 @@ class DateDropdown extends Dropdown implements ChildFieldInterface
         $valueToValidate = $value instanceof OptionValue ? $value->value : $value;
 
         if ($valueToValidate === null || $valueToValidate === '' || !in_array((string)$valueToValidate, $range, true)) {
-            $element->addError($this->valueKey(), Craft::t('formie', '{label} is invalid.', ['label' => $this->label]));
+            $element->addError($this->valueKey(), $this->getValidationMessage(ValidationMessagesHelper::KEY_INVALID));
         }
     }
 

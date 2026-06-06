@@ -14,11 +14,9 @@
 - Replace text-limit counter `{startTag}{num}{endTag}` translation strings with Craft plural syntax and wire translated counter copy on the front end. ([#2526](https://github.com/verbb/formie/issues/2526))
 - Show context-aware text-limit counter copy for empty (allowed), under-limit (left), and over-limit states on the front end and in control panel submissions.
 - Add per-field validation error position on the **Appearance** tab, with form- and plugin-level defaults (`Above Input` / `Below Input`).
+- Resolve nested Date/Name/Address sub-field validation messages from their parent field; stop copying legacy `errorMessage` onto Date sub-fields.
 - Wire client-side validation message overrides for file-upload and checkbox/radio options-limit rules via `data-formie-validation-*-message` attributes.
 - Extend front-end `t()` to resolve Craft-style `{param, plural, …}` and `{param, number}` message syntax.
-
-### Changed (docs)
-- Document updated front-end validation and text-limit translation keys in [Upgrading from v3](/get-started/upgrading-from-v3#translation-strings).
 
 ### Fixed
 - Sanitize notification queue job debug data to valid UTF-8 before re-serializing failed jobs, preventing queue rows from becoming unreadable when submission content contains invalid byte sequences. ([#2344](https://github.com/verbb/formie/issues/2344))
