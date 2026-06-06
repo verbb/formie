@@ -1082,20 +1082,30 @@ Remove overrides for these **removed** source keys:
 - `{num} characters left` (legacy)
 - `{num} words left` (legacy)
 
-Replace them with Craft plural syntax:
+Replace them with Craft plural syntax. Counters use three states depending on field content:
+
+State | When | Example suffix
+--- | --- | ---
+Allowed | Field is empty | `100 characters allowed`
+Left | Under the limit | `42 characters left`
+Over | Over the limit | `5 characters over limit`
 
 Old | New
 --- | ---
-`{startTag}{num}{endTag} characters left` | `{count, plural, one{character left} other{characters left}}`
-`{startTag}{num}{endTag} words left` | `{count, plural, one{word left} other{words left}}`
+`{startTag}{num}{endTag} characters left` | `{count, plural, one{character allowed} other{characters allowed}}` (empty), `{count, plural, one{character left} other{characters left}}` (typing), `{count, plural, one{character over limit} other{characters over limit}}` (over limit)
+`{startTag}{num}{endTag} words left` | `{count, plural, one{word allowed} other{words allowed}}`, `{count, plural, one{word left} other{words left}}`, `{count, plural, one{word over limit} other{words over limit}}`
 
 Example site override:
 
 ```php
 // translations/de/formie.php
 return [
+    '{count, plural, one{character allowed} other{characters allowed}}' => '{count, plural, one{Zeichen erlaubt} other{Zeichen erlaubt}}',
     '{count, plural, one{character left} other{characters left}}' => '{count, plural, one{Zeichen übrig} other{Zeichen übrig}}',
+    '{count, plural, one{character over limit} other{characters over limit}}' => '{count, plural, one{Zeichen über dem Limit} other{Zeichen über dem Limit}}',
+    '{count, plural, one{word allowed} other{words allowed}}' => '{count, plural, one{Wort erlaubt} other{Wörter erlaubt}}',
     '{count, plural, one{word left} other{words left}}' => '{count, plural, one{Wort übrig} other{Wörter übrig}}',
+    '{count, plural, one{word over limit} other{words over limit}}' => '{count, plural, one{Wort über dem Limit} other{Wörter über dem Limit}}',
 ];
 ```
 

@@ -85,6 +85,53 @@ function getCpTextLimitTarget(input) {
     return existingTarget instanceof HTMLElement ? existingTarget : null;
 }
 
+function getCpTextLimitCounterState(input, remaining, unit) {
+    const isEmpty = unit === 'character' ? input.value === '' : input.value.trim() === '';
+
+    if (isEmpty) {
+        return 'allowed';
+    }
+
+    if (remaining < 0) {
+        return 'over';
+    }
+
+    return 'left';
+}
+
+function getCpTextLimitMessageKey(unit, state) {
+    if (unit === 'character') {
+        if (state === 'allowed') {
+            return '{count, plural, one{character allowed} other{characters allowed}}';
+        }
+
+        if (state === 'over') {
+            return '{count, plural, one{character over limit} other{characters over limit}}';
+        }
+
+        return '{count, plural, one{character left} other{characters left}}';
+    }
+
+    if (state === 'allowed') {
+        return '{count, plural, one{word allowed} other{words allowed}}';
+    }
+
+    if (state === 'over') {
+        return '{count, plural, one{word over limit} other{words over limit}}';
+    }
+
+    return '{count, plural, one{word left} other{words left}}';
+}
+
+function renderCpTextLimitCounter(target, input, remaining, limit, unit) {
+    const state = getCpTextLimitCounterState(input, remaining, unit);
+    const displayCount = state === 'allowed' ? limit : Math.abs(remaining);
+    const numberClass = state === 'over' ? 'fui-limit-number fui-limit-number-error' : 'fui-limit-number';
+    const messageKey = getCpTextLimitMessageKey(unit, state);
+
+    target.innerHTML = `<span class="${numberClass}">${displayCount}</span> ${Craft.t('formie', messageKey, { count: displayCount })}`;
+}
+
 function updateCpTextLimit(input) {
     const target = getCpTextLimitTarget(input);
 
@@ -98,17 +145,13 @@ function updateCpTextLimit(input) {
 
     if (maxChars > 0) {
         const remaining = maxChars - metrics.graphemeCount;
-        const numberClass = remaining < 0 ? 'fui-limit-number fui-limit-number-error' : 'fui-limit-number';
-        const count = Math.abs(remaining);
-        target.innerHTML = `<span class="${numberClass}">${remaining}</span> ${Craft.t('formie', '{count, plural, one{character left} other{characters left}}', { count })}`;
+        renderCpTextLimitCounter(target, input, remaining, maxChars, 'character');
         return;
     }
 
     if (maxWords > 0) {
         const remaining = maxWords - metrics.wordCount;
-        const numberClass = remaining < 0 ? 'fui-limit-number fui-limit-number-error' : 'fui-limit-number';
-        const count = Math.abs(remaining);
-        target.innerHTML = `<span class="${numberClass}">${remaining}</span> ${Craft.t('formie', '{count, plural, one{word left} other{words left}}', { count })}`;
+        renderCpTextLimitCounter(target, input, remaining, maxWords, 'word');
     }
 }
 

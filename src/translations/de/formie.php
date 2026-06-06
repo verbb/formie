@@ -5,8 +5,12 @@ return [
     'File must be smaller than {filesize} MB.' => 'Datei muss kleiner als {filesize} MB sein.',
     'File must be larger than {filesize} MB.' => 'Datei muss größer als {filesize} MB sein.',
     'Choose up to {files} files.' => 'Wählen Sie bis zu {files} Dateien aus.',
+    '{count, plural, one{character allowed} other{characters allowed}}' => '{count, plural, one{Zeichen erlaubt} other{Zeichen erlaubt}}',
     '{count, plural, one{character left} other{characters left}}' => '{count, plural, one{Zeichen übrig} other{Zeichen übrig}}',
+    '{count, plural, one{character over limit} other{characters over limit}}' => '{count, plural, one{Zeichen über dem Limit} other{Zeichen über dem Limit}}',
+    '{count, plural, one{word allowed} other{words allowed}}' => '{count, plural, one{Wort erlaubt} other{Wörter erlaubt}}',
     '{count, plural, one{word left} other{words left}}' => '{count, plural, one{Wort übrig} other{Wörter übrig}}',
+    '{count, plural, one{word over limit} other{words over limit}}' => '{count, plural, one{Wort über dem Limit} other{Wörter über dem Limit}}',
 
     // Feldvalidierungsnachrichten
     'This field is required.' => 'Dieses Feld ist erforderlich.',

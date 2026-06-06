@@ -39,13 +39,13 @@
     {% if field.limit %}
         {% if maxChars %}
             <div class="fui-instructions fui-limit fui-limit-text" data-limit data-max-chars="{{ maxChars }}" data-formie-limit-text>
-                <span class="fui-limit-number">{{ maxChars }}</span> {{ '{count, plural, one{character left} other{characters left}}' | t('formie', { count: maxChars }) }}
+                <span class="fui-limit-number">{{ maxChars }}</span> {{ '{count, plural, one{character allowed} other{characters allowed}}' | t('formie', { count: maxChars }) }}
             </div>
         {% endif %}
 
         {% if maxWords %}
             <div class="fui-instructions fui-limit fui-limit-text" data-limit data-max-words="{{ maxWords }}" data-formie-limit-text>
-                <span class="fui-limit-number">{{ maxWords }}</span> {{ '{count, plural, one{word left} other{words left}}' | t('formie', { count: maxWords }) }}
+                <span class="fui-limit-number">{{ maxWords }}</span> {{ '{count, plural, one{word allowed} other{words allowed}}' | t('formie', { count: maxWords }) }}
             </div>
         {% endif %}
     {% endif %}

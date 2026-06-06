@@ -9,7 +9,7 @@
             'data-limit': true,
             'data-max-chars': maxChars,
         } %}
-            <span class="formie-limit-number">{{ maxChars }}</span> {{ '{count, plural, one{character left} other{characters left}}' | t('formie', { count: maxChars }) }}
+            <span class="formie-limit-number">{{ maxChars }}</span> {{ '{count, plural, one{character allowed} other{characters allowed}}' | t('formie', { count: maxChars }) }}
         {% endfieldtag %}
     {% endif %}
 
@@ -18,7 +18,7 @@
             'data-limit': true,
             'data-max-words': maxWords,
         } %}
-            <span class="formie-limit-number">{{ maxWords }}</span> {{ '{count, plural, one{word left} other{words left}}' | t('formie', { count: maxWords }) }}
+            <span class="formie-limit-number">{{ maxWords }}</span> {{ '{count, plural, one{word allowed} other{words allowed}}' | t('formie', { count: maxWords }) }}
         {% endfieldtag %}
     {% endif %}
 {% endif %}

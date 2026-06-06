@@ -16,9 +16,16 @@ const TEXT_LIMIT_VALIDATORS = [
 ] as const;
 const VALIDATOR_SCOPE = 'text-limit';
 const ALLOW_OVERTYPE_ATTR = 'data-formie-text-limit-allow-overtype';
+const TEXT_LIMIT_CHARACTERS_ALLOWED = '{count, plural, one{character allowed} other{characters allowed}}';
 const TEXT_LIMIT_CHARACTERS_LEFT = '{count, plural, one{character left} other{characters left}}';
+const TEXT_LIMIT_CHARACTERS_OVER = '{count, plural, one{character over limit} other{characters over limit}}';
+const TEXT_LIMIT_WORDS_ALLOWED = '{count, plural, one{word allowed} other{words allowed}}';
 const TEXT_LIMIT_WORDS_LEFT = '{count, plural, one{word left} other{words left}}';
+const TEXT_LIMIT_WORDS_OVER = '{count, plural, one{word over limit} other{words over limit}}';
 const limitTargetCache = new WeakMap<HTMLInputElement | HTMLTextAreaElement, HTMLElement | null>();
+
+type TextLimitUnit = 'character' | 'word';
+type TextLimitCounterState = 'allowed' | 'left' | 'over';
 
 ensureModuleStyles('text-limit', [textLimitCss]);
 
@@ -189,15 +196,65 @@ function getLimitTarget(input: HTMLInputElement | HTMLTextAreaElement): HTMLElem
     return target;
 }
 
-function renderCounter(target: HTMLElement, remaining: number, unit: 'character' | 'word'): void {
+function getTextLimitCounterState(
+    input: HTMLInputElement | HTMLTextAreaElement,
+    remaining: number,
+    unit: TextLimitUnit,
+): TextLimitCounterState {
+    const isEmpty = unit === 'character' ? input.value === '' : input.value.trim() === '';
+
+    if (isEmpty) {
+        return 'allowed';
+    }
+
+    if (remaining < 0) {
+        return 'over';
+    }
+
+    return 'left';
+}
+
+function getTextLimitCounterMessageKey(unit: TextLimitUnit, state: TextLimitCounterState): string {
+    if (unit === 'character') {
+        if (state === 'allowed') {
+            return TEXT_LIMIT_CHARACTERS_ALLOWED;
+        }
+
+        if (state === 'over') {
+            return TEXT_LIMIT_CHARACTERS_OVER;
+        }
+
+        return TEXT_LIMIT_CHARACTERS_LEFT;
+    }
+
+    if (state === 'allowed') {
+        return TEXT_LIMIT_WORDS_ALLOWED;
+    }
+
+    if (state === 'over') {
+        return TEXT_LIMIT_WORDS_OVER;
+    }
+
+    return TEXT_LIMIT_WORDS_LEFT;
+}
+
+function renderCounter(
+    target: HTMLElement,
+    input: HTMLInputElement | HTMLTextAreaElement,
+    remaining: number,
+    limit: number,
+    unit: TextLimitUnit,
+): void {
+    const state = getTextLimitCounterState(input, remaining, unit);
+    const displayCount = state === 'allowed' ? limit : Math.abs(remaining);
     const number = document.createElement('span');
-    number.className = remaining < 0 ? 'formie-limit-number formie-limit-number-error' : 'formie-limit-number';
-    number.textContent = String(remaining);
-    const messageKey = unit === 'character' ? TEXT_LIMIT_CHARACTERS_LEFT : TEXT_LIMIT_WORDS_LEFT;
+    number.className = state === 'over' ? 'formie-limit-number formie-limit-number-error' : 'formie-limit-number';
+    number.textContent = String(displayCount);
+    const messageKey = getTextLimitCounterMessageKey(unit, state);
 
     target.replaceChildren(
         number,
-        document.createTextNode(` ${t(messageKey, { count: Math.abs(remaining) })}`)
+        document.createTextNode(` ${t(messageKey, { count: displayCount })}`)
     );
 }
 
@@ -214,14 +271,14 @@ function updateCounter(input: HTMLInputElement | HTMLTextAreaElement): void {
 
     if (maxChars > 0) {
         const remaining = maxChars - metrics.graphemeCount;
-        renderCounter(target, remaining, 'character');
+        renderCounter(target, input, remaining, maxChars, 'character');
 
         return;
     }
 
     if (maxWords > 0) {
         const remaining = maxWords - metrics.wordCount;
-        renderCounter(target, remaining, 'word');
+        renderCounter(target, input, remaining, maxWords, 'word');
     }
 }
 
