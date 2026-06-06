@@ -1132,6 +1132,10 @@ class Submission extends Element
             $this->_previousIsSpam = (bool)($previousSettings['isSpam'] ?? false);
         }
 
+        if (!$this->statusId && ($form = $this->getForm()) && ($defaultStatus = $form->getDefaultStatus())) {
+            $this->setStatus($defaultStatus);
+        }
+
         foreach ($this->getFields() as $field) {
             if (!$field->beforeElementSave($this, $isNew)) {
                 return false;

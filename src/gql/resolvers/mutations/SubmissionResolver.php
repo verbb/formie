@@ -75,6 +75,10 @@ class SubmissionResolver extends ElementMutationResolver
 
         $submission = $this->populateElementWithData($submission, $arguments, $resolveInfo);
 
+        if (!empty($arguments['status'])) {
+            $submission->setStatus($arguments['status']);
+        }
+
         // Populate captcha token payloads from GraphQL args.
         $captchas = Formie::$plugin->getIntegrations()->getAllEnabledCaptchasForForm($form);
 

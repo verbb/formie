@@ -83,6 +83,75 @@ class Statuses extends Component
         return $this->_statuses()->firstWhere('isDefault', true);
     }
 
+    public function resolveStatusId(string $value): ?int
+    {
+        $value = trim($value);
+
+        if ($value === '') {
+            return null;
+        }
+
+        if ($status = $this->getStatusByHandle($value)) {
+            return (int)$status->id;
+        }
+
+        $normalized = strtolower($value);
+
+        foreach ($this->getAllStatuses() as $status) {
+            if (strtolower((string)$status->handle) === $normalized) {
+                return (int)$status->id;
+            }
+
+            if (strtolower((string)$status->name) === $normalized) {
+                return (int)$status->id;
+            }
+        }
+
+        return null;
+    }
+
+    public function resolveStatusIdParam(array|string $value): mixed
+    {
+        if (is_array($value)) {
+            $resolvedIds = [];
+
+            foreach ($value as $candidate) {
+                $resolvedId = $this->resolveStatusId((string)$candidate);
+
+                if ($resolvedId !== null) {
+                    $resolvedIds[] = $resolvedId;
+                }
+            }
+
+            if ($resolvedIds) {
+                return $resolvedIds;
+            }
+        } else {
+            $trimmedValue = trim($value);
+            $normalizedValue = strtolower($trimmedValue);
+            $resolvedId = $this->resolveStatusId($trimmedValue);
+
+            if ($resolvedId !== null) {
+                return $resolvedId;
+            }
+
+            if (str_starts_with($normalizedValue, 'not ')) {
+                $candidate = trim(substr($trimmedValue, 4));
+                $resolvedId = $this->resolveStatusId($candidate);
+
+                if ($resolvedId !== null) {
+                    return "not {$resolvedId}";
+                }
+            }
+        }
+
+        return (new Query())
+            ->select(['id'])
+            ->from([Table::FORMIE_STATUSES])
+            ->where(Db::parseParam('handle', $value))
+            ->scalar();
+    }
+
     public function reorderStatuses(array $statusIds): bool
     {
         $projectConfig = Craft::$app->getProjectConfig();

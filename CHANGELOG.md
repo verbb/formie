@@ -20,6 +20,7 @@
 - Extend front-end `t()` to resolve Craft-style `{param, plural, …}` and `{param, number}` message syntax.
 
 ### Fixed
+- Fix submission status filters in the control panel returning no results when submissions were saved without a persisted `statusId`, and resolve status queries by display name as well as handle. ([#2687](https://github.com/verbb/formie/issues/2687))
 - Sanitize notification queue job debug data to valid UTF-8 before re-serializing failed jobs, preventing queue rows from becoming unreadable when submission content contains invalid byte sequences. ([#2344](https://github.com/verbb/formie/issues/2344))
 - Improve notification mailer failure logging when Craft returns no transport error message, including CLI/queue context to help diagnose cron-only send failures. ([#2610](https://github.com/verbb/formie/issues/2610))
 

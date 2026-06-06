@@ -216,50 +216,7 @@ class SubmissionQuery extends ElementQuery
 
     private function _resolveStatusIdValue(array|string $value): mixed
     {
-        $statuses = Formie::$plugin->getStatuses()->getAllStatuses();
-        $statusIdsByHandle = [];
-
-        foreach ($statuses as $status) {
-            $statusIdsByHandle[strtolower((string)$status->handle)] = (int)$status->id;
-        }
-
-        if (is_array($value)) {
-            $resolvedIds = [];
-
-            foreach ($value as $handle) {
-                $resolvedId = $statusIdsByHandle[strtolower((string)$handle)] ?? null;
-
-                if ($resolvedId !== null) {
-                    $resolvedIds[] = $resolvedId;
-                }
-            }
-
-            if ($resolvedIds) {
-                return $resolvedIds;
-            }
-        } else {
-            $trimmedValue = trim($value);
-            $normalizedValue = strtolower($trimmedValue);
-
-            if (isset($statusIdsByHandle[$normalizedValue])) {
-                return $statusIdsByHandle[$normalizedValue];
-            }
-
-            if (str_starts_with($normalizedValue, 'not ')) {
-                $handle = trim(substr($trimmedValue, 4));
-                $resolvedId = $statusIdsByHandle[strtolower($handle)] ?? null;
-
-                if ($resolvedId !== null) {
-                    return "not {$resolvedId}";
-                }
-            }
-        }
-
-        return (new Query())
-            ->select(['id'])
-            ->from([Table::FORMIE_STATUSES])
-            ->where(Db::parseParam('handle', $value))
-            ->scalar();
+        return Formie::$plugin->getStatuses()->resolveStatusIdParam($value);
     }
 
 
@@ -488,13 +445,7 @@ class SubmissionQuery extends ElementQuery
             return null;
         }
 
-        foreach (Formie::$plugin->getStatuses()->getAllStatuses() as $formieStatus) {
-            if (strtolower((string)$formieStatus->handle) === $normalizedStatus) {
-                return (int)$formieStatus->id;
-            }
-        }
-
-        return null;
+        return Formie::$plugin->getStatuses()->resolveStatusId($status);
     }
 
     private function _isExactHandleParam(string $value): bool
