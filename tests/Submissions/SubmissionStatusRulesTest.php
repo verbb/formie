@@ -55,6 +55,42 @@ it('applies matching status rules on final submit', function (): void {
         ->and($response->submission->statusId)->toBe($status->id);
 });
 
+it('applies status rules without conditions when enableConditions is disabled', function (): void {
+    $status = new Status([
+        'name' => 'Every Page',
+        'handle' => 'everyPage508',
+        'color' => 'green',
+    ]);
+
+    expect(Formie::$plugin->getStatuses()->saveStatus($status))->toBeTrue();
+
+    $form = formie()
+        ->form(['title' => 'Status Rules Unconditional'])
+        ->create();
+
+    $form->settings->enableStatusRules = true;
+    $form->settings->statusRules = [[
+        'statusId' => $status->id,
+        'trigger' => 'everyPage',
+        'enableConditions' => false,
+    ]];
+
+    expect(\Craft::$app->elements->saveElement($form))->toBeTrue();
+
+    $submission = new Submission();
+    $submission->setForm($form);
+
+    $response = (new SubmissionWorkflow())->processSubmissionRequest(new SubmissionRequest([
+        'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+        'form' => $form,
+        'submission' => $submission,
+        'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SAVE,
+    ]));
+
+    expect($response->success)->toBeTrue()
+        ->and($response->submission->statusId)->toBe($status->id);
+});
+
 it('skips status rules when conditions do not match', function (): void {
     $status = new Status([
         'name' => 'Review',

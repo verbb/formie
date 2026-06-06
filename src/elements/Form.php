@@ -2591,7 +2591,7 @@ class Form extends Element implements FormInterface
             ]),
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Enable Status Rules'),
-                'instructions' => Craft::t('formie', 'Automatically change the submission status when conditions match. Rules are evaluated in order; the first match wins.'),
+                'instructions' => Craft::t('formie', 'Automatically change the submission status based on configured rules. Rules are evaluated in order; the first match wins.'),
                 'name' => 'settings.enableStatusRules',
             ]),
             [
@@ -2599,7 +2599,7 @@ class Form extends Element implements FormInterface
                 'name' => 'settings.statusRules',
                 'if' => 'settings.enableStatusRules',
                 'label' => Craft::t('formie', 'Status Rules'),
-                'instructions' => Craft::t('formie', 'Set the submission status when the following conditions match.'),
+                'instructions' => Craft::t('formie', 'Configure which status to apply for each rule. Optionally enable conditions to limit when a rule applies.'),
                 'statusOptions' => array_map(function($status) {
                     return [
                         'value' => $status->id,

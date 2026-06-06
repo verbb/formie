@@ -17,7 +17,7 @@ const createDefaultRule = (statusOptions) => ({
     ...createItem({}),
     statusId: statusOptions[0]?.value ?? '',
     trigger: 'finalSubmit',
-    enableConditions: true,
+    enableConditions: false,
     conditions: {
         applyRule: 'apply',
         conditionRule: 'all',
@@ -41,10 +41,12 @@ function StatusRuleItem({
     const triggerField = {
         name: `${baseName}.${index}.trigger`,
         label: t('Apply When'),
+        instructions: t('Choose whether to evaluate this rule on every page submission or only when the form is fully submitted.'),
     };
     const enableConditionsField = {
         name: `${baseName}.${index}.enableConditions`,
         label: t('Enable Conditions'),
+        instructions: t('Whether to enable conditional logic to control when this status rule is applied.'),
     };
     const conditionsField = {
         name: `${baseName}.${index}.conditions`,
@@ -70,66 +72,70 @@ function StatusRuleItem({
     } = useEngineField(form, enableConditionsField.name);
 
     return (
-        <div className="space-y-4 rounded border border-gray-300 bg-gray-50 p-4">
-            <div className="flex items-start justify-between gap-3">
-                <div className="grid flex-1 gap-4 md:grid-cols-2">
-                    <FieldLayout
-                        name={statusField.name}
-                        label={statusField.label}
-                        required={statusField.required}
-                        errors={statusErrors}
-                    >
-                        <SelectInput
-                            value={statusId ?? ''}
-                            options={field.statusOptions || []}
-                            onChange={(nextValue) => {
-                                setStatusId(nextValue);
-                                setStatusTouched();
-                            }}
-                        />
-                    </FieldLayout>
-
-                    <FieldLayout
-                        name={triggerField.name}
-                        label={triggerField.label}
-                        instructions={t('Choose whether to evaluate this rule on every page submission or only when the form is fully submitted.')}
-                    >
-                        <SelectInput
-                            value={trigger || 'finalSubmit'}
-                            options={field.triggerOptions || []}
-                            onChange={(nextValue) => {
-                                setTrigger(nextValue);
-                                setTriggerTouched();
-                            }}
-                        />
-                    </FieldLayout>
-                </div>
-
+        <div className="relative rounded border border-gray-300 bg-gray-50 p-4">
+            <div className="absolute top-3 right-3">
                 <Button
                     type="button"
-                    variant="secondary"
-                    size="small"
+                    variant="none"
+                    size="xs"
                     onClick={onRemove}
                     aria-label={t('Remove status rule')}
+                    className="p-2 text-gray-500 hover:text-red-500"
                 >
-                    <FontAwesomeIcon icon={faXmark} />
+                    <FontAwesomeIcon icon={faXmark} className="size-[14px]" />
                 </Button>
             </div>
 
-            <div className="flex items-center gap-3">
-                <Lightswitch
-                    checked={Boolean(enableConditions)}
-                    onCheckedChange={(checked) => {
-                        setEnableConditions(checked);
-                        setEnableConditionsTouched();
-                    }}
-                />
-                <span className="text-sm">{t('Enable Conditions')}</span>
-            </div>
+            <div className="space-y-4 pr-8">
+                <FieldLayout
+                    name={statusField.name}
+                    label={statusField.label}
+                    required={statusField.required}
+                    errors={statusErrors}
+                >
+                    <SelectInput
+                        value={statusId ?? ''}
+                        options={field.statusOptions || []}
+                        onChange={(nextValue) => {
+                            setStatusId(nextValue);
+                            setStatusTouched();
+                        }}
+                    />
+                </FieldLayout>
 
-            {enableConditions ? (
-                <StatusRuleConditionsField field={conditionsField} form={form} />
-            ) : null}
+                <FieldLayout
+                    name={triggerField.name}
+                    label={triggerField.label}
+                    instructions={triggerField.instructions}
+                >
+                    <SelectInput
+                        value={trigger || 'finalSubmit'}
+                        options={field.triggerOptions || []}
+                        onChange={(nextValue) => {
+                            setTrigger(nextValue);
+                            setTriggerTouched();
+                        }}
+                    />
+                </FieldLayout>
+
+                <FieldLayout
+                    name={enableConditionsField.name}
+                    label={enableConditionsField.label}
+                    instructions={enableConditionsField.instructions}
+                >
+                    <Lightswitch
+                        checked={Boolean(enableConditions)}
+                        onCheckedChange={(checked) => {
+                            setEnableConditions(checked);
+                            setEnableConditionsTouched();
+                        }}
+                    />
+                </FieldLayout>
+
+                {enableConditions ? (
+                    <StatusRuleConditionsField field={conditionsField} form={form} />
+                ) : null}
+            </div>
         </div>
     );
 }
@@ -179,7 +185,7 @@ function StatusRulesField({ field, form }) {
                     />
                 ))}
 
-                <Button type="button" variant="secondary" onClick={addRule}>
+                <Button type="button" variant="default" onClick={addRule}>
                     <FontAwesomeIcon icon={faPlus} className="mr-1 size-3" />
                     {t('Add status rule')}
                 </Button>
