@@ -2,7 +2,7 @@
     "name": "formie-frontend",
     "private": true,
     "dependencies": {
-        "@verbb/formie-browser": "1.0.3"
+        "@verbb/formie-browser": "1.0.4"
     },
     "devDependencies": {
         "vite": "^8.0.10"

@@ -1,6 +1,6 @@
 {
   "name": "@verbb/formie-browser",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -65,7 +65,7 @@
     "vite": "^8.0.10"
   },
   "dependencies": {
-    "@verbb/formie-core": "1.0.3",
+    "@verbb/formie-core": "1.0.4",
     "@friendlycaptcha/sdk": "^1.0.0",
     "@placekit/autocomplete-js": "^2.2.1",
     "expression-language": "^2.5.4",
