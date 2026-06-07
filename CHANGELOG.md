@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 4.0.0-beta.4 - 2026-06-07
 
 ### Added
 - Add conditional submission status rules in the form builder **Settings → Submissions** tab, evaluated on the front end during submission processing. ([#508](https://github.com/verbb/formie/issues/508))
