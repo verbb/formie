@@ -56,21 +56,6 @@ class Radio extends OptionsField implements SortableFieldInterface
     // Public Methods
     // =========================================================================
 
-    public function getFieldOptions(): array
-    {
-        $options = [];
-
-        foreach ($this->options() as $option) {
-            $disabled = $option['disabled'] ?? false;
-
-            if (!$disabled) {
-                $options[] = $option;
-            }
-        }
-
-        return $options;
-    }
-
     public function defineFormBuilderPreviewSchema(): array
     {
         return [
@@ -86,6 +71,7 @@ class Radio extends OptionsField implements SortableFieldInterface
                 'label' => Craft::t('formie', 'Options'),
                 'instructions' => Craft::t('formie', 'Define the available options for users to select from.'),
                 'name' => 'options',
+                'enableOptionRowMenu' => true,
                 'enableBulkOptions' => true,
                 'predefinedOptions' => $this->getPredefinedOptions(),
                 'newRowDefaults' => [
@@ -109,11 +95,6 @@ class Radio extends OptionsField implements SortableFieldInterface
                         'name' => 'default',
                         'label' => Craft::t('formie', 'Default'),
                         'allowUnselect' => true,
-                    ],
-                    [
-                        'type' => 'checkbox',
-                        'name' => 'disabled',
-                        'label' => Craft::t('formie', 'Disabled'),
                     ],
                 ],
             ]),

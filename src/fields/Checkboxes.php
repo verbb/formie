@@ -80,21 +80,6 @@ class Checkboxes extends OptionsField
         parent::__construct($config);
     }
 
-    public function getFieldOptions(): array
-    {
-        $options = [];
-
-        foreach ($this->options() as $option) {
-            $disabled = $option['disabled'] ?? false;
-
-            if (!$disabled) {
-                $options[] = $option;
-            }
-        }
-
-        return $options;
-    }
-
     public function getElementValidationRules(): array
     {
         $rules = parent::getElementValidationRules();
@@ -170,6 +155,7 @@ class Checkboxes extends OptionsField
                 'label' => Craft::t('formie', 'Options'),
                 'instructions' => Craft::t('formie', 'Define the available options for users to select from.'),
                 'name' => 'options',
+                'enableOptionRowMenu' => true,
                 'enableBulkOptions' => true,
                 'predefinedOptions' => $this->getPredefinedOptions(),
                 'newRowDefaults' => [
@@ -192,11 +178,6 @@ class Checkboxes extends OptionsField
                         'type' => 'checkbox',
                         'name' => 'default',
                         'label' => Craft::t('formie', 'Default'),
-                    ],
-                    [
-                        'type' => 'checkbox',
-                        'name' => 'disabled',
-                        'label' => Craft::t('formie', 'Disabled'),
                     ],
                 ],
             ]),

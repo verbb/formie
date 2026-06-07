@@ -1,5 +1,9 @@
 import React from 'react';
 import { normalizeOptions, normalizeSelectedValues } from './previewValueUtils';
+import {
+    applyOptionAvailabilityToPreviewOptions,
+    isOptionFrontEndDisabled,
+} from '@form-builder/utils/optionAvailability';
 
 export const PreviewChoiceList = ({
     choiceType = 'checkbox',
@@ -9,7 +13,7 @@ export const PreviewChoiceList = ({
     visibleLimit = 5,
     useOptionDefaults = true,
 }) => {
-    const normalizedOptions = normalizeOptions(options);
+    const normalizedOptions = applyOptionAvailabilityToPreviewOptions(normalizeOptions(options));
     const visibleOptions = normalizedOptions.slice(0, visibleLimit);
     const hiddenCount = Math.max(normalizedOptions.length - visibleOptions.length, 0);
     const selectedValues = normalizeSelectedValues(value, normalizedOptions, useOptionDefaults);
@@ -27,6 +31,7 @@ export const PreviewChoiceList = ({
                             type={inputType}
                             value={optionValue}
                             checked={selectedValues.includes(optionValue)}
+                            disabled={isOptionFrontEndDisabled(option)}
                             readOnly
                         />
                         <label>{option?.label ?? optionValue}</label>

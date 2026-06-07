@@ -75,18 +75,13 @@ class Dropdown extends OptionsField implements SortableFieldInterface
 
     public function getFieldOptions(): array
     {
-        $options = [];
+        $options = parent::getFieldOptions();
 
-        // Add a placeholder first, if it exists
         if ($this->placeholder) {
-            $disabled = $option['disabled'] ?? false;
-
-            if (!$disabled) {
-                $options[] = ['label' => $this->placeholder, 'value' => ''];
-            }
+            array_unshift($options, ['label' => $this->placeholder, 'value' => '']);
         }
 
-        return array_merge($options, $this->options());
+        return $options;
     }
 
     public function getElementValidationRules(): array
@@ -159,6 +154,7 @@ class Dropdown extends OptionsField implements SortableFieldInterface
                 'label' => Craft::t('formie', 'Options'),
                 'instructions' => Craft::t('formie', 'Define the available options for users to select from.'),
                 'name' => 'options',
+                'enableOptionRowMenu' => true,
                 'enableBulkOptions' => true,
                 'predefinedOptions' => $this->getPredefinedOptions(),
                 'newRowDefaults' => [
@@ -188,11 +184,6 @@ class Dropdown extends OptionsField implements SortableFieldInterface
                         'name' => 'default',
                         'label' => Craft::t('formie', 'Default'),
                         'allowUnselect' => !$this->multi,
-                    ],
-                    [
-                        'type' => 'checkbox',
-                        'name' => 'disabled',
-                        'label' => Craft::t('formie', 'Disabled'),
                     ],
                 ],
             ]),

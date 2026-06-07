@@ -1028,6 +1028,7 @@ const DefaultFieldInput = defineComponent({
                     class: 'formie-vue-choices',
                 }, options.map((option) => {
                     const optionValue = String(option.value ?? '');
+                    const optionDisabled = props.disabled || option.disabled === true;
 
                     return h('label', {
                         key: `${props.field.id}:${optionValue}`,
@@ -1036,7 +1037,7 @@ const DefaultFieldInput = defineComponent({
                             key: 'input',
                             type: 'radio',
                             checked: props.value === optionValue,
-                            disabled: props.disabled,
+                            disabled: optionDisabled,
                             onChange: () => {
                                 props.setValue(optionValue);
                             },
@@ -1057,6 +1058,7 @@ const DefaultFieldInput = defineComponent({
                 }, options.map((option) => {
                     const optionValue = String(option.value ?? '');
                     const checked = selectedValues.includes(optionValue);
+                    const optionDisabled = props.disabled || option.disabled === true;
 
                     return h('label', {
                         key: `${props.field.id}:${optionValue}`,
@@ -1065,7 +1067,7 @@ const DefaultFieldInput = defineComponent({
                             key: 'input',
                             type: 'checkbox',
                             checked,
-                            disabled: props.disabled,
+                            disabled: optionDisabled,
                             onChange: () => {
                                 const nextValues = checked
                                     ? selectedValues.filter((item) => item !== optionValue)

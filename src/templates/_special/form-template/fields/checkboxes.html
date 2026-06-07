@@ -30,6 +30,7 @@
             {{ fieldtag('fieldInput', {
                 value: option.value ?? false,
                 checked: selected,
+                disabled: option.disabled ?? false,
             }) }}
 
             {% fieldtag 'fieldOptionLabel' %}

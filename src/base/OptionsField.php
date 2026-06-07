@@ -349,6 +349,63 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
         return $this->options;
     }
 
+    /**
+     * Resolve an option row’s front-end availability.
+     *
+     * Legacy `disabled: true` rows meant “hide from form” (#824) and map to `hidden`.
+     */
+    public static function resolveOptionAvailability(array $option): ?string
+    {
+        $availability = $option['availability'] ?? null;
+
+        if ($availability === 'hidden' || $availability === 'disabled') {
+            return $availability;
+        }
+
+        if (!empty($option['disabled'])) {
+            return 'hidden';
+        }
+
+        return null;
+    }
+
+    public static function isOptionHidden(array $option): bool
+    {
+        return self::resolveOptionAvailability($option) === 'hidden';
+    }
+
+    public static function isOptionFrontEndDisabled(array $option): bool
+    {
+        return self::resolveOptionAvailability($option) === 'disabled';
+    }
+
+    /**
+     * Options exposed to the front-end form (hidden rows excluded).
+     *
+     * Hidden rows stay in field settings so existing submission values and labels still resolve.
+     */
+    public function getFieldOptions(): array
+    {
+        $options = [];
+
+        foreach ($this->options() as $option) {
+            if (isset($option['optgroup'])) {
+                $options[] = $option;
+                continue;
+            }
+
+            if (self::isOptionHidden($option)) {
+                continue;
+            }
+
+            $options[] = array_merge($option, [
+                'disabled' => self::isOptionFrontEndDisabled($option),
+            ]);
+        }
+
+        return $options;
+    }
+
     public function getDefaultOptions(): array
     {
         return [];
@@ -753,7 +810,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
                     'label' => $option['label'] ?? '',
                     'value' => $option['value'] ?? '',
                     'selected' => (bool)($option['default'] ?? false),
-                    'disabled' => (bool)($option['disabled'] ?? false),
+                    'disabled' => self::isOptionFrontEndDisabled($option),
                 ];
             }, $this->getFieldOptions())),
         ];

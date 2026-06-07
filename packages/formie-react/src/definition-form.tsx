@@ -743,6 +743,7 @@ function defaultFieldRenderer(props: FormieFieldComponentProps): ReactNode {
             className: 'formie-react-choices',
         }, options.map((option) => {
             const optionValue = String(option.value ?? '');
+            const optionDisabled = disabled || option.disabled === true;
 
             return createElement('label', {
                 key: `${field.id}:${optionValue}`,
@@ -751,7 +752,7 @@ function defaultFieldRenderer(props: FormieFieldComponentProps): ReactNode {
                     key: 'input',
                     type: 'radio',
                     checked: value === optionValue,
-                    disabled,
+                    disabled: optionDisabled,
                     onChange: () => {
                         setValue(optionValue);
                     },
@@ -770,6 +771,7 @@ function defaultFieldRenderer(props: FormieFieldComponentProps): ReactNode {
         }, options.map((option) => {
             const optionValue = String(option.value ?? '');
             const checked = selectedValues.includes(optionValue);
+            const optionDisabled = disabled || option.disabled === true;
 
             return createElement('label', {
                 key: `${field.id}:${optionValue}`,
@@ -778,7 +780,7 @@ function defaultFieldRenderer(props: FormieFieldComponentProps): ReactNode {
                     key: 'input',
                     type: 'checkbox',
                     checked,
-                    disabled,
+                    disabled: optionDisabled,
                     onChange: () => {
                         const nextValues = checked
                             ? selectedValues.filter((item) => item !== optionValue)

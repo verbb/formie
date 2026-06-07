@@ -25,6 +25,16 @@ Not sure|not-sure
 
 If you only provide one value on a line, Formie uses it for both the label and value.
 
+## Option availability
+
+Use the row menu on an option to set its **availability**:
+
+- **Visible** — Shown and selectable (default).
+- **Hidden** — Removed from the front-end form without deleting the option. Existing submissions keep their stored value and label in the control panel, exports and email notifications.
+- **Disabled** — Shown on the front-end form with HTML `disabled` so it is visible but cannot be selected.
+
+Only one state applies at a time. Prefer hiding over deleting an option once submissions may reference its value.
+
 ## Overriding Options
 
 If the options need to come from template logic, you can override the field’s `options` before rendering the form. See [Overriding Settings](/templates/overriding-settings).

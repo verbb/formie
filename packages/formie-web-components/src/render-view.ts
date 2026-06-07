@@ -269,6 +269,7 @@ function renderDefaultControl(ctx: RenderViewContext, props: FieldNodeProps): Te
             <div class="flex flex-col gap-2">
                 ${options.map((option) => {
                     const optionValue = String(option.value ?? '');
+                    const optionDisabled = disabled || option.disabled === true;
 
                     return html`
                         <label class="flex items-center gap-2 text-sm text-slate-800">
@@ -276,7 +277,7 @@ function renderDefaultControl(ctx: RenderViewContext, props: FieldNodeProps): Te
                                 type="radio"
                                 name=${`${field.id}-radio`}
                                 .checked=${value === optionValue}
-                                ?disabled=${disabled}
+                                ?disabled=${optionDisabled}
                                 @change=${() => {
                                     setValue(optionValue);
                                 }}
@@ -298,13 +299,14 @@ function renderDefaultControl(ctx: RenderViewContext, props: FieldNodeProps): Te
                 ${options.map((option) => {
                     const optionValue = String(option.value ?? '');
                     const checked = selected.includes(optionValue);
+                    const optionDisabled = disabled || option.disabled === true;
 
                     return html`
                         <label class="flex items-center gap-2 text-sm text-slate-800">
                             <input
                                 type="checkbox"
                                 .checked=${checked}
-                                ?disabled=${disabled}
+                                ?disabled=${optionDisabled}
                                 @change=${() => {
                                     const next = checked
                                         ? selected.filter((x) => x !== optionValue)

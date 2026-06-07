@@ -342,12 +342,12 @@ function B(e) {
 	});
 	if (c === "multi-line-text" || c === "dropdown") return P(t, n, a, o);
 	if (c === "radio") return r("div", { className: "formie-react-choices" }, (Array.isArray(s.options) ? s.options : []).map((e) => {
-		let i = String(e.value ?? "");
+		let i = String(e.value ?? ""), s = a || e.disabled === !0;
 		return r("label", { key: `${t.id}:${i}` }, [r("input", {
 			key: "input",
 			type: "radio",
 			checked: n === i,
-			disabled: a,
+			disabled: s,
 			onChange: () => {
 				o(i);
 			}
@@ -356,12 +356,12 @@ function B(e) {
 	if (c === "checkboxes") {
 		let e = Array.isArray(s.options) ? s.options : [], i = Array.isArray(n) ? n.map((e) => String(e)) : [];
 		return r("div", { className: "formie-react-choices" }, e.map((e) => {
-			let n = String(e.value ?? ""), s = i.includes(n);
+			let n = String(e.value ?? ""), s = i.includes(n), c = a || e.disabled === !0;
 			return r("label", { key: `${t.id}:${n}` }, [r("input", {
 				key: "input",
 				type: "checkbox",
 				checked: s,
-				disabled: a,
+				disabled: c,
 				onChange: () => {
 					o(s ? i.filter((e) => e !== n) : [...i, n]);
 				}

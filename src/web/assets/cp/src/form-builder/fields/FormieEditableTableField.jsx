@@ -1,6 +1,11 @@
 import { useCallback, useState } from 'react';
 
-import { Button, EditableTable } from '@verbb/plugin-kit-react/components';
+import {
+    Button,
+    DropdownMenuRadioGroup,
+    DropdownMenuRadioItem,
+    EditableTable,
+} from '@verbb/plugin-kit-react/components';
 import { FieldLayout } from '@verbb/plugin-kit-react/forms/Field';
 import { useEditableTableFieldBinding } from '@verbb/plugin-kit-react/forms';
 import { useTranslation } from '@verbb/plugin-kit-react/hooks';
@@ -9,6 +14,9 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus } from '@fortawesome/pro-solid-svg-icons';
 
 import { FormieBulkOptionsDialog } from '@form-builder/components/FormieBulkOptionsDialog';
+import {
+    resolveOptionAvailabilityValue,
+} from '@form-builder/utils/optionAvailability';
 
 function FormieEditableTableField({ form, field }) {
     const {
@@ -20,6 +28,7 @@ function FormieEditableTableField({ form, field }) {
     } = useEditableTableFieldBinding(form, field.name);
     const t = useTranslation();
     const [isBulkDialogOpen, setIsBulkDialogOpen] = useState(false);
+    const hasOptionRowMenu = field.enableOptionRowMenu === true || field.name === 'options';
 
     const handleBulkSave = useCallback((parsedRows, mode) => {
         if (!Array.isArray(parsedRows) || parsedRows.length === 0) {
@@ -39,6 +48,83 @@ function FormieEditableTableField({ form, field }) {
         const nextRows = mode === 'replace' ? parsedRows : [...currentRows, ...parsedRows];
         setRows(nextRows);
     }, [rows, setRows]);
+
+    const updateRowAvailability = useCallback((rowIndex, availability) => {
+        const currentRows = Array.isArray(form.getFieldValue(field.name))
+            ? form.getFieldValue(field.name)
+            : [];
+
+        const nextRows = currentRows.map((row, index) => {
+            if (index !== rowIndex) {
+                return row;
+            }
+
+            const next = { ...(row && typeof row === 'object' ? row : {}) };
+            delete next.disabled;
+            delete next._id;
+
+            if (availability) {
+                next.availability = availability;
+            } else {
+                delete next.availability;
+            }
+
+            return next;
+        });
+
+        setRows(nextRows);
+    }, [field.name, form, setRows]);
+
+    const renderOptionRowMenuItems = useCallback(({ row, rowIndex }) => {
+        if (!hasOptionRowMenu || row?.optgroup) {
+            return null;
+        }
+
+        const currentValue = resolveOptionAvailabilityValue(row);
+
+        return (
+            <DropdownMenuRadioGroup
+                value={currentValue}
+                onValueChange={(value) => {
+                    updateRowAvailability(rowIndex, value === 'visible' ? null : value);
+                }}
+            >
+                <DropdownMenuRadioItem value="visible">
+                    {t('Visible')}
+                </DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="hidden">
+                    {t('Hidden')}
+                </DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="disabled">
+                    {t('Disabled')}
+                </DropdownMenuRadioItem>
+            </DropdownMenuRadioGroup>
+        );
+    }, [hasOptionRowMenu, t, updateRowAvailability]);
+
+    const modifyOptionRow = useCallback((row) => {
+        if (!hasOptionRowMenu || row?.optgroup) {
+            return null;
+        }
+
+        const availability = resolveOptionAvailabilityValue(row);
+
+        if (availability === 'hidden') {
+            return {
+                cellClassName: 'bg-amber-50/80',
+                title: t('Hidden from the front-end form'),
+            };
+        }
+
+        if (availability === 'disabled') {
+            return {
+                cellClassName: 'bg-slate-100/90',
+                title: t('Disabled on the front-end form'),
+            };
+        }
+
+        return null;
+    }, [hasOptionRowMenu, t]);
 
     const hasBulkOptions = Boolean(field.enableBulkOptions && field.predefinedOptions?.length);
 
@@ -74,7 +160,8 @@ function FormieEditableTableField({ form, field }) {
                 className=""
                 fieldName={field.name}
                 cellErrors={cellErrors}
-                modifyColumn={undefined}
+                modifyRow={hasOptionRowMenu ? modifyOptionRow : undefined}
+                renderRowMenuItemsBeforeCore={hasOptionRowMenu ? renderOptionRowMenuItems : undefined}
             />
 
             {hasBulkOptions && (

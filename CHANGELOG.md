@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+- Replace the Dropdown, Radio and Checkboxes option-table **Disabled** column with a row-menu **Visible / Hidden / Disabled** availability control ([#1816](https://github.com/verbb/formie/issues/1816)). **Hidden** removes an option from the front-end form while preserving stored submission values and labels; **Disabled** renders the option with HTML `disabled` so it stays visible but cannot be selected. Legacy `disabled: true` option rows are treated as hidden. Non-default states are indicated in the options table with row background tints.
+- Centralise front-end option filtering in `OptionsField::getFieldOptions()` so hidden options are excluded consistently (including Dropdown placeholders).
+
+### Fixed
+- Fix Dropdown, Radio and Checkboxes **Disabled** option availability not outputting HTML `disabled` on the front-end form. ([#1816](https://github.com/verbb/formie/issues/1816))
+
 ## 4.0.0-beta.4 - 2026-06-07
 
 ### Added
@@ -13,7 +22,6 @@
 - Add unique-value, match-field, text-limit, number-limit, email-format, blocked-domain, options-limit, and file-upload validation message overrides on supported field types. ([#1475](https://github.com/verbb/formie/issues/1475))
 
 ### Changed
-- Move field validation settings from the **Settings** tab into the **Validation** tab across all field types.
 - Standardize validation message placeholders to `{label}` across PHP validators, front-end validators, and translations (legacy `{name}` / `{attribute}` aliases remain at runtime).
 - Replace text-limit counter `{startTag}{num}{endTag}` translation strings with Craft plural syntax and wire translated counter copy on the front end. ([#2526](https://github.com/verbb/formie/issues/2526))
 - Show context-aware text-limit counter copy for empty (allowed), under-limit (left), and over-limit states on the front end and in control panel submissions.

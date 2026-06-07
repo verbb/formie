@@ -1,5 +1,6 @@
 import React from 'react';
 import { normalizeOptions, normalizeSelectedValues } from './previewValueUtils';
+import { applyOptionAvailabilityToPreviewOptions } from '@form-builder/utils/optionAvailability';
 
 const renderSelectOption = (option, index) => {
     if (option?.optgroup && Array.isArray(option.options)) {
@@ -13,7 +14,11 @@ const renderSelectOption = (option, index) => {
     }
 
     return (
-        <option key={index} value={option?.value ?? ''}>
+        <option
+            key={index}
+            value={option?.value ?? ''}
+            disabled={option?.disabled === true}
+        >
             {option?.label ?? ''}
         </option>
     );
@@ -28,7 +33,7 @@ export const PreviewSelect = ({
     showPlaceholderOption = true,
     className = 'formie-field-preview-select',
 }) => {
-    const normalizedOptions = normalizeOptions(options);
+    const normalizedOptions = applyOptionAvailabilityToPreviewOptions(normalizeOptions(options));
     const selectedValues = normalizeSelectedValues(value, normalizedOptions, useOptionDefaults);
     const defaultValue = multiple ? selectedValues : (selectedValues[0] ?? '');
 
