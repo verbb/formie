@@ -1,5 +1,5 @@
 {% set value = value ?? field.getElementValue(element) %}
-{% set errors = element ? element.getErrors(field.errorKey) : [] %}
+{% set errors = element ? element.getErrors(field.errorKey()) : [] %}
 
 {% set labelPosition = craft.formie.getLabelPosition(field, form) %}
 {% set subFieldLabelPosition = craft.formie.getLabelPosition(field, form, true) %}
