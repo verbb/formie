@@ -435,6 +435,7 @@ class Submission extends Element
     private static array $_formByIdCache = [];
     private static array $_sourcesCache = [];
     private bool $_updateTitle = false;
+    private bool $_snapshotSettingsApplied = false;
 
 
     // Public Methods
@@ -775,6 +776,8 @@ class Submission extends Element
                 $this->_form = $query->one();
                 self::$_formByIdCache[$this->formId] = $this->_form;
             }
+
+            $this->_applySnapshotSettingsIfNeeded();
         }
 
         return $this->_form;
@@ -785,29 +788,9 @@ class Submission extends Element
         $this->_form = $form;
         $this->formId = $form->id;
         ($this->_contentManager ??= new SubmissionContentManager())->resetFieldCollection($this);
+        $this->_snapshotSettingsApplied = false;
 
-        // When setting the form, see if there's an in-session snapshot, or if there's a saved
-        // snapshot from the database. This will be field settings set via templates which we want
-        // to apply to fields in our form, for this submission. Only do this for front-end checks
-        // and if there's no already-saved snapshot data
-        if (Craft::$app->getRequest()->getIsSiteRequest() && !$this->snapshot) {
-            if ($snapshotData = $form->getSnapshotData()) {
-                $this->snapshot = $snapshotData;
-            }
-        }
-
-        $fields = $this->snapshot['fields'] ?? [];
-
-        foreach ($fields as $handle => $settings) {
-            $this->setFieldSettings($handle, $settings);
-        }
-
-        // Do the same for form settings
-        $formSettings = $this->snapshot['form'] ?? null;
-
-        if ($formSettings) {
-            $this->_form->settings->setAttributes($formSettings, false);
-        }
+        $this->_applySnapshotSettingsIfNeeded();
     }
 
     public function setFieldSettings(string $handle, array $settings): void
@@ -1565,5 +1548,41 @@ class Submission extends Element
         }
 
         return [];
+    }
+
+    private function _applySnapshotSettingsIfNeeded(): void
+    {
+        if ($this->_snapshotSettingsApplied || !$this->_form) {
+            return;
+        }
+
+        // When setting the form on a front-end request, merge in-session snapshot data
+        // before applying settings. Saved submission snapshots are already on the element.
+        if (Craft::$app->getRequest()->getIsSiteRequest() && !$this->snapshot) {
+            if ($snapshotData = $this->_form->getSnapshotData()) {
+                $this->snapshot = $snapshotData;
+            }
+        }
+
+        $fields = $this->snapshot['fields'] ?? [];
+        $formSettings = $this->snapshot['form'] ?? null;
+
+        if ($fields === [] && $formSettings === null) {
+            $this->_snapshotSettingsApplied = true;
+
+            return;
+        }
+
+        foreach ($fields as $handle => $settings) {
+            $this->setFieldSettings($handle, $settings);
+        }
+
+        if ($formSettings) {
+            $this->_form->settings->setAttributes($formSettings, false);
+        }
+
+        $this->getContentState()->normalizedValuesByUid = [];
+
+        $this->_snapshotSettingsApplied = true;
     }
 }

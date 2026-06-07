@@ -1,7 +1,7 @@
 {% if value | length %}
     <ul>
         {% for item in value %}
-            {% set displayValue = field.emailFieldSummaryValue == 'value' ? (item.value ?? '') : (item.label ?? '') %}
+                {% set displayValue = field.emailFieldSummaryValue == 'value' ? (item.value ?? '') : (item.displayLabel ?? item.label ?? item.value ?? '') %}
 
             <li>{{ displayValue }}</li>
         {% endfor %}

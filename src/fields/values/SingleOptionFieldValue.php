@@ -102,6 +102,17 @@ class SingleOptionFieldValue implements FieldValueInterface
         return $this->value === null || $this->value === '';
     }
 
+    public function getDisplayLabel(): string
+    {
+        $label = trim((string)($this->label ?? ''));
+
+        if ($label !== '') {
+            return $label;
+        }
+
+        return (string)($this->value ?? '');
+    }
+
     public function __toString(): string
     {
         return (string)$this->value;

@@ -573,7 +573,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
             foreach ($value as $option) {
                 /** @var OptionValue $option */
                 if ($option->value) {
-                    $labels[] = Craft::t('site', $option->label);
+                    $labels[] = Craft::t('site', $option->getDisplayLabel());
                 }
             }
 
@@ -584,7 +584,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
             return '';
         }
 
-        return $value->value ? $this->renderPreviewText(Craft::t('site', (string)$value->label)) : '';
+        return $value->value ? $this->renderPreviewText(Craft::t('site', $value->getDisplayLabel())) : '';
     }
 
     public function getIsMultiOptionsField(): bool
@@ -781,7 +781,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
         }
 
         if ($value instanceof SingleOptionFieldValue) {
-            return $value->label ?? '';
+            return $value->getDisplayLabel();
         }
 
         return '';

@@ -79,7 +79,7 @@ class MultiOptionFieldValue implements FieldValueInterface, IteratorAggregate, C
 
     public function labels(): array
     {
-        return array_map(static fn(OptionValue $option) => (string)$option->label, $this->_selectedOptions);
+        return array_map(static fn(OptionValue $option) => $option->getDisplayLabel(), $this->_selectedOptions);
     }
 
     public function getPathValue(string $path): mixed

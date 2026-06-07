@@ -1,5 +1,5 @@
 {% if value %}
-    {% set displayValue = field.emailFieldSummaryValue == 'value' ? (value.value ?? '') : (value.label ?? '') %}
+    {% set displayValue = field.emailFieldSummaryValue == 'value' ? (value.value ?? '') : (value.displayLabel ?? value.label ?? value.value ?? '') %}
     
     {{ displayValue }}
 {% endif %}

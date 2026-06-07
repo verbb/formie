@@ -28,6 +28,17 @@ class OptionValue
         return [];
     }
 
+    public function getDisplayLabel(): string
+    {
+        $label = trim((string)($this->label ?? ''));
+
+        if ($label !== '') {
+            return $label;
+        }
+
+        return (string)($this->value ?? '');
+    }
+
     public function toArray(): array
     {
         return [
