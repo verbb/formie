@@ -85,7 +85,7 @@ class References
 
             $resolved = self::parseValue($raw, $submission, ['variables' => $variables]);
 
-            return self::_stringifyValue($resolved);
+            return self::_stringifyListValue($resolved);
         }, $content);
     }
 
@@ -192,16 +192,73 @@ class References
         return $trimmed . '|' . $default . '}';
     }
 
-    public static function field(string $reference, ?string $selector = null): string
+    public static function field(string $reference, ?string $selector = null, array $metadata = []): string
     {
         $reference = trim($reference);
         $selector = trim((string)$selector);
+        $body = $reference;
 
         if ($selector !== '') {
-            return '{field:' . $reference . ':' . $selector . '}';
+            $body .= ':' . $selector;
         }
 
-        return '{field:' . $reference . '}';
+        if (isset($metadata['transform'])) {
+            $body .= ';transform=' . rawurlencode((string)$metadata['transform']);
+            unset($metadata['transform']);
+        }
+
+        foreach ($metadata as $key => $value) {
+            if ($value === null || $value === '') {
+                continue;
+            }
+
+            $body .= ';' . $key . '=' . rawurlencode((string)$value);
+        }
+
+        return '{field:' . $body . '}';
+    }
+
+    /**
+     * Parse content and interpolate references. Array values become comma-separated strings.
+     */
+    public static function parseListContent(string $content, Submission $submission, array $options = []): string
+    {
+        if (!str_contains($content, '{')) {
+            return $content;
+        }
+
+        $variables = $options['variables'] ?? null;
+
+        if (!is_array($variables)) {
+            $notification = $options['notification'] ?? null;
+            $includeSummary = (bool)($options['includeSummary'] ?? false);
+            $variables = Variables::getVariablesForSubmission(
+                $submission,
+                $notification instanceof Notification ? $notification : null,
+                $includeSummary,
+                (bool)($options['parseEnvValues'] ?? true)
+            );
+        }
+
+        return (string)preg_replace_callback('/\{[^{}]+\}/', function (array $matches) use ($submission, $variables) {
+            $raw = (string)($matches[0] ?? '');
+            $expr = self::parseReferenceExpression($raw);
+
+            if (!$expr->isValid && $expr->target === '' && $expr->identifier === '') {
+                return $raw;
+            }
+
+            $resolved = self::parseValue($raw, $submission, ['variables' => $variables]);
+
+            return self::_stringifyListValue($resolved);
+        }, $content);
+    }
+
+    public static function hasRepeaterScope(ReferenceExpression $expression): bool
+    {
+        $scope = $expression->transformerParams['scope'] ?? null;
+
+        return is_string($scope) && trim($scope) !== '';
     }
 
     public static function extractFieldReferenceHandles(string $content): array
@@ -326,5 +383,24 @@ class References
         }
 
         return '';
+    }
+
+    private static function _stringifyListValue(mixed $value): string
+    {
+        if (is_array($value)) {
+            $parts = [];
+
+            foreach ($value as $item) {
+                $string = self::_stringifyValue($item);
+
+                if ($string !== '') {
+                    $parts[] = $string;
+                }
+            }
+
+            return implode(', ', $parts);
+        }
+
+        return self::_stringifyValue($value);
     }
 }

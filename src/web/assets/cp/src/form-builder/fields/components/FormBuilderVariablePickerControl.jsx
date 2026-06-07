@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
     Button,
     DropdownMenuItem,
@@ -21,9 +21,18 @@ import {
     findVariableOptionByValue,
     getComparableTokenValue,
     parseVariableTokenMetadata,
+    resolveRepeaterConfigureOption,
     serializeVariableTokenMetadata,
 } from '@form-builder/fields/utils/variablePicker';
 import { VariablePickerActionsMenu } from './VariablePickerActionsMenu';
+import { RepeaterRowTargetingControls } from './RepeaterRowTargetingControls';
+import {
+    applyRepeaterRowTargetingToToken,
+    isRepeaterSubFieldOption,
+    parseRepeaterRowTargeting,
+    resolveRepeaterVariableDisplayLabel,
+    shouldShowRepeaterRowTargeting,
+} from '@form-builder/fields/utils/repeaterRowTargeting';
 
 export function FormBuilderVariablePickerControl({
     value = '',
@@ -52,6 +61,14 @@ export function FormBuilderVariablePickerControl({
     const [defaultIfEmpty, setDefaultIfEmpty] = useState('');
     const [transformerId, setTransformerId] = useState('');
     const [transformerParams, setTransformerParams] = useState({});
+    const [settingsSessionKey, setSettingsSessionKey] = useState(0);
+    const [targetingRevision, setTargetingRevision] = useState(0);
+    const settingsWasOpenRef = useRef(false);
+    const rowTargetingRef = useRef(parseRepeaterRowTargeting(String(value || '')));
+    const handleRowTargetingChange = useCallback((nextTargeting) => {
+        rowTargetingRef.current = nextTargeting;
+        setTargetingRevision((current) => current + 1);
+    }, []);
     const comparableValue = useMemo(() => { return getComparableTokenValue(String(value || '')); }, [value]);
     const selectedTokenMeta = useMemo(() => { return parseVariableTokenMetadata(String(value || '')); }, [value]);
     const resolvedNoneOptionLabel = noneOptionLabel || t('Select an option');
@@ -70,6 +87,14 @@ export function FormBuilderVariablePickerControl({
     });
 
     useEffect(() => {
+        if (settingsOpen && !settingsWasOpenRef.current) {
+            setSettingsSessionKey((current) => current + 1);
+        }
+
+        settingsWasOpenRef.current = settingsOpen;
+    }, [settingsOpen]);
+
+    useEffect(() => {
         setDefaultIfEmpty(String(selectedTokenMeta.defaultIfEmpty || ''));
         setTransformerId(String(selectedTokenMeta.transformerId || ''));
         setTransformerParams(
@@ -77,9 +102,38 @@ export function FormBuilderVariablePickerControl({
                 ? selectedTokenMeta.transformerParams
                 : {},
         );
-    }, [selectedTokenMeta.defaultIfEmpty, selectedTokenMeta.transformerId, selectedTokenMeta.transformerParams]);
+        rowTargetingRef.current = parseRepeaterRowTargeting(String(value || ''));
+    }, [selectedTokenMeta.defaultIfEmpty, selectedTokenMeta.transformerId, selectedTokenMeta.transformerParams, value]);
+
+    const selectedVariableOption = useMemo(() => {
+        const indexedOption = variableOptionIndex?.optionByValue?.get?.(comparableValue);
+        const resolvedOption = resolveRepeaterConfigureOption(variableCategories, comparableValue, {
+            fallbackLabel: indexedOption?.label || '',
+            variableOption: indexedOption || null,
+        });
+
+        if (resolvedOption) {
+            return resolvedOption;
+        }
+
+        if (indexedOption) {
+            return indexedOption;
+        }
+
+        return findVariableOptionByValue(variableCategories, comparableValue);
+    }, [variableCategories, variableOptionIndex, comparableValue]);
 
     const selectedLabel = useMemo(() => {
+        if (isRepeaterSubFieldOption(selectedVariableOption)) {
+            if (settingsOpen && shouldShowRepeaterRowTargeting(comparableValue, selectedVariableOption)) {
+                const previewToken = applyRepeaterRowTargetingToToken(comparableValue, rowTargetingRef.current);
+
+                return resolveRepeaterVariableDisplayLabel(previewToken, selectedVariableOption, t) || resolvedNoneOptionLabel;
+            }
+
+            return resolveRepeaterVariableDisplayLabel(comparableValue, selectedVariableOption, t) || resolvedNoneOptionLabel;
+        }
+
         const indexedLabel = variableOptionIndex?.labelByValue?.get?.(comparableValue);
         if (indexedLabel) {
             return indexedLabel;
@@ -88,17 +142,9 @@ export function FormBuilderVariablePickerControl({
         return findOptionLabelByValue(variableCategories, comparableValue, {
             emptyLabel: resolvedNoneOptionLabel,
             includeParentLabel,
+            t,
         }) || resolvedNoneOptionLabel;
-    }, [variableCategories, variableOptionIndex, comparableValue, resolvedNoneOptionLabel, includeParentLabel]);
-
-    const selectedVariableOption = useMemo(() => {
-        const indexedOption = variableOptionIndex?.optionByValue?.get?.(comparableValue);
-        if (indexedOption) {
-            return indexedOption;
-        }
-
-        return findVariableOptionByValue(variableCategories, comparableValue);
-    }, [variableCategories, variableOptionIndex, comparableValue]);
+    }, [variableCategories, variableOptionIndex, comparableValue, resolvedNoneOptionLabel, includeParentLabel, selectedVariableOption, settingsOpen, targetingRevision, t]);
 
     const transformOptions = useMemo(() => {
         return buildTransformOptions(selectedVariableOption, variableTransformerRegistry || {});
@@ -142,6 +188,17 @@ export function FormBuilderVariablePickerControl({
     }, [includeNoneOptionInPicker, resolvedNoneOptionLabel, picker.groups, picker.page, picker.search, t]);
 
     const canShowSettings = Boolean(comparableValue && selectedVariableOption);
+    const settingsTokenValue = useMemo(() => {
+        if (!settingsOpen) {
+            return comparableValue;
+        }
+
+        if (!shouldShowRepeaterRowTargeting(comparableValue, selectedVariableOption)) {
+            return comparableValue;
+        }
+
+        return applyRepeaterRowTargetingToToken(comparableValue, rowTargetingRef.current);
+    }, [comparableValue, selectedVariableOption, settingsOpen, targetingRevision]);
     const hasDefaultIndicator = Boolean(String(selectedTokenMeta.defaultIfEmpty || '').trim());
     const hasTransformIndicator = Boolean(String(selectedTokenMeta.transformerId || '').trim());
     const hasSelectedValue = Boolean(String(comparableValue || '').trim());
@@ -154,10 +211,14 @@ export function FormBuilderVariablePickerControl({
     }, [canShowSettings, settingsOpen]);
 
     const saveConfiguration = () => {
-        const baseToken = selectedTokenMeta.tokenWithoutDefault || comparableValue;
+        let baseToken = selectedTokenMeta.tokenWithoutDefault || comparableValue;
         if (!baseToken) {
             setSettingsOpen(false);
             return;
+        }
+
+        if (shouldShowRepeaterRowTargeting(comparableValue, selectedVariableOption)) {
+            baseToken = applyRepeaterRowTargetingToToken(baseToken, rowTargetingRef.current);
         }
 
         onChange(serializeVariableTokenMetadata(baseToken, {
@@ -296,6 +357,14 @@ export function FormBuilderVariablePickerControl({
                     className={settingsPopoverClassName}
                     portalClassName="z-250"
                 >
+                    <RepeaterRowTargetingControls
+                        key={settingsOpen ? String(settingsSessionKey) : 'closed'}
+                        tokenValue={settingsTokenValue}
+                        variableOption={selectedVariableOption}
+                        targetingRef={rowTargetingRef}
+                        resetKey={settingsOpen ? String(settingsSessionKey) : 'closed'}
+                        onTargetingChange={handleRowTargetingChange}
+                    />
                     <label className="mb-1 block text-[11px] text-gray-500">
                         {t('Default if empty (optional)')}
                     </label>

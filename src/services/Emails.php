@@ -583,7 +583,7 @@ class Emails extends Component
     {
         $emails = $this->_parseAuthoredEmailEnvTokens((string)$emails);
 
-        return References::parseContent($emails, $submission, [
+        return References::parseListContent($emails, $submission, [
             'notification' => $notification,
             'parseEnvValues' => false,
         ]);

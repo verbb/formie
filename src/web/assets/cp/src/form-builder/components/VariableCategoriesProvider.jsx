@@ -1,6 +1,15 @@
+import { useCallback } from 'react';
 import { VariableCategoriesProvider as Provider } from '@verbb/plugin-kit-react/forms';
+import { useTranslation } from '@verbb/plugin-kit-react/hooks';
 import useAppStore from '@form-builder/hooks/useAppStore';
 import { useVariableCategoriesResolver } from '@form-builder/hooks/useVariableCategories';
+import { useRepeaterVariableConfigureSection } from '@form-builder/hooks/useRepeaterVariableConfigureSection';
+import {
+    createSyntheticRepeaterSubFieldOption,
+    isRepeaterScopedFieldToken,
+    isRepeaterSubFieldOption,
+    resolveRepeaterVariableDisplayLabel,
+} from '@form-builder/fields/utils/repeaterRowTargeting';
 
 /**
  * Provides variable categories resolution and metadata to rich text fields in the form builder.
@@ -8,7 +17,22 @@ import { useVariableCategoriesResolver } from '@form-builder/hooks/useVariableCa
  * Must be inside FormBuilderFormProvider and FormBuilderAppProvider.
  */
 export function VariableCategoriesProvider({ children }) {
+    const t = useTranslation();
     const getVariableCategories = useVariableCategoriesResolver();
+    const renderVariableConfigureSection = useRepeaterVariableConfigureSection();
+    const resolveVariableTagLabel = useCallback(({ tokenValue, variableOption, defaultLabel, storedLabel }) => {
+        if (isRepeaterSubFieldOption(variableOption)) {
+            return resolveRepeaterVariableDisplayLabel(tokenValue, variableOption, t) || defaultLabel;
+        }
+
+        if (isRepeaterScopedFieldToken(tokenValue)) {
+            const option = createSyntheticRepeaterSubFieldOption(tokenValue, storedLabel || defaultLabel);
+
+            return resolveRepeaterVariableDisplayLabel(tokenValue, option, t) || defaultLabel;
+        }
+
+        return defaultLabel;
+    }, [t]);
     const variableCategoryLabels = useAppStore((state) => { return state.variableCategoryLabels; });
     const variableCategoryOrder = useAppStore((state) => { return state.variableCategoryOrder; });
     const variableTransformerRegistry = useAppStore((state) => {
@@ -22,6 +46,8 @@ export function VariableCategoriesProvider({ children }) {
                 variableCategoryLabels,
                 variableCategoryOrder,
                 variableTransformerRegistry,
+                renderVariableConfigureSection,
+                resolveVariableTagLabel,
             }}
         >
             {children}

@@ -441,7 +441,7 @@ const NestedFieldCard = ({
     const nestedFieldEditorDismissAttemptRef = useRef(null);
 
     const {
-        ref, isDragging,
+        ref, handleRef, isDragging,
     } = useDraggable({
         id: `nested-draggable|${pageIndex}|${rowIndex}|${fieldIndex}|${nestedField?._id || nestedFieldIndex}|${containerInstanceId}`,
         data: {
@@ -593,6 +593,7 @@ const NestedFieldCard = ({
                 )}
             >
                 <button
+                    ref={handleRef}
                     type="button"
                     className="absolute inset-0 z-1 cursor-pointer rounded-lg border-0 bg-transparent p-0 focus-visible:outline-none focus-visible:shadow-[inset_0_0_0_2px_var(--color-sky-600),inset_0_0_0_4px_#ffffff]"
                     aria-label={Craft.t('formie', 'Edit {label}', { label: nestedFieldDisplayLabel })}

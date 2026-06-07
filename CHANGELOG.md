@@ -4,6 +4,7 @@
 
 ### Added
 - Add conditional submission status rules in the form builder **Settings → Submissions** tab, evaluated on the front end during submission processing. ([#508](https://github.com/verbb/formie/issues/508))
+- Add repeater sub-field reference support with explicit row scope (`first`, `last`, `index`, `all`, `count`, custom row expressions) for variable tokens, notifications, conditions, and integrations. Repeater nested fields now appear once in the variable picker, with row targeting configured in the variable settings popover. ([#1728](https://github.com/verbb/formie/issues/1728), [#1255](https://github.com/verbb/formie/issues/1255), [#2099](https://github.com/verbb/formie/issues/2099), [#1888](https://github.com/verbb/formie/issues/1888), [#2338](https://github.com/verbb/formie/issues/2338))
 - Add conditional redirect rules under **Behaviour → After Submit**, with an optional **Enable Redirect Rules** toggle that overrides the default submit action when conditions match. ([#830](https://github.com/verbb/formie/issues/830))
 - Add failed notification alert recipients by Craft user group and additional email addresses. ([#2226](https://github.com/verbb/formie/issues/2226))
 - Add per-rule validation message overrides via a **Validation** form builder tab and the `validationMessages` field setting, with legacy `errorMessage` values migrated to `validationMessages.required`. ([#1269](https://github.com/verbb/formie/issues/1269))

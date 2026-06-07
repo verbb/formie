@@ -1,4 +1,15 @@
 import { parseTokenWithDefault } from '@verbb/plugin-kit-react/components/tiptap/variableSerialization';
+import {
+    createSyntheticRepeaterSubFieldOption,
+    getRepeaterBaseToken,
+    isRepeaterScopedFieldToken,
+    isRepeaterSubFieldOption,
+    parseRepeaterRowTargeting,
+    resolveRepeaterVariableDisplayLabel,
+} from '@form-builder/fields/utils/repeaterRowTargeting';
+
+/** Metadata that identifies a reference variant (kept in token body for lookup). */
+const REFERENCE_METADATA_KEYS = new Set(['scope', 'index', 'rows']);
 
 export const collectSelectableValues = (variableCategories = {}) => {
     const values = new Set(['']);
@@ -41,9 +52,25 @@ export const getComparableTokenValue = (tokenValue = '') => {
     return tokenWithoutDefault || tokenValue;
 };
 
+const variableValuesMatchReference = (tokenValue = '', optionValue = '') => {
+    const comparableToken = getComparableTokenValue(tokenValue);
+    const comparableOption = getComparableTokenValue(optionValue);
+
+    if (!comparableToken || !comparableOption) {
+        return false;
+    }
+
+    if (comparableToken === comparableOption) {
+        return true;
+    }
+
+    return getRepeaterBaseToken(comparableToken) === getRepeaterBaseToken(comparableOption);
+};
+
 export const findOptionLabelByValue = (variableCategories = {}, tokenValue = '', {
     emptyLabel = '',
     includeParentLabel = false,
+    t = null,
 } = {}) => {
     const comparableToken = getComparableTokenValue(tokenValue);
     if (!comparableToken) {
@@ -51,6 +78,9 @@ export const findOptionLabelByValue = (variableCategories = {}, tokenValue = '',
     }
 
     let match = null;
+    let matchedOption = null;
+    let repeaterMatch = null;
+    let repeaterMatchedOption = null;
 
     const buildDisplayLabel = (parentLabel, labelBase) => {
         if (!includeParentLabel || !parentLabel) {
@@ -66,7 +96,7 @@ export const findOptionLabelByValue = (variableCategories = {}, tokenValue = '',
 
     const walk = (items = [], parentLabel = '') => {
         items.forEach((item) => {
-            if (match || !item || typeof item !== 'object') {
+            if (!item || typeof item !== 'object') {
                 return;
             }
 
@@ -74,9 +104,14 @@ export const findOptionLabelByValue = (variableCategories = {}, tokenValue = '',
             const label = buildDisplayLabel(parentLabel, labelBase);
             const value = item.value != null ? String(item.value) : '';
 
-            if (value === comparableToken) {
-                match = label;
-                return;
+            if (variableValuesMatchReference(comparableToken, value)) {
+                if (isRepeaterSubFieldOption(item)) {
+                    repeaterMatch = label;
+                    repeaterMatchedOption = item;
+                } else if (!match) {
+                    match = label;
+                    matchedOption = item;
+                }
             }
 
             if (Array.isArray(item.children) && item.children.length) {
@@ -91,7 +126,14 @@ export const findOptionLabelByValue = (variableCategories = {}, tokenValue = '',
         }
     });
 
-    return match;
+    const resolvedMatch = repeaterMatch || match;
+    const resolvedOption = repeaterMatchedOption || matchedOption;
+
+    if (resolvedMatch && resolvedOption && isRepeaterSubFieldOption(resolvedOption) && typeof t === 'function') {
+        return resolveRepeaterVariableDisplayLabel(comparableToken, resolvedOption, t);
+    }
+
+    return resolvedMatch;
 };
 
 export const findInitialPickerPageForValue = (variableCategories = {}, tokenValue = '') => {
@@ -107,7 +149,7 @@ export const findInitialPickerPageForValue = (variableCategories = {}, tokenValu
             }
 
             const value = item.value != null ? String(item.value) : '';
-            if (value === comparableToken) {
+            if (variableValuesMatchReference(comparableToken, value)) {
                 return parent;
             }
 
@@ -137,28 +179,28 @@ export const findInitialPickerPageForValue = (variableCategories = {}, tokenValu
     return null;
 };
 
-export const findVariableOptionByValue = (variableCategories = {}, tokenValue = '') => {
+export const findRepeaterSubFieldOption = (variableCategories = {}, tokenValue = '') => {
     const comparableToken = getComparableTokenValue(tokenValue);
     if (!comparableToken) {
         return null;
     }
 
-    let match = null;
+    let repeaterMatch = null;
 
     const walk = (items = []) => {
         items.forEach((item) => {
-            if (match || !item || typeof item !== 'object') {
+            if (repeaterMatch || !item || typeof item !== 'object') {
                 return;
+            }
+
+            const children = Array.isArray(item.children) ? item.children : [];
+            if (children.length) {
+                walk(children);
             }
 
             const value = item.value != null ? String(item.value) : '';
-            if (value === comparableToken) {
-                match = item;
-                return;
-            }
-
-            if (Array.isArray(item.children) && item.children.length) {
-                walk(item.children);
+            if (variableValuesMatchReference(comparableToken, value) && isRepeaterSubFieldOption(item)) {
+                repeaterMatch = item;
             }
         });
     };
@@ -169,7 +211,72 @@ export const findVariableOptionByValue = (variableCategories = {}, tokenValue = 
         }
     });
 
-    return match;
+    return repeaterMatch;
+};
+
+export const resolveRepeaterConfigureOption = (variableCategories = {}, tokenValue = '', {
+    fallbackLabel = '',
+    variableOption = null,
+} = {}) => {
+    if (isRepeaterSubFieldOption(variableOption)) {
+        return variableOption;
+    }
+
+    const repeaterOption = findRepeaterSubFieldOption(variableCategories, tokenValue);
+    if (repeaterOption) {
+        return repeaterOption;
+    }
+
+    if (!isRepeaterScopedFieldToken(tokenValue)) {
+        return null;
+    }
+
+    return createSyntheticRepeaterSubFieldOption(tokenValue, fallbackLabel || variableOption?.label || '');
+};
+
+export const findVariableOptionByValue = (variableCategories = {}, tokenValue = '') => {
+    const comparableToken = getComparableTokenValue(tokenValue);
+    if (!comparableToken) {
+        return null;
+    }
+
+    let repeaterMatch = null;
+    let fallbackMatch = null;
+
+    const walk = (items = []) => {
+        items.forEach((item) => {
+            if (!item || typeof item !== 'object') {
+                return;
+            }
+
+            const children = Array.isArray(item.children) ? item.children : [];
+            if (children.length) {
+                walk(children);
+            }
+
+            const value = item.value != null ? String(item.value) : '';
+            if (!variableValuesMatchReference(comparableToken, value)) {
+                return;
+            }
+
+            if (isRepeaterSubFieldOption(item)) {
+                repeaterMatch = item;
+                return;
+            }
+
+            if (!fallbackMatch) {
+                fallbackMatch = item;
+            }
+        });
+    };
+
+    Object.values(variableCategories).forEach((items) => {
+        if (Array.isArray(items)) {
+            walk(items);
+        }
+    });
+
+    return repeaterMatch || fallbackMatch;
 };
 
 export const buildVariableOptionIndex = (variableCategories = {}, {
@@ -249,6 +356,7 @@ export const parseVariableTokenMetadata = (tokenValue = '') => {
     const cleanSegments = [];
     let transformerId = '';
     const transformerParams = {};
+    const referenceParams = {};
 
     segments.forEach((segment) => {
         if (segment.startsWith('transform=')) {
@@ -258,12 +366,20 @@ export const parseVariableTokenMetadata = (tokenValue = '') => {
 
         if (segment.includes('=')) {
             const [keyRaw, ...valueParts] = segment.split('=');
-            const key = String(keyRaw || '').trim();
+            const key = String(keyRaw || '').trim().toLowerCase();
             if (!key) {
                 return;
             }
 
-            transformerParams[key] = decodeURIComponent(valueParts.join('=').trim());
+            const value = decodeURIComponent(valueParts.join('=').trim());
+
+            if (REFERENCE_METADATA_KEYS.has(key)) {
+                referenceParams[key] = value;
+                cleanSegments.push(`${key}=${encodeURIComponent(value)}`);
+                return;
+            }
+
+            transformerParams[key] = value;
             return;
         }
 
@@ -275,6 +391,7 @@ export const parseVariableTokenMetadata = (tokenValue = '') => {
         defaultIfEmpty,
         transformerId,
         transformerParams,
+        referenceParams,
     };
 };
 
@@ -291,12 +408,27 @@ export const serializeVariableTokenMetadata = (baseToken, {
     const parts = [match[1]];
     const cleanedTransformerId = String(transformerId || '').trim();
 
+    Object.entries(transformerParams || {}).forEach(([key, value]) => {
+        const cleanedKey = String(key || '').trim();
+        if (!cleanedKey || cleanedKey === 'transform' || !REFERENCE_METADATA_KEYS.has(cleanedKey)) {
+            return;
+        }
+
+        if (parts.some((part) => {
+            return part.startsWith(`${cleanedKey}=`);
+        })) {
+            return;
+        }
+
+        parts.push(`${cleanedKey}=${encodeURIComponent(String(value ?? ''))}`);
+    });
+
     if (cleanedTransformerId) {
         parts.push(`transform=${encodeURIComponent(cleanedTransformerId)}`);
 
         Object.entries(transformerParams || {}).forEach(([key, value]) => {
             const cleanedKey = String(key || '').trim();
-            if (!cleanedKey || cleanedKey === 'transform') {
+            if (!cleanedKey || cleanedKey === 'transform' || REFERENCE_METADATA_KEYS.has(cleanedKey)) {
                 return;
             }
 

@@ -34,7 +34,9 @@ class ConditionValueResolver
             $field = $resolved['field'] ?? null;
 
             if ($field) {
-                $hasReferenceModifiers = $expression->default !== '' || $expression->transformerId !== '';
+                $hasReferenceModifiers = $expression->default !== ''
+                    || $expression->transformerId !== ''
+                    || References::hasRepeaterScope($expression);
 
                 if ($hasReferenceModifiers) {
                     // Once a reference opts into defaults/transformers, compare

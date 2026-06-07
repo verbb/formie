@@ -94,12 +94,14 @@ it('resolves reference tokens and applies transforms via getFieldValue', functio
     $fullNameToken = References::field((string)$fullNameField->reference);
     $fullNameLowerToken = '{field:' . $fullNameField->reference . ';transform=lower}';
     $groupToken = '{field:' . $groupField->reference . ':innerText}';
-    $repeaterToken = '{field:' . $repeaterField->reference . ':0:innerText}';
+    $repeaterToken = '{field:' . $repeaterField->reference . ':innerText;scope=first}';
+    $repeaterLegacyToken = '{field:' . $repeaterField->reference . ':0:innerText}';
 
     expect($submission->getFieldValue($fullNameToken))->toBe('JOHN SMITH')
         ->and($submission->getFieldValue($fullNameLowerToken))->toBe('john smith')
         ->and($submission->getFieldValue($groupToken))->toBe('Group Token Value')
         ->and($submission->getFieldValue($repeaterToken))->toBe('Row One Token Value')
+        ->and($submission->getFieldValue($repeaterLegacyToken))->toBe('Row One Token Value')
         ->and($submission->getFieldValue('{submission:id}'))->toBe($submission->id)
         ->and($submission->getFieldValue('{form:handle}'))->toBe($form->handle);
 });

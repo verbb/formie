@@ -674,6 +674,45 @@ const getFieldTokenReference = (field) => {
     return handle || null;
 };
 
+const isRepeatableParentFieldType = (field, config) => {
+    const fieldTypeConfig = config.getFieldTypeByType?.(field?.type) || {};
+    return Boolean(fieldTypeConfig.isRepeatableParentField);
+};
+
+const buildRepeaterReferenceToken = (parentReference, selectorHandle, scope, extraParams = {}) => {
+    const selectorPart = selectorHandle ? `:${selectorHandle}` : '';
+    const segments = [`field:${parentReference}${selectorPart}`, `scope=${scope}`];
+
+    Object.entries(extraParams || {}).forEach(([key, value]) => {
+        if (value == null || String(value).trim() === '') {
+            return;
+        }
+
+        segments.push(`${key}=${encodeURIComponent(String(value))}`);
+    });
+
+    return `{${segments.join(';')}}`;
+};
+
+const pushRepeaterScopedReferenceOptions = (targetOptions, {
+    parentReference,
+    nestedLabel,
+    selectorHandle,
+    selectorLabel,
+    source,
+}) => {
+    const suffix = selectorLabel ? `: ${selectorLabel}` : '';
+    const baseLabel = `${nestedLabel}${suffix}`;
+
+    targetOptions.push(applyVariableSourceMetadata({
+        label: baseLabel,
+        value: buildRepeaterReferenceToken(parentReference, selectorHandle, 'first'),
+        repeaterSubField: true,
+        repeaterBaseLabel: baseLabel,
+        types: ['text', 'email', 'array'],
+    }, source));
+};
+
 const getConditionColumnOptions = (field, selectorHandle = '') => {
     const rawOptions = Array.isArray(field?.options) ? field.options : [];
 
@@ -804,6 +843,8 @@ const buildVariablePickerSecondaryOptions = (field, referenceConfig, config) => 
 
     const appendNestedOptions = (sourceField, labelPrefix = '') => {
         const nestedFields = getNestedFields(sourceField);
+        const parentIsRepeater = isRepeatableParentFieldType(sourceField, config);
+        const parentReference = parentIsRepeater ? getFieldTokenReference(sourceField) : null;
 
         nestedFields.forEach((nestedField) => {
             const nestedReference = getFieldTokenReference(nestedField);
@@ -817,28 +858,59 @@ const buildVariablePickerSecondaryOptions = (field, referenceConfig, config) => 
             const nestedLabel = labelPrefix ? `${labelPrefix}${nestedLabelBase}` : nestedLabelBase;
             const nestedPrimarySource = getVariableSourceBySelector(nestedTypeConfig, '');
 
-            if (nestedReferenceConfig.allowPrimary !== false && shouldIncludeVariableSource(nestedPrimarySource, nestedField, config)) {
+            if (parentIsRepeater && parentReference) {
+                if (nestedReferenceConfig.allowPrimary !== false && shouldIncludeVariableSource(nestedPrimarySource, nestedField, config)) {
+                    pushRepeaterScopedReferenceOptions(options, {
+                        parentReference,
+                        nestedLabel,
+                        selectorHandle: nestedField.handle || '',
+                        selectorLabel: '',
+                        source: nestedPrimarySource,
+                    });
+                }
+
+                nestedReferenceConfig.selectors
+                    .filter((selector) => {
+                        return shouldIncludeSelector(selector, config.target, nestedField, nestedReferenceConfig, config);
+                    })
+                    .forEach((selector) => {
+                        const source = getVariableSourceBySelector(nestedTypeConfig, selector.handle);
+                        if (!shouldIncludeVariableSource(source, nestedField, config)) {
+                            return;
+                        }
+
+                        pushRepeaterScopedReferenceOptions(options, {
+                            parentReference,
+                            nestedLabel,
+                            selectorHandle: selector.handle,
+                            selectorLabel: selector.label || selector.handle,
+                            source,
+                        });
+                    });
+            } else if (nestedReferenceConfig.allowPrimary !== false && shouldIncludeVariableSource(nestedPrimarySource, nestedField, config)) {
                 options.push(applyVariableSourceMetadata({
                     label: nestedLabel,
                     value: `{field:${nestedReference}}`,
                 }, nestedPrimarySource));
             }
 
-            nestedReferenceConfig.selectors
-                .filter((selector) => {
-                    return shouldIncludeSelector(selector, config.target, nestedField, nestedReferenceConfig, config);
-                })
-                .forEach((selector) => {
-                    const source = getVariableSourceBySelector(nestedTypeConfig, selector.handle);
-                    if (!shouldIncludeVariableSource(source, nestedField, config)) {
-                        return;
-                    }
+            if (!parentIsRepeater) {
+                nestedReferenceConfig.selectors
+                    .filter((selector) => {
+                        return shouldIncludeSelector(selector, config.target, nestedField, nestedReferenceConfig, config);
+                    })
+                    .forEach((selector) => {
+                        const source = getVariableSourceBySelector(nestedTypeConfig, selector.handle);
+                        if (!shouldIncludeVariableSource(source, nestedField, config)) {
+                            return;
+                        }
 
-                    options.push(applyVariableSourceMetadata({
-                        label: `${nestedLabel}: ${selector.label || selector.handle}`,
-                        value: `{field:${nestedReference}:${selector.handle}}`,
-                    }, source));
-                });
+                        options.push(applyVariableSourceMetadata({
+                            label: `${nestedLabel}: ${selector.label || selector.handle}`,
+                            value: `{field:${nestedReference}:${selector.handle}}`,
+                        }, source));
+                    });
+            }
 
             if (nestedReferenceConfig.allowNested && nestedReferenceConfig.nestedMode === 'childrenOnly') {
                 appendNestedOptions(nestedField, `${nestedLabel}: `);

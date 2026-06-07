@@ -170,7 +170,7 @@ const Field = ({
     }, [shouldAutoOpenInitialFieldEditor, field, pageIndex, rowIndex, fieldIndex]);
 
     const {
-        ref, isDragging: isFieldDragging,
+        ref, handleRef, isDragging: isFieldDragging,
     } = useDraggable({
         id: `draggable-field-${draggableFieldId}`,
         data: {
@@ -460,6 +460,7 @@ const Field = ({
             >
                 {!isInlineContainerBuilder && (
                     <button
+                        ref={handleRef}
                         type="button"
                         className="absolute inset-0 z-1 cursor-pointer rounded-lg border-0 bg-transparent p-0 focus-visible:outline-none focus-visible:shadow-[inset_0_0_0_2px_var(--color-sky-600),inset_0_0_0_4px_#ffffff]"
                         aria-label={Craft.t('formie', 'Edit {label}', { label: fieldDisplayLabel })}

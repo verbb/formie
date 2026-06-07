@@ -3,6 +3,7 @@ namespace verbb\formie\helpers;
 
 use verbb\formie\Formie;
 use verbb\formie\base\FieldInterface;
+use verbb\formie\base\RepeatableParentFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\RegisterTransformersEvent;
@@ -42,6 +43,7 @@ class Variables
     public const TYPE_URL = 'url';
     public const TYPE_DATE = 'date';
     public const TYPE_BOOLEAN = 'boolean';
+    public const TYPE_ARRAY = 'array';
 
     public const GROUP_FIELDS = 'fieldsVariables';
     public const GROUP_FORM = 'formVariables';
@@ -319,7 +321,7 @@ class Variables
 
         // When the field is found, use the submission as source of truth; otherwise resolve from variables.
         if ($field !== null) {
-            $value = self::_resolveReferenceFieldValue($submission, $field->handle, $expr->selector);
+            $value = self::_resolveReferenceFieldValue($submission, $field, $expr->selector, $expr->transformerParams);
         } else {
             if ($variables === null) {
                 $variables = self::getVariablesForSubmission($submission);
@@ -456,6 +458,43 @@ class Variables
                 $trueLabel = isset($params['trueLabel']) ? (string)$params['trueLabel'] : Craft::t('formie', 'Yes');
                 $falseLabel = isset($params['falseLabel']) ? (string)$params['falseLabel'] : Craft::t('formie', 'No');
                 return self::_toBoolean($value) ? $trueLabel : $falseLabel;
+            }
+
+            case 'join': {
+                if (!is_array($value)) {
+                    return $value;
+                }
+
+                $separator = isset($params['separator']) ? (string)$params['separator'] : ', ';
+
+                return implode($separator, array_map(
+                    static fn(mixed $item): string => self::_stringifyVariableValue($item),
+                    $value,
+                ));
+            }
+
+            case 'first': {
+                if (!is_array($value)) {
+                    return $value;
+                }
+
+                return $value[0] ?? null;
+            }
+
+            case 'last': {
+                if (!is_array($value)) {
+                    return $value;
+                }
+
+                return $value !== [] ? $value[array_key_last($value)] : null;
+            }
+
+            case 'count': {
+                if (is_array($value)) {
+                    return count($value);
+                }
+
+                return is_countable($value) ? count($value) : 0;
             }
         }
 
@@ -933,6 +972,40 @@ class Variables
                     ],
                 ],
             ],
+            self::TYPE_ARRAY => [
+                [
+                    'id' => 'join',
+                    'label' => Craft::t('formie', 'Join'),
+                    'description' => Craft::t('formie', 'Join multiple values into a list string.'),
+                    'params' => [
+                        [
+                            'name' => 'separator',
+                            'type' => 'string',
+                            'label' => Craft::t('formie', 'Separator'),
+                            'required' => false,
+                            'default' => ', ',
+                        ],
+                    ],
+                ],
+                [
+                    'id' => 'first',
+                    'label' => Craft::t('formie', 'First'),
+                    'description' => Craft::t('formie', 'Use the first value from a list.'),
+                    'params' => [],
+                ],
+                [
+                    'id' => 'last',
+                    'label' => Craft::t('formie', 'Last'),
+                    'description' => Craft::t('formie', 'Use the last value from a list.'),
+                    'params' => [],
+                ],
+                [
+                    'id' => 'count',
+                    'label' => Craft::t('formie', 'Count'),
+                    'description' => Craft::t('formie', 'Count the number of values in a list.'),
+                    'params' => [],
+                ],
+            ],
         ];
 
         $event = new RegisterTransformersEvent([
@@ -1386,8 +1459,18 @@ class Variables
         return $expr->target . ucfirst($expr->identifier);
     }
 
-    private static function _resolveReferenceFieldValue(Submission $submission, string $fieldHandle, string $selector = ''): mixed
-    {
+    private static function _resolveReferenceFieldValue(
+        Submission $submission,
+        FieldInterface $field,
+        string $selector = '',
+        array $params = [],
+    ): mixed {
+        if ($field instanceof RepeatableParentFieldInterface) {
+            return RepeaterReferenceHelper::resolve($submission, $field, $selector, $params);
+        }
+
+        $fieldHandle = $field->handle;
+
         if ($selector === '') {
             return $submission->getFieldValue($fieldHandle);
         }

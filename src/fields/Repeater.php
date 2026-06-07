@@ -474,6 +474,16 @@ class Repeater extends RepeatableParentField
         return false;
     }
 
+    protected function defineAllowNestedReference(): bool
+    {
+        return true;
+    }
+
+    protected function defineNestedReferenceMode(): string
+    {
+        return 'childrenOnly';
+    }
+
     protected function defineClientInput(): array
     {
         return array_merge(parent::defineClientInput(), [
