@@ -25,6 +25,10 @@
                         {% do field.setParentField(repeaterField, loop.parent.loop.index0) %}
 
                         {% if not field.isConditionallyHidden(submission) %}
+                            {# Re-apply the namespace, as evaluating conditions re-iterates the repeater's rows
+                               on the shared inner field instances, leaving the namespace at the last row #}
+                            {% do field.setParentField(repeaterField, loop.parent.loop.index0) %}
+
                             {% set fieldValue = submission.getFieldValue(field.fieldKey) ?? field.normalizeValue(field.getDefaultValue(), null) %}
 
                             {% set html = field.getEmailHtml(submission, notification, fieldValue) %}
