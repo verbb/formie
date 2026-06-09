@@ -26,6 +26,10 @@ Sales|sales
 
 If you only provide one value on a line, Formie uses it for both the label and value.
 
+## Option Sources
+
+For longer or integration-driven lists, set **Options** to **Predefined** or **Integration** instead of maintaining a static options table. See [Option Sources](/fields/option-sources).
+
 ## Option availability
 
 Use the row menu on an option to set its **availability**:

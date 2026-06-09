@@ -38,6 +38,7 @@
                     "fields/multi-line-text",
                     "fields/name",
                     "fields/number",
+                    "fields/option-sources",
                     "fields/password",
                     "fields/payment",
                     "fields/phone",
@@ -341,6 +342,7 @@
                 "collapsable": true,
                 "children": [
                     "developers/custom-integration/overview",
+                    "developers/custom-integration/option-sources",
                     "developers/custom-integration/address-provider-integration",
                     "developers/custom-integration/automation-integration",
                     "developers/custom-integration/captcha-integration",

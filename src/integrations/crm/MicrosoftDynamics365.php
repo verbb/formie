@@ -50,6 +50,35 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
     {
         return Craft::t('formie', 'Microsoft Dynamics 365');
     }
+
+    protected static function defineOptionSources(): array
+    {
+        return [
+            [
+                'handle' => 'dynamics365-picklists',
+                'label' => Craft::t('formie', 'Picklists'),
+                'storage' => 'objects',
+                'objectKeys' => ['contact', 'lead', 'opportunity', 'account', 'incident'],
+                'objectLabels' => [
+                    'contact' => Craft::t('formie', 'Contact'),
+                    'lead' => Craft::t('formie', 'Lead'),
+                    'opportunity' => Craft::t('formie', 'Opportunity'),
+                    'account' => Craft::t('formie', 'Account'),
+                    'incident' => Craft::t('formie', 'Case'),
+                ],
+                'collectionLabel' => Craft::t('formie', 'Entity'),
+                'collectionInstructions' => Craft::t('formie', 'Choose the Dynamics 365 entity that owns the field.'),
+                'collectionPlaceholder' => Craft::t('formie', 'Select an entity'),
+                'remoteHandleLabel' => Craft::t('formie', 'Option Source'),
+                'remoteHandleInstructions' => Craft::t('formie', 'Choose which picklist field supplies the options.'),
+                'remoteHandlePlaceholder' => Craft::t('formie', 'Select a picklist'),
+                'collectionRequiredMessage' => Craft::t('formie', 'Select a Dynamics 365 entity.'),
+                'remoteHandleRequiredMessage' => Craft::t('formie', 'Select a picklist field.'),
+                'emptyCollectionsWarning' => Craft::t('formie', 'No Dynamics 365 entities are available. Refresh the integration field mapping first.'),
+                'emptySourcesWarning' => Craft::t('formie', 'No picklist fields are available. Refresh the integration field mapping first.'),
+            ],
+        ];
+    }
     
 
     // Properties

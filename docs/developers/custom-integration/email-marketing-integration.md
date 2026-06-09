@@ -93,3 +93,8 @@ public function sendPayload(Submission $submission): bool
 
 Email marketing providers differ in how they represent custom fields, groups and resubscribe behavior. Keep provider-specific API decisions in `fetchFormSettings()` and `sendPayload()`, and let the base class handle the common Formie mapping flow.
 
+## Option Sources
+
+If your provider caches list fields with selectable options — such as Mailchimp interest groups or tags — you can expose them to Dropdown, Radio and Checkboxes fields through `defineOptionSources()`. Use `collectionKey: lists` and `storage: collections`.
+
+See [Option Sources](/developers/custom-integration/option-sources).

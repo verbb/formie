@@ -4,7 +4,7 @@ import {
     faArrowsRotate, faCheck,
 } from '@fortawesome/pro-solid-svg-icons';
 
-import { Button, SelectInput } from '@verbb/plugin-kit-react/components';
+import { Button, ComboboxInput, SelectInput } from '@verbb/plugin-kit-react/components';
 import { FieldControl, FieldLayout } from '@verbb/plugin-kit-react/forms/Field';
 import { useEngineField } from '@verbb/plugin-kit-react/forms/useEngineField';
 import { cn, getErrorMessage } from '@verbb/plugin-kit-react/utils';
@@ -28,6 +28,10 @@ function IntegrationRefreshSelectField({ field, form }) {
     const successTimeoutRef = useRef(null);
 
     const options = Array.isArray(field.options) ? field.options : [];
+    const useCombobox = field.combobox === true;
+    const selectableOptions = useCombobox
+        ? options.filter((option) => String(option?.value ?? '') !== '')
+        : options;
 
     const getIntegrationSettingsPath = () => {
         const integrationHandle = activeIntegrationHandle || field.integrationHandle;
@@ -89,7 +93,12 @@ function IntegrationRefreshSelectField({ field, form }) {
         const currentSettings = getLiveIntegrationSettings(settingsPath);
 
         setRefreshing(true);
-        const result = await refreshIntegrationFormSettings(integrationHandle, currentSettings);
+        const refreshParams = field.refreshParams && typeof field.refreshParams === 'object' && !Array.isArray(field.refreshParams)
+            ? field.refreshParams
+            : {};
+        const result = await refreshIntegrationFormSettings(integrationHandle, currentSettings, {
+            refreshParams,
+        });
         setRefreshing(false);
 
         if (result?.ok === true && parentForm?.setFieldValue && result?.data && typeof result.data === 'object' && !Array.isArray(result.data)) {
@@ -147,20 +156,39 @@ function IntegrationRefreshSelectField({ field, form }) {
             <div>
                 <div className="flex items-center gap-2">
                     <FieldControl>
-                        <SelectInput
-                            options={options}
-                            placeholder={field.placeholder}
-                            onChange={(nextValue) => {
-                                setValue(nextValue);
-                                setTouched();
-                                syncIntegrationSetting(field.name, nextValue);
-                            }}
-                            value={value ?? ''}
-                            isInvalid={isInvalid}
-                            triggerClassName={cn(
-                                isInvalid && 'border-error',
-                            )}
-                        />
+                        {useCombobox ? (
+                            <ComboboxInput
+                                options={selectableOptions}
+                                placeholder={field.placeholder || Craft.t('formie', 'Select an option')}
+                                emptyMessage={field.emptyMessage || Craft.t('formie', 'No options found.')}
+                                value={value ?? ''}
+                                disabled={field.disabled}
+                                className="w-full"
+                                contentClassName={cn(
+                                    isInvalid && 'aria-invalid:border-destructive',
+                                )}
+                                onValueChange={(nextValue) => {
+                                    setValue(nextValue);
+                                    setTouched();
+                                    syncIntegrationSetting(field.name, nextValue);
+                                }}
+                            />
+                        ) : (
+                            <SelectInput
+                                options={options}
+                                placeholder={field.placeholder}
+                                onChange={(nextValue) => {
+                                    setValue(nextValue);
+                                    setTouched();
+                                    syncIntegrationSetting(field.name, nextValue);
+                                }}
+                                value={value ?? ''}
+                                isInvalid={isInvalid}
+                                triggerClassName={cn(
+                                    isInvalid && 'border-error',
+                                )}
+                            />
+                        )}
                     </FieldControl>
 
                     <Button

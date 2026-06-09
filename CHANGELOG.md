@@ -4,8 +4,9 @@
 
 ### Added
 - Add dynamic **Option Source** settings for Dropdown, Radio and Checkboxes, allowing options to be populated from predefined option sets and other structured sources. ([#2684](https://github.com/verbb/formie/issues/2684))
-- Add integration option sources, allowing integrations to opt in and expose selectable remote option lists to Dropdown, Radio and Checkboxes fields.
-- Add Mailchimp option sources for Interest Categories and Tags, using cached integration form settings and manual refresh actions from the field settings UI.
+- Add integration option sources, allowing integrations to opt in and expose selectable remote option lists to Dropdown, Radio and Checkboxes fields. ([#512](https://github.com/verbb/formie/issues/512))
+- Add Mailchimp option sources for Interest Categories and Tags, using cached integration form settings and manual refresh actions from the field settings UI. ([#512](https://github.com/verbb/formie/issues/512))
+- Add CRM integration option sources for HubSpot (forms and CRM properties), Salesforce, Zoho, and Microsoft Dynamics 365 picklists. ([#512](https://github.com/verbb/formie/issues/512))
 - Add **Template** options mode for developer-owned option lists supplied at render time without persisting or strictly validating an authoritative option list.
 
 ### Changed

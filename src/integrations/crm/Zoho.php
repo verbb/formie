@@ -41,6 +41,35 @@ class Zoho extends Crm implements OAuthProviderInterface
     {
         return Craft::t('formie', 'Zoho');
     }
+
+    protected static function defineOptionSources(): array
+    {
+        return [
+            [
+                'handle' => 'zoho-picklists',
+                'label' => Craft::t('formie', 'Picklists'),
+                'storage' => 'objects',
+                'objectKeys' => ['contact', 'deal', 'lead', 'account', 'quote'],
+                'objectLabels' => [
+                    'contact' => Craft::t('formie', 'Contact'),
+                    'deal' => Craft::t('formie', 'Deal'),
+                    'lead' => Craft::t('formie', 'Lead'),
+                    'account' => Craft::t('formie', 'Account'),
+                    'quote' => Craft::t('formie', 'Quote'),
+                ],
+                'collectionLabel' => Craft::t('formie', 'Module'),
+                'collectionInstructions' => Craft::t('formie', 'Choose the Zoho module that owns the field.'),
+                'collectionPlaceholder' => Craft::t('formie', 'Select a module'),
+                'remoteHandleLabel' => Craft::t('formie', 'Option Source'),
+                'remoteHandleInstructions' => Craft::t('formie', 'Choose which picklist field supplies the options.'),
+                'remoteHandlePlaceholder' => Craft::t('formie', 'Select a picklist'),
+                'collectionRequiredMessage' => Craft::t('formie', 'Select a Zoho module.'),
+                'remoteHandleRequiredMessage' => Craft::t('formie', 'Select a picklist field.'),
+                'emptyCollectionsWarning' => Craft::t('formie', 'No Zoho modules are available. Refresh the integration field mapping first.'),
+                'emptySourcesWarning' => Craft::t('formie', 'No picklist fields are available. Refresh the integration field mapping first.'),
+            ],
+        ];
+    }
     
 
     // Properties

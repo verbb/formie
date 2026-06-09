@@ -1251,6 +1251,9 @@ const refreshIntegrationFormSettings = async(handle, settings = {}, options = {}
     }
 
     const dataKey = String(options?.dataKey || '').trim();
+    const refreshParams = options?.refreshParams && typeof options.refreshParams === 'object' && !Array.isArray(options.refreshParams)
+        ? options.refreshParams
+        : {};
 
     try {
         const response = await Craft.sendActionRequest('POST', 'formie/integrations/form-settings', {
@@ -1258,6 +1261,7 @@ const refreshIntegrationFormSettings = async(handle, settings = {}, options = {}
                 integration: handle,
                 settings,
                 ...(dataKey ? { dataKey } : {}),
+                ...refreshParams,
             },
         });
 

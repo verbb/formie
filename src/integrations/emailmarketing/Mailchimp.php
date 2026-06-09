@@ -35,6 +35,8 @@ class Mailchimp extends EmailMarketing
             [
                 'handle' => 'mailchimp-interests',
                 'label' => Craft::t('formie', 'Interest Groups'),
+                'collectionKey' => 'lists',
+                'storage' => 'collections',
                 'collectionLabel' => Craft::t('formie', 'List'),
                 'collectionInstructions' => Craft::t('formie', 'Choose the Mailchimp list or audience.'),
                 'collectionPlaceholder' => Craft::t('formie', 'Select a list'),

@@ -161,6 +161,7 @@ Craft.Formie.FormBuilder = function(settings) {
         nestedLayout: NestedLayoutField,
         integrationFieldMapping: IntegrationFieldMappingField,
         integrationRefreshSelect: IntegrationRefreshSelectField,
+        integrationRefreshCombobox: IntegrationRefreshSelectField,
         integrationRefreshButton: IntegrationActionButtonField,
         integrationSendTestPayloadButton: IntegrationActionButtonField,
         paymentProviderSettings: PaymentProviderSettingsField,

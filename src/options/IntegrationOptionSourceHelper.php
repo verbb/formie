@@ -43,16 +43,40 @@ class IntegrationOptionSourceHelper
     public static function getEnabledIntegrationInstanceOptions(): array
     {
         $options = [];
+        $seen = [];
 
         foreach (self::_getConfiguredSourceDefinitions(true) as $definition) {
             $integration = $definition['integration'];
+            $integrationId = (int)$integration->id;
+
+            if (isset($seen[$integrationId])) {
+                continue;
+            }
+
+            $seen[$integrationId] = true;
 
             $options[] = [
                 'label' => $integration->name,
-                'value' => (int)$integration->id,
-                'provider' => $definition['handle'],
-                'sourceLabel' => $definition['label'],
+                'value' => $integrationId,
                 'handle' => (string)$integration->handle,
+            ];
+        }
+
+        return $options;
+    }
+
+    public static function getProviderOptionsForIntegration(int $integrationId): array
+    {
+        $options = [];
+
+        foreach (self::_getConfiguredSourceDefinitions(true) as $definition) {
+            if ((int)$definition['integration']->id !== $integrationId) {
+                continue;
+            }
+
+            $options[] = [
+                'label' => (string)$definition['label'],
+                'value' => (string)$definition['handle'],
             ];
         }
 
@@ -64,21 +88,15 @@ class IntegrationOptionSourceHelper
         $options = [];
         $seen = [];
 
-        foreach (self::getEnabledIntegrationInstanceOptions() as $integrationOption) {
-            $provider = (string)$integrationOption['provider'];
+        foreach (self::_getConfiguredSourceDefinitions(true) as $definition) {
+            $provider = (string)$definition['handle'];
 
             if (isset($seen[$provider])) {
                 continue;
             }
 
-            $definition = self::_getProviderDefinition($provider, true);
-
-            if (!$definition) {
-                continue;
-            }
-
             $options[] = [
-                'label' => $definition['label'],
+                'label' => (string)$definition['label'],
                 'value' => $provider,
             ];
             $seen[$provider] = true;
@@ -166,6 +184,8 @@ class IntegrationOptionSourceHelper
             'provider' => $provider,
             'integrationId' => $integrationId,
             'integrationOptions' => self::getEnabledIntegrationInstanceOptions(),
+            'providerOptions' => self::getProviderOptionsForIntegration($integrationId),
+            'refreshParams' => self::_getOptionSourceRefreshParams($integration, $provider),
             ...$config,
         ];
     }
@@ -330,5 +350,26 @@ class IntegrationOptionSourceHelper
         $integrationClass = get_class($integration);
 
         return $integrationClass::getOptionSourceDefinitions();
+    }
+
+    private static function _getOptionSourceRefreshParams(IntegrationInterface $integration, string $provider): array
+    {
+        if (method_exists($integration, 'getOptionSourceRefreshParams')) {
+            $params = $integration->getOptionSourceRefreshParams($provider);
+
+            if (is_array($params)) {
+                return $params;
+            }
+        }
+
+        if (method_exists($integration, 'getFormSettingsRefreshParams')) {
+            $params = $integration->getFormSettingsRefreshParams();
+
+            if (is_array($params)) {
+                return $params;
+            }
+        }
+
+        return [];
     }
 }

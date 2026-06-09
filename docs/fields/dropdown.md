@@ -26,6 +26,12 @@ United States|US
 
 If you only provide one value on a line, Formie uses it for both the label and value.
 
+## Option Sources
+
+Instead of copying a long predefined or integration list into the static options table, set **Options** to **Predefined** or **Integration**. Formie resolves the list at render time and stores the selected label with the submission value.
+
+See [Option Sources](/fields/option-sources) for predefined lists, Mailchimp groups, CRM picklists, template mode, converting to static options, and validation behaviour.
+
 ## Option availability
 
 Use the row menu on an option to set its **availability**:
@@ -38,7 +44,7 @@ Only one state applies at a time. Prefer hiding over deleting an option once sub
 
 ## Overriding Options
 
-If the options need to come from template logic, you can override the field’s `options` before rendering the form. See [Overriding Settings](/templates/overriding-settings).
+If the options need to come from template logic, set the field’s **Options** type to **Template** in the form builder, then override the field’s `options` before rendering the form. See [Option Sources](/fields/option-sources#template) and [Overriding Settings](/templates/overriding-settings).
 
 ## Submitted value
 

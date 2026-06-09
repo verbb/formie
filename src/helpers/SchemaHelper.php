@@ -497,6 +497,14 @@ class SchemaHelper
         ], $config);
     }
 
+    public static function integrationRefreshComboboxField(array $config = []): array
+    {
+        return array_merge([
+            '$field' => 'integrationRefreshCombobox',
+            'combobox' => true,
+        ], $config);
+    }
+
     public static function integrationRefreshButtonField(array $config = []): array
     {
         return array_merge([

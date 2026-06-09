@@ -227,12 +227,12 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
                 return OptionList::error(Craft::t('formie', 'Refresh the integration settings first.'));
             }
 
-            foreach ($settings->getSettingsByKey('lists') as $collection) {
-                if (!$collection instanceof IntegrationCollection || (string)$collection->id !== $collectionId) {
+            foreach ($this->getOptionSourceCollections($settings, $definition) as $collection) {
+                if ((string)$collection['id'] !== $collectionId) {
                     continue;
                 }
 
-                foreach ($collection->fields as $field) {
+                foreach ($collection['fields'] as $field) {
                     if (!$field instanceof IntegrationField || $field->handle !== $remoteHandle) {
                         continue;
                     }
@@ -1115,6 +1115,17 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return [];
     }
 
+    protected function getOptionSourceCollections(IntegrationFormSettings $settings, array $definition): array
+    {
+        $storage = (string)($definition['storage'] ?? 'collections');
+
+        if ($storage === 'objects') {
+            return $this->_getOptionSourceObjectCollections($settings, $definition);
+        }
+
+        return $this->_getOptionSourceIntegrationCollections($settings, $definition);
+    }
+
     protected function buildOptionSourceBuilderConfig(string $provider, IntegrationFormSettings $settings, array $definition): array
     {
         $collectionParam = (string)($definition['collectionParam'] ?? 'collectionId');
@@ -1123,31 +1134,27 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         $remoteHandles = [];
         $remoteHandlesByCollection = [];
 
-        foreach ($settings->getSettingsByKey('lists') as $collection) {
-            if (!$collection instanceof IntegrationCollection) {
-                continue;
-            }
-
+        foreach ($this->getOptionSourceCollections($settings, $definition) as $collection) {
             $collectionRemoteHandles = [];
 
-            foreach ($collection->fields as $field) {
-                if (!$field instanceof IntegrationField || empty($field->options)) {
+            foreach ($collection['fields'] as $field) {
+                if (!$field instanceof IntegrationField) {
                     continue;
                 }
 
                 $option = [
-                    'label' => $field->name,
-                    'value' => $field->handle,
+                    'label' => (string)$field->name,
+                    'value' => (string)$field->handle,
                 ];
 
                 $collectionRemoteHandles[$field->handle] = $option;
                 $remoteHandles[$field->handle] = $option;
             }
 
-            $collectionId = (string)$collection->id;
+            $collectionId = (string)$collection['id'];
             $remoteHandlesByCollection[$collectionId] = array_values($collectionRemoteHandles);
             $collections[] = [
-                'label' => $collection->name,
+                'label' => (string)$collection['name'],
                 'value' => $collectionId,
                 'remoteHandleOptions' => array_values($collectionRemoteHandles),
             ];
@@ -1313,6 +1320,82 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     // Private Methods
     // =========================================================================
+
+    private function _getOptionSourceIntegrationCollections(IntegrationFormSettings $settings, array $definition): array
+    {
+        $collectionKey = (string)($definition['collectionKey'] ?? 'lists');
+        $collections = [];
+
+        foreach ($settings->getSettingsByKey($collectionKey) as $collection) {
+            if (!$collection instanceof IntegrationCollection) {
+                continue;
+            }
+
+            $fields = $this->_filterOptionSourceFields($collection->fields, $definition);
+
+            if (!$fields) {
+                continue;
+            }
+
+            $collections[] = [
+                'id' => (string)$collection->id,
+                'name' => (string)$collection->name,
+                'fields' => $fields,
+            ];
+        }
+
+        return $collections;
+    }
+
+    private function _getOptionSourceObjectCollections(IntegrationFormSettings $settings, array $definition): array
+    {
+        $objectKeys = (array)($definition['objectKeys'] ?? []);
+        $objectLabels = (array)($definition['objectLabels'] ?? []);
+        $collections = [];
+
+        foreach ($objectKeys as $objectKey) {
+            $objectKey = (string)$objectKey;
+            $fields = $settings->getSettingsByKey($objectKey);
+
+            if (!is_array($fields) || !$fields) {
+                continue;
+            }
+
+            $filteredFields = $this->_filterOptionSourceFields($fields, $definition);
+
+            if (!$filteredFields) {
+                continue;
+            }
+
+            $collections[] = [
+                'id' => $objectKey,
+                'name' => (string)($objectLabels[$objectKey] ?? ucwords(str_replace(['_', '-'], ' ', $objectKey))),
+                'fields' => $filteredFields,
+            ];
+        }
+
+        return $collections;
+    }
+
+    private function _filterOptionSourceFields(array $fields, array $definition): array
+    {
+        $sourceTypes = (array)($definition['optionSourceTypes'] ?? []);
+        $filtered = [];
+
+        foreach ($fields as $field) {
+            if (!$field instanceof IntegrationField || empty($field->options)) {
+                continue;
+            }
+
+            if ($sourceTypes !== [] && !in_array((string)$field->sourceType, $sourceTypes, true)) {
+                continue;
+            }
+
+            $filtered[] = $field;
+        }
+
+        return $filtered;
+    }
 
     private static function _getOptionSourceDefinition(string $provider): ?array
     {

@@ -37,6 +37,49 @@ class HubSpot extends Crm
         return Craft::t('formie', 'HubSpot');
     }
 
+    protected static function defineOptionSources(): array
+    {
+        $shared = [
+            'storage' => 'objects',
+            'collectionLabel' => Craft::t('formie', 'Object'),
+            'collectionInstructions' => Craft::t('formie', 'Choose the CRM object that owns the field.'),
+            'collectionPlaceholder' => Craft::t('formie', 'Select an object'),
+            'remoteHandleLabel' => Craft::t('formie', 'Option Source'),
+            'remoteHandleInstructions' => Craft::t('formie', 'Choose which remote field supplies the options.'),
+            'remoteHandlePlaceholder' => Craft::t('formie', 'Select an option source'),
+            'collectionRequiredMessage' => Craft::t('formie', 'Select a CRM object.'),
+            'remoteHandleRequiredMessage' => Craft::t('formie', 'Select an option source.'),
+            'emptyCollectionsWarning' => Craft::t('formie', 'No CRM objects are available. Refresh the integration field mapping first.'),
+            'emptySourcesWarning' => Craft::t('formie', 'No option sources are available. Refresh the integration field mapping first.'),
+        ];
+
+        return [
+            array_merge($shared, [
+                'handle' => 'hubspot-forms',
+                'label' => Craft::t('formie', 'Form Fields'),
+                'storage' => 'collections',
+                'collectionKey' => 'forms',
+                'collectionLabel' => Craft::t('formie', 'Form'),
+                'collectionInstructions' => Craft::t('formie', 'Choose the HubSpot form that owns the field.'),
+                'collectionPlaceholder' => Craft::t('formie', 'Select a form'),
+                'collectionRequiredMessage' => Craft::t('formie', 'Select a HubSpot form.'),
+                'emptyCollectionsWarning' => Craft::t('formie', 'No HubSpot forms are available. Refresh the integration forms first.'),
+                'emptySourcesWarning' => Craft::t('formie', 'No HubSpot form option sources are available. Refresh the integration forms first.'),
+            ]),
+            array_merge($shared, [
+                'handle' => 'hubspot-properties',
+                'label' => Craft::t('formie', 'CRM Properties'),
+                'objectKeys' => ['contact', 'company', 'deal', 'ticket'],
+                'objectLabels' => [
+                    'contact' => Craft::t('formie', 'Contact'),
+                    'company' => Craft::t('formie', 'Company'),
+                    'deal' => Craft::t('formie', 'Deal'),
+                    'ticket' => Craft::t('formie', 'Ticket'),
+                ],
+            ]),
+        ];
+    }
+
     /**
      * Normalize a value to DateTime for HubSpot date/datetime fields.
      * HubSpot uses millisecond timestamps; values in that range are converted from ms to seconds before parsing.
@@ -208,6 +251,24 @@ class HubSpot extends Crm
     public function getDescription(): string
     {
         return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
+    }
+
+    public function getFormSettingsRefreshParams(): array
+    {
+        return [
+            'refreshForms' => true,
+        ];
+    }
+
+    public function getOptionSourceRefreshParams(string $provider): array
+    {
+        if ($provider === 'hubspot-forms') {
+            return [
+                'refreshForms' => true,
+            ];
+        }
+
+        return [];
     }
 
     public function fetchFormSettings(): IntegrationFormSettings
@@ -843,13 +904,16 @@ class HubSpot extends Crm
             'label' => Craft::t('formie', 'Map to Form'),
             'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Forms']),
         ]);
-        $schema[] = SchemaHelper::comboboxField([
+        $schema[] = SchemaHelper::integrationRefreshComboboxField([
             'name' => 'formId',
             'label' => Craft::t('formie', 'Form'),
             'instructions' => Craft::t('formie', 'Select your {name} form to create submissions on.', ['name' => $this->displayName()]),
             'if' => 'mapToForm',
             'required' => true,
             'options' => $this->getCollectionOptions('forms'),
+            'refreshParams' => [
+                'refreshForms' => true,
+            ],
         ]);
 
         $mappingSchema = $this->defineFieldMappingSchema('forms', 'formId');

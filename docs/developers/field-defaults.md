@@ -189,9 +189,3 @@ Registered third-party fields appear automatically in `getFieldTypeDefaultsConfi
 3. Override `supportedDefaults()` and return those handles.
 4. Confirm the field appears under **Settings → Defaults → Fields**.
 5. Document recommended project config for your users if you expose policy-style settings.
-
-## Related docs
-
-- [Custom Field](/developers/custom-field) — building and registering third-party fields.
-- [Schema](/developers/schema) — schema nodes and `SchemaHelper` methods.
-- [Configuration](/get-started/configuration) — `fieldDefaults` project config and related defaults settings.

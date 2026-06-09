@@ -19,6 +19,7 @@ import {
     FieldRoot,
 } from '@verbb/plugin-kit-react/forms/Field';
 import { useEngineField } from '@verbb/plugin-kit-react/forms/useEngineField';
+import { refreshIntegrationFormSettings } from '@form-builder/hooks/useFormTools';
 
 const PREVIEW_LIMIT = 100;
 
@@ -172,6 +173,7 @@ function OptionDynamicSettingsField({ field, form }) {
     const [integrationListReloadToken, setIntegrationListReloadToken] = useState(0);
     const [integrationConfigReloadToken, setIntegrationConfigReloadToken] = useState(0);
     const integrationListLoadedRef = useRef(false);
+    const integrationConfigLoadKeyRef = useRef('');
     const pendingPredefinedDefaultsRef = useRef(false);
     const pendingIntegrationDefaultsRef = useRef(false);
     const optionSourceValueRef = useRef(optionSource);
@@ -249,14 +251,22 @@ function OptionDynamicSettingsField({ field, form }) {
     const selectedIntegrationOption = integrationOptions.find(
         (option) => String(option.value) === String(integrationId),
     );
-    const selectedIntegrationProvider = String(selectedIntegrationOption?.provider || '');
     const selectedIntegrationHandle = String(selectedIntegrationOption?.handle || '');
     const selectedIntegrationLabel = selectedIntegrationOption?.label || '';
-    const effectiveIntegrationProvider = integrationProvider || selectedIntegrationProvider;
+    const integrationProviderOptions = Array.isArray(integrationConfig?.providerOptions)
+        ? integrationConfig.providerOptions
+        : [];
+    const effectiveIntegrationProvider = integrationProvider;
+    const resolvedIntegrationProvider = effectiveIntegrationProvider
+        || String(integrationConfigProvider || '');
     const hasCurrentIntegrationDetails = sourceType === 'integration'
         && String(integrationConfigIntegrationId || '') === String(integrationId)
-        && String(integrationConfigProvider || '') === String(effectiveIntegrationProvider)
-        && Boolean(integrationConfig);
+        && Boolean(integrationConfig)
+        && (
+            !resolvedIntegrationProvider
+            || !String(integrationConfigProvider || '')
+            || String(integrationConfigProvider || '') === String(resolvedIntegrationProvider)
+        );
     const integrationParamFields = Array.isArray(integrationConfig?.paramFields) && hasCurrentIntegrationDetails
         ? integrationConfig.paramFields
         : [];
@@ -281,7 +291,7 @@ function OptionDynamicSettingsField({ field, form }) {
     );
     const integrationConfigComplete = Boolean(
         integrationId
-        && effectiveIntegrationProvider
+        && resolvedIntegrationProvider
         && hasCurrentIntegrationDetails
         && requiredIntegrationParamFields.every((paramField) => {
             const value = String(integrationParamValues[paramField.handle] ?? '');
@@ -315,6 +325,10 @@ function OptionDynamicSettingsField({ field, form }) {
     };
 
     const integrationSelectValue = resolveSelectValue(integrationId, integrationOptions);
+    const integrationProviderSelectValue = resolveSelectValue(
+        integrationProvider,
+        integrationProviderOptions,
+    );
 
     const updateSource = useCallback((patch) => {
         setOptionSource({
@@ -359,7 +373,7 @@ function OptionDynamicSettingsField({ field, form }) {
         if (sourceType === 'integration') {
             return {
                 type: 'integration',
-                provider: effectiveIntegrationProvider,
+                provider: resolvedIntegrationProvider,
                 params: {
                     ...(source.params || {}),
                     integrationId: integrationId ? Number(integrationId) : undefined,
@@ -378,7 +392,7 @@ function OptionDynamicSettingsField({ field, form }) {
         };
     }, [
         predefinedProvider,
-        effectiveIntegrationProvider,
+        resolvedIntegrationProvider,
         effectiveLabelKey,
         effectiveValueKey,
         integrationId,
@@ -447,10 +461,11 @@ function OptionDynamicSettingsField({ field, form }) {
         && effectiveLabelKey
         && effectiveValueKey;
     const loadingIntegrationConfig = loadingIntegrationList || loadingIntegrationDetails || refreshingIntegrationData;
-    const loadingIntegrationDetailsFirstTime = sourceType === 'integration'
-        && loadingIntegrationDetails
-        && !loadingIntegrationList
-        && !hasCurrentIntegrationDetails;
+    const loadingIntegrationPreview = sourceType === 'integration'
+        && (
+            refreshingIntegrationData
+            || (loadingIntegrationDetails && !hasCurrentIntegrationDetails)
+        );
     const refreshingIntegrationDetails = sourceType === 'integration'
         && loadingIntegrationDetails
         && hasCurrentIntegrationDetails;
@@ -537,7 +552,7 @@ function OptionDynamicSettingsField({ field, form }) {
 
         setOptionSourceRef.current({
             type: 'integration',
-            provider: String(option.provider || ''),
+            provider: sameIntegration ? String(currentParams.provider || '') : '',
             params: {
                 ...(sameIntegration ? currentParams : {}),
                 integrationId: Number(option.value),
@@ -551,7 +566,7 @@ function OptionDynamicSettingsField({ field, form }) {
             return undefined;
         }
 
-        if (integrationId && integrationProvider) {
+        if (integrationId) {
             return undefined;
         }
 
@@ -586,16 +601,6 @@ function OptionDynamicSettingsField({ field, form }) {
                 );
 
                 if (matchedOption) {
-                    if (pendingIntegrationDefaultsRef.current && !integrationProvider) {
-                        setOptionSourceRef.current({
-                            type: 'integration',
-                            provider: String(matchedOption.provider || ''),
-                            params: {
-                                ...(source.params || {}),
-                                integrationId: Number(matchedOption.value),
-                            },
-                        });
-                    }
                     return;
                 }
 
@@ -643,12 +648,17 @@ function OptionDynamicSettingsField({ field, form }) {
             return undefined;
         }
 
-        if (!effectiveIntegrationProvider) {
+        const provider = effectiveIntegrationProvider || undefined;
+        const loadKey = `${integrationId}:${provider || '__default__'}:${integrationConfigReloadToken}`;
+
+        if (
+            integrationConfigLoadKeyRef.current === loadKey
+            && hasCurrentIntegrationDetails
+        ) {
             return undefined;
         }
 
         let cancelled = false;
-        const provider = effectiveIntegrationProvider;
 
         const load = async() => {
             setLoadingIntegrationDetails(true);
@@ -658,7 +668,7 @@ function OptionDynamicSettingsField({ field, form }) {
                 const response = await Craft.sendActionRequest('POST', integrationConfigAction, {
                     data: {
                         integrationId: Number(integrationId),
-                        provider,
+                        ...(provider ? { provider } : {}),
                     },
                 });
 
@@ -672,6 +682,8 @@ function OptionDynamicSettingsField({ field, form }) {
                     return;
                 }
 
+                const resolvedProvider = String(data.provider || provider || '');
+
                 setIntegrationConfig((prev) => ({
                     ...(prev || {}),
                     ...data,
@@ -680,10 +692,12 @@ function OptionDynamicSettingsField({ field, form }) {
                         : (prev?.integrationOptions || []),
                 }));
                 setIntegrationConfigIntegrationId(String(data.integrationId || integrationId));
-                setIntegrationConfigProvider(String(data.provider || provider));
+                setIntegrationConfigProvider(resolvedProvider);
+                integrationConfigLoadKeyRef.current = loadKey;
 
                 const defaults = data.defaults || {};
                 const currentParams = sourceParamsRef.current || {};
+                const currentSourceProvider = String(optionSourceValueRef.current?.provider || '');
                 const nextParamFields = Array.isArray(data.paramFields) ? data.paramFields : [];
                 const nextParams = { ...currentParams };
 
@@ -699,27 +713,27 @@ function OptionDynamicSettingsField({ field, form }) {
                     }
                 });
 
-                if (pendingIntegrationDefaultsRef.current) {
+                const shouldApplyDefaults = pendingIntegrationDefaultsRef.current;
+                const shouldSyncProvider = resolvedProvider
+                    && currentSourceProvider !== resolvedProvider;
+
+                if (shouldApplyDefaults || shouldSyncProvider) {
                     setOptionSourceRef.current({
                         type: 'integration',
-                        provider: data.provider || provider,
-                        params: {
-                            ...nextParams,
-                            integrationId: Number(integrationId),
-                        },
+                        provider: resolvedProvider,
+                        params: shouldApplyDefaults
+                            ? {
+                                ...nextParams,
+                                integrationId: Number(integrationId),
+                            }
+                            : {
+                                ...currentParams,
+                                integrationId: Number(integrationId),
+                            },
                     });
                     pendingIntegrationDefaultsRef.current = false;
                 }
 
-                const hasMissingRequiredParam = nextParamFields.some((paramField) => {
-                    const handle = String(paramField?.handle || '');
-
-                    return paramField?.required !== false && (!handle || !nextParams[handle]);
-                });
-
-                if (hasMissingRequiredParam) {
-                    setIntegrationSetupPending(false);
-                }
             } catch (error) {
                 if (!cancelled) {
                     setIntegrationConfig((prev) => ({
@@ -727,12 +741,14 @@ function OptionDynamicSettingsField({ field, form }) {
                     }));
                     setIntegrationConfigIntegrationId(null);
                     setIntegrationConfigProvider(null);
+                    integrationConfigLoadKeyRef.current = '';
                     setIntegrationSetupPending(false);
                     setIntegrationConfigError(error?.message || Craft.t('formie', 'Unable to load integration options.'));
                 }
             } finally {
                 if (!cancelled) {
                     setLoadingIntegrationDetails(false);
+                    setIntegrationSetupPending(false);
                 }
             }
         };
@@ -745,6 +761,7 @@ function OptionDynamicSettingsField({ field, form }) {
     }, [
         integrationConfigReloadToken,
         effectiveIntegrationProvider,
+        hasCurrentIntegrationDetails,
         integrationId,
         integrationConfigAction,
         isDynamic,
@@ -833,7 +850,7 @@ function OptionDynamicSettingsField({ field, form }) {
             return;
         }
 
-        if (!integrationConfigComplete || loadingIntegrationConfig) {
+        if (!integrationConfigComplete || loadingIntegrationPreview) {
             previewRequestIdRef.current += 1;
             if (form) {
                 form.__formiePreviewOptions = [];
@@ -850,7 +867,7 @@ function OptionDynamicSettingsField({ field, form }) {
         integrationId,
         form,
         isDynamic,
-        loadingIntegrationConfig,
+        loadingIntegrationPreview,
         resolveDynamicPreview,
         setOptions,
         source.params,
@@ -970,6 +987,28 @@ function OptionDynamicSettingsField({ field, form }) {
         setIntegrationConfigReloadToken((token) => token + 1);
     };
 
+    const handleIntegrationProviderChange = (nextProvider) => {
+        if (!integrationId || String(nextProvider) === String(integrationProvider)) {
+            return;
+        }
+
+        pendingIntegrationDefaultsRef.current = true;
+        setIntegrationSetupPending(true);
+        setIntegrationConfigError(null);
+        setPreviewText('');
+        setPreviewTotal(null);
+        setPreviewError(null);
+        setOptions([]);
+        setOptionSource({
+            type: 'integration',
+            provider: String(nextProvider),
+            params: {
+                integrationId: Number(integrationId),
+            },
+        });
+        setIntegrationConfigReloadToken((token) => token + 1);
+    };
+
     const handleIntegrationParamChange = (paramField, nextValue) => {
         const handle = String(paramField?.handle || '');
 
@@ -1015,18 +1054,17 @@ function OptionDynamicSettingsField({ field, form }) {
         setPreviewTotal(null);
         setOptions([]);
 
+        const refreshParams = integrationConfig?.refreshParams && typeof integrationConfig.refreshParams === 'object'
+            ? integrationConfig.refreshParams
+            : {};
+
         try {
-            const response = await Craft.sendActionRequest('POST', 'formie/integrations/form-settings', {
-                data: {
-                    integration: selectedIntegrationHandle,
-                    settings: {},
-                },
+            const result = await refreshIntegrationFormSettings(selectedIntegrationHandle, {}, {
+                refreshParams,
             });
 
-            const data = response?.data || {};
-
-            if (data.success === false || data.ok === false || data.status === false) {
-                throw new Error(data.error || data.message || Craft.t('formie', 'Failed to refresh integration data.'));
+            if (result?.ok !== true) {
+                throw new Error(result?.error || Craft.t('formie', 'Failed to refresh integration data.'));
             }
 
             setIntegrationConfig((prev) => ({
@@ -1034,6 +1072,7 @@ function OptionDynamicSettingsField({ field, form }) {
             }));
             setIntegrationConfigIntegrationId(null);
             setIntegrationConfigProvider(null);
+            integrationConfigLoadKeyRef.current = '';
             setIntegrationConfigReloadToken((token) => token + 1);
         } catch (error) {
             setIntegrationSetupPending(false);
@@ -1210,14 +1249,21 @@ function OptionDynamicSettingsField({ field, form }) {
                                                     />
                                                 )}
 
-                                                {integrationConfigError && !loadingIntegrationConfig && (
-                                                    <p className="text-sm text-red-600">{integrationConfigError}</p>
+                                                {integrationProviderOptions.length > 1 && integrationId && (
+                                                    <SettingSelectField
+                                                        name="integrationProvider"
+                                                        label={Craft.t('formie', 'Source')}
+                                                        instructions={Craft.t('formie', 'Choose which integration data supplies the options.')}
+                                                        value={integrationProviderSelectValue}
+                                                        options={integrationProviderOptions}
+                                                        placeholder={Craft.t('formie', 'Select a source')}
+                                                        disabled={loadingIntegrationDetails}
+                                                        onChange={handleIntegrationProviderChange}
+                                                    />
                                                 )}
 
-                                                {loadingIntegrationDetailsFirstTime && (
-                                                    <LoadingOptionControls
-                                                        message={Craft.t('formie', 'Loading options for {name}…', { name: selectedIntegrationLabel || Craft.t('formie', 'integration') })}
-                                                    />
+                                                {integrationConfigError && !loadingIntegrationConfig && (
+                                                    <p className="text-sm text-red-600">{integrationConfigError}</p>
                                                 )}
 
                                                 {hasCurrentIntegrationDetails && (
@@ -1352,7 +1398,7 @@ function OptionDynamicSettingsField({ field, form }) {
                                         loading={
                                             busy
                                             || (loadingPredefinedConfig && sourceType === 'predefined')
-                                            || (loadingIntegrationConfig && sourceType === 'integration')
+                                            || loadingIntegrationPreview
                                         }
                                         loadingMessage={
                                             sourceType === 'predefined'
@@ -1361,7 +1407,10 @@ function OptionDynamicSettingsField({ field, form }) {
                                         }
                                         placeholder={
                                             sourceType === 'integration' && !integrationConfigComplete
-                                                ? Craft.t('formie', 'Select an integration and option source to preview options.')
+                                                ? (
+                                                    integrationConfig?.warning
+                                                        || Craft.t('formie', 'Complete the integration settings to preview options.')
+                                                )
                                                 : Craft.t('formie', 'Resolved options will appear here.')
                                         }
                                     />

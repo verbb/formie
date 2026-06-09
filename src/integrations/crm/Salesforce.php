@@ -59,6 +59,36 @@ class Salesforce extends Crm implements OAuthProviderInterface
     {
         return Craft::t('formie', 'Salesforce');
     }
+
+    protected static function defineOptionSources(): array
+    {
+        return [
+            [
+                'handle' => 'salesforce-picklists',
+                'label' => Craft::t('formie', 'Picklists'),
+                'storage' => 'objects',
+                'objectKeys' => ['contact', 'lead', 'opportunity', 'account', 'case'],
+                'objectLabels' => [
+                    'contact' => Craft::t('formie', 'Contact'),
+                    'lead' => Craft::t('formie', 'Lead'),
+                    'opportunity' => Craft::t('formie', 'Opportunity'),
+                    'account' => Craft::t('formie', 'Account'),
+                    'case' => Craft::t('formie', 'Case'),
+                ],
+                'optionSourceTypes' => ['picklist', 'multipicklist'],
+                'collectionLabel' => Craft::t('formie', 'Object'),
+                'collectionInstructions' => Craft::t('formie', 'Choose the Salesforce object that owns the field.'),
+                'collectionPlaceholder' => Craft::t('formie', 'Select an object'),
+                'remoteHandleLabel' => Craft::t('formie', 'Option Source'),
+                'remoteHandleInstructions' => Craft::t('formie', 'Choose which picklist field supplies the options.'),
+                'remoteHandlePlaceholder' => Craft::t('formie', 'Select a picklist'),
+                'collectionRequiredMessage' => Craft::t('formie', 'Select a Salesforce object.'),
+                'remoteHandleRequiredMessage' => Craft::t('formie', 'Select a picklist field.'),
+                'emptyCollectionsWarning' => Craft::t('formie', 'No Salesforce objects are available. Refresh the integration field mapping first.'),
+                'emptySourcesWarning' => Craft::t('formie', 'No picklist fields are available. Refresh the integration field mapping first.'),
+            ],
+        ];
+    }
     
 
     // Properties
