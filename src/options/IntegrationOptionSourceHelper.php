@@ -8,12 +8,19 @@ use Craft;
 
 class IntegrationOptionSourceHelper
 {
+    // Constants
+    // =========================================================================
+
+    public const USAGE_OPTIONS = 'options';
+    public const USAGE_RECIPIENTS = 'recipients';
+
+
     // Static Methods
     // =========================================================================
 
-    public static function getProviderHandleForIntegrationClass(string $integrationClass): ?string
+    public static function getProviderHandleForIntegrationClass(string $integrationClass, ?string $usage = null): ?string
     {
-        foreach (self::_getConfiguredSourceDefinitions() as $definition) {
+        foreach (self::_getConfiguredSourceDefinitions(false, $usage) as $definition) {
             if (($definition['integrationClass'] ?? null) === $integrationClass) {
                 return $definition['handle'];
             }
@@ -29,23 +36,23 @@ class IntegrationOptionSourceHelper
             ?? null;
     }
 
-    public static function providerExists(string $provider): bool
+    public static function providerExists(string $provider, ?string $usage = null): bool
     {
-        return self::_getRegisteredProviderDefinition($provider) !== null
-            || self::_getProviderDefinition($provider) !== null;
+        return self::_getRegisteredProviderDefinition($provider, $usage) !== null
+            || self::_getProviderDefinition($provider, false, $usage) !== null;
     }
 
-    public static function hasEnabledIntegrationOptionSources(): bool
+    public static function hasEnabledIntegrationOptionSources(?string $usage = null): bool
     {
-        return self::getEnabledIntegrationInstanceOptions() !== [];
+        return self::getEnabledIntegrationInstanceOptions($usage) !== [];
     }
 
-    public static function getEnabledIntegrationInstanceOptions(): array
+    public static function getEnabledIntegrationInstanceOptions(?string $usage = null): array
     {
         $options = [];
         $seen = [];
 
-        foreach (self::_getConfiguredSourceDefinitions(true) as $definition) {
+        foreach (self::_getConfiguredSourceDefinitions(true, $usage) as $definition) {
             $integration = $definition['integration'];
             $integrationId = (int)$integration->id;
 
@@ -65,11 +72,11 @@ class IntegrationOptionSourceHelper
         return $options;
     }
 
-    public static function getProviderOptionsForIntegration(int $integrationId): array
+    public static function getProviderOptionsForIntegration(int $integrationId, ?string $usage = null): array
     {
         $options = [];
 
-        foreach (self::_getConfiguredSourceDefinitions(true) as $definition) {
+        foreach (self::_getConfiguredSourceDefinitions(true, $usage) as $definition) {
             if ((int)$definition['integration']->id !== $integrationId) {
                 continue;
             }
@@ -83,12 +90,12 @@ class IntegrationOptionSourceHelper
         return $options;
     }
 
-    public static function getProviderOptions(): array
+    public static function getProviderOptions(?string $usage = null): array
     {
         $options = [];
         $seen = [];
 
-        foreach (self::_getConfiguredSourceDefinitions(true) as $definition) {
+        foreach (self::_getConfiguredSourceDefinitions(true, $usage) as $definition) {
             $provider = (string)$definition['handle'];
 
             if (isset($seen[$provider])) {
@@ -105,11 +112,11 @@ class IntegrationOptionSourceHelper
         return $options;
     }
 
-    public static function getIntegrationOptions(string $provider): array
+    public static function getIntegrationOptions(string $provider, ?string $usage = null): array
     {
         $options = [];
 
-        foreach (self::_getConfiguredSourceDefinitions(true) as $definition) {
+        foreach (self::_getConfiguredSourceDefinitions(true, $usage) as $definition) {
             if ($definition['handle'] !== $provider) {
                 continue;
             }
@@ -125,7 +132,7 @@ class IntegrationOptionSourceHelper
         return $options;
     }
 
-    public static function getBuilderConfigForIntegration(int $integrationId): array
+    public static function getBuilderConfigForIntegration(int $integrationId, ?string $usage = null): array
     {
         $integration = Formie::$plugin->getIntegrations()->getIntegrationById($integrationId);
 
@@ -141,7 +148,7 @@ class IntegrationOptionSourceHelper
             ];
         }
 
-        $definitions = self::_getIntegrationSourceDefinitions($integration);
+        $definitions = self::_getIntegrationSourceDefinitions($integration, $usage);
 
         if (!$definitions) {
             return [
@@ -149,12 +156,12 @@ class IntegrationOptionSourceHelper
             ];
         }
 
-        return self::getBuilderConfig((string)$definitions[0]['handle'], $integrationId);
+        return self::getBuilderConfig((string)$definitions[0]['handle'], $integrationId, $usage);
     }
 
-    public static function getBuilderConfig(string $provider, int $integrationId): array
+    public static function getBuilderConfig(string $provider, int $integrationId, ?string $usage = null): array
     {
-        if (!self::_getProviderDefinition($provider)) {
+        if (!self::_getProviderDefinition($provider, false, $usage)) {
             return [
                 'error' => Craft::t('formie', 'Unknown integration option provider.'),
             ];
@@ -162,7 +169,7 @@ class IntegrationOptionSourceHelper
 
         $integration = Formie::$plugin->getIntegrations()->getIntegrationById($integrationId);
 
-        if (!$integration instanceof IntegrationInterface || !self::_integrationSupportsProvider($integration, $provider)) {
+        if (!$integration instanceof IntegrationInterface || !self::_integrationSupportsProvider($integration, $provider, $usage)) {
             return [
                 'error' => Craft::t('formie', 'Integration not found.'),
             ];
@@ -183,8 +190,8 @@ class IntegrationOptionSourceHelper
         return [
             'provider' => $provider,
             'integrationId' => $integrationId,
-            'integrationOptions' => self::getEnabledIntegrationInstanceOptions(),
-            'providerOptions' => self::getProviderOptionsForIntegration($integrationId),
+            'integrationOptions' => self::getEnabledIntegrationInstanceOptions($usage),
+            'providerOptions' => self::getProviderOptionsForIntegration($integrationId, $usage),
             'refreshParams' => self::_getOptionSourceRefreshParams($integration, $provider),
             ...$config,
         ];
@@ -253,9 +260,15 @@ class IntegrationOptionSourceHelper
         return $rows;
     }
 
-    private static function _getProviderDefinition(string $provider, bool $enabledOnly = false): ?array
+    public static function providerSupportsUsage(string $provider, string $usage, bool $enabledOnly = false): bool
     {
-        foreach (self::_getConfiguredSourceDefinitions($enabledOnly) as $definition) {
+        return self::_getProviderDefinition($provider, $enabledOnly, $usage) !== null
+            || self::_getRegisteredProviderDefinition($provider, $usage) !== null;
+    }
+
+    private static function _getProviderDefinition(string $provider, bool $enabledOnly = false, ?string $usage = null): ?array
+    {
+        foreach (self::_getConfiguredSourceDefinitions($enabledOnly, $usage) as $definition) {
             if ($definition['handle'] === $provider) {
                 return $definition;
             }
@@ -264,9 +277,9 @@ class IntegrationOptionSourceHelper
         return null;
     }
 
-    private static function _getRegisteredProviderDefinition(string $provider): ?array
+    private static function _getRegisteredProviderDefinition(string $provider, ?string $usage = null): ?array
     {
-        foreach (self::_getRegisteredSourceDefinitions() as $definition) {
+        foreach (self::_getRegisteredSourceDefinitions($usage) as $definition) {
             if ($definition['handle'] === $provider) {
                 return $definition;
             }
@@ -275,9 +288,9 @@ class IntegrationOptionSourceHelper
         return null;
     }
 
-    private static function _integrationSupportsProvider(IntegrationInterface $integration, string $provider): bool
+    private static function _integrationSupportsProvider(IntegrationInterface $integration, string $provider, ?string $usage = null): bool
     {
-        foreach (self::_getIntegrationSourceDefinitions($integration) as $definition) {
+        foreach (self::_getIntegrationSourceDefinitions($integration, $usage) as $definition) {
             if ($definition['handle'] === $provider) {
                 return true;
             }
@@ -286,7 +299,7 @@ class IntegrationOptionSourceHelper
         return false;
     }
 
-    private static function _getConfiguredSourceDefinitions(bool $enabledOnly = false): array
+    private static function _getConfiguredSourceDefinitions(bool $enabledOnly = false, ?string $usage = null): array
     {
         $definitions = [];
 
@@ -303,7 +316,7 @@ class IntegrationOptionSourceHelper
                 continue;
             }
 
-            foreach (self::_getIntegrationSourceDefinitions($integration) as $definition) {
+            foreach (self::_getIntegrationSourceDefinitions($integration, $usage) as $definition) {
                 $definitions[] = [
                     ...$definition,
                     'integration' => $integration,
@@ -315,7 +328,7 @@ class IntegrationOptionSourceHelper
         return $definitions;
     }
 
-    private static function _getRegisteredSourceDefinitions(): array
+    private static function _getRegisteredSourceDefinitions(?string $usage = null): array
     {
         $definitions = [];
 
@@ -330,6 +343,10 @@ class IntegrationOptionSourceHelper
                 }
 
                 foreach ($integrationClass::getOptionSourceDefinitions() as $definition) {
+                    if (!self::_definitionSupportsUsage($definition, $usage)) {
+                        continue;
+                    }
+
                     $definitions[] = [
                         ...$definition,
                         'integrationClass' => $integrationClass,
@@ -341,7 +358,7 @@ class IntegrationOptionSourceHelper
         return $definitions;
     }
 
-    private static function _getIntegrationSourceDefinitions(IntegrationInterface $integration): array
+    private static function _getIntegrationSourceDefinitions(IntegrationInterface $integration, ?string $usage = null): array
     {
         if (!method_exists($integration, 'getOptionSourceDefinitions')) {
             return [];
@@ -349,7 +366,21 @@ class IntegrationOptionSourceHelper
 
         $integrationClass = get_class($integration);
 
-        return $integrationClass::getOptionSourceDefinitions();
+        return array_values(array_filter(
+            $integrationClass::getOptionSourceDefinitions(),
+            static fn(array $definition): bool => self::_definitionSupportsUsage($definition, $usage),
+        ));
+    }
+
+    private static function _definitionSupportsUsage(array $definition, ?string $usage): bool
+    {
+        if ($usage === null || $usage === self::USAGE_OPTIONS) {
+            return true;
+        }
+
+        $usages = (array)($definition['optionSourceUsages'] ?? [self::USAGE_OPTIONS]);
+
+        return in_array($usage, $usages, true);
     }
 
     private static function _getOptionSourceRefreshParams(IntegrationInterface $integration, string $provider): array

@@ -179,34 +179,34 @@ class OptionSources extends Component
         return ElementOptionSourceHelper::getBuilderConfig($provider);
     }
 
-    public function hasIntegrationOptionSources(): bool
+    public function hasIntegrationOptionSources(?string $usage = null): bool
     {
-        return IntegrationOptionSourceHelper::hasEnabledIntegrationOptionSources();
+        return IntegrationOptionSourceHelper::hasEnabledIntegrationOptionSources($usage);
     }
 
-    public function getIntegrationProviderOptions(): array
+    public function getIntegrationProviderOptions(?string $usage = null): array
     {
-        return IntegrationOptionSourceHelper::getProviderOptions();
+        return IntegrationOptionSourceHelper::getProviderOptions($usage);
     }
 
-    public function getEnabledIntegrationOptions(): array
+    public function getEnabledIntegrationOptions(?string $usage = null): array
     {
-        return IntegrationOptionSourceHelper::getEnabledIntegrationInstanceOptions();
+        return IntegrationOptionSourceHelper::getEnabledIntegrationInstanceOptions($usage);
     }
 
-    public function getIntegrationOptions(string $provider): array
+    public function getIntegrationOptions(string $provider, ?string $usage = null): array
     {
-        return IntegrationOptionSourceHelper::getIntegrationOptions($provider);
+        return IntegrationOptionSourceHelper::getIntegrationOptions($provider, $usage);
     }
 
-    public function getIntegrationBuilderConfigForIntegration(int $integrationId): array
+    public function getIntegrationBuilderConfigForIntegration(int $integrationId, ?string $usage = null): array
     {
-        return IntegrationOptionSourceHelper::getBuilderConfigForIntegration($integrationId);
+        return IntegrationOptionSourceHelper::getBuilderConfigForIntegration($integrationId, $usage);
     }
 
-    public function getIntegrationBuilderConfig(string $provider, int $integrationId): array
+    public function getIntegrationBuilderConfig(string $provider, int $integrationId, ?string $usage = null): array
     {
-        return IntegrationOptionSourceHelper::getBuilderConfig($provider, $integrationId);
+        return IntegrationOptionSourceHelper::getBuilderConfig($provider, $integrationId, $usage);
     }
 
     public function resolve(OptionSourceFieldInterface $field, ?OptionSourceContext $context = null): OptionList

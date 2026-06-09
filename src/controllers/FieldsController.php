@@ -169,21 +169,25 @@ class FieldsController extends Controller
         $integrationId = (int)($this->request->getBodyParam('integrationId')
             ?? $this->request->getQueryParam('integrationId')
             ?? $this->request->getParam('integrationId', 0));
+        $sourceUsage = (string)($this->request->getBodyParam('sourceUsage')
+            ?? $this->request->getQueryParam('sourceUsage')
+            ?? $this->request->getParam('sourceUsage', ''));
+        $sourceUsage = $sourceUsage !== '' ? $sourceUsage : null;
 
         if ($integrationId > 0) {
             if (trim($provider) !== '') {
                 return $this->asJson(
-                    Formie::$plugin->getOptionSources()->getIntegrationBuilderConfig($provider, $integrationId),
+                    Formie::$plugin->getOptionSources()->getIntegrationBuilderConfig($provider, $integrationId, $sourceUsage),
                 );
             }
 
             return $this->asJson(
-                Formie::$plugin->getOptionSources()->getIntegrationBuilderConfigForIntegration($integrationId),
+                Formie::$plugin->getOptionSources()->getIntegrationBuilderConfigForIntegration($integrationId, $sourceUsage),
             );
         }
 
         return $this->asJson([
-            'integrationOptions' => Formie::$plugin->getOptionSources()->getEnabledIntegrationOptions(),
+            'integrationOptions' => Formie::$plugin->getOptionSources()->getEnabledIntegrationOptions($sourceUsage),
         ]);
     }
 

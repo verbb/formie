@@ -169,10 +169,16 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
                 continue;
             }
 
-            $definitions[] = [
+            $publicDefinition = [
                 'handle' => $handle,
                 'label' => $label,
             ];
+
+            if (isset($definition['optionSourceUsages'])) {
+                $publicDefinition['optionSourceUsages'] = (array)$definition['optionSourceUsages'];
+            }
+
+            $definitions[] = $publicDefinition;
         }
 
         return $definitions;

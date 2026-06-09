@@ -235,6 +235,7 @@ function OptionDynamicSettingsField({ field, form }) {
     const integrationConfigAction = field.integrationConfigAction
         || 'formie/fields/get-integration-option-source-config';
     const fieldType = field.fieldType || form?.getFieldValue?.('type') || '';
+    const sourceUsage = field.sourceUsage || '';
     const predefinedProvider = source.provider || String(predefinedProviders[0]?.value || 'countries');
     const integrationProvider = source.provider || '';
     const labelKey = source.params?.labelKey ?? '';
@@ -583,7 +584,9 @@ function OptionDynamicSettingsField({ field, form }) {
 
             try {
                 const response = await Craft.sendActionRequest('POST', integrationConfigAction, {
-                    data: {},
+                    data: {
+                        ...(sourceUsage ? { sourceUsage } : {}),
+                    },
                 });
 
                 const data = response?.data || {};
@@ -645,6 +648,7 @@ function OptionDynamicSettingsField({ field, form }) {
         integrationConfigAction,
         integrationProvider,
         isDynamic,
+        sourceUsage,
         sourceType,
     ]);
 
@@ -674,6 +678,7 @@ function OptionDynamicSettingsField({ field, form }) {
                     data: {
                         integrationId: Number(integrationId),
                         ...(provider ? { provider } : {}),
+                        ...(sourceUsage ? { sourceUsage } : {}),
                     },
                 });
 
@@ -770,6 +775,7 @@ function OptionDynamicSettingsField({ field, form }) {
         integrationId,
         integrationConfigAction,
         isDynamic,
+        sourceUsage,
         sourceType,
     ]);
 

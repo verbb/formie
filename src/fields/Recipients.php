@@ -9,13 +9,12 @@ use verbb\formie\base\PreviewableFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\definitions\FieldReferenceValue;
-use verbb\formie\fields\values\MultiOptionFieldValue;
 use verbb\formie\fields\values\OptionValue;
 use verbb\formie\fields\values\RecipientsFieldValue;
-use verbb\formie\fields\values\SingleOptionFieldValue;
 use verbb\formie\fields\Hidden as HiddenField;
 use verbb\formie\gql\types\generators\FieldOptionGenerator;
 use verbb\formie\helpers\OptionsMode;
+use verbb\formie\helpers\RecipientOptionSelectionHelper;
 use verbb\formie\helpers\RecipientTokenHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\Variables;
@@ -24,6 +23,7 @@ use verbb\formie\models\OptionSource;
 use verbb\formie\models\SlotTag;
 use verbb\formie\models\Notification;
 use verbb\formie\options\OptionResolvableInterface;
+use verbb\formie\options\IntegrationOptionSourceHelper;
 use verbb\formie\options\OptionSourceConfigHelper;
 use verbb\formie\options\OptionSourceContext;
 use verbb\formie\options\OptionSourceFieldInterface;
@@ -41,6 +41,8 @@ use GraphQL\Type\Definition\Type;
 
 use ReflectionClass;
 use ReflectionProperty;
+
+use yii\validators\EmailValidator;
 
 class Recipients extends Field implements PreviewableFieldInterface, OptionResolvableInterface, OptionSourceFieldInterface
 {
@@ -102,6 +104,18 @@ class Recipients extends Field implements PreviewableFieldInterface, OptionResol
             $config['optionsMode'] = OptionsMode::STATIC;
         }
 
+        if (
+            $config['optionsMode'] === OptionsMode::DYNAMIC
+            && ($config['optionSource']['type'] ?? null) === 'integration'
+            && !IntegrationOptionSourceHelper::providerSupportsUsage(
+                (string)($config['optionSource']['provider'] ?? ''),
+                IntegrationOptionSourceHelper::USAGE_RECIPIENTS,
+            )
+        ) {
+            $config['optionSource'] = null;
+            $config['optionsMode'] = OptionsMode::STATIC;
+        }
+
         parent::__construct($config);
     }
 
@@ -135,14 +149,14 @@ class Recipients extends Field implements PreviewableFieldInterface, OptionResol
 
         // For non-hidden fields, ensure we cast to option field data
         if ($this->displayType !== 'hidden') {
-            $selectedRecipients = $this->_normalizeSelectedRecipients($value);
+            $selectedRecipients = RecipientOptionSelectionHelper::normalizeSelections($value);
 
             $options = [];
             $optionsById = [];
             $optionsByValue = [];
 
             foreach ($this->_getResolvedRecipientOptionRows() as $option) {
-                $selected = $this->_isRecipientOptionSelected($option, $selectedRecipients);
+                $selected = RecipientOptionSelectionHelper::isOptionSelected($option, $selectedRecipients);
                 $options[] = new OptionValue($option['label'], $option['value'], $selected, true);
                 $optionsById[$option['id']] = $option;
 
@@ -154,7 +168,7 @@ class Recipients extends Field implements PreviewableFieldInterface, OptionResol
             if (in_array($this->displayType, ['dropdown', 'radio'])) {
                 $selection = reset($selectedRecipients) ?: null;
                 $selectedValue = $selection['value'] ?? null;
-                $option = $this->_resolveRecipientSelectionOption($selection, $optionsById, $optionsByValue);
+                $option = RecipientOptionSelectionHelper::resolveSelectionOption($selection, $optionsById, $optionsByValue);
                 $valid = $option !== null;
                 $label = $selection['label'] ?? ($option['label'] ?? null);
                 $value = new RecipientsFieldValue($this->displayType, $selectedValue, $label, $valid, [], $options);
@@ -162,7 +176,7 @@ class Recipients extends Field implements PreviewableFieldInterface, OptionResol
                 $selectedOptions = [];
 
                 foreach ($selectedRecipients as $selection) {
-                    $option = $this->_resolveRecipientSelectionOption($selection, $optionsById, $optionsByValue);
+                    $option = RecipientOptionSelectionHelper::resolveSelectionOption($selection, $optionsById, $optionsByValue);
                     $valid = $option !== null;
                     $label = $selection['label'] ?? ($option['label'] ?? null);
                     $selectedOptions[] = new OptionValue($label, $selection['value'], true, $valid);
@@ -525,11 +539,12 @@ class Recipients extends Field implements PreviewableFieldInterface, OptionResol
             SchemaHelper::optionDynamicSettingsField([
                 'fieldType' => static::class,
                 'sourceTypes' => ['static', 'integration'],
+                'sourceUsage' => IntegrationOptionSourceHelper::USAGE_RECIPIENTS,
                 'label' => Craft::t('formie', 'Options'),
                 'instructions' => Craft::t('formie', 'Define the available options for users to select from.'),
                 'resolveAction' => 'formie/fields/resolve-option-source',
                 'detachAction' => 'formie/fields/detach-option-source',
-                'hasIntegrationOptionSources' => Formie::$plugin->getOptionSources()->hasIntegrationOptionSources(),
+                'hasIntegrationOptionSources' => Formie::$plugin->getOptionSources()->hasIntegrationOptionSources(IntegrationOptionSourceHelper::USAGE_RECIPIENTS),
                 'integrationConfigAction' => 'formie/fields/get-integration-option-source-config',
                 'if' => 'displayType != "hidden"',
             ]),
@@ -828,9 +843,11 @@ class Recipients extends Field implements PreviewableFieldInterface, OptionResol
 
         $labels = [];
         $hasDuplicateLabels = false;
+        $emailValidator = new EmailValidator();
 
         foreach ($this->options as &$option) {
             $label = (string)($option['label'] ?? '');
+            $value = (string)($option['value'] ?? '');
 
             if (isset($labels[$label])) {
                 $option['label'] = [
@@ -842,6 +859,20 @@ class Recipients extends Field implements PreviewableFieldInterface, OptionResol
             }
 
             $labels[$label] = true;
+
+            foreach ($this->_parseRecipientEmails($value) as $email) {
+                if (!$emailValidator->validate($email)) {
+                    $option['value'] = [
+                        'value' => $value,
+                        'hasErrors' => true,
+                    ];
+                    $this->addError('options', Craft::t('formie', '“{email}” is not a valid email address.', [
+                        'email' => $email,
+                    ]));
+
+                    break;
+                }
+            }
         }
         unset($option);
 
@@ -866,118 +897,14 @@ class Recipients extends Field implements PreviewableFieldInterface, OptionResol
 
     private function _getResolvedRecipientOptionRows(): array
     {
-        $options = [];
-
-        foreach ($this->getResolvedOptions() as $key => $option) {
-            if (isset($option['optgroup'])) {
-                continue;
-            }
-
-            $option = [
-                ...$option,
-                'label' => (string)($option['label'] ?? ''),
-                'value' => (string)($option['value'] ?? ''),
-            ];
-            $option['id'] = RecipientTokenHelper::optionId($option, $key);
-
-            $options[] = $option;
-        }
-
-        return $options;
+        return RecipientOptionSelectionHelper::optionRows($this->getResolvedOptions());
     }
 
-    private function _normalizeSelectedRecipients(mixed $value): array
+    private function _parseRecipientEmails(string $value): array
     {
-        $selections = [];
-
-        if ($value instanceof MultiOptionFieldValue) {
-            foreach ($value as $option) {
-                if ($option instanceof OptionValue) {
-                    $selections[] = $this->_recipientSelectionFromValue($option->value, $option->label);
-                }
-            }
-        } else if ($value instanceof SingleOptionFieldValue) {
-            $selections[] = $this->_recipientSelectionFromValue($value->value ?? '', $value->label ?? null);
-        } else if ($value instanceof OptionValue) {
-            $selections[] = $this->_recipientSelectionFromValue($value->value ?? '', $value->label ?? null);
-        } else if (is_array($value)) {
-            if (array_key_exists('value', $value) && !array_is_list($value)) {
-                $selections[] = $this->_recipientSelectionFromValue(
-                    $value['value'] ?? '',
-                    array_key_exists('label', $value) ? $value['label'] : null,
-                    $value['id'] ?? null,
-                );
-            } else {
-                foreach ($value as $val) {
-                    array_push($selections, ...$this->_normalizeSelectedRecipients($val));
-                }
-            }
-        } else if (is_scalar($value) || $value === null) {
-            $selections[] = $this->_recipientSelectionFromValue($value);
-        }
-
         return array_values(array_filter(
-            $selections,
-            static fn(array $selection) => $selection['value'] !== ''
+            array_map('trim', explode(',', $value)),
+            static fn(string $email): bool => $email !== '',
         ));
-    }
-
-    private function _recipientSelectionFromValue(mixed $value, mixed $label = null, mixed $id = null): array
-    {
-        if (is_string($value) && str_starts_with($value, 'base64:')) {
-            $payload = RecipientTokenHelper::decodePayload($value);
-
-            if (($payload['type'] ?? null) === RecipientTokenHelper::TYPE_OPTION) {
-                return [
-                    'id' => isset($payload['id']) ? (string)$payload['id'] : null,
-                    'label' => isset($payload['label']) ? (string)$payload['label'] : null,
-                    'value' => (string)($payload['value'] ?? ''),
-                    'token' => true,
-                ];
-            }
-
-            $value = RecipientTokenHelper::decode($value);
-        }
-
-        if (is_array($value)) {
-            $value = implode(',', array_filter($value));
-        }
-
-        return [
-            'id' => $id !== null && $id !== '' ? (string)$id : null,
-            'label' => $label !== null && $label !== '' ? (string)$label : null,
-            'value' => (string)$value,
-            'token' => false,
-        ];
-    }
-
-    private function _isRecipientOptionSelected(array $option, array $selections): bool
-    {
-        foreach ($selections as $selection) {
-            if (($selection['id'] ?? null) && $selection['id'] === $option['id']) {
-                return true;
-            }
-
-            if (($selection['id'] ?? null) === null && $selection['value'] === $option['value']) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private function _resolveRecipientSelectionOption(?array $selection, array $optionsById, array $optionsByValue): ?array
-    {
-        if (!$selection) {
-            return null;
-        }
-
-        $id = $selection['id'] ?? null;
-
-        if ($id && isset($optionsById[$id])) {
-            return $optionsById[$id];
-        }
-
-        return $optionsByValue[$selection['value']] ?? null;
     }
 }

@@ -212,6 +212,20 @@ it('preserves selected checkbox recipient rows when email targets repeat', funct
         ]);
 })->skip(fn (): bool => !class_exists(\Craft::class) || !\Craft::$app || !\verbb\formie\Formie::$plugin, 'Requires Craft bootstrap');
 
+it('validates static recipient option email targets', function (): void {
+    $field = new Recipients([
+        'displayType' => 'dropdown',
+        'options' => [
+            ['label' => 'Sales', 'value' => 'sales@example.com, not-an-email'],
+        ],
+    ]);
+
+    $field->validateOptions();
+
+    expect($field->hasErrors('options'))->toBeTrue()
+        ->and($field->getErrors('options')[0] ?? '')->toBe('“not-an-email” is not a valid email address.');
+})->skip(fn (): bool => !class_exists(\Craft::class) || !\Craft::$app || !\verbb\formie\Formie::$plugin, 'Requires Craft bootstrap');
+
 it('marks unknown visible recipient option values invalid', function (): void {
     $field = new Recipients([
         'handle' => 'recipient',

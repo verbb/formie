@@ -50,6 +50,10 @@ it('supports integration option sources through the resolver contract', function
         ])))->toBeFalse();
 });
 
+it('does not treat normal integration option sources as recipient sources', function (): void {
+    expect(IntegrationOptionSourceHelper::providerSupportsUsage('mailchimp-interests', IntegrationOptionSourceHelper::USAGE_RECIPIENTS))->toBeFalse();
+})->skip(fn (): bool => !class_exists(\Craft::class), 'Requires Craft bootstrap');
+
 it('requires integration params before resolving', function (): void {
     $result = IntegrationOptionSourceHelper::resolveOptions('mailchimp-interests', []);
 
@@ -76,7 +80,7 @@ it('retains integration option source config on options fields', function (): vo
         ->and($field->getOptionSource()?->params['collectionId'])->toBe('abc123');
 })->skip(fn (): bool => !class_exists(\Craft::class), 'Requires Craft bootstrap');
 
-it('allows only integration dynamic sources on recipients fields', function (): void {
+it('allows only recipient-safe dynamic sources on recipients fields', function (): void {
     $integrationField = new verbb\formie\fields\Recipients([
         'displayType' => 'dropdown',
         'optionsMode' => 'dynamic',
@@ -98,8 +102,8 @@ it('allows only integration dynamic sources on recipients fields', function (): 
         ],
     ]);
 
-    expect($integrationField->getOptionsMode())->toBe('dynamic')
-        ->and($integrationField->getOptionSource()?->type)->toBe('integration')
+    expect($integrationField->getOptionsMode())->toBe('static')
+        ->and($integrationField->getOptionSource())->toBeNull()
         ->and($predefinedField->getOptionsMode())->toBe('static')
         ->and($predefinedField->getOptionSource())->toBeNull();
 })->skip(fn (): bool => !class_exists(\Craft::class), 'Requires Craft bootstrap');
