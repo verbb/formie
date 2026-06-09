@@ -16,7 +16,7 @@ use verbb\formie\models\ClientModule;
 use verbb\formie\models\ClientModuleContext;
 use verbb\formie\models\SlotTag;
 use verbb\formie\models\Notification;
-use verbb\formie\options\Currencies;
+use verbb\formie\options\predefined\Currencies;
 
 use verbb\formie\theme\context\RenderContext;
 

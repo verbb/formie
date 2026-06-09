@@ -53,7 +53,7 @@ class ClientModuleManifestBuilder extends Component
     {
         $manifest = [];
 
-        foreach ($this->_providers() as $provider) {
+        foreach ($this->_resolvers() as $provider) {
             foreach ($provider->build($form, $renderTarget) as $module) {
                 $normalizedModule = $this->_normalizeModule($module);
 
@@ -91,7 +91,7 @@ class ClientModuleManifestBuilder extends Component
         return $manifest;
     }
 
-    private function _providers(): array
+    private function _resolvers(): array
     {
         return [
             new ConditionsModuleManifest(),

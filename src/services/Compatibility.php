@@ -19,11 +19,23 @@ class Compatibility extends Component
         }
 
         AliasBootstrap::register();
+        $this->_registerLegacyComponents();
         PhpEventMap::register();
     }
 
     public function isCompatibilityModeEnabled(): bool
     {
         return Formie::$plugin->getSettings()->compatibilityMode ?? true;
+    }
+    
+
+    // Private Methods
+    // =========================================================================
+
+    private function _registerLegacyComponents(): void
+    {
+        if (!Formie::$plugin->has('predefinedOptions')) {
+            Formie::$plugin->set('predefinedOptions', Formie::$plugin->getOptionSources());
+        }
     }
 }

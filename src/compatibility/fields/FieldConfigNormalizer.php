@@ -3,8 +3,12 @@ namespace verbb\formie\compatibility\fields;
 
 use verbb\formie\fields;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\OptionsMode;
+use verbb\formie\options\OptionSourceConfigHelper;
 use verbb\formie\positions\AboveInput;
 use verbb\formie\positions\BelowInput;
+
+use craft\helpers\Json;
 
 class FieldConfigNormalizer
 {
@@ -21,6 +25,8 @@ class FieldConfigNormalizer
         self::_normalizeLegacyFieldConfig($config);
         self::_normalizeValidationMessages($config, $fieldClass);
         self::_normalizeLegacyComboboxConfig($config, $fieldClass);
+        self::_normalizeOptionsFieldConfig($config, $fieldClass);
+        self::_normalizeRecipientsFieldConfig($config, $fieldClass);
         self::_removeLegacyProperties($config);
     }
 
@@ -168,6 +174,64 @@ class FieldConfigNormalizer
         return $value;
     }
 
+    private static function _normalizeOptionsFieldConfig(array &$config, string $fieldClass): void
+    {
+        if (!in_array($fieldClass, self::_optionsFieldTypes(), true)) {
+            return;
+        }
+
+        $config['optionsMode'] = OptionsMode::normalize($config['optionsMode'] ?? null);
+
+        if (in_array($config['optionsMode'], [OptionsMode::STATIC, OptionsMode::TEMPLATE], true)) {
+            unset($config['optionSource']);
+
+            return;
+        }
+
+        self::_normalizeOptionSourceConfig($config, OptionSourceConfigHelper::allowedTypesForFieldClass($fieldClass));
+    }
+
+    private static function _normalizeRecipientsFieldConfig(array &$config, string $fieldClass): void
+    {
+        if ($fieldClass !== fields\Recipients::class) {
+            return;
+        }
+
+        $config['optionsMode'] = OptionsMode::normalize($config['optionsMode'] ?? null);
+
+        if (in_array($config['optionsMode'], [OptionsMode::STATIC, OptionsMode::TEMPLATE], true)) {
+            unset($config['optionSource']);
+
+            return;
+        }
+
+        self::_normalizeOptionSourceConfig($config, OptionSourceConfigHelper::allowedTypesForFieldClass($fieldClass));
+    }
+
+    private static function _normalizeOptionSourceConfig(array &$config, array $allowedTypes): void
+    {
+        if (($config['optionsMode'] ?? null) !== OptionsMode::DYNAMIC) {
+            return;
+        }
+
+        $optionSource = $config['optionSource'] ?? null;
+
+        if (is_string($optionSource)) {
+            $optionSource = Json::decodeIfJson($optionSource);
+        }
+
+        $optionSource = OptionSourceConfigHelper::normalizeOptionSource($optionSource, $config['optionsMode'], $allowedTypes);
+
+        if ($optionSource === null) {
+            unset($config['optionSource']);
+            $config['optionsMode'] = OptionsMode::STATIC;
+
+            return;
+        }
+
+        $config['optionSource'] = $optionSource;
+    }
+
     private static function _removeLegacyProperties(array &$config): void
     {
         foreach (self::_removedProperties() as $removedProperty) {
@@ -233,6 +297,15 @@ class FieldConfigNormalizer
             self::_supportedLimitTypes(),
             static fn(string $class): bool => str_contains($class, '\\subfields\\'),
         ));
+    }
+
+    private static function _optionsFieldTypes(): array
+    {
+        return [
+            fields\Checkboxes::class,
+            fields\Dropdown::class,
+            fields\Radio::class,
+        ];
     }
 
     private static function _removedProperties(): array

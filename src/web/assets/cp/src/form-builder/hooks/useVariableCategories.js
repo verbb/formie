@@ -249,6 +249,7 @@ export function resolveVariableCategories(config, formValues, variableConfig, op
     });
 
     const disambiguateFieldLabels = (items = []) => {
+        const showFieldHandle = Boolean(request.showFieldHandle);
         const labelCount = new Map();
         items.forEach((item) => {
             const key = String(item?.label || '');
@@ -257,13 +258,20 @@ export function resolveVariableCategories(config, formValues, variableConfig, op
 
         return items.map((item) => {
             const baseLabel = String(item?.label || '');
+            const reference = parseFieldReference(item?.value);
+            const meta = reference ? fieldMetaByReference.get(reference) : null;
+            const handle = meta?.handle || item?.fieldHandle || '';
+
+            if (showFieldHandle && handle) {
+                return {
+                    ...item,
+                    label: `${baseLabel} (${handle})`,
+                };
+            }
+
             if ((labelCount.get(baseLabel) || 0) <= 1) {
                 return item;
             }
-
-            const reference = parseFieldReference(item?.value);
-            const meta = reference ? fieldMetaByReference.get(reference) : null;
-            const handle = meta?.handle || '';
 
             if (!handle) {
                 return item;

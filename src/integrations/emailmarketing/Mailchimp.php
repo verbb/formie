@@ -29,6 +29,26 @@ class Mailchimp extends EmailMarketing
         return Craft::t('formie', 'Mailchimp');
     }
 
+    protected static function defineOptionSources(): array
+    {
+        return [
+            [
+                'handle' => 'mailchimp-interests',
+                'label' => Craft::t('formie', 'Interest Groups'),
+                'collectionLabel' => Craft::t('formie', 'List'),
+                'collectionInstructions' => Craft::t('formie', 'Choose the Mailchimp list or audience.'),
+                'collectionPlaceholder' => Craft::t('formie', 'Select a list'),
+                'remoteHandleLabel' => Craft::t('formie', 'Option Source'),
+                'remoteHandleInstructions' => Craft::t('formie', 'Choose which Mailchimp field supplies the options.'),
+                'remoteHandlePlaceholder' => Craft::t('formie', 'Select an option source'),
+                'collectionRequiredMessage' => Craft::t('formie', 'Select a Mailchimp list.'),
+                'remoteHandleRequiredMessage' => Craft::t('formie', 'Select a Mailchimp option source.'),
+                'emptyCollectionsWarning' => Craft::t('formie', 'No Mailchimp lists are available. Refresh the integration data first.'),
+                'emptySourcesWarning' => Craft::t('formie', 'No Mailchimp option sources are available. Refresh the integration data first.'),
+            ],
+        ];
+    }
+
     // Properties
     // =========================================================================
 
@@ -79,6 +99,7 @@ class Mailchimp extends EmailMarketing
                 $listFields[] = new IntegrationField([
                     'handle' => 'tags',
                     'name' => Craft::t('formie', 'Tags'),
+                    'options' => $this->_getTagOptions((string)$list['id']),
                 ]);
 
                 // Handle any interest groups
@@ -92,9 +113,15 @@ class Mailchimp extends EmailMarketing
                     $interests = $response['interests'] ?? [];
 
                     foreach ($interests as $interest) {
+                        $categoryTitle = (string)($category['title'] ?? '');
+                        $interestName = (string)($interest['name'] ?? '');
+
                         $options[] = [
-                            'label' => Craft::t('formie', '{title} - {name}', ['title' => $category['title'], 'name' => $interest['name']]),
+                            'label' => $interestName,
                             'value' => $interest['id'],
+                            'data' => [
+                                'category' => $categoryTitle,
+                            ],
                         ];
                     }
                 }
@@ -367,5 +394,37 @@ class Mailchimp extends EmailMarketing
         return array_map(function($tag) {
             return $tag['name'];
         }, $response['tags']);
+    }
+
+    private function _getTagOptions(string $listId): array
+    {
+        $response = $this->request('GET', "lists/{$listId}/tag-search", [
+            'query' => [
+                'count' => 1000,
+            ],
+        ]);
+
+        $tags = $response['tags'] ?? [];
+
+        if (!$tags) {
+            return [];
+        }
+
+        return [
+            'label' => Craft::t('formie', 'Tags'),
+            'options' => array_values(array_filter(array_map(function($tag) {
+                $name = trim((string)($tag['name'] ?? ''));
+
+                if ($name === '') {
+                    return null;
+                }
+
+                return [
+                    'label' => $name,
+                    // Mailchimp member tag updates expect tag names, not tag IDs.
+                    'value' => $name,
+                ];
+            }, $tags))),
+        ];
     }
 }

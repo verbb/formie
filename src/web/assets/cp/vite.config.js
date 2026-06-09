@@ -132,6 +132,10 @@ export default defineConfig(async ({ command, mode }) => {
         // published entrypoint instead of hard-coding `/dist/...`.
         base: '',
 
+        esbuild: {
+            jsx: 'automatic',
+        },
+
         build: {
             outDir: './dist',
             emptyOutDir: true,
@@ -201,7 +205,9 @@ export default defineConfig(async ({ command, mode }) => {
         plugins: [
             // React support
             // https://github.com/vitejs/vite-plugin-react
-            ReactPlugin(),
+            ReactPlugin({
+                jsxRuntime: 'automatic',
+            }),
 
             // Copy legacy vendor files expected by the widgets asset bundle.
             copyWidgetsVendorFiles(),

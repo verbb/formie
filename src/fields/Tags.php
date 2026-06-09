@@ -75,6 +75,14 @@ class Tags extends ElementField
         return static::gqlElementContentMutationArgumentTypeDefinitionFromConfig($config);
     }
 
+    protected static function defineOptionSource(): ?array
+    {
+        return [
+            'handle' => 'tags',
+            'label' => static::displayName(),
+        ];
+    }
+
 
     // Properties
     // =========================================================================
@@ -160,6 +168,21 @@ class Tags extends ElementField
         return [
             'warning' => count($options) === 1 ? Craft::t('formie', 'No tag groups available. View [tag settings]({link}).', ['link' => UrlHelper::cpUrl('settings/tags')]) : false,
         ];
+    }
+
+    public function getOptionSourceWarning(array $sourceOptions): ?string
+    {
+        return $sourceOptions === []
+            ? Craft::t('formie', 'No tag groups available. View [tag settings]({link}).', ['link' => UrlHelper::cpUrl('settings/tags')])
+            : null;
+    }
+
+    public function getOptionSourceSourceOptions(): array
+    {
+        return array_values(array_filter(
+            $this->getSourceOptions(),
+            static fn(array $option): bool => (string)($option['value'] ?? '') !== '',
+        ));
     }
 
     public function defineFormBuilderPreviewSchema(): array
@@ -405,7 +428,7 @@ class Tags extends ElementField
             SchemaHelper::conditionsField(),
         ];
     }
-    
+
 
     // Private Methods
     // =========================================================================

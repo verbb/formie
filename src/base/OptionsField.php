@@ -2,6 +2,7 @@
 namespace verbb\formie\base;
 
 use verbb\formie\Formie;
+use verbb\formie\helpers\OptionsMode;
 use verbb\formie\base\Field;
 use verbb\formie\base\FieldInterface;
 use verbb\formie\base\Integration;
@@ -18,10 +19,16 @@ use verbb\formie\gql\arguments\OptionFieldArguments;
 use verbb\formie\gql\resolvers\OptionFieldResolver;
 use verbb\formie\gql\types\generators\FieldOptionGenerator;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Variables as FormieVariables;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Notification;
+use verbb\formie\models\OptionSource;
+use verbb\formie\options\OptionSourceConfigHelper;
+use verbb\formie\options\OptionSourceContext;
+use verbb\formie\options\OptionSourceFieldInterface;
+use verbb\formie\options\OptionSourceValidationMode;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -34,7 +41,7 @@ use GraphQL\Type\Definition\Type;
 
 use Throwable;
 
-abstract class OptionsField extends Field implements OptionsFieldInterface, PreviewableFieldInterface
+abstract class OptionsField extends Field implements OptionsFieldInterface, OptionSourceFieldInterface, PreviewableFieldInterface
 {
     // Static Methods
     // =========================================================================
@@ -164,7 +171,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
                 continue;
             }
 
-            foreach ($instance->options() as $option) {
+            foreach ($instance->getResolvedOptions() as $option) {
                 if (isset($option['optgroup'])) {
                     continue;
                 }
@@ -193,10 +200,17 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
     private static function _getOptionConfigLabels(array $settings): array
     {
         $values = [];
+        $options = $settings['options'] ?? [];
 
-        // Schema generation only needs the option metadata, so pull that directly from the
-        // normalized config payload instead of creating a field instance just to iterate options().
-        foreach ($settings['options'] ?? [] as $option) {
+        if (OptionsMode::normalize($settings['optionsMode'] ?? null) === OptionsMode::DYNAMIC && Formie::$plugin) {
+            try {
+                $options = (new static($settings))->getResolvedOptions();
+            } catch (Throwable) {
+                $options = $settings['options'] ?? [];
+            }
+        }
+
+        foreach ($options as $option) {
             if (!is_array($option) || isset($option['optgroup'])) {
                 continue;
             }
@@ -287,6 +301,8 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
     public bool $multi = false;
     public ?string $layout = null;
     public array $options = [];
+    public string $optionsMode = OptionsMode::STATIC;
+    public ?array $optionSource = null;
     public bool $optgroups = false;
     public ?string $emailFieldSummaryValue = 'label';
     public bool $hasMultiNamespace = false;
@@ -328,6 +344,17 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
 
         $config['options'] = $options;
 
+        $config['optionsMode'] = OptionsMode::normalize($config['optionsMode'] ?? null);
+        $config['optionSource'] = OptionSourceConfigHelper::normalizeOptionSource(
+            $config['optionSource'] ?? null,
+            $config['optionsMode'],
+            OptionSourceConfigHelper::allowedTypesForFieldClass(static::class),
+        );
+
+        if ($config['optionsMode'] === OptionsMode::DYNAMIC && $config['optionSource'] === null) {
+            $config['optionsMode'] = OptionsMode::STATIC;
+        }
+
         // remove unused settings
         unset($config['columnType'], $config['multiple']);
 
@@ -338,6 +365,8 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
     {
         $attributes = parent::settingsAttributes();
         $attributes[] = 'options';
+        $attributes[] = 'optionsMode';
+        $attributes[] = 'optionSource';
         $attributes[] = 'multi';
         $attributes[] = 'layout';
 
@@ -347,6 +376,78 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
     public function options(): array
     {
         return $this->options;
+    }
+
+    public function getOptionsMode(): string
+    {
+        return OptionsMode::normalize($this->optionsMode);
+    }
+
+    public function getOptionSource(): ?OptionSource
+    {
+        return OptionSource::fromConfig($this->optionSource);
+    }
+
+    public function usesStrictOptionValidation(): bool
+    {
+        if ($this->getOptionsMode() !== OptionsMode::DYNAMIC || !Formie::$plugin) {
+            return OptionsMode::usesStrictInValidation($this->getOptionsMode());
+        }
+
+        return Formie::$plugin->getOptionSources()->getValidationMode($this) === OptionSourceValidationMode::STRICT;
+    }
+
+    public function getValidationOptionValues(): array
+    {
+        $values = [];
+        $options = $this->getResolvedOptions();
+
+        if ($this->getOptionsMode() === OptionsMode::DYNAMIC && Formie::$plugin) {
+            $options = Formie::$plugin->getOptionSources()->resolveRows($this, new OptionSourceContext(
+                scope: OptionSourceContext::SCOPE_VALIDATE,
+            ));
+        }
+
+        foreach ($options as $option) {
+            if (!isset($option['optgroup'])) {
+                $values[] = (string)$option['value'];
+            }
+        }
+
+        return $values;
+    }
+
+    public function getResolvedOptions(): array
+    {
+        if ($this->getOptionsMode() !== OptionsMode::DYNAMIC) {
+            return $this->options();
+        }
+
+        if (!Formie::$plugin) {
+            return $this->options();
+        }
+
+        return Formie::$plugin->getOptionSources()->resolveRows($this, new OptionSourceContext(
+            scope: Craft::$app->getRequest()->getIsCpRequest()
+                ? OptionSourceContext::SCOPE_BUILDER
+                : OptionSourceContext::SCOPE_RENDER,
+        ));
+    }
+
+    public function shouldPersistOptionLabels(): bool
+    {
+        return $this->getOptionsMode() !== OptionsMode::STATIC;
+    }
+
+    public static function normalizeSnapshotFieldSettings(array $settings): array
+    {
+        if (OptionsMode::normalize($settings['optionsMode'] ?? null) === OptionsMode::STATIC) {
+            return $settings;
+        }
+
+        unset($settings['options']);
+
+        return $settings;
     }
 
     /**
@@ -388,7 +489,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
     {
         $options = [];
 
-        foreach ($this->options() as $option) {
+        foreach ($this->getResolvedOptions() as $option) {
             if (isset($option['optgroup'])) {
                 $options[] = $option;
                 continue;
@@ -404,6 +505,38 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
         }
 
         return $options;
+    }
+
+    public function getFormBuilderSettings(): array
+    {
+        $settings = parent::getFormBuilderSettings();
+
+        if ($this->getOptionsMode() !== OptionsMode::STATIC) {
+            // Builder preview controls need resolved rows, but dynamic fields should
+            // keep saved settings driven by `optionSource` rather than `options`.
+            $previewOptions = $this->getFieldOptions();
+
+            if ($previewOptions) {
+                $settings['_previewOptions'] = $previewOptions;
+            }
+        }
+
+        return $settings;
+    }
+
+    public function getClientConfig(): array
+    {
+        $config = parent::getClientConfig();
+
+        if ($this->getOptionsMode() !== OptionsMode::STATIC) {
+            // CP submission editing consumes the thin client config rather than
+            // the full front-end payload, so expose resolved dynamic rows there too.
+            $options = $this->getFieldOptions();
+            $config['options'] = $options;
+            $config['settings']['options'] = $options;
+        }
+
+        return $config;
     }
 
     public function getDefaultOptions(): array
@@ -423,6 +556,10 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
 
     public function validateOptions(): void
     {
+        if ($this->getOptionsMode() !== OptionsMode::STATIC) {
+            return;
+        }
+
         $labels = [];
         $values = [];
         $hasDuplicateLabels = false;
@@ -488,6 +625,15 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
             $value = $this->defaultValue();
         }
 
+        // Dynamic providers submit labels alongside values for durable display;
+        // validation still treats resolved server-side values as authoritative.
+        $submittedLabelsByValue = [];
+
+        if (is_array($value) && array_key_exists('value', $value) && !array_is_list($value)) {
+            $submittedLabelsByValue[(string)$value['value']] = isset($value['label']) ? (string)$value['label'] : null;
+            $value = $value['value'];
+        }
+
         // Normalize incoming value(s) to a list of selected scalar values.
         $selectedValues = [];
 
@@ -506,6 +652,9 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
 
                 if (is_array($val) && array_key_exists('value', $val)) {
                     $selectedValues[] = (string)$val['value'];
+                    if (array_key_exists('label', $val)) {
+                        $submittedLabelsByValue[(string)$val['value']] = (string)$val['label'];
+                    }
                     continue;
                 }
 
@@ -526,7 +675,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
         $options = [];
         $optionLabelsByValue = [];
 
-        foreach ($this->options() as $option) {
+        foreach ($this->getResolvedOptions() as $option) {
             if (isset($option['optgroup'])) {
                 continue;
             }
@@ -548,7 +697,15 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
             foreach ($selectedValues as $selectedValue) {
                 $selectedValue = (string)$selectedValue;
                 $valid = array_key_exists($selectedValue, $optionLabelsByValue);
-                $label = $valid ? $optionLabelsByValue[$selectedValue] : null;
+                $label = $submittedLabelsByValue[$selectedValue]
+                    ?? ($valid ? $optionLabelsByValue[$selectedValue] : null);
+
+                if (!$this->usesStrictOptionValidation()) {
+                    if ($label === null) {
+                        $label = $selectedValue;
+                    }
+                    $valid = true;
+                }
 
                 $selectedOptions[] = new OptionValue($label, $selectedValue, true, $valid);
             }
@@ -557,7 +714,15 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
         } else if (!empty($selectedValues)) {
             $selectedValue = (string)reset($selectedValues);
             $valid = array_key_exists($selectedValue, $optionLabelsByValue);
-            $label = $valid ? $optionLabelsByValue[$selectedValue] : null;
+            $label = $submittedLabelsByValue[$selectedValue]
+                ?? ($valid ? $optionLabelsByValue[$selectedValue] : null);
+
+            if (!$this->usesStrictOptionValidation()) {
+                if ($label === null) {
+                    $label = $selectedValue;
+                }
+                $valid = true;
+            }
 
             $normalizedValue = new SingleOptionFieldValue($label, $selectedValue, true, $valid);
         } else {
@@ -574,9 +739,25 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
     public function serializeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
         if ($value instanceof MultiOptionFieldValue) {
-            return $value->values();
-        } else if ($value instanceof SingleOptionFieldValue) {
-            return $value->value;
+            if (!$this->shouldPersistOptionLabels()) {
+                return $value->values();
+            }
+
+            return array_map(static fn(OptionValue $option) => [
+                'value' => $option->value,
+                'label' => $option->getDisplayLabel(),
+            ], $value->all());
+        }
+
+        if ($value instanceof SingleOptionFieldValue) {
+            if (!$this->shouldPersistOptionLabels()) {
+                return $value->value;
+            }
+
+            return [
+                'value' => $value->value,
+                'label' => $value->getDisplayLabel(),
+            ];
         }
 
         return parent::serializeValue($value, $element);
@@ -589,17 +770,13 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
 
     public function getElementValidationRules(): array
     {
-        // Get all of the acceptable values
-        $range = parent::getElementValidationRules();
+        $rules = parent::getElementValidationRules();
 
-        foreach ($this->options() as $option) {
-            if (!isset($option['optgroup'])) {
-                // Cast the option value to a string in case it is an integer
-                $range[] = (string)$option['value'];
-            }
+        if (!$this->usesStrictOptionValidation()) {
+            return $rules;
         }
 
-        $rules[] = [$this->handle, 'in', 'range' => $range, 'allowArray' => $this->multi];
+        $rules[] = [$this->handle, 'in', 'range' => $this->getValidationOptionValues(), 'allowArray' => $this->multi];
 
         return $rules;
     }
@@ -664,7 +841,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
                 'name' => 'options',
                 'type' => Type::listOf(FieldOptionGenerator::generateType()),
                 'resolve' => function($field) {
-                    return $field->options();
+                    return $field->getResolvedOptions();
                 },
             ],
         ]);
@@ -684,7 +861,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
     {
         $values = [];
 
-        foreach ($this->options() as $option) {
+        foreach ($this->getResolvedOptions() as $option) {
             if (!isset($option['optgroup'])) {
                 $values[] = '“' . $option['value'] . '”';
             }
@@ -805,6 +982,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
         $displayType = (string)($this->displayType ?? 'dropdown');
         $contract = [
             'multiple' => (bool)$this->multi,
+            'optionsMode' => $this->getOptionsMode(),
             'options' => array_values(array_map(static function(array $option) {
                 return [
                     'label' => $option['label'] ?? '',
@@ -846,7 +1024,24 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
 
     protected function getPredefinedOptions(): array
     {
-        return Formie::$plugin->getPredefinedOptions()->getPredefinedOptions();
+        return Formie::$plugin->getOptionSources()->getPredefinedOptions();
+    }
+
+    protected function defineOptionDynamicGeneralSchema(): array
+    {
+        return [
+            SchemaHelper::optionDynamicSettingsField([
+                'fieldType' => static::class,
+                'label' => Craft::t('formie', 'Options'),
+                'instructions' => Craft::t('formie', 'Define the available options for users to select from.'),
+                'resolveAction' => 'formie/fields/resolve-option-source',
+                'detachAction' => 'formie/fields/detach-option-source',
+                'predefinedOptionsAction' => 'formie/fields/get-predefined-options',
+                'predefinedProviders' => Formie::$plugin->getOptionSources()->getPredefinedProviderOptions(),
+                'hasIntegrationOptionSources' => Formie::$plugin->getOptionSources()->hasIntegrationOptionSources(),
+                'integrationConfigAction' => 'formie/fields/get-integration-option-source-config',
+            ]),
+        ];
     }
 
     protected function setPrePopulatedValue(mixed $value): mixed
@@ -862,7 +1057,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
     {
         $translatedOptions = [];
 
-        foreach ($this->options() as $option) {
+        foreach ($this->getFieldOptions() as $option) {
             if (isset($option['optgroup'])) {
                 $translatedOptions[] = [
                     'optgroup' => Craft::t('formie', $option['optgroup']),
@@ -883,7 +1078,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
         if ($this->multi) {
             $defaultValues = [];
 
-            foreach ($this->options() as $option) {
+            foreach ($this->getResolvedOptions() as $option) {
                 if (!empty($option['default'])) {
                     $defaultValues[] = (string)$option['value'];
                 }
@@ -892,7 +1087,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
             return $defaultValues;
         }
 
-        foreach ($this->options() as $option) {
+        foreach ($this->getResolvedOptions() as $option) {
             if (!empty($option['default'])) {
                 return (string)$option['value'];
             }

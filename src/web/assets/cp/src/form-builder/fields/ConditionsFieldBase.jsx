@@ -20,6 +20,7 @@ const CONDITION_FIELD_VARIABLE_CONFIG = {
     content: 'singleLine',
     types: ['text'],
     groupFieldsByPage: true,
+    showFieldHandle: true,
     groups: [
         'fieldsVariables',
         'staticFormVariables',
@@ -299,8 +300,8 @@ function ConditionsFieldBase({
                                     />
                                 );
                             },
-                            className: 'w-[30%]',
-                            contentClassName: 'min-w-[260px] max-w-[360px] p-0 overflow-hidden flex flex-col',
+                            className: 'w-[42%]',
+                            contentClassName: 'min-w-[320px] max-w-[480px] p-0 overflow-hidden flex flex-col',
                             showActionsMenu: true,
                         },
                         {

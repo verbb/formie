@@ -68,6 +68,14 @@ class Users extends ElementField
         return static::gqlElementContentMutationArgumentTypeDefinitionFromConfig($config);
     }
 
+    protected static function defineOptionSource(): ?array
+    {
+        return [
+            'handle' => 'users',
+            'label' => static::displayName(),
+        ];
+    }
+
 
     // Properties
     // =========================================================================
@@ -94,6 +102,13 @@ class Users extends ElementField
         return [
             'warning' => count($options) === 0 ? Craft::t('formie', 'No user groups available. View [user group settings]({link}).', ['link' => UrlHelper::cpUrl('settings/users')]) : false,
         ];
+    }
+
+    public function getOptionSourceWarning(array $sourceOptions): ?string
+    {
+        return $sourceOptions === []
+            ? Craft::t('formie', 'No user groups available. View [user group settings]({link}).', ['link' => UrlHelper::cpUrl('settings/users')])
+            : null;
     }
 
     public function defineFormBuilderPreviewSchema(): array

@@ -795,7 +795,17 @@ const FieldEditModal = ({
     });
 
     form.onSuccess((data) => {
-        onSave(data);
+        const previewOptions = Array.isArray(form.__formiePreviewOptions)
+            ? form.__formiePreviewOptions
+            : null;
+        const nextData = String(data?.optionsMode || '') === 'dynamic' && previewOptions?.length > 0
+            ? {
+                ...data,
+                _previewOptions: previewOptions,
+            }
+            : data;
+
+        onSave(nextData);
     });
 
     useFieldEditorDismiss({

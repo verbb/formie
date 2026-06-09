@@ -151,10 +151,12 @@ class Checkboxes extends OptionsField
     {
         return [
             SchemaHelper::labelField(),
+            ...$this->defineOptionDynamicGeneralSchema(),
             SchemaHelper::tableField([
-                'label' => Craft::t('formie', 'Options'),
-                'instructions' => Craft::t('formie', 'Define the available options for users to select from.'),
+                'label' => Craft::t('formie', 'Static Options'),
+                'instructions' => Craft::t('formie', 'Add, remove, or reorder option rows manually.'),
                 'name' => 'options',
+                'if' => 'optionsMode == "static"',
                 'enableOptionRowMenu' => true,
                 'enableBulkOptions' => true,
                 'predefinedOptions' => $this->getPredefinedOptions(),

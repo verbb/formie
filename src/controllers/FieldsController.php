@@ -3,12 +3,16 @@ namespace verbb\formie\controllers;
 
 use verbb\formie\Formie;
 use verbb\formie\elements\Submission;
-use verbb\formie\fields\Payment;
+use verbb\formie\fields\Checkboxes;
+use verbb\formie\fields\Dropdown;
+use verbb\formie\fields\Radio;
+use verbb\formie\fields\Recipients;
 use verbb\formie\fields\Signature;
 use verbb\formie\fields\Summary;
 use verbb\formie\helpers\FieldAccess;
 use verbb\formie\helpers\CalculationsHelper;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\options\OptionSourceFieldInterface;
 
 use Craft;
 use craft\web\Controller;
@@ -89,9 +93,98 @@ class FieldsController extends Controller
     {
         $type = $this->request->getParam('option');
 
-        $options = Formie::$plugin->getPredefinedOptions()->getPredefinedOptionsForType($type);
+        $options = Formie::$plugin->getOptionSources()->getPredefinedOptionsForType($type);
 
         return $this->asJson($options);
+    }
+
+    public function actionResolveOptionSource(): Response
+    {
+        $this->requireAcceptsJson();
+
+        $fieldType = (string)$this->request->getBodyParam('fieldType', '');
+        $fieldSettings = $this->request->getBodyParam('fieldSettings', []);
+
+        if (!is_array($fieldSettings)) {
+            throw new BadRequestHttpException('Invalid field settings payload.');
+        }
+
+        $field = $this->_createOptionSourceFieldFromPayload($fieldType, $fieldSettings);
+        $result = Formie::$plugin->getOptionSources()->resolve($field);
+
+        return $this->asJson([
+            'options' => $result->items,
+            'error' => $result->error,
+            'stale' => $result->stale,
+            'count' => count($result->items),
+        ]);
+    }
+
+    public function actionDetachOptionSource(): Response
+    {
+        $this->requireAcceptsJson();
+
+        $fieldType = (string)$this->request->getBodyParam('fieldType', '');
+        $fieldSettings = $this->request->getBodyParam('fieldSettings', []);
+
+        if (!is_array($fieldSettings)) {
+            throw new BadRequestHttpException('Invalid field settings payload.');
+        }
+
+        $field = $this->_createOptionSourceFieldFromPayload($fieldType, $fieldSettings);
+        $options = Formie::$plugin->getOptionSources()->detachToStatic($field);
+
+        return $this->asJson([
+            'optionsMode' => 'static',
+            'optionSource' => null,
+            'options' => $options,
+            'count' => count($options),
+        ]);
+    }
+
+    public function actionGetElementOptionSourceConfig(): Response
+    {
+        $this->requireAcceptsJson();
+
+        $provider = (string)($this->request->getBodyParam('provider')
+            ?? $this->request->getQueryParam('provider')
+            ?? $this->request->getParam('provider', ''));
+
+        if (trim($provider) === '') {
+            throw new BadRequestHttpException('Missing required param: provider.');
+        }
+
+        return $this->asJson(
+            Formie::$plugin->getOptionSources()->getElementProviderBuilderConfig($provider),
+        );
+    }
+
+    public function actionGetIntegrationOptionSourceConfig(): Response
+    {
+        $this->requireAcceptsJson();
+
+        $provider = (string)($this->request->getBodyParam('provider')
+            ?? $this->request->getQueryParam('provider')
+            ?? $this->request->getParam('provider', ''));
+        $integrationId = (int)($this->request->getBodyParam('integrationId')
+            ?? $this->request->getQueryParam('integrationId')
+            ?? $this->request->getParam('integrationId', 0));
+
+        if ($integrationId > 0) {
+            if (trim($provider) !== '') {
+                return $this->asJson(
+                    Formie::$plugin->getOptionSources()->getIntegrationBuilderConfig($provider, $integrationId),
+                );
+            }
+
+            return $this->asJson(
+                Formie::$plugin->getOptionSources()->getIntegrationBuilderConfigForIntegration($integrationId),
+            );
+        }
+
+        return $this->asJson([
+            'integrationOptions' => Formie::$plugin->getOptionSources()->getEnabledIntegrationOptions(),
+        ]);
     }
 
     public function actionGetPaymentProviderSettingsSchema(): Response
@@ -295,6 +388,20 @@ class FieldsController extends Controller
 
     // Private Methods
     // =========================================================================
+
+    private function _createOptionSourceFieldFromPayload(string $fieldType, array $fieldSettings): OptionSourceFieldInterface
+    {
+        $fieldType = trim($fieldType);
+
+        if (!in_array($fieldType, [Dropdown::class, Radio::class, Checkboxes::class, Recipients::class], true)) {
+            throw new BadRequestHttpException('Invalid option source field type.');
+        }
+
+        /** @var OptionSourceFieldInterface $field */
+        $field = new $fieldType($fieldSettings);
+
+        return $field;
+    }
 
     private function _resolveFieldAccessContext(?string $accessToken): ?array
     {

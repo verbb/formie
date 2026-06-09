@@ -123,9 +123,9 @@ class ValidationMessagesHelper
                 continue;
             }
 
-            $builtin = self::defaultTemplate($key);
+            $predefined = self::defaultTemplate($key);
 
-            if ($builtin !== null && $message === $builtin) {
+            if ($predefined !== null && $message === $predefined) {
                 continue;
             }
 
@@ -177,7 +177,7 @@ class ValidationMessagesHelper
 
     public static function applyPluginDefaultsToFrontendTranslations(array $translations): array
     {
-        foreach (self::defaultTemplates() as $key => $builtinTemplate) {
+        foreach (self::defaultTemplates() as $key => $predefinedTemplate) {
             $pluginDefault = self::pluginDefault($key);
 
             if ($pluginDefault === null) {
@@ -188,8 +188,8 @@ class ValidationMessagesHelper
                 $translations[$source] = $pluginDefault;
             }
 
-            if ($builtinTemplate !== null) {
-                $translations[$builtinTemplate] = $pluginDefault;
+            if ($predefinedTemplate !== null) {
+                $translations[$predefinedTemplate] = $pluginDefault;
             }
         }
 

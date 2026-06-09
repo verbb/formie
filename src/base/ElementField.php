@@ -25,6 +25,9 @@ use verbb\formie\helpers\Variables;
 use verbb\formie\models\SlotTag;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Notification;
+use verbb\formie\models\OptionSource;
+use verbb\formie\options\ElementOptionSourceHelper;
+use verbb\formie\options\OptionResolvableInterface;
 use verbb\formie\positions\Hidden as HiddenPosition;
 use verbb\formie\theme\context\RenderContext;
 
@@ -79,12 +82,32 @@ use yii\db\Expression;
 use yii\db\ExpressionInterface;
 use yii\validators\NumberValidator;
 
-abstract class ElementField extends Field implements ElementFieldInterface
+abstract class ElementField extends Field implements ElementFieldInterface, OptionResolvableInterface
 {
     // Static Methods
     // =========================================================================
 
     abstract public static function elementType(): string;
+
+    public static function getOptionSourceDefinition(): ?array
+    {
+        $definition = static::defineOptionSource();
+
+        if ($definition === null) {
+            return null;
+        }
+
+        $handle = trim((string)($definition['handle'] ?? ''));
+
+        if ($handle === '') {
+            return null;
+        }
+
+        return [
+            'handle' => $handle,
+            'label' => trim((string)($definition['label'] ?? static::displayName())),
+        ];
+    }
 
     public static function queryCondition(array $instances, mixed $value, array &$params): array|string|ExpressionInterface|false|null
     {
@@ -420,6 +443,11 @@ abstract class ElementField extends Field implements ElementFieldInterface
 
     public function getFieldOptions(): array
     {
+        return $this->getResolvedOptions();
+    }
+
+    public function getResolvedOptions(): array
+    {
         $options = [];
 
         foreach ($this->getElementsQuery()->all() as $element) {
@@ -428,6 +456,21 @@ abstract class ElementField extends Field implements ElementFieldInterface
         }
 
         return $options;
+    }
+
+    public function toOptionSource(): ?OptionSource
+    {
+        $provider = ElementOptionSourceHelper::getProviderForFieldClass(static::class);
+
+        if (!$provider) {
+            return null;
+        }
+
+        return new OptionSource([
+            'type' => 'element',
+            'provider' => $provider,
+            'params' => $this->getOptionSourceParams(),
+        ]);
     }
 
     public function getDisplayTypeFieldConfig(): array
@@ -563,6 +606,90 @@ abstract class ElementField extends Field implements ElementFieldInterface
         ArrayHelper::multisort($options, 'label', SORT_ASC, SORT_NATURAL | SORT_FLAG_CASE);
 
         return $options;
+    }
+
+    public function getOptionSourceMode(): string
+    {
+        return $this->allowMultipleSources ? 'multiple' : 'single';
+    }
+
+    public function getOptionSourceParams(): array
+    {
+        $params = [
+            'labelSource' => $this->labelSource,
+            'orderBy' => $this->orderBy,
+        ];
+
+        if ($this->limitOptions) {
+            $params['limitOptions'] = $this->limitOptions;
+        }
+
+        if ($this->getOptionSourceMode() === 'multiple') {
+            $params['sources'] = $this->sources ?? '*';
+        } else {
+            $params['source'] = $this->source;
+        }
+
+        return $params;
+    }
+
+    public function getOptionSourceFieldConfig(array $params = []): array
+    {
+        $config = [];
+
+        if (!empty($params['labelSource'])) {
+            $config['labelSource'] = (string)$params['labelSource'];
+        }
+
+        if (!empty($params['orderBy'])) {
+            $config['orderBy'] = (string)$params['orderBy'];
+        }
+
+        if (!empty($params['limitOptions'])) {
+            $config['limitOptions'] = (string)$params['limitOptions'];
+        }
+
+        if ($this->getOptionSourceMode() === 'multiple') {
+            $sources = $params['sources'] ?? '*';
+
+            if (is_string($sources) && $sources !== '') {
+                $config['sources'] = $sources;
+            } elseif (is_array($sources) && $sources !== []) {
+                $config['sources'] = $sources;
+            } else {
+                $config['sources'] = '*';
+            }
+        } else {
+            $source = $params['source'] ?? null;
+
+            if (!$source && !empty($params['sources'])) {
+                $sources = $params['sources'];
+                $source = is_array($sources) ? ($sources[0] ?? null) : $sources;
+            }
+
+            if ($source) {
+                $config['source'] = (string)$source;
+            }
+        }
+
+        return $config;
+    }
+
+    public function getOptionSourceSourceOptions(): array
+    {
+        return $this->getSourceOptions();
+    }
+
+    public function getOptionSourceOrderByOptions(): array
+    {
+        return $this->getOrderByOptions();
+    }
+
+    public function getOptionSourceWarning(array $sourceOptions): ?string
+    {
+        return $sourceOptions === []
+            ? Craft::t('formie', 'No sources available for this element type.')
+            : null;
     }
 
     public function getInputSources(?ElementInterface $element = null): array|string|null
@@ -710,6 +837,11 @@ abstract class ElementField extends Field implements ElementFieldInterface
 
     // Protected Methods
     // =========================================================================
+
+    protected static function defineOptionSource(): ?array
+    {
+        return null;
+    }
 
     protected static function gqlElementContentTypeDefinitionFromConfig(array $config, Type $elementType, array $arguments, string $resolverClass): array
     {

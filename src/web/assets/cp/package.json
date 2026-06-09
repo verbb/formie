@@ -11,15 +11,16 @@
         "lint:fix": "eslint ./src --ext .js,.jsx --fix"
     },
     "devDependencies": {
+        "@eslint/js": "^9.39.4",
         "@tailwindcss/vite": "^4.2.4",
         "@verbb/plugin-kit": "1.0.0",
-        "@vitejs/plugin-react": "^6.0.1",
-        "eslint": "^10.2.1",
+        "@vitejs/plugin-react": "^5.2.0",
+        "eslint": "^9.39.4",
         "fs-extra": "^11.3.4",
         "sass-embedded": "^1.99.0",
-        "svgo": "^4.0.1",
+        "svgo": "^3.3.3",
         "tailwindcss": "^4.2.4",
-        "vite": "^8.0.10",
+        "vite": "^7.3.5",
         "vite-plugin-tailwind-shadowdom": "^1.1.1"
     },
     "dependencies": {

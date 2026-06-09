@@ -69,6 +69,14 @@ class Entries extends ElementField
         return static::gqlElementContentMutationArgumentTypeDefinitionFromConfig($config);
     }
 
+    protected static function defineOptionSource(): ?array
+    {
+        return [
+            'handle' => 'entries',
+            'label' => static::displayName(),
+        ];
+    }
+
 
     // Public Methods
     // =========================================================================
@@ -88,6 +96,21 @@ class Entries extends ElementField
         return [
             'warning' => count($options) === 0 ? Craft::t('formie', 'No sections available. View [section settings]({link}).', ['link' => UrlHelper::cpUrl('settings/sections')]) : false,
         ];
+    }
+
+    public function getOptionSourceWarning(array $sourceOptions): ?string
+    {
+        return $sourceOptions === []
+            ? Craft::t('formie', 'No sections available. View [section settings]({link}).', ['link' => UrlHelper::cpUrl('settings/sections')])
+            : null;
+    }
+
+    public function getOptionSourceOrderByOptions(): array
+    {
+        return array_merge([
+            ['value' => 'lft ASC', 'label' => Craft::t('formie', 'Structure Ascending')],
+            ['value' => 'lft DESC', 'label' => Craft::t('formie', 'Structure Descending')],
+        ], parent::getOptionSourceOrderByOptions());
     }
 
     public function defineFormBuilderPreviewSchema(): array

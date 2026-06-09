@@ -72,6 +72,14 @@ class Categories extends ElementField
         return static::gqlElementContentMutationArgumentTypeDefinitionFromConfig($config);
     }
 
+    protected static function defineOptionSource(): ?array
+    {
+        return [
+            'handle' => 'categories',
+            'label' => static::displayName(),
+        ];
+    }
+
 
     // Properties
     // =========================================================================
@@ -101,6 +109,29 @@ class Categories extends ElementField
         ];
     }
 
+    public function getOptionSourceWarning(array $sourceOptions): ?string
+    {
+        return $sourceOptions === []
+            ? Craft::t('formie', 'No category groups available. View [category settings]({link}).', ['link' => UrlHelper::cpUrl('settings/categories')])
+            : null;
+    }
+
+    public function getOptionSourceSourceOptions(): array
+    {
+        return array_values(array_filter(
+            $this->getSourceOptions(),
+            static fn(array $option): bool => (string)($option['value'] ?? '') !== '',
+        ));
+    }
+
+    public function getOptionSourceOrderByOptions(): array
+    {
+        return array_merge([
+            ['value' => 'lft ASC', 'label' => Craft::t('formie', 'Structure Ascending')],
+            ['value' => 'lft DESC', 'label' => Craft::t('formie', 'Structure Descending')],
+        ], parent::getOptionSourceOrderByOptions());
+    }
+
     public function defineFormBuilderPreviewSchema(): array
     {
         return [
@@ -109,6 +140,11 @@ class Categories extends ElementField
     }
 
     public function getFieldOptions(): array
+    {
+        return $this->getResolvedOptions();
+    }
+
+    public function getResolvedOptions(): array
     {
         $options = [];
 

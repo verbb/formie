@@ -24,7 +24,7 @@ import {
 import { useTranslation } from '@verbb/plugin-kit-react/hooks';
 import { cn, getErrorMessage, hostRequest } from '@verbb/plugin-kit-react/utils';
 
-import { buildBulkPreview, parseBulkPreviewRows } from './bulkOptions.utils';
+import { buildBulkPreview, parseBulkPreviewRows, countBulkPreviewRows } from './bulkOptions.utils';
 
 function FormieBulkOptionsDialog({
     open,
@@ -248,12 +248,27 @@ function FormieBulkOptionsDialog({
                             )}
                         </div>
 
-                        <div>
-                            <Textarea
-                                className="min-h-[260px] text-xs"
-                                value={bulkPreview}
-                                onChange={(event) => { setBulkPreview(event.target.value); }}
-                            />
+                        <div className="flex min-h-[260px] flex-col">
+                            <FieldRoot name="bulk-preview">
+                                <FieldHeader className="space-y-0.5">
+                                    <FieldLabel>
+                                        {t('Preview')}
+                                        {bulkPreview.trim() !== '' && (
+                                            <span className="ml-2 font-normal text-gray-500">
+                                                ({t('{count} options', { count: countBulkPreviewRows(bulkPreview) })})
+                                            </span>
+                                        )}
+                                    </FieldLabel>
+                                </FieldHeader>
+
+                                <FieldControl className="flex flex-1 flex-col">
+                                    <Textarea
+                                        className="min-h-[260px] flex-1 text-xs"
+                                        value={bulkPreview}
+                                        onChange={(event) => { setBulkPreview(event.target.value); }}
+                                    />
+                                </FieldControl>
+                            </FieldRoot>
                         </div>
                     </div>
                 </div>

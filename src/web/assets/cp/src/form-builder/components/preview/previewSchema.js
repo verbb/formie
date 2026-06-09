@@ -9,6 +9,10 @@ export const getPreviewPathValue = (source, path, fallback = undefined) => {
         return fallback;
     }
 
+    if (path === 'field.options' && Array.isArray(source?.field?._previewOptions) && source.field._previewOptions.length > 0) {
+        return source.field._previewOptions;
+    }
+
     const segments = String(path).split('.').filter(Boolean);
     let current = source;
 

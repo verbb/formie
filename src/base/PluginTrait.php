@@ -7,6 +7,7 @@ use verbb\formie\client\bootstrap\FormBootstrapBuilder;
 use verbb\formie\client\bootstrap\FormDefinitionBuilder;
 use verbb\formie\client\modules\ClientModuleManifestBuilder;
 use verbb\formie\client\ClientSessionService;
+use verbb\formie\deprecations\PluginDeprecations;
 use verbb\formie\elements\Submission as SubmissionElement;
 use verbb\formie\events\ModifyTwigEnvironmentEvent;
 use verbb\formie\server\ServerRenderPayloadBuilder;
@@ -31,7 +32,7 @@ use verbb\formie\services\Payments;
 use verbb\formie\services\PdfTemplates;
 use verbb\formie\services\Phone;
 use verbb\formie\services\Plans;
-use verbb\formie\services\PredefinedOptions;
+use verbb\formie\services\OptionSources;
 use verbb\formie\services\Repair;
 use verbb\formie\services\Relations;
 use verbb\formie\services\Rendering;
@@ -80,6 +81,7 @@ trait PluginTrait
     // =========================================================================
 
     use LogTrait;
+    use PluginDeprecations;
     
 
     // Static Methods
@@ -168,7 +170,7 @@ trait PluginTrait
                 'pdfTemplates' => PdfTemplates::class,
                 'phone' => Phone::class,
                 'plans' => Plans::class,
-                'predefinedOptions' => PredefinedOptions::class,
+                'optionSources' => OptionSources::class,
                 'repair' => Repair::class,
                 'relations' => Relations::class,
                 'renderCache' => RenderCache::class,
@@ -411,9 +413,9 @@ trait PluginTrait
         return $this->get('plans');
     }
 
-    public function getPredefinedOptions(): PredefinedOptions
+    public function getOptionSources(): OptionSources
     {
-        return $this->get('predefinedOptions');
+        return $this->get('optionSources');
     }
 
     public function getRepair(): Repair

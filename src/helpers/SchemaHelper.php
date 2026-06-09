@@ -478,6 +478,18 @@ class SchemaHelper
         ], $config);
     }
 
+    public static function optionDynamicSettingsField(array $config = []): array
+    {
+        return array_merge([
+            '$field' => 'optionDynamicSettings',
+        ], $config);
+    }
+
+    public static function optionSourceSettingsField(array $config = []): array
+    {
+        return self::optionDynamicSettingsField($config);
+    }
+
     public static function integrationRefreshSelectField(array $config = []): array
     {
         return array_merge([

@@ -5,6 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\base\Crm;
 use verbb\formie\base\EmailMarketing;
 use verbb\formie\base\FieldInterface;
+use verbb\formie\base\OptionsField;
 use verbb\formie\base\FormDefaultableTrait;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\Miscellaneous;
@@ -22,6 +23,7 @@ use verbb\formie\helpers\CpSubmissionFieldConditions;
 use verbb\formie\helpers\ConditionsHelper;
 use verbb\formie\helpers\HandleHelper;
 use verbb\formie\helpers\Html;
+use verbb\formie\helpers\OptionsMode;
 use verbb\formie\helpers\References;
 use verbb\formie\helpers\SubmissionRedirectRulesHelper;
 use verbb\formie\helpers\RichTextHelper;
@@ -39,6 +41,7 @@ use verbb\formie\models\Notification;
 use verbb\formie\models\Settings;
 use verbb\formie\models\SlotTag;
 use verbb\formie\models\Status;
+use verbb\formie\options\OptionSourceFieldInterface;
 use verbb\formie\records\Form as FormRecord;
 use verbb\formie\client\bootstrap\models\FormDefinition;
 use verbb\formie\client\models\LoadContext;
@@ -1655,6 +1658,12 @@ class Form extends Element implements FormInterface
 
             // Update our snapshot data with these settings
             if ($updateSnapshot) {
+                if ($field instanceof OptionsField) {
+                    $settings = OptionsField::normalizeSnapshotFieldSettings($settings);
+                } elseif ($field instanceof OptionSourceFieldInterface && OptionsMode::normalize($settings['optionsMode'] ?? null) !== OptionsMode::STATIC) {
+                    unset($settings['options']);
+                }
+
                 $this->setSnapshotData('fields', [$handle => $settings]);
             }
         }

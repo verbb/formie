@@ -31,3 +31,11 @@ export const parseBulkPreviewRows = (preview = '') => {
             return { label, value };
         });
 };
+
+export const countBulkPreviewRows = (preview = '') => {
+    return preview
+        .split('\n')
+        .map((line) => line.trim())
+        .filter((line) => line !== '')
+        .length;
+};

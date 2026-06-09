@@ -23,12 +23,15 @@ use verbb\formie\helpers\Table;
 use verbb\formie\models\SlotTag;
 use verbb\formie\models\ClientModule;
 use verbb\formie\models\ClientModuleContext;
+use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\events\ModifyIntegrationFormSettingsSchemaEvent;
 use verbb\formie\models\IntegrationFormSettings;
 use verbb\formie\models\IntegrationSettingsContext;
 use verbb\formie\models\Phone;
 use verbb\formie\models\Stencil;
+use verbb\formie\options\IntegrationOptionSourceHelper;
+use verbb\formie\options\OptionList;
 use verbb\formie\records\Integration as IntegrationRecord;
 use verbb\formie\theme\context\RenderContext;
 
@@ -148,6 +151,102 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public static function hasFormSettings(): bool
     {
         return true;
+    }
+
+    public static function getOptionSourceDefinitions(): array
+    {
+        $definitions = [];
+
+        foreach (static::defineOptionSources() as $definition) {
+            if (!is_array($definition)) {
+                continue;
+            }
+
+            $handle = trim((string)($definition['handle'] ?? ''));
+            $label = trim((string)($definition['label'] ?? ''));
+
+            if ($handle === '' || $label === '') {
+                continue;
+            }
+
+            $definitions[] = [
+                'handle' => $handle,
+                'label' => $label,
+            ];
+        }
+
+        return $definitions;
+    }
+
+    public function getOptionSourceBuilderConfig(string $provider): array
+    {
+        $definition = static::_getOptionSourceDefinition($provider);
+
+        if (!$definition) {
+            return [
+                'error' => Craft::t('formie', 'Unknown integration option provider.'),
+            ];
+        }
+
+        $settings = $this->getFormSettings();
+
+        if ($settings === false) {
+            return [
+                'error' => Craft::t('formie', 'Refresh the integration settings first.'),
+            ];
+        }
+
+        return $this->buildOptionSourceBuilderConfig($provider, $settings, $definition);
+    }
+
+    public function resolveOptionSourceOptions(string $provider, array $params = []): OptionList
+    {
+        $definition = static::_getOptionSourceDefinition($provider);
+
+        if (!$definition) {
+            return OptionList::error(Craft::t('formie', 'Unknown integration option provider.'));
+        }
+
+        $collectionParam = (string)($definition['collectionParam'] ?? 'collectionId');
+        $remoteHandleParam = (string)($definition['remoteHandleParam'] ?? 'remoteHandle');
+        $collectionId = (string)($params[$collectionParam] ?? '');
+        $remoteHandle = (string)($params[$remoteHandleParam] ?? '');
+
+        if ($collectionId === '') {
+            return OptionList::error((string)($definition['collectionRequiredMessage'] ?? Craft::t('formie', 'Select a list.')));
+        }
+
+        if ($remoteHandle === '') {
+            return OptionList::error((string)($definition['remoteHandleRequiredMessage'] ?? Craft::t('formie', 'Select an option source.')));
+        }
+
+        try {
+            $settings = $this->getFormSettings();
+
+            if ($settings === false) {
+                return OptionList::error(Craft::t('formie', 'Refresh the integration settings first.'));
+            }
+
+            foreach ($settings->getSettingsByKey('lists') as $collection) {
+                if (!$collection instanceof IntegrationCollection || (string)$collection->id !== $collectionId) {
+                    continue;
+                }
+
+                foreach ($collection->fields as $field) {
+                    if (!$field instanceof IntegrationField || $field->handle !== $remoteHandle) {
+                        continue;
+                    }
+
+                    return OptionList::fromRows(IntegrationOptionSourceHelper::flattenIntegrationFieldOptions($field->options));
+                }
+            }
+
+            return OptionList::error((string)($definition['notFoundMessage'] ?? Craft::t('formie', 'Option source not found. Refresh the integration data.')));
+        } catch (Throwable $e) {
+            Craft::error('Integration option source failed to resolve: ' . $e->getMessage(), __METHOD__);
+
+            return OptionList::error(Craft::t('formie', 'Unable to resolve integration options.'));
+        }
     }
 
     public static function getRequiredPlugins(): array
@@ -1011,6 +1110,105 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         ];
     }
 
+    protected static function defineOptionSources(): array
+    {
+        return [];
+    }
+
+    protected function buildOptionSourceBuilderConfig(string $provider, IntegrationFormSettings $settings, array $definition): array
+    {
+        $collectionParam = (string)($definition['collectionParam'] ?? 'collectionId');
+        $remoteHandleParam = (string)($definition['remoteHandleParam'] ?? 'remoteHandle');
+        $collections = [];
+        $remoteHandles = [];
+        $remoteHandlesByCollection = [];
+
+        foreach ($settings->getSettingsByKey('lists') as $collection) {
+            if (!$collection instanceof IntegrationCollection) {
+                continue;
+            }
+
+            $collectionRemoteHandles = [];
+
+            foreach ($collection->fields as $field) {
+                if (!$field instanceof IntegrationField || empty($field->options)) {
+                    continue;
+                }
+
+                $option = [
+                    'label' => $field->name,
+                    'value' => $field->handle,
+                ];
+
+                $collectionRemoteHandles[$field->handle] = $option;
+                $remoteHandles[$field->handle] = $option;
+            }
+
+            $collectionId = (string)$collection->id;
+            $remoteHandlesByCollection[$collectionId] = array_values($collectionRemoteHandles);
+            $collections[] = [
+                'label' => $collection->name,
+                'value' => $collectionId,
+                'remoteHandleOptions' => array_values($collectionRemoteHandles),
+            ];
+        }
+
+        $remoteHandleOptions = array_values($remoteHandles);
+        $defaultCollectionId = null;
+        $defaultRemoteHandle = null;
+
+        foreach ($collections as $collection) {
+            $collectionRemoteHandleOptions = $collection['remoteHandleOptions'] ?? [];
+
+            if (!$collectionRemoteHandleOptions) {
+                continue;
+            }
+
+            $defaultCollectionId = $collection['value'];
+            $defaultRemoteHandle = $collectionRemoteHandleOptions[0]['value'] ?? null;
+            break;
+        }
+
+        return [
+            'collectionOptions' => $collections,
+            'remoteHandleOptions' => $remoteHandleOptions,
+            'sourceOptions' => $remoteHandleOptions,
+            'paramFields' => [
+                [
+                    'handle' => $collectionParam,
+                    'type' => 'select',
+                    'label' => (string)($definition['collectionLabel'] ?? Craft::t('formie', 'List')),
+                    'instructions' => (string)($definition['collectionInstructions'] ?? Craft::t('formie', 'Choose the integration list or collection.')),
+                    'placeholder' => (string)($definition['collectionPlaceholder'] ?? Craft::t('formie', 'Select a list')),
+                    'options' => $collections,
+                    'required' => true,
+                ],
+                [
+                    'handle' => $remoteHandleParam,
+                    'type' => 'select',
+                    'label' => (string)($definition['remoteHandleLabel'] ?? Craft::t('formie', 'Option Source')),
+                    'instructions' => (string)($definition['remoteHandleInstructions'] ?? Craft::t('formie', 'Choose which remote field supplies the options.')),
+                    'placeholder' => (string)($definition['remoteHandlePlaceholder'] ?? Craft::t('formie', 'Select an option source')),
+                    'dependsOn' => $collectionParam,
+                    'options' => $remoteHandleOptions,
+                    'optionsByParam' => [
+                        $collectionParam => $remoteHandlesByCollection,
+                    ],
+                    'required' => true,
+                ],
+            ],
+            'defaults' => [
+                $collectionParam => $defaultCollectionId,
+                $remoteHandleParam => $defaultRemoteHandle,
+            ],
+            'warning' => $collections === []
+                ? (string)($definition['emptyCollectionsWarning'] ?? Craft::t('formie', 'No lists available. Refresh the integration data first.'))
+                : ($remoteHandleOptions === []
+                    ? (string)($definition['emptySourcesWarning'] ?? Craft::t('formie', 'No option sources available. Refresh the integration data first.'))
+                    : null),
+        ];
+    }
+
     protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
     {
         return null;
@@ -1115,6 +1313,19 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     // Private Methods
     // =========================================================================
+
+    private static function _getOptionSourceDefinition(string $provider): ?array
+    {
+        foreach (static::defineOptionSources() as $definition) {
+            if (!is_array($definition) || (string)($definition['handle'] ?? '') !== $provider) {
+                continue;
+            }
+
+            return $definition;
+        }
+
+        return null;
+    }
 
     private static function _sanitizeQueueHeaders(mixed $headers): mixed
     {

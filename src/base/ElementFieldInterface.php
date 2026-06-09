@@ -2,9 +2,9 @@
 namespace verbb\formie\base;
 
 use craft\base\ComponentInterface;
-use craft\base\ElementInterface;
+use verbb\formie\options\OptionResolvableInterface;
 
-interface ElementFieldInterface extends ComponentInterface
+interface ElementFieldInterface extends ComponentInterface, OptionResolvableInterface
 {
 
 }

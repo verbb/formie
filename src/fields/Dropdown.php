@@ -4,7 +4,7 @@ namespace verbb\formie\fields;
 use verbb\formie\base\FieldInterface;
 use verbb\formie\base\OptionsField;
 use verbb\formie\base\SortableFieldInterface;
-use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\fields\traits\AutocompleteFieldTrait;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\helpers\StringHelper;
@@ -22,7 +22,6 @@ use craft\validators\ArrayValidator;
 use Faker\Generator as FakerFactory;
 
 class Dropdown extends OptionsField implements SortableFieldInterface
-
 {
     // Static Methods
     // =========================================================================
@@ -36,6 +35,13 @@ class Dropdown extends OptionsField implements SortableFieldInterface
     {
         return 'formie/_formfields/dropdown/icon.svg';
     }
+
+
+    // Traits
+    // =========================================================================
+
+    use AutocompleteFieldTrait;
+    
 
     // Properties
     // =========================================================================
@@ -145,15 +151,17 @@ class Dropdown extends OptionsField implements SortableFieldInterface
     {
         return [
             SchemaHelper::labelField(),
+            ...$this->defineOptionDynamicGeneralSchema(),
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Allow Multiple'),
                 'instructions' => Craft::t('formie', 'Whether this field should allow multiple options to be selected.'),
                 'name' => 'multi',
             ]),
             SchemaHelper::tableField([
-                'label' => Craft::t('formie', 'Options'),
-                'instructions' => Craft::t('formie', 'Define the available options for users to select from.'),
+                'label' => Craft::t('formie', 'Static Options'),
+                'instructions' => Craft::t('formie', 'Add, remove, or reorder option rows manually.'),
                 'name' => 'options',
+                'if' => 'optionsMode == "static"',
                 'enableOptionRowMenu' => true,
                 'enableBulkOptions' => true,
                 'predefinedOptions' => $this->getPredefinedOptions(),
@@ -194,6 +202,7 @@ class Dropdown extends OptionsField implements SortableFieldInterface
     {
         return [
             SchemaHelper::prePopulate(),
+            $this->defineAutocompleteSettingSchema(),
             SchemaHelper::includeInEmailFieldSummariesField(),
             SchemaHelper::emailFieldSummaryValue([
                 'options' => [
@@ -287,6 +296,7 @@ class Dropdown extends OptionsField implements SortableFieldInterface
     {
         $rules = parent::defineRules();
 
+        $rules = array_merge($rules, $this->defineAutocompleteRules());
         $rules[] = [['min', 'max'], 'number'];
         $rules[] = [['max'], 'compare', 'compareAttribute' => 'min', 'operator' => '>='];
 
@@ -298,6 +308,7 @@ class Dropdown extends OptionsField implements SortableFieldInterface
         return array_merge(parent::defineClientInput(), [
             'min' => $this->min,
             'max' => $this->max,
+            'autocomplete' => $this->getAutocompleteCoreAttribute(),
         ]);
     }
 

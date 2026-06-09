@@ -96,6 +96,7 @@ import { FormieEditableTableField } from '@form-builder/fields/FormieEditableTab
 import { FormieTableColumnsField } from '@form-builder/fields/FormieTableColumnsField';
 import { FormieTableDefaultsField } from '@form-builder/fields/FormieTableDefaultsField';
 import { FormieStaticTableField } from '@form-builder/fields/FormieStaticTableField';
+import { OptionDynamicSettingsField } from '@form-builder/fields/OptionSourceSettingsField';
 import { previewSchemaComponents } from '@form-builder/components/preview';
 import { applyDevScenarios, shouldRenderDevToolbar } from '@form-builder/dev';
 import { DevToolsToolbar } from '@form-builder/dev/DevToolsToolbar';
@@ -167,6 +168,8 @@ Craft.Formie.FormBuilder = function(settings) {
         staticTable: FormieStaticTableField,
         formieTableColumns: FormieTableColumnsField,
         formieTableDefaults: FormieTableDefaultsField,
+        optionDynamicSettings: OptionDynamicSettingsField,
+        optionSourceSettings: OptionDynamicSettingsField,
     });
 
     // Initialize the store with form data

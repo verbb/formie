@@ -979,7 +979,7 @@ const Mn = {
   message: ({ input: e, label: t, t: r }) => e.getAttribute("data-formie-pattern-url-message") ?? e.getAttribute("data-pattern-url-message") ?? r("{label} is not a valid URL.", { label: t })
 }, Rn = {
   // Keep the core validator registry centralized so FormieValidator can extend
-  // it at runtime while still shipping one predictable builtin rule surface.
+  // it at runtime while still shipping one predictable predefined rule surface.
   required: Ln,
   email: wn,
   url: In,
@@ -1991,7 +1991,7 @@ const Ci = {
   snaptcha: () => import("./snaptcha-VuOUOaLj.js").then((e) => e.snaptchaModule),
   turnstile: () => import("./turnstile-9tM7q_LK.js").then((e) => e.turnstileModule)
 }, Ii = {
-  // Keep the builtin map flat and explicit so manifest ids remain the source of
+  // Keep the predefined map flat and explicit so manifest ids remain the source of
   // truth for lazy-loading first-party field enhancements.
   calculations: () => import("./calculations-C9t6Zop9.js").then((e) => e.calculationsModule),
   "checkbox-radio": () => import("./checkbox-radio-CHeLNVIK.js").then((e) => e.checkboxRadioModule),
@@ -2039,7 +2039,7 @@ async function Pi(e, t) {
       const n = await r();
       return Er(n) ? (t.registry.register(n), n) : null;
     } catch (n) {
-      return console.error("[formie] Failed to load builtin module:", e, n), D.warn("Failed loading builtin module.", { moduleId: e, error: n }), null;
+      return console.error("[formie] Failed to load predefined module:", e, n), D.warn("Failed loading predefined module.", { moduleId: e, error: n }), null;
     }
   })()), _e.get(e) || null) : null;
 }

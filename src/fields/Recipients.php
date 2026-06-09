@@ -9,16 +9,24 @@ use verbb\formie\base\PreviewableFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\definitions\FieldReferenceValue;
+use verbb\formie\fields\values\MultiOptionFieldValue;
 use verbb\formie\fields\values\OptionValue;
 use verbb\formie\fields\values\RecipientsFieldValue;
+use verbb\formie\fields\values\SingleOptionFieldValue;
 use verbb\formie\fields\Hidden as HiddenField;
 use verbb\formie\gql\types\generators\FieldOptionGenerator;
+use verbb\formie\helpers\OptionsMode;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\IntegrationField;
+use verbb\formie\models\OptionSource;
 use verbb\formie\models\SlotTag;
 use verbb\formie\models\Notification;
+use verbb\formie\options\OptionResolvableInterface;
+use verbb\formie\options\OptionSourceConfigHelper;
+use verbb\formie\options\OptionSourceContext;
+use verbb\formie\options\OptionSourceFieldInterface;
 use verbb\formie\positions\Hidden as HiddenPosition;
 
 use verbb\formie\theme\context\RenderContext;
@@ -34,7 +42,7 @@ use GraphQL\Type\Definition\Type;
 use ReflectionClass;
 use ReflectionProperty;
 
-class Recipients extends Field implements PreviewableFieldInterface
+class Recipients extends Field implements PreviewableFieldInterface, OptionResolvableInterface, OptionSourceFieldInterface
 {
     // Static Methods
     // =========================================================================
@@ -71,6 +79,8 @@ class Recipients extends Field implements PreviewableFieldInterface
     public string $displayType = 'hidden';
     public ?string $layout = 'vertical';
     public array $options = [];
+    public string $optionsMode = OptionsMode::STATIC;
+    public ?array $optionSource = null;
     public ?bool $multiple = null;
 
 
@@ -81,6 +91,16 @@ class Recipients extends Field implements PreviewableFieldInterface
     {
         // Setuo defaults for some values which can't in in the property definition
         $config['labelPosition'] = $config['labelPosition'] ?? HiddenPosition::class;
+        $config['optionsMode'] = OptionsMode::normalize($config['optionsMode'] ?? null);
+        $config['optionSource'] = OptionSourceConfigHelper::normalizeOptionSource(
+            $config['optionSource'] ?? null,
+            $config['optionsMode'],
+            OptionSourceConfigHelper::allowedTypesForFieldClass(static::class),
+        );
+
+        if ($config['optionsMode'] === OptionsMode::DYNAMIC && $config['optionSource'] === null) {
+            $config['optionsMode'] = OptionsMode::STATIC;
+        }
 
         parent::__construct($config);
     }
@@ -125,7 +145,7 @@ class Recipients extends Field implements PreviewableFieldInterface
             $optionValues = [];
             $optionLabels = [];
 
-            foreach ($this->options() as $option) {
+            foreach ($this->getResolvedOptions() as $option) {
                 $selected = in_array($option['value'], $selectedValues, true);
                 $options[] = new OptionValue($option['label'], $option['value'], $selected, true);
                 $optionValues[] = (string)$option['value'];
@@ -182,21 +202,93 @@ class Recipients extends Field implements PreviewableFieldInterface
         return $this->options;
     }
 
+    public function getResolvedOptions(): array
+    {
+        if ($this->getOptionsMode() !== OptionsMode::DYNAMIC) {
+            return $this->options();
+        }
+
+        if (!Formie::$plugin) {
+            return $this->options();
+        }
+
+        return Formie::$plugin->getOptionSources()->resolveRows($this, new OptionSourceContext(
+            scope: Craft::$app->getRequest()->getIsCpRequest()
+                ? OptionSourceContext::SCOPE_BUILDER
+                : OptionSourceContext::SCOPE_RENDER,
+        ));
+    }
+
+    public function getOptionsMode(): string
+    {
+        return OptionsMode::normalize($this->optionsMode);
+    }
+
+    public function getOptionSource(): ?OptionSource
+    {
+        return OptionSource::fromConfig($this->optionSource);
+    }
+
+    public function settingsAttributes(): array
+    {
+        $attributes = parent::settingsAttributes();
+        $attributes[] = 'displayType';
+        $attributes[] = 'layout';
+        $attributes[] = 'options';
+        $attributes[] = 'optionsMode';
+        $attributes[] = 'optionSource';
+        $attributes[] = 'multiple';
+
+        return $attributes;
+    }
+
     public function getFieldOptions(): array
     {
-        // Don't expose the value (email address) in the front end to prevent scraping
+        // Do not expose email addresses in front-end HTML. Tokens are encrypted
+        // values rather than row indexes so dynamic source ordering can change safely.
         $options = [];
 
-        foreach ($this->options() as $key => $value) {
+        foreach ($this->getResolvedOptions() as $key => $value) {
             $options[$key] = $value;
 
-            // Swap the value with the index - if there is a value, otherwise leave blank
             if ($options[$key]['value']) {
-                $options[$key]['value'] = 'id:' . $key;
+                $options[$key]['value'] = StringHelper::encenc((string)$options[$key]['value']);
             }
         }
 
         return $options;
+    }
+
+    public function getFormBuilderSettings(): array
+    {
+        $settings = parent::getFormBuilderSettings();
+
+        if ($this->getOptionsMode() !== OptionsMode::STATIC) {
+            // Builder preview rows are preview-only; recipients must use obfuscated
+            // values here just like the front-end render path.
+            $previewOptions = $this->getFieldOptions();
+
+            if ($previewOptions) {
+                $settings['_previewOptions'] = $previewOptions;
+            }
+        }
+
+        return $settings;
+    }
+
+    public function getClientConfig(): array
+    {
+        $config = parent::getClientConfig();
+
+        if ($this->getOptionsMode() !== OptionsMode::STATIC) {
+            // CP submission editing consumes the thin client config rather than
+            // the full front-end payload, so expose resolved dynamic rows there too.
+            $options = $this->getFieldOptions();
+            $config['options'] = $options;
+            $config['settings']['options'] = $options;
+        }
+
+        return $config;
     }
 
     public function getInputTemplateVariables(Form $form, mixed $value): array
@@ -262,7 +354,7 @@ class Recipients extends Field implements PreviewableFieldInterface
         if (!$this->getIsHidden() && $value === '') {
             $value = [];
 
-            foreach ($this->options() as $option) {
+            foreach ($this->getResolvedOptions() as $option) {
                 if (!empty($option['default'])) {
                     $value[] = $option['value'];
                 }
@@ -276,10 +368,48 @@ class Recipients extends Field implements PreviewableFieldInterface
         return $value;
     }
 
+    public function getElementValidationRules(): array
+    {
+        $rules = parent::getElementValidationRules();
+
+        if (!$this->getIsHidden()) {
+            $rules[] = [$this->handle, 'validateVisibleRecipientOptions', 'skipOnEmpty' => false];
+        }
+
+        return $rules;
+    }
+
+    public function validateVisibleRecipientOptions(ElementInterface $element): void
+    {
+        $value = $element->getFieldValue($this->valueKey());
+
+        if (!$value instanceof RecipientsFieldValue) {
+            return;
+        }
+
+        if (in_array($this->displayType, ['dropdown', 'radio'], true) && !$value->valid()) {
+            $element->addError($this->valueKey(), Craft::t('formie', 'Select a valid recipient.'));
+
+            return;
+        }
+
+        if ($this->displayType !== 'checkboxes') {
+            return;
+        }
+
+        foreach ($value->selectedOptions() as $option) {
+            if ($option instanceof OptionValue && !$option->valid) {
+                $element->addError($this->valueKey(), Craft::t('formie', 'Select only valid recipients.'));
+
+                return;
+            }
+        }
+    }
+
     public function getRealValue($value)
     {
-        // This will convert fake values (`id:1`, `['id:2', 'id:3']`) into their real values (`email@`, `[`email@`, `email@`]`)
-        // But will also just return the real value if it's already provided in that format.
+        // This converts front-end-safe recipient tokens back to real addresses,
+        // but still accepts real values when integrations or server-side code set them directly.
 
         // For any array-compatible field types (and data), recursively iterate each item
         if (is_array($value)) {
@@ -288,17 +418,20 @@ class Recipients extends Field implements PreviewableFieldInterface
             }, $value);
         }
 
-        // Check if we need to replace the value - for fields that define options in CP
+        if (!is_string($value)) {
+            return $value;
+        }
+
+        // Legacy positional tokens may still be submitted by forms rendered before this request.
         if (str_contains($value, 'id:')) {
-            // Replace each occurance of the `id:X` placeholder value with their real value
             $value = preg_replace_callback('/id:(\d+)/m', function(array $match) use ($value): string {
                 $index = $match[1] ?? 0;
 
-                return $this->options()[$index]['value'] ?? $value;
+                return $this->getResolvedOptions()[$index]['value'] ?? $value;
             }, $value);
         }
 
-        // For hidden fields, there's no CP defined options, so decode its encoded value
+        // Hidden recipients and visible recipient options both use encrypted values.
         if (str_contains($value, 'base64:')) {
             $value = StringHelper::decdec($value);
 
@@ -373,12 +506,24 @@ class Recipients extends Field implements PreviewableFieldInterface
                     ['label' => Craft::t('formie', 'Radio Buttons'), 'value' => 'radio'],
                 ],
             ]),
-            SchemaHelper::tableField([
+            SchemaHelper::optionDynamicSettingsField([
+                'fieldType' => static::class,
                 'label' => Craft::t('formie', 'Options'),
                 'instructions' => Craft::t('formie', 'Define the available options for users to select from.'),
+                'resolveAction' => 'formie/fields/resolve-option-source',
+                'detachAction' => 'formie/fields/detach-option-source',
+                'predefinedOptionsAction' => 'formie/fields/get-predefined-options',
+                'predefinedProviders' => Formie::$plugin->getOptionSources()->getPredefinedProviderOptions(),
+                'hasIntegrationOptionSources' => Formie::$plugin->getOptionSources()->hasIntegrationOptionSources(),
+                'integrationConfigAction' => 'formie/fields/get-integration-option-source-config',
+                'if' => 'displayType != "hidden"',
+            ]),
+            SchemaHelper::tableField([
+                'label' => Craft::t('formie', 'Static Options'),
+                'instructions' => Craft::t('formie', 'Add, remove, or reorder option rows manually.'),
                 'name' => 'options',
                 'validation' => 'required|uniqueTableCellLabel|requiredTableCellLabel',
-                'if' => 'displayType != "hidden"',
+                'if' => 'displayType != "hidden" && optionsMode == "static"',
                 'newRowDefaults' => [
                     'default' => false,
                 ],
@@ -533,7 +678,7 @@ class Recipients extends Field implements PreviewableFieldInterface
             'name' => $this->handle,
             'value' => $templateValue,
             'field' => $this,
-            'options' => $this->options(),
+            'options' => $this->getResolvedOptions(),
         ]);
     }
 
@@ -656,7 +801,7 @@ class Recipients extends Field implements PreviewableFieldInterface
     {
         // Allow populating via label to keep things private
         if (is_string($value)) {
-            foreach ($this->options() as $key => $option) {
+            foreach ($this->getResolvedOptions() as $key => $option) {
                 if ((string)$option['label'] === (string)$value) {
                     $value = $option['value'];
                 }

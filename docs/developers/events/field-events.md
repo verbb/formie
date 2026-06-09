@@ -653,10 +653,10 @@ The event that is triggered for registering predefined options for Dropdown, Rad
 
 ```php
 use verbb\formie\events\RegisterPredefinedOptionsEvent;
-use verbb\formie\services\PredefinedOptions;
+use verbb\formie\services\OptionSources;
 use yii\base\Event;
 
-Event::on(PredefinedOptions::class, PredefinedOptions::EVENT_REGISTER_PREDEFINED_OPTIONS, function(RegisterPredefinedOptionsEvent $event) {
+Event::on(OptionSources::class, OptionSources::EVENT_REGISTER_PREDEFINED_OPTIONS, function(RegisterPredefinedOptionsEvent $event) {
     $event->options[] = CustomOptions::class;
 });
 ```

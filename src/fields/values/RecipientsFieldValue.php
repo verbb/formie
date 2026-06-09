@@ -149,9 +149,9 @@ class RecipientsFieldValue implements FieldValueInterface
             $selectedValues = array_flip($this->values());
             $clientValues = [];
 
-            foreach ($this->_options as $index => $option) {
+            foreach ($this->_options as $option) {
                 if (isset($selectedValues[(string)($option->value ?? '')])) {
-                    $clientValues[] = 'id:' . $index;
+                    $clientValues[] = StringHelper::encenc((string)$option->value);
                 }
             }
 
@@ -159,9 +159,9 @@ class RecipientsFieldValue implements FieldValueInterface
         }
 
         if ($this->_displayType === 'dropdown' || $this->_displayType === 'radio') {
-            foreach ($this->_options as $index => $option) {
+            foreach ($this->_options as $option) {
                 if (($option->value ?? null) === $this->_rawValue) {
-                    return 'id:' . $index;
+                    return StringHelper::encenc((string)$option->value);
                 }
             }
 
