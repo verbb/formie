@@ -245,7 +245,7 @@ trait FieldFormBuilderTrait
             [
                 'handle' => 'advanced',
                 'label' => Craft::t('formie', 'Advanced'),
-                'content' => $this->defineFormBuilderAdvancedSchema(),
+                'content' => $this->_injectCompatibleFieldTypeSchema($this->defineFormBuilderAdvancedSchema()),
             ],
             [
                 'handle' => 'conditions',
@@ -318,6 +318,55 @@ trait FieldFormBuilderTrait
 
     // Private Methods
     // =========================================================================
+
+    private function _injectCompatibleFieldTypeSchema(array $schema): array
+    {
+        $fieldTypeSchema = $this->_getCompatibleFieldTypeSchema();
+
+        if (!$fieldTypeSchema) {
+            return $schema;
+        }
+
+        foreach ($schema as $index => $node) {
+            if (($node['name'] ?? null) === 'handle') {
+                array_splice($schema, $index + 1, 0, [$fieldTypeSchema]);
+
+                return $schema;
+            }
+        }
+
+        return array_merge($schema, [$fieldTypeSchema]);
+    }
+
+    private function _getCompatibleFieldTypeSchema(): ?array
+    {
+        $fieldTypes = array_values(array_unique(array_filter(array_merge([
+            static::class,
+        ], static::compatibleFieldTypes()))));
+
+        if (count($fieldTypes) <= 1) {
+            return null;
+        }
+
+        return SchemaHelper::selectField([
+            'label' => Craft::t('formie', 'Field Type'),
+            'instructions' => Craft::t('formie', 'Only compatible simple text fields are shown. Existing submissions are not rewritten when this changes.'),
+            'warning' => Craft::t('formie', 'Changing this may cause previous submission values to display, validate, or export differently.'),
+            'name' => 'type',
+            'if' => 'id && !syncId',
+            'options' => array_values(array_filter(array_map(static function(string $fieldType): ?array {
+                if (!is_subclass_of($fieldType, Field::class)) {
+                    return null;
+                }
+
+                return [
+                    'label' => $fieldType::displayName(),
+                    'value' => $fieldType,
+                ];
+            }, $fieldTypes))),
+        ]);
+    }
+
 
     private function _isLegacyVuePreviewTemplate(string $template): bool
     {

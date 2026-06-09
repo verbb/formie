@@ -271,6 +271,11 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
         return [];
     }
 
+    public static function compatibleFieldTypes(): array
+    {
+        return [];
+    }
+
     public static function supportsGqlConfigProvider(): bool
     {
         return false;

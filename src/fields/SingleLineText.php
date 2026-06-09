@@ -54,6 +54,13 @@ class SingleLineText extends Field implements SortableFieldInterface, Previewabl
         return true;
     }
 
+    public static function compatibleFieldTypes(): array
+    {
+        return [
+            Email::class,
+        ];
+    }
+
 
     // Traits
     // =========================================================================

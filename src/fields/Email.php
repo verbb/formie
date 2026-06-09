@@ -52,6 +52,13 @@ class Email extends Field implements SortableFieldInterface, PreviewableFieldInt
         return function_exists('idn_to_ascii') && defined('INTL_IDNA_VARIANT_UTS46');
     }
 
+    public static function compatibleFieldTypes(): array
+    {
+        return [
+            SingleLineText::class,
+        ];
+    }
+
 
     // Properties
     // =========================================================================

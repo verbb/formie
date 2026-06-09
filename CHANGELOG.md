@@ -8,6 +8,7 @@
 - Add Mailchimp option sources for Interest Categories and Tags, using cached integration form settings and manual refresh actions from the field settings UI. ([#512](https://github.com/verbb/formie/issues/512))
 - Add CRM integration option sources for HubSpot (forms and CRM properties), Salesforce, Zoho, and Microsoft Dynamics 365 picklists. ([#512](https://github.com/verbb/formie/issues/512))
 - Add **Template** option source mode for developer-owned option lists supplied at render time without persisting or strictly validating an authoritative option list.
+- Add support for changing compatible field types in the form builder, initially limited to simple string-like fields such as Single-Line Text and Email Address. Existing submissions are not rewritten. ([Discussion #2110](https://github.com/verbb/formie/discussions/2110))
 
 ### Changed
 - Refactor predefined options to align with the new option sources system.

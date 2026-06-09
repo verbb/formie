@@ -226,6 +226,19 @@ class Fields extends Component
         return $this->_getRegisteredFieldInstance($type);
     }
 
+    public function canChangeFieldType(string $fromType, string $toType): bool
+    {
+        if ($fromType === $toType) {
+            return true;
+        }
+
+        if (!is_subclass_of($fromType, Field::class) || !is_subclass_of($toType, Field::class)) {
+            return false;
+        }
+
+        return in_array($toType, $fromType::compatibleFieldTypes(), true);
+    }
+
     public function getFormBuilderFieldTypes(array $fullConfigTypes = []): array
     {
         return Formie::$plugin->getFieldPalette()->buildFormBuilderFieldTypeGroups($fullConfigTypes);
@@ -628,6 +641,20 @@ class Fields extends Component
     {
         if (is_string($config)) {
             $config = ['type' => $config];
+        }
+
+        $definitionId = (int)($config['fieldId'] ?? $config['syncId'] ?? 0);
+
+        if ($definitionId && isset($config['type'])) {
+            $existingType = (new Query())
+                ->select(['type'])
+                ->from(Table::FORMIE_FIELDS)
+                ->where(['id' => $definitionId])
+                ->scalar();
+
+            if (is_string($existingType) && $existingType !== $config['type']) {
+                $config = $this->_sanitizeCompatibleFieldTypeConfig($config, $existingType, (string)$config['type']);
+            }
         }
 
         // If already a `MissingField` (typically serialized in stencil), convert back
@@ -1375,15 +1402,6 @@ class Fields extends Component
     public function saveField(Field $field, bool $updateSyncedFields = true): bool
     {
         $isNewField = !$field->id;
-
-        if (!$field->beforeSave($isNewField)) {
-            return false;
-        }
-
-        if (!$field->validate()) {
-            return false;
-        }
-
         $definitionId = $field->fieldId ?: $field->syncId;
         $fieldRecord = $definitionId ? FieldRecord::findOne($definitionId) : new FieldRecord();
         $existingDefinitionUsageCount = $definitionId ? (int)((new Query())
@@ -1393,6 +1411,28 @@ class Fields extends Component
 
         if (!$fieldRecord) {
             throw new Exception('Invalid field definition ID: ' . $definitionId);
+        }
+
+        if ($definitionId && $fieldRecord->type !== $field->type) {
+            if ($existingDefinitionUsageCount > 1) {
+                $field->addError('type', Craft::t('formie', 'Synced fields cannot change field type.'));
+
+                return false;
+            }
+
+            if (!$this->canChangeFieldType($fieldRecord->type, $field->type)) {
+                $field->addError('type', Craft::t('formie', 'This field type cannot be changed to the selected field type.'));
+
+                return false;
+            }
+        }
+
+        if (!$field->beforeSave($isNewField)) {
+            return false;
+        }
+
+        if (!$field->validate()) {
+            return false;
         }
 
         if ($definitionId && $existingDefinitionUsageCount > 1) {
@@ -2300,6 +2340,56 @@ class Fields extends Component
         unset($fieldConfig['formFieldSettings']);
 
         return $fieldConfig;
+    }
+
+    private function _sanitizeCompatibleFieldTypeConfig(array $fieldConfig, string $fromType, string $toType): array
+    {
+        $identityKeys = [
+            'id',
+            'fieldId',
+            'layoutId',
+            'pageId',
+            'rowId',
+            'syncId',
+            'type',
+            'label',
+            'handle',
+            'reference',
+            'sortOrder',
+            'dateCreated',
+            'dateUpdated',
+            'uid',
+            'usageCount',
+            'isSynced',
+        ];
+
+        $settingKeys = $this->_getCommonFieldSettingKeys($fromType, $toType);
+        $preservedKeys = array_flip(array_merge($identityKeys, $settingKeys));
+        $sanitizedConfig = array_intersect_key($fieldConfig, $preservedKeys);
+
+        $settings = Json::decodeIfJson($fieldConfig['settings'] ?? null);
+
+        if (is_array($settings)) {
+            $sanitizedConfig['settings'] = array_intersect_key($settings, array_flip($settingKeys));
+        }
+
+        return $sanitizedConfig;
+    }
+
+    private function _getCommonFieldSettingKeys(string $fromType, string $toType): array
+    {
+        if (!is_subclass_of($fromType, Field::class) || !is_subclass_of($toType, Field::class)) {
+            return [];
+        }
+
+        try {
+            $fromField = new $fromType();
+            $toField = new $toType();
+        } catch (Throwable) {
+            return [];
+        }
+
+        return array_values(array_intersect($fromField->settingsAttributes(), $toField->settingsAttributes()));
     }
 
     private function _normalizeNestedFieldConfig(array $fieldConfig): array
