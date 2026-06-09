@@ -98,6 +98,84 @@ Your validator callback receives a context object with:
 
 In practice, `getRule()` is usually the most important part because it lets one validator read its own payload options.
 
+## Show a field error manually
+
+When custom code already knows which input should be invalid, use the validator's `showError()` method instead of building error markup by hand.
+
+```js
+document.addEventListener('formie:validator:ready', (event) => {
+  const { validator } = event.detail;
+  const form = validator.form;
+  const input = form.querySelector('[name="fields[zipCode]"]');
+
+  if (input instanceof HTMLInputElement) {
+    validator.showError(input, 'service-area', 'Sorry, that ZIP code is outside our service area.');
+  }
+});
+```
+
+`showError()` adds Formie's normal error attributes, message markup, theme classes, and page-tab error state for the field.
+
+## Run a remote check before submit
+
+Validator callbacks are synchronous. If your validation needs to call a controller action or another API, mount the form from your own bundle and use the mounted instance event bus. Instance event handlers are awaited by the submit pipeline, so they can update validation state before Formie's normal validation pass runs.
+
+```js
+import { formie } from '@verbb/formie-browser';
+import '@verbb/formie-browser/css/formie.css';
+
+await formie({
+  element: '#contact-form',
+  onReady(instance) {
+    const form = instance.root instanceof HTMLFormElement
+      ? instance.root
+      : instance.root.querySelector('form');
+
+    const validator = form?.formieValidation;
+
+    if (!form || !validator) {
+      return;
+    }
+
+    const serviceArea = {
+      value: '',
+      allowed: true,
+      message: 'Sorry, that ZIP code is outside our service area.',
+    };
+
+    validator.addValidator(
+      'service-area',
+      ({ input }) => {
+        if (!(input instanceof HTMLInputElement) || input.name !== 'fields[zipCode]' || !input.value) {
+          return true;
+        }
+
+        // Until the submit-stage hook has checked this exact value, do not block live validation.
+        return serviceArea.value !== input.value || serviceArea.allowed;
+      },
+      () => serviceArea.message,
+    );
+
+    instance.on('formie:stage:validate:before', async (stage) => {
+      const input = form.querySelector('[name="fields[zipCode]"]');
+
+      if (!(input instanceof HTMLInputElement) || !input.value) {
+        return;
+      }
+
+      const response = await fetch(`/actions/site/check-service-area?zip=${encodeURIComponent(input.value)}`);
+      const result = await response.json();
+
+      serviceArea.value = input.value;
+      serviceArea.allowed = result.allowed;
+      serviceArea.message = result.message || serviceArea.message;
+    });
+  },
+});
+```
+
+Use the stage payload's `formData` when your remote check needs the submitted values exactly as Formie will send them.
+
 ## Replace or remove a rule
 
 If you need to swap out behavior for a mounted form, register the same name again or remove it:

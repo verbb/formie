@@ -39,6 +39,24 @@ Use `setFieldSettings()` when the change belongs to a field.
 {{ craft.formie.renderForm(form) }}
 ```
 
+### Required state
+
+Use a real boolean when changing whether a field is required. The string `'false'` is still a non-empty value in PHP/Twig contexts, so it can behave like an enabled setting.
+
+```twig
+{% set form = craft.formie.forms.handle('portfolioForm').one() %}
+
+{% do form.setFieldSettings('workFeaturedAudio', {
+    required: false,
+}) %}
+
+{{ craft.formie.renderForm(form) }}
+```
+
+This is useful for edit forms where a field is required for new submissions, but optional when updating existing content.
+
+File Upload fields are a special case because browsers do not allow file inputs to be prefilled. When an edit form does not include a new file value, Formie leaves the existing uploaded file alone on the submission instead of clearing it.
+
 For option fields such as Dropdown, Radio and Checkboxes, you can override the available options before rendering.
 
 ```twig
