@@ -223,6 +223,11 @@ function OptionDynamicSettingsField({ field, form }) {
     sourceParamsRef.current = source.params;
     const sourceType = source.type === 'integration' ? 'integration' : 'predefined';
     const predefinedProviders = Array.isArray(field.predefinedProviders) ? field.predefinedProviders : [];
+    const sourceTypes = Array.isArray(field.sourceTypes) && field.sourceTypes.length > 0
+        ? field.sourceTypes.map((type) => String(type))
+        : ['static', 'predefined', 'integration', 'template'];
+    const allowsSourceType = useCallback((type) => sourceTypes.includes(type), [sourceTypes]);
+    const hasPredefinedOptionSources = allowsSourceType('predefined') && predefinedProviders.length > 0;
     const hasIntegrationOptionSources = Boolean(field.hasIntegrationOptionSources);
     const resolveAction = field.resolveAction || 'formie/fields/resolve-option-source';
     const detachAction = field.detachAction || 'formie/fields/detach-option-source';
@@ -875,6 +880,11 @@ function OptionDynamicSettingsField({ field, form }) {
     ]);
 
     const enablePredefined = () => {
+        if (!hasPredefinedOptionSources) {
+            disableDynamic();
+            return;
+        }
+
         const provider = String(predefinedProviders[0]?.value || 'countries');
 
         captureStaticOptionsForRestore();
@@ -891,6 +901,11 @@ function OptionDynamicSettingsField({ field, form }) {
     };
 
     const enableIntegration = () => {
+        if (!allowsSourceType('integration')) {
+            disableDynamic();
+            return;
+        }
+
         captureStaticOptionsForRestore();
         pendingPredefinedDefaultsRef.current = false;
         pendingIntegrationDefaultsRef.current = true;
@@ -927,6 +942,11 @@ function OptionDynamicSettingsField({ field, form }) {
     };
 
     const enableTemplate = () => {
+        if (!allowsSourceType('template')) {
+            disableDynamic();
+            return;
+        }
+
         captureStaticOptionsForRestore();
         pendingPredefinedDefaultsRef.current = false;
         pendingIntegrationDefaultsRef.current = false;
@@ -1133,23 +1153,28 @@ function OptionDynamicSettingsField({ field, form }) {
             label: Craft.t('formie', 'Static'),
             value: 'static',
         },
-        {
-            label: Craft.t('formie', 'Predefined'),
-            value: 'predefined',
-        },
     ];
 
-    if (hasIntegrationOptionSources) {
+    if (hasPredefinedOptionSources) {
+        optionsTypeOptions.push({
+            label: Craft.t('formie', 'Predefined'),
+            value: 'predefined',
+        });
+    }
+
+    if (allowsSourceType('integration') && hasIntegrationOptionSources) {
         optionsTypeOptions.push({
             label: Craft.t('formie', 'Integration'),
             value: 'integration',
         });
     }
 
-    optionsTypeOptions.push({
-        label: Craft.t('formie', 'Template'),
-        value: 'template',
-    });
+    if (allowsSourceType('template')) {
+        optionsTypeOptions.push({
+            label: Craft.t('formie', 'Template'),
+            value: 'template',
+        });
+    }
 
     return (
         <div className="space-y-4">

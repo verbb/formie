@@ -2,7 +2,7 @@
 namespace verbb\formie\fields\values;
 
 use verbb\formie\helpers\ArrayHelper;
-use verbb\formie\helpers\StringHelper;
+use verbb\formie\helpers\RecipientTokenHelper;
 
 use craft\helpers\Json;
 
@@ -146,13 +146,13 @@ class RecipientsFieldValue implements FieldValueInterface
     public function toClientValue(): mixed
     {
         if ($this->_displayType === 'checkboxes') {
-            $selectedValues = array_flip($this->values());
             $clientValues = [];
 
-            foreach ($this->_options as $option) {
-                if (isset($selectedValues[(string)($option->value ?? '')])) {
-                    $clientValues[] = StringHelper::encenc((string)$option->value);
-                }
+            foreach ($this->_selectedOptions as $option) {
+                $clientValues[] = RecipientTokenHelper::encodeOption([
+                    'label' => $option->label,
+                    'value' => $option->value,
+                ]);
             }
 
             return $clientValues;
@@ -160,9 +160,26 @@ class RecipientsFieldValue implements FieldValueInterface
 
         if ($this->_displayType === 'dropdown' || $this->_displayType === 'radio') {
             foreach ($this->_options as $option) {
-                if (($option->value ?? null) === $this->_rawValue) {
-                    return StringHelper::encenc((string)$option->value);
+                if (
+                    ($option->value ?? null) === $this->_rawValue
+                    && (
+                        $this->_label === null
+                        || $this->_label === ''
+                        || $this->_label === ($option->label ?? null)
+                    )
+                ) {
+                    return RecipientTokenHelper::encodeOption([
+                        'label' => $option->label,
+                        'value' => $option->value,
+                    ]);
                 }
+            }
+
+            if ($this->_rawValue !== null && $this->_rawValue !== '') {
+                return RecipientTokenHelper::encodeOption([
+                    'label' => $this->_label,
+                    'value' => $this->_rawValue,
+                ]);
             }
 
             return $this->_rawValue;
@@ -174,7 +191,7 @@ class RecipientsFieldValue implements FieldValueInterface
             $value = Json::encode($value);
         }
 
-        return StringHelper::encenc((string)$value);
+        return RecipientTokenHelper::encodeHidden($value);
     }
 
     public function toValueString(): string

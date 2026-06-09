@@ -16,8 +16,8 @@ use verbb\formie\fields\values\SingleOptionFieldValue;
 use verbb\formie\fields\Hidden as HiddenField;
 use verbb\formie\gql\types\generators\FieldOptionGenerator;
 use verbb\formie\helpers\OptionsMode;
+use verbb\formie\helpers\RecipientTokenHelper;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\OptionSource;
@@ -133,44 +133,47 @@ class Recipients extends Field implements PreviewableFieldInterface, OptionResol
             $value = Json::decodeIfJson($value);
         }
 
-        // Ensure we're always dealing with real values. Fake values are used on front-end render.
-        // Fake values will exists here if validation for the element fails.
-        $value = $this->getRealValue($value);
-
         // For non-hidden fields, ensure we cast to option field data
         if ($this->displayType !== 'hidden') {
-            $selectedValues = $this->_normalizeSelectedValues($value);
+            $selectedRecipients = $this->_normalizeSelectedRecipients($value);
 
             $options = [];
-            $optionValues = [];
-            $optionLabels = [];
+            $optionsById = [];
+            $optionsByValue = [];
 
-            foreach ($this->getResolvedOptions() as $option) {
-                $selected = in_array($option['value'], $selectedValues, true);
+            foreach ($this->_getResolvedRecipientOptionRows() as $option) {
+                $selected = $this->_isRecipientOptionSelected($option, $selectedRecipients);
                 $options[] = new OptionValue($option['label'], $option['value'], $selected, true);
-                $optionValues[] = (string)$option['value'];
-                $optionLabels[] = (string)$option['label'];
+                $optionsById[$option['id']] = $option;
+
+                if (!array_key_exists($option['value'], $optionsByValue)) {
+                    $optionsByValue[$option['value']] = $option;
+                }
             }
 
             if (in_array($this->displayType, ['dropdown', 'radio'])) {
-                $selectedValue = reset($selectedValues);
-                $index = array_search($selectedValue, $optionValues, true);
-                $valid = $index !== false;
-                $label = $valid ? $optionLabels[$index] : null;
+                $selection = reset($selectedRecipients) ?: null;
+                $selectedValue = $selection['value'] ?? null;
+                $option = $this->_resolveRecipientSelectionOption($selection, $optionsById, $optionsByValue);
+                $valid = $option !== null;
+                $label = $selection['label'] ?? ($option['label'] ?? null);
                 $value = new RecipientsFieldValue($this->displayType, $selectedValue, $label, $valid, [], $options);
             } else if ($this->displayType === 'checkboxes') {
                 $selectedOptions = [];
 
-                foreach ($selectedValues as $selectedValue) {
-                    $index = array_search($selectedValue, $optionValues, true);
-                    $valid = $index !== false;
-                    $label = $valid ? $optionLabels[$index] : null;
-                    $selectedOptions[] = new OptionValue($label, $selectedValue, true, $valid);
+                foreach ($selectedRecipients as $selection) {
+                    $option = $this->_resolveRecipientSelectionOption($selection, $optionsById, $optionsByValue);
+                    $valid = $option !== null;
+                    $label = $selection['label'] ?? ($option['label'] ?? null);
+                    $selectedOptions[] = new OptionValue($label, $selection['value'], true, $valid);
                 }
 
                 $value = new RecipientsFieldValue($this->displayType, null, null, true, $selectedOptions, $options);
             }
         } else if ($value !== null) {
+            // Ensure we're always dealing with real values. Fake values are used on front-end render.
+            // Fake values will exist here if validation for the element fails.
+            $value = $this->getRealValue($value);
             $value = new RecipientsFieldValue($this->displayType, $value);
         }
 
@@ -181,9 +184,17 @@ class Recipients extends Field implements PreviewableFieldInterface, OptionResol
     {
         if ($value instanceof RecipientsFieldValue) {
             $value = match ($value->displayType()) {
-                'checkboxes' => $value->values(),
+                'checkboxes' => array_map(static fn(OptionValue $option): array => [
+                    'value' => $option->value,
+                    'label' => $option->getDisplayLabel(),
+                ], $value->selectedOptions()),
                 'hidden' => is_array($value->rawValue()) ? Json::encode($value->rawValue()) : $value->rawValue(),
-                default => $value->rawValue(),
+                default => ($value->rawValue() === null || $value->rawValue() === '')
+                    ? $value->rawValue()
+                    : [
+                        'value' => $value->rawValue(),
+                        'label' => $value->label(),
+                    ],
             };
         }
 
@@ -245,14 +256,14 @@ class Recipients extends Field implements PreviewableFieldInterface, OptionResol
     public function getFieldOptions(): array
     {
         // Do not expose email addresses in front-end HTML. Tokens are encrypted
-        // values rather than row indexes so dynamic source ordering can change safely.
+        // typed payloads rather than row indexes so dynamic source ordering can change safely.
         $options = [];
 
-        foreach ($this->getResolvedOptions() as $key => $value) {
+        foreach ($this->_getResolvedRecipientOptionRows() as $key => $value) {
             $options[$key] = $value;
 
             if ($options[$key]['value']) {
-                $options[$key]['value'] = StringHelper::encenc((string)$options[$key]['value']);
+                $options[$key]['value'] = RecipientTokenHelper::encodeOption($value, $key);
             }
         }
 
@@ -432,10 +443,15 @@ class Recipients extends Field implements PreviewableFieldInterface, OptionResol
         }
 
         // Hidden recipients and visible recipient options both use encrypted values.
-        if (str_contains($value, 'base64:')) {
-            $value = StringHelper::decdec($value);
+        if (str_starts_with($value, 'base64:')) {
+            $value = RecipientTokenHelper::decode($value);
 
-            // Check if this was an array of data
+            if (is_array($value)) {
+                return implode(',', array_filter($value));
+            }
+
+            // Legacy hidden recipient tokens stored JSON directly before tokens
+            // became typed payloads.
             if (is_string($value) && Json::isJsonObject($value)) {
                 $value = implode(',', array_filter(Json::decode($value)));
             }
@@ -508,12 +524,11 @@ class Recipients extends Field implements PreviewableFieldInterface, OptionResol
             ]),
             SchemaHelper::optionDynamicSettingsField([
                 'fieldType' => static::class,
+                'sourceTypes' => ['static', 'integration'],
                 'label' => Craft::t('formie', 'Options'),
                 'instructions' => Craft::t('formie', 'Define the available options for users to select from.'),
                 'resolveAction' => 'formie/fields/resolve-option-source',
                 'detachAction' => 'formie/fields/detach-option-source',
-                'predefinedOptionsAction' => 'formie/fields/get-predefined-options',
-                'predefinedProviders' => Formie::$plugin->getOptionSources()->getPredefinedProviderOptions(),
                 'hasIntegrationOptionSources' => Formie::$plugin->getOptionSources()->hasIntegrationOptionSources(),
                 'integrationConfigAction' => 'formie/fields/get-integration-option-source-config',
                 'if' => 'displayType != "hidden"',
@@ -522,7 +537,7 @@ class Recipients extends Field implements PreviewableFieldInterface, OptionResol
                 'label' => Craft::t('formie', 'Static Options'),
                 'instructions' => Craft::t('formie', 'Add, remove, or reorder option rows manually.'),
                 'name' => 'options',
-                'validation' => 'required|uniqueTableCellLabel|requiredTableCellLabel',
+                'validation' => 'required|uniqueTableCellLabel|requiredTableCellLabel|requiredTableCellValue',
                 'if' => 'displayType != "hidden" && optionsMode == "static"',
                 'newRowDefaults' => [
                     'default' => false,
@@ -797,6 +812,44 @@ class Recipients extends Field implements PreviewableFieldInterface, OptionResol
         ]);
     }
 
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+        $rules[] = ['options', 'validateOptions'];
+
+        return $rules;
+    }
+
+    public function validateOptions(): void
+    {
+        if ($this->getIsHidden() || $this->getOptionsMode() !== OptionsMode::STATIC) {
+            return;
+        }
+
+        $labels = [];
+        $hasDuplicateLabels = false;
+
+        foreach ($this->options as &$option) {
+            $label = (string)($option['label'] ?? '');
+
+            if (isset($labels[$label])) {
+                $option['label'] = [
+                    'value' => $label,
+                    'hasErrors' => true,
+                ];
+
+                $hasDuplicateLabels = true;
+            }
+
+            $labels[$label] = true;
+        }
+        unset($option);
+
+        if ($hasDuplicateLabels) {
+            $this->addError('options', Craft::t('app', 'All option labels must be unique.'));
+        }
+    }
+
     protected function setPrePopulatedValue(mixed $value): mixed
     {
         // Allow populating via label to keep things private
@@ -811,39 +864,120 @@ class Recipients extends Field implements PreviewableFieldInterface, OptionResol
         return parent::setPrePopulatedValue($value);
     }
 
-    private function _normalizeSelectedValues(mixed $value): array
+    private function _getResolvedRecipientOptionRows(): array
     {
-        $selectedValues = [];
+        $options = [];
+
+        foreach ($this->getResolvedOptions() as $key => $option) {
+            if (isset($option['optgroup'])) {
+                continue;
+            }
+
+            $option = [
+                ...$option,
+                'label' => (string)($option['label'] ?? ''),
+                'value' => (string)($option['value'] ?? ''),
+            ];
+            $option['id'] = RecipientTokenHelper::optionId($option, $key);
+
+            $options[] = $option;
+        }
+
+        return $options;
+    }
+
+    private function _normalizeSelectedRecipients(mixed $value): array
+    {
+        $selections = [];
 
         if ($value instanceof MultiOptionFieldValue) {
-            $selectedValues = $value->values();
+            foreach ($value as $option) {
+                if ($option instanceof OptionValue) {
+                    $selections[] = $this->_recipientSelectionFromValue($option->value, $option->label);
+                }
+            }
         } else if ($value instanceof SingleOptionFieldValue) {
-            $selectedValues = [$value->value ?? ''];
+            $selections[] = $this->_recipientSelectionFromValue($value->value ?? '', $value->label ?? null);
         } else if ($value instanceof OptionValue) {
-            $selectedValues = [$value->value ?? ''];
+            $selections[] = $this->_recipientSelectionFromValue($value->value ?? '', $value->label ?? null);
         } else if (is_array($value)) {
-            foreach ($value as $val) {
-                if ($val instanceof OptionValue) {
-                    $selectedValues[] = (string)($val->value ?? '');
-                    continue;
-                }
-
-                if (is_array($val) && array_key_exists('value', $val)) {
-                    $selectedValues[] = (string)$val['value'];
-                    continue;
-                }
-
-                if (is_scalar($val) || $val === null) {
-                    $selectedValues[] = (string)$val;
+            if (array_key_exists('value', $value) && !array_is_list($value)) {
+                $selections[] = $this->_recipientSelectionFromValue(
+                    $value['value'] ?? '',
+                    array_key_exists('label', $value) ? $value['label'] : null,
+                    $value['id'] ?? null,
+                );
+            } else {
+                foreach ($value as $val) {
+                    array_push($selections, ...$this->_normalizeSelectedRecipients($val));
                 }
             }
         } else if (is_scalar($value) || $value === null) {
-            $selectedValues[] = (string)$value;
+            $selections[] = $this->_recipientSelectionFromValue($value);
         }
 
         return array_values(array_filter(
-            array_map(static fn($item) => (string)$item, $selectedValues),
-            static fn(string $item) => $item !== ''
+            $selections,
+            static fn(array $selection) => $selection['value'] !== ''
         ));
+    }
+
+    private function _recipientSelectionFromValue(mixed $value, mixed $label = null, mixed $id = null): array
+    {
+        if (is_string($value) && str_starts_with($value, 'base64:')) {
+            $payload = RecipientTokenHelper::decodePayload($value);
+
+            if (($payload['type'] ?? null) === RecipientTokenHelper::TYPE_OPTION) {
+                return [
+                    'id' => isset($payload['id']) ? (string)$payload['id'] : null,
+                    'label' => isset($payload['label']) ? (string)$payload['label'] : null,
+                    'value' => (string)($payload['value'] ?? ''),
+                    'token' => true,
+                ];
+            }
+
+            $value = RecipientTokenHelper::decode($value);
+        }
+
+        if (is_array($value)) {
+            $value = implode(',', array_filter($value));
+        }
+
+        return [
+            'id' => $id !== null && $id !== '' ? (string)$id : null,
+            'label' => $label !== null && $label !== '' ? (string)$label : null,
+            'value' => (string)$value,
+            'token' => false,
+        ];
+    }
+
+    private function _isRecipientOptionSelected(array $option, array $selections): bool
+    {
+        foreach ($selections as $selection) {
+            if (($selection['id'] ?? null) && $selection['id'] === $option['id']) {
+                return true;
+            }
+
+            if (($selection['id'] ?? null) === null && $selection['value'] === $option['value']) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function _resolveRecipientSelectionOption(?array $selection, array $optionsById, array $optionsByValue): ?array
+    {
+        if (!$selection) {
+            return null;
+        }
+
+        $id = $selection['id'] ?? null;
+
+        if ($id && isset($optionsById[$id])) {
+            return $optionsById[$id];
+        }
+
+        return $optionsByValue[$selection['value']] ?? null;
     }
 }

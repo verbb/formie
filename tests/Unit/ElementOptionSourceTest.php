@@ -146,6 +146,72 @@ it('decodes recipient option tokens independently of resolved option order', fun
     expect($reorderedField->getRealValue($salesToken))->toBe('sales@example.com');
 })->skip(fn (): bool => !class_exists(\Craft::class) || !\Craft::$app || !\verbb\formie\Formie::$plugin, 'Requires Craft bootstrap');
 
+it('keeps recipient option tokens typed while accepting legacy bare tokens', function (): void {
+    $field = new Recipients([
+        'displayType' => 'dropdown',
+        'options' => [
+            ['label' => 'Sales', 'value' => 'sales@example.com'],
+        ],
+    ]);
+
+    $typedToken = $field->getFieldOptions()[0]['value'];
+    $legacyToken = \verbb\formie\helpers\StringHelper::encenc('legacy@example.com');
+
+    expect($field->getRealValue($typedToken))->toBe('sales@example.com')
+        ->and($field->getRealValue($legacyToken))->toBe('legacy@example.com');
+})->skip(fn (): bool => !class_exists(\Craft::class) || !\Craft::$app || !\verbb\formie\Formie::$plugin, 'Requires Craft bootstrap');
+
+it('preserves selected recipient labels when options share an email target', function (): void {
+    $field = new Recipients([
+        'displayType' => 'dropdown',
+        'options' => [
+            ['label' => 'Wedding', 'value' => 'hello@example.com'],
+            ['label' => 'Other', 'value' => 'hello@example.com'],
+        ],
+    ]);
+
+    $field->validateOptions();
+    $token = $field->getFieldOptions()[1]['value'];
+    $value = $field->normalizeValue($token, null);
+    $savedValue = $field->normalizeValue([
+        'value' => 'hello@example.com',
+        'label' => 'Other',
+    ], null);
+
+    expect($field->hasErrors('options'))->toBeFalse()
+        ->and($value)->toBeInstanceOf(\verbb\formie\fields\values\RecipientsFieldValue::class)
+        ->and($value->rawValue())->toBe('hello@example.com')
+        ->and($value->label())->toBe('Other')
+        ->and($savedValue->label())->toBe('Other')
+        ->and($field->serializeValue($value, null))->toBe([
+            'value' => 'hello@example.com',
+            'label' => 'Other',
+        ]);
+})->skip(fn (): bool => !class_exists(\Craft::class) || !\Craft::$app || !\verbb\formie\Formie::$plugin, 'Requires Craft bootstrap');
+
+it('preserves selected checkbox recipient rows when email targets repeat', function (): void {
+    $field = new Recipients([
+        'displayType' => 'checkboxes',
+        'options' => [
+            ['label' => 'Wedding', 'value' => 'hello@example.com'],
+            ['label' => 'Other', 'value' => 'hello@example.com'],
+        ],
+    ]);
+
+    $token = $field->getFieldOptions()[1]['value'];
+    $value = $field->normalizeValue([$token], null);
+
+    expect($value)->toBeInstanceOf(\verbb\formie\fields\values\RecipientsFieldValue::class)
+        ->and($value->values())->toBe(['hello@example.com'])
+        ->and($value->labels())->toBe(['Other'])
+        ->and($field->serializeValue($value, null))->toBe([
+            [
+                'value' => 'hello@example.com',
+                'label' => 'Other',
+            ],
+        ]);
+})->skip(fn (): bool => !class_exists(\Craft::class) || !\Craft::$app || !\verbb\formie\Formie::$plugin, 'Requires Craft bootstrap');
+
 it('marks unknown visible recipient option values invalid', function (): void {
     $field = new Recipients([
         'handle' => 'recipient',

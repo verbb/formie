@@ -76,6 +76,34 @@ it('retains integration option source config on options fields', function (): vo
         ->and($field->getOptionSource()?->params['collectionId'])->toBe('abc123');
 })->skip(fn (): bool => !class_exists(\Craft::class), 'Requires Craft bootstrap');
 
+it('allows only integration dynamic sources on recipients fields', function (): void {
+    $integrationField = new verbb\formie\fields\Recipients([
+        'displayType' => 'dropdown',
+        'optionsMode' => 'dynamic',
+        'optionSource' => [
+            'type' => 'integration',
+            'provider' => 'mailchimp-interests',
+            'params' => [
+                'integrationId' => 1,
+            ],
+        ],
+    ]);
+
+    $predefinedField = new verbb\formie\fields\Recipients([
+        'displayType' => 'dropdown',
+        'optionsMode' => 'dynamic',
+        'optionSource' => [
+            'type' => 'predefined',
+            'provider' => 'countries',
+        ],
+    ]);
+
+    expect($integrationField->getOptionsMode())->toBe('dynamic')
+        ->and($integrationField->getOptionSource()?->type)->toBe('integration')
+        ->and($predefinedField->getOptionsMode())->toBe('static')
+        ->and($predefinedField->getOptionSource())->toBeNull();
+})->skip(fn (): bool => !class_exists(\Craft::class), 'Requires Craft bootstrap');
+
 it('resolves dynamic recipient options while keeping front-end obfuscation', function (): void {
     $field = new verbb\formie\fields\Recipients([
         'displayType' => 'dropdown',

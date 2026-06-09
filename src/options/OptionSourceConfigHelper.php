@@ -16,7 +16,7 @@ final class OptionSourceConfigHelper
     public static function allowedTypesForFieldClass(string $fieldClass): array
     {
         if ($fieldClass === Recipients::class) {
-            return ['predefined', 'integration'];
+            return ['integration'];
         }
 
         if (in_array($fieldClass, [Dropdown::class, Radio::class, Checkboxes::class], true)) {

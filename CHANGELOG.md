@@ -7,10 +7,10 @@
 - Add integration option sources, allowing integrations to opt in and expose selectable remote option lists to Dropdown, Radio and Checkboxes fields. ([#512](https://github.com/verbb/formie/issues/512))
 - Add Mailchimp option sources for Interest Categories and Tags, using cached integration form settings and manual refresh actions from the field settings UI. ([#512](https://github.com/verbb/formie/issues/512))
 - Add CRM integration option sources for HubSpot (forms and CRM properties), Salesforce, Zoho, and Microsoft Dynamics 365 picklists. ([#512](https://github.com/verbb/formie/issues/512))
-- Add **Template** options mode for developer-owned option lists supplied at render time without persisting or strictly validating an authoritative option list.
+- Add **Template** option source mode for developer-owned option lists supplied at render time without persisting or strictly validating an authoritative option list.
 
 ### Changed
-- Redefine predefined options as a built-in option source type.
+- Refactor predefined options to align with the new option sources system.
 - Replace the Dropdown, Radio and Checkboxes option-table **Disabled** column with a row-menu **Visible / Hidden / Disabled** availability control ([#1816](https://github.com/verbb/formie/issues/1816)). **Hidden** removes an option from the front-end form while preserving stored submission values and labels; **Disabled** renders the option with HTML `disabled` so it stays visible but cannot be selected. Legacy `disabled: true` option rows are treated as hidden. Non-default states are indicated in the options table with row background tints.
 - Centralise front-end option filtering in `OptionsField::getFieldOptions()` so hidden options are excluded consistently (including Dropdown placeholders).
 
@@ -18,6 +18,7 @@
 - Deprecate the `PredefinedOptions` service, predefined option class namespace (`verbb\formie\options\*`), and `PredefinedOptions::EVENT_REGISTER_PREDEFINED_OPTIONS` event registration target. Use `OptionSources`, predefined option classes under `verbb\formie\options\predefined\*`, and `OptionSources::EVENT_REGISTER_PREDEFINED_OPTIONS` instead. Legacy APIs remain available through the compatibility layer with deprecation notices.
 
 ### Fixed
+- Fix Recipients fields preserving the selected option label when multiple recipient options send to the same email address, using encrypted row identity tokens while keeping recipient emails private in front-end markup. ([#2382](https://github.com/verbb/formie/issues/2382))
 - Fix Dropdown, Radio and Checkboxes **Disabled** option availability not outputting HTML `disabled` on the front-end form. ([#1816](https://github.com/verbb/formie/issues/1816))
 
 ## 4.0.0-beta.4 - 2026-06-07
