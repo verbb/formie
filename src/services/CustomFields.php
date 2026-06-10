@@ -3,6 +3,7 @@ namespace verbb\formie\services;
 
 use verbb\formie\events\RegisterCustomFieldAdaptersEvent;
 use verbb\formie\fields\custom\CustomFieldAdapterInterface;
+use verbb\formie\fields\custom\adapters\GoogleMapsCustomFieldAdapter;
 use verbb\formie\fields\custom\adapters\LinkCustomFieldAdapter;
 
 use yii\base\Component;
@@ -32,6 +33,7 @@ class CustomFields extends Component
             $event = new RegisterCustomFieldAdaptersEvent([
                 'adapters' => [
                     LinkCustomFieldAdapter::class,
+                    GoogleMapsCustomFieldAdapter::class,
                 ],
             ]);
 

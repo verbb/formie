@@ -6,6 +6,7 @@ export const builtinFieldModuleLoaders: Record<string, () => Promise<FormieModul
     'calculations': () => import('#modules/fields/calculations').then((module) => module.calculationsModule),
     'checkbox-radio': () => import('#modules/fields/checkbox-radio').then((module) => module.checkboxRadioModule),
     'conditions': () => import('#modules/fields/conditions').then((module) => module.conditionsModule),
+    'custom-google-maps': () => import('#modules/fields/custom-google-maps').then((module) => module.customGoogleMapsModule),
     'custom-link': () => import('#modules/fields/custom-link').then((module) => module.customLinkModule),
     'date-picker': () => import('#modules/fields/date-picker').then((module) => module.datePickerModule),
     'file-upload': () => import('#modules/fields/file-upload').then((module) => module.fileUploadModule),
