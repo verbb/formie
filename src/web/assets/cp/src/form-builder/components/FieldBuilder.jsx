@@ -426,13 +426,10 @@ function FieldBuilder({ fields }) {
 
     const FieldTypeGroup = ({ fieldTypeGroup }) => {
         return (
-            <div key={fieldTypeGroup.handle} className={cn(
-                'border-b border-gray-150 pb-5',
-                'last:border-b-0 last:pb-0',
-            )}>
+            <div key={fieldTypeGroup.handle}>
                 <h4 className={cn('text-[11px] text-gray-500 uppercase mb-2')}>{fieldTypeGroup.label}</h4>
 
-                <div className={cn('grid grid-cols-2 gap-[10px]')}>
+                <div className={cn('grid grid-cols-2 gap-[5px]')}>
                     {fieldTypeGroup.fields.map((fieldType) => {
                         return (
                             <FieldTypePill
