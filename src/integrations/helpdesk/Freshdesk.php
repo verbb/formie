@@ -389,24 +389,20 @@ class Freshdesk extends HelpDesk
 
             // Send Ticket payload
             if ($this->mapToTicket) {
-                $ticketValues = $this->getFieldMappingMultipartValues($submission, $this->ticketFieldMapping, 'ticket');
-                
                 $requiresMultipart = $this->_requiresMultipart($this->ticketFieldMapping, $submission);
 
                 if ($requiresMultipart) {
-                    $ticketPayload = $ticketValues;
+                    $ticketPayload = $this->getFieldMappingMultipartValues($submission, $this->ticketFieldMapping, 'ticket');
                     $contentType = 'multipart';
                 } else {
+                    $ticketPayload = parent::getFieldMappingValues($submission, $this->ticketFieldMapping, 'ticket');
+
                     // Directly modify the field values first
-                    $ticketFields = $this->_prepCustomFields($ticketValues);
+                    $ticketFields = $this->_prepCustomFields($ticketPayload);
 
                     // Only add custom fields if array not empty to prevent validation error
                     if ($ticketFields) {
-                        $ticketPayload = array_merge($ticketValues, [
-                            'custom_fields' => $ticketFields,
-                        ]);
-                    } else {
-                        $ticketPayload = $ticketValues;
+                        $ticketPayload['custom_fields'] = $ticketFields;
                     }
 
                     // Extra payload prep - some fields are finicky
