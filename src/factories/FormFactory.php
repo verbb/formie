@@ -28,6 +28,7 @@ use verbb\formie\fields\Content;
 use verbb\formie\fields\MissingField;
 use verbb\formie\fields\MultiLineText;
 use verbb\formie\fields\Name;
+use verbb\formie\fields\Note;
 use verbb\formie\fields\Number;
 use verbb\formie\fields\Password;
 use verbb\formie\fields\Payment;
@@ -174,6 +175,11 @@ final class FormFactory
     public function contentField(string $handle, array $config = []): self
     {
         return $this->addField(Content::class, $handle, $config);
+    }
+
+    public function noteField(string $handle, array $config = []): self
+    {
+        return $this->addField(Note::class, $handle, $config);
     }
 
     public function missingField(string $handle, array $config = []): self

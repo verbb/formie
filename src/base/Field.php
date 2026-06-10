@@ -197,6 +197,7 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
         $isFixedParentField = is_subclass_of(static::class, FixedParentFieldInterface::class);
         $isChildField = is_subclass_of(static::class, ChildFieldInterface::class);
         $isCosmetic = is_subclass_of(static::class, CosmeticFieldInterface::class);
+        $isBuilderField = is_subclass_of(static::class, BuilderFieldInterface::class);
 
         return [
             'icon' => $icon,
@@ -205,6 +206,7 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
             'hasLabel' => !$isCosmetic,
             'hasConditions' => false,
             'isCosmetic' => $isCosmetic,
+            'isBuilderField' => $isBuilderField,
             'isSynced' => false,
             'isParentField' => $isParentField,
             'isFixedParentField' => $isFixedParentField,
@@ -446,6 +448,11 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
     public function getIsCosmetic(): bool
     {
         return false;
+    }
+
+    public function getIsBuilderField(): bool
+    {
+        return $this instanceof BuilderFieldInterface;
     }
 
     public function hasReferenceBlockLabel(): bool

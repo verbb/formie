@@ -121,6 +121,7 @@ class Fields extends Component
             formiefields\MissingField::class,
             formiefields\MultiLineText::class,
             formiefields\Name::class,
+            formiefields\Note::class,
             formiefields\Number::class,
             formiefields\Payment::class,
             formiefields\Password::class,
@@ -1436,6 +1437,8 @@ class Fields extends Component
         if (!$field->validate()) {
             return false;
         }
+
+        LayoutHandleUniqueValidator::registerAssignedHandle((int)$field->layoutId, (string)$field->handle);
 
         if ($definitionId && $existingDefinitionUsageCount > 1) {
             $field->handle = $fieldRecord->handle;

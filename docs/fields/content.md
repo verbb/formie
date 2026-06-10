@@ -41,6 +41,7 @@ For full Tailwind, Bootstrap and other framework examples, see [Formie theme con
 ## Related fields
 
 - Use [HTML](/fields/html) for developer-authored markup and Twig.
+- Use [Note](/fields/note) for builder-only guidance visible to form editors.
 - Use [Heading](/fields/heading) for simple section titles.
 - Use [Section](/fields/section) for visual dividers.
 - Use [Group](/fields/group) when fields should be structurally grouped.

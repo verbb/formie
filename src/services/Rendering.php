@@ -209,6 +209,10 @@ class Rendering extends Component
             }
         }
 
+        if ($field->getIsBuilderField()) {
+            return null;
+        }
+
         // Reuse the parent form render context when a single field is rendered from inside a full form render.
         $active = $this->getActiveRenderFrame();
         $pushedHere = false;

@@ -41,6 +41,7 @@ trait FieldFormBuilderTrait
             'hasLabel' => $this->hasLabel(),
             'hasConditions' => $this->hasConditions(),
             'isCosmetic' => $baseTypeDefinition['isCosmetic'],
+            'isBuilderField' => $baseTypeDefinition['isBuilderField'],
             'isSynced' => $this->getIsSynced(),
             'isParentField' => $baseTypeDefinition['isParentField'],
             'isFixedParentField' => $baseTypeDefinition['isFixedParentField'],

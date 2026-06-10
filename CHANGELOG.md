@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Added
+- Add a **Note** builder field for form-builder guidance with Tip, Warning, Info, and Error styles. ([#2498](https://github.com/verbb/formie/issues/2498))
 - Add a **Rich Text** cosmetic field for WYSIWYG content in the form builder, configurable via `rich-text.json` under `fields.content`. ([#1028](https://github.com/verbb/formie/issues/1028), [#1709](https://github.com/verbb/formie/issues/1709), [Discussion #2070](https://github.com/verbb/formie/discussions/2070), [Discussion #772](https://github.com/verbb/formie/discussions/772))
 - Add a syntax-highlighted HTML code editor for HTML cosmetic fields in the form builder, with project config via `html.json`. ([#2181](https://github.com/verbb/formie/issues/2181))
 - Add an **Allow Twig** setting to HTML fields, controlling whether Twig is parsed when rendering field content. Twig runs in Formie’s sandboxed template environment, not Craft’s full CP template stack.

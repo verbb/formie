@@ -6,6 +6,7 @@ use Craft;
 use verbb\formie\fields\Content;
 use verbb\formie\fields\Dropdown;
 use verbb\formie\fields\Html;
+use verbb\formie\fields\Note;
 use verbb\formie\fields\SingleLineText;
 use verbb\formie\Formie;
 use verbb\formie\services\FieldPalette;
@@ -49,7 +50,8 @@ it('places new field types in their default palette groups instead of unassigned
         $cosmeticGroup['fields'] ?? [],
     );
 
-    expect($cosmeticFieldClasses)->toContain(Content::class);
+    expect($cosmeticFieldClasses)->toContain(Content::class)
+        ->and($cosmeticFieldClasses)->toContain(Note::class);
 
     $unassignedFieldClasses = array_map(
         static fn(array $field): string => $field['fieldClass'],
@@ -75,6 +77,7 @@ it('keeps html and rich text adjacent in the cosmetic palette group', function (
                     ['fieldClass' => Html::class, 'enabled' => true, 'label' => null],
                     ['fieldClass' => verbb\formie\fields\Summary::class, 'enabled' => true, 'label' => null],
                     ['fieldClass' => Content::class, 'enabled' => true, 'label' => null],
+                    ['fieldClass' => Note::class, 'enabled' => true, 'label' => null],
                 ],
             ],
         ],

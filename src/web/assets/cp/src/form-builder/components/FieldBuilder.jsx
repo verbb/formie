@@ -2,7 +2,7 @@ import {
     useState, useEffect, useLayoutEffect, useMemo, useRef, useCallback, memo,
 } from 'react';
 import React from 'react';
-import { get } from 'lodash-es';
+import { get, cloneDeep } from 'lodash-es';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faGripDotsVertical, faPlus, faChevronDown, faXmark } from '@fortawesome/pro-solid-svg-icons';
@@ -28,6 +28,10 @@ import { useFormBuilderApp } from '@form-builder/contexts/FormBuilderAppContext'
 import useUrlRouter from '@form-builder/hooks/useUrlRouter';
 import { getDevToolsConfig } from '@form-builder/dev/config';
 import { assignFieldReferences } from '@form-builder/utils/fieldReferences';
+import {
+    collectFieldHandlesFromRows,
+    prepareNewFieldForInsert,
+} from '@form-builder/utils/duplicateField';
 import {
     Button,
     Combobox,
@@ -255,10 +259,17 @@ function FieldBuilder({ fields }) {
 
     const buildNewFieldForInsert = (fieldType) => {
         if (fieldType?.newField) {
-            return assignFieldReferences({
-                ...fieldType.newField,
-                _isNew: true,
+            const existingHandles = [];
+            pages.forEach((page) => {
+                collectFieldHandlesFromRows(page?.rows || [], existingHandles);
             });
+
+            const newField = prepareNewFieldForInsert({
+                ...cloneDeep(fieldType.newField),
+                _isNew: true,
+            }, existingHandles, fieldType);
+
+            return assignFieldReferences(newField);
         }
 
         Craft.cp.displayError(Craft.t('formie', 'Field settings are unavailable. Please reload the builder.'));

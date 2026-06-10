@@ -40,7 +40,7 @@ import {
 } from '@verbb/plugin-kit-react/components';
 
 import { SchemaFormEngine, useSchemaFormEngine } from '@verbb/plugin-kit-react/forms';
-import { cn, generateHandle } from '@verbb/plugin-kit-react/utils';
+import { cn } from '@verbb/plugin-kit-react/utils';
 import { useFormBuilderApp } from '@form-builder/contexts/FormBuilderAppContext';
 import { useFormBuilderForm } from '@form-builder/contexts/FormBuilderFormContext';
 import useAppStore from '@form-builder/hooks/useAppStore';
@@ -52,8 +52,6 @@ import {
     collectFieldHandlesFromRows,
     buildDuplicatedFieldData,
     detachSyncedFieldData,
-    getFieldHandle,
-    getCaseInsensitiveUniqueHandle,
 } from '@form-builder/utils/duplicateField';
 import {
     injectReservedHandlesIntoSchema,
@@ -556,14 +554,9 @@ const NestedFieldCard = ({
         const existingHandles = [];
         collectFieldHandlesFromRows(parentRows || [], existingHandles);
 
-        const baseHandleSource = getFieldHandle(nestedField)
-            || nestedField?.label
-            || nestedFieldType?.label
-            || Craft.t('formie', 'Field');
-        const existingHandle = getFieldHandle(nestedField);
-        const baseHandle = existingHandle || generateHandle(baseHandleSource);
-        const uniqueHandle = getCaseInsensitiveUniqueHandle(baseHandle, existingHandles);
-        const duplicatedField = buildDuplicatedFieldData(nestedField, uniqueHandle);
+        const duplicatedField = buildDuplicatedFieldData(nestedField, existingHandles, {
+            fieldType: nestedFieldType,
+        });
 
         addFieldBetweenNestedRows(pageIndex, rowIndex, fieldIndex, nestedRowIndex, {
             ...duplicatedField,

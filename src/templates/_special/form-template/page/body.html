@@ -7,7 +7,7 @@
             {% set inlineSubmitButton = inlineSubmit and loop.last %}
 
             {% formtag 'row' %}
-                {% for field in row.getFields(false) %}
+                {% for field in row.getFields(false, true, false) %}
                     {{ craft.formie.renderField(form, field) }}
                 {% endfor %}
 

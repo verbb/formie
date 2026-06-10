@@ -71,7 +71,7 @@ class FieldLayoutRow extends SavableComponent
         return $this->_page = Formie::$plugin->getFields()->getPageById($this->pageId);
     }
 
-    public function getFields(bool $includeDisabled = true, bool $includeHidden = true): array
+    public function getFields(bool $includeDisabled = true, bool $includeHidden = true, bool $includeBuilderFields = true): array
     {
         $fields = $this->_hydrateFields();
 
@@ -81,6 +81,10 @@ class FieldLayoutRow extends SavableComponent
             }
 
             if (!$includeHidden && $field->getIsHidden()) {
+                unset($fields[$fieldKey]);
+            }
+
+            if (!$includeBuilderFields && $field->getIsBuilderField()) {
                 unset($fields[$fieldKey]);
             }
         }
@@ -156,9 +160,13 @@ class FieldLayoutRow extends SavableComponent
     public function getClientConfig(): array
     {
         return [
-            'fields' => array_map(static function(FieldInterface $field) {
+            'fields' => array_values(array_filter(array_map(static function(FieldInterface $field) {
+                if ($field->getIsBuilderField()) {
+                    return null;
+                }
+
                 return $field->getClientConfig();
-            }, $this->getFields(false)),
+            }, $this->getFields(false)))),
         ];
     }
 
@@ -166,6 +174,10 @@ class FieldLayoutRow extends SavableComponent
     {
         return [
             'fields' => array_values(array_filter(array_map(static function(FieldInterface $field) {
+                if ($field->getIsBuilderField()) {
+                    return null;
+                }
+
                 return $field->getClientPayload();
             }, $this->getFields(false)))),
         ];

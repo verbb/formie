@@ -11,6 +11,7 @@ import { PreviewMessage } from './PreviewMessage';
 import { PreviewRichText } from './PreviewRichText';
 import { PreviewHtml } from './PreviewHtml';
 import { PreviewHeading } from './PreviewHeading';
+import { PreviewNote } from './PreviewNote';
 import { PreviewGroup } from './PreviewGroup';
 import { PreviewSection } from './PreviewSection';
 import { PreviewSignature } from './PreviewSignature';
@@ -33,6 +34,7 @@ export const previewSchemaComponents = {
     PreviewRichText,
     PreviewHtml,
     PreviewHeading,
+    PreviewNote,
     PreviewGroup,
     PreviewSection,
     PreviewSignature,

@@ -389,6 +389,14 @@ class SchemaHelper
         ], $config));
     }
 
+    public static function previewNote(array $config = []): array
+    {
+        return self::previewNode('PreviewNote', array_merge([
+            'text' => self::previewBind('field.noteText', ''),
+            'style' => self::previewBind('field.noteStyle', 'tip'),
+        ], $config));
+    }
+
     public static function previewGroup(array $config = []): array
     {
         return self::previewNode('PreviewGroup', array_merge([

@@ -12,6 +12,7 @@ use yii\validators\Validator;
 class LayoutHandleUniqueValidator extends Validator
 {
     private static array $_ignoredFieldIdsByLayout = [];
+    private static array $_assignedHandlesByLayout = [];
 
     public static function beginLayoutSaveScope(FieldLayout $layout): void
     {
@@ -22,16 +23,27 @@ class LayoutHandleUniqueValidator extends Validator
         }
 
         self::$_ignoredFieldIdsByLayout[$layoutId] = self::_getDeletedLayoutFieldIds($layout);
+        self::$_assignedHandlesByLayout[$layoutId] = [];
     }
 
     public static function endLayoutSaveScope(?int $layoutId = null): void
     {
         if ($layoutId === null) {
             self::$_ignoredFieldIdsByLayout = [];
+            self::$_assignedHandlesByLayout = [];
             return;
         }
 
-        unset(self::$_ignoredFieldIdsByLayout[$layoutId]);
+        unset(self::$_ignoredFieldIdsByLayout[$layoutId], self::$_assignedHandlesByLayout[$layoutId]);
+    }
+
+    public static function registerAssignedHandle(?int $layoutId, ?string $handle): void
+    {
+        if (!$layoutId || !$handle) {
+            return;
+        }
+
+        self::$_assignedHandlesByLayout[$layoutId][] = strtolower($handle);
     }
 
     public function validateAttribute($model, $attribute): void
@@ -41,6 +53,20 @@ class LayoutHandleUniqueValidator extends Validator
         $fieldId = $model->id ?? null;
 
         if (!$layoutId || !$handle || $model->hasErrors($attribute)) {
+            return;
+        }
+
+        $normalizedHandle = strtolower($handle);
+        $assignedHandles = self::$_assignedHandlesByLayout[$layoutId] ?? [];
+
+        if (in_array($normalizedHandle, $assignedHandles, true)) {
+            $message = $this->message ?: Craft::t('yii', '{attribute} "{value}" has already been taken.', [
+                'attribute' => $model->getAttributeLabel($attribute),
+                'value' => $handle,
+            ]);
+
+            $this->addError($model, $attribute, $message);
+
             return;
         }
 

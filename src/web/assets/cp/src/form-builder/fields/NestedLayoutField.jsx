@@ -70,6 +70,10 @@ import { SnapTopLeftCornerToCursor } from '@utils';
 import { focusFirstVisibleInputIfEmpty } from '@form-builder/utils/focus';
 import { submitSchemaFormAfterPendingTableUpdates } from '@form-builder/utils/submitSchemaForm';
 import { assignFieldReferences } from '@form-builder/utils/fieldReferences';
+import {
+    collectFieldHandlesFromRows,
+    prepareNewFieldForInsert,
+} from '@form-builder/utils/duplicateField';
 
 const EXCLUDED_SUB_FIELD_SETTING_NAMES = [
     'matchField',
@@ -1178,11 +1182,19 @@ export const NestedLayoutField = ({ form, field }) => {
             return;
         }
 
+        const existingHandles = [];
+        collectFieldHandlesFromRows(rows, existingHandles);
+
+        const newField = prepareNewFieldForInsert({
+            ...cloneDeep(fieldType.newField),
+            _isNew: true,
+        }, existingHandles, fieldType);
+
         const nextRows = [
             ...rows,
             {
                 ...createItem({}),
-                fields: [createItem(assignFieldReferences(fieldType.newField))],
+                fields: [createItem(assignFieldReferences(newField))],
             },
         ];
 

@@ -54,10 +54,9 @@ import { getDevToolsConfig } from '@form-builder/dev/config';
 import { isPaymentField } from '@form-builder/utils/paymentSubmission';
 import {
     collectFieldHandlesFromRows,
-    getFieldHandle,
-    getCaseInsensitiveUniqueHandle,
     buildDuplicatedFieldData,
     detachSyncedFieldData,
+    prepareNewFieldForInsert,
 } from '@form-builder/utils/duplicateField';
 import {
     injectReservedHandlesIntoSchema,
@@ -65,7 +64,7 @@ import {
     collectTopLevelReservedHandles,
 } from '@form-builder/utils/handleValidation';
 import {
-    cn, generateHandle,
+    cn,
 } from '@verbb/plugin-kit-react/utils';
 import { focusFirstVisibleInputIfEmpty } from '@form-builder/utils/focus';
 import { syncContainerRowsFromVariant } from '@form-builder/utils/containerLayoutVariants';
@@ -105,7 +104,8 @@ const Field = ({
     const { errors: formErrors, hasErrorsForPrefix } = useFormBuilderForm();
 
     const fieldType = getFieldTypeByType(field.type);
-    const shouldUseFieldLabel = fieldType?.hasLabel !== false;
+    const isBuilderField = Boolean(fieldType?.isBuilderField);
+    const shouldUseFieldLabel = !isBuilderField && fieldType?.hasLabel !== false;
     const fieldDisplayLabel = shouldUseFieldLabel
         ? (field?.label || fieldType?.label || Craft.t('formie', 'Field'))
         : (fieldType?.label || Craft.t('formie', 'Field'));
@@ -274,11 +274,7 @@ const Field = ({
             collectFieldHandlesFromRows(page?.rows || [], existingHandles);
         });
 
-        const sourceHandle = getFieldHandle(field);
-        const baseHandle = sourceHandle || generateHandle(field?.label || Craft.t('formie', 'Field'));
-        const uniqueHandle = getCaseInsensitiveUniqueHandle(baseHandle, existingHandles);
-
-        const duplicatedField = buildDuplicatedFieldData(field, uniqueHandle);
+        const duplicatedField = buildDuplicatedFieldData(field, existingHandles, { fieldType });
 
         // Use addFieldBetweenRows to create a new row with just this field
         addFieldBetweenRows(pageIndex, rowIndex, duplicatedField);
@@ -447,8 +443,10 @@ const Field = ({
 
     const handleSaveField = (updatedField) => {
         const nextField = syncContainerRowsFromVariant({
+            ...field,
             ...updatedField,
-            handle: isSyncedField ? field.handle : updatedField.handle,
+            handle: isSyncedField ? field.handle : (updatedField.handle ?? field.handle),
+            label: updatedField.label ?? field.label,
             // Field is no longer new after first save
             _isNew: false,
         }, fieldType);
@@ -539,13 +537,13 @@ const Field = ({
                 className={cn(
                     'w-full min-w-0 max-w-full',
                     'outline-none',
-                    'p-3',
+                    isBuilderField ? 'p-2' : 'p-3',
                     'text-sm',
                     'rounded-lg',
                     'text-[13px]',
                     'text-[#33475b]',
                     'transition-colors duration-200',
-                    !isAnyDragActive && 'hover:bg-[#f1f5f8]',
+                    !isBuilderField && !isAnyDragActive && 'hover:bg-[#f1f5f8]',
                     'relative group',
                     isInlineContainerBuilder ? 'cursor-default' : 'cursor-pointer',
 
@@ -607,13 +605,15 @@ const Field = ({
                                 {Craft.t('formie', 'Edit')}
                             </DropdownMenuItem>
 
-                            <DropdownMenuItem onClick={handleToggleRequired}>
-                                <FontAwesomeIcon icon={faAsterisk} />
-                                {field.required
-                                    ? Craft.t('formie', 'Make optional')
-                                    : Craft.t('formie', 'Make required')
-                                }
-                            </DropdownMenuItem>
+                            {!isBuilderField && (
+                                <DropdownMenuItem onClick={handleToggleRequired}>
+                                    <FontAwesomeIcon icon={faAsterisk} />
+                                    {field.required
+                                        ? Craft.t('formie', 'Make optional')
+                                        : Craft.t('formie', 'Make required')
+                                    }
+                                </DropdownMenuItem>
+                            )}
 
                             <DropdownMenuItem onClick={handleDuplicate}>
                                 <FontAwesomeIcon icon={faClone} />
@@ -681,9 +681,9 @@ const Field = ({
                 {/* Field Content */}
                 <div className={cn(
                     isInlineContainerBuilder ? 'pointer-events-auto select-auto' : 'pointer-events-none select-none',
-                    'space-y-2',
+                    isBuilderField ? 'space-y-0' : 'space-y-2',
                 )}>
-                    {(shouldUseFieldLabel || field.instructions || hasFieldStatusIndicators) && (
+                    {!isBuilderField && (shouldUseFieldLabel || field.instructions || hasFieldStatusIndicators) && (
                         <div className={cn(
                             'space-y-1 leading-none pr-8',
                         )}>
