@@ -1,5 +1,12 @@
 # Custom Field
-You can add your own custom fields to be compatible with Formie by using the provided events.
+
+You can add your own fields to Formie in two ways: register a full Formie field type, or register an adapter for the built-in **Custom Field** field type when you want to expose a Craft field through Formie.
+
+Use a full Formie field when you own the complete field behaviour. Use a Custom Field adapter when you want one Formie field type to bridge to a Craft field or plugin-provided Craft field with explicit support for front-end rendering, value handling, exports, integrations and GraphQL.
+
+## Register a Formie field type
+
+Register a Formie field type when the field should appear as its own item in the form builder palette.
 
 ```php
 use modules\ExampleField;
@@ -66,6 +73,103 @@ Method | Description
 `valueClass()` | Declares value capabilities and client-payload serialization. It does not control the normal PHP/Twig submission value shape on its own.
 
 Refer to the [Field](/reference/field) object documentation for more.
+
+## Custom Field adapters
+
+The built-in **Custom Field** field type lets Formie expose supported Craft fields without adding a separate Formie field type for every provider. Adapters are opt-in because Formie needs more than a Craft field class name to submit reliably.
+
+Each adapter is responsible for:
+
+- declaring the Craft field classes it supports,
+- defining adapter-specific form-builder settings,
+- rendering front-end and control panel submission inputs,
+- normalizing and serializing submitted values,
+- returning string, array, reference, summary, export and integration values,
+- declaring GraphQL content and mutation shapes,
+- declaring client-rendered input metadata.
+
+Built-in adapters include:
+
+- **URL** — scalar URL values, available without an extra plugin.
+- **Address (Google Maps)** — structured map values when a supported Google Maps Craft field class is installed.
+- **Maps** — structured map values when a supported Maps/SimpleMap Craft field class is installed.
+
+### Register an adapter
+
+Register adapters with `CustomFields::EVENT_REGISTER_CUSTOM_FIELD_ADAPTERS`:
+
+```php
+use modules\formie\fields\ExampleCustomFieldAdapter;
+
+use verbb\formie\events\RegisterCustomFieldAdaptersEvent;
+use verbb\formie\services\CustomFields;
+
+use yii\base\Event;
+
+Event::on(CustomFields::class, CustomFields::EVENT_REGISTER_CUSTOM_FIELD_ADAPTERS, function(RegisterCustomFieldAdaptersEvent $event) {
+    $event->adapters[] = ExampleCustomFieldAdapter::class;
+});
+```
+
+Adapters must implement `verbb\formie\fields\custom\CustomFieldAdapterInterface`. Most adapters should extend `verbb\formie\fields\custom\AbstractCustomFieldAdapter` and override only the pieces that differ from the scalar default.
+
+```php
+use verbb\formie\fields\CustomField;
+use verbb\formie\fields\custom\AbstractCustomFieldAdapter;
+use verbb\formie\helpers\SchemaHelper;
+
+use Craft;
+
+class ExampleCustomFieldAdapter extends AbstractCustomFieldAdapter
+{
+    public static function handle(): string
+    {
+        return 'example';
+    }
+
+    public static function displayName(): string
+    {
+        return Craft::t('site', 'Example');
+    }
+
+    public static function craftFieldClasses(): array
+    {
+        return [
+            'modules\\fields\\ExampleField',
+        ];
+    }
+
+    public function getFormBuilderSettingsSchema(CustomField $field): array
+    {
+        return [
+            SchemaHelper::textField([
+                'label' => Craft::t('site', 'Placeholder'),
+                'name' => 'placeholder',
+            ]),
+        ];
+    }
+}
+```
+
+`craftFieldClasses()` is advisory metadata and availability detection. It does not make arbitrary Craft fields work automatically. If the field needs custom JavaScript, structured storage or provider-specific formatting, implement those methods on the adapter.
+
+### Value storage
+
+Custom Field uses JSON storage so adapters can support scalar and structured values through one Formie field type. Scalar adapters can return strings; structured adapters can return arrays or value objects and decide how those values appear in references, exports and integrations.
+
+The adapter is selected when the field is created and is not editable afterward. Treat the adapter handle as part of the field’s storage contract.
+
+When an adapter supports a structured value, implement these methods together:
+
+- `normalizeValue()`
+- `serializeValue()`
+- `isValueEmpty()`
+- `getValueAsString()`
+- `getValueAsArray()`
+- `getContentGqlType()`
+- `getContentGqlMutationArgumentType()`
+
+This keeps front-end submissions, GraphQL submissions, email summaries, exports and integrations aligned.
 
 ## Settings Schema
 Custom field settings are defined with schema, not Twig templates. The schema tells the form builder which inputs to show, which setting each input saves to, and how the UI should be grouped.

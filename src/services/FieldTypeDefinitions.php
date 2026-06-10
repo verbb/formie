@@ -64,6 +64,9 @@ class FieldTypeDefinitions extends Component
             formiefields\Products::class,
             formiefields\Variants::class,
         ],
+        'custom' => [
+            formiefields\CustomField::class,
+        ],
     ];
 
     private ?FieldTypeDefinitionCache $_cache = null;

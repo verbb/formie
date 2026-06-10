@@ -26,6 +26,7 @@
                     "fields/calculations",
                     "fields/categories",
                     "fields/checkboxes",
+                    "fields/custom-field",
                     "fields/date-time",
                     "fields/dropdown",
                     "fields/email-address",

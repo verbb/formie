@@ -2,6 +2,7 @@
 namespace verbb\formie\services;
 
 use verbb\formie\fields\MissingField;
+use verbb\formie\fields\CustomField;
 use verbb\formie\Formie;
 use verbb\formie\helpers\StringHelper;
 
@@ -258,11 +259,40 @@ class FieldPalette extends Component
                 continue;
             }
 
-            $palette['unassigned'][] = $this->_createPaletteEntry($fieldClass);
+            if ($fieldClass === CustomField::class) {
+                $palette = $this->_addFieldToCustomGroup($palette, $fieldClass);
+            } else {
+                $palette['unassigned'][] = $this->_createPaletteEntry($fieldClass);
+            }
+
             $knownFieldClasses[$fieldClass] = true;
         }
 
         $palette['version'] = self::VERSION;
+
+        return $palette;
+    }
+
+    private function _addFieldToCustomGroup(array $palette, string $fieldClass): array
+    {
+        foreach ($palette['groups'] ?? [] as $groupIndex => $group) {
+            if (($group['handle'] ?? null) !== 'custom') {
+                continue;
+            }
+
+            $palette['groups'][$groupIndex]['fields'][] = $this->_createPaletteEntry($fieldClass);
+
+            return $palette;
+        }
+
+        $palette['groups'][] = [
+            'uid' => StringHelper::UUID(),
+            'handle' => 'custom',
+            'name' => Craft::t('formie', 'Custom Fields'),
+            'fields' => [
+                $this->_createPaletteEntry($fieldClass),
+            ],
+        ];
 
         return $palette;
     }

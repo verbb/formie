@@ -13,6 +13,7 @@ use verbb\formie\events\ModifyTwigEnvironmentEvent;
 use verbb\formie\server\ServerRenderPayloadBuilder;
 use verbb\formie\services\Countries;
 use verbb\formie\services\Compatibility;
+use verbb\formie\services\CustomFields;
 use verbb\formie\services\EmailDomains;
 use verbb\formie\services\Emails;
 use verbb\formie\services\EmailTemplates;
@@ -134,6 +135,7 @@ trait PluginTrait
             'components' => [
                 'countries' => Countries::class,
                 'compatibility' => Compatibility::class,
+                'customFields' => CustomFields::class,
                 'cpAssets' => [
                     'class' => VitePluginService::class,
                     'assetClass' => CpReactAsset::class,
@@ -231,6 +233,11 @@ trait PluginTrait
     public function getCompatibility(): Compatibility
     {
         return $this->get('compatibility');
+    }
+
+    public function getCustomFields(): CustomFields
+    {
+        return $this->get('customFields');
     }
 
     public function getCpAssets(): VitePluginService

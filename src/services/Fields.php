@@ -107,6 +107,7 @@ class Fields extends Component
             formiefields\Calculations::class,
             formiefields\Categories::class,
             formiefields\Checkboxes::class,
+            formiefields\CustomField::class,
             formiefields\Date::class,
             formiefields\Dropdown::class,
             formiefields\Email::class,

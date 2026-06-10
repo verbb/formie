@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Added
+- Add a **Custom Field** form-builder field backed by opt-in Craft field adapters. ([#2208](https://github.com/verbb/formie/issues/2208))
 - Add dynamic **Option Source** settings for Dropdown, Radio and Checkboxes, allowing options to be populated from predefined option sets and other structured sources. ([#2684](https://github.com/verbb/formie/issues/2684))
 - Add integration option sources, allowing integrations to opt in and expose selectable remote option lists to Dropdown, Radio and Checkboxes fields. ([#512](https://github.com/verbb/formie/issues/512))
 - Add Mailchimp option sources for Interest Categories and Tags, using cached integration form settings and manual refresh actions from the field settings UI. ([#512](https://github.com/verbb/formie/issues/512))

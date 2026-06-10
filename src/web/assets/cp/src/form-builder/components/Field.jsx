@@ -32,6 +32,15 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@verbb/plugin-kit-react/components';
+import {
+    Combobox,
+    ComboboxPrimitiveInput,
+    ComboboxContent,
+    ComboboxEmpty,
+    ComboboxList,
+    ComboboxItem,
+    ComboboxHighlightedText,
+} from '@verbb/plugin-kit-react/components/Combobox';
 
 import { SchemaFormEngine, useSchemaFormEngine } from '@verbb/plugin-kit-react/forms';
 import { useHandleSyncOnChange } from '@form-builder/hooks/useHandleSyncOnChange';
@@ -91,6 +100,7 @@ const Field = ({
     const isInlineContainerBuilder = Boolean(fieldType?.isContainerParentField || fieldType?.isRepeatableParentField);
     const draggableFieldId = field?._id || `${pageIndex}-${rowIndex}-${fieldIndex}`;
     const [editingField, setEditingField] = useState(null);
+    const [isAdapterPickerOpen, setIsAdapterPickerOpen] = useState(false);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const hasInitialAutoOpenRunRef = useRef(false);
     const isClosingEditorRef = useRef(false);
@@ -145,10 +155,24 @@ const Field = ({
         return hasErrorsForPrefix(fieldPrefix);
     }, [formErrors, hasErrorsForPrefix, fieldPath, fieldPrefix]);
 
+    const customFieldAdapters = Array.isArray(fieldType?.data?.customFieldAdapters)
+        ? fieldType.data.customFieldAdapters
+        : [];
+    const needsCustomFieldAdapter = customFieldAdapters.length > 0 && !field?.customFieldAdapter;
+
+    const openFieldEditor = (targetField = field) => {
+        if (needsCustomFieldAdapter && !targetField?.customFieldAdapter) {
+            setIsAdapterPickerOpen(true);
+            return;
+        }
+
+        setEditingField(targetField);
+    };
+
     // Auto-open edit modal for new fields
     useEffect(() => {
         if (field._isNew) {
-            setEditingField(field);
+            openFieldEditor(field);
         }
     }, [field._isNew]);
 
@@ -164,7 +188,7 @@ const Field = ({
         }
 
         if (pageIndex === 0 && rowIndex === 0 && fieldIndex === 0) {
-            setEditingField(field);
+            openFieldEditor(field);
             hasInitialAutoOpenRunRef.current = true;
         }
     }, [shouldAutoOpenInitialFieldEditor, field, pageIndex, rowIndex, fieldIndex]);
@@ -191,7 +215,7 @@ const Field = ({
     const handleEdit = (e) => {
         e.preventDefault();
         e.stopPropagation();
-        setEditingField(field);
+        openFieldEditor(field);
         setIsDropdownOpen(false);
     };
 
@@ -387,6 +411,7 @@ const Field = ({
         isClosingEditorRef.current = true;
         updateField(pageIndex, rowIndex, fieldIndex, nextField);
         setEditingField(null);
+        setIsAdapterPickerOpen(false);
     };
 
     const closeFieldEditor = ({ deleteIfNew = false, deleteAlways = false } = {}) => {
@@ -404,6 +429,7 @@ const Field = ({
         }
 
         setEditingField(null);
+        setIsAdapterPickerOpen(false);
     };
 
     const handleFieldClick = (e) => {
@@ -411,7 +437,26 @@ const Field = ({
             return;
         }
 
-        setEditingField(field);
+        openFieldEditor(field);
+    };
+
+    const handleCustomFieldAdapterSelect = (adapterHandle) => {
+        const nextField = {
+            ...field,
+            customFieldAdapter: adapterHandle,
+        };
+
+        updateField(pageIndex, rowIndex, fieldIndex, nextField);
+        setIsAdapterPickerOpen(false);
+        setEditingField(nextField);
+    };
+
+    const handleCustomFieldAdapterCancel = () => {
+        setIsAdapterPickerOpen(false);
+
+        if (field._isNew) {
+            deleteField(pageIndex, rowIndex, fieldIndex);
+        }
     };
 
     const fieldModalErrors = useMemo(() => {
@@ -698,6 +743,20 @@ const Field = ({
                 </div>
             </div >
 
+            {isAdapterPickerOpen && (
+                <Dialog open={true} onOpenChange={(open) => {
+                    if (!open) {
+                        handleCustomFieldAdapterCancel();
+                    }
+                }}>
+                    <CustomFieldAdapterPickerModal
+                        adapters={customFieldAdapters}
+                        onSelect={handleCustomFieldAdapterSelect}
+                        onCancel={handleCustomFieldAdapterCancel}
+                    />
+                </Dialog>
+            )}
+
             {editingField !== null && (
                 <Dialog open={true} onOpenChange={(open) => {
                     if (!open) {
@@ -728,6 +787,137 @@ const Field = ({
     );
 };
 
+const CustomFieldAdapterIcon = ({ icon }) => {
+    if (!icon || typeof icon !== 'string') {
+        return null;
+    }
+
+    return (
+        <span
+            className="flex size-5 shrink-0 items-center justify-center text-[#33475b] [&_svg]:size-5"
+            aria-hidden="true"
+            dangerouslySetInnerHTML={{ __html: icon }}
+        />
+    );
+};
+
+const CustomFieldAdapterPickerModal = ({ adapters, onSelect, onCancel }) => {
+    const [selectedAdapter, setSelectedAdapter] = useState(null);
+    const [searchValue, setSearchValue] = useState('');
+    const selectedAdapterDefinition = useMemo(() => {
+        return adapters.find((adapter) => { return adapter.handle === selectedAdapter; }) || null;
+    }, [adapters, selectedAdapter]);
+
+    const handleApply = () => {
+        if (!selectedAdapter) {
+            return;
+        }
+
+        onSelect(selectedAdapter);
+    };
+
+    return (
+        <DialogContent className={cn(
+            'w-[calc(100vw-24px)] max-w-[640px]',
+            'min-w-0',
+        )}
+        >
+            <DialogHeader>
+                <DialogTitle>
+                    {Craft.t('formie', 'Choose Custom Field Type')}
+                </DialogTitle>
+
+                <DialogDescription>
+                    {Craft.t('formie', 'Choose which Craft field adapter should power this Formie field. This cannot be changed later.')}
+                </DialogDescription>
+            </DialogHeader>
+
+            <div className="flex min-h-[280px] items-center justify-center px-4 py-8">
+                <div className="w-full max-w-[500px]">
+                    <Combobox
+                        items={adapters}
+                        value={selectedAdapterDefinition}
+                        onValueChange={(adapter) => {
+                            setSelectedAdapter(adapter?.handle ?? null);
+                        }}
+                        onInputValueChange={(value) => {
+                            setSearchValue(String(value ?? ''));
+                        }}
+                        itemToStringLabel={(adapter) => {
+                            return adapter?.label ?? '';
+                        }}
+                        itemToStringValue={(adapter) => {
+                            return adapter?.handle ?? '';
+                        }}
+                    >
+                        <ComboboxPrimitiveInput
+                            placeholder={Craft.t('formie', 'Choose a field type…')}
+                            className="w-full"
+                            showClear={false}
+                        />
+
+                        <ComboboxContent className="z-[10000] w-[var(--anchor-width)]">
+                            <ComboboxEmpty>{Craft.t('formie', 'No field types found.')}</ComboboxEmpty>
+
+                            <ComboboxList>
+                                {(adapter) => {
+                                    const sourceLabel = adapter.sourceLabel || Craft.t('formie', 'Custom adapter');
+
+                                    return (
+                                        <ComboboxItem
+                                            key={adapter.handle}
+                                            value={adapter}
+                                            className="py-2"
+                                        >
+                                            <span className="flex min-w-0 items-center gap-2.5">
+                                                <CustomFieldAdapterIcon icon={adapter.icon} />
+
+                                                <span className="min-w-0 flex-1">
+                                                    <span className="block text-sm font-semibold leading-5 text-[#33475b]">
+                                                        <ComboboxHighlightedText text={adapter.label} search={searchValue} />
+                                                    </span>
+
+                                                    <span className="block text-xs leading-4 text-gray-500">
+                                                        {sourceLabel}
+                                                    </span>
+                                                </span>
+                                            </span>
+                                        </ComboboxItem>
+                                    );
+                                }}
+                            </ComboboxList>
+                        </ComboboxContent>
+                    </Combobox>
+
+                    {selectedAdapterDefinition?.craftFieldClasses?.length > 0 && (
+                        <div className="mt-3 text-xs text-gray-500">
+                            {Craft.t('formie', 'Uses compatible Craft field classes from the selected source.')}
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            <DialogFooter className="flex flex-row justify-end gap-2">
+                <Button
+                    type="button"
+                    onClick={onCancel}
+                >
+                    {Craft.t('formie', 'Cancel')}
+                </Button>
+
+                <Button
+                    type="button"
+                    variant="primary"
+                    onClick={handleApply}
+                    disabled={!selectedAdapter}
+                >
+                    {Craft.t('formie', 'Continue')}
+                </Button>
+            </DialogFooter>
+        </DialogContent>
+    );
+};
+
 // Field Edit Modal Component
 const FieldEditModal = ({
     field,
@@ -744,10 +934,19 @@ const FieldEditModal = ({
     const hasAutofocusedRef = useRef(false);
     const [isSchemaUiReady, setIsSchemaUiReady] = useState(false);
     const activeFieldType = fieldType;
+    const customFieldAdapters = Array.isArray(activeFieldType?.data?.customFieldAdapters)
+        ? activeFieldType.data.customFieldAdapters
+        : [];
+    const customFieldAdapterDefinition = customFieldAdapters.find((adapter) => {
+        return adapter.handle === field?.customFieldAdapter;
+    }) || null;
     const resolvedFieldTypeLabel = typeof activeFieldType?.label === 'string'
         ? activeFieldType.label.trim()
         : '';
-    const showFieldTypePill = resolvedFieldTypeLabel !== '';
+    const fieldTypePillLabel = customFieldAdapterDefinition?.label && resolvedFieldTypeLabel
+        ? `${resolvedFieldTypeLabel} - ${customFieldAdapterDefinition.label}`
+        : resolvedFieldTypeLabel;
+    const showFieldTypePill = fieldTypePillLabel !== '';
     const isSyncedField = Boolean(field?.isSynced || field?.syncId);
     const shouldUseFieldLabel = activeFieldType?.hasLabel !== false;
     const fieldDisplayLabel = shouldUseFieldLabel
@@ -909,7 +1108,7 @@ const FieldEditModal = ({
                             'text-[#526176]',
                             'ml-[10px]',
                             'font-normal',
-                        )}>{resolvedFieldTypeLabel}</div>
+                        )}>{fieldTypePillLabel}</div>
                     )}
                 </DialogTitle>
 
