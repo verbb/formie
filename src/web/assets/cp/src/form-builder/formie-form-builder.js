@@ -64,6 +64,7 @@ import { bootstrapShadowReactApp, ensureCraftNamespace, markContainerReady } fro
 import { createElement, Fragment } from 'react';
 import { createRoot } from 'react-dom/client';
 import { registerFormComponents, registerFormFields } from '@verbb/plugin-kit-react/forms/registry';
+import { CodeEditorField } from '@verbb/plugin-kit-react/forms/fields/CodeEditorField';
 
 import { FormBuilder } from '@form-builder/components/FormBuilder';
 import {
@@ -171,6 +172,7 @@ Craft.Formie.FormBuilder = function(settings) {
         formieTableDefaults: FormieTableDefaultsField,
         optionDynamicSettings: OptionDynamicSettingsField,
         optionSourceSettings: OptionDynamicSettingsField,
+        codeEditor: CodeEditorField,
     });
 
     // Initialize the store with form data

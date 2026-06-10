@@ -58,6 +58,7 @@ Method | Use
 `staticTableField()` | Static table input.
 `variableTextField()` | Text input with variable-picker support.
 `richTextField()` | Rich text input.
+`htmlEditorField()` | Syntax-highlighted HTML/code input.
 `calculationsField()` | Calculation editor.
 `elementSelectField()` | Element select input.
 `fieldSelectField()` | Formie field select input.

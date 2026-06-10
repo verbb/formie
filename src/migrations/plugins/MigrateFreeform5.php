@@ -708,6 +708,7 @@ class MigrateFreeform5 extends BasePluginMigrator
                 $newField->label = $field->getLabel();
                 $newField->handle = $field->getHandle();
                 $newField->htmlContent = $field->getContent();
+                $newField->allowTwig = $field->isTwig();
                 $newField->labelPosition = HiddenPosition::class;
 
                 break;
@@ -768,13 +769,13 @@ class MigrateFreeform5 extends BasePluginMigrator
                 break;
 
             case freeformfields\Pro\RichTextField::class:
-                /* @var freeformfields\HtmlField $field */
-                $newField = new formiefields\Html();
+                /* @var freeformfields\Pro\RichTextField $field */
+                $newField = new formiefields\Content();
                 $this->_applyFieldDefaults($newField);
 
                 $newField->label = $field->getLabel();
                 $newField->handle = $field->getHandle();
-                $newField->htmlContent = $field->getContent();
+                $newField->content = \verbb\formie\models\RichText::from($field->getContent());
                 $newField->labelPosition = HiddenPosition::class;
 
                 break;

@@ -79,6 +79,7 @@ it('tracks submission-query coverage across all factory field methods', function
         'groupField' => 'Nested parent-field semantics require selector-path query coverage.',
         'headingField' => 'Presentation-only field with no stored submission value.',
         'htmlField' => 'Presentation-only field with no stored submission value.',
+        'contentField' => 'Presentation-only field with no stored submission value.',
         'missingField' => 'Placeholder/recovery field, not a deterministic query target.',
         'nameField' => 'Fixed-parent field with variant storage semantics; requires dedicated selector coverage.',
         'passwordField' => 'Masked/security-sensitive semantics need dedicated query contract decision.',

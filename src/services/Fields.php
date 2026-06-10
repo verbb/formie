@@ -117,6 +117,7 @@ class Fields extends Component
             formiefields\Heading::class,
             formiefields\Hidden::class,
             formiefields\Html::class,
+            formiefields\Content::class,
             formiefields\MissingField::class,
             formiefields\MultiLineText::class,
             formiefields\Name::class,

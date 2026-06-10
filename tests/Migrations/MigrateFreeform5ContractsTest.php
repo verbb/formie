@@ -174,7 +174,7 @@ it('maps every supported _mapField field class to a Formie field instance', func
         'age' => 'verbb\\formie\\fields\\Number',
         'contactPhone' => 'verbb\\formie\\fields\\Phone',
         'choice' => 'verbb\\formie\\fields\\Radio',
-        'extraRich' => 'verbb\\formie\\fields\\Html',
+        'extraRich' => 'verbb\\formie\\fields\\Content',
         'detailsTable' => 'verbb\\formie\\fields\\Table',
         'details' => 'verbb\\formie\\fields\\MultiLineText',
         'fullName' => 'verbb\\formie\\fields\\SingleLineText',

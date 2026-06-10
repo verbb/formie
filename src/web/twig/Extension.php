@@ -5,6 +5,7 @@ use verbb\formie\base\Field;
 use verbb\formie\elements\Form;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\Html;
+use verbb\formie\helpers\HtmlHelper;
 use verbb\formie\helpers\RichTextHelper;
 use verbb\formie\models\Notification;
 use verbb\formie\models\SlotTag;
@@ -35,6 +36,7 @@ class Extension extends AbstractExtension
     {
         return [
             new TwigFunction('getRichTextConfig', [new RichTextHelper(), 'getRichTextConfig']),
+            new TwigFunction('getHtmlEditorConfig', [new HtmlHelper(), 'getHtmlEditorConfig']),
             new TwigFunction('formieInclude', [$this, 'formieInclude'], ['needs_environment' => true, 'needs_context' => true, 'is_safe' => ['all']]),
             new TwigFunction('formieSiteInclude', [$this, 'formieSiteInclude'], ['needs_environment' => true, 'needs_context' => true, 'is_safe' => ['all']]),
             new TwigFunction('formiePluginInclude', [$this, 'formiePluginInclude'], ['needs_environment' => true, 'needs_context' => true, 'is_safe' => ['all']]),

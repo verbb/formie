@@ -260,41 +260,257 @@ class FieldPalette extends Component
             }
 
             if ($fieldClass === CustomField::class) {
-                $palette = $this->_addFieldToCustomGroup($palette, $fieldClass);
+                $palette = $this->_addFieldToGroup($palette, $fieldClass, 'custom');
             } else {
-                $palette['unassigned'][] = $this->_createPaletteEntry($fieldClass);
+                $groupHandle = $this->_getDefaultGroupHandleForFieldClass($fieldClass);
+
+                if ($groupHandle) {
+                    $palette = $this->_addFieldToGroup($palette, $fieldClass, $groupHandle);
+                } else {
+                    $palette['unassigned'][] = $this->_createPaletteEntry($fieldClass);
+                }
             }
 
             $knownFieldClasses[$fieldClass] = true;
         }
+
+        $palette = $this->_relocateUnassignedFieldsToDefaultGroups($palette);
+
+        $palette = $this->_fixOutOfOrderRegistryFields($palette);
 
         $palette['version'] = self::VERSION;
 
         return $palette;
     }
 
-    private function _addFieldToCustomGroup(array $palette, string $fieldClass): array
+    private function _getDefaultGroupHandleForFieldClass(string $fieldClass): ?string
     {
-        foreach ($palette['groups'] ?? [] as $groupIndex => $group) {
-            if (($group['handle'] ?? null) !== 'custom') {
+        $pickableFieldClasses = $this->_getPickableFieldClasses();
+
+        foreach (Formie::$plugin->getFields()->getGroupedFieldTypeDefinitions($pickableFieldClasses) as $groupDefinition) {
+            $handle = $groupDefinition['handle'] ?? null;
+
+            if (!$handle || $handle === 'internal') {
                 continue;
             }
 
-            $palette['groups'][$groupIndex]['fields'][] = $this->_createPaletteEntry($fieldClass);
+            foreach ($groupDefinition['fields'] ?? [] as $fieldDefinition) {
+                if (($fieldDefinition['type'] ?? null) === $fieldClass) {
+                    return $handle;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private function _getDefaultGroupFieldOrder(string $groupHandle): array
+    {
+        $pickableFieldClasses = $this->_getPickableFieldClasses();
+
+        foreach (Formie::$plugin->getFields()->getGroupedFieldTypeDefinitions($pickableFieldClasses) as $groupDefinition) {
+            if (($groupDefinition['handle'] ?? null) !== $groupHandle) {
+                continue;
+            }
+
+            $order = [];
+
+            foreach ($groupDefinition['fields'] ?? [] as $fieldDefinition) {
+                $fieldClass = $fieldDefinition['type'] ?? null;
+
+                if (is_string($fieldClass)) {
+                    $order[] = $fieldClass;
+                }
+            }
+
+            return $order;
+        }
+
+        return [];
+    }
+
+    private function _getDefaultInsertIndex(string $groupHandle, string $fieldClass, array $existingEntries): ?int
+    {
+        $defaultOrder = $this->_getDefaultGroupFieldOrder($groupHandle);
+
+        if ($defaultOrder === []) {
+            return null;
+        }
+
+        $targetIndex = array_search($fieldClass, $defaultOrder, true);
+
+        if ($targetIndex === false) {
+            return null;
+        }
+
+        $insertIndex = 0;
+
+        foreach ($existingEntries as $existingEntry) {
+            $existingClass = $existingEntry['fieldClass'] ?? null;
+
+            if (!is_string($existingClass)) {
+                continue;
+            }
+
+            $existingDefaultIndex = array_search($existingClass, $defaultOrder, true);
+
+            if ($existingDefaultIndex !== false && $existingDefaultIndex < $targetIndex) {
+                $insertIndex++;
+            }
+        }
+
+        return $insertIndex;
+    }
+
+    private function _fixOutOfOrderRegistryFields(array $palette): array
+    {
+        foreach ($palette['groups'] ?? [] as $groupIndex => $group) {
+            $handle = $group['handle'] ?? null;
+
+            if (!is_string($handle)) {
+                continue;
+            }
+
+            $orderMap = array_flip($this->_getDefaultGroupFieldOrder($handle));
+
+            if ($orderMap === []) {
+                continue;
+            }
+
+            $fields = $group['fields'] ?? [];
+            $changed = true;
+
+            while ($changed) {
+                $changed = false;
+
+                for ($index = 0, $count = count($fields); $index < $count - 1; $index++) {
+                    $leftClass = $fields[$index]['fieldClass'] ?? null;
+                    $rightClass = $fields[$index + 1]['fieldClass'] ?? null;
+
+                    if (!is_string($leftClass) || !is_string($rightClass)) {
+                        continue;
+                    }
+
+                    $leftOrder = $orderMap[$leftClass] ?? null;
+                    $rightOrder = $orderMap[$rightClass] ?? null;
+
+                    if ($leftOrder === null || $rightOrder === null || $leftOrder <= $rightOrder) {
+                        continue;
+                    }
+
+                    $entry = $fields[$index + 1];
+                    array_splice($fields, $index + 1, 1);
+                    $insertIndex = $this->_getDefaultInsertIndex($handle, $rightClass, $fields);
+
+                    if ($insertIndex === null) {
+                        $fields[] = $entry;
+                    } else {
+                        array_splice($fields, $insertIndex, 0, [$entry]);
+                    }
+
+                    $changed = true;
+                    break;
+                }
+            }
+
+            $palette['groups'][$groupIndex]['fields'] = $fields;
+        }
+
+        return $palette;
+    }
+
+    private function _relocateUnassignedFieldsToDefaultGroups(array $palette): array
+    {
+        $remaining = [];
+
+        foreach ($palette['unassigned'] ?? [] as $entry) {
+            $fieldClass = $entry['fieldClass'] ?? null;
+
+            if (!is_string($fieldClass)) {
+                continue;
+            }
+
+            $groupHandle = $this->_getDefaultGroupHandleForFieldClass($fieldClass);
+
+            if (!$groupHandle) {
+                $remaining[] = $entry;
+                continue;
+            }
+
+            $palette = $this->_addFieldEntryToGroup($palette, $groupHandle, $entry);
+        }
+
+        $palette['unassigned'] = $remaining;
+
+        return $palette;
+    }
+
+    private function _addFieldToGroup(array $palette, string $fieldClass, string $groupHandle): array
+    {
+        return $this->_addFieldEntryToGroup($palette, $groupHandle, $this->_createPaletteEntry($fieldClass));
+    }
+
+    private function _addFieldEntryToGroup(array $palette, string $groupHandle, array $entry): array
+    {
+        $fieldClass = $entry['fieldClass'] ?? null;
+
+        if (!is_string($fieldClass)) {
+            return $palette;
+        }
+
+        foreach ($palette['groups'] ?? [] as $groupIndex => $group) {
+            if (($group['handle'] ?? null) !== $groupHandle) {
+                continue;
+            }
+
+            foreach ($group['fields'] ?? [] as $existingEntry) {
+                if (($existingEntry['fieldClass'] ?? null) === $fieldClass) {
+                    return $palette;
+                }
+            }
+
+            $fields = $group['fields'] ?? [];
+            $insertIndex = $this->_getDefaultInsertIndex($groupHandle, $fieldClass, $fields);
+
+            if ($insertIndex === null) {
+                $fields[] = $entry;
+            } else {
+                array_splice($fields, $insertIndex, 0, [$entry]);
+            }
+
+            $palette['groups'][$groupIndex]['fields'] = $fields;
 
             return $palette;
         }
 
+        $groupMeta = $this->_getGroupDefinitionMeta($groupHandle);
+
         $palette['groups'][] = [
             'uid' => StringHelper::UUID(),
-            'handle' => 'custom',
-            'name' => Craft::t('formie', 'Custom Fields'),
-            'fields' => [
-                $this->_createPaletteEntry($fieldClass),
-            ],
+            'handle' => $groupHandle,
+            'name' => $groupMeta['label'] ?? $groupHandle,
+            'fields' => [$entry],
         ];
 
         return $palette;
+    }
+
+    private function _getGroupDefinitionMeta(string $groupHandle): array
+    {
+        $pickableFieldClasses = $this->_getPickableFieldClasses();
+
+        foreach (Formie::$plugin->getFields()->getGroupedFieldTypeDefinitions($pickableFieldClasses) as $groupDefinition) {
+            if (($groupDefinition['handle'] ?? null) === $groupHandle) {
+                return $groupDefinition;
+            }
+        }
+
+        return [];
+    }
+
+    private function _addFieldToCustomGroup(array $palette, string $fieldClass): array
+    {
+        return $this->_addFieldToGroup($palette, $fieldClass, 'custom');
     }
 
     private function _sanitizePaletteEntries(array $entries, array $pickableFieldClasses, array &$knownFieldClasses): array

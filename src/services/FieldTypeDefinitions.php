@@ -54,6 +54,7 @@ class FieldTypeDefinitions extends Component
             formiefields\Heading::class,
             formiefields\Section::class,
             formiefields\Html::class,
+            formiefields\Content::class,
             formiefields\Summary::class,
         ],
         'element' => [

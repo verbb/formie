@@ -91,6 +91,10 @@ class RichTextHelper
                     'buttons' => ['bold', 'italic', 'link'],
                     'rows' => 3,
                 ],
+                'content' => [
+                    'buttons' => ['bold', 'italic', 'underline', 'link', 'ulist', 'olist', 'heading2', 'heading3', 'paragraph'],
+                    'rows' => 8,
+                ],
                 'calculations' => [
                     'buttons' => ['variableTag'],
                     'rows' => 3,

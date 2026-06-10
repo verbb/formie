@@ -65,6 +65,7 @@ it('covers getValueAs* and integration conversion contracts for all form factory
         'headingField' => ['handle' => 'headingValue', 'config' => [], 'filled' => null],
         'hiddenField' => ['handle' => 'hiddenValue', 'config' => [], 'filled' => 'Hidden Value'],
         'htmlField' => ['handle' => 'htmlValue', 'config' => [], 'filled' => null],
+        'contentField' => ['handle' => 'contentValue', 'config' => [], 'filled' => null],
         'nameField' => ['handle' => 'nameValue', 'config' => ['useMultipleFields' => false], 'filled' => 'Full Name'],
         'passwordField' => ['handle' => 'passwordValue', 'config' => [], 'filled' => 'MySecret123'],
         'paymentField' => ['handle' => 'paymentValue', 'config' => [], 'filled' => ['amount' => '10.00', 'currency' => 'USD']],

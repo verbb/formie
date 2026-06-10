@@ -320,6 +320,10 @@ The default rich-text config is:
             "buttons": ["bold", "italic", "link"],
             "rows": 3
         },
+        "content": {
+            "buttons": ["bold", "italic", "underline", "link", "ulist", "olist", "heading2", "heading3", "paragraph"],
+            "rows": 8
+        },
         "calculations": {
             "buttons": ["variableTag"],
             "rows": 3
@@ -364,3 +368,31 @@ Button | Description
     "rows": 4
 }
 ```
+
+The `fields.content` key controls the **Rich Text** cosmetic field toolbar and height.
+
+## HTML Editor Configuration
+
+HTML cosmetic fields use a syntax-highlighted code editor in the form builder. You can control editor height and behaviour by adding an `html.json` file to a `formie` folder in your `/config` directory.
+
+```json
+{
+    "fields": {
+        "html": {
+            "rows": 16,
+            "tabSize": 4,
+            "lineNumbers": true,
+            "language": "html"
+        }
+    }
+}
+```
+
+### Available settings
+
+Setting | Description
+--- | ---
+`rows` | Minimum visible editor rows.
+`tabSize` | Number of spaces inserted when pressing Tab.
+`lineNumbers` | Whether to show a line number gutter.
+`language` | Code editor language mode. Currently supports `html` or `text`.

@@ -25,6 +25,7 @@ it('exposes fluent shortcut methods for all canonical form field families', func
         'headingField',
         'hiddenField',
         'htmlField',
+        'contentField',
         'missingField',
         'multiLineTextField',
         'nameField',

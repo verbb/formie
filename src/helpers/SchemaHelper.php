@@ -366,10 +366,18 @@ class SchemaHelper
         ], $config));
     }
 
+    public static function previewContent(array $config = []): array
+    {
+        return self::previewNode('PreviewRichText', array_merge([
+            'value' => self::previewBind('field.content', ''),
+        ], $config));
+    }
+
     public static function previewHtml(array $config = []): array
     {
         return self::previewNode('PreviewHtml', array_merge([
-            'html' => self::previewBind('field.htmlContent', ''),
+            'html' => self::previewBind('field._builderPreviewHtml', ''),
+            'fallbackHtml' => self::previewBind('field.htmlContent', ''),
         ], $config));
     }
 
@@ -445,6 +453,17 @@ class SchemaHelper
         return array_merge([
             '$field' => 'richText',
             'rows' => 6,
+        ], $config);
+    }
+
+    public static function htmlEditorField(array $config = []): array
+    {
+        return array_merge([
+            '$field' => 'codeEditor',
+            'rows' => 12,
+            'tabSize' => 4,
+            'lineNumbers' => true,
+            'language' => 'html',
         ], $config);
     }
 

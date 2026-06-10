@@ -1,13 +1,13 @@
 <?php
 namespace verbb\formie\fields;
 
-use verbb\formie\Formie;
 use verbb\formie\base\CosmeticField;
+use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyPurifierConfigEvent;
+use verbb\formie\helpers\HtmlHelper;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\SlotTag;
 use verbb\formie\models\Notification;
 use verbb\formie\positions\Hidden as HiddenPosition;
@@ -16,10 +16,10 @@ use verbb\formie\theme\context\RenderContext;
 
 use Craft;
 use craft\base\ElementInterface;
+use craft\helpers\Html as CraftHtml;
 use craft\helpers\HTMLPurifier;
 use craft\helpers\Json;
-
-use yii\base\Exception;
+use craft\helpers\Template;
 
 use GraphQL\Type\Definition\Type;
 
@@ -60,6 +60,7 @@ class Html extends CosmeticField
 
     public ?string $htmlContent = null;
     public bool $purifyContent = true;
+    public bool $allowTwig = false;
 
 
     // Public Methods
@@ -67,7 +68,6 @@ class Html extends CosmeticField
 
     public function __construct(array $config = [])
     {
-        // Setuo defaults for some values which can't in in the property definition
         $config['labelPosition'] = $config['labelPosition'] ?? HiddenPosition::class;
 
         parent::__construct($config);
@@ -80,15 +80,13 @@ class Html extends CosmeticField
 
     public function getRenderedHtmlContent(array $variables = []): string
     {
-        $htmlContent = trim($this->htmlContent);
+        $htmlContent = trim((string)$this->htmlContent);
 
-        // Render Twig content first
-        if ($htmlContent) {
-            $htmlContent = Craft::$app->getView()->renderString($this->htmlContent, $variables);
+        if ($htmlContent && $this->allowTwig) {
+            $htmlContent = Formie::$plugin->getTemplates()->renderString($htmlContent, $variables);
         }
 
         if ($this->purifyContent) {
-            // Ensure we run it all through purifier
             return HTMLPurifier::process($htmlContent, $this->_getPurifierConfig());
         }
 
@@ -120,7 +118,24 @@ class Html extends CosmeticField
 
     public function getReferenceBlockHtml(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): string|null|bool
     {
-        return false;
+        $form = $submission->getForm();
+
+        if (!$form) {
+            return false;
+        }
+
+        $html = $this->getRenderedHtmlBlock($form, $value, $submission);
+
+        if ($html === '') {
+            return false;
+        }
+
+        return Template::raw($html);
+    }
+
+    public function isValueEmpty(mixed $value, ?ElementInterface $element): bool
+    {
+        return trim((string)$this->htmlContent) === '';
     }
 
     public function getSettingGqlTypes(): array
@@ -130,6 +145,14 @@ class Html extends CosmeticField
                 'name' => 'htmlContent',
                 'type' => Type::string(),
             ],
+            'purifyContent' => [
+                'name' => 'purifyContent',
+                'type' => Type::boolean(),
+            ],
+            'allowTwig' => [
+                'name' => 'allowTwig',
+                'type' => Type::boolean(),
+            ],
         ]);
     }
 
@@ -137,12 +160,13 @@ class Html extends CosmeticField
     {
         return [
             SchemaHelper::labelField(),
-            SchemaHelper::textareaField([
+            SchemaHelper::htmlEditorField(array_merge([
                 'label' => Craft::t('formie', 'HTML Content'),
                 'instructions' => Craft::t('formie', 'Enter HTML or Twig content to be rendered for this field.'),
                 'name' => 'htmlContent',
-                'rows' => '10',
-            ]),
+                'validation' => 'required',
+                'required' => true,
+            ], HtmlHelper::getHtmlEditorConfig('fields.html'))),
             SchemaHelper::includeInEmailFieldSummariesField(),
         ];
     }
@@ -165,6 +189,11 @@ class Html extends CosmeticField
             SchemaHelper::cssClasses(),
             SchemaHelper::containerAttributesField(),
             SchemaHelper::lightswitchField([
+                'label' => Craft::t('formie', 'Allow Twig'),
+                'instructions' => Craft::t('formie', 'Whether to parse Twig in this field’s content when rendering the form. Twig is evaluated in Formie’s sandbox and cannot access Craft’s full template environment.'),
+                'name' => 'allowTwig',
+            ]),
+            SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Purify Content'),
                 'instructions' => Craft::t('formie', 'Whether to run [HTML Purifier](http://htmlpurifier.org) over the content to prevent malicious or invalid code being included.'),
                 'name' => 'purifyContent',
@@ -180,6 +209,18 @@ class Html extends CosmeticField
         ];
     }
 
+    public function modifyFieldSettings(array $settings): array
+    {
+        $form = $this->getForm();
+
+        if ($form) {
+            $settings['_builderPreviewHtml'] = $this->getRenderedHtmlBlock($form, null, null);
+        }
+
+        return $settings;
+    }
+
+
     // Protected Methods
     // =========================================================================
 
@@ -188,7 +229,6 @@ class Html extends CosmeticField
         if ($key === 'fieldLabel') {
             $labelPosition = $context->get('labelPosition');
 
-            // In this case, we don't need the label hidden from screen readers as there's no control to be accessible for
             if ($labelPosition instanceof HiddenPosition) {
                 return null;
             }
@@ -198,7 +238,6 @@ class Html extends CosmeticField
                     'data-formie-label' => true,
                     'data-formie-field-label' => true,
                     'data-formie-html-field-label' => true,
-                    // Exclude the `for` attribute, as it's invalid (there's no form control to refer to),,,,,
                 ])
                 ->theme([
                     'class' => [
@@ -214,10 +253,23 @@ class Html extends CosmeticField
 
     protected function defineSubmissionHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
-        return Craft::$app->getView()->renderTemplate('formie/_formfields/html/input', [
-            'name' => $this->handle,
-            'value' => $value,
-            'field' => $this,
+        $submission = $element instanceof Submission ? $element : null;
+        $form = $submission?->getForm();
+
+        if (!$form) {
+            return '';
+        }
+
+        $html = $this->getRenderedHtmlBlock($form, $value, $submission);
+
+        if ($html === '') {
+            return CraftHtml::tag('p', Craft::t('formie', 'No HTML content configured.'), [
+                'class' => 'light',
+            ]);
+        }
+
+        return CraftHtml::tag('div', $html, [
+            'class' => ['formie-cp-cosmetic-field-preview'],
         ]);
     }
 
@@ -238,16 +290,14 @@ class Html extends CosmeticField
             'URI.SafeIframeRegexp' => '%^(https?:)?//(www.youtube.com/embed/|player.vimeo.com/video/)%',
         ];
 
-        foreach ($config as $option => $value) {
-            $purifierConfig->set($option, $value);
+        foreach ($config as $option => $configValue) {
+            $purifierConfig->set($option, $configValue);
         }
 
-        // Add some extra, modern elements to be supported `<details>`, `<summary>`
         $def = $purifierConfig->getHTMLDefinition(true);
-        $def->addElement('details', 'Block', 'Flow', 'Common', [ 'open' => new HTMLPurifier_AttrDef_HTML_Bool(true)]);
+        $def->addElement('details', 'Block', 'Flow', 'Common', ['open' => new HTMLPurifier_AttrDef_HTML_Bool(true)]);
         $def->addElement('summary', 'Inline', 'Inline', 'Common');
 
-        // Give plugins a chance to modify the HTML Purifier config, or add new ones
         $event = new ModifyPurifierConfigEvent([
             'config' => $purifierConfig,
         ]);
@@ -267,7 +317,6 @@ class Html extends CosmeticField
 
         if (!is_file($path)) {
             if ($file !== 'Default.json') {
-                // Try again with Default
                 return $this->_getConfig($dir);
             }
 

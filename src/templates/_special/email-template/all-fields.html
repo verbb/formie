@@ -1,7 +1,7 @@
 {% for field in fields %}
     {% set value = submission.getFieldValue(field.valueKey()) %}
 
-    {% if not field.getIsCosmetic() and field.includeInEmailFieldSummaries and not field.isConditionallyHidden(submission) %}
+    {% if field.includeInEmailFieldSummaries and not field.isConditionallyHidden(submission) %}
         {{ formieInclude('field') }}
     {% endif %}
 {% endfor %}

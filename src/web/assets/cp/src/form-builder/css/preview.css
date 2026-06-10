@@ -529,3 +529,43 @@
     margin-top: 1rem;
     padding-top: 1rem;
 }
+
+.formie-field-preview-static-content {
+    border: 1px dashed rgba(96, 125, 159, 0.28);
+    border-radius: 2px;
+    background: rgba(96, 125, 159, 0.05);
+    padding: 0.625rem 0.75rem;
+    font-size: 13px;
+    color: rgb(31, 41, 51);
+    line-height: 1.5;
+}
+
+.formie-field-preview-static-content.light {
+    color: var(--color-slate-500);
+}
+
+.formie-field-preview-static-content .ProseMirror {
+    outline: none;
+}
+
+.formie-field-preview-static-content .ProseMirror p {
+    margin: 0;
+}
+
+.formie-field-preview-static-content .ProseMirror p + p {
+    margin-top: 0.5rem;
+}
+
+.formie-field-preview-html {
+    padding: 0;
+}
+
+.formie-field-preview-html-iframe {
+    display: block;
+    width: 100%;
+    border: 0;
+    min-height: 0;
+    background: transparent;
+    overflow: hidden;
+    vertical-align: top;
+}

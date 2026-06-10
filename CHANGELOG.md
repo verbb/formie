@@ -3,6 +3,9 @@
 ## Unreleased
 
 ### Added
+- Add a **Rich Text** cosmetic field for WYSIWYG content in the form builder, configurable via `rich-text.json` under `fields.content`. ([#1028](https://github.com/verbb/formie/issues/1028), [#1709](https://github.com/verbb/formie/issues/1709), [Discussion #2070](https://github.com/verbb/formie/discussions/2070), [Discussion #772](https://github.com/verbb/formie/discussions/772))
+- Add a syntax-highlighted HTML code editor for HTML cosmetic fields in the form builder, with project config via `html.json`. ([#2181](https://github.com/verbb/formie/issues/2181))
+- Add an **Allow Twig** setting to HTML fields, controlling whether Twig is parsed when rendering field content. Twig runs in Formie’s sandboxed template environment, not Craft’s full CP template stack.
 - Add a **Custom Field** form-builder field backed by opt-in Craft field adapters. ([#2208](https://github.com/verbb/formie/issues/2208))
 - Add a Google Maps plugin support for Custom Field field. ([#625](https://github.com/verbb/formie/issues/625))
 - Add a Maps plugin field support for Custom Field field. ([#626](https://github.com/verbb/formie/issues/626))
@@ -16,6 +19,12 @@
 
 ### Changed
 - Refactor predefined options to align with the new option sources system.
+- Improve HTML and Rich Text cosmetic field builder previews and control panel submission views to show rendered output instead of raw source where appropriate. ([#2182](https://github.com/verbb/formie/issues/2182))
+- Render HTML field builder previews inside a sandboxed iframe so control panel styles do not bleed into preview content.
+- Render HTML field Twig through Formie’s sandboxed template service instead of Craft’s unrestricted `renderString()`, and default **Allow Twig** to off for new HTML fields.
+- Respect **Include in Email Field Summaries** for cosmetic fields in `{allFields}`, `{allContentFields}`, and `{allVisibleFields}` instead of always excluding them.
+- Update `@verbb/plugin-kit-react` to 1.0.3 for the CodeMirror-based HTML editor, `codeEditor` SchemaForm field registration, and live Rich Text preview rendering via `TiptapContent`.
+- Map Freeform **Rich Text** fields to Formie **Rich Text** rather than HTML during migration.
 - Replace the Dropdown, Radio and Checkboxes option-table **Disabled** column with a row-menu **Visible / Hidden / Disabled** availability control ([#1816](https://github.com/verbb/formie/issues/1816)). **Hidden** removes an option from the front-end form while preserving stored submission values and labels; **Disabled** renders the option with HTML `disabled` so it stays visible but cannot be selected. Legacy `disabled: true` option rows are treated as hidden. Non-default states are indicated in the options table with row background tints.
 - Centralise front-end option filtering in `OptionsField::getFieldOptions()` so hidden options are excluded consistently (including Dropdown placeholders).
 

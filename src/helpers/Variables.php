@@ -1327,7 +1327,7 @@ class Variables
 
         // Build expensive summary variables used by multi-line content references.
         foreach ($submission->getFields() as $field) {
-            if ($field->getIsCosmetic() || !$field->includeInEmailFieldSummaries || $field->isConditionallyHidden($submission)) {
+            if (!$field->includeInEmailFieldSummaries || $field->isConditionallyHidden($submission)) {
                 continue;
             }
 

@@ -55,6 +55,11 @@ class Section extends CosmeticField
         return Html::tag('hr');
     }
 
+    public function isValueEmpty(mixed $value, ?ElementInterface $element): bool
+    {
+        return false;
+    }
+
     public function afterCreateField(array $data): void
     {
         $this->label = $this->label ?? StringHelper::appendRandomString(Craft::t('formie', 'Summary '), 15);

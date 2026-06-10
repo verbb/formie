@@ -24,6 +24,7 @@ use verbb\formie\fields\Group;
 use verbb\formie\fields\Heading;
 use verbb\formie\fields\Hidden;
 use verbb\formie\fields\Html;
+use verbb\formie\fields\Content;
 use verbb\formie\fields\MissingField;
 use verbb\formie\fields\MultiLineText;
 use verbb\formie\fields\Name;
@@ -168,6 +169,11 @@ final class FormFactory
     public function htmlField(string $handle, array $config = []): self
     {
         return $this->addField(Html::class, $handle, $config);
+    }
+
+    public function contentField(string $handle, array $config = []): self
+    {
+        return $this->addField(Content::class, $handle, $config);
     }
 
     public function missingField(string $handle, array $config = []): self

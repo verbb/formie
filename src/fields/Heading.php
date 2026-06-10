@@ -94,6 +94,11 @@ class Heading extends CosmeticField
         ];
     }
 
+    public function isValueEmpty(mixed $value, ?ElementInterface $element): bool
+    {
+        return trim((string)$this->label) === '';
+    }
+
     // Protected Methods
     // =========================================================================
 
