@@ -1,0 +1,27 @@
+import { t as e } from "./api-DMK8NSUI.js";
+import { t } from "./recaptcha-shared-B4zAescW.js";
+//#region src/js/modules/captchas/recaptcha-v3.ts
+var n = e({
+	id: "recaptcha-v3",
+	defaultPlaceholderSelector: "[data-recaptcha-placeholder]",
+	defaultTokenFieldNames: ["g-recaptcha-response"],
+	load: ({ options: e }) => t(e.provider, !1, e.provider.siteKey || void 0),
+	mount: ({ api: e, provider: t }) => new Promise((n) => {
+		e.ready(() => {
+			n(t.siteKey || "recaptcha-v3");
+		});
+	}),
+	screen: async ({ api: e, provider: t, placeholder: n, services: r, stageCtx: i }) => {
+		if (r.tokens.has()) return;
+		let a = await e.execute(t.siteKey || "", { action: t.action || "submit" });
+		if (typeof a == "string" && a.trim() !== "" && r.tokens.write(a.trim()), !await r.tokens.wait(12e4)) {
+			let e = r.errors.getDefaultMessage();
+			r.errors.show(e, n), i.abort(e);
+		}
+	},
+	unmount: ({ services: e }) => {
+		e.tokens.clear();
+	}
+});
+//#endregion
+export { n as recaptchaV3Module };

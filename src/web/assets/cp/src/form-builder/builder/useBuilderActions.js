@@ -58,14 +58,15 @@ const useBuilderActions = () => {
 
     const duplicatePage = (pageIndex, transformCallback = null) => {
         const pageToDuplicate = getValue(getPages(), `${pageIndex}`);
+        const clonedPage = cloneDeep(pageToDuplicate);
 
         const newPage = {
-            ...createItem(pageToDuplicate),
-            rows: pageToDuplicate.rows.map((row) => {
+            ...createItem(clonedPage),
+            rows: clonedPage.rows.map((row) => {
                 return {
                     ...createItem(row),
                     fields: row.fields.map((field) => {
-                        return createItem(field);
+                        return createItem(cloneDeep(field));
                     }),
                 };
             }),
@@ -99,7 +100,7 @@ const useBuilderActions = () => {
 
     const duplicateField = (pageIndex, rowIndex, fieldIndex, transformCallback = null) => {
         const fieldToDuplicate = getValue(getPages(), `${pageIndex}.rows.${rowIndex}.fields.${fieldIndex}`);
-        const newField = createItem(assignFieldReferences(fieldToDuplicate, { forceNew: true }));
+        const newField = createItem(assignFieldReferences(cloneDeep(fieldToDuplicate), { forceNew: true }));
 
         if (transformCallback) {
             transformCallback(newField);

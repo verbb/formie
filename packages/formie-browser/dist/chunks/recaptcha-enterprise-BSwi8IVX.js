@@ -1,0 +1,65 @@
+import { t as e } from "./api-DMK8NSUI.js";
+import { t } from "./recaptcha-shared-B4zAescW.js";
+//#region src/js/modules/captchas/recaptcha-enterprise.ts
+var n = e({
+	id: "recaptcha-enterprise",
+	defaultPlaceholderSelector: "[data-recaptcha-placeholder]",
+	defaultTokenFieldNames: ["g-recaptcha-response"],
+	load: ({ options: e }) => t(e.provider, !0, (e.provider.enterpriseType === "score" || e.provider.enterpriseType === "policy") && e.provider.siteKey || void 0),
+	mount: ({ api: e, container: t, provider: n, services: r }) => {
+		let i = e.enterprise || e;
+		return new Promise((e) => {
+			i.ready(() => {
+				if (n.enterpriseType !== "checkbox") {
+					e(n.siteKey || `recaptcha-enterprise-${n.enterpriseType || "score"}`);
+					return;
+				}
+				e(i.render(t, {
+					sitekey: n.siteKey || "",
+					theme: n.theme || "light",
+					badge: n.badge || "bottomright",
+					size: n.size || "normal",
+					action: n.action || "submit",
+					callback: (e) => {
+						typeof e == "string" && e.trim() !== "" && r.tokens.write(e.trim()), r.errors.clear();
+					},
+					"expired-callback": () => {
+						r.tokens.clear(), r.errors.clear();
+					},
+					"error-callback": () => {
+						r.tokens.clear();
+					}
+				}));
+			});
+		});
+	},
+	screen: async ({ api: e, widget: t, provider: n, placeholder: r, services: i, stageCtx: a }) => {
+		let o = e.enterprise || e;
+		if (n.enterpriseType === "checkbox") {
+			if (i.tokens.has()) return;
+			let e = i.errors.getDefaultMessage();
+			i.errors.show(e, r), a.abort(e);
+			return;
+		}
+		if (!i.tokens.has()) {
+			if (n.enterpriseType === "score" || n.enterpriseType === "policy") {
+				let e = await o.execute(n.siteKey || "", { action: n.action || "submit" });
+				typeof e == "string" && e.trim() !== "" && i.tokens.write(e.trim());
+			} else o.execute(t);
+			if (!await i.tokens.wait(12e4)) {
+				let e = i.errors.getDefaultMessage();
+				i.errors.show(e, r), a.abort(e);
+			}
+		}
+	},
+	reset: ({ api: e, widget: t, provider: n, services: r }) => {
+		let i = e.enterprise || e;
+		n.enterpriseType === "checkbox" && i.reset(t), r.tokens.clear();
+	},
+	unmount: ({ api: e, widget: t, provider: n, services: r }) => {
+		let i = e.enterprise || e;
+		n.enterpriseType === "checkbox" && i.reset(t), r.tokens.clear();
+	}
+});
+//#endregion
+export { n as recaptchaEnterpriseModule };

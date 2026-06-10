@@ -27,8 +27,8 @@
       "_react-vendor-DtO2kpgD.js"
     ]
   },
-  "_formie-browser-RDdARS3v.js": {
-    "file": "assets/formie-browser-RDdARS3v.js",
+  "_formie-browser-BqsaHF7w.js": {
+    "file": "assets/formie-browser-BqsaHF7w.js",
     "name": "formie-browser"
   },
   "_plugin-kit-Dc8n9bmP.js": {
@@ -98,7 +98,7 @@
     ]
   },
   "src/form-builder/formie-form-builder.js": {
-    "file": "assets/formie-form-builder-DtN9e4BY.js",
+    "file": "assets/formie-form-builder-DvCfi3tl.js",
     "name": "formie-form-builder",
     "src": "src/form-builder/formie-form-builder.js",
     "isEntry": true,
@@ -120,7 +120,7 @@
     "isEntry": true
   },
   "src/integration-connect/formie-integration-connect.js": {
-    "file": "assets/formie-integration-connect-CTXOyBBW.js",
+    "file": "assets/formie-integration-connect-BDGtvBfj.js",
     "name": "formie-integration-connect",
     "src": "src/integration-connect/formie-integration-connect.js",
     "isEntry": true,
@@ -136,7 +136,7 @@
     ]
   },
   "src/new-form/formie-new-form.js": {
-    "file": "assets/formie-new-form-DeA2BJ2K.js",
+    "file": "assets/formie-new-form-C3HU77on.js",
     "name": "formie-new-form",
     "src": "src/new-form/formie-new-form.js",
     "isEntry": true,
@@ -175,7 +175,7 @@
     "src": "src/submissions/js/formie-submissions.js",
     "isEntry": true,
     "imports": [
-      "_formie-browser-RDdARS3v.js"
+      "_formie-browser-BqsaHF7w.js"
     ],
     "css": [
       "submissions/css/formie-submissions.css"

@@ -1,3 +1,5 @@
+import { cloneDeep } from 'lodash-es';
+
 import { assignFieldReferences } from './fieldReferences';
 
 const FIELD_IDENTITY_KEYS = ['id', 'fieldId', 'layoutId', 'pageId', 'rowId', 'uid', 'syncId', 'reference'];
@@ -44,7 +46,7 @@ const getCaseInsensitiveUniqueHandle = (baseHandle, existingHandles = []) => {
 };
 
 const buildDuplicatedFieldData = (field, handle) => {
-    const duplicatedField = { ...field };
+    const duplicatedField = cloneDeep(field);
 
     FIELD_IDENTITY_KEYS.forEach((key) => {
         delete duplicatedField[key];

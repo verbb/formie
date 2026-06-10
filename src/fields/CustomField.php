@@ -8,6 +8,7 @@ use verbb\formie\base\PreviewableFieldInterface;
 use verbb\formie\base\SortableFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\events\ModifyFieldValueEvent;
 use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\fields\custom\CustomFieldAdapterInterface;
 use verbb\formie\helpers\SchemaHelper;
@@ -38,6 +39,11 @@ class CustomField extends Field implements SortableFieldInterface, PreviewableFi
         return 'formie/_formfields/custom-field/icon.svg';
     }
 
+    public static function getInputTemplatePath(): string
+    {
+        return 'fields/custom-field';
+    }
+
     public static function dbType(): string
     {
         // Adapters can be scalar or structured; JSON gives the single Formie
@@ -50,6 +56,7 @@ class CustomField extends Field implements SortableFieldInterface, PreviewableFi
     // =========================================================================
 
     public ?string $customFieldAdapter = null;
+    public ?string $customFieldAdapterHandle = null;
     public array $customFieldAdapterSettings = [];
 
 
@@ -73,6 +80,20 @@ class CustomField extends Field implements SortableFieldInterface, PreviewableFi
     public function getAdapter(): CustomFieldAdapterInterface
     {
         return Formie::$plugin->getCustomFields()->createAdapter($this->customFieldAdapter);
+    }
+
+    public function getDefaultValue(): mixed
+    {
+        $defaultValue = $this->normalizeValue($this->getAdapter()->getDefaultValue($this), null);
+
+        $event = new ModifyFieldValueEvent([
+            'value' => $defaultValue,
+            'field' => $this,
+        ]);
+
+        $this->trigger(static::EVENT_MODIFY_DEFAULT_VALUE, $event);
+
+        return is_string($event->value) ? trim($event->value) : $event->value;
     }
 
     public function getCustomFieldAdapterSettings(): array
@@ -158,6 +179,11 @@ class CustomField extends Field implements SortableFieldInterface, PreviewableFi
         return $this->getAdapter()->getContentGqlMutationArgumentType($this);
     }
 
+    public function getPreviewHtml(mixed $value, ElementInterface $element): string
+    {
+        return $this->getAdapter()->getPreviewHtml($this, $value, $element);
+    }
+
     public function defineFormBuilderGeneralSchema(): array
     {
         $schema = [
@@ -165,10 +191,12 @@ class CustomField extends Field implements SortableFieldInterface, PreviewableFi
         ];
 
         foreach (Formie::$plugin->getCustomFields()->getAdapterTypes() as $adapterType) {
-            $adapter = Formie::$plugin->getCustomFields()->createAdapter($adapterType::handle());
+            $adapter = Formie::$plugin->getCustomFields()->createAdapter($adapterType);
 
             foreach ($adapter->getFormBuilderSettingsSchema($this) as $node) {
-                $node['if'] = trim((string)($node['if'] ?? '')) ?: 'customFieldAdapter == "' . $adapterType::handle() . '"';
+                $adapterCondition = 'customFieldAdapterHandle == "' . $adapterType::handle() . '"';
+                $nodeCondition = trim((string)($node['if'] ?? ''));
+                $node['if'] = $nodeCondition ? "($adapterCondition) && ($nodeCondition)" : $adapterCondition;
                 $schema[] = $node;
             }
         }
@@ -242,7 +270,7 @@ class CustomField extends Field implements SortableFieldInterface, PreviewableFi
         $rules[] = [['customFieldAdapter'], 'required'];
         $rules[] = [['customFieldAdapterSettings'], 'safe'];
         $rules[] = [['customFieldAdapter'], 'in', 'range' => array_map(
-            static fn(string $adapterType): string => $adapterType::handle(),
+            static fn(string $adapterType): string => $adapterType,
             Formie::$plugin->getCustomFields()->getAdapterTypes(),
         )];
 
@@ -260,6 +288,11 @@ class CustomField extends Field implements SortableFieldInterface, PreviewableFi
             'customFieldAdapter' => $this->customFieldAdapter,
             'customFieldAdapterSettings' => $this->getCustomFieldAdapterSettings(),
         ], $this->getAdapter()->getClientInput($this));
+    }
+
+    protected function defineClientModules(): array
+    {
+        return array_merge(parent::defineClientModules(), $this->getAdapter()->getClientModules($this));
     }
 
     protected function defineValueAsString(mixed $value, ElementInterface $element = null): string

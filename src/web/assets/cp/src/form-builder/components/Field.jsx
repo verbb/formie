@@ -76,6 +76,18 @@ import { SnapTopLeftCornerToCursor } from '@utils';
 
 import { FieldPreview } from './FieldPreview';
 
+const resolveCustomFieldAdapterDefinition = (adapters, adapterValue) => {
+    return adapters.find((item) => {
+        return item.type === adapterValue || item.handle === adapterValue;
+    }) || null;
+};
+
+const resolveCustomFieldAdapterType = (adapters, adapterValue) => {
+    const adapter = resolveCustomFieldAdapterDefinition(adapters, adapterValue);
+
+    return adapter?.type || null;
+};
+
 const Field = ({
     field, pageIndex, rowIndex, fieldIndex,
 }) => {
@@ -158,15 +170,48 @@ const Field = ({
     const customFieldAdapters = Array.isArray(fieldType?.data?.customFieldAdapters)
         ? fieldType.data.customFieldAdapters
         : [];
-    const needsCustomFieldAdapter = customFieldAdapters.length > 0 && !field?.customFieldAdapter;
+    const resolvedCustomFieldAdapterDefinition = resolveCustomFieldAdapterDefinition(customFieldAdapters, field?.customFieldAdapter);
+    const resolvedCustomFieldAdapterType = resolvedCustomFieldAdapterDefinition?.type || null;
+    const needsCustomFieldAdapter = customFieldAdapters.length > 0 && !resolvedCustomFieldAdapterType;
+
+    useEffect(() => {
+        if (!resolvedCustomFieldAdapterDefinition) {
+            return;
+        }
+
+        if (field?.customFieldAdapter === resolvedCustomFieldAdapterDefinition.type && field?.customFieldAdapterHandle === resolvedCustomFieldAdapterDefinition.handle) {
+            return;
+        }
+
+        updateField(pageIndex, rowIndex, fieldIndex, {
+            ...field,
+            customFieldAdapter: resolvedCustomFieldAdapterDefinition.type,
+            customFieldAdapterHandle: resolvedCustomFieldAdapterDefinition.handle,
+        });
+    }, [resolvedCustomFieldAdapterDefinition, field?.customFieldAdapter, field?.customFieldAdapterHandle, pageIndex, rowIndex, fieldIndex]);
 
     const openFieldEditor = (targetField = field) => {
-        if (needsCustomFieldAdapter && !targetField?.customFieldAdapter) {
+        const targetAdapterDefinition = resolveCustomFieldAdapterDefinition(customFieldAdapters, targetField?.customFieldAdapter);
+        const targetAdapterType = targetAdapterDefinition?.type || null;
+
+        if (customFieldAdapters.length > 0 && !targetAdapterType) {
             setIsAdapterPickerOpen(true);
             return;
         }
 
-        setEditingField(targetField);
+        const normalizedTargetField = targetAdapterType && targetField.customFieldAdapter !== targetAdapterType
+            ? {
+                ...targetField,
+                customFieldAdapter: targetAdapterType,
+                customFieldAdapterHandle: targetAdapterDefinition.handle,
+            }
+            : targetField;
+
+        if (normalizedTargetField !== targetField) {
+            updateField(pageIndex, rowIndex, fieldIndex, normalizedTargetField);
+        }
+
+        setEditingField(normalizedTargetField);
     };
 
     // Auto-open edit modal for new fields
@@ -440,10 +485,18 @@ const Field = ({
         openFieldEditor(field);
     };
 
-    const handleCustomFieldAdapterSelect = (adapterHandle) => {
+    const handleCustomFieldAdapterSelect = (adapterType) => {
+        const adapterDefinition = customFieldAdapters.find((adapter) => {
+            return adapter.type === adapterType;
+        });
         const nextField = {
             ...field,
-            customFieldAdapter: adapterHandle,
+            customFieldAdapter: adapterType,
+            customFieldAdapterHandle: adapterDefinition?.handle,
+            customFieldAdapterSettings: {
+                ...(adapterDefinition?.defaultSettings || {}),
+                ...(field.customFieldAdapterSettings || {}),
+            },
         };
 
         updateField(pageIndex, rowIndex, fieldIndex, nextField);
@@ -805,7 +858,7 @@ const CustomFieldAdapterPickerModal = ({ adapters, onSelect, onCancel }) => {
     const [selectedAdapter, setSelectedAdapter] = useState(null);
     const [searchValue, setSearchValue] = useState('');
     const selectedAdapterDefinition = useMemo(() => {
-        return adapters.find((adapter) => { return adapter.handle === selectedAdapter; }) || null;
+        return adapters.find((adapter) => { return adapter.type === selectedAdapter; }) || null;
     }, [adapters, selectedAdapter]);
 
     const handleApply = () => {
@@ -838,7 +891,7 @@ const CustomFieldAdapterPickerModal = ({ adapters, onSelect, onCancel }) => {
                         items={adapters}
                         value={selectedAdapterDefinition}
                         onValueChange={(adapter) => {
-                            setSelectedAdapter(adapter?.handle ?? null);
+                            setSelectedAdapter(adapter?.type ?? null);
                         }}
                         onInputValueChange={(value) => {
                             setSearchValue(String(value ?? ''));
@@ -847,7 +900,7 @@ const CustomFieldAdapterPickerModal = ({ adapters, onSelect, onCancel }) => {
                             return adapter?.label ?? '';
                         }}
                         itemToStringValue={(adapter) => {
-                            return adapter?.handle ?? '';
+                            return adapter?.type ?? '';
                         }}
                     >
                         <ComboboxPrimitiveInput
@@ -865,7 +918,7 @@ const CustomFieldAdapterPickerModal = ({ adapters, onSelect, onCancel }) => {
 
                                     return (
                                         <ComboboxItem
-                                            key={adapter.handle}
+                                            key={adapter.type}
                                             value={adapter}
                                             className="py-2"
                                         >
@@ -938,7 +991,7 @@ const FieldEditModal = ({
         ? activeFieldType.data.customFieldAdapters
         : [];
     const customFieldAdapterDefinition = customFieldAdapters.find((adapter) => {
-        return adapter.handle === field?.customFieldAdapter;
+        return adapter.type === field?.customFieldAdapter || adapter.handle === field?.customFieldAdapter;
     }) || null;
     const resolvedFieldTypeLabel = typeof activeFieldType?.label === 'string'
         ? activeFieldType.label.trim()

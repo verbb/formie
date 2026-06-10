@@ -3,8 +3,7 @@ namespace verbb\formie\services;
 
 use verbb\formie\events\RegisterCustomFieldAdaptersEvent;
 use verbb\formie\fields\custom\CustomFieldAdapterInterface;
-
-use Craft;
+use verbb\formie\fields\custom\adapters\LinkCustomFieldAdapter;
 
 use yii\base\Component;
 use yii\base\InvalidConfigException;
@@ -32,6 +31,7 @@ class CustomFields extends Component
         if ($this->_adapterTypes === null) {
             $event = new RegisterCustomFieldAdaptersEvent([
                 'adapters' => [
+                    LinkCustomFieldAdapter::class,
                 ],
             ]);
 
@@ -54,10 +54,10 @@ class CustomFields extends Component
         $options = [];
 
         foreach ($this->getAdapterTypes($availableOnly) as $adapterType) {
-            $definition = $this->createAdapter($adapterType::handle())->getFieldTypeDefinition();
+            $definition = $this->createAdapter($adapterType)->getFieldTypeDefinition();
             $options[] = [
                 'label' => $definition['label'] ?? $adapterType::displayName(),
-                'value' => $definition['handle'] ?? $adapterType::handle(),
+                'value' => $definition['type'] ?? $adapterType,
                 'icon' => $definition['icon'] ?? null,
             ];
         }
@@ -70,17 +70,20 @@ class CustomFields extends Component
         $definitions = [];
 
         foreach ($this->getAdapterTypes($availableOnly) as $adapterType) {
-            $adapter = $this->createAdapter($adapterType::handle());
+            $adapter = $this->createAdapter($adapterType);
             $definitions[] = $adapter->getFieldTypeDefinition();
         }
 
         return $definitions;
     }
 
-    public function createAdapter(?string $handle): CustomFieldAdapterInterface
+    public function createAdapter(?string $adapterType): CustomFieldAdapterInterface
     {
-        $handle = trim((string)$handle);
-        $adapterType = $this->getAdapterTypeByHandle($handle) ?? UrlCustomFieldAdapter::class;
+        $adapterType = trim((string)$adapterType) ?: LinkCustomFieldAdapter::class;
+
+        if (!is_subclass_of($adapterType, CustomFieldAdapterInterface::class)) {
+            $adapterType = LinkCustomFieldAdapter::class;
+        }
 
         if (!isset($this->_adapters[$adapterType])) {
             $adapter = new $adapterType();
@@ -93,22 +96,5 @@ class CustomFields extends Component
         }
 
         return $this->_adapters[$adapterType];
-    }
-
-    public function getAdapterTypeByHandle(string $handle): ?string
-    {
-        foreach ($this->getAdapterTypes(false) as $adapterType) {
-            if (!is_subclass_of($adapterType, CustomFieldAdapterInterface::class)) {
-                Craft::warning("Custom field adapter \"{$adapterType}\" must implement CustomFieldAdapterInterface.", __METHOD__);
-
-                continue;
-            }
-
-            if ($adapterType::handle() === $handle) {
-                return $adapterType;
-            }
-        }
-
-        return null;
     }
 }

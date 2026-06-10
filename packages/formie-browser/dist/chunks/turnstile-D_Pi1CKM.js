@@ -1,0 +1,58 @@
+import { a as e, i as t, o as n, r, t as i } from "./api-DMK8NSUI.js";
+import { r as a } from "./scripts-6CYSUGKQ.js";
+//#region src/js/modules/captchas/turnstile.ts
+function o(e) {
+	let r = e.appearance || "always";
+	return (e.execution || (r === "execute" ? "execute" : "render")) === "execute" ? t : n;
+}
+async function s(t) {
+	let { async: n, defer: i } = r(t.loadingMethod);
+	return a("turnstile", {
+		id: "FORMIE_TURNSTILE_SCRIPT",
+		src: "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit",
+		async: n,
+		defer: i,
+		timeoutMs: e
+	});
+}
+var c = i({
+	id: "turnstile",
+	defaultPlaceholderSelector: "[data-turnstile-placeholder]",
+	defaultTokenFieldNames: ["cf-turnstile-response"],
+	load: ({ options: e }) => s(e.provider),
+	mount: ({ api: e, container: t, provider: n, services: r }) => {
+		let i = n.appearance || "always", a = n.execution || (i === "execute" ? "execute" : "render");
+		return e.render(t, {
+			sitekey: n.siteKey || "",
+			theme: n.theme || "auto",
+			size: n.size || "normal",
+			appearance: i,
+			execution: a,
+			callback: (e) => {
+				typeof e == "string" && e.trim() !== "" && r.tokens.write(e.trim()), r.errors.clear();
+			},
+			"expired-callback": () => {
+				r.tokens.clear(), r.errors.clear();
+			},
+			"timeout-callback": () => {
+				r.tokens.clear(), r.errors.clear();
+			},
+			"error-callback": () => {
+				r.tokens.clear();
+			}
+		});
+	},
+	screen: ({ api: e, widget: t, placeholder: n, services: r, provider: i, stageCtx: a }) => {
+		if (!r.tokens.has()) return e.execute(t), r.tokens.wait(o(i)).then((e) => {
+			if (!e) {
+				let e = r.errors.getDefaultMessage();
+				r.errors.show(e, n), a.abort(e);
+			}
+		});
+	},
+	unmount: ({ api: e, widget: t, services: n }) => {
+		e.reset(t), n.tokens.clear();
+	}
+});
+//#endregion
+export { c as turnstileModule };

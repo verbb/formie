@@ -1,0 +1,5 @@
+{% extends 'formie/_formfields/field' %}
+
+{% block field %}
+    {{ field.getAdapterInputHtml(form, value) | raw }}
+{% endblock %}

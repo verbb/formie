@@ -8,7 +8,7 @@ Custom Field is adapter-based. Each available option in **Custom Field Type** ha
 
 Formie includes these adapters:
 
-- **URL** for scalar URL values.
+- **Link** for URL, email, phone and SMS link values from Craft’s Link field.
 - **Address (Google Maps)** for supported Google Maps Craft field classes, when the plugin is installed.
 - **Maps** for supported Maps/SimpleMap Craft field classes, when the plugin is installed.
 
@@ -22,7 +22,11 @@ Only available adapters are shown in the field settings. Third-party developers 
 
 The Custom Field Type is chosen once when the field is created. It cannot be changed later because each adapter can store a different value shape. To use a different adapter, add a new Custom Field.
 
-The settings change depending on the selected adapter. For example, URL fields expose URL-oriented placeholder and default-value settings, while map adapters expose address and coordinate defaults.
+The settings change depending on the selected adapter. For example, Link fields expose allowed link types, URL options, label and advanced-attribute settings, while map adapters expose address and coordinate defaults, map visibility, latitude/longitude display, current-location behaviour and zoom options where supported.
+
+The Link adapter supports the text-based Craft Link types that can be rendered on public forms without Craft control-panel element selectors: URL, Email, Phone and SMS. Entry, Asset and Category link types are not included in the front-end adapter.
+
+When a Link field allows one link type, Formie renders a single value input and stores the type in a hidden input. When multiple link types are enabled, Formie renders a type selector and uses a small front-end enhancement to update the value input’s native type and keyboard hints as the user switches between URL, Email, Phone and SMS.
 
 ## Notes
 

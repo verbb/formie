@@ -90,7 +90,7 @@ Each adapter is responsible for:
 
 Built-in adapters include:
 
-- **URL** — scalar URL values, available without an extra plugin.
+- **Link** — URL, email, phone and SMS link values using Craft’s Link field concepts, available without an extra plugin. Element link types are intentionally omitted until a public element-picker adapter exists.
 - **Address (Google Maps)** — structured map values when a supported Google Maps Craft field class is installed.
 - **Maps** — structured map values when a supported Maps/SimpleMap Craft field class is installed.
 
@@ -144,7 +144,7 @@ class ExampleCustomFieldAdapter extends AbstractCustomFieldAdapter
         return [
             SchemaHelper::textField([
                 'label' => Craft::t('site', 'Placeholder'),
-                'name' => 'placeholder',
+                'name' => $this->settingName('placeholder'),
             ]),
         ];
     }
@@ -153,11 +153,24 @@ class ExampleCustomFieldAdapter extends AbstractCustomFieldAdapter
 
 `craftFieldClasses()` is advisory metadata and availability detection. It does not make arbitrary Craft fields work automatically. If the field needs custom JavaScript, structured storage or provider-specific formatting, implement those methods on the adapter.
 
+Adapter-owned settings should be stored under `customFieldAdapterSettings` by using `settingName()` in schema nodes and `getSetting()` when reading values. This keeps the base Custom Field contract stable as adapters add provider-specific settings:
+
+```php
+SchemaHelper::textField([
+    'label' => Craft::t('site', 'Placeholder'),
+    'name' => $this->settingName('placeholder'),
+]);
+
+$placeholder = $this->getSetting($field, 'placeholder');
+```
+
 ### Value storage
 
 Custom Field uses JSON storage so adapters can support scalar and structured values through one Formie field type. Scalar adapters can return strings; structured adapters can return arrays or value objects and decide how those values appear in references, exports and integrations.
 
-The adapter is selected when the field is created and is not editable afterward. Treat the adapter handle as part of the field’s storage contract.
+The adapter is selected when the field is created and is not editable afterward. Treat the adapter class stored in `customFieldAdapter` as part of the field’s storage contract.
+
+The selected adapter’s builder settings are stored in `customFieldAdapterSettings`. The adapter owns the meaning of those settings, including defaults used by `getDefaultValue()`, front-end rendering and client input metadata.
 
 When an adapter supports a structured value, implement these methods together:
 
