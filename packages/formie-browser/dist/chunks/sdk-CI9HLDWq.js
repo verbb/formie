@@ -1,4 +1,4 @@
-//#region ../../../node_modules/@friendlycaptcha/sdk/sdk.js
+//#region node_modules/@friendlycaptcha/sdk/sdk.js
 function e(e) {
 	let t, n, r = new Promise((e, r) => {
 		t = e, n = r;

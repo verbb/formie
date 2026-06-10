@@ -61,17 +61,19 @@
     "build": "vite build && tsc -p tsconfig.json"
   },
   "devDependencies": {
+    "@types/leaflet": "^1.9.21",
     "typescript": "^6.0.3",
     "vite": "^8.0.10"
   },
   "dependencies": {
-    "@verbb/formie-core": "1.0.4",
     "@friendlycaptcha/sdk": "^1.0.0",
     "@placekit/autocomplete-js": "^2.2.1",
+    "@verbb/formie-core": "1.0.4",
     "expression-language": "^2.5.4",
     "flatpickr": "^4.6.13",
     "friendly-challenge": "^0.9.19",
     "intl-tel-input": "^27.3.0",
+    "leaflet": "^1.9.4",
     "pell": "^1.0.6",
     "signature_pad": "^5.1.3"
   }

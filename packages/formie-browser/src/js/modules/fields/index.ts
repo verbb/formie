@@ -8,6 +8,7 @@ export const builtinFieldModuleLoaders: Record<string, () => Promise<FormieModul
     'conditions': () => import('#modules/fields/conditions').then((module) => module.conditionsModule),
     'custom-google-maps': () => import('#modules/fields/custom-google-maps').then((module) => module.customGoogleMapsModule),
     'custom-link': () => import('#modules/fields/custom-link').then((module) => module.customLinkModule),
+    'custom-maps': () => import('#modules/fields/custom-maps').then((module) => module.customMapsModule),
     'date-picker': () => import('#modules/fields/date-picker').then((module) => module.datePickerModule),
     'file-upload': () => import('#modules/fields/file-upload').then((module) => module.fileUploadModule),
     'hidden': () => import('#modules/fields/hidden').then((module) => module.hiddenModule),

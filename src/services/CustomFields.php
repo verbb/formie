@@ -5,6 +5,7 @@ use verbb\formie\events\RegisterCustomFieldAdaptersEvent;
 use verbb\formie\fields\custom\CustomFieldAdapterInterface;
 use verbb\formie\fields\custom\adapters\GoogleMapsCustomFieldAdapter;
 use verbb\formie\fields\custom\adapters\LinkCustomFieldAdapter;
+use verbb\formie\fields\custom\adapters\MapsCustomFieldAdapter;
 
 use yii\base\Component;
 use yii\base\InvalidConfigException;
@@ -34,6 +35,7 @@ class CustomFields extends Component
                 'adapters' => [
                     LinkCustomFieldAdapter::class,
                     GoogleMapsCustomFieldAdapter::class,
+                    MapsCustomFieldAdapter::class,
                 ],
             ]);
 

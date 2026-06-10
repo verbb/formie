@@ -4,7 +4,7 @@ var t = e({
 	id: "friendly-captcha-v2",
 	defaultPlaceholderSelector: "[data-friendly-captcha-placeholder]",
 	defaultTokenFieldNames: ["frc-captcha-response"],
-	load: async () => import("./sdk-BPs8VkXT.js"),
+	load: async () => import("./sdk-CI9HLDWq.js"),
 	mount: ({ api: e, container: t, provider: n, services: r }) => {
 		let i = new e.FriendlyCaptchaSDK().createWidget({
 			element: t,
