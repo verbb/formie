@@ -45,6 +45,7 @@
 - Centralise front-end option filtering in `OptionsField::getFieldOptions()` so hidden options are excluded consistently (including Dropdown placeholders).
 - Format Date/Time values consistently for notifications, summaries, exports, and string output using the field's **Date Format** and **Time Format** settings. Casting a normalized date value object to string now matches `getFieldValueAsString()`.
 - Update integration field mapping to accept Date/Time reference values with `text`, `date`, and `number` types.
+- Move Agree field checked/unchecked display labels to the Settings tab and clarify that submissions store a boolean; use `getFieldValueAsString()` for Yes/No-style output. ([#2288](https://github.com/verbb/formie/issues/2288))
 
 ### Deprecated
 - Deprecate the `PredefinedOptions` service, predefined option class namespace (`verbb\formie\options\*`), and `PredefinedOptions::EVENT_REGISTER_PREDEFINED_OPTIONS` event registration target. Use `OptionSources`, predefined option classes under `verbb\formie\options\predefined\*`, and `OptionSources::EVENT_REGISTER_PREDEFINED_OPTIONS` instead. Legacy APIs remain available through the compatibility layer with deprecation notices.
