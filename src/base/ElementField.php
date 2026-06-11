@@ -21,6 +21,7 @@ use verbb\formie\fields\SingleLineText;
 use verbb\formie\fields\Tags;
 use verbb\formie\fields\traits\SearchableDropdownFieldTrait;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\FieldBuilderPolicy;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\SlotTag;
@@ -940,6 +941,13 @@ abstract class ElementField extends Field implements ElementFieldInterface, Opti
                     'disabled' => (bool)($option['disabled'] ?? false),
                 ];
             }, $this->getFieldOptions())),
+        ]);
+    }
+
+    protected function defineElementFieldMultiSelectAppearanceSchema(): array
+    {
+        return FieldBuilderPolicy::multiSelectDropdownSchema([
+            'if' => 'displayType == "dropdown"',
         ]);
     }
 

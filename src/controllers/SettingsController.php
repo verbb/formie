@@ -2,6 +2,7 @@
 namespace verbb\formie\controllers;
 
 use verbb\formie\Formie;
+use verbb\formie\helpers\FieldBuilderPolicy;
 use verbb\formie\helpers\Plugin;
 use verbb\formie\models\Settings;
 
@@ -58,6 +59,7 @@ class SettingsController extends SettingsAccessController
         $this->view->registerJs('new Craft.Formie.FieldPalette(' . Json::encode($editorConfig) . ');');
 
         return $this->renderTemplate('formie/settings/fields/index', [
+            'settings' => Formie::$plugin->getSettings(),
             'fieldPalettePayload' => Json::encode(Formie::$plugin->getFieldPalette()->getSavePayload()),
         ]);
     }
@@ -95,7 +97,11 @@ class SettingsController extends SettingsAccessController
             return null;
         }
 
-        $this->setSuccessFlash(Craft::t('formie', 'Field palette saved.'));
+        if (!$this->_saveFieldBuilderPolicySettings()) {
+            return null;
+        }
+
+        $this->setSuccessFlash(Craft::t('formie', 'Settings saved.'));
 
         return $this->redirectToPostedUrl();
     }
@@ -189,6 +195,47 @@ class SettingsController extends SettingsAccessController
         $this->setSuccessFlash(Craft::t('formie', 'Settings saved.'));
 
         return $this->redirectToPostedUrl();
+    }
+
+    private function _saveFieldBuilderPolicySettings(): bool
+    {
+        $settingsParams = $this->request->getParam('settings');
+
+        if (!is_array($settingsParams)) {
+            return true;
+        }
+
+        /** @var Settings $settings */
+        $settings = Formie::$plugin->getSettings();
+        $settingsParams = Formie::$plugin->getFormDefaults()->normalizeSettingsPayload($settingsParams);
+
+        foreach (FieldBuilderPolicy::settingsKeys() as $key) {
+            if (array_key_exists($key, $settingsParams)) {
+                $settings->$key = $settingsParams[$key];
+            }
+        }
+
+        if (!$settings->validate()) {
+            $this->setFailFlash(Craft::t('formie', 'Couldn’t save settings.'));
+
+            Craft::$app->getUrlManager()->setRouteParams([
+                'settings' => $settings,
+            ]);
+
+            return false;
+        }
+
+        if (!Craft::$app->getPlugins()->savePluginSettings(Formie::$plugin, $settings->toArray())) {
+            $this->setFailFlash(Craft::t('formie', 'Couldn’t save settings.'));
+
+            Craft::$app->getUrlManager()->setRouteParams([
+                'settings' => $settings,
+            ]);
+
+            return false;
+        }
+
+        return true;
     }
 
 }

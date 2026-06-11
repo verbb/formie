@@ -12,6 +12,7 @@ use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\fields\definitions\FieldValueClass;
 use verbb\formie\gql\types\generators\CountryOptionGenerator;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\FieldBuilderPolicy;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\helpers\StringHelper;
@@ -258,11 +259,7 @@ class Phone extends Field implements SortableFieldInterface, PreviewableFieldInt
                 'instructions' => Craft::t('formie', 'Set a default value for the field when it doesn’t have a value.'),
                 'name' => 'defaultValue',
             ]),
-            SchemaHelper::lightswitchField([
-                'label' => Craft::t('formie', 'Country Enabled'),
-                'instructions' => Craft::t('formie', 'Whether to show the dial code on the country dropdown.'),
-                'name' => 'countryEnabled',
-            ]),
+            ...FieldBuilderPolicy::phoneCountrySelectorSchema(),
             SchemaHelper::comboboxField([
                 'label' => Craft::t('formie', 'Allowed Countries'),
                 'instructions' => Craft::t('formie', 'Select which countries should be available to pick from. By default, all countries are available.'),

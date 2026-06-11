@@ -18,6 +18,8 @@
 - Add **Template** option source mode for developer-owned option lists supplied at render time without persisting or strictly validating an authoritative option list.
 - Add a **Use Searchable Dropdown** setting for Dropdown fields, element relation fields when **Display type** is **Dropdown**, and Recipients when shown as a dropdown. The front end loads Formie’s `combobox` browser module so users can filter predefined options. ([#960](https://github.com/verbb/formie/issues/960))
 - Add support for changing compatible field types in the form builder, initially limited to simple string-like fields such as Single-Line Text and Email Address. Existing submissions are not rewritten. ([Discussion #2110](https://github.com/verbb/formie/discussions/2110))
+- Add **Settings → Fields → Field Builder** policy settings for **Allow Multi-Select Dropdowns** and **Allow Phone Country Selector**. When disabled, the corresponding field settings are hidden in the form builder and forced off on existing fields. ([Discussion #2484](https://github.com/verbb/formie/discussions/2484), [Discussion #2485](https://github.com/verbb/formie/discussions/2485))
+- Expose the **Allow Public Asset Volumes** plugin setting in **Settings → Fields**, controlling whether File Upload fields can use public asset volumes and whether **Public URL** is available as an email summary value.
 
 ### Changed
 - Refactor predefined options to align with the new option sources system.

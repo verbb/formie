@@ -69,6 +69,8 @@ class Settings extends Model
 
     // Fields
     public bool $allowPublicVolumes = true;
+    public bool $allowMultiSelectDropdowns = true;
+    public bool $allowPhoneCountrySelector = true;
     public bool $enableLargeFieldStorage = false;
     public string $plainTextHtmlSanitizationMode = self::PLAIN_TEXT_HTML_SANITIZATION_MODE_PRESERVE;
 

@@ -1,5 +1,8 @@
 {% extends 'formie/_layouts/settings' %}
 
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
 {% set title = 'Fields' | t('formie') %}
 {% set bodyClass = 'formie-field-palette-page' %}
 {% set fullPageForm = craft.app.config.general.allowAdminChanges %}
@@ -18,7 +21,45 @@
     <input type="hidden" name="palette" id="formie-field-palette-payload" value="{{ fieldPalettePayload|e('html_attr') }}">
 {% endif %}
 
-<div class="formie-field-palette"></div>
+<div class="formie-field-builder-settings">
+    <h2>{{ 'Field Builder' | t('formie') }}</h2>
+    <p class="formie-field-palette-intro">{{ 'Control which field options are available to form editors in the form builder.' | t('formie') }}</p>
+
+    {% namespace 'settings' %}
+        {{ forms.lightswitchField({
+            first: true,
+            label: 'Allow Public Asset Volumes' | t('formie'),
+            instructions: 'Whether File Upload fields can use public asset volumes, and whether “Public URL” is available as an email summary value.' | t('formie'),
+            name: 'allowPublicVolumes',
+            on: settings.allowPublicVolumes,
+            errors: settings.getErrors('allowPublicVolumes'),
+            warning: macros.configWarning('allowPublicVolumes', 'formie'),
+        }) }}
+
+        {{ forms.lightswitchField({
+            label: 'Allow Multi-Select Dropdowns' | t('formie'),
+            instructions: 'Whether form editors can enable “Allow Multiple” on Dropdown and element fields using a dropdown display type.' | t('formie'),
+            name: 'allowMultiSelectDropdowns',
+            on: settings.allowMultiSelectDropdowns,
+            errors: settings.getErrors('allowMultiSelectDropdowns'),
+            warning: macros.configWarning('allowMultiSelectDropdowns', 'formie'),
+        }) }}
+
+        {{ forms.lightswitchField({
+            label: 'Allow Phone Country Selector' | t('formie'),
+            instructions: 'Whether form editors can enable the country code selector on Phone Number fields.' | t('formie'),
+            name: 'allowPhoneCountrySelector',
+            on: settings.allowPhoneCountrySelector,
+            errors: settings.getErrors('allowPhoneCountrySelector'),
+            warning: macros.configWarning('allowPhoneCountrySelector', 'formie'),
+        }) }}
+    {% endnamespace %}
+</div>
+
+<div class="formie-field-palette-section">
+    <h2>{{ 'Field Palette' | t('formie') }}</h2>
+    <div class="formie-field-palette"></div>
+</div>
 
 {% endblock %}
 
@@ -30,7 +71,20 @@
     padding: 0;
 }
 
+.formie-field-builder-settings,
+.formie-field-palette-section {
+    background: var(--white);
+    border-radius: var(--large-border-radius);
+    box-shadow: var(--pane-shadow);
+    margin-bottom: 24px;
+    padding: 24px;
+}
+
 .formie-field-palette-page .formie-field-palette-intro {
+    margin-bottom: 24px;
+}
+
+.formie-field-palette-section .formie-field-palette-intro {
     margin-bottom: 24px;
 }
 {% endcss %}

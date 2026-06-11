@@ -16,6 +16,7 @@ use verbb\formie\fields\Repeater;
 use verbb\formie\fields\values\FileUploadFieldValue;
 use verbb\formie\gql\types\input\FileUploadInputType;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\FieldBuilderPolicy;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\helpers\ValidationMessagesHelper;
@@ -474,7 +475,7 @@ class FileUpload extends ElementField
 
     public function defineFormBuilderSettingsSchema(): array
     {
-        $allowPublicVolumes = Formie::$plugin->getSettings()->allowPublicVolumes;
+        $allowPublicVolumes = FieldBuilderPolicy::allowPublicVolumes();
 
         return [
             SchemaHelper::includeInEmailFieldSummariesField(),

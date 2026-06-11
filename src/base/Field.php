@@ -17,6 +17,7 @@ use verbb\formie\fields\coercion\EmptyValueCoercer;
 use verbb\formie\fields\values\FieldValueInterface;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\ConditionsHelper;
+use verbb\formie\helpers\FieldBuilderPolicy;
 use verbb\formie\helpers\FileHelper;
 use verbb\formie\helpers\Html;
 use verbb\formie\helpers\References;
@@ -389,6 +390,7 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
         self::normalizeConfig($config);
 
         Formie::$plugin?->getFormDefaults()?->applyToNewField($config, static::class, $this->getSupportedDefaults());
+        FieldBuilderPolicy::applyToFieldConfig($config, static::class);
 
         parent::__construct($config);
     }

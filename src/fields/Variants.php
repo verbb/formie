@@ -261,12 +261,7 @@ class Variants extends ElementField
                     ['label' => Craft::t('formie', 'Radio Buttons'), 'value' => 'radio'],
                 ],
             ]),
-            SchemaHelper::lightswitchField([
-                'label' => Craft::t('formie', 'Allow Multiple'),
-                'instructions' => Craft::t('formie', 'Whether this field should allow multiple options to be selected.'),
-                'name' => 'multi',
-                'if' => 'displayType == "dropdown"',
-            ]),
+            ...$this->defineElementFieldMultiSelectAppearanceSchema(),
             ...$this->defineElementFieldSearchableDropdownAppearanceSchema(),
             SchemaHelper::labelPosition($this),
             SchemaHelper::instructions(),

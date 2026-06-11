@@ -7,6 +7,7 @@ use verbb\formie\base\SortableFieldInterface;
 use verbb\formie\fields\traits\AutocompleteFieldTrait;
 use verbb\formie\fields\traits\OptionsLimitFieldTrait;
 use verbb\formie\fields\traits\SearchableDropdownFieldTrait;
+use verbb\formie\helpers\FieldBuilderPolicy;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\helpers\StringHelper;
@@ -123,11 +124,7 @@ class Dropdown extends OptionsField implements SortableFieldInterface
         return [
             SchemaHelper::labelField(),
             ...$this->defineOptionDynamicGeneralSchema(),
-            SchemaHelper::lightswitchField([
-                'label' => Craft::t('formie', 'Allow Multiple'),
-                'instructions' => Craft::t('formie', 'Whether this field should allow multiple options to be selected.'),
-                'name' => 'multi',
-            ]),
+            ...FieldBuilderPolicy::multiSelectDropdownSchema(),
             SchemaHelper::tableField([
                 'label' => Craft::t('formie', 'Static Options'),
                 'instructions' => Craft::t('formie', 'Add, remove, or reorder option rows manually.'),
