@@ -259,8 +259,8 @@ Field | Type | Description
 
 Field | Type | Description
 --- | --- | ---
-`checkedValue` | `String` | The value stored when the checkbox is checked.
-`uncheckedValue` | `String` | The value stored when the checkbox is unchecked.
+`checkedValue` | `String` | The label used in emails, exports, and other string output when the checkbox is checked.
+`uncheckedValue` | `String` | The label used in emails, exports, and other string output when the checkbox is unchecked.
 `defaultValue` | `String` | The default value as a string.
 `defaultState` | `Boolean` | Whether the field is checked by default.
 `descriptionHtml` | `String` | The field description HTML.

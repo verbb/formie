@@ -20,6 +20,7 @@ use verbb\formie\events\SubmissionRulesEvent;
 use verbb\formie\fields\FileUpload;
 use verbb\formie\fields\Payment;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\FieldAttributesHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\helpers\References;
 use verbb\formie\helpers\StringHelper;
@@ -811,6 +812,11 @@ class Submission extends Element
         }
 
         if ($field) {
+            $settings = FieldAttributesHelper::applyToFieldSettings(
+                $settings,
+                $field->containerAttributes,
+                $field->inputAttributes,
+            );
             $field->setAttributes($settings, false);
         }
     }

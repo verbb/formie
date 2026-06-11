@@ -207,20 +207,6 @@ class Agree extends Field implements SortableFieldInterface, PreviewableFieldInt
                 'validation' => 'requiredRichText',
                 'required' => true,
             ], RichTextHelper::getRichTextConfig('fields.agree'))),
-            SchemaHelper::textField([
-                'label' => Craft::t('formie', 'Checked Value'),
-                'instructions' => Craft::t('formie', 'The value of this field when it is checked.'),
-                'name' => 'checkedValue',
-                'validation' => 'required',
-                'required' => true,
-            ]),
-            SchemaHelper::textField([
-                'label' => Craft::t('formie', 'Unchecked Value'),
-                'instructions' => Craft::t('formie', 'The value of this field when it is unchecked.'),
-                'name' => 'uncheckedValue',
-                'validation' => 'required',
-                'required' => true,
-            ]),
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Default Value'),
                 'instructions' => Craft::t('formie', 'The default value for the field when it loads.'),
@@ -234,6 +220,16 @@ class Agree extends Field implements SortableFieldInterface, PreviewableFieldInt
         return [
             SchemaHelper::prePopulate(),
             SchemaHelper::includeInEmailFieldSummariesField(),
+            SchemaHelper::textField([
+                'label' => Craft::t('formie', 'Checked Value'),
+                'instructions' => Craft::t('formie', 'The label used in emails, exports, and other string output when the checkbox is selected.'),
+                'name' => 'checkedValue',
+            ]),
+            SchemaHelper::textField([
+                'label' => Craft::t('formie', 'Unchecked Value'),
+                'instructions' => Craft::t('formie', 'The label used in emails, exports, and other string output when the checkbox is not selected.'),
+                'name' => 'uncheckedValue',
+            ]),
         ];
     }
 

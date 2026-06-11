@@ -82,3 +82,42 @@ For nested fields inside Group or Repeater fields, include the parent field hand
     label: 'Preferred name',
 }) %}
 ```
+
+### Container and input attributes
+
+`containerAttributes` and `inputAttributes` accept the same Craft-style attribute map you would pass to Craft’s `attr()` helper:
+
+```twig
+{% do form.setFieldSettings('myCustomField', {
+    inputAttributes: {
+        readonly: true,
+        data: {
+            foo: 'bar',
+        },
+    },
+}) %}
+```
+
+That replaces any attributes already saved on the field.
+
+To add attributes without removing the saved ones, use `mergeInputAttributes` or `mergeContainerAttributes`:
+
+```twig
+{% do form.setFieldSettings('myCustomField', {
+    mergeInputAttributes: {
+        readonly: true,
+    },
+}) %}
+```
+
+The editable-table format used in the form builder is still supported when you need it:
+
+```twig
+{% do form.setFieldSettings('myCustomField', {
+    inputAttributes: [
+        { label: 'readonly', value: true },
+    ],
+}) %}
+```
+
+Passing an invalid attribute format throws an exception instead of being silently ignored.

@@ -20,6 +20,7 @@ use verbb\formie\deprecations\ThemeConfigLegacyKeys;
 use verbb\formie\gql\interfaces\FieldInterface as GqlFieldInterface;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\CpSubmissionFieldConditions;
+use verbb\formie\helpers\FieldAttributesHelper;
 use verbb\formie\helpers\ConditionsHelper;
 use verbb\formie\helpers\HandleHelper;
 use verbb\formie\helpers\Html;
@@ -1654,6 +1655,11 @@ class Form extends Element implements FormInterface
         }
 
         if ($field) {
+            $settings = FieldAttributesHelper::applyToFieldSettings(
+                $settings,
+                $field->containerAttributes,
+                $field->inputAttributes,
+            );
             $field->setAttributes($settings, false);
 
             // Update our snapshot data with these settings

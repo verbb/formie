@@ -3,6 +3,7 @@ namespace verbb\formie\compatibility\fields;
 
 use verbb\formie\fields;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\FieldAttributesHelper;
 use verbb\formie\helpers\OptionsMode;
 use verbb\formie\options\OptionSourceConfigHelper;
 use verbb\formie\positions\AboveInput;
@@ -27,6 +28,7 @@ class FieldConfigNormalizer
         self::_normalizeLegacyComboboxConfig($config, $fieldClass);
         self::_normalizeOptionsFieldConfig($config, $fieldClass);
         self::_normalizeRecipientsFieldConfig($config, $fieldClass);
+        self::_normalizeFieldAttributes($config);
         self::_removeLegacyProperties($config);
     }
 
@@ -234,6 +236,17 @@ class FieldConfigNormalizer
         }
 
         $config['optionSource'] = $optionSource;
+    }
+
+    private static function _normalizeFieldAttributes(array &$config): void
+    {
+        foreach ([FieldAttributesHelper::SETTING_CONTAINER, FieldAttributesHelper::SETTING_INPUT] as $setting) {
+            if (!array_key_exists($setting, $config)) {
+                continue;
+            }
+
+            $config[$setting] = FieldAttributesHelper::normalize($config[$setting], $setting, false);
+        }
     }
 
     private static function _removeLegacyProperties(array &$config): void
