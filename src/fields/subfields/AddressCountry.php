@@ -165,7 +165,7 @@ class AddressCountry extends Dropdown implements ChildFieldInterface
         if ($tag && $key === 'fieldInput') {
             $tag->mergeCoreAttributes([
                 'autocomplete' => 'country',
-                'data-country' => true,
+                'data-formie-address-country-input' => true,
             ]);
         }
 

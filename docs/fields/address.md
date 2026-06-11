@@ -12,6 +12,17 @@ Use Address when the value needs to be mapped to integrations, exported, queried
 - **Default country (Google Places)** - Bias Google Places suggestions toward a selected country, similar to the Phone field.
 - **Current location** - Allow location-based lookup when the selected provider supports it.
 - **Country handling** - Restrict or preselect countries when the form should only accept certain regions.
+- **State / Province input mode** - Choose **Text** or **Dropdown when available** on the State / Province sub-field.
+  - **Text** — always renders a plain text input.
+  - **Dropdown when available** — loads subdivisions for the selected country via Formie’s browser assets.
+- **Hide When Not Used** — hides the state/province field until a country is selected, and hides it again for countries that do not use administrative areas in their address format.
+- **Use Searchable Dropdown** — when subdivision data is available, enhances the state/province control with type-to-filter behaviour (recommended for long lists such as US states).
+- **Use Datalist Suggestions** — only applies when subdivision data is unavailable and the field falls back to a text input.
+- **Option Label** and **Option Value** — choose whether subdivision options use full names or short codes.
+
+Place **Country** before **State / Province** in the sub-field layout when using **Dropdown when available**. New Address fields default to this order.
+
+While subdivisions load, the country field shows a loading indicator and the state column shows a skeleton placeholder so the layout does not jump. Password managers and browser autofill target a persistent hidden `address-level1` input; Formie reconciles that value onto the visible control once subdivision data is ready.
 
 ## Submitted value
 
@@ -34,6 +45,29 @@ Provider setup is documented on the address provider integration pages:
 - [PlaceKit](/integrations/address-providers/placekit)
 
 Current-location support depends on the selected provider. If you are building a custom provider, see [Address Provider Integration](/developers/custom-integration/address-provider-integration).
+
+## Developer hooks
+
+Plugins can modify subdivision option data before it is returned to the front end:
+
+```php
+use verbb\formie\events\ModifyAddressSubdivisionsEvent;
+use verbb\formie\Formie;
+use verbb\formie\services\Countries;
+use yii\base\Event;
+
+Event::on(
+    Countries::class,
+    Countries::EVENT_MODIFY_ADDRESS_SUBDIVISIONS,
+    function(ModifyAddressSubdivisionsEvent $event) {
+        // $event->countryCode — ISO 3166-1 alpha-2 code
+        // $event->subdivisions — option rows with label, value, name, and short keys
+        // $event->field — optional field context when available
+    }
+);
+```
+
+The subdivisions endpoint is `actions/formie/address/subdivisions` and accepts `country`, `optionLabel`, and `optionValue` query parameters.
 
 ## Theme config
 

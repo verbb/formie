@@ -1,8 +1,9 @@
 import type { ModuleSetupContext } from '#contracts/modules';
 import {
     ADDRESS_LOCATION_SELECTOR,
-    ADDRESS_SELECTORS,
     DEFAULT_AUTOCOMPLETE_SELECTOR,
+    findAddressFieldInput,
+    type AddressFieldInputKey,
 } from '#modules/address/constants';
 
 type Cleanup = () => void;
@@ -24,7 +25,7 @@ export type AddressHostServices = {
     form: HTMLFormElement | null;
     input: {
         getAutocomplete: () => HTMLInputElement | null;
-        setValue: (selector: keyof typeof ADDRESS_SELECTORS, value: string, fallback?: string) => void;
+        setValue: (selector: AddressFieldInputKey, value: string, fallback?: string) => void;
     };
     location: {
         getButton: () => HTMLElement | null;
@@ -90,12 +91,21 @@ export function createAddressHostServices(
                 return field.querySelector(autocompleteSelector) as HTMLInputElement | null;
             },
             setValue: (selectorKey, value, fallback) => {
-                const selector = ADDRESS_SELECTORS[selectorKey];
-                const el = field.querySelector(selector) as HTMLInputElement | null;
+                const el = findAddressFieldInput(field, selectorKey);
 
-                if (el) {
-                    el.value = value || fallback || '';
+                if (!el) {
+                    return;
                 }
+
+                const nextValue = value || fallback || '';
+
+                if (el.value === nextValue) {
+                    return;
+                }
+
+                el.value = nextValue;
+                el.dispatchEvent(new Event('input', { bubbles: true }));
+                el.dispatchEvent(new Event('change', { bubbles: true }));
             },
         },
         location: {

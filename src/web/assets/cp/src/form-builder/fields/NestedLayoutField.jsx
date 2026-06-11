@@ -50,6 +50,7 @@ import {
     DropdownMenuTrigger,
     DropdownMenuSeparator,
     Lightswitch,
+    Spinner,
 } from '@verbb/plugin-kit-react/components';
 
 import {
@@ -63,6 +64,8 @@ import {
 import { cn, createItem } from '@verbb/plugin-kit-react/utils';
 
 import { useFormBuilderApp } from '@form-builder/contexts/FormBuilderAppContext';
+import useAppStore from '@form-builder/hooks/useAppStore';
+import { fetchFieldTypeConfig } from '@form-builder/hooks/useFormTools';
 import { useHandleSyncOnChange } from '@form-builder/hooks/useHandleSyncOnChange';
 import { useNestedLayoutVariant } from '@form-builder/hooks/useNestedLayoutVariant';
 import { getDevToolsConfig } from '@form-builder/dev/config';
@@ -585,16 +588,100 @@ const SubFieldEditModal = ({
     onSave,
     onCancel,
 }) => {
+    const hydrateFieldTypeConfig = useAppStore((state) => { return state.hydrateFieldTypeConfig; });
+    const fieldTypeKey = field?.type || fieldType?.type;
+    const [resolvedFieldType, setResolvedFieldType] = useState(() => {
+        if (fieldType) {
+            return fieldType;
+        }
+
+        if (fieldTypeKey) {
+            return { type: fieldTypeKey };
+        }
+
+        return null;
+    });
+    const [isLoadingFieldType, setIsLoadingFieldType] = useState(false);
+    const [fieldTypeLoadError, setFieldTypeLoadError] = useState(null);
     const contentRef = useRef(null);
     const hasAutofocusedRef = useRef(false);
 
+    useEffect(() => {
+        if (fieldType) {
+            setResolvedFieldType(fieldType);
+        } else if (fieldTypeKey) {
+            setResolvedFieldType({ type: fieldTypeKey });
+        } else {
+            setResolvedFieldType(null);
+        }
+
+        setFieldTypeLoadError(null);
+    }, [fieldType, fieldTypeKey]);
+
+    useEffect(() => {
+        let isMounted = true;
+        const activeType = resolvedFieldType?.type || fieldTypeKey;
+        const hasSchemaConfig = (
+            hasSchemaNodes(schemaDefinition?.schema)
+            || hasSchemaNodes(resolvedFieldType?.schemaIndex?.schema)
+            || hasSchemaNodes(resolvedFieldType?.schema)
+        );
+
+        if (!activeType || hasSchemaConfig) {
+            return () => { };
+        }
+
+        const loadFieldType = async() => {
+            setIsLoadingFieldType(true);
+            setFieldTypeLoadError(null);
+
+            const result = await fetchFieldTypeConfig(activeType, { hydrateOnly: false });
+
+            if (!isMounted) {
+                return;
+            }
+
+            if (result?.ok && result?.data?.fieldType) {
+                const fullFieldTypeConfig = result.data.fieldType;
+                setResolvedFieldType((current) => {
+                    return {
+                        ...(current || {}),
+                        ...fullFieldTypeConfig,
+                    };
+                });
+                hydrateFieldTypeConfig(activeType, fullFieldTypeConfig);
+            } else {
+                setFieldTypeLoadError(result?.errors?.fieldType?.[0] || Craft.t('formie', 'Unable to load field settings.'));
+            }
+
+            setIsLoadingFieldType(false);
+        };
+
+        loadFieldType();
+
+        return () => {
+            isMounted = false;
+        };
+    }, [
+        fieldTypeKey,
+        resolvedFieldType?.type,
+        resolvedFieldType?.schemaIndex?.schema,
+        resolvedFieldType?.schema,
+        schemaDefinition?.schema,
+        hydrateFieldTypeConfig,
+    ]);
+
     const sanitizedSchema = useMemo(() => {
-        const fieldSchema = schemaDefinition?.schema || fieldType?.schemaIndex?.schema || fieldType?.schema || [];
+        if (schemaDefinition?.schema) {
+            return sanitizeSubFieldSchema(schemaDefinition.schema, shouldSanitizeSettings);
+        }
+
+        const fieldSchema = resolvedFieldType?.schemaIndex?.schema || resolvedFieldType?.schema || [];
         return sanitizeSubFieldSchema(fieldSchema, shouldSanitizeSettings);
-    }, [schemaDefinition, fieldType, shouldSanitizeSettings]);
+    }, [schemaDefinition, resolvedFieldType, shouldSanitizeSettings]);
     const rawSchemaIndex = schemaDefinition?.schema
         ? (schemaDefinition?.schemaIndex || null)
-        : (fieldType?.schemaIndex || null);
+        : (resolvedFieldType?.schemaIndex || null);
     const schemaIndex = useMemo(() => {
         return sanitizeSubFieldSchemaIndex(rawSchemaIndex, shouldSanitizeSettings);
     }, [rawSchemaIndex, shouldSanitizeSettings]);
@@ -621,7 +708,7 @@ const SubFieldEditModal = ({
     });
 
     useEffect(() => {
-        if (hasAutofocusedRef.current) {
+        if (hasAutofocusedRef.current || !hasSchemaConfig) {
             return;
         }
 
@@ -630,7 +717,7 @@ const SubFieldEditModal = ({
         return focusFirstVisibleInputIfEmpty({
             root: contentRef.current,
         });
-    }, []);
+    }, [hasSchemaConfig]);
 
     return (
         <DialogContent className={cn(
@@ -668,9 +755,13 @@ const SubFieldEditModal = ({
                     />
                 ) : (
                     <div className="flex h-full items-center justify-center">
-                        <div className="text-sm text-rose-600">
-                            {Craft.t('formie', 'Field settings are unavailable. Please reload the builder.')}
-                        </div>
+                        {isLoadingFieldType ? (
+                            <Spinner size="lg" />
+                        ) : (
+                            <div className="text-sm text-rose-600">
+                                {fieldTypeLoadError || Craft.t('formie', 'Field settings are unavailable. Please reload the builder.')}
+                            </div>
+                        )}
                     </div>
                 )}
             </div>

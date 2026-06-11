@@ -40,7 +40,7 @@ class Address3 extends SingleLineText implements ChildFieldInterface
         if ($tag && $key === 'fieldInput') {
             $tag->mergeCoreAttributes([
                 'autocomplete' => 'address-line3',
-                'data-address3' => true,
+                'data-formie-address-line3-input' => true,
             ]);
         }
 

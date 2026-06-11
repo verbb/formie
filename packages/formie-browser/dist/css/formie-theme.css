@@ -16,5 +16,6 @@
 @import "./theme/fields/_combobox.css";
 @import "./theme/fields/_check-radio.css";
 @import "./theme/fields/_address.css";
+@import "./theme/fields/_address-state.css";
 @import "./theme/integrations/_payment-modal.css";
 @import "./theme/utilities/_accessibility.css";

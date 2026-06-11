@@ -8,6 +8,13 @@ import type {
     AddressModuleOptions as AddressModuleManifestOptions,
 } from '#modules/address/host';
 
+export {
+    ADDRESS_LEGACY_SELECTORS,
+    ADDRESS_SELECTORS,
+    findAddressFieldInput,
+    type AddressFieldInputKey,
+} from '#modules/address/constants';
+
 // This file is the intended authoring surface for address providers.
 // Built-in providers import from here so third-party authors can follow the same patterns.
 export const defineAddressModule = createManagedAddressModule;

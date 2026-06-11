@@ -24,12 +24,14 @@ class AddressController extends Controller
 
     private const GOOGLE_GEOCODE_RATE_LIMIT = 60;
     private const GOOGLE_GEOCODE_RATE_WINDOW_SECONDS = 60;
-    
+    private const SUBDIVISIONS_RATE_LIMIT = 120;
+    private const SUBDIVISIONS_RATE_WINDOW_SECONDS = 60;
+
 
     // Properties
     // =========================================================================
 
-    protected array|bool|int $allowAnonymous = ['google-places-geocode'];
+    protected array|bool|int $allowAnonymous = ['google-places-geocode', 'subdivisions'];
 
 
     // Public Methods
@@ -37,11 +39,49 @@ class AddressController extends Controller
 
     public function beforeAction($action): bool
     {
-        if ($action->id === 'google-places-geocode') {
+        if (in_array($action->id, ['google-places-geocode', 'subdivisions'], true)) {
             $this->enableCsrfValidation = false;
         }
 
         return parent::beforeAction($action);
+    }
+
+    public function actionSubdivisions(): Response
+    {
+        $this->requireAcceptsJson();
+
+        $request = $this->request;
+        $country = trim((string)$request->getParam('country', ''));
+        $optionLabel = trim((string)$request->getParam('optionLabel', 'name'));
+        $optionValue = trim((string)$request->getParam('optionValue', 'name'));
+
+        if (!in_array($optionLabel, ['name', 'short'], true)) {
+            $optionLabel = 'name';
+        }
+
+        if (!in_array($optionValue, ['name', 'short'], true)) {
+            $optionValue = 'name';
+        }
+
+        $this->_enforceSubdivisionsRateLimit($country);
+
+        $countryCode = Formie::$plugin->getCountries()->resolveCountryCode($country);
+
+        if (!$countryCode) {
+            throw new BadRequestHttpException('Invalid country.');
+        }
+
+        $metadata = Formie::$plugin->getCountries()->getAddressFormatMetadata($countryCode);
+        $subdivisions = Formie::$plugin->getCountries()->getAddressSubdivisions(
+            $countryCode,
+            null,
+            $optionLabel,
+            $optionValue,
+        );
+
+        return $this->asJson(array_merge($metadata, [
+            'subdivisions' => $subdivisions,
+        ]));
     }
 
     public function actionGooglePlacesGeocode(): Response
@@ -112,6 +152,41 @@ class AddressController extends Controller
 
     // Private Methods
     // =========================================================================
+
+    private function _enforceSubdivisionsRateLimit(string $country): void
+    {
+        $ipAddress = Craft::$app->getRequest()->getUserIP();
+        $cacheKey = 'formie.address-subdivisions-rate.' . md5($country . '|' . $ipAddress);
+        $mutexKey = 'formie.address-subdivisions-rate-lock.' . md5($country . '|' . $ipAddress);
+        $cache = Craft::$app->getCache();
+        $mutex = Craft::$app->getMutex();
+        $now = time();
+        $lockAcquired = $mutex?->acquire($mutexKey, 3) ?? false;
+
+        try {
+            $entry = $cache->get($cacheKey);
+
+            if (!is_array($entry) || !isset($entry['count'], $entry['resetAt']) || (int)$entry['resetAt'] <= $now) {
+                $entry = [
+                    'count' => 0,
+                    'resetAt' => $now + self::SUBDIVISIONS_RATE_WINDOW_SECONDS,
+                ];
+            }
+
+            if ((int)$entry['count'] >= self::SUBDIVISIONS_RATE_LIMIT) {
+                Craft::$app->getResponse()->getHeaders()->set('Retry-After', (string)max(1, (int)$entry['resetAt'] - $now));
+
+                throw new TooManyRequestsHttpException('Too many subdivision requests. Please try again shortly.');
+            }
+
+            $entry['count'] = (int)$entry['count'] + 1;
+            $cache->set($cacheKey, $entry, max(1, (int)$entry['resetAt'] - $now));
+        } finally {
+            if ($lockAcquired) {
+                $mutex?->release($mutexKey);
+            }
+        }
+    }
 
     private function _enforceGoogleGeocodeRateLimit(string $formHandle, string $fieldHandle): void
     {

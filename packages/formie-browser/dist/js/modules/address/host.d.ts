@@ -1,5 +1,5 @@
 import type { ModuleSetupContext } from '#contracts/modules';
-import { ADDRESS_SELECTORS } from '#modules/address/constants';
+import { type AddressFieldInputKey } from '#modules/address/constants';
 type Cleanup = () => void;
 export type AddressModuleOptions<TProvider extends Record<string, unknown> = Record<string, unknown>> = {
     handle?: string;
@@ -14,7 +14,7 @@ export type AddressHostServices = {
     form: HTMLFormElement | null;
     input: {
         getAutocomplete: () => HTMLInputElement | null;
-        setValue: (selector: keyof typeof ADDRESS_SELECTORS, value: string, fallback?: string) => void;
+        setValue: (selector: AddressFieldInputKey, value: string, fallback?: string) => void;
     };
     location: {
         getButton: () => HTMLElement | null;

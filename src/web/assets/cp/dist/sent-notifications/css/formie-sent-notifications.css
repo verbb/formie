@@ -1,1 +1,1 @@
-.fui-resend-modal .footer{width:100%;position:absolute;bottom:0}.fui-resend-modal .body{height:100%;padding-bottom:80px;position:relative;overflow:auto}.fui-resend-modal .spinner.big{margin:-24px 0 0 -24px;position:absolute;top:50%;left:50%}
+.fui-resend-modal .footer{position:absolute;bottom:0;width:100%}.fui-resend-modal .body{position:relative;height:100%;overflow:auto;padding-bottom:80px}.fui-resend-modal .spinner.big{position:absolute;top:50%;left:50%;margin:-24px 0 0 -24px}

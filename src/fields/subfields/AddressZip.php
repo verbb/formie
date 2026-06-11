@@ -65,7 +65,7 @@ class AddressZip extends SingleLineText implements ChildFieldInterface
         if ($tag && $key === 'fieldInput') {
             $tag->mergeCoreAttributes([
                 'autocomplete' => 'postal-code',
-                'data-zip' => true,
+                'data-formie-address-zip-input' => true,
             ]);
         }
 

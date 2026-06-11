@@ -5,6 +5,12 @@
 ### Added
 
 - Add the `combobox` field module for searchable dropdown fields, powered by Tom Select. Supports single and multi-select filtering, placeholder handling, and Formie theme styling.
+- Add the `address-state` field module for country-dependent Address state/province inputs, including subdivision fetching, loading UX, searchable dropdown enhancement, and password-manager autofill reconciliation.
+- Export `initFormieCombobox()` from the combobox module for reuse by other field modules.
+
+### Changed
+
+- Normalise Address sub-field selectors to `data-formie-address-*`, with `ADDRESS_LEGACY_SELECTORS` fallbacks for older markup.
 
 ## 1.0.4
 

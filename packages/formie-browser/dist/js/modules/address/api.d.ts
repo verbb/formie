@@ -1,5 +1,6 @@
 import { createManagedAddressModule, type AddressModuleSetupContext, type ManagedAddressModuleAdapter } from '#modules/address/factories';
 import type { AddressHostServices, AddressModuleOptions as AddressModuleManifestOptions } from '#modules/address/host';
+export { ADDRESS_LEGACY_SELECTORS, ADDRESS_SELECTORS, findAddressFieldInput, type AddressFieldInputKey, } from '#modules/address/constants';
 export declare const defineAddressModule: typeof createManagedAddressModule;
 export type AddressServices = AddressHostServices;
 export type AddressModuleContext<TProvider extends Record<string, unknown>> = AddressModuleSetupContext<TProvider>;

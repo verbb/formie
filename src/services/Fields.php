@@ -247,6 +247,27 @@ class Fields extends Component
         return Formie::$plugin->getFieldPalette()->buildFormBuilderFieldTypeGroups($fullConfigTypes);
     }
 
+    public function getFormBuilderFieldTypeConfig(string $type, bool $hydrateOnly = false): ?array
+    {
+        $type = trim($type);
+
+        if ($type === '') {
+            return null;
+        }
+
+        $registeredFieldTypes = $this->_getResolvedRegisteredFieldTypes(false);
+
+        if (!in_array($type, $registeredFieldTypes, true)) {
+            return null;
+        }
+
+        $field = $this->_getRegisteredFieldInstance($type);
+
+        return $hydrateOnly
+            ? $field->getFieldTypeHydrationConfig()
+            : $field->getFieldTypeConfig(true);
+    }
+
     public function getFieldTypeDefinition(string $fieldClass): array
     {
         return Formie::$plugin->getFieldTypeDefinitions()->getDefinition($fieldClass);

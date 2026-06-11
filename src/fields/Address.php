@@ -389,7 +389,7 @@ class Address extends FixedParentField implements PreviewableFieldInterface
                                 'value' => 'address-line1',
                             ],
                             [
-                                'label' => 'data-address1',
+                                'label' => 'data-formie-address-line1-input',
                                 'value' => true,
                             ],
                         ],
@@ -410,7 +410,7 @@ class Address extends FixedParentField implements PreviewableFieldInterface
                                 'value' => 'address-line2',
                             ],
                             [
-                                'label' => 'data-address2',
+                                'label' => 'data-formie-address-line2-input',
                                 'value' => true,
                             ],
                         ],
@@ -431,7 +431,7 @@ class Address extends FixedParentField implements PreviewableFieldInterface
                                 'value' => 'address-line3',
                             ],
                             [
-                                'label' => 'data-address3',
+                                'label' => 'data-formie-address-line3-input',
                                 'value' => true,
                             ],
                         ],
@@ -452,7 +452,7 @@ class Address extends FixedParentField implements PreviewableFieldInterface
                                 'value' => 'address-level2',
                             ],
                             [
-                                'label' => 'data-city',
+                                'label' => 'data-formie-address-city-input',
                                 'value' => true,
                             ],
                         ],
@@ -469,7 +469,7 @@ class Address extends FixedParentField implements PreviewableFieldInterface
                                 'value' => 'postal-code',
                             ],
                             [
-                                'label' => 'data-zip',
+                                'label' => 'data-formie-address-zip-input',
                                 'value' => true,
                             ],
                         ],
@@ -478,23 +478,6 @@ class Address extends FixedParentField implements PreviewableFieldInterface
             ],
             [
                 'fields' => [
-                    [
-                        'type' => subfields\AddressState::class,
-                        'label' => Craft::t('formie', 'State / Province'),
-                        'handle' => 'state',
-                        'enabled' => true,
-                        'labelPosition' => $this->subFieldLabelPosition,
-                        'inputAttributes' => [
-                            [
-                                'label' => 'autocomplete',
-                                'value' => 'address-level1',
-                            ],
-                            [
-                                'label' => 'data-state',
-                                'value' => true,
-                            ],
-                        ],
-                    ],
                     [
                         'type' => subfields\AddressCountry::class,
                         'label' => Craft::t('formie', 'Country'),
@@ -508,7 +491,24 @@ class Address extends FixedParentField implements PreviewableFieldInterface
                                 'value' => 'country',
                             ],
                             [
-                                'label' => 'data-country',
+                                'label' => 'data-formie-address-country-input',
+                                'value' => true,
+                            ],
+                        ],
+                    ],
+                    [
+                        'type' => subfields\AddressState::class,
+                        'label' => Craft::t('formie', 'State / Province'),
+                        'handle' => 'state',
+                        'enabled' => true,
+                        'labelPosition' => $this->subFieldLabelPosition,
+                        'inputAttributes' => [
+                            [
+                                'label' => 'autocomplete',
+                                'value' => 'address-level1',
+                            ],
+                            [
+                                'label' => 'data-formie-address-state-input',
                                 'value' => true,
                             ],
                         ],

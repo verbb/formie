@@ -18,7 +18,7 @@ const NATIVE_THEME_CLASSES = [
     'formie-input-error',
 ] as const;
 
-type ComboboxOptions = {
+export type FormieComboboxOptions = {
     multiple?: boolean;
     placeholder?: string | null;
 };
@@ -75,7 +75,7 @@ function removeEmptyOptionFromCombobox(instance: TomSelectInstance): void {
     }
 }
 
-function initCombobox(select: SelectElement, options: ComboboxOptions): () => void {
+export function initFormieCombobox(select: SelectElement, options: FormieComboboxOptions = {}): () => void {
     select._formieTomSelect?.destroy();
 
     const multiple = options.multiple === true;
@@ -155,7 +155,7 @@ export const comboboxModule: FormieModuleDefinition = {
         return !!ctx.target.querySelector(SELECT_SELECTOR);
     },
     setup: async (ctx) => {
-        const options = (ctx.options || {}) as ComboboxOptions;
+        const options = (ctx.options || {}) as FormieComboboxOptions;
         const fields = getModuleFieldContainers(ctx);
         const cleanups = fields.map((field) => {
             const select = field.querySelector(SELECT_SELECTOR);
@@ -165,7 +165,7 @@ export const comboboxModule: FormieModuleDefinition = {
                 return () => { };
             }
 
-            return initCombobox(select as SelectElement, options);
+            return initFormieCombobox(select as SelectElement, options);
         });
 
         debug.log('Module setup.', { fieldCount: fields.length });

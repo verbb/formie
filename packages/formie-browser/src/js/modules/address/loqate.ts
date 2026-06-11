@@ -1,5 +1,5 @@
 import { defineAddressModule } from '#modules/address/api';
-import { ADDRESS_SELECTORS } from '#modules/address/constants';
+import { findAddressFieldInput, type AddressFieldInputKey } from '#modules/address/constants';
 import { loadScriptAndEnsureGlobal } from '#utils/scripts';
 
 type PcaFieldMode = {
@@ -63,27 +63,13 @@ export const loqateModule = defineAddressModule<
             throw new Error('Loqate API key is required');
         }
 
-        const handleToSelector: Record<string, string> = {
-            autoComplete: ADDRESS_SELECTORS.autoComplete,
-            address1: ADDRESS_SELECTORS.address1,
-            address2: ADDRESS_SELECTORS.address2,
-            address3: ADDRESS_SELECTORS.address3,
-            city: ADDRESS_SELECTORS.city,
-            state: ADDRESS_SELECTORS.state,
-            zip: ADDRESS_SELECTORS.zip,
-            country: ADDRESS_SELECTORS.country,
-        };
-
         // Loqate PCA expects element to be an id string, name string, or RegExp matching ids – not CSS selectors
-        const getLoqateElementRef = (handle: string): string => {
+        const getLoqateElementRef = (handle: AddressFieldInputKey): string => {
             if (namespace) {
                 return `${namespace}[${handle}]`;
             }
 
-            const cssSelector = handleToSelector[handle];
-            const el = cssSelector
-                ? (field.querySelector(cssSelector) as HTMLInputElement | null)
-                : null;
+            const el = findAddressFieldInput(field, handle);
 
             if (el?.name) {
                 return el.name;

@@ -179,8 +179,7 @@ abstract class FixedParentField extends ContainerParentField implements FixedPar
 
     protected function getNestedLayoutBuilderEditorSchemaByType(array $types): array
     {
-        // For fixed-parent nested fields, editor schemas are only needed when opening a sub-field modal.
-        // Defer schema compilation to on-demand field type hydration in the CP.
+        // Child sub-field schemas are loaded on demand when a sub-field edit modal opens.
         return [];
     }
 

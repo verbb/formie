@@ -191,6 +191,36 @@ class FieldsController extends Controller
         ]);
     }
 
+    public function actionGetFieldTypeConfig(): Response
+    {
+        $this->requireAcceptsJson();
+
+        $hydrateOnlyParam = $this->request->getBodyParam('hydrateOnly',
+            $this->request->getQueryParam('hydrateOnly',
+                $this->request->getParam('hydrateOnly', false)));
+        $hydrateOnly = filter_var($hydrateOnlyParam, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+        $hydrateOnly = $hydrateOnly ?? false;
+
+        $type = (string)($this->request->getBodyParam('type')
+            ?? $this->request->getQueryParam('type')
+            ?? $this->request->getParam('type'));
+        $type = trim($type);
+
+        if ($type === '') {
+            throw new BadRequestHttpException('Missing required param: type.');
+        }
+
+        $fieldTypeConfig = Formie::$plugin->getFields()->getFormBuilderFieldTypeConfig($type, $hydrateOnly);
+
+        if (!$fieldTypeConfig) {
+            throw new BadRequestHttpException('Unknown field type.');
+        }
+
+        return $this->asJson([
+            'fieldType' => $fieldTypeConfig,
+        ]);
+    }
+
     public function actionGetPaymentProviderSettingsSchema(): Response
     {
         $this->requireAcceptsJson();

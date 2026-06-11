@@ -3,13 +3,16 @@ namespace verbb\formie\services;
 
 use verbb\formie\base\FieldInterface;
 use verbb\formie\events\ModifyAddressCountriesEvent;
+use verbb\formie\events\ModifyAddressSubdivisionsEvent;
 use verbb\formie\events\ModifyPhoneCountriesEvent;
 
 use Craft;
 use craft\base\Component;
 
 use libphonenumber\PhoneNumberUtil;
+use CommerceGuys\Addressing\AddressFormat\AddressFormatRepository;
 use CommerceGuys\Addressing\Country\CountryRepository;
+use CommerceGuys\Addressing\Subdivision\SubdivisionRepository;
 
 class Countries extends Component
 {
@@ -17,6 +20,7 @@ class Countries extends Component
     // =========================================================================
 
     public const EVENT_MODIFY_ADDRESS_COUNTRIES = 'modifyAddressCountries';
+    public const EVENT_MODIFY_ADDRESS_SUBDIVISIONS = 'modifyAddressSubdivisions';
     public const EVENT_MODIFY_PHONE_COUNTRIES = 'modifyPhoneCountries';
 
 
@@ -99,5 +103,119 @@ class Countries extends Component
         $this->trigger(self::EVENT_MODIFY_ADDRESS_COUNTRIES, $event);
 
         return $event->countries;
+    }
+
+    public function resolveCountryCode(string $country): ?string
+    {
+        $country = trim($country);
+
+        if ($country === '') {
+            return null;
+        }
+
+        if (strlen($country) <= 3) {
+            return strtoupper($country);
+        }
+
+        $locale = Craft::$app->getLocale()->getLanguageID();
+        $repo = new CountryRepository($locale);
+
+        foreach ($repo->getList() as $code => $name) {
+            if (strcasecmp($name, $country) === 0) {
+                return strtoupper($code);
+            }
+        }
+
+        return null;
+    }
+
+    public function getAddressSubdivisions(string $countryCode, ?FieldInterface $field = null, string $optionLabel = 'name', string $optionValue = 'name'): array
+    {
+        $countryCode = strtoupper(trim($countryCode));
+
+        if ($countryCode === '') {
+            return [];
+        }
+
+        $locale = Craft::$app->getLocale()->getLanguageID();
+
+        $subdivisions = Craft::$app->getCache()->getOrSet([
+            'formie.addressSubdivisions',
+            'locale' => $locale,
+            'country' => $countryCode,
+            'optionLabel' => $optionLabel,
+            'optionValue' => $optionValue,
+        ], function() use ($countryCode, $locale, $optionLabel, $optionValue) {
+            $subdivisionRepository = new SubdivisionRepository();
+            $options = [];
+
+            foreach ($subdivisionRepository->getAll([$countryCode]) as $subdivision) {
+                $name = $subdivision->getName();
+                $short = $subdivision->getCode();
+
+                $options[] = [
+                    'label' => $optionLabel === 'short' ? $short : $name,
+                    'value' => $optionValue === 'short' ? $short : $name,
+                    'name' => $name,
+                    'short' => $short,
+                ];
+            }
+
+            return $options;
+        });
+
+        $event = new ModifyAddressSubdivisionsEvent([
+            'field' => $field,
+            'countryCode' => $countryCode,
+            'subdivisions' => $subdivisions,
+        ]);
+        $this->trigger(self::EVENT_MODIFY_ADDRESS_SUBDIVISIONS, $event);
+
+        return $event->subdivisions;
+    }
+
+    public function getAddressFormatMetadata(string $countryCode): array
+    {
+        $countryCode = strtoupper(trim($countryCode));
+
+        if ($countryCode === '') {
+            return [
+                'countryCode' => '',
+                'administrativeAreaType' => null,
+                'administrativeAreaLabel' => Craft::t('formie', 'State / Province'),
+                'administrativeAreaUsed' => false,
+                'administrativeAreaRequired' => false,
+            ];
+        }
+
+        $locale = Craft::$app->getLocale()->getLanguageID();
+        $formatRepository = new AddressFormatRepository();
+        $format = $formatRepository->get($countryCode);
+        $usedFields = $format->getUsedFields();
+        $requiredFields = $format->getRequiredFields();
+        $administrativeAreaType = $format->getAdministrativeAreaType() ?: null;
+
+        return [
+            'countryCode' => $countryCode,
+            'administrativeAreaType' => $administrativeAreaType,
+            'administrativeAreaLabel' => self::getAdministrativeAreaLabel($administrativeAreaType),
+            'administrativeAreaUsed' => in_array('administrativeArea', $usedFields, true),
+            'administrativeAreaRequired' => in_array('administrativeArea', $requiredFields, true),
+        ];
+    }
+
+    public static function getAdministrativeAreaLabel(?string $type): string
+    {
+        return match ($type) {
+            'state' => Craft::t('formie', 'State'),
+            'province' => Craft::t('formie', 'Province'),
+            'prefecture' => Craft::t('formie', 'Prefecture'),
+            'county' => Craft::t('formie', 'County'),
+            'district' => Craft::t('formie', 'District'),
+            'oblast' => Craft::t('formie', 'Oblast'),
+            'parish' => Craft::t('formie', 'Parish'),
+            'department' => Craft::t('formie', 'Department'),
+            default => Craft::t('formie', 'State / Province'),
+        };
     }
 }

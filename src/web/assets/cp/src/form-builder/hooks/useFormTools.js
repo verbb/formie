@@ -1294,6 +1294,48 @@ const refreshIntegrationFormSettings = async(handle, settings = {}, options = {}
     }
 };
 
+const fetchFieldTypeConfig = async(type, options = {}) => {
+    if (!type) {
+        return { ok: false, errors: { fieldType: ['Missing field type.'] } };
+    }
+
+    const hydrateOnly = options.hydrateOnly !== false;
+
+    try {
+        const response = await Craft.sendActionRequest('POST', 'formie/fields/get-field-type-config', {
+            data: {
+                type,
+                hydrateOnly,
+            },
+        });
+
+        if (response?.data?.fieldType) {
+            return { ok: true, data: response.data };
+        }
+
+        const responseMessage = response?.data?.message;
+
+        return {
+            ok: false,
+            errors: {
+                fieldType: [responseMessage || 'Failed to fetch field type config.'],
+            },
+        };
+    } catch (error) {
+        console.error('Error fetching field type config:', error);
+        const responseMessage = error?.response?.data?.message;
+        const errorMessage = error?.message;
+
+        return {
+            ok: false,
+            error,
+            errors: {
+                fieldType: [responseMessage || errorMessage || 'Failed to fetch field type config.'],
+            },
+        };
+    }
+};
+
 const fetchPaymentProviderSettingsSchema = async(providerHandle, options = {}) => {
     if (!providerHandle) {
         return { ok: false, errors: { provider: ['Missing payment provider handle.'] } };
@@ -1371,6 +1413,7 @@ export {
     deleteForm,
     fetchIntegrationFormSettingsConfig,
     refreshIntegrationFormSettings,
+    fetchFieldTypeConfig,
     fetchPaymentProviderSettingsSchema,
     useFormValues,
     getFormFields,

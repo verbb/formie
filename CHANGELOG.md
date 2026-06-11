@@ -23,6 +23,9 @@
 - Add **Date Range** collection to Date/Time fields when **Display Type** is **Calendar (Advanced)**, using Flatpickr range mode to collect a start and end date/time. ([#2011](https://github.com/verbb/formie/issues/2011))
 - Add notification variable selectors for date ranges, including **Start Date/Time**, **End Date/Time**, **Start Date**, **Start Time**, **End Date**, and **End Time**.
 - Add GraphQL content types for date range submissions with `start` and `end` datetime values.
+- Add smart **State / Province** behaviour for Address fields, with **Text** or **Dropdown when available** input modes, country-dependent subdivision loading, dynamic labels (State, Province, Prefecture, and so on), optional hiding when unused, searchable dropdowns, and datalist suggestions for text fallback. ([#1416](https://github.com/verbb/formie/issues/1416))
+- Add a subdivisions endpoint (`formie/address/subdivisions`) and `ModifyAddressSubdivisionsEvent` for country-dependent state/province option data.
+- Add an `address-state` browser module with lazy subdivision loading, loading UX (country spinner and state skeleton), and password-manager/browser autofill reconciliation via a persistent `address-level1` anchor input.
 
 ### Changed
 - Refactor predefined options to align with the new option sources system.
@@ -30,7 +33,9 @@
 - Render HTML field builder previews inside a sandboxed iframe so control panel styles do not bleed into preview content.
 - Render HTML field Twig through Formie’s sandboxed template service instead of Craft’s unrestricted `renderString()`, and default **Allow Twig** to off for new HTML fields.
 - Respect **Include in Email Field Summaries** for cosmetic fields in `{allFields}`, `{allContentFields}`, and `{allVisibleFields}` instead of always excluding them.
-- Update `@verbb/plugin-kit-react` to 1.0.3 for the CodeMirror-based HTML editor, `codeEditor` SchemaForm field registration, and live Rich Text preview rendering via `TiptapContent`.
+- Update `@verbb/plugin-kit-react` to 1.0.4 for the CodeMirror-based HTML editor, `codeEditor` SchemaForm field registration, and live Rich Text preview rendering via `TiptapContent`.
+- Normalise Address sub-field browser selectors to the `data-formie-address-*` namespace, with legacy short-selector fallbacks for older saved forms and address provider modules.
+- Default new Address field layouts to place **Country** before **State / Province** so dependent subdivision loading works out of the box.
 - Map Freeform **Rich Text** fields to Formie **Rich Text** rather than HTML during migration.
 - Replace the Dropdown, Radio and Checkboxes option-table **Disabled** column with a row-menu **Visible / Hidden / Disabled** availability control ([#1816](https://github.com/verbb/formie/issues/1816)). **Hidden** removes an option from the front-end form while preserving stored submission values and labels; **Disabled** renders the option with HTML `disabled` so it stays visible but cannot be selected. Legacy `disabled: true` option rows are treated as hidden. Non-default states are indicated in the options table with row background tints.
 - Centralise front-end option filtering in `OptionsField::getFieldOptions()` so hidden options are excluded consistently (including Dropdown placeholders).
@@ -44,6 +49,7 @@
 - Fix Recipients fields preserving the selected option label when multiple recipient options send to the same email address, using encrypted row identity tokens while keeping recipient emails private in front-end markup. ([#2382](https://github.com/verbb/formie/issues/2382))
 - Fix static Recipients option rows accepting invalid email targets by validating each comma-separated recipient address in the field settings.
 - Fix Dropdown, Radio and Checkboxes **Disabled** option availability not outputting HTML `disabled` on the front-end form. ([#1816](https://github.com/verbb/formie/issues/1816))
+- Fix Address and other fixed-parent sub-field settings being unavailable in the form builder by restoring on-demand field type config loading for nested sub-field types. ([#1416](https://github.com/verbb/formie/issues/1416))
 
 ## 4.0.0-beta.4 - 2026-06-07
 

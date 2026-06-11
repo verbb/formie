@@ -40,7 +40,7 @@ class AddressCity extends SingleLineText implements ChildFieldInterface
         if ($tag && $key === 'fieldInput') {
             $tag->mergeCoreAttributes([
                 'autocomplete' => 'address-level2',
-                'data-city' => true,
+                'data-formie-address-city-input' => true,
             ]);
         }
 
