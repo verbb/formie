@@ -218,4 +218,29 @@ class Countries extends Component
             default => Craft::t('formie', 'State / Province'),
         };
     }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _getRequestCountryHeaders(): array
+    {
+        return [
+            'CF-IPCountry',
+            'CloudFront-Viewer-Country',
+            'X-Country-Code',
+            'X-Appengine-Country',
+        ];
+    }
+
+    private function _isValidCountryCode(string $code): bool
+    {
+        if (strlen($code) !== 2 || !ctype_alpha($code)) {
+            return false;
+        }
+
+        $repo = new CountryRepository('en');
+
+        return (bool)$repo->get($code);
+    }
 }

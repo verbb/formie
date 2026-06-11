@@ -4,6 +4,7 @@ import intlTelInputCss from 'intl-tel-input/styles?inline';
 import type { FormieModuleDefinition } from '#contracts/modules';
 import { dispatchFieldEvent, getModuleFieldContainers, releaseFormValidators, retainFormValidators } from '#modules/fields/shared';
 import { ensureModuleStyles } from '#modules/styles';
+import { createGeoIpLookup } from '#utils/country-from-ip';
 import { createDebug } from '#utils/debug';
 
 const PHONE_SELECTOR = 'input[type="tel"][data-formie-phone-input]';
@@ -18,6 +19,8 @@ ensureModuleStyles(MODULE_ID, [intlTelInputCss]);
 type PhoneCountryOptions = {
     countryDefaultValue?: string;
     countryAllowed?: string[];
+    countryPreselectFromIp?: boolean;
+    countryFromIpAction?: string;
     language?: string;
 };
 
@@ -111,6 +114,9 @@ function buildOptions(options: PhoneCountryOptions): Record<string, unknown> {
 
     if (options.countryDefaultValue) {
         intlOptions.initialCountry = options.countryDefaultValue.toLowerCase();
+    } else if (options.countryPreselectFromIp) {
+        intlOptions.initialCountry = 'auto';
+        intlOptions.geoIpLookup = createGeoIpLookup(options.countryFromIpAction);
     }
 
     if (Array.isArray(intlOptions.onlyCountries) && typeof intlOptions.initialCountry === 'string') {

@@ -12,6 +12,7 @@ Use Address when the value needs to be mapped to integrations, exported, queried
 - **Default country (Google Places)** - Bias Google Places suggestions toward a selected country, similar to the Phone field.
 - **Current location** - Allow location-based lookup when the selected provider supports it.
 - **Country handling** - Restrict or preselect countries when the form should only accept certain regions.
+- **Preselect Country from IP** — pre-fill the Country sub-field from the visitor’s IP when no default value is set. Uses CDN geo headers (for example `CF-IPCountry`) via `actions/formie/address/country-from-ip`. Also available on Phone fields with the country selector enabled.
 - **State / Province input mode** - Choose **Text** or **Dropdown when available** on the State / Province sub-field.
   - **Text** — always renders a plain text input.
   - **Dropdown when available** — loads subdivisions for the selected country via Formie’s browser assets.
@@ -68,6 +69,8 @@ Event::on(
 ```
 
 The subdivisions endpoint is `actions/formie/address/subdivisions` and accepts `country`, `optionLabel`, and `optionValue` query parameters.
+
+IP-based country preselect uses `actions/formie/address/country-from-ip`, which returns `{ countryCode, countryName }` when a supported geo header is present on the request.
 
 ## Theme config
 

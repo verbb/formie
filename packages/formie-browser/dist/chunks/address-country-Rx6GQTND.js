@@ -1,0 +1,68 @@
+import { t as e } from "./debug-BV0DvdHx.js";
+import { i as t, n } from "./constants-DVcJAvc5.js";
+import { r } from "./shared-Bx9s0i0P.js";
+import { n as i } from "./country-from-ip-BwxKaBuJ.js";
+//#region src/js/modules/fields/address-country.ts
+var a = "address-country", o = n.country, s = e("fields", "address-country");
+function c(e, t, n) {
+	return n === "full" && t ? t : e.toUpperCase();
+}
+function l(e, t = []) {
+	if (!t.length) return !0;
+	let n = e.toUpperCase();
+	return t.some((e) => e.toUpperCase() === n);
+}
+function u(e, t) {
+	return Array.from(e.options).some((e) => e.value === t);
+}
+async function d(e, t) {
+	for (let n = 0; n < 20; n += 1) {
+		let n = e._formieTomSelect;
+		if (n || !e.hasAttribute("data-formie-combobox-input")) {
+			n ? n.setValue(t, !0) : e.value = t, e.dispatchEvent(new Event("change", { bubbles: !0 }));
+			return;
+		}
+		await new Promise((e) => {
+			window.setTimeout(e, 50);
+		});
+	}
+	s.warn("Timed out waiting for country combobox initialisation.");
+}
+async function f(e, n) {
+	let r = t(e, "country");
+	if (!(r instanceof HTMLSelectElement)) {
+		s.warn("Country control not found or not a select; skipping preselect.");
+		return;
+	}
+	if (r.value.trim()) return;
+	let a = await i(n.countryFromIpAction);
+	if (!a?.countryCode) return;
+	if (!l(a.countryCode, n.countryAllowed)) {
+		s.log("Detected country is not in the allowed list; skipping preselect.", { countryCode: a.countryCode });
+		return;
+	}
+	let o = n.countryOptionValue === "full" ? "full" : "short", f = c(a.countryCode, a.countryName, o);
+	if (!u(r, f)) {
+		s.warn("Detected country is not available in the country dropdown; skipping preselect.", { selectValue: f });
+		return;
+	}
+	await d(r, f), s.log("Preselected country from IP.", { selectValue: f });
+}
+var p = {
+	id: a,
+	kind: "field",
+	match: (e) => !!e.target.querySelector(o),
+	setup: async (e) => {
+		let t = e.options || {};
+		if (!t.countryPreselectFromIp) return { destroy: () => {} };
+		let n = r(e), i = n.map(async (e) => {
+			let n = e.closest("[data-formie-field-type=\"address\"]") || e.closest("[data-formie-address-field-layout]")?.closest("[data-formie-field]") || e;
+			n instanceof HTMLElement && await f(n, t);
+		});
+		return await Promise.all(i), s.log("Module setup.", { fieldCount: n.length }), { destroy: () => {
+			s.log("Module destroy.", { fieldCount: n.length });
+		} };
+	}
+};
+//#endregion
+export { p as addressCountryModule };

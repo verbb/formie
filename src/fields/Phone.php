@@ -118,6 +118,7 @@ class Phone extends Field implements SortableFieldInterface, PreviewableFieldInt
     public ?string $countryDefaultValue = null;
     public string $countryLanguage = 'auto';
     public array $countryAllowed = [];
+    public bool $countryPreselectFromIp = false;
 
 
     // Public Methods
@@ -275,6 +276,12 @@ class Phone extends Field implements SortableFieldInterface, PreviewableFieldInt
                 'name' => 'countryDefaultValue',
                 'if' => 'countryEnabled',
                 'options' => $this->getCountryOptions(),
+            ]),
+            SchemaHelper::lightswitchField([
+                'label' => Craft::t('formie', 'Preselect Country from IP'),
+                'instructions' => Craft::t('formie', 'When enabled, the country will be pre-filled based on the visitor’s IP address, when no default value is set.'),
+                'name' => 'countryPreselectFromIp',
+                'if' => 'countryEnabled',
             ]),
             // TODO: https://github.com/verbb/formie/issues/2042
             // SchemaHelper::selectField([
@@ -450,6 +457,8 @@ class Phone extends Field implements SortableFieldInterface, PreviewableFieldInt
                 'config' => [
                     'countryDefaultValue' => $this->countryDefaultValue,
                     'countryAllowed' => $this->countryAllowed,
+                    'countryPreselectFromIp' => $this->countryPreselectFromIp,
+                    'countryFromIpAction' => 'formie/address/country-from-ip',
                     'language' => $this->_getMatchedLanguageId() ?? 'en',
                 ],
             ]);

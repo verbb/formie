@@ -26,12 +26,14 @@ class AddressController extends Controller
     private const GOOGLE_GEOCODE_RATE_WINDOW_SECONDS = 60;
     private const SUBDIVISIONS_RATE_LIMIT = 120;
     private const SUBDIVISIONS_RATE_WINDOW_SECONDS = 60;
+    private const COUNTRY_FROM_IP_RATE_LIMIT = 60;
+    private const COUNTRY_FROM_IP_RATE_WINDOW_SECONDS = 60;
 
 
     // Properties
     // =========================================================================
 
-    protected array|bool|int $allowAnonymous = ['google-places-geocode', 'subdivisions'];
+    protected array|bool|int $allowAnonymous = ['google-places-geocode', 'subdivisions', 'country-from-ip'];
 
 
     // Public Methods
@@ -39,7 +41,7 @@ class AddressController extends Controller
 
     public function beforeAction($action): bool
     {
-        if (in_array($action->id, ['google-places-geocode', 'subdivisions'], true)) {
+        if (in_array($action->id, ['google-places-geocode', 'subdivisions', 'country-from-ip'], true)) {
             $this->enableCsrfValidation = false;
         }
 
@@ -82,6 +84,24 @@ class AddressController extends Controller
         return $this->asJson(array_merge($metadata, [
             'subdivisions' => $subdivisions,
         ]));
+    }
+
+    public function actionCountryFromIp(): Response
+    {
+        $this->requireAcceptsJson();
+
+        $this->_enforceCountryFromIpRateLimit();
+
+        $country = Formie::$plugin->getCountries()->getCountryForRequest();
+
+        if (!$country) {
+            return $this->asJson([
+                'countryCode' => null,
+                'countryName' => null,
+            ]);
+        }
+
+        return $this->asJson($country);
     }
 
     public function actionGooglePlacesGeocode(): Response
@@ -177,6 +197,41 @@ class AddressController extends Controller
                 Craft::$app->getResponse()->getHeaders()->set('Retry-After', (string)max(1, (int)$entry['resetAt'] - $now));
 
                 throw new TooManyRequestsHttpException('Too many subdivision requests. Please try again shortly.');
+            }
+
+            $entry['count'] = (int)$entry['count'] + 1;
+            $cache->set($cacheKey, $entry, max(1, (int)$entry['resetAt'] - $now));
+        } finally {
+            if ($lockAcquired) {
+                $mutex?->release($mutexKey);
+            }
+        }
+    }
+
+    private function _enforceCountryFromIpRateLimit(): void
+    {
+        $ipAddress = Craft::$app->getRequest()->getUserIP();
+        $cacheKey = 'formie.address-country-from-ip-rate.' . md5($ipAddress);
+        $mutexKey = 'formie.address-country-from-ip-rate-lock.' . md5($ipAddress);
+        $cache = Craft::$app->getCache();
+        $mutex = Craft::$app->getMutex();
+        $now = time();
+        $lockAcquired = $mutex?->acquire($mutexKey, 3) ?? false;
+
+        try {
+            $entry = $cache->get($cacheKey);
+
+            if (!is_array($entry) || !isset($entry['count'], $entry['resetAt']) || (int)$entry['resetAt'] <= $now) {
+                $entry = [
+                    'count' => 0,
+                    'resetAt' => $now + self::COUNTRY_FROM_IP_RATE_WINDOW_SECONDS,
+                ];
+            }
+
+            if ((int)$entry['count'] >= self::COUNTRY_FROM_IP_RATE_LIMIT) {
+                Craft::$app->getResponse()->getHeaders()->set('Retry-After', (string)max(1, (int)$entry['resetAt'] - $now));
+
+                throw new TooManyRequestsHttpException('Too many country lookup requests. Please try again shortly.');
             }
 
             $entry['count'] = (int)$entry['count'] + 1;

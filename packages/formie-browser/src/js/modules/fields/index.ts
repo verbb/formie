@@ -14,6 +14,7 @@ export const builtinFieldModuleLoaders: Record<string, () => Promise<FormieModul
     'file-upload': () => import('#modules/fields/file-upload').then((module) => module.fileUploadModule),
     'hidden': () => import('#modules/fields/hidden').then((module) => module.hiddenModule),
     'phone-country': () => import('#modules/fields/phone-country').then((module) => module.phoneCountryModule),
+    'address-country': () => import('#modules/fields/address-country').then((module) => module.addressCountryModule),
     'address-state': () => import('#modules/fields/address-state').then((module) => module.addressStateModule),
     'repeater': () => import('#modules/fields/repeater').then((module) => module.repeaterModule),
     'rich-text': () => import('#modules/fields/rich-text').then((module) => module.richTextModule),

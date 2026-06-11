@@ -21,6 +21,8 @@ use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\helpers\Variables;
 use verbb\formie\integrations\addressproviders\Google;
+use verbb\formie\fields\subfields\AddressCountry;
+use verbb\formie\models\ClientModule;
 use verbb\formie\models\ClientModuleContext;
 use verbb\formie\models\SlotTag;
 use verbb\formie\positions\AboveInput;
@@ -77,6 +79,13 @@ class Address extends FixedParentField implements PreviewableFieldInterface
         return AddressInputType::getTypeFromConfig($config);
     }
     
+
+
+    // Properties
+    // =========================================================================
+
+    public bool $countryPreselectFromIp = false;
+
 
     // Public Methods
     // =========================================================================
@@ -277,6 +286,11 @@ class Address extends FixedParentField implements PreviewableFieldInterface
                         ],
                     ],
                 ],
+            ]),
+            SchemaHelper::lightswitchField([
+                'label' => Craft::t('formie', 'Preselect Country from IP'),
+                'instructions' => Craft::t('formie', 'When enabled, the country sub-field will be pre-filled based on the visitor’s IP address, when no default value is set.'),
+                'name' => 'countryPreselectFromIp',
             ]),
         ];
     }
@@ -624,6 +638,21 @@ class Address extends FixedParentField implements PreviewableFieldInterface
     protected function defineClientModules(): array
     {
         $modules = parent::defineClientModules();
+
+        $countrySubfield = $this->getFieldByHandle('country');
+
+        if ($countrySubfield instanceof AddressCountry && $countrySubfield->enabled && $this->countryPreselectFromIp) {
+            $modules[] = new ClientModule([
+                'id' => 'address-country',
+                'config' => [
+                    'countryPreselectFromIp' => true,
+                    'countryAllowed' => $this->countryAllowed,
+                    'countryOptionValue' => $countrySubfield->optionValue ?? 'short',
+                    'countryFromIpAction' => 'formie/address/country-from-ip',
+                ],
+            ]);
+        }
+
         $modules[] = function(ClientModuleContext $context) {
             $integration = $this->getAddressProviderIntegration();
 
