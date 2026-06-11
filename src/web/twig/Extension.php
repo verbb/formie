@@ -211,6 +211,24 @@ class Extension extends AbstractExtension
             $attributes['value'] = $value;
         }
 
+        $errors = $context['errors'] ?? [];
+
+        if (!empty($errors)) {
+            $attributes['aria-invalid'] = 'true';
+
+            $field = $context['field'] ?? null;
+            $form = $context['form'] ?? null;
+
+            if ($field instanceof Field && $form instanceof Form) {
+                $errorsId = $field->getHtmlId($form) . '-errors';
+                $describedBy = array_filter([
+                    $attributes['aria-describedby'] ?? null,
+                    $errorsId,
+                ]);
+                $attributes['aria-describedby'] = implode(' ', $describedBy);
+            }
+        }
+
         return $attributes;
     }
 }

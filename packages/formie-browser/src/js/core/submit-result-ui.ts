@@ -1,6 +1,7 @@
 import type { FormSubmitResult } from '#contracts/schema';
 import { ensureFieldErrorContainer as resolveFieldErrorContainer } from '#core/field-error-container';
 import { syncPageTabErrors } from '#core/page-tab-errors';
+import { focusFirstValidationError } from '#core/validation-focus';
 import { setFormHiddenState } from '#core/submit-result-state';
 import { addThemeClasses, removeThemeClasses } from '#theme/theme-classes';
 
@@ -433,10 +434,9 @@ export function applySubmitResultUi(form: HTMLFormElement, result: FormSubmitRes
 
     if (result.formErrors?.length) {
         renderFormErrors(form, result.formErrors);
-        return;
-    }
-
-    if (!result.fieldErrors && result.message) {
+    } else if (!result.fieldErrors && result.message) {
         renderFormErrors(form, [result.message]);
     }
+
+    focusFirstValidationError(form);
 }

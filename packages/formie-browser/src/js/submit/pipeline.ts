@@ -250,7 +250,17 @@ export async function runSubmitPipeline(
                 const errors = options.validator.submit(final ? ctx.form : scope, { final });
 
                 if (errors.length > 0) {
-                    errors[0]?.input.focus();
+                    const firstErrorInput = errors[0]?.input;
+
+                    if (firstErrorInput) {
+                        firstErrorInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                        try {
+                            firstErrorInput.focus({ preventScroll: true });
+                        } catch {
+                            firstErrorInput.focus();
+                        }
+                    }
 
                     return {
                         ok: false,

@@ -13,6 +13,11 @@ import type { ThemeClassMap } from '#contracts/theme';
 import { dispatchFormieDomEvent } from '#core/dom-events';
 import { dispatchPageClientEventForSubmit } from '#core/page-client-event';
 import { syncPageTabErrors } from '#core/page-tab-errors';
+import {
+    enhanceServerRenderedFieldErrors,
+    focusFirstValidationError,
+    hasServerRenderedValidationErrors,
+} from '#core/validation-focus';
 import { clearSubmitFeedback, executeAjaxSubmitFlow, shouldKeepSubmitLoading } from '#core/submit-flow';
 import { applySubmitResultUi } from '#core/submit-result-ui';
 import { applyPageState, clearSubmitLoading, setSubmitLoading } from '#core/submit-result-state';
@@ -24,6 +29,7 @@ import { runSubmitPipeline } from '#submit/pipeline';
 import { clearSubmissionOnUnload, requestGraphqlRender, requestRefreshTokens, requestRender, requestSetPage } from '#transport/forms-api';
 import { createDebug } from '#utils/debug';
 import { createFormUnloadWarningGuard } from '#utils/unload-warning';
+import { getValidationScope } from '#validation/scope';
 import { FormieValidator } from '#validation/validator';
 import { bindSubmitReadiness } from '#validation/submit-readiness';
 
@@ -745,6 +751,22 @@ function bindFormEvents(
                         allowNativeSubmit = false;
                         clearInternalNavigation(form);
                         clearSubmitLoading(form);
+
+                        if (validator && shouldValidateOnSubmit(form)) {
+                            const { scope, final } = getValidationScope(form);
+                            const validationErrors = validator.submit(final ? form : scope, { final });
+
+                            if (validationErrors.length > 0) {
+                                applySubmitResultUi(form, {
+                                    ok: false,
+                                    stage: 'validate',
+                                    code: 'VALIDATION_FAILED',
+                                    message: validator.config.errorMessage || 'Validation failed.',
+                                    fieldErrors: validator.getFieldErrors(validationErrors),
+                                    formErrors: [validator.config.errorMessage || 'Validation failed.'],
+                                });
+                            }
+                        }
                     };
 
                     if (typeof form.requestSubmit === 'function') {
@@ -994,6 +1016,11 @@ export function createFormieClient(): FormieClient {
         if (form) {
             if (renderPayload || normalizedOptions.endpoint || (target as HTMLElement).dataset.formieEndpoint) {
                 normalizeHeadlessManagedUrls(target, form, normalizedOptions);
+            }
+
+            if (normalizedOptions.mode === 'server-rendered' && hasServerRenderedValidationErrors(form)) {
+                enhanceServerRenderedFieldErrors(form);
+                focusFirstValidationError(form);
             }
 
             syncPageTabErrors(form);
