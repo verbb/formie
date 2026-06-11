@@ -207,6 +207,8 @@ trait FieldFormBuilderTrait
         $settings['pageId'] = $this->pageId;
         $settings['rowId'] = $this->rowId;
         $settings['syncId'] = $this->getIsSynced() ? ($this->fieldId ?? $this->syncId) : null;
+        $settings['isSynced'] = $this->getIsSynced();
+        $settings['usageCount'] = max((int)($this->usageCount ?? 1), 1);
         $settings['label'] = $this->label;
         $settings['handle'] = $this->handle;
         $settings['reference'] = $this->reference;

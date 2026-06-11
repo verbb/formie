@@ -1,0 +1,83 @@
+{% extends 'formie/_layouts/settings' %}
+
+{% set title = 'Synced Fields' | t('formie') %}
+
+{% block content %}
+    <div id="synced-fields-vue-admin-table"></div>
+{% endblock %}
+
+{% set tableData = [] %}
+{% for syncedField in syncedFields %}
+    {% set usedOnLinks = [] %}
+    {% for form in syncedField.forms %}
+        {% set usedOnLinks = usedOnLinks | merge([{
+            title: form.title,
+            url: form.cpEditUrl,
+        }]) %}
+    {% endfor %}
+
+    {% set tableData = tableData | merge([{
+        id: syncedField.id,
+        title: syncedField.label,
+        handle: syncedField.handle | e,
+        typeLabel: syncedField.typeLabel,
+        usageCount: syncedField.usageCount,
+        usedOnLinks: usedOnLinks,
+    }]) %}
+{% endfor %}
+
+{% css %}
+#synced-fields-vue-admin-table .vuetable {
+    table-layout: fixed;
+    width: 100%;
+}
+
+#synced-fields-vue-admin-table .vuetable th:nth-child(1),
+#synced-fields-vue-admin-table .vuetable td:nth-child(1) {
+    width: 24%;
+}
+
+#synced-fields-vue-admin-table .vuetable th:nth-child(2),
+#synced-fields-vue-admin-table .vuetable td:nth-child(2) {
+    width: 16%;
+    white-space: nowrap;
+}
+
+#synced-fields-vue-admin-table .vuetable th:nth-child(3),
+#synced-fields-vue-admin-table .vuetable td:nth-child(3) {
+    width: 16%;
+}
+
+#synced-fields-vue-admin-table .vuetable th:nth-child(4),
+#synced-fields-vue-admin-table .vuetable td:nth-child(4) {
+    width: 44%;
+}
+{% endcss %}
+
+{% js %}
+    var columns = [
+        { name: '__slot:title', title: Craft.t('app', 'Label') },
+        { name: '__slot:handle', title: Craft.t('app', 'Handle') },
+        { name: 'typeLabel', title: Craft.t('formie', 'Type') },
+        {
+            name: 'usedOnLinks',
+            title: Craft.t('formie', 'Used on'),
+            callback: function(forms) {
+                if (!forms || !forms.length) {
+                    return '';
+                }
+
+                return forms.map(function(form) {
+                    return '<a href="' + form.url + '">' + Craft.escapeHtml(form.title) + '</a>';
+                }).join(', ');
+            },
+        },
+    ];
+
+    new Craft.VueAdminTable({
+        columns: columns,
+        container: '#synced-fields-vue-admin-table',
+        emptyMessage: Craft.t('formie', 'No synced fields found.'),
+        tableData: {{ tableData | json_encode | raw }},
+    });
+{% endjs %}

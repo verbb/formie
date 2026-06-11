@@ -33,6 +33,7 @@
 - Add **Allowed Countries** and **Preselect Country from IP** settings to Address fields, mirroring Phone field country restrictions and using a shared `formie/address/country-from-ip` endpoint (CDN geo headers such as `CF-IPCountry`).
 - Add **Preselect Country from IP** to Phone fields when the country selector is enabled, wiring `intl-tel-input` geo lookup through the shared country-from-ip endpoint.
 - Add table column reference support for Calculations fields with explicit row scope (`first`, `last`, `index`, `all`, `count`, custom row expressions). Table columns now appear in the Calculations variable picker, with row targeting configured in the variable settings popover. ([#1284](https://github.com/verbb/formie/issues/1284))
+- Add **Settings → Synced Fields** as a read-only audit page listing shared field definitions and the forms they appear on, with a **View usage** link from synced fields in the form builder. ([#2377](https://github.com/verbb/formie/issues/2377))
 
 ### Changed
 - Refactor predefined options to align with the new option sources system.

@@ -45,6 +45,7 @@ use craft\base\Component;
 use craft\base\Field as CraftField;
 use craft\base\FieldInterface as CraftFieldInterface;
 use craft\db\Query;
+use craft\helpers\UrlHelper;
 use craft\errors\MissingComponentException;
 use craft\fields\BaseRelationField;
 use craft\fields\PlainText;
@@ -62,6 +63,7 @@ use ReflectionProperty;
 use Throwable;
 
 use yii\base\InvalidConfigException;
+use yii\db\Expression;
 
 class Fields extends Component
 {
@@ -618,6 +620,117 @@ class Fields extends Component
         }
 
         return $existingFields;
+    }
+
+    public function getSyncedFieldReport(): array
+    {
+        $syncedDefinitionIds = (new Query())
+            ->select(['fieldId'])
+            ->from(Table::FORMIE_FORM_FIELDS)
+            ->groupBy(['fieldId'])
+            ->having(['>', new Expression('COUNT(*)'), 1])
+            ->column();
+
+        if (!$syncedDefinitionIds) {
+            return [];
+        }
+
+        $syncedDefinitionIds = array_values(array_map('intval', $syncedDefinitionIds));
+        $currentSiteId = Craft::$app->getSites()->getCurrentSite()->id;
+
+        $definitions = (new Query())
+            ->select(['id', 'label', 'handle', 'type'])
+            ->from(Table::FORMIE_FIELDS)
+            ->where(['id' => $syncedDefinitionIds])
+            ->indexBy('id')
+            ->all();
+
+        $placementRecords = (new Query())
+            ->select([
+                'ff.fieldId',
+                'fo.id as formId',
+                'es.title as formTitle',
+                'fo.handle as formHandle',
+            ])
+            ->from(['ff' => Table::FORMIE_FORM_FIELDS])
+            ->innerJoin(['fo' => Table::FORMIE_FORMS], '[[fo.layoutId]] = [[ff.layoutId]]')
+            ->innerJoin(['e' => Table::ELEMENTS], '[[e.id]] = [[fo.id]] AND [[e.dateDeleted]] IS NULL')
+            ->innerJoin(['es' => Table::ELEMENTS_SITES], '[[es.elementId]] = [[fo.id]] AND [[es.siteId]] = :siteId', [
+                ':siteId' => $currentSiteId,
+            ])
+            ->where(['ff.fieldId' => $syncedDefinitionIds])
+            ->groupBy(['ff.fieldId', 'fo.id', 'es.title', 'fo.handle'])
+            ->all();
+
+        $formIds = [];
+        $formsByDefinitionId = [];
+
+        foreach ($placementRecords as $placementRecord) {
+            $definitionId = (int)($placementRecord['fieldId'] ?? 0);
+            $formId = (int)($placementRecord['formId'] ?? 0);
+
+            if (!$definitionId || !$formId) {
+                continue;
+            }
+
+            $formIds[] = $formId;
+            $formsByDefinitionId[$definitionId][$formId] = [
+                'id' => $formId,
+                'title' => (string)($placementRecord['formTitle'] ?? $formId),
+                'handle' => (string)($placementRecord['formHandle'] ?? ''),
+            ];
+        }
+
+        $formIds = array_values(array_unique($formIds));
+        $formsById = [];
+
+        if ($formIds) {
+            foreach (Form::find()->id($formIds)->siteId($currentSiteId)->all() as $form) {
+                $formsById[(int)$form->id] = $form;
+            }
+        }
+
+        $report = [];
+
+        foreach ($syncedDefinitionIds as $definitionId) {
+            $definition = $definitions[$definitionId] ?? null;
+
+            if (!$definition) {
+                continue;
+            }
+
+            $forms = [];
+
+            foreach ($formsByDefinitionId[$definitionId] ?? [] as $formData) {
+                $formId = (int)$formData['id'];
+                $form = $formsById[$formId] ?? null;
+
+                $forms[] = [
+                    'id' => $formId,
+                    'title' => $form ? (string)$form->title : $formData['title'],
+                    'handle' => $form ? (string)$form->handle : $formData['handle'],
+                    'cpEditUrl' => $form?->getCpEditUrl() ?? UrlHelper::cpUrl('formie/forms/edit/' . $formId),
+                ];
+            }
+
+            ArrayHelper::multisort($forms, 'title', SORT_ASC, SORT_STRING);
+
+            $type = (string)($definition['type'] ?? '');
+
+            $report[] = [
+                'id' => $definitionId,
+                'label' => (string)($definition['label'] ?? ''),
+                'handle' => (string)($definition['handle'] ?? ''),
+                'type' => $type,
+                'typeLabel' => $this->_getFieldTypeLabel($type),
+                'usageCount' => count($forms),
+                'forms' => $forms,
+            ];
+        }
+
+        ArrayHelper::multisort($report, 'label', SORT_ASC, SORT_STRING);
+
+        return $report;
     }
 
     public function getExistingFieldConfigs(array $fieldIds, Form $excludeForm = null): array
@@ -2552,6 +2665,25 @@ class Fields extends Component
         }
 
         return $this->_fieldGqlCache;
+    }
+
+    private function _getFieldTypeLabel(string $type): string
+    {
+        if ($type === '') {
+            return '';
+        }
+
+        try {
+            $field = $this->createField(['type' => $type]);
+
+            if ($field instanceof Field) {
+                return (string)$field::displayName();
+            }
+        } catch (Throwable) {
+            // Fall back to the stored class name when the field type is unavailable.
+        }
+
+        return $type;
     }
 
 }

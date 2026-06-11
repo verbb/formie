@@ -219,6 +219,7 @@ class Formie
                 'import-export' => ['title' => Craft::t('formie', 'Import/Export')],
                 'forms' => ['title' => Craft::t('formie', 'Forms')],
                 'form-groups' => ['title' => Craft::t('formie', 'Form Groups')],
+                'synced-fields' => ['title' => Craft::t('formie', 'Synced Fields')],
                 'defaults' => ['title' => Craft::t('formie', 'Defaults')],
                 'fields' => ['title' => Craft::t('formie', 'Fields')],
 

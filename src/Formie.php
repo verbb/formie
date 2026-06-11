@@ -311,6 +311,7 @@ class Formie extends Plugin
             $event->rules['formie/settings/form-groups'] = 'formie/form-groups/index';
             $event->rules['formie/settings/form-groups/new'] = 'formie/form-groups/edit';
             $event->rules['formie/settings/form-groups/edit/<id:\d+>'] = 'formie/form-groups/edit';
+            $event->rules['formie/settings/synced-fields'] = 'formie/synced-fields/index';
             $event->rules['formie/settings/form-templates'] = 'formie/form-templates/index';
             $event->rules['formie/settings/form-templates/new'] = 'formie/form-templates/edit';
             $event->rules['formie/settings/form-templates/edit/<id:\d+>'] = 'formie/form-templates/edit';
