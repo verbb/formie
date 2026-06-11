@@ -40,6 +40,12 @@ Some fields expose more than one referenceable value. When a field has sub-value
 {field:a1b2c3:firstName}
 ```
 
+Table fields expose each column as a scoped reference. Pick the column from the variable picker, then choose which row(s) to read — for example, first row, all rows, or a custom row expression such as `1,2,3`. To total a numeric column across all rows, reference the column with **All rows** scope:
+
+```text
+{field:a1b2c3:col3;scope=all}
+```
+
 The picker is the safest way to insert these references because it knows which fields and selectors are available for the formula.
 
 ### Reference transforms

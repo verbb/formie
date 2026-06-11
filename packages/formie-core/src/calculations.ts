@@ -3,6 +3,10 @@ import * as ExpressionLanguageModule from 'expression-language';
 export type CalculationVariable = {
     sourceKey?: string;
     type?: string;
+    scope?: string;
+    index?: string;
+    rows?: string;
+    fieldKind?: string;
 };
 
 export type CalculationFormula = {
@@ -74,9 +78,14 @@ export function coerceCalculationVariables(
     // result is displayed without number formatting, otherwise `1 + 2` becomes `12`.
     Object.entries(variables).forEach(([key, value]) => {
         if (Array.isArray(value)) {
-            variables[key] = value.map((item) => {
+            const coerced = value.map((item) => {
                 return typeof item === 'string' && item.trim() !== '' && !Number.isNaN(Number(item)) ? Number(item) : item;
             });
+            const numericValues = coerced.filter((item) => typeof item === 'number');
+
+            variables[key] = numericValues.length === coerced.length && coerced.length > 0
+                ? numericValues.reduce((total, item) => total + Number(item || 0), 0)
+                : coerced;
 
             return;
         }

@@ -26,7 +26,11 @@ export const getRepeaterRowPresetOptions = (t) => {
 };
 
 export const isRepeaterSubFieldOption = (option) => {
-    return Boolean(option?.repeaterSubField);
+    return Boolean(option?.repeaterSubField || option?.tableColumnSubField);
+};
+
+export const isTableColumnSubFieldOption = (option) => {
+    return Boolean(option?.tableColumnSubField);
 };
 
 export const isRepeaterScopedFieldToken = (tokenValue = '') => {
@@ -106,6 +110,21 @@ export const createSyntheticRepeaterSubFieldOption = (tokenValue = '', fallbackL
 
     return {
         repeaterSubField: true,
+        repeaterBaseLabel: baseLabel,
+        label: baseLabel,
+        value: getRepeaterBaseToken(tokenValue),
+    };
+};
+
+export const createSyntheticTableColumnSubFieldOption = (tokenValue = '', fallbackLabel = '') => {
+    const strippedFallback = normalizeRepeaterBaseLabel(fallbackLabel, tokenValue);
+    const derivedLabel = deriveRepeaterSubFieldLabelFromToken(tokenValue);
+    const baseLabel = (isUsableRepeaterBaseLabel(strippedFallback) && strippedFallback)
+        ? strippedFallback
+        : (derivedLabel || strippedFallback || 'Field');
+
+    return {
+        tableColumnSubField: true,
         repeaterBaseLabel: baseLabel,
         label: baseLabel,
         value: getRepeaterBaseToken(tokenValue),

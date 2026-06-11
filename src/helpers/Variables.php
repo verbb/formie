@@ -6,6 +6,7 @@ use verbb\formie\base\FieldInterface;
 use verbb\formie\base\RepeatableParentFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\fields\Table;
 use verbb\formie\events\RegisterTransformersEvent;
 use verbb\formie\events\RegisterVariablesEvent;
 use verbb\formie\helpers\ArrayHelper;
@@ -1467,6 +1468,10 @@ class Variables
     ): mixed {
         if ($field instanceof RepeatableParentFieldInterface) {
             return RepeaterReferenceHelper::resolve($submission, $field, $selector, $params);
+        }
+
+        if ($field instanceof Table) {
+            return TableReferenceHelper::resolve($submission, $field, $selector, $params);
         }
 
         $fieldHandle = $field->handle;

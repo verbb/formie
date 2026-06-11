@@ -82,6 +82,15 @@ class CalculationsHelper
             return true;
         });
 
+        $expressionLanguage->register('sum', function() {
+        }, function($args, $value) {
+            if (is_array($value)) {
+                return array_sum(array_map(static fn(mixed $item): float => is_numeric($item) ? (float)$item : 0.0, $value));
+            }
+
+            return is_numeric($value) ? (float)$value : 0.0;
+        });
+
         return $expressionLanguage;
     }
 }

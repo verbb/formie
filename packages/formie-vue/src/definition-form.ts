@@ -330,7 +330,8 @@ const DefaultField = defineComponent({
                 props.field.instructions
                     ? renderSlotWrapper(context, 'instructions', h('div', {
                         class: 'formie-vue-description',
-                    }, props.field.instructions), {
+                        innerHTML: props.field.instructions,
+                    }), {
                         class: 'formie-vue-description',
                     })
                     : null,

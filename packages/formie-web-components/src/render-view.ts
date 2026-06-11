@@ -136,7 +136,7 @@ function wrapDefaultField(field: FrontendFieldDefinition, errors: string[], cont
                 ? html`<label class="starter-component-label">${field.label}</label>`
                 : nothing}
             ${field.instructions
-                ? html`<p class="starter-component-help">${field.instructions}</p>`
+                ? html`<div class="starter-component-help">${unsafeHTML(field.instructions)}</div>`
                 : nothing}
             <div class="starter-component-injected-control grid gap-2 text-slate-900">${control}</div>
             ${errors.length > 0

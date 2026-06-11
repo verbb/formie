@@ -208,7 +208,8 @@ function DefaultField({ field, errors, children }: FormieFieldProps) {
         field.instructions ? renderSlot('instructions', createElement('div', {
             key: 'instructions',
             className: 'formie-react-description',
-        }, field.instructions)) : null,
+            dangerouslySetInnerHTML: { __html: field.instructions },
+        })) : null,
         renderSlot('input', createElement('div', {
             key: 'input',
             className: 'formie-react-input',

@@ -3,6 +3,7 @@ namespace verbb\formie\fields;
 
 use verbb\formie\base\Field;
 use verbb\formie\base\PreviewableFieldInterface;
+use verbb\formie\base\RepeatableParentFieldInterface;
 use verbb\formie\fields\definitions\FieldClientModules;
 use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\fields\values\CalculationFieldValue;
@@ -104,7 +105,7 @@ class Calculations extends Field implements PreviewableFieldInterface
         $variableIdsBySourceKey = [];
         $sourceKeyByVariableId = [];
 
-        $formula = preg_replace_callback('/\{field:[^}]+\}/', function($matches) use (&$variables, &$variableIdsBySourceKey, &$sourceKeyByVariableId, $fieldMap) {
+        $formula = preg_replace_callback('/\{field:[^}]+\}/', function($matches) use (&$variables, &$variableIdsBySourceKey, &$sourceKeyByVariableId, $fieldMap, $form) {
             $token = (string)($matches[0] ?? '');
             $expression = References::parseReferenceExpression($token);
             
@@ -125,8 +126,44 @@ class Calculations extends Field implements PreviewableFieldInterface
                 $sourceHandle = $expression->identifier;
             }
 
-            if (isset($variableIdsBySourceKey[$sourceHandle])) {
-                return $variableIdsBySourceKey[$sourceHandle];
+            $scopeParams = array_intersect_key(
+                $expression->transformerParams,
+                array_flip(['scope', 'index', 'rows']),
+            );
+
+            $referencedField = null;
+
+            if ($form) {
+                foreach ($form->getFields() as $field) {
+                    if ((string)($field->reference ?? '') === $expression->identifier) {
+                        $referencedField = $field;
+                        break;
+                    }
+                }
+            }
+
+            $variableConfig = [
+                'sourceKey' => $sourceHandle,
+            ];
+
+            if ($referencedField instanceof Table) {
+                $variableConfig['fieldKind'] = Table::KIND_TABLE;
+            } elseif ($referencedField instanceof RepeatableParentFieldInterface) {
+                $variableConfig['fieldKind'] = 'repeater';
+            }
+
+            foreach ($scopeParams as $paramKey => $paramValue) {
+                if ($paramValue === null || $paramValue === '') {
+                    continue;
+                }
+
+                $variableConfig[$paramKey] = (string)$paramValue;
+            }
+
+            $variableDedupKey = Json::encode($variableConfig);
+
+            if (isset($variableIdsBySourceKey[$variableDedupKey])) {
+                return $variableIdsBySourceKey[$variableDedupKey];
             }
 
             $baseVariableId = 'field_' . preg_replace('/[^A-Za-z0-9_]/', '_', $sourceHandle);
@@ -136,19 +173,26 @@ class Calculations extends Field implements PreviewableFieldInterface
                 $baseVariableId = 'field_var';
             }
 
+            if ($scopeParams !== []) {
+                $scopeSuffix = preg_replace('/[^A-Za-z0-9_]/', '_', implode('_', array_values($scopeParams)));
+                $scopeSuffix = trim((string)$scopeSuffix, '_');
+
+                if ($scopeSuffix !== '') {
+                    $baseVariableId .= '_' . $scopeSuffix;
+                }
+            }
+
             $variableId = $baseVariableId;
             $suffix = 2;
 
-            while (isset($sourceKeyByVariableId[$variableId]) && $sourceKeyByVariableId[$variableId] !== $sourceHandle) {
+            while (isset($sourceKeyByVariableId[$variableId]) && $sourceKeyByVariableId[$variableId] !== $variableDedupKey) {
                 $variableId = "{$baseVariableId}_{$suffix}";
                 $suffix++;
             }
 
-            $variableIdsBySourceKey[$sourceHandle] = $variableId;
-            $sourceKeyByVariableId[$variableId] = $sourceHandle;
-            $variables[$variableId] = [
-                'sourceKey' => $sourceHandle,
-            ];
+            $variableIdsBySourceKey[$variableDedupKey] = $variableId;
+            $sourceKeyByVariableId[$variableId] = $variableDedupKey;
+            $variables[$variableId] = $variableConfig;
 
             return $variableId;
         }, $formula) ?? $formula;

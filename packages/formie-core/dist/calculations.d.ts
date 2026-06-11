@@ -1,6 +1,10 @@
 export type CalculationVariable = {
     sourceKey?: string;
     type?: string;
+    scope?: string;
+    index?: string;
+    rows?: string;
+    fieldKind?: string;
 };
 export type CalculationFormula = {
     formula?: string;

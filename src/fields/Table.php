@@ -59,6 +59,14 @@ class Table extends Field
         return Craft::t('formie', 'Table');
     }
 
+    public static function defineFieldType(): array
+    {
+        return array_merge(parent::defineFieldType(), [
+            'isTableField' => true,
+            'fieldKind' => self::KIND_TABLE,
+        ]);
+    }
+
     public static function getSvgIconPath(): string
     {
         return 'formie/_formfields/table/icon.svg';
@@ -583,6 +591,11 @@ class Table extends Field
 
     // Protected Methods
     // =========================================================================
+
+    protected function defineAllowPrimaryReference(): bool
+    {
+        return false;
+    }
 
     protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
     {

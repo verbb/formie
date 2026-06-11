@@ -12,6 +12,7 @@ import {
 import type { FormieModuleDefinition } from '#contracts/modules';
 import { dispatchFieldEvent, getModuleFieldContainers } from '#modules/fields/shared';
 import { buildFieldValueRegistry, fieldKeyToInputName, normalizeFieldKey, resolveFieldReferenceLive } from '#utils/field-references';
+import { getRowScopedWatchNames, resolveRowScopedFieldReference } from '#utils/field-references.row-scope';
 import { createDebug } from '#utils/debug';
 
 const INPUT_SELECTOR = 'input[data-formie-calculation-input]';
@@ -27,6 +28,14 @@ function resolveVariables(
     const variables: Record<string, unknown> = {};
 
     variableEntries.forEach(([variableKey, variable]) => {
+        const scope = String(variable.scope || '').trim();
+
+        if (scope) {
+            const resolved = resolveRowScopedFieldReference(variable.sourceKey || '', variable, registry);
+            variables[variableKey] = readCalculationVariableValue(variable, resolved.value);
+            return;
+        }
+
         const resolved = resolveFieldReferenceLive(variable.sourceKey || '', registry);
         variables[variableKey] = readCalculationVariableValue(variable, resolved.value);
     });
@@ -39,6 +48,16 @@ function getWatchNames(root: Element, variableEntries: CalculationVariableEntry[
     const watchNames = new Set<string>();
 
     variableEntries.forEach(([, variable]) => {
+        const scope = String(variable.scope || '').trim();
+
+        if (scope) {
+            getRowScopedWatchNames(variable.sourceKey || '', variable, registry).forEach((name) => {
+                watchNames.add(name);
+            });
+
+            return;
+        }
+
         const key = normalizeFieldKey(variable.sourceKey || '');
         const entry = registry.get(key);
 

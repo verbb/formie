@@ -3249,7 +3249,8 @@ function ye(e) {
 function be(e, t) {
 	return Object.entries(e).forEach(([t, n]) => {
 		if (Array.isArray(n)) {
-			e[t] = n.map((e) => typeof e == "string" && e.trim() !== "" && !Number.isNaN(Number(e)) ? Number(e) : e);
+			let r = n.map((e) => typeof e == "string" && e.trim() !== "" && !Number.isNaN(Number(e)) ? Number(e) : e), i = r.filter((e) => typeof e == "number");
+			e[t] = i.length === r.length && r.length > 0 ? i.reduce((e, t) => e + Number(t || 0), 0) : r;
 			return;
 		}
 		typeof n == "string" && n.trim() !== "" && !Number.isNaN(Number(n)) && (e[t] = Number(n));
