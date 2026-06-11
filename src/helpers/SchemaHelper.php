@@ -4,6 +4,7 @@ namespace verbb\formie\helpers;
 use verbb\formie\base\FieldInterface;
 use verbb\formie\compatibility\schema\SchemaCompatibility;
 use verbb\formie\Formie;
+use verbb\formie\helpers\RichTextHelper;
 
 use Craft;
 use craft\helpers\Html;
@@ -647,12 +648,11 @@ class SchemaHelper
 
     public static function instructions(array $config = []): array
     {
-        return self::textareaField(array_merge([
+        return self::richTextField(array_merge([
             'label' => Craft::t('formie', 'Instructions'),
             'instructions' => Craft::t('formie', 'Instructions to guide the user when filling out this form.'),
             'name' => 'instructions',
-            'rows' => '4',
-        ], $config));
+        ], RichTextHelper::getRichTextConfig('fields.instructions'), $config));
     }
 
     public static function instructionsPosition(FieldInterface $field, array $config = []): array

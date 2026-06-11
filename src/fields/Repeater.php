@@ -301,7 +301,7 @@ class Repeater extends RepeatableParentField
                     'data-formie-field-layout' => true,
                     'data-formie-repeater-field-layout' => true,
                     'data-formie-template-id' => $templateId,
-                    'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
+                    'aria-describedby' => $this->hasInstructions() ? "{$id}-instructions" : null,
                 ])
                 ->theme([
                     'class' => [

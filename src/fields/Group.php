@@ -175,7 +175,7 @@ class Group extends ContainerParentField implements ContainerParentFieldInterfac
                 ->core([
                     'data-formie-field-layout' => true,
                     'data-formie-group-field-layout' => true,
-                    'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
+                    'aria-describedby' => $this->hasInstructions() ? "{$id}-instructions" : null,
                 ])
                 ->theme([
                     'class' => [

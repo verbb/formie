@@ -363,7 +363,7 @@ class Calculations extends Field implements PreviewableFieldInterface
                     'data-formie-calculation-input' => true,
                     'data-formie-input-id' => $dataId,
                     'data-formie-input-type' => 'calculation',
-                    'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
+                    'aria-describedby' => $this->hasInstructions() ? "{$id}-instructions" : null,
                 ], ValidationMessagesHelper::requiredClientAttributes($this)))
                 ->theme([
                     'class' => [

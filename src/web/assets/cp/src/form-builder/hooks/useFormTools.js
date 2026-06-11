@@ -679,6 +679,77 @@ const isRepeatableParentFieldType = (field, config) => {
     return Boolean(fieldTypeConfig.isRepeatableParentField);
 };
 
+const isTableFieldType = (field, config) => {
+    const fieldTypeConfig = config.getFieldTypeByType?.(field?.type) || {};
+    return Boolean(fieldTypeConfig.isTableField);
+};
+
+const getTableColumns = (field) => {
+    const rawColumns = field?.columns ?? field?.settings?.columns ?? {};
+
+    if (Array.isArray(rawColumns)) {
+        return rawColumns.flatMap((column, index) => {
+            if (!column || typeof column !== 'object') {
+                return [];
+            }
+
+            const id = String(column.id || column.handle || `col${index + 1}`).trim();
+
+            if (!id) {
+                return [];
+            }
+
+            return [{
+                id,
+                heading: String(column.heading || column.label || column.handle || id).trim() || id,
+                type: String(column.type || 'singleline').trim() || 'singleline',
+            }];
+        });
+    }
+
+    return Object.entries(rawColumns).flatMap(([id, column]) => {
+        if (!column || typeof column !== 'object') {
+            return [];
+        }
+
+        const columnId = String(id || column.id || '').trim();
+
+        if (!columnId) {
+            return [];
+        }
+
+        return [{
+            id: columnId,
+            heading: String(column.heading || column.handle || columnId).trim() || columnId,
+            type: String(column.type || 'singleline').trim() || 'singleline',
+        }];
+    });
+};
+
+const getTableColumnVariableSource = (column) => {
+    const type = String(column?.type || 'singleline').trim();
+
+    return {
+        type: type === 'number' ? 'number' : 'text',
+    };
+};
+
+const shouldIncludeTableColumn = (column, config) => {
+    const type = String(column?.type || '').trim();
+
+    if (!['number', 'singleline'].includes(type)) {
+        return false;
+    }
+
+    if (!Array.isArray(config.types) || !config.types.length) {
+        return true;
+    }
+
+    const source = getTableColumnVariableSource(column);
+
+    return config.types.includes(source.type);
+};
+
 const buildRepeaterReferenceToken = (parentReference, selectorHandle, scope, extraParams = {}) => {
     const selectorPart = selectorHandle ? `:${selectorHandle}` : '';
     const segments = [`field:${parentReference}${selectorPart}`, `scope=${scope}`];
@@ -694,12 +765,13 @@ const buildRepeaterReferenceToken = (parentReference, selectorHandle, scope, ext
     return `{${segments.join(';')}}`;
 };
 
-const pushRepeaterScopedReferenceOptions = (targetOptions, {
+const pushRowScopedReferenceOptions = (targetOptions, {
     parentReference,
     nestedLabel,
     selectorHandle,
     selectorLabel,
     source,
+    tableColumnSubField = false,
 }) => {
     const suffix = selectorLabel ? `: ${selectorLabel}` : '';
     const baseLabel = `${nestedLabel}${suffix}`;
@@ -707,10 +779,24 @@ const pushRepeaterScopedReferenceOptions = (targetOptions, {
     targetOptions.push(applyVariableSourceMetadata({
         label: baseLabel,
         value: buildRepeaterReferenceToken(parentReference, selectorHandle, 'first'),
-        repeaterSubField: true,
+        repeaterSubField: !tableColumnSubField,
+        tableColumnSubField,
         repeaterBaseLabel: baseLabel,
-        types: ['text', 'email', 'array'],
+        types: tableColumnSubField
+            ? [source?.type === 'number' ? 'number' : 'text', 'array']
+            : ['text', 'email', 'array'],
     }, source));
+};
+
+const pushRepeaterScopedReferenceOptions = (targetOptions, options) => {
+    pushRowScopedReferenceOptions(targetOptions, options);
+};
+
+const pushTableScopedReferenceOptions = (targetOptions, options) => {
+    pushRowScopedReferenceOptions(targetOptions, {
+        ...options,
+        tableColumnSubField: true,
+    });
 };
 
 const getConditionColumnOptions = (field, selectorHandle = '') => {
@@ -840,6 +926,25 @@ const buildVariablePickerSecondaryOptions = (field, referenceConfig, config) => 
                 value: `{field:${fieldReference}:${selector.handle}}`,
             }, source));
         });
+
+    if (isTableFieldType(field, config)) {
+        getTableColumns(field).forEach((column) => {
+            if (!shouldIncludeTableColumn(column, config)) {
+                return;
+            }
+
+            const source = getTableColumnVariableSource(column);
+            const columnLabel = column.heading || column.id;
+
+            pushTableScopedReferenceOptions(options, {
+                parentReference: fieldReference,
+                nestedLabel: fieldLabel ? `${fieldLabel}: ${columnLabel}` : columnLabel,
+                selectorHandle: column.id,
+                selectorLabel: '',
+                source,
+            });
+        });
+    }
 
     const appendNestedOptions = (sourceField, labelPrefix = '') => {
         const nestedFields = getNestedFields(sourceField);

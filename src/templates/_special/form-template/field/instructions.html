@@ -1,7 +1,7 @@
 {% set instructionsPosition = (instructionsPosition ?? craft.formie.getInstructionsPosition(field, form)) %}
 
-{% if field.instructions and instructionsPosition.shouldDisplay(position) %}
+{% if field.hasInstructions() and instructionsPosition.shouldDisplay(position) %}
     {% fieldtag 'fieldInstructions' %}
-        {{- field.instructions | t('formie') | trim | md -}}
+        {{- field.getInstructionsHtml() | raw -}}
     {% endfieldtag %}
 {% endif %}

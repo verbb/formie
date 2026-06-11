@@ -189,7 +189,7 @@ class Radio extends OptionsField implements SortableFieldInterface
                     'data-formie-radio-field-layout' => true,
                     'data-formie-layout' => $this->layout ?? 'vertical',
                     'data-formie-label-position' => $resolvedLabelPosition,
-                    'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
+                    'aria-describedby' => $this->hasInstructions() ? "{$id}-instructions" : null,
                 ])
                 ->theme([
                     'class' => [

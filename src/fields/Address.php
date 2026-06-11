@@ -365,7 +365,7 @@ class Address extends FixedParentField implements PreviewableFieldInterface
                 ->core([
                     'data-formie-field-layout' => true,
                     'data-formie-address-field-layout' => true,
-                    'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
+                    'aria-describedby' => $this->hasInstructions() ? "{$id}-instructions" : null,
                 ])
                 ->theme([
                     'class' => [

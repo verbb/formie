@@ -32,6 +32,7 @@ use verbb\formie\models\FieldLayoutRow;
 use verbb\formie\models\FieldPath;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Notification;
+use verbb\formie\models\RichText;
 use verbb\formie\models\Settings;
 use verbb\formie\positions\Hidden as HiddenPosition;
 use verbb\formie\query\FieldValueQueryHelper;
@@ -64,6 +65,8 @@ use GraphQL\Type\Definition\Type;
 use Faker\Generator as FakerFactory;
 
 use Twig\Markup;
+
+use yii\helpers\Markdown;
 
 use Arrayable;
 use DateTime;
@@ -299,8 +302,55 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
         return [
             'name' => $config['handle'] ?? '',
             'type' => Type::string(),
-            'description' => $config['instructions'] ?? null,
+            'description' => self::_gqlInstructionsDescription($config['instructions'] ?? null),
         ];
+    }
+
+    private static function _gqlInstructionsDescription(mixed $instructions): ?string
+    {
+        $richText = self::_instructionsFrom($instructions);
+
+        return $richText->isEmpty() ? null : $richText->toPlainText();
+    }
+
+    /**
+     * Normalizes legacy field instructions before rich-text conversion.
+     * Plain-text instructions were previously rendered with Twig's `| md` filter.
+     */
+    private static function _normalizeInstructionsValue(mixed $value): mixed
+    {
+        if ($value instanceof RichText) {
+            return $value;
+        }
+
+        if ($value === null || $value === '') {
+            return $value;
+        }
+
+        if (!is_string($value)) {
+            return $value;
+        }
+
+        $value = trim($value);
+
+        if ($value === '') {
+            return '';
+        }
+
+        if (Json::decodeIfJson($value) !== $value) {
+            return $value;
+        }
+
+        if (preg_match('/<\s*[a-z!\/][^>]*>/i', $value)) {
+            return $value;
+        }
+
+        return Markdown::process($value);
+    }
+
+    private static function _instructionsFrom(mixed $value): RichText
+    {
+        return RichText::from(self::_normalizeInstructionsValue($value));
     }
 
     public static function gqlContentQueryArgumentTypeFromConfig(array $config): Type|array
@@ -344,7 +394,7 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
     public ?string $uid = null;
     public bool $isSynced = false;
 
-    public ?string $instructions = null;
+    public RichText $instructions;
     public bool $required = false;
     public bool $enabled = true;
     public ?string $matchField = null;
@@ -391,8 +441,40 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
 
         Formie::$plugin?->getFormDefaults()?->applyToNewField($config, static::class, $this->getSupportedDefaults());
         FieldBuilderPolicy::applyToFieldConfig($config, static::class);
+        $config['instructions'] = self::_instructionsFrom($config['instructions'] ?? null);
 
         parent::__construct($config);
+    }
+
+    public function setAttributes($values, $safeOnly = true): void
+    {
+        if (is_array($values) && array_key_exists('instructions', $values)) {
+            $values['instructions'] = self::_instructionsFrom($values['instructions']);
+        }
+
+        parent::setAttributes($values, $safeOnly);
+    }
+
+    public function getSettings(): array
+    {
+        $settings = parent::getSettings();
+        $settings['instructions'] = $this->instructions->getSchema();
+
+        return $settings;
+    }
+
+    public function hasInstructions(): bool
+    {
+        return !$this->instructions->isEmpty();
+    }
+
+    public function getInstructionsHtml(): Markup
+    {
+        if ($this->instructions->isEmpty()) {
+            return Template::raw('');
+        }
+
+        return Template::raw(Craft::t('formie', $this->instructions->toHtml(null, true)));
     }
 
     public function settingsAttributes(): array
@@ -975,7 +1057,7 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
         return [
             'name' => $this->handle,
             'type' => Type::string(),
-            'description' => $this->instructions,
+            'description' => $this->instructions->isEmpty() ? null : $this->instructions->toPlainText(),
         ];
     }
 

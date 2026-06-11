@@ -1,10 +1,10 @@
 {
-  "_AppErrorBoundary-C7g95mK_.js": {
-    "file": "assets/AppErrorBoundary-C7g95mK_.js",
+  "_AppErrorBoundary-C1iQAEbk.js": {
+    "file": "assets/AppErrorBoundary-C1iQAEbk.js",
     "name": "AppErrorBoundary",
     "imports": [
       "_react-vendor-DtO2kpgD.js",
-      "_plugin-kit-react-D_S39sAe.js",
+      "_plugin-kit-react-mQ95a7zk.js",
       "_fontawesome-Be2MVkcu.js"
     ]
   },
@@ -26,12 +26,12 @@
       "_react-vendor-DtO2kpgD.js"
     ]
   },
-  "_formie-browser-DH2rBWz5.js": {
-    "file": "assets/formie-browser-DH2rBWz5.js",
+  "_formie-browser-BAu1-blu.js": {
+    "file": "assets/formie-browser-BAu1-blu.js",
     "name": "formie-browser"
   },
-  "_plugin-kit-react-D_S39sAe.js": {
-    "file": "assets/plugin-kit-react-D_S39sAe.js",
+  "_plugin-kit-react-mQ95a7zk.js": {
+    "file": "assets/plugin-kit-react-mQ95a7zk.js",
     "name": "plugin-kit-react",
     "imports": [
       "_react-vendor-DtO2kpgD.js",
@@ -40,11 +40,11 @@
       "_dndkit-DPWE29o5.js"
     ]
   },
-  "_react-app-CEbLb27Y.js": {
-    "file": "assets/react-app-CEbLb27Y.js",
+  "_react-app-COI2daur.js": {
+    "file": "assets/react-app-COI2daur.js",
     "name": "react-app",
     "imports": [
-      "_plugin-kit-react-D_S39sAe.js"
+      "_plugin-kit-react-mQ95a7zk.js"
     ]
   },
   "_react-vendor-DtO2kpgD.js": {
@@ -65,11 +65,11 @@
     "isEntry": true,
     "imports": [
       "_react-vendor-DtO2kpgD.js",
-      "_plugin-kit-react-D_S39sAe.js",
+      "_plugin-kit-react-mQ95a7zk.js",
       "_fontawesome-Be2MVkcu.js",
       "_useCpFormPayloadSync-BVl70MWF.js",
-      "_AppErrorBoundary-C7g95mK_.js",
-      "_react-app-CEbLb27Y.js",
+      "_AppErrorBoundary-C1iQAEbk.js",
+      "_react-app-COI2daur.js",
       "_data-utils-B_R1Mnol.js",
       "_dndkit-DPWE29o5.js"
     ]
@@ -82,25 +82,25 @@
     "imports": [
       "_react-vendor-DtO2kpgD.js",
       "_fontawesome-Be2MVkcu.js",
-      "_plugin-kit-react-D_S39sAe.js",
+      "_plugin-kit-react-mQ95a7zk.js",
       "_dndkit-DPWE29o5.js",
       "_useCpFormPayloadSync-BVl70MWF.js",
-      "_react-app-CEbLb27Y.js",
+      "_react-app-COI2daur.js",
       "_data-utils-B_R1Mnol.js"
     ]
   },
   "src/form-builder/formie-form-builder.js": {
-    "file": "assets/formie-form-builder-C__EMnl9.js",
+    "file": "assets/formie-form-builder-CfjIJ97w.js",
     "name": "formie-form-builder",
     "src": "src/form-builder/formie-form-builder.js",
     "isEntry": true,
     "imports": [
-      "_plugin-kit-react-D_S39sAe.js",
+      "_plugin-kit-react-mQ95a7zk.js",
       "_react-vendor-DtO2kpgD.js",
       "_data-utils-B_R1Mnol.js",
       "_fontawesome-Be2MVkcu.js",
-      "_react-app-CEbLb27Y.js",
-      "_AppErrorBoundary-C7g95mK_.js",
+      "_react-app-COI2daur.js",
+      "_AppErrorBoundary-C1iQAEbk.js",
       "_dndkit-DPWE29o5.js"
     ]
   },
@@ -111,31 +111,31 @@
     "isEntry": true
   },
   "src/integration-connect/formie-integration-connect.js": {
-    "file": "assets/formie-integration-connect-Cnqk3wOx.js",
+    "file": "assets/formie-integration-connect-Dd3CUISw.js",
     "name": "formie-integration-connect",
     "src": "src/integration-connect/formie-integration-connect.js",
     "isEntry": true,
     "imports": [
       "_react-vendor-DtO2kpgD.js",
-      "_plugin-kit-react-D_S39sAe.js",
+      "_plugin-kit-react-mQ95a7zk.js",
       "_fontawesome-Be2MVkcu.js",
-      "_AppErrorBoundary-C7g95mK_.js",
-      "_react-app-CEbLb27Y.js",
+      "_AppErrorBoundary-C1iQAEbk.js",
+      "_react-app-COI2daur.js",
       "_data-utils-B_R1Mnol.js",
       "_dndkit-DPWE29o5.js"
     ]
   },
   "src/new-form/formie-new-form.js": {
-    "file": "assets/formie-new-form-DRKQSBql.js",
+    "file": "assets/formie-new-form-DxEHEHbj.js",
     "name": "formie-new-form",
     "src": "src/new-form/formie-new-form.js",
     "isEntry": true,
     "imports": [
       "_react-vendor-DtO2kpgD.js",
-      "_plugin-kit-react-D_S39sAe.js",
+      "_plugin-kit-react-mQ95a7zk.js",
       "_fontawesome-Be2MVkcu.js",
-      "_AppErrorBoundary-C7g95mK_.js",
-      "_react-app-CEbLb27Y.js",
+      "_AppErrorBoundary-C1iQAEbk.js",
+      "_react-app-COI2daur.js",
       "_data-utils-B_R1Mnol.js",
       "_dndkit-DPWE29o5.js"
     ]
@@ -164,7 +164,7 @@
     "src": "src/submissions/js/formie-submissions.js",
     "isEntry": true,
     "imports": [
-      "_formie-browser-DH2rBWz5.js"
+      "_formie-browser-BAu1-blu.js"
     ],
     "css": [
       "submissions/css/formie-submissions.css"

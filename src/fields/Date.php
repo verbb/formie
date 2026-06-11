@@ -1135,14 +1135,14 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
             return [
                 'name' => $this->handle,
                 'type' => $this->_getDateRangeGqlInputType(),
-                'description' => $this->instructions,
+                'description' => $this->instructions->isEmpty() ? null : $this->instructions->toPlainText(),
             ];
         }
 
         return [
             'name' => $this->handle,
             'type' => DateTimeType::getType(),
-            'description' => $this->instructions,
+            'description' => $this->instructions->isEmpty() ? null : $this->instructions->toPlainText(),
         ];
     }
 
@@ -1292,7 +1292,7 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
                     'data-formie-input-id' => $dataId,
                     'data-formie-input-type' => 'date',
                     'data-formie-input-error-state' => $errors ? true : false,
-                    'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
+                    'aria-describedby' => $this->hasInstructions() ? "{$id}-instructions" : null,
                 ], ValidationMessagesHelper::requiredClientAttributes($this)))
                 ->theme([
                     'class' => [
@@ -1318,7 +1318,7 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
                     'data-formie-input-id' => $dataId,
                     'data-formie-input-type' => 'date',
                     'data-formie-input-error-state' => $errors ? true : false,
-                    'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
+                    'aria-describedby' => $this->hasInstructions() ? "{$id}-instructions" : null,
                 ], ValidationMessagesHelper::requiredClientAttributes($this)))
                 ->theme([
                     'class' => [

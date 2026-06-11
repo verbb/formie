@@ -250,7 +250,7 @@ class SingleLineText extends Field implements SortableFieldInterface, Previewabl
                     'data-formie-input-type' => 'text',
                     'data-formie-input-error-state' => $errors ? true : false,
                     'autocomplete' => $this->getAutocompleteCoreAttribute(),
-                    'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
+                    'aria-describedby' => $this->hasInstructions() ? "{$id}-instructions" : null,
                 ]))
                 ->theme([
                     'class' => [

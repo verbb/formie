@@ -37,7 +37,7 @@ trait FieldClientDefinitionTrait
             'key' => 'field-' . $this->handle,
             'handle' => (string)$this->handle,
             'label' => $this->label,
-            'instructions' => $this->instructions,
+            'instructions' => $this->getInstructionsHtml()->__toString() ?: null,
             'type' => $clientDefinition->type,
             'required' => (bool)$this->required,
             'condition' => ConditionsHelper::toComponentConditionDefinition($this->conditions()->toArray()),

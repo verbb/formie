@@ -195,7 +195,7 @@ class MapsCustomFieldAdapter extends AbstractCustomFieldAdapter
                     'what3words' => Type::string(),
                 ],
             ])),
-            'description' => $field->instructions,
+            'description' => $field->instructions->isEmpty() ? null : $field->instructions->toPlainText(),
         ];
     }
 

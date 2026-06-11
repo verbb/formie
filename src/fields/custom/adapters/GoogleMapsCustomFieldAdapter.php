@@ -195,7 +195,7 @@ class GoogleMapsCustomFieldAdapter extends AbstractCustomFieldAdapter
                     'zoom' => Type::int(),
                 ],
             ])),
-            'description' => $field->instructions,
+            'description' => $field->instructions->isEmpty() ? null : $field->instructions->toPlainText(),
         ];
     }
 

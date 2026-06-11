@@ -12,7 +12,7 @@ use verbb\formie\events\ModifyMigrationFormEvent;
 use verbb\formie\events\ModifyMigrationNotificationEvent;
 use verbb\formie\events\ModifyMigrationSubmissionEvent;
 use verbb\formie\fields as formiefields;
-use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\models\RichText;
 use verbb\formie\helpers\References;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Variables;
@@ -844,7 +844,7 @@ class MigrateFreeform5 extends BasePluginMigrator
         // Parse the handle for a few things just in case
         $newField->handle = $this->_getFieldHandle($newField->handle);
 
-        $newField->instructions = $field->getInstructions();
+        $newField->instructions = RichText::from($field->getInstructions());
 
         if (!$newField->placeholder && method_exists($field, 'getPlaceholder')) {
             $newField->placeholder = $field->getPlaceholder();

@@ -307,7 +307,7 @@ class MultiLineText extends Field implements SortableFieldInterface, Previewable
                     'data-formie-input-type' => 'textarea',
                     'data-formie-input-error-state' => $errors ? true : false,
                     'autocomplete' => $this->getAutocompleteCoreAttribute(),
-                    'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
+                    'aria-describedby' => $this->hasInstructions() ? "{$id}-instructions" : null,
                 ]))
                 ->theme([
                     'class' => [

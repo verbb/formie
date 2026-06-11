@@ -774,7 +774,7 @@ class FileUpload extends ElementField
                     'data-formie-size-max-limit' => $sizeMaxLimit,
                     'data-formie-file-limit' => $limitFiles,
                     'data-formie-file-upload-hydrate-endpoint' => UrlHelper::actionUrl('formie/file-upload/hydrate'),
-                    'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
+                    'aria-describedby' => $this->hasInstructions() ? "{$id}-instructions" : null,
                 ], ValidationMessagesHelper::fileUploadValidationClientAttributes(
                     $this,
                     (int)$limitFiles,

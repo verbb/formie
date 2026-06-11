@@ -31,6 +31,7 @@ import {
     DropdownMenuItem,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
+    TiptapContent,
 } from '@verbb/plugin-kit-react/components';
 import {
     Combobox,
@@ -71,6 +72,7 @@ import { syncContainerRowsFromVariant } from '@form-builder/utils/containerLayou
 import { announceFormBuilderStatus, focusFieldActionsTrigger } from '@form-builder/utils/accessibility';
 import { submitSchemaFormAfterPendingTableUpdates } from '@form-builder/utils/submitSchemaForm';
 import { useFieldEditorDismiss } from '@form-builder/hooks/useFieldEditorDismiss';
+import { normalizeFieldInstructions, normalizeRichTextValue, hasRichTextValue } from '@form-builder/utils/richTextValue';
 import { SnapTopLeftCornerToCursor } from '@utils';
 
 import { FieldPreview } from './FieldPreview';
@@ -683,7 +685,7 @@ const Field = ({
                     isInlineContainerBuilder ? 'pointer-events-auto select-auto' : 'pointer-events-none select-none',
                     isBuilderField ? 'space-y-0' : 'space-y-2',
                 )}>
-                    {!isBuilderField && (shouldUseFieldLabel || field.instructions || hasFieldStatusIndicators) && (
+                    {!isBuilderField && (shouldUseFieldLabel || hasRichTextValue(field.instructions) || hasFieldStatusIndicators) && (
                         <div className={cn(
                             'space-y-1 leading-none pr-8',
                         )}>
@@ -777,11 +779,11 @@ const Field = ({
                                 </div>
                             )}
 
-                            {field.instructions && <div className={cn(
+                            {hasRichTextValue(field.instructions) && <div className={cn(
                             'text-gray-500',
                                 'text-[12px]',
                             )}>
-                                {field.instructions}
+                                <TiptapContent value={normalizeRichTextValue(field.instructions)} />
                             </div>}
                         </div>
                     )}
@@ -1038,10 +1040,14 @@ const FieldEditModal = ({
         handleSyncOnChange(values, form);
     };
 
+    const fieldDefaults = useMemo(() => {
+        return normalizeFieldInstructions(field);
+    }, [field]);
+
     const form = useSchemaFormEngine({
         schema: schemaWithReservedHandles,
         schemaIndex: schemaIndexWithReservedHandles || fallbackSchemaIndex,
-        defaultValues: field,
+        defaultValues: fieldDefaults,
         errors,
         onChange: handleModalChange,
     });

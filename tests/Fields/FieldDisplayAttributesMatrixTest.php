@@ -32,6 +32,7 @@ it('supports all label and instruction positions for single line text field', fu
 
             expect($field?->labelPosition)->toBe($labelOption['value']);
             expect($field?->instructionsPosition)->toBe($instructionsOption['value']);
+            expect($field?->hasInstructions())->toBeTrue();
         }
     }
 });

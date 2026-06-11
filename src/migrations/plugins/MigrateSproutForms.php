@@ -14,7 +14,7 @@ use verbb\formie\fields;
 use verbb\formie\fields\values\AddressFieldValue;
 use verbb\formie\fields\values\NameFieldValue;
 use verbb\formie\fields\values\PhoneFieldValue;
-use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\models\RichText;
 use verbb\formie\helpers\References;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\FieldLayoutPage;
@@ -703,7 +703,7 @@ class MigrateSproutForms extends BasePluginMigrator
         $newField->handle = $field->handle;
         $newField->placeholder = $field->placeholder ?? '';
         $newField->cssClasses = $field->cssClasses ?? '';
-        $newField->instructions = $field->instructions ?? '';
+        $newField->instructions = RichText::from($field->instructions ?? '');
 
         // Parse the handle for a few things just in case
         $newField->handle = $this->_getFieldHandle($newField->handle);

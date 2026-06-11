@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Added
+- Add rich text editing for field **Instructions**, including Craft entry links with `target="_blank"`, configurable via `rich-text.json` under `fields.instructions`. Legacy plain-text instructions are normalized automatically without migration. ([#724](https://github.com/verbb/formie/issues/724))
 - Add Craft-style attribute maps and merge helpers for `setFieldSettings()` field overrides, including `mergeInputAttributes` and `mergeContainerAttributes`. ([#2510](https://github.com/verbb/formie/issues/2510))
 - Add a **Note** builder field for form-builder guidance with Tip, Warning, Info, and Error styles. ([#2498](https://github.com/verbb/formie/issues/2498))
 - Add a **Rich Text** cosmetic field for WYSIWYG content in the form builder, configurable via `rich-text.json` under `fields.content`. ([#1028](https://github.com/verbb/formie/issues/1028), [#1709](https://github.com/verbb/formie/issues/1709), [Discussion #2070](https://github.com/verbb/formie/discussions/2070), [Discussion #772](https://github.com/verbb/formie/discussions/772))
@@ -30,6 +31,7 @@
 - Add an `address-state` browser module with lazy subdivision loading, loading UX (country spinner and state skeleton), and password-manager/browser autofill reconciliation via a persistent `address-level1` anchor input.
 - Add **Allowed Countries** and **Preselect Country from IP** settings to Address fields, mirroring Phone field country restrictions and using a shared `formie/address/country-from-ip` endpoint (CDN geo headers such as `CF-IPCountry`).
 - Add **Preselect Country from IP** to Phone fields when the country selector is enabled, wiring `intl-tel-input` geo lookup through the shared country-from-ip endpoint.
+- Add table column reference support for Calculations fields with explicit row scope (`first`, `last`, `index`, `all`, `count`, custom row expressions). Table columns now appear in the Calculations variable picker, with row targeting configured in the variable settings popover. ([#1284](https://github.com/verbb/formie/issues/1284))
 
 ### Changed
 - Refactor predefined options to align with the new option sources system.

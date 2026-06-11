@@ -224,7 +224,7 @@ class LinkCustomFieldAdapter extends AbstractCustomFieldAdapter
                     'filename' => Type::string(),
                 ],
             ])),
-            'description' => $field->instructions,
+            'description' => $field->instructions->isEmpty() ? null : $field->instructions->toPlainText(),
         ];
     }
 

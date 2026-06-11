@@ -443,7 +443,7 @@ class Name extends FixedParentField implements SortableFieldInterface, Previewab
                     'data-formie-input-id' => $dataId,
                     'data-formie-input-type' => 'text',
                     'data-formie-input-error-state' => $errors ? true : false,
-                    'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
+                    'aria-describedby' => $this->hasInstructions() ? "{$id}-instructions" : null,
                 ], ValidationMessagesHelper::requiredClientAttributes($this)))
                 ->theme([
                     'class' => [

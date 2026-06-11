@@ -72,6 +72,7 @@ import { getDevToolsConfig } from '@form-builder/dev/config';
 import { SnapTopLeftCornerToCursor } from '@utils';
 import { focusFirstVisibleInputIfEmpty } from '@form-builder/utils/focus';
 import { submitSchemaFormAfterPendingTableUpdates } from '@form-builder/utils/submitSchemaForm';
+import { normalizeFieldInstructions } from '@form-builder/utils/richTextValue';
 import { assignFieldReferences } from '@form-builder/utils/fieldReferences';
 import {
     collectFieldHandlesFromRows,
@@ -693,11 +694,14 @@ const SubFieldEditModal = ({
         };
     }, [sanitizedSchema]);
     const handleSyncOnChange = useHandleSyncOnChange(sanitizedSchema || []);
+    const fieldDefaults = useMemo(() => {
+        return normalizeFieldInstructions(field);
+    }, [field]);
 
     const form = useSchemaFormEngine({
         schema: sanitizedSchema,
         schemaIndex: schemaIndex || fallbackSchemaIndex,
-        defaultValues: field,
+        defaultValues: fieldDefaults,
         onChange: (values, formApi) => {
             handleSyncOnChange(values, formApi);
         },

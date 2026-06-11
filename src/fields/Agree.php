@@ -294,7 +294,7 @@ class Agree extends Field implements SortableFieldInterface, PreviewableFieldInt
                     'data-formie-field-layout' => true,
                     'data-formie-agree-field-layout' => true,
                     'data-formie-label-position' => $resolvedLabelPosition,
-                    'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
+                    'aria-describedby' => $this->hasInstructions() ? "{$id}-instructions" : null,
                 ])
                 ->theme([
                     'class' => [

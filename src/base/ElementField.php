@@ -844,7 +844,7 @@ abstract class ElementField extends Field implements ElementFieldInterface, Opti
         return [
             'name' => $this->handle,
             'type' => Type::listOf(Type::int()),
-            'description' => $this->instructions,
+            'description' => $this->instructions->isEmpty() ? null : $this->instructions->toPlainText(),
         ];
     }
 
@@ -890,7 +890,7 @@ abstract class ElementField extends Field implements ElementFieldInterface, Opti
                         'data-formie-field-layout' => true,
                         'data-formie-element-field-layout' => true,
                         'data-formie-layout' => $this->layout ?? 'vertical',
-                        'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
+                        'aria-describedby' => $this->hasInstructions() ? "{$id}-instructions" : null,
                     ])
                     ->theme([
                         'class' => [

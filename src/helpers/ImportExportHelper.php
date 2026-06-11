@@ -337,7 +337,7 @@ class ImportExportHelper
                 $settings = array_merge([
                     'label' => $field->label,
                     'handle' => $field->handle,
-                    'instructions' => $field->instructions,
+                    'instructions' => $field->getSettings()['instructions'] ?? [],
                     'required' => $field->required,
                 ], $field->settings);
 

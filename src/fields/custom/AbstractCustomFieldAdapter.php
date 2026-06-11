@@ -100,7 +100,7 @@ abstract class AbstractCustomFieldAdapter implements CustomFieldAdapterInterface
         return [
             'name' => $field->handle,
             'type' => Type::string(),
-            'description' => $field->instructions,
+            'description' => $field->instructions->isEmpty() ? null : $field->instructions->toPlainText(),
         ];
     }
 

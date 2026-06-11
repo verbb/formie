@@ -37,6 +37,7 @@ import {
     DropdownMenuItem,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
+    TiptapContent,
 } from '@verbb/plugin-kit-react/components';
 
 import { SchemaFormEngine, useSchemaFormEngine } from '@verbb/plugin-kit-react/forms';
@@ -65,6 +66,7 @@ import { focusFirstVisibleInputIfEmpty } from '@form-builder/utils/focus';
 import { resolveContainerRows } from '@form-builder/utils/containerLayoutVariants';
 import { announceFormBuilderStatus, focusFieldActionsTrigger } from '@form-builder/utils/accessibility';
 import { submitSchemaFormAfterPendingTableUpdates } from '@form-builder/utils/submitSchemaForm';
+import { normalizeFieldInstructions, normalizeRichTextValue, hasRichTextValue } from '@form-builder/utils/richTextValue';
 import { SnapTopLeftCornerToCursor } from '@utils';
 
 const EXCLUDED_SUB_FIELD_SETTING_NAMES = [
@@ -314,10 +316,13 @@ const NestedFieldEditModal = ({
         };
     }, [schemaWithReservedHandles]);
     const handleSyncOnChange = useHandleSyncOnChange(schemaWithReservedHandles);
+    const fieldDefaults = useMemo(() => {
+        return normalizeFieldInstructions(field);
+    }, [field]);
     const form = useSchemaFormEngine({
         schema: schemaWithReservedHandles,
         schemaIndex: schemaIndexWithReservedHandles || fallbackSchemaIndex,
-        defaultValues: field,
+        defaultValues: fieldDefaults,
         onChange: (values, schemaForm) => {
             handleSyncOnChange(values, schemaForm);
         },
@@ -812,7 +817,7 @@ const NestedFieldCard = ({
                 </div>
 
                 <div className="pointer-events-none select-none space-y-2">
-                    {(shouldUseNestedFieldLabel || nestedField?.instructions || hasNestedFieldStatusIndicators) && (
+                    {(shouldUseNestedFieldLabel || hasRichTextValue(nestedField?.instructions) || hasNestedFieldStatusIndicators) && (
                         <div className="space-y-1 leading-none pr-8">
                             {(shouldUseNestedFieldLabel || hasNestedFieldStatusIndicators) && (
                                 <div className="font-medium flex items-center gap-1 min-w-0">
@@ -846,9 +851,9 @@ const NestedFieldCard = ({
                                 </div>
                             )}
 
-                        {nestedField?.instructions && (
+                        {hasRichTextValue(nestedField?.instructions) && (
                             <div className="text-gray-500 text-[12px]">
-                                {nestedField.instructions}
+                                <TiptapContent value={normalizeRichTextValue(nestedField.instructions)} />
                             </div>
                         )}
                         </div>

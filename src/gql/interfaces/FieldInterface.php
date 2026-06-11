@@ -66,7 +66,22 @@ class FieldInterface extends BaseInterfaceType
             'instructions' => [
                 'name' => 'instructions',
                 'type' => Type::string(),
-                'description' => 'The field’s instructions.',
+                'description' => 'The field’s instructions, as plain text.',
+                'resolve' => function($field) {
+                    return $field->instructions->isEmpty()
+                        ? null
+                        : $field->instructions->toPlainText();
+                },
+            ],
+            'instructionsHtml' => [
+                'name' => 'instructionsHtml',
+                'type' => Type::string(),
+                'description' => 'The field’s instructions, as HTML.',
+                'resolve' => function($field) {
+                    return $field->instructions->isEmpty()
+                        ? null
+                        : $field->instructions->toHtml(null, true);
+                },
             ],
             'required' => [
                 'name' => 'required',

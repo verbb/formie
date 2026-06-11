@@ -308,7 +308,7 @@ class Number extends Field implements SortableFieldInterface, PreviewableFieldIn
         return [
             'name' => $this->handle,
             'type' => NumberType::getType(),
-            'description' => $this->instructions,
+            'description' => $this->instructions->isEmpty() ? null : $this->instructions->toPlainText(),
         ];
     }
 
@@ -387,7 +387,7 @@ class Number extends Field implements SortableFieldInterface, PreviewableFieldIn
                     'data-formie-input-id' => $dataId,
                     'data-formie-input-type' => 'number',
                     'data-formie-input-error-state' => $errors ? true : false,
-                    'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
+                    'aria-describedby' => $this->hasInstructions() ? "{$id}-instructions" : null,
                 ], ValidationMessagesHelper::numberValidationClientAttributes(
                     $this,
                     (bool)$this->limit,

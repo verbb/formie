@@ -38,7 +38,7 @@ trait FieldSubmissionTrait
             'label' => $this->hasLabel() ? Craft::t('site', $this->label) : null,
             'attribute' => $this->handle,
             'required' => $this->required,
-            'instructions' => Craft::t('site', $this->instructions),
+            'instructions' => $this->hasInstructions() ? Craft::t('site', (string)$this->instructions) : null,
             'id' => $this->handle,
             'errors' => $errors,
             'fieldAttributes' => $fieldAttributes,

@@ -326,6 +326,10 @@ The default rich-text config is:
             "buttons": ["bold", "italic", "link"],
             "rows": 3
         },
+        "instructions": {
+            "buttons": ["bold", "italic", "link"],
+            "rows": 4
+        },
         "content": {
             "buttons": ["bold", "italic", "underline", "link", "ulist", "olist", "heading2", "heading3", "paragraph"],
             "rows": 8
