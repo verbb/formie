@@ -13,9 +13,8 @@ const RANGE_END_SELECTOR = 'input[data-formie-date-range-end-input]';
 const MODULE_ID = 'date-picker';
 const debug = createDebug('fields', 'date-picker');
 
-ensureModuleStyles(MODULE_ID, [flatpickrCss]);
-
 type DatePickerOptions = {
+    includeFlatpickrCss?: boolean;
     datePickerOptions?: Array<{ label?: string; value?: unknown }>;
     dateFormat?: string;
     timeFormat?: string;
@@ -331,6 +330,11 @@ export const datePickerModule: FormieModuleDefinition = {
     },
     setup: async (ctx) => {
         const options = (ctx.options || {}) as DatePickerOptions;
+
+        if (options.includeFlatpickrCss !== false) {
+            ensureModuleStyles(MODULE_ID, [flatpickrCss]);
+        }
+
         const fields = getModuleFieldContainers(ctx);
         const cleanups = fields.map((field) => {
             const input = field.querySelector(INPUT_SELECTOR);

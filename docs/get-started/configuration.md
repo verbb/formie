@@ -78,6 +78,7 @@ return [
         'allowMultiSelectDropdowns' => true,
         'allowPhoneCountrySelector' => true,
         'enableLargeFieldStorage' => false,
+        'includeFlatpickrCss' => true,
         'plainTextHtmlSanitizationMode' => 'preserve',
 
         // Submissions
@@ -164,6 +165,7 @@ return [
 - `allowMultiSelectDropdowns` controls whether form editors can enable “Allow Multiple” on Dropdown and element fields using a dropdown display type. When disabled, the setting is hidden in the form builder and existing values are forced off. Configure in **Settings → Fields**.
 - `allowPhoneCountrySelector` controls whether form editors can enable the country code selector on Phone Number fields. When disabled, the setting is hidden in the form builder and existing values are forced off. For default-off behaviour on new phone fields without hiding the setting, use [Field Defaults](/developers/field-defaults) (`countryEnabled: false`). Configure in **Settings → Fields**.
 - `enableLargeFieldStorage` stores field content in large-text database columns for projects that expect very large submission payloads.
+- `includeFlatpickrCss` controls whether Formie injects Flatpickr styles for Calendar (Advanced) date fields. Set to `false` when your project already provides its own Flatpickr stylesheet.
 - `plainTextHtmlSanitizationMode` controls how plain-text input values are handled when HTML is submitted. Use `preserve` or `sanitize`.
 
 ### Submissions

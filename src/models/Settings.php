@@ -72,6 +72,7 @@ class Settings extends Model
     public bool $allowMultiSelectDropdowns = true;
     public bool $allowPhoneCountrySelector = true;
     public bool $enableLargeFieldStorage = false;
+    public bool $includeFlatpickrCss = true;
     public string $plainTextHtmlSanitizationMode = self::PLAIN_TEXT_HTML_SANITIZATION_MODE_PRESERVE;
 
     // Submissions

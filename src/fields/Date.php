@@ -1823,6 +1823,7 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
             $modules[] = new ClientModule([
                 'id' => 'date-picker',
                 'config' => [
+                    'includeFlatpickrCss' => Formie::$plugin->getSettings()->includeFlatpickrCss,
                     'datePickerOptions' => $datePickerOptions,
                     'dateFormat' => $this->getDateFormat(),
                     'timeFormat' => $this->getTimeFormat(),
