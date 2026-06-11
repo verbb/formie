@@ -5,6 +5,7 @@ export const builtinFieldModuleLoaders: Record<string, () => Promise<FormieModul
     // truth for lazy-loading first-party field enhancements.
     'calculations': () => import('#modules/fields/calculations').then((module) => module.calculationsModule),
     'checkbox-radio': () => import('#modules/fields/checkbox-radio').then((module) => module.checkboxRadioModule),
+    'combobox': () => import('#modules/fields/combobox').then((module) => module.comboboxModule),
     'conditions': () => import('#modules/fields/conditions').then((module) => module.conditionsModule),
     'custom-google-maps': () => import('#modules/fields/custom-google-maps').then((module) => module.customGoogleMapsModule),
     'custom-link': () => import('#modules/fields/custom-link').then((module) => module.customLinkModule),

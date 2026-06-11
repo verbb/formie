@@ -9,6 +9,7 @@ Use Variants when the selected value should identify the exact purchasable or pr
 - **Variant sources** - Choose which Commerce variant sources are available.
 - **Selection limit** - Control how many variants can be selected.
 - **Display type** - Choose how variant choices appear on the front end.
+- **Use searchable dropdown** - When **Display type** is **Dropdown**, allow users to filter options by typing. See [Dropdown → Searchable dropdown](/fields/dropdown#searchable-dropdown).
 - **Placeholder** - Set the initial empty option text where the selected display type supports it.
 - **Label format** - Control how variants are labelled where supported.
 

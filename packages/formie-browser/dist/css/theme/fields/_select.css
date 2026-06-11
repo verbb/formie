@@ -34,4 +34,17 @@
         border-color: var(--formie-color-danger);
         box-shadow: var(--formie-shadow-danger-focus);
     }
+
+    /* Tom Select copies native select classes onto its wrapper; keep combobox chrome on .ts-control only. */
+    .formie-field .ts-wrapper.formie-combobox,
+    .formie-field .ts-wrapper.formie-combobox.formie-select,
+    .formie-field .ts-wrapper.formie-combobox.formie-dropdown-input {
+        border: 0;
+        padding: 0;
+        min-height: 0;
+        background: none;
+        background-image: none;
+        box-shadow: none;
+        appearance: none;
+    }
 }

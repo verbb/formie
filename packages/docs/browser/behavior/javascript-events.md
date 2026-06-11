@@ -441,6 +441,28 @@ document.addEventListener('formie:field:calculations:after-evaluate', (event) =>
 });
 ```
 
+### `combobox`
+
+#### The `formie:field:combobox:before-init` event
+
+The event that is triggered before the combobox module initializes. Use this to adjust Tom Select options before the control is created.
+
+```js
+document.addEventListener('formie:field:combobox:before-init', (event) => {
+  event.detail.options.placeholder = 'Choose one…';
+});
+```
+
+#### The `formie:field:combobox:after-init` event
+
+The event that is triggered after the combobox module has initialized and attached to the field select.
+
+```js
+document.addEventListener('formie:field:combobox:after-init', (event) => {
+  console.log('Combobox ready:', event.detail.combobox);
+});
+```
+
 ### `date-picker`
 
 #### The `formie:field:date-picker:before-init` event

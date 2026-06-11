@@ -285,6 +285,7 @@ Field | Type | Description
 `source` | `String` | The selected source.
 `limitOptions` | `String` | The selectable item limit.
 `displayType` | `String` | The front-end display type.
+`useSearchable` | `Boolean` | Whether the front-end dropdown is filterable when `displayType` is `dropdown`.
 `labelSource` | `String` | Where option labels should come from.
 `orderBy` | `String` | The element query sort order.
 `multi` | `Boolean` | Whether multiple values can be selected.
@@ -328,6 +329,7 @@ Field | Type | Description
 --- | --- | ---
 `multi` | `Boolean` | Whether multiple values can be selected.
 `layout` | `String` | The option layout.
+`useSearchable` | `Boolean` | Whether the front-end dropdown is filterable.
 `options` | `[FieldOption]` | The field options.
 
 ### Email Address
@@ -346,6 +348,7 @@ Field | Type | Description
 `source` | `String` | The selected source.
 `limitOptions` | `String` | The selectable item limit.
 `displayType` | `String` | The front-end display type.
+`useSearchable` | `Boolean` | Whether the front-end dropdown is filterable when `displayType` is `dropdown`.
 `labelSource` | `String` | Where option labels should come from.
 `orderBy` | `String` | The element query sort order.
 `multi` | `Boolean` | Whether multiple values can be selected.
@@ -460,6 +463,7 @@ Field | Type | Description
 `source` | `String` | The selected source.
 `limitOptions` | `String` | The selectable item limit.
 `displayType` | `String` | The front-end display type.
+`useSearchable` | `Boolean` | Whether the front-end dropdown is filterable when `displayType` is `dropdown`.
 `labelSource` | `String` | Where option labels should come from.
 `orderBy` | `String` | The element query sort order.
 `multi` | `Boolean` | Whether multiple values can be selected.
@@ -483,6 +487,7 @@ Field | Type | Description
 Field | Type | Description
 --- | --- | ---
 `displayType` | `String` | The front-end display type.
+`useSearchable` | `Boolean` | Whether the front-end dropdown is filterable when `displayType` is `dropdown`.
 `multiple` | `Boolean` | Whether multiple recipients can be selected.
 `options` | `[FieldOption]` | The recipient options.
 
@@ -543,6 +548,7 @@ Field | Type | Description
 `source` | `String` | The selected source.
 `limitOptions` | `String` | The selectable item limit.
 `displayType` | `String` | The front-end display type.
+`useSearchable` | `Boolean` | Whether the front-end dropdown is filterable when `displayType` is `dropdown`.
 `labelSource` | `String` | Where option labels should come from.
 `orderBy` | `String` | The element query sort order.
 `multi` | `Boolean` | Whether multiple values can be selected.
@@ -561,6 +567,7 @@ Field | Type | Description
 `source` | `String` | The selected source.
 `limitOptions` | `String` | The selectable item limit.
 `displayType` | `String` | The front-end display type.
+`useSearchable` | `Boolean` | Whether the front-end dropdown is filterable when `displayType` is `dropdown`.
 `labelSource` | `String` | Where option labels should come from.
 `orderBy` | `String` | The element query sort order.
 `multi` | `Boolean` | Whether multiple values can be selected.
@@ -579,6 +586,7 @@ Field | Type | Description
 `source` | `String` | The selected source.
 `limitOptions` | `String` | The selectable item limit.
 `displayType` | `String` | The front-end display type.
+`useSearchable` | `Boolean` | Whether the front-end dropdown is filterable when `displayType` is `dropdown`.
 `labelSource` | `String` | Where option labels should come from.
 `orderBy` | `String` | The element query sort order.
 `multi` | `Boolean` | Whether multiple values can be selected.

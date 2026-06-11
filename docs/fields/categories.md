@@ -12,6 +12,7 @@ Use Categories when the answer should stay connected to Craft categories. If you
 - **Branch limit** - Restrict how deep the selectable category tree can go.
 - **Selection limit** - Control how many categories can be selected.
 - **Display type** - Choose how the category choices appear on the front end.
+- **Use searchable dropdown** - When **Display type** is **Dropdown**, allow users to filter options by typing. See [Dropdown → Searchable dropdown](/fields/dropdown#searchable-dropdown).
 - **Placeholder** - Set the initial empty option text where the selected display type supports it.
 
 ## Submitted value

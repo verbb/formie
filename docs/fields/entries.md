@@ -9,6 +9,7 @@ Use Entries when the selected content should stay related to Craft entries. If y
 - **Entry sources** - Choose which sections or entry sources the user can select from.
 - **Selection limit** - Control how many entries can be selected.
 - **Display type** - Choose how the entry choices appear on the front end.
+- **Use searchable dropdown** - When **Display type** is **Dropdown**, allow users to filter options by typing. See [Dropdown → Searchable dropdown](/fields/dropdown#searchable-dropdown).
 - **Placeholder** - Set the initial empty option text where the selected display type supports it.
 - **Label format** - Control how entries are labelled where supported.
 

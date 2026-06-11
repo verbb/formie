@@ -166,6 +166,8 @@ return [
   'All notifications' => 'All notifications',
   'Allowed Countries' => 'Allowed Countries',
   'Allow Multiple' => 'Allow Multiple',
+  'Use Searchable Dropdown' => 'Use Searchable Dropdown',
+  'Allow users to filter options by typing. Recommended for long option lists.' => 'Allow users to filter options by typing. Recommended for long option lists.',
   'All Visible Fields' => 'All Visible Fields',
   'All {name} must be unique.' => 'All {name} must be unique.',
   'Always' => 'Always',

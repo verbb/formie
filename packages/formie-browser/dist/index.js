@@ -1289,6 +1289,7 @@ var R = class {
 }, Ft = {
 	calculations: () => import("./chunks/calculations-CFZZH2I2.js").then((e) => e.calculationsModule),
 	"checkbox-radio": () => import("./chunks/checkbox-radio-DQ0H67Tj.js").then((e) => e.checkboxRadioModule),
+	combobox: () => import("./chunks/combobox-CNputqJ2.js").then((e) => e.comboboxModule),
 	conditions: () => import("./chunks/conditions-Cv5eLLdi.js").then((e) => e.conditionsModule),
 	"custom-google-maps": () => import("./chunks/custom-google-maps-BsaSirEZ.js").then((e) => e.customGoogleMapsModule),
 	"custom-link": () => import("./chunks/custom-link-CJ1-FjEM.js").then((e) => e.customLinkModule),

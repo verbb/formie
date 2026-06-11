@@ -324,7 +324,7 @@ function FieldBuilder({ fields }) {
                     <p className="my-2 w-full text-[#33475b] truncate text-wrap font-medium text-sm">{Craft.t('formie', 'Add a new field')}</p>
                     <p className="w-full text-gray-500 truncate text-wrap text-xs">{Craft.t('formie', 'Drag and drop a field here, or select one below.')}</p>
 
-                    <div className="mt-4 flex flex-col gap-2 w-full max-w-[180px]">
+                    <div className="form-builder-empty-dropzone-field-select mt-4 flex w-full min-w-0 max-w-[220px] flex-col gap-2">
                         <Combobox
                             items={groupedFieldTypeOptions}
                             value={selectedFieldType}
@@ -339,15 +339,20 @@ function FieldBuilder({ fields }) {
                                 render={(
                                     <Button
                                         size="sm"
-                                        className="w-full py-1.5 justify-between"
+                                        className="w-full min-w-0 py-1.5 justify-between"
                                     >
-                                        {selectedFieldType?.label ?? Craft.t('formie', 'Select a field type')}
-                                        <FontAwesomeIcon icon={faChevronDown} className="size-3 pointer-events-none" />
+                                        <span className="min-w-0 truncate">
+                                            {selectedFieldType?.label ?? Craft.t('formie', 'Select a field type')}
+                                        </span>
+                                        <FontAwesomeIcon icon={faChevronDown} className="size-3 shrink-0 pointer-events-none" />
                                     </Button>
                                 )}
                             />
 
-                            <ComboboxContent>
+                            <ComboboxContent
+                                side="top"
+                                className="w-[var(--anchor-width)] min-w-[var(--anchor-width)] max-w-[var(--anchor-width)] overflow-x-clip"
+                            >
                                 <ComboboxPrimitiveInput
                                     showTrigger={false}
                                     placeholder={Craft.t('formie', 'Search fields')}
@@ -365,15 +370,17 @@ function FieldBuilder({ fields }) {
                                                     {group.items.map((fieldType) => {
                                                         return (
                                                             <ComboboxItem
-                                                                className="flex items-center gap-2"
                                                                 key={fieldType.type}
                                                                 value={fieldType}
                                                             >
-                                                                <span className={cn(
-                                                                    'size-[13px]',
-                                                                    '[&_svg]:size-full!',
-                                                                )} dangerouslySetInnerHTML={{ __html: fieldType.icon }} />
-                                                                <span>{fieldType.label}</span>
+                                                                <span
+                                                                    className={cn(
+                                                                        'size-[13px] shrink-0 overflow-hidden',
+                                                                        '[&_svg]:size-full!',
+                                                                    )}
+                                                                    dangerouslySetInnerHTML={{ __html: fieldType.icon }}
+                                                                />
+                                                                <span className="min-w-0 truncate">{fieldType.label}</span>
                                                             </ComboboxItem>
                                                         );
                                                     })}

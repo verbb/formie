@@ -12,6 +12,7 @@ use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\fields\values\OptionValue;
 use verbb\formie\fields\values\RecipientsFieldValue;
 use verbb\formie\fields\Hidden as HiddenField;
+use verbb\formie\fields\traits\SearchableDropdownFieldTrait;
 use verbb\formie\gql\types\generators\FieldOptionGenerator;
 use verbb\formie\helpers\OptionsMode;
 use verbb\formie\helpers\RecipientOptionSelectionHelper;
@@ -72,6 +73,12 @@ class Recipients extends Field implements PreviewableFieldInterface, OptionResol
             ? Type::listOf(Type::string())
             : Type::string();
     }
+
+
+    // Traits
+    // =========================================================================
+
+    use SearchableDropdownFieldTrait;
 
 
     // Properties
@@ -263,6 +270,7 @@ class Recipients extends Field implements PreviewableFieldInterface, OptionResol
         $attributes[] = 'optionsMode';
         $attributes[] = 'optionSource';
         $attributes[] = 'multiple';
+        $attributes[] = 'useSearchable';
 
         return $attributes;
     }
@@ -342,6 +350,7 @@ class Recipients extends Field implements PreviewableFieldInterface, OptionResol
         }
 
         $config['namespace'] = $this->getNamespace();
+        $config['useSearchable'] = $this->useSearchable;
 
         foreach ($class->getProperties(ReflectionProperty::IS_PUBLIC) as $property) {
             if (!$property->isStatic() && $property->getDeclaringClass()->isAbstract()) {
@@ -505,6 +514,10 @@ class Recipients extends Field implements PreviewableFieldInterface, OptionResol
                 'name' => 'multiple',
                 'type' => Type::boolean(),
             ],
+            'useSearchable' => [
+                'name' => 'useSearchable',
+                'type' => Type::boolean(),
+            ],
             'options' => [
                 'name' => 'options',
                 'type' => Type::listOf(FieldOptionGenerator::generateType()),
@@ -535,6 +548,9 @@ class Recipients extends Field implements PreviewableFieldInterface, OptionResol
                     ['label' => Craft::t('formie', 'Checkboxes'), 'value' => 'checkboxes'],
                     ['label' => Craft::t('formie', 'Radio Buttons'), 'value' => 'radio'],
                 ],
+            ]),
+            $this->defineSearchableDropdownSettingSchema([
+                'if' => 'displayType == "dropdown"',
             ]),
             SchemaHelper::optionDynamicSettingsField([
                 'fieldType' => static::class,
@@ -806,6 +822,7 @@ class Recipients extends Field implements PreviewableFieldInterface, OptionResol
 
         if ($this->displayType === 'dropdown') {
             $clientInput['options'] = $this->getFieldOptions();
+            $clientInput['useSearchable'] = $this->useSearchable;
         }
 
         if (in_array($this->displayType, ['checkboxes', 'radio'], true)) {
@@ -831,8 +848,17 @@ class Recipients extends Field implements PreviewableFieldInterface, OptionResol
     {
         $rules = parent::defineRules();
         $rules[] = ['options', 'validateOptions'];
+        $rules = array_merge($rules, $this->defineSearchableDropdownRules());
 
         return $rules;
+    }
+
+    protected function defineClientModules(): array
+    {
+        return array_merge(
+            parent::defineClientModules(),
+            $this->defineSearchableDropdownClientModules(),
+        );
     }
 
     public function validateOptions(): void

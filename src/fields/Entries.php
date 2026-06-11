@@ -312,6 +312,7 @@ class Entries extends ElementField
                 'name' => 'multi',
                 'if' => 'displayType == "dropdown"',
             ]),
+            ...$this->defineElementFieldSearchableDropdownAppearanceSchema(),
             SchemaHelper::labelPosition($this),
             SchemaHelper::instructions(),
             SchemaHelper::instructionsPosition($this),

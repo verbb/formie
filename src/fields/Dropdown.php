@@ -5,6 +5,7 @@ use verbb\formie\base\FieldInterface;
 use verbb\formie\base\OptionsField;
 use verbb\formie\base\SortableFieldInterface;
 use verbb\formie\fields\traits\AutocompleteFieldTrait;
+use verbb\formie\fields\traits\SearchableDropdownFieldTrait;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\helpers\StringHelper;
@@ -41,7 +42,8 @@ class Dropdown extends OptionsField implements SortableFieldInterface
     // =========================================================================
 
     use AutocompleteFieldTrait;
-    
+    use SearchableDropdownFieldTrait;
+
 
     // Properties
     // =========================================================================
@@ -198,10 +200,19 @@ class Dropdown extends OptionsField implements SortableFieldInterface
         ];
     }
 
+    public function settingsAttributes(): array
+    {
+        $attributes = parent::settingsAttributes();
+        $attributes[] = 'useSearchable';
+
+        return $attributes;
+    }
+
     public function defineFormBuilderSettingsSchema(): array
     {
         return [
             SchemaHelper::prePopulate(),
+            $this->defineSearchableDropdownSettingSchema(),
             $this->defineAutocompleteSettingSchema(),
             SchemaHelper::includeInEmailFieldSummariesField(),
             SchemaHelper::emailFieldSummaryValue([
@@ -268,7 +279,7 @@ class Dropdown extends OptionsField implements SortableFieldInterface
             $optionValue = $this->getFieldInputOptionValue($context->toArray());
 
             return SlotTag::make('select')
-                ->core(array_merge([
+                ->core($this->applySearchableDropdownSelectAttributes(array_merge([
                     'id' => $this->getHtmlId($form, $optionValue),
                     'name' => $this->getHtmlName(($this->multi || $this->hasMultiNamespace ? '[]' : null)),
                     'multiple' => $this->multi ? true : null,
@@ -278,7 +289,7 @@ class Dropdown extends OptionsField implements SortableFieldInterface
                     'data-formie-input-id' => $this->getHtmlDataId($form, $optionValue),
                     'data-formie-input-type' => 'select',
                     'data-formie-input-error-state' => $errors ? true : false,
-                ], ValidationMessagesHelper::requiredClientAttributes($this)))
+                ], ValidationMessagesHelper::requiredClientAttributes($this))))
                 ->theme([
                     'class' => [
                         'formie-select',
@@ -296,11 +307,19 @@ class Dropdown extends OptionsField implements SortableFieldInterface
     {
         $rules = parent::defineRules();
 
-        $rules = array_merge($rules, $this->defineAutocompleteRules());
+        $rules = array_merge($rules, $this->defineAutocompleteRules(), $this->defineSearchableDropdownRules());
         $rules[] = [['min', 'max'], 'number'];
         $rules[] = [['max'], 'compare', 'compareAttribute' => 'min', 'operator' => '>='];
 
         return $rules;
+    }
+
+    protected function defineClientModules(): array
+    {
+        return array_merge(
+            parent::defineClientModules(),
+            $this->defineSearchableDropdownClientModules(),
+        );
     }
 
     protected function defineClientInput(): array
@@ -309,6 +328,7 @@ class Dropdown extends OptionsField implements SortableFieldInterface
             'min' => $this->min,
             'max' => $this->max,
             'autocomplete' => $this->getAutocompleteCoreAttribute(),
+            'useSearchable' => $this->useSearchable,
         ]);
     }
 

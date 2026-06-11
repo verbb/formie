@@ -1,2 +1,0 @@
-var t=new Set;function i(r,l){if(typeof document>"u")return;let e=`formie-module-style:${r}`;if(t.has(e)||document.querySelector(`style[data-formie-module-style="${r}"]`)){t.add(e);return}let n=l.filter(o=>typeof o=="string"&&o.trim().length>0).join(`
-`);if(!n){t.add(e);return}let d=document.createElement("style");d.setAttribute("data-formie-module-style",r),d.textContent=n,document.head.appendChild(d),t.add(e)}export{i as t};

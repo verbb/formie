@@ -8,6 +8,7 @@ Use Recipients when the submitter’s choice should affect notification routing.
 
 - **Recipients** - Define the available recipient labels and email destinations.
 - **Display type** - Show the field as hidden, dropdown, checkboxes or radio buttons.
+- **Use searchable dropdown** - When **Display type** is **Dropdown**, allow users to filter options by typing. See [Dropdown → Searchable dropdown](/fields/dropdown#searchable-dropdown).
 - **Default recipient** - Preselect or set the recipient when the field is hidden.
 - **Multiple recipients** - Allow one or more recipients depending on the chosen display type.
 

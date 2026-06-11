@@ -9,6 +9,7 @@ Use Products when the selected value should be a product relation. If the form o
 - **Product sources** - Choose which Commerce product sources are available.
 - **Selection limit** - Control how many products can be selected.
 - **Display type** - Choose how product choices appear on the front end.
+- **Use searchable dropdown** - When **Display type** is **Dropdown**, allow users to filter options by typing. See [Dropdown → Searchable dropdown](/fields/dropdown#searchable-dropdown).
 - **Placeholder** - Set the initial empty option text where the selected display type supports it.
 - **Label format** - Control how products are labelled where supported.
 

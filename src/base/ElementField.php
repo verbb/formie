@@ -19,6 +19,7 @@ use verbb\formie\fields\Checkboxes;
 use verbb\formie\fields\Radio;
 use verbb\formie\fields\SingleLineText;
 use verbb\formie\fields\Tags;
+use verbb\formie\fields\traits\SearchableDropdownFieldTrait;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Variables;
@@ -144,6 +145,12 @@ abstract class ElementField extends Field implements ElementFieldInterface, Opti
     public const EVENT_DEFINE_SELECTION_CRITERIA = 'defineSelectionCriteria';
 
 
+    // Traits
+    // =========================================================================
+
+    use SearchableDropdownFieldTrait;
+
+
     // Properties
     // =========================================================================
 
@@ -193,6 +200,7 @@ abstract class ElementField extends Field implements ElementFieldInterface, Opti
         $attributes[] = 'layout';
         $attributes[] = 'sourceType';
         $attributes[] = 'sourceElements';
+        $attributes[] = 'useSearchable';
 
         return $attributes;
     }
@@ -479,6 +487,7 @@ abstract class ElementField extends Field implements ElementFieldInterface, Opti
             'options' => $this->getFieldOptions(),
             'hasMultiNamespace' => true,
             'multi' => $this->multi,
+            'useSearchable' => $this->useSearchable,
         ];
 
         // Set the parent field and namespace, but in a specific way due to nested field handling.
@@ -809,6 +818,10 @@ abstract class ElementField extends Field implements ElementFieldInterface, Opti
                 'name' => 'multi',
                 'type' => Type::boolean(),
             ],
+            'useSearchable' => [
+                'name' => 'useSearchable',
+                'type' => Type::boolean(),
+            ],
             'layout' => [
                 'name' => 'layout',
                 'type' => Type::string(),
@@ -918,6 +931,7 @@ abstract class ElementField extends Field implements ElementFieldInterface, Opti
         return array_merge(parent::defineClientInput(), [
             'multiple' => $this->getIsMultiOptionsField(),
             'layout' => in_array($displayType, ['radio', 'checkboxes'], true) ? ($this->layout ?? 'vertical') : null,
+            'useSearchable' => $this->useSearchable,
             'options' => array_values(array_map(static function(array $option) {
                 return [
                     'label' => $option['label'] ?? '',
@@ -927,6 +941,31 @@ abstract class ElementField extends Field implements ElementFieldInterface, Opti
                 ];
             }, $this->getFieldOptions())),
         ]);
+    }
+
+    protected function defineElementFieldSearchableDropdownAppearanceSchema(): array
+    {
+        return [
+            $this->defineSearchableDropdownSettingSchema([
+                'if' => 'displayType == "dropdown"',
+            ]),
+        ];
+    }
+
+    protected function defineClientModules(): array
+    {
+        return array_merge(
+            parent::defineClientModules(),
+            $this->defineSearchableDropdownClientModules(),
+        );
+    }
+
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+        $rules = array_merge($rules, $this->defineSearchableDropdownRules());
+
+        return $rules;
     }
 
     protected function cpInputTemplateVariables(array|ElementQueryInterface $value = null, ?ElementInterface $element = null): array

@@ -83,6 +83,25 @@
     height: calc(100dvh - 183px);
 }
 
+/* Empty dropzone field picker: clip any horizontal overflow in the combobox popup. */
+.form-builder-empty-dropzone-field-select [data-slot='combobox-content'],
+.form-builder-empty-dropzone-field-select [data-slot='combobox-list'] {
+    overflow-x: clip;
+    max-width: 100%;
+}
+
+.form-builder-empty-dropzone-field-select [data-slot='combobox-list'] {
+    overflow-y: auto;
+}
+
+.form-builder-empty-dropzone-field-select [data-slot='combobox-separator'] {
+    margin-inline: 0;
+}
+
+.form-builder-empty-dropzone-field-select [data-slot='combobox-item'] > span {
+    min-width: 0;
+}
+
 .form-builder-header {
     gap: 16px;
 }

@@ -10,6 +10,7 @@ Use Dropdown for compact choice fields, especially when the list is long. If the
 - **Multiple selections** - Allow one selected value or a list of selected values.
 - **Default value** - Preselect one or more options for new submissions.
 - **Placeholder** - Show an initial prompt before a value is selected.
+- **Use searchable dropdown** - Let users filter options by typing. Recommended for long lists. The front end keeps the native `<select>` for submission and enhances it with Formie’s `combobox` module.
 - **Required** - Force a choice before the form can be submitted.
 
 ## Bulk Add Options
@@ -41,6 +42,19 @@ Use the row menu on an option to set its **availability**:
 - **Disabled** — Shown on the front-end form with HTML `disabled` so it is visible but cannot be selected.
 
 Only one state applies at a time. Prefer hiding over deleting an option once submissions may reference its value.
+
+## Searchable dropdown
+
+Enable **Use searchable dropdown** when the option list is long enough that scrolling a native `<select>` is awkward. Formie renders a normal dropdown on the server, then enhances it on the front end so users can type to filter choices.
+
+- Works with single and multiple selection.
+- Placeholder and empty-value options are shown as prompt text, not as selectable choices.
+- Selected multi-select values appear as removable pills; already-selected options are hidden from the filtered list.
+- The underlying `<select>` is still submitted, so validation, conditions, calculations and integrations behave like a regular dropdown.
+
+The setting is also available on [Entries](/fields/entries), [Categories](/fields/categories), [Users](/fields/users), [Products](/fields/products), and [Recipients](/fields/recipients) when **Display type** is **Dropdown**.
+
+For JavaScript hooks and module events, see [Combobox module](/browser/modules/field/combobox) in the browser docs.
 
 ## Overriding Options
 

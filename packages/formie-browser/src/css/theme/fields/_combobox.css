@@ -1,0 +1,246 @@
+/*
+ * Combobox styles are intentionally unlayered. The combobox module injects this
+ * sheet at runtime, and unlayered third-party CSS would otherwise win over
+ * @layer formie-theme rules.
+ *
+ * Tom Select default CSS is not imported; these rules provide the minimum
+ * structure plus Formie theme styling for searchable dropdowns.
+ */
+
+.formie-field .ts-wrapper.formie-combobox {
+    width: 100%;
+    display: block;
+    position: relative;
+    min-height: 0;
+    border: 0;
+    padding: 0;
+    background: none;
+    box-shadow: none;
+}
+
+.formie-field select[data-formie-combobox-input].tomselected,
+.formie-field select[data-formie-combobox-input].ts-hidden-accessible {
+    display: none !important;
+}
+
+.formie-field .ts-wrapper.formie-combobox .ts-control {
+    box-sizing: border-box;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+    width: 100%;
+    border: var(--formie-border-width) solid var(--formie-color-border);
+    border-radius: var(--formie-radius-sm);
+    background-color: var(--formie-color-surface);
+    background-image: none;
+    min-height: var(--formie-control-height);
+    padding: calc(var(--formie-control-padding-y) - 1px) var(--formie-control-padding-x);
+    box-shadow: none;
+    font-size: var(--formie-control-font-size);
+    line-height: var(--formie-line-height-tight);
+    color: var(--formie-color-text);
+    transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+    gap: var(--formie-space-1);
+}
+
+.formie-field .ts-wrapper.formie-combobox.single .ts-control {
+    --ts-pr-min: var(--formie-control-padding-x);
+    --ts-pr-caret: calc(var(--formie-select-indicator-size) + var(--formie-space-1));
+    padding-right: calc(var(--formie-control-padding-x) + var(--formie-select-indicator-size) + var(--formie-space-2)) !important;
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M7 7l3-3 3 3m0 6l-3 3-3-3' stroke='%239CA3AF' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-position: right var(--formie-space-2) center;
+    background-repeat: no-repeat;
+    background-size: var(--formie-select-indicator-size) var(--formie-select-indicator-size);
+}
+
+.formie-field .ts-wrapper.formie-combobox.single .ts-control::after {
+    display: none;
+}
+
+.formie-field .ts-wrapper.formie-combobox.multi .ts-control {
+    padding: calc(var(--formie-control-padding-y) - 2px) var(--formie-control-padding-x) calc(var(--formie-control-padding-y) - 4px);
+    --ts-pr-min: var(--formie-control-padding-x);
+}
+
+.formie-field .ts-wrapper.formie-combobox.multi.has-items .ts-control {
+    padding-left: var(--formie-control-padding-x);
+}
+
+.formie-field .ts-wrapper.formie-combobox .ts-control > input {
+    flex: 1 1 auto;
+    min-width: 7rem;
+    max-width: 100%;
+    margin: 0 !important;
+    padding: 0 !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    border: 0 !important;
+    background: none !important;
+    box-shadow: none !important;
+    color: var(--formie-color-text);
+    font: inherit;
+    font-size: var(--formie-control-font-size);
+    line-height: inherit;
+}
+
+.formie-field .ts-wrapper.formie-combobox .ts-control > input:focus {
+    outline: none !important;
+}
+
+.formie-field .ts-wrapper.formie-combobox.has-items .ts-control > input {
+    margin: 0 var(--formie-space-1) !important;
+}
+
+.formie-field .ts-wrapper.formie-combobox.input-hidden .ts-control > input {
+    opacity: 0;
+    position: absolute;
+    left: -10000px;
+}
+
+.formie-field .ts-wrapper.formie-combobox.single .ts-control,
+.formie-field .ts-wrapper.formie-combobox.single .ts-control > input {
+    cursor: pointer;
+}
+
+.formie-field .ts-wrapper.formie-combobox.single.input-active .ts-control,
+.formie-field .ts-wrapper.formie-combobox.single.input-active .ts-control > input {
+    cursor: text;
+}
+
+.formie-field .ts-wrapper.formie-combobox .ts-control .items-placeholder {
+    color: var(--formie-color-text-muted);
+    font: inherit;
+    font-size: var(--formie-control-font-size);
+}
+
+.formie-field .ts-wrapper.formie-combobox .ts-control > input::placeholder {
+    color: var(--formie-color-text-muted);
+}
+
+.formie-field .ts-wrapper.formie-combobox.focus .ts-control,
+.formie-field .ts-wrapper.formie-combobox .ts-control:focus-within,
+.formie-field .ts-wrapper.formie-combobox.dropdown-active .ts-control {
+    outline: 0;
+    border-color: var(--formie-color-focus-ring);
+    box-shadow: var(--formie-shadow-focus);
+    border-radius: var(--formie-radius-sm);
+}
+
+.formie-field-has-error .ts-wrapper.formie-combobox .ts-control {
+    border-color: var(--formie-color-danger);
+}
+
+.formie-field-has-error .ts-wrapper.formie-combobox.focus .ts-control,
+.formie-field-has-error .ts-wrapper.formie-combobox .ts-control:focus-within,
+.formie-field-has-error .ts-wrapper.formie-combobox.dropdown-active .ts-control {
+    border-color: var(--formie-color-danger);
+    box-shadow: var(--formie-shadow-danger-focus);
+}
+
+.formie-field .ts-wrapper.formie-combobox.multi .ts-control > .item,
+.formie-field .ts-wrapper.formie-combobox.multi .ts-control [data-value] {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--formie-space-1);
+    margin: 0 var(--formie-space-1) var(--formie-space-1) 0;
+    padding: 0 var(--formie-space-2);
+    background: var(--formie-color-surface-muted, rgba(15, 23, 42, 0.06));
+    background-image: none;
+    border: var(--formie-border-width) solid var(--formie-color-border);
+    border-radius: var(--formie-radius-sm);
+    box-shadow: none;
+    color: var(--formie-color-text);
+    text-shadow: none;
+    line-height: calc(var(--formie-control-height) - var(--formie-space-3));
+}
+
+.formie-field .ts-wrapper.formie-combobox.multi .ts-control > .item.active,
+.formie-field .ts-wrapper.formie-combobox.multi .ts-control [data-value].active {
+    background: var(--formie-color-surface-muted, rgba(15, 23, 42, 0.06));
+    color: var(--formie-color-text);
+}
+
+.formie-field .ts-wrapper.formie-combobox.plugin-remove_button .item {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--formie-space-1);
+}
+
+.formie-field .ts-wrapper.formie-combobox.plugin-remove_button:not(.rtl) .item {
+    padding-right: var(--formie-space-2) !important;
+}
+
+.formie-field .ts-wrapper.formie-combobox.plugin-remove_button .item .remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    box-shadow: none;
+    text-decoration: none;
+    color: var(--formie-color-text-muted);
+    font-size: 1.125em;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.formie-field .ts-wrapper.formie-combobox.plugin-remove_button .item .remove:hover,
+.formie-field .ts-wrapper.formie-combobox.plugin-remove_button .item .remove:focus {
+    background: none;
+    text-decoration: none;
+    color: var(--formie-color-text);
+}
+
+.formie-field .ts-wrapper.formie-combobox .ts-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    z-index: var(--formie-z-popover, 30);
+    border: var(--formie-border-width) solid var(--formie-color-border);
+    border-radius: var(--formie-radius-sm);
+    background: var(--formie-color-surface);
+    box-shadow: var(--formie-shadow-popover, 0 8px 24px rgba(15, 23, 42, 0.12));
+    margin-top: var(--formie-space-1);
+    box-sizing: border-box;
+}
+
+.formie-field .ts-wrapper.formie-combobox .ts-dropdown-content {
+    overflow: hidden auto;
+    max-height: 200px;
+    scroll-behavior: smooth;
+}
+
+.formie-field .ts-wrapper.formie-combobox .ts-dropdown .option,
+.formie-field .ts-wrapper.formie-combobox .ts-dropdown .optgroup-header,
+.formie-field .ts-wrapper.formie-combobox .ts-dropdown .no-results {
+    color: var(--formie-color-text);
+    padding: var(--formie-space-2) var(--formie-control-padding-x);
+}
+
+.formie-field .ts-wrapper.formie-combobox .ts-dropdown [data-selectable] {
+    cursor: pointer;
+}
+
+.formie-field .ts-wrapper.formie-combobox .ts-dropdown .option.active,
+.formie-field .ts-wrapper.formie-combobox .ts-dropdown .option:hover,
+.formie-field .ts-wrapper.formie-combobox .ts-dropdown .active {
+    background: var(--formie-color-surface-muted, rgba(15, 23, 42, 0.05));
+    color: var(--formie-color-text);
+}
+
+.formie-field .ts-wrapper.formie-combobox .ts-dropdown .highlight {
+    background: rgba(59, 130, 246, 0.18);
+    border-radius: 2px;
+}
+
+.formie-field .ts-wrapper.formie-combobox.disabled .ts-control {
+    opacity: 0.6;
+    background-color: var(--formie-color-surface-muted, rgba(15, 23, 42, 0.04));
+    cursor: not-allowed;
+}
