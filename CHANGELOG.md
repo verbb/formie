@@ -26,6 +26,7 @@
 - Add an `includeFlatpickrCss` plugin setting to disable Formie’s bundled Flatpickr stylesheet when your project already provides its own. ([#2341](https://github.com/verbb/formie/issues/2341))
 - Add notification variable selectors for date ranges, including **Start Date/Time**, **End Date/Time**, **Start Date**, **Start Time**, **End Date**, and **End Time**.
 - Add GraphQL content types for date range submissions with `start` and `end` datetime values.
+- Add calendar date validation for Date/Time **Text Inputs** and **Dropdowns**, rejecting impossible dates (for example February 31), enforcing configured **Min Date** / **Max Date** settings on those display types, and surfacing validation errors on the offending sub-field. ([#1458](https://github.com/verbb/formie/issues/1458))
 - Add smart **State / Province** behaviour for Address fields, with **Text** or **Dropdown when available** input modes, country-dependent subdivision loading, dynamic labels (State, Province, Prefecture, and so on), optional hiding when unused, searchable dropdowns, and datalist suggestions for text fallback. ([#1416](https://github.com/verbb/formie/issues/1416))
 - Add a subdivisions endpoint (`formie/address/subdivisions`) and `ModifyAddressSubdivisionsEvent` for country-dependent state/province option data.
 - Add an `address-state` browser module with lazy subdivision loading, loading UX (country spinner and state skeleton), and password-manager/browser autofill reconciliation via a persistent `address-level1` anchor input.

@@ -198,6 +198,26 @@ class DateFieldValue extends BaseFieldValue
         );
     }
 
+    public static function hasCompleteDateParts(array $parts): bool
+    {
+        foreach (['year', 'month', 'day'] as $partKey) {
+            if (!isset($parts[$partKey]) || $parts[$partKey] === '') {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public static function isValidCalendarDate(array $parts): bool
+    {
+        if (!self::hasCompleteDateParts($parts)) {
+            return true;
+        }
+
+        return checkdate((int)$parts['month'], (int)$parts['day'], (int)$parts['year']);
+    }
+
     public static function partsToDateTime(array $parts): ?DateTime
     {
         $hasDate = isset($parts['year'], $parts['month'], $parts['day'])
@@ -207,6 +227,10 @@ class DateFieldValue extends BaseFieldValue
         $hasTime = (bool)array_intersect(array_keys($parts), ['hour', 'minute', 'second', 'ampm']);
 
         if (!$hasDate && !$hasTime) {
+            return null;
+        }
+
+        if ($hasDate && !self::isValidCalendarDate($parts)) {
             return null;
         }
 

@@ -602,6 +602,8 @@ return [
   'Start Date/Time' => 'Start Date/Time',
   'End Date/Time' => 'End Date/Time',
   'The end date must be after the start date.' => 'The end date must be after the start date.',
+  'The date must be on or after {date}.' => 'The date must be on or after {date}.',
+  'The date must be on or before {date}.' => 'The date must be on or before {date}.',
   '{side} {label}' => '{side} {label}',
   'Date Closed' => 'Date Closed',
   'Date Format' => 'Date Format',

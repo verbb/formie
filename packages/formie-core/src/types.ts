@@ -38,6 +38,8 @@ export type FrontendValidationRule = {
     fieldHandle?: string | null;
     min?: number | null;
     max?: number | null;
+    minDate?: string | null;
+    maxDate?: string | null;
 };
 
 export type FrontendModuleTarget = {

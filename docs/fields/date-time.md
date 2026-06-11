@@ -10,7 +10,7 @@ Use Date/Time when the answer should behave like a real date or time. If the ans
 - **Display type** - Render as a calendar picker, dropdowns or text-style inputs.
 - **Value type** - When **Display type** is **Calendar (Advanced)**, choose **Single Date/Time** or **Date Range**.
 - **Date and time formats** - Control how the value is displayed to the user.
-- **Minimum and maximum dates** - Restrict the accepted range with fixed or relative limits.
+- **Minimum and maximum dates** - Restrict the accepted range with fixed or relative limits. These apply to calendar, dropdown, and text-input display types.
 - **Default value** - Pre-fill the field for new submissions.
 - **Date picker options** - Pass additional Flatpickr options when the calendar picker is enabled.
 
@@ -51,6 +51,8 @@ For a date range field:
 - Nested paths include `start`, `end`, `startDate`, `startTime`, `endDate`, and `endTime`.
 
 Individual part selectors such as `{field:myDate:month}` still return the raw stored part value when using dropdown or text-input display types.
+
+For **Text Inputs** and **Dropdowns**, each date/time part is a number or option field with sensible defaults (for example, month 1–12 and day 1–31). You can adjust limits per part from the nested sub-field editor. Formie also validates that the combined date parts form a real calendar date, and enforces any configured minimum or maximum dates on submit.
 
 When querying or saving submissions through GraphQL, Date/Time fields can expose a field-specific content type. Query the form’s `formFields` and include `inputTypeName` when building mutations. Date range fields expose a form-specific type with `start` and `end` datetime values.
 

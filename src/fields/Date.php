@@ -310,7 +310,66 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
             $rules[] = [$this->handle, 'validateCollectRange', 'skipOnEmpty' => false];
         }
 
+        if (in_array($this->displayType, ['inputs', 'dropdowns'], true)) {
+            $rules[] = [$this->handle, 'validateDateParts', 'skipOnEmpty' => false];
+        }
+
         return $rules;
+    }
+
+    public function validateDateParts(ElementInterface $element): void
+    {
+        if (!in_array($this->displayType, ['inputs', 'dropdowns'], true)) {
+            return;
+        }
+
+        $parts = $this->_collectEnabledDatePartsFromElement($element);
+
+        if (!$this->_hasAnyDatePartValue($parts)) {
+            return;
+        }
+
+        if ($this->getIsDate() || $this->getIsDateTime()) {
+            if (!$this->_hasAllEnabledDateParts($parts)) {
+                return;
+            }
+
+            if (!DateFieldValue::isValidCalendarDate($parts)) {
+                $partField = $this->getFieldByHandle('day');
+
+                if ($partField instanceof Field) {
+                    $element->addError($partField->valueKey(), $partField->getValidationMessage(ValidationMessagesHelper::KEY_INVALID));
+                } else {
+                    $element->addError($this->valueKey(), $this->getValidationMessage(ValidationMessagesHelper::KEY_INVALID));
+                }
+
+                return;
+            }
+        }
+
+        $dateTime = DateFieldValue::partsToDateTime($parts);
+
+        if (!$dateTime instanceof DateTime) {
+            return;
+        }
+
+        $minDate = $this->getMinDate();
+
+        if ($minDate instanceof DateTime && $dateTime < $minDate) {
+            $element->addError($this->valueKey(), Craft::t('formie', 'The date must be on or after {date}.', [
+                'date' => Craft::$app->getFormatter()->asDate($minDate),
+            ]));
+
+            return;
+        }
+
+        $maxDate = $this->getMaxDate();
+
+        if ($maxDate instanceof DateTime && $dateTime > $maxDate) {
+            $element->addError($this->valueKey(), Craft::t('formie', 'The date must be on or before {date}.', [
+                'date' => Craft::$app->getFormatter()->asDate($maxDate),
+            ]));
+        }
     }
 
     public function validateCollectRange(ElementInterface $element): void
@@ -952,7 +1011,7 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
                 'label' => Craft::t('formie', 'Min Date'),
                 'instructions' => Craft::t('formie', 'Set a minimum date for dates to be picked from.'),
                 'name' => 'minDateOption',
-                'if' => 'displayType == "calendar" || displayType == "datePicker"',
+                'if' => 'displayType == "calendar" || displayType == "datePicker" || displayType == "inputs" || displayType == "dropdowns"',
                 'options' => [
                     ['label' => Craft::t('formie', 'None'), 'value' => ''],
                     ['label' => Craft::t('formie', 'Today‘s Date/Time'), 'value' => 'today'],
@@ -995,7 +1054,7 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
                 'label' => Craft::t('formie', 'Max Date'),
                 'instructions' => Craft::t('formie', 'Set a maximum date for dates to be picked up to.'),
                 'name' => 'maxDateOption',
-                'if' => 'displayType == "calendar" || displayType == "datePicker"',
+                'if' => 'displayType == "calendar" || displayType == "datePicker" || displayType == "inputs" || displayType == "dropdowns"',
                 'options' => [
                     ['label' => Craft::t('formie', 'None'), 'value' => ''],
                     ['label' => Craft::t('formie', 'Today‘s Date/Time'), 'value' => 'today'],
@@ -1433,6 +1492,14 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
         $minYear = $year - 100;
         $maxYear = $year + 100;
 
+        if ($minDate = $this->getMinDate()) {
+            $minYear = max($minYear, (int)$minDate->format('Y'));
+        }
+
+        if ($maxDate = $this->getMaxDate()) {
+            $maxYear = min($maxYear, (int)$maxDate->format('Y'));
+        }
+
         $fields[0]['fields'] = [
             [
                 'type' => subfields\DateYearNumber::class,
@@ -1759,6 +1826,29 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
         }
 
         return $faker->dateTime();
+    }
+
+    protected function defineValidationRules(): array
+    {
+        $validators = parent::defineValidationRules();
+
+        if (!in_array($this->displayType, ['inputs', 'dropdowns'], true)) {
+            return $validators;
+        }
+
+        $rule = ['type' => 'dateParts'];
+
+        if ($minDate = $this->getMinDate()) {
+            $rule['minDate'] = $minDate->format('Y-m-d\TH:i:s');
+        }
+
+        if ($maxDate = $this->getMaxDate()) {
+            $rule['maxDate'] = $maxDate->format('Y-m-d\TH:i:s');
+        }
+
+        $validators[] = $rule;
+
+        return $validators;
     }
 
     protected function defineClientInput(): array
@@ -2593,6 +2683,57 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
                 'end' => Type::nonNull(DateTimeType::getType()),
             ],
         ]));
+    }
+
+    private function _collectEnabledDatePartsFromElement(ElementInterface $element): array
+    {
+        $parts = [];
+
+        foreach (DateFieldValue::partKeys() as $partKey) {
+            $field = $this->getFieldByHandle($partKey);
+
+            if (!$field || !($field->enabled ?? true) || $field->getIsDisabled()) {
+                continue;
+            }
+
+            $value = $element->getFieldValue($field->valueKey());
+
+            if ($value instanceof OptionValue || $value instanceof SingleOptionFieldValue) {
+                $value = $value->value;
+            }
+
+            $parts[$partKey] = $value;
+        }
+
+        return DateFieldValue::normalizeParts($parts);
+    }
+
+    private function _hasAnyDatePartValue(array $parts): bool
+    {
+        foreach ($parts as $value) {
+            if ($value !== null && $value !== '') {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function _hasAllEnabledDateParts(array $parts): bool
+    {
+        foreach (['year', 'month', 'day'] as $partKey) {
+            $field = $this->getFieldByHandle($partKey);
+
+            if (!$field || !($field->enabled ?? true) || $field->getIsDisabled()) {
+                continue;
+            }
+
+            if (!isset($parts[$partKey]) || $parts[$partKey] === '') {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private static function _configCollectsRange(array $config): bool

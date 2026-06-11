@@ -35,6 +35,14 @@ trait FieldClientValidationTrait
                 $definition['max'] = $rule['max'];
             }
 
+            if (array_key_exists('minDate', $rule)) {
+                $definition['minDate'] = $rule['minDate'];
+            }
+
+            if (array_key_exists('maxDate', $rule)) {
+                $definition['maxDate'] = $rule['maxDate'];
+            }
+
             return $definition;
         }, array_values($this->defineValidationRules()))));
     }

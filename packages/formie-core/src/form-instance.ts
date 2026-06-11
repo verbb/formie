@@ -1,4 +1,5 @@
 import { evaluateConditionDefinition, finalizeConditionEvaluation } from './conditions';
+import { validateCompositeDateParts } from './date-parts-validation';
 import { FrontendEventEmitter } from './events';
 import {
     allFields,
@@ -429,6 +430,8 @@ function validateFieldValue(
 
             validateFieldValue(part, currentValue[part.handle], state, `${errorKey}.${part.handle}`, output);
         });
+
+        validateCompositeDateParts(field, currentValue, errorKey, output);
 
         return;
     }

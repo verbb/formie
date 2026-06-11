@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use verbb\formie\elements\Submission;
 use verbb\formie\fields\values\DateFieldValue;
 use verbb\formie\fields\values\SingleOptionFieldValue;
 use verbb\formie\fields\Date;
@@ -202,6 +203,76 @@ it('validates date dropdown sub-fields from their own option values', function (
         ->and($submission)->not->toHaveFieldError('dateDropdowns.day')
         ->and($submission)->not->toHaveFieldError('dateDropdowns.hour')
         ->and($submission)->not->toHaveFieldError('dateDropdowns.minute');
+});
+
+it('rejects impossible calendar dates for text input sub-fields', function (): void {
+    $field = new Date([
+        'handle' => 'birthday',
+        'displayType' => 'inputs',
+    ]);
+    $field->setRows((new Date(['displayType' => 'inputs']))->getSubFields());
+
+    $yearField = $field->getFieldByHandle('year');
+    $monthField = $field->getFieldByHandle('month');
+    $dayField = $field->getFieldByHandle('day');
+
+    $submission = $this->getMockBuilder(Submission::class)
+        ->onlyMethods(['getFieldValue'])
+        ->getMock();
+    $submission->method('getFieldValue')->willReturnMap([
+        [$yearField->valueKey(), '2024'],
+        [$monthField->valueKey(), '2'],
+        [$dayField->valueKey(), '31'],
+    ]);
+
+    $field->validateDateParts($submission);
+
+    expect($submission->getErrors($dayField->valueKey()))->not->toBeEmpty();
+});
+
+it('rejects text input dates before the configured minimum date', function (): void {
+    $field = new Date([
+        'handle' => 'eventDate',
+        'displayType' => 'inputs',
+        'minDateOption' => 'date',
+        'minDate' => '2020-01-01',
+    ]);
+    $field->setRows((new Date(['displayType' => 'inputs']))->getSubFields());
+
+    $yearField = $field->getFieldByHandle('year');
+    $monthField = $field->getFieldByHandle('month');
+    $dayField = $field->getFieldByHandle('day');
+
+    $submission = $this->getMockBuilder(Submission::class)
+        ->onlyMethods(['getFieldValue'])
+        ->getMock();
+    $submission->method('getFieldValue')->willReturnMap([
+        [$yearField->valueKey(), '2019'],
+        [$monthField->valueKey(), '12'],
+        [$dayField->valueKey(), '31'],
+    ]);
+
+    $field->validateDateParts($submission);
+
+    expect($submission->getErrors($field->valueKey()))->not->toBeEmpty();
+});
+
+it('returns null when converting impossible calendar parts to datetime', function (): void {
+    expect(DateFieldValue::partsToDateTime([
+        'year' => '2024',
+        'month' => '2',
+        'day' => '31',
+    ]))->toBeNull()
+        ->and(DateFieldValue::isValidCalendarDate([
+            'year' => '2024',
+            'month' => '2',
+            'day' => '31',
+        ]))->toBeFalse()
+        ->and(DateFieldValue::isValidCalendarDate([
+            'year' => '2024',
+            'month' => '2',
+            'day' => '29',
+        ]))->toBeTrue();
 });
 
 it('normalizes calendar and datepicker request arrays into datetime values', function (): void {
