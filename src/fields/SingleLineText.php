@@ -6,36 +6,26 @@ use verbb\formie\base\Field;
 use verbb\formie\base\PreviewableFieldInterface;
 use verbb\formie\base\SortableFieldInterface;
 use verbb\formie\fields\coercion\StringValueCoercer;
-use verbb\formie\fields\definitions\FieldClientModules;
 use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\fields\values\StringFieldValue;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\fields\conditions\TextFieldConditionRule;
 use verbb\formie\fields\traits\AutocompleteFieldTrait;
+use verbb\formie\fields\traits\TextLimitFieldTrait;
+use verbb\formie\fields\traits\UniqueValueFieldTrait;
 use verbb\formie\elements\Submission;
 use verbb\formie\models\ClientModule;
-use verbb\formie\models\ClientModuleContext;
 use verbb\formie\models\SlotTag;
 
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
 use craft\base\ElementInterface;
-use craft\errors\InvalidFieldException;
-
-use GraphQL\Type\Definition\Type;
 
 class SingleLineText extends Field implements SortableFieldInterface, PreviewableFieldInterface
 {
-    // Constants
-    // =========================================================================
-
-    public const EVENT_MODIFY_UNIQUE_QUERY = 'modifyUniqueQuery';
-
-
     // Static Methods
     // =========================================================================
 
@@ -61,22 +51,19 @@ class SingleLineText extends Field implements SortableFieldInterface, Previewabl
         ];
     }
 
+    
+    // Constants
+    // =========================================================================
+
+    public const EVENT_MODIFY_UNIQUE_QUERY = 'modifyUniqueQuery';
+
 
     // Traits
     // =========================================================================
 
     use AutocompleteFieldTrait;
-
-
-    // Properties
-    // =========================================================================
-
-    public bool $limit = false;
-    public ?int $min = null;
-    public ?string $minType = 'characters';
-    public ?int $max = null;
-    public ?string $maxType = 'characters';
-    public bool $uniqueValue = false;
+    use TextLimitFieldTrait;
+    use UniqueValueFieldTrait;
 
 
     // Public Methods
@@ -103,105 +90,15 @@ class SingleLineText extends Field implements SortableFieldInterface, Previewabl
     {
         $rules = parent::getElementValidationRules();
 
-        if ($this->limit) {
-            if ($this->minType === 'characters') {
-                $rules[] = [$this->handle, 'validateMinCharacters', 'skipOnEmpty' => false];
-            }
-
-            if ($this->maxType === 'characters') {
-                $rules[] = [$this->handle, 'validateMaxCharacters'];
-            }
-
-            if ($this->minType === 'words') {
-                $rules[] = [$this->handle, 'validateMinWords', 'skipOnEmpty' => false];
-            }
-
-            if ($this->maxType === 'words') {
-                $rules[] = [$this->handle, 'validateMaxWords'];
-            }
+        foreach ($this->getTextLimitElementValidationRules() as $rule) {
+            $rules[] = $rule;
         }
 
-        if ($this->uniqueValue) {
-            $rules[] = [$this->handle, 'validateUniqueValue'];
+        foreach ($this->getUniqueValueElementValidationRules() as $rule) {
+            $rules[] = $rule;
         }
 
         return $rules;
-    }
-
-    public function validateMinCharacters(ElementInterface $element): void
-    {
-        $min = $this->min ?? 0;
-
-        if (!$min) {
-            return;
-        }
-
-        $value = (string)$element->getFieldValue($this->valueKey());
-        $count = StringHelper::getCharacterCount($value);
-
-        if ($count < $min) {
-            $element->addError($this->valueKey(), $this->getValidationMessage(ValidationMessagesHelper::KEY_MIN_CHARACTERS, [
-                'limit' => $min,
-                'min' => $min,
-            ]));
-        }
-    }
-
-    public function validateMaxCharacters(ElementInterface $element): void
-    {
-        $max = $this->max ?? 0;
-
-        if (!$max) {
-            return;
-        }
-
-        $value = (string)$element->getFieldValue($this->valueKey());
-        $count = StringHelper::getCharacterCount($value);
-
-        if ($count > $max) {
-            $element->addError($this->valueKey(), $this->getValidationMessage(ValidationMessagesHelper::KEY_MAX_CHARACTERS, [
-                'limit' => $max,
-                'max' => $max,
-            ]));
-        }
-    }
-
-    public function validateMinWords(ElementInterface $element): void
-    {
-        $min = $this->min ?? 0;
-
-        if (!$min) {
-            return;
-        }
-
-        $value = (string)$element->getFieldValue($this->valueKey());
-        $count = StringHelper::getWordCount($value);
-
-        if ($count < $min) {
-            $element->addError($this->valueKey(), $this->getValidationMessage(ValidationMessagesHelper::KEY_MIN_WORDS, [
-                'limit' => $min,
-                'min' => $min,
-            ]));
-        }
-    }
-
-    public function validateMaxWords(ElementInterface $element): void
-    {
-        $max = $this->max ?? 0;
-
-        if (!$max) {
-            return;
-        }
-
-        $value = (string)$element->getFieldValue($this->valueKey());
-        $count = StringHelper::getWordCount($value);
-
-        if ($count > $max) {
-            $element->addError($this->valueKey(), $this->getValidationMessage(ValidationMessagesHelper::KEY_MAX_WORDS, [
-                'limit' => $max,
-                'max' => $max,
-            ]));
-        }
     }
 
     public function defineFormBuilderPreviewSchema(): array
@@ -213,32 +110,12 @@ class SingleLineText extends Field implements SortableFieldInterface, Previewabl
 
     public function getSettingGqlTypes(): array
     {
-        return array_merge(parent::getSettingGqlTypes(), $this->defineAutocompleteGqlType(), [
-            'limit' => [
-                'name' => 'limit',
-                'type' => Type::boolean(),
-            ],
-            'min' => [
-                'name' => 'min',
-                'type' => Type::int(),
-            ],
-            'minType' => [
-                'name' => 'minType',
-                'type' => Type::string(),
-            ],
-            'max' => [
-                'name' => 'max',
-                'type' => Type::int(),
-            ],
-            'maxType' => [
-                'name' => 'maxType',
-                'type' => Type::string(),
-            ],
-            'uniqueValue' => [
-                'name' => 'uniqueValue',
-                'type' => Type::boolean(),
-            ],
-        ]);
+        return array_merge(
+            parent::getSettingGqlTypes(),
+            $this->defineAutocompleteGqlType(),
+            $this->defineTextLimitGqlType(),
+            $this->defineUniqueValueGqlType(),
+        );
     }
 
     public function defineFormBuilderGeneralSchema(): array
@@ -281,19 +158,12 @@ class SingleLineText extends Field implements SortableFieldInterface, Previewabl
         return [
             SchemaHelper::requiredField(),
             SchemaHelper::requiredValidationMessage(),
-            SchemaHelper::limitValueField(),
-            SchemaHelper::textLimitMinFields(),
-            SchemaHelper::minCharactersValidationMessage(),
-            SchemaHelper::minWordsValidationMessage(),
-            SchemaHelper::textLimitMaxFields(),
-            SchemaHelper::maxCharactersValidationMessage(),
-            SchemaHelper::maxWordsValidationMessage(),
+            ...$this->defineTextLimitValidationSchema(),
             SchemaHelper::matchField([
                 'includedTypes' => [self::class],
             ]),
             SchemaHelper::matchValidationMessage(),
-            SchemaHelper::uniqueValueField(),
-            SchemaHelper::uniqueValidationMessage(),
+            ...$this->defineUniqueValueValidationSchema(),
         ];
     }
 
@@ -340,10 +210,17 @@ class SingleLineText extends Field implements SortableFieldInterface, Previewabl
     {
         $rules = parent::defineRules();
 
-        $rules = array_merge($rules, $this->defineAutocompleteRules());
+        foreach ($this->defineAutocompleteRules() as $rule) {
+            $rules[] = $rule;
+        }
 
-        $rules[] = [['min', 'max'], 'number', 'integerOnly' => true];
-        $rules[] = [['minType', 'maxType'], 'in', 'range' => ['characters', 'words']];
+        foreach ($this->defineTextLimitRules() as $rule) {
+            $rules[] = $rule;
+        }
+
+        foreach ($this->defineUniqueValueRules() as $rule) {
+            $rules[] = $rule;
+        }
 
         return $rules;
     }
@@ -360,7 +237,7 @@ class SingleLineText extends Field implements SortableFieldInterface, Previewabl
             $value = $context->get('value');
 
             return SlotTag::make('input')
-                ->core(array_merge([
+                ->core($this->applyTextLimitInputAttributes([
                     'type' => 'text',
                     'id' => $id,
                     'name' => $this->getHtmlName(),
@@ -374,14 +251,7 @@ class SingleLineText extends Field implements SortableFieldInterface, Previewabl
                     'data-formie-input-error-state' => $errors ? true : false,
                     'autocomplete' => $this->getAutocompleteCoreAttribute(),
                     'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
-                ], ValidationMessagesHelper::textLimitClientAttributes(
-                    $this,
-                    (bool)$this->limit,
-                    $this->min,
-                    $this->max,
-                    $this->minType,
-                    $this->maxType,
-                )))
+                ]))
                 ->theme([
                     'class' => [
                         'formie-input',
@@ -392,19 +262,8 @@ class SingleLineText extends Field implements SortableFieldInterface, Previewabl
                 ->instanceAttributes($this->getInputAttributes());
         }
 
-        if ($key === 'fieldLimit') {
-            return SlotTag::make('div')
-                ->core([
-                    'data-formie-field-limit' => true,
-                    'data-formie-limit-text' => true,
-                ])
-                ->theme([
-                    'class' => [
-                        'formie-field-note',
-                        'formie-field-limit',
-                        'formie-limit-text',
-                    ],
-                ]);
+        if ($textLimitTag = $this->defineTextLimitFieldSlotTag($key, $context)) {
+            return $textLimitTag;
         }
 
         return parent::defineFieldSlotTag($key, $context);
@@ -451,9 +310,7 @@ class SingleLineText extends Field implements SortableFieldInterface, Previewabl
 
     protected function defineClientInput(): array
     {
-        return array_merge(parent::defineClientInput(), [
-            'min' => $this->min,
-            'max' => $this->max,
+        return array_merge(parent::defineClientInput(), $this->getTextLimitClientInput(), [
             'inputType' => 'text',
         ]);
     }
@@ -462,23 +319,11 @@ class SingleLineText extends Field implements SortableFieldInterface, Previewabl
     {
         $modules = parent::defineClientModules();
 
-        if ($this->limit) {
-            $modules[] = function(ClientModuleContext $context) {
-                return new ClientModule([
-                    'id' => 'text-limit',
-                    'config' => $this->getTextLimitClientConfig($context->renderTarget),
-                ]);
-            };
+        foreach ($this->defineTextLimitClientModules() as $module) {
+            $modules[] = $module;
         }
 
         return $modules;
-    }
-
-    protected function getTextLimitClientConfig(string $renderTarget): array
-    {
-        return [
-            'allowOvertype' => $renderTarget === ClientModule::RENDER_TARGET_CP_EDIT,
-        ];
     }
 
     protected function defineValueClass(): ?string

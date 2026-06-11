@@ -6,6 +6,7 @@ use verbb\formie\base\PreviewableFieldInterface;
 use verbb\formie\base\SortableFieldInterface;
 use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\fields\values\NumberFieldValue;
+use verbb\formie\fields\traits\UniqueValueFieldTrait;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\helpers\Variables;
@@ -30,12 +31,6 @@ use Throwable;
 
 class Number extends Field implements SortableFieldInterface, PreviewableFieldInterface
 {
-    // Constants
-    // =========================================================================
-
-    public const EVENT_MODIFY_UNIQUE_QUERY = 'modifyUniqueQuery';
-
-
     // Static Methods
     // =========================================================================
 
@@ -73,6 +68,18 @@ class Number extends Field implements SortableFieldInterface, PreviewableFieldIn
             'description' => $config['instructions'] ?? null,
         ];
     }
+    
+
+    // Constants
+    // =========================================================================
+
+    public const EVENT_MODIFY_UNIQUE_QUERY = 'modifyUniqueQuery';
+
+
+    // Traits
+    // =========================================================================
+
+    use UniqueValueFieldTrait;
 
 
     // Properties
@@ -82,7 +89,6 @@ class Number extends Field implements SortableFieldInterface, PreviewableFieldIn
     public int|float|null $min = null;
     public int|float|null $max = null;
     public ?int $decimals = null;
-    public bool $uniqueValue = false;
 
 
     // Public Methods
@@ -147,8 +153,8 @@ class Number extends Field implements SortableFieldInterface, PreviewableFieldIn
         $rules = parent::getElementValidationRules();
         $rules[] = [$this->handle, 'number', 'min' => $this->min, 'max' => $this->max];
 
-        if ($this->uniqueValue) {
-            $rules[] = [$this->handle, 'validateUniqueValue'];
+        foreach ($this->getUniqueValueElementValidationRules() as $rule) {
+            $rules[] = $rule;
         }
 
         return $rules;
@@ -259,8 +265,7 @@ class Number extends Field implements SortableFieldInterface, PreviewableFieldIn
                 'includedTypes' => [self::class],
             ]),
             SchemaHelper::matchValidationMessage(),
-            SchemaHelper::uniqueValueField(),
-            SchemaHelper::uniqueValidationMessage(),
+            ...$this->defineUniqueValueValidationSchema(),
         ];
     }
 
@@ -412,6 +417,10 @@ class Number extends Field implements SortableFieldInterface, PreviewableFieldIn
 
         if (!$this->decimals) {
             $rules[] = [['defaultValue', 'min', 'max'], 'integer'];
+        }
+
+        foreach ($this->defineUniqueValueRules() as $rule) {
+            $rules[] = $rule;
         }
 
         return $rules;

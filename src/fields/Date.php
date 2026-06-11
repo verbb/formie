@@ -59,15 +59,6 @@ use DateTimeZone;
 
 class Date extends FixedParentField implements SortableFieldInterface, PreviewableFieldInterface
 {
-    // Constants
-    // =========================================================================
-
-    public const EVENT_MODIFY_DATE_FORMAT = 'modifyDateFormat';
-    public const EVENT_MODIFY_TIME_FORMAT = 'modifyTimeFormat';
-    public const EVENT_REGISTER_DATE_FORMAT_OPTIONS = 'registerDateFormatOptions';
-    public const EVENT_REGISTER_TIME_FORMAT_OPTIONS = 'registerTimeFormatOptions';
-
-
     // Static Methods
     // =========================================================================
 
@@ -183,6 +174,16 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
 
         return Db::parseParam($comparableSql, $normalizedComparableValue, columnType: Schema::TYPE_STRING);
     }
+
+    
+    // Constants
+    // =========================================================================
+
+    public const EVENT_MODIFY_DATE_FORMAT = 'modifyDateFormat';
+    public const EVENT_MODIFY_TIME_FORMAT = 'modifyTimeFormat';
+    public const EVENT_REGISTER_DATE_FORMAT_OPTIONS = 'registerDateFormatOptions';
+    public const EVENT_REGISTER_TIME_FORMAT_OPTIONS = 'registerTimeFormatOptions';
+
 
     // Properties
     // =========================================================================

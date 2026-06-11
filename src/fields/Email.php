@@ -10,6 +10,7 @@ use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\fields\values\EmailFieldValue;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\fields\traits\UniqueValueFieldTrait;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\helpers\Variables;
@@ -59,6 +60,11 @@ class Email extends Field implements SortableFieldInterface, PreviewableFieldInt
         ];
     }
 
+    // Traits
+    // =========================================================================
+
+    use UniqueValueFieldTrait;
+
 
     // Properties
     // =========================================================================
@@ -66,7 +72,6 @@ class Email extends Field implements SortableFieldInterface, PreviewableFieldInt
     public bool $validateDomain = false;
     public array $blockedDomains = [];
     public bool $blockFreeDomains = false;
-    public bool $uniqueValue = false;
 
 
     // Public Methods
@@ -102,8 +107,8 @@ class Email extends Field implements SortableFieldInterface, PreviewableFieldInt
             $rules[] = [$this->handle, 'validateFreeDomain'];
         }
 
-        if ($this->uniqueValue) {
-            $rules[] = [$this->handle, 'validateUniqueValue'];
+        foreach ($this->getUniqueValueElementValidationRules() as $rule) {
+            $rules[] = $rule;
         }
 
         return $rules;
@@ -214,8 +219,7 @@ class Email extends Field implements SortableFieldInterface, PreviewableFieldInt
                 'includedTypes' => [self::class],
             ]),
             SchemaHelper::matchValidationMessage(),
-            SchemaHelper::uniqueValueField(),
-            SchemaHelper::uniqueValidationMessage(),
+            ...$this->defineUniqueValueValidationSchema(),
             SchemaHelper::validationMessageField([
                 'messageKey' => ValidationMessagesHelper::KEY_EMAIL,
                 'name' => 'validationMessages.email',
@@ -288,6 +292,17 @@ class Email extends Field implements SortableFieldInterface, PreviewableFieldInt
     protected function supportedDefaults(): array
     {
         return ['validateDomain', 'blockFreeDomains'];
+    }
+
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        foreach ($this->defineUniqueValueRules() as $rule) {
+            $rules[] = $rule;
+        }
+
+        return $rules;
     }
 
     protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag

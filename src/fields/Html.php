@@ -28,12 +28,6 @@ use HTMLPurifier_AttrDef_HTML_Bool;
 
 class Html extends CosmeticField
 {
-    // Constants
-    // =========================================================================
-
-    public const EVENT_MODIFY_PURIFIER_CONFIG = 'modifyPurifierConfig';
-
-
     // Static Methods
     // =========================================================================
 
@@ -53,6 +47,12 @@ class Html extends CosmeticField
             'hasLabel' => true,
         ]);
     }
+    
+
+    // Constants
+    // =========================================================================
+
+    public const EVENT_MODIFY_PURIFIER_CONFIG = 'modifyPurifierConfig';
 
 
     // Properties

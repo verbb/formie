@@ -5,6 +5,7 @@ use verbb\formie\base\FieldInterface;
 use verbb\formie\base\OptionsField;
 use verbb\formie\base\SortableFieldInterface;
 use verbb\formie\fields\traits\AutocompleteFieldTrait;
+use verbb\formie\fields\traits\OptionsLimitFieldTrait;
 use verbb\formie\fields\traits\SearchableDropdownFieldTrait;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
@@ -16,9 +17,7 @@ use verbb\formie\theme\context\RenderContext;
 
 use Craft;
 use craft\base\ElementInterface;
-use craft\helpers\Localization;
-use craft\i18n\Locale;
-use craft\validators\ArrayValidator;
+use craft\helpers\ArrayHelper;
 
 use Faker\Generator as FakerFactory;
 
@@ -42,6 +41,7 @@ class Dropdown extends OptionsField implements SortableFieldInterface
     // =========================================================================
 
     use AutocompleteFieldTrait;
+    use OptionsLimitFieldTrait;
     use SearchableDropdownFieldTrait;
 
 
@@ -49,9 +49,6 @@ class Dropdown extends OptionsField implements SortableFieldInterface
     // =========================================================================
 
     public bool $optgroups = true;
-    public bool $limitOptions = false;
-    public int|float|null $min = null;
-    public int|float|null $max = null;
 
 
     // Public Methods
@@ -59,12 +56,7 @@ class Dropdown extends OptionsField implements SortableFieldInterface
 
     public function __construct(array $config = [])
     {
-        // Normalize number settings
-        foreach (['min', 'max'] as $name) {
-            if (isset($config[$name]) && is_array($config[$name])) {
-                $config[$name] = Localization::normalizeNumber($config[$name]['value'], $config[$name]['locale']);
-            }
-        }
+        $this->normalizeOptionsLimitConstructorConfig($config);
 
         parent::__construct($config);
     }
@@ -96,34 +88,11 @@ class Dropdown extends OptionsField implements SortableFieldInterface
     {
         $rules = parent::getElementValidationRules();
 
-        if ($this->limitOptions) {
-            $rules[] = [$this->handle, 'validateLimitOptions', 'skipOnEmpty' => false];
+        foreach ($this->getOptionsLimitElementValidationRules() as $rule) {
+            $rules[] = $rule;
         }
 
         return $rules;
-    }
-
-    public function validateLimitOptions(ElementInterface $element): void
-    {
-        if ($this->limitOptions) {
-            $arrayValidator = new ArrayValidator([
-                'min' => $this->min ?: null,
-                'max' => $this->max ?: null,
-                'tooFew' => $this->min ? $this->getValidationMessage(ValidationMessagesHelper::KEY_MIN_OPTIONS, [
-                    'min' => $this->min,
-                ]) : null,
-                'tooMany' => $this->max ? $this->getValidationMessage(ValidationMessagesHelper::KEY_MAX_OPTIONS, [
-                    'max' => $this->max,
-                ]) : null,
-                'skipOnEmpty' => false,
-            ]);
-
-            $value = $element->getFieldValue($this->valueKey());
-
-            if (!$arrayValidator->validate($value, $error)) {
-                $element->addError($this->valueKey(), $error);
-            }
-        }
     }
 
     public function defineFormBuilderPreviewSchema(): array
@@ -229,11 +198,7 @@ class Dropdown extends OptionsField implements SortableFieldInterface
         return [
             SchemaHelper::requiredField(),
             SchemaHelper::requiredValidationMessage(),
-            SchemaHelper::limitOptionsField(['if' => 'multiple']),
-            SchemaHelper::optionsLimitMinField(),
-            SchemaHelper::minOptionsValidationMessage(),
-            SchemaHelper::optionsLimitMaxField(),
-            SchemaHelper::maxOptionsValidationMessage(),
+            ...$this->defineOptionsLimitValidationSchema(['if' => 'multiple']),
         ];
     }
 
@@ -307,26 +272,35 @@ class Dropdown extends OptionsField implements SortableFieldInterface
     {
         $rules = parent::defineRules();
 
-        $rules = array_merge($rules, $this->defineAutocompleteRules(), $this->defineSearchableDropdownRules());
-        $rules[] = [['min', 'max'], 'number'];
-        $rules[] = [['max'], 'compare', 'compareAttribute' => 'min', 'operator' => '>='];
+        foreach ($this->defineAutocompleteRules() as $rule) {
+            $rules[] = $rule;
+        }
+
+        foreach ($this->defineSearchableDropdownRules() as $rule) {
+            $rules[] = $rule;
+        }
+
+        foreach ($this->defineOptionsLimitRules() as $rule) {
+            $rules[] = $rule;
+        }
 
         return $rules;
     }
 
     protected function defineClientModules(): array
     {
-        return array_merge(
-            parent::defineClientModules(),
-            $this->defineSearchableDropdownClientModules(),
-        );
+        $modules = parent::defineClientModules();
+
+        foreach ($this->defineSearchableDropdownClientModules() as $module) {
+            $modules[] = $module;
+        }
+
+        return $modules;
     }
 
     protected function defineClientInput(): array
     {
-        return array_merge(parent::defineClientInput(), [
-            'min' => $this->min,
-            'max' => $this->max,
+        return array_merge(parent::defineClientInput(), $this->getOptionsLimitClientInput(), [
             'autocomplete' => $this->getAutocompleteCoreAttribute(),
             'useSearchable' => $this->useSearchable,
         ]);

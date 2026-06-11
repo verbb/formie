@@ -5,6 +5,7 @@ use verbb\formie\base\FieldInterface;
 use verbb\formie\base\OptionsField;
 use verbb\formie\fields\values\MultiOptionFieldValue;
 use verbb\formie\fields\definitions\FieldClientModules;
+use verbb\formie\fields\traits\OptionsLimitFieldTrait;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\helpers\StringHelper;
@@ -17,9 +18,6 @@ use verbb\formie\theme\context\RenderContext;
 
 use Craft;
 use craft\base\ElementInterface;
-use craft\helpers\Localization;
-use craft\i18n\Locale;
-use craft\validators\ArrayValidator;
 
 use Faker\Generator as FakerFactory;
 
@@ -53,6 +51,12 @@ class Checkboxes extends OptionsField
     }
 
 
+    // Traits
+    // =========================================================================
+
+    use OptionsLimitFieldTrait;
+
+
     // Properties
     // =========================================================================
 
@@ -60,9 +64,6 @@ class Checkboxes extends OptionsField
     public ?string $layout = 'vertical';
     public ?string $toggleCheckbox = null;
     public ?string $toggleCheckboxLabel = null;
-    public bool $limitOptions = false;
-    public int|float|null $min = null;
-    public int|float|null $max = null;
 
 
     // Public Methods
@@ -70,12 +71,7 @@ class Checkboxes extends OptionsField
 
     public function __construct(array $config = [])
     {
-        // Normalize number settings
-        foreach (['min', 'max'] as $name) {
-            if (isset($config[$name]) && is_array($config[$name])) {
-                $config[$name] = Localization::normalizeNumber($config[$name]['value'], $config[$name]['locale']);
-            }
-        }
+        $this->normalizeOptionsLimitConstructorConfig($config);
 
         parent::__construct($config);
     }
@@ -84,34 +80,11 @@ class Checkboxes extends OptionsField
     {
         $rules = parent::getElementValidationRules();
 
-        if ($this->limitOptions) {
-            $rules[] = [$this->handle, 'validateLimitOptions', 'skipOnEmpty' => false];
+        foreach ($this->getOptionsLimitElementValidationRules() as $rule) {
+            $rules[] = $rule;
         }
 
         return $rules;
-    }
-
-    public function validateLimitOptions(ElementInterface $element): void
-    {
-        if ($this->limitOptions) {
-            $arrayValidator = new ArrayValidator([
-                'min' => $this->min ?: null,
-                'max' => $this->max ?: null,
-                'tooFew' => $this->min ? $this->getValidationMessage(ValidationMessagesHelper::KEY_MIN_OPTIONS, [
-                    'min' => $this->min,
-                ]) : null,
-                'tooMany' => $this->max ? $this->getValidationMessage(ValidationMessagesHelper::KEY_MAX_OPTIONS, [
-                    'max' => $this->max,
-                ]) : null,
-                'skipOnEmpty' => false,
-            ]);
-
-            $value = $element->getFieldValue($this->valueKey());
-
-            if (!$arrayValidator->validate($value, $error)) {
-                $element->addError($this->valueKey(), $error);
-            }
-        }
     }
 
     public function defineFormBuilderPreviewSchema(): array
@@ -123,19 +96,7 @@ class Checkboxes extends OptionsField
 
     public function getSettingGqlTypes(): array
     {
-        return array_merge(parent::getSettingGqlTypes(), [
-            'limitOptions' => [
-                'name' => 'limitOptions',
-                'type' => Type::boolean(),
-            ],
-            'min' => [
-                'name' => 'min',
-                'type' => Type::int(),
-            ],
-            'max' => [
-                'name' => 'max',
-                'type' => Type::int(),
-            ],
+        return array_merge(parent::getSettingGqlTypes(), $this->defineOptionsLimitGqlType(), [
             'toggleCheckbox' => [
                 'name' => 'toggleCheckbox',
                 'type' => Type::string(),
@@ -221,11 +182,7 @@ class Checkboxes extends OptionsField
         return [
             SchemaHelper::requiredField(),
             SchemaHelper::requiredValidationMessage(),
-            SchemaHelper::limitOptionsField(),
-            SchemaHelper::optionsLimitMinField(),
-            SchemaHelper::minOptionsValidationMessage(),
-            SchemaHelper::optionsLimitMaxField(),
-            SchemaHelper::maxOptionsValidationMessage(),
+            ...$this->defineOptionsLimitValidationSchema(),
         ];
     }
 
@@ -289,13 +246,8 @@ class Checkboxes extends OptionsField
         if ($key === 'field') {
             $tag = parent::defineFieldSlotTag($key, $context);
 
-            if ($tag && $this->limitOptions) {
-                $tag->attributes['data-formie-min-options'] = $this->min ?: null;
-                $tag->attributes['data-formie-max-options'] = $this->max ?: null;
-                $tag->attributes = array_merge(
-                    $tag->attributes,
-                    ValidationMessagesHelper::optionsLimitClientAttributes($this, true, $this->min, $this->max),
-                );
+            if ($tag) {
+                return $this->applyOptionsLimitFieldAttributes($tag);
             }
 
             return $tag;
@@ -416,8 +368,9 @@ class Checkboxes extends OptionsField
     {
         $rules = parent::defineRules();
 
-        $rules[] = [['min', 'max'], 'number'];
-        $rules[] = [['max'], 'compare', 'compareAttribute' => 'min', 'operator' => '>='];
+        foreach ($this->defineOptionsLimitRules() as $rule) {
+            $rules[] = $rule;
+        }
 
         return $rules;
     }
@@ -456,12 +409,8 @@ class Checkboxes extends OptionsField
     {
         $validators = parent::defineValidationRules();
 
-        if ($this->limitOptions) {
-            $validators[] = [
-                'type' => 'minmaxOptions',
-                'min' => $this->min ?: null,
-                'max' => $this->max ?: null,
-            ];
+        foreach ($this->defineOptionsLimitValidationRules() as $validator) {
+            $validators[] = $validator;
         }
 
         return $validators;
@@ -469,10 +418,7 @@ class Checkboxes extends OptionsField
 
     protected function defineClientInput(): array
     {
-        return array_merge(parent::defineClientInput(), [
-            'min' => $this->min,
-            'max' => $this->max,
-        ]);
+        return array_merge(parent::defineClientInput(), $this->getOptionsLimitClientInput());
     }
 
     protected function defineClientModules(): array

@@ -15,14 +15,6 @@ use GraphQL\Type\Definition\Type;
 
 class Forms extends BaseRelationField
 {
-    // Constants
-    // =========================================================================
-
-    // Added here to back-support Craft <5.9.
-    public const VIEW_MODE_LIST = 'list';
-    public const VIEW_MODE_LIST_INLINE = 'list-inline';
-
-    
     // Static Methods
     // =========================================================================
 
@@ -50,8 +42,16 @@ class Forms extends BaseRelationField
     {
         return sprintf('\\%s|\\%s<\\%s>', FormQuery::class, ElementCollection::class, Form::class);
     }
+    
 
+    // Constants
+    // =========================================================================
 
+    // Added here to back-support Craft <5.9.
+    public const VIEW_MODE_LIST = 'list';
+    public const VIEW_MODE_LIST_INLINE = 'list-inline';
+
+    
     // Public Methods
     // =========================================================================
 

@@ -16,12 +16,6 @@ use Throwable;
 
 class MissingField extends Field implements MissingComponentInterface
 {
-    // Traits
-    // =========================================================================
-
-    use MissingComponentTrait;
-
-
     // Static Methods
     // =========================================================================
 
@@ -52,6 +46,12 @@ class MissingField extends Field implements MissingComponentInterface
 
         return $settings;
     }
+    
+
+    // Traits
+    // =========================================================================
+
+    use MissingComponentTrait;
 
 
     // Public Methods

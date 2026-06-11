@@ -15,14 +15,6 @@ use GraphQL\Type\Definition\Type;
 
 class Submissions extends BaseRelationField
 {
-    // Constants
-    // =========================================================================
-
-    // Added here to back-support Craft <5.9.
-    public const VIEW_MODE_LIST = 'list';
-    public const VIEW_MODE_LIST_INLINE = 'list-inline';
-    
-
     // Public Methods
     // =========================================================================
 
@@ -61,6 +53,14 @@ class Submissions extends BaseRelationField
         ];
     }
 
+
+    // Constants
+    // =========================================================================
+
+    // Added here to back-support Craft <5.9.
+    public const VIEW_MODE_LIST = 'list';
+    public const VIEW_MODE_LIST_INLINE = 'list-inline';
+    
 
     // Protected Methods
     // =========================================================================
