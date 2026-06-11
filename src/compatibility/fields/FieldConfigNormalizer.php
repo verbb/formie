@@ -141,6 +141,10 @@ class FieldConfigNormalizer
             }
         }
 
+        if ($fieldClass === fields\Address::class && isset($config['countryAllowed']) && is_array($config['countryAllowed'])) {
+            $config['countryAllowed'] = self::_normalizeComboboxMultiValue($config['countryAllowed']);
+        }
+
         if ($fieldClass === fields\subfields\AddressCountry::class && isset($config['defaultValue'])) {
             $config['defaultValue'] = self::_normalizeComboboxSingleValue($config['defaultValue']);
         }

@@ -8,6 +8,7 @@ use verbb\formie\events\ModifyPhoneCountriesEvent;
 
 use Craft;
 use craft\base\Component;
+use craft\web\Request;
 
 use libphonenumber\PhoneNumberUtil;
 use CommerceGuys\Addressing\AddressFormat\AddressFormatRepository;
@@ -103,6 +104,43 @@ class Countries extends Component
         $this->trigger(self::EVENT_MODIFY_ADDRESS_COUNTRIES, $event);
 
         return $event->countries;
+    }
+
+    public function getCountryCodeForRequest(?Request $request = null): ?string
+    {
+        $request ??= Craft::$app->getRequest();
+
+        foreach ($this->_getRequestCountryHeaders() as $header) {
+            $code = strtoupper(trim((string)$request->getHeaders()->get($header)));
+
+            if ($this->_isValidCountryCode($code)) {
+                return $code;
+            }
+        }
+
+        return null;
+    }
+
+    public function getCountryForRequest(?Request $request = null): ?array
+    {
+        $countryCode = $this->getCountryCodeForRequest($request);
+
+        if (!$countryCode) {
+            return null;
+        }
+
+        $locale = Craft::$app->getLocale()->getLanguageID();
+        $repo = new CountryRepository($locale);
+        $country = $repo->get($countryCode);
+
+        if (!$country) {
+            return null;
+        }
+
+        return [
+            'countryCode' => $countryCode,
+            'countryName' => $country->getName(),
+        ];
     }
 
     public function resolveCountryCode(string $country): ?string

@@ -26,6 +26,7 @@
 - Add smart **State / Province** behaviour for Address fields, with **Text** or **Dropdown when available** input modes, country-dependent subdivision loading, dynamic labels (State, Province, Prefecture, and so on), optional hiding when unused, searchable dropdowns, and datalist suggestions for text fallback. ([#1416](https://github.com/verbb/formie/issues/1416))
 - Add a subdivisions endpoint (`formie/address/subdivisions`) and `ModifyAddressSubdivisionsEvent` for country-dependent state/province option data.
 - Add an `address-state` browser module with lazy subdivision loading, loading UX (country spinner and state skeleton), and password-manager/browser autofill reconciliation via a persistent `address-level1` anchor input.
+- Add **Allowed Countries** and **Preselect Country from IP** settings to Address fields, mirroring Phone field country restrictions and using a shared `formie/address/country-from-ip` endpoint (CDN geo headers such as `CF-IPCountry`).
 - Add **Preselect Country from IP** to Phone fields when the country selector is enabled, wiring `intl-tel-input` geo lookup through the shared country-from-ip endpoint.
 
 ### Changed

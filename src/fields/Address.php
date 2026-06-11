@@ -78,12 +78,12 @@ class Address extends FixedParentField implements PreviewableFieldInterface
     {
         return AddressInputType::getTypeFromConfig($config);
     }
-    
 
 
     // Properties
     // =========================================================================
 
+    public array $countryAllowed = [];
     public bool $countryPreselectFromIp = false;
 
 
@@ -270,6 +270,11 @@ class Address extends FixedParentField implements PreviewableFieldInterface
         return AddressType::getType();
     }
 
+    public function getCountryOptions(): array
+    {
+        return Formie::$plugin->getCountries()->getAddressCountries($this);
+    }
+
     public function defineFormBuilderGeneralSchema(): array
     {
         return [
@@ -286,6 +291,14 @@ class Address extends FixedParentField implements PreviewableFieldInterface
                         ],
                     ],
                 ],
+            ]),
+            SchemaHelper::comboboxField([
+                'label' => Craft::t('formie', 'Allowed Countries'),
+                'instructions' => Craft::t('formie', 'Select which countries should be available to pick from. By default, all countries are available.'),
+                'name' => 'countryAllowed',
+                'placeholder' => Craft::t('formie', 'Select an option'),
+                'options' => $this->getCountryOptions(),
+                'multiple' => true,
             ]),
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Preselect Country from IP'),

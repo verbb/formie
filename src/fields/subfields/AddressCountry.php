@@ -3,7 +3,9 @@ namespace verbb\formie\fields\subfields;
 
 use verbb\formie\base\ChildFieldInterface;
 use verbb\formie\elements\Submission;
+use verbb\formie\fields\Address;
 use verbb\formie\fields\Dropdown;
+use verbb\formie\Formie;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\Html;
 use verbb\formie\helpers\SchemaHelper;
@@ -14,16 +16,8 @@ use verbb\formie\theme\context\RenderContext;
 use Craft;
 use craft\base\ElementInterface;
 
-use CommerceGuys\Addressing\Country\CountryRepository;
-
 class AddressCountry extends Dropdown implements ChildFieldInterface
 {
-    // Properties
-    // =========================================================================
-
-    private static array $_countryOptionsByLocale = [];
-    
-
     // Static Methods
     // =========================================================================
 
@@ -40,27 +34,6 @@ class AddressCountry extends Dropdown implements ChildFieldInterface
     public static function getReferenceBlockTemplatePath(): string
     {
         return 'fields/dropdown';
-    }
-
-    public static function getCountryOptions(): array
-    {
-        $locale = Craft::$app->getLocale()->getLanguageID();
-
-        if (isset(self::$_countryOptionsByLocale[$locale])) {
-            return self::$_countryOptionsByLocale[$locale];
-        }
-
-        $repo = new CountryRepository($locale);
-
-        $countries = [];
-        
-        foreach ($repo->getList() as $value => $label) {
-            $countries[] = compact('value', 'label');
-        }
-
-        self::$_countryOptionsByLocale[$locale] = $countries;
-
-        return self::$_countryOptionsByLocale[$locale];
     }
 
 
@@ -84,11 +57,28 @@ class AddressCountry extends Dropdown implements ChildFieldInterface
         return $settings;
     }
 
+    public function getCountryOptions(): array
+    {
+        $parent = $this->getParentField();
+        $field = $parent instanceof Address ? $parent : null;
+        $countries = Formie::$plugin->getCountries()->getAddressCountries($field);
+
+        if ($field?->countryAllowed) {
+            $allowed = array_map('strtoupper', $field->countryAllowed);
+            $countries = array_values(array_filter(
+                $countries,
+                fn(array $country) => in_array(strtoupper($country['value']), $allowed, true),
+            ));
+        }
+
+        return $countries;
+    }
+
     public function options(): array
     {
         $options = [];
 
-        foreach (static::getCountryOptions() as $country) {
+        foreach ($this->getCountryOptions() as $country) {
             $label = ($this->optionLabel === 'short') ? $country['value'] : $country['label'];
             $value = ($this->optionValue === 'short') ? $country['value'] : $country['label'];
 
@@ -108,7 +98,7 @@ class AddressCountry extends Dropdown implements ChildFieldInterface
                 'name' => 'defaultValue',
                 'options' => array_merge(
                     [['label' => Craft::t('formie', 'Select an option'), 'value' => '']],
-                    static::getCountryOptions()
+                    $this->options(),
                 ),
             ]),
             SchemaHelper::selectField([

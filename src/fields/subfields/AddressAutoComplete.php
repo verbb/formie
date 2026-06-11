@@ -71,7 +71,7 @@ class AddressAutoComplete extends SingleLineText implements ChildFieldInterface
             'instructions' => Craft::t('formie', 'Bias Google Places address suggestions toward this country.'),
             'name' => 'countryDefaultValue',
             'if' => $googlePlacesIf,
-            'options' => AddressCountry::getCountryOptions(),
+            'options' => $this->_getCountryDefaultValueOptions(),
         ]);
 
         $fields[] = SchemaHelper::lightswitchField([
@@ -168,6 +168,20 @@ class AddressAutoComplete extends SingleLineText implements ChildFieldInterface
         }
 
         return $addressProviderOptions;
+    }
+
+    private function _getCountryDefaultValueOptions(): array
+    {
+        $parent = $this->getParentField();
+        $countrySubfield = $parent instanceof Address ? $parent->getFieldByHandle('country') : null;
+
+        if ($countrySubfield instanceof AddressCountry) {
+            return $countrySubfield->getCountryOptions();
+        }
+
+        return Formie::$plugin->getCountries()->getAddressCountries(
+            $parent instanceof Address ? $parent : null,
+        );
     }
 
     private function _getGooglePlacesIntegrationIf(): string

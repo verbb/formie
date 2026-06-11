@@ -11,7 +11,7 @@ Use Address when the value needs to be mapped to integrations, exported, queried
 - **Autocomplete** - Use a configured address provider to search for and populate address details.
 - **Default country (Google Places)** - Bias Google Places suggestions toward a selected country, similar to the Phone field.
 - **Current location** - Allow location-based lookup when the selected provider supports it.
-- **Country handling** - Restrict or preselect countries when the form should only accept certain regions.
+- **Allowed Countries** — restrict the Country sub-field dropdown to specific ISO countries (same behaviour as the Phone field).
 - **Preselect Country from IP** — pre-fill the Country sub-field from the visitor’s IP when no default value is set. Uses CDN geo headers (for example `CF-IPCountry`) via `actions/formie/address/country-from-ip`. Also available on Phone fields with the country selector enabled.
 - **State / Province input mode** - Choose **Text** or **Dropdown when available** on the State / Province sub-field.
   - **Text** — always renders a plain text input.
