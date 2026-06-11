@@ -83,13 +83,24 @@ class MultiLineText extends Field implements SortableFieldInterface, Previewable
 
     public function normalizeValue(mixed $value, ?ElementInterface $element): mixed
     {
-        $value = $value !== '' ? $value : null;
-
-        if ($this->useRichText && is_string($value)) {
+        if ($this->useRichText && is_string($value) && $value !== '') {
             $value = StringHelper::cleanString($value);
+        } else if ($value === '') {
+            $value = null;
         }
 
-        return parent::normalizeValue($value, $element);
+        $value = parent::normalizeValue($value, $element);
+
+        if (!$this->useRichText && ($value === '' || $value === null)) {
+            return null;
+        }
+
+        return $value;
+    }
+
+    protected function shouldTrimNormalizedPlainText(): bool
+    {
+        return !$this->useRichText;
     }
 
     public function getElementConditionRuleType(): ?string

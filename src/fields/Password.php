@@ -43,6 +43,11 @@ class Password extends Field implements SortableFieldInterface, PreviewableField
         return self::KIND_TEXT;
     }
 
+    protected function shouldTrimNormalizedPlainText(): bool
+    {
+        return false;
+    }
+
     public function isValueEmpty(mixed $value, ?ElementInterface $element): bool
     {
         // Evaluate password fields differently. Because we don't populate the value back to the

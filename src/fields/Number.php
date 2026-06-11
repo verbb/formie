@@ -136,8 +136,16 @@ class Number extends Field implements SortableFieldInterface, PreviewableFieldIn
             return null;
         }
 
+        if (is_string($value)) {
+            $value = trim($value);
+        }
+
         // Was this submitted with a locale ID?
-        if (isset($value['locale'], $value['value'])) {
+        if (is_array($value) && isset($value['locale'], $value['value'])) {
+            if (is_string($value['value'])) {
+                $value['value'] = trim($value['value']);
+            }
+
             $value = Localization::normalizeNumber($value['value'], $value['locale']);
         }
 

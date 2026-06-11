@@ -76,9 +76,13 @@ class SingleLineText extends Field implements SortableFieldInterface, Previewabl
 
     public function normalizeValue(mixed $value, ?ElementInterface $element): mixed
     {
-        $value = $value !== '' ? $value : null;
+        if ($value === '') {
+            $value = null;
+        }
 
-        return parent::normalizeValue($value, $element);
+        $value = parent::normalizeValue($value, $element);
+
+        return ($value === '' || $value === null) ? null : $value;
     }
 
     public function getElementConditionRuleType(): ?string

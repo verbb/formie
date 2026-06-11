@@ -3,7 +3,7 @@
 ## Unreleased
 
 ### Added
-- Add rich text editing for field **Instructions**, including Craft entry links with `target="_blank"`, configurable via `rich-text.json` under `fields.instructions`. Legacy plain-text instructions are normalized automatically without migration. ([#724](https://github.com/verbb/formie/issues/724))
+- Add rich text editing for field **Instructions**, including Craft entry links with `target="_blank"`, configurable via `rich-text.json` under `fields.instructions`. Legacy plain-text and markdown instructions are normalized automatically without migration. ([#724](https://github.com/verbb/formie/issues/724))
 - Add Craft-style attribute maps and merge helpers for `setFieldSettings()` field overrides, including `mergeInputAttributes` and `mergeContainerAttributes`. ([#2510](https://github.com/verbb/formie/issues/2510))
 - Add a **Note** builder field for form-builder guidance with Tip, Warning, Info, and Error styles. ([#2498](https://github.com/verbb/formie/issues/2498))
 - Add a **Rich Text** cosmetic field for WYSIWYG content in the form builder, configurable via `rich-text.json` under `fields.content`. ([#1028](https://github.com/verbb/formie/issues/1028), [#1709](https://github.com/verbb/formie/issues/1709), [Discussion #2070](https://github.com/verbb/formie/discussions/2070), [Discussion #772](https://github.com/verbb/formie/discussions/772))
@@ -48,6 +48,7 @@
 - Format Date/Time values consistently for notifications, summaries, exports, and string output using the field's **Date Format** and **Time Format** settings. Casting a normalized date value object to string now matches `getFieldValueAsString()`.
 - Update integration field mapping to accept Date/Time reference values with `text`, `date`, and `number` types.
 - Move Agree field checked/unchecked display labels to the Settings tab and clarify that submissions store a boolean; use `getFieldValueAsString()` for Yes/No-style output. ([#2288](https://github.com/verbb/formie/issues/2288))
+- Normalise submission values by trimming leading and trailing whitespace during field normalization for single-line text, email, plain multi-line text, hidden, phone, number, name, address, and custom string fields. Password fields and rich text content are unchanged; existing submissions keep their stored values until resaved.
 
 ### Deprecated
 - Deprecate the `PredefinedOptions` service, predefined option class namespace (`verbb\formie\options\*`), and `PredefinedOptions::EVENT_REGISTER_PREDEFINED_OPTIONS` event registration target. Use `OptionSources`, predefined option classes under `verbb\formie\options\predefined\*`, and `OptionSources::EVENT_REGISTER_PREDEFINED_OPTIONS` instead. Legacy APIs remain available through the compatibility layer with deprecation notices.

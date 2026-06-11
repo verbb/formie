@@ -91,8 +91,6 @@ class Email extends Field implements SortableFieldInterface, PreviewableFieldInt
     {
         $rules = parent::getElementValidationRules();
 
-        // Enable base validations
-        $rules[] = [$this->handle, 'trim'];
         $rules[] = [$this->handle, 'email', 'enableIDN' => self::supportsIdn(), 'enableLocalIDN' => false];
 
         if ($this->validateDomain) {

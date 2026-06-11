@@ -132,6 +132,8 @@ abstract class AbstractCustomFieldAdapter implements CustomFieldAdapterInterface
             if (is_array($decoded)) {
                 return $decoded;
             }
+
+            return trim($value);
         }
 
         return $value;

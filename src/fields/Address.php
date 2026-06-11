@@ -193,11 +193,14 @@ class Address extends FixedParentField implements PreviewableFieldInterface
         $value = Json::decodeIfJson($value);
 
         if ($value instanceof AddressFieldValue) {
+            $this->_trimAddressFieldValue($value);
+
             return $value->isEmpty() ? null : $value;
         }
 
         if (is_array($value)) {
             $address = new AddressFieldValue($value);
+            $this->_trimAddressFieldValue($address);
 
             // Normalize country to null, due to it being a dropdown
             if ($address->country === '') {
@@ -742,6 +745,18 @@ class Address extends FixedParentField implements PreviewableFieldInterface
         }
 
         return $addressProviderOptions;
+    }
+
+    private function _trimAddressFieldValue(AddressFieldValue $address): void
+    {
+        foreach (['autoComplete', 'address1', 'address2', 'address3', 'city', 'state', 'zip'] as $property) {
+            if (!is_string($address->{$property})) {
+                continue;
+            }
+
+            $trimmed = trim($address->{$property});
+            $address->{$property} = $trimmed === '' ? null : $trimmed;
+        }
     }
 
 }

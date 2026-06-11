@@ -190,6 +190,7 @@ class Name extends FixedParentField implements SortableFieldInterface, Previewab
 
                 $value = StringHelper::normalizePlainText($value);
                 $value = $this->sanitizePlainTextValueIfConfigured($value);
+                $value = trim($value);
             }
 
             $value = Json::decodeIfJson($value);
@@ -209,7 +210,7 @@ class Name extends FixedParentField implements SortableFieldInterface, Previewab
                 return null;
             }
 
-            return (string)$value;
+            return (string)$value === '' ? null : (string)$value;
         }
 
         $value = parent::normalizeValue($value, $element);
@@ -218,6 +219,7 @@ class Name extends FixedParentField implements SortableFieldInterface, Previewab
         if (is_array($value)) {
             $name = new NameFieldValue($value);
             $name->isMultiple = true;
+            $this->_trimNameFieldValue($name);
 
             // Normalize prefix to null, due to it being a dropdown
             if ($name->prefix === '') {
@@ -641,6 +643,18 @@ class Name extends FixedParentField implements SortableFieldInterface, Previewab
                 'variableTypes' => [Variables::TYPE_TEXT],
             ]),
         ];
+    }
+
+    private function _trimNameFieldValue(NameFieldValue $name): void
+    {
+        foreach (['prefix', 'firstName', 'middleName', 'lastName', 'name'] as $property) {
+            if (!is_string($name->{$property})) {
+                continue;
+            }
+
+            $trimmed = trim($name->{$property});
+            $name->{$property} = $trimmed === '' ? null : $trimmed;
+        }
     }
 
 }

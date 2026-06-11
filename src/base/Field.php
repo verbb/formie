@@ -641,10 +641,15 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
             // Preserve plain-text field values and only normalize invalid control characters.
             $value = StringHelper::normalizePlainText($value);
             $value = $this->sanitizePlainTextValueIfConfigured($value);
+
+            if ($this->shouldTrimNormalizedPlainText()) {
+                $value = trim($value);
+            }
         }
 
         return $value;
     }
+
     public function serializeValueForDb(mixed $value, ElementInterface $element): mixed
     {
         return $this->serializeValue($value, $element);
@@ -1269,6 +1274,17 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
         ];
 
         return $rules;
+    }
+
+    protected function shouldTrimNormalizedPlainText(): bool
+    {
+        return match ($this->fieldKind()) {
+            self::KIND_TEXT,
+            self::KIND_TEXTAREA,
+            self::KIND_HIDDEN,
+            self::KIND_PHONE => true,
+            default => false,
+        };
     }
 
     protected function dbTypeForValueSql(): array|string|null
