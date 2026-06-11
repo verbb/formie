@@ -31,6 +31,16 @@ trait FieldServerRenderTrait
 
     public function getHtmlName(?string $extra = null): string
     {
+        if ($extra === null && ($inputName = FieldRenderCallContext::get('inputName'))) {
+            $parent = $this->getParentField();
+
+            if ($parent instanceof FieldInterface) {
+                return $parent->getHtmlName($inputName);
+            }
+
+            $extra = $inputName;
+        }
+
         return $this->getFieldPath()->htmlName($extra);
     }
 

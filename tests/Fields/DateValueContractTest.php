@@ -80,6 +80,70 @@ it('resolves sub-field part values as scalar values', function (): void {
         ->and($field->getSubFieldPartValue(new SingleOptionFieldValue('May', '5', true), 'month'))->toBe('5');
 });
 
+it('resolves single date and time reference selectors from stored parts', function (): void {
+    $field = new Date([
+        'handle' => 'eventDate',
+        'displayType' => 'datePicker',
+        'dateFormat' => 'Y-m-d',
+        'timeFormat' => 'H:i:s',
+    ]);
+
+    $value = $field->normalizeValue([
+        'year' => '2020',
+        'month' => '8',
+        'day' => '22',
+        'hour' => '11',
+        'minute' => '57',
+        'second' => '51',
+        'ampm' => 'AM',
+    ], null);
+
+    expect($field->resolveNormalizedValuePath($value, 'date'))->toBe('2020-08-22')
+        ->and($field->resolveNormalizedValuePath($value, 'time'))->toBe('11:57:51')
+        ->and($field->getSubFieldPartValue($value, 'date'))->toBe('2020-08-22')
+        ->and($field->getSubFieldPartValue($value, 'time'))->toBe('11:57:51')
+        ->and($field->formatPartsForDisplay($value->getParts()))->toBe('2020-08-22 11:57:51');
+});
+
+it('stringifies normalized date values consistently for field output', function (): void {
+    $field = new Date([
+        'handle' => 'eventDate',
+        'displayType' => 'datePicker',
+        'dateFormat' => 'Y-m-d',
+        'timeFormat' => 'H:i',
+    ]);
+
+    $value = $field->normalizeValue([
+        'year' => '1984',
+        'month' => '7',
+        'day' => '14',
+        'hour' => '18',
+        'minute' => '46',
+        'second' => '8',
+        'ampm' => 'PM',
+    ], null);
+
+    expect((string)$value)->toBe('1984-07-14 18:46')
+        ->and($field->getValueAsString($value, null))->toBe('1984-07-14 18:46')
+        ->and($value->getPathValue('date'))->toBe('1984-07-14')
+        ->and($value->getPathValue('time'))->toBe('18:46');
+});
+
+it('resolves single date and time reference selectors from faker preview values', function (): void {
+    $field = new Date([
+        'handle' => 'eventDate',
+        'displayType' => 'datePicker',
+    ]);
+
+    $faker = Faker\Factory::create();
+    $previewValue = $field->getValueForEmailPreview($faker);
+    $normalized = $field->normalizeValue($previewValue, null);
+
+    expect($normalized)->toBeInstanceOf(DateFieldValue::class)
+        ->and($normalized->getPathValue('date'))->not->toBe('')
+        ->and($normalized->getPathValue('time'))->not->toBe('');
+});
+
 it('validates date number sub-fields using n j and G format params', function (): void {
     $form = formie()
         ->form(['title' => 'Date Input Validation Tokens'])

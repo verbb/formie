@@ -1,1 +1,6 @@
-{{ formieInclude(['fields/date/_' ~ field.displayType, 'fields/date/_calendar']) }}
+{{ formieInclude([
+    field.collectMode == 'range' and field.displayType == 'datePicker'
+        ? 'fields/date/_datePickerRange'
+        : 'fields/date/_' ~ field.displayType,
+    'fields/date/_calendar',
+]) }}

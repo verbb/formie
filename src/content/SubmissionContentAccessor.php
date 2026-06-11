@@ -71,6 +71,17 @@ class SubmissionContentAccessor
     {
         [$rootHandle, $nestedPath] = $this->splitFieldPath($fieldPath);
         $rootValue = $this->_getRootNormalizedValue($submission, $rootHandle);
+
+        if ($nestedPath === null) {
+            return $rootValue;
+        }
+
+        $field = $submission->getContentManager()->getFieldByHandle($submission, $rootHandle);
+
+        if ($field instanceof \verbb\formie\fields\Date) {
+            return $field->resolveNormalizedValuePath($rootValue, $nestedPath);
+        }
+
         return $this->resolvePathValue($rootValue, $nestedPath);
     }
 

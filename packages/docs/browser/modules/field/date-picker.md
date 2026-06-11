@@ -2,6 +2,8 @@
 
 Date picker enhances Date fields rendered with the `datePicker` display type by mounting flatpickr on the transport input.
 
+When the field's **Value type** is **Date Range**, the module mounts flatpickr in `range` mode and keeps hidden start/end transport inputs in sync with the selected range.
+
 ## Events
 
 #### The `formie:field:date-picker:before-init` event

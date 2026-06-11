@@ -10,7 +10,7 @@ const cpRoot = path.resolve(__dirname, '..');
 const sourceIconsDir = path.join(cpRoot, 'src', 'icons');
 const distIconsDir = path.join(cpRoot, 'dist', 'icons');
 
-const copyAndOptimizeIcons = async () => {
+export const copyAndOptimizeIcons = async () => {
     if (!await fs.pathExists(sourceIconsDir)) {
         console.warn(`[build-icons] Source directory not found: ${sourceIconsDir}`);
         return;
@@ -51,7 +51,9 @@ const copyAndOptimizeIcons = async () => {
     console.log(`[build-icons] Icons copied and optimized into ${distIconsDir}`);
 };
 
-copyAndOptimizeIcons().catch((error) => {
-    console.error('[build-icons] Failed to build icons:', error);
-    process.exitCode = 1;
-});
+if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
+    copyAndOptimizeIcons().catch((error) => {
+        console.error('[build-icons] Failed to build icons:', error);
+        process.exitCode = 1;
+    });
+}

@@ -115,7 +115,13 @@ const assignFieldHandle = (field, handle) => {
 
 const assignUniqueFieldHandle = (field, existingHandles = []) => {
     const sourceHandle = getFieldHandle(field);
-    const baseHandle = sourceHandle || generateHandle(field?.label || Craft.t('formie', 'Field'));
+    const trimmedLabel = String(field?.label || '').trim();
+    const baseHandle = sourceHandle || (trimmedLabel ? generateHandle(trimmedLabel) : '');
+
+    if (!baseHandle) {
+        return field;
+    }
+
     const uniqueHandle = getCaseInsensitiveUniqueHandle(baseHandle, existingHandles);
 
     return assignFieldHandle(field, uniqueHandle);

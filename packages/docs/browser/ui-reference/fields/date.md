@@ -23,6 +23,8 @@ Across those display types, the field can be configured as:
 - time only
 - date + time
 
+When **Display type** is `datePicker`, the field can also collect a **date range** (`collectMode: range`). Range fields render a single Flatpickr input in range mode and submit hidden start/end transport inputs.
+
 ## Attributes
 
 Date fields can render as one input or as several subfields, depending on the display type.
@@ -47,6 +49,14 @@ Date fields can render as one input or as several subfields, depending on the di
 | Attribute | Description | Importance |
 | --- | --- | --- |
 | `data-formie-date-datepicker-input` | Picker selector used by the `date-picker` module | Required for `datePicker` |
+
+### Date-range inputs
+
+| Attribute | Description | Importance |
+| --- | --- | --- |
+| `data-formie-date-range-start-input` | Hidden transport input for the range start value | Required for `datePicker` range fields |
+| `data-formie-date-range-end-input` | Hidden transport input for the range end value | Required for `datePicker` range fields |
+| `data-formie-date-range-input` | Optional marker on the visible picker input when range mode is active | Recommended for `datePicker` range fields |
 
 ### Sub-field rows
 
@@ -88,6 +98,7 @@ Date always preserves one field identity, but its rendered controls vary by disp
 
 - `calendar` renders native browser date/time inputs
 - `datePicker` renders a single transport input that the browser package enhances with flatpickr
+- `datePicker` range fields also render hidden start/end transport inputs and mount flatpickr in `range` mode
 - `dropdowns` and `inputs` render subfields for year/month/day and optional time parts
 
 When the `date-picker` module is present, Formie:

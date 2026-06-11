@@ -14,6 +14,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyDateTimeFormatEvent;
 use verbb\formie\events\RegisterDateTimeFormatOptionsEvent;
 use verbb\formie\fields\values\DateFieldValue;
+use verbb\formie\fields\values\DateRangeFieldValue;
 use verbb\formie\fields\definitions\FieldClientModules;
 use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\fields\definitions\FieldValueClass;
@@ -37,6 +38,7 @@ use verbb\formie\theme\context\RenderContext;
 use Craft;
 use craft\base\Element;
 use craft\base\ElementInterface;
+use craft\gql\GqlEntityRegistry;
 use craft\gql\types\DateTime as DateTimeType;
 use craft\helpers\Component;
 use craft\helpers\DateTimeHelper;
@@ -46,6 +48,8 @@ use craft\i18n\Locale;
 
 use Faker\Generator as FakerFactory;
 
+use GraphQL\Type\Definition\InputObjectType;
+use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\Type;
 
 use yii\base\Event;
@@ -79,11 +83,23 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
 
     public static function gqlContentTypeFromConfig(array $config): Type|array
     {
+        if (self::_configCollectsRange($config)) {
+            return self::_gqlDateRangeTypeFromConfig($config);
+        }
+
         return DateTimeType::getType();
     }
 
     public static function gqlContentMutationArgumentTypeFromConfig(array $config): Type|array
     {
+        if (self::_configCollectsRange($config)) {
+            return [
+                'name' => $config['handle'] ?? '',
+                'type' => self::_gqlDateRangeInputTypeFromConfig($config),
+                'description' => $config['instructions'] ?? null,
+            ];
+        }
+
         return [
             'name' => $config['handle'] ?? '',
             'type' => DateTimeType::getType(),
@@ -175,7 +191,7 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
         return Db::parseParam($comparableSql, $normalizedComparableValue, columnType: Schema::TYPE_STRING);
     }
 
-    
+
     // Constants
     // =========================================================================
 
@@ -183,6 +199,9 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
     public const EVENT_MODIFY_TIME_FORMAT = 'modifyTimeFormat';
     public const EVENT_REGISTER_DATE_FORMAT_OPTIONS = 'registerDateFormatOptions';
     public const EVENT_REGISTER_TIME_FORMAT_OPTIONS = 'registerTimeFormatOptions';
+    
+    public const COLLECT_SINGLE = 'single';
+    public const COLLECT_RANGE = 'range';
 
 
     // Properties
@@ -190,6 +209,7 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
 
     public string $dateFormat = 'Y-m-d';
     public string $timeFormat = 'H:i';
+    public string $collectMode = self::COLLECT_SINGLE;
     public string $displayType = 'calendar';
     public ?string $defaultOption = null;
     public array $datePickerOptions = [];
@@ -277,6 +297,40 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
         return self::KIND_DATE;
     }
 
+    public function getCollectsRange(): bool
+    {
+        return $this->collectMode === self::COLLECT_RANGE && $this->displayType === 'datePicker';
+    }
+
+    public function getElementValidationRules(): array
+    {
+        $rules = parent::getElementValidationRules();
+
+        if ($this->getCollectsRange()) {
+            $rules[] = [$this->handle, 'validateCollectRange', 'skipOnEmpty' => false];
+        }
+
+        return $rules;
+    }
+
+    public function validateCollectRange(ElementInterface $element): void
+    {
+        $value = $element->getFieldValue($this->valueKey());
+
+        if (!$value instanceof DateRangeFieldValue) {
+            return;
+        }
+
+        $start = DateFieldValue::partsToDateTime($value->getStartParts());
+        $end = DateFieldValue::partsToDateTime($value->getEndParts());
+
+        if (!$start || !$end || $end >= $start) {
+            return;
+        }
+
+        $element->addError($this->valueKey(), Craft::t('formie', 'The end date must be after the start date.'));
+    }
+
     public function getIsRequired(): ?bool
     {
         // Calendar-based fields might not have their sub-fields visible, but could be required. Best to show a required
@@ -306,6 +360,7 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
         $settings = parent::getFormBuilderSettings();
         $defaultLayouts = [
             'calendar' => $this->getCalendarSubFields(),
+            'calendarRange' => $this->getRangeCalendarSubFields(),
             'dropdowns' => $this->getDropdownSubFields(),
             'inputs' => $this->getInputSubFields(),
         ];
@@ -321,11 +376,19 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
                 $layoutRows = $activeRows;
             }
 
-            $layouts[$layoutKey] = is_array($layoutRows) && $layoutRows ? $layoutRows : $rows;
+            $normalizedRows = $this->normalizeSubFieldRows(
+                is_array($layoutRows) ? $layoutRows : [],
+                $rows,
+            );
+
+            $layouts[$layoutKey] = $normalizedRows ?: $rows;
         }
 
         $settings['layouts'] = $layouts;
-        $settings['rows'] = $layouts[$activeLayoutKey] ?? $activeRows;
+        $settings['rows'] = $layouts[$activeLayoutKey] ?? $this->normalizeSubFieldRows(
+            is_array($activeRows) ? $activeRows : [],
+            $defaultLayouts[$activeLayoutKey] ?? [],
+        );
 
         return $settings;
     }
@@ -362,7 +425,7 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
             return Craft::t('formie', $this->placeholder) ?: null;
         }
 
-        if ($this->displayType !== 'datePicker') {
+        if ($this->displayType !== 'datePicker' || $this->getCollectsRange()) {
             return null;
         }
 
@@ -378,7 +441,9 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
         Craft::$app->getFormatter()->timeZone = 'UTC';
 
         if ($value) {
-            if ($this->getIsDateTime()) {
+            if ($this->getCollectsRange() && $value instanceof DateRangeFieldValue) {
+                $html = $this->formatRangeValueForDisplay($value);
+            } else if ($this->getIsDateTime()) {
                 $html = Craft::$app->getFormatter()->asDatetime($value, Locale::LENGTH_SHORT);
             } else if ($this->getIsTime()) {
                 $html = Craft::$app->getFormatter()->asTime($value, Locale::LENGTH_SHORT);
@@ -395,7 +460,39 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
 
     public function normalizeValue(mixed $value, ?ElementInterface $element): mixed
     {
+        if ($this->getCollectsRange()) {
+            if ($value instanceof DateRangeFieldValue) {
+                if ($value->isEmpty()) {
+                    return null;
+                }
+
+                $this->_applyDisplaySettings($value);
+
+                return $value;
+            }
+
+            if ($value === null || $value === '') {
+                return null;
+            }
+
+            $normalized = DateRangeFieldValue::fromMixed($this->_normalizeInputValue($value));
+
+            if ($normalized->isEmpty()) {
+                return null;
+            }
+
+            $this->_applyDisplaySettings($normalized);
+
+            return $normalized;
+        }
+
         if ($value instanceof DateFieldValue) {
+            if ($value->isEmpty()) {
+                return null;
+            }
+
+            $this->_applyDisplaySettings($value);
+
             return $value;
         }
 
@@ -406,11 +503,42 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
         $value = $this->_normalizeInputValue($value);
         $normalized = new DateFieldValue($value);
 
-        return $normalized->isEmpty() ? null : $normalized;
+        if ($normalized->isEmpty()) {
+            return null;
+        }
+
+        $this->_applyDisplaySettings($normalized);
+
+        return $normalized;
     }
 
     public function serializeValue(mixed $value, ?ElementInterface $element): mixed
     {
+        if ($this->getCollectsRange()) {
+            if ($value instanceof DateRangeFieldValue) {
+                if ($value->isEmpty()) {
+                    return null;
+                }
+
+                return [
+                    'start' => $value->getStartParts(),
+                    'end' => $value->getEndParts(),
+                ];
+            }
+
+            $value = $this->_normalizeInputValue($value);
+            $normalized = DateRangeFieldValue::fromMixed($value);
+
+            if ($normalized->isEmpty()) {
+                return null;
+            }
+
+            return [
+                'start' => $normalized->getStartParts(),
+                'end' => $normalized->getEndParts(),
+            ];
+        }
+
         if ($value instanceof DateFieldValue) {
             $parts = $value->getParts();
 
@@ -467,6 +595,21 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
 
     public function getIsDate(): bool
     {
+        if ($this->getCollectsRange()) {
+            if ($this->displayType === 'calendar' || $this->displayType === 'datePicker') {
+                return $this->getFieldByHandle('startDate')?->enabled
+                    && !$this->getFieldByHandle('startTime')?->enabled;
+            }
+
+            if ($this->displayType === 'inputs' || $this->displayType === 'dropdowns') {
+                return $this->getFieldByHandle('startYear')?->enabled
+                    && $this->getFieldByHandle('startMonth')?->enabled
+                    && $this->getFieldByHandle('startDay')?->enabled
+                    && !$this->getFieldByHandle('startHour')?->enabled
+                    && !$this->getFieldByHandle('startMinute')?->enabled;
+            }
+        }
+
         if ($this->displayType === 'calendar' || $this->displayType === 'datePicker') {
             if ($this->getFieldByHandle('date')?->enabled && !$this->getFieldByHandle('time')?->enabled) {
                 return true;
@@ -490,6 +633,21 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
 
     public function getIsTime(): bool
     {
+        if ($this->getCollectsRange()) {
+            if ($this->displayType === 'calendar' || $this->displayType === 'datePicker') {
+                return !$this->getFieldByHandle('startDate')?->enabled
+                    && $this->getFieldByHandle('startTime')?->enabled;
+            }
+
+            if ($this->displayType === 'inputs' || $this->displayType === 'dropdowns') {
+                return !$this->getFieldByHandle('startYear')?->enabled
+                    && !$this->getFieldByHandle('startMonth')?->enabled
+                    && !$this->getFieldByHandle('startDay')?->enabled
+                    && $this->getFieldByHandle('startHour')?->enabled
+                    && $this->getFieldByHandle('startMinute')?->enabled;
+            }
+        }
+
         if ($this->displayType === 'calendar' || $this->displayType === 'datePicker') {
             if (!$this->getFieldByHandle('date')?->enabled && $this->getFieldByHandle('time')?->enabled) {
                 return true;
@@ -513,6 +671,21 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
 
     public function getIsDateTime(): bool
     {
+        if ($this->getCollectsRange()) {
+            if ($this->displayType === 'calendar' || $this->displayType === 'datePicker') {
+                return $this->getFieldByHandle('startDate')?->enabled
+                    && $this->getFieldByHandle('startTime')?->enabled;
+            }
+
+            if ($this->displayType === 'inputs' || $this->displayType === 'dropdowns') {
+                return $this->getFieldByHandle('startYear')?->enabled
+                    && $this->getFieldByHandle('startMonth')?->enabled
+                    && $this->getFieldByHandle('startDay')?->enabled
+                    && $this->getFieldByHandle('startHour')?->enabled
+                    && $this->getFieldByHandle('startMinute')?->enabled;
+            }
+        }
+
         if ($this->displayType === 'calendar' || $this->displayType === 'datePicker') {
             if ($this->getFieldByHandle('date')?->enabled && $this->getFieldByHandle('time')?->enabled) {
                 return true;
@@ -557,9 +730,97 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
             return $value->value;
         }
 
-        $parts = DateFieldValue::parseParts($value);
+        return $this->resolveNormalizedValuePath($value, $handle);
+    }
 
-        return $parts[$handle] ?? null;
+    public function resolveNormalizedValuePath(mixed $value, string $path): mixed
+    {
+        if ($this->getCollectsRange()) {
+            $rangeValue = $value instanceof DateRangeFieldValue
+                ? $value
+                : DateRangeFieldValue::fromMixed($value);
+
+            $this->_applyDisplaySettings($rangeValue);
+
+            return $rangeValue->getPathValue($path);
+        }
+
+        $fieldValue = $value instanceof DateFieldValue
+            ? $value
+            : new DateFieldValue(DateFieldValue::parseParts($value));
+
+        $this->_applyDisplaySettings($fieldValue);
+
+        return $fieldValue->getPathValue($path);
+    }
+
+    public function formatPartsForDisplay(array $parts): string
+    {
+        $fieldValue = new DateFieldValue($parts);
+        $this->_applyDisplaySettings($fieldValue);
+
+        return $fieldValue->formatPartsForDisplay($parts);
+    }
+
+    public function formatDatePartForDisplay(array $parts): string
+    {
+        $fieldValue = new DateFieldValue($parts);
+        $this->_applyDisplaySettings($fieldValue);
+
+        return $fieldValue->formatDateForDisplay($parts);
+    }
+
+    public function formatTimePartForDisplay(array $parts): string
+    {
+        $fieldValue = new DateFieldValue($parts);
+        $this->_applyDisplaySettings($fieldValue);
+
+        return $fieldValue->formatTimeForDisplay($parts);
+    }
+
+    public function formatRangeValueForDisplay(mixed $value): string
+    {
+        $rangeValue = $value instanceof DateRangeFieldValue
+            ? $value
+            : DateRangeFieldValue::fromMixed($value);
+
+        if (!$value instanceof DateRangeFieldValue) {
+            $this->_applyDisplaySettings($rangeValue);
+        }
+
+        if ($rangeValue->isEmpty()) {
+            return '';
+        }
+
+        return $rangeValue->formatForDisplay();
+    }
+
+    public function getRangeBoundaryInputValue(mixed $value, string $side): string
+    {
+        if (!$this->getCollectsRange()) {
+            return '';
+        }
+
+        $rangeValue = $value instanceof DateRangeFieldValue
+            ? $value
+            : DateRangeFieldValue::fromMixed($value);
+
+        if ($rangeValue->isEmpty()) {
+            return '';
+        }
+
+        $parts = $side === 'end' ? $rangeValue->getEndParts() : $rangeValue->getStartParts();
+        $dateTime = DateFieldValue::partsToDateTime($parts);
+
+        if (!$dateTime instanceof \DateTime) {
+            return '';
+        }
+
+        if ($this->getIsDateTime() || $this->getIsTime()) {
+            return $dateTime->format('Y-m-d H:i:s');
+        }
+
+        return $dateTime->format('Y-m-d');
     }
 
     public function getWeekDayNamesOptions(): array
@@ -575,6 +836,10 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
 
     public function beforeSave(bool $isNew): bool
     {
+        if ($this->collectMode === self::COLLECT_RANGE && $this->displayType !== 'datePicker') {
+            $this->collectMode = self::COLLECT_SINGLE;
+        }
+
         $this->_syncRowsFromActiveLayout();
 
         // Ensure that dates have timezone information stripped off
@@ -598,9 +863,31 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
         return [
             SchemaHelper::labelField(),
             SchemaHelper::selectField([
+                'label' => Craft::t('formie', 'Display Type'),
+                'instructions' => Craft::t('formie', 'Set different display layouts for this field.'),
+                'name' => 'displayType',
+                'options' => [
+                    ['label' => Craft::t('formie', 'Calendar (Simple)'), 'value' => 'calendar'],
+                    ['label' => Craft::t('formie', 'Calendar (Advanced)'), 'value' => 'datePicker'],
+                    ['label' => Craft::t('formie', 'Dropdowns'), 'value' => 'dropdowns'],
+                    ['label' => Craft::t('formie', 'Text Inputs'), 'value' => 'inputs'],
+                ],
+            ]),
+            SchemaHelper::selectField([
+                'label' => Craft::t('formie', 'Value Type'),
+                'instructions' => Craft::t('formie', 'Choose whether to collect a single date/time or a start/end range.'),
+                'name' => 'collectMode',
+                'if' => 'displayType == "datePicker"',
+                'options' => [
+                    ['label' => Craft::t('formie', 'Single Date/Time'), 'value' => self::COLLECT_SINGLE],
+                    ['label' => Craft::t('formie', 'Date Range'), 'value' => self::COLLECT_RANGE],
+                ],
+            ]),
+            SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'Default Value'),
                 'instructions' => Craft::t('formie', 'Select a default value for this field.'),
                 'name' => 'defaultOption',
+                'if' => 'displayType != "datePicker" || collectMode == "' . self::COLLECT_SINGLE . '"',
                 'options' => [
                     ['label' => Craft::t('formie', 'None'), 'value' => ''],
                     ['label' => Craft::t('formie', 'Today‘s Date/Time'), 'value' => 'today'],
@@ -611,20 +898,9 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
                 'label' => Craft::t('formie', 'Default Date/Time'),
                 'instructions' => Craft::t('formie', 'Set a default value for the field when it doesn’t have a value.'),
                 'name' => 'defaultValue',
-                'if' => 'defaultOption == "date"',
+                'if' => '(displayType != "datePicker" || collectMode == "' . self::COLLECT_SINGLE . '") && defaultOption == "date"',
                 'validation' => 'requiredDate',
                 'required' => true,
-            ]),
-            SchemaHelper::selectField([
-                'label' => Craft::t('formie', 'Display Type'),
-                'instructions' => Craft::t('formie', 'Set different display layouts for this field.'),
-                'name' => 'displayType',
-                'options' => [
-                    ['label' => Craft::t('formie', 'Calendar (Simple)'), 'value' => 'calendar'],
-                    ['label' => Craft::t('formie', 'Calendar (Advanced)'), 'value' => 'datePicker'],
-                    ['label' => Craft::t('formie', 'Dropdowns'), 'value' => 'dropdowns'],
-                    ['label' => Craft::t('formie', 'Text Inputs'), 'value' => 'inputs'],
-                ],
             ]),
             SchemaHelper::nestedFieldsConfigurationField([
                 'label' => Craft::t('formie', 'Sub-Field Configuration'),
@@ -648,7 +924,15 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
                     ],
                     [
                         '$cmp' => 'NestedLayout',
-                        'if' => 'displayType == "calendar" || displayType == "datePicker"',
+                        'if' => 'displayType == "datePicker" && collectMode == "' . self::COLLECT_RANGE . '"',
+                        'props' => [
+                            'parentType' => static::class,
+                            'layoutKey' => 'layouts.calendarRange',
+                        ],
+                    ],
+                    [
+                        '$cmp' => 'NestedLayout',
+                        'if' => 'displayType == "calendar" || (displayType == "datePicker" && collectMode != "' . self::COLLECT_RANGE . '")',
                         'props' => [
                             'parentType' => static::class,
                             'layoutKey' => 'layouts.calendar',
@@ -838,11 +1122,23 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
 
     public function getContentGqlType(): array|Type
     {
+        if ($this->getCollectsRange()) {
+            return $this->_getDateRangeGqlType();
+        }
+
         return DateTimeType::getType();
     }
 
     public function getContentGqlMutationArgumentType(): Type|array
     {
+        if ($this->getCollectsRange()) {
+            return [
+                'name' => $this->handle,
+                'type' => $this->_getDateRangeGqlInputType(),
+                'description' => $this->instructions,
+            ];
+        }
+
         return [
             'name' => $this->handle,
             'type' => DateTimeType::getType(),
@@ -868,6 +1164,10 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
             ],
             'displayType' => [
                 'name' => 'displayType',
+                'type' => Type::string(),
+            ],
+            'collectMode' => [
+                'name' => 'collectMode',
                 'type' => Type::string(),
             ],
             'defaultDate' => [
@@ -938,8 +1238,8 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
         $id = $this->getHtmlId($form);
         $dataId = $this->getHtmlDataId($form);
 
-        // If using multiple fields, switch to fieldset. Basically anything other than a datepicker
-        if ($this->displayType !== 'datePicker') {
+        // If using multiple fields, switch to fieldset. Basically anything other than a single-input datepicker.
+        if ($this->displayType !== 'datePicker' || $this->getCollectsRange()) {
             if ($key === 'fieldLayout') {
                 return SlotTag::make('fieldset')
                     ->core([
@@ -977,7 +1277,34 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
             }
         }
 
-        if ($key === 'fieldInput' && $this->displayType === 'datePicker') {
+        if ($key === 'fieldInput' && $this->displayType === 'datePicker' && $this->getCollectsRange()) {
+            return SlotTag::make('input')
+                ->core(array_merge([
+                    'type' => 'text',
+                    'id' => $id,
+                    'placeholder' => $this->getEffectivePlaceholder(),
+                    'required' => $this->required ? true : null,
+                    'autocomplete' => 'off',
+                    'data-formie-input' => true,
+                    'data-formie-date-input' => true,
+                    'data-formie-date-datepicker-input' => true,
+                    'data-formie-date-range-input' => true,
+                    'data-formie-input-id' => $dataId,
+                    'data-formie-input-type' => 'date',
+                    'data-formie-input-error-state' => $errors ? true : false,
+                    'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
+                ], ValidationMessagesHelper::requiredClientAttributes($this)))
+                ->theme([
+                    'class' => [
+                        'formie-input',
+                        'formie-date-input',
+                        $errors ? 'formie-input-error' : false,
+                    ],
+                ])
+                ->instanceAttributes($this->getInputAttributes());
+        }
+
+        if ($key === 'fieldInput' && $this->displayType === 'datePicker' && !$this->getCollectsRange()) {
             return SlotTag::make('input')
                 ->core(array_merge([
                     'type' => 'text',
@@ -1008,21 +1335,26 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
 
     protected function supportedDefaults(): array
     {
-        return ['displayType', 'defaultOption', 'defaultValue'];
+        return ['displayType', 'collectMode', 'defaultOption', 'defaultValue'];
     }
 
     protected function getNestedLayoutBuilderLayouts(): array
     {
         return [
-            'rows' => $this->getSubFields(),
+            'rows' => $this->getCalendarSubFields(),
             'layouts.dropdowns' => $this->getDropdownSubFields(),
             'layouts.inputs' => $this->getInputSubFields(),
             'layouts.calendar' => $this->getCalendarSubFields(),
+            'layouts.calendarRange' => $this->getRangeCalendarSubFields(),
         ];
     }
 
     protected function defineSubFields(): array
     {
+        if ($this->getCollectsRange()) {
+            return $this->getRangeCalendarSubFields();
+        }
+
         $fields = [];
 
         if ($this->displayType == 'datePicker') {
@@ -1247,6 +1579,54 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
         return $fields;
     }
 
+    protected function getRangeCalendarSubFields(): array
+    {
+        $baseFields = $this->_getDatePickerSubFields()[0]['fields'] ?? [];
+
+        return [[
+            'fields' => array_merge(
+                $this->_buildRangeSideSubFields($baseFields, 'start', Craft::t('formie', 'Start')),
+                $this->_buildRangeSideSubFields($baseFields, 'end', Craft::t('formie', 'End')),
+            ),
+        ]];
+    }
+
+    protected function _getDatePickerSubFields(): array
+    {
+        $fields = [];
+        $initialValue = $this->getInitialValue();
+        $inputAttributes = array_merge(($this->inputAttributes ?? []), [
+            [
+                'label' => 'autocomplete',
+                'value' => 'off',
+            ],
+        ]);
+
+        $fields[0]['fields'][] = [
+            'type' => subfields\DateDate::class,
+            'label' => Craft::t('formie', 'Date'),
+            'handle' => 'date',
+            'required' => $this->required,
+            'placeholder' => $this->placeholder,
+            'defaultValue' => $initialValue,
+            'labelPosition' => HiddenPosition::class,
+            'inputAttributes' => $inputAttributes,
+        ];
+
+        $fields[0]['fields'][] = [
+            'type' => subfields\DateTime::class,
+            'label' => Craft::t('formie', 'Time'),
+            'handle' => 'time',
+            'required' => $this->required,
+            'placeholder' => $this->placeholder,
+            'defaultValue' => $initialValue,
+            'labelPosition' => HiddenPosition::class,
+            'inputAttributes' => $inputAttributes,
+        ];
+
+        return $fields;
+    }
+
     protected function defineSubmissionHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/date/input', [
@@ -1259,12 +1639,58 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
 
     protected function defineValueAsString(mixed $value, ElementInterface $element = null): string
     {
-        $parts = DateFieldValue::parseParts($value);
-        return DateFieldValue::partsToString($parts);
+        if ($this->getCollectsRange()) {
+            $rangeValue = $value instanceof DateRangeFieldValue
+                ? $value
+                : DateRangeFieldValue::fromMixed($value);
+
+            if ($rangeValue->isEmpty()) {
+                return '';
+            }
+
+            $this->_applyDisplaySettings($rangeValue);
+
+            return $rangeValue->formatForDisplay();
+        }
+
+        if ($value instanceof DateFieldValue) {
+            if ($value->isEmpty()) {
+                return '';
+            }
+
+            $this->_applyDisplaySettings($value);
+
+            return $value->formatPartsForDisplay($value->getParts());
+        }
+
+        $fieldValue = new DateFieldValue(DateFieldValue::parseParts($value));
+
+        if ($fieldValue->isEmpty()) {
+            return '';
+        }
+
+        $this->_applyDisplaySettings($fieldValue);
+
+        return $fieldValue->formatPartsForDisplay($fieldValue->getParts());
     }
 
     protected function defineValueAsArray(mixed $value, ElementInterface $element = null): mixed
     {
+        if ($this->getCollectsRange()) {
+            $rangeValue = $value instanceof DateRangeFieldValue
+                ? $value
+                : DateRangeFieldValue::fromMixed($value);
+
+            if ($rangeValue->isEmpty()) {
+                return [];
+            }
+
+            return [
+                'start' => $this->formatPartsForDisplay($rangeValue->getStartParts()),
+                'end' => $this->formatPartsForDisplay($rangeValue->getEndParts()),
+            ];
+        }
+
         $stringValue = $this->getValueAsString($value, $element);
 
         return $stringValue !== '' ? [$stringValue] : [];
@@ -1272,6 +1698,21 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
 
     protected function defineValueForExport(mixed $value, ElementInterface $element = null): mixed
     {
+        if ($this->getCollectsRange()) {
+            $rangeValue = $value instanceof DateRangeFieldValue
+                ? $value
+                : DateRangeFieldValue::fromMixed($value);
+
+            if ($rangeValue->isEmpty()) {
+                return [];
+            }
+
+            return [
+                $this->getExportLabel($element) . ': ' . Craft::t('formie', 'Start') => $this->formatPartsForDisplay($rangeValue->getStartParts()),
+                $this->getExportLabel($element) . ': ' . Craft::t('formie', 'End') => $this->formatPartsForDisplay($rangeValue->getEndParts()),
+            ];
+        }
+
         return $this->getValueAsString($value, $element);
     }
 
@@ -1307,12 +1748,23 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
 
     protected function defineValueForEmailPreview(FakerFactory $faker): mixed
     {
+        if ($this->getCollectsRange()) {
+            $start = $faker->dateTimeBetween('-1 year', '-1 month');
+            $end = $faker->dateTimeBetween($start, (clone $start)->modify('+30 days'));
+
+            return new DateRangeFieldValue([
+                'start' => DateRangeFieldValue::parseSideParts($start),
+                'end' => DateRangeFieldValue::parseSideParts($end),
+            ]);
+        }
+
         return $faker->dateTime();
     }
 
     protected function defineClientInput(): array
     {
         $input = array_merge(parent::defineClientInput(), [
+            'collectMode' => $this->collectMode,
             'dateEnabled' => $this->getIsDate(),
             'timeEnabled' => $this->getIsTime(),
         ]);
@@ -1381,6 +1833,7 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
                     'minDate' => $minDate,
                     'maxDate' => $maxDate,
                     'availableDaysOfWeek' => $this->availableDaysOfWeek,
+                    'collectMode' => $this->collectMode,
                 ],
             ]);
         }
@@ -1390,27 +1843,68 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
 
     protected function defineValueClass(): ?string
     {
-        return DateFieldValue::class;
+        return $this->getCollectsRange() ? DateRangeFieldValue::class : DateFieldValue::class;
     }
 
     protected function defineReferenceValues(): array
     {
+        // Reference config is built from a blank field instance, so use `if` conditions
+        // that the CP evaluates per form field — not runtime branching here.
+        $rangeCondition = 'collectMode == "' . self::COLLECT_RANGE . '" && displayType == "datePicker"';
+        $singleCalendarCondition = 'displayType == "calendar" || (displayType == "datePicker" && collectMode != "' . self::COLLECT_RANGE . '")';
+
         return [
             FieldReferenceValue::default([
                 'handle' => '__toString',
                 'label' => Craft::t('formie', 'Formatted Date'),
+                'variableTypes' => [Variables::TYPE_DATE, Variables::TYPE_TEXT],
+            ]),
+            FieldReferenceValue::property([
+                'handle' => 'start',
+                'label' => Craft::t('formie', 'Start Date/Time'),
+                'if' => $rangeCondition,
                 'variableTypes' => [Variables::TYPE_DATE],
+            ]),
+            FieldReferenceValue::property([
+                'handle' => 'end',
+                'label' => Craft::t('formie', 'End Date/Time'),
+                'if' => $rangeCondition,
+                'variableTypes' => [Variables::TYPE_DATE],
+            ]),
+            FieldReferenceValue::property([
+                'handle' => 'startDate',
+                'label' => Craft::t('formie', 'Start Date'),
+                'if' => $rangeCondition,
+                'variableTypes' => [Variables::TYPE_DATE],
+            ]),
+            FieldReferenceValue::property([
+                'handle' => 'startTime',
+                'label' => Craft::t('formie', 'Start Time'),
+                'if' => $rangeCondition,
+                'variableTypes' => [Variables::TYPE_TEXT],
+            ]),
+            FieldReferenceValue::property([
+                'handle' => 'endDate',
+                'label' => Craft::t('formie', 'End Date'),
+                'if' => $rangeCondition,
+                'variableTypes' => [Variables::TYPE_DATE],
+            ]),
+            FieldReferenceValue::property([
+                'handle' => 'endTime',
+                'label' => Craft::t('formie', 'End Time'),
+                'if' => $rangeCondition,
+                'variableTypes' => [Variables::TYPE_TEXT],
             ]),
             FieldReferenceValue::property([
                 'handle' => 'date',
                 'label' => Craft::t('formie', 'Date'),
-                'if' => 'displayType == "calendar" || displayType == "datePicker"',
+                'if' => $singleCalendarCondition,
                 'variableTypes' => [Variables::TYPE_DATE],
             ]),
             FieldReferenceValue::property([
                 'handle' => 'time',
                 'label' => Craft::t('formie', 'Time'),
-                'if' => 'displayType == "calendar" || displayType == "datePicker"',
+                'if' => $singleCalendarCondition,
                 'variableTypes' => [Variables::TYPE_TEXT],
             ]),
             FieldReferenceValue::property([
@@ -1462,6 +1956,24 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
     // Private Methods
     // =========================================================================
 
+    private function _applyDisplaySettings(DateFieldValue|DateRangeFieldValue $value): void
+    {
+        $includeDate = $this->getIsDate() || $this->getIsDateTime();
+        $includeTime = $this->getIsTime() || $this->getIsDateTime();
+
+        if (!$includeDate && !$includeTime) {
+            $includeDate = true;
+            $includeTime = true;
+        }
+
+        $value->applyDisplaySettings(
+            $this->getDateFormat() ?: 'Y-m-d',
+            $this->getTimeFormat() ?: 'H:i',
+            $includeDate,
+            $includeTime,
+        );
+    }
+
     private function _generateOptions(int $start, int $end, ?string $placeholder = null): array
     {
         $options = [['value' => '', 'label' => $placeholder, 'disabled' => true]];
@@ -1494,17 +2006,22 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
         return match ($this->displayType) {
             'dropdowns' => 'dropdowns',
             'inputs' => 'inputs',
-            'calendar', 'datePicker' => 'calendar',
+            'datePicker' => $this->getCollectsRange() ? 'calendarRange' : 'calendar',
+            'calendar' => 'calendar',
             default => null,
         };
     }
 
     private function _getRowsForLayoutKey(string $layoutKey): ?array
     {
+        if ($this->getCollectsRange()) {
+            return $layoutKey === 'calendarRange' ? $this->getRangeCalendarSubFields() : null;
+        }
+
         return match ($layoutKey) {
             'dropdowns' => $this->getDropdownSubFields(),
             'inputs' => $this->getInputSubFields(),
-            'calendar' => $this->getCalendarSubFields(),
+            'calendar', 'calendarRange' => $this->getCalendarSubFields(),
             default => null,
         };
     }
@@ -1685,6 +2202,10 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
 
         if (!is_array($value)) {
             return $value;
+        }
+
+        if ($this->getCollectsRange()) {
+            return $this->_normalizeRangeInputValue($value);
         }
 
         if ($this->displayType === 'inputs' || $this->displayType === 'dropdowns') {
@@ -1910,5 +2431,222 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
         }
 
         return null;
+    }
+
+    private function _buildRangeSideSubFields(array $fieldDefinitions, string $prefix, string $sideLabel): array
+    {
+        $fields = [];
+
+        foreach ($fieldDefinitions as $fieldDefinition) {
+            $handle = (string)($fieldDefinition['handle'] ?? '');
+
+            if ($handle === '') {
+                continue;
+            }
+
+            $fieldDefinition['handle'] = $prefix . ucfirst($handle);
+            $fieldDefinition['label'] = Craft::t('formie', '{side} {label}', [
+                'side' => $sideLabel,
+                'label' => $fieldDefinition['label'] ?? ucfirst($handle),
+            ]);
+            $fieldDefinition['required'] = $this->required;
+            $fieldDefinition['labelPosition'] = $this->subFieldLabelPosition ?? ($fieldDefinition['labelPosition'] ?? null);
+
+            $fields[] = $fieldDefinition;
+        }
+
+        return $fields;
+    }
+
+    private function _normalizeRangeInputValue(array $value): array
+    {
+        if (isset($value['start']) || isset($value['end'])) {
+            return [
+                'start' => $this->_normalizeRangeSideInputValue(is_array($value['start'] ?? null) ? $value['start'] : []),
+                'end' => $this->_normalizeRangeSideInputValue(is_array($value['end'] ?? null) ? $value['end'] : []),
+            ];
+        }
+
+        return [
+            'start' => $this->_normalizeRangeSideInputValue($value, 'start'),
+            'end' => $this->_normalizeRangeSideInputValue($value, 'end'),
+        ];
+    }
+
+    private function _normalizeRangeSideInputValue(array $value, ?string $prefix = null): array
+    {
+        if ($prefix !== null) {
+            if ($this->displayType === 'inputs' || $this->displayType === 'dropdowns') {
+                $parts = [];
+
+                foreach (DateRangeFieldValue::partKeys() as $partKey) {
+                    $prefixedKey = $prefix . ucfirst($partKey);
+
+                    if (array_key_exists($prefixedKey, $value)) {
+                        $partValue = $value[$prefixedKey];
+
+                        if ($partValue instanceof OptionValue || $partValue instanceof SingleOptionFieldValue) {
+                            $partValue = $partValue->value;
+                        }
+
+                        $parts[$partKey] = $partValue;
+                    }
+                }
+
+                return DateFieldValue::normalizeParts($parts);
+            }
+
+            $sideValue = [
+                'date' => $value[$prefix . 'Date'] ?? '',
+                'time' => $value[$prefix . 'Time'] ?? '',
+                'datetime' => $value[$prefix . 'Datetime'] ?? ($value[$prefix . 'DateTime'] ?? ''),
+            ];
+
+            return DateFieldValue::parseParts($this->_normalizeSingleCalendarInputValue($sideValue));
+        }
+
+        if ($this->displayType === 'inputs' || $this->displayType === 'dropdowns') {
+            return $this->_normalizeInputPartsArray($value);
+        }
+
+        return DateFieldValue::parseParts($this->_normalizeSingleCalendarInputValue($value));
+    }
+
+    private function _normalizeSingleCalendarInputValue(array $value): mixed
+    {
+        $datePart = trim((string)($value['date'] ?? ''));
+        $timePart = trim((string)($value['time'] ?? ''));
+        $datetimePart = trim((string)($value['datetime'] ?? ''));
+        $parts = [];
+
+        if ($datetimePart !== '') {
+            $parts = $this->_parseDateTimeByConfiguredFormats($datetimePart);
+
+            if (!empty($parts)) {
+                return DateFieldValue::normalizeParts($parts);
+            }
+        }
+
+        if ($datePart !== '') {
+            $parts = array_merge($parts, $this->_parseDateByConfiguredFormat($datePart));
+        }
+
+        if ($timePart !== '') {
+            $parts = array_merge($parts, $this->_parseTimeByConfiguredFormat($timePart));
+        }
+
+        if (!empty($parts)) {
+            return DateFieldValue::normalizeParts($parts);
+        }
+
+        if ($datetimePart !== '') {
+            return $datetimePart;
+        }
+
+        return $value;
+    }
+
+    private function _getDateRangeGqlTypeName(string $suffix): string
+    {
+        $formHandle = $this->getForm()?->handle ?? 'form';
+        return "{$formHandle}_{$this->handle}_FormieDateRange{$suffix}";
+    }
+
+    private function _getDateRangeGqlType(): Type
+    {
+        $typeName = $this->_getDateRangeGqlTypeName('');
+
+        if ($type = GqlEntityRegistry::getEntity($typeName)) {
+            return $type;
+        }
+
+        return GqlEntityRegistry::createEntity($typeName, new ObjectType([
+            'name' => $typeName,
+            'fields' => [
+                'start' => [
+                    'name' => 'start',
+                    'type' => DateTimeType::getType(),
+                    'resolve' => fn(array $source) => DateFieldValue::toDateTime($source['start'] ?? []),
+                ],
+                'end' => [
+                    'name' => 'end',
+                    'type' => DateTimeType::getType(),
+                    'resolve' => fn(array $source) => DateFieldValue::toDateTime($source['end'] ?? []),
+                ],
+            ],
+        ]));
+    }
+
+    private function _getDateRangeGqlInputType(): Type
+    {
+        $typeName = $this->_getDateRangeGqlTypeName('Input');
+
+        if ($type = GqlEntityRegistry::getEntity($typeName)) {
+            return $type;
+        }
+
+        return GqlEntityRegistry::createEntity($typeName, new InputObjectType([
+            'name' => $typeName,
+            'fields' => fn() => [
+                'start' => Type::nonNull(DateTimeType::getType()),
+                'end' => Type::nonNull(DateTimeType::getType()),
+            ],
+        ]));
+    }
+
+    private static function _configCollectsRange(array $config): bool
+    {
+        return ($config['collectMode'] ?? self::COLLECT_SINGLE) === self::COLLECT_RANGE
+            && ($config['displayType'] ?? '') === 'datePicker';
+    }
+
+    private static function _gqlDateRangeTypeNameFromConfig(array $config, string $suffix): string
+    {
+        $formHandle = $config['formHandle'] ?? 'form';
+        $fieldHandle = $config['handle'] ?? 'field';
+
+        return "{$formHandle}_{$fieldHandle}_FormieDateRange{$suffix}";
+    }
+
+    private static function _gqlDateRangeTypeFromConfig(array $config): Type
+    {
+        $typeName = self::_gqlDateRangeTypeNameFromConfig($config, '');
+
+        if ($type = GqlEntityRegistry::getEntity($typeName)) {
+            return $type;
+        }
+
+        return GqlEntityRegistry::createEntity($typeName, new ObjectType([
+            'name' => $typeName,
+            'fields' => [
+                'start' => [
+                    'name' => 'start',
+                    'type' => DateTimeType::getType(),
+                    'resolve' => fn(array $source) => DateFieldValue::toDateTime($source['start'] ?? []),
+                ],
+                'end' => [
+                    'name' => 'end',
+                    'type' => DateTimeType::getType(),
+                    'resolve' => fn(array $source) => DateFieldValue::toDateTime($source['end'] ?? []),
+                ],
+            ],
+        ]));
+    }
+
+    private static function _gqlDateRangeInputTypeFromConfig(array $config): Type
+    {
+        $typeName = self::_gqlDateRangeTypeNameFromConfig($config, 'Input');
+
+        if ($type = GqlEntityRegistry::getEntity($typeName)) {
+            return $type;
+        }
+
+        return GqlEntityRegistry::createEntity($typeName, new InputObjectType([
+            'name' => $typeName,
+            'fields' => fn() => [
+                'start' => Type::nonNull(DateTimeType::getType()),
+                'end' => Type::nonNull(DateTimeType::getType()),
+            ],
+        ]));
     }
 }

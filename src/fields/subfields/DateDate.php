@@ -39,7 +39,15 @@ class DateDate extends SingleLineText implements ChildFieldInterface
     {
         $tag = parent::defineFieldSlotTag($key, $context);
 
-        if ($key === 'fieldInput' && $this->getParentField()->getDisplayType() === 'datePicker') {
+        if ($key === 'fieldInput' && $this->getParentField()?->getDisplayType() === 'datePicker') {
+            $attributes = array_filter(
+                $this->getInputAttributes(),
+                fn($value, $attribute) => $attribute !== 'type',
+                ARRAY_FILTER_USE_BOTH,
+            );
+
+            $tag?->mergeCoreAttributes(['type' => 'text']);
+            $tag?->mergeInstanceAttributes($attributes);
             $tag?->mergeInstanceAttributes([
                 'data-formie-date-datepicker-input' => true,
             ]);

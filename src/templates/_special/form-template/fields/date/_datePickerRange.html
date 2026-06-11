@@ -1,0 +1,19 @@
+{% set startValue = field.getRangeBoundaryInputValue(value, 'start') %}
+{% set endValue = field.getRangeBoundaryInputValue(value, 'end') %}
+
+<input
+    type="hidden"
+    name="{{ field.getHtmlName('startDatetime') }}"
+    value="{{ startValue }}"
+    data-formie-date-range-start-input
+    {{- field.required ? ' required' -}}
+/>
+<input
+    type="hidden"
+    name="{{ field.getHtmlName('endDatetime') }}"
+    value="{{ endValue }}"
+    data-formie-date-range-end-input
+    {{- field.required ? ' required' -}}
+/>
+
+{{ fieldtag('fieldInput') }}

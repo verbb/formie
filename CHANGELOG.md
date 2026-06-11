@@ -20,6 +20,9 @@
 - Add support for changing compatible field types in the form builder, initially limited to simple string-like fields such as Single-Line Text and Email Address. Existing submissions are not rewritten. ([Discussion #2110](https://github.com/verbb/formie/discussions/2110))
 - Add **Settings → Fields → Field Builder** policy settings for **Allow Multi-Select Dropdowns** and **Allow Phone Country Selector**. When disabled, the corresponding field settings are hidden in the form builder and forced off on existing fields. ([Discussion #2484](https://github.com/verbb/formie/discussions/2484), [Discussion #2485](https://github.com/verbb/formie/discussions/2485))
 - Expose the **Allow Public Asset Volumes** plugin setting in **Settings → Fields**, controlling whether File Upload fields can use public asset volumes and whether **Public URL** is available as an email summary value.
+- Add **Date Range** collection to Date/Time fields when **Display Type** is **Calendar (Advanced)**, using Flatpickr range mode to collect a start and end date/time. ([#2011](https://github.com/verbb/formie/issues/2011))
+- Add notification variable selectors for date ranges, including **Start Date/Time**, **End Date/Time**, **Start Date**, **Start Time**, **End Date**, and **End Time**.
+- Add GraphQL content types for date range submissions with `start` and `end` datetime values.
 
 ### Changed
 - Refactor predefined options to align with the new option sources system.
@@ -31,6 +34,8 @@
 - Map Freeform **Rich Text** fields to Formie **Rich Text** rather than HTML during migration.
 - Replace the Dropdown, Radio and Checkboxes option-table **Disabled** column with a row-menu **Visible / Hidden / Disabled** availability control ([#1816](https://github.com/verbb/formie/issues/1816)). **Hidden** removes an option from the front-end form while preserving stored submission values and labels; **Disabled** renders the option with HTML `disabled` so it stays visible but cannot be selected. Legacy `disabled: true` option rows are treated as hidden. Non-default states are indicated in the options table with row background tints.
 - Centralise front-end option filtering in `OptionsField::getFieldOptions()` so hidden options are excluded consistently (including Dropdown placeholders).
+- Format Date/Time values consistently for notifications, summaries, exports, and string output using the field's **Date Format** and **Time Format** settings. Casting a normalized date value object to string now matches `getFieldValueAsString()`.
+- Update integration field mapping to accept Date/Time reference values with `text`, `date`, and `number` types.
 
 ### Deprecated
 - Deprecate the `PredefinedOptions` service, predefined option class namespace (`verbb\formie\options\*`), and `PredefinedOptions::EVENT_REGISTER_PREDEFINED_OPTIONS` event registration target. Use `OptionSources`, predefined option classes under `verbb\formie\options\predefined\*`, and `OptionSources::EVENT_REGISTER_PREDEFINED_OPTIONS` instead. Legacy APIs remain available through the compatibility layer with deprecation notices.

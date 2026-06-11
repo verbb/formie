@@ -38,7 +38,7 @@ import {
 
 const MAPPING_VARIABLE_CONFIG = {
     content: 'singleLine',
-    types: ['text'],
+    types: ['text', 'date', 'number'],
     groupFieldsByPage: true,
     groups: [
         'fieldsVariables',

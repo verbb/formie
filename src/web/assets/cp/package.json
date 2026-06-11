@@ -5,7 +5,7 @@
     "type": "module",
     "scripts": {
         "dev": "vite",
-        "build": "vite build && node scripts/build-icons.mjs",
+        "build": "vite build",
         "watch": "vite build --watch",
         "lint": "eslint ./src --ext .js,.jsx",
         "lint:fix": "eslint ./src --ext .js,.jsx --fix"

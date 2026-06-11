@@ -32,12 +32,32 @@ const getDisplayType = (field) => {
     return null;
 };
 
-const getVariantKeyForDisplayType = (displayType) => {
+const getCollectMode = (field) => {
+    if (!field || typeof field !== 'object') {
+        return null;
+    }
+
+    if (typeof field.collectMode === 'string') {
+        return field.collectMode;
+    }
+
+    if (typeof field?.settings?.collectMode === 'string') {
+        return field.settings.collectMode;
+    }
+
+    return null;
+};
+
+const getVariantKeyForDisplayType = (displayType, collectMode = null) => {
     if (!displayType) {
         return null;
     }
 
-    return displayType === 'datePicker' ? 'calendar' : displayType;
+    if (displayType === 'datePicker') {
+        return collectMode === 'range' ? 'calendarRange' : 'calendar';
+    }
+
+    return displayType;
 };
 
 const getLayouts = (field) => {
@@ -80,7 +100,8 @@ const getDefaultRows = (field) => {
 
 const resolveContainerRows = (field, fieldType = null) => {
     const displayType = getDisplayType(field);
-    const variantKey = getVariantKeyForDisplayType(displayType);
+    const collectMode = getCollectMode(field);
+    const variantKey = getVariantKeyForDisplayType(displayType, collectMode);
     const fieldRows = getVariantRows(getLayouts(field), variantKey);
 
     if (Array.isArray(fieldRows)) {

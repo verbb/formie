@@ -316,10 +316,13 @@ Field | Type | Description
 --- | --- | ---
 `defaultValue` | `String` | The default value as a string.
 `displayType` | `String` | The date/time display type.
+`collectMode` | `String` | Whether the field collects a single value (`single`) or a date range (`range`). Date range is only available when `displayType` is `datePicker`.
 `defaultDate` | `DateTime` | The default date value.
 `minDate` | `DateTime` | The minimum allowed date.
 `maxDate` | `DateTime` | The maximum allowed date.
 `datePickerOptions` | `[FieldAttribute]` | Date picker options.
+
+Date range fields expose a form-specific GraphQL content type with `start` and `end` datetime values. Query `inputTypeName` on the field to discover the generated type name.
 
 ### Dropdown
 

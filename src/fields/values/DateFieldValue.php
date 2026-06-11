@@ -8,6 +8,7 @@ use DateTimeInterface;
 
 class DateFieldValue extends BaseFieldValue
 {
+    use DateDisplaySettingsTrait;
     // Static Methods
     // =========================================================================
 
@@ -188,23 +189,97 @@ class DateFieldValue extends BaseFieldValue
 
     public static function partsToString(array $parts): string
     {
-        $dateParts = array_filter([
-            $parts['year'] ?? null,
-            $parts['month'] ?? null,
-            $parts['day'] ?? null,
-        ], static fn($part) => $part !== null && $part !== '');
+        return self::formatPartsWithSettings(
+            $parts,
+            'Y-m-d',
+            'H:i:s',
+            self::_hasDateParts($parts),
+            self::_hasTimeParts($parts),
+        );
+    }
 
-        $timeParts = array_filter([
-            $parts['hour'] ?? null,
-            $parts['minute'] ?? null,
-            $parts['second'] ?? null,
-        ], static fn($part) => $part !== null && $part !== '');
+    public static function partsToDateTime(array $parts): ?DateTime
+    {
+        $hasDate = isset($parts['year'], $parts['month'], $parts['day'])
+            && $parts['year'] !== ''
+            && $parts['month'] !== ''
+            && $parts['day'] !== '';
+        $hasTime = (bool)array_intersect(array_keys($parts), ['hour', 'minute', 'second', 'ampm']);
 
-        $dateValue = $dateParts ? implode('-', $dateParts) : '';
-        $timeValue = $timeParts ? implode(':', $timeParts) : '';
-        $ampm = $parts['ampm'] ?? '';
+        if (!$hasDate && !$hasTime) {
+            return null;
+        }
 
-        return trim(implode(' ', array_filter([$dateValue, $timeValue, $ampm])));
+        $year = $hasDate ? (int)$parts['year'] : 1970;
+        $month = $hasDate ? (int)$parts['month'] : 1;
+        $day = $hasDate ? (int)$parts['day'] : 1;
+        $hour = isset($parts['hour']) && $parts['hour'] !== '' ? (int)$parts['hour'] : 0;
+        $minute = isset($parts['minute']) && $parts['minute'] !== '' ? (int)$parts['minute'] : 0;
+        $second = isset($parts['second']) && $parts['second'] !== '' ? (int)$parts['second'] : 0;
+
+        try {
+            $dateTime = new DateTime('now', new \DateTimeZone('UTC'));
+            $dateTime->setDate($year, $month, $day);
+            $dateTime->setTime($hour, $minute, $second);
+
+            return $dateTime;
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    public static function formatDateWithSettings(array $parts, string $dateFormat): string
+    {
+        $dateTime = self::partsToDateTime($parts);
+
+        if (!$dateTime instanceof DateTime) {
+            return '';
+        }
+
+        return $dateTime->format($dateFormat);
+    }
+
+    public static function formatTimeWithSettings(array $parts, string $timeFormat): string
+    {
+        if (!array_intersect(array_keys($parts), ['hour', 'minute', 'second', 'ampm'])) {
+            return '';
+        }
+
+        $dateTime = self::partsToDateTime($parts);
+
+        if (!$dateTime instanceof DateTime) {
+            return '';
+        }
+
+        return $dateTime->format($timeFormat);
+    }
+
+    public static function formatPartsWithSettings(
+        array $parts,
+        string $dateFormat,
+        string $timeFormat,
+        bool $includeDate = true,
+        bool $includeTime = true,
+    ): string {
+        $segments = [];
+
+        if ($includeDate) {
+            $dateValue = self::formatDateWithSettings($parts, $dateFormat);
+
+            if ($dateValue !== '') {
+                $segments[] = $dateValue;
+            }
+        }
+
+        if ($includeTime) {
+            $timeValue = self::formatTimeWithSettings($parts, $timeFormat);
+
+            if ($timeValue !== '') {
+                $segments[] = $timeValue;
+            }
+        }
+
+        return implode(' ', $segments);
     }
 
     private static function _parseDatePart(string $value): array
@@ -252,6 +327,11 @@ class DateFieldValue extends BaseFieldValue
     // =========================================================================
 
     private const PART_KEYS = ['year', 'month', 'day', 'hour', 'minute', 'second', 'ampm'];
+
+    public static function partKeys(): array
+    {
+        return self::PART_KEYS;
+    }
 
     
     // Properties
@@ -302,12 +382,46 @@ class DateFieldValue extends BaseFieldValue
         return $this->parts[$key] ?? null;
     }
 
+    public function canResolvePath(string $path): bool
+    {
+        return $path === 'date'
+            || $path === 'time'
+            || in_array($path, self::PART_KEYS, true);
+    }
+
+    public function getPathValue(string $path): mixed
+    {
+        if ($path === 'date') {
+            return $this->formatDateForDisplay($this->parts);
+        }
+
+        if ($path === 'time') {
+            return $this->formatTimeForDisplay($this->parts);
+        }
+
+        if (in_array($path, self::PART_KEYS, true)) {
+            return $this->parts[$path] ?? null;
+        }
+
+        return parent::getPathValue($path);
+    }
+
+    public static function formatDateInputValue(array $parts, string $dateFormat = 'Y-m-d'): string
+    {
+        return self::formatDateWithSettings($parts, $dateFormat);
+    }
+
+    public static function formatTimeInputValue(array $parts, string $timeFormat = 'H:i:s'): string
+    {
+        return self::formatTimeWithSettings($parts, $timeFormat);
+    }
+
 
     // Private Methods
     // =========================================================================
 
     private function stringify(): string
     {
-        return self::partsToString($this->parts);
+        return $this->formatPartsForDisplay($this->parts);
     }
 }

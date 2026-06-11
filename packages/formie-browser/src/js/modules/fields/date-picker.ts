@@ -8,6 +8,8 @@ import { ensureModuleStyles } from '#modules/styles';
 import { createDebug } from '#utils/debug';
 
 const INPUT_SELECTOR = 'input[data-formie-date-datepicker-input]';
+const RANGE_START_SELECTOR = 'input[data-formie-date-range-start-input]';
+const RANGE_END_SELECTOR = 'input[data-formie-date-range-end-input]';
 const MODULE_ID = 'date-picker';
 const debug = createDebug('fields', 'date-picker');
 
@@ -20,6 +22,7 @@ type DatePickerOptions = {
     getIsDate?: boolean;
     getIsTime?: boolean;
     getIsDateTime?: boolean;
+    collectMode?: string;
     locale?: string;
     minDate?: string | null;
     maxDate?: string | null;
@@ -32,6 +35,11 @@ type FlatpickrInstanceLike = {
 
 type FlatpickrInput = HTMLInputElement & {
     _formieFlatpickr?: FlatpickrInstanceLike;
+};
+
+type FlatpickrChangeInstance = {
+    input: HTMLInputElement;
+    altInput?: HTMLInputElement;
 };
 
 function attributesPlugin() {
@@ -168,8 +176,60 @@ function getCustomOptions(options: DatePickerOptions): Record<string, unknown> {
     return result;
 }
 
+function pad(value: number): string {
+    return String(value).padStart(2, '0');
+}
+
+function formatSubmissionDate(date: Date, options: DatePickerOptions): string {
+    const year = date.getFullYear();
+    const month = pad(date.getMonth() + 1);
+    const day = pad(date.getDate());
+
+    if (!options.getIsTime && !options.getIsDateTime) {
+        return `${year}-${month}-${day}`;
+    }
+
+    const hours = pad(date.getHours());
+    const minutes = pad(date.getMinutes());
+    const seconds = pad(date.getSeconds());
+
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+}
+
+function parseSubmissionDate(value: string): Date | null {
+    const parsed = new Date(value);
+
+    if (Number.isNaN(parsed.getTime())) {
+        return null;
+    }
+
+    return parsed;
+}
+
+function syncRangeHiddenInputs(
+    selectedDates: Date[],
+    startInput: HTMLInputElement | null,
+    endInput: HTMLInputElement | null,
+    options: DatePickerOptions,
+): void {
+    if (startInput) {
+        startInput.value = selectedDates[0] ? formatSubmissionDate(selectedDates[0], options) : '';
+        startInput.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+
+    if (endInput) {
+        endInput.value = selectedDates[1] ? formatSubmissionDate(selectedDates[1], options) : '';
+        endInput.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+}
+
 function initDatePicker(input: FlatpickrInput, options: DatePickerOptions): () => void {
     input._formieFlatpickr?.destroy();
+
+    const fieldContainer = input.closest('[data-formie-field-handle]');
+    const isRange = options.collectMode === 'range' || input.hasAttribute('data-formie-date-range-input');
+    const startInput = fieldContainer?.querySelector(RANGE_START_SELECTOR);
+    const endInput = fieldContainer?.querySelector(RANGE_END_SELECTOR);
 
     const defaultOptions: Record<string, unknown> = {
         disableMobile: true,
@@ -183,7 +243,16 @@ function initDatePicker(input: FlatpickrInput, options: DatePickerOptions): () =
         maxDate: normalizeOffsetDate(options.maxDate, 'max'),
         plugins: [attributesPlugin()],
         locale: getLocale(options.locale),
-        onChange: (_selectedDates: unknown, _dateStr: string, instance: { input: HTMLInputElement; altInput?: HTMLInputElement }) => {
+        onChange: (selectedDates: Date[], _dateStr: string, instance: FlatpickrChangeInstance) => {
+            if (isRange) {
+                syncRangeHiddenInputs(
+                    selectedDates,
+                    startInput instanceof HTMLInputElement ? startInput : null,
+                    endInput instanceof HTMLInputElement ? endInput : null,
+                    options,
+                );
+            }
+
             // Mirror changes back through bubbling input events so validation,
             // conditions, and calculations respond to picker-driven updates.
             instance.input.dispatchEvent(new Event('input', { bubbles: true }));
@@ -204,10 +273,29 @@ function initDatePicker(input: FlatpickrInput, options: DatePickerOptions): () =
         defaultOptions.noCalendar = true;
     }
 
+    if (isRange) {
+        defaultOptions.mode = 'range';
+
+        const startDate = startInput instanceof HTMLInputElement && startInput.value
+            ? parseSubmissionDate(startInput.value)
+            : null;
+        const endDate = endInput instanceof HTMLInputElement && endInput.value
+            ? parseSubmissionDate(endInput.value)
+            : null;
+
+        if (startDate) {
+            defaultOptions.defaultDate = endDate ? [startDate, endDate] : [startDate];
+        }
+    }
+
     const mergedOptions = {
         ...defaultOptions,
         ...getCustomOptions(options),
     };
+
+    if (isRange) {
+        mergedOptions.mode = 'range';
+    }
 
     dispatchFieldEvent(input, MODULE_ID, 'before-init', {
         datepicker: input,
@@ -218,6 +306,7 @@ function initDatePicker(input: FlatpickrInput, options: DatePickerOptions): () =
     input._formieFlatpickr = instance;
     debug.log('Initialized.', {
         inputName: input.name,
+        isRange,
     });
 
     dispatchFieldEvent(input, MODULE_ID, 'after-init', {

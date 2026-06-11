@@ -1003,6 +1003,23 @@ export const NestedLayoutField = ({ form, field }) => {
             allowedFieldTypes,
         });
     }, [value, layoutConfig, isFixedMode, allowedFieldTypes]);
+
+    useEffect(() => {
+        if (!isFixedMode || rows.length || !Array.isArray(layoutConfig?.defaultRows) || !layoutConfig.defaultRows.length) {
+            return;
+        }
+
+        const seededRows = normalizeRows(cloneDeep(layoutConfig.defaultRows), layoutConfig, {
+            strictIdentity: isFixedMode,
+            allowedFieldTypes,
+        });
+
+        if (!seededRows.length) {
+            return;
+        }
+
+        setValue(seededRows);
+    }, [isFixedMode, rows.length, layoutConfig, allowedFieldTypes, setValue]);
     const builderDevSettings = useMemo(() => {
         if (!import.meta.env.DEV) {
             return null;

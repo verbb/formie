@@ -2,6 +2,8 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { defineConfig, loadEnv } from 'vite';
 
+import { copyAndOptimizeIcons } from './scripts/build-icons.mjs';
+
 // Vite Plugins
 import ReactPlugin from '@vitejs/plugin-react';
 import TailwindPlugin from '@tailwindcss/vite';
@@ -40,6 +42,14 @@ const copyWidgetsVendorFiles = () => ({
         await Promise.all(widgetVendorFiles.map((fileName) => {
             return fs.copyFile(path.join(sourceDir, fileName), path.join(destinationDir, fileName));
         }));
+    },
+});
+
+const copyIntegrationIcons = () => ({
+    name: 'copy-integration-icons',
+    apply: 'build',
+    async closeBundle() {
+        await copyAndOptimizeIcons();
     },
 });
 
@@ -211,6 +221,9 @@ export default defineConfig(async ({ command, mode }) => {
 
             // Copy legacy vendor files expected by the widgets asset bundle.
             copyWidgetsVendorFiles(),
+
+            // Integration sidebar icons are static SVGs served from dist/icons/.
+            copyIntegrationIcons(),
 
             // Tailwind CSS
             // https://github.com/tailwindlabs/tailwindcss-vite

@@ -420,6 +420,7 @@ abstract class ParentField extends Field implements ParentFieldInterface
             $layouts[$layoutKey] = [
                 'allowedHandles' => array_values(array_unique($allowedHandles)),
                 'allowedTypes' => array_values(array_unique($allowedTypes)),
+                'defaultRows' => $rows ?: [],
             ];
         }
         $allowedFieldTypes = $this->getNestedLayoutBuilderAllowedFieldTypes();

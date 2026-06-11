@@ -45,3 +45,34 @@ it('does not generate format placeholders for native calendar fields', function 
 
     expect($field->getEffectivePlaceholder())->toBeNull();
 });
+
+it('does not generate format placeholders for date picker range fields', function (): void {
+    $form = formie()
+        ->form(['title' => 'Date Range Placeholder'])
+        ->dateField('bookingDates', [
+            'displayType' => 'datePicker',
+            'collectMode' => 'range',
+            'dateFormat' => 'Y-m-d',
+            'timeFormat' => 'H:i',
+        ])
+        ->create();
+
+    $field = $form->getFieldByHandle('bookingDates');
+
+    expect($field->getEffectivePlaceholder())->toBeNull();
+});
+
+it('uses a custom placeholder for date picker range fields', function (): void {
+    $form = formie()
+        ->form(['title' => 'Date Range Custom Placeholder'])
+        ->dateField('bookingDates', [
+            'displayType' => 'datePicker',
+            'collectMode' => 'range',
+            'placeholder' => 'Pick your dates',
+        ])
+        ->create();
+
+    $field = $form->getFieldByHandle('bookingDates');
+
+    expect($field->getEffectivePlaceholder())->toBe('Pick your dates');
+});

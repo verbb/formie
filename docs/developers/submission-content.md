@@ -192,6 +192,8 @@ $firstRepeaterEmail = $submission->getFieldValue('attendees.0.email');
 
 This is often the simplest way to pull out one specific nested value without working with the whole structured array.
 
+Date/Time fields also support formatted nested paths such as `eventDate.date`, `eventDate.time`, and, for date ranges, `booking.startDate` or `booking.end`. Composite datetime output uses the field's configured date and time formats, so casting the value object to string matches `getFieldValueAsString()`.
+
 ### Use context-specific helpers
 
 Formie also includes helpers for values that are being prepared for a specific system or job:

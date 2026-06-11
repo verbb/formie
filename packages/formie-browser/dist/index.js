@@ -1294,7 +1294,7 @@ var R = class {
 	"custom-google-maps": () => import("./chunks/custom-google-maps-BsaSirEZ.js").then((e) => e.customGoogleMapsModule),
 	"custom-link": () => import("./chunks/custom-link-CJ1-FjEM.js").then((e) => e.customLinkModule),
 	"custom-maps": () => import("./chunks/custom-maps-DYW_pBid.js").then((e) => e.customMapsModule),
-	"date-picker": () => import("./chunks/date-picker-CnfTivdO.js").then((e) => e.datePickerModule),
+	"date-picker": () => import("./chunks/date-picker-D9PRSVGb.js").then((e) => e.datePickerModule),
 	"file-upload": () => import("./chunks/file-upload-D49m8-DR.js").then((e) => e.fileUploadModule),
 	hidden: () => import("./chunks/hidden-D7_Ch-QN.js").then((e) => e.hiddenModule),
 	"phone-country": () => import("./chunks/phone-country-Ci0rL6SO.js").then((e) => e.phoneCountryModule),
