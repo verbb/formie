@@ -19,6 +19,7 @@ Follow the below steps to connect to the HubSpot API.
     - `crm.objects.contacts.write`
     - `crm.objects.deals.read`
     - `crm.objects.deals.write`
+    - `crm.schemas.custom.read`
     - `tickets`
     - `forms`
 1. Click the **Create App** button in the top right.
@@ -41,3 +42,9 @@ Follow the below steps to connect to the HubSpot API.
 1. In the left-hand sidebar, select the name you gave the integration.
 1. Enable the integration and fill out all required fields.
 1. Click **Save** to save the form.
+
+### Custom objects (Enterprise)
+
+When using **Map to Form** with HubSpot custom object properties, Formie fetches your portal’s custom object schemas when you refresh HubSpot forms. Form fields are mapped using the correct `objectTypeId` (for example `2-21479350`) automatically.
+
+Ensure your private app includes the `crm.schemas.custom.read` scope, and refresh HubSpot forms after creating or changing custom objects in HubSpot.

@@ -29,6 +29,16 @@ use Throwable;
 
 class HubSpot extends Crm
 {
+    // Constants
+    // =========================================================================
+
+    private const STANDARD_OBJECT_TYPE_IDS = [
+        'CONTACT' => '0-1',
+        'COMPANY' => '0-2',
+        'DEAL' => '0-3',
+        'TICKET' => '0-5',
+    ];
+
     // Static Methods
     // =========================================================================
 
@@ -280,6 +290,17 @@ class HubSpot extends Crm
             if (Craft::$app->getRequest()->getParam('refreshForms')) {
                 // Reset the forms
                 $settings['forms'] = [];
+
+                try {
+                    $response = $this->request('GET', 'crm-object-schemas/v3/schemas');
+                    $settings['customObjectSchemas'] = $response['results'] ?? [];
+                } catch (Throwable $e) {
+                    Integration::info($this, Craft::t('formie', 'Unable to fetch HubSpot custom object schemas. Custom object form fields may not resolve correctly. Error: {error}', [
+                        'error' => Integration::getExceptionLogMessage($e),
+                    ]));
+
+                    $settings['customObjectSchemas'] = $this->getFormSettingValue('customObjectSchemas') ?? [];
+                }
 
                 $forms = $this->request('GET', 'forms/v2/forms');
 
@@ -689,27 +710,27 @@ class HubSpot extends Crm
                         continue;
                     }
 
-                    // Get the object type, use `CONTACT` or `COMPANY` for legacy, and default to `CONTACT`
                     if (!str_contains($key, '.')) {
-                        $key = "CONTACT.$key";
+                        $key = self::STANDARD_OBJECT_TYPE_IDS['CONTACT'] . ".$key";
                     }
 
-                    $handleParts = explode('.', $key);
-                    $objectTypeId = str_replace(['CONTACT', 'COMPANY'], ['0-1', '0-2'], ($handleParts[0] ?? 'CONTACT'));
+                    $handleParts = explode('.', $key, 2);
+                    $objectTypeId = $this->_resolveHubSpotObjectTypeId($handleParts[0] ?? self::STANDARD_OBJECT_TYPE_IDS['CONTACT']);
+                    $fieldName = $handleParts[1] ?? '';
 
                     // Special-handling for some fields.
                     if (is_array($value) && isset($value['FILE_UPLOAD_DATA'])) {
                         foreach ($value['FILE_UPLOAD_DATA'] as $subValue) {
                             $formPayload['fields'][] = [
                                 'objectTypeId' => $objectTypeId,
-                                'name' => $handleParts[1] ?? '',
+                                'name' => $fieldName,
                                 'value' => $subValue,
                             ];
                         }
                     } else {
                         $formPayload['fields'][] = [
                             'objectTypeId' => $objectTypeId,
-                            'name' => $handleParts[1] ?? '',
+                            'name' => $fieldName,
                             'value' => $value,
                         ];
                     }
@@ -1075,6 +1096,7 @@ class HubSpot extends Crm
                 'type' => $this->_convertFieldType($field['fieldType']),
                 'sourceType' => $field['fieldType'],
                 'options' => $options,
+                'data' => $field['data'] ?? [],
             ]);
         }
 
@@ -1125,18 +1147,13 @@ class HubSpot extends Crm
             $formFields = $formFieldGroup['fields'] ?? [];
 
             foreach ($formFields as $formField) {
+                $formField = $this->_prepareHubSpotFormField($formField);
+
                 // Include the group name in the label for clarity to match HubSpot UI.
                 $formField['label'] = Craft::t('formie', '{label} ({group} property)', [
                     'label' => $formField['label'],
                     'group' => StringHelper::toTitleCase($formField['propertyObjectType']),
                 ]);
-                
-                // Ensure that we prefix items with their correct object group
-                // While we don't need this conditional technically, removing it means all form mappings would be gone
-                // due to HubSpot treating every field as a CONTACT field by default, but we haven't included that in mapping.
-                if ($formField['propertyObjectType'] !== 'CONTACT') {
-                    $formField['name'] = $formField['propertyObjectType'] . '.' . $formField['name'];
-                }
 
                 $fields[] = $formField;
 
@@ -1147,7 +1164,7 @@ class HubSpot extends Crm
                     $dependentFormField = $dependentFieldFilter['dependentFormField'] ?? null;
 
                     if ($dependentFormField) {
-                        $fields[] = $dependentFormField;
+                        $fields[] = $this->_prepareHubSpotFormField($dependentFormField);
                     }
                 }
             }
@@ -1200,5 +1217,80 @@ class HubSpot extends Crm
         }
 
         return array_merge($extraFields, $this->_getCustomFields($fields));
+    }
+
+    private function _getCustomObjectSchemas(): array
+    {
+        $schemas = $this->getFormSettingValue('customObjectSchemas');
+
+        return is_array($schemas) ? $schemas : [];
+    }
+
+    private function _resolveHubSpotObjectTypeId(string $propertyObjectType): string
+    {
+        $propertyObjectType = trim($propertyObjectType);
+
+        if ($propertyObjectType === '') {
+            return self::STANDARD_OBJECT_TYPE_IDS['CONTACT'];
+        }
+
+        if (isset(self::STANDARD_OBJECT_TYPE_IDS[$propertyObjectType])) {
+            return self::STANDARD_OBJECT_TYPE_IDS[$propertyObjectType];
+        }
+
+        if (preg_match('/^\d+-\d+$/', $propertyObjectType)) {
+            return $propertyObjectType;
+        }
+
+        foreach ($this->_getCustomObjectSchemas() as $schema) {
+            if (!is_array($schema)) {
+                continue;
+            }
+
+            $objectTypeId = (string)($schema['objectTypeId'] ?? '');
+
+            if ($objectTypeId === '') {
+                continue;
+            }
+
+            $candidates = array_filter([
+                $schema['name'] ?? null,
+                $schema['fullyQualifiedName'] ?? null,
+                $schema['labels']['singular'] ?? null,
+                $schema['labels']['plural'] ?? null,
+            ]);
+
+            foreach ($candidates as $candidate) {
+                if (strcasecmp((string)$candidate, $propertyObjectType) === 0) {
+                    return $objectTypeId;
+                }
+            }
+        }
+
+        Integration::info($this, Craft::t('formie', 'Unable to resolve HubSpot object type “{type}”. Defaulting to contact.', [
+            'type' => $propertyObjectType,
+        ]));
+
+        return self::STANDARD_OBJECT_TYPE_IDS['CONTACT'];
+    }
+
+    private function _prepareHubSpotFormField(array $formField): array
+    {
+        $propertyObjectType = (string)($formField['propertyObjectType'] ?? 'CONTACT');
+        $propertyName = (string)($formField['name'] ?? '');
+        $objectTypeId = $this->_resolveHubSpotObjectTypeId($propertyObjectType);
+
+        // Contact fields remain unprefixed for backward compatibility with existing mappings.
+        if ($propertyObjectType !== 'CONTACT') {
+            $formField['name'] = $objectTypeId . '.' . $propertyName;
+        }
+
+        $formField['data'] = array_merge($formField['data'] ?? [], [
+            'objectTypeId' => $objectTypeId,
+            'propertyObjectType' => $propertyObjectType,
+            'propertyName' => $propertyName,
+        ]);
+
+        return $formField;
     }
 }

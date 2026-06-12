@@ -11,6 +11,7 @@
 
 - Add **Update on Submission Edit** to Entry element integrations. When **Update Entries** is enabled, this opt-in setting re-runs the integration when a submission is edited and re-submitted on the front end. ([#2591](https://github.com/verbb/formie/issues/2591), [#1970](https://github.com/verbb/formie/issues/1970))
 - Add **Use Submission User as Author** to Entry element integrations, assigning the collected submission user as the entry author when **Collect User** is enabled on the form. ([#1363](https://github.com/verbb/formie/issues/1363))
+- HubSpot **Map to Form** integrations now resolve custom object `objectTypeId` values when submitting to HubSpot forms, including portal-specific custom objects (Enterprise). Refresh HubSpot forms after creating custom objects. ([#2649](https://github.com/verbb/formie/issues/2649))
 
 ### Changed
 - Update phone number values sent to integrations to use `E164` format instead of international formatting. ([Discussion #2731](https://github.com/verbb/formie/discussions/2731))
