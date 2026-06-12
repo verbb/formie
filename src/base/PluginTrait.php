@@ -55,12 +55,17 @@ use verbb\formie\theme\slots\FormSlotRegistry;
 use verbb\formie\web\assets\cp\CpReactAsset;
 
 use Craft;
+use craft\elements\User;
 use craft\helpers\App;
 
 use verbb\base\LogTrait;
 use verbb\base\helpers\Plugin;
 use verbb\base\services\Templates;
 use verbb\formie\helpers\Plugin as FormiePluginHelper;
+use verbb\formie\models\HiddenDefaultTemplateContext;
+use verbb\formie\models\HiddenDefaultTemplateFormContext;
+use verbb\formie\models\HiddenDefaultTemplateRequestContext;
+use verbb\formie\models\HiddenDefaultTemplateSiteContext;
 
 use nystudio107\pluginvite\services\VitePluginService;
 
@@ -127,6 +132,23 @@ trait PluginTrait
             }
 
             return $submission->getFieldByHandle($property) !== null;
+        };
+
+        $allowModelAttributes = function(Model $model, string $property): bool {
+            return in_array($property, $model->attributes(), true);
+        };
+
+        $event->allowedProperties[HiddenDefaultTemplateContext::class] = $allowModelAttributes;
+        $event->allowedProperties[HiddenDefaultTemplateFormContext::class] = $allowModelAttributes;
+        $event->allowedProperties[HiddenDefaultTemplateSiteContext::class] = $allowModelAttributes;
+        $event->allowedProperties[HiddenDefaultTemplateRequestContext::class] = $allowModelAttributes;
+
+        $event->allowedProperties[User::class] = function(User $user, string $property): bool {
+            if (in_array($property, ['id', 'email', 'username', 'fullName', 'firstName', 'lastName'], true)) {
+                return true;
+            }
+
+            return $user->getFieldLayout()?->getFieldByHandle($property) !== null;
         };
 
         Event::trigger(self::class, self::EVENT_MODIFY_TWIG_ENVIRONMENT, $event);

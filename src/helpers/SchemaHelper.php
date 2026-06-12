@@ -476,6 +476,17 @@ class SchemaHelper
         ], $config);
     }
 
+    public static function objectTemplateField(array $config = []): array
+    {
+        return array_merge([
+            '$field' => 'codeEditor',
+            'rows' => 4,
+            'tabSize' => 2,
+            'lineNumbers' => true,
+            'language' => 'twig',
+        ], $config);
+    }
+
     public static function calculationsField(array $config = []): array
     {
         return array_merge([

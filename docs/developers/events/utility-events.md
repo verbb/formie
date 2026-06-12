@@ -238,3 +238,28 @@ Event::on(Formie::class, Formie::EVENT_MODIFY_TWIG_ENVIRONMENT, function(ModifyT
     $event->allowedProperties[\craft\base\Element::class] = 'title';
 });
 ```
+
+### The `defineHiddenDefaultTemplateContext` event
+
+Triggered when resolving a Hidden field **Template** default value. Use this to inject project-specific variables (for example an `event` entry) without opening arbitrary `craft.entries()` access in CP-authored templates.
+
+```php
+use craft\elements\Entry;
+use verbb\formie\events\DefineHiddenDefaultTemplateContextEvent;
+use verbb\formie\helpers\HiddenDefaultTemplateResolver;
+use yii\base\Event;
+
+Event::on(HiddenDefaultTemplateResolver::class, HiddenDefaultTemplateResolver::EVENT_DEFINE_CONTEXT, function(DefineHiddenDefaultTemplateContextEvent $event) {
+    $slug = Craft::$app->getRequest()->getParam('event');
+
+    if (!$slug) {
+        return;
+    }
+
+    $event->variables['event'] = Entry::find()
+        ->slug($slug)
+        ->one();
+});
+```
+
+Template defaults are resolved server-side only. Posted hidden values are ignored when **Default Value** is set to **Template**.

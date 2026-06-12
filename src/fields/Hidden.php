@@ -8,6 +8,8 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\definitions\FieldClientModules;
 use verbb\formie\fields\values\StringFieldValue;
+use verbb\formie\events\ModifyFieldValueEvent;
+use verbb\formie\helpers\HiddenDefaultTemplateResolver;
 use verbb\formie\helpers\References;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\Variables;
@@ -51,7 +53,10 @@ class Hidden extends Field implements SortableFieldInterface, PreviewableFieldIn
     // Properties
     // =========================================================================
 
+    public const DEFAULT_OPTION_TEMPLATE = 'template';
+
     public ?string $defaultOption = 'custom';
+    public ?string $defaultTemplate = null;
     public ?string $queryParameter = null;
     public ?string $cookieName = null;
 
@@ -116,8 +121,60 @@ class Hidden extends Field implements SortableFieldInterface, PreviewableFieldIn
         return true;
     }
 
+    public function usesTemplateDefault(): bool
+    {
+        return $this->defaultOption === self::DEFAULT_OPTION_TEMPLATE;
+    }
+
+    public function getDefaultValue(): mixed
+    {
+        if (!$this->usesTemplateDefault()) {
+            return parent::getDefaultValue();
+        }
+
+        $form = $this->getForm();
+        $element = $form?->getCurrentSubmission() ?? $form;
+
+        return $this->_finalizeTemplateDefaultValue(
+            HiddenDefaultTemplateResolver::resolve($this, $element),
+        );
+    }
+
+    public function getInitialValue(?ElementInterface $element = null): mixed
+    {
+        $prefillValue = $this->getPrefillValue($element, $found);
+
+        if ($found) {
+            return $prefillValue;
+        }
+
+        if ($this->usesTemplateDefault()) {
+            return $this->_finalizeTemplateDefaultValue(
+                HiddenDefaultTemplateResolver::resolve($this, $element ?? $this->getForm()),
+            );
+        }
+
+        return parent::getDefaultValue();
+    }
+
+    public function normalizeValueFromRequest(mixed $value, ?ElementInterface $element): mixed
+    {
+        if ($this->usesTemplateDefault()) {
+            $value = HiddenDefaultTemplateResolver::resolve($this, $element);
+        }
+
+        return parent::normalizeValueFromRequest($value, $element);
+    }
+
     public function serializeValue(mixed $value, ?ElementInterface $element): mixed
     {
+        if ($this->usesTemplateDefault()) {
+            $value = HiddenDefaultTemplateResolver::resolve($this, $element);
+            $element?->setFieldValue($this->handle, $value);
+
+            return parent::serializeValue($value, $element);
+        }
+
         // Handle variables use in custom fields
         if ($this->defaultOption === 'custom') {
             // Only field-authored defaults may resolve references. Non-empty submitted
@@ -154,6 +211,8 @@ class Hidden extends Field implements SortableFieldInterface, PreviewableFieldIn
         // when a submission context exists. Template/query prefills remain literal.
         if ($hasPrefill) {
             $inputOptions['value'] = $prefillValue;
+        } else if ($this->usesTemplateDefault()) {
+            $inputOptions['value'] = $this->getInitialValue($submission ?: $form);
         } else if ($this->defaultOption === 'custom' && is_string($value) && $submission) {
             $inputOptions['value'] = References::parseContent($value, $submission);
         }
@@ -174,6 +233,10 @@ class Hidden extends Field implements SortableFieldInterface, PreviewableFieldIn
             ],
             'cookieName' => [
                 'name' => 'cookieName',
+                'type' => Type::string(),
+            ],
+            'defaultTemplate' => [
+                'name' => 'defaultTemplate',
                 'type' => Type::string(),
             ],
         ]);
@@ -204,7 +267,14 @@ class Hidden extends Field implements SortableFieldInterface, PreviewableFieldIn
                     ['label' => Craft::t('formie', 'Cookie Value'), 'value' => 'cookie'],
                     ['label' => Craft::t('formie', 'Query Parameter'), 'value' => 'query'],
                     ['label' => Craft::t('formie', 'Custom Value'), 'value' => 'custom'],
+                    ['label' => Craft::t('formie', 'Template'), 'value' => self::DEFAULT_OPTION_TEMPLATE],
                 ],
+            ]),
+            SchemaHelper::objectTemplateField([
+                'label' => Craft::t('formie', 'Default Template'),
+                'instructions' => Craft::t('formie', 'Set a server-resolved default using Craft object template syntax. Submitted values are ignored for this field. See [object templates](https://craftcms.com/docs/5.x/system/object-templates.html). Available: `{form.handle}`, `{form.title}`, `{currentUser.email}`, `{site.handle}`, `{request.param.myParam}`, `{submission.id}`.'),
+                'name' => 'defaultTemplate',
+                'if' => 'defaultOption == "template"',
             ]),
             SchemaHelper::variableTextField([
                 'label' => Craft::t('formie', 'Default Value'),
@@ -259,7 +329,25 @@ class Hidden extends Field implements SortableFieldInterface, PreviewableFieldIn
 
     protected function supportedDefaults(): array
     {
-        return ['defaultOption'];
+        return ['defaultOption', 'defaultTemplate'];
+    }
+
+    private function _finalizeTemplateDefaultValue(mixed $value): mixed
+    {
+        $value = $this->normalizeValue($value, null);
+
+        $event = new ModifyFieldValueEvent([
+            'value' => $value,
+            'field' => $this,
+        ]);
+
+        $this->trigger(static::EVENT_MODIFY_DEFAULT_VALUE, $event);
+
+        if (is_string($event->value)) {
+            $event->value = trim($event->value);
+        }
+
+        return $event->value;
     }
 
     protected function defineValueForCondition(mixed $value, Submission $submission): mixed

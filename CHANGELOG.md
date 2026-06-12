@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Added
+- Add a **Template** default value source for Hidden fields using sandboxed Craft object templates. Resolved server-side on render and submit; posted values are ignored. **Custom Value** behaviour is unchanged. ([#2605](https://github.com/verbb/formie/issues/2605))
 - Add rich text editing for field **Instructions**, including Craft entry links with `target="_blank"`, configurable via `rich-text.json` under `fields.instructions`. Legacy plain-text and markdown instructions are normalized automatically without migration. ([#724](https://github.com/verbb/formie/issues/724))
 - Add Craft-style attribute maps and merge helpers for `setFieldSettings()` field overrides, including `mergeInputAttributes` and `mergeContainerAttributes`. ([#2510](https://github.com/verbb/formie/issues/2510))
 - Add a **Note** builder field for form-builder guidance with Tip, Warning, Info, and Error styles. ([#2498](https://github.com/verbb/formie/issues/2498))
