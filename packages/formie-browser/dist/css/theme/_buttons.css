@@ -1,0 +1,249 @@
+@layer formie-theme {
+    .formie-page-buttons {
+        display: grid;
+        gap: var(--formie-gap-field);
+    }
+
+    .formie-button-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--formie-gap-field);
+        width: 100%;
+        align-items: center;
+        position: relative;
+    }
+
+    .formie-button {
+        --formie-loading-color: var(--formie-button-color);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--formie-button-gap);
+        min-height: var(--formie-button-min-height);
+        flex-shrink: 0;
+        border: var(--formie-button-border);
+        border-radius: var(--formie-button-border-radius);
+        background-color: var(--formie-button-background);
+        color: var(--formie-button-color);
+        padding: var(--formie-button-padding-y) var(--formie-button-padding-x);
+        font-size: var(--formie-button-font-size);
+        line-height: var(--formie-button-line-height);
+        font-weight: var(--formie-button-font-weight);
+        position: relative;
+        white-space: nowrap;
+        text-decoration: none;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        transition: background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease, color 150ms ease, opacity 150ms ease;
+    }
+
+    .formie-button:hover {
+        background-color: var(--formie-button-background-hover);
+        border: var(--formie-button-border-hover);
+    }
+
+    .formie-button:focus {
+        outline: 0;
+    }
+
+    .formie-button:focus-visible {
+        outline: 0;
+        box-shadow: var(--formie-button-shadow-focus);
+    }
+
+    .formie-button:disabled {
+        opacity: var(--formie-button-opacity-disabled);
+        pointer-events: none;
+        cursor: not-allowed;
+    }
+
+    .formie-button-primary {
+        --formie-button-color: var(--formie-button-primary-text-color);
+        background-color: var(--formie-button-primary-background);
+        border: var(--formie-button-primary-border);
+    }
+
+    .formie-button-primary:hover {
+        background-color: var(--formie-button-primary-background-hover);
+        border: var(--formie-button-primary-border-hover);
+    }
+
+    .formie-button-primary:focus-visible {
+        box-shadow: var(--formie-button-primary-shadow-focus);
+    }
+
+    .formie-button-secondary {
+        --formie-button-color: var(--formie-button-secondary-text-color);
+        background-color: var(--formie-button-secondary-background);
+        border: var(--formie-button-secondary-border);
+    }
+
+    .formie-button-secondary:hover {
+        background-color: var(--formie-button-secondary-background-hover);
+        border: var(--formie-button-secondary-border-hover);
+    }
+
+    .formie-button-secondary:focus-visible {
+        box-shadow: var(--formie-button-shadow-focus);
+    }
+
+    .formie-button-ghost {
+        --formie-button-color: var(--formie-button-ghost-text-color);
+        background-color: var(--formie-button-ghost-background);
+        border: var(--formie-button-ghost-border);
+    }
+
+    .formie-button-ghost:hover {
+        background-color: var(--formie-button-ghost-background-hover);
+        border: var(--formie-button-ghost-border-hover);
+    }
+
+    .formie-button-ghost:focus-visible {
+        box-shadow: var(--formie-button-ghost-shadow-focus);
+    }
+
+    .formie-button-icon {
+        --formie-button-color: var(--formie-button-icon-color);
+        width: var(--formie-button-icon-button-size);
+        min-width: var(--formie-button-icon-button-size);
+        height: var(--formie-button-icon-button-size);
+        min-height: var(--formie-button-icon-button-size);
+        padding: 0;
+        border: var(--formie-button-icon-border);
+        border-radius: var(--formie-button-icon-border-radius);
+        background-color: var(--formie-button-icon-background);
+        font-size: 0;
+        line-height: 0;
+        text-indent: -9999px;
+        overflow: hidden;
+        white-space: nowrap;
+    }
+
+    .formie-button-icon:hover {
+        background-color: var(--formie-button-icon-background-hover);
+        border: var(--formie-button-icon-border-hover);
+    }
+
+    .formie-button-icon::after {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        display: block;
+        content: '';
+        width: var(--formie-button-icon-size);
+        height: var(--formie-button-icon-size);
+        transform: translate(-50%, -50%);
+        background-color: currentColor;
+        -webkit-mask-image: var(--formie-button-icon-mask);
+        mask-image: var(--formie-button-icon-mask);
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+    }
+
+    .formie-button-icon[data-formie-icon="plus"] {
+        --formie-button-icon-mask: var(--formie-icon-mask-plus);
+    }
+
+    .formie-button-icon[data-formie-icon="arrow-left"] {
+        --formie-button-icon-mask: var(--formie-icon-mask-arrow-left);
+    }
+
+    .formie-button-icon[data-formie-icon="arrow-right"] {
+        --formie-button-icon-mask: var(--formie-icon-mask-arrow-right);
+    }
+
+    .formie-button-icon[data-formie-icon="close"] {
+        --formie-button-icon-mask: var(--formie-icon-mask-close);
+    }
+
+    .formie-button-text-icon {
+        width: var(--formie-button-icon-size);
+        height: var(--formie-button-icon-size);
+        flex-shrink: 0;
+        background-color: currentColor;
+        -webkit-mask-image: var(--formie-button-icon-mask);
+        mask-image: var(--formie-button-icon-mask);
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+    }
+
+    .formie-button-text-icon[data-formie-icon="plus"] {
+        --formie-button-icon-mask: var(--formie-icon-mask-plus);
+    }
+
+    .formie-button-text-icon[data-formie-icon="arrow-left"] {
+        --formie-button-icon-mask: var(--formie-icon-mask-arrow-left);
+    }
+
+    .formie-button-text-icon[data-formie-icon="arrow-right"] {
+        --formie-button-icon-mask: var(--formie-icon-mask-arrow-right);
+    }
+
+    .formie-button-text-icon[data-formie-icon="close"] {
+        --formie-button-icon-mask: var(--formie-icon-mask-close);
+    }
+
+    .formie-button-back {
+        order: 0;
+    }
+
+    .formie-button-submit {
+        order: 10;
+    }
+
+    .formie-button-save {
+        order: 20;
+    }
+
+    .formie-page-buttons[data-formie-buttons-position="left"] .formie-button-container {
+        justify-content: flex-start;
+    }
+
+    .formie-page-buttons[data-formie-buttons-position="right"] .formie-button-container {
+        justify-content: flex-end;
+    }
+
+    .formie-page-buttons[data-formie-buttons-position="center"] .formie-button-container {
+        justify-content: center;
+    }
+
+    .formie-page-buttons[data-formie-buttons-position="left-right"] .formie-button-back {
+        margin-inline-end: auto;
+    }
+
+    .formie-page-buttons[data-formie-buttons-position="save-right"] .formie-button-save {
+        margin-inline-start: auto;
+    }
+
+    .formie-page-buttons[data-formie-buttons-position="save-left"] .formie-button-save {
+        order: -10;
+        margin-inline-end: auto;
+    }
+
+    .formie-page-buttons[data-formie-buttons-position="right-save-left"] .formie-button-save,
+    .formie-page-buttons[data-formie-buttons-position="center-save-left"] .formie-button-save {
+        order: -10;
+    }
+
+    .formie-page-buttons[data-formie-buttons-position="right-save-left"] .formie-button-container {
+        justify-content: flex-end;
+    }
+
+    .formie-page-buttons[data-formie-buttons-position="center-save-left"] .formie-button-container,
+    .formie-page-buttons[data-formie-buttons-position="center-save-right"] .formie-button-container {
+        justify-content: center;
+    }
+
+    .formie-button[data-formie-loading="true"] {
+        pointer-events: none;
+    }
+
+}

@@ -69,8 +69,9 @@ function k({ field: e, errors: t, children: n }) {
 		}, e.label)) : null,
 		e.instructions ? a("instructions", r("div", {
 			key: "instructions",
-			className: "formie-react-description"
-		}, e.instructions)) : null,
+			className: "formie-react-description",
+			dangerouslySetInnerHTML: { __html: e.instructions }
+		})) : null,
 		a("input", r("div", {
 			key: "input",
 			className: "formie-react-input"
@@ -164,7 +165,7 @@ function I({ field: e, value: t, errorKey: n, disabled: i, setValue: o }) {
 			try {
 				let r = u.current;
 				if (!r) return;
-				let { default: i } = await import("./signature_pad-69C-Dgt3.js");
+				let { default: i } = await import("./signature_pad-D-mX46zR.js");
 				if (e) return;
 				let a = new i(r, {
 					backgroundColor: h,

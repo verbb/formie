@@ -1,0 +1,361 @@
+@layer formie-theme {
+    .formie-form {
+        --formie-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+        --formie-font-size-xs: 0.75rem;
+        --formie-font-size-sm: 0.875rem;
+        --formie-font-size-base: 1rem;
+        --formie-font-size-lg: 1.125rem;
+        --formie-font-size-xl: 1.375rem;
+        --formie-font-size-2xl: 1.75rem;
+
+        --formie-font-weight-normal: 400;
+        --formie-font-weight-medium: 500;
+        --formie-font-weight-semibold: 600;
+        --formie-font-weight-bold: 700;
+
+        --formie-line-height-tight: 1.25;
+        --formie-line-height-base: 1.5;
+        --formie-line-height-relaxed: 1.4;
+        --formie-letter-spacing-tight: -0.02em;
+
+        --formie-space-1: 0.25rem;
+        --formie-space-1-5: 0.375rem;
+        --formie-space-2: 0.5rem;
+        --formie-space-2-5: 0.625rem;
+        --formie-space-3: 0.75rem;
+        --formie-space-3-5: 0.875rem;
+        --formie-space-4: 1rem;
+        --formie-space-4-5: 1.125rem;
+        --formie-space-5: 1.25rem;
+        --formie-space-5-5: 1.375rem;
+        --formie-space-6: 1.5rem;
+        --formie-space-7: 1.75rem;
+        --formie-space-8: 2rem;
+        --formie-space-9: 2.25rem;
+        --formie-space-10: 2.5rem;
+        --formie-space-11: 2.75rem;
+        --formie-space-12: 3rem;
+
+        --formie-radius-sm: 0.25rem;
+        --formie-radius-md: 0.375rem;
+        --formie-radius-lg: 0.5rem;
+        --formie-radius-full: 999px;
+        --formie-border-width: 1px;
+
+        /* Color palette */
+        --formie-black: #000000;
+        --formie-white: #ffffff;
+
+        --formie-neutral-50: #f8fafc;
+        --formie-neutral-100: #f1f5f9;
+        --formie-neutral-200: #e2e8f0;
+        --formie-neutral-300: #cbd5e1;
+        --formie-neutral-400: #94a3b8;
+        --formie-neutral-500: #64748b;
+        --formie-neutral-600: #475569;
+        --formie-neutral-700: #334155;
+        --formie-neutral-800: #1e293b;
+        --formie-neutral-900: #0f172a;
+        --formie-neutral-950: #020617;
+
+        --formie-primary-50: #e8ecfc;
+        --formie-primary-100: #d2d9f9;
+        --formie-primary-200: #a4b3f4;
+        --formie-primary-300: #778dee;
+        --formie-primary-400: #4967e9;
+        --formie-primary-500: #1c41e3;
+        --formie-primary-600: #1634b6;
+        --formie-primary-700: #112788;
+        --formie-primary-800: #0b1a5b;
+        --formie-primary-900: #060d2d;
+        --formie-primary-950: #040920;
+
+        --formie-danger-50: #fef2f2;
+        --formie-danger-100: #fee2e2;
+        --formie-danger-200: #fecaca;
+        --formie-danger-300: #fca5a5;
+        --formie-danger-400: #f87171;
+        --formie-danger-500: #ef4444;
+        --formie-danger-600: #dc2626;
+        --formie-danger-700: #b91c1c;
+        --formie-danger-800: #991b1b;
+        --formie-danger-900: #7f1d1d;
+        --formie-danger-950: #450a0a;
+
+        --formie-success-50: #f0fdf4;
+        --formie-success-100: #dcfce7;
+        --formie-success-200: #bbf7d0;
+        --formie-success-300: #86efac;
+        --formie-success-400: #4ade80;
+        --formie-success-500: #22c55e;
+        --formie-success-600: #16a34a;
+        --formie-success-700: #15803d;
+        --formie-success-800: #166534;
+        --formie-success-900: #14532d;
+        --formie-success-950: #052e16;
+
+        /* Semantic color aliases */
+        --formie-color-background: var(--formie-white);
+        --formie-color-surface: var(--formie-white);
+        --formie-color-surface-subtle: var(--formie-neutral-50);
+        --formie-color-surface-muted: var(--formie-neutral-100);
+        --formie-color-text: var(--formie-neutral-700);
+        --formie-color-text-muted: var(--formie-neutral-500);
+        --formie-color-heading: var(--formie-neutral-900);
+        --formie-color-border: var(--formie-neutral-300);
+        --formie-color-border-soft: var(--formie-neutral-200);
+        --formie-color-primary: var(--formie-primary-400);
+        --formie-color-primary-hover: var(--formie-primary-500);
+        --formie-color-primary-border: var(--formie-primary-500);
+        --formie-color-primary-soft: var(--formie-primary-100);
+        --formie-color-focus-ring: var(--formie-primary-300);
+        --formie-color-danger: var(--formie-danger-500);
+        --formie-color-danger-soft: var(--formie-danger-50);
+        --formie-color-danger-dark: var(--formie-danger-900);
+        --formie-color-success: var(--formie-success-500);
+        --formie-color-success-soft: var(--formie-success-50);
+        --formie-color-success-dark: var(--formie-success-900);
+        --formie-color-button-text: var(--formie-color-surface);
+
+        --formie-focus-ring-border-color: var(--formie-color-focus-ring);
+        --formie-shadow-focus: 0 0 0 3px rgba(119, 141, 238, 0.45);
+        --formie-shadow-danger-focus: 0 0 0 3px rgba(248, 180, 180, 0.45);
+
+        /* Form */
+        --formie-title-form-size: 1.4rem;
+        --formie-body-size: 0.9375rem;
+        --formie-gap-form: 0;
+        --formie-gap-form-header: var(--formie-space-4);
+        --formie-gap-form-messages: var(--formie-space-4);
+        --formie-gap-form-navigation: var(--formie-space-4);
+        --formie-gap-form-body: 0;
+        --formie-gap-form-footer: var(--formie-space-4);
+
+        /* Messages */
+        --formie-message-padding: var(--formie-space-4);
+        --formie-message-margin-bottom: var(--formie-space-4);
+        --formie-message-size: var(--formie-font-size-sm);
+        --formie-message-line-height: var(--formie-line-height-relaxed);
+
+        /* Buttons */
+        --formie-button-border: var(--formie-border-width) solid var(--formie-color-border);
+        --formie-button-border-hover: var(--formie-button-secondary-border-hover);
+        --formie-button-border-radius: var(--formie-radius-sm);
+        --formie-button-background: var(--formie-neutral-100);
+        --formie-button-background-hover: var(--formie-neutral-200);
+        --formie-button-text-color: var(--formie-color-heading);
+        --formie-button-color: var(--formie-button-text-color);
+        --formie-button-line-height: var(--formie-line-height-tight);
+        --formie-button-font-weight: var(--formie-font-weight-medium);
+        --formie-button-min-height: var(--formie-space-10);
+        --formie-button-padding-y: var(--formie-space-2);
+        --formie-button-padding-x: var(--formie-space-4);
+        --formie-button-font-size: var(--formie-font-size-sm);
+        --formie-button-gap: var(--formie-space-2);
+        --formie-button-icon-size: 0.9375rem;
+        --formie-button-icon-button-size: 1.875rem;
+        --formie-button-icon-border-radius: var(--formie-radius-full);
+        --formie-button-icon-background: var(--formie-neutral-100);
+        --formie-button-icon-background-hover: var(--formie-neutral-200);
+        --formie-button-icon-border: var(--formie-border-width) solid var(--formie-neutral-300);
+        --formie-button-icon-border-hover: var(--formie-border-width) solid var(--formie-neutral-400);
+        --formie-button-icon-color: var(--formie-neutral-950);
+        --formie-button-opacity-disabled: 0.7;
+        --formie-button-shadow-focus: 0 0 0 3px var(--formie-color-border-soft);
+
+        /* Icons */
+        --formie-icon-mask-plus: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 448 512'%3E%3Cpath fill='%23000' d='M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32V224H48c-17.7 0-32 14.3-32 32s14.3 32 32 32H192V432c0 17.7 14.3 32 32 32s32-14.3 32-32V288H400c17.7 0 32-14.3 32-32s-14.3-32-32-32H256V80z'/%3E%3C/svg%3E");
+        --formie-icon-mask-arrow-left: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 512'%3E%3Cpath fill='%23000' d='M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z'/%3E%3C/svg%3E");
+        --formie-icon-mask-arrow-right: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 512'%3E%3Cpath fill='%23000' d='M278.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L210.7 256 73.4 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z'/%3E%3C/svg%3E");
+        --formie-icon-mask-close: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 384 512'%3E%3Cpath fill='%23000' d='M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z'/%3E%3C/svg%3E");
+
+        --formie-button-primary-background: var(--formie-color-primary);
+        --formie-button-primary-background-hover: var(--formie-color-primary-hover);
+        --formie-button-primary-text-color: var(--formie-white);
+        --formie-button-primary-border: var(--formie-border-width) solid transparent;
+        --formie-button-primary-border-hover: var(--formie-border-width) solid var(--formie-color-primary-hover);
+        --formie-button-primary-shadow-focus: 0 0 0 3px var(--formie-primary-300);
+
+        --formie-button-secondary-border: var(--formie-border-width) solid var(--formie-color-border);
+        --formie-button-secondary-border-hover: var(--formie-button-secondary-border);
+        --formie-button-secondary-background: var(--formie-color-surface);
+        --formie-button-secondary-background-hover: var(--formie-neutral-100);
+        --formie-button-secondary-text-color: var(--formie-color-heading);
+
+        --formie-button-ghost-border: var(--formie-border-width) solid transparent;
+        --formie-button-ghost-border-hover: var(--formie-button-ghost-border);
+        --formie-button-ghost-background: transparent;
+        --formie-button-ghost-background-hover: var(--formie-neutral-100);
+        --formie-button-ghost-text-color: var(--formie-color-heading);
+        --formie-button-ghost-shadow-focus: var(--formie-button-shadow-focus);
+
+        --formie-button-link-text-color: var(--formie-color-primary);
+        --formie-button-link-text-color-hover: var(--formie-color-primary-hover);
+
+        /* Navigation */
+        --formie-tab-padding-y: var(--formie-space-2);
+        --formie-tab-padding-x: var(--formie-space-4);
+        --formie-tab-font-size: var(--formie-font-size-sm);
+        --formie-gap-tabs: var(--formie-space-4);
+
+        /* Progress */
+        --formie-progress-height: 1.2rem;
+        --formie-progress-padding: var(--formie-space-4);
+        --formie-progress-size: 0.8rem;
+
+        /* Loading */
+        --formie-loading-size: var(--formie-space-4);
+        --formie-loading-margin-top: calc(var(--formie-loading-size) * -0.5);
+        --formie-loading-margin-left: calc(var(--formie-loading-size) * -0.5);
+        --formie-loading-border-width: 2px;
+        --formie-loading-animation: loading 0.5s infinite linear;
+        --formie-loading-left: 50%;
+        --formie-loading-top: 50%;
+        --formie-loading-z-index: 1;
+
+        /* Pages */
+        --formie-gap-pages: 0;
+        --formie-gap-page: var(--formie-space-4);
+        --formie-gap-page-container: 0;
+        --formie-gap-page-header: var(--formie-space-4);
+        --formie-gap-page-body: var(--formie-space-4);
+        --formie-gap-page-footer: var(--formie-space-4);
+        --formie-gap-page-buttons: var(--formie-space-4);
+
+        /* Page */
+        --formie-title-page-size: var(--formie-font-size-lg);
+
+        /* Rows */
+        --formie-gap-rows: var(--formie-space-4);
+        --formie-gap-row: var(--formie-space-4);
+        --formie-gap-subfield-rows: var(--formie-space-2);
+        --formie-gap-subfield-row: var(--formie-space-2);
+        --formie-gap-nested-field-rows: var(--formie-space-2);
+        --formie-gap-nested-field-row: var(--formie-space-2);
+        --formie-subfield-row-column-min-width: 12rem;
+        --formie-nested-field-row-column-min-width: 16rem;
+
+        /* Row fields */
+        --formie-gap-errors: var(--formie-space-2);
+        --formie-gap-field-errors: var(--formie-space-2);
+
+        /* Field */
+        --formie-label-size: var(--formie-font-size-sm);
+        --formie-meta-size: var(--formie-font-size-sm);
+        --formie-control-height: 2.375rem;
+        --formie-control-padding-y: var(--formie-space-2);
+        --formie-control-padding-x: var(--formie-space-3);
+        --formie-control-font-size: var(--formie-font-size-sm);
+        --formie-textarea-min-height: 9rem;
+        --formie-select-indicator-size: 1.4rem;
+        --formie-list-indent: var(--formie-space-5);
+        --formie-link-underline-offset: 0.15em;
+        --formie-gap-field: var(--formie-space-2);
+        --formie-gap-field-layout: var(--formie-space-2);
+        --formie-gap-field-content: var(--formie-space-2);
+        --formie-gap-field-control: var(--formie-space-2);
+        --formie-gap-options: var(--formie-space-2);
+
+        /* Field: summary */
+        --formie-summary-padding: var(--formie-space-4);
+        --formie-gap-summary: var(--formie-space-4);
+
+        --formie-file-summary-padding: var(--formie-space-4);
+        --formie-gap-file-summary: var(--formie-space-3);
+
+        /* Field: rich text */
+        --formie-rich-text-min-height: 12rem;
+
+        /* Field: signature */
+        --formie-signature-width: 100%;
+        --formie-signature-height: 8rem;
+        --formie-signature-background: var(--formie-color-surface-subtle);
+        --formie-signature-border: 1px solid var(--formie-color-border);
+        --formie-signature-border-radius: var(--formie-radius-sm);
+
+        --formie-signature-remove-button-top: 0;
+        --formie-signature-remove-button-right: -14px;
+        --formie-signature-remove-button-transform: translate(0, -50%);
+
+        /* Field: check/radio */
+        --formie-check-font-size: var(--formie-font-size-sm);
+        --formie-check-line-height: var(--formie-line-height-base);
+        --formie-check-margin-bottom: var(--formie-space-2);
+        --formie-check-margin-right: var(--formie-space-4);
+        --formie-check-background-color: var(--formie-color-surface-muted);
+        --formie-check-size: var(--formie-space-4);
+        --formie-check-label-padding-left: var(--formie-space-6);
+        --formie-check-label-line-height: var(--formie-space-6);
+        --formie-check-label-top: 0.3125rem;
+        --formie-check-label-transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+        --formie-check-label-background-color: var(--formie-color-surface);
+        --formie-check-check-border-radius: 2px;
+        --formie-check-check-background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath fill='%23fff' d='M6.564.75l-3.59 3.612-1.538-1.55L0 4.26 2.974 7.25 8 2.193z'/%3E%3C/svg%3E");
+        --formie-check-check-background-size: 8px auto;
+        --formie-check-radio-border-radius: 50%;
+        --formie-check-radio-background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3E%3Ccircle r='3' fill='%23fff'/%3E%3C/svg%3E");
+        --formie-check-radio-background-size: 8px auto;
+
+        /* Field: group */
+        --formie-group-border: 1px solid var(--formie-color-border);
+        --formie-group-border-radius: var(--formie-radius-sm);
+        --formie-group-padding: var(--formie-space-4);
+
+        /* Field: repeater */
+        --formie-repeater-add-button-padding-left: var(--formie-space-8);
+        --formie-repeater-add-button-icon-mask: var(--formie-icon-mask-plus);
+        --formie-repeater-add-button-height: 14px;
+        --formie-repeater-add-button-width: 14px;
+        --formie-repeater-add-button-left: var(--formie-space-3);
+
+        --formie-repeater-remove-button-top: 0;
+        --formie-repeater-remove-button-right: -14px;
+        --formie-repeater-remove-button-transform: translate(0, -50%);
+
+        --formie-table-width: 100%;
+        --formie-table-margin-bottom: 1rem;
+        --formie-table-border-collapse: collapse;
+
+        --formie-table-row-padding: 0.2rem;
+        --formie-table-th-text-align: inherit;
+        --formie-table-th-font-size: 0.75rem;
+        --formie-table-th-font-weight: 600;
+
+        --formie-table-add-button-padding-left: var(--formie-space-8);
+        --formie-table-add-button-icon-mask: var(--formie-icon-mask-plus);
+        --formie-table-add-button-height: 14px;
+        --formie-table-add-button-width: 14px;
+        --formie-table-add-button-left: var(--formie-space-3);
+
+        --formie-table-remove-button-top: 0;
+        --formie-table-remove-button-right: -14px;
+        --formie-table-remove-button-transform: translate(0, -50%);
+
+
+        /* --formie-table-add-btn-padding-left: 2rem;
+
+        --formie-table-add-btn-top: 0.75rem;
+        --formie-table-add-btn-left: 0.75rem;
+        --formie-table-add-btn-width: 14px;
+        --formie-table-add-btn-height: 14px;
+        --formie-table-add-btn-bg-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 384 512'%3E%3Cpath fill='currentColor' d='M368 224H224V80c0-8.84-7.16-16-16-16h-32c-8.84 0-16 7.16-16 16v144H16c-8.84 0-16 7.16-16 16v32c0 8.84 7.16 16 16 16h144v144c0 8.84 7.16 16 16 16h32c8.84 0 16-7.16 16-16V288h144c8.84 0 16-7.16 16-16v-32c0-8.84-7.16-16-16-16z'%3E%3C/path%3E%3C/svg%3E"); */
+
+        /* --formie-table-remove-btn-border-radius: 50%;
+        --formie-table-remove-btn-padding: 13px;
+        --formie-table-remove-btn-text-indent: -9999px;
+        --formie-table-remove-btn-top: 50%;
+        --formie-table-remove-btn-left: 50%;
+        --formie-table-remove-btn-width: 9px;
+        --formie-table-remove-btn-height: 14px;
+        --formie-table-remove-btn-transform: translate(-50%, -50%);
+        --formie-table-remove-btn-bg-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 512'%3E%3Cpath fill='currentColor' d='M207.6 256l107.72-107.72c6.23-6.23 6.23-16.34 0-22.58l-25.03-25.03c-6.23-6.23-16.34-6.23-22.58 0L160 208.4 52.28 100.68c-6.23-6.23-16.34-6.23-22.58 0L4.68 125.7c-6.23 6.23-6.23 16.34 0 22.58L112.4 256 4.68 363.72c-6.23 6.23-6.23 16.34 0 22.58l25.03 25.03c6.23 6.23 16.34 6.23 22.58 0L160 303.6l107.72 107.72c6.23 6.23 16.34 6.23 22.58 0l25.03-25.03c6.23-6.23 6.23-16.34 0-22.58L207.6 256z'%3E%3C/path%3E%3C/svg%3E"); */
+
+        font-family: var(--formie-font-family);
+        font-size: var(--formie-body-size);
+        line-height: var(--formie-line-height-base);
+        color: var(--formie-color-text);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+}

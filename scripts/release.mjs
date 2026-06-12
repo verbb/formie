@@ -39,12 +39,17 @@ const paths = {
     formieBrowserPackageJson: new URL('../packages/formie-browser/package.json', import.meta.url),
 };
 
-const rollbackPaths = [
-    'packages/formie-core/package.json',
+const internalDependencyManifests = [
     'packages/formie-browser/package.json',
     'packages/formie-react/package.json',
     'packages/formie-vue/package.json',
     'packages/formie-web-components/package.json',
+    'packages/docs/package.json',
+];
+
+const rollbackPaths = [
+    'packages/formie-core/package.json',
+    ...internalDependencyManifests,
     'packages/formie-core/CHANGELOG.md',
     'packages/formie-browser/CHANGELOG.md',
     'packages/formie-react/CHANGELOG.md',
@@ -181,6 +186,43 @@ const rollbackReleaseChanges = () => {
     }
 };
 
+const syncInternalDependencies = (version) => {
+    for (const relativePath of internalDependencyManifests) {
+        const fileUrl = new URL(`../${relativePath}`, import.meta.url);
+        const pkg = JSON.parse(readFileSync(fileUrl, 'utf8'));
+        let changed = false;
+
+        for (const depType of ['dependencies', 'devDependencies', 'peerDependencies']) {
+            const deps = pkg[depType];
+
+            if (!deps) {
+                continue;
+            }
+
+            for (const packageName of packages) {
+                if (deps[packageName]) {
+                    deps[packageName] = version;
+                    changed = true;
+                }
+            }
+        }
+
+        if (changed) {
+            writeFileSync(fileUrl, `${JSON.stringify(pkg, null, 2)}\n`, 'utf8');
+        }
+    }
+};
+
+const buildPackages = () => {
+    run('npm', ['run', 'build:packages']);
+};
+
+const packDryRunAll = () => {
+    for (const packageName of packages) {
+        run('npm', ['pack', '--dry-run', '-w', packageName]);
+    }
+};
+
 const publishPackages = () => {
     for (const packageName of publishOrder) {
         try {
@@ -206,7 +248,6 @@ const satelliteChangelogs = [
 
 if (!dryRun) {
     ensureCleanWorkingTree();
-    verifyNpmAuth();
 } else {
     console.log('Dry run: skipping clean-tree check, version bump, changelog writes, publish, and commit.');
 }
@@ -218,17 +259,23 @@ if (!hasMeaningfulChangelogBody(extractUnreleasedBody(formieBrowserChangelog))) 
     process.exit(1);
 }
 
+console.log('Changelog check passed. Running pre-release build…');
+
+try {
+    buildPackages();
+    packDryRunAll();
+} catch (error) {
+    console.error('Pre-release build failed. Fix build errors before releasing.');
+    console.error(error.message ?? error);
+    process.exit(1);
+}
+
 if (dryRun) {
-    console.log('Changelog check passed. Building packages and running pack dry-runs…');
-    run('npm', ['run', 'build:packages']);
-
-    for (const packageName of packages) {
-        run('npm', ['pack', '--dry-run', '-w', packageName]);
-    }
-
     console.log('Dry run complete. Re-run without --dry-run to publish.');
     process.exit(0);
 }
+
+verifyNpmAuth();
 
 const currentVersion = packageVersion();
 let releaseStarted = false;
@@ -238,13 +285,14 @@ try {
         run('npm', ['version', bump, '-w', packageName, '--no-git-tag-version']);
     }
 
-    run('npm', ['install', '--package-lock-only', '--ignore-scripts']);
-
     const version = packageVersion();
 
     if (version === currentVersion) {
         throw new Error(`Version did not change after ${bump} bump (still ${currentVersion}).`);
     }
+
+    syncInternalDependencies(version);
+    run('npm', ['install', '--ignore-scripts']);
 
     releaseStarted = true;
 
@@ -268,12 +316,8 @@ try {
         );
     }
 
-    run('npm', ['run', 'build:packages']);
-
-    for (const packageName of packages) {
-        run('npm', ['pack', '--dry-run', '-w', packageName]);
-    }
-
+    buildPackages();
+    packDryRunAll();
     publishPackages();
 
     run('git', [
@@ -284,6 +328,7 @@ try {
         'packages/formie-react/package.json',
         'packages/formie-vue/package.json',
         'packages/formie-web-components/package.json',
+        'packages/docs/package.json',
         'packages/formie-core/CHANGELOG.md',
         'packages/formie-browser/CHANGELOG.md',
         'packages/formie-react/CHANGELOG.md',

@@ -1,0 +1,62 @@
+@layer formie-theme {
+    .formie-field-options {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--formie-gap-options);
+    }
+
+    .formie-field {
+        display: grid;
+        gap: var(--formie-gap-field);
+    }
+
+    .formie-field-layout {
+        display: grid;
+        gap: var(--formie-gap-field-layout);
+    }
+
+    .formie-field-layout[data-formie-label-position="left"] {
+        grid-template-columns: fit-content(12rem) minmax(0, 1fr);
+        align-items: start;
+    }
+
+    .formie-field-layout[data-formie-label-position="right"] {
+        grid-template-columns: minmax(0, 1fr) fit-content(12rem);
+        align-items: start;
+    }
+
+    .formie-field-layout[data-formie-label-position="left"] > label.formie-field-label,
+    .formie-field-layout[data-formie-label-position="right"] > label.formie-field-label {
+        display: block;
+        min-inline-size: 0;
+        max-inline-size: 100%;
+        align-self: center;
+    }
+
+    .formie-field-content {
+        display: grid;
+        gap: var(--formie-gap-field-content);
+        min-inline-size: 0;
+    }
+
+    .formie-field-control {
+        display: grid;
+        gap: var(--formie-gap-field-control);
+    }
+
+    .formie-layout-horizontal {
+        flex-direction: row;
+        align-items: flex-start;
+    }
+
+    .formie-layout-vertical {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .formie-field-option {
+        display: inline-flex;
+        align-items: flex-start;
+        gap: var(--formie-gap-options);
+    }
+}

@@ -12,10 +12,21 @@ import {
 import type { FormieModuleDefinition } from '#contracts/modules';
 import { dispatchFieldEvent, getModuleFieldContainers } from '#modules/fields/shared';
 import { buildFieldValueRegistry, fieldKeyToInputName, normalizeFieldKey, resolveFieldReferenceLive } from '#utils/field-references';
-import { getRowScopedWatchNames, resolveRowScopedFieldReference } from '#utils/field-references.row-scope';
+import { getRowScopedWatchNames, resolveRowScopedFieldReference, type RowScopeParams } from '#utils/field-references.row-scope';
 import { createDebug } from '#utils/debug';
 
 const INPUT_SELECTOR = 'input[data-formie-calculation-input]';
+
+function getRowScopeParams(variable: CalculationVariable): RowScopeParams {
+    const scoped = variable as CalculationVariable & RowScopeParams;
+
+    return {
+        scope: scoped.scope,
+        index: scoped.index,
+        rows: scoped.rows,
+        fieldKind: scoped.fieldKind,
+    };
+}
 const MODULE_ID = 'calculations';
 const debug = createDebug('fields', 'calculations');
 
@@ -28,10 +39,11 @@ function resolveVariables(
     const variables: Record<string, unknown> = {};
 
     variableEntries.forEach(([variableKey, variable]) => {
-        const scope = String(variable.scope || '').trim();
+        const scopeParams = getRowScopeParams(variable);
+        const scope = String(scopeParams.scope || '').trim();
 
         if (scope) {
-            const resolved = resolveRowScopedFieldReference(variable.sourceKey || '', variable, registry);
+            const resolved = resolveRowScopedFieldReference(variable.sourceKey || '', scopeParams, registry);
             variables[variableKey] = readCalculationVariableValue(variable, resolved.value);
             return;
         }
@@ -48,10 +60,11 @@ function getWatchNames(root: Element, variableEntries: CalculationVariableEntry[
     const watchNames = new Set<string>();
 
     variableEntries.forEach(([, variable]) => {
-        const scope = String(variable.scope || '').trim();
+        const scopeParams = getRowScopeParams(variable);
+        const scope = String(scopeParams.scope || '').trim();
 
         if (scope) {
-            getRowScopedWatchNames(variable.sourceKey || '', variable, registry).forEach((name) => {
+            getRowScopedWatchNames(variable.sourceKey || '', scopeParams, registry).forEach((name) => {
                 watchNames.add(name);
             });
 
