@@ -555,10 +555,10 @@ class GoCardless extends Payment
         }
 
         // Add a few other things about the customer from mapping (in field settings)
-        $billingFirstName = $this->getFieldSetting('billingDetails.billingFirstName');
-        $billingLastName = $this->getFieldSetting('billingDetails.billingLastName');
-        $billingAddress = $this->getFieldSetting('billingDetails.billingAddress');
-        $billingEmail = $this->getFieldSetting('billingDetails.billingEmail');
+        $billingFirstName = $this->getPaymentBillingFieldKey('billingFirstName');
+        $billingLastName = $this->getPaymentBillingFieldKey('billingLastName');
+        $billingAddress = $this->getPaymentBillingFieldKey('billingAddress');
+        $billingEmail = $this->getPaymentBillingFieldKey('billingEmail');
 
         if ($billingFirstName && ($billingFirstNameValue = $submission->getFieldValueAsString($billingFirstName))) {
             $payload['prefilled_customer']['given_name'] = $billingFirstNameValue;

@@ -370,13 +370,9 @@ class Paddle extends Payment
         $field = $this->getField();
 
         // Add a few other things about the customer from mapping (in field settings)
-        $billingName = $this->getFieldSetting('billingDetails.billingName');
-        $billingAddress = $this->getFieldSetting('billingDetails.billingAddress');
-        $billingEmail = $this->getFieldSetting('billingDetails.billingEmail');
-
-        // Reference pickers can still yield the primary string selector for composite fields.
-        // Paddle needs the structured address value, so normalize back to the field reference.
-        $billingAddress = str_replace('.__toString', '', $billingAddress);
+        $billingName = $this->getPaymentBillingFieldKey('billingName');
+        $billingAddress = $this->getPaymentBillingFieldKey('billingAddress');
+        $billingEmail = $this->getPaymentBillingFieldKey('billingEmail');
 
         if ($billingName && ($billingNameValue = $submission->getFieldValueAsString($billingName))) {
             $payload['customer']['business']['name'] = $billingNameValue;

@@ -1477,9 +1477,9 @@ class Stripe extends Payment
         $payload = [];
 
         // Add a few other things about the customer from mapping (in field settings)
-        $billingNameField = $this->getFieldSetting('billingDetails.billingName');
-        $billingAddressField = $this->getFieldSetting('billingDetails.billingAddress');
-        $billingEmailField = $this->getFieldSetting('billingDetails.billingEmail');
+        $billingNameField = $this->getPaymentBillingFieldKey('billingName');
+        $billingAddressField = $this->getPaymentBillingFieldKey('billingAddress');
+        $billingEmailField = $this->getPaymentBillingFieldKey('billingEmail');
 
         if ($billingNameField && ($billingName = $submission->getFieldValueAsString($billingNameField))) {
             $payload['name'] = $billingName;

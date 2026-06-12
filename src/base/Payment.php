@@ -521,9 +521,29 @@ abstract class Payment extends Integration
     }
 
     /**
-     * Normalize a field setting that may be a canonical reference token
-     * (for example `{field:<uid>}`) into a client field handle for frontend use.
+     * Resolve a billing-details static-table row to a field reference handle or token.
+     *
+     * Payment provider billing tables store the selected field in each row's `value`
+     * column (for example `billingDetails.billingName.value`), not on the row itself.
      */
+    protected function getPaymentBillingFieldKey(string $rowKey): ?string
+    {
+        $raw = $this->getFieldSetting("billingDetails.{$rowKey}.value");
+
+        if ($raw === null || $raw === '') {
+            $raw = $this->getFieldSetting("billingDetails.{$rowKey}");
+        }
+
+        if (is_array($raw)) {
+            $raw = $raw['value'] ?? '';
+        }
+
+        $fieldKey = $this->normalizeFieldMappingValue($raw);
+        $fieldKey = str_replace('.__toString', '', $fieldKey);
+
+        return $fieldKey !== '' ? $fieldKey : null;
+    }
+
     protected function normalizeClientFieldReference(mixed $value): ?string
     {
         $raw = trim((string)$value);

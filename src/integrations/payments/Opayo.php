@@ -11,7 +11,8 @@ use verbb\formie\events\ModifyPaymentCurrencyOptionsEvent;
 use verbb\formie\events\ModifyPaymentPayloadEvent;
 use verbb\formie\events\PaymentReceiveWebhookEvent;
 use verbb\formie\fields;
-use verbb\formie\fields\SingleLineText;
+use verbb\formie\fields\values\AddressFieldValue;
+use verbb\formie\fields\values\NameFieldValue;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\PaymentAccess;
 use verbb\formie\helpers\SchemaHelper;
@@ -772,9 +773,9 @@ class Opayo extends Payment
             ],
         ];
 
-        $billingName = $this->getFieldSetting('billingDetails.billingName');
-        $billingAddress = $this->getFieldSetting('billingDetails.billingAddress');
-        $billingEmail = $this->getFieldSetting('billingDetails.billingEmail');
+        $billingName = $this->getPaymentBillingFieldKey('billingName');
+        $billingAddress = $this->getPaymentBillingFieldKey('billingAddress');
+        $billingEmail = $this->getPaymentBillingFieldKey('billingEmail');
 
 
         if ($billingEmail && ($email = $submission->getFieldValueAsString($billingEmail))) {
@@ -784,22 +785,34 @@ class Opayo extends Payment
             }
         }
 
-        if ($billingName && ($fullName = $submission->getFieldValueAsArray($billingName)) && is_array($fullName)) {
-            if ($firstName = ArrayHelper::remove($fullName, 'firstName')) {
-                $payload['customerFirstName'] = $firstName;
+        if ($billingName && ($fullName = $submission->getFieldValueAsArray($billingName))) {
+            if ($fullName instanceof NameFieldValue) {
+                $fullName = $fullName->toValueArray();
             }
 
-            if ($lastName = ArrayHelper::remove($fullName, 'lastName')) {
-                $payload['customerLastName'] = $lastName;
+            if (is_array($fullName)) {
+                if ($firstName = ArrayHelper::remove($fullName, 'firstName')) {
+                    $payload['customerFirstName'] = $firstName;
+                }
+
+                if ($lastName = ArrayHelper::remove($fullName, 'lastName')) {
+                    $payload['customerLastName'] = $lastName;
+                }
             }
         }
 
-        if ($billingAddress && ($address = $submission->getFieldValueAsArray($billingAddress)) && is_array($address)) {
-            $payload['billingAddress']['address1'] = trim((string)ArrayHelper::remove($address, 'address1'));
-            $payload['billingAddress']['city'] = trim((string)ArrayHelper::remove($address, 'city'));
-            $payload['billingAddress']['postalCode'] = trim((string)ArrayHelper::remove($address, 'zip'));
-            $payload['billingAddress']['state'] = trim((string)ArrayHelper::remove($address, 'state'));
-            $payload['billingAddress']['country'] = trim((string)ArrayHelper::remove($address, 'country'));
+        if ($billingAddress && ($address = $submission->getFieldValueAsArray($billingAddress))) {
+            if ($address instanceof AddressFieldValue) {
+                $address = $address->toValueArray();
+            }
+
+            if (is_array($address)) {
+                $payload['billingAddress']['address1'] = trim((string)ArrayHelper::remove($address, 'address1'));
+                $payload['billingAddress']['city'] = trim((string)ArrayHelper::remove($address, 'city'));
+                $payload['billingAddress']['postalCode'] = trim((string)ArrayHelper::remove($address, 'zip'));
+                $payload['billingAddress']['state'] = trim((string)ArrayHelper::remove($address, 'state'));
+                $payload['billingAddress']['country'] = trim((string)ArrayHelper::remove($address, 'country'));
+            }
         }
 
         // Testing only
