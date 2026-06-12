@@ -12,6 +12,7 @@ use verbb\formie\events\ModifyFieldIntegrationValueEvent;
 use verbb\formie\events\ModifyFieldIntegrationValuesEvent;
 use verbb\formie\events\ModifyIntegrationSlotTagEvent;
 use verbb\formie\events\SendIntegrationPayloadEvent;
+use verbb\formie\helpers\ConditionsHelper;
 use verbb\formie\helpers\IntegrationHelper;
 use verbb\formie\helpers\IntegrationApiErrors;
 use verbb\formie\fields\Agree;
@@ -371,6 +372,8 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public array $cache = [];
     public ?string $uid = null;
     public ?string $optInField = null;
+    public bool $enableConditions = false;
+    public ?array $conditions = null;
 
     // Store extra context for when running the integration
     public array $context = [];
@@ -900,6 +903,29 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return false;
     }
 
+    public function shouldTrigger(Submission $submission, array $context = []): bool
+    {
+        if (!$this->enableConditions) {
+            return true;
+        }
+
+        $conditionSettings = $this->conditions ?? [];
+        $conditions = $conditionSettings['conditions'] ?? [];
+
+        if (!$conditionSettings || !$conditions) {
+            return true;
+        }
+
+        $result = ConditionsHelper::getConditionalTestResult($conditionSettings, $submission);
+        $triggerRule = (string)($conditionSettings['triggerRule'] ?? 'trigger');
+
+        if ($triggerRule === 'trigger') {
+            return $result;
+        }
+
+        return !$result;
+    }
+
     public function populateContext(): void
     {
         $request = Craft::$app->getRequest();
@@ -1179,6 +1205,47 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
                 'instructions' => Craft::t('formie', 'Whether the integration should be enabled.'),
                 'name' => 'enabled',
             ]),
+            SchemaHelper::enableConditionsField([
+                'instructions' => Craft::t('formie', 'Whether to enable conditional logic to control when this integration is triggered.'),
+            ]),
+            [
+                '$field' => 'integrationConditions',
+                'name' => 'conditions',
+                'if' => 'enableConditions',
+                'fieldOptions' => ConditionsHelper::getConditionFieldOptions($this->_getConditionFieldOptionConfig()),
+                'conditionOptions' => ConditionsHelper::getConditionOptions(),
+            ],
+        ];
+    }
+
+    protected function _getConditionFieldOptionConfig(): array
+    {
+        return [
+            'includeSubmissionDate' => true,
+            'siteNameOptions' => array_merge([
+                ['label' => Craft::t('formie', 'Select an option'), 'value' => ''],
+            ], array_map(function($site) {
+                return [
+                    'label' => $site->name,
+                    'value' => $site->name,
+                ];
+            }, Craft::$app->getSites()->getAllSites())),
+            'siteHandleOptions' => array_merge([
+                ['label' => Craft::t('formie', 'Select an option'), 'value' => ''],
+            ], array_map(function($site) {
+                return [
+                    'label' => $site->name,
+                    'value' => $site->handle,
+                ];
+            }, Craft::$app->getSites()->getAllSites())),
+            'statusOptions' => array_merge([
+                ['label' => Craft::t('formie', 'Select an option'), 'value' => ''],
+            ], array_map(function($status) {
+                return [
+                    'label' => $status->name,
+                    'value' => $status->handle,
+                ];
+            }, Formie::$plugin->getStatuses()->getAllStatuses())),
         ];
     }
 

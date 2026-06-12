@@ -350,6 +350,13 @@ class Integrations extends Component
                 continue;
             }
 
+            if (!$integration->shouldTrigger($submission, [
+                'processMode' => $processMode,
+                'isSubmissionEdit' => $isSubmissionEdit,
+            ])) {
+                continue;
+            }
+
             $integration->populateContext();
 
             if ($settings->useQueueForIntegrations) {

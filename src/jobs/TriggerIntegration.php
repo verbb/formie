@@ -70,6 +70,14 @@ class TriggerIntegration extends CraftBaseJob implements DebuggableJobInterface
         // Set with a private variable, so it doesn't appear in the queue job data which would be mayhem.
         $integration->setQueueJob($this);
 
+        if (!$integration->shouldTrigger($submission)) {
+            Integration::info($integration, 'Integration skipped due to conditions not being met.');
+
+            $this->setProgress($queue, 1);
+
+            return;
+        }
+
         // Ensure we set the correct language for a potential CLI request
         Craft::$app->language = $submission->getSite()->language;
         Craft::$app->set('locale', Craft::$app->getI18n()->getLocaleById($submission->getSite()->language));

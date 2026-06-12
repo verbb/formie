@@ -196,7 +196,7 @@ class Variables
             $formName = $form?->title ?? '';
             $formHandle = $form?->handle ?? '';
             $submissionTitle = $submission?->title ?? '';
-            $submissionStatus = $submission ? ($submission->getStatus()?->handle ?? '') : '';
+            $submissionStatus = $submission ? ($submission->getStatus() ?? '') : '';
 
             $variables = [
                 'formName' => $formName,
