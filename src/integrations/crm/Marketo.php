@@ -55,7 +55,16 @@ class Marketo extends Crm implements OAuthProviderInterface
 
     public function getApiDomain(): string
     {
-        return App::parseEnv($this->apiDomain);
+        $domain = rtrim(App::parseEnv($this->apiDomain), '/');
+
+        return preg_replace('#/rest$#i', '', $domain);
+    }
+
+    public function getAccessTokenOptions(array $options = []): array
+    {
+        unset($options['scope']);
+
+        return $options;
     }
 
     public function getOAuthProviderConfig(): array
