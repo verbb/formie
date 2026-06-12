@@ -151,6 +151,12 @@ class FileUpload extends ElementField
             unset($config['restrictLocation']);
         }
 
+        if (!array_key_exists('emailFieldSummaryValue', $config)) {
+            $config['emailFieldSummaryValue'] = FieldBuilderPolicy::allowPublicVolumes()
+                ? 'publicUrl'
+                : 'cpUrl';
+        }
+
         parent::__construct($config);
     }
 
@@ -977,7 +983,7 @@ class FileUpload extends ElementField
         $html = '';
 
         foreach ($value->all() as $asset) {
-            $url = $this->getSafeElementUrl($asset);
+            $url = $this->getSafeElementUrl($asset, $this->emailFieldSummaryValue === 'cpUrl');
 
             if ($url) {
                 $html .= Html::tag('a', $asset->filename, ['href' => $url]);

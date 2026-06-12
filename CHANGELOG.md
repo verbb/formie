@@ -10,6 +10,7 @@
 - Run File Upload asset retention and stale pending upload cleanup through Craft garbage collection and dedicated console commands.
 
 ### Fixed
+- Fix new File Upload fields defaulting to an empty **Email Field Summary Value** setting.
 - Fix Signature fields intermittently showing a misleading “browser does not support” message on multi-page forms, conditional fields, and late layout by retrying canvas sizing, watching visibility changes, and showing accurate status copy when initialization fails. ([#2708](https://github.com/verbb/formie/issues/2708))
 
 ## 4.0.0-beta.5 - 2026-06-12

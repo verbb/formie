@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
+use verbb\formie\fields\FileUpload;
 use verbb\formie\Formie;
+use verbb\formie\helpers\FieldBuilderPolicy;
 use verbb\formie\models\ClientModule;
 use verbb\formie\theme\context\RenderContext;
 
@@ -40,6 +42,22 @@ it('registers the upload-manager module for advanced display type', function ():
     $moduleIds = array_map(static fn(array $module): string => (string)($module['id'] ?? ''), $modules);
 
     expect($moduleIds)->not->toContain('file-upload');
+});
+
+it('defaults email field summary value for new file upload fields', function (): void {
+    $field = new FileUpload();
+
+    $expected = FieldBuilderPolicy::allowPublicVolumes()
+        ? 'publicUrl'
+        : 'cpUrl';
+
+    expect($field->emailFieldSummaryValue)->toBe($expected);
+});
+
+it('preserves an explicit email field summary value', function (): void {
+    $field = new FileUpload(['emailFieldSummaryValue' => 'cpUrl']);
+
+    expect($field->emailFieldSummaryValue)->toBe('cpUrl');
 });
 
 it('defaults file upload fields to the simple display type', function (): void {
