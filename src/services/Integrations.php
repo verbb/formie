@@ -354,6 +354,9 @@ class Integrations extends Component
                     'integrationId' => $integration->id,
                     'integrationHandle' => $integration->handle,
                     'integrationContext' => $integration->context,
+                    'formId' => $form->id ?? null,
+                    'formHandle' => $form->handle ?? null,
+                    'formTitle' => $form->title ?? null,
                 ]), $settings->queuePriority);
 
                 continue;

@@ -23,6 +23,9 @@ class TriggerIntegration extends CraftBaseJob implements DebuggableJobInterface
     public ?int $submissionId = null;
     public ?int $integrationId = null;
     public ?string $integrationHandle = null;
+    public ?int $formId = null;
+    public ?string $formHandle = null;
+    public ?string $formTitle = null;
     public array $integrationContext = [];
     public mixed $payload = null;
 
@@ -94,8 +97,12 @@ class TriggerIntegration extends CraftBaseJob implements DebuggableJobInterface
 
     protected function defaultDescription(): string
     {
-        return Craft::t('formie', 'Triggering form “{handle}” integration.', [
-            'handle' => $this->integrationHandle ?: ($this->integrationId ?? 'unknown'),
+        $integration = $this->integrationHandle ?: ($this->integrationId ?? Craft::t('formie', 'unknown'));
+        $form = $this->formHandle ?: ($this->formTitle ?: ($this->formId ?? Craft::t('formie', 'unknown')));
+
+        return Craft::t('formie', 'Triggering “{integration}” integration for form “{form}”.', [
+            'integration' => $integration,
+            'form' => $form,
         ]);
     }
 
@@ -126,12 +133,36 @@ class TriggerIntegration extends CraftBaseJob implements DebuggableJobInterface
 
         if ($submission) {
             $jobData->referenceMap = $job->referenceMap ?: $this->_getReferenceMap($submission);
+            $jobData->form = $this->_getFormContext($submission, $job);
         }
     }
 
 
     // Private Methods
     // =========================================================================
+
+    private function _getFormContext(Submission $submission, self $job): array
+    {
+        if ($job->formId || $job->formHandle || $job->formTitle) {
+            return array_filter([
+                'id' => $job->formId,
+                'handle' => $job->formHandle,
+                'title' => $job->formTitle,
+            ], fn($value) => $value !== null && $value !== '');
+        }
+
+        $form = $submission->getForm();
+
+        if (!$form) {
+            return [];
+        }
+
+        return array_filter([
+            'id' => $form->id,
+            'handle' => $form->handle,
+            'title' => $form->title,
+        ], fn($value) => $value !== null && $value !== '');
+    }
 
     private function _resolveIntegration(?Submission $submission = null, ?self $job = null): ?Integration
     {
