@@ -19,6 +19,8 @@ import { PreviewSummary } from './PreviewSummary';
 import { PreviewAgree } from './PreviewAgree';
 import { PreviewRecipients } from './PreviewRecipients';
 import { PreviewLegacyTemplateNotice } from './PreviewLegacyTemplateNotice';
+import { PreviewUploadManager } from './PreviewUploadManager';
+import { PreviewFileUpload } from './PreviewFileUpload';
 
 export const previewSchemaComponents = {
     PreviewInput,
@@ -42,4 +44,6 @@ export const previewSchemaComponents = {
     PreviewAgree,
     PreviewRecipients,
     PreviewLegacyTemplateNotice,
+    PreviewUploadManager,
+    PreviewFileUpload,
 };

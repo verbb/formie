@@ -68,6 +68,8 @@
   "dependencies": {
     "@friendlycaptcha/sdk": "^1.0.0",
     "@placekit/autocomplete-js": "^2.2.1",
+    "@uppy/core": "^5.2.0",
+    "@uppy/xhr-upload": "^5.2.0",
     "@verbb/formie-core": "1.0.5",
     "expression-language": "^2.5.4",
     "flatpickr": "^4.6.13",

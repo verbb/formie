@@ -195,6 +195,7 @@ export default defineConfig({
                                 { text: 'Conditions', link: '/browser/modules/field/conditions' },
                                 { text: 'Date picker', link: '/browser/modules/field/date-picker' },
                                 { text: 'File upload', link: '/browser/modules/field/file-upload' },
+                                { text: 'Upload manager', link: '/browser/modules/field/upload-manager' },
                                 { text: 'Phone country', link: '/browser/modules/field/phone-country' },
                                 { text: 'Repeater', link: '/browser/modules/field/repeater' },
                                 { text: 'Rich text', link: '/browser/modules/field/rich-text' },

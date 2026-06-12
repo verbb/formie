@@ -292,6 +292,14 @@ class SchemaHelper
         ], $config));
     }
 
+    public static function previewFileUpload(array $config = []): array
+    {
+        return self::previewNode('PreviewFileUpload', array_merge([
+            'displayType' => self::previewBind('field.displayType', 'fileInput'),
+            'icon' => self::previewBind('fieldType.icon', ''),
+        ], $config));
+    }
+
     public static function previewSelect(array $config = []): array
     {
         return self::previewNode('PreviewSelect', array_merge([

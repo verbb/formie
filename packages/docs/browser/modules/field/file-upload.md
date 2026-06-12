@@ -1,6 +1,8 @@
 # File upload
 
-File upload manages selected files, uploaded asset ids, and the rendered summary output for upload fields.
+File upload manages selected files, uploaded asset ids, and the rendered summary output for **File Input (Simple)** File Upload fields.
+
+For **Upload Manager (Advanced)** fields, see the [upload-manager module](/browser/modules/field/upload-manager).
 
 ## Events
 
@@ -23,5 +25,6 @@ The shared module lifecycle also exposes scoped events such as `formie:module:fi
 ## Related pages
 
 - [File Upload field](/browser/ui-reference/fields/file-upload)
+- [Upload manager module](/browser/modules/field/upload-manager)
 - [Overview](/browser/modules/)
 - [JavaScript events](/browser/behavior/javascript-events)

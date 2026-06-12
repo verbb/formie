@@ -156,6 +156,14 @@
         --formie-button-icon-mask: var(--formie-icon-mask-arrow-right);
     }
 
+    .formie-button-icon[data-formie-icon="arrow-up"] {
+        --formie-button-icon-mask: var(--formie-icon-mask-arrow-up);
+    }
+
+    .formie-button-icon[data-formie-icon="arrow-down"] {
+        --formie-button-icon-mask: var(--formie-icon-mask-arrow-down);
+    }
+
     .formie-button-icon[data-formie-icon="close"] {
         --formie-button-icon-mask: var(--formie-icon-mask-close);
     }
@@ -185,6 +193,14 @@
 
     .formie-button-text-icon[data-formie-icon="arrow-right"] {
         --formie-button-icon-mask: var(--formie-icon-mask-arrow-right);
+    }
+
+    .formie-button-text-icon[data-formie-icon="arrow-up"] {
+        --formie-button-icon-mask: var(--formie-icon-mask-arrow-up);
+    }
+
+    .formie-button-text-icon[data-formie-icon="arrow-down"] {
+        --formie-button-icon-mask: var(--formie-icon-mask-arrow-down);
     }
 
     .formie-button-text-icon[data-formie-icon="close"] {

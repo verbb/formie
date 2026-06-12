@@ -489,11 +489,43 @@ document.addEventListener('formie:field:date-picker:after-init', (event) => {
 
 #### The `formie:field:file-upload:uploaded-assets-sync` event
 
-The event that is triggered after uploaded assets have been synchronized back into the file upload field state.
+The event that is triggered after uploaded assets have been synchronized back into the file upload field state. Both **File Input (Simple)** and **Upload Manager (Advanced)** fields emit this event.
 
 ```js
 document.addEventListener('formie:field:file-upload:uploaded-assets-sync', (event) => {
   console.log('Uploaded assets synced:', event.detail);
+});
+```
+
+#### The `formie:field:file-upload:uploaded-assets-reordered` event
+
+The event that is triggered after uploaded files have been reordered in an **Upload Manager (Advanced)** field.
+
+```js
+document.addEventListener('formie:field:file-upload:uploaded-assets-reordered', (event) => {
+  console.log('Uploaded assets reordered:', event.detail);
+});
+```
+
+### `upload-manager`
+
+#### The `formie:module:upload-manager:init` event
+
+The event that is triggered after the upload-manager module has initialized on an Advanced File Upload field.
+
+```js
+document.addEventListener('formie:module:upload-manager:init', (event) => {
+  console.log('Upload manager ready:', event.detail);
+});
+```
+
+#### The `formie:module:upload-manager:destroy` event
+
+The event that is triggered after the upload-manager module has been destroyed and cleaned up.
+
+```js
+document.addEventListener('formie:module:upload-manager:destroy', (event) => {
+  console.log('Upload manager destroyed:', event.detail);
 });
 ```
 
@@ -1018,6 +1050,26 @@ The event that is triggered after the file-upload module has been destroyed and 
 ```js
 document.addEventListener('formie:module:file-upload:destroy', (event) => {
   console.log('File-upload module destroy:', event.detail);
+});
+```
+
+#### The `formie:module:upload-manager:init` event
+
+The event that is triggered after the upload-manager module has initialized and is ready to manage staged uploads.
+
+```js
+document.addEventListener('formie:module:upload-manager:init', (event) => {
+  console.log('Upload-manager module init:', event.detail);
+});
+```
+
+#### The `formie:module:upload-manager:destroy` event
+
+The event that is triggered after the upload-manager module has been destroyed and cleaned up.
+
+```js
+document.addEventListener('formie:module:upload-manager:destroy', (event) => {
+  console.log('Upload-manager module destroy:', event.detail);
 });
 ```
 

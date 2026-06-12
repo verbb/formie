@@ -15,28 +15,45 @@
     {% endfor %}
 {% endif %}
 
-{{ fieldtag('fieldInput', {
-    required: required ? true : false,
-}) }}
+{% if field.displayType == 'uploadManager' %}
+    <div class="formie-upload-manager" data-formie-upload-manager-root>
+        {% fieldtag 'fieldDropzone' %}
+            <p class="formie-upload-manager-prompt">{{ 'Drop files here or browse to upload.' | t('formie') }}</p>
 
-{% if value %}
-    {% set elements = value.all() %}
-
-    {% if elements %}
-        {% fieldtag 'fieldSummary' %}
-            {% if elements | length == 1 %}
-                <p>{{ '{num} file uploaded.' | t('formie', { num: elements | length }) }}</p>
-            {% else %}
-                <p>{{ '{num} files uploaded.' | t('formie', { num: elements | length }) }}</p>
-            {% endif %}
-
-            {% fieldtag 'fieldSummaryContainer' %}
-                {% for element in elements %}
-                    {% fieldtag 'fieldSummaryItem' %}
-                        {{ element.filename }}
-                    {% endfieldtag %}
-                {% endfor %}
+            {% fieldtag 'fieldBrowseButton' %}
+                {{- 'Browse files' | t('formie') -}}
             {% endfieldtag %}
         {% endfieldtag %}
+
+        {{ fieldtag('fieldBrowseInput') }}
+        {{ fieldtag('fieldValidationStatus') }}
+
+        {% fieldtag 'fieldFileList' %}{% endfieldtag %}
+    </div>
+{% else %}
+    {{ fieldtag('fieldInput', {
+        required: required ? true : false,
+    }) }}
+
+    {% if value %}
+        {% set elements = value.all() %}
+
+        {% if elements %}
+            {% fieldtag 'fieldSummary' %}
+                {% if elements | length == 1 %}
+                    <p>{{ '{num} file uploaded.' | t('formie', { num: elements | length }) }}</p>
+                {% else %}
+                    <p>{{ '{num} files uploaded.' | t('formie', { num: elements | length }) }}</p>
+                {% endif %}
+
+                {% fieldtag 'fieldSummaryContainer' %}
+                    {% for element in elements %}
+                        {% fieldtag 'fieldSummaryItem' %}
+                            {{ element.filename }}
+                        {% endfieldtag %}
+                    {% endfor %}
+                {% endfieldtag %}
+            {% endfieldtag %}
+        {% endif %}
     {% endif %}
 {% endif %}

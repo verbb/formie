@@ -122,6 +122,7 @@ class FileUpload extends ElementField
     // =========================================================================
 
     public bool $allowMultipleSources = false;
+    public string $displayType = 'fileInput';
     public ?string $sizeLimit = null;
     public ?string $sizeMinLimit = null;
     public ?string $limitFiles = null;
@@ -168,7 +169,7 @@ class FileUpload extends ElementField
     public function defineFormBuilderPreviewSchema(): array
     {
         return [
-            SchemaHelper::previewFileInput(),
+            SchemaHelper::previewFileUpload(),
         ];
     }
 
@@ -288,8 +289,11 @@ class FileUpload extends ElementField
 
         // Get any uploaded filenames
         $uploadedFiles = $this->_getUploadedFiles($element);
+        $value = $element->getFieldValue($this->valueKey());
+        $existingCount = ($value && method_exists($value, 'ids')) ? count($value->ids()) : 0;
+        $totalCount = $existingCount + count($uploadedFiles);
 
-        if (count($uploadedFiles) > $fileLimit) {
+        if ($totalCount > $fileLimit) {
             $element->addError($this->valueKey(), $this->getValidationMessage(ValidationMessagesHelper::KEY_MAX_FILES, [
                 'files' => $fileLimit,
             ]));
@@ -451,6 +455,15 @@ class FileUpload extends ElementField
     {
         return [
             SchemaHelper::labelField(),
+            SchemaHelper::selectField([
+                'label' => Craft::t('formie', 'Display Type'),
+                'instructions' => Craft::t('formie', 'Set different display layouts for this field.'),
+                'name' => 'displayType',
+                'options' => [
+                    ['label' => Craft::t('formie', 'File Input (Simple)'), 'value' => 'fileInput'],
+                    ['label' => Craft::t('formie', 'Upload Manager (Advanced)'), 'value' => 'uploadManager'],
+                ],
+            ]),
             SchemaHelper::fieldWrap([
                 'label' => Craft::t('formie', 'Upload Location'),
                 'instructions' => Craft::t('formie', 'Note that the subfolder path can contain variables like {myFieldHandle}.'),
@@ -714,6 +727,10 @@ class FileUpload extends ElementField
         unset($types['limitOptions'], $types['multi']);
 
         return array_merge($types, [
+            'displayType' => [
+                'name' => 'displayType',
+                'type' => Type::string(),
+            ],
             'sizeLimit' => [
                 'name' => 'sizeLimit',
                 'type' => Type::string(),
@@ -755,6 +772,14 @@ class FileUpload extends ElementField
         $sizeMaxLimit = $this->sizeLimit ?? 0;
         $sizeMinLimit = $this->sizeMinLimit ?? 0;
         $limitFiles = $this->limitFiles ?? 0;
+
+        if ($this->displayType === 'uploadManager') {
+            $uploadManagerTag = $this->_defineUploadManagerFieldSlotTag($key, $context, $id, $dataId, $errors, $sizeMaxLimit, $sizeMinLimit, $limitFiles);
+
+            if ($uploadManagerTag !== null) {
+                return $uploadManagerTag;
+            }
+        }
 
         if ($key === 'fieldInput') {
             return SlotTag::make('input')
@@ -852,7 +877,7 @@ class FileUpload extends ElementField
 
     protected function supportedDefaults(): array
     {
-        return ['uploadLocationSource'];
+        return ['uploadLocationSource', 'displayType'];
     }
 
     protected function defineValueAsString(mixed $value, ElementInterface $element = null): string
@@ -908,6 +933,7 @@ class FileUpload extends ElementField
     protected function defineClientInput(): array
     {
         return array_merge(parent::defineClientInput(), [
+            'displayType' => $this->displayType,
             'multiple' => (int)($this->limitFiles ?? 0) !== 1,
             'limitFiles' => $this->limitFiles !== null ? (int)$this->limitFiles : null,
             'allowedKinds' => array_values($this->allowedKinds ?? []),
@@ -920,10 +946,28 @@ class FileUpload extends ElementField
     protected function defineClientModules(): array
     {
         $modules = parent::defineClientModules();
-        $modules[] = new ClientModule([
-            'id' => 'file-upload',
-            'renderTargets' => [ClientModule::RENDER_TARGET_FRONTEND],
-        ]);
+
+        if ($this->displayType === 'uploadManager') {
+            $modules[] = new ClientModule([
+                'id' => 'upload-manager',
+                'renderTargets' => [ClientModule::RENDER_TARGET_FRONTEND],
+                'config' => [
+                    'uploadEndpoint' => UrlHelper::actionUrl('formie/file-upload/upload'),
+                    'deleteEndpoint' => UrlHelper::actionUrl('formie/file-upload/delete'),
+                    'hydrateEndpoint' => UrlHelper::actionUrl('formie/file-upload/hydrate'),
+                    'limitFiles' => $this->limitFiles !== null ? (int)$this->limitFiles : null,
+                    'sizeMinLimit' => $this->sizeMinLimit !== null ? (float)$this->sizeMinLimit : null,
+                    'sizeLimit' => $this->sizeLimit !== null ? (float)$this->sizeLimit : null,
+                    'accept' => $this->getAccept(),
+                    'restrictFiles' => (bool)$this->restrictFiles,
+                ],
+            ]);
+        } else {
+            $modules[] = new ClientModule([
+                'id' => 'file-upload',
+                'renderTargets' => [ClientModule::RENDER_TARGET_FRONTEND],
+            ]);
+        }
 
         return $modules;
     }
@@ -1417,6 +1461,190 @@ class FileUpload extends ElementField
         }
 
         return $mimeType;
+    }
+
+    private function _defineUploadManagerFieldSlotTag(
+        string $key,
+        RenderContext $context,
+        string $id,
+        string $dataId,
+        array $errors,
+        float|int $sizeMaxLimit,
+        float|int $sizeMinLimit,
+        float|int|string|null $limitFiles,
+    ): ?SlotTag {
+        $uploadEndpoint = UrlHelper::actionUrl('formie/file-upload/upload');
+        $deleteEndpoint = UrlHelper::actionUrl('formie/file-upload/delete');
+        $hydrateEndpoint = UrlHelper::actionUrl('formie/file-upload/hydrate');
+        $validationAttributes = ValidationMessagesHelper::fileUploadValidationClientAttributes(
+            $this,
+            (int)$limitFiles,
+            (float)$sizeMinLimit,
+            (float)$sizeMaxLimit,
+        );
+        $sharedAttributes = array_merge([
+            'data-formie-upload-manager' => true,
+            'data-formie-upload-key' => $id,
+            'data-formie-input-id' => $dataId,
+            'data-formie-input-type' => 'upload-manager',
+            'data-formie-size-min-limit' => $sizeMinLimit,
+            'data-formie-size-max-limit' => $sizeMaxLimit,
+            'data-formie-file-limit' => $limitFiles,
+            'data-formie-file-upload-upload-endpoint' => $uploadEndpoint,
+            'data-formie-file-upload-delete-endpoint' => $deleteEndpoint,
+            'data-formie-file-upload-hydrate-endpoint' => $hydrateEndpoint,
+            'data-formie-input-error-state' => $errors ? true : false,
+        ], $validationAttributes);
+
+        if ($key === 'fieldDropzone') {
+            return SlotTag::make('div')
+                ->core(array_merge($sharedAttributes, [
+                    'tabindex' => 0,
+                    'aria-describedby' => $this->hasInstructions() ? "{$id}-instructions" : null,
+                ]))
+                ->theme([
+                    'class' => [
+                        'formie-upload-manager-dropzone',
+                        $errors ? 'formie-input-error' : false,
+                    ],
+                ]);
+        }
+
+        if ($key === 'fieldBrowseButton') {
+            return SlotTag::make('button')
+                ->core([
+                    'type' => 'button',
+                    'data-formie-upload-manager-browse' => true,
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-button',
+                        'formie-upload-manager-browse-button',
+                    ],
+                ]);
+        }
+
+        if ($key === 'fieldBrowseInput') {
+            return SlotTag::make('input')
+                ->core([
+                    'type' => 'file',
+                    'multiple' => $limitFiles != 1,
+                    'accept' => $this->getAccept(),
+                    'data-formie-upload-manager-input' => true,
+                    'tabindex' => -1,
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-sr-only',
+                    ],
+                ]);
+        }
+
+        if ($key === 'fieldValidationStatus') {
+            $required = $context->field?->required ?? false;
+
+            return SlotTag::make('input')
+                ->core(array_merge([
+                    'type' => 'text',
+                    'value' => '',
+                    'readonly' => true,
+                    'tabindex' => -1,
+                    'aria-hidden' => true,
+                    'data-formie-input' => true,
+                    'data-formie-upload-manager-status' => true,
+                    'data-formie-validation-required' => $required ? 'true' : null,
+                ], $required ? [
+                    'required' => true,
+                ] : []))
+                ->theme([
+                    'class' => [
+                        'formie-sr-only',
+                    ],
+                ]);
+        }
+
+        if ($key === 'fieldFileList') {
+            return SlotTag::make('ul')
+                ->core([
+                    'data-formie-upload-manager-list' => true,
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-upload-manager-list',
+                    ],
+                ]);
+        }
+
+        if ($key === 'fieldFileItem') {
+            return SlotTag::make('li')
+                ->core([
+                    'data-formie-upload-manager-item' => true,
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-upload-manager-item',
+                    ],
+                ]);
+        }
+
+        if ($key === 'fieldFileName') {
+            return SlotTag::make('span')
+                ->core([
+                    'data-formie-upload-manager-filename' => true,
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-upload-manager-filename',
+                    ],
+                ]);
+        }
+
+        if ($key === 'fieldFileProgress') {
+            return SlotTag::make('progress')
+                ->core([
+                    'data-formie-upload-manager-progress' => true,
+                    'max' => 100,
+                    'value' => 0,
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-upload-manager-progress',
+                    ],
+                ]);
+        }
+
+        if ($key === 'fieldFileRemoveButton') {
+            return SlotTag::make('button')
+                ->core([
+                    'type' => 'button',
+                    'data-formie-upload-manager-remove' => true,
+                    'aria-label' => Craft::t('formie', 'Remove file'),
+                    'title' => Craft::t('formie', 'Remove file'),
+                    'data-formie-icon' => 'close',
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-button',
+                        'formie-button-icon',
+                        'formie-upload-manager-remove-button',
+                    ],
+                ]);
+        }
+
+        if ($key === 'fieldFileError') {
+            return SlotTag::make('span')
+                ->core([
+                    'data-formie-upload-manager-error' => true,
+                    'role' => 'alert',
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-upload-manager-error',
+                    ],
+                ]);
+        }
+
+        return null;
     }
 
 }

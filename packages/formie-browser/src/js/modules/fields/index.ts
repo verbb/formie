@@ -12,6 +12,7 @@ export const builtinFieldModuleLoaders: Record<string, () => Promise<FormieModul
     'custom-maps': () => import('#modules/fields/custom-maps').then((module) => module.customMapsModule),
     'date-picker': () => import('#modules/fields/date-picker').then((module) => module.datePickerModule),
     'file-upload': () => import('#modules/fields/file-upload').then((module) => module.fileUploadModule),
+    'upload-manager': () => import('#modules/fields/upload-manager').then((module) => module.uploadManagerModule),
     'hidden': () => import('#modules/fields/hidden').then((module) => module.hiddenModule),
     'phone-country': () => import('#modules/fields/phone-country').then((module) => module.phoneCountryModule),
     'address-country': () => import('#modules/fields/address-country').then((module) => module.addressCountryModule),
