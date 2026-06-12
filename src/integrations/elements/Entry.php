@@ -37,6 +37,7 @@ class Entry extends Element
 
     public ?string $entryTypeSection = null;
     public mixed $defaultAuthorId = null;
+    public bool $useSubmissionUserAsAuthor = false;
     public ?bool $createDraft = null;
     public ?bool $updateOnSubmissionEdit = null;
 
@@ -227,8 +228,8 @@ class Entry extends Element
             $entry->typeId = $entryType->id;
             $entry->sectionId = $section->id;
 
-            if ($this->defaultAuthorId) {
-                $entry->authorId = $this->defaultAuthorId;
+            if ($authorId = $this->_resolveAuthorId($submission)) {
+                $entry->authorId = $authorId;
             }
 
             $attributeValues = $this->getFieldMappingValues($submission, $this->attributeMapping, $this->getElementAttributes());
@@ -404,10 +405,15 @@ class Entry extends Element
             'required' => true,
             'options' => $this->_getEntryTypeOptions(),
         ]);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'useSubmissionUserAsAuthor',
+            'label' => Craft::t('formie', 'Use Submission User as Author'),
+            'instructions' => Craft::t('formie', 'Use the user recorded on the submission as the entry author. Requires **Collect User** to be enabled on the form. If no user is recorded, the default author below is used.'),
+        ]);
         $schema[] = SchemaHelper::elementSelectField([
             'name' => 'defaultAuthorId',
             'label' => Craft::t('formie', 'Default Entry Author'),
-            'instructions' => Craft::t('formie', 'Select a user to be the default author for the created entry. An entry must always have an author.'),
+            'instructions' => Craft::t('formie', 'Select a user to be the default author for the created entry. An entry must always have an author. When **Use Submission User as Author** is enabled, this user is used as a fallback when no submission user is available.'),
             'required' => true,
             'selectionLabel' => Craft::t('formie', 'Choose a User'),
             'config' => [
@@ -565,6 +571,19 @@ class Entry extends Element
         }
 
         return '';
+    }
+
+    private function _resolveAuthorId(Submission $submission): ?int
+    {
+        if ($this->useSubmissionUserAsAuthor && $submission->userId) {
+            return (int)$submission->userId;
+        }
+
+        if ($this->defaultAuthorId) {
+            return (int)$this->defaultAuthorId;
+        }
+
+        return null;
     }
 
     private function _normalizeIds($content): array
