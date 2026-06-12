@@ -293,93 +293,40 @@ class Salesforce extends Crm implements OAuthProviderInterface
         $settings = [];
 
         try {
-            // Get Users - saved for use with owner ID fields
-            $response = $this->request('GET', 'query', [
-                'query' => ['q' => 'SELECT ID,Name FROM User LIMIT 20'],
-            ]);
-
-            $users = $response['records'] ?? [];
-
-            foreach ($users as $user) {
-                $this->users[] = [
-                    'label' => $user['Name'],
-                    'value' => $user['Id'],
-                ];
-            }
-
-            // Get Contact fields
-            if ($this->mapToContact && $this->settingsContext->dataKey === 'contact') {
-                $response = $this->request('GET', 'sobjects/Contact/describe');
-                $fields = $response['fields'] ?? [];
-                $settings['contact'] = $this->_getCustomFields($fields);
-            }
-
-            // Get Lead fields
-            if ($this->mapToLead && $this->settingsContext->dataKey === 'lead') {
-                $response = $this->request('GET', 'sobjects/Lead/describe');
-                $fields = $response['fields'] ?? [];
-                $settings['lead'] = $this->_getCustomFields($fields);
-            }
-
-            // Get Opportunity fields
-            if ($this->mapToOpportunity && $this->settingsContext->dataKey === 'opportunity') {
-                $response = $this->request('GET', 'sobjects/Opportunity/describe');
-                $fields = $response['fields'] ?? [];
-                $settings['opportunity'] = $this->_getCustomFields($fields);
-            }
-
-            // Get Account fields
-            if ($this->mapToAccount && $this->settingsContext->dataKey === 'account') {
-                $response = $this->request('GET', 'sobjects/Account/describe');
-                $fields = $response['fields'] ?? [];
-                $settings['account'] = $this->_getCustomFields($fields);
-            }
-
-            // Get Case fields
-            if ($this->mapToCase && $this->settingsContext->dataKey === 'case') {
-                $response = $this->request('GET', 'sobjects/Case/describe');
-
-                // Debug
-                Formie::info(Json::encode($response));
-
-                $fields = $response['fields'] ?? [];
-                $settings['case'] = $this->_getCustomFields($fields, ['IsClosedOnCreate']);
-            }
-
-            if ($this->mapToCampaignMember && $this->settingsContext->dataKey === 'campaignMember') {
-            // Get Campaign Member fields
-                $response = $this->request('GET', 'sobjects/CampaignMember/describe');
-                $fields = $response['fields'] ?? [];
-
-                // Add in Campaigns
-                $response = $this->request('GET', 'query', [
-                    'query' => ['q' => 'SELECT ID,Name FROM Campaign'],
-                ]);
-
-                $campaignOptions = [];
-                $campaigns = $response['records'] ?? [];
-
-                foreach ($campaigns as $campaign) {
-                    $campaignOptions[] = [
-                        'label' => $campaign['Name'],
-                        'value' => $campaign['Id'],
-                    ];
-                }
-
-                $settings['campaignMember'] = array_merge([
-                    new IntegrationField([
-                        'handle' => 'CampaignId',
-                        'name' => Craft::t('formie', 'Campaign ID'),
-                        'required' => true,
-                        'options' => [
-                            'label' => Craft::t('formie', 'Campaign'),
-                            'options' => $campaignOptions,
-                        ],
-                    ])
-                ], $this->_getCustomFields($fields));
-            }
+            $this->_fetchSalesforceUsers();
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
+        }
+
+        $objectDefinitions = [
+            'contact' => ['enabled' => $this->mapToContact, 'sObject' => 'Contact'],
+            'lead' => ['enabled' => $this->mapToLead, 'sObject' => 'Lead'],
+            'opportunity' => ['enabled' => $this->mapToOpportunity, 'sObject' => 'Opportunity'],
+            'account' => ['enabled' => $this->mapToAccount, 'sObject' => 'Account'],
+            'case' => ['enabled' => $this->mapToCase, 'sObject' => 'Case', 'excludeNames' => ['IsClosedOnCreate']],
+        ];
+
+        foreach ($objectDefinitions as $settingsKey => $definition) {
+            if (!$this->_shouldFetchSettingsKey($settingsKey, (bool)$definition['enabled'])) {
+                continue;
+            }
+
+            $fields = $this->_fetchSObjectSettings(
+                $definition['sObject'],
+                $definition['excludeNames'] ?? [],
+            );
+
+            if ($fields !== null) {
+                $settings[$settingsKey] = $fields;
+            }
+        }
+
+        if ($this->_shouldFetchSettingsKey('campaignMember', $this->mapToCampaignMember)) {
+            $campaignMemberFields = $this->_fetchCampaignMemberSettings();
+
+            if ($campaignMemberFields !== null) {
+                $settings['campaignMember'] = $campaignMemberFields;
+            }
         }
 
         return new IntegrationFormSettings($settings);
@@ -1061,6 +1008,122 @@ class Salesforce extends Crm implements OAuthProviderInterface
         }
 
         return $customFields;
+    }
+
+    private function _shouldFetchSettingsKey(string $settingsKey, bool $enabled): bool
+    {
+        if (!$enabled) {
+            return false;
+        }
+
+        $dataKey = trim((string)($this->settingsContext->dataKey ?? ''));
+
+        if ($dataKey !== '') {
+            return $dataKey === $settingsKey;
+        }
+
+        return true;
+    }
+
+    private function _fetchSalesforceUsers(): void
+    {
+        $response = $this->request('GET', 'query', [
+            'query' => ['q' => 'SELECT ID,Name FROM User LIMIT 20'],
+        ]);
+
+        foreach ($response['records'] ?? [] as $user) {
+            $this->users[] = [
+                'label' => $user['Name'],
+                'value' => $user['Id'],
+            ];
+        }
+    }
+
+    private function _fetchSObjectSettings(string $sObject, array $excludeNames = []): ?array
+    {
+        try {
+            $response = $this->request('GET', "sobjects/{$sObject}/describe");
+
+            return $this->_getCustomFields($response['fields'] ?? [], $excludeNames);
+        } catch (RequestException $e) {
+            if ($this->_isSalesforceNotFoundError($e)) {
+                Integration::info($this, Craft::t('formie', 'Salesforce {object} object is not available for this org.', [
+                    'object' => $sObject,
+                ]));
+
+                return null;
+            }
+
+            Integration::apiError($this, $e);
+        } catch (Throwable $e) {
+            Integration::apiError($this, $e);
+        }
+
+        return null;
+    }
+
+    private function _fetchCampaignMemberSettings(): ?array
+    {
+        try {
+            $response = $this->request('GET', 'sobjects/CampaignMember/describe');
+            $fields = $response['fields'] ?? [];
+
+            $response = $this->request('GET', 'query', [
+                'query' => ['q' => 'SELECT ID,Name FROM Campaign'],
+            ]);
+
+            $campaignOptions = [];
+
+            foreach ($response['records'] ?? [] as $campaign) {
+                $campaignOptions[] = [
+                    'label' => $campaign['Name'],
+                    'value' => $campaign['Id'],
+                ];
+            }
+
+            return array_merge([
+                new IntegrationField([
+                    'handle' => 'CampaignId',
+                    'name' => Craft::t('formie', 'Campaign ID'),
+                    'required' => true,
+                    'options' => [
+                        'label' => Craft::t('formie', 'Campaign'),
+                        'options' => $campaignOptions,
+                    ],
+                ]),
+            ], $this->_getCustomFields($fields));
+        } catch (RequestException $e) {
+            if ($this->_isSalesforceNotFoundError($e)) {
+                Integration::info($this, Craft::t('formie', 'Salesforce {object} object is not available for this org.', [
+                    'object' => 'CampaignMember',
+                ]));
+
+                return null;
+            }
+
+            Integration::apiError($this, $e);
+        } catch (Throwable $e) {
+            Integration::apiError($this, $e);
+        }
+
+        return null;
+    }
+
+    private function _isSalesforceNotFoundError(RequestException $e): bool
+    {
+        $response = $e->getResponse();
+
+        if (!$response) {
+            return false;
+        }
+
+        if ($response->getStatusCode() === 404) {
+            return true;
+        }
+
+        $body = (string)$response->getBody();
+
+        return str_contains($body, 'NOT_FOUND');
     }
 
     private function _prepPayload(array $fields): array

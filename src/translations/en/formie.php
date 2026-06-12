@@ -1928,6 +1928,7 @@ return [
   'Sales Account ID' => 'Sales Account ID',
   'Salesflare' => 'Salesflare',
   'Salesforce' => 'Salesforce',
+  'Salesforce {object} object is not available for this org.' => 'Salesforce {object} object is not available for this org.',
   'Salutation' => 'Salutation',
   'Samoan' => 'Samoan',
   'Sango' => 'Sango',
