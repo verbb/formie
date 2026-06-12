@@ -516,6 +516,22 @@ class Formie extends Plugin
 
             if (Craft::$app instanceof ConsoleApplication) {
                 Console::stdout("done\n", Console::FG_GREEN);
+                Console::stdout('    > purging expired File Upload field assets ... ');
+            }
+
+            $this->getFileUploads()->pruneExpiredFieldAssets(
+                Craft::$app instanceof ConsoleApplication ? Craft::$app : null,
+            );
+
+            if (Craft::$app instanceof ConsoleApplication) {
+                Console::stdout("done\n", Console::FG_GREEN);
+                Console::stdout('    > purging stale pending File Upload assets ... ');
+            }
+
+            $this->getFileUploads()->purgeStalePendingUploads();
+
+            if (Craft::$app instanceof ConsoleApplication) {
+                Console::stdout("done\n", Console::FG_GREEN);
             }
         });
     }

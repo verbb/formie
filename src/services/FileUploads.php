@@ -2,12 +2,24 @@
 namespace verbb\formie\services;
 
 use verbb\formie\Formie;
+use verbb\formie\elements\Form;
+use verbb\formie\elements\Submission;
 use verbb\formie\fields\FileUpload;
+use verbb\formie\helpers\DataRetentionHelper;
+use verbb\formie\helpers\FileUploadRetentionHelper;
 use verbb\formie\helpers\Table;
+use verbb\formie\records\Submission as SubmissionRecord;
 
 use Craft;
 use craft\db\Query;
 use craft\elements\Asset;
+use craft\elements\db\AssetQuery;
+use craft\helpers\Console;
+use craft\helpers\Db;
+
+use DateTime;
+use Throwable;
+
 use yii\base\Component;
 
 class FileUploads extends Component
@@ -163,6 +175,171 @@ class FileUploads extends Component
         $rows = $this->getUploadMetadata([$assetId], $formId, $fieldUid);
 
         return $rows[0] ?? null;
+    }
+
+    public function pruneExpiredFieldAssets(mixed $consoleInstance = null): int
+    {
+        $forms = Form::find()->status(null)->all();
+        $purgedAssetCount = 0;
+
+        foreach ($forms as $form) {
+            $fields = FileUploadRetentionHelper::collectFieldsWithAssetRetention($form);
+
+            if (!$fields) {
+                continue;
+            }
+
+            foreach ($fields as $field) {
+                $cutoff = DataRetentionHelper::subtractInterval(
+                    new DateTime(),
+                    $field->assetDataRetention,
+                    (int)$field->assetDataRetentionValue,
+                );
+
+                if (!$cutoff) {
+                    continue;
+                }
+
+                if ($consoleInstance) {
+                    $consoleInstance->stdout(Craft::t('formie', 'Starting file upload asset retention for form “{f}”, field “{field}”: before {d}.', [
+                        'f' => $form->handle,
+                        'field' => $field->handle,
+                        'd' => Db::prepareDateForDb($cutoff),
+                    ]) . PHP_EOL, Console::FG_YELLOW);
+                }
+
+                $submissions = Submission::find()
+                    ->formId((int)$form->id)
+                    ->anyStatus()
+                    ->status(null)
+                    ->isIncomplete(null)
+                    ->isSpam(null)
+                    ->dateCreated('< ' . $cutoff->format('Y-m-d H:i:s'))
+                    ->all();
+
+                foreach ($submissions as $submission) {
+                    foreach ($this->_resolveContentKeysForField($submission, $form, $field) as $contentKey) {
+                        $purgedAssetCount += $this->_purgeSubmissionFieldAssets($submission, $contentKey);
+                    }
+                }
+            }
+        }
+
+        return $purgedAssetCount;
+    }
+
+    /**
+     * @return string[]
+     */
+    private function _resolveContentKeysForField(Submission $submission, Form $form, FileUpload $targetField): array
+    {
+        $keys = [];
+
+        foreach ($submission->getFieldValuesForField(FileUpload::class) as $contentKey => $value) {
+            $field = FileUploadRetentionHelper::resolveFileUploadFieldForContentKey($form, $contentKey);
+
+            if (!$field || $field->uid !== $targetField->uid) {
+                continue;
+            }
+
+            if (!$this->_fieldValueHasAssets($value)) {
+                continue;
+            }
+
+            $keys[] = $contentKey;
+        }
+
+        return $keys;
+    }
+
+    private function _purgeSubmissionFieldAssets(Submission $submission, string $contentKey): int
+    {
+        $value = $submission->getFieldValue($contentKey);
+        $assetIds = $this->_extractAssetIds($value);
+
+        if (!$assetIds) {
+            return 0;
+        }
+
+        $elementsService = Craft::$app->getElements();
+        $purged = 0;
+
+        foreach ($assetIds as $assetId) {
+            try {
+                $asset = Asset::find()->id($assetId)->status(null)->one();
+
+                if ($asset && $elementsService->deleteElement($asset, true)) {
+                    $purged++;
+                }
+
+                Craft::$app->getDb()->createCommand()
+                    ->delete(Table::FORMIE_PENDING_UPLOADS, ['assetId' => $assetId])
+                    ->execute();
+            } catch (Throwable $e) {
+                Formie::error("Failed to purge uploaded asset #{$assetId} for submission #{$submission->id}: {$e->getMessage()}");
+            }
+        }
+
+        if ($purged) {
+            $submission->setFieldValue($contentKey, []);
+            $this->_persistSubmissionContent($submission);
+        }
+
+        return $purged;
+    }
+
+    private function _persistSubmissionContent(Submission $submission): void
+    {
+        if (!$submission->id) {
+            return;
+        }
+
+        $record = SubmissionRecord::findOne($submission->id);
+
+        if (!$record) {
+            return;
+        }
+
+        $record->content = $submission->serializeFieldValues();
+        $record->save(false);
+    }
+
+    private function _fieldValueHasAssets(mixed $value): bool
+    {
+        return $this->_extractAssetIds($value) !== [];
+    }
+
+    /**
+     * @return int[]
+     */
+    private function _extractAssetIds(mixed $value): array
+    {
+        if ($value instanceof AssetQuery) {
+            return array_values(array_filter(array_map('intval', $value->ids())));
+        }
+
+        if ($value instanceof Asset) {
+            return [(int)$value->id];
+        }
+
+        if (is_array($value)) {
+            $assetIds = [];
+
+            foreach ($value as $item) {
+                if ($item instanceof Asset) {
+                    $assetIds[] = (int)$item->id;
+                    continue;
+                }
+
+                if (is_numeric($item)) {
+                    $assetIds[] = (int)$item;
+                }
+            }
+
+            return array_values(array_unique(array_filter($assetIds)));
+        }
+
+        return [];
     }
 
 }

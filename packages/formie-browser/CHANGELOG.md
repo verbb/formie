@@ -6,6 +6,10 @@
 
 - Add the `upload-manager` field module for File Upload **Upload Manager (Advanced)** fields, powered by Uppy (`@uppy/core` + `@uppy/xhr-upload`). Supports drag-and-drop, async staged uploads to Formie upload endpoints, transfer progress with server-processing feedback, remove, hidden asset ID sync, hydration for saved submissions and drafts, up/down reorder controls, and repeater row binding.
 
+### Changed
+
+- Run stale pending File Upload cleanup during Craft garbage collection.
+
 ### Fixed
 
 - Fix Signature field initialization on multi-page forms, conditional fields, and late layout by retrying canvas sizing, watching visibility changes, and surfacing accurate status messages when canvas support or init fails. ([#2708](https://github.com/verbb/formie/issues/2708))

@@ -123,6 +123,20 @@ Deletes stale submission draft state records.
 ./craft formie/gc/prune-submission-states
 ```
 
+### Prune File Upload Asset Retention
+Deletes uploaded assets that exceed a File Upload field's asset retention setting while keeping the submission record.
+
+```shell
+./craft formie/gc/prune-file-upload-asset-retention
+```
+
+### Prune Stale Pending Uploads
+Deletes unfinalized staged File Upload assets that exceed the plugin's maximum incomplete submission age.
+
+```shell
+./craft formie/gc/prune-stale-pending-uploads
+```
+
 Each of the above commands are also run automatically through [Craft's Garbage Collection](https://craftcms.com/docs/5.x/system/gc.html), so there's no need to add these commands unless you want fine-grained control over when they run.
 
 ## Delete Submissions

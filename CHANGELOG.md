@@ -6,6 +6,8 @@
 
 - Add **Display Type** settings to File Upload fields: **File Input (Simple)** keeps the native browser input and uploads files on form submit; **Upload Manager (Advanced)** adds a drag-and-drop zone with async staged uploads, progress, remove, and reorder controls via Formie’s upload endpoints. Existing forms default to **File Input (Simple)**. ([#133](https://github.com/verbb/formie/issues/133), [#2385](https://github.com/verbb/formie/issues/2385), [Discussion #1692](https://github.com/verbb/formie/discussions/1692))
 - Expose `displayType` on File Upload GraphQL field settings.
+- Add per-field **Asset Data Retention** settings to File Upload fields, allowing uploaded assets to be deleted after a configured duration while the submission record is kept. ([#1715](https://github.com/verbb/formie/issues/1715))
+- Run File Upload asset retention and stale pending upload cleanup through Craft garbage collection and dedicated console commands.
 
 ### Fixed
 - Fix Signature fields intermittently showing a misleading “browser does not support” message on multi-page forms, conditional fields, and late layout by retrying canvas sizing, watching visibility changes, and showing accurate status copy when initialization fails. ([#2708](https://github.com/verbb/formie/issues/2708))

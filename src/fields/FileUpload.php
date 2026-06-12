@@ -131,6 +131,8 @@ class FileUpload extends ElementField
     public ?string $uploadLocationSource = null;
     public ?string $uploadLocationSubpath = null;
     public mixed $filenameFormat = null;
+    public string $assetDataRetention = 'forever';
+    public ?string $assetDataRetentionValue = null;
 
     protected ?string $cpInputJsClass = 'Craft.AssetSelectInput';
     protected string $cpInputTemplate = '_components/fieldtypes/Assets/input';
@@ -525,6 +527,60 @@ class FileUpload extends ElementField
                 'options' => $this->getFileKindOptions(),
                 'if' => 'restrictFiles',
             ]),
+            [
+                '$el' => 'hr',
+            ],
+            [
+                '$el' => 'h3',
+                'children' => Craft::t('formie', 'Asset Retention'),
+                'attrs' => [
+                    'class' => 'form-builder-h3',
+                ],
+            ],
+            SchemaHelper::selectField([
+                'label' => Craft::t('formie', 'Asset Data Retention'),
+                'instructions' => Craft::t('formie', 'How long to retain uploaded assets for this field. The submission record is kept; only the uploaded files are removed.'),
+                'name' => 'assetDataRetention',
+                'options' => [
+                    [
+                        'value' => 'forever',
+                        'label' => Craft::t('formie', 'Forever'),
+                    ],
+                    [
+                        'value' => 'minutes',
+                        'label' => Craft::t('formie', 'Number of minutes'),
+                    ],
+                    [
+                        'value' => 'hours',
+                        'label' => Craft::t('formie', 'Number of hours'),
+                    ],
+                    [
+                        'value' => 'days',
+                        'label' => Craft::t('formie', 'Number of days'),
+                    ],
+                    [
+                        'value' => 'weeks',
+                        'label' => Craft::t('formie', 'Number of weeks'),
+                    ],
+                    [
+                        'value' => 'months',
+                        'label' => Craft::t('formie', 'Number of months'),
+                    ],
+                    [
+                        'value' => 'years',
+                        'label' => Craft::t('formie', 'Number of years'),
+                    ],
+                ],
+            ]),
+            SchemaHelper::numberField([
+                'label' => Craft::t('formie', 'Asset Data Retention Duration'),
+                'instructions' => Craft::t('formie', 'After this duration has been met, uploaded assets for this field are deleted while the submission is kept.'),
+                'name' => 'assetDataRetentionValue',
+                'if' => 'assetDataRetention != "forever"',
+                'warning' => Craft::t('formie', 'We use Craft‘s [garbage collection]({link}) mechanism to remove uploaded assets, so this may not always be actioned immediately.', [
+                    'link' => 'https://craftcms.com/docs/4.x/gc.html',
+                ]),
+            ]),
         ];
     }
 
@@ -754,6 +810,14 @@ class FileUpload extends ElementField
                     return $class->getVolume()->handle ?? '';
                 },
             ],
+            'assetDataRetention' => [
+                'name' => 'assetDataRetention',
+                'type' => Type::string(),
+            ],
+            'assetDataRetentionValue' => [
+                'name' => 'assetDataRetentionValue',
+                'type' => Type::string(),
+            ],
         ]);
     }
     
@@ -877,7 +941,7 @@ class FileUpload extends ElementField
 
     protected function supportedDefaults(): array
     {
-        return ['uploadLocationSource', 'displayType'];
+        return ['uploadLocationSource', 'displayType', 'assetDataRetention', 'assetDataRetentionValue'];
     }
 
     protected function defineValueAsString(mixed $value, ElementInterface $element = null): string

@@ -41,6 +41,28 @@ class GcController extends Controller
     }
 
     /**
+     * Removes uploaded assets that exceed a File Upload field's asset retention setting.
+     */
+    public function actionPruneFileUploadAssetRetention(): int
+    {
+        $count = Formie::$plugin->getFileUploads()->pruneExpiredFieldAssets($this);
+        $this->stdout('Purged uploaded assets: ' . $count . PHP_EOL, Console::FG_GREEN);
+
+        return ExitCode::OK;
+    }
+
+    /**
+     * Removes stale non-finalized pending uploads.
+     */
+    public function actionPruneStalePendingUploads(): int
+    {
+        $count = Formie::$plugin->getFileUploads()->purgeStalePendingUploads();
+        $this->stdout('Purged stale pending uploads: ' . $count . PHP_EOL, Console::FG_GREEN);
+
+        return ExitCode::OK;
+    }
+
+    /**
      * Removes stale submission states.
      */
     public function actionPruneSubmissionStates(): int

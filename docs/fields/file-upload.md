@@ -31,6 +31,12 @@ File Upload stores references to uploaded Craft assets. In templates, exports, s
 
 Both display types submit the same asset ID payload. **Upload Manager (Advanced)** stages uploads immediately and writes asset IDs into hidden inputs as each file completes. **File Input (Simple)** uploads files during submission processing.
 
+### Asset retention
+
+Each File Upload field can define **Asset Data Retention** in the field settings. When enabled, Formie deletes uploaded assets for that field after the configured duration while keeping the submission record. This is separate from the form-level **Data Retention** setting, which deletes entire submissions.
+
+Retention is processed through [Craft garbage collection](https://craftcms.com/docs/5.x/system/gc.html) and the `formie/gc/prune-file-upload-asset-retention` console command.
+
 For GraphQL mutations, File Upload fields accept an array of `FileUploadInput` values. You can pass base64 file data for new uploads or asset IDs for existing assets. See [Create Submissions](/graphql/create-submissions#file-upload-fields). Async staged uploads for headless forms are planned separately ([#2514](https://github.com/verbb/formie/issues/2514)).
 
 ## Multipage forms and drafts

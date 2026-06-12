@@ -18,6 +18,7 @@ use verbb\formie\fields\values\MultiOptionFieldValue;
 use verbb\formie\fields\values\NameFieldValue;
 use verbb\formie\fields as formiefields;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\DataRetentionHelper;
 use verbb\formie\helpers\References;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
@@ -322,29 +323,11 @@ class Submissions extends Component
                 ]) . PHP_EOL, Console::FG_YELLOW);
             }
 
-            // Setup intervals, depending on the setting
-            $intervalLookup = ['minutes' => 'MIN', 'hours' => 'H', 'days' => 'D', 'weeks' => 'W', 'months' => 'M', 'years' => 'Y'];
-            $intervalValue = $intervalLookup[$dataRetention] ?? '';
+            $date = DataRetentionHelper::subtractInterval(new DateTime(), $dataRetention, $dataRetentionValue);
 
-            if (!$intervalValue || !$dataRetentionValue) {
+            if (!$date) {
                 continue;
             }
-
-            // Handle weeks - not available built-in interval
-            if ($intervalValue === 'W') {
-                $intervalValue = 'D';
-                $dataRetentionValue *= 7;
-            }
-
-            $period = ($intervalValue === 'H' || $intervalValue === 'MIN') ? 'PT' : 'P';
-
-            if ($intervalValue === 'MIN') {
-                $intervalValue = 'M';
-            }
-
-            $interval = new DateInterval("{$period}{$dataRetentionValue}{$intervalValue}");
-            $date = new DateTime();
-            $date->sub($interval);
 
             // Include complete/incomplete/spam submissions and all element statuses for retention checks.
             $submissionQuery = Submission::find()
