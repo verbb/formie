@@ -44,3 +44,13 @@ Follow the below steps to connect to the Pardot API.
 1. In the left-hand sidebar, select the name you gave the integration.
 1. Enable the integration and fill out all required fields.
 1. Click **Save** to save the form.
+
+## Troubleshooting
+
+### Prospects are not created, or logs show API v4 errors
+
+Formie uses the Pardot **API v4** endpoints. If your account still uses the legacy **Pardot Classic** app (`pi.pardot.com`), Pardot returns an error such as `Your account is unable to use version 4 of the API` (error code `89`).
+
+Formie does not support the legacy Pardot Classic API. You will need an **Account Engagement** (Salesforce Pardot) business unit and OAuth connected app, as described above.
+
+Check `storage/logs/formie.log` after a test submission for integration errors.

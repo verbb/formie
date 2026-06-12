@@ -409,6 +409,12 @@ class Pardot extends Crm implements OAuthProviderInterface
                 $prospectId = $response['prospect']['id'] ?? '';
 
                 if (!$prospectId) {
+                    if ($message = self::_getApiCompatibilityError($response)) {
+                        Integration::error($this, $message, true);
+
+                        return false;
+                    }
+
                     Integration::error($this, Craft::t('formie', 'Missing return “prospectId” {response}. Sent payload {payload}', [
                         'response' => Json::encode($response),
                         'payload' => Json::encode($prospectPayload),
@@ -442,6 +448,12 @@ class Pardot extends Crm implements OAuthProviderInterface
                 $opportunityId = $response['opportunity']['id'] ?? '';
 
                 if (!$opportunityId) {
+                    if ($message = self::_getApiCompatibilityError($response)) {
+                        Integration::error($this, $message, true);
+
+                        return false;
+                    }
+
                     Integration::error($this, Craft::t('formie', 'Missing return “opportunityId” {response}. Sent payload {payload}', [
                         'response' => Json::encode($response),
                         'payload' => Json::encode($opportunityPayload),
@@ -666,5 +678,22 @@ class Pardot extends Crm implements OAuthProviderInterface
         }
 
         return $customFields;
+    }
+
+    private static function _getApiCompatibilityError(mixed $response): ?string
+    {
+        if (!is_array($response)) {
+            return null;
+        }
+
+        $attributes = $response['@attributes'] ?? [];
+        $errCode = (int)($attributes['err_code'] ?? $response['err_code'] ?? 0);
+        $err = strtolower((string)($response['err'] ?? ''));
+
+        if ($errCode === 89 || str_contains($err, 'unable to use version 4')) {
+            return Craft::t('formie', 'Your Pardot account does not support API v4. Formie requires Account Engagement (Salesforce Pardot). The legacy Pardot Classic app (pi.pardot.com) is not supported.');
+        }
+
+        return null;
     }
 }
