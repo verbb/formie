@@ -2002,7 +2002,7 @@ return [
   'Select from the available predefined options.' => 'Select from the available predefined options.',
   'Select how often this subscription should be billed.' => 'Select how often this subscription should be billed.',
   'Select how to format the value calculated for this field.' => 'Select how to format the value calculated for this field.',
-  'Select how to handle file uploads when a submission is deleted.' => 'Select how to handle file uploads when a submission is deleted.',
+  'Select how to handle file uploads when a submission is permanently deleted.' => 'Select how to handle file uploads when a submission is permanently deleted.',
   'Select how to show required fields.' => 'Select how to show required fields.',
   'Select Notification' => 'Select Notification',
   'Select the appearance for Turnstile to use.' => 'Select the appearance for Turnstile to use.',

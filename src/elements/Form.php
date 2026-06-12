@@ -2754,7 +2754,7 @@ class Form extends Element implements FormInterface
             ]),
             SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'File Uploads'),
-                'instructions' => Craft::t('formie', 'Select how to handle file uploads when a submission is deleted.'),
+                'instructions' => Craft::t('formie', 'Select how to handle file uploads when a submission is permanently deleted.'),
                 'name' => 'fileUploadsAction',
                 'options' => [
                     [

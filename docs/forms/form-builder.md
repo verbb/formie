@@ -51,7 +51,7 @@ Important examples include:
 - whether to collect the visitor IP address
 - whether to link the submission to a logged-in Craft user
 - how long to retain submission data
-- whether file uploads should be kept when a submission is removed
+- whether file uploads should be kept when a submission is permanently deleted
 
 These settings often end up being driven by policy rather than design, so it helps to check them early instead of leaving them until launch week.
 

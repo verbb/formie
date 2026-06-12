@@ -1208,11 +1208,9 @@ class Submission extends Element
             }
         }
 
-        // Check if we should hard-delete any file uploads - note once an asset is soft-deleted
-        // it's file is hard-deleted gone, so we cannot restore a file upload. I'm aware of `keepFileOnDelete`, but there's
-        // no way to remove that file on hard-delete, so that won't work.
-        // See https://github.com/craftcms/cms/issues/5074
-        if ($form && $form->fileUploadsAction === 'delete') {
+        // Delete associated file upload assets when the submission is permanently deleted
+        // and the form is configured to remove files.
+        if ($form && $form->fileUploadsAction === 'delete' && $this->hardDelete) {
             foreach ($this->getFieldValuesForField(FileUpload::class) as $value) {
                 $this->_assetsToDelete = array_merge($this->_assetsToDelete, $value->all());
             }
@@ -1244,7 +1242,7 @@ class Submission extends Element
             $field->afterElementDelete($this);
         }
 
-        parent::beforeDelete();
+        parent::afterDelete();
     }
 
     public function beforeDeleteForSite(): bool
