@@ -11,6 +11,9 @@
 
 - Add **Update on Submission Edit** to Entry element integrations. When **Update Entries** is enabled, this opt-in setting re-runs the integration when a submission is edited and re-submitted on the front end. ([#2591](https://github.com/verbb/formie/issues/2591), [#1970](https://github.com/verbb/formie/issues/1970))
 
+### Changed
+- Update phone number values sent to integrations to use `E164` format instead of international formatting. ([Discussion #2731](https://github.com/verbb/formie/discussions/2731))
+
 ### Fixed
 - Fix Opayo, Stripe, Paddle, and GoCardless payment integrations not resolving **Billing Details** field mappings from the form builder static table, so Name and Address fields are included in payment payloads again. ([#2617](https://github.com/verbb/formie/issues/2617))
 - Fix Salesforce integrations failing after Craft 5 / Formie 3 upgrades when OAuth tokens were migrated without `instance_url`, by falling back to stored integration settings and backfilling token values. ([#2492](https://github.com/verbb/formie/issues/2492))

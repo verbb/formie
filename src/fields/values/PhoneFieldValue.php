@@ -42,11 +42,11 @@ class PhoneFieldValue extends BaseFieldValue
         try {
             $phoneUtil = PhoneNumberUtil::getInstance();
             $numberProto = $phoneUtil->parse((string)$value);
-            $number = $phoneUtil->format($numberProto, PhoneNumberFormat::INTERNATIONAL);
+            $number = $phoneUtil->format($numberProto, PhoneNumberFormat::E164);
         } catch (Throwable) {
         }
 
-        return str_replace(' ', '', (string)$number);
+        return (string)$number;
     }
 
     public static function toNormalizedPhone(mixed $value): ?string
