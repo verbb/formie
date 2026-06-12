@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 4.0.0-beta.5 - 2026-06-12
 
 ### Added
 - Add a **Template** default value source for Hidden fields using sandboxed Craft object templates. Resolved server-side on render and submit; posted values are ignored. **Custom Value** behaviour is unchanged. ([#2605](https://github.com/verbb/formie/issues/2605))

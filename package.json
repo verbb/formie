@@ -14,6 +14,7 @@
     "release:patch": "node ./scripts/release.mjs patch",
     "release:minor": "node ./scripts/release.mjs minor",
     "release:major": "node ./scripts/release.mjs major",
+    "rebuild:assets": "node ./scripts/rebuild-assets.mjs",
     "dev": "npm run dev:cp & npm run dev:frontend & wait",
     "dev:docs": "npm run docs:dev -w @verbb/formie-frontend-docs",
     "dev:plugin-docs": "npm run docs:dev --prefix docs",
