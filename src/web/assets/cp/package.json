@@ -13,7 +13,7 @@
     "devDependencies": {
         "@eslint/js": "^9.39.4",
         "@tailwindcss/vite": "^4.2.4",
-        "@verbb/plugin-kit": "1.0.0",
+        "@verbb/plugin-kit": "1.0.5",
         "@vitejs/plugin-react": "^5.2.0",
         "eslint": "^9.39.4",
         "fs-extra": "^11.3.4",
@@ -32,7 +32,7 @@
         "@fortawesome/pro-regular-svg-icons": "^7.2.0",
         "@fortawesome/pro-solid-svg-icons": "^7.2.0",
         "@fortawesome/react-fontawesome": "^3.3.1",
-        "@verbb/plugin-kit-react": "1.0.4",
+        "@verbb/plugin-kit-react": "1.0.5",
         "flat": "^6.0.1",
         "jexl": "^2.3.0",
         "lodash-es": "^4.18.1",
