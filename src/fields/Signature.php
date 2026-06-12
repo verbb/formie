@@ -209,6 +209,22 @@ class Signature extends Field implements PreviewableFieldInterface
                 ]);
         }
 
+        if ($key === 'fieldMessage') {
+            return SlotTag::make('p')
+                ->core([
+                    'data-formie-signature-message' => true,
+                    'data-formie-signature-message-no-canvas' => Craft::t('formie', 'This browser does not support canvas, which is required for signatures.'),
+                    'data-formie-signature-message-init-failed' => Craft::t('formie', 'The signature pad could not be loaded. Try refreshing the page.'),
+                    'role' => 'status',
+                    'hidden' => true,
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-signature-message',
+                    ],
+                ]);
+        }
+
         if ($key === 'fieldRemoveButton') {
             return SlotTag::make('button')
                 ->core([

@@ -386,16 +386,49 @@ var s = class e extends a {
 			a.setAttribute("r", s.toString()), a.setAttribute("cx", e.x.toString()), a.setAttribute("cy", e.y.toString()), a.setAttribute("fill", t), o.appendChild(a);
 		}), o.outerHTML;
 	}
-}, c = "@layer formie-theme{[data-formie-field-type=signature] .formie-field-control{transition:border-color .15s,box-shadow .15s,background-color .15s;position:relative}[data-formie-field-type=signature] .formie-field-control:focus-within .formie-signature-canvas{border-color:var(--formie-focus-ring-border-color);box-shadow:var(--formie-shadow-focus)}.formie-field-has-error[data-formie-field-type=signature] .formie-signature-canvas{border-color:var(--formie-color-danger)}.formie-field-has-error[data-formie-field-type=signature] .formie-field-control:focus-within .formie-signature-canvas{box-shadow:var(--formie-shadow-danger-focus)}[data-formie-field-type=signature] .formie-signature-canvas{width:var(--formie-signature-width);height:var(--formie-signature-height);border:var(--formie-signature-border);background:var(--formie-signature-background);border-radius:var(--formie-signature-border-radius);touch-action:none;transition:border-color .15s,box-shadow .15s,background-color .15s;display:block}[data-formie-field-type=signature] .formie-signature-remove-button{top:var(--formie-signature-remove-button-top);right:var(--formie-signature-remove-button-right);transform:var(--formie-signature-remove-button-transform);font-size:0;line-height:0;position:absolute}}", l = "input[data-formie-signature-input]", u = "canvas[data-formie-signature-canvas]", d = "[data-formie-signature-clear]", f = "signature";
-e(f, [c]);
-function p(e) {
+}, c = "@layer formie-theme{[data-formie-field-type=signature] .formie-field-control{transition:border-color .15s,box-shadow .15s,background-color .15s;position:relative}[data-formie-field-type=signature] .formie-field-control:focus-within .formie-signature-canvas{border-color:var(--formie-focus-ring-border-color);box-shadow:var(--formie-shadow-focus)}.formie-field-has-error[data-formie-field-type=signature] .formie-signature-canvas{border-color:var(--formie-color-danger)}.formie-field-has-error[data-formie-field-type=signature] .formie-field-control:focus-within .formie-signature-canvas{box-shadow:var(--formie-shadow-danger-focus)}[data-formie-field-type=signature] .formie-signature-canvas{width:var(--formie-signature-width);height:var(--formie-signature-height);border:var(--formie-signature-border);background:var(--formie-signature-background);border-radius:var(--formie-signature-border-radius);touch-action:none;transition:border-color .15s,box-shadow .15s,background-color .15s;display:block}[data-formie-field-type=signature] .formie-signature-remove-button{top:var(--formie-signature-remove-button-top);right:var(--formie-signature-remove-button-right);transform:var(--formie-signature-remove-button-transform);font-size:0;line-height:0;position:absolute}[data-formie-field-type=signature] .formie-signature-pad{position:relative}[data-formie-field-type=signature] .formie-signature-message{padding:var(--formie-space-3);border:var(--formie-signature-border);border-radius:var(--formie-signature-border-radius);background:var(--formie-signature-background);color:var(--formie-color-text-muted);font-size:var(--formie-font-size-sm);line-height:var(--formie-line-height-base);margin:0}[data-formie-field-type=signature].formie-signature-has-message .formie-signature-canvas{display:none}}", l = "input[data-formie-signature-input]", u = "canvas[data-formie-signature-canvas]", d = "[data-formie-signature-clear]", f = "[data-formie-signature-message]", p = "signature", m = 20, h = 100, g = [
+	"hidden",
+	"data-formie-conditionally-hidden",
+	"data-formie-page-hidden",
+	"data-formie-row-hidden"
+];
+e(p, [c]);
+function _(e) {
 	let t = e.getBoundingClientRect();
 	return {
 		width: Math.round(t.width),
 		height: Math.round(t.height)
 	};
 }
-function m(e, t) {
+function v() {
+	let e = document.createElement("canvas");
+	return typeof e.getContext == "function" && !!e.getContext("2d");
+}
+function y(e) {
+	let t = e.querySelector(f);
+	return t instanceof HTMLElement ? t : null;
+}
+function b(e) {
+	let t = y(e);
+	return {
+		noCanvas: t?.dataset.formieSignatureMessageNoCanvas || "This browser does not support canvas, which is required for signatures.",
+		initFailed: t?.dataset.formieSignatureMessageInitFailed || "The signature pad could not be loaded. Try refreshing the page."
+	};
+}
+function x(e, t, n) {
+	let r = y(e);
+	if (r) {
+		if (n) {
+			r.textContent = n, r.hidden = !1, t.setAttribute("aria-hidden", "true"), e.classList.add("formie-signature-has-message");
+			return;
+		}
+		r.textContent = "", r.hidden = !0, t.removeAttribute("aria-hidden"), e.classList.remove("formie-signature-has-message");
+	}
+}
+function S(e) {
+	return !e.hasAttribute("hidden") && !e.hasAttribute("data-formie-conditionally-hidden") && !e.hasAttribute("data-formie-page-hidden") && !e.hasAttribute("data-formie-row-hidden") && e.getClientRects().length > 0;
+}
+function C(e, t) {
 	if (!t) return;
 	let n = new Image();
 	n.src = t, n.onload = () => {
@@ -403,46 +436,86 @@ function m(e, t) {
 		r && r.drawImage(n, 0, 0, e.width / t, e.height / t);
 	};
 }
-function h(e, t, r, i, a, o) {
-	let c = parseFloat(o.penWeight || "2") || 2, l = i.parentElement instanceof HTMLElement ? i.parentElement : t, u = new s(i, {
+async function w(e, t, n) {
+	if (n) try {
+		await e.fromDataURL(n);
+	} catch {
+		C(t, n);
+	}
+}
+function T(e, t, r, i, a, o) {
+	let c = b(t);
+	if (!v()) return x(t, i, c.noCanvas), () => {};
+	let l = parseFloat(o.penWeight || "2") || 2, u = i.parentElement instanceof HTMLElement ? i.parentElement : t, d = 0, f = null, y = !1, C = !1, T = new s(i, {
 		backgroundColor: o.backgroundColor || "rgba(255, 255, 255, 0)",
 		penColor: o.penColor || "#000000",
-		dotSize: c,
-		minWidth: c,
-		maxWidth: c
-	}), d = () => {
-		let { width: e, height: t } = p(i);
-		if (!(e > 0) || !(t > 0)) return;
+		dotSize: l,
+		minWidth: l,
+		maxWidth: l
+	}), E = () => {
+		f !== null && (window.clearTimeout(f), f = null);
+	}, D = () => {
+		y || (y = !0, C = !1, x(t, i, null), n(t, p, "init", { signature: T }));
+	}, O = () => {
+		y || C || (C = !0, x(t, i, c.initFailed));
+	}, k = async () => {
+		let { width: e, height: t } = _(i);
+		if (!(e > 0) || !(t > 0)) return !1;
 		let n = Math.max(window.devicePixelRatio || 1, 1), a = i.getContext("2d");
-		if (!a) return;
-		let o = r.value || (u.isEmpty() ? "" : u.toDataURL());
-		i.width = e * n, i.height = t * n, a.setTransform(1, 0, 0, 1, 0, 0), a.scale(n, n), u.clear(), m(i, o);
-	}, h = (e = 0) => {
+		if (!a) return !1;
+		let o = r.value || (T.isEmpty() ? "" : T.toDataURL());
+		return i.width = e * n, i.height = t * n, a.setTransform(1, 0, 0, 1, 0, 0), a.scale(n, n), T.clear(), await w(T, i, o), D(), !0;
+	}, A = () => {
+		if (!(y || C)) {
+			if (d >= m) {
+				O();
+				return;
+			}
+			E(), f = window.setTimeout(() => {
+				f = null, d += 1, j();
+			}, h);
+		}
+	}, j = async () => {
+		if (!await k()) {
+			A();
+			return;
+		}
+		E(), d = 0;
+	}, M = (e = 0) => {
 		window.setTimeout(() => {
 			window.requestAnimationFrame(() => {
-				d();
+				j();
 			});
 		}, e);
-	}, g = () => {
-		h();
-	}, _ = () => {
-		h(100);
-	}, v = typeof ResizeObserver > "u" ? null : new ResizeObserver(() => {
-		h();
-	}), y = (e) => {
+	}, N = () => {
+		S(t) && !y && (C = !1), M();
+	}, P = () => {
+		N();
+	}, F = () => {
+		S(t) && (d = 0, C = !1, M(100));
+	}, I = () => {
+		S(t) && (d = 0, C = !1, N());
+	}, L = typeof ResizeObserver > "u" ? null : new ResizeObserver(() => {
+		N();
+	}), R = new MutationObserver(() => {
+		I();
+	}), z = (e) => {
 		let t = r.value !== e;
 		r.value = e, t && (r.dispatchEvent(new Event("input", { bubbles: !0 })), r.dispatchEvent(new Event("change", { bubbles: !0 })));
-	}, b = () => {
-		y(u.isEmpty() ? "" : u.toDataURL());
-	}, x = () => {
-		u.clear(), y("");
+	}, B = () => {
+		z(T.isEmpty() ? "" : T.toDataURL());
+	}, V = () => {
+		T.clear(), z("");
 	};
-	return u.addEventListener("endStroke", b), window.addEventListener("resize", g), e.addEventListener("formie:page:navigate:after", _), v?.observe(l), h(), a && a.addEventListener("click", x), n(t, f, "init", { signature: u }), () => {
-		u.removeEventListener("endStroke", b), window.removeEventListener("resize", g), e.removeEventListener("formie:page:navigate:after", _), v?.disconnect(), a && a.removeEventListener("click", x), u.clear();
+	return T.addEventListener("endStroke", B), window.addEventListener("resize", P), e.addEventListener("formie:page:navigate:after", F), L?.observe(u), R.observe(t, {
+		attributes: !0,
+		attributeFilter: [...g]
+	}), M(), a && a.addEventListener("click", V), () => {
+		E(), T.removeEventListener("endStroke", B), window.removeEventListener("resize", P), e.removeEventListener("formie:page:navigate:after", F), L?.disconnect(), R.disconnect(), a && a.removeEventListener("click", V), T.clear();
 	};
 }
-var g = {
-	id: f,
+var E = {
+	id: p,
 	kind: "field",
 	match: (e) => !!e.target.querySelector(u),
 	setup: async (e) => {
@@ -450,7 +523,7 @@ var g = {
 		if (!r) return;
 		let i = t(e).map((e) => {
 			let t = e.querySelector(l), i = e.querySelector(u), a = e.querySelector(d);
-			return !(t instanceof HTMLInputElement) || !(i instanceof HTMLCanvasElement) ? () => {} : h(r, e, t, i, a instanceof HTMLElement ? a : null, n);
+			return !(t instanceof HTMLInputElement) || !(i instanceof HTMLCanvasElement) ? () => {} : T(r, e, t, i, a instanceof HTMLElement ? a : null, n);
 		});
 		return await e.emit("formie:module:signature:init", { count: i.length }), { destroy: () => {
 			i.forEach((e) => {
@@ -460,4 +533,4 @@ var g = {
 	}
 };
 //#endregion
-export { g as signatureModule };
+export { E as signatureModule };

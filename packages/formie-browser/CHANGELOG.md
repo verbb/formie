@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Fix Signature field initialization on multi-page forms, conditional fields, and late layout by retrying canvas sizing, watching visibility changes, and surfacing accurate status messages when canvas support or init fails. ([#2708](https://github.com/verbb/formie/issues/2708))
+
 ## 1.0.5 - 2026-06-12
 
 ### Added

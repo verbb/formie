@@ -1,8 +1,13 @@
 {{ fieldtag('fieldInput') }}
 
-{% fieldtag 'fieldCanvas' %}
-    {{- 'Your browser does not support the Signature field' | t('formie') -}}
-{% endfieldtag %}
+<div class="formie-signature-pad" data-formie-signature-pad>
+    {% fieldtag 'fieldCanvas' %}{% endfieldtag %}
+    {% fieldtag 'fieldMessage' %}
+</div>
+
+<noscript>
+    <p class="formie-signature-message formie-signature-message-noscript">{{ 'Signatures require JavaScript. Enable JavaScript to sign this form.' | t('formie') }}</p>
+</noscript>
 
 {% fieldtag 'fieldRemoveButton' %}
     {{- 'Clear' | t('formie') -}}

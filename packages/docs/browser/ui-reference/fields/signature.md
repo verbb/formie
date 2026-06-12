@@ -15,6 +15,7 @@ Use this page to preserve the canvas, hidden input, and clear action used by the
 | `canvas[data-formie-signature-canvas]` | SignaturePad drawing surface | Required |
 | `input[data-formie-signature-input]` | Hidden transport input for the signature value | Required |
 | `[data-formie-signature-clear]` | Clear-button selector | Recommended |
+| `[data-formie-signature-message]` | User-facing status when canvas is unavailable or init fails | Recommended |
 
 ## Behavior
 
@@ -22,7 +23,9 @@ The `signature` module:
 
 - mounts `SignaturePad` onto the canvas
 - synchronizes the drawn image back into the hidden input as a data URL
-- responds to page navigation and resize changes so the canvas can be remeasured safely
+- retries canvas sizing when the field starts hidden (multi-page forms, conditions, or late layout)
+- shows accurate status copy when JavaScript is disabled, canvas is unsupported, or initialization fails
+- responds to page navigation, resize, and visibility changes so the canvas can be remeasured safely
 
 ## Events
 

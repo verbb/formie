@@ -58,6 +58,7 @@
 
 ### Fixed
 - Fix page-reload single-line and multi-line text limit validation rerenders so field error styling, form-level error messages, and scroll/focus behaviour match ajax submissions. ([#1997](https://github.com/verbb/formie/issues/1997))
+- Fix Signature fields intermittently showing a misleading “browser does not support” message on multi-page forms, conditional fields, and late layout by retrying canvas sizing, watching visibility changes, and showing accurate status copy when initialization fails. ([#2708](https://github.com/verbb/formie/issues/2708))
 - Fix Recipients fields preserving the selected option label when multiple recipient options send to the same email address, using encrypted row identity tokens while keeping recipient emails private in front-end markup. ([#2382](https://github.com/verbb/formie/issues/2382))
 - Fix static Recipients option rows accepting invalid email targets by validating each comma-separated recipient address in the field settings.
 - Fix Dropdown, Radio and Checkboxes **Disabled** option availability not outputting HTML `disabled` on the front-end form. ([#1816](https://github.com/verbb/formie/issues/1816))

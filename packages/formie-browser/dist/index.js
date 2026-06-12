@@ -1369,7 +1369,7 @@ var Vt = class {
 	"address-state": () => import("./chunks/address-state-BQ0xGV9n.js").then((e) => e.addressStateModule),
 	repeater: () => import("./chunks/repeater-B5leVxZU.js").then((e) => e.repeaterModule),
 	"rich-text": () => import("./chunks/rich-text-Cv8ADyk-.js").then((e) => e.richTextModule),
-	signature: () => import("./chunks/signature-CpgqHCEx.js").then((e) => e.signatureModule),
+	signature: () => import("./chunks/signature-xz4QO7CR.js").then((e) => e.signatureModule),
 	summary: () => import("./chunks/summary-D3AjxpYN.js").then((e) => e.summaryModule),
 	table: () => import("./chunks/table-C-lkQN6I.js").then((e) => e.tableModule),
 	"text-limit": () => import("./chunks/text-limit-DbgEFHLO.js").then((e) => e.textLimitModule)

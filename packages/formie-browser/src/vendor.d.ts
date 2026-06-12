@@ -94,7 +94,7 @@ declare module 'signature_pad' {
         on(): void;
         removeEventListener(eventName: string, listener: EventListener): void;
         toDataURL(type?: string, encoderOptions?: number): string;
-        fromDataURL(dataUrl: string): void;
+        fromDataURL(dataUrl: string, options?: Record<string, unknown>): Promise<void>;
         isEmpty(): boolean;
     }
 }

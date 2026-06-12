@@ -36,4 +36,23 @@
         font-size: 0;
         line-height: 0;
     }
+
+    [data-formie-field-type="signature"] .formie-signature-pad {
+        position: relative;
+    }
+
+    [data-formie-field-type="signature"] .formie-signature-message {
+        margin: 0;
+        padding: var(--formie-space-3);
+        border: var(--formie-signature-border);
+        border-radius: var(--formie-signature-border-radius);
+        background: var(--formie-signature-background);
+        color: var(--formie-color-text-muted);
+        font-size: var(--formie-font-size-sm);
+        line-height: var(--formie-line-height-base);
+    }
+
+    [data-formie-field-type="signature"].formie-signature-has-message .formie-signature-canvas {
+        display: none;
+    }
 }

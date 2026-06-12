@@ -28,7 +28,10 @@ const preview: FormiePreviewSourceDefinition = {
                                                 <label class="formie-label formie-field-label" data-formie-label data-formie-field-label>Signature</label>
                                                 <div class="formie-field-content" data-formie-field-content>
                                                     <div class="formie-field-control" data-formie-field-control>
-                                                        <canvas class="formie-signature-canvas" data-formie-signature-canvas width="640" height="180" style="display:block; width:100%; height:180px;"></canvas>
+                                                        <div class="formie-signature-pad" data-formie-signature-pad>
+                                                            <canvas class="formie-signature-canvas" data-formie-signature-canvas width="640" height="180" style="display:block; width:100%; height:180px;"></canvas>
+                                                            <p class="formie-signature-message" data-formie-signature-message data-formie-signature-message-no-canvas="This browser does not support canvas, which is required for signatures." data-formie-signature-message-init-failed="The signature pad could not be loaded. Try refreshing the page." role="status" hidden></p>
+                                                        </div>
                                                         <input type="hidden" name="fields[signature]" data-formie-signature-input>
                                                         <button type="button" class="formie-button formie-button-icon formie-signature-remove-button" data-formie-icon="close" data-formie-remove-button data-formie-signature-clear aria-label="Clear signature" title="Clear signature">Clear signature</button>
                                                     </div>
