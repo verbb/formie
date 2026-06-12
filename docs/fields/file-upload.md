@@ -37,7 +37,7 @@ Each File Upload field can define **Asset Data Retention** in the field settings
 
 Retention is processed through [Craft garbage collection](https://craftcms.com/docs/5.x/system/gc.html) and the `formie/gc/prune-file-upload-asset-retention` console command.
 
-For GraphQL mutations, File Upload fields accept an array of `FileUploadInput` values. You can pass base64 file data for new uploads or asset IDs for existing assets. See [Create Submissions](/graphql/create-submissions#file-upload-fields). Async staged uploads for headless forms are planned separately ([#2514](https://github.com/verbb/formie/issues/2514)).
+For GraphQL mutations, File Upload fields accept an array of `FileUploadInput` values. You can pass base64 file data for new uploads or asset IDs for existing assets (including assets staged via the Formie upload endpoints). See [Create Submissions](/graphql/create-submissions#file-upload-fields).
 
 ## Multipage forms and drafts
 
