@@ -5,9 +5,12 @@ use verbb\formie\base\Integration;
 use verbb\formie\base\EmailMarketing;
 use verbb\formie\base\FormInterface;
 use verbb\formie\elements\Submission;
+use verbb\formie\events\ModifyFieldIntegrationValuesEvent;
+use verbb\formie\fields\values\AddressFieldValue;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
+use verbb\formie\helpers\Variables;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
@@ -18,6 +21,7 @@ use craft\helpers\App;
 use GuzzleHttp\Client;
 
 use Throwable;
+use yii\base\Event;
 
 class Mailchimp extends EmailMarketing
 {
@@ -60,6 +64,36 @@ class Mailchimp extends EmailMarketing
 
     // Public Methods
     // =========================================================================
+
+    public function init(): void
+    {
+        parent::init();
+
+        Event::on(self::class, self::EVENT_MODIFY_FIELD_MAPPING_VALUES, function(ModifyFieldIntegrationValuesEvent $event) {
+            if (!is_array($event->fieldValues) || !is_array($event->fieldSettings) || !is_array($event->fieldMapping)) {
+                return;
+            }
+
+            foreach ($event->fieldValues as $tag => $value) {
+                $integrationField = ArrayHelper::firstWhere($event->fieldSettings, 'handle', $tag);
+                if (!$integrationField || ($integrationField->sourceType ?? '') !== 'address') {
+                    continue;
+                }
+
+                $fieldKey = $event->integration->normalizeFieldMappingValue($event->fieldMapping[$tag] ?? '');
+                if ($fieldKey === '' || !str_contains($fieldKey, '{')) {
+                    continue;
+                }
+
+                $resolved = Variables::getFieldAndValueForReference($fieldKey, $event->submission);
+                $rawValue = $resolved['value'];
+
+                if ($rawValue instanceof AddressFieldValue) {
+                    $event->fieldValues[$tag] = self::_formatAddressMergeField($rawValue);
+                }
+            }
+        });
+    }
 
     public function getDescription(): string
     {
@@ -359,7 +393,7 @@ class Mailchimp extends EmailMarketing
             'dropdown',
             'date',
             // 'birthday',
-            // 'address',
+            'address',
             'zip',
             'phone',
             'url',
@@ -396,6 +430,28 @@ class Mailchimp extends EmailMarketing
         return array_map(function($tag) {
             return $tag['name'];
         }, $response['tags']);
+    }
+
+    private static function _formatAddressMergeField(AddressFieldValue $address): array
+    {
+        $country = trim((string)($address->country ?? ''));
+
+        if ($country !== '' && strlen($country) !== 2) {
+            $country = AddressFieldValue::nameToCode($country) ?? $country;
+        }
+
+        if ($country === '' && $address->countryOption) {
+            $country = AddressFieldValue::nameToCode((string)$address->countryOption) ?? '';
+        }
+
+        return ArrayHelper::filterEmptyStringsFromArray([
+            'addr1' => trim((string)($address->address1 ?? '')),
+            'addr2' => trim((string)($address->address2 ?? '')),
+            'city' => trim((string)($address->city ?? '')),
+            'state' => trim((string)($address->state ?? '')),
+            'zip' => trim((string)($address->zip ?? '')),
+            'country' => $country,
+        ]);
     }
 
     private function _getTagOptions(string $listId): array

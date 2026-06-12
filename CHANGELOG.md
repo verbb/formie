@@ -16,6 +16,7 @@
 - Fix Salesforce integrations failing after Craft 5 / Formie 3 upgrades when OAuth tokens were migrated without `instance_url`, by falling back to stored integration settings and backfilling token values. ([#2492](https://github.com/verbb/formie/issues/2492))
 - Fix Salesforce integration refresh failing when an enabled object such as Opportunity or Case is unavailable in the connected org. ([#1551](https://github.com/verbb/formie/issues/1551))
 - Fix Marketo OAuth connect failing when an empty `scope` parameter is sent with the client-credentials grant, and normalize API domains that include a trailing `/rest` segment. ([#2718](https://github.com/verbb/formie/issues/2718))
+- Fix Mailchimp integrations not exposing or formatting **Address** merge fields, which prevented mapping Formie Address fields to Mailchimp audiences that require `ADDRESS` data. ([#2387](https://github.com/verbb/formie/issues/2387))
 - Improve Pardot integration errors when an account does not support API v4 (legacy Pardot Classic). ([#2642](https://github.com/verbb/formie/issues/2642))
 - Fix file upload assets being deleted when trashing a submission with **File Uploads → Delete files** enabled, so restored submissions keep their uploaded files. ([#1258](https://github.com/verbb/formie/discussions/1258))
 - Fix new File Upload fields defaulting to an empty **Email Field Summary Value** setting.
