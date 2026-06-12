@@ -12,6 +12,7 @@ use verbb\formie\fields\FileUpload;
 use verbb\formie\helpers\Assets;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\errors\IntegrationException;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
@@ -34,6 +35,7 @@ use Throwable;
 use Exception;
 
 use verbb\auth\base\OAuthProviderInterface;
+use verbb\auth\clients\salesforce\token\SalesforceAccessToken;
 use verbb\auth\models\Token;
 use verbb\auth\providers\Salesforce as SalesforceProvider;
 
@@ -189,13 +191,54 @@ class Salesforce extends Crm implements OAuthProviderInterface
 
     public function getBaseApiUrl(?Token $token): ?string
     {
-        if (!$token) {
+        $instanceUrl = $this->getInstanceUrl($token);
+
+        if (!$instanceUrl) {
             return null;
         }
 
-        $url = $token->values['instance_url'] ?? '';
+        return "$instanceUrl/services/data/v49.0/";
+    }
 
-        return "$url/services/data/v49.0/";
+    public function getInstanceUrl(?Token $token): ?string
+    {
+        $instanceUrl = $token?->values['instance_url'] ?? null;
+
+        if (is_string($instanceUrl) && $instanceUrl !== '') {
+            return rtrim($instanceUrl, '/');
+        }
+
+        $accessToken = $token?->getToken();
+
+        if ($accessToken instanceof SalesforceAccessToken) {
+            $instanceUrl = $accessToken->getInstanceUrl();
+
+            if (is_string($instanceUrl) && $instanceUrl !== '') {
+                return rtrim($instanceUrl, '/');
+            }
+        }
+
+        $apiDomain = App::parseEnv($this->apiDomain);
+
+        if (is_string($apiDomain) && $apiDomain !== '') {
+            return rtrim($apiDomain, '/');
+        }
+
+        return null;
+    }
+
+    public function afterFetchAccessToken(Token $token): void
+    {
+        $instanceUrl = $this->getInstanceUrl($token);
+
+        if (!$instanceUrl) {
+            throw new IntegrationException(Craft::t('formie', 'Salesforce response missing `instance_url`.'));
+        }
+
+        $values = $token->values;
+        $values['instance_url'] = $instanceUrl;
+        $token->values = $values;
+        $this->apiDomain = $instanceUrl;
     }
 
     public function getOAuthProviderConfig(): array
