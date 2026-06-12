@@ -110,6 +110,9 @@ class Settings extends Model
     public bool $sendEmailAlerts = false;
     public ?array $alertEmails = null;
     public ?string $alertEmailsUserGroup = null;
+    public bool $sendIntegrationAlerts = false;
+    public ?array $integrationAlertEmails = null;
+    public ?string $integrationAlertEmailsUserGroup = null;
     public string $emptyValuePlaceholder = 'No response.';
     public int $maxEmailAttachmentSizeMb = 15;
 
@@ -176,115 +179,52 @@ class Settings extends Model
 
     public function validateAlertEmails($attribute): void
     {
-        if (!$this->sendEmailAlerts) {
-            return;
-        }
+        $this->_validateFailAlertRecipients(
+            $this->sendEmailAlerts,
+            $this->getParsedAlertEmails(),
+            $this->alertEmailsUserGroup,
+            'alertEmails',
+        );
+    }
 
-        $hasManualRecipients = !empty($this->getParsedAlertEmails());
-        $hasUserGroup = !empty($this->alertEmailsUserGroup);
-
-        if (!$hasManualRecipients && !$hasUserGroup) {
-            $this->addError('alertEmails', Craft::t('formie', 'You must select a user group or enter at least one email address.'));
-            return;
-        }
-
-        $emailValidator = new EmailValidator();
-
-        foreach ($this->getParsedAlertEmails() as $email) {
-            if (!$emailValidator->validate($email)) {
-                $this->addError('alertEmails', Craft::t('formie', '“{email}” is not a valid email address.', [
-                    'email' => $email,
-                ]));
-                return;
-            }
-        }
+    public function validateIntegrationAlertEmails($attribute): void
+    {
+        $this->_validateFailAlertRecipients(
+            $this->sendIntegrationAlerts,
+            $this->getParsedIntegrationAlertEmails(),
+            $this->integrationAlertEmailsUserGroup,
+            'integrationAlertEmails',
+        );
     }
 
     public function getAlertEmailRows(): array
     {
-        $rows = [];
+        return $this->_getAlertEmailRows($this->alertEmails);
+    }
 
-        foreach ($this->alertEmails ?? [] as $row) {
-            $email = $this->_extractAlertEmailValue($row);
-
-            if ($email === '') {
-                continue;
-            }
-
-            $rows[] = ['email' => $email];
-        }
-
-        return $rows;
+    public function getIntegrationAlertEmailRows(): array
+    {
+        return $this->_getAlertEmailRows($this->integrationAlertEmails);
     }
 
     public function getParsedAlertEmails(): array
     {
-        $emails = [];
+        return $this->_getParsedAlertEmails($this->alertEmails);
+    }
 
-        foreach ($this->alertEmails ?? [] as $row) {
-            $email = trim((string)App::parseEnv($this->_extractAlertEmailValue($row)));
-
-            if ($email === '') {
-                continue;
-            }
-
-            $emails[] = $email;
-        }
-
-        return array_values(array_unique($emails));
+    public function getParsedIntegrationAlertEmails(): array
+    {
+        return $this->_getParsedAlertEmails($this->integrationAlertEmails);
     }
 
     public function getFailAlertRecipients(): array
     {
-        $recipients = [];
-        $seenEmails = [];
+        return $this->_resolveFailAlertRecipients($this->alertEmails, $this->alertEmailsUserGroup);
+    }
 
-        foreach ($this->getParsedAlertEmails() as $email) {
-            $normalizedEmail = strtolower($email);
-
-            if (isset($seenEmails[$normalizedEmail])) {
-                continue;
-            }
-
-            $seenEmails[$normalizedEmail] = true;
-            $recipients[] = [
-                'name' => '',
-                'email' => $email,
-            ];
-        }
-
-        if ($this->alertEmailsUserGroup) {
-            $group = Craft::$app->getUserGroups()->getGroupByUid($this->alertEmailsUserGroup);
-
-            if ($group) {
-                $users = User::find()
-                    ->groupId($group->id)
-                    ->status(null)
-                    ->all();
-
-                foreach ($users as $user) {
-                    $email = $user->email ?? '';
-
-                    if ($email === '') {
-                        continue;
-                    }
-
-                    $normalizedEmail = strtolower($email);
-
-                    if (isset($seenEmails[$normalizedEmail])) {
-                        continue;
-                    }
-
-                    $seenEmails[$normalizedEmail] = true;
-                    $recipients[] = [
-                        'name' => $user->fullName ?: $user->username,
-                        'email' => $email,
-                    ];
-                }
-            }
-        }
-
-        return $recipients;
+    public function getIntegrationFailAlertRecipients(): array
+    {
+        return $this->_resolveFailAlertRecipients($this->integrationAlertEmails, $this->integrationAlertEmailsUserGroup);
     }
 
     public function getDefaultFormTemplateId(): ?int
@@ -446,6 +386,7 @@ class Settings extends Model
             self::PLAIN_TEXT_HTML_SANITIZATION_MODE_SANITIZE,
         ]];
         $rules[] = [['sendEmailAlerts'], 'validateAlertEmails'];
+        $rules[] = [['sendIntegrationAlerts'], 'validateIntegrationAlertEmails'];
         $rules[] = [['submissionSidebarFormOrder'], 'in', 'range' => [
             self::SUBMISSION_SIDEBAR_FORM_ORDER_DATE_CREATED_DESC,
             self::SUBMISSION_SIDEBAR_FORM_ORDER_DATE_CREATED_ASC,
@@ -475,7 +416,134 @@ class Settings extends Model
             $config['alertEmails'] = $this->_normalizeAlertEmails($config['alertEmails']);
         }
 
+        if (array_key_exists('integrationAlertEmailsUserGroupUid', $config) && !array_key_exists('integrationAlertEmailsUserGroup', $config)) {
+            $config['integrationAlertEmailsUserGroup'] = $config['integrationAlertEmailsUserGroupUid'];
+        }
+
+        unset($config['integrationAlertEmailsUserGroupUid']);
+
+        if (array_key_exists('integrationAlertEmails', $config)) {
+            $config['integrationAlertEmails'] = $this->_normalizeAlertEmails($config['integrationAlertEmails']);
+        }
+
         return $config;
+    }
+
+    private function _validateFailAlertRecipients(
+        bool $enabled,
+        array $parsedEmails,
+        ?string $userGroupUid,
+        string $errorAttribute,
+    ): void {
+        if (!$enabled) {
+            return;
+        }
+
+        $hasManualRecipients = !empty($parsedEmails);
+        $hasUserGroup = !empty($userGroupUid);
+
+        if (!$hasManualRecipients && !$hasUserGroup) {
+            $this->addError($errorAttribute, Craft::t('formie', 'You must select a user group or enter at least one email address.'));
+            return;
+        }
+
+        $emailValidator = new EmailValidator();
+
+        foreach ($parsedEmails as $email) {
+            if (!$emailValidator->validate($email)) {
+                $this->addError($errorAttribute, Craft::t('formie', '“{email}” is not a valid email address.', [
+                    'email' => $email,
+                ]));
+                return;
+            }
+        }
+    }
+
+    private function _getAlertEmailRows(?array $alertEmails): array
+    {
+        $rows = [];
+
+        foreach ($alertEmails ?? [] as $row) {
+            $email = $this->_extractAlertEmailValue($row);
+
+            if ($email === '') {
+                continue;
+            }
+
+            $rows[] = ['email' => $email];
+        }
+
+        return $rows;
+    }
+
+    private function _getParsedAlertEmails(?array $alertEmails): array
+    {
+        $emails = [];
+
+        foreach ($alertEmails ?? [] as $row) {
+            $email = trim((string)App::parseEnv($this->_extractAlertEmailValue($row)));
+
+            if ($email === '') {
+                continue;
+            }
+
+            $emails[] = $email;
+        }
+
+        return array_values(array_unique($emails));
+    }
+
+    private function _resolveFailAlertRecipients(?array $alertEmails, ?string $userGroupUid): array
+    {
+        $recipients = [];
+        $seenEmails = [];
+
+        foreach ($this->_getParsedAlertEmails($alertEmails) as $email) {
+            $normalizedEmail = strtolower($email);
+
+            if (isset($seenEmails[$normalizedEmail])) {
+                continue;
+            }
+
+            $seenEmails[$normalizedEmail] = true;
+            $recipients[] = [
+                'name' => '',
+                'email' => $email,
+            ];
+        }
+
+        if ($userGroupUid) {
+            $group = Craft::$app->getUserGroups()->getGroupByUid($userGroupUid);
+
+            if ($group) {
+                $users = User::find()
+                    ->groupId($group->id)
+                    ->status(null)
+                    ->all();
+
+                foreach ($users as $user) {
+                    $email = $user->email ?? '';
+
+                    if ($email === '') {
+                        continue;
+                    }
+
+                    $normalizedEmail = strtolower($email);
+
+                    if (isset($seenEmails[$normalizedEmail])) {
+                        continue;
+                    }
+
+                    $seenEmails[$normalizedEmail] = true;
+                    $recipients[] = [
+                        'name' => $user->fullName ?: $user->username,
+                        'email' => $email,
+                    ];
+                }
+            }
+        }
+
+        return $recipients;
     }
 
     private function _normalizeAlertEmails(mixed $alertEmails): ?array

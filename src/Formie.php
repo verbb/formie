@@ -793,6 +793,12 @@ class Formie extends Plugin
                 'subject' => Craft::t('formie', 'formie_failed_notification_subject'),
                 'body' => Craft::t('formie', 'formie_failed_notification_body'),
             ];
+            $event->messages[] = [
+                'key' => 'formie_failed_integration',
+                'heading' => Craft::t('formie', 'formie_failed_integration_heading'),
+                'subject' => Craft::t('formie', 'formie_failed_integration_subject'),
+                'body' => Craft::t('formie', 'formie_failed_integration_body'),
+            ];
         });
     }
 

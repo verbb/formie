@@ -12,7 +12,9 @@ use verbb\formie\events\IntegrationEvent;
 use verbb\formie\events\ModifyFormIntegrationEvent;
 use verbb\formie\events\ModifyFormIntegrationsEvent;
 use verbb\formie\events\RegisterIntegrationsEvent;
+use verbb\formie\errors\IntegrationException;
 use verbb\formie\events\TriggerIntegrationEvent;
+use verbb\formie\events\TriggerIntegrationFailureEvent;
 use verbb\formie\base\FormInterface;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\Plugin;
@@ -48,6 +50,7 @@ use craft\helpers\Db;
 use craft\helpers\Json;
 use craft\helpers\ProjectConfig as ProjectConfigHelper;
 use craft\helpers\Queue;
+use craft\queue\Queue as CraftQueue;
 
 use yii\base\Component;
 use yii\base\UnknownPropertyException;
@@ -71,6 +74,7 @@ class Integrations extends Component
     public const EVENT_BEFORE_APPLY_INTEGRATION_DELETE = 'beforeApplyIntegrationDelete';
     public const EVENT_AFTER_DELETE_INTEGRATION = 'afterDeleteIntegration';
     public const EVENT_BEFORE_TRIGGER_INTEGRATION = 'beforeTriggerIntegration';
+    public const EVENT_AFTER_TRIGGER_INTEGRATION_FAILED = 'afterTriggerIntegrationFailed';
     public const CONFIG_INTEGRATIONS_KEY = 'formie.integrations';
 
 
@@ -379,7 +383,149 @@ class Integrations extends Component
             return true;
         }
 
-        return $integration->sendPayLoad($event->submission);
+        try {
+            $response = $integration->sendPayLoad($event->submission);
+        } catch (Throwable $e) {
+            $this->handleTriggerIntegrationFailed($integration, $submission, $e);
+            throw $e;
+        }
+
+        if ($response instanceof IntegrationResponse && !$response->success) {
+            $this->handleTriggerIntegrationFailed(
+                $integration,
+                $submission,
+                new IntegrationException(Craft::t('formie', 'Failed to trigger integration: {message}.', [
+                    'message' => Json::encode($response->message),
+                ])),
+                $response,
+            );
+
+            return $response;
+        }
+
+        if (!$response) {
+            $this->handleTriggerIntegrationFailed(
+                $integration,
+                $submission,
+                new IntegrationException(Craft::t('formie', 'Failed to trigger integration. Check the Formie log files.')),
+            );
+
+            return false;
+        }
+
+        return $response;
+    }
+
+    public function handleTriggerIntegrationFailed(
+        Integration $integration,
+        Submission $submission,
+        Throwable $exception,
+        IntegrationResponse|array|null $integrationResponse = null,
+        ?int $queueJobId = null,
+    ): void {
+        $queueJob = $integration->getQueueJob();
+        $fromQueue = $queueJob instanceof TriggerIntegration;
+        $payload = $fromQueue ? ($queueJob->payload ?? null) : null;
+
+        if ($fromQueue && $queueJobId === null) {
+            $queue = Craft::$app->getQueue();
+
+            if ($queue instanceof CraftQueue) {
+                $currentJobId = (int)$queue->getJobId();
+
+                if ($currentJobId > 0) {
+                    $queueJobId = $currentJobId;
+                }
+            }
+        }
+
+        if ($this->hasEventHandlers(self::EVENT_AFTER_TRIGGER_INTEGRATION_FAILED)) {
+            $this->trigger(self::EVENT_AFTER_TRIGGER_INTEGRATION_FAILED, new TriggerIntegrationFailureEvent([
+                'submission' => $submission,
+                'integration' => $integration,
+                'exception' => $exception,
+                'integrationResponse' => $integrationResponse,
+                'payload' => $payload,
+                'queueJobId' => $queueJobId,
+                'fromQueue' => $fromQueue,
+            ]));
+        }
+
+        $this->sendFailAlertEmail($integration, $submission, $exception, $integrationResponse, $payload, $queueJobId);
+    }
+
+    public function sendFailAlertEmail(
+        Integration $integration,
+        Submission $submission,
+        Throwable $exception,
+        IntegrationResponse|array|null $integrationResponse = null,
+        mixed $payload = null,
+        ?int $queueJobId = null,
+    ): ?array {
+        /** @var Settings $settings */
+        $settings = Formie::$plugin->getSettings();
+
+        if (!$settings->sendIntegrationAlerts) {
+            return null;
+        }
+
+        if (!$settings->validate()) {
+            $error = Craft::t('formie', 'Integration fail alert settings are invalid: “{errors}”.', [
+                'errors' => Json::encode($settings->getErrors()),
+            ]);
+
+            Formie::error($error);
+
+            return ['error' => $error];
+        }
+
+        $form = $submission->getForm();
+        $renderVariables = [
+            'integration' => $integration,
+            'submission' => $submission,
+            'form' => $form,
+            'exception' => $exception,
+            'errorMessage' => $exception->getMessage(),
+            'integrationResponse' => $integrationResponse instanceof IntegrationResponse
+                ? $integrationResponse->toArray()
+                : $integrationResponse,
+            'payload' => $payload,
+            'queueJobId' => $queueJobId,
+        ];
+
+        $recipients = $settings->getIntegrationFailAlertRecipients();
+
+        if (!$recipients) {
+            $error = Craft::t('formie', 'No integration fail alert recipients are configured.');
+
+            Formie::error($error);
+
+            return ['error' => $error];
+        }
+
+        foreach ($recipients as $recipient) {
+            try {
+                Craft::$app->getMailer()
+                    ->composeFromKey('formie_failed_integration', $renderVariables)
+                    ->setTo($recipient['email'])
+                    ->send();
+            } catch (Throwable $e) {
+                Craft::$app->getErrorHandler()->logException($e);
+
+                $error = Craft::t('formie', 'Integration failure alert email could not be sent for submission “{submission}”. Error: {error} {file}:{line}', [
+                    'error' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'submission' => $submission->id ?: 'new',
+                ]);
+
+                Formie::error($error);
+
+                return ['error' => $error];
+            }
+        }
+
+        return null;
     }
 
     public function getIntegrationById(int $integrationId): ?IntegrationInterface
