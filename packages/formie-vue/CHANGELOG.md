@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.0.5 - 2026-06-12
+
 ### Changed
 
 - Update definition form rendering for Dropdown, Radio, and Checkboxes option availability states (`visible`, `hidden`, `disabled`).

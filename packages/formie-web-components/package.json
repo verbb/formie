@@ -1,6 +1,6 @@
 {
   "name": "@verbb/formie-web-components",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -39,8 +39,8 @@
     "build": "vite build && tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@verbb/formie-browser": "1.0.4",
-    "@verbb/formie-core": "1.0.4",
+    "@verbb/formie-browser": "1.0.5",
+    "@verbb/formie-core": "1.0.5",
     "lit": "^3.3.2",
     "signature_pad": "^5.1.3"
   },

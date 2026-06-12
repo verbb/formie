@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.0.5 - 2026-06-12
+
 ### Added
 
 - Add the `combobox` field module for searchable dropdown fields, powered by Tom Select. Supports single and multi-select filtering, placeholder handling, and Formie theme styling.

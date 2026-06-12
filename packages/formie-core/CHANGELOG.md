@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.0.5 - 2026-06-12
+
 ### Added
 
 - Add `date-parts-validation` utilities for Date/Time text input and dropdown display types, rejecting impossible dates and enforcing min/max date settings.
