@@ -38,6 +38,7 @@ class Entry extends Element
     public ?string $entryTypeSection = null;
     public mixed $defaultAuthorId = null;
     public ?bool $createDraft = null;
+    public ?bool $updateOnSubmissionEdit = null;
 
 
     // Public Methods
@@ -55,6 +56,11 @@ class Entry extends Element
     public function getDescription(): string
     {
         return Craft::t('formie', 'Map content provided by form submissions to create {name} elements.', ['name' => static::displayName()]);
+    }
+
+    public function shouldTriggerOnSubmissionEdit(): bool
+    {
+        return (bool)$this->updateElement && (bool)$this->updateOnSubmissionEdit;
     }
     
     public function fetchFormSettings(): IntegrationFormSettings
@@ -463,6 +469,13 @@ class Entry extends Element
                 'integrationFields' => $updateMappingSchema,
             ]);
         }
+
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'updateOnSubmissionEdit',
+            'label' => Craft::t('formie', 'Update on Submission Edit'),
+            'instructions' => Craft::t('formie', 'When a submission is edited and re-submitted on the front end, update the linked entry with the latest field values.'),
+            'if' => 'updateElement',
+        ]);
 
         $schema[] = SchemaHelper::lightswitchField([
             'name' => 'updateSearchIndexes',

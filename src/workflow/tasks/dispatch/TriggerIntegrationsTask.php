@@ -31,12 +31,20 @@ class TriggerIntegrationsTask implements TaskInterface
             return TaskResult::continue();
         }
 
-        if ($dispatchState->hasMarker(DispatchState::MARKER_INTEGRATIONS)) {
+        $isSubmissionEdit = $dispatchState->isSubmissionEditDispatch();
+
+        if (!$isSubmissionEdit && $dispatchState->hasMarker(DispatchState::MARKER_INTEGRATIONS)) {
             return TaskResult::continue(['reason' => 'integrationsAlreadyMarked']);
         }
 
-        Formie::$plugin->getIntegrations()->triggerIntegrations($context->request->submission);
-        $dispatchState->markMarker(DispatchState::MARKER_INTEGRATIONS);
+        Formie::$plugin->getIntegrations()->triggerIntegrations(
+            $context->request->submission,
+            $context->request->processMode,
+        );
+
+        if (!$isSubmissionEdit) {
+            $dispatchState->markMarker(DispatchState::MARKER_INTEGRATIONS);
+        }
 
         return TaskResult::continue();
     }

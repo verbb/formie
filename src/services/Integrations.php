@@ -36,6 +36,7 @@ use verbb\formie\models\IntegrationResponse;
 use verbb\formie\models\MissingIntegration;
 use verbb\formie\models\Settings;
 use verbb\formie\records\Integration as IntegrationRecord;
+use verbb\formie\services\SubmissionWorkflow;
 
 use Craft;
 use craft\base\MemoizableArray;
@@ -325,7 +326,7 @@ class Integrations extends Component
         return $this->_getLookupCache()->integrationsByType[$type];
     }
 
-    public function triggerIntegrations(Submission $submission): void
+    public function triggerIntegrations(Submission $submission, string $processMode = SubmissionWorkflow::PROCESS_MODE_SUBMIT): void
     {
         $settings = Formie::$plugin->getSettings();
         $form = $submission->getForm();
@@ -334,8 +335,14 @@ class Integrations extends Component
             return;
         }
 
+        $isSubmissionEdit = $processMode === SubmissionWorkflow::PROCESS_MODE_EDIT_EXISTING;
+
         foreach ($this->getAllEnabledIntegrationsForForm($form) as $integration) {
             if (!$integration->supportsPayloadSending()) {
+                continue;
+            }
+
+            if ($isSubmissionEdit && !$integration->shouldTriggerOnSubmissionEdit()) {
                 continue;
             }
 

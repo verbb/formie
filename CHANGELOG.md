@@ -9,6 +9,8 @@
 - Add per-field **Asset Data Retention** settings to File Upload fields, allowing uploaded assets to be deleted after a configured duration while the submission record is kept. ([#1715](https://github.com/verbb/formie/issues/1715))
 - Run File Upload asset retention and stale pending upload cleanup through Craft garbage collection and dedicated console commands.
 
+- Add **Update on Submission Edit** to Entry element integrations. When **Update Entries** is enabled, this opt-in setting re-runs the integration when a submission is edited and re-submitted on the front end. ([#2591](https://github.com/verbb/formie/issues/2591))
+
 ### Fixed
 - Fix Opayo, Stripe, Paddle, and GoCardless payment integrations not resolving **Billing Details** field mappings from the form builder static table, so Name and Address fields are included in payment payloads again. ([#2617](https://github.com/verbb/formie/issues/2617))
 - Fix file upload assets being deleted when trashing a submission with **File Uploads → Delete files** enabled, so restored submissions keep their uploaded files. ([#1258](https://github.com/verbb/formie/discussions/1258))

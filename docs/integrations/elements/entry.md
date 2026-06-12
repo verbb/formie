@@ -11,6 +11,7 @@ You'll need to configure:
 - Create a New Draft
 - Update Entries
 - Update Element Mapping
+- Update on Submission Edit
 - Update Search Index
 
 ### Mapping
@@ -31,5 +32,7 @@ The attribute mapping supports entry attributes like:
 - Date Updated
 
 If you turn on **Update Entries**, you can also choose which attributes or unique fields should be used to find an existing entry before updating it.
+
+Turn on **Update on Submission Edit** to keep the linked entry in sync when a submission is edited and re-submitted on the front end.
 
 When a form submission is created successfully, a queue job will run to create the entry element after the users' submission.

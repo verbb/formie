@@ -834,6 +834,11 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return $event->fieldValues;
     }
 
+    public function shouldTriggerOnSubmissionEdit(): bool
+    {
+        return false;
+    }
+
     public function populateContext(): void
     {
         $request = Craft::$app->getRequest();

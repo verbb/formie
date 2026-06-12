@@ -50,7 +50,20 @@ class DispatchState
     {
         $isFinalSubmitAction = $this->request->submitAction === SubmissionWorkflow::SUBMIT_ACTION_SUBMIT;
 
-        return $isFinalSubmitAction && !$this->request->submission->isIncomplete;
+        if (!$isFinalSubmitAction || $this->request->submission->isIncomplete) {
+            return false;
+        }
+
+        return in_array($this->request->processMode, [
+            SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+            SubmissionWorkflow::PROCESS_MODE_EDIT_EXISTING,
+            SubmissionWorkflow::PROCESS_MODE_PAYMENT_REPLAY,
+        ], true);
+    }
+
+    public function isSubmissionEditDispatch(): bool
+    {
+        return $this->request->processMode === SubmissionWorkflow::PROCESS_MODE_EDIT_EXISTING;
     }
 
     public function applySpamFailureIfNeeded(): void
@@ -121,6 +134,10 @@ class DispatchState
 
     public function isAlreadyFinalized(): bool
     {
+        if ($this->isSubmissionEditDispatch()) {
+            return false;
+        }
+
         return $this->hasMarker(self::MARKER_FINALIZED);
     }
 
