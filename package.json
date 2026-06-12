@@ -2,7 +2,6 @@
   "name": "formie-plugin-workspace",
   "private": true,
   "devDependencies": {
-    "@changesets/cli": "^2.31.0",
     "prettier": "^3.8.3"
   },
   "workspaces": [
@@ -11,9 +10,10 @@
     "src/web/assets/frontend"
   ],
   "scripts": {
-    "changeset": "changeset",
-    "version:packages": "changeset version && npm install --package-lock-only --ignore-scripts",
-    "publish:packages": "changeset publish",
+    "release": "node ./scripts/release.mjs",
+    "release:patch": "node ./scripts/release.mjs patch",
+    "release:minor": "node ./scripts/release.mjs minor",
+    "release:major": "node ./scripts/release.mjs major",
     "dev": "npm run dev:cp & npm run dev:frontend & wait",
     "dev:docs": "npm run docs:dev -w @verbb/formie-frontend-docs",
     "dev:plugin-docs": "npm run docs:dev --prefix docs",
@@ -29,7 +29,6 @@
     "build:formie-browser": "npm run build:formie-core && npm run build -w @verbb/formie-browser",
     "build:formie-react": "npm run build:formie-browser && npm run build -w @verbb/formie-react",
     "build:formie-vue": "npm run build:formie-browser && npm run build -w @verbb/formie-vue",
-    "build:formie-web-components": "npm run build:formie-browser && npm run build -w @verbb/formie-web-components",
-    "release:packages": "npm run version:packages && npm run build:packages && npm run publish:packages"
+    "build:formie-web-components": "npm run build:formie-browser && npm run build -w @verbb/formie-web-components"
   }
 }
