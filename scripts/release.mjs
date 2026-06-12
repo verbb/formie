@@ -316,8 +316,6 @@ try {
         );
     }
 
-    buildPackages();
-    packDryRunAll();
     publishPackages();
 
     run('git', [
