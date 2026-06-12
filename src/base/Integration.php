@@ -13,6 +13,7 @@ use verbb\formie\events\ModifyFieldIntegrationValuesEvent;
 use verbb\formie\events\ModifyIntegrationSlotTagEvent;
 use verbb\formie\events\SendIntegrationPayloadEvent;
 use verbb\formie\helpers\IntegrationHelper;
+use verbb\formie\helpers\IntegrationApiErrors;
 use verbb\formie\fields\Agree;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\References;
@@ -287,7 +288,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         }
     }
 
-    public static function apiError(IntegrationInterface $integration, Error|Exception $exception, bool $throwError = true): void
+    public static function apiError(IntegrationInterface $integration, Error|Exception $exception, bool $throwError = true, ?Submission $submission = null): void
     {
         $messageText = self::getExceptionLogMessage($exception);
 
@@ -297,11 +298,37 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
             'line' => $exception->getLine(),
         ]);
 
+        $context = self::formatSubmissionLogContext($submission);
+        if ($context !== '') {
+            $message .= ' ' . $context;
+        }
+
         Formie::error($integration->name . ': ' . $message);
 
         if ($throwError) {
             throw new IntegrationException($message, 0, $exception);
         }
+    }
+
+    public static function formatSubmissionLogContext(?Submission $submission): string
+    {
+        if (!$submission) {
+            return '';
+        }
+
+        $form = $submission->getForm();
+
+        if (!$form) {
+            return Craft::t('formie', '[Submission #{submissionId}]', [
+                'submissionId' => $submission->id,
+            ]);
+        }
+
+        return Craft::t('formie', '[Form “{handle}” (#{formId}) submission #{submissionId}]', [
+            'handle' => $form->handle,
+            'formId' => $form->id,
+            'submissionId' => $submission->id,
+        ]);
     }
 
     public static function getExceptionLogMessage(Throwable $exception): string
@@ -390,6 +417,37 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         }
 
         return $attributes;
+    }
+
+    public function supportsIntegrationApiErrorSeverity(): bool
+    {
+        return false;
+    }
+
+    /**
+     * Classify a submission-time API error for integrations that opt into severity handling.
+     *
+     * Return `null` to treat the error as a failure.
+     */
+    public function classifyIntegrationApiError(Throwable $exception): ?string
+    {
+        return null;
+    }
+
+    /**
+     * Handle a submission-time API error using plugin severity settings.
+     *
+     * @return bool Whether the integration send should be treated as successful.
+     */
+    public function handleSubmissionApiError(Throwable $exception, Submission $submission): bool
+    {
+        if (!$this->supportsIntegrationApiErrorSeverity()) {
+            throw new IntegrationException(Craft::t('formie', 'This integration does not support API error severity handling.'));
+        }
+
+        $severity = $this->classifyIntegrationApiError($exception) ?? IntegrationApiErrors::SEVERITY_FAILURE;
+
+        return IntegrationApiErrors::applySubmissionErrorAction($this, $exception, $submission, $severity);
     }
 
     public function getName(): string

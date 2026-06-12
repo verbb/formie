@@ -5,14 +5,17 @@ use verbb\formie\base\Integration;
 use verbb\formie\base\EmailMarketing;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\IntegrationApiErrors;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
 use craft\helpers\App;
+use craft\helpers\Json;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
 
 use Throwable;
 
@@ -175,12 +178,45 @@ class CampaignMonitor extends EmailMarketing
                 return true;
             }
         } catch (Throwable $e) {
-            Integration::apiError($this, $e);
+            if ($this->supportsIntegrationApiErrorSeverity()) {
+                return $this->handleSubmissionApiError($e, $submission);
+            }
+
+            Integration::apiError($this, $e, true, $submission);
 
             return false;
         }
 
         return true;
+    }
+
+    public function supportsIntegrationApiErrorSeverity(): bool
+    {
+        return true;
+    }
+
+    public function classifyIntegrationApiError(Throwable $exception): ?string
+    {
+        if (!$exception instanceof RequestException || !$exception->getResponse()) {
+            return null;
+        }
+
+        $statusCode = $exception->getResponse()->getStatusCode();
+        $body = (string)$exception->getResponse()->getBody();
+
+        if ($statusCode === 429) {
+            return IntegrationApiErrors::SEVERITY_RATE_LIMITED;
+        }
+
+        if ($statusCode === 400) {
+            $decoded = Json::decodeIfJson($body);
+
+            if (is_array($decoded) && array_key_exists('Code', $decoded)) {
+                return IntegrationApiErrors::SEVERITY_REJECTED;
+            }
+        }
+
+        return null;
     }
 
     public function fetchConnection(): bool

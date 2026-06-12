@@ -3,6 +3,7 @@ namespace verbb\formie\controllers;
 
 use verbb\formie\Formie;
 use verbb\formie\helpers\FieldBuilderPolicy;
+use verbb\formie\helpers\IntegrationApiErrors;
 use verbb\formie\helpers\Plugin;
 use verbb\formie\models\Settings;
 
@@ -143,7 +144,11 @@ class SettingsController extends SettingsAccessController
         /* @var Settings $settings */
         $settings = Formie::$plugin->getSettings();
 
-        return $this->renderTemplate('formie/settings/submissions', compact('settings'));
+        return $this->renderTemplate('formie/settings/submissions', [
+            'settings' => $settings,
+            'integrationApiErrorSeverityOptions' => IntegrationApiErrors::severityOptions(),
+            'integrationApiErrorActionOptions' => IntegrationApiErrors::actionOptions(),
+        ]);
     }
 
     public function actionSpam(): Response

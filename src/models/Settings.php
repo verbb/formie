@@ -4,6 +4,7 @@ namespace verbb\formie\models;
 use verbb\formie\Formie;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\CpSubmissionFieldConditions;
+use verbb\formie\helpers\IntegrationApiErrors;
 use verbb\formie\helpers\Plugin;
 use verbb\formie\positions\AboveInput;
 use verbb\formie\positions\BelowInput;
@@ -81,6 +82,7 @@ class Settings extends Model
     public bool $useQueueForNotifications = true;
     public bool $useQueueForIntegrations = true;
     public ?int $queuePriority = null;
+    public array $integrationApiErrorHandling = [];
     public bool $setOnlyCurrentPagePayload = false;
     public string|array $submissionsBehaviour = 'all';
     public int $submissionStateRetentionDays = 30;
@@ -146,6 +148,7 @@ class Settings extends Model
         }
 
         $config = $this->_normalizeFailAlertSettingsConfig($config);
+        $config = $this->_normalizeIntegrationApiErrorHandlingConfig($config);
 
         parent::__construct($config);
     }
@@ -165,6 +168,7 @@ class Settings extends Model
 
         if (is_array($values)) {
             $values = $this->_normalizeFailAlertSettingsConfig($values);
+            $values = $this->_normalizeIntegrationApiErrorHandlingConfig($values);
         }
 
         parent::setAttributes($values, $safeOnly);
@@ -346,6 +350,28 @@ class Settings extends Model
         ], $this->integrationDefaults);
     }
 
+    public function getIntegrationApiErrorHandlingRows(): array
+    {
+        $rows = $this->integrationApiErrorHandling;
+
+        if ($rows === []) {
+            return IntegrationApiErrors::defaultHandlingRows();
+        }
+
+        return $rows;
+    }
+
+    public function getIntegrationApiErrorAction(string $severity): string
+    {
+        foreach ($this->getIntegrationApiErrorHandlingRows() as $row) {
+            if (($row['severity'] ?? '') === $severity) {
+                return (string)($row['action'] ?? IntegrationApiErrors::ACTION_FAIL_QUEUE);
+            }
+        }
+
+        return IntegrationApiErrors::ACTION_FAIL_QUEUE;
+    }
+
     public function shouldSaveSpam(Submission $submission): bool
     {
         if ($this->saveSpam) {
@@ -486,5 +512,47 @@ class Settings extends Model
         }
 
         return trim((string)$row);
+    }
+
+    private function _normalizeIntegrationApiErrorHandlingConfig(array $config): array
+    {
+        if (!array_key_exists('integrationApiErrorHandling', $config)) {
+            return $config;
+        }
+
+        $config['integrationApiErrorHandling'] = $this->_normalizeIntegrationApiErrorHandling($config['integrationApiErrorHandling']);
+
+        return $config;
+    }
+
+    private function _normalizeIntegrationApiErrorHandling(mixed $rows): array
+    {
+        if (!is_array($rows)) {
+            return IntegrationApiErrors::defaultHandlingRows();
+        }
+
+        $allowedSeverities = array_column(IntegrationApiErrors::severityOptions(), 'value');
+        $allowedActions = array_column(IntegrationApiErrors::actionOptions(), 'value');
+        $normalized = [];
+
+        foreach ($rows as $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+
+            $severity = (string)($row['severity'] ?? '');
+            $action = (string)($row['action'] ?? '');
+
+            if (!in_array($severity, $allowedSeverities, true) || !in_array($action, $allowedActions, true)) {
+                continue;
+            }
+
+            $normalized[] = [
+                'severity' => $severity,
+                'action' => $action,
+            ];
+        }
+
+        return $normalized !== [] ? $normalized : IntegrationApiErrors::defaultHandlingRows();
     }
 }

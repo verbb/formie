@@ -14,6 +14,7 @@
 ### Changed
 - Update phone number values sent to integrations to use `E164` format instead of international formatting. ([Discussion #2731](https://github.com/verbb/formie/discussions/2731))
 - Improve integration queue job descriptions and debug output with form context (`formId`, `formHandle`, `formTitle`). ([#2172](https://github.com/verbb/formie/discussions/2172))
+- Add configurable **Integration API Error Handling** for Mailchimp and Campaign Monitor, classifying rate-limited and rejected payloads separately from operational failures. ([#2172](https://github.com/verbb/formie/discussions/2172), [#1990](https://github.com/verbb/formie/issues/1990))
 
 ### Fixed
 - Fix Opayo, Stripe, Paddle, and GoCardless payment integrations not resolving **Billing Details** field mappings from the form builder static table, so Name and Address fields are included in payment payloads again. ([#2617](https://github.com/verbb/formie/issues/2617))

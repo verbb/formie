@@ -8,6 +8,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyFieldIntegrationValuesEvent;
 use verbb\formie\fields\values\AddressFieldValue;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\IntegrationApiErrors;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Variables;
@@ -19,6 +20,7 @@ use Craft;
 use craft\helpers\App;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
 
 use Throwable;
 use yii\base\Event;
@@ -278,12 +280,46 @@ class Mailchimp extends EmailMarketing
                 }
             }
         } catch (Throwable $e) {
-            Integration::apiError($this, $e);
+            if ($this->supportsIntegrationApiErrorSeverity()) {
+                return $this->handleSubmissionApiError($e, $submission);
+            }
+
+            Integration::apiError($this, $e, true, $submission);
 
             return false;
         }
 
         return true;
+    }
+
+    public function supportsIntegrationApiErrorSeverity(): bool
+    {
+        return true;
+    }
+
+    public function classifyIntegrationApiError(Throwable $exception): ?string
+    {
+        if (!$exception instanceof RequestException || !$exception->getResponse()) {
+            return null;
+        }
+
+        $statusCode = $exception->getResponse()->getStatusCode();
+        $body = strtolower((string)$exception->getResponse()->getBody());
+
+        if ($statusCode === 429) {
+            return IntegrationApiErrors::SEVERITY_RATE_LIMITED;
+        }
+
+        if ($statusCode === 400 && (
+            str_contains($body, 'invalid') ||
+            str_contains($body, 'merge') ||
+            str_contains($body, 'looks fake') ||
+            str_contains($body, 'provide a valid')
+        )) {
+            return IntegrationApiErrors::SEVERITY_REJECTED;
+        }
+
+        return null;
     }
 
     public function fetchConnection(): bool
