@@ -241,6 +241,7 @@ class Formie extends Plugin
     private function _registerSiteRoutes(): void
     {
         Event::on(UrlManager::class, UrlManager::EVENT_REGISTER_SITE_URL_RULES, function(RegisterUrlRulesEvent $event) {
+            // Legacy route for OAuth callbacks registered before action URLs became the default.
             $event->rules['formie/integrations/callback'] = 'formie/integrations/callback';
             $event->rules['formie/file-upload/upload'] = 'formie/file-upload/upload';
             $event->rules['formie/file-upload/delete'] = 'formie/file-upload/delete';

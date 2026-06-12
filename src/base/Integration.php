@@ -104,6 +104,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     public const CONNECT_SUCCESS = 'success';
     public const CONNECT_FAIL = 'fail';
+    public const OAUTH_CALLBACK_ACTION = 'formie/integrations/callback';
 
 
     // Traits
@@ -779,11 +780,13 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     public function getRedirectUri(): ?string
     {
-        if (Craft::$app->getConfig()->getGeneral()->headlessMode) {
-            return UrlHelper::actionUrl('formie/integrations/callback');
+        $redirectUri = App::parseEnv(Formie::$plugin->getSettings()->redirectUri);
+
+        if (is_string($redirectUri) && $redirectUri !== '') {
+            return $redirectUri;
         }
 
-        return UrlHelper::siteUrl('formie/integrations/callback');
+        return UrlHelper::actionUrl(self::OAUTH_CALLBACK_ACTION);
     }
 
     public function request(string $method, string $uri, array $options = []): mixed

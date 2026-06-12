@@ -82,6 +82,7 @@ class Settings extends Model
     public bool $useQueueForNotifications = true;
     public bool $useQueueForIntegrations = true;
     public ?int $queuePriority = null;
+    public ?string $redirectUri = null;
     public array $integrationApiErrorHandling = [];
     public bool $setOnlyCurrentPagePayload = false;
     public string|array $submissionsBehaviour = 'all';

@@ -87,6 +87,7 @@ return [
         'useQueueForNotifications' => true,
         'useQueueForIntegrations' => true,
         'queuePriority' => null,
+        'redirectUri' => null,
         'setOnlyCurrentPagePayload' => false,
         'submissionsBehaviour' => 'all',
         'submissionStateRetentionDays' => 30,
@@ -174,6 +175,7 @@ return [
 - `useQueueForNotifications` sends email notifications through Craft’s queue. This is recommended for production sites so form submissions are not slowed down by email delivery.
 - `useQueueForIntegrations` sends integrations through Craft’s queue. This is recommended for production sites so form submissions are not slowed down by third-party APIs.
 - `queuePriority` sets the Craft queue priority for notification and integration jobs.
+- `redirectUri` overrides the OAuth redirect URI for integration connections. When omitted, Formie uses an action URL (`actions/formie/integrations/callback`). Environment variables are supported.
 - `setOnlyCurrentPagePayload` limits multi-page form payloads to the current page when processing a page request.
 - `submissionsBehaviour` controls which submissions are saved. The default is `all`.
 - `submissionStateRetentionDays` sets how long incomplete submission state can be kept for save-and-resume and front-end submission state.

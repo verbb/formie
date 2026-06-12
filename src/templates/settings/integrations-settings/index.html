@@ -34,6 +34,17 @@
             warning: macros.configWarning('queuePriority', 'formie'),
         }) }}
 
+        {{ forms.autosuggestField({
+            label: 'OAuth Redirect URI Override' | t('formie'),
+            instructions: 'Set the OAuth redirect URI if you need to change it from the default action URL. Use this when registering your app with third-party providers.' | t('formie'),
+            id: 'redirectUri',
+            name: 'redirectUri',
+            suggestEnvVars: true,
+            value: settings.redirectUri,
+            errors: settings.getErrors('redirectUri'),
+            warning: macros.configWarning('redirectUri', 'formie'),
+        }) }}
+
         {{ forms.editableTableField({
             label: 'Integration API Error Handling' | t('formie'),
             instructions: 'Control how integration API errors are handled when syncing submissions. Only integrations with severity handling use these settings; all others fail the queue job on API errors.' | t('formie'),

@@ -17,6 +17,7 @@
 - Add configurable **Integration API Error Handling** for Mailchimp and Campaign Monitor, classifying rate-limited and rejected payloads separately from operational failures. ([#2172](https://github.com/verbb/formie/discussions/2172), [#1990](https://github.com/verbb/formie/issues/1990))
 - Add `Integrations::EVENT_AFTER_TRIGGER_INTEGRATION_FAILED` for handling integration failures outside the queue, and **Send Email Alert for Failed Integration** settings mirroring failed notification alerts. ([Discussion #2579](https://github.com/verbb/formie/discussions/2579))
 - Reorganise plugin settings: move integration behaviour settings to **Settings → Behavior → Integrations**, and move **Use Queue for Notifications** to **Email Notifications**.
+- OAuth integration redirect URIs now default to a Craft action URL instead of a site URL. Add an optional **OAuth Redirect URI Override** plugin setting. ([#1333](https://github.com/verbb/formie/issues/1333))
 
 ### Fixed
 - Fix Opayo, Stripe, Paddle, and GoCardless payment integrations not resolving **Billing Details** field mappings from the form builder static table, so Name and Address fields are included in payment payloads again. ([#2617](https://github.com/verbb/formie/issues/2617))
