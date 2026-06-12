@@ -146,6 +146,16 @@ class SettingsController extends SettingsAccessController
 
         return $this->renderTemplate('formie/settings/submissions', [
             'settings' => $settings,
+        ]);
+    }
+
+    public function actionIntegrationsSettings(): Response
+    {
+        /* @var Settings $settings */
+        $settings = Formie::$plugin->getSettings();
+
+        return $this->renderTemplate('formie/settings/integrations-settings', [
+            'settings' => $settings,
             'integrationApiErrorSeverityOptions' => IntegrationApiErrors::severityOptions(),
             'integrationApiErrorActionOptions' => IntegrationApiErrors::actionOptions(),
         ]);

@@ -1,0 +1,117 @@
+{% extends 'formie/_layouts/settings' %}
+
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{% block content %}
+
+<h2>{{ 'Integrations' | t('formie') }}</h2>
+
+<form action="" method="post" accept-charset="UTF-8" data-saveshortcut>
+    <input type="hidden" name="action" value="formie/settings/save-settings">
+    {{ redirectInput('formie/settings/integrations-settings') }}
+    {{ csrfInput() }}
+
+    {% namespace 'settings' %}
+        {{ forms.lightswitchField({
+            first: true,
+            label: 'Use Queue for Integrations' | t('formie'),
+            instructions: 'Whether to use Craft‘s queue system to trigger integrations. This is highly recommended to prevent slow submissions for your users.' | t('formie'),
+            id: 'useQueueForIntegrations',
+            name: 'useQueueForIntegrations',
+            on: settings.useQueueForIntegrations,
+            warning: macros.configWarning('useQueueForIntegrations', 'formie'),
+        }) }}
+
+        {{ forms.textField({
+            type: 'number',
+            label: 'Queue Priority' | t('formie'),
+            instructions: 'The Craft queue priority for notification and integration jobs. Leave blank to use the default queue priority.' | t('formie'),
+            id: 'queuePriority',
+            name: 'queuePriority',
+            value: settings.queuePriority,
+            size: 5,
+            warning: macros.configWarning('queuePriority', 'formie'),
+        }) }}
+
+        {{ forms.editableTableField({
+            label: 'Integration API Error Handling' | t('formie'),
+            instructions: 'Control how integration API errors are handled when syncing submissions. Only integrations with severity handling use these settings; all others fail the queue job on API errors.' | t('formie'),
+            id: 'integrationApiErrorHandling',
+            name: 'integrationApiErrorHandling',
+            cols: {
+                severity: {
+                    type: 'select',
+                    heading: 'Severity' | t('formie'),
+                    options: integrationApiErrorSeverityOptions,
+                },
+                action: {
+                    type: 'select',
+                    heading: 'Action' | t('formie'),
+                    options: integrationApiErrorActionOptions,
+                },
+            },
+            rows: settings.getIntegrationApiErrorHandlingRows(),
+            errors: settings.getErrors('integrationApiErrorHandling'),
+            warning: macros.configWarning('integrationApiErrorHandling', 'formie'),
+            allowAdd: false,
+            allowDelete: false,
+            allowReorder: true,
+        }) }}
+
+        {{ forms.lightswitchField({
+            label: 'Send Email Alert for Failed Integration' | t('formie'),
+            instructions: 'Enable this option to send nominated email addresses an alert email when an integration cannot be triggered.' | t('formie'),
+            name: 'sendIntegrationAlerts',
+            on: settings.sendIntegrationAlerts,
+            warning: macros.configWarning('sendIntegrationAlerts', 'formie'),
+            toggle: 'send-integration-alerts',
+        }) }}
+
+        <div id="send-integration-alerts" class="{{ not settings.sendIntegrationAlerts ? 'hidden' }}">
+            {% set groups = [{ label: 'None' | t('formie'), value: '' }] %}
+
+            {% for group in craft.app.userGroups.getAllGroups() %}
+                {% set groups = groups | merge([{ label: group.name, value: group.uid }]) %}
+            {% endfor %}
+
+            {{ forms.selectField({
+                label: 'Integration Alert User Group' | t('formie'),
+                instructions: 'Select the user group to receive failed integration alerts. Each user in this group will receive an email.' | t('formie'),
+                id: 'integrationAlertEmailsUserGroup',
+                name: 'integrationAlertEmailsUserGroup',
+                suggestEnvVars: true,
+                value: settings.integrationAlertEmailsUserGroup,
+                options: groups,
+                errors: settings.getErrors('integrationAlertEmailsUserGroup'),
+                warning: macros.configWarning('integrationAlertEmailsUserGroup', 'formie'),
+            }) }}
+
+            {{ forms.editableTableField({
+                label: 'Integration Alert Email Addresses' | t('formie'),
+                instructions: 'Enter any additional email addresses to receive failed integration alerts. These recipients do not need to be Craft users.' | t('formie'),
+                id: 'integrationAlertEmails',
+                name: 'integrationAlertEmails',
+                cols: {
+                    email: {
+                        type: 'autosuggest',
+                        heading: 'Email Address' | t('formie'),
+                        suggestEnvVars: true,
+                    },
+                },
+                rows: settings.getIntegrationAlertEmailRows(),
+                errors: settings.getErrors('integrationAlertEmails'),
+                warning: macros.configWarning('integrationAlertEmails', 'formie'),
+                allowAdd: true,
+                allowDelete: true,
+                allowReorder: true,
+            }) }}
+        </div>
+    {% endnamespace %}
+
+    <hr>
+
+    <input type="submit" class="btn submit" value="{{ 'Save' | t('formie') }}">
+</form>
+
+{% endblock %}

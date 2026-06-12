@@ -296,6 +296,7 @@ class Formie extends Plugin
             $event->rules['formie/settings/defaults'] = 'formie/settings/defaults';
             $event->rules['formie/settings/fields'] = 'formie/settings/fields';
             $event->rules['formie/settings/submissions'] = 'formie/settings/submissions';
+            $event->rules['formie/settings/integrations-settings'] = 'formie/settings/integrations-settings';
             $event->rules['formie/settings/spam'] = 'formie/settings/spam';
             $event->rules['formie/settings/notifications'] = 'formie/notifications/index';
             $event->rules['formie/settings/sent-notifications'] = 'formie/sent-notifications/settings';

@@ -13,8 +13,17 @@
     {{ csrfInput() }}
 
     {% namespace 'settings' %}
-        {{ forms.textField({
+        {{ forms.lightswitchField({
             first: true,
+            label: 'Use Queue for Notifications' | t('formie'),
+            instructions: 'Whether to use Craft‘s queue system to trigger emails. This is highly recommended to prevent slow submissions for your users.' | t('formie'),
+            id: 'useQueueForNotifications',
+            name: 'useQueueForNotifications',
+            on: settings.useQueueForNotifications,
+            warning: macros.configWarning('useQueueForNotifications', 'formie'),
+        }) }}
+
+        {{ forms.textField({
             label: 'Empty Value Placeholder' | t('formie'),
             instructions: 'When a field has no value and considered "empty", this text will be shown in email notifications.' | t('formie'),
             name: 'emptyValuePlaceholder',
