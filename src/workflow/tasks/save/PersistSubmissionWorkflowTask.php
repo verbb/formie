@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\workflow\tasks\save;
 
+use verbb\formie\Formie;
 use verbb\formie\enums\workflow\Stage;
 use verbb\formie\enums\workflow\Task;
 use verbb\formie\workflow\WorkflowContext;
@@ -26,7 +27,14 @@ class PersistSubmissionWorkflowTask implements TaskInterface
 
     public function execute(WorkflowContext $context): TaskResult
     {
-        $context->taskState['save.success'] = Craft::$app->getElements()->saveElement($context->request->submission);
+        $submissions = Formie::$plugin->getSubmissions();
+        $submissions->setSuppressCpSaveIntegrationDispatch(true);
+
+        try {
+            $context->taskState['save.success'] = Craft::$app->getElements()->saveElement($context->request->submission);
+        } finally {
+            $submissions->setSuppressCpSaveIntegrationDispatch(false);
+        }
 
         return TaskResult::continue();
     }

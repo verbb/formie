@@ -3,6 +3,7 @@ namespace verbb\formie\helpers;
 
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Form;
+use verbb\formie\Formie;
 use verbb\formie\integrations\elements\Entry;
 
 class IntegrationRerunPolicies
@@ -121,6 +122,21 @@ class IntegrationRerunPolicies
             }
 
             if ((string)$stored['policy'] !== self::POLICY_SUBMIT_ONLY) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static function formHasIntegrationAllowingEvent(Form $form, string $triggerEvent): bool
+    {
+        foreach (Formie::$plugin->getIntegrations()->getAllEnabledIntegrationsForForm($form) as $integration) {
+            if (!$integration->supportsPayloadSending()) {
+                continue;
+            }
+
+            if (self::isEventAllowed($form, $integration, $triggerEvent)) {
                 return true;
             }
         }

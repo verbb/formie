@@ -90,6 +90,7 @@ class SubmissionProcessor extends Component
         $this->primeSubmission($submission, $form, $progressState, $request->siteId);
         $submission->setFieldValuesFromRequest($request->fieldParamNamespace);
         $submission->setFieldParamNamespace($request->fieldParamNamespace);
+        Formie::$plugin->getSubmissions()->applyCpRequestAttributes($submission);
 
         if ($request->userId !== null) {
             $submission->userId = $request->userId;

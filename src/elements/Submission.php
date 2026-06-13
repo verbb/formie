@@ -1200,6 +1200,7 @@ class Submission extends Element
         }
 
         $this->_handleCpSpamUnmarkActions($isNew);
+        Formie::$plugin->getSubmissions()->maybeTriggerIntegrationsOnCpSave($this, $isNew);
 
         if ($this->_updateTitle) {
             $this->updateTitle($this->getForm());

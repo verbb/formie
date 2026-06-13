@@ -19,6 +19,8 @@ use verbb\formie\fields\values\NameFieldValue;
 use verbb\formie\fields as formiefields;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\DataRetentionHelper;
+use verbb\formie\helpers\IntegrationRerunPolicies;
+use verbb\formie\helpers\IntegrationTriggerEvents;
 use verbb\formie\helpers\References;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
@@ -81,7 +83,8 @@ class Submissions extends Component
     // =========================================================================
 
     private array $_indexedSearchRows = [];
-    
+    private bool $_suppressCpSaveIntegrationDispatch = false;
+
 
     // Public Methods
     // =========================================================================
@@ -121,6 +124,80 @@ class Submissions extends Component
             $processMode,
             $triggerEvent,
             $operatorInitiated,
+        );
+    }
+
+    public function setSuppressCpSaveIntegrationDispatch(bool $suppress): void
+    {
+        $this->_suppressCpSaveIntegrationDispatch = $suppress;
+    }
+
+    public function shouldSuppressCpSaveIntegrationDispatch(): bool
+    {
+        return $this->_suppressCpSaveIntegrationDispatch;
+    }
+
+    public function applyCpRequestAttributes(Submission $submission): void
+    {
+        $request = Craft::$app->getRequest();
+
+        if (!$request->getIsCpRequest()) {
+            return;
+        }
+
+        if (($title = $request->getBodyParam('title')) !== null) {
+            $submission->title = (string)$title;
+        }
+
+        if (($statusId = $request->getBodyParam('statusId')) !== null) {
+            $status = Formie::$plugin->getStatuses()->getStatusById((int)$statusId);
+
+            if ($status) {
+                $submission->setStatus($status);
+            }
+        }
+
+        if ($request->getBodyParam('isSpam') !== null) {
+            $submission->isSpam = StringHelper::toBoolean($request->getBodyParam('isSpam'));
+        }
+
+        if (StringHelper::toBoolean($request->getBodyParam('markAsComplete'))) {
+            $submission->isIncomplete = false;
+        }
+    }
+
+    public function maybeTriggerIntegrationsOnCpSave(Submission $submission, bool $isNew): void
+    {
+        if ($isNew || $this->_suppressCpSaveIntegrationDispatch) {
+            return;
+        }
+
+        $request = Craft::$app->getRequest();
+
+        if (!$request->getIsCpRequest() || $request->getIsConsoleRequest()) {
+            return;
+        }
+
+        // Front-end submit/edit workflows dispatch integrations after persistence.
+        if ($submission->isNewSubmission || $submission->isIncomplete || $submission->isSpam) {
+            return;
+        }
+
+        // Spam unmark uses explicit operator toggles in `_handleCpSpamUnmarkActions()`.
+        if ($submission->hasSpamChanged(true, false)) {
+            return;
+        }
+
+        $form = $submission->getForm();
+
+        if (!$form || !IntegrationRerunPolicies::formHasIntegrationAllowingEvent($form, IntegrationTriggerEvents::CP_SAVE)) {
+            return;
+        }
+
+        $this->triggerIntegrations(
+            $submission,
+            SubmissionWorkflow::PROCESS_MODE_EDIT_EXISTING,
+            IntegrationTriggerEvents::CP_SAVE,
         );
     }
 

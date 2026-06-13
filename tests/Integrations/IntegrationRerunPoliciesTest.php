@@ -91,3 +91,43 @@ it('respects custom re-run event selections', function (): void {
             IntegrationTriggerEvents::CP_SAVE,
         ))->toBeFalse();
 });
+
+it('detects when any enabled integration allows a trigger event', function (): void {
+    $form = new Form();
+    $form->settings->integrationPolicies = [
+        'rerun' => [
+            'entry' => [
+                'policy' => IntegrationRerunPolicies::POLICY_ON_EDIT,
+            ],
+        ],
+    ];
+
+    $integration = new Entry(['handle' => 'entry']);
+
+    $handler = function (\verbb\formie\events\ModifyFormIntegrationsEvent $event) use ($integration): void {
+        $event->integrations[] = $integration;
+    };
+
+    \yii\base\Event::on(
+        \verbb\formie\services\Integrations::class,
+        \verbb\formie\services\Integrations::EVENT_MODIFY_FORM_INTEGRATIONS,
+        $handler,
+    );
+
+    try {
+        expect(IntegrationRerunPolicies::formHasIntegrationAllowingEvent(
+            $form,
+            IntegrationTriggerEvents::CP_SAVE,
+        ))->toBeTrue()
+            ->and(IntegrationRerunPolicies::formHasIntegrationAllowingEvent(
+                $form,
+                IntegrationTriggerEvents::UNMARK_SPAM,
+            ))->toBeFalse();
+    } finally {
+        \yii\base\Event::off(
+            \verbb\formie\services\Integrations::class,
+            \verbb\formie\services\Integrations::EVENT_MODIFY_FORM_INTEGRATIONS,
+            $handler,
+        );
+    }
+});
