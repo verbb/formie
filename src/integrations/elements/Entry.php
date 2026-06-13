@@ -310,6 +310,8 @@ class Entry extends Element
                     $this->afterSendPayload($submission, '', $entry, '', ['draft' => $draft]);
                 }
 
+                $this->recordDispatchElement($entry);
+
                 return true;
             }
 
@@ -335,6 +337,8 @@ class Entry extends Element
             if (!$this->afterSendPayload($submission, '', $entry, '', [])) {
                 return true;
             }
+
+            $this->recordDispatchElement($entry);
         } catch (Throwable $e) {
             $error = Craft::t('formie', 'Element integration failed for submission “{submission}”. Error: {error} {file}:{line}. Trace: “{trace}”.', [
                 'error' => Integration::getExceptionLogMessage($e),
@@ -416,11 +420,8 @@ class Entry extends Element
             'instructions' => Craft::t('formie', 'Select a user to be the default author for the created entry. An entry must always have an author. When **Use Submission User as Author** is enabled, this user is used as a fallback when no submission user is available.'),
             'required' => true,
             'selectionLabel' => Craft::t('formie', 'Choose a User'),
-            'config' => [
-                'jsClass' => 'Craft.ElementSelectInput',
-                'elementType' => User::class,
-                'limit' => 1,
-            ],
+            'elementType' => User::class,
+            'limit' => 1,
         ]);
         $schema[] = SchemaHelper::integrationFieldMappingField([
             'name' => 'attributeMapping',

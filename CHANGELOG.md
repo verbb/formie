@@ -13,6 +13,8 @@
 - Add **Use Submission User as Author** to Entry element integrations, assigning the collected submission user as the entry author when **Collect User** is enabled on the form. ([#1363](https://github.com/verbb/formie/issues/1363))
 - HubSpot **Map to Form** integrations now resolve custom object `objectTypeId` values when submitting to HubSpot forms, including portal-specific custom objects (Enterprise). Refresh HubSpot forms after creating custom objects. ([#2649](https://github.com/verbb/formie/issues/2649))
 - Add **Enable Conditions** to form integration settings, allowing integrations to be triggered only when submission field and status rules match. ([#447](https://github.com/verbb/formie/issues/447))
+- Add **Integration Dispatch** form settings (Integrations → Settings) to run payload integrations sequentially, choose immediate vs queued execution per integration, control notification timing relative to integrations, and expose dispatch results via `{dispatch:handle:property}` variables (for example `{dispatch:user:url}`). Dispatch variables appear in variable pickers when integration dispatch is enabled. ([#2635](https://github.com/verbb/formie/issues/2635), [#1152](https://github.com/verbb/formie/issues/1152), [#2810](https://github.com/verbb/formie/issues/2810))
+- Add per-notification **Dispatch Timing** (Advanced) to override the form’s integration dispatch notification timing.
 
 ### Changed
 - Update phone number values sent to integrations to use `E164` format instead of international formatting. ([Discussion #2731](https://github.com/verbb/formie/discussions/2731))
@@ -22,8 +24,8 @@
 - Reorganise plugin settings: move integration behaviour settings to **Settings → Behavior → Integrations**, and move **Use Queue for Notifications** to **Email Notifications**.
 - OAuth integration redirect URIs now default to a Craft action URL instead of a site URL. Add an optional **OAuth Redirect URI Override** plugin setting. ([#1333](https://github.com/verbb/formie/issues/1333))
 
-### Fixed
-- Fix `{submission:status}` condition and variable resolution returning empty values because the submission status handle was read incorrectly.
+- Fix Integration Dispatch select fields showing raw values instead of labels by using `SelectInput`.
+- Restyle Integration Dispatch steps to match the field palette row layout with drag handles, execution mode dropdowns, and action menus.
 - Fix Opayo, Stripe, Paddle, and GoCardless payment integrations not resolving **Billing Details** field mappings from the form builder static table, so Name and Address fields are included in payment payloads again. ([#2617](https://github.com/verbb/formie/issues/2617))
 - Fix Salesforce integrations failing after Craft 5 / Formie 3 upgrades when OAuth tokens were migrated without `instance_url`, by falling back to stored integration settings and backfilling token values. ([#2492](https://github.com/verbb/formie/issues/2492))
 - Fix Salesforce integration refresh failing when an enabled object such as Opportunity or Case is unavailable in the connected org. ([#1551](https://github.com/verbb/formie/issues/1551))

@@ -392,6 +392,8 @@ class User extends Element
                     Craft::$app->getUser()->login($user, $generalConfig->userSessionDuration);
                 }
             }
+
+            $this->recordDispatchElement($user);
         } catch (Throwable $e) {
             $error = Craft::t('formie', 'Element integration failed for submission “{submission}”. Error: {error} {file}:{line}. Trace: “{trace}”.', [
                 'error' => Integration::getExceptionLogMessage($e),

@@ -238,6 +238,7 @@ class SubmissionQuery extends ElementQuery
             'formie_submissions.spamClass',
             'formie_submissions.snapshot',
             'formie_submissions.ipAddress',
+            'formie_submissions.integrationDispatchContext',
 
             // Should always be at the end, due to `setFieldContent` triggering order, so that `formId` (and other props) are set first
             'formie_submissions.content as fieldContent',

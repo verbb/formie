@@ -332,6 +332,23 @@ class Integrations extends Component
 
     public function triggerIntegrations(Submission $submission, string $processMode = SubmissionWorkflow::PROCESS_MODE_SUBMIT): void
     {
+        $form = $submission->getForm();
+
+        if (!$form) {
+            return;
+        }
+
+        if (Formie::$plugin->getIntegrationDispatch()->shouldOrchestrate($form)) {
+            Formie::$plugin->getIntegrationDispatch()->dispatchSubmission($submission, $processMode);
+
+            return;
+        }
+
+        $this->_triggerIntegrationsLegacy($submission, $processMode);
+    }
+
+    private function _triggerIntegrationsLegacy(Submission $submission, string $processMode): void
+    {
         $settings = Formie::$plugin->getSettings();
         $form = $submission->getForm();
 
@@ -956,10 +973,13 @@ class Integrations extends Component
             $summaries[$groupName][] = [
                 'handle' => $resolvedIntegration->getHandle(),
                 'name' => $resolvedIntegration->getName(),
+                'displayName' => $resolvedIntegration::displayName(),
+                'classHandle' => $resolvedIntegration->getClassHandle(),
                 'description' => $resolvedIntegration->getDescription(),
                 'enabled' => $resolvedIntegration->getEnabled(false),
                 'icon' => $resolveSummaryIconUrl($resolvedIntegration),
                 'supportsRefresh' => method_exists($resolvedIntegration, 'supportsFormSettingsRefresh') ? $resolvedIntegration->supportsFormSettingsRefresh() : false,
+                'supportsPayloadSending' => $resolvedIntegration::supportsPayloadSending(),
             ];
         };
 

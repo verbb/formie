@@ -28,6 +28,7 @@ use verbb\formie\services\FormGroups;
 use verbb\formie\services\FormPreview;
 use verbb\formie\services\FormTemplates;
 use verbb\formie\services\Integrations;
+use verbb\formie\services\IntegrationDispatch;
 use verbb\formie\services\Notifications;
 use verbb\formie\services\Payments;
 use verbb\formie\services\PdfTemplates;
@@ -187,6 +188,7 @@ trait PluginTrait
                 'formPreview' => FormPreview::class,
                 'formTemplates' => FormTemplates::class,
                 'integrations' => Integrations::class,
+                'integrationDispatch' => IntegrationDispatch::class,
                 'serverRenderPayloadBuilder' => ServerRenderPayloadBuilder::class,
                 'clientModuleManifestBuilder' => ClientModuleManifestBuilder::class,
                 'notifications' => Notifications::class,
@@ -415,6 +417,11 @@ trait PluginTrait
     public function getIntegrations(): Integrations
     {
         return $this->get('integrations');
+    }
+
+    public function getIntegrationDispatch(): IntegrationDispatch
+    {
+        return $this->get('integrationDispatch');
     }
 
     public function getNotifications(): Notifications

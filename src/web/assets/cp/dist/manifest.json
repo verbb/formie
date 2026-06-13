@@ -1,27 +1,36 @@
 {
-  "_AppErrorBoundary-m8pVtGL4.js": {
-    "file": "assets/AppErrorBoundary-m8pVtGL4.js",
+  "_AppErrorBoundary-DjlGkwQ8.js": {
+    "file": "assets/AppErrorBoundary-DjlGkwQ8.js",
     "name": "AppErrorBoundary",
     "imports": [
       "_react-vendor-DtO2kpgD.js",
-      "_plugin-kit-react-k2E1jdgp.js",
-      "_fontawesome-Be2MVkcu.js",
+      "_plugin-kit-react-BFdQ6p9a.js",
+      "_fontawesome-DXKLa3uf.js",
       "_plugin-kit-Dc8n9bmP.js"
+    ]
+  },
+  "_DragHandle-D3QXIGeP.js": {
+    "file": "assets/DragHandle-D3QXIGeP.js",
+    "name": "DragHandle",
+    "imports": [
+      "_react-vendor-DtO2kpgD.js",
+      "_plugin-kit-react-BFdQ6p9a.js",
+      "_fontawesome-DXKLa3uf.js"
     ]
   },
   "_data-utils-B_R1Mnol.js": {
     "file": "assets/data-utils-B_R1Mnol.js",
     "name": "data-utils"
   },
-  "_dndkit-DPWE29o5.js": {
-    "file": "assets/dndkit-DPWE29o5.js",
+  "_dndkit-CtGXKl8w.js": {
+    "file": "assets/dndkit-CtGXKl8w.js",
     "name": "dndkit",
     "imports": [
       "_react-vendor-DtO2kpgD.js"
     ]
   },
-  "_fontawesome-Be2MVkcu.js": {
-    "file": "assets/fontawesome-Be2MVkcu.js",
+  "_fontawesome-DXKLa3uf.js": {
+    "file": "assets/fontawesome-DXKLa3uf.js",
     "name": "fontawesome",
     "imports": [
       "_react-vendor-DtO2kpgD.js"
@@ -35,22 +44,22 @@
     "file": "assets/plugin-kit-Dc8n9bmP.js",
     "name": "plugin-kit"
   },
-  "_plugin-kit-react-k2E1jdgp.js": {
-    "file": "assets/plugin-kit-react-k2E1jdgp.js",
+  "_plugin-kit-react-BFdQ6p9a.js": {
+    "file": "assets/plugin-kit-react-BFdQ6p9a.js",
     "name": "plugin-kit-react",
     "imports": [
       "_react-vendor-DtO2kpgD.js",
-      "_fontawesome-Be2MVkcu.js",
+      "_fontawesome-DXKLa3uf.js",
       "_plugin-kit-Dc8n9bmP.js",
       "_data-utils-B_R1Mnol.js",
-      "_dndkit-DPWE29o5.js"
+      "_dndkit-CtGXKl8w.js"
     ]
   },
-  "_react-app-Cd-8AlxV.js": {
-    "file": "assets/react-app-Cd-8AlxV.js",
+  "_react-app-CzrJhjUD.js": {
+    "file": "assets/react-app-CzrJhjUD.js",
     "name": "react-app",
     "imports": [
-      "_plugin-kit-react-k2E1jdgp.js"
+      "_plugin-kit-react-BFdQ6p9a.js"
     ]
   },
   "_react-vendor-DtO2kpgD.js": {
@@ -71,14 +80,14 @@
     "isEntry": true,
     "imports": [
       "_react-vendor-DtO2kpgD.js",
-      "_plugin-kit-react-k2E1jdgp.js",
-      "_fontawesome-Be2MVkcu.js",
+      "_plugin-kit-react-BFdQ6p9a.js",
+      "_fontawesome-DXKLa3uf.js",
       "_useCpFormPayloadSync-BVl70MWF.js",
-      "_AppErrorBoundary-m8pVtGL4.js",
-      "_react-app-Cd-8AlxV.js",
+      "_AppErrorBoundary-DjlGkwQ8.js",
+      "_react-app-CzrJhjUD.js",
       "_plugin-kit-Dc8n9bmP.js",
       "_data-utils-B_R1Mnol.js",
-      "_dndkit-DPWE29o5.js"
+      "_dndkit-CtGXKl8w.js"
     ]
   },
   "src/field-palette/formie-field-palette.js": {
@@ -88,29 +97,31 @@
     "isEntry": true,
     "imports": [
       "_react-vendor-DtO2kpgD.js",
-      "_fontawesome-Be2MVkcu.js",
-      "_plugin-kit-react-k2E1jdgp.js",
-      "_dndkit-DPWE29o5.js",
+      "_fontawesome-DXKLa3uf.js",
+      "_plugin-kit-react-BFdQ6p9a.js",
+      "_dndkit-CtGXKl8w.js",
+      "_DragHandle-D3QXIGeP.js",
       "_useCpFormPayloadSync-BVl70MWF.js",
-      "_react-app-Cd-8AlxV.js",
+      "_react-app-CzrJhjUD.js",
       "_plugin-kit-Dc8n9bmP.js",
       "_data-utils-B_R1Mnol.js"
     ]
   },
   "src/form-builder/formie-form-builder.js": {
-    "file": "assets/formie-form-builder-D-NU1QnP.js",
+    "file": "assets/formie-form-builder-C9VRT5hh.js",
     "name": "formie-form-builder",
     "src": "src/form-builder/formie-form-builder.js",
     "isEntry": true,
     "imports": [
-      "_plugin-kit-react-k2E1jdgp.js",
+      "_plugin-kit-react-BFdQ6p9a.js",
       "_react-vendor-DtO2kpgD.js",
       "_data-utils-B_R1Mnol.js",
       "_plugin-kit-Dc8n9bmP.js",
-      "_fontawesome-Be2MVkcu.js",
-      "_react-app-Cd-8AlxV.js",
-      "_AppErrorBoundary-m8pVtGL4.js",
-      "_dndkit-DPWE29o5.js"
+      "_fontawesome-DXKLa3uf.js",
+      "_react-app-CzrJhjUD.js",
+      "_AppErrorBoundary-DjlGkwQ8.js",
+      "_dndkit-CtGXKl8w.js",
+      "_DragHandle-D3QXIGeP.js"
     ]
   },
   "src/forms/js/formie-forms-index.js": {
@@ -120,35 +131,35 @@
     "isEntry": true
   },
   "src/integration-connect/formie-integration-connect.js": {
-    "file": "assets/formie-integration-connect-Bl9EOEqj.js",
+    "file": "assets/formie-integration-connect-6kHJ8lAT.js",
     "name": "formie-integration-connect",
     "src": "src/integration-connect/formie-integration-connect.js",
     "isEntry": true,
     "imports": [
       "_react-vendor-DtO2kpgD.js",
-      "_plugin-kit-react-k2E1jdgp.js",
-      "_fontawesome-Be2MVkcu.js",
+      "_plugin-kit-react-BFdQ6p9a.js",
+      "_fontawesome-DXKLa3uf.js",
       "_plugin-kit-Dc8n9bmP.js",
-      "_AppErrorBoundary-m8pVtGL4.js",
-      "_react-app-Cd-8AlxV.js",
+      "_AppErrorBoundary-DjlGkwQ8.js",
+      "_react-app-CzrJhjUD.js",
       "_data-utils-B_R1Mnol.js",
-      "_dndkit-DPWE29o5.js"
+      "_dndkit-CtGXKl8w.js"
     ]
   },
   "src/new-form/formie-new-form.js": {
-    "file": "assets/formie-new-form-i8i2Mcgp.js",
+    "file": "assets/formie-new-form-W7_6IZRH.js",
     "name": "formie-new-form",
     "src": "src/new-form/formie-new-form.js",
     "isEntry": true,
     "imports": [
       "_react-vendor-DtO2kpgD.js",
-      "_plugin-kit-react-k2E1jdgp.js",
-      "_fontawesome-Be2MVkcu.js",
+      "_plugin-kit-react-BFdQ6p9a.js",
+      "_fontawesome-DXKLa3uf.js",
       "_plugin-kit-Dc8n9bmP.js",
-      "_AppErrorBoundary-m8pVtGL4.js",
-      "_react-app-Cd-8AlxV.js",
+      "_AppErrorBoundary-DjlGkwQ8.js",
+      "_react-app-CzrJhjUD.js",
       "_data-utils-B_R1Mnol.js",
-      "_dndkit-DPWE29o5.js"
+      "_dndkit-CtGXKl8w.js"
     ]
   },
   "src/plugin-settings/js/formie-plugin-settings.js": {

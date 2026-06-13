@@ -1,0 +1,127 @@
+.formie-integration-dispatch-steps {
+    --formie-dispatch-row-padding-x: 1rem;
+    --formie-dispatch-row-padding-y: 0.5rem;
+    --formie-dispatch-row-gap: 0.75rem;
+    --formie-dispatch-grid-columns: 24px minmax(0, 1fr) minmax(150px, 180px) 24px;
+
+    border: 1px solid var(--gray-200, #e5e7eb);
+    border-radius: 8px;
+    background: #fff;
+    overflow: hidden;
+}
+
+.formie-integration-dispatch-step-row {
+    display: grid;
+    grid-template-columns: var(--formie-dispatch-grid-columns);
+    align-items: center;
+    gap: var(--formie-dispatch-row-gap);
+    padding: var(--formie-dispatch-row-padding-y) var(--formie-dispatch-row-padding-x);
+    border-bottom: 1px solid var(--gray-200, #e5e7eb);
+}
+
+.formie-integration-dispatch-step-row:last-child {
+    border-bottom: none;
+}
+
+.formie-integration-dispatch-step-row:hover {
+    background: var(--gray-50, #f9fafb);
+}
+
+.formie-integration-dispatch-step-row.is-disabled {
+    opacity: 0.72;
+}
+
+.formie-integration-dispatch-step-row.is-drag-placeholder > * {
+    visibility: hidden;
+}
+
+.formie-integration-dispatch-drag-ghost {
+    display: grid;
+    grid-template-columns: var(--formie-dispatch-grid-columns);
+    align-items: center;
+    gap: var(--formie-dispatch-row-gap);
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+    padding: var(--formie-dispatch-row-padding-y) var(--formie-dispatch-row-padding-x);
+    background: #fff;
+    border: none;
+    border-radius: 0;
+    box-shadow:
+        inset 0 1px 0 0 var(--gray-200, #e5e7eb),
+        inset 0 -1px 0 0 var(--gray-200, #e5e7eb),
+        0 1px 2px rgb(15 23 42 / 6%),
+        0 2px 6px rgb(15 23 42 / 8%);
+    pointer-events: none;
+}
+
+.formie-integration-dispatch-drag-ghost .formie-integration-dispatch-step-label {
+    min-width: 0;
+}
+
+.formie-integration-dispatch-step-mode-label {
+    display: block;
+    font-size: 13px;
+    color: var(--text-color, #33475b);
+}
+
+[data-dnd-overlay="true"] {
+    z-index: 20;
+    box-sizing: border-box;
+    overflow: visible;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+}
+
+.formie-integration-dispatch-step-label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    min-width: 0;
+}
+
+.formie-integration-dispatch-step-name {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-color, #33475b);
+}
+
+.formie-integration-dispatch-step-name > span:first-child {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.formie-integration-dispatch-step-handle {
+    font-size: 11px;
+    color: var(--gray-500, #6b7280);
+    word-break: break-all;
+}
+
+.formie-integration-dispatch-step-mode {
+    min-width: 0;
+}
+
+.formie-integration-dispatch-step-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.formie-integration-dispatch-menu-trigger {
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    color: var(--gray-500, #6b7280);
+}
+
+.formie-integration-dispatch-menu-trigger:hover {
+    color: var(--color-blue-500, #3b82f6);
+}

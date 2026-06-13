@@ -27,8 +27,10 @@ import { useFormBuilderApp } from '@form-builder/contexts/FormBuilderAppContext'
 import { useFormBuilderForm } from '@form-builder/contexts/FormBuilderFormContext';
 import useAppStore from '@form-builder/hooks/useAppStore';
 import { LargeErrorState, StatePanel } from '@utils';
+import { IntegrationDispatchSettings } from '@form-builder/components/IntegrationDispatchSettings';
 
 const integrationConfigCache = {};
+const DISPATCH_SETTINGS_HANDLE = 'settings';
 
 const parseEnabledValue = (value) => {
     if (typeof value === 'boolean') {
@@ -138,6 +140,7 @@ function Integrations({ schema }) {
         form: parentForm,
         getValueAtPath,
         errors: parentErrors,
+        values,
     } = useFormBuilderForm();
     const formId = useAppStore((state) => { return state.formId; });
     const router = useUrlRouter();
@@ -148,14 +151,55 @@ function Integrations({ schema }) {
     const [configError, setConfigError] = useState(null);
     const [failedIcons, setFailedIcons] = useState({});
 
-    const activeIntegration = integrations?.find((integration) => {
-        return integration.handle === activeIntegrationHandle;
-    });
+    const payloadIntegrations = useMemo(() => {
+        if (!integrations?.length) {
+            return [];
+        }
+
+        return integrations.filter((integration) => {
+            return integration.supportsPayloadSending !== false;
+        });
+    }, [integrations]);
+
+    const enabledPayloadIntegrations = useMemo(() => {
+        return payloadIntegrations.filter((integration) => {
+            const integrationSettings = getValueAtPath(`settings.integrations.${integration.handle}`, null);
+
+            return getIntegrationEnabledState(integration, integrationSettings);
+        });
+    }, [payloadIntegrations, getValueAtPath]);
+
+    const isIntegrationEnabled = useCallback((handle) => {
+        return enabledPayloadIntegrations.some((integration) => {
+            return integration.handle === handle;
+        });
+    }, [enabledPayloadIntegrations]);
+
+    const showDispatchSettings = useMemo(() => {
+        if (payloadIntegrations.length < 2) {
+            return false;
+        }
+
+        if (enabledPayloadIntegrations.length >= 2) {
+            return true;
+        }
+
+        const plan = getValueAtPath('settings.integrationDispatch', null);
+
+        return Boolean(plan?.enabled);
+    }, [payloadIntegrations.length, enabledPayloadIntegrations.length, getValueAtPath, values]);
+    const isDispatchSettingsActive = activeIntegrationHandle === DISPATCH_SETTINGS_HANDLE;
+
+    const activeIntegration = isDispatchSettingsActive
+        ? null
+        : integrations?.find((integration) => {
+            return integration.handle === activeIntegrationHandle;
+        });
 
     const loadIntegrationConfig = useCallback(async(handle, options = {}) => {
         const { force = false, background = false } = options;
 
-        if (!handle || !formId) {
+        if (!handle || !formId || handle === DISPATCH_SETTINGS_HANDLE) {
             setIntegrationConfig(null);
             setIntegrationConfigHandle(null);
             setConfigError(null);
@@ -239,6 +283,12 @@ function Integrations({ schema }) {
             window.removeEventListener('formie:integration-settings-refreshed', handleInlineRefresh);
         };
     }, [activeIntegrationHandle, loadIntegrationConfig]);
+
+    useEffect(() => {
+        if (!showDispatchSettings && isDispatchSettingsActive && integrations?.length) {
+            router.navigateToIntegration(integrations[0].handle, { replace: true });
+        }
+    }, [showDispatchSettings, isDispatchSettingsActive, integrations, router]);
 
     useEffect(() => {
         if (!activeIntegrationHandle && integrations && integrations.length) {
@@ -332,6 +382,33 @@ function Integrations({ schema }) {
                         </div>
                     );
                 })}
+
+                {showDispatchSettings && (
+                    <div className="mt-2 border-t border-[rgba(51,64,77,.15)] pt-3">
+                        <Button
+                            variant="transparent"
+                            onClick={() => {
+                                router.navigateToIntegration(DISPATCH_SETTINGS_HANDLE);
+                            }}
+                            className={cn(
+                                'w-full',
+                                'gap-1.5 md:gap-2',
+                                'px-2 md:px-[10px]',
+                                'py-[7px]',
+                                'text-left',
+                                'text-[13px]',
+                                'rounded-lg',
+                                'justify-start',
+                                'min-w-0',
+                                isDispatchSettingsActive
+                                    ? 'bg-gray-500! text-white'
+                                    : ' ',
+                            )}
+                        >
+                            <span className="min-w-0 flex-1 truncate">{Craft.t('formie', 'Settings')}</span>
+                        </Button>
+                    </div>
+                )}
             </div>
 
             <div className="flex-1 overflow-auto">
@@ -344,6 +421,11 @@ function Integrations({ schema }) {
                         size="sm"
                         value={activeIntegrationHandle || ''}
                         onValueChange={(value) => {
+                            if (value === DISPATCH_SETTINGS_HANDLE) {
+                                router.navigateToIntegration(DISPATCH_SETTINGS_HANDLE);
+                                return;
+                            }
+
                             const nextIntegration = integrations.find((integration) => {
                                 return integration.handle === value;
                             });
@@ -355,7 +437,9 @@ function Integrations({ schema }) {
                     >
                         <SelectTrigger className="w-full">
                             <SelectValue placeholder={Craft.t('formie', 'Select an integration')}>
-                                {activeIntegration ? (
+                                {isDispatchSettingsActive ? (
+                                    <span className="min-w-0 truncate">{Craft.t('formie', 'Settings')}</span>
+                                ) : activeIntegration ? (
                                     <span className="flex min-w-0 items-center gap-2">
                                         {activeIntegration.icon && !failedIcons[`${activeIntegration.handle}:${activeIntegration.icon || ''}`] && (
                                             <img
@@ -416,11 +500,30 @@ function Integrations({ schema }) {
                                     </SelectGroup>
                                 );
                             })}
+
+                            {showDispatchSettings && (
+                                <SelectGroup>
+                                    <SelectLabel>{Craft.t('formie', 'Dispatch')}</SelectLabel>
+                                    <SelectItem value={DISPATCH_SETTINGS_HANDLE}>
+                                        {Craft.t('formie', 'Settings')}
+                                    </SelectItem>
+                                </SelectGroup>
+                            )}
                         </SelectContent>
                     </Select>
                 </div>
 
-                {activeIntegration && (
+                {isDispatchSettingsActive && (
+                    <div className="p-3 md:p-6">
+                        <IntegrationDispatchSettings
+                            payloadIntegrations={payloadIntegrations}
+                            enabledPayloadIntegrations={enabledPayloadIntegrations}
+                            isIntegrationEnabled={isIntegrationEnabled}
+                        />
+                    </div>
+                )}
+
+                {!isDispatchSettingsActive && activeIntegration && (
                     <div className="p-3 md:p-6">
                         <div className="mb-6">
                             <div className="flex items-center justify-between gap-3">

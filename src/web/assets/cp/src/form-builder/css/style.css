@@ -3,6 +3,7 @@
 @import "@verbb/plugin-kit-react/style.css";
 
 @import "./preview.css";
+@import "../components/integration-dispatch-settings.css";
 
 /* Add form builder-specific styles below this line */
 .form-builder-h3 {

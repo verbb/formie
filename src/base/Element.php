@@ -377,4 +377,17 @@ abstract class Element extends Integration
 
         return $element;
     }
+
+    public function recordDispatchElement(ElementInterface $element): void
+    {
+        if (!$element->id) {
+            return;
+        }
+
+        $this->context['dispatchElement'] = [
+            'elementType' => get_class($element),
+            'elementId' => (int)$element->id,
+            'url' => method_exists($element, 'getUrl') ? (string)$element->getUrl() : null,
+        ];
+    }
 }

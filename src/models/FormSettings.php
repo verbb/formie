@@ -80,6 +80,7 @@ class FormSettings extends Model
 
     // Integrations
     public array $integrations = [];
+    public array $integrationDispatch = [];
 
     // Settings
     public ?string $submissionTitleFormat = '{timestamp}';

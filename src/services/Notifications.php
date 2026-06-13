@@ -205,6 +205,7 @@ class Notifications extends Component
             $notificationRecord->attachAssets = $notification->attachAssets;
             $notificationRecord->enableConditions = $notification->enableConditions;
             $notificationRecord->conditions = $notification->conditions;
+            $notificationRecord->dispatchTiming = $notification->dispatchTiming;
             $notificationRecord->customSettings = $notification->customSettings;
 
             // Clear content for conditionally-set recipients to prevent zombie data
@@ -898,6 +899,17 @@ class Notifications extends Component
                     ],
                 ],
             ]),
+            SchemaHelper::selectField([
+                'label' => Craft::t('formie', 'Dispatch Timing'),
+                'instructions' => Craft::t('formie', 'When to send this notification relative to integrations. Requires Integration Dispatch to be enabled on the form.'),
+                'name' => 'dispatchTiming',
+                'defaultValue' => Notification::DISPATCH_TIMING_DEFAULT,
+                'options' => [
+                    ['label' => Craft::t('formie', 'Use form default'), 'value' => Notification::DISPATCH_TIMING_DEFAULT],
+                    ['label' => Craft::t('formie', 'Before integrations'), 'value' => Notification::DISPATCH_TIMING_BEFORE],
+                    ['label' => Craft::t('formie', 'After integrations'), 'value' => Notification::DISPATCH_TIMING_AFTER],
+                ],
+            ]),
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Attach File Uploads'),
                 'instructions' => Craft::t('formie', 'Whether to attach file uploads to this email notification.'),
@@ -1033,6 +1045,7 @@ class Notifications extends Component
                 'attachAssets',
                 'enableConditions',
                 'conditions',
+                'dispatchTiming',
                 'customSettings',
                 'uid',
             ])

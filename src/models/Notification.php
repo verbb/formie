@@ -29,6 +29,10 @@ class Notification extends Model
     public const RECIPIENTS_EMAIL = 'email';
     public const RECIPIENTS_CONDITIONS = 'conditions';
 
+    public const DISPATCH_TIMING_DEFAULT = 'default';
+    public const DISPATCH_TIMING_BEFORE = 'beforeIntegrations';
+    public const DISPATCH_TIMING_AFTER = 'afterIntegrations';
+
 
     // Properties
     // =========================================================================
@@ -57,6 +61,7 @@ class Notification extends Model
     public ?array $attachAssets = null;
     public ?bool $enableConditions = null;
     public ?array $conditions = null;
+    public string $dispatchTiming = self::DISPATCH_TIMING_DEFAULT;
     public array $customSettings = [];
     public ?string $uid = null;
 
@@ -305,6 +310,11 @@ class Notification extends Model
         ];
 
         $rules[] = [['attachAssets'], 'validateAttachAssets'];
+        $rules[] = [['dispatchTiming'], 'in', 'range' => [
+            self::DISPATCH_TIMING_DEFAULT,
+            self::DISPATCH_TIMING_BEFORE,
+            self::DISPATCH_TIMING_AFTER,
+        ]];
 
         return $rules;
     }

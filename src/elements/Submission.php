@@ -415,6 +415,7 @@ class Submission extends Element
     public ?string $spamReason = null;
     public ?string $spamClass = null;
     public array $snapshot = [];
+    public ?array $integrationDispatchContext = null;
     public ?bool $validateCurrentPageOnly = null;
     public bool $isNewSubmission = false;
 
@@ -1160,6 +1161,7 @@ class Submission extends Element
         $record->spamClass = $this->spamClass;
         $record->snapshot = $this->snapshot;
         $record->ipAddress = $this->ipAddress;
+        $record->integrationDispatchContext = $this->integrationDispatchContext;
         $record->dateCreated = $this->dateCreated;
         $record->dateUpdated = $this->dateUpdated;
 

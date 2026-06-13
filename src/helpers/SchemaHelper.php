@@ -1248,6 +1248,27 @@ class SchemaHelper
         if ($fieldType === 'elementSelect') {
             $node['elementSelectOptionsAction'] ??= 'formie/fields/get-element-select-options';
             $node['elementSelectStorageKeyPrefix'] ??= 'FormieElementSelectField';
+
+            $config = $node['config'] ?? null;
+
+            if (is_array($config)) {
+                if (!isset($node['elementType']) && isset($config['elementType'])) {
+                    $node['elementType'] = $config['elementType'];
+                }
+
+                if (!isset($node['limit']) && array_key_exists('limit', $config)) {
+                    $node['limit'] = $config['limit'] === false ? null : $config['limit'];
+                }
+
+                if (!isset($node['sources']) && isset($config['sources'])) {
+                    $sources = $config['sources'];
+                    $node['sources'] = $sources === '*' ? ['*'] : (is_array($sources) ? $sources : [$sources]);
+                }
+
+                if (!isset($node['criteria']) && isset($config['criteria'])) {
+                    $node['criteria'] = $config['criteria'];
+                }
+            }
         }
 
         if ($fieldType === 'table') {

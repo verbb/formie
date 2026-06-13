@@ -54,11 +54,13 @@ class Variables
     public const GROUP_ENVIRONMENT = 'environmentVariables';
     public const GROUP_CURRENT_SITE = 'siteVariables';
     public const GROUP_CURRENT_USER = 'userVariables';
+    public const GROUP_DISPATCH = 'dispatchVariables';
 
     public const STATIC_FIELDS = self::GROUP_FIELDS;
     public const STATIC_FORM = 'staticFormVariables';
     public const STATIC_GENERAL = 'staticGeneralVariables';
     public const STATIC_SITE = 'staticSiteVariables';
+    public const STATIC_DISPATCH = 'staticDispatchVariables';
 
     public const ENVIRONMENT_VARIABLE_PREFIX = 'FORMIE_';
     
@@ -87,14 +89,17 @@ class Variables
             self::GROUP_ENVIRONMENT => Craft::t('formie', 'Environment'),
             self::GROUP_CURRENT_SITE => Craft::t('formie', 'Site'),
             self::GROUP_CURRENT_USER => Craft::t('formie', 'Users'),
+            self::GROUP_DISPATCH => Craft::t('formie', 'Dispatch'),
             self::STATIC_FORM => Craft::t('formie', 'Form'),
             self::STATIC_GENERAL => Craft::t('formie', 'General'),
             self::STATIC_SITE => Craft::t('formie', 'Site'),
+            self::STATIC_DISPATCH => Craft::t('formie', 'Dispatch'),
         ];
 
         $order = [
             self::GROUP_FIELDS,
             self::STATIC_FORM,
+            self::STATIC_DISPATCH,
             self::STATIC_GENERAL,
             self::STATIC_SITE,
             self::GROUP_FORM,
@@ -123,7 +128,8 @@ class Variables
     {
         return [
             'groupAliases' => [
-                self::STATIC_FORM => [self::GROUP_FORM, self::GROUP_SUBMISSION],
+                self::STATIC_FORM => [self::GROUP_FORM, self::GROUP_SUBMISSION, self::GROUP_DISPATCH],
+                self::STATIC_DISPATCH => [self::GROUP_DISPATCH],
                 self::STATIC_GENERAL => [self::GROUP_SYSTEM, self::GROUP_ENVIRONMENT, self::GROUP_CURRENT_TIME],
                 self::STATIC_SITE => [self::GROUP_CURRENT_SITE, self::GROUP_CURRENT_USER],
             ],
@@ -270,7 +276,7 @@ class Variables
             $variables = array_merge($variables, $summaryVariables);
         }
 
-        return $variables;
+        return self::_appendDispatchVariables($variables, $submission);
     }
 
     /**
@@ -1453,6 +1459,16 @@ class Variables
             return 'field.' . str_replace(':', '.', $path);
         }
 
+        if ($expr->target === 'dispatch') {
+            $path = $expr->identifier;
+
+            if ($expr->selector !== '') {
+                $path .= '.' . str_replace(':', '.', $expr->selector);
+            }
+
+            return 'dispatch.' . $path;
+        }
+
         if ($expr->target === 'timestamp') {
             return $expr->identifier === '' ? 'timestamp' : $expr->identifier;
         }
@@ -1515,5 +1531,30 @@ class Variables
         }
 
         return Craft::$app->getSites()->getPrimarySite();
+    }
+
+    private static function _appendDispatchVariables(array $variables, Submission $submission): array
+    {
+        $context = Formie::$plugin->getIntegrationDispatch()->loadContext($submission);
+        $dispatch = [];
+
+        foreach ($context->results as $handle => $result) {
+            if (!is_array($result)) {
+                continue;
+            }
+
+            $dispatch[$handle] = array_filter([
+                'id' => $result['elementId'] ?? null,
+                'url' => $result['url'] ?? null,
+                'success' => $result['success'] ?? false,
+                'type' => $result['type'] ?? null,
+            ], fn($value) => $value !== null && $value !== '');
+        }
+
+        if ($dispatch) {
+            $variables['dispatch'] = $dispatch;
+        }
+
+        return $variables;
     }
 }

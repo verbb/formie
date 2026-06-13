@@ -6,6 +6,77 @@ import { getFieldReferenceOptions } from '@form-builder/hooks/useFormTools';
 const CONTENT_ANY = 'any';
 const CONTENT_SINGLE_LINE = 'singleLine';
 const GROUP_FIELDS = 'fieldsVariables';
+const GROUP_DISPATCH = 'dispatchVariables';
+
+const DISPATCH_PROPERTIES = [
+    { key: 'id', label: Craft.t('formie', 'ID'), types: ['text', 'number'] },
+    { key: 'url', label: Craft.t('formie', 'URL'), types: ['url', 'text'] },
+    { key: 'success', label: Craft.t('formie', 'Success'), types: ['boolean', 'text'] },
+];
+
+const getIntegrationNameLookup = (integrationsMap = {}) => {
+    const lookup = {};
+
+    Object.values(integrationsMap).forEach((group) => {
+        (Array.isArray(group) ? group : []).forEach((integration) => {
+            if (integration?.handle) {
+                lookup[integration.handle] = integration.name || integration.handle;
+            }
+        });
+    });
+
+    return lookup;
+};
+
+const getPayloadIntegrationHandles = (integrationsMap = {}) => {
+    const handles = [];
+
+    Object.values(integrationsMap).forEach((group) => {
+        (Array.isArray(group) ? group : []).forEach((integration) => {
+            if (integration?.handle && integration.supportsPayloadSending !== false) {
+                handles.push(integration.handle);
+            }
+        });
+    });
+
+    return handles;
+};
+
+const buildDispatchVariableOptions = (formValues = {}) => {
+    const plan = formValues?.settings?.integrationDispatch;
+
+    if (!plan?.enabled) {
+        return [];
+    }
+
+    const integrationsMap = formValues?.integrations || {};
+    const nameLookup = getIntegrationNameLookup(integrationsMap);
+    const payloadHandles = new Set(getPayloadIntegrationHandles(integrationsMap));
+
+    let stepHandles = [];
+
+    if (Array.isArray(plan.steps) && plan.steps.length) {
+        stepHandles = plan.steps
+            .map((step) => step?.handle)
+            .filter((handle) => handle && payloadHandles.has(handle));
+    } else {
+        stepHandles = Array.from(payloadHandles);
+    }
+
+    if (!stepHandles.length) {
+        return [];
+    }
+
+    return stepHandles.map((handle) => ({
+        label: nameLookup[handle] || handle,
+        children: DISPATCH_PROPERTIES.map((property) => ({
+            label: property.label,
+            value: `{dispatch:${handle}:${property.key}}`,
+            types: property.types,
+            content: CONTENT_SINGLE_LINE,
+        })),
+    }));
+};
 
 const normalizeVariableConfig = (variableConfig) => {
     if (!variableConfig || typeof variableConfig !== 'object') {
@@ -25,7 +96,7 @@ const expandGroupKeys = (groupKey, aliases, staticGroups) => {
         return aliasTargets.flatMap((item) => { return expandGroupKeys(item, aliases, staticGroups); });
     }
 
-    if (groupKey === GROUP_FIELDS || staticGroups[groupKey]) {
+    if (groupKey === GROUP_FIELDS || groupKey === GROUP_DISPATCH || staticGroups[groupKey]) {
         return [groupKey];
     }
 
@@ -297,6 +368,7 @@ export function resolveVariableCategories(config, formValues, variableConfig, op
     };
 
     const dynamicFieldOptions = filterPickerItems(dedupeByValue(disambiguateFieldLabels(formFieldOptions)), request);
+    const dispatchVariableOptions = buildDispatchVariableOptions(formValues);
     const grouped = {};
 
     sections.forEach((section) => {
@@ -305,6 +377,11 @@ export function resolveVariableCategories(config, formValues, variableConfig, op
         section.groups.forEach((groupKey) => {
             if (groupKey === GROUP_FIELDS) {
                 sectionItems.push(...dynamicFieldOptions);
+                return;
+            }
+
+            if (groupKey === GROUP_DISPATCH) {
+                sectionItems.push(...filterPickerItems(dispatchVariableOptions, request));
                 return;
             }
 
