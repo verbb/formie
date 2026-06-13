@@ -4,6 +4,7 @@ namespace verbb\formie\workflow\tasks\dispatch;
 use verbb\formie\Formie;
 use verbb\formie\enums\workflow\Stage;
 use verbb\formie\enums\workflow\Task;
+use verbb\formie\helpers\IntegrationTriggerEvents;
 use verbb\formie\workflow\WorkflowContext;
 use verbb\formie\workflow\tasks\TaskInterface;
 use verbb\formie\workflow\tasks\TaskResult;
@@ -40,6 +41,7 @@ class TriggerIntegrationsTask implements TaskInterface
         Formie::$plugin->getIntegrations()->triggerIntegrations(
             $context->request->submission,
             $context->request->processMode,
+            IntegrationTriggerEvents::resolveFromProcessMode($context->request->processMode),
         );
 
         if (!$isSubmissionEdit) {

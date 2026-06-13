@@ -413,7 +413,7 @@ class SubmissionWorkflow extends Component
             // workflow-aware persistence, dispatch, and finalization.
             self::PROCESS_MODE_SUBMIT => array_values(array_filter($allTasks, static fn(string $taskName) => $taskName !== Task::SAVE_PERSIST_SUBMISSION_DIRECT->value)),
             // Edit-existing skips spam/captcha and notifications, but can re-run
-            // integrations that opt in via shouldTriggerOnSubmissionEdit().
+            // integrations that opt in via integration re-run policies on editExisting.
             self::PROCESS_MODE_EDIT_EXISTING => [
                 Task::PREPARE_APPLY_DRAFT_CONTEXT->value,
                 Task::PREPARE_INITIALIZE_SUBMIT_REQUEST->value,

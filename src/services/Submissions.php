@@ -110,9 +110,18 @@ class Submissions extends Component
         return Formie::$plugin->getNotifications()->sendNotificationEmail($notification, $submission, $queueJob);
     }
 
-    public function triggerIntegrations(Submission $submission): void
-    {
-        Formie::$plugin->getIntegrations()->triggerIntegrations($submission);
+    public function triggerIntegrations(
+        Submission $submission,
+        string $processMode = SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+        ?string $triggerEvent = null,
+        bool $operatorInitiated = false,
+    ): void {
+        Formie::$plugin->getIntegrations()->triggerIntegrations(
+            $submission,
+            $processMode,
+            $triggerEvent,
+            $operatorInitiated,
+        );
     }
 
     public function sendIntegrationPayload(Integration $integration, Submission $submission): bool|IntegrationResponse

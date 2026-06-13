@@ -65,7 +65,7 @@ The task names are useful when you need to insert your own task before or after 
 Not every submission request runs every stage or task.
 
 - `submit` is the normal front-end submission flow. It runs validation, screening, save, dispatch, and finalize work.
-- `editExisting` updates an existing submission. It validates and saves, then can re-run integrations that opt in via `shouldTriggerOnSubmissionEdit()`. Notifications, captchas, and spam screening are skipped.
+- `editExisting` updates an existing submission. It validates and saves, then can re-run integrations configured to run on front-end or control panel edits in **Integrations → Settings → When integrations re-run**. Notifications, captchas, and spam screening are skipped.
 - `saveDraft` is used for save-and-continue and back-navigation behavior. It saves submission state without validation, spam screening, notifications, or integrations.
 - `paymentReplay` resumes processing after a payment provider callback. It focuses on payment, persistence, dispatch, and response handling.
 

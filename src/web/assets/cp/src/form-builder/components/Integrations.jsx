@@ -176,7 +176,7 @@ function Integrations({ schema }) {
     }, [enabledPayloadIntegrations]);
 
     const showDispatchSettings = useMemo(() => {
-        if (payloadIntegrations.length < 2) {
+        if (!payloadIntegrations.length || !enabledPayloadIntegrations.length) {
             return false;
         }
 
@@ -185,8 +185,19 @@ function Integrations({ schema }) {
         }
 
         const plan = getValueAtPath('settings.integrationDispatch', null);
+        const rerunPolicies = getValueAtPath('settings.integrationPolicies.rerun', null);
 
-        return Boolean(plan?.enabled);
+        if (plan?.enabled) {
+            return true;
+        }
+
+        if (rerunPolicies && typeof rerunPolicies === 'object') {
+            return Object.values(rerunPolicies).some((entry) => {
+                return entry?.policy && entry.policy !== 'submitOnly';
+            });
+        }
+
+        return true;
     }, [payloadIntegrations.length, enabledPayloadIntegrations.length, getValueAtPath, values]);
     const isDispatchSettingsActive = activeIntegrationHandle === DISPATCH_SETTINGS_HANDLE;
 
@@ -503,7 +514,7 @@ function Integrations({ schema }) {
 
                             {showDispatchSettings && (
                                 <SelectGroup>
-                                    <SelectLabel>{Craft.t('formie', 'Dispatch')}</SelectLabel>
+                                    <SelectLabel>{Craft.t('formie', 'Form settings')}</SelectLabel>
                                     <SelectItem value={DISPATCH_SETTINGS_HANDLE}>
                                         {Craft.t('formie', 'Settings')}
                                     </SelectItem>

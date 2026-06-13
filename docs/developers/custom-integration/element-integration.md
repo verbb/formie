@@ -74,4 +74,4 @@ The base class handles several value conversions for Craft field types, includin
 ## Updating Elements
 Element integrations can support update behavior with settings such as `updateElement`, `updateElementMapping`, `overwriteValues` and `updateSearchIndexes`. Use these when the integration should find an existing element and update it instead of always creating a new element.
 
-When a submission is edited on the front end (`PROCESS_MODE_EDIT_EXISTING`), integrations only run if they opt in via `shouldTriggerOnSubmissionEdit()`. The Entry integration exposes this as **Update on Submission Edit**, shown when **Update Entries** is enabled.
+When a submission is edited (`PROCESS_MODE_EDIT_EXISTING`), integrations only re-run if configured in **Integrations → Settings → When integrations re-run**. Use **Also when submission is edited** for Entry integrations that should update linked elements on front-end or control panel saves.

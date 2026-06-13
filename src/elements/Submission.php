@@ -22,12 +22,14 @@ use verbb\formie\fields\Payment;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\FieldAttributesHelper;
 use verbb\formie\helpers\Table;
+use verbb\formie\helpers\IntegrationTriggerEvents;
 use verbb\formie\helpers\References;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\ValidationHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\models\FieldLayout as FormLayout;
 use verbb\formie\models\Settings;
+use verbb\formie\services\SubmissionWorkflow;
 use verbb\formie\models\Status;
 use verbb\formie\models\ValueContext;
 use verbb\formie\records\Submission as SubmissionRecord;
@@ -1197,6 +1199,8 @@ class Submission extends Element
             $field->afterElementSave($this, $isNew);
         }
 
+        $this->_handleCpSpamUnmarkActions($isNew);
+
         if ($this->_updateTitle) {
             $this->updateTitle($this->getForm());
         }
@@ -1516,6 +1520,32 @@ class Submission extends Element
         }
 
         return $this->attributeHtml($attribute);
+    }
+
+    private function _handleCpSpamUnmarkActions(bool $isNew): void
+    {
+        if ($isNew || !Craft::$app->getRequest()->getIsCpRequest()) {
+            return;
+        }
+
+        if (!$this->hasSpamChanged(true, false)) {
+            return;
+        }
+
+        $request = Craft::$app->getRequest();
+
+        if (StringHelper::toBoolean($request->getBodyParam('sendNotifications'))) {
+            Formie::$plugin->getSubmissions()->sendNotifications($this);
+        }
+
+        if (StringHelper::toBoolean($request->getBodyParam('triggerIntegrations'))) {
+            Formie::$plugin->getSubmissions()->triggerIntegrations(
+                $this,
+                SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+                IntegrationTriggerEvents::UNMARK_SPAM,
+                true,
+            );
+        }
     }
 
     private function _getFieldValidationAttribute(Field $field): string

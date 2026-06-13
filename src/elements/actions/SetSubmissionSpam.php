@@ -3,6 +3,8 @@ namespace verbb\formie\elements\actions;
 
 use verbb\formie\Formie;
 use verbb\formie\elements\Submission;
+use verbb\formie\helpers\IntegrationTriggerEvents;
+use verbb\formie\services\SubmissionWorkflow;
 
 use Craft;
 use craft\base\ElementAction;
@@ -107,7 +109,12 @@ JS,
                 }
 
                 if ($this->triggerIntegrations) {
-                    Formie::$plugin->getSubmissions()->triggerIntegrations($element);
+                    Formie::$plugin->getSubmissions()->triggerIntegrations(
+                        $element,
+                        SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+                        IntegrationTriggerEvents::UNMARK_SPAM,
+                        true,
+                    );
                 }
             }
         }

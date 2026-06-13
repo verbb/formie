@@ -6,6 +6,14 @@
 @import "../components/integration-dispatch-settings.css";
 
 /* Add form builder-specific styles below this line */
+
+@layer base {
+    /* Match document scroll stability so nested panes don't shift when selects open. */
+    .overflow-auto {
+        scrollbar-gutter: stable;
+    }
+}
+
 .form-builder-h3 {
     @apply text-base font-bold;
 }

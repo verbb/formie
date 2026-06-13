@@ -2,6 +2,7 @@
 namespace verbb\formie\jobs;
 
 use verbb\formie\Formie;
+use verbb\formie\helpers\IntegrationTriggerEvents;
 use verbb\formie\elements\Submission;
 
 use Craft;
@@ -20,6 +21,8 @@ class TriggerSubmissionDispatch extends CraftBaseJob implements DebuggableJobInt
     public string $processMode = 'submit';
     public array $stepHandles = [];
     public bool $runAfterNotifications = false;
+    public ?string $triggerEvent = null;
+    public bool $operatorInitiated = false;
     public ?int $formId = null;
     public ?string $formHandle = null;
     public ?string $formTitle = null;
@@ -53,6 +56,12 @@ class TriggerSubmissionDispatch extends CraftBaseJob implements DebuggableJobInt
             $this->stepHandles,
             $this->processMode,
             $this->runAfterNotifications,
+            [
+                'processMode' => $this->processMode,
+                'isSubmissionEdit' => $this->processMode === 'editExisting',
+                'triggerEvent' => $this->triggerEvent ?? IntegrationTriggerEvents::resolveFromProcessMode($this->processMode),
+                'operatorInitiated' => $this->operatorInitiated,
+            ],
         );
 
         $this->setProgress($queue, 1);

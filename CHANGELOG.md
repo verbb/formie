@@ -9,7 +9,7 @@
 - Add per-field **Asset Data Retention** settings to File Upload fields, allowing uploaded assets to be deleted after a configured duration while the submission record is kept. ([#1715](https://github.com/verbb/formie/issues/1715))
 - Run File Upload asset retention and stale pending upload cleanup through Craft garbage collection and dedicated console commands.
 
-- Add **Update on Submission Edit** to Entry element integrations. When **Update Entries** is enabled, this opt-in setting re-runs the integration when a submission is edited and re-submitted on the front end. ([#2591](https://github.com/verbb/formie/issues/2591), [#1970](https://github.com/verbb/formie/issues/1970))
+- Add **When integrations re-run** settings (Integrations → Settings) with per-integration policies: once on submit (default), also when submission is edited, or custom trigger events. Integration conditions still apply. ([#1429](https://github.com/verbb/formie/issues/1429), [#1724](https://github.com/verbb/formie/issues/1724), [#2591](https://github.com/verbb/formie/issues/2591), [#1970](https://github.com/verbb/formie/issues/1970))
 - Add **Use Submission User as Author** to Entry element integrations, assigning the collected submission user as the entry author when **Collect User** is enabled on the form. ([#1363](https://github.com/verbb/formie/issues/1363))
 - HubSpot **Map to Form** integrations now resolve custom object `objectTypeId` values when submitting to HubSpot forms, including portal-specific custom objects (Enterprise). Refresh HubSpot forms after creating custom objects. ([#2649](https://github.com/verbb/formie/issues/2649))
 - Add **Enable Conditions** to form integration settings, allowing integrations to be triggered only when submission field and status rules match. ([#447](https://github.com/verbb/formie/issues/447))
@@ -17,6 +17,8 @@
 - Add per-notification **Dispatch Timing** (Advanced) to override the form’s integration dispatch notification timing.
 
 ### Changed
+
+- Move Entry **Update on Submission Edit** to **Integrations → Settings → When integrations re-run**. Existing forms with the legacy Entry setting continue to work until migrated.
 - Update phone number values sent to integrations to use `E164` format instead of international formatting. ([Discussion #2731](https://github.com/verbb/formie/discussions/2731))
 - Improve integration queue job descriptions and debug output with form context (`formId`, `formHandle`, `formTitle`). ([#2172](https://github.com/verbb/formie/discussions/2172))
 - Add configurable **Integration API Error Handling** for Mailchimp and Campaign Monitor, classifying rate-limited and rejected payloads separately from operational failures. ([#2172](https://github.com/verbb/formie/discussions/2172), [#1990](https://github.com/verbb/formie/issues/1990))

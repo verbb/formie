@@ -6,6 +6,7 @@ use verbb\formie\base\Integration;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\Formie;
+use verbb\formie\helpers\IntegrationTriggerEvents;
 use verbb\formie\helpers\Table;
 use verbb\formie\jobs\TriggerSubmissionDispatch;
 use verbb\formie\models\IntegrationDispatchContext;
@@ -57,8 +58,11 @@ class IntegrationDispatch extends Component
         return count($handles);
     }
 
-    public function dispatchSubmission(Submission $submission, string $processMode = SubmissionWorkflow::PROCESS_MODE_SUBMIT): void
-    {
+    public function dispatchSubmission(
+        Submission $submission,
+        string $processMode = SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+        array $triggerContext = [],
+    ): void {
         $form = $submission->getForm();
 
         if (!$form || !$this->shouldOrchestrate($form)) {
@@ -73,6 +77,15 @@ class IntegrationDispatch extends Component
         $queuedHandles = $plan->getQueuedHandles($form);
         $context = $this->loadContext($submission);
 
+        if (!$triggerContext) {
+            $triggerContext = [
+                'processMode' => $processMode,
+                'isSubmissionEdit' => $isSubmissionEdit,
+                'triggerEvent' => IntegrationTriggerEvents::resolveFromProcessMode($processMode),
+                'operatorInitiated' => false,
+            ];
+        }
+
         if ($immediateHandles) {
             $this->_runIntegrationHandles(
                 $submission,
@@ -80,7 +93,7 @@ class IntegrationDispatch extends Component
                 $plan,
                 $immediateHandles,
                 $context,
-                $isSubmissionEdit,
+                $triggerContext,
             );
         }
 
@@ -90,6 +103,8 @@ class IntegrationDispatch extends Component
                 'processMode' => $processMode,
                 'stepHandles' => $queuedHandles,
                 'runAfterNotifications' => $plan->notificationTiming === IntegrationDispatchPlan::NOTIFICATION_TIMING_AFTER,
+                'triggerEvent' => $triggerContext['triggerEvent'] ?? IntegrationTriggerEvents::SUBMIT,
+                'operatorInitiated' => (bool)($triggerContext['operatorInitiated'] ?? false),
             ]), $settings->queuePriority);
 
             return;
@@ -102,7 +117,7 @@ class IntegrationDispatch extends Component
                 $plan,
                 $queuedHandles,
                 $context,
-                $isSubmissionEdit,
+                $triggerContext,
             );
         }
 
@@ -111,8 +126,13 @@ class IntegrationDispatch extends Component
         }
     }
 
-    public function runQueuedSteps(Submission $submission, array $stepHandles, string $processMode, bool $runAfterNotifications): void
-    {
+    public function runQueuedSteps(
+        Submission $submission,
+        array $stepHandles,
+        string $processMode,
+        bool $runAfterNotifications,
+        array $triggerContext = [],
+    ): void {
         $form = $submission->getForm();
 
         if (!$form) {
@@ -123,13 +143,22 @@ class IntegrationDispatch extends Component
         $context = $this->loadContext($submission);
         $isSubmissionEdit = $processMode === SubmissionWorkflow::PROCESS_MODE_EDIT_EXISTING;
 
+        if (!$triggerContext) {
+            $triggerContext = [
+                'processMode' => $processMode,
+                'isSubmissionEdit' => $isSubmissionEdit,
+                'triggerEvent' => IntegrationTriggerEvents::resolveFromProcessMode($processMode),
+                'operatorInitiated' => false,
+            ];
+        }
+
         $this->_runIntegrationHandles(
             $submission,
             $form,
             $plan,
             $stepHandles,
             $context,
-            $isSubmissionEdit,
+            $triggerContext,
         );
 
         if ($runAfterNotifications) {
@@ -212,7 +241,7 @@ class IntegrationDispatch extends Component
         IntegrationDispatchPlan $plan,
         array $handles,
         IntegrationDispatchContext $context,
-        bool $isSubmissionEdit,
+        array $triggerContext,
     ): void {
         $integrationsByHandle = [];
 
@@ -227,14 +256,7 @@ class IntegrationDispatch extends Component
                 continue;
             }
 
-            if ($isSubmissionEdit && !$integration->shouldTriggerOnSubmissionEdit()) {
-                continue;
-            }
-
-            if (!$integration->shouldTrigger($submission, [
-                'processMode' => $isSubmissionEdit ? SubmissionWorkflow::PROCESS_MODE_EDIT_EXISTING : SubmissionWorkflow::PROCESS_MODE_SUBMIT,
-                'isSubmissionEdit' => $isSubmissionEdit,
-            ])) {
+            if (!$integration->shouldTrigger($submission, $triggerContext)) {
                 continue;
             }
 

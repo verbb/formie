@@ -478,15 +478,8 @@ class Entry extends Element
         }
 
         $schema[] = SchemaHelper::lightswitchField([
-            'name' => 'updateOnSubmissionEdit',
-            'label' => Craft::t('formie', 'Update on Submission Edit'),
-            'instructions' => Craft::t('formie', 'When a submission is edited and re-submitted on the front end, update the linked entry with the latest field values.'),
-            'if' => 'updateElement',
-        ]);
-
-        $schema[] = SchemaHelper::lightswitchField([
             'name' => 'updateSearchIndexes',
-            'label' => Craft::t('formie', 'Update Search Index'),
+            'label' => Craft::t('app', 'Update Search Index'),
             'instructions' => Craft::t('formie', 'Whether this integration should update the search indexes to include content for this element.'),
         ]);
 

@@ -3,7 +3,10 @@
 declare(strict_types=1);
 
 use verbb\formie\enums\workflow\Task;
+use verbb\formie\helpers\IntegrationRerunPolicies;
+use verbb\formie\helpers\IntegrationTriggerEvents;
 use verbb\formie\integrations\elements\Entry;
+use verbb\formie\elements\Form;
 use verbb\formie\services\SubmissionWorkflow;
 
 it('includes standard integration dispatch in the edit-existing workflow', function (): void {
@@ -21,18 +24,33 @@ it('includes standard integration dispatch in the edit-existing workflow', funct
 });
 
 it('only opts Entry integrations into submission-edit dispatch when configured', function (): void {
+    $form = new Form();
+    $form->settings->integrationPolicies = [
+        'rerun' => [
+            'entry' => [
+                'policy' => IntegrationRerunPolicies::POLICY_ON_EDIT,
+            ],
+        ],
+    ];
+
     $integration = new Entry([
-        'updateElement' => false,
-        'updateOnSubmissionEdit' => true,
+        'handle' => 'entry',
+        'updateElement' => true,
     ]);
 
-    expect($integration->shouldTriggerOnSubmissionEdit())->toBeFalse();
-
-    $integration->updateElement = true;
-
-    expect($integration->shouldTriggerOnSubmissionEdit())->toBeTrue();
-
-    $integration->updateOnSubmissionEdit = false;
-
-    expect($integration->shouldTriggerOnSubmissionEdit())->toBeFalse();
+    expect(IntegrationRerunPolicies::isEventAllowed(
+        $form,
+        $integration,
+        IntegrationTriggerEvents::CP_SAVE,
+    ))->toBeTrue()
+        ->and(IntegrationRerunPolicies::isEventAllowed(
+            $form,
+            $integration,
+            IntegrationTriggerEvents::FRONTEND_EDIT,
+        ))->toBeTrue()
+        ->and(IntegrationRerunPolicies::isEventAllowed(
+            $form,
+            $integration,
+            IntegrationTriggerEvents::SUBMIT,
+        ))->toBeTrue();
 });

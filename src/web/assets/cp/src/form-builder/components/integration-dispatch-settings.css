@@ -125,3 +125,25 @@
 .formie-integration-dispatch-menu-trigger:hover {
     color: var(--color-blue-500, #3b82f6);
 }
+
+.fui-integration-settings-section-heading {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-color, #33475b);
+}
+
+.fui-integration-rerun-table tbody td {
+    vertical-align: middle;
+}
+
+.fui-integration-rerun-row--expanded td {
+    vertical-align: top;
+}
+
+.fui-integration-rerun-label {
+    width: 40%;
+}
+
+.fui-integration-rerun-control .fui-integration-rerun-control-select {
+    max-width: 28rem;
+}

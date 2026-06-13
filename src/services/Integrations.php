@@ -17,6 +17,7 @@ use verbb\formie\events\TriggerIntegrationEvent;
 use verbb\formie\events\TriggerIntegrationFailureEvent;
 use verbb\formie\base\FormInterface;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\IntegrationTriggerEvents;
 use verbb\formie\helpers\Plugin;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
@@ -330,24 +331,47 @@ class Integrations extends Component
         return $this->_getLookupCache()->integrationsByType[$type];
     }
 
-    public function triggerIntegrations(Submission $submission, string $processMode = SubmissionWorkflow::PROCESS_MODE_SUBMIT): void
-    {
+    public function triggerIntegrations(
+        Submission $submission,
+        string $processMode = SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+        ?string $triggerEvent = null,
+        bool $operatorInitiated = false,
+    ): void {
         $form = $submission->getForm();
 
         if (!$form) {
             return;
         }
 
+        $triggerContext = $this->_buildTriggerContext($processMode, $triggerEvent, $operatorInitiated);
+
         if (Formie::$plugin->getIntegrationDispatch()->shouldOrchestrate($form)) {
-            Formie::$plugin->getIntegrationDispatch()->dispatchSubmission($submission, $processMode);
+            Formie::$plugin->getIntegrationDispatch()->dispatchSubmission(
+                $submission,
+                $processMode,
+                $triggerContext,
+            );
 
             return;
         }
 
-        $this->_triggerIntegrationsLegacy($submission, $processMode);
+        $this->_triggerIntegrationsLegacy($submission, $processMode, $triggerContext);
     }
 
-    private function _triggerIntegrationsLegacy(Submission $submission, string $processMode): void
+    private function _buildTriggerContext(
+        string $processMode,
+        ?string $triggerEvent,
+        bool $operatorInitiated,
+    ): array {
+        return [
+            'processMode' => $processMode,
+            'isSubmissionEdit' => $processMode === SubmissionWorkflow::PROCESS_MODE_EDIT_EXISTING,
+            'triggerEvent' => $triggerEvent ?? IntegrationTriggerEvents::resolveFromProcessMode($processMode),
+            'operatorInitiated' => $operatorInitiated,
+        ];
+    }
+
+    private function _triggerIntegrationsLegacy(Submission $submission, string $processMode, array $triggerContext): void
     {
         $settings = Formie::$plugin->getSettings();
         $form = $submission->getForm();
@@ -356,21 +380,12 @@ class Integrations extends Component
             return;
         }
 
-        $isSubmissionEdit = $processMode === SubmissionWorkflow::PROCESS_MODE_EDIT_EXISTING;
-
         foreach ($this->getAllEnabledIntegrationsForForm($form) as $integration) {
             if (!$integration->supportsPayloadSending()) {
                 continue;
             }
 
-            if ($isSubmissionEdit && !$integration->shouldTriggerOnSubmissionEdit()) {
-                continue;
-            }
-
-            if (!$integration->shouldTrigger($submission, [
-                'processMode' => $processMode,
-                'isSubmissionEdit' => $isSubmissionEdit,
-            ])) {
+            if (!$integration->shouldTrigger($submission, $triggerContext)) {
                 continue;
             }
 
@@ -385,6 +400,8 @@ class Integrations extends Component
                     'formId' => $form->id ?? null,
                     'formHandle' => $form->handle ?? null,
                     'formTitle' => $form->title ?? null,
+                    'triggerEvent' => $triggerContext['triggerEvent'],
+                    'operatorInitiated' => $triggerContext['operatorInitiated'],
                 ]), $settings->queuePriority);
 
                 continue;

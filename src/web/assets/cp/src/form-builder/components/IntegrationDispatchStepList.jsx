@@ -176,7 +176,7 @@ function IntegrationDispatchStepRow({
 
             {!isDragSource ? (
                 <div className="formie-integration-dispatch-step-actions">
-                <DropdownMenu size="sm" modal={false}>
+                <DropdownMenu size="sm">
                     <DropdownMenuTrigger
                         render={(
                             <Button

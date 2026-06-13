@@ -160,7 +160,7 @@ function GroupBlock({
 
                 {canEdit ? (
                     <div className="formie-field-palette-row-actions">
-                        <DropdownMenu size="sm" modal={false}>
+                        <DropdownMenu size="sm">
                             <DropdownMenuTrigger
                                 render={(
                                     <Button
@@ -343,7 +343,7 @@ function SortableFieldRow({
 
             {canEdit && !isDragSource ? (
                 <div className="formie-field-palette-row-actions">
-                    <DropdownMenu size="sm" modal={false}>
+                    <DropdownMenu size="sm">
                         <DropdownMenuTrigger
                             render={(
                                 <Button

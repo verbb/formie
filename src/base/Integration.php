@@ -15,6 +15,8 @@ use verbb\formie\events\SendIntegrationPayloadEvent;
 use verbb\formie\helpers\ConditionsHelper;
 use verbb\formie\helpers\IntegrationHelper;
 use verbb\formie\helpers\IntegrationApiErrors;
+use verbb\formie\helpers\IntegrationRerunPolicies;
+use verbb\formie\helpers\IntegrationTriggerEvents;
 use verbb\formie\fields\Agree;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\References;
@@ -905,6 +907,17 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     public function shouldTrigger(Submission $submission, array $context = []): bool
     {
+        $form = $submission->getForm();
+
+        if ($form) {
+            $triggerEvent = (string)($context['triggerEvent'] ?? IntegrationTriggerEvents::SUBMIT);
+            $operatorInitiated = (bool)($context['operatorInitiated'] ?? false);
+
+            if (!IntegrationRerunPolicies::isEventAllowed($form, $this, $triggerEvent, $operatorInitiated)) {
+                return false;
+            }
+        }
+
         if (!$this->enableConditions) {
             return true;
         }

@@ -3,6 +3,7 @@ namespace verbb\formie\jobs;
 
 use verbb\formie\Formie;
 use verbb\formie\base\Integration;
+use verbb\formie\helpers\IntegrationTriggerEvents;
 use verbb\formie\elements\Submission;
 use verbb\formie\models\IntegrationResponse;
 
@@ -27,6 +28,8 @@ class TriggerIntegration extends CraftBaseJob implements DebuggableJobInterface
     public ?string $formHandle = null;
     public ?string $formTitle = null;
     public array $integrationContext = [];
+    public ?string $triggerEvent = null;
+    public bool $operatorInitiated = false;
     public mixed $payload = null;
 
     public array $integrationData = [];
@@ -70,7 +73,10 @@ class TriggerIntegration extends CraftBaseJob implements DebuggableJobInterface
         // Set with a private variable, so it doesn't appear in the queue job data which would be mayhem.
         $integration->setQueueJob($this);
 
-        if (!$integration->shouldTrigger($submission)) {
+        if (!$integration->shouldTrigger($submission, [
+            'triggerEvent' => $this->triggerEvent ?? IntegrationTriggerEvents::SUBMIT,
+            'operatorInitiated' => $this->operatorInitiated,
+        ])) {
             Integration::info($integration, 'Integration skipped due to conditions not being met.');
 
             $this->setProgress($queue, 1);
