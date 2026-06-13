@@ -15,10 +15,11 @@ return [
 ];
 ```
 
-Compatibility mode currently covers three areas:
+Compatibility mode currently covers four areas:
 
 - A small set of legacy class aliases that were already deprecated in earlier releases.
 - A small PHP event bridge for notification and integration events that moved to more specific services.
+- Deprecated `Submissions` integration and notification dispatch helpers that delegate to `IntegrationTriggers`, `Integrations`, and `Notifications`.
 - Custom field compatibility bridges for older schema methods, field config normalization, and legacy Theme Config field tags.
 
 Leave compatibility mode enabled while you update the site. Once the project has no Formie deprecation warnings and any custom code has been updated, you can disable it:
@@ -890,6 +891,64 @@ Event::on(Integrations::class, Integrations::EVENT_BEFORE_TRIGGER_INTEGRATION, f
 });
 ```
 :::
+
+### Custom integration dispatch
+
+> [!IMPORTANT]
+> With `compatibilityMode` enabled (the default), Formie 4 keeps the Formie 3 `Submissions` dispatch helpers working and logs Craft deprecation warnings when your project calls them. Update custom code when you can; disable compatibility mode once deprecation logs are clear.
+
+Formie 4 routes integration and notification dispatch through dedicated services. If your Formie 3 project called dispatch helpers on `Submissions`, use the replacements below.
+
+Formie 3 | Formie 4
+--- | ---
+`getSubmissions()->triggerIntegrations($submission)` | `getIntegrationTriggers()->dispatch(...)` or `dispatchFromWorkflow(...)`
+`getSubmissions()->sendIntegrationPayload($integration, $submission)` | `getIntegrations()->sendIntegrationPayload(...)` for workflow dispatch, or `getIntegrationTriggers()->dispatchManualIntegration(...)` for operator-initiated runs
+`getSubmissions()->sendNotifications($submission)` | `getNotifications()->sendNotifications(...)`
+`getSubmissions()->sendNotification($notification, $submission)` | `getNotifications()->sendNotification(...)`
+`getSubmissions()->sendNotificationEmail($notification, $submission)` | `getNotifications()->sendNotificationEmail(...)`
+Entry `updateOnSubmissionEdit` (integration setting) | **Integrations → Settings → When integrations re-run**
+
+Status-change email notifications (notifications with a `{submission:status}` condition) are handled by `NotificationTriggers` when a submission’s status changes. You do not need an `Submission::EVENT_AFTER_SAVE` listener for that behaviour.
+
+Avoid triggering integrations from `Submission::EVENT_AFTER_SAVE`. That bypasses re-run policies, workflow idempotency, and the CP save vs workflow split. Prefer listening to `Integrations::EVENT_BEFORE_TRIGGER_INTEGRATION`, or call `IntegrationTriggers` explicitly when you need custom dispatch.
+
+::: code-group
+```php [Formie 3]
+use verbb\formie\Formie;
+use verbb\formie\elements\Submission;
+
+$submission = Submission::find()->id(123)->one();
+
+Formie::$plugin->getSubmissions()->triggerIntegrations($submission);
+
+Formie::$plugin->getSubmissions()->sendIntegrationPayload($integration, $submission);
+```
+
+```php [Formie 4]
+use verbb\formie\Formie;
+use verbb\formie\elements\Submission;
+use verbb\formie\helpers\IntegrationTriggerEvents;
+use verbb\formie\models\IntegrationTriggerRequest;
+use verbb\formie\services\SubmissionWorkflow;
+
+$submission = Submission::find()->id(123)->one();
+
+// Automatic dispatch (respects re-run policies and orchestration)
+Formie::$plugin->getIntegrationTriggers()->dispatch(new IntegrationTriggerRequest([
+    'submission' => $submission,
+    'processMode' => SubmissionWorkflow::PROCESS_MODE_EDIT_EXISTING,
+    'triggerEvent' => IntegrationTriggerEvents::CP_SAVE,
+]));
+
+// Operator-initiated single integration run
+Formie::$plugin->getIntegrationTriggers()->dispatchManualIntegration($integration, $submission);
+
+// Low-level payload send (events still fire on Integrations)
+Formie::$plugin->getIntegrations()->sendIntegrationPayload($integration, $submission);
+```
+:::
+
+Learn more in [Submission Workflow](/developers/submission-workflow) and [Integration Events](/developers/events/integration-events).
 
 ### Field and Form Slot Tag Events
 

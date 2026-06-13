@@ -320,7 +320,7 @@ class SubmissionsController extends Controller
             return $this->asFailure($error);
         }
 
-        Formie::$plugin->getSubmissions()->sendNotificationEmail($notification, $submission);
+        Formie::$plugin->getNotifications()->sendNotificationEmail($notification, $submission);
 
         $message = Craft::t('formie', 'Email Notification was sent successfully.');
 

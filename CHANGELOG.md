@@ -27,6 +27,7 @@
 - Route all integration trigger entry points through `IntegrationTriggers` instead of `Submission::afterSave` hooks.
 - Consolidate legacy and orchestrated integration dispatch behind `IntegrationExecutor`, using batched `TriggerIntegration` queue jobs for queued steps.
 - Route status-change email notifications through `NotificationTriggers` instead of inline logic in `Submission::afterSave`.
+- Deprecate Formie 3 `Submissions` integration and notification dispatch helpers when compatibility mode is enabled. Use `Notifications`, `Integrations`, and `IntegrationTriggers` instead.
 - Remove unused `Integration::shouldTriggerOnSubmissionEdit()` API (superseded by re-run policies).
 - Update phone number values sent to integrations to use `E164` format instead of international formatting. ([Discussion #2731](https://github.com/verbb/formie/discussions/2731))
 - Improve integration queue job descriptions and debug output with form context (`formId`, `formHandle`, `formTitle`). ([#2172](https://github.com/verbb/formie/discussions/2172))

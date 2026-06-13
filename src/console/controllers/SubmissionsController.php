@@ -230,7 +230,7 @@ class SubmissionsController extends Controller
         }
 
         foreach ($submissions as $submission) {
-            Formie::$plugin->getSubmissions()->sendNotificationEmail($notification, $submission);
+            Formie::$plugin->getNotifications()->sendNotificationEmail($notification, $submission);
 
             $this->stdout("Sent notification for submission #{$submission->id} ..." . PHP_EOL, Console::FG_GREEN);
         }

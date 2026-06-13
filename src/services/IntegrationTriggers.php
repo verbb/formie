@@ -85,7 +85,7 @@ class IntegrationTriggers extends Component
         bool $triggerIntegrations,
     ): void {
         if ($sendNotifications) {
-            Formie::$plugin->getSubmissions()->sendNotifications($submission);
+            Formie::$plugin->getNotifications()->sendNotifications($submission);
         }
 
         if (!$triggerIntegrations) {

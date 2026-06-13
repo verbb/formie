@@ -60,7 +60,7 @@ class SendNotification extends CraftBaseJob implements DebuggableJobInterface
 
         $this->setProgress($queue, 0.75);
 
-        $sentResponse = Formie::$plugin->getSubmissions()->sendNotificationEmail($notification, $submission, $this);
+        $sentResponse = Formie::$plugin->getNotifications()->sendNotificationEmail($notification, $submission, $this);
         $success = $sentResponse['success'] ?? false;
         $error = $sentResponse['error'] ?? false;
 

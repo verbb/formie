@@ -2,7 +2,6 @@
 namespace verbb\formie\services;
 
 use verbb\formie\Formie;
-use verbb\formie\base\Integration;
 use verbb\formie\base\FixedParentFieldInterface;
 use verbb\formie\base\ParentFieldInterface;
 use verbb\formie\base\PreviewableFieldInterface;
@@ -25,8 +24,6 @@ use verbb\formie\helpers\Table;
 use verbb\formie\helpers\Variables;
 use verbb\formie\jobs\UpdateSubmissionContent;
 use verbb\formie\models\FieldLayoutPage;
-use verbb\formie\models\IntegrationResponse;
-use verbb\formie\models\IntegrationTriggerRequest;
 use verbb\formie\models\Notification;
 use verbb\formie\models\Settings;
 
@@ -96,36 +93,6 @@ class Submissions extends Component
         return Craft::$app->getElements()->getElementById($id, Submission::class, $siteId, $criteria);
     }
 
-    public function sendNotifications(Submission $submission): void
-    {
-        Formie::$plugin->getNotifications()->sendNotifications($submission);
-    }
-
-    public function sendNotification(Notification $notification, Submission $submission, ?bool $useQueue = null): void
-    {
-        Formie::$plugin->getNotifications()->sendNotification($notification, $submission, $useQueue);
-    }
-
-    public function sendNotificationEmail(Notification $notification, Submission $submission, $queueJob = null): array|bool
-    {
-        return Formie::$plugin->getNotifications()->sendNotificationEmail($notification, $submission, $queueJob);
-    }
-
-    public function triggerIntegrations(
-        Submission $submission,
-        string $processMode = SubmissionWorkflow::PROCESS_MODE_SUBMIT,
-        ?string $triggerEvent = null,
-        bool $operatorInitiated = false,
-    ): void {
-        Formie::$plugin->getIntegrationTriggers()->dispatch(new IntegrationTriggerRequest([
-            'source' => IntegrationTriggers::SOURCE_WORKFLOW,
-            'submission' => $submission,
-            'processMode' => $processMode,
-            'triggerEvent' => $triggerEvent,
-            'operatorInitiated' => $operatorInitiated,
-        ]));
-    }
-
     public function applyCpRequestAttributes(Submission $submission): void
     {
         $request = Craft::$app->getRequest();
@@ -153,11 +120,6 @@ class Submissions extends Component
         if (StringHelper::toBoolean($request->getBodyParam('markAsComplete'))) {
             $submission->isIncomplete = false;
         }
-    }
-
-    public function sendIntegrationPayload(Integration $integration, Submission $submission): bool|IntegrationResponse
-    {
-        return Formie::$plugin->getIntegrations()->sendIntegrationPayload($integration, $submission);
     }
 
     public function defineSourceTableAttributes(DefineSourceTableAttributesEvent $event): void

@@ -114,7 +114,7 @@ class TriggerIntegration extends CraftBaseJob implements DebuggableJobInterface
 
         $this->setProgress($queue, 0.75);
 
-        $response = Formie::$plugin->getSubmissions()->sendIntegrationPayload($integration, $submission);
+        $response = Formie::$plugin->getIntegrations()->sendIntegrationPayload($integration, $submission);
 
         // Check if some integrations return a response object for more detail
         if (($response instanceof IntegrationResponse) && !$response->success) {

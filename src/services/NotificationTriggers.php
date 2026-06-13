@@ -29,7 +29,7 @@ class NotificationTriggers extends Component
                 continue;
             }
 
-            Formie::$plugin->getSubmissions()->sendNotification($notification, $submission);
+            Formie::$plugin->getNotifications()->sendNotification($notification, $submission);
         }
     }
 
