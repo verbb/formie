@@ -906,7 +906,6 @@ Formie 3 | Formie 4
 `getSubmissions()->sendNotifications($submission)` | `getNotifications()->sendNotifications(...)`
 `getSubmissions()->sendNotification($notification, $submission)` | `getNotifications()->sendNotification(...)`
 `getSubmissions()->sendNotificationEmail($notification, $submission)` | `getNotifications()->sendNotificationEmail(...)`
-Entry `updateOnSubmissionEdit` (integration setting) | **Integrations → Settings → When integrations re-run**
 
 Status-change email notifications (notifications with a `{submission:status}` condition) are handled by `NotificationTriggers` when a submission’s status changes. You do not need an `Submission::EVENT_AFTER_SAVE` listener for that behaviour.
 

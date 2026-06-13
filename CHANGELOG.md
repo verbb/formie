@@ -22,7 +22,6 @@
 
 ### Changed
 
-- Move Entry **Update on Submission Edit** to **Integrations → Settings → When integrations re-run**. Existing forms with the legacy Entry setting continue to work until migrated.
 - Apply control panel submission sidebar fields (title, status, spam, mark as complete) during managed CP submission saves.
 - Route all integration trigger entry points through `IntegrationTriggers` instead of `Submission::afterSave` hooks.
 - Consolidate legacy and orchestrated integration dispatch behind `IntegrationExecutor`, using batched `TriggerIntegration` queue jobs for queued steps.

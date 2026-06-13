@@ -34,22 +34,6 @@ it('resolves on-edit policy to submit and edit events', function (): void {
     ]);
 });
 
-it('falls back to legacy Entry update-on-edit settings when no form policy exists', function (): void {
-    $form = new Form();
-    $integration = new Entry([
-        'handle' => 'entry',
-        'updateElement' => true,
-        'updateOnSubmissionEdit' => true,
-    ]);
-
-    expect(IntegrationRerunPolicies::getPolicy($form, $integration))->toBe(IntegrationRerunPolicies::POLICY_ON_EDIT)
-        ->and(IntegrationRerunPolicies::isEventAllowed(
-            $form,
-            $integration,
-            IntegrationTriggerEvents::CP_SAVE,
-        ))->toBeTrue();
-});
-
 it('allows operator unmark actions to run submit-only integrations', function (): void {
     $form = new Form();
     $integration = new Entry(['handle' => 'mailchimp']);

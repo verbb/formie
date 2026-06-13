@@ -2531,7 +2531,6 @@ return [
   'Update Element Mapping' => 'Update Element Mapping',
   'Update Entries' => 'Update Entries',
   'Update Events' => 'Update Events',
-  'Update on Submission Edit' => 'Update on Submission Edit',
   'Update Search Index' => 'Update Search Index',
   'Update Users' => 'Update Users',
   'Updating form submission content.' => 'Updating form submission content.',

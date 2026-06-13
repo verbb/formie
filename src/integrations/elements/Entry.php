@@ -39,7 +39,6 @@ class Entry extends Element
     public mixed $defaultAuthorId = null;
     public bool $useSubmissionUserAsAuthor = false;
     public ?bool $createDraft = null;
-    public ?bool $updateOnSubmissionEdit = null;
 
 
     // Public Methods

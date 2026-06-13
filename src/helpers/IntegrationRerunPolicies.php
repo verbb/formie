@@ -4,7 +4,6 @@ namespace verbb\formie\helpers;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Form;
 use verbb\formie\Formie;
-use verbb\formie\integrations\elements\Entry;
 
 class IntegrationRerunPolicies
 {
@@ -50,10 +49,6 @@ class IntegrationRerunPolicies
             return (string)$stored['policy'];
         }
 
-        if ($integration instanceof Entry && self::_hasLegacyEntryEditPolicy($integration)) {
-            return self::POLICY_ON_EDIT;
-        }
-
         return self::POLICY_SUBMIT_ONLY;
     }
 
@@ -66,10 +61,6 @@ class IntegrationRerunPolicies
                 (string)$stored['policy'],
                 is_array($stored['events'] ?? null) ? $stored['events'] : [],
             );
-        }
-
-        if ($integration instanceof Entry && self::_hasLegacyEntryEditPolicy($integration)) {
-            return self::resolveEventsFromPolicy(self::POLICY_ON_EDIT);
         }
 
         return self::resolveEventsFromPolicy(self::POLICY_SUBMIT_ONLY);
@@ -160,11 +151,6 @@ class IntegrationRerunPolicies
 
     // Private Methods
     // =========================================================================
-
-    private static function _hasLegacyEntryEditPolicy(Entry $integration): bool
-    {
-        return (bool)$integration->updateElement && (bool)$integration->updateOnSubmissionEdit;
-    }
 
     private static function _normalizeEvents(array $events): array
     {
