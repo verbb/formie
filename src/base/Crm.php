@@ -41,7 +41,7 @@ abstract class Crm extends Integration
 
     public function getCpEditUrl(): ?string
     {
-        return UrlHelper::cpUrl('formie/settings/crm/edit/' . $this->id);
+        return UrlHelper::cpUrl('formie/integrations/crm/edit/' . $this->id);
     }
 
     public function getIconUrl(): string

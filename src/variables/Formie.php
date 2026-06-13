@@ -238,30 +238,13 @@ class Formie
 
                 'integrations-heading' => ['heading' => Craft::t('formie', 'Integrations')],
                 'captchas' => ['title' => Craft::t('formie', 'Captchas')],
-                'address-providers' => ['title' => Craft::t('formie', 'Address Providers')],
-                'elements' => ['title' => Craft::t('formie', 'Elements')],
-                'email-marketing' => ['title' => Craft::t('formie', 'Email Marketing')],
-                'crm' => ['title' => Craft::t('formie', 'CRM')],
-                'help-desk' => ['title' => Craft::t('formie', 'Help Desk')],
-                'messaging' => ['title' => Craft::t('formie', 'Messaging')],
-                'payments' => ['title' => Craft::t('formie', 'Payments')],
-                'automations' => ['title' => Craft::t('formie', 'Automations')],
-                'miscellaneous' => ['title' => Craft::t('formie', 'Miscellaneous')],
             ];
         } else {
             $navItems = [
                 'import-export' => ['title' => Craft::t('formie', 'Import/Export')],
 
                 'integrations-heading' => ['heading' => Craft::t('formie', 'Integrations')],
-                'address-providers' => ['title' => Craft::t('formie', 'Address Providers')],
-                'elements' => ['title' => Craft::t('formie', 'Elements')],
-                'email-marketing' => ['title' => Craft::t('formie', 'Email Marketing')],
-                'crm' => ['title' => Craft::t('formie', 'CRM')],
-                'help-desk' => ['title' => Craft::t('formie', 'Help Desk')],
-                'messaging' => ['title' => Craft::t('formie', 'Messaging')],
-                'payments' => ['title' => Craft::t('formie', 'Payments')],
-                'automations' => ['title' => Craft::t('formie', 'Automations')],
-                'miscellaneous' => ['title' => Craft::t('formie', 'Miscellaneous')],
+                'captchas' => ['title' => Craft::t('formie', 'Captchas')],
             ];
         }
 
@@ -285,6 +268,21 @@ class Formie
         $navItems['support'] = ['title' => Craft::t('formie', 'Get Support')];
 
         return $navItems;
+    }
+
+    public function getIntegrationsNavItems(): array
+    {
+        return [
+            'address-providers' => ['title' => Craft::t('formie', 'Address Providers')],
+            'elements' => ['title' => Craft::t('formie', 'Elements')],
+            'email-marketing' => ['title' => Craft::t('formie', 'Email Marketing')],
+            'crm' => ['title' => Craft::t('formie', 'CRM')],
+            'help-desk' => ['title' => Craft::t('formie', 'Help Desk')],
+            'messaging' => ['title' => Craft::t('formie', 'Messaging')],
+            'payments' => ['title' => Craft::t('formie', 'Payments')],
+            'automations' => ['title' => Craft::t('formie', 'Automations')],
+            'miscellaneous' => ['title' => Craft::t('formie', 'Miscellaneous')],
+        ];
     }
 
     public function getSubmissionRelations(ElementInterface $element): array

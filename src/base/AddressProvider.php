@@ -54,7 +54,7 @@ abstract class AddressProvider extends Integration
 
     public function getCpEditUrl(): ?string
     {
-        return UrlHelper::cpUrl('formie/settings/address-providers/edit/' . $this->id);
+        return UrlHelper::cpUrl('formie/integrations/address-providers/edit/' . $this->id);
     }
 
     public function getIconUrl(): string

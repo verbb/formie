@@ -111,7 +111,7 @@ class Formie extends Plugin
 
     public bool $hasCpSection = true;
     public bool $hasCpSettings = true;
-    public string $schemaVersion = '4.0.15';
+    public string $schemaVersion = '4.0.16';
     public string $minVersionRequired = '2.1.5';
 
 
@@ -207,6 +207,13 @@ class Formie extends Plugin
             $nav['subnav']['stencils'] = [
                 'label' => Craft::t('formie', 'Stencils'),
                 'url' => 'formie/stencils',
+            ];
+        }
+
+        if (Craft::$app->getUser()->checkPermission('formie-accessSettings')) {
+            $nav['subnav']['integrations'] = [
+                'label' => Craft::t('formie', 'Integrations'),
+                'url' => 'formie/integrations/email-marketing',
             ];
         }
 
@@ -324,6 +331,35 @@ class Formie extends Plugin
             $event->rules['formie/settings/pdf-templates/new'] = 'formie/pdf-templates/edit';
             $event->rules['formie/settings/pdf-templates/edit/<id:\d+>'] = 'formie/pdf-templates/edit';
             $event->rules['formie/settings/captchas'] = 'formie/integration-settings/captcha-index';
+
+            $event->rules['formie/integrations/address-providers'] = 'formie/integration-settings/address-provider-index';
+            $event->rules['formie/integrations/address-providers/new'] = 'formie/integration-settings/edit-address-provider';
+            $event->rules['formie/integrations/address-providers/edit/<integrationId:\d+>'] = 'formie/integration-settings/edit-address-provider';
+            $event->rules['formie/integrations/elements'] = 'formie/integration-settings/element-index';
+            $event->rules['formie/integrations/elements/new'] = 'formie/integration-settings/edit-element';
+            $event->rules['formie/integrations/elements/edit/<integrationId:\d+>'] = 'formie/integration-settings/edit-element';
+            $event->rules['formie/integrations/email-marketing'] = 'formie/integration-settings/email-marketing-index';
+            $event->rules['formie/integrations/email-marketing/new'] = 'formie/integration-settings/edit-email-marketing';
+            $event->rules['formie/integrations/email-marketing/edit/<integrationId:\d+>'] = 'formie/integration-settings/edit-email-marketing';
+            $event->rules['formie/integrations/crm'] = 'formie/integration-settings/crm-index';
+            $event->rules['formie/integrations/crm/new'] = 'formie/integration-settings/edit-crm';
+            $event->rules['formie/integrations/crm/edit/<integrationId:\d+>'] = 'formie/integration-settings/edit-crm';
+            $event->rules['formie/integrations/help-desk'] = 'formie/integration-settings/help-desk-index';
+            $event->rules['formie/integrations/help-desk/new'] = 'formie/integration-settings/edit-help-desk';
+            $event->rules['formie/integrations/help-desk/edit/<integrationId:\d+>'] = 'formie/integration-settings/edit-help-desk';
+            $event->rules['formie/integrations/messaging'] = 'formie/integration-settings/messaging-index';
+            $event->rules['formie/integrations/messaging/new'] = 'formie/integration-settings/edit-messaging';
+            $event->rules['formie/integrations/messaging/edit/<integrationId:\d+>'] = 'formie/integration-settings/edit-messaging';
+            $event->rules['formie/integrations/payments'] = 'formie/integration-settings/payment-index';
+            $event->rules['formie/integrations/payments/new'] = 'formie/integration-settings/edit-payment';
+            $event->rules['formie/integrations/payments/edit/<integrationId:\d+>'] = 'formie/integration-settings/edit-payment';
+            $event->rules['formie/integrations/automations'] = 'formie/integration-settings/automation-index';
+            $event->rules['formie/integrations/automations/new'] = 'formie/integration-settings/edit-automation';
+            $event->rules['formie/integrations/automations/edit/<integrationId:\d+>'] = 'formie/integration-settings/edit-automation';
+            $event->rules['formie/integrations/miscellaneous'] = 'formie/integration-settings/miscellaneous-index';
+            $event->rules['formie/integrations/miscellaneous/new'] = 'formie/integration-settings/edit-miscellaneous';
+            $event->rules['formie/integrations/miscellaneous/edit/<integrationId:\d+>'] = 'formie/integration-settings/edit-miscellaneous';
+
             $event->rules['formie/settings/address-providers'] = 'formie/integration-settings/address-provider-index';
             $event->rules['formie/settings/address-providers/new'] = 'formie/integration-settings/edit-address-provider';
             $event->rules['formie/settings/address-providers/edit/<integrationId:\d+>'] = 'formie/integration-settings/edit-address-provider';

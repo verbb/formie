@@ -77,6 +77,8 @@ class Integrations extends Component
     public const EVENT_BEFORE_TRIGGER_INTEGRATION = 'beforeTriggerIntegration';
     public const EVENT_AFTER_TRIGGER_INTEGRATION_FAILED = 'afterTriggerIntegrationFailed';
     public const CONFIG_INTEGRATIONS_KEY = 'formie.integrations';
+    public const SCOPE_PROJECT = 'project';
+    public const SCOPE_SITE = 'site';
 
 
     // Properties
@@ -305,6 +307,15 @@ class Integrations extends Component
     public function getIntegrationTypes($type)
     {
         return $this->getAllIntegrationTypes()[$type] ?? [];
+    }
+
+    public static function resolveScopeForNew(?string $requestedScope = null): string
+    {
+        if ($requestedScope === self::SCOPE_PROJECT && Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
+            return self::SCOPE_PROJECT;
+        }
+
+        return self::SCOPE_SITE;
     }
 
     public function getAllIntegrations(): array
@@ -677,9 +688,19 @@ class Integrations extends Component
             return false;
         }
 
+        if (!$integration->canEdit()) {
+            $integration->addError('name', Craft::t('formie', 'This integration cannot be edited in the current environment.'));
+
+            return false;
+        }
+
         if ($isNewIntegration) {
-            $integration->uid = StringHelper::UUID();
-            
+            if (!$integration->scope) {
+                $integration->scope = self::SCOPE_SITE;
+            }
+
+            $integration->uid = $integration->uid ?: StringHelper::UUID();
+
             $integration->sortOrder = (new Query())
                     ->from([Table::FORMIE_INTEGRATIONS])
                     ->max('[[sortOrder]]') + 1;
@@ -687,15 +708,11 @@ class Integrations extends Component
             $integration->uid = Db::uidById(Table::FORMIE_INTEGRATIONS, $integration->id);
         }
 
-        $configPath = self::CONFIG_INTEGRATIONS_KEY . '.' . $integration->uid;
-        $configData = $this->createIntegrationConfig($integration);
-        Craft::$app->getProjectConfig()->set($configPath, $configData, "Save the “{$integration->handle}” integration");
-
-        if ($isNewIntegration) {
-            $integration->id = Db::idByUid(Table::FORMIE_INTEGRATIONS, $integration->uid);
+        if ($integration->isSiteScope()) {
+            return $this->_saveSiteIntegration($integration, $isNewIntegration);
         }
 
-        return true;
+        return $this->_saveProjectIntegration($integration, $isNewIntegration);
     }
 
     public function handleChangedIntegration(ConfigEvent $event): void
@@ -731,6 +748,7 @@ class Integrations extends Component
             $integrationRecord->type = $data['type'];
             $integrationRecord->enabled = $data['enabled'];
             $integrationRecord->sortOrder = $data['sortOrder'];
+            $integrationRecord->scope = self::SCOPE_PROJECT;
             $integrationRecord->settings = ProjectConfigHelper::unpackAssociativeArrays($settings);
             $integrationRecord->uid = $integrationUid;
 
@@ -765,15 +783,31 @@ class Integrations extends Component
     public function reorderIntegrations(array $integrationIds): bool
     {
         $projectConfig = Craft::$app->getProjectConfig();
-
-        $uidsByIds = Db::uidsByIds(Table::FORMIE_INTEGRATIONS, $integrationIds);
+        $db = Craft::$app->getDb();
 
         foreach ($integrationIds as $integrationOrder => $integrationId) {
-            if (!empty($uidsByIds[$integrationId])) {
-                $integrationUid = $uidsByIds[$integrationId];
-                $projectConfig->set(self::CONFIG_INTEGRATIONS_KEY . '.' . $integrationUid . '.sortOrder', $integrationOrder + 1, "Reorder integrations");
+            $integration = $this->getIntegrationById((int)$integrationId);
+
+            if (!$integration || !$integration->canEdit()) {
+                continue;
+            }
+
+            $sortOrder = $integrationOrder + 1;
+
+            if ($integration->isSiteScope()) {
+                $db->createCommand()
+                    ->update(Table::FORMIE_INTEGRATIONS, ['sortOrder' => $sortOrder], ['id' => $integration->id])
+                    ->execute();
+            } elseif ($integration->uid) {
+                $projectConfig->set(
+                    self::CONFIG_INTEGRATIONS_KEY . '.' . $integration->uid . '.sortOrder',
+                    $sortOrder,
+                    'Reorder integrations',
+                );
             }
         }
+
+        $this->_resetIntegrationCaches();
 
         return true;
     }
@@ -836,6 +870,14 @@ class Integrations extends Component
 
         if (!$integration->beforeDelete()) {
             return false;
+        }
+
+        if (!$integration->canDelete()) {
+            return false;
+        }
+
+        if ($integration->isSiteScope()) {
+            return $this->_deleteSiteIntegration($integration);
         }
 
         Craft::$app->getProjectConfig()->remove(self::CONFIG_INTEGRATIONS_KEY . '.' . $integration->uid, "Delete the “{$integration->handle}” integration");
@@ -1265,6 +1307,7 @@ class Integrations extends Component
                 'id',
                 'name',
                 'handle',
+                'scope',
                 'type',
                 'enabled',
                 'sortOrder',
@@ -1277,6 +1320,129 @@ class Integrations extends Component
             ->from([Table::FORMIE_INTEGRATIONS])
             ->where(['dateDeleted' => null])
             ->orderBy(['sortOrder' => SORT_ASC]);
+    }
+
+    private function _saveProjectIntegration(IntegrationInterface $integration, bool $isNewIntegration): bool
+    {
+        if (!Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
+            $integration->addError('name', Craft::t('formie', 'Project integrations cannot be saved when admin changes are disabled.'));
+
+            return false;
+        }
+
+        if ($isNewIntegration) {
+            $integration->scope = self::SCOPE_PROJECT;
+        }
+
+        $configPath = self::CONFIG_INTEGRATIONS_KEY . '.' . $integration->uid;
+        $configData = $this->createIntegrationConfig($integration);
+        Craft::$app->getProjectConfig()->set($configPath, $configData, "Save the “{$integration->handle}” integration");
+
+        if ($isNewIntegration) {
+            $integration->id = Db::idByUid(Table::FORMIE_INTEGRATIONS, $integration->uid);
+        }
+
+        return true;
+    }
+
+    private function _saveSiteIntegration(IntegrationInterface $integration, bool $isNewIntegration): bool
+    {
+        $integration->scope = self::SCOPE_SITE;
+        $settings = $integration->getSettings();
+
+        $transaction = Craft::$app->getDb()->beginTransaction();
+
+        try {
+            if ($isNewIntegration) {
+                $integrationRecord = new IntegrationRecord();
+                $integrationRecord->uid = $integration->uid;
+            } else {
+                $integrationRecord = IntegrationRecord::findOne($integration->id);
+
+                if (!$integrationRecord) {
+                    throw new Exception('Invalid integration ID: ' . $integration->id);
+                }
+
+                foreach ($integration->extraAttributes() as $attribute) {
+                    $settings[$attribute] = $settings[$attribute] ?? $integration->$attribute;
+                }
+            }
+
+            $integrationRecord->name = (string)$integration->name;
+            $integrationRecord->handle = (string)$integration->handle;
+            $integrationRecord->type = get_class($integration);
+            $integrationRecord->enabled = $integration->getEnabled(false);
+            $integrationRecord->sortOrder = (int)$integration->sortOrder;
+            $integrationRecord->scope = self::SCOPE_SITE;
+            $integrationRecord->settings = $settings;
+
+            if ($wasTrashed = (bool)$integrationRecord->dateDeleted) {
+                $integrationRecord->restore();
+            } else {
+                $integrationRecord->save(false);
+            }
+
+            $integration->id = $integrationRecord->id;
+            $integration->uid = $integrationRecord->uid;
+
+            $transaction->commit();
+        } catch (Throwable $e) {
+            $transaction->rollBack();
+            throw $e;
+        }
+
+        $this->_resetIntegrationCaches();
+
+        $integration->afterSave($isNewIntegration);
+
+        if ($this->hasEventHandlers(self::EVENT_AFTER_SAVE_INTEGRATION)) {
+            $this->trigger(self::EVENT_AFTER_SAVE_INTEGRATION, new IntegrationEvent([
+                'integration' => $this->getIntegrationById($integration->id),
+                'isNew' => $isNewIntegration,
+            ]));
+        }
+
+        return true;
+    }
+
+    private function _deleteSiteIntegration(IntegrationInterface $integration): bool
+    {
+        if ($this->hasEventHandlers(self::EVENT_BEFORE_APPLY_INTEGRATION_DELETE)) {
+            $this->trigger(self::EVENT_BEFORE_APPLY_INTEGRATION_DELETE, new IntegrationEvent([
+                'integration' => $integration,
+            ]));
+        }
+
+        $transaction = Craft::$app->getDb()->beginTransaction();
+
+        try {
+            $integrationRecord = IntegrationRecord::findOne($integration->id);
+
+            if (!$integrationRecord || $integrationRecord->scope !== self::SCOPE_SITE) {
+                $transaction->rollBack();
+
+                return false;
+            }
+
+            $integration->beforeApplyDelete();
+            $integrationRecord->softDelete();
+            $transaction->commit();
+        } catch (Throwable $e) {
+            $transaction->rollBack();
+            throw $e;
+        }
+
+        $this->_resetIntegrationCaches();
+
+        $integration->afterDelete();
+
+        if ($this->hasEventHandlers(self::EVENT_AFTER_DELETE_INTEGRATION)) {
+            $this->trigger(self::EVENT_AFTER_DELETE_INTEGRATION, new IntegrationEvent([
+                'integration' => $integration,
+            ]));
+        }
+
+        return true;
     }
 
     private function _getIntegrationRecord(string $uid, bool $withTrashed = false): IntegrationRecord

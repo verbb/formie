@@ -108,6 +108,10 @@ class ProjectConfigHelper
         $integrationsService = Formie::$plugin->getIntegrations();
 
         foreach ($integrationsService->getAllIntegrations() as $integration) {
+            if (!$integration->isProjectScope()) {
+                continue;
+            }
+
             $data[$integration->uid] = $integrationsService->createIntegrationConfig($integration);
         }
 

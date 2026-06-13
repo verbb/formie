@@ -49,7 +49,7 @@ abstract class EmailMarketing extends Integration
 
     public function getCpEditUrl(): ?string
     {
-        return UrlHelper::cpUrl('formie/settings/email-marketing/edit/' . $this->id);
+        return UrlHelper::cpUrl('formie/integrations/email-marketing/edit/' . $this->id);
     }
 
     public function getIconUrl(): string

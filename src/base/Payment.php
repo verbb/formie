@@ -163,7 +163,7 @@ abstract class Payment extends Integration
 
     public function getCpEditUrl(): ?string
     {
-        return UrlHelper::cpUrl('formie/settings/payments/edit/' . $this->id);
+        return UrlHelper::cpUrl('formie/integrations/payments/edit/' . $this->id);
     }
 
     public function getIconUrl(): string

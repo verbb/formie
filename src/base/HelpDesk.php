@@ -39,7 +39,7 @@ abstract class HelpDesk extends Integration
 
     public function getCpEditUrl(): string
     {
-        return UrlHelper::cpUrl('formie/settings/help-desk/edit/' . $this->id);
+        return UrlHelper::cpUrl('formie/integrations/help-desk/edit/' . $this->id);
     }
 
     public function getIconUrl(): string

@@ -40,7 +40,7 @@ abstract class Messaging extends Integration
 
     public function getCpEditUrl(): string
     {
-        return UrlHelper::cpUrl('formie/settings/messaging/edit/' . $this->id);
+        return UrlHelper::cpUrl('formie/integrations/messaging/edit/' . $this->id);
     }
 
     public function getIconUrl(): string

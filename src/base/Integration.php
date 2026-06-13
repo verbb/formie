@@ -37,6 +37,7 @@ use verbb\formie\models\Stencil;
 use verbb\formie\options\IntegrationOptionSourceHelper;
 use verbb\formie\options\OptionList;
 use verbb\formie\records\Integration as IntegrationRecord;
+use verbb\formie\services\Integrations as IntegrationsService;
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
@@ -369,6 +370,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     public ?string $name = null;
     public ?string $handle = null;
+    public ?string $scope = null;
     public ?string $type = null;
     public ?int $sortOrder = null;
     public array $cache = [];
@@ -400,6 +402,48 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         }
 
         parent::__construct($config);
+    }
+
+    public function isProjectScope(): bool
+    {
+        return $this->getScope() === IntegrationsService::SCOPE_PROJECT;
+    }
+
+    public function isSiteScope(): bool
+    {
+        return $this->getScope() === IntegrationsService::SCOPE_SITE;
+    }
+
+    public function getScope(): string
+    {
+        $scope = $this->scope ?? IntegrationsService::SCOPE_PROJECT;
+
+        return in_array($scope, [IntegrationsService::SCOPE_PROJECT, IntegrationsService::SCOPE_SITE], true)
+            ? $scope
+            : IntegrationsService::SCOPE_PROJECT;
+    }
+
+    public function getScopeLabel(): string
+    {
+        if ($this->isSiteScope()) {
+            return '';
+        }
+
+        return Craft::t('formie', 'Project');
+    }
+
+    public function canEdit(): bool
+    {
+        if ($this->isSiteScope()) {
+            return true;
+        }
+
+        return (bool)Craft::$app->getConfig()->getGeneral()->allowAdminChanges;
+    }
+
+    public function canDelete(): bool
+    {
+        return $this->canEdit();
     }
 
     public function scenarios(): array

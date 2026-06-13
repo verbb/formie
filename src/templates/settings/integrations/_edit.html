@@ -1,16 +1,18 @@
 {% import '_includes/forms' as forms %}
 {% extends 'formie/_layouts' %}
 
+{% set canEdit = isNewIntegration or integration.canEdit() %}
+
 {% set crumbs = [
     { label: craft.formie.getPluginName() | t('formie'), url: url('formie') },
-    { label: 'Settings' | t('app'), url: url('formie/settings') },
+    { label: 'Integrations' | t('formie'), url: url('formie/integrations/email-marketing') },
     { label: typeName | t('formie'), url: url(baseUrl) },
 ] %}
 
 {% set bodyClass = 'fui-integrations-settings' %}
-{% set selectedSubnavItem = 'settings' %}
+{% set selectedSubnavItem = 'integrations' %}
 
-{% if craft.app.config.general.allowAdminChanges %}
+{% if canEdit %}
     {% set fullPageForm = true %}
     {% set saveShortcutRedirect = continueEditingUrl %}
 
@@ -41,9 +43,17 @@
 <input type="hidden" name="action" value="formie/integrations/save-integration">
 {{ redirectInput(baseUrl) }}
 
-{% if not isNewIntegration %}
+{% if isNewIntegration %}
+    <input type="hidden" name="scope" value="{{ integration.scope }}">
+{% else %}
     <input type="hidden" name="sortOrder" value="{{ integration.sortOrder }}">
     <input type="hidden" name="id" value="{{ integration.id }}">
+{% endif %}
+
+{% if not canEdit %}
+    <p class="warning with-icon">
+        {{ 'This project integration is read-only in the current environment.' | t('formie') | md(inlineOnly=true) }}
+    </p>
 {% endif %}
 
 {# Show an error when connecting to OAuth, instead of just in logs #}
@@ -64,6 +74,7 @@
         errors: (integration is defined ? integration.getErrors('name') : null),
         autofocus: true,
         required: true,
+        disabled: not canEdit,
     }) }}
 
     {{ forms.textField({
@@ -77,6 +88,7 @@
         value: (integration is defined ? integration.handle : null),
         errors: (integration is defined ? integration.getErrors('handle') : null),
         required: true,
+        disabled: not canEdit,
     }) }}
 </div>
 
@@ -112,6 +124,7 @@
         toggle: true,
         targetPrefix: '.integration-provider-',
         required: true,
+        disabled: not canEdit,
     }) }}
 
     {{ forms.lightswitchField({
@@ -120,13 +133,21 @@
         id: 'enabled',
         name: 'enabled',
         on: isNewIntegration ? true : integration.getEnabled(),
+        disabled: not canEdit,
     }) }}
+
+    {% if not isNewIntegration and integration.getScopeLabel() %}
+        <div class="data">
+            <h5 class="heading">{{ 'Scope' | t('formie') }}</h5>
+            <div class="value">{{ integration.getScopeLabel() }}</div>
+        </div>
+    {% endif %}
 
     {% if not isNewIntegration and integration.supportsConnection() %}
         {% set connected = integration.getIsConnected() %}
 
         {% if integration.supportsOAuthConnection() %}
-            {% if not craft.app.config.general.allowAdminChanges %}
+            {% if not canEdit %}
                 <form id="main-form" class="field lightswitch-field fui-connect" method="post" accept-charset="UTF-8">
                     {{ csrfInput() }}
             {% else %}
@@ -151,19 +172,19 @@
                 </div>
             {% endif %}
 
-            {% if not craft.app.config.general.allowAdminChanges %}
+            {% if not canEdit %}
                 </form>
             {% else %}
                 </div>
             {% endif %}
-        {% elseif integration.supportsConnection() %}
+        {% elseif integration.supportsConnection() and canEdit %}
             <div class="fui-connect formie-integration-connect" style="min-height: 40px;"></div>
         {% endif %}
     {% endif %}
 </div>
 
 {% if not isNewIntegration %}
-    {% if craft.app.config.general.allowAdminChanges %}
+    {% if canEdit %}
         <hr>
     {% endif %}
 
@@ -188,6 +209,7 @@
     new Craft.HandleGenerator('#name', '#handle');
 {% endif %}
 
+{% if canEdit %}
 // Add event listeners to all form inputs, to detect a change. Show a message to save when changed.
 $(document).ready(function() {
     var html = '<div class="heading"><span class="warning with-icon">{{ 'Save this integration to connect.' | t('formie') }}</span></div>';
@@ -200,8 +222,9 @@ $(document).ready(function() {
         $('.fui-connect').not('.formie-integration-connect').html(html);
     });
 });
+{% endif %}
 
-{% if not isNewIntegration and integration.supportsConnection() and not integration.supportsOAuthConnection() %}
+{% if not isNewIntegration and integration.supportsConnection() and not integration.supportsOAuthConnection() and canEdit %}
 (() => {
     const settings = {
         connected: {{ integration.getIsConnected() | json_encode | raw }},

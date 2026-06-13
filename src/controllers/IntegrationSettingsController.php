@@ -8,9 +8,11 @@ use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\Plugin;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\MissingIntegration;
+use verbb\formie\services\Integrations as IntegrationsService;
 
 use Craft;
 use craft\helpers\Json;
+use craft\web\ForbiddenHttpException;
 
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
@@ -207,6 +209,14 @@ class IntegrationSettingsController extends SettingsAccessController
                 }
             } else {
                 $integration = $integrations->createIntegration($firstIntegrationType);
+                $requestedScope = $this->request->getParam('scope');
+                $scope = IntegrationsService::resolveScopeForNew($requestedScope);
+
+                if ($requestedScope === IntegrationsService::SCOPE_PROJECT && $scope !== IntegrationsService::SCOPE_PROJECT) {
+                    throw new ForbiddenHttpException(Craft::t('formie', 'Project integrations cannot be created when admin changes are disabled.'));
+                }
+
+                $integration->scope = $scope;
             }
         }
 
@@ -240,8 +250,8 @@ class IntegrationSettingsController extends SettingsAccessController
 
         $typeKebab = StringHelper::toKebabCase($typeName);
 
-        $baseUrl = "formie/settings/$typeKebab";
-        $continueEditingUrl = "formie/settings/$typeKebab/edit/{id}";
+        $baseUrl = "formie/integrations/$typeKebab";
+        $continueEditingUrl = "formie/integrations/$typeKebab/edit/{id}";
 
         Plugin::registerCpIntegrationConnectAssets();
 

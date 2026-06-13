@@ -1,8 +1,29 @@
-{% extends 'formie/_layouts/settings' %}
+{% extends 'formie/_layouts/integrations' %}
+
+{% set selectedTab = typeName | kebab %}
+{% set title = typeName | t('formie') %}
+{% set docTitle = title ~ ' - ' ~ (craft.formie.getPluginName() | t('formie')) %}
 
 {% block actionButton %}
+    {% set editableCount = 0 %}
+    {% for integration in integrations %}
+        {% if integration.canEdit() %}
+            {% set editableCount = editableCount + 1 %}
+        {% endif %}
+    {% endfor %}
+
     {% if craft.app.config.general.allowAdminChanges %}
-        <a href="{{ url("formie/settings/#{typeName | kebab}/new") }}" class="btn submit add icon">{{ 'New Integration' | t('formie') }}</a>
+        <div class="btngroup submit">
+            <a href="{{ url("formie/integrations/#{selectedTab}/new") }}" class="btn submit add icon">{{ 'New Integration' | t('formie') }}</a>
+            <button type="button" class="btn submit menubtn" title="{{ 'New integration options' | t('formie') }}" aria-label="{{ 'New integration options' | t('formie') }}"></button>
+            <div class="menu">
+                <ul>
+                    <li><a href="{{ url("formie/integrations/#{selectedTab}/new", { scope: 'project' }) }}">{{ 'New project integration' | t('formie') }}</a></li>
+                </ul>
+            </div>
+        </div>
+    {% else %}
+        <a href="{{ url("formie/integrations/#{selectedTab}/new") }}" class="btn submit add icon">{{ 'New Integration' | t('formie') }}</a>
     {% endif %}
 {% endblock %}
 
@@ -31,12 +52,21 @@
         name: integration.getName() | t('formie') | e,
         enabled: integration.getEnabled(),
         connected: integration.getIsConnected(),
+        scope: integration.getScopeLabel(),
+        _showDelete: integration.canDelete(),
         type: {
             isMissing: integrationIsMissing,
             label: integrationIsMissing ? integration.expectedType : integration.displayName(),
             icon: integration.getIconUrl(),
         },
     }]) %}
+{% endfor %}
+
+{% set editableCount = 0 %}
+{% for integration in integrations %}
+    {% if integration.canEdit() %}
+        {% set editableCount = editableCount + 1 %}
+    {% endif %}
 {% endfor %}
 
 {% js %}
@@ -53,6 +83,13 @@ var columns = [
                 value.label
             '</div>';
         }
+    },
+    {
+        name: 'scope',
+        title: Craft.t('formie', 'Scope'),
+        callback: function(value) {
+            return value ? Craft.escapeHtml(String(value)) : '';
+        },
     },
     { name: 'enabled', title: Craft.t('formie', 'Enabled'), callback: function(value) {
             if (value) {
@@ -80,9 +117,11 @@ new Craft.VueAdminTable({
     emptyMessage: Craft.t('formie', 'No integrations exist yet.'),
     tableData: {{ tableData | json_encode | raw }},
 
-    {% if craft.app.config.general.allowAdminChanges %}
+    {% if editableCount > 1 %}
         deleteAction: 'formie/integrations/delete-integration',
-        reorderAction: '{{ integrations | length > 1 ? 'formie/integrations/reorder-integrations' : ''}}',
+        reorderAction: 'formie/integrations/reorder-integrations',
+    {% elseif editableCount == 1 %}
+        deleteAction: 'formie/integrations/delete-integration',
     {% endif %}
 });
 

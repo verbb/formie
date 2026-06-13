@@ -1,12 +1,6 @@
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
-{% if not craft.app.config.general.allowAdminChanges %}
-    <p class="warning with-icon">
-        {{ 'Integration settings can only be editable on an environment with `allowAdminChanges` enabled.' | t('formie') | md(inlineOnly=true) }}
-    </p>
-{% endif %}
-
 {% set category = integration.getCategory() | kebab %}
 
 <div class="fui-settings-block">

@@ -47,7 +47,7 @@ abstract class Miscellaneous extends Integration
 
     public function getCpEditUrl(): ?string
     {
-        return UrlHelper::cpUrl('formie/settings/miscellaneous/edit/' . $this->id);
+        return UrlHelper::cpUrl('formie/integrations/miscellaneous/edit/' . $this->id);
     }
 
     public function getIconUrl(): string

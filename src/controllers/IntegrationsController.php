@@ -75,10 +75,11 @@ class IntegrationsController extends Controller
             'name' => $this->request->getParam('name'),
             'handle' => $this->request->getParam('handle'),
             'type' => $type,
-            'sortOrder' => $savedIntegration->sortOrder ?? null,
+            'sortOrder' => $savedIntegration?->sortOrder,
             'enabled' => (bool)$this->request->getParam('enabled'),
             'settings' => $settings,
-            'uid' => $savedIntegration->uid ?? null,
+            'uid' => $savedIntegration?->uid,
+            'scope' => $savedIntegration?->scope ?? $this->request->getParam('scope'),
         ];
 
         $integration = $integrationsService->createIntegration($integrationData);

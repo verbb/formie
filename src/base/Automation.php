@@ -51,7 +51,7 @@ abstract class Automation extends Integration
 
     public function getCpEditUrl(): ?string
     {
-        return UrlHelper::cpUrl('formie/settings/automations/edit/' . $this->id);
+        return UrlHelper::cpUrl('formie/integrations/automations/edit/' . $this->id);
     }
 
     public function getIconUrl(): string

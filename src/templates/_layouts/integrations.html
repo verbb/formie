@@ -1,0 +1,29 @@
+{% extends 'formie/_layouts' %}
+
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{% do view.registerAssetBundle('craft\\web\\assets\\admintable\\AdminTableAsset') -%}
+{% do craft.formie.getPlugin().registerCpPluginSettingsAssets() -%}
+
+{% set crumbs = [
+    { label: craft.formie.getPluginName() | t('formie'), url: url('formie') },
+    { label: 'Integrations' | t('formie'), url: url('formie/integrations/email-marketing') },
+] %}
+
+{% set selectedSubnavItem = 'integrations' %}
+{% set selectedTab = selectedTab ?? craft.app.request.getSegment(2) ?? 'email-marketing' %}
+
+{% block sidebar %}
+    <nav class="formie-settings-tabs">
+        <ul>
+            {% for handle, item in craft.formie.getIntegrationsNavItems() %}
+                <li>
+                    <a href="{{ url('formie/integrations/' ~ handle) }}" {% if handle == selectedTab %}class="sel"{% endif %}>
+                        {{ item.title }}
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+    </nav>
+{% endblock %}

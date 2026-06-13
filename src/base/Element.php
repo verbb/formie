@@ -175,7 +175,7 @@ abstract class Element extends Integration
 
     public function getCpEditUrl(): ?string
     {
-        return UrlHelper::cpUrl('formie/settings/elements/edit/' . $this->id);
+        return UrlHelper::cpUrl('formie/integrations/elements/edit/' . $this->id);
     }
 
     public function getIconUrl(): string
