@@ -355,7 +355,22 @@ class Integrations extends Component
             return;
         }
 
-        $this->_triggerIntegrationsLegacy($submission, $processMode, $triggerContext);
+        $executor = Formie::$plugin->getIntegrationExecutor();
+        $handles = $executor->resolveLegacyHandles($form);
+
+        if (!$handles) {
+            return;
+        }
+
+        $settings = Formie::$plugin->getSettings();
+
+        if ($settings->useQueueForIntegrations) {
+            $executor->queueSteps($submission, $handles, $processMode, $triggerContext);
+
+            return;
+        }
+
+        $executor->runSteps($submission, $handles, $triggerContext);
     }
 
     private function _buildTriggerContext(
@@ -369,46 +384,6 @@ class Integrations extends Component
             'triggerEvent' => $triggerEvent ?? IntegrationTriggerEvents::resolveFromProcessMode($processMode),
             'operatorInitiated' => $operatorInitiated,
         ];
-    }
-
-    private function _triggerIntegrationsLegacy(Submission $submission, string $processMode, array $triggerContext): void
-    {
-        $settings = Formie::$plugin->getSettings();
-        $form = $submission->getForm();
-
-        if (!$form) {
-            return;
-        }
-
-        foreach ($this->getAllEnabledIntegrationsForForm($form) as $integration) {
-            if (!$integration->supportsPayloadSending()) {
-                continue;
-            }
-
-            if (!$integration->shouldTrigger($submission, $triggerContext)) {
-                continue;
-            }
-
-            $integration->populateContext();
-
-            if ($settings->useQueueForIntegrations) {
-                Queue::push(new TriggerIntegration([
-                    'submissionId' => $submission->id,
-                    'integrationId' => $integration->id,
-                    'integrationHandle' => $integration->handle,
-                    'integrationContext' => $integration->context,
-                    'formId' => $form->id ?? null,
-                    'formHandle' => $form->handle ?? null,
-                    'formTitle' => $form->title ?? null,
-                    'triggerEvent' => $triggerContext['triggerEvent'],
-                    'operatorInitiated' => $triggerContext['operatorInitiated'],
-                ]), $settings->queuePriority);
-
-                continue;
-            }
-
-            $this->sendIntegrationPayload($integration, $submission);
-        }
     }
 
     public function sendIntegrationPayload(Integration $integration, Submission $submission): bool|IntegrationResponse

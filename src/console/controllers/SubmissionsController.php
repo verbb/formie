@@ -187,7 +187,7 @@ class SubmissionsController extends Controller
             $integration->setAttributes($formSettings, false);
             $integration->populateContext();
 
-            Formie::$plugin->getSubmissions()->sendIntegrationPayload($integration, $submission);
+            Formie::$plugin->getIntegrationTriggers()->dispatchManualIntegration($integration, $submission);
 
             $this->stdout("Triggered integration for submission #{$submission->id} ..." . PHP_EOL, Console::FG_GREEN);
         }

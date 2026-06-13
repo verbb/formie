@@ -38,7 +38,7 @@ class TriggerIntegrationsTask implements TaskInterface
             return TaskResult::continue(['reason' => 'integrationsAlreadyMarked']);
         }
 
-        Formie::$plugin->getIntegrations()->triggerIntegrations(
+        Formie::$plugin->getIntegrationTriggers()->dispatchFromWorkflow(
             $context->request->submission,
             $context->request->processMode,
             IntegrationTriggerEvents::resolveFromProcessMode($context->request->processMode),

@@ -10,9 +10,7 @@ use verbb\formie\events\ModifyFormIntegrationsEvent;
 use verbb\formie\Formie;
 use verbb\formie\helpers\IntegrationRerunPolicies;
 use verbb\formie\helpers\IntegrationTriggerEvents;
-use verbb\formie\integrations\elements\Entry;
 use verbb\formie\models\IntegrationFormSettings;
-use verbb\formie\models\Status;
 use verbb\formie\models\SubmissionRequest;
 use verbb\formie\services\Integrations;
 use verbb\formie\services\SubmissionWorkflow;
@@ -69,7 +67,7 @@ it('detects when a form has integrations that allow cp save re-runs', function (
         ],
     ];
 
-    $integration = new Entry(['handle' => 'entry']);
+    $integration = cpSaveIntegrationTestIntegration('entry');
 
     withCpSaveTestIntegration($form, $integration, function () use ($form): void {
         expect(IntegrationRerunPolicies::formHasIntegrationAllowingEvent(
@@ -80,7 +78,7 @@ it('detects when a form has integrations that allow cp save re-runs', function (
 });
 
 it('applies cp submission sidebar attributes during managed saves', function (): void {
-    $status = new Status([
+    $status = new \verbb\formie\models\Status([
         'name' => 'Accepted',
         'handle' => 'acceptedCpSave',
         'color' => 'green',
@@ -126,9 +124,9 @@ it('applies cp submission sidebar attributes during managed saves', function ():
         ->and($reloaded->getFieldValue('fullName'))->toBe('After Status');
 });
 
-it('triggers integrations once when a submission is saved directly from the control panel', function (): void {
+it('dispatches cp element saves through the integration coordinator', function (): void {
     $form = formie()
-        ->form(['title' => 'CP Direct Save Integrations'])
+        ->form(['title' => 'CP Coordinator Element Save'])
         ->singleLineTextField('fullName')
         ->create();
 
@@ -156,15 +154,7 @@ it('triggers integrations once when a submission is saved directly from the cont
 
     try {
         withCpSaveTestIntegration($form, $integration, function () use ($submission): void {
-            WebRequestTestHelper::withWebRequestContext(function (): void {
-                Craft::$app->getRequest()->setIsCpRequest(true);
-            }, [
-                'method' => 'POST',
-                'hostInfo' => 'https://craft.example.test',
-                'httpHost' => 'craft.example.test',
-            ]);
-
-            expect(Craft::$app->elements->saveElement($submission))->toBeTrue();
+            Formie::$plugin->getIntegrationTriggers()->dispatchCpElementSave($submission);
         });
     } finally {
         Event::off(Integrations::class, Integrations::EVENT_BEFORE_TRIGGER_INTEGRATION, $beforeHandler);

@@ -6,6 +6,7 @@ use verbb\formie\base\Integration;
 use verbb\formie\helpers\IntegrationTriggerEvents;
 use verbb\formie\elements\Submission;
 use verbb\formie\models\IntegrationResponse;
+use verbb\formie\services\SubmissionWorkflow;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -24,6 +25,9 @@ class TriggerIntegration extends CraftBaseJob implements DebuggableJobInterface
     public ?int $submissionId = null;
     public ?int $integrationId = null;
     public ?string $integrationHandle = null;
+    public array $stepHandles = [];
+    public string $processMode = SubmissionWorkflow::PROCESS_MODE_SUBMIT;
+    public bool $runAfterNotifications = false;
     public ?int $formId = null;
     public ?string $formHandle = null;
     public ?string $formTitle = null;
@@ -56,6 +60,30 @@ class TriggerIntegration extends CraftBaseJob implements DebuggableJobInterface
             throw new Exception('Unable to find submission: ' . $this->submissionId . '.');
         }
 
+        // Ensure we set the correct language for a potential CLI request
+        Craft::$app->language = $submission->getSite()->language;
+        Craft::$app->set('locale', Craft::$app->getI18n()->getLocaleById($submission->getSite()->language));
+        Craft::$app->getSites()->setCurrentSite($submission->getSite());
+
+        if ($this->stepHandles) {
+            Formie::$plugin->getIntegrationExecutor()->runQueuedJob(
+                $submission,
+                $this->stepHandles,
+                $this->processMode,
+                [
+                    'processMode' => $this->processMode,
+                    'isSubmissionEdit' => $this->processMode === SubmissionWorkflow::PROCESS_MODE_EDIT_EXISTING,
+                    'triggerEvent' => $this->triggerEvent ?? IntegrationTriggerEvents::resolveFromProcessMode($this->processMode),
+                    'operatorInitiated' => $this->operatorInitiated,
+                ],
+                $this->runAfterNotifications,
+            );
+
+            $this->setProgress($queue, 1);
+
+            return;
+        }
+
         $integration = $this->_resolveIntegration($submission);
 
         if (!$integration) {
@@ -84,11 +112,6 @@ class TriggerIntegration extends CraftBaseJob implements DebuggableJobInterface
             return;
         }
 
-        // Ensure we set the correct language for a potential CLI request
-        Craft::$app->language = $submission->getSite()->language;
-        Craft::$app->set('locale', Craft::$app->getI18n()->getLocaleById($submission->getSite()->language));
-        Craft::$app->getSites()->setCurrentSite($submission->getSite());
-
         $this->setProgress($queue, 0.75);
 
         $response = Formie::$plugin->getSubmissions()->sendIntegrationPayload($integration, $submission);
@@ -111,6 +134,14 @@ class TriggerIntegration extends CraftBaseJob implements DebuggableJobInterface
 
     protected function defaultDescription(): string
     {
+        if ($this->stepHandles) {
+            $form = $this->formHandle ?: ($this->formTitle ?: ($this->formId ?? Craft::t('formie', 'unknown')));
+
+            return Craft::t('formie', 'Running integration dispatch for form “{form}”.', [
+                'form' => $form,
+            ]);
+        }
+
         $integration = $this->integrationHandle ?: ($this->integrationId ?? Craft::t('formie', 'unknown'));
         $form = $this->formHandle ?: ($this->formTitle ?: ($this->formId ?? Craft::t('formie', 'unknown')));
 

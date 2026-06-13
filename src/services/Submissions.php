@@ -19,8 +19,6 @@ use verbb\formie\fields\values\NameFieldValue;
 use verbb\formie\fields as formiefields;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\DataRetentionHelper;
-use verbb\formie\helpers\IntegrationRerunPolicies;
-use verbb\formie\helpers\IntegrationTriggerEvents;
 use verbb\formie\helpers\References;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
@@ -28,6 +26,7 @@ use verbb\formie\helpers\Variables;
 use verbb\formie\jobs\UpdateSubmissionContent;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\IntegrationResponse;
+use verbb\formie\models\IntegrationTriggerRequest;
 use verbb\formie\models\Notification;
 use verbb\formie\models\Settings;
 
@@ -83,7 +82,6 @@ class Submissions extends Component
     // =========================================================================
 
     private array $_indexedSearchRows = [];
-    private bool $_suppressCpSaveIntegrationDispatch = false;
 
 
     // Public Methods
@@ -119,22 +117,13 @@ class Submissions extends Component
         ?string $triggerEvent = null,
         bool $operatorInitiated = false,
     ): void {
-        Formie::$plugin->getIntegrations()->triggerIntegrations(
-            $submission,
-            $processMode,
-            $triggerEvent,
-            $operatorInitiated,
-        );
-    }
-
-    public function setSuppressCpSaveIntegrationDispatch(bool $suppress): void
-    {
-        $this->_suppressCpSaveIntegrationDispatch = $suppress;
-    }
-
-    public function shouldSuppressCpSaveIntegrationDispatch(): bool
-    {
-        return $this->_suppressCpSaveIntegrationDispatch;
+        Formie::$plugin->getIntegrationTriggers()->dispatch(new IntegrationTriggerRequest([
+            'source' => IntegrationTriggers::SOURCE_WORKFLOW,
+            'submission' => $submission,
+            'processMode' => $processMode,
+            'triggerEvent' => $triggerEvent,
+            'operatorInitiated' => $operatorInitiated,
+        ]));
     }
 
     public function applyCpRequestAttributes(Submission $submission): void
@@ -164,41 +153,6 @@ class Submissions extends Component
         if (StringHelper::toBoolean($request->getBodyParam('markAsComplete'))) {
             $submission->isIncomplete = false;
         }
-    }
-
-    public function maybeTriggerIntegrationsOnCpSave(Submission $submission, bool $isNew): void
-    {
-        if ($isNew || $this->_suppressCpSaveIntegrationDispatch) {
-            return;
-        }
-
-        $request = Craft::$app->getRequest();
-
-        if (!$request->getIsCpRequest() || $request->getIsConsoleRequest()) {
-            return;
-        }
-
-        // Front-end submit/edit workflows dispatch integrations after persistence.
-        if ($submission->isNewSubmission || $submission->isIncomplete || $submission->isSpam) {
-            return;
-        }
-
-        // Spam unmark uses explicit operator toggles in `_handleCpSpamUnmarkActions()`.
-        if ($submission->hasSpamChanged(true, false)) {
-            return;
-        }
-
-        $form = $submission->getForm();
-
-        if (!$form || !IntegrationRerunPolicies::formHasIntegrationAllowingEvent($form, IntegrationTriggerEvents::CP_SAVE)) {
-            return;
-        }
-
-        $this->triggerIntegrations(
-            $submission,
-            SubmissionWorkflow::PROCESS_MODE_EDIT_EXISTING,
-            IntegrationTriggerEvents::CP_SAVE,
-        );
     }
 
     public function sendIntegrationPayload(Integration $integration, Submission $submission): bool|IntegrationResponse

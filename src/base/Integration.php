@@ -900,11 +900,6 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return $event->fieldValues;
     }
 
-    public function shouldTriggerOnSubmissionEdit(): bool
-    {
-        return false;
-    }
-
     public function shouldTrigger(Submission $submission, array $context = []): bool
     {
         $form = $submission->getForm();

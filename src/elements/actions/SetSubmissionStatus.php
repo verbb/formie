@@ -108,6 +108,8 @@ JS, [static::class]);
 
                     // Validation error
                     $failCount++;
+                } else {
+                    Formie::$plugin->getIntegrationTriggers()->dispatchCpElementSave($element);
                 }
             }
         }

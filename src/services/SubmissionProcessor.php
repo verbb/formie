@@ -100,6 +100,13 @@ class SubmissionProcessor extends Component
         $response = $this->runSubmissionRequest($submissionRequest);
         $this->persistProgressState($submissionRequest, $response);
 
+        if ($response->success) {
+            Formie::$plugin->getIntegrationTriggers()->dispatchCpSubmissionFollowUps(
+                $submissionRequest->submission,
+                $submissionRequest,
+            );
+        }
+
         return new SubmissionExecutionResult([
             'submissionRequest' => $submissionRequest,
             'response' => $response,

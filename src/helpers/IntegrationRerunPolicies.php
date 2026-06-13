@@ -100,6 +100,10 @@ class IntegrationRerunPolicies
             return true;
         }
 
+        if ($operatorInitiated && $triggerEvent === IntegrationTriggerEvents::MANUAL) {
+            return true;
+        }
+
         // Explicit operator unmark actions preserve prior behaviour for submit-only integrations.
         if (
             $operatorInitiated

@@ -376,7 +376,7 @@ class SubmissionsController extends Controller
             return $this->asFailure($error);
         }
 
-        $response = Formie::$plugin->getSubmissions()->sendIntegrationPayload($resolvedIntegration, $submission);
+        $response = Formie::$plugin->getIntegrationTriggers()->dispatchManualIntegration($resolvedIntegration, $submission);
 
         if (($response instanceof IntegrationResponse) && !$response->success) {
             $message = Craft::t('formie', 'Integration failed to run.');

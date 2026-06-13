@@ -3,8 +3,6 @@ namespace verbb\formie\elements\actions;
 
 use verbb\formie\Formie;
 use verbb\formie\elements\Submission;
-use verbb\formie\helpers\IntegrationTriggerEvents;
-use verbb\formie\services\SubmissionWorkflow;
 
 use Craft;
 use craft\base\ElementAction;
@@ -103,17 +101,11 @@ JS,
                     continue;
                 }
 
-                // Check if we should trigger email notifications or integrations if this was spam
-                if ($this->sendNotifications) {
-                    Formie::$plugin->getSubmissions()->sendNotifications($element);
-                }
-
-                if ($this->triggerIntegrations) {
-                    Formie::$plugin->getSubmissions()->triggerIntegrations(
+                if ($this->spam !== 'markSpam') {
+                    Formie::$plugin->getIntegrationTriggers()->dispatchSpamUnmark(
                         $element,
-                        SubmissionWorkflow::PROCESS_MODE_SUBMIT,
-                        IntegrationTriggerEvents::UNMARK_SPAM,
-                        true,
+                        $this->sendNotifications,
+                        $this->triggerIntegrations,
                     );
                 }
             }

@@ -14,12 +14,14 @@ class IntegrationTriggerEvents
     public const FRONTEND_EDIT = 'frontendEdit';
     public const CP_SAVE = 'cpSave';
     public const UNMARK_SPAM = 'unmarkSpam';
+    public const MANUAL = 'manual';
 
     public const ALL = [
         self::SUBMIT,
         self::FRONTEND_EDIT,
         self::CP_SAVE,
         self::UNMARK_SPAM,
+        self::MANUAL,
     ];
 
 
@@ -44,6 +46,7 @@ class IntegrationTriggerEvents
             self::FRONTEND_EDIT => Craft::t('formie', 'Front-end edit'),
             self::CP_SAVE => Craft::t('formie', 'Control panel save'),
             self::UNMARK_SPAM => Craft::t('formie', 'Unmarked as not spam'),
+            self::MANUAL => Craft::t('formie', 'Manual trigger'),
         ];
     }
 }

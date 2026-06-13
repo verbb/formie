@@ -59,11 +59,6 @@ class Entry extends Element
         return Craft::t('formie', 'Map content provided by form submissions to create {name} elements.', ['name' => static::displayName()]);
     }
 
-    public function shouldTriggerOnSubmissionEdit(): bool
-    {
-        return (bool)$this->updateElement && (bool)$this->updateOnSubmissionEdit;
-    }
-    
     public function fetchFormSettings(): IntegrationFormSettings
     {
         $customFields = [];
