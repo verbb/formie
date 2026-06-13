@@ -1161,7 +1161,11 @@ class Submission extends Element
         $record->spamClass = $this->spamClass;
         $record->snapshot = $this->snapshot;
         $record->ipAddress = $this->ipAddress;
-        $record->integrationDispatchContext = $this->integrationDispatchContext;
+
+        if (Craft::$app->getDb()->columnExists(Table::FORMIE_SUBMISSIONS, 'integrationDispatchContext')) {
+            $record->integrationDispatchContext = $this->integrationDispatchContext;
+        }
+
         $record->dateCreated = $this->dateCreated;
         $record->dateUpdated = $this->dateUpdated;
 

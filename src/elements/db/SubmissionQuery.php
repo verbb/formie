@@ -227,7 +227,7 @@ class SubmissionQuery extends ElementQuery
     {
         $this->joinElementTable('formie_submissions');
 
-        $this->query->select([
+        $submissionColumns = [
             'formie_submissions.id',
             'formie_submissions.formId',
             'formie_submissions.statusId',
@@ -238,11 +238,18 @@ class SubmissionQuery extends ElementQuery
             'formie_submissions.spamClass',
             'formie_submissions.snapshot',
             'formie_submissions.ipAddress',
-            'formie_submissions.integrationDispatchContext',
+        ];
 
-            // Should always be at the end, due to `setFieldContent` triggering order, so that `formId` (and other props) are set first
-            'formie_submissions.content as fieldContent',
-        ]);
+        $db = Craft::$app->getDb();
+
+        if ($db->columnExists(Table::FORMIE_SUBMISSIONS, 'integrationDispatchContext')) {
+            $submissionColumns[] = 'formie_submissions.integrationDispatchContext';
+        }
+
+        // Should always be at the end, due to `setFieldContent` triggering order, so that `formId` (and other props) are set first
+        $submissionColumns[] = 'formie_submissions.content as fieldContent';
+
+        $this->query->select($submissionColumns);
 
         if ($this->formId) {
             $this->subQuery->andWhere(Db::parseParam('formie_submissions.formId', $this->formId));

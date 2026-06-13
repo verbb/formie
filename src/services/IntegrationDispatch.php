@@ -189,6 +189,10 @@ class IntegrationDispatch extends Component
             return;
         }
 
+        if (!Craft::$app->getDb()->columnExists(Table::FORMIE_SUBMISSIONS, 'integrationDispatchContext')) {
+            return;
+        }
+
         Craft::$app->getDb()->createCommand()
             ->update(
                 Table::FORMIE_SUBMISSIONS,
