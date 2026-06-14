@@ -80,6 +80,45 @@ it('keeps non-spam submit success deterministic when no captcha integrations are
         'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
     ]));
 
-    expect($response->success)->toBeTrue()
+        expect($response->success)->toBeTrue()
         ->and($response->submission->isSpam)->toBeFalse();
+});
+
+it('applies show-success spam behaviour without persisting discarded spam submissions', function (): void {
+    $form = formie()
+        ->form(['title' => 'Spam Discard Matrix'])
+        ->singleLineTextField('message')
+        ->create();
+
+    /** @var Settings $settings */
+    $settings = Formie::$plugin->getSettings();
+    $originalKeywords = $settings->spamKeywords;
+    $originalBehaviour = $settings->spamBehaviour;
+    $originalSaveSpam = $settings->saveSpam;
+
+    try {
+        $settings->spamKeywords = 'blocked-keyword';
+        $settings->spamBehaviour = Settings::SPAM_BEHAVIOUR_SUCCESS;
+        $settings->saveSpam = false;
+
+        $submission = new Submission();
+        $submission->setForm($form);
+        $submission->setFieldValueFromRequest('message', 'contains blocked-keyword content');
+
+        $response = (new SubmissionWorkflow())->processSubmissionRequest(new SubmissionRequest([
+            'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+            'form' => $form,
+            'submission' => $submission,
+            'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+        ]));
+
+        expect($response->success)->toBeTrue()
+            ->and($response->submission->isSpam)->toBeTrue()
+            ->and($response->submission->id)->toBeNull()
+            ->and($response->submission->getErrors('form'))->toBeEmpty();
+    } finally {
+        $settings->spamKeywords = $originalKeywords;
+        $settings->spamBehaviour = $originalBehaviour;
+        $settings->saveSpam = $originalSaveSpam;
+    }
 });

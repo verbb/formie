@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\workflow\tasks\save;
 
+use verbb\formie\Formie;
 use verbb\formie\enums\workflow\Stage;
 use verbb\formie\enums\workflow\Task;
 use verbb\formie\workflow\WorkflowContext;
@@ -26,7 +27,24 @@ class PersistSubmissionWorkflowTask implements TaskInterface
 
     public function execute(WorkflowContext $context): TaskResult
     {
-        $context->taskState['save.success'] = Craft::$app->getElements()->saveElement($context->request->submission);
+        $submission = $context->request->submission;
+        $settings = Formie::$plugin->getSettings();
+
+        // Spam marked in SCREEN should still reach FINALIZE spam behaviour even
+        // when discarded submissions are not persisted to the database.
+        if (
+            $submission->isSpam
+            && Craft::$app->getRequest()->getIsSiteRequest()
+            && !$settings->shouldSaveSpam($submission)
+        ) {
+            Formie::$plugin->getSubmissions()->logSpam($submission);
+            $context->taskState['save.success'] = true;
+            $context->taskState['save.spamDiscarded'] = true;
+
+            return TaskResult::continue();
+        }
+
+        $context->taskState['save.success'] = Craft::$app->getElements()->saveElement($submission);
 
         return TaskResult::continue();
     }
