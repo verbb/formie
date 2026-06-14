@@ -55,7 +55,7 @@ class RunSpamChecksTask implements TaskInterface
         }
 
         $excludes = array_merge($excludes, ...$extraExcludes);
-        $fieldValues = implode(' ', $submission->getValuesAsString());
+        $fieldValues = $this->_buildSpamKeywordHaystack($submission->getValuesAsString());
 
         foreach ($excludes as $exclude) {
             if (strtolower($exclude) && str_contains(strtolower($fieldValues), strtolower($exclude))) {
@@ -89,5 +89,31 @@ class RunSpamChecksTask implements TaskInterface
         }
 
         return array_filter($array);
+    }
+
+    private function _buildSpamKeywordHaystack(array $values): string
+    {
+        $parts = [];
+
+        foreach ($values as $value) {
+            if (is_scalar($value)) {
+                $parts[] = (string)$value;
+                continue;
+            }
+
+            if (is_array($value)) {
+                $parts[] = $this->_buildSpamKeywordHaystack($value);
+            }
+        }
+
+        $haystack = trim(implode(' ', array_filter($parts)));
+
+        // Keyword scans only need enough context to match banned terms; cap work
+        // when bots post oversized payloads.
+        if (strlen($haystack) > 65536) {
+            return substr($haystack, 0, 65536);
+        }
+
+        return $haystack;
     }
 }

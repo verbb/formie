@@ -496,10 +496,17 @@ class Submissions extends Component
     {
         $fieldValues = $submission->getSerializedFieldValues();
         $fieldValues = array_filter($fieldValues);
+        $encodedValues = Json::encode($fieldValues);
+
+        // Spam bots can post very large payloads; keep log lines bounded so PHP
+        // workers do not stall while formatting diagnostic output.
+        if (strlen($encodedValues) > 4096) {
+            $encodedValues = substr($encodedValues, 0, 4096) . '…';
+        }
 
         $error = Craft::t('formie', 'Submission marked as spam - “{r}” - {j}.', [
             'r' => $submission->spamReason,
-            'j' => Json::encode($fieldValues),
+            'j' => $encodedValues,
         ]);
 
         Formie::info($error);
