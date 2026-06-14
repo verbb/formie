@@ -1,17 +1,14 @@
 # Changelog
 
-## Unreleased
+## 4.0.0-beta.6 - 2026-06-14
 
 ### Added
-
 - Add top-level **Integrations** control panel navigation for managing CRM, email marketing, element, and other payload integrations outside **Settings**.
 - Add **site-scoped** integrations that can be created and edited on production environments (`allowAdminChanges = false`). Existing integrations remain **project-scoped** and deploy via project config.
-
 - Add **Display Type** settings to File Upload fields: **File Input (Simple)** keeps the native browser input and uploads files on form submit; **Upload Manager (Advanced)** adds a drag-and-drop zone with async staged uploads, progress, remove, and reorder controls via Formie’s upload endpoints. Existing forms default to **File Input (Simple)**. ([#133](https://github.com/verbb/formie/issues/133), [#2385](https://github.com/verbb/formie/issues/2385), [Discussion #1692](https://github.com/verbb/formie/discussions/1692))
 - Expose `displayType` on File Upload GraphQL field settings.
 - Add per-field **Asset Data Retention** settings to File Upload fields, allowing uploaded assets to be deleted after a configured duration while the submission record is kept. ([#1715](https://github.com/verbb/formie/issues/1715))
-- Run File Upload asset retention and stale pending upload cleanup through Craft garbage collection and dedicated console commands.
-
+- Add File Upload asset retention and stale pending upload cleanup through Craft garbage collection and dedicated console commands.
 - Add **When integrations re-run** settings (Integrations → Settings) with per-integration policies: once on submit (default), also when submission is edited, or custom trigger events. Integration conditions still apply. ([#1429](https://github.com/verbb/formie/issues/1429), [#1724](https://github.com/verbb/formie/issues/1724), [#2591](https://github.com/verbb/formie/issues/2591), [#1970](https://github.com/verbb/formie/issues/1970))
 - Dispatch integrations on control panel submission saves when the re-run policy includes **Control panel save**, including bulk status changes and other direct element saves. CP submission edit saves continue to use the submission workflow without double-triggering. ([Discussion #2253](https://github.com/verbb/formie/discussions/2253))
 - Add `IntegrationTriggers` service as the single coordinator for workflow, control panel element saves, spam unmark actions, and manual integration runs.
@@ -22,9 +19,10 @@
 - Add **Enable Conditions** to form integration settings, allowing integrations to be triggered only when submission field and status rules match. ([#447](https://github.com/verbb/formie/issues/447))
 - Add **Integration Dispatch** form settings (Integrations → Settings) to run payload integrations sequentially, choose immediate vs queued execution per integration, control notification timing relative to integrations, and expose dispatch results via `{dispatch:handle:property}` variables (for example `{dispatch:user:url}`). Dispatch variables appear in variable pickers when integration dispatch is enabled. ([#2635](https://github.com/verbb/formie/issues/2635), [#1152](https://github.com/verbb/formie/issues/1152), [#2810](https://github.com/verbb/formie/issues/2810))
 - Add per-notification **Dispatch Timing** (Advanced) to override the form’s integration dispatch notification timing.
+- Add configurable **Integration API Error Handling** for Mailchimp and Campaign Monitor, classifying rate-limited and rejected payloads separately from operational failures. ([#2172](https://github.com/verbb/formie/discussions/2172), [#1990](https://github.com/verbb/formie/issues/1990))
+- Add `Integrations::EVENT_AFTER_TRIGGER_INTEGRATION_FAILED` for handling integration failures outside the queue, and **Send Email Alert for Failed Integration** settings mirroring failed notification alerts. ([Discussion #2579](https://github.com/verbb/formie/discussions/2579))
 
 ### Changed
-
 - Apply control panel submission sidebar fields (title, status, spam, mark as complete) during managed CP submission saves.
 - Route all integration trigger entry points through `IntegrationTriggers` instead of `Submission::afterSave` hooks.
 - Consolidate legacy and orchestrated integration dispatch behind `IntegrationExecutor`, using batched `TriggerIntegration` queue jobs for queued steps.
@@ -33,13 +31,10 @@
 - Remove unused `Integration::shouldTriggerOnSubmissionEdit()` API (superseded by re-run policies).
 - Update phone number values sent to integrations to use `E164` format instead of international formatting. ([Discussion #2731](https://github.com/verbb/formie/discussions/2731))
 - Improve integration queue job descriptions and debug output with form context (`formId`, `formHandle`, `formTitle`). ([#2172](https://github.com/verbb/formie/discussions/2172))
-- Add configurable **Integration API Error Handling** for Mailchimp and Campaign Monitor, classifying rate-limited and rejected payloads separately from operational failures. ([#2172](https://github.com/verbb/formie/discussions/2172), [#1990](https://github.com/verbb/formie/issues/1990))
-- Add `Integrations::EVENT_AFTER_TRIGGER_INTEGRATION_FAILED` for handling integration failures outside the queue, and **Send Email Alert for Failed Integration** settings mirroring failed notification alerts. ([Discussion #2579](https://github.com/verbb/formie/discussions/2579))
 - Reorganise plugin settings: move integration behaviour settings to **Settings → Behavior → Integrations**, and move **Use Queue for Notifications** to **Email Notifications**.
 - OAuth integration redirect URIs now default to a Craft action URL instead of a site URL. Add an optional **OAuth Redirect URI Override** plugin setting. ([#1333](https://github.com/verbb/formie/issues/1333))
 
-- Fix Integration Dispatch select fields showing raw values instead of labels by using `SelectInput`.
-- Restyle Integration Dispatch steps to match the field palette row layout with drag handles, execution mode dropdowns, and action menus.
+### Fixed
 - Fix Opayo, Stripe, Paddle, and GoCardless payment integrations not resolving **Billing Details** field mappings from the form builder static table, so Name and Address fields are included in payment payloads again. ([#2617](https://github.com/verbb/formie/issues/2617))
 - Fix Salesforce integrations failing after Craft 5 / Formie 3 upgrades when OAuth tokens were migrated without `instance_url`, by falling back to stored integration settings and backfilling token values. ([#2492](https://github.com/verbb/formie/issues/2492))
 - Fix Salesforce integration refresh failing when an enabled object such as Opportunity or Case is unavailable in the connected org. ([#1551](https://github.com/verbb/formie/issues/1551))
