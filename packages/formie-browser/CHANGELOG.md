@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.0.6 - 2026-06-14
+
 ### Added
 
 - Add the `upload-manager` field module for File Upload **Upload Manager (Advanced)** fields, powered by Uppy (`@uppy/core` + `@uppy/xhr-upload`). Supports drag-and-drop, async staged uploads to Formie upload endpoints, transfer progress with server-processing feedback, remove, hidden asset ID sync, hydration for saved submissions and drafts, up/down reorder controls, and repeater row binding.
