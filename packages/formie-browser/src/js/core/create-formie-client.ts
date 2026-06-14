@@ -32,6 +32,7 @@ import { createFormUnloadWarningGuard } from '#utils/unload-warning';
 import { getValidationScope } from '#validation/scope';
 import { FormieValidator } from '#validation/validator';
 import { bindSubmitReadiness } from '#validation/submit-readiness';
+import { bindEnterKeyGuard } from '#validation/enter-key-guard';
 
 type InternalInstanceState = {
     options: FormMountOptions;
@@ -1166,6 +1167,7 @@ export function createFormieClient(): FormieClient {
 
             if (validator) {
                 unbinds.push(bindSubmitReadiness(form, validator, target));
+                unbinds.push(bindEnterKeyGuard(form));
             }
 
             await refreshTokensIfNeeded(target, normalizedOptions, form);

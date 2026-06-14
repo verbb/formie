@@ -490,9 +490,14 @@ export class FormieValidator {
     }
 
     isVisible(element: ValidationInput, options: ValidateOptions = {}): boolean {
-        // Conditionally hidden fields are treated as inactive inputs, and hidden
-        // pages are only re-included on the final page submit pass.
-        if (element.closest('[data-formie-conditionally-hidden]')) {
+        // Conditionally hidden/disabled fields are inactive for validation, and
+        // hidden pages are only re-included on the final page submit pass.
+        if (
+            element.disabled
+            || element.hasAttribute('data-formie-conditions-disabled')
+            || element.closest('[data-formie-conditions-disabled]')
+            || element.closest('[data-formie-conditionally-hidden]')
+        ) {
             return false;
         }
 

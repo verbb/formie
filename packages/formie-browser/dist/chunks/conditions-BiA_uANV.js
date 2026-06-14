@@ -1,7 +1,7 @@
 import { t as e } from "./debug-BV0DvdHx.js";
 import { t } from "./field-references.keys-58ZSTrCW.js";
 import { n } from "./shared-Bx9s0i0P.js";
-import { a as r, o as i } from "./dist-BQ4a9hmy.js";
+import { a as r, o as i } from "./dist-BaHXfvBO.js";
 //#region src/js/modules/fields/conditions/config.ts
 var a = "[data-formie-conditions]";
 function o(e) {
@@ -52,20 +52,32 @@ function c(e) {
 }
 //#endregion
 //#region src/js/modules/fields/conditions/effects.ts
-var l = "data-formie-conditions-disabled", u = "data-formie-preserve-disabled", d = "data-formie-conditionally-hidden", f = "data-formie-page-hidden", p = "formie-conditionally-hidden", m = "fui-cp-muted-conditional-field", h = "fui-cp-muted-conditional-field--expanded", g = "data-formie-cp-muted", _ = "formie-page-hidden", v = "data-formie-row-hidden", y = "formie-row-hidden", b = "data-formie-field-count", x = "[data-formie-row], [data-formie-subfield-row], [data-formie-nested-field-row]", S = ":scope > [data-formie-field]";
-function C(e) {
+var l = "data-formie-conditions-disabled", u = "data-formie-preserve-disabled", d = "data-formie-conditionally-hidden", f = "data-formie-page-hidden", p = "formie-conditionally-hidden", m = "fui-cp-muted-conditional-field", h = "fui-cp-muted-conditional-field--expanded", g = "data-formie-cp-muted", _ = "formie-page-hidden", v = "data-formie-row-hidden", y = "formie-row-hidden", b = "data-formie-field-count", x = "[data-formie-row], [data-formie-subfield-row], [data-formie-nested-field-row]", ee = ":scope > [data-formie-field]";
+function S(e) {
 	e.querySelectorAll("input, select, textarea").forEach((e) => {
 		!(e instanceof HTMLInputElement) && !(e instanceof HTMLSelectElement) && !(e instanceof HTMLTextAreaElement) || (e instanceof HTMLInputElement && (e.type === "checkbox" || e.type === "radio" ? e.checked = !1 : e.type !== "hidden" && (e.value = "")), e instanceof HTMLSelectElement && (e.multiple ? Array.from(e.options).forEach((e) => {
 			e.selected = !1;
 		}) : e.selectedIndex = 0), e instanceof HTMLTextAreaElement && (e.value = ""));
 	});
 }
-function w(e, t) {
+function te(e, t) {
 	let n = e.hasAttribute("data-formie-page"), r = n ? f : d, i = n ? _ : p, a = e.hasAttribute(r);
 	return t ? (a || e.setAttribute(r, "true"), e.classList.contains(i) || e.classList.add(i)) : (a && e.removeAttribute(r), e.classList.contains(i) && e.classList.remove(i)), a !== t;
 }
-function ee(e, t) {
-	e.querySelectorAll("input, textarea, select").forEach((e) => {
+var C = "button[type=\"submit\"], button[data-formie-action], input[type=\"submit\"]";
+function w(e, t) {
+	if (e instanceof HTMLButtonElement || e instanceof HTMLInputElement) {
+		if (t) {
+			e.hasAttribute(l) || (e.hasAttribute("disabled") && e.setAttribute(u, "true"), e.setAttribute(l, "true")), e.setAttribute("disabled", "true");
+			return;
+		}
+		e.hasAttribute(l) && (e.hasAttribute(u) ? (e.setAttribute("disabled", "true"), e.removeAttribute(u)) : e.removeAttribute("disabled"), e.removeAttribute(l));
+	}
+}
+function T(e, t) {
+	e.matches(C) && w(e, t), e.querySelectorAll(C).forEach((e) => {
+		w(e, t);
+	}), e.querySelectorAll("input, textarea, select").forEach((e) => {
 		if (t) {
 			e.hasAttribute(l) || (e.hasAttribute("disabled") && e.setAttribute(u, "true"), e.setAttribute(l, "true")), e.setAttribute("disabled", "true");
 			return;
@@ -73,11 +85,11 @@ function ee(e, t) {
 		e.hasAttribute(l) && (e.hasAttribute(u) ? (e.setAttribute("disabled", "true"), e.removeAttribute(u)) : e.removeAttribute("disabled"), e.removeAttribute(l));
 	});
 }
-function te(e) {
+function ne(e) {
 	return !e.hasAttribute(d) && !e.hasAttribute(f) && !e.hasAttribute(v) && !e.hasAttribute("hidden");
 }
-function ne(e) {
-	let t = Array.from(e.querySelectorAll(S)).filter((e) => te(e)).length;
+function E(e) {
+	let t = Array.from(e.querySelectorAll(ee)).filter((e) => ne(e)).length;
 	if (t > 0) {
 		let n = String(t);
 		e.getAttribute(b) !== n && e.setAttribute(b, n), e.hasAttribute(v) && e.removeAttribute(v), e.classList.contains(y) && e.classList.remove(y);
@@ -85,93 +97,93 @@ function ne(e) {
 	}
 	e.hasAttribute(b) && e.removeAttribute(b), e.hasAttribute(v) || e.setAttribute(v, "true"), e.classList.contains(y) || e.classList.add(y);
 }
-function T(e) {
+function D(e) {
 	e.removeAttribute(g), e.classList.remove(m), e.classList.remove(h);
 }
-function E(e) {
+function O(e) {
 	e.removeAttribute(d), e.removeAttribute(f), e.classList.remove(p), e.classList.remove(_);
 }
-function D(e) {
+function k(e) {
 	let t = e.closest(x);
-	for (; t;) ne(t), t = t.parentElement?.closest(x) || null;
+	for (; t;) E(t), t = t.parentElement?.closest(x) || null;
 }
-function O(e, t, n, r = {}) {
-	if (r.displayMode === "muted") return re(e, t);
+function A(e, t, n, r = {}) {
+	if (r.displayMode === "muted") return j(e, t);
 	let i = !1;
-	return (e.hasAttribute(g) || e.classList.contains(m) || e.classList.contains(h)) && (T(e), i = !0), i = w(e, t) || i, ee(e, t), D(e), t && n && i && C(e), i;
+	return (e.hasAttribute(g) || e.classList.contains(m) || e.classList.contains(h)) && (D(e), i = !0), i = te(e, t) || i, T(e, t), k(e), t && n && i && S(e), i;
 }
-function re(e, t) {
+function j(e, t) {
 	let n = !1;
-	return t ? ((e.hasAttribute(d) || e.hasAttribute(f) || e.classList.contains(p) || e.classList.contains(_)) && (E(e), n = !0), e.hasAttribute(g) || (e.setAttribute(g, "true"), n = !0), e.classList.contains(m) || (e.classList.add(m), n = !0)) : ((e.hasAttribute(g) || e.classList.contains(m) || e.classList.contains(h)) && (T(e), n = !0), (e.hasAttribute(d) || e.hasAttribute(f) || e.classList.contains(p) || e.classList.contains(_)) && (E(e), n = !0)), D(e), n;
+	return t ? ((e.hasAttribute(d) || e.hasAttribute(f) || e.classList.contains(p) || e.classList.contains(_)) && (O(e), n = !0), e.hasAttribute(g) || (e.setAttribute(g, "true"), n = !0), e.classList.contains(m) || (e.classList.add(m), n = !0)) : ((e.hasAttribute(g) || e.classList.contains(m) || e.classList.contains(h)) && (D(e), n = !0), (e.hasAttribute(d) || e.hasAttribute(f) || e.classList.contains(p) || e.classList.contains(_)) && (O(e), n = !0)), k(e), n;
 }
 //#endregion
 //#region src/js/modules/fields/conditions/references.ts
-var k = "input, select, textarea", ie = "[data-formie-repeater-item], [data-formie-table-row]";
-function A(e) {
+var M = "input, select, textarea", re = "[data-formie-repeater-item], [data-formie-table-row]";
+function N(e) {
 	return e instanceof HTMLInputElement || e instanceof HTMLSelectElement || e instanceof HTMLTextAreaElement;
 }
-function ae(e) {
-	let t = e.querySelector(k);
+function ie(e) {
+	let t = e.querySelector(M);
 	if (!t) return null;
 	let n = t.getAttribute("name") || "", r = Array.from(n.matchAll(/\[(\d+)\]/g));
 	return r.length && r[r.length - 1]?.[1] || null;
 }
-function j(e) {
-	return e.closest(ie);
+function P(e) {
+	return e.closest(re);
 }
-function M(e) {
-	return Array.from(e.querySelectorAll(k)).filter((e) => A(e));
+function F(e) {
+	return Array.from(e.querySelectorAll(M)).filter((e) => N(e));
 }
-function N(e) {
+function I(e) {
 	let t = e.getAttribute("name") || "";
 	return Array.from(t.matchAll(/\[([^\]]+)\]/g)).map((e) => e[1] || "").filter(Boolean);
 }
-function P(e, t) {
+function L(e, t) {
 	if (!t) return !0;
 	let n = t.split(/[.:]/).filter(Boolean);
 	if (!n.length) return !0;
-	let r = N(e);
+	let r = I(e);
 	return r.length < n.length ? !1 : n.every((e, t) => r[r.length - n.length + t] === e);
 }
-function F(e, t) {
+function R(e, t) {
 	if (!t) return e;
-	let n = e.filter((e) => P(e, t));
+	let n = e.filter((e) => L(e, t));
 	return n.length ? n : e;
 }
-function I(e, t) {
-	let n = j(e);
+function z(e, t) {
+	let n = P(e);
 	if (!n) return t;
-	let r = t.filter((e) => j(e) === n);
+	let r = t.filter((e) => P(e) === n);
 	return r.length ? r : t;
 }
-function L(e) {
+function B(e) {
 	return e.source?.target === "field" && e.source.handle ? e.source : null;
 }
-function R(e, r, i) {
-	let a = L(i);
+function V(e, r, i) {
+	let a = B(i);
 	if (!a || a.target !== "field" || !a.handle) return [];
 	let o = n(a.handle), s = Array.from(e.querySelectorAll(`[data-formie-field-handle="${o}"]`));
-	if (s.length) return I(r, s).flatMap((e) => F(M(e), a.selector));
-	let c = n(t(a.handle)), l = Array.from(e.querySelectorAll(`[name="${c}"]`)).filter((e) => A(e)), u = Array.from(e.querySelectorAll(`[name="${c}[]"]`)).filter((e) => A(e));
-	if (l.length || u.length) return I(r, [...l, ...u]);
+	if (s.length) return z(r, s).flatMap((e) => R(F(e), a.selector));
+	let c = n(t(a.handle)), l = Array.from(e.querySelectorAll(`[name="${c}"]`)).filter((e) => N(e)), u = Array.from(e.querySelectorAll(`[name="${c}[]"]`)).filter((e) => N(e));
+	if (l.length || u.length) return z(r, [...l, ...u]);
 	if (!a.handle.includes("__ROW__")) return [];
-	let d = ae(r);
+	let d = ie(r);
 	if (d) {
-		let r = n(t(a.handle.replace(/__ROW__/g, d))), i = Array.from(e.querySelectorAll(`[name="${r}"]`)).filter((e) => A(e)), o = Array.from(e.querySelectorAll(`[name="${r}[]"]`)).filter((e) => A(e));
+		let r = n(t(a.handle.replace(/__ROW__/g, d))), i = Array.from(e.querySelectorAll(`[name="${r}"]`)).filter((e) => N(e)), o = Array.from(e.querySelectorAll(`[name="${r}[]"]`)).filter((e) => N(e));
 		if (i.length || o.length) return [...i, ...o];
 	}
 	let f = t(a.handle).replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/__ROW__/g, "\\d+"), p = new RegExp(f);
-	return Array.from(e.querySelectorAll("[name]")).filter((e) => A(e) && p.test(e.getAttribute("name") || ""));
+	return Array.from(e.querySelectorAll("[name]")).filter((e) => N(e) && p.test(e.getAttribute("name") || ""));
 }
 //#endregion
 //#region src/js/modules/fields/conditions/transforms.ts
-function z(e) {
+function H(e) {
 	return e == null ? "" : String(e);
 }
-function B(e) {
+function U(e) {
 	if (typeof e == "boolean") return e;
 	if (typeof e == "number") return e !== 0;
-	let t = z(e).trim().toLowerCase();
+	let t = H(e).trim().toLowerCase();
 	return !(!t || [
 		"0",
 		"false",
@@ -179,30 +191,30 @@ function B(e) {
 		"off"
 	].includes(t));
 }
-function V(e) {
+function W(e) {
 	return e.toLowerCase().replace(/\b\w/g, (e) => e.toUpperCase());
 }
-function H(e, t) {
+function G(e, t) {
 	let n = Number.isFinite(Number(t.decimals)) ? Number(t.decimals) : 0, r = t.decimalPoint ?? ".", i = t.thousandsSeparator ?? ",", [a, o = ""] = e.toFixed(n).split("."), s = a.replace(/\B(?=(\d{3})+(?!\d))/g, i);
 	return n === 0 ? s : `${s}${r}${o}`;
 }
-function U(e) {
+function K(e) {
 	return String(e).padStart(2, "0");
 }
-function W(e, t) {
+function q(e, t) {
 	return [
 		["Y", String(e.getFullYear())],
-		["m", U(e.getMonth() + 1)],
-		["d", U(e.getDate())],
+		["m", K(e.getMonth() + 1)],
+		["d", K(e.getDate())],
 		["j", String(e.getDate())],
-		["H", U(e.getHours())],
-		["h", U((e.getHours() + 11) % 12 + 1)],
-		["i", U(e.getMinutes())],
+		["H", K(e.getHours())],
+		["h", K((e.getHours() + 11) % 12 + 1)],
+		["i", K(e.getMinutes())],
 		["A", e.getHours() >= 12 ? "PM" : "AM"],
 		["F", e.toLocaleString(void 0, { month: "long" })]
 	].reduce((e, [t, n]) => e.replaceAll(t, n), t);
 }
-function G(e) {
+function J(e) {
 	switch (e) {
 		case "datetimeUs12": return "m/d/Y h:i A";
 		case "datetimeEu12": return "d/m/Y h:i A";
@@ -217,7 +229,7 @@ function G(e) {
 		default: return "";
 	}
 }
-function K(e, t) {
+function ae(e, t) {
 	let n = t.transformerId, r = t.transformerParams;
 	switch (n) {
 		case "round":
@@ -228,15 +240,15 @@ function K(e, t) {
 		}
 		case "format": {
 			let t = Number(e);
-			if (Number.isFinite(t) && e.trim() !== "") return H(t, r);
-			let n = r.preset || "", i = n === "custom" ? r.pattern || "" : G(n);
+			if (Number.isFinite(t) && e.trim() !== "") return G(t, r);
+			let n = r.preset || "", i = n === "custom" ? r.pattern || "" : J(n);
 			if (!i) return e;
 			let a = new Date(e);
-			return Number.isNaN(a.getTime()) ? e : W(a, i);
+			return Number.isNaN(a.getTime()) ? e : q(a, i);
 		}
 		case "lower": return e.toLowerCase();
 		case "upper": return e.toUpperCase();
-		case "title": return V(e);
+		case "title": return W(e);
 		case "capitalize": return e && e.charAt(0).toUpperCase() + e.slice(1);
 		case "replace": {
 			let t = r.search || "";
@@ -246,61 +258,61 @@ function K(e, t) {
 			let t = Math.max(1, Number.parseInt(r.length || "50", 10) || 50), n = r.suffix || "...";
 			return e.length <= t ? e : `${e.slice(0, Math.max(0, t - n.length))}${n}`;
 		}
-		case "map": return B(e) ? r.trueLabel || "Yes" : r.falseLabel || "No";
+		case "map": return U(e) ? r.trueLabel || "Yes" : r.falseLabel || "No";
 		default: return e;
 	}
 }
-function q(e, t) {
+function oe(e, t) {
 	if (!t) return e;
-	let n = t.transformerId ? e.map((e) => K(e, t)) : e;
+	let n = t.transformerId ? e.map((e) => ae(e, t)) : e;
 	return (n.length === 0 || n.every((e) => e.trim() === "")) && t.defaultValue ? [t.defaultValue] : n;
 }
 //#endregion
 //#region src/js/modules/fields/conditions/values.ts
-function oe(e, t) {
+function se(e, t) {
 	return e.name || `__condition_input_${t}`;
 }
-function J(e) {
+function Y(e) {
 	return (e.id ? e.ownerDocument.querySelector(`label[for="${e.id}"]`)?.textContent?.trim() : "") || e.closest("label")?.textContent?.trim() || "";
 }
-function se(e, t = "") {
+function ce(e, t = "") {
 	let n = e[0];
 	if (!n) return [];
 	if (n instanceof HTMLInputElement) {
 		if (n.type === "checkbox") {
 			let n = e.filter((e) => e instanceof HTMLInputElement && e.checked);
-			return t === "label" ? n.map((e) => J(e)).filter(Boolean) : n.map((e) => e.value);
+			return t === "label" ? n.map((e) => Y(e)).filter(Boolean) : n.map((e) => e.value);
 		}
 		if (n.type === "radio") {
 			let n = e.filter((e) => e instanceof HTMLInputElement && e.checked);
-			return t === "label" ? n.map((e) => J(e)).filter(Boolean) : n.map((e) => e.value);
+			return t === "label" ? n.map((e) => Y(e)).filter(Boolean) : n.map((e) => e.value);
 		}
 		if (n.type === "file") return Array.from(n.files || []).map((e) => e.name);
 	}
 	return n instanceof HTMLSelectElement && n.multiple ? t === "label" ? Array.from(n.selectedOptions).map((e) => e.label || e.text) : Array.from(n.selectedOptions).map((e) => e.value) : n instanceof HTMLSelectElement && t === "label" ? Array.from(n.selectedOptions).map((e) => e.label || e.text) : e.map((e) => e.value);
 }
-function Y(e) {
+function X(e) {
 	return ["input", "change"];
 }
-function ce(e, t = null) {
+function le(e, t = null) {
 	let n = /* @__PURE__ */ new Map();
 	return e.forEach((e, t) => {
-		let r = oe(e, t), i = n.get(r) || [];
+		let r = se(e, t), i = n.get(r) || [];
 		i.push(e), n.set(r, i);
-	}), q(Array.from(n.values()).flatMap((e) => se(e, t?.selector || "")), t);
+	}), oe(Array.from(n.values()).flatMap((e) => ce(e, t?.selector || "")), t);
 }
 //#endregion
 //#region src/js/modules/fields/conditions/evaluator.ts
-function le(e) {
+function ue(e) {
 	return e.closest("[data-formie-conditionally-hidden]") || e.closest("[data-formie-page-hidden]") || e.closest("[hidden]") || e.closest("[aria-hidden=\"true\"]") ? !1 : !!(e.offsetWidth || e.offsetHeight || e.getClientRects().length);
 }
-function X(e) {
-	return e.length ? e.some((e) => le(e)) : null;
+function de(e) {
+	return e.length ? e.some((e) => ue(e)) : null;
 }
-function ue(e, t) {
+function fe(e, t) {
 	return r(e, e.conditions.map((e) => {
 		let n = t(e);
-		return i(e, ce(n, L(e)), { visibility: X(n) });
+		return i(e, le(n, B(e)), { visibility: de(n) });
 	}));
 }
 //#endregion
@@ -310,7 +322,7 @@ function $(e) {
 	let t = /* @__PURE__ */ new Set();
 	return e.filter((e) => t.has(e) ? !1 : (t.add(e), !0));
 }
-var de = {
+var pe = {
 	id: "conditions",
 	kind: "field",
 	match: (e) => e.target instanceof HTMLElement && (e.target.matches("[data-formie-conditions]") || !!e.target.querySelector("[data-formie-conditions]")),
@@ -329,12 +341,12 @@ var de = {
 			return !n || !n.conditions.length ? [] : [{
 				node: e,
 				settings: n,
-				sourceInputs: $(n.conditions.flatMap((n) => R(t, e, n)))
+				sourceInputs: $(n.conditions.flatMap((n) => V(t, e, n)))
 			}];
 		}), u = e.options?.cpDisplayMode === "muted" ? "muted" : "hide", d = !1, f = () => {
 			let n = !1;
 			return r.forEach((r) => {
-				let i = ue(r.settings, (e) => R(t, r.node, e)), a = r.node.hasAttribute("data-formie-page") ? "hide" : u, o = O(r.node, i.shouldHide, r.settings.clearOnHide, { displayMode: a });
+				let i = fe(r.settings, (e) => V(t, r.node, e)), a = r.node.hasAttribute("data-formie-page") ? "hide" : u, o = A(r.node, i.shouldHide, r.settings.clearOnHide, { displayMode: a });
 				n ||= o, Q.log("Condition evaluated.", {
 					shouldHide: i.shouldHide,
 					finalResult: i.finalResult,
@@ -364,10 +376,10 @@ var de = {
 				let t = () => {
 					m();
 				};
-				Y(e).forEach((n) => {
+				X(e).forEach((n) => {
 					e.addEventListener(n, t);
 				}), n.push(() => {
-					Y(e).forEach((n) => {
+					X(e).forEach((n) => {
 						e.removeEventListener(n, t);
 					});
 				});
@@ -409,4 +421,4 @@ var de = {
 	}
 };
 //#endregion
-export { de as conditionsModule };
+export { pe as conditionsModule };

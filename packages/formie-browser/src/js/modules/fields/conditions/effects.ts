@@ -72,7 +72,49 @@ function setVisibilityState(node: Element, hidden: boolean): boolean {
     return wasHidden !== hidden;
 }
 
+const SUBMIT_CONTROL_SELECTOR = 'button[type="submit"], button[data-formie-action], input[type="submit"]';
+
+function syncControlDisabledState(control: Element, hidden: boolean): void {
+    if (!(control instanceof HTMLButtonElement || control instanceof HTMLInputElement)) {
+        return;
+    }
+
+    if (hidden) {
+        if (!control.hasAttribute(CONDITION_DISABLED_ATTR)) {
+            if (control.hasAttribute('disabled')) {
+                control.setAttribute(PRESERVED_DISABLED_ATTR, 'true');
+            }
+
+            control.setAttribute(CONDITION_DISABLED_ATTR, 'true');
+        }
+
+        control.setAttribute('disabled', 'true');
+        return;
+    }
+
+    if (!control.hasAttribute(CONDITION_DISABLED_ATTR)) {
+        return;
+    }
+
+    if (control.hasAttribute(PRESERVED_DISABLED_ATTR)) {
+        control.setAttribute('disabled', 'true');
+        control.removeAttribute(PRESERVED_DISABLED_ATTR);
+    } else {
+        control.removeAttribute('disabled');
+    }
+
+    control.removeAttribute(CONDITION_DISABLED_ATTR);
+}
+
 function syncDisabledState(node: Element, hidden: boolean): void {
+    if (node.matches(SUBMIT_CONTROL_SELECTOR)) {
+        syncControlDisabledState(node, hidden);
+    }
+
+    node.querySelectorAll(SUBMIT_CONTROL_SELECTOR).forEach((control) => {
+        syncControlDisabledState(control, hidden);
+    });
+
     node.querySelectorAll('input, textarea, select').forEach((input) => {
         if (hidden) {
             if (!input.hasAttribute(CONDITION_DISABLED_ATTR)) {

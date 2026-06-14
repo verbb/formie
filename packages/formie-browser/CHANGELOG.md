@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Fixed
+- Skip validation for fields disabled by conditional logic, and disable conditionally hidden submit/next buttons so Enter no longer triggers hidden actions. ([#2727](https://github.com/verbb/formie/issues/2727), [#1136](https://github.com/verbb/formie/issues/1136), [Discussion #1628](https://github.com/verbb/formie/discussions/1628))
+
 ## 1.0.6 - 2026-06-14
 
 ### Added
