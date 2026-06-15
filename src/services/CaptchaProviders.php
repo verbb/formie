@@ -145,6 +145,10 @@ class CaptchaProviders extends Component
 
     public function seedRegistryFromLegacySettings(array $legacyCaptchas = []): void
     {
+        if (!Craft::$app->getDb()->tableExists(Table::FORMIE_CAPTCHA_PROVIDERS)) {
+            return;
+        }
+
         $integrations = Formie::$plugin->getIntegrations();
         $now = Db::prepareDateForDb(new \DateTime());
 
@@ -247,7 +251,7 @@ class CaptchaProviders extends Component
 
     public function hydrateLegacyCaptchas(Settings $settings): void
     {
-        if (empty($settings->captchas)) {
+        if (empty($settings->captchas) || !Craft::$app->getDb()->tableExists(Table::FORMIE_CAPTCHA_PROVIDERS)) {
             return;
         }
 
@@ -269,6 +273,10 @@ class CaptchaProviders extends Component
     {
         if ($this->_providersByHandle !== null) {
             return $this->_providersByHandle;
+        }
+
+        if (!Craft::$app->getDb()->tableExists(Table::FORMIE_CAPTCHA_PROVIDERS)) {
+            return $this->_providersByHandle = [];
         }
 
         $rows = (new Query())
