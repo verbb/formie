@@ -204,6 +204,32 @@ class SettingsController extends SettingsAccessController
 
         $settings->setAttributes($settingsParams, false);
 
+        if ($page === 'spam') {
+            if (!$settings->validate()) {
+                $this->setFailFlash(Craft::t('formie', 'Couldn’t save settings.'));
+
+                Craft::$app->getUrlManager()->setRouteParams([
+                    'settings' => $settings,
+                ]);
+
+                return null;
+            }
+
+            if (!Formie::$plugin->getSpamProtection()->saveFromSettings($settings)) {
+                $this->setFailFlash(Craft::t('formie', 'Couldn’t save settings.'));
+
+                Craft::$app->getUrlManager()->setRouteParams([
+                    'settings' => $settings,
+                ]);
+
+                return null;
+            }
+
+            $this->setSuccessFlash(Craft::t('formie', 'Settings saved.'));
+
+            return $this->redirectToPostedUrl();
+        }
+
         if (!$settings->validate()) {
             $this->setFailFlash(Craft::t('formie', 'Couldn’t save settings.'));
 
@@ -214,7 +240,10 @@ class SettingsController extends SettingsAccessController
             return null;
         }
 
-        $pluginSettingsSaved = Craft::$app->getPlugins()->savePluginSettings(Formie::$plugin, $settings->toArray());
+        $pluginSettingsSaved = Craft::$app->getPlugins()->savePluginSettings(
+            Formie::$plugin,
+            Formie::$plugin->getSpamProtection()->stripFromPluginSettingsArray($settings->toArray()),
+        );
 
         if (!$pluginSettingsSaved) {
             $this->setFailFlash(Craft::t('formie', 'Couldn’t save settings.'));

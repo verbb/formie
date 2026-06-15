@@ -46,6 +46,7 @@ use verbb\formie\services\Rendering;
 use verbb\formie\services\FrontendAssets;
 use verbb\formie\services\SentNotifications;
 use verbb\formie\services\Service;
+use verbb\formie\services\SpamProtection;
 use verbb\formie\services\Statuses;
 use verbb\formie\services\Stencils;
 use verbb\formie\services\Submissions;
@@ -214,6 +215,7 @@ trait PluginTrait
                 'frontendAssets' => FrontendAssets::class,
                 'clientSessionService' => ClientSessionService::class,
                 'sentNotifications' => SentNotifications::class,
+                'spamProtection' => SpamProtection::class,
                 'service' => Service::class,
                 'statuses' => Statuses::class,
                 'stencils' => Stencils::class,
@@ -517,6 +519,11 @@ trait PluginTrait
     public function getService(): Service
     {
         return $this->get('service');
+    }
+
+    public function getSpamProtection(): SpamProtection
+    {
+        return $this->get('spamProtection');
     }
 
     public function getStatuses(): Statuses

@@ -213,6 +213,21 @@ class Install extends Migration
             'uid' => $this->uid(),
         ]);
 
+        $this->archiveTableIfExists(Table::FORMIE_SPAM_SETTINGS);
+        $this->createTable(Table::FORMIE_SPAM_SETTINGS, [
+            'id' => $this->primaryKey(),
+            'scope' => $this->string(16)->notNull()->defaultValue('project'),
+            'saveSpam' => $this->boolean()->notNull()->defaultValue(true),
+            'spamLimit' => $this->integer()->notNull()->defaultValue(500),
+            'spamEmailNotifications' => $this->boolean()->notNull()->defaultValue(false),
+            'spamBehaviour' => $this->string()->notNull()->defaultValue('showSuccess'),
+            'spamBehaviourMessage' => $this->text(),
+            'spamKeywords' => $this->mediumText(),
+            'dateCreated' => $this->dateTime()->notNull(),
+            'dateUpdated' => $this->dateTime()->notNull(),
+            'uid' => $this->uid(),
+        ]);
+
         $this->archiveTableIfExists(Table::FORMIE_NOTIFICATIONS);
         $this->createTable(Table::FORMIE_NOTIFICATIONS, [
             'id' => $this->primaryKey(),
@@ -630,6 +645,7 @@ class Install extends Migration
     public function insertDefaultData(): void
     {
         Formie::$plugin->getCaptchaProviders()->seedRegistryFromLegacySettings([]);
+        Formie::$plugin->getSpamProtection()->seedFromLegacySettings([]);
 
         $projectConfig = Craft::$app->getProjectConfig();
 

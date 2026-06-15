@@ -112,7 +112,7 @@ class Formie extends Plugin
 
     public bool $hasCpSection = true;
     public bool $hasCpSettings = true;
-    public string $schemaVersion = '4.0.20';
+    public string $schemaVersion = '4.0.21';
     public string $minVersionRequired = '2.1.5';
 
 
@@ -162,6 +162,8 @@ class Formie extends Plugin
         if (Craft::$app->getEdition() !== Craft::Solo) {
             $this->_registerPermissions();
         }
+
+        $this->getSpamProtection()->hydrateSettings($this->getSettings());
     }
 
     public function getPluginName(): string

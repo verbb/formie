@@ -104,7 +104,7 @@ class Settings extends Model
     public bool $sentNotifications = true;
     public int $maxSentNotificationsAge = 30;
 
-    // Spam
+    // Spam — runtime-managed via `SpamProtection` service (`formie_spam_settings`).
     public bool $saveSpam = true;
     public int $spamLimit = 500;
     public bool $spamEmailNotifications = false;
