@@ -40,6 +40,16 @@ class SpamProtection extends Component
         'enableBlockFreeEmailDomains',
         'enableFormSubmitExpiration',
         'formSubmitExpiration',
+        'enableSuspiciousTextDetection',
+        'suspiciousTextMinimumWordLength',
+        'suspiciousTextAllowedTerms',
+        'enableMaximumLinks',
+        'maximumLinks',
+        'enableGlobalSubmissionThrottling',
+        'globalSubmissionThrottleLimit',
+        'globalSubmissionThrottleWindowSeconds',
+        'enableIpSubmissionThrottling',
+        'ipSubmissionThrottleMinutes',
     ];
 
 
@@ -49,6 +59,7 @@ class SpamProtection extends Component
     private ?array $_row = null;
     private ?bool $_guardColumnsExist = null;
     private ?bool $_extendedSpamColumnsExist = null;
+    private ?bool $_abuseControlColumnsExist = null;
 
 
     // Public Methods
@@ -95,6 +106,21 @@ class SpamProtection extends Component
                 'enableBlockFreeEmailDomains',
                 'enableFormSubmitExpiration',
                 'formSubmitExpiration',
+            ]);
+        }
+
+        if ($this->_abuseControlColumnsExist()) {
+            $select = array_merge($select, [
+                'enableSuspiciousTextDetection',
+                'suspiciousTextMinimumWordLength',
+                'suspiciousTextAllowedTerms',
+                'enableMaximumLinks',
+                'maximumLinks',
+                'enableGlobalSubmissionThrottling',
+                'globalSubmissionThrottleLimit',
+                'globalSubmissionThrottleWindowSeconds',
+                'enableIpSubmissionThrottling',
+                'ipSubmissionThrottleMinutes',
             ]);
         }
 
@@ -178,6 +204,7 @@ class SpamProtection extends Component
             'spamKeywords' => (string)$row['spamKeywords'],
             ...$this->_guardValuesFromRow($row),
             ...$this->_extendedSpamValuesFromRow($row),
+            ...$this->_abuseControlValuesFromRow($row),
         ];
     }
 
@@ -200,6 +227,16 @@ class SpamProtection extends Component
             'enableBlockFreeEmailDomains' => false,
             'enableFormSubmitExpiration' => false,
             'formSubmitExpiration' => 86400,
+            'enableSuspiciousTextDetection' => false,
+            'suspiciousTextMinimumWordLength' => 6,
+            'suspiciousTextAllowedTerms' => '',
+            'enableMaximumLinks' => false,
+            'maximumLinks' => 10,
+            'enableGlobalSubmissionThrottling' => false,
+            'globalSubmissionThrottleLimit' => 50,
+            'globalSubmissionThrottleWindowSeconds' => 60,
+            'enableIpSubmissionThrottling' => false,
+            'ipSubmissionThrottleMinutes' => 5,
         ];
     }
 
@@ -271,6 +308,7 @@ class SpamProtection extends Component
             $record->spamKeywords = (string)($values['spamKeywords'] ?? '');
             $this->_assignGuardValues($record, $values);
             $this->_assignExtendedSpamValues($record, $values);
+            $this->_assignAbuseControlValues($record, $values);
 
             $record->save(false);
 
@@ -332,6 +370,10 @@ class SpamProtection extends Component
             ]);
         }
 
+        if ($this->_abuseControlColumnsExist()) {
+            $insert = array_merge($insert, $this->_abuseControlValuesFromArray($values));
+        }
+
         Craft::$app->getDb()->createCommand()
             ->insert(Table::FORMIE_SPAM_SETTINGS, $insert)
             ->execute();
@@ -368,6 +410,7 @@ class SpamProtection extends Component
             'enableBlockFreeEmailDomains' => (bool)($values['enableBlockFreeEmailDomains'] ?? false),
             'enableFormSubmitExpiration' => (bool)($values['enableFormSubmitExpiration'] ?? false),
             'formSubmitExpiration' => (int)($values['formSubmitExpiration'] ?? 86400),
+            ...$this->_abuseControlValuesFromArray($values, true),
         ];
     }
 
@@ -399,6 +442,7 @@ class SpamProtection extends Component
             $record->spamKeywords = (string)($data['spamKeywords'] ?? '');
             $this->_assignGuardValues($record, $data);
             $this->_assignExtendedSpamValues($record, $data);
+            $this->_assignAbuseControlValues($record, $data);
             $record->save(false);
 
             $transaction->commit();
@@ -434,6 +478,7 @@ class SpamProtection extends Component
         $record->spamKeywords = (string)$defaults['spamKeywords'];
         $this->_assignGuardValues($record, $defaults);
         $this->_assignExtendedSpamValues($record, $defaults);
+        $this->_assignAbuseControlValues($record, $defaults);
         $record->save(false);
 
         $this->_resetCache();
@@ -448,6 +493,7 @@ class SpamProtection extends Component
         $this->_row = null;
         $this->_guardColumnsExist = null;
         $this->_extendedSpamColumnsExist = null;
+        $this->_abuseControlColumnsExist = null;
     }
 
     private function _guardColumnsExist(): bool
@@ -554,6 +600,70 @@ class SpamProtection extends Component
         $record->formSubmitExpiration = (int)($values['formSubmitExpiration'] ?? 86400);
     }
 
+    private function _abuseControlColumnsExist(): bool
+    {
+        if ($this->_abuseControlColumnsExist !== null) {
+            return $this->_abuseControlColumnsExist;
+        }
+
+        if (!Craft::$app->getDb()->tableExists(Table::FORMIE_SPAM_SETTINGS)) {
+            return $this->_abuseControlColumnsExist = false;
+        }
+
+        return $this->_abuseControlColumnsExist = Craft::$app->getDb()
+            ->getSchema()
+            ->getTableSchema(Table::FORMIE_SPAM_SETTINGS, true)
+            ?->getColumn('enableSuspiciousTextDetection') !== null;
+    }
+
+    private function _abuseControlValuesFromRow(array $row): array
+    {
+        $defaults = $this->getDefaultValues();
+
+        if (!$this->_abuseControlColumnsExist()) {
+            return $this->_abuseControlValuesFromArray($defaults);
+        }
+
+        return $this->_abuseControlValuesFromArray($row);
+    }
+
+    private function _abuseControlValuesFromArray(array $values, bool $withDefaults = false): array
+    {
+        $defaults = $this->getDefaultValues();
+
+        return [
+            'enableSuspiciousTextDetection' => (bool)($values['enableSuspiciousTextDetection'] ?? ($withDefaults ? $defaults['enableSuspiciousTextDetection'] : false)),
+            'suspiciousTextMinimumWordLength' => (int)($values['suspiciousTextMinimumWordLength'] ?? ($withDefaults ? $defaults['suspiciousTextMinimumWordLength'] : 6)),
+            'suspiciousTextAllowedTerms' => (string)($values['suspiciousTextAllowedTerms'] ?? ($withDefaults ? $defaults['suspiciousTextAllowedTerms'] : '')),
+            'enableMaximumLinks' => (bool)($values['enableMaximumLinks'] ?? ($withDefaults ? $defaults['enableMaximumLinks'] : false)),
+            'maximumLinks' => (int)($values['maximumLinks'] ?? ($withDefaults ? $defaults['maximumLinks'] : 10)),
+            'enableGlobalSubmissionThrottling' => (bool)($values['enableGlobalSubmissionThrottling'] ?? ($withDefaults ? $defaults['enableGlobalSubmissionThrottling'] : false)),
+            'globalSubmissionThrottleLimit' => (int)($values['globalSubmissionThrottleLimit'] ?? ($withDefaults ? $defaults['globalSubmissionThrottleLimit'] : 50)),
+            'globalSubmissionThrottleWindowSeconds' => (int)($values['globalSubmissionThrottleWindowSeconds'] ?? ($withDefaults ? $defaults['globalSubmissionThrottleWindowSeconds'] : 60)),
+            'enableIpSubmissionThrottling' => (bool)($values['enableIpSubmissionThrottling'] ?? ($withDefaults ? $defaults['enableIpSubmissionThrottling'] : false)),
+            'ipSubmissionThrottleMinutes' => (int)($values['ipSubmissionThrottleMinutes'] ?? ($withDefaults ? $defaults['ipSubmissionThrottleMinutes'] : 5)),
+        ];
+    }
+
+    private function _assignAbuseControlValues(SpamSettingsRecord $record, array $values): void
+    {
+        if (!$this->_abuseControlColumnsExist()) {
+            return;
+        }
+
+        $abuseValues = $this->_abuseControlValuesFromArray($values, true);
+        $record->enableSuspiciousTextDetection = (bool)$abuseValues['enableSuspiciousTextDetection'];
+        $record->suspiciousTextMinimumWordLength = (int)$abuseValues['suspiciousTextMinimumWordLength'];
+        $record->suspiciousTextAllowedTerms = (string)$abuseValues['suspiciousTextAllowedTerms'];
+        $record->enableMaximumLinks = (bool)$abuseValues['enableMaximumLinks'];
+        $record->maximumLinks = (int)$abuseValues['maximumLinks'];
+        $record->enableGlobalSubmissionThrottling = (bool)$abuseValues['enableGlobalSubmissionThrottling'];
+        $record->globalSubmissionThrottleLimit = (int)$abuseValues['globalSubmissionThrottleLimit'];
+        $record->globalSubmissionThrottleWindowSeconds = (int)$abuseValues['globalSubmissionThrottleWindowSeconds'];
+        $record->enableIpSubmissionThrottling = (bool)$abuseValues['enableIpSubmissionThrottling'];
+        $record->ipSubmissionThrottleMinutes = (int)$abuseValues['ipSubmissionThrottleMinutes'];
+    }
+
     private function _saveProjectSettings(array $values): bool
     {
         if (!Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
@@ -592,6 +702,7 @@ class SpamProtection extends Component
             $record->spamKeywords = (string)($values['spamKeywords'] ?? '');
             $this->_assignGuardValues($record, $values);
             $this->_assignExtendedSpamValues($record, $values);
+            $this->_assignAbuseControlValues($record, $values);
             $record->save(false);
 
             $transaction->commit();

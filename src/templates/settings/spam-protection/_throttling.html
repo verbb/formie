@@ -1,0 +1,60 @@
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+<div class="fui-spam-protection-section">
+    <h3>{{ 'Submission Throttling' | t('formie') }}</h3>
+    <p>{{ 'Limit how often forms can be submitted to reduce spam floods and repeat submissions from the same IP address.' | t('formie') }}</p>
+
+    {% namespace 'settings' %}
+        {{ forms.lightswitchField({
+            label: 'Global Submission Throttling' | t('formie'),
+            instructions: 'Limit the total number of form submissions allowed across your site within a time window. Intended for emergency abuse protection, not fine-tuning individual forms.' | t('formie'),
+            name: 'enableGlobalSubmissionThrottling',
+            on: settings.enableGlobalSubmissionThrottling,
+            toggle: 'enable-global-submission-throttling',
+            warning: macros.configWarning('enableGlobalSubmissionThrottling', 'formie'),
+        }) }}
+
+        <div id="enable-global-submission-throttling" class="field {{ not settings.enableGlobalSubmissionThrottling ? 'hidden' }}">
+            {{ forms.textField({
+                label: 'Submission Limit' | t('formie'),
+                instructions: 'Maximum number of submissions allowed across all forms during the time window below.' | t('formie'),
+                name: 'globalSubmissionThrottleLimit',
+                value: settings.globalSubmissionThrottleLimit,
+                warning: macros.configWarning('globalSubmissionThrottleLimit', 'formie'),
+            }) }}
+
+            {{ forms.textField({
+                label: 'Time Window (seconds)' | t('formie'),
+                instructions: 'How long the global submission limit applies before the counter resets.' | t('formie'),
+                name: 'globalSubmissionThrottleWindowSeconds',
+                value: settings.globalSubmissionThrottleWindowSeconds,
+                warning: macros.configWarning('globalSubmissionThrottleWindowSeconds', 'formie'),
+                inputAttributes: {
+                    'data-fui-duration-hint': true,
+                },
+            }) }}
+        </div>
+
+        <hr>
+
+        {{ forms.lightswitchField({
+            label: 'IP Submission Throttling' | t('formie'),
+            instructions: 'Require a minimum wait time between submissions from the same IP address on the same form.' | t('formie'),
+            name: 'enableIpSubmissionThrottling',
+            on: settings.enableIpSubmissionThrottling,
+            toggle: 'enable-ip-submission-throttling',
+            warning: macros.configWarning('enableIpSubmissionThrottling', 'formie'),
+        }) }}
+
+        <div id="enable-ip-submission-throttling" class="field {{ not settings.enableIpSubmissionThrottling ? 'hidden' }}">
+            {{ forms.textField({
+                label: 'Minimum Wait Time (minutes)' | t('formie'),
+                instructions: 'How long an IP address must wait before submitting the same form again.' | t('formie'),
+                name: 'ipSubmissionThrottleMinutes',
+                value: settings.ipSubmissionThrottleMinutes,
+                warning: macros.configWarning('ipSubmissionThrottleMinutes', 'formie'),
+            }) }}
+        </div>
+    {% endnamespace %}
+</div>

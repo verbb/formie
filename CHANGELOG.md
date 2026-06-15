@@ -11,6 +11,7 @@
 - Add `formie_spam_settings` table and migrate spam handling settings out of plugin settings, with site/project scope support and project config export for project-scoped defaults.
 - Add built-in submission guards (honeypot, minimum submit time, replay protection) via a `RunSubmissionGuardsTask` screen-stage workflow task and **Settings → Spam Protection** controls.
 - Add global email rules (blocked domains, block free providers), form submit expiration guard, and align `RunSpamChecksTask` with `SpamHelper` for documented keyword and IP matching.
+- Add suspicious text detection, maximum links screening, global submission throttling, and per-IP submission throttling under **Settings → Spam Protection**. ([#1332](https://github.com/verbb/formie/discussions/1331), [#1154](https://github.com/verbb/formie/issues/1154), [#1099](https://github.com/verbb/formie/issues/1099))
 - Add a `Permissions` service as the single ACL entry point for forms, submissions, sent notifications, and import/export checks.
 - Add **Field Error Announcement** plugin setting (**Settings → Forms**) to control how front-end validation and submit errors are announced to screen readers (`polite`, `assertive`, or `off`). Live validation while typing always uses polite announcements. ([#2505](https://github.com/verbb/formie/issues/2505))
 

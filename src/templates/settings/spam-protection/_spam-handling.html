@@ -106,5 +106,55 @@
             on: settings.enableBlockFreeEmailDomains,
             warning: macros.configWarning('enableBlockFreeEmailDomains', 'formie'),
         }) }}
+
+        <hr>
+
+        <h4>{{ 'Text Rules' | t('formie') }}</h4>
+
+        {{ forms.lightswitchField({
+            label: 'Suspicious Text Detection' | t('formie'),
+            instructions: 'Detect keyboard spam, random character strings, and other low-quality filler text in submission fields.' | t('formie'),
+            name: 'enableSuspiciousTextDetection',
+            on: settings.enableSuspiciousTextDetection,
+            toggle: 'enable-suspicious-text-detection',
+            warning: macros.configWarning('enableSuspiciousTextDetection', 'formie'),
+        }) }}
+
+        <div id="enable-suspicious-text-detection" class="field {{ not settings.enableSuspiciousTextDetection ? 'hidden' }}">
+            {{ forms.textField({
+                label: 'Minimum Word Length' | t('formie'),
+                instructions: 'Minimum word length used to detect suspicious text. Lower values increase sensitivity but may flag valid words.' | t('formie'),
+                name: 'suspiciousTextMinimumWordLength',
+                value: settings.suspiciousTextMinimumWordLength,
+                warning: macros.configWarning('suspiciousTextMinimumWordLength', 'formie'),
+            }) }}
+
+            {{ forms.textareaField({
+                label: 'Allowed Terms' | t('formie'),
+                instructions: 'Enter words or abbreviations that should be ignored by suspicious text detection. Add one per line (for example RFP, ABB, or technical product codes).' | t('formie'),
+                name: 'suspiciousTextAllowedTerms',
+                rows: 6,
+                value: settings.suspiciousTextAllowedTerms,
+                warning: macros.configWarning('suspiciousTextAllowedTerms', 'formie'),
+            }) }}
+        </div>
+
+        {{ forms.lightswitchField({
+            label: 'Maximum Links' | t('formie'),
+            instructions: 'Mark submissions as spam when the total number of links across all fields exceeds the limit below.' | t('formie'),
+            name: 'enableMaximumLinks',
+            on: settings.enableMaximumLinks,
+            toggle: 'enable-maximum-links',
+            warning: macros.configWarning('enableMaximumLinks', 'formie'),
+        }) }}
+
+        <div id="enable-maximum-links" class="field {{ not settings.enableMaximumLinks ? 'hidden' }}">
+            {{ forms.textField({
+                label: 'Maximum Links' | t('formie'),
+                name: 'maximumLinks',
+                value: settings.maximumLinks,
+                warning: macros.configWarning('maximumLinks', 'formie'),
+            }) }}
+        </div>
     {% endnamespace %}
 </div>

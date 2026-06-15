@@ -85,6 +85,28 @@ Configure them under **Formie → Settings → Spam Protection → Content Rules
 
 Per-field email settings such as **Blocked Domains**, **Block Free Email Providers**, and **Validate Domain (DNS)** still run separately during field validation. Use global rules when you want the same policy everywhere; use per-field settings when only some forms need stricter email checks.
 
+### Text rules
+
+Configure these under **Formie → Settings → Spam Protection → Content Rules → Text Rules**:
+
+- **Suspicious text detection** — flags keyboard spam, random character strings, and other low-quality filler text in submission fields. You can tune sensitivity with **Minimum word length** and add **Allowed terms** (one per line) for abbreviations or product codes that should not be flagged.
+- **Maximum links** — marks submissions as spam when the total number of links across all fields exceeds the configured limit.
+
+Both rules run during the **`screen.runSpamChecks`** workflow task, after email rules and before spam keywords.
+
+## Submission throttling
+
+Submission throttling limits how often forms can be submitted. Configure it under **Formie → Settings → Spam Protection → Submission Throttling**.
+
+| Setting | What it does |
+| --- | --- |
+| **Global submission throttling** | Limits the total number of submissions allowed across **all forms** within a time window. Intended for emergency abuse protection during spam floods, not fine-tuning individual forms. |
+| **IP submission throttling** | Requires a minimum wait time between submissions from the same IP address on the **same form**. |
+
+Throttling runs during **`screen.runSubmissionGuards`**, before honeypot and other passive guards. Failed throttling checks mark the submission as spam and respect your **Spam submission behavior** setting.
+
+Use conservative values for global throttling. For example, `1 per minute` across the entire site would block all users after the first submission.
+
 ## Submission guards
 
 Submission guards are built-in passive checks that run **before** captcha integrations and keyword rules. They replace the old **Honeypot**, **Javascript**, and **Duplicate** captcha integrations that shipped in earlier major versions.

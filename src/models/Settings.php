@@ -122,6 +122,16 @@ class Settings extends Model
     public bool $enableBlockFreeEmailDomains = false;
     public bool $enableFormSubmitExpiration = false;
     public int $formSubmitExpiration = 86400;
+    public bool $enableSuspiciousTextDetection = false;
+    public int $suspiciousTextMinimumWordLength = 6;
+    public string $suspiciousTextAllowedTerms = '';
+    public bool $enableMaximumLinks = false;
+    public int $maximumLinks = 10;
+    public bool $enableGlobalSubmissionThrottling = false;
+    public int $globalSubmissionThrottleLimit = 50;
+    public int $globalSubmissionThrottleWindowSeconds = 60;
+    public bool $enableIpSubmissionThrottling = false;
+    public int $ipSubmissionThrottleMinutes = 5;
 
     // Email Notifications
     public bool $sendEmailAlerts = false;

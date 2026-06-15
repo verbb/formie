@@ -28,6 +28,10 @@
         settings: settings,
     } only %}
 
+    {% include 'formie/settings/spam-protection/_throttling' with {
+        settings: settings,
+    } only %}
+
     {% include 'formie/settings/spam-protection/_captcha-providers' with {
         groupedIntegrations: groupedIntegrations,
     } only %}

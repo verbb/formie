@@ -47,6 +47,24 @@ class RunSpamChecksTask implements TaskInterface
             return TaskResult::continue();
         }
 
+        $maximumLinksMatch = SpamHelper::checkMaximumLinks($submission);
+
+        if ($maximumLinksMatch) {
+            $submission->isSpam = true;
+            $submission->spamReason = SpamHelper::spamReasonFromMaximumLinks($maximumLinksMatch);
+
+            return TaskResult::continue();
+        }
+
+        $suspiciousTextMatch = SpamHelper::checkSuspiciousText($submission);
+
+        if ($suspiciousTextMatch) {
+            $submission->isSpam = true;
+            $submission->spamReason = SpamHelper::spamReasonFromSuspiciousText($suspiciousTextMatch);
+
+            return TaskResult::continue();
+        }
+
         $match = SpamHelper::checkSubmission($submission);
 
         if ($match) {

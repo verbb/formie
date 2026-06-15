@@ -164,6 +164,101 @@ class SpamHelper
         return Craft::t('formie', 'Blocked email domain: {domain}.', ['domain' => $match['value']]);
     }
 
+    public static function checkMaximumLinks(Submission $submission, ?Settings $settings = null): bool|array
+    {
+        /** @var Settings $settings */
+        $settings ??= Formie::$plugin->getSettings();
+
+        if (!$settings->enableMaximumLinks) {
+            return false;
+        }
+
+        $maximumLinks = max(1, (int)$settings->maximumLinks);
+        $linkCount = self::countLinks(self::buildSubmissionHaystack($submission));
+
+        if ($linkCount > $maximumLinks) {
+            return [
+                'type' => 'maximumLinks',
+                'value' => $linkCount,
+                'limit' => $maximumLinks,
+            ];
+        }
+
+        return false;
+    }
+
+    public static function checkSuspiciousText(Submission $submission, ?Settings $settings = null): bool|array
+    {
+        /** @var Settings $settings */
+        $settings ??= Formie::$plugin->getSettings();
+
+        if (!$settings->enableSuspiciousTextDetection) {
+            return false;
+        }
+
+        $minimumWordLength = max(0, (int)$settings->suspiciousTextMinimumWordLength);
+        $allowedTerms = self::parseAllowedTerms($settings->suspiciousTextAllowedTerms);
+        $form = $submission->getForm();
+
+        if (!$form) {
+            return false;
+        }
+
+        foreach ($form->getFields() as $field) {
+            $value = $submission->getFieldValueAsString($field->handle);
+
+            if ($value === '') {
+                continue;
+            }
+
+            $analysis = SuspiciousTextHelper::analyze($value, $minimumWordLength, $allowedTerms);
+
+            if ($analysis['is_suspicious'] ?? false) {
+                return [
+                    'type' => 'suspiciousText',
+                    'value' => $field->handle,
+                ];
+            }
+        }
+
+        return false;
+    }
+
+    public static function countLinks(string $content): int
+    {
+        if ($content === '') {
+            return 0;
+        }
+
+        preg_match_all(
+            '~(?:https?://|www\.)[^\s<>"{}|\\^`\[\]]+~iu',
+            $content,
+            $matches,
+        );
+
+        return count($matches[0] ?? []);
+    }
+
+    public static function parseAllowedTerms(?string $terms): array
+    {
+        return self::_getArrayFromMultiline($terms ?? '');
+    }
+
+    public static function spamReasonFromMaximumLinks(array $match): string
+    {
+        return Craft::t('formie', 'Submission contains {count} links, which exceeds the limit of {limit}.', [
+            'count' => (int)($match['value'] ?? 0),
+            'limit' => (int)($match['limit'] ?? 0),
+        ]);
+    }
+
+    public static function spamReasonFromSuspiciousText(array $match): string
+    {
+        return Craft::t('formie', 'Submission contains suspicious text in field “{field}”.', [
+            'field' => (string)($match['value'] ?? ''),
+        ]);
+    }
+
     public static function checkContent(string $content, ?string $userIp = null, ?array $lines = null): bool|array
     {
         if ($userIp === null) {

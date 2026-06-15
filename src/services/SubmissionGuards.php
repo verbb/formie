@@ -2,12 +2,15 @@
 namespace verbb\formie\services;
 
 use verbb\formie\Formie;
+use verbb\formie\helpers\Table;
 use verbb\formie\models\Settings;
 use verbb\formie\models\SubmissionRequest;
 use verbb\formie\services\SubmissionWorkflow;
 
 use Craft;
 use craft\base\Component;
+use craft\db\Query;
+use craft\db\Table as CraftTable;
 
 class SubmissionGuards extends Component
 {
@@ -17,6 +20,8 @@ class SubmissionGuards extends Component
     public const REPLAY_CACHE_DURATION = 86400;
 
     public const FORM_STARTED_AT_PARAM = 'formStartedAt';
+
+    public const GLOBAL_THROTTLE_CACHE_KEY = 'formie.global-submission-throttle';
 
 
     // Public Methods
@@ -46,6 +51,22 @@ class SubmissionGuards extends Component
         }
 
         $settings = Formie::$plugin->getSettings();
+
+        if ($settings->enableGlobalSubmissionThrottling) {
+            $reason = $this->_validateGlobalSubmissionThrottling($settings);
+
+            if ($reason) {
+                return $reason;
+            }
+        }
+
+        if ($settings->enableIpSubmissionThrottling) {
+            $reason = $this->_validateIpSubmissionThrottling($settings, $request);
+
+            if ($reason) {
+                return $reason;
+            }
+        }
 
         if ($settings->enableHoneypot) {
             $reason = $this->_validateHoneypot($settings);
@@ -128,6 +149,91 @@ class SubmissionGuards extends Component
 
     // Private Methods
     // =========================================================================
+
+    private function _validateGlobalSubmissionThrottling(Settings $settings): ?string
+    {
+        $limit = max(1, (int)$settings->globalSubmissionThrottleLimit);
+        $window = max(1, (int)$settings->globalSubmissionThrottleWindowSeconds);
+        $cache = Craft::$app->getCache();
+        $mutex = Craft::$app->getMutex();
+        $mutexKey = self::GLOBAL_THROTTLE_CACHE_KEY . '.lock';
+        $now = time();
+        $lockAcquired = $mutex?->acquire($mutexKey, 3) ?? false;
+
+        try {
+            $entry = $cache->get(self::GLOBAL_THROTTLE_CACHE_KEY);
+
+            if (!is_array($entry) || !isset($entry['count'], $entry['resetAt']) || (int)$entry['resetAt'] <= $now) {
+                $entry = [
+                    'count' => 0,
+                    'resetAt' => $now + $window,
+                ];
+            }
+
+            $count = (int)$entry['count'];
+            $resetAt = max($now + 1, (int)$entry['resetAt']);
+
+            if ($count >= $limit) {
+                return Craft::t('formie', 'Global submission rate limit exceeded.');
+            }
+
+            $entry['count'] = $count + 1;
+            $cache->set(self::GLOBAL_THROTTLE_CACHE_KEY, $entry, max(1, $resetAt - $now));
+        } finally {
+            if ($lockAcquired) {
+                $mutex?->release($mutexKey);
+            }
+        }
+
+        return null;
+    }
+
+    private function _validateIpSubmissionThrottling(Settings $settings, SubmissionRequest $request): ?string
+    {
+        $minutes = max(1, (int)$settings->ipSubmissionThrottleMinutes);
+        $ip = trim((string)($request->submission->ipAddress ?? $this->_requestUserIp()));
+
+        if ($ip === '') {
+            return null;
+        }
+
+        $formId = (int)$request->form->id;
+
+        if ($formId < 1) {
+            return null;
+        }
+
+        $since = (new \DateTimeImmutable("-{$minutes} minutes"))->format('Y-m-d H:i:s');
+        $count = (int)(new Query())
+            ->from(['s' => Table::FORMIE_SUBMISSIONS])
+            ->innerJoin(
+                ['e' => CraftTable::ELEMENTS],
+                '[[e.id]] = [[s.id]] AND [[e.dateDeleted]] IS NULL',
+            )
+            ->where([
+                's.formId' => $formId,
+                's.ipAddress' => $ip,
+            ])
+            ->andWhere(['>', 's.dateCreated', $since])
+            ->count('*', Craft::$app->getDb());
+
+        if ($count > 0) {
+            return Craft::t('formie', 'Too many submissions from this IP address.');
+        }
+
+        return null;
+    }
+
+    private function _requestUserIp(): string
+    {
+        $request = Craft::$app->getRequest();
+
+        if (!method_exists($request, 'getUserIP')) {
+            return '';
+        }
+
+        return (string)($request->getUserIP() ?? '');
+    }
 
     private function _validateHoneypot(Settings $settings): ?string
     {
