@@ -17,6 +17,7 @@ type Cleanup = () => void;
 type ObserveVisiblePlaceholdersResult = {
     cleanup: Cleanup;
     reconcile: () => void;
+    reconcileImmediate: () => void;
     getVisible: () => HTMLElement[];
 };
 
@@ -115,7 +116,12 @@ const CAPTCHA_VISIBILITY_EVENTS = [
     'formie:page:navigate',
     'formie:page:navigate:after',
     'formie:submit:result',
-];
+] as const;
+
+const CAPTCHA_IMMEDIATE_RECONCILE_EVENTS = new Set<string>([
+    'formie:page:navigate',
+    'formie:page:navigate:after',
+]);
 
 function bindDomEvent(target: EventTarget, eventName: string, callback: EventListener): Cleanup {
     target.addEventListener(eventName, callback);
@@ -152,7 +158,7 @@ function isElementVisible(target: Element): target is HTMLElement {
 
     const style = window.getComputedStyle(target);
 
-    return style.display !== 'none' && style.visibility !== 'hidden';
+    return style.display !== 'none' && style.visibility !== 'hidden' && target.getClientRects().length > 0;
 }
 
 function getPrimaryPlaceholder(root: Element, selector: string): HTMLElement | null {
@@ -271,6 +277,11 @@ function observeVisiblePlaceholders(
         }),
         ...CAPTCHA_VISIBILITY_EVENTS.map((eventName) => {
             return bindDomEvent(root, eventName, () => {
+                if (CAPTCHA_IMMEDIATE_RECONCILE_EVENTS.has(eventName)) {
+                    reconcileNow();
+                    return;
+                }
+
                 reconcile();
             });
         }),
@@ -292,6 +303,7 @@ function observeVisiblePlaceholders(
             visible.clear();
         },
         reconcile,
+        reconcileImmediate: reconcileNow,
         getVisible: () => {
             return queryCaptchaPlaceholders(root, selector).filter((placeholder) => isElementVisible(placeholder));
         },

@@ -1,5 +1,6 @@
 import type { FormAction } from '#contracts/common';
 import type { FormSubmitResult } from '#contracts/schema';
+import { dispatchFormieDomEvent } from '#core/dom-events';
 import { dispatchPageClientEventForSubmit } from '#core/page-client-event';
 import { syncPageTabErrors } from '#core/page-tab-errors';
 import { addThemeClasses, removeThemeClasses, toggleThemeClasses } from '#theme/theme-classes';
@@ -576,6 +577,9 @@ export function applySubmitResultState(form: HTMLFormElement, result: FormSubmit
         const validator = formWithValidationApi.formieValidation;
         validator?.resetLiveState();
         applyPageState(form, result.nextPage.id);
+        dispatchFormieDomEvent(form, 'formie:page:navigate:after', {
+            pageId: result.nextPage.id,
+        });
         debug.log('Advanced to next page.', {
             nextPageId: result.nextPage.id,
         });

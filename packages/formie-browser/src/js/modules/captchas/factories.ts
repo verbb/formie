@@ -436,6 +436,10 @@ export function createManagedCaptchaModule<
                         return;
                     }
 
+                    // Reconcile immediately so captcha placeholders on the newly
+                    // visible page are mounted before screen-stage policy runs.
+                    visibility.reconcileImmediate();
+
                     // By the time provider `screen()` runs, the widget is
                     // guaranteed to be mounted and the active placeholder is
                     // resolved. That lets provider code focus on challenge

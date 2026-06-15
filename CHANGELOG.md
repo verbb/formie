@@ -6,6 +6,7 @@
 - Skip client-side validation for fields disabled by conditional logic, and disable conditionally hidden submit buttons so Enter no longer triggers hidden submit/next actions. ([#2727](https://github.com/verbb/formie/issues/2727), [#1136](https://github.com/verbb/formie/issues/1136), [Discussion #1628](https://github.com/verbb/formie/discussions/1628))
 - Apply spam behaviour (success/message) without attempting to persist discarded spam submissions when **Save spam submissions** is disabled, avoiding failed saves under bot load. ([#2818](https://github.com/verbb/formie/issues/2818))
 - Bound spam keyword scanning and spam log payloads so very large field values cannot stall PHP workers during spam handling. ([#2065](https://github.com/verbb/formie/issues/2065))
+- Initialise captcha placeholders immediately when multipage forms change page via tabs or Ajax **Next**, so Friendly Captcha and other providers mount on the visible page before submit. ([#1893](https://github.com/verbb/formie/issues/1893))
 
 ## 4.0.0-beta.6 - 2026-06-14
 

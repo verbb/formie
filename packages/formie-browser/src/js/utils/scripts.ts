@@ -11,6 +11,16 @@ type LoadExternalScriptOptions = {
 
 const scriptLoadCache = new Map<string, Promise<HTMLScriptElement>>();
 
+function getDocumentCspNonce(): string | null {
+    const nonceMeta = document.querySelector('meta[property="csp-nonce"], meta[name="csp-nonce"]') as HTMLMetaElement | null;
+
+    if (!nonceMeta) {
+        return null;
+    }
+
+    return nonceMeta.nonce || nonceMeta.getAttribute('nonce') || nonceMeta.getAttribute('content') || null;
+}
+
 export async function ensureGlobal<T = unknown>(globalName: string, timeoutMs = 5000): Promise<T> {
     // Third-party SDKs often attach themselves to `window` after their script tag
     // loads, so callers wait on the global rather than assuming load == ready.
@@ -49,6 +59,12 @@ export async function loadExternalScript({
             script.src = src;
             script.async = async;
             script.defer = defer;
+            const nonce = getDocumentCspNonce();
+
+            if (nonce) {
+                script.setAttribute('nonce', nonce);
+            }
+
             script.onload = () => {
                 resolve(script);
             };
