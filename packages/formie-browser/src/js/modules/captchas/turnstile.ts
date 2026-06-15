@@ -14,6 +14,7 @@ type TurnstileGlobal = {
     render: (container: HTMLElement, options: Record<string, unknown>) => string;
     execute: (widgetId: string) => void;
     reset: (widgetId: string) => void;
+    remove: (widgetId: string) => void;
 };
 
 // Provider-specific options only. Generic captcha concerns are handled by the
@@ -123,9 +124,14 @@ export const turnstileModule = defineCaptchaModule<TurnstileProviderOptions, Tur
         });
     },
     unmount: ({ api, widget, services }) => {
-        // Reset provider state whenever the widget is torn down so the DOM
-        // transport layer and the provider widget stay in sync.
-        api.reset(widget);
+        // Remove the widget before clearing placeholder DOM so Turnstile does not
+        // log errors about orphaned challenge iframes during remounts.
+        if (typeof api.remove === 'function') {
+            api.remove(widget);
+        } else {
+            api.reset(widget);
+        }
+
         services.tokens.clear();
     },
 });

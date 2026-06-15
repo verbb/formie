@@ -30,3 +30,7 @@ Follow the below steps to connect Formie to Cloudflare Turnstile.
 1. Save the form.
 
 Turnstile widget mode is chosen in Cloudflare for the site key you created. Formie does not change that mode, so make sure you pick the right widget in Cloudflare first.
+
+### Content Security Policy (CSP)
+
+If your site uses strict CSP headers (for example on Craft Cloud), allow scripts and frames from `https://challenges.cloudflare.com`. Formie also forwards your page CSP nonce to dynamically loaded captcha scripts when a `csp-nonce` meta tag is present.
