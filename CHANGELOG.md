@@ -7,8 +7,8 @@
 - Add `formie-importForms` and `formie-exportForms` permissions, replacing the temporary admin-only import/export gate.
 - Add `formie-accessIntegrations` permission for the top-level **Integrations** control panel section, separate from **Access settings**.
 - Add nested settings page permissions under **Access settings**, with CP navigation and controller enforcement per page.
-- Add `formie_captcha_providers` table and migrate captcha provider credentials out of plugin settings, with site/project scope support.
-- Add `formie_spam_settings` table and migrate spam handling settings out of plugin settings, with site/project scope support.
+- Add `formie_captcha_providers` table and migrate captcha provider credentials out of plugin settings, with site/project scope support and project config export for project-scoped providers.
+- Add `formie_spam_settings` table and migrate spam handling settings out of plugin settings, with site/project scope support and project config export for project-scoped defaults.
 - Add a `Permissions` service as the single ACL entry point for forms, submissions, sent notifications, and import/export checks.
 - Add **Field Error Announcement** plugin setting (**Settings → Forms**) to control how front-end validation and submit errors are announced to screen readers (`polite`, `assertive`, or `off`). Live validation while typing always uses polite announcements. ([#2505](https://github.com/verbb/formie/issues/2505))
 
@@ -18,6 +18,7 @@
 - Filter CP form and submission element sources and indexes to forms the current user can view or manage.
 - Filter the settings sidebar and default settings landing page to the first settings page a user can access.
 - Unify **Settings → Spam Protection** as the single CP page for spam handling, keyword rules, and captcha provider credentials. Legacy `spam` and `captchas` routes redirect to the new page.
+- Deprecate captcha and spam keys in `plugins.formie.settings`; legacy plugin settings values are stripped on save and seeded into runtime stores via the compatibility layer.
 
 ### Fixed
 - Skip client-side validation for fields disabled by conditional logic, and disable conditionally hidden submit buttons so Enter no longer triggers hidden submit/next actions. ([#2727](https://github.com/verbb/formie/issues/2727), [#1136](https://github.com/verbb/formie/issues/1136), [Discussion #1628](https://github.com/verbb/formie/discussions/1628))

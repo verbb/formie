@@ -29,12 +29,14 @@ use verbb\formie\integrations\feedme\elements\Submission as FeedMeSubmission;
 use verbb\formie\integrations\link\FormLinkType;
 use verbb\formie\jobs\DebuggableJobInterface;
 use verbb\formie\models\Settings;
+use verbb\formie\services\CaptchaProviders as CaptchaProvidersService;
 use verbb\formie\services\EmailTemplates as EmailTemplatesService;
 use verbb\formie\services\FormGroups as FormGroupsService;
 use verbb\formie\services\FormTemplates as FormTemplatesService;
 use verbb\formie\services\Integrations as IntegrationsService;
 use verbb\formie\services\PdfTemplates as PdfTemplatesService;
 use verbb\formie\services\Permissions;
+use verbb\formie\services\SpamProtection as SpamProtectionService;
 use verbb\formie\services\Statuses as StatusesService;
 use verbb\formie\services\Stencils as StencilsService;
 use verbb\formie\variables\Formie as FormieVariable;
@@ -164,6 +166,7 @@ class Formie extends Plugin
         }
 
         $this->getSpamProtection()->hydrateSettings($this->getSettings());
+        $this->getCaptchaProviders()->hydrateLegacyCaptchas($this->getSettings());
     }
 
     public function getPluginName(): string
@@ -743,6 +746,18 @@ class Formie extends Plugin
             ->onAdd(IntegrationsService::CONFIG_INTEGRATIONS_KEY . '.{uid}', [$integrationsService, 'handleChangedIntegration'])
             ->onUpdate(IntegrationsService::CONFIG_INTEGRATIONS_KEY . '.{uid}', [$integrationsService, 'handleChangedIntegration'])
             ->onRemove(IntegrationsService::CONFIG_INTEGRATIONS_KEY . '.{uid}', [$integrationsService, 'handleDeletedIntegration']);
+
+        $captchaProvidersService = $this->getCaptchaProviders();
+        $projectConfigService
+            ->onAdd(CaptchaProvidersService::CONFIG_CAPTCHA_PROVIDERS_KEY . '.{handle}', [$captchaProvidersService, 'handleChangedProvider'])
+            ->onUpdate(CaptchaProvidersService::CONFIG_CAPTCHA_PROVIDERS_KEY . '.{handle}', [$captchaProvidersService, 'handleChangedProvider'])
+            ->onRemove(CaptchaProvidersService::CONFIG_CAPTCHA_PROVIDERS_KEY . '.{handle}', [$captchaProvidersService, 'handleDeletedProvider']);
+
+        $spamProtectionService = $this->getSpamProtection();
+        $projectConfigService
+            ->onAdd(SpamProtectionService::CONFIG_SPAM_SETTINGS_KEY, [$spamProtectionService, 'handleChangedSettings'])
+            ->onUpdate(SpamProtectionService::CONFIG_SPAM_SETTINGS_KEY, [$spamProtectionService, 'handleChangedSettings'])
+            ->onRemove(SpamProtectionService::CONFIG_SPAM_SETTINGS_KEY, [$spamProtectionService, 'handleDeletedSettings']);
 
         Event::on(ProjectConfig::class, ProjectConfig::EVENT_REBUILD, function(RebuildConfigEvent $event) {
             $event->config['formie'] = ProjectConfigHelper::rebuildProjectConfig();

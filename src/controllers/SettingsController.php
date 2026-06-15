@@ -263,7 +263,9 @@ class SettingsController extends SettingsAccessController
 
         $pluginSettingsSaved = Craft::$app->getPlugins()->savePluginSettings(
             Formie::$plugin,
-            Formie::$plugin->getSpamProtection()->stripFromPluginSettingsArray($settings->toArray()),
+            Formie::$plugin->getCaptchaProviders()->stripFromPluginSettingsArray(
+                Formie::$plugin->getSpamProtection()->stripFromPluginSettingsArray($settings->toArray()),
+            ),
         );
 
         if (!$pluginSettingsSaved) {

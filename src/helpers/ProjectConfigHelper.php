@@ -22,6 +22,8 @@ class ProjectConfigHelper
         $configData['emailTemplates'] = self::_getEmailTemplatesData();
         $configData['pdfTemplates'] = self::_getPdfTemplatesData();
         $configData['integrations'] = self::_getIntegrationsData();
+        $configData['captchaProviders'] = self::_getCaptchaProvidersData();
+        $configData['spamSettings'] = self::_getSpamSettingsData();
         $configData['fieldPalette'] = self::_getFieldPaletteData();
 
         return array_filter($configData);
@@ -116,6 +118,28 @@ class ProjectConfigHelper
         }
 
         return $data;
+    }
+
+    private static function _getCaptchaProvidersData(): array
+    {
+        $data = [];
+
+        foreach (Formie::$plugin->getCaptchaProviders()->getProjectScopedProviders() as $handle => $integration) {
+            $data[$handle] = Formie::$plugin->getCaptchaProviders()->createProviderConfig($integration);
+        }
+
+        return $data;
+    }
+
+    private static function _getSpamSettingsData(): ?array
+    {
+        $spamProtection = Formie::$plugin->getSpamProtection();
+
+        if (!$spamProtection->isProjectScope()) {
+            return null;
+        }
+
+        return $spamProtection->createSettingsConfig($spamProtection->getSettingsValues());
     }
 
     private static function _getFieldPaletteData(): array

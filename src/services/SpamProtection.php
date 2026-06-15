@@ -10,7 +10,9 @@ use verbb\formie\records\SpamSettings as SpamSettingsRecord;
 use Craft;
 use craft\base\Component;
 use craft\db\Query;
+use craft\events\ConfigEvent;
 use craft\helpers\Db;
+use craft\helpers\ProjectConfig;
 
 use Throwable;
 
@@ -196,6 +198,10 @@ class SpamProtection extends Component
             $scope = $this->getScope();
         }
 
+        if ($scope === Integrations::SCOPE_PROJECT && Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
+            return $this->_saveProjectSettings($values);
+        }
+
         $transaction = Craft::$app->getDb()->beginTransaction();
 
         try {
@@ -273,6 +279,83 @@ class SpamProtection extends Component
         return $settings;
     }
 
+    public function createSettingsConfig(array $values): array
+    {
+        return [
+            'scope' => Integrations::SCOPE_PROJECT,
+            'saveSpam' => (bool)($values['saveSpam'] ?? true),
+            'spamLimit' => (int)($values['spamLimit'] ?? 500),
+            'spamEmailNotifications' => (bool)($values['spamEmailNotifications'] ?? false),
+            'spamBehaviour' => (string)($values['spamBehaviour'] ?? Settings::SPAM_BEHAVIOUR_SUCCESS),
+            'spamBehaviourMessage' => (string)($values['spamBehaviourMessage'] ?? ''),
+            'spamKeywords' => (string)($values['spamKeywords'] ?? ''),
+        ];
+    }
+
+    public function handleChangedSettings(ConfigEvent $event): void
+    {
+        $data = $event->newValue;
+        $row = $this->getRow();
+        $isNew = $row === null;
+        $transaction = Craft::$app->getDb()->beginTransaction();
+
+        try {
+            if ($isNew) {
+                $record = new SpamSettingsRecord();
+                $record->uid = StringHelper::UUID();
+            } else {
+                $record = SpamSettingsRecord::findOne((int)$row['id']);
+
+                if (!$record) {
+                    throw new \Exception('Invalid spam settings ID: ' . $row['id']);
+                }
+            }
+
+            $record->scope = Integrations::SCOPE_PROJECT;
+            $record->saveSpam = (bool)($data['saveSpam'] ?? true);
+            $record->spamLimit = (int)($data['spamLimit'] ?? 500);
+            $record->spamEmailNotifications = (bool)($data['spamEmailNotifications'] ?? false);
+            $record->spamBehaviour = (string)($data['spamBehaviour'] ?? Settings::SPAM_BEHAVIOUR_SUCCESS);
+            $record->spamBehaviourMessage = (string)($data['spamBehaviourMessage'] ?? '');
+            $record->spamKeywords = (string)($data['spamKeywords'] ?? '');
+            $record->save(false);
+
+            $transaction->commit();
+        } catch (Throwable $e) {
+            $transaction->rollBack();
+            throw $e;
+        }
+
+        $this->_resetCache();
+    }
+
+    public function handleDeletedSettings(ConfigEvent $event): void
+    {
+        $row = $this->getRow();
+
+        if (!$row) {
+            return;
+        }
+
+        $record = SpamSettingsRecord::findOne((int)$row['id']);
+
+        if (!$record) {
+            return;
+        }
+
+        $defaults = $this->getDefaultValues();
+        $record->scope = Integrations::SCOPE_PROJECT;
+        $record->saveSpam = (bool)$defaults['saveSpam'];
+        $record->spamLimit = (int)$defaults['spamLimit'];
+        $record->spamEmailNotifications = (bool)$defaults['spamEmailNotifications'];
+        $record->spamBehaviour = (string)$defaults['spamBehaviour'];
+        $record->spamBehaviourMessage = (string)$defaults['spamBehaviourMessage'];
+        $record->spamKeywords = (string)$defaults['spamKeywords'];
+        $record->save(false);
+
+        $this->_resetCache();
+    }
+
 
     // Private Methods
     // =========================================================================
@@ -280,5 +363,54 @@ class SpamProtection extends Component
     private function _resetCache(): void
     {
         $this->_row = null;
+    }
+
+    private function _saveProjectSettings(array $values): bool
+    {
+        if (!Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
+            return false;
+        }
+
+        Craft::$app->getProjectConfig()->set(
+            self::CONFIG_SPAM_SETTINGS_KEY,
+            $this->createSettingsConfig($values),
+            'Save Formie spam settings',
+        );
+
+        $scope = Integrations::SCOPE_PROJECT;
+        $row = $this->getRow();
+        $isNew = $row === null;
+        $transaction = Craft::$app->getDb()->beginTransaction();
+
+        try {
+            if ($isNew) {
+                $record = new SpamSettingsRecord();
+                $record->uid = StringHelper::UUID();
+            } else {
+                $record = SpamSettingsRecord::findOne((int)$row['id']);
+
+                if (!$record) {
+                    throw new \Exception('Invalid spam settings ID: ' . $row['id']);
+                }
+            }
+
+            $record->scope = $scope;
+            $record->saveSpam = (bool)($values['saveSpam'] ?? true);
+            $record->spamLimit = (int)($values['spamLimit'] ?? 500);
+            $record->spamEmailNotifications = (bool)($values['spamEmailNotifications'] ?? false);
+            $record->spamBehaviour = (string)($values['spamBehaviour'] ?? Settings::SPAM_BEHAVIOUR_SUCCESS);
+            $record->spamBehaviourMessage = (string)($values['spamBehaviourMessage'] ?? '');
+            $record->spamKeywords = (string)($values['spamKeywords'] ?? '');
+            $record->save(false);
+
+            $transaction->commit();
+        } catch (Throwable $e) {
+            $transaction->rollBack();
+            throw $e;
+        }
+
+        $this->_resetCache();
+
+        return true;
     }
 }

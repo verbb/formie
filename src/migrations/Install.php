@@ -9,7 +9,9 @@ use verbb\formie\helpers\Table;
 use verbb\formie\models\Status;
 use verbb\formie\models\Stencil;
 use verbb\formie\models\StencilData;
+use verbb\formie\services\CaptchaProviders;
 use verbb\formie\services\FormGroups;
+use verbb\formie\services\SpamProtection;
 use verbb\formie\services\Statuses;
 use verbb\formie\services\Stencils;
 
@@ -678,6 +680,16 @@ class Install extends Migration
 
             foreach ($formGroups as $formGroupUid => $formGroupData) {
                 $projectConfig->processConfigChanges(FormGroups::CONFIG_GROUPS_KEY . '.' . $formGroupUid, true);
+            }
+
+            $captchaProviders = $projectConfig->get(CaptchaProviders::CONFIG_CAPTCHA_PROVIDERS_KEY, true) ?? [];
+
+            foreach (array_keys($captchaProviders) as $handle) {
+                $projectConfig->processConfigChanges(CaptchaProviders::CONFIG_CAPTCHA_PROVIDERS_KEY . '.' . $handle, true);
+            }
+
+            if ($projectConfig->get(SpamProtection::CONFIG_SPAM_SETTINGS_KEY, true) !== null) {
+                $projectConfig->processConfigChanges(SpamProtection::CONFIG_SPAM_SETTINGS_KEY, true);
             }
         }
     }
