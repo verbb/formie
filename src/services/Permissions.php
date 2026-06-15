@@ -22,6 +22,7 @@ class Permissions extends Component
 
     public const PERM_ACCESS_FORMS = 'formie-accessForms';
     public const PERM_ACCESS_INTEGRATIONS = 'formie-accessIntegrations';
+    public const PERM_ACCESS_SETTINGS = 'formie-accessSettings';
     public const PERM_ACCESS_SUBMISSIONS = 'formie-accessSubmissions';
     public const PERM_CREATE_FORMS = 'formie-createForms';
     public const PERM_DELETE_FORMS = 'formie-deleteForms';
@@ -82,6 +83,110 @@ class Permissions extends Component
     public function canAccessIntegrations(?User $user): bool
     {
         return $this->_can($user, self::PERM_ACCESS_INTEGRATIONS);
+    }
+
+    public function canAccessSettings(?User $user): bool
+    {
+        return $this->_can($user, self::PERM_ACCESS_SETTINGS);
+    }
+
+    public function settingsPagePermissionKey(string $page): string
+    {
+        $normalized = str_replace(['/', '-'], '', ucwords($page, '-/'));
+
+        return 'formie-settings' . $normalized;
+    }
+
+    public function canAccessSettingsPage(?User $user, string $page): bool
+    {
+        if ($this->_isElevated($user)) {
+            return true;
+        }
+
+        if (!$user) {
+            return false;
+        }
+
+        if ($user->can(self::PERM_ACCESS_SETTINGS)) {
+            return true;
+        }
+
+        return $user->can($this->settingsPagePermissionKey($page));
+    }
+
+    public function canAccessAnySettings(?User $user): bool
+    {
+        if ($this->canAccessSettings($user)) {
+            return true;
+        }
+
+        foreach (array_keys($this->getSettingsPageDefinitions()) as $page) {
+            if ($this->canAccessSettingsPage($user, $page)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public function resolveSettingsPageFromUrl(string $url): ?string
+    {
+        $path = parse_url($url, PHP_URL_PATH);
+
+        if (!is_string($path) || $path === '') {
+            return null;
+        }
+
+        if (!preg_match('#/formie/settings(?:/([^/]+)(?:/([^/]+))?)?#', $path, $matches)) {
+            return null;
+        }
+
+        $section = $matches[1] ?? 'general';
+        $subsection = $matches[2] ?? null;
+
+        if ($section === 'migrate' && $subsection) {
+            return "migrate/$subsection";
+        }
+
+        return $section;
+    }
+
+    public function getSettingsPageDefinitions(): array
+    {
+        return [
+            'general' => Craft::t('formie', 'General settings'),
+            'import-export' => Craft::t('formie', 'Import/Export'),
+            'forms' => Craft::t('formie', 'Forms settings'),
+            'form-groups' => Craft::t('formie', 'Form groups'),
+            'synced-fields' => Craft::t('formie', 'Synced fields'),
+            'defaults' => Craft::t('formie', 'Defaults'),
+            'fields' => Craft::t('formie', 'Fields'),
+            'notifications' => Craft::t('formie', 'Email notifications settings'),
+            'sent-notifications' => Craft::t('formie', 'Sent notifications settings'),
+            'statuses' => Craft::t('formie', 'Statuses'),
+            'submissions' => Craft::t('formie', 'Submissions settings'),
+            'integrations-settings' => Craft::t('formie', 'Integrations settings'),
+            'spam' => Craft::t('formie', 'Spam protection'),
+            'form-templates' => Craft::t('formie', 'Form templates'),
+            'email-templates' => Craft::t('formie', 'Email templates'),
+            'pdf-templates' => Craft::t('formie', 'PDF templates'),
+            'captchas' => Craft::t('formie', 'Captchas'),
+            'support' => Craft::t('formie', 'Get support'),
+            'migrate/freeform4' => Craft::t('formie', 'Migrate Freeform 4'),
+            'migrate/freeform5' => Craft::t('formie', 'Migrate Freeform 5'),
+            'migrate/sprout-forms' => Craft::t('formie', 'Migrate Sprout Forms'),
+        ];
+    }
+
+    public function getSettingsPermissionDefinitions(): array
+    {
+        $definitions = [];
+
+        foreach ($this->getSettingsPageDefinitions() as $page => $label) {
+            $definitions[$this->settingsPagePermissionKey($page)] = ['label' => $label];
+        }
+
+        return $definitions;
     }
 
     public function canCreateForms(?User $user): bool

@@ -10,6 +10,7 @@ use verbb\formie\models\Settings;
 use Craft;
 use craft\helpers\Json;
 
+use yii\web\ForbiddenHttpException;
 use yii\web\Response;
 
 class SettingsController extends SettingsAccessController
@@ -19,15 +20,25 @@ class SettingsController extends SettingsAccessController
 
     public function actionIndex(): Response
     {
-        /* @var Settings $settings */
-        $settings = Formie::$plugin->getSettings();
+        $permissions = Formie::$plugin->getPermissions();
+        $user = Craft::$app->getUser()->getIdentity();
 
-        // Find the first available settings
-        if (Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
+        if (Craft::$app->getConfig()->getGeneral()->allowAdminChanges && $permissions->canAccessSettingsPage($user, 'general')) {
+            /* @var Settings $settings */
+            $settings = Formie::$plugin->getSettings();
+
             return $this->renderTemplate('formie/settings/general', compact('settings'));
         }
 
-        return $this->redirect('formie/settings/address-providers');
+        foreach (array_keys($permissions->getSettingsPageDefinitions()) as $page) {
+            if (!$permissions->canAccessSettingsPage($user, $page)) {
+                continue;
+            }
+
+            return $this->redirect("formie/settings/$page");
+        }
+
+        throw new ForbiddenHttpException('User is not permitted to perform this action');
     }
 
     public function actionForms(): Response
@@ -172,6 +183,14 @@ class SettingsController extends SettingsAccessController
     public function actionSaveSettings(): ?Response
     {
         $this->requirePostRequest();
+
+        $permissions = Formie::$plugin->getPermissions();
+        $user = Craft::$app->getUser()->getIdentity();
+        $page = $permissions->resolveSettingsPageFromUrl((string)$this->request->getParam('redirect', '')) ?? 'general';
+
+        if (!$permissions->canAccessSettingsPage($user, $page)) {
+            throw new ForbiddenHttpException('User is not permitted to perform this action');
+        }
 
         $request = $this->request;
 

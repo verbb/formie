@@ -30,7 +30,7 @@ class IntegrationSettingsController extends Controller
             return false;
         }
 
-        $this->requirePermission($this->_resolveAccessPermission());
+        $this->_enforceAccessPermission();
 
         return true;
     }
@@ -282,12 +282,54 @@ class IntegrationSettingsController extends Controller
         ]);
     }
 
-    private function _resolveAccessPermission(): string
+    private function _enforceAccessPermission(): void
     {
-        // Top-level Integrations CP routes use a dedicated permission; legacy settings/* integration routes stay on settings access.
-        return Craft::$app->getRequest()->getSegment(1) === 'integrations'
-            ? Permissions::PERM_ACCESS_INTEGRATIONS
-            : 'formie-accessSettings';
+        $request = Craft::$app->getRequest();
+        $permissions = Formie::$plugin->getPermissions();
+        $user = Craft::$app->getUser()->getIdentity();
+
+        if ($request->getSegment(2) === 'integrations') {
+            $this->requirePermission(Permissions::PERM_ACCESS_INTEGRATIONS);
+
+            return;
+        }
+
+        if ($request->getSegment(2) === 'integration-settings') {
+            $section = $request->getSegment(3);
+
+            if ($section === 'save-captchas') {
+                $section = 'captchas';
+            }
+
+            if (!$permissions->canAccessSettingsPage($user, $section ?? 'captchas')) {
+                throw new ForbiddenHttpException('User is not permitted to perform this action');
+            }
+
+            return;
+        }
+
+        $section = $request->getSegment(3) ?: 'general';
+        $legacyIntegrationSections = [
+            'address-providers',
+            'elements',
+            'email-marketing',
+            'crm',
+            'help-desk',
+            'messaging',
+            'payments',
+            'automations',
+            'miscellaneous',
+        ];
+
+        if (in_array($section, $legacyIntegrationSections, true)) {
+            $this->requirePermission(Permissions::PERM_ACCESS_INTEGRATIONS);
+
+            return;
+        }
+
+        if (!$permissions->canAccessSettingsPage($user, $section)) {
+            throw new ForbiddenHttpException('User is not permitted to perform this action');
+        }
     }
 
 }

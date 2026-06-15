@@ -112,7 +112,7 @@ class Formie extends Plugin
 
     public bool $hasCpSection = true;
     public bool $hasCpSettings = true;
-    public string $schemaVersion = '4.0.18';
+    public string $schemaVersion = '4.0.20';
     public string $minVersionRequired = '2.1.5';
 
 
@@ -218,7 +218,7 @@ class Formie extends Plugin
             ];
         }
 
-        if (Craft::$app->getUser()->checkPermission('formie-accessSettings')) {
+        if ($this->getPermissions()->canAccessAnySettings(Craft::$app->getUser()->getIdentity())) {
             $nav['subnav']['settings'] = [
                 'label' => Craft::t('formie', 'Settings'),
                 'url' => 'formie/settings',
@@ -417,7 +417,10 @@ class Formie extends Plugin
                     ],
                     'formie-accessStencils' => ['label' => Craft::t('formie', 'Access stencils')],
                     Permissions::PERM_ACCESS_INTEGRATIONS => ['label' => Craft::t('formie', 'Access integrations')],
-                    'formie-accessSettings' => ['label' => Craft::t('formie', 'Access settings')],
+                    Permissions::PERM_ACCESS_SETTINGS => [
+                        'label' => Craft::t('formie', 'Access settings'),
+                        'nested' => $permissions->getSettingsPermissionDefinitions(),
+                    ],
                 ],
             ];
         });

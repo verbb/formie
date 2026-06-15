@@ -30,7 +30,11 @@ class SentNotificationsController extends Controller
 
     public function actionSettings(): Response
     {
-        $this->requirePermission('formie-accessSettings');
+        $user = Craft::$app->getUser()->getIdentity();
+
+        if (!Formie::$plugin->getPermissions()->canAccessSettingsPage($user, 'sent-notifications')) {
+            throw new ForbiddenHttpException('User is not permitted to perform this action');
+        }
 
         /* @var Settings $settings */
         $settings = Formie::$plugin->getSettings();

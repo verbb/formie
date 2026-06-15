@@ -213,6 +213,9 @@ class Formie
 
     public function getSettingsNavItems(): array
     {
+        $permissions = FormiePlugin::$plugin->getPermissions();
+        $user = Craft::$app->getUser()->getIdentity();
+
         if (Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
             $navItems = [
                 'general' => ['title' => Craft::t('formie', 'General Settings')],
@@ -267,7 +270,33 @@ class Formie
         $navItems['support-heading'] = ['heading' => Craft::t('formie', 'Support')];
         $navItems['support'] = ['title' => Craft::t('formie', 'Get Support')];
 
-        return $navItems;
+        return $this->_filterSettingsNavItems($navItems, $permissions, $user);
+    }
+
+    private function _filterSettingsNavItems(array $navItems, $permissions, $user): array
+    {
+        $filtered = [];
+        $bufferedHeading = null;
+
+        foreach ($navItems as $handle => $item) {
+            if (isset($item['heading'])) {
+                $bufferedHeading = [$handle => $item];
+                continue;
+            }
+
+            if (!$permissions->canAccessSettingsPage($user, $handle)) {
+                continue;
+            }
+
+            if ($bufferedHeading) {
+                $filtered = array_merge($filtered, $bufferedHeading);
+                $bufferedHeading = null;
+            }
+
+            $filtered[$handle] = $item;
+        }
+
+        return $filtered;
     }
 
     public function getIntegrationsNavItems(): array

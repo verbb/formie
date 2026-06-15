@@ -26,6 +26,12 @@ use stdClass;
 
 class ImportExportController extends SettingsAccessController
 {
+    // Properties
+    // =========================================================================
+
+    protected ?string $settingsPage = 'import-export';
+
+
     // Public Methods
     // =========================================================================
 
