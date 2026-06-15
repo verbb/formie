@@ -1,5 +1,5 @@
-import { a as e, t } from "./api-DMK8NSUI.js";
-import { r as n } from "./scripts-6CYSUGKQ.js";
+import { a as e, t } from "./api-BUb6P-xu.js";
+import { r as n } from "./scripts-CbQ7agX3.js";
 //#region src/js/modules/captchas/captcha-eu.ts
 async function r(t) {
 	return n("KROT", {

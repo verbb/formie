@@ -23,4 +23,5 @@ export type RecaptchaProviderOptions = {
     enterpriseType?: string | null;
 };
 export declare function loadRecaptchaGlobal(options: RecaptchaProviderOptions, enterprise?: boolean, renderValue?: string): Promise<RecaptchaGlobal>;
+export declare function whenRecaptchaReady(api: RecaptchaGlobal, callback: () => void | Promise<void>): Promise<void>;
 //# sourceMappingURL=recaptcha-shared.d.ts.map

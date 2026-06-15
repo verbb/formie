@@ -1,6 +1,6 @@
 import { n as e } from "./event-names-BCI2FLD8.js";
 import { t } from "./api-sPqGbOww.js";
-import { r as n } from "./scripts-6CYSUGKQ.js";
+import { r as n } from "./scripts-CbQ7agX3.js";
 //#region src/js/modules/address/address-finder.ts
 var r = "FORMIE_ADDRESS_FINDER_SCRIPT", i = t({
 	id: "address-finder",

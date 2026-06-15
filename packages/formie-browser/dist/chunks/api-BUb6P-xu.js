@@ -54,52 +54,52 @@ var g = new Set([
 	"formie:page:navigate",
 	"formie:page:navigate:after",
 	"formie:submit:result"
-];
-function y(e, t, n) {
+], y = new Set(["formie:page:navigate", "formie:page:navigate:after"]);
+function b(e, t, n) {
 	return e.addEventListener(t, n), () => {
 		e.removeEventListener(t, n);
 	};
 }
-function b(e, t) {
+function x(e, t) {
 	return e instanceof HTMLElement && e.matches(t) ? [e, ...Array.from(e.querySelectorAll(t))] : Array.from(e.querySelectorAll(t));
 }
-function x(e) {
+function S(e) {
 	if (!(e instanceof HTMLElement) || !e.isConnected || e.hidden || e.closest("[hidden]") || e.closest("[data-formie-page-hidden]") || e.closest("[aria-hidden=\"true\"]")) return !1;
 	let t = window.getComputedStyle(e);
-	return t.display !== "none" && t.visibility !== "hidden";
+	return t.display !== "none" && t.visibility !== "hidden" && e.getClientRects().length > 0;
 }
-function S(e, t) {
-	let n = b(e, t);
-	return n.find((e) => x(e)) || n[0] || null;
+function C(e, t) {
+	let n = x(e, t);
+	return n.find((e) => S(e)) || n[0] || null;
 }
-function C(e) {
+function w(e) {
 	e.innerHTML = "";
 	let t = document.createElement("div");
 	return e.appendChild(t), t;
 }
-function w(e) {
+function T(e) {
 	e?.querySelector(_)?.remove();
 }
-function T(e, t, r) {
+function E(e, t, r) {
 	if (!e) return;
-	w(e);
+	T(e);
 	let i = document.createElement("div");
 	i.setAttribute("data-formie-captcha-error-container", ""), i.setAttribute("aria-live", "polite"), i.setAttribute("aria-atomic", "true"), n(i, r || e, "fieldErrors");
 	let a = document.createElement("div");
 	a.setAttribute("data-formie-captcha-error", ""), a.setAttribute("role", "alert"), n(a, r || e, "fieldError"), a.textContent = t, i.appendChild(a), e.appendChild(i);
 }
-function E(e) {
+function D(e) {
 	let t = e instanceof CustomEvent ? e.detail : null;
 	return !t || typeof t != "object" ? null : t;
 }
-function D(e, t) {
+function O(e, t) {
 	if (!e?.captchas || typeof e.captchas != "object") return null;
 	let n = e.captchas[t];
 	return !n || typeof n != "object" ? null : n;
 }
-function O(e, t, n, r) {
+function k(e, t, n, r) {
 	let i = /* @__PURE__ */ new Set(), o = () => {
-		let a = b(e, t), o = new Set(a.filter((e) => x(e)));
+		let a = x(e, t), o = new Set(a.filter((e) => S(e)));
 		a.forEach((e) => {
 			o.has(e) && !i.has(e) && (i.add(e), n(e));
 		}), Array.from(i).forEach((e) => {
@@ -120,9 +120,13 @@ function O(e, t, n, r) {
 			"data-formie-page-hidden"
 		]
 	});
-	let l = [y(window, "resize", () => {
+	let l = [b(window, "resize", () => {
 		s();
-	}), ...v.map((t) => y(e, t, () => {
+	}), ...v.map((t) => b(e, t, () => {
+		if (y.has(t)) {
+			o();
+			return;
+		}
 		s();
 	}))];
 	return o(), {
@@ -134,16 +138,17 @@ function O(e, t, n, r) {
 			}), i.clear();
 		},
 		reconcile: s,
-		getVisible: () => b(e, t).filter((e) => x(e))
+		reconcileImmediate: o,
+		getVisible: () => x(e, t).filter((e) => S(e))
 	};
 }
-function k(e, t) {
+function A(e, t) {
 	return (typeof t.handle == "string" && t.handle.trim() !== "" ? t.handle.trim() : "") || e;
 }
-function A(e, t, { defaultPlaceholderSelector: n, defaultTokenFieldNames: i = [], defaultWaitForValueMs: a = o }) {
+function j(e, t, { defaultPlaceholderSelector: n, defaultTokenFieldNames: i = [], defaultWaitForValueMs: a = o }) {
 	let s = t || {}, c = Object.entries(s).reduce((e, [t, n]) => (g.has(t) || (e[t] = n), e), {}), l = i.map(String).filter(Boolean), u = Number(a), d = typeof s.placeholderSelector == "string" && s.placeholderSelector.trim() !== "" ? s.placeholderSelector.trim() : n, f = typeof s.errorMessage == "string" && s.errorMessage.trim() !== "" ? s.errorMessage.trim() : r("Captcha challenge must be completed."), p = typeof s.sessionKey == "string" && s.sessionKey.trim() !== "" ? s.sessionKey.trim() : null, m = typeof s.value == "string" ? s.value : null;
 	return {
-		handle: k(e, s),
+		handle: A(e, s),
 		ui: {
 			placeholderSelector: d,
 			errorMessage: f
@@ -157,27 +162,27 @@ function A(e, t, { defaultPlaceholderSelector: n, defaultTokenFieldNames: i = []
 		provider: c
 	};
 }
-function j(e, t) {
+function M(e, t) {
 	let n = e.form || e.root, r = t.ui.placeholderSelector, i = t.handle;
 	return {
 		form: e.form,
 		root: e.root,
 		placeholder: {
-			query: () => b(e.root, r),
-			getPrimary: () => S(e.root, r),
-			observe: (t, n) => O(e.root, r, t, n),
-			createContainer: (e) => C(e),
+			query: () => x(e.root, r),
+			getPrimary: () => C(e.root, r),
+			observe: (t, n) => k(e.root, r, t, n),
+			createContainer: (e) => w(e),
 			clear: (e) => {
-				e && (w(e), e.innerHTML = "");
+				e && (T(e), e.innerHTML = "");
 			}
 		},
 		errors: {
 			getDefaultMessage: () => t.ui.errorMessage,
 			show: (n, i) => {
-				T(i || S(e.root, r), n || t.ui.errorMessage, e.form || e.root);
+				E(i || C(e.root, r), n || t.ui.errorMessage, e.form || e.root);
 			},
 			clear: (t) => {
-				w(t || S(e.root, r));
+				T(t || C(e.root, r));
 			}
 		},
 		tokens: {
@@ -200,8 +205,8 @@ function j(e, t) {
 		refresh: {
 			providerHandle: i,
 			onTokensRefreshed: (t) => {
-				let n = ["formie:refresh-tokens:after", "formie:refresh-tokens:refreshed"].map((n) => y(e.root, n, (e) => {
-					let n = D(E(e), i);
+				let n = ["formie:refresh-tokens:after", "formie:refresh-tokens:refreshed"].map((n) => b(e.root, n, (e) => {
+					let n = O(D(e), i);
 					n && t(n);
 				}));
 				return () => {
@@ -212,31 +217,31 @@ function j(e, t) {
 			}
 		},
 		events: {
-			onRoot: (t, n) => y(e.root, t, n),
-			onForm: (t, n) => e.form ? y(e.form, t, n) : () => {}
+			onRoot: (t, n) => b(e.root, t, n),
+			onForm: (t, n) => e.form ? b(e.form, t, n) : () => {}
 		}
 	};
 }
 //#endregion
 //#region src/js/modules/captchas/factories.ts
-var M = t("captchas");
-function N({ id: e, defaultPlaceholderSelector: t, defaultTokenFieldNames: n = [], defaultWaitForValueMs: r = o, setup: i }) {
+var N = t("captchas");
+function P({ id: e, defaultPlaceholderSelector: t, defaultTokenFieldNames: n = [], defaultWaitForValueMs: r = o, setup: i }) {
 	return {
 		id: e,
 		kind: "captcha",
 		match: () => !0,
 		setup: async (a) => {
-			let o = A(e, a.options || {}, {
+			let o = j(e, a.options || {}, {
 				defaultPlaceholderSelector: t,
 				defaultTokenFieldNames: n,
 				defaultWaitForValueMs: r
 			});
-			M.log("Setup module.", {
+			N.log("Setup module.", {
 				moduleId: e,
 				placeholderSelector: o.ui.placeholderSelector,
 				tokenFieldNames: o.transport.tokenFieldNames
 			});
-			let s = j(a, o);
+			let s = M(a, o);
 			return i({
 				...a,
 				options: o,
@@ -245,8 +250,8 @@ function N({ id: e, defaultPlaceholderSelector: t, defaultTokenFieldNames: n = [
 		}
 	};
 }
-function P({ id: e, defaultPlaceholderSelector: t, defaultTokenFieldNames: n = [], defaultWaitForValueMs: r = o }) {
-	return N({
+function F({ id: e, defaultPlaceholderSelector: t, defaultTokenFieldNames: n = [], defaultWaitForValueMs: r = o }) {
+	return P({
 		id: e,
 		defaultPlaceholderSelector: t,
 		defaultTokenFieldNames: n,
@@ -258,7 +263,7 @@ function P({ id: e, defaultPlaceholderSelector: t, defaultTokenFieldNames: n = [
 					container: e
 				}));
 			}, l = t.placeholder.observe((t) => {
-				a = t, M.log("Passive placeholder visible.", { moduleId: e }), c(t);
+				a = t, N.log("Passive placeholder visible.", { moduleId: e }), c(t);
 			}, (e) => {
 				a === e && (a = t.placeholder.getPrimary()), e.innerHTML = "";
 			});
@@ -277,7 +282,7 @@ function P({ id: e, defaultPlaceholderSelector: t, defaultTokenFieldNames: n = [
 					let s = o ? [o] : n.transport.tokenFieldNames;
 					if (s.length !== 0 && !await h(r, s, n.transport.waitForValueMs)) {
 						let n = t.errors.getDefaultMessage();
-						t.errors.show(n, a), M.warn("Passive captcha missing token.", {
+						t.errors.show(n, a), N.warn("Passive captcha missing token.", {
 							moduleId: e,
 							tokenFieldNames: s
 						}), i.abort(n);
@@ -287,13 +292,13 @@ function P({ id: e, defaultPlaceholderSelector: t, defaultTokenFieldNames: n = [
 		}
 	});
 }
-function F(t) {
-	return N({
+function I(t) {
+	return P({
 		id: t.id,
 		defaultPlaceholderSelector: t.defaultPlaceholderSelector,
 		defaultTokenFieldNames: t.defaultTokenFieldNames,
 		setup: async (n) => {
-			let r = [], i = /* @__PURE__ */ new Map(), a = /* @__PURE__ */ new Map(), o = n.services.placeholder.getPrimary(), s = !1, c = null, l = async () => (c ||= (M.log("Loading captcha provider API.", { moduleId: t.id }), t.load(n)), c), u = async (e) => {
+			let r = [], i = /* @__PURE__ */ new Map(), a = /* @__PURE__ */ new Map(), o = n.services.placeholder.getPrimary(), s = !1, c = null, l = async () => (c ||= (N.log("Loading captcha provider API.", { moduleId: t.id }), t.load(n)), c), u = async (e) => {
 				let r = i.get(e);
 				if (n.services.errors.clear(e), !r) {
 					e.innerHTML = "";
@@ -307,7 +312,7 @@ function F(t) {
 					services: n.services,
 					options: n.options,
 					provider: n.options.provider
-				}), i.delete(e), e.innerHTML = "", n.services.tokens.clear(), M.log("Unmounted captcha placeholder widget.", { moduleId: t.id }), o === e && (o = n.services.placeholder.getPrimary());
+				}), i.delete(e), e.innerHTML = "", n.services.tokens.clear(), N.log("Unmounted captcha placeholder widget.", { moduleId: t.id }), o === e && (o = n.services.placeholder.getPrimary());
 			}, d = async (e) => {
 				if (s || i.has(e) || a.has(e)) return;
 				let r = (async () => {
@@ -321,7 +326,7 @@ function F(t) {
 						options: n.options,
 						provider: n.options.provider
 					});
-					i.set(e, c), o = e, M.log("Mounted captcha placeholder widget.", { moduleId: t.id });
+					i.set(e, c), o = e, N.log("Mounted captcha placeholder widget.", { moduleId: t.id });
 				})().finally(() => {
 					a.delete(e);
 				});
@@ -375,6 +380,7 @@ function F(t) {
 				},
 				onBeforeStage: async (e) => {
 					if (e.stage !== "screen" || e.action !== "submit") return;
+					f.reconcileImmediate();
 					let r = f.getVisible();
 					if (r.length === 0) return;
 					let a = r.find((e) => e === o) || r[0];
@@ -382,7 +388,7 @@ function F(t) {
 					let s = i.get(a);
 					if (!s) {
 						let r = n.services.errors.getDefaultMessage();
-						n.services.errors.show(r, a), M.warn("Captcha widget unavailable at screen stage.", { moduleId: t.id }), e.abort(r);
+						n.services.errors.show(r, a), N.warn("Captcha widget unavailable at screen stage.", { moduleId: t.id }), e.abort(r);
 						return;
 					}
 					let c = await l();
@@ -402,6 +408,6 @@ function F(t) {
 }
 //#endregion
 //#region src/js/modules/captchas/api.ts
-var I = F, L = P;
+var L = I, R = F;
 //#endregion
-export { s as a, l as i, L as n, c as o, u as r, I as t };
+export { s as a, l as i, R as n, c as o, u as r, L as t };

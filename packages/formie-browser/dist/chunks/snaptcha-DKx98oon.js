@@ -1,4 +1,4 @@
-import { n as e } from "./api-DMK8NSUI.js";
+import { n as e } from "./api-BUb6P-xu.js";
 //#region src/js/modules/captchas/snaptcha.ts
 var t = e({
 	id: "snaptcha",

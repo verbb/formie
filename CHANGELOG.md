@@ -8,6 +8,7 @@
 - Bound spam keyword scanning and spam log payloads so very large field values cannot stall PHP workers during spam handling. ([#2065](https://github.com/verbb/formie/issues/2065))
 - Initialise captcha placeholders immediately when multipage forms change page via tabs or Ajax **Next**, so Friendly Captcha and other providers mount on the visible page before submit. ([#1893](https://github.com/verbb/formie/issues/1893))
 - Tear down Cloudflare Turnstile widgets with `remove()` during remounts and apply CSP nonces to dynamically loaded captcha scripts where available, reducing console noise on strict CSP hosts. ([#2535](https://github.com/verbb/formie/issues/2535))
+- Wait for reCAPTCHA Enterprise readiness before executing score/policy challenges on multipage navigation. ([#2224](https://github.com/verbb/formie/issues/2224))
 
 ## 4.0.0-beta.6 - 2026-06-14
 

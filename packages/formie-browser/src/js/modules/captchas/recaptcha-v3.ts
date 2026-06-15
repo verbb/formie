@@ -4,6 +4,7 @@ import {
 import { CAPTCHA_EXECUTE_WAIT_FOR_VALUE_MS } from '#modules/captchas/constants';
 import {
     loadRecaptchaGlobal,
+    whenRecaptchaReady,
     type RecaptchaGlobal,
     type RecaptchaProviderOptions,
 } from '#modules/captchas/recaptcha-shared';
@@ -40,11 +41,13 @@ export const recaptchaV3Module = defineCaptchaModule<RecaptchaProviderOptions, R
 
         // v3 returns its token directly from `execute()`, unlike widget-based
         // captchas that signal completion later via callbacks.
-        const token = await api.execute(provider.siteKey || '', { action: provider.action || 'submit' });
+        await whenRecaptchaReady(api, async() => {
+            const token = await api.execute(provider.siteKey || '', { action: provider.action || 'submit' });
 
-        if (typeof token === 'string' && token.trim() !== '') {
-            services.tokens.write(token.trim());
-        }
+            if (typeof token === 'string' && token.trim() !== '') {
+                services.tokens.write(token.trim());
+            }
+        });
 
         // We still wait on the shared token layer so the module follows the
         // same transport contract as every other captcha provider.

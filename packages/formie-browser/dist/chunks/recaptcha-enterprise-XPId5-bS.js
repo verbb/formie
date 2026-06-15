@@ -1,11 +1,11 @@
-import { t as e } from "./api-DMK8NSUI.js";
-import { t } from "./recaptcha-shared-B4zAescW.js";
+import { t as e } from "./api-BUb6P-xu.js";
+import { n as t, t as n } from "./recaptcha-shared-CLYJvojk.js";
 //#region src/js/modules/captchas/recaptcha-enterprise.ts
-var n = e({
+var r = e({
 	id: "recaptcha-enterprise",
 	defaultPlaceholderSelector: "[data-recaptcha-placeholder]",
 	defaultTokenFieldNames: ["g-recaptcha-response"],
-	load: ({ options: e }) => t(e.provider, !0, (e.provider.enterpriseType === "score" || e.provider.enterpriseType === "policy") && e.provider.siteKey || void 0),
+	load: ({ options: e }) => n(e.provider, !0, (e.provider.enterpriseType === "score" || e.provider.enterpriseType === "policy") && e.provider.siteKey || void 0),
 	mount: ({ api: e, container: t, provider: n, services: r }) => {
 		let i = e.enterprise || e;
 		return new Promise((e) => {
@@ -33,23 +33,22 @@ var n = e({
 			});
 		});
 	},
-	screen: async ({ api: e, widget: t, provider: n, placeholder: r, services: i, stageCtx: a }) => {
-		let o = e.enterprise || e;
-		if (n.enterpriseType === "checkbox") {
-			if (i.tokens.has()) return;
-			let e = i.errors.getDefaultMessage();
-			i.errors.show(e, r), a.abort(e);
+	screen: async ({ api: e, widget: n, provider: r, placeholder: i, services: a, stageCtx: o }) => {
+		let s = e.enterprise || e;
+		if (r.enterpriseType === "checkbox") {
+			if (a.tokens.has()) return;
+			let e = a.errors.getDefaultMessage();
+			a.errors.show(e, i), o.abort(e);
 			return;
 		}
-		if (!i.tokens.has()) {
-			if (n.enterpriseType === "score" || n.enterpriseType === "policy") {
-				let e = await o.execute(n.siteKey || "", { action: n.action || "submit" });
-				typeof e == "string" && e.trim() !== "" && i.tokens.write(e.trim());
-			} else o.execute(t);
-			if (!await i.tokens.wait(12e4)) {
-				let e = i.errors.getDefaultMessage();
-				i.errors.show(e, r), a.abort(e);
-			}
+		if (!a.tokens.has() && (await t(e, async () => {
+			if (r.enterpriseType === "score" || r.enterpriseType === "policy") {
+				let e = await s.execute(r.siteKey || "", { action: r.action || "submit" });
+				typeof e == "string" && e.trim() !== "" && a.tokens.write(e.trim());
+			} else s.execute(n);
+		}), !await a.tokens.wait(12e4))) {
+			let e = a.errors.getDefaultMessage();
+			a.errors.show(e, i), o.abort(e);
 		}
 	},
 	reset: ({ api: e, widget: t, provider: n, services: r }) => {
@@ -62,4 +61,4 @@ var n = e({
 	}
 });
 //#endregion
-export { n as recaptchaEnterpriseModule };
+export { r as recaptchaEnterpriseModule };

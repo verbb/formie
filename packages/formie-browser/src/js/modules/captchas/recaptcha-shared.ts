@@ -67,3 +67,17 @@ export async function loadRecaptchaGlobal(
         timeoutMs: CAPTCHA_PROVIDER_LOAD_TIMEOUT_MS,
     });
 }
+
+export function whenRecaptchaReady(api: RecaptchaGlobal, callback: () => void | Promise<void>): Promise<void> {
+    const readyApi = api.enterprise || api;
+
+    return new Promise((resolve, reject) => {
+        try {
+            readyApi.ready(() => {
+                Promise.resolve(callback()).then(resolve).catch(reject);
+            });
+        } catch (error) {
+            reject(error);
+        }
+    });
+}

@@ -4,6 +4,9 @@
 
 ### Fixed
 - Skip validation for fields disabled by conditional logic, and disable conditionally hidden submit/next buttons so Enter no longer triggers hidden actions. ([#2727](https://github.com/verbb/formie/issues/2727), [#1136](https://github.com/verbb/formie/issues/1136), [Discussion #1628](https://github.com/verbb/formie/discussions/1628))
+- Initialise captcha placeholders immediately when multipage forms change page via tabs or Ajax **Next**, so providers mount on the visible page before submit. ([#1893](https://github.com/verbb/formie/issues/1893))
+- Tear down Cloudflare Turnstile widgets with `remove()` during remounts and apply CSP nonces to dynamically loaded captcha scripts where available. ([#2535](https://github.com/verbb/formie/issues/2535))
+- Wait for reCAPTCHA Enterprise readiness before executing score/policy challenges on multipage navigation. ([#2224](https://github.com/verbb/formie/issues/2224))
 
 ## 1.0.6 - 2026-06-14
 

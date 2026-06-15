@@ -4,6 +4,7 @@ import {
 import { CAPTCHA_EXECUTE_WAIT_FOR_VALUE_MS } from '#modules/captchas/constants';
 import {
     loadRecaptchaGlobal,
+    whenRecaptchaReady,
     type RecaptchaGlobal,
     type RecaptchaProviderOptions,
 } from '#modules/captchas/recaptcha-shared';
@@ -94,19 +95,21 @@ export const recaptchaEnterpriseModule = defineCaptchaModule<RecaptchaEnterprise
             return;
         }
 
-        if (provider.enterpriseType === 'score' || provider.enterpriseType === 'policy') {
-            // Score and policy-based keys execute by site key and can resolve
-            // directly to a token. We write that token into the shared transport
-            // layer so the backend can validate it in the usual way.
-            const token = await enterpriseApi.execute(provider.siteKey || '', { action: provider.action || 'submit' });
+        await whenRecaptchaReady(api, async() => {
+            if (provider.enterpriseType === 'score' || provider.enterpriseType === 'policy') {
+                // Score and policy-based keys execute by site key and can resolve
+                // directly to a token. We write that token into the shared transport
+                // layer so the backend can validate it in the usual way.
+                const token = await enterpriseApi.execute(provider.siteKey || '', { action: provider.action || 'submit' });
 
-            if (typeof token === 'string' && token.trim() !== '') {
-                services.tokens.write(token.trim());
+                if (typeof token === 'string' && token.trim() !== '') {
+                    services.tokens.write(token.trim());
+                }
+            } else {
+                // Fallback branch for any future Enterprise widget-like mode.
+                enterpriseApi.execute(widget);
             }
-        } else {
-            // Fallback branch for any future Enterprise widget-like mode.
-            enterpriseApi.execute(widget);
-        }
+        });
 
         const hasToken = await services.tokens.wait(CAPTCHA_EXECUTE_WAIT_FOR_VALUE_MS);
 

@@ -1,5 +1,5 @@
-import { a as e, r as t, t as n } from "./api-DMK8NSUI.js";
-import { n as r, t as i } from "./scripts-6CYSUGKQ.js";
+import { a as e, r as t, t as n } from "./api-BUb6P-xu.js";
+import { n as r, t as i } from "./scripts-CbQ7agX3.js";
 //#region src/js/modules/captchas/hcaptcha.ts
 async function a(n) {
 	let a = typeof n.language == "string" && n.language.trim() !== "" ? n.language.trim() : "en", { async: o, defer: s } = t(n.loadingMethod), c = "FORMIE_HCAPTCHA_ONLOAD", l = window, u = l.hcaptcha;

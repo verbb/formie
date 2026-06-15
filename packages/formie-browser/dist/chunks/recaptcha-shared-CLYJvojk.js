@@ -1,5 +1,5 @@
-import { a as e, r as t } from "./api-DMK8NSUI.js";
-import { r as n } from "./scripts-6CYSUGKQ.js";
+import { a as e, r as t } from "./api-BUb6P-xu.js";
+import { r as n } from "./scripts-CbQ7agX3.js";
 //#region src/js/modules/captchas/recaptcha-shared.ts
 async function r(r, i = !1, a) {
 	let o = typeof r.language == "string" && r.language.trim() !== "" ? r.language.trim() : "en", { async: s, defer: c } = t(r.loadingMethod), l = i ? "https://www.google.com/recaptcha/enterprise.js" : "https://www.recaptcha.net/recaptcha/api.js", u = typeof a == "string" && a.trim() !== "" ? a.trim() : "explicit", d = new URL(l);
@@ -11,5 +11,17 @@ async function r(r, i = !1, a) {
 		timeoutMs: e
 	});
 }
+function i(e, t) {
+	let n = e.enterprise || e;
+	return new Promise((e, r) => {
+		try {
+			n.ready(() => {
+				Promise.resolve(t()).then(e).catch(r);
+			});
+		} catch (e) {
+			r(e);
+		}
+	});
+}
 //#endregion
-export { r as t };
+export { i as n, r as t };

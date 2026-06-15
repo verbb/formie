@@ -1,4 +1,4 @@
-import { t as e } from "./api-DMK8NSUI.js";
+import { t as e } from "./api-BUb6P-xu.js";
 //#region src/js/modules/captchas/friendly-captcha-v2.ts
 var t = e({
 	id: "friendly-captcha-v2",

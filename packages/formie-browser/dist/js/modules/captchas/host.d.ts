@@ -3,6 +3,7 @@ type Cleanup = () => void;
 type ObserveVisiblePlaceholdersResult = {
     cleanup: Cleanup;
     reconcile: () => void;
+    reconcileImmediate: () => void;
     getVisible: () => HTMLElement[];
 };
 export type CaptchaRefreshEntry = {

@@ -1,5 +1,5 @@
-import { t as e } from "./api-DMK8NSUI.js";
-import { t } from "./recaptcha-shared-B4zAescW.js";
+import { t as e } from "./api-BUb6P-xu.js";
+import { t } from "./recaptcha-shared-CLYJvojk.js";
 //#region src/js/modules/captchas/recaptcha-v2-invisible.ts
 async function n(e, t, n = 1e3) {
 	let r = Date.now() + n;

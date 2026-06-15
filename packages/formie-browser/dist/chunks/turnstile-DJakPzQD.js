@@ -1,5 +1,5 @@
-import { a as e, i as t, o as n, r, t as i } from "./api-DMK8NSUI.js";
-import { r as a } from "./scripts-6CYSUGKQ.js";
+import { a as e, i as t, o as n, r, t as i } from "./api-BUb6P-xu.js";
+import { r as a } from "./scripts-CbQ7agX3.js";
 //#region src/js/modules/captchas/turnstile.ts
 function o(e) {
 	let r = e.appearance || "always";
@@ -51,7 +51,7 @@ var c = i({
 		});
 	},
 	unmount: ({ api: e, widget: t, services: n }) => {
-		e.reset(t), n.tokens.clear();
+		typeof e.remove == "function" ? e.remove(t) : e.reset(t), n.tokens.clear();
 	}
 });
 //#endregion
