@@ -165,7 +165,7 @@ abstract class Captcha extends Integration
 
     protected function getMissingSettingsWarningSchema(string $providerName, string $settingsTab): array
     {
-        $settingsUrl = UrlHelper::cpUrl("formie/settings/captchas#tab-{$settingsTab}");
+        $settingsUrl = UrlHelper::cpUrl("formie/settings/spam-protection#tab-{$settingsTab}");
 
         return [
             '$el' => 'p',

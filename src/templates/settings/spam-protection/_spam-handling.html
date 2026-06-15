@@ -1,0 +1,77 @@
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+<div class="fui-spam-protection-section">
+    <h3>{{ 'Spam Handling' | t('formie') }}</h3>
+
+    {% namespace 'settings' %}
+        {{ forms.lightswitchField({
+            first: true,
+            label: 'Save Spam Submissions' | t('formie'),
+            instructions: 'Whether to save spam submissions, so they can be viewed in the control panel. Otherwise, spam submissions will be discarded.' | t('formie'),
+            name: 'saveSpam',
+            on: settings.saveSpam,
+            toggle: 'save-spam',
+            warning: macros.configWarning('saveSpam', 'formie'),
+        }) }}
+
+        <div id="save-spam" class="field {{ not settings.saveSpam ? 'hidden' }}">
+            {{ forms.textField({
+                label: 'Spam Submission Limit' | t('formie'),
+                instructions: 'Set the maximum number of spam submissions to maintain. Older spam submissions will be deleted.' | t('formie'),
+                name: 'spamLimit',
+                value: settings.spamLimit,
+                warning: macros.configWarning('spamLimit', 'formie'),
+            }) }}
+
+            {{ forms.lightswitchField({
+                label: 'Send Email Notifications' | t('formie'),
+                instructions: 'Whether submissions marked as spam should still trigger email notifications.' | t('formie'),
+                name: 'spamEmailNotifications',
+                on: settings.spamEmailNotifications,
+                warning: macros.configWarning('spamEmailNotifications', 'formie'),
+            }) }}
+        </div>
+
+        <hr>
+
+        {{ forms.selectField({
+            label: 'Spam Submission Behavior' | t('formie'),
+            instructions: 'When a submission is marked as spam, select what behaviour to perform for users. It’s highly recommended to act as if the submission was successful to prevent parties from learning how to get around the spam protection.' | t('formie'),
+            name: 'spamBehaviour',
+            value: settings.spamBehaviour,
+            options: [
+                { label: 'Show success' | t('formie'), value: 'showSuccess' },
+                { label: 'Show error message' | t('formie'), value: 'showMessage' },
+            ],
+            toggle: true,
+            targetPrefix: 'submit-behaviour-',
+            warning: macros.configWarning('spamBehaviour', 'formie'),
+        }) }}
+
+        <div id="submit-behaviour-showMessage" class="field {{ settings.spamBehaviour != 'showMessage' ? 'hidden' }}">
+            {{ forms.textareaField({
+                label: 'Submission Message' | t('formie'),
+                instructions: 'This text will be shown as an error after submission.' | t('formie'),
+                name: 'spamBehaviourMessage',
+                value: settings.spamBehaviourMessage,
+                warning: macros.configWarning('spamBehaviourMessage', 'formie'),
+            }) }}
+        </div>
+    {% endnamespace %}
+
+    <hr>
+
+    <h3>{{ 'Content Rules' | t('formie') }}</h3>
+
+    {% namespace 'settings' %}
+        {{ forms.textareaField({
+            label: 'Spam Keywords' | t('formie'),
+            instructions: 'If a submission‘s content matches the below rules, it will be marked as spam. Refer to the [Spam Keyword Definition](https://verbb.io/craft-plugins/formie/docs/feature-tour/spam-protection) docs' | t('formie'),
+            name: 'spamKeywords',
+            rows: 10,
+            value: settings.spamKeywords,
+            warning: macros.configWarning('spamKeywords', 'formie'),
+        }) }}
+    {% endnamespace %}
+</div>

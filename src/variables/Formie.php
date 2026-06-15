@@ -232,22 +232,17 @@ class Formie
                 'statuses' => ['title' => Craft::t('formie', 'Statuses')],
                 'submissions' => ['title' => Craft::t('formie', 'Submissions')],
                 'integrations-settings' => ['title' => Craft::t('formie', 'Integrations')],
-                'spam' => ['title' => Craft::t('formie', 'Spam')],
+                'spam-protection' => ['title' => Craft::t('formie', 'Spam Protection')],
 
                 'appearance-heading' => ['heading' => Craft::t('formie', 'Appearance')],
                 'form-templates' => ['title' => Craft::t('formie', 'Form Templates')],
                 'email-templates' => ['title' => Craft::t('formie', 'Email Templates')],
                 'pdf-templates' => ['title' => Craft::t('formie', 'PDF Templates')],
-
-                'integrations-heading' => ['heading' => Craft::t('formie', 'Integrations')],
-                'captchas' => ['title' => Craft::t('formie', 'Captchas')],
             ];
         } else {
             $navItems = [
                 'import-export' => ['title' => Craft::t('formie', 'Import/Export')],
-
-                'integrations-heading' => ['heading' => Craft::t('formie', 'Integrations')],
-                'captchas' => ['title' => Craft::t('formie', 'Captchas')],
+                'spam-protection' => ['title' => Craft::t('formie', 'Spam Protection')],
             ];
         }
 

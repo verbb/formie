@@ -16,8 +16,12 @@ it('builds stable settings page permission keys', function (): void {
 it('resolves settings pages from redirect urls', function (): void {
     $permissions = Formie::$plugin->getPermissions();
 
-    expect($permissions->resolveSettingsPageFromUrl('/admin/formie/settings/spam'))
+    expect($permissions->resolveSettingsPageFromUrl('/admin/formie/settings/spam-protection'))
+        ->toBe('spam-protection')
+        ->and($permissions->resolveSettingsPageFromUrl('/admin/formie/settings/spam'))
         ->toBe('spam')
+        ->and($permissions->normalizeSettingsPage('spam'))->toBe('spam-protection')
+        ->and($permissions->normalizeSettingsPage('captchas'))->toBe('spam-protection')
         ->and($permissions->resolveSettingsPageFromUrl('/admin/formie/settings/migrate/freeform5'))
         ->toBe('migrate/freeform5')
         ->and($permissions->resolveSettingsPageFromUrl('/admin/formie/settings/fields'))

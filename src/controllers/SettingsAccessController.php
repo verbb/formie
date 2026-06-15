@@ -60,11 +60,21 @@ class SettingsAccessController extends Controller
             return self::SAVE_ACTION_PAGES[$section];
         }
 
+        if ($section === 'save-captchas') {
+            return 'spam-protection';
+        }
+
         if ($section === 'save-settings') {
             $permissions = Formie::$plugin->getPermissions();
             $redirect = (string)$request->getParam('redirect', '');
 
-            return $permissions->resolveSettingsPageFromUrl($redirect) ?? 'general';
+            return $permissions->normalizeSettingsPage(
+                $permissions->resolveSettingsPageFromUrl($redirect) ?? 'general',
+            );
+        }
+
+        if (in_array($section, ['spam', 'captchas'], true)) {
+            return 'spam-protection';
         }
 
         if ($section === 'migrate') {

@@ -111,7 +111,24 @@ class Permissions extends Component
             return true;
         }
 
+        $page = $this->normalizeSettingsPage($page);
+
+        if ($page === 'spam-protection') {
+            return $user->can($this->settingsPagePermissionKey('spam-protection'))
+                || $user->can($this->settingsPagePermissionKey('spam'))
+                || $user->can($this->settingsPagePermissionKey('captchas'));
+        }
+
         return $user->can($this->settingsPagePermissionKey($page));
+    }
+
+    public function normalizeSettingsPage(string $page): string
+    {
+        if (in_array($page, ['spam', 'captchas'], true)) {
+            return 'spam-protection';
+        }
+
+        return $page;
     }
 
     public function canAccessAnySettings(?User $user): bool
@@ -166,11 +183,10 @@ class Permissions extends Component
             'statuses' => Craft::t('formie', 'Statuses'),
             'submissions' => Craft::t('formie', 'Submissions settings'),
             'integrations-settings' => Craft::t('formie', 'Integrations settings'),
-            'spam' => Craft::t('formie', 'Spam protection'),
+            'spam-protection' => Craft::t('formie', 'Spam protection'),
             'form-templates' => Craft::t('formie', 'Form templates'),
             'email-templates' => Craft::t('formie', 'Email templates'),
             'pdf-templates' => Craft::t('formie', 'PDF templates'),
-            'captchas' => Craft::t('formie', 'Captchas'),
             'support' => Craft::t('formie', 'Get support'),
             'migrate/freeform4' => Craft::t('formie', 'Migrate Freeform 4'),
             'migrate/freeform5' => Craft::t('formie', 'Migrate Freeform 5'),

@@ -37,9 +37,7 @@ class IntegrationSettingsController extends Controller
 
     public function actionCaptchaIndex(): Response
     {
-        $groupedIntegrations = Formie::$plugin->getIntegrations()->getAllGroupedCaptchas();
-
-        return $this->renderTemplate('formie/settings/captchas', compact('groupedIntegrations'));
+        return $this->redirect('formie/settings/spam-protection#captchas');
     }
 
     public function actionSaveCaptchas(): ?Response
@@ -298,10 +296,14 @@ class IntegrationSettingsController extends Controller
             $section = $request->getSegment(3);
 
             if ($section === 'save-captchas') {
-                $section = 'captchas';
+                $section = 'spam-protection';
             }
 
-            if (!$permissions->canAccessSettingsPage($user, $section ?? 'captchas')) {
+            if (in_array($section, ['spam', 'captchas'], true)) {
+                $section = 'spam-protection';
+            }
+
+            if (!$permissions->canAccessSettingsPage($user, $section ?? 'spam-protection')) {
                 throw new ForbiddenHttpException('User is not permitted to perform this action');
             }
 
@@ -320,6 +322,10 @@ class IntegrationSettingsController extends Controller
             'automations',
             'miscellaneous',
         ];
+
+        if (in_array($section, ['spam', 'captchas'], true)) {
+            $section = 'spam-protection';
+        }
 
         if (in_array($section, $legacyIntegrationSections, true)) {
             $this->requirePermission(Permissions::PERM_ACCESS_INTEGRATIONS);

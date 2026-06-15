@@ -1,0 +1,34 @@
+{% extends 'formie/_layouts/settings' %}
+
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{% set selectedTab = 'spam-protection' %}
+{% set bodyClass = (bodyClass ?? '') ~ ' formie-settings-spam-protection' %}
+
+{% if groupedIntegrations %}
+    {% set bodyClass = bodyClass ~ ' formie-settings-integrations' %}
+{% endif %}
+
+{% block content %}
+
+<h2>{{ 'Spam Protection' | t('formie') }}</h2>
+<p>{{ 'Configure spam handling, keyword rules, and captchas.' | t('formie') }}</p>
+
+<form action="" method="post" accept-charset="UTF-8" data-saveshortcut>
+    <input type="hidden" name="action" value="formie/settings/save-settings">
+    {{ redirectInput('formie/settings/spam-protection') }}
+    {{ csrfInput() }}
+
+    {% include 'formie/settings/spam-protection/_spam-handling' with {
+        settings: settings,
+    } only %}
+
+    {% include 'formie/settings/spam-protection/_captcha-providers' with {
+        groupedIntegrations: groupedIntegrations,
+    } only %}
+
+    <input type="submit" class="btn submit" value="{{ 'Save' | t('formie') }}">
+</form>
+
+{% endblock %}

@@ -17,6 +17,7 @@
 - Auto-grant creators scoped group (or dedicated per-form) manage permissions when they can create forms but lack broader access.
 - Filter CP form and submission element sources and indexes to forms the current user can view or manage.
 - Filter the settings sidebar and default settings landing page to the first settings page a user can access.
+- Unify **Settings → Spam Protection** as the single CP page for spam handling, keyword rules, and captcha provider credentials. Legacy `spam` and `captchas` routes redirect to the new page.
 
 ### Fixed
 - Skip client-side validation for fields disabled by conditional logic, and disable conditionally hidden submit buttons so Enter no longer triggers hidden submit/next actions. ([#2727](https://github.com/verbb/formie/issues/2727), [#1136](https://github.com/verbb/formie/issues/1136), [Discussion #1628](https://github.com/verbb/formie/discussions/1628))
