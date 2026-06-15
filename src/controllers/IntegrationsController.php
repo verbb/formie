@@ -2,6 +2,7 @@
 namespace verbb\formie\controllers;
 
 use verbb\formie\Formie;
+use verbb\formie\services\Permissions;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\IntegrationInterface;
 use verbb\formie\elements\Form;
@@ -42,7 +43,7 @@ class IntegrationsController extends Controller
         }
 
         if (in_array($action->id, ['save-integration', 'reorder-integrations', 'delete-integration', 'check-connection', 'connect', 'disconnect'], true)) {
-            $this->requirePermission('formie-accessSettings');
+            $this->requirePermission(Permissions::PERM_ACCESS_INTEGRATIONS);
         }
 
         return parent::beforeAction($action);

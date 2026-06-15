@@ -23,6 +23,20 @@
             warning: macros.configWarning('enableUnloadWarning', 'formie'),
         }) }}
 
+        {{ forms.selectField({
+            label: 'Field Error Announcement' | t('formie'),
+            instructions: 'Controls how front-end validation and submit errors are announced to screen readers. Live validation while typing always uses polite announcements. Submit-time errors use this setting.' | t('formie'),
+            name: 'errorAriaLive',
+            value: settings.errorAriaLive,
+            options: [
+                { label: 'Polite (default)' | t('formie'), value: constant('verbb\\formie\\models\\Settings::ERROR_ARIA_LIVE_POLITE') },
+                { label: 'Assertive (interrupt screen readers)' | t('formie'), value: constant('verbb\\formie\\models\\Settings::ERROR_ARIA_LIVE_ASSERTIVE') },
+                { label: 'Off (visual only)' | t('formie'), value: constant('verbb\\formie\\models\\Settings::ERROR_ARIA_LIVE_OFF') },
+            ],
+            errors: settings.getErrors('errorAriaLive'),
+            warning: macros.configWarning('errorAriaLive', 'formie'),
+        }) }}
+
         {{ forms.lightswitchField({
             label: 'Enable Back Submission' | t('formie'),
             instructions: 'Whether clicking the "Back" button on front-end forms should submit the current page content. Disabling this will show an "unload" warning and discard any un-saved content.' | t('formie'),

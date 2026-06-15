@@ -27,6 +27,10 @@ class Settings extends Model
 
     public const PLAIN_TEXT_HTML_SANITIZATION_MODE_PRESERVE = 'preserve';
     public const PLAIN_TEXT_HTML_SANITIZATION_MODE_SANITIZE = 'sanitize';
+
+    public const ERROR_ARIA_LIVE_POLITE = 'polite';
+    public const ERROR_ARIA_LIVE_ASSERTIVE = 'assertive';
+    public const ERROR_ARIA_LIVE_OFF = 'off';
     
     public const SUBMISSION_SIDEBAR_FORM_ORDER_DATE_CREATED_DESC = 'dateCreatedDesc';
     public const SUBMISSION_SIDEBAR_FORM_ORDER_DATE_CREATED_ASC = 'dateCreatedAsc';
@@ -54,6 +58,7 @@ class Settings extends Model
     public array $notificationDefaults = [];
     public array $integrationDefaults = [];
     public bool $enableUnloadWarning = true;
+    public string $errorAriaLive = self::ERROR_ARIA_LIVE_POLITE;
     public bool $enableBackSubmission = true;
     public int $ajaxTimeout = 10;
     public bool $filterIntegrationMapping = true;
@@ -397,6 +402,11 @@ class Settings extends Model
             self::SUBMISSION_SIDEBAR_FORM_ORDER_HANDLE_DESC,
         ]];
         $rules[] = [['defaultCpSubmissionFieldConditions'], 'in', 'range' => CpSubmissionFieldConditions::values()];
+        $rules[] = [['errorAriaLive'], 'in', 'range' => [
+            self::ERROR_ARIA_LIVE_POLITE,
+            self::ERROR_ARIA_LIVE_ASSERTIVE,
+            self::ERROR_ARIA_LIVE_OFF,
+        ]];
 
         return $rules;
     }

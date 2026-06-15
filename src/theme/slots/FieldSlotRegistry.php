@@ -4,6 +4,7 @@ namespace verbb\formie\theme\slots;
 use verbb\formie\base\FieldInterface;
 use verbb\formie\Formie;
 use verbb\formie\helpers\Html;
+use verbb\formie\models\Settings;
 use verbb\formie\models\SlotTag;
 use verbb\formie\theme\context\RenderContext;
 
@@ -190,11 +191,19 @@ class FieldSlotRegistry extends Component
 
     private function _fieldErrors(RenderContext $context): SlotTag
     {
+        $errorAriaLive = Formie::$plugin->getSettings()->errorAriaLive;
+        $core = [
+            'id' => $context->errorsId(),
+            'data-formie-field-errors' => true,
+        ];
+
+        if ($errorAriaLive !== Settings::ERROR_ARIA_LIVE_OFF) {
+            $core['aria-live'] = $errorAriaLive;
+            $core['aria-atomic'] = true;
+        }
+
         return SlotTag::make('div')
-            ->core([
-                'id' => $context->errorsId(),
-                'data-formie-field-errors' => true,
-            ])
+            ->core($core)
             ->theme([
                 'class' => [
                     'formie-field-errors',

@@ -61,6 +61,7 @@ return [
             'captchas' => [],
         ],
         'enableUnloadWarning' => true,
+        'errorAriaLive' => 'polite',
         'enableBackSubmission' => true,
         'ajaxTimeout' => 10,
         'filterIntegrationMapping' => true,
@@ -148,6 +149,7 @@ return [
 - `notificationDefaults` sets defaults applied when a new email notification is created. Leave a value empty or `null` to inherit Formie’s built-in behaviour.
 - `integrationDefaults` controls default captcha integration states for new forms and stencils. Use `captchas[handle]` with `null` to inherit each integration’s global enabled state, or `true`/`false` to force enable or disable.
 - `enableUnloadWarning` shows an unload warning when a user changes a front-end form and tries to leave without submitting.
+- `errorAriaLive` controls how front-end validation and submit errors are announced to screen readers. Use `polite` (default), `assertive`, or `off` for visual-only errors. Live validation while typing always uses polite announcements; submit-time errors use this setting.
 - `enableBackSubmission` submits the current page content when a user clicks the Back button on a multi-page form.
 - `ajaxTimeout` sets the timeout in seconds for Ajax requests made by Formie’s front-end JavaScript.
 - `filterIntegrationMapping` filters field-mapping options shown in integrations to fields that are usually suitable for the target setting.

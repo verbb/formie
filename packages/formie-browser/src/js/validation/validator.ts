@@ -1,6 +1,7 @@
 import { ensureFieldErrorContainer } from '#core/field-error-container';
 import { syncPageTabErrors } from '#core/page-tab-errors';
 import rules from '#validation/rules';
+import { applyErrorAriaLive, resolveValidationErrorAriaLive } from '#core/error-aria-live';
 import type {
     ValidationConfig,
     ValidationContext,
@@ -101,6 +102,7 @@ export class FormieValidator {
         this.onInput = this.inputHandler.bind(this);
         this.config = {
             live: false,
+            errorAriaLive: 'polite',
             errorMessage: '',
             fieldContainerErrorClass: [],
             inputErrorClass: [],
@@ -336,8 +338,10 @@ export class FormieValidator {
         const handle = fieldContainer.getAttribute('data-formie-field-handle') || 'field';
         const errorId = `${handle}-error`;
         errorMessages.id = errorMessages.id || `${handle}-errors`;
-        errorMessages.setAttribute('aria-live', 'polite');
-        errorMessages.setAttribute('aria-atomic', 'true');
+        applyErrorAriaLive(
+            errorMessages,
+            resolveValidationErrorAriaLive(this.config.errorAriaLive, this.submitted),
+        );
 
         const errorElement = document.createElement('div');
         errorElement.setAttribute('data-formie-field-error', 'true');

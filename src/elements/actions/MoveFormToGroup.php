@@ -90,8 +90,8 @@ JS, [static::class]);
         }
 
         $elementsService = Craft::$app->getElements();
+        $permissions = Formie::$plugin->getPermissions();
         $currentUser = Craft::$app->getUser()->getIdentity();
-        $canManageAll = $currentUser->can('formie-manageForms');
 
         /** @var Form[] $elements */
         $elements = $query->all();
@@ -99,7 +99,7 @@ JS, [static::class]);
         $failCount = 0;
 
         foreach ($elements as $element) {
-            if (!$canManageAll && !$currentUser->can('formie-manageForms:' . $element->uid)) {
+            if (!$permissions->canManageForm($currentUser, $element)) {
                 $failCount++;
                 continue;
             }

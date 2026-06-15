@@ -245,15 +245,15 @@ class Forms extends Component
 
     public function getFormBuilderVariables(Form $form): array
     {
-        $user = Craft::$app->getUser();
-        $suffix = ':' . $form->uid;
+        $user = Craft::$app->getUser()->getIdentity();
+        $permissions = Formie::$plugin->getPermissions();
         $notifications = Formie::$plugin->getNotifications()->getFormNotifications($form);
         $notificationsConfig = Formie::$plugin->getNotifications()->getNotificationsConfig($notifications);
 
         $viewSubmissionsUrl = null;
         $submissions = Submission::find()->formId($form->id)->limit(1)->exists();
 
-        if ($submissions && (Craft::$app->getUser()->checkPermission('formie-viewSubmissions') || Craft::$app->getUser()->checkPermission('formie-viewSubmissions:' . $form->uid))) {
+        if ($submissions && $permissions->canViewSubmissions($user, $form)) {
             $viewSubmissionsUrl = UrlHelper::cpUrl('formie/submissions/' . $form->handle, [
                 'source' => 'form:' . $form->id,
             ]);
@@ -270,7 +270,7 @@ class Forms extends Component
             ],
         ];
 
-        if ($user->checkPermission('formie-showFormAppearance') || $user->checkPermission("formie-showFormAppearance{$suffix}")) {
+        if ($permissions->canShowFormBuilderTab($user, $form, 'formie-showFormAppearance')) {
             $tabs[] = [
                 'handle' => 'appearance',
                 'label' => Craft::t('formie', 'Appearance'),
@@ -278,7 +278,7 @@ class Forms extends Component
             ];
         }
 
-        if ($user->checkPermission('formie-showFormBehavior') || $user->checkPermission("formie-showFormBehavior{$suffix}")) {
+        if ($permissions->canShowFormBuilderTab($user, $form, 'formie-showFormBehavior')) {
             $tabs[] = [
                 'handle' => 'behaviour',
                 'label' => Craft::t('formie', 'Behaviour'),
@@ -286,7 +286,7 @@ class Forms extends Component
             ];
         }
 
-        if ($user->checkPermission('formie-showNotifications') || $user->checkPermission("formie-showNotifications{$suffix}")) {
+        if ($permissions->canShowFormBuilderTab($user, $form, 'formie-showNotifications')) {
             $tabs[] = [
                 'handle' => 'notifications',
                 'label' => Craft::t('formie', 'Email Notifications'),
@@ -294,7 +294,7 @@ class Forms extends Component
             ];
         }
 
-        if ($user->checkPermission('formie-showFormIntegrations') || $user->checkPermission("formie-showFormIntegrations{$suffix}")) {
+        if ($permissions->canShowFormBuilderTab($user, $form, 'formie-showFormIntegrations')) {
             $tabs[] = [
                 'handle' => 'integrations',
                 'label' => Craft::t('formie', 'Integrations'),
@@ -305,7 +305,7 @@ class Forms extends Component
             ];
         }
 
-        if ($user->checkPermission('formie-showFormUsage') || $user->checkPermission("formie-showFormUsage{$suffix}")) {
+        if ($permissions->canShowFormBuilderTab($user, $form, 'formie-showFormUsage')) {
             $tabs[] = [
                 'handle' => 'usage',
                 'label' => Craft::t('formie', 'Usage'),
@@ -313,7 +313,7 @@ class Forms extends Component
             ];
         }
 
-        if ($user->checkPermission('formie-showFormSettings') || $user->checkPermission("formie-showFormSettings{$suffix}")) {
+        if ($permissions->canShowFormBuilderTab($user, $form, 'formie-showFormSettings')) {
             $tabs[] = [
                 'handle' => 'settings',
                 'label' => Craft::t('formie', 'Settings'),

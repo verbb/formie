@@ -46,6 +46,7 @@ use verbb\formie\options\OptionSourceFieldInterface;
 use verbb\formie\records\Form as FormRecord;
 use verbb\formie\client\bootstrap\models\FormDefinition;
 use verbb\formie\client\models\LoadContext;
+use verbb\formie\services\Permissions;
 use verbb\formie\services\SubmissionDrafts;
 use verbb\formie\services\Statuses;
 use verbb\formie\state\ResumeToken;
@@ -154,21 +155,39 @@ class Form extends Element implements FormInterface
 
     public static function defineSources(string $context = null): array
     {
-        $sources = [
-            [
+        $currentUser = Craft::$app->getUser()->getIdentity();
+        $permissions = Formie::$plugin->getPermissions();
+        $canAccessAllForms = $permissions->hasGlobalFormAccess($currentUser);
+
+        $sources = [];
+
+        if ($canAccessAllForms) {
+            $sources[] = [
                 'key' => '*',
                 'label' => Craft::t('formie', 'All forms'),
                 'defaultSort' => ['title', 'desc'],
-            ],
-        ];
+            ];
+        }
 
         $groups = Formie::$plugin->getFormGroups()->getAllGroups();
+        $visibleGroups = [];
 
-        if ($groups) {
+        foreach ($groups as $group) {
+            if ($canAccessAllForms
+                || ($currentUser && (
+                    $currentUser->can($permissions->scopedPermission(Permissions::PERM_MANAGE_FORMS, $permissions->groupScope($group->handle)))
+                    || $currentUser->can($permissions->scopedPermission(Permissions::PERM_VIEW_FORMS, $permissions->groupScope($group->handle)))
+                ))
+            ) {
+                $visibleGroups[] = $group;
+            }
+        }
+
+        if ($visibleGroups) {
             $sources[] = ['heading' => Craft::t('formie', 'Groups')];
         }
 
-        foreach ($groups as $group) {
+        foreach ($visibleGroups as $group) {
             $sources[] = [
                 'key' => "group:{$group->uid}",
                 'label' => $group->name,
@@ -180,13 +199,31 @@ class Form extends Element implements FormInterface
             ];
         }
 
-        if ($groups) {
+        $canAccessUngrouped = $canAccessAllForms || ($currentUser && (
+            $currentUser->can($permissions->scopedPermission(Permissions::PERM_MANAGE_FORMS, $permissions->groupScope(Permissions::GROUP_UNGROUPED)))
+            || $currentUser->can($permissions->scopedPermission(Permissions::PERM_VIEW_FORMS, $permissions->groupScope(Permissions::GROUP_UNGROUPED)))
+        ));
+
+        if ($canAccessUngrouped && $visibleGroups) {
             $sources[] = [
                 'key' => 'ungrouped',
                 'label' => Craft::t('formie', 'Ungrouped'),
                 'data' => ['handle' => 'ungrouped'],
                 'criteria' => ['groupId' => ':empty:'],
             ];
+        }
+
+        // Legacy per-form UID grants (or dedicated per-form permissions) may not map to a group source.
+        if (!$sources && $currentUser) {
+            $accessibleFormIds = $permissions->getAccessibleFormIds($currentUser);
+
+            if ($accessibleFormIds) {
+                $sources[] = [
+                    'key' => 'accessible',
+                    'label' => Craft::t('formie', 'My forms'),
+                    'defaultSort' => ['title', 'desc'],
+                ];
+            }
         }
 
         return $sources;
@@ -409,12 +446,20 @@ class Form extends Element implements FormInterface
 
     public function canSave(User $user): bool
     {
-        return true;
+        if (parent::canSave($user)) {
+            return true;
+        }
+
+        return Formie::$plugin->getPermissions()->canManageForm($user, $this);
     }
     
     public function canView(User $user): bool
     {
-        return true;
+        if (parent::canView($user)) {
+            return true;
+        }
+
+        return Formie::$plugin->getPermissions()->canViewForm($user, $this);
     }
 
     public function canDelete(User $user): bool
@@ -423,12 +468,16 @@ class Form extends Element implements FormInterface
             return true;
         }
 
-        return $user->can('formie-deleteForms');
+        return Formie::$plugin->getPermissions()->canDeleteForm($user, $this);
     }
 
     public function canDuplicate(User $user): bool
     {
-        return true;
+        if (parent::canDuplicate($user)) {
+            return true;
+        }
+
+        return Formie::$plugin->getPermissions()->canDuplicateForm($user, $this);
     }
 
     public function getActionMenuItems(): array
@@ -2769,6 +2818,24 @@ class Form extends Element implements FormInterface
             ]),
             [
                 '$el' => 'hr',
+                'if' => Craft::$app->edition !== Craft::Solo,
+            ],
+            [
+                '$el' => 'h3',
+                'children' => Craft::t('formie', 'Permissions'),
+                'attrs' => [
+                    'class' => 'form-builder-h3',
+                ],
+                'if' => Craft::$app->edition !== Craft::Solo,
+            ],
+            SchemaHelper::lightswitchField([
+                'label' => Craft::t('formie', 'Use Dedicated Permissions'),
+                'instructions' => Craft::t('formie', 'When enabled, this form appears as its own permission in user group settings. When disabled, access is controlled by global permissions or the form‘s group.'),
+                'name' => 'settings.usePerFormPermissions',
+                'if' => Craft::$app->edition !== Craft::Solo,
+            ]),
+            [
+                '$el' => 'hr',
             ],
             [
                 '$el' => 'h3',
@@ -3185,13 +3252,10 @@ class Form extends Element implements FormInterface
 
     protected function cpEditUrl(): ?string
     {
-        $userSession = Craft::$app->getUser();
+        $user = Craft::$app->getUser()->getIdentity();
 
-        // Check if the user has permission to edit this form
-        if ($userSession && !$userSession->checkPermission('formie-manageForms')) {
-            if (!$userSession->checkPermission('formie-manageForms:' . $this->uid)) {
-                return null;
-            }
+        if ($user && !Formie::$plugin->getPermissions()->canManageForm($user, $this)) {
+            return null;
         }
         
         return UrlHelper::cpUrl("formie/forms/edit/{$this->id}");

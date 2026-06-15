@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+### Added
+- Add group-scoped form and submission permissions using stable form group handles, with optional per-form dedicated permissions via a new **Use Dedicated Permissions** form setting. ([#1426](https://github.com/verbb/formie/issues/1426), [#1356](https://github.com/verbb/formie/issues/1356), [#2489](https://github.com/verbb/formie/issues/2489), [Discussion #1696](https://github.com/verbb/formie/discussions/1696))
+- Add `formie-importForms` and `formie-exportForms` permissions, replacing the temporary admin-only import/export gate.
+- Add `formie-accessIntegrations` permission for the top-level **Integrations** control panel section, separate from **Access settings**.
+- Add a `Permissions` service as the single ACL entry point for forms, submissions, sent notifications, and import/export checks.
+- Add **Field Error Announcement** plugin setting (**Settings → Forms**) to control how front-end validation and submit errors are announced to screen readers (`polite`, `assertive`, or `off`). Live validation while typing always uses polite announcements. ([#2505](https://github.com/verbb/formie/issues/2505))
+
+### Changed
+- Align `Form` element `canView()`, `canSave()`, `canDuplicate()`, and delete behaviour with controller permissions instead of broad allow-all checks.
+- Auto-grant creators scoped group (or dedicated per-form) manage permissions when they can create forms but lack broader access.
+- Filter CP form and submission element sources and indexes to forms the current user can view or manage.
+
 ### Fixed
 - Skip client-side validation for fields disabled by conditional logic, and disable conditionally hidden submit buttons so Enter no longer triggers hidden submit/next actions. ([#2727](https://github.com/verbb/formie/issues/2727), [#1136](https://github.com/verbb/formie/issues/1136), [Discussion #1628](https://github.com/verbb/formie/discussions/1628))
 - Apply spam behaviour (success/message) without attempting to persist discarded spam submissions when **Save spam submissions** is disabled, avoiding failed saves under bot load. ([#2818](https://github.com/verbb/formie/issues/2818))

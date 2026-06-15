@@ -3,6 +3,7 @@ namespace verbb\formie\theme\slots;
 
 use verbb\formie\Formie;
 use verbb\formie\helpers\Html;
+use verbb\formie\models\Settings;
 use verbb\formie\helpers\SetPageReturnUrlHelper;
 use verbb\formie\models\ClientModule;
 use verbb\formie\models\FieldLayoutPage;
@@ -72,7 +73,9 @@ class FormSlotRegistry extends Component
         $form = $context->form;
         $moduleManifest = $form ? Formie::$plugin->getClientModuleManifestBuilder()->buildCanonical($form, ClientModule::RENDER_TARGET_FRONTEND) : [];
         $themeClassMap = $form ? $form->getFrontendThemeClassMap() : [];
-        $hasStaticCache = Formie::$plugin->getSettings()->hasStaticCache();
+        $settings = Formie::$plugin->getSettings();
+        $hasStaticCache = $settings->hasStaticCache();
+        $errorAriaLive = $settings->errorAriaLive;
 
         return SlotTag::make('form')
             ->core([
@@ -96,7 +99,8 @@ class FormSlotRegistry extends Component
                 'data-formie-loading-indicator' => $form?->settings->loadingIndicator,
                 'data-formie-loading-indicator-text' => $form?->settings->loadingIndicatorText,
                 'data-formie-progress-calculation' => $form?->settings->progressCalculation,
-                'data-formie-unload-warning' => Formie::$plugin->getSettings()->enableUnloadWarning ? true : false,
+                'data-formie-unload-warning' => $settings->enableUnloadWarning ? true : false,
+                'data-formie-error-aria-live' => $errorAriaLive,
                 'data-formie-validation-on-focus' => $form?->settings->validationOnFocus ? true : false,
                 'data-formie-validation-on-submit' => $form?->settings->validationOnSubmit ? true : false,
                 'data-formie-disable-submit-until-valid' => $form?->settings->disableSubmitButtonUntilValid ? true : false,
@@ -721,11 +725,18 @@ class FormSlotRegistry extends Component
 
     private function _errors(RenderContext $context): SlotTag
     {
+        $errorAriaLive = Formie::$plugin->getSettings()->errorAriaLive;
+        $core = [
+            'data-formie-errors' => true,
+        ];
+
+        if ($errorAriaLive !== Settings::ERROR_ARIA_LIVE_OFF) {
+            $core['aria-live'] = $errorAriaLive;
+            $core['aria-atomic'] = true;
+        }
+
         return SlotTag::make('div')
-            ->core([
-                'data-formie-errors' => true,
-                'aria-live' => 'polite',
-            ])
+            ->core($core)
             ->theme([
                 'class' => [
                     'formie-errors',

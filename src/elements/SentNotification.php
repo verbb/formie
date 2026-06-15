@@ -248,22 +248,7 @@ class SentNotification extends Element
             return true;
         }
 
-        if ($user->can('formie-viewSentNotifications')) {
-            return true;
-        }
-
-        $form = $this->getForm();
-
-        if (!$form) {
-            // Viewing without a form is fine, in case the form's been deleted
-            return true;
-        }
-
-        if (!$user->can("formie-viewSentNotifications:$form->uid")) {
-            return false;
-        }
-
-        return true;
+        return Formie::$plugin->getPermissions()->canViewSentNotifications($user, $this->getForm());
     }
     
     public function canSave(User $user): bool
@@ -277,21 +262,7 @@ class SentNotification extends Element
             return true;
         }
 
-        if ($user->can('formie-deleteSentNotifications')) {
-            return true;
-        }
-
-        $form = $this->getForm();
-
-        if (!$form) {
-            return false;
-        }
-
-        if (!$user->can("formie-deleteSentNotifications:$form->uid")) {
-            return false;
-        }
-
-        return true;
+        return Formie::$plugin->getPermissions()->canDeleteSentNotifications($user, $this->getForm());
     }
 
     public function canResend(User $user): bool

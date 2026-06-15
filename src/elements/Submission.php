@@ -182,7 +182,7 @@ class Submission extends Element
         $currentUser = Craft::$app->getUser()->getIdentity();
         $sitesService = Craft::$app->getSites();
         $currentSiteId = $sitesService->getCurrentSite()->id;
-        $canViewAllSubmissions = $currentUser->can('formie-viewSubmissions');
+        $canViewAllSubmissions = Formie::$plugin->getPermissions()->hasGlobalSubmissionAccess($currentUser);
 
         $formGroups = Formie::$plugin->getFormGroups()->getAllGroups();
 
@@ -208,15 +208,22 @@ class Submission extends Element
 
         if (Craft::$app->getDb()->columnExists(Table::FORMIE_FORMS, 'groupId')) {
             $formColumns[] = 'f.groupId';
+            $formColumns[] = 'g.handle AS groupHandle';
         }
 
-        $forms = (new Query())
+        $formsQuery = (new Query())
             ->select($formColumns)
             ->from(['f' => Table::FORMIE_FORMS])
             ->innerJoin(['e' => CraftTable::ELEMENTS], '[[e.id]] = [[f.id]]')
             ->innerJoin(['es' => CraftTable::ELEMENTS_SITES], '[[es.elementId]] = [[f.id]] AND [[es.siteId]] = :siteId', [
                 ':siteId' => $currentSiteId,
-            ])
+            ]);
+
+        if (Craft::$app->getDb()->columnExists(Table::FORMIE_FORMS, 'groupId')) {
+            $formsQuery->leftJoin(['g' => Table::FORMIE_FORM_GROUPS], '[[g.id]] = [[f.groupId]]');
+        }
+
+        $forms = $formsQuery
             ->where(['e.dateDeleted' => null])
             ->orderBy(['es.title' => SORT_ASC])
             ->all();
@@ -235,11 +242,11 @@ class Submission extends Element
         $ungroupedFormItems = [];
 
         foreach ($forms as $form) {
-            $formUid = (string)($form['uid'] ?? '');
-
-            if (!$canViewAllSubmissions && !$currentUser->can("formie-viewSubmissions:{$formUid}")) {
+            if (!$canViewAllSubmissions && !Formie::$plugin->getPermissions()->userCanViewSubmissionsForFormRecord($currentUser, $form)) {
                 continue;
             }
+
+            $formUid = (string)($form['uid'] ?? '');
 
             $formId = (int)($form['id'] ?? 0);
             $formHandle = (string)($form['handle'] ?? '');
@@ -307,11 +314,11 @@ class Submission extends Element
 
         // Get the UID from the ID (for the source)
         $formId = (int)str_replace('form:', '', $source);
-        $formUid = Formie::$plugin->getForms()->getFormById($formId)?->uid ?? null;
-
+        $form = Formie::$plugin->getForms()->getFormById($formId);
+        $permissions = Formie::$plugin->getPermissions();
         $currentUser = Craft::$app->getUser()->getIdentity();
-        $canSaveSubmissions = $currentUser->can('formie-saveSubmissions') || $currentUser->can("formie-saveSubmissions:$formUid");
-        $canDeleteSubmissions = $currentUser->can('formie-deleteSubmissions') || $currentUser->can("formie-deleteSubmissions:$formUid");
+        $canSaveSubmissions = $permissions->canSaveSubmissions($currentUser, $form);
+        $canDeleteSubmissions = $permissions->canDeleteSubmissions($currentUser, $form);
 
         if ($canSaveSubmissions) {
             $actions[] = $elementsService->createAction([
@@ -521,22 +528,7 @@ class Submission extends Element
             return true;
         }
 
-        if ($user->can('formie-viewSubmissions')) {
-            return true;
-        }
-
-        $form = $this->getForm();
-
-        if (!$form) {
-            // Viewing without a form is fine, in case the form's been deleted
-            return true;
-        }
-
-        if (!$user->can("formie-viewSubmissions:$form->uid")) {
-            return false;
-        }
-
-        return true;
+        return Formie::$plugin->getPermissions()->canViewSubmissions($user, $this->getForm());
     }
     
     public function canSave(User $user): bool
@@ -555,21 +547,7 @@ class Submission extends Element
             return true;
         }
 
-        if ($user->can('formie-saveSubmissions')) {
-            return true;
-        }
-
-        $form = $this->getForm();
-
-        if (!$form) {
-            return false;
-        }
-
-        if (!$user->can("formie-saveSubmissions:$form->uid")) {
-            return false;
-        }
-
-        return true;
+        return Formie::$plugin->getPermissions()->canSaveSubmissions($user, $this->getForm());
     }
 
     public function canDelete(User $user): bool
@@ -578,21 +556,7 @@ class Submission extends Element
             return true;
         }
 
-        if ($user->can('formie-deleteSubmissions')) {
-            return true;
-        }
-
-        $form = $this->getForm();
-
-        if (!$form) {
-            return false;
-        }
-
-        if (!$user->can("formie-deleteSubmissions:$form->uid")) {
-            return false;
-        }
-
-        return true;
+        return Formie::$plugin->getPermissions()->canDeleteSubmissions($user, $this->getForm());
     }
 
     public function getActionMenuItems(): array

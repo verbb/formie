@@ -11,6 +11,7 @@ export type ValidationRuleValue = ValidationRule | boolean;
 export type ValidationRules = Record<string, ValidationRuleValue>;
 export type ValidationConfig = {
     live: boolean;
+    errorAriaLive: 'polite' | 'assertive' | 'off';
     errorMessage?: string;
     fieldContainerErrorClass: string[];
     inputErrorClass: string[];

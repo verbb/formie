@@ -11,6 +11,7 @@ import type { FormieModuleDefinition, FormieModuleInstance } from '#contracts/mo
 import type { FormEndpointPayload, FormModuleManifest, FormSubmitResult } from '#contracts/schema';
 import type { ThemeClassMap } from '#contracts/theme';
 import { dispatchFormieDomEvent } from '#core/dom-events';
+import { getErrorAriaLivePreference } from '#core/error-aria-live';
 import { dispatchPageClientEventForSubmit } from '#core/page-client-event';
 import { syncPageTabErrors } from '#core/page-tab-errors';
 import {
@@ -990,6 +991,7 @@ export function createFormieClient(): FormieClient {
 
         const validator = form ? new FormieValidator(form, {
             live: parseBooleanDatasetValue(form.dataset.formieValidationOnFocus),
+            errorAriaLive: getErrorAriaLivePreference(form),
             errorMessage: form.dataset.formieErrorMessage || '',
             fieldContainerErrorClass: resolvedThemeClassMap.fieldLayoutError || [],
             inputErrorClass: resolvedThemeClassMap.fieldControlError || [],

@@ -1,4 +1,5 @@
 import type { FormSubmitResult } from '#contracts/schema';
+import { applyErrorAriaLive, getErrorAriaLivePreference, resolveSubmitErrorAriaLive } from '#core/error-aria-live';
 import { ensureFieldErrorContainer as resolveFieldErrorContainer } from '#core/field-error-container';
 import { syncPageTabErrors } from '#core/page-tab-errors';
 import { focusFirstValidationError } from '#core/validation-focus';
@@ -124,8 +125,10 @@ function ensureFormErrorMessageContainer(form: HTMLFormElement, container: HTMLE
     // Form-level errors use a live region because they are often the only output
     // for submit-stage failures such as provider or transport errors.
     messageContainer.setAttribute('role', 'alert');
-    messageContainer.setAttribute('aria-live', 'polite');
-    messageContainer.setAttribute('aria-atomic', 'true');
+    applyErrorAriaLive(
+        messageContainer,
+        resolveSubmitErrorAriaLive(getErrorAriaLivePreference(form)),
+    );
 
     return messageContainer;
 }
@@ -295,6 +298,8 @@ function appendDescribedBy(input: HTMLElement, describedById: string): void {
 }
 
 export function renderFieldErrors(form: HTMLFormElement, fieldErrors: Record<string, string[]>): void {
+    const errorAriaLive = resolveSubmitErrorAriaLive(getErrorAriaLivePreference(form));
+
     Object.entries(fieldErrors).forEach(([handle, messages]) => {
         const fieldNode = form.querySelector(`[data-formie-field-handle="${handle}"]`);
 
@@ -307,8 +312,7 @@ export function renderFieldErrors(form: HTMLFormElement, fieldErrors: Record<str
             ? container.id
             : `${handle}-errors`;
         container.id = containerId;
-        container.setAttribute('aria-live', 'polite');
-        container.setAttribute('aria-atomic', 'true');
+        applyErrorAriaLive(container, errorAriaLive);
         addThemeClasses(fieldNode as HTMLElement, form, 'fieldLayoutError');
         (fieldNode as HTMLElement).setAttribute('data-formie-field-has-error', 'true');
 

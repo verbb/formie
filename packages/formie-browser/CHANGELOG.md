@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Added
+- Add configurable `aria-live` behaviour for field and form validation errors via the plugin `errorAriaLive` setting (`polite`, `assertive`, or `off`). Live validation while typing always uses polite announcements. ([#2505](https://github.com/verbb/formie/issues/2505))
+
 ### Fixed
 - Skip validation for fields disabled by conditional logic, and disable conditionally hidden submit/next buttons so Enter no longer triggers hidden actions. ([#2727](https://github.com/verbb/formie/issues/2727), [#1136](https://github.com/verbb/formie/issues/1136), [Discussion #1628](https://github.com/verbb/formie/discussions/1628))
 - Initialise captcha placeholders immediately when multipage forms change page via tabs or Ajax **Next**, so providers mount on the visible page before submit. ([#1893](https://github.com/verbb/formie/issues/1893))

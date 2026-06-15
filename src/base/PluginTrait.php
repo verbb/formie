@@ -34,6 +34,7 @@ use verbb\formie\services\IntegrationTriggers;
 use verbb\formie\services\NotificationTriggers;
 use verbb\formie\services\Notifications;
 use verbb\formie\services\Payments;
+use verbb\formie\services\Permissions;
 use verbb\formie\services\PdfTemplates;
 use verbb\formie\services\Phone;
 use verbb\formie\services\Plans;
@@ -199,6 +200,7 @@ trait PluginTrait
                 'clientModuleManifestBuilder' => ClientModuleManifestBuilder::class,
                 'notifications' => Notifications::class,
                 'payments' => Payments::class,
+                'permissions' => Permissions::class,
                 'pdfTemplates' => PdfTemplates::class,
                 'phone' => Phone::class,
                 'plans' => Plans::class,
@@ -453,6 +455,11 @@ trait PluginTrait
     public function getPayments(): Payments
     {
         return $this->get('payments');
+    }
+
+    public function getPermissions(): Permissions
+    {
+        return $this->get('permissions');
     }
 
     public function getPdfTemplates(): PdfTemplates

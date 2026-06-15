@@ -96,6 +96,9 @@ class FormSettings extends Model
     public ?string $dataRetentionValue = null;
     public ?string $fileUploadsAction = null;
 
+    // Settings - Permissions
+    public bool $usePerFormPermissions = false;
+
     // Other
     public ?string $redirectUrl = null;
     public ?string $pageRedirectUrl = null;

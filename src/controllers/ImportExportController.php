@@ -8,6 +8,7 @@ use verbb\formie\helpers\ImportExportHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\Settings;
+use verbb\formie\services\Permissions;
 
 use Craft;
 use craft\db\Query;
@@ -30,9 +31,17 @@ class ImportExportController extends SettingsAccessController
 
     public function beforeAction($action): bool
     {
-        $this->requireAdmin();
+        if (!parent::beforeAction($action)) {
+            return false;
+        }
 
-        return parent::beforeAction($action);
+        match ($action->id) {
+            'import', 'import-configure', 'import-complete' => $this->requirePermission(Permissions::PERM_IMPORT_FORMS),
+            'export' => $this->requirePermission(Permissions::PERM_EXPORT_FORMS),
+            default => null,
+        };
+
+        return true;
     }
 
     public function actionIndex(?string $importError = null, ?string $exportError = null): ?Response

@@ -4,14 +4,31 @@ declare(strict_types=1);
 
 use craft\elements\User;
 
-it('keeps explicit form permission API contracts for delete and duplicate', function (): void {
+it('denies form actions for users without permissions', function (): void {
     $form = formie()
         ->form(['title' => 'Permission Contract'])
         ->singleLineTextField('fullName')
         ->create();
 
     $user = new User();
+    $user->admin = false;
 
-    expect($form->canDuplicate($user))->toBeTrue()
-        ->and($form->canDelete($user))->toBeBool();
+    expect($form->canView($user))->toBeFalse()
+        ->and($form->canSave($user))->toBeFalse()
+        ->and($form->canDuplicate($user))->toBeFalse()
+        ->and($form->canDelete($user))->toBeFalse();
+});
+
+it('allows admins to manage forms through element ACLs', function (): void {
+    $form = formie()
+        ->form(['title' => 'Admin Permission Contract'])
+        ->singleLineTextField('fullName')
+        ->create();
+
+    $user = new User();
+    $user->admin = true;
+
+    expect($form->canView($user))->toBeTrue()
+        ->and($form->canSave($user))->toBeTrue()
+        ->and($form->canDuplicate($user))->toBeTrue();
 });

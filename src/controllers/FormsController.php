@@ -210,6 +210,12 @@ class FormsController extends Controller
             throw new NotFoundHttpException('Form not found');
         }
 
+        $currentUser = Craft::$app->getUser()->getIdentity();
+
+        if (!$currentUser || !Formie::$plugin->getPermissions()->canManageForm($currentUser, $form)) {
+            throw new ForbiddenHttpException('User is not permitted to perform this action');
+        }
+
         Plugin::registerCpFormBuilderAssets();
 
         $variables = Formie::$plugin->getForms()->getFormBuilderVariables($form);
@@ -428,11 +434,9 @@ class FormsController extends Controller
         if (!$form->uid) {
             $this->requirePermission('formie-createForms');
         } else {
-            // User must have at least one of these permissions to edit (all, or the specific form)
-            $formsPermission = Craft::$app->getUser()->checkPermission('formie-manageForms');
-            $formPermission = Craft::$app->getUser()->checkPermission('formie-manageForms:' . $form->uid);
+            $currentUser = Craft::$app->getUser()->getIdentity();
 
-            if (!$formsPermission && !$formPermission) {
+            if (!$currentUser || !Formie::$plugin->getPermissions()->canManageForm($currentUser, $form)) {
                 throw new ForbiddenHttpException('User is not permitted to perform this action');
             }
         }
@@ -461,7 +465,9 @@ class FormsController extends Controller
                 return null;
             }
 
-            $this->_updateFormPermission($duplicatedForm);
+            if ($currentUser = Craft::$app->getUser()->getIdentity()) {
+                Formie::$plugin->getPermissions()->grantCreatorPermissions($currentUser, $duplicatedForm);
+            }
 
             $variables = Formie::$plugin->getForms()->getFormBuilderVariables($duplicatedForm);
             $variables['redirect'] = $duplicatedForm->getCpEditUrl();
@@ -495,6 +501,10 @@ class FormsController extends Controller
 
         // If this was a new form, redirect to the edit page
         if ($isNewForm) {
+            if ($currentUser = Craft::$app->getUser()->getIdentity()) {
+                Formie::$plugin->getPermissions()->grantCreatorPermissions($currentUser, $form);
+            }
+
             $this->setSuccessFlash(Craft::t('formie', 'Form created.'));
 
             if ($this->request->getAcceptsJson()) {
@@ -509,8 +519,10 @@ class FormsController extends Controller
 
         $savedForm = $form;
 
-        // Check if we need to update the permissions for this user.
-        $this->_updateFormPermission($savedForm);
+        // Grant the creator scoped access when they can create but not manage globally.
+        if ($currentUser = Craft::$app->getUser()->getIdentity()) {
+            Formie::$plugin->getPermissions()->grantCreatorPermissions($currentUser, $savedForm);
+        }
 
         $variables = Formie::$plugin->getForms()->getFormBuilderVariables($savedForm);
         $variables['redirect'] = null;
@@ -736,61 +748,6 @@ class FormsController extends Controller
         }
 
         return $query->one();
-    }
-
-    private function _updateFormPermission(Form $form): void
-    {
-        if (Craft::$app->edition === CmsEdition::Solo) {
-            return;
-        }
-
-        $suffix = ':' . $form->uid;
-
-        $userService = Craft::$app->getUser();
-        $currentUser = $userService->getIdentity();
-        $permissions = Craft::$app->getUserPermissions()->getPermissionsByUserId($currentUser->id);
-        $permissions[] = "formie-manageForms{$suffix}";
-
-        // Add all nested permissions according to top-level permissions set
-        if ($userService->checkPermission('formie-showFormAppearance') || $userService->checkPermission('formie-createFormAppearance')) {
-            $permissions[] = "formie-showFormAppearance{$suffix}";
-        }
-
-        if ($userService->checkPermission('formie-showFormBehavior') || $userService->checkPermission('formie-createFormBehavior')) {
-            $permissions[] = "formie-showFormBehavior{$suffix}";
-        }
-
-        if ($userService->checkPermission('formie-showNotifications') || $userService->checkPermission('formie-createNotifications')) {
-            $permissions[] = "formie-showNotifications{$suffix}";
-        }
-
-        if ($userService->checkPermission('formie-showNotificationsAdvanced') || $userService->checkPermission('formie-createNotifications')) {
-            $permissions[] = "formie-showNotificationsAdvanced{$suffix}";
-        }
-
-        if ($userService->checkPermission('formie-showNotificationsTemplates') || $userService->checkPermission('formie-createNotifications')) {
-            $permissions[] = "formie-showNotificationsTemplates{$suffix}";
-        }
-
-        if ($userService->checkPermission('formie-showFormIntegrations') || $userService->checkPermission('formie-createFormIntegrations')) {
-            $permissions[] = "formie-showFormIntegrations{$suffix}";
-        }
-
-        if ($userService->checkPermission('formie-showFormSettings') || $userService->checkPermission('formie-createFormSettings')) {
-            $permissions[] = "formie-showFormSettings{$suffix}";
-        }
-
-        // Check if they have "View Submissions" - they should have access to manage
-        if ($userService->checkPermission('formie-viewSubmissions')) {
-            $permissions[] = "formie-viewSubmissions{$suffix}";
-            $permissions[] = "formie-createSubmissions{$suffix}";
-            $permissions[] = "formie-saveSubmissions{$suffix}";
-            $permissions[] = "formie-deleteSubmissions{$suffix}";
-        }
-
-        if (Craft::$app->edition === CmsEdition::Pro) {
-            Craft::$app->getUserPermissions()->saveUserPermissions($currentUser->id, $permissions);
-        }
     }
 
     private function _getFormHandles(int $formId): array

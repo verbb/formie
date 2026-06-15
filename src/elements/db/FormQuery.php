@@ -166,6 +166,15 @@ class FormQuery extends ElementQuery
             $this->query->andWhere(Db::parseParam('pageCount', $this->pageCount));
         }
 
+        // Scope CP form indexes to the forms the current user can view or manage.
+        if (Craft::$app->getRequest()->getIsCpRequest() && Craft::$app->edition !== Craft::Solo) {
+            $accessibleFormIds = Formie::$plugin->getPermissions()->getAccessibleFormIds(Craft::$app->getUser()->getIdentity());
+
+            if ($accessibleFormIds !== null) {
+                $this->subQuery->andWhere(['formie_forms.id' => $accessibleFormIds ?: false]);
+            }
+        }
+
         return parent::beforePrepare();
     }
 }

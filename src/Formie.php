@@ -34,6 +34,7 @@ use verbb\formie\services\FormGroups as FormGroupsService;
 use verbb\formie\services\FormTemplates as FormTemplatesService;
 use verbb\formie\services\Integrations as IntegrationsService;
 use verbb\formie\services\PdfTemplates as PdfTemplatesService;
+use verbb\formie\services\Permissions;
 use verbb\formie\services\Statuses as StatusesService;
 use verbb\formie\services\Stencils as StencilsService;
 use verbb\formie\variables\Formie as FormieVariable;
@@ -111,7 +112,7 @@ class Formie extends Plugin
 
     public bool $hasCpSection = true;
     public bool $hasCpSettings = true;
-    public string $schemaVersion = '4.0.16';
+    public string $schemaVersion = '4.0.18';
     public string $minVersionRequired = '2.1.5';
 
 
@@ -210,7 +211,7 @@ class Formie extends Plugin
             ];
         }
 
-        if (Craft::$app->getUser()->checkPermission('formie-accessSettings')) {
+        if (Craft::$app->getUser()->checkPermission(Permissions::PERM_ACCESS_INTEGRATIONS)) {
             $nav['subnav']['integrations'] = [
                 'label' => Craft::t('formie', 'Integrations'),
                 'url' => 'formie/integrations/email-marketing',
@@ -397,105 +398,25 @@ class Formie extends Plugin
     private function _registerPermissions(): void
     {
         Event::on(UserPermissions::class, UserPermissions::EVENT_REGISTER_PERMISSIONS, function(RegisterUserPermissionsEvent $event) {
-            $formPermissions = [
-                'formie-createForms' => [
-                    'label' => Craft::t('formie', 'Create forms'),
-                    'nested' => [
-                        'formie-createFormAppearance' => ['label' => Craft::t('formie', 'Show form appearance tab')],
-                        'formie-createFormBehavior' => ['label' => Craft::t('formie', 'Show form behaviour tab')],
-                        'formie-createNotifications' => ['label' => Craft::t('formie', 'Show form email notifications tab')],
-                        'formie-createFormIntegrations' => ['label' => Craft::t('formie', 'Show form integrations tab')],
-                        'formie-createFormUsage' => ['label' => Craft::t('formie', 'Show form usage tab')],
-                        'formie-createFormSettings' => ['label' => Craft::t('formie', 'Show form settings tab')],
-                    ],
-                ],
-                'formie-deleteForms' => ['label' => Craft::t('formie', 'Delete forms')],
-                'formie-manageForms' => [
-                    'label' => Craft::t('formie', 'Manage all forms'),
-                    'nested' => [
-                        'formie-showFormAppearance' => ['label' => Craft::t('formie', 'Show form appearance tab')],
-                        'formie-showFormBehavior' => ['label' => Craft::t('formie', 'Show form behaviour tab')],
-                        'formie-showNotifications' => [
-                            'label' => Craft::t('formie', 'Show form email notifications tab'), 'nested' => [
-                                'formie-showNotificationsAdvanced' => ['label' => Craft::t('formie', 'Show email notification advanced tab')],
-                                'formie-showNotificationsTemplates' => ['label' => Craft::t('formie', 'Show email notification templates tab')],
-                            ],
-                        ],
-                        'formie-showFormIntegrations' => ['label' => Craft::t('formie', 'Show form integrations tab')],
-                        'formie-showFormUsage' => ['label' => Craft::t('formie', 'Show form usage tab')],
-                        'formie-showFormSettings' => ['label' => Craft::t('formie', 'Show form settings tab')],
-                    ],
-                ],
-            ];
-
-            $submissionPermissions = [
-                'formie-viewSubmissions' => [
-                    'label' => Craft::t('formie', 'View all submissions'),
-                    'nested' => [
-                        'formie-createSubmissions' => ['label' => Craft::t('formie', 'Create submissions')],
-                        'formie-saveSubmissions' => ['label' => Craft::t('formie', 'Save submissions')],
-                        'formie-deleteSubmissions' => ['label' => Craft::t('formie', 'Delete submissions')],
-                    ],
-                ],
-            ];
-
-            $sentNotificationsPermissions = [
-                'formie-viewSentNotifications' => [
-                    'label' => Craft::t('formie', 'View all sent notifications'),
-                    'nested' => [
-                        'formie-resendSentNotifications' => ['label' => Craft::t('formie', 'Resend sent notifications')],
-                        'formie-deleteSentNotifications' => ['label' => Craft::t('formie', 'Delete sent notifications')],
-                    ],
-                ],
-            ];
-
-            if (Craft::$app->edition === CmsEdition::Pro) {
-                foreach ($this->getForms()->getAllForms() as $form) {
-                    $suffix = ':' . $form->uid;
-
-                    $formPermissions["formie-manageForms{$suffix}"] = [
-                        'label' => Craft::t('formie', 'Manage “{name}” form', ['name' => $form->title]),
-                        'nested' => [
-                            "formie-showFormAppearance{$suffix}" => ['label' => Craft::t('formie', 'Show form appearance tab')],
-                            "formie-showFormBehavior{$suffix}" => ['label' => Craft::t('formie', 'Show form behaviour tab')],
-                            "formie-showNotifications{$suffix}" => [
-                                'label' => Craft::t('formie', 'Show form email notifications tab'), 'nested' => [
-                                    "formie-showNotificationsAdvanced{$suffix}" => ['label' => Craft::t('formie', 'Show email notification advanced tab')],
-                                    "formie-showNotificationsTemplates{$suffix}" => ['label' => Craft::t('formie', 'Show email notification templates tab')],
-                                ],
-                            ],
-                            "formie-showFormIntegrations{$suffix}" => ['label' => Craft::t('formie', 'Show form integrations tab')],
-                            "formie-showFormUsage{$suffix}" => ['label' => Craft::t('formie', 'Show form usage tab')],
-                            "formie-showFormSettings{$suffix}" => ['label' => Craft::t('formie', 'Show form settings tab')],
-                        ],
-                    ];
-
-                    $submissionPermissions["formie-viewSubmissions{$suffix}"] = [
-                        'label' => Craft::t('formie', 'View “{name}” submissions', ['name' => $form->title]),
-                        'nested' => [
-                            "formie-createSubmissions{$suffix}" => ['label' => Craft::t('formie', 'Create submissions')],
-                            "formie-saveSubmissions{$suffix}" => ['label' => Craft::t('formie', 'Save submissions')],
-                            "formie-deleteSubmissions{$suffix}" => ['label' => Craft::t('formie', 'Delete submissions')],
-                        ],
-                    ];
-
-                    $sentNotificationsPermissions["formie-viewSentNotifications{$suffix}"] = [
-                        'label' => Craft::t('formie', 'View “{name}” sent notifications', ['name' => $form->title]),
-                        'nested' => [
-                            "formie-resendSentNotifications{$suffix}" => ['label' => Craft::t('formie', 'Resend sent notifications')],
-                            "formie-deleteSentNotifications{$suffix}" => ['label' => Craft::t('formie', 'Delete sent notifications')],
-                        ],
-                    ];
-                }
-            }
+            $permissions = $this->getPermissions();
 
             $event->permissions[] = [
                 'heading' => Craft::t('formie', 'Formie'),
                 'permissions' => [
-                    'formie-accessForms' => ['label' => Craft::t('formie', 'Access forms'), 'nested' => $formPermissions],
-                    'formie-accessSubmissions' => ['label' => Craft::t('formie', 'Access submissions'), 'nested' => $submissionPermissions],
-                    'formie-accessSentNotifications' => ['label' => Craft::t('formie', 'Access sent notifications'), 'nested' => $sentNotificationsPermissions],
+                    Permissions::PERM_ACCESS_FORMS => [
+                        'label' => Craft::t('formie', 'Access forms'),
+                        'nested' => $permissions->getFormPermissionDefinitions(),
+                    ],
+                    Permissions::PERM_ACCESS_SUBMISSIONS => [
+                        'label' => Craft::t('formie', 'Access submissions'),
+                        'nested' => $permissions->getSubmissionPermissionDefinitions(),
+                    ],
+                    'formie-accessSentNotifications' => [
+                        'label' => Craft::t('formie', 'Access sent notifications'),
+                        'nested' => $permissions->getSentNotificationPermissionDefinitions(),
+                    ],
                     'formie-accessStencils' => ['label' => Craft::t('formie', 'Access stencils')],
+                    Permissions::PERM_ACCESS_INTEGRATIONS => ['label' => Craft::t('formie', 'Access integrations')],
                     'formie-accessSettings' => ['label' => Craft::t('formie', 'Access settings')],
                 ],
             ];

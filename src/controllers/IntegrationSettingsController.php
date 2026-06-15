@@ -2,6 +2,7 @@
 namespace verbb\formie\controllers;
 
 use verbb\formie\Formie;
+use verbb\formie\services\Permissions;
 use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
 use verbb\formie\helpers\ArrayHelper;
@@ -12,15 +13,27 @@ use verbb\formie\services\Integrations as IntegrationsService;
 
 use Craft;
 use craft\helpers\Json;
+use craft\web\Controller;
 use craft\web\ForbiddenHttpException;
 
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
 
-class IntegrationSettingsController extends SettingsAccessController
+class IntegrationSettingsController extends Controller
 {
     // Public Methods
     // =========================================================================
+
+    public function beforeAction($action): bool
+    {
+        if (!parent::beforeAction($action)) {
+            return false;
+        }
+
+        $this->requirePermission($this->_resolveAccessPermission());
+
+        return true;
+    }
 
     public function actionCaptchaIndex(): Response
     {
@@ -267,6 +280,14 @@ class IntegrationSettingsController extends SettingsAccessController
             'title' => $title,
             'typeName' => $typeName,
         ]);
+    }
+
+    private function _resolveAccessPermission(): string
+    {
+        // Top-level Integrations CP routes use a dedicated permission; legacy settings/* integration routes stay on settings access.
+        return Craft::$app->getRequest()->getSegment(1) === 'integrations'
+            ? Permissions::PERM_ACCESS_INTEGRATIONS
+            : 'formie-accessSettings';
     }
 
 }
