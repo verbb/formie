@@ -130,7 +130,7 @@ class Settings extends Model
     public array $themeConfig = [];
     public bool $useCssLayers = false;
 
-    // Captcha settings are stored in Project Config, but otherwise private
+    // Deprecated — captcha provider credentials now live in `formie_captcha_providers`.
     public array $captchas = [];
 
     // Export

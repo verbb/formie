@@ -1089,18 +1089,10 @@ class Integrations extends Component
             return $this->_getLookupCache()->captchas;
         }
 
-        /* @var Settings $settings */
-        $settings = Formie::$plugin->getSettings();
-
         $captchas = [];
 
         foreach ($this->getIntegrationTypes(Integration::TYPE_CAPTCHA) as $captchaClass) {
-            $class = new $captchaClass();
-
-            // Load in any settings from PC
-            $config = $settings->captchas[$class->getHandle()] ?? [];
-            $config['type'] = $captchaClass;
-
+            $config = Formie::$plugin->getCaptchaProviders()->getIntegrationConfigForClass($captchaClass);
             $captchas[] = $this->createIntegration($config);
         }
 
@@ -1207,46 +1199,13 @@ class Integrations extends Component
 
     public function saveCaptcha(Integration $integration): bool
     {
-        /* @var Settings $settings */
-        $settings = Formie::$plugin->getSettings();
+        return Formie::$plugin->getCaptchaProviders()->saveProvider($integration);
+    }
 
-        // Fire an 'afterSaveIntegration' event
-        if ($this->hasEventHandlers(self::EVENT_BEFORE_SAVE_INTEGRATION)) {
-            $this->trigger(self::EVENT_BEFORE_SAVE_INTEGRATION, new IntegrationEvent([
-                'integration' => $integration,
-            ]));
-        }
-
-        // Allow integrations to perform actions before their settings are saved
-        if (!$integration->beforeSave(false)) {
-            return false;
-        }
-
-        $settings->captchas[$integration->getHandle()] = [
-            'type' => get_class($integration),
-            'enabled' => $integration->getEnabled(false),
-            'saveSpam' => $integration->saveSpam,
-            'settings' => $integration->getSettings(),
-        ];
-
-        $pluginSettingsSaved = Craft::$app->getPlugins()->savePluginSettings(Formie::$plugin, $settings->toArray());
-
-        if (!$pluginSettingsSaved) {
-            return false;
-        }
-
-        // Fire an 'afterSaveIntegration' event
-        if ($this->hasEventHandlers(self::EVENT_AFTER_SAVE_INTEGRATION)) {
-            $this->trigger(self::EVENT_AFTER_SAVE_INTEGRATION, new IntegrationEvent([
-                'integration' => $integration,
-            ]));
-        }
-
-        $integration->afterSave(false);
-
-        $this->_resetIntegrationCaches();
-
-        return true;
+    public function resetCaptchaCaches(): void
+    {
+        $this->_getLookupCache()->captchas = null;
+        $this->_getLookupCache()->captchasByHandle = [];
     }
 
 

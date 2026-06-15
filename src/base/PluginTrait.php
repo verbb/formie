@@ -11,6 +11,7 @@ use verbb\formie\deprecations\PluginDeprecations;
 use verbb\formie\elements\Submission as SubmissionElement;
 use verbb\formie\events\ModifyTwigEnvironmentEvent;
 use verbb\formie\server\ServerRenderPayloadBuilder;
+use verbb\formie\services\CaptchaProviders;
 use verbb\formie\services\Countries;
 use verbb\formie\services\Compatibility;
 use verbb\formie\services\CustomFields;
@@ -191,6 +192,7 @@ trait PluginTrait
                 'formGroups' => FormGroups::class,
                 'formPreview' => FormPreview::class,
                 'formTemplates' => FormTemplates::class,
+                'captchaProviders' => CaptchaProviders::class,
                 'integrations' => Integrations::class,
                 'integrationDispatch' => IntegrationDispatch::class,
                 'integrationExecutor' => IntegrationExecutor::class,
@@ -420,6 +422,11 @@ trait PluginTrait
     public function getFormTemplates(): FormTemplates
     {
         return $this->get('formTemplates');
+    }
+
+    public function getCaptchaProviders(): CaptchaProviders
+    {
+        return $this->get('captchaProviders');
     }
 
     public function getIntegrations(): Integrations

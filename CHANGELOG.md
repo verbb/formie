@@ -7,6 +7,7 @@
 - Add `formie-importForms` and `formie-exportForms` permissions, replacing the temporary admin-only import/export gate.
 - Add `formie-accessIntegrations` permission for the top-level **Integrations** control panel section, separate from **Access settings**.
 - Add nested settings page permissions under **Access settings**, with CP navigation and controller enforcement per page.
+- Add `formie_captcha_providers` table and migrate captcha provider credentials out of plugin settings, with site/project scope support.
 - Add a `Permissions` service as the single ACL entry point for forms, submissions, sent notifications, and import/export checks.
 - Add **Field Error Announcement** plugin setting (**Settings → Forms**) to control how front-end validation and submit errors are announced to screen readers (`polite`, `assertive`, or `off`). Live validation while typing always uses polite announcements. ([#2505](https://github.com/verbb/formie/issues/2505))
 

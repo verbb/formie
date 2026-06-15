@@ -199,6 +199,20 @@ class Install extends Migration
             'uid' => $this->uid(),
         ]);
 
+        $this->archiveTableIfExists(Table::FORMIE_CAPTCHA_PROVIDERS);
+        $this->createTable(Table::FORMIE_CAPTCHA_PROVIDERS, [
+            'id' => $this->primaryKey(),
+            'handle' => $this->string(64)->notNull(),
+            'type' => $this->string()->notNull(),
+            'scope' => $this->string(16)->notNull()->defaultValue('project'),
+            'enabled' => $this->string()->notNull()->defaultValue('false'),
+            'saveSpam' => $this->boolean(),
+            'settings' => $this->mediumText(),
+            'dateCreated' => $this->dateTime()->notNull(),
+            'dateUpdated' => $this->dateTime()->notNull(),
+            'uid' => $this->uid(),
+        ]);
+
         $this->archiveTableIfExists(Table::FORMIE_NOTIFICATIONS);
         $this->createTable(Table::FORMIE_NOTIFICATIONS, [
             'id' => $this->primaryKey(),
@@ -615,6 +629,8 @@ class Install extends Migration
 
     public function insertDefaultData(): void
     {
+        Formie::$plugin->getCaptchaProviders()->seedRegistryFromLegacySettings([]);
+
         $projectConfig = Craft::$app->getProjectConfig();
 
         // Don't make the same config changes twice
