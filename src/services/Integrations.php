@@ -17,6 +17,7 @@ use verbb\formie\events\TriggerIntegrationEvent;
 use verbb\formie\events\TriggerIntegrationFailureEvent;
 use verbb\formie\base\FormInterface;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\DbSchema;
 use verbb\formie\helpers\IntegrationTriggerEvents;
 use verbb\formie\helpers\Plugin;
 use verbb\formie\helpers\SchemaHelper;
@@ -1261,21 +1262,26 @@ class Integrations extends Component
 
     private function _createIntegrationQuery(): Query
     {
+        $select = [
+            'id',
+            'name',
+            'handle',
+            'type',
+            'enabled',
+            'sortOrder',
+            'settings',
+            'cache',
+            'dateCreated',
+            'dateUpdated',
+            'uid',
+        ];
+
+        if (DbSchema::columnExists(Table::FORMIE_INTEGRATIONS, 'scope')) {
+            array_splice($select, 3, 0, ['scope']);
+        }
+
         return (new Query())
-            ->select([
-                'id',
-                'name',
-                'handle',
-                'scope',
-                'type',
-                'enabled',
-                'sortOrder',
-                'settings',
-                'cache',
-                'dateCreated',
-                'dateUpdated',
-                'uid',
-            ])
+            ->select($select)
             ->from([Table::FORMIE_INTEGRATIONS])
             ->where(['dateDeleted' => null])
             ->orderBy(['sortOrder' => SORT_ASC]);

@@ -79,12 +79,20 @@ class FieldConfigNormalizer
 
     private static function _normalizeLegacyFieldConfig(array &$config): void
     {
-        if (array_key_exists('includeInEmail', $config) && !array_key_exists('includeInEmailFieldSummaries', $config)) {
-            $config['includeInEmailFieldSummaries'] = (bool)ArrayHelper::remove($config, 'includeInEmail');
+        if (array_key_exists('includeInEmail', $config)) {
+            if (!array_key_exists('includeInEmailFieldSummaries', $config)) {
+                $config['includeInEmailFieldSummaries'] = (bool)ArrayHelper::remove($config, 'includeInEmail');
+            } else {
+                unset($config['includeInEmail']);
+            }
         }
 
-        if (array_key_exists('emailValue', $config) && !array_key_exists('emailFieldSummaryValue', $config)) {
-            $config['emailFieldSummaryValue'] = (string)ArrayHelper::remove($config, 'emailValue');
+        if (array_key_exists('emailValue', $config)) {
+            if (!array_key_exists('emailFieldSummaryValue', $config)) {
+                $config['emailFieldSummaryValue'] = (string)ArrayHelper::remove($config, 'emailValue');
+            } else {
+                unset($config['emailValue']);
+            }
         }
 
         if (array_key_exists('subfieldLabelPosition', $config)) {

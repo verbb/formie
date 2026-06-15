@@ -32,7 +32,7 @@ class StencilData extends Model
             unset($notification['formId']);
             unset($notification['uid']);
 
-            $notifications[$key] = $notification;
+            $notifications[$key] = Notification::normalizeLegacyConfig($notification);
         }
 
         return $notifications;

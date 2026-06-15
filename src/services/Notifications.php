@@ -11,6 +11,7 @@ use verbb\formie\events\ModifyNotificationSchemaEvent;
 use verbb\formie\events\SendNotificationEvent;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\ConditionsHelper;
+use verbb\formie\helpers\DbSchema;
 use verbb\formie\helpers\RichTextHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
@@ -1019,36 +1020,41 @@ class Notifications extends Component
 
     private function _createNotificationsQuery(): Query
     {
+        $select = [
+            'id',
+            'formId',
+            'templateId',
+            'pdfTemplateId',
+            'name',
+            'handle',
+            'enabled',
+            'subject',
+            'recipients',
+            'to',
+            'toConditions',
+            'cc',
+            'bcc',
+            'replyTo',
+            'replyToName',
+            'from',
+            'fromName',
+            'sender',
+            'content',
+            'attachFiles',
+            'attachPdf',
+            'attachAssets',
+            'enableConditions',
+            'conditions',
+            'customSettings',
+            'uid',
+        ];
+
+        if (DbSchema::columnExists(Table::FORMIE_NOTIFICATIONS, 'dispatchTiming')) {
+            array_splice($select, -2, 0, ['dispatchTiming']);
+        }
+
         return (new Query())
-            ->select([
-                'id',
-                'formId',
-                'templateId',
-                'pdfTemplateId',
-                'name',
-                'handle',
-                'enabled',
-                'subject',
-                'recipients',
-                'to',
-                'toConditions',
-                'cc',
-                'bcc',
-                'replyTo',
-                'replyToName',
-                'from',
-                'fromName',
-                'sender',
-                'content',
-                'attachFiles',
-                'attachPdf',
-                'attachAssets',
-                'enableConditions',
-                'conditions',
-                'dispatchTiming',
-                'customSettings',
-                'uid',
-            ])
+            ->select($select)
             ->orderBy('dateCreated')
             ->from([Table::FORMIE_NOTIFICATIONS]);
     }

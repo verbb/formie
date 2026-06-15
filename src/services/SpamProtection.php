@@ -2,6 +2,7 @@
 namespace verbb\formie\services;
 
 use verbb\formie\Formie;
+use verbb\formie\helpers\DbSchema;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\Settings;
@@ -70,7 +71,7 @@ class SpamProtection extends Component
             return $this->_row;
         }
 
-        if (!Craft::$app->getDb()->tableExists(Table::FORMIE_SPAM_SETTINGS)) {
+        if (!DbSchema::tableExists(Table::FORMIE_SPAM_SETTINGS)) {
             return null;
         }
 
@@ -322,7 +323,7 @@ class SpamProtection extends Component
 
     public function seedFromLegacySettings(array $legacy = []): void
     {
-        if (!Craft::$app->getDb()->tableExists(Table::FORMIE_SPAM_SETTINGS) || $this->getRow()) {
+        if (!DbSchema::tableExists(Table::FORMIE_SPAM_SETTINGS) || $this->getRow()) {
             return;
         }
 
@@ -499,11 +500,11 @@ class SpamProtection extends Component
             return $this->_guardColumnsExist;
         }
 
-        if (!Craft::$app->getDb()->tableExists(Table::FORMIE_SPAM_SETTINGS)) {
+        if (!DbSchema::tableExists(Table::FORMIE_SPAM_SETTINGS)) {
             return $this->_guardColumnsExist = false;
         }
 
-        return $this->_guardColumnsExist = Craft::$app->getDb()->columnExists(
+        return $this->_guardColumnsExist = DbSchema::columnExists(
             Table::FORMIE_SPAM_SETTINGS,
             'enableHoneypot',
         );
@@ -551,11 +552,11 @@ class SpamProtection extends Component
             return $this->_extendedSpamColumnsExist;
         }
 
-        if (!Craft::$app->getDb()->tableExists(Table::FORMIE_SPAM_SETTINGS)) {
+        if (!DbSchema::tableExists(Table::FORMIE_SPAM_SETTINGS)) {
             return $this->_extendedSpamColumnsExist = false;
         }
 
-        return $this->_extendedSpamColumnsExist = Craft::$app->getDb()->columnExists(
+        return $this->_extendedSpamColumnsExist = DbSchema::columnExists(
             Table::FORMIE_SPAM_SETTINGS,
             'enableFormSubmitExpiration',
         );
@@ -603,14 +604,14 @@ class SpamProtection extends Component
             return $this->_abuseControlColumnsExist;
         }
 
-        if (!Craft::$app->getDb()->tableExists(Table::FORMIE_SPAM_SETTINGS)) {
+        if (!DbSchema::tableExists(Table::FORMIE_SPAM_SETTINGS)) {
             return $this->_abuseControlColumnsExist = false;
         }
 
-        return $this->_abuseControlColumnsExist = Craft::$app->getDb()
-            ->getSchema()
-            ->getTableSchema(Table::FORMIE_SPAM_SETTINGS, true)
-            ?->getColumn('enableSuspiciousTextDetection') !== null;
+        return $this->_abuseControlColumnsExist = DbSchema::columnExists(
+            Table::FORMIE_SPAM_SETTINGS,
+            'enableSuspiciousTextDetection',
+        );
     }
 
     private function _abuseControlValuesFromRow(array $row): array

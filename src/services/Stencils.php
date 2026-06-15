@@ -5,6 +5,7 @@ use verbb\formie\elements\Form;
 use verbb\formie\Formie;
 use verbb\formie\events\StencilEvent;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\DbSchema;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\Stencil;
@@ -442,20 +443,29 @@ class Stencils extends Component
 
     private function _createStencilsQuery(bool $withTrashed = false): Query
     {
+        $select = [
+            'id',
+            'name',
+            'handle',
+            'data',
+            'templateId',
+            'submitActionEntryId',
+            'defaultStatusId',
+            'dateDeleted',
+            'uid',
+        ];
+
+        if (DbSchema::columnExists(Table::FORMIE_STENCILS, 'scope')) {
+            array_splice($select, 3, 0, ['scope']);
+        }
+
+        $orderBy = DbSchema::columnExists(Table::FORMIE_STENCILS, 'scope')
+            ? ['scope' => SORT_ASC, 'name' => SORT_ASC]
+            : ['name' => SORT_ASC];
+
         $query = (new Query())
-            ->select([
-                'id',
-                'name',
-                'handle',
-                'scope',
-                'data',
-                'templateId',
-                'submitActionEntryId',
-                'defaultStatusId',
-                'dateDeleted',
-                'uid',
-            ])
-            ->orderBy(['scope' => SORT_ASC, 'name' => SORT_ASC])
+            ->select($select)
+            ->orderBy($orderBy)
             ->from([Table::FORMIE_STENCILS]);
 
         if (!$withTrashed) {

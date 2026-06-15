@@ -7,6 +7,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\events\PaymentEvent;
 use verbb\formie\events\PaymentSuccessRedirectEvent;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\DbSchema;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\Payment;
@@ -212,26 +213,31 @@ class Payments extends Component
 
     private function _createPaymentsQuery(): Query
     {
+        $select = [
+            'id',
+            'integrationId',
+            'submissionId',
+            'fieldId',
+            'subscriptionId',
+            'amount',
+            'currency',
+            'status',
+            'reference',
+            'code',
+            'message',
+            'note',
+            'response',
+            'dateCreated',
+            'dateUpdated',
+            'uid',
+        ];
+
+        if (DbSchema::columnExists(Table::FORMIE_PAYMENTS, 'redirectUrl')) {
+            array_splice($select, 11, 0, ['redirectUrl']);
+        }
+
         return (new Query())
-            ->select([
-                'id',
-                'integrationId',
-                'submissionId',
-                'fieldId',
-                'subscriptionId',
-                'amount',
-                'currency',
-                'status',
-                'reference',
-                'code',
-                'message',
-                'redirectUrl',
-                'note',
-                'response',
-                'dateCreated',
-                'dateUpdated',
-                'uid',
-            ])
+            ->select($select)
             ->orderBy('dateCreated')
             ->from([Table::FORMIE_PAYMENTS]);
     }

@@ -80,6 +80,8 @@ class Notification extends Model
 
         // Normalize the options
         if (is_array($config)) {
+            $config = self::normalizeLegacyConfig($config);
+
             // Rich-text content can be posted as ProseMirror arrays/objects from React.
             // Persist as JSON string to satisfy typed model properties.
             if (array_key_exists('content', $config) && (is_array($config['content']) || is_object($config['content']))) {
@@ -287,6 +289,19 @@ class Notification extends Model
         return Craft::t('formie', $settings->emptyValuePlaceholder);
     }
 
+    public static function normalizeLegacyConfig(array $config): array
+    {
+        if (array_key_exists('attachAssetsHtml', $config)) {
+            if (empty($config['attachAssets']) && is_string($config['attachAssetsHtml']) && $config['attachAssetsHtml'] !== '') {
+                $config['attachAssets'] = self::_parseAttachAssetsFromHtml($config['attachAssetsHtml']);
+            }
+
+            unset($config['attachAssetsHtml']);
+        }
+
+        return $config;
+    }
+
 
     // Protected Methods
     // =========================================================================
@@ -317,6 +332,21 @@ class Notification extends Model
         ]];
 
         return $rules;
+    }
+
+    private static function _parseAttachAssetsFromHtml(string $html): array
+    {
+        if (!preg_match_all('/data-id="(\d+)"/', $html, $matches)) {
+            return [];
+        }
+
+        $assets = [];
+
+        foreach (array_unique($matches[1]) as $id) {
+            $assets[] = ['id' => $id];
+        }
+
+        return $assets;
     }
 
     public function validateAttachAssets(string $attribute): void

@@ -3,6 +3,7 @@ namespace verbb\formie\services;
 
 use verbb\formie\elements\Form;
 use verbb\formie\Formie;
+use verbb\formie\helpers\DbSchema;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\FormGroup;
 
@@ -492,13 +493,22 @@ class Permissions extends Component
             return [];
         }
 
-        $formRows = (new Query())
-            ->select(['f.id', 'f.uid', 'f.groupId', 'g.handle AS groupHandle'])
+        $select = ['f.id', 'f.uid'];
+        $query = (new Query())
             ->from(['f' => Table::FORMIE_FORMS])
             ->innerJoin(['e' => CraftTable::ELEMENTS], '[[e.id]] = [[f.id]]')
-            ->leftJoin(['g' => Table::FORMIE_FORM_GROUPS], '[[g.id]] = [[f.groupId]]')
-            ->where(['e.dateDeleted' => null])
-            ->all();
+            ->where(['e.dateDeleted' => null]);
+
+        if (DbSchema::columnExists(Table::FORMIE_FORMS, 'groupId')) {
+            $select[] = 'f.groupId';
+
+            if (DbSchema::tableExists(Table::FORMIE_FORM_GROUPS)) {
+                $select[] = 'g.handle AS groupHandle';
+                $query->leftJoin(['g' => Table::FORMIE_FORM_GROUPS], '[[g.id]] = [[f.groupId]]');
+            }
+        }
+
+        $formRows = $query->select($select)->all();
 
         $accessibleIds = [];
 

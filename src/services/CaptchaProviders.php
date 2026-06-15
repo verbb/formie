@@ -5,6 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
 use verbb\formie\events\IntegrationEvent;
+use verbb\formie\helpers\DbSchema;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\Settings;
@@ -145,7 +146,7 @@ class CaptchaProviders extends Component
 
     public function seedRegistryFromLegacySettings(array $legacyCaptchas = []): void
     {
-        if (!Craft::$app->getDb()->tableExists(Table::FORMIE_CAPTCHA_PROVIDERS)) {
+        if (!DbSchema::tableExists(Table::FORMIE_CAPTCHA_PROVIDERS)) {
             return;
         }
 
@@ -251,7 +252,7 @@ class CaptchaProviders extends Component
 
     public function hydrateLegacyCaptchas(Settings $settings): void
     {
-        if (empty($settings->captchas) || !Craft::$app->getDb()->tableExists(Table::FORMIE_CAPTCHA_PROVIDERS)) {
+        if (empty($settings->captchas) || !DbSchema::tableExists(Table::FORMIE_CAPTCHA_PROVIDERS)) {
             return;
         }
 
@@ -275,23 +276,28 @@ class CaptchaProviders extends Component
             return $this->_providersByHandle;
         }
 
-        if (!Craft::$app->getDb()->tableExists(Table::FORMIE_CAPTCHA_PROVIDERS)) {
+        if (!DbSchema::tableExists(Table::FORMIE_CAPTCHA_PROVIDERS)) {
             return $this->_providersByHandle = [];
         }
 
+        $select = [
+            'id',
+            'handle',
+            'type',
+            'enabled',
+            'saveSpam',
+            'settings',
+            'dateCreated',
+            'dateUpdated',
+            'uid',
+        ];
+
+        if (DbSchema::columnExists(Table::FORMIE_CAPTCHA_PROVIDERS, 'scope')) {
+            array_splice($select, 3, 0, ['scope']);
+        }
+
         $rows = (new Query())
-            ->select([
-                'id',
-                'handle',
-                'type',
-                'scope',
-                'enabled',
-                'saveSpam',
-                'settings',
-                'dateCreated',
-                'dateUpdated',
-                'uid',
-            ])
+            ->select($select)
             ->from([Table::FORMIE_CAPTCHA_PROVIDERS])
             ->indexBy('handle')
             ->all();
