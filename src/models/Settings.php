@@ -117,6 +117,11 @@ class Settings extends Model
     public bool $enableMinimumSubmitTime = true;
     public int $minimumSubmitTime = 3;
     public bool $enableReplayProtection = true;
+    public bool $enableBlockedEmailDomains = false;
+    public string $blockedEmailDomains = '';
+    public bool $enableBlockFreeEmailDomains = false;
+    public bool $enableFormSubmitExpiration = false;
+    public int $formSubmitExpiration = 86400;
 
     // Email Notifications
     public bool $sendEmailAlerts = false;

@@ -43,6 +43,33 @@
                 name: 'minimumSubmitTime',
                 value: settings.minimumSubmitTime,
                 warning: macros.configWarning('minimumSubmitTime', 'formie'),
+                inputAttributes: {
+                    'data-fui-duration-hint': true,
+                },
+            }) }}
+        </div>
+
+        <hr>
+
+        {{ forms.lightswitchField({
+            label: 'Form Submit Expiration' | t('formie'),
+            instructions: 'Reject submissions when too much time has passed since the form was first loaded.' | t('formie'),
+            name: 'enableFormSubmitExpiration',
+            on: settings.enableFormSubmitExpiration,
+            toggle: 'enable-form-submit-expiration',
+            warning: macros.configWarning('enableFormSubmitExpiration', 'formie'),
+        }) }}
+
+        <div id="enable-form-submit-expiration" class="field {{ not settings.enableFormSubmitExpiration ? 'hidden' }}">
+            {{ forms.textField({
+                label: 'Form Submit Expiration (seconds)' | t('formie'),
+                instructions: 'The maximum number of seconds a user can take before submitting the form.' | t('formie'),
+                name: 'formSubmitExpiration',
+                value: settings.formSubmitExpiration,
+                warning: macros.configWarning('formSubmitExpiration', 'formie'),
+                inputAttributes: {
+                    'data-fui-duration-hint': true,
+                },
             }) }}
         </div>
 

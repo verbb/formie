@@ -72,6 +72,19 @@ Spam keywords are stored in the runtime spam settings store (with optional proje
 
 This is commonly done with a Global Set. For example, if you had a Global Set called `Forms` and a field called `Spam Keywords`, you could reference it in the Formie spam keywords setting with `{forms.spamKeywords}`.
 
+Spam keyword and IP rules are evaluated by `SpamHelper` during the `screen.runSpamChecks` workflow task. That includes `[match:]` logical rules, `[ip:]` ranges and CIDR notation, and field/global references in keyword lines.
+
+### Email rules
+
+Global email rules apply to every **Email Address** field on every form during the **`screen`** stage. They mark matching submissions as spam rather than showing a field validation error.
+
+Configure them under **Formie → Settings → Spam Protection → Content Rules → Email Rules**:
+
+- **Blocked domains** — one domain per line (for example `mailinator.com`)
+- **Block free email providers** — rejects addresses from Formie’s maintained free/disposable provider list
+
+Per-field email settings such as **Blocked Domains**, **Block Free Email Providers**, and **Validate Domain (DNS)** still run separately during field validation. Use global rules when you want the same policy everywhere; use per-field settings when only some forms need stricter email checks.
+
 ## Submission guards
 
 Submission guards are built-in passive checks that run **before** captcha integrations and keyword rules. They replace the old **Honeypot**, **Javascript**, and **Duplicate** captcha integrations that shipped in earlier major versions.
@@ -82,9 +95,10 @@ Configure them under **Formie → Settings → Spam Protection → Submission Gu
 | --- | --- | --- |
 | **Honeypot** | Renders a hidden field that legitimate users should leave empty. Submissions that fill it in are marked as spam. | Legacy **Honeypot** captcha |
 | **Minimum submit time** | Requires a minimum delay between the form loading and submission. | Legacy **Javascript** captcha (including its minimum submit time option) |
+| **Form submit expiration** | Rejects submissions when too much time has passed since the form was first loaded. | — |
 | **Replay protection** | Prevents duplicate submissions from reusing the same `requestToken`. | Legacy **Duplicate** captcha |
 
-All three guards are enabled by default with sensible starting values (honeypot on, three-second minimum submit time, replay protection on).
+Honeypot, minimum submit time, and replay protection are enabled by default. Form submit expiration is off by default.
 
 ### How guards run in the workflow
 
@@ -110,6 +124,12 @@ If you customize the name, make sure it does not match any field handle or name 
 The browser package records when a form instance was first mounted and sends that value as `formStartedAt`. Formie compares it against the configured minimum (in seconds) on the server.
 
 Very fast automated submissions are flagged as spam. Real users who submit immediately after the page loads may also be caught if the minimum is set too high, so tune this value for your forms.
+
+### Form submit expiration
+
+Form submit expiration uses the same `formStartedAt` timestamp as minimum submit time. If the elapsed time exceeds the configured maximum (in seconds), the submission is marked as spam.
+
+Use this when you want to reject stale form sessions left open for hours or days. It is disabled by default.
 
 ### Replay protection
 

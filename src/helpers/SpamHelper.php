@@ -2,6 +2,8 @@
 namespace verbb\formie\helpers;
 
 use verbb\formie\Formie;
+use verbb\formie\elements\Submission;
+use verbb\formie\fields\Email as EmailField;
 use verbb\formie\models\Settings;
 
 use Craft;
@@ -13,30 +15,172 @@ class SpamHelper
     // Static Methods
     // =========================================================================
 
-    public static function checkContent(string $content): bool|array
+    public static function checkSubmission(Submission $submission, ?string $spamKeywords = null): bool|array
     {
-        $userIp = Craft::$app->getRequest()->userIP;
-        $evaluator = self::_getEvaluator();
+        /** @var Settings $settings */
+        $settings = Formie::$plugin->getSettings();
+        $keywords = $spamKeywords ?? $settings->spamKeywords;
 
+        return self::checkContent(
+            self::buildSubmissionHaystack($submission),
+            (string)($submission->ipAddress ?? self::_requestUserIp()),
+            self::resolveKeywordLines($keywords, $submission),
+        );
+    }
+
+    private static function _requestUserIp(): string
+    {
+        $request = Craft::$app->getRequest();
+
+        if (!method_exists($request, 'getUserIP')) {
+            return '';
+        }
+
+        return (string)($request->getUserIP() ?? '');
+    }
+
+    public static function checkGlobalEmailRules(Submission $submission): bool|array
+    {
         /** @var Settings $settings */
         $settings = Formie::$plugin->getSettings();
 
-        // Each line is one spam condition
-        $lines = self::_getArrayFromMultiline($settings->spamKeywords);
-        $twigLines = [];
+        if (!$settings->enableBlockedEmailDomains && !$settings->enableBlockFreeEmailDomains) {
+            return false;
+        }
 
-        // Pre-parse the lines to swap out any Twig that should resolve to rules
-        foreach ($lines as $key => $line) {
-            if (str_contains($line, '{')) {
-                unset($lines[$key]);
-                $twigLines[] = self::_getArrayFromMultiline($line);
+        $emailDomains = Formie::$plugin->getEmailDomains();
+
+        foreach (self::collectSubmissionEmailAddresses($submission) as $email) {
+            $domain = $emailDomains->extractDomainFromEmail($email);
+
+            if (!$domain) {
+                continue;
+            }
+
+            if ($settings->enableBlockFreeEmailDomains && $emailDomains->isFreeDomain($domain)) {
+                return [
+                    'type' => 'freeEmailDomain',
+                    'value' => $domain,
+                ];
+            }
+
+            if ($settings->enableBlockedEmailDomains) {
+                $blockedDomains = self::parseDomainList($settings->blockedEmailDomains);
+
+                if (in_array($domain, $blockedDomains, true)) {
+                    return [
+                        'type' => 'blockedEmailDomain',
+                        'value' => $domain,
+                    ];
+                }
             }
         }
 
-        // For performance
-        $lines = array_merge($lines, ...$twigLines);
+        return false;
+    }
 
-        // We'll parse each line into an ExpressionLanguage string
+    public static function resolveKeywordLines(?string $spamKeywords, ?Submission $submission = null): array
+    {
+        $lines = self::_getArrayFromMultiline($spamKeywords ?? '');
+        $resolved = [];
+
+        foreach ($lines as $line) {
+            if ($submission && str_contains($line, '{')) {
+                $parsed = References::parseContent($line, $submission);
+
+                foreach (self::_getArrayFromMultiline($parsed) as $resolvedLine) {
+                    $resolved[] = $resolvedLine;
+                }
+
+                continue;
+            }
+
+            $resolved[] = $line;
+        }
+
+        return array_values(array_filter($resolved));
+    }
+
+    public static function buildSubmissionHaystack(Submission $submission): string
+    {
+        return self::_buildHaystack($submission->getValuesAsString());
+    }
+
+    public static function parseDomainList(?string $domains): array
+    {
+        $emailDomains = Formie::$plugin->getEmailDomains();
+        $normalized = [];
+
+        foreach (self::_getArrayFromMultiline($domains ?? '') as $domain) {
+            $domain = $emailDomains->normalizeDomain($domain);
+
+            if ($domain) {
+                $normalized[] = $domain;
+            }
+        }
+
+        return array_values(array_unique($normalized));
+    }
+
+    public static function collectSubmissionEmailAddresses(Submission $submission): array
+    {
+        $form = $submission->getForm();
+        $emails = [];
+
+        if (!$form) {
+            return $emails;
+        }
+
+        foreach ($form->getFields() as $field) {
+            if (!$field instanceof EmailField) {
+                continue;
+            }
+
+            $value = trim($submission->getFieldValueAsString($field->handle));
+
+            if ($value !== '') {
+                $emails[] = $value;
+            }
+        }
+
+        return $emails;
+    }
+
+    public static function spamReasonFromMatch(array $match): string
+    {
+        if (($match['type'] ?? '') === 'ip') {
+            return Craft::t('formie', 'Contains banned IP: “{c}”', ['c' => $match['value']]);
+        }
+
+        return Craft::t('formie', 'Contains banned keyword: “{c}”', ['c' => $match['value']]);
+    }
+
+    public static function spamReasonFromEmailMatch(array $match): string
+    {
+        if (($match['type'] ?? '') === 'freeEmailDomain') {
+            return Craft::t('formie', 'Blocked free email domain: {domain}.', ['domain' => $match['value']]);
+        }
+
+        return Craft::t('formie', 'Blocked email domain: {domain}.', ['domain' => $match['value']]);
+    }
+
+    public static function checkContent(string $content, ?string $userIp = null, ?array $lines = null): bool|array
+    {
+        if ($userIp === null) {
+            $request = Craft::$app->getRequest();
+            $userIp = method_exists($request, 'getUserIP')
+                ? (string)($request->getUserIP() ?? '')
+                : '';
+        }
+
+        $evaluator = self::_getEvaluator();
+
+        if ($lines === null) {
+            /** @var Settings $settings */
+            $settings = Formie::$plugin->getSettings();
+            $lines = self::resolveKeywordLines($settings->spamKeywords);
+        }
+
         foreach ($lines as $line) {
             $expression = self::_parseLineToExpression($line);
 
@@ -45,7 +189,6 @@ class SpamHelper
                 'userIp' => $userIp,
             ]);
 
-            // If any line is true => spam
             if ($result) {
                 return [
                     'type' => self::_getRuleType($line),
@@ -158,7 +301,31 @@ class SpamHelper
         return 'text';
     }
 
-    private static function _getArrayFromMultiline(string $string): array
+    private static function _buildHaystack(array $values): string
+    {
+        $parts = [];
+
+        foreach ($values as $value) {
+            if (is_scalar($value)) {
+                $parts[] = (string)$value;
+                continue;
+            }
+
+            if (is_array($value)) {
+                $parts[] = self::_buildHaystack($value);
+            }
+        }
+
+        $haystack = trim(implode(' ', array_filter($parts)));
+
+        if (strlen($haystack) > 65536) {
+            return substr($haystack, 0, 65536);
+        }
+
+        return $haystack;
+    }
+
+    private static function _getArrayFromMultiline(?string $string): array
     {
         $array = [];
 
@@ -166,7 +333,7 @@ class SpamHelper
             $array = array_map('trim', explode(PHP_EOL, $string));
         }
 
-        return array_filter($array);
+        return array_values(array_filter($array));
     }
 
     private static function _ipIsEqual(string $userIp, string $targetIp): bool

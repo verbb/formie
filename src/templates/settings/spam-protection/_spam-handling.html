@@ -73,5 +73,38 @@
             value: settings.spamKeywords,
             warning: macros.configWarning('spamKeywords', 'formie'),
         }) }}
+
+        <hr>
+
+        <h4>{{ 'Email Rules' | t('formie') }}</h4>
+        <p>{{ 'Apply these rules to every Email Address field on every form. Per-field email validation settings still run separately during field validation.' | t('formie') }}</p>
+
+        {{ forms.lightswitchField({
+            label: 'Blocked Domains' | t('formie'),
+            instructions: 'Mark submissions as spam when any Email Address field uses a domain listed below.' | t('formie'),
+            name: 'enableBlockedEmailDomains',
+            on: settings.enableBlockedEmailDomains,
+            toggle: 'enable-blocked-email-domains',
+            warning: macros.configWarning('enableBlockedEmailDomains', 'formie'),
+        }) }}
+
+        <div id="enable-blocked-email-domains" class="field {{ not settings.enableBlockedEmailDomains ? 'hidden' }}">
+            {{ forms.textareaField({
+                label: 'Blocked Domains' | t('formie'),
+                instructions: 'Enter one domain per line, such as `mailinator.com` or `tempmail.net`.' | t('formie'),
+                name: 'blockedEmailDomains',
+                rows: 6,
+                value: settings.blockedEmailDomains,
+                warning: macros.configWarning('blockedEmailDomains', 'formie'),
+            }) }}
+        </div>
+
+        {{ forms.lightswitchField({
+            label: 'Block Free Email Providers' | t('formie'),
+            instructions: 'Mark submissions as spam when any Email Address field uses a known free or disposable email provider.' | t('formie'),
+            name: 'enableBlockFreeEmailDomains',
+            on: settings.enableBlockFreeEmailDomains,
+            warning: macros.configWarning('enableBlockFreeEmailDomains', 'formie'),
+        }) }}
     {% endnamespace %}
 </div>

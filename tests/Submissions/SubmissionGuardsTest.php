@@ -131,6 +131,7 @@ it('consumes request tokens after a completed submit and blocks replay attempts'
             ]));
         }, [
             'handle' => $form->handle,
+            'formStartedAt' => (string)((int)(microtime(true) * 1000) - 30000),
         ]);
 
         expect($replayReason)->toBeNull();
@@ -152,6 +153,7 @@ it('consumes request tokens after a completed submit and blocks replay attempts'
             ]));
         }, [
             'handle' => $form->handle,
+            'formStartedAt' => (string)((int)(microtime(true) * 1000) - 30000),
         ]);
 
         expect($blockedReason)->toContain('already been used');

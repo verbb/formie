@@ -179,6 +179,13 @@
             margin-bottom: 0;
         }
     }
+
+    .fui-duration-hint {
+        margin: 5px 0 0;
+        color: var(--fg-subtle, #596673);
+        font-size: 12px;
+        line-height: 1.4;
+    }
 }
 
 .fui-settings-block {

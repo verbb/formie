@@ -35,6 +35,11 @@ class SpamProtection extends Component
         'enableMinimumSubmitTime',
         'minimumSubmitTime',
         'enableReplayProtection',
+        'enableBlockedEmailDomains',
+        'blockedEmailDomains',
+        'enableBlockFreeEmailDomains',
+        'enableFormSubmitExpiration',
+        'formSubmitExpiration',
     ];
 
 
@@ -43,6 +48,7 @@ class SpamProtection extends Component
 
     private ?array $_row = null;
     private ?bool $_guardColumnsExist = null;
+    private ?bool $_extendedSpamColumnsExist = null;
 
 
     // Public Methods
@@ -79,6 +85,16 @@ class SpamProtection extends Component
                 'enableMinimumSubmitTime',
                 'minimumSubmitTime',
                 'enableReplayProtection',
+            ]);
+        }
+
+        if ($this->_extendedSpamColumnsExist()) {
+            $select = array_merge($select, [
+                'enableBlockedEmailDomains',
+                'blockedEmailDomains',
+                'enableBlockFreeEmailDomains',
+                'enableFormSubmitExpiration',
+                'formSubmitExpiration',
             ]);
         }
 
@@ -161,6 +177,7 @@ class SpamProtection extends Component
             'spamBehaviourMessage' => (string)$row['spamBehaviourMessage'],
             'spamKeywords' => (string)$row['spamKeywords'],
             ...$this->_guardValuesFromRow($row),
+            ...$this->_extendedSpamValuesFromRow($row),
         ];
     }
 
@@ -178,6 +195,11 @@ class SpamProtection extends Component
             'enableMinimumSubmitTime' => true,
             'minimumSubmitTime' => 3,
             'enableReplayProtection' => true,
+            'enableBlockedEmailDomains' => false,
+            'blockedEmailDomains' => '',
+            'enableBlockFreeEmailDomains' => false,
+            'enableFormSubmitExpiration' => false,
+            'formSubmitExpiration' => 86400,
         ];
     }
 
@@ -248,6 +270,7 @@ class SpamProtection extends Component
             $record->spamBehaviourMessage = (string)($values['spamBehaviourMessage'] ?? '');
             $record->spamKeywords = (string)($values['spamKeywords'] ?? '');
             $this->_assignGuardValues($record, $values);
+            $this->_assignExtendedSpamValues($record, $values);
 
             $record->save(false);
 
@@ -299,6 +322,16 @@ class SpamProtection extends Component
             ]);
         }
 
+        if ($this->_extendedSpamColumnsExist()) {
+            $insert = array_merge($insert, [
+                'enableBlockedEmailDomains' => (bool)$values['enableBlockedEmailDomains'],
+                'blockedEmailDomains' => (string)$values['blockedEmailDomains'],
+                'enableBlockFreeEmailDomains' => (bool)$values['enableBlockFreeEmailDomains'],
+                'enableFormSubmitExpiration' => (bool)$values['enableFormSubmitExpiration'],
+                'formSubmitExpiration' => (int)$values['formSubmitExpiration'],
+            ]);
+        }
+
         Craft::$app->getDb()->createCommand()
             ->insert(Table::FORMIE_SPAM_SETTINGS, $insert)
             ->execute();
@@ -330,6 +363,11 @@ class SpamProtection extends Component
             'enableMinimumSubmitTime' => (bool)($values['enableMinimumSubmitTime'] ?? true),
             'minimumSubmitTime' => (int)($values['minimumSubmitTime'] ?? 3),
             'enableReplayProtection' => (bool)($values['enableReplayProtection'] ?? true),
+            'enableBlockedEmailDomains' => (bool)($values['enableBlockedEmailDomains'] ?? false),
+            'blockedEmailDomains' => (string)($values['blockedEmailDomains'] ?? ''),
+            'enableBlockFreeEmailDomains' => (bool)($values['enableBlockFreeEmailDomains'] ?? false),
+            'enableFormSubmitExpiration' => (bool)($values['enableFormSubmitExpiration'] ?? false),
+            'formSubmitExpiration' => (int)($values['formSubmitExpiration'] ?? 86400),
         ];
     }
 
@@ -360,6 +398,7 @@ class SpamProtection extends Component
             $record->spamBehaviourMessage = (string)($data['spamBehaviourMessage'] ?? '');
             $record->spamKeywords = (string)($data['spamKeywords'] ?? '');
             $this->_assignGuardValues($record, $data);
+            $this->_assignExtendedSpamValues($record, $data);
             $record->save(false);
 
             $transaction->commit();
@@ -394,6 +433,7 @@ class SpamProtection extends Component
         $record->spamBehaviourMessage = (string)$defaults['spamBehaviourMessage'];
         $record->spamKeywords = (string)$defaults['spamKeywords'];
         $this->_assignGuardValues($record, $defaults);
+        $this->_assignExtendedSpamValues($record, $defaults);
         $record->save(false);
 
         $this->_resetCache();
@@ -407,6 +447,7 @@ class SpamProtection extends Component
     {
         $this->_row = null;
         $this->_guardColumnsExist = null;
+        $this->_extendedSpamColumnsExist = null;
     }
 
     private function _guardColumnsExist(): bool
@@ -461,6 +502,58 @@ class SpamProtection extends Component
         $record->enableReplayProtection = (bool)($values['enableReplayProtection'] ?? true);
     }
 
+    private function _extendedSpamColumnsExist(): bool
+    {
+        if ($this->_extendedSpamColumnsExist !== null) {
+            return $this->_extendedSpamColumnsExist;
+        }
+
+        if (!Craft::$app->getDb()->tableExists(Table::FORMIE_SPAM_SETTINGS)) {
+            return $this->_extendedSpamColumnsExist = false;
+        }
+
+        return $this->_extendedSpamColumnsExist = Craft::$app->getDb()->columnExists(
+            Table::FORMIE_SPAM_SETTINGS,
+            'enableFormSubmitExpiration',
+        );
+    }
+
+    private function _extendedSpamValuesFromRow(array $row): array
+    {
+        $defaults = $this->getDefaultValues();
+
+        if (!$this->_extendedSpamColumnsExist()) {
+            return [
+                'enableBlockedEmailDomains' => (bool)$defaults['enableBlockedEmailDomains'],
+                'blockedEmailDomains' => (string)$defaults['blockedEmailDomains'],
+                'enableBlockFreeEmailDomains' => (bool)$defaults['enableBlockFreeEmailDomains'],
+                'enableFormSubmitExpiration' => (bool)$defaults['enableFormSubmitExpiration'],
+                'formSubmitExpiration' => (int)$defaults['formSubmitExpiration'],
+            ];
+        }
+
+        return [
+            'enableBlockedEmailDomains' => (bool)($row['enableBlockedEmailDomains'] ?? false),
+            'blockedEmailDomains' => (string)($row['blockedEmailDomains'] ?? ''),
+            'enableBlockFreeEmailDomains' => (bool)($row['enableBlockFreeEmailDomains'] ?? false),
+            'enableFormSubmitExpiration' => (bool)($row['enableFormSubmitExpiration'] ?? false),
+            'formSubmitExpiration' => (int)($row['formSubmitExpiration'] ?? 86400),
+        ];
+    }
+
+    private function _assignExtendedSpamValues(SpamSettingsRecord $record, array $values): void
+    {
+        if (!$this->_extendedSpamColumnsExist()) {
+            return;
+        }
+
+        $record->enableBlockedEmailDomains = (bool)($values['enableBlockedEmailDomains'] ?? false);
+        $record->blockedEmailDomains = (string)($values['blockedEmailDomains'] ?? '');
+        $record->enableBlockFreeEmailDomains = (bool)($values['enableBlockFreeEmailDomains'] ?? false);
+        $record->enableFormSubmitExpiration = (bool)($values['enableFormSubmitExpiration'] ?? false);
+        $record->formSubmitExpiration = (int)($values['formSubmitExpiration'] ?? 86400);
+    }
+
     private function _saveProjectSettings(array $values): bool
     {
         if (!Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
@@ -498,6 +591,7 @@ class SpamProtection extends Component
             $record->spamBehaviourMessage = (string)($values['spamBehaviourMessage'] ?? '');
             $record->spamKeywords = (string)($values['spamKeywords'] ?? '');
             $this->_assignGuardValues($record, $values);
+            $this->_assignExtendedSpamValues($record, $values);
             $record->save(false);
 
             $transaction->commit();

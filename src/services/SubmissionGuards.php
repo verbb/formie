@@ -71,6 +71,14 @@ class SubmissionGuards extends Component
             }
         }
 
+        if ($settings->enableFormSubmitExpiration) {
+            $reason = $this->_validateFormSubmitExpiration($settings);
+
+            if ($reason) {
+                return $reason;
+            }
+        }
+
         return null;
     }
 
@@ -155,6 +163,24 @@ class SubmissionGuards extends Component
 
         if ($elapsedSeconds < $minimumSeconds) {
             return Craft::t('formie', 'Form submitted too quickly.');
+        }
+
+        return null;
+    }
+
+    private function _validateFormSubmitExpiration(Settings $settings): ?string
+    {
+        $startedAt = $this->_getBodyParam(self::FORM_STARTED_AT_PARAM);
+
+        if ($startedAt === null || !is_numeric($startedAt)) {
+            return null;
+        }
+
+        $elapsedSeconds = (microtime(true) * 1000 - (float)$startedAt) / 1000;
+        $maxSeconds = max(1, (int)$settings->formSubmitExpiration);
+
+        if ($elapsedSeconds > $maxSeconds) {
+            return Craft::t('formie', 'Form session has expired.');
         }
 
         return null;

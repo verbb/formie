@@ -8,9 +8,9 @@ Screening combines **submission guards**, **captcha integrations**, and **server
 
 For a normal submit request, Formie runs the `screen` stage in a fixed order:
 
-1. **`screen.runSubmissionGuards`** — built-in passive checks: honeypot, minimum submit time, and replay protection. These are configured globally under **Settings → Spam Protection → Submission Guards**. If a guard fails, the submission is marked as spam with a clear `spamReason`.
+1. **`screen.runSubmissionGuards`** — built-in passive checks: honeypot, minimum submit time, form submit expiration, and replay protection. These are configured globally under **Settings → Spam Protection → Submission Guards**. If a guard fails, the submission is marked as spam with a clear `spamReason`.
 2. **`screen.runCaptchaChecks`** — every captcha integration enabled for the form runs in turn. If a captcha fails validation, the submission is marked as spam with a clear reason and the captcha class is recorded for review.
-3. **`screen.runSpamChecks`** — plugin-level rules such as spam keywords and IP matching are applied against the submission content.
+3. **`screen.runSpamChecks`** — global email rules (when enabled), then plugin-level spam keyword and IP rules against submission content.
 
 That ordering means lightweight built-in checks run first, then provider-backed captchas, then broader text and network rules. Draft saves and non-submit actions skip this stage so editors and save-and-continue flows are not blocked by guards, captchas, or keyword lists.
 

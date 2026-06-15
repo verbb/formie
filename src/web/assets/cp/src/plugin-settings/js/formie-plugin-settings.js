@@ -7,3 +7,6 @@
 
 // CSS needs to be imported here as it's treated as a module
 import '../scss/formie-plugin-settings.scss';
+import { initDurationHints } from './duration-hint';
+
+initDurationHints();
