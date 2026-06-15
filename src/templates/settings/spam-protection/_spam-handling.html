@@ -121,14 +121,6 @@
         }) }}
 
         <div id="enable-suspicious-text-detection" class="field {{ not settings.enableSuspiciousTextDetection ? 'hidden' }}">
-            {{ forms.textField({
-                label: 'Minimum Word Length' | t('formie'),
-                instructions: 'Minimum word length used to detect suspicious text. Lower values increase sensitivity but may flag valid words.' | t('formie'),
-                name: 'suspiciousTextMinimumWordLength',
-                value: settings.suspiciousTextMinimumWordLength,
-                warning: macros.configWarning('suspiciousTextMinimumWordLength', 'formie'),
-            }) }}
-
             {{ forms.textareaField({
                 label: 'Allowed Terms' | t('formie'),
                 instructions: 'Enter words or abbreviations that should be ignored by suspicious text detection. Add one per line (for example RFP, ABB, or technical product codes).' | t('formie'),

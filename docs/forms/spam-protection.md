@@ -89,7 +89,7 @@ Per-field email settings such as **Blocked Domains**, **Block Free Email Provide
 
 Configure these under **Formie → Settings → Spam Protection → Content Rules → Text Rules**:
 
-- **Suspicious text detection** — flags keyboard spam, random character strings, and other low-quality filler text in submission fields. You can tune sensitivity with **Minimum word length** and add **Allowed terms** (one per line) for abbreviations or product codes that should not be flagged.
+- **Suspicious text detection** — flags keyboard spam, random character strings, and other low-quality filler text in submission fields. Add **Allowed terms** (one per line) for abbreviations or product codes that should not be flagged.
 - **Maximum links** — marks submissions as spam when the total number of links across all fields exceeds the configured limit.
 
 Both rules run during the **`screen.runSpamChecks`** workflow task, after email rules and before spam keywords.

@@ -196,7 +196,6 @@ class SpamHelper
             return false;
         }
 
-        $minimumWordLength = max(0, (int)$settings->suspiciousTextMinimumWordLength);
         $allowedTerms = self::parseAllowedTerms($settings->suspiciousTextAllowedTerms);
         $form = $submission->getForm();
 
@@ -211,7 +210,7 @@ class SpamHelper
                 continue;
             }
 
-            $analysis = SuspiciousTextHelper::analyze($value, $minimumWordLength, $allowedTerms);
+            $analysis = SuspiciousTextHelper::analyze($value, $allowedTerms);
 
             if ($analysis['is_suspicious'] ?? false) {
                 return [

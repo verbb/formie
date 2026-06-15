@@ -123,7 +123,6 @@ class Settings extends Model
     public bool $enableFormSubmitExpiration = false;
     public int $formSubmitExpiration = 86400;
     public bool $enableSuspiciousTextDetection = false;
-    public int $suspiciousTextMinimumWordLength = 6;
     public string $suspiciousTextAllowedTerms = '';
     public bool $enableMaximumLinks = false;
     public int $maximumLinks = 10;

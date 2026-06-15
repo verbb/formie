@@ -41,7 +41,6 @@ class SpamProtection extends Component
         'enableFormSubmitExpiration',
         'formSubmitExpiration',
         'enableSuspiciousTextDetection',
-        'suspiciousTextMinimumWordLength',
         'suspiciousTextAllowedTerms',
         'enableMaximumLinks',
         'maximumLinks',
@@ -112,7 +111,6 @@ class SpamProtection extends Component
         if ($this->_abuseControlColumnsExist()) {
             $select = array_merge($select, [
                 'enableSuspiciousTextDetection',
-                'suspiciousTextMinimumWordLength',
                 'suspiciousTextAllowedTerms',
                 'enableMaximumLinks',
                 'maximumLinks',
@@ -228,7 +226,6 @@ class SpamProtection extends Component
             'enableFormSubmitExpiration' => false,
             'formSubmitExpiration' => 86400,
             'enableSuspiciousTextDetection' => false,
-            'suspiciousTextMinimumWordLength' => 6,
             'suspiciousTextAllowedTerms' => '',
             'enableMaximumLinks' => false,
             'maximumLinks' => 10,
@@ -633,7 +630,6 @@ class SpamProtection extends Component
 
         return [
             'enableSuspiciousTextDetection' => (bool)($values['enableSuspiciousTextDetection'] ?? ($withDefaults ? $defaults['enableSuspiciousTextDetection'] : false)),
-            'suspiciousTextMinimumWordLength' => (int)($values['suspiciousTextMinimumWordLength'] ?? ($withDefaults ? $defaults['suspiciousTextMinimumWordLength'] : 6)),
             'suspiciousTextAllowedTerms' => (string)($values['suspiciousTextAllowedTerms'] ?? ($withDefaults ? $defaults['suspiciousTextAllowedTerms'] : '')),
             'enableMaximumLinks' => (bool)($values['enableMaximumLinks'] ?? ($withDefaults ? $defaults['enableMaximumLinks'] : false)),
             'maximumLinks' => (int)($values['maximumLinks'] ?? ($withDefaults ? $defaults['maximumLinks'] : 10)),
@@ -653,7 +649,6 @@ class SpamProtection extends Component
 
         $abuseValues = $this->_abuseControlValuesFromArray($values, true);
         $record->enableSuspiciousTextDetection = (bool)$abuseValues['enableSuspiciousTextDetection'];
-        $record->suspiciousTextMinimumWordLength = (int)$abuseValues['suspiciousTextMinimumWordLength'];
         $record->suspiciousTextAllowedTerms = (string)$abuseValues['suspiciousTextAllowedTerms'];
         $record->enableMaximumLinks = (bool)$abuseValues['enableMaximumLinks'];
         $record->maximumLinks = (int)$abuseValues['maximumLinks'];

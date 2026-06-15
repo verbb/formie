@@ -139,7 +139,6 @@ it('persists abuse control settings in the spam protection store', function (): 
         Formie::$plugin->getSpamProtection()->getSettingsValues(),
         [
             'enableSuspiciousTextDetection' => true,
-            'suspiciousTextMinimumWordLength' => 8,
             'suspiciousTextAllowedTerms' => "RFP\n",
             'enableMaximumLinks' => true,
             'maximumLinks' => 4,
@@ -156,7 +155,6 @@ it('persists abuse control settings in the spam protection store', function (): 
     $values = Formie::$plugin->getSpamProtection()->getSettingsValues();
 
     expect($values['enableSuspiciousTextDetection'])->toBeTrue()
-        ->and($values['suspiciousTextMinimumWordLength'])->toBe(8)
         ->and($values['suspiciousTextAllowedTerms'])->toContain('RFP')
         ->and($values['enableMaximumLinks'])->toBeTrue()
         ->and($values['maximumLinks'])->toBe(4)
