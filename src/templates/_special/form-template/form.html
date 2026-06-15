@@ -16,6 +16,7 @@
     {% if showForm %}
         {% formtag 'form' %}
             {{ formieInclude('form/hidden-inputs') }}
+            {{ formieInclude('form/honeypot') }}
 
             {{ formieInclude('form/header') }}
             {{ formieInclude('form/messages-top') }}

@@ -5,6 +5,7 @@
 {{ hiddenInput('siteId', craft.app.sites.currentSite.id) }}
 {{ hiddenInput('renderId', form.getRenderId()) }}
 {{ hiddenInput('requestToken', form.getRequestToken()) }}
+{{ hiddenInput('formStartedAt', '') }}
 
 {% if form.getRelations() %}
     {{ hiddenInput('relations', form.getRelations()) }}

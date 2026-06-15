@@ -28,6 +28,7 @@ import { loadModulesFromManifest } from '#modules/loader';
 import { registerThemeClassMap } from '#theme/theme-classes';
 import { runSubmitPipeline } from '#submit/pipeline';
 import { clearSubmissionOnUnload, requestGraphqlRender, requestRefreshTokens, requestRender, requestSetPage } from '#transport/forms-api';
+import { ensureFormStartedAt } from '#utils/form-started-at';
 import { createDebug } from '#utils/debug';
 import { createFormUnloadWarningGuard } from '#utils/unload-warning';
 import { getValidationScope } from '#validation/scope';
@@ -1017,6 +1018,8 @@ export function createFormieClient(): FormieClient {
         }
 
         if (form) {
+            ensureFormStartedAt(form);
+
             if (renderPayload || normalizedOptions.endpoint || (target as HTMLElement).dataset.formieEndpoint) {
                 normalizeHeadlessManagedUrls(target, form, normalizedOptions);
             }

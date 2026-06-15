@@ -8,6 +8,7 @@ use verbb\formie\workflow\StageResult;
 use verbb\formie\workflow\WorkflowContext;
 use verbb\formie\workflow\tasks\finalize\ApplyProgressionStateTask;
 use verbb\formie\workflow\tasks\finalize\ApplySpamBehaviourTask;
+use verbb\formie\workflow\tasks\finalize\ConsumeReplayTokenTask;
 use verbb\formie\workflow\tasks\finalize\HydrateResponseTask;
 
 class FinalizeStage implements StageInterface
@@ -36,6 +37,7 @@ class FinalizeStage implements StageInterface
         return $this->process->runStageTasks($context, $this->getName(), [
             new ApplySpamBehaviourTask(),
             new ApplyProgressionStateTask(),
+            new ConsumeReplayTokenTask(),
             new HydrateResponseTask(),
         ]);
     }

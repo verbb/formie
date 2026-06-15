@@ -59,6 +59,14 @@ Submission processing is no longer one large save step. Formie now runs submissi
 
 That makes custom submission handling more predictable. If you need to run your own logic during processing, it is a better fit to add a workflow task or hook into the workflow events than to try to replace the whole pipeline.
 
+The **`screen`** stage now runs built-in submission guards (honeypot, minimum submit time, replay protection) before captcha integrations and spam keyword checks. See [Submission screening](/forms/submission-screening).
+
+### Spam Protection settings
+
+Spam handling, keyword rules, submission guards, and captcha provider credentials are consolidated on **Settings → Spam Protection**. Legacy **Settings → Spam** and **Settings → Captchas** routes redirect there. Values are stored in runtime settings tables rather than `plugins.formie.settings` in project config.
+
+If you relied on the old built-in **Honeypot**, **Javascript**, or **Duplicate** captchas, see [Removed legacy captchas](#removed-legacy-captchas).
+
 ### Front-end Browser Package
 
 Formie’s front-end JavaScript and CSS are now part of the browser package and related front-end packages.
@@ -418,7 +426,9 @@ See [Captcha Integration](/developers/custom-integration/captcha-integration) an
 
 ## Removed legacy captchas
 
-Formie 4 no longer ships the **Duplicate**, **JavaScript**, or **Honeypot** captcha integrations that existed in earlier major versions.
+Formie 4 no longer ships the **Duplicate**, **JavaScript**, or **Honeypot** captcha integrations that existed in earlier major versions. They are not available in the form builder’s captcha picker, and there is no compatibility shim that re-registers them as captcha integrations.
+
+Instead, their behaviour is covered by **submission guards** — built-in passive checks configured globally under **Formie → Settings → Spam Protection → Submission Guards**.
 
 ### What they were
 
@@ -430,11 +440,46 @@ Those approaches did not match how serious abuse is handled today: explicit prov
 
 ### What to use instead
 
-Enable one or more of the supported [Captcha integrations](/integrations/captchas/akismet) (for example Cloudflare Turnstile, hCaptcha, or reCAPTCHA) and combine them with [Spam Protection](/forms/spam-protection) rules where appropriate.
+| Legacy captcha | Formie 4 replacement | Where to configure |
+| --- | --- | --- |
+| **Honeypot** | **Honeypot** submission guard | **Settings → Spam Protection → Submission Guards** |
+| **Javascript** (including minimum submit time) | **Minimum submit time** submission guard | **Settings → Spam Protection → Submission Guards** |
+| **Duplicate** | **Replay protection** submission guard | **Settings → Spam Protection → Submission Guards** |
 
-Formie 4 evaluates captchas and spam rules together in a predictable pipeline. See [Submission screening](/forms/submission-screening) for how the `screen` stage orders checks and how that relates to validation and saves.
+Submission guards are **global** settings. They apply to all forms automatically when enabled. You do not enable them per form the way you did with the old built-in captchas.
 
-If you had custom code or front-end automation that targeted the old Duplicate, JavaScript, or Honeypot captcha handles, switch to the integration handles exposed by your replacement captchas and update any GraphQL mutation arguments accordingly.
+All three guards are enabled by default after upgrade (honeypot on, three-second minimum submit time, replay protection on). Review **Settings → Spam Protection** after upgrading and adjust them for your site.
+
+For stronger abuse protection, also enable one or more supported [Captcha integrations](/integrations/captchas/) (for example Cloudflare Turnstile, hCaptcha, or reCAPTCHA) and combine them with [Spam Protection](/forms/spam-protection) keyword rules where appropriate.
+
+### How guards fit the workflow
+
+Guards are not captcha integrations. They run through dedicated workflow tasks:
+
+1. **`screen.runSubmissionGuards`** — runs first in the **`screen`** stage, before `screen.runCaptchaChecks` and `screen.runSpamChecks`. A failed guard marks the submission as spam and sets `spamReason`.
+2. **`finalize.consumeReplayToken`** — runs in the **`finalize`** stage after a successful, complete submission. Replay protection only consumes the `requestToken` once processing succeeds, so failed or incomplete submissions can retry.
+
+Guards only run for normal browser form POST requests that include `handle` and `submitAction`. GraphQL submissions and other headless flows skip them.
+
+The honeypot input and `formStartedAt` timestamp are rendered automatically for browser forms. Replay protection reuses Formie’s existing per-render `requestToken`.
+
+See [Submission screening](/forms/submission-screening) for the full screening order and [Spam Protection](/forms/spam-protection#submission-guards) for configuration detail.
+
+### Settings and storage changes
+
+Spam handling, keyword rules, submission guards, and captcha provider credentials now live on a single **Settings → Spam Protection** page. Legacy **Settings → Spam** and **Settings → Captchas** routes redirect there.
+
+Those values are stored in Formie’s runtime settings tables (`formie_spam_settings`, `formie_captcha_providers`) rather than `plugins.formie.settings` in project config. Legacy plugin settings keys are stripped on save and seeded into the new stores automatically while compatibility mode is enabled.
+
+### Custom code and GraphQL
+
+If you had custom code or front-end automation that targeted the old Duplicate, JavaScript, or Honeypot captcha handles:
+
+- Remove references to those captcha integration handles — they no longer exist.
+- Switch spam-related checks to the replacement captcha integration handles you enable (for example `turnstile`, `recaptcha`), or hook into the screening stage if you need custom server-side checks.
+- Update any GraphQL mutation arguments that referenced the removed captcha types.
+
+Provider-backed captchas and spam rules still evaluate together in the **`screen`** stage. See [Submission screening](/forms/submission-screening) for how that stage orders checks and how that relates to validation and saves.
 
 ## Front-End JavaScript Events
 

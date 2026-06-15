@@ -1,0 +1,59 @@
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+<div class="fui-spam-protection-section">
+    <h3>{{ 'Submission Guards' | t('formie') }}</h3>
+    <p>{{ 'Built-in passive checks that run before captcha and keyword spam rules.' | t('formie') }}</p>
+
+    {% namespace 'settings' %}
+        {{ forms.lightswitchField({
+            label: 'Honeypot' | t('formie'),
+            instructions: 'Add a hidden field that should remain empty. Submissions that fill it in are marked as spam.' | t('formie'),
+            name: 'enableHoneypot',
+            on: settings.enableHoneypot,
+            toggle: 'enable-honeypot',
+            warning: macros.configWarning('enableHoneypot', 'formie'),
+        }) }}
+
+        <div id="enable-honeypot" class="field {{ not settings.enableHoneypot ? 'hidden' }}">
+            {{ forms.textField({
+                label: 'Honeypot Field Name' | t('formie'),
+                instructions: 'The name attribute used for the honeypot input. Avoid names that conflict with real form fields.' | t('formie'),
+                name: 'honeypotFieldName',
+                value: settings.honeypotFieldName,
+                warning: macros.configWarning('honeypotFieldName', 'formie'),
+            }) }}
+        </div>
+
+        <hr>
+
+        {{ forms.lightswitchField({
+            label: 'Minimum Submit Time' | t('formie'),
+            instructions: 'Require a minimum delay between the form loading and submission.' | t('formie'),
+            name: 'enableMinimumSubmitTime',
+            on: settings.enableMinimumSubmitTime,
+            toggle: 'enable-minimum-submit-time',
+            warning: macros.configWarning('enableMinimumSubmitTime', 'formie'),
+        }) }}
+
+        <div id="enable-minimum-submit-time" class="field {{ not settings.enableMinimumSubmitTime ? 'hidden' }}">
+            {{ forms.textField({
+                label: 'Minimum Submit Time (seconds)' | t('formie'),
+                instructions: 'The minimum number of seconds a user must wait before submitting the form.' | t('formie'),
+                name: 'minimumSubmitTime',
+                value: settings.minimumSubmitTime,
+                warning: macros.configWarning('minimumSubmitTime', 'formie'),
+            }) }}
+        </div>
+
+        <hr>
+
+        {{ forms.lightswitchField({
+            label: 'Replay Protection' | t('formie'),
+            instructions: 'Prevent duplicate submissions from reusing the same request token.' | t('formie'),
+            name: 'enableReplayProtection',
+            on: settings.enableReplayProtection,
+            warning: macros.configWarning('enableReplayProtection', 'formie'),
+        }) }}
+    {% endnamespace %}
+</div>

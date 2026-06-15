@@ -3,7 +3,7 @@
 Follow the below steps to connect Formie to Cloudflare Turnstile.
 
 ### Step 1. Open the Captcha Settings
-1. Navigate to **Formie** → **Settings** → **Captchas**.
+1. Navigate to **Formie** → **Settings** → **Spam Protection** → **Captchas**.
 1. Select **Cloudflare Turnstile** in the left-hand sidebar.
 1. Turn on **Enabled**.
 

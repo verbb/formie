@@ -7,6 +7,7 @@ use verbb\formie\workflow\StageInterface;
 use verbb\formie\workflow\StageResult;
 use verbb\formie\workflow\WorkflowContext;
 use verbb\formie\workflow\tasks\screen\RunCaptchaChecksTask;
+use verbb\formie\workflow\tasks\screen\RunSubmissionGuardsTask;
 use verbb\formie\workflow\tasks\screen\RunSpamChecksTask;
 
 class ScreenStage implements StageInterface
@@ -33,6 +34,7 @@ class ScreenStage implements StageInterface
     public function execute(WorkflowContext $context): StageResult
     {
         return $this->process->runStageTasks($context, $this->getName(), [
+            new RunSubmissionGuardsTask(),
             new RunCaptchaChecksTask(),
             new RunSpamChecksTask(),
         ]);

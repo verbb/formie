@@ -1,0 +1,15 @@
+{% set guardSettings = craft.formie.getPlugin().settings %}
+
+{% if guardSettings.enableHoneypot %}
+    <div class="formie-hp" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;">
+        <label for="formie-hp-{{ form.id }}">{{ 'Leave this field blank' | t('formie') }}</label>
+        <input
+            type="text"
+            name="{{ guardSettings.honeypotFieldName }}"
+            id="formie-hp-{{ form.id }}"
+            value=""
+            tabindex="-1"
+            autocomplete="off"
+        >
+    </div>
+{% endif %}

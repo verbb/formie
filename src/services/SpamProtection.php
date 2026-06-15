@@ -30,6 +30,11 @@ class SpamProtection extends Component
         'spamBehaviour',
         'spamBehaviourMessage',
         'spamKeywords',
+        'enableHoneypot',
+        'honeypotFieldName',
+        'enableMinimumSubmitTime',
+        'minimumSubmitTime',
+        'enableReplayProtection',
     ];
 
 
@@ -37,6 +42,7 @@ class SpamProtection extends Component
     // =========================================================================
 
     private ?array $_row = null;
+    private ?bool $_guardColumnsExist = null;
 
 
     // Public Methods
@@ -52,8 +58,7 @@ class SpamProtection extends Component
             return null;
         }
 
-        $row = (new Query())
-            ->select([
+        $select = [
                 'id',
                 'scope',
                 'saveSpam',
@@ -65,7 +70,20 @@ class SpamProtection extends Component
                 'dateCreated',
                 'dateUpdated',
                 'uid',
-            ])
+            ];
+
+        if ($this->_guardColumnsExist()) {
+            $select = array_merge($select, [
+                'enableHoneypot',
+                'honeypotFieldName',
+                'enableMinimumSubmitTime',
+                'minimumSubmitTime',
+                'enableReplayProtection',
+            ]);
+        }
+
+        $row = (new Query())
+            ->select($select)
             ->from([Table::FORMIE_SPAM_SETTINGS])
             ->orderBy(['id' => SORT_ASC])
             ->one();
@@ -142,6 +160,7 @@ class SpamProtection extends Component
             'spamBehaviour' => (string)$row['spamBehaviour'],
             'spamBehaviourMessage' => (string)$row['spamBehaviourMessage'],
             'spamKeywords' => (string)$row['spamKeywords'],
+            ...$this->_guardValuesFromRow($row),
         ];
     }
 
@@ -154,6 +173,11 @@ class SpamProtection extends Component
             'spamBehaviour' => Settings::SPAM_BEHAVIOUR_SUCCESS,
             'spamBehaviourMessage' => '',
             'spamKeywords' => '',
+            'enableHoneypot' => true,
+            'honeypotFieldName' => 'formieHoneypot',
+            'enableMinimumSubmitTime' => true,
+            'minimumSubmitTime' => 3,
+            'enableReplayProtection' => true,
         ];
     }
 
@@ -223,6 +247,7 @@ class SpamProtection extends Component
             $record->spamBehaviour = (string)($values['spamBehaviour'] ?? Settings::SPAM_BEHAVIOUR_SUCCESS);
             $record->spamBehaviourMessage = (string)($values['spamBehaviourMessage'] ?? '');
             $record->spamKeywords = (string)($values['spamKeywords'] ?? '');
+            $this->_assignGuardValues($record, $values);
 
             $record->save(false);
 
@@ -251,20 +276,31 @@ class SpamProtection extends Component
         }
 
         $now = Db::prepareDateForDb(new \DateTime());
+        $insert = [
+            'scope' => Integrations::SCOPE_PROJECT,
+            'saveSpam' => (bool)$values['saveSpam'],
+            'spamLimit' => (int)$values['spamLimit'],
+            'spamEmailNotifications' => (bool)$values['spamEmailNotifications'],
+            'spamBehaviour' => (string)$values['spamBehaviour'],
+            'spamBehaviourMessage' => (string)$values['spamBehaviourMessage'],
+            'spamKeywords' => (string)$values['spamKeywords'],
+            'dateCreated' => $now,
+            'dateUpdated' => $now,
+            'uid' => StringHelper::UUID(),
+        ];
+
+        if ($this->_guardColumnsExist()) {
+            $insert = array_merge($insert, [
+                'enableHoneypot' => (bool)$values['enableHoneypot'],
+                'honeypotFieldName' => (string)$values['honeypotFieldName'],
+                'enableMinimumSubmitTime' => (bool)$values['enableMinimumSubmitTime'],
+                'minimumSubmitTime' => (int)$values['minimumSubmitTime'],
+                'enableReplayProtection' => (bool)$values['enableReplayProtection'],
+            ]);
+        }
 
         Craft::$app->getDb()->createCommand()
-            ->insert(Table::FORMIE_SPAM_SETTINGS, [
-                'scope' => Integrations::SCOPE_PROJECT,
-                'saveSpam' => (bool)$values['saveSpam'],
-                'spamLimit' => (int)$values['spamLimit'],
-                'spamEmailNotifications' => (bool)$values['spamEmailNotifications'],
-                'spamBehaviour' => (string)$values['spamBehaviour'],
-                'spamBehaviourMessage' => (string)$values['spamBehaviourMessage'],
-                'spamKeywords' => (string)$values['spamKeywords'],
-                'dateCreated' => $now,
-                'dateUpdated' => $now,
-                'uid' => StringHelper::UUID(),
-            ])
+            ->insert(Table::FORMIE_SPAM_SETTINGS, $insert)
             ->execute();
 
         $this->_resetCache();
@@ -289,6 +325,11 @@ class SpamProtection extends Component
             'spamBehaviour' => (string)($values['spamBehaviour'] ?? Settings::SPAM_BEHAVIOUR_SUCCESS),
             'spamBehaviourMessage' => (string)($values['spamBehaviourMessage'] ?? ''),
             'spamKeywords' => (string)($values['spamKeywords'] ?? ''),
+            'enableHoneypot' => (bool)($values['enableHoneypot'] ?? true),
+            'honeypotFieldName' => (string)($values['honeypotFieldName'] ?? 'formieHoneypot'),
+            'enableMinimumSubmitTime' => (bool)($values['enableMinimumSubmitTime'] ?? true),
+            'minimumSubmitTime' => (int)($values['minimumSubmitTime'] ?? 3),
+            'enableReplayProtection' => (bool)($values['enableReplayProtection'] ?? true),
         ];
     }
 
@@ -318,6 +359,7 @@ class SpamProtection extends Component
             $record->spamBehaviour = (string)($data['spamBehaviour'] ?? Settings::SPAM_BEHAVIOUR_SUCCESS);
             $record->spamBehaviourMessage = (string)($data['spamBehaviourMessage'] ?? '');
             $record->spamKeywords = (string)($data['spamKeywords'] ?? '');
+            $this->_assignGuardValues($record, $data);
             $record->save(false);
 
             $transaction->commit();
@@ -351,6 +393,7 @@ class SpamProtection extends Component
         $record->spamBehaviour = (string)$defaults['spamBehaviour'];
         $record->spamBehaviourMessage = (string)$defaults['spamBehaviourMessage'];
         $record->spamKeywords = (string)$defaults['spamKeywords'];
+        $this->_assignGuardValues($record, $defaults);
         $record->save(false);
 
         $this->_resetCache();
@@ -363,6 +406,59 @@ class SpamProtection extends Component
     private function _resetCache(): void
     {
         $this->_row = null;
+        $this->_guardColumnsExist = null;
+    }
+
+    private function _guardColumnsExist(): bool
+    {
+        if ($this->_guardColumnsExist !== null) {
+            return $this->_guardColumnsExist;
+        }
+
+        if (!Craft::$app->getDb()->tableExists(Table::FORMIE_SPAM_SETTINGS)) {
+            return $this->_guardColumnsExist = false;
+        }
+
+        return $this->_guardColumnsExist = Craft::$app->getDb()->columnExists(
+            Table::FORMIE_SPAM_SETTINGS,
+            'enableHoneypot',
+        );
+    }
+
+    private function _guardValuesFromRow(array $row): array
+    {
+        $defaults = $this->getDefaultValues();
+
+        if (!$this->_guardColumnsExist()) {
+            return [
+                'enableHoneypot' => (bool)$defaults['enableHoneypot'],
+                'honeypotFieldName' => (string)$defaults['honeypotFieldName'],
+                'enableMinimumSubmitTime' => (bool)$defaults['enableMinimumSubmitTime'],
+                'minimumSubmitTime' => (int)$defaults['minimumSubmitTime'],
+                'enableReplayProtection' => (bool)$defaults['enableReplayProtection'],
+            ];
+        }
+
+        return [
+            'enableHoneypot' => (bool)($row['enableHoneypot'] ?? true),
+            'honeypotFieldName' => (string)($row['honeypotFieldName'] ?? 'formieHoneypot'),
+            'enableMinimumSubmitTime' => (bool)($row['enableMinimumSubmitTime'] ?? true),
+            'minimumSubmitTime' => (int)($row['minimumSubmitTime'] ?? 3),
+            'enableReplayProtection' => (bool)($row['enableReplayProtection'] ?? true),
+        ];
+    }
+
+    private function _assignGuardValues(SpamSettingsRecord $record, array $values): void
+    {
+        if (!$this->_guardColumnsExist()) {
+            return;
+        }
+
+        $record->enableHoneypot = (bool)($values['enableHoneypot'] ?? true);
+        $record->honeypotFieldName = (string)($values['honeypotFieldName'] ?? 'formieHoneypot');
+        $record->enableMinimumSubmitTime = (bool)($values['enableMinimumSubmitTime'] ?? true);
+        $record->minimumSubmitTime = (int)($values['minimumSubmitTime'] ?? 3);
+        $record->enableReplayProtection = (bool)($values['enableReplayProtection'] ?? true);
     }
 
     private function _saveProjectSettings(array $values): bool
@@ -401,6 +497,7 @@ class SpamProtection extends Component
             $record->spamBehaviour = (string)($values['spamBehaviour'] ?? Settings::SPAM_BEHAVIOUR_SUCCESS);
             $record->spamBehaviourMessage = (string)($values['spamBehaviourMessage'] ?? '');
             $record->spamKeywords = (string)($values['spamKeywords'] ?? '');
+            $this->_assignGuardValues($record, $values);
             $record->save(false);
 
             $transaction->commit();

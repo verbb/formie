@@ -24,6 +24,10 @@
         settings: settings,
     } only %}
 
+    {% include 'formie/settings/spam-protection/_submission-guards' with {
+        settings: settings,
+    } only %}
+
     {% include 'formie/settings/spam-protection/_captcha-providers' with {
         groupedIntegrations: groupedIntegrations,
     } only %}

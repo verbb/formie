@@ -10,6 +10,7 @@ use verbb\formie\workflow\WorkflowPolicy;
 use verbb\formie\workflow\tasks\dispatch\SendNotificationsTask;
 use verbb\formie\workflow\tasks\dispatch\TriggerIntegrationsTask;
 use verbb\formie\workflow\tasks\screen\RunCaptchaChecksTask;
+use verbb\formie\workflow\tasks\screen\RunSubmissionGuardsTask;
 use verbb\formie\workflow\tasks\screen\RunSpamChecksTask;
 use verbb\formie\workflow\tasks\TaskInterface;
 use verbb\formie\workflow\tasks\TaskResult;
@@ -76,6 +77,7 @@ class WorkflowTaskRunner extends Component
     private function _createTaskHandler(Task $task): TaskInterface
     {
         return match ($task) {
+            Task::SCREEN_RUN_SUBMISSION_GUARDS => new RunSubmissionGuardsTask(),
             Task::SCREEN_RUN_CAPTCHA_CHECKS => new RunCaptchaChecksTask(),
             Task::SCREEN_RUN_SPAM_CHECKS => new RunSpamChecksTask(),
             Task::DISPATCH_SEND_NOTIFICATIONS => new SendNotificationsTask(),
@@ -87,6 +89,7 @@ class WorkflowTaskRunner extends Component
     private function _standaloneAllowedTasks(): array
     {
         return [
+            Task::SCREEN_RUN_SUBMISSION_GUARDS,
             Task::SCREEN_RUN_CAPTCHA_CHECKS,
             Task::SCREEN_RUN_SPAM_CHECKS,
             Task::DISPATCH_SEND_NOTIFICATIONS,

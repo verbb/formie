@@ -35,7 +35,7 @@ As a rule of thumb, use `Submission::EVENT_AFTER_SAVE` when you care about the e
 1. **`prepare`** sets up the submission request and restores any draft or save-and-continue context before other processing begins.
 2. **`normalize`** resolves page flow, back-button behavior, and default values so Formie knows the current submission state.
 3. **`validate`** runs the form and field validation rules.
-4. **`screen`** runs checks such as captchas and spam screening before processing continues.
+4. **`screen`** runs submission guards, captcha checks, and spam screening before processing continues.
 5. **`authorize`** decides whether processing can continue, including payment-state checks and earlier submission errors.
 6. **`save`** persists the submission and runs payment-related save logic.
 7. **`dispatch`** sends notifications and triggers integrations.
@@ -52,11 +52,11 @@ Each stage is made up of smaller tasks. These are the default tasks Formie uses 
 | `prepare` | `prepare.applyDraftContext`, `prepare.initializeSubmitRequest` |
 | `normalize` | `normalize.handleBackNavigation`, `normalize.resolvePageFlow`, `normalize.ensureSubmissionDefaults` |
 | `validate` | `validate.validateSubmission` |
-| `screen` | `screen.runCaptchaChecks`, `screen.runSpamChecks` |
+| `screen` | `screen.runSubmissionGuards`, `screen.runCaptchaChecks`, `screen.runSpamChecks` |
 | `authorize` | `authorize.haltOnSubmissionErrors`, `authorize.resolvePaymentState` |
 | `save` | `save.persistSubmissionWorkflow`, `save.processPayments`, `save.applyCompletionFromPaymentState`, `save.setProcessingSuccess` |
 | `dispatch` | `dispatch.guardDispatchEligibility`, `dispatch.sendNotifications`, `dispatch.triggerIntegrations`, `dispatch.sendSpamNotifications`, `dispatch.markDispatchFinalized` |
-| `finalize` | `finalize.applySpamBehaviour`, `finalize.applyProgressionState`, `finalize.hydrateResponse` |
+| `finalize` | `finalize.applySpamBehaviour`, `finalize.applyProgressionState`, `finalize.consumeReplayToken`, `finalize.hydrateResponse` |
 
 The task names are useful when you need to insert your own task before or after a specific built-in task.
 

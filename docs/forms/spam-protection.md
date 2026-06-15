@@ -2,11 +2,13 @@
 
 Spam protection is about reducing junk submissions without making the form harder for real people to use.
 
-Formie gives you a few layers to work with, so you can start with lighter filtering and add stronger checks only where they are needed. Most of the control lives in `Formie → Settings → Spam`.
+Formie gives you a few layers to work with, so you can start with lighter filtering and add stronger checks only where they are needed. Most of the control lives in **Formie → Settings → Spam Protection**.
 
-Captcha failures, keyword matches, and related signals are evaluated together in the submission workflow’s screening stage. For how that stage is ordered, how it relates to validation, and how to extend it, see [Submission screening](/forms/submission-screening).
+That page brings together spam handling, keyword rules, built-in submission guards, and captcha provider credentials in one place. Legacy **Settings → Spam** and **Settings → Captchas** routes redirect here.
 
-## Handling spam submissions
+Captcha failures, keyword matches, submission guard failures, and related signals are evaluated together in the submission workflow’s **`screen`** stage. For how that stage is ordered, how it relates to validation, and how to extend it, see [Submission screening](/forms/submission-screening).
+
+## Spam handling
 
 At the plugin level, you can choose whether spam submissions should still be saved. Saving them is useful when you need to review false positives, understand what kind of spam is hitting the form, or debug a captcha or filtering rule.
 
@@ -16,7 +18,9 @@ You can also decide how Formie should respond when a submission is flagged as sp
 
 If you use email notifications, there is also a plugin setting for whether spam submissions should still trigger them.
 
-## Spam keywords
+## Content rules
+
+### Spam keywords
 
 Spam keywords are the simplest built-in screening tool. Formie checks the whole submission, and if it matches your keyword definition, the submission will be marked as spam.
 
@@ -28,7 +32,7 @@ You can match against:
 
 This makes spam keywords useful for obvious repeat attacks or recurring junk content.
 
-### Keyword definition
+#### Keyword definition
 
 ```text
 # Flags content containing the word "spam". This will not match "spamming" or "Spam".
@@ -52,7 +56,7 @@ This makes spam keywords useful for obvious repeat attacks or recurring junk con
 
 You can define each rule on a new line, and you can use parentheses to group logic when needed.
 
-### IP addresses
+#### IP addresses
 
 ```text
 # Flags content if the sender's IP matches. Supports singular, multiple, ranges and CIDR notation.
@@ -62,16 +66,73 @@ You can define each rule on a new line, and you can use parentheses to group log
 [ip: 192.168.0.0/24]
 ```
 
-### Referencing other content
+#### Referencing other content
 
-Spam keywords are stored in project config, which means they are not always convenient to edit directly on staging or production. If you want content admins to manage them, or you need them to vary by environment, you can reference another field instead.
+Spam keywords are stored in the runtime spam settings store (with optional project-config defaults), which means they are not always convenient to edit directly on staging or production when those values are project-scoped. If you want content admins to manage them, or you need them to vary by environment, you can reference another field instead.
 
 This is commonly done with a Global Set. For example, if you had a Global Set called `Forms` and a field called `Spam Keywords`, you could reference it in the Formie spam keywords setting with `{forms.spamKeywords}`.
+
+## Submission guards
+
+Submission guards are built-in passive checks that run **before** captcha integrations and keyword rules. They replace the old **Honeypot**, **Javascript**, and **Duplicate** captcha integrations that shipped in earlier major versions.
+
+Configure them under **Formie → Settings → Spam Protection → Submission Guards**.
+
+| Guard | What it does | Replaces |
+| --- | --- | --- |
+| **Honeypot** | Renders a hidden field that legitimate users should leave empty. Submissions that fill it in are marked as spam. | Legacy **Honeypot** captcha |
+| **Minimum submit time** | Requires a minimum delay between the form loading and submission. | Legacy **Javascript** captcha (including its minimum submit time option) |
+| **Replay protection** | Prevents duplicate submissions from reusing the same `requestToken`. | Legacy **Duplicate** captcha |
+
+All three guards are enabled by default with sensible starting values (honeypot on, three-second minimum submit time, replay protection on).
+
+### How guards run in the workflow
+
+Guards are not captcha integrations. They do not appear in the form builder’s captcha picker, and they do not use provider credentials.
+
+Instead, Formie runs them through dedicated workflow tasks:
+
+1. **`screen.runSubmissionGuards`** — runs during the **`screen`** stage, before captcha and keyword checks. If a guard fails, the submission is marked as spam and `spamReason` is set.
+2. **`finalize.consumeReplayToken`** — runs during the **`finalize`** stage after a successful, complete submission. Replay protection only consumes the token once the submission has finished processing successfully, so failed or incomplete submissions can retry with the same token.
+
+Guards only run for normal browser form posts that include `handle` and `submitAction` in the POST body. GraphQL submissions, headless API usage, and other non-browser flows skip guards automatically.
+
+The honeypot field and `formStartedAt` timestamp are rendered automatically for browser forms. You do not need to add them manually in templates.
+
+### Honeypot field name
+
+The default honeypot input name is `formieHoneypot`. You can change it under **Honeypot Field Name** if you need to avoid a clash with a real field on your forms.
+
+If you customize the name, make sure it does not match any field handle or name your forms already use.
+
+### Minimum submit time
+
+The browser package records when a form instance was first mounted and sends that value as `formStartedAt`. Formie compares it against the configured minimum (in seconds) on the server.
+
+Very fast automated submissions are flagged as spam. Real users who submit immediately after the page loads may also be caught if the minimum is set too high, so tune this value for your forms.
+
+### Replay protection
+
+Replay protection uses the existing per-render `requestToken` that Formie already issues for browser forms. Formie stores a short-lived cache entry when a token is successfully consumed, and rejects reuse within 24 hours.
+
+This is separate from save-and-continue draft tokens and static-cache refresh behaviour. It targets repeat POST abuse, not legitimate multi-page navigation.
+
+For the full screening order and extension points, see [Submission screening](/forms/submission-screening).
 
 ## Captchas
 
 Formie also supports captcha integrations when you need a stronger challenge layer.
 
-Use those when keyword matching and basic screening are not enough, or when the form is a common attack target.
+Configure provider credentials under **Formie → Settings → Spam Protection → Captchas**, then enable the providers you need per form in the form builder.
 
-See [Captchas](/integrations/captchas/) for the available providers.
+Use captchas when keyword matching and submission guards are not enough, or when the form is a common attack target. Third-party spam scoring services such as Akismet, CleanTalk, and OOPSpam are configured here too, even though they classify content rather than show a visible challenge.
+
+See [Captchas](/integrations/captchas/) for provider-specific setup guides.
+
+## Runtime-managed settings
+
+Spam handling, keyword rules, submission guards, and captcha provider credentials are stored in Formie’s runtime settings tables rather than `config/project` plugin settings. That lets privileged admins edit production values when `allowAdminChanges` is `false`.
+
+Project-scoped rows can still deploy through project config. Site-scoped rows remain environment-local. Legacy `plugins.formie.settings` spam and captcha keys are stripped on save and migrated into the new stores automatically while compatibility mode is enabled.
+
+If you previously kept spam keywords or captcha keys in `config/project/project.yaml`, move ongoing management to **Settings → Spam Protection** after upgrading.

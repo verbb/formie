@@ -112,6 +112,12 @@ class Settings extends Model
     public string $spamKeywords = '';
     public string $spamBehaviourMessage = '';
 
+    public bool $enableHoneypot = true;
+    public string $honeypotFieldName = 'formieHoneypot';
+    public bool $enableMinimumSubmitTime = true;
+    public int $minimumSubmitTime = 3;
+    public bool $enableReplayProtection = true;
+
     // Email Notifications
     public bool $sendEmailAlerts = false;
     public ?array $alertEmails = null;

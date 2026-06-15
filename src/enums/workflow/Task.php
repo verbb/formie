@@ -17,6 +17,7 @@ enum Task: string
 
     case VALIDATE_SUBMISSION = 'validate.validateSubmission';
 
+    case SCREEN_RUN_SUBMISSION_GUARDS = 'screen.runSubmissionGuards';
     case SCREEN_RUN_CAPTCHA_CHECKS = 'screen.runCaptchaChecks';
     case SCREEN_RUN_SPAM_CHECKS = 'screen.runSpamChecks';
 
@@ -37,5 +38,6 @@ enum Task: string
 
     case FINALIZE_APPLY_SPAM_BEHAVIOUR = 'finalize.applySpamBehaviour';
     case FINALIZE_APPLY_PROGRESSION_STATE = 'finalize.applyProgressionState';
+    case FINALIZE_CONSUME_REPLAY_TOKEN = 'finalize.consumeReplayToken';
     case FINALIZE_HYDRATE_RESPONSE = 'finalize.hydrateResponse';
 }
