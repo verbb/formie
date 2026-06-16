@@ -35,3 +35,51 @@ Follow the below steps to connect Formie to Google reCAPTCHA.
 1. Save the form.
 
 For most forms, **reCAPTCHA v3** is the best starting point. Use the checkbox or Enterprise challenge modes only when you need a visible challenge.
+
+## Score-based challenges and low scores
+
+reCAPTCHA v3 and **Enterprise score-based** modes return a score when the user submits. Formie compares that score to your **Minimum Score** threshold (globally under **Settings → Spam Protection**, or per form when you override it). Submissions below the threshold are treated as spam.
+
+Formie does **not** support a second captcha as a fallback when a score is too low — for example, automatically showing a v2 checkbox after Enterprise returns a low score. That would require different API keys, a different user flow, and server-side "soft fail" handling that Formie does not provide today.
+
+If score-based protection is too aggressive, try one of these instead:
+
+1. **Lower the minimum score** — start around `0.5` and adjust based on your traffic.
+2. **Switch to a visible challenge** — use **reCAPTCHA v2 Checkbox**, **reCAPTCHA v2 Invisible**, or an **Enterprise** key type of **Checkbox** or **Policy** when you want users to complete a challenge up front.
+3. **Use another provider** — [Cloudflare Turnstile](/integrations/captchas/cloudflare-turnstile) or [Friendly Captcha](/integrations/captchas/friendly-captcha) may fit your UX and compliance needs better.
+
+For **Enterprise** keys migrated from classic reCAPTCHA in Google Cloud, you can usually keep your existing **reCAPTCHA Type** in Formie after migration. Switch to **reCAPTCHA Enterprise** in Formie when you want Enterprise-specific key types or features. Key migration itself happens in Google's console, not in Formie.
+
+## Cookie consent and deferred loading
+
+Google reCAPTCHA loads third-party scripts that may require consent under GDPR and similar regulations. Formie does not integrate directly with consent management platforms (Cookiebot, OneTrust, Klaro, and so on).
+
+To delay captcha initialization until consent is granted:
+
+1. Render the form with automatic initialization turned off:
+
+```twig
+{{ craft.formie.renderForm(form, {
+    initJs: false,
+}) }}
+```
+
+For [custom rendering](/theming/custom-rendering), set `data-formie-init="false"` on the `<form>` element instead.
+
+2. Output Formie's assets as usual with `craft.formie.formAssets(form)` or `craft.formie.frontendAssets()`.
+
+3. After your consent banner grants the relevant category, initialize Formie from your own bundle:
+
+```js
+import { formie } from '@verbb/formie-browser';
+
+await formie({
+  element: '[data-formie-form]',
+});
+```
+
+Until you call `formie()`, captcha scripts are not loaded and captchas are not mounted. Users cannot complete a protected submit until initialization runs.
+
+If consent is a hard requirement and you want to avoid Google scripts entirely, consider [Friendly Captcha](/integrations/captchas/friendly-captcha) or another provider that fits your compliance model.
+
+See also [Render Options — `initJs`](/templates/render-options#initjs) and the [Browser package manual initialization guide](https://docs.verbb.io/formie/browser/behavior/manual-initialization).

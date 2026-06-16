@@ -214,6 +214,8 @@ This is mainly useful when you are controlling initialization yourself.
 }) }}
 ```
 
+Use this when you need to delay Formie initialization — for example until cookie consent is granted for captcha scripts. See [reCAPTCHA — Cookie consent and deferred loading](/integrations/captchas/recaptcha#cookie-consent-and-deferred-loading).
+
 ### `useObserver`
 
 `useObserver` controls whether Formie's browser script should automatically initialize new forms added to the page later.

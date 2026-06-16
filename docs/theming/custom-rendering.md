@@ -324,6 +324,16 @@ Without this, file uploads will not work.
 - Not using `multipart/form-data` when the form includes file uploads.
 - Assuming a one-page form is the whole story. Multi-page forms, payments, save and continue later, and conditional behavior all add more moving parts.
 
+### Client-side validation and captchas
+
+Custom forms still need Formie's browser layer for Ajax submits and captchas. Output `craft.formie.formAssets(form)` (or the CSS/JS split) and include the required hidden inputs — especially `submitAction`, `handle`, `renderId`, and `requestToken`.
+
+To rely on native HTML validation instead of Formie's client-side validation on submit, turn off **Validate Form on Submit** in the form's settings (under **Behavior**), or set `data-formie-validation-on-submit="false"` on the `<form>`. Captchas still run in the submit pipeline; server-side validation always applies.
+
+If Ajax submit fails with a generic error when fields are empty, either enable **Validate Form on Submit** so users see field errors before the request is sent, or ensure your template surfaces server validation errors from the returned submission.
+
+See [reCAPTCHA](/integrations/captchas/recaptcha) for cookie-consent deferral with `initJs: false`.
+
 ### What's Not Covered
 Whilst we've covered the basics, there's still plenty left to address, such as different submit actions, multi-page navigation, save-and-resume flows, and payment-specific behavior. For more complete examples, consult the templates on [Formie's GitHub](https://github.com/verbb/formie/tree/craft-5/src/templates/_special/form-template).
 
