@@ -152,23 +152,24 @@ Event::on(MigrateFreeform5::class, MigrateFreeform5::EVENT_MODIFY_SUBMISSION, fu
 ## Variable Events
 
 ### The `registerVariables` event
-The event that is triggered to register additional variable groups used when variable values are parsed.
+
+The event that is triggered to register custom variable sources for the variable picker and server-side reference resolution.
 
 ```php
-use Craft;
 use verbb\formie\events\RegisterVariablesEvent;
 use verbb\formie\helpers\Variables;
+use verbb\formie\variables\VariableSource;
 use yii\base\Event;
 
 Event::on(Variables::class, Variables::EVENT_REGISTER_VARIABLES, function(RegisterVariablesEvent $event) {
-    $event->variables['custom'] = [
-        'label' => Craft::t('site', 'Custom'),
-        'variables' => [
-            'siteName' => Craft::$app->getSystemName(),
-        ],
-    ];
+    $event->sources[] = VariableSource::create('acme_campaign', 'Campaign code')
+        ->resolve(function($submission, $notification) {
+            return 'spring-sale';
+        });
 });
 ```
+
+See [Custom variable sources](/developers/custom-variable-sources) for token rules, picker metadata, transforms, and troubleshooting.
 
 ### The `registerTransformers` event
 The event that is triggered to register additional variable transformers used when variable values are parsed.

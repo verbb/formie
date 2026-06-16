@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Added
+- Add custom variable sources via `Variables::EVENT_REGISTER_VARIABLES`, exposing registered tokens in the variable picker and resolving them server-side when references are parsed. ([#898](https://github.com/verbb/formie/issues/898))
 - Add group-scoped form and submission permissions using stable form group handles, with optional per-form dedicated permissions via a new **Use Dedicated Permissions** form setting. ([#1426](https://github.com/verbb/formie/issues/1426), [#1356](https://github.com/verbb/formie/issues/1356), [#2489](https://github.com/verbb/formie/issues/2489), [Discussion #1696](https://github.com/verbb/formie/discussions/1696))
 - Add `formie-importForms` and `formie-exportForms` permissions, replacing the temporary admin-only import/export gate.
 - Add `formie-accessIntegrations` permission for the top-level **Integrations** control panel section, separate from **Access settings**.

@@ -338,6 +338,7 @@
             "developers/schema",
             "developers/custom-field",
             "developers/field-defaults",
+            "developers/custom-variable-sources",
             {
                 "title": "Custom Integration",
                 "collapsable": true,

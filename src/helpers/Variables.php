@@ -8,7 +8,9 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\Table;
 use verbb\formie\events\RegisterTransformersEvent;
+use verbb\formie\compatibility\variables\VariableSourceCompatibility;
 use verbb\formie\events\RegisterVariablesEvent;
+use verbb\formie\variables\VariableSourceInterface;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\models\Notification;
 use verbb\formie\models\ReferenceExpression;
@@ -34,6 +36,7 @@ class Variables
 
     public const EVENT_REGISTER_VARIABLES = 'registerVariables';
     public const EVENT_REGISTER_TRANSFORMERS = 'registerTransformers';
+    public const TARGET_CUSTOM = 'custom';
     public const CONTENT_ANY = 'any';
     public const CONTENT_SINGLE_LINE = 'singleLine';
 
@@ -55,14 +58,35 @@ class Variables
     public const GROUP_CURRENT_SITE = 'siteVariables';
     public const GROUP_CURRENT_USER = 'userVariables';
     public const GROUP_DISPATCH = 'dispatchVariables';
+    public const GROUP_CUSTOM = 'customVariables';
 
     public const STATIC_FIELDS = self::GROUP_FIELDS;
     public const STATIC_FORM = 'staticFormVariables';
     public const STATIC_GENERAL = 'staticGeneralVariables';
     public const STATIC_SITE = 'staticSiteVariables';
     public const STATIC_DISPATCH = 'staticDispatchVariables';
+    public const STATIC_CUSTOM = 'staticCustomVariables';
 
     public const ENVIRONMENT_VARIABLE_PREFIX = 'FORMIE_';
+
+    private const RESERVED_VARIABLE_TARGETS = [
+        'field',
+        'form',
+        'submission',
+        'site',
+        'user',
+        'system',
+        'env',
+        'dispatch',
+        'timestamp',
+        'allFields',
+        'allContentFields',
+        'allVisibleFields',
+        self::TARGET_CUSTOM,
+    ];
+
+    private static ?array $_registeredVariableSources = null;
+    private static array $_customVariableResolutionCache = [];
     
 
     // Static Methods
@@ -90,10 +114,12 @@ class Variables
             self::GROUP_CURRENT_SITE => Craft::t('formie', 'Site'),
             self::GROUP_CURRENT_USER => Craft::t('formie', 'Users'),
             self::GROUP_DISPATCH => Craft::t('formie', 'Dispatch'),
+            self::GROUP_CUSTOM => Craft::t('formie', 'Custom'),
             self::STATIC_FORM => Craft::t('formie', 'Form'),
             self::STATIC_GENERAL => Craft::t('formie', 'General'),
             self::STATIC_SITE => Craft::t('formie', 'Site'),
             self::STATIC_DISPATCH => Craft::t('formie', 'Dispatch'),
+            self::STATIC_CUSTOM => Craft::t('formie', 'Custom'),
         ];
 
         $order = [
@@ -101,6 +127,7 @@ class Variables
             self::STATIC_FORM,
             self::STATIC_DISPATCH,
             self::STATIC_GENERAL,
+            self::STATIC_CUSTOM,
             self::STATIC_SITE,
             self::GROUP_FORM,
             self::GROUP_SUBMISSION,
@@ -119,6 +146,72 @@ class Variables
     }
 
     /**
+     * @return VariableSourceInterface[]
+     */
+    public static function getRegisteredVariableSources(): array
+    {
+        if (self::$_registeredVariableSources !== null) {
+            return self::$_registeredVariableSources;
+        }
+
+        $event = new RegisterVariablesEvent([
+            'sources' => [],
+        ]);
+        Event::trigger(self::class, self::EVENT_REGISTER_VARIABLES, $event);
+
+        self::$_registeredVariableSources = self::_sanitizeRegisteredVariableSources($event->sources);
+
+        return self::$_registeredVariableSources;
+    }
+
+    public static function clearRegisteredVariableSourcesCache(): void
+    {
+        self::$_registeredVariableSources = null;
+        self::$_customVariableResolutionCache = [];
+    }
+
+    public static function findRegisteredVariableSource(string $handle): ?VariableSourceInterface
+    {
+        $handle = strtolower(trim($handle));
+
+        if ($handle === '') {
+            return null;
+        }
+
+        foreach (self::getRegisteredVariableSources() as $source) {
+            if ($source->getHandle() === $handle) {
+                return $source;
+            }
+        }
+
+        return null;
+    }
+
+    public static function isReservedVariableTarget(string $target): bool
+    {
+        $target = strtolower(trim($target));
+
+        return $target !== '' && in_array($target, self::RESERVED_VARIABLE_TARGETS, true);
+    }
+
+    public static function resolveRegisteredVariableSourceByHandle(Submission $submission, string $handle): mixed
+    {
+        $source = self::findRegisteredVariableSource($handle);
+
+        if (!$source) {
+            return null;
+        }
+
+        $cacheKey = ($submission->uid ?? 'new') . ':' . $source->getHandle();
+
+        if (!array_key_exists($cacheKey, self::$_customVariableResolutionCache)) {
+            self::$_customVariableResolutionCache[$cacheKey] = $source->resolveValue($submission);
+        }
+
+        return self::$_customVariableResolutionCache[$cacheKey];
+    }
+
+    /**
      * Returns variable picker configuration used by variableConfig:
      * - staticGroups: grouped static variable catalogs
      * - groupAliases: macro groups (STATIC_*) expanded client-side
@@ -130,10 +223,14 @@ class Variables
             'groupAliases' => [
                 self::STATIC_FORM => [self::GROUP_FORM, self::GROUP_SUBMISSION, self::GROUP_DISPATCH],
                 self::STATIC_DISPATCH => [self::GROUP_DISPATCH],
-                self::STATIC_GENERAL => [self::GROUP_SYSTEM, self::GROUP_ENVIRONMENT, self::GROUP_CURRENT_TIME],
+                self::STATIC_GENERAL => [self::GROUP_SYSTEM, self::GROUP_ENVIRONMENT, self::GROUP_CURRENT_TIME, self::GROUP_CUSTOM],
                 self::STATIC_SITE => [self::GROUP_CURRENT_SITE, self::GROUP_CURRENT_USER],
+                self::STATIC_CUSTOM => [self::GROUP_CUSTOM],
             ],
-            'staticGroups' => self::_getStaticVariableGroups(),
+            'staticGroups' => array_merge(
+                self::_getStaticVariableGroups(),
+                self::_getCustomVariableGroups(),
+            ),
             'transformerRegistry' => self::_getTransformerRegistry(),
         ];
     }
@@ -335,6 +432,14 @@ class Variables
             }
             $key = self::getReferenceVariableKey($expr);
             $value = ArrayHelper::getValue($variables, $key);
+
+            if ($value === null && $expr->target === self::TARGET_CUSTOM && $expr->identifier !== '') {
+                $value = self::resolveRegisteredVariableSourceByHandle($submission, $expr->identifier);
+            }
+
+            if ($value === null) {
+                $value = VariableSourceCompatibility::resolveLegacyToken($submission, $expr);
+            }
         }
 
         if ($expr->transformerId !== '' && self::_referenceAllowsTransforms($expr)) {
@@ -1531,6 +1636,63 @@ class Variables
         }
 
         return Craft::$app->getSites()->getPrimarySite();
+    }
+
+    private static function _getCustomVariableGroups(): array
+    {
+        $sources = self::getRegisteredVariableSources();
+
+        if ($sources === []) {
+            return [];
+        }
+
+        $items = array_map(static fn(VariableSourceInterface $source) => $source->toPickerSource(), $sources);
+
+        return [
+            self::GROUP_CUSTOM => $items,
+        ];
+    }
+
+    private static function _sanitizeRegisteredVariableSources(array $sources): array
+    {
+        $sanitized = [];
+        $seen = [];
+
+        foreach ($sources as $source) {
+            if (!$source instanceof VariableSourceInterface) {
+                Formie::warning('Ignoring invalid custom variable source registration entry.');
+                continue;
+            }
+
+            $handle = strtolower(trim($source->getHandle()));
+            $label = trim($source->getLabel());
+
+            if (!self::_isValidCustomVariableHandle($handle) || $label === '') {
+                Formie::warning('Ignoring invalid custom variable source "{handle}".', [
+                    'handle' => $source->getHandle(),
+                ]);
+                continue;
+            }
+
+            if (isset($seen[$handle])) {
+                Formie::warning('Ignoring duplicate custom variable source "{handle}".', [
+                    'handle' => $handle,
+                ]);
+                continue;
+            }
+
+            $seen[$handle] = true;
+            $sanitized[] = $source;
+        }
+
+        return $sanitized;
+    }
+
+    private static function _isValidCustomVariableHandle(string $value): bool
+    {
+        $value = strtolower(trim($value));
+
+        return $value !== '' && (bool)preg_match('/^[a-z][a-z0-9_]*$/', $value);
     }
 
     private static function _appendDispatchVariables(array $variables, Submission $submission): array
