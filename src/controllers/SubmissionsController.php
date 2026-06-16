@@ -8,6 +8,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\events\SubmissionEvent;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\StringHelper;
+use verbb\formie\helpers\UrlHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\IntegrationResponse;
@@ -797,7 +798,7 @@ class SubmissionsController extends Controller
 
         $form->setCurrentPage($nextPage);
 
-        return $this->redirect($request->referrer);
+        return $this->redirect(UrlHelper::getSafeReferrerUrl());
     }
 
     public function actionClearSubmission(): Response
@@ -808,8 +809,8 @@ class SubmissionsController extends Controller
         $handle = $this->_getTypedParam('handle', 'string', null, false);
         $redirect = $this->_getTypedParam('redirect', 'string', null, false);
 
-        // Ensure the redirect passed is validated, otherwise fallback to referer
-        $redirect = Craft::$app->getSecurity()->validateData($redirect) ?: $request->referrer;
+        // Ensure the redirect passed is validated, otherwise fallback to a safe referrer
+        $redirect = Craft::$app->getSecurity()->validateData($redirect) ?: UrlHelper::getSafeReferrerUrl();
 
         /* @var Form $form */
         $form = $this->_getForm($handle);
