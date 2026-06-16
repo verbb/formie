@@ -13,6 +13,14 @@ it('builds stable settings page permission keys', function (): void {
         ->and($permissions->settingsPagePermissionKey('migrate/freeform4'))->toBe('formie-settingsMigrateFreeform4');
 });
 
+it('normalizes settings page handles from posted page params', function (): void {
+    $permissions = Formie::$plugin->getPermissions();
+
+    expect($permissions->normalizeSettingsPage('spam-protection'))->toBe('spam-protection')
+        ->and($permissions->normalizeSettingsPage('spam'))->toBe('spam-protection')
+        ->and($permissions->normalizeSettingsPage('captchas'))->toBe('spam-protection');
+});
+
 it('resolves settings pages from redirect urls', function (): void {
     $permissions = Formie::$plugin->getPermissions();
 

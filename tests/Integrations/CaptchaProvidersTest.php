@@ -53,18 +53,22 @@ it('saves site-scoped captcha providers when admin changes are disabled', functi
         ->and($reloaded->siteKey)->toBe('test-site-key');
 });
 
-it('blocks project-scoped captcha saves when admin changes are disabled', function (): void {
+it('promotes project-scoped captcha saves to site scope when admin changes are disabled', function (): void {
     Craft::$app->getConfig()->getGeneral()->allowAdminChanges = false;
 
     $turnstile = Formie::$plugin->getIntegrations()->getCaptchaByHandle('turnstile');
     $turnstile->scope = Integrations::SCOPE_PROJECT;
     $turnstile->setEnabled(true);
 
-    expect(Formie::$plugin->getIntegrations()->saveCaptcha($turnstile))->toBeFalse()
-        ->and($turnstile->hasErrors())->toBeTrue();
+    expect(Formie::$plugin->getIntegrations()->saveCaptcha($turnstile))->toBeTrue();
+
+    $reloaded = Formie::$plugin->getIntegrations()->getCaptchaByHandle('turnstile');
+
+    expect($reloaded->isSiteScope())->toBeTrue()
+        ->and($reloaded->getEnabled())->toBeTrue();
 });
 
-it('saves project-scoped captcha providers to project config when admin changes are enabled', function (): void {
+it('promotes project-scoped captcha saves to site scope when admin changes are enabled', function (): void {
     Craft::$app->getConfig()->getGeneral()->allowAdminChanges = true;
 
     $turnstile = Formie::$plugin->getIntegrations()->getCaptchaByHandle('turnstile');
@@ -77,35 +81,27 @@ it('saves project-scoped captcha providers to project config when admin changes 
 
     $reloaded = Formie::$plugin->getIntegrations()->getCaptchaByHandle('turnstile');
 
-    expect($reloaded->isProjectScope())->toBeTrue()
+    expect($reloaded->isSiteScope())->toBeTrue()
+        ->and($reloaded->getEnabled())->toBeTrue()
         ->and($reloaded->siteKey)->toBe('project-site-key')
         ->and($reloaded->secretKey)->toBe('project-secret-key');
 
     $config = \verbb\formie\helpers\ProjectConfigHelper::rebuildProjectConfig();
 
-    expect($config['captchaProviders']['turnstile']['settings']['siteKey'] ?? null)->toBe('project-site-key');
+    expect($config['captchaProviders']['turnstile'] ?? null)->toBeNull();
 });
 
-it('exports only project-scoped captcha providers in project config rebuild data', function (): void {
-    Craft::$app->getConfig()->getGeneral()->allowAdminChanges = false;
+it('does not export site-scoped captcha providers in project config rebuild data', function (): void {
+    Craft::$app->getConfig()->getGeneral()->allowAdminChanges = true;
 
     $hcaptcha = Formie::$plugin->getIntegrations()->getCaptchaByHandle('hcaptcha');
     $hcaptcha->scope = Integrations::SCOPE_SITE;
     $hcaptcha->setEnabled(true);
     Formie::$plugin->getIntegrations()->saveCaptcha($hcaptcha);
 
-    Craft::$app->getConfig()->getGeneral()->allowAdminChanges = true;
-
-    $turnstile = Formie::$plugin->getIntegrations()->getCaptchaByHandle('turnstile');
-    $turnstile->scope = Integrations::SCOPE_PROJECT;
-    $turnstile->setEnabled(false);
-    Formie::$plugin->getIntegrations()->saveCaptcha($turnstile);
-
     $config = \verbb\formie\helpers\ProjectConfigHelper::rebuildProjectConfig();
 
-    expect($config['captchaProviders'] ?? null)->toBeArray()
-        ->and($config['captchaProviders'])->toHaveKey('turnstile')
-        ->and($config['captchaProviders'])->not->toHaveKey('hcaptcha');
+    expect($config['captchaProviders'] ?? [])->not->toHaveKey('hcaptcha');
 });
 
 it('strips captcha keys from plugin settings payloads', function (): void {

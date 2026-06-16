@@ -196,7 +196,7 @@ class SettingsController extends SettingsAccessController
         $permissions = Formie::$plugin->getPermissions();
         $user = Craft::$app->getUser()->getIdentity();
         $page = $permissions->normalizeSettingsPage(
-            $permissions->resolveSettingsPageFromUrl((string)$this->request->getParam('redirect', '')) ?? 'general',
+            (string)$this->request->getBodyParam('page', 'general'),
         );
 
         if (!$permissions->canAccessSettingsPage($user, $page)) {
@@ -285,32 +285,19 @@ class SettingsController extends SettingsAccessController
 
     private function _saveCaptchaIntegrations(mixed $integrations): bool
     {
-        if (!is_array($integrations) || $integrations === []) {
-            return true;
+        $saved = Formie::$plugin->getIntegrations()->savePostedCaptchaConfigs($integrations);
+
+        if (!$saved) {
+            Formie::error('Couldn’t save captcha settings - {e}.', [
+                'e' => Json::encode([
+                    'integrationsPosted' => is_array($integrations),
+                    'integrationCount' => is_array($integrations) ? count($integrations) : 0,
+                    'errors' => Formie::$plugin->getIntegrations()->getLastCaptchaSaveErrors(),
+                ]),
+            ]);
         }
 
-        $integrationsService = Formie::$plugin->getIntegrations();
-        $errors = [];
-
-        foreach ($integrations as $integrationConfig) {
-            if (isset($integrationConfig['saveSpam'])) {
-                $integrationConfig['saveSpam'] = (bool)$integrationConfig['saveSpam'];
-            }
-
-            $integration = $integrationsService->createIntegration($integrationConfig);
-
-            if (!$integrationsService->saveCaptcha($integration)) {
-                $errors[] = $integration->getErrors();
-            }
-        }
-
-        if ($errors) {
-            Formie::error('Couldn’t save captcha settings - {e}.', ['e' => Json::encode($errors)]);
-
-            return false;
-        }
-
-        return true;
+        return $saved;
     }
 
     private function _saveFieldBuilderPolicySettings(): bool

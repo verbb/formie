@@ -7,6 +7,7 @@ use verbb\formie\base\FormInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\ClientModule;
 use verbb\formie\models\ClientModuleContext;
 use verbb\formie\models\FieldLayoutPage;
@@ -47,6 +48,8 @@ class Recaptcha extends Captcha
     public string $scriptLoadingMethod = 'asyncDefer';
     public ?string $enterpriseType = 'score';
     public ?string $projectId = null;
+    public ?string $formAction = null;
+    public ?string $formMinScore = null;
 
 
     // Public Methods
@@ -196,12 +199,13 @@ class Recaptcha extends Captcha
             $reasons = $result['riskAnalysis']['reasons'] ?? $result['reasons'] ?? [];
 
             if ($enterpriseMode === self::ENTERPRISE_MODE_SCORE && $score !== null) {
-                $scoreRating = ($score >= $this->minScore);
+                $minScore = $this->_getMinScore();
+                $scoreRating = ($score >= $minScore);
 
                 if (!$scoreRating) {
                     $reasonsString = $reasons ? (' Reasons: ' . implode(', ', $reasons) . '.') : '';
 
-                    $this->spamReason = 'Score ' . $score . ' is below threshold ' . $this->minScore . $reasonsString . '.';
+                    $this->spamReason = 'Score ' . $score . ' is below threshold ' . $minScore . $reasonsString . '.';
                 }
 
                 return $scoreRating;
@@ -226,10 +230,11 @@ class Recaptcha extends Captcha
         ]);
 
         if ($success && isset($result['score'])) {
-            $scoreRating = ($result['score'] >= $this->minScore);
+            $minScore = $this->_getMinScore();
+            $scoreRating = ($result['score'] >= $minScore);
 
             if (!$scoreRating) {
-                $this->spamReason = 'Score ' . $result['score'] . ' is below threshold ' . $this->minScore . '.';
+                $this->spamReason = 'Score ' . $result['score'] . ' is below threshold ' . $minScore . '.';
             }
 
             $success = $scoreRating;
@@ -280,7 +285,33 @@ class Recaptcha extends Captcha
             ];
         }
 
-        return parent::defineFormSettingsSchema($form);
+        $schema = parent::defineFormSettingsSchema($form);
+
+        if ($this->_supportsFormAction()) {
+            $globalAction = $this->_getGlobalRecaptchaAction();
+
+            $schema[] = SchemaHelper::textField([
+                'label' => Craft::t('formie', 'Action'),
+                'instructions' => Craft::t('formie', 'Optional action name sent with score-based reCAPTCHA requests for this form. Leave blank to use the global default ({global}).', [
+                    'global' => $globalAction,
+                ]),
+                'name' => 'formAction',
+                'placeholder' => $globalAction,
+            ]);
+        }
+
+        if ($this->_supportsFormMinScore()) {
+            $schema[] = SchemaHelper::selectField([
+                'label' => Craft::t('formie', 'Minimum Score'),
+                'instructions' => Craft::t('formie', 'Optional minimum score threshold for this form. Leave as “Use global default” to inherit the value from Spam Protection ({global}).', [
+                    'global' => (string)$this->minScore,
+                ]),
+                'name' => 'formMinScore',
+                'options' => $this->_getFormMinScoreOptions(),
+            ]);
+        }
+
+        return $schema;
     }
 
 
@@ -432,11 +463,76 @@ class Recaptcha extends Captcha
         return self::ENTERPRISE_MODE_SCORE;
     }
 
-    private function _getRecaptchaAction(): string
+    private function _getGlobalRecaptchaAction(): string
     {
         $action = trim((string)$this->action);
 
         return $action !== '' ? $action : 'submit';
+    }
+
+    private function _getRecaptchaAction(): string
+    {
+        $action = trim((string)($this->formAction ?? ''));
+
+        if ($action === '') {
+            $action = $this->_getGlobalRecaptchaAction();
+        }
+
+        return $action;
+    }
+
+    private function _getMinScore(): float
+    {
+        $formMinScore = trim((string)($this->formMinScore ?? ''));
+
+        if ($formMinScore !== '' && is_numeric($formMinScore)) {
+            return (float)$formMinScore;
+        }
+
+        return $this->minScore;
+    }
+
+    private function _supportsFormAction(): bool
+    {
+        if ($this->type === self::RECAPTCHA_TYPE_V3) {
+            return true;
+        }
+
+        if ($this->type !== self::RECAPTCHA_TYPE_ENTERPRISE) {
+            return false;
+        }
+
+        return in_array($this->_getEnterpriseMode(), [
+            self::ENTERPRISE_MODE_SCORE,
+            self::ENTERPRISE_MODE_POLICY,
+        ], true);
+    }
+
+    private function _supportsFormMinScore(): bool
+    {
+        if ($this->type === self::RECAPTCHA_TYPE_V3) {
+            return true;
+        }
+
+        return $this->type === self::RECAPTCHA_TYPE_ENTERPRISE
+            && $this->_getEnterpriseMode() === self::ENTERPRISE_MODE_SCORE;
+    }
+
+    private function _getFormMinScoreOptions(): array
+    {
+        $options = [[
+            'label' => Craft::t('formie', 'Use global default'),
+            'value' => '',
+        ]];
+
+        foreach (['0.1', '0.2', '0.3', '0.4', '0.5', '0.6', '0.7', '0.8', '0.9', '1.0'] as $score) {
+            $options[] = [
+                'label' => $score,
+                'value' => $score,
+            ];
+        }
+
+        return $options;
     }
 
 }

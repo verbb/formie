@@ -47,6 +47,7 @@ use craft\base\MemoizableArray;
 use craft\db\Query;
 use craft\errors\MissingComponentException;
 use craft\events\ConfigEvent;
+use craft\helpers\App;
 use craft\helpers\Component as ComponentHelper;
 use craft\helpers\Db;
 use craft\helpers\Json;
@@ -87,6 +88,7 @@ class Integrations extends Component
 
     private ?MemoizableArray $_integrations = null;
     private ?IntegrationLookupCache $_lookupCache = null;
+    private array $_lastCaptchaSaveErrors = [];
 
 
     // Public Methods
@@ -1201,6 +1203,107 @@ class Integrations extends Component
     public function saveCaptcha(Integration $integration): bool
     {
         return Formie::$plugin->getCaptchaProviders()->saveProvider($integration);
+    }
+
+    public function buildCaptchaFromPostedConfig(string $handle, array $postedConfig): IntegrationInterface
+    {
+        $handle = trim($handle);
+
+        if ($handle === '') {
+            throw new \InvalidArgumentException('Captcha handle is required.');
+        }
+
+        $existing = $this->getCaptchaByHandle($handle);
+        $config = [
+            'handle' => $handle,
+        ];
+
+        if ($existing) {
+            $config = [
+                'id' => $existing->id,
+                'handle' => $handle,
+                'type' => get_class($existing),
+                'scope' => $existing->scope,
+                'uid' => $existing->uid,
+                'enabled' => $existing->getEnabled(false),
+                'saveSpam' => $existing->saveSpam,
+                'settings' => $existing->getSettings(),
+            ];
+        } elseif (!empty($postedConfig['type'])) {
+            $config['type'] = $postedConfig['type'];
+        }
+
+        if (array_key_exists('enabled', $postedConfig)) {
+            $config['enabled'] = App::parseBooleanEnv($postedConfig['enabled']) ? '1' : '0';
+        }
+
+        if (array_key_exists('saveSpam', $postedConfig)) {
+            $config['saveSpam'] = (bool)$postedConfig['saveSpam'];
+        }
+
+        if (!empty($postedConfig['type']) && class_exists((string)$postedConfig['type'])) {
+            $config['type'] = $postedConfig['type'];
+        }
+
+        $postedSettings = $postedConfig['settings'] ?? [];
+
+        if (is_array($postedSettings)) {
+            $config['settings'] = array_merge($config['settings'] ?? [], $postedSettings);
+        }
+
+        $integration = $this->createIntegration($config);
+
+        if (array_key_exists('enabled', $postedConfig)) {
+            $integration->setEnabled(App::parseBooleanEnv($postedConfig['enabled']) ? '1' : '0');
+        }
+
+        return $integration;
+    }
+
+    public function savePostedCaptchaConfigs(mixed $integrations): bool
+    {
+        $this->_lastCaptchaSaveErrors = [];
+
+        if (!is_array($integrations)) {
+            return false;
+        }
+
+        if ($integrations === [] && $this->getAllCaptchas() !== []) {
+            return false;
+        }
+
+        $errors = [];
+        $savedCount = 0;
+
+        foreach ($integrations as $handle => $integrationConfig) {
+            if (!is_string($handle) || !is_array($integrationConfig)) {
+                continue;
+            }
+
+            $savedCount++;
+            $integration = $this->buildCaptchaFromPostedConfig($handle, $integrationConfig);
+
+            if (!$this->saveCaptcha($integration)) {
+                $errors[$handle] = $integration->getErrors();
+            }
+        }
+
+        if ($savedCount === 0 && $integrations !== []) {
+            return false;
+        }
+
+        $this->_lastCaptchaSaveErrors = $errors;
+
+        if ($errors !== []) {
+            Formie::error('Couldn’t save captcha settings - {e}.', ['e' => Json::encode($errors)]);
+        }
+
+        return $errors === [];
+    }
+
+    public function getLastCaptchaSaveErrors(): array
+    {
+        return $this->_lastCaptchaSaveErrors;
     }
 
     public function resetCaptchaCaches(): void

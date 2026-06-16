@@ -31,6 +31,7 @@ Follow the below steps to connect Formie to Google reCAPTCHA.
 1. Go to the form you want to protect.
 1. Enable **reCAPTCHA** for that form.
 1. For multi-page forms, turn on **Show on All Pages** if reCAPTCHA should run on every page instead of only the final submit step.
+1. For **reCAPTCHA v3** or **Enterprise score-based** keys, optionally override the global **Action** or **Minimum Score** for this form only. Leave these blank to inherit the values from **Settings → Spam Protection**.
 1. Save the form.
 
 For most forms, **reCAPTCHA v3** is the best starting point. Use the checkbox or Enterprise challenge modes only when you need a visible challenge.

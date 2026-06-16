@@ -152,15 +152,18 @@ abstract class Captcha extends Integration
 
     protected function defineFormSettingsSchema(FormInterface $form): array
     {
-        $schema = parent::defineFormSettingsSchema($form);
-
-        $schema[] = SchemaHelper::lightswitchField([
-            'label' => Craft::t('formie', 'Show on All Pages'),
-            'instructions' => Craft::t('formie', 'For multi-page forms, choose whether to show the captcha on all pages of the form, or only on the final page of the form.'),
-            'name' => 'showAllPages',
-        ]);
-        
-        return $schema;
+        return [
+            SchemaHelper::lightswitchField([
+                'label' => Craft::t('formie', 'Enabled'),
+                'instructions' => Craft::t('formie', 'Whether the integration should be enabled.'),
+                'name' => 'enabled',
+            ]),
+            SchemaHelper::lightswitchField([
+                'label' => Craft::t('formie', 'Show on All Pages'),
+                'instructions' => Craft::t('formie', 'For multi-page forms, choose whether to show the captcha on all pages of the form, or only on the final page of the form.'),
+                'name' => 'showAllPages',
+            ]),
+        ];
     }
 
     protected function getMissingSettingsWarningSchema(string $providerName, string $settingsTab): array

@@ -47,25 +47,10 @@ class IntegrationSettingsController extends Controller
         $request = $this->request;
         $integrationsService = Formie::$plugin->getIntegrations();
 
-        $errors = [];
-
-        foreach ($request->getParam('integrations') as $handle => $integrationConfig) {
-            // Force the `saveSpam` setting to be boolean, to allow us to check for backward compatibility
-            if (isset($integrationConfig['saveSpam'])) {
-                $integrationConfig['saveSpam'] = (bool)$integrationConfig['saveSpam'];
-            }
-
-            $integration = $integrationsService->createIntegration($integrationConfig);
-
-            if (!Formie::$plugin->getIntegrations()->saveCaptcha($integration)) {
-                $errors[] = $integration->getErrors();
-            }
-        }
-
-        if ($errors) {
+        if (!$integrationsService->savePostedCaptchaConfigs($request->getParam('integrations'))) {
             $this->setFailFlash(Craft::t('formie', 'Couldn’t save integration settings.'));
 
-            Formie::error('Couldn’t save integration settings - {e}.', ['e' => Json::encode($errors)]);
+            Formie::error('Couldn’t save integration settings.');
 
             return null;
         }

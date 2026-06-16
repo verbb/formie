@@ -65,11 +65,8 @@ class SettingsAccessController extends Controller
         }
 
         if ($section === 'save-settings') {
-            $permissions = Formie::$plugin->getPermissions();
-            $redirect = (string)$request->getParam('redirect', '');
-
             return $permissions->normalizeSettingsPage(
-                $permissions->resolveSettingsPageFromUrl($redirect) ?? 'general',
+                (string)$request->getBodyParam('page', 'general'),
             );
         }
 

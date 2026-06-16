@@ -5,14 +5,17 @@
 {% set type = integration.settings.type ?? 'v3' %}
 {% set rawEnterpriseType = integration.settings.enterpriseType ?? 'score' %}
 {% set enterpriseType = rawEnterpriseType == 'invisible' ? 'policy' : rawEnterpriseType %}
+{% set showEnterprise = type == 'enterprise' %}
+{% set showEnterpriseAction = showEnterprise and enterpriseType in ['score', 'policy'] %}
+{% set showCheckbox = type == 'v2_checkbox' or (showEnterprise and enterpriseType == 'checkbox') %}
+{% set showScore = type == 'v3' or (showEnterprise and enterpriseType == 'score') %}
+{% set showBadge = type in ['v2_invisible', 'v3'] or (showEnterprise and enterpriseType in ['score', 'policy']) %}
 
 {{ macros.proxyField(fieldVariables, 'selectField', {
     label: 'reCAPTCHA Type' | t('formie'),
     instructions: 'Select the type of reCAPTCHA to use.' | t('formie'),
     name: 'type',
     required: true,
-    toggle: true,
-    targetPrefix: 'settings-',
     value: type,
     options: [
         {
@@ -54,7 +57,7 @@
     warning: macros.configWarning('secretKey', 'formie'),
 }) }}
 
-<div id="settings-enterprise"{% if type != 'enterprise' %} class="hidden"{% endif %}>
+<div id="settings-enterprise" class="fui-recaptcha-settings-section field {{ showEnterprise ? '' : ' hidden' }}">
     {{ macros.proxyField(fieldVariables, 'selectField', {
         label: 'Enterprise Key Type' | t('formie'),
         instructions: 'Select the reCAPTCHA Enterprise website key type to use. Google Enterprise website keys are mode-specific, so each type needs its own matching website key.' | t('formie'),
@@ -87,14 +90,16 @@
         warning: macros.configWarning('projectId', 'formie'),
     }) }}
 
-    <br>
-
-    <p class="warning with-icon">
+    <p class="warning with-icon fui-recaptcha-settings-notice">
         {{ 'Use a website key that matches the selected Enterprise Key Type. Keep using your Google Cloud API key and Project ID for server-side assessment requests.' | t('formie') }}
+    </p>
+
+    <p id="settings-enterprise-policy-note" class="warning with-icon fui-recaptcha-settings-notice{{ showEnterprise and enterpriseType == 'policy' ? '' : ' hidden' }}">
+        {{ 'Policy-based challenge keys are the web Enterprise challenge flow for deterministic CAPTCHA prompts. Configure threshold and challenge difficulty in Google Cloud.' | t('formie') }}
     </p>
 </div>
 
-<div id="settings-enterprise-action"{% if type != 'enterprise' or enterpriseType not in ['score', 'policy'] %} class="hidden"{% endif %}>
+<div id="settings-enterprise-action" class="fui-recaptcha-settings-section field {{ showEnterpriseAction ? '' : ' hidden' }}">
     {{ macros.proxyField(fieldVariables, 'textField', {
         label: 'Action' | t('formie'),
         instructions: 'Provide a meaningful action name sent with Enterprise score and policy-based challenge requests. This should match the action thresholds or reporting you want to use in Google Cloud.' | t('formie'),
@@ -104,7 +109,7 @@
     }) }}
 </div>
 
-<div id="settings-recaptcha-checkbox"{% if type != 'v2_checkbox' and not (type == 'enterprise' and enterpriseType == 'checkbox') %} class="hidden"{% endif %}>
+<div id="settings-recaptcha-checkbox" class="fui-recaptcha-settings-section field {{ showCheckbox ? '' : ' hidden' }}">
     {{ macros.proxyField(fieldVariables, 'selectField', {
         label: 'Theme' | t('formie'),
         instructions: 'Select the theme for reCAPTCHA to use.' | t('formie'),
@@ -136,7 +141,7 @@
     }) }}
 </div>
 
-<div id="settings-recaptcha-score"{% if type != 'v3' and not (type == 'enterprise' and enterpriseType == 'score') %} class="hidden"{% endif %}>
+<div id="settings-recaptcha-score" class="fui-recaptcha-settings-section field {{ showScore ? '' : ' hidden' }}">
     {{ macros.proxyField(fieldVariables, 'selectField', {
         label: 'Minimum Score' | t('formie'),
         instructions: 'Enter the minimum score needed to pass the reCAPTCHA test.' | t('formie'),
@@ -159,7 +164,7 @@
     }) }}
 </div>
 
-<div id="settings-recaptcha-badge"{% if type != 'v2_invisible' and type != 'v3' and not (type == 'enterprise' and enterpriseType in ['score', 'policy']) %} class="hidden"{% endif %}>
+<div id="settings-recaptcha-badge" class="fui-recaptcha-settings-section field {{ showBadge ? '' : ' hidden' }}">
     {{ macros.proxyField(fieldVariables, 'selectField', {
         label: 'Badge Type' | t('formie'),
         instructions: 'Select the type of badge to display.' | t('formie'),
@@ -177,14 +182,10 @@
         }],
         warning: macros.configWarning('badge', 'formie'),
     }) }}
-</div>
 
-<div id="settings-recaptcha-badge-warning" class="field {% if type != 'v3' and not (type == 'enterprise' and enterpriseType in ['score', 'policy']) %}hidden{% endif %}">
-    <p class="warning with-icon">{{ 'Looking to hide the badge? Refer to the [reCAPTCHA FAQ](https://developers.google.com/recaptcha/docs/faq#id-like-to-hide-the-recaptcha-badge.-what-is-allowed) to achieve this.' | t('formie') | md(inlineOnly=true) }}</p>
-</div>
-
-<div id="settings-enterprise-policy-note" class="field {% if type != 'enterprise' or enterpriseType != 'policy' %}hidden{% endif %}">
-    <p class="warning with-icon">{{ 'Policy-based challenge keys are the web Enterprise challenge flow for deterministic CAPTCHA prompts. Configure threshold and challenge difficulty in Google Cloud.' | t('formie') }}</p>
+    <p id="settings-recaptcha-badge-warning" class="warning with-icon fui-recaptcha-settings-notice">
+        {{ 'Looking to hide the badge? Refer to the [reCAPTCHA FAQ](https://developers.google.com/recaptcha/docs/faq#id-like-to-hide-the-recaptcha-badge.-what-is-allowed) to achieve this.' | t('formie') | md(inlineOnly=true) }}
+    </p>
 </div>
 
 {{ macros.proxyField(fieldVariables, 'selectField', {
@@ -234,14 +235,18 @@ const updateRecaptchaSettingsUi = function() {
     const $field = $input.parents('.field');
     const $label = $field.find('label');
     const required = '<span class="visually-hidden">{{ 'Required' | t('app') | e('js') }}</span><span class="required" aria-hidden="true"></span>';
+    const showEnterprise = type === 'enterprise';
+    const showEnterpriseAction = showEnterprise && (enterpriseType === 'score' || enterpriseType === 'policy');
+    const showCheckbox = type === 'v2_checkbox' || (showEnterprise && enterpriseType === 'checkbox');
+    const showScore = type === 'v3' || (showEnterprise && enterpriseType === 'score');
+    const showBadge = type === 'v2_invisible' || type === 'v3' || (showEnterprise && (enterpriseType === 'score' || enterpriseType === 'policy'));
 
-    $('#settings-enterprise').toggleClass('hidden', type !== 'enterprise');
-    $('#settings-enterprise-action').toggleClass('hidden', !(type === 'enterprise' && (enterpriseType === 'score' || enterpriseType === 'policy')));
-    $('#settings-recaptcha-checkbox').toggleClass('hidden', !(type === 'v2_checkbox' || (type === 'enterprise' && enterpriseType === 'checkbox')));
-    $('#settings-recaptcha-score').toggleClass('hidden', !(type === 'v3' || (type === 'enterprise' && enterpriseType === 'score')));
-    $('#settings-recaptcha-badge').toggleClass('hidden', !(type === 'v2_invisible' || type === 'v3' || (type === 'enterprise' && (enterpriseType === 'score' || enterpriseType === 'policy'))));
-    $('#settings-recaptcha-badge-warning').toggleClass('hidden', !(type === 'v3' || (type === 'enterprise' && (enterpriseType === 'score' || enterpriseType === 'policy'))));
-    $('#settings-enterprise-policy-note').toggleClass('hidden', !(type === 'enterprise' && enterpriseType === 'policy'));
+    $('#settings-enterprise').toggleClass('hidden', !showEnterprise);
+    $('#settings-enterprise-action').toggleClass('hidden', !showEnterpriseAction);
+    $('#settings-recaptcha-checkbox').toggleClass('hidden', !showCheckbox);
+    $('#settings-recaptcha-score').toggleClass('hidden', !showScore);
+    $('#settings-recaptcha-badge').toggleClass('hidden', !showBadge);
+    $('#settings-enterprise-policy-note').toggleClass('hidden', !(showEnterprise && enterpriseType === 'policy'));
 
     if (type === 'enterprise') {
         $label.html('{{ secretKeyAlt }}' + required);

@@ -15,6 +15,7 @@
 - Add a suspicious text detector focused on keyboard spam, low-quality filler text, and configurable allowed terms.
 - Add a `Permissions` service as the single ACL entry point for forms, submissions, sent notifications, and import/export checks.
 - Add **Field Error Announcement** plugin setting (**Settings → Forms**) to control how front-end validation and submit errors are announced to screen readers (`polite`, `assertive`, or `off`). Live validation while typing always uses polite announcements. ([#2505](https://github.com/verbb/formie/issues/2505))
+- Add optional per-form reCAPTCHA **Action** and **Minimum Score** settings for score-based modes, inheriting global Spam Protection defaults when left blank. ([#2167](https://github.com/verbb/formie/issues/2167), [#2804](https://github.com/verbb/formie/issues/2804))
 
 ### Changed
 - Align `Form` element `canView()`, `canSave()`, `canDuplicate()`, and delete behaviour with controller permissions instead of broad allow-all checks.

@@ -591,6 +591,17 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         $this->_enabled = $name;
     }
 
+    public function getEnabledMenuValue(): string
+    {
+        $raw = $this->getEnabled(false);
+
+        if (is_string($raw) && str_starts_with(trim($raw), '$')) {
+            return trim($raw);
+        }
+
+        return App::parseBooleanEnv($raw) ? '1' : '0';
+    }
+
     public function getIconUrl(): string
     {
         return '';

@@ -15,6 +15,7 @@ use Craft;
 use craft\base\Component;
 use craft\db\Query;
 use craft\events\ConfigEvent;
+use craft\helpers\App;
 use craft\helpers\Db;
 use craft\helpers\Json;
 use craft\helpers\ProjectConfig;
@@ -101,14 +102,33 @@ class CaptchaProviders extends Component
             return false;
         }
 
+        $handle = $integration->getHandle();
+        $row = $this->getProviderRowByHandle($handle);
+        $wasProjectScoped = $row && ($row['scope'] ?? Integrations::SCOPE_PROJECT) === Integrations::SCOPE_PROJECT;
+
+        // Captcha credentials and enabled state are environment-specific. CP saves always
+        // persist as site-scoped overrides so they are editable on every environment.
+        if ($integration->isProjectScope()) {
+            $integration->scope = Integrations::SCOPE_SITE;
+        }
+
         if (!$integration->canEdit()) {
             $integration->addError('name', Craft::t('formie', 'This integration cannot be edited in the current environment.'));
 
             return false;
         }
 
-        $handle = $integration->getHandle();
-        $row = $this->getProviderRowByHandle($handle);
+        if ($wasProjectScoped) {
+            $configPath = self::CONFIG_CAPTCHA_PROVIDERS_KEY . '.' . $handle;
+
+            if (Craft::$app->getProjectConfig()->get($configPath) !== null) {
+                Craft::$app->getProjectConfig()->remove(
+                    $configPath,
+                    "Promote the “{$handle}” captcha provider to a site-scoped override",
+                );
+            }
+        }
+
         $isNew = $row === null;
 
         if ($isNew) {
@@ -187,7 +207,7 @@ class CaptchaProviders extends Component
         $config = [
             'handle' => $integration->getHandle(),
             'type' => get_class($integration),
-            'enabled' => $integration->getEnabled(false),
+            'enabled' => $this->_normalizeEnabledValue($integration->getEnabled(false)),
             'settings' => ProjectConfig::packAssociativeArrays($integration->getSettings()),
         ];
 
@@ -357,7 +377,7 @@ class CaptchaProviders extends Component
             $record->handle = (string)$integration->getHandle();
             $record->type = get_class($integration);
             $record->scope = $integration->getScope();
-            $record->enabled = $integration->getEnabled(false);
+            $record->enabled = $this->_normalizeEnabledValue($integration->getEnabled(false));
             $record->saveSpam = $integration->saveSpam;
             $record->settings = $settings;
 
@@ -408,11 +428,7 @@ class CaptchaProviders extends Component
 
     private function _normalizeEnabledValue(mixed $enabled): string
     {
-        if (is_string($enabled) && $enabled !== '') {
-            return $enabled;
-        }
-
-        return $enabled ? 'true' : 'false';
+        return App::parseBooleanEnv($enabled) ? 'true' : 'false';
     }
 
     private function _resetCache(): void
