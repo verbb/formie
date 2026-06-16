@@ -14,8 +14,8 @@
     },
     "devDependencies": {
         "@pixelandtonic/craftui": "~0.3.8",
-        "@vitejs/plugin-legacy": "^5.3.1",
-        "@vitejs/plugin-vue": "^5.0.4",
+        "@vitejs/plugin-legacy": "^8.0.2",
+        "@vitejs/plugin-vue": "^6.0.7",
         "autoprefixer": "^10.4.18",
         "clean-webpack-plugin": "^4.0.0",
         "craftcms-sass": "^3.5.7",
@@ -35,10 +35,10 @@
         "rollup-plugin-analyzer": "^4.0.0",
         "sass": "^1.71.1",
         "sass-loader": "^14.1.1",
-        "vite": "^5.1.4",
+        "vite": "^8.0.16",
         "vite-plugin-eslint": "^1.8.1",
         "vite-plugin-imagemin": "^0.6.1",
-        "vite-plugin-node-polyfills": "^0.21.0",
+        "vite-plugin-node-polyfills": "^0.28.0",
         "vuex": "^4.1.0"
     },
     "dependencies": {
