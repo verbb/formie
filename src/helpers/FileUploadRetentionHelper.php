@@ -7,9 +7,9 @@ use verbb\formie\fields\FileUpload;
 
 class FileUploadRetentionHelper
 {
-    /**
-     * @return FileUpload[]
-     */
+    // Static Methods
+    // =========================================================================
+
     public static function collectFieldsWithAssetRetention(Form $form): array
     {
         $collected = [];
@@ -58,9 +58,6 @@ class FileUploadRetentionHelper
         return $current instanceof FileUpload ? $current : null;
     }
 
-    /**
-     * @return FileUpload[]
-     */
     private static function _walkFileUploadFields(array $fields): array
     {
         $collected = [];

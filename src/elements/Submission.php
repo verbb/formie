@@ -323,7 +323,7 @@ class Submission extends Element
         if ($canSaveSubmissions) {
             $actions[] = $elementsService->createAction([
                 'type' => SetSubmissionStatus::class,
-                'statuses' => Formie::$plugin->getStatuses()->getAllStatuses(),
+                'statuses' => Formie::$plugin->getStatuses()->getStatusesForForm($form),
             ]);
 
             $actions[] = $elementsService->createAction([
@@ -598,6 +598,23 @@ class Submission extends Element
     public function getStatus(): ?string
     {
         return $this->getStatusModel(true)->handle ?? null;
+    }
+
+    public function validateAllowedStatus(): void
+    {
+        if (!$this->statusId) {
+            return;
+        }
+
+        $form = $this->getForm();
+
+        if (!$form) {
+            return;
+        }
+
+        if (!Formie::$plugin->getFormGroupPolicy()->isStatusAllowed($form, (int)$this->statusId)) {
+            $this->addError('statusId', Craft::t('formie', 'This submission status is not allowed for this form.'));
+        }
     }
 
     public function validate($attributeNames = null, $clearErrors = true): bool
@@ -1316,6 +1333,7 @@ class Submission extends Element
         // Required for typecasting the JSON column
         // https://github.com/yiisoft/yii2/issues/15839
         $rules[] = [['content'], 'safe'];
+        $rules[] = [['statusId'], 'validateAllowedStatus'];
 
         // Fire a 'defineSubmissionRules' event
         $event = new SubmissionRulesEvent([

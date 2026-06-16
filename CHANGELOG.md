@@ -3,6 +3,8 @@
 ## Unreleased
 
 ### Added
+- Add form group policies for allowed submission statuses, optional per-group field palettes, and new-form default profiles (stencil, templates, form defaults). Group policies inherit from global settings; forms can optionally override allowed statuses. ([#2717](https://github.com/verbb/formie/issues/2717), [#2209](https://github.com/verbb/formie/issues/2209), [#863](https://github.com/verbb/formie/issues/863))
+- Add `FormGroupPolicy` service as the single entry point for global → group → form policy resolution.
 - Add custom variable sources via `Variables::EVENT_REGISTER_VARIABLES`, exposing registered tokens in the variable picker and resolving them server-side when references are parsed. ([#898](https://github.com/verbb/formie/issues/898))
 - Add group-scoped form and submission permissions using stable form group handles, with optional per-form dedicated permissions via a new **Use Dedicated Permissions** form setting. ([#1426](https://github.com/verbb/formie/issues/1426), [#1356](https://github.com/verbb/formie/issues/1356), [#2489](https://github.com/verbb/formie/issues/2489), [Discussion #1696](https://github.com/verbb/formie/discussions/1696))
 - Add `formie-importForms` and `formie-exportForms` permissions, replacing the temporary admin-only import/export gate.

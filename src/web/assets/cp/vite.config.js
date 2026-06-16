@@ -17,6 +17,7 @@ const cpBundleDirectories = {
     'formie-plugin-settings': 'plugin-settings',
     'formie-defaults': 'defaults',
     'formie-field-palette': 'field-palette',
+    'formie-form-group-settings': 'form-group-settings',
 };
 
 const widgetVendorFiles = [
@@ -164,6 +165,7 @@ export default defineConfig(async ({ command, mode }) => {
                     'formie-plugin-settings': path.resolve('./src/plugin-settings/js/formie-plugin-settings.js'),
                     'formie-defaults': path.resolve('./src/defaults/formie-defaults.js'),
                     'formie-field-palette': path.resolve('./src/field-palette/formie-field-palette.js'),
+                    'formie-form-group-settings': path.resolve('./src/form-group-settings/formie-form-group-settings.js'),
                 },
                 output: {
                     entryFileNames: (chunkInfo) => {
@@ -243,6 +245,7 @@ export default defineConfig(async ({ command, mode }) => {
                 { find: '@integration-connect', replacement: path.resolve('./src/integration-connect') },
                 { find: '@defaults', replacement: path.resolve('./src/defaults') },
                 { find: '@field-palette', replacement: path.resolve('./src/field-palette') },
+                { find: '@form-group-settings', replacement: path.resolve('./src/form-group-settings') },
                 { find: '@utils', replacement: path.resolve('./src/utils') },
 
                 // React 19 already provides useSyncExternalStore. Some linked package dependencies

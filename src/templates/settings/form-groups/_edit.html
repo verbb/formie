@@ -6,45 +6,93 @@
     { label: 'Form Groups' | t('formie'), url: url('formie/settings/form-groups') },
 ] %}
 
+{% if formGroup.id %}
+    {% set crumbs = crumbs | merge([
+        { label: formGroup.name, url: formGroup.getCpEditUrl() },
+    ]) %}
+{% endif %}
+
 {% set selectedSubnavItem = 'settings' %}
-{% set fullPageForm = true %}
+{% set fullPageForm = canEdit ?? craft.app.config.general.allowAdminChanges %}
 {% set selectedTab = 'settings' %}
+{% set bodyClass = formGroup.id ? 'formie-form-group-settings-page' : '' %}
 {% import '_includes/forms' as forms %}
+
+{% if fullPageForm %}
+    {% set saveShortcutRedirect = continueEditingUrl %}
+    {% set formActions = [
+        {
+            label: 'Save and continue editing' | t('app'),
+            redirect: continueEditingUrl | hash,
+            shortcut: true,
+            retainScroll: true,
+        },
+        formGroup.id ? {
+            destructive: true,
+            label: 'Delete form group' | t('formie'),
+            action: 'formie/form-groups/delete',
+            redirect: 'formie/settings/form-groups' | hash,
+            confirm: 'Are you sure you want to delete this form group?' | t('formie'),
+        }
+    ] | filter %}
+{% endif %}
 
 {% block content %}
 
 {{ actionInput('formie/form-groups/save') }}
 {{ redirectInput('formie/settings/form-groups') }}
 
+{% if not fullPageForm %}
+    <p class="warning with-icon">
+        {{ 'Form group settings are read-only when allowAdminChanges is disabled.' | t('formie') | md(inlineOnly=true) }}
+    </p>
+{% endif %}
+
 {% if formGroup.id %}
     {{ hiddenInput('id', formGroup.id) }}
     {{ hiddenInput('sortOrder', formGroup.sortOrder) }}
+    {{ hiddenInput('name', formGroup.name, { id: 'form-group-name' }) }}
+    {{ hiddenInput('handle', formGroup.handle, { id: 'form-group-handle' }) }}
+    <input type="hidden" name="settings" id="formie-form-group-settings" value="{{ groupSettingsPayload|e('html_attr') }}">
+
+    <div class="formie-form-group-settings"></div>
+{% else %}
+    {{ forms.textField({
+        label: 'Name' | t('formie'),
+        first: true,
+        instructions: 'What this form group will be called in the control panel.' | t('formie'),
+        id: 'name',
+        name: 'name',
+        value: formGroup.name,
+        errors: formGroup.getErrors('name'),
+        required: true,
+    }) }}
+
+    {{ forms.textField({
+        label: 'Handle' | t('formie'),
+        instructions: 'How you’ll refer to this form group in the templates.' | t('formie'),
+        id: 'handle',
+        class: 'code',
+        name: 'handle',
+        value: formGroup.handle,
+        errors: formGroup.getErrors('handle'),
+        required: true,
+    }) }}
 {% endif %}
-
-{{ forms.textField({
-    label: 'Name' | t('formie'),
-    first: true,
-    instructions: 'What this form group will be called in the control panel.' | t('formie'),
-    id: 'name',
-    name: 'name',
-    value: formGroup.name,
-    errors: formGroup.getErrors('name'),
-    required: true,
-}) }}
-
-{{ forms.textField({
-    label: 'Handle' | t('formie'),
-    instructions: 'How you’ll refer to this form group in the templates.' | t('formie'),
-    id: 'handle',
-    class: 'code',
-    name: 'handle',
-    value: formGroup.handle,
-    errors: formGroup.getErrors('handle'),
-    required: true,
-}) }}
 
 {% endblock %}
 
+{% if not formGroup.id %}
 {% js %}
-    {% if not formGroup.handle %}new Craft.HandleGenerator('#name', '#handle');{% endif %}
+    new Craft.HandleGenerator('#name', '#handle');
 {% endjs %}
+{% endif %}
+
+{% css %}
+.formie-form-group-settings-page #content {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+}
+{% endcss %}

@@ -145,9 +145,6 @@ class Variables
         ];
     }
 
-    /**
-     * @return VariableSourceInterface[]
-     */
     public static function getRegisteredVariableSources(): array
     {
         if (self::$_registeredVariableSources !== null) {

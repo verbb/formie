@@ -24,6 +24,8 @@ use verbb\formie\services\FieldPalette;
 use verbb\formie\services\Fields;
 use verbb\formie\services\FileUploads;
 use verbb\formie\services\FormDefaults;
+use verbb\formie\services\FormGroupDefaults;
+use verbb\formie\services\FormGroupPolicy;
 use verbb\formie\services\Forms;
 use verbb\formie\services\FormGroups;
 use verbb\formie\services\FormPreview;
@@ -187,6 +189,8 @@ trait PluginTrait
                 'fieldSlotRegistry' => FieldSlotRegistry::class,
                 'fileUploads' => FileUploads::class,
                 'formDefaults' => FormDefaults::class,
+                'formGroupDefaults' => FormGroupDefaults::class,
+                'formGroupPolicy' => FormGroupPolicy::class,
                 'forms' => Forms::class,
                 'formSlotRegistry' => FormSlotRegistry::class,
                 'clientFormBootstrapBuilder' => FormBootstrapBuilder::class,
@@ -416,6 +420,16 @@ trait PluginTrait
     public function getFormGroups(): FormGroups
     {
         return $this->get('formGroups');
+    }
+
+    public function getFormGroupDefaults(): FormGroupDefaults
+    {
+        return $this->get('formGroupDefaults');
+    }
+
+    public function getFormGroupPolicy(): FormGroupPolicy
+    {
+        return $this->get('formGroupPolicy');
     }
 
     public function getFormPreview(): FormPreview

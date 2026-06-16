@@ -417,8 +417,8 @@ class FormDefaults extends Component
 
     public function applyToNewForm(Form $form, array $postedValues = []): void
     {
-        $settings = Formie::$plugin->getSettings();
-        $defaults = $settings->getNormalizedFormDefaults();
+        $group = $form->getGroup();
+        $defaults = Formie::$plugin->getFormGroupPolicy()->getMergedFormDefaults($group);
 
         if (!array_key_exists('defaultStatusId', $postedValues) && ($defaults['defaultStatus'] ?? '')) {
             $status = Formie::$plugin->getStatuses()->getStatusByHandle((string)$defaults['defaultStatus']);
@@ -445,6 +445,16 @@ class FormDefaults extends Component
 
         foreach ($this->_formSettingsDefaultKeys() as $name) {
             $this->_applyFormSettingDefault($form, $postedSettings, $name, $defaults[$name] ?? null);
+        }
+
+        $groupSettings = Formie::$plugin->getFormGroupPolicy()->getSettings($group);
+
+        if (!array_key_exists('templateId', $postedValues) && ($templateHandle = $groupSettings->getDefaultFormTemplate())) {
+            $template = Formie::$plugin->getFormTemplates()->getTemplateByHandle($templateHandle);
+
+            if ($template) {
+                $form->templateId = $template->id;
+            }
         }
     }
 
@@ -574,8 +584,13 @@ class FormDefaults extends Component
 
     public function applyDefaultStencil(Form $form): bool
     {
-        $settings = Formie::$plugin->getSettings();
-        $stencilHandle = trim((string)$settings->defaultFormStencil);
+        $group = $form->getGroup();
+        $groupSettings = Formie::$plugin->getFormGroupPolicy()->getSettings($group);
+        $stencilHandle = $groupSettings->getDefaultFormStencil();
+
+        if ($stencilHandle === '') {
+            $stencilHandle = trim((string)Formie::$plugin->getSettings()->defaultFormStencil);
+        }
 
         if ($stencilHandle === '') {
             return false;

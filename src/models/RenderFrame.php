@@ -81,11 +81,6 @@ class RenderFrame
         return (bool)($this->renderOptions['includeScriptsInline'] ?? false);
     }
 
-    /**
-     * Custom keys for render options / `templateVars`; the HTML field merges these in PHP via {@see Html::getRenderedHtmlBlock()}.
-     *
-     * @return array<string, mixed>
-     */
     public function getTemplateVars(): array
     {
         $merged = (array)($this->renderOptions['templateVars'] ?? []);

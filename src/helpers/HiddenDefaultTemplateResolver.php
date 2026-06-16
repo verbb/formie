@@ -64,9 +64,6 @@ class HiddenDefaultTemplateResolver
         return HiddenDefaultTemplateContext::fromFieldContext($form, $submission);
     }
 
-    /**
-     * @return array<string, mixed>
-     */
     public static function triggerDefineContext(
         Hidden $field,
         ?ElementInterface $element,
@@ -84,9 +81,6 @@ class HiddenDefaultTemplateResolver
         return $event->variables;
     }
 
-    /**
-     * @return array{0: ?Form, 1: ?Submission}
-     */
     private static function resolveFormAndSubmission(Hidden $field, ?ElementInterface $element): array
     {
         $form = null;

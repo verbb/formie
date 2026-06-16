@@ -149,10 +149,13 @@ class SchemaHelper
 
     public static function inheritBooleanField(array $config = []): array
     {
+        $inheritLabel = $config['inheritLabel'] ?? Craft::t('formie', 'Inherit');
+        unset($config['inheritLabel']);
+
         return array_merge([
             '$field' => 'select',
             'options' => [
-                ['label' => Craft::t('formie', 'Inherit'), 'value' => ''],
+                ['label' => $inheritLabel, 'value' => ''],
                 ['label' => Craft::t('app', 'Yes'), 'value' => '1'],
                 ['label' => Craft::t('app', 'No'), 'value' => '0'],
             ],
@@ -1428,5 +1431,79 @@ class SchemaHelper
         unset($node['defaults']);
 
         return $node;
+    }
+
+    /**
+     * Patch defaults schema nodes so blank values can inherit global defaults in form group settings.
+     */
+    public static function patchGroupInheritSchema(mixed $schema, ?string $inheritLabel = null): mixed
+    {
+        $inheritLabel ??= Craft::t('formie', 'Inherit global default');
+
+        if (!is_array($schema)) {
+            return $schema;
+        }
+
+        if (array_is_list($schema)) {
+            return array_map(function(mixed $node) use ($inheritLabel) {
+                return self::patchGroupInheritSchema($node, $inheritLabel);
+            }, $schema);
+        }
+
+        $node = self::_patchGroupInheritSchemaNode($schema, $inheritLabel);
+
+        foreach (['schema', 'children'] as $key) {
+            if (isset($node[$key])) {
+                $node[$key] = self::patchGroupInheritSchema($node[$key], $inheritLabel);
+            }
+        }
+
+        return $node;
+    }
+
+    private static function _patchGroupInheritSchemaNode(array $node, string $inheritLabel): array
+    {
+        $field = $node['$field'] ?? null;
+
+        if ($field === 'select' && isset($node['options']) && is_array($node['options'])) {
+            $node['options'] = self::_prependInheritSelectOption($node['options'], $inheritLabel);
+
+            return $node;
+        }
+
+        if ($field !== 'lightswitch') {
+            return $node;
+        }
+
+        return self::inheritBooleanField(array_filter([
+            'name' => $node['name'] ?? null,
+            'label' => $node['label'] ?? null,
+            'instructions' => $node['instructions'] ?? null,
+            'warning' => $node['warning'] ?? null,
+            'if' => $node['if'] ?? null,
+            'inheritLabel' => $inheritLabel,
+        ], static fn(mixed $value): bool => $value !== null));
+    }
+
+    private static function _prependInheritSelectOption(array $options, string $inheritLabel): array
+    {
+        foreach ($options as &$option) {
+            if (!is_array($option) || ($option['value'] ?? null) !== '') {
+                continue;
+            }
+
+            $option['label'] = $inheritLabel;
+            unset($option);
+
+            return $options;
+        }
+        unset($option);
+
+        array_unshift($options, [
+            'label' => $inheritLabel,
+            'value' => '',
+        ]);
+
+        return $options;
     }
 }

@@ -2,6 +2,8 @@ import { useEffect, useRef } from 'react';
 
 export const CP_MAIN_FORM_SELECTOR = '#main-form';
 
+const SAVE_TRIGGER_SELECTOR = 'input[type="submit"], button[type="submit"], a.formsubmit, button.formsubmit';
+
 const syncPayloadInput = (inputId, payload) => {
     const input = document.getElementById(inputId);
 
@@ -33,11 +35,14 @@ export const useCpFormPayloadSync = ({
     inputId,
     payload,
     enabled = true,
+    onBeforeSubmit,
 }) => {
     const payloadRef = useRef(payload);
+    const onBeforeSubmitRef = useRef(onBeforeSubmit);
     const hasResetInitialUnloadStateRef = useRef(false);
 
     payloadRef.current = payload;
+    onBeforeSubmitRef.current = onBeforeSubmit;
 
     useEffect(() => {
         if (!enabled || !inputId) {
@@ -69,32 +74,31 @@ export const useCpFormPayloadSync = ({
             return undefined;
         }
 
-        const form = document.querySelector(CP_MAIN_FORM_SELECTOR);
-
-        if (!form) {
-            return undefined;
-        }
-
         const sync = () => {
+            if (!document.getElementById(inputId)) {
+                return;
+            }
+
+            onBeforeSubmitRef.current?.();
             syncPayloadInput(inputId, payloadRef.current);
         };
 
         const handleClick = (event) => {
-            const trigger = event.target.closest('input[type="submit"], button[type="submit"]');
+            const trigger = event.target.closest(SAVE_TRIGGER_SELECTOR);
 
-            if (!trigger || !form.contains(trigger)) {
+            if (!trigger) {
                 return;
             }
 
             sync();
         };
 
-        form.addEventListener('submit', sync, { capture: true });
-        form.addEventListener('click', handleClick, { capture: true });
+        document.addEventListener('submit', sync, { capture: true });
+        document.addEventListener('click', handleClick, { capture: true });
 
         return () => {
-            form.removeEventListener('submit', sync, { capture: true });
-            form.removeEventListener('click', handleClick, { capture: true });
+            document.removeEventListener('submit', sync, { capture: true });
+            document.removeEventListener('click', handleClick, { capture: true });
         };
     }, [enabled, inputId]);
 };

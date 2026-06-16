@@ -369,7 +369,7 @@ class Forms extends Component
             'tabLabels' => array_column($tabs, 'label', 'handle'),
             'paymentIntegrations' => $this->_getPaymentIntegrationMetadata(),
             'templateFieldLayoutInfo' => $this->_getTemplateFieldLayoutInfo(),
-            'fieldTypeGroups' => Formie::$plugin->getFields()->getFormBuilderFieldTypes(),
+            'fieldTypeGroups' => Formie::$plugin->getFields()->getFormBuilderFieldTypes([], $form),
             'viewSubmissionsUrl' => $viewSubmissionsUrl,
             ...Variables::getFormBuilderVariableConfig(),
             'reservedHandles' => Formie::$plugin->getFields()->getReservedHandles(),

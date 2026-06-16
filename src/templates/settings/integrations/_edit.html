@@ -128,7 +128,6 @@
     }) }}
 
     {{ forms.lightswitchField({
-        first: true,
         label: 'Enabled' | t('formie'),
         id: 'enabled',
         name: 'enabled',
@@ -137,10 +136,12 @@
     }) }}
 
     {% if not isNewIntegration and integration.getScopeLabel() %}
-        <div class="data">
-            <h5 class="heading">{{ 'Scope' | t('formie') }}</h5>
-            <div class="value">{{ integration.getScopeLabel() }}</div>
-        </div>
+        {{ forms.textField({
+            label: 'Scope' | t('formie'),
+            id: 'scope',
+            value: integration.getScopeLabel(),
+            readonly: true,
+        }) }}
     {% endif %}
 
     {% if not isNewIntegration and integration.supportsConnection() %}

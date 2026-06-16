@@ -448,7 +448,7 @@ function FieldDropZone({
     );
 }
 
-export function FieldPaletteApp({ settings }) {
+export function FieldPaletteApp({ settings, onPayloadChange = null }) {
     const canEdit = settings.canEdit !== false;
     const [palette, setPalette] = useState(() => { return clonePalette(settings.palette || { groups: [], unassigned: [] }); });
     const [isDndHydrated, setIsDndHydrated] = useState(false);
@@ -475,9 +475,17 @@ export function FieldPaletteApp({ settings }) {
 
     useCpFormPayloadSync({
         inputId: settings.payloadInputId,
-        enabled: canEdit,
+        enabled: canEdit && !onPayloadChange,
         payload: palettePayload,
     });
+
+    useEffect(() => {
+        if (!onPayloadChange) {
+            return;
+        }
+
+        onPayloadChange(palettePayload);
+    }, [onPayloadChange, palettePayload]);
 
     useEffect(() => {
         if (!canEdit) {

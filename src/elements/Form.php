@@ -654,7 +654,34 @@ class Form extends Element implements FormInterface
             }
         }
 
+        $this->_ensureDefaultStatusAllowed();
+
         return $this->_defaultStatus;
+    }
+
+    /**
+     * Ensures the cached default status is allowed for this form's status policy.
+     */
+    private function _ensureDefaultStatusAllowed(): void
+    {
+        if (!$this->_defaultStatus) {
+            return;
+        }
+
+        $allowedStatuses = Formie::$plugin->getFormGroupPolicy()->getStatusesForForm($this);
+
+        if ($allowedStatuses === []) {
+            return;
+        }
+
+        foreach ($allowedStatuses as $status) {
+            if ((int)$status->id === (int)$this->_defaultStatus->id) {
+                return;
+            }
+        }
+
+        $this->_defaultStatus = $allowedStatuses[0];
+        $this->defaultStatusId = $this->_defaultStatus->id;
     }
 
     public function setDefaultStatus(?Status $status): void
@@ -2681,13 +2708,7 @@ class Form extends Element implements FormInterface
                 'label' => Craft::t('formie', 'Default Status'),
                 'instructions' => Craft::t('formie', 'The default status to be assigned to new submissions.'),
                 'name' => 'defaultStatusId',
-                'options' => array_map(function($status) {
-                    return [
-                        'value' => $status->id,
-                        'label' => $status->name,
-                        'status' => $status->color,
-                    ];
-                }, Formie::$plugin->getStatuses()->getAllStatuses()),
+                'options' => Formie::$plugin->getFormGroupPolicy()->getStatusSelectOptions($this),
             ]),
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Enable Status Rules'),
@@ -2700,13 +2721,7 @@ class Form extends Element implements FormInterface
                 'if' => 'settings.enableStatusRules',
                 'label' => Craft::t('formie', 'Status Rules'),
                 'instructions' => Craft::t('formie', 'Configure which status to apply for each rule. Optionally enable conditions to limit when a rule applies.'),
-                'statusOptions' => array_map(function($status) {
-                    return [
-                        'value' => $status->id,
-                        'label' => $status->name,
-                        'status' => $status->color,
-                    ];
-                }, Formie::$plugin->getStatuses()->getAllStatuses()),
+                'statusOptions' => Formie::$plugin->getFormGroupPolicy()->getStatusSelectOptions($this),
                 'triggerOptions' => [
                     ['label' => Craft::t('formie', 'Final submit'), 'value' => 'finalSubmit'],
                     ['label' => Craft::t('formie', 'Every page'), 'value' => 'everyPage'],
@@ -2716,6 +2731,17 @@ class Form extends Element implements FormInterface
                 ]),
                 'conditionOptions' => ConditionsHelper::getConditionOptions(),
             ],
+            SchemaHelper::checkboxSelectField([
+                'label' => Craft::t('formie', 'Allowed Submission Statuses'),
+                'instructions' => Craft::t('formie', 'Leave empty to inherit from the form group. Select which statuses are available for submissions on this form.'),
+                'name' => 'settings.allowedStatusIds',
+                'options' => array_map(function($status) {
+                    return [
+                        'value' => (string)$status->id,
+                        'label' => $status->name,
+                    ];
+                }, Formie::$plugin->getStatuses()->getAllStatuses()),
+            ]),
             SchemaHelper::variableTextField([
                 'label' => Craft::t('formie', 'Submission Title Format'),
                 'instructions' => Craft::t('formie', 'Enter the format of the auto-generated submission titles. If left blank, the date/time of submission will be used.'),

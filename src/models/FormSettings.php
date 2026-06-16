@@ -92,6 +92,9 @@ class FormSettings extends Model
     public ?string $cpSubmissionFieldConditions = null;
     public bool $enableStatusRules = false;
     public array $statusRules = [];
+
+    public ?array $allowedStatusIds = null;
+
     public ?string $dataRetention = null;
     public ?string $dataRetentionValue = null;
     public ?string $fileUploadsAction = null;
@@ -128,6 +131,10 @@ class FormSettings extends Model
 
         if (array_key_exists('storeData', $config)) {
             unset($config['storeData']);
+        }
+
+        if (array_key_exists('allowedStatusIds', $config)) {
+            $config['allowedStatusIds'] = self::_normalizeAllowedStatusIds($config['allowedStatusIds']);
         }
 
         if (array_key_exists('userDeletedAction', $config)) {
@@ -426,8 +433,30 @@ class FormSettings extends Model
         $rules[] = [['submitMethod'], 'validateSubmitMethod'];
         $rules[] = [['progressCalculation'], 'in', 'range' => ['completion', 'page-position']];
         $rules[] = [['cpSubmissionFieldConditions'], 'in', 'range' => array_merge([''], CpSubmissionFieldConditions::values())];
+        $rules[] = [['allowedStatusIds'], 'validateAllowedStatusIds'];
 
         return $rules;
+    }
+
+    public function validateAllowedStatusIds(): void
+    {
+        if ($this->allowedStatusIds === null) {
+            return;
+        }
+
+        if ($this->allowedStatusIds === []) {
+            $this->addError('allowedStatusIds', Craft::t('formie', 'Select at least one submission status, or clear the override to inherit from the form group.'));
+
+            return;
+        }
+
+        foreach ($this->allowedStatusIds as $statusId) {
+            if (!Formie::$plugin->getStatuses()->getStatusById((int)$statusId)) {
+                $this->addError('allowedStatusIds', Craft::t('formie', 'One or more selected submission statuses are invalid.'));
+
+                return;
+            }
+        }
     }
     
 
@@ -471,5 +500,20 @@ class FormSettings extends Model
         }
 
         return $config;
+    }
+
+    private static function _normalizeAllowedStatusIds(mixed $value): ?array
+    {
+        if ($value === null || $value === '' || $value === []) {
+            return null;
+        }
+
+        if (!is_array($value)) {
+            $value = [$value];
+        }
+
+        $ids = array_values(array_unique(array_filter(array_map('intval', $value))));
+
+        return $ids === [] ? null : $ids;
     }
 }

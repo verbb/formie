@@ -2,7 +2,28 @@
 
 Form groups help you organise forms in the control panel. They are useful when you manage many forms and want sidebar filters, clearer navigation, and a consistent place to create new forms.
 
-Form groups are **control panel organisation only**. They do not change how a form renders on the front end, which template it uses, or how submissions behave.
+Form groups are **control panel organisation** with an optional **policies layer** for defaults and restrictions. They do not change how a form renders on the front end, which template an existing form uses, or how existing submissions behave until you change form settings.
+
+## Group settings
+
+When editing a form group under **Formie → Settings → Form Groups**, you can configure optional group settings across several tabs:
+
+- **General** — name, handle, allowed submission statuses, and optional custom field palette
+- **Form Defaults**, **Field Defaults**, **Validation Messages**, **Notification Defaults**, **Integration Defaults** — same panels as global **Settings → Defaults**, with blank values inheriting from global settings
+
+Blank group settings inherit from global **Formie → Settings** defaults.
+
+### Allowed submission statuses
+
+Use the **Allowed Submission Statuses** control in **General** to restrict which statuses are available for forms in the group. Choose **All** to allow every status.
+
+### Custom field palette
+
+Enable **Custom Field Palette** in **General**, then configure the palette on the **Field Palette** tab that appears. Forms in this group use that palette instead of the global one.
+
+### Per-form status override
+
+In the form builder **Settings** tab, you can optionally override allowed submission statuses for a single form. Leave the override empty to inherit from the form group.
 
 ## When to use form groups
 

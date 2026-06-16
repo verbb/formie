@@ -5,6 +5,8 @@ use verbb\formie\fields\MissingField;
 use verbb\formie\fields\CustomField;
 use verbb\formie\Formie;
 use verbb\formie\helpers\StringHelper;
+use verbb\formie\elements\Form;
+use verbb\formie\models\FormGroup;
 
 use Craft;
 use craft\base\Component;
@@ -84,6 +86,60 @@ class FieldPalette extends Component
         return true;
     }
 
+    public function normalizePalettePayload(array $payload): ?array
+    {
+        return $this->_normalizePalettePayload($payload);
+    }
+
+    public function getEditorConfigForGroup(FormGroup $group): array
+    {
+        $palette = $this->_getGroupPaletteForEditor($group);
+        $fieldMeta = $this->_getFieldMetaByClass();
+        $editorPalette = $this->_preparePaletteForEditor($palette, $fieldMeta);
+
+        return [
+            'payloadInputId' => 'formie-field-palette-payload',
+            'canEdit' => Craft::$app->getConfig()->getGeneral()->allowAdminChanges,
+            'palette' => $editorPalette,
+        ];
+    }
+
+    public function getSavePayloadForGroup(FormGroup $group): array
+    {
+        $palette = $this->_getGroupPaletteForEditor($group);
+        $fieldMeta = $this->_getFieldMetaByClass();
+
+        return $this->_serializePaletteForSave(
+            $this->_preparePaletteForEditor($palette, $fieldMeta),
+        );
+    }
+
+    public function saveGroupPalette(FormGroup $group, array $payload): bool
+    {
+        if (!Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
+            Formie::error('Group field palette cannot be saved when allowAdminChanges is disabled.', __METHOD__);
+
+            return false;
+        }
+
+        $normalized = $this->_normalizePalettePayload($payload);
+
+        if ($normalized === null) {
+            return false;
+        }
+
+        $settings = $group->getSettingsModel();
+        $settings->fieldPalette = $normalized;
+
+        if (!$settings->validate()) {
+            return false;
+        }
+
+        $group->setSettingsModel($settings);
+
+        return Formie::$plugin->getFormGroups()->saveGroup($group, false);
+    }
+
     public function saveDefaultPalette(string $message = ''): bool
     {
         if (!Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
@@ -103,8 +159,16 @@ class FieldPalette extends Component
         return true;
     }
 
-    public function getResolvedPalette(): array
+    public function getResolvedPalette(?Form $form = null): array
     {
+        if ($form) {
+            $groupPalette = Formie::$plugin->getFormGroupPolicy()->getFieldPaletteConfig($form->getGroup());
+
+            if ($groupPalette !== null) {
+                return $this->_mergeRegistryFields($groupPalette);
+            }
+        }
+
         if ($this->_resolvedPalette !== null) {
             return $this->_resolvedPalette;
         }
@@ -144,9 +208,9 @@ class FieldPalette extends Component
         return true;
     }
 
-    public function buildFormBuilderFieldTypeGroups(array $fullConfigTypes = []): array
+    public function buildFormBuilderFieldTypeGroups(array $fullConfigTypes = [], ?Form $form = null): array
     {
-        $palette = $this->getResolvedPalette();
+        $palette = $this->getResolvedPalette($form);
         $groupedFields = [];
 
         foreach ($palette['groups'] ?? [] as $group) {
@@ -179,6 +243,17 @@ class FieldPalette extends Component
 
     // Private Methods
     // =========================================================================
+
+    private function _getGroupPaletteForEditor(FormGroup $group): array
+    {
+        $stored = Formie::$plugin->getFormGroupPolicy()->getFieldPaletteConfig($group);
+
+        if (is_array($stored)) {
+            return $stored;
+        }
+
+        return $this->getResolvedPalette();
+    }
 
     private function _getStoredConfig(): ?array
     {

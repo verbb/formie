@@ -243,7 +243,14 @@ class FormGroups extends Component
             $groups = [];
 
             foreach ($this->_createGroupsQuery()->all() as $result) {
-                $groups[] = new FormGroup($result);
+                $group = new FormGroup($result);
+                $groupConfig = Craft::$app->getProjectConfig()->get(self::CONFIG_GROUPS_KEY . '.' . $result['uid']);
+
+                if (is_array($groupConfig['settings'] ?? null)) {
+                    $group->settings = $groupConfig['settings'];
+                }
+
+                $groups[] = $group;
             }
 
             $this->_groups = new MemoizableArray($groups);

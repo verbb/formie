@@ -10,6 +10,8 @@ use craft\validators\UniqueValidator;
 
 use verbb\formie\records\FormGroup as FormGroupRecord;
 
+use verbb\formie\models\FormGroupSettings;
+
 use DateTime;
 
 class FormGroup extends Model
@@ -31,6 +33,9 @@ class FormGroup extends Model
     public ?int $sortOrder = null;
     public ?DateTime $dateDeleted = null;
     public ?string $uid = null;
+
+    // Optional group policy and defaults payload from project config.
+    public ?array $settings = null;
 
 
     // Public Methods
@@ -60,13 +65,29 @@ class FormGroup extends Model
         return true;
     }
 
+    public function getSettingsModel(): FormGroupSettings
+    {
+        return FormGroupSettings::fromArray($this->settings ?? []);
+    }
+
+    public function setSettingsModel(FormGroupSettings $settings): void
+    {
+        $this->settings = $settings->toStorageArray() ?: null;
+    }
+
     public function getConfig(): array
     {
-        return [
+        $config = [
             'name' => $this->name,
             'handle' => $this->handle,
             'sortOrder' => $this->sortOrder,
         ];
+
+        if ($this->settings) {
+            $config['settings'] = $this->settings;
+        }
+
+        return $config;
     }
 
 

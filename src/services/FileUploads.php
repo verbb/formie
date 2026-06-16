@@ -228,9 +228,6 @@ class FileUploads extends Component
         return $purgedAssetCount;
     }
 
-    /**
-     * @return string[]
-     */
     private function _resolveContentKeysForField(Submission $submission, Form $form, FileUpload $targetField): array
     {
         $keys = [];
@@ -309,9 +306,6 @@ class FileUploads extends Component
         return $this->_extractAssetIds($value) !== [];
     }
 
-    /**
-     * @return int[]
-     */
     private function _extractAssetIds(mixed $value): array
     {
         if ($value instanceof AssetQuery) {

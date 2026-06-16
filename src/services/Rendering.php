@@ -625,9 +625,6 @@ class Rendering extends Component
         ];
     }
 
-    /**
-     * @return array{css: array, js: array}
-     */
     private function _captureFormAssetBuffers(Form $form, array $renderOptions): array
     {
         $view = Craft::$app->getView();

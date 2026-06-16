@@ -56,11 +56,6 @@ final class IntegrationApiErrors
         ];
     }
 
-    /**
-     * Apply the configured action for a classified submission-time API error.
-     *
-     * @return bool Whether the integration send should be treated as successful.
-     */
     public static function applySubmissionErrorAction(
         IntegrationInterface $integration,
         Throwable $exception,

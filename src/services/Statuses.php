@@ -3,6 +3,7 @@ namespace verbb\formie\services;
 
 use verbb\formie\Formie;
 use verbb\formie\events\StatusEvent;
+use verbb\formie\elements\Form;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
@@ -48,6 +49,11 @@ class Statuses extends Component
     public function getAllStatuses(): array
     {
         return $this->_statuses()->all();
+    }
+
+    public function getStatusesForForm(?Form $form): array
+    {
+        return Formie::$plugin->getFormGroupPolicy()->getStatusesForForm($form);
     }
 
     public function getStatusesArray(): array

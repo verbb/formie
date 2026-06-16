@@ -244,9 +244,9 @@ class Fields extends Component
         return in_array($toType, $fromType::compatibleFieldTypes(), true);
     }
 
-    public function getFormBuilderFieldTypes(array $fullConfigTypes = []): array
+    public function getFormBuilderFieldTypes(array $fullConfigTypes = [], ?Form $form = null): array
     {
-        return Formie::$plugin->getFieldPalette()->buildFormBuilderFieldTypeGroups($fullConfigTypes);
+        return Formie::$plugin->getFieldPalette()->buildFormBuilderFieldTypeGroups($fullConfigTypes, $form);
     }
 
     public function getFormBuilderFieldTypeConfig(string $type, bool $hydrateOnly = false): ?array

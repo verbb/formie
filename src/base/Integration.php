@@ -474,21 +474,11 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return false;
     }
 
-    /**
-     * Classify a submission-time API error for integrations that opt into severity handling.
-     *
-     * Return `null` to treat the error as a failure.
-     */
     public function classifyIntegrationApiError(Throwable $exception): ?string
     {
         return null;
     }
 
-    /**
-     * Handle a submission-time API error using plugin severity settings.
-     *
-     * @return bool Whether the integration send should be treated as successful.
-     */
     public function handleSubmissionApiError(Throwable $exception, Submission $submission): bool
     {
         if (!$this->supportsIntegrationApiErrorSeverity()) {
