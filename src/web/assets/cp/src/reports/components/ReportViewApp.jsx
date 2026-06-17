@@ -228,7 +228,7 @@ export const ReportViewApp = ({ settings, embedded = false }) => {
             const body = new FormData();
             body.append(settings.csrfTokenName, settings.csrfTokenValue);
             body.append('page', String(nextPage));
-            body.append('limit', '20');
+            body.append('limit', String(settings.tablePageSize || 100));
             body.append('search', activeSearch);
             body.append('sort', activeSort.handle);
             body.append('sortDir', activeSort.dir);

@@ -61,3 +61,44 @@ it('persists lifecycle and retention-oriented settings', function (): void {
         ->and($reloaded?->settings->dataRetentionValue)->toBe('30')
         ->and($reloaded?->settings->fileUploadsAction)->toBe('assets');
 });
+
+it('treats schedule datetimes as Craft app timezone wall-clock values', function (): void {
+    $form = formie()
+        ->form(['title' => 'Schedule Wall Clock'])
+        ->singleLineTextField('fullName')
+        ->create();
+
+    $form->settings->setAttributes([
+        'scheduleFormStart' => '2026-05-01 00:00:00',
+        'scheduleFormEnd' => '2026-05-18 00:00:00',
+    ], false);
+
+    expect($form->settings->getFormBuilderConfig()['scheduleFormStart'])->toBe('2026-05-01 00:00:00')
+        ->and($form->settings->getFormBuilderConfig()['scheduleFormEnd'])->toBe('2026-05-18 00:00:00');
+
+    $form->settings->setAttributes([
+        'scheduleFormStart' => '2026-06-02 00:00:00',
+    ], false);
+
+    expect($form->settings->getFormBuilderConfig()['scheduleFormStart'])->toBe('2026-06-02 00:00:00');
+});
+
+it('persists schedule datetimes without timezone drift', function (): void {
+    $form = formie()
+        ->form(['title' => 'Schedule Settings'])
+        ->singleLineTextField('fullName')
+        ->create();
+
+    $form->settings->setAttributes([
+        'scheduleForm' => true,
+        'scheduleFormStart' => '2026-05-01 00:00:00',
+        'scheduleFormEnd' => '2026-05-18 00:00:00',
+    ], false);
+
+    expect(Craft::$app->elements->saveElement($form))->toBeTrue();
+
+    $reloaded = Form::find()->id($form->id)->one();
+
+    expect($reloaded?->settings->getFormBuilderConfig()['scheduleFormStart'])->toBe('2026-05-01 00:00:00')
+        ->and($reloaded?->settings->getFormBuilderConfig()['scheduleFormEnd'])->toBe('2026-05-18 00:00:00');
+});

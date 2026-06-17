@@ -141,6 +141,54 @@ it('returns paginated table data for a report', function (): void {
         ->and(collect($tableData['rows'])->pluck('id')->all())->toContain($submission->id);
 });
 
+it('applies viewer date range filters consistently to table data and summary counts', function (): void {
+    $form = formie()
+        ->form(['title' => 'Date Filter Table Form'])
+        ->singleLineTextField('fullName')
+        ->create();
+
+    formie()->submission($form)->with([
+        'fullName' => 'Date Filter Example',
+    ])->save();
+
+    $settings = new ReportSettings();
+    $settings->filters['formIds'] = [$form->id];
+    $settings->columns = Formie::$plugin->getReportColumns()->getDefaultAttributeColumns();
+
+    $report = new Report([
+        'name' => 'Date Filter Table Report',
+        'handle' => 'dateFilterTableReport' . uniqid(),
+    ]);
+    $report->setSettingsModel($settings);
+
+    expect(Formie::$plugin->getReports()->saveReport($report))->toBeTrue();
+
+    $admin = new User();
+    $admin->admin = true;
+
+    $futureViewer = [
+        'startDate' => '2099-01-01 00:00:00',
+        'endDate' => '2099-12-31 23:59:59',
+    ];
+
+    $futureTableData = Formie::$plugin->getReportQuery()->getTableData($report, 1, 50, $admin, null, $futureViewer);
+    $futureSummary = Formie::$plugin->getReportQuery()->getSummaryCounts($report, $admin, null, $futureViewer);
+
+    expect($futureTableData['pagination']['total'])->toBe(0)
+        ->and($futureSummary['total'])->toBe(0);
+
+    $inclusiveViewer = [
+        'startDate' => '2000-01-01 00:00:00',
+        'endDate' => '2099-12-31 23:59:59',
+    ];
+
+    $inclusiveTableData = Formie::$plugin->getReportQuery()->getTableData($report, 1, 50, $admin, null, $inclusiveViewer);
+    $inclusiveSummary = Formie::$plugin->getReportQuery()->getSummaryCounts($report, $admin, null, $inclusiveViewer);
+
+    expect($inclusiveTableData['pagination']['total'])->toBeGreaterThanOrEqual(1)
+        ->and($inclusiveSummary['total'])->toBeGreaterThanOrEqual(1);
+});
+
 it('respects viewer column override order in table data', function (): void {
     $form = formie()
         ->form(['title' => 'Ordered Columns Form'])
@@ -570,4 +618,54 @@ it('stores scheduled report email template id', function (): void {
 
     expect($xlsx->format)->toBe('xlsx')
         ->and($xlsx->toStorageArray()['format'])->toBe('xlsx');
+});
+
+it('defaults new report date filters to the last month', function (): void {
+    $filters = \verbb\formie\models\ReportSettings::defaultFilters();
+
+    expect($filters['startBound']['option'])->toBe('today')
+        ->and($filters['startBound']['offset'])->toBe('subtract')
+        ->and($filters['startBound']['offsetNumber'])->toBe(1)
+        ->and($filters['startBound']['offsetType'])->toBe('months')
+        ->and($filters['endBound']['option'])->toBe('today')
+        ->and($filters['endBound']['offset'])->toBe('add')
+        ->and($filters['endBound']['offsetNumber'])->toBe(0)
+        ->and($filters['endBound']['offsetType'])->toBe('days');
+});
+
+it('includes trashed report handles when resolving all report handles', function (): void {
+    $handle = 'trashedHandle' . uniqid();
+
+    $report = new Report([
+        'name' => 'Trashed Report',
+        'handle' => $handle,
+    ]);
+    $report->setSettingsModel(new ReportSettings());
+
+    expect(Formie::$plugin->getReports()->saveReport($report))->toBeTrue()
+        ->and(Formie::$plugin->getReports()->deleteReport($report))->toBeTrue()
+        ->and(Formie::$plugin->getReports()->getReportByHandle($handle))->toBeNull()
+        ->and(Formie::$plugin->getReports()->getAllReportHandles())->toContain($handle);
+});
+
+it('rejects creating a report with a trashed report handle', function (): void {
+    $handle = 'trashedDuplicate' . uniqid();
+
+    $report = new Report([
+        'name' => 'Original Report',
+        'handle' => $handle,
+    ]);
+    $report->setSettingsModel(new ReportSettings());
+
+    expect(Formie::$plugin->getReports()->saveReport($report))->toBeTrue()
+        ->and(Formie::$plugin->getReports()->deleteReport($report))->toBeTrue();
+
+    $duplicate = new Report([
+        'name' => 'Duplicate Report',
+        'handle' => $handle,
+    ]);
+    $duplicate->setSettingsModel(new ReportSettings());
+
+    expect(Formie::$plugin->getReports()->saveReport($duplicate))->toBeFalse()
+        ->and($duplicate->getErrors('handle'))->not->toBeEmpty();
 });

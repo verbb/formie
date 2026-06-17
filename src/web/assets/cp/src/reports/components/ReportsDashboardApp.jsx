@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import {
     Button,
@@ -34,6 +34,13 @@ export const ReportsDashboardApp = ({ settings }) => {
     const [isLoadingView, setIsLoadingView] = useState(false);
     const [viewError, setViewError] = useState(null);
     const [createOpen, setCreateOpen] = useState(Boolean(settings.openCreate));
+
+    const allReportHandles = useMemo(() => {
+        return [...new Set([
+            ...(settings.reportHandles || []),
+            ...reports.map((report) => report.handle),
+        ].filter(Boolean))];
+    }, [reports, settings.reportHandles]);
 
     const loadViewConfig = useCallback(async (reportId) => {
         if (!reportId) {
@@ -153,7 +160,7 @@ export const ReportsDashboardApp = ({ settings }) => {
                         csrfTokenName={settings.csrfTokenName}
                         csrfTokenValue={settings.csrfTokenValue}
                         reservedHandles={settings.reservedHandles}
-                        reportHandles={settings.reportHandles}
+                        reportHandles={allReportHandles}
                         formOptions={settings.formOptions}
                         onCreated={handleCreated}
                     />
@@ -219,7 +226,7 @@ export const ReportsDashboardApp = ({ settings }) => {
                     csrfTokenName={settings.csrfTokenName}
                     csrfTokenValue={settings.csrfTokenValue}
                     reservedHandles={settings.reservedHandles}
-                    reportHandles={reports.map((report) => report.handle)}
+                    reportHandles={allReportHandles}
                     formOptions={settings.formOptions}
                     onCreated={handleCreated}
                 />

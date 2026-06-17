@@ -10,7 +10,7 @@ import {
     Input,
 } from '@verbb/plugin-kit-react/components';
 import { FieldLayout } from '@verbb/plugin-kit-react/forms';
-import { buildUniqueHandleFromSource } from '@verbb/plugin-kit-react/utils';
+import { buildUniqueHandleFromSource, getErrorMessage } from '@verbb/plugin-kit-react/utils';
 import { ReportFormsSelect } from '@reports/components/ReportFormsSelect';
 
 const buildHandle = (sourceValue, reservedHandles) => {
@@ -40,6 +40,12 @@ export const CreateReportModal = ({
     const [formError, setFormError] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const lastGeneratedHandleRef = useRef('');
+
+    const toGeneralError = (source, fallbackText = null) => {
+        const errorMessage = getErrorMessage(source);
+
+        return errorMessage?.text || fallbackText || Craft.t('formie', 'Couldn’t create report.');
+    };
 
     const uniqueHandles = useMemo(() => {
         return [...new Set([
@@ -132,7 +138,7 @@ export const CreateReportModal = ({
                     && !payload.errors?.handle?.length
                     && !payload.errors?.formIds?.length
                 ) {
-                    setFormError(Craft.t('formie', 'Couldn’t create report.'));
+                    setFormError(toGeneralError(payload));
                 }
 
                 setIsSubmitting(false);
@@ -140,10 +146,10 @@ export const CreateReportModal = ({
             }
 
             onCreated(payload);
-            onOpenChange(false);
+            setIsSubmitting(false);
         } catch (error) {
             console.error(error);
-            setFormError(Craft.t('formie', 'Couldn’t create report.'));
+            setFormError(toGeneralError(error));
             setIsSubmitting(false);
         }
     };

@@ -27,7 +27,7 @@ import {
 } from '@reports/components/ReportColumnsEditor';
 import { ReportDateBoundEditor } from '@reports/components/ReportDateBoundEditor';
 import { ReportExportFilenameField } from '@reports/components/ReportExportFilenameField';
-import { DEFAULT_DATE_BOUND } from '@reports/utils/reportDateBound';
+import { DEFAULT_END_DATE_BOUND, DEFAULT_START_DATE_BOUND } from '@reports/utils/reportDateBound';
 import { ReportFormsSelect } from '@reports/components/ReportFormsSelect';
 
 import styles from '@reports/css/style.css?inline';
@@ -357,7 +357,7 @@ export const ReportEditorApp = ({ settings }) => {
                         instructions={Craft.t('formie', 'Only include submissions created on or after this date. Leave as “None” for no lower limit.')}
                     >
                         <ReportDateBoundEditor
-                            value={filters.startBound || DEFAULT_DATE_BOUND}
+                            value={filters.startBound || DEFAULT_START_DATE_BOUND}
                             boundary="start"
                             disabled={!settings.canEdit}
                             onChange={(nextValue) => {
@@ -372,7 +372,7 @@ export const ReportEditorApp = ({ settings }) => {
                         instructions={Craft.t('formie', 'Only include submissions created on or before this date. Leave as “None” for no upper limit.')}
                     >
                         <ReportDateBoundEditor
-                            value={filters.endBound || DEFAULT_DATE_BOUND}
+                            value={filters.endBound || DEFAULT_END_DATE_BOUND}
                             boundary="end"
                             disabled={!settings.canEdit}
                             onChange={(nextValue) => {

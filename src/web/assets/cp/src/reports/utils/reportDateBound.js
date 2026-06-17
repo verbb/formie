@@ -6,6 +6,22 @@ export const DEFAULT_DATE_BOUND = {
     offsetType: 'days',
 };
 
+export const DEFAULT_START_DATE_BOUND = {
+    option: 'today',
+    date: null,
+    offset: 'subtract',
+    offsetNumber: 1,
+    offsetType: 'months',
+};
+
+export const DEFAULT_END_DATE_BOUND = {
+    option: 'today',
+    date: null,
+    offset: 'add',
+    offsetNumber: 0,
+    offsetType: 'days',
+};
+
 export const DATE_BOUND_OPTIONS = [
     { label: Craft.t('formie', 'None'), value: '' },
     { label: Craft.t('formie', 'Today’s Date/Time'), value: 'today' },
