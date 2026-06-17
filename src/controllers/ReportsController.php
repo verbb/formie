@@ -245,6 +245,25 @@ class ReportsController extends Controller
         return $this->asJson(Formie::$plugin->getReportViewer()->getViewConfig($report));
     }
 
+    public function actionFieldColumns(): Response
+    {
+        if ($this->request->getIsPost()) {
+            $this->requirePostRequest();
+        }
+
+        $formIds = $this->request->getBodyParam('formIds', $this->request->getParam('formIds', '*'));
+
+        if (is_string($formIds)) {
+            $formIds = Json::decodeIfJson($formIds) ?? $formIds;
+        }
+
+        $user = Craft::$app->getUser()->getIdentity();
+
+        return $this->asJson([
+            'fieldColumns' => Formie::$plugin->getReportColumns()->getFieldColumnsForFormIds($formIds, $user),
+        ]);
+    }
+
     public function actionDelete(): Response
     {
         $this->requirePostRequest();

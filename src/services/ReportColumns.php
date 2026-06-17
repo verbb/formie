@@ -1,13 +1,20 @@
 <?php
 namespace verbb\formie\services;
 
-use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\fields\Content;
+use verbb\formie\fields\Heading;
+use verbb\formie\fields\Html;
+use verbb\formie\fields\Note;
+use verbb\formie\fields\Section;
+use verbb\formie\fields\Summary;
 use verbb\formie\Formie;
+use verbb\formie\helpers\Table;
 use verbb\formie\models\Report;
 
 use Craft;
 use craft\base\Component;
+use craft\db\Query;
 use craft\elements\User;
 use craft\helpers\DateTimeHelper;
 
@@ -50,77 +57,24 @@ class ReportColumns extends Component
         return $columns;
     }
 
-    public function getFieldColumnsByForm(?User $user = null): array
+    public function getFieldColumnsForFormIds(mixed $formIds, ?User $user = null): array
     {
         $user ??= Craft::$app->getUser()->getIdentity();
-        $permissions = Formie::$plugin->getPermissions();
-        $byForm = [];
+        $resolvedFormIds = Formie::$plugin->getReportQuery()->resolveFormIds($formIds, $user);
 
-        foreach (Form::find()->status(null)->all() as $form) {
-            if (!$permissions->canViewSubmissions($user, $form)) {
-                continue;
-            }
-
-            $columns = [];
-
-            foreach ($form->getFields() as $field) {
-                if ($field->getIsCosmetic()) {
-                    continue;
-                }
-
-                $columns[] = [
-                    'type' => 'field',
-                    'handle' => $field->handle,
-                    'label' => $field->label,
-                    'enabled' => false,
-                ];
-            }
-
-            $byForm[(string)$form->id] = $columns;
+        if ($resolvedFormIds === []) {
+            return [];
         }
 
-        return $byForm;
+        return $this->_queryFieldColumnsForFormIds($resolvedFormIds);
     }
 
     public function getAvailableFieldColumns(Report $report, ?User $user = null): array
     {
-        $user ??= Craft::$app->getUser()->getIdentity();
-        $formIds = Formie::$plugin->getReportQuery()->resolveFormIds(
+        return $this->getFieldColumnsForFormIds(
             $report->getSettingsModel()->filters['formIds'] ?? '*',
             $user,
         );
-        $columns = [];
-        $seen = [];
-
-        foreach ($formIds as $formId) {
-            $form = Formie::$plugin->getForms()->getFormById((int)$formId);
-
-            if (!$form) {
-                continue;
-            }
-
-            foreach ($form->getFields() as $field) {
-                if ($field->getIsCosmetic()) {
-                    continue;
-                }
-
-                $handle = $field->handle;
-
-                if (isset($seen[$handle])) {
-                    continue;
-                }
-
-                $seen[$handle] = true;
-                $columns[] = [
-                    'type' => 'field',
-                    'handle' => $handle,
-                    'label' => $field->label,
-                    'enabled' => false,
-                ];
-            }
-        }
-
-        return $columns;
     }
 
     public function mergeEditorColumns(array $savedColumns, array $availableFieldColumns): array
@@ -383,9 +337,75 @@ class ReportColumns extends Component
         return $normalized ?: $this->getDefaultAttributeColumns();
     }
 
+    public function compactColumnsForStorage(array $columns): array
+    {
+        $normalized = [];
+
+        foreach ($this->normalizeColumnsPayload($columns) as $column) {
+            $type = $column['type'] ?? 'attribute';
+
+            if ($type !== 'attribute' && empty($column['enabled'])) {
+                continue;
+            }
+
+            $normalized[] = $column;
+        }
+
+        return $normalized ?: $this->getDefaultAttributeColumns();
+    }
+
 
     // Private Methods
     // =========================================================================
+
+    private function _queryFieldColumnsForFormIds(array $formIds): array
+    {
+        $rows = (new Query())
+            ->select([
+                'handle' => 'f.handle',
+                'label' => 'f.label',
+            ])
+            ->from(['ff' => Table::FORMIE_FORM_FIELDS])
+            ->innerJoin(['f' => Table::FORMIE_FIELDS], '[[f.id]] = [[ff.fieldId]]')
+            ->innerJoin(['fo' => Table::FORMIE_FORMS], '[[fo.layoutId]] = [[ff.layoutId]]')
+            ->where(['fo.id' => $formIds])
+            ->andWhere(['not in', 'f.type', $this->_cosmeticFieldTypes()])
+            ->orderBy(['f.handle' => SORT_ASC, 'f.label' => SORT_ASC])
+            ->all();
+
+        $columns = [];
+        $seen = [];
+
+        foreach ($rows as $row) {
+            $handle = (string)($row['handle'] ?? '');
+
+            if ($handle === '' || isset($seen[$handle])) {
+                continue;
+            }
+
+            $seen[$handle] = true;
+            $columns[] = [
+                'type' => 'field',
+                'handle' => $handle,
+                'label' => (string)($row['label'] ?? $handle),
+                'enabled' => false,
+            ];
+        }
+
+        return $columns;
+    }
+
+    private function _cosmeticFieldTypes(): array
+    {
+        return [
+            Heading::class,
+            Section::class,
+            Html::class,
+            Content::class,
+            Note::class,
+            Summary::class,
+        ];
+    }
 
     private function _formatAttributeCell(Submission $submission, string $handle): mixed
     {

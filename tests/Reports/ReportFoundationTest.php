@@ -106,6 +106,37 @@ it('resolves enabled report columns in order', function (): void {
         ->and($columns[1]['handle'])->toBe('id');
 });
 
+it('returns field columns only for the requested forms', function (): void {
+    $firstForm = formie()
+        ->form(['title' => 'Field Columns Form A'])
+        ->singleLineTextField('firstName')
+        ->create();
+
+    $secondForm = formie()
+        ->form(['title' => 'Field Columns Form B'])
+        ->singleLineTextField('lastName')
+        ->create();
+
+    $admin = new User();
+    $admin->admin = true;
+
+    $firstFormColumns = Formie::$plugin->getReportColumns()->getFieldColumnsForFormIds([$firstForm->id], $admin);
+    $secondFormColumns = Formie::$plugin->getReportColumns()->getFieldColumnsForFormIds([$secondForm->id], $admin);
+
+    expect(collect($firstFormColumns)->pluck('handle')->all())->toBe(['firstName'])
+        ->and(collect($secondFormColumns)->pluck('handle')->all())->toBe(['lastName']);
+});
+
+it('stores only enabled field columns in report settings', function (): void {
+    $columns = Formie::$plugin->getReportColumns()->compactColumnsForStorage([
+        ['type' => 'attribute', 'handle' => 'title', 'label' => 'Title', 'enabled' => true],
+        ['type' => 'field', 'handle' => 'firstName', 'label' => 'First Name', 'enabled' => true],
+        ['type' => 'field', 'handle' => 'lastName', 'label' => 'Last Name', 'enabled' => false],
+    ]);
+
+    expect(collect($columns)->pluck('handle')->all())->toBe(['title', 'firstName']);
+});
+
 it('returns paginated table data for a report', function (): void {
     $form = formie()
         ->form(['title' => 'Report Table Form'])

@@ -4,12 +4,14 @@ namespace verbb\formie\services;
 use verbb\formie\elements\Form;
 use verbb\formie\Formie;
 use verbb\formie\helpers\ReportDateBoundHelper;
+use verbb\formie\helpers\Table;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\Report;
 use verbb\formie\models\ReportSettings;
 
 use Craft;
 use craft\base\Component;
+use craft\db\Query;
 use craft\elements\User;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\UrlHelper;
@@ -22,7 +24,6 @@ class ReportEditor extends Component
     public function getEditorConfig(Report $report): array
     {
         $user = Craft::$app->getUser()->getIdentity();
-        $availableFieldColumns = Formie::$plugin->getReportColumns()->getAvailableFieldColumns($report, $user);
         $scheduledReports = $report->id
             ? Formie::$plugin->getScheduledReports()->getScheduledReportsForReport((int)$report->id)
             : [];
@@ -34,8 +35,7 @@ class ReportEditor extends Component
             'formOptions' => $this->_formOptions($user),
             'statusOptions' => $this->_statusOptions(),
             'attributeColumns' => Formie::$plugin->getReportColumns()->getDefaultAttributeColumns(),
-            'fieldColumnsByForm' => Formie::$plugin->getReportColumns()->getFieldColumnsByForm($user),
-            'availableFieldColumns' => $availableFieldColumns,
+            'fieldColumnsUrl' => UrlHelper::cpUrl('formie/reports/field-columns'),
             'scheduledReports' => array_map(fn($scheduledReport) => [
                 'id' => (int)$scheduledReport->id,
                 'name' => $scheduledReport->name,
@@ -61,16 +61,12 @@ class ReportEditor extends Component
     public function getEditorValues(Report $report): array
     {
         $settings = $report->getSettingsModel();
-        $availableFieldColumns = Formie::$plugin->getReportColumns()->getAvailableFieldColumns($report);
 
         return [
             'name' => $report->name,
             'handle' => $report->handle,
             'filters' => ReportDateBoundHelper::migrateLegacyFilters($settings->filters),
-            'columns' => Formie::$plugin->getReportColumns()->mergeEditorColumns(
-                $settings->columns,
-                $availableFieldColumns,
-            ),
+            'columns' => Formie::$plugin->getReportColumns()->compactColumnsForStorage($settings->columns),
             'display' => $settings->display,
             'chart' => $settings->chart,
             'export' => $settings->export,
@@ -84,7 +80,7 @@ class ReportEditor extends Component
 
         $settings = ReportSettings::fromArray([
             'filters' => $this->_normalizeFilters($payload['filters'] ?? []),
-            'columns' => Formie::$plugin->getReportColumns()->normalizeColumnsPayload(
+            'columns' => Formie::$plugin->getReportColumns()->compactColumnsForStorage(
                 $payload['columns'] ?? [],
             ),
             'display' => $this->_normalizeDisplay($payload['display'] ?? []),
@@ -114,24 +110,29 @@ class ReportEditor extends Component
     private function _formOptions(?User $user): array
     {
         $permissions = Formie::$plugin->getPermissions();
+        $includeAll = $permissions->canViewSubmissions($user, null);
         $formsByGroupId = [];
         $ungrouped = [];
 
-        foreach (Form::find()->status(null)->orderBy(['title' => SORT_ASC])->all() as $form) {
-            if (!$permissions->canViewSubmissions($user, $form)) {
-                continue;
+        foreach ($this->_queryFormOptionRows() as $row) {
+            if (!$includeAll) {
+                $form = Form::find()->id((int)$row['id'])->status(null)->one();
+
+                if (!$form || !$permissions->canViewSubmissions($user, $form)) {
+                    continue;
+                }
             }
 
             $item = [
-                'label' => $form->title,
-                'value' => (string)$form->id,
-                'handle' => $form->handle,
-                'groupId' => $form->groupId ? (int)$form->groupId : null,
+                'label' => (string)$row['title'],
+                'value' => (string)$row['id'],
+                'handle' => (string)$row['handle'],
+                'groupId' => $row['groupId'] ? (int)$row['groupId'] : null,
                 'groupName' => null,
             ];
 
-            if ($form->groupId) {
-                $formsByGroupId[(int)$form->groupId][] = $item;
+            if ($row['groupId']) {
+                $formsByGroupId[(int)$row['groupId']][] = $item;
             } else {
                 $ungrouped[] = $item;
             }
@@ -153,6 +154,33 @@ class ReportEditor extends Component
         array_push($options, ...$ungrouped);
 
         return $options;
+    }
+
+    private function _queryFormOptionRows(): array
+    {
+        $siteId = (int)Craft::$app->getSites()->getCurrentSite()->id;
+
+        return (new Query())
+            ->select([
+                'id' => 'elements.id',
+                'title' => 'elements_sites.title',
+                'handle' => 'forms.handle',
+                'groupId' => 'forms.groupId',
+            ])
+            ->from(['forms' => Table::FORMIE_FORMS])
+            ->innerJoin(['elements' => Table::ELEMENTS], '[[elements.id]] = [[forms.id]]')
+            ->innerJoin(
+                ['elements_sites' => Table::ELEMENTS_SITES],
+                '[[elements_sites.elementId]] = [[forms.id]] AND [[elements_sites.siteId]] = :siteId',
+                [':siteId' => $siteId],
+            )
+            ->where([
+                'elements.dateDeleted' => null,
+                'elements.draftId' => null,
+                'elements.revisionId' => null,
+            ])
+            ->orderBy(['elements_sites.title' => SORT_ASC])
+            ->all();
     }
 
     private function _statusOptions(): array

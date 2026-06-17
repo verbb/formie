@@ -22,13 +22,14 @@ import { FormieErrorsPane } from '@utils/FormieErrorsPane';
 import { useCpFormPayloadSync } from '@utils';
 import {
     ReportColumnsEditor,
+    compactColumnsForStorage,
     mergeReportColumns,
-    resolveFieldColumnsForForms,
 } from '@reports/components/ReportColumnsEditor';
 import { ReportDateBoundEditor } from '@reports/components/ReportDateBoundEditor';
 import { ReportExportFilenameField } from '@reports/components/ReportExportFilenameField';
 import { DEFAULT_END_DATE_BOUND, DEFAULT_START_DATE_BOUND } from '@reports/utils/reportDateBound';
 import { ReportFormsSelect } from '@reports/components/ReportFormsSelect';
+import { useReportFieldColumns } from '@reports/utils/useReportFieldColumns';
 
 import styles from '@reports/css/style.css?inline';
 
@@ -149,19 +150,29 @@ export const ReportEditorApp = ({ settings }) => {
     const [values, setValues] = useState(settings.values || {});
     const modelErrors = settings.errors || {};
     const filters = values.filters || {};
-    const columns = useMemo(() => {
-        const fieldColumns = resolveFieldColumnsForForms(filters.formIds, settings.fieldColumnsByForm);
+    const [activeTab, setActiveTab] = useState(() => getReportTabFromHash(settings.canManageScheduled));
+    const [shouldLoadFieldColumns, setShouldLoadFieldColumns] = useState(() => (
+        getReportTabFromHash(settings.canManageScheduled) === 'columns'
+    ));
+    const { fieldColumns, isLoading: fieldColumnsLoading } = useReportFieldColumns({
+        formIds: filters.formIds,
+        fieldColumnsUrl: settings.fieldColumnsUrl,
+        csrfTokenName: Craft.csrfTokenName,
+        csrfTokenValue: Craft.csrfTokenValue,
+        enabled: shouldLoadFieldColumns,
+    });
+    const displayColumns = useMemo(() => {
+        if (!shouldLoadFieldColumns) {
+            return [];
+        }
 
         return mergeReportColumns(
             values.columns,
             settings.attributeColumns,
             fieldColumns,
         );
-    }, [values.columns, filters.formIds, settings.attributeColumns, settings.fieldColumnsByForm]);
-    const payload = useMemo(() => ({
-        ...values,
-        columns,
-    }), [values, columns]);
+    }, [shouldLoadFieldColumns, values.columns, settings.attributeColumns, fieldColumns]);
+    const payload = useMemo(() => values, [values]);
 
     useCpFormPayloadSync({
         inputId: settings.payloadInputId,
@@ -207,7 +218,12 @@ export const ReportEditorApp = ({ settings }) => {
         value: option.value,
         label: Craft.t('formie', option.label),
     }));
-    const [activeTab, setActiveTab] = useState(() => getReportTabFromHash(settings.canManageScheduled));
+
+    useEffect(() => {
+        if (activeTab === 'columns') {
+            setShouldLoadFieldColumns(true);
+        }
+    }, [activeTab]);
 
     useEffect(() => {
         const handleHashChange = () => {
@@ -387,13 +403,20 @@ export const ReportEditorApp = ({ settings }) => {
                         {Craft.t('formie', 'Choose which submission attributes and fields to include in this report. Drag to reorder columns for the table and export.')}
                     </p>
 
-                    <ReportColumnsEditor
-                        columns={columns}
-                        disabled={!settings.canEdit}
-                        onChange={(nextColumns) => {
-                            updateValue('columns', nextColumns);
-                        }}
-                    />
+                    {activeTab === 'columns' ? (
+                        fieldColumnsLoading ? (
+                            <p className="m-0 text-sm text-gray-500">{Craft.t('formie', 'Loading field columns…')}</p>
+                        ) : (
+                            <ReportColumnsEditor
+                                columns={displayColumns}
+                                disabled={!settings.canEdit}
+                                scrollable
+                                onChange={(nextColumns) => {
+                                    updateValue('columns', compactColumnsForStorage(nextColumns));
+                                }}
+                            />
+                        )
+                    ) : null}
                 </PaneTabsContent>
 
                 <PaneTabsContent value="display" className={REPORT_TAB_CONTENT_CLASS}>

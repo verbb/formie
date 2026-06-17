@@ -315,6 +315,7 @@ class Formie extends Plugin
             $event->rules['formie/reports/edit/<id:\d+>'] = 'formie/reports/edit';
             $event->rules['formie/reports/view/<id:\d+>'] = 'formie/reports/view';
             $event->rules['formie/reports/view-config/<id:\d+>'] = 'formie/reports/view-config';
+            $event->rules['formie/reports/field-columns'] = 'formie/reports/field-columns';
             $event->rules['formie/reports/table-data/<id:\d+>'] = 'formie/reports/table-data';
             $event->rules['formie/reports/viewer-data/<id:\d+>'] = 'formie/reports/viewer-data';
             $event->rules['formie/reports/export/<id:\d+>'] = 'formie/reports/export';
