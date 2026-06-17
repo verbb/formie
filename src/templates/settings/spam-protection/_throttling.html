@@ -3,12 +3,12 @@
 
 <div class="fui-spam-protection-section">
     <h3>{{ 'Submission Throttling' | t('formie') }}</h3>
-    <p>{{ 'Limit how often forms can be submitted to reduce spam floods and repeat submissions from the same IP address.' | t('formie') }}</p>
+    <p>{{ 'Reduce spam floods and rapid repeat submissions. These settings mark submissions as spam — they are not the same as form **Submission Limits** in the form builder, which control entry caps for contests, registrations, and similar business rules.' | t('formie') }}</p>
 
     {% namespace 'settings' %}
         {{ forms.lightswitchField({
             label: 'Global Submission Throttling' | t('formie'),
-            instructions: 'Limit the total number of form submissions allowed across your site within a time window. Intended for emergency abuse protection, not fine-tuning individual forms.' | t('formie'),
+            instructions: 'Limit the total number of form submissions allowed across your site within a time window. Intended for emergency abuse protection during spam floods, not fine-tuning individual forms. For per-form entry caps, use **Submission Limits** in the form builder.' | t('formie'),
             name: 'enableGlobalSubmissionThrottling',
             on: settings.enableGlobalSubmissionThrottling,
             toggle: 'enable-global-submission-throttling',
@@ -17,8 +17,8 @@
 
         <div id="enable-global-submission-throttling" class="field {{ not settings.enableGlobalSubmissionThrottling ? 'hidden' }}">
             {{ forms.textField({
-                label: 'Submission Limit' | t('formie'),
-                instructions: 'Maximum number of submissions allowed across all forms during the time window below.' | t('formie'),
+                label: 'Maximum Submissions' | t('formie'),
+                instructions: 'Maximum submissions allowed across all forms during the time window below.' | t('formie'),
                 name: 'globalSubmissionThrottleLimit',
                 value: settings.globalSubmissionThrottleLimit,
                 warning: macros.configWarning('globalSubmissionThrottleLimit', 'formie'),
@@ -26,7 +26,7 @@
 
             {{ forms.textField({
                 label: 'Time Window (seconds)' | t('formie'),
-                instructions: 'How long the global submission limit applies before the counter resets.' | t('formie'),
+                instructions: 'How long the rate limit applies before the counter resets.' | t('formie'),
                 name: 'globalSubmissionThrottleWindowSeconds',
                 value: settings.globalSubmissionThrottleWindowSeconds,
                 warning: macros.configWarning('globalSubmissionThrottleWindowSeconds', 'formie'),
@@ -40,7 +40,7 @@
 
         {{ forms.lightswitchField({
             label: 'IP Submission Throttling' | t('formie'),
-            instructions: 'Require a minimum wait time between submissions from the same IP address on the same form.' | t('formie'),
+            instructions: 'Require a minimum wait time between submissions from the same IP address on the same form. This is separate from **Per IP address** submission limits in the form builder, which cap how many entries an IP can submit over a period.' | t('formie'),
             name: 'enableIpSubmissionThrottling',
             on: settings.enableIpSubmissionThrottling,
             toggle: 'enable-ip-submission-throttling',

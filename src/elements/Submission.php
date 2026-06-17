@@ -24,6 +24,7 @@ use verbb\formie\helpers\FieldAttributesHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\helpers\References;
 use verbb\formie\helpers\StringHelper;
+use verbb\formie\helpers\SubmissionLimitHelper;
 use verbb\formie\helpers\ValidationHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\models\FieldLayout as FormLayout;
@@ -642,8 +643,8 @@ class Submission extends Element
         }
 
         // Check whether the submission is either incomplete or "new" (the latter important for GQL)
-        if (($this->isIncomplete || !$this->id) && $form && $form->settings->limitSubmissions) {
-            if (!$form->isWithinSubmissionsLimit()) {
+        if (($this->isIncomplete || !$this->id) && $form && SubmissionLimitHelper::isEnabled($form->settings)) {
+            if (!$form->isWithinSubmissionsLimit($this)) {
                 $this->addError('form', Craft::t('formie', 'This form has met the number of allowed submissions.'));
             }
         }

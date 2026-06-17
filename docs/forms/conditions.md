@@ -38,6 +38,6 @@ If a required field is hidden by conditions, Formie stops treating it as require
 
 That avoids the common problem of a form being blocked by a field the person cannot even see.
 
-## Control panel submissions
+## Control Panel Submissions
 
-When editing a submission in the control panel, Formie can apply the same field and page conditions used on the front end. Configure that under **Settings → Submissions** or per form. See [Control panel field conditions](/submissions/cp-field-conditions).
+When editing a submission in the control panel, Formie can apply the same field and page conditions used on the front end. Configure the default under **Formie → Settings → Submissions**, or override per form. See [Submissions](/submissions/overview#edit-submissions-in-the-control-panel).

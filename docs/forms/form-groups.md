@@ -8,22 +8,27 @@ Form groups are **control panel organisation** with an optional **policies layer
 
 When editing a form group under **Formie → Settings → Form Groups**, you can configure optional group settings across several tabs:
 
-- **General** — name, handle, allowed submission statuses, and optional custom field palette
+- **General** — name, handle, and allowed submission statuses
+- **Field Palette** — optional custom palette (toggle on tab; inherits global when off)
 - **Form Defaults**, **Field Defaults**, **Validation Messages**, **Notification Defaults**, **Integration Defaults** — same panels as global **Settings → Defaults**, with blank values inheriting from global settings
 
 Blank group settings inherit from global **Formie → Settings** defaults.
 
 ### Allowed submission statuses
 
-Use the **Allowed Submission Statuses** control in **General** to restrict which statuses are available for forms in the group. Choose **All** to allow every status.
+Use the **Allowed Submission Statuses** control in **General** to restrict which statuses are available for forms in the group. Choose **All** to allow every status. This policy applies to all forms in the group; individual forms cannot override it.
 
 ### Custom field palette
 
-Enable **Custom Field Palette** in **General**, then configure the palette on the **Field Palette** tab that appears. Forms in this group use that palette instead of the global one.
+Open the **Field Palette** tab and enable **Use custom field palette**. Forms in this group use that palette instead of the global one. When disabled, the group inherits the global palette from **Settings → Fields**.
 
-### Per-form status override
+### Submission limits
 
-In the form builder **Settings** tab, you can optionally override allowed submission statuses for a single form. Leave the override empty to inherit from the form group.
+[Submission limits](/forms/submission-limits) are configured **per form**, not at the group level. A form group does not enforce a shared entry cap across all of its forms.
+
+If your group often uses per-user or per-IP limits, preset **Collect User** or **Collect IP** on the group **Form Defaults** tab so new forms inherit the privacy settings those limits rely on.
+
+Global abuse throttling lives under **Settings → Spam Protection** and applies site-wide — it is separate from form submission limits.
 
 ## When to use form groups
 

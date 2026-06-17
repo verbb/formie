@@ -1,10 +1,10 @@
-# Submission screening
+# Submission Screening
 
 Submission screening is Formie’s unified layer for deciding whether a submission should be treated as legitimate before it is saved and dispatched. It runs in the submission workflow’s **`screen`** stage, immediately after field validation and before authorization, persistence, and notifications.
 
 Screening combines **submission guards**, **captcha integrations**, and **server-side spam rules** so you can tune friction for real users while still blocking automated abuse.
 
-## How screening fits the workflow
+## How Screening Fits the Workflow
 
 For a normal submit request, Formie runs the `screen` stage in a fixed order:
 
@@ -18,7 +18,7 @@ Replay protection has a second workflow touchpoint. After a successful, complete
 
 For a deeper look at stages, tasks, and extension points, see [Submission Workflow](/developers/submission-workflow).
 
-## Submission guards
+## Submission Guards
 
 Submission guards are global, built-in checks — not captcha integrations. They replaced the legacy **Honeypot**, **Javascript**, and **Duplicate** captcha types from earlier major versions.
 
@@ -31,19 +31,19 @@ Guards only run for browser form POST requests that include `handle` and `submit
 
 Day-to-day configuration lives in [Spam Protection](/forms/spam-protection#submission-guards). If you are upgrading from Formie 3 and used the old built-in captchas, see [Removed legacy captchas](/get-started/upgrading-from-v3#removed-legacy-captchas) in the upgrade guide.
 
-## Captcha integrations
+## Captcha Integrations
 
 Captcha integrations cover everything from visible challenges to invisible tokens and third-party spam APIs that classify content without showing a puzzle.
 
 Configure provider credentials under **Formie → Settings → Spam Protection → Captchas**, then enable the ones you need per form. Provider-specific setup lives under [Captchas](/integrations/captchas/) in the integrations section of these docs.
 
-## Spam keywords and related settings
+## Spam Keywords and Related Settings
 
 Spam keywords, IP lists, spam handling behaviour, and submission guard toggles live under **Formie → Settings → Spam Protection**. Keyword and IP rules apply across forms after guards and captcha checks, which keeps simple keyword blocking available even when you are not using a third-party provider.
 
 Day-to-day behaviour of those settings (saving spam, user-visible responses, notifications) is described in [Spam Protection](/forms/spam-protection).
 
-## Why a dedicated screening stage
+## Why a Dedicated Screening Stage
 
 Grouping guards, captchas, and spam rules in one workflow stage keeps behaviour predictable for custom code: validation errors surface in the **`validate`** stage, while spam and abuse signals are handled in **`screen`**. If you need to insert extra checks, register tasks before or after the built-in screening tasks without replacing the whole submission pipeline.
 

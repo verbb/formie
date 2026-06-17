@@ -13,7 +13,7 @@
         {% set message = form.settings.getScheduleFormExpiredMessageHtml() %}
     {% endif %}
 
-    {% if form.settings.limitSubmissions and not form.isWithinSubmissionsLimit() %}
+    {% if form.isClosedBySubmissionLimit() %}
         {% set message = form.settings.getLimitSubmissionsMessageHtml() %}
     {% endif %}
 

@@ -1,4 +1,4 @@
-# Migrating from Sprout Forms
+# Migrating From Sprout Forms
 If your existing site has forms, submissions and email notifications from [Sprout Forms](https://sprout.barrelstrengthdesign.com/docs/forms/), it can be easily migrated over to Formie. Your existing content with Sprout Forms will not be touched.
 
 To migrate your forms and form data, install Formie, and navigate to Formie → Settings → Migrations → Sprout Forms. You'll need to have Sprout Forms installed and enabled for this setting to appear.

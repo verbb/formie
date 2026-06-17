@@ -50,7 +50,7 @@ it('restricts statuses from a form group policy', function (): void {
         ->and($policy->isStatusAllowed($form, (int)$allowed[0]->id))->toBeTrue();
 });
 
-it('lets a form override group allowed statuses', function (): void {
+it('ignores legacy form-level allowed status ids in favour of group policy', function (): void {
     $statuses = Formie::$plugin->getStatuses()->getAllStatuses();
 
     if (count($statuses) < 2) {
@@ -67,8 +67,8 @@ it('lets a form override group allowed statuses', function (): void {
     expect(count($statuses))->toBeGreaterThanOrEqual(2);
 
     $group = new FormGroup([
-        'name' => 'Override Group',
-        'handle' => 'overrideGroup' . uniqid(),
+        'name' => 'Legacy Override Group',
+        'handle' => 'legacyOverrideGroup' . uniqid(),
         'settings' => [
             'allowedStatusIds' => [(int)$statuses[0]->id],
         ],
@@ -78,7 +78,7 @@ it('lets a form override group allowed statuses', function (): void {
 
     $form = formie()
         ->form([
-            'title' => 'Override Policy Form',
+            'title' => 'Legacy Override Policy Form',
             'groupId' => $group->id,
         ])
         ->singleLineTextField('fullName')
@@ -89,9 +89,9 @@ it('lets a form override group allowed statuses', function (): void {
 
     $policy = Formie::$plugin->getFormGroupPolicy();
 
-    expect($policy->getResolvedAllowedStatusIds($form))->toBe([(int)$statuses[1]->id])
-        ->and($policy->isStatusAllowed($form, (int)$statuses[0]->id))->toBeFalse()
-        ->and($policy->isStatusAllowed($form, (int)$statuses[1]->id))->toBeTrue();
+    expect($policy->getResolvedAllowedStatusIds($form))->toBe([(int)$statuses[0]->id])
+        ->and($policy->isStatusAllowed($form, (int)$statuses[0]->id))->toBeTrue()
+        ->and($policy->isStatusAllowed($form, (int)$statuses[1]->id))->toBeFalse();
 });
 
 it('merges group form defaults over global defaults for new forms', function (): void {

@@ -31,6 +31,7 @@ use verbb\formie\helpers\RichTextHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
+use verbb\formie\helpers\SubmissionLimitHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\ClientModule;
 use verbb\formie\models\FieldLayout as FormLayout;
@@ -1860,10 +1861,8 @@ class Form extends Element implements FormInterface
             }
         }
 
-        if ($this->settings->limitSubmissions) {
-            if (!$this->isWithinSubmissionsLimit()) {
-                return false;
-            }
+        if (SubmissionLimitHelper::shouldCloseFormByLimit($this)) {
+            return false;
         }
 
         return true;
@@ -1892,50 +1891,14 @@ class Form extends Element implements FormInterface
         return false;
     }
 
-    public function isWithinSubmissionsLimit(): bool
+    public function isWithinSubmissionsLimit(?Submission $submission = null): bool
     {
-        if ($this->settings->limitSubmissions) {
-            $limit = $this->settings->limitSubmissionsNumber;
+        return !SubmissionLimitHelper::hasReachedLimit($this, $submission);
+    }
 
-            if (!$limit || $limit < 1) {
-                return true;
-            }
-
-            $query = Submission::find()->formId($this->id);
-
-            if ($this->settings->limitSubmissionsType === 'total') {
-                $submissions = $query->count();
-            } else if ($this->settings->limitSubmissionsType === 'day') {
-                $startDate = DateTimeHelper::toDateTime(new DateTime('today'));
-                $endDate = DateTimeHelper::toDateTime(new DateTime('tomorrow'));
-
-                $submissions = $query->dateCreated(['and', '>= ' . Db::prepareDateForDb($startDate), '<= ' . Db::prepareDateForDb($endDate)])->count();
-            } else if ($this->settings->limitSubmissionsType === 'week') {
-                // PHP dates start on a Monday, but we assume to backtrack to Sunday
-                $startDate = DateTimeHelper::toDateTime(new DateTime('monday this week'))->modify('-1 day');
-                $endDate = DateTimeHelper::toDateTime(new DateTime('monday next week'))->modify('-1 day');
-
-                $submissions = $query->dateCreated(['and', '>= ' . Db::prepareDateForDb($startDate), '<= ' . Db::prepareDateForDb($endDate)])->count();
-            } else if ($this->settings->limitSubmissionsType === 'month') {
-                $startDate = DateTimeHelper::toDateTime(new DateTime('first day of this month'))->setTime(0, 0, 0);
-                $endDate = DateTimeHelper::toDateTime(new DateTime('first day of next month'))->setTime(0, 0, 0);
-
-                $submissions = $query->dateCreated(['and', '>= ' . Db::prepareDateForDb($startDate), '<= ' . Db::prepareDateForDb($endDate)])->count();
-            } else if ($this->settings->limitSubmissionsType === 'year') {
-                $startDate = DateTimeHelper::toDateTime(new DateTime('first day of January'))->setTime(0, 0, 0);
-                $endDate = DateTimeHelper::toDateTime(new DateTime('first day of January next year'))->setTime(0, 0, 0);
-
-                $submissions = $query->dateCreated(['and', '>= ' . Db::prepareDateForDb($startDate), '<= ' . Db::prepareDateForDb($endDate)])->count();
-            } else {
-                $submissions = $query->count();
-            }
-
-            if ($submissions >= $limit) {
-                return false;
-            }
-        }
-        
-        return true;
+    public function isClosedBySubmissionLimit(): bool
+    {
+        return SubmissionLimitHelper::shouldCloseFormByLimit($this);
     }
 
     public function getDuplicateAttributes(): array
@@ -2526,7 +2489,7 @@ class Form extends Element implements FormInterface
             ],
             [
                 '$el' => 'h3',
-                'children' => Craft::t('formie', 'Restrictions'),
+                'children' => Craft::t('formie', 'Availability'),
                 'attrs' => [
                     'class' => 'form-builder-h3',
                 ],
@@ -2576,9 +2539,19 @@ class Form extends Element implements FormInterface
                     ], RichTextHelper::getRichTextConfig('forms.scheduleFormExpiredMessage'))),
                 ],
             ],
+            [
+                '$el' => 'hr',
+            ],
+            [
+                '$el' => 'h3',
+                'children' => Craft::t('formie', 'Submission Limits'),
+                'attrs' => [
+                    'class' => 'form-builder-h3',
+                ],
+            ],
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Limit Submissions'),
-                'instructions' => Craft::t('formie', 'Whether submissions for this form should be limited to a number.'),
+                'instructions' => Craft::t('formie', 'Limit how many submissions are allowed.'),
                 'name' => 'settings.limitSubmissions',
             ]),
             [
@@ -2588,9 +2561,23 @@ class Form extends Element implements FormInterface
                 ],
                 'if' => 'settings.limitSubmissions',
                 'children' => [
+                    SchemaHelper::selectField([
+                        'label' => Craft::t('formie', 'Apply Limit To'),
+                        'instructions' => Craft::t('formie', 'Choose whether the limit applies to all submissions for this form, each IP address, or each logged-in user. When limiting all submissions, the form closes once the limit is reached.'),
+                        'name' => 'settings.limitSubmissionsScope',
+                        'options' => [
+                            ['label' => Craft::t('formie', 'All submissions for this form'), 'value' => 'form'],
+                            ['label' => Craft::t('formie', 'Per IP address'), 'value' => 'ipAddress'],
+                            ['label' => Craft::t('formie', 'Per logged-in user'), 'value' => 'user'],
+                        ],
+                    ]),
+                    SchemaHelper::groupField([
+                        'warning' => Craft::t('formie', 'Enable **Collect User** in Settings → Privacy when limiting by user.'),
+                        'if' => 'settings.limitSubmissionsScope == "user"',
+                    ]),
                     SchemaHelper::fieldWrap([
-                        'label' => Craft::t('formie', 'Number of Submissions'),
-                        'instructions' => Craft::t('formie', 'The number of submissions to allow.'),
+                        'label' => Craft::t('formie', 'Allow'),
+                        'instructions' => Craft::t('formie', 'The number of submissions to allow for the selected scope.'),
                         'children' => [
                             SchemaHelper::numberField([
                                 'name' => 'settings.limitSubmissionsNumber',
@@ -2598,7 +2585,7 @@ class Form extends Element implements FormInterface
                             SchemaHelper::selectField([
                                 'name' => 'settings.limitSubmissionsType',
                                 'options' => [
-                                    ['label' => Craft::t('formie', 'total'), 'value' => 'total'],
+                                    ['label' => Craft::t('formie', 'all time'), 'value' => 'total'],
                                     ['label' => Craft::t('formie', 'per day'), 'value' => 'day'],
                                     ['label' => Craft::t('formie', 'per week'), 'value' => 'week'],
                                     ['label' => Craft::t('formie', 'per month'), 'value' => 'month'],
@@ -2609,7 +2596,7 @@ class Form extends Element implements FormInterface
                     ]),
                     SchemaHelper::richTextField(array_merge([
                         'label' => Craft::t('formie', 'Message'),
-                        'instructions' => Craft::t('formie', 'The message displayed to once the limit has been reached.'),
+                        'instructions' => Craft::t('formie', 'The message displayed when the submission limit has been reached.'),
                         'name' => 'settings.limitSubmissionsMessage',
                     ], RichTextHelper::getRichTextConfig('forms.limitSubmissionsMessage'))),
                 ],
@@ -2731,17 +2718,6 @@ class Form extends Element implements FormInterface
                 ]),
                 'conditionOptions' => ConditionsHelper::getConditionOptions(),
             ],
-            SchemaHelper::checkboxSelectField([
-                'label' => Craft::t('formie', 'Allowed Submission Statuses'),
-                'instructions' => Craft::t('formie', 'Leave empty to inherit from the form group. Select which statuses are available for submissions on this form.'),
-                'name' => 'settings.allowedStatusIds',
-                'options' => array_map(function($status) {
-                    return [
-                        'value' => (string)$status->id,
-                        'label' => $status->name,
-                    ];
-                }, Formie::$plugin->getStatuses()->getAllStatuses()),
-            ]),
             SchemaHelper::variableTextField([
                 'label' => Craft::t('formie', 'Submission Title Format'),
                 'instructions' => Craft::t('formie', 'Enter the format of the auto-generated submission titles. If left blank, the date/time of submission will be used.'),

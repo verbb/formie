@@ -6,7 +6,7 @@ Formie gives you a few layers to work with, so you can start with lighter filter
 
 That page brings together spam handling, keyword rules, built-in submission guards, and captcha provider credentials in one place. Legacy **Settings → Spam** and **Settings → Captchas** routes redirect here.
 
-Captcha failures, keyword matches, submission guard failures, and related signals are evaluated together in the submission workflow’s **`screen`** stage. For how that stage is ordered, how it relates to validation, and how to extend it, see [Submission screening](/forms/submission-screening).
+Captcha failures, keyword matches, submission guard failures, and related signals are evaluated together in the submission workflow’s **`screen`** stage. For how that stage is ordered, how it relates to validation, and how to extend it, see [Submission Screening](/forms/submission-screening).
 
 ## Spam handling
 
@@ -96,12 +96,14 @@ Both rules run during the **`screen.runSpamChecks`** workflow task, after email 
 
 ## Submission throttling
 
-Submission throttling limits how often forms can be submitted. Configure it under **Formie → Settings → Spam Protection → Submission Throttling**.
+Submission throttling is **abuse protection**, not entry caps. It limits how quickly forms can be submitted during floods or rapid repeat attempts. Configure it under **Formie → Settings → Spam Protection → Submission Throttling**.
+
+For contest, registration, or quota-style caps, use per-form **[Submission limits](/forms/submission-limits)** in the form builder instead. Throttling marks excess submissions as spam; submission limits close the form or show a validation error according to your business rules.
 
 | Setting | What it does |
 | --- | --- |
-| **Global submission throttling** | Limits the total number of submissions allowed across **all forms** within a time window. Intended for emergency abuse protection during spam floods, not fine-tuning individual forms. |
-| **IP submission throttling** | Requires a minimum wait time between submissions from the same IP address on the **same form**. |
+| **Global submission throttling** | Caps the total number of submissions allowed across **all forms** within a time window. Intended for emergency abuse protection during spam floods, not fine-tuning individual forms. |
+| **IP submission throttling** | Requires a minimum **wait time** between submissions from the same IP address on the **same form**. This is not the same as a per-IP **count** limit on the form — see [Submission limits](/forms/submission-limits#ip-wait-time-vs-ip-count-limits). |
 
 Throttling runs during **`screen.runSubmissionGuards`**, before honeypot and other passive guards. Failed throttling checks mark the submission as spam and respect your **Spam submission behavior** setting.
 
@@ -159,7 +161,7 @@ Replay protection uses the existing per-render `requestToken` that Formie alread
 
 This is separate from save-and-continue draft tokens and static-cache refresh behaviour. It targets repeat POST abuse, not legitimate multi-page navigation.
 
-For the full screening order and extension points, see [Submission screening](/forms/submission-screening).
+For the full screening order and extension points, see [Submission Screening](/forms/submission-screening).
 
 ## Captchas
 

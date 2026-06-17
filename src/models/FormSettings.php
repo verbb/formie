@@ -71,6 +71,7 @@ class FormSettings extends Model
     public RichText $scheduleFormPendingMessage;
     public RichText $scheduleFormExpiredMessage;
     public bool|string|null $limitSubmissions = null;
+    public ?string $limitSubmissionsScope = 'form';
     public ?int $limitSubmissionsNumber = null;
     public ?string $limitSubmissionsType = 'total';
     public RichText $limitSubmissionsMessage;
@@ -164,6 +165,11 @@ class FormSettings extends Model
                 $config['scheduleFormEnd'] = DateTimeHelper::toDateTime($config['scheduleFormEnd']);
             }
         }
+
+        $config['limitSubmissionsScope'] = self::_normalizeLimitSubmissionsScope(
+            $config['limitSubmissionsScope'] ?? null,
+            $config['limitSubmissions'] ?? null,
+        );
         
         $config = $this->_normalizeRichTextAttributes($config);
 
@@ -204,6 +210,13 @@ class FormSettings extends Model
     {
         if (is_array($values)) {
             $values = $this->_normalizeRichTextAttributes($values);
+
+            if (array_key_exists('limitSubmissionsScope', $values) || array_key_exists('limitSubmissions', $values)) {
+                $values['limitSubmissionsScope'] = self::_normalizeLimitSubmissionsScope(
+                    $values['limitSubmissionsScope'] ?? $this->limitSubmissionsScope,
+                    $values['limitSubmissions'] ?? $this->limitSubmissions,
+                );
+            }
         }
 
         parent::setAttributes($values, $safeOnly);
@@ -294,21 +307,13 @@ class FormSettings extends Model
 
     public function getLimitSubmissionsMessage(): string
     {
-        if ($this->limitSubmissions === 'ipAddress') {
-            $message = $this->_getHtmlContent($this->limitSubmissionsIpAddressMessage);
-        } else {
-            $message = $this->_getHtmlContent($this->limitSubmissionsMessage);
-        }
+        $message = $this->_getHtmlContent($this->limitSubmissionsMessage);
 
         return Craft::t('formie', $message);
     }
 
     public function getLimitSubmissionsMessageHtml(): string
     {
-        if ($this->limitSubmissions === 'ipAddress') {
-            return $this->_getHtmlContent($this->limitSubmissionsIpAddressMessage);
-        }
-
         return $this->_getHtmlContent($this->limitSubmissionsMessage);
     }
 
@@ -433,30 +438,8 @@ class FormSettings extends Model
         $rules[] = [['submitMethod'], 'validateSubmitMethod'];
         $rules[] = [['progressCalculation'], 'in', 'range' => ['completion', 'page-position']];
         $rules[] = [['cpSubmissionFieldConditions'], 'in', 'range' => array_merge([''], CpSubmissionFieldConditions::values())];
-        $rules[] = [['allowedStatusIds'], 'validateAllowedStatusIds'];
 
         return $rules;
-    }
-
-    public function validateAllowedStatusIds(): void
-    {
-        if ($this->allowedStatusIds === null) {
-            return;
-        }
-
-        if ($this->allowedStatusIds === []) {
-            $this->addError('allowedStatusIds', Craft::t('formie', 'Select at least one submission status, or clear the override to inherit from the form group.'));
-
-            return;
-        }
-
-        foreach ($this->allowedStatusIds as $statusId) {
-            if (!Formie::$plugin->getStatuses()->getStatusById((int)$statusId)) {
-                $this->addError('allowedStatusIds', Craft::t('formie', 'One or more selected submission statuses are invalid.'));
-
-                return;
-            }
-        }
     }
     
 
@@ -515,5 +498,20 @@ class FormSettings extends Model
         $ids = array_values(array_unique(array_filter(array_map('intval', $value))));
 
         return $ids === [] ? null : $ids;
+    }
+
+    private static function _normalizeLimitSubmissionsScope(?string $scope, mixed $limitSubmissions): string
+    {
+        if ($limitSubmissions === 'ipAddress') {
+            return 'ipAddress';
+        }
+
+        $scope = trim((string)($scope ?? ''));
+
+        if (in_array($scope, ['form', 'ipAddress', 'user'], true)) {
+            return $scope;
+        }
+
+        return 'form';
     }
 }

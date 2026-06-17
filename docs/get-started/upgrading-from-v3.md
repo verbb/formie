@@ -1,4 +1,4 @@
-# Upgrading from v3
+# Upgrading From v3
 
 Formie 4 changes a lot behind the scenes, especially around form-builder schema, submission handling, front-end assets, and field values.
 
@@ -59,7 +59,7 @@ Submission processing is no longer one large save step. Formie now runs submissi
 
 That makes custom submission handling more predictable. If you need to run your own logic during processing, it is a better fit to add a workflow task or hook into the workflow events than to try to replace the whole pipeline.
 
-The **`screen`** stage now runs built-in submission guards (honeypot, minimum submit time, replay protection) before captcha integrations and spam keyword checks. See [Submission screening](/forms/submission-screening).
+The **`screen`** stage now runs built-in submission guards (honeypot, minimum submit time, replay protection) before captcha integrations and spam keyword checks. See [Submission Screening](/forms/submission-screening).
 
 ### Spam Protection settings
 
@@ -463,7 +463,7 @@ Guards only run for normal browser form POST requests that include `handle` and 
 
 The honeypot input and `formStartedAt` timestamp are rendered automatically for browser forms. Replay protection reuses Formie’s existing per-render `requestToken`.
 
-See [Submission screening](/forms/submission-screening) for the full screening order and [Spam Protection](/forms/spam-protection#submission-guards) for configuration detail.
+See [Submission Screening](/forms/submission-screening) for the full screening order and [Spam Protection](/forms/spam-protection#submission-guards) for configuration detail.
 
 ### Settings and storage changes
 
@@ -479,7 +479,7 @@ If you had custom code or front-end automation that targeted the old Duplicate, 
 - Switch spam-related checks to the replacement captcha integration handles you enable (for example `turnstile`, `recaptcha`), or hook into the screening stage if you need custom server-side checks.
 - Update any GraphQL mutation arguments that referenced the removed captcha types.
 
-Provider-backed captchas and spam rules still evaluate together in the **`screen`** stage. See [Submission screening](/forms/submission-screening) for how that stage orders checks and how that relates to validation and saves.
+Provider-backed captchas and spam rules still evaluate together in the **`screen`** stage. See [Submission Screening](/forms/submission-screening) for how that stage orders checks and how that relates to validation and saves.
 
 ## Front-End JavaScript Events
 

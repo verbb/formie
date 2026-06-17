@@ -27,12 +27,6 @@ class FormGroupPolicy extends Component
 
     public function getResolvedAllowedStatusIds(?Form $form): ?array
     {
-        $formSettings = $form?->getSettings();
-
-        if ($formSettings && $formSettings->allowedStatusIds !== null) {
-            return $formSettings->allowedStatusIds;
-        }
-
         $group = $form?->getGroup();
 
         if (!$group) {
@@ -95,12 +89,6 @@ class FormGroupPolicy extends Component
 
     public function describeAllowedStatusSource(?Form $form): ?string
     {
-        $formSettings = $form?->getSettings();
-
-        if ($formSettings && $formSettings->allowedStatusIds !== null) {
-            return Craft::t('formie', 'This form');
-        }
-
         $group = $form?->getGroup();
 
         if ($group && $this->getSettings($group)->allowedStatusIds !== null) {

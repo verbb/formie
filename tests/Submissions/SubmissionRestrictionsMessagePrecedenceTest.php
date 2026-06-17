@@ -20,7 +20,7 @@ function resolveRestrictionMessage(mixed $form): ?string
         $message = $form->settings->getScheduleFormExpiredMessage();
     }
 
-    if ($form->settings->limitSubmissions && !$form->isWithinSubmissionsLimit()) {
+    if ($form->isClosedBySubmissionLimit()) {
         $message = $form->settings->getLimitSubmissionsMessage();
     }
 
@@ -35,6 +35,11 @@ it('uses deterministic restriction message precedence in frontend message render
         ->singleLineTextField('fullName')
         ->create();
 
+    formie()
+        ->submission($form)
+        ->with(['fullName' => 'Existing Submission'])
+        ->save();
+
     $form->settings->setAttributes([
         'requireUser' => true,
         'requireUserMessage' => 'REQUIRE_USER_MESSAGE',
@@ -42,7 +47,7 @@ it('uses deterministic restriction message precedence in frontend message render
         'scheduleFormStart' => new DateTime('+1 day'),
         'scheduleFormPendingMessage' => 'PENDING_MESSAGE',
         'limitSubmissions' => true,
-        'limitSubmissionsNumber' => 0,
+        'limitSubmissionsNumber' => 1,
         'limitSubmissionsType' => 'total',
         'limitSubmissionsMessage' => 'LIMIT_MESSAGE',
     ], false);

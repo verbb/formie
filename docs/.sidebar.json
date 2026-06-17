@@ -63,6 +63,7 @@
             "forms/conditions",
             "forms/synced-fields",
             "forms/spam-protection",
+            "forms/submission-limits",
             "forms/submission-screening",
             "forms/stencils",
             "forms/import-export",
@@ -74,7 +75,6 @@
         "collapsable": false,
         "children": [
             "submissions/overview",
-            "submissions/cp-field-conditions",
             "submissions/statuses",
             "submissions/exporting",
             "submissions/relations",

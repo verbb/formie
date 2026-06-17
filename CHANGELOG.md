@@ -3,7 +3,7 @@
 ## Unreleased
 
 ### Added
-- Add form group policies for allowed submission statuses, optional per-group field palettes, and new-form default profiles (stencil, templates, form defaults). Group policies inherit from global settings; forms can optionally override allowed statuses. ([#2717](https://github.com/verbb/formie/issues/2717), [#2209](https://github.com/verbb/formie/issues/2209), [#863](https://github.com/verbb/formie/issues/863))
+- Add form group policies for allowed submission statuses, optional per-group field palettes, and new-form default profiles (stencil, templates, form defaults). Group policies inherit from global settings; allowed submission statuses are enforced at the group level. ([#2717](https://github.com/verbb/formie/issues/2717), [#2209](https://github.com/verbb/formie/issues/2209), [#863](https://github.com/verbb/formie/issues/863))
 - Add `FormGroupPolicy` service as the single entry point for global → group → form policy resolution.
 - Add custom variable sources via `Variables::EVENT_REGISTER_VARIABLES`, exposing registered tokens in the variable picker and resolving them server-side when references are parsed. ([#898](https://github.com/verbb/formie/issues/898))
 - Add group-scoped form and submission permissions using stable form group handles, with optional per-form dedicated permissions via a new **Use Dedicated Permissions** form setting. ([#1426](https://github.com/verbb/formie/issues/1426), [#1356](https://github.com/verbb/formie/issues/1356), [#2489](https://github.com/verbb/formie/issues/2489), [Discussion #1696](https://github.com/verbb/formie/discussions/1696))
@@ -19,8 +19,10 @@
 - Add a `Permissions` service as the single ACL entry point for forms, submissions, sent notifications, and import/export checks.
 - Add **Field Error Announcement** plugin setting (**Settings → Forms**) to control how front-end validation and submit errors are announced to screen readers (`polite`, `assertive`, or `off`). Live validation while typing always uses polite announcements. ([#2505](https://github.com/verbb/formie/issues/2505))
 - Add optional per-form reCAPTCHA **Action** and **Minimum Score** settings for score-based modes, inheriting global Spam Protection defaults when left blank. ([#2167](https://github.com/verbb/formie/issues/2167), [#2804](https://github.com/verbb/formie/issues/2804))
+- Add scoped **Submission Limits** per form: cap all submissions for a form (closes the form when reached), submissions per IP address, or submissions per logged-in user, over configurable periods. [Discussion #1939](https://github.com/verbb/formie/discussions/1939)
 
 ### Changed
+- Improve **Submission Limits** form settings UX (**Apply Limit To**, consolidated messaging) and clarify the distinction from global **Submission Throttling** abuse controls. Add [Submission Limits](/forms/submission-limits) author documentation. [Discussion #1939](https://github.com/verbb/formie/discussions/1939)
 - Align `Form` element `canView()`, `canSave()`, `canDuplicate()`, and delete behaviour with controller permissions instead of broad allow-all checks.
 - Auto-grant creators scoped group (or dedicated per-form) manage permissions when they can create forms but lack broader access.
 - Filter CP form and submission element sources and indexes to forms the current user can view or manage.
@@ -5075,7 +5077,7 @@ The fix was already present for Contacts.
 - Fixed GraphQL queries for `redirectEntry` not resolving the correct site for an entry.
 - Fixed when triggering integrations manually for a submission, integration settings weren't properly prepped.
 - Fixed when re-triggering a submission, reloading the page when an error occurred.
-- Fixed redirect error when saving Settings > Sent Notifications.
+- Fixed redirect error when saving Settings → Sent Notifications.
 
 ## 1.4.27 - 2021-11-27
 

@@ -23,7 +23,7 @@ import '@verbb/formie-browser/css/formie-theme.css';
 
 The safest customization layer is the same `--formie-*` token surface used by the browser package.
 
-Use [Browser > CSS variables](/browser/ui-reference/css-variables) for the full token reference.
+Use [Browser → CSS variables](/browser/ui-reference/css-variables) for the full token reference.
 
 Scope those tokens on a wrapper around the custom element:
 
