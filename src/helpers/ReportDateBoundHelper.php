@@ -24,6 +24,28 @@ class ReportDateBoundHelper
         ];
     }
 
+    public static function defaultStartBound(): array
+    {
+        return [
+            'option' => 'today',
+            'date' => null,
+            'offset' => 'subtract',
+            'offsetNumber' => 1,
+            'offsetType' => 'months',
+        ];
+    }
+
+    public static function defaultEndBound(): array
+    {
+        return [
+            'option' => 'today',
+            'date' => null,
+            'offset' => 'add',
+            'offsetNumber' => 0,
+            'offsetType' => 'days',
+        ];
+    }
+
     public static function migrateLegacyFilters(array $filters): array
     {
         $startBound = self::normalizeBound($filters['startBound'] ?? null, false);

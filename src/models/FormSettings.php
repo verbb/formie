@@ -13,6 +13,7 @@ use verbb\formie\elements\Submission;
 use Craft;
 use craft\base\Model;
 use craft\elements\Entry;
+use craft\helpers\ArrayHelper;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
 
@@ -20,6 +21,7 @@ use Twig\Error\SyntaxError;
 use Twig\Error\LoaderError;
 
 use DateTime;
+use DateTimeZone;
 
 class FormSettings extends Model
 {
@@ -154,17 +156,7 @@ class FormSettings extends Model
             unset($config['availabilityMessageSubmissions']);
         }
 
-        if (array_key_exists('scheduleFormStart', $config)) {
-            if (is_array($config['scheduleFormStart'])) {
-                $config['scheduleFormStart'] = DateTimeHelper::toDateTime($config['scheduleFormStart']);
-            }
-        }
-
-        if (array_key_exists('scheduleFormEnd', $config)) {
-            if (is_array($config['scheduleFormEnd'])) {
-                $config['scheduleFormEnd'] = DateTimeHelper::toDateTime($config['scheduleFormEnd']);
-            }
-        }
+        $config = $this->_normalizeScheduleDateTimeAttributes($config);
 
         $config['limitSubmissionsScope'] = self::_normalizeLimitSubmissionsScope(
             $config['limitSubmissionsScope'] ?? null,
@@ -210,6 +202,7 @@ class FormSettings extends Model
     {
         if (is_array($values)) {
             $values = $this->_normalizeRichTextAttributes($values);
+            $values = $this->_normalizeScheduleDateTimeAttributes($values);
 
             if (array_key_exists('limitSubmissionsScope', $values) || array_key_exists('limitSubmissions', $values)) {
                 $values['limitSubmissionsScope'] = self::_normalizeLimitSubmissionsScope(
@@ -236,6 +229,7 @@ class FormSettings extends Model
     {
         $config = $this->toArray();
         $config = $this->_serializeRichTextAttributes($config);
+        $config = $this->_serializeBuilderDateTimeAttributes($config);
         $config['errors'] = $this->getErrors();
 
         foreach ($this->getEnabledIntegrations() as $key => $integration) {
@@ -449,6 +443,67 @@ class FormSettings extends Model
     private function _getHtmlContent($content, $submission = null): string
     {
         return RichText::from($content)->toHtml($submission, false);
+    }
+
+    private function _serializeBuilderDateTimeAttributes(array $config): array
+    {
+        $timezone = new DateTimeZone(Craft::$app->getTimeZone());
+
+        foreach (['scheduleFormStart', 'scheduleFormEnd'] as $attribute) {
+            $date = $this->{$attribute} ?? null;
+
+            if ($date instanceof DateTime) {
+                // Emit wall-clock values for the Craft app timezone, not UTC-normalized instants.
+                $config[$attribute] = (clone $date)->setTimezone($timezone)->format('Y-m-d H:i:s');
+            }
+        }
+
+        return $config;
+    }
+
+    private function _normalizeScheduleDateTimeAttributes(array $config): array
+    {
+        foreach (['scheduleFormStart', 'scheduleFormEnd'] as $attribute) {
+            if (!array_key_exists($attribute, $config)) {
+                continue;
+            }
+
+            $value = $config[$attribute];
+
+            if ($value === null || $value === '') {
+                $config[$attribute] = null;
+                continue;
+            }
+
+            $config[$attribute] = self::_normalizeScheduleDateTimeValue($value);
+        }
+
+        return $config;
+    }
+
+    private static function _normalizeScheduleDateTimeValue(mixed $value): ?DateTime
+    {
+        if ($value instanceof DateTime) {
+            return $value;
+        }
+
+        if (is_array($value)) {
+            return DateTimeHelper::toDateTime($value, true, true) ?: null;
+        }
+
+        $stringValue = trim((string)$value);
+
+        if ($stringValue === '') {
+            return null;
+        }
+
+        // Builder payloads and stored schedule values without an explicit offset are wall-clock
+        // datetimes in the Craft app timezone, not UTC.
+        if (preg_match('/^\d{4}-\d{2}-\d{2}(?:[ T]\d{2}:\d{2}(?::\d{2})?)?$/', $stringValue)) {
+            return DateTimeHelper::toDateTime($stringValue, true, true) ?: null;
+        }
+
+        return DateTimeHelper::toDateTime($stringValue) ?: null;
     }
 
     private function _serializeRichTextAttributes(array $config): array

@@ -11,7 +11,7 @@ Each report combines:
 | Area | What it controls |
 | --- | --- |
 | **General** | Name, handle, and which forms are included |
-| **Filters** | Date windows, complete/incomplete/spam, statuses, and more |
+| **Filters** | Date windows (new reports default to the last month), complete/incomplete/spam, statuses, and more |
 | **Columns** | Which submission attributes and fields appear in the table and export |
 | **Display** | Chart type and summary layout on the report run screen |
 | **Export** | Export filename pattern (with variable tokens) |

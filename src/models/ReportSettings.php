@@ -1,6 +1,8 @@
 <?php
 namespace verbb\formie\models;
 
+use verbb\formie\helpers\ReportDateBoundHelper;
+
 use craft\base\Model;
 
 class ReportSettings extends Model
@@ -47,20 +49,8 @@ class ReportSettings extends Model
             'includeIncomplete' => true,
             'includeSpam' => false,
             'statusIds' => [],
-            'startBound' => [
-                'option' => '',
-                'date' => null,
-                'offset' => 'add',
-                'offsetNumber' => 0,
-                'offsetType' => 'days',
-            ],
-            'endBound' => [
-                'option' => '',
-                'date' => null,
-                'offset' => 'add',
-                'offsetNumber' => 0,
-                'offsetType' => 'days',
-            ],
+            'startBound' => ReportDateBoundHelper::defaultStartBound(),
+            'endBound' => ReportDateBoundHelper::defaultEndBound(),
         ];
     }
 

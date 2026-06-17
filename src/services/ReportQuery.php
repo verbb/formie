@@ -376,13 +376,27 @@ class ReportQuery extends Component
             $startDate = $since;
         }
 
+        $params = [];
+
         if ($startDate) {
-            $query->dateCreated('>= ' . Db::prepareDateForDb($startDate));
+            $params[] = '>= ' . Db::prepareDateForDb($startDate);
         }
 
         if ($endDate) {
-            $query->dateCreated('<= ' . Db::prepareDateForDb($endDate));
+            $params[] = '<= ' . Db::prepareDateForDb($endDate);
         }
+
+        if ($params === []) {
+            return;
+        }
+
+        if (count($params) === 1) {
+            $query->dateCreated($params[0]);
+
+            return;
+        }
+
+        $query->dateCreated(array_merge(['and'], $params));
     }
 
     private function _countForState(int $formId, array $filters, bool $isIncomplete, bool $isSpam): int
