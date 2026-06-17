@@ -171,7 +171,7 @@ class ReportQuery extends Component
     public function getTableData(
         Report $report,
         int $page = 1,
-        int $limit = 20,
+        int $limit = 100,
         ?User $user = null,
         ?array $columnOverride = null,
         array $viewer = [],

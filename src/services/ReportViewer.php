@@ -124,6 +124,7 @@ class ReportViewer extends Component
                 && Formie::$plugin->getPermissions()->canManageReports($user),
             'csrfTokenName' => Craft::$app->getConfig()->getGeneral()->csrfTokenName,
             'csrfTokenValue' => Craft::$app->getRequest()->getCsrfToken(),
+            'tablePageSize' => max(1, min(100, (int)Formie::$plugin->getSettings()->reportTablePageSize)),
         ];
     }
 

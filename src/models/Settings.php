@@ -94,6 +94,7 @@ class Settings extends Model
     public int $submissionStateRetentionDays = 30;
     public string $submissionSidebarFormOrder = self::SUBMISSION_SIDEBAR_FORM_ORDER_DATE_CREATED_DESC;
     public string $defaultCpSubmissionFieldConditions = CpSubmissionFieldConditions::FOLLOW;
+    public int $reportTablePageSize = 100;
     public int $saveResumeTokenTtlDays = 14;
     public int $maxSavedDraftsPerSession = 10;
     public int $anonymousClientBootstrapRateLimit = 30;
@@ -401,6 +402,7 @@ class Settings extends Model
         $rules[] = [['pluginName', 'defaultPage', 'maxIncompleteSubmissionAge', 'maxSentNotificationsAge'], 'required'];
         $rules[] = [['pluginName'], 'string', 'max' => 52];
         $rules[] = [['maxIncompleteSubmissionAge', 'maxSentNotificationsAge'], 'number', 'integerOnly' => true];
+        $rules[] = [['reportTablePageSize'], 'number', 'integerOnly' => true, 'min' => 1, 'max' => 100];
         $rules[] = [['maxEmailAttachmentSizeMb'], 'number', 'integerOnly' => true, 'min' => 0];
         $rules[] = [['submissionStateRetentionDays'], 'number', 'integerOnly' => true, 'min' => 1];
         $rules[] = [['saveResumeTokenTtlDays'], 'number', 'integerOnly' => true, 'min' => 1];

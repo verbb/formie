@@ -294,7 +294,8 @@ class ReportsController extends Controller
         }
 
         $page = (int)$this->request->getParam('page', 1);
-        $limit = (int)$this->request->getParam('limit', 20);
+        $defaultLimit = max(1, min(100, (int)Formie::$plugin->getSettings()->reportTablePageSize));
+        $limit = (int)$this->request->getParam('limit', $defaultLimit);
         $columnOverride = $this->_decodeColumnOverride();
         $viewer = $this->_decodeViewerParams();
 

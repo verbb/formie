@@ -80,6 +80,22 @@
             ],
             warning: macros.configWarning('defaultCpSubmissionFieldConditions', 'formie'),
         }) }}
+
+        <hr>
+
+        <h3>{{ 'Reports' | t('formie') }}</h3>
+
+        {{ forms.textField({
+            type: 'number',
+            label: 'Report Table Page Size' | t('formie'),
+            instructions: 'The number of submissions shown per page in report tables.' | t('formie'),
+            id: 'reportTablePageSize',
+            name: 'reportTablePageSize',
+            value: settings.reportTablePageSize,
+            min: 1,
+            max: 100,
+            warning: macros.configWarning('reportTablePageSize', 'formie'),
+        }) }}
     {% endnamespace %}
 
     <hr>
