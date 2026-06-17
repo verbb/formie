@@ -206,10 +206,19 @@ class ReportsController extends Controller
         $settings->columns = Formie::$plugin->getReportColumns()->getDefaultAttributeColumns();
         $report->setSettingsModel($settings);
 
-        if (!Formie::$plugin->getReports()->saveReport($report)) {
+        try {
+            if (!Formie::$plugin->getReports()->saveReport($report)) {
+                return $this->asJson([
+                    'success' => false,
+                    'errors' => $report->getErrors(),
+                ]);
+            }
+        } catch (\yii\db\IntegrityException) {
             return $this->asJson([
                 'success' => false,
-                'errors' => $report->getErrors(),
+                'errors' => [
+                    'handle' => [Craft::t('formie', 'That handle is already in use.')],
+                ],
             ]);
         }
 

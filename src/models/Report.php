@@ -109,7 +109,11 @@ class Report extends Model
             ['handle'],
             UniqueValidator::class,
             'targetClass' => ReportRecord::class,
-            'filter' => ['dateDeleted' => null],
+            'filter' => function($query) {
+                if ($this->id) {
+                    $query->andWhere(['not', ['id' => $this->id]]);
+                }
+            },
         ];
 
         return $rules;

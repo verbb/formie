@@ -61,6 +61,18 @@ class Reports extends Component
         return $this->_reports()->firstWhere('uid', $uid, true);
     }
 
+    public function getAllReportHandles(): array
+    {
+        if (!DbSchema::tableExists(Table::FORMIE_REPORTS)) {
+            return [];
+        }
+
+        return (new Query())
+            ->select(['handle'])
+            ->from([Table::FORMIE_REPORTS])
+            ->column();
+    }
+
     public function reorderReports(array $reportIds): bool
     {
         $projectConfig = Craft::$app->getProjectConfig();
@@ -103,10 +115,14 @@ class Reports extends Component
             $report->uid = Db::uidById(Table::FORMIE_REPORTS, $report->id);
         }
 
-        $existingReport = $this->getReportByHandle($report->handle);
+        $handleOwnerId = (new Query())
+            ->select(['id'])
+            ->from([Table::FORMIE_REPORTS])
+            ->where(['handle' => $report->handle])
+            ->scalar();
 
-        if ($existingReport && (!$report->id || $report->id != $existingReport->id)) {
-            $report->addError('handle', Craft::t('formie', 'That handle is already in use'));
+        if ($handleOwnerId && (!$report->id || (int)$report->id !== (int)$handleOwnerId)) {
+            $report->addError('handle', Craft::t('formie', 'That handle is already in use.'));
 
             return false;
         }

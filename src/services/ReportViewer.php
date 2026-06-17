@@ -48,10 +48,7 @@ class ReportViewer extends Component
             'csrfTokenName' => Craft::$app->getConfig()->getGeneral()->csrfTokenName,
             'csrfTokenValue' => Craft::$app->getRequest()->getCsrfToken(),
             'reservedHandles' => ['new', 'index', 'view', 'edit', 'export', 'scheduled', 'create'],
-            'reportHandles' => array_values(array_filter(array_map(
-                fn(Report $report) => $report->handle,
-                $reports,
-            ))),
+            'reportHandles' => Formie::$plugin->getReports()->getAllReportHandles(),
             'formOptions' => array_values(array_filter(
                 Formie::$plugin->getReportEditor()->getFormOptions($user),
                 fn(array $option) => ($option['value'] ?? null) !== '*',
