@@ -99,6 +99,16 @@ Option | Description
 ./craft formie/submissions/send-notification --submission-id=12345 --notification-id=12
 ```
 
+## Reports
+
+### Run Scheduled Reports
+
+Sends any enabled scheduled reports that are due. Schedule this command on cron — for example, every hour — so [scheduled report](/reports/scheduled-reports) deliveries run automatically.
+
+```shell
+./craft formie/reports/run-scheduled
+```
+
 
 ## Garbage Collection
 

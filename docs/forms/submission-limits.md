@@ -67,9 +67,3 @@ Groups can still help teams that rely on limits:
 ## Editing existing submissions
 
 Changing or deleting an existing submission does not consume an additional limit slot. Limits apply when **creating** new submissions.
-
-## Related reading
-
-- [Spam Protection — Submission throttling](/forms/spam-protection#submission-throttling)
-- [Form groups](/forms/form-groups)
-- [Submission Screening](/forms/submission-screening)

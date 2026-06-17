@@ -241,8 +241,50 @@ Each entry contains `name`, `handle`, and `sortOrder`. Individual forms store an
 
 See [Form Groups](/forms/form-groups) for control panel behaviour.
 
+### Reports (project config)
+
+Report definitions and scheduled delivery settings are stored in project config:
+
+```yaml
+formie:
+  reports:
+    a1b2c3d4-0000-4000-8000-000000000001:
+      name: Weekly Enquiries
+      handle: weeklyEnquiries
+      sortOrder: 1
+      # filters, columns, display, and export settings…
+  scheduledReports:
+    b2c3d4e5-0000-4000-8000-000000000002:
+      name: Monday summary
+      enabled: true
+      delivery:
+        frequency: weekly
+        weekday: 1
+        hour: 8
+        recipients:
+          - team@example.com
+```
+
+Each report entry stores its analytical settings. Scheduled report entries store delivery configuration; the linked report is resolved by UID in each environment. Runtime fields such as `lastSentAt` are stored in the database only.
+
+See [Reports](/reports/overview) and [Scheduled reports](/reports/scheduled-reports) for control panel behaviour and cron setup.
+
 ## Control Panel
 You can also manage many configuration settings through the control panel by visiting **Formie → Settings**. Form, field, and notification defaults are managed on the dedicated **Defaults** settings page.
+
+### Permissions
+
+Formie registers Craft user permissions under **Settings → Users → {user group} → Formie**. For the **Reports** section, assign:
+
+| Permission | Purpose |
+| --- | --- |
+| **Access reports** | Open **Formie → Reports** and run saved reports |
+| **Manage reports** | Create, edit, and delete reports; export data |
+| **Manage scheduled reports** | Configure delivery under **Settings → Scheduled Reports** and on a report’s **Scheduled** tab |
+
+Users with **Export submissions** can export from reports without **Manage reports**.
+
+Scheduled email delivery also requires the `./craft formie/reports/run-scheduled` console command on a cron schedule. See [Scheduled reports](/reports/scheduled-reports).
 
 ### Alerts Configuration
 Supply additional email addresses to receive alert notifications, and optionally set `alertEmailsUserGroup` to a Craft user group UID to send alerts to every user in that group.

@@ -76,9 +76,16 @@
         "children": [
             "submissions/overview",
             "submissions/statuses",
-            "submissions/exporting",
             "submissions/relations",
             "submissions/element-field"
+        ]
+    },
+    {
+        "title": "Reports",
+        "collapsable": false,
+        "children": [
+            "reports/overview",
+            "reports/scheduled-reports"
         ]
     },
     {

@@ -7,7 +7,6 @@ use verbb\formie\elements\SentNotification;
 use verbb\formie\elements\Submission;
 use verbb\formie\elements\db\SubmissionQuery as DbSubmissionQuery;
 use verbb\formie\elements\exporters\FormExport;
-use verbb\formie\elements\exporters\SubmissionExport;
 use verbb\formie\fields\Forms;
 use verbb\formie\fields\Submissions;
 use verbb\formie\gql\interfaces\FieldInterface;
@@ -36,6 +35,8 @@ use verbb\formie\services\FormTemplates as FormTemplatesService;
 use verbb\formie\services\Integrations as IntegrationsService;
 use verbb\formie\services\PdfTemplates as PdfTemplatesService;
 use verbb\formie\services\Permissions;
+use verbb\formie\services\Reports as ReportsService;
+use verbb\formie\services\ScheduledReports as ScheduledReportsService;
 use verbb\formie\services\SpamProtection as SpamProtectionService;
 use verbb\formie\services\Statuses as StatusesService;
 use verbb\formie\services\Stencils as StencilsService;
@@ -114,7 +115,7 @@ class Formie extends Plugin
 
     public bool $hasCpSection = true;
     public bool $hasCpSettings = true;
-    public string $schemaVersion = '4.0.26';
+    public string $schemaVersion = '4.0.27';
     public string $minVersionRequired = '2.1.5';
 
 
@@ -199,6 +200,13 @@ class Formie extends Plugin
             $nav['subnav']['submissions'] = [
                 'label' => Craft::t('formie', 'Submissions'),
                 'url' => 'formie/submissions',
+            ];
+        }
+
+        if (Craft::$app->getUser()->checkPermission(Permissions::PERM_ACCESS_REPORTS)) {
+            $nav['subnav']['reports'] = [
+                'label' => Craft::t('formie', 'Reports'),
+                'url' => 'formie/reports',
             ];
         }
 
@@ -301,6 +309,19 @@ class Formie extends Plugin
             $event->rules['formie/submissions/<formHandle:{handle}>/new'] = 'formie/submissions/edit-submission';
             $event->rules['formie/submissions/<formHandle:{handle}>/<submissionId:\d+>'] = 'formie/submissions/edit-submission';
 
+            $event->rules['formie/reports'] = 'formie/reports/index';
+            $event->rules['formie/reports/new'] = 'formie/reports/edit';
+            $event->rules['formie/reports/create'] = 'formie/reports/create';
+            $event->rules['formie/reports/edit/<id:\d+>'] = 'formie/reports/edit';
+            $event->rules['formie/reports/view/<id:\d+>'] = 'formie/reports/view';
+            $event->rules['formie/reports/view-config/<id:\d+>'] = 'formie/reports/view-config';
+            $event->rules['formie/reports/table-data/<id:\d+>'] = 'formie/reports/table-data';
+            $event->rules['formie/reports/viewer-data/<id:\d+>'] = 'formie/reports/viewer-data';
+            $event->rules['formie/reports/export/<id:\d+>'] = 'formie/reports/export';
+            $event->rules['formie/reports/save'] = 'formie/reports/save';
+            $event->rules['formie/reports/delete'] = 'formie/reports/delete';
+            $event->rules['formie/reports/<reportHandle:{handle}>'] = 'formie/reports/index';
+
             $event->rules['formie/sent-notifications'] = 'formie/sent-notifications/index';
             $event->rules['formie/sent-notifications/edit/<sentNotificationId:\d+>'] = 'formie/sent-notifications/edit';
 
@@ -318,6 +339,12 @@ class Formie extends Plugin
             $event->rules['formie/settings/statuses'] = 'formie/statuses/index';
             $event->rules['formie/settings/statuses/new'] = 'formie/statuses/edit';
             $event->rules['formie/settings/statuses/edit/<id:\d+>'] = 'formie/statuses/edit';
+            $event->rules['formie/settings/scheduled-reports'] = 'formie/scheduled-reports/index';
+            $event->rules['formie/settings/scheduled-reports/new'] = 'formie/scheduled-reports/edit';
+            $event->rules['formie/settings/scheduled-reports/edit/<id:\d+>'] = 'formie/scheduled-reports/edit';
+            $event->rules['formie/scheduled-reports/save'] = 'formie/scheduled-reports/save';
+            $event->rules['formie/scheduled-reports/delete'] = 'formie/scheduled-reports/delete';
+            $event->rules['formie/scheduled-reports/test-send'] = 'formie/scheduled-reports/test-send';
             $event->rules['formie/stencils'] = 'formie/stencils/index';
             $event->rules['formie/stencils/new'] = 'formie/stencils/new';
             $event->rules['formie/stencils/edit/<segments:.*>'] = 'formie/stencils/edit';
@@ -416,6 +443,10 @@ class Formie extends Plugin
                     Permissions::PERM_ACCESS_SUBMISSIONS => [
                         'label' => Craft::t('formie', 'Access submissions'),
                         'nested' => $permissions->getSubmissionPermissionDefinitions(),
+                    ],
+                    Permissions::PERM_ACCESS_REPORTS => [
+                        'label' => Craft::t('formie', 'Access reports'),
+                        'nested' => $permissions->getReportPermissionDefinitions(),
                     ],
                     'formie-accessSentNotifications' => [
                         'label' => Craft::t('formie', 'Access sent notifications'),
@@ -723,6 +754,18 @@ class Formie extends Plugin
             ->onUpdate(FormGroupsService::CONFIG_GROUPS_KEY . '.{uid}', [$formGroupsService, 'handleChangedGroup'])
             ->onRemove(FormGroupsService::CONFIG_GROUPS_KEY . '.{uid}', [$formGroupsService, 'handleDeletedGroup']);
 
+        $reportsService = $this->getReports();
+        $projectConfigService
+            ->onAdd(ReportsService::CONFIG_REPORTS_KEY . '.{uid}', [$reportsService, 'handleChangedReport'])
+            ->onUpdate(ReportsService::CONFIG_REPORTS_KEY . '.{uid}', [$reportsService, 'handleChangedReport'])
+            ->onRemove(ReportsService::CONFIG_REPORTS_KEY . '.{uid}', [$reportsService, 'handleDeletedReport']);
+
+        $scheduledReportsService = $this->getScheduledReports();
+        $projectConfigService
+            ->onAdd(ScheduledReportsService::CONFIG_SCHEDULED_REPORTS_KEY . '.{uid}', [$scheduledReportsService, 'handleChangedScheduledReport'])
+            ->onUpdate(ScheduledReportsService::CONFIG_SCHEDULED_REPORTS_KEY . '.{uid}', [$scheduledReportsService, 'handleChangedScheduledReport'])
+            ->onRemove(ScheduledReportsService::CONFIG_SCHEDULED_REPORTS_KEY . '.{uid}', [$scheduledReportsService, 'handleDeletedScheduledReport']);
+
         $formTemplatesService = $this->getFormTemplates();
         $projectConfigService
             ->onAdd(FormTemplatesService::CONFIG_TEMPLATES_KEY . '.{uid}', [$formTemplatesService, 'handleChangedTemplate'])
@@ -784,6 +827,17 @@ class Formie extends Plugin
 
     private function _registerElementExports(): void
     {
+        Event::on(Submission::class, Submission::EVENT_REGISTER_EXPORTERS, function(RegisterElementExportersEvent $event) {
+            // Submissions export via reports; remove Craft defaults but allow third-party exporters.
+            foreach ($event->exporters as $key => $exporter) {
+                if ($exporter === Raw::class || $exporter === Expanded::class) {
+                    unset($event->exporters[$key]);
+                }
+            }
+
+            $event->exporters = array_values($event->exporters);
+        });
+
         Event::on(Form::class, Form::EVENT_REGISTER_EXPORTERS, function(RegisterElementExportersEvent $event) {
             // Remove defaults, but allow third-party ones
             foreach ($event->exporters as $key => $exporter) {
@@ -799,23 +853,6 @@ class Formie extends Plugin
             $event->exporters = array_values($event->exporters);
 
             $event->exporters[] = FormExport::class;
-        });
-
-        Event::on(Submission::class, Submission::EVENT_REGISTER_EXPORTERS, function(RegisterElementExportersEvent $event) {
-            // Remove defaults, but allow third-party ones
-            foreach ($event->exporters as $key => $exporter) {
-                if ($exporter === Raw::class) {
-                    unset($event->exporters[$key]);
-                }
-
-                if ($exporter === Expanded::class) {
-                    unset($event->exporters[$key]);
-                }
-            }
-
-            $event->exporters = array_values($event->exporters);
-
-            $event->exporters[] = SubmissionExport::class;
         });
     }
 

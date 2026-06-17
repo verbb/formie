@@ -44,9 +44,17 @@ use verbb\formie\services\Plans;
 use verbb\formie\services\OptionSources;
 use verbb\formie\services\Repair;
 use verbb\formie\services\Relations;
+use verbb\formie\services\ReportColumns;
+use verbb\formie\services\ReportEditor;
+use verbb\formie\services\ReportExport;
+use verbb\formie\services\ReportQuery;
+use verbb\formie\services\ReportViewer;
+use verbb\formie\services\ReportScheduledDelivery;
+use verbb\formie\services\Reports;
 use verbb\formie\services\Rendering;
 use verbb\formie\services\FrontendAssets;
 use verbb\formie\services\SentNotifications;
+use verbb\formie\services\ScheduledReports;
 use verbb\formie\services\Service;
 use verbb\formie\services\SpamProtection;
 use verbb\formie\services\Statuses;
@@ -215,6 +223,14 @@ trait PluginTrait
                 'optionSources' => OptionSources::class,
                 'repair' => Repair::class,
                 'relations' => Relations::class,
+                'reports' => Reports::class,
+                'reportEditor' => ReportEditor::class,
+                'reportColumns' => ReportColumns::class,
+                'reportQuery' => ReportQuery::class,
+                'reportExport' => ReportExport::class,
+                'reportScheduledDelivery' => ReportScheduledDelivery::class,
+                'reportViewer' => ReportViewer::class,
+                'scheduledReports' => ScheduledReports::class,
                 'renderCache' => RenderCache::class,
                 'rendering' => Rendering::class,
                 'frontendAssets' => FrontendAssets::class,
@@ -515,6 +531,46 @@ trait PluginTrait
     public function getRelations(): Relations
     {
         return $this->get('relations');
+    }
+
+    public function getReports(): Reports
+    {
+        return $this->get('reports');
+    }
+
+    public function getReportEditor(): ReportEditor
+    {
+        return $this->get('reportEditor');
+    }
+
+    public function getReportColumns(): ReportColumns
+    {
+        return $this->get('reportColumns');
+    }
+
+    public function getReportQuery(): ReportQuery
+    {
+        return $this->get('reportQuery');
+    }
+
+    public function getReportExport(): ReportExport
+    {
+        return $this->get('reportExport');
+    }
+
+    public function getReportScheduledDelivery(): ReportScheduledDelivery
+    {
+        return $this->get('reportScheduledDelivery');
+    }
+
+    public function getReportViewer(): ReportViewer
+    {
+        return $this->get('reportViewer');
+    }
+
+    public function getScheduledReports(): ScheduledReports
+    {
+        return $this->get('scheduledReports');
     }
 
     public function getRenderCache(): RenderCache

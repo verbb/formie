@@ -1,0 +1,219 @@
+{% extends 'formie/_layouts' %}
+
+{% set crumbs = [
+    { label: craft.formie.getPluginName() | t('formie'), url: url('formie') },
+    { label: 'Settings' | t('app'), url: url('formie/settings') },
+    { label: 'Scheduled Reports' | t('formie'), url: url('formie/settings/scheduled-reports') },
+] %}
+
+{% set selectedSubnavItem = 'settings' %}
+{% set selectedTab = 'scheduled-reports' %}
+{% set fullPageForm = true %}
+{% set saveShortcutRedirect = continueEditingUrl %}
+{% set formActions = [
+    {
+        label: 'Save and continue editing' | t('app'),
+        redirect: continueEditingUrl | hash,
+        shortcut: true,
+        retainScroll: true,
+    },
+    scheduledReport.id ? {
+        label: 'Send Test Email' | t('formie'),
+        action: 'formie/scheduled-reports/test-send',
+        redirect: continueEditingUrl | hash,
+        retainScroll: true,
+    },
+    scheduledReport.id ? {
+        destructive: true,
+        label: 'Delete' | t('app'),
+        action: 'formie/scheduled-reports/delete',
+        redirect: 'formie/settings/scheduled-reports' | hash,
+        confirm: 'Are you sure you want to delete this scheduled report?' | t('formie'),
+    },
+] | filter %}
+{% import '_includes/forms' as forms %}
+
+{% set delivery = scheduledReport.getDeliveryModel() %}
+
+{% block content %}
+
+{{ actionInput('formie/scheduled-reports/save') }}
+{{ redirectInput('formie/settings/scheduled-reports') }}
+
+{% if scheduledReport.id %}
+    {{ hiddenInput('id', scheduledReport.id) }}
+{% endif %}
+
+{{ forms.textField({
+    label: 'Name' | t('formie'),
+    first: true,
+    instructions: 'What this scheduled delivery will be called in the control panel.' | t('formie'),
+    id: 'name',
+    name: 'name',
+    value: scheduledReport.name,
+    errors: scheduledReport.getErrors('name'),
+    required: true,
+}) }}
+
+{{ forms.selectField({
+    label: 'Report' | t('formie'),
+    instructions: 'The saved report whose filters, columns, and display settings will be delivered.' | t('formie'),
+    id: 'reportId',
+    name: 'reportId',
+    value: scheduledReport.reportId,
+    options: reports | map(report => { label: report.name, value: report.id }),
+    errors: scheduledReport.getErrors('reportId'),
+    required: true,
+}) }}
+
+{{ forms.lightswitchField({
+    label: 'Enabled' | t('app'),
+    instructions: 'Whether this scheduled delivery should run and send emails.' | t('formie'),
+    name: 'enabled',
+    on: scheduledReport.enabled,
+}) }}
+
+<hr>
+
+<h2>{{ 'Schedule' | t('formie') }}</h2>
+
+<p class="light">{{ 'Scheduled reports only send when the console command runs on a cron schedule — for example, every hour.' | t('formie') }} <code>./craft formie/reports/run-scheduled</code></p>
+
+{{ forms.selectField({
+    label: 'Frequency' | t('formie'),
+    instructions: 'How often this delivery should run.' | t('formie'),
+    id: 'delivery-frequency',
+    name: 'delivery[frequency]',
+    value: delivery.frequency,
+    options: [
+        { label: 'Daily' | t('formie'), value: 'daily' },
+        { label: 'Weekly' | t('formie'), value: 'weekly' },
+    ],
+}) }}
+
+{{ forms.selectField({
+    label: 'Day of Week' | t('formie'),
+    instructions: 'Which day of the week this delivery should run. Only used for weekly schedules.' | t('formie'),
+    id: 'delivery-weekday',
+    name: 'delivery[weekday]',
+    value: delivery.weekday,
+    options: [
+        { label: 'Sunday' | t('formie'), value: 0 },
+        { label: 'Monday' | t('formie'), value: 1 },
+        { label: 'Tuesday' | t('formie'), value: 2 },
+        { label: 'Wednesday' | t('formie'), value: 3 },
+        { label: 'Thursday' | t('formie'), value: 4 },
+        { label: 'Friday' | t('formie'), value: 5 },
+        { label: 'Saturday' | t('formie'), value: 6 },
+    ],
+}) }}
+
+{{ forms.textField({
+    label: 'Hour' | t('formie'),
+    instructions: 'Hour of the day to send, using the control panel timezone (0–23).' | t('formie'),
+    id: 'delivery-hour',
+    name: 'delivery[hour]',
+    type: 'number',
+    min: 0,
+    max: 23,
+    value: delivery.hour,
+}) }}
+
+{{ forms.dateField({
+    label: 'Start Date' | t('formie'),
+    instructions: 'Deliveries will not be sent before this date. Leave blank to send as soon as the schedule allows.' | t('formie'),
+    id: 'delivery-startAt',
+    name: 'delivery[startAt]',
+    value: delivery.startAt,
+}) }}
+
+{{ forms.dateField({
+    label: 'End Date' | t('formie'),
+    instructions: 'Deliveries will not be sent after this date. Leave blank to keep sending indefinitely.' | t('formie'),
+    id: 'delivery-endAt',
+    name: 'delivery[endAt]',
+    value: delivery.endAt,
+}) }}
+
+<hr>
+
+<h2>{{ 'Delivery' | t('formie') }}</h2>
+
+<p class="light">{{ 'Each delivery sends a summary email with an export attached. Choose the file type below. The attachment filename comes from the report’s export filename setting.' | t('formie') }}</p>
+
+{{ forms.selectField({
+    label: 'File Type' | t('formie'),
+    instructions: 'The export format attached to each scheduled delivery email.' | t('formie'),
+    id: 'delivery-format',
+    name: 'delivery[format]',
+    value: delivery.format,
+    options: [
+        { label: 'Excel' | t('formie'), value: 'xlsx' },
+        { label: 'CSV' | t('formie'), value: 'csv' },
+        { label: 'JSON' | t('formie'), value: 'json' },
+        { label: 'XML' | t('formie'), value: 'xml' },
+        { label: 'Text' | t('formie'), value: 'text' },
+    ],
+}) }}
+
+{{ forms.textareaField({
+    label: 'Recipients' | t('formie'),
+    instructions: 'Comma- or line-separated email addresses that should receive this delivery.' | t('formie'),
+    id: 'delivery-recipients',
+    name: 'delivery[recipients]',
+    value: delivery.recipients | join(', '),
+}) }}
+
+{{ forms.selectField({
+    label: 'Recipient User Group' | t('formie'),
+    instructions: 'Also send this delivery to every user in a selected group. Leave blank to skip.' | t('formie'),
+    id: 'delivery-recipientUserGroupId',
+    name: 'delivery[recipientUserGroupId]',
+    value: delivery.recipientUserGroupId,
+    options: [{ label: 'None' | t('formie'), value: '' }] | merge(userGroups | map(group => { label: group.name, value: group.id })),
+}) }}
+
+{{ forms.textField({
+    label: 'Email Subject' | t('formie'),
+    instructions: 'The email subject line for this delivery. Leave blank to use the report name.' | t('formie'),
+    id: 'delivery-emailSubject',
+    name: 'delivery[emailSubject]',
+    value: delivery.emailSubject,
+}) }}
+
+{{ forms.textareaField({
+    label: 'Email Message' | t('formie'),
+    instructions: 'Intro shown above the summary table in the email body. Leave blank to send only the summary and attachment.' | t('formie'),
+    id: 'delivery-emailMessage',
+    name: 'delivery[emailMessage]',
+    value: delivery.emailMessage,
+}) }}
+
+{{ forms.selectField({
+    label: 'Email Template' | t('formie'),
+    instructions: 'Select a template to use for the email. Leave blank to use Formie’s default.' | t('formie'),
+    id: 'delivery-templateId',
+    name: 'delivery[templateId]',
+    value: delivery.templateId,
+    options: [{ label: 'None' | t('formie'), value: '' }] | merge(emailTemplates | map(template => { label: template.name, value: template.id })),
+}) }}
+
+{% endblock %}
+
+{% js %}
+    (function() {
+        const $frequency = $('#delivery-frequency');
+        const $weekday = $('#delivery-weekday').closest('.field');
+
+        const toggleWeekday = () => {
+            if ($frequency.val() === 'weekly') {
+                $weekday.show();
+            } else {
+                $weekday.hide();
+            }
+        };
+
+        $frequency.on('change', toggleWeekday);
+        toggleWeekday();
+    })();
+{% endjs %}

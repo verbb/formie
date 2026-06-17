@@ -1,0 +1,79 @@
+{% extends 'formie/_layouts/settings' %}
+
+{% set selectedTab = 'scheduled-reports' %}
+
+{% block actionButton %}
+    {% if currentUser.can('formie-manageScheduledReports') %}
+        <a href="{{ url('formie/settings/scheduled-reports/new') }}" class="btn submit add icon">{{ 'New Scheduled Report' | t('formie') }}</a>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    <div id="scheduled-reports-vue-admin-table"></div>
+{% endblock %}
+
+{% set tableData = [] %}
+{% for scheduledReport in scheduledReports %}
+    {% set report = reportsById[scheduledReport.reportId] ?? null %}
+    {% set delivery = scheduledReport.getDeliveryModel() %}
+    {% set frequencyLabel = delivery.frequency == 'daily'
+        ? 'Daily at {hour}:00' | t('formie', { hour: delivery.hour })
+        : 'Weekly' | t('formie')
+    %}
+    {% set tableData = tableData | merge([{
+        id: scheduledReport.id,
+        title: scheduledReport.name | t('formie'),
+        url: scheduledReport.getCpEditUrl(),
+        reportName: report ? report.name : '—',
+        frequency: frequencyLabel,
+        lastSent: scheduledReport.lastSentAt ? scheduledReport.lastSentAt|datetime('short') : '—',
+        enabled: scheduledReport.enabled,
+        _showDelete: true,
+    }]) %}
+{% endfor %}
+
+{% js %}
+    var columns = [
+        { name: '__slot:title', title: Craft.t('app', 'Name') },
+        {
+            name: 'reportName',
+            title: Craft.t('formie', 'Report'),
+            callback: function(value) {
+                return Craft.escapeHtml(String(value));
+            },
+        },
+        {
+            name: 'frequency',
+            title: Craft.t('formie', 'Frequency'),
+            callback: function(value) {
+                return Craft.escapeHtml(String(value));
+            },
+        },
+        {
+            name: 'lastSent',
+            title: Craft.t('formie', 'Last Sent'),
+            callback: function(value) {
+                return Craft.escapeHtml(String(value));
+            },
+        },
+        {
+            name: 'enabled',
+            title: Craft.t('app', 'Enabled'),
+            callback: function(value) {
+                if (value) {
+                    return '<div style="align-items: center; display: flex;"><span class="status on"></span>' + Craft.t('app', 'Yes') + '</div>';
+                }
+
+                return '<div style="align-items: center; display: flex;"><span class="status disabled"></span>' + Craft.t('app', 'No') + '</div>';
+            },
+        },
+    ];
+
+    new Craft.VueAdminTable({
+        columns: columns,
+        container: '#scheduled-reports-vue-admin-table',
+        deleteAction: 'formie/scheduled-reports/delete',
+        emptyMessage: Craft.t('formie', 'No scheduled reports yet. Create one to email report summaries and exports on a schedule.'),
+        tableData: {{ tableData | json_encode | raw }},
+    });
+{% endjs %}

@@ -1,0 +1,25 @@
+{% extends 'formie/_layouts' %}
+
+{% set crumbs = [
+    { label: craft.formie.getPluginName() | t('formie'), url: url('formie') },
+    { label: 'Reports' | t('formie'), url: url('formie/reports') },
+    { label: report.name },
+] %}
+
+{% set title = report.name %}
+{% set docTitle = title ~ ' - ' ~ (craft.formie.getPluginName() | t('formie')) %}
+{% set selectedSubnavItem = 'reports' %}
+{% set bodyClass = 'formie-reports-view-page' %}
+
+{% block content %}
+    <div class="formie-reports-viewer"></div>
+{% endblock %}
+
+{% css %}
+.formie-reports-view-page #content {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+}
+{% endcss %}

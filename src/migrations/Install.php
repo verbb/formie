@@ -11,6 +11,8 @@ use verbb\formie\models\Stencil;
 use verbb\formie\models\StencilData;
 use verbb\formie\services\CaptchaProviders;
 use verbb\formie\services\FormGroups;
+use verbb\formie\services\Reports;
+use verbb\formie\services\ScheduledReports;
 use verbb\formie\services\SpamProtection;
 use verbb\formie\services\Statuses;
 use verbb\formie\services\Stencils;
@@ -370,6 +372,31 @@ class Install extends Migration
             'uid' => $this->uid(),
         ]);
 
+        $this->archiveTableIfExists(Table::FORMIE_REPORTS);
+        $this->createTable(Table::FORMIE_REPORTS, [
+            'id' => $this->primaryKey(),
+            'name' => $this->string()->notNull(),
+            'handle' => $this->string(64)->notNull(),
+            'sortOrder' => $this->smallInteger()->unsigned(),
+            'dateDeleted' => $this->dateTime(),
+            'dateCreated' => $this->dateTime()->notNull(),
+            'dateUpdated' => $this->dateTime()->notNull(),
+            'uid' => $this->uid(),
+        ]);
+
+        $this->archiveTableIfExists(Table::FORMIE_SCHEDULED_REPORTS);
+        $this->createTable(Table::FORMIE_SCHEDULED_REPORTS, [
+            'id' => $this->primaryKey(),
+            'reportId' => $this->integer()->notNull(),
+            'name' => $this->string()->notNull(),
+            'enabled' => $this->boolean()->notNull()->defaultValue(true),
+            'lastSentAt' => $this->dateTime(),
+            'dateDeleted' => $this->dateTime(),
+            'dateCreated' => $this->dateTime()->notNull(),
+            'dateUpdated' => $this->dateTime()->notNull(),
+            'uid' => $this->uid(),
+        ]);
+
         $this->archiveTableIfExists(Table::FORMIE_SENT_NOTIFICATIONS);
         $this->createTable(Table::FORMIE_SENT_NOTIFICATIONS, [
             'id' => $this->primaryKey(),
@@ -593,6 +620,7 @@ class Install extends Migration
         $this->addForeignKey(null, Table::FORMIE_SUBSCRIPTIONS, ['fieldId'], Table::FORMIE_FORM_FIELDS, ['id'], 'RESTRICT', null);
         $this->addForeignKey(null, Table::FORMIE_SUBSCRIPTIONS, ['planId'], Table::FORMIE_PAYMENT_PLANS, ['id'], 'RESTRICT', null);
         $this->addForeignKey(null, Table::FORMIE_RELATIONS, ['sourceId'], '{{%elements}}', ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, Table::FORMIE_SCHEDULED_REPORTS, ['reportId'], Table::FORMIE_REPORTS, ['id'], 'CASCADE', null);
         $this->addForeignKey(null, Table::FORMIE_RELATIONS, ['sourceSiteId'], '{{%sites}}', ['id'], 'CASCADE', 'CASCADE');
         $this->addForeignKey(null, Table::FORMIE_RELATIONS, ['targetId'], '{{%elements}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, Table::FORMIE_SENT_NOTIFICATIONS, ['id'], '{{%elements}}', ['id'], 'CASCADE', null);
@@ -699,6 +727,18 @@ class Install extends Migration
 
             foreach ($formGroups as $formGroupUid => $formGroupData) {
                 $projectConfig->processConfigChanges(FormGroups::CONFIG_GROUPS_KEY . '.' . $formGroupUid, true);
+            }
+
+            $reports = $projectConfig->get(Reports::CONFIG_REPORTS_KEY, true) ?? [];
+
+            foreach ($reports as $reportUid => $reportData) {
+                $projectConfig->processConfigChanges(Reports::CONFIG_REPORTS_KEY . '.' . $reportUid, true);
+            }
+
+            $scheduledReports = $projectConfig->get(ScheduledReports::CONFIG_SCHEDULED_REPORTS_KEY, true) ?? [];
+
+            foreach ($scheduledReports as $scheduledReportUid => $scheduledReportData) {
+                $projectConfig->processConfigChanges(ScheduledReports::CONFIG_SCHEDULED_REPORTS_KEY . '.' . $scheduledReportUid, true);
             }
 
             $captchaProviders = $projectConfig->get(CaptchaProviders::CONFIG_CAPTCHA_PROVIDERS_KEY, true) ?? [];

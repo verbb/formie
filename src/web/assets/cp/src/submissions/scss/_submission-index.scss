@@ -1,31 +1,4 @@
 // ==========================================================================
-// Submission Index Chart
-// ==========================================================================
-
-.chart-explorer-container {
-    &.chart-empty {
-        display: none;
-    }
-}
-
-.chart-explorer {
-    margin-bottom: 24px;
-    margin-right: 24px;
-    position: relative;
-}
-
-.chart-explorer .chart-container {
-    margin: 0 -24px -14px -24px;
-    position: relative;
-}
-
-.chart-explorer .chart-container .chart {
-    height: 200px;
-    margin: 0;
-}
-
-
-// ==========================================================================
 // Send Notification
 // ==========================================================================
 

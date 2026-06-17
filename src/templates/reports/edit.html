@@ -1,0 +1,60 @@
+{% extends 'formie/_layouts' %}
+
+{% set crumbs = [
+    { label: craft.formie.getPluginName() | t('formie'), url: url('formie') },
+    { label: 'Reports' | t('formie'), url: url('formie/reports') },
+    { label: report.name, url: report.getCpRunUrl() },
+] %}
+
+{% set selectedSubnavItem = 'reports' %}
+{% set fullPageForm = canEdit ?? false %}
+{% set bodyClass = 'formie-reports-editor-page' %}
+
+{% if fullPageForm %}
+    {% set saveShortcutRedirect = continueEditingUrl %}
+    {% set formActions = [
+        {
+            label: 'Save and continue editing' | t('app'),
+            redirect: continueEditingUrl | hash,
+            shortcut: true,
+            retainScroll: true,
+        },
+        {
+            destructive: true,
+            label: 'Delete report' | t('formie'),
+            action: 'formie/reports/delete',
+            redirect: 'formie/reports' | hash,
+            confirm: 'Are you sure you want to delete this report?' | t('formie'),
+        }
+    ] %}
+{% endif %}
+
+{% block content %}
+
+{{ actionInput('formie/reports/save') }}
+{{ redirectInput(report.getCpRunUrl()) }}
+
+{% if not fullPageForm %}
+    <p class="warning with-icon">
+        {{ 'Report settings are read-only when allowAdminChanges is disabled.' | t('formie') | md(inlineOnly=true) }}
+    </p>
+{% endif %}
+
+{{ hiddenInput('id', report.id) }}
+{{ hiddenInput('sortOrder', report.sortOrder) }}
+{{ hiddenInput('name', report.name, { id: 'report-name' }) }}
+{{ hiddenInput('handle', report.handle, { id: 'report-handle' }) }}
+<input type="hidden" name="settings" id="formie-report-settings" value="{{ reportSettingsPayload|e('html_attr') }}">
+
+<div class="formie-reports-editor"></div>
+
+{% endblock %}
+
+{% css %}
+.formie-reports-editor-page #content {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+}
+{% endcss %}

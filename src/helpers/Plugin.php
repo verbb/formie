@@ -10,6 +10,7 @@ use verbb\formie\web\assets\cp\FieldPaletteAsset;
 use verbb\formie\web\assets\cp\FormGroupSettingsAsset;
 use verbb\formie\web\assets\cp\FormsIndexAsset;
 use verbb\formie\web\assets\cp\PluginSettingsAsset;
+use verbb\formie\web\assets\cp\ReportsAsset;
 use verbb\formie\web\assets\cp\SentNotificationsAsset;
 use verbb\formie\web\assets\cp\SubmissionsAsset;
 use verbb\formie\web\assets\cp\WidgetsAsset;
@@ -80,6 +81,11 @@ class Plugin extends BasePlugin
     public static function registerCpSubmissionsAssets(): void
     {
         self::registerCpAsset('src/submissions/js/formie-submissions.js', CpReactAsset::class, SubmissionsAsset::class);
+    }
+
+    public static function registerCpReportsAssets(): void
+    {
+        self::registerCpAsset('src/reports/formie-reports.js', CpReactAsset::class, ReportsAsset::class);
     }
 
     public static function registerCpSentNotificationsAssets(): void

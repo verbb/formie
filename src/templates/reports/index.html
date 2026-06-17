@@ -1,0 +1,14 @@
+{% extends '_layouts/cp' %}
+
+{% set crumbs = [
+    { label: craft.formie.getPluginName() | t('formie'), url: url('formie') },
+    { label: 'Reports' | t('formie'), url: url('formie/reports') },
+] %}
+
+{% set title = 'Reports' | t('formie') %}
+{% set selectedSubnavItem = 'reports' %}
+{% set showHeader = false %}
+
+{% block main %}
+    <div class="formie-reports-dashboard"></div>
+{% endblock %}

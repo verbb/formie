@@ -1,0 +1,64 @@
+<div style="font-family: sans-serif; line-height: 1.5; color: #111;">
+    {% if testSend %}
+        <p style="color: #b45309;"><strong>{{ 'This is a test send.' | t('formie') }}</strong></p>
+    {% endif %}
+
+    <h1 style="font-size: 20px; margin: 0 0 12px;">{{ report.name }}</h1>
+
+    {% if message %}
+        <p>{{ message | nl2br }}</p>
+    {% endif %}
+
+    <p style="color: #666;">{{ periodLabel }}</p>
+
+    <table cellpadding="8" cellspacing="0" border="1" style="border-collapse: collapse; width: 100%; max-width: 560px;">
+        <tbody>
+            <tr>
+                <th align="left">{{ 'Total submissions' | t('formie') }}</th>
+                <td align="right">{{ summary.total }}</td>
+            </tr>
+            <tr>
+                <th align="left">{{ 'Complete' | t('formie') }}</th>
+                <td align="right">{{ summary.complete }}</td>
+            </tr>
+            <tr>
+                <th align="left">{{ 'Incomplete' | t('formie') }}</th>
+                <td align="right">{{ summary.incomplete }}</td>
+            </tr>
+            <tr>
+                <th align="left">{{ 'Spam' | t('formie') }}</th>
+                <td align="right">{{ summary.spam }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    {% if summary.forms|length > 1 %}
+        <h2 style="font-size: 16px; margin: 24px 0 8px;">{{ 'Per form' | t('formie') }}</h2>
+        <table cellpadding="8" cellspacing="0" border="1" style="border-collapse: collapse; width: 100%; max-width: 560px;">
+            <thead>
+                <tr>
+                    <th align="left">{{ 'Form' | t('formie') }}</th>
+                    <th align="right">{{ 'Complete' | t('formie') }}</th>
+                    <th align="right">{{ 'Incomplete' | t('formie') }}</th>
+                    <th align="right">{{ 'Spam' | t('formie') }}</th>
+                    <th align="right">{{ 'Total' | t('formie') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for formSummary in summary.forms %}
+                    <tr>
+                        <td>{{ formSummary.formTitle }}</td>
+                        <td align="right">{{ formSummary.complete }}</td>
+                        <td align="right">{{ formSummary.incomplete }}</td>
+                        <td align="right">{{ formSummary.spam }}</td>
+                        <td align="right">{{ formSummary.total }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+    <p style="margin-top: 24px;">
+        <a href="{{ viewUrl }}">{{ 'View report in the control panel' | t('formie') }}</a>
+    </p>
+</div>

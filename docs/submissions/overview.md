@@ -24,7 +24,9 @@ Use [Statuses](/submissions/statuses) when your team needs labels for review, fo
 
 ### Export Submission Data
 
-Use [Exporting](/submissions/exporting) when you need spreadsheets, reporting output, or a portable snapshot of saved submission data.
+Use [Reports](/reports/overview) when you need saved filters, summary counts, charts, on-demand export, or [scheduled email delivery](/reports/scheduled-reports).
+
+For a one-off file without saving a report definition, run a report and choose an export format from the report run screen.
 
 ### Relate Submissions to Other Elements
 

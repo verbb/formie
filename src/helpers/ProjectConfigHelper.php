@@ -18,6 +18,8 @@ class ProjectConfigHelper
         $configData['statuses'] = self::_getStatusData();
         $configData['stencils'] = self::_getStencilsData();
         $configData['formGroups'] = self::_getFormGroupsData();
+        $configData['reports'] = self::_getReportsData();
+        $configData['scheduledReports'] = self::_getScheduledReportsData();
         $configData['formTemplates'] = self::_getFormTemplatesData();
         $configData['emailTemplates'] = self::_getEmailTemplatesData();
         $configData['pdfTemplates'] = self::_getPdfTemplatesData();
@@ -65,6 +67,28 @@ class ProjectConfigHelper
 
         foreach (Formie::$plugin->getFormGroups()->getAllGroups() as $group) {
             $data[$group->uid] = $group->getConfig();
+        }
+
+        return $data;
+    }
+
+    private static function _getReportsData(): array
+    {
+        $data = [];
+
+        foreach (Formie::$plugin->getReports()->getAllReports() as $report) {
+            $data[$report->uid] = $report->getConfig();
+        }
+
+        return $data;
+    }
+
+    private static function _getScheduledReportsData(): array
+    {
+        $data = [];
+
+        foreach (Formie::$plugin->getScheduledReports()->getAllScheduledReports() as $scheduledReport) {
+            $data[$scheduledReport->uid] = $scheduledReport->getConfig();
         }
 
         return $data;

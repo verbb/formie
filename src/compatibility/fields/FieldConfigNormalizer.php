@@ -211,6 +211,14 @@ class FieldConfigNormalizer
             return;
         }
 
+        if (array_key_exists('multi', $config)) {
+            if (!array_key_exists('multiple', $config)) {
+                $config['multiple'] = (bool)$config['multi'];
+            }
+
+            unset($config['multi']);
+        }
+
         $config['optionsMode'] = OptionsMode::normalize($config['optionsMode'] ?? null);
 
         if (in_array($config['optionsMode'], [OptionsMode::STATIC, OptionsMode::TEMPLATE], true)) {

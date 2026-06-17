@@ -24,6 +24,10 @@ class Permissions extends Component
     public const PERM_ACCESS_FORMS = 'formie-accessForms';
     public const PERM_ACCESS_INTEGRATIONS = 'formie-accessIntegrations';
     public const PERM_ACCESS_SETTINGS = 'formie-accessSettings';
+    public const PERM_ACCESS_REPORTS = 'formie-accessReports';
+    public const PERM_MANAGE_REPORTS = 'formie-manageReports';
+    public const PERM_EXPORT_SUBMISSIONS = 'formie-exportSubmissions';
+    public const PERM_MANAGE_SCHEDULED_REPORTS = 'formie-manageScheduledReports';
     public const PERM_ACCESS_SUBMISSIONS = 'formie-accessSubmissions';
     public const PERM_CREATE_FORMS = 'formie-createForms';
     public const PERM_DELETE_FORMS = 'formie-deleteForms';
@@ -91,6 +95,34 @@ class Permissions extends Component
         return $this->_can($user, self::PERM_ACCESS_SETTINGS);
     }
 
+    public function canAccessReports(?User $user): bool
+    {
+        return $this->_can($user, self::PERM_ACCESS_REPORTS);
+    }
+
+    public function canManageReports(?User $user): bool
+    {
+        return $this->_can($user, self::PERM_MANAGE_REPORTS);
+    }
+
+    public function canExportSubmissions(?User $user): bool
+    {
+        if ($this->_isElevated($user)) {
+            return true;
+        }
+
+        if (!$user) {
+            return false;
+        }
+
+        return $user->can(self::PERM_EXPORT_SUBMISSIONS) || $user->can(self::PERM_MANAGE_REPORTS);
+    }
+
+    public function canManageScheduledReports(?User $user): bool
+    {
+        return $this->_can($user, self::PERM_MANAGE_SCHEDULED_REPORTS);
+    }
+
     public function settingsPagePermissionKey(string $page): string
     {
         $normalized = str_replace(['/', '-'], '', ucwords($page, '-/'));
@@ -118,6 +150,10 @@ class Permissions extends Component
             return $user->can($this->settingsPagePermissionKey('spam-protection'))
                 || $user->can($this->settingsPagePermissionKey('spam'))
                 || $user->can($this->settingsPagePermissionKey('captchas'));
+        }
+
+        if ($page === 'scheduled-reports') {
+            return $this->canManageScheduledReports($user);
         }
 
         return $user->can($this->settingsPagePermissionKey($page));
@@ -183,6 +219,7 @@ class Permissions extends Component
             'sent-notifications' => Craft::t('formie', 'Sent notifications settings'),
             'statuses' => Craft::t('formie', 'Statuses'),
             'submissions' => Craft::t('formie', 'Submissions settings'),
+            'scheduled-reports' => Craft::t('formie', 'Scheduled reports'),
             'integrations-settings' => Craft::t('formie', 'Integrations settings'),
             'spam-protection' => Craft::t('formie', 'Spam protection'),
             'form-templates' => Craft::t('formie', 'Form templates'),
@@ -722,6 +759,19 @@ class Permissions extends Component
         }
 
         return $definitions;
+    }
+
+    public function getReportPermissionDefinitions(): array
+    {
+        return [
+            self::PERM_MANAGE_REPORTS => [
+                'label' => Craft::t('formie', 'Manage reports'),
+                'nested' => [
+                    self::PERM_EXPORT_SUBMISSIONS => ['label' => Craft::t('formie', 'Export submissions')],
+                    self::PERM_MANAGE_SCHEDULED_REPORTS => ['label' => Craft::t('formie', 'Manage scheduled reports')],
+                ],
+            ],
+        ];
     }
 
     public function getSentNotificationPermissionDefinitions(): array

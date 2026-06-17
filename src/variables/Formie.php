@@ -231,6 +231,7 @@ class Formie
                 'sent-notifications' => ['title' => Craft::t('formie', 'Sent Notifications')],
                 'statuses' => ['title' => Craft::t('formie', 'Statuses')],
                 'submissions' => ['title' => Craft::t('formie', 'Submissions')],
+                'scheduled-reports' => ['title' => Craft::t('formie', 'Scheduled Reports')],
                 'integrations-settings' => ['title' => Craft::t('formie', 'Integrations')],
                 'spam-protection' => ['title' => Craft::t('formie', 'Spam Protection')],
 

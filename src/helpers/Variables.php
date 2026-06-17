@@ -145,6 +145,84 @@ class Variables
         ];
     }
 
+    public static function getReportExportFilenameVariableConfig(): array
+    {
+        $categoryConfig = self::getCategoryConfig();
+        $staticGroups = $categoryConfig['staticGroups'] ?? [];
+
+        return [
+            'variableCategories' => [
+                'report' => [
+                    self::_pickerSource(Craft::t('formie', 'Report handle'), '{handle}'),
+                    self::_pickerSource(Craft::t('formie', 'Report name'), '{name}'),
+                ],
+                'general' => array_values(array_merge(
+                    $staticGroups[self::GROUP_CURRENT_TIME] ?? [],
+                    $staticGroups[self::GROUP_SYSTEM] ?? [],
+                )),
+                'site' => array_values($staticGroups[self::GROUP_CURRENT_SITE] ?? []),
+            ],
+            'variableCategoryLabels' => [
+                'report' => Craft::t('formie', 'Report'),
+                'general' => Craft::t('formie', 'General'),
+                'site' => Craft::t('formie', 'Site'),
+            ],
+            'variableCategoryOrder' => ['report', 'general', 'site'],
+            'variableTransformerRegistry' => $categoryConfig['transformerRegistry'] ?? [],
+        ];
+    }
+
+    public static function getContextVariables(?DateTime $date = null): array
+    {
+        $timeZone = Craft::$app->getTimeZone();
+        $date ??= new DateTime('now', new DateTimeZone($timeZone));
+        $site = Craft::$app->getSites()->getCurrentSite();
+        $craftMailSettings = App::mailSettings();
+
+        return [
+            'timestamp' => $date->format('Y-m-d H:i:s'),
+            'systemName' => (string)$craftMailSettings->fromName,
+            'systemEmail' => (string)$craftMailSettings->fromEmail,
+            'systemReplyTo' => (string)$craftMailSettings->replyToEmail,
+            'siteName' => (string)$site->name,
+            'siteHandle' => (string)$site->handle,
+            'siteUrl' => (string)$site->getBaseUrl(),
+            'siteLanguage' => (string)$site->language,
+        ];
+    }
+
+    public static function resolveContextReference(string $refValue, array $variables): string
+    {
+        $expr = References::parseReferenceExpression($refValue);
+
+        if (!$expr->isValid) {
+            return '';
+        }
+
+        $key = self::getReferenceVariableKey($expr);
+        $value = ArrayHelper::getValue($variables, $key);
+
+        if ($expr->transformerId !== '' && self::_referenceAllowsTransforms($expr)) {
+            $value = self::applyVariableTransformer($value, $expr->transformerId, $expr->transformerParams);
+        }
+
+        if (($value === null || $value === '') && $expr->default !== '') {
+            $value = $expr->default;
+        }
+
+        if ($value === null) {
+            return '';
+        }
+
+        if (is_array($value)) {
+            $parts = array_filter(array_map(static fn(mixed $item): string => (string)$item, $value));
+
+            return implode(', ', $parts);
+        }
+
+        return (string)$value;
+    }
+
     public static function getRegisteredVariableSources(): array
     {
         if (self::$_registeredVariableSources !== null) {
@@ -777,7 +855,7 @@ class Variables
                 ]),
             ],
             self::GROUP_CURRENT_TIME => [
-                self::_pickerSource(Craft::t('formie', 'Current Date/Time'), '{timestamp}', [self::TYPE_DATE], self::CONTENT_SINGLE_LINE, 'format'),
+                self::_pickerSource(Craft::t('formie', 'Current Date/Time'), '{timestamp}', [self::TYPE_TEXT, self::TYPE_DATE], self::CONTENT_SINGLE_LINE, 'format'),
             ],
             self::GROUP_ENVIRONMENT => self::_getEnvironmentVariableSources(),
             self::GROUP_CURRENT_SITE => [

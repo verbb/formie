@@ -17,6 +17,9 @@ use craft\helpers\ElementHelper;
 use DateTime;
 use Throwable;
 
+/**
+ * @deprecated 4.0.0 Use report exports via {@see \verbb\formie\services\ReportExport} instead.
+ */
 class SubmissionExport extends ElementExporter
 {
     // Constants

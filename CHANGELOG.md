@@ -20,9 +20,14 @@
 - Add **Field Error Announcement** plugin setting (**Settings → Forms**) to control how front-end validation and submit errors are announced to screen readers (`polite`, `assertive`, or `off`). Live validation while typing always uses polite announcements. ([#2505](https://github.com/verbb/formie/issues/2505))
 - Add optional per-form reCAPTCHA **Action** and **Minimum Score** settings for score-based modes, inheriting global Spam Protection defaults when left blank. ([#2167](https://github.com/verbb/formie/issues/2167), [#2804](https://github.com/verbb/formie/issues/2804))
 - Add scoped **Submission Limits** per form: cap all submissions for a form (closes the form when reached), submissions per IP address, or submissions per logged-in user, over configurable periods. [Discussion #1939](https://github.com/verbb/formie/discussions/1939)
+- Add **Reports** control panel section for saved analytical views over submissions: filters, summary counts, charts, column configuration, and on-demand export (CSV, Excel, JSON, XML, text) with configurable filename tokens. ([#647](https://github.com/verbb/formie/issues/647))
+- Add **Scheduled Reports** to email a summary and export attachment from a saved report on daily or weekly schedules, with configurable file type, optional email template, recipients, and user group delivery. ([#692](https://github.com/verbb/formie/issues/692), [#2184](https://github.com/verbb/formie/issues/2184))
+- Add `formie-accessReports`, `formie-manageReports`, and `formie-manageScheduledReports` permissions.
+- Add `craft formie/reports/run-scheduled` console command for cron-driven scheduled report delivery.
 
 ### Changed
 - Improve **Submission Limits** form settings UX (**Apply Limit To**, consolidated messaging) and clarify the distinction from global **Submission Throttling** abuse controls. Add [Submission Limits](/forms/submission-limits) author documentation. [Discussion #1939](https://github.com/verbb/formie/discussions/1939)
+- Remove built-in CSV export actions from the submissions element index; use **Reports** for export and scheduled delivery instead.
 - Align `Form` element `canView()`, `canSave()`, `canDuplicate()`, and delete behaviour with controller permissions instead of broad allow-all checks.
 - Auto-grant creators scoped group (or dedicated per-form) manage permissions when they can create forms but lack broader access.
 - Filter CP form and submission element sources and indexes to forms the current user can view or manage.
