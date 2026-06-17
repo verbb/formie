@@ -1909,7 +1909,7 @@ class Form extends Element
     {
         // Disable for CP-based submissions
         if (Craft::$app->getRequest()->getIsCpRequest()) {
-            return false;
+            return true;
         }
 
         return !$this->isBeforeSchedule() && !$this->isAfterSchedule();
