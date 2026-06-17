@@ -34,6 +34,7 @@
 - Filter the settings sidebar and default settings landing page to the first settings page a user can access.
 - Unify **Settings → Spam Protection** as the single CP page for spam handling, keyword rules, and captcha provider credentials. Legacy `spam` and `captchas` routes redirect to the new page.
 - Deprecate captcha and spam keys in `plugins.formie.settings`; legacy plugin settings values are stripped on save and seeded into runtime stores via the compatibility layer.
+- Removed chart on Submissions element index in favour of dedicated Reports charting.
 
 ### Fixed
 - Align spam keyword screening in `RunSpamChecksTask` with `SpamHelper`, restoring `[match:]` / `[ip:]` rule support and field/global reference resolution in the submission workflow.
