@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.0.7 - 2026-06-18
+
 ### Added
 - Add configurable `aria-live` behaviour for field and form validation errors via the plugin `errorAriaLive` setting (`polite`, `assertive`, or `off`). Live validation while typing always uses polite announcements. ([#2505](https://github.com/verbb/formie/issues/2505))
 

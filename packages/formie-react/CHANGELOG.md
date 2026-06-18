@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 1.0.7 - 2026-06-18
+
+### Changed
+- Released alongside the other `@verbb/formie-*` packages to keep versions aligned (@verbb/formie-react).
+
 ## 1.0.6 - 2026-06-14
 
 ### Changed
