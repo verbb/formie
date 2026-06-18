@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 4.0.0-beta.7 - 2026-06-18
 
 ### Added
 - Add form group policies for allowed submission statuses, optional per-group field palettes, and new-form default profiles (stencil, templates, form defaults). Group policies inherit from global settings; allowed submission statuses are enforced at the group level. ([#2717](https://github.com/verbb/formie/issues/2717), [#2209](https://github.com/verbb/formie/issues/2209), [#863](https://github.com/verbb/formie/issues/863))
