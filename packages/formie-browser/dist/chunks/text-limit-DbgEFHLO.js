@@ -1,7 +1,7 @@
 import { i as e } from "./i18n-BY1ds1BL.js";
 import { t } from "./styles-BfoIZwJp.js";
 import { c as n, i as r, l as i } from "./shared-Bx9s0i0P.js";
-import { i as a } from "./dist-BaHXfvBO.js";
+import { i as a } from "./dist-BQ4a9hmy.js";
 //#region src/css/theme/fields/_text-limit.css?inline
 var o = "@layer formie-theme{.formie-limit-number{font-weight:var(--formie-font-weight-semibold);color:var(--formie-color-text)}.formie-limit-number-error{color:var(--formie-color-danger)}}", s = "input[data-formie-single-line-text-input], textarea[data-formie-multi-line-text-input]", c = [
 	"textMinCharacterLimit",
