@@ -123,6 +123,7 @@ class ReportViewer extends Component
             'tableDataUrl' => UrlHelper::cpUrl('formie/reports/table-data/' . $report->id),
             'viewerDataUrl' => UrlHelper::cpUrl('formie/reports/viewer-data/' . $report->id),
             'exportUrl' => UrlHelper::cpUrl('formie/reports/export/' . $report->id),
+            'asyncExportRowThreshold' => max(1, (int)Formie::$plugin->getSettings()->reportAsyncExportRowThreshold),
             'editUrl' => $report->getCpEditUrl(),
             'dashboardUrl' => $report->getCpRunUrl(),
             'canExport' => Formie::$plugin->getPermissions()->canExportSubmissions($user),

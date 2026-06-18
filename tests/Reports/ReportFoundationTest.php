@@ -5,6 +5,7 @@ declare(strict_types=1);
 use craft\elements\User;
 use verbb\formie\Formie;
 use verbb\formie\models\Report;
+use verbb\formie\models\ReportExportFile;
 use verbb\formie\models\ReportSettings;
 use verbb\formie\services\ReportColumns;
 
@@ -739,4 +740,128 @@ it('rejects creating a report with a trashed report handle', function (): void {
 
     expect(Formie::$plugin->getReports()->saveReport($duplicate))->toBeFalse()
         ->and($duplicate->getErrors('handle'))->not->toBeEmpty();
+});
+
+it('uses the async export row threshold setting', function (): void {
+    $settings = Formie::$plugin->getSettings();
+    $original = $settings->reportAsyncExportRowThreshold;
+    $settings->reportAsyncExportRowThreshold = 1000;
+
+    expect(Formie::$plugin->getReportExport()->shouldQueueExport(1001))->toBeTrue()
+        ->and(Formie::$plugin->getReportExport()->shouldQueueExport(1000))->toBeFalse()
+        ->and(Formie::$plugin->getReportExport()->shouldQueueExport(999))->toBeFalse();
+
+    $settings->reportAsyncExportRowThreshold = $original;
+});
+
+it('runs queued report exports to a ready download file', function (): void {
+    $form = formie()
+        ->form(['title' => 'Queued Export Form'])
+        ->singleLineTextField('fullName')
+        ->create();
+
+    formie()->submission($form)->with(['fullName' => 'Queued Example'])->save();
+
+    $settings = new ReportSettings();
+    $settings->filters['formIds'] = [$form->id];
+    $settings->columns = [
+        ['type' => 'field', 'handle' => 'fullName', 'label' => 'Full Name', 'enabled' => true],
+    ];
+
+    $report = new Report([
+        'name' => 'Queued Export Report',
+        'handle' => 'queuedExportReport' . uniqid(),
+    ]);
+    $report->setSettingsModel($settings);
+
+    expect(Formie::$plugin->getReports()->saveReport($report))->toBeTrue();
+
+    $exportFile = new \verbb\formie\models\ReportExportFile([
+        'reportId' => (int)$report->id,
+        'format' => 'csv',
+        'context' => Formie::$plugin->getReportExport()->buildExportContext([], [
+            ['type' => 'field', 'handle' => 'fullName', 'label' => 'Full Name', 'enabled' => true],
+        ]),
+    ]);
+
+    $result = Formie::$plugin->getReportExport()->runQueuedExport($exportFile);
+
+    expect($result)->toHaveKeys(['path', 'filename', 'mimeType'])
+        ->and(is_file($result['path']))->toBeTrue()
+        ->and(file_get_contents($result['path']))->toContain('Queued Example');
+
+    @unlink($result['path']);
+});
+
+it('detects exports that exceed the email attachment limit', function (): void {
+    $settings = Formie::$plugin->getSettings();
+    $original = $settings->maxEmailAttachmentSizeMb;
+    $settings->maxEmailAttachmentSizeMb = 1;
+
+    $tempPath = \Craft::$app->getPath()->getTempPath() . DIRECTORY_SEPARATOR . 'formie-export-limit-test.txt';
+    file_put_contents($tempPath, str_repeat('a', 2 * 1024 * 1024));
+
+    expect(Formie::$plugin->getReportExport()->exceedsEmailAttachmentLimit($tempPath))->toBeTrue();
+
+    @unlink($tempPath);
+    $settings->maxEmailAttachmentSizeMb = $original;
+});
+
+it('hashes report export download tokens at rest', function (): void {
+    $service = Formie::$plugin->getReportExportFiles();
+    $token = 'test-export-token';
+
+    expect($service->verifyDownloadToken($token, $service->hashDownloadToken($token)))->toBeTrue()
+        ->and($service->verifyDownloadToken('wrong-token', $service->hashDownloadToken($token)))->toBeFalse();
+});
+
+it('builds report export download urls without craft token param conflict', function (): void {
+    $url = ReportExportFile::buildDownloadUrl('export-uid', 'secret-token');
+
+    expect($url)->toContain('downloadToken=')
+        ->and($url)->not->toMatch('/([?&])token=/');
+
+    $legacy = 'https://example.com/index.php?p=actions/formie/reports/download-export&uid=export-uid&token=secret-token';
+
+    expect(ReportExportFile::normalizeDownloadUrl($legacy))
+        ->toBe('https://example.com/index.php?p=actions/formie/reports/download-export&uid=export-uid&downloadToken=secret-token');
+});
+
+it('uses separate cp and signed download urls for interactive exports', function (): void {
+    $exportFile = new ReportExportFile([
+        'uid' => 'export-uid',
+        'source' => ReportExportFile::SOURCE_INTERACTIVE,
+        'status' => ReportExportFile::STATUS_READY,
+        'downloadUrl' => ReportExportFile::buildDownloadUrl('export-uid', 'secret-token'),
+        'downloadTokenHash' => 'abc123',
+    ]);
+
+    expect($exportFile->getDownloadUrl())->toContain('downloadToken=secret-token')
+        ->and($exportFile->getInteractiveDownloadUrl())->toContain('download-queued-export/export-uid')
+        ->and($exportFile->getInteractiveDownloadUrl())->not->toContain('downloadToken=')
+        ->and($exportFile->isTokenDownloadable())->toBeTrue();
+});
+
+it('invalidates signed links without blocking cp downloads', function (): void {
+    $exportFile = new ReportExportFile([
+        'uid' => 'export-uid',
+        'source' => ReportExportFile::SOURCE_INTERACTIVE,
+        'status' => ReportExportFile::STATUS_READY,
+        'downloadTokenHash' => hash('sha256', 'secret-token'),
+    ]);
+
+    Formie::$plugin->getReportExportFiles()->markConsumed($exportFile);
+
+    expect($exportFile->status)->toBe(ReportExportFile::STATUS_READY)
+        ->and($exportFile->isTokenDownloadable())->toBeFalse()
+        ->and($exportFile->isDownloadable())->toBeTrue()
+        ->and($exportFile->getInteractiveDownloadUrl())->toContain('download-queued-export/export-uid');
+});
+
+it('defaults report export download security settings', function (): void {
+    $settings = Formie::$plugin->getSettings();
+
+    expect($settings->reportScheduledExportExpiryHours)->toBe(48)
+        ->and($settings->reportInteractiveExportExpiryHours)->toBe(72)
+        ->and($settings->reportExportSingleUseDownload)->toBeTrue();
 });

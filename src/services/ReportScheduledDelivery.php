@@ -2,7 +2,9 @@
 namespace verbb\formie\services;
 
 use verbb\formie\Formie;
+use craft\helpers\Db;
 use verbb\formie\models\Report;
+use verbb\formie\models\ReportExportFile;
 use verbb\formie\models\ScheduledReport;
 use verbb\formie\models\ScheduledReportDelivery;
 
@@ -11,7 +13,6 @@ use craft\base\Component;
 use craft\elements\db\ElementQueryInterface;
 use craft\elements\User;
 use craft\helpers\DateTimeHelper;
-use craft\helpers\Db;
 use craft\helpers\Template;
 use craft\mail\Message;
 
@@ -39,8 +40,15 @@ class ReportScheduledDelivery extends Component
             throw new \RuntimeException(Craft::t('formie', 'Scheduled report has no recipients.'));
         }
 
+        $exportResult = $this->_createExportDelivery($report, $scheduledReport, $delivery, $testSend);
         $subject = $this->resolveSubject($report, $scheduledReport, $delivery, $testSend);
-        $htmlBody = $this->renderSummaryHtml($report, $scheduledReport, $delivery, $testSend);
+        $htmlBody = $this->renderSummaryHtml(
+            $report,
+            $scheduledReport,
+            $delivery,
+            $testSend,
+            $exportResult,
+        );
         $textBody = strip_tags(str_replace(['<br>', '<br/>', '<br />'], "\n", $htmlBody));
 
         $mailer = Craft::$app->getMailer();
@@ -55,9 +63,8 @@ class ReportScheduledDelivery extends Component
         $message->setHtmlBody($htmlBody);
         $message->setTextBody($textBody);
 
-        $attachment = $this->_createExportAttachment($report, $scheduledReport, $delivery, $testSend);
-
-        if ($attachment) {
+        if (($exportResult['type'] ?? null) === 'attachment') {
+            $attachment = $exportResult['attachment'];
             $message->attach($attachment['path'], [
                 'fileName' => $attachment['filename'],
                 'contentType' => $attachment['mimeType'],
@@ -65,16 +72,12 @@ class ReportScheduledDelivery extends Component
         }
 
         if (!$mailer->send($message)) {
-            if ($attachment && is_file($attachment['path'])) {
-                @unlink($attachment['path']);
-            }
+            $this->_cleanupExportResult($exportResult);
 
             throw new \RuntimeException(Craft::t('formie', 'Couldn’t send scheduled report email.'));
         }
 
-        if ($attachment && is_file($attachment['path'])) {
-            @unlink($attachment['path']);
-        }
+        $this->_cleanupExportResult($exportResult, keepLinkedExport: true);
 
         if (!$testSend) {
             Formie::$plugin->getScheduledReports()->markSent($scheduledReport);
@@ -155,9 +158,10 @@ class ReportScheduledDelivery extends Component
         ScheduledReport $scheduledReport,
         ScheduledReportDelivery $delivery,
         bool $testSend = false,
+        ?array $exportResult = null,
     ): string {
         $view = Craft::$app->getView();
-        $renderVariables = $this->_getSummaryRenderVariables($report, $scheduledReport, $delivery, $testSend);
+        $renderVariables = $this->_getSummaryRenderVariables($report, $scheduledReport, $delivery, $testSend, $exportResult);
         $contentHtml = $view->renderTemplate('formie/reports/_email/summary', $renderVariables);
         $renderVariables['contentHtml'] = Template::raw($contentHtml);
 
@@ -182,12 +186,15 @@ class ReportScheduledDelivery extends Component
     // Private Methods
     // =========================================================================
 
-    private function _createExportAttachment(
+    /**
+     * Prefer email attachments for small exports; fall back to a signed download link when over the limit.
+     */
+    private function _createExportDelivery(
         Report $report,
         ScheduledReport $scheduledReport,
         ScheduledReportDelivery $delivery,
         bool $testSend,
-    ): ?array {
+    ): array {
         $format = $delivery->format ?: 'csv';
         $query = $this->buildSubmissionQuery($report, $scheduledReport, $testSend);
 
@@ -198,28 +205,72 @@ class ReportScheduledDelivery extends Component
                 'message' => $e->getMessage(),
             ]);
 
-            return null;
+            return ['type' => 'none'];
         }
 
         $path = $export['path'] ?? null;
-        $size = is_file($path) ? (int)filesize($path) : 0;
-        $maxAttachmentSize = Formie::$plugin->getSettings()->getMaxEmailAttachmentSizeBytes();
 
-        if ($maxAttachmentSize !== null && $size > $maxAttachmentSize) {
-            @unlink($path);
-
-            Formie::warning('Scheduled report attachment exceeded the email attachment limit ({size} bytes).', [
-                'size' => $size,
-            ]);
-
-            return null;
+        if (!$path || !is_file($path)) {
+            return ['type' => 'none'];
         }
 
+        if (!Formie::$plugin->getReportExport()->exceedsEmailAttachmentLimit($path)) {
+            return [
+                'type' => 'attachment',
+                'attachment' => [
+                    'path' => $path,
+                    'filename' => $export['filename'] ?? $this->resolveAttachmentFilename($report, $format),
+                    'mimeType' => $export['mimeType'] ?? 'application/octet-stream',
+                ],
+            ];
+        }
+
+        $since = (!$testSend && $scheduledReport->lastSentAt)
+            ? DateTimeHelper::toDateTime($scheduledReport->lastSentAt)?->format('Y-m-d H:i:s')
+            : null;
+
+        $exportFile = Formie::$plugin->getReportExportFiles()->createPending(
+            report: $report,
+            format: $format,
+            context: Formie::$plugin->getReportExport()->buildExportContext([], null, $since),
+            source: ReportExportFile::SOURCE_SCHEDULED,
+            scheduledReportId: (int)$scheduledReport->id,
+        );
+
+        $exportFile = Formie::$plugin->getReportExportFiles()->markReady(
+            $exportFile,
+            $path,
+            $export['filename'] ?? $this->resolveAttachmentFilename($report, $format),
+            $export['mimeType'] ?? 'application/octet-stream',
+        );
+
         return [
-            'path' => $path,
-            'filename' => $export['filename'] ?? $this->resolveAttachmentFilename($report, $format),
-            'mimeType' => $export['mimeType'] ?? 'application/octet-stream',
+            'type' => 'link',
+            'exportFile' => $exportFile,
+            'downloadUrl' => $exportFile->getDownloadUrl(),
+            'fileSize' => is_file($path) ? (int)filesize($path) : null,
         ];
+    }
+
+    private function _cleanupExportResult(array $exportResult, bool $keepLinkedExport = false): void
+    {
+        if (($exportResult['type'] ?? null) === 'attachment') {
+            $path = $exportResult['attachment']['path'] ?? null;
+
+            if ($path && is_file($path)) {
+                @unlink($path);
+            }
+
+            return;
+        }
+
+        if (($exportResult['type'] ?? null) === 'link' && !$keepLinkedExport) {
+            $exportFile = $exportResult['exportFile'] ?? null;
+
+            if ($exportFile instanceof ReportExportFile) {
+                Formie::$plugin->getReportExportFiles()->deleteExportFile($exportFile);
+            }
+        }
     }
 
     private function _getSummaryRenderVariables(
@@ -227,6 +278,7 @@ class ReportScheduledDelivery extends Component
         ScheduledReport $scheduledReport,
         ScheduledReportDelivery $delivery,
         bool $testSend,
+        ?array $exportResult = null,
     ): array {
         $since = (!$testSend && $scheduledReport->lastSentAt) ? $scheduledReport->lastSentAt : null;
 
@@ -238,6 +290,11 @@ class ReportScheduledDelivery extends Component
             'periodLabel' => $this->_resolvePeriodLabel($scheduledReport, $testSend),
             'message' => trim((string)($delivery->emailMessage ?? '')),
             'testSend' => $testSend,
+            'exportDownloadUrl' => ($exportResult['type'] ?? null) === 'link' ? ($exportResult['downloadUrl'] ?? null) : null,
+            'exportTooLargeForAttachment' => ($exportResult['type'] ?? null) === 'link',
+            'exportFileSizeLabel' => isset($exportResult['fileSize'])
+                ? Craft::$app->getFormatter()->asShortSize((int)$exportResult['fileSize'])
+                : null,
         ];
     }
 

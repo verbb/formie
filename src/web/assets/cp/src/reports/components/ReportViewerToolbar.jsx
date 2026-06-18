@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import {
     Button,
@@ -35,11 +35,42 @@ export function ReportViewerToolbar({
     onSortDirChange,
     onColumnsChange,
     canExport,
+    exportLoading = false,
+    exportQueuedNoticeOpen = false,
+    onExportQueuedNoticeOpenChange,
     onExport,
     hasViewerChanges,
     onResetViewer,
 }) {
     const [searchValue, setSearchValue] = useState(search || '');
+    const exportAnchorRef = useRef(null);
+    const exportNoticeRef = useRef(null);
+
+    useEffect(() => {
+        if (!exportQueuedNoticeOpen) {
+            return undefined;
+        }
+
+        const handlePointerDown = (event) => {
+            const target = event.target;
+
+            if (!(target instanceof Node)) {
+                return;
+            }
+
+            if (exportAnchorRef.current?.contains(target) || exportNoticeRef.current?.contains(target)) {
+                return;
+            }
+
+            onExportQueuedNoticeOpenChange?.(false);
+        };
+
+        document.addEventListener('pointerdown', handlePointerDown);
+
+        return () => {
+            document.removeEventListener('pointerdown', handlePointerDown);
+        };
+    }, [exportQueuedNoticeOpen, onExportQueuedNoticeOpenChange]);
 
     useEffect(() => {
         setSearchValue(search || '');
@@ -95,26 +126,42 @@ export function ReportViewerToolbar({
             ) : null}
 
             {canExport ? (
-                <DropdownMenu>
-                    <DropdownMenuTrigger
-                        render={(
-                            <Button type="button" className="gap-2">
-                                {Craft.t('formie', 'Export')}
-                                <FontAwesomeIcon icon={faChevronDown} className="size-3" />
-                            </Button>
-                        )}
-                    />
-                    <DropdownMenuContent align="end" className="min-w-[160px]">
-                        {EXPORT_FORMATS.map((format) => (
-                            <DropdownMenuItem
-                                key={format.value}
-                                onClick={() => { onExport(format.value); }}
-                            >
-                                {format.label}
-                            </DropdownMenuItem>
-                        ))}
-                    </DropdownMenuContent>
-                </DropdownMenu>
+                <div ref={exportAnchorRef} className="relative inline-flex">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger
+                            render={(
+                                <Button type="button" className="gap-2" disabled={exportLoading}>
+                                    {exportLoading
+                                        ? Craft.t('formie', 'Exporting…')
+                                        : Craft.t('formie', 'Export')}
+                                    <FontAwesomeIcon icon={faChevronDown} className="size-3" />
+                                </Button>
+                            )}
+                        />
+                        <DropdownMenuContent align="end" className="min-w-[160px]">
+                            {EXPORT_FORMATS.map((format) => (
+                                <DropdownMenuItem
+                                    key={format.value}
+                                    onClick={() => { onExport(format.value); }}
+                                >
+                                    {format.label}
+                                </DropdownMenuItem>
+                            ))}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+
+                    {exportQueuedNoticeOpen ? (
+                        <div
+                            ref={exportNoticeRef}
+                            role="status"
+                            className="absolute right-0 top-[calc(100%+0.25rem)] z-50 w-[min(92vw,280px)] rounded-md border border-gray-200 bg-white p-3 shadow-lg"
+                        >
+                            <p className="m-0 text-sm leading-snug text-gray-600">
+                                {Craft.t('formie', 'This export is running in the queue. Your download will start automatically when it’s ready.')}
+                            </p>
+                        </div>
+                    ) : null}
+                </div>
             ) : null}
         </div>
     );

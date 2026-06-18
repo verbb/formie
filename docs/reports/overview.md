@@ -35,6 +35,14 @@ The file extension is added automatically from the format you choose. The **Expo
 
 [Scheduled reports](/reports/scheduled-reports) attach exports in the **File Type** you choose on each schedule (CSV, Excel, JSON, XML, or text). That uses the same export engine as on-demand downloads.
 
+## Large exports
+
+Reports with more submissions than the **Report Async Export Row Threshold** (**Settings → Submissions**, default **1000**) are exported in the background via Craft’s queue. The control panel shows an **Exporting…** state while the export runs, and your download starts automatically when it is ready. If you leave the control panel before it finishes, a backup email with a download link is sent to your account email address when Craft’s mailer is configured.
+
+CSV and text exports are streamed row-by-row to disk so memory use stays bounded on large datasets. Scheduled reports still attach small exports to the summary email; when an export exceeds the **Maximum Email Attachment Size** (**Settings → Notifications**), the email includes a signed download link instead.
+
+Download links expire after **Report Interactive Export Expiry** or **Report Scheduled Export Expiry** (**Settings → Submissions**, defaults 72 and 48 hours). **Single-Use Report Export Downloads** is enabled by default so each signed email link works once; control panel auto-downloads use a separate authenticated route and do not invalidate email links.
+
 ## Reports vs the submissions index
 
 | | Submissions index | Reports |

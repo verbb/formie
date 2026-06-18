@@ -58,6 +58,18 @@
         </table>
     {% endif %}
 
+    {% if exportTooLargeForAttachment and exportDownloadUrl %}
+        <p style="margin-top: 24px;">
+            <strong>{{ 'Export download' | t('formie') }}</strong><br>
+            {{ 'The export was too large to attach to this email.' | t('formie') }}
+            {% if exportFileSizeLabel %}
+                ({{ exportFileSizeLabel }})
+            {% endif %}
+            <br>
+            <a href="{{ exportDownloadUrl }}">{{ 'Download export' | t('formie') }}</a>
+        </p>
+    {% endif %}
+
     <p style="margin-top: 24px;">
         <a href="{{ viewUrl }}">{{ 'View report in the control panel' | t('formie') }}</a>
     </p>

@@ -35,6 +35,8 @@ import {
     persistViewerSort as storeViewerSort,
 } from '@reports/utils/reportViewerStorage';
 
+import { runReportExport } from '@reports/utils/reportExport';
+
 import styles from '@reports/css/style.css?inline';
 
 function SummaryCard({ label, value }) {
@@ -55,6 +57,8 @@ export const ReportViewApp = ({ settings, embedded = false }) => {
     const [search, setSearch] = useState('');
     const [summary, setSummary] = useState(settings.summary || {});
     const [chart, setChart] = useState(settings.chart || {});
+    const [exportLoading, setExportLoading] = useState(false);
+    const [exportQueuedNoticeOpen, setExportQueuedNoticeOpen] = useState(false);
 
     const reportId = settings.report?.id;
     const defaultSort = settings.defaultSort || { handle: 'dateCreated', dir: 'desc' };
@@ -336,31 +340,38 @@ export const ReportViewApp = ({ settings, embedded = false }) => {
     const canExport = Boolean(settings.canExport && settings.exportUrl);
     const isDataLoading = tableLoading || overviewLoading;
 
-    const handleExport = (format) => {
-        const form = document.createElement('form');
-        form.method = 'post';
-        form.action = `${settings.exportUrl}?format=${encodeURIComponent(format)}`;
+    const handleExport = async (format) => {
+        if (exportLoading) {
+            return;
+        }
 
-        const appendField = (name, value) => {
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = name;
-            input.value = value;
-            form.appendChild(input);
-        };
+        setExportLoading(true);
+        setExportQueuedNoticeOpen(false);
 
-        appendField(settings.csrfTokenName, settings.csrfTokenValue);
-        appendField('columns', JSON.stringify(viewerColumns.filter((column) => column.enabled !== false)));
-        appendField('search', search);
-        appendField('sort', sort.handle);
-        appendField('sortDir', sort.dir);
-        appendField('startDate', dateRange.startDate || '');
-        appendField('endDate', dateRange.endDate || '');
-        appendField('format', format);
-
-        document.body.appendChild(form);
-        form.submit();
-        form.remove();
+        try {
+            await runReportExport({
+                exportUrl: settings.exportUrl,
+                csrfTokenName: settings.csrfTokenName,
+                csrfTokenValue: settings.csrfTokenValue,
+                format,
+                viewerColumns,
+                search,
+                sort,
+                dateRange,
+                onQueued: () => {
+                    setExportQueuedNoticeOpen(true);
+                },
+                onReady: () => {
+                    setExportQueuedNoticeOpen(false);
+                },
+            });
+        } catch (error) {
+            setExportQueuedNoticeOpen(false);
+            Craft.cp.displayError(error?.message || Craft.t('formie', 'Export failed.'));
+        } finally {
+            setExportLoading(false);
+            setExportQueuedNoticeOpen(false);
+        }
     };
 
     const handleDateRangeChange = (nextDateRange) => {
@@ -403,6 +414,9 @@ export const ReportViewApp = ({ settings, embedded = false }) => {
                 onSortDirChange={(dir) => { persistViewerSort({ handle: sort.handle, dir }); }}
                 onColumnsChange={persistViewerColumns}
                 canExport={canExport}
+                exportLoading={exportLoading}
+                exportQueuedNoticeOpen={exportQueuedNoticeOpen}
+                onExportQueuedNoticeOpenChange={setExportQueuedNoticeOpen}
                 onExport={handleExport}
                 hasViewerChanges={hasViewerChanges}
                 onResetViewer={resetViewerPreferences}

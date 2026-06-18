@@ -115,7 +115,7 @@ class Formie extends Plugin
 
     public bool $hasCpSection = true;
     public bool $hasCpSettings = true;
-    public string $schemaVersion = '4.0.27';
+    public string $schemaVersion = '4.0.29';
     public string $minVersionRequired = '2.1.5';
 
 
@@ -319,6 +319,8 @@ class Formie extends Plugin
             $event->rules['formie/reports/table-data/<id:\d+>'] = 'formie/reports/table-data';
             $event->rules['formie/reports/viewer-data/<id:\d+>'] = 'formie/reports/viewer-data';
             $event->rules['formie/reports/export/<id:\d+>'] = 'formie/reports/export';
+            $event->rules['formie/reports/export-status/<uid:[^/]+>'] = 'formie/reports/export-status';
+            $event->rules['formie/reports/download-queued-export/<uid:[^/]+>'] = 'formie/reports/download-queued-export';
             $event->rules['formie/reports/save'] = 'formie/reports/save';
             $event->rules['formie/reports/delete'] = 'formie/reports/delete';
             $event->rules['formie/reports/<reportHandle:{handle}>'] = 'formie/reports/index';
@@ -529,6 +531,13 @@ class Formie extends Plugin
             }
 
             $this->getFileUploads()->purgeStalePendingUploads();
+
+            if (Craft::$app instanceof ConsoleApplication) {
+                Console::stdout("done\n", Console::FG_GREEN);
+                Console::stdout('    > purging expired Formie report exports ... ');
+            }
+
+            $this->getReportExportFiles()->pruneExpired();
 
             if (Craft::$app instanceof ConsoleApplication) {
                 Console::stdout("done\n", Console::FG_GREEN);

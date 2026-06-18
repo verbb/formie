@@ -24,8 +24,14 @@
 - Add **Scheduled Reports** to email a summary and export attachment from a saved report on daily or weekly schedules, with configurable file type, optional email template, recipients, and user group delivery. ([#692](https://github.com/verbb/formie/issues/692), [#2184](https://github.com/verbb/formie/issues/2184))
 - Add `formie-accessReports`, `formie-manageReports`, and `formie-manageScheduledReports` permissions.
 - Add `craft formie/reports/run-scheduled` console command for cron-driven scheduled report delivery.
+- Add **Report Async Export Row Threshold** setting (**Settings → Submissions**) to queue large report exports in the background (default 1000 rows). ([#2259](https://github.com/verbb/formie/issues/2259))
+- Add queued report exports with CP polling, email notification, and signed download links for interactive exports.
+- Add `formie_report_exports` table, `craft formie/gc/prune-report-exports` console command, and automatic expiry during Craft garbage collection.
+- Add report export download settings: interactive/scheduled link expiry (hours), and single-use download links (default on).
 
 ### Changed
+- Apply single-use report export download limits to signed email links only; authenticated control panel downloads remain available until expiry.
+- Improve queued report export feedback in the control panel with a dismissible inline notice when the queue starts, instead of a delayed Craft toast about email delivery.
 - Improve report viewer load performance by skipping redundant overview refreshes on initial page load and aggregating summary counts in a single query per report instead of three counts per form.
 - Improve **Submission Limits** form settings UX (**Apply Limit To**, consolidated messaging) and clarify the distinction from global **Submission Throttling** abuse controls. Add [Submission Limits](/forms/submission-limits) author documentation. [Discussion #1939](https://github.com/verbb/formie/discussions/1939)
 - Remove built-in CSV export actions from the submissions element index; use **Reports** for export and scheduled delivery instead.
@@ -36,8 +42,15 @@
 - Unify **Settings → Spam Protection** as the single CP page for spam handling, keyword rules, and captcha provider credentials. Legacy `spam` and `captchas` routes redirect to the new page.
 - Deprecate captcha and spam keys in `plugins.formie.settings`; legacy plugin settings values are stripped on save and seeded into runtime stores via the compatibility layer.
 - Removed chart on Submissions element index in favour of dedicated Reports charting.
+- Stream CSV/text report exports row-by-row to disk for memory-safe large datasets ([#2497](https://github.com/verbb/formie/issues/2497)).
+- Scheduled reports attach exports when under the email attachment limit; otherwise include a signed download link in the summary email instead of silently omitting the file.
+- Store report export download tokens as SHA-256 hashes; scheduled export links default to 48-hour expiry.
 
 ### Fixed
+- Fix report export email links returning “Export not found” after a control panel auto-download by serving CP polling downloads from an authenticated route that does not consume single-use signed links.
+- Fix report export downloads failing with Craft’s “Invalid token” error by using a `downloadToken` query param instead of `token`, which Craft 5.9+ reserves for route tokens.
+- Hash legacy report export download tokens in PHP during migration for MySQL/MariaDB/PostgreSQL compatibility instead of MySQL-only `SHA2()`.
+- Kick Craft’s queue when polling queued report exports in the control panel, so large async exports progress instead of staying `pending` indefinitely on single-page report views.
 - Align spam keyword screening in `RunSpamChecksTask` with `SpamHelper`, restoring `[match:]` / `[ip:]` rule support and field/global reference resolution in the submission workflow.
 - Skip client-side validation for fields disabled by conditional logic, and disable conditionally hidden submit buttons so Enter no longer triggers hidden submit/next actions. ([#2727](https://github.com/verbb/formie/issues/2727), [#1136](https://github.com/verbb/formie/issues/1136), [Discussion #1628](https://github.com/verbb/formie/discussions/1628))
 - Apply spam behaviour (success/message) without attempting to persist discarded spam submissions when **Save spam submissions** is disabled, avoiding failed saves under bot load. ([#2818](https://github.com/verbb/formie/issues/2818))

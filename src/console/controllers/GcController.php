@@ -63,6 +63,17 @@ class GcController extends Controller
     }
 
     /**
+     * Removes expired report export files.
+     */
+    public function actionPruneReportExports(): int
+    {
+        $count = Formie::$plugin->getReportExportFiles()->pruneExpired();
+        $this->stdout('Purged expired report exports: ' . $count . PHP_EOL, Console::FG_GREEN);
+
+        return ExitCode::OK;
+    }
+
+    /**
      * Removes stale submission states.
      */
     public function actionPruneSubmissionStates(): int

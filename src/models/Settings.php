@@ -95,6 +95,10 @@ class Settings extends Model
     public string $submissionSidebarFormOrder = self::SUBMISSION_SIDEBAR_FORM_ORDER_DATE_CREATED_DESC;
     public string $defaultCpSubmissionFieldConditions = CpSubmissionFieldConditions::FOLLOW;
     public int $reportTablePageSize = 100;
+    public int $reportAsyncExportRowThreshold = 1000;
+    public int $reportInteractiveExportExpiryHours = 72;
+    public int $reportScheduledExportExpiryHours = 48;
+    public bool $reportExportSingleUseDownload = true;
     public int $saveResumeTokenTtlDays = 14;
     public int $maxSavedDraftsPerSession = 10;
     public int $anonymousClientBootstrapRateLimit = 30;
@@ -403,6 +407,9 @@ class Settings extends Model
         $rules[] = [['pluginName'], 'string', 'max' => 52];
         $rules[] = [['maxIncompleteSubmissionAge', 'maxSentNotificationsAge'], 'number', 'integerOnly' => true];
         $rules[] = [['reportTablePageSize'], 'number', 'integerOnly' => true, 'min' => 1, 'max' => 100];
+        $rules[] = [['reportAsyncExportRowThreshold'], 'number', 'integerOnly' => true, 'min' => 1];
+        $rules[] = [['reportInteractiveExportExpiryHours', 'reportScheduledExportExpiryHours'], 'number', 'integerOnly' => true, 'min' => 1];
+        $rules[] = [['reportExportSingleUseDownload'], 'boolean'];
         $rules[] = [['maxEmailAttachmentSizeMb'], 'number', 'integerOnly' => true, 'min' => 0];
         $rules[] = [['submissionStateRetentionDays'], 'number', 'integerOnly' => true, 'min' => 1];
         $rules[] = [['saveResumeTokenTtlDays'], 'number', 'integerOnly' => true, 'min' => 1];

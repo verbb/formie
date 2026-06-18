@@ -397,6 +397,30 @@ class Install extends Migration
             'uid' => $this->uid(),
         ]);
 
+        $this->archiveTableIfExists(Table::FORMIE_REPORT_EXPORTS);
+        $this->createTable(Table::FORMIE_REPORT_EXPORTS, [
+            'id' => $this->primaryKey(),
+            'reportId' => $this->integer()->notNull(),
+            'userId' => $this->integer(),
+            'scheduledReportId' => $this->integer(),
+            'source' => $this->string(32)->notNull()->defaultValue('interactive'),
+            'status' => $this->string(32)->notNull()->defaultValue('pending'),
+            'format' => $this->string(16)->notNull()->defaultValue('csv'),
+            'context' => $this->text(),
+            'filename' => $this->string(),
+            'filePath' => $this->string(),
+            'fileSize' => $this->bigInteger()->unsigned(),
+            'downloadTokenHash' => $this->char(64),
+            'downloadUrl' => $this->text(),
+            'notifyEmail' => $this->string(),
+            'error' => $this->text(),
+            'dateExpires' => $this->dateTime(),
+            'dateDownloaded' => $this->dateTime(),
+            'dateCreated' => $this->dateTime()->notNull(),
+            'dateUpdated' => $this->dateTime()->notNull(),
+            'uid' => $this->uid(),
+        ]);
+
         $this->archiveTableIfExists(Table::FORMIE_SENT_NOTIFICATIONS);
         $this->createTable(Table::FORMIE_SENT_NOTIFICATIONS, [
             'id' => $this->primaryKey(),
@@ -621,6 +645,7 @@ class Install extends Migration
         $this->addForeignKey(null, Table::FORMIE_SUBSCRIPTIONS, ['planId'], Table::FORMIE_PAYMENT_PLANS, ['id'], 'RESTRICT', null);
         $this->addForeignKey(null, Table::FORMIE_RELATIONS, ['sourceId'], '{{%elements}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, Table::FORMIE_SCHEDULED_REPORTS, ['reportId'], Table::FORMIE_REPORTS, ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, Table::FORMIE_REPORT_EXPORTS, ['reportId'], Table::FORMIE_REPORTS, ['id'], 'CASCADE', null);
         $this->addForeignKey(null, Table::FORMIE_RELATIONS, ['sourceSiteId'], '{{%sites}}', ['id'], 'CASCADE', 'CASCADE');
         $this->addForeignKey(null, Table::FORMIE_RELATIONS, ['targetId'], '{{%elements}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, Table::FORMIE_SENT_NOTIFICATIONS, ['id'], '{{%elements}}', ['id'], 'CASCADE', null);

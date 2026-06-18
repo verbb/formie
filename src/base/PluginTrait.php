@@ -47,6 +47,7 @@ use verbb\formie\services\Relations;
 use verbb\formie\services\ReportColumns;
 use verbb\formie\services\ReportEditor;
 use verbb\formie\services\ReportExport;
+use verbb\formie\services\ReportExportFiles;
 use verbb\formie\services\ReportQuery;
 use verbb\formie\services\ReportViewer;
 use verbb\formie\services\ReportScheduledDelivery;
@@ -228,6 +229,7 @@ trait PluginTrait
                 'reportColumns' => ReportColumns::class,
                 'reportQuery' => ReportQuery::class,
                 'reportExport' => ReportExport::class,
+                'reportExportFiles' => ReportExportFiles::class,
                 'reportScheduledDelivery' => ReportScheduledDelivery::class,
                 'reportViewer' => ReportViewer::class,
                 'scheduledReports' => ScheduledReports::class,
@@ -556,6 +558,11 @@ trait PluginTrait
     public function getReportExport(): ReportExport
     {
         return $this->get('reportExport');
+    }
+
+    public function getReportExportFiles(): ReportExportFiles
+    {
+        return $this->get('reportExportFiles');
     }
 
     public function getReportScheduledDelivery(): ReportScheduledDelivery

@@ -5,7 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\helpers\Plugin;
 use verbb\formie\models\Report;
 use verbb\formie\services\Permissions;
-use verbb\formie\services\ReportExport;
+use verbb\formie\models\ReportExportFile;
 
 use Craft;
 use craft\helpers\Json;
@@ -20,7 +20,7 @@ class ReportsController extends Controller
     // Properties
     // =========================================================================
 
-    protected array|bool|int $allowAnonymous = self::ALLOW_ANONYMOUS_NEVER;
+    protected array|bool|int $allowAnonymous = ['download-export'];
 
 
     // Public Methods
@@ -30,6 +30,10 @@ class ReportsController extends Controller
     {
         if (!parent::beforeAction($action)) {
             return false;
+        }
+
+        if ($action->id === 'download-export') {
+            return true;
         }
 
         if (in_array($action->id, ['save', 'delete'], true)) {
@@ -360,16 +364,35 @@ class ReportsController extends Controller
             throw new NotFoundHttpException(Craft::t('formie', 'Report not found.'));
         }
 
-        $columnOverride = null;
-
         if ($this->request->getIsPost()) {
             $this->requirePostRequest();
-            $columnOverride = $this->_decodeColumnOverride();
         }
 
+        $columnOverride = $this->_decodeColumnOverride();
         $format = strtolower(trim((string)$this->request->getParam('format', 'csv')));
         $viewer = $this->_decodeViewerParams();
         $query = Formie::$plugin->getReportQuery()->buildViewerQuery($report, null, $viewer);
+        $rowCount = Formie::$plugin->getReportExport()->getExportRowCount($query);
+        $context = Formie::$plugin->getReportExport()->buildExportContext($viewer, $columnOverride);
+
+        if (Formie::$plugin->getReportExport()->shouldQueueExport($rowCount)) {
+            $user = Craft::$app->getUser()->getIdentity();
+            $exportFile = Formie::$plugin->getReportExport()->queueExport(
+                report: $report,
+                format: $format,
+                context: $context,
+                userId: $user?->id ? (int)$user->id : null,
+                notifyEmail: $user?->email,
+            );
+
+            return $this->asJson([
+                'queued' => true,
+                'rowCount' => $rowCount,
+                'export' => Formie::$plugin->getReportExportFiles()->getStatusPayload($exportFile),
+                'statusUrl' => UrlHelper::cpUrl('formie/reports/export-status/' . $exportFile->uid),
+            ]);
+        }
+
         $export = Formie::$plugin->getReportExport()->export(
             report: $report,
             format: $format,
@@ -382,9 +405,96 @@ class ReportsController extends Controller
         ]);
     }
 
+    public function actionExportStatus(string $uid): Response
+    {
+        $this->requirePermission(Permissions::PERM_EXPORT_SUBMISSIONS);
+
+        $exportFile = Formie::$plugin->getReportExportFiles()->getExportFileByUid($uid);
+
+        if (!$exportFile) {
+            throw new NotFoundHttpException(Craft::t('formie', 'Export not found.'));
+        }
+
+        $user = Craft::$app->getUser()->getIdentity();
+
+        if ($exportFile->userId && $user?->id !== $exportFile->userId && !$user?->admin) {
+            throw new NotFoundHttpException(Craft::t('formie', 'Export not found.'));
+        }
+
+        return $this->asJson(Formie::$plugin->getReportExportFiles()->getStatusPayload($exportFile));
+    }
+
+    public function actionDownloadExport(): Response
+    {
+        $uid = (string)$this->request->getParam('uid');
+        $token = (string)$this->request->getParam('downloadToken');
+
+        if ($uid === '' || $token === '') {
+            throw new NotFoundHttpException(Craft::t('formie', 'Export not found.'));
+        }
+
+        $exportFile = Formie::$plugin->getReportExportFiles()->getExportFileByToken($uid, $token);
+
+        if (!$exportFile || !$exportFile->isTokenDownloadable()) {
+            throw new NotFoundHttpException(Craft::t('formie', 'Export not found.'));
+        }
+
+        $response = $this->_sendExportFile($exportFile);
+
+        if (Formie::$plugin->getReportExportFiles()->shouldSingleUseDownload()) {
+            Formie::$plugin->getReportExportFiles()->markConsumed($exportFile);
+        }
+
+        return $response;
+    }
+
+    public function actionDownloadQueuedExport(string $uid): Response
+    {
+        $this->requirePermission(Permissions::PERM_EXPORT_SUBMISSIONS);
+
+        $exportFile = Formie::$plugin->getReportExportFiles()->getExportFileByUid($uid);
+
+        if (!$exportFile || $exportFile->source !== ReportExportFile::SOURCE_INTERACTIVE || !$exportFile->isDownloadable()) {
+            throw new NotFoundHttpException(Craft::t('formie', 'Export not found.'));
+        }
+
+        $user = Craft::$app->getUser()->getIdentity();
+
+        if ($exportFile->userId && $user?->id !== $exportFile->userId && !$user?->admin) {
+            throw new NotFoundHttpException(Craft::t('formie', 'Export not found.'));
+        }
+
+        return $this->_sendExportFile($exportFile);
+    }
+
 
     // Private Methods
     // =========================================================================
+
+    private function _sendExportFile(ReportExportFile $exportFile): Response
+    {
+        if ($exportFile->isExpired()) {
+            throw new NotFoundHttpException(Craft::t('formie', 'This export link has expired.'));
+        }
+
+        $path = $exportFile->filePath;
+
+        if (!$path || !is_file($path)) {
+            throw new NotFoundHttpException(Craft::t('formie', 'Export file not found.'));
+        }
+
+        $mimeType = match ($exportFile->format) {
+            'json' => 'application/json',
+            'xml' => 'application/xml',
+            'text' => 'text/plain',
+            'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            default => 'text/csv',
+        };
+
+        return Craft::$app->getResponse()->sendFile($path, $exportFile->filename ?: basename($path), [
+            'mimeType' => $mimeType,
+        ]);
+    }
 
     private function _renderDashboard(?string $reportHandle = null, bool $openCreate = false): Response
     {

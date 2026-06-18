@@ -96,6 +96,48 @@
             max: 100,
             warning: macros.configWarning('reportTablePageSize', 'formie'),
         }) }}
+
+        {{ forms.textField({
+            type: 'number',
+            label: 'Report Async Export Row Threshold' | t('formie'),
+            instructions: 'Reports with more submissions than this are exported in the background via the queue, and the user is notified when the file is ready.' | t('formie'),
+            id: 'reportAsyncExportRowThreshold',
+            name: 'reportAsyncExportRowThreshold',
+            value: settings.reportAsyncExportRowThreshold,
+            min: 1,
+            warning: macros.configWarning('reportAsyncExportRowThreshold', 'formie'),
+        }) }}
+
+        {{ forms.textField({
+            type: 'number',
+            label: 'Report Interactive Export Expiry (hours)' | t('formie'),
+            instructions: 'How long queued interactive export download links remain valid.' | t('formie'),
+            id: 'reportInteractiveExportExpiryHours',
+            name: 'reportInteractiveExportExpiryHours',
+            value: settings.reportInteractiveExportExpiryHours,
+            min: 1,
+            warning: macros.configWarning('reportInteractiveExportExpiryHours', 'formie'),
+        }) }}
+
+        {{ forms.textField({
+            type: 'number',
+            label: 'Report Scheduled Export Expiry (hours)' | t('formie'),
+            instructions: 'How long scheduled report download links remain valid when the export is too large to email.' | t('formie'),
+            id: 'reportScheduledExportExpiryHours',
+            name: 'reportScheduledExportExpiryHours',
+            value: settings.reportScheduledExportExpiryHours,
+            min: 1,
+            warning: macros.configWarning('reportScheduledExportExpiryHours', 'formie'),
+        }) }}
+
+        {{ forms.lightswitchField({
+            label: 'Single-Use Report Export Downloads' | t('formie'),
+            instructions: 'When enabled, each signed download link works only once. Control panel downloads are not affected.' | t('formie'),
+            id: 'reportExportSingleUseDownload',
+            name: 'reportExportSingleUseDownload',
+            on: settings.reportExportSingleUseDownload,
+            warning: macros.configWarning('reportExportSingleUseDownload', 'formie'),
+        }) }}
     {% endnamespace %}
 
     <hr>
