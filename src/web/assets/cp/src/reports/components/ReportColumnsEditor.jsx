@@ -1,13 +1,13 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { memo, startTransition, useCallback, useMemo, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 
 import {
     DragDropProvider,
     DragOverlay,
-    KeyboardSensor,
     PointerSensor,
 } from '@dnd-kit/react';
+import { PointerActivationConstraints } from '@dnd-kit/dom';
 import { RestrictToVerticalAxis } from '@dnd-kit/abstract/modifiers';
-import { RestrictToElement } from '@dnd-kit/dom/modifiers';
 import { isSortable, useSortable } from '@dnd-kit/react/sortable';
 
 import {
@@ -16,166 +16,318 @@ import {
 } from '@verbb/plugin-kit-react/components';
 import { cn } from '@verbb/plugin-kit-react/utils';
 import { DragHandle } from '@field-palette/components/DragHandle';
+import { ReportAvailableColumnsSidebar } from '@reports/components/ReportAvailableColumnsSidebar';
+import {
+    ReportColumnFormLabel,
+    ReportColumnTypeBadge,
+    getEnabledColumnRowClassName,
+} from '@reports/components/ReportColumnMeta';
+import { isAllFieldColumnsMode } from '@reports/utils/reportColumnModes';
+import {
+    buildFormGroupLookups,
+    enrichColumnWithFormContext,
+    withEnabledFormContext,
+} from '@reports/utils/reportColumnFormContext';
 
-const AVAILABLE_COLUMN_LIMIT = 150;
+const COLUMN_DRAG_SENSORS = [
+    PointerSensor.configure({
+        activationConstraints: [
+            new PointerActivationConstraints.Distance({
+                value: 4,
+            }),
+        ],
+    }),
+];
+
+const COLUMN_DRAG_MODIFIERS = [RestrictToVerticalAxis];
 
 export const columnKey = (column) => `${column.type || 'attribute'}:${column.handle}`;
 
-function ReportColumnDragGhost({ column }) {
+function ReportColumnDragGhost({ column, useFieldHandles = false }) {
     if (!column) {
         return null;
     }
 
+    const title = useFieldHandles ? column.handle : (column.label || column.handle);
+    const subtitle = useFieldHandles
+        ? (column.label && column.label !== column.handle ? column.label : null)
+        : column.handle;
+
     return (
-        <div className="flex items-center gap-3 rounded border border-gray-200 bg-white px-3 py-2 shadow-lg">
-            <DragHandle
-                handleRef={() => {}}
-                disabled
-                ariaLabel={Craft.t('formie', 'Dragging column')}
-            />
-            <Lightswitch checked={Boolean(column.enabled)} disabled />
-            <div className="flex-1">
-                <div className="font-medium">{column.label || column.handle}</div>
-                <div className="light code text-xs">{column.handle}</div>
+        <div className={getEnabledColumnRowClassName(column, { variant: 'ghost' })}>
+            <div className="w-6 shrink-0" aria-hidden="true" />
+            <ReportColumnTypeBadge column={column} />
+            <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                    <div className={cn('truncate font-medium', useFieldHandles && 'code')}>{title}</div>
+                    <ReportColumnFormLabel formTitle={column.formTitle} />
+                </div>
+                {subtitle ? (
+                    <div className={cn('truncate text-xs text-gray-500', !useFieldHandles && 'code')}>{subtitle}</div>
+                ) : null}
             </div>
         </div>
     );
 }
 
-function ReportColumnRow({
+const ReportColumnRowBody = memo(function ReportColumnRowBody({
     column,
-    index,
     disabled,
-    listRef,
+    useFieldHandles = false,
     onEnabledChange,
     onLabelChange,
-    sortable = true,
 }) {
-    const sortableConfig = useSortable({
-        id: columnKey(column),
-        index,
-        transition: null,
-        disabled: disabled || !sortable,
-        sensors: [
-            PointerSensor.configure({ activationConstraint: { delay: 0, tolerance: 5 } }),
-            KeyboardSensor,
-        ],
-        modifiers: [
-            RestrictToVerticalAxis,
-            RestrictToElement.configure({
-                element: () => listRef.current,
-            }),
-        ],
-    });
-
-    const {
-        ref, handleRef, isDragSource,
-    } = sortable ? sortableConfig : {
-        ref: null,
-        handleRef: () => {},
-        isDragSource: false,
-    };
+    const title = useFieldHandles ? column.handle : (column.label || column.handle);
+    const subtitle = useFieldHandles
+        ? (column.label && column.label !== column.handle ? column.label : null)
+        : column.handle;
 
     return (
-        <div
-            ref={sortable ? ref : undefined}
-            className={cn(
-                'flex items-center gap-3 border-b border-gray-200 py-3',
-                isDragSource && 'opacity-40',
-            )}
-        >
-            {sortable ? (
-                <DragHandle
-                    handleRef={handleRef}
-                    disabled={disabled}
-                    ariaLabel={Craft.t('formie', 'Drag to reorder {name}', { name: column.label || column.handle })}
-                />
-            ) : (
-                <div className="w-6 shrink-0" aria-hidden="true" />
-            )}
+        <>
+            <ReportColumnTypeBadge column={column} />
             <Lightswitch
                 checked={Boolean(column.enabled)}
                 disabled={disabled}
                 onCheckedChange={(enabled) => { onEnabledChange(columnKey(column), enabled); }}
             />
-            <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                    <div className="font-medium truncate">{column.label || column.handle}</div>
-                    <span className="light code text-xs shrink-0">
-                        {column.type === 'field'
-                            ? Craft.t('formie', 'Field')
-                            : Craft.t('formie', 'Attribute')}
-                    </span>
+            <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                    <div className={cn('truncate font-medium text-gray-900', useFieldHandles && 'code')}>{title}</div>
+                    <ReportColumnFormLabel formTitle={column.formTitle} />
                 </div>
-                <div className="light code text-xs">{column.handle}</div>
+                {subtitle ? (
+                    <div className={cn('truncate text-xs text-gray-500', !useFieldHandles && 'code')}>{subtitle}</div>
+                ) : null}
             </div>
-            <Input
-                className="w-48 shrink-0"
-                placeholder={Craft.t('formie', 'Custom Label')}
-                value={column.label || ''}
+            {!useFieldHandles ? (
+                <Input
+                    className="w-48 shrink-0"
+                    placeholder={Craft.t('formie', 'Custom Label')}
+                    value={column.label || ''}
+                    disabled={disabled}
+                    onChange={(event) => { onLabelChange(columnKey(column), event.target.value); }}
+                />
+            ) : null}
+        </>
+    );
+});
+
+function SortableReportColumnRow({
+    column,
+    index,
+    disabled,
+    useFieldHandles = false,
+    isDragPlaceholder = false,
+    onEnabledChange,
+    onLabelChange,
+    onHandlePointerDown,
+}) {
+    const {
+        ref, handleRef,
+    } = useSortable({
+        id: columnKey(column),
+        index,
+        transition: null,
+        disabled,
+        modifiers: COLUMN_DRAG_MODIFIERS,
+    });
+
+    return (
+        <div
+            ref={ref}
+            className={cn(
+                getEnabledColumnRowClassName(column),
+                isDragPlaceholder && '[&>*]:invisible',
+            )}
+        >
+            <span onPointerDown={() => { onHandlePointerDown?.(); }}>
+                <DragHandle
+                    handleRef={handleRef}
+                    disabled={disabled}
+                    ariaLabel={Craft.t('formie', 'Drag to reorder {name}', { name: column.label || column.handle })}
+                />
+            </span>
+            <ReportColumnRowBody
+                column={column}
                 disabled={disabled}
-                onChange={(event) => { onLabelChange(columnKey(column), event.target.value); }}
+                useFieldHandles={useFieldHandles}
+                onEnabledChange={onEnabledChange}
+                onLabelChange={onLabelChange}
             />
         </div>
     );
 }
 
-const columnMatchesSearch = (column, query) => {
-    if (!query) {
-        return true;
-    }
+function ReportEnabledColumnsList({
+    columns,
+    disabled = false,
+    scrollable = false,
+    showFieldPicker = false,
+    usesAllFieldColumns = false,
+    useFieldHandles = false,
+    onEnabledChange,
+    onLabelChange,
+    onReorder,
+    onSidebarSuspendedChange,
+}) {
+    const listRef = useRef(null);
+    const [draggingKey, setDraggingKey] = useState(null);
+    const isDraggingRef = useRef(false);
 
-    const label = String(column.label || column.handle || '').toLowerCase();
-    const handle = String(column.handle || '').toLowerCase();
+    const activeColumn = useMemo(() => {
+        if (!draggingKey) {
+            return null;
+        }
 
-    return label.includes(query) || handle.includes(query);
-};
+        return columns.find((column) => columnKey(column) === draggingKey) || null;
+    }, [columns, draggingKey]);
+
+    const finishDragSession = useCallback(() => {
+        isDraggingRef.current = false;
+        setDraggingKey(null);
+        onSidebarSuspendedChange?.(false);
+    }, [onSidebarSuspendedChange]);
+
+    // Suspend the field-picker sidebar synchronously on handle press so dnd-kit activation
+    // does not run against thousands of sibling DOM nodes (see sidebarSuspended below).
+    const handleHandlePointerDown = useCallback(() => {
+        onSidebarSuspendedChange?.(true);
+
+        const handlePointerUp = () => {
+            window.requestAnimationFrame(() => {
+                if (!isDraggingRef.current) {
+                    onSidebarSuspendedChange?.(false);
+                }
+            });
+            window.removeEventListener('pointerup', handlePointerUp);
+        };
+
+        window.addEventListener('pointerup', handlePointerUp);
+    }, [onSidebarSuspendedChange]);
+
+    const handleDragEnd = useCallback((event) => {
+        finishDragSession();
+
+        if (event.canceled) {
+            return;
+        }
+
+        const { source } = event.operation;
+
+        if (!isSortable(source)) {
+            return;
+        }
+
+        const { initialIndex, index } = source;
+
+        if (
+            initialIndex === index
+            || initialIndex < 0
+            || index < 0
+            || initialIndex >= columns.length
+            || index >= columns.length
+        ) {
+            return;
+        }
+
+        const nextColumns = [...columns];
+        const [moved] = nextColumns.splice(initialIndex, 1);
+        nextColumns.splice(index, 0, moved);
+        startTransition(() => {
+            onReorder(nextColumns);
+        });
+    }, [columns, finishDragSession, onReorder]);
+
+    return (
+        <>
+            <div className="mb-2">
+                <div className="text-sm font-medium text-gray-700">
+                    {usesAllFieldColumns
+                        ? Craft.t('formie', 'Submission Attributes')
+                        : Craft.t('formie', 'Enabled Columns')}
+                </div>
+                {useFieldHandles ? (
+                    <p className="m-0 mt-1 text-xs text-gray-500">
+                        {Craft.t('formie', 'Viewer and export headers use field handles. Custom labels are not shown while that display setting is enabled.')}
+                    </p>
+                ) : null}
+            </div>
+
+            <DragDropProvider
+                sensors={COLUMN_DRAG_SENSORS}
+                onDragStart={(event) => {
+                    const key = event.operation.source?.id;
+
+                    if (!key) {
+                        return;
+                    }
+
+                    setDraggingKey(String(key));
+                    isDraggingRef.current = true;
+                }}
+                onDragEnd={handleDragEnd}
+                onDragCancel={finishDragSession}
+            >
+                <div
+                    ref={listRef}
+                    className={cn(
+                        'w-full',
+                        showFieldPicker && 'h-[min(65vh,600px)] overflow-y-auto overscroll-contain',
+                        scrollable && !showFieldPicker && 'max-h-[min(40vh,360px)] overflow-y-auto overscroll-contain py-1',
+                    )}
+                >
+                    {columns.length ? columns.map((column, index) => (
+                        <SortableReportColumnRow
+                            key={columnKey(column)}
+                            column={column}
+                            index={index}
+                            disabled={disabled}
+                            useFieldHandles={useFieldHandles}
+                            isDragPlaceholder={draggingKey === columnKey(column)}
+                            onEnabledChange={onEnabledChange}
+                            onLabelChange={onLabelChange}
+                            onHandlePointerDown={handleHandlePointerDown}
+                        />
+                    )) : (
+                        <p className="m-0 px-1 py-2 text-sm text-gray-500">
+                            {usesAllFieldColumns
+                                ? Craft.t('formie', 'Enable the submission attributes you want in this report.')
+                                : Craft.t('formie', 'No columns are enabled yet. Use the sidebar to add fields.')}
+                        </p>
+                    )}
+                </div>
+
+                <DragOverlay dropAnimation={null}>
+                    {activeColumn ? (
+                        <ReportColumnDragGhost column={activeColumn} useFieldHandles={useFieldHandles} />
+                    ) : null}
+                </DragOverlay>
+            </DragDropProvider>
+        </>
+    );
+}
 
 export function ReportColumnsEditor({
     columns,
     disabled = false,
     onChange,
     scrollable = false,
+    fieldColumnsMode = 'all',
+    fieldColumnGroups = [],
+    useFieldHandles = false,
 }) {
-    const listRef = useRef(null);
-    const [activeColumn, setActiveColumn] = useState(null);
-    const [searchQuery, setSearchQuery] = useState('');
+    const usesAllFieldColumns = isAllFieldColumnsMode(fieldColumnsMode);
+    const showFieldPicker = !usesAllFieldColumns;
 
-    const { enabledColumns, availableColumns } = useMemo(() => {
-        const enabled = [];
-        const available = [];
+    const formGroupLookups = useMemo(() => {
+        return buildFormGroupLookups(fieldColumnGroups);
+    }, [fieldColumnGroups]);
 
-        (columns || []).forEach((column) => {
-            if (column.enabled) {
-                enabled.push(column);
-            } else {
-                available.push(column);
-            }
-        });
-
-        return {
-            enabledColumns: enabled,
-            availableColumns: available,
-        };
-    }, [columns]);
-
-    const normalizedSearch = searchQuery.trim().toLowerCase();
-
-    const filteredAvailableColumns = useMemo(() => {
-        const matches = availableColumns.filter((column) => columnMatchesSearch(column, normalizedSearch));
-
-        return matches.slice(0, AVAILABLE_COLUMN_LIMIT);
-    }, [availableColumns, normalizedSearch]);
-
-    const matchingAvailableCount = useMemo(() => {
-        if (!normalizedSearch) {
-            return availableColumns.length;
-        }
-
-        return availableColumns.filter((column) => columnMatchesSearch(column, normalizedSearch)).length;
-    }, [availableColumns, normalizedSearch]);
-
-    const hiddenAvailableCount = Math.max(0, matchingAvailableCount - filteredAvailableColumns.length);
+    const enabledColumns = useMemo(() => {
+        return (columns || [])
+            .filter((column) => column.enabled)
+            .map((column) => enrichColumnWithFormContext(column, formGroupLookups));
+    }, [columns, formGroupLookups]);
 
     const updateColumns = useCallback((nextColumns) => {
         onChange(nextColumns);
@@ -201,130 +353,161 @@ export function ReportColumnsEditor({
         }));
     }, [columns, updateColumns]);
 
-    const handleDragEnd = useCallback((event) => {
-        setActiveColumn(null);
+    const handleSidebarToggle = useCallback((column, enabled) => {
+        const key = columnKey(column);
+        const existing = columns.find((item) => columnKey(item) === key);
 
-        if (event.canceled) {
+        if (existing) {
+            updateColumns(columns.map((item) => {
+                if (columnKey(item) !== key) {
+                    return item;
+                }
+
+                if (!enabled) {
+                    return { ...item, enabled: false };
+                }
+
+                return withEnabledFormContext(item, column);
+            }));
+
             return;
         }
 
-        const { source, target } = event.operation;
-
-        if (!isSortable(source) || !isSortable(target)) {
+        if (!enabled) {
             return;
         }
 
-        const fromIndex = source.sortable.index;
-        const toIndex = target.sortable.index;
+        updateColumns([
+            ...columns,
+            withEnabledFormContext(column, column),
+        ]);
+    }, [columns, updateColumns]);
 
-        if (fromIndex === toIndex) {
+    const handleSidebarToggleForm = useCallback((group, enabled) => {
+        const groupColumns = group?.columns || [];
+        const groupKeySet = new Set(groupColumns.map((column) => columnKey(column)));
+
+        if (enabled) {
+            const existingByKey = new Map(columns.map((column) => [columnKey(column), column]));
+            const nextColumns = [...columns];
+
+            groupColumns.forEach((column) => {
+                const key = columnKey(column);
+                const existing = existingByKey.get(key);
+
+                if (existing) {
+                    const index = nextColumns.findIndex((item) => columnKey(item) === key);
+
+                    if (index !== -1) {
+                        nextColumns[index] = enabled
+                            ? withEnabledFormContext(nextColumns[index], { formId: group.formId })
+                            : { ...nextColumns[index], enabled: false };
+                    }
+                } else {
+                    nextColumns.push(withEnabledFormContext(column, { formId: group.formId }));
+                }
+            });
+
+            updateColumns(nextColumns);
+
             return;
         }
 
-        const nextEnabledColumns = [...enabledColumns];
-        const [moved] = nextEnabledColumns.splice(fromIndex, 1);
-        nextEnabledColumns.splice(toIndex, 0, moved);
+        updateColumns(columns.map((column) => {
+            if (!groupKeySet.has(columnKey(column))) {
+                return column;
+            }
 
+            return { ...column, enabled: false };
+        }));
+    }, [columns, updateColumns]);
+
+    const handleEnabledColumnsReorder = useCallback((nextEnabledColumns) => {
         const enabledKeys = new Set(nextEnabledColumns.map((column) => columnKey(column)));
         const remainingColumns = columns.filter((column) => !enabledKeys.has(columnKey(column)));
 
         updateColumns([...nextEnabledColumns, ...remainingColumns]);
-    }, [columns, enabledColumns, updateColumns]);
+    }, [columns, updateColumns]);
+
+    // Baseline fix for manual column reorder lag on large sites: unmount the heavy field-picker
+    // sidebar before dnd-kit activates (flushSync on pointerdown), show a same-height placeholder
+    // while dragging, and restore when the drag ends. Form groups also start collapsed in the
+    // sidebar to keep the default DOM small. Do not remove without a replacement (e.g. virtual scroll).
+    const [sidebarSuspended, setSidebarSuspended] = useState(false);
+
+    const handleSidebarSuspendedChange = useCallback((suspended) => {
+        if (suspended) {
+            flushSync(() => {
+                setSidebarSuspended(true);
+            });
+
+            return;
+        }
+
+        setSidebarSuspended(false);
+    }, []);
 
     return (
         <div className="flex flex-col gap-6">
-            <div>
-                <div className="mb-2 text-sm font-medium text-gray-700">
-                    {Craft.t('formie', 'Enabled Columns')}
+            {usesAllFieldColumns ? (
+                <div className="rounded-lg border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-gray-700">
+                    {Craft.t('formie', 'All non-cosmetic fields from the filtered forms are included automatically. Configure submission attributes below, or switch to manual selection to pick individual fields.')}
                 </div>
+            ) : null}
 
-                <DragDropProvider
-                    onDragStart={(event) => {
-                        const key = event.operation.source?.id;
-
-                        setActiveColumn(enabledColumns.find((column) => columnKey(column) === key) || null);
-                    }}
-                    onDragEnd={handleDragEnd}
-                >
-                    <div
-                        ref={listRef}
-                        className={cn(
-                            'w-full',
-                            scrollable && 'max-h-[min(40vh,360px)] overflow-y-auto overscroll-contain px-6 py-1',
-                        )}
-                    >
-                        {enabledColumns.length ? enabledColumns.map((column, index) => (
-                            <ReportColumnRow
-                                key={columnKey(column)}
-                                column={column}
-                                index={index}
-                                disabled={disabled}
-                                listRef={listRef}
-                                onEnabledChange={handleEnabledChange}
-                                onLabelChange={handleLabelChange}
-                            />
-                        )) : (
-                            <p className="m-0 px-1 py-2 text-sm text-gray-500">
-                                {Craft.t('formie', 'No columns are enabled yet. Search below to add fields.')}
-                            </p>
-                        )}
-                    </div>
-
-                    <DragOverlay>
-                        {activeColumn ? <ReportColumnDragGhost column={activeColumn} /> : null}
-                    </DragOverlay>
-                </DragDropProvider>
-            </div>
-
-            {availableColumns.length ? (
-                <div>
-                    <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                        <div className="text-sm font-medium text-gray-700">
-                            {Craft.t('formie', 'Available Columns')}
-                        </div>
-                        <Input
-                            className="w-full sm:max-w-xs"
-                            placeholder={Craft.t('formie', 'Search columns…')}
-                            value={searchQuery}
-                            onChange={(event) => { setSearchQuery(event.target.value); }}
+            {showFieldPicker ? (
+                <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(320px,400px)] xl:items-start">
+                    <div className="isolate min-w-0 [contain:layout]">
+                        <ReportEnabledColumnsList
+                            columns={enabledColumns}
+                            disabled={disabled}
+                            scrollable={scrollable}
+                            showFieldPicker={showFieldPicker}
+                            usesAllFieldColumns={usesAllFieldColumns}
+                            useFieldHandles={useFieldHandles}
+                            onEnabledChange={handleEnabledChange}
+                            onLabelChange={handleLabelChange}
+                            onReorder={handleEnabledColumnsReorder}
+                            onSidebarSuspendedChange={handleSidebarSuspendedChange}
                         />
                     </div>
 
-                    <p className="m-0 mb-2 text-sm text-gray-500">
-                        {Craft.t(
-                            'formie',
-                            'Showing {shown, number} of {total, number} available columns.',
-                            {
-                                shown: filteredAvailableColumns.length,
-                                total: matchingAvailableCount,
-                            },
-                        )}
-                        {hiddenAvailableCount > 0
-                            ? ` ${Craft.t('formie', 'Refine your search to see more.')}`
-                            : ''}
-                    </p>
-
-                    <div
-                        className={cn(
-                            'w-full',
-                            scrollable && 'max-h-[min(40vh,360px)] overflow-y-auto overscroll-contain px-6 py-1',
-                        )}
-                    >
-                        {filteredAvailableColumns.map((column) => (
-                            <ReportColumnRow
-                                key={columnKey(column)}
-                                column={column}
-                                index={0}
+                    <div className="isolate min-h-0 min-w-0">
+                        {sidebarSuspended ? (
+                            <aside
+                                aria-hidden
+                                className="flex h-[min(65vh,600px)] min-h-0 flex-col items-center justify-center rounded-lg border border-gray-200 bg-gray-50 opacity-60"
+                            >
+                                <p className="m-0 px-4 text-center text-sm text-gray-500">
+                                    {Craft.t('formie', 'Field picker paused while reordering columns.')}
+                                </p>
+                            </aside>
+                        ) : (
+                            <ReportAvailableColumnsSidebar
+                                groups={fieldColumnGroups}
+                                enabledColumns={enabledColumns}
                                 disabled={disabled}
-                                listRef={listRef}
-                                onEnabledChange={handleEnabledChange}
-                                onLabelChange={handleLabelChange}
-                                sortable={false}
+                                onToggleColumn={handleSidebarToggle}
+                                onToggleFormColumns={handleSidebarToggleForm}
                             />
-                        ))}
+                        )}
                     </div>
                 </div>
-            ) : null}
+            ) : (
+                <div>
+                    <ReportEnabledColumnsList
+                        columns={enabledColumns}
+                        disabled={disabled}
+                        scrollable={scrollable}
+                        showFieldPicker={showFieldPicker}
+                        usesAllFieldColumns={usesAllFieldColumns}
+                        useFieldHandles={useFieldHandles}
+                        onEnabledChange={handleEnabledChange}
+                        onLabelChange={handleLabelChange}
+                        onReorder={handleEnabledColumnsReorder}
+                    />
+                </div>
+            )}
         </div>
     );
 }
@@ -359,13 +542,21 @@ export const resolveFieldColumnsForForms = (formIds, fieldColumnsByForm = {}) =>
     return mergeColumns(ids.flatMap((id) => fieldColumnsByForm[id] || []));
 };
 
-export const compactColumnsForStorage = (columns) => {
-    const normalized = (columns || []).filter((column) => column?.handle).map((column) => ({
-        type: column.type || 'attribute',
-        handle: column.handle,
-        label: column.label ?? null,
-        enabled: Boolean(column.enabled),
-    }));
+export const compactColumnsForStorage = (columns, fieldColumnsMode = 'all') => {
+    const normalized = (columns || []).filter((column) => column?.handle).map((column) => {
+        const item = {
+            type: column.type || 'attribute',
+            handle: column.handle,
+            label: column.label ?? null,
+            enabled: Boolean(column.enabled),
+        };
+
+        if (column.formId) {
+            item.formId = column.formId;
+        }
+
+        return item;
+    });
 
     if (!normalized.length) {
         return [];
@@ -374,6 +565,10 @@ export const compactColumnsForStorage = (columns) => {
     const compact = normalized.filter((column) => {
         if ((column.type || 'attribute') === 'attribute') {
             return true;
+        }
+
+        if (isAllFieldColumnsMode(fieldColumnsMode)) {
+            return false;
         }
 
         return column.enabled;
@@ -401,6 +596,10 @@ export const mergeReportColumns = (savedColumns, attributeColumns, fieldColumns)
                 existing.enabled = Boolean(column.enabled);
             }
 
+            if (column.formId) {
+                existing.formId = column.formId;
+            }
+
             return;
         }
 
@@ -409,6 +608,7 @@ export const mergeReportColumns = (savedColumns, attributeColumns, fieldColumns)
             handle: column.handle,
             label: column.label ?? null,
             enabled: Boolean(column.enabled),
+            ...(column.formId ? { formId: column.formId } : {}),
         });
     };
 

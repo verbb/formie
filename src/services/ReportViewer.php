@@ -61,8 +61,12 @@ class ReportViewer extends Component
         $user ??= Craft::$app->getUser()->getIdentity();
         $settings = $report->getSettingsModel();
         $columns = Formie::$plugin->getReportColumns()->resolveColumns($report);
-        $exportColumns = Formie::$plugin->getReportColumns()->compactColumnsForStorage($settings->columns);
+        $exportColumns = Formie::$plugin->getReportColumns()->compactColumnsForStorage(
+            $settings->columns,
+            Formie::$plugin->getReportColumns()->inferFieldColumnsMode($settings->columns, $settings->display),
+        );
         $formIds = $settings->filters['formIds'] ?? '*';
+        $fieldColumnsMode = Formie::$plugin->getReportColumns()->inferFieldColumnsMode($settings->columns, $settings->display);
 
         $resolvedFilters = Formie::$plugin->getReportQuery()->resolveFilters($report);
         $chartData = Formie::$plugin->getReportQuery()->getChartData($report, $user);
@@ -111,7 +115,9 @@ class ReportViewer extends Component
                 'handle' => 'dateCreated',
                 'dir' => 'desc',
             ],
-            'display' => $settings->display,
+            'display' => array_merge($settings->display, [
+                'fieldColumnsMode' => $fieldColumnsMode,
+            ]),
             'fieldColumnsUrl' => UrlHelper::cpUrl('formie/reports/field-columns'),
             'filterFormIds' => $formIds,
             'tableDataUrl' => UrlHelper::cpUrl('formie/reports/table-data/' . $report->id),

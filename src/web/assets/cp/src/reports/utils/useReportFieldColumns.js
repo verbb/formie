@@ -15,6 +15,11 @@ const serializeFormIds = (formIds) => {
         .join(',');
 };
 
+const emptyCatalog = {
+    fieldColumns: [],
+    fieldColumnGroups: [],
+};
+
 export const useReportFieldColumns = ({
     formIds,
     fieldColumnsUrl,
@@ -24,6 +29,7 @@ export const useReportFieldColumns = ({
 }) => {
     const cacheRef = useRef(new Map());
     const [fieldColumns, setFieldColumns] = useState([]);
+    const [fieldColumnGroups, setFieldColumnGroups] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
@@ -32,10 +38,11 @@ export const useReportFieldColumns = ({
         }
 
         const formIdsKey = serializeFormIds(formIds);
-        const cachedColumns = cacheRef.current.get(formIdsKey);
+        const cachedCatalog = cacheRef.current.get(formIdsKey);
 
-        if (cachedColumns) {
-            setFieldColumns(cachedColumns);
+        if (cachedCatalog) {
+            setFieldColumns(cachedCatalog.fieldColumns);
+            setFieldColumnGroups(cachedCatalog.fieldColumnGroups);
             setIsLoading(false);
 
             return undefined;
@@ -43,6 +50,7 @@ export const useReportFieldColumns = ({
 
         if (!fieldColumnsUrl || formIdsKey === '') {
             setFieldColumns([]);
+            setFieldColumnGroups([]);
             setIsLoading(false);
 
             return undefined;
@@ -72,12 +80,17 @@ export const useReportFieldColumns = ({
                     return;
                 }
 
-                const nextColumns = Array.isArray(payload.fieldColumns) ? payload.fieldColumns : [];
-                cacheRef.current.set(formIdsKey, nextColumns);
-                setFieldColumns(nextColumns);
+                const nextCatalog = {
+                    fieldColumns: Array.isArray(payload.fieldColumns) ? payload.fieldColumns : [],
+                    fieldColumnGroups: Array.isArray(payload.fieldColumnGroups) ? payload.fieldColumnGroups : [],
+                };
+                cacheRef.current.set(formIdsKey, nextCatalog);
+                setFieldColumns(nextCatalog.fieldColumns);
+                setFieldColumnGroups(nextCatalog.fieldColumnGroups);
             } catch {
                 if (!cancelled) {
                     setFieldColumns([]);
+                    setFieldColumnGroups([]);
                 }
             } finally {
                 if (!cancelled) {
@@ -95,6 +108,7 @@ export const useReportFieldColumns = ({
 
     return {
         fieldColumns,
+        fieldColumnGroups,
         isLoading,
     };
 };

@@ -48,6 +48,19 @@ export const normalizeDateRange = (dateRange = {}) => ({
     endDate: dateRange.endDate || null,
 });
 
+export const dateRangesMatch = (left, right) => {
+    const a = normalizeDateRange(left);
+    const b = normalizeDateRange(right);
+
+    return a.startDate === b.startDate && a.endDate === b.endDate;
+};
+
+export const getDateRangeKey = (dateRange = {}) => {
+    const normalized = normalizeDateRange(dateRange);
+
+    return `${normalized.startDate || ''}|${normalized.endDate || ''}`;
+};
+
 export const appendViewerDateParams = (body, dateRange) => {
     body.append('startDate', dateRange.startDate || '');
     body.append('endDate', dateRange.endDate || '');

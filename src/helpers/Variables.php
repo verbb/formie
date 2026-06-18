@@ -153,8 +153,8 @@ class Variables
         return [
             'variableCategories' => [
                 'report' => [
-                    self::_pickerSource(Craft::t('formie', 'Report handle'), '{handle}'),
-                    self::_pickerSource(Craft::t('formie', 'Report name'), '{name}'),
+                    self::_pickerSource(Craft::t('formie', 'Report Handle'), '{handle}'),
+                    self::_pickerSource(Craft::t('formie', 'Report Name'), '{name}'),
                 ],
                 'general' => array_values(array_merge(
                     $staticGroups[self::GROUP_CURRENT_TIME] ?? [],

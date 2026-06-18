@@ -61,13 +61,21 @@ class ReportEditor extends Component
     public function getEditorValues(Report $report): array
     {
         $settings = $report->getSettingsModel();
+        $display = $settings->display;
+        $display['fieldColumnsMode'] = Formie::$plugin->getReportColumns()->inferFieldColumnsMode(
+            $settings->columns,
+            $display,
+        );
 
         return [
             'name' => $report->name,
             'handle' => $report->handle,
             'filters' => ReportDateBoundHelper::migrateLegacyFilters($settings->filters),
-            'columns' => Formie::$plugin->getReportColumns()->compactColumnsForStorage($settings->columns),
-            'display' => $settings->display,
+            'columns' => Formie::$plugin->getReportColumns()->compactColumnsForStorage(
+                $settings->columns,
+                $display['fieldColumnsMode'],
+            ),
+            'display' => $display,
             'chart' => $settings->chart,
             'export' => $settings->export,
         ];
@@ -82,6 +90,9 @@ class ReportEditor extends Component
             'filters' => $this->_normalizeFilters($payload['filters'] ?? []),
             'columns' => Formie::$plugin->getReportColumns()->compactColumnsForStorage(
                 $payload['columns'] ?? [],
+                Formie::$plugin->getReportColumns()->normalizeFieldColumnsMode(
+                    $payload['display']['fieldColumnsMode'] ?? null,
+                ),
             ),
             'display' => $this->_normalizeDisplay($payload['display'] ?? []),
             'chart' => $this->_normalizeChart($payload['chart'] ?? []),
@@ -264,7 +275,12 @@ class ReportEditor extends Component
 
     private function _normalizeDisplay(array $display): array
     {
-        return array_merge(ReportSettings::defaultDisplay(), $display);
+        $normalized = array_merge(ReportSettings::defaultDisplay(), $display);
+        $normalized['fieldColumnsMode'] = Formie::$plugin->getReportColumns()->normalizeFieldColumnsMode(
+            $normalized['fieldColumnsMode'] ?? null,
+        );
+
+        return $normalized;
     }
 
     private function _normalizeChart(array $chart): array

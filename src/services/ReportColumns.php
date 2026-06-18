@@ -22,6 +22,13 @@ use DateTime;
 
 class ReportColumns extends Component
 {
+    // Constants
+    // =========================================================================
+
+    public const FIELD_COLUMNS_MODE_ALL = 'all';
+    public const FIELD_COLUMNS_MODE_SELECTED = 'selected';
+    
+
     // Public Methods
     // =========================================================================
 
@@ -69,6 +76,124 @@ class ReportColumns extends Component
         return $this->_queryFieldColumnsForFormIds($resolvedFormIds);
     }
 
+    public function getFieldColumnGroupsForFormIds(mixed $formIds, ?User $user = null): array
+    {
+        $user ??= Craft::$app->getUser()->getIdentity();
+        $resolvedFormIds = Formie::$plugin->getReportQuery()->resolveFormIds($formIds, $user);
+
+        if ($resolvedFormIds === []) {
+            return [];
+        }
+
+        $siteId = (int)Craft::$app->getSites()->getCurrentSite()->id;
+        $formRows = (new Query())
+            ->select([
+                'id' => 'elements.id',
+                'title' => 'elements_sites.title',
+                'handle' => 'forms.handle',
+                'groupId' => 'forms.groupId',
+            ])
+            ->from(['forms' => Table::FORMIE_FORMS])
+            ->innerJoin(['elements' => Table::ELEMENTS], '[[elements.id]] = [[forms.id]]')
+            ->innerJoin(
+                ['elements_sites' => Table::ELEMENTS_SITES],
+                '[[elements_sites.elementId]] = [[forms.id]] AND [[elements_sites.siteId]] = :siteId',
+                [':siteId' => $siteId],
+            )
+            ->where([
+                'elements.id' => $resolvedFormIds,
+                'elements.dateDeleted' => null,
+                'elements.draftId' => null,
+                'elements.revisionId' => null,
+            ])
+            ->indexBy('id')
+            ->all();
+
+        $groupNames = [];
+
+        foreach (Formie::$plugin->getFormGroups()->getAllGroups() as $group) {
+            $groupNames[(int)$group->id] = $group->name;
+        }
+
+        $columnsByFormId = [];
+
+        foreach ($this->_queryFieldColumnRowsForFormIds($resolvedFormIds) as $row) {
+            $formId = (int)($row['formId'] ?? 0);
+
+            if (!$formId) {
+                continue;
+            }
+
+            $columnsByFormId[$formId][] = [
+                'type' => 'field',
+                'handle' => (string)($row['handle'] ?? ''),
+                'label' => (string)($row['label'] ?? $row['handle'] ?? ''),
+                'enabled' => false,
+                'formId' => $formId,
+            ];
+        }
+
+        $groups = [];
+
+        foreach ($resolvedFormIds as $formId) {
+            $formId = (int)$formId;
+            $form = $formRows[$formId] ?? null;
+            $columns = $columnsByFormId[$formId] ?? [];
+
+            if (!$form || $columns === []) {
+                continue;
+            }
+
+            $groupId = $form['groupId'] ? (int)$form['groupId'] : null;
+
+            $groups[] = [
+                'formId' => $formId,
+                'formTitle' => (string)($form['title'] ?? ''),
+                'formHandle' => (string)($form['handle'] ?? ''),
+                'groupId' => $groupId,
+                'groupName' => $groupId ? ($groupNames[$groupId] ?? null) : null,
+                'columns' => $columns,
+            ];
+        }
+
+        return $groups;
+    }
+
+    public function inferFieldColumnsMode(array $columns, ?array $display = null): string
+    {
+        $mode = $display['fieldColumnsMode'] ?? null;
+
+        if (in_array($mode, [self::FIELD_COLUMNS_MODE_ALL, self::FIELD_COLUMNS_MODE_SELECTED], true)) {
+            return $mode;
+        }
+
+        foreach ($columns as $column) {
+            if (!is_array($column)) {
+                continue;
+            }
+
+            if (($column['type'] ?? 'attribute') === 'field' && !empty($column['enabled'])) {
+                return self::FIELD_COLUMNS_MODE_SELECTED;
+            }
+        }
+
+        return self::FIELD_COLUMNS_MODE_ALL;
+    }
+
+    public function usesAllFieldColumns(Report $report): bool
+    {
+        $settings = $report->getSettingsModel();
+
+        return $this->inferFieldColumnsMode($settings->columns, $settings->display) === self::FIELD_COLUMNS_MODE_ALL;
+    }
+
+    public function normalizeFieldColumnsMode(mixed $mode): string
+    {
+        return $mode === self::FIELD_COLUMNS_MODE_SELECTED
+            ? self::FIELD_COLUMNS_MODE_SELECTED
+            : self::FIELD_COLUMNS_MODE_ALL;
+    }
+
     public function getAvailableFieldColumns(Report $report, ?User $user = null): array
     {
         return $this->getFieldColumnsForFormIds(
@@ -99,16 +224,26 @@ class ReportColumns extends Component
                         ? (bool)$column['enabled']
                         : $existing['enabled'];
 
+                    if (!empty($column['formId'])) {
+                        $existing['formId'] = (int)$column['formId'];
+                    }
+
                     continue;
                 }
 
                 $index[$key] = count($merged);
-                $merged[] = [
+                $mergedColumn = [
                     'type' => $type,
                     'handle' => (string)$column['handle'],
                     'label' => $column['label'] ?? null,
                     'enabled' => (bool)($column['enabled'] ?? false),
                 ];
+
+                if (!empty($column['formId'])) {
+                    $mergedColumn['formId'] = (int)$column['formId'];
+                }
+
+                $merged[] = $mergedColumn;
             }
         }
 
@@ -143,12 +278,18 @@ class ReportColumns extends Component
         return $merged;
     }
 
-    public function resolveColumns(Report $report, ?array $columnOverride = null): array
+    public function resolveColumns(Report $report, ?array $columnOverride = null, ?User $user = null): array
     {
+        $user ??= Craft::$app->getUser()->getIdentity();
         $settings = $report->getSettingsModel();
         $display = $settings->display;
         $definitions = $this->getAttributeDefinitions();
         $sourceColumns = $columnOverride ?? $settings->columns;
+
+        if ($columnOverride === null && $this->usesAllFieldColumns($report)) {
+            $sourceColumns = $this->_sourceColumnsForAllFieldMode($report, $settings->columns, $user);
+        }
+
         $resolved = [];
 
         if ($sourceColumns === []) {
@@ -326,18 +467,24 @@ class ReportColumns extends Component
                 continue;
             }
 
-            $normalized[] = [
+            $normalizedColumn = [
                 'type' => $column['type'] ?? 'attribute',
                 'handle' => (string)$column['handle'],
                 'label' => $column['label'] ?? null,
                 'enabled' => (bool)($column['enabled'] ?? false),
             ];
+
+            if (!empty($column['formId'])) {
+                $normalizedColumn['formId'] = (int)$column['formId'];
+            }
+
+            $normalized[] = $normalizedColumn;
         }
 
         return $normalized ?: $this->getDefaultAttributeColumns();
     }
 
-    public function compactColumnsForStorage(array $columns): array
+    public function compactColumnsForStorage(array $columns, ?string $fieldColumnsMode = null): array
     {
         $normalized = [];
 
@@ -345,6 +492,13 @@ class ReportColumns extends Component
             $type = $column['type'] ?? 'attribute';
 
             if ($type !== 'attribute' && empty($column['enabled'])) {
+                continue;
+            }
+
+            if (
+                $fieldColumnsMode === self::FIELD_COLUMNS_MODE_ALL
+                && $type === 'field'
+            ) {
                 continue;
             }
 
@@ -358,10 +512,43 @@ class ReportColumns extends Component
     // Private Methods
     // =========================================================================
 
-    private function _queryFieldColumnsForFormIds(array $formIds): array
+    private function _sourceColumnsForAllFieldMode(Report $report, array $savedColumns, ?User $user): array
     {
-        $rows = (new Query())
+        $attributes = [];
+
+        foreach ($savedColumns as $column) {
+            if (!is_array($column) || empty($column['handle'])) {
+                continue;
+            }
+
+            if (($column['type'] ?? 'attribute') !== 'attribute') {
+                continue;
+            }
+
+            $attributes[] = $column;
+        }
+
+        if ($attributes === []) {
+            $attributes = $this->getDefaultAttributeColumns();
+        }
+
+        $fieldColumns = array_map(static function(array $column): array {
+            $column['enabled'] = true;
+
+            return $column;
+        }, $this->getFieldColumnsForFormIds(
+            $report->getSettingsModel()->filters['formIds'] ?? '*',
+            $user,
+        ));
+
+        return [...$attributes, ...$fieldColumns];
+    }
+
+    private function _queryFieldColumnRowsForFormIds(array $formIds): array
+    {
+        return (new Query())
             ->select([
+                'formId' => 'fo.id',
                 'handle' => 'f.handle',
                 'label' => 'f.label',
             ])
@@ -370,13 +557,16 @@ class ReportColumns extends Component
             ->innerJoin(['fo' => Table::FORMIE_FORMS], '[[fo.layoutId]] = [[ff.layoutId]]')
             ->where(['fo.id' => $formIds])
             ->andWhere(['not in', 'f.type', $this->_cosmeticFieldTypes()])
-            ->orderBy(['f.handle' => SORT_ASC, 'f.label' => SORT_ASC])
+            ->orderBy(['fo.id' => SORT_ASC, 'f.label' => SORT_ASC, 'f.handle' => SORT_ASC])
             ->all();
+    }
 
+    private function _queryFieldColumnsForFormIds(array $formIds): array
+    {
         $columns = [];
         $seen = [];
 
-        foreach ($rows as $row) {
+        foreach ($this->_queryFieldColumnRowsForFormIds($formIds) as $row) {
             $handle = (string)($row['handle'] ?? '');
 
             if ($handle === '' || isset($seen[$handle])) {

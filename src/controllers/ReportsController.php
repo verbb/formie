@@ -261,6 +261,7 @@ class ReportsController extends Controller
 
         return $this->asJson([
             'fieldColumns' => Formie::$plugin->getReportColumns()->getFieldColumnsForFormIds($formIds, $user),
+            'fieldColumnGroups' => Formie::$plugin->getReportColumns()->getFieldColumnGroupsForFormIds($formIds, $user),
         ]);
     }
 

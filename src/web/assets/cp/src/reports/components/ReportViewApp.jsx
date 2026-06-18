@@ -17,6 +17,8 @@ import { ReportSubmissionsTable } from '@reports/components/ReportSubmissionsTab
 import { ReportViewerToolbar } from '@reports/components/ReportViewerToolbar';
 import {
     appendViewerDateParams,
+    dateRangesMatch,
+    getDateRangeKey,
     normalizeDateRange,
 } from '@reports/utils/reportViewerDates';
 import {
@@ -81,12 +83,19 @@ export const ReportViewApp = ({ settings, embedded = false }) => {
         return loadStoredViewerDateRange(reportId, defaultDateRange);
     });
 
+    const overviewDateRangeKeyRef = useRef(null);
+
     useEffect(() => {
+        const nextDateRange = loadStoredViewerDateRange(reportId, defaultDateRange);
+
         setViewerColumns(loadStoredViewerColumns(reportId, defaultViewerColumns));
         setSort(loadStoredViewerSort(reportId, defaultSort));
-        setDateRange(loadStoredViewerDateRange(reportId, defaultDateRange));
+        setDateRange(nextDateRange);
         setSummary(settings.summary || {});
         setChart(settings.chart || {});
+        overviewDateRangeKeyRef.current = dateRangesMatch(nextDateRange, defaultDateRange)
+            ? getDateRangeKey(nextDateRange)
+            : null;
         setSearch('');
         setPage(1);
     }, [defaultDateRange, defaultSort, defaultViewerColumns, reportId, settings.chart, settings.summary]);
@@ -165,7 +174,7 @@ export const ReportViewApp = ({ settings, embedded = false }) => {
         return orderTableDataByViewerColumns(tableData, viewerColumns);
     }, [tableData, viewerColumns]);
 
-    const loadOverview = useCallback(async (nextDateRange = dateRange) => {
+    const loadOverview = useCallback(async (nextDateRange) => {
         if (!settings.viewerDataUrl) {
             return;
         }
@@ -206,9 +215,40 @@ export const ReportViewApp = ({ settings, embedded = false }) => {
             }
         }
     }, [
-        dateRange,
         settings.csrfTokenName,
         settings.csrfTokenValue,
+        settings.viewerDataUrl,
+    ]);
+
+    useEffect(() => {
+        if (!settings.viewerDataUrl) {
+            return;
+        }
+
+        const rangeKey = getDateRangeKey(dateRange);
+
+        // Server-rendered view config already includes summary/chart for the report default range.
+        if (
+            overviewDateRangeKeyRef.current === null
+            && dateRangesMatch(dateRange, defaultDateRange)
+        ) {
+            overviewDateRangeKeyRef.current = rangeKey;
+
+            return;
+        }
+
+        if (overviewDateRangeKeyRef.current === rangeKey) {
+            return;
+        }
+
+        overviewDateRangeKeyRef.current = rangeKey;
+        loadOverview(dateRange);
+    }, [
+        dateRange.endDate,
+        dateRange.startDate,
+        defaultDateRange.endDate,
+        defaultDateRange.startDate,
+        loadOverview,
         settings.viewerDataUrl,
     ]);
 
@@ -279,10 +319,6 @@ export const ReportViewApp = ({ settings, embedded = false }) => {
         settings.csrfTokenValue,
         settings.tableDataUrl,
     ]);
-
-    useEffect(() => {
-        loadOverview();
-    }, [loadOverview]);
 
     useEffect(() => {
         loadTable(1);

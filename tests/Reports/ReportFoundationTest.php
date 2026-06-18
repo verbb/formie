@@ -6,6 +6,7 @@ use craft\elements\User;
 use verbb\formie\Formie;
 use verbb\formie\models\Report;
 use verbb\formie\models\ReportSettings;
+use verbb\formie\services\ReportColumns;
 
 use DateTime;
 
@@ -130,11 +131,50 @@ it('returns field columns only for the requested forms', function (): void {
 it('stores only enabled field columns in report settings', function (): void {
     $columns = Formie::$plugin->getReportColumns()->compactColumnsForStorage([
         ['type' => 'attribute', 'handle' => 'title', 'label' => 'Title', 'enabled' => true],
-        ['type' => 'field', 'handle' => 'firstName', 'label' => 'First Name', 'enabled' => true],
+        ['type' => 'field', 'handle' => 'firstName', 'label' => 'First Name', 'enabled' => true, 'formId' => 42],
         ['type' => 'field', 'handle' => 'lastName', 'label' => 'Last Name', 'enabled' => false],
     ]);
 
-    expect(collect($columns)->pluck('handle')->all())->toBe(['title', 'firstName']);
+    expect(collect($columns)->pluck('handle')->all())->toBe(['title', 'firstName'])
+        ->and($columns[1]['formId'] ?? null)->toBe(42);
+});
+
+it('omits field columns from storage when using all-fields mode', function (): void {
+    $columns = Formie::$plugin->getReportColumns()->compactColumnsForStorage([
+        ['type' => 'attribute', 'handle' => 'title', 'label' => 'Title', 'enabled' => true],
+        ['type' => 'field', 'handle' => 'firstName', 'label' => 'First Name', 'enabled' => true],
+    ], ReportColumns::FIELD_COLUMNS_MODE_ALL);
+
+    expect(collect($columns)->pluck('handle')->all())->toBe(['title']);
+});
+
+it('resolves all form fields dynamically when all-fields mode is enabled', function (): void {
+    $form = formie()
+        ->form(['title' => 'All Fields Mode Form'])
+        ->singleLineTextField('dynamicField')
+        ->create();
+
+    $settings = new ReportSettings();
+    $settings->filters['formIds'] = [$form->id];
+    $settings->display['fieldColumnsMode'] = ReportColumns::FIELD_COLUMNS_MODE_ALL;
+    $settings->columns = Formie::$plugin->getReportColumns()->getDefaultAttributeColumns();
+
+    $report = new Report([
+        'name' => 'All Fields Mode Report',
+        'handle' => 'allFieldsModeReport' . uniqid(),
+    ]);
+    $report->setSettingsModel($settings);
+
+    expect(Formie::$plugin->getReports()->saveReport($report))->toBeTrue();
+
+    $admin = new User();
+    $admin->admin = true;
+
+    $columns = Formie::$plugin->getReportColumns()->resolveColumns($report, null, $admin);
+    $handles = collect($columns)->pluck('handle')->all();
+
+    expect($handles)->toContain('title')
+        ->and($handles)->toContain('dynamicField');
 });
 
 it('returns paginated table data for a report', function (): void {

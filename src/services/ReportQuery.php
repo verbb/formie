@@ -68,24 +68,34 @@ class ReportQuery extends Component
             return $summary;
         }
 
+        $forms = Form::find()
+            ->id($formIds)
+            ->status(null)
+            ->indexBy('id')
+            ->all();
+
+        $countsByFormId = $this->_getSummaryCountsByForm($formIds, $filters);
+
         foreach ($formIds as $formId) {
-            $form = Formie::$plugin->getForms()->getFormById((int)$formId);
+            $form = $forms[$formId] ?? null;
 
-            if (!$form) {
+            if (!$form || !$this->canViewFormSubmissions($user, $form)) {
                 continue;
             }
 
-            if (!$this->canViewFormSubmissions($user, $form)) {
-                continue;
-            }
+            $counts = $countsByFormId[$formId] ?? [
+                'complete' => 0,
+                'incomplete' => 0,
+                'spam' => 0,
+            ];
 
             $formSummary = [
                 'formId' => (int)$formId,
                 'formTitle' => $form->title,
                 'formHandle' => $form->handle,
-                'complete' => $this->_countForState($formId, $filters, false, false),
-                'incomplete' => $this->_countForState($formId, $filters, true, false),
-                'spam' => $this->_countForState($formId, $filters, false, true),
+                'complete' => $counts['complete'],
+                'incomplete' => $counts['incomplete'],
+                'spam' => $counts['spam'],
             ];
 
             $formSummary['total'] = $formSummary['complete'] + $formSummary['incomplete'] + $formSummary['spam'];
@@ -399,18 +409,49 @@ class ReportQuery extends Component
         $query->dateCreated(array_merge(['and'], $params));
     }
 
-    private function _countForState(int $formId, array $filters, bool $isIncomplete, bool $isSpam): int
+    private function _getSummaryCountsByForm(array $formIds, array $filters): array
     {
+        if (!$formIds) {
+            return [];
+        }
+
         $query = (new Query())
+            ->select([
+                'formId' => 'submissions.formId',
+                'complete' => new \yii\db\Expression(
+                    'SUM(CASE WHEN [[submissions.isIncomplete]] = 0 AND [[submissions.isSpam]] = 0 THEN 1 ELSE 0 END)',
+                ),
+                'incomplete' => new \yii\db\Expression(
+                    'SUM(CASE WHEN [[submissions.isIncomplete]] = 1 AND [[submissions.isSpam]] = 0 THEN 1 ELSE 0 END)',
+                ),
+                'spam' => new \yii\db\Expression(
+                    'SUM(CASE WHEN [[submissions.isSpam]] = 1 THEN 1 ELSE 0 END)',
+                ),
+            ])
             ->from(['submissions' => Table::FORMIE_SUBMISSIONS])
             ->innerJoin(['elements' => Table::ELEMENTS], '[[elements.id]] = [[submissions.id]]')
             ->where([
-                'submissions.formId' => $formId,
-                'submissions.isIncomplete' => $isIncomplete,
-                'submissions.isSpam' => $isSpam,
+                'submissions.formId' => $formIds,
                 'elements.dateDeleted' => null,
             ]);
 
+        $this->_applySummaryCountFilters($query, $filters);
+
+        $countsByFormId = [];
+
+        foreach ($query->groupBy(['submissions.formId'])->all() as $result) {
+            $countsByFormId[(int)$result['formId']] = [
+                'complete' => (int)$result['complete'],
+                'incomplete' => (int)$result['incomplete'],
+                'spam' => (int)$result['spam'],
+            ];
+        }
+
+        return $countsByFormId;
+    }
+
+    private function _applySummaryCountFilters(Query $query, array $filters): void
+    {
         $startDate = DateTimeHelper::toDateTime($filters['startDate'] ?? null);
         $endDate = DateTimeHelper::toDateTime($filters['endDate'] ?? null);
 
@@ -427,8 +468,6 @@ class ReportQuery extends Component
         if ($statusIds) {
             $query->andWhere(['submissions.statusId' => $statusIds]);
         }
-
-        return (int)$query->count();
     }
 
     private function applyViewerSort(ElementQueryInterface $query, ?string $sort, string $sortDir = 'desc'): void

@@ -1,4 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { startTransition, useEffect, useMemo, useState } from 'react';
+
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPlus } from '@fortawesome/pro-solid-svg-icons';
 
 import {
     ALL_VALUE,
@@ -10,6 +13,7 @@ import {
     PaneTabsContent,
     PaneTabsList,
     PaneTabsTrigger,
+    SelectInput,
     Table,
     TableBody,
     TableCell,
@@ -30,6 +34,11 @@ import { ReportExportFilenameField } from '@reports/components/ReportExportFilen
 import { DEFAULT_END_DATE_BOUND, DEFAULT_START_DATE_BOUND } from '@reports/utils/reportDateBound';
 import { ReportFormsSelect } from '@reports/components/ReportFormsSelect';
 import { useReportFieldColumns } from '@reports/utils/useReportFieldColumns';
+import {
+    FIELD_COLUMNS_MODE_ALL,
+    FIELD_COLUMNS_MODE_SELECTED,
+    isAllFieldColumnsMode,
+} from '@reports/utils/reportColumnModes';
 
 import styles from '@reports/css/style.css?inline';
 
@@ -150,28 +159,28 @@ export const ReportEditorApp = ({ settings }) => {
     const [values, setValues] = useState(settings.values || {});
     const modelErrors = settings.errors || {};
     const filters = values.filters || {};
+    const display = values.display || {};
     const [activeTab, setActiveTab] = useState(() => getReportTabFromHash(settings.canManageScheduled));
     const [shouldLoadFieldColumns, setShouldLoadFieldColumns] = useState(() => (
         getReportTabFromHash(settings.canManageScheduled) === 'columns'
     ));
-    const { fieldColumns, isLoading: fieldColumnsLoading } = useReportFieldColumns({
+    const fieldColumnsMode = display.fieldColumnsMode || FIELD_COLUMNS_MODE_ALL;
+    const usesAllFieldColumns = isAllFieldColumnsMode(fieldColumnsMode);
+    const shouldFetchFieldCatalog = shouldLoadFieldColumns && !usesAllFieldColumns;
+    const { fieldColumnGroups, isLoading: fieldColumnsLoading } = useReportFieldColumns({
         formIds: filters.formIds,
         fieldColumnsUrl: settings.fieldColumnsUrl,
         csrfTokenName: Craft.csrfTokenName,
         csrfTokenValue: Craft.csrfTokenValue,
-        enabled: shouldLoadFieldColumns,
+        enabled: shouldFetchFieldCatalog,
     });
-    const displayColumns = useMemo(() => {
-        if (!shouldLoadFieldColumns) {
-            return [];
-        }
-
+    const editorColumns = useMemo(() => {
         return mergeReportColumns(
             values.columns,
             settings.attributeColumns,
-            fieldColumns,
+            [],
         );
-    }, [shouldLoadFieldColumns, values.columns, settings.attributeColumns, fieldColumns]);
+    }, [values.columns, settings.attributeColumns]);
     const payload = useMemo(() => values, [values]);
 
     useCpFormPayloadSync({
@@ -207,9 +216,45 @@ export const ReportEditorApp = ({ settings }) => {
         });
     };
 
-    const display = values.display || {};
     const exportSettings = values.export || {};
     const chart = values.chart || {};
+    const fieldColumnModeOptions = useMemo(() => ([
+        {
+            value: FIELD_COLUMNS_MODE_ALL,
+            label: Craft.t('formie', 'All form fields'),
+        },
+        {
+            value: FIELD_COLUMNS_MODE_SELECTED,
+            label: Craft.t('formie', 'Choose fields manually'),
+        },
+    ]), []);
+    const handleFieldColumnsModeChange = (nextMode) => {
+        const normalizedMode = nextMode === FIELD_COLUMNS_MODE_SELECTED
+            ? FIELD_COLUMNS_MODE_SELECTED
+            : FIELD_COLUMNS_MODE_ALL;
+
+        setValues((currentValues) => {
+            const nextColumns = normalizedMode === FIELD_COLUMNS_MODE_ALL
+                ? compactColumnsForStorage(
+                    mergeReportColumns(
+                        currentValues.columns,
+                        settings.attributeColumns,
+                        [],
+                    ),
+                    FIELD_COLUMNS_MODE_ALL,
+                )
+                : currentValues.columns;
+
+            return {
+                ...currentValues,
+                display: {
+                    ...(currentValues.display || {}),
+                    fieldColumnsMode: normalizedMode,
+                },
+                columns: nextColumns,
+            };
+        });
+    };
     const statusIdsValue = !filters.statusIds?.length
         ? ALL_VALUE
         : normalizeStatusIdsForEditor(filters.statusIds);
@@ -403,18 +448,39 @@ export const ReportEditorApp = ({ settings }) => {
                         {Craft.t('formie', 'Choose which submission attributes and fields to include in this report. Drag to reorder columns for the table and export.')}
                     </p>
 
+                    <FieldLayout
+                        name="display.fieldColumnsMode"
+                        label={Craft.t('formie', 'Form Fields')}
+                        instructions={Craft.t('formie', 'Include every field from the filtered forms automatically, or choose specific fields manually.')}
+                    >
+                        <SelectInput
+                            value={fieldColumnsMode}
+                            options={fieldColumnModeOptions}
+                            disabled={!settings.canEdit}
+                            onChange={handleFieldColumnsModeChange}
+                        />
+                    </FieldLayout>
+
                     {activeTab === 'columns' ? (
-                        fieldColumnsLoading ? (
-                            <p className="m-0 text-sm text-gray-500">{Craft.t('formie', 'Loading field columns…')}</p>
-                        ) : (
+                        usesAllFieldColumns || !fieldColumnsLoading ? (
                             <ReportColumnsEditor
-                                columns={displayColumns}
+                                columns={editorColumns}
                                 disabled={!settings.canEdit}
                                 scrollable
+                                fieldColumnsMode={fieldColumnsMode}
+                                fieldColumnGroups={fieldColumnGroups}
+                                useFieldHandles={Boolean(display.useFieldHandles)}
                                 onChange={(nextColumns) => {
-                                    updateValue('columns', compactColumnsForStorage(nextColumns));
+                                    startTransition(() => {
+                                        updateValue(
+                                            'columns',
+                                            compactColumnsForStorage(nextColumns, fieldColumnsMode),
+                                        );
+                                    });
                                 }}
                             />
+                        ) : (
+                            <p className="m-0 text-sm text-gray-500">{Craft.t('formie', 'Loading field columns…')}</p>
                         )
                     ) : null}
                 </PaneTabsContent>
@@ -469,8 +535,8 @@ export const ReportEditorApp = ({ settings }) => {
 
                         {settings.scheduledReportsNewUrl ? (
                             <div className="mb-4">
-                                <Button href={settings.scheduledReportsNewUrl}>
-                                    {Craft.t('formie', 'New Scheduled Report')}
+                                <Button href={settings.scheduledReportsNewUrl} variant="primary">
+                                    <FontAwesomeIcon icon={faPlus} className="size-3" /> {Craft.t('formie', 'New Scheduled Report')}
                                 </Button>
                             </div>
                         ) : null}

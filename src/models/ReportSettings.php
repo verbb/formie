@@ -59,6 +59,7 @@ class ReportSettings extends Model
         return [
             'useFieldHandles' => false,
             'useOptionLabels' => true,
+            'fieldColumnsMode' => 'all',
         ];
     }
 

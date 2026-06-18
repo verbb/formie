@@ -26,6 +26,7 @@
 - Add `craft formie/reports/run-scheduled` console command for cron-driven scheduled report delivery.
 
 ### Changed
+- Improve report viewer load performance by skipping redundant overview refreshes on initial page load and aggregating summary counts in a single query per report instead of three counts per form.
 - Improve **Submission Limits** form settings UX (**Apply Limit To**, consolidated messaging) and clarify the distinction from global **Submission Throttling** abuse controls. Add [Submission Limits](/forms/submission-limits) author documentation. [Discussion #1939](https://github.com/verbb/formie/discussions/1939)
 - Remove built-in CSV export actions from the submissions element index; use **Reports** for export and scheduled delivery instead.
 - Align `Form` element `canView()`, `canSave()`, `canDuplicate()`, and delete behaviour with controller permissions instead of broad allow-all checks.
