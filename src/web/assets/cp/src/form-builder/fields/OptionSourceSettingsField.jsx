@@ -1,13 +1,29 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowsRotate, faChevronDown, faLinkSlash } from '@fortawesome/pro-solid-svg-icons';
+import {
+    faArrowsRotate,
+    faChevronDown,
+    faChevronRight,
+    faChevronUp,
+    faLinkSlash,
+    faSliders,
+} from '@fortawesome/pro-solid-svg-icons';
 
 import {
     Button,
+    ComboboxInput,
+    Dialog,
+    DialogContent,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
     SelectInput,
     Spinner,
 } from '@verbb/plugin-kit-react/components';
@@ -19,9 +35,28 @@ import {
     FieldRoot,
 } from '@verbb/plugin-kit-react/forms/Field';
 import { useEngineField } from '@verbb/plugin-kit-react/forms/useEngineField';
+import { cn } from '@verbb/plugin-kit-react/utils';
 import { refreshIntegrationFormSettings } from '@form-builder/hooks/useFormTools';
 
 const PREVIEW_LIMIT = 100;
+const PREVIEW_SUMMARY_CHIP_LIMIT = 6;
+const PREVIEW_EXPANDED_STORAGE_KEY = 'formie:dynamic-options-preview-expanded';
+
+function readPreviewExpandedPreference() {
+    try {
+        return localStorage.getItem(PREVIEW_EXPANDED_STORAGE_KEY) === '1';
+    } catch {
+        return false;
+    }
+}
+
+function writePreviewExpandedPreference(expanded) {
+    try {
+        localStorage.setItem(PREVIEW_EXPANDED_STORAGE_KEY, expanded ? '1' : '0');
+    } catch {
+        // Ignore storage failures in restricted environments.
+    }
+}
 
 function SettingSelectField({
     name,
@@ -32,6 +67,8 @@ function SettingSelectField({
     onChange,
     disabled = false,
     placeholder,
+    useCombobox = false,
+    emptyMessage,
 }) {
     return (
         <FieldRoot name={name}>
@@ -42,16 +79,556 @@ function SettingSelectField({
                 ) : null}
             </FieldHeader>
             <FieldControl>
-                <SelectInput
-                    options={options}
-                    value={value}
-                    placeholder={placeholder}
-                    disabled={disabled}
-                    onChange={onChange}
-                />
+                {useCombobox ? (
+                    <ComboboxInput
+                        options={options}
+                        value={value ?? ''}
+                        placeholder={placeholder || Craft.t('formie', 'Select an option')}
+                        emptyMessage={emptyMessage || Craft.t('formie', 'No options found.')}
+                        disabled={disabled}
+                        className="w-full"
+                        onValueChange={onChange}
+                    />
+                ) : (
+                    <SelectInput
+                        options={options}
+                        value={value}
+                        placeholder={placeholder}
+                        disabled={disabled}
+                        onChange={onChange}
+                    />
+                )}
             </FieldControl>
         </FieldRoot>
     );
+}
+
+const CHAIN_FIELD_WIDTH_DEFAULT = 'w-[200px]';
+const CHAIN_DROPDOWN_CONTENT_CLASS = '!w-max !min-w-[var(--anchor-width)] max-w-[min(520px,var(--available-width))]';
+
+function getIntegrationChainFieldWidthClass(step) {
+    const labels = [
+        String(step.label ?? ''),
+        ...step.options.map((option) => String(option.label ?? '')),
+    ];
+    const longest = labels.reduce((max, label) => Math.max(max, label.length), 0);
+
+    if (longest > 34) {
+        return 'w-[320px]';
+    }
+
+    if (longest > 28) {
+        return 'w-[280px]';
+    }
+
+    if (longest > 22) {
+        return 'w-[240px]';
+    }
+
+    if (longest > 16) {
+        return 'w-[220px]';
+    }
+
+    return CHAIN_FIELD_WIDTH_DEFAULT;
+}
+
+function PathSeparator() {
+    return (
+        <span
+            className="inline-flex h-9 w-3.5 shrink-0 items-center justify-center text-gray-400"
+            aria-hidden="true"
+        >
+            <FontAwesomeIcon icon={faChevronRight} className="size-2.5" />
+        </span>
+    );
+}
+
+function PathSeparatorLabelSpacer() {
+    return <span className="inline-block w-3.5 shrink-0" aria-hidden="true" />;
+}
+
+function IntegrationSourceChain({ steps }) {
+    if (!steps.length) {
+        return null;
+    }
+
+    return (
+        <div
+            className="space-y-1"
+            role="group"
+            aria-label={Craft.t('formie', 'Integration option source settings')}
+        >
+            <div className="flex flex-wrap items-center gap-x-1">
+                {steps.map((step, index) => {
+                    const fieldWidthClass = getIntegrationChainFieldWidthClass(step);
+
+                    return (
+                        <Fragment key={`${step.key}-label`}>
+                            {index > 0 && <PathSeparatorLabelSpacer />}
+                            <div className={cn(fieldWidthClass, 'shrink-0')}>
+                                <span className="text-xs font-medium text-gray-700">{step.label}</span>
+                            </div>
+                        </Fragment>
+                    );
+                })}
+            </div>
+            <div className="flex flex-wrap items-center gap-x-1 gap-y-1">
+                {steps.map((step, index) => {
+                    const fieldWidthClass = getIntegrationChainFieldWidthClass(step);
+
+                    return (
+                        <Fragment key={step.key}>
+                            {index > 0 && <PathSeparator />}
+                            <div className={cn(fieldWidthClass, 'shrink-0')}>
+                                <ComboboxInput
+                                    options={step.options}
+                                    value={step.value ?? ''}
+                                    placeholder={step.placeholder || Craft.t('formie', 'Select…')}
+                                    emptyMessage={Craft.t('formie', 'No options found.')}
+                                    disabled={step.disabled}
+                                    className="w-full"
+                                    contentClassName={CHAIN_DROPDOWN_CONTENT_CLASS}
+                                    onValueChange={step.onChange}
+                                />
+                                {step.errorMessage ? (
+                                    <p className="mt-1 text-xs text-red-600">{step.errorMessage}</p>
+                                ) : null}
+                            </div>
+                        </Fragment>
+                    );
+                })}
+            </div>
+        </div>
+    );
+}
+
+function IntegrationChainSkeleton({ message }) {
+    const skeletonWidths = ['w-40', 'w-36', 'w-32'];
+
+    return (
+        <div className="flex flex-wrap items-center gap-x-1 gap-y-2">
+            {skeletonWidths.map((widthClass, index) => (
+                <Fragment key={widthClass}>
+                    {index > 0 && <PathSeparator />}
+                    <InlineSelectSkeleton className={cn('h-9', widthClass)} />
+                </Fragment>
+            ))}
+            <span className="flex items-center gap-1.5 text-xs text-gray-500">
+                <Spinner size="xxs" className="mx-0" />
+                {message}
+            </span>
+        </div>
+    );
+}
+
+function InlineSelectSkeleton({ className }) {
+    return (
+        <div
+            className={cn(
+                'h-9 animate-pulse rounded-sm bg-[rgba(96,125,159,0.15)]',
+                className,
+            )}
+        />
+    );
+}
+
+function PreviewOptionChip({ children, muted = false }) {
+    return (
+        <span
+            className={cn(
+                'inline-flex max-w-full items-center truncate rounded-full border px-2 py-0.5 text-xs',
+                muted
+                    ? 'border-[rgba(96,125,159,0.25)] bg-[rgba(96,125,159,0.08)] text-gray-600'
+                    : 'border-[rgba(96,125,159,0.3)] bg-white text-gray-800',
+            )}
+        >
+            {children}
+        </span>
+    );
+}
+
+function PreviewOptionIndicator({ displayType, compact = false }) {
+    const normalizedType = String(displayType || '');
+    const sizeClass = compact ? 'size-2.5' : 'size-3';
+
+    if (normalizedType === 'checkboxes') {
+        return (
+            <span
+                className={cn(
+                    'mt-px shrink-0 rounded-[2px] border border-[rgba(96,125,159,0.45)] bg-white',
+                    sizeClass,
+                )}
+                aria-hidden="true"
+            />
+        );
+    }
+
+    if (normalizedType === 'radio') {
+        return (
+            <span
+                className={cn(
+                    'mt-px shrink-0 rounded-full border border-[rgba(96,125,159,0.45)] bg-white',
+                    sizeClass,
+                )}
+                aria-hidden="true"
+            />
+        );
+    }
+
+    return null;
+}
+
+function formatPreviewRowLabel(row, { showValues = true } = {}) {
+    const label = String(row?.label ?? '');
+    const value = String(row?.value ?? '');
+
+    return showValues && value !== '' && value !== label ? `${label} (${value})` : label;
+}
+
+function PredefinedMappingPopover({
+    labelKey,
+    valueKey,
+    labelOptions,
+    valueOptions,
+    disabled,
+    onLabelChange,
+    onValueChange,
+}) {
+    return (
+        <Popover modal={false}>
+            <PopoverTrigger
+                render={(
+                    <Button type="button" variant="ghost" size="sm">
+                        <FontAwesomeIcon icon={faSliders} className="mr-1" />
+                        {Craft.t('formie', 'Mapping')}
+                    </Button>
+                )}
+            />
+            <PopoverContent align="end" className="w-[min(92vw,320px)] space-y-3 p-4">
+                <div className="space-y-1">
+                    <p className="text-sm font-medium text-gray-800">
+                        {Craft.t('formie', 'Label & value mapping')}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                        {Craft.t('formie', 'Choose which source fields are used for option labels and stored values.')}
+                    </p>
+                </div>
+                <div className="space-y-3">
+                    <div className="space-y-1">
+                        <label className="text-xs font-medium text-gray-700">
+                            {Craft.t('formie', 'Option Label')}
+                        </label>
+                        <SelectInput
+                            options={labelOptions}
+                            value={labelKey}
+                            placeholder={Craft.t('formie', 'Label')}
+                            disabled={disabled}
+                            triggerClassName="w-full"
+                            onChange={onLabelChange}
+                        />
+                        <p className="text-xs text-gray-500">
+                            {Craft.t('formie', 'Shown to users in the field.')}
+                        </p>
+                    </div>
+                    <div className="space-y-1">
+                        <label className="text-xs font-medium text-gray-700">
+                            {Craft.t('formie', 'Option Value')}
+                        </label>
+                        <SelectInput
+                            options={valueOptions}
+                            value={valueKey}
+                            placeholder={Craft.t('formie', 'Value')}
+                            disabled={disabled}
+                            triggerClassName="w-full"
+                            onChange={onValueChange}
+                        />
+                        <p className="text-xs text-gray-500">
+                            {Craft.t('formie', 'Stored when the option is submitted.')}
+                        </p>
+                    </div>
+                </div>
+            </PopoverContent>
+        </Popover>
+    );
+}
+
+function DynamicOptionsPreview({
+    rows,
+    totalCount,
+    displayType,
+    loading,
+    loadingMessage,
+    placeholder,
+    previewError,
+    expanded,
+    onExpandedChange,
+    sourceType,
+    busy,
+    loadingIntegrationConfig,
+    controlsLoading = false,
+    selectedIntegrationHandle,
+    onRefreshPreview,
+    onRefreshIntegrationData,
+    onConvertClick,
+    showValuesInPreview = true,
+    mappingSettings = null,
+}) {
+    const count = typeof totalCount === 'number' ? totalCount : rows.length;
+    const summaryRows = rows.slice(0, PREVIEW_SUMMARY_CHIP_LIMIT);
+    const remainingCount = Math.max(0, count - summaryRows.length);
+    const expandedRows = rows.slice(0, PREVIEW_LIMIT);
+    const expandedOverflow = count > PREVIEW_LIMIT ? count - PREVIEW_LIMIT : 0;
+    const showSummary = !expanded;
+
+    return (
+        <div className="rounded-sm border border-[rgba(96,125,159,0.25)] bg-[rgba(96,125,159,0.03)]">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[rgba(96,125,159,0.2)] px-3 py-2">
+                <div className="text-sm font-medium text-gray-800">
+                    {Craft.t('formie', 'Preview')}
+                    {count > 0 && (
+                        <span className="ml-2 font-normal text-gray-500">
+                            ({Craft.t('formie', '{count} options', { count })})
+                        </span>
+                    )}
+                </div>
+                <div className="flex flex-wrap items-center gap-1">
+                    {mappingSettings && (
+                        <PredefinedMappingPopover
+                            labelKey={mappingSettings.labelKey}
+                            valueKey={mappingSettings.valueKey}
+                            labelOptions={mappingSettings.labelOptions}
+                            valueOptions={mappingSettings.valueOptions}
+                            disabled={mappingSettings.disabled}
+                            onLabelChange={mappingSettings.onLabelChange}
+                            onValueChange={mappingSettings.onValueChange}
+                        />
+                    )}
+                    {sourceType === 'integration' && (
+                        <DropdownMenu size="sm">
+                            <DropdownMenuTrigger
+                                render={(
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        disabled={busy || loadingIntegrationConfig}
+                                    />
+                                )}
+                            >
+                                <FontAwesomeIcon icon={faArrowsRotate} className="mr-1" />
+                                {Craft.t('formie', 'Refresh')}
+                                <FontAwesomeIcon icon={faChevronDown} className="ml-1" />
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem
+                                    disabled={busy || loadingIntegrationConfig}
+                                    onClick={onRefreshPreview}
+                                >
+                                    <FontAwesomeIcon icon={faArrowsRotate} />
+                                    {Craft.t('formie', 'Refresh Preview')}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                    disabled={busy || loadingIntegrationConfig || !selectedIntegrationHandle}
+                                    onClick={onRefreshIntegrationData}
+                                >
+                                    <FontAwesomeIcon icon={faArrowsRotate} />
+                                    {Craft.t('formie', 'Refresh Integration Data')}
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    )}
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        disabled={busy || loadingIntegrationConfig || controlsLoading}
+                        onClick={onConvertClick}
+                    >
+                        <FontAwesomeIcon icon={faLinkSlash} className="mr-1" />
+                        {Craft.t('formie', 'Convert')}
+                    </Button>
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        aria-expanded={expanded}
+                        onClick={() => { onExpandedChange(!expanded); }}
+                    >
+                        {expanded ? (
+                            <>
+                                <FontAwesomeIcon icon={faChevronUp} className="mr-1" />
+                                {Craft.t('formie', 'Collapse')}
+                            </>
+                        ) : (
+                            <>
+                                <FontAwesomeIcon icon={faChevronDown} className="mr-1" />
+                                {Craft.t('formie', 'Expand')}
+                            </>
+                        )}
+                    </Button>
+                </div>
+            </div>
+
+            {showSummary && (
+                <div className="px-3 py-2">
+                    {loading ? (
+                        <div className="flex flex-wrap gap-1.5">
+                            {Array.from({ length: 4 }).map((_, index) => (
+                                <InlineSelectSkeleton key={index} className="h-5 w-20 rounded-full" />
+                            ))}
+                            <span className="flex items-center gap-1.5 text-xs text-gray-500">
+                                <Spinner size="xxs" className="mx-0" />
+                                {loadingMessage}
+                            </span>
+                        </div>
+                    ) : rows.length > 0 ? (
+                        <div className="flex flex-wrap items-center gap-1">
+                            {summaryRows.map((row, index) => (
+                                <PreviewOptionChip key={`${index}-${row.label}-${row.value}`}>
+                                    {formatPreviewRowLabel(row, { showValues: showValuesInPreview })}
+                                </PreviewOptionChip>
+                            ))}
+                            {remainingCount > 0 && (
+                                <PreviewOptionChip muted>
+                                    {Craft.t('formie', '+{count} more', { count: remainingCount })}
+                                </PreviewOptionChip>
+                            )}
+                        </div>
+                    ) : (
+                        <p className="text-sm text-gray-500">{placeholder}</p>
+                    )}
+
+                    {previewError && (
+                        <p className="mt-2 text-sm text-red-600">{previewError}</p>
+                    )}
+                </div>
+            )}
+
+            {expanded && (
+                <div className={cn('px-3 py-2', showSummary && 'border-t border-[rgba(96,125,159,0.2)]')}>
+                    {loading ? (
+                        <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                            <Spinner size="xxs" className="mx-0" />
+                            {loadingMessage}
+                        </div>
+                    ) : rows.length > 0 ? (
+                        <div
+                            className="max-h-[180px] overflow-y-auto rounded-sm border border-[rgba(96,125,159,0.2)] bg-white px-1 py-0.5"
+                            role="list"
+                            aria-label={Craft.t('formie', 'Expanded option preview')}
+                        >
+                            {expandedRows.map((row, index) => (
+                                <div
+                                    key={`expanded-${index}-${row.label}-${row.value}`}
+                                    className="flex items-center gap-1.5 px-1.5 py-0.5 text-xs leading-tight text-gray-800"
+                                    role="listitem"
+                                >
+                                    <PreviewOptionIndicator displayType={displayType} compact />
+                                    <span className="min-w-0 truncate">
+                                        {formatPreviewRowLabel(row, { showValues: showValuesInPreview })}
+                                    </span>
+                                </div>
+                            ))}
+                            {expandedOverflow > 0 && (
+                                <p className="px-1.5 py-0.5 text-[11px] text-gray-500">
+                                    {Craft.t('formie', '… and {count} more', { count: expandedOverflow })}
+                                </p>
+                            )}
+                        </div>
+                    ) : (
+                        <p className="text-sm text-gray-500">{placeholder}</p>
+                    )}
+
+                    {previewError && (
+                        <p className="mt-2 text-sm text-red-600">{previewError}</p>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+}
+
+function ConvertToStaticDialog({
+    open,
+    onOpenChange,
+    sourceLabel,
+    busy,
+    onConfirm,
+}) {
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent className="max-w-md">
+                <DialogHeader>
+                    <DialogTitle>{Craft.t('formie', 'Convert to static options?')}</DialogTitle>
+                </DialogHeader>
+                <div className="px-4 py-4 text-sm leading-relaxed text-gray-600">
+                    {Craft.t(
+                        'formie',
+                        'This will resolve the current source and copy all options into the static options table. The field will no longer update from {source}.',
+                        { source: sourceLabel || Craft.t('formie', 'this source') },
+                    )}
+                </div>
+                <DialogFooter className="gap-2 sm:justify-end">
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        disabled={busy}
+                        onClick={() => { onOpenChange(false); }}
+                    >
+                        {Craft.t('formie', 'Cancel')}
+                    </Button>
+                    <Button
+                        type="button"
+                        variant="primary"
+                        disabled={busy}
+                        onClick={onConfirm}
+                    >
+                        <FontAwesomeIcon icon={faLinkSlash} className="mr-1" />
+                        {Craft.t('formie', 'Convert')}
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
+function isSimplePredefinedData(data) {
+    if (!Array.isArray(data) || data.length === 0) {
+        return false;
+    }
+
+    return data.every((item) => typeof item === 'string' || typeof item === 'number');
+}
+
+function normalizePredefinedPreviewRows(data, labelKey, valueKey) {
+    if (!Array.isArray(data)) {
+        return [];
+    }
+
+    if (isSimplePredefinedData(data)) {
+        return data
+            .map((item) => {
+                const text = String(item ?? '').trim();
+
+                if (!text) {
+                    return null;
+                }
+
+                return { label: text, value: text };
+            })
+            .filter(Boolean);
+    }
+
+    if (!labelKey || !valueKey) {
+        return [];
+    }
+
+    return data
+        .map((item) => ({
+            label: String(item?.[labelKey] ?? ''),
+            value: String(item?.[valueKey] ?? ''),
+        }))
+        .filter((row) => row.label !== '' || row.value !== '');
 }
 
 function formatPreviewRows(rows, { showValues = true } = {}) {
@@ -68,17 +645,6 @@ function formatPreviewRows(rows, { showValues = true } = {}) {
     }).join('\n') + suffix;
 }
 
-function LoadingOptionControls({ message }) {
-    return (
-        <div className="rounded-sm border border-[rgba(96,125,159,0.25)] bg-[rgba(96,125,159,0.04)] px-3 py-4">
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-                <Spinner size="xs" className="mx-0" />
-                <span>{message}</span>
-            </div>
-        </div>
-    );
-}
-
 function isSameFormValue(a, b) {
     try {
         return JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
@@ -87,77 +653,18 @@ function isSameFormValue(a, b) {
     }
 }
 
-function OptionPreviewPanel({
-    value,
-    placeholder,
-    loading = false,
-    loadingMessage = Craft.t('formie', 'Loading options…'),
-}) {
-    const hasValue = String(value || '').trim() !== '';
-    const lines = hasValue ? String(value).split('\n') : [loading ? loadingMessage : placeholder];
-
-    return (
-        <div
-            style={{
-                minHeight: '260px',
-                position: 'relative',
-            }}
-        >
-            <div
-                style={{
-                    minHeight: '260px',
-                    maxHeight: '260px',
-                    overflowY: 'auto',
-                    width: '100%',
-                    border: '1px solid rgba(96, 125, 159, 0.4)',
-                    borderRadius: '3px',
-                    background: 'rgb(251, 252, 254)',
-                    color: hasValue ? 'rgb(31, 41, 51)' : '#7c8793',
-                    fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
-                    fontSize: '12px',
-                    lineHeight: '18px',
-                    padding: '6px 8px',
-                    boxSizing: 'border-box',
-                }}
-                aria-readonly="true"
-                aria-label={Craft.t('formie', 'Preview')}
-                tabIndex={0}
-            >
-                {lines.map((line, index) => (
-                    <div key={`${index}-${line}`}>
-                        {line || '\u00a0'}
-                    </div>
-                ))}
-            </div>
-
-            {loading && (
-                <div
-                    className="pointer-events-none flex items-center gap-2 text-xs text-gray-600"
-                    style={{
-                        position: 'absolute',
-                        right: '8px',
-                        top: '8px',
-                        borderRadius: '3px',
-                        background: 'rgba(255, 255, 255, 0.8)',
-                        padding: '4px',
-                    }}
-                >
-                    <Spinner size="xs" className="mx-0" />
-                    <span>{Craft.t('formie', 'Loading')}</span>
-                </div>
-            )}
-        </div>
-    );
-}
-
 function OptionDynamicSettingsField({ field, form }) {
     const { value: optionsMode, setValue: setOptionsMode } = useEngineField(form, 'optionsMode');
+    const { value: displayType } = useEngineField(form, 'displayType');
     const { value: optionSource, setValue: setOptionSourceValue } = useEngineField(form, 'optionSource');
     const { value: optionsValue, setValue: setOptionsValue } = useEngineField(form, 'options');
     const [busy, setBusy] = useState(false);
     const [previewError, setPreviewError] = useState(null);
     const [previewText, setPreviewText] = useState('');
     const [previewTotal, setPreviewTotal] = useState(null);
+    const [integrationPreviewRows, setIntegrationPreviewRows] = useState([]);
+    const [previewExpanded, setPreviewExpanded] = useState(() => readPreviewExpandedPreference());
+    const [convertDialogOpen, setConvertDialogOpen] = useState(false);
     const [predefinedConfig, setPredefinedConfig] = useState(null);
     const [predefinedConfigProvider, setPredefinedConfigProvider] = useState(null);
     const [loadingPredefinedConfig, setLoadingPredefinedConfig] = useState(false);
@@ -412,21 +919,23 @@ function OptionDynamicSettingsField({ field, form }) {
         optionSource: resolvedOptionSourceForPayload,
     }), [form, resolvedOptionSourceForPayload]);
 
+    const isSimplePredefinedList = useMemo(
+        () => isSimplePredefinedData(currentPredefinedConfig?.data),
+        [currentPredefinedConfig?.data],
+    );
+
     const predefinedPreviewRows = useMemo(() => {
         if (!isDynamic || sourceType !== 'predefined' || !hasCurrentPredefinedConfig) {
             return [];
         }
 
-        if (!currentPredefinedConfig?.data?.length || !effectiveLabelKey || !effectiveValueKey) {
+        const data = currentPredefinedConfig?.data;
+
+        if (!Array.isArray(data) || data.length === 0) {
             return [];
         }
 
-        return currentPredefinedConfig.data
-            .map((item) => ({
-                label: String(item?.[effectiveLabelKey] ?? ''),
-                value: String(item?.[effectiveValueKey] ?? ''),
-            }))
-            .filter((row) => row.label !== '' || row.value !== '');
+        return normalizePredefinedPreviewRows(data, effectiveLabelKey, effectiveValueKey);
     }, [
         effectiveLabelKey,
         effectiveValueKey,
@@ -446,12 +955,12 @@ function OptionDynamicSettingsField({ field, form }) {
         }
     }, [form, predefinedPreviewRows, sourceType]);
 
-    const displayPreviewText = sourceType === 'predefined'
-        ? formatPreviewRows(predefinedPreviewRows)
-        : previewText;
+    const displayPreviewRows = sourceType === 'predefined'
+        ? predefinedPreviewRows
+        : integrationPreviewRows;
     const displayPreviewCount = sourceType === 'predefined'
         ? predefinedPreviewRows.length
-        : previewTotal;
+        : (typeof previewTotal === 'number' ? previewTotal : integrationPreviewRows.length);
     const predefinedProviderLabel = predefinedProviders.find(
         (option) => String(option.value) === String(predefinedProvider),
     )?.label || predefinedProvider;
@@ -461,11 +970,13 @@ function OptionDynamicSettingsField({ field, form }) {
     const refreshingCurrentPredefinedConfig = sourceType === 'predefined'
         && loadingPredefinedConfig
         && hasCurrentPredefinedConfig;
+    const predefinedHasConfigurableKeys = labelOptions.length > 0;
     const predefinedControlsReady = sourceType === 'predefined'
         && hasCurrentPredefinedConfig
-        && labelOptions.length > 0
-        && effectiveLabelKey
-        && effectiveValueKey;
+        && (
+            isSimplePredefinedList
+            || (predefinedHasConfigurableKeys && effectiveLabelKey && effectiveValueKey)
+        );
     const loadingIntegrationConfig = loadingIntegrationList || loadingIntegrationDetails || refreshingIntegrationData;
     const loadingIntegrationPreview = sourceType === 'integration'
         && (
@@ -476,6 +987,26 @@ function OptionDynamicSettingsField({ field, form }) {
         && loadingIntegrationDetails
         && hasCurrentIntegrationDetails;
     const initialIntegrationSetupPending = sourceType === 'integration' && integrationSetupPending;
+
+    useEffect(() => {
+        writePreviewExpandedPreference(previewExpanded);
+    }, [previewExpanded]);
+
+    const isIntegrationParamInvalid = useCallback((paramField) => {
+        if (!integrationId || loadingIntegrationDetails) {
+            return false;
+        }
+
+        if (paramField?.required === false) {
+            return false;
+        }
+
+        const handle = String(paramField?.handle || '');
+        const value = String(integrationParamValues[handle] ?? '');
+        const options = getIntegrationParamOptions(paramField);
+
+        return options.length > 0 && !value;
+    }, [getIntegrationParamOptions, integrationId, integrationParamValues, loadingIntegrationDetails]);
 
     useEffect(() => {
         if (!isDynamic || sourceType !== 'predefined' || !predefinedProvider) {
@@ -785,6 +1316,7 @@ function OptionDynamicSettingsField({ field, form }) {
             if (form) {
                 form.__formiePreviewOptions = [];
             }
+            setIntegrationPreviewRows([]);
             setPreviewText('');
             setPreviewTotal(null);
             setPreviewError(null);
@@ -825,6 +1357,10 @@ function OptionDynamicSettingsField({ field, form }) {
                 form.__formiePreviewOptions = rows;
             }
 
+            setIntegrationPreviewRows(rows.map((row) => ({
+                label: String(row?.label ?? ''),
+                value: String(row?.value ?? ''),
+            })));
             setPreviewText(formatPreviewRows(rows, {
                 showValues: sourceType !== 'integration',
             }));
@@ -835,6 +1371,7 @@ function OptionDynamicSettingsField({ field, form }) {
             }
 
             setPreviewError(error?.message || Craft.t('formie', 'Unable to resolve dynamic options.'));
+            setIntegrationPreviewRows([]);
             setPreviewText('');
             setPreviewTotal(null);
         } finally {
@@ -866,6 +1403,7 @@ function OptionDynamicSettingsField({ field, form }) {
             if (form) {
                 form.__formiePreviewOptions = [];
             }
+            setIntegrationPreviewRows([]);
             setPreviewText('');
             setPreviewTotal(null);
             setPreviewError(null);
@@ -1141,8 +1679,10 @@ function OptionDynamicSettingsField({ field, form }) {
             staticOptionsBackupRef.current = nextOptions;
             setOptionsModeIfChanged('static');
             setOptionSource(null);
+            setIntegrationPreviewRows([]);
             setPreviewText('');
             setPreviewTotal(null);
+            setConvertDialogOpen(false);
         } catch (error) {
             setPreviewError(error?.message || Craft.t('formie', 'Unable to convert to static options.'));
         } finally {
@@ -1182,12 +1722,132 @@ function OptionDynamicSettingsField({ field, form }) {
         });
     }
 
+    const isLikertColumns = String(displayType || '') === 'likert';
+    const optionsFieldLabel = isLikertColumns
+        ? Craft.t('formie', 'Columns')
+        : (field.label || Craft.t('formie', 'Options'));
+    const optionsFieldInstructions = isLikertColumns
+        ? Craft.t('formie', 'Define the available scale columns users can select from.')
+        : (field.instructions || Craft.t('formie', 'Define the available options for users to select from.'));
+
+    const convertSourceLabel = sourceType === 'integration'
+        ? selectedIntegrationLabel
+        : predefinedProviderLabel;
+
+    const previewLoading = sourceType === 'predefined'
+        ? loadingPredefinedConfig && displayPreviewRows.length === 0
+        : (busy || loadingIntegrationPreview);
+
+    const previewLoadingMessage = sourceType === 'predefined'
+        ? Craft.t('formie', 'Loading options for {name}…', { name: predefinedProviderLabel })
+        : Craft.t('formie', 'Loading options for {name}…', { name: selectedIntegrationLabel || Craft.t('formie', 'integration') });
+
+    const previewPlaceholder = sourceType === 'integration' && !integrationConfigComplete
+        ? (integrationConfig?.warning || Craft.t('formie', 'Complete the integration settings to preview options.'))
+        : Craft.t('formie', 'Resolved options will appear here.');
+
+    const integrationChainSteps = useMemo(() => {
+        if (sourceType !== 'integration') {
+            return [];
+        }
+
+        const steps = [{
+            key: 'integration',
+            name: 'integrationIntegration',
+            label: Craft.t('formie', 'Integration'),
+            placeholder: Craft.t('formie', 'Select an integration'),
+            value: integrationSelectValue,
+            options: integrationOptions,
+            disabled: loadingIntegrationList && !integrationSelectValue,
+            onChange: handleIntegrationChange,
+            isInvalid: Boolean(integrationConfigError && !integrationId),
+            errorMessage: integrationConfigError && !integrationId ? integrationConfigError : '',
+        }];
+
+        if (integrationProviderOptions.length > 1 && integrationId) {
+            steps.push({
+                key: 'provider',
+                name: 'integrationProvider',
+                label: Craft.t('formie', 'Source'),
+                placeholder: Craft.t('formie', 'Select a source'),
+                value: integrationProviderSelectValue,
+                options: integrationProviderOptions,
+                disabled: loadingIntegrationDetails,
+                onChange: handleIntegrationProviderChange,
+                isInvalid: Boolean(integrationConfigError && integrationId && !integrationProviderSelectValue),
+                errorMessage: integrationConfigError && integrationId && !integrationProviderSelectValue
+                    ? integrationConfigError
+                    : '',
+            });
+        }
+
+        if (hasCurrentIntegrationDetails && integrationId) {
+            integrationParamFields.forEach((paramField) => {
+                const handle = String(paramField?.handle || '');
+                const options = getIntegrationParamOptions(paramField);
+                const value = resolveSelectValue(
+                    integrationParamValues[handle],
+                    options,
+                );
+
+                if (!handle || String(paramField?.type || 'select') !== 'select') {
+                    return;
+                }
+
+                if (options.length === 0 && paramField?.hideWhenEmpty !== false) {
+                    return;
+                }
+
+                const paramInvalid = isIntegrationParamInvalid(paramField);
+
+                steps.push({
+                    key: handle,
+                    name: `integrationParam-${handle}`,
+                    label: paramField.label || handle,
+                    placeholder: paramField.placeholder || Craft.t('formie', 'Select…'),
+                    value,
+                    options,
+                    disabled: loadingIntegrationDetails,
+                    onChange: (nextValue) => handleIntegrationParamChange(paramField, nextValue),
+                    isInvalid: paramInvalid,
+                    errorMessage: paramInvalid
+                        ? Craft.t('formie', 'Select a {name}.', { name: (paramField.label || handle).toLowerCase() })
+                        : '',
+                });
+            });
+        }
+
+        return steps;
+    }, [
+        getIntegrationParamOptions,
+        handleIntegrationChange,
+        handleIntegrationParamChange,
+        handleIntegrationProviderChange,
+        hasCurrentIntegrationDetails,
+        integrationConfigError,
+        integrationId,
+        integrationOptions,
+        integrationParamFields,
+        integrationParamValues,
+        integrationProviderOptions.length,
+        integrationProviderSelectValue,
+        integrationSelectValue,
+        isIntegrationParamInvalid,
+        loadingIntegrationDetails,
+        loadingIntegrationList,
+        resolveSelectValue,
+        sourceType,
+    ]);
+
+    const showIntegrationChainSkeleton = initialIntegrationSetupPending
+        || (loadingIntegrationList && integrationOptions.length === 0 && !integrationId);
+
     return (
         <div className="space-y-4">
                 <SettingSelectField
                     name="optionsType"
-                    label={field.label || Craft.t('formie', 'Options')}
-                    instructions={field.instructions || Craft.t('formie', 'Define the available options for users to select from.')}
+                    label={optionsFieldLabel}
+                    instructions={optionsFieldInstructions}
                     value={optionsType}
                     options={optionsTypeOptions}
                     onChange={handleOptionsTypeChange}
@@ -1200,258 +1860,123 @@ function OptionDynamicSettingsField({ field, form }) {
                 )}
 
                 {isDynamic && (
-                    <>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-4">
-                                {sourceType === 'predefined' && (
-                                    <>
-                                        <SettingSelectField
-                                            name="predefinedOptionsProvider"
-                                            label={Craft.t('formie', 'List')}
-                                            instructions={Craft.t('formie', 'Select which predefined option set to use.')}
-                                            value={predefinedProvider}
-                                            options={predefinedProviders}
-                                            onChange={handlePredefinedProviderChange}
-                                        />
+                    <div className="space-y-3">
+                        {sourceType === 'predefined' && (
+                            <div className="space-y-2">
+                                <SettingSelectField
+                                    name="predefinedOptionsProvider"
+                                    label={Craft.t('formie', 'List')}
+                                    instructions={Craft.t('formie', 'Select which predefined option set to use.')}
+                                    value={predefinedProvider}
+                                    options={predefinedProviders}
+                                    placeholder={Craft.t('formie', 'Select a list')}
+                                    useCombobox
+                                    disabled={loadingCurrentPredefinedConfig}
+                                    onChange={handlePredefinedProviderChange}
+                                />
 
-                                        {loadingCurrentPredefinedConfig && (
-                                            <LoadingOptionControls
-                                                message={Craft.t('formie', 'Loading fields for {name}…', { name: predefinedProviderLabel })}
-                                            />
-                                        )}
-
-                                        {predefinedControlsReady && (
-                                            <>
-                                                <SettingSelectField
-                                                    name="predefinedOptionLabel"
-                                                    label={Craft.t('formie', 'Option Label')}
-                                                    instructions={Craft.t('formie', 'Choose which source field is used as the label.')}
-                                                    value={effectiveLabelKey}
-                                                    options={labelOptions}
-                                                    disabled={loadingPredefinedConfig}
-                                                    onChange={(nextLabelKey) => updateParams({ labelKey: nextLabelKey })}
-                                                />
-                                                <SettingSelectField
-                                                    name="predefinedOptionValue"
-                                                    label={Craft.t('formie', 'Option Value')}
-                                                    instructions={Craft.t('formie', 'Choose which source field is used as the value.')}
-                                                    value={effectiveValueKey}
-                                                    options={valueOptions}
-                                                    disabled={loadingPredefinedConfig}
-                                                    onChange={(nextValueKey) => updateParams({ valueKey: nextValueKey })}
-                                                />
-                                                {refreshingCurrentPredefinedConfig && (
-                                                    <div className="flex items-center gap-2 text-xs text-gray-500">
-                                                        <Spinner size="xxs" className="mx-0" />
-                                                        <span>{Craft.t('formie', 'Refreshing {name} options…', { name: predefinedProviderLabel })}</span>
-                                                    </div>
-                                                )}
-                                            </>
-                                        )}
-                                    </>
+                                {predefinedControlsReady && refreshingCurrentPredefinedConfig && (
+                                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                                        <Spinner size="xxs" className="mx-0" />
+                                        <span>{Craft.t('formie', 'Refreshing {name} options…', { name: predefinedProviderLabel })}</span>
+                                    </div>
                                 )}
-
-                                {sourceType === 'integration' && (
-                                    <>
-                                        {initialIntegrationSetupPending ? (
-                                            <LoadingOptionControls
-                                                message={
-                                                    integrationOptions.length === 0
-                                                        ? Craft.t('formie', 'Loading integrations…')
-                                                        : Craft.t('formie', 'Preparing options for {name}…', { name: selectedIntegrationLabel || Craft.t('formie', 'integration') })
-                                                }
-                                            />
-                                        ) : (
-                                            <>
-                                                {loadingIntegrationList && integrationOptions.length === 0 && !integrationId ? (
-                                                    <LoadingOptionControls
-                                                        message={Craft.t('formie', 'Loading integrations…')}
-                                                    />
-                                                ) : (
-                                                    <SettingSelectField
-                                                        name="integrationIntegration"
-                                                        label={Craft.t('formie', 'Integration')}
-                                                        instructions={Craft.t('formie', 'Choose the connected integration to pull options from.')}
-                                                        value={integrationSelectValue}
-                                                        options={integrationOptions}
-                                                        placeholder={Craft.t('formie', 'Select an integration')}
-                                                        disabled={loadingIntegrationList && !integrationSelectValue}
-                                                        onChange={handleIntegrationChange}
-                                                    />
-                                                )}
-
-                                                {integrationProviderOptions.length > 1 && integrationId && (
-                                                    <SettingSelectField
-                                                        name="integrationProvider"
-                                                        label={Craft.t('formie', 'Source')}
-                                                        instructions={Craft.t('formie', 'Choose which integration data supplies the options.')}
-                                                        value={integrationProviderSelectValue}
-                                                        options={integrationProviderOptions}
-                                                        placeholder={Craft.t('formie', 'Select a source')}
-                                                        disabled={loadingIntegrationDetails}
-                                                        onChange={handleIntegrationProviderChange}
-                                                    />
-                                                )}
-
-                                                {integrationConfigError && !loadingIntegrationConfig && (
-                                                    <p className="text-sm text-red-600">{integrationConfigError}</p>
-                                                )}
-
-                                                {hasCurrentIntegrationDetails && (
-                                                    <>
-                                                        {integrationId && integrationParamFields.map((paramField) => {
-                                                            const handle = String(paramField?.handle || '');
-                                                            const options = getIntegrationParamOptions(paramField);
-                                                            const value = resolveSelectValue(
-                                                                integrationParamValues[handle],
-                                                                options,
-                                                            );
-
-                                                            if (!handle || String(paramField?.type || 'select') !== 'select') {
-                                                                return null;
-                                                            }
-
-                                                            if (options.length === 0 && paramField?.hideWhenEmpty !== false) {
-                                                                return null;
-                                                            }
-
-                                                            return (
-                                                                <SettingSelectField
-                                                                    key={handle}
-                                                                    name={`integrationParam-${handle}`}
-                                                                    label={paramField.label || handle}
-                                                                    instructions={paramField.instructions || ''}
-                                                                    value={value}
-                                                                    options={options}
-                                                                    placeholder={paramField.placeholder || Craft.t('formie', 'Select an option')}
-                                                                    disabled={loadingIntegrationDetails}
-                                                                    onChange={(nextValue) => handleIntegrationParamChange(paramField, nextValue)}
-                                                                />
-                                                            );
-                                                        })}
-
-                                                        {refreshingIntegrationDetails && (
-                                                            <div className="flex items-center gap-2 text-xs text-gray-500">
-                                                                <Spinner size="xxs" className="mx-0" />
-                                                                <span>{Craft.t('formie', 'Refreshing {name} options…', { name: selectedIntegrationLabel })}</span>
-                                                            </div>
-                                                        )}
-                                                    </>
-                                                )}
-
-                                                {!loadingIntegrationList && integrationOptions.length === 0 && !integrationId && (
-                                                    <p className="text-sm text-amber-700">
-                                                        {Craft.t('formie', 'No enabled integrations are available for dynamic options.')}
-                                                    </p>
-                                                )}
-
-                                                {integrationConfig?.warning && !loadingIntegrationDetails && (
-                                                    <p className="text-sm text-amber-700">{integrationConfig.warning}</p>
-                                                )}
-                                            </>
-                                        )}
-                                    </>
-                                )}
-
-                                <div className="border-t border-[rgba(96,125,159,0.25)] pt-4">
-                                    <FieldRoot name="convertToStaticOptions">
-                                        <FieldHeader className="space-y-0.5">
-                                            <FieldLabel>{Craft.t('formie', 'Convert to Static Options')}</FieldLabel>
-                                            <FieldInstructions>
-                                                {Craft.t('formie', 'Resolve the current source and copy the options into the static options table.')}
-                                            </FieldInstructions>
-                                        </FieldHeader>
-                                        <FieldControl>
-                                            <Button
-                                                type="button"
-                                                variant="default"
-                                                disabled={busy || loadingPredefinedConfig || loadingIntegrationConfig}
-                                                onClick={handleConvertToStatic}
-                                            >
-                                                <FontAwesomeIcon icon={faLinkSlash} className="mr-1" />
-                                                {Craft.t('formie', 'Convert')}
-                                            </Button>
-                                        </FieldControl>
-                                    </FieldRoot>
-                                </div>
                             </div>
+                        )}
 
-                            <div className="flex min-h-[260px] flex-col">
-                                <FieldRoot name="dynamicOptionsPreview">
+                        {sourceType === 'integration' && (
+                            <div className="space-y-2">
+                                <FieldRoot name="integrationSourceSettings">
                                     <FieldHeader className="space-y-0.5">
-                                        <div className="flex items-center justify-between gap-2">
-                                            <FieldLabel>
-                                                {Craft.t('formie', 'Preview')}
-                                                {displayPreviewCount > 0 && (
-                                                    <span className="ml-2 font-normal text-gray-500">
-                                                        ({Craft.t('formie', '{count} options', { count: displayPreviewCount })})
-                                                    </span>
-                                                )}
-                                            </FieldLabel>
-                                            {sourceType === 'integration' && (
-                                                <DropdownMenu size="sm">
-                                                    <DropdownMenuTrigger
-                                                        render={(
-                                                            <Button
-                                                                type="button"
-                                                                variant="ghost"
-                                                                size="sm"
-                                                                disabled={busy || loadingIntegrationConfig}
-                                                            />
-                                                        )}
-                                                    >
-                                                        <FontAwesomeIcon icon={faArrowsRotate} className="mr-1" />
-                                                        {Craft.t('formie', 'Refresh')}
-                                                        <FontAwesomeIcon icon={faChevronDown} className="ml-1" />
-                                                    </DropdownMenuTrigger>
-                                                    <DropdownMenuContent align="end">
-                                                        <DropdownMenuItem
-                                                            disabled={busy || loadingIntegrationConfig}
-                                                            onClick={resolveDynamicPreview}
-                                                        >
-                                                            <FontAwesomeIcon icon={faArrowsRotate} />
-                                                            {Craft.t('formie', 'Refresh Preview')}
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuItem
-                                                            disabled={busy || loadingIntegrationConfig || !selectedIntegrationHandle}
-                                                            onClick={handleRefreshIntegrationData}
-                                                        >
-                                                            <FontAwesomeIcon icon={faArrowsRotate} />
-                                                            {Craft.t('formie', 'Refresh Integration Data')}
-                                                        </DropdownMenuItem>
-                                                    </DropdownMenuContent>
-                                                </DropdownMenu>
-                                            )}
-                                        </div>
+                                        <FieldLabel>{Craft.t('formie', 'Source')}</FieldLabel>
+                                        <FieldInstructions>
+                                            {Craft.t('formie', 'Choose the connected integration and settings to pull options from.')}
+                                        </FieldInstructions>
                                     </FieldHeader>
-                                    <OptionPreviewPanel
-                                        value={displayPreviewText}
-                                        loading={
-                                            busy
-                                            || (loadingPredefinedConfig && sourceType === 'predefined')
-                                            || loadingIntegrationPreview
-                                        }
-                                        loadingMessage={
-                                            sourceType === 'predefined'
-                                                ? Craft.t('formie', 'Loading options for {name}…', { name: predefinedProviderLabel })
-                                                : Craft.t('formie', 'Loading options for {name}…', { name: selectedIntegrationLabel || Craft.t('formie', 'integration') })
-                                        }
-                                        placeholder={
-                                            sourceType === 'integration' && !integrationConfigComplete
-                                                ? (
-                                                    integrationConfig?.warning
-                                                        || Craft.t('formie', 'Complete the integration settings to preview options.')
-                                                )
-                                                : Craft.t('formie', 'Resolved options will appear here.')
+                                </FieldRoot>
+                                {showIntegrationChainSkeleton ? (
+                                    <IntegrationChainSkeleton
+                                        message={
+                                            integrationOptions.length === 0
+                                                ? Craft.t('formie', 'Loading integrations…')
+                                                : Craft.t('formie', 'Preparing options for {name}…', {
+                                                    name: selectedIntegrationLabel || Craft.t('formie', 'integration'),
+                                                })
                                         }
                                     />
-                                    {previewError && (
-                                        <p className="mt-2 text-sm text-red-600">{previewError}</p>
-                                    )}
-                                </FieldRoot>
+                                ) : (
+                                    <>
+                                        <IntegrationSourceChain steps={integrationChainSteps} />
+
+                                        {integrationConfigError && !loadingIntegrationConfig && integrationId && (
+                                            <p className="text-sm text-red-600">{integrationConfigError}</p>
+                                        )}
+
+                                        {refreshingIntegrationDetails && (
+                                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                                                <Spinner size="xxs" className="mx-0" />
+                                                <span>{Craft.t('formie', 'Refreshing {name} options…', { name: selectedIntegrationLabel })}</span>
+                                            </div>
+                                        )}
+
+                                        {!loadingIntegrationList && integrationOptions.length === 0 && !integrationId && (
+                                            <p className="text-sm text-amber-700">
+                                                {Craft.t('formie', 'No enabled integrations are available for dynamic options.')}
+                                            </p>
+                                        )}
+
+                                        {integrationConfig?.warning && !loadingIntegrationDetails && (
+                                            <p className="text-sm text-amber-700">{integrationConfig.warning}</p>
+                                        )}
+                                    </>
+                                )}
                             </div>
-                        </div>
-                    </>
+                        )}
+
+                        <DynamicOptionsPreview
+                            rows={displayPreviewRows}
+                            totalCount={displayPreviewCount}
+                            displayType={displayType}
+                            loading={previewLoading}
+                            loadingMessage={previewLoadingMessage}
+                            placeholder={previewPlaceholder}
+                            previewError={previewError}
+                            expanded={previewExpanded}
+                            sourceType={sourceType}
+                            busy={busy}
+                            loadingIntegrationConfig={loadingIntegrationConfig}
+                            controlsLoading={loadingPredefinedConfig || loadingIntegrationConfig}
+                            selectedIntegrationHandle={selectedIntegrationHandle}
+                            showValuesInPreview={sourceType !== 'integration'}
+                            mappingSettings={
+                                sourceType === 'predefined'
+                                && predefinedControlsReady
+                                && predefinedHasConfigurableKeys
+                                    ? {
+                                        labelKey: effectiveLabelKey,
+                                        valueKey: effectiveValueKey,
+                                        labelOptions,
+                                        valueOptions,
+                                        disabled: loadingPredefinedConfig,
+                                        onLabelChange: (nextLabelKey) => updateParams({ labelKey: nextLabelKey }),
+                                        onValueChange: (nextValueKey) => updateParams({ valueKey: nextValueKey }),
+                                    }
+                                    : null
+                            }
+                            onExpandedChange={setPreviewExpanded}
+                            onRefreshPreview={resolveDynamicPreview}
+                            onRefreshIntegrationData={handleRefreshIntegrationData}
+                            onConvertClick={() => { setConvertDialogOpen(true); }}
+                        />
+
+                        <ConvertToStaticDialog
+                            open={convertDialogOpen}
+                            onOpenChange={setConvertDialogOpen}
+                            sourceLabel={convertSourceLabel}
+                            busy={busy}
+                            onConfirm={handleConvertToStatic}
+                        />
+                    </div>
                 )}
 
         </div>
