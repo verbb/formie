@@ -24,7 +24,7 @@
                         {# Update the namespace for the field, to include the specific block index #}
                         {% do field.setParentField(repeaterField, loop.parent.loop.index0) %}
 
-                        {% if not field.isConditionallyHidden(submission) %}
+                        {% if field.includeInEmail and not field.isConditionallyHidden(submission) %}
                             {# Re-apply the namespace, as evaluating conditions re-iterates the repeater's rows
                                on the shared inner field instances, leaving the namespace at the last row #}
                             {% do field.setParentField(repeaterField, loop.parent.loop.index0) %}

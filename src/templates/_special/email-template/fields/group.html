@@ -9,7 +9,7 @@
                     {# Update the namespace for the field #}
                     {% do field.setParentField(groupField) %}
 
-                    {% if not field.isConditionallyHidden(submission) %}
+                    {% if field.includeInEmail and not field.isConditionallyHidden(submission) %}
                         {% set fieldValue = submission.getFieldValue(field.fieldKey) ?? field.normalizeValue(field.getDefaultValue(), null) %}
 
                         {% set html = field.getEmailHtml(submission, notification, fieldValue) %}
