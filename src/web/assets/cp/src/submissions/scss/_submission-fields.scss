@@ -220,3 +220,46 @@
 #fields .fui-cp-muted-conditional-field.fui-cp-muted-conditional-field--expanded > .heading::after {
     content: attr(data-fui-cp-muted-expanded-label);
 }
+
+// ==========================================================================
+// Survey presentation fields (CP submission edit)
+// ==========================================================================
+
+#fields .formie-cp-likert {
+    overflow-x: auto;
+}
+
+#fields .formie-cp-likert table {
+    margin: 0;
+}
+
+#fields .formie-cp-likert th,
+#fields .formie-cp-likert td {
+    text-align: center;
+    vertical-align: middle;
+}
+
+#fields .formie-cp-likert th[scope="row"] {
+    text-align: left;
+    white-space: nowrap;
+}
+
+#fields .formie-cp-likert-cell {
+    width: 1%;
+}
+
+#fields .formie-cp-likert-radio {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    cursor: pointer;
+}
+
+#fields .formie-cp-rank .field {
+    margin-bottom: 14px;
+}
+
+#fields .formie-cp-rank .field:last-child {
+    margin-bottom: 0;
+}

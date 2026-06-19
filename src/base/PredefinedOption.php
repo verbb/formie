@@ -27,6 +27,31 @@ abstract class PredefinedOption extends Component implements PredefinedOptionInt
         return [];
     }
 
+    public static function toFieldOptions(): array
+    {
+        $options = [];
+
+        foreach (static::getDataOptions() as $row) {
+            if (is_array($row)) {
+                $label = trim((string)($row['label'] ?? $row['name'] ?? ''));
+            } else {
+                $label = trim((string)$row);
+            }
+
+            if ($label === '') {
+                continue;
+            }
+
+            $options[] = [
+                'label' => $label,
+                'value' => '',
+                'default' => false,
+            ];
+        }
+
+        return $options;
+    }
+
 
     // Public Method
     // =========================================================================

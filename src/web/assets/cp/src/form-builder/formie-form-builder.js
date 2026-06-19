@@ -77,6 +77,7 @@ import { NotificationPreview } from '@form-builder/components/NotificationPrevie
 import { NotificationTest } from '@form-builder/components/NotificationTest';
 import { Integrations } from '@form-builder/components/Integrations';
 import { FieldBuilder } from '@form-builder/components/FieldBuilder';
+import { QuestionnaireResults } from '@form-builder/components/QuestionnaireResults';
 
 import { PageConditionsField } from '@form-builder/fields/PageConditionsField';
 import { NotificationRecipientsField } from '@form-builder/fields/NotificationRecipientsField';
@@ -95,6 +96,9 @@ import { IntegrationRefreshSelectField } from '@form-builder/fields/IntegrationR
 import { IntegrationActionButtonField } from '@form-builder/fields/IntegrationActionButtonField';
 import { PaymentProviderSettingsField } from '@form-builder/fields/PaymentProviderSettingsField';
 import { FormieEditableTableField } from '@form-builder/fields/FormieEditableTableField';
+import { QuizOptionsField } from '@form-builder/fields/QuizOptionsField';
+import { LikertOptionsField } from '@form-builder/fields/LikertOptionsField';
+import { SurveyDisplayTypeField } from '@form-builder/fields/SurveyDisplayTypeField';
 import { FormieTableColumnsField } from '@form-builder/fields/FormieTableColumnsField';
 import { FormieTableDefaultsField } from '@form-builder/fields/FormieTableDefaultsField';
 import { FormieStaticTableField } from '@form-builder/fields/FormieStaticTableField';
@@ -143,6 +147,7 @@ Craft.Formie.FormBuilder = function(settings) {
         FormMetaDetails,
         Integrations,
         FieldBuilder,
+        QuestionnaireResults,
         Notifications,
         NotificationPreview,
         NotificationTest,
@@ -169,6 +174,9 @@ Craft.Formie.FormBuilder = function(settings) {
         integrationSendTestPayloadButton: IntegrationActionButtonField,
         paymentProviderSettings: PaymentProviderSettingsField,
         table: FormieEditableTableField,
+        quizOptions: QuizOptionsField,
+        likertOptions: LikertOptionsField,
+        surveyDisplayType: SurveyDisplayTypeField,
         staticTable: FormieStaticTableField,
         formieTableColumns: FormieTableColumnsField,
         formieTableDefaults: FormieTableDefaultsField,

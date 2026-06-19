@@ -128,6 +128,7 @@ class Fields extends Component
             formiefields\Payment::class,
             formiefields\Password::class,
             formiefields\Phone::class,
+            formiefields\Quiz::class,
             formiefields\Radio::class,
             formiefields\Recipients::class,
             formiefields\Repeater::class,
@@ -135,6 +136,7 @@ class Fields extends Component
             formiefields\Signature::class,
             formiefields\SingleLineText::class,
             formiefields\Summary::class,
+            formiefields\Survey::class,
             formiefields\Table::class,
             formiefields\Tags::class,
 

@@ -115,10 +115,12 @@ class Submissions extends Component
         }
 
         if ($request->getBodyParam('isSpam') !== null) {
-            $submission->isSpam = StringHelper::toBoolean($request->getBodyParam('isSpam'));
+            $submission->isSpam = StringHelper::toBoolean((string)$request->getBodyParam('isSpam'));
         }
 
-        if (StringHelper::toBoolean($request->getBodyParam('markAsComplete'))) {
+        if (($markAsComplete = $request->getBodyParam('markAsComplete')) !== null
+            && StringHelper::toBoolean((string)$markAsComplete)
+        ) {
             $submission->isIncomplete = false;
         }
     }

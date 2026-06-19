@@ -22,4 +22,5 @@ class SubmissionResponse extends Model
     public ?string $paymentRedirectUrl = null;
     public ?array $paymentAction = null;
     public ?array $paymentDecision = null;
+    public ?array $quizResult = null;
 }

@@ -33,6 +33,8 @@ class FieldTypeDefinitions extends Component
             formiefields\Checkboxes::class,
             formiefields\Dropdown::class,
             formiefields\Agree::class,
+            formiefields\Quiz::class,
+            formiefields\Survey::class,
         ],
         'advanced' => [
             formiefields\Date::class,

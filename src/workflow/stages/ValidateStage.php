@@ -6,6 +6,7 @@ use verbb\formie\services\SubmissionWorkflow;
 use verbb\formie\workflow\StageInterface;
 use verbb\formie\workflow\StageResult;
 use verbb\formie\workflow\WorkflowContext;
+use verbb\formie\workflow\tasks\validate\ValidateQuizRetakeTask;
 use verbb\formie\workflow\tasks\validate\ValidateSubmissionTask;
 
 class ValidateStage implements StageInterface
@@ -33,6 +34,7 @@ class ValidateStage implements StageInterface
     {
         return $this->process->runStageTasks($context, $this->getName(), [
             new ValidateSubmissionTask(),
+            new ValidateQuizRetakeTask(),
         ]);
     }
 }

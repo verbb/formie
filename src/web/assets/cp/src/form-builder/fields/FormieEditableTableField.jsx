@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import {
     Button,
@@ -17,6 +17,8 @@ import { FormieBulkOptionsDialog } from '@form-builder/components/FormieBulkOpti
 import {
     resolveOptionAvailabilityValue,
 } from '@form-builder/utils/optionAvailability';
+import { syncLikertRowValues } from '@form-builder/utils/likertRowValues';
+import { syncQuestionOptionValues } from '@form-builder/utils/questionOptionValues';
 
 function FormieEditableTableField({ form, field }) {
     const {
@@ -127,6 +129,57 @@ function FormieEditableTableField({ form, field }) {
     }, [hasOptionRowMenu, t]);
 
     const hasBulkOptions = Boolean(field.enableBulkOptions && field.predefinedOptions?.length);
+    const shouldSyncLikertRowValues = field.syncLikertRowValues === true;
+    const shouldSyncQuestionOptionValues = field.syncQuestionOptionValues === true;
+
+    const syncRows = useCallback((nextRows) => {
+        if (shouldSyncLikertRowValues) {
+            return syncLikertRowValues(nextRows);
+        }
+
+        if (shouldSyncQuestionOptionValues) {
+            return syncQuestionOptionValues(nextRows);
+        }
+
+        return nextRows;
+    }, [shouldSyncLikertRowValues, shouldSyncQuestionOptionValues]);
+
+    const handleRowsChange = useCallback((nextRows) => {
+        setRows(syncRows(nextRows));
+    }, [setRows, syncRows]);
+
+    const handleTableCellChange = useCallback((...args) => {
+        handleCellChange(...args);
+
+        if (!shouldSyncQuestionOptionValues || args[1] !== 'label') {
+            return;
+        }
+
+        queueMicrotask(() => {
+            const currentRows = Array.isArray(form.getFieldValue(field.name))
+                ? form.getFieldValue(field.name)
+                : [];
+            setRows(syncQuestionOptionValues(currentRows));
+        });
+    }, [field.name, form, handleCellChange, setRows, shouldSyncQuestionOptionValues]);
+
+    useEffect(() => {
+        if (!shouldSyncLikertRowValues && !shouldSyncQuestionOptionValues) {
+            return;
+        }
+
+        if (!Array.isArray(rows) || rows.length === 0) {
+            return;
+        }
+
+        const syncedRows = syncRows(rows);
+        const rowsJson = JSON.stringify(rows);
+        const syncedJson = JSON.stringify(syncedRows);
+
+        if (rowsJson !== syncedJson) {
+            setRows(syncedRows);
+        }
+    }, [rows, setRows, shouldSyncLikertRowValues, shouldSyncQuestionOptionValues, syncRows]);
 
     if (hasBulkOptions && !field.bulkOptionsAction) {
         throw new Error('FormieEditableTableField requires "bulkOptionsAction" when bulk options are enabled.');
@@ -151,8 +204,8 @@ function FormieEditableTableField({ form, field }) {
             <EditableTable
                 columns={field.columns}
                 rows={rows}
-                onChange={setRows}
-                onCellChange={handleCellChange}
+                onChange={handleRowsChange}
+                onCellChange={handleTableCellChange}
                 addRowLabel={field.addRowLabel}
                 allowReorder={field.allowReorder}
                 allowAdd={field.allowAdd}

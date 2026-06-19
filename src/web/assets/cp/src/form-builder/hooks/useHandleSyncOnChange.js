@@ -2,7 +2,26 @@ import { useCallback, useMemo, useRef } from 'react';
 import { get as getValue } from 'lodash-es';
 
 import { extractFields } from '@verbb/plugin-kit-react/utils/schema';
-import { buildUniqueHandleFromSource } from '@verbb/plugin-kit-react/utils';
+import { buildUniqueHandleFromSource, getRichTextText } from '@verbb/plugin-kit-react/utils';
+
+const normalizeHandleSourceValue = (value) => {
+    if (value == null) {
+        return value;
+    }
+
+    if (typeof value === 'object') {
+        const text = getRichTextText(value)
+            .replace(/\{[^}]*\}/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+
+        if (text) {
+            return text;
+        }
+    }
+
+    return value;
+};
 
 const useHandleSyncOnChange = (schema) => {
     const lastSourceValuesRef = useRef({});
@@ -34,7 +53,7 @@ const useHandleSyncOnChange = (schema) => {
                 return;
             }
 
-            const sourceValue = getValue(values, handleField.source);
+            const sourceValue = normalizeHandleSourceValue(getValue(values, handleField.source));
             const lastSourceValue = lastSourceValuesRef.current[handleField.name];
 
             if (sourceValue === lastSourceValue) {

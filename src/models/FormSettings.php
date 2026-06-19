@@ -105,6 +105,12 @@ class FormSettings extends Model
     // Settings - Permissions
     public bool $usePerFormPermissions = false;
 
+    // Settings - Quiz scoring
+    public bool $scoringEnabled = false;
+    public float $quizPassPercentage = 70;
+    public bool $quizAllowRetakes = true;
+    public bool $quizShowScoreAfterSubmit = true;
+
     // Other
     public ?string $redirectUrl = null;
     public ?string $pageRedirectUrl = null;
@@ -432,6 +438,7 @@ class FormSettings extends Model
         $rules[] = [['submitMethod'], 'validateSubmitMethod'];
         $rules[] = [['progressCalculation'], 'in', 'range' => ['completion', 'page-position']];
         $rules[] = [['cpSubmissionFieldConditions'], 'in', 'range' => array_merge([''], CpSubmissionFieldConditions::values())];
+        $rules[] = [['quizPassPercentage'], 'number', 'min' => 0, 'max' => 100];
 
         return $rules;
     }

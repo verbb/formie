@@ -95,6 +95,10 @@ class RichTextHelper
                     'buttons' => ['bold', 'italic', 'link'],
                     'rows' => 4,
                 ],
+                'question' => [
+                    'buttons' => ['bold', 'italic', 'link', 'ulist', 'olist'],
+                    'rows' => 4,
+                ],
                 'content' => [
                     'buttons' => ['bold', 'italic', 'underline', 'link', 'ulist', 'olist', 'heading2', 'heading3', 'paragraph'],
                     'rows' => 8,

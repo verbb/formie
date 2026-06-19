@@ -38,6 +38,8 @@ use verbb\formie\services\NotificationTriggers;
 use verbb\formie\services\Notifications;
 use verbb\formie\services\Payments;
 use verbb\formie\services\Permissions;
+use verbb\formie\services\QuestionnaireResults;
+use verbb\formie\services\QuestionnaireScoring;
 use verbb\formie\services\PdfTemplates;
 use verbb\formie\services\Phone;
 use verbb\formie\services\Plans;
@@ -218,6 +220,8 @@ trait PluginTrait
                 'notifications' => Notifications::class,
                 'payments' => Payments::class,
                 'permissions' => Permissions::class,
+                'questionnaireResults' => QuestionnaireResults::class,
+                'questionnaireScoring' => QuestionnaireScoring::class,
                 'pdfTemplates' => PdfTemplates::class,
                 'phone' => Phone::class,
                 'plans' => Plans::class,
@@ -503,6 +507,16 @@ trait PluginTrait
     public function getPermissions(): Permissions
     {
         return $this->get('permissions');
+    }
+
+    public function getQuestionnaireResults(): QuestionnaireResults
+    {
+        return $this->get('questionnaireResults');
+    }
+
+    public function getQuestionnaireScoring(): QuestionnaireScoring
+    {
+        return $this->get('questionnaireScoring');
     }
 
     public function getPdfTemplates(): PdfTemplates

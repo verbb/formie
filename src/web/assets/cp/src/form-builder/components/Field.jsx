@@ -73,6 +73,12 @@ import { announceFormBuilderStatus, focusFieldActionsTrigger } from '@form-build
 import { submitSchemaFormAfterPendingTableUpdates } from '@form-builder/utils/submitSchemaForm';
 import { useFieldEditorDismiss } from '@form-builder/hooks/useFieldEditorDismiss';
 import { normalizeFieldInstructions, normalizeRichTextValue, hasRichTextValue } from '@form-builder/utils/richTextValue';
+import {
+    getFieldDisplayLabel,
+    shouldShowFieldDisplayLabel,
+    hasQuestionFieldLabelContent,
+} from '@form-builder/utils/fieldDisplayLabel';
+import { getFieldEditorConditionContext } from '@form-builder/utils/fieldEditorConditionContext';
 import { SnapTopLeftCornerToCursor } from '@utils';
 
 import { FieldPreview } from './FieldPreview';
@@ -107,10 +113,9 @@ const Field = ({
 
     const fieldType = getFieldTypeByType(field.type);
     const isBuilderField = Boolean(fieldType?.isBuilderField);
-    const shouldUseFieldLabel = !isBuilderField && fieldType?.hasLabel !== false;
-    const fieldDisplayLabel = shouldUseFieldLabel
-        ? (field?.label || fieldType?.label || Craft.t('formie', 'Field'))
-        : (fieldType?.label || Craft.t('formie', 'Field'));
+    const shouldUseFieldLabel = !isBuilderField && shouldShowFieldDisplayLabel(field, fieldType);
+    const fieldDisplayLabel = getFieldDisplayLabel(field, fieldType);
+    const showQuestionRichTextLabel = hasQuestionFieldLabelContent(field, fieldType);
     const isInlineContainerBuilder = Boolean(fieldType?.isContainerParentField || fieldType?.isRepeatableParentField);
     const draggableFieldId = field?._id || `${pageIndex}-${rowIndex}-${fieldIndex}`;
     const [editingField, setEditingField] = useState(null);
@@ -696,12 +701,21 @@ const Field = ({
                                 )}>
                                     {shouldUseFieldLabel && (
                                         <>
-                                            <span
-                                                className={cn('truncate')}
-                                                title={fieldDisplayLabel}
-                                            >
-                                                {fieldDisplayLabel}
-                                            </span>
+                                            {showQuestionRichTextLabel ? (
+                                                <div
+                                                    className={cn('truncate min-w-0 [&_.ProseMirror]:truncate')}
+                                                    title={fieldDisplayLabel}
+                                                >
+                                                    <TiptapContent value={normalizeRichTextValue(field.question)} />
+                                                </div>
+                                            ) : (
+                                                <span
+                                                    className={cn('truncate')}
+                                                    title={fieldDisplayLabel}
+                                                >
+                                                    {fieldDisplayLabel}
+                                                </span>
+                                            )}
 
                                             {field.required && (
                                                 <span className={cn('text-error')}>*</span>
@@ -1003,10 +1017,8 @@ const FieldEditModal = ({
         : resolvedFieldTypeLabel;
     const showFieldTypePill = fieldTypePillLabel !== '';
     const isSyncedField = Boolean(field?.isSynced || field?.syncId);
-    const shouldUseFieldLabel = activeFieldType?.hasLabel !== false;
-    const fieldDisplayLabel = shouldUseFieldLabel
-        ? (field?.label || activeFieldType?.label || Craft.t('formie', 'Field'))
-        : (activeFieldType?.label || Craft.t('formie', 'Field'));
+    const shouldUseFieldLabel = shouldShowFieldDisplayLabel(field, activeFieldType);
+    const fieldDisplayLabel = getFieldDisplayLabel(field, activeFieldType);
     const hasSchemaConfig = Boolean(activeFieldType?.schemaIndex || activeFieldType?.schema);
     const fieldSchema = activeFieldType?.schemaIndex?.schema ?? activeFieldType?.schema ?? [];
     const handleFieldOverrides = useMemo(() => {
@@ -1036,6 +1048,7 @@ const FieldEditModal = ({
         };
     }, [schemaWithReservedHandles]);
     const handleSyncOnChange = useHandleSyncOnChange(schemaWithReservedHandles);
+    const hasSubmissions = useAppStore((state) => { return state.hasSubmissions; });
     const handleModalChange = (values, form) => {
         handleSyncOnChange(values, form);
     };
@@ -1049,6 +1062,9 @@ const FieldEditModal = ({
         schemaIndex: schemaIndexWithReservedHandles || fallbackSchemaIndex,
         defaultValues: fieldDefaults,
         errors,
+        getConditionContext: (values) => {
+            return getFieldEditorConditionContext(field, values, hasSubmissions);
+        },
         onChange: handleModalChange,
     });
 

@@ -576,7 +576,7 @@
     margin: 0;
 }
 
-.formie-field-preview-static-content .ProseMirror p + p {
+.formie-field-preview-static-content .ProseMirror p+p {
     margin-top: 0.5rem;
 }
 
@@ -592,4 +592,244 @@
     background: transparent;
     overflow: hidden;
     vertical-align: top;
+}
+
+
+/* ========================================
+   Survey Likert / Rank / Rating Previews
+   ======================================== */
+
+.formie-sr-only {
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    display: block;
+    position: absolute;
+    overflow: hidden;
+}
+
+.formie-field-preview-likert-scroller {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
+}
+
+.formie-field-preview-likert {
+    display: table;
+    width: max-content;
+    min-width: 100%;
+    table-layout: auto;
+    border-collapse: collapse;
+    border-spacing: 0;
+    --formie-survey-likert-label-color: var(--color-slate-700);
+}
+
+.formie-field-preview-likert thead {
+    display: table-header-group;
+}
+
+.formie-field-preview-likert tbody {
+    display: table-row-group;
+}
+
+.formie-field-preview-likert tr {
+    display: table-row;
+}
+
+.formie-field-preview-likert th,
+.formie-field-preview-likert td {
+    display: table-cell;
+}
+
+.formie-field-preview-likert-label {
+    text-align: center;
+    font-size: 0.68rem;
+    font-weight: 400;
+    line-height: 1.3;
+    color: var(--formie-survey-likert-label-color);
+    word-break: break-word;
+    padding: 0 0.35rem 0.5rem;
+    vertical-align: bottom;
+    min-width: 5.5rem;
+}
+
+.formie-field-preview-likert-row-label-header,
+.formie-field-preview-likert-row-label {
+    text-align: left;
+    font-size: 0.68rem;
+    font-weight: 500;
+    line-height: 1.3;
+    color: var(--formie-survey-likert-label-color);
+    word-break: break-word;
+    padding: 0.35rem 0.75rem 0.35rem 0;
+    vertical-align: middle;
+}
+
+.formie-field-preview-likert-row-label-header {
+    font-weight: 400;
+    padding-bottom: 0.5rem;
+}
+
+.formie-field-preview-likert--multiple-rows {
+    table-layout: auto;
+}
+
+.formie-field-preview-likert-option .formie-field-preview-likert-option-label-text {
+    display: none;
+}
+
+.formie-field-preview-likert--multiple-rows .formie-field-preview-likert-row-label-header,
+.formie-field-preview-likert--multiple-rows .formie-field-preview-likert-row-label {
+    width: 1%;
+    white-space: nowrap;
+    padding-right: 1rem;
+}
+
+.formie-field-preview-likert-label,
+.formie-field-preview-likert-option {
+    min-width: 5.5rem;
+}
+
+.formie-field-preview-likert--multiple-rows .formie-field-preview-likert-inputs .formie-field-preview-likert-row-label {
+    border-top-left-radius: 0.25rem;
+    border-bottom-left-radius: 0.25rem;
+}
+
+.formie-field-preview-likert--multiple-rows .formie-field-preview-likert-inputs .formie-field-preview-likert-option:first-child {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+.formie-field-preview-likert-inputs--alt .formie-field-preview-likert-row-label,
+.formie-field-preview-likert-inputs--alt .formie-field-preview-likert-option {
+    background-color: var(--color-slate-50);
+}
+
+.formie-field-preview-likert-option {
+    text-align: center;
+    vertical-align: middle;
+    padding: 0.5rem 0.35rem;
+    background-color: var(--color-slate-100);
+}
+
+.formie-field-preview-likert-inputs .formie-field-preview-likert-option:first-child {
+    border-top-left-radius: 0.25rem;
+    border-bottom-left-radius: 0.25rem;
+}
+
+.formie-field-preview-likert-inputs .formie-field-preview-likert-option:last-child {
+    border-top-right-radius: 0.25rem;
+    border-bottom-right-radius: 0.25rem;
+}
+
+.formie-field-preview-likert-option.formie-field-preview-radio label {
+    padding-left: 0;
+    width: 1rem;
+    height: 1rem;
+    line-height: 1rem;
+    overflow: hidden;
+}
+
+.formie-field-preview-likert-option.formie-field-preview-radio label::before {
+    top: 0;
+    left: 0;
+}
+
+.formie-field-preview-rank-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    --formie-survey-rank-item-background: #fff;
+    --formie-survey-rank-item-border-color: var(--color-slate-300);
+    --formie-survey-rank-handle-color: var(--color-slate-500);
+}
+
+.formie-field-preview-rank-item {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.35rem 0.5rem;
+    border: 1px solid var(--formie-survey-rank-item-border-color);
+    border-radius: 0.25rem;
+    background: var(--formie-survey-rank-item-background);
+    cursor: move;
+}
+
+.formie-field-preview-rank-handle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 0.875rem;
+    opacity: 0.6;
+    color: var(--formie-survey-rank-handle-color);
+    flex-shrink: 0;
+    pointer-events: none;
+}
+
+.formie-field-preview-rank-handle-icon {
+    width: 13px;
+    height: 0.875rem;
+}
+
+.formie-field-preview-rank-label {
+    font-size: 0.8rem;
+    color: var(--color-slate-700);
+}
+
+.formie-field-preview-rank-more {
+    list-style: none;
+}
+
+.formie-field-preview-rating-stars {
+    display: inline-flex;
+    align-items: center;
+    --formie-survey-rating-star-size: 26px;
+    --formie-survey-rating-star-spacing: 0.25rem;
+    --formie-survey-rating-star-outline: url("data:image/svg+xml;charset=utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2023%22%20fill%3D%22none%22%3E%3Cpath%20d%3D%22M22.2%208.05333L15.7466%207.49333L13.2266%201.56C12.7733%200.48%2011.2266%200.48%2010.7733%201.56L8.25331%207.50667L1.81331%208.05333C0.639975%208.14667%200.159975%209.61333%201.05331%2010.3867L5.94664%2014.6267L4.47998%2020.92C4.21331%2022.0667%205.45331%2022.9733%206.46664%2022.36L12%2019.0267L17.5333%2022.3733C18.5466%2022.9867%2019.7866%2022.08%2019.52%2020.9333L18.0533%2014.6267L22.9466%2010.3867C23.84%209.61333%2023.3733%208.14667%2022.2%208.05333ZM12%2016.5333L6.98664%2019.56L8.31998%2013.8533L3.89331%2010.0133L9.73331%209.50667L12%204.13333L14.28%209.52L20.12%2010.0267L15.6933%2013.8667L17.0266%2019.5733L12%2016.5333Z%22%20fill%3D%22%23E27730%22%2F%3E%3C%2Fsvg%3E");
+    --formie-survey-rating-star-filled: url("data:image/svg+xml;charset=utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2023%22%20fill%3D%22none%22%3E%3Cpath%20d%3D%22M12%2019.0267L17.5333%2022.3733C18.5466%2022.9867%2019.7866%2022.08%2019.52%2020.9333L18.0533%2014.64L22.9466%2010.4C23.84%209.62667%2023.36%208.16%2022.1866%208.06667L15.7466%207.52L13.2266%201.57334C12.7733%200.493336%2011.2266%200.493336%2010.7733%201.57334L8.25331%207.50667L1.81331%208.05334C0.639975%208.14667%200.159975%209.61334%201.05331%2010.3867L5.94664%2014.6267L4.47997%2020.92C4.21331%2022.0667%205.45331%2022.9733%206.46664%2022.36L12%2019.0267Z%22%20fill%3D%22%23E27730%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.formie-field-preview-rating-option {
+    position: relative;
+    display: inline-flex;
+    margin: 0;
+    padding-inline: calc(var(--formie-survey-rating-star-spacing, 0.25rem) / 2);
+    cursor: default;
+}
+
+.formie-field-preview-rating-option input {
+    clip: rect(0, 0, 0, 0);
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    position: absolute;
+    width: 1px;
+}
+
+.formie-field-preview-rating-star {
+    display: block;
+    width: var(--formie-survey-rating-star-size, 26px);
+    height: var(--formie-survey-rating-star-size, 26px);
+    background: center / contain no-repeat;
+    background-image: var(--formie-survey-rating-star-outline);
+}
+
+.formie-field-preview-rating[data-formie-preview-rating-value="1"] .formie-field-preview-rating-option:nth-child(-n+1) .formie-field-preview-rating-star,
+.formie-field-preview-rating[data-formie-preview-rating-value="2"] .formie-field-preview-rating-option:nth-child(-n+2) .formie-field-preview-rating-star,
+.formie-field-preview-rating[data-formie-preview-rating-value="3"] .formie-field-preview-rating-option:nth-child(-n+3) .formie-field-preview-rating-star,
+.formie-field-preview-rating[data-formie-preview-rating-value="4"] .formie-field-preview-rating-option:nth-child(-n+4) .formie-field-preview-rating-star,
+.formie-field-preview-rating[data-formie-preview-rating-value="5"] .formie-field-preview-rating-option:nth-child(-n+5) .formie-field-preview-rating-star,
+.formie-field-preview-rating[data-formie-preview-rating-value="6"] .formie-field-preview-rating-option:nth-child(-n+6) .formie-field-preview-rating-star,
+.formie-field-preview-rating[data-formie-preview-rating-value="7"] .formie-field-preview-rating-option:nth-child(-n+7) .formie-field-preview-rating-star,
+.formie-field-preview-rating[data-formie-preview-rating-value="8"] .formie-field-preview-rating-option:nth-child(-n+8) .formie-field-preview-rating-star,
+.formie-field-preview-rating[data-formie-preview-rating-value="9"] .formie-field-preview-rating-option:nth-child(-n+9) .formie-field-preview-rating-star,
+.formie-field-preview-rating[data-formie-preview-rating-value="10"] .formie-field-preview-rating-option:nth-child(-n+10) .formie-field-preview-rating-star {
+    background-image: var(--formie-survey-rating-star-filled);
 }

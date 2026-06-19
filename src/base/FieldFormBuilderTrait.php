@@ -33,23 +33,11 @@ trait FieldFormBuilderTrait
             return $source->toArray();
         }, $this->variableSources()));
         $baseTypeDefinition = static::getFieldTypeDefinition();
-        $config = [
-            'icon' => $baseTypeDefinition['icon'],
-            'type' => $baseTypeDefinition['type'],
-            'label' => $baseTypeDefinition['label'],
+        $config = array_merge($baseTypeDefinition, [
             'preview' => $preview,
             'hasLabel' => $this->hasLabel(),
             'hasConditions' => $this->hasConditions(),
-            'isCosmetic' => $baseTypeDefinition['isCosmetic'],
-            'isBuilderField' => $baseTypeDefinition['isBuilderField'],
             'isSynced' => $this->getIsSynced(),
-            'isParentField' => $baseTypeDefinition['isParentField'],
-            'isFixedParentField' => $baseTypeDefinition['isFixedParentField'],
-            'isContainerParentField' => $baseTypeDefinition['isContainerParentField'],
-            'isRepeatableParentField' => $baseTypeDefinition['isRepeatableParentField'],
-            'isChildField' => $baseTypeDefinition['isChildField'],
-            'hasEditableFields' => $baseTypeDefinition['hasEditableFields'],
-            'isPickable' => $baseTypeDefinition['isPickable'],
             'labelPositions' => Formie::$plugin->getFields()->getLabelPositionsOptions($this),
             'instructionsPositions' => Formie::$plugin->getFields()->getInstructionsPositionsOptions($this),
             'errorMessagePositions' => Formie::$plugin->getFields()->getErrorMessagePositionsOptions($this),
@@ -61,7 +49,7 @@ trait FieldFormBuilderTrait
 
             // Add in any extra data the field settings require
             'data' => $configData,
-        ];
+        ]);
 
         if ($includeSchemaIndex) {
             $config['schemaIndex'] = $compiledSchema;

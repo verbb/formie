@@ -107,6 +107,8 @@ class OptionSources extends Component
 
             predefined\Acceptability::class,
             predefined\Agreement::class,
+            predefined\LikertScale::class,
+            predefined\StarRating::class,
             predefined\Comparison::class,
             predefined\Difficulty::class,
             predefined\HowLong::class,

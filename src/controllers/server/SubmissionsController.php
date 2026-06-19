@@ -242,6 +242,10 @@ class SubmissionsController extends Controller
             }
         }
 
+        if ($response->quizResult) {
+            $payload['quizResult'] = $response->quizResult;
+        }
+
         return $payload;
     }
 

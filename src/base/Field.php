@@ -219,6 +219,7 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
             'isChildField' => $isChildField,
             'hasEditableFields' => !($isParentField && !$isFixedParentField),
             'isPickable' => !$isChildField,
+            'isQuestionnaireField' => is_subclass_of(static::class, QuestionnaireFieldInterface::class),
         ];
     }
 
@@ -527,6 +528,11 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
     public function hasLabel(): bool
     {
         return true;
+    }
+
+    public function usesQuestionLabel(): bool
+    {
+        return false;
     }
 
     public function getIsCosmetic(): bool

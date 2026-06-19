@@ -572,6 +572,7 @@ class SubmissionProcessor extends Component
                 'error' => $error,
             ],
             'session' => $session,
+            'quizResult' => $response->quizResult,
         ]);
     }
 

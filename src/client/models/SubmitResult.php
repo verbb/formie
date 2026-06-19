@@ -27,6 +27,7 @@ class SubmitResult extends BaseClientModel
     ];
 
     public ?FormSession $session = null;
+    public ?array $quizResult = null;
 
 
     // Public Methods

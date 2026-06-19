@@ -573,8 +573,13 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Opti
                 continue;
             }
 
-            $label = (string)$option['label'] ?? '';
-            $value = (string)$option['value'] ?? '';
+            $label = (string)($option['label'] ?? '');
+            $value = (string)($option['value'] ?? '');
+
+            // Ignore incomplete placeholder rows from the form builder.
+            if ($label === '' && $value === '') {
+                continue;
+            }
 
             if (isset($labels[$optgroup][$label])) {
                 $option['label'] = [

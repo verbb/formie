@@ -1,0 +1,79 @@
+{# Allow passing in a set list of options #}
+{% set fieldOptions = fieldOptions ?? field.getFieldOptions() %}
+{% set likertRows = likertRows ?? field.getEffectiveLikertRows() %}
+{% set usesLikertMultipleRows = usesLikertMultipleRows ?? field.usesLikertMultipleRows() %}
+{% set rowSelections = value is array ? value : {} %}
+
+{% fieldtag 'likertFieldLayout' %}
+    {% fieldtag 'fieldColumnLabels' %}
+        {% fieldtag 'fieldColumnLabelsRow' %}
+            {% if usesLikertMultipleRows %}
+                {% fieldtag 'fieldRowLabelHeader' %}{% endfieldtag %}
+            {% endif %}
+
+            {% for option in fieldOptions %}
+                {% if option.optgroup is not defined %}
+                    {% fieldtag 'fieldColumnLabel' %}
+                        {{- option.label | t('formie') | purify | md(inlineOnly=true) | raw -}}
+                    {% endfieldtag %}
+                {% endif %}
+            {% endfor %}
+        {% endfieldtag %}
+    {% endfieldtag %}
+
+    {% fieldtag 'fieldInputs' %}
+        {% if usesLikertMultipleRows %}
+            {% for likertRow in likertRows %}
+                {% set likertRowIndex = loop.index0 %}
+
+                {% fieldtag 'fieldInputsRow' %}
+                    {% fieldtag 'fieldRowLabel' %}
+                        {{- likertRow.label | t('formie') | purify | md(inlineOnly=true) | raw -}}
+                    {% endfieldtag %}
+
+                    {% for option in fieldOptions %}
+                        {% if option.optgroup is not defined %}
+                            {% set selected = option.value is defined and ('' ~ (rowSelections[likertRow.value] ?? '')) == ('' ~ option.value) %}
+
+                            {% fieldtag 'fieldOption' %}
+                                {{ fieldtag('fieldInput', {
+                                    value: option.value ?? false,
+                                    checked: selected,
+                                    disabled: option.disabled ?? false,
+                                }) }}
+
+                                {% fieldtag 'fieldOptionLabel' %}
+                                    <span class="formie-likert-option-label-text">
+                                        {{- option.label | t('formie') | purify | md(inlineOnly=true) | raw -}}
+                                    </span>
+                                {% endfieldtag %}
+                            {% endfieldtag %}
+                        {% endif %}
+                    {% endfor %}
+                {% endfieldtag %}
+            {% endfor %}
+        {% else %}
+            {% fieldtag 'fieldInputsRow' %}
+                {% for option in fieldOptions %}
+                    {% if option.optgroup is not defined %}
+                        {% set selected = option.value is defined and ('' ~ option.value) == ('' ~ value) %}
+
+                        {% fieldtag 'fieldOption' %}
+                            {{ fieldtag('fieldInput', {
+                                value: option.value ?? false,
+                                checked: selected,
+                                disabled: option.disabled ?? false,
+                            }) }}
+
+                            {% fieldtag 'fieldOptionLabel' %}
+                                <span class="formie-likert-option-label-text">
+                                    {{- option.label | t('formie') | purify | md(inlineOnly=true) | raw -}}
+                                </span>
+                            {% endfieldtag %}
+                        {% endfieldtag %}
+                    {% endif %}
+                {% endfor %}
+            {% endfieldtag %}
+        {% endif %}
+    {% endfieldtag %}
+{% endfieldtag %}

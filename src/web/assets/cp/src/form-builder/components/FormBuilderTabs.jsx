@@ -11,11 +11,14 @@ import { faTriangleExclamation } from '@fortawesome/pro-solid-svg-icons';
 import useUrlRouter from '@form-builder/hooks/useUrlRouter';
 import { useFormBuilderTabErrors } from '@form-builder/builder/useFormBuilderTabErrors';
 import { useFormBuilderApp } from '@form-builder/contexts/FormBuilderAppContext';
+import { useFormValues } from '@form-builder/hooks/useFormTools';
+import { formHasQuestionnaireFields } from '@form-builder/utils/questionnaireFields';
+import useAppStore from '@form-builder/hooks/useAppStore';
 
 import { cn } from '@verbb/plugin-kit-react/utils';
 
 import {
-    createContext, useContext,
+    createContext, useContext, useEffect,
 } from 'react';
 
 // Create a context to pass tab error information down
@@ -32,6 +35,15 @@ function FormBuilderTabs({
     const { activeTab } = useFormBuilderApp();
     const router = useUrlRouter();
     const tabErrors = useFormBuilderTabErrors(schemaNode ?? schema);
+    const formValues = useFormValues();
+    const getFieldTypeByType = useAppStore((state) => { return state.getFieldTypeByType; });
+    const hasQuestionnaireFields = formHasQuestionnaireFields(formValues, getFieldTypeByType);
+
+    useEffect(() => {
+        if (activeTab === 'results' && !hasQuestionnaireFields) {
+            router.navigateToTab('fields');
+        }
+    }, [activeTab, hasQuestionnaireFields, router]);
 
     return (
         <TabErrorsContext.Provider value={tabErrors}>

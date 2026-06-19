@@ -104,19 +104,25 @@ class FieldSlotRegistry extends Component
             return null;
         }
 
+        $usesQuestionLabel = method_exists($field, 'usesQuestionLabel') && $field->usesQuestionLabel();
+
+        if ($usesQuestionLabel && $labelPosition === 'hidden') {
+            $labelPosition = 'above';
+        }
+
         return SlotTag::make('label')
             ->core([
                 'data-formie-label' => true,
                 'data-formie-field-label' => true,
                 'data-formie-label-position' => $labelPosition,
-                'data-formie-sr-only' => $labelPosition === 'hidden' ? true : false,
+                'data-formie-sr-only' => !$usesQuestionLabel && $labelPosition === 'hidden' ? true : false,
                 'for' => $context->inputId(),
             ])
             ->theme([
                 'class' => [
                     'formie-label',
                     'formie-field-label',
-                    $labelPosition === 'hidden' ? 'formie-sr-only' : false,
+                    !$usesQuestionLabel && $labelPosition === 'hidden' ? 'formie-sr-only' : false,
                 ],
             ]);
     }

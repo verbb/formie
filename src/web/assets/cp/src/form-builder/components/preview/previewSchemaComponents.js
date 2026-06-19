@@ -18,6 +18,9 @@ import { PreviewSignature } from './PreviewSignature';
 import { PreviewSummary } from './PreviewSummary';
 import { PreviewAgree } from './PreviewAgree';
 import { PreviewRecipients } from './PreviewRecipients';
+import { PreviewLikert } from './PreviewLikert';
+import { PreviewRank } from './PreviewRank';
+import { PreviewRating } from './PreviewRating';
 import { PreviewLegacyTemplateNotice } from './PreviewLegacyTemplateNotice';
 import { PreviewUploadManager } from './PreviewUploadManager';
 import { PreviewFileUpload } from './PreviewFileUpload';
@@ -43,6 +46,9 @@ export const previewSchemaComponents = {
     PreviewSummary,
     PreviewAgree,
     PreviewRecipients,
+    PreviewLikert,
+    PreviewRank,
+    PreviewRating,
     PreviewLegacyTemplateNotice,
     PreviewUploadManager,
     PreviewFileUpload,

@@ -7,7 +7,9 @@ use verbb\formie\elements\Form;
 use verbb\formie\fields\Date;
 use verbb\formie\fields\FileUpload;
 use verbb\formie\fields\MissingField;
+use verbb\formie\fields\Survey;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\helpers\SurveyPresentationDefaults;
 use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\Notification;
@@ -196,6 +198,12 @@ class FormDefaults extends Component
 
                 if ($this->_shouldInheritDefaultValue($value)) {
                     continue;
+                }
+
+                if ($fieldClass === Survey::class && in_array($key, ['likertDefaultOptions', 'ratingDefaultOptions'], true)) {
+                    if (SurveyPresentationDefaults::normalizeDefaultOptions($value) === []) {
+                        continue;
+                    }
                 }
 
                 if ($this->_fieldDefaultValuesMatch($fieldClass, $key, $value, $classDefaults[$key] ?? null)) {
@@ -471,6 +479,10 @@ class FormDefaults extends Component
         }
 
         foreach ($supported as $key) {
+            if ($fieldClass === Survey::class && in_array($key, ['likertDefaultOptions', 'ratingDefaultOptions'], true)) {
+                continue;
+            }
+
             if (!array_key_exists($key, $defaults)) {
                 continue;
             }
@@ -485,6 +497,25 @@ class FormDefaults extends Component
                 $config[$key] = $this->normalizeFieldDefaultValue($fieldClass, $key, $value);
             }
         }
+
+        if ($fieldClass === Survey::class) {
+            $this->_applySurveyFieldDefaultsToConfig($config, $defaults);
+        }
+    }
+
+    private function _applySurveyFieldDefaultsToConfig(array &$config, array $defaults): void
+    {
+        if (($config['options'] ?? []) !== []) {
+            return;
+        }
+
+        $displayType = (string)($config['displayType'] ?? $defaults['displayType'] ?? Survey::DISPLAY_RADIO);
+
+        if (!in_array($displayType, [Survey::DISPLAY_LIKERT, Survey::DISPLAY_RATING], true)) {
+            return;
+        }
+
+        $config['options'] = SurveyPresentationDefaults::resolveOptionsForDisplayType($displayType, $defaults);
     }
 
     public function applyToNewNotification(Notification $notification, array $postedValues = []): void
@@ -517,6 +548,10 @@ class FormDefaults extends Component
 
     public function normalizeFieldDefaultValue(string $fieldClass, string $key, mixed $value): mixed
     {
+        if ($fieldClass === Survey::class && in_array($key, ['likertDefaultOptions', 'ratingDefaultOptions'], true)) {
+            return SurveyPresentationDefaults::normalizeDefaultOptions($value);
+        }
+
         if ($fieldClass === Date::class && $key === 'defaultValue' && is_string($value)) {
             return DateTimeHelper::toDateTime($value, false, false) ?: $value;
         }
@@ -798,6 +833,14 @@ class FormDefaults extends Component
             return $this->_fieldTypeClassDefaultsCache[$cacheKey] = [];
         }
 
+        if ($fieldClass === Survey::class) {
+            return $this->_fieldTypeClassDefaultsCache[$cacheKey] = [
+                'displayType' => Survey::DISPLAY_RADIO,
+                'likertDefaultOptions' => SurveyPresentationDefaults::likertScaleOptions(),
+                'ratingDefaultOptions' => SurveyPresentationDefaults::ratingScaleOptions(),
+            ];
+        }
+
         $settings = Formie::$plugin->getSettings();
         $previous = $settings->fieldDefaults[$fieldClass] ?? null;
         unset($settings->fieldDefaults[$fieldClass]);
@@ -823,6 +866,10 @@ class FormDefaults extends Component
 
     private function _fieldDefaultValuesMatch(string $fieldClass, string $key, mixed $value, mixed $classDefault): bool
     {
+        if ($fieldClass === Survey::class && in_array($key, ['likertDefaultOptions', 'ratingDefaultOptions'], true)) {
+            return SurveyPresentationDefaults::defaultOptionsMatch($value, $classDefault);
+        }
+
         $value = $this->normalizeFieldDefaultValue($fieldClass, $key, $value);
         $classDefault = $this->normalizeFieldDefaultValue($fieldClass, $key, $classDefault);
 

@@ -36,5 +36,6 @@ abstract class Table extends CraftTable
     public const FORMIE_SUBMISSION_RESUME_TOKENS = '{{%formie_submission_resume_tokens}}';
     public const FORMIE_SUBMISSION_WORKFLOW = '{{%formie_submission_workflow}}';
     public const FORMIE_SUBMISSIONS = '{{%formie_submissions}}';
+    public const FORMIE_SUBMISSION_QUIZ_RESULTS = '{{%formie_submission_quiz_results}}';
     public const FORMIE_SUBMISSION_DRAFTS = '{{%formie_submission_drafts}}';
 }

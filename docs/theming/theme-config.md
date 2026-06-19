@@ -260,6 +260,81 @@ The available tags are grouped below.
 - `fieldOption`
 - `fieldOptionLabel`
 
+### Survey Likert Field
+- `likertFieldLayout`
+- `fieldColumnLabels`
+- `fieldColumnLabelsRow`
+- `fieldColumnLabel`
+- `fieldInputs`
+- `fieldInputsRow`
+- `fieldOption`
+- `fieldOptionLabel`
+- `fieldInput`
+
+Likert presentation styling is controlled through CSS custom properties on `likertFieldLayout`:
+
+- `--formie-survey-likert-label-color`
+- `--formie-survey-likert-option-background`
+
+Likert radios reuse the standard radio field styles and behaviour.
+
+```twig
+{{ craft.formie.renderForm('surveyForm', {
+    themeConfig: {
+        surveyLikert: {
+            likertFieldLayout: {
+                cssVars: {
+                    '--formie-survey-likert-option-background': 'var(--formie-color-surface)',
+                },
+            },
+        },
+    },
+}) }}
+```
+
+### Survey Rank Field
+- `rankFieldLayout`
+- `fieldOptions`
+- `fieldOption`
+- `fieldRankHandle`
+- `fieldOptionLabel`
+- `fieldInput`
+
+Rank presentation styling is controlled through CSS custom properties on `rankFieldLayout`:
+
+- `--formie-survey-rank-list-gap`
+- `--formie-survey-rank-item-background`
+- `--formie-survey-rank-item-border-color`
+- `--formie-survey-rank-handle-color`
+
+### Survey Rating Field
+- `ratingFieldLayout`
+- `fieldOptions`
+- `fieldOption`
+- `fieldInput`
+- `fieldOptionLabel`
+
+Rating presentation styling is controlled through CSS custom properties on `fieldOptions`:
+
+- `--formie-survey-rating-star-size`
+- `--formie-survey-rating-star-spacing`
+- `--formie-survey-rating-star-outline`
+- `--formie-survey-rating-star-filled`
+
+```twig
+{{ craft.formie.renderForm('surveyForm', {
+    themeConfig: {
+        surveyRating: {
+            fieldOptions: {
+                cssVars: {
+                    '--formie-survey-rating-star-size': '32px',
+                },
+            },
+        },
+    },
+}) }}
+```
+
 ### Repeater Field
 - `nestedField`
 - `nestedFieldWrapper`
@@ -370,6 +445,9 @@ These keys use the field class' `camelCase` name. Available field type keys incl
 - `singleLineText`
 - `submissions`
 - `summary`
+- `surveyLikert`
+- `surveyRank`
+- `surveyRating`
 - `table`
 - `tags`
 - `users`

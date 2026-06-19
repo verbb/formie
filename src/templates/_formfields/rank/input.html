@@ -1,0 +1,20 @@
+{%- set fieldOptions = fieldOptions ?? field.getFieldOptions() %}
+{%- set values = values ?? [] %}
+{%- set rankedOptions = fieldOptions | filter(option => option.optgroup is not defined) %}
+{%- set optionCount = rankedOptions | length %}
+
+{{ hiddenInput(name, '') }}
+
+<div class="formie-cp-rank">
+    {% for i in 0..(optionCount - 1) %}
+        {% set selectedValue = values[i] ?? '' %}
+
+        {% include '_includes/forms/select' with {
+            id: field.handle ~ '-rank-' ~ i,
+            name: name ~ '[]',
+            label: 'Rank #{num}' | t('formie', { num: i + 1 }),
+            value: selectedValue,
+            options: rankedOptions,
+        } only %}
+    {% endfor %}
+</div>

@@ -19,6 +19,7 @@ const createAppStore = (set, get) => {
         stencilScopeLabel: null,
         baseUrl: null,
         viewSubmissionsUrl: null,
+        hasSubmissions: false,
         entityType: 'form',
         entityId: null,
         newItemTitle: null,

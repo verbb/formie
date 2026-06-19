@@ -1,0 +1,7 @@
+{%- set fieldOptions = fieldOptions ?? field.getFieldOptions() %}
+
+{% include 'formie/_formfields/radio/input' with {
+    name: name,
+    value: value,
+    options: fieldOptions,
+} %}

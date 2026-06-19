@@ -17,6 +17,7 @@ import { VariableCategoriesProvider } from '@form-builder/components/VariableCat
 import { useFormBuilderApp } from '@form-builder/contexts/FormBuilderAppContext';
 import useAppStore from '@form-builder/hooks/useAppStore';
 import { announceFormBuilderStatus } from '@form-builder/utils/accessibility';
+import { formHasQuestionnaireFields, formHasQuizFields } from '@form-builder/utils/questionnaireFields';
 
 function FormBuilderContent({
     formRef,
@@ -69,6 +70,15 @@ function FormBuilderContent({
             return {
                 formBuilder: {
                     ajaxSubmissionForced: isAjaxSubmissionForced(values),
+                    hasSubmissions: Boolean(useAppStore.getState().hasSubmissions),
+                    hasQuestionnaireFields: formHasQuestionnaireFields(
+                        values,
+                        useAppStore.getState().getFieldTypeByType,
+                    ),
+                    hasQuizFields: formHasQuizFields(
+                        values,
+                        useAppStore.getState().getFieldTypeByType,
+                    ),
                 },
             };
         },

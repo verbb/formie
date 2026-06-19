@@ -14,9 +14,11 @@ use verbb\formie\elements\actions\DuplicateForm;
 use verbb\formie\elements\actions\MoveFormToGroup;
 use verbb\formie\elements\conditions\FormCondition;
 use verbb\formie\elements\db\FormQuery;
-use verbb\formie\events\ModifyFormSlotTagEvent;
+use verbb\formie\base\QuestionnaireFieldInterface;
+use verbb\formie\fields\Quiz;
 use verbb\formie\deprecations\FormDeprecations;
 use verbb\formie\deprecations\ThemeConfigLegacyKeys;
+use verbb\formie\events\ModifyFormSlotTagEvent;
 use verbb\formie\gql\interfaces\FieldInterface as GqlFieldInterface;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\CpSubmissionFieldConditions;
@@ -2106,6 +2108,42 @@ class Form extends Element implements FormInterface
         ]);
     }
 
+    public function hasQuestionnaireFields(): bool
+    {
+        foreach ($this->getFormLayout()->getFields() as $field) {
+            if ($field instanceof QuestionnaireFieldInterface && $field->supportsQuestionnaireResults()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public function hasQuizFields(): bool
+    {
+        foreach ($this->getFormLayout()->getFields() as $field) {
+            if ($field instanceof Quiz) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public function showsQuestionnaireResultsTab(): bool
+    {
+        return $this->hasQuestionnaireFields();
+    }
+
+    public function defineResultsSchema(): array
+    {
+        return SchemaHelper::schemaNode([
+            [
+                '$cmp' => 'QuestionnaireResults',
+            ],
+        ]);
+    }
+
     public function defineFormBuilderAppearanceSchema(): array
     {
         return SchemaHelper::schemaNode([
@@ -2266,6 +2304,44 @@ class Form extends Element implements FormInterface
             ]),
             [
                 '$el' => 'hr',
+            ],
+            [
+                '$el' => 'h3',
+                'children' => Craft::t('formie', 'Quiz Scoring'),
+                'attrs' => [
+                    'class' => 'form-builder-h3',
+                ],
+                'if' => 'formBuilder.hasQuizFields',
+            ],
+            SchemaHelper::lightswitchField([
+                'label' => Craft::t('formie', 'Enable Scoring'),
+                'instructions' => Craft::t('formie', 'Calculate quiz scores from correct answers and optional weighted points when submissions are completed.'),
+                'name' => 'settings.scoringEnabled',
+                'if' => 'formBuilder.hasQuizFields',
+            ]),
+            SchemaHelper::numberField([
+                'label' => Craft::t('formie', 'Pass Percentage'),
+                'instructions' => Craft::t('formie', 'The minimum percentage required to pass the quiz.'),
+                'name' => 'settings.quizPassPercentage',
+                'if' => 'formBuilder.hasQuizFields && settings.scoringEnabled',
+                'min' => 0,
+                'max' => 100,
+            ]),
+            SchemaHelper::lightswitchField([
+                'label' => Craft::t('formie', 'Allow Retakes'),
+                'instructions' => Craft::t('formie', 'Whether the same user or IP address can submit the quiz more than once.'),
+                'name' => 'settings.quizAllowRetakes',
+                'if' => 'formBuilder.hasQuizFields && settings.scoringEnabled',
+            ]),
+            SchemaHelper::lightswitchField([
+                'label' => Craft::t('formie', 'Show Score After Submit'),
+                'instructions' => Craft::t('formie', 'Include the quiz score and per-question results in the submission response after a successful submit.'),
+                'name' => 'settings.quizShowScoreAfterSubmit',
+                'if' => 'formBuilder.hasQuizFields && settings.scoringEnabled',
+            ]),
+            [
+                '$el' => 'hr',
+                'if' => 'formBuilder.hasQuizFields',
             ],
             [
                 '$el' => 'h3',

@@ -57,6 +57,10 @@ class ClientSubmitResultType extends ObjectType
                     'name' => 'session',
                     'type' => ClientSessionType::getType(),
                 ],
+                'quizResult' => [
+                    'name' => 'quizResult',
+                    'type' => ArrayType::getType(),
+                ],
             ],
         ]));
     }

@@ -1,0 +1,24 @@
+{# Allow passing in a set list of options #}
+{% set fieldOptions = fieldOptions ?? field.getFieldOptions() %}
+
+{{ hiddenInput(field.getHtmlName(), '') }}
+
+{% fieldtag 'rankFieldLayout' %}
+    {% fieldtag 'fieldOptions' %}
+        {% for option in fieldOptions %}
+            {% if option.optgroup is not defined %}
+                {% fieldtag 'fieldOption' %}
+                    {% fieldtag 'fieldRankHandle' %}{% endfieldtag %}
+
+                    {% fieldtag 'fieldOptionLabel' %}
+                        {{- option.label | t('formie') | purify | md(inlineOnly=true) | raw -}}
+                    {% endfieldtag %}
+
+                    {{ fieldtag('fieldInput', {
+                        value: option.value ?? false,
+                    }) }}
+                {% endfieldtag %}
+            {% endif %}
+        {% endfor %}
+    {% endfieldtag %}
+{% endfieldtag %}

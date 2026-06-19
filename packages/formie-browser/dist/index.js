@@ -1385,6 +1385,9 @@ var I = class {
 	"rich-text": () => import("./chunks/rich-text-D0sb8bmX.js").then((e) => e.richTextModule),
 	signature: () => import("./chunks/signature-xz4QO7CR.js").then((e) => e.signatureModule),
 	summary: () => import("./chunks/summary-D3AjxpYN.js").then((e) => e.summaryModule),
+	"survey-likert": () => import("./chunks/survey-likert-DmJ3klhP.js").then((e) => e.surveyLikertModule),
+	"survey-rank": () => import("./chunks/survey-rank-DeUenftw.js").then((e) => e.surveyRankModule),
+	"survey-rating": () => import("./chunks/survey-rating-BPUYDgBJ.js").then((e) => e.surveyRatingModule),
 	table: () => import("./chunks/table-C-lkQN6I.js").then((e) => e.tableModule),
 	"text-limit": () => import("./chunks/text-limit-DbgEFHLO.js").then((e) => e.textLimitModule)
 }, Yt = {

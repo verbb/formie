@@ -270,6 +270,15 @@ class Forms extends Component
             ],
         ];
 
+        if ($permissions->canViewSubmissions($user, $form)) {
+            $tabs[] = [
+                'handle' => 'results',
+                'label' => Craft::t('formie', 'Results'),
+                'content' => $form->defineResultsSchema(),
+                'if' => 'formBuilder.hasQuestionnaireFields',
+            ];
+        }
+
         if ($permissions->canShowFormBuilderTab($user, $form, 'formie-showFormAppearance')) {
             $tabs[] = [
                 'handle' => 'appearance',
@@ -340,23 +349,35 @@ class Forms extends Component
                     [
                         '$cmp' => 'FormBuilderTabList',
                         'children' => array_map(function($tab) {
-                            return [
+                            $node = [
                                 '$cmp' => 'FormBuilderTabTrigger',
                                 'props' => [
                                     'value' => $tab['handle'],
                                 ],
                                 'children' => $tab['label'],
                             ];
+
+                            if (!empty($tab['if'])) {
+                                $node['if'] = $tab['if'];
+                            }
+
+                            return $node;
                         }, $tabs),
                     ],
                     ...array_map(function($tab) {
-                        return [
+                        $node = [
                             '$cmp' => 'FormBuilderTabContent',
                             'props' => array_merge([
                                 'value' => $tab['handle'],
                             ], $tab['props'] ?? []),
                             'children' => $tab['content'],
                         ];
+
+                        if (!empty($tab['if'])) {
+                            $node['if'] = $tab['if'];
+                        }
+
+                        return $node;
                     }, $tabs),
                 ],
             ],
@@ -370,6 +391,7 @@ class Forms extends Component
             'paymentIntegrations' => $this->_getPaymentIntegrationMetadata(),
             'templateFieldLayoutInfo' => $this->_getTemplateFieldLayoutInfo(),
             'fieldTypeGroups' => Formie::$plugin->getFields()->getFormBuilderFieldTypes([], $form),
+            'hasSubmissions' => (bool)$submissions,
             'viewSubmissionsUrl' => $viewSubmissionsUrl,
             ...Variables::getFormBuilderVariableConfig(),
             'reservedHandles' => Formie::$plugin->getFields()->getReservedHandles(),

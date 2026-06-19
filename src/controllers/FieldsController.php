@@ -3,10 +3,6 @@ namespace verbb\formie\controllers;
 
 use verbb\formie\Formie;
 use verbb\formie\elements\Submission;
-use verbb\formie\fields\Checkboxes;
-use verbb\formie\fields\Dropdown;
-use verbb\formie\fields\Radio;
-use verbb\formie\fields\Recipients;
 use verbb\formie\fields\Signature;
 use verbb\formie\fields\Summary;
 use verbb\formie\helpers\FieldAccess;
@@ -427,7 +423,7 @@ class FieldsController extends Controller
     {
         $fieldType = trim($fieldType);
 
-        if (!in_array($fieldType, [Dropdown::class, Radio::class, Checkboxes::class, Recipients::class], true)) {
+        if ($fieldType === '' || !class_exists($fieldType) || !is_a($fieldType, OptionSourceFieldInterface::class, true)) {
             throw new BadRequestHttpException('Invalid option source field type.');
         }
 

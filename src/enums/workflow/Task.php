@@ -16,6 +16,7 @@ enum Task: string
     case NORMALIZE_APPLY_STATUS_RULES = 'normalize.applyStatusRules';
 
     case VALIDATE_SUBMISSION = 'validate.validateSubmission';
+    case VALIDATE_QUIZ_RETAKE = 'validate.quizRetake';
 
     case SCREEN_RUN_SUBMISSION_GUARDS = 'screen.runSubmissionGuards';
     case SCREEN_RUN_CAPTCHA_CHECKS = 'screen.runCaptchaChecks';
@@ -28,6 +29,7 @@ enum Task: string
     case SAVE_APPLY_COMPLETION_FROM_PAYMENT_STATE = 'save.applyCompletionFromPaymentState';
     case SAVE_PERSIST_SUBMISSION_WORKFLOW = 'save.persistSubmissionWorkflow';
     case SAVE_PERSIST_SUBMISSION_DIRECT = 'save.persistSubmissionDirect';
+    case SAVE_PERSIST_QUESTIONNAIRE_SCORING = 'save.persistQuestionnaireScoring';
     case SAVE_SET_PROCESSING_SUCCESS = 'save.setProcessingSuccess';
 
     case DISPATCH_GUARD_DISPATCH_ELIGIBILITY = 'dispatch.guardDispatchEligibility';

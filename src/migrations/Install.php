@@ -499,6 +499,19 @@ class Install extends Migration
             'uid' => $this->uid(),
         ]);
 
+        $this->createTable(Table::FORMIE_SUBMISSION_QUIZ_RESULTS, [
+            'id' => $this->primaryKey(),
+            'submissionId' => $this->integer()->notNull(),
+            'score' => $this->decimal(12, 4)->notNull()->defaultValue(0),
+            'maxScore' => $this->decimal(12, 4)->notNull()->defaultValue(0),
+            'percentage' => $this->decimal(8, 2)->notNull()->defaultValue(0),
+            'passed' => $this->boolean()->notNull()->defaultValue(false),
+            'questionResults' => $this->json(),
+            'dateCreated' => $this->dateTime()->notNull(),
+            'dateUpdated' => $this->dateTime()->notNull(),
+            'uid' => $this->uid(),
+        ]);
+
         $this->archiveTableIfExists(Table::FORMIE_SUBMISSION_WORKFLOW);
         $this->createTable(Table::FORMIE_SUBMISSION_WORKFLOW, [
             'id' => $this->primaryKey(),
@@ -601,6 +614,7 @@ class Install extends Migration
         $this->createIndex(null, Table::FORMIE_SUBMISSIONS, 'formId', false);
         $this->createIndex(null, Table::FORMIE_SUBMISSIONS, 'statusId', false);
         $this->createIndex(null, Table::FORMIE_SUBMISSIONS, 'userId', false);
+        $this->createIndex(null, Table::FORMIE_SUBMISSION_QUIZ_RESULTS, 'submissionId', true);
         $this->createIndex(null, Table::FORMIE_SUBMISSION_WORKFLOW, 'submissionId', false);
         $this->createIndex(null, Table::FORMIE_SUBMISSION_WORKFLOW, ['submissionId', 'stage', 'idempotencyKey'], true);
         $this->createIndex(null, Table::FORMIE_PENDING_UPLOADS, 'assetId', true);
@@ -658,6 +672,7 @@ class Install extends Migration
         $this->addForeignKey(null, Table::FORMIE_SUBMISSIONS, ['formId'], Table::FORMIE_FORMS, ['id'], 'CASCADE', null);
         $this->addForeignKey(null, Table::FORMIE_SUBMISSIONS, ['statusId'], Table::FORMIE_STATUSES, ['id'], 'SET NULL', null);
         $this->addForeignKey(null, Table::FORMIE_SUBMISSIONS, ['userId'], '{{%users}}', ['id'], 'SET NULL', null);
+        $this->addForeignKey(null, Table::FORMIE_SUBMISSION_QUIZ_RESULTS, ['submissionId'], Table::FORMIE_SUBMISSIONS, ['id'], 'CASCADE', null);
         $this->addForeignKey(null, Table::FORMIE_SUBMISSION_WORKFLOW, ['submissionId'], Table::FORMIE_SUBMISSIONS, ['id'], 'CASCADE', null);
         $this->addForeignKey(null, Table::FORMIE_PENDING_UPLOADS, ['assetId'], '{{%assets}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, Table::FORMIE_PENDING_UPLOADS, ['submissionId'], Table::FORMIE_SUBMISSIONS, ['id'], 'CASCADE', null);
@@ -688,6 +703,7 @@ class Install extends Migration
             'formie_statuses',
             'formie_stencils',
             'formie_submissions',
+            'formie_submission_quiz_results',
             'formie_submission_workflow',
             'formie_pending_uploads',
             'formie_submission_drafts',
@@ -811,6 +827,7 @@ class Install extends Migration
             'formie_statuses',
             'formie_stencils',
             'formie_submissions',
+            'formie_submission_quiz_results',
             'formie_submission_workflow',
             'formie_pending_uploads',
             'formie_submission_drafts',

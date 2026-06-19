@@ -1,0 +1,41 @@
+{% set originalField = field %}
+
+{% if originalField.displayType == 'dropdown' %}
+    {% set field = originalField.getDisplayTypeField() %}
+    {{ formieInclude('fields/dropdown') }}
+{% endif %}
+
+{% if originalField.displayType == 'checkboxes' %}
+    {% set field = originalField.getDisplayTypeField() %}
+    {{ formieInclude('fields/checkboxes') }}
+{% endif %}
+
+{% if originalField.displayType == 'radio' %}
+    {% set field = originalField.getDisplayTypeField() %}
+    {{ formieInclude('fields/radio') }}
+{% endif %}
+
+{% if originalField.displayType == 'likert' %}
+    {% set field = originalField %}
+    {{ formieInclude('fields/likert') }}
+{% endif %}
+
+{% if originalField.displayType == 'rank' %}
+    {% set field = originalField %}
+    {{ formieInclude('fields/rank') }}
+{% endif %}
+
+{% if originalField.displayType == 'rating' %}
+    {% set field = originalField %}
+    {{ formieInclude('fields/rating') }}
+{% endif %}
+
+{% if originalField.displayType == 'singleLineText' %}
+    {% set field = originalField.getDisplayTypeField() %}
+    {{ formieInclude('fields/single-line-text') }}
+{% endif %}
+
+{% if originalField.displayType == 'multiLineText' %}
+    {% set field = originalField.getDisplayTypeField() %}
+    {{ formieInclude('fields/multi-line-text') }}
+{% endif %}

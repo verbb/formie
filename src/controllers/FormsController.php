@@ -714,6 +714,34 @@ class FormsController extends Controller
         return $this->asJson($existingNotifications);
     }
 
+    public function actionGetQuestionnaireResults(): Response
+    {
+        $formId = (int)$this->request->getRequiredParam('formId');
+
+        $form = Formie::$plugin->getForms()->getFormById($formId);
+        if (!$form) {
+            throw new NotFoundHttpException('Form not found');
+        }
+
+        if (!$form->showsQuestionnaireResultsTab()) {
+            throw new NotFoundHttpException('Questionnaire not found');
+        }
+
+        $user = Craft::$app->getUser()->getIdentity();
+
+        if (!$user || !Formie::$plugin->getPermissions()->canViewSubmissions($user, $form)) {
+            throw new ForbiddenHttpException('User is not permitted to perform this action');
+        }
+
+        $results = Formie::$plugin->getQuestionnaireResults()->getResults($form);
+
+        if ($results === null) {
+            throw new NotFoundHttpException('Questionnaire not found');
+        }
+
+        return $this->asJson($results);
+    }
+
     public function actionGetFormUsage(): Response
     {
         $formId = $this->request->getRequiredParam('formId');

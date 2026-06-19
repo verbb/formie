@@ -67,6 +67,12 @@ import { resolveContainerRows } from '@form-builder/utils/containerLayoutVariant
 import { announceFormBuilderStatus, focusFieldActionsTrigger } from '@form-builder/utils/accessibility';
 import { submitSchemaFormAfterPendingTableUpdates } from '@form-builder/utils/submitSchemaForm';
 import { normalizeFieldInstructions, normalizeRichTextValue, hasRichTextValue } from '@form-builder/utils/richTextValue';
+import {
+    getFieldDisplayLabel,
+    shouldShowFieldDisplayLabel,
+    hasQuestionFieldLabelContent,
+} from '@form-builder/utils/fieldDisplayLabel';
+import { getFieldEditorConditionContext } from '@form-builder/utils/fieldEditorConditionContext';
 import { SnapTopLeftCornerToCursor } from '@utils';
 
 const EXCLUDED_SUB_FIELD_SETTING_NAMES = [
@@ -277,10 +283,8 @@ const NestedFieldEditModal = ({
         : '';
     const showFieldTypePill = resolvedFieldTypeLabel !== '';
     const isSyncedField = Boolean(field?.isSynced || field?.syncId);
-    const shouldUseFieldLabel = activeFieldType?.hasLabel !== false;
-    const fieldDisplayLabel = shouldUseFieldLabel
-        ? (field?.label || activeFieldType?.label || Craft.t('formie', 'Field'))
-        : (activeFieldType?.label || Craft.t('formie', 'Field'));
+    const shouldUseFieldLabel = shouldShowFieldDisplayLabel(field, activeFieldType);
+    const fieldDisplayLabel = getFieldDisplayLabel(field, activeFieldType);
     const hasSchemaConfig = Boolean(activeFieldType?.schemaIndex || activeFieldType?.schema);
     const rawFieldSchema = activeFieldType?.schemaIndex?.schema ?? activeFieldType?.schema ?? [];
     const sanitizedSchemaIndex = useMemo(() => {
@@ -316,6 +320,7 @@ const NestedFieldEditModal = ({
         };
     }, [schemaWithReservedHandles]);
     const handleSyncOnChange = useHandleSyncOnChange(schemaWithReservedHandles);
+    const hasSubmissions = useAppStore((state) => { return state.hasSubmissions; });
     const fieldDefaults = useMemo(() => {
         return normalizeFieldInstructions(field);
     }, [field]);
@@ -323,6 +328,9 @@ const NestedFieldEditModal = ({
         schema: schemaWithReservedHandles,
         schemaIndex: schemaIndexWithReservedHandles || fallbackSchemaIndex,
         defaultValues: fieldDefaults,
+        getConditionContext: (values) => {
+            return getFieldEditorConditionContext(field, values, hasSubmissions);
+        },
         onChange: (values, schemaForm) => {
             handleSyncOnChange(values, schemaForm);
         },
@@ -474,10 +482,9 @@ const NestedFieldCard = ({
     const previewContent = useMemo(() => {
         return renderFieldPreviewSchema(nestedFieldType?.preview, nestedField, nestedFieldType);
     }, [nestedFieldType?.preview, nestedFieldType?.icon, nestedField]);
-    const shouldUseNestedFieldLabel = nestedFieldType?.hasLabel !== false;
-    const nestedFieldDisplayLabel = shouldUseNestedFieldLabel
-        ? (nestedField?.label || nestedFieldType?.label || Craft.t('formie', 'Field'))
-        : (nestedFieldType?.label || Craft.t('formie', 'Field'));
+    const shouldUseNestedFieldLabel = shouldShowFieldDisplayLabel(nestedField, nestedFieldType);
+    const nestedFieldDisplayLabel = getFieldDisplayLabel(nestedField, nestedFieldType);
+    const showNestedQuestionRichTextLabel = hasQuestionFieldLabelContent(nestedField, nestedFieldType);
 
     const closeNestedFieldEditor = ({ deleteIfNew = false } = {}) => {
         if (deleteIfNew && nestedField?._isNew) {
@@ -823,12 +830,21 @@ const NestedFieldCard = ({
                                 <div className="font-medium flex items-center gap-1 min-w-0">
                                     {shouldUseNestedFieldLabel && (
                                         <>
-                                            <span
-                                                className="truncate"
-                                                title={nestedFieldDisplayLabel}
-                                            >
-                                                {nestedFieldDisplayLabel}
-                                            </span>
+                                            {showNestedQuestionRichTextLabel ? (
+                                                <div
+                                                    className="truncate min-w-0 [&_.ProseMirror]:truncate"
+                                                    title={nestedFieldDisplayLabel}
+                                                >
+                                                    <TiptapContent value={normalizeRichTextValue(nestedField.question)} />
+                                                </div>
+                                            ) : (
+                                                <span
+                                                    className="truncate"
+                                                    title={nestedFieldDisplayLabel}
+                                                >
+                                                    {nestedFieldDisplayLabel}
+                                                </span>
+                                            )}
 
                                             {nestedField?.required && (
                                                 <span className="text-error">*</span>

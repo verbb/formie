@@ -1,0 +1,27 @@
+{# Allow passing in a set list of options #}
+{% set fieldOptions = fieldOptions ?? field.getFieldOptions() %}
+
+{% fieldtag 'ratingFieldLayout' %}
+    {% fieldtag 'fieldOptions' %}
+        {% for option in fieldOptions %}
+            {% if option.optgroup is not defined %}
+                {% set selected = option.value is defined and ('' ~ option.value) == ('' ~ value) %}
+
+                {% fieldtag 'fieldOption' %}
+                    {{ fieldtag('fieldInput', {
+                        value: option.value ?? false,
+                        checked: selected,
+                        disabled: option.disabled ?? false,
+                    }) }}
+
+                    {% fieldtag 'fieldOptionLabel' with {
+                        title: option.label | t('formie'),
+                    } %}
+                        <span class="formie-rating-star" aria-hidden="true"></span>
+                        <span class="formie-sr-only">{{ option.label | t('formie') | purify | md(inlineOnly=true) | raw }}</span>
+                    {% endfieldtag %}
+                {% endfieldtag %}
+            {% endif %}
+        {% endfor %}
+    {% endfieldtag %}
+{% endfieldtag %}

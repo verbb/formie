@@ -235,6 +235,11 @@ trait FieldDefinitionTrait
         return [];
     }
 
+    public function collectClientModules(): array
+    {
+        return $this->defineClientModules();
+    }
+
     protected function defineAllowPrimaryReference(): bool
     {
         return true;

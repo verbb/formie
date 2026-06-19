@@ -54,6 +54,7 @@ import { FieldBuilderDnDDebugPanel } from '../dev/FieldBuilderDnDDebugPanel';
 
 import { cn } from '@verbb/plugin-kit-react/utils';
 import { announceFormBuilderStatus } from '@form-builder/utils/accessibility';
+import { getFieldDisplayLabel } from '@form-builder/utils/fieldDisplayLabel';
 import { SnapTopLeftCornerToCursor } from '@utils';
 
 const getDropzoneHitboxPadding = (id) => {
@@ -565,9 +566,7 @@ function FieldBuilder({ fields }) {
                 <span>
                     {activeField.isNew
                         ? activeField.fieldType.label
-                        : (activeField.fieldType?.hasLabel === false
-                            ? activeField.fieldType.label
-                            : (activeField.field?.label || activeField.fieldType.label))}
+                        : getFieldDisplayLabel(activeField.field, activeField.fieldType)}
                 </span>
 
                 {activeField.isNew && (

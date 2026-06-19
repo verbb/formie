@@ -7,6 +7,7 @@ use verbb\formie\workflow\StageInterface;
 use verbb\formie\workflow\StageResult;
 use verbb\formie\workflow\WorkflowContext;
 use verbb\formie\workflow\tasks\save\ApplyCompletionFromPaymentStateTask;
+use verbb\formie\workflow\tasks\save\PersistQuestionnaireScoringTask;
 use verbb\formie\workflow\tasks\save\PersistSubmissionDirectTask;
 use verbb\formie\workflow\tasks\save\PersistSubmissionWorkflowTask;
 use verbb\formie\workflow\tasks\save\ProcessPaymentsTask;
@@ -39,6 +40,7 @@ class SaveStage implements StageInterface
             new PersistSubmissionDirectTask(),
             new ProcessPaymentsTask(),
             new ApplyCompletionFromPaymentStateTask(),
+            new PersistQuestionnaireScoringTask(),
             new SetProcessingSuccessTask(),
         ]);
     }

@@ -1,0 +1,74 @@
+{%- set fieldOptions = fieldOptions ?? field.getFieldOptions() %}
+{%- set likertRows = likertRows ?? field.getEffectiveLikertRows() %}
+{%- set usesLikertMultipleRows = usesLikertMultipleRows ?? field.usesLikertMultipleRows() %}
+{%- set rowSelections = value is iterable and value is not same as('') ? value : {} %}
+
+<div class="formie-cp-likert">
+    <table class="fullwidth">
+        <thead>
+            <tr>
+                {% if usesLikertMultipleRows %}
+                    <th scope="col"></th>
+                {% endif %}
+
+                {% for option in fieldOptions %}
+                    {% if option.optgroup is not defined %}
+                        <th scope="col">{{ option.label | t('formie') | purify | md(inlineOnly=true) | raw }}</th>
+                    {% endif %}
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% if usesLikertMultipleRows %}
+                {% for likertRow in likertRows %}
+                    <tr>
+                        <th scope="row">{{ likertRow.label | t('formie') | purify | md(inlineOnly=true) | raw }}</th>
+
+                        {% for option in fieldOptions %}
+                            {% if option.optgroup is not defined %}
+                                {% set optionValue = option.value is defined ? option.value : loop.index0 %}
+                                {% set selectedValue = rowSelections[likertRow.value] ?? '' %}
+                                {% set inputId = field.handle ~ '-' ~ likertRow.value ~ '-' ~ optionValue %}
+
+                                <td class="formie-cp-likert-cell">
+                                    <label for="{{ inputId }}" class="formie-cp-likert-radio">
+                                        <input
+                                            type="radio"
+                                            id="{{ inputId }}"
+                                            name="{{ field.getHtmlName(likertRow.value) }}"
+                                            value="{{ optionValue }}"
+                                            {% if (optionValue ~ '') is same as (selectedValue ~ '') %}checked{% endif %}
+                                            aria-label="{{ (likertRow.label | t('formie') | striptags) ~ ': ' ~ (option.label | t('formie') | striptags) }}"
+                                        >
+                                    </label>
+                                </td>
+                            {% endif %}
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    {% for option in fieldOptions %}
+                        {% if option.optgroup is not defined %}
+                            {% set optionValue = option.value is defined ? option.value : loop.index0 %}
+                            {% set inputId = field.handle ~ '-' ~ optionValue %}
+
+                            <td class="formie-cp-likert-cell">
+                                <label for="{{ inputId }}" class="formie-cp-likert-radio">
+                                    <input
+                                        type="radio"
+                                        id="{{ inputId }}"
+                                        name="{{ name }}"
+                                        value="{{ optionValue }}"
+                                        {% if (optionValue ~ '') is same as (value ~ '') %}checked{% endif %}
+                                        aria-label="{{ option.label | t('formie') | striptags }}"
+                                    >
+                                </label>
+                            </td>
+                        {% endif %}
+                    {% endfor %}
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>

@@ -5,7 +5,11 @@
             {{- fieldLabelPrefix | raw }}
         {%- endif -%}
 
-        {{- field.label | t('formie') | raw -}}
+        {%- set fieldLabelContent = field.usesQuestionLabel()
+            ? field.getLabelHtml()
+            : field.label | t('formie') -%}
+
+        {{- fieldLabelContent | raw -}}
 
         {%- set isRequired = (field.isRequired ?? required ?? null) -%}
 

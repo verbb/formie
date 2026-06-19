@@ -21,6 +21,9 @@ export const builtinFieldModuleLoaders: Record<string, () => Promise<FormieModul
     'rich-text': () => import('#modules/fields/rich-text').then((module) => module.richTextModule),
     'signature': () => import('#modules/fields/signature').then((module) => module.signatureModule),
     'summary': () => import('#modules/fields/summary').then((module) => module.summaryModule),
+    'survey-likert': () => import('#modules/fields/survey-likert').then((module) => module.surveyLikertModule),
+    'survey-rank': () => import('#modules/fields/survey-rank').then((module) => module.surveyRankModule),
+    'survey-rating': () => import('#modules/fields/survey-rating').then((module) => module.surveyRatingModule),
     'table': () => import('#modules/fields/table').then((module) => module.tableModule),
     'text-limit': () => import('#modules/fields/text-limit').then((module) => module.textLimitModule),
 };

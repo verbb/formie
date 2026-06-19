@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased
+
+### Added
+- Add **Quiz** field to forms for scored questionnaires ([#605](https://github.com/verbb/formie/issues/605)). Each question supports radio buttons, checkboxes, or a dropdown; mark correct answers on static options, enable optional **Weighted score** for per-option points, and add **Answer explanation** rich text for incorrect responses. Form **Behaviour → Quiz Scoring** settings control pass percentage, retake restrictions (by logged-in user or IP address), and whether Ajax/client submit responses include a `quizResult` payload after a successful final-page submit. Scores persist in `formie_submission_quiz_results` for complete, non-spam submissions.
+- Add **Survey** field to forms with selectable presentation types: radio buttons, checkboxes, dropdown, **Likert** scale ([#798](https://github.com/verbb/formie/issues/798)), **Rating** star scale ([#2282](https://github.com/verbb/formie/issues/2282)), and **Rank** drag-and-drop ordering ([#605](https://github.com/verbb/formie/issues/605)). Likert supports single- and multi-row layouts, optional **Weighted score** on static columns, and built-in predefined scale defaults. Rank fields preserve submitted order on validation re-render.
+- Add a **Results** tab to the form builder when a form includes Quiz or Survey fields ([#605](https://github.com/verbb/formie/issues/605)). View per-question response counts and option breakdowns, rank-weighted preference charts, Likert scoring averages when weighted scoring is enabled, and a quiz summary (attempts, average score, pass rate, pass threshold) for scored quizzes.
+- Add author documentation for [Quiz](/fields/quiz) and [Survey](/fields/survey) fields.
+
+### Changed
+- Redesign predefined/integration options UI.
+
+### Fixed
+- Fix a HTML error with Signatures field.
+
 ## 4.0.0-beta.7 - 2026-06-18
 
 ### Added
