@@ -12,7 +12,7 @@ import type { FormEndpointPayload, FormModuleManifest, FormSubmitResult } from '
 import type { ThemeClassMap } from '#contracts/theme';
 import { dispatchFormieDomEvent } from '#core/dom-events';
 import { getErrorAriaLivePreference } from '#core/error-aria-live';
-import { dispatchPageClientEventForSubmit } from '#core/page-client-event';
+import { dispatchPageClientEventForSubmit, dispatchPendingClientEventsFromForm } from '#core/page-client-event';
 import { syncPageTabErrors } from '#core/page-tab-errors';
 import {
     enhanceServerRenderedFieldErrors,
@@ -1249,6 +1249,11 @@ export function createFormieClient(): FormieClient {
             id,
             mode: normalizedOptions.mode as FormMode,
         });
+
+        if (form instanceof HTMLFormElement) {
+            dispatchPendingClientEventsFromForm(form);
+        }
+
         debug.log('Mount complete.', {
             id,
             target: getTargetDebugLabel(target),

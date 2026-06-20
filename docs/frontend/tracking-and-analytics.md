@@ -6,16 +6,25 @@ The main thing to decide is when the event should be recorded. On a single-page 
 
 ## Form Builder Events
 
-You can configure event data on a page button from the form builder. Open the form, click the submit or next button for the page you want to track, then go to the **Advanced** tab. Enable **Client Events** and the **Client Event Data** table will appear.
+You can configure analytics events per page from the form builder. Open the form, select the page you want to track, then go to the **Tracking** tab. Enable **Client Events** and add one or more events.
 
-Add the option/value pairs you want to send. A simple page-level event might use:
+Each event has:
 
-Option | Value
---- | ---
-`event` | `formPageSubmission`
-`formId` | `contactForm`
-`pageId` | `3074`
-`pageIndex` | `0`
+- **Event Name** — the analytics event identifier (for GTM, this is usually pushed as the `event` property on the payload).
+- **Payload properties** — key/value pairs pushed to `dataLayer` and the `formie:client-event` DOM event.
+
+For payload **values**, use the variable picker in the builder. Formie stores reference tokens such as `{field:a1b2c3}` for fields and `{form:handle}` for form variables. Do not type a field handle directly in braces — field tokens use each field's stable reference, and the picker inserts the correct token for the current form.
+
+Values are resolved server-side after a successful page submit, so they can include submission metadata and complex field values.
+
+A simple page-level event might look like:
+
+Event Name | Property | Value
+--- | --- | ---
+`formPageSubmission` | `formHandle` | `{form:handle}` *(from the variable picker)*
+`formPageSubmission` | `email` | `{field:a1b2c3}` *(field reference token from the picker)*
+
+That represents the same payload you would normally send to `dataLayer.push()`:
 
 That represents the same payload you would normally send to `dataLayer.push()`:
 
@@ -23,13 +32,34 @@ That represents the same payload you would normally send to `dataLayer.push()`:
 window.dataLayer = window.dataLayer || [];
 window.dataLayer.push({
     event: 'formPageSubmission',
-    formId: 'contactForm',
-    pageId: '3074',
-    pageIndex: '0',
+    formHandle: 'contactForm',
+    email: 'jane@example.com',
 });
 ```
 
+You can configure multiple events per page. Each configured event results in a separate `dataLayer.push()` after a successful page submit.
+
 Use a different `event` value if your analytics setup expects one. The payload is a plain object suitable for `dataLayer.push()` and for listeners on the `formie:client-event` DOM event.
+
+## Ajax Submit Response
+
+For Ajax and headless submissions, resolved client events are returned in the submit response as `clientEvents`:
+
+```json
+{
+  "success": true,
+  "clientEvents": [
+    {
+      "event": "formPageSubmission",
+      "payload": {
+        "event": "formPageSubmission",
+        "formHandle": "contactForm",
+        "email": "jane@example.com"
+      }
+    }
+  ]
+}
+```
 
 ## Template Control
 
@@ -85,3 +115,11 @@ For page reload forms, you can check Formie's submitted flash value after the fo
 ```
 
 If the form redirects to a thank-you page, put the analytics code on the redirected page instead. In that case, the thank-you page itself is the completion signal.
+
+You can also listen for builder-configured events directly:
+
+```js
+formEl?.addEventListener('formie:client-event', (event) => {
+    console.log('Client event dispatched:', event.detail);
+});
+```

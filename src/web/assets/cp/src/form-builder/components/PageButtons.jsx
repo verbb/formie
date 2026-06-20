@@ -278,11 +278,13 @@ function PageButtons({ page, pageIndex, isAnyDragActive = false }) {
                             </DialogDescription>
                         </DialogHeader>
 
-                        <div className="flex-1 min-h-0 overflow-hidden">
-                            <SchemaFormEngine
-                                form={form}
-                                className="h-full"
-                            />
+                        <div className="flex flex-1 min-h-0 flex-col overflow-hidden">
+                            <div className="relative min-h-0 flex-1 overflow-hidden">
+                                <SchemaFormEngine
+                                    form={form}
+                                    className="flex h-full min-h-0 flex-col"
+                                />
+                            </div>
                         </div>
 
                         <DialogFooter className="flex flex-row justify-end gap-2">

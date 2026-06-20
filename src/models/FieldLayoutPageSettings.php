@@ -3,6 +3,7 @@ namespace verbb\formie\models;
 
 use verbb\formie\base\TranslatablePropertiesInterface;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\ClientEventsHelper;
 use verbb\formie\helpers\ConditionsHelper;
 
 use Craft;
@@ -45,6 +46,7 @@ class FieldLayoutPageSettings extends Model implements TranslatablePropertiesInt
     public array $pageConditions = [];
     public bool $enableClientEvents = false;
     public array $clientEventFields = [];
+    public array $clientEvents = [];
 
 
     // Public Methods
@@ -65,8 +67,12 @@ class FieldLayoutPageSettings extends Model implements TranslatablePropertiesInt
                 $legacy = $config['jsGtmEventOptions'];
                 $config['clientEventFields'] = is_array($legacy) ? $legacy : [];
             }
-            
+
             unset($config['jsGtmEventOptions']);
+
+            if (empty($config['clientEvents']) && !empty($config['clientEventFields']) && is_array($config['clientEventFields'])) {
+                $config['clientEvents'] = ClientEventsHelper::migrateLegacyEventFields($config['clientEventFields']);
+            }
         }
 
         parent::__construct($config);

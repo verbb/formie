@@ -6,6 +6,7 @@ use verbb\formie\base\Field;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\errors\StaleSubmissionStateException;
+use verbb\formie\helpers\ClientEventsHelper;
 use verbb\formie\helpers\SetPageReturnUrlHelper;
 use verbb\formie\helpers\SiteHelper;
 use verbb\formie\helpers\StringHelper;
@@ -15,6 +16,7 @@ use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\IntegrationResponse;
 use verbb\formie\models\ManagedSubmissionRequest;
 use verbb\formie\models\Settings;
+use verbb\formie\models\SubmissionRequest;
 use verbb\formie\models\SubmissionResponse;
 use verbb\formie\models\PaymentDecision;
 use verbb\formie\services\SubmissionDrafts;
@@ -546,7 +548,12 @@ class SubmissionsController extends Controller
             $responseSubmission = $response->submission ?? $submission;
 
             if ($this->request->getAcceptsJson()) {
-                return $this->asJson($this->_createSubmitJsonResponsePayload($response, $submissionRequest->submitAction));
+                return $this->asJson($this->_createSubmitJsonResponsePayload(
+                    $response,
+                    $submissionRequest->submitAction,
+                    [],
+                    $submissionRequest,
+                ));
             }
 
             $formErrorMessages = $responseSubmission->getErrors('form');
@@ -571,7 +578,16 @@ class SubmissionsController extends Controller
         }
 
         if ($this->request->getAcceptsJson()) {
-            return $this->asJson($this->_createSubmitJsonResponsePayload($response, $submissionRequest->submitAction, $saveResumePayload));
+            return $this->asJson($this->_createSubmitJsonResponsePayload(
+                $response,
+                $submissionRequest->submitAction,
+                $saveResumePayload,
+                $submissionRequest,
+            ));
+        }
+
+        if ($response->success) {
+            $this->_stashPageReloadClientEvents($form, $submission, $submissionRequest, $response);
         }
 
         if ($submissionRequest->submitAction === SubmissionWorkflow::SUBMIT_ACTION_SAVE) {
@@ -632,8 +648,12 @@ class SubmissionsController extends Controller
     // Private Methods
     // =========================================================================
 
-    private function _createSubmitJsonResponsePayload(SubmissionResponse $response, string $submitAction, array $payload = []): array
-    {
+    private function _createSubmitJsonResponsePayload(
+        SubmissionResponse $response,
+        string $submitAction,
+        array $payload = [],
+        ?SubmissionRequest $submissionRequest = null,
+    ): array {
         $form = $response->form;
         $submission = $response->submission;
         $nextPage = $response->nextPage;
@@ -697,7 +717,65 @@ class SubmissionsController extends Controller
             $payload['quizResult'] = $response->quizResult;
         }
 
+        if ($submissionRequest) {
+            $clientEvents = ClientEventsHelper::resolveForSubmittedPage(
+                $form,
+                $submission,
+                self::_resolveSubmittedPageId($form, $submission, $submissionRequest, $response),
+                $submitAction,
+            );
+
+            if ($clientEvents) {
+                $payload['clientEvents'] = $clientEvents;
+            }
+        }
+
         return $payload;
+    }
+
+    private function _stashPageReloadClientEvents(
+        Form $form,
+        Submission $submission,
+        SubmissionRequest $submissionRequest,
+        SubmissionResponse $response,
+    ): void {
+        if ($form->settings->submitMethod !== 'page-reload') {
+            return;
+        }
+
+        $clientEvents = ClientEventsHelper::resolveForSubmittedPage(
+            $form,
+            $submission,
+            self::_resolveSubmittedPageId($form, $submission, $submissionRequest, $response),
+            $submissionRequest->submitAction,
+        );
+
+        if ($clientEvents) {
+            Formie::$plugin->getService()->setFlash($form->getFlashNamespace(), 'clientEvents', $clientEvents);
+        }
+    }
+
+    private static function _resolveSubmittedPageId(
+        Form $form,
+        Submission $submission,
+        SubmissionRequest $submissionRequest,
+        SubmissionResponse $response,
+    ): ?int {
+        $pageId = (int)($submissionRequest->pageId ?? 0);
+
+        if ($pageId > 0) {
+            return $pageId;
+        }
+
+        if ($response->nextPage) {
+            $previousPage = $form->getPreviousPage($response->nextPage, $submission);
+
+            return $previousPage?->id ? (int)$previousPage->id : null;
+        }
+
+        $pages = $form->getPages();
+
+        return $pages ? (int)$pages[0]->id : null;
     }
 
     private function _handleStaleSubmissionState(Form $form, string $source, int|string $value): Response

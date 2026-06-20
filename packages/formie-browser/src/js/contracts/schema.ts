@@ -43,6 +43,11 @@ export type FormRedirect = {
     target?: 'same-tab' | 'new-tab';
 };
 
+export type FormClientEvent = {
+    event: string;
+    payload: Record<string, string>;
+};
+
 export type FormSubmitResult = {
     ok: boolean;
     action?: FormAction;
@@ -56,6 +61,7 @@ export type FormSubmitResult = {
     nextPage?: { id: string } | null;
     redirect?: FormRedirect | null;
     submitData?: unknown[];
+    clientEvents?: FormClientEvent[];
     meta?: Record<string, unknown>;
 };
 

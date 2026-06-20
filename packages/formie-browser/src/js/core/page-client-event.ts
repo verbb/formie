@@ -3,9 +3,15 @@ import { createDebug } from '#utils/debug';
 const debug = createDebug('general', 'page-client-event');
 
 const CLIENT_EVENT_ATTR = 'data-formie-client-event';
+const PENDING_CLIENT_EVENTS_ATTR = 'data-formie-pending-client-events';
 
 type ClientEventPayload = {
     fields?: Array<{ label?: string; value?: string }>;
+};
+
+export type ResolvedClientEvent = {
+    event: string;
+    payload: Record<string, string>;
 };
 
 function escapePageIdForSelector(pageId: string): string {
@@ -70,11 +76,83 @@ function buildPayloadObject(fields: Array<{ label?: string; value?: string }>): 
     return out;
 }
 
+function normalizeResolvedClientEvents(events: unknown): ResolvedClientEvent[] {
+    if (!Array.isArray(events)) {
+        return [];
+    }
+
+    return events
+        .map((item) => {
+            if (!item || typeof item !== 'object') {
+                return null;
+            }
+
+            const record = item as ResolvedClientEvent;
+            const eventName = typeof record.event === 'string' ? record.event.trim() : '';
+            const payload = record.payload && typeof record.payload === 'object' ? record.payload : null;
+
+            if (!eventName || !payload) {
+                return null;
+            }
+
+            return {
+                event: eventName,
+                payload,
+            };
+        })
+        .filter((item): item is ResolvedClientEvent => item !== null);
+}
+
+export function dispatchResolvedClientEvents(form: HTMLFormElement, events: ResolvedClientEvent[]): void {
+    if (!events.length) {
+        return;
+    }
+
+    const win = window as Window & { dataLayer?: unknown[] };
+    win.dataLayer = win.dataLayer || [];
+
+    events.forEach((item) => {
+        win.dataLayer!.push(item.payload);
+
+        form.dispatchEvent(new CustomEvent('formie:client-event', {
+            bubbles: true,
+            detail: {
+                event: item.event,
+                payload: item.payload,
+            },
+        }));
+    });
+
+    debug.log('Dispatched resolved client events.', {
+        count: events.length,
+        events: events.map((item) => item.event),
+    });
+}
+
+export function dispatchPendingClientEventsFromForm(form: HTMLFormElement): void {
+    const rawAttr = form.getAttribute(PENDING_CLIENT_EVENTS_ATTR);
+
+    if (!rawAttr?.trim()) {
+        return;
+    }
+
+    try {
+        const parsed = JSON.parse(rawAttr) as unknown;
+        const events = normalizeResolvedClientEvents(parsed);
+
+        if (events.length) {
+            dispatchResolvedClientEvents(form, events);
+        }
+    } catch {
+        debug.warn('Invalid pending client events JSON on form element.');
+    } finally {
+        form.removeAttribute(PENDING_CLIENT_EVENTS_ATTR);
+    }
+}
+
 /**
- * When the builder enables JavaScript events for a page, the theme emits
- * `data-formie-client-event` on that page's section. On each successful
- * **submit** (not back/save), push the configured key/value object to
- * `window.dataLayer` (when present) and dispatch `formie:client-event`.
+ * Legacy static page attribute dispatch. Prefer server-resolved `clientEvents`
+ * from the submit response when available.
  */
 export function dispatchPageClientEventForSubmit(form: HTMLFormElement, action: string): void {
     if (action !== 'submit') {
@@ -112,18 +190,8 @@ export function dispatchPageClientEventForSubmit(form: HTMLFormElement, action: 
     }
 
     const payload = buildPayloadObject(config.fields);
-    const win = window as Window & { dataLayer?: unknown[] };
-
-    win.dataLayer = win.dataLayer || [];
-    win.dataLayer.push(payload);
-
-    form.dispatchEvent(new CustomEvent('formie:client-event', {
-        bubbles: true,
-        detail: { payload },
-    }));
-
-    debug.log('Dispatched page client event.', {
-        pageId,
-        keys: Object.keys(payload),
-    });
+    dispatchResolvedClientEvents(form, [{
+        event: typeof payload.event === 'string' && payload.event !== '' ? payload.event : 'formPageSubmission',
+        payload,
+    }]);
 }

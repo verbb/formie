@@ -76,6 +76,15 @@ class FormSlotRegistry extends Component
         $settings = Formie::$plugin->getSettings();
         $hasStaticCache = $settings->hasStaticCache();
         $errorAriaLive = $settings->errorAriaLive;
+        $pendingClientEvents = false;
+
+        if ($form) {
+            $flashEvents = Formie::$plugin->getService()->getFlash($form->getFlashNamespace(), 'clientEvents');
+
+            if (is_array($flashEvents) && $flashEvents !== []) {
+                $pendingClientEvents = Json::encode($flashEvents);
+            }
+        }
 
         return SlotTag::make('form')
             ->core([
@@ -108,6 +117,7 @@ class FormSlotRegistry extends Component
                 'data-formie-clear-submission-endpoint' => UrlHelper::actionUrl('formie/server/submissions/clear-submission'),
                 'data-formie-modules' => $moduleManifest ? Json::encode($moduleManifest) : false,
                 'data-formie-theme' => $themeClassMap ? Json::encode($themeClassMap) : false,
+                'data-formie-pending-client-events' => $pendingClientEvents,
             ])
             ->theme([
                 'class' => [
@@ -142,6 +152,28 @@ class FormSlotRegistry extends Component
         }
 
         $rows = is_array($settings->clientEventFields) ? $settings->clientEventFields : [];
+        $events = \verbb\formie\helpers\ClientEventsHelper::normalizeStoredEvents($settings);
+
+        if ($events !== []) {
+            $firstEvent = $events[0];
+            $fields = [
+                ['label' => 'event', 'value' => (string)($firstEvent['event'] ?? '')],
+            ];
+
+            foreach ($firstEvent['payload'] ?? [] as $row) {
+                if (!is_array($row)) {
+                    continue;
+                }
+
+                $fields[] = [
+                    'label' => (string)($row['key'] ?? ''),
+                    'value' => (string)($row['value'] ?? ''),
+                ];
+            }
+
+            return Json::encode(['fields' => $fields]);
+        }
+
         $fields = [];
 
         foreach ($rows as $row) {

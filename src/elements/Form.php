@@ -3271,34 +3271,32 @@ class Form extends Element implements FormInterface
                 ],
             ],
             [
-                'handle' => 'advanced',
-                'label' => Craft::t('formie', 'Advanced'),
+                'handle' => 'tracking',
+                'label' => Craft::t('formie', 'Tracking'),
                 'content' => [
                     SchemaHelper::lightswitchField([
                         'labelPosition' => 'before',
                         'label' => Craft::t('formie', 'Enable Client Events'),
-                        'instructions' => Craft::t('formie', 'When enabled, a payload will be emitted in the browser after this page submits successfully.'),
+                        'instructions' => Craft::t('formie', 'When enabled, analytics payloads are emitted in the browser after this page submits successfully.'),
                         'name' => 'settings.enableClientEvents',
                     ]),
-                    SchemaHelper::tableField([
-                        'label' => Craft::t('formie', 'Client Event Data'),
-                        'instructions' => Craft::t('formie', 'Each option name becomes a property on the payload object. Include an `event` key when using Google Tag Manager or similar tools.'),
-                        'name' => 'settings.clientEventFields',
+                    [
+                        '$field' => 'clientEvents',
+                        'name' => 'settings.clientEvents',
                         'if' => '$item.settings.enableClientEvents',
-                        'schemaChildPrefix' => 'settings.clientEventFields.*.',
-                        'columns' => [
-                            [
-                                'type' => 'text',
-                                'name' => 'label',
-                                'label' => Craft::t('formie', 'Option'),
-                            ],
-                            [
-                                'type' => 'text',
-                                'name' => 'value',
-                                'label' => Craft::t('formie', 'Value'),
+                        'label' => Craft::t('formie', 'Client Events'),
+                        'instructions' => Craft::t('formie', 'Configure one or more analytics events to push after a successful page submit. Values support field references and other Formie variables.'),
+                        'variableConfig' => [
+                            'content' => Variables::CONTENT_SINGLE_LINE,
+                            'types' => [Variables::TYPE_TEXT],
+                            'groups' => [
+                                Variables::STATIC_FIELDS,
+                                Variables::STATIC_FORM,
+                                Variables::STATIC_GENERAL,
+                                Variables::STATIC_SITE,
                             ],
                         ],
-                    ]),
+                    ],
                 ],
             ],
         ];
@@ -3307,12 +3305,16 @@ class Form extends Element implements FormInterface
             [
                 '$field' => 'list',
                 'name' => 'pages',
+                'className' => 'flex h-full min-h-0 flex-1 flex-col',
                 'schemaChildPrefix' => 'pages.*.',
                 'schema' => [
                     [
                         '$el' => 'div',
                         'if' => 'activePage == $item._handle',
                         'hideOnIf' => true,
+                        'attrs' => [
+                            'className' => 'flex h-full min-h-0 flex-1 flex-col',
+                        ],
                         'children' => [
                             SchemaHelper::modalTabs($tabs),
                         ],

@@ -1,7 +1,7 @@
 import type { FormAction } from '#contracts/common';
 import type { FormSubmitResult } from '#contracts/schema';
 import { dispatchFormieDomEvent } from '#core/dom-events';
-import { dispatchPageClientEventForSubmit } from '#core/page-client-event';
+import { dispatchPageClientEventForSubmit, dispatchResolvedClientEvents } from '#core/page-client-event';
 import { syncPageTabErrors } from '#core/page-tab-errors';
 import { addThemeClasses, removeThemeClasses, toggleThemeClasses } from '#theme/theme-classes';
 import { createDebug } from '#utils/debug';
@@ -568,7 +568,11 @@ export function applySubmitResultState(form: HTMLFormElement, result: FormSubmit
         return;
     }
 
-    dispatchPageClientEventForSubmit(form, action);
+    if (Array.isArray(result.clientEvents) && result.clientEvents.length > 0) {
+        dispatchResolvedClientEvents(form, result.clientEvents);
+    } else {
+        dispatchPageClientEventForSubmit(form, action);
+    }
 
     if (result.nextPage?.id) {
         // Advancing pages is treated as a fresh validation cycle for the next page.

@@ -3,6 +3,7 @@ namespace verbb\formie\services;
 
 use verbb\formie\Formie;
 use verbb\formie\helpers\SiteHelper;
+use verbb\formie\helpers\ClientEventsHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
@@ -570,6 +571,27 @@ class SubmissionProcessor extends Component
             $rawErrors['form'] = StringHelper::sanitizeMessageHtmlRecursive($rawErrors['form'] ?? []);
         }
 
+        $submittedPageId = (int)($submissionRequest->pageId ?? 0);
+
+        if ($submittedPageId <= 0) {
+            if ($response->nextPage) {
+                $previousPage = $form->getPreviousPage($response->nextPage, $submission);
+                $submittedPageId = $previousPage?->id ? (int)$previousPage->id : 0;
+            } else {
+                $pages = $form->getPages();
+                $submittedPageId = $pages ? (int)$pages[0]->id : 0;
+            }
+        }
+
+        $clientEvents = $response->success
+            ? ClientEventsHelper::resolveForSubmittedPage(
+                $form,
+                $submission,
+                $submittedPageId ?: null,
+                $submitAction,
+            )
+            : [];
+
         return new SubmitResult([
             'success' => $response->success,
             'submissionUid' => $submission->uid ?: null,
@@ -588,6 +610,7 @@ class SubmissionProcessor extends Component
             ],
             'session' => $session,
             'quizResult' => $response->quizResult,
+            'clientEvents' => $clientEvents,
         ]);
     }
 

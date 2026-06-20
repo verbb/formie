@@ -1,4 +1,4 @@
-import { t as e } from "./api-DztsCJ4r.js";
+import { t as e } from "./api-C8wyLC-s.js";
 //#region src/js/modules/payments/bpoint.ts
 var t = e({
 	id: "bpoint",

@@ -91,6 +91,7 @@ import { StatusRuleConditionsField } from '@form-builder/fields/StatusRuleCondit
 import { RedirectRuleConditionsField } from '@form-builder/fields/RedirectRuleConditionsField';
 import { StatusRulesField } from '@form-builder/fields/StatusRulesField';
 import { RedirectRulesField } from '@form-builder/fields/RedirectRulesField';
+import { ClientEventsField } from '@form-builder/fields/ClientEventsField';
 import { NestedLayoutField } from '@form-builder/fields/NestedLayoutField';
 import { IntegrationFieldMappingField } from '@form-builder/fields/IntegrationFieldMappingField';
 import { IntegrationRefreshSelectField } from '@form-builder/fields/IntegrationRefreshSelectField';
@@ -167,6 +168,7 @@ Craft.Formie.FormBuilder = function(settings) {
         statusRules: StatusRulesField,
         redirectRuleConditions: RedirectRuleConditionsField,
         redirectRules: RedirectRulesField,
+        clientEvents: ClientEventsField,
         nestedLayout: NestedLayoutField,
         integrationFieldMapping: IntegrationFieldMappingField,
         integrationRefreshSelect: IntegrationRefreshSelectField,

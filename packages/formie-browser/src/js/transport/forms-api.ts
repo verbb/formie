@@ -107,6 +107,7 @@ function normalizePayload(payload: Record<string, unknown>, fallbackFormError?: 
             }
             : null,
         submitData: Array.isArray(payload.submitData) ? payload.submitData : undefined,
+        clientEvents: Array.isArray(payload.clientEvents) ? payload.clientEvents as FormSubmitResult['clientEvents'] : undefined,
         meta: payload,
     };
 

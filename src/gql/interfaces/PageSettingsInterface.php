@@ -130,7 +130,13 @@ class PageSettingsInterface extends BaseInterfaceType
             'clientEventFields' => [
                 'name' => 'clientEventFields',
                 'type' => JsonType::getType(),
-                'description' => 'Key/value rows for the client event payload as a JSON string.',
+                'description' => 'Deprecated legacy key/value rows for the client event payload as a JSON string.',
+                'deprecationReason' => 'Use `clientEvents` instead.',
+            ],
+            'clientEvents' => [
+                'name' => 'clientEvents',
+                'type' => JsonType::getType(),
+                'description' => 'Configured client analytics events for this page as a JSON string.',
             ],
         ];
 

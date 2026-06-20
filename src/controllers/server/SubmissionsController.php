@@ -6,10 +6,12 @@ use verbb\formie\Formie;
 use verbb\formie\controllers\CrossOriginRequestTrait;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\helpers\ClientEventsHelper;
 use verbb\formie\helpers\SiteHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\ManagedSubmissionRequest;
 use verbb\formie\models\PaymentDecision;
+use verbb\formie\models\SubmissionRequest;
 use verbb\formie\models\SubmissionResponse;
 use verbb\formie\client\models\PageTransitionRequest;
 use verbb\formie\services\SubmissionWorkflow;
@@ -106,7 +108,12 @@ class SubmissionsController extends Controller
 
         $this->response->setNoCacheHeaders();
 
-        return $this->asJson($this->_createSubmitJsonResponsePayload($response, $submissionRequest->submitAction, $saveResumePayload));
+        return $this->asJson($this->_createSubmitJsonResponsePayload(
+            $response,
+            $submissionRequest->submitAction,
+            $saveResumePayload,
+            $submissionRequest,
+        ));
     }
 
     public function actionSetPage(): Response
@@ -191,8 +198,12 @@ class SubmissionsController extends Controller
     // Private Methods
     // =========================================================================
 
-    private function _createSubmitJsonResponsePayload(SubmissionResponse $response, string $submitAction, array $payload = []): array
-    {
+    private function _createSubmitJsonResponsePayload(
+        SubmissionResponse $response,
+        string $submitAction,
+        array $payload = [],
+        ?SubmissionRequest $submissionRequest = null,
+    ): array {
         $form = $response->form;
         $submission = $response->submission;
         $nextPage = $response->nextPage;
@@ -251,6 +262,31 @@ class SubmissionsController extends Controller
 
         if ($response->quizResult) {
             $payload['quizResult'] = $response->quizResult;
+        }
+
+        if ($submissionRequest && $response->success) {
+            $pageId = (int)($submissionRequest->pageId ?? 0);
+
+            if ($pageId <= 0) {
+                if ($response->nextPage) {
+                    $previousPage = $form->getPreviousPage($response->nextPage, $submission);
+                    $pageId = $previousPage?->id ? (int)$previousPage->id : 0;
+                } else {
+                    $pages = $form->getPages();
+                    $pageId = $pages ? (int)$pages[0]->id : 0;
+                }
+            }
+
+            $clientEvents = ClientEventsHelper::resolveForSubmittedPage(
+                $form,
+                $submission,
+                $pageId ?: null,
+                $submitAction,
+            );
+
+            if ($clientEvents) {
+                $payload['clientEvents'] = $clientEvents;
+            }
         }
 
         return $payload;

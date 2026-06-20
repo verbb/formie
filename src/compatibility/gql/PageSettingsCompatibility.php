@@ -30,7 +30,7 @@ class PageSettingsCompatibility
             'name' => 'jsGtmEventOptions',
             'type' => JsonType::getType(),
             'description' => 'Deprecated alias for the page client event payload fields.',
-            'deprecationReason' => 'Use `clientEventFields` instead.',
+            'deprecationReason' => 'Use `clientEvents` instead.',
             'resolve' => fn(FieldLayoutPageSettings $source): array => $source->clientEventFields,
         ];
 
