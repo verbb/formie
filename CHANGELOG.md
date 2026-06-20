@@ -1,5 +1,17 @@
 # Changelog
 
+## 3.1.29 - 2026-06-20
+
+### Changed
+- Bump `verbb/auth`.
+
+### Fixed
+- Fix Group/Repeater email templates not respecting “Include in Email Notifications” for nested fields.
+- Fix CP submission saves failing when a form has schedule dates enabled.
+- Fix open redirect in multi-page form navigation by validating referrer URLs against same-site allowlist.
+- Fixed bug preventing payload send when content not multipart.
+- Fix Repeater conditional fields rendering the wrong row's value in email notifications.
+
 ## 3.1.28 - 2026-06-05
 
 ### Added
