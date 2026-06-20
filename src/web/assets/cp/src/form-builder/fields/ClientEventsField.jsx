@@ -1,12 +1,20 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
+import { cloneDeep } from 'lodash-es';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faXmark } from '@fortawesome/pro-solid-svg-icons';
 
 import {
     Button,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuGroup,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuTrigger,
     EditableTable,
     Input,
+    Lightswitch,
     TiptapInput,
 } from '@verbb/plugin-kit-react/components';
 import { FieldLayout } from '@verbb/plugin-kit-react/forms/Field';
@@ -14,8 +22,17 @@ import { useEngineField } from '@verbb/plugin-kit-react/forms/useEngineField';
 import { useTranslation } from '@verbb/plugin-kit-react/hooks';
 import { cn, createItem } from '@verbb/plugin-kit-react/utils';
 
+import { useFormBuilderForm } from '@form-builder/contexts/FormBuilderFormContext';
 import { useVariableCategories } from '@form-builder/hooks/useVariableCategories';
 import useAppStore from '@form-builder/hooks/useAppStore';
+import { ClientEventConditionsField } from '@form-builder/fields/ClientEventConditionsField';
+import { ClientEventTemplateDialog } from '@form-builder/fields/ClientEventTemplateDialog';
+import {
+    getPageContext,
+    getPageIndexFromFieldName,
+    getSuggestedTemplates,
+    materializeClientEventTemplate,
+} from '@form-builder/utils/clientEventTemplates';
 
 const CLIENT_EVENT_VARIABLE_CONFIG = {
     content: 'singleLine',
@@ -59,6 +76,12 @@ const createDefaultEvent = () => ({
     ...createItem({}),
     event: 'formPageSubmission',
     payload: [],
+    enableConditions: false,
+    conditions: {
+        applyRule: 'apply',
+        conditionRule: 'all',
+        conditions: [],
+    },
 });
 
 function ClientEventPayloadRows({
@@ -158,11 +181,13 @@ function ClientEventItem({
     form,
     baseName,
     index,
+    eventDefinition,
     onRemove,
     variableCategories,
     variableCategoryLabels,
     variableCategoryOrder,
     variableTransformerRegistry,
+    field,
 }) {
     const t = useTranslation();
     const eventField = {
@@ -171,6 +196,16 @@ function ClientEventItem({
         instructions: t('The analytics event name. For Google Tag Manager, this is usually pushed as the `event` property on the payload.'),
         required: true,
     };
+    const enableConditionsField = {
+        name: `${baseName}.${index}.enableConditions`,
+        label: t('Enable Conditions'),
+        instructions: t('Whether to enable conditional logic to control when this client event is pushed.'),
+    };
+    const conditionsField = {
+        name: `${baseName}.${index}.conditions`,
+        fieldOptions: field.fieldOptions,
+        conditionOptions: field.conditionOptions,
+    };
 
     const {
         value: eventName,
@@ -178,6 +213,11 @@ function ClientEventItem({
         setTouched: setEventTouched,
         errors: eventErrors,
     } = useEngineField(form, eventField.name);
+    const {
+        value: enableConditions,
+        setValue: setEnableConditions,
+        setTouched: setEnableConditionsTouched,
+    } = useEngineField(form, enableConditionsField.name);
 
     return (
         <div className={CLIENT_EVENT_CARD_CLASSNAME}>
@@ -195,6 +235,12 @@ function ClientEventItem({
             </div>
 
             <div className="space-y-4 pr-8">
+                {eventDefinition?.templateLabel ? (
+                    <div className="text-xs text-gray-500">
+                        {t('Template')}: <span className="font-medium text-gray-700">{eventDefinition.templateLabel}</span>
+                    </div>
+                ) : null}
+
                 <FieldLayout
                     name={eventField.name}
                     label={eventField.label}
@@ -221,6 +267,31 @@ function ClientEventItem({
                     variableCategoryOrder={variableCategoryOrder}
                     variableTransformerRegistry={variableTransformerRegistry}
                 />
+
+                {field.fieldOptions?.length && field.conditionOptions?.length ? (
+                    <div className="space-y-3 border-t border-[rgba(96,125,159,0.2)] pt-4">
+                        <FieldLayout
+                            name={enableConditionsField.name}
+                            label={enableConditionsField.label}
+                            instructions={enableConditionsField.instructions}
+                        >
+                            <Lightswitch
+                                checked={Boolean(enableConditions)}
+                                onCheckedChange={(checked) => {
+                                    setEnableConditions(Boolean(checked));
+                                    setEnableConditionsTouched();
+                                }}
+                            />
+                        </FieldLayout>
+
+                        {enableConditions ? (
+                            <ClientEventConditionsField
+                                field={conditionsField}
+                                form={form}
+                            />
+                        ) : null}
+                    </div>
+                ) : null}
             </div>
         </div>
     );
@@ -239,9 +310,24 @@ function ClientEventsField({ field, form }) {
     const variableCategoryLabels = useAppStore((state) => state.variableCategoryLabels);
     const variableCategoryOrder = useAppStore((state) => state.variableCategoryOrder);
     const variableTransformerRegistry = useAppStore((state) => state.variableCategoriesConfig?.transformerRegistry || {});
+    const clientEventTemplates = useAppStore((state) => state.clientEventTemplates || []);
+    const builderForm = useFormBuilderForm()?.form;
 
-    const addEvent = () => {
-        setValue([...events, createDefaultEvent()]);
+    const [pendingTemplate, setPendingTemplate] = useState(null);
+    const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
+
+    const isFormDefaultsMode = field.mode === 'formDefaults';
+    const pageIndex = isFormDefaultsMode ? null : getPageIndexFromFieldName(field.name);
+    const builderPages = builderForm?.getFieldValue?.('pages') || form?.getFieldValue?.('pages') || [];
+    const pageCount = Array.isArray(builderPages) ? builderPages.length : 0;
+    const pageContext = getPageContext(pageIndex, pageCount);
+
+    const suggestedTemplates = useMemo(() => {
+        return getSuggestedTemplates(clientEventTemplates, pageContext);
+    }, [clientEventTemplates, pageContext]);
+
+    const addEvent = (eventDefinition = createDefaultEvent()) => {
+        setValue([...events, eventDefinition]);
         setTouched();
     };
 
@@ -249,6 +335,61 @@ function ClientEventsField({ field, form }) {
         setValue(events.filter((_, eventIndex) => eventIndex !== index));
         setTouched();
     };
+
+    const handleTemplateSelect = (template) => {
+        const slots = (template.payload || []).filter((row) => row.kind === 'field');
+
+        if (slots.length > 0) {
+            setPendingTemplate(template);
+            setTemplateDialogOpen(true);
+            return;
+        }
+
+        addEvent(materializeClientEventTemplate(template));
+    };
+
+    const handleTemplateConfirm = (fieldMappings) => {
+        if (!pendingTemplate) {
+            return;
+        }
+
+        addEvent(materializeClientEventTemplate(pendingTemplate, fieldMappings));
+        setPendingTemplate(null);
+    };
+
+    const applyDefaultsToAllPages = () => {
+        if (!builderForm || !events.length) {
+            return;
+        }
+
+        const pages = Array.isArray(builderForm.getFieldValue('pages')) ? builderForm.getFieldValue('pages') : [];
+        const nextPages = pages.map((page) => ({
+            ...page,
+            settings: {
+                ...(page?.settings || {}),
+                enableClientEvents: true,
+                clientEvents: cloneDeep(events),
+            },
+        }));
+
+        builderForm.setFieldValue('pages', nextPages);
+    };
+
+    const templatesByCategory = useMemo(() => {
+        const grouped = new Map();
+
+        clientEventTemplates.forEach((template) => {
+            const categoryLabel = template.categoryLabel || t('General');
+
+            if (!grouped.has(categoryLabel)) {
+                grouped.set(categoryLabel, []);
+            }
+
+            grouped.get(categoryLabel).push(template);
+        });
+
+        return grouped;
+    }, [clientEventTemplates, t]);
 
     return (
         <FieldLayout
@@ -260,6 +401,25 @@ function ClientEventsField({ field, form }) {
             errors={errors}
         >
             <div className="space-y-3">
+                {!isFormDefaultsMode && suggestedTemplates.length > 0 ? (
+                    <div className="space-y-2">
+                        <p className="text-xs font-medium text-gray-600">{t('Suggested for this page')}</p>
+                        <div className="flex flex-wrap gap-2">
+                            {suggestedTemplates.map((template) => (
+                                <Button
+                                    key={template.handle}
+                                    type="button"
+                                    size="sm"
+                                    variant="default"
+                                    onClick={() => handleTemplateSelect(template)}
+                                >
+                                    {template.label}
+                                </Button>
+                            ))}
+                        </div>
+                    </div>
+                ) : null}
+
                 {events.length === 0 ? (
                     <p className="text-sm text-gray-500">{t('No client events configured yet.')}</p>
                 ) : null}
@@ -270,18 +430,74 @@ function ClientEventsField({ field, form }) {
                         form={form}
                         baseName={field.name}
                         index={index}
+                        eventDefinition={event}
                         onRemove={() => removeEvent(index)}
                         variableCategories={variableCategories}
                         variableCategoryLabels={variableCategoryLabels}
                         variableCategoryOrder={variableCategoryOrder}
                         variableTransformerRegistry={variableTransformerRegistry}
+                        field={field}
                     />
                 ))}
 
-                <Button type="button" variant="default" onClick={addEvent}>
-                    <FontAwesomeIcon icon={faPlus} className="mr-1 size-3" />
-                    {t('Add client event')}
-                </Button>
+                <div className="flex flex-wrap items-center gap-2">
+                    {clientEventTemplates.length > 0 ? (
+                        <DropdownMenu>
+                            <DropdownMenuTrigger
+                                render={(
+                                    <Button type="button" variant="default">
+                                        <FontAwesomeIcon icon={faPlus} className="mr-1 size-3" />
+                                        {t('Add event')}
+                                    </Button>
+                                )}
+                            />
+                            <DropdownMenuContent
+                                align="start"
+                                className="min-w-[280px] max-h-[min(360px,var(--available-height))] overflow-y-auto"
+                            >
+                                {[...templatesByCategory.entries()].map(([categoryLabel, templates]) => (
+                                    <DropdownMenuGroup key={categoryLabel}>
+                                        <DropdownMenuLabel className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+                                            {categoryLabel}
+                                        </DropdownMenuLabel>
+                                        {templates.map((template) => (
+                                            <DropdownMenuItem
+                                                key={template.handle}
+                                                onClick={() => handleTemplateSelect(template)}
+                                            >
+                                                <div className="min-w-0">
+                                                    <div className="truncate text-sm">{template.label}</div>
+                                                    {template.description ? (
+                                                        <div className="truncate text-xs text-gray-500">{template.description}</div>
+                                                    ) : null}
+                                                </div>
+                                            </DropdownMenuItem>
+                                        ))}
+                                    </DropdownMenuGroup>
+                                ))}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    ) : (
+                        <Button type="button" variant="default" onClick={() => addEvent()}>
+                            <FontAwesomeIcon icon={faPlus} className="mr-1 size-3" />
+                            {t('Add event')}
+                        </Button>
+                    )}
+
+                    {isFormDefaultsMode && events.length > 0 ? (
+                        <Button type="button" variant="default" onClick={applyDefaultsToAllPages}>
+                            {t('Apply defaults to all pages')}
+                        </Button>
+                    ) : null}
+                </div>
+
+                <ClientEventTemplateDialog
+                    open={templateDialogOpen}
+                    onOpenChange={setTemplateDialogOpen}
+                    template={pendingTemplate}
+                    pages={builderPages}
+                    onConfirm={handleTemplateConfirm}
+                />
             </div>
         </FieldLayout>
     );

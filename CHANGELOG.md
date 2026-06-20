@@ -12,6 +12,7 @@
 - Add `allowedSubmitMethods` plugin setting to restrict form submission methods to Ajax only, page reload only, or both ([#1751](https://github.com/verbb/formie/issues/1751)).
 - Add `siteHandle` request parameter support for headless form load and submit endpoints ([#2286](https://github.com/verbb/formie/issues/2286)).
 - Redesign page **Client Events** with a dedicated **Tracking** tab, support for multiple named events per page, variable picker values, and server-resolved `clientEvents` payloads in Ajax submit responses ([#888](https://github.com/verbb/formie/issues/888)).
+- Add predefined **client event templates** (GTM, GA4, Meta), per-page suggestions, payload preview, optional per-event conditions, and form-level default client events with apply-to-all-pages support.
 
 ### Changed
 - Redesign predefined/integration options UI.

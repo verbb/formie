@@ -171,6 +171,34 @@ Event::on(Variables::class, Variables::EVENT_REGISTER_VARIABLES, function(Regist
 
 See [Custom variable sources](/developers/custom-variable-sources) for token rules, picker metadata, transforms, and troubleshooting.
 
+### The `registerClientEventTemplates` event
+
+The event that is triggered to register client event templates for the form builder **Tracking** tab.
+
+```php
+use Craft;
+use verbb\formie\events\RegisterClientEventTemplatesEvent;
+use verbb\formie\services\ClientEventTemplates;
+use yii\base\Event;
+
+Event::on(ClientEventTemplates::class, ClientEventTemplates::EVENT_REGISTER_CLIENT_EVENT_TEMPLATES, function(RegisterClientEventTemplatesEvent $event) {
+    $event->templates[] = [
+        'handle' => 'acme_demo_request',
+        'label' => Craft::t('site', 'Acme — Demo request'),
+        'description' => Craft::t('site', 'Push a demo-request event after the final page submits.'),
+        'category' => 'acme',
+        'categoryLabel' => Craft::t('site', 'Acme Analytics'),
+        'event' => 'demo_request',
+        'pageContexts' => ['last-page', 'single-page'],
+        'payload' => [
+            ['key' => 'form_id', 'value' => '{form:handle}', 'kind' => 'static'],
+        ],
+    ];
+});
+```
+
+See [Custom client event templates](/developers/custom-client-event-templates) for template properties, payload rows, page contexts, and troubleshooting.
+
 ### The `registerTransformers` event
 The event that is triggered to register additional variable transformers used when variable values are parsed.
 

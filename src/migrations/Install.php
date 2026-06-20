@@ -238,7 +238,7 @@ class Install extends Migration
             'enableFormSubmitExpiration' => $this->boolean()->notNull()->defaultValue(false),
             'formSubmitExpiration' => $this->integer()->notNull()->defaultValue(86400),
             'enableSuspiciousTextDetection' => $this->boolean()->notNull()->defaultValue(false),
-            'suspiciousTextAllowedTerms' => $this->mediumText()->after('enableSuspiciousTextDetection'),
+            'suspiciousTextAllowedTerms' => $this->mediumText(),
             'enableMaximumLinks' => $this->boolean()->notNull()->defaultValue(false),
             'maximumLinks' => $this->integer()->notNull()->defaultValue(10),
             'enableGlobalSubmissionThrottling' => $this->boolean()->notNull()->defaultValue(false),

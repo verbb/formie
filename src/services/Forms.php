@@ -441,6 +441,7 @@ class Forms extends Component
             'data' => $displayData,
             'pageSettingsSchema' => $form->definePageSettingsSchema(),
             'pageButtonSettingsSchema' => $form->definePageButtonSettingsSchema(),
+            'clientEventTemplates' => Formie::$plugin->getClientEventTemplates()->getBuilderConfig(),
             'schema' => $compiledSchema['schema'],
             'schemaIndex' => $compiledSchema,
         ];

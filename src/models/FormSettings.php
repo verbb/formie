@@ -119,6 +119,9 @@ class FormSettings extends Model implements TranslatablePropertiesInterface
     public bool $enableStatusRules = false;
     public array $statusRules = [];
 
+    public bool $enableDefaultClientEvents = false;
+    public array $defaultClientEvents = [];
+
     public ?array $allowedStatusIds = null;
 
     public ?string $dataRetention = null;

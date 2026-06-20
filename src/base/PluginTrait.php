@@ -45,6 +45,7 @@ use verbb\formie\services\QuestionnaireScoring;
 use verbb\formie\services\PdfTemplates;
 use verbb\formie\services\Phone;
 use verbb\formie\services\Plans;
+use verbb\formie\services\ClientEventTemplates;
 use verbb\formie\services\OptionSources;
 use verbb\formie\services\Repair;
 use verbb\formie\services\Relations;
@@ -229,6 +230,7 @@ trait PluginTrait
                 'pdfTemplates' => PdfTemplates::class,
                 'phone' => Phone::class,
                 'plans' => Plans::class,
+                'clientEventTemplates' => ClientEventTemplates::class,
                 'optionSources' => OptionSources::class,
                 'repair' => Repair::class,
                 'relations' => Relations::class,
@@ -546,6 +548,11 @@ trait PluginTrait
     public function getPlans(): Plans
     {
         return $this->get('plans');
+    }
+
+    public function getClientEventTemplates(): ClientEventTemplates
+    {
+        return $this->get('clientEventTemplates');
     }
 
     public function getOptionSources(): OptionSources

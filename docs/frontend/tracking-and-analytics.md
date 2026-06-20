@@ -26,8 +26,6 @@ Event Name | Property | Value
 
 That represents the same payload you would normally send to `dataLayer.push()`:
 
-That represents the same payload you would normally send to `dataLayer.push()`:
-
 ```js
 window.dataLayer = window.dataLayer || [];
 window.dataLayer.push({
@@ -40,6 +38,20 @@ window.dataLayer.push({
 You can configure multiple events per page. Each configured event results in a separate `dataLayer.push()` after a successful page submit.
 
 Use a different `event` value if your analytics setup expects one. The payload is a plain object suitable for `dataLayer.push()` and for listeners on the `formie:client-event` DOM event.
+
+### Event templates
+
+The builder includes predefined templates for common analytics setups such as GTM page submits, GA4 `generate_lead`, and Meta `Lead` events. Use **Add event** on the Tracking tab, or pick from **Suggested for this page** when a template matches the current page context.
+
+Templates that need form data will prompt you to map fields first. Formie inserts the correct field reference tokens for you. After insertion, the event is stored like any other client event and can be edited freely.
+
+Plugins and modules can register additional templates with [`ClientEventTemplates::EVENT_REGISTER_CLIENT_EVENT_TEMPLATES`](/developers/custom-client-event-templates).
+
+Each event also supports optional **conditions**, so you can limit when a configured event is pushed.
+
+### Form defaults
+
+Use **Behaviour → Client Event Defaults** to define events once for the whole form. Pages that enable client events but do not define their own events will inherit these defaults. Use **Apply defaults to all pages** to copy the default set onto every page’s Tracking settings.
 
 ## Ajax Submit Response
 

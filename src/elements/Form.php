@@ -2874,6 +2874,43 @@ class Form extends Element implements FormInterface
             ],
             [
                 '$el' => 'h3',
+                'children' => Craft::t('formie', 'Client Event Defaults'),
+                'attrs' => [
+                    'class' => 'form-builder-h3',
+                ],
+            ],
+            SchemaHelper::lightswitchField([
+                'label' => Craft::t('formie', 'Enable Default Client Events'),
+                'instructions' => Craft::t('formie', 'Provide default analytics events for every page. Individual pages can override these in the Tracking tab when editing page buttons.'),
+                'name' => 'settings.enableDefaultClientEvents',
+            ]),
+            [
+                '$field' => 'clientEvents',
+                'name' => 'settings.defaultClientEvents',
+                'if' => 'settings.enableDefaultClientEvents',
+                'label' => Craft::t('formie', 'Default Client Events'),
+                'instructions' => Craft::t('formie', 'These events are used on any page that enables client events but does not define its own events.'),
+                'mode' => 'formDefaults',
+                'variableConfig' => [
+                    'content' => Variables::CONTENT_SINGLE_LINE,
+                    'types' => [Variables::TYPE_TEXT],
+                    'groups' => [
+                        Variables::STATIC_FIELDS,
+                        Variables::STATIC_FORM,
+                        Variables::STATIC_GENERAL,
+                        Variables::STATIC_SITE,
+                    ],
+                ],
+                'fieldOptions' => ConditionsHelper::getConditionFieldOptions([
+                    'includeSubmissionDate' => true,
+                ]),
+                'conditionOptions' => ConditionsHelper::getConditionOptions(),
+            ],
+            [
+                '$el' => 'hr',
+            ],
+            [
+                '$el' => 'h3',
                 'children' => Craft::t('formie', 'Privacy'),
                 'attrs' => [
                     'class' => 'form-builder-h3',
@@ -3286,6 +3323,7 @@ class Form extends Element implements FormInterface
                         'if' => '$item.settings.enableClientEvents',
                         'label' => Craft::t('formie', 'Client Events'),
                         'instructions' => Craft::t('formie', 'Configure one or more analytics events to push after a successful page submit. Values support field references and other Formie variables.'),
+                        'mode' => 'page',
                         'variableConfig' => [
                             'content' => Variables::CONTENT_SINGLE_LINE,
                             'types' => [Variables::TYPE_TEXT],
@@ -3296,6 +3334,8 @@ class Form extends Element implements FormInterface
                                 Variables::STATIC_SITE,
                             ],
                         ],
+                        'fieldOptions' => $fieldOptions,
+                        'conditionOptions' => $conditionOptions,
                     ],
                 ],
             ],
