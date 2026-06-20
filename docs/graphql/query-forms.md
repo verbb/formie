@@ -120,6 +120,7 @@ Field | Type | Description
 `submitActionFormHide` | `Boolean` | Whether to hide the form after success.
 `automaticSubmissionState` | `Boolean` | Whether Formie should automatically restore an in-progress submission when the visitor returns.
 `submitActionMessageHtml` | `String` | The success message HTML.
+`submitActionMessageJson` | `Json` | The success message as stored rich-text JSON (`type: doc`). Variable tags are not resolved.
 `submitActionMessageTimeout` | `Int` | The success message timeout, in seconds.
 `submitActionMessagePosition` | `String` | The success message position.
 `loadingIndicator` | `String` | The loading indicator type.
@@ -127,6 +128,7 @@ Field | Type | Description
 `validationOnSubmit` | `Boolean` | Whether to validate on submit.
 `validationOnFocus` | `Boolean` | Whether to validate on focus.
 `errorMessageHtml` | `String` | The submit error message HTML.
+`errorMessageJson` | `Json` | The submit error message as stored rich-text JSON (`type: doc`).
 `errorMessagePosition` | `String` | The error message position.
 `redirectUrl` | `String` | The resolved redirect URL.
 `redirectEntry` | `EntryInterface` | The redirect entry, when the form redirects to an entry.
@@ -188,6 +190,8 @@ Field | Type | Description
 `label` | `String` | The field label.
 `handle` | `String` | The field handle.
 `instructions` | `String` | The field instructions.
+`instructionsHtml` | `String` | The field instructions as HTML.
+`instructionsJson` | `Json` | The field instructions as stored rich-text JSON (`type: doc`).
 `required` | `Boolean` | Whether the field is required.
 `enabled` | `Boolean` | Whether the field is enabled.
 `type` | `String` | The field’s PHP class.
@@ -264,6 +268,14 @@ Field | Type | Description
 `defaultValue` | `String` | The default value as a string.
 `defaultState` | `Boolean` | Whether the field is checked by default.
 `descriptionHtml` | `String` | The field description HTML.
+`descriptionJson` | `Json` | The field description as stored rich-text JSON (`type: doc`).
+
+### Content
+
+Field | Type | Description
+--- | --- | ---
+`contentHtml` | `String` | The field content as HTML.
+`contentJson` | `Json` | The field content as stored rich-text JSON (`type: doc`).
 
 ### Calculations
 

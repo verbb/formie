@@ -3,6 +3,7 @@ namespace verbb\formie\helpers;
 
 use verbb\formie\Formie as FormiePlugin;
 use verbb\formie\elements\Form;
+use verbb\formie\models\RichText;
 
 use craft\helpers\Db;
 use craft\helpers\Gql as GqlHelper;
@@ -67,6 +68,14 @@ class Gql extends GqlHelper
             || self::canSchema('formieSubmissions.all', 'save')
             || self::canSchema($scope, 'create')
             || self::canSchema($scope, 'save');
+    }
+
+    /**
+     * Returns stored rich-text content as a TipTap-compatible document for GraphQL `Json` fields.
+     */
+    public static function resolveRichTextJson(RichText $richText): ?array
+    {
+        return $richText->isEmpty() ? null : $richText->toDoc();
     }
 
     /**

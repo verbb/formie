@@ -3,6 +3,7 @@ namespace verbb\formie\gql\interfaces;
 
 use verbb\formie\fields\FileUpload;
 use verbb\formie\fields\Table;
+use verbb\formie\helpers\Gql as FormieGql;
 use verbb\formie\gql\types\generators\FieldGenerator;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\gql\types\Json as JsonType;
@@ -82,6 +83,12 @@ class FieldInterface extends BaseInterfaceType
                         ? null
                         : $field->instructions->toHtml(null, true);
                 },
+            ],
+            'instructionsJson' => [
+                'name' => 'instructionsJson',
+                'type' => JsonType::getType(),
+                'description' => 'The field’s instructions as stored rich-text JSON (`type: doc`).',
+                'resolve' => static fn($field) => FormieGql::resolveRichTextJson($field->instructions),
             ],
             'required' => [
                 'name' => 'required',

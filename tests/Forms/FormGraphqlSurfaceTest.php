@@ -13,6 +13,8 @@ it('exposes stable form settings fields in graphql type surface', function (): v
         ->and($fields)->toContain('submitMethod')
         ->and($fields)->toContain('submitAction')
         ->and($fields)->toContain('submitActionMessageHtml')
+        ->and($fields)->toContain('submitActionMessageJson')
+        ->and($fields)->toContain('errorMessageJson')
         ->and($fields)->toContain('redirectUrl')
         ->and($fields)->toContain('integrations');
 });

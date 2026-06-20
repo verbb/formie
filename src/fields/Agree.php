@@ -8,10 +8,12 @@ use verbb\formie\base\PreviewableFieldInterface;
 use verbb\formie\base\SortableFieldInterface;
 use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\fields\values\BooleanFieldValue;
+use verbb\formie\helpers\Gql as FormieGql;
 use verbb\formie\helpers\RichTextHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\helpers\Variables;
+use verbb\formie\gql\types\Json as JsonType;
 use verbb\formie\models\SlotTag;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\RichText;
@@ -208,6 +210,11 @@ class Agree extends Field implements SortableFieldInterface, PreviewableFieldInt
             'descriptionHtml' => [
                 'name' => 'descriptionHtml',
                 'type' => Type::string(),
+            ],
+            'descriptionJson' => [
+                'name' => 'descriptionJson',
+                'type' => JsonType::getType(),
+                'resolve' => static fn(self $field) => FormieGql::resolveRichTextJson($field->description),
             ],
         ]);
     }

@@ -1,6 +1,9 @@
 <?php
 namespace verbb\formie\gql\types;
 
+use verbb\formie\helpers\Gql as FormieGql;
+use verbb\formie\gql\types\Json as JsonType;
+
 use craft\gql\base\ObjectType;
 use craft\gql\GqlEntityRegistry;
 use craft\gql\interfaces\elements\Entry as EntryInterface;
@@ -111,6 +114,12 @@ class FormSettingsType extends ObjectType
                     'type' => Type::string(),
                     'description' => 'The form’s submit success message.',
                 ],
+                'submitActionMessageJson' => [
+                    'name' => 'submitActionMessageJson',
+                    'type' => JsonType::getType(),
+                    'description' => 'The form’s submit success message as stored rich-text JSON (`type: doc`). Variable tags are not resolved.',
+                    'resolve' => static fn($settings) => FormieGql::resolveRichTextJson($settings->submitActionMessage),
+                ],
                 'submitActionMessageTimeout' => [
                     'name' => 'submitActionMessageTimeout',
                     'type' => Type::int(),
@@ -155,6 +164,12 @@ class FormSettingsType extends ObjectType
                     'name' => 'errorMessageHtml',
                     'type' => Type::string(),
                     'description' => 'The form’s submit error message.',
+                ],
+                'errorMessageJson' => [
+                    'name' => 'errorMessageJson',
+                    'type' => JsonType::getType(),
+                    'description' => 'The form’s submit error message as stored rich-text JSON (`type: doc`).',
+                    'resolve' => static fn($settings) => FormieGql::resolveRichTextJson($settings->errorMessage),
                 ],
                 'errorMessagePosition' => [
                     'name' => 'errorMessagePosition',
