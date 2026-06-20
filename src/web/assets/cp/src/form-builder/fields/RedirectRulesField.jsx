@@ -14,6 +14,8 @@ import { createItem } from '@verbb/plugin-kit-react/utils';
 
 import { RedirectRuleConditionsField } from './RedirectRuleConditionsField';
 
+const REDIRECT_RULE_CARD_CLASSNAME = 'relative rounded-sm border border-[rgba(96,125,159,0.25)] bg-[rgba(96,125,159,0.03)] p-4';
+
 const createDefaultRule = () => ({
     ...createItem({}),
     redirectType: 'url',
@@ -73,7 +75,7 @@ function RedirectRuleItem({
     const resolvedRedirectType = redirectType || 'url';
 
     return (
-        <div className="relative rounded border border-gray-300 bg-gray-50 p-4">
+        <div className={REDIRECT_RULE_CARD_CLASSNAME}>
             <div className="absolute top-3 right-3">
                 <Button
                     type="button"

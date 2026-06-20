@@ -13,6 +13,8 @@ import { createItem } from '@verbb/plugin-kit-react/utils';
 
 import { StatusRuleConditionsField } from './StatusRuleConditionsField';
 
+const STATUS_RULE_CARD_CLASSNAME = 'relative rounded-sm border border-[rgba(96,125,159,0.25)] bg-[rgba(96,125,159,0.03)] p-4';
+
 const createDefaultRule = (statusOptions) => ({
     ...createItem({}),
     statusId: statusOptions[0]?.value ?? '',
@@ -72,7 +74,7 @@ function StatusRuleItem({
     } = useEngineField(form, enableConditionsField.name);
 
     return (
-        <div className="relative rounded border border-gray-300 bg-gray-50 p-4">
+        <div className={STATUS_RULE_CARD_CLASSNAME}>
             <div className="absolute top-3 right-3">
                 <Button
                     type="button"
