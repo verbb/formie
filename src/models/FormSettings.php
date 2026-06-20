@@ -438,15 +438,13 @@ class FormSettings extends Model implements TranslatablePropertiesInterface
 
     public function validateSubmitMethod(string $attribute): void
     {
-        $messages = $this->getAjaxSubmissionRequirementMessages();
-        if (!$messages) {
-            return;
-        }
+        $pluginSettings = Formie::$plugin->getSettings();
+        $ajaxRequired = (bool)$this->getAjaxSubmissionRequirementMessages();
 
-        if ($this->submitMethod !== 'ajax') {
-            // Automatically enforce Ajax when required by configured payment providers.
-            $this->submitMethod = 'ajax';
-        }
+        $this->submitMethod = $pluginSettings->coerceSubmitMethod(
+            (string)$this->submitMethod,
+            $ajaxRequired,
+        );
     }
 
 

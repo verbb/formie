@@ -50,6 +50,7 @@ const createAppStore = (set, get) => {
         siteDisplayRevision: 0,
         layoutReadOnly: false,
         paymentIntegrations: [],
+        allowedSubmitMethods: 'both',
         templateFieldLayoutInfo: {},
         setTitle: (title) => {
             set({ title });

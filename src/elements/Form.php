@@ -2326,7 +2326,19 @@ class Form extends Element implements FormInterface
                         'value' => 'ajax',
                     ],
                 ],
-                'if' => '!formBuilder.ajaxSubmissionForced',
+                'if' => '!formBuilder.ajaxSubmissionForced && formBuilder.allowedSubmitMethods == "both"',
+            ]),
+            SchemaHelper::selectField([
+                'label' => Craft::t('formie', 'Submission Method'),
+                'instructions' => Craft::t('formie', 'Whether to reload the page when this form is submitted, or use Ajax to send this form without reloading the page.'),
+                'name' => 'settings.submitMethod',
+                'options' => [
+                    [
+                        'label' => Craft::t('formie', 'Page Reload (Server-side)'),
+                        'value' => 'page-reload',
+                    ],
+                ],
+                'if' => '!formBuilder.ajaxSubmissionForced && formBuilder.allowedSubmitMethods == "page-reload"',
             ]),
             SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'Submission Method'),
@@ -2339,7 +2351,7 @@ class Form extends Element implements FormInterface
                     ],
                 ],
                 'warning' => Craft::t('formie', 'You must use Ajax submissions when using some payment integrations in your form.'),
-                'if' => 'formBuilder.ajaxSubmissionForced',
+                'if' => 'formBuilder.ajaxSubmissionForced || formBuilder.allowedSubmitMethods == "ajax"',
             ]),
             [
                 '$el' => 'hr',

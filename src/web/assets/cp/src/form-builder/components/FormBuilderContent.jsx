@@ -31,6 +31,7 @@ function FormBuilderContent({
         setSaving, setSaveFeedbackState, setTitle, saveAction, setSaveAction, saveActionUrl, saveRequestData,
         saveDuplicateRequestData, saveSuccessMessage,
     } = useFormBuilderApp();
+    const allowedSubmitMethods = useAppStore((state) => state.allowedSubmitMethods);
     const setSelectedTemplateId = useAppStore((state) => {
         return state.setSelectedTemplateId;
     });
@@ -44,17 +45,26 @@ function FormBuilderContent({
 
     const normalizedInitialData = useMemo(() => {
         const normalized = normalizeFormData(initialData || {});
-        const requiresForcedAjax = isAjaxSubmissionForced(normalized);
+        const requiresForcedAjax = isAjaxSubmissionForced(normalized)
+            || allowedSubmitMethods === 'ajax';
+        const requiresPageReload = allowedSubmitMethods === 'page-reload' && !isAjaxSubmissionForced(normalized);
         const currentSubmitMethod = normalized?.settings?.submitMethod;
+        let submitMethod = currentSubmitMethod;
+
+        if (requiresForcedAjax) {
+            submitMethod = 'ajax';
+        } else if (requiresPageReload) {
+            submitMethod = 'page-reload';
+        }
 
         return {
             ...normalized,
             settings: {
                 ...(normalized?.settings || {}),
-                submitMethod: requiresForcedAjax ? 'ajax' : currentSubmitMethod,
+                submitMethod,
             },
         };
-    }, [initialData, isAjaxSubmissionForced]);
+    }, [initialData, isAjaxSubmissionForced, allowedSubmitMethods]);
 
     const normalizedSchema = useMemo(() => {
         return schemaIndex?.schema ?? schema;
@@ -72,6 +82,7 @@ function FormBuilderContent({
             return {
                 formBuilder: {
                     ajaxSubmissionForced: isAjaxSubmissionForced(values),
+                    allowedSubmitMethods: allowedSubmitMethods || 'both',
                     hasSubmissions: Boolean(useAppStore.getState().hasSubmissions),
                     hasQuestionnaireFields: formHasQuestionnaireFields(
                         values,
@@ -88,10 +99,14 @@ function FormBuilderContent({
             latestFormValuesRef.current = data;
             handleSyncOnChange(data, formApi);
 
-            const nextRequiresForcedAjax = isAjaxSubmissionForced(data);
+            const nextRequiresForcedAjax = isAjaxSubmissionForced(data)
+                || allowedSubmitMethods === 'ajax';
+            const nextRequiresPageReload = allowedSubmitMethods === 'page-reload' && !isAjaxSubmissionForced(data);
 
             if (nextRequiresForcedAjax && data?.settings?.submitMethod !== 'ajax') {
                 formApi.setFieldValue('settings.submitMethod', 'ajax');
+            } else if (nextRequiresPageReload && data?.settings?.submitMethod !== 'page-reload') {
+                formApi.setFieldValue('settings.submitMethod', 'page-reload');
             }
 
             const nextTitle = data?.title;

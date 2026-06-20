@@ -9,7 +9,7 @@
 - Add author documentation for [Quiz](/fields/quiz) and [Survey](/fields/survey) fields.
 - Add multi-site support with automatic site availability via Form Group site policy and per-site content translation via sparse site overrides ([#2308](https://github.com/verbb/formie/issues/2308), [#84](https://github.com/verbb/formie/issues/84), [#2724](https://github.com/verbb/formie/issues/2724)).
 - Add `formie_form_site_overrides` storage, `FormSiteOverrides` and `FormSitePropagation` services, CP site switcher with instant client-side switching, and translation icons on translatable builder fields.
-- Add author documentation for [Multi-Site & Translation](/forms/multi-site).
+- Add `allowedSubmitMethods` plugin setting to restrict form submission methods to Ajax only, page reload only, or both ([#1751](https://github.com/verbb/formie/issues/1751)).
 
 ### Changed
 - Redesign predefined/integration options UI.

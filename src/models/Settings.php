@@ -39,6 +39,10 @@ class Settings extends Model
     public const SUBMISSION_SIDEBAR_FORM_ORDER_HANDLE_ASC = 'handleAsc';
     public const SUBMISSION_SIDEBAR_FORM_ORDER_HANDLE_DESC = 'handleDesc';
 
+    public const ALLOWED_SUBMIT_METHODS_BOTH = 'both';
+    public const ALLOWED_SUBMIT_METHODS_AJAX = 'ajax';
+    public const ALLOWED_SUBMIT_METHODS_PAGE_RELOAD = 'page-reload';
+
 
     // Properties
     // =========================================================================
@@ -47,6 +51,7 @@ class Settings extends Model
     public string $defaultPage = 'forms';
     public bool $compatibilityMode = true;
     public bool $staticCacheRefreshOnLoad = false;
+    public string $allowedSubmitMethods = self::ALLOWED_SUBMIT_METHODS_BOTH;
 
     // Forms
     public bool $validateCustomTemplates = true; // Allow power users to handle form template path checks on their own
@@ -378,6 +383,33 @@ class Settings extends Model
         return $this->staticCacheRefreshOnLoad;
     }
 
+    public function getPermittedSubmitMethods(): array
+    {
+        return match ($this->allowedSubmitMethods) {
+            self::ALLOWED_SUBMIT_METHODS_AJAX => ['ajax'],
+            self::ALLOWED_SUBMIT_METHODS_PAGE_RELOAD => ['page-reload'],
+            default => ['page-reload', 'ajax'],
+        };
+    }
+
+    public function isSubmitMethodAllowed(string $method): bool
+    {
+        return in_array($method, $this->getPermittedSubmitMethods(), true);
+    }
+
+    public function coerceSubmitMethod(string $method, bool $ajaxRequiredByPayments = false): string
+    {
+        if ($ajaxRequiredByPayments) {
+            return 'ajax';
+        }
+
+        if ($this->isSubmitMethodAllowed($method)) {
+            return $method;
+        }
+
+        return $this->getPermittedSubmitMethods()[0] ?? 'page-reload';
+    }
+
     public function getAbsoluteDefaultExportFolder(): ?string
     {
         $path = Craft::getAlias( $this->defaultExportFolder );
@@ -435,6 +467,11 @@ class Settings extends Model
             self::ERROR_ARIA_LIVE_POLITE,
             self::ERROR_ARIA_LIVE_ASSERTIVE,
             self::ERROR_ARIA_LIVE_OFF,
+        ]];
+        $rules[] = [['allowedSubmitMethods'], 'in', 'range' => [
+            self::ALLOWED_SUBMIT_METHODS_BOTH,
+            self::ALLOWED_SUBMIT_METHODS_AJAX,
+            self::ALLOWED_SUBMIT_METHODS_PAGE_RELOAD,
         ]];
 
         return $rules;

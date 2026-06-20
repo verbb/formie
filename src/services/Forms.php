@@ -424,6 +424,7 @@ class Forms extends Component
             'baseUrl' => $form->getCpEditUrl(),
             'tabLabels' => array_column($tabs, 'label', 'handle'),
             'paymentIntegrations' => $this->_getPaymentIntegrationMetadata(),
+            'allowedSubmitMethods' => Formie::$plugin->getSettings()->allowedSubmitMethods,
             'templateFieldLayoutInfo' => $this->_getTemplateFieldLayoutInfo(),
             'fieldTypeGroups' => Formie::$plugin->getFields()->getFormBuilderFieldTypes([], $form),
             'hasSubmissions' => (bool)$submissions,

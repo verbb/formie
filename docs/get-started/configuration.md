@@ -12,6 +12,7 @@ return [
         'defaultPage' => 'forms',
         'compatibilityMode' => true,
         'staticCacheRefreshOnLoad' => false,
+        'allowedSubmitMethods' => 'both', // `both`, `ajax`, or `page-reload`
 
         // Forms
         'validateCustomTemplates' => true,
@@ -138,6 +139,7 @@ return [
 - `defaultPage` sets the default Formie control panel page when clicking Formie in the main navigation.
 - `compatibilityMode` enables compatibility shims for older Formie APIs during an upgrade.
 - `staticCacheRefreshOnLoad` allows rendered forms to refresh request-specific values when initialized on statically cached pages. Formie also treats this as enabled when Blitz is installed and enabled.
+- `allowedSubmitMethods` restricts which submission methods are available in the form builder: `both` (default), `ajax`, or `page-reload`. Payment integrations that require Ajax still force Ajax when applicable.
 
 ### Forms
 - `validateCustomTemplates` checks that custom form template paths exist before they are saved.
