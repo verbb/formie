@@ -2,6 +2,7 @@
 namespace verbb\formie\services;
 
 use verbb\formie\Formie;
+use verbb\formie\helpers\SiteHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
@@ -31,6 +32,10 @@ class SubmissionProcessor extends Component
 
     public function execute(SubmitRequest $request): SubmitResult
     {
+        if ($request->siteId) {
+            SiteHelper::applyLocaleForSiteId((int)$request->siteId);
+        }
+
         $form = $this->requireFormByHandle($request->handle, $request->siteId);
         Formie::$plugin->getClientSessionService()->enforceAnonymousRateLimit($form);
         $this->applyFormRequestContext(
@@ -58,6 +63,10 @@ class SubmissionProcessor extends Component
 
     public function executeManaged(ManagedSubmissionRequest $request): SubmissionExecutionResult
     {
+        if ($request->siteId) {
+            SiteHelper::applyLocaleForSiteId((int)$request->siteId);
+        }
+
         $form = $this->requireFormByHandle($request->handle, $request->siteId);
 
         if (Craft::$app->getRequest()->getIsSiteRequest() && Craft::$app->getUser()->isGuest) {
@@ -115,6 +124,12 @@ class SubmissionProcessor extends Component
 
     public function executeMutation(Form $form, Submission $submission, array $arguments): SubmissionExecutionResult
     {
+        $siteId = isset($arguments['siteId']) ? (int)$arguments['siteId'] : null;
+
+        if ($siteId) {
+            SiteHelper::applyLocaleForSiteId($siteId);
+        }
+
         $submissionRequest = $this->createMutationSubmissionRequest($form, $submission, $arguments);
 
         $this->applyFormRequestContext(

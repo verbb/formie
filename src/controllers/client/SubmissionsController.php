@@ -2,7 +2,7 @@
 namespace verbb\formie\controllers\client;
 
 use verbb\formie\Formie;
-use verbb\formie\controllers\CrossOriginRequestTrait;
+use verbb\formie\helpers\SiteHelper;
 use verbb\formie\client\models\SubmitRequest;
 
 use craft\web\Controller;
@@ -46,7 +46,7 @@ class SubmissionsController extends Controller
         $result = Formie::$plugin->getSubmissionProcessor()->execute(new SubmitRequest([
             'handle' => (string)$this->request->getBodyParam('handle', $this->request->getParam('handle', '')),
             'action' => (string)$this->request->getBodyParam('action', 'submit'),
-            'siteId' => $this->request->getBodyParam('siteId') ? (int)$this->request->getBodyParam('siteId') : null,
+            'siteId' => SiteHelper::resolveSiteIdFromRequest(),
             'session' => (array)$this->request->getBodyParam('session', []),
             'values' => (array)$this->request->getBodyParam('values', []),
         ]));

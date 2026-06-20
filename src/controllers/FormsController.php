@@ -9,7 +9,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\helpers\HandleHelper;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\Plugin;
-use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\helpers\SiteHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\helpers\Variables;
@@ -832,11 +832,11 @@ class FormsController extends Controller
         }
 
         $query = Form::find()->handle($formHandle);
-        $siteId = $this->request->getParam('siteId');
-
-        if ($siteId) {
-            $query->siteId((int)$siteId);
-        }
+        $siteId = SiteHelper::resolveRequestSiteId(
+            $this->request->getParam('siteId'),
+            $this->request->getParam('siteHandle'),
+        );
+        $query->siteId($siteId);
 
         return $query->one();
     }

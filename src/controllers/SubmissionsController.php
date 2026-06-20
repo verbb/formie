@@ -7,6 +7,7 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\errors\StaleSubmissionStateException;
 use verbb\formie\helpers\SetPageReturnUrlHelper;
+use verbb\formie\helpers\SiteHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\TypeHelper;
 use verbb\formie\helpers\Table;
@@ -504,7 +505,9 @@ class SubmissionsController extends Controller
         }
 
         Formie::info("Submission triggered for {$handle}.");
-        $siteId = $this->_parseTypedParam('siteId', TypeHelper::TYPE_ID, Craft::$app->getSites()->getCurrentSite()->id);
+        $siteId = SiteHelper::resolveSiteIdFromRequest(
+            Craft::$app->getSites()->getCurrentSite()->id
+        );
         $cpUserId = null;
 
         if ($this->request->getIsCpRequest() && ($userParam = $this->request->getBodyParam('user'))) {

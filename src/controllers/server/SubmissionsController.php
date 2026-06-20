@@ -6,6 +6,7 @@ use verbb\formie\Formie;
 use verbb\formie\controllers\CrossOriginRequestTrait;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\helpers\SiteHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\ManagedSubmissionRequest;
 use verbb\formie\models\PaymentDecision;
@@ -70,7 +71,9 @@ class SubmissionsController extends Controller
 
         $this->requirePostRequest();
 
-        $siteId = $this->_nullableIntParam('siteId') ?? Craft::$app->getSites()->getCurrentSite()->id;
+        $siteId = SiteHelper::resolveSiteIdFromRequest(
+            Craft::$app->getSites()->getCurrentSite()->id
+        );
 
         try {
             $result = Formie::$plugin->getSubmissionProcessor()->executeManaged(new ManagedSubmissionRequest([
@@ -116,7 +119,9 @@ class SubmissionsController extends Controller
 
         $handle = $this->_stringParam('handle');
         $pageId = $this->_nullableIntParam('pageId');
-        $siteId = $this->_nullableIntParam('siteId');
+        $siteId = SiteHelper::resolveSiteIdFromRequest(
+            Craft::$app->getSites()->getCurrentSite()->id
+        );
 
         if (!$pageId) {
             throw new BadRequestHttpException('Missing required pageId.');
@@ -156,7 +161,9 @@ class SubmissionsController extends Controller
         $this->requirePostRequest();
 
         $handle = $this->_stringParam('handle');
-        $siteId = $this->_nullableIntParam('siteId') ?? Craft::$app->getSites()->getCurrentSite()->id;
+        $siteId = SiteHelper::resolveSiteIdFromRequest(
+            Craft::$app->getSites()->getCurrentSite()->id
+        );
 
         if ($handle === '') {
             throw new BadRequestHttpException('Missing required handle.');

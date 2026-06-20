@@ -2,7 +2,7 @@
 namespace verbb\formie\controllers\client;
 
 use verbb\formie\Formie;
-use verbb\formie\controllers\CrossOriginRequestTrait;
+use verbb\formie\helpers\SiteHelper;
 use verbb\formie\elements\Form;
 use verbb\formie\client\models\LoadContext;
 use verbb\formie\client\models\PageTransitionRequest;
@@ -54,7 +54,7 @@ class FormsController extends Controller
 
         $bootstrap = Formie::$plugin->getClientFormBootstrapBuilder()->build($form, new LoadContext([
             'handle' => (string)$this->request->getParam('handle', ''),
-            'siteId' => $this->request->getParam('siteId') ? (int)$this->request->getParam('siteId') : null,
+            'siteId' => SiteHelper::resolveSiteIdFromRequest(),
             'locale' => $this->request->getParam('locale') ?: null,
         ]));
 
@@ -73,7 +73,7 @@ class FormsController extends Controller
 
         $session = Formie::$plugin->getClientSessionService()->persistPageState(new PageTransitionRequest([
             'handle' => (string)$this->request->getBodyParam('handle', $this->request->getParam('handle', '')),
-            'siteId' => $this->request->getBodyParam('siteId') ? (int)$this->request->getBodyParam('siteId') : null,
+            'siteId' => SiteHelper::resolveSiteIdFromRequest(),
             'currentPageId' => $this->request->getBodyParam('currentPageId'),
             'targetPageId' => $this->request->getBodyParam('targetPageId'),
             'session' => (array)$this->request->getBodyParam('session', []),
@@ -97,8 +97,10 @@ class FormsController extends Controller
             return null;
         }
 
-        $siteId = $this->request->getParam('siteId');
-        $siteId = is_numeric($siteId) ? (int)$siteId : null;
+        $siteId = SiteHelper::resolveRequestSiteId(
+            $this->request->getParam('siteId'),
+            $this->request->getParam('siteHandle'),
+        );
 
         return Formie::$plugin->getForms()->getFormByHandle($handle, $siteId);
     }

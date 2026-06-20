@@ -2,6 +2,7 @@
 namespace verbb\formie\controllers\server;
 
 use verbb\formie\compatibility\client\RefreshTokensCompatibility;
+use verbb\formie\helpers\SiteHelper;
 use verbb\formie\Formie;
 use verbb\formie\controllers\CrossOriginRequestTrait;
 use verbb\formie\elements\Form;
@@ -104,8 +105,10 @@ class FormsController extends Controller
             return null;
         }
 
-        $siteId = $this->request->getParam('siteId');
-        $siteId = is_numeric($siteId) ? (int)$siteId : null;
+        $siteId = SiteHelper::resolveRequestSiteId(
+            $this->request->getParam('siteId'),
+            $this->request->getParam('siteHandle'),
+        );
 
         return Formie::$plugin->getForms()->getFormByHandle($formHandle, $siteId);
     }

@@ -10,12 +10,14 @@
 - Add multi-site support with automatic site availability via Form Group site policy and per-site content translation via sparse site overrides ([#2308](https://github.com/verbb/formie/issues/2308), [#84](https://github.com/verbb/formie/issues/84), [#2724](https://github.com/verbb/formie/issues/2724)).
 - Add `formie_form_site_overrides` storage, `FormSiteOverrides` and `FormSitePropagation` services, CP site switcher with instant client-side switching, and translation icons on translatable builder fields.
 - Add `allowedSubmitMethods` plugin setting to restrict form submission methods to Ajax only, page reload only, or both ([#1751](https://github.com/verbb/formie/issues/1751)).
+- Add `siteHandle` request parameter support for headless form load and submit endpoints ([#2286](https://github.com/verbb/formie/issues/2286)).
 
 ### Changed
 - Redesign predefined/integration options UI.
 
 ### Fixed
 - Fix a HTML error with Signatures field.
+- Fix headless/Ajax validation error messages using the wrong locale by applying the target site language at submission time ([#1545](https://github.com/verbb/formie/issues/1545)).
 
 ## 4.0.0-beta.7 - 2026-06-18
 
