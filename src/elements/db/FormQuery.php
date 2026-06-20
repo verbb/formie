@@ -9,6 +9,7 @@ use verbb\formie\models\FormTemplate;
 use Craft;
 use craft\db\Query;
 use craft\elements\db\ElementQuery;
+use craft\helpers\Cp;
 use craft\helpers\Db;
 
 class FormQuery extends ElementQuery
@@ -175,6 +176,39 @@ class FormQuery extends ElementQuery
             }
         }
 
-        return parent::beforePrepare();
+        if (!parent::beforePrepare()) {
+            return false;
+        }
+
+        if (Formie::$plugin->getFormSitePropagation()->isEnabled() && Craft::$app->getRequest()->getIsCpRequest()) {
+            $siteId = $this->_resolveIndexSiteId();
+
+            if ($siteId !== null) {
+                $this->siteId = $siteId;
+            }
+        }
+
+        return true;
+    }
+
+    private function _resolveIndexSiteId(): ?int
+    {
+        $requestedSite = Cp::requestedSite();
+
+        if ($requestedSite) {
+            return (int)$requestedSite->id;
+        }
+
+        $siteId = $this->siteId;
+
+        if (is_array($siteId)) {
+            $siteId = reset($siteId) ?: null;
+        }
+
+        if ($siteId && $siteId !== '*' && is_numeric($siteId)) {
+            return (int)$siteId;
+        }
+
+        return null;
     }
 }

@@ -93,7 +93,7 @@ class SubmissionsController extends Controller
         $settings = Formie::$plugin->getSettings();
         $currentUser = Craft::$app->getUser()->getIdentity();
         $siteIds = Craft::$app->getSites()->getAllSiteIds();
-        $currentSiteId = Craft::$app->getSites()->getCurrentSite()->id;
+        $activeSiteId = Formie::$plugin->getFormSiteOverrides()->getActiveSiteId();
         $canCreateAnySubmissions = $currentUser->can('formie-createSubmissions');
 
         Formie::$plugin->registerCpSubmissionsAssets();
@@ -111,10 +111,25 @@ class SubmissionsController extends Controller
             ->from(['f' => Table::FORMIE_FORMS])
             ->innerJoin(['e' => Table::ELEMENTS], '[[e.id]] = [[f.id]]')
             ->innerJoin(['es' => Table::ELEMENTS_SITES], '[[es.elementId]] = [[f.id]] AND [[es.siteId]] = :siteId', [
-                ':siteId' => $currentSiteId,
+                ':siteId' => $activeSiteId,
             ])
             ->where(['e.dateDeleted' => null])
             ->all();
+
+        $canonicalTitles = [];
+
+        foreach ($forms as $form) {
+            $formId = (int)($form['id'] ?? 0);
+
+            if ($formId) {
+                $canonicalTitles[$formId] = (string)($form['title'] ?? $form['handle'] ?? '');
+            }
+        }
+
+        $displayTitles = Formie::$plugin->getFormSiteOverrides()->resolveFormTitlesForSite(
+            $canonicalTitles,
+            $activeSiteId,
+        );
 
         $editableForms = [];
 
@@ -123,10 +138,12 @@ class SubmissionsController extends Controller
                 continue;
             }
 
+            $formId = (int)($form['id'] ?? 0);
+
             $editableForms[] = [
-                'id' => (int)($form['id'] ?? 0),
+                'id' => $formId,
                 'handle' => (string)($form['handle'] ?? ''),
-                'name' => (string)($form['title'] ?? ''),
+                'name' => $displayTitles[$formId] ?? (string)($form['title'] ?? ''),
                 'sites' => $siteIds,
                 'uid' => (string)($form['uid'] ?? ''),
             ];

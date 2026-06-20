@@ -27,6 +27,15 @@ class Quiz extends OptionsField implements SortableFieldInterface, Questionnaire
         return Craft::t('formie', 'Quiz');
     }
 
+    public static function translatableProperties(): array
+    {
+        $properties = parent::translatableProperties();
+        $properties[] = 'question';
+        $properties[] = 'answerExplanation';
+
+        return $properties;
+    }
+
     public static function getSvgIconPath(): string
     {
         return 'formie/_formfields/quiz/icon.svg';

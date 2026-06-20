@@ -118,6 +118,7 @@ class StencilsController extends Controller
         return $this->renderTemplate('formie/stencils/_edit', [
             'stencil' => $stencil,
             'canEdit' => $stencil->canEdit(),
+            'builderSiteCrumb' => Formie::$plugin->getFormSiteOverrides()->getBuilderSiteCrumbConfig(),
         ]);
     }
 

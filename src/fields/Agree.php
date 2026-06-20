@@ -39,6 +39,22 @@ class Agree extends Field implements SortableFieldInterface, PreviewableFieldInt
         return Craft::t('formie', 'Agree');
     }
 
+    public static function translatableProperties(): array
+    {
+        $properties = parent::translatableProperties();
+        $properties[] = 'description';
+
+        return $properties;
+    }
+
+    public static function translatableRichTextProperties(): array
+    {
+        $properties = parent::translatableRichTextProperties();
+        $properties[] = 'description';
+
+        return $properties;
+    }
+
     public static function getSvgIconPath(): string
     {
         return 'formie/_formfields/agree/icon.svg';

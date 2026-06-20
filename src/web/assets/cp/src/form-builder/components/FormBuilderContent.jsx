@@ -10,6 +10,8 @@ import {
 } from '@form-builder/hooks/useFormTools';
 import { useHandleSyncOnChange } from '@form-builder/hooks/useHandleSyncOnChange';
 import { stableSerialize, useUnloadWarning } from '@form-builder/hooks/useUnloadWarning';
+import { saveFormSnapshot } from '@form-builder/utils/formBuilderSnapshot';
+import { getSiteOverrideForSite, mergeSiteOverridesIntoFormData } from '@form-builder/utils/siteOverrides';
 import { FormBuilderErrorsPane } from '@form-builder/components/FormBuilderErrorsPane';
 import { FormBuilderFormProvider } from '@form-builder/contexts/FormBuilderFormContext';
 import { VariableCategoriesProvider } from '@form-builder/components/VariableCategoriesProvider';
@@ -125,6 +127,22 @@ function FormBuilderContent({
     });
 
     useEffect(() => {
+        if (!form?.store) {
+            return undefined;
+        }
+
+        form.recaptureUnloadBaseline = () => {
+            const values = form.store.state.values ?? {};
+            latestFormValuesRef.current = values;
+            captureUnloadWarningBaseline(stableSerialize(saveFormSnapshot(values)));
+        };
+
+        return () => {
+            delete form.recaptureUnloadBaseline;
+        };
+    }, [captureUnloadWarningBaseline, form]);
+
+    useEffect(() => {
         latestFormValuesRef.current = normalizedInitialData;
         setSelectedTemplateId(normalizedInitialData?.templateId ?? null);
     }, [normalizedInitialData?.templateId, setSelectedTemplateId]);
@@ -166,16 +184,35 @@ function FormBuilderContent({
         const shouldSaveAsStencil = currentSaveAction === 'saveAsStencil';
         const isDuplicateSave = currentSaveAction !== 'save' && !shouldSaveAsStencil;
 
-        const result = shouldSaveAsStencil
-            ? await saveAsStencil(data)
-            : await saveForm(data, {
+        const {
+            multiSite,
+            activeSiteId,
+            canonicalData,
+        } = useAppStore.getState();
+        const isNonPrimarySite = multiSite?.enabled
+            && Number(activeSiteId) !== Number(multiSite.primarySiteId)
+            && currentSaveAction === 'save';
+        const baseRequestData = isDuplicateSave ? {
+            ...saveRequestData,
+            ...saveDuplicateRequestData,
+        } : saveRequestData;
+
+        let result;
+
+        if (shouldSaveAsStencil) {
+            result = await saveAsStencil(data);
+        } else {
+            result = await saveForm(data, {
                 saveAsNew: shouldSaveAsNew,
                 action: saveActionUrl,
-                requestData: isDuplicateSave ? {
-                    ...saveRequestData,
-                    ...saveDuplicateRequestData,
-                } : saveRequestData,
+                canonicalData: isNonPrimarySite ? canonicalData : null,
+                primarySiteId: multiSite?.primarySiteId ?? null,
+                requestData: {
+                    ...baseRequestData,
+                    siteId: activeSiteId || baseRequestData?.siteId,
+                },
             });
+        }
 
         if (!result.ok && result.errors) {
             const normalizedErrors = normalizeServerErrors(result.errors);
@@ -190,7 +227,7 @@ function FormBuilderContent({
             return;
         }
 
-        if (result.ok) {
+            if (result.ok) {
             const redirectUrl = result?.data?.redirect;
 
             // New-form saves return a redirect URL; follow it so the builder reloads
@@ -202,14 +239,40 @@ function FormBuilderContent({
             }
 
             const serverFormData = result?.data?.data;
+            const serverCanonicalData = result?.data?.canonicalData;
+            const serverMultiSite = result?.data?.multiSite;
+            const activeSiteId = serverMultiSite?.activeSiteId ?? useAppStore.getState().activeSiteId;
+            const canonicalDataForMerge = serverCanonicalData || useAppStore.getState().canonicalData;
+            const shouldMergeSiteOverrides = Boolean(
+                serverMultiSite?.enabled
+                && canonicalDataForMerge
+                && Number(activeSiteId) !== Number(serverMultiSite?.primarySiteId),
+            );
+            const displayFormData = shouldMergeSiteOverrides
+                ? mergeSiteOverridesIntoFormData(
+                    canonicalDataForMerge,
+                    getSiteOverrideForSite(serverMultiSite?.overrides, activeSiteId),
+                )
+                : serverFormData;
 
-            // Reconcile local state with canonical saved payload so subsequent saves
-            // include server-assigned ids and layout metadata.
-            if (serverFormData && typeof serverFormData === 'object') {
-                const reconciledServerFormData = preserveNotificationClientIds(serverFormData, latestFormValuesRef.current);
+            if (serverCanonicalData || serverMultiSite) {
+                useAppStore.setState((state) => {
+                    return {
+                        canonicalData: serverCanonicalData || state.canonicalData,
+                        multiSite: serverMultiSite || state.multiSite,
+                        activeSiteId: serverMultiSite?.activeSiteId ?? state.activeSiteId,
+                        layoutReadOnly: serverMultiSite?.layoutReadOnly ?? state.layoutReadOnly,
+                    };
+                });
+            }
+
+            // Reconcile local state with the server display payload after save.
+            if (displayFormData && typeof displayFormData === 'object') {
+                const reconciledServerFormData = preserveNotificationClientIds(displayFormData, latestFormValuesRef.current);
                 const normalizedServerFormData = normalizeFormData(reconciledServerFormData);
                 latestFormValuesRef.current = normalizedServerFormData;
                 form.store.reset(normalizedServerFormData);
+                setTitle(normalizedServerFormData.title || '');
                 captureUnloadWarningBaseline(stableSerialize(saveFormSnapshot(normalizedServerFormData)));
             } else if (!shouldSaveAsStencil) {
                 latestFormValuesRef.current = data;
@@ -245,10 +308,6 @@ function FormBuilderContent({
             </VariableCategoriesProvider>
         </FormBuilderFormProvider>
     );
-}
-
-function saveFormSnapshot(values = {}) {
-    return serializeFormData(normalizeFormData(values || {}));
 }
 
 function preserveNotificationClientIds(serverFormData = {}, currentFormData = {}) {

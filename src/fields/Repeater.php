@@ -50,6 +50,14 @@ class Repeater extends RepeatableParentField
         return Craft::t('formie', 'Repeater');
     }
 
+    public static function translatableProperties(): array
+    {
+        $properties = parent::translatableProperties();
+        $properties[] = 'addLabel';
+
+        return $properties;
+    }
+
     public static function getSvgIconPath(): string
     {
         return 'formie/_formfields/repeater/icon.svg';

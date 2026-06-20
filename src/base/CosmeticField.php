@@ -3,6 +3,20 @@ namespace verbb\formie\base;
 
 abstract class CosmeticField extends Field implements CosmeticFieldInterface
 {
+    // Static Methods
+    // =========================================================================
+
+    public static function translatableProperties(): array
+    {
+        return [];
+    }
+
+    public static function translatableRichTextProperties(): array
+    {
+        return [];
+    }
+
+
     // Public Methods
     // =========================================================================
 

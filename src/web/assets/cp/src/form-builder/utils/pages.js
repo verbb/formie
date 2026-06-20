@@ -26,6 +26,7 @@ const createNewPageData = (pages = [], options = {}) => {
     const generatedHandle = generateHandle(defaultLabel) || `page${nextPageNumber}`;
 
     return {
+        uid: crypto.randomUUID(),
         label,
         _handle: generatedHandle,
         rows: [],

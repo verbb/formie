@@ -38,6 +38,7 @@ use verbb\formie\helpers\Variables;
 use verbb\formie\models\ClientModule;
 use verbb\formie\models\FieldLayout as FormLayout;
 use verbb\formie\models\FieldLayoutPage;
+use verbb\formie\models\FieldLayoutPageSettings;
 use verbb\formie\models\FormSettings;
 use verbb\formie\models\FormGroup;
 use verbb\formie\models\FormTemplate;
@@ -136,6 +137,20 @@ class Form extends Element implements FormInterface
         return false;
     }
 
+    public static function translatableRootProperties(): array
+    {
+        return ['title'];
+    }
+
+    public function getSupportedSites(): array
+    {
+        if (!Craft::$app->getIsMultiSite()) {
+            return parent::getSupportedSites();
+        }
+
+        return Formie::$plugin->getFormSitePropagation()->resolveSiteIdsForForm($this);
+    }
+
     public static function find(): FormQuery
     {
         return new FormQuery(static::class);
@@ -174,6 +189,13 @@ class Form extends Element implements FormInterface
 
         $groups = Formie::$plugin->getFormGroups()->getAllGroups();
         $visibleGroups = [];
+        $propagation = Formie::$plugin->getFormSitePropagation();
+        $activeSiteId = null;
+
+        if ($propagation->isEnabled()) {
+            $requestedSite = Cp::requestedSite();
+            $activeSiteId = (int)($requestedSite?->id ?? Craft::$app->getSites()->getCurrentSite()->id);
+        }
 
         foreach ($groups as $group) {
             if ($canAccessAllForms
@@ -182,6 +204,10 @@ class Form extends Element implements FormInterface
                     || $currentUser->can($permissions->scopedPermission(Permissions::PERM_VIEW_FORMS, $permissions->groupScope($group->handle)))
                 ))
             ) {
+                if ($activeSiteId && !$propagation->isGroupAvailableForSite($group, $activeSiteId)) {
+                    continue;
+                }
+
                 $visibleGroups[] = $group;
             }
         }
@@ -1946,6 +1972,14 @@ class Form extends Element implements FormInterface
         $fieldsService = Craft::$app->getFields();
         $userId = Craft::$app->getUser()->getId();
 
+        if ($isNew && Craft::$app->getIsMultiSite()) {
+            $creationSiteId = Formie::$plugin->getFormSitePropagation()->resolveCreationSiteIdForForm($this);
+
+            if ($creationSiteId) {
+                $this->siteId = $creationSiteId;
+            }
+        }
+
         if ($userId) {
             if ($isNew) {
                 $this->createdById = $userId;
@@ -2037,6 +2071,10 @@ class Form extends Element implements FormInterface
 
         // Check if we need to update any submission content due to field changes
         Formie::$plugin->getSubmissions()->updateSubmissionContent($this);
+
+        if (Craft::$app->getIsMultiSite()) {
+            Formie::$plugin->getFormSitePropagation()->syncFormSites($this);
+        }
 
         parent::afterSave($isNew);
     }
@@ -2265,7 +2303,8 @@ class Form extends Element implements FormInterface
 
     public function defineBehaviourSchema(): array
     {
-        return SchemaHelper::schemaNode([
+        return SchemaHelper::applyTranslatableToSchema(
+            SchemaHelper::schemaNode([
             [
                 '$el' => 'h3',
                 'children' => Craft::t('formie', 'Form Behaviour'),
@@ -2692,7 +2731,9 @@ class Form extends Element implements FormInterface
                 'instructions' => Craft::t('formie', 'When enabled, visitors who return to this form can continue their in-progress submission automatically. Disable this to start fresh unless they use a resume link.'),
                 'name' => 'settings.automaticSubmissionState',
             ]),
-        ]);
+        ]),
+            FormSettings::translatableProperties(),
+        );
     }
 
     public function defineNotificationsSchema(): array
@@ -2755,6 +2796,7 @@ class Form extends Element implements FormInterface
                 'instructions' => Craft::t('formie', 'What this {entity} will be called in the control panel.', ['entity' => $builderEntityLabel]),
                 'name' => 'title',
                 'required' => true,
+                'translatable' => Craft::$app->getIsMultiSite(),
             ]),
             ...($formGroupField = $this->_formGroupSelectSchemaField()) ? [$formGroupField] : [],
             [
@@ -3059,7 +3101,10 @@ class Form extends Element implements FormInterface
             ],
         ];
 
-        return SchemaHelper::compileSchema($schema);
+        $compiled = SchemaHelper::compileSchema($schema);
+        $compiled['schema'] = SchemaHelper::applyTranslatableToSchema($compiled['schema'], FieldLayoutPage::translatableProperties());
+
+        return $compiled;
     }
 
     public function definePageButtonSettingsSchema(): array
@@ -3264,7 +3309,10 @@ class Form extends Element implements FormInterface
             ],
         ];
 
-        return SchemaHelper::compileSchema($schema);
+        $compiled = SchemaHelper::compileSchema($schema);
+        $compiled['schema'] = SchemaHelper::applyTranslatableToSchema($compiled['schema'], FieldLayoutPageSettings::translatableProperties());
+
+        return $compiled;
     }
 
     // Protected Methods
@@ -3336,7 +3384,17 @@ class Form extends Element implements FormInterface
             return null;
         }
         
-        return UrlHelper::cpUrl("formie/forms/edit/{$this->id}");
+        $params = [];
+
+        if (Formie::$plugin->getFormSitePropagation()->isEnabled()) {
+            $requestedSite = Cp::requestedSite();
+
+            if ($requestedSite) {
+                $params['site'] = $requestedSite->handle;
+            }
+        }
+
+        return UrlHelper::cpUrl("formie/forms/edit/{$this->id}", $params);
     }
     
 

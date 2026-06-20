@@ -5,6 +5,10 @@
     { label: 'Forms' | t('formie'), url: url('formie/forms') },
 ] %}
 
+{% if builderSiteCrumb ?? null %}
+    {% set crumbs = crumbs | unshift(builderSiteCrumb) %}
+{% endif %}
+
 {% set pluginName = craft.formie.getPluginName() | t('formie') %}
 {% set title = form.title ?? ('Form' | t('formie')) %}
 {% set docTitle = title ~ ' - ' ~ pluginName %}

@@ -182,6 +182,10 @@ export const NewFormApp = ({ settings }) => {
             data.groupId = settings.groupId;
         }
 
+        if (settings.siteId) {
+            data.siteId = settings.siteId;
+        }
+
         try {
             const response = await Craft.sendActionRequest('POST', settings.submitAction || 'formie/forms/save', { data });
             const payload = response?.data || {};

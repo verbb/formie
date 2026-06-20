@@ -58,6 +58,18 @@ const getRoutePath = ({ activeTab, activePageHandle, activeIntegrationHandle }) 
     return '';
 };
 
+const applySiteQueryParam = (url) => {
+    const siteHandle = new URL(window.location.href).searchParams.get('site');
+
+    url.search = '';
+
+    if (siteHandle) {
+        url.searchParams.set('site', siteHandle);
+    }
+
+    return url;
+};
+
 // Standalone initialization function that can be called outside of React components
 export const initializeRouterState = () => {
     const {
@@ -129,9 +141,8 @@ function useUrlRouter() {
         const basePath = normalizePath(base.pathname);
 
         base.pathname = `${basePath}${getRoutePath(state)}`;
-        base.search = base.search || window.location.search || '';
 
-        return base.toString();
+        return applySiteQueryParam(base).toString();
     };
 
     // Update URL without triggering navigation

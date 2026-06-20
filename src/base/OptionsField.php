@@ -56,6 +56,14 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Opti
         return true;
     }
 
+    public static function translatableProperties(): array
+    {
+        $properties = parent::translatableProperties();
+        $properties[] = 'options';
+
+        return $properties;
+    }
+
     public static function queryCondition(array $instances, mixed $value, array &$params): array|string|ExpressionInterface|false|null
     {
         $firstInstance = $instances[0] ?? null;

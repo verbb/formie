@@ -4,6 +4,10 @@
     { label: 'Stencils' | t('formie'), url: url('formie/stencils') },
 ] %}
 
+{% if builderSiteCrumb ?? null %}
+    {% set crumbs = crumbs | unshift(builderSiteCrumb) %}
+{% endif %}
+
 {% set pluginName = craft.formie.getPluginName() | t('formie') %}
 {% set title = stencil.name ?? ('Stencil' | t('formie')) %}
 {% set docTitle = title ~ ' - ' ~ pluginName %}

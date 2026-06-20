@@ -38,4 +38,5 @@ abstract class Table extends CraftTable
     public const FORMIE_SUBMISSIONS = '{{%formie_submissions}}';
     public const FORMIE_SUBMISSION_QUIZ_RESULTS = '{{%formie_submission_quiz_results}}';
     public const FORMIE_SUBMISSION_DRAFTS = '{{%formie_submission_drafts}}';
+    public const FORMIE_FORM_SITE_OVERRIDES = '{{%formie_form_site_overrides}}';
 }

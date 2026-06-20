@@ -4,6 +4,7 @@ namespace verbb\formie\models;
 use verbb\formie\Formie;
 use verbb\formie\base\FieldInterface;
 use verbb\formie\base\ParentFieldInterface;
+use verbb\formie\base\TranslatablePropertiesInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
@@ -22,8 +23,18 @@ use yii\base\InvalidConfigException;
 
 use DateTime;
 
-class FieldLayoutPage extends SavableComponent
+class FieldLayoutPage extends SavableComponent implements TranslatablePropertiesInterface
 {
+    // Static Methods
+    // =========================================================================
+
+    public static function translatableProperties(): array
+    {
+        return ['label'];
+    }
+
+
+
     // Properties
     // =========================================================================
 
@@ -175,6 +186,7 @@ class FieldLayoutPage extends SavableComponent
     {
         return [
             'id' => $this->id,
+            'uid' => (string)$this->uid,
             'layoutId' => $this->layoutId,
             'label' => $this->label,
             '_handle' => $this->getHandle(),

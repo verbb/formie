@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
+import { cloneDeep } from 'lodash-es';
 
 import { zustandHmrFix } from '@verbb/plugin-kit-react/utils';
 import { isAjaxSubmissionForcedByPayments } from '@form-builder/utils/paymentSubmission';
@@ -43,6 +44,11 @@ const createAppStore = (set, get) => {
         title: null,
         pageSettingsSchema: null,
         pageButtonSettingsSchema: null,
+        canonicalData: null,
+        multiSite: null,
+        activeSiteId: null,
+        siteDisplayRevision: 0,
+        layoutReadOnly: false,
         paymentIntegrations: [],
         templateFieldLayoutInfo: {},
         setTitle: (title) => {
@@ -69,6 +75,10 @@ const createAppStore = (set, get) => {
                 formMeta: formData.formMeta ?? null,
                 title: data?.title ?? rest?.title ?? null,
                 selectedTemplateId: data?.templateId ?? null,
+        canonicalData: formData.canonicalData ? cloneDeep(formData.canonicalData) : null,
+                multiSite: formData.multiSite ?? null,
+                activeSiteId: formData.multiSite?.activeSiteId ?? null,
+                layoutReadOnly: Boolean(formData.multiSite?.layoutReadOnly),
             });
 
             // Initialize each slice with its data
@@ -114,6 +124,25 @@ const createAppStore = (set, get) => {
 
         setActiveIntegrationHandle: (integrationHandle) => {
             set({ activeIntegrationHandle: integrationHandle });
+        },
+
+        setActiveSiteId: (activeSiteId) => {
+            set({ activeSiteId });
+        },
+
+        bumpSiteDisplayRevision: () => {
+            set((state) => {
+                return {
+                    siteDisplayRevision: state.siteDisplayRevision + 1,
+                };
+            });
+        },
+
+        setMultiSite: (multiSite) => {
+            set({
+                multiSite,
+                layoutReadOnly: Boolean(multiSite?.layoutReadOnly),
+            });
         },
 
         isAjaxSubmissionForced: (values) => {

@@ -200,6 +200,7 @@ trait FieldFormBuilderTrait
         $settings['label'] = $this->label;
         $settings['handle'] = $this->handle;
         $settings['reference'] = $this->reference;
+        $settings['uid'] = $this->uid;
         $settings['type'] = get_class($this);
 
         return $settings;
@@ -264,7 +265,9 @@ trait FieldFormBuilderTrait
         ]);
         $this->trigger(self::EVENT_MODIFY_FIELD_SCHEMA, $event);
 
-        return SchemaHelper::normalizeSchema(SchemaHelper::modalTabs($event->tabs));
+        $schema = SchemaHelper::normalizeSchema(SchemaHelper::modalTabs($event->tabs));
+
+        return SchemaHelper::applyTranslatableToSchema($schema, static::translatableProperties());
     }
 
     public function defineFormBuilderGeneralSchema(): array

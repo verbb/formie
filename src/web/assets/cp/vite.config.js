@@ -115,16 +115,15 @@ export default defineConfig(async ({ command, mode }) => {
     const previewServerPort = parseServerPort(env.FORMIE_CP_PREVIEW_PORT, 4390);
     const hmrProtocol = env.FORMIE_CP_DEV_SERVER_HMR_PROTOCOL || 'ws';
 
+    // In the monorepo, always compile linked `@verbb/plugin-kit-react` from `src/` so
+    // CP production builds pick up local plugin-kit changes without a separate dist build.
     let pluginKitReactDevAliases = [];
-    const usePluginKitReactSource = command === 'serve' && mode === 'development';
 
-    if (usePluginKitReactSource) {
-        try {
-            const { getPluginKitReactViteDevAliases } = await import('@verbb/plugin-kit-react/vite-dev');
-            pluginKitReactDevAliases = getPluginKitReactViteDevAliases();
-        } catch {
-            // Older installs without `./vite-dev` in the published package
-        }
+    try {
+        const { getPluginKitReactViteDevAliases } = await import('@verbb/plugin-kit-react/vite-dev');
+        pluginKitReactDevAliases = getPluginKitReactViteDevAliases();
+    } catch {
+        // Older installs without `./vite-dev` in the published package
     }
 
     const optimizeDepsInclude = [
@@ -276,6 +275,11 @@ export default defineConfig(async ({ command, mode }) => {
         optimizeDeps: {
             include: optimizeDepsInclude,
             ...(pluginKitReactDevAliases.length ? { exclude: ['@verbb/plugin-kit-react'] } : {}),
+        },
+
+        test: {
+            environment: 'node',
+            include: ['src/**/*.test.js'],
         },
     };
 });

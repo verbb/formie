@@ -17,6 +17,7 @@
         "children": [
             "forms/form-builder",
             "forms/form-groups",
+            "forms/multi-site",
             {
                 "title": "Fields",
                 "collapsable": true,

@@ -32,6 +32,10 @@ class FormGroupSettings extends Model
             $settings->defaults = $config['defaults'];
         }
 
+        if (array_key_exists('sitePolicy', $config)) {
+            $settings->sitePolicy = is_array($config['sitePolicy']) ? $config['sitePolicy'] : [];
+        }
+
         return $settings;
     }
 
@@ -42,6 +46,7 @@ class FormGroupSettings extends Model
     public ?array $allowedStatusIds = null;
     public ?array $fieldPalette = null;
     public array $defaults = [];
+    public array $sitePolicy = [];
 
 
     // Public Methods
@@ -61,6 +66,12 @@ class FormGroupSettings extends Model
 
         if ($this->defaults !== []) {
             $data['defaults'] = $this->defaults;
+        }
+
+        $sitePolicy = FormSitePolicy::fromArray($this->sitePolicy)->toStorageArray();
+
+        if ($sitePolicy !== []) {
+            $data['sitePolicy'] = $sitePolicy;
         }
 
         return $data;
@@ -93,6 +104,11 @@ class FormGroupSettings extends Model
         return trim((string)($this->defaults['defaultEmailTemplate'] ?? ''));
     }
 
+    public function getSitePolicyModel(): FormSitePolicy
+    {
+        return FormSitePolicy::fromArray($this->sitePolicy);
+    }
+
 
     // Protected Methods
     // =========================================================================
@@ -102,8 +118,22 @@ class FormGroupSettings extends Model
         $rules = parent::defineRules();
 
         $rules[] = [['allowedStatusIds'], 'validateAllowedStatusIds'];
+        $rules[] = [['sitePolicy'], 'validateSitePolicy'];
 
         return $rules;
+    }
+
+    public function validateSitePolicy(): void
+    {
+        $policy = FormSitePolicy::fromArray($this->sitePolicy);
+
+        if (!$policy->validate()) {
+            foreach ($policy->getErrors() as $attribute => $errors) {
+                foreach ($errors as $error) {
+                    $this->addError('sitePolicy', $error);
+                }
+            }
+        }
     }
 
     public function validateAllowedStatusIds(): void

@@ -181,15 +181,14 @@ class Submission extends Element
     protected static function defineSources(string $context = null): array
     {
         $currentUser = Craft::$app->getUser()->getIdentity();
-        $sitesService = Craft::$app->getSites();
-        $currentSiteId = $sitesService->getCurrentSite()->id;
+        $activeSiteId = Formie::$plugin->getFormSiteOverrides()->getActiveSiteId();
         $canViewAllSubmissions = Formie::$plugin->getPermissions()->hasGlobalSubmissionAccess($currentUser);
 
         $formGroups = Formie::$plugin->getFormGroups()->getAllGroups();
 
         $cacheKey = implode(':', [
             (string)($currentUser->id ?? 0),
-            (string)$currentSiteId,
+            (string)$activeSiteId,
             (string)$context,
             $canViewAllSubmissions ? '1' : '0',
             (string)count($formGroups),
@@ -217,7 +216,7 @@ class Submission extends Element
             ->from(['f' => Table::FORMIE_FORMS])
             ->innerJoin(['e' => CraftTable::ELEMENTS], '[[e.id]] = [[f.id]]')
             ->innerJoin(['es' => CraftTable::ELEMENTS_SITES], '[[es.elementId]] = [[f.id]] AND [[es.siteId]] = :siteId', [
-                ':siteId' => $currentSiteId,
+                ':siteId' => $activeSiteId,
             ]);
 
         if (Craft::$app->getDb()->columnExists(Table::FORMIE_FORMS, 'groupId')) {
@@ -228,6 +227,30 @@ class Submission extends Element
             ->where(['e.dateDeleted' => null])
             ->orderBy(['es.title' => SORT_ASC])
             ->all();
+
+        $canonicalTitles = [];
+
+        foreach ($forms as $form) {
+            $formId = (int)($form['id'] ?? 0);
+
+            if ($formId) {
+                $canonicalTitles[$formId] = (string)($form['title'] ?? $form['handle'] ?? '');
+            }
+        }
+
+        $displayTitles = Formie::$plugin->getFormSiteOverrides()->resolveFormTitlesForSite(
+            $canonicalTitles,
+            $activeSiteId,
+        );
+
+        usort($forms, function(array $left, array $right) use ($displayTitles): int {
+            $leftId = (int)($left['id'] ?? 0);
+            $rightId = (int)($right['id'] ?? 0);
+            $leftTitle = $displayTitles[$leftId] ?? (string)($left['title'] ?? '');
+            $rightTitle = $displayTitles[$rightId] ?? (string)($right['title'] ?? '');
+
+            return strcasecmp($leftTitle, $rightTitle);
+        });
 
         $sources = [];
 
@@ -251,7 +274,7 @@ class Submission extends Element
 
             $formId = (int)($form['id'] ?? 0);
             $formHandle = (string)($form['handle'] ?? '');
-            $formTitle = (string)($form['title'] ?? $formHandle);
+            $formTitle = $displayTitles[$formId] ?? (string)($form['title'] ?? $formHandle);
             $key = "form:{$formId}";
 
             $formItem = [

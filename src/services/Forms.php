@@ -60,7 +60,7 @@ class Forms extends Component
         $cache = $this->_getFormLookupCache();
 
         if (array_key_exists($cacheKey, $cache->formsById)) {
-            return $cache->formsById[$cacheKey];
+            return $this->_resolveCachedForm($cache->formsById[$cacheKey], $siteId);
         }
 
         $form = Form::find()->id($id)->siteId($siteId)->one();
@@ -83,7 +83,7 @@ class Forms extends Component
         $cache = $this->_getFormLookupCache();
 
         if (array_key_exists($cacheKey, $cache->formsByHandle)) {
-            return $cache->formsByHandle[$cacheKey];
+            return $this->_resolveCachedForm($cache->formsByHandle[$cacheKey], $siteId);
         }
 
         $form = Form::find()->handle($handle)->siteId($siteId)->one();
@@ -106,7 +106,7 @@ class Forms extends Component
         $cache = $this->_getFormLookupCache();
 
         if (array_key_exists($cacheKey, $cache->formsByUid)) {
-            return $cache->formsByUid[$cacheKey];
+            return $this->_resolveCachedForm($cache->formsByUid[$cacheKey], $siteId);
         }
 
         $form = Form::find()->uid($uid)->siteId($siteId)->one();
@@ -243,12 +243,47 @@ class Forms extends Component
         return $this->_populateFormFromPost(new Form(), applyDefaultStencil: false);
     }
 
-    public function getFormBuilderVariables(Form $form): array
+    public function getFormBuilderVariables(Form $form, ?int $activeSiteId = null): array
     {
         $user = Craft::$app->getUser()->getIdentity();
         $permissions = Formie::$plugin->getPermissions();
-        $notifications = Formie::$plugin->getNotifications()->getFormNotifications($form);
-        $notificationsConfig = Formie::$plugin->getNotifications()->getNotificationsConfig($notifications);
+        $siteOverrides = Formie::$plugin->getFormSiteOverrides();
+        $activeSiteId ??= $siteOverrides->getActiveSiteId();
+        $canonicalForm = $this->_getCanonicalFormForBuilder((int)$form->id) ?? $form;
+        $canonicalNotifications = Formie::$plugin->getNotifications()->getFormNotifications($canonicalForm);
+        $canonicalNotificationsConfig = Formie::$plugin->getNotifications()->getNotificationsConfig($canonicalNotifications);
+
+        $activeSiteId = $siteOverrides->resolveBuilderActiveSiteId($canonicalForm, $activeSiteId);
+        $canonicalData = [
+            'id' => $canonicalForm->id,
+            'uid' => $canonicalForm->uid,
+            'title' => $siteOverrides->resolveCanonicalFormTitle($canonicalForm),
+            'handle' => $canonicalForm->handle,
+            'isStencil' => false,
+            'layoutId' => $canonicalForm->layoutId,
+            'templateId' => $canonicalForm->templateId,
+            'groupId' => $canonicalForm->groupId,
+            'submitActionEntry' =>  array_filter([
+                array_filter([
+                    'id' => $canonicalForm->submitActionEntryId,
+                    'siteId' => $canonicalForm->submitActionEntrySiteId,
+                ]),
+            ]),
+            'defaultStatusId' => $canonicalForm->defaultStatusId,
+            'dataRetention' => $canonicalForm->dataRetention,
+            'dataRetentionValue' => $canonicalForm->dataRetentionValue,
+            'userDeletedAction' => $canonicalForm->userDeletedAction,
+            'fileUploadsAction' => $canonicalForm->fileUploadsAction,
+            'dateCreated' => $canonicalForm->dateCreated->format('Y-m-d H:i:s'),
+            'dateUpdated' => $canonicalForm->dateUpdated->format('Y-m-d H:i:s'),
+            'createdById' => $canonicalForm->createdById,
+            'updatedById' => $canonicalForm->updatedById,
+            'settings' => $canonicalForm->settings,
+            'notifications' => $canonicalNotificationsConfig,
+            'integrations' => Formie::$plugin->getIntegrations()->getIntegrationSummariesForForm(),
+            'pages' => $canonicalForm->getFormLayout()->getFormBuilderConfig(),
+        ];
+        $displayData = $siteOverrides->applyToBuilderData($canonicalData, $activeSiteId);
 
         $viewSubmissionsUrl = null;
         $submissions = Submission::find()->formId($form->id)->limit(1)->exists();
@@ -399,35 +434,10 @@ class Forms extends Component
             'maxFormHandleLength' => HandleHelper::getMaxFormHandle(),
             'maxFieldHandleLength' => HandleHelper::getMaxFieldHandle(),
             'formMeta' => $form->getFormMetaDetails(),
-            'data' => [
-                'id' => $form->id,
-                'uid' => $form->uid,
-                'title' => $form->title,
-                'handle' => $form->handle,
-                'isStencil' => false,
-                'layoutId' => $form->layoutId,
-                'templateId' => $form->templateId,
-                'groupId' => $form->groupId,
-                'submitActionEntry' =>  array_filter([
-                    array_filter([
-                        'id' => $form->submitActionEntryId,
-                        'siteId' => $form->submitActionEntrySiteId,
-                    ]),
-                ]),
-                'defaultStatusId' => $form->defaultStatusId,
-                'dataRetention' => $form->dataRetention,
-                'dataRetentionValue' => $form->dataRetentionValue,
-                'userDeletedAction' => $form->userDeletedAction,
-                'fileUploadsAction' => $form->fileUploadsAction,
-                'dateCreated' => $form->dateCreated->format('Y-m-d H:i:s'),
-                'dateUpdated' => $form->dateUpdated->format('Y-m-d H:i:s'),
-                'createdById' => $form->createdById,
-                'updatedById' => $form->updatedById,
-                'settings' => $form->settings,
-                'notifications' => $notificationsConfig,
-                'integrations' => Formie::$plugin->getIntegrations()->getIntegrationSummariesForForm(),
-                'pages' => $form->getFormLayout()->getFormBuilderConfig(),
-            ],
+            'canonicalData' => $canonicalData,
+            'translatableProperties' => Formie::$plugin->getFormSiteOverrides()->getBuilderTranslatableConfig(),
+            'multiSite' => $siteOverrides->getBuilderMultiSiteConfig($form, $activeSiteId),
+            'data' => $displayData,
             'pageSettingsSchema' => $form->definePageSettingsSchema(),
             'pageButtonSettingsSchema' => $form->definePageButtonSettingsSchema(),
             'schema' => $compiledSchema['schema'],
@@ -568,6 +578,7 @@ class Forms extends Component
 
         if ($bodyParams) {
             $this->_normalizeBuilderFieldReferences($bodyParams);
+            $this->_stripBuilderPrivateKeys($bodyParams);
             $request->setBodyParams($bodyParams);
         }
 
@@ -648,6 +659,37 @@ class Forms extends Component
         if ($referenceMap !== []) {
             $this->_remapBuilderFieldReferenceTokens($bodyParams, $referenceMap);
         }
+    }
+
+    private function _stripBuilderPrivateKeys(array &$value): void
+    {
+        if (!is_array($value)) {
+            return;
+        }
+
+        if (array_is_list($value)) {
+            foreach ($value as &$item) {
+                if (is_array($item)) {
+                    $this->_stripBuilderPrivateKeys($item);
+                }
+            }
+            unset($item);
+
+            return;
+        }
+
+        foreach (array_keys($value) as $key) {
+            if ($key === 'errors' || (is_string($key) && str_starts_with($key, '_'))) {
+                unset($value[$key]);
+            }
+        }
+
+        foreach ($value as &$item) {
+            if (is_array($item)) {
+                $this->_stripBuilderPrivateKeys($item);
+            }
+        }
+        unset($item);
     }
 
     private function _normalizeBuilderRowReferences(mixed &$rows, array $existingReferences, array &$assignedReferences, array &$referenceMap, int &$newFieldCounter): void
@@ -874,6 +916,27 @@ class Forms extends Component
         return $value . ':' . ($siteId ?? 'default');
     }
 
+    /**
+     * Load an unpolluted primary-site form snapshot for the CP builder.
+     *
+     * `actionEdit()` may hydrate the active site first, and `applyToForm()` can mutate
+     * shared layout/field instances in memory. Reset caches before reading canonical data.
+     */
+    private function _getCanonicalFormForBuilder(int $formId): ?Form
+    {
+        if (!$formId) {
+            return null;
+        }
+
+        $primarySiteId = Formie::$plugin->getFormSiteOverrides()->getPrimarySiteId();
+
+        Formie::$plugin->getFields()->resetFieldRegistryCache();
+        $this->invalidateFormCaches();
+
+        return Craft::$app->getElements()->getElementById($formId, Form::class, $primarySiteId)
+            ?? Form::find()->id($formId)->siteId($primarySiteId)->status(null)->one();
+    }
+
     private function _cacheFormLookup(?Form $form, ?int $siteId = null): ?Form
     {
         if (!$form) {
@@ -896,7 +959,20 @@ class Forms extends Component
             $cache->formsByUid[$this->_getFormLookupKey($uid, $resolvedSiteId)] ??= $form;
         }
 
+        if ($form && $resolvedSiteId !== null && Formie::$plugin->getFormSiteOverrides()->isEnabled()) {
+            return Formie::$plugin->getFormSiteOverrides()->applyToForm($form, $resolvedSiteId, true);
+        }
+
         return $form;
+    }
+
+    private function _resolveCachedForm(?Form $form, ?int $siteId): ?Form
+    {
+        if (!$form || $siteId === null || !Formie::$plugin->getFormSiteOverrides()->isEnabled()) {
+            return $form;
+        }
+
+        return Formie::$plugin->getFormSiteOverrides()->applyToForm($form, $siteId, true);
     }
 
     private function _primeForms(array $forms): void

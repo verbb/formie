@@ -37,6 +37,15 @@ class Survey extends OptionsField implements SortableFieldInterface, Questionnai
         return Craft::t('formie', 'Survey');
     }
 
+    public static function translatableProperties(): array
+    {
+        $properties = parent::translatableProperties();
+        $properties[] = 'question';
+        $properties[] = 'answerExplanation';
+
+        return $properties;
+    }
+
     public static function getSvgIconPath(): string
     {
         return 'formie/_formfields/survey/icon.svg';

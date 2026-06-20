@@ -5,6 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\FormGroup;
 use verbb\formie\models\FormGroupSettings;
+use verbb\formie\models\FormSitePolicy;
 
 use Craft;
 use craft\helpers\App;
@@ -28,6 +29,8 @@ class FormGroupDefaults extends Component
             'payloadInputId' => 'formie-form-group-settings',
             'values' => $this->getEditorValues($group, $groupSettings),
             'statusOptions' => $this->_statusOptions(),
+            'siteOptions' => Formie::$plugin->getFormSitePropagation()->getSiteOptionsForEditor(),
+            'sitePropagationOptions' => $this->_sitePropagationOptions(),
             'fieldPaletteSeed' => $fieldPalette->getEditorConfig()['palette'],
             'canEdit' => Craft::$app->getConfig()->getGeneral()->allowAdminChanges,
             'context' => 'group',
@@ -44,6 +47,7 @@ class FormGroupDefaults extends Component
         $groupSettings ??= $group->getSettingsModel();
         $storedDefaults = $groupSettings->defaults ?? [];
         $fieldPalette = Formie::$plugin->getFieldPalette();
+        $sitePolicy = $groupSettings->getSitePolicyModel();
 
         $values = [
             'defaultFormStencil' => $storedDefaults['defaultFormStencil'] ?? '',
@@ -64,6 +68,8 @@ class FormGroupDefaults extends Component
             'fieldPalette' => $groupSettings->usesCustomFieldPalette()
                 ? $fieldPalette->getEditorConfigForGroup($group)['palette']
                 : null,
+            'sitePolicyEnabledSiteIds' => $this->_formatSiteIdsForEditor($sitePolicy->enabledSiteIds),
+            'sitePolicyPropagation' => $sitePolicy->propagation,
         ];
 
         return $values;
@@ -79,6 +85,7 @@ class FormGroupDefaults extends Component
         $settings->allowedStatusIds = $this->_normalizeAllowedStatusIds($payload['allowedStatusIds'] ?? null);
         $settings->defaults = $this->_normalizeDefaultsPayload($payload);
         $settings->fieldPalette = $this->_normalizeFieldPalettePayload($payload);
+        $settings->sitePolicy = $this->_normalizeSitePolicyPayload($payload);
 
         if (!$settings->validate()) {
             foreach ($settings->getErrors() as $attribute => $errors) {
@@ -307,6 +314,59 @@ class FormGroupDefaults extends Component
         }
 
         return $filtered;
+    }
+
+    private function _sitePropagationOptions(): array
+    {
+        $options = [];
+
+        foreach (FormSitePolicy::propagationOptions() as $value => $label) {
+            $options[] = [
+                'label' => $label,
+                'value' => $value,
+            ];
+        }
+
+        return $options;
+    }
+
+    private function _formatSiteIdsForEditor(?array $enabledSiteIds): array|string
+    {
+        if ($enabledSiteIds === null) {
+            return '*';
+        }
+
+        return array_map('strval', $enabledSiteIds);
+    }
+
+    private function _normalizeSitePolicyPayload(array $payload): array
+    {
+        $policy = FormSitePolicy::fromArray([
+            'enabledSiteIds' => $this->_normalizeEnabledSiteIds($payload['sitePolicyEnabledSiteIds'] ?? null),
+            'propagation' => $payload['sitePolicyPropagation'] ?? FormSitePolicy::PROPAGATION_ALL_ENABLED,
+        ]);
+
+        return $policy->toStorageArray();
+    }
+
+    private function _normalizeEnabledSiteIds(mixed $value): ?array
+    {
+        if ($value === null || $value === '' || $value === '*' || $value === []) {
+            return null;
+        }
+
+        if (!is_array($value)) {
+            $value = [$value];
+        }
+
+        if (in_array('*', $value, true)) {
+            return null;
+        }
+
+        $editableIds = Formie::$plugin->getFormSitePropagation()->getEditableSiteIds();
+        $ids = array_values(array_unique(array_filter(array_map('intval', $value))));
+
+        return array_values(array_intersect($ids, $editableIds)) ?: null;
     }
 
     private function _shouldInheritDefaultValue(mixed $value): bool

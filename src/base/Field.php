@@ -237,6 +237,22 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
         return self::$_fieldTypeDefinitionCache[static::class];
     }
 
+    public static function translatableProperties(): array
+    {
+        return [
+            'label',
+            'instructions',
+            'placeholder',
+            'defaultValue',
+            'validationMessages',
+        ];
+    }
+
+    public static function translatableRichTextProperties(): array
+    {
+        return ['instructions'];
+    }
+
     public static function getSvgIcon(): string
     {
         $iconPath = static::getSvgIconPath();

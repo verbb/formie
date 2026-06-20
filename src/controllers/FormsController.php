@@ -20,6 +20,7 @@ use verbb\formie\models\FormTemplate;
 use Craft;
 use craft\db\Query;
 use craft\enums\CmsEdition;
+use craft\helpers\Cp;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Html;
 use craft\helpers\Json;
@@ -143,6 +144,7 @@ class FormsController extends Controller
         return $this->renderTemplate('formie/forms/index', [
             'canCreateForms' => $canCreateForms,
             'editableFormGroups' => $editableFormGroups,
+            'showSiteMenu' => Formie::$plugin->getFormSitePropagation()->isEnabled(),
         ]);
     }
 
@@ -173,6 +175,7 @@ class FormsController extends Controller
         $groupId = $this->_resolveGroupIdFromRequest();
 
         if ($groupId) {
+            $this->_requireGroupAvailableForActiveSite($groupId);
             $form->groupId = $groupId;
         }
 
@@ -181,6 +184,9 @@ class FormsController extends Controller
             'name' => $form->title,
             'handle' => $form->handle,
             'groupId' => $groupId,
+            'siteId' => Formie::$plugin->getFormSitePropagation()->isEnabled()
+                ? $this->_getActiveSiteId()
+                : null,
             'applyStencilId' => (string)$this->request->getParam('applyStencilId', ''),
             'stencilOptions' => $stencilOptions,
             'formHandles' => ArrayHelper::getColumn(Form::find()->all(), 'handle'),
@@ -226,6 +232,7 @@ class FormsController extends Controller
 
         return $this->renderTemplate('formie/forms/_edit', [
             'form' => $form,
+            'builderSiteCrumb' => Formie::$plugin->getFormSiteOverrides()->getBuilderSiteCrumbConfig($form),
         ]);
     }
 
@@ -425,10 +432,17 @@ class FormsController extends Controller
     {
         $this->requirePostRequest();
 
+        $request = Craft::$app->getRequest();
+        $formId = (int)$request->getParam('id');
+        $isNewForm = !$formId;
+        $siteOverrides = Formie::$plugin->getFormSiteOverrides();
+        $siteId = (int)($request->getParam('siteId') ?: Craft::$app->getSites()->getCurrentSite()->id);
+        $primarySiteId = $siteOverrides->getPrimarySiteId();
+
         $form = Formie::$plugin->getForms()->buildFormFromPost();
         $isNewForm = !$form->id;
 
-        $saveAsNew = (bool)$this->request->getParam('saveAsNew');
+        $saveAsNew = (bool)$request->getParam('saveAsNew');
 
         // If the user has create permissions, but not edit permissions, we can run into issues...
         if (!$form->uid) {
@@ -439,6 +453,24 @@ class FormsController extends Controller
             if (!$currentUser || !Formie::$plugin->getPermissions()->canManageForm($currentUser, $form)) {
                 throw new ForbiddenHttpException('User is not permitted to perform this action');
             }
+        }
+
+        if ($sitePolicyError = $this->_validateFormGroupSitePolicy($form)) {
+            $form->addError('groupId', $sitePolicyError);
+
+            if ($this->request->getAcceptsJson()) {
+                return $this->asJson([
+                    'errors' => $form->getErrors(),
+                ]);
+            }
+
+            $this->setFailFlash($sitePolicyError);
+
+            Craft::$app->getUrlManager()->setRouteParams([
+                'form' => $form,
+            ]);
+
+            return null;
         }
 
         if ($saveAsNew) {
@@ -524,8 +556,39 @@ class FormsController extends Controller
             Formie::$plugin->getPermissions()->grantCreatorPermissions($currentUser, $savedForm);
         }
 
-        $variables = Formie::$plugin->getForms()->getFormBuilderVariables($savedForm);
+        $translations = $request->getBodyParam('translations');
+
+        if (is_string($translations)) {
+            $translations = Json::decodeIfJson($translations);
+        }
+
+        if (
+            !$isNewForm
+            && $siteOverrides->isEnabled()
+            && $siteId !== $primarySiteId
+            && is_array($translations)
+        ) {
+            $siteOverrides->saveOverrides((int)$savedForm->id, $siteId, $translations);
+        }
+
+        $variables = Formie::$plugin->getForms()->getFormBuilderVariables($savedForm, $siteId);
         $variables['redirect'] = null;
+
+        if (
+            !$isNewForm
+            && $siteOverrides->isEnabled()
+            && $siteId !== $primarySiteId
+            && is_array($variables['canonicalData'] ?? null)
+        ) {
+            $variables['data'] = $siteOverrides->applyToBuilderData(
+                $variables['canonicalData'],
+                $siteId,
+            );
+
+            if (is_array($variables['multiSite'] ?? null)) {
+                $variables['multiSite']['overrides'] = $siteOverrides->getAllOverrides((int)$savedForm->id);
+            }
+        }
 
         if ($this->request->getAcceptsJson()) {
             return $this->asJson($variables);
@@ -804,6 +867,51 @@ class FormsController extends Controller
         }
 
         return null;
+    }
+
+    private function _getActiveSiteId(): int
+    {
+        $siteId = Craft::$app->getRequest()->getParam('siteId');
+
+        if ($siteId) {
+            return (int)$siteId;
+        }
+
+        $requestedSite = Cp::requestedSite();
+
+        return (int)($requestedSite?->id ?? Craft::$app->getSites()->getCurrentSite()->id);
+    }
+
+    private function _requireGroupAvailableForActiveSite(int $groupId): void
+    {
+        $propagation = Formie::$plugin->getFormSitePropagation();
+
+        if (!$propagation->isEnabled()) {
+            return;
+        }
+
+        $group = Formie::$plugin->getFormGroups()->getGroupById($groupId);
+
+        if ($group && !$propagation->isGroupAvailableForSite($group, $this->_getActiveSiteId())) {
+            throw new ForbiddenHttpException(Craft::t('formie', 'This form group is not available for the selected site.'));
+        }
+    }
+
+    private function _validateFormGroupSitePolicy(Form $form): ?string
+    {
+        $propagation = Formie::$plugin->getFormSitePropagation();
+
+        if (!$propagation->isEnabled()) {
+            return null;
+        }
+
+        $group = $form->getGroup();
+
+        if ($propagation->isGroupAvailableForSite($group, $this->_getActiveSiteId())) {
+            return null;
+        }
+
+        return Craft::t('formie', 'This form group is not available for the selected site.');
     }
 
 }

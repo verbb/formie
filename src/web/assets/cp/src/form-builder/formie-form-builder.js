@@ -57,6 +57,7 @@ if (import.meta.hot) {
     });
 }
 
+import { bootstrapBuilderSiteFromUrl } from '@form-builder/utils/siteUrl';
 import useAppStore from '@form-builder/hooks/useAppStore';
 import { initializeRouterState } from '@form-builder/hooks/useUrlRouter';
 import { bootstrapShadowReactApp, ensureCraftNamespace, markContainerReady } from '@utils';
@@ -188,6 +189,8 @@ Craft.Formie.FormBuilder = function(settings) {
     // Initialize the store with form data
     const { loadForm } = useAppStore.getState();
     loadForm(settings);
+
+    bootstrapBuilderSiteFromUrl(settings?.multiSite);
 
     // Field-type configs are server-provided at bootstrap for deterministic builder readiness.
 

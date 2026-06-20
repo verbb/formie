@@ -6,6 +6,7 @@ import { FormBuilderErrorBoundary } from './FormBuilderErrorBoundary.jsx';
 import { useKeyboardShortcuts } from '@verbb/plugin-kit-react/hooks/useKeyboardShortcuts';
 import { FormBuilderAppProvider } from '@form-builder/contexts/FormBuilderAppContext';
 import { useFormBuilderDocumentTitle } from '@form-builder/hooks/useFormBuilderDocumentTitle';
+import { useFormBuilderSiteCrumb } from '@form-builder/hooks/useFormBuilderSiteCrumb';
 import useAppStore from '@form-builder/hooks/useAppStore';
 
 function FormBuilderInner({
@@ -17,6 +18,7 @@ function FormBuilderInner({
     const setSaveAction = useAppStore((state) => { return state.setSaveAction; });
     const canEdit = useAppStore((state) => { return state.canEdit; });
     useFormBuilderDocumentTitle();
+    useFormBuilderSiteCrumb(formRef);
 
     // Set up keyboard shortcuts
     useKeyboardShortcuts({

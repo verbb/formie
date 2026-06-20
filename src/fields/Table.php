@@ -59,6 +59,15 @@ class Table extends Field
         return Craft::t('formie', 'Table');
     }
 
+    public static function translatableProperties(): array
+    {
+        $properties = parent::translatableProperties();
+        $properties[] = 'addRowLabel';
+        $properties[] = 'columns';
+
+        return $properties;
+    }
+
     public static function defineFieldType(): array
     {
         return array_merge(parent::defineFieldType(), [

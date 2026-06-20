@@ -25,6 +25,7 @@ import { useBuilderActions } from '@form-builder/builder/useBuilderActions';
 import { MAX_FIELDS_PER_ROW } from '@form-builder/builder/constants';
 import { canDropInNestedContainer, canDropToTopLevel, isAllowedNestedTargetDrop } from '@form-builder/builder/nestedMoveUtils';
 import { useFormBuilderApp } from '@form-builder/contexts/FormBuilderAppContext';
+import useAppStore from '@form-builder/hooks/useAppStore';
 import useUrlRouter from '@form-builder/hooks/useUrlRouter';
 import { getDevToolsConfig } from '@form-builder/dev/config';
 import { assignFieldReferences } from '@form-builder/utils/fieldReferences';
@@ -116,6 +117,7 @@ function FieldBuilder({ fields }) {
         isFieldTypeSidebarOpen,
         setIsFieldTypeSidebarOpen,
     } = useFormBuilderApp();
+    const siteDisplayRevision = useAppStore((state) => state.siteDisplayRevision);
     const pages = useFormValue('pages', []);
     const activePageIndex = useMemo(() => {
         const resolvedPageIndex = pages.findIndex((page) => { return page._handle === activePageHandle; });
@@ -1011,7 +1013,9 @@ function FieldBuilder({ fields }) {
             onDragEnd={handleDragEnd}
             onDragOver={handleDragOver}
         >
-            <div className={cn(
+            <div
+                key={`site-display-${siteDisplayRevision}`}
+                className={cn(
                 'form-builder-field-builder',
                 'h-[calc(100vh-183px)]',
                 'overflow-hidden',

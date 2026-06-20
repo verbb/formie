@@ -2,6 +2,7 @@
 namespace verbb\formie\models;
 
 use verbb\formie\Formie;
+use verbb\formie\base\TranslatablePropertiesInterface;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\ConditionsHelper;
@@ -21,8 +22,28 @@ use Twig\Error\LoaderError;
 use Exception;
 use Throwable;
 
-class Notification extends Model
+class Notification extends Model implements TranslatablePropertiesInterface
 {
+    // Static Methods
+    // =========================================================================
+
+    public static function translatableProperties(): array
+    {
+        return [
+            'subject',
+            'content',
+            'fromName',
+            'replyToName',
+        ];
+    }
+
+    public static function translatableRichTextProperties(): array
+    {
+        return ['content'];
+    }
+
+
+
     // Constants
     // =========================================================================
 

@@ -26,6 +26,8 @@ use verbb\formie\services\FileUploads;
 use verbb\formie\services\FormDefaults;
 use verbb\formie\services\FormGroupDefaults;
 use verbb\formie\services\FormGroupPolicy;
+use verbb\formie\services\FormSiteOverrides;
+use verbb\formie\services\FormSitePropagation;
 use verbb\formie\services\Forms;
 use verbb\formie\services\FormGroups;
 use verbb\formie\services\FormPreview;
@@ -202,6 +204,8 @@ trait PluginTrait
                 'formDefaults' => FormDefaults::class,
                 'formGroupDefaults' => FormGroupDefaults::class,
                 'formGroupPolicy' => FormGroupPolicy::class,
+                'formSiteOverrides' => FormSiteOverrides::class,
+                'formSitePropagation' => FormSitePropagation::class,
                 'forms' => Forms::class,
                 'formSlotRegistry' => FormSlotRegistry::class,
                 'clientFormBootstrapBuilder' => FormBootstrapBuilder::class,
@@ -452,6 +456,16 @@ trait PluginTrait
     public function getFormGroupPolicy(): FormGroupPolicy
     {
         return $this->get('formGroupPolicy');
+    }
+
+    public function getFormSiteOverrides(): FormSiteOverrides
+    {
+        return $this->get('formSiteOverrides');
+    }
+
+    public function getFormSitePropagation(): FormSitePropagation
+    {
+        return $this->get('formSitePropagation');
     }
 
     public function getFormPreview(): FormPreview

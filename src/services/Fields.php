@@ -1422,9 +1422,14 @@ class Fields extends Component
         $pageRecord->sortOrder = $page->sortOrder;
         $pageRecord->settings = $page->getSettings();
 
+        if ($page->uid) {
+            $pageRecord->uid = $page->uid;
+        }
+
         $pageRecord->save(false);
 
         $page->id = $pageRecord->id;
+        $page->uid = $pageRecord->uid;
 
         $page->afterSave($isNewPage);
 

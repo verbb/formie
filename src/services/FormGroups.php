@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\services;
 
+use verbb\formie\elements\Form;
 use verbb\formie\events\FormGroupEvent;
 use verbb\formie\Formie;
 use verbb\formie\helpers\DbSchema;
@@ -153,6 +154,16 @@ class FormGroups extends Component
         }
 
         $this->_groups = null;
+
+        $group = $this->getGroupById($groupRecord->id);
+
+        if ($group && Craft::$app->getIsMultiSite()) {
+            $forms = Form::find()->groupId($group->id)->status(null)->all();
+
+            foreach ($forms as $form) {
+                Formie::$plugin->getFormSitePropagation()->syncFormSites($form);
+            }
+        }
 
         if ($this->hasEventHandlers(self::EVENT_AFTER_SAVE_FORM_GROUP)) {
             $this->trigger(self::EVENT_AFTER_SAVE_FORM_GROUP, new FormGroupEvent([

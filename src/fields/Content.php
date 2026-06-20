@@ -31,6 +31,16 @@ class Content extends CosmeticField
         return Craft::t('formie', 'Rich Text');
     }
 
+    public static function translatableProperties(): array
+    {
+        return ['content'];
+    }
+
+    public static function translatableRichTextProperties(): array
+    {
+        return ['content'];
+    }
+
     public static function getSvgIconPath(): string
     {
         return 'formie/_formfields/content/icon.svg';

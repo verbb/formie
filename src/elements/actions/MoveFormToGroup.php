@@ -9,6 +9,7 @@ use verbb\formie\models\FormGroup;
 use Craft;
 use craft\base\ElementAction;
 use craft\elements\db\ElementQueryInterface;
+use craft\helpers\Cp;
 use craft\helpers\Html;
 use craft\helpers\Json;
 
@@ -65,7 +66,19 @@ JS, [static::class]);
         $label = Craft::t('formie', 'Move form');
         $items = [];
 
+        $propagation = Formie::$plugin->getFormSitePropagation();
+        $activeSiteId = null;
+
+        if ($propagation->isEnabled()) {
+            $requestedSite = Cp::requestedSite();
+            $activeSiteId = (int)($requestedSite?->id ?? Craft::$app->getSites()->getCurrentSite()->id);
+        }
+
         foreach (Formie::$plugin->getFormGroups()->getAllGroups() as $group) {
+            if ($activeSiteId && !$propagation->isGroupAvailableForSite($group, $activeSiteId)) {
+                continue;
+            }
+
             $items[] = $this->_menuItem($group->name, (string)$group->id);
         }
 

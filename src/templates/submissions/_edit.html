@@ -13,15 +13,8 @@
 ] %}
 
 {% if craft.app.getIsMultiSite() %}
-    {% set crumbs = crumbs | unshift({
-        id: 'site-crumb',
-        icon: 'world',
-        label: requestedSite.name | t('site'),
-        menu: {
-            items: siteMenuItems(null, requestedSite),
-            label: 'Select site' | t('site')
-        },
-    }) %}
+    {% set submissionSite = submission.getSite() ?? site %}
+    {% set docTitle = (docTitle ?? title) ~ ' - ' ~ (submissionSite.name | t('site')) %}
 {% endif %}
 
 {% if submission.canSave(currentUser) %}
@@ -91,7 +84,7 @@
         {% endif %}
 
         {% if craft.app.getIsMultiSite() %}
-            <input type="hidden" name="siteId" value="{{ submission.siteId }}">
+            <input type="hidden" name="siteId" value="{{ submission.siteId ?? site.id }}">
         {% endif %}
 
         <div id="fields">
@@ -157,6 +150,18 @@
             <a href="{{ submission.form.getCpEditUrl() }}">{{ submission.form }}</a>
         </div>
     </div>
+
+    {% if craft.app.getIsMultiSite() %}
+        <div class="field">
+            <div class="heading">
+                <label class="">{{ 'Site' | t('app') }}</label>
+            </div>
+
+            <div class="input ltr">
+                <a href="{{ url('formie/submissions', { site: submissionSite.handle }) }}">{{ submissionSite.name | t('site') }}</a>
+            </div>
+        </div>
+    {% endif %}
 
     {% if submission.hasStatuses() %}
         {% set statuses = craft.formie.plugin.statuses.getStatusesForForm(form) %}

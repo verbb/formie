@@ -11,6 +11,7 @@ import {
 import { takeAtLeast } from '@verbb/plugin-kit-react/utils';
 
 import { getRequestErrorMessage, normalizeErrorText } from '@utils/requestError';
+import { extractSiteTranslationsFromFormData, stripTranslatableValuesToCanonical } from '@form-builder/utils/siteOverrides';
 
 const getRefreshResponseErrorMessage = (data) => {
     if (!data || typeof data !== 'object') {
@@ -289,7 +290,6 @@ const serializeFormData = (data = {}) => {
         Object.keys(value).forEach((key) => {
             if (key === 'errors' || key.startsWith('_')) {
                 delete value[key];
-
             }
         });
 
@@ -359,12 +359,27 @@ const saveForm = async(formValues, options = {}) => {
         return { ok: false, errors: { form: ['Missing form values.'] } };
     }
 
-    const data = serializeFormData(formValues);
     const {
         saveAsNew = false,
         action = 'formie/forms/save',
         requestData = {},
+        canonicalData = null,
+        primarySiteId = null,
     } = options;
+    const activeSiteId = Number(requestData?.siteId);
+    const shouldIncludeTranslations = Boolean(
+        canonicalData
+        && primarySiteId
+        && activeSiteId
+        && activeSiteId !== Number(primarySiteId),
+    );
+    const payloadSource = shouldIncludeTranslations
+        ? stripTranslatableValuesToCanonical(formValues, canonicalData)
+        : formValues;
+    const data = serializeFormData(payloadSource);
+    const translations = shouldIncludeTranslations
+        ? extractSiteTranslationsFromFormData(canonicalData, formValues)
+        : null;
 
     if (saveAsNew) {
         data.saveAsNew = true;
@@ -376,6 +391,7 @@ const saveForm = async(formValues, options = {}) => {
                 data: {
                     ...requestData,
                     ...data,
+                    ...(translations !== null ? { translations } : {}),
                 },
             }),
         );

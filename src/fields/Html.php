@@ -36,6 +36,11 @@ class Html extends CosmeticField
         return Craft::t('formie', 'HTML');
     }
 
+    public static function translatableProperties(): array
+    {
+        return ['htmlContent'];
+    }
+
     public static function getSvgIconPath(): string
     {
         return 'formie/_formfields/html/icon.svg';

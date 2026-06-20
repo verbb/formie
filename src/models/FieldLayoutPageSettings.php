@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\models;
 
+use verbb\formie\base\TranslatablePropertiesInterface;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\ConditionsHelper;
 
@@ -8,8 +9,22 @@ use Craft;
 use craft\base\Model;
 use craft\helpers\Json;
 
-class FieldLayoutPageSettings extends Model
+class FieldLayoutPageSettings extends Model implements TranslatablePropertiesInterface
 {
+    // Static Methods
+    // =========================================================================
+
+    public static function translatableProperties(): array
+    {
+        return [
+            'submitButtonLabel',
+            'backButtonLabel',
+            'saveButtonLabel',
+        ];
+    }
+
+
+
     // Properties
     // =========================================================================
 

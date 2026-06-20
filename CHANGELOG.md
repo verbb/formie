@@ -7,6 +7,9 @@
 - Add **Survey** field to forms with selectable presentation types: radio buttons, checkboxes, dropdown, **Likert** scale ([#798](https://github.com/verbb/formie/issues/798)), **Rating** star scale ([#2282](https://github.com/verbb/formie/issues/2282)), and **Rank** drag-and-drop ordering ([#605](https://github.com/verbb/formie/issues/605)). Likert supports single- and multi-row layouts, optional **Weighted score** on static columns, and built-in predefined scale defaults. Rank fields preserve submitted order on validation re-render.
 - Add a **Results** tab to the form builder when a form includes Quiz or Survey fields ([#605](https://github.com/verbb/formie/issues/605)). View per-question response counts and option breakdowns, rank-weighted preference charts, Likert scoring averages when weighted scoring is enabled, and a quiz summary (attempts, average score, pass rate, pass threshold) for scored quizzes.
 - Add author documentation for [Quiz](/fields/quiz) and [Survey](/fields/survey) fields.
+- Add multi-site support with automatic site availability via Form Group site policy and per-site content translation via sparse site overrides ([#2308](https://github.com/verbb/formie/issues/2308), [#84](https://github.com/verbb/formie/issues/84), [#2724](https://github.com/verbb/formie/issues/2724)).
+- Add `formie_form_site_overrides` storage, `FormSiteOverrides` and `FormSitePropagation` services, CP site switcher with instant client-side switching, and translation icons on translatable builder fields.
+- Add author documentation for [Multi-Site & Translation](/forms/multi-site).
 
 ### Changed
 - Redesign predefined/integration options UI.

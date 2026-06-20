@@ -27,6 +27,16 @@ class Summary extends CosmeticField
         return Craft::t('formie', 'Summary');
     }
 
+    public static function translatableProperties(): array
+    {
+        return ['description'];
+    }
+
+    public static function translatableRichTextProperties(): array
+    {
+        return ['description'];
+    }
+
     public static function getSvgIconPath(): string
     {
         return 'formie/_formfields/summary/icon.svg';

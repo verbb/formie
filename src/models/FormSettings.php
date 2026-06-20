@@ -3,12 +3,13 @@ namespace verbb\formie\models;
 
 use verbb\formie\Formie;
 use verbb\formie\base\Integration;
-use verbb\formie\helpers\CpSubmissionFieldConditions;
 use verbb\formie\base\Payment as PaymentIntegration;
+use verbb\formie\base\TranslatablePropertiesInterface;
 use verbb\formie\elements\Form;
-use verbb\formie\fields\Payment as PaymentField;
-use verbb\formie\helpers\SubmissionRedirectRulesHelper;
 use verbb\formie\elements\Submission;
+use verbb\formie\fields\Payment as PaymentField;
+use verbb\formie\helpers\CpSubmissionFieldConditions;
+use verbb\formie\helpers\SubmissionRedirectRulesHelper;
 
 use Craft;
 use craft\base\Model;
@@ -23,8 +24,30 @@ use Twig\Error\LoaderError;
 use DateTime;
 use DateTimeZone;
 
-class FormSettings extends Model
+class FormSettings extends Model implements TranslatablePropertiesInterface
 {
+    // Static Methods
+    // =========================================================================
+
+    public static function translatableProperties(): array
+    {
+        return [
+            'errorMessage',
+            'submitActionMessage',
+            'limitSubmissionsMessage',
+            'requireUserMessage',
+            'scheduleFormPendingMessage',
+            'scheduleFormExpiredMessage',
+        ];
+    }
+
+    public static function translatableRichTextProperties(): array
+    {
+        return self::translatableProperties();
+    }
+
+
+
     // Properties
     // =========================================================================
 

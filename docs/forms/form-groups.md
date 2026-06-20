@@ -14,6 +14,12 @@ When editing a form group under **Formie → Settings → Form Groups**, you can
 
 Blank group settings inherit from global **Formie → Settings** defaults.
 
+### Site policy (multi-site)
+
+On multi-site Craft installs, each group can restrict **which sites** forms in the group exist on, and how new forms **propagate** across those sites. Configure this under the **General** tab → **Site Policy** (**Enabled Sites** and **Site Propagation**).
+
+See [Multi-Site & Translation](/forms/multi-site) for how availability differs from content translation, propagation modes, and form builder behaviour.
+
 ### Allowed submission statuses
 
 Use the **Allowed Submission Statuses** control in **General** to restrict which statuses are available for forms in the group. Choose **All** to allow every status. This policy applies to all forms in the group; individual forms cannot override it.

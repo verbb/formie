@@ -621,7 +621,10 @@ class Notifications extends Component
         ]);
         $this->trigger(self::EVENT_MODIFY_NOTIFICATION_SCHEMA, $event);
 
-        return SchemaHelper::compileSchema(SchemaHelper::modalTabs($event->tabs));
+        $compiled = SchemaHelper::compileSchema(SchemaHelper::modalTabs($event->tabs));
+        $compiled['schema'] = SchemaHelper::applyTranslatableToSchema($compiled['schema'], Notification::translatableProperties());
+
+        return $compiled;
     }
 
     public function supportedNotificationDefaults(): array

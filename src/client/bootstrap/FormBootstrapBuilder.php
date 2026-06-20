@@ -15,6 +15,12 @@ class FormBootstrapBuilder extends Component
 
     public function build(Form $form, LoadContext $context): FormBootstrap
     {
+        $form = Formie::$plugin->getFormSiteOverrides()->applyToForm(
+            $form,
+            $context->siteId,
+            true,
+        );
+
         $definition = Formie::$plugin->getClientFormDefinitionBuilder()->build($form, $context);
         $session = Formie::$plugin->getClientSessionService()->issueInitialSession($form, null, true);
 

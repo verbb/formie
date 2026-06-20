@@ -79,6 +79,11 @@ class SchemaHelper
         ], $config);
     }
 
+    public static function withTranslatableDefaults(array $config = []): array
+    {
+        return $config;
+    }
+
     public static function textareaField(array $config = []): array
     {
         return array_merge([
@@ -1505,5 +1510,86 @@ class SchemaHelper
         ]);
 
         return $options;
+    }
+
+    public static function propertyNameFromFieldName(string $name): string
+    {
+        if (!str_contains($name, '.')) {
+            return $name;
+        }
+
+        return substr($name, (int)strrpos($name, '.') + 1);
+    }
+
+    public static function applyTranslatableToSchema(array $schema, array $properties): array
+    {
+        if (!Craft::$app->getIsMultiSite() || $properties === []) {
+            return $schema;
+        }
+
+        $normalized = self::normalizeSchema($schema);
+
+        // Field/modal schemas are often a single component node (e.g. ModalTabs), not a list.
+        if (!array_is_list($normalized)) {
+            return self::_applyTranslatableToSchemaNode($normalized, $properties);
+        }
+
+        return self::_applyTranslatableToSchemaNodes($normalized, $properties);
+    }
+
+    private static function _applyTranslatableToSchemaNodes(array $schema, array $properties): array
+    {
+        return array_map(function($node) use ($properties) {
+            return self::_applyTranslatableToSchemaNode($node, $properties);
+        }, $schema);
+    }
+
+    private static function _applyTranslatableToSchemaNode(mixed $node, array $properties): mixed
+    {
+        if (!is_array($node)) {
+            return $node;
+        }
+
+        if (isset($node['name'])) {
+            $propertyName = self::propertyNameFromFieldName((string)$node['name']);
+
+            if (in_array($propertyName, $properties, true)) {
+                $node['translatable'] = true;
+            }
+        }
+
+        if (isset($node['columns']) && is_array($node['columns'])) {
+            $node['columns'] = array_map(function($column) use ($properties) {
+                if (!is_array($column) || !isset($column['name'])) {
+                    return $column;
+                }
+
+                if (in_array((string)$column['name'], $properties, true)) {
+                    $column['translatable'] = true;
+                }
+
+                return $column;
+            }, $node['columns']);
+        }
+
+        foreach (['children', 'schema'] as $key) {
+            if (!isset($node[$key])) {
+                continue;
+            }
+
+            $children = $node[$key];
+
+            if (!is_array($children)) {
+                $children = [$children];
+            }
+
+            if (!array_is_list($children)) {
+                $children = [$children];
+            }
+
+            $node[$key] = self::_applyTranslatableToSchemaNodes($children, $properties);
+        }
+
+        return $node;
     }
 }

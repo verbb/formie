@@ -22,6 +22,11 @@ class Heading extends CosmeticField
         return Craft::t('formie', 'Heading');
     }
 
+    public static function translatableProperties(): array
+    {
+        return ['label'];
+    }
+
     public static function getSvgIconPath(): string
     {
         return 'formie/_formfields/heading/icon.svg';

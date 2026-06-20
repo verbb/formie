@@ -9,6 +9,7 @@ import {
     PaneTabsContent,
     PaneTabsList,
     PaneTabsTrigger,
+    SelectInput,
 } from '@verbb/plugin-kit-react/components';
 import { FieldLayout } from '@verbb/plugin-kit-react/forms';
 import { useCpFormPayloadSync } from '@utils';
@@ -95,6 +96,9 @@ export const FormGroupSettingsApp = ({ settings }) => {
     }, []);
 
     const statusOptions = settings.statusOptions || [];
+    const siteOptions = settings.siteOptions || [];
+    const sitePropagationOptions = settings.sitePropagationOptions || [];
+    const showSitePolicy = siteOptions.length > 1;
 
     const updateValue = (path, value) => {
         setValues((currentValues) => {
@@ -225,6 +229,41 @@ export const FormGroupSettingsApp = ({ settings }) => {
                             onChange={(nextValue) => { updateValue('allowedStatusIds', nextValue); }}
                         />
                     </FieldLayout>
+
+                    {showSitePolicy ? (
+                        <>
+                            <FieldLayout
+                                name="sitePolicyEnabledSiteIds"
+                                label={Craft.t('formie', 'Enabled Sites')}
+                                instructions={Craft.t('formie', 'Choose which sites forms in this group are available on. Leave empty to allow all sites you can edit.')}
+                                errors={getFieldErrors(modelErrors, 'sitePolicy')}
+                            >
+                                <CheckboxSelect
+                                    value={values.sitePolicyEnabledSiteIds ?? ALL_VALUE}
+                                    options={siteOptions.map((option) => {
+                                        return {
+                                            label: option.label,
+                                            value: String(option.value),
+                                        };
+                                    })}
+                                    showAllOption
+                                    onChange={(nextValue) => { updateValue('sitePolicyEnabledSiteIds', nextValue); }}
+                                />
+                            </FieldLayout>
+
+                            <FieldLayout
+                                name="sitePolicyPropagation"
+                                label={Craft.t('formie', 'Site Propagation')}
+                                instructions={Craft.t('formie', 'Control how new and existing forms in this group are propagated across sites.')}
+                            >
+                                <SelectInput
+                                    value={values.sitePolicyPropagation || 'allEnabled'}
+                                    options={sitePropagationOptions}
+                                    onChange={(nextValue) => { updateValue('sitePolicyPropagation', String(nextValue ?? 'allEnabled')); }}
+                                />
+                            </FieldLayout>
+                        </>
+                    ) : null}
                 </PaneTabsContent>
 
                 <DefaultsTabPanels

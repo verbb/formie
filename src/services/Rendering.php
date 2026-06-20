@@ -801,6 +801,10 @@ class Rendering extends Component
     private function _getFormFromTemplate(Form|string|null $form): ?Form
     {
         if ($form instanceof Form) {
+            if ($siteId = Craft::$app->getSites()->getCurrentSite()->id) {
+                return Formie::$plugin->getFormSiteOverrides()->applyToForm($form, (int)$siteId, true);
+            }
+
             return $form;
         }
         

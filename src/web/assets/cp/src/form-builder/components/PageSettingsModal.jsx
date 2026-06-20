@@ -138,6 +138,16 @@ function PageSettingsModal({
         const syncedPages = inputPages.map((page, index) => {
             const currentHandle = page?._handle ?? page?.handle ?? '';
             const fallbackHandle = currentHandle || `page${index + 1}`;
+
+            if (page?.id) {
+                reservedHandles.push(fallbackHandle);
+
+                return {
+                    ...page,
+                    _handle: fallbackHandle,
+                };
+            }
+
             const sourceLabel = page?.label ?? '';
             const baseHandle = generateHandle(String(sourceLabel)) || generateHandle(String(fallbackHandle)) || `page${index + 1}`;
             const nextHandle = findUniqueHandle(baseHandle, reservedHandles);

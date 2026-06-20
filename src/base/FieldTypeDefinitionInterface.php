@@ -8,4 +8,5 @@ interface FieldTypeDefinitionInterface
 
     public static function defineFieldType(): array;
     public static function getFieldTypeDefinition(): array;
+    public static function translatableProperties(): array;
 }
