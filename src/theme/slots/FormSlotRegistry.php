@@ -381,6 +381,19 @@ class FormSlotRegistry extends Component
             $params[SetPageReturnUrlHelper::QUERY_PARAM] = $returnToken;
         }
 
+        $linkClasses = ['formie-tab-link'];
+
+        if ($form) {
+            $themeClassMap = $form->getFrontendThemeClassMap();
+            $isCurrent = $context->pageIsCurrent();
+
+            if ($isCurrent && !empty($themeClassMap['tabLinkCurrent'])) {
+                $linkClasses = array_merge($linkClasses, $themeClassMap['tabLinkCurrent']);
+            } elseif (!$isCurrent && !empty($themeClassMap['tabLinkInactive'])) {
+                $linkClasses = array_merge($linkClasses, $themeClassMap['tabLinkInactive']);
+            }
+        }
+
         return SlotTag::make('a')
             ->core([
                 'href' => UrlHelper::actionUrl('formie/server/submissions/set-page', $params),
@@ -389,9 +402,7 @@ class FormSlotRegistry extends Component
                 'data-formie-page-index' => ($page && $form) ? $form->getPageIndex($page) : false,
             ])
             ->theme([
-                'class' => [
-                    'formie-tab-link',
-                ],
+                'class' => $linkClasses,
             ]);
     }
 

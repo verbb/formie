@@ -4,6 +4,7 @@
 
 ### Changed
 - Improve default theme color contrast for WCAG 2.2 AA — darker error text, muted helper text, and border-only control styling with split border tokens ([#2475](https://github.com/verbb/formie/issues/2475)).
+- Add Ajax-safe tab link state theme keys `tabLinkCurrent` and `tabLinkInactive`, with aliases for `pageTabLinkActive`, `pageTabLinkInactive`, and `pageInactive` ([#1279](https://github.com/verbb/formie/issues/1279)).
 
 ### Fixed
 - Fix required asterisk indicator not appearing on Agree fields when the field label is hidden and consent copy is shown on the checkbox label. ([#2333](https://github.com/verbb/formie/issues/2333))

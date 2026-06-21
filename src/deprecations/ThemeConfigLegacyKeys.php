@@ -66,7 +66,25 @@ final class ThemeConfigLegacyKeys
             }
         }
 
-        return ArrayHelper::getValue($themeConfig, $key, []);
+        $value = ArrayHelper::getValue($themeConfig, $key, '__none__');
+
+        if ($value !== '__none__') {
+            return $value;
+        }
+
+        foreach (self::semanticAliases() as $alias => $canonical) {
+            if ($canonical !== $key) {
+                continue;
+            }
+
+            $fromAlias = ArrayHelper::getValue($themeConfig, $alias, '__none__');
+
+            if ($fromAlias !== '__none__') {
+                return $fromAlias;
+            }
+        }
+
+        return [];
     }
 
 
@@ -81,6 +99,20 @@ final class ThemeConfigLegacyKeys
             'email' => 'emailAddress',
             'hidden' => 'hiddenField',
             'phone' => 'phoneNumber',
+        ];
+    }
+
+    /**
+     * Alternate root keys for Ajax/client semantic class maps ([#1279](https://github.com/verbb/formie/issues/1279)).
+     *
+     * @return array<string, string>
+     */
+    private static function semanticAliases(): array
+    {
+        return [
+            'pageTabLinkActive' => 'tabLinkCurrent',
+            'pageTabLinkInactive' => 'tabLinkInactive',
+            'pageInactive' => 'pageHidden',
         ];
     }
 }

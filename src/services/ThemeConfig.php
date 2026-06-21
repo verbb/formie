@@ -23,6 +23,8 @@ class ThemeConfig extends Component
         'tabError' => ['formie-tab-error'],
         'tabCurrent' => ['formie-tab-current'],
         'tabComplete' => ['formie-tab-complete'],
+        'tabLinkCurrent' => [],
+        'tabLinkInactive' => [],
         'pageHidden' => ['formie-page-hidden'],
         'loading' => ['formie-loading'],
         'success' => ['formie-success'],

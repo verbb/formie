@@ -335,6 +335,18 @@ export function applyPageState(form: HTMLFormElement, nextPageId: string): void 
         toggleThemeClasses(tab, form, 'tabCurrent', isCurrent);
         toggleThemeClasses(tab, form, 'tabComplete', isComplete);
 
+        const tabLink = tab.querySelector('[data-formie-tab-link]');
+
+        if (tabLink) {
+            toggleThemeClasses(tabLink, form, 'tabLinkCurrent', isCurrent);
+
+            if (isCurrent) {
+                removeThemeClasses(tabLink, form, 'tabLinkInactive');
+            } else {
+                addThemeClasses(tabLink, form, 'tabLinkInactive');
+            }
+        }
+
         if (isCurrent) {
             tab.setAttribute('aria-current', 'page');
         } else {

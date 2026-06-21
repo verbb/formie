@@ -1,5 +1,5 @@
 import { s as e } from "./event-names-BCI2FLD8.js";
-import { t } from "./api-C8wyLC-s.js";
+import { t } from "./api-DslEDLxm.js";
 //#region src/js/modules/payments/go-cardless.ts
 var n = e("go-cardless", "redirect"), r = t({
 	id: "go-cardless",

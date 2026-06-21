@@ -325,8 +325,10 @@ function V(e, t) {
 	if (n.forEach((n) => {
 		n.getAttribute("data-formie-page-id") === t ? (n.removeAttribute("data-formie-page-hidden"), a(n, e, "pageHidden")) : (n.setAttribute("data-formie-page-hidden", "true"), o(n, e, "pageHidden"));
 	}), r.forEach((n, r) => {
-		let a = n.getAttribute("data-formie-page-id") === t, o = s > -1 && r < s;
-		i(n, e, "tabCurrent", a), i(n, e, "tabComplete", o), a ? n.setAttribute("aria-current", "page") : n.removeAttribute("aria-current"), o ? n.setAttribute("data-formie-tab-complete", "true") : n.removeAttribute("data-formie-tab-complete");
+		let c = n.getAttribute("data-formie-page-id") === t, l = s > -1 && r < s;
+		i(n, e, "tabCurrent", c), i(n, e, "tabComplete", l);
+		let u = n.querySelector("[data-formie-tab-link]");
+		u && (i(u, e, "tabLinkCurrent", c), c ? a(u, e, "tabLinkInactive") : o(u, e, "tabLinkInactive")), c ? n.setAttribute("aria-current", "page") : n.removeAttribute("aria-current"), l ? n.setAttribute("data-formie-tab-complete", "true") : n.removeAttribute("data-formie-tab-complete");
 	}), s > -1 && n.length > 0 && ye(e, he(e, s, n.length)), A(e, "pageId", t), b(e), e.dataset.formieDisableSubmitUntilValid === "true") {
 		let t = e;
 		t.formieValidation && E(e, t.formieValidation);

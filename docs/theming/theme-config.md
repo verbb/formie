@@ -622,6 +622,54 @@ You can also use more explicit comparisons:
 
 The available condition context comes from the current render state, including `form`, `field`, `page`, `currentPage`, `row`, and `submission`.
 
+## Ajax / client state classes
+
+Some UI states change in the browser without a full server re-render — multipage tab changes, hidden pages, loading buttons, and validation errors on Ajax forms. Twig conditionals in `themeConfig` will not re-evaluate for those updates.
+
+Formie handles this with **root-level semantic class keys**. Define them at the top level of `themeConfig` (not inside a slot such as `pageTabLink`). Formie embeds the resolved classes on `data-formie-theme`, and the browser runtime toggles them as state changes.
+
+| Key | Applied to | When |
+| --- | --- | --- |
+| `pageHidden` | `[data-formie-page]` | Page is not active (`pageInactive` alias) |
+| `tabCurrent` | `[data-formie-tab]` | Tab is the current page |
+| `tabComplete` | `[data-formie-tab]` | Tab is before the current page |
+| `tabError` | `[data-formie-tab]` | Tab page has field errors |
+| `tabLinkCurrent` | `[data-formie-tab-link]` | Tab link is the current page (`pageTabLinkActive` alias) |
+| `tabLinkInactive` | `[data-formie-tab-link]` | Tab link is not the current page (`pageTabLinkInactive` alias) |
+| `loading` | Submit buttons | Submit/save in progress |
+| `fieldLayoutError` | `[data-formie-field]` | Field has errors |
+| `fieldControlError` | Inputs inside the field | Field control has errors |
+
+Use `pageTabLink` for **shared** tab link classes. Use `tabLinkCurrent` / `tabLinkInactive` for **state-specific** classes — especially with Tailwind, where parent-state utilities cannot be injected through the link slot alone.
+
+```php
+'themeConfig' => [
+    'pageTabLink' => [
+        'attributes' => [
+            'class' => ['py-4', 'px-1', 'border-b-2', 'font-medium', 'text-sm'],
+        ],
+    ],
+    'tabLinkInactive' => [
+        'attributes' => [
+            'class' => ['border-transparent', 'text-gray-500'],
+        ],
+    ],
+    'tabLinkCurrent' => [
+        'attributes' => [
+            'class' => ['border-indigo-500', 'text-indigo-600'],
+        ],
+    ],
+    'pageHidden' => [
+        'attributes' => [
+            'class' => ['hidden'],
+        ],
+    ],
+],
+```
+
+> [!NOTE]
+> Tailwind JIT only emits utilities it can see at build time. Safelist classes used in PHP `themeConfig`, or prefer Twig `renderForm()` theme config when possible. You can also style stable `.formie-*` hooks with `@apply` instead of injecting utilities.
+
 ## Ready-Made Configs
 We have also put together a few full-featured theme config examples you can use as a starting point. Each one removes Formie's default classes and replaces them with framework-specific ones.
 
