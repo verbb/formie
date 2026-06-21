@@ -52,6 +52,8 @@
         --formie-neutral-200: #e2e8f0;
         --formie-neutral-300: #cbd5e1;
         --formie-neutral-400: #94a3b8;
+        /* Lightest slate step that meets ~3:1 non-text contrast on white (WCAG 1.4.11). */
+        --formie-neutral-450: #8796ac;
         --formie-neutral-500: #64748b;
         --formie-neutral-600: #475569;
         --formie-neutral-700: #334155;
@@ -101,16 +103,19 @@
         --formie-color-surface-subtle: var(--formie-neutral-50);
         --formie-color-surface-muted: var(--formie-neutral-100);
         --formie-color-text: var(--formie-neutral-700);
-        --formie-color-text-muted: var(--formie-neutral-500);
+        --formie-color-text-muted: var(--formie-neutral-600);
         --formie-color-heading: var(--formie-neutral-900);
+        /* Structural chrome: tabs, groups, dividers. */
         --formie-color-border: var(--formie-neutral-300);
+        /* Interactive controls: inputs, selects, checkboxes. Border-only; use focus ring for interaction contrast. */
+        --formie-color-border-control: var(--formie-neutral-400);
         --formie-color-border-soft: var(--formie-neutral-200);
         --formie-color-primary: var(--formie-primary-400);
         --formie-color-primary-hover: var(--formie-primary-500);
         --formie-color-primary-border: var(--formie-primary-500);
         --formie-color-primary-soft: var(--formie-primary-100);
         --formie-color-focus-ring: var(--formie-primary-300);
-        --formie-color-danger: var(--formie-danger-500);
+        --formie-color-danger: var(--formie-danger-600);
         --formie-color-danger-soft: var(--formie-danger-50);
         --formie-color-danger-dark: var(--formie-danger-900);
         --formie-color-success: var(--formie-success-500);
@@ -158,8 +163,8 @@
         --formie-button-icon-border-radius: var(--formie-radius-full);
         --formie-button-icon-background: var(--formie-neutral-100);
         --formie-button-icon-background-hover: var(--formie-neutral-200);
-        --formie-button-icon-border: var(--formie-border-width) solid var(--formie-neutral-300);
-        --formie-button-icon-border-hover: var(--formie-border-width) solid var(--formie-neutral-400);
+        --formie-button-icon-border: var(--formie-border-width) solid var(--formie-color-border-control);
+        --formie-button-icon-border-hover: var(--formie-border-width) solid var(--formie-neutral-450);
         --formie-button-icon-color: var(--formie-neutral-950);
         --formie-button-opacity-disabled: 0.7;
         --formie-button-shadow-focus: 0 0 0 3px var(--formie-color-border-soft);
@@ -273,7 +278,7 @@
         --formie-signature-width: 100%;
         --formie-signature-height: 8rem;
         --formie-signature-background: var(--formie-color-surface-subtle);
-        --formie-signature-border: 1px solid var(--formie-color-border);
+        --formie-signature-border: 1px solid var(--formie-color-border-control);
         --formie-signature-border-radius: var(--formie-radius-sm);
 
         --formie-signature-remove-button-top: 0;

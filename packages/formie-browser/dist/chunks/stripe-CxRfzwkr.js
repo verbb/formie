@@ -5,7 +5,7 @@ import { r as i } from "./scripts-CbQ7agX3.js";
 import { t as a } from "./styles-BfoIZwJp.js";
 //#endregion
 //#region src/js/modules/payments/stripe.ts
-a("stripe", ["@layer formie-theme{.formie-stripe-placeholder{justify-content:center;align-items:center;gap:var(--formie-space-2);width:100%;min-height:12rem;padding:var(--formie-space-4);border:var(--formie-border-width) solid var(--formie-color-border);border-radius:var(--formie-radius-sm);background:var(--formie-color-surface);color:var(--formie-color-text-muted);text-align:center;box-sizing:border-box;flex-direction:column;display:flex}.formie-stripe-placeholder[hidden]{display:none}}"]);
+a("stripe", ["@layer formie-theme{.formie-stripe-placeholder{justify-content:center;align-items:center;gap:var(--formie-space-2);width:100%;min-height:12rem;padding:var(--formie-space-4);border:var(--formie-border-width) solid var(--formie-color-border-control);border-radius:var(--formie-radius-sm);background:var(--formie-color-surface);color:var(--formie-color-text-muted);text-align:center;box-sizing:border-box;flex-direction:column;display:flex}.formie-stripe-placeholder[hidden]{display:none}}"]);
 var o = "FORMIE_STRIPE_SCRIPT", s = e("stripe", "confirm"), c = "[data-formie-stripe-elements-placeholder]", l = new Set([
 	"BIF",
 	"CLP",

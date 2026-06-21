@@ -17,7 +17,7 @@
         text-align: var(--formie-table-th-text-align);
         font-size: var(--formie-table-th-font-size);
         font-weight: var(--formie-table-th-font-weight);
-        color: var(--formie-table-th-color, var(--formie-gray-500));
+        color: var(--formie-table-th-color, var(--formie-color-text-muted));
     }
 
     .formie-table th,

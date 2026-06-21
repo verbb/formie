@@ -13,7 +13,7 @@
         gap: var(--formie-space-2);
         padding: var(--formie-space-4);
         min-height: calc(var(--formie-control-height) * 3);
-        border: var(--formie-border-width) dashed var(--formie-color-border);
+        border: var(--formie-border-width) dashed var(--formie-color-border-control);
         border-radius: var(--formie-radius-sm);
         background: var(--formie-color-surface-subtle);
         color: var(--formie-color-text);
@@ -61,7 +61,7 @@
         align-items: center;
         gap: var(--formie-space-2);
         padding: var(--formie-space-2) var(--formie-space-3);
-        border: var(--formie-border-width) solid var(--formie-color-border);
+        border: var(--formie-border-width) solid var(--formie-color-border-control);
         border-radius: var(--formie-radius-sm);
         background: var(--formie-color-surface);
     }
@@ -150,7 +150,7 @@
     }
 
     .formie-upload-manager-item.is-upload-complete .formie-upload-manager-progress-label {
-        color: var(--formie-color-success, var(--formie-color-primary));
+        color: var(--formie-color-success-dark, var(--formie-color-primary));
         font-weight: var(--formie-font-weight-medium);
     }
 

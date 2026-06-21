@@ -3,7 +3,7 @@ import { r as t } from "./scripts-CbQ7agX3.js";
 import { t as n } from "./styles-BfoIZwJp.js";
 //#endregion
 //#region src/js/modules/payments/paypal.ts
-n("paypal", ["@layer formie-theme{.formie-paypal-button{border:var(--formie-border-width) solid var(--formie-color-border);border-radius:var(--formie-radius-sm);background:var(--formie-color-surface);box-sizing:border-box;min-height:var(--formie-control-height);padding:var(--formie-space-2)}}"]);
+n("paypal", ["@layer formie-theme{.formie-paypal-button{border:var(--formie-border-width) solid var(--formie-color-border-control);border-radius:var(--formie-radius-sm);background:var(--formie-color-surface);box-sizing:border-box;min-height:var(--formie-control-height);padding:var(--formie-space-2)}}"]);
 var r = "FORMIE_PAYPAL_SCRIPT";
 function i(e) {
 	if (!e) return "";

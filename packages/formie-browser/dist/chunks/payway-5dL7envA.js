@@ -3,7 +3,7 @@ import { r as t } from "./scripts-CbQ7agX3.js";
 import { t as n } from "./styles-BfoIZwJp.js";
 //#endregion
 //#region src/js/modules/payments/payway.ts
-n("payway", ["@layer formie-theme{.formie-payway-button{border:var(--formie-border-width) solid var(--formie-color-border);border-radius:var(--formie-radius-sm);background:var(--formie-color-surface);box-sizing:border-box;min-height:var(--formie-control-height);padding:var(--formie-space-2)}}"]);
+n("payway", ["@layer formie-theme{.formie-payway-button{border:var(--formie-border-width) solid var(--formie-color-border-control);border-radius:var(--formie-radius-sm);background:var(--formie-color-surface);box-sizing:border-box;min-height:var(--formie-control-height);padding:var(--formie-space-2)}}"]);
 var r = "FORMIE_PAYWAY_SCRIPT", i = e({
 	id: "payway",
 	defaultRequiredInputSuffixes: ["paywayTokenId"],
