@@ -23,6 +23,7 @@
 ### Fixed
 - Fix a HTML error with Signatures field.
 - Fix headless/Ajax validation error messages using the wrong locale by applying the target site language at submission time ([#1545](https://github.com/verbb/formie/issues/1545)).
+- Fix Summary field Ajax refreshes ignoring custom `themeConfig` classes by round-tripping render-time theme config through the summary HTML endpoint ([#1721](https://github.com/verbb/formie/issues/1721)).
 
 ## 4.0.0-beta.7 - 2026-06-18
 

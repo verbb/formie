@@ -73,6 +73,10 @@ class FormSlotRegistry extends Component
         $form = $context->form;
         $moduleManifest = $form ? Formie::$plugin->getClientModuleManifestBuilder()->buildCanonical($form, ClientModule::RENDER_TARGET_FRONTEND) : [];
         $themeClassMap = $form ? $form->getFrontendThemeClassMap() : [];
+        $renderFrame = Formie::$plugin->getRendering()->getActiveRenderFrame();
+        $renderOptions = $renderFrame?->getRenderOptions() ?? [];
+        $renderThemeConfig = $renderOptions['themeConfig'] ?? null;
+        $renderTheme = $renderOptions['theme'] ?? null;
         $settings = Formie::$plugin->getSettings();
         $hasStaticCache = $settings->hasStaticCache();
         $errorAriaLive = $settings->errorAriaLive;
@@ -117,6 +121,8 @@ class FormSlotRegistry extends Component
                 'data-formie-clear-submission-endpoint' => UrlHelper::actionUrl('formie/server/submissions/clear-submission'),
                 'data-formie-modules' => $moduleManifest ? Json::encode($moduleManifest) : false,
                 'data-formie-theme' => $themeClassMap ? Json::encode($themeClassMap) : false,
+                'data-formie-theme-config' => (is_array($renderThemeConfig) && $renderThemeConfig !== []) ? Json::encode($renderThemeConfig) : false,
+                'data-formie-frontend-theme' => (is_string($renderTheme) && $renderTheme !== '' && $renderTheme !== 'formie') ? $renderTheme : false,
                 'data-formie-pending-client-events' => $pendingClientEvents,
             ])
             ->theme([

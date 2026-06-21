@@ -2,6 +2,7 @@
 namespace verbb\formie\controllers;
 
 use verbb\formie\Formie;
+use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\Signature;
 use verbb\formie\fields\Summary;
@@ -11,6 +12,7 @@ use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\options\OptionSourceFieldInterface;
 
 use Craft;
+use craft\helpers\Json;
 use craft\web\Controller;
 
 use yii\web\BadRequestHttpException;
@@ -361,6 +363,7 @@ class FieldsController extends Controller
         }
 
         $context['form']->setCurrentSubmission($context['submission']);
+        $this->_applySummaryRenderContext($context['form']);
         $value = $context['submission']->getFieldValue($context['field']->valueKey());
         $html = (string)$context['field']->renderInput($context['form'], $value);
         $accessToken = FieldAccess::issueAccessToken($context['submission'], (int)$context['field']->id);
@@ -431,6 +434,40 @@ class FieldsController extends Controller
         $field = new $fieldType($fieldSettings);
 
         return $field;
+    }
+
+    private function _applySummaryRenderContext(Form $form): void
+    {
+        $themeConfig = $this->_decodeThemeConfigParam();
+
+        if ($themeConfig !== null) {
+            $form->setThemeConfig($themeConfig);
+        }
+
+        $frontendTheme = trim((string)$this->request->getBodyParam('frontendTheme', $this->request->getParam('frontendTheme', '')));
+
+        if ($frontendTheme !== '') {
+            $form->setFrontendTheme($frontendTheme);
+        }
+    }
+
+    private function _decodeThemeConfigParam(): ?array
+    {
+        $raw = $this->request->getBodyParam('themeConfig', $this->request->getParam('themeConfig'));
+
+        if ($raw === null || $raw === '') {
+            return null;
+        }
+
+        if (is_string($raw)) {
+            try {
+                $raw = Json::decode($raw);
+            } catch (\Throwable) {
+                return null;
+            }
+        }
+
+        return is_array($raw) ? $raw : null;
     }
 
     private function _resolveFieldAccessContext(?string $accessToken): ?array

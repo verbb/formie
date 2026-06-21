@@ -1020,6 +1020,14 @@ export function createFormieClient(): FormieClient {
         if (form) {
             ensureFormStartedAt(form);
 
+            if (normalizedOptions.themeConfig && typeof normalizedOptions.themeConfig === 'object') {
+                form.setAttribute('data-formie-theme-config', JSON.stringify(normalizedOptions.themeConfig));
+            }
+
+            if (normalizedOptions.theme && normalizedOptions.theme !== 'formie') {
+                form.setAttribute('data-formie-frontend-theme', normalizedOptions.theme);
+            }
+
             if (renderPayload || normalizedOptions.endpoint || (target as HTMLElement).dataset.formieEndpoint) {
                 normalizeHeadlessManagedUrls(target, form, normalizedOptions);
             }

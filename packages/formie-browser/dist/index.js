@@ -1385,7 +1385,7 @@ var R = class {
 	repeater: () => import("./chunks/repeater-B5leVxZU.js").then((e) => e.repeaterModule),
 	"rich-text": () => import("./chunks/rich-text-D0sb8bmX.js").then((e) => e.richTextModule),
 	signature: () => import("./chunks/signature-xz4QO7CR.js").then((e) => e.signatureModule),
-	summary: () => import("./chunks/summary-D3AjxpYN.js").then((e) => e.summaryModule),
+	summary: () => import("./chunks/summary-Dks0gXS3.js").then((e) => e.summaryModule),
 	"survey-likert": () => import("./chunks/survey-likert-DmJ3klhP.js").then((e) => e.surveyLikertModule),
 	"survey-rank": () => import("./chunks/survey-rank-DeUenftw.js").then((e) => e.surveyRankModule),
 	"survey-rating": () => import("./chunks/survey-rating-BPUYDgBJ.js").then((e) => e.surveyRatingModule),
@@ -2121,7 +2121,7 @@ function ar() {
 			};
 			h(b, "formie:validator:ready", t), h(r, "formie:validator:ready", t);
 		}
-		b && (sn(b), (v || m.endpoint || r.dataset.formieEndpoint) && Fn(r, b, m), m.mode === "server-rendered" && Ne(b) && (Me(b), Pe(b)), y(b)), Object.keys(T).length && h(r, "formie:theme:applied", { hasClasses: !0 });
+		b && (sn(b), m.themeConfig && typeof m.themeConfig == "object" && b.setAttribute("data-formie-theme-config", JSON.stringify(m.themeConfig)), m.theme && m.theme !== "formie" && b.setAttribute("data-formie-frontend-theme", m.theme), (v || m.endpoint || r.dataset.formieEndpoint) && Fn(r, b, m), m.mode === "server-rendered" && Ne(b) && (Me(b), Pe(b)), y(b)), Object.keys(T).length && h(r, "formie:theme:applied", { hasClasses: !0 });
 		let D = await an(w, {
 			registry: t,
 			matchContext: {
