@@ -15,6 +15,7 @@
 - Add predefined **client event templates** (GTM, GA4, Meta), per-page suggestions, payload preview, optional per-event conditions, and form-level default client events with apply-to-all-pages support.
 - Add GraphQL `Json` siblings for stored rich-text content alongside existing `Html` fields ([#865](https://github.com/verbb/formie/issues/865)): `submitActionMessageJson`, `errorMessageJson`, `instructionsJson`, `descriptionJson`, and `contentJson`.
 - Add generic `saveSubmission` GraphQL mutation for handle-based submission saves ([#1007](https://github.com/verbb/formie/issues/1007)).
+- Add submission PDF downloads from the control panel and via `craft.formie.generateSubmissionPdf()` / `craft.formie.getSubmissionPdfDownloadUrl()` ([#1213](https://github.com/verbb/formie/issues/1213), [Discussion #1273](https://github.com/verbb/formie/discussions/1273)).
 
 ### Changed
 - Redesign predefined/integration options UI.

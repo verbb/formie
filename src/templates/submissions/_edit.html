@@ -267,18 +267,33 @@
 </div>
 
 {% set notifications = form.getNotifications() %}
+{% set pdfDownloadUrl = submission.id ? submission.getPdfDownloadUrl() : null %}
 
-{% if notifications and not isNew and not submission.isSpam %}
+{% if (notifications and not isNew and not submission.isSpam) or pdfDownloadUrl %}
     <div id="meta-details" class="meta">
-        <div class="field">
-            <div class="heading">
-                <label class="">{{ 'Email' | t('formie') }}</label>
-            </div>
+        {% if notifications and not isNew and not submission.isSpam %}
+            <div class="field">
+                <div class="heading">
+                    <label class="">{{ 'Email' | t('formie') }}</label>
+                </div>
 
-            <div class="input ltr">
-                <a class="js-fui-submission-modal-send-btn btn small" data-id="{{ submission.id }}">{{ 'Send Email Notification' | t('formie') }}</a>
+                <div class="input ltr">
+                    <a class="js-fui-submission-modal-send-btn btn small" data-id="{{ submission.id }}">{{ 'Send Email Notification' | t('formie') }}</a>
+                </div>
             </div>
-        </div>
+        {% endif %}
+
+        {% if pdfDownloadUrl %}
+            <div class="field">
+                <div class="heading">
+                    <label class="">{{ 'PDF' | t('formie') }}</label>
+                </div>
+
+                <div class="input ltr">
+                    <a href="{{ pdfDownloadUrl }}" class="btn small">{{ 'Download PDF' | t('formie') }}</a>
+                </div>
+            </div>
+        {% endif %}
     </div>
 {% endif %}
 

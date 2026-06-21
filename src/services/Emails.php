@@ -789,17 +789,10 @@ class Emails extends Component
             return;
         }
 
-        $variables = [
-            'form' => $submission->getForm(),
-            'submission' => $submission,
-            'notification' => $notification,
-        ];
-
         // Generate the filename correctly.
-        $filenameFormat = $template->filenameFormat ?? 'Submission-{submission.id}';
-        $fileName = Formie::$plugin->getTemplates()->renderObjectTemplate($filenameFormat, $variables);
+        $fileName = Formie::$plugin->getPdfTemplates()->resolveSubmissionPdfFilename($submission, $template, $notification);
 
-        $message->attach($pdfPath, ['fileName' => $fileName . '.pdf', 'contentType' => 'application/pdf']);
+        $message->attach($pdfPath, ['fileName' => $fileName, 'contentType' => 'application/pdf']);
 
         // Store for later
         $this->_tempAttachments[] = $pdfPath;

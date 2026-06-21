@@ -351,6 +351,51 @@ class SubmissionsController extends Controller
         ]);
     }
 
+    public function actionDownloadPdf(): Response
+    {
+        $this->requirePermission('formie-accessSubmissions');
+
+        $submissionId = (int)$this->request->getRequiredParam('submissionId');
+        $pdfTemplateId = $this->request->getParam('pdfTemplateId');
+        $notificationId = $this->request->getParam('notificationId');
+
+        $submission = Formie::$plugin->getSubmissions()->getSubmissionById($submissionId);
+
+        if (!$submission) {
+            throw new NotFoundHttpException(Craft::t('formie', 'Submission not found.'));
+        }
+
+        $user = Craft::$app->getUser()->getIdentity();
+
+        if (!$submission->canView($user)) {
+            throw new ForbiddenHttpException('User is not permitted to perform this action');
+        }
+
+        $pdfTemplates = Formie::$plugin->getPdfTemplates();
+        $pdfTemplate = $pdfTemplates->resolveSubmissionPdfTemplate(
+            $submission,
+            $pdfTemplateId ? (int)$pdfTemplateId : null,
+            $notificationId ? (int)$notificationId : null,
+        );
+
+        if (!$pdfTemplate) {
+            throw new BadRequestHttpException(Craft::t('formie', 'No PDF template configured for this submission.'));
+        }
+
+        $notification = $pdfTemplates->resolveSubmissionPdfNotification(
+            $submission,
+            $pdfTemplate,
+            $notificationId ? (int)$notificationId : null,
+        );
+
+        $pdf = $pdfTemplates->renderSubmissionPdf($submission, $pdfTemplate, $notification);
+        $filename = $pdfTemplates->resolveSubmissionPdfFilename($submission, $pdfTemplate, $notification);
+
+        return Craft::$app->getResponse()->sendContentAsFile($pdf, $filename, [
+            'mimeType' => 'application/pdf',
+        ]);
+    }
+
     public function actionRunIntegration(): Response
     {
         $this->requireAcceptsJson();

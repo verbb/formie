@@ -80,6 +80,22 @@ class Formie
         return $query;
     }
 
+    public function generateSubmissionPdf(
+        Submission $submission,
+        ?int $pdfTemplateId = null,
+        ?int $notificationId = null,
+    ): string {
+        return FormiePlugin::$plugin->getSubmissions()->generateSubmissionPdf($submission, $pdfTemplateId, $notificationId);
+    }
+
+    public function getSubmissionPdfDownloadUrl(
+        Submission $submission,
+        ?int $pdfTemplateId = null,
+        ?int $notificationId = null,
+    ): ?string {
+        return FormiePlugin::$plugin->getSubmissions()->getSubmissionPdfDownloadUrl($submission, $pdfTemplateId, $notificationId);
+    }
+
     public function setCurrentSubmission(Form $form, ?Submission $submission): void
     {
         $form->setCurrentSubmission($submission);

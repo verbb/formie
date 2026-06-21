@@ -594,7 +594,26 @@ class Submission extends Element
             }
         }
 
+        $pdfDownloadUrl = $this->getPdfDownloadUrl();
+
+        if ($pdfDownloadUrl) {
+            $actions[] = [
+                'icon' => 'share',
+                'label' => Craft::t('formie', 'Download PDF'),
+                'href' => $pdfDownloadUrl,
+            ];
+        }
+
         return array_values($actions);
+    }
+
+    public function getPdfDownloadUrl(?int $pdfTemplateId = null, ?int $notificationId = null): ?string
+    {
+        if (!$this->id) {
+            return null;
+        }
+
+        return Formie::$plugin->getSubmissions()->getSubmissionPdfDownloadUrl($this, $pdfTemplateId, $notificationId);
     }
 
     public function attributeLabels(): array

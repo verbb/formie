@@ -44,6 +44,7 @@ use craft\helpers\Json;
 use craft\helpers\Queue;
 use craft\helpers\Search as SearchHelper;
 use craft\helpers\Session;
+use craft\helpers\UrlHelper;
 
 use yii\base\Event;
 use yii\base\Component;
@@ -513,6 +514,46 @@ class Submissions extends Component
         ]);
 
         Formie::info($error);
+    }
+
+    public function getSubmissionPdfDownloadUrl(
+        Submission $submission,
+        ?int $pdfTemplateId = null,
+        ?int $notificationId = null,
+    ): ?string {
+        if (!$submission->id) {
+            return null;
+        }
+
+        if (!Formie::$plugin->getPdfTemplates()->resolveSubmissionPdfTemplate($submission, $pdfTemplateId, $notificationId)) {
+            return null;
+        }
+
+        $params = [
+            'submissionId' => $submission->id,
+        ];
+
+        if ($pdfTemplateId) {
+            $params['pdfTemplateId'] = $pdfTemplateId;
+        }
+
+        if ($notificationId) {
+            $params['notificationId'] = $notificationId;
+        }
+
+        return UrlHelper::actionUrl('formie/submissions/download-pdf', $params);
+    }
+
+    public function generateSubmissionPdf(
+        Submission $submission,
+        ?int $pdfTemplateId = null,
+        ?int $notificationId = null,
+    ): string {
+        return Formie::$plugin->getPdfTemplates()->renderSubmissionPdf(
+            $submission,
+            pdfTemplateId: $pdfTemplateId,
+            notificationId: $notificationId,
+        );
     }
 
 

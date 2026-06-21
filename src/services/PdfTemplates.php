@@ -8,7 +8,9 @@ use verbb\formie\events\PdfTemplateEvent;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
+use verbb\formie\elements\Submission;
 use verbb\formie\helpers\References;
+use verbb\formie\models\Notification;
 use verbb\formie\models\PdfTemplate;
 use verbb\formie\models\Settings;
 use verbb\formie\records\PdfTemplate as TemplateRecord;
@@ -244,30 +246,128 @@ class PdfTemplates extends Component
         }
     }
 
-    public function renderPdf($pdfTemplate, $submission, $notification): string
-    {
-        /* @var Settings $settings */
-        $settings = Formie::$plugin->getSettings();
-        $view = Craft::$app->getView();
+    public function resolveSubmissionPdfTemplate(
+        Submission $submission,
+        ?int $pdfTemplateId = null,
+        ?int $notificationId = null,
+    ): ?PdfTemplate {
+        if ($pdfTemplateId) {
+            return $this->getTemplateById($pdfTemplateId);
+        }
 
-        $form = $submission->getForm();
+        $notifications = $submission->getForm()->getNotifications();
 
-        // Render the body content for the notification
-        $parsedContent = References::parseContent($notification->getParsedContent(), $submission, [
-            'notification' => $notification,
-            'includeSummary' => true,
-        ]);
+        if ($notificationId) {
+            foreach ($notifications as $notification) {
+                if ((int)$notification->id === $notificationId && $notification->pdfTemplateId) {
+                    return $this->getTemplateById((int)$notification->pdfTemplateId);
+                }
+            }
 
+            return null;
+        }
+
+        foreach ($notifications as $notification) {
+            if ($notification->attachPdf && $notification->pdfTemplateId) {
+                return $this->getTemplateById((int)$notification->pdfTemplateId);
+            }
+        }
+
+        foreach ($notifications as $notification) {
+            if ($notification->pdfTemplateId) {
+                return $this->getTemplateById((int)$notification->pdfTemplateId);
+            }
+        }
+
+        return null;
+    }
+
+    public function resolveSubmissionPdfNotification(
+        Submission $submission,
+        PdfTemplate $pdfTemplate,
+        ?int $notificationId = null,
+    ): ?Notification {
+        $notifications = $submission->getForm()->getNotifications();
+
+        if ($notificationId) {
+            foreach ($notifications as $notification) {
+                if ((int)$notification->id === $notificationId) {
+                    return $notification;
+                }
+            }
+        }
+
+        foreach ($notifications as $notification) {
+            if ((int)$notification->pdfTemplateId === (int)$pdfTemplate->id) {
+                return $notification;
+            }
+        }
+
+        return $notifications[0] ?? null;
+    }
+
+    public function resolveSubmissionPdfFilename(
+        Submission $submission,
+        PdfTemplate $pdfTemplate,
+        ?Notification $notification = null,
+    ): string {
         $variables = [
-            'form' => $form,
+            'form' => $submission->getForm(),
             'submission' => $submission,
             'notification' => $notification,
-            'contentHtml' => Template::raw(StringHelper::cleanString($parsedContent)),
+        ];
+
+        $filenameFormat = $pdfTemplate->filenameFormat ?: 'Submission-{submission.id}';
+        $fileName = Formie::$plugin->getTemplates()->renderObjectTemplate($filenameFormat, $variables);
+
+        return $fileName . '.pdf';
+    }
+
+    public function renderPdf($pdfTemplate, $submission, $notification): string
+    {
+        return $this->renderSubmissionPdf($submission, $pdfTemplate, $notification);
+    }
+
+    public function renderSubmissionPdf(
+        Submission $submission,
+        ?PdfTemplate $pdfTemplate = null,
+        ?Notification $notification = null,
+        ?int $pdfTemplateId = null,
+        ?int $notificationId = null,
+    ): string {
+        if ($pdfTemplate === null && $notification === null) {
+            $pdfTemplate = $this->resolveSubmissionPdfTemplate($submission, $pdfTemplateId, $notificationId);
+        }
+
+        if ($pdfTemplate === null && $notification === null) {
+            throw new Exception(Craft::t('formie', 'No PDF template configured for this submission.'));
+        }
+
+        if ($notification === null && $pdfTemplate !== null) {
+            $notification = $this->resolveSubmissionPdfNotification($submission, $pdfTemplate, $notificationId);
+        }
+
+        $contentHtml = Template::raw('');
+
+        if ($notification) {
+            $parsedContent = References::parseContent($notification->getParsedContent(), $submission, [
+                'notification' => $notification,
+                'includeSummary' => true,
+            ]);
+
+            $contentHtml = Template::raw(StringHelper::cleanString($parsedContent));
+        }
+
+        $variables = [
+            'form' => $submission->getForm(),
+            'submission' => $submission,
+            'notification' => $notification,
+            'contentHtml' => $contentHtml,
         ];
 
         // Trigger a 'beforeRenderPdf' event
         $event = new PdfEvent([
-            'template' => $pdfTemplate->template ?? null,
+            'template' => $pdfTemplate?->template ?? null,
             'variables' => $variables,
         ]);
         $this->trigger(self::EVENT_BEFORE_RENDER_PDF, $event);
@@ -281,33 +381,67 @@ class PdfTemplates extends Component
 
         // If a custom template is supplied, use that, otherwise just use the email notification HTML
         if ($template) {
-            $oldTemplatesPath = $view->getTemplatesPath();
-
-            // We need to do a little more work here to deal with a template, if picked
-            $view->setTemplatesPath(Craft::$app->getPath()->getSiteTemplatesPath());
-
-            if (!$view->doesTemplateExist($template)) {
-                throw new Exception('PDF template file does not exist.');
-            }
-
-            try {
-                $html = $view->renderTemplate($template, $variables);
-            } catch (\Exception $e) {
-                Formie::error('An error occurred while generating this PDF: ' . $e->getMessage());
-
-                // Set the pdf html to the render error.
-                Craft::$app->getErrorHandler()->logException($e);
-                $html = Craft::t('formie', 'An error occurred while generating this PDF.');
-            }
-
-            // Restore the original template path
-            $view->setTemplatesPath($oldTemplatesPath);
-        } else {
+            $html = $this->_renderPdfTemplateHtml($template, $variables);
+        } elseif ($notification) {
             $emailRender = Formie::$plugin->getEmails()->renderEmail($notification, $submission);
             $message = $emailRender['email'] ?? '';
 
             $html = $message->getSymfonyEmail()->getHtmlBody();
+        } else {
+            throw new Exception(Craft::t('formie', 'No PDF template configured for this submission.'));
         }
+
+        $pdf = $this->_renderDompdfFromHtml($html);
+
+        // Trigger an 'afterRenderPdf' event
+        $afterEvent = new PdfEvent([
+            'template' => $template,
+            'variables' => $variables,
+            'pdf' => $pdf,
+        ]);
+        $this->trigger(self::EVENT_AFTER_RENDER_PDF, $afterEvent);
+
+        return $afterEvent->pdf;
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _renderPdfTemplateHtml(string $template, array $variables): string
+    {
+        $view = Craft::$app->getView();
+        $oldTemplatesPath = $view->getTemplatesPath();
+
+        // We need to do a little more work here to deal with a template, if picked
+        $view->setTemplatesPath(Craft::$app->getPath()->getSiteTemplatesPath());
+
+        if (!$view->doesTemplateExist($template)) {
+            $view->setTemplatesPath($oldTemplatesPath);
+
+            throw new Exception('PDF template file does not exist.');
+        }
+
+        try {
+            $html = $view->renderTemplate($template, $variables);
+        } catch (\Exception $e) {
+            Formie::error('An error occurred while generating this PDF: ' . $e->getMessage());
+
+            // Set the pdf html to the render error.
+            Craft::$app->getErrorHandler()->logException($e);
+            $html = Craft::t('formie', 'An error occurred while generating this PDF.');
+        }
+
+        // Restore the original template path
+        $view->setTemplatesPath($oldTemplatesPath);
+
+        return $html;
+    }
+
+    private function _renderDompdfFromHtml(string $html): string
+    {
+        /* @var Settings $settings */
+        $settings = Formie::$plugin->getSettings();
 
         $dompdf = new Dompdf();
 
@@ -359,20 +493,8 @@ class PdfTemplates extends Component
         $dompdf->loadHtml($html);
         $dompdf->render();
 
-        // Trigger an 'afterRenderPdf' event
-        $afterEvent = new PdfEvent([
-            'template' => $template,
-            'variables' => $variables,
-            'pdf' => $dompdf->output(),
-        ]);
-        $this->trigger(self::EVENT_AFTER_RENDER_PDF, $afterEvent);
-
-        return $afterEvent->pdf;
+        return $dompdf->output();
     }
-
-
-    // Private Methods
-    // =========================================================================
 
     private function _templates(): MemoizableArray
     {
