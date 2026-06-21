@@ -2,7 +2,9 @@
 namespace verbb\formie\gql\resolvers\mutations;
 
 use verbb\formie\Formie;
+use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\gql\mutations\SubmissionMutation;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
 
@@ -26,6 +28,52 @@ class SubmissionResolver extends ElementMutationResolver
 
     // Public Methods
     // =========================================================================
+
+    public function saveSubmissionByHandle($source, array $arguments, $context, ResolveInfo $resolveInfo): ?ElementInterface
+    {
+        $formHandle = $arguments['formHandle'] ?? null;
+
+        if (!is_string($formHandle) || $formHandle === '') {
+            throw new Error('Form handle is required.');
+        }
+
+        $siteId = isset($arguments['siteId']) ? (int)$arguments['siteId'] : null;
+        $form = Formie::$plugin->getForms()->getFormByHandle($formHandle, $siteId);
+
+        if (!$form) {
+            throw new Error('No such form exists');
+        }
+
+        if (!$this->_canMutateSubmissionForForm($form, $arguments)) {
+            throw new Error('Unable to perform the action.');
+        }
+
+        $fields = $arguments['fields'] ?? [];
+        $captchas = $arguments['captchas'] ?? [];
+
+        if ($fields !== null && !is_array($fields)) {
+            throw new Error('Invalid fields argument.');
+        }
+
+        if ($captchas !== null && !is_array($captchas)) {
+            throw new Error('Invalid captchas argument.');
+        }
+
+        $mutationArguments = $arguments;
+        unset($mutationArguments['formHandle'], $mutationArguments['fields'], $mutationArguments['captchas']);
+
+        if (is_array($fields)) {
+            $mutationArguments = array_merge($mutationArguments, $fields);
+        }
+
+        if (is_array($captchas)) {
+            $mutationArguments = array_merge($mutationArguments, $captchas);
+        }
+
+        $resolver = SubmissionMutation::createConfiguredResolver($form);
+
+        return $resolver->saveSubmission($source, $mutationArguments, $context, $resolveInfo);
+    }
 
     public function saveSubmission($source, array $arguments, $context, ResolveInfo $resolveInfo): ?ElementInterface
     {
@@ -136,5 +184,22 @@ class SubmissionResolver extends ElementMutationResolver
         }
 
         return $elementService->deleteElementById($submissionId, Submission::class, $siteId);
+    }
+
+    private function _canMutateSubmissionForForm(Form $form, array $arguments): bool
+    {
+        $canIdentify = !empty($arguments['id']) || !empty($arguments['uid']);
+        $scope = 'formieSubmissions.' . $form->uid;
+
+        $canCreateAll = Gql::canSchema('formieSubmissions.all', 'create');
+        $canSaveAll = Gql::canSchema('formieSubmissions.all', 'save');
+        $canCreate = Gql::canSchema($scope, 'create');
+        $canSave = Gql::canSchema($scope, 'save');
+
+        if ($canIdentify) {
+            return $canSaveAll || $canSave;
+        }
+
+        return $canCreateAll || $canCreate;
     }
 }

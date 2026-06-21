@@ -8,6 +8,8 @@ save_<formHandle>_Submission
 
 For a form with the handle `contactForm`, the mutation is `save_contactForm_Submission`.
 
+You can also use the generic `saveSubmission` mutation when you want one stable mutation for every form. See [Generic `saveSubmission`](#generic-savesubmission).
+
 ## Basic Submission
 
 Field handles become mutation arguments. This example assumes the form has a Single-Line Text field with the handle `yourName`.
@@ -260,6 +262,54 @@ mutation SaveSubmission(
 The `FormieCaptchaInput` type contains `name` and `value`. Different captcha providers need different front-end handling, so the exact token you pass depends on the captcha integration. Query the generated schema for the form to confirm the argument name that Formie has added.
 
 For full front-end package flows, use the package docs linked from [Frontend Assets](/frontend/frontend-assets).
+
+## Generic `saveSubmission`
+
+Use `saveSubmission` when your client should not depend on form-specific mutation names. Pass the form handle and a `fields` map keyed by field handle.
+
+```graphql
+mutation SaveSubmission($formHandle: String!, $fields: ArrayType) {
+    saveSubmission(formHandle: $formHandle, fields: $fields) {
+        id
+        title
+
+        ... on contactForm_Submission {
+            yourName
+            emailAddress
+        }
+    }
+}
+```
+
+```json
+{
+    "formHandle": "contactForm",
+    "fields": {
+        "yourName": "Peter Sherman",
+        "emailAddress": "peter@example.test"
+    }
+}
+```
+
+Argument | Type | Description
+--- | --- | ---
+`formHandle` | `String!` | The form handle.
+`fields` | `ArrayType` | Field values keyed by field handle. Accepts the same shapes as the per-form mutation arguments.
+`captchas` | `ArrayType` | Captcha payloads keyed by captcha GraphQL handle. Each value uses the same `{ name, value }` shape as `FormieCaptchaInput`.
+`id` | `ID` | Set when updating an existing submission.
+`uid` | `String` | Set the submission UID.
+`enabled` | `Boolean` | Whether the submission should be enabled.
+`title` | `String` | Set the submission title.
+`status` | `String` | Set the submission status by handle.
+`statusId` | `Int` | Set the submission status ID.
+`siteId` | `Int` | Set the submission site ID.
+`isIncomplete` | `Boolean` | Set whether the submission is incomplete.
+`requestToken` | `String` | Optional token for duplicate-submit and replay protection.
+`isNewSubmission` | `Boolean` | Useful when editing an existing submission and you need to control whether it is treated as new.
+
+`saveSubmission` returns `SubmissionInterface`. Use inline fragments on the form-specific submission type when you need field values in the response.
+
+Per-form `save_<formHandle>_Submission` mutations remain available for typed clients. For Formie front-end packages, prefer `submitFormieClientForm` instead.
 
 ## Validation Errors
 

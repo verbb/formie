@@ -5,15 +5,15 @@ use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\gql\arguments\mutations\SubmissionArguments as SubmissionMutationArguments;
+use verbb\formie\gql\interfaces\SubmissionInterface;
 use verbb\formie\gql\resolvers\mutations\SubmissionResolver;
+use verbb\formie\gql\types\ArrayType;
 use verbb\formie\gql\types\generators\SubmissionGenerator;
 
 use Craft;
 use craft\gql\base\ElementMutationResolver;
 use craft\gql\base\Mutation;
 use craft\helpers\Gql;
-
-use yii\base\InvalidConfigException;
 
 use GraphQL\Type\Definition\Type;
 
@@ -30,6 +30,7 @@ class SubmissionMutation extends Mutation
         $canCreateAll = Gql::canSchema('formieSubmissions.all', 'create');
         $canSaveAll = Gql::canSchema('formieSubmissions.all', 'save');
         $canDeleteAll = Gql::canSchema('formieSubmissions.all', 'delete');
+        $registerSaveSubmissionMutation = $canCreateAll || $canSaveAll;
 
         foreach ($forms as $form) {
             $scope = 'formieSubmissions.' . $form->uid;
@@ -41,11 +42,19 @@ class SubmissionMutation extends Mutation
             if ($canCreateAll || $canSaveAll || $canCreate || $canSave) {
                 $mutation = static::createSaveMutation($form);
                 $mutationList[$mutation['name']] = $mutation;
+
+                if (!$registerSaveSubmissionMutation) {
+                    $registerSaveSubmissionMutation = true;
+                }
             }
 
             if (!$createDeleteMutation && ($canDeleteAll || $canDelete)) {
                 $createDeleteMutation = true;
             }
+        }
+
+        if ($registerSaveSubmissionMutation) {
+            $mutationList['saveSubmission'] = static::createGenericSaveMutation();
         }
 
         if ($createDeleteMutation) {
@@ -69,15 +78,14 @@ class SubmissionMutation extends Mutation
         $mutationName = Submission::gqlMutationNameByContext($form);
         $mutationArguments = SubmissionMutationArguments::getArguments();
         $generatedType = SubmissionGenerator::generateType($form);
-
-        $resolver = Craft::createObject(SubmissionResolver::class);
-        $resolver->setResolutionData('form', $form);
-        $contentFieldConfigs = Formie::$plugin->getFields()->getAllFieldConfigsForForms([(int)$form->id])[(int)$form->id] ?? [];
-
-        static::prepareFormieResolver($resolver, $contentFieldConfigs);
+        $resolver = static::createConfiguredResolver($form);
 
         $captchaArguments = Formie::$plugin->getIntegrations()->getGqlCaptchaArgumentsForForm($form);
-        $mutationArguments = array_merge($mutationArguments, $resolver->getResolutionData(ElementMutationResolver::CONTENT_FIELD_KEY), $captchaArguments);
+        $mutationArguments = array_merge(
+            $mutationArguments,
+            $resolver->getResolutionData(ElementMutationResolver::CONTENT_FIELD_KEY),
+            $captchaArguments,
+        );
 
         return [
             'name' => $mutationName,
@@ -86,6 +94,44 @@ class SubmissionMutation extends Mutation
             'resolve' => [$resolver, 'saveSubmission'],
             'type' => $generatedType,
         ];
+    }
+
+    public static function createGenericSaveMutation(): array
+    {
+        return [
+            'name' => 'saveSubmission',
+            'description' => 'Save a submission for the form identified by `formHandle`.',
+            'args' => array_merge(SubmissionMutationArguments::getArguments(), [
+                'formHandle' => [
+                    'name' => 'formHandle',
+                    'type' => Type::nonNull(Type::string()),
+                    'description' => 'The form handle.',
+                ],
+                'fields' => [
+                    'name' => 'fields',
+                    'type' => ArrayType::getType(),
+                    'description' => 'Field values keyed by field handle.',
+                ],
+                'captchas' => [
+                    'name' => 'captchas',
+                    'type' => ArrayType::getType(),
+                    'description' => 'Captcha payloads keyed by captcha GraphQL handle.',
+                ],
+            ]),
+            'resolve' => [Craft::createObject(SubmissionResolver::class), 'saveSubmissionByHandle'],
+            'type' => SubmissionInterface::getType(),
+        ];
+    }
+
+    public static function createConfiguredResolver(Form $form): SubmissionResolver
+    {
+        $resolver = Craft::createObject(SubmissionResolver::class);
+        $resolver->setResolutionData('form', $form);
+        $contentFieldConfigs = Formie::$plugin->getFields()->getAllFieldConfigsForForms([(int)$form->id])[(int)$form->id] ?? [];
+
+        static::prepareFormieResolver($resolver, $contentFieldConfigs);
+
+        return $resolver;
     }
 
     private static function prepareFormieResolver(SubmissionResolver $resolver, array $contentFieldConfigs): void

@@ -11,6 +11,7 @@ use Craft;
 use craft\base\Component;
 use craft\db\Query;
 use craft\db\Table as CraftTable;
+use craft\web\Request as WebRequest;
 
 class SubmissionGuards extends Component
 {
@@ -312,6 +313,10 @@ class SubmissionGuards extends Component
     private function _isBrowserFormSubmission(): bool
     {
         $request = Craft::$app->getRequest();
+
+        if (!$request instanceof WebRequest) {
+            return false;
+        }
 
         if (!$request->getIsPost()) {
             return false;

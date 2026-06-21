@@ -14,9 +14,11 @@
 - Redesign page **Client Events** with a dedicated **Tracking** tab, support for multiple named events per page, variable picker values, and server-resolved `clientEvents` payloads in Ajax submit responses ([#888](https://github.com/verbb/formie/issues/888)).
 - Add predefined **client event templates** (GTM, GA4, Meta), per-page suggestions, payload preview, optional per-event conditions, and form-level default client events with apply-to-all-pages support.
 - Add GraphQL `Json` siblings for stored rich-text content alongside existing `Html` fields ([#865](https://github.com/verbb/formie/issues/865)): `submitActionMessageJson`, `errorMessageJson`, `instructionsJson`, `descriptionJson`, and `contentJson`.
+- Add generic `saveSubmission` GraphQL mutation for handle-based submission saves ([#1007](https://github.com/verbb/formie/issues/1007)).
 
 ### Changed
 - Redesign predefined/integration options UI.
+- GraphQL submission mutations skip browser-only spam guards when Craft is not handling a web request.
 
 ### Fixed
 - Fix a HTML error with Signatures field.
