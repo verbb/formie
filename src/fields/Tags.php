@@ -208,11 +208,7 @@ class Tags extends ElementField
 
         // Special-case for Tag fields - not really a dropdown
         if ($this->displayType === 'dropdown') {
-            unset($config['hasMultiNamespace']);
-            unset($config['options']);
-            unset($config['multi']);
-
-            return new Hidden($config);
+            return $this->createPresentationField(Hidden::class, $config);
         }
 
         return parent::getDisplayTypeField();

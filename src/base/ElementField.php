@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\base;
 
+use verbb\formie\base\DisplayTypeFieldInterface;
 use verbb\formie\base\Element as ElementIntegration;
 use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
@@ -14,11 +15,9 @@ use verbb\formie\fields\values\ElementFieldValue;
 use verbb\formie\fields\values\MultiOptionFieldValue;
 use verbb\formie\fields\values\OptionValue;
 use verbb\formie\fields\values\SingleOptionFieldValue;
-use verbb\formie\fields\Dropdown;
-use verbb\formie\fields\Checkboxes;
-use verbb\formie\fields\Radio;
 use verbb\formie\fields\SingleLineText;
 use verbb\formie\fields\Tags;
+use verbb\formie\fields\traits\PresentationFieldConfigTrait;
 use verbb\formie\fields\traits\SearchableDropdownFieldTrait;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\FieldBuilderPolicy;
@@ -84,7 +83,7 @@ use yii\db\Expression;
 use yii\db\ExpressionInterface;
 use yii\validators\NumberValidator;
 
-abstract class ElementField extends Field implements ElementFieldInterface, OptionResolvableInterface
+abstract class ElementField extends Field implements DisplayTypeFieldInterface, ElementFieldInterface, OptionResolvableInterface
 {
     // Static Methods
     // =========================================================================
@@ -149,6 +148,7 @@ abstract class ElementField extends Field implements ElementFieldInterface, Opti
     // Traits
     // =========================================================================
 
+    use PresentationFieldConfigTrait;
     use SearchableDropdownFieldTrait;
 
 
@@ -489,6 +489,7 @@ abstract class ElementField extends Field implements ElementFieldInterface, Opti
             'hasMultiNamespace' => true,
             'multi' => $this->multi,
             'useSearchable' => $this->useSearchable,
+            'layout' => $this->layout,
         ];
 
         // Set the parent field and namespace, but in a specific way due to nested field handling.
@@ -514,23 +515,17 @@ abstract class ElementField extends Field implements ElementFieldInterface, Opti
         return $config;
     }
 
+    public function getPresentationDisplayType(): string
+    {
+        return $this->displayType;
+    }
+
     public function getDisplayTypeField(): ?FieldInterface
     {
-        $config = $this->getDisplayTypeFieldConfig();
-
-        if ($this->displayType === 'dropdown') {
-            return new Dropdown($config);
-        }
-
-        if ($this->displayType === 'radio') {
-            return new Radio($config);
-        }
-
-        if ($this->displayType === 'checkboxes') {
-            return new Checkboxes($config);
-        }
-
-        return null;
+        return $this->resolvePresentationField(
+            $this->getPresentationDisplayType(),
+            $this->getDisplayTypeFieldConfig(),
+        );
     }
 
     public function getDisplayTypeValue(?ElementQuery $value): MultiOptionFieldValue|SingleOptionFieldValue|null
@@ -928,20 +923,20 @@ abstract class ElementField extends Field implements ElementFieldInterface, Opti
     protected function defineClientInput(): array
     {
         $displayType = (string)($this->displayType ?? 'dropdown');
+        $clientInput = parent::defineClientInput();
+        $clientInput['multiple'] = $this->getIsMultiOptionsField();
+        $clientInput['layout'] = in_array($displayType, ['radio', 'checkboxes'], true) ? ($this->layout ?? 'vertical') : null;
+        $clientInput['useSearchable'] = $this->useSearchable;
+        $clientInput['options'] = array_values(array_map(static function(array $option) {
+            return [
+                'label' => $option['label'] ?? '',
+                'value' => $option['value'] ?? '',
+                'selected' => (bool)($option['default'] ?? false),
+                'disabled' => (bool)($option['disabled'] ?? false),
+            ];
+        }, $this->getFieldOptions()));
 
-        return array_merge(parent::defineClientInput(), [
-            'multiple' => $this->getIsMultiOptionsField(),
-            'layout' => in_array($displayType, ['radio', 'checkboxes'], true) ? ($this->layout ?? 'vertical') : null,
-            'useSearchable' => $this->useSearchable,
-            'options' => array_values(array_map(static function(array $option) {
-                return [
-                    'label' => $option['label'] ?? '',
-                    'value' => $option['value'] ?? '',
-                    'selected' => (bool)($option['default'] ?? false),
-                    'disabled' => (bool)($option['disabled'] ?? false),
-                ];
-            }, $this->getFieldOptions())),
-        ]);
+        return $clientInput;
     }
 
     protected function defineElementFieldMultiSelectAppearanceSchema(): array
@@ -962,10 +957,13 @@ abstract class ElementField extends Field implements ElementFieldInterface, Opti
 
     protected function defineClientModules(): array
     {
-        return array_merge(
-            parent::defineClientModules(),
-            $this->defineSearchableDropdownClientModules(),
-        );
+        $modules = parent::defineClientModules();
+
+        foreach ($this->defineSearchableDropdownClientModules() as $module) {
+            $modules[] = $module;
+        }
+
+        return $modules;
     }
 
     protected function defineRules(): array

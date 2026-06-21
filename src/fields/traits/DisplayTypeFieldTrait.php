@@ -3,10 +3,7 @@ namespace verbb\formie\fields\traits;
 
 use verbb\formie\base\Field as FormieField;
 use verbb\formie\base\FieldInterface;
-use verbb\formie\fields\Checkboxes;
-use verbb\formie\fields\Dropdown;
 use verbb\formie\fields\MultiLineText;
-use verbb\formie\fields\Radio;
 use verbb\formie\fields\SingleLineText;
 
 use craft\helpers\Localization;
@@ -16,6 +13,8 @@ use ReflectionProperty;
 
 trait DisplayTypeFieldTrait
 {
+    use PresentationFieldConfigTrait;
+
     // Delegated presentation settings persisted on wrapper fields (Survey, Quiz, etc.).
     public ?string $toggleCheckbox = null;
     public ?string $toggleCheckboxLabel = null;
@@ -89,6 +88,15 @@ trait DisplayTypeFieldTrait
         return $config;
     }
 
+    protected function definePresentationFieldClassMap(): array
+    {
+        $config = $this->defaultPresentationFieldClassMap();
+        $config['singleLineText'] = SingleLineText::class;
+        $config['multiLineText'] = MultiLineText::class;
+
+        return $config;
+    }
+
     protected function defineDisplayTypePassthroughSettings(): array
     {
         return [
@@ -119,50 +127,6 @@ trait DisplayTypeFieldTrait
                 $config[$name] = Localization::normalizeNumber($config[$name]['value'], $config[$name]['locale']);
             }
         }
-    }
-
-    protected function resolvePresentationField(string $displayType, array $config): ?FieldInterface
-    {
-        $fieldClass = match ($displayType) {
-            'dropdown' => Dropdown::class,
-            'radio' => Radio::class,
-            'checkboxes' => Checkboxes::class,
-            'singleLineText' => SingleLineText::class,
-            'multiLineText' => MultiLineText::class,
-            default => null,
-        };
-
-        if (!$fieldClass) {
-            return null;
-        }
-
-        return new $fieldClass($this->_filterPresentationFieldConfig($fieldClass, $config));
-    }
-
-    protected function _filterPresentationFieldConfig(string $fieldClass, array $config): array
-    {
-        static $propertyNamesByClass = [];
-
-        if (!isset($propertyNamesByClass[$fieldClass])) {
-            $propertyNamesByClass[$fieldClass] = $this->_getPublicPropertyNames($fieldClass);
-        }
-
-        return array_intersect_key($config, array_flip($propertyNamesByClass[$fieldClass]));
-    }
-
-    protected function _getPublicPropertyNames(string $class): array
-    {
-        $names = [];
-
-        for ($reflection = new ReflectionClass($class); $reflection; $reflection = $reflection->getParentClass()) {
-            foreach ($reflection->getProperties(ReflectionProperty::IS_PUBLIC) as $property) {
-                if (!$property->isStatic()) {
-                    $names[] = $property->getName();
-                }
-            }
-        }
-
-        return array_values(array_unique($names));
     }
 
     protected function definePresentationFieldClientModules(): array

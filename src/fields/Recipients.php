@@ -2,6 +2,7 @@
 namespace verbb\formie\fields;
 
 use verbb\formie\Formie;
+use verbb\formie\base\DisplayTypeFieldInterface;
 use verbb\formie\base\Field;
 use verbb\formie\base\FieldInterface;
 use verbb\formie\base\IntegrationInterface;
@@ -12,6 +13,7 @@ use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\fields\values\OptionValue;
 use verbb\formie\fields\values\RecipientsFieldValue;
 use verbb\formie\fields\Hidden as HiddenField;
+use verbb\formie\fields\traits\PresentationFieldConfigTrait;
 use verbb\formie\fields\traits\SearchableDropdownFieldTrait;
 use verbb\formie\gql\types\generators\FieldOptionGenerator;
 use verbb\formie\helpers\OptionsMode;
@@ -45,7 +47,7 @@ use ReflectionProperty;
 
 use yii\validators\EmailValidator;
 
-class Recipients extends Field implements PreviewableFieldInterface, OptionResolvableInterface, OptionSourceFieldInterface
+class Recipients extends Field implements DisplayTypeFieldInterface, PreviewableFieldInterface, OptionResolvableInterface, OptionSourceFieldInterface
 {
     // Static Methods
     // =========================================================================
@@ -78,6 +80,7 @@ class Recipients extends Field implements PreviewableFieldInterface, OptionResol
     // Traits
     // =========================================================================
 
+    use PresentationFieldConfigTrait;
     use SearchableDropdownFieldTrait;
 
 
@@ -334,13 +337,12 @@ class Recipients extends Field implements PreviewableFieldInterface, OptionResol
         return $inputOptions;
     }
 
-    public function getDisplayTypeField(): ?FieldInterface
+    public function getDisplayTypeFieldConfig(): array
     {
-        // Use all the same settings from this field, but remove any invalid ones
-        $class = new ReflectionClass($this);
-
         $config = [
             'options' => $this->getFieldOptions(),
+            'layout' => $this->layout,
+            'useSearchable' => $this->useSearchable,
         ];
 
         // Carry across the existing nested-field context, but preserve the namespace already applied to this field clone.
@@ -350,33 +352,37 @@ class Recipients extends Field implements PreviewableFieldInterface, OptionResol
         }
 
         $config['namespace'] = $this->getNamespace();
-        $config['useSearchable'] = $this->useSearchable;
+
+        $class = new ReflectionClass($this);
 
         foreach ($class->getProperties(ReflectionProperty::IS_PUBLIC) as $property) {
-            if (!$property->isStatic() && $property->getDeclaringClass()->isAbstract()) {
+            if (!$property->isStatic() && $property->class === Field::class) {
                 $config[$property->getName()] = $this->{$property->getName()};
             }
         }
 
-        if ($this->displayType === 'hidden') {
-            unset($config['options']);
-            
-            return new HiddenField($config);
-        }
+        return $config;
+    }
 
-        if ($this->displayType === 'dropdown') {
-            return new Dropdown($config);
-        }
+    public function getPresentationDisplayType(): string
+    {
+        return $this->displayType;
+    }
 
-        if ($this->displayType === 'radio') {
-            return new Radio($config);
-        }
+    protected function definePresentationFieldClassMap(): array
+    {
+        $config = $this->defaultPresentationFieldClassMap();
+        $config['hidden'] = HiddenField::class;
 
-        if ($this->displayType === 'checkboxes') {
-            return new Checkboxes($config);
-        }
+        return $config;
+    }
 
-        return null;
+    public function getDisplayTypeField(): ?FieldInterface
+    {
+        return $this->resolvePresentationField(
+            $this->getPresentationDisplayType(),
+            $this->getDisplayTypeFieldConfig(),
+        );
     }
 
     public function getDefaultValue(): mixed
@@ -815,10 +821,9 @@ class Recipients extends Field implements PreviewableFieldInterface, OptionResol
 
     protected function defineClientInput(): array
     {
-        $clientInput = [
-            'obfuscated' => true,
-            'multiple' => $this->displayType === 'checkboxes',
-        ];
+        $clientInput = parent::defineClientInput();
+        $clientInput['obfuscated'] = true;
+        $clientInput['multiple'] = $this->displayType === 'checkboxes';
 
         if ($this->displayType === 'dropdown') {
             $clientInput['options'] = $this->getFieldOptions();
@@ -834,14 +839,12 @@ class Recipients extends Field implements PreviewableFieldInterface, OptionResol
             $clientInput['multiple'] = true;
         }
 
-        if ($this->displayType !== 'hidden') {
-            return array_merge(parent::defineClientInput(), $clientInput);
+        if ($this->displayType === 'hidden') {
+            $clientInput['privateValues'] = true;
+            $clientInput['inputType'] = 'hidden';
         }
 
-        return array_merge(parent::defineClientInput(), $clientInput, [
-            'privateValues' => true,
-            'inputType' => 'hidden',
-        ]);
+        return $clientInput;
     }
 
     protected function defineRules(): array
@@ -855,10 +858,13 @@ class Recipients extends Field implements PreviewableFieldInterface, OptionResol
 
     protected function defineClientModules(): array
     {
-        return array_merge(
-            parent::defineClientModules(),
-            $this->defineSearchableDropdownClientModules(),
-        );
+        $modules = parent::defineClientModules();
+
+        foreach ($this->defineSearchableDropdownClientModules() as $module) {
+            $modules[] = $module;
+        }
+
+        return $modules;
     }
 
     public function validateOptions(): void

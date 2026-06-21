@@ -353,10 +353,13 @@ class Quiz extends OptionsField implements SortableFieldInterface, Questionnaire
 
     protected function defineClientModules(): array
     {
-        return array_merge(
-            parent::defineClientModules(),
-            $this->definePresentationFieldClientModules(),
-        );
+        $modules = parent::defineClientModules();
+
+        foreach ($this->definePresentationFieldClientModules() as $module) {
+            $modules[] = $module;
+        }
+
+        return $modules;
     }
 
 

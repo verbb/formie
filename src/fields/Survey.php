@@ -866,10 +866,18 @@ class Survey extends OptionsField implements SortableFieldInterface, Questionnai
         $modules = parent::defineClientModules();
 
         if (in_array($this->displayType, [self::DISPLAY_LIKERT, self::DISPLAY_RANK, self::DISPLAY_RATING], true)) {
-            return array_merge($modules, $this->defineSurveyPresentationClientModules());
+            foreach ($this->defineSurveyPresentationClientModules() as $module) {
+                $modules[] = $module;
+            }
+
+            return $modules;
         }
 
-        return array_merge($modules, $this->definePresentationFieldClientModules());
+        foreach ($this->definePresentationFieldClientModules() as $module) {
+            $modules[] = $module;
+        }
+
+        return $modules;
     }
 
     protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
