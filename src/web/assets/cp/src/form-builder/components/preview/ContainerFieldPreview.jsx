@@ -15,6 +15,7 @@ import {
     faEllipsis,
     faEye,
     faLinkSlash,
+    faLock,
     faPencil,
     faPlus,
     faTrash,
@@ -66,7 +67,9 @@ import { focusFirstVisibleInputIfEmpty } from '@form-builder/utils/focus';
 import { resolveContainerRows } from '@form-builder/utils/containerLayoutVariants';
 import { announceFormBuilderStatus, focusFieldActionsTrigger } from '@form-builder/utils/accessibility';
 import { submitSchemaFormAfterPendingTableUpdates } from '@form-builder/utils/submitSchemaForm';
-import { normalizeFieldInstructions, normalizeRichTextValue, hasRichTextValue } from '@form-builder/utils/richTextValue';
+import { FieldEditorNotices } from '@form-builder/components/FieldEditorNotices';
+import { useFieldEditorLockState } from '@form-builder/hooks/useFieldEditorLockState';
+import { normalizeFieldEditorValues, normalizeRichTextValue, hasRichTextValue } from '@form-builder/utils/richTextValue';
 import {
     getFieldDisplayLabel,
     shouldShowFieldDisplayLabel,
@@ -321,8 +324,14 @@ const NestedFieldEditModal = ({
     }, [schemaWithReservedHandles]);
     const handleSyncOnChange = useHandleSyncOnChange(schemaWithReservedHandles);
     const hasSubmissions = useAppStore((state) => { return state.hasSubmissions; });
+    const {
+        builderNoteLive,
+        isSettingsLocked,
+        syncFromFormValues,
+        unlock,
+    } = useFieldEditorLockState(field);
     const fieldDefaults = useMemo(() => {
-        return normalizeFieldInstructions(field);
+        return normalizeFieldEditorValues(field);
     }, [field]);
     const form = useSchemaFormEngine({
         schema: schemaWithReservedHandles,
@@ -332,6 +341,7 @@ const NestedFieldEditModal = ({
             return getFieldEditorConditionContext(field, values, hasSubmissions);
         },
         onChange: (values, schemaForm) => {
+            syncFromFormValues(values);
             handleSyncOnChange(values, schemaForm);
         },
     });
@@ -375,6 +385,14 @@ const NestedFieldEditModal = ({
                 <DialogTitle className="flex flex-row items-center">
                     {Craft.t('formie', 'Edit Field')}
 
+                    {field?.builderLocked && (
+                        <FontAwesomeIcon
+                            icon={faLock}
+                            className="ml-2 size-3.5 text-[#64748b]"
+                            title={Craft.t('formie', 'Locked field')}
+                        />
+                    )}
+
                     {showFieldTypePill && (
                         <div className="rounded-[20px] bg-[#d8e2ea] px-[10px] py-[6px] text-[10px] text-[#526176] ml-[10px] font-normal">
                             {resolvedFieldTypeLabel}
@@ -387,9 +405,31 @@ const NestedFieldEditModal = ({
                 </DialogDescription>
             </DialogHeader>
 
-            <div ref={contentRef} className="flex-1 min-h-0 overflow-hidden">
+            <div ref={contentRef} className="flex min-h-0 flex-1 flex-col overflow-hidden">
+                <FieldEditorNotices
+                    field={field}
+                    isSyncedField={isSyncedField}
+                    builderNote={builderNoteLive}
+                    isSettingsLocked={isSettingsLocked}
+                    onUnlock={unlock}
+                />
+
                 {hasSchemaConfig ? (
-                    <SchemaFormEngine form={form} className="h-full" />
+                    <div className="relative min-h-0 flex-1">
+                        <div className={cn(
+                            'h-full',
+                            isSettingsLocked && 'pointer-events-none select-none opacity-60',
+                        )}>
+                            <SchemaFormEngine form={form} className="h-full" />
+                        </div>
+
+                        {isSettingsLocked && (
+                            <div
+                                className="absolute inset-0 z-10 cursor-not-allowed"
+                                aria-hidden="true"
+                            />
+                        )}
+                    </div>
                 ) : (
                     <div className="flex h-full items-center justify-center">
                         <div className="flex max-w-[640px] flex-col items-center gap-3 text-sm text-rose-600">
@@ -405,7 +445,7 @@ const NestedFieldEditModal = ({
             )}
             >
                 {canDeleteFromModal && (
-                    <Button type="button" onClick={onDelete}>
+                    <Button type="button" onClick={onDelete} disabled={isSettingsLocked}>
                         {Craft.t('formie', 'Delete')}
                     </Button>
                 )}
@@ -415,10 +455,20 @@ const NestedFieldEditModal = ({
                         {Craft.t('formie', 'Cancel')}
                     </Button>
 
-                    <Button type="button" variant="primary" disabled={!hasSchemaConfig} onClick={(e) => {
-                        e.preventDefault();
-                        submitSchemaFormAfterPendingTableUpdates(form);
-                    }}>
+                    <Button
+                        type="button"
+                        variant="primary"
+                        disabled={!hasSchemaConfig || isSettingsLocked}
+                        onClick={(e) => {
+                            e.preventDefault();
+
+                            if (isSettingsLocked) {
+                                return;
+                            }
+
+                            submitSchemaFormAfterPendingTableUpdates(form);
+                        }}
+                    >
                         {Craft.t('formie', 'Apply')}
                     </Button>
                 </div>

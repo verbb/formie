@@ -378,6 +378,10 @@ The default rich-text config is:
             "buttons": ["bold", "italic", "link"],
             "rows": 4
         },
+        "builderNote": {
+            "buttons": ["bold", "italic", "link"],
+            "rows": 3
+        },
         "content": {
             "buttons": ["bold", "italic", "underline", "link", "ulist", "olist", "heading2", "heading3", "paragraph"],
             "rows": 8
@@ -428,6 +432,8 @@ Button | Description
 ```
 
 The `fields.content` key controls the **Rich Text** cosmetic field toolbar and height.
+
+The `fields.builderNote` key controls the **Editor Note** rich-text field on the field editor **Advanced** tab.
 
 ## HTML Editor Configuration
 

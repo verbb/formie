@@ -246,6 +246,19 @@ trait FieldFormBuilderTrait
             ],
         ];
 
+        if (!$this->getIsBuilderField()) {
+            foreach ($tabs as &$tab) {
+                if (($tab['handle'] ?? null) === 'advanced') {
+                    $tab['content'] = array_merge(
+                        $tab['content'] ?? [],
+                        SchemaHelper::builderGuidanceSettingsFields(),
+                    );
+                }
+            }
+
+            unset($tab);
+        }
+
         // Filter out tabs with empty content
         $tabs = array_values(array_filter($tabs, function ($tab) {
             return $tab['content'];

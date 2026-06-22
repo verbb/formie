@@ -15,6 +15,7 @@ import {
     faArrowLeft,
     faArrowRight,
     faLinkSlash,
+    faLock,
 } from '@fortawesome/pro-solid-svg-icons';
 
 import {
@@ -72,7 +73,7 @@ import { syncContainerRowsFromVariant } from '@form-builder/utils/containerLayou
 import { announceFormBuilderStatus, focusFieldActionsTrigger } from '@form-builder/utils/accessibility';
 import { submitSchemaFormAfterPendingTableUpdates } from '@form-builder/utils/submitSchemaForm';
 import { useFieldEditorDismiss } from '@form-builder/hooks/useFieldEditorDismiss';
-import { normalizeFieldInstructions, normalizeRichTextValue, hasRichTextValue } from '@form-builder/utils/richTextValue';
+import { normalizeFieldEditorValues, normalizeRichTextValue, hasRichTextValue } from '@form-builder/utils/richTextValue';
 import {
     getFieldDisplayLabel,
     shouldShowFieldDisplayLabel,
@@ -82,6 +83,8 @@ import { getFieldEditorConditionContext } from '@form-builder/utils/fieldEditorC
 import { SnapTopLeftCornerToCursor } from '@utils';
 
 import { FieldPreview } from './FieldPreview';
+import { FieldEditorNotices } from './FieldEditorNotices';
+import { useFieldEditorLockState } from '@form-builder/hooks/useFieldEditorLockState';
 
 const resolveCustomFieldAdapterDefinition = (adapters, adapterValue) => {
     return adapters.find((item) => {
@@ -161,7 +164,9 @@ const Field = ({
     const isSyncedField = useMemo(() => {
         return Boolean(field?.isSynced || field?.syncId);
     }, [field?.isSynced, field?.syncId]);
+    const isBuilderLocked = Boolean(field?.builderLocked);
     const hasFieldStatusIndicators = isSyncedField
+        || isBuilderLocked
         || hasConditions
         || showPaymentPlacementWarning
         || field.enabled === false
@@ -430,6 +435,11 @@ const Field = ({
     const handleDelete = (e) => {
         e.preventDefault();
         e.stopPropagation();
+
+        if (field?.builderLocked) {
+            window.alert(Craft.t('formie', 'This field is locked. Open field settings and unlock it before deleting.'));
+            return;
+        }
 
         const confirmationMessage = Craft.t('formie', 'Are you sure you want to delete "{name}"?', {
             name: fieldDisplayLabel,
@@ -733,6 +743,22 @@ const Field = ({
                                         )}>
                                             <FontAwesomeIcon icon={faRefresh} className="size-2.5" />
                                             <span>{Craft.t('formie', 'Synced')}</span>
+                                        </div>
+                                    )}
+
+                                    {isBuilderLocked && (
+                                        <div
+                                            className={cn(
+                                                'inline-flex items-center gap-1',
+                                                'rounded-[10px] border border-[#64748b] bg-[#f1f5f9]',
+                                                'px-[6px] py-[3px]',
+                                                'text-[10px] font-medium text-[#475569]',
+                                                shouldUseFieldLabel && 'ml-2',
+                                            )}
+                                            title={field.builderNote || Craft.t('formie', 'Field settings require unlock to edit.')}
+                                        >
+                                            <FontAwesomeIcon icon={faLock} className="size-2.5" />
+                                            <span>{Craft.t('formie', 'Locked')}</span>
                                         </div>
                                     )}
 
@@ -1049,12 +1075,19 @@ const FieldEditModal = ({
     }, [schemaWithReservedHandles]);
     const handleSyncOnChange = useHandleSyncOnChange(schemaWithReservedHandles);
     const hasSubmissions = useAppStore((state) => { return state.hasSubmissions; });
+    const {
+        builderNoteLive,
+        isSettingsLocked,
+        syncFromFormValues,
+        unlock,
+    } = useFieldEditorLockState(field);
     const handleModalChange = (values, form) => {
+        syncFromFormValues(values);
         handleSyncOnChange(values, form);
     };
 
     const fieldDefaults = useMemo(() => {
-        return normalizeFieldInstructions(field);
+        return normalizeFieldEditorValues(field);
     }, [field]);
 
     const form = useSchemaFormEngine({
@@ -1139,6 +1172,10 @@ const FieldEditModal = ({
     const handleSave = (e) => {
         e.preventDefault();
 
+        if (isSettingsLocked) {
+            return;
+        }
+
         submitSchemaFormAfterPendingTableUpdates(form);
     };
 
@@ -1147,6 +1184,11 @@ const FieldEditModal = ({
     };
 
     const handleDelete = () => {
+        if (field?.builderLocked && isSettingsLocked) {
+            window.alert(Craft.t('formie', 'This field is locked. Unlock it before deleting.'));
+            return;
+        }
+
         const confirmationMessage = Craft.t('formie', 'Are you sure you want to delete "{name}"?', {
             name: fieldDisplayLabel,
         });
@@ -1174,6 +1216,14 @@ const FieldEditModal = ({
                 <DialogTitle className="flex flex-row items-center">
                     {Craft.t('formie', 'Edit Field')}
 
+                    {field?.builderLocked && (
+                        <FontAwesomeIcon
+                            icon={faLock}
+                            className="ml-2 size-3.5 text-[#64748b]"
+                            title={Craft.t('formie', 'Locked field')}
+                        />
+                    )}
+
                     {showFieldTypePill && (
                         <div className={cn(
                             'rounded-[20px]',
@@ -1193,37 +1243,33 @@ const FieldEditModal = ({
             </DialogHeader>
 
             <div ref={contentRef} className="flex flex-1 min-h-0 flex-col overflow-hidden">
-                {isSyncedField && (
-                    <div className="m-4 mb-0 flex shrink-0 flex-col gap-2 rounded border border-[#f6ad55] bg-[#fffaf0] px-3 py-2 text-[12px] text-[#b45309]">
-                        <div className="flex items-center gap-2">
-                            <FontAwesomeIcon icon={faTriangleExclamation} className="size-3 shrink-0" />
-                            <span>{Craft.t('formie', 'Warning: Currently editing synced field. Changes to this field will be applied to all instances of this field.')}</span>
-                        </div>
-
-                        <a
-                            href={Craft.getCpUrl('formie/settings/synced-fields')}
-                            className="font-bold underline"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                        >
-                            {(field?.usageCount ?? 0) > 1
-                                ? Craft.t('formie', 'View usage ({num} forms)', { num: field.usageCount })
-                                : Craft.t('formie', 'View all synced fields')}
-                        </a>
-                    </div>
-                )}
+                <FieldEditorNotices
+                    field={field}
+                    isSyncedField={isSyncedField}
+                    builderNote={builderNoteLive}
+                    isSettingsLocked={isSettingsLocked}
+                    onUnlock={unlock}
+                />
 
                 {hasSchemaConfig ? (
                     <div className="relative min-h-0 flex-1">
                         <div className={cn(
                             'h-full',
                             !isSchemaUiReady && 'invisible pointer-events-none',
+                            isSettingsLocked && 'pointer-events-none select-none opacity-60',
                         )}>
                             <SchemaFormEngine
                                 form={form}
                                 className="h-full"
                             />
                         </div>
+
+                        {isSettingsLocked && isSchemaUiReady && (
+                            <div
+                                className="absolute inset-0 z-10 cursor-not-allowed"
+                                aria-hidden="true"
+                            />
+                        )}
 
                         {!isSchemaUiReady && (
                             <div className="absolute inset-0 flex items-center justify-center">
@@ -1252,6 +1298,7 @@ const FieldEditModal = ({
                     <Button
                         type="button"
                         onClick={handleDelete}
+                        disabled={isSettingsLocked}
                     >
                         {Craft.t('formie', 'Delete')}
                     </Button>
@@ -1269,7 +1316,7 @@ const FieldEditModal = ({
                         type="button"
                         variant="primary"
                         onClick={handleSave}
-                        disabled={!hasSchemaConfig}
+                        disabled={!hasSchemaConfig || isSettingsLocked}
                     >
                         {Craft.t('formie', 'Apply')}
                     </Button>

@@ -54,6 +54,23 @@ export const normalizeFieldInstructions = (field) => {
     };
 };
 
+export const normalizeFieldEditorValues = (field) => {
+    if (!field) {
+        return field;
+    }
+
+    let next = normalizeFieldInstructions(field);
+
+    if (Object.prototype.hasOwnProperty.call(field, 'builderNote')) {
+        next = {
+            ...next,
+            builderNote: normalizeRichTextValue(field.builderNote),
+        };
+    }
+
+    return next;
+};
+
 export const hasRichTextValue = (value) => {
     if (value == null || value === '') {
         return false;

@@ -432,6 +432,8 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
     public ?array $conditions = null;
     public bool $enableContentEncryption = false;
     public ?string $visibility = null;
+    public RichText $builderNote;
+    public bool $builderLocked = false;
 
     private ?Form $_form = null;
     private ?FieldLayout $_layout = null;
@@ -459,6 +461,7 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
         Formie::$plugin?->getFormDefaults()?->applyToNewField($config, static::class, $this->getSupportedDefaults());
         FieldBuilderPolicy::applyToFieldConfig($config, static::class);
         $config['instructions'] = self::_instructionsFrom($config['instructions'] ?? null);
+        $config['builderNote'] = RichText::from($config['builderNote'] ?? null);
 
         parent::__construct($config);
     }
@@ -469,6 +472,10 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
             $values['instructions'] = self::_instructionsFrom($values['instructions']);
         }
 
+        if (is_array($values) && array_key_exists('builderNote', $values)) {
+            $values['builderNote'] = RichText::from($values['builderNote']);
+        }
+
         parent::setAttributes($values, $safeOnly);
     }
 
@@ -476,6 +483,7 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
     {
         $settings = parent::getSettings();
         $settings['instructions'] = $this->instructions->getSchema();
+        $settings['builderNote'] = $this->builderNote->getSchema();
 
         return $settings;
     }
@@ -518,6 +526,8 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
         $names[] = 'conditions';
         $names[] = 'enableContentEncryption';
         $names[] = 'visibility';
+        $names[] = 'builderNote';
+        $names[] = 'builderLocked';
 
         return $names;
     }

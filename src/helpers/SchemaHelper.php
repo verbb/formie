@@ -695,6 +695,22 @@ class SchemaHelper
         ], $config));
     }
 
+    public static function builderGuidanceSettingsFields(): array
+    {
+        return [
+            self::lightswitchField([
+                'label' => Craft::t('formie', 'Lock Field Settings'),
+                'instructions' => Craft::t('formie', 'Require an explicit unlock before editing this field\'s settings. Any editor can unlock — not a permission lock.'),
+                'name' => 'builderLocked',
+            ]),
+            self::richTextField(array_merge([
+                'label' => Craft::t('formie', 'Editor Note'),
+                'instructions' => Craft::t('formie', 'Shown to content authors when editing this field in the form builder.'),
+                'name' => 'builderNote',
+            ], RichTextHelper::getRichTextConfig('fields.builderNote'))),
+        ];
+    }
+
     public static function errorMessagePosition(FieldInterface $field, array $config = []): array
     {
         return self::selectField(array_merge([
