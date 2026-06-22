@@ -8,6 +8,7 @@
 
 ### Fixed
 - Fix required asterisk indicator not appearing on Agree fields when the field label is hidden and consent copy is shown on the checkbox label. ([#2333](https://github.com/verbb/formie/issues/2333))
+- Fix rich-text links to internal pages opening in a new tab including `rel="noopener noreferrer nofollow"`. Internal links now omit the attribute; external links keep it. ([#2604](https://github.com/verbb/formie/issues/2604))
 
 ## 4.0.0-beta.8 - 2026-06-26
 

@@ -5,6 +5,7 @@ use verbb\formie\helpers\StringHelper;
 
 use Craft;
 use craft\helpers\Html;
+use craft\helpers\UrlHelper;
 use craft\validators\HandleValidator;
 
 class Link extends Mark
@@ -51,6 +52,58 @@ class Link extends Mark
         return $value;
     }
 
+    private static function isInternalUrl(string $href): bool
+    {
+        $href = trim($href);
+
+        if ($href === '' || str_starts_with($href, '#')) {
+            return true;
+        }
+
+        // Craft element ref tags (e.g. `{entry:123:url}`).
+        if (preg_match('/\{[\w]+:\d+/', $href)) {
+            return true;
+        }
+
+        if (UrlHelper::isRootRelativeUrl($href)) {
+            return true;
+        }
+
+        // Relative paths without a leading slash.
+        if (!UrlHelper::isAbsoluteUrl($href) && !UrlHelper::isProtocolRelativeUrl($href)) {
+            return true;
+        }
+
+        // Non-http(s) schemes (mailto:, tel:, etc.).
+        if (UrlHelper::isAbsoluteUrl($href) && !preg_match('/^https?:\/\//i', $href)) {
+            return true;
+        }
+
+        $linkHost = parse_url($href, PHP_URL_HOST);
+
+        if ($linkHost === null && UrlHelper::isProtocolRelativeUrl($href)) {
+            $linkHost = parse_url('https:' . $href, PHP_URL_HOST);
+        }
+
+        if ($linkHost === null) {
+            return true;
+        }
+
+        if (!Craft::$app) {
+            return false;
+        }
+
+        foreach (Craft::$app->getSites()->getAllSites() as $site) {
+            $siteHost = parse_url($site->getBaseUrl(), PHP_URL_HOST);
+
+            if ($siteHost && strcasecmp($linkHost, $siteHost) === 0) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
 
     // Properties
     // =========================================================================    
@@ -65,20 +118,23 @@ class Link extends Mark
     public function tag(): array
     {
         $attrs = [];
+        $href = $this->mark->attrs->href ?? '';
+
+        if ($href) {
+            $attrs['href'] = self::parseRefTags($href);
+        }
 
         if (isset($this->mark->attrs->target)) {
             $attrs['target'] = $this->mark->attrs->target;
 
             if ($attrs['target'] === '_blank') {
-                $attrs['rel'] = 'noopener noreferrer nofollow';
+                $resolvedHref = is_string($attrs['href'] ?? null) ? $attrs['href'] : $href;
+                $isInternal = self::isInternalUrl($href) || self::isInternalUrl($resolvedHref);
+
+                if (!$isInternal) {
+                    $attrs['rel'] = 'noopener noreferrer nofollow';
+                }
             }
-        }
-
-        // Parse the link URL for ref tags
-        $href = $this->mark->attrs->href ?? '';
-
-        if ($href) {
-            $attrs['href'] = self::parseRefTags($href);
         }
 
         return [
