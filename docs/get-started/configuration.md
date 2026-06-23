@@ -90,6 +90,7 @@ return [
         'useQueueForIntegrations' => true,
         'queuePriority' => null,
         'redirectUri' => null,
+        'paymentWebhookProxyUrl' => null,
         'setOnlyCurrentPagePayload' => false,
         'submissionsBehaviour' => 'all',
         'submissionStateRetentionDays' => 30,
@@ -180,6 +181,7 @@ return [
 - `useQueueForIntegrations` sends integrations through Craft’s queue. This is recommended for production sites so form submissions are not slowed down by third-party APIs.
 - `queuePriority` sets the Craft queue priority for notification and integration jobs.
 - `redirectUri` overrides the OAuth redirect URI for integration connections. When omitted, Formie uses an action URL (`actions/formie/integrations/callback`). Environment variables are supported.
+- `paymentWebhookProxyUrl` controls the dev-mode proxy used for payment webhook and return URLs (for example Mollie webhooks and redirect status pages). When omitted in dev mode, Formie uses `https://proxy.verbb.io?return=...`. Set to a custom base URL to use your own tunnel/proxy, or set to an empty string to disable the proxy and use local URLs directly. Ignored when Craft dev mode is off. Environment variables are supported.
 - `setOnlyCurrentPagePayload` limits multi-page form payloads to the current page when processing a page request.
 - `submissionsBehaviour` controls which submissions are saved. The default is `all`.
 - `submissionStateRetentionDays` sets how long incomplete submission state can be kept for save-and-resume and front-end submission state.

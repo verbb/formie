@@ -93,12 +93,7 @@ class Mollie extends Payment
             $url = UrlHelper::siteUrl($endpoint, $params);
         }
 
-        // For local development, we should use a proxy to ensure it works
-        if (App::devMode()) {
-            return "https://proxy.verbb.io?return=$url";
-        }
-
-        return $url;
+        return Payment::applyPaymentWebhookProxy($url);
     }
 
     public function getClientModule(ClientModuleContext $context): ?ClientModule

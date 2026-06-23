@@ -17,6 +17,7 @@
 - Fix Stripe payment intent amounts being sent as floats; minor-unit values are now sent as integers.
 - Fix external redirect payments (for example Mollie) leaving users on the status polling page when payment fails. Failed payments now redirect back to the original form URL with a flash error message. ([#2502](https://github.com/verbb/formie/issues/2502))
 - Fix Stripe and other payment follow-up submits re-validating one-time captcha tokens (for example reCAPTCHA v2 checkbox and hCaptcha), which caused duplicate-token spam failures on the second Ajax POST. Incomplete continuation submits now skip captcha screening, matching replay-token behaviour. ([#2465](https://github.com/verbb/formie/issues/2465))
+- Fix hard-coded local-dev payment webhook proxy URL. `paymentWebhookProxyUrl` in `config/formie.php` now controls the dev-mode proxy base URL (default `https://proxy.verbb.io`), or can be set to an empty string to disable proxying.
 
 ## 4.0.0-beta.8 - 2026-06-26
 

@@ -93,6 +93,7 @@ class Settings extends Model
     public bool $useQueueForIntegrations = true;
     public ?int $queuePriority = null;
     public ?string $redirectUri = null;
+    public ?string $paymentWebhookProxyUrl = null;
     public array $integrationApiErrorHandling = [];
     public bool $setOnlyCurrentPagePayload = false;
     public string|array $submissionsBehaviour = 'all';

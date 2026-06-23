@@ -266,12 +266,34 @@ abstract class Payment extends Integration
             $url = UrlHelper::siteUrl('formie/payment-webhooks/process-webhook', ['handle' => $this->handle]);
         }
 
-        // For local development, we should use a proxy to ensure it works
-        if (App::devMode()) {
-            return "https://proxy.verbb.io?return=$url";
+        return self::applyPaymentWebhookProxy($url);
+    }
+
+    public static function applyPaymentWebhookProxy(string $url): string
+    {
+        $proxyBase = App::parseEnv(Formie::$plugin->getSettings()->paymentWebhookProxyUrl);
+
+        return self::applyDevAccessibleUrl($url, App::devMode(), $proxyBase);
+    }
+
+    public static function applyDevAccessibleUrl(string $url, bool $devMode, mixed $proxyBase): string
+    {
+        if (!$devMode) {
+            return $url;
         }
 
-        return $url;
+        // An explicit empty string disables the dev proxy and uses the local URL as-is.
+        if ($proxyBase === '') {
+            return $url;
+        }
+
+        if (!is_string($proxyBase) || trim($proxyBase) === '') {
+            $proxyBase = 'https://proxy.verbb.io';
+        } else {
+            $proxyBase = rtrim(trim($proxyBase), '/');
+        }
+
+        return $proxyBase . '?return=' . $url;
     }
 
     public function getGqlHandle(): string
