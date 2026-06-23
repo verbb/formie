@@ -221,9 +221,10 @@ Formie returns `paymentRedirectUrl` or `paymentAction.type: redirect`. Send the 
 
 ### GoCardless
 
-**BYO:** GoCardless redirect flow (billing request / redirect).
+**BYO:** Redirect to the GoCardless hosted Billing Request Flow (Formie returns `redirectUrl` via payment action).
 
-No upfront payment input keys. Completion is handled via redirect and webhook; resubmit with the same session when returning to your app.
+Formie creates a Billing Request with a Direct Debit mandate request, then redirects the customer to GoCardless. After authorisation, Formie creates the one-off payment against the mandate. Completion is asynchronous — use webhooks and resubmit the same session if needed.
+
 
 ### Paddle
 

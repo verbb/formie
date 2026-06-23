@@ -12,17 +12,16 @@ use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\PaymentAccess;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\References;
+
 use verbb\formie\models\ClientModule;
 use verbb\formie\models\ClientModuleContext;
 use verbb\formie\models\Payment as PaymentModel;
 use verbb\formie\models\PaymentAction;
 use verbb\formie\models\PaymentDecision;
-use verbb\formie\models\Plan;
 
 use Craft;
 use craft\helpers\App;
 use craft\helpers\Json;
-use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
 use craft\web\Response;
 
@@ -30,7 +29,6 @@ use Money\Currencies\ISOCurrencies;
 use Money\Currency;
 
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception\ClientException;
 
 use Throwable;
 use Exception;
@@ -42,6 +40,8 @@ class GoCardless extends Payment
 
     public const EVENT_MODIFY_PAYLOAD = 'modifyPayload';
 
+    private const API_VERSION = '2015-07-06';
+
 
     // Static Methods
     // =========================================================================
@@ -50,7 +50,7 @@ class GoCardless extends Payment
     {
         return Craft::t('formie', 'GoCardless');
     }
-    
+
 
     // Properties
     // =========================================================================
@@ -111,14 +111,10 @@ class GoCardless extends Payment
     public function processPayment(Submission $submission): PaymentDecision
     {
         $response = null;
-        $result = false;
         $field = $this->getField();
-
-        // Get the amount from the field, which handles dynamic fields
         $amount = $this->getAmount($submission);
-        $currency = $this->getFieldSetting('currency');
+        $currency = (string)$this->getFieldSetting('currency');
 
-        // Create a payment right away so we can use it for redirect or fail, rather than multiple
         $payment = new PaymentModel();
         $payment->integrationId = $this->id;
         $payment->submissionId = $submission->id;
@@ -126,7 +122,6 @@ class GoCardless extends Payment
         $payment->amount = $amount;
         $payment->currency = $currency;
 
-        // Allow events to cancel sending
         if (!$this->beforeProcessPayment($submission)) {
             return PaymentDecision::notRequired();
         }
@@ -135,64 +130,76 @@ class GoCardless extends Payment
             $payment->status = PaymentModel::STATUS_REDIRECT;
             $payment->redirectUrl = Craft::$app->getRequest()->getReferrer();
 
-            // Create the Formie payment record before starting the GoCardless redirect flow.
             Formie::$plugin->getPayments()->savePayment($payment);
 
-            $sessionToken = StringHelper::UUID();
+            $returnUrl = $this->getReturnUrl([
+                'statusToken' => PaymentAccess::issueStatusToken($payment),
+            ]);
 
-            $payload = [
-                'session_token' => $sessionToken,
-                'success_redirect_url' => $this->getReturnUrl([
-                    'statusToken' => PaymentAccess::issueStatusToken($payment),
-                ]),
-                'metadata' => [
-                    'formiePaymentId' => (string)$payment->id,
-                ],
-            ];
-
-            // Add in extra settings configured at the field level
-            $this->_setPayloadDetails($payload, $submission);
+            $billingRequestPayload = $this->_buildBillingRequestPayload($payment, $submission);
 
             $event = new ModifyPaymentPayloadEvent([
                 'integration' => $this,
                 'submission' => $submission,
-                'payload' => $payload,
+                'payload' => $billingRequestPayload,
             ]);
             $this->trigger(self::EVENT_MODIFY_PAYLOAD, $event);
 
-            // Redirect via the front-end for a nicer UX than just a sudden redirect away.
-            $response = $this->request('POST', 'redirect_flows', ['json' => ['redirect_flows' => $event->payload]]);
-            $flow = $response['redirect_flows'] ?? [];
+            $response = $this->request('POST', 'billing_requests', [
+                'json' => ['billing_requests' => $event->payload],
+            ]);
+            $billingRequest = $response['billing_requests'] ?? [];
 
-            // Persist session token and redirect flow id so we can complete the flow when the customer returns.
+            if (empty($billingRequest['id'])) {
+                throw new Exception(Craft::t('formie', 'GoCardless did not return a billing request.'));
+            }
+
+            $this->_collectBillingCustomerDetails((string)$billingRequest['id'], $submission);
+
+            $flowResponse = $this->request('POST', 'billing_request_flows', [
+                'json' => [
+                    'billing_request_flows' => [
+                        'redirect_uri' => $returnUrl,
+                        'exit_uri' => $returnUrl,
+                        'links' => [
+                            'billing_request' => $billingRequest['id'],
+                        ],
+                    ],
+                ],
+            ]);
+            $flow = $flowResponse['billing_request_flows'] ?? [];
+            $authorisationUrl = (string)($flow['authorisation_url'] ?? '');
+
+            if ($authorisationUrl === '') {
+                throw new Exception(Craft::t('formie', 'GoCardless did not return an authorisation URL.'));
+            }
+
             $payment->response = [
-                'sessionToken' => $sessionToken,
-                'redirectFlow' => $flow,
+                'billingRequest' => $billingRequest,
+                'billingRequestFlow' => $flow,
             ];
             Formie::$plugin->getPayments()->savePayment($payment);
 
             $submission->getForm()->addSubmitData([
                 'event' => 'formie:payment:go-cardless:redirect',
                 'data' => [
-                    'redirectUrl' => $flow['redirect_url'] ?? '',
+                    'redirectUrl' => $authorisationUrl,
                 ],
             ]);
 
-            // Allow events to say the response is invalid
-            if (!$this->afterProcessPayment($submission, $result)) {
+            if (!$this->afterProcessPayment($submission, false)) {
                 return PaymentDecision::succeeded($this->handle);
             }
 
             return PaymentDecision::requiresAction(
                 $payment->reference,
-                PaymentAction::redirectEvent('formie:payment:go-cardless:redirect', $flow['redirect_url'] ?? null)
+                PaymentAction::redirectEvent('formie:payment:go-cardless:redirect', $authorisationUrl)
                     ->forProvider($this->handle)
                     ->withMessage(Craft::t('formie', 'Please wait while you are redirected to GoCardless.'))
-                    ->withPayload(['redirectUrl' => $flow['redirect_url'] ?? ''])
+                    ->withPayload(['redirectUrl' => $authorisationUrl])
                     ->resumeMode(PaymentAction::RESUME_MODE_WEBHOOK, $this->getRedirectUri())
             );
         } catch (Throwable $e) {
-            // Save a different payload to logs
             Integration::error($this, Craft::t('formie', 'Payment error: “{message}” {file}:{line}. Response: “{response}”', [
                 'message' => Integration::getExceptionLogMessage($e),
                 'file' => $e->getFile(),
@@ -205,7 +212,6 @@ class GoCardless extends Payment
             $userMessage = Craft::t('formie', 'Unable to process your payment right now. Please try again.');
             $this->addFieldError($submission, $userMessage);
 
-            // Update the payment if one has already been made
             $payment->status = PaymentModel::STATUS_FAILED;
             $payment->response = ['message' => $userMessage];
 
@@ -213,8 +219,6 @@ class GoCardless extends Payment
 
             return PaymentDecision::failed($userMessage, $this->handle, $payment->reference);
         }
-
-        return PaymentDecision::succeeded($this->handle);
     }
 
     public function processWebhook(): Response
@@ -246,51 +250,17 @@ class GoCardless extends Payment
             $events = $payload['events'] ?? [];
 
             foreach ($events as $event) {
-                $resourceType = $event['resource_type'] ?? '';
-                $resourceId = $event['links']['payment'] ?? null;
+                $resourceType = (string)($event['resource_type'] ?? '');
+                $action = (string)($event['action'] ?? '');
 
-                // Only process payment events (ignore mandates, refunds, etc.)
-                if ($resourceType !== 'payments' || !$resourceId) {
+                if ($resourceType === 'payments') {
+                    $this->_processPaymentWebhookEvent($event);
                     continue;
                 }
 
-                // Fetch payment info
-                $gcPayment = $this->request('GET', "payments/{$resourceId}")['payments'] ?? [];
-
-                // Get the Formie payment ID (saved in metadata in `processPayment`)
-                $formiePaymentId = $gcPayment['metadata']['formiePaymentId'] ?? null;
-
-                if (!$formiePaymentId) {
-                    Integration::error($this, 'Missing `formiePaymentId` in GoCardless metadata.');
-                    continue;
+                if ($resourceType === 'billing_requests') {
+                    $this->_processBillingRequestWebhookEvent($event, $action);
                 }
-
-                $payment = Formie::$plugin->getPayments()->getPaymentById((int)$formiePaymentId);
-
-                if (!$payment) {
-                    Integration::error($this, "No Formie payment found for ID: {$formiePaymentId}");
-                    continue;
-                }
-
-                // Update status based on GoCardless payment status
-                $status = $gcPayment['status'] ?? '';
-
-                switch ($status) {
-                    case 'confirmed':
-                        $payment->status = PaymentModel::STATUS_SUCCESS;
-                        break;
-                    case 'failed':
-                    case 'cancelled':
-                        $payment->status = PaymentModel::STATUS_FAILED;
-                        break;
-                    case 'pending_submission':
-                    case 'submitted':
-                    default:
-                        $payment->status = PaymentModel::STATUS_PENDING;
-                        break;
-                }
-
-                $this->_updatePaymentStatus($payment, $gcPayment);
             }
 
             if ($this->hasEventHandlers(self::EVENT_RECEIVE_WEBHOOK)) {
@@ -314,10 +284,7 @@ class GoCardless extends Payment
             throw new Exception('Missing GoCardless payment reference.');
         }
 
-        if (
-            $payment->status === PaymentModel::STATUS_SUCCESS ||
-            $payment->status === PaymentModel::STATUS_FAILED
-        ) {
+        if (in_array($payment->status, [PaymentModel::STATUS_SUCCESS, PaymentModel::STATUS_FAILED], true)) {
             return;
         }
 
@@ -332,21 +299,33 @@ class GoCardless extends Payment
 
     public function getTransactionStatus(PaymentModel $payment): void
     {
-        $submission = $payment->getSubmission();
-        $request = Craft::$app->getRequest();
-
-        // GoCardless payment already created — refresh from API and let the status page poll.
         if (in_array($payment->status, [PaymentModel::STATUS_SUCCESS, PaymentModel::STATUS_FAILED], true)) {
             return;
         }
 
-        $this->getTransaction($payment);
+        if ($field = $payment->getField()) {
+            $this->setField($field);
+        }
+
+        try {
+            $this->_syncPaymentFromBillingRequestReturn($payment);
+
+            if ($payment->reference) {
+                $this->getTransaction($payment);
+            }
+        } catch (Throwable $e) {
+            Integration::error($this, Craft::t('formie', 'Unable to refresh GoCardless payment: “{message}”.', [
+                'message' => $e->getMessage(),
+            ]));
+        }
     }
 
     public function fetchConnection(): bool
     {
         try {
-            $response = $this->request('GET', 'customer_bank_accounts');
+            $this->request('GET', 'billing_requests', [
+                'query' => ['limit' => 1],
+            ]);
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
@@ -412,7 +391,7 @@ class GoCardless extends Payment
         return [
             SchemaHelper::variableTextField([
                 'label' => Craft::t('formie', 'Payment Description'),
-                'instructions' => Craft::t('formie', 'Enter a description for this payment, to appear against the transaction in your Mollie account, and on the payment receipt sent to the customer.'),
+                'instructions' => Craft::t('formie', 'Enter a description for this payment. It appears against the GoCardless payment and in customer communications.'),
                 'name' => 'paymentDescription',
                 'variables' => 'plainTextVariables',
             ]),
@@ -468,7 +447,7 @@ class GoCardless extends Payment
             ]),
         ];
     }
-    
+
 
     // Protected Methods
     // =========================================================================
@@ -491,7 +470,7 @@ class GoCardless extends Payment
             'base_uri' => $baseUri,
             'headers' => [
                 'Authorization' => 'Bearer ' . App::parseEnv($this->accessToken),
-                'GoCardless-Version' => '2015-07-06',
+                'GoCardless-Version' => self::API_VERSION,
                 'Content-Type' => 'application/json',
                 'Accept' => 'application/json',
             ],
@@ -500,105 +479,317 @@ class GoCardless extends Payment
 
     protected function definePaymentFieldSettingsDefaults(): array
     {
-        $defaults = [
+        return [
             'amountType' => self::VALUE_TYPE_FIXED,
         ];
-
-        return $defaults;
     }
-    
+
 
     // Private Methods
     // =========================================================================
 
-    private function _updatePaymentStatus(PaymentModel $payment, array $gcPayment): void
+    private function _buildBillingRequestPayload(PaymentModel $payment, Submission $submission): array
     {
-        $status = $gcPayment['status'] ?? '';
+        $currency = strtoupper((string)$payment->currency);
+        $payload = [
+            'mandate_request' => [
+                'scheme' => $this->_resolveDirectDebitScheme($currency),
+            ],
+            'metadata' => $this->_buildMetadata($payment, $submission),
+        ];
 
-        switch ($status) {
-            case 'confirmed':
-                $payment->status = PaymentModel::STATUS_SUCCESS;
-                break;
-            case 'failed':
-            case 'cancelled':
-                $payment->status = PaymentModel::STATUS_FAILED;
-                break;
-            case 'pending_submission':
-            case 'submitted':
-            default:
-                $payment->status = PaymentModel::STATUS_PENDING;
-                break;
-        }
-
-        $payment->reference = $gcPayment['id'] ?? $payment->reference;
-        $payment->response = $gcPayment;
-
-        Formie::$plugin->getPayments()->savePayment($payment);
-        Formie::$plugin->getSubmissionProcessor()->replayPaymentIfSuccessful($payment);
-    }
-
-    private function _setPayloadDetails(array &$payload, Submission $submission): void
-    {
-        $field = $this->getField();
-        $paymentDescription = $this->getFieldSetting('paymentDescription') ?? "Formie Submission #{$submission->id}";
         $metadata = $this->getFieldSetting('metadata', []);
 
-        if ($paymentDescription) {
-            $payload['description'] = References::parseContent($paymentDescription, $submission);
-        }
-
-        // Add a few other things about the customer from mapping (in field settings)
-        $billingFirstName = $this->getPaymentBillingFieldKey('billingFirstName');
-        $billingLastName = $this->getPaymentBillingFieldKey('billingLastName');
-        $billingAddress = $this->getPaymentBillingFieldKey('billingAddress');
-        $billingEmail = $this->getPaymentBillingFieldKey('billingEmail');
-
-        if ($billingFirstName && ($billingFirstNameValue = $submission->getFieldValueAsString($billingFirstName))) {
-            $payload['prefilled_customer']['given_name'] = $billingFirstNameValue;
-        }
-
-        if ($billingLastName && ($billingLastNameValue = $submission->getFieldValueAsString($billingLastName))) {
-            $payload['prefilled_customer']['family_name'] = $billingLastNameValue;
-        }
-
-        if ($billingAddress && ($address = $submission->getFieldValueAsArray($billingAddress)) && is_array($address)) {
-            $payload['prefilled_customer']['address_line1'] = ArrayHelper::remove($address, 'address1');
-            $payload['prefilled_customer']['address_line2'] = ArrayHelper::remove($address, 'address2');
-            $payload['prefilled_customer']['address_line3'] = ArrayHelper::remove($address, 'address3');
-            $payload['prefilled_customer']['city'] = ArrayHelper::remove($address, 'city');
-            $payload['prefilled_customer']['postal_code'] = ArrayHelper::remove($address, 'zip');
-            $payload['prefilled_customer']['region'] = ArrayHelper::remove($address, 'state');
-            $payload['prefilled_customer']['country_code'] = ArrayHelper::remove($address, 'country');
-        }
-
-        if ($billingEmail && ($billingEmailValue = $submission->getFieldValueAsString($billingEmail))) {
-            $payload['prefilled_customer']['email'] = $billingEmailValue;
-        }
-
-        // Note API limit of 4 total
         if ($metadata) {
             foreach ($metadata as $option) {
-                $label = trim($option['label']);
-                $value = trim($option['value']);
+                $label = trim((string)($option['label'] ?? ''));
+                $value = trim((string)($option['value'] ?? ''));
 
                 if ($label && $value) {
                     $payload['metadata'][$label] = References::parseContent($value, $submission);
                 }
             }
         }
+
+        return $payload;
     }
 
-    private function _syncFormiePaymentFromGoCardlessPayment(PaymentModel $payment, array $gcPayment): void
+    private function _buildMetadata(PaymentModel $payment, Submission $submission): array
     {
-        $status = $gcPayment['status'] ?? '';
+        return [
+            'formiePaymentId' => (string)$payment->id,
+        ];
+    }
 
-        $payment->reference = $gcPayment['id'] ?? $payment->reference;
+    private function _resolveDirectDebitScheme(string $currency): string
+    {
+        return match (strtoupper($currency)) {
+            'EUR' => 'sepa_core',
+            'AUD' => 'becs',
+            'NZD' => 'becs_nz',
+            'USD' => 'ach',
+            'CAD' => 'pad',
+            'SEK' => 'autogiro',
+            'DKK' => 'betalingsservice',
+            default => 'bacs',
+        };
+    }
+
+    private function _collectBillingCustomerDetails(string $billingRequestId, Submission $submission): void
+    {
+        $customer = [];
+        $billingDetail = [];
+
+        $billingFirstName = $this->getPaymentBillingFieldKey('billingFirstName');
+        $billingLastName = $this->getPaymentBillingFieldKey('billingLastName');
+        $billingAddress = $this->getPaymentBillingFieldKey('billingAddress');
+        $billingEmail = $this->getPaymentBillingFieldKey('billingEmail');
+
+        if ($billingFirstName && ($value = $submission->getFieldValueAsString($billingFirstName))) {
+            $customer['given_name'] = $value;
+        }
+
+        if ($billingLastName && ($value = $submission->getFieldValueAsString($billingLastName))) {
+            $customer['family_name'] = $value;
+        }
+
+        if ($billingEmail && ($value = $submission->getFieldValueAsString($billingEmail))) {
+            $customer['email'] = $value;
+        }
+
+        if ($billingAddress && ($address = $submission->getFieldValueAsArray($billingAddress)) && is_array($address)) {
+            $billingDetail['address_line1'] = ArrayHelper::remove($address, 'address1');
+            $billingDetail['address_line2'] = ArrayHelper::remove($address, 'address2');
+            $billingDetail['city'] = ArrayHelper::remove($address, 'city');
+            $billingDetail['postal_code'] = ArrayHelper::remove($address, 'zip');
+            $billingDetail['region'] = ArrayHelper::remove($address, 'state');
+            $billingDetail['country_code'] = ArrayHelper::remove($address, 'country');
+        }
+
+        if (!$customer && !$billingDetail) {
+            return;
+        }
+
+        $payload = array_filter([
+            'customer' => $customer ?: null,
+            'customer_billing_detail' => $billingDetail ?: null,
+        ]);
+
+        if (!$payload) {
+            return;
+        }
+
+        try {
+            $this->request('POST', "billing_requests/{$billingRequestId}/actions/collect_customer_details", [
+                'json' => ['data' => $payload],
+            ]);
+        } catch (Throwable $e) {
+            Formie::warning('GoCardless customer prefill failed for billing request "{billingRequestId}": {message}', [
+                'billingRequestId' => $billingRequestId,
+                'message' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    private function _syncPaymentFromBillingRequestReturn(PaymentModel $payment): void
+    {
+        $billingRequestId = $this->_resolveBillingRequestId($payment);
+
+        if (!$billingRequestId) {
+            return;
+        }
+
+        $billingRequest = $this->_fetchBillingRequest($billingRequestId);
+
+        if (!$billingRequest) {
+            return;
+        }
+
+        $this->_persistBillingRequestState($payment, $billingRequest);
+
+        if (($billingRequest['status'] ?? '') !== 'fulfilled') {
+            return;
+        }
+
+        $submission = $payment->getSubmission();
+
+        if (!$submission) {
+            throw new Exception(Craft::t('formie', 'Unable to find the submission for this payment.'));
+        }
+
+        $existing = is_array($payment->response) ? $payment->response : [];
+
+        if (!empty($existing['gcPayment']['id'])) {
+            $this->_updatePaymentStatus($payment, $existing['gcPayment']);
+
+            return;
+        }
+
+        $gcPaymentId = $this->_resolveBillingRequestPaymentId($billingRequest);
+
+        if ($gcPaymentId) {
+            $gcPayment = $this->request('GET', "payments/{$gcPaymentId}")['payments'] ?? [];
+            $this->_updatePaymentStatus($payment, $gcPayment);
+
+            return;
+        }
+
+        $mandateId = $this->_resolveBillingRequestMandateId($billingRequest);
+
+        if (!$mandateId) {
+            return;
+        }
+
+        $gcPayment = $this->_createGoCardlessPaymentForMandate($payment, $submission, $mandateId);
+        $this->_updatePaymentStatus($payment, $gcPayment);
+    }
+
+    private function _resolveBillingRequestId(PaymentModel $payment): ?string
+    {
+        $request = Craft::$app->getRequest();
+
+        if ($request->getIsWebRequest()) {
+            $queryBillingRequestId = trim((string)$request->getParam('billing_request_id'));
+
+            if ($queryBillingRequestId !== '') {
+                return $queryBillingRequestId;
+            }
+        }
+
+        $stored = is_array($payment->response) ? $payment->response : [];
+
+        return $stored['billingRequest']['id']
+            ?? $stored['billingRequestFlow']['links']['billing_request']
+            ?? null;
+    }
+
+    private function _fetchBillingRequest(string $billingRequestId): array
+    {
+        return $this->request('GET', "billing_requests/{$billingRequestId}")['billing_requests'] ?? [];
+    }
+
+    private function _persistBillingRequestState(PaymentModel $payment, array $billingRequest): void
+    {
+        $existing = is_array($payment->response) ? $payment->response : [];
+        $payment->response = array_merge($existing, [
+            'billingRequest' => $billingRequest,
+            'mandateId' => $this->_resolveBillingRequestMandateId($billingRequest),
+        ]);
+
+        if ($payment->status === PaymentModel::STATUS_REDIRECT && ($billingRequest['status'] ?? '') === 'fulfilled') {
+            $payment->status = PaymentModel::STATUS_PENDING;
+        }
+
+        Formie::$plugin->getPayments()->savePayment($payment);
+    }
+
+    private function _resolveBillingRequestMandateId(array $billingRequest): ?string
+    {
+        $candidates = [
+            $billingRequest['links']['mandate'] ?? null,
+            $billingRequest['mandate_request']['links']['mandate'] ?? null,
+            $billingRequest['links']['mandate_request_mandate'] ?? null,
+        ];
+
+        foreach ($candidates as $candidate) {
+            if (is_string($candidate) && $candidate !== '') {
+                return $candidate;
+            }
+        }
+
+        return null;
+    }
+
+    private function _resolveBillingRequestPaymentId(array $billingRequest): ?string
+    {
+        $candidates = [
+            $billingRequest['links']['payment'] ?? null,
+            $billingRequest['payment_request']['links']['payment'] ?? null,
+        ];
+
+        foreach ($candidates as $candidate) {
+            if (is_string($candidate) && $candidate !== '') {
+                return $candidate;
+            }
+        }
+
+        return null;
+    }
+
+    private function _processPaymentWebhookEvent(array $event): void
+    {
+        $resourceId = $event['links']['payment'] ?? null;
+
+        if (!$resourceId) {
+            return;
+        }
+
+        $gcPayment = $this->request('GET', "payments/{$resourceId}")['payments'] ?? [];
+        $formiePaymentId = $gcPayment['metadata']['formiePaymentId'] ?? null;
+
+        if (!$formiePaymentId) {
+            Integration::error($this, 'Missing `formiePaymentId` in GoCardless metadata.');
+            return;
+        }
+
+        $payment = Formie::$plugin->getPayments()->getPaymentById((int)$formiePaymentId);
+
+        if (!$payment) {
+            Integration::error($this, "No Formie payment found for ID: {$formiePaymentId}");
+            return;
+        }
+
+        if ($field = $payment->getField()) {
+            $this->setField($field);
+        }
+
+        $this->_updatePaymentStatus($payment, $gcPayment);
+    }
+
+    private function _processBillingRequestWebhookEvent(array $event, string $action): void
+    {
+        if (!in_array($action, ['fulfilled', 'created', 'confirmed'], true)) {
+            return;
+        }
+
+        $billingRequestId = $event['links']['billing_request'] ?? null;
+
+        if (!$billingRequestId) {
+            return;
+        }
+
+        $billingRequest = $this->_fetchBillingRequest($billingRequestId);
+        $formiePaymentId = $billingRequest['metadata']['formiePaymentId'] ?? null;
+
+        if (!$formiePaymentId) {
+            return;
+        }
+
+        $payment = Formie::$plugin->getPayments()->getPaymentById((int)$formiePaymentId);
+
+        if (!$payment) {
+            Integration::error($this, "No Formie payment found for billing request ID: {$formiePaymentId}");
+            return;
+        }
+
+        if ($field = $payment->getField()) {
+            $this->setField($field);
+        }
+
+        $this->_syncPaymentFromBillingRequestReturn($payment);
+    }
+
+    private function _updatePaymentStatus(PaymentModel $payment, array $gcPayment): void
+    {
+        if (!$gcPayment) {
+            return;
+        }
+
+        $status = $gcPayment['status'] ?? '';
 
         switch ($status) {
             case 'confirmed':
             case 'paid_out':
-            case 'pending_submission':
-            case 'submitted':
                 $payment->status = PaymentModel::STATUS_SUCCESS;
                 break;
             case 'failed':
@@ -607,6 +798,8 @@ class GoCardless extends Payment
             case 'customer_approval_denied':
                 $payment->status = PaymentModel::STATUS_FAILED;
                 break;
+            case 'pending_submission':
+            case 'submitted':
             default:
                 $payment->status = PaymentModel::STATUS_PENDING;
                 break;
@@ -615,89 +808,19 @@ class GoCardless extends Payment
         $existing = is_array($payment->response) ? $payment->response : [];
         $preserved = [];
 
-        foreach (['sessionToken', 'redirectFlow', 'completedRedirectFlow', 'mandateId'] as $key) {
+        foreach (['billingRequest', 'billingRequestFlow', 'mandateId'] as $key) {
             if (isset($existing[$key])) {
                 $preserved[$key] = $existing[$key];
             }
         }
 
-        $payment->response = array_merge($preserved, $gcPayment);
-
-        Formie::$plugin->getPayments()->savePayment($payment);
-    }
-
-    private function _completeGoCardlessRedirectFlow(PaymentModel $payment, string $redirectFlowId, string $sessionToken): array
-    {
-        $existing = is_array($payment->response) ? $payment->response : [];
-
-        if (!empty($existing['completedRedirectFlow']['links']['mandate'])) {
-            return $existing['completedRedirectFlow'];
-        }
-
-        try {
-            $apiResponse = $this->request('POST', "redirect_flows/{$redirectFlowId}/actions/complete", [
-                'json' => [
-                    'data' => [
-                        'session_token' => $sessionToken,
-                    ],
-                ],
-                'headers' => [
-                    'Idempotency-Key' => substr($payment->uid . '-rf-complete', 0, 120),
-                ],
-            ]);
-        } catch (Throwable $e) {
-            if ($this->_goCardlessErrorIsRedirectFlowAlreadyCompleted($e)) {
-                $mandateId = $existing['mandateId'] ?? null;
-
-                if ($mandateId) {
-                    return ['links' => ['mandate' => $mandateId]];
-                }
-            }
-
-            throw $e;
-        }
-
-        $flow = $apiResponse['redirect_flows'] ?? $apiResponse['redirect_flow'] ?? [];
-
-        if (empty($flow['links']['mandate'])) {
-            throw new Exception(Craft::t('formie', 'GoCardless did not return a mandate for this payment.'));
-        }
-
-        return $flow;
-    }
-
-    private function _goCardlessErrorIsRedirectFlowAlreadyCompleted(Throwable $e): bool
-    {
-        if (!$e instanceof ClientException) {
-            return false;
-        }
-
-        try {
-            $body = Json::decode($e->getResponse()->getBody()->getContents());
-            $errors = $body['error']['errors'] ?? [];
-
-            foreach ($errors as $error) {
-                if (($error['reason'] ?? '') === 'redirect_flow_already_completed') {
-                    return true;
-                }
-            }
-        } catch (Throwable) {
-            return false;
-        }
-
-        return false;
-    }
-
-    private function _persistMandateAfterRedirectFlowComplete(PaymentModel $payment, array $completedFlow, string $mandateId): void
-    {
-        $prev = is_array($payment->response) ? $payment->response : [];
-        $payment->response = array_merge($prev, [
-            'completedRedirectFlow' => $completedFlow,
-            'mandateId' => $mandateId,
+        $payment->reference = $gcPayment['id'] ?? $payment->reference;
+        $payment->response = array_merge($preserved, [
+            'gcPayment' => $gcPayment,
         ]);
-        $payment->status = PaymentModel::STATUS_PENDING;
 
         Formie::$plugin->getPayments()->savePayment($payment);
+        Formie::$plugin->getSubmissionProcessor()->replayPaymentIfSuccessful($payment);
     }
 
     private function _createGoCardlessPaymentForMandate(PaymentModel $payment, Submission $submission, string $mandateId): array
@@ -710,7 +833,7 @@ class GoCardless extends Payment
         }
 
         $paymentDescription = $this->getFieldSetting('paymentDescription') ?? "Formie Submission #{$submission->id}";
-        $referenceBase = Variables::getParsedValue($paymentDescription, $submission, $submission->getForm());
+        $referenceBase = References::parseContent($paymentDescription, $submission);
         $reference = strtoupper(substr(preg_replace('/[^A-Za-z0-9\-]/', '-', (string)$referenceBase), 0, 18));
 
         if ($reference === '' || $reference === '-') {
@@ -721,6 +844,7 @@ class GoCardless extends Payment
         $payload = [
             'amount' => $amountMinor,
             'currency' => strtoupper($currency),
+            'description' => (string)$referenceBase,
             'metadata' => [
                 'formiePaymentId' => (string)$payment->id,
             ],
@@ -744,21 +868,6 @@ class GoCardless extends Payment
         }
 
         return $gcPayment;
-    }
-
-    private function _failGoCardlessReturn(PaymentModel $payment, Submission $submission, string $message): void
-    {
-        $payment->status = PaymentModel::STATUS_FAILED;
-        $payment->message = $message;
-
-        Formie::$plugin->getPayments()->savePayment($payment);
-
-        $form = $submission->getForm();
-        Formie::$plugin->getService()->setError($form->getFlashNamespace(), $message);
-
-        $url = $payment->redirectUrl ?: UrlHelper::siteUrl();
-
-        Craft::$app->getResponse()->redirect($url)->send();
     }
 
     private function _amountToMinorUnits(float $amount, string $currencyCode): int

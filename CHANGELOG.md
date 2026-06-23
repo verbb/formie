@@ -7,6 +7,7 @@
 - Add Stripe subscription **Payment Limit** field settings to cancel subscriptions automatically after a fixed or dynamic number of payments using Stripe subscription schedules. ([#2123](https://github.com/verbb/formie/issues/2123))
 - Add Stripe subscription **Setup Fee** field settings to charge a one-time fee on the first subscription invoice using Stripe invoice items. ([#1767](https://github.com/verbb/formie/issues/1767))
 - Add headless GraphQL payment support: structured Payment field input types, payment follow-up fields on `submitFormieClientForm`, and BYO provider documentation. ([#1375](https://github.com/verbb/formie/issues/1375))
+- Migrate GoCardless payments from deprecated Redirect Flows to Billing Request Flows, including mandate fulfilment, one-off payment creation, and billing request webhooks. ([#2552](https://github.com/verbb/formie/issues/2552))
 
 ### Changed
 - Improve default theme color contrast for WCAG 2.2 AA — darker error text, muted helper text, and border-only control styling with split border tokens ([#2475](https://github.com/verbb/formie/issues/2475)).
