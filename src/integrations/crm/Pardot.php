@@ -230,7 +230,7 @@ class Pardot extends Crm implements OAuthProviderInterface
                     ]),
                     new IntegrationField([
                         'handle' => 'zip',
-                        'name' => Craft::t('formie', 'Zip'),
+                        'name' => Craft::t('formie', 'ZIP / Postal Code'),
                     ]),
                     new IntegrationField([
                         'handle' => 'phone',

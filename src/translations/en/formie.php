@@ -1,25 +1,6 @@
 <?php
 
 return [
-  //
-  // Email Messages
-  //
-  'formie_failed_notification_heading' => 'When an email notification fails to send:',
-  'formie_failed_notification_subject' => 'Email notification failed to send for form "{{ form.title }}" on {{ siteName }}.',
-  'formie_failed_notification_body' => "An email notification for the form “{{ form.title }}” has failed to send.\n\n" .
-    "The error response was recorded: {{ emailResponse | json_encode }}.\n\n" .
-    "To review it please log into your control panel.\n\n" .
-    "{{ submission.cpEditUrl }}",
-  'formie_failed_integration_heading' => 'When an integration fails to send:',
-  'formie_failed_integration_subject' => 'Integration failed for form "{{ form.title }}" on {{ siteName }}.',
-  'formie_failed_integration_body' => "The “{{ integration.name }}” integration for the form “{{ form.title }}” has failed.\n\n" .
-    "The error was: {{ errorMessage }}\n\n" .
-    "{% if integrationResponse %}The response was recorded: {{ integrationResponse | json_encode }}.\n\n{% endif %}" .
-    "{% if queueJobId %}Queue job ID: {{ queueJobId }}\n\n{% endif %}" .
-    "To review it please log into your control panel.\n\n" .
-    "{{ submission.cpEditUrl }}",
-
-    
   '"{label}" should contain at most {max, number} {max, plural, one{character} other{characters}}.' => '"{label}" should contain at most {max, number} {max, plural, one{character} other{characters}}.',
   '(GDPR) {text}' => '(GDPR) {text}',
   '(optional)' => '(optional)',
@@ -774,7 +755,6 @@ return [
   'Definitely' => 'Definitely',
   'Definitely Not' => 'Definitely Not',
   'Delete' => 'Delete',
-  'DELETE' => 'DELETE',
   'Deleted' => 'Deleted',
   'Delete files' => 'Delete files',
   'Delete form group' => 'Delete form group',
@@ -1165,6 +1145,28 @@ return [
   'Form Handler URL' => 'Form Handler URL',
   'Formie' => 'Formie',
   'Formie Form' => 'Formie Form',
+  'formie_failed_integration_body' => 'The “{{ integration.name }}” integration for the form “{{ form.title }}” has failed.
+
+The error was: {{ errorMessage }}
+
+{% if integrationResponse %}The response was recorded: {{ integrationResponse | json_encode }}.
+
+{% endif %}{% if queueJobId %}Queue job ID: {{ queueJobId }}
+
+{% endif %}To review it please log into your control panel.
+
+{{ submission.cpEditUrl }}',
+  'formie_failed_integration_heading' => 'When an integration fails to send:',
+  'formie_failed_integration_subject' => 'Integration failed for form "{{ form.title }}" on {{ siteName }}.',
+  'formie_failed_notification_body' => 'An email notification for the form “{{ form.title }}” has failed to send.
+
+The error response was recorded: {{ emailResponse | json_encode }}.
+
+To review it please log into your control panel.
+
+{{ submission.cpEditUrl }}',
+  'formie_failed_notification_heading' => 'When an email notification fails to send:',
+  'formie_failed_notification_subject' => 'Email notification failed to send for form "{{ form.title }}" on {{ siteName }}.',
   'Form imported.' => 'Form imported.',
   'Form moved.' => 'Form moved.',
   'Form Name' => 'Form Name',
@@ -1216,7 +1218,6 @@ return [
   'General' => 'General',
   'General Settings' => 'General Settings',
   'Geocoding API Key' => 'Geocoding API Key',
-  'GET' => 'GET',
   'Get Support' => 'Get Support',
   'Global submission rate limit exceeded.' => 'Global submission rate limit exceeded.',
   'Global Submission Throttling' => 'Global Submission Throttling',
@@ -1441,7 +1442,6 @@ return [
   'JSON' => 'JSON',
   'JSON Body' => 'JSON Body',
   'Key' => 'Key',
-  'key' => 'key',
   'Keyword' => 'Keyword',
   'Label' => 'Label',
   'Label & value mapping' => 'Label & value mapping',
@@ -1947,7 +1947,6 @@ return [
   'Pass threshold' => 'Pass threshold',
   'Password' => 'Password',
   'Paste as Plain Text' => 'Paste as Plain Text',
-  'PATCH' => 'PATCH',
   'Payment' => 'Payment',
   'Payment Amount' => 'Payment Amount',
   'Payment authorized. Finalize the form to complete payment.' => 'Payment authorized. Finalize the form to complete payment.',
@@ -2045,7 +2044,6 @@ return [
   'Polite (default)' => 'Polite (default)',
   'Portal' => 'Portal',
   'Position' => 'Position',
-  'POST' => 'POST',
   'Postal Code' => 'Postal Code',
   'Postcode' => 'Postcode',
   'Predefined' => 'Predefined',
@@ -2122,7 +2120,6 @@ return [
   'Publishable Key' => 'Publishable Key',
   'Purify Content' => 'Purify Content',
   'Push form metadata after each successful page submit.' => 'Push form metadata after each successful page submit.',
-  'PUT' => 'PUT',
   'px' => 'px',
   'QA/Quality Control' => 'QA/Quality Control',
   'Qualified' => 'Qualified',
@@ -3380,10 +3377,7 @@ return [
   'YYYY-MM-DD' => 'YYYY-MM-DD',
   'YYYY.MM.DD' => 'YYYY.MM.DD',
   'YYYY/MM/DD' => 'YYYY/MM/DD',
-  'Zip' => 'Zip',
   'ZIP / Postal Code' => 'ZIP / Postal Code',
-  'Zip Code' => 'Zip Code',
-  'Zipcode' => 'Zipcode',
   '[Form “{handle}” (#{formId}) submission #{submissionId}]' => '[Form “{handle}” (#{formId}) submission #{submissionId}]',
   '[Submission #{submissionId}]' => '[Submission #{submissionId}]',
   '[Test] {subject}' => '[Test] {subject}',

@@ -825,6 +825,7 @@ class Formie extends Plugin
 
     private function _registerEmailMessages(): void
     {
+        // Copy for these message IDs lives in translations/email-messages.php (merged on translation regen).
         Event::on(SystemMessages::class, SystemMessages::EVENT_REGISTER_MESSAGES, function(RegisterEmailMessagesEvent $event) {
             $event->messages[] = [
                 'key' => 'formie_failed_notification',

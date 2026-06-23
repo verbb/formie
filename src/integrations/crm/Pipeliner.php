@@ -81,7 +81,7 @@ class Pipeliner extends Crm
                     ]),
                     new IntegrationField([
                         'handle' => 'zip_code',
-                        'name' => Craft::t('formie', 'Zip Code'),
+                        'name' => Craft::t('formie', 'ZIP / Postal Code'),
                     ]),
                     new IntegrationField([
                         'handle' => 'country',

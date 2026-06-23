@@ -82,7 +82,7 @@ class Ontraport extends EmailMarketing
                     ]),
                     new IntegrationField([
                         'handle' => 'zip',
-                        'name' => Craft::t('formie', 'Zip'),
+                        'name' => Craft::t('formie', 'ZIP / Postal Code'),
                     ]),
                     new IntegrationField([
                         'handle' => 'country',

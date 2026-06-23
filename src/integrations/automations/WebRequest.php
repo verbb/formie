@@ -182,12 +182,13 @@ class WebRequest extends Automation
             'name' => 'method',
             'required' => true,
             'defaultValue' => $this->method ?: 'POST',
+            // HTTP method names are protocol constants — deliberately not using Craft::t().
             'options' => [
-                ['label' => Craft::t('formie', 'GET'), 'value' => 'GET'],
-                ['label' => Craft::t('formie', 'POST'), 'value' => 'POST'],
-                ['label' => Craft::t('formie', 'PUT'), 'value' => 'PUT'],
-                ['label' => Craft::t('formie', 'PATCH'), 'value' => 'PATCH'],
-                ['label' => Craft::t('formie', 'DELETE'), 'value' => 'DELETE'],
+                ['label' => 'GET', 'value' => 'GET'],
+                ['label' => 'POST', 'value' => 'POST'],
+                ['label' => 'PUT', 'value' => 'PUT'],
+                ['label' => 'PATCH', 'value' => 'PATCH'],
+                ['label' => 'DELETE', 'value' => 'DELETE'],
             ],
         ]);
         $schema[] = SchemaHelper::selectField([

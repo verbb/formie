@@ -139,7 +139,7 @@ class Freshsales extends Crm
                     ]),
                     new IntegrationField([
                         'handle' => 'zipcode',
-                        'name' => Craft::t('formie', 'Zipcode'),
+                        'name' => Craft::t('formie', 'ZIP / Postal Code'),
                     ]),
                     new IntegrationField([
                         'handle' => 'country',
@@ -197,7 +197,7 @@ class Freshsales extends Crm
                     ]),
                     new IntegrationField([
                         'handle' => 'zipcode',
-                        'name' => Craft::t('formie', 'Zipcode'),
+                        'name' => Craft::t('formie', 'ZIP / Postal Code'),
                     ]),
                     new IntegrationField([
                         'handle' => 'country',
@@ -379,7 +379,7 @@ class Freshsales extends Crm
                     ]),
                     new IntegrationField([
                         'handle' => 'zipcode',
-                        'name' => Craft::t('formie', 'Zipcode'),
+                        'name' => Craft::t('formie', 'ZIP / Postal Code'),
                     ]),
                     new IntegrationField([
                         'handle' => 'country',
