@@ -727,6 +727,8 @@ class SubmissionsController extends Controller
                 $payload['redirectUrl'] = $response->paymentRedirectUrl;
             }
 
+            $this->_appendPaymentResponsePayload($payload, $response);
+
             return $payload;
         }
 
@@ -776,6 +778,25 @@ class SubmissionsController extends Controller
         }
 
         return $payload;
+    }
+
+    private function _appendPaymentResponsePayload(array &$payload, SubmissionResponse $response): void
+    {
+        if ($response->paymentStatus) {
+            $payload['paymentStatus'] = $response->paymentStatus;
+        }
+
+        if ($response->paymentMessage) {
+            $payload['paymentMessage'] = StringHelper::sanitizeMessageHtml($response->paymentMessage);
+        }
+
+        if ($response->paymentAction) {
+            $payload['paymentAction'] = $response->paymentAction;
+        }
+
+        if ($response->paymentDecision) {
+            $payload['paymentDecision'] = $response->paymentDecision;
+        }
     }
 
     private function _stashPageReloadClientEvents(

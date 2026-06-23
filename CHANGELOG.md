@@ -12,6 +12,9 @@
 ### Fixed
 - Fix required asterisk indicator not appearing on Agree fields when the field label is hidden and consent copy is shown on the checkbox label. ([#2333](https://github.com/verbb/formie/issues/2333))
 - Fix rich-text links to internal pages opening in a new tab including `rel="noopener noreferrer nofollow"`. Internal links now omit the attribute; external links keep it. ([#2604](https://github.com/verbb/formie/issues/2604))
+- Fix payment amount parsing for locale-formatted dynamic values (for example `1,234.56`, `1.750,00`, and `£750.00`) on both the server and in the browser payment modules. ([#2334](https://github.com/verbb/formie/issues/2334))
+- Fix payment follow-up states (such as 3D Secure authentication) showing as red validation errors. Action-required and pending payment responses now render as neutral form notices, and Ajax submit payloads include `paymentStatus`, `paymentMessage`, `paymentAction`, and `paymentDecision` metadata. ([#2660](https://github.com/verbb/formie/issues/2660))
+- Fix Stripe payment intent amounts being sent as floats; minor-unit values are now sent as integers.
 
 ## 4.0.0-beta.8 - 2026-06-26
 

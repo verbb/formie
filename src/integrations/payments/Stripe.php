@@ -88,13 +88,13 @@ class Stripe extends Payment
         return true;
     }
 
-    public static function toStripeAmount(float $amount, string $currency): float
+    public static function toStripeAmount(float $amount, string $currency): int
     {
         if (in_array(strtoupper($currency), self::ZERO_DECIMAL_CURRENCIES)) {
-            return $amount;
+            return (int)ceil($amount);
         }
 
-        return ceil($amount * 100);
+        return (int)ceil($amount * 100);
     }
 
     public static function fromStripeAmount(float $amount, string $currency): float

@@ -367,6 +367,31 @@ export function renderFormErrors(form: HTMLFormElement, formErrors: string[]): v
     });
 }
 
+function isPaymentFollowUpResult(result: FormSubmitResult): boolean {
+    if (result.ok || result.keepSubmitLoading !== true) {
+        return false;
+    }
+
+    const meta = (result.meta || {}) as Record<string, unknown>;
+    const paymentStatus = String(meta.paymentStatus || '');
+
+    return paymentStatus === 'actionRequired' || paymentStatus === 'pending';
+}
+
+export function renderFormNotice(form: HTMLFormElement, message: string): void {
+    const container = ensureFormErrorContainer(form);
+    const messageContainer = ensureFormErrorMessageContainer(form, container);
+
+    addThemeClasses(container, form, 'errors');
+
+    const noticeNode = document.createElement('div');
+    noticeNode.setAttribute('data-formie-notice', 'true');
+    noticeNode.setAttribute('role', 'status');
+    addThemeClasses(noticeNode, form, 'message');
+    noticeNode.textContent = message;
+    messageContainer.appendChild(noticeNode);
+}
+
 function shouldRenderSuccessMessage(form: HTMLFormElement, result: FormSubmitResult): boolean {
     if (!result.message || result.nextPage || result.redirect) {
         // Page changes and redirects are transitional outcomes, not terminal
@@ -432,15 +457,28 @@ export function applySubmitResultUi(form: HTMLFormElement, result: FormSubmitRes
         return;
     }
 
-    if (result.fieldErrors) {
-        renderFieldErrors(form, result.fieldErrors);
-    }
+    if (!result.ok) {
+        if (isPaymentFollowUpResult(result)) {
+            const meta = (result.meta || {}) as Record<string, unknown>;
+            const message = String(meta.paymentMessage || '').trim();
 
-    if (result.formErrors?.length) {
-        renderFormErrors(form, result.formErrors);
-    } else if (!result.fieldErrors && result.message) {
-        renderFormErrors(form, [result.message]);
-    }
+            if (message) {
+                renderFormNotice(form, message);
+            }
 
-    focusFirstValidationError(form);
+            return;
+        }
+
+        if (result.fieldErrors) {
+            renderFieldErrors(form, result.fieldErrors);
+        }
+
+        if (result.formErrors?.length) {
+            renderFormErrors(form, result.formErrors);
+        } else if (!result.fieldErrors && result.message) {
+            renderFormErrors(form, [result.message]);
+        }
+
+        focusFirstValidationError(form);
+    }
 }

@@ -47,9 +47,21 @@ export function currencyToFloat(currencyString: string): number {
     // Accept both "1,234.56" and "1.234,56" style inputs so calculations can
     // operate on locale-formatted values emitted by other field modules.
     if (hasComma && hasDot) {
-        sanitized = sanitized.replace(/\./g, '').replace(/,/, '.');
+        if (sanitized.lastIndexOf(',') > sanitized.lastIndexOf('.')) {
+            // EU style: 1.234,56
+            sanitized = sanitized.replace(/\./g, '').replace(',', '.');
+        } else {
+            // US style: 1,234.56
+            sanitized = sanitized.replace(/,/g, '');
+        }
     } else if (hasComma && !hasDot) {
-        sanitized = sanitized.replace(/,/, '.');
+        const parts = sanitized.split(',');
+
+        if (parts.length === 2 && parts[1].length === 3 && /^\d+$/.test(parts[0]) && /^\d+$/.test(parts[1])) {
+            sanitized = parts[0] + parts[1];
+        } else {
+            sanitized = sanitized.replace(',', '.');
+        }
     } else {
         sanitized = sanitized.replace(/,/g, '');
     }

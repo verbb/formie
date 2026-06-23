@@ -12,6 +12,7 @@ use verbb\formie\fields\Payment as PaymentField;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\FieldReferenceHelper;
 use verbb\formie\helpers\StringHelper;
+use verbb\formie\helpers\PaymentAmountHelper;
 use verbb\formie\helpers\References;
 use verbb\formie\models\Payment as PaymentRecordModel;
 use verbb\formie\models\PaymentDecision;
@@ -286,17 +287,12 @@ abstract class Payment extends Integration
         $amountVariable = $this->getFieldSetting('amountVariable');
 
         if ($amountType === Payment::VALUE_TYPE_FIXED) {
-            $amount = $amountFixed;
+            $amount = PaymentAmountHelper::parseAmount($amountFixed);
         } else if ($amountType === Payment::VALUE_TYPE_DYNAMIC) {
-            $amount = References::parseValue($amountVariable, $submission);
-
-            // Just in case there's a currency symbol in the value
-            $symbols = ['$','€','£','¥','₣','₹','₻','₽','₾','₺','₼','₸','฿','원','₫','₱','₳','₵'];
-
-            $amount = str_replace($symbols, '', $amount);
+            $amount = PaymentAmountHelper::parseAmount(References::parseValue($amountVariable, $submission));
         }
 
-        return (float)$amount;
+        return $amount;
     }
 
     public function getCurrency(Submission $submission): ?string
