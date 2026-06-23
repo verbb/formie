@@ -349,6 +349,7 @@
             "developers/schema",
             "developers/custom-field",
             "developers/field-defaults",
+            "developers/reference-tokens",
             "developers/custom-variable-sources",
             "developers/custom-client-event-templates",
             {

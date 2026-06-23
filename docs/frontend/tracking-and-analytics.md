@@ -13,7 +13,7 @@ Each event has:
 - **Event Name** — the analytics event identifier (for GTM, this is usually pushed as the `event` property on the payload).
 - **Payload properties** — key/value pairs pushed to `dataLayer` and the `formie:client-event` DOM event.
 
-For payload **values**, use the variable picker in the builder. Formie stores reference tokens such as `{field:a1b2c3}` for fields and `{form:handle}` for form variables. Do not type a field handle directly in braces — field tokens use each field's stable reference, and the picker inserts the correct token for the current form.
+For payload **values**, use the [variable picker](/developers/reference-tokens). Formie stores reference tokens such as `{field:a1b2c3}` for fields and `{form:handle}` for form variables. Do not type a field handle directly in braces — field tokens use each field's stable reference, and the picker inserts the correct token for the current form.
 
 Values are resolved server-side after a successful page submit, so they can include submission metadata and complex field values.
 

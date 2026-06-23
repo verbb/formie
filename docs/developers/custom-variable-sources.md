@@ -1,6 +1,6 @@
 # Custom Variable Sources
 
-Register your own server-resolved variables for Formie's variable picker. Custom sources appear in the control panel alongside built-in Form, Site, and System variables, and resolve anywhere Formie parses reference tokens — email notifications, integrations, PDF templates, and more.
+Register your own server-resolved variables for Formie's variable picker. Custom sources appear in the control panel alongside built-in Form, Site, and System variables, and resolve anywhere Formie parses [reference tokens](/developers/reference-tokens) — email notifications, integrations, PDF templates, and more.
 
 ## Register a source
 

@@ -192,6 +192,93 @@ class References
         return $trimmed . '|' . $default . '}';
     }
 
+    /**
+     * Build a variable-picker-compatible reference token.
+     *
+     * Use this from Twig via `craft.formie.ref()` when overriding settings such as `submitActionMessage`.
+     * Submit action messages do not evaluate Twig at submit time — they store reference tokens that
+     * Formie resolves when the submission completes.
+     *
+     * Examples:
+     * - token('submission', 'uid') => `{submission:uid}`
+     * - token('allFields') => `{allFields}`
+     * - token('field', 'a1b2c3', 'email') => `{field:a1b2c3:email}`
+     */
+    public static function token(
+        string $target,
+        string $identifier = '',
+        ?string $selector = null,
+        array $metadata = [],
+        string $default = '',
+    ): string {
+        $target = trim($target);
+        $identifier = trim($identifier);
+        $selector = trim((string)$selector);
+        $default = trim($default);
+
+        if ($target === '') {
+            throw new \InvalidArgumentException('Reference target cannot be empty.');
+        }
+
+        if (in_array($target, ['timestamp', 'allFields', 'allContentFields', 'allVisibleFields'], true) && $identifier === '') {
+            $body = $target;
+
+            if (isset($metadata['transform'])) {
+                $body .= ';transform=' . rawurlencode((string)$metadata['transform']);
+                unset($metadata['transform']);
+            }
+
+            foreach ($metadata as $key => $value) {
+                if ($value === null || $value === '') {
+                    continue;
+                }
+
+                $body .= ';' . $key . '=' . rawurlencode((string)$value);
+            }
+
+            $token = '{' . $body . '}';
+
+            return $default !== '' ? self::withDefault($token, $default) : $token;
+        }
+
+        if ($target === 'field') {
+            if ($identifier === '') {
+                throw new \InvalidArgumentException('Field reference tokens require a field reference identifier.');
+            }
+
+            $token = self::field($identifier, $selector !== '' ? $selector : null, $metadata);
+
+            return $default !== '' ? self::withDefault($token, $default) : $token;
+        }
+
+        if ($identifier === '') {
+            throw new \InvalidArgumentException(sprintf('Reference token "%s" requires an identifier.', $target));
+        }
+
+        $body = $identifier;
+
+        if ($selector !== '') {
+            $body .= ':' . $selector;
+        }
+
+        if (isset($metadata['transform'])) {
+            $body .= ';transform=' . rawurlencode((string)$metadata['transform']);
+            unset($metadata['transform']);
+        }
+
+        foreach ($metadata as $key => $value) {
+            if ($value === null || $value === '') {
+                continue;
+            }
+
+            $body .= ';' . $key . '=' . rawurlencode((string)$value);
+        }
+
+        $token = '{' . $target . ':' . $body . '}';
+
+        return $default !== '' ? self::withDefault($token, $default) : $token;
+    }
+
     public static function field(string $reference, ?string $selector = null, array $metadata = []): string
     {
         $reference = trim($reference);

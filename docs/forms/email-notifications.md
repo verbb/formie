@@ -25,12 +25,7 @@ If the email should only send for certain submissions, use [Conditions](/forms/c
 
 The content editor stays fairly simple on purpose, so the email is more likely to work across mail clients.
 
-Use the variable picker to insert:
-
-- field values from the submission
-- user details, when a logged-in user is involved
-- dates and site values
-- an “all fields” summary when you want a complete submission overview
+Use the [variable picker](/developers/reference-tokens) to insert field values, submission details, site and user values, summary selectors, and custom variables.
 
 If you need more control over the outer email layout, move that concern into an email template rather than trying to make the content field do everything.
 

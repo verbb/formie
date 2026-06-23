@@ -9,6 +9,7 @@
 - Add headless GraphQL payment support: structured Payment field input types, payment follow-up fields on `submitFormieClientForm`, and BYO provider documentation. ([#1375](https://github.com/verbb/formie/issues/1375))
 - Migrate GoCardless payments from deprecated Redirect Flows to Billing Request Flows, including mandate fulfilment, one-off payment creation, and billing request webhooks. ([#2552](https://github.com/verbb/formie/issues/2552))
 - Add GoCardless recurring subscription support via Direct Debit mandate authorisation and GoCardless subscription creation after billing request fulfilment. ([#2552](https://github.com/verbb/formie/issues/2552))
+- Add `craft.formie.ref()` and `craft.formie.refField()` for building variable-picker-compatible reference tokens from Twig when overriding settings such as `submitActionMessage`. See [Reference tokens](/developers/reference-tokens). ([#2838](https://github.com/verbb/formie/issues/2838))
 
 ### Changed
 - Stop routing user-authored form content (labels, placeholders, messages, options) through the `formie` translation category. Form copy is output from the database after site overrides are merged; `formie.php` is for Formie-owned UI strings only ([#2907](https://github.com/verbb/formie/issues/2907)).

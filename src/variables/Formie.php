@@ -202,6 +202,41 @@ class Formie
         return References::parseContent($content, $submission, $options);
     }
 
+    /**
+     * Build a variable-picker-compatible reference token for Twig overrides.
+     *
+     * Submit action messages and other rich-text settings resolve reference tokens at submit time — they do not evaluate Twig.
+     *
+     * @example craft.formie.ref('submission', 'uid') => `{submission:uid}`
+     * @example craft.formie.ref('allFields')
+     */
+    public function ref(string $target, string $identifier = '', ?string $selector = null, array $options = []): string
+    {
+        $default = (string)($options['default'] ?? '');
+        unset($options['default']);
+
+        return References::token($target, $identifier, $selector, $options, $default);
+    }
+
+    /**
+     * Build a field reference token from a field handle on the given form.
+     *
+     * @example craft.formie.refField(form, 'email')
+     */
+    public function refField(Form $form, string $handle, ?string $selector = null, array $options = []): string
+    {
+        $field = $form->getFieldByHandle($handle);
+
+        if (!$field) {
+            throw new \InvalidArgumentException(sprintf('Field "%s" not found on form "%s".', $handle, $form->handle));
+        }
+
+        $default = (string)($options['default'] ?? '');
+        unset($options['default']);
+
+        return References::token('field', (string)$field->reference, $selector, $options, $default);
+    }
+
     public function populateFormValues(Form $element, $values, $force = false): void
     {
         FormiePlugin::$plugin->getRendering()->populateFormValues($element, $values, $force);
