@@ -54,6 +54,7 @@ class Stripe extends Payment
     // =========================================================================
 
     public const EVENT_MODIFY_SUBSCRIPTION_PAYLOAD = 'modifySubscriptionPayload';
+    public const EVENT_MODIFY_SUBSCRIPTION_SCHEDULE_PAYLOAD = 'modifySubscriptionSchedulePayload';
     public const EVENT_MODIFY_SINGLE_PAYLOAD = 'modifySinglePayload';
     public const EVENT_MODIFY_PLAN_PAYLOAD = 'modifyPlanPayload';
     public const EVENT_MODIFY_CUSTOMER_PAYLOAD = 'modifyCustomerPayload';
@@ -240,6 +241,27 @@ class Stripe extends Payment
         return self::toStripeAmount(parent::getAmount($submission), $this->getCurrency($submission));
     }
 
+    public function getSubscriptionPaymentLimit(Submission $submission): ?int
+    {
+        $limitType = $this->getFieldSetting('subscriptionLimitType');
+
+        if ($limitType === Payment::VALUE_TYPE_FIXED) {
+            $value = $this->getFieldSetting('subscriptionLimitFixed');
+        } elseif ($limitType === Payment::VALUE_TYPE_DYNAMIC) {
+            $value = References::parseValue($this->getFieldSetting('subscriptionLimitVariable'), $submission);
+        } else {
+            return null;
+        }
+
+        if (!is_numeric($value)) {
+            return null;
+        }
+
+        $limit = (int)$value;
+
+        return $limit > 0 ? $limit : null;
+    }
+
     public function processPayment(Submission $submission): PaymentDecision
     {
         $result = false;
@@ -368,10 +390,36 @@ class Stripe extends Payment
             ]);
             $this->trigger(self::EVENT_MODIFY_SUBSCRIPTION_PAYLOAD, $event);
 
-            // Create the Stripe subscription
-            $response = $this->getStripe()->subscriptions->create($event->payload, [
-                'idempotency_key' => $this->_getIdempotencyKey($submission, 'subscription-create'),
-            ]);
+            $paymentLimit = $this->getSubscriptionPaymentLimit($submission);
+            $limitType = $this->getFieldSetting('subscriptionLimitType');
+
+            if ($limitType === Payment::VALUE_TYPE_FIXED && $paymentLimit === null) {
+                throw new Exception(Craft::t('formie', 'Enter a valid subscription payment limit.'));
+            }
+
+            if ($paymentLimit !== null) {
+                $schedulePayload = $this->_buildSubscriptionSchedulePayload($event->payload, $plan->reference, $paymentLimit);
+
+                $scheduleEvent = new ModifyPaymentPayloadEvent([
+                    'integration' => $this,
+                    'submission' => $submission,
+                    'payload' => $schedulePayload,
+                ]);
+                $this->trigger(self::EVENT_MODIFY_SUBSCRIPTION_SCHEDULE_PAYLOAD, $scheduleEvent);
+
+                $scheduleResponse = $this->getStripe()->subscriptionSchedules->create($scheduleEvent->payload, [
+                    'idempotency_key' => $this->_getIdempotencyKey($submission, 'subscription-schedule-create'),
+                ]);
+
+                $response = $this->_resolveScheduleSubscription($scheduleResponse);
+                $scheduleId = $scheduleResponse->id;
+            } else {
+                // Create the Stripe subscription
+                $response = $this->getStripe()->subscriptions->create($event->payload, [
+                    'idempotency_key' => $this->_getIdempotencyKey($submission, 'subscription-create'),
+                ]);
+                $scheduleId = null;
+            }
 
             // Create and record our Formie subscription
             $subscription = new Subscription();
@@ -381,34 +429,19 @@ class Stripe extends Payment
             $subscription->planId = $plan->id;
             $subscription->reference = $response->id;
             $subscription->subscriptionData = $response->toArray();
+
+            if ($scheduleId) {
+                $subscription->subscriptionData['formieScheduleId'] = $scheduleId;
+                $subscription->subscriptionData['formiePaymentLimit'] = $paymentLimit;
+            }
+
             $subscription->trialDays = 0;
 
             $this->_setSubscriptionStatusData($subscription, $response);
 
             Formie::$plugin->getSubscriptions()->saveSubscription($subscription);
 
-            // Tell the front-end to stop the submission and to confirm the Payment Intent.
-            if ($response->pending_setup_intent !== null) {
-                $submission->getForm()->addSubmitData([
-                    'event' => 'formie:payment:stripe:confirm',
-                    'data' => [
-                        'type' => 'setup',
-                        'clientSecret' => $response->pending_setup_intent->client_secret,
-                        'subscriptionId' => $response->id,
-                        'returnUrl' => $this->getReturnUrl($submission),
-                    ],
-                ]);
-            } else {
-                $submission->getForm()->addSubmitData([
-                    'event' => 'formie:payment:stripe:confirm',
-                    'data' => [
-                        'type' => 'payment',
-                        'clientSecret' => $response->latest_invoice->payment_intent->client_secret,
-                        'subscriptionId' => $response->id,
-                        'returnUrl' => $this->getReturnUrl($submission),
-                    ],
-                ]);
-            }
+            $this->_addStripeSubscriptionConfirmSubmitData($submission, $response);
 
             return false;
         } catch (Throwable $e) {
@@ -1027,6 +1060,43 @@ class Stripe extends Payment
                 'name' => 'planDescription',
                 'if' => 'type == "subscription"',
             ]),
+            SchemaHelper::fieldWrap([
+                'label' => Craft::t('formie', 'Payment Limit'),
+                'instructions' => Craft::t('formie', 'Limit how many subscription payments are collected before Stripe cancels the subscription automatically.'),
+                'if' => 'type == "subscription"',
+                'children' => [
+                    SchemaHelper::selectField([
+                        'name' => 'subscriptionLimitType',
+                        'options' => [
+                            ['label' => Craft::t('formie', 'No limit'), 'value' => ''],
+                            ['label' => Craft::t('formie', 'Fixed Value'), 'value' => Payment::VALUE_TYPE_FIXED],
+                            ['label' => Craft::t('formie', 'Dynamic Value'), 'value' => Payment::VALUE_TYPE_DYNAMIC],
+                        ],
+                    ]),
+                    SchemaHelper::numberField([
+                        'name' => 'subscriptionLimitFixed',
+                        'required' => true,
+                        'size' => 6,
+                        'if' => 'subscriptionLimitType == "' . Payment::VALUE_TYPE_FIXED . '"',
+                    ]),
+                    SchemaHelper::fieldSelectField([
+                        'name' => 'subscriptionLimitVariable',
+                        'referenceContext' => 'client',
+                        'includeSelectors' => false,
+                        'topLevelOnly' => true,
+                        'required' => true,
+                        'fieldTypes' => [
+                            fields\Calculations::class,
+                            fields\Dropdown::class,
+                            fields\Hidden::class,
+                            fields\Number::class,
+                            fields\Radio::class,
+                            fields\SingleLineText::class,
+                        ],
+                        'if' => 'subscriptionLimitType == "' . Payment::VALUE_TYPE_DYNAMIC . '"',
+                    ]),
+                ],
+            ]),
         ];
     }
 
@@ -1514,6 +1584,87 @@ class Stripe extends Payment
 
             return null;
         }
+    }
+
+    private function _buildSubscriptionSchedulePayload(array $subscriptionPayload, string $planReference, int $iterations): array
+    {
+        $schedulePayload = [
+            'customer' => $subscriptionPayload['customer'],
+            'start_date' => 'now',
+            'end_behavior' => 'cancel',
+            'phases' => [
+                [
+                    'items' => [
+                        ['plan' => $planReference],
+                    ],
+                    'iterations' => $iterations,
+                ],
+            ],
+            'default_settings' => [
+                'collection_method' => 'charge_automatically',
+            ],
+            'expand' => ['subscription.latest_invoice.payment_intent', 'subscription.pending_setup_intent'],
+        ];
+
+        if (!empty($subscriptionPayload['metadata'])) {
+            $schedulePayload['metadata'] = $subscriptionPayload['metadata'];
+        }
+
+        if (!empty($subscriptionPayload['description'])) {
+            $schedulePayload['default_settings']['description'] = $subscriptionPayload['description'];
+        }
+
+        return $schedulePayload;
+    }
+
+    private function _resolveScheduleSubscription(object $scheduleResponse): StripeSubscription
+    {
+        $subscription = $scheduleResponse->subscription ?? null;
+
+        if ($subscription instanceof StripeSubscription) {
+            return $subscription;
+        }
+
+        if (is_string($subscription) && $subscription !== '') {
+            return $this->getStripe()->subscriptions->retrieve($subscription, [
+                'expand' => ['latest_invoice.payment_intent', 'pending_setup_intent'],
+            ]);
+        }
+
+        throw new Exception('Unable to resolve subscription from Stripe schedule.');
+    }
+
+    private function _addStripeSubscriptionConfirmSubmitData(Submission $submission, StripeSubscription $stripeSubscription): void
+    {
+        if ($stripeSubscription->pending_setup_intent !== null) {
+            $submission->getForm()->addSubmitData([
+                'event' => 'formie:payment:stripe:confirm',
+                'data' => [
+                    'type' => 'setup',
+                    'clientSecret' => $stripeSubscription->pending_setup_intent->client_secret,
+                    'subscriptionId' => $stripeSubscription->id,
+                    'returnUrl' => $this->getReturnUrl($submission),
+                ],
+            ]);
+
+            return;
+        }
+
+        $clientSecret = $stripeSubscription->latest_invoice->payment_intent->client_secret ?? null;
+
+        if (!$clientSecret) {
+            throw new Exception(Craft::t('formie', 'Unable to resolve Stripe payment confirmation for this subscription.'));
+        }
+
+        $submission->getForm()->addSubmitData([
+            'event' => 'formie:payment:stripe:confirm',
+            'data' => [
+                'type' => 'payment',
+                'clientSecret' => $clientSecret,
+                'subscriptionId' => $stripeSubscription->id,
+                'returnUrl' => $this->getReturnUrl($submission),
+            ],
+        ]);
     }
 
     private function _setPayloadDetails(array &$payload, Submission $submission, string $type): void

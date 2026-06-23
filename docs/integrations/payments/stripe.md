@@ -49,3 +49,15 @@ Your form **must** use the Ajax (Client-side) submission method when using the S
 :::
 
 The Stripe payment integration supports both once-off payments and subscription-based payments.
+
+### Subscription payment limits
+For subscription payments, you can optionally limit how many recurring payments Stripe collects before the subscription is cancelled automatically.
+
+1. Edit your **Payment** field and set **Payment Type** to **Subscription**.
+1. Under **Payment Limit**, choose **Fixed Value** or **Dynamic Value**.
+1. For a fixed limit, enter the number of payments (for example `3` for three installments).
+1. For a dynamic limit, select a field that provides the payment count (for example a **Number** field).
+
+When a limit is set, Formie creates the subscription through a Stripe subscription schedule. Stripe cancels the subscription after the configured number of successful billing cycles. Leave **Payment Limit** set to **No limit** for ongoing subscriptions.
+
+You can modify the schedule payload through the `modifySubscriptionSchedulePayload` event.

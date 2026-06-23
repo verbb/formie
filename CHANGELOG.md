@@ -4,6 +4,7 @@
 
 ### Added
 - Add **Lock Field Settings** and **Editor Note** on the field editor **Advanced** tab to help content authors protect important field configuration. Locking dims field settings until **Unlock** is clicked for the session; notes appear in the field editor banner. ([#1189](https://github.com/verbb/formie/issues/1189))
+- Add Stripe subscription **Payment Limit** field settings to cancel subscriptions automatically after a fixed or dynamic number of payments using Stripe subscription schedules. ([#2123](https://github.com/verbb/formie/issues/2123))
 
 ### Changed
 - Improve default theme color contrast for WCAG 2.2 AA — darker error text, muted helper text, and border-only control styling with split border tokens ([#2475](https://github.com/verbb/formie/issues/2475)).
