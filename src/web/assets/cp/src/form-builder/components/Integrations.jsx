@@ -560,7 +560,7 @@ function Integrations({ schema }) {
                                 error={configError}
                                 message={Craft.t('formie', 'Failed to load integration settings.')}
                                 detailsLabel={Craft.t('formie', 'Show error details')}
-                                actionLabel={Craft.t('formie', 'Try again')}
+                                actionLabel={Craft.t('formie', 'Try Again')}
                                 onAction={() => { return loadIntegrationConfig(activeIntegrationHandle, { force: true }); }}
                                 containerClassName="flex min-h-[320px] items-center justify-center py-6"
                             />

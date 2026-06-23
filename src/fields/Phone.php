@@ -13,6 +13,7 @@ use verbb\formie\fields\definitions\FieldValueClass;
 use verbb\formie\gql\types\generators\CountryOptionGenerator;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\FieldBuilderPolicy;
+use verbb\formie\helpers\LanguageOptions;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\helpers\StringHelper;
@@ -94,16 +95,7 @@ class Phone extends Field implements SortableFieldInterface, PreviewableFieldInt
             'Urdu' => 'ur',
         ];
 
-        $languageOptions = [];
-
-        foreach ($languages as $languageName => $languageCode) {
-            $languageOptions[] = [
-                'label' => Craft::t('formie', $languageName),
-                'value' => $languageCode,
-            ];
-        }
-
-        return $languageOptions;
+        return LanguageOptions::buildOptions($languages);
     }
 
     public static function dbType(): string

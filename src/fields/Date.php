@@ -2451,15 +2451,15 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
     private function _getDateFormatOptions(): array
     {
         $options = [
-            ['label' => 'YYYY-MM-DD', 'value' => 'Y-m-d'],
-            ['label' => 'MM-DD-YYYY', 'value' => 'm-d-Y'],
-            ['label' => 'DD-MM-YYYY', 'value' => 'd-m-Y'],
-            ['label' => 'YYYY/MM/DD', 'value' => 'Y/m/d'],
-            ['label' => 'MM/DD/YYYY', 'value' => 'm/d/Y'],
-            ['label' => 'DD/MM/YYYY', 'value' => 'd/m/Y'],
-            ['label' => 'YYYY.MM.DD', 'value' => 'Y.m.d'],
-            ['label' => 'MM.DD.YYYY', 'value' => 'm.d.Y'],
-            ['label' => 'DD.MM.YYYY', 'value' => 'd.m.Y'],
+            ['label' => Craft::t('formie', 'YYYY-MM-DD'), 'value' => 'Y-m-d'],
+            ['label' => Craft::t('formie', 'MM-DD-YYYY'), 'value' => 'm-d-Y'],
+            ['label' => Craft::t('formie', 'DD-MM-YYYY'), 'value' => 'd-m-Y'],
+            ['label' => Craft::t('formie', 'YYYY/MM/DD'), 'value' => 'Y/m/d'],
+            ['label' => Craft::t('formie', 'MM/DD/YYYY'), 'value' => 'm/d/Y'],
+            ['label' => Craft::t('formie', 'DD/MM/YYYY'), 'value' => 'd/m/Y'],
+            ['label' => Craft::t('formie', 'YYYY.MM.DD'), 'value' => 'Y.m.d'],
+            ['label' => Craft::t('formie', 'MM.DD.YYYY'), 'value' => 'm.d.Y'],
+            ['label' => Craft::t('formie', 'DD.MM.YYYY'), 'value' => 'd.m.Y'],
         ];
 
         $event = new RegisterDateTimeFormatOptionsEvent([
@@ -2474,11 +2474,11 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
     private function _getTimeFormatOptions(): array
     {
         $options = [
-            ['label' => '23:59:59 (HH:MM:SS)', 'value' => 'H:i:s'],
-            ['label' => '03:59:59 PM (H:MM:SS AM/PM)', 'value' => 'h:i:s A'],
-            ['label' => '23:59 (HH:MM)', 'value' => 'H:i'],
-            ['label' => '03:59 PM (H:MM AM/PM)', 'value' => 'h:i A'],
-            ['label' => '59:59 (MM:SS)', 'value' => 'i:s'],
+            ['label' => Craft::t('formie', '23:59:59 (HH:MM:SS)'), 'value' => 'H:i:s'],
+            ['label' => Craft::t('formie', '03:59:59 PM (H:MM:SS AM/PM)'), 'value' => 'h:i:s A'],
+            ['label' => Craft::t('formie', '23:59 (HH:MM)'), 'value' => 'H:i'],
+            ['label' => Craft::t('formie', '03:59 PM (H:MM AM/PM)'), 'value' => 'h:i A'],
+            ['label' => Craft::t('formie', '59:59 (MM:SS)'), 'value' => 'i:s'],
         ];
 
         $event = new RegisterDateTimeFormatOptionsEvent([
@@ -2498,7 +2498,7 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
             $label = $this->_getFormatOptionLabel($this->getDateFormat(), $this->_getDateFormatOptions());
 
             if ($label) {
-                $parts[] = Craft::t('formie', $label);
+                $parts[] = $label;
             }
         }
 
@@ -2506,7 +2506,7 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
             $label = $this->_getFormatOptionLabel($this->getTimeFormat(), $this->_getTimeFormatOptions());
 
             if ($label) {
-                $parts[] = Craft::t('formie', $label);
+                $parts[] = $label;
             }
         }
 

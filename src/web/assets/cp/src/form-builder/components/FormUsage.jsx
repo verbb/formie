@@ -56,7 +56,7 @@ const FormUsage = () => {
                 error={error}
                 message={Craft.t('formie', 'Unable to load usage for this form.')}
                 detailsLabel={Craft.t('formie', 'Show error details')}
-                actionLabel={Craft.t('formie', 'Try again')}
+                actionLabel={Craft.t('formie', 'Try Again')}
                 onAction={loadUsageData}
             />
         );

@@ -139,7 +139,7 @@ class OptionSources extends Component
 
         foreach ($this->getRegisteredPredefinedOptions() as $availableOption) {
             $options[] = [
-                'label' => Craft::t('formie', $availableOption::displayName()),
+                'label' => $availableOption::displayName(),
                 'value' => get_class($availableOption),
             ];
         }

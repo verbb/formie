@@ -389,7 +389,7 @@ class Fields extends Component
 
         array_unshift($existingFields, [
             'key' => '*',
-            'label' => Craft::t('formie', 'All forms'),
+            'label' => Craft::t('formie', 'All Forms'),
             'pages' => [
                 [
                     'label' => Craft::t('formie', 'All fields'),
@@ -421,7 +421,7 @@ class Fields extends Component
 
         $options = [[
             'key' => '*',
-            'label' => Craft::t('formie', 'All forms'),
+            'label' => Craft::t('formie', 'All Forms'),
             'pages' => [],
         ]];
 
@@ -613,7 +613,7 @@ class Fields extends Component
 
             return [[
                 'key' => '*',
-                'label' => Craft::t('formie', 'All forms'),
+                'label' => Craft::t('formie', 'All Forms'),
                 'pages' => [[
                     'label' => Craft::t('formie', 'All fields'),
                     'fields' => $allFields,

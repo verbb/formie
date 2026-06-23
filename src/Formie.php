@@ -172,7 +172,13 @@ class Formie extends Plugin
 
     public function getPluginName(): string
     {
-        return Craft::t('formie', $this->getSettings()->pluginName);
+        $name = $this->getSettings()->pluginName;
+
+        if ($name === 'Formie') {
+            return Craft::t('formie', 'Formie');
+        }
+
+        return $name;
     }
 
     public function getSettingsResponse(): mixed

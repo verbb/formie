@@ -135,15 +135,15 @@ class TriggerIntegration extends CraftBaseJob implements DebuggableJobInterface
     protected function defaultDescription(): string
     {
         if ($this->stepHandles) {
-            $form = $this->formHandle ?: ($this->formTitle ?: ($this->formId ?? Craft::t('formie', 'unknown')));
+            $form = $this->formHandle ?: ($this->formTitle ?: ($this->formId ?? Craft::t('formie', 'Unknown')));
 
             return Craft::t('formie', 'Running integration dispatch for form “{form}”.', [
                 'form' => $form,
             ]);
         }
 
-        $integration = $this->integrationHandle ?: ($this->integrationId ?? Craft::t('formie', 'unknown'));
-        $form = $this->formHandle ?: ($this->formTitle ?: ($this->formId ?? Craft::t('formie', 'unknown')));
+        $integration = $this->integrationHandle ?: ($this->integrationId ?? Craft::t('formie', 'Unknown'));
+        $form = $this->formHandle ?: ($this->formTitle ?: ($this->formId ?? Craft::t('formie', 'Unknown')));
 
         return Craft::t('formie', 'Triggering “{integration}” integration for form “{form}”.', [
             'integration' => $integration,

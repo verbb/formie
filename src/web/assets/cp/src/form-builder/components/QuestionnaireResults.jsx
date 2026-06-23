@@ -144,7 +144,7 @@ const QuestionnaireResults = () => {
                 error={error}
                 message={Craft.t('formie', 'Unable to load questionnaire results.')}
                 detailsLabel={Craft.t('formie', 'Show error details')}
-                actionLabel={Craft.t('formie', 'Try again')}
+                actionLabel={Craft.t('formie', 'Try Again')}
                 onAction={loadResults}
             />
         );

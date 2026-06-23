@@ -182,7 +182,7 @@ class Form extends Element implements FormInterface
         if ($canAccessAllForms) {
             $sources[] = [
                 'key' => '*',
-                'label' => Craft::t('formie', 'All forms'),
+                'label' => Craft::t('formie', 'All Forms'),
                 'defaultSort' => ['title', 'desc'],
             ];
         }

@@ -232,7 +232,7 @@ function NotificationPreview() {
                             error={error}
                             message={t('Unable to generate email preview.')}
                             detailsLabel={t('Show error details')}
-                            actionLabel={t('Try again')}
+                            actionLabel={t('Try Again')}
                             onAction={updatePreview}
                             containerClassName="flex w-full h-full items-center justify-center"
                         />

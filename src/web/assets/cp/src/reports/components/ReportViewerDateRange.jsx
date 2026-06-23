@@ -25,14 +25,14 @@ export function ReportViewerDateRange({
         <div className="flex flex-wrap items-center gap-2">
             <DatePicker
                 value={startValue}
-                placeholder={Craft.t('formie', 'Start date')}
+                placeholder={Craft.t('formie', 'Start Date')}
                 onValueChange={(nextDate) => {
                     emitChange(nextDate, endValue);
                 }}
             />
             <DatePicker
                 value={endValue}
-                placeholder={Craft.t('formie', 'End date')}
+                placeholder={Craft.t('formie', 'End Date')}
                 onValueChange={(nextDate) => {
                     emitChange(startValue, nextDate);
                 }}

@@ -18,6 +18,7 @@ use craft\web\CsvResponseFormatter;
 use craft\web\Response as CraftResponse;
 
 use DateTime;
+use yii\helpers\Markdown;
 
 class ReportExport extends Component
 {
@@ -186,13 +187,21 @@ class ReportExport extends Component
             'report' => $report->name,
         ]);
 
-        $htmlBody = Craft::t('formie', '<p>Your export for <strong>{report}</strong> is ready.</p><p><a href="{url}">Download export</a></p><p style="color:#666;">This link expires on {date}.</p>', [
-            'report' => $report->name,
-            'url' => $downloadUrl,
-            'date' => Craft::$app->getFormatter()->asDatetime($exportFile->dateExpires, 'short'),
+        $markdownBody = implode("\n\n", [
+            Craft::t('formie', 'Your export for **{report}** is ready.', [
+                'report' => $report->name,
+            ]),
+            Craft::t('formie', '[{linkText}]({url})', [
+                'linkText' => Craft::t('formie', 'Download export'),
+                'url' => $downloadUrl,
+            ]),
+            Craft::t('formie', 'This link expires on {date}.', [
+                'date' => Craft::$app->getFormatter()->asDatetime($exportFile->dateExpires, 'short'),
+            ]),
         ]);
 
-        $textBody = strip_tags(str_replace(['<br>', '<br/>', '<br />'], "\n", $htmlBody));
+        $htmlBody = Markdown::process($markdownBody);
+        $textBody = $markdownBody;
 
         $mailer = Craft::$app->getMailer();
         /** @var Message $message */

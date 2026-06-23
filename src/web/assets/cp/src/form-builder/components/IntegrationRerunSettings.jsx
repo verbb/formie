@@ -195,7 +195,7 @@ function IntegrationRerunSettings({
                                         {Craft.t('formie', 'Integration')}
                                     </th>
                                     <th className="py-2 font-semibold">
-                                        {Craft.t('formie', 'Re-run')}
+                                        {Craft.t('formie', 'Re-Run')}
                                     </th>
                                 </tr>
                             </thead>

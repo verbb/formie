@@ -203,8 +203,8 @@ class Survey extends OptionsField implements SortableFieldInterface, Questionnai
                     ['label' => Craft::t('formie', 'Dropdown'), 'value' => self::DISPLAY_DROPDOWN],
                     ['label' => Craft::t('formie', 'Radio Buttons'), 'value' => self::DISPLAY_RADIO],
                     ['label' => Craft::t('formie', 'Checkboxes'), 'value' => self::DISPLAY_CHECKBOXES],
-                    ['label' => Craft::t('formie', 'Single-Line Text'), 'value' => self::DISPLAY_SINGLE_LINE_TEXT],
-                    ['label' => Craft::t('formie', 'Multi-Line Text'), 'value' => self::DISPLAY_MULTI_LINE_TEXT],
+                    ['label' => Craft::t('formie', 'Single-line Text'), 'value' => self::DISPLAY_SINGLE_LINE_TEXT],
+                    ['label' => Craft::t('formie', 'Multi-line Text'), 'value' => self::DISPLAY_MULTI_LINE_TEXT],
                 ],
             ]),
             SchemaHelper::tableField([
@@ -353,8 +353,8 @@ class Survey extends OptionsField implements SortableFieldInterface, Questionnai
                 ['label' => Craft::t('formie', 'Dropdown'), 'value' => self::DISPLAY_DROPDOWN],
                 ['label' => Craft::t('formie', 'Radio Buttons'), 'value' => self::DISPLAY_RADIO],
                 ['label' => Craft::t('formie', 'Checkboxes'), 'value' => self::DISPLAY_CHECKBOXES],
-                ['label' => Craft::t('formie', 'Single-Line Text'), 'value' => self::DISPLAY_SINGLE_LINE_TEXT],
-                ['label' => Craft::t('formie', 'Multi-Line Text'), 'value' => self::DISPLAY_MULTI_LINE_TEXT],
+                ['label' => Craft::t('formie', 'Single-line Text'), 'value' => self::DISPLAY_SINGLE_LINE_TEXT],
+                ['label' => Craft::t('formie', 'Multi-line Text'), 'value' => self::DISPLAY_MULTI_LINE_TEXT],
             ], 'surveyDisplayType'),
             ...array_map(static function(array $field) use ($optionsIf) {
                 if (($field['name'] ?? null) === 'optionsMode' || ($field['$field'] ?? null) === 'optionDynamicSettings') {

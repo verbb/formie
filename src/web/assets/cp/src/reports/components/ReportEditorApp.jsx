@@ -221,7 +221,7 @@ export const ReportEditorApp = ({ settings }) => {
     const fieldColumnModeOptions = useMemo(() => ([
         {
             value: FIELD_COLUMNS_MODE_ALL,
-            label: Craft.t('formie', 'All form fields'),
+            label: Craft.t('formie', 'All Form Fields'),
         },
         {
             value: FIELD_COLUMNS_MODE_SELECTED,

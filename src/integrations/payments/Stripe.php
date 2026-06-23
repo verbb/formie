@@ -1733,7 +1733,7 @@ class Stripe extends Payment
         $description = trim((string)$this->getFieldSetting('subscriptionSetupFeeDescription'));
 
         if ($description === '') {
-            $description = Craft::t('formie', 'Setup fee');
+            $description = Craft::t('formie', 'Setup Fee');
         } else {
             $description = References::parseContent($description, $submission);
         }

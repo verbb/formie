@@ -17,7 +17,7 @@ export const PreviewPhone = () => {
                     <input
                         type="text"
                         className="formie-field-preview-input formie-field-preview-input--phone-inline"
-                        placeholder={field.placeholder || Craft.t('formie', 'Phone number')}
+                        placeholder={field.placeholder || Craft.t('formie', 'Phone Number')}
                         value={field.defaultValue || ''}
                         readOnly
                     />
@@ -34,7 +34,7 @@ export const PreviewPhone = () => {
                 <input
                     type="text"
                     className="formie-field-preview-input"
-                    placeholder={field?.placeholder || Craft.t('formie', 'Phone number')}
+                    placeholder={field?.placeholder || Craft.t('formie', 'Phone Number')}
                     value={field?.defaultValue || ''}
                     readOnly
                 />

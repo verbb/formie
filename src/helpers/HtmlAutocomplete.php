@@ -26,7 +26,7 @@ class HtmlAutocomplete
         ];
 
         foreach (self::getTokenGroups() as $groupLabel => $tokens) {
-            $translatedGroup = Craft::t('formie', $groupLabel);
+            $translatedGroup = self::translateGroupLabel($groupLabel);
 
             foreach ($tokens as $token => $tokenLabel) {
                 $options[] = [
@@ -72,6 +72,23 @@ class HtmlAutocomplete
 
     // Private Methods
     // =========================================================================
+
+    private static function translateGroupLabel(string $groupLabel): string
+    {
+        return match ($groupLabel) {
+            'Name' => Craft::t('formie', 'Name'),
+            'Email & Username' => Craft::t('formie', 'Email & Username'),
+            'Password' => Craft::t('formie', 'Password'),
+            'Organization' => Craft::t('formie', 'Organization'),
+            'Address' => Craft::t('formie', 'Address'),
+            'Payment' => Craft::t('formie', 'Payment'),
+            'Transaction' => Craft::t('formie', 'Transaction'),
+            'Personal' => Craft::t('formie', 'Personal'),
+            'Telephone' => Craft::t('formie', 'Telephone'),
+            'Other' => Craft::t('formie', 'Other'),
+            default => $groupLabel,
+        };
+    }
 
     private static function getTokenGroups(): array
     {

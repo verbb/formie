@@ -5,7 +5,7 @@ use verbb\formie\base\Captcha;
 use verbb\formie\base\FormInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\LanguageOptions;
 use verbb\formie\models\ClientModule;
 use verbb\formie\models\ClientModuleContext;
 use verbb\formie\models\FieldLayoutPage;
@@ -269,16 +269,7 @@ class Hcaptcha extends Captcha
             'Zulu' => 'zu',
         ];
 
-        $languageOptions = [];
-
-        foreach ($languages as $languageName => $languageCode) {
-            $languageOptions[] = [
-                'label' => Craft::t('formie', $languageName),
-                'value' => $languageCode,
-            ];
-        }
-
-        return $languageOptions;
+        return LanguageOptions::buildOptions($languages);
     }
 
 }

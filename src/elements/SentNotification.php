@@ -75,7 +75,7 @@ class SentNotification extends Element
         if ($currentUser->can('formie-viewSentNotifications')) {
             $sources[] = [
                 'key' => '*',
-                'label' => Craft::t('formie', 'All forms'),
+                'label' => Craft::t('formie', 'All Forms'),
                 'defaultSort' => ['elements.dateCreated', 'desc'],
             ];
         }

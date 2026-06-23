@@ -15,7 +15,7 @@
 {% block actionButton %}
     {% if allowAdminChanges %}
         <div class="btngroup submit">
-            <a href="{{ url('formie/stencils/new') }}" class="btn submit add icon">{{ 'New stencil' | t('formie') }}</a>
+            <a href="{{ url('formie/stencils/new') }}" class="btn submit add icon">{{ 'New Stencil' | t('formie') }}</a>
             <button type="button" class="btn submit menubtn" title="{{ 'New stencil options' | t('formie') }}" aria-label="{{ 'New stencil options' | t('formie') }}"></button>
             <div class="menu">
                 <ul>
@@ -24,7 +24,7 @@
             </div>
         </div>
     {% else %}
-        <a href="{{ url('formie/stencils/new') }}" class="btn submit add icon">{{ 'New stencil' | t('formie') }}</a>
+        <a href="{{ url('formie/stencils/new') }}" class="btn submit add icon">{{ 'New Stencil' | t('formie') }}</a>
     {% endif %}
 {% endblock %}
 

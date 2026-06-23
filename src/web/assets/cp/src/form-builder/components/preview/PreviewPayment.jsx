@@ -11,7 +11,7 @@ export const PreviewPayment = ({ value = null }) => {
                 <input
                     type="text"
                     className="formie-field-preview-input"
-                    placeholder={Craft.t('formie', 'Card number')}
+                    placeholder={Craft.t('formie', 'Card Number')}
                     value={inputValue}
                     readOnly
                 />

@@ -736,7 +736,7 @@ const ExistingFields = ({ onClose }) => {
                             error={loadError}
                             message={Craft.t('formie', 'Unable to load existing fields.')}
                             detailsLabel={Craft.t('formie', 'Show error details')}
-                            actionLabel={Craft.t('formie', 'Try again')}
+                            actionLabel={Craft.t('formie', 'Try Again')}
                             onAction={handleOpen}
                             containerClassName="absolute inset-0 z-10 flex items-center justify-center bg-white"
                         />

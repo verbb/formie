@@ -54,7 +54,7 @@ JS,
 
         $markSpam = Html::tag('li', Html::a(
             Html::tag('span', '', ['class' => ['status', 'off']])
-            . ' ' . Html::encode(Craft::t('formie', 'Mark as spam')),
+            . ' ' . Html::encode(Craft::t('formie', 'Mark as Spam')),
             '#',
             [
                 'class' => 'formsubmit',
@@ -65,7 +65,7 @@ JS,
 
         $unmark = Html::tag('li', Html::tag('a',
             Html::tag('span', '', ['class' => ['status', 'on']])
-            . ' ' . Html::encode(Craft::t('formie', 'Unmark as spam')),
+            . ' ' . Html::encode(Craft::t('formie', 'Unmark as Spam')),
             [
                 'id' => 'verbb-formie-elements-actions-SetSubmissionSpam-MarkAsNotSpam-actiontrigger',
                 'href' => '#',

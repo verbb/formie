@@ -85,29 +85,29 @@ class Dotdigital extends Crm
                         'label' => Craft::t('formie', 'Email Campaign Send Date'),
                         'options' => [
                             [
-                                'label' => Craft::t('formie', '+1 hour'),
+                                'label' => Craft::t('formie', '+{num, plural, =1{# hour} other{# hours}}', ['num' => 1]),
                                 'value' => '+1 hour',
                             ],
                             [
-                                'label' => Craft::t('formie','+2 hours'),
+                                'label' => Craft::t('formie', '+{num, plural, =1{# hour} other{# hours}}', ['num' => 2]),
                                 'value' => '+2 hours',
                             ],
                             [
-                                'label' => Craft::t('formie','+4 hours'),
+                                'label' => Craft::t('formie', '+{num, plural, =1{# hour} other{# hours}}', ['num' => 4]),
                                 'value' => '+4 hours',
                             ],
                             [
-                                'label' => Craft::t('formie','+6 hours'),
+                                'label' => Craft::t('formie', '+{num, plural, =1{# hour} other{# hours}}', ['num' => 6]),
                                 'value' => '+6 hours',
                             ],
                             [
-                                'label' => Craft::t('formie','+12 hours'),
+                                'label' => Craft::t('formie', '+{num, plural, =1{# hour} other{# hours}}', ['num' => 12]),
                                 'value' => '+12 hours',
                             ],
                             [
-                                'label' => Craft::t('formie','+1 day'),
+                                'label' => Craft::t('formie', '+{num, plural, =1{# day} other{# days}}', ['num' => 1]),
                                 'value' => '+1 day',
-                            ]
+                            ],
                         ],
                     ],
                     ])
@@ -199,7 +199,7 @@ class Dotdigital extends Crm
                                     'value' => 'PlainText',
                                 ],
                                 [
-                                    'label' => Craft::t('formie', 'Html'),
+                                    'label' => Craft::t('formie', 'HTML'),
                                     'value' => 'Html',
                                 ],
                             ],

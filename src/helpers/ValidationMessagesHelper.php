@@ -89,10 +89,10 @@ class ValidationMessagesHelper
         $template = self::defaultTemplate($key);
 
         if ($template === null) {
-            return Craft::t('formie', self::defaultTemplate(self::KEY_INVALID) ?? '{label} is invalid.', $params);
+            return self::translateDefaultTemplate(self::KEY_INVALID, $params);
         }
 
-        return Craft::t('formie', $template, $params);
+        return self::translateDefaultTemplate($key, $params);
     }
 
     public static function pluginDefault(string $key): ?string
@@ -472,7 +472,28 @@ class ValidationMessagesHelper
 
     public static function builderLabel(string $key): string
     {
-        return Craft::t('formie', self::builderLabels()[$key] ?? 'Error Message');
+        return match ($key) {
+            self::KEY_REQUIRED => Craft::t('formie', 'Required Error Message'),
+            self::KEY_UNIQUE => Craft::t('formie', 'Unique Error Message'),
+            self::KEY_MATCH => Craft::t('formie', 'Match Field Error Message'),
+            self::KEY_MIN_CHARACTERS => Craft::t('formie', 'Minimum Characters Error Message'),
+            self::KEY_MAX_CHARACTERS => Craft::t('formie', 'Maximum Characters Error Message'),
+            self::KEY_MIN_WORDS => Craft::t('formie', 'Minimum Words Error Message'),
+            self::KEY_MAX_WORDS => Craft::t('formie', 'Maximum Words Error Message'),
+            self::KEY_EMAIL => Craft::t('formie', 'Invalid Email Error Message'),
+            self::KEY_URL => Craft::t('formie', 'Invalid URL Error Message'),
+            self::KEY_NUMBER => Craft::t('formie', 'Invalid Number Error Message'),
+            self::KEY_NUMBER_MIN => Craft::t('formie', 'Minimum Value Error Message'),
+            self::KEY_NUMBER_MAX => Craft::t('formie', 'Maximum Value Error Message'),
+            self::KEY_BLOCKED_DOMAIN => Craft::t('formie', 'Blocked Domain Error Message'),
+            self::KEY_MIN_OPTIONS => Craft::t('formie', 'Minimum Options Error Message'),
+            self::KEY_MAX_OPTIONS => Craft::t('formie', 'Maximum Options Error Message'),
+            self::KEY_MAX_FILES => Craft::t('formie', 'Maximum Files Error Message'),
+            self::KEY_MIN_FILE_SIZE => Craft::t('formie', 'Minimum File Size Error Message'),
+            self::KEY_MAX_FILE_SIZE => Craft::t('formie', 'Maximum File Size Error Message'),
+            self::KEY_INVALID => Craft::t('formie', 'Invalid Error Message'),
+            default => Craft::t('formie', 'Error Message'),
+        };
     }
 
     public static function builderLabels(): array
@@ -498,6 +519,32 @@ class ValidationMessagesHelper
             self::KEY_MAX_FILE_SIZE => 'Maximum File Size Error Message',
             self::KEY_INVALID => 'Invalid Error Message',
         ];
+    }
+
+    private static function translateDefaultTemplate(string $key, array $params): string
+    {
+        return match ($key) {
+            self::KEY_REQUIRED => Craft::t('formie', 'This field is required.', $params),
+            self::KEY_UNIQUE => Craft::t('formie', '“{label}” must be unique.', $params),
+            self::KEY_MATCH => Craft::t('formie', '{label} must match {value}.', $params),
+            self::KEY_MIN_CHARACTERS => Craft::t('formie', 'You must enter at least {limit} characters.', $params),
+            self::KEY_MAX_CHARACTERS => Craft::t('formie', '{label} must be no greater than {max} characters.', $params),
+            self::KEY_MIN_WORDS => Craft::t('formie', 'You must enter at least {limit} words.', $params),
+            self::KEY_MAX_WORDS => Craft::t('formie', '{label} must be no greater than {max} words.', $params),
+            self::KEY_EMAIL => Craft::t('formie', 'Please enter a valid email address.', $params),
+            self::KEY_URL => Craft::t('formie', 'Please enter a valid URL.', $params),
+            self::KEY_NUMBER => Craft::t('formie', 'Please enter a valid number.', $params),
+            self::KEY_NUMBER_MIN => Craft::t('formie', 'Please enter a value greater than or equal to {min}.', $params),
+            self::KEY_NUMBER_MAX => Craft::t('formie', 'Please enter a value less than or equal to {max}.', $params),
+            self::KEY_BLOCKED_DOMAIN => Craft::t('formie', '“{domain}” is not allowed.', $params),
+            self::KEY_MIN_OPTIONS => Craft::t('formie', '{label} should contain at least {min, number} {min, plural, one{option} other{options}}.', $params),
+            self::KEY_MAX_OPTIONS => Craft::t('formie', '{label} should contain at most {max, number} {max, plural, one{option} other{options}}.', $params),
+            self::KEY_MAX_FILES => Craft::t('formie', 'Choose up to {files} files.', $params),
+            self::KEY_MIN_FILE_SIZE => Craft::t('formie', 'File must be larger than {filesize} MB.', $params),
+            self::KEY_MAX_FILE_SIZE => Craft::t('formie', 'File must be smaller than {filesize} MB.', $params),
+            self::KEY_INVALID => Craft::t('formie', '{label} is invalid.', $params),
+            default => Craft::t('formie', '{label} is invalid.', $params),
+        };
     }
 
     private static function _defaultsSchemaSection(string $heading, array $fields): array

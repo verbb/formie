@@ -257,7 +257,7 @@ class Submission extends Element
         if ($canViewAllSubmissions) {
             $sources[] = [
                 'key' => '*',
-                'label' => Craft::t('formie', 'All forms'),
+                'label' => Craft::t('formie', 'All Forms'),
                 'defaultSort' => ['elements_sites.title', 'desc'],
             ];
         }

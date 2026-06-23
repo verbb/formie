@@ -49,7 +49,7 @@ const FormMetaDetails = () => {
     return (
         <div className="space-y-1.5 text-sm leading-relaxed text-gray-500">
             <MetaRow
-                label={Craft.t('formie', 'Created by')}
+                label={Craft.t('formie', 'Created By')}
                 user={formMeta.createdBy}
                 date={formMeta.dateCreated}
             />
