@@ -208,6 +208,17 @@ class ValidationMessagesHelper
     }
 
     /**
+     * Canonical English keys for static translation file regen (no legacy compat aliases).
+     */
+    public static function translationExtractStringList(): array
+    {
+        return array_values(array_unique(array_merge(
+            array_values(self::defaultTemplates()),
+            self::frontendGeneralTranslationStrings(),
+        )));
+    }
+
+    /**
      * Front-end-only strings seeded into the JS translation payload.
      *
      * Plain English literals — not Craft::t() — because Rendering::getFrontendJsTranslations()

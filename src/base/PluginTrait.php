@@ -697,4 +697,43 @@ trait PluginTrait
     {
         return $this->get('templates');
     }
+
+    /**
+     * Register dynamically-translated message keys with the plugin-translator module, if present.
+     *
+     * Called during static translation file regen. No-ops when the module is not installed.
+     */
+    public function registerTranslationExtractStrings(): void
+    {
+        $module = Craft::$app->getModule('plugin-translator', false);
+
+        if (!$module) {
+            return;
+        }
+
+        $moduleClass = get_class($module);
+        $eventClass = 'modules\\plugintranslator\\events\\RegisterTranslationStringsEvent';
+
+        if (!defined($moduleClass . '::EVENT_REGISTER_TRANSLATION_STRINGS')) {
+            return;
+        }
+
+        if (!class_exists($eventClass)) {
+            return;
+        }
+
+        if (!class_exists(\verbb\formie\helpers\ValidationMessagesHelper::class)) {
+            return;
+        }
+
+        if (!method_exists(\verbb\formie\helpers\ValidationMessagesHelper::class, 'translationExtractStringList')) {
+            return;
+        }
+
+        $event = new $eventClass([
+            'strings' => \verbb\formie\helpers\ValidationMessagesHelper::translationExtractStringList(),
+        ]);
+
+        $module->trigger(constant($moduleClass . '::EVENT_REGISTER_TRANSLATION_STRINGS'), $event);
+    }
 }
