@@ -159,7 +159,7 @@ class Summary extends CosmeticField
             return SlotTag::make('p')
                 ->core([
                     'data-formie-summary-heading' => true,
-                    'text' => Craft::t('formie', $this->description),
+                    'text' => $this->description,
                 ])
                 ->theme([
                     'class' => [

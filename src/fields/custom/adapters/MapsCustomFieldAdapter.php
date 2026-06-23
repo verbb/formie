@@ -204,7 +204,7 @@ class MapsCustomFieldAdapter extends AbstractCustomFieldAdapter
         return [
             'inputType' => 'map',
             'provider' => static::handle(),
-            'placeholder' => Craft::t('site', $this->getPlaceholder($field)) ?: null,
+            'placeholder' => $this->getPlaceholder($field) ?: null,
             'mapSettings' => $this->getMapClientSettings($field),
         ];
     }
@@ -309,7 +309,7 @@ class MapsCustomFieldAdapter extends AbstractCustomFieldAdapter
     protected function renderInputs(CustomField $field, CustomMapFieldValue $value, string $name, string $addressName, string $latName, string $lngName, string $zoomName, string $partsName, string $what3wordsName, string $id, string $dataId, ?Form $form): string
     {
         $provider = static::handle();
-        $placeholder = Craft::t('site', $this->getPlaceholder($field)) ?: Craft::t('formie', 'Search for a location');
+        $placeholder = $this->getPlaceholder($field) ?: Craft::t('formie', 'Search for a location');
         $showLatLng = $this->getBooleanSetting($field, 'showLatLng');
         $hideAddress = $this->getBooleanSetting($field, 'hideAddress');
         $hideMap = $this->getBooleanSetting($field, 'hideMap');

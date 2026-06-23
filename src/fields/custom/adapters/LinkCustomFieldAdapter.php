@@ -232,7 +232,7 @@ class LinkCustomFieldAdapter extends AbstractCustomFieldAdapter
     {
         return [
             'inputType' => 'link',
-            'placeholder' => Craft::t('site', $this->getPlaceholder($field)) ?: null,
+            'placeholder' => $this->getPlaceholder($field) ?: null,
             'linkSettings' => [
                 'allowedTypes' => $this->getAllowedTypes($field),
                 'defaultType' => $this->getDefaultType($field),
@@ -424,7 +424,7 @@ class LinkCustomFieldAdapter extends AbstractCustomFieldAdapter
         $typeId = $value?->type ?: $this->getDefaultType($field);
         $serialized = $value?->serialize() ?? [];
         $rawValue = (string)($serialized['value'] ?? '');
-        $placeholder = Craft::t('site', $this->getPlaceholder($field)) ?: null;
+        $placeholder = $this->getPlaceholder($field) ?: null;
         $valueInputAttributes = $this->getValueInputAttributes($typeId, $field);
         $typeInput = count($allowedTypes) > 1 ? Html::dropDownList($typeName, $typeId, $this->getTypeLabelMap($allowedTypes), [
             'id' => $id . '-type',

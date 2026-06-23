@@ -2,7 +2,7 @@
     {% set value = submission.getFieldValue(field.valueKey()) ?? field.getInitialValue(submission) %}
 
     {% if field.hasReferenceBlockLabel() %}
-        <strong>{{ field.label | t('formie') }}:</strong>
+        <strong>{{ field.label }}:</strong>
     {% endif %}
 
     {% if field.isValueEmpty(value, submission) and field.hasReferenceBlockPlaceholder() %}

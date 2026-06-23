@@ -14,7 +14,7 @@
             {% for option in fieldOptions %}
                 {% if option.optgroup is not defined %}
                     {% fieldtag 'fieldColumnLabel' %}
-                        {{- option.label | t('formie') | purify | md(inlineOnly=true) | raw -}}
+                        {{- option.label | purify | md(inlineOnly=true) | raw -}}
                     {% endfieldtag %}
                 {% endif %}
             {% endfor %}
@@ -28,7 +28,7 @@
 
                 {% fieldtag 'fieldInputsRow' %}
                     {% fieldtag 'fieldRowLabel' %}
-                        {{- likertRow.label | t('formie') | purify | md(inlineOnly=true) | raw -}}
+                        {{- likertRow.label | purify | md(inlineOnly=true) | raw -}}
                     {% endfieldtag %}
 
                     {% for option in fieldOptions %}
@@ -44,7 +44,7 @@
 
                                 {% fieldtag 'fieldOptionLabel' %}
                                     <span class="formie-likert-option-label-text">
-                                        {{- option.label | t('formie') | purify | md(inlineOnly=true) | raw -}}
+                                        {{- option.label | purify | md(inlineOnly=true) | raw -}}
                                     </span>
                                 {% endfieldtag %}
                             {% endfieldtag %}
@@ -67,7 +67,7 @@
 
                             {% fieldtag 'fieldOptionLabel' %}
                                 <span class="formie-likert-option-label-text">
-                                    {{- option.label | t('formie') | purify | md(inlineOnly=true) | raw -}}
+                                    {{- option.label | purify | md(inlineOnly=true) | raw -}}
                                 </span>
                             {% endfieldtag %}
                         {% endfieldtag %}

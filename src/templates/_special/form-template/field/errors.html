@@ -5,7 +5,7 @@
         {% set error = errors | first %}
 
         {% fieldtag 'fieldError' %}
-            {{- error | t('formie') -}}
+            {{- error -}}
         {% endfieldtag %}
     {% endfieldtag %}
 {% endif %}

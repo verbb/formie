@@ -593,14 +593,14 @@ class Formie extends Plugin
 
             foreach ($forms as $form) {
                 $suffix = 'formieForms.' . $form->uid;
-                $event->queries[$label][$suffix . ':read'] = ['label' => Craft::t('formie', 'View “{form}” form', ['form' => Craft::t('formie', $form->title)])];
+                $event->queries[$label][$suffix . ':read'] = ['label' => Craft::t('formie', 'View “{form}” form', ['form' => $form->title])];
             }
 
             $event->queries[$label]['formieSubmissions.all:read'] = ['label' => Craft::t('formie', 'View all submissions')];
 
             foreach ($forms as $form) {
                 $suffix = 'formieSubmissions.' . $form->uid;
-                $event->queries[$label][$suffix . ':read'] = ['label' => Craft::t('formie', 'View submissions for form “{form}”', ['form' => Craft::t('formie', $form->title)])];
+                $event->queries[$label][$suffix . ':read'] = ['label' => Craft::t('formie', 'View submissions for form “{form}”', ['form' => $form->title])];
             }
 
             $event->mutations[$label]['formieSubmissions.all:edit'] = [
@@ -615,11 +615,11 @@ class Formie extends Plugin
             foreach ($forms as $form) {
                 $suffix = 'formieSubmissions.' . $form->uid;
                 $event->mutations[$label][$suffix . ':edit'] = [
-                    'label' => Craft::t('formie', 'Edit submissions for form “{form}”', ['form' => Craft::t('formie', $form->title)]),
+                    'label' => Craft::t('formie', 'Edit submissions for form “{form}”', ['form' => $form->title]),
                     'nested' => [
-                        $suffix . ':create' => ['label' => Craft::t('app', 'Create submissions for form “{form}”', ['form' => Craft::t('formie', $form->title)])],
-                        $suffix . ':save' => ['label' => Craft::t('app', 'Modify submissions for form “{form}”', ['form' => Craft::t('formie', $form->title)])],
-                        $suffix . ':delete' => ['label' => Craft::t('app', 'Delete submissions for form “{form}”', ['form' => Craft::t('formie', $form->title)])],
+                        $suffix . ':create' => ['label' => Craft::t('app', 'Create submissions for form “{form}”', ['form' => $form->title])],
+                        $suffix . ':save' => ['label' => Craft::t('app', 'Modify submissions for form “{form}”', ['form' => $form->title])],
+                        $suffix . ':delete' => ['label' => Craft::t('app', 'Delete submissions for form “{form}”', ['form' => $form->title])],
                     ],
                 ];
             }

@@ -481,7 +481,7 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
     public function getEffectivePlaceholder(): ?string
     {
         if (trim((string)$this->placeholder) !== '') {
-            return Craft::t('formie', $this->placeholder) ?: null;
+            return $this->placeholder ?: null;
         }
 
         if ($this->displayType !== 'datePicker' || $this->getCollectsRange()) {

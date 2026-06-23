@@ -437,7 +437,7 @@ class Name extends FixedParentField implements SortableFieldInterface, Previewab
                     'type' => 'text',
                     'id' => $id,
                     'name' => $this->getHtmlName(),
-                    'placeholder' => Craft::t('formie', $this->placeholder) ?: null,
+                    'placeholder' => $this->placeholder ?: null,
                     'autocomplete' => 'name',
                     'required' => $this->required ? true : null,
                     'data-formie-input' => true,

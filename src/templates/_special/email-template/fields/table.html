@@ -6,7 +6,7 @@
             <thead>
                 <tr>
                     {% for colId, col in field.columns %}
-                        <th style="{{ cellStyle }} background-color: rgba(0, 0, 0, 0.05);">{{ col.heading | t('formie') }}</th>
+                        <th style="{{ cellStyle }} background-color: rgba(0, 0, 0, 0.05);">{{ col.heading }}</th>
                     {% endfor %}
                 </tr>
             </thead>
@@ -30,7 +30,7 @@
                                     <td style="{{ cellStyle }}">
                                         {% for option in col.options %}
                                             {% if option.value == cellValue %}
-                                                {{ option.label | t('formie') }}
+                                                {{ option.label }}
                                             {% endif %}
                                         {% endfor %}
                                     </td>

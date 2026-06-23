@@ -63,7 +63,7 @@ trait SearchableDropdownFieldTrait
         $placeholder = null;
 
         if (property_exists($this, 'placeholder') && is_string($this->placeholder) && $this->placeholder !== '') {
-            $placeholder = Craft::t('formie', $this->placeholder);
+            $placeholder = $this->placeholder;
         }
 
         return [

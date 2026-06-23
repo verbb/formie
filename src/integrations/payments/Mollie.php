@@ -213,7 +213,7 @@ class Mollie extends Payment
 
             Integration::apiError($this, $e, $this->throwApiError);
 
-            $this->addFieldError($submission, Craft::t('formie', $gatewayErrorMessage));
+            $this->addFieldError($submission, $gatewayErrorMessage);
 
             // Update the payment if one has already been made
             $payment->status = PaymentModel::STATUS_FAILED;

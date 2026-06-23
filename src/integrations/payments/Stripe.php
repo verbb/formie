@@ -599,7 +599,7 @@ class Stripe extends Payment
 
                         Formie::$plugin->getPayments()->savePayment($payment);
 
-                        $this->addFieldError($submission, Craft::t('formie', $payment->message));
+                        $this->addFieldError($submission, $payment->message);
                         return false;
                     }
                 } else {
@@ -722,7 +722,7 @@ class Stripe extends Payment
 
             Formie::$plugin->getPayments()->savePayment($payment);
 
-            $this->addFieldError($submission, Craft::t('formie', $payment->message));
+            $this->addFieldError($submission, $payment->message);
 
             return false;
         } catch (StripeException\ApiErrorException $e) {
@@ -747,7 +747,7 @@ class Stripe extends Payment
 
             Formie::$plugin->getPayments()->savePayment($payment);
 
-            $this->addFieldError($submission, Craft::t('formie', $payment->message));
+            $this->addFieldError($submission, $payment->message);
 
             return false;
         } catch (Throwable $e) {

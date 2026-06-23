@@ -204,7 +204,7 @@ class GoogleMapsCustomFieldAdapter extends AbstractCustomFieldAdapter
         return [
             'inputType' => 'map',
             'provider' => static::handle(),
-            'placeholder' => Craft::t('site', $this->getPlaceholder($field)) ?: null,
+            'placeholder' => $this->getPlaceholder($field) ?: null,
             'mapSettings' => $this->getMapClientSettings($field),
         ];
     }
@@ -314,7 +314,7 @@ class GoogleMapsCustomFieldAdapter extends AbstractCustomFieldAdapter
     protected function renderInputs(CustomField $field, CustomGoogleMapsAddressFieldValue $value, string $name, string $searchName, string $formattedName, string $rawName, string $latName, string $lngName, string $zoomName, string $handlePrefix, string $id, string $dataId): string
     {
         $provider = static::handle();
-        $placeholder = Craft::t('site', $this->getPlaceholder($field)) ?: Craft::t('formie', 'Search for a location');
+        $placeholder = $this->getPlaceholder($field) ?: Craft::t('formie', 'Search for a location');
         $hideMap = $this->getBooleanSetting($field, 'hideMap');
         $hideSearch = $this->getBooleanSetting($field, 'hideSearch');
         $hideAddress = $this->getBooleanSetting($field, 'hideAddress');

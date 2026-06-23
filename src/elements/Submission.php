@@ -788,19 +788,26 @@ class Submission extends Element
     public function getForm(): ?Form
     {
         if (!$this->_form && $this->formId) {
-            if (array_key_exists($this->formId, self::$_formByIdCache)) {
-                $this->_form = self::$_formByIdCache[$this->formId];
-            } else {
-                $query = Form::find()->id($this->formId);
-                $this->_form = $query->one();
-                self::$_formByIdCache[$this->formId] = $this->_form;
-            }
+            $siteId = (int)($this->siteId ?: Craft::$app->getSites()->getCurrentSite()->id);
+            $cacheKey = $this->formId . ':' . $siteId;
 
-            // If no form found yet, and the submission has been trashed, maybe the form has been trashed?
-            if (!$this->_form && $this->trashed) {
-                $query = Form::find()->id($this->formId)->trashed(true);
-                $this->_form = $query->one();
-                self::$_formByIdCache[$this->formId] = $this->_form;
+            if (array_key_exists($cacheKey, self::$_formByIdCache)) {
+                $this->_form = self::$_formByIdCache[$cacheKey];
+            } else {
+                $this->_form = Formie::$plugin->getForms()->getFormById((int)$this->formId, $siteId);
+
+                // If no form found yet, and the submission has been trashed, maybe the form has been trashed?
+                if (!$this->_form && $this->trashed) {
+                    $form = Form::find()->id($this->formId)->siteId($siteId)->trashed(true)->one();
+
+                    if ($form && Formie::$plugin->getFormSiteOverrides()->isEnabled()) {
+                        $form = Formie::$plugin->getFormSiteOverrides()->applyToForm($form, $siteId, true);
+                    }
+
+                    $this->_form = $form;
+                }
+
+                self::$_formByIdCache[$cacheKey] = $this->_form;
             }
 
             $this->_applySnapshotSettingsIfNeeded();
@@ -1324,7 +1331,7 @@ class Submission extends Element
                 if (ValidationMessagesHelper::override($field, ValidationMessagesHelper::KEY_REQUIRED) !== null) {
                     $requiredMessage = $field->getValidationMessage(ValidationMessagesHelper::KEY_REQUIRED);
                 } elseif ($field->errorMessage) {
-                    $requiredMessage = Craft::t('formie', $field->errorMessage);
+                    $requiredMessage = $field->errorMessage;
                 }
 
                 ValidationHelper::validateField(

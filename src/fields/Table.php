@@ -789,7 +789,7 @@ class Table extends Field
             return SlotTag::make('button')
                 ->core([
                     'type' => 'button',
-                    'text' => Craft::t('formie', $this->addRowLabel),
+                    'text' => $this->addRowLabel,
                     'disabled' => $isStatic,
                     'data-formie-add-button' => true,
                     'data-formie-table-add' => $this->handle,
@@ -977,21 +977,6 @@ class Table extends Field
             return '';
         }
 
-        // Translate the column headings
-        foreach ($this->columns as &$column) {
-            if (!empty($column['heading'])) {
-                $column['heading'] = Craft::t('formie', $column['heading']);
-            }
-
-            if (!empty($column['options'])) {
-                array_walk($column['options'], function(&$option) {
-                    $option['label'] = Craft::t('formie', $option['label']);
-                });
-            }
-        }
-
-        unset($column);
-
         if (!is_array($value)) {
             $value = [];
         }
@@ -1032,7 +1017,7 @@ class Table extends Field
             'allowAdd' => true,
             'allowDelete' => true,
             'allowReorder' => true,
-            'addRowLabel' => Craft::t('formie', $this->addRowLabel),
+            'addRowLabel' => $this->addRowLabel,
         ]);
     }
 
@@ -1157,15 +1142,6 @@ class Table extends Field
         }
 
         $defaults = $this->defaults ?? [];
-
-        // Apply static translations
-        foreach ($defaults as &$row) {
-            foreach ($this->columns as $colId => $col) {
-                if ($col['type'] === 'heading' && isset($row[$colId])) {
-                    $row[$colId] = Craft::t('formie', $row[$colId]);
-                }
-            }
-        }
 
         if (is_string($value) && !empty($value)) {
             $value = Json::decodeIfJson($value);

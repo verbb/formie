@@ -8,7 +8,7 @@
             {% fieldtag 'fieldTableHeaderRow' %}
                 {% for colId, col in field.columns %}
                     {% fieldtag 'fieldTableHeaderColumn' %}
-                        {{- col.heading | t('formie') | md(inlineOnly=true) | nl2br -}}
+                        {{- col.heading | md(inlineOnly=true) | nl2br -}}
                     {% endfieldtag %}
                 {% endfor %}
             {% endfieldtag %}

@@ -356,7 +356,7 @@ class Calculations extends Field implements PreviewableFieldInterface
                     'type' => 'text',
                     'id' => $id,
                     'name' => $this->getHtmlName(),
-                    'placeholder' => Craft::t('formie', $this->placeholder) ?: null,
+                    'placeholder' => $this->placeholder ?: null,
                     'required' => $this->required ? true : null,
                     'readonly' => true,
                     'data-formie-input' => true,

@@ -97,13 +97,13 @@ trait QuestionFieldTrait
             $label = trim((string)$this->label);
 
             return $label !== ''
-                ? Template::raw(Craft::t('site', $label))
+                ? Template::raw($label)
                 : Template::raw('');
         }
 
         $html = RichTextHelper::getHtmlContent($this->question, $submission, false);
 
-        return Template::raw(Craft::t('formie', $html));
+        return Template::raw($html);
     }
 
     public function getLabelHtml(): Markup

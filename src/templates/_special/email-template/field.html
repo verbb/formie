@@ -1,6 +1,6 @@
 <p>
     {% if field.hasReferenceBlockLabel() and not (renderOptions.hideName ?? false) %}
-        <strong>{{ field.label | t('formie') }}</strong><br>
+        <strong>{{ field.label }}</strong><br>
     {% endif %}
 
     {% if field.isValueEmpty(value, submission) and field.hasReferenceBlockPlaceholder() %}

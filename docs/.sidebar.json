@@ -18,6 +18,7 @@
             "forms/form-builder",
             "forms/form-groups",
             "forms/multi-site",
+            "forms/translations",
             {
                 "title": "Fields",
                 "collapsable": true,

@@ -188,7 +188,7 @@ class Eway extends Payment
 
             Integration::apiError($this, $e, $this->throwApiError);
 
-            $this->addFieldError($submission, Craft::t('formie', $e->getMessage()));
+            $this->addFieldError($submission, $e->getMessage());
             
             $payment = new PaymentModel();
             $payment->integrationId = $this->id;

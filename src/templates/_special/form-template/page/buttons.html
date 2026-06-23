@@ -10,13 +10,13 @@
 
         {% if page.settings.showBackButton and prevPage %}
             {% formtag 'backButton' %}
-                {{ page.settings.backButtonLabel | t('formie') }}
+                {{ page.settings.backButtonLabel }}
             {% endformtag %}
         {% endif %}
 
         {% if page.settings.showSaveButton %}
             {% formtag 'saveButton' %}
-                {{ page.settings.saveButtonLabel | t('formie') }}
+                {{ page.settings.saveButtonLabel }}
             {% endformtag %}
         {% endif %}
     {% endformtag %}

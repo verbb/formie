@@ -13,7 +13,7 @@
 
                 {% for option in fieldOptions %}
                     {% if option.optgroup is not defined %}
-                        <th scope="col">{{ option.label | t('formie') | purify | md(inlineOnly=true) | raw }}</th>
+                        <th scope="col">{{ option.label | purify | md(inlineOnly=true) | raw }}</th>
                     {% endif %}
                 {% endfor %}
             </tr>
@@ -22,7 +22,7 @@
             {% if usesLikertMultipleRows %}
                 {% for likertRow in likertRows %}
                     <tr>
-                        <th scope="row">{{ likertRow.label | t('formie') | purify | md(inlineOnly=true) | raw }}</th>
+                        <th scope="row">{{ likertRow.label | purify | md(inlineOnly=true) | raw }}</th>
 
                         {% for option in fieldOptions %}
                             {% if option.optgroup is not defined %}
@@ -38,7 +38,7 @@
                                             name="{{ field.getHtmlName(likertRow.value) }}"
                                             value="{{ optionValue }}"
                                             {% if (optionValue ~ '') is same as (selectedValue ~ '') %}checked{% endif %}
-                                            aria-label="{{ (likertRow.label | t('formie') | striptags) ~ ': ' ~ (option.label | t('formie') | striptags) }}"
+                                            aria-label="{{ (likertRow.label | striptags) ~ ': ' ~ (option.label | striptags) }}"
                                         >
                                     </label>
                                 </td>
@@ -61,7 +61,7 @@
                                         name="{{ name }}"
                                         value="{{ optionValue }}"
                                         {% if (optionValue ~ '') is same as (value ~ '') %}checked{% endif %}
-                                        aria-label="{{ option.label | t('formie') | striptags }}"
+                                        aria-label="{{ option.label | striptags }}"
                                     >
                                 </label>
                             </td>

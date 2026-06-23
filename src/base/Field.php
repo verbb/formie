@@ -499,7 +499,7 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
             return Template::raw('');
         }
 
-        return Template::raw(Craft::t('formie', $this->instructions->toHtml(null, true)));
+        return Template::raw($this->instructions->toHtml(null, true));
     }
 
     public function settingsAttributes(): array
@@ -760,7 +760,7 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
     public function getSortOption(): array
     {
         return [
-            'label' => Craft::t('site', $this->label),
+            'label' => $this->label,
             'orderBy' => [$this->getValueSql(), 'elements.id'],
             'attribute' => "field:{$this->uid}",
         ];

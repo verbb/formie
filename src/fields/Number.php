@@ -386,7 +386,7 @@ class Number extends Field implements SortableFieldInterface, PreviewableFieldIn
                     'type' => 'number',
                     'id' => $id,
                     'name' => $this->getHtmlName(),
-                    'placeholder' => Craft::t('formie', $this->placeholder) ?: null,
+                    'placeholder' => $this->placeholder ?: null,
                     'required' => $this->required ? true : null,
                     'min' => $this->limit ? $this->min : false,
                     'max' => $this->limit ? $this->max : false,

@@ -7,7 +7,6 @@ use verbb\formie\helpers\VariableNode;
 use verbb\formie\prosemirror\tohtml\Renderer as HtmlRenderer;
 use verbb\formie\prosemirror\toprosemirror\Renderer as ProseMirrorRenderer;
 
-use Craft;
 use craft\helpers\Json;
 
 use JsonSerializable;
@@ -113,7 +112,6 @@ class RichText implements JsonSerializable
         }
 
         if ($submission) {
-            $html = Craft::t('formie', $html);
             $html = References::parseContent($html, $submission);
         }
 
@@ -122,7 +120,7 @@ class RichText implements JsonSerializable
 
     public function toPlainText(?Submission $submission = null): string
     {
-        return self::_stripInvisibleChars(Craft::t('formie', strip_tags($this->toHtml($submission, false))));
+        return self::_stripInvisibleChars(strip_tags($this->toHtml($submission, false)));
     }
 
     public function getHtml(?Submission $submission = null, bool $nl2br = true): string

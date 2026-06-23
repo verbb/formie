@@ -157,7 +157,7 @@ abstract class AbstractCustomFieldAdapter implements CustomFieldAdapterInterface
     {
         return Html::textInput($field->getHtmlName(), $this->getValueAsString($value, $field, $form->getCurrentSubmission()), [
             'id' => $field->getHtmlId($form),
-            'placeholder' => Craft::t('site', $this->getPlaceholder($field)) ?: null,
+            'placeholder' => $this->getPlaceholder($field) ?: null,
             'required' => $field->required,
             'data-formie-input' => true,
             'data-formie-custom-field-input' => true,
@@ -169,7 +169,7 @@ abstract class AbstractCustomFieldAdapter implements CustomFieldAdapterInterface
     public function getCpInputHtml(CustomField $field, mixed $value, ?ElementInterface $element, bool $inline): string
     {
         return Html::textInput($field->handle, $this->getValueAsString($value, $field, $element), [
-            'placeholder' => Craft::t('site', $this->getPlaceholder($field)) ?: null,
+            'placeholder' => $this->getPlaceholder($field) ?: null,
         ]);
     }
 

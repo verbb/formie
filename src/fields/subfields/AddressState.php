@@ -204,7 +204,7 @@ class AddressState extends SingleLineText implements ChildFieldInterface
                 'id' => $id,
                 'name' => $this->getHtmlName(),
                 'value' => $value ?? false,
-                'placeholder' => Craft::t('formie', $this->placeholder) ?: null,
+                'placeholder' => $this->placeholder ?: null,
                 'required' => $this->required ? true : null,
                 'autocomplete' => 'address-level1',
                 'data-formie-input' => true,
@@ -289,7 +289,7 @@ class AddressState extends SingleLineText implements ChildFieldInterface
                 'optionLabel' => $this->optionLabel,
                 'optionValue' => $this->optionValue,
                 'countryOptionValue' => $countryOptionValue,
-                'placeholder' => Craft::t('formie', $this->placeholder) ?: null,
+                'placeholder' => $this->placeholder ?: null,
                 'subdivisionsAction' => 'formie/address/subdivisions',
             ],
         ]);

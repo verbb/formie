@@ -750,7 +750,7 @@ class Survey extends OptionsField implements SortableFieldInterface, Questionnai
                     continue;
                 }
 
-                $lines[] = Craft::t('site', '{row}: {value}', [
+                $lines[] = Craft::t('formie', '{row}: {value}', [
                     'row' => $row['label'],
                     'value' => $selection->getDisplayLabel(),
                 ]);

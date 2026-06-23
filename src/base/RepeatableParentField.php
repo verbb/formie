@@ -72,11 +72,11 @@ abstract class RepeatableParentField extends ParentField implements RepeatablePa
                 'min' => $this->minRows ?: null,
                 'max' => $this->maxRows ?: null,
                 'tooFew' => $this->minRows ? Craft::t('app', '{attribute} should contain at least {min, number} {min, plural, one{block} other{blocks}}.', [
-                    'attribute' => Craft::t('formie', $this->label),
+                    'attribute' => $this->label,
                     'min' => $this->minRows, // Need to pass this in now
                 ]) : null,
                 'tooMany' => $this->maxRows ? Craft::t('app', '{attribute} should contain at most {max, number} {max, plural, one{block} other{blocks}}.', [
-                    'attribute' => Craft::t('formie', $this->label),
+                    'attribute' => $this->label,
                     'max' => $this->maxRows, // Need to pass this in now
                 ]) : null,
                 'skipOnEmpty' => false,

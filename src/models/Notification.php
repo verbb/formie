@@ -307,7 +307,7 @@ class Notification extends Model implements TranslatablePropertiesInterface
         /* @var Settings $settings */
         $settings = Formie::$plugin->getSettings();
 
-        return Craft::t('formie', $settings->emptyValuePlaceholder);
+        return (string)$settings->emptyValuePlaceholder;
     }
 
     public static function normalizeLegacyConfig(array $config): array

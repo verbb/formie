@@ -317,7 +317,7 @@ class Email extends Field implements SortableFieldInterface, PreviewableFieldInt
                     'type' => 'email',
                     'id' => $id,
                     'name' => $this->getHtmlName(),
-                    'placeholder' => Craft::t('formie', $this->placeholder) ?: null,
+                    'placeholder' => $this->placeholder ?: null,
                     'autocomplete' => 'email',
                     'required' => $this->required ? true : null,
                     'data-formie-input' => true,

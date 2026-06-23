@@ -390,7 +390,7 @@ class Repeater extends RepeatableParentField
             return SlotTag::make('button')
                 ->core([
                     'type' => 'button',
-                    'text' => Craft::t('formie', $this->addLabel),
+                    'text' => $this->addLabel,
                     'disabled' => $isStatic,
                     'data-formie-add-button' => true,
                     'data-formie-repeater-add' => $this->handle,

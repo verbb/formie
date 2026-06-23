@@ -41,7 +41,8 @@ Jump directly to the sections most likely to need attention:
 - [Custom Integrations](#custom-integrations) if the project defines custom integrations, captchas, address providers, or payment providers.
 - [Removed legacy captchas](#removed-legacy-captchas) if the site relied on Formie’s built-in Duplicate, JavaScript, or Honeypot captcha types.
 - [Custom Front-End Validation](#custom-front-end-validation) if the project registers custom browser validators or overrides front-end message strings.
-- [Translation Strings](#translation-strings) if the project overrides Formie messages in site translation files.
+- [Translation Strings](#translation-strings) if the project overrides Formie **plugin UI** messages in translation files.
+- [Form Content Translations](#form-content-translations) if the project mapped field labels or form messages through `formie.php` or `site.php`.
 
 ## Changes at a Glance
 
@@ -1140,9 +1141,11 @@ Learn more in [Single-Line Text](/fields/single-line-text) and [Multi-Line Text]
 
 ## Translation Strings
 
-Formie 4 standardizes several message keys that sites commonly override in `translations/*/formie.php`, especially for front-end validation and text-limit counters.
+Formie 4 standardizes several **plugin-owned** message keys that sites commonly override in `translations/*/formie.php`, especially for front-end validation and text-limit counters.
 
-If your project overrides these strings, update the **source keys** in your translation files. Formie looks up messages by the English source string passed to `Craft::t('formie', …)`, not by a separate message ID.
+These are strings Formie ships in English and translates with `Craft::t('formie', …)`. They are separate from form field labels and messages you edit in the form builder. See [Form Content Translations](#form-content-translations) if you previously mapped builder copy through translation files.
+
+If your project overrides plugin UI strings, update the **source keys** in your translation files. Formie looks up messages by the English source string passed to `Craft::t('formie', …)`, not by a separate message ID.
 
 ### Front-end validation placeholders
 
@@ -1223,6 +1226,50 @@ The default unique-value validation message source key is now:
 ```
 
 If you previously overrode a field-specific unique message via translation files alone, consider using the **Unique Error Message** field on the Validation tab instead (`validationMessages.unique`), which supports `{label}` and other allowed placeholders without requiring a global translation override.
+
+## Form Content Translations
+
+Formie no longer passes user-authored form copy through the `formie` translation category at render time. Labels, placeholders, messages, and option labels come from the database (with [site overrides](/forms/multi-site#content-translation) on multi-site projects).
+
+This replaces an older workaround that mutated the plugin `sourceLanguage` on front-end requests so German (or other non-English) canonical labels would not be reverse-translated to English via `formie.php`.
+
+### Audit your translation files
+
+Review `translations/*/formie.php` and remove keys that match **form builder content**, for example:
+
+```php
+// Remove — migrate to CP site overrides or edit the form directly
+'Your name' => 'Votre nom',
+'Contact us' => 'Contactez-nous',
+'Please enter your email' => 'Veuillez saisir votre e-mail',
+```
+
+Keep keys that match **Formie-owned English source strings**, for example:
+
+```php
+// Keep
+'{label} cannot be blank.' => '…',
+'(optional)' => '…',
+'Drop files here or browse to upload.' => '…',
+```
+
+The same applies to user field labels stored in `translations/*/site.php`. Prefer editing the form or using CP site overrides instead.
+
+### Migration paths
+
+| Old pattern | New approach |
+| --- | --- |
+| `'Your name' => 'Votre nom'` in `fr/formie.php` | French **site override** in the form builder |
+| German labels written in the builder, no overrides | No change — copy renders as stored |
+| Plugin validation overrides in `de/formie.php` | Keep in `formie.php` |
+| Per-field validation text | **Validation** tab on the field (`validationMessages.*`) |
+| Two English sites, different labels | CP site overrides (not locale files) |
+
+### Single-site projects
+
+Edit the form in the control panel. You do not need translation file entries for field labels.
+
+Learn more in [Translations](/forms/translations).
 
 ## Sub-field Label Position
 

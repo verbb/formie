@@ -275,7 +275,7 @@ class FormSettings extends Model implements TranslatablePropertiesInterface
     {
         $message = $this->_getHtmlContent($this->submitActionMessage, $submission);
 
-        return Craft::t('formie', $message);
+        return $message;
     }
 
     public function getSubmitActionMessageHtml(): string
@@ -287,7 +287,7 @@ class FormSettings extends Model implements TranslatablePropertiesInterface
     {
         $message = $this->_getHtmlContent($this->errorMessage);
 
-        return Craft::t('formie', $message);
+        return $message;
     }
 
     public function getErrorMessageHtml(): string
@@ -299,7 +299,7 @@ class FormSettings extends Model implements TranslatablePropertiesInterface
     {
         $message = $this->_getHtmlContent($this->requireUserMessage);
 
-        return Craft::t('formie', $message);
+        return $message;
     }
 
     public function getRequireUserMessageHtml(): string
@@ -311,7 +311,7 @@ class FormSettings extends Model implements TranslatablePropertiesInterface
     {
         $message = $this->_getHtmlContent($this->scheduleFormPendingMessage);
 
-        return Craft::t('formie', $message);
+        return $message;
     }
 
     public function getScheduleFormPendingMessageHtml(): string
@@ -323,7 +323,7 @@ class FormSettings extends Model implements TranslatablePropertiesInterface
     {
         $message = $this->_getHtmlContent($this->scheduleFormExpiredMessage);
 
-        return Craft::t('formie', $message);
+        return $message;
     }
 
     public function getScheduleFormExpiredMessageHtml(): string
@@ -335,7 +335,7 @@ class FormSettings extends Model implements TranslatablePropertiesInterface
     {
         $message = $this->_getHtmlContent($this->limitSubmissionsMessage);
 
-        return Craft::t('formie', $message);
+        return $message;
     }
 
     public function getLimitSubmissionsMessageHtml(): string

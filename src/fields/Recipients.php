@@ -503,7 +503,7 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
     public function getPreviewHtml(mixed $value, ElementInterface $element): string
     {
         if ($value instanceof RecipientsFieldValue) {
-            return $this->renderPreviewText(implode(', ', array_map(static fn(string $label): string => Craft::t('site', $label), $value->labels())));
+            return $this->renderPreviewText(implode(', ', $value->labels()));
         }
 
         return parent::getPreviewHtml($value, $element);

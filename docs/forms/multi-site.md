@@ -21,6 +21,8 @@ That design matches how forms are usually used in multi-site projects: the same 
 
 The sections below split the two concerns Formie *does* handle: **site availability** (Craft-like enable/disable) and **content translation** (shared structure, local wording).
 
+For how Formie translations relate to static translation files (`formie.php`, `site.php`), see [Translations](/forms/translations).
+
 ## Two separate ideas
 
 Multi-site work in Formie falls into two buckets. They are related, but they solve different problems:

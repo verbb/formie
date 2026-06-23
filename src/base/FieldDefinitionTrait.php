@@ -224,7 +224,7 @@ trait FieldDefinitionTrait
         $input = [];
 
         if (property_exists($this, 'placeholder')) {
-            $input['placeholder'] = Craft::t('formie', $this->placeholder) ?: null;
+            $input['placeholder'] = $this->placeholder ?: null;
         }
 
         return $input;

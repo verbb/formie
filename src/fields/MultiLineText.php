@@ -310,7 +310,7 @@ class MultiLineText extends Field implements SortableFieldInterface, Previewable
                 ->core($this->applyTextLimitInputAttributes([
                     'id' => $id,
                     'name' => $this->getHtmlName(),
-                    'placeholder' => Craft::t('formie', $this->placeholder) ?: null,
+                    'placeholder' => $this->placeholder ?: null,
                     'required' => $this->required ? true : null,
                     'data-formie-textarea' => true,
                     'data-formie-multi-line-text-input' => true,

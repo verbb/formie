@@ -7,7 +7,7 @@
 
         {%- set fieldLabelContent = field.usesQuestionLabel()
             ? field.getLabelHtml()
-            : field.label | t('formie') -%}
+            : field.label -%}
 
         {{- fieldLabelContent | raw -}}
 

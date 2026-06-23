@@ -35,10 +35,10 @@ trait FieldSubmissionTrait
         $fieldAttributes = array_merge($fieldAttributes, $cpFieldMeta['attributes']);
 
         $fieldConfig = [
-            'label' => $this->hasLabel() ? Craft::t('site', $this->label) : null,
+            'label' => $this->hasLabel() ? $this->label : null,
             'attribute' => $this->handle,
             'required' => $this->required,
-            'instructions' => $this->hasInstructions() ? Craft::t('site', (string)$this->instructions) : null,
+            'instructions' => $this->hasInstructions() ? (string)$this->instructions : null,
             'id' => $this->handle,
             'errors' => $errors,
             'fieldAttributes' => $fieldAttributes,

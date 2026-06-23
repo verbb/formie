@@ -820,7 +820,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Opti
             foreach ($value as $option) {
                 /** @var OptionValue $option */
                 if ($option->value) {
-                    $labels[] = Craft::t('site', $option->getDisplayLabel());
+                    $labels[] = $option->getDisplayLabel();
                 }
             }
 
@@ -831,7 +831,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Opti
             return '';
         }
 
-        return $value->value ? $this->renderPreviewText(Craft::t('site', $value->getDisplayLabel())) : '';
+        return $value->value ? $this->renderPreviewText($value->getDisplayLabel()) : '';
     }
 
     public function getIsMultiOptionsField(): bool
@@ -1068,22 +1068,22 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Opti
 
     protected function translatedOptions(): array
     {
-        $translatedOptions = [];
+        $options = [];
 
         foreach ($this->getFieldOptions() as $option) {
             if (isset($option['optgroup'])) {
-                $translatedOptions[] = [
-                    'optgroup' => Craft::t('formie', $option['optgroup']),
+                $options[] = [
+                    'optgroup' => $option['optgroup'],
                 ];
             } else {
-                $translatedOptions[] = [
-                    'label' => Craft::t('formie', $option['label']),
+                $options[] = [
+                    'label' => $option['label'],
                     'value' => (string)$option['value'],
                 ];
             }
         }
 
-        return $translatedOptions;
+        return $options;
     }
 
     protected function defaultValue(): array|string|null

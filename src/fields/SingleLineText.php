@@ -246,7 +246,7 @@ class SingleLineText extends Field implements SortableFieldInterface, Previewabl
                     'id' => $id,
                     'name' => $this->getHtmlName(),
                     'value' => $value ?? false,
-                    'placeholder' => Craft::t('formie', $this->placeholder) ?: null,
+                    'placeholder' => $this->placeholder ?: null,
                     'required' => $this->required ? true : null,
                     'data-formie-input' => true,
                     'data-formie-single-line-text-input' => true,

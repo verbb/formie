@@ -15,10 +15,10 @@
                     }) }}
 
                     {% fieldtag 'fieldOptionLabel' with {
-                        title: option.label | t('formie'),
+                        title: option.label,
                     } %}
                         <span class="formie-rating-star" aria-hidden="true"></span>
-                        <span class="formie-sr-only">{{ option.label | t('formie') | purify | md(inlineOnly=true) | raw }}</span>
+                        <span class="formie-sr-only">{{ option.label | purify | md(inlineOnly=true) | raw }}</span>
                     {% endfieldtag %}
                 {% endfieldtag %}
             {% endif %}

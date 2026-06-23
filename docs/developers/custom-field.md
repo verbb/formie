@@ -306,13 +306,13 @@ protected function defineFieldSlotTag(string $key, RenderContext $context): ?Slo
                 'id' => $id,
                 'name' => $this->getHtmlName(),
                 'value' => $value ?? false,
-                'placeholder' => Craft::t('formie', $this->placeholder) ?: null,
+                'placeholder' => $this->placeholder ?: null,
                 'required' => $this->required ? true : null,
                 'data-formie-input' => true,
                 'data-formie-input-id' => $dataId,
                 'data-formie-input-type' => 'text',
                 'data-formie-input-error-state' => $errors ? true : false,
-                'data-formie-required-message' => Craft::t('formie', $this->errorMessage) ?: null,
+                'data-formie-required-message' => $this->errorMessage ?: null,
                 'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
             ])
             ->theme([

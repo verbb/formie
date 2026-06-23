@@ -131,7 +131,7 @@ class Paddle extends Payment
             try {
                 $items = $this->_getOrCreateProducts($submission);
             } catch (Throwable $e) {
-                $this->addFieldError($submission, Craft::t('formie', $e->getMessage()));
+                $this->addFieldError($submission, $e->getMessage());
 
                 return PaymentDecision::failed($e->getMessage(), $this->handle);
             }

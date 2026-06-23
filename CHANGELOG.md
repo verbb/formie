@@ -11,6 +11,9 @@
 - Add GoCardless recurring subscription support via Direct Debit mandate authorisation and GoCardless subscription creation after billing request fulfilment. ([#2552](https://github.com/verbb/formie/issues/2552))
 
 ### Changed
+- Stop routing user-authored form content (labels, placeholders, messages, options) through the `formie` translation category. Form copy is output from the database after site overrides are merged; `formie.php` is for Formie-owned UI strings only ([#2907](https://github.com/verbb/formie/issues/2907)).
+- Remove front-end `sourceLanguage` mutation in the plugin constructor that existed to work around the above behaviour.
+- Improve multi-site submission and notification handling by loading forms with site translation overrides applied for the submission’s site.
 - Improve default theme color contrast for WCAG 2.2 AA — darker error text, muted helper text, and border-only control styling with split border tokens ([#2475](https://github.com/verbb/formie/issues/2475)).
 - Add Ajax-safe tab link state theme keys `tabLinkCurrent` and `tabLinkInactive`, with aliases for `pageTabLinkActive`, `pageTabLinkInactive`, and `pageInactive` ([#1279](https://github.com/verbb/formie/issues/1279)).
 

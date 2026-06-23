@@ -538,7 +538,7 @@ class ValidationMessagesHelper
 
     private static function normalizeParams(Field $field, array $params): array
     {
-        $label = Craft::t('formie', $field->label);
+        $label = (string)$field->label;
 
         if (!array_key_exists('label', $params)) {
             $params['label'] = $label;

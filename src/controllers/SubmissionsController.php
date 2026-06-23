@@ -996,7 +996,7 @@ class SubmissionsController extends Controller
             }
 
             $variables['tabs'][] = [
-                'label' => Craft::t('formie', $page->label),
+                'label' => $page->label,
                 'url' => '#page-' . $page->id,
                 'class' => $hasErrors ? 'error' : null,
             ];

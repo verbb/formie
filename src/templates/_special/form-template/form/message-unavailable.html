@@ -19,7 +19,7 @@
 
     {% if message %}
         {% formtag 'messageError' %}
-            {{- message | t('formie') | raw -}}
+            {{- message | raw -}}
         {% endformtag %}
     {% endif %}
 {% endif %}
