@@ -2,6 +2,7 @@
 namespace verbb\formie\migrations;
 
 use verbb\formie\Formie;
+use verbb\formie\helpers\MigrationHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\services\Integrations;
 use verbb\formie\services\SpamProtection;
@@ -41,7 +42,7 @@ class m260619_000000_spam_settings extends Migration
         $settingsArray = $settings->toArray();
         $settingsArray = Formie::$plugin->getSpamProtection()->stripFromPluginSettingsArray($settingsArray);
 
-        Craft::$app->getPlugins()->savePluginSettings(Formie::$plugin, $settingsArray);
+        MigrationHelper::savePluginSettingsIfAllowed(Formie::$plugin, $settingsArray);
 
         return true;
     }

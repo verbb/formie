@@ -2,6 +2,7 @@
 namespace verbb\formie\migrations;
 
 use verbb\formie\Formie;
+use verbb\formie\helpers\MigrationHelper;
 
 use Craft;
 use craft\db\Migration;
@@ -30,7 +31,7 @@ class m260607_000000_field_palette extends Migration
 
         if (!empty($settings['disabledFields'])) {
             $settings['disabledFields'] = [];
-            Craft::$app->getPlugins()->savePluginSettings($plugin, $settings);
+            MigrationHelper::savePluginSettingsIfAllowed($plugin, $settings);
         }
 
         return true;

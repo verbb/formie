@@ -31,6 +31,8 @@
 - Fix payment provider settings not pre-filling defaults when selecting a provider in the form builder.
 - Fix combobox schema fields using a literal “Select an option” empty option instead of a placeholder.
 - Fix captcha provider credentials saved in the control panel being wiped when project config syncs on deploy. Site-scoped captcha settings are now preserved across deployments. ([#2407](https://github.com/verbb/formie/issues/2407))
+- Fix notification email preview and send failing when both **From Name** and **From Email** are set. ([#2698](https://github.com/verbb/formie/issues/2698))
+- Fix plugin migrations failing on production when `allowAdminChanges` is disabled because migrations attempted to write plugin settings to project config. ([#2615](https://github.com/verbb/formie/issues/2615))
 
 ## 4.0.0-beta.8 - 2026-06-26
 

@@ -2,6 +2,7 @@
 namespace verbb\formie\migrations;
 
 use verbb\formie\Formie;
+use verbb\formie\helpers\MigrationHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\services\Integrations;
 
@@ -36,7 +37,7 @@ class m260618_000000_captcha_providers extends Migration
 
         if ($legacyCaptchas !== []) {
             $settings->captchas = [];
-            Craft::$app->getPlugins()->savePluginSettings(Formie::$plugin, $settings->toArray());
+            MigrationHelper::savePluginSettingsIfAllowed(Formie::$plugin, $settings->toArray());
         }
 
         return true;
