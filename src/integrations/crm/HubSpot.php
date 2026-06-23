@@ -931,6 +931,7 @@ class HubSpot extends Crm
             'instructions' => Craft::t('formie', 'Select your {name} form to create submissions on.', ['name' => $this->displayName()]),
             'if' => 'mapToForm',
             'required' => true,
+            'placeholder' => Craft::t('formie', 'Select an option'),
             'options' => $this->getCollectionOptions('forms'),
             'refreshParams' => [
                 'refreshForms' => true,

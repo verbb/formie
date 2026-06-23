@@ -314,6 +314,7 @@ class EventsEvent extends Element
             'label' => Craft::t('formie', 'Event Type'),
             'instructions' => Craft::t('formie', 'Select an event type to map content to. This will reflect the available fields to map to.'),
             'required' => true,
+            'placeholder' => Craft::t('formie', 'Select an option'),
             'options' => $this->_getEventTypeOptions(),
         ]);
         $schema[] = SchemaHelper::elementSelectField([
@@ -394,7 +395,7 @@ class EventsEvent extends Element
 
     private function _getEventTypeOptions(): array
     {
-        $options = [['label' => Craft::t('formie', 'Select an option'), 'value' => '']];
+        $options = [];
         $elements = $this->getFormSettingValue('elements');
         if (is_array($elements)) {
             foreach ($elements as $item) {

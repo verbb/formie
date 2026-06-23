@@ -19,6 +19,9 @@
 - Fix external redirect payments (for example Mollie) leaving users on the status polling page when payment fails. Failed payments now redirect back to the original form URL with a flash error message. ([#2502](https://github.com/verbb/formie/issues/2502))
 - Fix Stripe and other payment follow-up submits re-validating one-time captcha tokens (for example reCAPTCHA v2 checkbox and hCaptcha), which caused duplicate-token spam failures on the second Ajax POST. Incomplete continuation submits now skip captcha screening, matching replay-token behaviour. ([#2465](https://github.com/verbb/formie/issues/2465))
 - Fix hard-coded local-dev payment webhook proxy URL. `paymentWebhookProxyUrl` in `config/formie.php` now controls the dev-mode proxy base URL (default `https://proxy.verbb.io`), or can be set to an empty string to disable proxying.
+- Fix payment provider settings schema failing to load in the form builder due to a missing `Payment` field import in `FieldsController`.
+- Fix payment provider settings not pre-filling defaults when selecting a provider in the form builder.
+- Fix combobox schema fields using a literal “Select an option” empty option instead of a placeholder.
 
 ## 4.0.0-beta.8 - 2026-06-26
 

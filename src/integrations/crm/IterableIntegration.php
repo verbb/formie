@@ -280,6 +280,7 @@ class IterableIntegration extends Crm
             'instructions' => Craft::t('formie', 'Select your {name} message type to subscribe users to.', ['name' => $this->displayName()]),
             'if' => 'mapToMessageType',
             'required' => true,
+            'placeholder' => Craft::t('formie', 'Select an option'),
             'options' => $this->getCollectionOptions('messageTypes'),
         ]);
 

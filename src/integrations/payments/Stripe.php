@@ -1015,10 +1015,8 @@ class Stripe extends Payment
                         'name' => 'currencyFixed',
                         'required' => true,
                         'if' => 'currencyType == "' . Payment::VALUE_TYPE_FIXED . '"',
-                        'options' => array_merge(
-                            [['label' => Craft::t('formie', 'Select an option'), 'value' => '']],
-                            static::getCurrencyOptions()
-                        ),
+                        'placeholder' => Craft::t('formie', 'Select an option'),
+                        'options' => static::getCurrencyOptions(),
                     ]),
                     SchemaHelper::fieldSelectField([
                         'name' => 'currencyVariable',
@@ -1205,7 +1203,9 @@ class Stripe extends Payment
             'type' => self::PAYMENT_TYPE_SINGLE,
             'amountType' => self::VALUE_TYPE_FIXED,
             'currencyType' => self::VALUE_TYPE_FIXED,
+            'currencyFixed' => static::getDefaultCurrencyCode(),
             'frequencyType' => 'day',
+            'frequencyValue' => 1,
         ];
 
         return $defaults;

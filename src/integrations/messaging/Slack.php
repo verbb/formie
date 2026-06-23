@@ -224,6 +224,7 @@ class Slack extends Messaging implements OAuthProviderInterface
             'instructions' => Craft::t('formie', 'Select which {name} channel to post a message to.', ['name' => $this->displayName()]),
             'name' => 'channelId',
             'if' => 'channelType == "public"',
+            'placeholder' => Craft::t('formie', 'Select an option'),
             'options' => [], // Populated from fetchFormSettings (channels)
         ]);
         $schema[] = SchemaHelper::comboboxField([
@@ -231,6 +232,7 @@ class Slack extends Messaging implements OAuthProviderInterface
             'instructions' => Craft::t('formie', 'Select which {name} user to post a message to.', ['name' => $this->displayName()]),
             'name' => 'userId',
             'if' => 'channelType == "directMessage"',
+            'placeholder' => Craft::t('formie', 'Select an option'),
             'options' => [], // Populated from fetchFormSettings (members)
         ]);
         $schema[] = SchemaHelper::textField([

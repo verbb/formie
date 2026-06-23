@@ -220,6 +220,7 @@ class Monday extends Miscellaneous
             'label' => Craft::t('formie', 'Board'),
             'instructions' => Craft::t('formie', 'Select your {name} board to manage content on.', ['name' => $this->displayName()]),
             'required' => true,
+            'placeholder' => Craft::t('formie', 'Select an option'),
             'options' => $this->_getBoardOptions(),
         ]);
 
@@ -383,7 +384,7 @@ class Monday extends Miscellaneous
 
     private function _getBoardOptions(): array
     {
-        $options = [['label' => Craft::t('formie', 'Select an option'), 'value' => '']];
+        $options = [];
         $boards = $this->getFormSettingValue('boards');
 
         if (!is_array($boards)) {

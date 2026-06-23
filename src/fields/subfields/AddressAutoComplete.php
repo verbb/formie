@@ -71,6 +71,7 @@ class AddressAutoComplete extends SingleLineText implements ChildFieldInterface
             'instructions' => Craft::t('formie', 'Bias Google Places address suggestions toward this country.'),
             'name' => 'countryDefaultValue',
             'if' => $googlePlacesIf,
+            'placeholder' => Craft::t('formie', 'Select an option'),
             'options' => $this->_getCountryDefaultValueOptions(),
         ]);
 

@@ -275,6 +275,7 @@ class Phone extends Field implements SortableFieldInterface, PreviewableFieldInt
                 'instructions' => Craft::t('formie', 'Set a default value for the field when it doesn’t have a value.'),
                 'name' => 'countryDefaultValue',
                 'if' => 'countryEnabled',
+                'placeholder' => Craft::t('formie', 'Select an option'),
                 'options' => $this->getCountryOptions(),
             ]),
             SchemaHelper::lightswitchField([

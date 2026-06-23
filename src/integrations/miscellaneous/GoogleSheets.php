@@ -241,6 +241,7 @@ class GoogleSheets extends Miscellaneous implements OAuthProviderInterface
             'label' => Craft::t('formie', 'Sheet'),
             'instructions' => Craft::t('formie', 'Select which {name} sheet to add rows to.', ['name' => $this->displayName()]),
             'required' => true,
+            'placeholder' => Craft::t('formie', 'Select an option'),
             'options' => $this->_getSheetOptions(),
         ]);
 

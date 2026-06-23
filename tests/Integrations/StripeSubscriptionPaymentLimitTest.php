@@ -85,6 +85,19 @@ it('returns null for invalid fixed subscription payment limits', function (): vo
     expect($integration->getSubscriptionPaymentLimit(new Submission()))->toBeNull();
 });
 
+it('includes payment field defaults for Stripe subscriptions', function (): void {
+    $integration = new Stripe(['name' => 'Stripe', 'handle' => 'stripeTest']);
+    $defaults = $integration->getPaymentFieldSettingsDefaults();
+
+    expect($defaults)->toMatchArray([
+        'type' => Payment::PAYMENT_TYPE_SINGLE,
+        'amountType' => Payment::VALUE_TYPE_FIXED,
+        'currencyType' => Payment::VALUE_TYPE_FIXED,
+        'frequencyType' => 'day',
+        'frequencyValue' => 1,
+    ])->and($defaults['currencyFixed'])->not->toBe('');
+});
+
 it('builds a Stripe subscription schedule payload with iteration limits', function (): void {
     $integration = new Stripe(['name' => 'Stripe', 'handle' => 'stripeTest']);
 

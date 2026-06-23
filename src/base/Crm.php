@@ -90,13 +90,7 @@ abstract class Crm extends Integration
 
     protected function getCollectionOptions(string $settingsKey): array
     {
-        $options = [
-            [
-                'label' => Craft::t('formie', 'Select an option'),
-                'value' => '',
-            ],
-        ];
-
+        $options = [];
         $collections = $this->getFormSettingValue($settingsKey);
 
         if (!is_array($collections)) {

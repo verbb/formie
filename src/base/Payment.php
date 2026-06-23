@@ -99,6 +99,13 @@ abstract class Payment extends Integration
         return $event->currencies;
     }
 
+    public static function getDefaultCurrencyCode(): string
+    {
+        $currency = strtoupper((string)(Craft::$app->getLocale()->getDefaultCurrency() ?: 'USD'));
+
+        return $currency !== '' ? $currency : 'USD';
+    }
+
     public function supportsWebhooks(): bool
     {
         return false;

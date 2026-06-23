@@ -4,6 +4,7 @@ namespace verbb\formie\controllers;
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\fields\Payment;
 use verbb\formie\fields\Signature;
 use verbb\formie\fields\Summary;
 use verbb\formie\helpers\FieldAccess;

@@ -370,6 +370,7 @@ class CalendarEvent extends Element
             'label' => Craft::t('formie', 'Calendar'),
             'instructions' => Craft::t('formie', 'Select a calendar to map content to. This will reflect the available fields to map to.'),
             'required' => true,
+            'placeholder' => Craft::t('formie', 'Select an option'),
             'options' => $this->_getCalendarOptions(),
         ]);
         $schema[] = SchemaHelper::elementSelectField([

@@ -12,6 +12,22 @@ import { fetchPaymentProviderSettingsSchema } from '@form-builder/hooks/useFormT
 
 const paymentProviderSchemaCache = {};
 
+const mergeProviderSettingsWithDefaults = (defaults, currentValues) => {
+    const merged = {
+        ...(defaults && typeof defaults === 'object' ? defaults : {}),
+    };
+
+    Object.entries(currentValues || {}).forEach(([key, value]) => {
+        if (value === '' || value === null || value === undefined) {
+            return;
+        }
+
+        merged[key] = value;
+    });
+
+    return merged;
+};
+
 const getNestedErrors = (errors, prefix) => {
     if (!errors || typeof errors !== 'object' || !prefix) {
         return {};
@@ -129,10 +145,7 @@ function PaymentProviderSettingsField({ field, form }) {
             : {};
         const defaults = schemaConfig?.defaultValues || {};
 
-        return {
-            ...defaults,
-            ...currentValues,
-        };
+        return mergeProviderSettingsWithDefaults(defaults, currentValues);
     }, [providerHandle, schemaConfig, providerSettingsValue]);
 
     const nestedErrors = useMemo(() => {
@@ -204,13 +217,9 @@ function PaymentProviderSettingsField({ field, form }) {
         const existing = typeof form?.getValueAtPath === 'function'
             ? (form.getValueAtPath(providerSettingsPath, {}) || {})
             : {};
-        const mergedInitialValues = {
-            ...(existing && typeof existing === 'object' ? existing : {}),
-            ...(initialValues && typeof initialValues === 'object' ? initialValues : {}),
-        };
 
-        if (!isEqual(existing, mergedInitialValues)) {
-            form.setFieldValue(providerSettingsPath, mergedInitialValues);
+        if (!isEqual(existing, initialValues)) {
+            form.setFieldValue(providerSettingsPath, initialValues);
         }
     }, [providerHandle, providerConfigKey, schemaConfig, nestedForm, initialValues, providerSettingsPath, form]);
 
@@ -234,7 +243,12 @@ function PaymentProviderSettingsField({ field, form }) {
             )}
 
             {providerHandle && !configLoading && !configError && (schemaConfig?.schema || []).length > 0 && (
-                <SchemaFormEngine form={nestedForm} withoutForm className="space-y-4" />
+                <SchemaFormEngine
+                    key={providerConfigKey}
+                    form={nestedForm}
+                    withoutForm
+                    className="space-y-4"
+                />
             )}
         </div>
     );

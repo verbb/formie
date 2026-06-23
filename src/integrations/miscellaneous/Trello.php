@@ -176,6 +176,7 @@ class Trello extends Miscellaneous implements OAuthProviderInterface
             'label' => Craft::t('formie', 'Board'),
             'instructions' => Craft::t('formie', 'Select which {name} board to add a card to.', ['name' => $this->displayName()]),
             'required' => true,
+            'placeholder' => Craft::t('formie', 'Select an option'),
             'options' => $this->_getBoardOptions(),
         ]);
         $schema[] = SchemaHelper::comboboxField([
@@ -183,6 +184,7 @@ class Trello extends Miscellaneous implements OAuthProviderInterface
             'label' => Craft::t('formie', 'List'),
             'instructions' => Craft::t('formie', 'Select which {name} list to add a card to.', ['name' => $this->displayName()]),
             'required' => true,
+            'placeholder' => Craft::t('formie', 'Select an option'),
             'options' => $this->_getListOptions($selectedBoardId),
         ]);
         $schema[] = SchemaHelper::textField([

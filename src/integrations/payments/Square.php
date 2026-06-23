@@ -222,10 +222,8 @@ class Square extends Payment
                 'instructions' => Craft::t('formie', 'Provide the currency to be used for the transaction.'),
                 'name' => 'currency',
                 'required' => true,
-                'options' => array_merge(
-                    [['label' => Craft::t('formie', 'Select an option'), 'value' => '']],
-                    static::getCurrencyOptions()
-                ),
+                'placeholder' => Craft::t('formie', 'Select an option'),
+                'options' => static::getCurrencyOptions(),
             ]),
             SchemaHelper::fieldWrap([
                 'label' => Craft::t('formie', 'Payment Amount'),
