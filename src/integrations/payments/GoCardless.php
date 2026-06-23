@@ -18,9 +18,11 @@ use verbb\formie\models\ClientModuleContext;
 use verbb\formie\models\Payment as PaymentModel;
 use verbb\formie\models\PaymentAction;
 use verbb\formie\models\PaymentDecision;
+use verbb\formie\models\Subscription;
 
 use Craft;
 use craft\helpers\App;
+use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 use craft\web\Response;
@@ -260,6 +262,11 @@ class GoCardless extends Payment
 
                 if ($resourceType === 'billing_requests') {
                     $this->_processBillingRequestWebhookEvent($event, $action);
+                    continue;
+                }
+
+                if ($resourceType === 'subscriptions') {
+                    $this->_processSubscriptionWebhookEvent($event, $action);
                 }
             }
 
@@ -310,7 +317,11 @@ class GoCardless extends Payment
         try {
             $this->_syncPaymentFromBillingRequestReturn($payment);
 
-            if ($payment->reference) {
+            $existing = is_array($payment->response) ? $payment->response : [];
+
+            if (!empty($existing['gcSubscription']['id'])) {
+                $this->_refreshGoCardlessSubscription($payment);
+            } elseif ($payment->reference) {
                 $this->getTransaction($payment);
             }
         } catch (Throwable $e) {
@@ -318,6 +329,31 @@ class GoCardless extends Payment
                 'message' => $e->getMessage(),
             ]));
         }
+    }
+
+    public function cancelSubscription($reference, $params = []): ?array
+    {
+        try {
+            $response = $this->request('POST', "subscriptions/{$reference}/actions/cancel")['subscriptions'] ?? [];
+
+            if (!$response) {
+                return null;
+            }
+
+            $subscription = Formie::$plugin->getSubscriptions()->getSubscriptionByReference($reference);
+
+            if ($subscription) {
+                $subscription->subscriptionData = $response;
+                $this->_setSubscriptionStatusData($subscription, $response);
+                Formie::$plugin->getSubscriptions()->saveSubscription($subscription);
+            }
+
+            return $response;
+        } catch (Throwable $e) {
+            Integration::apiError($this, $e, false);
+        }
+
+        return null;
     }
 
     public function fetchConnection(): bool
@@ -338,6 +374,16 @@ class GoCardless extends Payment
     public function defineFormBuilderGeneralSchema(): array
     {
         return [
+            SchemaHelper::selectField([
+                'label' => Craft::t('formie', 'Payment Type'),
+                'instructions' => Craft::t('formie', 'Select the type of payment to use.'),
+                'name' => 'type',
+                'required' => true,
+                'options' => [
+                    ['label' => Craft::t('formie', 'Once-off'), 'value' => self::PAYMENT_TYPE_SINGLE],
+                    ['label' => Craft::t('formie', 'Subscription'), 'value' => self::PAYMENT_TYPE_SUBSCRIPTION],
+                ],
+            ]),
             SchemaHelper::comboboxField([
                 'label' => Craft::t('formie', 'Payment Currency'),
                 'instructions' => Craft::t('formie', 'Provide the currency to be used for the transaction.'),
@@ -382,6 +428,37 @@ class GoCardless extends Payment
                         'if' => 'amountType == "' . Payment::VALUE_TYPE_DYNAMIC . '"',
                     ]),
                 ],
+            ]),
+            SchemaHelper::fieldWrap([
+                'label' => Craft::t('formie', 'Subscription Frequency'),
+                'instructions' => Craft::t('formie', 'Select how often this subscription should be billed.'),
+                'if' => 'type == "subscription"',
+                'children' => [
+                    [
+                        '$el' => 'span',
+                        'attrs' => ['class' => 'text-sm text-gray-300'],
+                        'children' => Craft::t('formie', 'Bill every'),
+                    ],
+                    SchemaHelper::numberField([
+                        'name' => 'frequencyValue',
+                        'required' => true,
+                    ]),
+                    SchemaHelper::selectField([
+                        'name' => 'frequencyType',
+                        'required' => true,
+                        'options' => [
+                            ['label' => Craft::t('formie', 'Weeks'), 'value' => 'week'],
+                            ['label' => Craft::t('formie', 'Months'), 'value' => 'month'],
+                            ['label' => Craft::t('formie', 'Years'), 'value' => 'year'],
+                        ],
+                    ]),
+                ],
+            ]),
+            SchemaHelper::textField([
+                'label' => Craft::t('formie', 'Subscription Description'),
+                'instructions' => Craft::t('formie', 'Enter a description for the subscription. It appears against the GoCardless subscription and in customer communications.'),
+                'name' => 'subscriptionDescription',
+                'if' => 'type == "subscription"',
             ]),
         ];
     }
@@ -480,7 +557,10 @@ class GoCardless extends Payment
     protected function definePaymentFieldSettingsDefaults(): array
     {
         return [
+            'type' => self::PAYMENT_TYPE_SINGLE,
             'amountType' => self::VALUE_TYPE_FIXED,
+            'frequencyValue' => 1,
+            'frequencyType' => 'month',
         ];
     }
 
@@ -518,6 +598,7 @@ class GoCardless extends Payment
     {
         return [
             'formiePaymentId' => (string)$payment->id,
+            'formiePaymentType' => (string)$this->getFieldSetting('type', self::PAYMENT_TYPE_SINGLE),
         ];
     }
 
@@ -625,6 +706,12 @@ class GoCardless extends Payment
             return;
         }
 
+        if (!empty($existing['gcSubscription']['id'])) {
+            $this->_refreshGoCardlessSubscription($payment);
+
+            return;
+        }
+
         $gcPaymentId = $this->_resolveBillingRequestPaymentId($billingRequest);
 
         if ($gcPaymentId) {
@@ -637,6 +724,13 @@ class GoCardless extends Payment
         $mandateId = $this->_resolveBillingRequestMandateId($billingRequest);
 
         if (!$mandateId) {
+            return;
+        }
+
+        if ($this->_isSubscriptionPayment($payment)) {
+            $gcSubscription = $this->_createGoCardlessSubscriptionForMandate($payment, $submission, $mandateId);
+            $this->_finalizeSubscriptionPayment($payment, $submission, $gcSubscription);
+
             return;
         }
 
@@ -725,6 +819,14 @@ class GoCardless extends Payment
         }
 
         $gcPayment = $this->request('GET', "payments/{$resourceId}")['payments'] ?? [];
+        $gcSubscriptionId = $gcPayment['links']['subscription'] ?? null;
+
+        if ($gcSubscriptionId) {
+            $this->_processSubscriptionPaymentWebhook($gcPayment, (string)$gcSubscriptionId);
+
+            return;
+        }
+
         $formiePaymentId = $gcPayment['metadata']['formiePaymentId'] ?? null;
 
         if (!$formiePaymentId) {
@@ -808,7 +910,7 @@ class GoCardless extends Payment
         $existing = is_array($payment->response) ? $payment->response : [];
         $preserved = [];
 
-        foreach (['billingRequest', 'billingRequestFlow', 'mandateId'] as $key) {
+        foreach (['billingRequest', 'billingRequestFlow', 'mandateId', 'gcSubscription'] as $key) {
             if (isset($existing[$key])) {
                 $preserved[$key] = $existing[$key];
             }
@@ -868,6 +970,266 @@ class GoCardless extends Payment
         }
 
         return $gcPayment;
+    }
+
+    private function _isSubscriptionPayment(PaymentModel $payment): bool
+    {
+        if ($this->getFieldSetting('type') === self::PAYMENT_TYPE_SUBSCRIPTION) {
+            return true;
+        }
+
+        $stored = is_array($payment->response) ? $payment->response : [];
+
+        return ($stored['billingRequest']['metadata']['formiePaymentType'] ?? null) === self::PAYMENT_TYPE_SUBSCRIPTION;
+    }
+
+    private function _resolveGoCardlessSubscriptionInterval(): array
+    {
+        $frequencyValue = max(1, (int)$this->getFieldSetting('frequencyValue', 1));
+        $frequencyType = (string)$this->getFieldSetting('frequencyType', 'month');
+
+        return match ($frequencyType) {
+            'week' => ['interval_unit' => 'weekly', 'interval' => $frequencyValue],
+            'month' => ['interval_unit' => 'monthly', 'interval' => $frequencyValue],
+            'year' => ['interval_unit' => 'yearly', 'interval' => $frequencyValue],
+            default => throw new Exception(Craft::t('formie', 'GoCardless subscriptions support weekly, monthly, or yearly billing intervals only.')),
+        };
+    }
+
+    private function _createGoCardlessSubscriptionForMandate(PaymentModel $payment, Submission $submission, string $mandateId): array
+    {
+        $currency = strtoupper((string)$payment->currency);
+        $amountMinor = $this->_amountToMinorUnits((float)$payment->amount, $currency);
+
+        if ($amountMinor < 1) {
+            throw new Exception(Craft::t('formie', 'The payment amount is too small for GoCardless.'));
+        }
+
+        $interval = $this->_resolveGoCardlessSubscriptionInterval();
+        $description = $this->getFieldSetting('subscriptionDescription')
+            ?? $this->getFieldSetting('paymentDescription')
+            ?? ('Formie Subscription #' . $submission->id);
+        $name = References::parseContent($description, $submission);
+
+        $payload = [
+            'amount' => $amountMinor,
+            'currency' => $currency,
+            'name' => (string)$name,
+            'interval_unit' => $interval['interval_unit'],
+            'interval' => $interval['interval'],
+            'metadata' => [
+                'formiePaymentId' => (string)$payment->id,
+            ],
+            'links' => [
+                'mandate' => $mandateId,
+            ],
+        ];
+
+        $apiResponse = $this->request('POST', 'subscriptions', [
+            'json' => ['subscriptions' => $payload],
+            'headers' => [
+                'Idempotency-Key' => substr($payment->uid . '-sub-create', 0, 120),
+            ],
+        ]);
+
+        $gcSubscription = $apiResponse['subscriptions'] ?? [];
+
+        if (!$gcSubscription || empty($gcSubscription['id'])) {
+            throw new Exception(Craft::t('formie', 'GoCardless did not return a subscription resource.'));
+        }
+
+        return $gcSubscription;
+    }
+
+    private function _finalizeSubscriptionPayment(PaymentModel $payment, Submission $submission, array $gcSubscription): void
+    {
+        $subscription = new Subscription();
+        $subscription->integrationId = $this->id;
+        $subscription->submissionId = $submission->id;
+        $subscription->fieldId = $payment->fieldId;
+        $subscription->reference = $gcSubscription['id'];
+        $subscription->subscriptionData = $gcSubscription;
+        $subscription->trialDays = 0;
+        $this->_setSubscriptionStatusData($subscription, $gcSubscription);
+
+        Formie::$plugin->getSubscriptions()->saveSubscription($subscription);
+
+        $existing = is_array($payment->response) ? $payment->response : [];
+        $preserved = [];
+
+        foreach (['billingRequest', 'billingRequestFlow', 'mandateId'] as $key) {
+            if (isset($existing[$key])) {
+                $preserved[$key] = $existing[$key];
+            }
+        }
+
+        $payment->subscriptionId = $subscription->id;
+        $payment->reference = $gcSubscription['id'];
+        $payment->status = match ($gcSubscription['status'] ?? '') {
+            'active' => PaymentModel::STATUS_SUCCESS,
+            'customer_approval_denied', 'cancelled' => PaymentModel::STATUS_FAILED,
+            default => PaymentModel::STATUS_PENDING,
+        };
+        $payment->response = array_merge($preserved, [
+            'gcSubscription' => $gcSubscription,
+        ]);
+
+        Formie::$plugin->getPayments()->savePayment($payment);
+        Formie::$plugin->getSubmissionProcessor()->replayPaymentIfSuccessful($payment);
+    }
+
+    private function _refreshGoCardlessSubscription(PaymentModel $payment, ?array $gcSubscription = null): void
+    {
+        $existing = is_array($payment->response) ? $payment->response : [];
+        $subscriptionReference = $payment->reference ?: ($existing['gcSubscription']['id'] ?? null);
+
+        if (!$subscriptionReference) {
+            return;
+        }
+
+        if (!$gcSubscription) {
+            $gcSubscription = $this->request('GET', "subscriptions/{$subscriptionReference}")['subscriptions'] ?? [];
+        }
+
+        if (!$gcSubscription) {
+            throw new Exception(Craft::t('formie', 'Unable to resolve GoCardless subscription.'));
+        }
+
+        $subscription = $payment->subscriptionId
+            ? Formie::$plugin->getSubscriptions()->getSubscriptionById((int)$payment->subscriptionId)
+            : Formie::$plugin->getSubscriptions()->getSubscriptionByReference((string)$subscriptionReference);
+
+        if ($subscription) {
+            $subscription->subscriptionData = $gcSubscription;
+            $this->_setSubscriptionStatusData($subscription, $gcSubscription);
+            Formie::$plugin->getSubscriptions()->saveSubscription($subscription);
+        }
+
+        $preserved = [];
+
+        foreach (['billingRequest', 'billingRequestFlow', 'mandateId'] as $key) {
+            if (isset($existing[$key])) {
+                $preserved[$key] = $existing[$key];
+            }
+        }
+
+        $payment->reference = $gcSubscription['id'] ?? $payment->reference;
+        $payment->status = match ($gcSubscription['status'] ?? '') {
+            'active' => PaymentModel::STATUS_SUCCESS,
+            'customer_approval_denied', 'cancelled' => PaymentModel::STATUS_FAILED,
+            'finished' => PaymentModel::STATUS_SUCCESS,
+            default => PaymentModel::STATUS_PENDING,
+        };
+        $payment->response = array_merge($preserved, [
+            'gcSubscription' => $gcSubscription,
+        ]);
+
+        Formie::$plugin->getPayments()->savePayment($payment);
+        Formie::$plugin->getSubmissionProcessor()->replayPaymentIfSuccessful($payment);
+    }
+
+    private function _setSubscriptionStatusData(Subscription $subscription, array $gcSubscription): void
+    {
+        $status = (string)($gcSubscription['status'] ?? '');
+
+        $subscription->isCanceled = $status === 'cancelled';
+        $subscription->isExpired = $status === 'finished';
+        $subscription->hasStarted = in_array($status, ['active', 'finished', 'cancelled'], true);
+
+        if ($subscription->isCanceled && !$subscription->dateCanceled) {
+            $subscription->dateCanceled = DateTimeHelper::toDateTime(new \DateTime());
+        }
+
+        if ($subscription->isExpired && !$subscription->dateExpired) {
+            $subscription->dateExpired = DateTimeHelper::toDateTime(new \DateTime());
+        }
+
+        $nextChargeDate = $gcSubscription['upcoming_payments'][0]['charge_date'] ?? null;
+
+        if ($nextChargeDate) {
+            $subscription->nextPaymentDate = DateTimeHelper::toDateTime($nextChargeDate);
+        }
+    }
+
+    private function _processSubscriptionPaymentWebhook(array $gcPayment, string $gcSubscriptionId): void
+    {
+        $subscription = Formie::$plugin->getSubscriptions()->getSubscriptionByReference($gcSubscriptionId);
+
+        if (!$subscription) {
+            return;
+        }
+
+        if ($field = $subscription->getField()) {
+            $this->setField($field);
+        }
+
+        $gcSubscription = $this->request('GET', "subscriptions/{$gcSubscriptionId}")['subscriptions'] ?? [];
+
+        if ($gcSubscription) {
+            $subscription->subscriptionData = $gcSubscription;
+            $this->_setSubscriptionStatusData($subscription, $gcSubscription);
+            Formie::$plugin->getSubscriptions()->saveSubscription($subscription);
+        }
+
+        $status = (string)($gcPayment['status'] ?? '');
+
+        if (in_array($status, ['confirmed', 'paid_out'], true) && !empty($gcSubscription['upcoming_payments'][0]['charge_date'])) {
+            Formie::$plugin->getSubscriptions()->receivePayment(
+                $subscription,
+                DateTimeHelper::toDateTime($gcSubscription['upcoming_payments'][0]['charge_date']),
+            );
+        }
+    }
+
+    private function _processSubscriptionWebhookEvent(array $event, string $action): void
+    {
+        if (!in_array($action, ['created', 'cancelled', 'finished', 'payment_created', 'amended'], true)) {
+            return;
+        }
+
+        $resourceId = $event['links']['subscription'] ?? null;
+
+        if (!$resourceId) {
+            return;
+        }
+
+        $subscription = Formie::$plugin->getSubscriptions()->getSubscriptionByReference((string)$resourceId);
+
+        if (!$subscription) {
+            return;
+        }
+
+        if ($field = $subscription->getField()) {
+            $this->setField($field);
+        }
+
+        $gcSubscription = $this->request('GET', "subscriptions/{$resourceId}")['subscriptions'] ?? [];
+
+        if (!$gcSubscription) {
+            return;
+        }
+
+        $subscription->subscriptionData = $gcSubscription;
+        $this->_setSubscriptionStatusData($subscription, $gcSubscription);
+        Formie::$plugin->getSubscriptions()->saveSubscription($subscription);
+
+        $formiePaymentId = $gcSubscription['metadata']['formiePaymentId'] ?? null;
+
+        if (!$formiePaymentId) {
+            return;
+        }
+
+        $payment = Formie::$plugin->getPayments()->getPaymentById((int)$formiePaymentId);
+
+        if (!$payment) {
+            return;
+        }
+
+        if ($field = $payment->getField()) {
+            $this->setField($field);
+        }
+
+        $this->_refreshGoCardlessSubscription($payment, $gcSubscription);
     }
 
     private function _amountToMinorUnits(float $amount, string $currencyCode): int

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use verbb\formie\Formie;
+use verbb\formie\base\Payment;
 use verbb\formie\integrations\payments\GoCardless;
 use verbb\formie\models\Payment as PaymentModel;
 use Tests\Support\WebRequestTestHelper;
@@ -185,6 +186,131 @@ it('creates a mandate payment after the billing request is fulfilled', function(
     expect($payment->reference)->toBe('PM123')
         ->and($payment->status)->toBe(PaymentModel::STATUS_PENDING)
         ->and($payment->response['gcPayment']['id'] ?? null)->toBe('PM123');
+});
+
+it('creates a subscription after the billing request is fulfilled', function(): void {
+    $integration = new GoCardless([
+        'name' => 'GoCardless Subscription Sync',
+        'handle' => 'goCardlessSubSync' . uniqid(),
+        'accessToken' => 'test-token',
+    ]);
+    Formie::$plugin->getIntegrations()->saveIntegration($integration, false);
+
+    $form = formie()
+        ->form(['title' => 'GoCardless Subscription Sync ' . uniqid()])
+        ->singleLineTextField('fullName')
+        ->paymentField('payment', [
+            'paymentIntegration' => $integration->handle,
+            'paymentIntegrationType' => GoCardless::class,
+            'providerSettings' => [
+                $integration->handle => [
+                    'type' => Payment::PAYMENT_TYPE_SUBSCRIPTION,
+                    'currency' => 'GBP',
+                    'amountType' => 'fixed',
+                    'amountFixed' => 25,
+                    'frequencyValue' => 1,
+                    'frequencyType' => 'month',
+                    'subscriptionDescription' => 'Monthly donation',
+                ],
+            ],
+        ])
+        ->create();
+
+    $submission = formie()
+        ->submission($form)
+        ->with(['fullName' => 'Recurring Fixture'])
+        ->save();
+
+    $field = $form->getFieldByHandle('payment');
+    $integration->setField($field);
+
+    $payment = new PaymentModel([
+        'integrationId' => $integration->id,
+        'submissionId' => $submission->id,
+        'fieldId' => $field->id,
+        'amount' => 25.00,
+        'currency' => 'GBP',
+        'status' => PaymentModel::STATUS_REDIRECT,
+        'redirectUrl' => 'https://example.test/donate',
+        'response' => [
+            'billingRequest' => [
+                'id' => 'BRQ456',
+                'status' => 'fulfilled',
+                'metadata' => [
+                    'formiePaymentType' => Payment::PAYMENT_TYPE_SUBSCRIPTION,
+                ],
+                'mandate_request' => [
+                    'links' => [
+                        'mandate' => 'MD456',
+                    ],
+                ],
+            ],
+        ],
+    ]);
+    Formie::$plugin->getPayments()->savePayment($payment, false);
+    $payment->response['billingRequest']['metadata']['formiePaymentId'] = (string)$payment->id;
+    Formie::$plugin->getPayments()->savePayment($payment, false);
+
+    $integration = new class([
+        'id' => $integration->id,
+        'name' => 'GoCardless Subscription Sync',
+        'handle' => $integration->handle,
+        'accessToken' => 'test-token',
+    ]) extends GoCardless {
+        public function request(string $method, string $uri, array $options = []): mixed
+        {
+            if ($method === 'GET' && $uri === 'billing_requests/BRQ456') {
+                return [
+                    'billing_requests' => [
+                        'id' => 'BRQ456',
+                        'status' => 'fulfilled',
+                        'metadata' => [
+                            'formiePaymentType' => Payment::PAYMENT_TYPE_SUBSCRIPTION,
+                        ],
+                        'mandate_request' => [
+                            'links' => [
+                                'mandate' => 'MD456',
+                            ],
+                        ],
+                    ],
+                ];
+            }
+
+            if ($method === 'POST' && $uri === 'subscriptions') {
+                return [
+                    'subscriptions' => [
+                        'id' => 'SB123',
+                        'status' => 'active',
+                        'amount' => 2500,
+                        'currency' => 'GBP',
+                        'interval_unit' => 'monthly',
+                        'interval' => 1,
+                        'metadata' => [
+                            'formiePaymentId' => $options['json']['subscriptions']['metadata']['formiePaymentId'] ?? null,
+                        ],
+                        'upcoming_payments' => [
+                            ['charge_date' => '2026-07-01'],
+                        ],
+                    ],
+                ];
+            }
+
+            return [];
+        }
+    };
+    $integration->setField($field);
+
+    $integration->getTransactionStatus($payment);
+
+    $payment = Formie::$plugin->getPayments()->getPaymentById((int)$payment->id);
+    $subscription = Formie::$plugin->getSubscriptions()->getSubscriptionByReference('SB123');
+
+    expect($payment->reference)->toBe('SB123')
+        ->and($payment->status)->toBe(PaymentModel::STATUS_SUCCESS)
+        ->and($payment->response['gcSubscription']['id'] ?? null)->toBe('SB123')
+        ->and($subscription)->not->toBeNull()
+        ->and($subscription->reference)->toBe('SB123')
+        ->and($subscription->submissionId)->toBe($submission->id);
 });
 
 it('resolves direct debit schemes from currency', function(): void {
