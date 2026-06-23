@@ -4,7 +4,7 @@
 //
 // Kept separate from extracted strings because Formie registers these by message ID,
 // not by English source text — the extractor cannot recover the copy.
-// plugin-translator merges this file into translations/{locale}/formie.php on regen.
+// Merged on translation regen via plugin-translator.
 return [
     'formie_failed_notification_heading' => 'When an email notification fails to send:',
     'formie_failed_notification_subject' => 'Email notification failed to send for form "{{ form.title }}" on {{ siteName }}.',

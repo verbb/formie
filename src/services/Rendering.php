@@ -15,6 +15,7 @@ use verbb\formie\models\FormTemplate;
 use verbb\formie\models\Notification;
 use verbb\formie\models\RenderFrame;
 use verbb\formie\helpers\ValidationMessagesHelper;
+use verbb\formie\compatibility\messages\ValidationMessageCompatibility;
 use verbb\formie\web\FieldRenderCallContext;
 
 use Craft;
@@ -343,66 +344,7 @@ class Rendering extends Component
 
     public function getFrontendJsTranslations(): array
     {
-        $strings = [
-            // Core validators
-            '{label} cannot be blank.',
-            '{label} is not a valid email address.',
-            '{label} is not a valid URL.',
-            '{label} is not a valid number.',
-            '{label} is not a valid format.',
-            '{label} must match {value}.',
-            '{label} must be between {min} and {max}.',
-            '{label} must be no less than {min}.',
-            '{label} must be no greater than {max}.',
-            '{label} has an invalid value.',
-            '{label} must select between {min} and {max}.',
-            '{label} must select no less than {min}.',
-            '{label} must select no greater than {max}.',
-            '{label} should contain at least {min, number} {min, plural, one{option} other{options}}.',
-            '{label} should contain at most {max, number} {max, plural, one{option} other{options}}.',
-
-            // Custom validators
-            'File {filename} must be smaller than {filesize} MB.',
-            'File must be smaller than {filesize} MB.',
-            'File must be larger than {filesize} MB.',
-            'Choose up to {files} files.',
-            '{count, plural, one{character allowed} other{characters allowed}}',
-            '{count, plural, one{character left} other{characters left}}',
-            '{count, plural, one{character over limit} other{characters over limit}}',
-            '{count, plural, one{word allowed} other{words allowed}}',
-            '{count, plural, one{word left} other{words left}}',
-            '{count, plural, one{word over limit} other{words over limit}}',
-            '{label} must be no less than {min} characters.',
-            '{label} must be no greater than {max} characters.',
-            '{label} must be no less than {min} words.',
-            '{label} must be no greater than {max} words.',
-
-            // General
-            'Unable to parse response `{e}`.',
-            'Are you sure you want to leave?',
-            'The request timed out.',
-            'The request encountered a network error. Please try again.',
-
-            // Phone field
-            'Invalid number',
-            'Invalid country code',
-            'Too short',
-            'Too long',
-
-            // PayPal
-            'Missing Authorization ID for approval.',
-            'Payment authorized. Finalize the form to complete payment.',
-            'Unable to authorize payment. Please try again.',
-
-            // Opayo
-            'The request timed out.',
-            'The request encountered a network error. Please try again.',
-
-            // Stripe
-            'Invalid amount.',
-            'Invalid currency.',
-            'Provide a value for “{label}” to proceed.',
-        ];
+        $strings = ValidationMessagesHelper::frontendTranslationStringList();
 
         // Allow plugins to modify JS translation strings
         $event = new ModifyFrontendJsTranslationsEvent([
@@ -410,8 +352,10 @@ class Rendering extends Component
         ]);
         $this->trigger(self::EVENT_MODIFY_FRONTEND_JS_TRANSLATIONS, $event);
 
-        return ValidationMessagesHelper::applyPluginDefaultsToFrontendTranslations(
-            $this->_getTranslatedStrings($event->strings),
+        return ValidationMessageCompatibility::applyTranslationAliases(
+            ValidationMessagesHelper::applyPluginDefaultsToFrontendTranslations(
+                $this->_getTranslatedStrings($event->strings),
+            ),
         );
     }
 
@@ -795,52 +739,8 @@ class Rendering extends Component
 
     private function _translateFrontendJsString(string $message): string
     {
-        return match ($message) {
-            '{label} cannot be blank.' => Craft::t('formie', '{label} cannot be blank.'),
-            '{label} is not a valid email address.' => Craft::t('formie', '{label} is not a valid email address.'),
-            '{label} is not a valid URL.' => Craft::t('formie', '{label} is not a valid URL.'),
-            '{label} is not a valid number.' => Craft::t('formie', '{label} is not a valid number.'),
-            '{label} is not a valid format.' => Craft::t('formie', '{label} is not a valid format.'),
-            '{label} must match {value}.' => Craft::t('formie', '{label} must match {value}.'),
-            '{label} must be between {min} and {max}.' => Craft::t('formie', '{label} must be between {min} and {max}.'),
-            '{label} must be no less than {min}.' => Craft::t('formie', '{label} must be no less than {min}.'),
-            '{label} must be no greater than {max}.' => Craft::t('formie', '{label} must be no greater than {max}.'),
-            '{label} has an invalid value.' => Craft::t('formie', '{label} has an invalid value.'),
-            '{label} must select between {min} and {max}.' => Craft::t('formie', '{label} must select between {min} and {max}.'),
-            '{label} must select no less than {min}.' => Craft::t('formie', '{label} must select no less than {min}.'),
-            '{label} must select no greater than {max}.' => Craft::t('formie', '{label} must select no greater than {max}.'),
-            '{label} should contain at least {min, number} {min, plural, one{option} other{options}}.' => Craft::t('formie', '{label} should contain at least {min, number} {min, plural, one{option} other{options}}.'),
-            '{label} should contain at most {max, number} {max, plural, one{option} other{options}}.' => Craft::t('formie', '{label} should contain at most {max, number} {max, plural, one{option} other{options}}.'),
-            'File {filename} must be smaller than {filesize} MB.' => Craft::t('formie', 'File {filename} must be smaller than {filesize} MB.'),
-            'File must be smaller than {filesize} MB.' => Craft::t('formie', 'File must be smaller than {filesize} MB.'),
-            'File must be larger than {filesize} MB.' => Craft::t('formie', 'File must be larger than {filesize} MB.'),
-            'Choose up to {files} files.' => Craft::t('formie', 'Choose up to {files} files.'),
-            '{count, plural, one{character allowed} other{characters allowed}}' => Craft::t('formie', '{count, plural, one{character allowed} other{characters allowed}}'),
-            '{count, plural, one{character left} other{characters left}}' => Craft::t('formie', '{count, plural, one{character left} other{characters left}}'),
-            '{count, plural, one{character over limit} other{characters over limit}}' => Craft::t('formie', '{count, plural, one{character over limit} other{characters over limit}}'),
-            '{count, plural, one{word allowed} other{words allowed}}' => Craft::t('formie', '{count, plural, one{word allowed} other{words allowed}}'),
-            '{count, plural, one{word left} other{words left}}' => Craft::t('formie', '{count, plural, one{word left} other{words left}}'),
-            '{count, plural, one{word over limit} other{words over limit}}' => Craft::t('formie', '{count, plural, one{word over limit} other{words over limit}}'),
-            '{label} must be no less than {min} characters.' => Craft::t('formie', '{label} must be no less than {min} characters.'),
-            '{label} must be no greater than {max} characters.' => Craft::t('formie', '{label} must be no greater than {max} characters.'),
-            '{label} must be no less than {min} words.' => Craft::t('formie', '{label} must be no less than {min} words.'),
-            '{label} must be no greater than {max} words.' => Craft::t('formie', '{label} must be no greater than {max} words.'),
-            'Unable to parse response `{e}`.' => Craft::t('formie', 'Unable to parse response `{e}`.'),
-            'Are you sure you want to leave?' => Craft::t('formie', 'Are you sure you want to leave?'),
-            'The request timed out.' => Craft::t('formie', 'The request timed out.'),
-            'The request encountered a network error. Please try again.' => Craft::t('formie', 'The request encountered a network error. Please try again.'),
-            'Invalid number' => Craft::t('formie', 'Invalid number'),
-            'Invalid country code' => Craft::t('formie', 'Invalid country code'),
-            'Too short' => Craft::t('formie', 'Too short'),
-            'Too long' => Craft::t('formie', 'Too long'),
-            'Missing Authorization ID for approval.' => Craft::t('formie', 'Missing Authorization ID for approval.'),
-            'Payment authorized. Finalize the form to complete payment.' => Craft::t('formie', 'Payment authorized. Finalize the form to complete payment.'),
-            'Unable to authorize payment. Please try again.' => Craft::t('formie', 'Unable to authorize payment. Please try again.'),
-            'Invalid amount.' => Craft::t('formie', 'Invalid amount.'),
-            'Invalid currency.' => Craft::t('formie', 'Invalid currency.'),
-            'Provide a value for “{label}” to proceed.' => Craft::t('formie', 'Provide a value for “{label}” to proceed.'),
-            default => $message,
-        };
+        // Dynamic key — English source string is the Craft message key (see frontendTranslationStringList()).
+        return ValidationMessageCompatibility::translate($message);
     }
 
     private function _hydrateSubmitFlowProgress(Form $form): ?Submission

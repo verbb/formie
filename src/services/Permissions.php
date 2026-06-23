@@ -226,9 +226,9 @@ class Permissions extends Component
             'email-templates' => Craft::t('formie', 'Email Templates'),
             'pdf-templates' => Craft::t('formie', 'PDF Templates'),
             'support' => Craft::t('formie', 'Get Support'),
-            'migrate/freeform4' => Craft::t('formie', 'Migrate Freeform 4'),
-            'migrate/freeform5' => Craft::t('formie', 'Migrate Freeform 5'),
-            'migrate/sprout-forms' => Craft::t('formie', 'Migrate Sprout Forms'),
+            'migrate/freeform4' => Craft::t('formie', 'Migrate {source}', ['source' => 'Freeform 4']),
+            'migrate/freeform5' => Craft::t('formie', 'Migrate {source}', ['source' => 'Freeform 5']),
+            'migrate/sprout-forms' => Craft::t('formie', 'Migrate {source}', ['source' => 'Sprout Forms']),
         ];
     }
 

@@ -13,7 +13,7 @@ it('resolves default validation messages with field context', function (): void 
     ]);
 
     expect($field->getValidationMessage(ValidationMessagesHelper::KEY_REQUIRED))
-        ->toBe('This field is required.')
+        ->toBe('Username cannot be blank.')
         ->and($field->getValidationMessage(ValidationMessagesHelper::KEY_UNIQUE))
         ->toBe('“Username” must be unique.')
         ->and($field->getValidationMessage(ValidationMessagesHelper::KEY_MAX_CHARACTERS, ['max' => 10, 'limit' => 10]))
@@ -157,4 +157,13 @@ it('normalizes plugin validation message defaults for storage', function (): voi
     ]))->toBe([
         'required' => 'Please enter {label}.',
     ]);
+});
+
+it('seeds front-end translations from canonical validation templates', function (): void {
+    $strings = ValidationMessagesHelper::frontendTranslationStringList();
+
+    expect($strings)
+        ->toContain('{label} is not a valid email address.')
+        ->toContain('{label} cannot be blank.')
+        ->toContain('Please enter a valid email address.');
 });

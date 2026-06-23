@@ -16,10 +16,11 @@ const match: ValidationRuleDefinition = {
         const sourceField = sourceInput?.closest('[data-formie-field-handle]') as HTMLElement | null;
         const sourceLabel = getLabelText(sourceField);
 
-        return ctx.t('{label} must match {value}.', {
-            label: ctx.label,
-            value: sourceLabel,
-        });
+        return ctx.input.getAttribute('data-formie-validation-match-message')
+            ?? ctx.t('{label} must match {value}.', {
+                label: ctx.label,
+                value: sourceLabel,
+            });
     },
 };
 

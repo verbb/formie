@@ -2,6 +2,7 @@
 namespace verbb\formie\helpers;
 
 use verbb\formie\base\Field;
+use verbb\formie\compatibility\messages\ValidationMessageCompatibility;
 use verbb\formie\Formie;
 
 use Craft;
@@ -49,18 +50,18 @@ class ValidationMessagesHelper
     public static function defaultTemplates(): array
     {
         return [
-            self::KEY_REQUIRED => 'This field is required.',
+            self::KEY_REQUIRED => '{label} cannot be blank.',
             self::KEY_UNIQUE => '“{label}” must be unique.',
             self::KEY_MATCH => '{label} must match {value}.',
-            self::KEY_MIN_CHARACTERS => 'You must enter at least {limit} characters.',
+            self::KEY_MIN_CHARACTERS => '{label} must be no less than {min} characters.',
             self::KEY_MAX_CHARACTERS => '{label} must be no greater than {max} characters.',
-            self::KEY_MIN_WORDS => 'You must enter at least {limit} words.',
+            self::KEY_MIN_WORDS => '{label} must be no less than {min} words.',
             self::KEY_MAX_WORDS => '{label} must be no greater than {max} words.',
-            self::KEY_EMAIL => 'Please enter a valid email address.',
-            self::KEY_URL => 'Please enter a valid URL.',
-            self::KEY_NUMBER => 'Please enter a valid number.',
-            self::KEY_NUMBER_MIN => 'Please enter a value greater than or equal to {min}.',
-            self::KEY_NUMBER_MAX => 'Please enter a value less than or equal to {max}.',
+            self::KEY_EMAIL => '{label} is not a valid email address.',
+            self::KEY_URL => '{label} is not a valid URL.',
+            self::KEY_NUMBER => '{label} is not a valid number.',
+            self::KEY_NUMBER_MIN => '{label} must be no less than {min}.',
+            self::KEY_NUMBER_MAX => '{label} must be no greater than {max}.',
             self::KEY_BLOCKED_DOMAIN => '“{domain}” is not allowed.',
             self::KEY_MIN_OPTIONS => '{label} should contain at least {min, number} {min, plural, one{option} other{options}}.',
             self::KEY_MAX_OPTIONS => '{label} should contain at most {max, number} {max, plural, one{option} other{options}}.',
@@ -184,99 +185,65 @@ class ValidationMessagesHelper
                 continue;
             }
 
-            foreach (self::frontendTranslationSourceStrings($key) as $source) {
-                $translations[$source] = $pluginDefault;
-            }
-
             if ($predefinedTemplate !== null) {
                 $translations[$predefinedTemplate] = $pluginDefault;
             }
+
+            $translations = ValidationMessageCompatibility::applyPluginDefaultAliases($translations, $key, $pluginDefault);
         }
 
         return $translations;
     }
 
-    public static function frontendTranslationSourceStrings(string $key): array
+    public static function frontendTranslationStringList(): array
     {
-        return self::frontendTranslationSourceStringsMap()[$key] ?? [];
+        $strings = array_merge(
+            array_values(self::defaultTemplates()),
+            self::frontendGeneralTranslationStrings(),
+        );
+
+        return ValidationMessageCompatibility::expandTranslationStrings(
+            array_values(array_unique($strings)),
+        );
     }
 
-    public static function frontendTranslationSourceStringsMap(): array
+    /**
+     * Front-end-only strings seeded into the JS translation payload.
+     *
+     * Plain English literals — not Craft::t() — because Rendering::getFrontendJsTranslations()
+     * passes each string through Craft::t('formie', $message) at runtime. The literal is both the
+     * message key and the default value in formie.php. Keep in sync with @verbb/formie-browser fallbacks.
+     */
+    public static function frontendGeneralTranslationStrings(): array
     {
         return [
-            self::KEY_REQUIRED => [
-                '{label} cannot be blank.',
-                'This field is required.',
-            ],
-            self::KEY_UNIQUE => [
-                '“{label}” must be unique.',
-            ],
-            self::KEY_MATCH => [
-                '{label} must match {value}.',
-            ],
-            self::KEY_MIN_CHARACTERS => [
-                'You must enter at least {limit} characters.',
-                '{label} must be no less than {min} characters.',
-            ],
-            self::KEY_MAX_CHARACTERS => [
-                '{label} must be no greater than {max} characters.',
-            ],
-            self::KEY_MIN_WORDS => [
-                'You must enter at least {limit} words.',
-                '{label} must be no less than {min} words.',
-            ],
-            self::KEY_MAX_WORDS => [
-                '{label} must be no greater than {max} words.',
-            ],
-            self::KEY_EMAIL => [
-                'Please enter a valid email address.',
-                '{label} is not a valid email address.',
-            ],
-            self::KEY_URL => [
-                'Please enter a valid URL.',
-                '{label} is not a valid URL.',
-            ],
-            self::KEY_NUMBER => [
-                'Please enter a valid number.',
-                '{label} is not a valid number.',
-                '{label} is not a valid format.',
-            ],
-            self::KEY_NUMBER_MIN => [
-                'Please enter a value greater than or equal to {min}.',
-                '{label} must be no less than {min}.',
-                '{label} must be between {min} and {max}.',
-            ],
-            self::KEY_NUMBER_MAX => [
-                'Please enter a value less than or equal to {max}.',
-                '{label} must be no greater than {max}.',
-                '{label} must be between {min} and {max}.',
-            ],
-            self::KEY_BLOCKED_DOMAIN => [
-                '“{domain}” is not allowed.',
-            ],
-            self::KEY_MIN_OPTIONS => [
-                '{label} should contain at least {min, number} {min, plural, one{option} other{options}}.',
-                '{label} must select no less than {min}.',
-            ],
-            self::KEY_MAX_OPTIONS => [
-                '{label} should contain at most {max, number} {max, plural, one{option} other{options}}.',
-                '{label} must select no greater than {max}.',
-            ],
-            self::KEY_MAX_FILES => [
-                'Choose up to {files} files.',
-            ],
-            self::KEY_MIN_FILE_SIZE => [
-                'File must be larger than {filesize} MB.',
-            ],
-            self::KEY_MAX_FILE_SIZE => [
-                'File must be smaller than {filesize} MB.',
-                'File {filename} must be smaller than {filesize} MB.',
-            ],
-            self::KEY_INVALID => [
-                '{label} is invalid.',
-                '{label} has an invalid value.',
-            ],
+            '{count, plural, one{character allowed} other{characters allowed}}',
+            '{count, plural, one{character left} other{characters left}}',
+            '{count, plural, one{character over limit} other{characters over limit}}',
+            '{count, plural, one{word allowed} other{words allowed}}',
+            '{count, plural, one{word left} other{words left}}',
+            '{count, plural, one{word over limit} other{words over limit}}',
+            'Unable to parse response `{e}`.',
+            'Are you sure you want to leave?',
+            'The request timed out.',
+            'The request encountered a network error. Please try again.',
+            'Invalid number',
+            'Invalid country code',
+            'Too short',
+            'Too long',
+            'Missing Authorization ID for approval.',
+            'Payment authorized. Finalize the form to complete payment.',
+            'Unable to authorize payment. Please try again.',
+            'Invalid amount.',
+            'Invalid currency.',
+            'Provide a value for “{label}” to proceed.',
+            'Captcha challenge must be completed.',
         ];
+    }
+
+    public static function frontendTranslationSourceStrings(string $key): array
+    {
+        return ValidationMessageCompatibility::legacyKeysForMessageKey($key);
     }
 
     public static function override(Field $field, string $key): ?string
@@ -523,28 +490,9 @@ class ValidationMessagesHelper
 
     private static function translateDefaultTemplate(string $key, array $params): string
     {
-        return match ($key) {
-            self::KEY_REQUIRED => Craft::t('formie', 'This field is required.', $params),
-            self::KEY_UNIQUE => Craft::t('formie', '“{label}” must be unique.', $params),
-            self::KEY_MATCH => Craft::t('formie', '{label} must match {value}.', $params),
-            self::KEY_MIN_CHARACTERS => Craft::t('formie', 'You must enter at least {limit} characters.', $params),
-            self::KEY_MAX_CHARACTERS => Craft::t('formie', '{label} must be no greater than {max} characters.', $params),
-            self::KEY_MIN_WORDS => Craft::t('formie', 'You must enter at least {limit} words.', $params),
-            self::KEY_MAX_WORDS => Craft::t('formie', '{label} must be no greater than {max} words.', $params),
-            self::KEY_EMAIL => Craft::t('formie', 'Please enter a valid email address.', $params),
-            self::KEY_URL => Craft::t('formie', 'Please enter a valid URL.', $params),
-            self::KEY_NUMBER => Craft::t('formie', 'Please enter a valid number.', $params),
-            self::KEY_NUMBER_MIN => Craft::t('formie', 'Please enter a value greater than or equal to {min}.', $params),
-            self::KEY_NUMBER_MAX => Craft::t('formie', 'Please enter a value less than or equal to {max}.', $params),
-            self::KEY_BLOCKED_DOMAIN => Craft::t('formie', '“{domain}” is not allowed.', $params),
-            self::KEY_MIN_OPTIONS => Craft::t('formie', '{label} should contain at least {min, number} {min, plural, one{option} other{options}}.', $params),
-            self::KEY_MAX_OPTIONS => Craft::t('formie', '{label} should contain at most {max, number} {max, plural, one{option} other{options}}.', $params),
-            self::KEY_MAX_FILES => Craft::t('formie', 'Choose up to {files} files.', $params),
-            self::KEY_MIN_FILE_SIZE => Craft::t('formie', 'File must be larger than {filesize} MB.', $params),
-            self::KEY_MAX_FILE_SIZE => Craft::t('formie', 'File must be smaller than {filesize} MB.', $params),
-            self::KEY_INVALID => Craft::t('formie', '{label} is invalid.', $params),
-            default => Craft::t('formie', '{label} is invalid.', $params),
-        };
+        $message = self::defaultTemplate($key) ?? self::defaultTemplate(self::KEY_INVALID) ?? '{label} is invalid.';
+
+        return ValidationMessageCompatibility::translate($message, $params);
     }
 
     private static function _defaultsSchemaSection(string $heading, array $fields): array

@@ -6,9 +6,13 @@ use verbb\formie\validators\FieldRequiredValidator;
 
 use craft\base\Element;
 use craft\base\ElementInterface;
+use craft\validators\UrlValidator as CraftUrlValidator;
 
+use yii\validators\EmailValidator;
 use yii\validators\InlineValidator;
+use yii\validators\NumberValidator;
 use yii\validators\RequiredValidator;
+use yii\validators\UrlValidator as YiiUrlValidator;
 use yii\validators\Validator;
 use yii\base\InvalidConfigException;
 
@@ -69,6 +73,7 @@ class ValidationHelper
                 $config['message'] = $requiredMessage;
                 $requiredValidator = new FieldRequiredValidator($config);
             } else {
+                $config['message'] = ValidationMessagesHelper::resolve($field, ValidationMessagesHelper::KEY_REQUIRED);
                 $requiredValidator = new RequiredValidator($config);
             }
 
@@ -138,11 +143,63 @@ class ValidationHelper
             $options['on'] = [$element::SCENARIO_DEFAULT, $element::SCENARIO_LIVE];
         }
 
+        if (is_string($validatorType)) {
+            $options = self::applyFormieValidatorMessages($validatorType, $field, $options);
+        }
+
         return Validator::createValidator($validatorType, $element, $attributes, $options);
     }
 
     public static function shouldValidateForScenario(string $scenario, Validator $validator): bool
     {
         return in_array($scenario, $validator->on) || (empty($validator->on) && !in_array($scenario, $validator->except));
+    }
+
+    /**
+     * Replace Yii validator defaults with Formie-owned, translated messages using {label}.
+     *
+     * Yii uses {attribute} against internal keys like field:handle — not field labels.
+     */
+    private static function applyFormieValidatorMessages(string $validatorType, Field $field, array $options): array
+    {
+        $messageKey = self::validatorMessageKey($validatorType);
+
+        if ($messageKey !== null && !array_key_exists('message', $options)) {
+            $options['message'] = ValidationMessagesHelper::resolve($field, $messageKey);
+        }
+
+        if (self::isNumberValidator($validatorType)) {
+            $min = $options['min'] ?? null;
+            $max = $options['max'] ?? null;
+
+            if ($min !== null && !array_key_exists('tooSmall', $options)) {
+                $options['tooSmall'] = ValidationMessagesHelper::resolve($field, ValidationMessagesHelper::KEY_NUMBER_MIN, [
+                    'min' => $min,
+                ]);
+            }
+
+            if ($max !== null && !array_key_exists('tooBig', $options)) {
+                $options['tooBig'] = ValidationMessagesHelper::resolve($field, ValidationMessagesHelper::KEY_NUMBER_MAX, [
+                    'max' => $max,
+                ]);
+            }
+        }
+
+        return $options;
+    }
+
+    private static function validatorMessageKey(string $validatorType): ?string
+    {
+        return match ($validatorType) {
+            'email', EmailValidator::class => ValidationMessagesHelper::KEY_EMAIL,
+            'url', CraftUrlValidator::class, YiiUrlValidator::class => ValidationMessagesHelper::KEY_URL,
+            'number', NumberValidator::class => ValidationMessagesHelper::KEY_NUMBER,
+            default => null,
+        };
+    }
+
+    private static function isNumberValidator(string $validatorType): bool
+    {
+        return in_array($validatorType, ['number', NumberValidator::class], true);
     }
 }

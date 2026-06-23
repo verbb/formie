@@ -65,7 +65,7 @@ function registerValidators(form: HTMLFormElement | null): void {
         },
         ({ field, label, t, getRule }) => {
             if (!field) {
-                return t('{label} has an invalid value.', { label });
+                return t('{label} is invalid.', { label });
             }
 
             const selected = getSelectedOptionCount(field);
@@ -81,7 +81,7 @@ function registerValidators(form: HTMLFormElement | null): void {
                     ?? t('{label} should contain at most {max, number} {max, plural, one{option} other{options}}.', { label, max });
             }
 
-            return t('{label} has an invalid value.', { label });
+            return t('{label} is invalid.', { label });
         },
     );
     });

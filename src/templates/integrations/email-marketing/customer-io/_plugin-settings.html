@@ -35,8 +35,8 @@
     suggestEnvVars: true,
     value: integration.settings.dataCenter ?? '',
     options: [
-        { label: 'US' | t('formie'), value: 'US' },
-        { label: 'EU' | t('formie'), value: 'EU' },
+        { label: 'US', value: 'US' },
+        { label: 'EU', value: 'EU' },
     ],
     warning: macros.configWarning('dataCenter', 'formie'),
     errors: integration.getErrors('dataCenter'),

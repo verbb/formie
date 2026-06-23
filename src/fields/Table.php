@@ -10,6 +10,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
+use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\fields\values\ColorFieldValue;
 use verbb\formie\fields\values\TableFieldValue;
 use verbb\formie\fields\definitions\FieldClientModules;
@@ -324,7 +325,9 @@ class Table extends Field
                         $row[$colId] = trim($row[$colId]);
                     }
 
-                    if (!$this->_validateCellValue($col['type'], $row[$colId], $error)) {
+                    $cellLabel = trim((string)($col['heading'] ?? '')) ?: $this->label;
+
+                    if (!$this->_validateCellValue($col['type'], $row[$colId], $error, $cellLabel)) {
                         $element->addError($this->valueKey(), $error);
                     }
                 }
@@ -1208,7 +1211,7 @@ class Table extends Field
         return $value;
     }
 
-    private function _validateCellValue(string $type, mixed $value, string &$error = null): bool
+    private function _validateCellValue(string $type, mixed $value, string &$error = null, ?string $label = null): bool
     {
         if ($value === null || $value === '') {
             return true;
@@ -1223,16 +1226,22 @@ class Table extends Field
                 $validator = new ColorValidator();
                 break;
             case 'url':
-                $validator = new UrlValidator();
+                $validator = new UrlValidator([
+                    'message' => ValidationMessagesHelper::resolve($this, ValidationMessagesHelper::KEY_URL, [
+                        'label' => $label ?? $this->label,
+                    ]),
+                ]);
                 break;
             case 'email':
-                $validator = new EmailValidator();
+                $validator = new EmailValidator([
+                    'message' => ValidationMessagesHelper::resolve($this, ValidationMessagesHelper::KEY_EMAIL, [
+                        'label' => $label ?? $this->label,
+                    ]),
+                ]);
                 break;
             default:
                 return true;
         }
-
-        $validator->message = str_replace('{attribute}', '{value}', $validator->message);
 
         return $validator->validate($value, $error);
     }

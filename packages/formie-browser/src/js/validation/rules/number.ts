@@ -36,7 +36,7 @@ const number: ValidationRuleDefinition = {
 
         if (min !== null && max !== null) {
             return input.getAttribute('data-formie-validation-number-min-message')
-                ?? t('{label} must be between {min} and {max}.', { label, min, max });
+                ?? t('{label} must be no less than {min}.', { label, min });
         }
 
         if (min !== null) {

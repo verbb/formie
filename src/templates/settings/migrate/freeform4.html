@@ -18,7 +18,7 @@
     {{ actionInput('formie/migrations/freeform4') }}
     {{ redirectInput('formie/settings/freeform4') }}
 
-    <h2>{{ 'Migrate Freeform 4' | t('formie') }}</h2>
+    <h2>{{ 'Migrate {source}' | t('formie', { source: 'Freeform 4' }) }}</h2>
 
     {% if outputs is not defined %}
         <p>{{ 'Select the forms you wish to migrate from {source}. This will migrate all fields within the form, all settings (where applicable), notifications, and any {entryType}. Depending on how many entries the selected forms have, this could take some time.' | t('formie', {
@@ -26,7 +26,7 @@
             entryType: 'submissions' | t('formie'),
         }) }}</p>
 
-        <p>{{ 'Your original Freeform forms will remain un-touched.' | t('formie') }}</p>
+        <p>{{ 'Your original {source} will remain untouched.' | t('formie', { source: 'Freeform forms' }) }}</p>
     {% endif %}
 
     <hr>
