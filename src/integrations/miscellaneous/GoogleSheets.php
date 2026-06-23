@@ -36,7 +36,7 @@ class GoogleSheets extends Miscellaneous implements OAuthProviderInterface
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'Google Sheets');
+        return 'Google Sheets';
     }
     
 

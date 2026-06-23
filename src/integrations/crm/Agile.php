@@ -26,7 +26,7 @@ class Agile extends Crm
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'Agile CRM');
+        return 'Agile CRM';
     }
     
 

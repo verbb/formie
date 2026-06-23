@@ -49,7 +49,7 @@ class PayWay extends Payment
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'Westpac PayWay');
+        return 'Westpac PayWay';
     }
 
     public static function getCurrencyOptions(): array

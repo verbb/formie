@@ -26,7 +26,7 @@ class Copper extends Crm
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'Copper');
+        return 'Copper';
     }
     
 

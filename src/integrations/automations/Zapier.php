@@ -28,7 +28,7 @@ class Zapier extends Automation
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'Zapier');
+        return 'Zapier';
     }
     
 

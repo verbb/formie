@@ -25,7 +25,7 @@ class Omnisend extends EmailMarketing
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'Omnisend');
+        return 'Omnisend';
     }
 
     // Properties

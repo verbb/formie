@@ -24,7 +24,7 @@ class EmailOctopus extends EmailMarketing
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'EmailOctopus');
+        return 'EmailOctopus';
     }
 
     // Properties

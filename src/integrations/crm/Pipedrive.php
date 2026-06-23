@@ -29,7 +29,7 @@ class Pipedrive extends Crm
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'Pipedrive');
+        return 'Pipedrive';
     }
     
 

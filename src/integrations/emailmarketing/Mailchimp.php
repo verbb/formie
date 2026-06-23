@@ -32,7 +32,7 @@ class Mailchimp extends EmailMarketing
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'Mailchimp');
+        return 'Mailchimp';
     }
 
     protected static function defineOptionSources(): array

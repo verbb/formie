@@ -43,7 +43,7 @@ class LiveChat extends HelpDesk implements OAuthProviderInterface
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'Live Chat');
+        return 'Live Chat';
     }
 
 

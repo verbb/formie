@@ -72,7 +72,7 @@ class Stripe extends Payment
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'Stripe');
+        return 'Stripe';
     }
 
     public function supportsWebhooks(): bool

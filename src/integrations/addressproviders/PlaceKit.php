@@ -17,7 +17,7 @@ class PlaceKit extends AddressProvider
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'PlaceKit');
+        return 'PlaceKit';
     }
 
 

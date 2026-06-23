@@ -23,7 +23,7 @@ class IContact extends EmailMarketing
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'iContact');
+        return 'iContact';
     }
 
     // Properties

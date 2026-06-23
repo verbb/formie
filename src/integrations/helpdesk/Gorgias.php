@@ -26,7 +26,7 @@ class Gorgias extends HelpDesk
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'Gorgias');
+        return 'Gorgias';
     }
 
 

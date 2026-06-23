@@ -24,7 +24,7 @@ class Loqate extends AddressProvider
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'Loqate');
+        return 'Loqate';
     }
     
 

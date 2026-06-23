@@ -41,7 +41,7 @@ class SugarCrm extends Crm implements OAuthProviderInterface
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'SugarCRM');
+        return 'SugarCRM';
     }
     
 

@@ -49,7 +49,7 @@ class Eway extends Payment
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'Eway');
+        return 'Eway';
     }
 
     // public static function supportsConnection(): bool

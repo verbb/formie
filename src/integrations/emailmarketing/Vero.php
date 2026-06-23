@@ -24,7 +24,7 @@ class Vero extends EmailMarketing
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'Vero');
+        return 'Vero';
     }
     
 

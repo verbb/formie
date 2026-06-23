@@ -38,7 +38,7 @@ class SuiteCrm extends Crm implements OAuthProviderInterface
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'SuiteCRM');
+        return 'SuiteCRM';
     }
 
 

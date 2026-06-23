@@ -26,7 +26,7 @@ class ClickUp extends Miscellaneous
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'ClickUp');
+        return 'ClickUp';
     }
     
 

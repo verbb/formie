@@ -27,7 +27,7 @@ class Discord extends Messaging
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'Discord');
+        return 'Discord';
     }
 
     public static function supportsConnection(): bool

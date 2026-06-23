@@ -23,7 +23,7 @@ class AddressFinder extends AddressProvider
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'Address Finder');
+        return 'Address Finder';
     }
 
 

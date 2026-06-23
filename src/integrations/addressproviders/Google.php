@@ -23,7 +23,7 @@ class Google extends AddressProvider
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'Google Places');
+        return 'Google Places';
     }
 
     public static function supportsCurrentLocation(): bool

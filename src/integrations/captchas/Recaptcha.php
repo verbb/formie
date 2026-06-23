@@ -67,12 +67,12 @@ class Recaptcha extends Captcha
 
     public function getName(): string
     {
-        return Craft::t('formie', 'reCAPTCHA');
+        return 'reCAPTCHA';
     }
 
     public function getDescription(): string
     {
-        return Craft::t('formie', 'reCAPTCHA is a free service that protects your forms from spam and abuse. Find out more via [Google reCAPTCHA](https://www.google.com/recaptcha).');
+        return 'reCAPTCHA is a free service that protects your forms from spam and abuse. Find out more via [Google reCAPTCHA](https://www.google.com/recaptcha).';
     }
 
     public function getSettingsHtml(): ?string

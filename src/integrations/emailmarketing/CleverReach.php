@@ -38,7 +38,7 @@ class CleverReach extends EmailMarketing implements OAuthProviderInterface
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'CleverReach');
+        return 'CleverReach';
     }
 
     // Public Methods

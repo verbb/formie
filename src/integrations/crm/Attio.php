@@ -30,7 +30,7 @@ class Attio extends Crm
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'Attio');
+        return 'Attio';
     }
     
 

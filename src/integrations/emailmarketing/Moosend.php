@@ -24,7 +24,7 @@ class Moosend extends EmailMarketing
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'Moosend');
+        return 'Moosend';
     }
 
     // Properties

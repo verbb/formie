@@ -27,12 +27,12 @@ class Akismet extends Captcha
 
     public function getName(): string
     {
-        return Craft::t('formie', 'Akismet');
+        return 'Akismet';
     }
 
     public function getDescription(): string
     {
-        return Craft::t('formie', 'Akismet’s next generation machine learning filters out comment, form, and text spam with 99.99% accuracy, so you never have to worry about it again. Find out more via [Akismet](https://akismet.com/).');
+        return 'Akismet’s next generation machine learning filters out comment, form, and text spam with 99.99% accuracy, so you never have to worry about it again. Find out more via [Akismet](https://akismet.com/).';
     }
 
     public function getSettingsHtml(): ?string

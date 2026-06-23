@@ -51,7 +51,7 @@ class Bpoint extends Payment
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'BPOINT');
+        return 'BPOINT';
     }
     
 

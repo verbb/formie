@@ -38,7 +38,7 @@ class OneCrm extends Crm implements OAuthProviderInterface
 
     public static function displayName(): string
     {
-        return Craft::t('formie', '1CRM');
+        return '1CRM';
     }
 
 

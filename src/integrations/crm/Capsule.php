@@ -27,7 +27,7 @@ class Capsule extends Crm
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'Capsule');
+        return 'Capsule';
     }
     
 

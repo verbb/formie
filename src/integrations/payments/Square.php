@@ -44,7 +44,7 @@ class Square extends Payment
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'Square');
+        return 'Square';
     }
     
 

@@ -44,6 +44,7 @@ class Countries extends PredefinedOption
 
     public static function getDataOptions(): array
     {
+        // Deliberately not using Craft::t().
         $locale = Craft::$app->getLocale()->getLanguageID();
 
         $countryRepository = new CountryRepository($locale);

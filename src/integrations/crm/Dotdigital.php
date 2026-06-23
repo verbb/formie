@@ -34,7 +34,7 @@ class Dotdigital extends Crm
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'Dotdigital');
+        return 'Dotdigital';
     }
     
 

@@ -47,7 +47,7 @@ class Slack extends Messaging implements OAuthProviderInterface
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'Slack');
+        return 'Slack';
     }
     
 

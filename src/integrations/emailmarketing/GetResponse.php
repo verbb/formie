@@ -23,7 +23,7 @@ class GetResponse extends EmailMarketing
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'GetResponse');
+        return 'GetResponse';
     }
 
     // Properties

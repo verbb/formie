@@ -32,7 +32,7 @@ class CaptchaEu extends Captcha
 
     public function getName(): string
     {
-        return Craft::t('formie', 'Captcha.eu');
+        return 'Captcha.eu';
     }
 
     public function getDescription(): string

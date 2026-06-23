@@ -25,7 +25,7 @@ class Sender extends EmailMarketing
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'Sender');
+        return 'Sender';
     }
 
     // Properties

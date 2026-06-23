@@ -21,7 +21,10 @@
     <h2>{{ 'Migrate Sprout Forms' | t('formie') }}</h2>
 
     {% if outputs is not defined %}
-        <p>{{ 'Select the forms you wish to migrate from Sprout Forms. This will migrate all fields within the form, all settings (where applicable), notifications, and any Form Entries. Depending on how many entries the selected forms have, this could take some time.' | t('formie') }}</p>
+        <p>{{ 'Select the forms you wish to migrate from {source}. This will migrate all fields within the form, all settings (where applicable), notifications, and any {entryType}. Depending on how many entries the selected forms have, this could take some time.' | t('formie', {
+            source: 'Sprout Forms',
+            entryType: 'Form Entries' | t('formie'),
+        }) }}</p>
 
         <p>{{ 'Your original Sprout Forms will remain un-touched.' | t('formie') }}</p>
     {% endif %}

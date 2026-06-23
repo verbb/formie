@@ -38,7 +38,7 @@ class AWeber extends EmailMarketing implements OAuthProviderInterface
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'AWeber');
+        return 'AWeber';
     }
 
     // Public Methods

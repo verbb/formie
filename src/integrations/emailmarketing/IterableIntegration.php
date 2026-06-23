@@ -25,7 +25,7 @@ class IterableIntegration extends EmailMarketing
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'Iterable');
+        return 'Iterable';
     }
 
     // Properties

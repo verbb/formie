@@ -27,7 +27,7 @@ class Telegram extends Messaging
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'Telegram');
+        return 'Telegram';
     }
 
 

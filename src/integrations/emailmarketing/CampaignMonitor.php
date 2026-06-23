@@ -26,7 +26,7 @@ class CampaignMonitor extends EmailMarketing
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'Campaign Monitor');
+        return 'Campaign Monitor';
     }
 
     // Properties

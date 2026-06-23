@@ -38,7 +38,7 @@ class Procurios extends Crm implements OAuthProviderInterface
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'Procurios');
+        return 'Procurios';
     }
 
 

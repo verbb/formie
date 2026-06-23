@@ -35,12 +35,12 @@ class Snaptcha extends Captcha
 
     public function getName(): string
     {
-        return Craft::t('formie', 'Snaptcha');
+        return 'Snaptcha';
     }
 
     public function getDescription(): string
     {
-        return Craft::t('formie', 'Snaptcha is an invisible CAPTCHA that automatically validates forms and prevents spam bots from submitting to your Craft CMS site. Find out more via [Snaptcha Plugin](https://plugins.craftcms.com/snaptcha).');
+        return 'Snaptcha is an invisible CAPTCHA that automatically validates forms and prevents spam bots from submitting to your Craft CMS site. Find out more via [Snaptcha Plugin](https://plugins.craftcms.com/snaptcha).';
     }
 
     public function renderHtml(Form $form, FieldLayoutPage $page = null): string

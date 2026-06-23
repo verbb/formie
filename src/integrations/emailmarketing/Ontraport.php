@@ -23,7 +23,7 @@ class Ontraport extends EmailMarketing
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'Ontraport');
+        return 'Ontraport';
     }
 
     // Properties

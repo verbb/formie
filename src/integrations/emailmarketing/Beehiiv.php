@@ -25,7 +25,7 @@ class Beehiiv extends EmailMarketing
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'Beehiiv');
+        return 'Beehiiv';
     }
     
 

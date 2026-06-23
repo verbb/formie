@@ -23,7 +23,7 @@ class Benchmark extends EmailMarketing
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'Benchmark');
+        return 'Benchmark';
     }
 
     // Properties

@@ -25,7 +25,7 @@ class Freshsales extends Crm
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'Freshsales');
+        return 'Freshsales';
     }
     
 

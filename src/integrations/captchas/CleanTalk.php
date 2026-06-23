@@ -27,7 +27,7 @@ class CleanTalk extends Captcha
 
     public function getName(): string
     {
-        return Craft::t('formie', 'CleanTalk');
+        return 'CleanTalk';
     }
 
     public function getDescription(): string

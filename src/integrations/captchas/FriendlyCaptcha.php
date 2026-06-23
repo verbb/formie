@@ -34,12 +34,12 @@ class FriendlyCaptcha extends Captcha
 
     public function getName(): string
     {
-        return Craft::t('formie', 'Friendly Captcha');
+        return 'Friendly Captcha';
     }
 
     public function getDescription(): string
     {
-        return Craft::t('formie', 'Friendly Captcha employs a fundamentally new approach to securely defend your websites and online services from spam and bots. Find out more via [Friendly Captcha](https://friendlycaptcha.com/).');
+        return 'Friendly Captcha employs a fundamentally new approach to securely defend your websites and online services from spam and bots. Find out more via [Friendly Captcha](https://friendlycaptcha.com/).';
     }
 
     public function getSettingsHtml(): ?string

@@ -24,7 +24,7 @@ class Mailcoach extends EmailMarketing
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'Mailcoach');
+        return 'Mailcoach';
     }
     
 

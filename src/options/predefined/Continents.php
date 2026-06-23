@@ -17,14 +17,15 @@ class Continents extends PredefinedOption
 
     public static function getDataOptions(): array
     {
+        // Deliberately not using Craft::t().
         return [
-            Craft::t('formie', 'Africa'),
-            Craft::t('formie', 'Antarctica'),
-            Craft::t('formie', 'Asia'),
-            Craft::t('formie', 'Australia'),
-            Craft::t('formie', 'Europe'),
-            Craft::t('formie', 'North America'),
-            Craft::t('formie', 'South America'),
+            'Africa',
+            'Antarctica',
+            'Asia',
+            'Australia',
+            'Europe',
+            'North America',
+            'South America',
         ];
     }
 }

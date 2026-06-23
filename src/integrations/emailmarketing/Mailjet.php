@@ -30,7 +30,7 @@ class Mailjet extends EmailMarketing
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'Mailjet');
+        return 'Mailjet';
     }
 
     public function getDescription(): string

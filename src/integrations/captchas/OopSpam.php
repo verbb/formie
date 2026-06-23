@@ -28,7 +28,7 @@ class OopSpam extends Captcha
 
     public function getName(): string
     {
-        return Craft::t('formie', 'OOPSpam');
+        return 'OOPSpam';
     }
 
     public function getDescription(): string

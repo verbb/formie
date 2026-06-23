@@ -43,7 +43,7 @@ class Intercom extends HelpDesk implements OAuthProviderInterface
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'Intercom');
+        return 'Intercom';
     }
 
 

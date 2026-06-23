@@ -50,7 +50,7 @@ class Mollie extends Payment
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'Mollie');
+        return 'Mollie';
     }
 
 

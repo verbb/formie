@@ -38,7 +38,7 @@ class ConstantContact extends EmailMarketing implements OAuthProviderInterface
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'Constant Contact');
+        return 'Constant Contact';
     }
 
     // Public Methods

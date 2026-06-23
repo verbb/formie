@@ -47,7 +47,7 @@ class Paddle extends Payment
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'Paddle');
+        return 'Paddle';
     }
     
 

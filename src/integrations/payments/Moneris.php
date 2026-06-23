@@ -48,7 +48,7 @@ class Moneris extends Payment
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'Moneris');
+        return 'Moneris';
     }
     
 

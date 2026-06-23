@@ -44,7 +44,7 @@ class HubSpot extends Crm
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'HubSpot');
+        return 'HubSpot';
     }
 
     protected static function defineOptionSources(): array

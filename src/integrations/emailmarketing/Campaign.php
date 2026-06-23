@@ -43,7 +43,7 @@ class Campaign extends EmailMarketing
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'Campaign');
+        return 'Campaign';
     }
 
     public static function getRequiredPlugins(): array

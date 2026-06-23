@@ -21,7 +21,10 @@
     <h2>{{ 'Migrate Freeform 5' | t('formie') }}</h2>
 
     {% if outputs is not defined %}
-        <p>{{ 'Select the forms you wish to migrate from Freeform 5. This will migrate all fields within the form, all settings (where applicable), notifications, and any submissions. Depending on how many entries the selected forms have, this could take some time.' | t('formie') }}</p>
+        <p>{{ 'Select the forms you wish to migrate from {source}. This will migrate all fields within the form, all settings (where applicable), notifications, and any {entryType}. Depending on how many entries the selected forms have, this could take some time.' | t('formie', {
+            source: 'Freeform 5',
+            entryType: 'submissions' | t('formie'),
+        }) }}</p>
 
         <p>{{ 'Your original Freeform forms will remain un-touched.' | t('formie') }}</p>
     {% endif %}

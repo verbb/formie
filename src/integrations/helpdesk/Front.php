@@ -43,7 +43,7 @@ class Front extends HelpDesk implements OAuthProviderInterface
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'Front');
+        return 'Front';
     }
 
 

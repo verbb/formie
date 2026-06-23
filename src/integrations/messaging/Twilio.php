@@ -28,7 +28,7 @@ class Twilio extends Messaging
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'Twilio');
+        return 'Twilio';
     }
 
 

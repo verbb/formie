@@ -48,7 +48,7 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'Microsoft Dynamics 365');
+        return 'Microsoft Dynamics 365';
     }
 
     protected static function defineOptionSources(): array

@@ -36,7 +36,7 @@ class Turnstile extends Captcha
 
     public function getName(): string
     {
-        return Craft::t('formie', 'Cloudflare Turnstile');
+        return 'Cloudflare Turnstile';
     }
 
     public function getDescription(): string

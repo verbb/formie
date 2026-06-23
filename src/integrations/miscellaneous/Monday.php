@@ -32,7 +32,7 @@ class Monday extends Miscellaneous
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'Monday');
+        return 'Monday';
     }
     
 

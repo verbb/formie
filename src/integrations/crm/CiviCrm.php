@@ -26,7 +26,7 @@ class CiviCrm extends Crm
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'CiviCRM');
+        return 'CiviCRM';
     }
     
 

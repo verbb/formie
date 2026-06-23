@@ -45,7 +45,7 @@ class Pardot extends Crm implements OAuthProviderInterface
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'Pardot');
+        return 'Pardot';
     }
 
 

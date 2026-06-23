@@ -24,7 +24,7 @@ class ActiveCampaign extends EmailMarketing
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'ActiveCampaign');
+        return 'ActiveCampaign';
     }
 
     // Properties

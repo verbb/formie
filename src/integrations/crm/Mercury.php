@@ -23,7 +23,7 @@ class Mercury extends Crm
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'Mercury');
+        return 'Mercury';
     }
     
 

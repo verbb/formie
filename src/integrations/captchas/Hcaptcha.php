@@ -36,12 +36,12 @@ class Hcaptcha extends Captcha
 
     public function getName(): string
     {
-        return Craft::t('formie', 'hCaptcha');
+        return 'hCaptcha';
     }
 
     public function getDescription(): string
     {
-        return Craft::t('formie', 'hCaptcha is an anti-bot solution that protects user privacy and rewards websites. It is the most popular reCAPTCHA alternative. Find out more via [hCaptcha](https://www.hcaptcha.com/).');
+        return 'hCaptcha is an anti-bot solution that protects user privacy and rewards websites. It is the most popular reCAPTCHA alternative. Find out more via [hCaptcha](https://www.hcaptcha.com/).';
     }
 
     public function getSettingsHtml(): ?string

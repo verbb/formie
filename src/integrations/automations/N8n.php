@@ -28,7 +28,7 @@ class N8n extends Automation
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'n8n');
+        return 'n8n';
     }
     
 

@@ -29,7 +29,7 @@ class Ifttt extends Automation
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'IFTTT');
+        return 'IFTTT';
     }
     
 

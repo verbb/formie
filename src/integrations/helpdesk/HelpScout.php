@@ -43,7 +43,7 @@ class HelpScout extends HelpDesk implements OAuthProviderInterface
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'Help Scout');
+        return 'Help Scout';
     }
 
 

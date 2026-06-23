@@ -43,7 +43,7 @@ class PayPal extends Payment
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'PayPal');
+        return 'PayPal';
     }
     
 

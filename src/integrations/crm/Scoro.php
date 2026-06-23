@@ -26,7 +26,7 @@ class Scoro extends Crm
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'Scoro');
+        return 'Scoro';
     }
     
 

@@ -26,7 +26,7 @@ class Recruitee extends Miscellaneous
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'Recruitee');
+        return 'Recruitee';
     }
 
 
