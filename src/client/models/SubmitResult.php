@@ -29,6 +29,12 @@ class SubmitResult extends BaseClientModel
     public ?FormSession $session = null;
     public ?array $quizResult = null;
     public array $clientEvents = [];
+    public ?string $paymentStatus = null;
+    public ?string $paymentMessage = null;
+    public ?string $paymentRedirectUrl = null;
+    public ?array $paymentAction = null;
+    public ?array $paymentDecision = null;
+    public bool $keepSubmitLoading = false;
 
 
     // Public Methods

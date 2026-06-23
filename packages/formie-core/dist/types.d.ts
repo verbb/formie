@@ -147,6 +147,14 @@ export type FrontendSubmitResult = {
         error?: string | null;
     };
     session?: FrontendFormSession | null;
+    quizResult?: Record<string, unknown> | null;
+    clientEvents?: Array<Record<string, unknown>>;
+    paymentStatus?: string | null;
+    paymentMessage?: string | null;
+    paymentRedirectUrl?: string | null;
+    paymentAction?: Record<string, unknown> | null;
+    paymentDecision?: Record<string, unknown> | null;
+    keepSubmitLoading?: boolean;
 };
 export type FrontendFormFieldState = {
     hidden: boolean;

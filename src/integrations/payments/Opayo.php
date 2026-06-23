@@ -150,6 +150,11 @@ class Opayo extends Payment
         ]);
     }
 
+    protected function getOptionalGraphqlPaymentInputFieldKeys(): array
+    {
+        return ['opayoSessionKey', 'opayo3DSComplete'];
+    }
+
     public function getAmount(Submission $submission): float
     {
         // Ensure the amount is converted to Stripe for zero-decimal currencies

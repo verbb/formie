@@ -35,9 +35,17 @@ const FRONTEND_SUBMIT_RESULT_SELECTION = `
     isFinalPage
     errors
     messages
+    clientEvents
+    paymentStatus
+    paymentMessage
+    paymentRedirectUrl
+    paymentAction
+    paymentDecision
+    keepSubmitLoading
     session {
         ${FRONTEND_SESSION_SELECTION}
     }
+    quizResult
 `;
 
 function buildGraphqlUrl(endpoint: string): string {

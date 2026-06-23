@@ -142,6 +142,11 @@ class Stripe extends Payment
         return null;
     }
 
+    protected function getOptionalGraphqlPaymentInputFieldKeys(): array
+    {
+        return ['stripePaymentId', 'stripeSubscriptionId'];
+    }
+
     public function getInitialPaymentInformation(): array
     {
         $currency = static::getSiteCurrency();

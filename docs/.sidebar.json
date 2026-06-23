@@ -131,7 +131,9 @@
             "graphql/query-forms",
             "graphql/query-submissions",
             "graphql/rendering-forms",
-            "graphql/create-submissions"
+            "graphql/create-submissions",
+            "graphql/payments",
+            "graphql/payments/stripe"
         ]
     },
     {

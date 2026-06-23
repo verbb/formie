@@ -98,6 +98,11 @@ class PayPal extends Payment
         ]);
     }
 
+    protected function getOptionalGraphqlPaymentInputFieldKeys(): array
+    {
+        return ['paypalAuthId'];
+    }
+
     public function processPayment(Submission $submission): PaymentDecision
     {
         $response = null;

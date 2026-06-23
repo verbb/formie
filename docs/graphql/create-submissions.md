@@ -355,3 +355,9 @@ The mutation returns `true` when the submission was deleted.
     }
 }
 ```
+
+## Payment Fields
+
+Payment fields require provider UI in your front-end (Stripe.js, PayPal SDK, and so on). Formie accepts provider references via GraphQL and returns structured payment follow-up metadata on submit.
+
+Use `submitFormieClientForm` for headless payment flows so session continuity and 3DS replay work correctly. See [Headless Payments](/graphql/payments) for the full BYO guide and per-provider reference keys.

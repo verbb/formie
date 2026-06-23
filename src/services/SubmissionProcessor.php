@@ -11,6 +11,7 @@ use verbb\formie\errors\StaleSubmissionStateException;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\ManagedSubmissionRequest;
 use verbb\formie\models\Payment as PaymentModel;
+use verbb\formie\models\PaymentDecision;
 use verbb\formie\models\SubmissionExecutionResult;
 use verbb\formie\models\SubmissionRequest;
 use verbb\formie\models\SubmissionResponse;
@@ -564,11 +565,24 @@ class SubmissionProcessor extends Component
         }
 
         if (!$response->success) {
-            $errorMessages = $rawErrors['form'] ?? [];
-            $error = $errorMessages
-                ? StringHelper::sanitizeMessageHtml(implode(' ', $errorMessages))
-                : StringHelper::sanitizeMessageHtml($form->settings->getErrorMessage());
-            $rawErrors['form'] = StringHelper::sanitizeMessageHtmlRecursive($rawErrors['form'] ?? []);
+            $paymentFollowUpRequired = in_array($response->paymentStatus, [
+                PaymentDecision::STATUS_ACTION_REQUIRED,
+                PaymentDecision::STATUS_PENDING,
+            ], true);
+
+            if ($paymentFollowUpRequired) {
+                $notice = $response->paymentMessage
+                    ? StringHelper::sanitizeMessageHtml($response->paymentMessage)
+                    : null;
+                $error = null;
+                $rawErrors['form'] = [];
+            } else {
+                $errorMessages = $rawErrors['form'] ?? [];
+                $error = $errorMessages
+                    ? StringHelper::sanitizeMessageHtml(implode(' ', $errorMessages))
+                    : StringHelper::sanitizeMessageHtml($form->settings->getErrorMessage());
+                $rawErrors['form'] = StringHelper::sanitizeMessageHtmlRecursive($rawErrors['form'] ?? []);
+            }
         }
 
         $submittedPageId = (int)($submissionRequest->pageId ?? 0);
@@ -592,7 +606,7 @@ class SubmissionProcessor extends Component
             )
             : [];
 
-        return new SubmitResult([
+        return new SubmitResult(array_merge([
             'success' => $response->success,
             'submissionUid' => $submission->uid ?: null,
             'currentPageId' => $currentPageId,
@@ -611,7 +625,40 @@ class SubmissionProcessor extends Component
             'session' => $session,
             'quizResult' => $response->quizResult,
             'clientEvents' => $clientEvents,
-        ]);
+        ], $this->_resolvePaymentSubmitResultFields($response)));
+    }
+
+    private function _resolvePaymentSubmitResultFields(SubmissionResponse $response): array
+    {
+        if (!$response->paymentStatus) {
+            return [];
+        }
+
+        $fields = [
+            'paymentStatus' => $response->paymentStatus,
+            'keepSubmitLoading' => in_array($response->paymentStatus, [
+                PaymentDecision::STATUS_ACTION_REQUIRED,
+                PaymentDecision::STATUS_PENDING,
+            ], true),
+        ];
+
+        if ($response->paymentMessage) {
+            $fields['paymentMessage'] = StringHelper::sanitizeMessageHtml($response->paymentMessage);
+        }
+
+        if ($response->paymentRedirectUrl) {
+            $fields['paymentRedirectUrl'] = $response->paymentRedirectUrl;
+        }
+
+        if ($response->paymentAction) {
+            $fields['paymentAction'] = $response->paymentAction;
+        }
+
+        if ($response->paymentDecision) {
+            $fields['paymentDecision'] = $response->paymentDecision;
+        }
+
+        return $fields;
     }
 
     private function _resolveSubmissionIdFromResumeToken(Form $form, ?string $resumeToken, array $capabilities = [SubmissionDrafts::RESUME_CAPABILITY_UPDATE]): ?int

@@ -264,7 +264,32 @@ abstract class Payment extends Integration
     {
         return null;
     }
-    
+
+    public function getGraphqlPaymentInputFieldKeys(FieldInterface $field): array
+    {
+        $this->setField($field);
+
+        $module = $this->getClientModule(new ClientModuleContext([
+            'form' => $field->getForm(),
+            'field' => $field,
+            'integration' => $this,
+            'renderTarget' => ClientModule::RENDER_TARGET_FRONTEND,
+        ]));
+
+        $required = [];
+
+        if (is_array($module?->config['requiredInputSuffixes'] ?? null)) {
+            $required = $module->config['requiredInputSuffixes'];
+        }
+
+        return array_values(array_unique(array_merge($required, $this->getOptionalGraphqlPaymentInputFieldKeys())));
+    }
+
+    protected function getOptionalGraphqlPaymentInputFieldKeys(): array
+    {
+        return [];
+    }
+
     public function getRedirectUri(): string
     {
         if (Craft::$app->getConfig()->getGeneral()->headlessMode) {

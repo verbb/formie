@@ -104,3 +104,5 @@ Mutation | Purpose
 `submitFormieClientForm` | Submits a structured form payload.
 `refreshFormieClientSession` | Refreshes the form session payload.
 `setFormieClientPage` | Saves page navigation state for multi-page forms.
+
+Forms with Payment fields should use `submitFormieClientForm` in headless front-ends. See [Headless Payments](/graphql/payments).

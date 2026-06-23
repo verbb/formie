@@ -12,6 +12,8 @@ use verbb\formie\helpers\StringHelper;
 use verbb\formie\fields\values\PaymentFieldValue;
 use verbb\formie\fields\definitions\FieldClientModules;
 use verbb\formie\fields\definitions\FieldValueClass;
+use verbb\formie\gql\types\input\PaymentInputType;
+use verbb\formie\gql\types\Json as GqlJson;
 use verbb\formie\models\ClientModule;
 use verbb\formie\models\ClientModuleContext;
 use verbb\formie\models\SlotTag;
@@ -26,9 +28,9 @@ use craft\helpers\Html;
 use craft\helpers\Json;
 use craft\helpers\Template;
 
-use Faker\Generator as FakerFactory;
-
 use GraphQL\Type\Definition\Type;
+
+use Faker\Generator as FakerFactory;
 
 use Twig\Markup;
 
@@ -97,6 +99,28 @@ class Payment extends Field
         $data->setElement($element);
 
         return $data;
+    }
+
+    public static function gqlContentTypeFromConfig(array $config): Type|array
+    {
+        return PaymentInputType::getTypeFromConfig($config);
+    }
+
+    public function getContentGqlType(): Type|array
+    {
+        $integration = $this->getPaymentIntegration();
+
+        if (!$integration instanceof PaymentIntegration) {
+            return GqlJson::getType();
+        }
+
+        $keys = $integration->getGraphqlPaymentInputFieldKeys($this);
+
+        if (!$keys) {
+            return GqlJson::getType();
+        }
+
+        return PaymentInputType::getType($this);
     }
 
     public function serializeValue(mixed $value, ?ElementInterface $element): mixed
