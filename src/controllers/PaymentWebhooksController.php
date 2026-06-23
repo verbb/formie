@@ -3,6 +3,8 @@ namespace verbb\formie\controllers;
 
 use verbb\formie\Formie;
 use verbb\formie\base\Payment;
+use verbb\formie\elements\Form;
+use verbb\formie\elements\Submission;
 use verbb\formie\helpers\PaymentAccess;
 use verbb\formie\models\Payment as PaymentModel;
 
@@ -107,10 +109,10 @@ class PaymentWebhooksController extends Controller
                     'message' => $e->getMessage(),
                 ]);
 
-                return $this->asJson([
-                    'status' => 'failed',
-                    'message' => Craft::t('formie', 'We were unable to verify your payment. Please try again or contact support.'),
-                ]);
+                return $this->asJson($this->_buildPaymentFailurePollResponse(
+                    $payment,
+                    Craft::t('formie', 'We were unable to verify your payment. Please try again or contact support.'),
+                ));
             }
 
             if ($shouldCheckGateway) {
@@ -194,10 +196,10 @@ class PaymentWebhooksController extends Controller
                 'integration' => $integrationHandle,
             ]);
 
-            return $this->asJson([
-                'status' => 'failed',
-                'message' => Craft::t('formie', 'Your payment failed. Please try again.'),
-            ]);
+            return $this->asJson($this->_buildPaymentFailurePollResponse(
+                $payment,
+                Craft::t('formie', 'Your payment failed. Please try again.'),
+            ));
         }
 
         if ($shouldCheckGateway) {
@@ -246,6 +248,37 @@ class PaymentWebhooksController extends Controller
         }
 
         return $payment;
+    }
+
+    private function _buildPaymentFailurePollResponse(PaymentModel $payment, string $defaultMessage): array
+    {
+        $message = trim((string)($payment->message ?? '')) ?: $defaultMessage;
+        $response = [
+            'status' => 'failed',
+            'message' => $message,
+        ];
+
+        $submission = $payment->getSubmission();
+
+        if (!$submission instanceof Submission) {
+            return $response;
+        }
+
+        $form = $submission->getForm();
+
+        if (!$form instanceof Form) {
+            return $response;
+        }
+
+        Formie::$plugin->getService()->setError($form->getFlashNamespace(), $message);
+
+        $redirectUrl = Formie::$plugin->getPayments()->resolvePaymentFailureRedirectUrl($payment, $submission, $form);
+
+        if ($redirectUrl !== '') {
+            $response['redirectUrl'] = $redirectUrl;
+        }
+
+        return $response;
     }
 
     private function _enforceStatusTokenRateLimit(string $statusToken, bool $gatewayCheck): void

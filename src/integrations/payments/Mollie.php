@@ -143,7 +143,7 @@ class Mollie extends Payment
 
         try {
             $payment->status = PaymentModel::STATUS_REDIRECT;
-            $payment->redirectUrl = Craft::$app->getRequest()->getReferrer();
+            $payment->redirectUrl = StringHelper::sanitizeRedirectUrl((string)Craft::$app->getRequest()->getReferrer());
 
             // Create the payment immediately so we can pass a reference to the Mollie payment
             Formie::$plugin->getPayments()->savePayment($payment);
@@ -501,6 +501,7 @@ class Mollie extends Payment
             case 'expired':
             case 'canceled':
                 $payment->status = PaymentModel::STATUS_FAILED;
+                $payment->message = $this->_resolveMollieFailureMessage($molliePayment, $status);
                 break;
             case 'pending':
             case 'open':
@@ -549,5 +550,21 @@ class Mollie extends Payment
         }
 
         return $detail;
+    }
+
+    private function _resolveMollieFailureMessage(array $molliePayment, string $status): string
+    {
+        $details = $molliePayment['details'] ?? [];
+        $failureMessage = is_array($details) ? trim((string)($details['failureMessage'] ?? '')) : '';
+
+        if ($failureMessage !== '') {
+            return $failureMessage;
+        }
+
+        return match ($status) {
+            'canceled' => Craft::t('formie', 'Your payment was canceled. Please try again.'),
+            'expired' => Craft::t('formie', 'Your payment expired. Please try again.'),
+            default => Craft::t('formie', 'Your payment failed. Please try again.'),
+        };
     }
 }

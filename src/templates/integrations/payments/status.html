@@ -89,6 +89,12 @@
                 window.location.href = json.redirectUrl;
                 clearInterval(interval);
             } else if (json.status === 'failed') {
+                if (json.redirectUrl) {
+                    window.location.href = json.redirectUrl;
+                    clearInterval(interval);
+                    return;
+                }
+
                 showError(json.message || '{{ 'Payment failed. Please try again.' | t('formie') }}');
                 clearInterval(interval);
             } else if (pollCount >= maxPolls) {

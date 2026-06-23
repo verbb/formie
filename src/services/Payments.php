@@ -94,6 +94,25 @@ class Payments extends Component
         return StringHelper::sanitizeRedirectUrl($event->redirectUrl);
     }
 
+    public function resolvePaymentFailureRedirectUrl(Payment $payment, Submission $submission, Form $form): string
+    {
+        $url = StringHelper::sanitizeRedirectUrl((string)($payment->redirectUrl ?? ''));
+
+        if ($url === '') {
+            $request = Craft::$app->getRequest();
+
+            if ($request->getIsWebRequest()) {
+                $url = StringHelper::sanitizeRedirectUrl((string)$request->getReferrer());
+            }
+        }
+
+        if ($url === '') {
+            $url = StringHelper::sanitizeRedirectUrl($form->getRedirectUrl(false, false));
+        }
+
+        return $url;
+    }
+
     public function savePayment(Payment $payment, bool $runValidation = true): bool
     {
         $isNewPayment = !(bool)$payment->id;

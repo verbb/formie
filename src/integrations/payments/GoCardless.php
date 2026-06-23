@@ -761,7 +761,7 @@ class GoCardless extends Payment
         Formie::$plugin->getPayments()->savePayment($payment);
 
         $form = $submission->getForm();
-        Formie::$plugin->getService()->setError($form->id, $message);
+        Formie::$plugin->getService()->setError($form->getFlashNamespace(), $message);
 
         $url = $payment->redirectUrl ?: UrlHelper::siteUrl();
 
