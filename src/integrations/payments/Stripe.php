@@ -11,6 +11,7 @@ use verbb\formie\events\ModifyPaymentPayloadEvent;
 use verbb\formie\events\PaymentReceiveWebhookEvent;
 use verbb\formie\fields;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\PaymentAmountHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\References;
@@ -262,6 +263,33 @@ class Stripe extends Payment
         return $limit > 0 ? $limit : null;
     }
 
+    public function getSubscriptionSetupFee(Submission $submission): ?int
+    {
+        $feeType = $this->getFieldSetting('subscriptionSetupFeeType');
+
+        if ($feeType === Payment::VALUE_TYPE_FIXED) {
+            $value = $this->getFieldSetting('subscriptionSetupFeeFixed');
+        } elseif ($feeType === Payment::VALUE_TYPE_DYNAMIC) {
+            $value = References::parseValue($this->getFieldSetting('subscriptionSetupFeeVariable'), $submission);
+        } else {
+            return null;
+        }
+
+        $amount = PaymentAmountHelper::parseAmount($value);
+
+        if ($amount <= 0) {
+            return null;
+        }
+
+        $currency = $this->getCurrency($submission);
+
+        if (!$currency) {
+            return null;
+        }
+
+        return self::toStripeAmount($amount, $currency);
+    }
+
     public function processPayment(Submission $submission): PaymentDecision
     {
         $result = false;
@@ -381,6 +409,13 @@ class Stripe extends Payment
 
             // Add in extra settings configured at the field level
             $this->_setPayloadDetails($payload, $submission, 'subscription');
+            $this->_applySubscriptionSetupFee($payload, $submission);
+
+            $setupFeeType = $this->getFieldSetting('subscriptionSetupFeeType');
+
+            if ($setupFeeType === Payment::VALUE_TYPE_FIXED && $this->getSubscriptionSetupFee($submission) === null) {
+                throw new Exception(Craft::t('formie', 'Enter a valid subscription setup fee.'));
+            }
 
             // Raise a `modifySubscriptionPayload` event
             $event = new ModifyPaymentPayloadEvent([
@@ -433,6 +468,10 @@ class Stripe extends Payment
             if ($scheduleId) {
                 $subscription->subscriptionData['formieScheduleId'] = $scheduleId;
                 $subscription->subscriptionData['formiePaymentLimit'] = $paymentLimit;
+            }
+
+            if (($setupFee = $this->getSubscriptionSetupFee($submission)) !== null) {
+                $subscription->subscriptionData['formieSetupFee'] = $setupFee;
             }
 
             $subscription->trialDays = 0;
@@ -1059,6 +1098,49 @@ class Stripe extends Payment
                 'if' => 'type == "subscription"',
             ]),
             SchemaHelper::fieldWrap([
+                'label' => Craft::t('formie', 'Setup Fee'),
+                'instructions' => Craft::t('formie', 'Charge a one-time setup fee on the first subscription invoice, in addition to the recurring amount.'),
+                'if' => 'type == "subscription"',
+                'children' => [
+                    SchemaHelper::selectField([
+                        'name' => 'subscriptionSetupFeeType',
+                        'options' => [
+                            ['label' => Craft::t('formie', 'No setup fee'), 'value' => ''],
+                            ['label' => Craft::t('formie', 'Fixed Value'), 'value' => Payment::VALUE_TYPE_FIXED],
+                            ['label' => Craft::t('formie', 'Dynamic Value'), 'value' => Payment::VALUE_TYPE_DYNAMIC],
+                        ],
+                    ]),
+                    SchemaHelper::numberField([
+                        'name' => 'subscriptionSetupFeeFixed',
+                        'required' => true,
+                        'size' => 6,
+                        'if' => 'subscriptionSetupFeeType == "' . Payment::VALUE_TYPE_FIXED . '"',
+                    ]),
+                    SchemaHelper::fieldSelectField([
+                        'name' => 'subscriptionSetupFeeVariable',
+                        'referenceContext' => 'client',
+                        'includeSelectors' => false,
+                        'topLevelOnly' => true,
+                        'required' => true,
+                        'fieldTypes' => [
+                            fields\Calculations::class,
+                            fields\Dropdown::class,
+                            fields\Hidden::class,
+                            fields\Number::class,
+                            fields\Radio::class,
+                            fields\SingleLineText::class,
+                        ],
+                        'if' => 'subscriptionSetupFeeType == "' . Payment::VALUE_TYPE_DYNAMIC . '"',
+                    ]),
+                    SchemaHelper::textField([
+                        'label' => Craft::t('formie', 'Setup Fee Description'),
+                        'instructions' => Craft::t('formie', 'The line item description shown in Stripe for the setup fee. Defaults to “Setup fee”.'),
+                        'name' => 'subscriptionSetupFeeDescription',
+                        'if' => 'subscriptionSetupFeeType == "' . Payment::VALUE_TYPE_FIXED . '" || subscriptionSetupFeeType == "' . Payment::VALUE_TYPE_DYNAMIC . '"',
+                    ]),
+                ],
+            ]),
+            SchemaHelper::fieldWrap([
                 'label' => Craft::t('formie', 'Payment Limit'),
                 'instructions' => Craft::t('formie', 'Limit how many subscription payments are collected before Stripe cancels the subscription automatically.'),
                 'if' => 'type == "subscription"',
@@ -1588,17 +1670,23 @@ class Stripe extends Payment
 
     private function _buildSubscriptionSchedulePayload(array $subscriptionPayload, string $planReference, int $iterations): array
     {
+        $phase = [
+            'items' => [
+                ['plan' => $planReference],
+            ],
+            'iterations' => $iterations,
+        ];
+
+        if (!empty($subscriptionPayload['add_invoice_items'])) {
+            $phase['add_invoice_items'] = $subscriptionPayload['add_invoice_items'];
+        }
+
         $schedulePayload = [
             'customer' => $subscriptionPayload['customer'],
             'start_date' => 'now',
             'end_behavior' => 'cancel',
             'phases' => [
-                [
-                    'items' => [
-                        ['plan' => $planReference],
-                    ],
-                    'iterations' => $iterations,
-                ],
+                $phase,
             ],
             'default_settings' => [
                 'collection_method' => 'charge_automatically',
@@ -1615,6 +1703,45 @@ class Stripe extends Payment
         }
 
         return $schedulePayload;
+    }
+
+    private function _applySubscriptionSetupFee(array &$payload, Submission $submission): void
+    {
+        $invoiceItem = $this->_buildSubscriptionSetupFeeInvoiceItem($submission);
+
+        if (!$invoiceItem) {
+            return;
+        }
+
+        $payload['add_invoice_items'] = [$invoiceItem];
+    }
+
+    private function _buildSubscriptionSetupFeeInvoiceItem(Submission $submission): ?array
+    {
+        $amount = $this->getSubscriptionSetupFee($submission);
+
+        if ($amount === null || $amount <= 0) {
+            return null;
+        }
+
+        $currency = strtolower((string)$this->getCurrency($submission));
+        $description = trim((string)$this->getFieldSetting('subscriptionSetupFeeDescription'));
+
+        if ($description === '') {
+            $description = Craft::t('formie', 'Setup fee');
+        } else {
+            $description = References::parseContent($description, $submission);
+        }
+
+        return [
+            'price_data' => [
+                'currency' => $currency,
+                'product_data' => [
+                    'name' => $description,
+                ],
+                'unit_amount' => $amount,
+            ],
+        ];
     }
 
     private function _resolveScheduleSubscription(object $scheduleResponse): StripeSubscription

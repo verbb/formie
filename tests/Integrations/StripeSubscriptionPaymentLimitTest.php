@@ -134,3 +134,93 @@ it('builds a Stripe subscription schedule payload with iteration limits', functi
         'expand' => ['subscription.latest_invoice.payment_intent', 'subscription.pending_setup_intent'],
     ]);
 });
+
+it('returns null when no subscription setup fee is configured', function (): void {
+    $integration = new Stripe(['name' => 'Stripe', 'handle' => 'stripeTest']);
+    $paymentField = new PaymentField([
+        'handle' => 'payment',
+        'providerSettings' => [
+            'stripeTest' => [
+                'currencyType' => Payment::VALUE_TYPE_FIXED,
+                'currencyFixed' => 'AUD',
+                'subscriptionSetupFeeType' => '',
+            ],
+        ],
+    ]);
+
+    $integration->setField($paymentField);
+
+    expect($integration->getSubscriptionSetupFee(new Submission()))->toBeNull();
+});
+
+it('resolves a fixed subscription setup fee in stripe minor units', function (): void {
+    $integration = new Stripe(['name' => 'Stripe', 'handle' => 'stripeTest']);
+    $paymentField = new PaymentField([
+        'handle' => 'payment',
+        'providerSettings' => [
+            'stripeTest' => [
+                'currencyType' => Payment::VALUE_TYPE_FIXED,
+                'currencyFixed' => 'AUD',
+                'subscriptionSetupFeeType' => Payment::VALUE_TYPE_FIXED,
+                'subscriptionSetupFeeFixed' => 25.50,
+            ],
+        ],
+    ]);
+
+    $integration->setField($paymentField);
+
+    expect($integration->getSubscriptionSetupFee(new Submission()))->toBe(2550);
+});
+
+it('builds a subscription setup fee invoice item', function (): void {
+    $integration = new Stripe(['name' => 'Stripe', 'handle' => 'stripeTest']);
+    $paymentField = new PaymentField([
+        'handle' => 'payment',
+        'providerSettings' => [
+            'stripeTest' => [
+                'currencyType' => Payment::VALUE_TYPE_FIXED,
+                'currencyFixed' => 'AUD',
+                'subscriptionSetupFeeType' => Payment::VALUE_TYPE_FIXED,
+                'subscriptionSetupFeeFixed' => 10,
+                'subscriptionSetupFeeDescription' => 'Onboarding fee',
+            ],
+        ],
+    ]);
+
+    $integration->setField($paymentField);
+
+    $build = new ReflectionMethod(Stripe::class, '_buildSubscriptionSetupFeeInvoiceItem');
+    $build->setAccessible(true);
+
+    expect($build->invoke($integration, new Submission()))->toMatchArray([
+        'price_data' => [
+            'currency' => 'aud',
+            'product_data' => [
+                'name' => 'Onboarding fee',
+            ],
+            'unit_amount' => 1000,
+        ],
+    ]);
+});
+
+it('includes setup fee invoice items on subscription schedule phases', function (): void {
+    $integration = new Stripe(['name' => 'Stripe', 'handle' => 'stripeTest']);
+
+    $build = new ReflectionMethod(Stripe::class, '_buildSubscriptionSchedulePayload');
+    $build->setAccessible(true);
+
+    $payload = $build->invoke($integration, [
+        'customer' => 'cus_test',
+        'add_invoice_items' => [
+            [
+                'price_data' => [
+                    'currency' => 'aud',
+                    'product_data' => ['name' => 'Setup fee'],
+                    'unit_amount' => 500,
+                ],
+            ],
+        ],
+    ], 'plan_test', 2);
+
+    expect($payload['phases'][0]['add_invoice_items'][0]['price_data']['unit_amount'])->toBe(500);
+});

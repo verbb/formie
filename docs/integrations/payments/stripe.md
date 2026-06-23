@@ -60,4 +60,15 @@ For subscription payments, you can optionally limit how many recurring payments 
 
 When a limit is set, Formie creates the subscription through a Stripe subscription schedule. Stripe cancels the subscription after the configured number of successful billing cycles. Leave **Payment Limit** set to **No limit** for ongoing subscriptions.
 
-You can modify the schedule payload through the `modifySubscriptionSchedulePayload` event.
+### Subscription setup fees
+For subscription payments, you can optionally charge a one-time setup fee on the first invoice, in addition to the recurring subscription amount.
+
+1. Edit your **Payment** field and set **Payment Type** to **Subscription**.
+1. Under **Setup Fee**, choose **Fixed Value** or **Dynamic Value**.
+1. For a fixed fee, enter the amount (for example `50`).
+1. For a dynamic fee, select a field that provides the fee amount.
+1. Optionally set **Setup Fee Description** for the Stripe invoice line item.
+
+The setup fee is added to the first subscription invoice through Stripe `add_invoice_items`. It works with both standard subscriptions and subscriptions that use a payment limit schedule.
+
+You can modify subscription payloads through the `modifySubscriptionPayload` and `modifySubscriptionSchedulePayload` events.
