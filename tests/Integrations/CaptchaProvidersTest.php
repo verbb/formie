@@ -113,3 +113,30 @@ it('strips captcha keys from plugin settings payloads', function (): void {
     expect($stripped)->toBe(['pluginName' => 'Formie'])
         ->and($stripped)->not->toHaveKey('captchas');
 });
+
+it('does not overwrite site-scoped captcha providers when project config syncs', function (): void {
+    $turnstile = Formie::$plugin->getIntegrations()->getCaptchaByHandle('turnstile');
+    $turnstile->scope = Integrations::SCOPE_SITE;
+    $turnstile->setEnabled(true);
+    $turnstile->siteKey = 'live-site-key';
+    $turnstile->secretKey = 'live-secret-key';
+
+    expect(Formie::$plugin->getIntegrations()->saveCaptcha($turnstile))->toBeTrue();
+
+    Formie::$plugin->getCaptchaProviders()->handleChangedProvider(new \craft\events\ConfigEvent([
+        'name' => 'update',
+        'tokenMatches' => ['turnstile'],
+        'newValue' => [
+            'type' => Turnstile::class,
+            'enabled' => false,
+            'settings' => [],
+        ],
+    ]));
+
+    $reloaded = Formie::$plugin->getIntegrations()->getCaptchaByHandle('turnstile');
+
+    expect($reloaded->isSiteScope())->toBeTrue()
+        ->and($reloaded->getEnabled())->toBeTrue()
+        ->and($reloaded->siteKey)->toBe('live-site-key')
+        ->and($reloaded->secretKey)->toBe('live-secret-key');
+});

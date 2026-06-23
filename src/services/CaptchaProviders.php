@@ -222,6 +222,13 @@ class CaptchaProviders extends Component
     {
         $handle = $event->tokenMatches[0];
         $data = $event->newValue;
+        $existing = CaptchaProviderRecord::findOne(['handle' => $handle]);
+
+        // Site-scoped captcha credentials are environment-specific and must not be overwritten by project config sync.
+        if ($existing && ($existing->scope ?? Integrations::SCOPE_PROJECT) === Integrations::SCOPE_SITE) {
+            return;
+        }
+
         $settings = ProjectConfig::unpackAssociativeArrays($data['settings'] ?? []);
         $transaction = Craft::$app->getDb()->beginTransaction();
 
@@ -257,6 +264,11 @@ class CaptchaProviders extends Component
         $record = CaptchaProviderRecord::findOne(['handle' => $handle]);
 
         if (!$record) {
+            return;
+        }
+
+        // Site-scoped captcha credentials are environment-specific and must not be cleared by project config sync.
+        if (($record->scope ?? Integrations::SCOPE_PROJECT) === Integrations::SCOPE_SITE) {
             return;
         }
 

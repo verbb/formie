@@ -29,6 +29,7 @@
 - Fix payment provider settings schema failing to load in the form builder due to a missing `Payment` field import in `FieldsController`.
 - Fix payment provider settings not pre-filling defaults when selecting a provider in the form builder.
 - Fix combobox schema fields using a literal “Select an option” empty option instead of a placeholder.
+- Fix captcha provider credentials saved in the control panel being wiped when project config syncs on deploy. Site-scoped captcha settings are now preserved across deployments. ([#2407](https://github.com/verbb/formie/issues/2407))
 
 ## 4.0.0-beta.8 - 2026-06-26
 
