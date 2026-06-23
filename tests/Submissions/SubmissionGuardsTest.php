@@ -198,6 +198,46 @@ it('skips submission guards when the request is not a browser form post', functi
     }
 });
 
+it('skips captcha checks when resubmitting an incomplete continuation submission', function (): void {
+    $form = createGuardTestForm();
+    $submissionGuards = Formie::$plugin->getSubmissionGuards();
+
+    $freshSubmission = new Submission();
+    $freshSubmission->setForm($form);
+
+    expect($submissionGuards->shouldSkipCaptchaChecks(new SubmissionRequest([
+        'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+        'form' => $form,
+        'submission' => $freshSubmission,
+        'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+    ])))->toBeFalse();
+
+    $continuationSubmission = new Submission();
+    $continuationSubmission->setForm($form);
+    $continuationSubmission->id = 101;
+    $continuationSubmission->isIncomplete = true;
+
+    expect($submissionGuards->shouldSkipCaptchaChecks(new SubmissionRequest([
+        'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+        'form' => $form,
+        'submission' => $continuationSubmission,
+        'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+    ])))->toBeTrue();
+
+    $spamContinuation = new Submission();
+    $spamContinuation->setForm($form);
+    $spamContinuation->id = 102;
+    $spamContinuation->isIncomplete = true;
+    $spamContinuation->isSpam = true;
+
+    expect($submissionGuards->shouldSkipCaptchaChecks(new SubmissionRequest([
+        'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+        'form' => $form,
+        'submission' => $spamContinuation,
+        'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+    ])))->toBeFalse();
+});
+
 it('persists submission guard settings in the spam protection store', function (): void {
     Formie::$plugin->getSpamProtection()->saveValues(array_merge(
         Formie::$plugin->getSpamProtection()->getSettingsValues(),

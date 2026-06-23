@@ -34,6 +34,10 @@ class RunCaptchaChecksTask implements TaskInterface
             return TaskResult::continue();
         }
 
+        if (Formie::$plugin->getSubmissionGuards()->shouldSkipCaptchaChecks($request)) {
+            return TaskResult::continue();
+        }
+
         $captchas = Formie::$plugin->getIntegrations()->getAllEnabledCaptchasForForm($request->form);
 
         foreach ($captchas as $captcha) {

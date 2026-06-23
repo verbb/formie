@@ -90,11 +90,13 @@ export async function executeAjaxSubmitFlow(params: {
             validateOnSubmit,
         });
         applySubmitResultUi(form, result);
+        // Let captcha modules refresh one-time tokens before payment follow-up
+        // handlers (e.g. Stripe confirm) trigger an internal resubmit.
+        dispatchSubmitResult(result);
         applySubmitResultState(form, result, action);
         if (shouldRefreshTokensAfterSubmit(result)) {
             await onRefreshTokensAfterSubmit(result);
         }
-        dispatchSubmitResult(result);
     } catch (error) {
         result = {
             ok: false,

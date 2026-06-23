@@ -147,6 +147,28 @@ class SubmissionGuards extends Component
         return !$request->submission->isIncomplete;
     }
 
+    public function shouldSkipCaptchaChecks(SubmissionRequest $request): bool
+    {
+        if ($request->submitAction !== SubmissionWorkflow::SUBMIT_ACTION_SUBMIT) {
+            return false;
+        }
+
+        if ($request->processMode !== SubmissionWorkflow::PROCESS_MODE_SUBMIT) {
+            return false;
+        }
+
+        $submission = $request->submission;
+
+        // Payment follow-up submits (e.g. Stripe confirm) reuse the same browser
+        // session and one-time captcha token. Captcha was already validated on the
+        // first final submit before the submission was persisted as incomplete.
+        if (!$submission->id || !$submission->isIncomplete || $submission->isSpam) {
+            return false;
+        }
+
+        return true;
+    }
+
 
     // Private Methods
     // =========================================================================
