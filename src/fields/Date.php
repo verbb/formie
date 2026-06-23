@@ -415,7 +415,9 @@ class Date extends SubField implements InlineEditableFieldInterface, Previewable
         }
 
         if ($this->minDateOption === 'date' && $this->minDate) {
-            return $this->minDate->setTime(0, 0, 0);
+            $date = $this->_normalizeSettingDate($this->minDate);
+
+            return $date?->setTime(0, 0, 0);
         }
 
         return null;
@@ -434,7 +436,9 @@ class Date extends SubField implements InlineEditableFieldInterface, Previewable
         }
 
         if ($this->maxDateOption === 'date' && $this->maxDate) {
-            return $this->maxDate->setTime(23, 59, 59);
+            $date = $this->_normalizeSettingDate($this->maxDate);
+
+            return $date?->setTime(23, 59, 59);
         }
 
         return null;
@@ -630,19 +634,15 @@ class Date extends SubField implements InlineEditableFieldInterface, Previewable
             if ($this->minDateOption === 'today') {
                 $operator = $this->minDateOffset === 'add' ? '+' : '-';
                 $minDate = "{$operator}{$this->minDateOffsetNumber} {$this->minDateOffsetType}";
-            }
-
-            if ($this->minDateOption === 'date' && $this->minDate) {
-                $minDate = $this->minDate->setTime(0, 0, 0)->format('Y-m-d H:i:s');
+            } elseif ($min = $this->getMinDate()) {
+                $minDate = $min->format('Y-m-d H:i:s');
             }
 
             if ($this->maxDateOption === 'today') {
                 $operator = $this->maxDateOffset === 'add' ? '+' : '-';
                 $maxDate = "{$operator}{$this->maxDateOffsetNumber} {$this->maxDateOffsetType}";
-            }
-
-            if ($this->maxDateOption === 'date' && $this->maxDate) {
-                $maxDate = $this->maxDate->setTime(23, 59, 59)->format('Y-m-d H:i:s');
+            } elseif ($max = $this->getMaxDate()) {
+                $maxDate = $max->format('Y-m-d H:i:s');
             }
 
             // Ensure date picker option values are parsed for JSON
@@ -1739,5 +1739,18 @@ class Date extends SubField implements InlineEditableFieldInterface, Previewable
             '/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}(?::\d{2})?$/',
             $value
         );
+    }
+
+    private function _normalizeSettingDate(DateTime|string|null $value): ?DateTime
+    {
+        if (!$value) {
+            return null;
+        }
+
+        if ($value instanceof DateTime) {
+            return $value;
+        }
+
+        return DateTimeHelper::toDateTime($value, false, false);
     }
 }
