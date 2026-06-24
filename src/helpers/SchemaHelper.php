@@ -885,28 +885,6 @@ class SchemaHelper
         ], $config));
     }
 
-    public static function validationMessageField(array $config = []): array
-    {
-        $tokens = $config['tokens'] ?? ValidationMessagesHelper::allowedTokens();
-        $messageKey = ArrayHelper::remove($config, 'messageKey');
-        unset($config['tokens']);
-
-        $label = $config['label'] ?? null;
-
-        if ($label === null && is_string($messageKey) && $messageKey !== '') {
-            $label = ValidationMessagesHelper::builderLabel($messageKey);
-        }
-
-        if ($label === null) {
-            $label = Craft::t('formie', 'Error Message');
-        }
-
-        return self::textField(array_merge([
-            'label' => $label,
-            'instructions' => ValidationMessagesHelper::tokenInstructions($tokens),
-        ], $config));
-    }
-
     public static function requiredField(array $config = []): array
     {
         return self::lightswitchField(array_merge([
@@ -918,11 +896,11 @@ class SchemaHelper
 
     public static function requiredValidationMessage(array $config = []): array
     {
-        return self::validationMessageField(array_merge([
-            'messageKey' => ValidationMessagesHelper::KEY_REQUIRED,
+        return self::textField(array_merge([
+            'label' => Craft::t('formie', 'Required Error Message'),
+            'instructions' => ValidationMessagesHelper::tokenInstructions(['label']),
             'name' => 'validationMessages.required',
             'if' => 'required',
-            'tokens' => ['label'],
         ], $config));
     }
 
@@ -937,21 +915,21 @@ class SchemaHelper
 
     public static function uniqueValidationMessage(array $config = []): array
     {
-        return self::validationMessageField(array_merge([
-            'messageKey' => ValidationMessagesHelper::KEY_UNIQUE,
+        return self::textField(array_merge([
+            'label' => Craft::t('formie', 'Unique Error Message'),
+            'instructions' => ValidationMessagesHelper::tokenInstructions(['label']),
             'name' => 'validationMessages.unique',
             'if' => 'uniqueValue',
-            'tokens' => ['label'],
         ], $config));
     }
 
     public static function matchValidationMessage(array $config = []): array
     {
-        return self::validationMessageField(array_merge([
-            'messageKey' => ValidationMessagesHelper::KEY_MATCH,
+        return self::textField(array_merge([
+            'label' => Craft::t('formie', 'Match Field Error Message'),
+            'instructions' => ValidationMessagesHelper::tokenInstructions(['label', 'value']),
             'name' => 'validationMessages.match',
             'if' => 'matchField',
-            'tokens' => ['label', 'value'],
         ], $config));
     }
 
@@ -1008,41 +986,41 @@ class SchemaHelper
 
     public static function minCharactersValidationMessage(array $config = []): array
     {
-        return self::validationMessageField(array_merge([
-            'messageKey' => ValidationMessagesHelper::KEY_MIN_CHARACTERS,
+        return self::textField(array_merge([
+            'label' => Craft::t('formie', 'Minimum Characters Error Message'),
+            'instructions' => ValidationMessagesHelper::tokenInstructions(['label', 'limit', 'min']),
             'name' => 'validationMessages.minCharacters',
             'if' => 'limit && min && minType == "characters"',
-            'tokens' => ['label', 'limit', 'min'],
         ], $config));
     }
 
     public static function minWordsValidationMessage(array $config = []): array
     {
-        return self::validationMessageField(array_merge([
-            'messageKey' => ValidationMessagesHelper::KEY_MIN_WORDS,
+        return self::textField(array_merge([
+            'label' => Craft::t('formie', 'Minimum Words Error Message'),
+            'instructions' => ValidationMessagesHelper::tokenInstructions(['label', 'limit', 'min']),
             'name' => 'validationMessages.minWords',
             'if' => 'limit && min && minType == "words"',
-            'tokens' => ['label', 'limit', 'min'],
         ], $config));
     }
 
     public static function maxCharactersValidationMessage(array $config = []): array
     {
-        return self::validationMessageField(array_merge([
-            'messageKey' => ValidationMessagesHelper::KEY_MAX_CHARACTERS,
+        return self::textField(array_merge([
+            'label' => Craft::t('formie', 'Maximum Characters Error Message'),
+            'instructions' => ValidationMessagesHelper::tokenInstructions(['label', 'limit', 'max']),
             'name' => 'validationMessages.maxCharacters',
             'if' => 'limit && max && maxType == "characters"',
-            'tokens' => ['label', 'limit', 'max'],
         ], $config));
     }
 
     public static function maxWordsValidationMessage(array $config = []): array
     {
-        return self::validationMessageField(array_merge([
-            'messageKey' => ValidationMessagesHelper::KEY_MAX_WORDS,
+        return self::textField(array_merge([
+            'label' => Craft::t('formie', 'Maximum Words Error Message'),
+            'instructions' => ValidationMessagesHelper::tokenInstructions(['label', 'limit', 'max']),
             'name' => 'validationMessages.maxWords',
             'if' => 'limit && max && maxType == "words"',
-            'tokens' => ['label', 'limit', 'max'],
         ], $config));
     }
 
@@ -1077,21 +1055,21 @@ class SchemaHelper
 
     public static function minOptionsValidationMessage(array $config = []): array
     {
-        return self::validationMessageField(array_merge([
-            'messageKey' => ValidationMessagesHelper::KEY_MIN_OPTIONS,
+        return self::textField(array_merge([
+            'label' => Craft::t('formie', 'Minimum Options Error Message'),
+            'instructions' => ValidationMessagesHelper::tokenInstructions(['label', 'min']),
             'name' => 'validationMessages.minOptions',
             'if' => 'limitOptions && min',
-            'tokens' => ['label', 'min'],
         ], $config));
     }
 
     public static function maxOptionsValidationMessage(array $config = []): array
     {
-        return self::validationMessageField(array_merge([
-            'messageKey' => ValidationMessagesHelper::KEY_MAX_OPTIONS,
+        return self::textField(array_merge([
+            'label' => Craft::t('formie', 'Maximum Options Error Message'),
+            'instructions' => ValidationMessagesHelper::tokenInstructions(['label', 'max']),
             'name' => 'validationMessages.maxOptions',
             'if' => 'limitOptions && max',
-            'tokens' => ['label', 'max'],
         ], $config));
     }
 

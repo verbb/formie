@@ -235,11 +235,11 @@ class Number extends Field implements SortableFieldInterface, PreviewableFieldIn
                                 'instructions' => Craft::t('formie', 'Set a minimum value that users must enter.'),
                                 'name' => 'min',
                             ]),
-                            SchemaHelper::validationMessageField([
-                                'messageKey' => ValidationMessagesHelper::KEY_NUMBER_MIN,
+                            SchemaHelper::textField([
+                                'label' => Craft::t('formie', 'Minimum Value Error Message'),
+                                'instructions' => ValidationMessagesHelper::tokenInstructions(['label', 'min']),
                                 'name' => 'validationMessages.numberMin',
                                 'if' => 'limit && min',
-                                'tokens' => ['label', 'min'],
                             ]),
                         ],
                     ],
@@ -254,20 +254,20 @@ class Number extends Field implements SortableFieldInterface, PreviewableFieldIn
                                 'instructions' => Craft::t('formie', 'Set a maximum value that users must enter.'),
                                 'name' => 'max',
                             ]),
-                            SchemaHelper::validationMessageField([
-                                'messageKey' => ValidationMessagesHelper::KEY_NUMBER_MAX,
+                            SchemaHelper::textField([
+                                'label' => Craft::t('formie', 'Maximum Value Error Message'),
+                                'instructions' => ValidationMessagesHelper::tokenInstructions(['label', 'max']),
                                 'name' => 'validationMessages.numberMax',
                                 'if' => 'limit && max',
-                                'tokens' => ['label', 'max'],
                             ]),
                         ],
                     ],
                 ],
             ],
-            SchemaHelper::validationMessageField([
-                'messageKey' => ValidationMessagesHelper::KEY_NUMBER,
+            SchemaHelper::textField([
+                'label' => Craft::t('formie', 'Invalid Number Error Message'),
+                'instructions' => ValidationMessagesHelper::tokenInstructions(['label']),
                 'name' => 'validationMessages.number',
-                'tokens' => ['label'],
             ]),
             SchemaHelper::matchField([
                 'includedTypes' => [self::class],

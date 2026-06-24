@@ -49,24 +49,14 @@ export const PreviewChoiceList = ({
 
             {enableOtherOption && choiceType === 'radio' && (
                 <div className={cn(rowClassName, 'formie-field-preview-other-option')}>
-                    <div className="formie-field-preview-other-option-row">
-                        <input
-                            type={inputType}
-                            value={OTHER_OPTION_VALUE}
-                            checked={false}
-                            readOnly
-                            disabled
-                        />
-                        <label>{resolvedOtherLabel}</label>
-                    </div>
                     <input
-                        type="text"
-                        className="formie-field-preview-input formie-field-preview-other-option-text"
+                        type={inputType}
+                        value={OTHER_OPTION_VALUE}
+                        checked={false}
                         readOnly
-                        tabIndex={-1}
-                        value=""
-                        aria-hidden="true"
+                        disabled
                     />
+                    <label>{resolvedOtherLabel}</label>
                 </div>
             )}
 

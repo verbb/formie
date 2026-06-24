@@ -1048,7 +1048,7 @@ function FieldBuilder({ fields }) {
                             )}>
                                 {activePage && activePage.rows && activePage.rows.length > 0 ? (
 
-                                    <div className="form-builder-canvas-scroll overflow-y-auto h-full p-[10px]">
+                                    <div className="form-builder-canvas-scroll min-w-0 overflow-x-hidden overflow-y-auto h-full p-[10px]">
                                         <Rows
                                             page={activePage}
                                             pageIndex={activePageIndex}

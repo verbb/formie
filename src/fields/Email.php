@@ -218,10 +218,10 @@ class Email extends Field implements SortableFieldInterface, PreviewableFieldInt
             ]),
             SchemaHelper::matchValidationMessage(),
             ...$this->defineUniqueValueValidationSchema(),
-            SchemaHelper::validationMessageField([
-                'messageKey' => ValidationMessagesHelper::KEY_EMAIL,
+            SchemaHelper::textField([
+                'label' => Craft::t('formie', 'Invalid Email Error Message'),
+                'instructions' => ValidationMessagesHelper::tokenInstructions(['label']),
                 'name' => 'validationMessages.email',
-                'tokens' => ['label'],
             ]),
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Validate Domain (DNS)'),
@@ -246,10 +246,10 @@ class Email extends Field implements SortableFieldInterface, PreviewableFieldInt
                 'instructions' => Craft::t('formie', 'Whether to block email addresses from free email providers like `gmail.com` or `hotmail.com`.'),
                 'name' => 'blockFreeDomains',
             ]),
-            SchemaHelper::validationMessageField([
-                'messageKey' => ValidationMessagesHelper::KEY_BLOCKED_DOMAIN,
+            SchemaHelper::textField([
+                'label' => Craft::t('formie', 'Blocked Domain Error Message'),
+                'instructions' => ValidationMessagesHelper::tokenInstructions(['domain']),
                 'name' => 'validationMessages.blockedDomain',
-                'tokens' => ['domain'],
             ]),
         ];
     }

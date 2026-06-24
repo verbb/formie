@@ -604,11 +604,11 @@ class FileUpload extends ElementField
                 'instructions' => Craft::t('formie', 'Limit the number of files a user can upload.'),
                 'name' => 'limitFiles',
             ]),
-            SchemaHelper::validationMessageField([
-                'messageKey' => ValidationMessagesHelper::KEY_MAX_FILES,
+            SchemaHelper::textField([
+                'label' => Craft::t('formie', 'Maximum Files Error Message'),
+                'instructions' => ValidationMessagesHelper::tokenInstructions(['files']),
                 'name' => 'validationMessages.maxFiles',
                 'if' => 'limitFiles',
-                'tokens' => ['files'],
             ]),
             SchemaHelper::fieldWrap([
                 'label' => Craft::t('formie', 'Min File Size'),
@@ -624,11 +624,11 @@ class FileUpload extends ElementField
                     ],
                 ],
             ]),
-            SchemaHelper::validationMessageField([
-                'messageKey' => ValidationMessagesHelper::KEY_MIN_FILE_SIZE,
+            SchemaHelper::textField([
+                'label' => Craft::t('formie', 'Minimum File Size Error Message'),
+                'instructions' => ValidationMessagesHelper::tokenInstructions(['filesize']),
                 'name' => 'validationMessages.minFileSize',
                 'if' => 'sizeMinLimit',
-                'tokens' => ['filesize'],
             ]),
             SchemaHelper::fieldWrap([
                 'label' => Craft::t('formie', 'Max File Size'),
@@ -645,11 +645,11 @@ class FileUpload extends ElementField
                     ],
                 ],
             ]),
-            SchemaHelper::validationMessageField([
-                'messageKey' => ValidationMessagesHelper::KEY_MAX_FILE_SIZE,
+            SchemaHelper::textField([
+                'label' => Craft::t('formie', 'Maximum File Size Error Message'),
+                'instructions' => ValidationMessagesHelper::tokenInstructions(['filesize']),
                 'name' => 'validationMessages.maxFileSize',
                 'if' => 'sizeLimit',
-                'tokens' => ['filesize'],
             ]),
         ];
     }

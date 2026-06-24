@@ -32,6 +32,9 @@ class ValidationMessagesHelper
     public const KEY_MIN_FILE_SIZE = 'minFileSize';
     public const KEY_MAX_FILE_SIZE = 'maxFileSize';
     public const KEY_INVALID = 'invalid';
+    public const KEY_PASSWORD_UPPERCASE = 'passwordUppercase';
+    public const KEY_PASSWORD_LOWERCASE = 'passwordLowercase';
+    public const KEY_PASSWORD_SPECIAL_CHARACTER = 'passwordSpecialCharacter';
 
 
     // Static Methods
@@ -69,6 +72,9 @@ class ValidationMessagesHelper
             self::KEY_MIN_FILE_SIZE => 'File must be larger than {filesize} MB.',
             self::KEY_MAX_FILE_SIZE => 'File must be smaller than {filesize} MB.',
             self::KEY_INVALID => '{label} is invalid.',
+            self::KEY_PASSWORD_UPPERCASE => '{label} must contain at least one uppercase letter.',
+            self::KEY_PASSWORD_LOWERCASE => '{label} must contain at least one lowercase letter.',
+            self::KEY_PASSWORD_SPECIAL_CHARACTER => '{label} must contain at least one special character.',
         ];
     }
 
@@ -155,6 +161,11 @@ class ValidationMessagesHelper
                 [self::KEY_MAX_CHARACTERS, ['label', 'limit', 'max']],
                 [self::KEY_MIN_WORDS, ['label', 'limit', 'min']],
                 [self::KEY_MAX_WORDS, ['label', 'limit', 'max']],
+            ]),
+            self::_defaultsSchemaSection(Craft::t('formie', 'Password Validation'), [
+                [self::KEY_PASSWORD_UPPERCASE, ['label']],
+                [self::KEY_PASSWORD_LOWERCASE, ['label']],
+                [self::KEY_PASSWORD_SPECIAL_CHARACTER, ['label']],
             ]),
             self::_defaultsSchemaSection(Craft::t('formie', 'Format Validation'), [
                 [self::KEY_EMAIL, ['label']],
@@ -340,6 +351,43 @@ class ValidationMessagesHelper
         return $attrs;
     }
 
+    public static function passwordValidationClientAttributes(
+        Field $field,
+        mixed $minLength,
+        bool $requireUppercase,
+        bool $requireLowercase,
+        bool $requireSpecialCharacter,
+    ): array {
+        $attrs = [
+            'data-formie-required-message' => $field->getValidationMessageClientAttribute(self::KEY_REQUIRED),
+        ];
+
+        if ($minLength) {
+            $attrs['data-formie-password-min-length'] = $minLength;
+            $attrs[self::clientAttribute(self::KEY_MIN_CHARACTERS)] = $field->getValidationMessageClientAttribute(self::KEY_MIN_CHARACTERS, [
+                'limit' => $minLength,
+                'min' => $minLength,
+            ]);
+        }
+
+        if ($requireUppercase) {
+            $attrs['data-formie-password-require-uppercase'] = true;
+            $attrs[self::clientAttribute(self::KEY_PASSWORD_UPPERCASE)] = $field->getValidationMessageClientAttribute(self::KEY_PASSWORD_UPPERCASE);
+        }
+
+        if ($requireLowercase) {
+            $attrs['data-formie-password-require-lowercase'] = true;
+            $attrs[self::clientAttribute(self::KEY_PASSWORD_LOWERCASE)] = $field->getValidationMessageClientAttribute(self::KEY_PASSWORD_LOWERCASE);
+        }
+
+        if ($requireSpecialCharacter) {
+            $attrs['data-formie-password-require-special-character'] = true;
+            $attrs[self::clientAttribute(self::KEY_PASSWORD_SPECIAL_CHARACTER)] = $field->getValidationMessageClientAttribute(self::KEY_PASSWORD_SPECIAL_CHARACTER);
+        }
+
+        return $attrs;
+    }
+
     public static function numberValidationClientAttributes(Field $field, bool $limit, mixed $min, mixed $max): array
     {
         $attrs = [
@@ -448,9 +496,10 @@ class ValidationMessagesHelper
         ]);
     }
 
-    public static function builderLabel(string $key): string
+    private static function _defaultsSchemaField(string $key, array $tokens): array
     {
-        return match ($key) {
+        $defaultTemplate = self::defaultTemplate($key);
+        $label = match ($key) {
             self::KEY_REQUIRED => Craft::t('formie', 'Required Error Message'),
             self::KEY_UNIQUE => Craft::t('formie', 'Unique Error Message'),
             self::KEY_MATCH => Craft::t('formie', 'Match Field Error Message'),
@@ -470,33 +519,22 @@ class ValidationMessagesHelper
             self::KEY_MIN_FILE_SIZE => Craft::t('formie', 'Minimum File Size Error Message'),
             self::KEY_MAX_FILE_SIZE => Craft::t('formie', 'Maximum File Size Error Message'),
             self::KEY_INVALID => Craft::t('formie', 'Invalid Error Message'),
+            self::KEY_PASSWORD_UPPERCASE => Craft::t('formie', 'Password Uppercase Error Message'),
+            self::KEY_PASSWORD_LOWERCASE => Craft::t('formie', 'Password Lowercase Error Message'),
+            self::KEY_PASSWORD_SPECIAL_CHARACTER => Craft::t('formie', 'Password Special Character Error Message'),
             default => Craft::t('formie', 'Error Message'),
         };
-    }
 
-    public static function builderLabels(): array
-    {
-        return [
-            self::KEY_REQUIRED => 'Required Error Message',
-            self::KEY_UNIQUE => 'Unique Error Message',
-            self::KEY_MATCH => 'Match Field Error Message',
-            self::KEY_MIN_CHARACTERS => 'Minimum Characters Error Message',
-            self::KEY_MAX_CHARACTERS => 'Maximum Characters Error Message',
-            self::KEY_MIN_WORDS => 'Minimum Words Error Message',
-            self::KEY_MAX_WORDS => 'Maximum Words Error Message',
-            self::KEY_EMAIL => 'Invalid Email Error Message',
-            self::KEY_URL => 'Invalid URL Error Message',
-            self::KEY_NUMBER => 'Invalid Number Error Message',
-            self::KEY_NUMBER_MIN => 'Minimum Value Error Message',
-            self::KEY_NUMBER_MAX => 'Maximum Value Error Message',
-            self::KEY_BLOCKED_DOMAIN => 'Blocked Domain Error Message',
-            self::KEY_MIN_OPTIONS => 'Minimum Options Error Message',
-            self::KEY_MAX_OPTIONS => 'Maximum Options Error Message',
-            self::KEY_MAX_FILES => 'Maximum Files Error Message',
-            self::KEY_MIN_FILE_SIZE => 'Minimum File Size Error Message',
-            self::KEY_MAX_FILE_SIZE => 'Maximum File Size Error Message',
-            self::KEY_INVALID => 'Invalid Error Message',
-        ];
+        return SchemaHelper::textField([
+            'label' => $label,
+            'name' => 'validationMessageDefaults.' . $key,
+            'instructions' => $defaultTemplate
+                ? Craft::t('formie', 'Placeholders: {tokens}. Built-in default: “{template}”.', [
+                    'tokens' => implode(', ', array_map(static fn(string $token): string => '`{' . $token . '}`', $tokens)),
+                    'template' => $defaultTemplate,
+                ])
+                : self::tokenInstructions($tokens),
+        ]);
     }
 
     private static function translateDefaultTemplate(string $key, array $params): string
@@ -523,23 +561,6 @@ class ValidationMessagesHelper
         }
 
         return $nodes;
-    }
-
-    private static function _defaultsSchemaField(string $key, array $tokens): array
-    {
-        $defaultTemplate = self::defaultTemplate($key);
-
-        return SchemaHelper::validationMessageField([
-            'messageKey' => $key,
-            'name' => 'validationMessageDefaults.' . $key,
-            'tokens' => $tokens,
-            'instructions' => $defaultTemplate
-                ? Craft::t('formie', 'Placeholders: {tokens}. Built-in default: “{template}”.', [
-                    'tokens' => implode(', ', array_map(static fn(string $token): string => '`{' . $token . '}`', $tokens)),
-                    'template' => $defaultTemplate,
-                ])
-                : self::tokenInstructions($tokens),
-        ]);
     }
 
     private static function normalizeParams(Field $field, array $params): array

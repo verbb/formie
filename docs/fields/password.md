@@ -7,6 +7,8 @@ Password values are not useful as normal submission content. Do not use Password
 ## Key settings
 
 - **Placeholder** - Show example text before the user enters a value.
+- **Minimum Length** - Set a minimum character count for the password.
+- **Require Uppercase**, **Require Lowercase**, **Require Special Character** - Enforce individual complexity rules.
 - **Match field** - Require this value to match another password field for confirmation flows.
 - **Required** - Force a password value before the form can be submitted.
 

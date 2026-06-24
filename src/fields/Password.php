@@ -9,7 +9,10 @@ use verbb\formie\base\SortableFieldInterface;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\values\StringFieldValue;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
+use verbb\formie\models\ClientModule;
+use verbb\formie\models\ClientModuleContext;
 use verbb\formie\models\SlotTag;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Notification;
@@ -33,6 +36,15 @@ class Password extends Field implements SortableFieldInterface, PreviewableField
     {
         return 'formie/_formfields/password/icon.svg';
     }
+
+
+    // Properties
+    // =========================================================================
+
+    public ?int $passwordMinLength = null;
+    public bool $passwordRequireUppercase = false;
+    public bool $passwordRequireLowercase = false;
+    public bool $passwordRequireSpecialCharacter = false;
 
 
     // Public Methods
@@ -66,6 +78,102 @@ class Password extends Field implements SortableFieldInterface, PreviewableField
         }
 
         return $isValueEmpty;
+    }
+
+    public function getElementValidationRules(): array
+    {
+        $rules = parent::getElementValidationRules();
+
+        if ($this->passwordMinLength) {
+            $rules[] = [$this->handle, 'validatePasswordMinLength'];
+        }
+
+        if ($this->passwordRequireUppercase) {
+            $rules[] = [$this->handle, 'validatePasswordUppercase'];
+        }
+
+        if ($this->passwordRequireLowercase) {
+            $rules[] = [$this->handle, 'validatePasswordLowercase'];
+        }
+
+        if ($this->passwordRequireSpecialCharacter) {
+            $rules[] = [$this->handle, 'validatePasswordSpecialCharacter'];
+        }
+
+        return $rules;
+    }
+
+    public function validatePasswordMinLength(ElementInterface $element): void
+    {
+        $min = $this->passwordMinLength ?? 0;
+
+        if (!$min) {
+            return;
+        }
+
+        $value = (string)$element->getFieldValue($this->valueKey());
+
+        if ($this->isValueEmpty($value, $element)) {
+            return;
+        }
+
+        if (StringHelper::getCharacterCount($value) < $min) {
+            $element->addError($this->valueKey(), $this->getValidationMessage(ValidationMessagesHelper::KEY_MIN_CHARACTERS, [
+                'limit' => $min,
+                'min' => $min,
+            ]));
+        }
+    }
+
+    public function validatePasswordUppercase(ElementInterface $element): void
+    {
+        if (!$this->passwordRequireUppercase) {
+            return;
+        }
+
+        $value = (string)$element->getFieldValue($this->valueKey());
+
+        if ($this->isValueEmpty($value, $element)) {
+            return;
+        }
+
+        if (!preg_match('/[A-Z]/u', $value)) {
+            $element->addError($this->valueKey(), $this->getValidationMessage(ValidationMessagesHelper::KEY_PASSWORD_UPPERCASE));
+        }
+    }
+
+    public function validatePasswordLowercase(ElementInterface $element): void
+    {
+        if (!$this->passwordRequireLowercase) {
+            return;
+        }
+
+        $value = (string)$element->getFieldValue($this->valueKey());
+
+        if ($this->isValueEmpty($value, $element)) {
+            return;
+        }
+
+        if (!preg_match('/[a-z]/u', $value)) {
+            $element->addError($this->valueKey(), $this->getValidationMessage(ValidationMessagesHelper::KEY_PASSWORD_LOWERCASE));
+        }
+    }
+
+    public function validatePasswordSpecialCharacter(ElementInterface $element): void
+    {
+        if (!$this->passwordRequireSpecialCharacter) {
+            return;
+        }
+
+        $value = (string)$element->getFieldValue($this->valueKey());
+
+        if ($this->isValueEmpty($value, $element)) {
+            return;
+        }
+
+        if (!preg_match('/[^a-zA-Z0-9]/u', $value)) {
+            $element->addError($this->valueKey(), $this->getValidationMessage(ValidationMessagesHelper::KEY_PASSWORD_SPECIAL_CHARACTER));
+        }
     }
 
     public function serializeValue(mixed $value, ?ElementInterface $element): mixed
@@ -120,6 +228,50 @@ class Password extends Field implements SortableFieldInterface, PreviewableField
         return [
             SchemaHelper::requiredField(),
             SchemaHelper::requiredValidationMessage(),
+            SchemaHelper::numberField([
+                'label' => Craft::t('formie', 'Minimum Length'),
+                'instructions' => Craft::t('formie', 'Set the minimum number of characters users must enter.'),
+                'name' => 'passwordMinLength',
+            ]),
+            SchemaHelper::textField([
+                'label' => Craft::t('formie', 'Minimum Characters Error Message'),
+                'instructions' => ValidationMessagesHelper::tokenInstructions(['label', 'limit', 'min']),
+                'name' => 'validationMessages.minCharacters',
+                'if' => 'passwordMinLength',
+            ]),
+            SchemaHelper::lightswitchField([
+                'label' => Craft::t('formie', 'Require Uppercase'),
+                'instructions' => Craft::t('formie', 'Whether the password must contain at least one uppercase letter.'),
+                'name' => 'passwordRequireUppercase',
+            ]),
+            SchemaHelper::textField([
+                'label' => Craft::t('formie', 'Password Uppercase Error Message'),
+                'instructions' => ValidationMessagesHelper::tokenInstructions(['label']),
+                'name' => 'validationMessages.passwordUppercase',
+                'if' => 'passwordRequireUppercase',
+            ]),
+            SchemaHelper::lightswitchField([
+                'label' => Craft::t('formie', 'Require Lowercase'),
+                'instructions' => Craft::t('formie', 'Whether the password must contain at least one lowercase letter.'),
+                'name' => 'passwordRequireLowercase',
+            ]),
+            SchemaHelper::textField([
+                'label' => Craft::t('formie', 'Password Lowercase Error Message'),
+                'instructions' => ValidationMessagesHelper::tokenInstructions(['label']),
+                'name' => 'validationMessages.passwordLowercase',
+                'if' => 'passwordRequireLowercase',
+            ]),
+            SchemaHelper::lightswitchField([
+                'label' => Craft::t('formie', 'Require Special Character'),
+                'instructions' => Craft::t('formie', 'Whether the password must contain at least one special character.'),
+                'name' => 'passwordRequireSpecialCharacter',
+            ]),
+            SchemaHelper::textField([
+                'label' => Craft::t('formie', 'Password Special Character Error Message'),
+                'instructions' => ValidationMessagesHelper::tokenInstructions(['label']),
+                'name' => 'validationMessages.passwordSpecialCharacter',
+                'if' => 'passwordRequireSpecialCharacter',
+            ]),
             SchemaHelper::matchField([
                 'includedTypes' => [self::class],
             ]),
@@ -160,6 +312,13 @@ class Password extends Field implements SortableFieldInterface, PreviewableField
     // Protected Methods
     // =========================================================================
 
+    protected function defineRules(): array
+    {
+        return array_merge(parent::defineRules(), [
+            [['passwordMinLength'], 'number', 'integerOnly' => true, 'min' => 1],
+        ]);
+    }
+
     protected function defineClientInput(): array
     {
         return array_merge(parent::defineClientInput(), [
@@ -190,7 +349,13 @@ class Password extends Field implements SortableFieldInterface, PreviewableField
                     'data-formie-input-type' => 'password',
                     'data-formie-input-error-state' => $errors ? true : false,
                     'aria-describedby' => $this->hasInstructions() ? "{$id}-instructions" : null,
-                ], ValidationMessagesHelper::requiredClientAttributes($this)))
+                ], ValidationMessagesHelper::passwordValidationClientAttributes(
+                    $this,
+                    $this->passwordMinLength,
+                    (bool)$this->passwordRequireUppercase,
+                    (bool)$this->passwordRequireLowercase,
+                    (bool)$this->passwordRequireSpecialCharacter,
+                )))
                 ->theme([
                     'class' => [
                         'formie-input',
@@ -235,6 +400,29 @@ class Password extends Field implements SortableFieldInterface, PreviewableField
         // Don't mess around with passwords for conditions. We don't really "know" the value
         // but more important will cause an infinite loop (somehow)
         return '•••••••••••••••••••••';
+    }
+
+    protected function defineClientModules(): array
+    {
+        $modules = parent::defineClientModules();
+
+        if ($this->hasPasswordValidationRules()) {
+            $modules[] = function(ClientModuleContext $context) {
+                return new ClientModule([
+                    'id' => 'password-validation',
+                ]);
+            };
+        }
+
+        return $modules;
+    }
+
+    protected function hasPasswordValidationRules(): bool
+    {
+        return (bool)$this->passwordMinLength
+            || $this->passwordRequireUppercase
+            || $this->passwordRequireLowercase
+            || $this->passwordRequireSpecialCharacter;
     }
 
     protected function defineValueClass(): ?string
