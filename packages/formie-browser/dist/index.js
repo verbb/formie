@@ -1383,7 +1383,7 @@ var L = class {
 	turnstile: () => import("./chunks/turnstile-DJakPzQD.js").then((e) => e.turnstileModule)
 }, Xt = {
 	calculations: () => import("./chunks/calculations-CeDgB9jt.js").then((e) => e.calculationsModule),
-	"checkbox-radio": () => import("./chunks/checkbox-radio-BxrSeON1.js").then((e) => e.checkboxRadioModule),
+	"checkbox-radio": () => import("./chunks/checkbox-radio-BY2aTCOG.js").then((e) => e.checkboxRadioModule),
 	combobox: () => import("./chunks/combobox-C0EuExSI.js").then((e) => e.comboboxModule),
 	conditions: () => import("./chunks/conditions-B6_nzpeE.js").then((e) => e.conditionsModule),
 	"custom-google-maps": () => import("./chunks/custom-google-maps-BsaSirEZ.js").then((e) => e.customGoogleMapsModule),

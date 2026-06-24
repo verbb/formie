@@ -4,6 +4,7 @@ import { createDebug } from '#utils/debug';
 
 const FIELD_SELECTOR = '[data-formie-checkboxes-field-layout], [data-formie-radio-field-layout]';
 const CHECKBOX_MINMAX_VALIDATOR = 'minmaxOptions';
+const OTHER_OPTION_TEXT_VALIDATOR = 'otherOptionText';
 const MAX_DISABLED_ATTR = 'data-formie-checkbox-radio-max-disabled';
 const MODULE_ID = 'checkbox-radio';
 const VALIDATOR_SCOPE = 'checkbox-radio';
@@ -31,6 +32,94 @@ function getMinMaxRule(getRule: (rule: string) => unknown): { min: number | null
     };
 }
 
+function isOtherOptionInput(input: HTMLInputElement): boolean {
+    return input.hasAttribute('data-formie-other-option')
+        || !!input.closest('[data-formie-other-option]');
+}
+
+function findOtherOptionGroups(field: HTMLElement): Array<{ choiceInput: HTMLInputElement; textInput: HTMLInputElement }> {
+    const groups: Array<{ choiceInput: HTMLInputElement; textInput: HTMLInputElement }> = [];
+
+    field.querySelectorAll('[data-formie-other-option-text]').forEach((node) => {
+        if (!(node instanceof HTMLInputElement)) {
+            return;
+        }
+
+        const container = node.closest('[data-formie-field-option]') ?? node.parentElement;
+
+        if (!container) {
+            return;
+        }
+
+        const choiceInput = container.querySelector('input[type="checkbox"][data-formie-other-option], input[type="radio"][data-formie-other-option]')
+            ?? container.querySelector('input[type="checkbox"], input[type="radio"]');
+
+        if (!(choiceInput instanceof HTMLInputElement)) {
+            return;
+        }
+
+        groups.push({ choiceInput, textInput: node });
+    });
+
+    return groups;
+}
+
+function syncOtherOptionField(field: HTMLElement): void {
+    findOtherOptionGroups(field).forEach(({ choiceInput, textInput }) => {
+        const showTextInput = choiceInput.checked;
+
+        textInput.disabled = !showTextInput;
+
+        if (!showTextInput) {
+            textInput.value = '';
+        }
+    });
+}
+
+function bindOtherOptionField(field: HTMLElement): () => void {
+    const otherOptionGroups = findOtherOptionGroups(field);
+
+    if (!otherOptionGroups.length) {
+        return () => {};
+    }
+
+    const listeners: Array<() => void> = [];
+
+    Array.from(field.querySelectorAll('input[type="checkbox"], input[type="radio"]')).filter((input): input is HTMLInputElement => {
+        return input instanceof HTMLInputElement && !isToggleCheckbox(input);
+    }).forEach((input) => {
+        const handler = () => {
+            syncOtherOptionField(field);
+        };
+
+        input.addEventListener('change', handler);
+        listeners.push(() => {
+            input.removeEventListener('change', handler);
+        });
+    });
+
+    otherOptionGroups.forEach(({ textInput }) => {
+        const handler = () => {
+            syncOtherOptionField(field);
+        };
+
+        textInput.addEventListener('input', handler);
+        textInput.addEventListener('change', handler);
+        listeners.push(() => {
+            textInput.removeEventListener('input', handler);
+            textInput.removeEventListener('change', handler);
+        });
+    });
+
+    syncOtherOptionField(field);
+
+    return () => {
+        listeners.forEach((unbind) => {
+            unbind();
+        });
+    };
+}
+
 function getSelectedOptionCount(field: HTMLElement): number {
     return Array.from(field.querySelectorAll('input[type="checkbox"]')).filter((input): input is HTMLInputElement => {
         return input instanceof HTMLInputElement && !isToggleCheckbox(input);
@@ -43,6 +132,39 @@ function registerValidators(form: HTMLFormElement | null): void {
     // Several checkbox/radio module instances can exist in one form, but the
     // custom validator should only be registered once per form lifecycle.
     retainFormValidators(form, VALIDATOR_SCOPE, (validator) => {
+        validator.addValidator(
+            OTHER_OPTION_TEXT_VALIDATOR,
+        ({ field, getRule }) => {
+            if (!field || !getRule(OTHER_OPTION_TEXT_VALIDATOR)) {
+                return true;
+            }
+
+            return findOtherOptionGroups(field).every(({ choiceInput, textInput }) => {
+                if (!choiceInput.checked) {
+                    return true;
+                }
+
+                return textInput.value.trim() !== '';
+            });
+        },
+        ({ field, label, t, getRule }) => {
+            if (!field || !getRule(OTHER_OPTION_TEXT_VALIDATOR)) {
+                return t('{label} is invalid.', { label });
+            }
+
+            const otherGroup = findOtherOptionGroups(field).find(({ choiceInput }) => {
+                return choiceInput.checked;
+            });
+            const otherLabel = otherGroup?.choiceInput.closest('[data-formie-field-option]')
+                ?.querySelector('[data-formie-field-option-label]')
+                ?.textContent
+                ?.trim()
+                ?? label;
+
+            return field.getAttribute('data-formie-validation-other-option-text-message')
+                ?? t('Please enter a value for “{label}”.', { label: otherLabel });
+        },
+    );
         validator.addValidator(
             CHECKBOX_MINMAX_VALIDATOR,
         ({ field, getRule }) => {
@@ -88,7 +210,7 @@ function registerValidators(form: HTMLFormElement | null): void {
 }
 
 function unregisterValidators(form: HTMLFormElement | null): void {
-    releaseFormValidators(form, VALIDATOR_SCOPE, [CHECKBOX_MINMAX_VALIDATOR]);
+    releaseFormValidators(form, VALIDATOR_SCOPE, [CHECKBOX_MINMAX_VALIDATOR, OTHER_OPTION_TEXT_VALIDATOR]);
 }
 
 function syncCheckedAttribute(input: HTMLInputElement): void {
@@ -134,7 +256,7 @@ function enforceMaxOptions(field: HTMLElement): void {
     }
 
     const checkboxes = Array.from(field.querySelectorAll('input[type="checkbox"]')).filter((input): input is HTMLInputElement => {
-        return input instanceof HTMLInputElement && !isToggleCheckbox(input);
+        return input instanceof HTMLInputElement && !isToggleCheckbox(input) && !isOtherOptionInput(input);
     });
 
     const checked = checkboxes.filter((input) => {
@@ -223,6 +345,9 @@ function bindField(field: HTMLElement): () => void {
 
             syncRequiredCheckboxes(field);
             enforceMaxOptions(field);
+            queueMicrotask(() => {
+                syncOtherOptionField(field);
+            });
             debug.log('Input interaction processed.', {
                 inputName: input.name,
                 inputType: input.type,
@@ -238,8 +363,11 @@ function bindField(field: HTMLElement): () => void {
         };
     });
 
+    const destroyOtherOptionBinding = bindOtherOptionField(field);
+
     syncRequiredCheckboxes(field);
     enforceMaxOptions(field);
+    syncOtherOptionField(field);
     dispatchFieldEvent(field, MODULE_ID, 'init', {
         checkboxRadio: field,
     });
@@ -248,6 +376,7 @@ function bindField(field: HTMLElement): () => void {
         listeners.forEach((unbind) => {
             unbind();
         });
+        destroyOtherOptionBinding();
     };
 }
 

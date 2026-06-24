@@ -1,0 +1,33 @@
+{% if field.enableOtherOption %}
+    {% set otherOptionValue = field.otherOptionValue %}
+    {% set otherSelected = false %}
+    {% set otherText = '' %}
+
+    {% if field.multi %}
+        {% for selectedValue in value %}
+            {% if field.isOtherOptionStoredValue(selectedValue) %}
+                {% set otherSelected = true %}
+                {% set otherText = selectedValue %}
+            {% endif %}
+        {% endfor %}
+    {% else %}
+        {% set otherSelected = field.isOtherOptionStoredValue(value) or ('' ~ value) == otherOptionValue %}
+        {% set otherText = otherSelected and field.isOtherOptionStoredValue(value) ? value : '' %}
+    {% endif %}
+
+    {% fieldtag 'fieldOtherOption' %}
+        {{ fieldtag('fieldOtherOptionInput', {
+            checked: otherSelected,
+            disabled: false,
+        }) }}
+
+        {% fieldtag 'fieldOtherOptionLabel' %}
+            {{- field.getOtherOptionLabel() | purify | md(inlineOnly=true) | raw -}}
+        {% endfieldtag %}
+
+        {{ fieldtag('fieldOtherOptionText', {
+            value: otherText,
+            disabled: not otherSelected,
+        }) }}
+    {% endfieldtag %}
+{% endif %}

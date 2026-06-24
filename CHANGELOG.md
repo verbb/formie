@@ -5,6 +5,7 @@
 ### Added
 - Show field handles in the form builder when the Craft user preference **Show field handles in edit forms** is enabled (admin users only), with a copy-to-clipboard control on hover. ([#2279](https://github.com/verbb/formie/issues/2279))
 - Show an **Encrypted** padlock badge on fields in the form builder when **Enable Content Encryption** is turned on. ([#2332](https://github.com/verbb/formie/issues/2332))
+- Add an optional **Other** choice for Radio fields, with a configurable label and free-text input on the front-end. ([#1875](https://github.com/verbb/formie/issues/1875))
 - Add `craft.formie.ref()` and `craft.formie.refField()` for building variable-picker-compatible reference tokens from Twig when overriding settings such as `submitActionMessage`. See [Reference tokens](/developers/reference-tokens). ([#2838](https://github.com/verbb/formie/issues/2838))
 - Add a persisted `metadata` JSON column on submissions for submit-time request context (referrer, user agent, tracking cookies) and developer-defined custom data via `form.setSubmissionMetadata()`. Reference tokens such as `{metadata:custom.campaignId}` and `{metadata:request.referrer}` are supported in notifications, integrations, and PDFs. ([#1379](https://github.com/verbb/formie/issues/1379))
 

@@ -69,6 +69,12 @@ See [Radio Field theme config](/theming/theme-config#radio-field) for the full l
                     class: 'my-radio-label',
                 },
             },
+            fieldOtherOptionText: {
+                attributes: {
+                    class: 'my-other-text-input',
+                    placeholder: 'Please specify…',
+                },
+            },
         },
     },
 }) }}

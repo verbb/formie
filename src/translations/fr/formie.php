@@ -469,7 +469,7 @@ return [
   'Choose which Mailchimp field supplies the options.' => 'Sélectionnez le champ Mailchimp qui contient les options.',
   'Choose which picklist field supplies the options.' => 'Sélectionnez le champ de liste déroulante qui contient les options.',
   'Choose which remote field supplies the options.' => 'Choisissez le champ distant qui fournit les options.',
-  'Choose which sites forms in this group are available on. Leave empty to allow all sites you can edit.' => 'Sélectionnez les sites sur lesquels les formulaires de ce groupe sont disponibles. Ne renseignez pas ce champ pour autoriser tous les sites que vous pouvez modifier.',
+  'Choose which sites forms in this group are available on.' => 'Sélectionnez les sites sur lesquels les formulaires de ce groupe sont disponibles. Ne renseignez pas ce champ pour autoriser tous les sites que vous pouvez modifier.',
   'Choose which source field is used as the label.' => 'Choisissez le champ source qui servira d\'étiquette.',
   'Choose which source field is used as the value.' => 'Sélectionnez le champ source à utiliser comme valeur.',
   'Choose which source fields are used for option labels and stored values.' => 'Sélectionnez les champs source à utiliser pour les libellés des options et les valeurs enregistrées.',

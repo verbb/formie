@@ -323,14 +323,21 @@ class SchemaHelper
 
     public static function previewChoiceList(string $choiceType, array $config = []): array
     {
-        return self::previewNode('PreviewChoiceList', array_merge([
+        $previewConfig = [
             'choiceType' => $choiceType,
             'options' => self::previewBind('field.options', []),
             'value' => self::previewBind('field.defaultValue', null),
             'layout' => self::previewBind('field.layout', 'vertical'),
             'visibleLimit' => 5,
             'useOptionDefaults' => true,
-        ], $config));
+        ];
+
+        if ($choiceType === 'radio') {
+            $previewConfig['enableOtherOption'] = self::previewBind('field.enableOtherOption', false);
+            $previewConfig['otherOptionLabel'] = self::previewBind('field.otherOptionLabel', '');
+        }
+
+        return self::previewNode('PreviewChoiceList', array_merge($previewConfig, $config));
     }
 
     public static function previewContainerParent(array $config = []): array

@@ -194,6 +194,24 @@
     background-size: 8px auto;
 }
 
+.formie-field-preview-other-option {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+}
+
+.formie-field-preview-other-option-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.formie-field-preview-other-option .formie-field-preview-other-option-text {
+    width: 100%;
+    margin-left: 0;
+}
+
 
 /* ========================================
    Parent / Child Field Layouts

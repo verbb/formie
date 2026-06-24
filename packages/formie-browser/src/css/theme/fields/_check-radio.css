@@ -105,4 +105,29 @@
     .formie-field-has-error .formie-radio-input:focus-visible+.formie-radio-option-label::before {
         box-shadow: var(--formie-shadow-danger-focus);
     }
+
+    .formie-other-option-text {
+        display: none;
+        flex: 0 0 100%;
+        width: 100%;
+        max-width: 100%;
+        margin-top: var(--formie-space-1);
+    }
+
+    .formie-field-option:has(> input[data-formie-other-option]),
+    .formie-other-option {
+        flex-wrap: wrap;
+        align-items: flex-start;
+    }
+
+    .formie-field-option:has(> input[data-formie-other-option]:checked) > .formie-other-option-text,
+    .formie-field-option:has(> input[data-formie-other-option]:checked) > label ~ .formie-other-option-text,
+    .formie-other-option:has(> input[data-formie-other-option]:checked) > .formie-other-option-text {
+        display: block;
+    }
+
+    .formie-layout-horizontal .formie-field-option:has(> input[data-formie-other-option]),
+    .formie-layout-horizontal .formie-other-option {
+        flex: 1 1 100%;
+    }
 }

@@ -73,6 +73,31 @@ These classes are for presentation only. They are not behavior requirements:
 | `formie-field-option-label` | Shared option label styling |
 | `formie-radio-option-label` | Radio option label styling class |
 
+### Other option
+
+When the **Other** option is enabled, Formie renders a dedicated option row with its own theme config tags.
+
+| Theme config tag | Purpose |
+| --- | --- |
+| `fieldOtherOption` | Wrapper for the entire Other choice row |
+| `fieldOtherOptionInput` | The Other radio input |
+| `fieldOtherOptionLabel` | The Other option label |
+| `fieldOtherOptionText` | The custom text input shown when Other is selected |
+
+| Attribute | Purpose | Importance |
+| --- | --- | --- |
+| `data-formie-other-option-row` | Other option row wrapper | Recommended |
+| `data-formie-other-option` | Other radio input marker | Required for Other behaviour |
+| `data-formie-other-option-text` | Other text input marker | Required for Other behaviour |
+| `data-formie-other-option-label` | Other option label marker | Recommended |
+
+| Class | Description |
+| --- | --- |
+| `formie-other-option` | Other option row styling class |
+| `formie-other-option-input` | Other radio input styling class |
+| `formie-other-option-label` | Other option label styling class |
+| `formie-other-option-text` | Other text input styling class |
+
 ## Behavior
 
 The checkbox-radio module:

@@ -259,6 +259,10 @@ The available tags are grouped below.
 - `fieldOptions`
 - `fieldOption`
 - `fieldOptionLabel`
+- `fieldOtherOption`
+- `fieldOtherOptionInput`
+- `fieldOtherOptionLabel`
+- `fieldOtherOptionText`
 
 ### Survey Likert Field
 - `likertFieldLayout`

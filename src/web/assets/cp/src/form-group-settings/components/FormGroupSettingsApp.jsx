@@ -235,7 +235,7 @@ export const FormGroupSettingsApp = ({ settings }) => {
                             <FieldLayout
                                 name="sitePolicyEnabledSiteIds"
                                 label={Craft.t('formie', 'Enabled Sites')}
-                                instructions={Craft.t('formie', 'Choose which sites forms in this group are available on. Leave empty to allow all sites you can edit.')}
+                                instructions={Craft.t('formie', 'Choose which sites forms in this group are available on.')}
                                 errors={getFieldErrors(modelErrors, 'sitePolicy')}
                             >
                                 <CheckboxSelect

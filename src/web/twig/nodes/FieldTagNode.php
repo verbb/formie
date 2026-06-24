@@ -59,7 +59,7 @@ class FieldTagNode extends Node
             // That's because we're wanting to not render the HTML element, but still want what's inside.
             // But for some keys we **don't** want to do this. For example, disabling a label, you'd
             // want to also remove the inner text.
-            ->write("{$destroyableKeysVar} = ['fieldLabel', 'fieldInstructions', 'fieldInput', 'fieldAddButton'];\n")
+            ->write("{$destroyableKeysVar} = ['fieldLabel', 'fieldInstructions', 'fieldInput', 'fieldAddButton', 'fieldOtherOptionLabel'];\n")
             ->write("if (!in_array({$keyVar}, {$destroyableKeysVar}, true)) {\n")
             ->indent()
             ->write("ob_start();\n")

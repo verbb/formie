@@ -1,0 +1,177 @@
+import { t as e } from "./debug-BV0DvdHx.js";
+import { c as t, l as n, n as r, t as i } from "./shared-Bx9s0i0P.js";
+//#region src/js/modules/fields/checkbox-radio.ts
+var a = "[data-formie-checkboxes-field-layout], [data-formie-radio-field-layout]", o = "minmaxOptions", s = "otherOptionText", c = "data-formie-checkbox-radio-max-disabled", l = "checkbox-radio", u = "checkbox-radio", d = e("fields", "checkbox-radio");
+function f(e) {
+	return e.hasAttribute("data-checkbox-toggle") || e.hasAttribute("data-formie-checkbox-toggle");
+}
+function p(e) {
+	let t = e(o);
+	if (!t || t === !0 || typeof t != "object") return {
+		min: null,
+		max: null
+	};
+	let n = t;
+	return {
+		min: typeof n.min == "number" ? n.min : null,
+		max: typeof n.max == "number" ? n.max : null
+	};
+}
+function m(e) {
+	return e.hasAttribute("data-formie-other-option") || !!e.closest("[data-formie-other-option]");
+}
+function h(e) {
+	let t = [];
+	return e.querySelectorAll("[data-formie-other-option-text]").forEach((e) => {
+		if (!(e instanceof HTMLInputElement)) return;
+		let n = e.closest("[data-formie-field-option]") ?? e.parentElement;
+		if (!n) return;
+		let r = n.querySelector("input[type=\"checkbox\"][data-formie-other-option], input[type=\"radio\"][data-formie-other-option]") ?? n.querySelector("input[type=\"checkbox\"], input[type=\"radio\"]");
+		r instanceof HTMLInputElement && t.push({
+			choiceInput: r,
+			textInput: e
+		});
+	}), t;
+}
+function g(e) {
+	h(e).forEach(({ choiceInput: e, textInput: t }) => {
+		let n = e.checked;
+		t.disabled = !n, n || (t.value = "");
+	});
+}
+function _(e) {
+	let t = h(e);
+	if (!t.length) return () => {};
+	let n = [];
+	return Array.from(e.querySelectorAll("input[type=\"checkbox\"], input[type=\"radio\"]")).filter((e) => e instanceof HTMLInputElement && !f(e)).forEach((t) => {
+		let r = () => {
+			g(e);
+		};
+		t.addEventListener("change", r), n.push(() => {
+			t.removeEventListener("change", r);
+		});
+	}), t.forEach(({ textInput: t }) => {
+		let r = () => {
+			g(e);
+		};
+		t.addEventListener("input", r), t.addEventListener("change", r), n.push(() => {
+			t.removeEventListener("input", r), t.removeEventListener("change", r);
+		});
+	}), g(e), () => {
+		n.forEach((e) => {
+			e();
+		});
+	};
+}
+function v(e) {
+	return Array.from(e.querySelectorAll("input[type=\"checkbox\"]")).filter((e) => e instanceof HTMLInputElement && !f(e)).filter((e) => e.checked).length;
+}
+function y(e) {
+	n(e, u, (e) => {
+		e.addValidator(s, ({ field: e, getRule: t }) => !e || !t(s) ? !0 : h(e).every(({ choiceInput: e, textInput: t }) => e.checked ? t.value.trim() !== "" : !0), ({ field: e, label: t, t: n, getRule: r }) => {
+			if (!e || !r(s)) return n("{label} is invalid.", { label: t });
+			let i = h(e).find(({ choiceInput: e }) => e.checked)?.choiceInput.closest("[data-formie-field-option]")?.querySelector("[data-formie-field-option-label]")?.textContent?.trim() ?? t;
+			return e.getAttribute("data-formie-validation-other-option-text-message") ?? n("Please enter a value for “{label}”.", { label: i });
+		}), e.addValidator(o, ({ field: e, getRule: t }) => {
+			if (!e || !t(o)) return !0;
+			let n = v(e), { min: r, max: i } = p(t);
+			return !(r !== null && n < r || i !== null && n > i);
+		}, ({ field: e, label: t, t: n, getRule: r }) => {
+			if (!e) return n("{label} is invalid.", { label: t });
+			let i = v(e), { min: a, max: o } = p(r);
+			return a !== null && i < a ? e.getAttribute("data-formie-validation-min-options-message") ?? n("{label} should contain at least {min, number} {min, plural, one{option} other{options}}.", {
+				label: t,
+				min: a
+			}) : o !== null && i > o ? e.getAttribute("data-formie-validation-max-options-message") ?? n("{label} should contain at most {max, number} {max, plural, one{option} other{options}}.", {
+				label: t,
+				max: o
+			}) : n("{label} is invalid.", { label: t });
+		});
+	});
+}
+function b(e) {
+	t(e, u, [o, s]);
+}
+function x(e) {
+	e.checked ? e.setAttribute("checked", "") : e.removeAttribute("checked");
+}
+function S(e) {
+	let t = Array.from(e.querySelectorAll("input[type=\"checkbox\"][required][data-formie-checkbox-input]")).filter((e) => e instanceof HTMLInputElement);
+	if (!t.length) return;
+	let n = t.some((e) => e.checked);
+	t.forEach((e) => {
+		if (n) {
+			e.removeAttribute("required"), e.setAttribute("aria-required", "false");
+			return;
+		}
+		e.setAttribute("required", "true"), e.setAttribute("aria-required", "true");
+	});
+}
+function C(e) {
+	let t = parseInt(e.closest("[data-formie-field-handle]")?.getAttribute("data-formie-max-options") || "", 10);
+	if (!(t > 0)) return;
+	let n = Array.from(e.querySelectorAll("input[type=\"checkbox\"]")).filter((e) => e instanceof HTMLInputElement && !f(e) && !m(e)), r = n.filter((e) => e.checked).length >= t;
+	n.forEach((e) => {
+		let t = r && !e.checked, n = e.hasAttribute(c);
+		if (t) {
+			e.disabled || (e.disabled = !0, e.setAttribute(c, "true"));
+			return;
+		}
+		n && (e.disabled = !1, e.removeAttribute(c));
+	});
+}
+function w(e, t) {
+	Array.from(e.querySelectorAll("input[type=\"checkbox\"]")).filter((e) => e instanceof HTMLInputElement && e !== t && !f(e)).forEach((e) => {
+		e.disabled && !e.checked || (e.checked = t.checked, x(e), e.dispatchEvent(new Event("change", { bubbles: !0 })), e.dispatchEvent(new Event("input", { bubbles: !0 })));
+	});
+}
+function T(e, t) {
+	if (!e.checked || !e.name) {
+		x(e);
+		return;
+	}
+	Array.from(t.querySelectorAll(`input[type="radio"][name="${r(e.name)}"]`)).filter((e) => e instanceof HTMLInputElement).forEach((e) => {
+		x(e);
+	});
+}
+function E(e) {
+	let t = Array.from(e.querySelectorAll("input[type=\"checkbox\"], input[type=\"radio\"]")).filter((e) => e instanceof HTMLInputElement);
+	if (!t.length) return d.log("No checkbox/radio inputs found for field."), () => {};
+	let n = t.map((t) => {
+		let n = t.type === "radio" ? "change" : "click", r = () => {
+			x(t), t.type === "checkbox" && f(t) && w(e, t), t.type === "radio" && T(t, e), S(e), C(e), queueMicrotask(() => {
+				g(e);
+			}), d.log("Input interaction processed.", {
+				inputName: t.name,
+				inputType: t.type,
+				checked: t.checked
+			});
+		};
+		return t.addEventListener(n, r), x(t), () => {
+			t.removeEventListener(n, r);
+		};
+	}), r = _(e);
+	return S(e), C(e), g(e), i(e, l, "init", { checkboxRadio: e }), () => {
+		n.forEach((e) => {
+			e();
+		}), r();
+	};
+}
+var D = {
+	id: l,
+	kind: "field",
+	match: (e) => e.target instanceof HTMLElement && (e.target.matches(a) || !!e.target.querySelector(a)),
+	setup: async (e) => {
+		if (!(e.target instanceof HTMLElement)) return;
+		let t = e.target.matches(a) ? [e.target] : Array.from(e.target.querySelectorAll(a)).filter((e) => e instanceof HTMLElement);
+		y(e.form), d.log("Module setup.", { fieldCount: t.length });
+		let n = t.map((e) => E(e));
+		return await e.emit("formie:module:checkbox-radio:init", { count: t.length }), { destroy: () => {
+			n.forEach((e) => {
+				e();
+			}), b(e.form), d.log("Module destroy.", { fieldCount: t.length }), e.emit("formie:module:checkbox-radio:destroy", {});
+		} };
+	}
+};
+//#endregion
+export { D as checkboxRadioModule };

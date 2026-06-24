@@ -5,6 +5,7 @@ use verbb\formie\base\FieldInterface;
 use verbb\formie\base\OptionsField;
 use verbb\formie\base\SortableFieldInterface;
 use verbb\formie\fields\values\SingleOptionFieldValue;
+use verbb\formie\fields\traits\OtherOptionFieldTrait;
 use verbb\formie\fields\definitions\FieldClientModules;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
@@ -45,6 +46,12 @@ class Radio extends OptionsField implements SortableFieldInterface
     {
         return 'radioButtons';
     }
+
+
+    // Traits
+    // =========================================================================
+
+    use OtherOptionFieldTrait;
 
 
     // Properties
@@ -103,10 +110,21 @@ class Radio extends OptionsField implements SortableFieldInterface
         ];
     }
 
+    public function settingsAttributes(): array
+    {
+        return array_merge(parent::settingsAttributes(), $this->otherOptionSettingsAttributes());
+    }
+
+    public function getSettingGqlTypes(): array
+    {
+        return array_merge(parent::getSettingGqlTypes(), $this->defineOtherOptionGqlTypes());
+    }
+
     public function defineFormBuilderSettingsSchema(): array
     {
         return [
             SchemaHelper::prePopulate(),
+            ...$this->defineOtherOptionSettingsSchema(),
             SchemaHelper::includeInEmailFieldSummariesField(),
             SchemaHelper::emailFieldSummaryValue([
                 'options' => [
@@ -290,6 +308,10 @@ class Radio extends OptionsField implements SortableFieldInterface
                 ]);
         }
 
+        if ($tag = $this->defineOtherOptionFieldSlotTag($key, $context)) {
+            return $tag;
+        }
+
         return parent::defineFieldSlotTag($key, $context);
     }
 
@@ -310,6 +332,17 @@ class Radio extends OptionsField implements SortableFieldInterface
     protected function optionsSettingLabel(): string
     {
         return Craft::t('app', 'Radio Button Options');
+    }
+
+    protected function defineValidationRules(): array
+    {
+        $validators = parent::defineValidationRules();
+
+        foreach ($this->defineOtherOptionValidationRules() as $validator) {
+            $validators[] = $validator;
+        }
+
+        return $validators;
     }
 
     protected function defineClientModules(): array

@@ -469,7 +469,7 @@ return [
   'Choose which Mailchimp field supplies the options.' => 'Scegli quale campo di Mailchimp contiene le opzioni.',
   'Choose which picklist field supplies the options.' => 'Scegli quale campo a elenco fornirà le opzioni.',
   'Choose which remote field supplies the options.' => 'Scegli quale campo remoto fornisce le opzioni.',
-  'Choose which sites forms in this group are available on. Leave empty to allow all sites you can edit.' => 'Scegli su quali siti sono disponibili i moduli di questo gruppo. Lascia il campo vuoto per consentire l\'accesso a tutti i siti che puoi modificare.',
+  'Choose which sites forms in this group are available on.' => 'Scegli su quali siti sono disponibili i moduli di questo gruppo. Lascia il campo vuoto per consentire l\'accesso a tutti i siti che puoi modificare.',
   'Choose which source field is used as the label.' => 'Scegliere quale campo di origine utilizzare come etichetta.',
   'Choose which source field is used as the value.' => 'Scegliere quale campo di origine utilizzare come valore.',
   'Choose which source fields are used for option labels and stored values.' => 'Scegliere quali campi di origine utilizzare per le etichette delle opzioni e i valori memorizzati.',

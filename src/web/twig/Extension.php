@@ -197,7 +197,7 @@ class Extension extends AbstractExtension
 
     public static function applyContextTagDefaults(string $key, string $tagName, array $attributes, array $context): array
     {
-        if ($key !== 'fieldInput') {
+        if (!in_array($key, ['fieldInput', 'fieldOtherOptionText'], true)) {
             return $attributes;
         }
 
