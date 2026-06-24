@@ -231,7 +231,7 @@ class ImportExportHelper
             $form->setTemplate($template);
         }
 
-        if ($notifications) {
+        if ($notifications !== null) {
             $allNotifications = [];
 
             foreach ($notifications as $notificationData) {

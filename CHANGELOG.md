@@ -12,6 +12,7 @@
 - Improve multi-site submission and notification handling by loading forms with site translation overrides applied for the submission’s site.
 
 ### Fixed
+- Fix form import with **Update existing form** not removing notifications deleted before export. Empty `notifications` arrays in the import payload now replace the form’s notifications instead of being ignored. ([#1941](https://github.com/verbb/formie/issues/1941))
 - Fix plugin uninstall via `project-config/apply` failing when Formie stencil project config is removed after the `formie_stencils` table has already been dropped. ([#1710](https://github.com/verbb/formie/issues/1710))
 - Fix queued integrations losing submit-time context (referrer, IP address, HubSpot/Pardot tracking cookies) by persisting request metadata on the submission at submit time and hydrating integration context from it in queue workers. ([#1379](https://github.com/verbb/formie/issues/1379))
 - Fix plugin migrations failing on production when `allowAdminChanges` is disabled because migrations attempted to write plugin settings to project config. ([#2615](https://github.com/verbb/formie/issues/2615))
