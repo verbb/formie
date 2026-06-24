@@ -14,6 +14,7 @@
 
 ### Changed
 - Freeform 4/5 plugin migrations now process submissions in batches (default 100) to avoid memory exhaustion on large forms. Use `php craft formie/migrate/freeform4` (or `freeform5`) with `--batch-size`, `--submission-offset`, `--submission-limit`, `--submissions-only`, and `--skip-submissions` for large migrations. ([#2513](https://github.com/verbb/formie/issues/2513))
+- Rework multi-site propagation and translation to use each form’s **source site** (where it was created) instead of Craft’s global primary site. “Same language” and “Same site group” propagation modes now filter from the source site. Forms store a persisted `sourceSiteId`. ([#84](https://github.com/verbb/formie/issues/84))
 - Stop routing user-authored form content (labels, placeholders, messages, options) through the `formie` translation category. Form copy is output from the database after site overrides are merged; `formie.php` is for Formie-owned UI strings only ([#2907](https://github.com/verbb/formie/issues/2907)).
 - Remove front-end `sourceLanguage` mutation in the plugin constructor that existed to work around the above behaviour.
 - Improve multi-site submission and notification handling by loading forms with site translation overrides applied for the submission’s site.

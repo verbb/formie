@@ -14,7 +14,7 @@ With **entries**, each site gets its own slice of the element. You can enable or
 
 - **One layout for all enabled sites.** The field tree, handles, pages, conditions, integrations, and captcha settings are canonical. Every site that has the form enabled runs the same structure. You cannot give the French site an extra field that the English site does not have, or reorder pages on one site only, using site overrides alone.
 - **Per-site differences are mostly text.** Secondary sites store sparse overrides for labels, messages, and similar copy. The database does not hold a full duplicate of the form per site.
-- **Handles stay consistent.** A field is always `yourName` (or whatever you set on the primary site), because submissions, integrations, notifications, and templates all rely on stable handles across sites.
+- **Handles stay consistent.** A field is always `yourName` (or whatever you set on the source site), because submissions, integrations, notifications, and templates all rely on stable handles across sites.
 - **Availability is group-level, not per form.** Whether a form exists on a site is controlled by the [form group](/forms/form-groups) **Site Policy**, not a “Sites” tab on the form itself. That part *does* line up with Craft’s mental model — Formie toggles `elements_sites` rows so a form can be enabled on Site A and disabled on Site B — but the *content* model is not entry-style.
 
 That design matches how forms are usually used in multi-site projects: the same enquiry or checkout flow everywhere, with translated labels and messages, not a completely different form definition per locale. When you do need something structurally different, the supported paths are **separate forms** (each scoped to the right sites via groups) or **[conditions](/forms/conditions)** to show or hide fields — not a second full layout hidden inside one form record.
@@ -70,8 +70,12 @@ Once you know which sites are *allowed*, propagation controls how a form spreads
 | --- | --- | --- |
 | **All enabled sites** (default) | The form is enabled on every site ticked under **Enabled Sites**. | Enabled Sites = Site 2 and Site 3 → new form exists on both. |
 | **Created site only** | The form exists only on the site where it was created. | Created on Site 2 → only Site 2, even if Site 3 is also enabled. |
-| **Same language as primary site** | From the enabled list, only sites that share the primary site’s language. | Primary is `en-US`; only other `en-US` sites get the form. |
-| **Same site group as primary site** | From the enabled list, only sites in the primary site’s [site group](https://craftcms.com/docs/5.x/system/sites.html#site-groups). | Useful when primary and regional sites are grouped separately. |
+| **Same language as source site** | From the enabled list, only sites that share the **source site’s** language. The source site is where the form was created. | Created on AU EN (`en-AU`) → other enabled `en-AU` sites get the form. |
+| **Same site group as source site** | From the enabled list, only sites in the **source site’s** [site group](https://craftcms.com/docs/5.x/system/sites.html#site-groups). | Created on an Australia site → other enabled Australia-group sites get the form. |
+
+Language and site group modes filter against each form’s **source site** — the site it was created on — not Craft’s global primary site. That means regional form groups that exclude the global primary site still work as expected.
+
+If a propagation mode matches zero enabled sites, Formie blocks the save and shows an error.
 
 Formie syncs Craft’s `elements_sites` table when a form is saved or when group policy changes, so the form’s enabled state matches the policy.
 
@@ -102,11 +106,13 @@ Switch sites in the CP header to confirm a restricted form appears only where yo
 
 ### Canonical content and overrides
 
-Formie stores **one canonical copy** of each form’s structure and content, tied to Craft’s **primary site**. That includes the field layout, handles, conditions, integrations, and default labels.
+Each form stores a **source site** — the site it was created on. That site holds the canonical copy of the form’s structure and default translatable content: field layout, handles, conditions, integrations, and default labels.
 
-When you need different text on another site — a translated title, label, or success message — you add a **site override**. Overrides are stored separately in `formie_form_site_overrides`, keyed by form and site. Only values you actually change are stored; unchanged fields are not duplicated.
+When you need different text on another enabled site — a translated title, label, or success message — you add a **site override**. Overrides are stored separately in `formie_form_site_overrides`, keyed by form and site. Only values you actually change are stored; unchanged fields are not duplicated.
 
 On the front end, Formie merges overrides on top of the canonical form for the current site. You do not need separate forms per language for label changes.
+
+Craft’s global primary site is only relevant when it is also the form’s source site. Regional forms created on non-primary sites use their creation site as the canonical reference.
 
 ### What you can translate
 
@@ -137,7 +143,7 @@ The switcher only lists sites the form is actually enabled on, not every site in
 
 #### Translation icons
 
-Beside translatable field labels, a **translation icon** indicates that the value can differ per site. On the primary site, you are editing the canonical default. On other sites, you are editing an override that applies only there.
+Beside translatable field labels, a **translation icon** indicates that the value can differ per site. On the source site, you are editing the canonical default. On other enabled sites, you are editing an override that applies only there.
 
 #### What gets saved where
 
@@ -145,18 +151,18 @@ You can add or remove fields, reorder pages, and change conditions from **any** 
 
 | You are viewing | What a normal **Save** updates |
 | --- | --- |
-| **Primary site** | The canonical form — structure, settings, and default translatable content |
-| **Another site** | Sparse **translation overrides** for any translatable strings you changed; layout and structural edits still update the **shared** canonical form |
+| **Source site** | The canonical form — structure, settings, and default translatable content |
+| **Another enabled site** | Sparse **translation overrides** for any translatable strings you changed; layout and structural edits still update the **shared** canonical form |
 
-So if you add a field while viewing a secondary site, that field appears on every site the form is enabled on. If you only change a label on a secondary site, only the override for that site is updated — the primary site’s default label stays the same.
+So if you add a field while viewing a secondary site, that field appears on every site the form is enabled on. If you only change a label on a secondary site, only the override for that site is updated — the source site’s default label stays the same.
 
 Use the site switcher when you want to check how the form reads on a particular audience, or to edit translated wording. Use any site when you need to change the form’s shape — just keep in mind that structural changes are global.
 
 ### Example: translating a contact form
 
-Your primary site is **English**. **French** is a secondary site. Both have the same contact form enabled.
+Your source site is **English**. **French** is another enabled site. Both have the same contact form enabled.
 
-1. Open the form on the **primary (English)** site.
+1. Open the form on the **source (English)** site.
 2. Set the title to `Contact us` and a field label to `Your name`.
 3. Save.
 4. Use the site switcher to open **French**.

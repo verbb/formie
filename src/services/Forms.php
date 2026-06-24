@@ -932,13 +932,14 @@ class Forms extends Component
             return null;
         }
 
-        $primarySiteId = Formie::$plugin->getFormSiteOverrides()->getPrimarySiteId();
+        $sourceSiteId = Formie::$plugin->getFormSiteOverrides()->getSourceSiteIdForFormId($formId);
 
         Formie::$plugin->getFields()->resetFieldRegistryCache();
         $this->invalidateFormCaches();
 
-        return Craft::$app->getElements()->getElementById($formId, Form::class, $primarySiteId)
-            ?? Form::find()->id($formId)->siteId($primarySiteId)->status(null)->one();
+        return Craft::$app->getElements()->getElementById($formId, Form::class, $sourceSiteId)
+            ?? Form::find()->id($formId)->siteId($sourceSiteId)->status(null)->one()
+            ?? Form::find()->id($formId)->status(null)->site('*')->one();
     }
 
     private function _cacheFormLookup(?Form $form, ?int $siteId = null): ?Form

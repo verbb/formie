@@ -369,6 +369,7 @@ class Form extends Element implements FormInterface
     public ?int $layoutId = null;
     public ?int $templateId = null;
     public ?int $groupId = null;
+    public ?int $sourceSiteId = null;
     public ?int $submitActionEntryId = null;
     public ?int $submitActionEntrySiteId = null;
     public ?int $defaultStatusId = null;
@@ -1996,6 +1997,11 @@ class Form extends Element implements FormInterface
             if ($creationSiteId) {
                 $this->siteId = $creationSiteId;
             }
+
+            if (!$this->sourceSiteId) {
+                $this->sourceSiteId = $creationSiteId
+                    ?? (int)($this->siteId ?: Craft::$app->getSites()->getCurrentSite()->id);
+            }
         }
 
         if ($userId) {
@@ -2055,6 +2061,7 @@ class Form extends Element implements FormInterface
         $record->layoutId = $this->getFormLayout()->id;
         $record->templateId = $this->templateId;
         $record->groupId = $this->groupId ?: null;
+        $record->sourceSiteId = $this->sourceSiteId ?: null;
         $record->submitActionEntryId = $this->submitActionEntryId;
         $record->submitActionEntrySiteId = $this->submitActionEntrySiteId;
         $record->defaultStatusId = $this->defaultStatusId;
@@ -3401,7 +3408,7 @@ class Form extends Element implements FormInterface
 
         $rules[] = [['title', 'handle'], 'required'];
         $rules[] = [['title'], 'string', 'max' => 255];
-        $rules[] = [['templateId', 'groupId', 'submitActionEntryId', 'submitActionEntrySiteId', 'defaultStatusId'], 'number', 'integerOnly' => true];
+        $rules[] = [['templateId', 'groupId', 'sourceSiteId', 'submitActionEntryId', 'submitActionEntrySiteId', 'defaultStatusId'], 'number', 'integerOnly' => true];
         $rules[] = [['formLayout'], 'validateFormLayout'];
         $rules[] = [['settings'], 'validateFormSettings'];
         $rules[] = [['notifications'], 'validateNotifications'];

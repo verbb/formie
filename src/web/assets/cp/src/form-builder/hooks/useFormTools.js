@@ -364,14 +364,14 @@ const saveForm = async(formValues, options = {}) => {
         action = 'formie/forms/save',
         requestData = {},
         canonicalData = null,
-        primarySiteId = null,
+        sourceSiteId = null,
     } = options;
     const activeSiteId = Number(requestData?.siteId);
     const shouldIncludeTranslations = Boolean(
         canonicalData
-        && primarySiteId
+        && sourceSiteId
         && activeSiteId
-        && activeSiteId !== Number(primarySiteId),
+        && activeSiteId !== Number(sourceSiteId),
     );
     const payloadSource = shouldIncludeTranslations
         ? stripTranslatableValuesToCanonical(formValues, canonicalData)

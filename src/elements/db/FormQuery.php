@@ -134,6 +134,10 @@ class FormQuery extends ElementQuery
             $formColumns[] = 'formie_forms.groupId';
         }
 
+        if ($db->columnExists(Table::FORMIE_FORMS, 'sourceSiteId')) {
+            $formColumns[] = 'formie_forms.sourceSiteId';
+        }
+
         $this->query->select($formColumns);
 
         $pageQuery = (new Query())

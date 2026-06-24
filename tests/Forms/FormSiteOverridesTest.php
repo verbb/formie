@@ -6,10 +6,14 @@ use verbb\formie\Formie;
 use verbb\formie\models\FormGroup;
 use verbb\formie\models\FormSitePolicy;
 
-it('returns empty overrides for the primary site', function (): void {
+it('returns empty overrides for the source site', function (): void {
     $service = Formie::$plugin->getFormSiteOverrides();
+    $form = formie()
+        ->form(['title' => 'Source Site Form'])
+        ->create();
+    $sourceSiteId = $service->getSourceSiteId($form);
 
-    expect($service->getOverrides(1, $service->getPrimarySiteId()))->toBe([]);
+    expect($service->getOverrides((int)$form->id, $sourceSiteId))->toBe([]);
 });
 
 it('saves explicit translations payload without server-side diffing', function (): void {
@@ -20,7 +24,7 @@ it('saves explicit translations payload without server-side diffing', function (
         ->singleLineTextField('testField', ['label' => 'Test Field'])
         ->create();
 
-    $canonicalForm = Formie::$plugin->getForms()->getFormById((int)$form->id, $service->getPrimarySiteId());
+    $canonicalForm = Formie::$plugin->getForms()->getFormById((int)$form->id, $service->getSourceSiteId($form));
     $fields = $canonicalForm->getFields();
     $field = reset($fields);
     $reference = $field?->reference;
@@ -28,10 +32,11 @@ it('saves explicit translations payload without server-side diffing', function (
     expect($reference)->not->toBeEmpty();
 
     $siteIds = Formie::$plugin->getFormSitePropagation()->resolveSiteIdsForForm($canonicalForm);
+    $sourceSiteId = $service->getSourceSiteId($canonicalForm);
     $secondarySiteId = null;
 
     foreach ($siteIds as $siteId) {
-        if ((int)$siteId !== $service->getPrimarySiteId()) {
+        if ((int)$siteId !== $sourceSiteId) {
             $secondarySiteId = (int)$siteId;
             break;
         }
@@ -82,7 +87,7 @@ it('merges sparse title overrides into builder data', function (): void {
         $secondarySiteId = null;
 
         foreach ($siteIds as $siteId) {
-            if ((int)$siteId !== $service->getPrimarySiteId()) {
+            if ((int)$siteId !== $service->getSourceSiteIdForFormId((int)$canonical['id'])) {
                 $secondarySiteId = (int)$siteId;
                 break;
             }
@@ -428,11 +433,14 @@ it('normalizes and prunes empty override payloads', function (): void {
 
 it('resolves site-specific form titles for cp indexes', function (): void {
     $service = Formie::$plugin->getFormSiteOverrides();
+    $form = formie()
+        ->form(['title' => 'Primary title'])
+        ->create();
 
     expect($service->resolveFormTitlesForSite([
-        10 => 'Primary title',
-    ], $service->getPrimarySiteId()))->toBe([
-        10 => 'Primary title',
+        (int)$form->id => 'Primary title',
+    ], $service->getSourceSiteId($form)))->toBe([
+        (int)$form->id => 'Primary title',
     ]);
 });
 
@@ -493,10 +501,10 @@ it('propagates canonical form titles to secondary element site rows', function (
     $propagation->syncFormSites($form);
 
     $siteIds = $propagation->resolveSiteIdsForForm($form);
-    $primarySiteId = Formie::$plugin->getFormSiteOverrides()->getPrimarySiteId();
+    $sourceSiteId = Formie::$plugin->getFormSiteOverrides()->getSourceSiteId($form);
     $secondarySiteIds = array_values(array_filter(
         $siteIds,
-        fn(int $siteId) => $siteId !== $primarySiteId,
+        fn(int $siteId) => $siteId !== $sourceSiteId,
     ));
 
     if ($secondarySiteIds === []) {
@@ -532,7 +540,7 @@ it('merges nested child field overrides into form elements for front-end renderi
 
     Formie::$plugin->getFormSitePropagation()->syncFormSites($form);
 
-    $canonicalForm = Formie::$plugin->getForms()->getFormById((int)$form->id, $service->getPrimarySiteId());
+    $canonicalForm = Formie::$plugin->getForms()->getFormById((int)$form->id, $service->getSourceSiteId($form));
     $nameField = $canonicalForm->getFieldByHandle('fullName');
     $childField = $nameField?->getFieldByHandle('firstName');
 
@@ -543,10 +551,11 @@ it('merges nested child field overrides into form elements for front-end renderi
     }
 
     $siteIds = Formie::$plugin->getFormSitePropagation()->resolveSiteIdsForForm($canonicalForm);
+    $sourceSiteId = $service->getSourceSiteId($canonicalForm);
     $secondarySiteId = null;
 
     foreach ($siteIds as $siteId) {
-        if ((int)$siteId !== $service->getPrimarySiteId()) {
+        if ((int)$siteId !== $sourceSiteId) {
             $secondarySiteId = (int)$siteId;
             break;
         }
@@ -724,5 +733,74 @@ it('limits builder site switcher options to form availability', function (): voi
     expect($builderSiteIds)->toBe([$restrictedSiteId])
         ->and($multiSite['enabled'])->toBeFalse()
         ->and($multiSite['sites'])->toHaveCount(1)
+        ->and($multiSite['sourceSiteId'])->toBe($restrictedSiteId)
         ->and($siteOverrides->getBuilderSiteCrumbConfig($form, $restrictedSiteId))->toBeNull();
+});
+
+it('propagates using the form source site site group instead of craft primary', function (): void {
+    $propagation = Formie::$plugin->getFormSitePropagation();
+
+    if (!$propagation->isEnabled()) {
+        expect(true)->toBeTrue();
+
+        return;
+    }
+
+    $allSiteIds = Craft::$app->getSites()->getAllSiteIds();
+
+    if (count($allSiteIds) < 2) {
+        expect(true)->toBeTrue();
+
+        return;
+    }
+
+    $sourceSiteId = (int)$allSiteIds[1];
+    $otherSiteId = count($allSiteIds) > 2 ? (int)$allSiteIds[2] : (int)$allSiteIds[0];
+    $sourceSite = Craft::$app->getSites()->getSiteById($sourceSiteId);
+    $matchingSiteIds = array_values(array_filter(
+        $allSiteIds,
+        function(int $siteId) use ($sourceSite) {
+            $site = Craft::$app->getSites()->getSiteById($siteId);
+
+            return $site && $site->groupId === $sourceSite->groupId;
+        },
+    ));
+
+    if (count($matchingSiteIds) < 2) {
+        expect(true)->toBeTrue();
+
+        return;
+    }
+
+    $group = new FormGroup([
+        'name' => 'Source Site Group Propagation',
+        'handle' => 'sourceSiteGroupPropagation' . uniqid(),
+        'settings' => [
+            'sitePolicy' => [
+                'enabledSiteIds' => $matchingSiteIds,
+                'propagation' => FormSitePolicy::PROPAGATION_SAME_SITE_GROUP,
+            ],
+        ],
+    ]);
+
+    expect(Formie::$plugin->getFormGroups()->saveGroup($group))->toBeTrue();
+
+    $form = new \verbb\formie\elements\Form();
+    $form->groupId = $group->id;
+    $form->sourceSiteId = $sourceSiteId;
+    $form->siteId = $sourceSiteId;
+
+    expect($propagation->resolveSiteIdsForForm($form))->toBe($matchingSiteIds)
+        ->and($propagation->validateFormSiteAvailability($form))->toBeNull();
+
+    $form->sourceSiteId = $otherSiteId;
+    $form->siteId = $otherSiteId;
+
+    $resolved = $propagation->resolveSiteIdsForForm($form);
+    $otherSite = Craft::$app->getSites()->getSiteById($otherSiteId);
+
+    expect($resolved)->toBe(array_values(array_filter(
+        $matchingSiteIds,
+        fn(int $siteId) => Craft::$app->getSites()->getSiteById($siteId)?->groupId === $otherSite?->groupId,
+    )));
 });

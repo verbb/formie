@@ -85,6 +85,25 @@ class FormSitePropagation extends Component
         return array_values(array_unique(array_map('intval', $candidateIds)));
     }
 
+    public function validateFormSiteAvailability(Form $form): ?string
+    {
+        if (!$this->isEnabled()) {
+            return null;
+        }
+
+        $siteOverrides = Formie::$plugin->getFormSiteOverrides();
+
+        if (!$form->sourceSiteId) {
+            $form->sourceSiteId = $siteOverrides->resolveSourceSiteIdForNewForm($form);
+        }
+
+        if ($this->resolveSiteIdsForForm($form) === []) {
+            return Craft::t('formie', 'This form could not be enabled on any sites for the selected group propagation policy.');
+        }
+
+        return null;
+    }
+
     public function isFormAvailableForSite(Form $form, int $siteId): bool
     {
         if (!$this->isEnabled()) {
@@ -163,15 +182,10 @@ class FormSitePropagation extends Component
         }
 
         $enabledSiteIds = $this->resolveSiteIdsForForm($form);
-
-        if ($enabledSiteIds === []) {
-            return;
-        }
-
         $canonicalTitle = (string)$form->title;
 
         foreach (Craft::$app->getSites()->getAllSiteIds() as $siteId) {
-            $enabled = in_array($siteId, $enabledSiteIds, true);
+            $enabled = $enabledSiteIds !== [] && in_array($siteId, $enabledSiteIds, true);
 
             $row = (new Query())
                 ->select(['id', 'enabled'])
@@ -208,20 +222,25 @@ class FormSitePropagation extends Component
             return;
         }
 
-        $primarySiteId = (int)Craft::$app->getSites()->getPrimarySite()->id;
+        $siteOverrides = Formie::$plugin->getFormSiteOverrides();
+        $sourceSiteId = $siteOverrides->getSourceSiteIdForFormId($formId);
 
         if ($canonicalTitle === null) {
             $canonicalTitle = (new Query())
                 ->select(['title'])
                 ->from([CraftTable::ELEMENTS_SITES])
-                ->where(['elementId' => $formId, 'siteId' => $primarySiteId])
+                ->where(['elementId' => $formId, 'siteId' => $sourceSiteId])
                 ->scalar();
         }
 
         $canonicalTitle = (string)($canonicalTitle ?? '');
 
         if ($canonicalTitle === '') {
-            $form = Form::find()->id($formId)->siteId($primarySiteId)->status(null)->one();
+            $form = Form::find()->id($formId)->siteId($sourceSiteId)->status(null)->one();
+
+            if (!$form) {
+                $form = Form::find()->id($formId)->status(null)->site('*')->one();
+            }
 
             if (!$form) {
                 return;
@@ -230,7 +249,8 @@ class FormSitePropagation extends Component
             $canonicalTitle = (string)($form->title ?: $form->handle);
         }
 
-        $form = Form::find()->id($formId)->siteId($primarySiteId)->status(null)->one();
+        $form = Form::find()->id($formId)->siteId($sourceSiteId)->status(null)->one()
+            ?? Form::find()->id($formId)->status(null)->site('*')->one();
 
         if (!$form) {
             return;
@@ -269,7 +289,7 @@ class FormSitePropagation extends Component
     private function _resolveCandidateSiteIds(FormSitePolicy $policy, Form $form): array
     {
         $sitesService = Craft::$app->getSites();
-        $primarySite = $sitesService->getPrimarySite();
+        $referenceSite = $this->_resolveReferenceSite($form);
         $editableIds = $this->getEditableSiteIds();
 
         $enabledIds = $policy->enabledSiteIds ?? $editableIds;
@@ -293,16 +313,24 @@ class FormSitePropagation extends Component
         ));
 
         return match ($policy->propagation) {
-            FormSitePolicy::PROPAGATION_CREATED_SITE_ONLY => $this->_filterCreatedSiteOnly($form, $candidates, $primarySite),
-            FormSitePolicy::PROPAGATION_SAME_LANGUAGE => $this->_filterSameLanguage($candidates, $primarySite, $sitesById),
-            FormSitePolicy::PROPAGATION_SAME_SITE_GROUP => $this->_filterSameSiteGroup($candidates, $primarySite, $sitesById),
+            FormSitePolicy::PROPAGATION_CREATED_SITE_ONLY => $this->_filterCreatedSiteOnly($form, $candidates, $referenceSite),
+            FormSitePolicy::PROPAGATION_SAME_LANGUAGE => $this->_filterSameLanguage($candidates, $referenceSite, $sitesById),
+            FormSitePolicy::PROPAGATION_SAME_SITE_GROUP => $this->_filterSameSiteGroup($candidates, $referenceSite, $sitesById),
             default => $candidates,
         };
     }
 
-    private function _filterCreatedSiteOnly(Form $form, array $candidateIds, Site $primarySite): array
+    private function _resolveReferenceSite(Form $form): Site
     {
-        $createdSiteId = (int)($form->siteId ?: $primarySite->id);
+        $sourceSiteId = Formie::$plugin->getFormSiteOverrides()->getSourceSiteId($form);
+        $site = Craft::$app->getSites()->getSiteById($sourceSiteId);
+
+        return $site ?? Craft::$app->getSites()->getPrimarySite();
+    }
+
+    private function _filterCreatedSiteOnly(Form $form, array $candidateIds, Site $referenceSite): array
+    {
+        $createdSiteId = (int)($form->sourceSiteId ?: $form->siteId ?: $referenceSite->id);
 
         if (in_array($createdSiteId, $candidateIds, true)) {
             return [$createdSiteId];
@@ -311,9 +339,9 @@ class FormSitePropagation extends Component
         return $candidateIds === [] ? [$createdSiteId] : [reset($candidateIds)];
     }
 
-    private function _filterSameLanguage(array $candidateIds, Site $primarySite, array $sitesById): array
+    private function _filterSameLanguage(array $candidateIds, Site $referenceSite, array $sitesById): array
     {
-        $language = $primarySite->language;
+        $language = $referenceSite->language;
 
         return array_values(array_filter(
             $candidateIds,
@@ -321,9 +349,9 @@ class FormSitePropagation extends Component
         ));
     }
 
-    private function _filterSameSiteGroup(array $candidateIds, Site $primarySite, array $sitesById): array
+    private function _filterSameSiteGroup(array $candidateIds, Site $referenceSite, array $sitesById): array
     {
-        $groupId = $primarySite->groupId;
+        $groupId = $referenceSite->groupId;
 
         return array_values(array_filter(
             $candidateIds,

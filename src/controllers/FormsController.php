@@ -437,10 +437,10 @@ class FormsController extends Controller
         $isNewForm = !$formId;
         $siteOverrides = Formie::$plugin->getFormSiteOverrides();
         $siteId = (int)($request->getParam('siteId') ?: Craft::$app->getSites()->getCurrentSite()->id);
-        $primarySiteId = $siteOverrides->getPrimarySiteId();
 
         $form = Formie::$plugin->getForms()->buildFormFromPost();
         $isNewForm = !$form->id;
+        $sourceSiteId = $siteOverrides->getSourceSiteId($form);
 
         $saveAsNew = (bool)$request->getParam('saveAsNew');
 
@@ -465,6 +465,24 @@ class FormsController extends Controller
             }
 
             $this->setFailFlash($sitePolicyError);
+
+            Craft::$app->getUrlManager()->setRouteParams([
+                'form' => $form,
+            ]);
+
+            return null;
+        }
+
+        if ($siteAvailabilityError = Formie::$plugin->getFormSitePropagation()->validateFormSiteAvailability($form)) {
+            $form->addError('groupId', $siteAvailabilityError);
+
+            if ($this->request->getAcceptsJson()) {
+                return $this->asJson([
+                    'errors' => $form->getErrors(),
+                ]);
+            }
+
+            $this->setFailFlash($siteAvailabilityError);
 
             Craft::$app->getUrlManager()->setRouteParams([
                 'form' => $form,
@@ -565,7 +583,7 @@ class FormsController extends Controller
         if (
             !$isNewForm
             && $siteOverrides->isEnabled()
-            && $siteId !== $primarySiteId
+            && $siteId !== $sourceSiteId
             && is_array($translations)
         ) {
             $siteOverrides->saveOverrides((int)$savedForm->id, $siteId, $translations);
@@ -577,7 +595,7 @@ class FormsController extends Controller
         if (
             !$isNewForm
             && $siteOverrides->isEnabled()
-            && $siteId !== $primarySiteId
+            && $siteId !== $sourceSiteId
             && is_array($variables['canonicalData'] ?? null)
         ) {
             $variables['data'] = $siteOverrides->applyToBuilderData(

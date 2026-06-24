@@ -44,7 +44,7 @@ const resolveSiteFromUrl = (multiSite, url = window.location.href) => {
     const siteHandle = getSiteHandleFromUrl(url);
     const matchedSite = siteHandle
         ? findSiteByHandle(sites, siteHandle)
-        : sites.find((site) => Number(site.id) === Number(multiSite.primarySiteId));
+        : sites.find((site) => Number(site.id) === Number(multiSite.sourceSiteId));
 
     return matchedSite || null;
 };

@@ -147,6 +147,7 @@ class Install extends Migration
             'layoutId' => $this->integer(),
             'templateId' => $this->integer(),
             'groupId' => $this->integer(),
+            'sourceSiteId' => $this->integer(),
             'submitActionEntryId' => $this->integer(),
             'submitActionEntrySiteId' => $this->integer(),
             'defaultStatusId' => $this->integer(),
@@ -584,6 +585,7 @@ class Install extends Migration
         $this->createIndex(null, Table::FORMIE_FORMS, 'layoutId', false);
         $this->createIndex(null, Table::FORMIE_FORMS, 'templateId', false);
         $this->createIndex(null, Table::FORMIE_FORMS, 'groupId', false);
+        $this->createIndex(null, Table::FORMIE_FORMS, 'sourceSiteId', false);
         $this->createIndex(null, Table::FORMIE_FORMS, 'defaultStatusId', false);
         $this->createIndex(null, Table::FORMIE_FORMS, 'submitActionEntryId', false);
         $this->createIndex(null, Table::FORMIE_FORMS, 'submitActionEntrySiteId', false);
@@ -642,6 +644,7 @@ class Install extends Migration
         $this->addForeignKey(null, Table::FORMIE_FORMS, ['layoutId'], Table::FORMIE_FIELD_LAYOUTS, ['id'], 'SET NULL', null);
         $this->addForeignKey(null, Table::FORMIE_FORMS, ['templateId'], Table::FORMIE_FORM_TEMPLATES, ['id'], 'SET NULL', null);
         $this->addForeignKey(null, Table::FORMIE_FORMS, ['groupId'], Table::FORMIE_FORM_GROUPS, ['id'], 'SET NULL', null);
+        $this->addForeignKey(null, Table::FORMIE_FORMS, ['sourceSiteId'], '{{%sites}}', ['id'], 'SET NULL', null);
         $this->addForeignKey(null, Table::FORMIE_FORMS, ['defaultStatusId'], Table::FORMIE_STATUSES, ['id'], 'SET NULL', null);
         $this->addForeignKey(null, Table::FORMIE_FORMS, ['submitActionEntryId'], '{{%entries}}', ['id'], 'SET NULL', null);
         $this->addForeignKey(null, Table::FORMIE_FORMS, ['createdById'], '{{%users}}', ['id'], 'SET NULL', null);

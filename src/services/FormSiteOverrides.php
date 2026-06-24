@@ -26,6 +26,12 @@ use yii\base\Component;
 
 class FormSiteOverrides extends Component
 {
+    // Properties
+    // =========================================================================
+
+    private array $_sourceSiteIdsByFormId = [];
+
+
     // Public Methods
     // =========================================================================
 
@@ -53,6 +59,72 @@ class FormSiteOverrides extends Component
     public function getPrimarySiteId(): int
     {
         return (int)Craft::$app->getSites()->getPrimarySite()->id;
+    }
+
+    public function getSourceSiteId(Form $form): int
+    {
+        if ($form->sourceSiteId) {
+            return (int)$form->sourceSiteId;
+        }
+
+        if ($form->id) {
+            return $this->getSourceSiteIdForFormId((int)$form->id);
+        }
+
+        return $this->resolveSourceSiteIdForNewForm($form);
+    }
+
+    public function getSourceSiteIdForFormId(int $formId): int
+    {
+        if (isset($this->_sourceSiteIdsByFormId[$formId])) {
+            return $this->_sourceSiteIdsByFormId[$formId];
+        }
+
+        $sourceSiteId = null;
+
+        if (Craft::$app->getDb()->columnExists(Table::FORMIE_FORMS, 'sourceSiteId')) {
+            $sourceSiteId = (new Query())
+                ->select(['sourceSiteId'])
+                ->from([Table::FORMIE_FORMS])
+                ->where(['id' => $formId])
+                ->scalar();
+        }
+
+        if ($sourceSiteId) {
+            return $this->_sourceSiteIdsByFormId[$formId] = (int)$sourceSiteId;
+        }
+
+        return $this->_sourceSiteIdsByFormId[$formId] = $this->getPrimarySiteId();
+    }
+
+    public function resolveSourceSiteIdForNewForm(Form $form): int
+    {
+        if ($form->sourceSiteId) {
+            return (int)$form->sourceSiteId;
+        }
+
+        if ($form->siteId) {
+            return (int)$form->siteId;
+        }
+
+        $request = Craft::$app->getRequest();
+        $requestedSite = Cp::requestedSite();
+        $candidateIds = array_filter([
+            $request->getParam('siteId'),
+            $requestedSite?->id,
+            Craft::$app->getSites()->getCurrentSite()->id,
+        ], fn(mixed $siteId) => $siteId !== null && $siteId !== '');
+
+        foreach ($candidateIds as $candidateId) {
+            return (int)$candidateId;
+        }
+
+        return $this->getPrimarySiteId();
+    }
+
+    public function isSourceSiteForForm(int $formId, int $siteId): bool
+    {
+        return (int)$siteId === $this->getSourceSiteIdForFormId($formId);
     }
 
     public function getEditableSites(?User $user = null): array
@@ -95,6 +167,14 @@ class FormSiteOverrides extends Component
             return $activeSiteId;
         }
 
+        if ($form) {
+            $sourceSiteId = $this->getSourceSiteId($form);
+
+            if (in_array($sourceSiteId, $siteIds, true)) {
+                return $sourceSiteId;
+            }
+        }
+
         return (int)$siteIds[0];
     }
 
@@ -117,10 +197,6 @@ class FormSiteOverrides extends Component
 
         $siteId = (int)$siteId;
 
-        if ($siteId === $this->getPrimarySiteId()) {
-            return $canonicalTitles;
-        }
-
         $formIds = array_map('intval', array_keys($canonicalTitles));
 
         $rows = (new Query())
@@ -136,6 +212,11 @@ class FormSiteOverrides extends Component
 
         foreach ($rows as $row) {
             $formId = (int)$row['formId'];
+
+            if ($this->isSourceSiteForForm($formId, $siteId)) {
+                continue;
+            }
+
             $overrides = Json::decodeIfJson($row['overrides'] ?? null);
 
             if (!is_array($overrides)) {
@@ -155,7 +236,7 @@ class FormSiteOverrides extends Component
 
     public function getOverrides(int $formId, int $siteId): array
     {
-        if (!$this->isEnabled() || $siteId === $this->getPrimarySiteId()) {
+        if (!$this->isEnabled() || $this->isSourceSiteForForm($formId, $siteId)) {
             return [];
         }
 
@@ -211,7 +292,7 @@ class FormSiteOverrides extends Component
 
     public function saveOverrides(int $formId, int $siteId, array $overrides): void
     {
-        if (!$this->isEnabled() || !$formId || $siteId === $this->getPrimarySiteId()) {
+        if (!$this->isEnabled() || !$formId || $this->isSourceSiteForForm($formId, $siteId)) {
             return;
         }
 
@@ -257,7 +338,7 @@ class FormSiteOverrides extends Component
 
         $siteId ??= (int)($form->siteId ?: Craft::$app->getSites()->getCurrentSite()->id);
 
-        if ($siteId === $this->getPrimarySiteId()) {
+        if ($siteId === $this->getSourceSiteId($form)) {
             return $form;
         }
 
@@ -286,9 +367,13 @@ class FormSiteOverrides extends Component
             return $canonicalData;
         }
 
-        $siteId ??= $this->getPrimarySiteId();
+        $formId = (int)($canonicalData['id'] ?? 0);
+        $sourceSiteId = $formId
+            ? $this->getSourceSiteIdForFormId($formId)
+            : $this->resolveSourceSiteIdForNewForm(new Form());
+        $siteId ??= $sourceSiteId;
 
-        if ($siteId === $this->getPrimarySiteId()) {
+        if ($siteId === $sourceSiteId) {
             return $canonicalData;
         }
 
@@ -428,21 +513,21 @@ class FormSiteOverrides extends Component
             ];
         }
 
-        $primarySiteId = $this->getPrimarySiteId();
+        $sourceSiteId = $this->getSourceSiteId($form);
         $activeSiteId = $this->resolveBuilderActiveSiteId($form, $activeSiteId);
-        $sites = array_map(function(Site $site) use ($primarySiteId) {
+        $sites = array_map(function(Site $site) use ($sourceSiteId) {
             return [
                 'id' => (int)$site->id,
                 'name' => $site->name,
                 'handle' => $site->handle,
                 'language' => $site->language,
-                'primary' => (int)$site->id === $primarySiteId,
+                'source' => (int)$site->id === $sourceSiteId,
             ];
         }, $this->getBuilderSitesForForm($form));
 
         return [
             'enabled' => count($sites) > 1,
-            'primarySiteId' => $primarySiteId,
+            'sourceSiteId' => $sourceSiteId,
             'activeSiteId' => $activeSiteId,
             'sites' => $sites,
             'overrides' => $form->id ? $this->getAllOverrides((int)$form->id) : [],
@@ -1393,11 +1478,11 @@ class FormSiteOverrides extends Component
             return (string)$form->title;
         }
 
-        $primarySiteId = $this->getPrimarySiteId();
+        $sourceSiteId = $this->getSourceSiteId($form);
         $title = (new Query())
             ->select(['title'])
             ->from([CraftTable::ELEMENTS_SITES])
-            ->where(['elementId' => (int)$form->id, 'siteId' => $primarySiteId])
+            ->where(['elementId' => (int)$form->id, 'siteId' => $sourceSiteId])
             ->scalar();
 
         if (is_string($title) && $title !== '') {

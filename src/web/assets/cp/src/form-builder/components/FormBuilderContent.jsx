@@ -204,8 +204,8 @@ function FormBuilderContent({
             activeSiteId,
             canonicalData,
         } = useAppStore.getState();
-        const isNonPrimarySite = multiSite?.enabled
-            && Number(activeSiteId) !== Number(multiSite.primarySiteId)
+        const isSourceSite = multiSite?.enabled
+            && Number(activeSiteId) !== Number(multiSite.sourceSiteId)
             && currentSaveAction === 'save';
         const baseRequestData = isDuplicateSave ? {
             ...saveRequestData,
@@ -220,8 +220,8 @@ function FormBuilderContent({
             result = await saveForm(data, {
                 saveAsNew: shouldSaveAsNew,
                 action: saveActionUrl,
-                canonicalData: isNonPrimarySite ? canonicalData : null,
-                primarySiteId: multiSite?.primarySiteId ?? null,
+                canonicalData: isSourceSite ? canonicalData : null,
+                sourceSiteId: multiSite?.sourceSiteId ?? null,
                 requestData: {
                     ...baseRequestData,
                     siteId: activeSiteId || baseRequestData?.siteId,
@@ -261,7 +261,7 @@ function FormBuilderContent({
             const shouldMergeSiteOverrides = Boolean(
                 serverMultiSite?.enabled
                 && canonicalDataForMerge
-                && Number(activeSiteId) !== Number(serverMultiSite?.primarySiteId),
+                && Number(activeSiteId) !== Number(serverMultiSite?.sourceSiteId),
             );
             const displayFormData = shouldMergeSiteOverrides
                 ? mergeSiteOverridesIntoFormData(

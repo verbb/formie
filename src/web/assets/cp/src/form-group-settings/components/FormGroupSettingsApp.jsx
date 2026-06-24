@@ -254,7 +254,7 @@ export const FormGroupSettingsApp = ({ settings }) => {
                             <FieldLayout
                                 name="sitePolicyPropagation"
                                 label={Craft.t('formie', 'Site Propagation')}
-                                instructions={Craft.t('formie', 'Control how new and existing forms in this group are propagated across sites.')}
+                                instructions={Craft.t('formie', 'Control how new and existing forms in this group are propagated across sites. Language and site group modes use each form’s source site (where it was created) as the reference.')}
                             >
                                 <SelectInput
                                     value={values.sitePolicyPropagation || 'allEnabled'}

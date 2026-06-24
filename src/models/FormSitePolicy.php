@@ -32,8 +32,8 @@ class FormSitePolicy extends Model
     {
         return [
             self::PROPAGATION_ALL_ENABLED => Craft::t('formie', 'All enabled sites'),
-            self::PROPAGATION_SAME_LANGUAGE => Craft::t('formie', 'Same language as primary site'),
-            self::PROPAGATION_SAME_SITE_GROUP => Craft::t('formie', 'Same site group as primary site'),
+            self::PROPAGATION_SAME_LANGUAGE => Craft::t('formie', 'Same language as source site'),
+            self::PROPAGATION_SAME_SITE_GROUP => Craft::t('formie', 'Same site group as source site'),
             self::PROPAGATION_CREATED_SITE_ONLY => Craft::t('formie', 'Created site only'),
         ];
     }
