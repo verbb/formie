@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Changed
+- Released alongside `@verbb/formie-browser` and `@verbb/formie-core` to keep package versions aligned, including validation message copy parity updates from the browser and core runtimes.
+
 ## 1.0.9 - 2026-06-25
 
 ### Changed

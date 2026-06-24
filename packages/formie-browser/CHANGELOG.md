@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Changed
+- Align client-side validation message copy for checkbox/radio option limits, match, number, and min/max rules with server-side Formie validation messages, including `data-formie-validation-match-message` override support on match fields. ([#2907](https://github.com/verbb/formie/issues/2907))
+
 ## 1.0.9 - 2026-06-25
 
 ### Changed

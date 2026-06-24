@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Changed
+- Align headless client-side validation messages with server-side Formie copy, including field labels in required, email, number, min/max, URL, and match validation errors. ([#2907](https://github.com/verbb/formie/issues/2907))
+
 ## 1.0.9 - 2026-06-25
 
 ### Added
