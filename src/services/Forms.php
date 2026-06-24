@@ -287,6 +287,7 @@ class Forms extends Component
 
         $viewSubmissionsUrl = null;
         $submissions = Submission::find()->formId($form->id)->limit(1)->exists();
+        $showFieldHandles = (bool)($user?->admin && $user->getPreference('showFieldHandles'));
 
         if ($submissions && $permissions->canViewSubmissions($user, $form)) {
             $viewSubmissionsUrl = UrlHelper::cpUrl('formie/submissions/' . $form->handle, [
@@ -429,6 +430,7 @@ class Forms extends Component
             'fieldTypeGroups' => Formie::$plugin->getFields()->getFormBuilderFieldTypes([], $form),
             'hasSubmissions' => (bool)$submissions,
             'viewSubmissionsUrl' => $viewSubmissionsUrl,
+            'showFieldHandles' => $showFieldHandles,
             ...Variables::getFormBuilderVariableConfig(),
             'reservedHandles' => Formie::$plugin->getFields()->getReservedHandles(),
             'formHandles' => $form->getBuilderHandleNames(),

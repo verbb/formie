@@ -21,6 +21,7 @@ const createAppStore = (set, get) => {
         baseUrl: null,
         viewSubmissionsUrl: null,
         hasSubmissions: false,
+        showFieldHandles: false,
         entityType: 'form',
         entityId: null,
         newItemTitle: null,

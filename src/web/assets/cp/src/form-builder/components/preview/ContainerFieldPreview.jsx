@@ -68,6 +68,7 @@ import { resolveContainerRows } from '@form-builder/utils/containerLayoutVariant
 import { announceFormBuilderStatus, focusFieldActionsTrigger } from '@form-builder/utils/accessibility';
 import { submitSchemaFormAfterPendingTableUpdates } from '@form-builder/utils/submitSchemaForm';
 import { FieldEditorNotices } from '@form-builder/components/FieldEditorNotices';
+import { FieldBuilderHandle } from '@form-builder/components/FieldBuilderHandle';
 import { useFieldEditorLockState } from '@form-builder/hooks/useFieldEditorLockState';
 import { normalizeFieldEditorValues, normalizeRichTextValue, hasRichTextValue } from '@form-builder/utils/richTextValue';
 import {
@@ -485,6 +486,7 @@ const NestedFieldCard = ({
     shouldSanitizeSettings = true,
 }) => {
     const globalReservedHandles = useAppStore((state) => { return state.reservedHandles || []; });
+    const showFieldHandles = useAppStore((state) => { return state.showFieldHandles; });
     const { source } = useDragOperation();
     const isAnyDragActive = Boolean(source);
     const {
@@ -874,46 +876,50 @@ const NestedFieldCard = ({
                 </div>
 
                 <div className="pointer-events-none select-none space-y-2">
-                    {(shouldUseNestedFieldLabel || hasRichTextValue(nestedField?.instructions) || hasNestedFieldStatusIndicators) && (
+                    {(shouldUseNestedFieldLabel || hasRichTextValue(nestedField?.instructions) || hasNestedFieldStatusIndicators || (showFieldHandles && nestedField?.handle)) && (
                         <div className="space-y-1 leading-none pr-8">
-                            {(shouldUseNestedFieldLabel || hasNestedFieldStatusIndicators) && (
-                                <div className="font-medium flex items-center gap-1 min-w-0">
-                                    {shouldUseNestedFieldLabel && (
-                                        <>
-                                            {showNestedQuestionRichTextLabel ? (
-                                                <div
-                                                    className="truncate min-w-0 [&_.ProseMirror]:truncate"
-                                                    title={nestedFieldDisplayLabel}
-                                                >
-                                                    <TiptapContent value={normalizeRichTextValue(nestedField.question)} />
-                                                </div>
-                                            ) : (
-                                                <span
-                                                    className="truncate"
-                                                    title={nestedFieldDisplayLabel}
-                                                >
-                                                    {nestedFieldDisplayLabel}
-                                                </span>
-                                            )}
+                            {(shouldUseNestedFieldLabel || hasNestedFieldStatusIndicators || (showFieldHandles && nestedField?.handle)) && (
+                                <div className="relative font-medium flex items-center gap-1 min-w-0">
+                                    <div className="flex min-w-0 flex-1 items-center gap-1">
+                                        {shouldUseNestedFieldLabel && (
+                                            <>
+                                                {showNestedQuestionRichTextLabel ? (
+                                                    <div
+                                                        className="truncate min-w-0 [&_.ProseMirror]:truncate"
+                                                        title={nestedFieldDisplayLabel}
+                                                    >
+                                                        <TiptapContent value={normalizeRichTextValue(nestedField.question)} />
+                                                    </div>
+                                                ) : (
+                                                    <span
+                                                        className="truncate"
+                                                        title={nestedFieldDisplayLabel}
+                                                    >
+                                                        {nestedFieldDisplayLabel}
+                                                    </span>
+                                                )}
 
-                                            {nestedField?.required && (
-                                                <span className="text-error">*</span>
-                                            )}
-                                        </>
-                                    )}
+                                                {nestedField?.required && (
+                                                    <span className="text-error">*</span>
+                                                )}
+                                            </>
+                                        )}
 
-                                    {hasConditions && (
-                                        <div className={cn(
-                                            'inline-flex items-center gap-1',
-                                            'rounded-[10px] border border-[#0ea5e9] bg-[#f0faff]',
-                                            'px-[6px] py-[3px]',
-                                            'text-[10px] font-medium text-[#0077b6]',
-                                            shouldUseNestedFieldLabel && 'ml-2',
-                                        )}>
-                                            <FontAwesomeIcon icon={faEye} className="size-3" />
-                                            <span>{Craft.t('formie', 'Conditions')}</span>
-                                        </div>
-                                    )}
+                                        {hasConditions && (
+                                            <div className={cn(
+                                                'inline-flex items-center gap-1',
+                                                'rounded-[10px] border border-[#0ea5e9] bg-[#f0faff]',
+                                                'px-[6px] py-[3px]',
+                                                'text-[10px] font-medium text-[#0077b6]',
+                                                shouldUseNestedFieldLabel && 'ml-2',
+                                            )}>
+                                                <FontAwesomeIcon icon={faEye} className="size-3" />
+                                                <span>{Craft.t('formie', 'Conditions')}</span>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <FieldBuilderHandle handle={nestedField?.handle} isAnyDragActive={isAnyDragActive} />
                                 </div>
                             )}
 

@@ -141,7 +141,8 @@
 }
 
 @media (hover: none), (pointer: coarse) {
-    .form-builder-field-actions {
+    .form-builder-field-actions,
+    .form-builder-field-handle {
         opacity: 1 !important;
     }
 }

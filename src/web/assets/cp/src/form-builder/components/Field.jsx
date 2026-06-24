@@ -84,6 +84,7 @@ import { SnapTopLeftCornerToCursor } from '@utils';
 
 import { FieldPreview } from './FieldPreview';
 import { FieldEditorNotices } from './FieldEditorNotices';
+import { FieldBuilderHandle } from './FieldBuilderHandle';
 import { useFieldEditorLockState } from '@form-builder/hooks/useFieldEditorLockState';
 
 const resolveCustomFieldAdapterDefinition = (adapters, adapterValue) => {
@@ -103,6 +104,7 @@ const Field = ({
 }) => {
     const { getFieldTypeByType } = useFormBuilderApp();
     const globalReservedHandles = useAppStore((state) => { return state.reservedHandles || []; });
+    const showFieldHandles = useAppStore((state) => { return state.showFieldHandles; });
     const {
         updateField,
         deleteField,
@@ -700,40 +702,41 @@ const Field = ({
                     isInlineContainerBuilder ? 'pointer-events-auto select-auto' : 'pointer-events-none select-none',
                     isBuilderField ? 'space-y-0' : 'space-y-2',
                 )}>
-                    {!isBuilderField && (shouldUseFieldLabel || hasRichTextValue(field.instructions) || hasFieldStatusIndicators) && (
+                    {!isBuilderField && (shouldUseFieldLabel || hasRichTextValue(field.instructions) || hasFieldStatusIndicators || (showFieldHandles && field.handle)) && (
                         <div className={cn(
                             'space-y-1 leading-none pr-8',
                         )}>
-                            {(shouldUseFieldLabel || hasFieldStatusIndicators) && (
+                            {(shouldUseFieldLabel || hasFieldStatusIndicators || (showFieldHandles && field.handle)) && (
                                 <div className={cn(
-                                    'font-medium',
+                                    'relative font-medium',
                                     'flex items-center gap-1 min-w-0',
                                 )}>
-                                    {shouldUseFieldLabel && (
-                                        <>
-                                            {showQuestionRichTextLabel ? (
-                                                <div
-                                                    className={cn('truncate min-w-0 [&_.ProseMirror]:truncate')}
-                                                    title={fieldDisplayLabel}
-                                                >
-                                                    <TiptapContent value={normalizeRichTextValue(field.question)} />
-                                                </div>
-                                            ) : (
-                                                <span
-                                                    className={cn('truncate')}
-                                                    title={fieldDisplayLabel}
-                                                >
-                                                    {fieldDisplayLabel}
-                                                </span>
-                                            )}
+                                    <div className="flex min-w-0 flex-1 items-center gap-1">
+                                        {shouldUseFieldLabel && (
+                                            <>
+                                                {showQuestionRichTextLabel ? (
+                                                    <div
+                                                        className={cn('truncate min-w-0 [&_.ProseMirror]:truncate')}
+                                                        title={fieldDisplayLabel}
+                                                    >
+                                                        <TiptapContent value={normalizeRichTextValue(field.question)} />
+                                                    </div>
+                                                ) : (
+                                                    <span
+                                                        className={cn('truncate')}
+                                                        title={fieldDisplayLabel}
+                                                    >
+                                                        {fieldDisplayLabel}
+                                                    </span>
+                                                )}
 
-                                            {field.required && (
-                                                <span className={cn('text-error')}>*</span>
-                                            )}
-                                        </>
-                                    )}
+                                                {field.required && (
+                                                    <span className={cn('text-error')}>*</span>
+                                                )}
+                                            </>
+                                        )}
 
-                                    {isSyncedField && (
+                                        {isSyncedField && (
                                         <div className={cn(
                                             'inline-flex items-center gap-1',
                                             'rounded-[10px] border border-[#f6ad55] bg-[#fffaf0]',
@@ -816,6 +819,9 @@ const Field = ({
                                             <span>{Craft.t('formie', 'Hidden')}</span>
                                         </div>
                                     )}
+                                    </div>
+
+                                    <FieldBuilderHandle handle={field.handle} isAnyDragActive={isAnyDragActive} />
                                 </div>
                             )}
 
