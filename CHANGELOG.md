@@ -12,6 +12,7 @@
 - Improve multi-site submission and notification handling by loading forms with site translation overrides applied for the submission’s site.
 
 ### Fixed
+- Fix plugin uninstall via `project-config/apply` failing when Formie stencil project config is removed after the `formie_stencils` table has already been dropped. ([#1710](https://github.com/verbb/formie/issues/1710))
 - Fix queued integrations losing submit-time context (referrer, IP address, HubSpot/Pardot tracking cookies) by persisting request metadata on the submission at submit time and hydrating integration context from it in queue workers. ([#1379](https://github.com/verbb/formie/issues/1379))
 - Fix plugin migrations failing on production when `allowAdminChanges` is disabled because migrations attempted to write plugin settings to project config. ([#2615](https://github.com/verbb/formie/issues/2615))
 - Fix phone country dropdown flags not appearing on Craft Cloud. Flag sprites are inlined in the front-end bundle instead of loading from relative CSS asset paths. ([#2529](https://github.com/verbb/formie/issues/2529))

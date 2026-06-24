@@ -56,6 +56,10 @@ class Stencils extends Component
 
     public function getAllStencils(bool $withTrashed = false): array
     {
+        if (!DbSchema::tableExists(Table::FORMIE_STENCILS)) {
+            return [];
+        }
+
         if ($this->_stencils !== null && !$withTrashed) {
             return $this->_stencils;
         }
@@ -145,6 +149,10 @@ class Stencils extends Component
 
     public function handleChangedStencil(ConfigEvent $event): void
     {
+        if (!DbSchema::tableExists(Table::FORMIE_STENCILS)) {
+            return;
+        }
+
         $stencilUid = $event->tokenMatches[0];
         $data = $event->newValue;
 
@@ -261,6 +269,10 @@ class Stencils extends Component
 
     public function handleDeletedStencil(ConfigEvent $event): void
     {
+        if (!DbSchema::tableExists(Table::FORMIE_STENCILS)) {
+            return;
+        }
+
         $stencilUid = $event->tokenMatches[0];
 
         $stencil = $this->getStencilByUid($stencilUid);
