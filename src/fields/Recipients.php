@@ -30,6 +30,7 @@ use verbb\formie\options\IntegrationOptionSourceHelper;
 use verbb\formie\options\OptionSourceConfigHelper;
 use verbb\formie\options\OptionSourceContext;
 use verbb\formie\options\OptionSourceFieldInterface;
+use verbb\formie\options\OptionSourceProviderHelper;
 use verbb\formie\positions\Hidden as HiddenPosition;
 
 use verbb\formie\theme\context\RenderContext;
@@ -120,6 +121,18 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
             && !IntegrationOptionSourceHelper::providerSupportsUsage(
                 (string)($config['optionSource']['provider'] ?? ''),
                 IntegrationOptionSourceHelper::USAGE_RECIPIENTS,
+            )
+        ) {
+            $config['optionSource'] = null;
+            $config['optionsMode'] = OptionsMode::STATIC;
+        }
+
+        if (
+            $config['optionsMode'] === OptionsMode::DYNAMIC
+            && ($config['optionSource']['type'] ?? null) === 'provider'
+            && !OptionSourceProviderHelper::providerSupportsUsage(
+                (string)($config['optionSource']['provider'] ?? ''),
+                OptionSourceProviderHelper::USAGE_RECIPIENTS,
             )
         ) {
             $config['optionSource'] = null;
@@ -560,12 +573,14 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
             ]),
             SchemaHelper::optionDynamicSettingsField([
                 'fieldType' => static::class,
-                'sourceTypes' => ['static', 'integration'],
-                'sourceUsage' => IntegrationOptionSourceHelper::USAGE_RECIPIENTS,
+                'sourceTypes' => ['static', 'provider', 'integration'],
+                'sourceUsage' => OptionSourceProviderHelper::USAGE_RECIPIENTS,
                 'label' => Craft::t('formie', 'Options'),
                 'instructions' => Craft::t('formie', 'Define the available options for users to select from.'),
                 'resolveAction' => 'formie/fields/resolve-option-source',
                 'detachAction' => 'formie/fields/detach-option-source',
+                'hasRegisteredOptionSources' => Formie::$plugin->getOptionSources()->hasRegisteredOptionSources(OptionSourceProviderHelper::USAGE_RECIPIENTS),
+                'registeredConfigAction' => 'formie/fields/get-registered-option-source-config',
                 'hasIntegrationOptionSources' => Formie::$plugin->getOptionSources()->hasIntegrationOptionSources(IntegrationOptionSourceHelper::USAGE_RECIPIENTS),
                 'integrationConfigAction' => 'formie/fields/get-integration-option-source-config',
                 'if' => 'displayType != "hidden"',

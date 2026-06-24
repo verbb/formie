@@ -16,14 +16,14 @@ final class OptionSourceConfigHelper
     public static function allowedTypesForFieldClass(string $fieldClass): array
     {
         if ($fieldClass === Recipients::class) {
-            return ['integration'];
+            return ['provider', 'integration'];
         }
 
         if (in_array($fieldClass, [Dropdown::class, Radio::class, Checkboxes::class], true)) {
-            return ['predefined', 'integration'];
+            return ['predefined', 'provider', 'integration'];
         }
 
-        return ['predefined'];
+        return ['predefined', 'provider'];
     }
 
     public static function normalizeOptionSource(mixed $optionSource, string $optionsMode, ?array $allowedTypes = null): ?array
@@ -38,7 +38,7 @@ final class OptionSourceConfigHelper
             return null;
         }
 
-        $allowedTypes ??= ['predefined', 'integration'];
+        $allowedTypes ??= ['predefined', 'provider', 'integration'];
 
         if (!in_array($model->type, $allowedTypes, true)) {
             return null;

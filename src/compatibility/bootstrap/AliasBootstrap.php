@@ -53,7 +53,6 @@ class AliasBootstrap
 
             // Option sources replaced the standalone predefined options service in 4.0.0.
             ['verbb\\formie\\services\\OptionSources', 'verbb\\formie\\services\\PredefinedOptions'],
-            ['verbb\\formie\\events\\RegisterOptionSourceResolversEvent', 'verbb\\formie\\events\\RegisterOptionSourceProvidersEvent'],
 
             ['verbb\\formie\\options\\predefined\\Acceptability', 'verbb\\formie\\options\\Acceptability'],
             ['verbb\\formie\\options\\predefined\\Age', 'verbb\\formie\\options\\Age'],

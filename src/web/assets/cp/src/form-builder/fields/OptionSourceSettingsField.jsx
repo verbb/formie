@@ -679,8 +679,16 @@ function OptionDynamicSettingsField({ field, form }) {
     const [refreshingIntegrationData, setRefreshingIntegrationData] = useState(false);
     const [integrationListReloadToken, setIntegrationListReloadToken] = useState(0);
     const [integrationConfigReloadToken, setIntegrationConfigReloadToken] = useState(0);
+    const [registeredConfig, setRegisteredConfig] = useState(null);
+    const [loadingRegisteredList, setLoadingRegisteredList] = useState(false);
+    const [loadingRegisteredDetails, setLoadingRegisteredDetails] = useState(false);
+    const [registeredConfigProvider, setRegisteredConfigProvider] = useState(null);
+    const [registeredConfigError, setRegisteredConfigError] = useState(null);
+    const [registeredListReloadToken, setRegisteredListReloadToken] = useState(0);
+    const [registeredConfigReloadToken, setRegisteredConfigReloadToken] = useState(0);
     const integrationListLoadedRef = useRef(false);
     const integrationConfigLoadKeyRef = useRef('');
+    const registeredConfigLoadKeyRef = useRef('');
     const pendingPredefinedDefaultsRef = useRef(false);
     const pendingIntegrationDefaultsRef = useRef(false);
     const optionSourceValueRef = useRef(optionSource);
@@ -728,23 +736,29 @@ function OptionDynamicSettingsField({ field, form }) {
     const isDynamic = mode === 'dynamic' && !hasLegacyElementSource;
     const isStatic = !isDynamic && !isTemplate;
     sourceParamsRef.current = source.params;
-    const sourceType = source.type === 'integration' ? 'integration' : 'predefined';
+    const sourceType = source.type === 'integration'
+        ? 'integration'
+        : (source.type === 'provider' ? 'provider' : 'predefined');
     const predefinedProviders = Array.isArray(field.predefinedProviders) ? field.predefinedProviders : [];
     const sourceTypes = Array.isArray(field.sourceTypes) && field.sourceTypes.length > 0
         ? field.sourceTypes.map((type) => String(type))
-        : ['static', 'predefined', 'integration', 'template'];
+        : ['static', 'predefined', 'provider', 'integration', 'template'];
     const allowsSourceType = useCallback((type) => sourceTypes.includes(type), [sourceTypes]);
     const hasPredefinedOptionSources = allowsSourceType('predefined') && predefinedProviders.length > 0;
+    const hasRegisteredOptionSources = Boolean(field.hasRegisteredOptionSources);
     const hasIntegrationOptionSources = Boolean(field.hasIntegrationOptionSources);
     const resolveAction = field.resolveAction || 'formie/fields/resolve-option-source';
     const detachAction = field.detachAction || 'formie/fields/detach-option-source';
     const predefinedOptionsAction = field.predefinedOptionsAction || 'formie/fields/get-predefined-options';
+    const registeredConfigAction = field.registeredConfigAction
+        || 'formie/fields/get-registered-option-source-config';
     const integrationConfigAction = field.integrationConfigAction
         || 'formie/fields/get-integration-option-source-config';
     const fieldType = field.fieldType || form?.getFieldValue?.('type') || '';
     const sourceUsage = field.sourceUsage || '';
     const predefinedProvider = source.provider || String(predefinedProviders[0]?.value || 'countries');
     const integrationProvider = source.provider || '';
+    const registeredProvider = sourceType === 'provider' ? (source.provider || '') : '';
     const labelKey = source.params?.labelKey ?? '';
     const valueKey = source.params?.valueKey ?? '';
     const integrationId = String(source.params?.integrationId ?? '');
@@ -760,6 +774,9 @@ function OptionDynamicSettingsField({ field, form }) {
         : [];
     const integrationOptions = Array.isArray(integrationConfig?.integrationOptions)
         ? integrationConfig.integrationOptions
+        : [];
+    const registeredProviderOptions = Array.isArray(registeredConfig?.providerOptions)
+        ? registeredConfig.providerOptions
         : [];
     const selectedIntegrationOption = integrationOptions.find(
         (option) => String(option.value) === String(integrationId),
@@ -786,6 +803,47 @@ function OptionDynamicSettingsField({ field, form }) {
     const integrationParamValues = source.params && typeof source.params === 'object' && !Array.isArray(source.params)
         ? source.params
         : {};
+    const hasCurrentRegisteredDetails = sourceType === 'provider'
+        && String(registeredConfigProvider || '') === String(registeredProvider || '')
+        && Boolean(registeredConfig)
+        && !registeredConfig?.error;
+    const registeredParamFields = Array.isArray(registeredConfig?.paramFields) && hasCurrentRegisteredDetails
+        ? registeredConfig.paramFields
+        : [];
+    const registeredParamValues = sourceType === 'provider' && source.params && typeof source.params === 'object' && !Array.isArray(source.params)
+        ? source.params
+        : {};
+    const getRegisteredParamOptions = (paramField, params = registeredParamValues) => {
+        const optionsByParam = paramField?.optionsByParam;
+        const dependsOn = String(paramField?.dependsOn || '');
+
+        if (dependsOn && optionsByParam && typeof optionsByParam === 'object') {
+            const groupedOptions = optionsByParam[dependsOn] || {};
+            const dependencyValue = String(params[dependsOn] ?? '');
+
+            return Array.isArray(groupedOptions[dependencyValue]) ? groupedOptions[dependencyValue] : [];
+        }
+
+        return Array.isArray(paramField?.options) ? paramField.options : [];
+    };
+    const requiredRegisteredParamFields = registeredParamFields.filter(
+        (paramField) => paramField?.required !== false,
+    );
+    const registeredConfigComplete = Boolean(
+        registeredProvider
+        && hasCurrentRegisteredDetails
+        && requiredRegisteredParamFields.every((paramField) => {
+            const value = String(registeredParamValues[paramField.handle] ?? '');
+
+            if (!value) {
+                return false;
+            }
+
+            const options = getRegisteredParamOptions(paramField);
+
+            return options.length === 0 || options.some((option) => String(option.value) === value);
+        }),
+    );
     const getIntegrationParamOptions = (paramField, params = integrationParamValues) => {
         const optionsByParam = paramField?.optionsByParam;
         const dependsOn = String(paramField?.dependsOn || '');
@@ -894,6 +952,16 @@ function OptionDynamicSettingsField({ field, form }) {
             };
         }
 
+        if (sourceType === 'provider') {
+            return {
+                type: 'provider',
+                provider: registeredProvider,
+                params: {
+                    ...(source.params || {}),
+                },
+            };
+        }
+
         return {
             type: 'predefined',
             provider: predefinedProvider,
@@ -905,6 +973,7 @@ function OptionDynamicSettingsField({ field, form }) {
         };
     }, [
         predefinedProvider,
+        registeredProvider,
         resolvedIntegrationProvider,
         effectiveLabelKey,
         effectiveValueKey,
@@ -961,9 +1030,18 @@ function OptionDynamicSettingsField({ field, form }) {
     const displayPreviewCount = sourceType === 'predefined'
         ? predefinedPreviewRows.length
         : (typeof previewTotal === 'number' ? previewTotal : integrationPreviewRows.length);
+    const hidePreviewValues = sourceType === 'integration'
+        || (sourceType === 'provider' && sourceUsage === 'recipients');
     const predefinedProviderLabel = predefinedProviders.find(
         (option) => String(option.value) === String(predefinedProvider),
     )?.label || predefinedProvider;
+    const registeredProviderLabel = registeredProviderOptions.find(
+        (option) => String(option.value) === String(registeredProvider),
+    )?.label || registeredConfig?.label || registeredProvider;
+    const registeredProviderSelectValue = resolveSelectValue(
+        registeredProvider,
+        registeredProviderOptions,
+    );
     const loadingCurrentPredefinedConfig = sourceType === 'predefined'
         && loadingPredefinedConfig
         && !hasCurrentPredefinedConfig;
@@ -983,6 +1061,9 @@ function OptionDynamicSettingsField({ field, form }) {
             refreshingIntegrationData
             || (loadingIntegrationDetails && !hasCurrentIntegrationDetails)
         );
+    const loadingRegisteredPreview = sourceType === 'provider'
+        && (loadingRegisteredDetails && !hasCurrentRegisteredDetails);
+    const loadingRegisteredConfig = loadingRegisteredList || loadingRegisteredDetails;
     const refreshingIntegrationDetails = sourceType === 'integration'
         && loadingIntegrationDetails
         && hasCurrentIntegrationDetails;
@@ -1007,6 +1088,22 @@ function OptionDynamicSettingsField({ field, form }) {
 
         return options.length > 0 && !value;
     }, [getIntegrationParamOptions, integrationId, integrationParamValues, loadingIntegrationDetails]);
+
+    const isRegisteredParamInvalid = useCallback((paramField) => {
+        if (!registeredProvider || loadingRegisteredDetails) {
+            return false;
+        }
+
+        if (paramField?.required === false) {
+            return false;
+        }
+
+        const handle = String(paramField?.handle || '');
+        const value = String(registeredParamValues[handle] ?? '');
+        const options = getRegisteredParamOptions(paramField);
+
+        return options.length > 0 && !value;
+    }, [getRegisteredParamOptions, loadingRegisteredDetails, registeredParamValues, registeredProvider]);
 
     useEffect(() => {
         if (!isDynamic || sourceType !== 'predefined' || !predefinedProvider) {
@@ -1362,7 +1459,7 @@ function OptionDynamicSettingsField({ field, form }) {
                 value: String(row?.value ?? ''),
             })));
             setPreviewText(formatPreviewRows(rows, {
-                showValues: sourceType !== 'integration',
+                showValues: !hidePreviewValues,
             }));
             setPreviewTotal(typeof data.count === 'number' ? data.count : rows.length);
         } catch (error) {
@@ -1388,17 +1485,191 @@ function OptionDynamicSettingsField({ field, form }) {
         form,
         isDynamic,
         resolveAction,
+        hidePreviewValues,
         setOptions,
         sourceType,
     ]);
 
     useEffect(() => {
-        if (!isDynamic || sourceType !== 'integration') {
+        if (!isDynamic || sourceType !== 'provider') {
+            return undefined;
+        }
+
+        let cancelled = false;
+
+        const load = async() => {
+            setLoadingRegisteredList(true);
+            setRegisteredConfigError(null);
+
+            try {
+                const response = await Craft.sendActionRequest('POST', registeredConfigAction, {
+                    data: {
+                        ...(sourceUsage ? { sourceUsage } : {}),
+                    },
+                });
+
+                const data = response?.data || {};
+                const options = Array.isArray(data.providerOptions) ? data.providerOptions : [];
+
+                if (cancelled) {
+                    return;
+                }
+
+                setRegisteredConfig((prev) => ({
+                    ...(prev || {}),
+                    providerOptions: options,
+                }));
+
+                if (registeredProvider || options.length === 0) {
+                    return;
+                }
+
+                setOptionSource({
+                    type: 'provider',
+                    provider: String(options[0]?.value || ''),
+                    params: {},
+                });
+                setRegisteredConfigReloadToken((token) => token + 1);
+            } catch (error) {
+                if (!cancelled) {
+                    setRegisteredConfig(null);
+                    setRegisteredConfigProvider(null);
+                    setRegisteredConfigError(error?.message || Craft.t('formie', 'Unable to load registered option sources.'));
+                }
+            } finally {
+                if (!cancelled) {
+                    setLoadingRegisteredList(false);
+                }
+            }
+        };
+
+        load();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [
+        isDynamic,
+        registeredConfigAction,
+        registeredListReloadToken,
+        registeredProvider,
+        setOptionSource,
+        sourceType,
+        sourceUsage,
+    ]);
+
+    useEffect(() => {
+        if (!isDynamic || sourceType !== 'provider' || !registeredProvider) {
+            return undefined;
+        }
+
+        const loadKey = `${registeredProvider}:${registeredConfigReloadToken}`;
+
+        if (registeredConfigLoadKeyRef.current === loadKey && hasCurrentRegisteredDetails) {
+            return undefined;
+        }
+
+        let cancelled = false;
+
+        const load = async() => {
+            setLoadingRegisteredDetails(true);
+            setRegisteredConfigError(null);
+
+            try {
+                const response = await Craft.sendActionRequest('POST', registeredConfigAction, {
+                    data: {
+                        provider: registeredProvider,
+                        ...(sourceUsage ? { sourceUsage } : {}),
+                    },
+                });
+
+                const data = response?.data || {};
+
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                if (cancelled) {
+                    return;
+                }
+
+                setRegisteredConfig((prev) => ({
+                    ...(prev || {}),
+                    ...data,
+                    providerOptions: Array.isArray(data.providerOptions)
+                        ? data.providerOptions
+                        : (prev?.providerOptions || []),
+                }));
+                setRegisteredConfigProvider(String(data.provider || registeredProvider));
+                registeredConfigLoadKeyRef.current = loadKey;
+
+                const defaults = data.defaults || {};
+                const currentParams = sourceParamsRef.current || {};
+                const nextParamFields = Array.isArray(data.paramFields) ? data.paramFields : [];
+                const nextParams = { ...currentParams };
+
+                nextParamFields.forEach((paramField) => {
+                    const handle = String(paramField?.handle || '');
+
+                    if (!handle || nextParams[handle]) {
+                        return;
+                    }
+
+                    if (defaults[handle] !== undefined && defaults[handle] !== null && defaults[handle] !== '') {
+                        nextParams[handle] = defaults[handle];
+                    }
+                });
+
+                if (!isSameFormValue(currentParams, nextParams)) {
+                    updateSource({
+                        type: 'provider',
+                        provider: registeredProvider,
+                        params: nextParams,
+                    });
+                }
+            } catch (error) {
+                if (!cancelled) {
+                    setRegisteredConfigProvider(null);
+                    registeredConfigLoadKeyRef.current = '';
+                    setRegisteredConfigError(error?.message || Craft.t('formie', 'Unable to load registered option source settings.'));
+                }
+            } finally {
+                if (!cancelled) {
+                    setLoadingRegisteredDetails(false);
+                }
+            }
+        };
+
+        load();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [
+        hasCurrentRegisteredDetails,
+        isDynamic,
+        registeredConfigAction,
+        registeredConfigReloadToken,
+        registeredProvider,
+        sourceType,
+        sourceUsage,
+        updateSource,
+    ]);
+
+    useEffect(() => {
+        if (!isDynamic || (sourceType !== 'integration' && sourceType !== 'provider')) {
             previewRequestIdRef.current += 1;
             return;
         }
 
-        if (!integrationConfigComplete || loadingIntegrationPreview) {
+        const configComplete = sourceType === 'integration'
+            ? integrationConfigComplete
+            : registeredConfigComplete;
+        const loadingPreview = sourceType === 'integration'
+            ? loadingIntegrationPreview
+            : loadingRegisteredDetails;
+
+        if (!configComplete || loadingPreview) {
             previewRequestIdRef.current += 1;
             if (form) {
                 form.__formiePreviewOptions = [];
@@ -1413,10 +1684,11 @@ function OptionDynamicSettingsField({ field, form }) {
         resolveDynamicPreview();
     }, [
         integrationConfigComplete,
-        integrationId,
+        registeredConfigComplete,
         form,
         isDynamic,
         loadingIntegrationPreview,
+        loadingRegisteredDetails,
         resolveDynamicPreview,
         setOptions,
         source.params,
@@ -1441,6 +1713,10 @@ function OptionDynamicSettingsField({ field, form }) {
             params: {},
         });
         setIntegrationConfig(null);
+        setRegisteredConfig(null);
+        setRegisteredConfigProvider(null);
+        setRegisteredConfigError(null);
+        registeredConfigLoadKeyRef.current = '';
         setPredefinedReloadToken((token) => token + 1);
     };
 
@@ -1463,10 +1739,42 @@ function OptionDynamicSettingsField({ field, form }) {
         });
         setPredefinedConfig(null);
         setPredefinedConfigProvider(null);
+        setRegisteredConfig(null);
+        setRegisteredConfigProvider(null);
+        setRegisteredConfigError(null);
+        registeredConfigLoadKeyRef.current = '';
         setIntegrationConfig(null);
         setIntegrationConfigError(null);
         integrationListLoadedRef.current = false;
         setIntegrationListReloadToken((token) => token + 1);
+    };
+
+    const enableProvider = () => {
+        if (!allowsSourceType('provider') || !hasRegisteredOptionSources) {
+            disableDynamic();
+            return;
+        }
+
+        captureStaticOptionsForRestore();
+        pendingPredefinedDefaultsRef.current = false;
+        pendingIntegrationDefaultsRef.current = false;
+        setIntegrationSetupPending(false);
+        setOptionsModeIfChanged('dynamic');
+        setOptions([]);
+        setOptionSource({
+            type: 'provider',
+            provider: '',
+            params: {},
+        });
+        setPredefinedConfig(null);
+        setPredefinedConfigProvider(null);
+        setIntegrationConfig(null);
+        setIntegrationConfigError(null);
+        setRegisteredConfig(null);
+        setRegisteredConfigProvider(null);
+        setRegisteredConfigError(null);
+        registeredConfigLoadKeyRef.current = '';
+        setRegisteredListReloadToken((token) => token + 1);
     };
 
     const disableDynamic = () => {
@@ -1480,6 +1788,10 @@ function OptionDynamicSettingsField({ field, form }) {
         setPredefinedConfigProvider(null);
         setIntegrationConfig(null);
         setIntegrationConfigError(null);
+        setRegisteredConfig(null);
+        setRegisteredConfigProvider(null);
+        setRegisteredConfigError(null);
+        registeredConfigLoadKeyRef.current = '';
         setPreviewText('');
         setPreviewTotal(null);
         setPreviewError(null);
@@ -1523,7 +1835,61 @@ function OptionDynamicSettingsField({ field, form }) {
             return;
         }
 
+        if (nextType === 'provider') {
+            enableProvider();
+            return;
+        }
+
         enablePredefined();
+    };
+
+    const handleRegisteredProviderChange = (nextProvider) => {
+        pendingPredefinedDefaultsRef.current = false;
+        pendingIntegrationDefaultsRef.current = false;
+        setPreviewError(null);
+
+        if (String(nextProvider) !== String(registeredProvider)) {
+            setOptions([]);
+            setOptionSource({
+                type: 'provider',
+                provider: String(nextProvider),
+                params: {},
+            });
+        }
+
+        setRegisteredConfigReloadToken((token) => token + 1);
+    };
+
+    const handleRegisteredParamChange = (paramField, nextValue) => {
+        const handle = String(paramField?.handle || '');
+
+        if (!handle) {
+            return;
+        }
+
+        const nextParams = {
+            ...registeredParamValues,
+            [handle]: nextValue,
+        };
+        const patch = {
+            [handle]: nextValue,
+        };
+
+        registeredParamFields.forEach((candidateField) => {
+            if (String(candidateField?.dependsOn || '') !== handle) {
+                return;
+            }
+
+            const candidateHandle = String(candidateField?.handle || '');
+            const candidateOptions = getRegisteredParamOptions(candidateField, nextParams);
+
+            if (candidateHandle) {
+                patch[candidateHandle] = candidateOptions[0]?.value || '';
+                nextParams[candidateHandle] = patch[candidateHandle];
+            }
+        });
+
+        updateParams(patch);
     };
 
     const handlePredefinedProviderChange = (provider) => {
@@ -1692,7 +2058,11 @@ function OptionDynamicSettingsField({ field, form }) {
 
     const optionsType = isTemplate
         ? 'template'
-        : (!isDynamic ? 'static' : (sourceType === 'integration' ? 'integration' : 'predefined'));
+        : (!isDynamic ? 'static' : (
+            sourceType === 'integration'
+                ? 'integration'
+                : (sourceType === 'provider' ? 'provider' : 'predefined')
+        ));
 
     const optionsTypeOptions = [
         {
@@ -1705,6 +2075,13 @@ function OptionDynamicSettingsField({ field, form }) {
         optionsTypeOptions.push({
             label: Craft.t('formie', 'Predefined'),
             value: 'predefined',
+        });
+    }
+
+    if (allowsSourceType('provider') && hasRegisteredOptionSources) {
+        optionsTypeOptions.push({
+            label: Craft.t('formie', 'Custom Provider'),
+            value: 'provider',
         });
     }
 
@@ -1732,19 +2109,23 @@ function OptionDynamicSettingsField({ field, form }) {
 
     const convertSourceLabel = sourceType === 'integration'
         ? selectedIntegrationLabel
-        : predefinedProviderLabel;
+        : (sourceType === 'provider' ? registeredProviderLabel : predefinedProviderLabel);
 
     const previewLoading = sourceType === 'predefined'
         ? loadingPredefinedConfig && displayPreviewRows.length === 0
-        : (busy || loadingIntegrationPreview);
+        : (busy || loadingIntegrationPreview || loadingRegisteredPreview);
 
     const previewLoadingMessage = sourceType === 'predefined'
         ? Craft.t('formie', 'Loading options for {name}…', { name: predefinedProviderLabel })
-        : Craft.t('formie', 'Loading options for {name}…', { name: selectedIntegrationLabel || Craft.t('formie', 'integration') });
+        : (sourceType === 'provider'
+            ? Craft.t('formie', 'Loading options for {name}…', { name: registeredProviderLabel || Craft.t('formie', 'custom provider') })
+            : Craft.t('formie', 'Loading options for {name}…', { name: selectedIntegrationLabel || Craft.t('formie', 'integration') }));
 
     const previewPlaceholder = sourceType === 'integration' && !integrationConfigComplete
         ? (integrationConfig?.warning || Craft.t('formie', 'Complete the integration settings to preview options.'))
-        : Craft.t('formie', 'Resolved options will appear here.');
+        : (sourceType === 'provider' && !registeredConfigComplete
+            ? (registeredConfig?.warning || Craft.t('formie', 'Complete the custom provider settings to preview options.'))
+            : Craft.t('formie', 'Resolved options will appear here.'));
 
     const integrationChainSteps = useMemo(() => {
         if (sourceType !== 'integration') {
@@ -1842,6 +2223,88 @@ function OptionDynamicSettingsField({ field, form }) {
     const showIntegrationChainSkeleton = initialIntegrationSetupPending
         || (loadingIntegrationList && integrationOptions.length === 0 && !integrationId);
 
+    const showRegisteredChainSkeleton = sourceType === 'provider'
+        && loadingRegisteredList
+        && registeredProviderOptions.length === 0
+        && !registeredProvider;
+
+    const registeredChainSteps = useMemo(() => {
+        if (sourceType !== 'provider') {
+            return [];
+        }
+
+        const steps = [];
+
+        if (registeredProviderOptions.length > 1 || !registeredProvider) {
+            steps.push({
+                key: 'provider',
+                name: 'registeredProvider',
+                label: Craft.t('formie', 'Provider'),
+                placeholder: Craft.t('formie', 'Select a provider'),
+                value: registeredProviderSelectValue,
+                options: registeredProviderOptions,
+                disabled: loadingRegisteredList && !registeredProviderSelectValue,
+                onChange: handleRegisteredProviderChange,
+                isInvalid: Boolean(registeredConfigError && !registeredProviderSelectValue),
+                errorMessage: registeredConfigError && !registeredProviderSelectValue ? registeredConfigError : '',
+            });
+        }
+
+        if (hasCurrentRegisteredDetails && registeredProvider) {
+            registeredParamFields.forEach((paramField) => {
+                const handle = String(paramField?.handle || '');
+                const options = getRegisteredParamOptions(paramField);
+                const value = resolveSelectValue(
+                    registeredParamValues[handle],
+                    options,
+                );
+
+                if (!handle || String(paramField?.type || 'select') !== 'select') {
+                    return;
+                }
+
+                if (options.length === 0 && paramField?.hideWhenEmpty !== false) {
+                    return;
+                }
+
+                const paramInvalid = isRegisteredParamInvalid(paramField);
+
+                steps.push({
+                    key: handle,
+                    name: `registeredParam-${handle}`,
+                    label: paramField.label || handle,
+                    placeholder: paramField.placeholder || Craft.t('formie', 'Select…'),
+                    value,
+                    options,
+                    disabled: loadingRegisteredDetails,
+                    onChange: (nextValue) => handleRegisteredParamChange(paramField, nextValue),
+                    isInvalid: paramInvalid,
+                    errorMessage: paramInvalid
+                        ? Craft.t('formie', 'Select a {name}.', { name: (paramField.label || handle).toLowerCase() })
+                        : '',
+                });
+            });
+        }
+
+        return steps;
+    }, [
+        getRegisteredParamOptions,
+        handleRegisteredParamChange,
+        handleRegisteredProviderChange,
+        hasCurrentRegisteredDetails,
+        isRegisteredParamInvalid,
+        loadingRegisteredDetails,
+        loadingRegisteredList,
+        registeredConfigError,
+        registeredParamFields,
+        registeredParamValues,
+        registeredProvider,
+        registeredProviderOptions,
+        registeredProviderSelectValue,
+        resolveSelectValue,
+        sourceType,
+    ]);
+
     return (
         <div className="space-y-4">
                 <SettingSelectField
@@ -1933,6 +2396,53 @@ function OptionDynamicSettingsField({ field, form }) {
                             </div>
                         )}
 
+                        {sourceType === 'provider' && (
+                            <div className="space-y-2">
+                                <FieldRoot name="registeredSourceSettings">
+                                    <FieldHeader className="space-y-0.5">
+                                        <FieldLabel>{Craft.t('formie', 'Source')}</FieldLabel>
+                                        <FieldInstructions>
+                                            {Craft.t('formie', 'Choose a registered custom provider and configure its settings.')}
+                                        </FieldInstructions>
+                                    </FieldHeader>
+                                </FieldRoot>
+                                {showRegisteredChainSkeleton ? (
+                                    <IntegrationChainSkeleton
+                                        message={Craft.t('formie', 'Loading custom providers…')}
+                                    />
+                                ) : (
+                                    <>
+                                        {registeredChainSteps.length > 0 ? (
+                                            <IntegrationSourceChain steps={registeredChainSteps} />
+                                        ) : registeredProvider ? (
+                                            <p className="text-sm text-gray-600">{registeredProviderLabel}</p>
+                                        ) : null}
+
+                                        {registeredConfigError && !loadingRegisteredConfig && registeredProvider && (
+                                            <p className="text-sm text-red-600">{registeredConfigError}</p>
+                                        )}
+
+                                        {loadingRegisteredDetails && hasCurrentRegisteredDetails && (
+                                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                                                <Spinner size="xxs" className="mx-0" />
+                                                <span>{Craft.t('formie', 'Refreshing {name} options…', { name: registeredProviderLabel })}</span>
+                                            </div>
+                                        )}
+
+                                        {!loadingRegisteredList && registeredProviderOptions.length === 0 && (
+                                            <p className="text-sm text-amber-700">
+                                                {Craft.t('formie', 'No custom providers are registered for this field type.')}
+                                            </p>
+                                        )}
+
+                                        {registeredConfig?.warning && !loadingRegisteredDetails && (
+                                            <p className="text-sm text-amber-700">{registeredConfig.warning}</p>
+                                        )}
+                                    </>
+                                )}
+                            </div>
+                        )}
+
                         <DynamicOptionsPreview
                             rows={displayPreviewRows}
                             totalCount={displayPreviewCount}
@@ -1945,9 +2455,9 @@ function OptionDynamicSettingsField({ field, form }) {
                             sourceType={sourceType}
                             busy={busy}
                             loadingIntegrationConfig={loadingIntegrationConfig}
-                            controlsLoading={loadingPredefinedConfig || loadingIntegrationConfig}
+                            controlsLoading={loadingPredefinedConfig || loadingIntegrationConfig || loadingRegisteredConfig}
                             selectedIntegrationHandle={selectedIntegrationHandle}
-                            showValuesInPreview={sourceType !== 'integration'}
+                            showValuesInPreview={!hidePreviewValues}
                             mappingSettings={
                                 sourceType === 'predefined'
                                 && predefinedControlsReady

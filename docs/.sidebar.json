@@ -351,6 +351,7 @@
             "developers/field-defaults",
             "developers/reference-tokens",
             "developers/custom-variable-sources",
+            "developers/option-source-providers",
             "developers/custom-client-event-templates",
             {
                 "title": "Custom Integration",

@@ -158,6 +158,34 @@ class FieldsController extends Controller
         );
     }
 
+    public function actionGetRegisteredOptionSourceConfig(): Response
+    {
+        $this->requireAcceptsJson();
+
+        $provider = (string)($this->request->getBodyParam('provider')
+            ?? $this->request->getQueryParam('provider')
+            ?? $this->request->getParam('provider', ''));
+        $sourceUsage = (string)($this->request->getBodyParam('sourceUsage')
+            ?? $this->request->getQueryParam('sourceUsage')
+            ?? $this->request->getParam('sourceUsage', ''));
+        $sourceUsage = $sourceUsage !== '' ? $sourceUsage : null;
+        $params = $this->request->getBodyParam('params', []);
+
+        if (!is_array($params)) {
+            throw new BadRequestHttpException('Invalid params payload.');
+        }
+
+        if (trim($provider) === '') {
+            return $this->asJson([
+                'providerOptions' => Formie::$plugin->getOptionSources()->getRegisteredProviderOptions($sourceUsage),
+            ]);
+        }
+
+        return $this->asJson(
+            Formie::$plugin->getOptionSources()->getRegisteredProviderBuilderConfig($provider, $params, $sourceUsage),
+        );
+    }
+
     public function actionGetIntegrationOptionSourceConfig(): Response
     {
         $this->requireAcceptsJson();

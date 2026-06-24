@@ -28,6 +28,7 @@ use verbb\formie\models\OptionSource;
 use verbb\formie\options\OptionSourceConfigHelper;
 use verbb\formie\options\OptionSourceContext;
 use verbb\formie\options\OptionSourceFieldInterface;
+use verbb\formie\options\OptionSourceProviderHelper;
 use verbb\formie\options\OptionSourceValidationMode;
 
 use Craft;
@@ -1051,6 +1052,8 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Opti
                 'detachAction' => 'formie/fields/detach-option-source',
                 'predefinedOptionsAction' => 'formie/fields/get-predefined-options',
                 'predefinedProviders' => Formie::$plugin->getOptionSources()->getPredefinedProviderOptions(),
+                'hasRegisteredOptionSources' => Formie::$plugin->getOptionSources()->hasRegisteredOptionSources(OptionSourceProviderHelper::USAGE_OPTIONS),
+                'registeredConfigAction' => 'formie/fields/get-registered-option-source-config',
                 'hasIntegrationOptionSources' => Formie::$plugin->getOptionSources()->hasIntegrationOptionSources(),
                 'integrationConfigAction' => 'formie/fields/get-integration-option-source-config',
             ]),

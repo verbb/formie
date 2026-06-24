@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\services;
 
+use verbb\formie\events\RegisterOptionSourceProvidersEvent;
 use verbb\formie\events\RegisterOptionSourceResolversEvent;
 use verbb\formie\events\RegisterPredefinedOptionsEvent;
 use verbb\formie\Formie;
@@ -14,9 +15,11 @@ use verbb\formie\options\OptionSourceResolverInterface;
 use verbb\formie\options\OptionSourceValidationMode;
 use verbb\formie\options\ElementOptionSourceHelper;
 use verbb\formie\options\IntegrationOptionSourceHelper;
+use verbb\formie\options\OptionSourceProviderHelper;
 use verbb\formie\options\resolvers\PredefinedOptionSourceResolver;
 use verbb\formie\options\resolvers\ElementOptionSourceResolver;
 use verbb\formie\options\resolvers\IntegrationOptionSourceResolver;
+use verbb\formie\options\resolvers\RegisteredOptionSourceResolver;
 
 use Craft;
 use craft\base\Component;
@@ -27,6 +30,7 @@ class OptionSources extends Component
     // =========================================================================
 
     public const EVENT_REGISTER_OPTION_SOURCE_RESOLVERS = 'registerOptionSourceResolvers';
+    public const EVENT_REGISTER_OPTION_SOURCE_PROVIDERS = 'registerOptionSourceProviders';
     public const EVENT_REGISTER_PREDEFINED_OPTIONS = 'registerPredefinedOptions';
 
 
@@ -36,6 +40,7 @@ class OptionSources extends Component
     private array $_resolvers = [];
     private array $_cache = [];
     private array $_predefinedOptions = [];
+    private array $_registeredProviderClasses = [];
 
 
     // Public Methods
@@ -50,6 +55,7 @@ class OptionSources extends Component
         $resolvers = [
             new PredefinedOptionSourceResolver(),
             new ElementOptionSourceResolver(),
+            new RegisteredOptionSourceResolver(),
             new IntegrationOptionSourceResolver(),
         ];
 
@@ -179,6 +185,46 @@ class OptionSources extends Component
     public function getElementProviderBuilderConfig(string $provider): array
     {
         return ElementOptionSourceHelper::getBuilderConfig($provider);
+    }
+
+    public function getRegisteredProviderClasses(): array
+    {
+        if ($this->_registeredProviderClasses !== []) {
+            return $this->_registeredProviderClasses;
+        }
+
+        $event = new RegisterOptionSourceProvidersEvent([
+            'providers' => [],
+        ]);
+
+        $this->trigger(self::EVENT_REGISTER_OPTION_SOURCE_PROVIDERS, $event);
+
+        $this->_registeredProviderClasses = array_values(array_unique(array_filter(
+            $event->providers,
+            static fn(mixed $class): bool => is_string($class) && class_exists($class),
+        )));
+
+        return $this->_registeredProviderClasses;
+    }
+
+    public function clearRegisteredProviderClassesCache(): void
+    {
+        $this->_registeredProviderClasses = [];
+    }
+
+    public function hasRegisteredOptionSources(?string $usage = null): bool
+    {
+        return OptionSourceProviderHelper::getProviderOptions($usage) !== [];
+    }
+
+    public function getRegisteredProviderOptions(?string $usage = null): array
+    {
+        return OptionSourceProviderHelper::getProviderOptions($usage);
+    }
+
+    public function getRegisteredProviderBuilderConfig(string $provider, array $params = [], ?string $usage = null): array
+    {
+        return OptionSourceProviderHelper::getBuilderConfig($provider, $params, $usage);
     }
 
     public function hasIntegrationOptionSources(?string $usage = null): bool
