@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 1.0.8 - 2026-06-24
+
+### Changed
+- Released alongside `@verbb/formie-browser` to keep package versions aligned.
+
 ## 1.0.7 - 2026-06-18
 
 ### Changed

@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 4.0.0-beta.8 - 2026-06-24
 
 ### Added
 - Add **Lock Field Settings** and **Editor Note** on the field editor **Advanced** tab to help content authors protect important field configuration. Locking dims field settings until **Unlock** is clicked for the session; notes appear in the field editor banner. ([#1189](https://github.com/verbb/formie/issues/1189))
