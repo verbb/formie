@@ -80,6 +80,7 @@ Global email rules apply to every **Email Address** field on every form during t
 
 Configure them under **Formie → Settings → Spam Protection → Content Rules → Email Rules**:
 
+- **Allowed domains** — one domain or full email address per line (for example `company.com` or `user@company.com`). Allowlisted addresses skip global blocked-domain and free-provider checks only; keywords, captchas, guards, and other spam rules still apply.
 - **Blocked domains** — one domain per line (for example `mailinator.com`)
 - **Block free email providers** — rejects addresses from Formie’s maintained free/disposable provider list
 

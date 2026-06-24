@@ -131,6 +131,8 @@ class Settings extends Model
     public bool $enableBlockedEmailDomains = false;
     public string $blockedEmailDomains = '';
     public bool $enableBlockFreeEmailDomains = false;
+    public bool $enableAllowedEmailDomains = false;
+    public string $allowedEmailDomains = '';
     public bool $enableFormSubmitExpiration = false;
     public int $formSubmitExpiration = 86400;
     public bool $enableSuspiciousTextDetection = false;

@@ -49,8 +49,15 @@ class SpamHelper
         }
 
         $emailDomains = Formie::$plugin->getEmailDomains();
+        $allowlist = $settings->enableAllowedEmailDomains
+            ? self::parseEmailAllowlist($settings->allowedEmailDomains)
+            : ['domains' => [], 'emails' => []];
 
         foreach (self::collectSubmissionEmailAddresses($submission) as $email) {
+            if ($settings->enableAllowedEmailDomains && self::emailMatchesAllowlist($email, $allowlist)) {
+                continue;
+            }
+
             $domain = $emailDomains->extractDomainFromEmail($email);
 
             if (!$domain) {
@@ -120,6 +127,58 @@ class SpamHelper
         }
 
         return array_values(array_unique($normalized));
+    }
+
+    public static function parseEmailAllowlist(?string $allowlist): array
+    {
+        $emailDomains = Formie::$plugin->getEmailDomains();
+        $domains = [];
+        $emails = [];
+
+        foreach (self::_getArrayFromMultiline($allowlist ?? '') as $line) {
+            if (str_contains($line, '@')) {
+                $email = mb_strtolower(trim($line));
+
+                if ($email !== '') {
+                    $emails[] = $email;
+                }
+
+                continue;
+            }
+
+            $domain = $emailDomains->normalizeDomain($line);
+
+            if ($domain) {
+                $domains[] = $domain;
+            }
+        }
+
+        return [
+            'domains' => array_values(array_unique($domains)),
+            'emails' => array_values(array_unique($emails)),
+        ];
+    }
+
+    public static function emailMatchesAllowlist(string $email, array $allowlist): bool
+    {
+        $emailDomains = Formie::$plugin->getEmailDomains();
+        $normalizedEmail = mb_strtolower(trim($email));
+
+        if ($normalizedEmail === '') {
+            return false;
+        }
+
+        if (in_array($normalizedEmail, $allowlist['emails'] ?? [], true)) {
+            return true;
+        }
+
+        $domain = $emailDomains->extractDomainFromEmail($normalizedEmail);
+
+        if (!$domain) {
+            return false;
+        }
+
+        return in_array($domain, $allowlist['domains'] ?? [], true);
     }
 
     public static function collectSubmissionEmailAddresses(Submission $submission): array

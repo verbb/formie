@@ -80,6 +80,26 @@
         <p>{{ 'Apply these rules to every Email Address field on every form. Per-field email validation settings still run separately during field validation.' | t('formie') }}</p>
 
         {{ forms.lightswitchField({
+            label: 'Allowed Domains' | t('formie'),
+            instructions: 'Allowlisted addresses skip global blocked-domain and free-provider checks only. Other spam rules such as keywords, captchas, and submission guards still apply.' | t('formie'),
+            name: 'enableAllowedEmailDomains',
+            on: settings.enableAllowedEmailDomains,
+            toggle: 'enable-allowed-email-domains',
+            warning: macros.configWarning('enableAllowedEmailDomains', 'formie'),
+        }) }}
+
+        <div id="enable-allowed-email-domains" class="field {{ not settings.enableAllowedEmailDomains ? 'hidden' }}">
+            {{ forms.textareaField({
+                label: 'Allowed Domains' | t('formie'),
+                instructions: 'Enter one domain or full email address per line, such as `company.com` or `user@company.com`.' | t('formie'),
+                name: 'allowedEmailDomains',
+                rows: 6,
+                value: settings.allowedEmailDomains,
+                warning: macros.configWarning('allowedEmailDomains', 'formie'),
+            }) }}
+        </div>
+
+        {{ forms.lightswitchField({
             label: 'Blocked Domains' | t('formie'),
             instructions: 'Mark submissions as spam when any Email Address field uses a domain listed below.' | t('formie'),
             name: 'enableBlockedEmailDomains',

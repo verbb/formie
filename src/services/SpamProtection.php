@@ -39,6 +39,8 @@ class SpamProtection extends Component
         'enableBlockedEmailDomains',
         'blockedEmailDomains',
         'enableBlockFreeEmailDomains',
+        'enableAllowedEmailDomains',
+        'allowedEmailDomains',
         'enableFormSubmitExpiration',
         'formSubmitExpiration',
         'enableSuspiciousTextDetection',
@@ -60,6 +62,7 @@ class SpamProtection extends Component
     private ?bool $_guardColumnsExist = null;
     private ?bool $_extendedSpamColumnsExist = null;
     private ?bool $_abuseControlColumnsExist = null;
+    private ?bool $_emailAllowlistColumnsExist = null;
 
 
     // Public Methods
@@ -120,6 +123,13 @@ class SpamProtection extends Component
                 'globalSubmissionThrottleWindowSeconds',
                 'enableIpSubmissionThrottling',
                 'ipSubmissionThrottleMinutes',
+            ]);
+        }
+
+        if ($this->_emailAllowlistColumnsExist()) {
+            $select = array_merge($select, [
+                'enableAllowedEmailDomains',
+                'allowedEmailDomains',
             ]);
         }
 
@@ -203,6 +213,7 @@ class SpamProtection extends Component
             'spamKeywords' => (string)$row['spamKeywords'],
             ...$this->_guardValuesFromRow($row),
             ...$this->_extendedSpamValuesFromRow($row),
+            ...$this->_emailAllowlistValuesFromRow($row),
             ...$this->_abuseControlValuesFromRow($row),
         ];
     }
@@ -224,6 +235,8 @@ class SpamProtection extends Component
             'enableBlockedEmailDomains' => false,
             'blockedEmailDomains' => '',
             'enableBlockFreeEmailDomains' => false,
+            'enableAllowedEmailDomains' => false,
+            'allowedEmailDomains' => '',
             'enableFormSubmitExpiration' => false,
             'formSubmitExpiration' => 86400,
             'enableSuspiciousTextDetection' => false,
@@ -306,6 +319,7 @@ class SpamProtection extends Component
             $record->spamKeywords = (string)($values['spamKeywords'] ?? '');
             $this->_assignGuardValues($record, $values);
             $this->_assignExtendedSpamValues($record, $values);
+            $this->_assignEmailAllowlistValues($record, $values);
             $this->_assignAbuseControlValues($record, $values);
 
             $record->save(false);
@@ -372,6 +386,13 @@ class SpamProtection extends Component
             $insert = array_merge($insert, $this->_abuseControlValuesFromArray($values));
         }
 
+        if ($this->_emailAllowlistColumnsExist()) {
+            $insert = array_merge($insert, [
+                'enableAllowedEmailDomains' => (bool)$values['enableAllowedEmailDomains'],
+                'allowedEmailDomains' => (string)$values['allowedEmailDomains'],
+            ]);
+        }
+
         Craft::$app->getDb()->createCommand()
             ->insert(Table::FORMIE_SPAM_SETTINGS, $insert)
             ->execute();
@@ -406,6 +427,8 @@ class SpamProtection extends Component
             'enableBlockedEmailDomains' => (bool)($values['enableBlockedEmailDomains'] ?? false),
             'blockedEmailDomains' => (string)($values['blockedEmailDomains'] ?? ''),
             'enableBlockFreeEmailDomains' => (bool)($values['enableBlockFreeEmailDomains'] ?? false),
+            'enableAllowedEmailDomains' => (bool)($values['enableAllowedEmailDomains'] ?? false),
+            'allowedEmailDomains' => (string)($values['allowedEmailDomains'] ?? ''),
             'enableFormSubmitExpiration' => (bool)($values['enableFormSubmitExpiration'] ?? false),
             'formSubmitExpiration' => (int)($values['formSubmitExpiration'] ?? 86400),
             ...$this->_abuseControlValuesFromArray($values, true),
@@ -440,6 +463,7 @@ class SpamProtection extends Component
             $record->spamKeywords = (string)($data['spamKeywords'] ?? '');
             $this->_assignGuardValues($record, $data);
             $this->_assignExtendedSpamValues($record, $data);
+            $this->_assignEmailAllowlistValues($record, $data);
             $this->_assignAbuseControlValues($record, $data);
             $record->save(false);
 
@@ -476,6 +500,7 @@ class SpamProtection extends Component
         $record->spamKeywords = (string)$defaults['spamKeywords'];
         $this->_assignGuardValues($record, $defaults);
         $this->_assignExtendedSpamValues($record, $defaults);
+        $this->_assignEmailAllowlistValues($record, $defaults);
         $this->_assignAbuseControlValues($record, $defaults);
         $record->save(false);
 
@@ -492,6 +517,7 @@ class SpamProtection extends Component
         $this->_guardColumnsExist = null;
         $this->_extendedSpamColumnsExist = null;
         $this->_abuseControlColumnsExist = null;
+        $this->_emailAllowlistColumnsExist = null;
     }
 
     private function _guardColumnsExist(): bool
@@ -598,6 +624,49 @@ class SpamProtection extends Component
         $record->formSubmitExpiration = (int)($values['formSubmitExpiration'] ?? 86400);
     }
 
+    private function _emailAllowlistColumnsExist(): bool
+    {
+        if ($this->_emailAllowlistColumnsExist !== null) {
+            return $this->_emailAllowlistColumnsExist;
+        }
+
+        if (!DbSchema::tableExists(Table::FORMIE_SPAM_SETTINGS)) {
+            return $this->_emailAllowlistColumnsExist = false;
+        }
+
+        return $this->_emailAllowlistColumnsExist = DbSchema::columnExists(
+            Table::FORMIE_SPAM_SETTINGS,
+            'enableAllowedEmailDomains',
+        );
+    }
+
+    private function _emailAllowlistValuesFromRow(array $row): array
+    {
+        $defaults = $this->getDefaultValues();
+
+        if (!$this->_emailAllowlistColumnsExist()) {
+            return [
+                'enableAllowedEmailDomains' => (bool)$defaults['enableAllowedEmailDomains'],
+                'allowedEmailDomains' => (string)$defaults['allowedEmailDomains'],
+            ];
+        }
+
+        return [
+            'enableAllowedEmailDomains' => (bool)($row['enableAllowedEmailDomains'] ?? false),
+            'allowedEmailDomains' => (string)($row['allowedEmailDomains'] ?? ''),
+        ];
+    }
+
+    private function _assignEmailAllowlistValues(SpamSettingsRecord $record, array $values): void
+    {
+        if (!$this->_emailAllowlistColumnsExist()) {
+            return;
+        }
+
+        $record->enableAllowedEmailDomains = (bool)($values['enableAllowedEmailDomains'] ?? false);
+        $record->allowedEmailDomains = (string)($values['allowedEmailDomains'] ?? '');
+    }
+
     private function _abuseControlColumnsExist(): bool
     {
         if ($this->_abuseControlColumnsExist !== null) {
@@ -698,6 +767,7 @@ class SpamProtection extends Component
             $record->spamKeywords = (string)($values['spamKeywords'] ?? '');
             $this->_assignGuardValues($record, $values);
             $this->_assignExtendedSpamValues($record, $values);
+            $this->_assignEmailAllowlistValues($record, $values);
             $this->_assignAbuseControlValues($record, $values);
             $record->save(false);
 

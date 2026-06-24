@@ -236,6 +236,8 @@ class Install extends Migration
             'enableBlockedEmailDomains' => $this->boolean()->notNull()->defaultValue(false),
             'blockedEmailDomains' => $this->mediumText(),
             'enableBlockFreeEmailDomains' => $this->boolean()->notNull()->defaultValue(false),
+            'enableAllowedEmailDomains' => $this->boolean()->notNull()->defaultValue(false),
+            'allowedEmailDomains' => $this->mediumText(),
             'enableFormSubmitExpiration' => $this->boolean()->notNull()->defaultValue(false),
             'formSubmitExpiration' => $this->integer()->notNull()->defaultValue(86400),
             'enableSuspiciousTextDetection' => $this->boolean()->notNull()->defaultValue(false),

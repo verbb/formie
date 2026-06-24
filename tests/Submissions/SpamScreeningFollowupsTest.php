@@ -106,3 +106,114 @@ it('persists extended spam screening settings in the spam protection store', fun
         ->and($settings->enableFormSubmitExpiration)->toBeTrue()
         ->and($settings->formSubmitExpiration)->toBe(120);
 });
+
+it('skips global email block rules for allowlisted addresses', function (): void {
+    $form = createGuardTestForm();
+    $form->setFormLayout(new FieldLayout([
+        'pages' => [[
+            'label' => 'Page 1',
+            'settings' => [],
+            'rows' => [[
+                'fields' => [[
+                    'type' => EmailField::class,
+                    'handle' => 'email',
+                    'label' => 'Email',
+                ]],
+            ]],
+        ]],
+    ]));
+
+    $submission = new Submission();
+    $submission->setForm($form);
+    $submission->setFieldValue('email', 'trusted@gmail.com');
+
+    /** @var Settings $settings */
+    $settings = Formie::$plugin->getSettings();
+    $originalAllowedEnabled = $settings->enableAllowedEmailDomains;
+    $originalAllowedDomains = $settings->allowedEmailDomains;
+    $originalBlockFree = $settings->enableBlockFreeEmailDomains;
+    $originalBlockedEnabled = $settings->enableBlockedEmailDomains;
+    $originalBlockedDomains = $settings->blockedEmailDomains;
+
+    try {
+        $settings->enableAllowedEmailDomains = true;
+        $settings->allowedEmailDomains = "trusted@gmail.com\n";
+        $settings->enableBlockFreeEmailDomains = true;
+        $settings->enableBlockedEmailDomains = true;
+        $settings->blockedEmailDomains = "gmail.com\n";
+
+        expect(SpamHelper::checkGlobalEmailRules($submission))->toBeFalse();
+    } finally {
+        $settings->enableAllowedEmailDomains = $originalAllowedEnabled;
+        $settings->allowedEmailDomains = $originalAllowedDomains;
+        $settings->enableBlockFreeEmailDomains = $originalBlockFree;
+        $settings->enableBlockedEmailDomains = $originalBlockedEnabled;
+        $settings->blockedEmailDomains = $originalBlockedDomains;
+    }
+});
+
+it('allowlists entire domains but not unrelated addresses', function (): void {
+    $form = createGuardTestForm();
+    $form->setFormLayout(new FieldLayout([
+        'pages' => [[
+            'label' => 'Page 1',
+            'settings' => [],
+            'rows' => [[
+                'fields' => [[
+                    'type' => EmailField::class,
+                    'handle' => 'email',
+                    'label' => 'Email',
+                ]],
+            ]],
+        ]],
+    ]));
+
+    $submission = new Submission();
+    $submission->setForm($form);
+    $submission->setFieldValue('email', 'staff@company.com');
+
+    /** @var Settings $settings */
+    $settings = Formie::$plugin->getSettings();
+    $originalAllowedEnabled = $settings->enableAllowedEmailDomains;
+    $originalAllowedDomains = $settings->allowedEmailDomains;
+    $originalBlockedEnabled = $settings->enableBlockedEmailDomains;
+    $originalBlockedDomains = $settings->blockedEmailDomains;
+
+    try {
+        $settings->enableAllowedEmailDomains = true;
+        $settings->allowedEmailDomains = "company.com\n";
+        $settings->enableBlockedEmailDomains = true;
+        $settings->blockedEmailDomains = "company.com\n";
+
+        expect(SpamHelper::checkGlobalEmailRules($submission))->toBeFalse();
+
+        $submission->setFieldValue('email', 'other@gmail.com');
+
+        $match = SpamHelper::checkGlobalEmailRules($submission);
+
+        expect($match)->toBeArray()
+            ->and($match['type'])->toBe('blockedEmailDomain');
+    } finally {
+        $settings->enableAllowedEmailDomains = $originalAllowedEnabled;
+        $settings->allowedEmailDomains = $originalAllowedDomains;
+        $settings->enableBlockedEmailDomains = $originalBlockedEnabled;
+        $settings->blockedEmailDomains = $originalBlockedDomains;
+    }
+});
+
+it('persists email allowlist settings in the spam protection store', function (): void {
+    Formie::$plugin->getSpamProtection()->saveValues(array_merge(
+        Formie::$plugin->getSpamProtection()->getSettingsValues(),
+        [
+            'enableAllowedEmailDomains' => true,
+            'allowedEmailDomains' => "company.com\nuser@example.com\n",
+        ],
+    ));
+
+    $settings = new Settings();
+    Formie::$plugin->getSpamProtection()->hydrateSettings($settings);
+
+    expect($settings->enableAllowedEmailDomains)->toBeTrue()
+        ->and($settings->allowedEmailDomains)->toContain('company.com')
+        ->and($settings->allowedEmailDomains)->toContain('user@example.com');
+});
