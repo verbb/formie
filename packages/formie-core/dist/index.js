@@ -3404,9 +3404,17 @@ var Q = "\n    id\n    currentPageId\n    tokens\n    continuation\n", Me = `
     isFinalPage
     errors
     messages
+    clientEvents
+    paymentStatus
+    paymentMessage
+    paymentRedirectUrl
+    paymentAction
+    paymentDecision
+    keepSubmitLoading
     session {
         ${Q}
     }
+    quizResult
 `;
 function Ne(e) {
 	if (e.startsWith("http://") || e.startsWith("https://")) return e;

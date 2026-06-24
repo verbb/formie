@@ -1,5 +1,5 @@
 import { s as e } from "./event-names-BCI2FLD8.js";
-import { t } from "./api-DslEDLxm.js";
+import { t } from "./api-BYe9YPko.js";
 import { r as n } from "./scripts-CbQ7agX3.js";
 //#region src/js/modules/payments/paddle.ts
 var r = "FORMIE_PADDLE_SCRIPT", i = e("paddle", "initialize"), a = t({

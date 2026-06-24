@@ -478,7 +478,12 @@ function U(e, t) {
 }
 function W(e) {
 	let t = e.replace(/[^\d.,-]/g, ""), n = t.includes(","), r = t.includes(".");
-	return t = n && r ? t.replace(/\./g, "").replace(/,/, ".") : n && !r ? t.replace(/,/, ".") : t.replace(/,/g, ""), parseFloat(t);
+	if (n && r) t = t.lastIndexOf(",") > t.lastIndexOf(".") ? t.replace(/\./g, "").replace(",", ".") : t.replace(/,/g, "");
+	else if (n && !r) {
+		let e = t.split(",");
+		t = e.length === 2 && e[1].length === 3 && /^\d+$/.test(e[0]) && /^\d+$/.test(e[1]) ? e[0] + e[1] : t.replace(",", ".");
+	} else t = t.replace(/,/g, "");
+	return parseFloat(t);
 }
 //#endregion
 //#region src/js/modules/payments/utils.ts

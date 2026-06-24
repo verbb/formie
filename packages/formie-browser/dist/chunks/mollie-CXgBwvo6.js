@@ -1,5 +1,5 @@
 import { s as e } from "./event-names-BCI2FLD8.js";
-import { t } from "./api-DslEDLxm.js";
+import { t } from "./api-BYe9YPko.js";
 //#region src/js/modules/payments/mollie.ts
 var n = e("mollie", "redirect"), r = t({
 	id: "mollie",
