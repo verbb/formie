@@ -387,6 +387,13 @@
                 <dd class="value">{{ submission.dateUpdated | datetime('short') }}</dd>
             </div>
 
+            {% if submission.updatedById %}
+                <div class="data">
+                    <dt class="heading">{{ 'Last Edited By' | t('formie') }}</dt>
+                    <dd class="value">{{ submission.updatedBy ? submission.updatedBy.fullName | e : '' }}</dd>
+                </div>
+            {% endif %}
+
             {% if form.settings.collectIp %}
                 <div class="data">
                     <dt class="heading">{{ 'IP Address' | t('app') }}</dt>

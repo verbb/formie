@@ -50,6 +50,8 @@ Set the default under **Formie → Settings → Submissions → Control Panel Fi
 
 Use **Show all fields** when your team prefers the full layout at all times.
 
+When a submission is saved in the control panel, Formie records the Craft user who made the edit. Enable the **Last Edited By** column from the submission index column menu to see who last updated each submission.
+
 ### Let Users Edit Saved Submissions
 
 If you need to render an existing submission back into the front end so a user can update it, see [Editing Submissions](/templates/editing-submissions).

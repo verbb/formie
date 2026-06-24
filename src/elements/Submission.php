@@ -388,6 +388,7 @@ class Submission extends Element
             'spamReason' => ['label' => Craft::t('app', 'Spam Reason')],
             'ipAddress' => ['label' => Craft::t('app', 'IP Address')],
             'userId' => ['label' => Craft::t('app', 'User')],
+            'updatedBy' => ['label' => Craft::t('formie', 'Last Edited By')],
             'sendNotification' => ['label' => Craft::t('formie', 'Send Notification')],
             'status' => ['label' => Craft::t('formie', 'Status')],
             'paymentStatus' => ['label' => Craft::t('formie', 'Payment Status')],
@@ -440,6 +441,7 @@ class Submission extends Element
     public ?int $formId = null;
     public ?int $statusId = null;
     public ?int $userId = null;
+    public ?int $updatedById = null;
     public ?string $ipAddress = null;
     public bool $isIncomplete = false;
     public bool $isSpam = false;
@@ -966,6 +968,15 @@ class Submission extends Element
         $this->userId = $user->id;
     }
 
+    public function getUpdatedBy(): ?User
+    {
+        if (!$this->updatedById) {
+            return null;
+        }
+
+        return Craft::$app->getUsers()->getUserById($this->updatedById);
+    }
+
     public function getPaymentSummaryHtml(): ?Markup
     {
         $html = '';
@@ -1187,6 +1198,10 @@ class Submission extends Element
             }
         }
 
+        if ($request->getIsCpRequest() && ($userId = Craft::$app->getUser()->getId())) {
+            $this->updatedById = $userId;
+        }
+
         return parent::beforeSave($isNew);
     }
 
@@ -1210,6 +1225,11 @@ class Submission extends Element
         $record->formId = $this->formId;
         $record->statusId = $this->statusId;
         $record->userId = $this->userId;
+
+        if (Craft::$app->getDb()->columnExists(Table::FORMIE_SUBMISSIONS, 'updatedById')) {
+            $record->updatedById = $this->updatedById;
+        }
+
         $record->isIncomplete = $this->isIncomplete;
         $record->isSpam = $this->isSpam;
         $record->spamReason = $this->spamReason;
@@ -1434,6 +1454,12 @@ class Submission extends Element
         if ($attribute == 'userId') {
             $user = $this->getUser();
             
+            return $user ? Cp::elementChipHtml($user) : '';
+        }
+
+        if ($attribute == 'updatedBy') {
+            $user = $this->getUpdatedBy();
+
             return $user ? Cp::elementChipHtml($user) : '';
         }
 

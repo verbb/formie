@@ -250,6 +250,10 @@ class SubmissionQuery extends ElementQuery
             $submissionColumns[] = 'formie_submissions.metadata';
         }
 
+        if ($db->columnExists(Table::FORMIE_SUBMISSIONS, 'updatedById')) {
+            $submissionColumns[] = 'formie_submissions.updatedById';
+        }
+
         // Should always be at the end, due to `setFieldContent` triggering order, so that `formId` (and other props) are set first
         $submissionColumns[] = 'formie_submissions.content as fieldContent';
 

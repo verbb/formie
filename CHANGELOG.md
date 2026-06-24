@@ -8,6 +8,7 @@
 - Add an optional **Other** choice for Radio fields, with a configurable label and free-text input on the front-end. ([#1875](https://github.com/verbb/formie/issues/1875))
 - Add password validation settings to the Password field: minimum length, and requirements for uppercase, lowercase, and special characters. ([#1880](https://github.com/verbb/formie/issues/1880))
 - Add a **Unique User Email** setting to Email Address fields, to reject email addresses already associated with a Craft user account. ([#1151](https://github.com/verbb/formie/issues/1151))
+- Add a **Last Edited By** column to submission sources, tracking the Craft user who last saved a submission in the control panel. ([#1403](https://github.com/verbb/formie/issues/1403))
 - Add `craft.formie.ref()` and `craft.formie.refField()` for building variable-picker-compatible reference tokens from Twig when overriding settings such as `submitActionMessage`. See [Reference tokens](/developers/reference-tokens). ([#2838](https://github.com/verbb/formie/issues/2838))
 - Add a persisted `metadata` JSON column on submissions for submit-time request context (referrer, user agent, tracking cookies) and developer-defined custom data via `form.setSubmissionMetadata()`. Reference tokens such as `{metadata:custom.campaignId}` and `{metadata:request.referrer}` are supported in notifications, integrations, and PDFs. ([#1379](https://github.com/verbb/formie/issues/1379))
 

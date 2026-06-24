@@ -488,6 +488,7 @@ class Install extends Migration
             'formId' => $this->integer()->notNull(),
             'statusId' => $this->integer(),
             'userId' => $this->integer(),
+            'updatedById' => $this->integer(),
             'isIncomplete' => $this->boolean()->defaultValue(false),
             'isSpam' => $this->boolean()->defaultValue(false),
             'spamReason' => $this->text(),
@@ -614,6 +615,7 @@ class Install extends Migration
         $this->createIndex(null, Table::FORMIE_SUBMISSIONS, 'formId', false);
         $this->createIndex(null, Table::FORMIE_SUBMISSIONS, 'statusId', false);
         $this->createIndex(null, Table::FORMIE_SUBMISSIONS, 'userId', false);
+        $this->createIndex(null, Table::FORMIE_SUBMISSIONS, 'updatedById', false);
         $this->createIndex(null, Table::FORMIE_SUBMISSION_QUIZ_RESULTS, 'submissionId', true);
         $this->createIndex(null, Table::FORMIE_SUBMISSION_WORKFLOW, 'submissionId', false);
         $this->createIndex(null, Table::FORMIE_SUBMISSION_WORKFLOW, ['submissionId', 'stage', 'idempotencyKey'], true);
@@ -672,6 +674,7 @@ class Install extends Migration
         $this->addForeignKey(null, Table::FORMIE_SUBMISSIONS, ['formId'], Table::FORMIE_FORMS, ['id'], 'CASCADE', null);
         $this->addForeignKey(null, Table::FORMIE_SUBMISSIONS, ['statusId'], Table::FORMIE_STATUSES, ['id'], 'SET NULL', null);
         $this->addForeignKey(null, Table::FORMIE_SUBMISSIONS, ['userId'], '{{%users}}', ['id'], 'SET NULL', null);
+        $this->addForeignKey(null, Table::FORMIE_SUBMISSIONS, ['updatedById'], '{{%users}}', ['id'], 'SET NULL', null);
         $this->addForeignKey(null, Table::FORMIE_SUBMISSION_QUIZ_RESULTS, ['submissionId'], Table::FORMIE_SUBMISSIONS, ['id'], 'CASCADE', null);
         $this->addForeignKey(null, Table::FORMIE_SUBMISSION_WORKFLOW, ['submissionId'], Table::FORMIE_SUBMISSIONS, ['id'], 'CASCADE', null);
         $this->addForeignKey(null, Table::FORMIE_PENDING_UPLOADS, ['assetId'], '{{%assets}}', ['id'], 'CASCADE', null);

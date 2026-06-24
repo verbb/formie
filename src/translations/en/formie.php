@@ -1492,6 +1492,7 @@ To review it please log into your control panel.
   'Languages' => 'Languages',
   'Large' => 'Large',
   'Last' => 'Last',
+  'Last Edited By' => 'Last Edited By',
   'Last Name' => 'Last Name',
   'Last row' => 'Last row',
   'Last Sent' => 'Last Sent',
