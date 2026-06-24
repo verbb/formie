@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.0.9 - 2026-06-24
+
 ### Added
 - Extend `FrontendSubmitResult` and `submitFormieClientForm` GraphQL selections with payment follow-up fields (`paymentStatus`, `paymentMessage`, `paymentRedirectUrl`, `paymentAction`, `paymentDecision`, `keepSubmitLoading`), plus `quizResult` and `clientEvents`. ([#1375](https://github.com/verbb/formie/issues/1375))
 
