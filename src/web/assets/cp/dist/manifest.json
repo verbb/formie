@@ -123,8 +123,8 @@
     "file": "assets/react-vendor-BZx6nXlC.js",
     "name": "react-vendor"
   },
-  "_style-Ci7eiVnl.js": {
-    "file": "assets/style-Ci7eiVnl.js",
+  "_style-Db_mcLuX.js": {
+    "file": "assets/style-Db_mcLuX.js",
     "name": "style",
     "imports": [
       "_react-vendor-BZx6nXlC.js",
@@ -136,8 +136,8 @@
       "_Field-NCNPMEMx.js"
     ]
   },
-  "_style-ykbON5ew.js": {
-    "file": "assets/style-ykbON5ew.js",
+  "_style-Dj6_iktR.js": {
+    "file": "assets/style-Dj6_iktR.js",
     "name": "style",
     "imports": [
       "_react-vendor-BZx6nXlC.js",
@@ -170,7 +170,7 @@
       "_fontawesome-j8H7C_b_.js",
       "_SchemaFormEngine-B97FofV4.js",
       "_useCpFormPayloadSync-DwDSgAaa.js",
-      "_style-Ci7eiVnl.js",
+      "_style-Db_mcLuX.js",
       "_AppErrorBoundary-B8LZCVeD.js",
       "_dndkit-CWEvwuSt.js",
       "_Field-NCNPMEMx.js",
@@ -185,7 +185,7 @@
     "isEntry": true,
     "imports": [
       "_react-vendor-BZx6nXlC.js",
-      "_style-ykbON5ew.js",
+      "_style-Dj6_iktR.js",
       "_plugin-kit-BvB4A_4z.js",
       "_data-utils-Clq4x457.js",
       "_react-app-DE5tUauZ.js",
@@ -196,7 +196,7 @@
     ]
   },
   "src/form-builder/formie-form-builder.js": {
-    "file": "assets/formie-form-builder-CnrmCMwf.js",
+    "file": "assets/formie-form-builder-DH0q2xF7.js",
     "name": "formie-form-builder",
     "src": "src/form-builder/formie-form-builder.js",
     "isEntry": true,
@@ -231,8 +231,8 @@
       "_Field-NCNPMEMx.js",
       "_FormieErrorsPane-CejV4yQg.js",
       "_useCpFormPayloadSync-DwDSgAaa.js",
-      "_style-Ci7eiVnl.js",
-      "_style-ykbON5ew.js",
+      "_style-Db_mcLuX.js",
+      "_style-Dj6_iktR.js",
       "_dndkit-CWEvwuSt.js",
       "_Dialog-CKtznYIP.js",
       "_DragHandle-DXPCLIhe.js"
@@ -245,7 +245,7 @@
     "isEntry": true
   },
   "src/integration-connect/formie-integration-connect.js": {
-    "file": "assets/formie-integration-connect-BBpJ6BlW.js",
+    "file": "assets/formie-integration-connect-BffR7FWF.js",
     "name": "formie-integration-connect",
     "src": "src/integration-connect/formie-integration-connect.js",
     "isEntry": true,
@@ -262,7 +262,7 @@
     ]
   },
   "src/new-form/formie-new-form.js": {
-    "file": "assets/formie-new-form-wxFGjWKp.js",
+    "file": "assets/formie-new-form-DjZyfW87.js",
     "name": "formie-new-form",
     "src": "src/new-form/formie-new-form.js",
     "isEntry": true,

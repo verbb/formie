@@ -85,6 +85,7 @@ import { SnapTopLeftCornerToCursor } from '@utils';
 import { FieldPreview } from './FieldPreview';
 import { FieldEditorNotices } from './FieldEditorNotices';
 import { FieldBuilderHandle } from './FieldBuilderHandle';
+import { FieldBuilderEncryptedBadge } from './FieldBuilderEncryptedBadge';
 import { useFieldEditorLockState } from '@form-builder/hooks/useFieldEditorLockState';
 
 const resolveCustomFieldAdapterDefinition = (adapters, adapterValue) => {
@@ -166,8 +167,10 @@ const Field = ({
     const isSyncedField = useMemo(() => {
         return Boolean(field?.isSynced || field?.syncId);
     }, [field?.isSynced, field?.syncId]);
+    const isEncryptedField = Boolean(field?.enableContentEncryption);
     const isBuilderLocked = Boolean(field?.builderLocked);
     const hasFieldStatusIndicators = isSyncedField
+        || isEncryptedField
         || isBuilderLocked
         || hasConditions
         || showPaymentPlacementWarning
@@ -748,6 +751,11 @@ const Field = ({
                                             <span>{Craft.t('formie', 'Synced')}</span>
                                         </div>
                                     )}
+
+                                    <FieldBuilderEncryptedBadge
+                                        enabled={isEncryptedField}
+                                        className={shouldUseFieldLabel && 'ml-2'}
+                                    />
 
                                     {isBuilderLocked && (
                                         <div

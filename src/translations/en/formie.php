@@ -936,6 +936,7 @@ return [
   'Enable Client Events' => 'Enable Client Events',
   'Enable Conditions' => 'Enable Conditions',
   'Enable Content Encryption' => 'Enable Content Encryption',
+  'Encrypted' => 'Encrypted',
   'Enable CSRF Validation for Guests' => 'Enable CSRF Validation for Guests',
   'Enabled' => 'Enabled',
   'Enabled Columns' => 'Enabled Columns',

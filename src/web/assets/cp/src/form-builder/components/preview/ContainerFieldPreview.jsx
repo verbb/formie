@@ -69,6 +69,7 @@ import { announceFormBuilderStatus, focusFieldActionsTrigger } from '@form-build
 import { submitSchemaFormAfterPendingTableUpdates } from '@form-builder/utils/submitSchemaForm';
 import { FieldEditorNotices } from '@form-builder/components/FieldEditorNotices';
 import { FieldBuilderHandle } from '@form-builder/components/FieldBuilderHandle';
+import { FieldBuilderEncryptedBadge } from '@form-builder/components/FieldBuilderEncryptedBadge';
 import { useFieldEditorLockState } from '@form-builder/hooks/useFieldEditorLockState';
 import { normalizeFieldEditorValues, normalizeRichTextValue, hasRichTextValue } from '@form-builder/utils/richTextValue';
 import {
@@ -572,7 +573,7 @@ const NestedFieldCard = ({
         }
         return hasErrorsForPrefix(nestedFieldPrefix);
     }, [formErrors, hasErrorsForPrefix, nestedFieldPath, nestedFieldPrefix]);
-    const hasNestedFieldStatusIndicators = hasConditions;
+    const hasNestedFieldStatusIndicators = hasConditions || Boolean(nestedField?.enableContentEncryption);
     const currentRow = parentRows?.[nestedRowIndex];
     const prevRow = parentRows?.[nestedRowIndex - 1];
     const nextRow = parentRows?.[nestedRowIndex + 1];
@@ -917,6 +918,11 @@ const NestedFieldCard = ({
                                                 <span>{Craft.t('formie', 'Conditions')}</span>
                                             </div>
                                         )}
+
+                                        <FieldBuilderEncryptedBadge
+                                            enabled={Boolean(nestedField?.enableContentEncryption)}
+                                            className={shouldUseNestedFieldLabel && 'ml-2'}
+                                        />
                                     </div>
 
                                     <FieldBuilderHandle handle={nestedField?.handle} isAnyDragActive={isAnyDragActive} />
