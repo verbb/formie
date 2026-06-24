@@ -22,3 +22,9 @@ Follow the below steps to connect to the Brevo (Sendinblue) API.
 1. In the left-hand sidebar, select the name you gave the integration.
 1. Enable the integration and fill out all required fields.
 1. Click **Save** to save the form.
+
+### Dynamic list assignment
+
+By default, contacts are added to the list selected in the integration’s **List** setting. You can override this per submission by mapping a form field to the Brevo **List** integration field. This is useful when a dropdown on the form should determine which Brevo list the contact is subscribed to.
+
+The static **List** setting is still required and acts as the fallback when no list is mapped. You can map a single list ID, comma-separated list IDs, or multiple values from a checkbox field.

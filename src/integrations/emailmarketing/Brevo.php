@@ -53,6 +53,7 @@ class Brevo extends EmailMarketing
 
             $response = $this->request('GET', 'contacts/attributes');
             $fields = $response['attributes'] ?? [];
+            $listField = $this->_getListIntegrationField($lists);
 
             foreach ($lists as $list) {
                 $listFields = array_merge([
@@ -61,6 +62,7 @@ class Brevo extends EmailMarketing
                         'name' => Craft::t('formie', 'Email'),
                         'required' => true,
                     ]),
+                    $listField,
                 ], $this->_getCustomFields($fields));
 
                 $settings['lists'][] = new IntegrationCollection([
@@ -83,13 +85,20 @@ class Brevo extends EmailMarketing
 
             // Pull out email, as it needs to be top level
             $email = ArrayHelper::remove($fieldValues, 'email');
+            $listIds = $this->_resolveListIds(ArrayHelper::remove($fieldValues, 'listId'));
+
+            if ($listIds === []) {
+                Integration::error($this, Craft::t('formie', 'Unable to add contact to Brevo. No list was configured or mapped.'), true);
+
+                return false;
+            }
 
             if ($this->useDoubleOptIn) {
                 $endpoint = 'contacts/doubleOptinConfirmation';
 
                 $payload = [
                     'email' => $email,
-                    'includeListIds' => [(int)$this->listId],
+                    'includeListIds' => $listIds,
                     'templateId' => (int)$this->templateId,
                     'redirectionUrl' => $this->redirectionUrl,
                 ];
@@ -98,7 +107,7 @@ class Brevo extends EmailMarketing
 
                 $payload = [
                     'email' => $email,
-                    'listIds' => [(int)$this->listId],
+                    'listIds' => $listIds,
                     'updateEnabled' => true,
                 ];
             }
@@ -215,6 +224,49 @@ class Brevo extends EmailMarketing
         }
 
         return $items;
+    }
+
+    private function _getListIntegrationField(array $lists): IntegrationField
+    {
+        return new IntegrationField([
+            'handle' => 'listId',
+            'name' => Craft::t('formie', 'List'),
+            'options' => [
+                'label' => Craft::t('formie', 'Lists'),
+                'options' => array_map(static fn(array $list): array => [
+                    'label' => $list['name'],
+                    'value' => (string)$list['id'],
+                ], $lists),
+            ],
+        ]);
+    }
+
+    /**
+     * @return int[]
+     */
+    private function _resolveListIds(mixed $mappedListId): array
+    {
+        $rawIds = [];
+
+        if (is_array($mappedListId)) {
+            $rawIds = $mappedListId;
+        } elseif ($mappedListId !== null && $mappedListId !== '') {
+            $rawIds = explode(',', (string)$mappedListId);
+        } elseif ($this->listId) {
+            $rawIds = [(string)$this->listId];
+        }
+
+        $listIds = [];
+
+        foreach ($rawIds as $rawId) {
+            $listId = (int)trim((string)$rawId);
+
+            if ($listId > 0) {
+                $listIds[] = $listId;
+            }
+        }
+
+        return array_values(array_unique($listIds));
     }
 
     private function _convertFieldType(string $fieldType): string

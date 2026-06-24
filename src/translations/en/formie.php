@@ -3071,6 +3071,7 @@ To review it please log into your control panel.
   'UAT API Token' => 'UAT API Token',
   'Unable to activate user for “{type}” element integration. Error: {error}.' => 'Unable to activate user for “{type}” element integration. Error: {error}.',
   'Unable to add fields' => 'Unable to add fields',
+  'Unable to add contact to Brevo. No list was configured or mapped.' => 'Unable to add contact to Brevo. No list was configured or mapped.',
   'Unable to add synced field' => 'Unable to add synced field',
   'Unable to assign user groups for “{type}” element integration. Error: {error}.' => 'Unable to assign user groups for “{type}” element integration. Error: {error}.',
   'Unable to authorize connect “{integration}”.' => 'Unable to authorize connect “{integration}”.',
