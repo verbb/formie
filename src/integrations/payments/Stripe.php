@@ -1812,7 +1812,11 @@ class Stripe extends Payment
         }
 
         if ($paymentReceipt && $paymentReceiptEmail && $type === 'single') {
-            $payload['receipt_email'] = References::parseContent($paymentReceiptEmail, $submission);
+            $receiptEmail = trim((string)References::parseContent($paymentReceiptEmail, $submission));
+
+            if ($receiptEmail !== '') {
+                $payload['receipt_email'] = $receiptEmail;
+            }
         }
 
         // Add in some metadata by default
