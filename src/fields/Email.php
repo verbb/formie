@@ -16,11 +16,12 @@ use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\SlotTag;
 
+use verbb\formie\events\ModifyFieldUniqueUserQueryEvent;
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
 use craft\base\ElementInterface;
-use craft\db\Query;
+use craft\elements\User;
 
 use Faker\Generator as FakerFactory;
 
@@ -30,6 +31,12 @@ use yii\validators\EmailValidator;
 
 class Email extends Field implements SortableFieldInterface, PreviewableFieldInterface
 {
+    // Constants
+    // =========================================================================
+
+    public const EVENT_MODIFY_UNIQUE_USER_QUERY = 'modifyUniqueUserQuery';
+
+
     // Static Methods
     // =========================================================================
 
@@ -72,6 +79,7 @@ class Email extends Field implements SortableFieldInterface, PreviewableFieldInt
     public bool $validateDomain = false;
     public array $blockedDomains = [];
     public bool $blockFreeDomains = false;
+    public bool $uniqueUserEmail = false;
 
 
     // Public Methods
@@ -109,7 +117,40 @@ class Email extends Field implements SortableFieldInterface, PreviewableFieldInt
             $rules[] = $rule;
         }
 
+        if ($this->uniqueUserEmail) {
+            $rules[] = [$this->handle, 'validateUniqueUserEmail', 'skipOnEmpty' => true];
+        }
+
         return $rules;
+    }
+
+    public function validateUniqueUserEmail(ElementInterface $element): void
+    {
+        if (!$this->uniqueUserEmail) {
+            return;
+        }
+
+        $value = trim((string)$element->getFieldValue($this->valueKey()));
+
+        if ($value === '') {
+            return;
+        }
+
+        $query = User::find()
+            ->email($value)
+            ->status(null);
+
+        $event = new ModifyFieldUniqueUserQueryEvent([
+            'query' => $query,
+            'field' => $this,
+            'element' => $element,
+        ]);
+
+        $this->trigger(self::EVENT_MODIFY_UNIQUE_USER_QUERY, $event);
+
+        if ($event->query->exists()) {
+            $element->addError($this->valueKey(), $this->getValidationMessage(ValidationMessagesHelper::KEY_UNIQUE_USER_EMAIL));
+        }
     }
 
     public function validateDomain(ElementInterface $element): void
@@ -162,6 +203,10 @@ class Email extends Field implements SortableFieldInterface, PreviewableFieldInt
     public function getSettingGqlTypes(): array
     {
         return array_merge(parent::getSettingGqlTypes(), [
+            'uniqueUserEmail' => [
+                'name' => 'uniqueUserEmail',
+                'type' => Type::boolean(),
+            ],
             'blockedDomains' => [
                 'name' => 'blockedDomains',
                 'type' => Type::listOf(Type::string()),
@@ -218,6 +263,17 @@ class Email extends Field implements SortableFieldInterface, PreviewableFieldInt
             ]),
             SchemaHelper::matchValidationMessage(),
             ...$this->defineUniqueValueValidationSchema(),
+            SchemaHelper::lightswitchField([
+                'label' => Craft::t('formie', 'Unique User Email'),
+                'instructions' => Craft::t('formie', 'Whether to require that the email address is not already associated with a Craft user account.'),
+                'name' => 'uniqueUserEmail',
+            ]),
+            SchemaHelper::textField([
+                'label' => Craft::t('formie', 'Unique User Email Error Message'),
+                'instructions' => ValidationMessagesHelper::tokenInstructions(['label']),
+                'name' => 'validationMessages.uniqueUserEmail',
+                'if' => 'uniqueUserEmail',
+            ]),
             SchemaHelper::textField([
                 'label' => Craft::t('formie', 'Invalid Email Error Message'),
                 'instructions' => ValidationMessagesHelper::tokenInstructions(['label']),
@@ -299,6 +355,8 @@ class Email extends Field implements SortableFieldInterface, PreviewableFieldInt
         foreach ($this->defineUniqueValueRules() as $rule) {
             $rules[] = $rule;
         }
+
+        $rules[] = [['uniqueUserEmail'], 'boolean'];
 
         return $rules;
     }

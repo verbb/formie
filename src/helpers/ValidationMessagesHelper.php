@@ -15,6 +15,7 @@ class ValidationMessagesHelper
 
     public const KEY_REQUIRED = 'required';
     public const KEY_UNIQUE = 'unique';
+    public const KEY_UNIQUE_USER_EMAIL = 'uniqueUserEmail';
     public const KEY_MATCH = 'match';
     public const KEY_MIN_CHARACTERS = 'minCharacters';
     public const KEY_MAX_CHARACTERS = 'maxCharacters';
@@ -55,6 +56,7 @@ class ValidationMessagesHelper
         return [
             self::KEY_REQUIRED => '{label} cannot be blank.',
             self::KEY_UNIQUE => '“{label}” must be unique.',
+            self::KEY_UNIQUE_USER_EMAIL => '“{label}” is already associated with a user account.',
             self::KEY_MATCH => '{label} must match {value}.',
             self::KEY_MIN_CHARACTERS => '{label} must be no less than {min} characters.',
             self::KEY_MAX_CHARACTERS => '{label} must be no greater than {max} characters.',
@@ -153,6 +155,7 @@ class ValidationMessagesHelper
             self::_defaultsSchemaSection(Craft::t('formie', 'General'), [
                 [self::KEY_REQUIRED, ['label']],
                 [self::KEY_UNIQUE, ['label']],
+                [self::KEY_UNIQUE_USER_EMAIL, ['label']],
                 [self::KEY_MATCH, ['label', 'value']],
                 [self::KEY_INVALID, ['label']],
             ]),
@@ -502,6 +505,7 @@ class ValidationMessagesHelper
         $label = match ($key) {
             self::KEY_REQUIRED => Craft::t('formie', 'Required Error Message'),
             self::KEY_UNIQUE => Craft::t('formie', 'Unique Error Message'),
+            self::KEY_UNIQUE_USER_EMAIL => Craft::t('formie', 'Unique User Email Error Message'),
             self::KEY_MATCH => Craft::t('formie', 'Match Field Error Message'),
             self::KEY_MIN_CHARACTERS => Craft::t('formie', 'Minimum Characters Error Message'),
             self::KEY_MAX_CHARACTERS => Craft::t('formie', 'Maximum Characters Error Message'),

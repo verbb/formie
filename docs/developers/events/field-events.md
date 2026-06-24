@@ -551,6 +551,27 @@ Event::on(Email::class, Email::EVENT_MODIFY_UNIQUE_QUERY, function(ModifyFieldUn
 });
 ```
 
+### The `modifyUniqueUserQuery` event
+The event that is triggered to modify the Craft user query that determines whether an email address is already associated with a user account. You can modify the query to add your own logic.
+
+```php
+use verbb\formie\events\ModifyFieldUniqueUserQueryEvent;
+use verbb\formie\fields\Email;
+use yii\base\Event;
+
+Event::on(Email::class, Email::EVENT_MODIFY_UNIQUE_USER_QUERY, function(ModifyFieldUniqueUserQueryEvent $event) {
+    $query = $event->query;
+    $field = $event->field;
+    $element = $event->element;
+    // ...
+
+    // e.g. allow the currently logged-in user to submit their own email address.
+    if (($userId = Craft::$app->getUser()->getId()) !== null) {
+        $event->query->andWhere(['not', ['users.id' => $userId]]);
+    }
+});
+```
+
 ## Element Field Events
 
 ### The `modifyElementFieldQuery` event

@@ -9,6 +9,7 @@ Use Email Address for reply-to addresses, contact details, notification variable
 - **Placeholder** - Show example text before the user enters a value.
 - **Default value** - Pre-fill the field for new submissions.
 - **Unique value** - Prevent the same email address from being submitted more than once for the form.
+- **Unique user email** - Prevent email addresses that are already associated with a Craft user account.
 - **Validate domain** - Check DNS records for the submitted email domain.
 - **Blocked domains** - Reject email addresses from domains the form should not accept.
 - **Block Free Email Providers** - Reject addresses from common free email providers such as `gmail.com` or `hotmail.com`.
