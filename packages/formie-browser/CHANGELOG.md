@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.0.9 - 2026-06-25
+
 ### Changed
 - Improve default theme color contrast for WCAG 2.2 AA — darker error text, muted helper text, and border-only control styling with split border tokens. ([#2475](https://github.com/verbb/formie/issues/2475))
 - Add Ajax-safe tab link state theme keys `tabLinkCurrent` and `tabLinkInactive`, with aliases for `pageTabLinkActive`, `pageTabLinkInactive`, and `pageInactive`. ([#1279](https://github.com/verbb/formie/issues/1279))

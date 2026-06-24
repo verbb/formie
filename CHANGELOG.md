@@ -3,18 +3,29 @@
 ## Unreleased
 
 ### Added
-- Add **Lock Field Settings** and **Editor Note** on the field editor **Advanced** tab to help content authors protect important field configuration. Locking dims field settings until **Unlock** is clicked for the session; notes appear in the field editor banner. ([#1189](https://github.com/verbb/formie/issues/1189))
-- Add Stripe subscription **Payment Limit** field settings to cancel subscriptions automatically after a fixed or dynamic number of payments using Stripe subscription schedules. ([#2123](https://github.com/verbb/formie/issues/2123))
-- Add Stripe subscription **Setup Fee** field settings to charge a one-time fee on the first subscription invoice using Stripe invoice items. ([#1767](https://github.com/verbb/formie/issues/1767))
-- Add headless GraphQL payment support: structured Payment field input types, payment follow-up fields on `submitFormieClientForm`, and BYO provider documentation. ([#1375](https://github.com/verbb/formie/issues/1375))
-- Migrate GoCardless payments from deprecated Redirect Flows to Billing Request Flows, including mandate fulfilment, one-off payment creation, and billing request webhooks. ([#2552](https://github.com/verbb/formie/issues/2552))
-- Add GoCardless recurring subscription support via Direct Debit mandate authorisation and GoCardless subscription creation after billing request fulfilment. ([#2552](https://github.com/verbb/formie/issues/2552))
 - Add `craft.formie.ref()` and `craft.formie.refField()` for building variable-picker-compatible reference tokens from Twig when overriding settings such as `submitActionMessage`. See [Reference tokens](/developers/reference-tokens). ([#2838](https://github.com/verbb/formie/issues/2838))
 
 ### Changed
 - Stop routing user-authored form content (labels, placeholders, messages, options) through the `formie` translation category. Form copy is output from the database after site overrides are merged; `formie.php` is for Formie-owned UI strings only ([#2907](https://github.com/verbb/formie/issues/2907)).
 - Remove front-end `sourceLanguage` mutation in the plugin constructor that existed to work around the above behaviour.
 - Improve multi-site submission and notification handling by loading forms with site translation overrides applied for the submission’s site.
+
+### Fixed
+- Fix plugin migrations failing on production when `allowAdminChanges` is disabled because migrations attempted to write plugin settings to project config. ([#2615](https://github.com/verbb/formie/issues/2615))
+- Fix captcha provider credentials saved in the control panel being wiped when project config syncs on deploy. Site-scoped captcha settings are now preserved across deployments. ([#2407](https://github.com/verbb/formie/issues/2407))
+- Fix notification email preview and send failing when both **From Name** and **From Email** are set. ([#2698](https://github.com/verbb/formie/issues/2698))
+
+## 4.0.0-beta.9 - 2026-06-25
+
+### Added
+- Add **Lock Field Settings** and **Editor Note** on the field editor **Advanced** tab to help content authors protect important field configuration. Locking dims field settings until **Unlock** is clicked for the session; notes appear in the field editor banner. ([#1189](https://github.com/verbb/formie/issues/1189))
+- Add Stripe subscription **Payment Limit** field settings to cancel subscriptions automatically after a fixed or dynamic number of payments using Stripe subscription schedules. ([#2123](https://github.com/verbb/formie/issues/2123))
+- Add Stripe subscription **Setup Fee** field settings to charge a one-time fee on the first subscription invoice using Stripe invoice items. ([#1767](https://github.com/verbb/formie/issues/1767))
+- Add headless GraphQL payment support: structured Payment field input types, payment follow-up fields on `submitFormieClientForm`, and BYO provider documentation. ([#1375](https://github.com/verbb/formie/issues/1375))
+- Migrate GoCardless payments from deprecated Redirect Flows to Billing Request Flows, including mandate fulfilment, one-off payment creation, and billing request webhooks. ([#2552](https://github.com/verbb/formie/issues/2552))
+- Add GoCardless recurring subscription support via Direct Debit mandate authorisation and GoCardless subscription creation after billing request fulfilment. ([#2552](https://github.com/verbb/formie/issues/2552))
+
+### Changed
 - Improve default theme color contrast for WCAG 2.2 AA — darker error text, muted helper text, and border-only control styling with split border tokens ([#2475](https://github.com/verbb/formie/issues/2475)).
 - Add Ajax-safe tab link state theme keys `tabLinkCurrent` and `tabLinkInactive`, with aliases for `pageTabLinkActive`, `pageTabLinkInactive`, and `pageInactive` ([#1279](https://github.com/verbb/formie/issues/1279)).
 
@@ -30,9 +41,6 @@
 - Fix payment provider settings schema failing to load in the form builder due to a missing `Payment` field import in `FieldsController`.
 - Fix payment provider settings not pre-filling defaults when selecting a provider in the form builder.
 - Fix combobox schema fields using a literal “Select an option” empty option instead of a placeholder.
-- Fix captcha provider credentials saved in the control panel being wiped when project config syncs on deploy. Site-scoped captcha settings are now preserved across deployments. ([#2407](https://github.com/verbb/formie/issues/2407))
-- Fix notification email preview and send failing when both **From Name** and **From Email** are set. ([#2698](https://github.com/verbb/formie/issues/2698))
-- Fix plugin migrations failing on production when `allowAdminChanges` is disabled because migrations attempted to write plugin settings to project config. ([#2615](https://github.com/verbb/formie/issues/2615))
 
 ## 4.0.0-beta.8 - 2026-06-24
 
