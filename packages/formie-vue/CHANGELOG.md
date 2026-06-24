@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Changed
+- Released alongside `@verbb/formie-browser` to keep package versions aligned, including Survey field modules, client event dispatch updates, and Summary theme config fixes from the browser runtime.
+
 ## 1.0.7 - 2026-06-18
 
 ### Changed
