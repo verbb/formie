@@ -1,6 +1,6 @@
 # Changelog
 
-## 4.0.0-beta.8 - 2026-06-24
+## Unreleased
 
 ### Added
 - Add **Lock Field Settings** and **Editor Note** on the field editor **Advanced** tab to help content authors protect important field configuration. Locking dims field settings until **Unlock** is clicked for the session; notes appear in the field editor banner. ([#1189](https://github.com/verbb/formie/issues/1189))
@@ -27,7 +27,7 @@
 - Fix payment provider settings not pre-filling defaults when selecting a provider in the form builder.
 - Fix combobox schema fields using a literal “Select an option” empty option instead of a placeholder.
 
-## 4.0.0-beta.8 - 2026-06-26
+## 4.0.0-beta.8 - 2026-06-24
 
 ### Added
 - Add **Quiz** field to forms for scored questionnaires ([#605](https://github.com/verbb/formie/issues/605)). Each question supports radio buttons, checkboxes, or a dropdown; mark correct answers on static options, enable optional **Weighted score** for per-option points, and add **Answer explanation** rich text for incorrect responses. Form **Behaviour → Quiz Scoring** settings control pass percentage, retake restrictions (by logged-in user or IP address), and whether Ajax/client submit responses include a `quizResult` payload after a successful final-page submit. Scores persist in `formie_submission_quiz_results` for complete, non-spam submissions.

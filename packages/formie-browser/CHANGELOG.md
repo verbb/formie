@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### Changed
+- Improve default theme color contrast for WCAG 2.2 AA — darker error text, muted helper text, and border-only control styling with split border tokens. ([#2475](https://github.com/verbb/formie/issues/2475))
+- Add Ajax-safe tab link state theme keys `tabLinkCurrent` and `tabLinkInactive`, with aliases for `pageTabLinkActive`, `pageTabLinkInactive`, and `pageInactive`. ([#1279](https://github.com/verbb/formie/issues/1279))
+- Dispatch `formie:submit:result` before payment follow-up state handling so captcha modules can refresh one-time tokens before internal resubmits.
+
+### Fixed
+- Fix payment amount parsing for locale-formatted dynamic values (for example `1,234.56`, `1.750,00`, and `£750.00`) in browser payment modules. ([#2334](https://github.com/verbb/formie/issues/2334))
+- Fix payment follow-up states (such as 3D Secure authentication) showing as red validation errors. Action-required and pending payment responses now render as neutral form notices via `paymentStatus` and `paymentMessage` metadata. ([#2660](https://github.com/verbb/formie/issues/2660))
+- Fix Stripe and other payment follow-up submits failing when one-time captcha tokens are revalidated on the second Ajax POST by refreshing captcha tokens before follow-up handlers run. ([#2465](https://github.com/verbb/formie/issues/2465))
+
 ## 1.0.8 - 2026-06-24
 
 ### Added
