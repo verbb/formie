@@ -63,7 +63,7 @@ class IntegrationExecutor extends Component
                 continue;
             }
 
-            $integration->populateContext();
+            $integration->populateContext($submission);
 
             $response = Formie::$plugin->getIntegrations()->sendIntegrationPayload($integration, $submission);
             $success = $this->_integrationResponseSucceeded($response);
@@ -97,6 +97,8 @@ class IntegrationExecutor extends Component
 
         $settings = Formie::$plugin->getSettings();
 
+        $integrationContext = Formie::$plugin->getSubmissionMetadata()->buildIntegrationContext($submission);
+
         Queue::push(new TriggerIntegration([
             'submissionId' => $submission->id,
             'stepHandles' => array_values($handles),
@@ -107,6 +109,7 @@ class IntegrationExecutor extends Component
             'formId' => $form->id ?? null,
             'formHandle' => $form->handle ?? null,
             'formTitle' => $form->title ?? null,
+            'integrationContext' => $integrationContext,
         ]), $settings->queuePriority);
     }
 

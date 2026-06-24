@@ -246,6 +246,10 @@ class SubmissionQuery extends ElementQuery
             $submissionColumns[] = 'formie_submissions.integrationDispatchContext';
         }
 
+        if ($db->columnExists(Table::FORMIE_SUBMISSIONS, 'metadata')) {
+            $submissionColumns[] = 'formie_submissions.metadata';
+        }
+
         // Should always be at the end, due to `setFieldContent` triggering order, so that `formId` (and other props) are set first
         $submissionColumns[] = 'formie_submissions.content as fieldContent';
 

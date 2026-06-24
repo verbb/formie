@@ -446,6 +446,7 @@ class Submission extends Element
     public ?string $spamReason = null;
     public ?string $spamClass = null;
     public array $snapshot = [];
+    public ?array $metadata = null;
     public ?array $integrationDispatchContext = null;
     public ?bool $validateCurrentPageOnly = null;
     public bool $isNewSubmission = false;
@@ -477,6 +478,29 @@ class Submission extends Element
     public function __toString(): string
     {
         return (string)$this->title;
+    }
+
+    public function getMetadata(?string $key = null): array
+    {
+        $metadata = is_array($this->metadata) ? $this->metadata : [];
+
+        if ($key === null) {
+            return $metadata;
+        }
+
+        $value = $metadata[$key] ?? [];
+
+        return is_array($value) ? $value : [];
+    }
+
+    public function setMetadata(?array $metadata): void
+    {
+        $this->metadata = $metadata;
+    }
+
+    public function mergeMetadata(array $metadata): void
+    {
+        $this->metadata = ArrayHelper::merge($this->getMetadata(), $metadata);
     }
 
     public function __isset($name): bool
@@ -1192,6 +1216,10 @@ class Submission extends Element
         $record->spamClass = $this->spamClass;
         $record->snapshot = $this->snapshot;
         $record->ipAddress = $this->ipAddress;
+
+        if (Craft::$app->getDb()->columnExists(Table::FORMIE_SUBMISSIONS, 'metadata')) {
+            $record->metadata = $this->metadata;
+        }
 
         if (Craft::$app->getDb()->columnExists(Table::FORMIE_SUBMISSIONS, 'integrationDispatchContext')) {
             $record->integrationDispatchContext = $this->integrationDispatchContext;

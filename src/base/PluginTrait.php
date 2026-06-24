@@ -70,6 +70,7 @@ use verbb\formie\services\SubmissionProcessor;
 use verbb\formie\services\SubmissionWorkflow;
 use verbb\formie\services\SubmissionDrafts;
 use verbb\formie\services\SubmissionGuards;
+use verbb\formie\services\SubmissionMetadata;
 use verbb\formie\services\Subscriptions;
 use verbb\formie\services\StorageManager;
 use verbb\formie\services\ThemeConfig;
@@ -257,6 +258,7 @@ trait PluginTrait
                 'submissionProcessor' => SubmissionProcessor::class,
                 'submissionGuards' => SubmissionGuards::class,
                 'submissionDrafts' => SubmissionDrafts::class,
+                'submissionMetadata' => SubmissionMetadata::class,
                 'submissionWorkflow' => SubmissionWorkflow::class,
                 'subscriptions' => Subscriptions::class,
                 'templates' => [
@@ -646,6 +648,11 @@ trait PluginTrait
     public function getSubmissionGuards(): SubmissionGuards
     {
         return $this->get('submissionGuards');
+    }
+
+    public function getSubmissionMetadata(): SubmissionMetadata
+    {
+        return $this->get('submissionMetadata');
     }
 
     public function getSubmissionWorkflow(): SubmissionWorkflow

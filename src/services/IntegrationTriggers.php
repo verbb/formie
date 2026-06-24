@@ -127,7 +127,7 @@ class IntegrationTriggers extends Component
 
     public function dispatchManualIntegration(Integration $integration, Submission $submission): bool|IntegrationResponse
     {
-        $integration->populateContext();
+        $integration->populateContext($submission);
         $integration->context['triggerEvent'] = IntegrationTriggerEvents::MANUAL;
         $integration->context['operatorInitiated'] = true;
 

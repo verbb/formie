@@ -78,6 +78,7 @@ class Variables
         'system',
         'env',
         'dispatch',
+        'metadata',
         'timestamp',
         'allFields',
         'allContentFields',
@@ -507,6 +508,16 @@ class Variables
             }
             $key = self::getReferenceVariableKey($expr);
             $value = ArrayHelper::getValue($variables, $key);
+
+            if ($value === null && $expr->target === 'metadata' && $expr->identifier !== '') {
+                $path = $expr->identifier;
+
+                if ($expr->selector !== '') {
+                    $path .= '.' . str_replace(':', '.', $expr->selector);
+                }
+
+                $value = Formie::$plugin->getSubmissionMetadata()->getValue($submission, $path);
+            }
 
             if ($value === null && $expr->target === self::TARGET_CUSTOM && $expr->identifier !== '') {
                 $value = self::resolveRegisteredVariableSourceByHandle($submission, $expr->identifier);
@@ -1647,6 +1658,16 @@ class Variables
             }
 
             return 'dispatch.' . $path;
+        }
+
+        if ($expr->target === 'metadata') {
+            $path = $expr->identifier;
+
+            if ($expr->selector !== '') {
+                $path .= '.' . str_replace(':', '.', $expr->selector);
+            }
+
+            return 'metadata.' . $path;
         }
 
         if ($expr->target === 'timestamp') {

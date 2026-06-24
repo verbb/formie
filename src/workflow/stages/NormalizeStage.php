@@ -7,6 +7,7 @@ use verbb\formie\workflow\StageInterface;
 use verbb\formie\workflow\StageResult;
 use verbb\formie\workflow\WorkflowContext;
 use verbb\formie\workflow\tasks\normalize\ApplyStatusRulesTask;
+use verbb\formie\workflow\tasks\normalize\CaptureSubmissionMetadataTask;
 use verbb\formie\workflow\tasks\normalize\ClearConditionallyHiddenFieldsTask;
 use verbb\formie\workflow\tasks\normalize\EnsureSubmissionDefaultsTask;
 use verbb\formie\workflow\tasks\normalize\HandleBackNavigationTask;
@@ -40,6 +41,7 @@ class NormalizeStage implements StageInterface
             new ResolvePageFlowTask(),
             new ClearConditionallyHiddenFieldsTask(),
             new EnsureSubmissionDefaultsTask(),
+            new CaptureSubmissionMetadataTask(),
             new ApplyStatusRulesTask(),
         ]);
     }

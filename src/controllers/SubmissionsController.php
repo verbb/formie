@@ -430,7 +430,7 @@ class SubmissionsController extends Controller
             $resolvedIntegration = $integration;
 
             // Allow integrations to add extra data before running
-            $resolvedIntegration->populateContext();
+            $resolvedIntegration->populateContext($submission);
         }
 
         if (!$resolvedIntegration) {

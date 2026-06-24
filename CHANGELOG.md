@@ -4,6 +4,7 @@
 
 ### Added
 - Add `craft.formie.ref()` and `craft.formie.refField()` for building variable-picker-compatible reference tokens from Twig when overriding settings such as `submitActionMessage`. See [Reference tokens](/developers/reference-tokens). ([#2838](https://github.com/verbb/formie/issues/2838))
+- Add a persisted `metadata` JSON column on submissions for submit-time request context (referrer, user agent, tracking cookies) and developer-defined custom data via `form.setSubmissionMetadata()`. Reference tokens such as `{metadata:custom.campaignId}` and `{metadata:request.referrer}` are supported in notifications, integrations, and PDFs. ([#1379](https://github.com/verbb/formie/issues/1379))
 
 ### Changed
 - Stop routing user-authored form content (labels, placeholders, messages, options) through the `formie` translation category. Form copy is output from the database after site overrides are merged; `formie.php` is for Formie-owned UI strings only ([#2907](https://github.com/verbb/formie/issues/2907)).
@@ -11,10 +12,12 @@
 - Improve multi-site submission and notification handling by loading forms with site translation overrides applied for the submission’s site.
 
 ### Fixed
+- Fix queued integrations losing submit-time context (referrer, IP address, HubSpot/Pardot tracking cookies) by persisting request metadata on the submission at submit time and hydrating integration context from it in queue workers. ([#1379](https://github.com/verbb/formie/issues/1379))
 - Fix plugin migrations failing on production when `allowAdminChanges` is disabled because migrations attempted to write plugin settings to project config. ([#2615](https://github.com/verbb/formie/issues/2615))
 - Fix phone country dropdown flags not appearing on Craft Cloud. Flag sprites are inlined in the front-end bundle instead of loading from relative CSS asset paths. ([#2529](https://github.com/verbb/formie/issues/2529))
 - Fix date dropdown fields rejecting year-only values with “Year cannot be blank” when other date parts are disabled. Partial date parts are stored via `DateFieldValue` without requiring a full calendar date. ([#2261](https://github.com/verbb/formie/issues/2261))
 - Fix Stripe payments failing with “Invalid email address” when **Payment Receipt** is enabled but the mapped receipt email resolves empty (for example legacy `{field.email}` tokens or **User Email** while logged out). ([#2262](https://github.com/verbb/formie/issues/2262))
+- Fix Google Maps API script conflicts when Address field autocomplete and the Google Maps Craft plugin are used on the same page. Formie reuses an existing `window.google` instance instead of injecting a second Maps script. ([#2041](https://github.com/verbb/formie/issues/2041))
 - Fix captcha provider credentials saved in the control panel being wiped when project config syncs on deploy. Site-scoped captcha settings are now preserved across deployments. ([#2407](https://github.com/verbb/formie/issues/2407))
 - Fix notification email preview and send failing when both **From Name** and **From Email** are set. ([#2698](https://github.com/verbb/formie/issues/2698))
 

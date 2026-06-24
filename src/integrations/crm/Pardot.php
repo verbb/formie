@@ -506,21 +506,22 @@ class Pardot extends Crm implements OAuthProviderInterface
         return $value;
     }
 
-    public function populateContext(): void
+    public function populateContext(?Submission $submission = null): void
     {
-        parent::populateContext();
+        parent::populateContext($submission);
 
-        // Allow us to save the tracking cookie at the time of submission, so grab later
-        $trackingData = [];
-        $pattern = '/^visitor_id[0-9]+(-hash)?$/';
+        if (!isset($this->context['pardot_tracking']) || !$this->context['pardot_tracking']) {
+            $trackingData = [];
+            $pattern = '/^visitor_id[0-9]+(-hash)?$/';
 
-        foreach ($_COOKIE as $key => $value) {
-            if (preg_match($pattern, $key)) {
-                $trackingData[$key] = $value;
+            foreach ($_COOKIE as $key => $value) {
+                if (preg_match($pattern, $key)) {
+                    $trackingData[$key] = $value;
+                }
             }
-        }
 
-        $this->context['pardot_tracking'] = $trackingData;
+            $this->context['pardot_tracking'] = $trackingData;
+        }
     }
 
     

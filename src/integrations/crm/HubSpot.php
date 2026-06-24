@@ -817,12 +817,13 @@ class HubSpot extends Crm
         ]);
     }
 
-    public function populateContext(): void
+    public function populateContext(?Submission $submission = null): void
     {
-        parent::populateContext();
+        parent::populateContext($submission);
 
-        // Allow us to save the tracking cookie at the time of submission, so grab later
-        $this->context['hubspotutk'] = $_COOKIE['hubspotutk'] ?? null;
+        if (!array_key_exists('hubspotutk', $this->context) || $this->context['hubspotutk'] === null) {
+            $this->context['hubspotutk'] = $_COOKIE['hubspotutk'] ?? null;
+        }
     }
 
     public function getFieldMappingValues(Submission $submission, ?array $fieldMapping, mixed $fieldSettings = [])

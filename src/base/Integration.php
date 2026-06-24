@@ -979,16 +979,9 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return !$result;
     }
 
-    public function populateContext(): void
+    public function populateContext(?Submission $submission = null): void
     {
-        $request = Craft::$app->getRequest();
-
-        // Add some extra values to integrations to record in the context of being run
-        // Useful to maintain the referrer, current site, etc - things that aren't possible in a queue.
-        $this->context = [
-            'referrer' => $request->getReferrer(),
-            'ipAddress' => $request->getUserIP(),
-        ];
+        $this->context = Formie::$plugin->getSubmissionMetadata()->buildIntegrationContext($submission);
     }
 
     public function populateQueueJobContext($submission, $endpoint, $payload, $method, $contentType): void

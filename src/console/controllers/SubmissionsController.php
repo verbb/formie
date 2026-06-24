@@ -185,7 +185,7 @@ class SubmissionsController extends Controller
             $form = $submission->getForm();
             $formSettings = $form->settings->integrations[$this->integration] ?? [];
             $integration->setAttributes($formSettings, false);
-            $integration->populateContext();
+            $integration->populateContext($submission);
 
             Formie::$plugin->getIntegrationTriggers()->dispatchManualIntegration($integration, $submission);
 

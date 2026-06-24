@@ -408,6 +408,7 @@ class Form extends Element implements FormInterface
     private bool $_resumeTokenHydrated = false;
     private bool $_routeContextHydrated = false;
     private array $_submitData = [];
+    private array $_pendingSubmissionMetadata = [];
 
     private array $_themeConfig = [];
     private string $_frontendTheme = 'formie';
@@ -1832,6 +1833,23 @@ class Form extends Element implements FormInterface
         $snapshotData[$key] = array_merge($currentData, $data);
 
         Session::set($this->_getSessionKey('snapshot'), $snapshotData);
+    }
+
+    public function setSubmissionMetadata(array $data): void
+    {
+        if (Craft::$app->getRequest()->getIsConsoleRequest() || !$data) {
+            return;
+        }
+
+        $this->_pendingSubmissionMetadata = ArrayHelper::merge($this->_pendingSubmissionMetadata, $data);
+    }
+
+    public function pullPendingSubmissionMetadata(): array
+    {
+        $pending = $this->_pendingSubmissionMetadata;
+        $this->_pendingSubmissionMetadata = [];
+
+        return $pending;
     }
 
     public function resetSnapshotData(): void
