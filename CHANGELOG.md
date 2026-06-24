@@ -7,6 +7,7 @@
 - Add a persisted `metadata` JSON column on submissions for submit-time request context (referrer, user agent, tracking cookies) and developer-defined custom data via `form.setSubmissionMetadata()`. Reference tokens such as `{metadata:custom.campaignId}` and `{metadata:request.referrer}` are supported in notifications, integrations, and PDFs. ([#1379](https://github.com/verbb/formie/issues/1379))
 
 ### Changed
+- Freeform 4/5 plugin migrations now process submissions in batches (default 100) to avoid memory exhaustion on large forms. Use `php craft formie/migrate/freeform4` (or `freeform5`) with `--batch-size`, `--submission-offset`, `--submission-limit`, `--submissions-only`, and `--skip-submissions` for large migrations. ([#2513](https://github.com/verbb/formie/issues/2513))
 - Stop routing user-authored form content (labels, placeholders, messages, options) through the `formie` translation category. Form copy is output from the database after site overrides are merged; `formie.php` is for Formie-owned UI strings only ([#2907](https://github.com/verbb/formie/issues/2907)).
 - Remove front-end `sourceLanguage` mutation in the plugin constructor that existed to work around the above behaviour.
 - Improve multi-site submission and notification handling by loading forms with site translation overrides applied for the submission’s site.

@@ -24,6 +24,12 @@ class MigrateController extends Controller
     // =========================================================================
 
     public ?string $formHandle = null;
+    public ?int $submissionBatchSize = null;
+    public int $submissionOffset = 0;
+    public ?int $submissionLimit = null;
+    public bool $skipSubmissions = false;
+    public bool $submissionsOnly = false;
+    public bool $verboseSubmissionLogs = false;
 
 
     // Public Methods
@@ -35,7 +41,28 @@ class MigrateController extends Controller
 
         $options[] = 'formHandle';
 
+        if (in_array($actionID, ['freeform4', 'freeform5'], true)) {
+            $options[] = 'submissionBatchSize';
+            $options[] = 'submissionOffset';
+            $options[] = 'submissionLimit';
+            $options[] = 'skipSubmissions';
+            $options[] = 'submissionsOnly';
+            $options[] = 'verboseSubmissionLogs';
+        }
+
         return $options;
+    }
+
+    public function optionAliases(): array
+    {
+        return array_merge(parent::optionAliases(), [
+            'batch-size' => 'submissionBatchSize',
+            'submission-offset' => 'submissionOffset',
+            'submission-limit' => 'submissionLimit',
+            'skip-submissions' => 'skipSubmissions',
+            'submissions-only' => 'submissionsOnly',
+            'verbose-submission-logs' => 'verboseSubmissionLogs',
+        ]);
     }
 
     /**
@@ -82,7 +109,7 @@ class MigrateController extends Controller
         foreach ($formIds as $formId) {
             $this->stderr('Migrating Freeform form #' . $formId . PHP_EOL, Console::FG_GREEN);
 
-            $migration = new MigrateFreeform4(['formId' => $formId]);
+            $migration = new MigrateFreeform4($this->getFreeformMigrationConfig($formId));
             $result = $migration->run();
             $this->renderMigrationLines($result->lines);
         }
@@ -110,7 +137,7 @@ class MigrateController extends Controller
         foreach ($formIds as $formId) {
             $this->stderr('Migrating Freeform form #' . $formId . PHP_EOL, Console::FG_GREEN);
 
-            $migration = new MigrateFreeform5(['formId' => $formId]);
+            $migration = new MigrateFreeform5($this->getFreeformMigrationConfig($formId));
             $result = $migration->run();
             $this->renderMigrationLines($result->lines);
         }
@@ -121,6 +148,37 @@ class MigrateController extends Controller
 
     // Private Methods
     // =========================================================================
+
+    private function getFreeformMigrationConfig(int $formId): array
+    {
+        $config = ['formId' => $formId];
+
+        if ($this->submissionBatchSize !== null) {
+            $config['submissionBatchSize'] = max(1, $this->submissionBatchSize);
+        }
+
+        if ($this->submissionOffset > 0) {
+            $config['submissionOffset'] = $this->submissionOffset;
+        }
+
+        if ($this->submissionLimit !== null) {
+            $config['submissionLimit'] = max(0, $this->submissionLimit);
+        }
+
+        if ($this->skipSubmissions) {
+            $config['skipSubmissions'] = true;
+        }
+
+        if ($this->submissionsOnly) {
+            $config['submissionsOnly'] = true;
+        }
+
+        if ($this->verboseSubmissionLogs) {
+            $config['verboseSubmissionLogs'] = true;
+        }
+
+        return $config;
+    }
 
     private function renderMigrationLines(array $lines): void
     {

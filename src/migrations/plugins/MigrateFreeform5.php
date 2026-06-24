@@ -75,11 +75,32 @@ class MigrateFreeform5 extends BasePluginMigrator
     {
         $this->_reservedHandles = Formie::$plugin->getFields()->getReservedHandles();
 
-        if ($this->_freeformForm = Freeform::getInstance()->forms->getFormById($this->formId)) {
-            if ($this->_form = $this->_migrateForm()) {
-                $this->_migrateSubmissions();
-                $this->_migrateNotifications();
+        if (!$this->_freeformForm = Freeform::getInstance()->forms->getFormById($this->formId)) {
+            return true;
+        }
+
+        if ($this->submissionsOnly) {
+            $this->_form = FormieForm::find()->handle($this->_freeformForm->handle)->one();
+
+            if (!$this->_form) {
+                $this->error("Form: No Formie form found with handle “{$this->_freeformForm->handle}”. Migrate the form first or run without --submissions-only.");
+
+                return false;
             }
+
+            if (!$this->skipSubmissions) {
+                $this->_migrateSubmissions();
+            }
+
+            return true;
+        }
+
+        if ($this->_form = $this->_migrateForm()) {
+            if (!$this->skipSubmissions) {
+                $this->_migrateSubmissions();
+            }
+
+            $this->_migrateNotifications();
         }
 
         return true;
@@ -189,157 +210,146 @@ class MigrateFreeform5 extends BasePluginMigrator
         $statusesService = Formie::$plugin->getStatuses();
         $statuses = $statusesService->getAllStatuses();
         $fallbackStatus = $statusesService->getDefaultStatus() ?? (reset($statuses) ?: null);
+        $formHandle = $this->_freeformForm->handle;
 
-        $entries = FreeformSubmission::find()->form($this->_freeformForm->handle)->all();
-        $total = count($entries);
+        $this->migrateSubmissionBatches(
+            fn() => FreeformSubmission::find()->form($formHandle),
+            function ($entry) use ($statusesService, $fallbackStatus) {
+                /* @var FreeformSubmission $entry */
+                $submission = new Submission();
+                $submission->title = $entry->title;
+                $submission->setForm($this->_form);
+                $submission->dateCreated = $entry->dateCreated;
+                $submission->dateUpdated = $entry->dateUpdated;
 
-        $this->info("Entries: Preparing to migrate $total entries to submissions.");
+                $entryStatusHandle = (string)($entry->status ?? '');
+                $entryStatus = $entryStatusHandle ? $statusesService->getStatusByHandle($entryStatusHandle) : null;
 
-        if (!$total) {
-            $this->warning('    > No entries to migrate.');
-
-            return;
-        }
-
-        foreach ($entries as $entry) {
-            $now = new DateTime('now', new DateTimeZone(Craft::$app->getTimeZone()));
-
-            /* @var FreeformSubmission $entry */
-            $submission = new Submission();
-            $submission->title = $entry->title;
-            $submission->setForm($this->_form);
-            $submission->dateCreated = $entry->dateCreated;
-            $submission->dateUpdated = $entry->dateUpdated;
-
-            $entryStatusHandle = (string)($entry->status ?? '');
-            $entryStatus = $entryStatusHandle ? $statusesService->getStatusByHandle($entryStatusHandle) : null;
-
-            if ($entryStatus) {
-                $submission->setStatus($entryStatus);
-            } else if ($fallbackStatus) {
-                $submission->setStatus($fallbackStatus);
-            }
-
-            foreach ($entry->getFieldCollection() as $field) {
-                // Parse the handle for a few things just in case
-                $handle = $this->_getFieldHandle($field->getHandle(), false);
-
-                // Freeform can expose nested/group child fields in this flat collection.
-                // Skip values for handles that don't exist on the migrated form.
-                if (!$this->_form?->getFieldByHandle($handle)) {
-                    continue;
+                if ($entryStatus) {
+                    $submission->setStatus($entryStatus);
+                } else if ($fallbackStatus) {
+                    $submission->setStatus($fallbackStatus);
                 }
 
-                try {
-                    switch (get_class($field)) {
-                        case freeformfields\CheckboxField::class:
-                            $submission->setFieldValue($handle, $field->isChecked());
-                            break;
+                foreach ($entry->getFieldCollection() as $field) {
+                    // Parse the handle for a few things just in case
+                    $handle = $this->_getFieldHandle($field->getHandle(), false);
 
-                        case freeformfields\EmailField::class:
-                            $value = $field->getValue();
+                    // Freeform can expose nested/group child fields in this flat collection.
+                    // Skip values for handles that don't exist on the migrated form.
+                    if (!$this->_form?->getFieldByHandle($handle)) {
+                        continue;
+                    }
 
-                            // Handle older Freeform installs storing emails as array
-                            if (is_array($value)) {
-                                $submission->setFieldValue($handle, $value[0]);
-                            } else {
-                                $submission->setFieldValue($handle, $value);
-                            }
-                            
-                            break;
+                    try {
+                        switch (get_class($field)) {
+                            case freeformfields\CheckboxField::class:
+                                $submission->setFieldValue($handle, $field->isChecked());
+                                break;
 
-                        case freeformfields\FileUploadField::class:
-                            $value = $field->getValue();
+                            case freeformfields\EmailField::class:
+                                $value = $field->getValue();
 
-                            if (!empty($value)) {
-                                $assets = Asset::find()->id($value)->ids();
-                                $submission->setFieldValue($handle, $assets);
-                            }
-
-                            break;
-
-                        case freeformfields\Pro\GroupField::class:
-                            $values = [];
-
-                            foreach ($field->getLayout()->getAllRows() as $row) {
-                                foreach ($row->getAllFields() as $innerField) {
-                                    $values[$innerField->getHandle()] = $entry->getFormFieldValue($innerField);
+                                // Handle older Freeform installs storing emails as array
+                                if (is_array($value)) {
+                                    $submission->setFieldValue($handle, $value[0]);
+                                } else {
+                                    $submission->setFieldValue($handle, $value);
                                 }
-                            }
 
-                            $submission->setFieldValue($handle, $values);
+                                break;
 
-                            break;
+                            case freeformfields\FileUploadField::class:
+                                $value = $field->getValue();
 
-                        case freeformfields\DropdownField::class:
-                        case freeformfields\RadiosField::class:
-                            $submission->setFieldValue($handle, $this->_normalizeSingleOptionValue($field->getValue()));
-                            break;
+                                if (!empty($value)) {
+                                    $assets = Asset::find()->id($value)->ids();
+                                    $submission->setFieldValue($handle, $assets);
+                                }
 
-                        case freeformfields\CheckboxesField::class:
-                        case freeformfields\MultipleSelectField::class:
-                            $submission->setFieldValue($handle, $this->_normalizeMultiOptionValue($field->getValue()));
-                            break;
+                                break;
 
-                        case freeformfields\HtmlField::class:
-                        case freeformfields\Pro\ConfirmationField::class:
-                            // Not implemented
-                            break;
+                            case freeformfields\Pro\GroupField::class:
+                                $values = [];
 
-                        case freeformfields\Pro\OpinionScaleField::class:
-                            // Not implemented
-                            break;
+                                foreach ($field->getLayout()->getAllRows() as $row) {
+                                    foreach ($row->getAllFields() as $innerField) {
+                                        $values[$innerField->getHandle()] = $entry->getFormFieldValue($innerField);
+                                    }
+                                }
 
-                        case freeformfields\Pro\RatingField::class:
-                            // Not implemented
-                            break;
+                                $submission->setFieldValue($handle, $values);
 
-                        case freeformfields\Pro\RichTextField::class:
-                            // Not implemented
-                            break;
+                                break;
 
-                        case freeformfields\Pro\SignatureField::class:
-                            // Not implemented
-                            break;
+                            case freeformfields\DropdownField::class:
+                            case freeformfields\RadiosField::class:
+                                $submission->setFieldValue($handle, $this->_normalizeSingleOptionValue($field->getValue()));
+                                break;
 
-                        default:
-                            $submission->setFieldValue($handle, $field->getValue());
-                            break;
+                            case freeformfields\CheckboxesField::class:
+                            case freeformfields\MultipleSelectField::class:
+                                $submission->setFieldValue($handle, $this->_normalizeMultiOptionValue($field->getValue()));
+                                break;
+
+                            case freeformfields\HtmlField::class:
+                            case freeformfields\Pro\ConfirmationField::class:
+                                // Not implemented
+                                break;
+
+                            case freeformfields\Pro\OpinionScaleField::class:
+                                // Not implemented
+                                break;
+
+                            case freeformfields\Pro\RatingField::class:
+                                // Not implemented
+                                break;
+
+                            case freeformfields\Pro\RichTextField::class:
+                                // Not implemented
+                                break;
+
+                            case freeformfields\Pro\SignatureField::class:
+                                // Not implemented
+                                break;
+
+                            default:
+                                $submission->setFieldValue($handle, $field->getValue());
+                                break;
+                        }
+                    } catch (Throwable $e) {
+                        $this->error("    > Failed to migrate “{$handle}”.");
+                        $this->error("    > `{$this->getExceptionTraceAsString($e)}`");
+
+                        continue;
                     }
-                } catch (Throwable $e) {
-                    $this->error("    > Failed to migrate “{$handle}”.");
-                    $this->error("    > `{$this->getExceptionTraceAsString($e)}`");
+                }
 
-                    continue;
+                // Fire a 'modifySubmission' event
+                $event = new ModifyMigrationSubmissionEvent([
+                    'form' => $this->_form,
+                    'submission' => $submission,
+                ]);
+                $this->trigger(self::EVENT_MODIFY_SUBMISSION, $event);
+
+                if (!$event->isValid) {
+                    $this->warning("    > Skipped submission due to event cancellation.");
+                    return;
+                }
+
+                if (!Craft::$app->getElements()->saveElement($event->submission)) {
+                    $this->error("    > Failed to save Formie submission for Freeform submission “{$entry->id}”.");
+
+                    foreach ($submission->getErrors() as $attr => $errors) {
+                        foreach ($errors as $error) {
+                            $this->error("    > $attr: $error");
+                        }
+                    }
+                } else {
+                    $this->logSubmissionMigrated($entry->id, $event->submission->id);
                 }
             }
-
-            // Fire a 'modifySubmission' event
-            $event = new ModifyMigrationSubmissionEvent([
-                'form' => $this->_form,
-                'submission' => $submission,
-            ]);
-            $this->trigger(self::EVENT_MODIFY_SUBMISSION, $event);
-
-            if (!$event->isValid) {
-                $this->warning("    > Skipped submission due to event cancellation.");
-                continue;
-            }
-
-            if (!Craft::$app->getElements()->saveElement($event->submission)) {
-                $this->error("    > Failed to save Formie submission for Freeform submission “{$entry->id}”.");
-
-                foreach ($submission->getErrors() as $attr => $errors) {
-                    foreach ($errors as $error) {
-                        $this->error("    > $attr: $error");
-                    }
-                }
-            } else {
-                $this->success("    > Migrated Freeform submission “{$entry->id}” to Formie submission “{$event->submission->id}”.");
-            }
-        }
-
-        $this->success("    > All entries completed.");
+        );
     }
 
     private function _migrateNotifications(): void

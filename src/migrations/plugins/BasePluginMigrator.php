@@ -14,6 +14,13 @@ abstract class BasePluginMigrator extends Component
     // Properties
     // =========================================================================
 
+    public int $submissionBatchSize = 100;
+    public int $submissionOffset = 0;
+    public ?int $submissionLimit = null;
+    public bool $skipSubmissions = false;
+    public bool $submissionsOnly = false;
+    public bool $verboseSubmissionLogs = false;
+
     protected MigrationResult $result;
 
 
@@ -121,6 +128,73 @@ abstract class BasePluginMigrator extends Component
     protected function getExceptionTraceAsString(Throwable $e): string
     {
         return $e->getTraceAsString();
+    }
+
+    /**
+     * @param callable(): object $createQuery Query factory supporting count(), offset(), limit(), and all().
+     * @param callable(mixed): void $migrateEntry
+     */
+    protected function migrateSubmissionBatches(callable $createQuery, callable $migrateEntry): void
+    {
+        $totalAvailable = (int)$createQuery()->count();
+        $offset = max(0, $this->submissionOffset);
+        $batchSize = max(1, $this->submissionBatchSize);
+
+        if ($this->submissionLimit !== null) {
+            $totalToMigrate = min($this->submissionLimit, max(0, $totalAvailable - $offset));
+        } else {
+            $totalToMigrate = max(0, $totalAvailable - $offset);
+        }
+
+        $this->info("Entries: Preparing to migrate $totalToMigrate entries to submissions.");
+
+        if ($totalAvailable > $totalToMigrate + $offset) {
+            $this->info("    > $totalAvailable total entries available; processing from offset $offset.");
+        }
+
+        if (!$totalToMigrate) {
+            $this->warning('    > No entries to migrate.');
+
+            return;
+        }
+
+        $processed = 0;
+        $currentOffset = $offset;
+        $batchNumber = 1;
+
+        while ($processed < $totalToMigrate) {
+            $limit = min($batchSize, $totalToMigrate - $processed);
+            $entries = $createQuery()->offset($currentOffset)->limit($limit)->all();
+
+            if (!$entries) {
+                break;
+            }
+
+            $batchCount = count($entries);
+            $this->info("    > Processing batch $batchNumber ($batchCount entries, offset $currentOffset).");
+
+            foreach ($entries as $entry) {
+                $migrateEntry($entry);
+            }
+
+            $processed += $batchCount;
+            $currentOffset += $batchCount;
+            $batchNumber++;
+
+            unset($entries);
+            gc_collect_cycles();
+        }
+
+        $this->success("    > All entries completed.");
+    }
+
+    protected function logSubmissionMigrated(int|string $sourceId, int|string $targetId): void
+    {
+        if ($this->verboseSubmissionLogs) {
+            $this->success("    > Migrated Freeform submission “{$sourceId}” to Formie submission “{$targetId}”.");
+        } else {
+            $this->incrementStat('submissionsMigrated');
+        }
     }
 
     protected function toRichText(mixed $value): RichText
