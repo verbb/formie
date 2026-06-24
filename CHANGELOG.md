@@ -34,7 +34,7 @@
 - Fix notification email preview and send failing when both **From Name** and **From Email** are set. ([#2698](https://github.com/verbb/formie/issues/2698))
 - Fix plugin migrations failing on production when `allowAdminChanges` is disabled because migrations attempted to write plugin settings to project config. ([#2615](https://github.com/verbb/formie/issues/2615))
 
-## 4.0.0-beta.8 - 2026-06-26
+## 4.0.0-beta.8 - 2026-06-24
 
 ### Added
 - Add **Quiz** field to forms for scored questionnaires ([#605](https://github.com/verbb/formie/issues/605)). Each question supports radio buttons, checkboxes, or a dropdown; mark correct answers on static options, enable optional **Weighted score** for per-option points, and add **Answer explanation** rich text for incorrect responses. Form **Behaviour → Quiz Scoring** settings control pass percentage, retake restrictions (by logged-in user or IP address), and whether Ajax/client submit responses include a `quizResult` payload after a successful final-page submit. Scores persist in `formie_submission_quiz_results` for complete, non-spam submissions.

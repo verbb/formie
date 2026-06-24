@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Changed
+- Released alongside `@verbb/formie-browser` and `@verbb/formie-core` to keep package versions aligned, including WCAG 2.2 AA theme contrast updates, Ajax-safe tab link theme keys, payment follow-up handling, locale-formatted payment amount parsing, and headless GraphQL payment follow-up fields.
+
+## 1.0.8 - 2026-06-24
+
+### Changed
+- Released alongside `@verbb/formie-browser` to keep package versions aligned, including Survey field modules, client event dispatch updates, and Summary theme config fixes from the browser runtime.
+
 ## 1.0.7 - 2026-06-18
 
 ### Changed

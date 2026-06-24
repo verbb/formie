@@ -2,6 +2,28 @@
 
 ## Unreleased
 
+### Changed
+- Improve default theme color contrast for WCAG 2.2 AA — darker error text, muted helper text, and border-only control styling with split border tokens. ([#2475](https://github.com/verbb/formie/issues/2475))
+- Add Ajax-safe tab link state theme keys `tabLinkCurrent` and `tabLinkInactive`, with aliases for `pageTabLinkActive`, `pageTabLinkInactive`, and `pageInactive`. ([#1279](https://github.com/verbb/formie/issues/1279))
+- Dispatch `formie:submit:result` before payment follow-up state handling so captcha modules can refresh one-time tokens before internal resubmits.
+
+### Fixed
+- Fix payment amount parsing for locale-formatted dynamic values (for example `1,234.56`, `1.750,00`, and `£750.00`) in browser payment modules. ([#2334](https://github.com/verbb/formie/issues/2334))
+- Fix payment follow-up states (such as 3D Secure authentication) showing as red validation errors. Action-required and pending payment responses now render as neutral form notices via `paymentStatus` and `paymentMessage` metadata. ([#2660](https://github.com/verbb/formie/issues/2660))
+- Fix Stripe and other payment follow-up submits failing when one-time captcha tokens are revalidated on the second Ajax POST by refreshing captcha tokens before follow-up handlers run. ([#2465](https://github.com/verbb/formie/issues/2465))
+
+## 1.0.8 - 2026-06-24
+
+### Added
+- Add `survey-likert`, `survey-rank`, and `survey-rating` field modules for Survey fields, including Likert layout styling, drag-and-drop rank ordering with submitted order preserved on validation re-render, and interactive star rating controls. ([#605](https://github.com/verbb/formie/issues/605), [#798](https://github.com/verbb/formie/issues/798), [#2282](https://github.com/verbb/formie/issues/2282))
+- Dispatch server-resolved `clientEvents` from Ajax submit responses to `dataLayer` and the `formie:client-event` DOM event, with support for multiple named events per page and pending client events on mount. ([#888](https://github.com/verbb/formie/issues/888))
+
+### Changed
+- Persist `themeConfig` and `frontendTheme` on the form element during client mount so Ajax field modules can round-trip render-time theme settings.
+
+### Fixed
+- Fix Summary field Ajax refreshes ignoring custom `themeConfig` classes by round-tripping render-time theme config through the summary HTML endpoint. ([#1721](https://github.com/verbb/formie/issues/1721))
+
 ## 1.0.7 - 2026-06-18
 
 ### Added
