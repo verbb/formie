@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use verbb\formie\Formie;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\values\DateFieldValue;
 use verbb\formie\fields\values\SingleOptionFieldValue;
@@ -203,6 +204,49 @@ it('validates date dropdown sub-fields from their own option values', function (
         ->and($submission)->not->toHaveFieldError('dateDropdowns.day')
         ->and($submission)->not->toHaveFieldError('dateDropdowns.hour')
         ->and($submission)->not->toHaveFieldError('dateDropdowns.minute');
+});
+
+it('accepts year-only dropdown values when other date parts are disabled', function (): void {
+    $form = formie()
+        ->form(['title' => 'Date Year Dropdown Only'])
+        ->dateField('birthYear', [
+            'displayType' => 'dropdowns',
+            'required' => true,
+        ])
+        ->create();
+
+    $field = $form->getFieldByHandle('birthYear');
+    expect($field)->toBeInstanceOf(Date::class);
+
+    $field->setRows((new Date(['displayType' => 'dropdowns']))->getSubFields());
+
+    foreach ($field->getFields() as $subField) {
+        if ($subField->handle === 'year') {
+            $subField->required = true;
+            continue;
+        }
+
+        $subField->enabled = false;
+        $subField->required = false;
+    }
+
+    Formie::$plugin->getForms()->saveForm($form);
+
+    $submission = formie()->submission($form)
+        ->with([
+            'birthYear' => [
+                'year' => '2011',
+            ],
+        ])
+        ->allowValidationFailure()
+        ->save();
+
+    $stored = $submission->getFieldValue('birthYear');
+
+    expect($submission)->not->toHaveFieldError('birthYear')
+        ->and($submission)->not->toHaveFieldError('birthYear.year')
+        ->and($stored)->toBeInstanceOf(DateFieldValue::class)
+        ->and($stored->getPart('year'))->toBe('2011');
 });
 
 it('rejects impossible calendar dates for text input sub-fields', function (): void {
