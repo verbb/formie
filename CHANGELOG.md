@@ -25,7 +25,8 @@
 - Stop routing user-authored form content (labels, placeholders, messages, options) through the `formie` translation category. Form copy is output from the database after site overrides are merged; `formie.php` is for Formie-owned UI strings only ([#2907](https://github.com/verbb/formie/issues/2907)).
 - Remove front-end `sourceLanguage` mutation in the plugin constructor that existed to work around the above behaviour.
 - Improve multi-site submission and notification handling by loading forms with site translation overrides applied for the submission’s site.
-- Store field translation overrides in `formie_field_site_overrides` instead of nested `fields` entries in form site override JSON. Form import/export support for site overrides is planned next.
+- Store field translation overrides in `formie_field_site_overrides` instead of nested `fields` entries in form site override JSON.
+- Include multi-site translation overrides in form import/export (`siteOverrides`, `fieldSiteOverrides`, and `sourceSiteHandle`), keyed by site handle and field reference for portability across environments. Form exports now use export version `v4`.
 
 ### Fixed
 - Fix form import with **Update existing form** not removing notifications deleted before export. Empty `notifications` arrays in the import payload now replace the form’s notifications instead of being ignored. ([#1941](https://github.com/verbb/formie/issues/1941))

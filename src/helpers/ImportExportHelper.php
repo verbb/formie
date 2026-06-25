@@ -2,6 +2,7 @@
 namespace verbb\formie\helpers;
 
 use verbb\formie\Formie;
+use verbb\formie\base\FieldInterface;
 use verbb\formie\base\ParentFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\fields;
@@ -33,6 +34,15 @@ class ImportExportHelper
 
     public static function generateFormExport(Form $formElement): array
     {
+        if ($formElement->id && Formie::$plugin->getFormSiteOverrides()->isEnabled()) {
+            $sourceSiteId = Formie::$plugin->getFormSiteOverrides()->getSourceSiteId($formElement);
+            $canonicalForm = Formie::$plugin->getForms()->getFormById((int)$formElement->id, $sourceSiteId);
+
+            if ($canonicalForm) {
+                $formElement = $canonicalForm;
+            }
+        }
+
         $formId = $formElement->id;
 
         // Get form
@@ -43,12 +53,12 @@ class ImportExportHelper
             ->one();
 
         // Remove attributes we won't need
-        foreach (['id', 'formFieldLayout', 'layoutId', 'dateCreated', 'dateUpdated', 'uid'] as $key) {
+        foreach (['id', 'formFieldLayout', 'layoutId', 'dateCreated', 'dateUpdated', 'uid', 'sourceSiteId'] as $key) {
             ArrayHelper::remove($data, $key);
         }
 
         // Add the title for the form
-        $data['title'] = $formElement->title;
+        $data['title'] = Formie::$plugin->getFormSiteOverrides()->resolveCanonicalFormTitle($formElement);
 
         // Get form template
         $formTemplateId = ArrayHelper::remove($data, 'templateId');
@@ -140,8 +150,14 @@ class ImportExportHelper
             }
         }
 
+        $siteOverrideExport = self::_exportSiteOverrides($formElement);
+
+        if ($siteOverrideExport !== []) {
+            $data = array_merge($data, $siteOverrideExport);
+        }
+
         // Handy to keep track of which version of export logic this is, for importing between systems
-        $data['exportVersion'] = 'v3';
+        $data['exportVersion'] = 'v4';
 
         return $data;
     }
@@ -169,12 +185,24 @@ class ImportExportHelper
         $pages = ArrayHelper::remove($data, 'pages');
         $formTemplate = ArrayHelper::remove($data, 'formTemplate');
         $notifications = ArrayHelper::remove($data, 'notifications');
+        $sourceSiteHandle = ArrayHelper::remove($data, 'sourceSiteHandle');
+        ArrayHelper::remove($data, 'siteOverrides');
+        ArrayHelper::remove($data, 'fieldSiteOverrides');
+        ArrayHelper::remove($data, 'sourceSiteId');
 
         // Handle Formie v2 exports
         unset($data['fieldLayoutId']);
 
         // Handle base form
         $form->setAttributes($data, false);
+
+        if ($sourceSiteHandle) {
+            $sourceSiteId = self::_resolveSiteIdByHandle((string)$sourceSiteHandle);
+
+            if ($sourceSiteId) {
+                $form->sourceSiteId = $sourceSiteId;
+            }
+        }
 
         // Handle any custom field
         $customFields = $data['customFields'] ?? [];
@@ -290,6 +318,9 @@ class ImportExportHelper
             $existingForm = Formie::$plugin->getForms()->getFormByHandle($formHandle);
         }
 
+        $siteOverrides = ArrayHelper::remove($json, 'siteOverrides');
+        $fieldSiteOverrides = ArrayHelper::remove($json, 'fieldSiteOverrides');
+
         // When creating a new form, change the handle
         if ($formAction === 'create') {
             $formHandles = (new Query())
@@ -321,6 +352,12 @@ class ImportExportHelper
         }
 
          Craft::$app->getElements()->saveElement($form);
+
+         self::_importSiteOverrides(
+             $form,
+             $siteOverrides ?? null,
+             $fieldSiteOverrides ?? null,
+         );
 
          return $form;
     
@@ -454,5 +491,329 @@ class ImportExportHelper
                 }
             }
         }
+    }
+
+    private static function _exportSiteOverrides(Form $form): array
+    {
+        $siteOverridesService = Formie::$plugin->getFormSiteOverrides();
+
+        if (!$siteOverridesService->isEnabled() || !$form->id) {
+            return [];
+        }
+
+        $sourceSite = Craft::$app->getSites()->getSiteById($siteOverridesService->getSourceSiteId($form));
+
+        if (!$sourceSite) {
+            return [];
+        }
+
+        $export = [
+            'sourceSiteHandle' => $sourceSite->handle,
+        ];
+
+        $formOverridesBySiteId = $siteOverridesService->getAllOverrides((int)$form->id);
+        $fieldOverridesBySiteId = Formie::$plugin->getFieldSiteOverrides()->getAllForForm($form);
+        $pageKeyMap = self::_buildPageExportKeyMap($form);
+        $notificationKeyMap = self::_buildNotificationExportKeyMap($form);
+        $fieldReferenceMap = self::_buildFieldReferenceMap($form);
+
+        $exportedFormOverrides = [];
+        $exportedFieldOverrides = [];
+
+        foreach ($formOverridesBySiteId as $siteId => $overrides) {
+            $site = Craft::$app->getSites()->getSiteById((int)$siteId);
+
+            if (!$site) {
+                continue;
+            }
+
+            $exportedFormOverrides[$site->handle] = self::_remapFormOverrideKeysForExport(
+                $overrides,
+                $pageKeyMap,
+                $notificationKeyMap,
+            );
+        }
+
+        foreach ($fieldOverridesBySiteId as $siteId => $fieldOverrides) {
+            $site = Craft::$app->getSites()->getSiteById((int)$siteId);
+
+            if (!$site) {
+                continue;
+            }
+
+            $exportedFieldOverrides[$site->handle] = self::_remapFieldOverrideKeysForExport(
+                $fieldOverrides,
+                $fieldReferenceMap,
+            );
+        }
+
+        if ($exportedFormOverrides !== []) {
+            $export['siteOverrides'] = $exportedFormOverrides;
+        }
+
+        if ($exportedFieldOverrides !== []) {
+            $export['fieldSiteOverrides'] = $exportedFieldOverrides;
+        }
+
+        return $export;
+    }
+
+    private static function _importSiteOverrides(Form $form, ?array $siteOverrides, ?array $fieldSiteOverrides): void
+    {
+        if (!$form->id) {
+            return;
+        }
+
+        $siteOverridesService = Formie::$plugin->getFormSiteOverrides();
+
+        if (!$siteOverridesService->isEnabled()) {
+            return;
+        }
+
+        $pageKeyMap = self::_buildPageImportKeyMap($form);
+        $fieldReferenceMap = self::_buildFieldReferenceMap($form);
+
+        if (is_array($siteOverrides)) {
+            foreach ($siteOverrides as $siteHandle => $overrides) {
+                if (!is_array($overrides)) {
+                    continue;
+                }
+
+                $siteId = self::_resolveSiteIdByHandle((string)$siteHandle);
+
+                if (!$siteId || $siteOverridesService->isSourceSiteForForm((int)$form->id, $siteId)) {
+                    continue;
+                }
+
+                $payload = self::_remapFormOverrideKeysForImport($overrides, $pageKeyMap);
+
+                if ($payload === []) {
+                    $siteOverridesService->deleteOverrides((int)$form->id, $siteId);
+                    continue;
+                }
+
+                $siteOverridesService->saveOverrides((int)$form->id, $siteId, $payload);
+            }
+        }
+
+        if (is_array($fieldSiteOverrides)) {
+            foreach ($fieldSiteOverrides as $siteHandle => $fieldOverrides) {
+                if (!is_array($fieldOverrides)) {
+                    continue;
+                }
+
+                $siteId = self::_resolveSiteIdByHandle((string)$siteHandle);
+
+                if (!$siteId || $siteOverridesService->isSourceSiteForForm((int)$form->id, $siteId)) {
+                    continue;
+                }
+
+                $payload = self::_remapFieldOverrideKeysForImport($fieldOverrides, $fieldReferenceMap);
+
+                if ($payload === []) {
+                    continue;
+                }
+
+                Formie::$plugin->getFieldSiteOverrides()->saveOverrides($siteId, $payload);
+            }
+        }
+    }
+
+    private static function _resolveSiteIdByHandle(string $handle): ?int
+    {
+        $handle = trim($handle);
+
+        if ($handle === '') {
+            return null;
+        }
+
+        $site = Craft::$app->getSites()->getSiteByHandle($handle);
+
+        return $site ? (int)$site->id : null;
+    }
+
+    private static function _buildFieldReferenceMap(Form $form): array
+    {
+        $map = [];
+
+        foreach ($form->getFields() as $field) {
+            if ($field instanceof FieldInterface) {
+                self::_collectFieldReferenceMap($field, $map);
+            }
+        }
+
+        return $map;
+    }
+
+    private static function _collectFieldReferenceMap(FieldInterface $field, array &$map): void
+    {
+        $reference = trim((string)$field->reference);
+        $fieldId = (int)($field->fieldId ?: 0);
+
+        if ($reference !== '' && $fieldId) {
+            $map[$reference] = $fieldId;
+        }
+
+        if (!$field instanceof ParentFieldInterface) {
+            return;
+        }
+
+        foreach ($field->getFieldLayout()->getPages() as $page) {
+            foreach ($page->getRows() as $row) {
+                foreach ($row->getFields() as $nestedField) {
+                    if ($nestedField instanceof FieldInterface) {
+                        self::_collectFieldReferenceMap($nestedField, $map);
+                    }
+                }
+            }
+        }
+    }
+
+    private static function _buildPageExportKeyMap(Form $form): array
+    {
+        $map = [];
+
+        foreach ($form->getPages() as $page) {
+            $handle = trim((string)($page->getHandle() ?? ''));
+
+            if ($handle === '') {
+                continue;
+            }
+
+            $uid = trim((string)$page->uid);
+            $id = trim((string)$page->id);
+
+            if ($uid !== '') {
+                $map[$uid] = $handle;
+            }
+
+            if ($id !== '') {
+                $map[$id] = $handle;
+            }
+
+            $map[$handle] = $handle;
+        }
+
+        return $map;
+    }
+
+    private static function _buildPageImportKeyMap(Form $form): array
+    {
+        $map = [];
+
+        foreach ($form->getPages() as $page) {
+            $handle = trim((string)($page->getHandle() ?? ''));
+            $uid = trim((string)$page->uid);
+
+            if ($handle !== '' && $uid !== '') {
+                $map[$handle] = $uid;
+            }
+        }
+
+        return $map;
+    }
+
+    private static function _buildNotificationExportKeyMap(Form $form): array
+    {
+        $map = [];
+
+        foreach ($form->getNotifications() as $notification) {
+            $handle = trim((string)($notification->handle ?? ''));
+            $uid = trim((string)$notification->uid);
+
+            if ($handle === '') {
+                continue;
+            }
+
+            $map[$handle] = $handle;
+
+            if ($uid !== '') {
+                $map[$uid] = $handle;
+            }
+        }
+
+        return $map;
+    }
+
+    private static function _remapFormOverrideKeysForExport(array $overrides, array $pageKeyMap, array $notificationKeyMap): array
+    {
+        if (isset($overrides['pages']) && is_array($overrides['pages'])) {
+            $overrides['pages'] = self::_remapKeyedOverrideSection($overrides['pages'], $pageKeyMap);
+        }
+
+        if (isset($overrides['notifications']) && is_array($overrides['notifications'])) {
+            $overrides['notifications'] = self::_remapKeyedOverrideSection($overrides['notifications'], $notificationKeyMap);
+        }
+
+        return $overrides;
+    }
+
+    private static function _remapFormOverrideKeysForImport(array $overrides, array $pageKeyMap): array
+    {
+        if (isset($overrides['pages']) && is_array($overrides['pages'])) {
+            $overrides['pages'] = self::_remapKeyedOverrideSection($overrides['pages'], $pageKeyMap);
+        }
+
+        return Formie::$plugin->getFormSiteOverrides()->normalizeOverrides($overrides);
+    }
+
+    private static function _remapFieldOverrideKeysForExport(array $fieldOverrides, array $fieldReferenceMap): array
+    {
+        $referenceByFieldId = array_flip($fieldReferenceMap);
+        $export = [];
+
+        foreach ($fieldOverrides as $fieldId => $override) {
+            if (!is_array($override)) {
+                continue;
+            }
+
+            $reference = $referenceByFieldId[(int)$fieldId] ?? null;
+
+            if (!$reference) {
+                continue;
+            }
+
+            $export[$reference] = $override;
+        }
+
+        return $export;
+    }
+
+    private static function _remapFieldOverrideKeysForImport(array $fieldOverrides, array $fieldReferenceMap): array
+    {
+        $import = [];
+
+        foreach ($fieldOverrides as $reference => $override) {
+            if (!is_array($override)) {
+                continue;
+            }
+
+            $fieldId = $fieldReferenceMap[(string)$reference] ?? null;
+
+            if (!$fieldId) {
+                continue;
+            }
+
+            $import[(int)$fieldId] = $override;
+        }
+
+        return $import;
+    }
+
+    private static function _remapKeyedOverrideSection(array $section, array $keyMap): array
+    {
+        $remapped = [];
+
+        foreach ($section as $key => $value) {
+            $stableKey = $keyMap[(string)$key] ?? (string)$key;
+
+            if (isset($remapped[$stableKey]) && is_array($remapped[$stableKey]) && is_array($value)) {
+                $remapped[$stableKey] = array_replace($remapped[$stableKey], $value);
+            } else {
+                $remapped[$stableKey] = $value;
+            }
+        }
+
+        return $remapped;
     }
 }
