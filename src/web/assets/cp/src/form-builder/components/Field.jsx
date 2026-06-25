@@ -16,6 +16,7 @@ import {
     faArrowRight,
     faLinkSlash,
     faLock,
+    faPlus,
 } from '@fortawesome/pro-solid-svg-icons';
 
 import {
@@ -83,6 +84,7 @@ import { getFieldEditorConditionContext } from '@form-builder/utils/fieldEditorC
 import { SnapTopLeftCornerToCursor } from '@utils';
 
 import { FieldPreview } from './FieldPreview';
+import { ExistingFields } from './ExistingFields';
 import { FieldEditorNotices } from './FieldEditorNotices';
 import { FieldBuilderHandle } from './FieldBuilderHandle';
 import { FieldBuilderEncryptedBadge } from './FieldBuilderEncryptedBadge';
@@ -123,10 +125,12 @@ const Field = ({
     const fieldDisplayLabel = getFieldDisplayLabel(field, fieldType);
     const showQuestionRichTextLabel = hasQuestionFieldLabelContent(field, fieldType);
     const isInlineContainerBuilder = Boolean(fieldType?.isContainerParentField || fieldType?.isRepeatableParentField);
+    const canAddExistingFieldsToGroup = Boolean(fieldType?.isContainerParentField && !fieldType?.isRepeatableParentField);
     const draggableFieldId = field?._id || `${pageIndex}-${rowIndex}-${fieldIndex}`;
     const [editingField, setEditingField] = useState(null);
     const [isAdapterPickerOpen, setIsAdapterPickerOpen] = useState(false);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [showGroupExistingFields, setShowGroupExistingFields] = useState(false);
     const hasInitialAutoOpenRunRef = useRef(false);
     const isClosingEditorRef = useRef(false);
     const fieldEditorDismissAttemptRef = useRef(null);
@@ -309,6 +313,28 @@ const Field = ({
         });
         return [...new Set([...(globalReservedHandles || []), ...siblingHandles])];
     }, [pages, pageIndex, rowIndex, fieldIndex, globalReservedHandles]);
+
+    const groupExistingFieldsPlacement = useMemo(() => {
+        if (!canAddExistingFieldsToGroup) {
+            return null;
+        }
+
+        const allowedFieldTypes = Array.isArray(fieldType?.data?.nestedLayoutBuilder?.allowedFieldTypes)
+            ? fieldType.data.nestedLayoutBuilder.allowedFieldTypes
+            : [];
+
+        return {
+            pageIndex,
+            rowIndex,
+            fieldIndex,
+            allowedFieldTypes,
+        };
+    }, [canAddExistingFieldsToGroup, fieldType, pageIndex, rowIndex, fieldIndex]);
+
+    const handleOpenGroupExistingFields = () => {
+        setShowGroupExistingFields(true);
+        setIsDropdownOpen(false);
+    };
 
     const currentPage = pages[pageIndex];
     const currentRow = currentPage?.rows?.[rowIndex];
@@ -642,6 +668,13 @@ const Field = ({
                                 {Craft.t('formie', 'Duplicate')}
                             </DropdownMenuItem>
 
+                            {canAddExistingFieldsToGroup && (
+                                <DropdownMenuItem onClick={handleOpenGroupExistingFields}>
+                                    <FontAwesomeIcon icon={faPlus} />
+                                    {Craft.t('formie', 'Add existing fields')}
+                                </DropdownMenuItem>
+                            )}
+
                             {isSyncedField && (
                                 <DropdownMenuItem onClick={handleDetachSync}>
                                     <FontAwesomeIcon icon={faLinkSlash} />
@@ -848,6 +881,8 @@ const Field = ({
                         pageIndex={pageIndex}
                         rowIndex={rowIndex}
                         fieldIndex={fieldIndex}
+                        canAddExistingFields={canAddExistingFieldsToGroup}
+                        onOpenExistingFields={handleOpenGroupExistingFields}
                     />
                 </div>
             </div >
@@ -864,6 +899,15 @@ const Field = ({
                         onCancel={handleCustomFieldAdapterCancel}
                     />
                 </Dialog>
+            )}
+
+            {showGroupExistingFields && groupExistingFieldsPlacement && (
+                <ExistingFields
+                    nestedPlacement={groupExistingFieldsPlacement}
+                    onClose={() => {
+                        setShowGroupExistingFields(false);
+                    }}
+                />
             )}
 
             {editingField !== null && (

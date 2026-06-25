@@ -21,6 +21,7 @@ import {
 import { useFormValues } from '@form-builder/hooks/useFormTools';
 import { useBuilderActions } from '@form-builder/builder/useBuilderActions';
 import { useFormBuilderApp } from '@form-builder/contexts/FormBuilderAppContext';
+import { collectFieldHandlesFromRows } from '@form-builder/utils/duplicateField';
 import { getDevToolsConfig } from '@form-builder/dev/config';
 import { createMockExistingFieldsData } from '@form-builder/dev/scenarios/existingFieldsStressScenario';
 import { LargeErrorState, StatePanel } from '@utils';
@@ -66,16 +67,46 @@ const getFieldSelectionKey = (field = {}) => {
 
 const EXISTING_FIELDS_SEARCH_DEBOUNCE_MS = 600;
 
-const createHandleCollisionError = ({ label = '', handle = '' } = {}) => {
+const createHandleCollisionError = ({ label = '', handle = '', scope = 'form' } = {}) => {
     const fieldLabel = label || Craft.t('formie', 'This field');
+    const collisionMessage = scope === 'group'
+        ? Craft.t('formie', '{name} uses the handle "{handle}", which already exists in this group. Synced fields must keep their original handle, so detach it first or rename the conflicting field.', {
+            name: fieldLabel,
+            handle,
+        })
+        : Craft.t('formie', '{name} uses the handle "{handle}", which already exists in this form. Synced fields must keep their original handle, so detach it first or rename the conflicting field.', {
+            name: fieldLabel,
+            handle,
+        });
 
     return {
         heading: Craft.t('formie', 'Unable to add synced field'),
-        text: Craft.t('formie', '{name} uses the handle "{handle}", which already exists in this form. Synced fields must keep their original handle, so detach it first or rename the conflicting field.', {
-            name: fieldLabel,
-            handle,
+        text: collisionMessage,
+    };
+};
+
+const createDisallowedFieldTypeError = ({ label = '', type = '' } = {}) => {
+    return {
+        heading: Craft.t('formie', 'Unable to add field'),
+        text: Craft.t('formie', '{name} cannot be added inside this group.', {
+            name: label || type || Craft.t('formie', 'This field'),
         }),
     };
+};
+
+const isNestedGroupPlacement = (nestedPlacement) => {
+    if (!nestedPlacement || typeof nestedPlacement !== 'object') {
+        return false;
+    }
+
+    return [nestedPlacement.pageIndex, nestedPlacement.rowIndex, nestedPlacement.fieldIndex]
+        .every((value) => { return Number.isFinite(value); });
+};
+
+const getParentFieldFromPages = (pagesSnapshot, nestedPlacement) => {
+    return pagesSnapshot?.[nestedPlacement.pageIndex]
+        ?.rows?.[nestedPlacement.rowIndex]
+        ?.fields?.[nestedPlacement.fieldIndex];
 };
 
 const META_KEYS_TO_STRIP = new Set([
@@ -184,13 +215,22 @@ const filterFormBySearch = (form, searchTerm) => {
     };
 };
 
-const ExistingFields = ({ onClose }) => {
+const ExistingFields = ({ onClose, nestedPlacement = null }) => {
     const formValues = useFormValues();
     const pages = formValues.pages || [];
     const { activePageHandle } = useFormBuilderApp();
     const resolvedPageIndex = pages.findIndex((page) => { return page._handle === activePageHandle; });
     const activePageIndex = resolvedPageIndex >= 0 ? resolvedPageIndex : 0;
     const { getPages, setPages } = useBuilderActions();
+    const nestedGroupPlacement = isNestedGroupPlacement(nestedPlacement);
+    const handleCollisionScope = nestedGroupPlacement ? 'group' : 'form';
+    const allowedNestedFieldTypes = useMemo(() => {
+        if (!nestedGroupPlacement || !Array.isArray(nestedPlacement?.allowedFieldTypes)) {
+            return null;
+        }
+
+        return new Set(nestedPlacement.allowedFieldTypes.filter(Boolean));
+    }, [nestedGroupPlacement, nestedPlacement?.allowedFieldTypes]);
 
     const [existingFields, setExistingFields] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -606,25 +646,33 @@ const ExistingFields = ({ onClose }) => {
         }
     };
 
-    const addSelectedToPage = async(selected, { synced = false } = {}) => {
-        const pagesSnapshot = JSON.parse(JSON.stringify(getPages() || []));
-        const targetPage = pagesSnapshot[activePageIndex];
+    const collectExistingHandles = (pagesSnapshot) => {
+        if (nestedGroupPlacement) {
+            const parentField = getParentFieldFromPages(pagesSnapshot, nestedPlacement);
+            const handles = [];
+            collectFieldHandlesFromRows(parentField?.rows || [], handles);
 
-        if (!targetPage) {
-            return;
+            return handles;
         }
 
-        const nextRows = Array.isArray(targetPage.rows) ? [...targetPage.rows] : [];
+        const handles = [];
+        (pagesSnapshot || []).forEach((page) => {
+            (page?.rows || []).forEach((row) => {
+                collectFieldHandles(row?.fields || [], handles);
+            });
+        });
+
+        return handles;
+    };
+
+    const addSelectedToLayout = async(selected, { synced = false } = {}) => {
+        const pagesSnapshot = JSON.parse(JSON.stringify(getPages() || []));
         const selectedFieldConfigs = await fetchSelectedFieldConfigs(selected);
         const selectedFieldConfigById = new Map(selectedFieldConfigs.map((item) => {
             return [Number(item?.id), item?.field || null];
         }));
-        const existingHandles = [];
-        (pagesSnapshot || []).forEach((page) => {
-            (page?.rows || []).forEach((row) => {
-                collectFieldHandles(row?.fields || [], existingHandles);
-            });
-        });
+        const existingHandles = collectExistingHandles(pagesSnapshot);
+        const fieldsToInsert = [];
 
         for (const field of selected) {
             const fieldId = Number(field?.id);
@@ -642,6 +690,15 @@ const ExistingFields = ({ onClose }) => {
                 continue;
             }
 
+            const resolvedFieldType = resolvedFieldConfig.type || field.type;
+
+            if (allowedNestedFieldTypes && resolvedFieldType && !allowedNestedFieldTypes.has(resolvedFieldType)) {
+                throw createDisallowedFieldTypeError({
+                    label: getExistingFieldLabel(resolvedFieldConfig) || getExistingFieldLabel(field),
+                    type: resolvedFieldType,
+                });
+            }
+
             const importedField = buildImportedFieldData(resolvedFieldConfig, {
                 synced,
                 syncSourceId: synced && Number.isFinite(syncDefinitionId) && syncDefinitionId > 0
@@ -655,18 +712,57 @@ const ExistingFields = ({ onClose }) => {
                 throw createHandleCollisionError({
                     label: importedField.label || field?.label || '',
                     handle: baseHandle,
+                    scope: handleCollisionScope,
                 });
             }
 
             importedField.handle = nextHandle;
             existingHandles.push(nextHandle);
 
-            const newField = createNewField(resolvedFieldConfig.type || field.type, importedField);
+            fieldsToInsert.push(createNewField(resolvedFieldType || field.type, importedField));
+        }
+
+        if (!fieldsToInsert.length) {
+            return;
+        }
+
+        if (nestedGroupPlacement) {
+            const parentField = getParentFieldFromPages(pagesSnapshot, nestedPlacement);
+
+            if (!parentField) {
+                return;
+            }
+
+            if (!Array.isArray(parentField.rows)) {
+                parentField.rows = [];
+            }
+
+            fieldsToInsert.forEach((newField) => {
+                parentField.rows.push({
+                    ...createItem({}),
+                    fields: [createItem(newField)],
+                });
+            });
+
+            setPages(pagesSnapshot);
+
+            return;
+        }
+
+        const targetPage = pagesSnapshot[activePageIndex];
+
+        if (!targetPage) {
+            return;
+        }
+
+        const nextRows = Array.isArray(targetPage.rows) ? [...targetPage.rows] : [];
+
+        fieldsToInsert.forEach((newField) => {
             nextRows.push({
                 ...createItem({}),
                 fields: [createItem(newField)],
             });
-        }
+        });
 
         pagesSnapshot[activePageIndex] = {
             ...targetPage,
@@ -685,7 +781,7 @@ const ExistingFields = ({ onClose }) => {
         setIsSubmitting(true);
 
         try {
-            await addSelectedToPage(selectedFields, { synced: false });
+            await addSelectedToLayout(selectedFields, { synced: false });
             handleClose();
         } catch (error) {
             setSubmitError(error);
@@ -703,7 +799,7 @@ const ExistingFields = ({ onClose }) => {
         setIsSubmitting(true);
 
         try {
-            await addSelectedToPage(selectedFields, { synced: true });
+            await addSelectedToLayout(selectedFields, { synced: true });
             handleClose();
         } catch (error) {
             setSubmitError(error);
@@ -726,7 +822,9 @@ const ExistingFields = ({ onClose }) => {
                     </DialogTitle>
 
                     <DialogDescription className="hidden">
-                        {Craft.t('formie', 'Add existing fields to this form.')}
+                        {nestedGroupPlacement
+                            ? Craft.t('formie', 'Add existing fields to this group.')
+                            : Craft.t('formie', 'Add existing fields to this form.')}
                     </DialogDescription>
                 </DialogHeader>
 

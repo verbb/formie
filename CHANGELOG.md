@@ -4,6 +4,7 @@
 
 ### Added
 - Add **Form Statuses** to label form lifecycle states in the control panel (active, draft, archived), with form builder assignment, index status menu filtering, bulk actions, and project config support. Rename existing submission workflow labels to **Submission Statuses**, with backward-compatible class aliases. ([#1471](https://github.com/verbb/formie/issues/1471))
+- Add existing and synced fields to **Group** fields from the form builder, so reusable field definitions can be placed inside independent group wrappers with namespaced handles. ([#2069](https://github.com/verbb/formie/issues/2069))
 - Show field handles in the form builder when the Craft user preference **Show field handles in edit forms** is enabled (admin users only), with a copy-to-clipboard control on hover. ([#2279](https://github.com/verbb/formie/issues/2279))
 - Show an **Encrypted** padlock badge on fields in the form builder when **Enable Content Encryption** is turned on. ([#2332](https://github.com/verbb/formie/issues/2332))
 - Add an optional **Other** choice for Radio fields, with a configurable label and free-text input on the front-end. ([#1875](https://github.com/verbb/formie/issues/1875))

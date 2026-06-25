@@ -19,7 +19,7 @@ const isMissingField = (field) => {
 };
 
 const FieldPreview = ({
-    field, fieldType, pageIndex, rowIndex, fieldIndex,
+    field, fieldType, pageIndex, rowIndex, fieldIndex, canAddExistingFields = false, onOpenExistingFields = null,
 }) => {
     try {
         if (isMissingField(field)) {
@@ -38,6 +38,8 @@ const FieldPreview = ({
                     pageIndex={pageIndex}
                     rowIndex={rowIndex}
                     fieldIndex={fieldIndex}
+                    canAddExistingFields={canAddExistingFields}
+                    onOpenExistingFields={onOpenExistingFields}
                 />
             );
         }

@@ -18,6 +18,7 @@ import {
     faLock,
     faPencil,
     faPlus,
+    faRefresh,
     faTrash,
 } from '@fortawesome/pro-solid-svg-icons';
 
@@ -212,7 +213,7 @@ const expandedContainerNestedPointerIntersection = ({ dragOperation, droppable }
 };
 
 const NestedDropzone = ({
-    id, data, kind = 'field', disabled = false, alwaysVisible = false,
+    id, data, kind = 'field', disabled = false, alwaysVisible = false, onAddExistingFields = null,
 }) => {
     const { ref, isDropTarget } = useDroppable({
         id,
@@ -233,9 +234,30 @@ const NestedDropzone = ({
                     isVisible ? 'opacity-100 z-10' : 'opacity-0 -z-1',
                 )}
             >
-                <span className="text-[#60758a] text-[14px] font-medium">
-                    {Craft.t('formie', 'Drag and drop a field here')}
-                </span>
+                <p className="m-0 text-[14px] font-medium text-[#60758a]">
+                    {onAddExistingFields ? (
+                        <>
+                            {Craft.t('formie', 'Drag and drop a field here, or')}{' '}
+                            <button
+                                type="button"
+                                className={cn(
+                                    'cursor-pointer text-sky-600 underline-offset-2',
+                                    'hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-600',
+                                )}
+                                onClick={(event) => {
+                                    event.preventDefault();
+                                    event.stopPropagation();
+                                    onAddExistingFields();
+                                }}
+                            >
+                                {Craft.t('formie', 'add existing fields')}
+                            </button>
+                            .
+                        </>
+                    ) : (
+                        Craft.t('formie', 'Drag and drop a field here')
+                    )}
+                </p>
             </div>
         );
     }
@@ -573,7 +595,8 @@ const NestedFieldCard = ({
         }
         return hasErrorsForPrefix(nestedFieldPrefix);
     }, [formErrors, hasErrorsForPrefix, nestedFieldPath, nestedFieldPrefix]);
-    const hasNestedFieldStatusIndicators = hasConditions || Boolean(nestedField?.enableContentEncryption);
+    const isSyncedField = Boolean(nestedField?.isSynced || nestedField?.syncId);
+    const hasNestedFieldStatusIndicators = hasConditions || Boolean(nestedField?.enableContentEncryption) || isSyncedField;
     const currentRow = parentRows?.[nestedRowIndex];
     const prevRow = parentRows?.[nestedRowIndex - 1];
     const nextRow = parentRows?.[nestedRowIndex + 1];
@@ -584,7 +607,6 @@ const NestedFieldCard = ({
     const canMoveDown = hasRowSiblings || nextRowHasRoom;
     const canMoveLeft = nestedFieldIndex > 0;
     const canMoveRight = Boolean(currentRow && nestedFieldIndex < currentRow.fields.length - 1);
-    const isSyncedField = Boolean(nestedField?.isSynced || nestedField?.syncId);
     const nestedReservedHandles = useMemo(() => {
         const siblingHandles = collectNestedReservedHandles(parentRows, {
             rowIndex: nestedRowIndex,
@@ -906,6 +928,19 @@ const NestedFieldCard = ({
                                             </>
                                         )}
 
+                                        {isSyncedField && (
+                                            <div className={cn(
+                                                'inline-flex items-center gap-1',
+                                                'rounded-[10px] border border-[#f6ad55] bg-[#fffaf0]',
+                                                'px-[6px] py-[3px]',
+                                                'text-[10px] font-medium text-[#b45309]',
+                                                shouldUseNestedFieldLabel && 'ml-2',
+                                            )}>
+                                                <FontAwesomeIcon icon={faRefresh} className="size-2.5" />
+                                                <span>{Craft.t('formie', 'Synced')}</span>
+                                            </div>
+                                        )}
+
                                         {hasConditions && (
                                             <div className={cn(
                                                 'inline-flex items-center gap-1',
@@ -990,7 +1025,7 @@ const NestedFieldCard = ({
 };
 
 const ContainerFieldPreview = ({
-    field, fieldType, pageIndex, rowIndex, fieldIndex,
+    field, fieldType, pageIndex, rowIndex, fieldIndex, canAddExistingFields = false, onOpenExistingFields = null,
 }) => {
     const instanceIdRef = useRef(`inst-${Math.random().toString(36).slice(2, 10)}`);
     const instanceId = instanceIdRef.current;
@@ -1017,6 +1052,11 @@ const ContainerFieldPreview = ({
     const allowedNestedFieldTypes = Array.isArray(fieldType?.data?.nestedLayoutBuilder?.allowedFieldTypes)
         ? fieldType.data.nestedLayoutBuilder.allowedFieldTypes
         : [];
+    const handleOpenExistingFields = () => {
+        if (typeof onOpenExistingFields === 'function') {
+            onOpenExistingFields();
+        }
+    };
     const canDropInThisContainer = canDropInNestedContainer({
         activeData,
         isRepeater,
@@ -1048,6 +1088,7 @@ const ContainerFieldPreview = ({
                     kind="empty"
                     disabled={dropzonesDisabled}
                     alwaysVisible={!isDragging || canDropInThisContainer}
+                    onAddExistingFields={canAddExistingFields ? handleOpenExistingFields : null}
                 />
             </div>
         );

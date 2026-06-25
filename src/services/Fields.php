@@ -90,6 +90,7 @@ class Fields extends Component
     private ?FieldGqlCache $_fieldGqlCache = null;
     private ?array $_reservedHandles = null;
     private array $_definitionIdsBeingDeleted = [];
+    private static array $_savedSharedDefinitionIds = [];
     
 
     // Public Methods
@@ -1168,7 +1169,12 @@ class Fields extends Component
         $field->fieldId = $definitionId;
         $field->syncId = $definitionId;
         $field->handle = $definition->handle;
-        $field->label = $definition->label;
+
+        // Keep builder/config labels during save hydration. Stencils and imports may omit a label.
+        if (trim((string)($field->label ?? '')) === '') {
+            $field->label = $definition->label;
+        }
+
         $field->isSynced = true;
     }
 
@@ -1332,6 +1338,7 @@ class Fields extends Component
             $layout->id = $layoutRecord->id;
             $layoutId = $layout->id;
             LayoutHandleUniqueValidator::beginLayoutSaveScope($layout);
+            self::$_savedSharedDefinitionIds = [];
 
             foreach ($layout->getPages() as $pageKey => $page) {
                 $page->layoutId = $layout->id;
@@ -1367,6 +1374,7 @@ class Fields extends Component
             }
         } finally {
             LayoutHandleUniqueValidator::endLayoutSaveScope($layoutId);
+            self::$_savedSharedDefinitionIds = [];
         }
 
         return false;
@@ -1585,19 +1593,29 @@ class Fields extends Component
             $field->handle = $fieldRecord->handle;
         }
 
-        $fieldRecord->id = $definitionId;
-        $fieldRecord->label = $field->label;
-        $fieldRecord->handle = $field->handle;
-        $fieldRecord->type = $field->type;
-        $fieldRecord->settings = Json::encode($field->getDefinitionSettings());
+        $skipSharedDefinitionUpdate = $definitionId
+            && $existingDefinitionUsageCount > 1
+            && isset(self::$_savedSharedDefinitionIds[$definitionId]);
 
-        // Check if this is a missing field, and swap back its type. 
-        // This can commonly happen during a migration, not really from normal use.
-        if ($field instanceof formiefields\MissingField) {
-            $fieldRecord->type = $field->expectedType;
+        if (!$skipSharedDefinitionUpdate) {
+            $fieldRecord->id = $definitionId;
+            $fieldRecord->label = $field->label;
+            $fieldRecord->handle = $field->handle;
+            $fieldRecord->type = $field->type;
+            $fieldRecord->settings = Json::encode($field->getDefinitionSettings());
+
+            // Check if this is a missing field, and swap back its type. 
+            // This can commonly happen during a migration, not really from normal use.
+            if ($field instanceof formiefields\MissingField) {
+                $fieldRecord->type = $field->expectedType;
+            }
+
+            $fieldRecord->save(false);
+
+            if ($definitionId && $existingDefinitionUsageCount > 1) {
+                self::$_savedSharedDefinitionIds[$definitionId] = true;
+            }
         }
-
-        $fieldRecord->save(false);
 
         $formFieldRecord = $isNewField ? new FormFieldRecord() : FormFieldRecord::findOne($field->id);
 
