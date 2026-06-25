@@ -13,6 +13,7 @@ import { getDevToolsConfig } from '@form-builder/dev/config';
 import { PageSettingsModal } from './PageSettingsModal';
 import { useFormBuilderForm } from '@form-builder/contexts/FormBuilderFormContext';
 import { useFormBuilderApp } from '@form-builder/contexts/FormBuilderAppContext';
+import useAppStore from '@form-builder/hooks/useAppStore';
 import { ScrollArea } from '@verbb/plugin-kit-react/components';
 import { announceFormBuilderStatus } from '@form-builder/utils/accessibility';
 
@@ -82,6 +83,7 @@ function PageTabs({ isAnyDragActive = false }) {
     const pages = useFormValue('pages', []);
     const { hasErrorsForPrefix, hasErrorsForFieldNames } = useFormBuilderForm();
     const { activePageHandle, activeTab, pageSettingsSchema } = useFormBuilderApp();
+    const enableMultiPageForms = useAppStore((state) => state.enableMultiPageForms ?? true);
     const router = useUrlRouter();
 
     const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
@@ -120,6 +122,10 @@ function PageTabs({ isAnyDragActive = false }) {
     };
 
     const handleQuickAddPage = () => {
+        if (!enableMultiPageForms) {
+            return;
+        }
+
         setSettingsModalInitialPageHandle(null);
         setCreatePageOnModalOpen(true);
         setIsSettingsModalOpen(true);
@@ -219,21 +225,23 @@ function PageTabs({ isAnyDragActive = false }) {
                 </div>
             </ScrollArea>
 
-            <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleQuickAddPage}
-                className={cn(
-                    'p-2',
-                    hasPageListErrors ? 'text-error border-error' : 'text-gray-600',
-                    !isAnyDragActive && (hasPageListErrors ? 'hover:text-error' : 'hover:text-gray-800'),
-                )}
-                aria-label={Craft.t('formie', 'New Page')}
-                aria-invalid={hasPageListErrors || undefined}
-            >
-                <FontAwesomeIcon icon={faPlus} className="size-4" />
-            </Button>
+            {enableMultiPageForms && (
+                <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleQuickAddPage}
+                    className={cn(
+                        'p-2',
+                        hasPageListErrors ? 'text-error border-error' : 'text-gray-600',
+                        !isAnyDragActive && (hasPageListErrors ? 'hover:text-error' : 'hover:text-gray-800'),
+                    )}
+                    aria-label={Craft.t('formie', 'New Page')}
+                    aria-invalid={hasPageListErrors || undefined}
+                >
+                    <FontAwesomeIcon icon={faPlus} className="size-4" />
+                </Button>
+            )}
 
             <Button
                 type="button"

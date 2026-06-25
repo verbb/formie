@@ -427,6 +427,7 @@ class Forms extends Component
             'tabLabels' => array_column($tabs, 'label', 'handle'),
             'paymentIntegrations' => $this->_getPaymentIntegrationMetadata(),
             'allowedSubmitMethods' => Formie::$plugin->getSettings()->allowedSubmitMethods,
+            'enableMultiPageForms' => Formie::$plugin->getSettings()->enableMultiPageForms,
             'templateFieldLayoutInfo' => $this->_getTemplateFieldLayoutInfo(),
             'fieldTypeGroups' => Formie::$plugin->getFields()->getFormBuilderFieldTypes([], $form),
             'hasSubmissions' => (bool)$submissions,
@@ -603,6 +604,10 @@ class Forms extends Component
         // Populate the form builder layout (pages/rows/fields)
         if ($pages = $request->getParam('pages')) {
             $form->getFormLayout()->setPages(Json::decodeIfJson($pages));
+        }
+
+        if (!Formie::$plugin->getSettings()->enableMultiPageForms && count($form->getPages()) > 1) {
+            $form->addError('pages', Craft::t('formie', 'Multi-page forms are disabled in Formie settings.'));
         }
 
         // Merge in any new settings, while retaining existing ones. Important for users with permissions.

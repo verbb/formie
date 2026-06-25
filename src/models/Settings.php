@@ -65,6 +65,7 @@ class Settings extends Model
     public bool $enableUnloadWarning = true;
     public string $errorAriaLive = self::ERROR_ARIA_LIVE_POLITE;
     public bool $enableBackSubmission = true;
+    public bool $enableMultiPageForms = true;
     public int $ajaxTimeout = 10;
     public bool $filterIntegrationMapping = true;
     public bool $includeDraftElementUsage = false;
@@ -476,6 +477,7 @@ class Settings extends Model
             self::ALLOWED_SUBMIT_METHODS_AJAX,
             self::ALLOWED_SUBMIT_METHODS_PAGE_RELOAD,
         ]];
+        $rules[] = [['enableMultiPageForms'], 'boolean'];
 
         return $rules;
     }

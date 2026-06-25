@@ -23,9 +23,11 @@ import {
     moveNestedFieldToTopLevelInPages,
 } from './nestedMoveUtils';
 import { assignFieldReferences } from '@form-builder/utils/fieldReferences';
+import useAppStore from '@form-builder/hooks/useAppStore';
 
 const useBuilderActions = () => {
     const { form, values } = useFormBuilderForm();
+    const enableMultiPageForms = useAppStore((state) => state.enableMultiPageForms ?? true);
 
     const getPages = () => {
         return values?.pages || [];
@@ -40,6 +42,10 @@ const useBuilderActions = () => {
     };
 
     const addPage = (pageData = {}) => {
+        if (!enableMultiPageForms) {
+            return;
+        }
+
         const newPage = {
             ...createItem(pageData),
             rows: [],

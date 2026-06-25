@@ -18,6 +18,7 @@ import { cn, generateHandle, findUniqueHandle } from '@verbb/plugin-kit-react/ut
 import { useFormValues } from '@form-builder/hooks/useFormTools';
 import { useBuilderActions } from '@form-builder/builder/useBuilderActions';
 import { useFormBuilderApp } from '@form-builder/contexts/FormBuilderAppContext';
+import useAppStore from '@form-builder/hooks/useAppStore';
 
 import {
     DragDropProvider,
@@ -112,6 +113,7 @@ function PageSettingsModal({
     const [activePage, setActivePage] = useState(initialData.activePage);
     const [pages, setPages] = useState(initialData.pages);
     const { updatePages } = useBuilderActions();
+    const enableMultiPageForms = useAppStore((state) => state.enableMultiPageForms ?? true);
     const contentRef = useRef(null);
     const pageListRef = useRef(null);
     const dragReorderTimeoutRef = useRef(null);
@@ -374,6 +376,10 @@ function PageSettingsModal({
     }, []);
 
     const handleAddPage = ({ prefillLabel = false, sourcePages = null } = {}) => {
+        if (!enableMultiPageForms) {
+            return;
+        }
+
         const basePages = Array.isArray(sourcePages) ? sourcePages : pages;
         const newPage = createNewPageData(basePages, { prefillLabel });
 
@@ -557,14 +563,16 @@ function PageSettingsModal({
                             </div>
 
                             <div className="p-3">
-                                <Button
-                                    variant="dashed"
-                                    onClick={handleAddPage}
-                                    className="tw-w-full tw-flex tw-items-center tw-justify-center tw-gap-2"
-                                >
-                                    <FontAwesomeIcon icon={faPlus} className="size-3" />
-                                    {Craft.t('formie', 'New Page')}
-                                </Button>
+                                {enableMultiPageForms && (
+                                    <Button
+                                        variant="dashed"
+                                        onClick={handleAddPage}
+                                        className="tw-w-full tw-flex tw-items-center tw-justify-center tw-gap-2"
+                                    >
+                                        <FontAwesomeIcon icon={faPlus} className="size-3" />
+                                        {Craft.t('formie', 'New Page')}
+                                    </Button>
+                                )}
                             </div>
                         </div>
 

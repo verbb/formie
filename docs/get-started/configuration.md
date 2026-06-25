@@ -64,6 +64,7 @@ return [
         'enableUnloadWarning' => true,
         'errorAriaLive' => 'polite',
         'enableBackSubmission' => true,
+        'enableMultiPageForms' => true,
         'ajaxTimeout' => 10,
         'filterIntegrationMapping' => true,
         'includeDraftElementUsage' => false,
@@ -154,6 +155,7 @@ return [
 - `enableUnloadWarning` shows an unload warning when a user changes a front-end form and tries to leave without submitting.
 - `errorAriaLive` controls how front-end validation and submit errors are announced to screen readers. Use `polite` (default), `assertive`, or `off` for visual-only errors. Live validation while typing always uses polite announcements; submit-time errors use this setting.
 - `enableBackSubmission` submits the current page content when a user clicks the Back button on a multi-page form.
+- `enableMultiPageForms` controls whether forms can contain multiple pages in the form builder. When disabled, authors cannot add pages and forms with more than one page cannot be saved.
 - `ajaxTimeout` sets the timeout in seconds for Ajax requests made by Formie’s front-end JavaScript.
 - `filterIntegrationMapping` filters field-mapping options shown in integrations to fields that are usually suitable for the target setting.
 - `includeDraftElementUsage` includes draft elements when Formie checks where a form is used.

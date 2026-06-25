@@ -47,6 +47,15 @@
             warning: macros.configWarning('enableBackSubmission', 'formie'),
         }) }}
 
+        {{ forms.lightswitchField({
+            label: 'Enable Multi-Page Forms' | t('formie'),
+            instructions: 'Whether forms can contain multiple pages in the form builder. When disabled, authors cannot add pages and forms with more than one page cannot be saved.' | t('formie'),
+            name: 'enableMultiPageForms',
+            on: settings.enableMultiPageForms,
+            errors: settings.getErrors('enableMultiPageForms'),
+            warning: macros.configWarning('enableMultiPageForms', 'formie'),
+        }) }}
+
         {{ forms.textField({
             label: 'Ajax Submission Timeout' | t('formie'),
             instructions: 'Set the number of seconds to set the timeout for Ajax-based forms. This should only be adjusted for forms where a large timeout is expected, such as heavy use of file upload fields. This is also only applicable when using the Theme JS. Default to 10 seconds.' | t('formie'),

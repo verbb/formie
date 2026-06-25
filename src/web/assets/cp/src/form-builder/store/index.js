@@ -52,6 +52,7 @@ const createAppStore = (set, get) => {
         layoutReadOnly: false,
         paymentIntegrations: [],
         allowedSubmitMethods: 'both',
+        enableMultiPageForms: true,
         templateFieldLayoutInfo: {},
         setTitle: (title) => {
             set({ title });
