@@ -83,8 +83,34 @@ foreach ([
 }
 
 $plugins = Craft::$app->plugins;
-if (!$plugins->isPluginEnabled('formie')) {
+
+if (!$plugins->isPluginInstalled('formie')) {
     $plugins->installPlugin('formie');
+} elseif (!$plugins->isPluginEnabled('formie')) {
+    $plugins->enablePlugin('formie');
+}
+
+$formie = $plugins->getPlugin('formie');
+if (!$formie) {
+    throw new RuntimeException('Formie plugin failed to load for integration tests.');
+}
+
+// Keep the isolated test DB current when new plugin migrations land between `test:setup` runs.
+$readOnly = $projectConfig->readOnly;
+$projectConfig->readOnly = false;
+
+try {
+    $migrator = $formie->getMigrator();
+
+    foreach ($migrator->getNewMigrations() as $migration) {
+        $migrator->migrateUp($migration);
+    }
+
+    if ($plugins->isPluginUpdatePending($formie)) {
+        $plugins->updatePluginVersionInfo($formie);
+    }
+} finally {
+    $projectConfig->readOnly = $readOnly;
 }
 
 ResetTestDatabase::resetFormieData();

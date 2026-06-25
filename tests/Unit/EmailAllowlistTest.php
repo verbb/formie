@@ -8,7 +8,7 @@ it('parses email allowlists into domains and full addresses', function (): void 
     $allowlist = SpamHelper::parseEmailAllowlist("company.com\nuser@example.com\n TRUSTED@Company.COM \n");
 
     expect($allowlist['domains'])->toBe(['company.com'])
-        ->and($allowlist['emails'])->toBe(['trusted@company.com']);
+        ->and($allowlist['emails'])->toBe(['user@example.com', 'trusted@company.com']);
 })->skip(fn (): bool => !class_exists(\Craft::class) || !\Craft::$app, 'Requires Craft bootstrap');
 
 it('matches allowlisted domains and full email addresses', function (): void {

@@ -2,10 +2,11 @@
 namespace verbb\formie\controllers\client;
 
 use verbb\formie\Formie;
-use verbb\formie\helpers\SiteHelper;
-use verbb\formie\elements\Form;
 use verbb\formie\client\models\LoadContext;
 use verbb\formie\client\models\PageTransitionRequest;
+use verbb\formie\controllers\CrossOriginRequestTrait;
+use verbb\formie\helpers\SiteHelper;
+use verbb\formie\elements\Form;
 
 use craft\web\Controller;
 

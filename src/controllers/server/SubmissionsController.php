@@ -1,11 +1,12 @@
 <?php
 namespace verbb\formie\controllers\server;
 
-use verbb\formie\errors\StaleSubmissionStateException;
 use verbb\formie\Formie;
+use verbb\formie\client\models\PageTransitionRequest;
 use verbb\formie\controllers\CrossOriginRequestTrait;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\errors\StaleSubmissionStateException;
 use verbb\formie\helpers\ClientEventsHelper;
 use verbb\formie\helpers\SiteHelper;
 use verbb\formie\helpers\StringHelper;
@@ -13,7 +14,6 @@ use verbb\formie\models\ManagedSubmissionRequest;
 use verbb\formie\models\PaymentDecision;
 use verbb\formie\models\SubmissionRequest;
 use verbb\formie\models\SubmissionResponse;
-use verbb\formie\client\models\PageTransitionRequest;
 use verbb\formie\services\SubmissionWorkflow;
 
 use Craft;

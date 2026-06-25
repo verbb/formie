@@ -2,8 +2,9 @@
 namespace verbb\formie\controllers\client;
 
 use verbb\formie\Formie;
-use verbb\formie\helpers\SiteHelper;
 use verbb\formie\client\models\SubmitRequest;
+use verbb\formie\controllers\CrossOriginRequestTrait;
+use verbb\formie\helpers\SiteHelper;
 
 use craft\web\Controller;
 
