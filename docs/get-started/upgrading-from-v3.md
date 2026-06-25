@@ -43,6 +43,7 @@ Jump directly to the sections most likely to need attention:
 - [Custom Front-End Validation](#custom-front-end-validation) if the project registers custom browser validators or overrides front-end message strings.
 - [Translation Strings](#translation-strings) if the project overrides Formie **plugin UI** messages in translation files.
 - [Form Content Translations](#form-content-translations) if the project mapped field labels or form messages through `formie.php` or `site.php`.
+- [Submission and form statuses](#submission-and-form-statuses) if custom PHP, Twig, or module code references status services, models, events, or database tables.
 
 ## Changes at a Glance
 
@@ -93,6 +94,22 @@ Formie 4 stores temporary, incomplete, and saved draft submission state in the d
 Formie can now handle static-cache token refresh more directly, instead of relying on extra custom snippets to keep cached forms usable.
 
 If your site uses static caching, it is worth understanding the new refresh-on-load handling and the related config settings, especially if you previously added your own refresh logic.
+
+### Form and submission statuses
+
+In Formie 3, **Settings → Statuses** managed workflow labels for saved submissions — for example **New**, or custom statuses you created for your team. There was no separate status system for forms themselves.
+
+Formie 4 adds **[Form statuses](/forms/form-statuses)** — lifecycle labels you can assign to forms in the control panel (for example **Active**, **Draft**, **Archived**). That is a new feature, not a rename of something that existed in Formie 3.
+
+Adding form statuses meant the old generic “statuses” naming was no longer clear enough. Everything Formie 3 called **Statuses** is now **[Submission statuses](/submissions/statuses)** in the control panel, PHP APIs, and database:
+
+- **Settings → Submission Statuses** (the legacy **Settings → Statuses** route still opens this)
+- `SubmissionStatuses`, `SubmissionStatus`, and related classes — replacing `Statuses`, `Status`, and so on
+- Database table `formie_submission_statuses` — renamed from `formie_statuses`
+
+Submission status project config stays at `formie.statuses`. Form statuses use a new `formie.formStatuses` key and `formie_form_statuses` table.
+
+If your project has custom PHP, Twig, or module code that references the Formie 3 names, see [Submission and form statuses](#submission-and-form-statuses).
 
 ## Custom Fields
 
@@ -995,6 +1012,78 @@ Formie::$plugin->getIntegrations()->sendIntegrationPayload($integration, $submis
 
 Learn more in [Submission Workflow](/developers/submission-workflow) and [Integration Events](/developers/events/integration-events).
 
+### Submission and form statuses
+
+> [!IMPORTANT]
+> With `compatibilityMode` enabled (the default), legacy submission status class names and helpers keep working and log Craft deprecation warnings when your project uses them. Update custom code when you can; disable compatibility mode once deprecation logs are clear.
+
+In Formie 3, statuses always meant submission workflow labels. Formie 4 introduces form statuses as a new concept, then renames the old submission status APIs so the two systems are not confused in code.
+
+**What you had in Formie 3** — submission statuses only:
+
+- **Settings → Statuses** in the control panel
+- `Statuses`, `Status`, `StatusEvent`, and `getStatuses()` in PHP
+- `formie_statuses` database table and `formie.statuses` project config
+
+**What Formie 4 adds** — form statuses (new):
+
+- **Settings → Form Statuses**, `FormStatuses`, `FormStatus`, `formie_form_statuses`, and `formie.formStatuses`
+- A **Form Status** picker on forms, the index **Status** menu, and bulk actions
+
+**What Formie 4 renames** — your existing submission statuses (same behaviour, explicit naming):
+
+- **Settings → Submission Statuses** (legacy **Settings → Statuses** URL still works)
+- `SubmissionStatuses`, `SubmissionStatus`, `SubmissionStatusEvent`, and `getSubmissionStatuses()`
+- `formie_submission_statuses` database table (`formie.statuses` project config is unchanged)
+
+#### Submission status renames (Formie 3 → Formie 4)
+
+Formie 3 | Formie 4
+--- | ---
+`verbb\formie\services\Statuses` | `verbb\formie\services\SubmissionStatuses`
+`verbb\formie\models\Status` | `verbb\formie\models\SubmissionStatus`
+`verbb\formie\records\Status` | `verbb\formie\records\SubmissionStatus`
+`verbb\formie\events\StatusEvent` | `verbb\formie\events\SubmissionStatusEvent`
+`verbb\formie\controllers\StatusesController` | `verbb\formie\controllers\SubmissionStatusesController`
+`Formie::$plugin->getStatuses()` | `Formie::$plugin->getSubmissionStatuses()`
+`craft.formie.getStatuses()` | `craft.formie.getSubmissionStatuses()`
+`SubmissionStatuses::CONFIG_STATUSES_KEY` | `SubmissionStatuses::CONFIG_SUBMISSION_STATUSES_KEY` (`formie.statuses`)
+`SubmissionStatuses::getStatusesForForm()` | `SubmissionStatuses::getSubmissionStatusesForForm()`
+`FormGroupPolicy::getStatusesForForm()` | `FormGroupPolicy::getSubmissionStatusesForForm()`
+`FormGroupPolicy::getStatusSelectOptions()` | `FormGroupPolicy::getSubmissionStatusSelectOptions()`
+`Table::FORMIE_STATUSES` | `Table::FORMIE_SUBMISSION_STATUSES`
+Database table `formie_statuses` | `formie_submission_statuses`
+
+Legacy aliases for the Formie 3 class names are registered by compatibility mode. Event handler names on `SubmissionStatuses` are unchanged (`beforeSaveStatus`, `afterSaveStatus`, and so on).
+
+If your project listens for submission status events, register handlers on `SubmissionStatuses` and type-hint `SubmissionStatusEvent`:
+
+::: code-group
+```php [Formie 3]
+use verbb\formie\events\StatusEvent;
+use verbb\formie\services\Statuses;
+use yii\base\Event;
+
+Event::on(Statuses::class, Statuses::EVENT_BEFORE_SAVE_STATUS, function(StatusEvent $event) {
+    $status = $event->status;
+    // ...
+});
+```
+
+```php [Formie 4]
+use verbb\formie\events\SubmissionStatusEvent;
+use verbb\formie\services\SubmissionStatuses;
+use yii\base\Event;
+
+Event::on(SubmissionStatuses::class, SubmissionStatuses::EVENT_BEFORE_SAVE_STATUS, function(SubmissionStatusEvent $event) {
+    $status = $event->status;
+    // ...
+});
+```
+:::
+
+Compatibility mode also forwards handlers still registered on the legacy `Statuses` class name to the canonical service and logs a deprecation warning.
+
 ### Field and Form Slot Tag Events
 
 If your project listens for field or form tag-mutation events, switch from the old `htmlTag` names to the canonical `slotTag` names.
@@ -1414,3 +1503,11 @@ Old | New
 `jsGtmEventOptions` | `clientEventFields`
 `onAfterFormieSubmit` | `formie:submit:result`
 `formieValidatorInitialized` | `formie:validator:ready`
+`verbb\formie\services\Statuses` | `verbb\formie\services\SubmissionStatuses`
+`verbb\formie\models\Status` | `verbb\formie\models\SubmissionStatus`
+`verbb\formie\events\StatusEvent` | `verbb\formie\events\SubmissionStatusEvent`
+`Formie::$plugin->getStatuses()` | `Formie::$plugin->getSubmissionStatuses()`
+`craft.formie.getStatuses()` | `craft.formie.getSubmissionStatuses()`
+`SubmissionStatuses::getStatusesForForm()` | `SubmissionStatuses::getSubmissionStatusesForForm()`
+`Table::FORMIE_STATUSES` | `Table::FORMIE_SUBMISSION_STATUSES`
+Database table `formie_statuses` | `formie_submission_statuses`

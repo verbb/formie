@@ -1,14 +1,14 @@
 <?php
 namespace verbb\formie\services;
 
+use verbb\formie\deprecations\FormStatusesDeprecations;
 use verbb\formie\Formie;
-use verbb\formie\events\StatusEvent;
-use verbb\formie\elements\Form;
-use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\events\FormStatusEvent;
 use verbb\formie\helpers\StringHelper;
+use verbb\formie\helpers\StatusColorHelper;
 use verbb\formie\helpers\Table;
-use verbb\formie\models\Status;
-use verbb\formie\records\Status as StatusRecord;
+use verbb\formie\models\FormStatus;
+use verbb\formie\records\FormStatus as FormStatusRecord;
 
 use Craft;
 use craft\base\MemoizableArray;
@@ -17,24 +17,26 @@ use craft\events\ConfigEvent;
 use craft\helpers\Db;
 
 use yii\base\Component;
-use yii\base\ErrorException;
-use yii\base\Exception;
-use yii\base\NotSupportedException;
-use yii\web\ServerErrorHttpException;
 
 use Throwable;
 
-class Statuses extends Component
+class FormStatuses extends Component
 {
     // Constants
     // =========================================================================
 
-    public const EVENT_BEFORE_SAVE_STATUS = 'beforeSaveStatus';
-    public const EVENT_AFTER_SAVE_STATUS = 'afterSaveStatus';
-    public const EVENT_BEFORE_DELETE_STATUS = 'beforeDeleteStatus';
-    public const EVENT_BEFORE_APPLY_STATUS_DELETE = 'beforeApplyStatusDelete';
-    public const EVENT_AFTER_DELETE_STATUS = 'afterDeleteStatus';
-    public const CONFIG_STATUSES_KEY = 'formie.statuses';
+    public const EVENT_BEFORE_SAVE_STATUS = 'beforeSaveFormStatus';
+    public const EVENT_AFTER_SAVE_STATUS = 'afterSaveFormStatus';
+    public const EVENT_BEFORE_DELETE_STATUS = 'beforeDeleteFormStatus';
+    public const EVENT_BEFORE_APPLY_STATUS_DELETE = 'beforeApplyFormStatusDelete';
+    public const EVENT_AFTER_DELETE_STATUS = 'afterDeleteFormStatus';
+    public const CONFIG_FORM_STATUSES_KEY = 'formie.formStatuses';
+
+    
+    // Traits
+    // =========================================================================
+
+    use FormStatusesDeprecations;
 
 
     // Properties
@@ -51,42 +53,72 @@ class Statuses extends Component
         return $this->_statuses()->all();
     }
 
-    public function getStatusesForForm(?Form $form): array
-    {
-        return Formie::$plugin->getFormGroupPolicy()->getStatusesForForm($form);
-    }
-
     public function getStatusesArray(): array
     {
         $statuses = [];
         foreach ($this->getAllStatuses() as $status) {
             $statuses[$status->handle] = [
                 'label' => $status->name,
-                'color' => $status->color,
+                'color' => StatusColorHelper::resolveColor($status->color, $status->handle),
             ];
         }
 
         return $statuses;
     }
 
-    public function getStatusById(int $id): ?Status
+    public function getFormStatusSelectOptions(): array
+    {
+        return array_map(function(FormStatus $status) {
+            return [
+                'value' => (int)$status->id,
+                'label' => $status->name,
+                'status' => $status->color,
+            ];
+        }, $this->getAllStatuses());
+    }
+
+    public function getStatusById(int $id): ?FormStatus
     {
         return $this->_statuses()->firstWhere('id', $id);
     }
 
-    public function getStatusByHandle(string $handle): ?Status
+    public function getStatusByHandle(string $handle): ?FormStatus
     {
         return $this->_statuses()->firstWhere('handle', $handle, true);
     }
 
-    public function getStatusByUid(string $uid): ?Status
+    public function getStatusByUid(string $uid): ?FormStatus
     {
         return $this->_statuses()->firstWhere('uid', $uid, true);
     }
 
-    public function getDefaultStatus(): ?Status
+    public function getDefaultStatus(): ?FormStatus
     {
         return $this->_statuses()->firstWhere('isDefault', true);
+    }
+
+    public function hasConfiguredStatuses(): bool
+    {
+        return (bool)$this->getAllStatuses();
+    }
+
+    public function resolveStatus(?int $formStatusId): ?FormStatus
+    {
+        $status = null;
+
+        if ($formStatusId) {
+            $status = $this->getStatusById($formStatusId);
+        }
+
+        if (!$status) {
+            $status = $this->getDefaultStatus();
+        }
+
+        if (!$status) {
+            $status = $this->getAllStatuses()[0] ?? null;
+        }
+
+        return $status;
     }
 
     public function resolveStatusId(string $value): ?int
@@ -153,7 +185,7 @@ class Statuses extends Component
 
         return (new Query())
             ->select(['id'])
-            ->from([Table::FORMIE_STATUSES])
+            ->from([Table::FORMIE_FORM_STATUSES])
             ->where(Db::parseParam('handle', $value))
             ->scalar();
     }
@@ -162,61 +194,58 @@ class Statuses extends Component
     {
         $projectConfig = Craft::$app->getProjectConfig();
 
-        $uidsByIds = Db::uidsByIds(Table::FORMIE_STATUSES, $statusIds);
+        $uidsByIds = Db::uidsByIds(Table::FORMIE_FORM_STATUSES, $statusIds);
 
         foreach ($statusIds as $statusOrder => $statusId) {
             if (!empty($uidsByIds[$statusId])) {
                 $statusUid = $uidsByIds[$statusId];
-                $projectConfig->set(self::CONFIG_STATUSES_KEY . '.' . $statusUid . '.sortOrder', $statusOrder + 1, 'Reorder statuses');
+                $projectConfig->set(self::CONFIG_FORM_STATUSES_KEY . '.' . $statusUid . '.sortOrder', $statusOrder + 1, 'Reorder form statuses');
             }
         }
 
         return true;
     }
 
-    public function getSubmissionCountByStatus(): array
+    public function getFormCountByStatus(): array
     {
         $countGroupedByStatusId = (new Query())
-            ->select(['[[s.statusId]]', 'count(s.id) as submissionCount'])
+            ->select(['[[f.formStatusId]]', 'count(f.id) as formCount'])
             ->where(['[[e.dateDeleted]]' => null])
-            ->from(['s' => Table::FORMIE_SUBMISSIONS])
-            ->leftJoin(['e' => Table::ELEMENTS], '[[s.id]] = [[e.id]]')
-            ->groupBy(['[[s.statusId]]'])
-            ->indexBy('statusId')
+            ->from(['f' => Table::FORMIE_FORMS])
+            ->leftJoin(['e' => Table::ELEMENTS], '[[f.id]] = [[e.id]]')
+            ->groupBy(['[[f.formStatusId]]'])
+            ->indexBy('formStatusId')
             ->all();
 
-        // For those not in the groupBy
         $allStatuses = $this->getAllStatuses();
         foreach ($allStatuses as $status) {
             if (!isset($countGroupedByStatusId[$status->id])) {
                 $countGroupedByStatusId[$status->id] = [
-                    'orderStatusId' => $status->id,
+                    'formStatusId' => $status->id,
                     'handle' => $status->handle,
-                    'orderCount' => 0,
+                    'formCount' => 0,
                 ];
             }
 
-            // Make sure all have their handle
             $countGroupedByStatusId[$status->id]['handle'] = $status->handle;
         }
 
         return $countGroupedByStatusId;
     }
 
-    public function saveStatus(Status $status, bool $runValidation = true): bool
+    public function saveStatus(FormStatus $status, bool $runValidation = true): bool
     {
         $isNewStatus = !(bool)$status->id;
 
-        // Fire a 'beforeSaveStatus' event
         if ($this->hasEventHandlers(self::EVENT_BEFORE_SAVE_STATUS)) {
-            $this->trigger(self::EVENT_BEFORE_SAVE_STATUS, new StatusEvent([
+            $this->trigger(self::EVENT_BEFORE_SAVE_STATUS, new FormStatusEvent([
                 'status' => $status,
                 'isNew' => $isNewStatus,
             ]));
         }
 
         if ($runValidation && !$status->validate()) {
-            Formie::info('Status not saved due to validation error.');
+            Formie::info('Form status not saved due to validation error.');
 
             return false;
         }
@@ -225,13 +254,12 @@ class Statuses extends Component
             $status->uid = StringHelper::UUID();
 
             $status->sortOrder = (new Query())
-                ->from([Table::FORMIE_STATUSES])
+                ->from([Table::FORMIE_FORM_STATUSES])
                 ->max('[[sortOrder]]') + 1;
         } else if (!$status->uid) {
-            $status->uid = Db::uidById(Table::FORMIE_STATUSES, $status->id);
+            $status->uid = Db::uidById(Table::FORMIE_FORM_STATUSES, $status->id);
         }
 
-        // Make sure no statuses that are not archived share the handle
         $existingStatus = $this->getStatusByHandle($status->handle);
 
         if ($existingStatus && (!$status->id || $status->id != $existingStatus->id)) {
@@ -239,17 +267,17 @@ class Statuses extends Component
             return false;
         }
 
-        $configPath = self::CONFIG_STATUSES_KEY . '.' . $status->uid;
-        Craft::$app->getProjectConfig()->set($configPath, $status->getConfig(), "Save the “{$status->handle}” status");
+        $configPath = self::CONFIG_FORM_STATUSES_KEY . '.' . $status->uid;
+        Craft::$app->getProjectConfig()->set($configPath, $status->getConfig(), "Save the “{$status->handle}” form status");
 
         if ($isNewStatus) {
-            $status->id = Db::idByUid(Table::FORMIE_STATUSES, $status->uid);
+            $status->id = Db::idByUid(Table::FORMIE_FORM_STATUSES, $status->uid);
         }
 
         return true;
     }
 
-    public function handleChangedStatus(ConfigEvent $event): void
+    public function handleChangedFormStatus(ConfigEvent $event): void
     {
         $statusUid = $event->tokenMatches[0];
         $data = $event->newValue;
@@ -267,7 +295,7 @@ class Statuses extends Component
             $statusRecord->isDefault = $data['isDefault'] ?? false;
             $statusRecord->uid = $statusUid;
 
-            if ($wasTrashed = (bool)$statusRecord->dateDeleted) {
+            if ((bool)$statusRecord->dateDeleted) {
                 $statusRecord->restore();
             } else {
                 $statusRecord->save(false);
@@ -279,12 +307,10 @@ class Statuses extends Component
             throw $e;
         }
 
-        // Clear caches
         $this->_statuses = null;
 
-        // Fire an 'afterSaveStatus' event
         if ($this->hasEventHandlers(self::EVENT_AFTER_SAVE_STATUS)) {
-            $this->trigger(self::EVENT_AFTER_SAVE_STATUS, new StatusEvent([
+            $this->trigger(self::EVENT_AFTER_SAVE_STATUS, new FormStatusEvent([
                 'status' => $this->getStatusById($statusRecord->id),
                 'isNew' => $isNewStatus,
             ]));
@@ -302,26 +328,24 @@ class Statuses extends Component
         return $this->deleteStatus($status);
     }
 
-    public function deleteStatus(Status $status): bool
+    public function deleteStatus(FormStatus $status): bool
     {
-        // Can't delete the default status
         if ($status->isDefault) {
             return false;
         }
 
-        // Fire a 'beforeDeleteStatus' event
         if ($this->hasEventHandlers(self::EVENT_BEFORE_DELETE_STATUS)) {
-            $this->trigger(self::EVENT_BEFORE_DELETE_STATUS, new StatusEvent([
+            $this->trigger(self::EVENT_BEFORE_DELETE_STATUS, new FormStatusEvent([
                 'status' => $status,
             ]));
         }
 
-        Craft::$app->getProjectConfig()->remove(self::CONFIG_STATUSES_KEY . '.' . $status->uid, "Delete status “{$status->handle}”");
+        Craft::$app->getProjectConfig()->remove(self::CONFIG_FORM_STATUSES_KEY . '.' . $status->uid, "Delete form status “{$status->handle}”");
 
         return true;
     }
 
-    public function handleDeletedStatus(ConfigEvent $event): void
+    public function handleDeletedFormStatus(ConfigEvent $event): void
     {
         $uid = $event->tokenMatches[0];
         $statusRecord = $this->_getStatusRecord($uid);
@@ -332,9 +356,8 @@ class Statuses extends Component
 
         $status = $this->getStatusById($statusRecord->id);
 
-        // Fire a 'beforeApplyStatusDelete' event
         if ($this->hasEventHandlers(self::EVENT_BEFORE_APPLY_STATUS_DELETE)) {
-            $this->trigger(self::EVENT_BEFORE_APPLY_STATUS_DELETE, new StatusEvent([
+            $this->trigger(self::EVENT_BEFORE_APPLY_STATUS_DELETE, new FormStatusEvent([
                 'status' => $status,
             ]));
         }
@@ -342,7 +365,7 @@ class Statuses extends Component
         $transaction = Craft::$app->getDb()->beginTransaction();
         try {
             Craft::$app->getDb()->createCommand()
-                ->softDelete(Table::FORMIE_STATUSES, ['id' => $statusRecord->id])
+                ->softDelete(Table::FORMIE_FORM_STATUSES, ['id' => $statusRecord->id])
                 ->execute();
 
             $transaction->commit();
@@ -351,9 +374,8 @@ class Statuses extends Component
             throw $e;
         }
 
-        // Fire an 'afterDeleteStatus' event
         if ($this->hasEventHandlers(self::EVENT_AFTER_DELETE_STATUS)) {
-            $this->trigger(self::EVENT_AFTER_DELETE_STATUS, new StatusEvent([
+            $this->trigger(self::EVENT_AFTER_DELETE_STATUS, new FormStatusEvent([
                 'status' => $status,
             ]));
         }
@@ -369,7 +391,7 @@ class Statuses extends Component
             $statuses = [];
 
             foreach ($this->_createStatusesQuery()->all() as $result) {
-                $statuses[] = new Status($result);
+                $statuses[] = new FormStatus($result);
             }
 
             $this->_statuses = new MemoizableArray($statuses);
@@ -380,7 +402,7 @@ class Statuses extends Component
 
     private function _createStatusesQuery(): Query
     {
-        $query = (new Query())
+        return (new Query())
             ->select([
                 'id',
                 'name',
@@ -392,18 +414,16 @@ class Statuses extends Component
                 'dateDeleted',
                 'uid',
             ])
-            ->from([Table::FORMIE_STATUSES])
+            ->from([Table::FORMIE_FORM_STATUSES])
             ->where(['dateDeleted' => null])
             ->orderBy(['sortOrder' => SORT_ASC]);
-
-        return $query;
     }
 
-    private function _getStatusRecord(string $uid, bool $withTrashed = false): StatusRecord
+    private function _getStatusRecord(string $uid, bool $withTrashed = false): FormStatusRecord
     {
-        $query = $withTrashed ? StatusRecord::findWithTrashed() : StatusRecord::find();
+        $query = $withTrashed ? FormStatusRecord::findWithTrashed() : FormStatusRecord::find();
         $query->andWhere(['uid' => $uid]);
 
-        return $query->one() ?? new StatusRecord();
+        return $query->one() ?? new FormStatusRecord();
     }
 }

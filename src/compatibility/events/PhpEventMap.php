@@ -4,10 +4,12 @@ namespace verbb\formie\compatibility\events;
 use verbb\formie\Formie;
 use verbb\formie\events\RegisterPredefinedOptionsEvent;
 use verbb\formie\events\SendNotificationEvent;
+use verbb\formie\events\SubmissionStatusEvent;
 use verbb\formie\events\TriggerIntegrationEvent;
 use verbb\formie\services\Integrations;
 use verbb\formie\services\Notifications;
 use verbb\formie\services\OptionSources;
+use verbb\formie\services\SubmissionStatuses;
 use verbb\formie\services\Submissions;
 
 use Craft;
@@ -22,6 +24,7 @@ class PhpEventMap
     private static bool $registered = false;
 
     private const LEGACY_PREDEFINED_OPTIONS_CLASS = 'verbb\\formie\\services\\PredefinedOptions';
+    private const LEGACY_STATUSES_CLASS = 'verbb\\formie\\services\\Statuses';
 
 
     // Static Methods
@@ -67,6 +70,34 @@ class PhpEventMap
 
             self::_triggerLegacyClassEvent(self::LEGACY_PREDEFINED_OPTIONS_CLASS, OptionSources::EVENT_REGISTER_PREDEFINED_OPTIONS, $event);
         });
+
+        self::_registerLegacySubmissionStatusEventHandlers();
+    }
+
+    private static function _registerLegacySubmissionStatusEventHandlers(): void
+    {
+        $events = [
+            SubmissionStatuses::EVENT_BEFORE_SAVE_STATUS,
+            SubmissionStatuses::EVENT_AFTER_SAVE_STATUS,
+            SubmissionStatuses::EVENT_BEFORE_DELETE_STATUS,
+            SubmissionStatuses::EVENT_BEFORE_APPLY_STATUS_DELETE,
+            SubmissionStatuses::EVENT_AFTER_DELETE_STATUS,
+        ];
+
+        foreach ($events as $eventName) {
+            Event::on(SubmissionStatuses::class, $eventName, static function(SubmissionStatusEvent $event) use ($eventName) {
+                if (!Event::hasHandlers(self::LEGACY_STATUSES_CLASS, $eventName)) {
+                    return;
+                }
+
+                Craft::$app->getDeprecator()->log(
+                    self::LEGACY_STATUSES_CLASS . '::' . $eventName,
+                    'Registering submission status event handlers on `Statuses` has been deprecated. Register handlers on `SubmissionStatuses` instead.'
+                );
+
+                self::_triggerLegacyClassEvent(self::LEGACY_STATUSES_CLASS, $eventName, $event);
+            });
+        }
     }
 
     private static function _triggerLegacyOwnerEvent(Submissions $submissions, string $eventName, Event $event): void

@@ -1,14 +1,15 @@
 <?php
 namespace verbb\formie\events;
 
+use verbb\formie\models\SubmissionStatus;
+
 use yii\base\Event;
 
-class StatusEvent extends Event
+class SubmissionStatusEvent extends Event
 {
     // Properties
     // =========================================================================
 
-    public ?string $status = null;
+    public ?SubmissionStatus $status = null;
     public bool $isNew = false;
-    
 }

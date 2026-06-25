@@ -207,7 +207,7 @@ class MigrateFreeform5 extends BasePluginMigrator
 
     private function _migrateSubmissions(): void
     {
-        $statusesService = Formie::$plugin->getStatuses();
+        $statusesService = Formie::$plugin->getSubmissionStatuses();
         $statuses = $statusesService->getAllStatuses();
         $fallbackStatus = $statusesService->getDefaultStatus() ?? (reset($statuses) ?: null);
         $formHandle = $this->_freeformForm->handle;

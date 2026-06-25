@@ -159,7 +159,7 @@ class Stencils extends Component
         $projectConfig = Craft::$app->getProjectConfig();
         $formTemplates = $projectConfig->get(FormTemplates::CONFIG_TEMPLATES_KEY, true) ?? [];
         $emailTemplates = $projectConfig->get(EmailTemplates::CONFIG_TEMPLATES_KEY, true) ?? [];
-        $statuses = $projectConfig->get(Statuses::CONFIG_STATUSES_KEY, true) ?? [];
+        $statuses = $projectConfig->get(SubmissionStatuses::CONFIG_SUBMISSION_STATUSES_KEY, true) ?? [];
 
         foreach ($formTemplates as $formTemplateUid => $formTemplateData) {
             $projectConfig->processConfigChanges(FormTemplates::CONFIG_TEMPLATES_KEY . '.' . $formTemplateUid);
@@ -170,7 +170,7 @@ class Stencils extends Component
         }
 
         foreach ($statuses as $statusUid => $statusData) {
-            $projectConfig->processConfigChanges(Statuses::CONFIG_STATUSES_KEY . '.' . $statusUid);
+            $projectConfig->processConfigChanges(SubmissionStatuses::CONFIG_SUBMISSION_STATUSES_KEY . '.' . $statusUid);
         }
 
         $transaction = Craft::$app->getDb()->beginTransaction();
@@ -190,7 +190,7 @@ class Stencils extends Component
             $templateUid = $data['template'] ?? null;
 
             if ($defaultStatusUid) {
-                $defaultStatus = Formie::$plugin->getStatuses()->getStatusByUid($defaultStatusUid);
+                $defaultStatus = Formie::$plugin->getSubmissionStatuses()->getStatusByUid($defaultStatusUid);
 
                 if ($defaultStatus) {
                     $stencilRecord->defaultStatusId = $defaultStatus->id;
@@ -361,7 +361,7 @@ class Stencils extends Component
             $stencilRecord->data = Json::encode($config['data']);
 
             if ($defaultStatusUid = $config['defaultStatus'] ?? null) {
-                $defaultStatus = Formie::$plugin->getStatuses()->getStatusByUid($defaultStatusUid);
+                $defaultStatus = Formie::$plugin->getSubmissionStatuses()->getStatusByUid($defaultStatusUid);
                 $stencilRecord->defaultStatusId = $defaultStatus?->id;
             } else {
                 $stencilRecord->defaultStatusId = $stencil->defaultStatusId;

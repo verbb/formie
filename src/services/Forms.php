@@ -263,6 +263,7 @@ class Forms extends Component
             'layoutId' => $canonicalForm->layoutId,
             'templateId' => $canonicalForm->templateId,
             'groupId' => $canonicalForm->groupId,
+            'formStatusId' => $canonicalForm->getFormStatusModel()?->id,
             'submitActionEntry' =>  array_filter([
                 array_filter([
                     'id' => $canonicalForm->submitActionEntryId,
@@ -590,6 +591,7 @@ class Forms extends Component
         $form->handle = $request->getParam('handle', $form->handle);
         $form->templateId = StringHelper::toId($request->getParam('templateId', $form->templateId));
         $form->groupId = StringHelper::toId($request->getParam('groupId', $form->groupId));
+        $form->formStatusId = StringHelper::toId($request->getParam('formStatusId', $form->formStatusId));
         $form->defaultStatusId = StringHelper::toId($request->getParam('defaultStatusId', $form->defaultStatusId));
         $form->userDeletedAction = $request->getParam('userDeletedAction', $form->userDeletedAction);
         $form->fileUploadsAction = $request->getParam('fileUploadsAction', $form->fileUploadsAction);

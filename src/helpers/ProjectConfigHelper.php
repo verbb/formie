@@ -15,7 +15,8 @@ class ProjectConfigHelper
     {
         $configData = [];
 
-        $configData['statuses'] = self::_getStatusData();
+        $configData['statuses'] = self::_getSubmissionStatusData();
+        $configData['formStatuses'] = self::_getFormStatusData();
         $configData['stencils'] = self::_getStencilsData();
         $configData['formGroups'] = self::_getFormGroupsData();
         $configData['reports'] = self::_getReportsData();
@@ -35,11 +36,22 @@ class ProjectConfigHelper
     // Private Methods
     // =========================================================================
 
-    private static function _getStatusData(): array
+    private static function _getSubmissionStatusData(): array
     {
         $data = [];
 
-        foreach (Formie::$plugin->getStatuses()->getAllStatuses() as $status) {
+        foreach (Formie::$plugin->getSubmissionStatuses()->getAllStatuses() as $status) {
+            $data[$status->uid] = $status->getConfig();
+        }
+
+        return $data;
+    }
+
+    private static function _getFormStatusData(): array
+    {
+        $data = [];
+
+        foreach (Formie::$plugin->getFormStatuses()->getAllStatuses() as $status) {
             $data[$status->uid] = $status->getConfig();
         }
 

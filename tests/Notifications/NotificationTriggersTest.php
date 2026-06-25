@@ -7,12 +7,12 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\Formie;
 use verbb\formie\models\Notification;
-use verbb\formie\models\Status;
+use verbb\formie\models\SubmissionStatus;
 use verbb\formie\services\Notifications;
 
 use yii\base\Event;
 
-function notificationTriggersSubmissionWithStatusChange(Status $previous, Status $current): Submission
+function notificationTriggersSubmissionWithStatusChange(SubmissionStatus $previous, SubmissionStatus $current): Submission
 {
     $submission = new Submission();
     $submission->id = 7001;
@@ -27,9 +27,9 @@ function notificationTriggersSubmissionWithStatusChange(Status $previous, Status
     return $submission;
 }
 
-function notificationTriggersStatus(string $handle, string $name = 'Status'): Status
+function notificationTriggersStatus(string $handle, string $name = 'Status'): SubmissionStatus
 {
-    return new Status([
+    return new SubmissionStatus([
         'name' => $name,
         'handle' => $handle,
         'color' => 'green',

@@ -1,10 +1,18 @@
 <?php
 namespace verbb\formie\helpers;
 
+use verbb\formie\deprecations\TableDeprecations;
+
 use craft\db\Table as CraftTable;
 
 abstract class Table extends CraftTable
 {
+    // Traits
+    // =========================================================================
+
+    use TableDeprecations;
+    
+
     // Constants
     // =========================================================================
 
@@ -27,7 +35,8 @@ abstract class Table extends CraftTable
     public const FORMIE_PDF_TEMPLATES = '{{%formie_pdftemplates}}';
     public const FORMIE_RELATIONS = '{{%formie_relations}}';
     public const FORMIE_SENT_NOTIFICATIONS = '{{%formie_sentnotifications}}';
-    public const FORMIE_STATUSES = '{{%formie_statuses}}';
+    public const FORMIE_SUBMISSION_STATUSES = '{{%formie_submission_statuses}}';
+    public const FORMIE_FORM_STATUSES = '{{%formie_form_statuses}}';
     public const FORMIE_STENCILS = '{{%formie_stencils}}';
     public const FORMIE_PENDING_UPLOADS = '{{%formie_pending_uploads}}';
     public const FORMIE_REPORTS = '{{%formie_reports}}';

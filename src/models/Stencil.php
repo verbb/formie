@@ -7,8 +7,9 @@ use verbb\formie\elements\Form;
 use verbb\formie\services\Stencils as StencilsService;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\models\FieldLayout;
+use verbb\formie\models\SubmissionStatus;
 use verbb\formie\records\Stencil as StencilRecord;
-use verbb\formie\services\Statuses;
+use verbb\formie\services\SubmissionStatuses;
 
 use Craft;
 use craft\base\Model;
@@ -52,7 +53,7 @@ class Stencil extends Model implements FormInterface
     public ?string $uid = null;
 
     private ?FormTemplate $_template = null;
-    private ?Status $_defaultStatus = null;
+    private ?SubmissionStatus $_defaultStatus = null;
     private mixed $_submitActionEntry = null;
 
 
@@ -233,13 +234,13 @@ class Stencil extends Model implements FormInterface
         return $this->_submitActionEntry;
     }
 
-    public function getDefaultStatus(): Status
+    public function getDefaultStatus(): SubmissionStatus
     {
         if (!$this->_defaultStatus) {
             if ($this->defaultStatusId) {
-                $this->_defaultStatus = Formie::$plugin->getStatuses()->getStatusById($this->defaultStatusId);
+                $this->_defaultStatus = Formie::$plugin->getSubmissionStatuses()->getStatusById($this->defaultStatusId);
             } else {
-                $this->_defaultStatus = Formie::$plugin->getStatuses()->getAllStatuses()[0] ?? null;
+                $this->_defaultStatus = Formie::$plugin->getSubmissionStatuses()->getAllStatuses()[0] ?? null;
             }
         }
 
@@ -251,25 +252,25 @@ class Stencil extends Model implements FormInterface
 
                 // Maybe the project config didn't get applied? Check for existing values
                 // This can likely be removed later, as this fix is already in place when installing Formie
-                $statuses = $projectConfig->get(Statuses::CONFIG_STATUSES_KEY, true) ?? [];
+                $statuses = $projectConfig->get(SubmissionStatuses::CONFIG_SUBMISSION_STATUSES_KEY, true) ?? [];
 
                 foreach ($statuses as $statusUid => $statusData) {
-                    $projectConfig->processConfigChanges(Statuses::CONFIG_STATUSES_KEY . '.' . $statusUid, true);
+                    $projectConfig->processConfigChanges(SubmissionStatuses::CONFIG_SUBMISSION_STATUSES_KEY . '.' . $statusUid, true);
                 }
 
                 // If there's _still_ not a status, just go ahead and create it...
-                $this->_defaultStatus = Formie::$plugin->getStatuses()->getAllStatuses()[0] ?? null;
+                $this->_defaultStatus = Formie::$plugin->getSubmissionStatuses()->getAllStatuses()[0] ?? null;
 
                 if ($this->_defaultStatus === null) {
-                    $this->_defaultStatus = new Status([
+                    $this->_defaultStatus = new SubmissionStatus([
                         'name' => 'New',
                         'handle' => 'new',
-                        'color' => 'green',
+                        'color' => 'turquoise',
                         'sortOrder' => 1,
                         'isDefault' => 1,
                     ]);
 
-                    Formie::$plugin->getStatuses()->saveStatus($this->_defaultStatus);
+                    Formie::$plugin->getSubmissionStatuses()->saveStatus($this->_defaultStatus);
                 }
             }
         }
@@ -277,7 +278,7 @@ class Stencil extends Model implements FormInterface
         return $this->_defaultStatus;
     }
 
-    public function setDefaultStatus(?Status $status): void
+    public function setDefaultStatus(?SubmissionStatus $status): void
     {
         if ($status) {
             $this->_defaultStatus = $status;

@@ -43,9 +43,9 @@ class Formie
     // Public Methods
     // =========================================================================
 
-    public function getStatuses(): array
+    public function getSubmissionStatuses(): array
     {
-        return FormiePlugin::$plugin->getStatuses()->getAllStatuses();
+        return FormiePlugin::$plugin->getSubmissionStatuses()->getAllStatuses();
     }
 
     public function getTemplates(): array
@@ -280,7 +280,8 @@ class Formie
                 'behavior-heading' => ['heading' => Craft::t('formie', 'Behavior')],
                 'notifications' => ['title' => Craft::t('formie', 'Email Notifications')],
                 'sent-notifications' => ['title' => Craft::t('formie', 'Sent Notifications')],
-                'statuses' => ['title' => Craft::t('formie', 'Statuses')],
+                'submission-statuses' => ['title' => Craft::t('formie', 'Submission Statuses')],
+                'form-statuses' => ['title' => Craft::t('formie', 'Form Statuses')],
                 'submissions' => ['title' => Craft::t('formie', 'Submissions')],
                 'scheduled-reports' => ['title' => Craft::t('formie', 'Scheduled Reports')],
                 'integrations-settings' => ['title' => Craft::t('formie', 'Integrations')],

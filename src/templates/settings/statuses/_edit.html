@@ -3,20 +3,20 @@
 {% set crumbs = [
     { label: craft.formie.getPluginName() | t('formie'), url: url('formie') },
     { label: 'Settings' | t('app'), url: url('formie/settings') },
-    { label: 'Statuses' | t('formie'), url: url('formie/settings/statuses') },
+    { label: 'Submission Statuses' | t('formie'), url: url('formie/settings/submission-statuses') },
 ] %}
 
 {% set selectedSubnavItem = 'settings' %}
 
 {% set fullPageForm = true %}
 
-{% set selectedTab = 'settings' %}
+{% set selectedTab = 'submission-statuses' %}
 {% import '_includes/forms' as forms %}
 
 {% block content %}
 
-{{ actionInput('formie/statuses/save') }}
-{{ redirectInput('formie/settings/statuses') }}
+{{ actionInput('formie/submission-statuses/save') }}
+{{ redirectInput('formie/settings/submission-statuses') }}
 
 {% if status.id %}
     {{ hiddenInput('id', status.id) }}
@@ -86,7 +86,7 @@
 
 {{ forms.lightswitchField({
     label: 'Default Status' | t('formie'),
-    instructions: 'Whether this status should be used as the default for new submissions.' | t('formie'),
+    instructions: 'Whether this submission status should be used as the default for new submissions.' | t('formie'),
     name: 'isDefault',
     on: status.isDefault,
 }) }}

@@ -107,7 +107,7 @@ class Submissions extends Component
         }
 
         if (($statusId = $request->getBodyParam('statusId')) !== null) {
-            $status = Formie::$plugin->getStatuses()->getStatusById((int)$statusId);
+            $status = Formie::$plugin->getSubmissionStatuses()->getStatusById((int)$statusId);
             $form = $submission->getForm();
 
             if ($status && $form && Formie::$plugin->getFormGroupPolicy()->isStatusAllowed($form, (int)$status->id)) {

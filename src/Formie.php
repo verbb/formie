@@ -30,6 +30,7 @@ use verbb\formie\jobs\DebuggableJobInterface;
 use verbb\formie\models\Settings;
 use verbb\formie\services\CaptchaProviders as CaptchaProvidersService;
 use verbb\formie\services\EmailTemplates as EmailTemplatesService;
+use verbb\formie\services\FormStatuses as FormStatusesService;
 use verbb\formie\services\FormGroups as FormGroupsService;
 use verbb\formie\services\FormTemplates as FormTemplatesService;
 use verbb\formie\services\Integrations as IntegrationsService;
@@ -38,7 +39,7 @@ use verbb\formie\services\Permissions;
 use verbb\formie\services\Reports as ReportsService;
 use verbb\formie\services\ScheduledReports as ScheduledReportsService;
 use verbb\formie\services\SpamProtection as SpamProtectionService;
-use verbb\formie\services\Statuses as StatusesService;
+use verbb\formie\services\SubmissionStatuses as SubmissionStatusesService;
 use verbb\formie\services\Stencils as StencilsService;
 use verbb\formie\variables\Formie as FormieVariable;
 use verbb\formie\web\twig\Extension;
@@ -61,6 +62,7 @@ use craft\events\FieldLayoutEvent;
 use craft\events\PluginEvent;
 use craft\events\RebuildConfigEvent;
 use craft\events\RegisterComponentTypesEvent;
+use craft\events\RegisterElementSourcesEvent;
 use craft\events\RegisterElementExportersEvent;
 use craft\events\RegisterEmailMessagesEvent;
 use craft\events\RegisterGqlMutationsEvent;
@@ -115,7 +117,7 @@ class Formie extends Plugin
 
     public bool $hasCpSection = true;
     public bool $hasCpSettings = true;
-    public string $schemaVersion = '4.0.48';
+    public string $schemaVersion = '4.0.54';
     public string $minVersionRequired = '2.1.5';
 
 
@@ -345,9 +347,15 @@ class Formie extends Plugin
             $event->rules['formie/settings/spam-protection'] = 'formie/settings/spam-protection';
             $event->rules['formie/settings/notifications'] = 'formie/notifications/index';
             $event->rules['formie/settings/sent-notifications'] = 'formie/sent-notifications/settings';
-            $event->rules['formie/settings/statuses'] = 'formie/statuses/index';
-            $event->rules['formie/settings/statuses/new'] = 'formie/statuses/edit';
-            $event->rules['formie/settings/statuses/edit/<id:\d+>'] = 'formie/statuses/edit';
+            $event->rules['formie/settings/statuses'] = 'formie/submission-statuses/index';
+            $event->rules['formie/settings/statuses/new'] = 'formie/submission-statuses/edit';
+            $event->rules['formie/settings/statuses/edit/<id:\d+>'] = 'formie/submission-statuses/edit';
+            $event->rules['formie/settings/submission-statuses'] = 'formie/submission-statuses/index';
+            $event->rules['formie/settings/submission-statuses/new'] = 'formie/submission-statuses/edit';
+            $event->rules['formie/settings/submission-statuses/edit/<id:\d+>'] = 'formie/submission-statuses/edit';
+            $event->rules['formie/settings/form-statuses'] = 'formie/form-statuses/index';
+            $event->rules['formie/settings/form-statuses/new'] = 'formie/form-statuses/edit';
+            $event->rules['formie/settings/form-statuses/edit/<id:\d+>'] = 'formie/form-statuses/edit';
             $event->rules['formie/settings/scheduled-reports'] = 'formie/scheduled-reports/index';
             $event->rules['formie/settings/scheduled-reports/new'] = 'formie/scheduled-reports/edit';
             $event->rules['formie/settings/scheduled-reports/edit/<id:\d+>'] = 'formie/scheduled-reports/edit';
@@ -687,6 +695,10 @@ class Formie extends Plugin
         Event::on(Cp::class, Cp::EVENT_DEFINE_ELEMENT_CHIP_HTML, [Form::class, 'defineElementChipHtml']);
         Event::on(Cp::class, Cp::EVENT_DEFINE_ELEMENT_CHIP_HTML, [Submission::class, 'defineElementChipHtml']);
 
+        Event::on(Form::class, Form::EVENT_REGISTER_SOURCES, function(RegisterElementSourcesEvent $event) {
+            $event->sources = Form::filterSidebarSources($event->sources);
+        });
+
         // Fix lack of support for submission-specific fields to index
         Event::on(Search::class, Search::EVENT_BEFORE_INDEX_KEYWORDS, [$this->getSubmissions(), 'beforeIndexKeywords']);
 
@@ -752,11 +764,17 @@ class Formie extends Plugin
     {
         $projectConfigService = Craft::$app->getProjectConfig();
 
-        $statusesService = $this->getStatuses();
+        $submissionStatusesService = $this->getSubmissionStatuses();
         $projectConfigService
-            ->onAdd(StatusesService::CONFIG_STATUSES_KEY . '.{uid}', [$statusesService, 'handleChangedStatus'])
-            ->onUpdate(StatusesService::CONFIG_STATUSES_KEY . '.{uid}', [$statusesService, 'handleChangedStatus'])
-            ->onRemove(StatusesService::CONFIG_STATUSES_KEY . '.{uid}', [$statusesService, 'handleDeletedStatus']);
+            ->onAdd(SubmissionStatusesService::CONFIG_SUBMISSION_STATUSES_KEY . '.{uid}', [$submissionStatusesService, 'handleChangedSubmissionStatus'])
+            ->onUpdate(SubmissionStatusesService::CONFIG_SUBMISSION_STATUSES_KEY . '.{uid}', [$submissionStatusesService, 'handleChangedSubmissionStatus'])
+            ->onRemove(SubmissionStatusesService::CONFIG_SUBMISSION_STATUSES_KEY . '.{uid}', [$submissionStatusesService, 'handleDeletedSubmissionStatus']);
+
+        $formStatusesService = $this->getFormStatuses();
+        $projectConfigService
+            ->onAdd(FormStatusesService::CONFIG_FORM_STATUSES_KEY . '.{uid}', [$formStatusesService, 'handleChangedFormStatus'])
+            ->onUpdate(FormStatusesService::CONFIG_FORM_STATUSES_KEY . '.{uid}', [$formStatusesService, 'handleChangedFormStatus'])
+            ->onRemove(FormStatusesService::CONFIG_FORM_STATUSES_KEY . '.{uid}', [$formStatusesService, 'handleDeletedFormStatus']);
 
         $stencilsService = $this->getStencils();
         $projectConfigService

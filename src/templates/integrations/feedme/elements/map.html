@@ -9,7 +9,7 @@
 
 {% set statusOptions = [{ label: 'Don’t import'|t('feed-me'), value: '' }] %}
 
-{% for status in craft.formie.getPlugin().getStatuses().getAllStatuses() %}
+{% for status in craft.formie.getPlugin().getSubmissionStatuses().getAllStatuses() %}
     {% set statusOptions = statusOptions | merge([{ label: status.name, value: status.handle }]) %}
 {% endfor %}
 

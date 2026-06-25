@@ -123,6 +123,13 @@ class AliasBootstrap
             ['verbb\\formie\\options\\predefined\\StatesCanada', 'verbb\\formie\\options\\sources\\predefined\\StatesCanada'],
             ['verbb\\formie\\options\\predefined\\StatesUsa', 'verbb\\formie\\options\\sources\\predefined\\StatesUsa'],
             ['verbb\\formie\\options\\predefined\\WouldYou', 'verbb\\formie\\options\\sources\\predefined\\WouldYou'],
+
+            // Added in 4.0.0 — form and submission status type renames
+            ['verbb\\formie\\services\\SubmissionStatuses', 'verbb\\formie\\services\\Statuses'],
+            ['verbb\\formie\\models\\SubmissionStatus', 'verbb\\formie\\models\\Status'],
+            ['verbb\\formie\\records\\SubmissionStatus', 'verbb\\formie\\records\\Status'],
+            ['verbb\\formie\\events\\SubmissionStatusEvent', 'verbb\\formie\\events\\StatusEvent'],
+            ['verbb\\formie\\controllers\\SubmissionStatusesController', 'verbb\\formie\\controllers\\StatusesController'],
         ];
     }
 
@@ -132,6 +139,7 @@ class AliasBootstrap
             return;
         }
 
+        class_exists($class);
         class_alias($class, $alias);
     }
 }

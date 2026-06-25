@@ -27,6 +27,10 @@ trait FormDeprecations
         $this->setRenderId($value);
     }
 
+
+    // Protected Methods
+    // =========================================================================
+
     protected function triggerDeprecatedHtmlTagEvent(ModifyFormSlotTagEvent $event): void
     {
         if (!$this->hasEventHandlers(static::EVENT_MODIFY_HTML_TAG)) {

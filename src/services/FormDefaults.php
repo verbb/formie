@@ -429,7 +429,7 @@ class FormDefaults extends Component
         $defaults = Formie::$plugin->getFormGroupPolicy()->getMergedFormDefaults($group);
 
         if (!array_key_exists('defaultStatusId', $postedValues) && ($defaults['defaultStatus'] ?? '')) {
-            $status = Formie::$plugin->getStatuses()->getStatusByHandle((string)$defaults['defaultStatus']);
+            $status = Formie::$plugin->getSubmissionStatuses()->getStatusByHandle((string)$defaults['defaultStatus']);
             $form->defaultStatusId = $status?->id;
         }
 

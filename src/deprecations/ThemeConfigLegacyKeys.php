@@ -38,6 +38,7 @@ final class ThemeConfigLegacyKeys
             return null;
         }
 
+        // Deprecated in 4.0.0
         Craft::$app->getDeprecator()->log($caller, "`themeConfig` path `{$key}` uses a deprecated root segment; use `{$canonicalKey}` instead (see `docs/theming/theme-config.md`).");
 
         return $canonicalKey;
@@ -51,6 +52,7 @@ final class ThemeConfigLegacyKeys
             return $segment;
         }
 
+        // Deprecated in 4.0.0
         Craft::$app->getDeprecator()->log($caller, "`{$segment}` is a deprecated theme config key. Use `{$canonical}` instead (see `docs/theming/theme-config.md`).");
 
         return $canonical;

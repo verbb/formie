@@ -4,19 +4,19 @@ declare(strict_types=1);
 
 use verbb\formie\conditions\ConditionOperator;
 use verbb\formie\Formie;
-use verbb\formie\models\Status;
+use verbb\formie\models\SubmissionStatus;
 use verbb\formie\models\SubmissionRequest;
 use verbb\formie\elements\Submission;
 use verbb\formie\services\SubmissionWorkflow;
 
 it('applies matching status rules on final submit', function (): void {
-    $status = new Status([
+    $status = new SubmissionStatus([
         'name' => 'In Progress',
         'handle' => 'inProgress508',
         'color' => 'orange',
     ]);
 
-    expect(Formie::$plugin->getStatuses()->saveStatus($status))->toBeTrue();
+    expect(Formie::$plugin->getSubmissionStatuses()->saveStatus($status))->toBeTrue();
 
     $form = formie()
         ->form(['title' => 'Status Rules Final Submit'])
@@ -56,13 +56,13 @@ it('applies matching status rules on final submit', function (): void {
 });
 
 it('applies status rules without conditions when enableConditions is disabled', function (): void {
-    $status = new Status([
+    $status = new SubmissionStatus([
         'name' => 'Every Page',
         'handle' => 'everyPage508',
         'color' => 'green',
     ]);
 
-    expect(Formie::$plugin->getStatuses()->saveStatus($status))->toBeTrue();
+    expect(Formie::$plugin->getSubmissionStatuses()->saveStatus($status))->toBeTrue();
 
     $form = formie()
         ->form(['title' => 'Status Rules Unconditional'])
@@ -92,13 +92,13 @@ it('applies status rules without conditions when enableConditions is disabled', 
 });
 
 it('skips status rules when conditions do not match', function (): void {
-    $status = new Status([
+    $status = new SubmissionStatus([
         'name' => 'Review',
         'handle' => 'review508',
         'color' => 'blue',
     ]);
 
-    expect(Formie::$plugin->getStatuses()->saveStatus($status))->toBeTrue();
+    expect(Formie::$plugin->getSubmissionStatuses()->saveStatus($status))->toBeTrue();
 
     $form = formie()
         ->form(['title' => 'Status Rules No Match'])

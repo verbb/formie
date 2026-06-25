@@ -167,7 +167,7 @@ class MigrateSproutForms extends BasePluginMigrator
 
     private function _migrateSubmissions(): void
     {
-        $statuses = Formie::$plugin->getStatuses()->getAllStatuses();
+        $statuses = Formie::$plugin->getSubmissionStatuses()->getAllStatuses();
         $status = reset($statuses) ?: null;
 
         $fields = $this->_sproutForm->getFieldLayout()->getCustomFields();

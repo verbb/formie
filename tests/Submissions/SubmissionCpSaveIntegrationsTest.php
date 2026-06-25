@@ -78,13 +78,13 @@ it('detects when a form has integrations that allow cp save re-runs', function (
 });
 
 it('applies cp submission sidebar attributes during managed saves', function (): void {
-    $status = new \verbb\formie\models\Status([
+    $status = new \verbb\formie\models\SubmissionStatus([
         'name' => 'Accepted',
         'handle' => 'acceptedCpSave',
         'color' => 'green',
     ]);
 
-    expect(Formie::$plugin->getStatuses()->saveStatus($status))->toBeTrue();
+    expect(Formie::$plugin->getSubmissionStatuses()->saveStatus($status))->toBeTrue();
 
     $form = formie()
         ->form(['title' => 'CP Save Attributes'])

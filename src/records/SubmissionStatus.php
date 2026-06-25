@@ -6,7 +6,7 @@ use verbb\formie\helpers\Table;
 use craft\db\ActiveRecord;
 use craft\db\SoftDeleteTrait;
 
-class Status extends ActiveRecord
+class SubmissionStatus extends ActiveRecord
 {
     // Traits
     // =========================================================================
@@ -19,6 +19,6 @@ class Status extends ActiveRecord
 
     public static function tableName(): string
     {
-        return Table::FORMIE_STATUSES;
+        return Table::FORMIE_SUBMISSION_STATUSES;
     }
 }

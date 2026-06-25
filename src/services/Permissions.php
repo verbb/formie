@@ -156,6 +156,10 @@ class Permissions extends Component
             return $this->canManageScheduledReports($user);
         }
 
+        if (in_array($page, ['submission-statuses', 'form-statuses'], true)) {
+            return $user->can($this->settingsPagePermissionKey('statuses'));
+        }
+
         return $user->can($this->settingsPagePermissionKey($page));
     }
 
@@ -163,6 +167,10 @@ class Permissions extends Component
     {
         if (in_array($page, ['spam', 'captchas'], true)) {
             return 'spam-protection';
+        }
+
+        if ($page === 'submission-statuses' || $page === 'form-statuses') {
+            return 'statuses';
         }
 
         return $page;
@@ -217,7 +225,9 @@ class Permissions extends Component
             'fields' => Craft::t('formie', 'Fields'),
             'notifications' => Craft::t('formie', 'Email notifications settings'),
             'sent-notifications' => Craft::t('formie', 'Sent notifications settings'),
-            'statuses' => Craft::t('formie', 'Statuses'),
+            'submission-statuses' => Craft::t('formie', 'Submission Statuses'),
+            'form-statuses' => Craft::t('formie', 'Form Statuses'),
+            'statuses' => Craft::t('formie', 'Submission Statuses'),
             'submissions' => Craft::t('formie', 'Submissions settings'),
             'scheduled-reports' => Craft::t('formie', 'Scheduled Reports'),
             'integrations-settings' => Craft::t('formie', 'Integrations settings'),

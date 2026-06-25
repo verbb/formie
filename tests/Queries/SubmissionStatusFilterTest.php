@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 use verbb\formie\Formie;
 use verbb\formie\helpers\Table;
-use verbb\formie\models\Status;
+use verbb\formie\models\SubmissionStatus;
 use verbb\formie\elements\Submission;
 
 it('filters submissions by status name when the label differs from the handle', function (): void {
-    $status = new Status([
+    $status = new SubmissionStatus([
         'name' => 'May Be',
         'handle' => 'maybe',
         'color' => 'orange',
     ]);
 
-    expect(Formie::$plugin->getStatuses()->saveStatus($status))->toBeTrue()
+    expect(Formie::$plugin->getSubmissionStatuses()->saveStatus($status))->toBeTrue()
         ->and($status->id)->not->toBeNull();
 
     $form = formie()

@@ -1,7 +1,10 @@
 {% extends 'formie/_layouts/settings' %}
 
+{% set title = 'Submission Statuses' | t('formie') %}
+{% set selectedTab = 'submission-statuses' %}
+
 {% block actionButton %}
-    <a href="{{ url('formie/settings/statuses/new') }}" class="btn submit add icon">{{ 'New Status' | t('formie') }}</a>
+    <a href="{{ url('formie/settings/submission-statuses/new') }}" class="btn submit add icon">{{ 'New Submission Status' | t('formie') }}</a>
 {% endblock %}
 
 {% block content %}
@@ -38,11 +41,11 @@
     new Craft.VueAdminTable({
         columns: columns,
         container: '#statuses-vue-admin-table',
-        deleteAction: 'formie/statuses/delete',
+        deleteAction: 'formie/submission-statuses/delete',
         minItems: 1,
-        reorderAction: 'formie/statuses/reorder',
-        reorderSuccessMessage: Craft.t('formie', 'Statuses reordered.'),
-        reorderFailMessage: Craft.t('formie', 'Couldn’t reorder statuses.'),
+        reorderAction: 'formie/submission-statuses/reorder',
+        reorderSuccessMessage: Craft.t('formie', 'Submission statuses reordered.'),
+        reorderFailMessage: Craft.t('formie', 'Couldn’t reorder submission statuses.'),
         tableData: {{ tableData | json_encode | raw }},
     });
 {% endjs %}

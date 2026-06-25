@@ -5,7 +5,7 @@ declare(strict_types=1);
 use craft\elements\User;
 use verbb\formie\Formie;
 use verbb\formie\helpers\Table;
-use verbb\formie\models\Status;
+use verbb\formie\models\SubmissionStatus;
 use verbb\formie\elements\Submission;
 
 it('queries submissions by built-in attributes with exact result sets', function (): void {
@@ -22,8 +22,8 @@ it('queries submissions by built-in attributes with exact result sets', function
     expect($seedUser)->not->toBeNull();
 
     $statuses = array_values(array_filter(
-        Formie::$plugin->getStatuses()->getAllStatuses(),
-        static fn($status): bool => $status instanceof Status
+        Formie::$plugin->getSubmissionStatuses()->getAllStatuses(),
+        static fn($status): bool => $status instanceof SubmissionStatus
     ));
     expect($statuses)->not->toBeEmpty();
 

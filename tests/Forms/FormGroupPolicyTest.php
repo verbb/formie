@@ -5,7 +5,7 @@ declare(strict_types=1);
 use verbb\formie\Formie;
 use verbb\formie\models\FormGroup;
 use verbb\formie\models\FormGroupSettings;
-use verbb\formie\models\Status;
+use verbb\formie\models\SubmissionStatus;
 
 it('returns all statuses when no group or form policy is set', function (): void {
     $form = formie()
@@ -13,15 +13,15 @@ it('returns all statuses when no group or form policy is set', function (): void
         ->singleLineTextField('fullName')
         ->create();
 
-    $allCount = count(Formie::$plugin->getStatuses()->getAllStatuses());
+    $allCount = count(Formie::$plugin->getSubmissionStatuses()->getAllStatuses());
     $policy = Formie::$plugin->getFormGroupPolicy();
 
     expect($policy->getResolvedAllowedStatusIds($form))->toBeNull()
-        ->and($policy->getStatusesForForm($form))->toHaveCount($allCount);
+        ->and($policy->getSubmissionStatusesForForm($form))->toHaveCount($allCount);
 });
 
 it('restricts statuses from a form group policy', function (): void {
-    $statuses = Formie::$plugin->getStatuses()->getAllStatuses();
+    $statuses = Formie::$plugin->getSubmissionStatuses()->getAllStatuses();
     expect($statuses)->not->toBeEmpty();
 
     $allowed = array_slice($statuses, 0, 1);
@@ -46,22 +46,22 @@ it('restricts statuses from a form group policy', function (): void {
     $policy = Formie::$plugin->getFormGroupPolicy();
 
     expect($policy->getResolvedAllowedStatusIds($form))->toBe([(int)$allowed[0]->id])
-        ->and($policy->getStatusesForForm($form))->toHaveCount(1)
+        ->and($policy->getSubmissionStatusesForForm($form))->toHaveCount(1)
         ->and($policy->isStatusAllowed($form, (int)$allowed[0]->id))->toBeTrue();
 });
 
 it('ignores legacy form-level allowed status ids in favour of group policy', function (): void {
-    $statuses = Formie::$plugin->getStatuses()->getAllStatuses();
+    $statuses = Formie::$plugin->getSubmissionStatuses()->getAllStatuses();
 
     if (count($statuses) < 2) {
-        $extra = new Status([
+        $extra = new SubmissionStatus([
             'name' => 'Policy Test Status',
             'handle' => 'policyTest' . uniqid(),
             'color' => 'orange',
             'sortOrder' => 99,
         ]);
-        Formie::$plugin->getStatuses()->saveStatus($extra);
-        $statuses = Formie::$plugin->getStatuses()->getAllStatuses();
+        Formie::$plugin->getSubmissionStatuses()->saveStatus($extra);
+        $statuses = Formie::$plugin->getSubmissionStatuses()->getAllStatuses();
     }
 
     expect(count($statuses))->toBeGreaterThanOrEqual(2);

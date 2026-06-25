@@ -6,7 +6,7 @@ use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\FieldLayout;
-use verbb\formie\models\Status;
+use verbb\formie\models\SubmissionStatus;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -128,7 +128,7 @@ class SubmissionQuery extends ElementQuery
 
     public function status(array|string|null $value): static
     {
-        if ($value instanceof Status) {
+        if ($value instanceof SubmissionStatus) {
             $this->statusId = $value->id;
         } else if ($value !== null) {
             $this->statusId = $this->_resolveStatusIdValue($value);
@@ -216,7 +216,7 @@ class SubmissionQuery extends ElementQuery
 
     private function _resolveStatusIdValue(array|string $value): mixed
     {
-        return Formie::$plugin->getStatuses()->resolveStatusIdParam($value);
+        return Formie::$plugin->getSubmissionStatuses()->resolveStatusIdParam($value);
     }
 
 
@@ -461,7 +461,7 @@ class SubmissionQuery extends ElementQuery
             return null;
         }
 
-        return Formie::$plugin->getStatuses()->resolveStatusId($status);
+        return Formie::$plugin->getSubmissionStatuses()->resolveStatusId($status);
     }
 
     private function _isExactHandleParam(string $value): bool

@@ -86,4 +86,12 @@ trait FormieVariableDeprecations
 
         return FormiePlugin::$plugin->getRendering()->frontendAssets($renderOptions);
     }
+
+    public function getStatuses(): array
+    {
+        // Deprecated in 4.0.0
+        Craft::$app->getDeprecator()->log(__METHOD__, '`craft.formie.getStatuses()` has been deprecated. Use `craft.formie.getSubmissionStatuses()` instead.');
+
+        return $this->getSubmissionStatuses();
+    }
 }

@@ -198,7 +198,7 @@ class ReportEditor extends Component
     {
         $options = [];
 
-        foreach (Formie::$plugin->getStatuses()->getAllStatuses() as $status) {
+        foreach (Formie::$plugin->getSubmissionStatuses()->getAllStatuses() as $status) {
             $options[] = [
                 'label' => $status->name,
                 'value' => (string)$status->id,

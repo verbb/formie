@@ -165,7 +165,7 @@ class StencilsController extends Controller
         }
 
         if ($statusId = $request->getParam('defaultStatusId')) {
-            $status = Formie::$plugin->getStatuses()->getStatusById($statusId);
+            $status = Formie::$plugin->getSubmissionStatuses()->getStatusById($statusId);
             $stencil->setDefaultStatus($status);
         }
 

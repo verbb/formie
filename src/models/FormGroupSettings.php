@@ -150,7 +150,7 @@ class FormGroupSettings extends Model
 
         $validIds = [];
 
-        foreach (Formie::$plugin->getStatuses()->getAllStatuses() as $status) {
+        foreach (Formie::$plugin->getSubmissionStatuses()->getAllStatuses() as $status) {
             $validIds[] = (int)$status->id;
         }
 

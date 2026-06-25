@@ -14,7 +14,7 @@ it('captures runtime cache sweep baselines', function (): void {
 
     $formsService = Formie::$plugin->getForms();
     $fieldsService = Formie::$plugin->getFields();
-    $statusHandle = Formie::$plugin->getStatuses()->getDefaultStatus()?->handle;
+    $statusHandle = Formie::$plugin->getSubmissionStatuses()->getDefaultStatus()?->handle;
     $fieldConfig = $fieldsService->getAllFieldConfigsForForms([(int)$form->id])[(int)$form->id][0] ?? [];
 
     expect($statusHandle)->not->toBeEmpty()

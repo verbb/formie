@@ -12,6 +12,7 @@ use verbb\formie\base\Miscellaneous;
 use verbb\formie\base\ParentFieldInterface;
 use verbb\formie\elements\actions\DuplicateForm;
 use verbb\formie\elements\actions\MoveFormToGroup;
+use verbb\formie\elements\actions\SetFormStatus;
 use verbb\formie\elements\conditions\FormCondition;
 use verbb\formie\elements\db\FormQuery;
 use verbb\formie\base\QuestionnaireFieldInterface;
@@ -40,19 +41,20 @@ use verbb\formie\models\FieldLayout as FormLayout;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\FieldLayoutPageSettings;
 use verbb\formie\models\FormSettings;
+use verbb\formie\models\FormStatus;
 use verbb\formie\models\FormGroup;
 use verbb\formie\models\FormTemplate;
 use verbb\formie\models\Notification;
 use verbb\formie\models\Settings;
 use verbb\formie\models\SlotTag;
-use verbb\formie\models\Status;
+use verbb\formie\models\SubmissionStatus;
 use verbb\formie\options\OptionSourceFieldInterface;
 use verbb\formie\records\Form as FormRecord;
 use verbb\formie\client\bootstrap\models\FormDefinition;
 use verbb\formie\client\models\LoadContext;
 use verbb\formie\services\Permissions;
 use verbb\formie\services\SubmissionDrafts;
-use verbb\formie\services\Statuses;
+use verbb\formie\services\SubmissionStatuses;
 use verbb\formie\state\ResumeToken;
 use verbb\formie\theme\context\RenderContext;
 
@@ -130,6 +132,20 @@ class Form extends Element implements FormInterface
     public static function hasTitles(): bool
     {
         return true;
+    }
+
+    public static function hasStatuses(): bool
+    {
+        return Formie::$plugin->getFormStatuses()->hasConfiguredStatuses();
+    }
+
+    public static function statuses(): array
+    {
+        if (!static::hasStatuses()) {
+            return [];
+        }
+
+        return Formie::$plugin->getFormStatuses()->getStatusesArray();
     }
 
     public static function isLocalized(): bool
@@ -255,7 +271,15 @@ class Form extends Element implements FormInterface
             }
         }
 
-        return $sources;
+        return self::filterSidebarSources($sources);
+    }
+
+    public static function filterSidebarSources(array $sources): array
+    {
+        return array_values(array_filter(
+            $sources,
+            fn(array $source) => !self::_isFormStatusSidebarSource($source),
+        ));
     }
 
     public static function defineElementChipHtml(DefineElementHtmlEvent $event): void
@@ -282,6 +306,10 @@ class Form extends Element implements FormInterface
             $actions[] = MoveFormToGroup::class;
         }
 
+        if (Formie::$plugin->getFormStatuses()->getAllStatuses()) {
+            $actions[] = SetFormStatus::class;
+        }
+
         if ($canDeleteForms) {
             $actions[] = [
                 'type' => Delete::class,
@@ -302,10 +330,17 @@ class Form extends Element implements FormInterface
 
     protected static function defineTableAttributes(): array
     {
-        return [
+        $attributes = [
             'title' => ['label' => Craft::t('app', 'Name')],
             'id' => ['label' => Craft::t('app', 'ID')],
             'handle' => ['label' => Craft::t('app', 'Handle')],
+        ];
+
+        if (static::hasStatuses()) {
+            $attributes['status'] = ['label' => Craft::t('formie', 'Form Status')];
+        }
+
+        return $attributes + [
             'template' => ['label' => Craft::t('app', 'Template')],
             'pageCount' => ['label' => Craft::t('formie', 'Page Count')],
             'usageCount' => ['label' => Craft::t('formie', 'Usage Count')],
@@ -318,14 +353,23 @@ class Form extends Element implements FormInterface
 
     protected static function defineDefaultTableAttributes(string $source): array
     {
-        $attributes = [];
-        $attributes[] = 'title';
-        $attributes[] = 'handle';
-        $attributes[] = 'template';
-        $attributes[] = 'dateCreated';
-        $attributes[] = 'dateUpdated';
+        $attributes = ['title'];
 
-        return $attributes;
+        if (static::hasStatuses()) {
+            $attributes[] = 'status';
+        }
+
+        return array_merge($attributes, [
+            'handle',
+            'template',
+            'dateCreated',
+            'dateUpdated',
+        ]);
+    }
+
+    public function showStatusIndicator(): bool
+    {
+        return false;
     }
 
     protected static function defineSearchableAttributes(): array
@@ -369,6 +413,7 @@ class Form extends Element implements FormInterface
     public ?int $layoutId = null;
     public ?int $templateId = null;
     public ?int $groupId = null;
+    public ?int $formStatusId = null;
     public ?int $sourceSiteId = null;
     public ?int $submitActionEntryId = null;
     public ?int $submitActionEntrySiteId = null;
@@ -389,7 +434,8 @@ class Form extends Element implements FormInterface
     private ?FormLayout $_formLayout = null;
     private ?FormTemplate $_template = null;
     private ?FormGroup $_group = null;
-    private ?Status $_defaultStatus = null;
+    private ?FormStatus $_formStatus = null;
+    private ?SubmissionStatus $_defaultStatus = null;
     private ?Entry $_submitActionEntry = null;
     private ?array $_notifications = null;
     private ?FieldLayoutPage $_currentPage = null;
@@ -644,13 +690,58 @@ class Form extends Element implements FormInterface
         }
     }
 
-    public function getDefaultStatus(): ?Status
+    public function getFormStatusModel(): ?FormStatus
+    {
+        if (!$this->_formStatus) {
+            $this->_formStatus = Formie::$plugin->getFormStatuses()->resolveStatus($this->formStatusId);
+        }
+
+        return $this->_formStatus;
+    }
+
+    public function setFormStatus(?FormStatus $formStatus): void
+    {
+        if ($formStatus) {
+            $this->_formStatus = $formStatus;
+            $this->formStatusId = $formStatus->id;
+        } else {
+            $this->_formStatus = $this->formStatusId = null;
+        }
+    }
+
+    public function getFormStatusId(): ?int
+    {
+        return $this->formStatusId;
+    }
+
+    public function getStatus(): ?string
+    {
+        if (!static::hasStatuses()) {
+            return parent::getStatus();
+        }
+
+        $handle = $this->getFormStatusModel()?->handle;
+
+        if (is_string($handle) && $handle !== '') {
+            return $handle;
+        }
+
+        $firstHandle = array_key_first(static::statuses());
+
+        if (is_string($firstHandle) && $firstHandle !== '') {
+            return $firstHandle;
+        }
+
+        return parent::getStatus();
+    }
+
+    public function getDefaultStatus(): ?SubmissionStatus
     {
         if (!$this->_defaultStatus) {
             if ($this->defaultStatusId) {
-                $this->_defaultStatus = Formie::$plugin->getStatuses()->getStatusById($this->defaultStatusId);
+                $this->_defaultStatus = Formie::$plugin->getSubmissionStatuses()->getStatusById($this->defaultStatusId);
             } else {
-                $this->_defaultStatus = Formie::$plugin->getStatuses()->getAllStatuses()[0] ?? null;
+                $this->_defaultStatus = Formie::$plugin->getSubmissionStatuses()->getAllStatuses()[0] ?? null;
             }
         }
 
@@ -662,25 +753,25 @@ class Form extends Element implements FormInterface
 
                 // Maybe the project config didn't get applied? Check for existing values
                 // This can likely be removed later, as this fix is already in place when installing Formie
-                $statuses = $projectConfig->get(Statuses::CONFIG_STATUSES_KEY, true) ?? [];
+                $statuses = $projectConfig->get(SubmissionStatuses::CONFIG_SUBMISSION_STATUSES_KEY, true) ?? [];
 
                 foreach ($statuses as $statusUid => $statusData) {
-                    $projectConfig->processConfigChanges(Statuses::CONFIG_STATUSES_KEY . '.' . $statusUid, true);
+                    $projectConfig->processConfigChanges(SubmissionStatuses::CONFIG_SUBMISSION_STATUSES_KEY . '.' . $statusUid, true);
                 }
 
                 // If there's _still_ not a status, just go ahead and create it...
-                $this->_defaultStatus = Formie::$plugin->getStatuses()->getAllStatuses()[0] ?? null;
+                $this->_defaultStatus = Formie::$plugin->getSubmissionStatuses()->getAllStatuses()[0] ?? null;
 
                 if ($this->_defaultStatus === null) {
-                    $this->_defaultStatus = new Status([
+                    $this->_defaultStatus = new SubmissionStatus([
                         'name' => 'New',
                         'handle' => 'new',
-                        'color' => 'green',
+                        'color' => 'turquoise',
                         'sortOrder' => 1,
                         'isDefault' => 1,
                     ]);
 
-                    Formie::$plugin->getStatuses()->saveStatus($this->_defaultStatus);
+                    Formie::$plugin->getSubmissionStatuses()->saveStatus($this->_defaultStatus);
                 }
             }
         }
@@ -699,7 +790,7 @@ class Form extends Element implements FormInterface
             return;
         }
 
-        $allowedStatuses = Formie::$plugin->getFormGroupPolicy()->getStatusesForForm($this);
+        $allowedStatuses = Formie::$plugin->getFormGroupPolicy()->getSubmissionStatusesForForm($this);
 
         if ($allowedStatuses === []) {
             return;
@@ -715,7 +806,7 @@ class Form extends Element implements FormInterface
         $this->defaultStatusId = $this->_defaultStatus->id;
     }
 
-    public function setDefaultStatus(?Status $status): void
+    public function setDefaultStatus(?SubmissionStatus $status): void
     {
         if ($status) {
             $this->_defaultStatus = $status;
@@ -808,6 +899,7 @@ class Form extends Element implements FormInterface
             'errors' => $this->getErrors(),
             'templateId' => $this->templateId,
             'groupId' => $this->groupId,
+            'formStatusId' => $this->getFormStatusModel()?->id,
             'defaultStatusId' => $this->defaultStatusId,
             'pages' => $this->getFormLayout()->getFormBuilderConfig(),
             'settings' => $this->getSettings()->getFormBuilderConfig(),
@@ -2022,6 +2114,10 @@ class Form extends Element implements FormInterface
             $this->defaultStatusId = $this->getDefaultStatus()?->id;
         }
 
+        if (!$this->formStatusId) {
+            $this->formStatusId = Formie::$plugin->getFormStatuses()->getDefaultStatus()?->id;
+        }
+
         // Ensure any parent validations run first
         if (!parent::beforeSave($isNew)) {
             return false;
@@ -2061,6 +2157,7 @@ class Form extends Element implements FormInterface
         $record->layoutId = $this->getFormLayout()->id;
         $record->templateId = $this->templateId;
         $record->groupId = $this->groupId ?: null;
+        $record->formStatusId = $this->formStatusId ?: null;
         $record->sourceSiteId = $this->sourceSiteId ?: null;
         $record->submitActionEntryId = $this->submitActionEntryId;
         $record->submitActionEntrySiteId = $this->submitActionEntrySiteId;
@@ -2835,6 +2932,7 @@ class Form extends Element implements FormInterface
                 'required' => true,
                 'translatable' => Craft::$app->getIsMultiSite(),
             ]),
+            ...($formStatusField = $this->_formStatusSelectSchemaField()) ? [$formStatusField] : [],
             ...($formGroupField = $this->_formGroupSelectSchemaField()) ? [$formGroupField] : [],
             [
                 '$el' => 'hr',
@@ -2847,13 +2945,13 @@ class Form extends Element implements FormInterface
                 ],
             ],
             SchemaHelper::selectField([
-                'label' => Craft::t('formie', 'Default Status'),
+                'label' => Craft::t('formie', 'Default Submission Status'),
                 'instructions' => Craft::t('formie', 'The default status to be assigned to new submissions.'),
                 'name' => 'defaultStatusId',
-                'options' => Formie::$plugin->getFormGroupPolicy()->getStatusSelectOptions($this),
+                'options' => Formie::$plugin->getFormGroupPolicy()->getSubmissionStatusSelectOptions($this),
             ]),
             SchemaHelper::lightswitchField([
-                'label' => Craft::t('formie', 'Enable Status Rules'),
+                'label' => Craft::t('formie', 'Enable Submission Status Rules'),
                 'instructions' => Craft::t('formie', 'Automatically change the submission status based on configured rules. Rules are evaluated in order; the first match wins.'),
                 'name' => 'settings.enableStatusRules',
             ]),
@@ -2861,9 +2959,9 @@ class Form extends Element implements FormInterface
                 '$field' => 'statusRules',
                 'name' => 'settings.statusRules',
                 'if' => 'settings.enableStatusRules',
-                'label' => Craft::t('formie', 'Status Rules'),
+                'label' => Craft::t('formie', 'Submission Status Rules'),
                 'instructions' => Craft::t('formie', 'Configure which status to apply for each rule. Optionally enable conditions to limit when a rule applies.'),
-                'statusOptions' => Formie::$plugin->getFormGroupPolicy()->getStatusSelectOptions($this),
+                'statusOptions' => Formie::$plugin->getFormGroupPolicy()->getSubmissionStatusSelectOptions($this),
                 'triggerOptions' => [
                     ['label' => Craft::t('formie', 'Final submit'), 'value' => 'finalSubmit'],
                     ['label' => Craft::t('formie', 'Every page'), 'value' => 'everyPage'],
@@ -3100,6 +3198,26 @@ class Form extends Element implements FormInterface
             : Craft::t('formie', 'form');
 
         return $titleCase ? ucfirst($label) : $label;
+    }
+
+    private function _formStatusSelectSchemaField(): ?array
+    {
+        if ($this->getBuilderEntityType() !== self::BUILDER_ENTITY_TYPE_FORM) {
+            return null;
+        }
+
+        $statuses = Formie::$plugin->getFormStatuses()->getAllStatuses();
+
+        if (!$statuses) {
+            return null;
+        }
+
+        return SchemaHelper::selectField([
+            'label' => Craft::t('formie', 'Form Status'),
+            'instructions' => Craft::t('formie', 'Choose a status to help organise this form in the forms list.'),
+            'name' => 'formStatusId',
+            'options' => Formie::$plugin->getFormStatuses()->getFormStatusSelectOptions(),
+        ]);
     }
 
     private function _formGroupSelectSchemaField(): ?array
@@ -3408,7 +3526,7 @@ class Form extends Element implements FormInterface
 
         $rules[] = [['title', 'handle'], 'required'];
         $rules[] = [['title'], 'string', 'max' => 255];
-        $rules[] = [['templateId', 'groupId', 'sourceSiteId', 'submitActionEntryId', 'submitActionEntrySiteId', 'defaultStatusId'], 'number', 'integerOnly' => true];
+        $rules[] = [['templateId', 'groupId', 'formStatusId', 'sourceSiteId', 'submitActionEntryId', 'submitActionEntrySiteId', 'defaultStatusId'], 'number', 'integerOnly' => true];
         $rules[] = [['formLayout'], 'validateFormLayout'];
         $rules[] = [['settings'], 'validateFormSettings'];
         $rules[] = [['notifications'], 'validateNotifications'];
@@ -3447,12 +3565,28 @@ class Form extends Element implements FormInterface
     protected function attributeHtml(string $attribute): string
     {
         return match ($attribute) {
+            'status' => $this->_formStatusAttributeHtml(),
             'usageCount' => count(Formie::$plugin->getForms()->getFormUsage($this)),
             'pageCount' => count($this->getPages()),
             'createdBy' => ($user = $this->getCreatedBy()) ? Cp::elementChipHtml($user) : '',
             'updatedBy' => ($user = $this->getUpdatedBy()) ? Cp::elementChipHtml($user) : '',
             default => parent::attributeHtml($attribute),
         };
+    }
+
+    private function _formStatusAttributeHtml(): string
+    {
+        try {
+            if (!static::hasStatuses()) {
+                return '';
+            }
+
+            return Cp::componentStatusLabelHtml($this) ?? '';
+        } catch (\Throwable) {
+            $label = $this->getFormStatusModel()?->name ?? $this->getStatus();
+
+            return $label ? Html::encode($label) : '';
+        }
     }
 
     protected function cpEditUrl(): ?string
@@ -3479,6 +3613,19 @@ class Form extends Element implements FormInterface
 
     // Private Methods
     // =========================================================================
+
+    private static function _isFormStatusSidebarSource(array $source): bool
+    {
+        if (str_starts_with($source['key'] ?? '', 'formStatus:')) {
+            return true;
+        }
+
+        if (array_key_exists('heading', $source) && ($source['heading'] ?? '') === Craft::t('formie', 'Form Statuses')) {
+            return true;
+        }
+
+        return isset($source['criteria']['formStatusId']);
+    }
 
     private function _getFormUserMeta(?User $user): ?array
     {

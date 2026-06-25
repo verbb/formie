@@ -89,7 +89,7 @@ class Submission extends Element
     {
         $value = $this->fetchSimpleValue($feedData, $fieldInfo);
 
-        return Formie::$plugin->getStatuses()->getStatusByHandle($value)->id;
+        return Formie::$plugin->getSubmissionStatuses()->getStatusByHandle($value)->id;
     }
 
 }

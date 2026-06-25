@@ -2,51 +2,49 @@
 namespace verbb\formie\controllers;
 
 use verbb\formie\Formie;
-use verbb\formie\models\Status;
+use verbb\formie\models\FormStatus;
 
 use Craft;
 use craft\helpers\Json;
 
-use Throwable;
-
 use yii\web\HttpException;
 use yii\web\Response;
 
-class StatusesController extends SettingsAccessController
+class FormStatusesController extends SettingsAccessController
 {
     // Public Methods
     // =========================================================================
 
     public function actionIndex(): Response
     {
-        $statuses = Formie::$plugin->getStatuses()->getAllStatuses();
+        $statuses = Formie::$plugin->getFormStatuses()->getAllStatuses();
 
-        return $this->renderTemplate('formie/settings/statuses', compact('statuses'));
+        return $this->renderTemplate('formie/settings/form-statuses', compact('statuses'));
     }
 
-    public function actionEdit(int $id = null, Status $status = null): Response
+    public function actionEdit(int $id = null, FormStatus $status = null): Response
     {
         $variables = compact('id', 'status');
 
         if (!$variables['status']) {
             if ($variables['id']) {
-                $variables['status'] = Formie::$plugin->getStatuses()->getStatusById($variables['id']);
+                $variables['status'] = Formie::$plugin->getFormStatuses()->getStatusById($variables['id']);
 
                 if (!$variables['status']) {
                     throw new HttpException(404);
                 }
             } else {
-                $variables['status'] = new Status();
+                $variables['status'] = new FormStatus();
             }
         }
 
         if ($variables['status']->id) {
             $variables['title'] = $variables['status']->name;
         } else {
-            $variables['title'] = Craft::t('formie', 'Create a new status');
+            $variables['title'] = Craft::t('formie', 'Create a new form status');
         }
 
-        return $this->renderTemplate('formie/settings/statuses/_edit', $variables);
+        return $this->renderTemplate('formie/settings/form-statuses/_edit', $variables);
     }
 
     public function actionSave(): void
@@ -54,7 +52,7 @@ class StatusesController extends SettingsAccessController
         $this->requirePostRequest();
         $request = $this->request;
 
-        $status = new Status();
+        $status = new FormStatus();
         $status->id = $request->getBodyParam('id');
         $status->name = $request->getBodyParam('name');
         $status->handle = $request->getBodyParam('handle');
@@ -62,12 +60,11 @@ class StatusesController extends SettingsAccessController
         $status->description = $request->getBodyParam('description');
         $status->isDefault = (bool)$request->getBodyParam('isDefault');
 
-        // Save it
-        if (Formie::$plugin->getStatuses()->saveStatus($status)) {
-            $this->setSuccessFlash(Craft::t('formie', 'Status saved.'));
+        if (Formie::$plugin->getFormStatuses()->saveStatus($status)) {
+            $this->setSuccessFlash(Craft::t('formie', 'Form status saved.'));
             $this->redirectToPostedUrl($status);
         } else {
-            $this->setFailFlash(Craft::t('formie', 'Couldn’t save status.'));
+            $this->setFailFlash(Craft::t('formie', 'Couldn’t save form status.'));
         }
 
         Craft::$app->getUrlManager()->setRouteParams(compact('status'));
@@ -79,11 +76,11 @@ class StatusesController extends SettingsAccessController
         $this->requireAcceptsJson();
         $ids = Json::decode($this->request->getRequiredBodyParam('ids'));
 
-        if (Formie::$plugin->getStatuses()->reorderStatuses($ids)) {
+        if (Formie::$plugin->getFormStatuses()->reorderStatuses($ids)) {
             return $this->asJson(['success' => true]);
         }
 
-        return $this->asJson(['error' => Craft::t('formie', 'Couldn’t reorder statuses.')]);
+        return $this->asJson(['error' => Craft::t('formie', 'Couldn’t reorder form statuses.')]);
     }
 
     public function actionDelete(): Response
@@ -92,10 +89,10 @@ class StatusesController extends SettingsAccessController
 
         $statusId = (int)$this->request->getRequiredParam('id');
 
-        if (Formie::$plugin->getStatuses()->deleteStatusById($statusId)) {
+        if (Formie::$plugin->getFormStatuses()->deleteStatusById($statusId)) {
             return $this->asJson(['success' => true]);
         }
 
-        return $this->asJson(['error' => Craft::t('formie', 'Couldn’t archive status.')]);
+        return $this->asJson(['error' => Craft::t('formie', 'Couldn’t archive form status.')]);
     }
 }

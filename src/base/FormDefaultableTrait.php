@@ -75,7 +75,7 @@ trait FormDefaultableTrait
                 ['label' => Craft::t('formie', 'System default status'), 'value' => ''],
             ];
 
-            foreach (Formie::$plugin->getStatuses()->getAllStatuses() as $status) {
+            foreach (Formie::$plugin->getSubmissionStatuses()->getAllStatuses() as $status) {
                 $options[] = [
                     'label' => $status->name,
                     'value' => $status->handle,

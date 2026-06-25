@@ -21,6 +21,7 @@ class FormQuery extends ElementQuery
     public mixed $layoutId = null;
     public mixed $templateId = null;
     public mixed $groupId = null;
+    public mixed $formStatusId = null;
     public mixed $pageCount = null;
 
     protected array $defaultOrderBy = ['elements.dateCreated' => SORT_DESC];
@@ -86,6 +87,19 @@ class FormQuery extends ElementQuery
         return $this;
     }
 
+    public function formStatusId($value): static
+    {
+        if ($value !== null && $value !== ':empty:') {
+            $formStatuses = Formie::$plugin->getFormStatuses();
+            $resolved = $formStatuses->resolveStatusIdParam($value);
+            $this->formStatusId = $resolved ?? $value;
+        } else {
+            $this->formStatusId = $value;
+        }
+
+        return $this;
+    }
+
     public function pageCount($value): static
     {
         $this->pageCount = $value;
@@ -134,6 +148,10 @@ class FormQuery extends ElementQuery
             $formColumns[] = 'formie_forms.groupId';
         }
 
+        if ($db->columnExists(Table::FORMIE_FORMS, 'formStatusId')) {
+            $formColumns[] = 'formie_forms.formStatusId';
+        }
+
         if ($db->columnExists(Table::FORMIE_FORMS, 'sourceSiteId')) {
             $formColumns[] = 'formie_forms.sourceSiteId';
         }
@@ -167,6 +185,14 @@ class FormQuery extends ElementQuery
             }
         }
 
+        if ($this->formStatusId !== null && $db->columnExists(Table::FORMIE_FORMS, 'formStatusId')) {
+            if ($this->formStatusId === ':empty:') {
+                $this->subQuery->andWhere(['formie_forms.formStatusId' => null]);
+            } else {
+                $this->subQuery->andWhere(Db::parseParam('formie_forms.formStatusId', $this->formStatusId));
+            }
+        }
+
         if ($this->pageCount) {
             $this->query->andWhere(Db::parseParam('pageCount', $this->pageCount));
         }
@@ -193,6 +219,33 @@ class FormQuery extends ElementQuery
         }
 
         return true;
+    }
+
+    protected function statusCondition(string $status): mixed
+    {
+        $formStatuses = Formie::$plugin->getFormStatuses();
+
+        if (!$formStatuses->hasConfiguredStatuses()) {
+            return parent::statusCondition($status);
+        }
+
+        $statusId = $formStatuses->resolveStatusId($status);
+
+        if ($statusId) {
+            $defaultStatusId = $formStatuses->getDefaultStatus()?->id;
+
+            if ($defaultStatusId && (int)$defaultStatusId === (int)$statusId) {
+                return [
+                    'or',
+                    ['formie_forms.formStatusId' => null],
+                    ['formie_forms.formStatusId' => $statusId],
+                ];
+            }
+
+            return ['formie_forms.formStatusId' => $statusId];
+        }
+
+        return parent::statusCondition($status);
     }
 
     private function _resolveIndexSiteId(): ?int

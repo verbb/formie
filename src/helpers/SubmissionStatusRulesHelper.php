@@ -52,7 +52,7 @@ class SubmissionStatusRulesHelper
                 continue;
             }
 
-            if ($status = Formie::$plugin->getStatuses()->getStatusById($statusId)) {
+            if ($status = Formie::$plugin->getSubmissionStatuses()->getStatusById($statusId)) {
                 if (Formie::$plugin->getFormGroupPolicy()->isStatusAllowed($form, (int)$status->id)) {
                     $submission->setStatus($status);
                 }

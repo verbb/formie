@@ -6,15 +6,17 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\elements\SentNotification;
 use verbb\formie\helpers\Table;
-use verbb\formie\models\Status;
+use verbb\formie\models\FormStatus;
+use verbb\formie\models\SubmissionStatus;
 use verbb\formie\models\Stencil;
 use verbb\formie\models\StencilData;
 use verbb\formie\services\CaptchaProviders;
 use verbb\formie\services\FormGroups;
+use verbb\formie\services\FormStatuses;
 use verbb\formie\services\Reports;
 use verbb\formie\services\ScheduledReports;
 use verbb\formie\services\SpamProtection;
-use verbb\formie\services\Statuses;
+use verbb\formie\services\SubmissionStatuses;
 use verbb\formie\services\Stencils;
 
 use Craft;
@@ -147,6 +149,7 @@ class Install extends Migration
             'layoutId' => $this->integer(),
             'templateId' => $this->integer(),
             'groupId' => $this->integer(),
+            'formStatusId' => $this->integer(),
             'sourceSiteId' => $this->integer(),
             'submitActionEntryId' => $this->integer(),
             'submitActionEntrySiteId' => $this->integer(),
@@ -450,8 +453,25 @@ class Install extends Migration
             'uid' => $this->uid(),
         ]);
 
-        $this->archiveTableIfExists(Table::FORMIE_STATUSES);
-        $this->createTable(Table::FORMIE_STATUSES, [
+        $this->archiveTableIfExists(Table::FORMIE_SUBMISSION_STATUSES);
+        $this->createTable(Table::FORMIE_SUBMISSION_STATUSES, [
+            'id' => $this->primaryKey(),
+            'name' => $this->string()->notNull(),
+            'handle' => $this->string(64)->notNull(),
+            'color' => $this->enum('color', ['green', 'orange', 'red', 'blue', 'yellow', 'pink', 'purple', 'turquoise', 'light', 'grey', 'black'])
+                ->defaultValue('green')
+                ->notNull(),
+            'description' => $this->string(),
+            'sortOrder' => $this->smallInteger()->unsigned(),
+            'isDefault' => $this->boolean(),
+            'dateDeleted' => $this->dateTime(),
+            'dateCreated' => $this->dateTime()->notNull(),
+            'dateUpdated' => $this->dateTime()->notNull(),
+            'uid' => $this->uid(),
+        ]);
+
+        $this->archiveTableIfExists(Table::FORMIE_FORM_STATUSES);
+        $this->createTable(Table::FORMIE_FORM_STATUSES, [
             'id' => $this->primaryKey(),
             'name' => $this->string()->notNull(),
             'handle' => $this->string(64)->notNull(),
@@ -587,6 +607,7 @@ class Install extends Migration
         $this->createIndex(null, Table::FORMIE_FORMS, 'layoutId', false);
         $this->createIndex(null, Table::FORMIE_FORMS, 'templateId', false);
         $this->createIndex(null, Table::FORMIE_FORMS, 'groupId', false);
+        $this->createIndex(null, Table::FORMIE_FORMS, 'formStatusId', false);
         $this->createIndex(null, Table::FORMIE_FORMS, 'sourceSiteId', false);
         $this->createIndex(null, Table::FORMIE_FORMS, 'defaultStatusId', false);
         $this->createIndex(null, Table::FORMIE_FORMS, 'submitActionEntryId', false);
@@ -646,8 +667,9 @@ class Install extends Migration
         $this->addForeignKey(null, Table::FORMIE_FORMS, ['layoutId'], Table::FORMIE_FIELD_LAYOUTS, ['id'], 'SET NULL', null);
         $this->addForeignKey(null, Table::FORMIE_FORMS, ['templateId'], Table::FORMIE_FORM_TEMPLATES, ['id'], 'SET NULL', null);
         $this->addForeignKey(null, Table::FORMIE_FORMS, ['groupId'], Table::FORMIE_FORM_GROUPS, ['id'], 'SET NULL', null);
+        $this->addForeignKey(null, Table::FORMIE_FORMS, ['formStatusId'], Table::FORMIE_FORM_STATUSES, ['id'], 'SET NULL', null);
         $this->addForeignKey(null, Table::FORMIE_FORMS, ['sourceSiteId'], '{{%sites}}', ['id'], 'SET NULL', null);
-        $this->addForeignKey(null, Table::FORMIE_FORMS, ['defaultStatusId'], Table::FORMIE_STATUSES, ['id'], 'SET NULL', null);
+        $this->addForeignKey(null, Table::FORMIE_FORMS, ['defaultStatusId'], Table::FORMIE_SUBMISSION_STATUSES, ['id'], 'SET NULL', null);
         $this->addForeignKey(null, Table::FORMIE_FORMS, ['submitActionEntryId'], '{{%entries}}', ['id'], 'SET NULL', null);
         $this->addForeignKey(null, Table::FORMIE_FORMS, ['createdById'], '{{%users}}', ['id'], 'SET NULL', null);
         $this->addForeignKey(null, Table::FORMIE_FORMS, ['updatedById'], '{{%users}}', ['id'], 'SET NULL', null);
@@ -674,10 +696,10 @@ class Install extends Migration
         $this->addForeignKey(null, Table::FORMIE_SENT_NOTIFICATIONS, ['submissionId'], Table::FORMIE_SUBMISSIONS, ['id'], 'SET NULL', null);
         $this->addForeignKey(null, Table::FORMIE_SENT_NOTIFICATIONS, ['notificationId'], Table::FORMIE_NOTIFICATIONS, ['id'], 'SET NULL', null);
         $this->addForeignKey(null, Table::FORMIE_STENCILS, ['templateId'], Table::FORMIE_FORM_TEMPLATES, ['id'], 'SET NULL', null);
-        $this->addForeignKey(null, Table::FORMIE_STENCILS, ['defaultStatusId'], Table::FORMIE_STATUSES, ['id'], 'SET NULL', null);
+        $this->addForeignKey(null, Table::FORMIE_STENCILS, ['defaultStatusId'], Table::FORMIE_SUBMISSION_STATUSES, ['id'], 'SET NULL', null);
         $this->addForeignKey(null, Table::FORMIE_SUBMISSIONS, ['id'], '{{%elements}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, Table::FORMIE_SUBMISSIONS, ['formId'], Table::FORMIE_FORMS, ['id'], 'CASCADE', null);
-        $this->addForeignKey(null, Table::FORMIE_SUBMISSIONS, ['statusId'], Table::FORMIE_STATUSES, ['id'], 'SET NULL', null);
+        $this->addForeignKey(null, Table::FORMIE_SUBMISSIONS, ['statusId'], Table::FORMIE_SUBMISSION_STATUSES, ['id'], 'SET NULL', null);
         $this->addForeignKey(null, Table::FORMIE_SUBMISSIONS, ['userId'], '{{%users}}', ['id'], 'SET NULL', null);
         $this->addForeignKey(null, Table::FORMIE_SUBMISSIONS, ['updatedById'], '{{%users}}', ['id'], 'SET NULL', null);
         $this->addForeignKey(null, Table::FORMIE_SUBMISSION_QUIZ_RESULTS, ['submissionId'], Table::FORMIE_SUBMISSIONS, ['id'], 'CASCADE', null);
@@ -708,7 +730,8 @@ class Install extends Migration
             'formie_pdftemplates',
             'formie_relations',
             'formie_sentnotifications',
-            'formie_statuses',
+            'formie_submission_statuses',
+            'formie_form_statuses',
             'formie_stencils',
             'formie_submissions',
             'formie_submission_quiz_results',
@@ -752,7 +775,8 @@ class Install extends Migration
         $configExists = ($projectConfig->get('formie', true) !== null);
 
         if (!$installed && !$configExists) {
-            $this->_defaultStatuses();
+            $this->_defaultSubmissionStatuses();
+            $this->_defaultFormStatuses();
             $this->_defaultStencils();
         }
 
@@ -760,10 +784,16 @@ class Install extends Migration
         // Sync project config into the database regardless of allowAdminChanges — that setting
         // blocks writes *to* project config YAML, not applying existing YAML to the DB.
         if (!$installed && $configExists) {
-            $statuses = $projectConfig->get(Statuses::CONFIG_STATUSES_KEY, true) ?? [];
+            $statuses = $projectConfig->get(SubmissionStatuses::CONFIG_SUBMISSION_STATUSES_KEY, true) ?? [];
 
             foreach ($statuses as $statusUid => $statusData) {
-                $projectConfig->processConfigChanges(Statuses::CONFIG_STATUSES_KEY . '.' . $statusUid, true);
+                $projectConfig->processConfigChanges(SubmissionStatuses::CONFIG_SUBMISSION_STATUSES_KEY . '.' . $statusUid, true);
+            }
+
+            $formStatuses = $projectConfig->get(FormStatuses::CONFIG_FORM_STATUSES_KEY, true) ?? [];
+
+            foreach ($formStatuses as $statusUid => $statusData) {
+                $projectConfig->processConfigChanges(FormStatuses::CONFIG_FORM_STATUSES_KEY . '.' . $statusUid, true);
             }
 
             $stencils = $projectConfig->get(Stencils::CONFIG_STENCILS_KEY, true) ?? [];
@@ -832,7 +862,8 @@ class Install extends Migration
             'formie_pdftemplates',
             'formie_relations',
             'formie_sentnotifications',
-            'formie_statuses',
+            'formie_submission_statuses',
+            'formie_form_statuses',
             'formie_stencils',
             'formie_submissions',
             'formie_submission_quiz_results',
@@ -854,21 +885,53 @@ class Install extends Migration
     // Private Methods
     // =========================================================================
 
-    private function _defaultStatuses(): void
+    private function _defaultSubmissionStatuses(): void
     {
         $statuses = [
             [
                 'name' => 'New',
                 'handle' => 'new',
-                'color' => 'green',
+                'color' => 'turquoise',
                 'sortOrder' => 1,
                 'isDefault' => 1,
             ],
         ];
 
         foreach ($statuses as $status) {
-            $orderStatus = new Status($status);
-            Formie::$plugin->getStatuses()->saveStatus($orderStatus);
+            $submissionStatus = new SubmissionStatus($status);
+            Formie::$plugin->getSubmissionStatuses()->saveStatus($submissionStatus);
+        }
+    }
+
+    private function _defaultFormStatuses(): void
+    {
+        $statuses = [
+            [
+                'name' => 'Active',
+                'handle' => 'active',
+                'color' => 'turquoise',
+                'sortOrder' => 1,
+                'isDefault' => 1,
+            ],
+            [
+                'name' => 'Draft',
+                'handle' => 'draft',
+                'color' => 'orange',
+                'sortOrder' => 2,
+                'isDefault' => 0,
+            ],
+            [
+                'name' => 'Archived',
+                'handle' => 'archived',
+                'color' => 'grey',
+                'sortOrder' => 3,
+                'isDefault' => 0,
+            ],
+        ];
+
+        foreach ($statuses as $status) {
+            $formStatus = new FormStatus($status);
+            Formie::$plugin->getFormStatuses()->saveStatus($formStatus);
         }
     }
 

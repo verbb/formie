@@ -1,4 +1,4 @@
-# Statuses
+# Submission Statuses
 
 Statuses are labels you can use to organize and manage submissions after they have been saved.
 
@@ -25,7 +25,7 @@ Statuses are separate from whether a submission is:
 
 Those are system states. A status is your workflow label on top of that.
 
-Statuses are managed in Formie settings.
+Statuses are managed in Formie settings under **Submission Statuses**.
 
 Each status has:
 

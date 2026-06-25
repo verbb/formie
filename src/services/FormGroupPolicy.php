@@ -1,11 +1,12 @@
 <?php
 namespace verbb\formie\services;
 
+use verbb\formie\deprecations\FormGroupPolicyDeprecations;
 use verbb\formie\elements\Form;
 use verbb\formie\Formie;
 use verbb\formie\models\FormGroup;
 use verbb\formie\models\FormGroupSettings;
-use verbb\formie\models\Status;
+use verbb\formie\models\SubmissionStatus;
 
 use Craft;
 
@@ -13,6 +14,12 @@ use yii\base\Component;
 
 class FormGroupPolicy extends Component
 {
+    // Traits
+    // =========================================================================
+
+    use FormGroupPolicyDeprecations;
+
+
     // Public Methods
     // =========================================================================
 
@@ -36,9 +43,9 @@ class FormGroupPolicy extends Component
         return $this->getSettings($group)->allowedStatusIds;
     }
 
-    public function getStatusesForForm(?Form $form): array
+    public function getSubmissionStatusesForForm(?Form $form): array
     {
-        $allStatuses = Formie::$plugin->getStatuses()->getAllStatuses();
+        $allStatuses = Formie::$plugin->getSubmissionStatuses()->getAllStatuses();
         $allowedIds = $this->getResolvedAllowedStatusIds($form);
 
         if ($allowedIds === null) {
@@ -49,7 +56,7 @@ class FormGroupPolicy extends Component
 
         return array_values(array_filter(
             $allStatuses,
-            fn(Status $status) => isset($allowedSet[(int)$status->id]),
+            fn(SubmissionStatus $status) => isset($allowedSet[(int)$status->id]),
         ));
     }
 
@@ -64,15 +71,15 @@ class FormGroupPolicy extends Component
         return in_array($statusId, $allowedIds, true);
     }
 
-    public function getStatusSelectOptions(?Form $form): array
+    public function getSubmissionStatusSelectOptions(?Form $form): array
     {
-        return array_map(function(Status $status) {
+        return array_map(function(SubmissionStatus $status) {
             return [
                 'value' => (int)$status->id,
                 'label' => $status->name,
                 'status' => $status->color,
             ];
-        }, $this->getStatusesForForm($form));
+        }, $this->getSubmissionStatusesForForm($form));
     }
 
     public function getMergedFormDefaults(?FormGroup $group): array
@@ -87,7 +94,7 @@ class FormGroupPolicy extends Component
         return is_array($palette) ? $palette : null;
     }
 
-    public function describeAllowedStatusSource(?Form $form): ?string
+    public function describeAllowedSubmissionStatusSource(?Form $form): ?string
     {
         $group = $form?->getGroup();
 

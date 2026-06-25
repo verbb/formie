@@ -1,0 +1,51 @@
+{% extends 'formie/_layouts/settings' %}
+
+{% set title = 'Form Statuses' | t('formie') %}
+{% set selectedTab = 'form-statuses' %}
+
+{% block actionButton %}
+    <a href="{{ url('formie/settings/form-statuses/new') }}" class="btn submit add icon">{{ 'New Form Status' | t('formie') }}</a>
+{% endblock %}
+
+{% block content %}
+    <div id="form-statuses-vue-admin-table"></div>
+{% endblock %}
+
+{% set tableData = [] %}
+{% for status in statuses %}
+	{% set tableData = tableData | merge([{
+        id: status.id,
+        labelHtml: {
+            url: status.getCpEditUrl(),
+            html: status.labelHtml | raw
+        },
+        title: status.name | t('formie'),
+        url: status.getCpEditUrl(),
+        handle: status.handle | e,
+        _showDelete: status.canDelete(),
+    }]) %}
+{% endfor %}
+
+{% js %}
+    var columns = [
+        {
+            name: 'labelHtml',
+            title: Craft.t('app', 'Name'),
+            callback: function(value) {
+                return '<a class="cell-bold" href="' + value.url + '">' + value.html + '</a>';
+            }
+        },
+        { name: '__slot:handle', title: Craft.t('app', 'Handle') }
+    ];
+
+    new Craft.VueAdminTable({
+        columns: columns,
+        container: '#form-statuses-vue-admin-table',
+        deleteAction: 'formie/form-statuses/delete',
+        minItems: 1,
+        reorderAction: 'formie/form-statuses/reorder',
+        reorderSuccessMessage: Craft.t('formie', 'Form statuses reordered.'),
+        reorderFailMessage: Craft.t('formie', 'Couldn’t reorder form statuses.'),
+        tableData: {{ tableData | json_encode | raw }},
+    });
+{% endjs %}

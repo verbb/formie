@@ -164,7 +164,7 @@
     {% endif %}
 
     {% if submission.hasStatuses() %}
-        {% set statuses = craft.formie.plugin.statuses.getStatusesForForm(form) %}
+        {% set statuses = craft.formie.plugin.statuses.getSubmissionStatusesForForm(form) %}
 
         {{ forms.hidden({
             id: 'statusId',

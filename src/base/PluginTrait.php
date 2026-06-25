@@ -62,8 +62,9 @@ use verbb\formie\services\FrontendAssets;
 use verbb\formie\services\SentNotifications;
 use verbb\formie\services\ScheduledReports;
 use verbb\formie\services\Service;
+use verbb\formie\services\FormStatuses;
 use verbb\formie\services\SpamProtection;
-use verbb\formie\services\Statuses;
+use verbb\formie\services\SubmissionStatuses;
 use verbb\formie\services\Stencils;
 use verbb\formie\services\Submissions;
 use verbb\formie\services\SubmissionProcessor;
@@ -251,7 +252,9 @@ trait PluginTrait
                 'sentNotifications' => SentNotifications::class,
                 'spamProtection' => SpamProtection::class,
                 'service' => Service::class,
-                'statuses' => Statuses::class,
+                'submissionStatuses' => SubmissionStatuses::class,
+                'statuses' => SubmissionStatuses::class,
+                'formStatuses' => FormStatuses::class,
                 'stencils' => Stencils::class,
                 'storageManager' => StorageManager::class,
                 'submissions' => Submissions::class,
@@ -625,9 +628,14 @@ trait PluginTrait
         return $this->get('spamProtection');
     }
 
-    public function getStatuses(): Statuses
+    public function getSubmissionStatuses(): SubmissionStatuses
     {
-        return $this->get('statuses');
+        return $this->get('submissionStatuses');
+    }
+
+    public function getFormStatuses(): FormStatuses
+    {
+        return $this->get('formStatuses');
     }
 
     public function getStencils(): Stencils

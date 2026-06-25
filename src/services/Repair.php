@@ -232,7 +232,7 @@ class Repair extends Component
                 'info' => true,
                 'message' => false,
             ],
-            Table::FORMIE_STATUSES => [
+            Table::FORMIE_SUBMISSION_STATUSES => [
                 'name' => false,
                 'description' => false,
             ],

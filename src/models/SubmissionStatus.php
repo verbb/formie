@@ -10,10 +10,10 @@ use craft\validators\HandleValidator;
 use craft\validators\UniqueValidator;
 
 use verbb\formie\elements\Submission;
-use verbb\formie\records\Status as SubmissionStatusRecord;
+use verbb\formie\records\SubmissionStatus as SubmissionStatusRecord;
 use DateTime;
 
-class Status extends Model
+class SubmissionStatus extends Model
 {
     // Traits
     // =========================================================================
@@ -47,7 +47,7 @@ class Status extends Model
 
     public function getCpEditUrl(): ?string
     {
-        return UrlHelper::cpUrl('formie/settings/statuses/edit/' . $this->id);
+        return UrlHelper::cpUrl('formie/settings/submission-statuses/edit/' . $this->id);
     }
 
     public function getDisplayName(): string

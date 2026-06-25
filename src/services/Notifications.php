@@ -1180,7 +1180,7 @@ class Notifications extends Component
                     'label' => $status->name,
                     'value' => $status->handle,
                 ];
-            }, Formie::$plugin->getStatuses()->getAllStatuses())),
+            }, Formie::$plugin->getSubmissionStatuses()->getAllStatuses())),
         ];
     }
 }

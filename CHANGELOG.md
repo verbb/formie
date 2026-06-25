@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Added
+- Add **Form Statuses** to label form lifecycle states in the control panel (active, draft, archived), with form builder assignment, index status menu filtering, bulk actions, and project config support. Rename existing submission workflow labels to **Submission Statuses**, with backward-compatible class aliases. ([#1471](https://github.com/verbb/formie/issues/1471))
 - Show field handles in the form builder when the Craft user preference **Show field handles in edit forms** is enabled (admin users only), with a copy-to-clipboard control on hover. ([#2279](https://github.com/verbb/formie/issues/2279))
 - Show an **Encrypted** padlock badge on fields in the form builder when **Enable Content Encryption** is turned on. ([#2332](https://github.com/verbb/formie/issues/2332))
 - Add an optional **Other** choice for Radio fields, with a configurable label and free-text input on the front-end. ([#1875](https://github.com/verbb/formie/issues/1875))
@@ -18,6 +19,7 @@
 ### Changed
 - Freeform 4/5 plugin migrations now process submissions in batches (default 100) to avoid memory exhaustion on large forms. Use `php craft formie/migrate/freeform4` (or `freeform5`) with `--batch-size`, `--submission-offset`, `--submission-limit`, `--submissions-only`, and `--skip-submissions` for large migrations. ([#2513](https://github.com/verbb/formie/issues/2513))
 - Rework multi-site propagation and translation to use each form’s **source site** (where it was created) instead of Craft’s global primary site. “Same language” and “Same site group” propagation modes now filter from the source site. Forms store a persisted `sourceSiteId`. ([#84](https://github.com/verbb/formie/issues/84))
+- Rename the submission statuses database table from `formie_statuses` to `formie_submission_statuses`, aligning with `formie_form_statuses`. The `Table::FORMIE_STATUSES` constant remains as a deprecated alias.
 - Stop routing user-authored form content (labels, placeholders, messages, options) through the `formie` translation category. Form copy is output from the database after site overrides are merged; `formie.php` is for Formie-owned UI strings only ([#2907](https://github.com/verbb/formie/issues/2907)).
 - Remove front-end `sourceLanguage` mutation in the plugin constructor that existed to work around the above behaviour.
 - Improve multi-site submission and notification handling by loading forms with site translation overrides applied for the submission’s site.

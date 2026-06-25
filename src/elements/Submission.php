@@ -29,7 +29,7 @@ use verbb\formie\helpers\ValidationHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\models\FieldLayout as FormLayout;
 use verbb\formie\models\Settings;
-use verbb\formie\models\Status;
+use verbb\formie\models\SubmissionStatus;
 use verbb\formie\models\ValueContext;
 use verbb\formie\records\Submission as SubmissionRecord;
 use Craft;
@@ -125,7 +125,7 @@ class Submission extends Element
 
     public static function statuses(): array
     {
-        return Formie::$plugin->getStatuses()->getStatusesArray();
+        return Formie::$plugin->getSubmissionStatuses()->getStatusesArray();
     }
 
     public static function defineElementChipHtml(DefineElementHtmlEvent $event): void
@@ -347,7 +347,7 @@ class Submission extends Element
         if ($canSaveSubmissions) {
             $actions[] = $elementsService->createAction([
                 'type' => SetSubmissionStatus::class,
-                'statuses' => Formie::$plugin->getStatuses()->getStatusesForForm($form),
+                'statuses' => Formie::$plugin->getSubmissionStatuses()->getSubmissionStatusesForForm($form),
             ]);
 
             $actions[] = $elementsService->createAction([
@@ -454,7 +454,7 @@ class Submission extends Element
     public bool $isNewSubmission = false;
 
     private ?Form $_form = null;
-    private ?Status $_status = null;
+    private ?SubmissionStatus $_status = null;
     private ?User $_user = null;
     private ?FormLayout $_formLayout = null;
     private ?string $_fieldContext = null;
@@ -915,10 +915,10 @@ class Submission extends Element
         return null;
     }
 
-    public function getStatusModel(): Status
+    public function getStatusModel(): SubmissionStatus
     {
         if (!$this->_status && $this->statusId) {
-            $this->_status = Formie::$plugin->getStatuses()->getStatusById($this->statusId);
+            $this->_status = Formie::$plugin->getSubmissionStatuses()->getStatusById($this->statusId);
         }
 
         if ($this->_status) {
@@ -929,18 +929,18 @@ class Submission extends Element
             return $this->_status = $form->getDefaultStatus();
         }
 
-        if ($status = Formie::$plugin->getStatuses()->getDefaultStatus()) {
+        if ($status = Formie::$plugin->getSubmissionStatuses()->getDefaultStatus()) {
             return $this->_status = $status;
         }
 
         // Just in case there's no default status set in settings, pick the first available
-        return $this->_status = Formie::$plugin->getStatuses()->getAllStatuses()[0];
+        return $this->_status = Formie::$plugin->getSubmissionStatuses()->getAllStatuses()[0];
     }
 
-    public function setStatus(Status|string $status): void
+    public function setStatus(SubmissionStatus|string $status): void
     {
         if (is_string($status)) {
-            if ($foundStatus = Formie::$plugin->getStatuses()->getStatusByHandle($status)) {
+            if ($foundStatus = Formie::$plugin->getSubmissionStatuses()->getStatusByHandle($status)) {
                 $status = $foundStatus;
             }
         }

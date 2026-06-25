@@ -93,7 +93,7 @@ JS, [static::class]);
         $elements = $query->all();
         $failCount = 0;
 
-        $status = Formie::$plugin->getStatuses()->getStatusById($this->statusId);
+        $status = Formie::$plugin->getSubmissionStatuses()->getStatusById($this->statusId);
 
         foreach ($elements as $element) {
             // Unfortunately, we need to fetch the submission _again_ to ensure custom fields are grabbed. This is because we can't query

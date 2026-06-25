@@ -7,7 +7,7 @@ use verbb\formie\conditions\ConditionOperator;
 use verbb\formie\elements\Submission;
 use verbb\formie\Formie;
 use verbb\formie\models\IntegrationFormSettings;
-use verbb\formie\models\Status;
+use verbb\formie\models\SubmissionStatus;
 
 function integrationConditionsTestIntegration(array $config = []): Integration
 {
@@ -31,13 +31,13 @@ function integrationConditionsTestIntegration(array $config = []): Integration
 
 function integrationConditionsStatusSubmission(string $handle): Submission
 {
-    $status = new Status([
+    $status = new SubmissionStatus([
         'name' => 'Integration Conditions ' . $handle,
         'handle' => $handle,
         'color' => 'green',
     ]);
 
-    expect(Formie::$plugin->getStatuses()->saveStatus($status))->toBeTrue();
+    expect(Formie::$plugin->getSubmissionStatuses()->saveStatus($status))->toBeTrue();
 
     $submission = new Submission();
     $submission->statusId = $status->id;

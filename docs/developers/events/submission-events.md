@@ -303,11 +303,11 @@ Event::on(Submission::class, Submission::EVENT_BEFORE_MARKED_AS_SPAM, function(S
 The event that is triggered before a submission status is saved.
 
 ```php
-use verbb\formie\events\StatusEvent;
-use verbb\formie\services\Statuses;
+use verbb\formie\events\SubmissionStatusEvent;
+use verbb\formie\services\SubmissionStatuses;
 use yii\base\Event;
 
-Event::on(Statuses::class, Statuses::EVENT_BEFORE_SAVE_STATUS, function(StatusEvent $event) {
+Event::on(SubmissionStatuses::class, SubmissionStatuses::EVENT_BEFORE_SAVE_STATUS, function(SubmissionStatusEvent $event) {
     $status = $event->status;
     $isNew = $event->isNew;
     // ...
@@ -318,11 +318,11 @@ Event::on(Statuses::class, Statuses::EVENT_BEFORE_SAVE_STATUS, function(StatusEv
 The event that is triggered after a submission status is saved.
 
 ```php
-use verbb\formie\events\StatusEvent;
-use verbb\formie\services\Statuses;
+use verbb\formie\events\SubmissionStatusEvent;
+use verbb\formie\services\SubmissionStatuses;
 use yii\base\Event;
 
-Event::on(Statuses::class, Statuses::EVENT_AFTER_SAVE_STATUS, function(StatusEvent $event) {
+Event::on(SubmissionStatuses::class, SubmissionStatuses::EVENT_AFTER_SAVE_STATUS, function(SubmissionStatusEvent $event) {
     $status = $event->status;
     $isNew = $event->isNew;
     // ...
@@ -333,11 +333,11 @@ Event::on(Statuses::class, Statuses::EVENT_AFTER_SAVE_STATUS, function(StatusEve
 The event that is triggered before a submission status is deleted.
 
 ```php
-use verbb\formie\events\StatusEvent;
-use verbb\formie\services\Statuses;
+use verbb\formie\events\SubmissionStatusEvent;
+use verbb\formie\services\SubmissionStatuses;
 use yii\base\Event;
 
-Event::on(Statuses::class, Statuses::EVENT_BEFORE_DELETE_STATUS, function(StatusEvent $event) {
+Event::on(SubmissionStatuses::class, SubmissionStatuses::EVENT_BEFORE_DELETE_STATUS, function(SubmissionStatusEvent $event) {
     $status = $event->status;
     // ...
 });
@@ -347,11 +347,11 @@ Event::on(Statuses::class, Statuses::EVENT_BEFORE_DELETE_STATUS, function(Status
 The event that is triggered before a submission status is deleted.
 
 ```php
-use verbb\formie\events\StatusEvent;
-use verbb\formie\services\Statuses;
+use verbb\formie\events\SubmissionStatusEvent;
+use verbb\formie\services\SubmissionStatuses;
 use yii\base\Event;
 
-Event::on(Statuses::class, Statuses::EVENT_BEFORE_APPLY_STATUS_DELETE, function(StatusEvent $event) {
+Event::on(SubmissionStatuses::class, SubmissionStatuses::EVENT_BEFORE_APPLY_STATUS_DELETE, function(SubmissionStatusEvent $event) {
     $status = $event->status;
     // ...
 });
@@ -361,11 +361,11 @@ Event::on(Statuses::class, Statuses::EVENT_BEFORE_APPLY_STATUS_DELETE, function(
 The event that is triggered after a submission status is deleted.
 
 ```php
-use verbb\formie\events\StatusEvent;
-use verbb\formie\services\Statuses;
+use verbb\formie\events\SubmissionStatusEvent;
+use verbb\formie\services\SubmissionStatuses;
 use yii\base\Event;
 
-Event::on(Statuses::class, Statuses::EVENT_AFTER_DELETE_STATUS, function(StatusEvent $event) {
+Event::on(SubmissionStatuses::class, SubmissionStatuses::EVENT_AFTER_DELETE_STATUS, function(SubmissionStatusEvent $event) {
     $status = $event->status;
     // ...
 });
