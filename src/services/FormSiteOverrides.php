@@ -255,7 +255,7 @@ class FormSiteOverrides extends Component
             return [];
         }
 
-        return $this->_remapLegacyOverrideKeys($formId, $this->normalizeOverrides($overrides));
+        return $this->_stripFormFieldOverrides($this->_remapLegacyOverrideKeys($formId, $this->normalizeOverrides($overrides)));
     }
 
     public function getAllOverrides(int $formId): array
@@ -280,7 +280,7 @@ class FormSiteOverrides extends Component
                 continue;
             }
 
-            $normalized = $this->_remapLegacyOverrideKeys($formId, $this->normalizeOverrides($overrides));
+            $normalized = $this->_stripFormFieldOverrides($this->_remapLegacyOverrideKeys($formId, $this->normalizeOverrides($overrides)));
 
             if ($normalized !== []) {
                 $result[$siteId] = $normalized;
@@ -295,6 +295,8 @@ class FormSiteOverrides extends Component
         if (!$this->isEnabled() || !$formId || $this->isSourceSiteForForm($formId, $siteId)) {
             return;
         }
+
+        unset($overrides['fields'], $overrides['fieldOverrides']);
 
         $existing = $this->getOverrides($formId, $siteId);
         $overrides = $this->_remapLegacyOverrideKeys($formId, $this->normalizeOverrides($overrides));
@@ -320,6 +322,22 @@ class FormSiteOverrides extends Component
         Formie::$plugin->getFormSitePropagation()->syncElementSiteTitles($formId);
     }
 
+    public function saveTranslationBundle(int $formId, int $siteId, array $translations): void
+    {
+        if (!$this->isEnabled() || !$formId || $this->isSourceSiteForForm($formId, $siteId)) {
+            return;
+        }
+
+        $fieldOverrides = $translations['fieldOverrides'] ?? [];
+        unset($translations['fields'], $translations['fieldOverrides']);
+
+        if (is_array($fieldOverrides) && $fieldOverrides !== []) {
+            Formie::$plugin->getFieldSiteOverrides()->saveOverrides($siteId, $fieldOverrides);
+        }
+
+        $this->saveOverrides($formId, $siteId, $translations);
+    }
+
     public function deleteOverrides(int $formId, int $siteId): void
     {
         FormSiteOverrideRecord::deleteAll([
@@ -342,12 +360,6 @@ class FormSiteOverrides extends Component
             return $form;
         }
 
-        $overrides = $this->getOverrides((int)$form->id, $siteId);
-
-        if ($overrides === []) {
-            return $form;
-        }
-
         $target = $clone ? clone $form : $form;
 
         if ($clone) {
@@ -356,7 +368,28 @@ class FormSiteOverrides extends Component
             $this->_cloneNestedLayoutsForForm($target);
         }
 
-        $this->_applyOverridesToFormElement($target, $overrides);
+        $overrides = $this->getOverrides((int)$form->id, $siteId);
+
+        if ($overrides !== []) {
+            $this->_applyOverridesToFormElement($target, $overrides);
+        }
+
+        $fieldOverrides = Formie::$plugin->getFieldSiteOverrides()->getOverridesForFieldIds(
+            Formie::$plugin->getFieldSiteOverrides()->collectFieldDefinitionIds($target),
+            $siteId,
+        );
+
+        if ($fieldOverrides !== []) {
+            foreach ($target->getFields() as $field) {
+                if ($field instanceof FieldInterface) {
+                    $this->_applyFieldOverridesFromPayload($field, $fieldOverrides);
+                }
+            }
+        }
+
+        if ($overrides === [] && $fieldOverrides === []) {
+            return $form;
+        }
 
         return $target;
     }
@@ -380,14 +413,21 @@ class FormSiteOverrides extends Component
         $formId = (int)($canonicalData['id'] ?? 0);
         $overrides ??= $formId ? $this->getOverrides($formId, $siteId) : [];
 
-        if ($overrides === []) {
+        $fieldOverrides = $formId
+            ? Formie::$plugin->getFieldSiteOverrides()->getOverridesForFieldIds(
+                Formie::$plugin->getFieldSiteOverrides()->collectFieldDefinitionIdsFromBuilderData($canonicalData),
+                (int)$siteId,
+            )
+            : [];
+
+        if ($overrides === [] && $fieldOverrides === []) {
             return $canonicalData;
         }
 
-        return $this->mergeOverridesIntoBuilderData($canonicalData, $overrides);
+        return $this->mergeOverridesIntoBuilderData($canonicalData, $overrides, $fieldOverrides);
     }
 
-    public function mergeOverridesIntoBuilderData(array $canonicalData, array $overrides): array
+    public function mergeOverridesIntoBuilderData(array $canonicalData, array $overrides, array $fieldOverrides = []): array
     {
         $merged = $this->_cloneBuilderData($canonicalData);
 
@@ -406,12 +446,12 @@ class FormSiteOverrides extends Component
             $merged['pages'] = $this->_mergePagesArray($merged['pages'], $overrides['pages']);
         }
 
-        if (isset($overrides['fields']) && is_array($overrides['fields']) && isset($merged['pages']) && is_array($merged['pages'])) {
-            $merged['pages'] = $this->_mergeFieldsIntoPages($merged['pages'], $overrides['fields']);
-        }
-
         if (isset($overrides['notifications']) && is_array($overrides['notifications']) && isset($merged['notifications']) && is_array($merged['notifications'])) {
             $merged['notifications'] = $this->_mergeNotificationsArray($merged['notifications'], $overrides['notifications']);
+        }
+
+        if ($fieldOverrides !== [] && isset($merged['pages']) && is_array($merged['pages'])) {
+            $merged['pages'] = $this->_mergeFieldsIntoPages($merged['pages'], $fieldOverrides);
         }
 
         return $merged;
@@ -438,14 +478,6 @@ class FormSiteOverrides extends Component
 
             if ($pages !== []) {
                 $normalized['pages'] = $pages;
-            }
-        }
-
-        if (!empty($overrides['fields']) && is_array($overrides['fields'])) {
-            $fields = $this->_normalizeFieldsOverrides($overrides['fields']);
-
-            if ($fields !== []) {
-                $normalized['fields'] = $fields;
             }
         }
 
@@ -531,8 +563,14 @@ class FormSiteOverrides extends Component
             'activeSiteId' => $activeSiteId,
             'sites' => $sites,
             'overrides' => $form->id ? $this->getAllOverrides((int)$form->id) : [],
+            'fieldOverrides' => $form->id ? Formie::$plugin->getFieldSiteOverrides()->getAllForForm($form) : [],
             'layoutReadOnly' => false,
         ];
+    }
+
+    public function normalizeFieldOverrides(array $fields): array
+    {
+        return $this->_normalizeFieldsOverrides($fields);
     }
 
     public function remapOverrideKeysForForm(int $formId, array $overrides): array
@@ -548,6 +586,13 @@ class FormSiteOverrides extends Component
 
     // Private Methods
     // =========================================================================
+
+    private function _stripFormFieldOverrides(array $overrides): array
+    {
+        unset($overrides['fields'], $overrides['fieldOverrides']);
+
+        return $overrides;
+    }
 
     private function _applyOverridesToFormElement(Form $form, array $overrides): void
     {
@@ -576,14 +621,6 @@ class FormSiteOverrides extends Component
             if (!empty($pageOverride['settings']) && is_array($pageOverride['settings'])) {
                 $this->_applyPageSettingsOverrides($page, $pageOverride['settings']);
             }
-        }
-
-        foreach ($form->getFields() as $field) {
-            if (!$field instanceof FieldInterface) {
-                continue;
-            }
-
-            $this->_applyFieldOverridesFromPayload($field, $overrides['fields'] ?? []);
         }
 
         if (!empty($overrides['notifications']) && is_array($overrides['notifications'])) {
@@ -623,10 +660,8 @@ class FormSiteOverrides extends Component
 
     private function _applyFieldOverridesFromPayload(FieldInterface $field, array $fieldOverrides): void
     {
-        $resolved = $this->_resolveFieldOverride(
-            $fieldOverrides,
-            ['reference' => $field->reference, 'uid' => $field->uid],
-        );
+        $fieldId = (int)($field->fieldId ?: 0);
+        $resolved = $fieldId ? $this->_resolveFieldOverride($fieldOverrides, ['fieldId' => $fieldId]) : null;
 
         if (is_array($resolved)) {
             $this->_applyFieldOverrides($field, $resolved);
@@ -1258,16 +1293,20 @@ class FormSiteOverrides extends Component
 
     private function _resolveFieldOverride(array $fieldOverrides, array $field): ?array
     {
-        $storageKey = $this->_getFieldStorageKey($field);
+        $fieldId = (int)($field['fieldId'] ?? $field['settings']['fieldId'] ?? $field['syncId'] ?? $field['settings']['syncId'] ?? 0);
 
-        if ($storageKey !== null && isset($fieldOverrides[$storageKey]) && is_array($fieldOverrides[$storageKey])) {
-            return $fieldOverrides[$storageKey];
+        if (!$fieldId) {
+            return null;
         }
 
-        $uid = trim((string)($field['uid'] ?? ''));
+        if (isset($fieldOverrides[$fieldId]) && is_array($fieldOverrides[$fieldId])) {
+            return $fieldOverrides[$fieldId];
+        }
 
-        if ($uid !== '' && isset($fieldOverrides[$uid]) && is_array($fieldOverrides[$uid])) {
-            return $fieldOverrides[$uid];
+        $fieldIdKey = (string)$fieldId;
+
+        if (isset($fieldOverrides[$fieldIdKey]) && is_array($fieldOverrides[$fieldIdKey])) {
+            return $fieldOverrides[$fieldIdKey];
         }
 
         return null;

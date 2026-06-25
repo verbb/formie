@@ -34,6 +34,16 @@ const resolveFieldTranslatableProperties = (field) => {
     return [];
 };
 
+const getFieldDefinitionId = (field) => {
+    const fieldId = field?.fieldId ?? field?.settings?.fieldId ?? field?.syncId ?? field?.settings?.syncId;
+
+    if (fieldId === null || fieldId === undefined || String(fieldId).trim() === '') {
+        return null;
+    }
+
+    return String(fieldId);
+};
+
 const getFieldStorageKey = (field) => {
     const reference = String(field?.reference ?? '').trim();
 
@@ -206,15 +216,13 @@ const getNotificationStorageKey = (notification) => {
 };
 
 const resolveFieldOverride = (fieldOverrides = {}, field) => {
-    const storageKey = getFieldStorageKey(field);
+    const fieldDefinitionId = getFieldDefinitionId(field);
 
-    if (storageKey && fieldOverrides[storageKey]) {
-        return fieldOverrides[storageKey];
+    if (fieldDefinitionId && fieldOverrides[fieldDefinitionId]) {
+        return fieldOverrides[fieldDefinitionId];
     }
 
-    const uid = String(field?.uid ?? '').trim();
-
-    return uid ? fieldOverrides[uid] : null;
+    return null;
 };
 
 const resolvePageOverride = (pageOverrides = {}, page) => {
@@ -551,12 +559,15 @@ const mergePages = (pages = [], pageOverrides = {}, fieldOverrides = {}) => {
     });
 };
 
-export const mergeSiteOverridesIntoFormData = (canonicalData = {}, overrides = {}) => {
+export const mergeSiteOverridesIntoFormData = (canonicalData = {}, overrides = {}, fieldOverrides = {}) => {
     if (!canonicalData || typeof canonicalData !== 'object' || !overrides || typeof overrides !== 'object') {
         return canonicalData;
     }
 
     const merged = cloneDeep(canonicalData);
+    const resolvedFieldOverrides = fieldOverrides && typeof fieldOverrides === 'object'
+        ? fieldOverrides
+        : {};
 
     getTranslatableConfig().form.forEach((key) => {
         if (Object.prototype.hasOwnProperty.call(overrides, key)) {
@@ -572,7 +583,7 @@ export const mergeSiteOverridesIntoFormData = (canonicalData = {}, overrides = {
         merged.pages = mergePages(
             merged.pages,
             overrides.pages || {},
-            overrides.fields || {},
+            resolvedFieldOverrides,
         );
     }
 
@@ -589,6 +600,14 @@ export const getSiteOverrideForSite = (overridesBySite = {}, siteId) => {
     }
 
     return overridesBySite[String(siteId)] || overridesBySite[siteId] || {};
+};
+
+export const getFieldOverrideForSite = (fieldOverridesBySite = {}, siteId) => {
+    if (!fieldOverridesBySite || typeof fieldOverridesBySite !== 'object') {
+        return {};
+    }
+
+    return fieldOverridesBySite[String(siteId)] || fieldOverridesBySite[siteId] || {};
 };
 
 
@@ -727,17 +746,16 @@ const diffOptions = (canonicalOptions = [], postedOptions = []) => {
         }
 
         const canonicalOption = resolveCanonicalOptionAtIndex(canonicalOptions, index);
+        const postedLabel = option.label ?? null;
+        const postedValue = String(option.value ?? '');
+        const canonicalLabel = canonicalOption?.label ?? null;
+        const canonicalValue = String(canonicalOption?.value ?? '');
 
-        if (!canonicalOption) {
+        if (postedLabel === canonicalLabel && postedValue === canonicalValue) {
             return;
         }
 
-        if ((option.label ?? null) === (canonicalOption.label ?? null)
-            && String(option.value ?? '') === String(canonicalOption.value ?? '')) {
-            return;
-        }
-
-        const storageValue = String(canonicalOption.value ?? '');
+        const storageValue = canonicalValue !== '' ? canonicalValue : postedValue;
 
         if (storageValue === '') {
             return;
@@ -747,11 +765,11 @@ const diffOptions = (canonicalOptions = [], postedOptions = []) => {
             value: storageValue,
         };
 
-        if ((option.label ?? null) !== (canonicalOption.label ?? null)) {
-            entry.label = option.label ?? null;
+        if (postedLabel !== canonicalLabel) {
+            entry.label = postedLabel;
         }
 
-        if (String(option.value ?? '') !== String(canonicalOption.value ?? '')) {
+        if (postedValue !== canonicalValue && canonicalValue !== '') {
             entry.optionValue = option.value ?? null;
         }
 
@@ -826,13 +844,13 @@ const diffFields = (canonicalFields = {}, postedFields = {}) => {
             return;
         }
 
-        const primaryKey = getFieldStorageKey(field) || fieldKey;
+        const fieldDefinitionId = getFieldDefinitionId(field);
 
-        if (seen.has(primaryKey)) {
+        if (!fieldDefinitionId || seen.has(fieldDefinitionId)) {
             return;
         }
 
-        seen.add(primaryKey);
+        seen.add(fieldDefinitionId);
 
         const canonicalField = resolveCollectedField(canonicalFields, fieldKey, field);
         const fieldDiff = {};
@@ -877,7 +895,7 @@ const diffFields = (canonicalFields = {}, postedFields = {}) => {
         }
 
         if (Object.keys(fieldDiff).length) {
-            diff[fieldKey] = fieldDiff;
+            diff[fieldDefinitionId] = fieldDiff;
         }
     });
 
@@ -993,7 +1011,7 @@ export const extractSiteTranslationsFromFormData = (canonicalData = {}, formData
     );
 
     if (Object.keys(fieldsDiff).length) {
-        translations.fields = fieldsDiff;
+        translations.fieldOverrides = fieldsDiff;
     }
 
     const notificationsDiff = diffNotifications(

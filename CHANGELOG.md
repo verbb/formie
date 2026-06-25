@@ -16,6 +16,7 @@
 - Add a **Last Edited By** column to submission sources, tracking the Craft user who last saved a submission in the control panel. ([#1403](https://github.com/verbb/formie/issues/1403))
 - Add `craft.formie.ref()` and `craft.formie.refField()` for building variable-picker-compatible reference tokens from Twig when overriding settings such as `submitActionMessage`. See [Reference tokens](/developers/reference-tokens). ([#2838](https://github.com/verbb/formie/issues/2838))
 - Add a persisted `metadata` JSON column on submissions for submit-time request context (referrer, user agent, tracking cookies) and developer-defined custom data via `form.setSubmissionMetadata()`. Reference tokens such as `{metadata:custom.campaignId}` and `{metadata:request.referrer}` are supported in notifications, integrations, and PDFs. ([#1379](https://github.com/verbb/formie/issues/1379))
+- Add `formie_field_site_overrides` storage for per-site field definition overrides keyed by `fieldId`, separate from form-level `formie_form_site_overrides` payloads.
 
 ### Changed
 - Freeform 4/5 plugin migrations now process submissions in batches (default 100) to avoid memory exhaustion on large forms. Use `php craft formie/migrate/freeform4` (or `freeform5`) with `--batch-size`, `--submission-offset`, `--submission-limit`, `--submissions-only`, and `--skip-submissions` for large migrations. ([#2513](https://github.com/verbb/formie/issues/2513))
@@ -24,6 +25,7 @@
 - Stop routing user-authored form content (labels, placeholders, messages, options) through the `formie` translation category. Form copy is output from the database after site overrides are merged; `formie.php` is for Formie-owned UI strings only ([#2907](https://github.com/verbb/formie/issues/2907)).
 - Remove front-end `sourceLanguage` mutation in the plugin constructor that existed to work around the above behaviour.
 - Improve multi-site submission and notification handling by loading forms with site translation overrides applied for the submission’s site.
+- Store field translation overrides in `formie_field_site_overrides` instead of nested `fields` entries in form site override JSON. Form import/export support for site overrides is planned next.
 
 ### Fixed
 - Fix form import with **Update existing form** not removing notifications deleted before export. Empty `notifications` arrays in the import payload now replace the form’s notifications instead of being ignored. ([#1941](https://github.com/verbb/formie/issues/1941))

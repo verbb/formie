@@ -3,7 +3,7 @@ import { cloneDeep } from 'lodash-es';
 
 import useAppStore from '@form-builder/hooks/useAppStore';
 import { normalizeFormData } from '@form-builder/hooks/useFormTools';
-import { getSiteOverrideForSite, mergeSiteOverridesIntoFormData } from '@form-builder/utils/siteOverrides';
+import { getFieldOverrideForSite, getSiteOverrideForSite, mergeSiteOverridesIntoFormData } from '@form-builder/utils/siteOverrides';
 import { resolveSiteFromUrl } from '@form-builder/utils/siteUrl';
 
 const SITE_CRUMB_ID = 'site-crumb';
@@ -52,10 +52,11 @@ const buildSiteDisplayData = (siteId) => {
     }
 
     const overrides = getSiteOverrideForSite(multiSite.overrides, siteId);
+    const fieldOverrides = getFieldOverrideForSite(multiSite.fieldOverrides, siteId);
 
     return cloneDeep(
         normalizeFormData(
-            mergeSiteOverridesIntoFormData(canonicalData, overrides),
+            mergeSiteOverridesIntoFormData(canonicalData, overrides, fieldOverrides),
         ),
     );
 };

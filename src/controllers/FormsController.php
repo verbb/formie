@@ -586,7 +586,7 @@ class FormsController extends Controller
             && $siteId !== $sourceSiteId
             && is_array($translations)
         ) {
-            $siteOverrides->saveOverrides((int)$savedForm->id, $siteId, $translations);
+            $siteOverrides->saveTranslationBundle((int)$savedForm->id, $siteId, $translations);
         }
 
         $variables = Formie::$plugin->getForms()->getFormBuilderVariables($savedForm, $siteId);
@@ -605,6 +605,7 @@ class FormsController extends Controller
 
             if (is_array($variables['multiSite'] ?? null)) {
                 $variables['multiSite']['overrides'] = $siteOverrides->getAllOverrides((int)$savedForm->id);
+                $variables['multiSite']['fieldOverrides'] = Formie::$plugin->getFieldSiteOverrides()->getAllForForm($savedForm);
             }
         }
 

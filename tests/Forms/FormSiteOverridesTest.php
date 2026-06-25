@@ -50,19 +50,20 @@ it('saves explicit translations payload without server-side diffing', function (
 
     $translations = [
         'title' => 'Explicit Translations Form (Site 2)',
-        'fields' => [
-            (string)$reference => [
+        'fieldOverrides' => [
+            (string)$field->fieldId => [
                 'label' => 'Test Field Site 2',
             ],
         ],
     ];
 
-    $service->saveOverrides((int)$form->id, $secondarySiteId, $translations);
+    $service->saveTranslationBundle((int)$form->id, $secondarySiteId, $translations);
 
     $saved = $service->getOverrides((int)$form->id, $secondarySiteId);
+    $fieldOverride = Formie::$plugin->getFieldSiteOverrides()->getOverride((int)$field->fieldId, $secondarySiteId);
 
     expect($saved['title'] ?? null)->toBe('Explicit Translations Form (Site 2)');
-    expect($saved['fields'][$reference]['label'] ?? null)->toBe('Test Field Site 2');
+    expect($fieldOverride['label'] ?? null)->toBe('Test Field Site 2');
 });
 
 it('merges sparse title overrides into builder data', function (): void {
@@ -103,7 +104,7 @@ it('merges sparse title overrides into builder data', function (): void {
     }
 });
 
-it('merges field overrides keyed by reference into builder data', function (): void {
+it('merges field overrides keyed by fieldId into builder data', function (): void {
     $service = Formie::$plugin->getFormSiteOverrides();
 
     $canonical = [
@@ -118,6 +119,7 @@ it('merges field overrides keyed by reference into builder data', function (): v
                     [
                         'fields' => [
                             [
+                                'fieldId' => 1193,
                                 'reference' => 'field-ref-1',
                                 'uid' => 'legacy-field-uid',
                                 'label' => 'Primary label',
@@ -130,44 +132,9 @@ it('merges field overrides keyed by reference into builder data', function (): v
         'notifications' => [],
     ];
 
-    $merged = $service->mergeOverridesIntoBuilderData($canonical, [
-        'fields' => [
-            'field-ref-1' => [
-                'label' => 'Translated label',
-            ],
-        ],
-    ]);
-
-    expect($merged['pages'][0]['rows'][0]['fields'][0]['label'])->toBe('Translated label');
-});
-
-it('merges legacy uid-keyed field overrides into builder data', function (): void {
-    $service = Formie::$plugin->getFormSiteOverrides();
-
-    $canonical = [
-        'pages' => [
-            [
-                '_handle' => 'pageOne',
-                'rows' => [
-                    [
-                        'fields' => [
-                            [
-                                'reference' => 'field-ref-1',
-                                'uid' => 'legacy-field-uid',
-                                'label' => 'Primary label',
-                            ],
-                        ],
-                    ],
-                ],
-            ],
-        ],
-    ];
-
-    $merged = $service->mergeOverridesIntoBuilderData($canonical, [
-        'fields' => [
-            'legacy-field-uid' => [
-                'label' => 'Translated label',
-            ],
+    $merged = $service->mergeOverridesIntoBuilderData($canonical, [], [
+        1193 => [
+            'label' => 'Translated label',
         ],
     ]);
 
@@ -187,6 +154,7 @@ it('does not mutate canonical builder data while merging overrides', function ()
                     [
                         'fields' => [
                             [
+                                'fieldId' => 1193,
                                 'reference' => 'field-ref-1',
                                 'label' => 'Primary label',
                             ],
@@ -204,10 +172,9 @@ it('does not mutate canonical builder data while merging overrides', function ()
                 'label' => 'Translated page',
             ],
         ],
-        'fields' => [
-            'field-ref-1' => [
-                'label' => 'Translated label',
-            ],
+    ], [
+        1193 => [
+            'label' => 'Translated label',
         ],
     ]);
 
@@ -332,6 +299,7 @@ it('merges option overrides with translated labels and values on secondary sites
                         'fields' => [
                             [
                                 'uid' => 'radio-field',
+                                'fieldId' => 1193,
                                 'type' => 'verbb\\formie\\fields\\Radio',
                                 'label' => 'Radio',
                                 'handle' => 'radio',
@@ -348,12 +316,10 @@ it('merges option overrides with translated labels and values on secondary sites
         ],
     ];
 
-    $merged = $service->mergeOverridesIntoBuilderData($canonical, [
-        'fields' => [
-            'radio-field' => [
-                'options' => [
-                    ['value' => 'Option 2', 'label' => 'Option 2 (Site 2)', 'optionValue' => 'Option 2 (Site 2)'],
-                ],
+    $merged = $service->mergeOverridesIntoBuilderData($canonical, [], [
+        1193 => [
+            'options' => [
+                ['value' => 'Option 2', 'label' => 'Option 2 (Site 2)', 'optionValue' => 'Option 2 (Site 2)'],
             ],
         ],
     ]);
@@ -377,6 +343,7 @@ it('merges label-derived option overrides using canonical option values', functi
                         'fields' => [
                             [
                                 'uid' => 'radio-field',
+                                'fieldId' => 1193,
                                 'type' => 'verbb\\formie\\fields\\Radio',
                                 'label' => 'Radio',
                                 'handle' => 'radio',
@@ -393,12 +360,10 @@ it('merges label-derived option overrides using canonical option values', functi
         ],
     ];
 
-    $merged = $service->mergeOverridesIntoBuilderData($canonical, [
-        'fields' => [
-            'radio-field' => [
-                'options' => [
-                    ['label' => 'Option 2 (Site 2)', 'value' => 'Option 2 (Site 2)'],
-                ],
+    $merged = $service->mergeOverridesIntoBuilderData($canonical, [], [
+        1193 => [
+            'options' => [
+                ['label' => 'Option 2 (Site 2)', 'value' => 'Option 2 (Site 2)'],
             ],
         ],
     ]);
@@ -422,12 +387,16 @@ it('normalizes and prunes empty override payloads', function (): void {
         ],
     ]);
 
-    expect($normalized)->toBe([
-        'fields' => [
-            'abc' => [
-                'label' => 'Alt label',
-            ],
-        ],
+    expect($normalized)->toBe([]);
+});
+
+it('normalizes field overrides separately from form overrides', function (): void {
+    $service = Formie::$plugin->getFormSiteOverrides();
+
+    expect($service->normalizeFieldOverrides([
+        '1193' => ['label' => 'Alt label'],
+    ]))->toBe([
+        '1193' => ['label' => 'Alt label'],
     ]);
 });
 
@@ -444,7 +413,7 @@ it('resolves site-specific form titles for cp indexes', function (): void {
     ]);
 });
 
-it('normalizes top-level field overrides', function (): void {
+it('does not store field overrides in form override payloads', function (): void {
     $service = Formie::$plugin->getFormSiteOverrides();
 
     expect($service->normalizeOverrides([
@@ -454,9 +423,6 @@ it('normalizes top-level field overrides', function (): void {
         ],
     ]))->toBe([
         'title' => 'Site title',
-        'fields' => [
-            'abc' => ['label' => 'Alt label'],
-        ],
     ]);
 });
 
@@ -567,13 +533,11 @@ it('merges nested child field overrides into form elements for front-end renderi
         return;
     }
 
-    $service->saveOverrides((int)$form->id, $secondarySiteId, [
-        'fields' => [
-            (string)$childField->reference => [
-                'label' => 'First Name (Site 2)',
-            ],
-        ],
-    ]);
+    Formie::$plugin->getFieldSiteOverrides()->saveOverride(
+        (int)$childField->fieldId,
+        $secondarySiteId,
+        ['label' => 'First Name (Site 2)'],
+    );
 
     $applied = $service->applyToForm($canonicalForm, $secondarySiteId, true);
     $appliedChild = $applied->getFieldByHandle('fullName')->getFieldByHandle('firstName');

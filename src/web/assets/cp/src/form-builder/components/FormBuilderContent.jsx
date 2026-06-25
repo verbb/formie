@@ -11,7 +11,7 @@ import {
 import { useHandleSyncOnChange } from '@form-builder/hooks/useHandleSyncOnChange';
 import { stableSerialize, useUnloadWarning } from '@form-builder/hooks/useUnloadWarning';
 import { saveFormSnapshot } from '@form-builder/utils/formBuilderSnapshot';
-import { getSiteOverrideForSite, mergeSiteOverridesIntoFormData } from '@form-builder/utils/siteOverrides';
+import { getFieldOverrideForSite, getSiteOverrideForSite, mergeSiteOverridesIntoFormData } from '@form-builder/utils/siteOverrides';
 import { FormBuilderErrorsPane } from '@form-builder/components/FormBuilderErrorsPane';
 import { FormBuilderFormProvider } from '@form-builder/contexts/FormBuilderFormContext';
 import { VariableCategoriesProvider } from '@form-builder/components/VariableCategoriesProvider';
@@ -267,6 +267,7 @@ function FormBuilderContent({
                 ? mergeSiteOverridesIntoFormData(
                     canonicalDataForMerge,
                     getSiteOverrideForSite(serverMultiSite?.overrides, activeSiteId),
+                    getFieldOverrideForSite(serverMultiSite?.fieldOverrides, activeSiteId),
                 )
                 : serverFormData;
 

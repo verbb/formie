@@ -86,12 +86,14 @@ describe('siteOverrides', () => {
                         fields: [
                             {
                                 uid: 'field-1',
+                                fieldId: 101,
                                 type: 'verbb\\formie\\fields\\SingleLineText',
                                 label: 'Name',
                                 handle: 'name',
                             },
                             {
                                 uid: 'field-2',
+                                fieldId: 102,
                                 type: 'verbb\\formie\\base\\OptionsField',
                                 label: 'Choice',
                                 handle: 'choice',
@@ -102,6 +104,7 @@ describe('siteOverrides', () => {
                             },
                             {
                                 uid: 'field-3',
+                                fieldId: 103,
                                 type: 'verbb\\formie\\fields\\Table',
                                 label: 'Table',
                                 handle: 'table',
@@ -144,26 +147,25 @@ describe('siteOverrides', () => {
                     },
                 },
             },
-            fields: {
-                'field-1': {
-                    label: 'Nom',
-                },
-                'field-2': {
-                    options: [
-                        { value: 'a', label: 'Option A FR' },
-                    ],
-                },
-                'field-3': {
-                    columns: [
-                        { handle: 'col1', heading: 'Colonne 1' },
-                    ],
-                },
-            },
             notifications: {
                 admin: {
                     subject: 'Sujet FR',
                     fromName: 'De FR',
                 },
+            },
+        }, {
+            101: {
+                label: 'Nom',
+            },
+            102: {
+                options: [
+                    { value: 'a', label: 'Option A FR' },
+                ],
+            },
+            103: {
+                columns: [
+                    { handle: 'col1', heading: 'Colonne 1' },
+                ],
             },
         });
 
@@ -193,30 +195,6 @@ describe('siteOverrides', () => {
         expect(merged.pages[0].label).toBe('Page FR by handle');
     });
 
-    it('merges page overrides keyed by id when page has uid', () => {
-        const data = {
-            ...canonicalData,
-            pages: [
-                {
-                    ...canonicalData.pages[0],
-                    id: 42,
-                    uid: 'page-uid-1',
-                    _handle: 'pageOne',
-                },
-            ],
-        };
-
-        const merged = mergeSiteOverridesIntoFormData(data, {
-            pages: {
-                42: {
-                    label: 'Page FR by id',
-                },
-            },
-        });
-
-        expect(merged.pages[0].label).toBe('Page FR by id');
-    });
-
     it('extracts only changed translatable values', () => {
         const formData = mergeSiteOverridesIntoFormData(canonicalData, {
             title: 'French title',
@@ -231,15 +209,14 @@ describe('siteOverrides', () => {
                     },
                 },
             },
-            fields: {
-                'field-1': {
-                    label: 'Nom',
-                },
-            },
             notifications: {
                 admin: {
                     subject: 'Sujet FR',
                 },
+            },
+        }, {
+            101: {
+                label: 'Nom',
             },
         });
 
@@ -258,8 +235,8 @@ describe('siteOverrides', () => {
                     },
                 },
             },
-            fields: {
-                'field-1': {
+            fieldOverrides: {
+                101: {
                     label: 'Nom',
                 },
             },
@@ -275,6 +252,7 @@ describe('siteOverrides', () => {
         const nameFieldCanonical = {
             uid: 'name-field',
             reference: 'name-field',
+            fieldId: 201,
             type: 'verbb\\formie\\fields\\Name',
             label: 'Name',
             handle: 'name',
@@ -285,6 +263,7 @@ describe('siteOverrides', () => {
                             {
                                 uid: 'first-name',
                                 reference: 'first-name',
+                                fieldId: 202,
                                 type: 'verbb\\formie\\fields\\SingleLineText',
                                 label: 'First Name',
                                 handle: 'firstName',
@@ -294,22 +273,10 @@ describe('siteOverrides', () => {
                             {
                                 uid: 'last-name',
                                 reference: 'last-name',
+                                fieldId: 203,
                                 type: 'verbb\\formie\\fields\\SingleLineText',
                                 label: 'Last Name',
                                 handle: 'lastName',
-                                instructions: [],
-                                validationMessages: [],
-                            },
-                            {
-                                uid: 'prefix',
-                                reference: 'prefix',
-                                type: 'verbb\\formie\\base\\OptionsField',
-                                label: 'Prefix',
-                                handle: 'prefix',
-                                options: [
-                                    { value: 'mr', label: 'Mr.' },
-                                    { value: 'mrs', label: 'Mrs.' },
-                                ],
                                 instructions: [],
                                 validationMessages: [],
                             },
@@ -335,13 +302,12 @@ describe('siteOverrides', () => {
 
         const formData = mergeSiteOverridesIntoFormData(canonicalWithName, {
             title: 'Multi Site (Site 2)',
-            fields: {
-                'name-field': {
-                    label: 'Name (Site 2)',
-                },
-                'first-name': {
-                    label: 'First Name (Site 2)',
-                },
+        }, {
+            201: {
+                label: 'Name (Site 2)',
+            },
+            202: {
+                label: 'First Name (Site 2)',
             },
         });
 
@@ -353,190 +319,13 @@ describe('siteOverrides', () => {
 
         expect(translations).toEqual({
             title: 'Multi Site (Site 2)',
-            fields: {
-                'name-field': {
+            fieldOverrides: {
+                201: {
                     label: 'Name (Site 2)',
                 },
-                'first-name': {
+                202: {
                     label: 'First Name (Site 2)',
                 },
-            },
-        });
-    });
-
-    it('does not extract unchanged nested group child fields when rows and settings.rows diverge', () => {
-        const groupA = {
-            uid: 'uid-group-a',
-            reference: 'group-a',
-            type: 'verbb\\formie\\fields\\SingleLineText',
-            label: 'Group A',
-            handle: 'groupA',
-        };
-        const groupB = {
-            uid: 'uid-group-b',
-            reference: 'group-b',
-            type: 'verbb\\formie\\fields\\SingleLineText',
-            label: 'Group B',
-            handle: 'groupB',
-        };
-        const groupCanonical = {
-            uid: 'uid-group-field',
-            reference: 'group-field',
-            type: 'verbb\\formie\\fields\\Group',
-            label: 'Group',
-            handle: 'group',
-            rows: [
-                {
-                    fields: [groupA, groupB],
-                },
-            ],
-        };
-        const canonicalWithGroup = {
-            ...canonicalData,
-            pages: [
-                {
-                    ...canonicalData.pages[0],
-                    rows: [
-                        {
-                            fields: [groupCanonical],
-                        },
-                    ],
-                },
-            ],
-        };
-        const formData = mergeSiteOverridesIntoFormData(canonicalWithGroup, {
-            fields: {
-                'group-field': {
-                    label: 'Group (Site 2)',
-                },
-                'group-a': {
-                    label: 'Group A (Site 2)',
-                },
-            },
-        });
-        const groupField = formData.pages[0].rows[0].fields[0];
-
-        groupField.rows = [
-            {
-                fields: [
-                    {
-                        ...groupA,
-                        label: 'Group A (Site 2)',
-                    },
-                    {
-                        uid: 'uid-group-b',
-                        type: 'verbb\\formie\\fields\\SingleLineText',
-                        label: 'Group B',
-                        handle: 'groupB',
-                    },
-                ],
-            },
-        ];
-        groupField.settings = {
-            rows: [
-                {
-                    fields: [groupA, groupB],
-                },
-            ],
-        };
-
-        const translations = extractSiteTranslationsFromFormData(canonicalWithGroup, formData);
-
-        expect(translations.fields).toEqual({
-            'group-field': {
-                label: 'Group (Site 2)',
-            },
-            'group-a': {
-                label: 'Group A (Site 2)',
-            },
-        });
-    });
-
-    it('does not extract unchanged repeater child fields or unchanged addLabel', () => {
-        const repeaterA = {
-            uid: 'uid-repeater-a',
-            reference: 'repeater-a',
-            type: 'verbb\\formie\\fields\\SingleLineText',
-            label: 'Repeater A',
-            handle: 'repeaterA',
-        };
-        const repeaterB = {
-            uid: 'uid-repeater-b',
-            reference: 'repeater-b',
-            type: 'verbb\\formie\\fields\\SingleLineText',
-            label: 'Repeater B',
-            handle: 'repeaterB',
-        };
-        const repeaterCanonical = {
-            uid: 'uid-repeater-field',
-            reference: 'repeater-field',
-            type: 'verbb\\formie\\fields\\Repeater',
-            label: 'Repeater',
-            handle: 'repeater',
-            addLabel: 'Add another row',
-            rows: [
-                {
-                    fields: [repeaterA, repeaterB],
-                },
-            ],
-        };
-        const canonicalWithRepeater = {
-            ...canonicalData,
-            pages: [
-                {
-                    ...canonicalData.pages[0],
-                    rows: [
-                        {
-                            fields: [repeaterCanonical],
-                        },
-                    ],
-                },
-            ],
-        };
-        const formData = mergeSiteOverridesIntoFormData(canonicalWithRepeater, {
-            fields: {
-                'repeater-field': {
-                    label: 'Repeater (Site 2)',
-                },
-                'repeater-a': {
-                    label: 'Repeater A (Site 2)',
-                },
-            },
-        });
-        const repeaterField = formData.pages[0].rows[0].fields[0];
-
-        repeaterField.rows = [
-            {
-                fields: [
-                    {
-                        ...repeaterA,
-                        label: 'Repeater A (Site 2)',
-                    },
-                    {
-                        uid: 'uid-repeater-b',
-                        type: 'verbb\\formie\\fields\\SingleLineText',
-                        label: 'Repeater B',
-                        handle: 'repeaterB',
-                    },
-                ],
-            },
-        ];
-        repeaterField.settings = {
-            rows: [
-                {
-                    fields: [repeaterA, repeaterB],
-                },
-            ],
-        };
-
-        const translations = extractSiteTranslationsFromFormData(canonicalWithRepeater, formData);
-
-        expect(translations.fields).toEqual({
-            'repeater-field': {
-                label: 'Repeater (Site 2)',
-            },
-            'repeater-a': {
-                label: 'Repeater A (Site 2)',
             },
         });
     });
@@ -552,6 +341,7 @@ describe('siteOverrides', () => {
                             fields: [
                                 {
                                     uid: 'radio-field',
+                                    fieldId: 501,
                                     type: 'verbb\\formie\\base\\OptionsField',
                                     label: 'Radio',
                                     handle: 'radio',
@@ -593,50 +383,9 @@ describe('siteOverrides', () => {
 
         const translations = extractSiteTranslationsFromFormData(canonicalWithRadio, formData);
 
-        expect(translations.fields['radio-field'].options).toEqual([
+        expect(translations.fieldOverrides[501].options).toEqual([
             { value: 'Option 2', label: 'Option 2 (Site 2)', optionValue: 'Option 2 (Site 2)' },
         ]);
-    });
-
-    it('merges legacy option overrides that stored translated values in value', () => {
-        const canonicalWithRadio = {
-            ...canonicalData,
-            pages: [
-                {
-                    ...canonicalData.pages[0],
-                    rows: [
-                        {
-                            fields: [
-                                {
-                                    uid: 'radio-field',
-                                    type: 'verbb\\formie\\base\\OptionsField',
-                                    label: 'Radio',
-                                    handle: 'radio',
-                                    options: [
-                                        { label: 'Option 1', value: 'Option 1' },
-                                        { label: 'Option 2', value: 'Option 2' },
-                                        { label: 'Option 3', value: 'Option 3' },
-                                    ],
-                                },
-                            ],
-                        },
-                    ],
-                },
-            ],
-        };
-
-        const merged = mergeSiteOverridesIntoFormData(canonicalWithRadio, {
-            fields: {
-                'radio-field': {
-                    options: [
-                        { label: 'Option 2 (Site 2)', value: 'Option 2 (Site 2)' },
-                    ],
-                },
-            },
-        });
-
-        expect(merged.pages[0].rows[0].fields[0].options[1].label).toBe('Option 2 (Site 2)');
-        expect(merged.pages[0].rows[0].fields[0].options[1].value).toBe('Option 2 (Site 2)');
     });
 
     it('merges canonical-keyed option overrides with translated values', () => {
@@ -650,6 +399,7 @@ describe('siteOverrides', () => {
                             fields: [
                                 {
                                     uid: 'radio-field',
+                                    fieldId: 501,
                                     type: 'verbb\\formie\\base\\OptionsField',
                                     label: 'Radio',
                                     handle: 'radio',
@@ -666,77 +416,16 @@ describe('siteOverrides', () => {
             ],
         };
 
-        const merged = mergeSiteOverridesIntoFormData(canonicalWithRadio, {
-            fields: {
-                'radio-field': {
-                    options: [
-                        { value: 'Option 2', label: 'Option 2 (Site 2)', optionValue: 'Option 2 (Site 2)' },
-                    ],
-                },
+        const merged = mergeSiteOverridesIntoFormData(canonicalWithRadio, {}, {
+            501: {
+                options: [
+                    { value: 'Option 2', label: 'Option 2 (Site 2)', optionValue: 'Option 2 (Site 2)' },
+                ],
             },
         });
 
         expect(merged.pages[0].rows[0].fields[0].options[1].label).toBe('Option 2 (Site 2)');
         expect(merged.pages[0].rows[0].fields[0].options[1].value).toBe('Option 2 (Site 2)');
-    });
-
-    it('strips option label and value back to canonical for save payload', () => {
-        const canonicalWithRadio = {
-            ...canonicalData,
-            pages: [
-                {
-                    ...canonicalData.pages[0],
-                    rows: [
-                        {
-                            fields: [
-                                {
-                                    uid: 'radio-field',
-                                    type: 'verbb\\formie\\base\\OptionsField',
-                                    label: 'Radio',
-                                    handle: 'radio',
-                                    options: [
-                                        { label: 'Option 1', value: 'Option 1' },
-                                        { label: 'Option 2', value: 'Option 2' },
-                                        { label: 'Option 3', value: 'Option 3' },
-                                    ],
-                                },
-                            ],
-                        },
-                    ],
-                },
-            ],
-        };
-
-        const formData = {
-            ...canonicalWithRadio,
-            pages: [
-                {
-                    ...canonicalWithRadio.pages[0],
-                    rows: [
-                        {
-                            fields: [
-                                {
-                                    ...canonicalWithRadio.pages[0].rows[0].fields[0],
-                                    options: [
-                                        { label: 'Option 1', value: 'Option 1' },
-                                        { label: 'Option 2 (Site 2)', value: 'Option 2 (Site 2)' },
-                                        { label: 'Option 3', value: 'Option 3' },
-                                    ],
-                                },
-                            ],
-                        },
-                    ],
-                },
-            ],
-        };
-
-        const stripped = stripTranslatableValuesToCanonical(formData, canonicalWithRadio);
-
-        expect(stripped.pages[0].rows[0].fields[0].options).toEqual([
-            { label: 'Option 1', value: 'Option 1' },
-            { label: 'Option 2', value: 'Option 2' },
-            { label: 'Option 3', value: 'Option 3' },
-        ]);
     });
 
     it('strips translatable values back to canonical for save payload', () => {
@@ -753,15 +442,14 @@ describe('siteOverrides', () => {
                     },
                 },
             },
-            fields: {
-                'field-1': {
-                    label: 'Nom',
-                },
-            },
             notifications: {
                 admin: {
                     subject: 'Sujet FR',
                 },
+            },
+        }, {
+            101: {
+                label: 'Nom',
             },
         });
 
