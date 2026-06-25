@@ -415,9 +415,17 @@ function applyRefreshTokensToForm(form: HTMLFormElement, refreshTokens: FormEndp
     // Refresh-tokens mutates continuity inputs in place so cached or long-lived
     // forms keep submitting with fresh CSRF/request/captcha state.
     if (refreshTokens.csrf?.param && refreshTokens.csrf?.token) {
-        const csrfInput = form.querySelector(`input[name="${refreshTokens.csrf.param}"]`) as HTMLInputElement | null;
+        let csrfInput = form.querySelector(`input[name="${refreshTokens.csrf.param}"]`) as HTMLInputElement | null;
+
         if (csrfInput) {
             csrfInput.value = refreshTokens.csrf.token;
+        } else {
+            csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = refreshTokens.csrf.param;
+            csrfInput.value = refreshTokens.csrf.token;
+            csrfInput.setAttribute('autocomplete', 'off');
+            form.prepend(csrfInput);
         }
     }
 

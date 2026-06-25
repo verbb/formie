@@ -31,6 +31,7 @@ class RenderFrame
             'renderCss',
             'renderJs',
             'customInputs',
+            'csrfInput',
             'fieldNamespace',
             'value',
             'fieldLabelPrefix',

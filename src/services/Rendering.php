@@ -105,6 +105,7 @@ class Rendering extends Component
                 'form' => $form,
                 'submission' => $submission,
                 'customInputs' => $renderOptions['customInputs'] ?? [],
+                'csrfInputOptions' => $this->_resolveCsrfInputOptions($renderOptions),
             ]);
 
             // Fire a 'modifyRenderForm' event
@@ -557,6 +558,34 @@ class Rendering extends Component
         }
 
         return $renderOptions;
+    }
+
+    /**
+     * Resolve Craft `csrfInput()` options for the hidden-inputs template.
+     *
+     * @return array<string, mixed>|null `null` omits the CSRF input entirely.
+     */
+    private function _resolveCsrfInputOptions(array $renderOptions): ?array
+    {
+        if (!array_key_exists('csrfInput', $renderOptions)) {
+            return ['autocomplete' => 'off'];
+        }
+
+        $csrfInput = $renderOptions['csrfInput'];
+
+        if ($csrfInput === false) {
+            return null;
+        }
+
+        if ($csrfInput === true) {
+            return ['autocomplete' => 'off'];
+        }
+
+        if (is_array($csrfInput)) {
+            return array_merge(['autocomplete' => 'off'], $csrfInput);
+        }
+
+        return ['autocomplete' => 'off'];
     }
 
     private function _resolveFormAssetSettings(Form $form, array $renderOptions = []): array

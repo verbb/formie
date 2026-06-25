@@ -1,4 +1,7 @@
-{{ csrfInput({ autocomplete: 'off' }) }}
+{% set csrfInputOptions = csrfInputOptions ?? { autocomplete: 'off' } %}
+{% if csrfInputOptions is not null %}
+    {{ csrfInput(csrfInputOptions) }}
+{% endif %}
 {{ actionInput(form.getActionUrl()) }}
 {{ hiddenInput('submitAction', 'submit') }}
 {{ hiddenInput('handle', form.handle) }}

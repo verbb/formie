@@ -12,6 +12,30 @@ Static-cache support is enabled automatically when Blitz is installed and enable
 
 In most cases, Formie can support cached forms without extra JavaScript on the site.
 
+## Craft Cloud and async CSRF
+
+On Craft Cloud and other full-page caches, a synchronous CSRF token in the rendered HTML can prevent the page from being cache-eligible in the first place — even if Formie refreshes tokens on initialization.
+
+Craft supports async CSRF inputs globally via `asyncCsrfInputs` in `config/general.php` (or `CRAFT_ASYNC_CSRF_INPUTS=true`). Formie calls Craft's `csrfInput()` helper, so that global setting applies automatically.
+
+When you need per-form control instead of a global setting, pass async CSRF through [render options](/templates/render-options):
+
+```twig
+{{ craft.formie.renderForm('contactForm', {
+    csrfInput: { async: true },
+}) }}
+```
+
+You can also omit the CSRF input entirely and let Formie inject it during token refresh:
+
+```twig
+{{ craft.formie.renderForm('contactForm', {
+    csrfInput: false,
+}) }}
+```
+
+Use `csrfInput: false` only when static-cache token refresh is enabled. Formie creates the hidden input on refresh if one is not already present.
+
 ## When You Might Need More Control
 
 If you are taking over Formie's browser assets yourself, or you are mounting forms through your own browser bundle, make sure token refresh stays enabled. The browser package can receive `staticCache` and `refreshTokens` options, but you would normally only set those yourself when you are deliberately replacing Formie's automatic asset output.
@@ -41,4 +65,4 @@ The refresh payload can look like this:
 }
 ```
 
-Formie applies those values back onto the existing form, so the cached HTML can keep working without needing a full re-render.
+Formie applies those values back onto the existing form, so the cached HTML can keep working without needing a full re-render. If the CSRF input was omitted at render time (`csrfInput: false`), Formie creates it during refresh.

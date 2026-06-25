@@ -8,6 +8,7 @@
 - Show field handles in the form builder when the Craft user preference **Show field handles in edit forms** is enabled (admin users only), with a copy-to-clipboard control on hover. ([#2279](https://github.com/verbb/formie/issues/2279))
 - Show an **Encrypted** padlock badge on fields in the form builder when **Enable Content Encryption** is turned on. ([#2332](https://github.com/verbb/formie/issues/2332))
 - Add an optional **Other** choice for Radio fields, with a configurable label and free-text input on the front-end. ([#1875](https://github.com/verbb/formie/issues/1875))
+- Add `csrfInput` render option to control Craft CSRF hidden input output (`true` default, `false` to omit, or an options array such as `{ async: true }` for statically cached pages). ([#2121](https://github.com/verbb/formie/discussions/2121))
 - Add **Enable Multi-Page Forms** plugin setting to disable multi-page forms in the form builder. When disabled, authors cannot add pages and existing multi-page forms cannot be saved until reduced to a single page. ([#2483](https://github.com/verbb/formie/discussions/2483))
 - Add password validation settings to the Password field: minimum length, and requirements for uppercase, lowercase, and special characters. ([#1880](https://github.com/verbb/formie/issues/1880))
 - Add a **Unique User Email** setting to Email Address fields, to reject email addresses already associated with a Craft user account. ([#1151](https://github.com/verbb/formie/issues/1151))

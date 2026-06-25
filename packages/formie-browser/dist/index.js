@@ -1382,10 +1382,10 @@ var L = class {
 	snaptcha: () => import("./chunks/snaptcha-DKx98oon.js").then((e) => e.snaptchaModule),
 	turnstile: () => import("./chunks/turnstile-DJakPzQD.js").then((e) => e.turnstileModule)
 }, Xt = {
-	calculations: () => import("./chunks/calculations-CeDgB9jt.js").then((e) => e.calculationsModule),
+	calculations: () => import("./chunks/calculations-HAZ8wUrT.js").then((e) => e.calculationsModule),
 	"checkbox-radio": () => import("./chunks/checkbox-radio-BY2aTCOG.js").then((e) => e.checkboxRadioModule),
 	combobox: () => import("./chunks/combobox-C0EuExSI.js").then((e) => e.comboboxModule),
-	conditions: () => import("./chunks/conditions-B6_nzpeE.js").then((e) => e.conditionsModule),
+	conditions: () => import("./chunks/conditions-BiA_uANV.js").then((e) => e.conditionsModule),
 	"custom-google-maps": () => import("./chunks/custom-google-maps-BsaSirEZ.js").then((e) => e.customGoogleMapsModule),
 	"custom-link": () => import("./chunks/custom-link-CJ1-FjEM.js").then((e) => e.customLinkModule),
 	"custom-maps": () => import("./chunks/custom-maps-DYW_pBid.js").then((e) => e.customMapsModule),
@@ -1394,6 +1394,7 @@ var L = class {
 	"upload-manager": () => import("./chunks/upload-manager-W-QDgxKD.js").then((e) => e.uploadManagerModule),
 	hidden: () => import("./chunks/hidden-D7_Ch-QN.js").then((e) => e.hiddenModule),
 	"phone-country": () => import("./chunks/phone-country-D3ayr60L.js").then((e) => e.phoneCountryModule),
+	"password-validation": () => import("./chunks/password-validation-D5AirwUM.js").then((e) => e.passwordValidationModule),
 	"address-country": () => import("./chunks/address-country-Rx6GQTND.js").then((e) => e.addressCountryModule),
 	"address-state": () => import("./chunks/address-state-BwE01m2_.js").then((e) => e.addressStateModule),
 	repeater: () => import("./chunks/repeater-BVnPUqTj.js").then((e) => e.repeaterModule),
@@ -1404,7 +1405,7 @@ var L = class {
 	"survey-rank": () => import("./chunks/survey-rank-DN6x4IZM.js").then((e) => e.surveyRankModule),
 	"survey-rating": () => import("./chunks/survey-rating-BnsNL9U5.js").then((e) => e.surveyRatingModule),
 	table: () => import("./chunks/table-CAjCJHrL.js").then((e) => e.tableModule),
-	"text-limit": () => import("./chunks/text-limit-DbgEFHLO.js").then((e) => e.textLimitModule)
+	"text-limit": () => import("./chunks/text-limit-nSATKyhp.js").then((e) => e.textLimitModule)
 }, Zt = {
 	bpoint: () => import("./chunks/bpoint-C0VOftX9.js").then((e) => e.bpointModule),
 	eway: () => import("./chunks/eway-CS6Y1Yvo.js").then((e) => e.ewayModule),
@@ -1852,7 +1853,7 @@ function nr(e, t) {
 	if (t) {
 		if (t.csrf?.param && t.csrf?.token) {
 			let n = e.querySelector(`input[name="${t.csrf.param}"]`);
-			n && (n.value = t.csrf.token);
+			n ? n.value = t.csrf.token : (n = document.createElement("input"), n.type = "hidden", n.name = t.csrf.param, n.value = t.csrf.token, n.setAttribute("autocomplete", "off"), e.prepend(n));
 		}
 		if (t.requestToken) {
 			let n = e.querySelector("input[name=\"requestToken\"]");

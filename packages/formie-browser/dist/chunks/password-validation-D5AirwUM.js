@@ -1,0 +1,49 @@
+import { c as e, i as t, l as n } from "./shared-Bx9s0i0P.js";
+import { i as r } from "./dist-BaHXfvBO.js";
+//#region src/js/modules/fields/password-validation.ts
+var i = "input[data-formie-password-input]", a = [
+	"passwordMinLength",
+	"passwordUppercase",
+	"passwordLowercase",
+	"passwordSpecialCharacter"
+], o = "password-validation";
+function s(e) {
+	return e instanceof HTMLInputElement && e.matches(i);
+}
+function c(e) {
+	return parseInt(e.getAttribute("data-formie-password-min-length") || "", 10) || 0;
+}
+function l(e) {
+	return e.hasAttribute("data-formie-password-min-length") || e.hasAttribute("data-formie-password-require-uppercase") || e.hasAttribute("data-formie-password-require-lowercase") || e.hasAttribute("data-formie-password-require-special-character");
+}
+function u(e) {
+	return e.value === "";
+}
+function d(e) {
+	n(e, o, (e) => {
+		e.addValidator("passwordMinLength", ({ input: e }) => {
+			if (!s(e)) return !0;
+			let t = c(e);
+			return !t || u(e) ? !0 : r(e.value).graphemeCount >= t;
+		}, ({ label: e, input: t, t: n }) => t.getAttribute("data-formie-validation-min-characters-message") || n("{label} must be no less than {min} characters.", {
+			label: e,
+			min: t.getAttribute("data-formie-password-min-length") || ""
+		})), e.addValidator("passwordUppercase", ({ input: e }) => !s(e) || !e.hasAttribute("data-formie-password-require-uppercase") || u(e) ? !0 : /[A-Z]/.test(e.value), ({ label: e, input: t, t: n }) => t.getAttribute("data-formie-validation-password-uppercase-message") || n("{label} must contain at least one uppercase letter.", { label: e })), e.addValidator("passwordLowercase", ({ input: e }) => !s(e) || !e.hasAttribute("data-formie-password-require-lowercase") || u(e) ? !0 : /[a-z]/.test(e.value), ({ label: e, input: t, t: n }) => t.getAttribute("data-formie-validation-password-lowercase-message") || n("{label} must contain at least one lowercase letter.", { label: e })), e.addValidator("passwordSpecialCharacter", ({ input: e }) => !s(e) || !e.hasAttribute("data-formie-password-require-special-character") || u(e) ? !0 : /[^a-zA-Z0-9]/.test(e.value), ({ label: e, input: t, t: n }) => t.getAttribute("data-formie-validation-password-special-character-message") || n("{label} must contain at least one special character.", { label: e }));
+	});
+}
+function f(t) {
+	e(t, o, a);
+}
+var p = {
+	id: "password-validation",
+	kind: "field",
+	match: (e) => !!e.target.querySelector(`${i}[data-formie-password-min-length], ${i}[data-formie-password-require-uppercase], ${i}[data-formie-password-require-lowercase], ${i}[data-formie-password-require-special-character]`),
+	setup: async (e) => {
+		let n = t(e), r = Array.from((n || e.target).querySelectorAll(i)).filter((e) => e instanceof HTMLInputElement && l(e));
+		return d(e.form), await e.emit("formie:module:password-validation:init", { count: r.length }), { destroy: () => {
+			f(e.form), e.emit("formie:module:password-validation:destroy", {});
+		} };
+	}
+};
+//#endregion
+export { p as passwordValidationModule };

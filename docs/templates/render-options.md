@@ -77,6 +77,31 @@ That would render hidden inputs into the form output, similar to:
 </form>
 ```
 
+### `csrfInput`
+
+`csrfInput` controls how Craft's CSRF hidden input is rendered inside the form.
+
+By default, Formie outputs `csrfInput({ autocomplete: 'off' })`. That respects Craft's global `asyncCsrfInputs` setting when enabled.
+
+Use this when a statically cached page needs per-form control — for example, Craft Cloud setups where a synchronous CSRF token would prevent the page from being cached.
+
+```twig
+{# default — unchanged #}
+{{ craft.formie.renderForm('contactForm') }}
+
+{# per-form async CSRF without a global Craft config change #}
+{{ craft.formie.renderForm('contactForm', {
+    csrfInput: { async: true },
+}) }}
+
+{# omit the CSRF input — Formie injects it on token refresh before submit #}
+{{ craft.formie.renderForm('contactForm', {
+    csrfInput: false,
+}) }}
+```
+
+When `csrfInput` is `false`, enable [cached form token refresh](/frontend/cached-forms) so Formie can inject a fresh CSRF input on initialization.
+
 ### `templateVars`
 
 `templateVars` passes extra values into the rendering context for template overrides and custom rendering.
