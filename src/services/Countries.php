@@ -2,6 +2,7 @@
 namespace verbb\formie\services;
 
 use verbb\formie\base\FieldInterface;
+use verbb\formie\fields\Phone;
 use verbb\formie\events\ModifyAddressCountriesEvent;
 use verbb\formie\events\ModifyAddressSubdivisionsEvent;
 use verbb\formie\events\ModifyPhoneCountriesEvent;
@@ -30,7 +31,7 @@ class Countries extends Component
 
     public function getPhoneCountries(?FieldInterface $field = null): array
     {
-        $locale = Craft::$app->getLocale()->getLanguageID();
+        $locale = $this->_resolvePhoneCountryLocale($field);
 
         $countries = Craft::$app->getCache()->getOrSet(['formie.phoneCountries', 'locale' => $locale], function($cache) use ($locale) {
             $phoneUtil = PhoneNumberUtil::getInstance();
@@ -260,6 +261,19 @@ class Countries extends Component
 
     // Private Methods
     // =========================================================================
+
+    private function _resolvePhoneCountryLocale(?FieldInterface $field): string
+    {
+        if ($field instanceof Phone) {
+            $languageId = $field->getCountryLocale();
+
+            if ($languageId) {
+                return $languageId;
+            }
+        }
+
+        return Craft::$app->getLocale()->getLanguageID();
+    }
 
     private function _getRequestCountryHeaders(): array
     {

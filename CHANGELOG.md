@@ -39,6 +39,7 @@
 - Fix Google Maps API script conflicts when Address field autocomplete and the Google Maps Craft plugin are used on the same page. Formie reuses an existing `window.google` instance instead of injecting a second Maps script. ([#2041](https://github.com/verbb/formie/issues/2041))
 - Fix captcha provider credentials saved in the control panel being wiped when project config syncs on deploy. Site-scoped captcha settings are now preserved across deployments. ([#2407](https://github.com/verbb/formie/issues/2407))
 - Fix notification email preview and send failing when both **From Name** and **From Email** are set. ([#2698](https://github.com/verbb/formie/issues/2698))
+- Fix Phone field country selector labels not respecting the field’s **Country Language** setting. ([#2042](https://github.com/verbb/formie/issues/2042))
 
 ## 4.0.0-beta.9 - 2026-06-25
 

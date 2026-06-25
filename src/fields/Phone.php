@@ -276,16 +276,13 @@ class Phone extends Field implements SortableFieldInterface, PreviewableFieldInt
                 'name' => 'countryPreselectFromIp',
                 'if' => 'countryEnabled',
             ]),
-            // TODO: https://github.com/verbb/formie/issues/2042
-            // SchemaHelper::selectField([
-            //     'label' => Craft::t('formie', 'Language'),
-            //     'instructions' => Craft::t('formie', 'Choose a specific language for countries to be translated with. Choose "Auto" for Formie to automatically match your site’s language.'),
-            //     'name' => 'countryLanguage',
-            //     'if' => 'countryEnabled',
-            //     'options' => array_merge(
-            //         static::getCountryLanguageOptions()
-            //     ),
-            // ]),
+            SchemaHelper::selectField([
+                'label' => Craft::t('formie', 'Language'),
+                'instructions' => Craft::t('formie', 'Choose a specific language for countries to be translated with. Choose "Auto" for Formie to automatically match your site’s language.'),
+                'name' => 'countryLanguage',
+                'if' => 'countryEnabled',
+                'options' => static::getCountryLanguageOptions(),
+            ]),
         ];
     }
 
@@ -494,7 +491,12 @@ class Phone extends Field implements SortableFieldInterface, PreviewableFieldInt
         ];
     }
 
-    private function _getMatchedLanguageId()
+    public function getCountryLocale(): ?string
+    {
+        return $this->_getMatchedLanguageId();
+    }
+
+    private function _getMatchedLanguageId(): ?string
     {
         if ($this->countryLanguage && $this->countryLanguage != 'auto') {
             return $this->countryLanguage;
