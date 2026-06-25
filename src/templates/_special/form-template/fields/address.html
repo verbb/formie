@@ -10,8 +10,12 @@
 
                 {% set labelExtraContent = null %}
 
-                {% if addressField.hasCurrentLocation() and field.handle == 'autocomplete' %}
-                    {% set labelExtraContent = fieldtag('locationLink') %}
+                {% if addressField.hasCurrentLocation() and field.handle == 'autoComplete' %}
+                    {% set labelExtraContent %}
+                        {% with { field: addressField } %}
+                            {{ fieldtag('locationLink') }}
+                        {% endwith %}
+                    {% endset %}
                 {% endif %}
 
                 {# Pass in the raw value from this parent field #}
