@@ -2,7 +2,7 @@ import { t as e } from "./debug-BV0DvdHx.js";
 import { r as t, t as n } from "./field-references.keys-58ZSTrCW.js";
 import { n as r, r as i } from "./field-references.resolver-CHwn0G0L.js";
 import { r as a, t as o } from "./shared-Bx9s0i0P.js";
-import { c as s, n as c, r as l, s as u, t as d } from "./dist-BaHXfvBO.js";
+import { c as s, i as c, r as l, s as u, t as d } from "./dist-BdUy8m_p.js";
 //#region src/js/utils/field-references.row-scope.ts
 var f = new Set([
 	"first",
@@ -159,10 +159,10 @@ function w(e, t, n) {
 	return t.forEach(([e, t]) => {
 		let n = x(t);
 		if (String(n.scope || "").trim()) {
-			o[e] = c(t, y(t.sourceKey || "", n, a).value);
+			o[e] = l(t, y(t.sourceKey || "", n, a).value);
 			return;
 		}
-		o[e] = c(t, r(t.sourceKey || "", a).value);
+		o[e] = l(t, r(t.sourceKey || "", a).value);
 	}), d(o, n.formatting);
 }
 function T(e, r) {
@@ -187,12 +187,12 @@ function T(e, r) {
 	}), o;
 }
 function E(e, t, n, r) {
-	let i = s(r), a = l(r), c = /* @__PURE__ */ new Map(), d = null, f = !1, p = !1, m = !1, h = () => {
-		c.forEach((e, t) => {
+	let i = s(r), a = c(r), l = /* @__PURE__ */ new Map(), d = null, f = !1, p = !1, m = !1, h = () => {
+		l.forEach((e, t) => {
 			e.forEach((e, n) => {
 				t.removeEventListener(n, e);
 			});
-		}), c.clear();
+		}), l.clear();
 	}, g = (e) => {
 		!e || f || queueMicrotask(() => {
 			f || (n.dispatchEvent(new Event("input", { bubbles: !0 })), n.dispatchEvent(new Event("change", { bubbles: !0 })));
@@ -257,8 +257,8 @@ function E(e, t, n, r) {
 		};
 		["input", "change"].forEach((t) => {
 			e.addEventListener(t, r);
-			let n = c.get(e) || /* @__PURE__ */ new Map();
-			n.set(t, r), c.set(e, n);
+			let n = l.get(e) || /* @__PURE__ */ new Map();
+			n.set(t, r), l.set(e, n);
 		});
 	}, b = () => {
 		m || f || (m = !0, queueMicrotask(() => {

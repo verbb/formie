@@ -1,4 +1,4 @@
-//#region node_modules/@verbb/formie-core/dist/index.js
+//#region ../formie-core/dist/index.js
 var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescriptor, r = Object.getOwnPropertyNames, i = Object.getPrototypeOf, a = Object.prototype.hasOwnProperty, o = (e, t) => () => (t || (e((t = { exports: {} }).exports, t), e = null), t.exports), s = (e, i, o, s) => {
 	if (i && typeof i == "object" || typeof i == "function") for (var c = r(i), l = 0, u = c.length, d; l < u; l++) d = c[l], !a.call(e, d) && d !== o && t(e, d, {
 		get: ((e) => i[e]).bind(null, d),
@@ -2656,4 +2656,4 @@ function P(e) {
 	};
 }
 //#endregion
-export { g as a, x as c, P as i, T as n, h as o, S as r, E as s, C as t };
+export { g as a, x as c, S as i, P as n, h as o, T as r, E as s, C as t };
