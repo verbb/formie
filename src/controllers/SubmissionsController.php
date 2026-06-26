@@ -260,7 +260,7 @@ class SubmissionsController extends Controller
                     return $this->_returnJsonResponse(true, $submission, $form, $nextPage);
                 }
 
-                return $this->refresh();
+                return $this->_redirectToReturnUrl();
             }
 
             // Set a specific page as the current page. This will override the session-based
@@ -388,7 +388,7 @@ class SubmissionsController extends Controller
 
             if (!empty($nextPage)) {
                 // Refresh, there's still more pages to complete
-                return $this->refresh();
+                return $this->_redirectToReturnUrl();
             }
 
             Formie::$plugin->getService()->setFlash($form->id, 'submitted', true);
@@ -403,7 +403,7 @@ class SubmissionsController extends Controller
                     'submission' => $submission,
                 ]);
 
-                return $this->refresh();
+                return $this->_redirectToReturnUrl();
             }
 
             return $this->redirectToPostedUrl($submission);
@@ -509,7 +509,7 @@ class SubmissionsController extends Controller
                 return $this->_returnJsonResponse(true, $submission, $form, $nextPage);
             }
 
-            return $this->refresh();
+            return $this->_redirectToReturnUrl();
         }
 
         // Set a specific page as the current page. This will override the session-based
@@ -736,7 +736,7 @@ class SubmissionsController extends Controller
                 return $this->redirect($url);
             }
 
-            return $this->refresh();
+            return $this->_redirectToReturnUrl();
         }
 
         Formie::$plugin->getService()->setFlash($form->id, 'submitted', true);
@@ -751,7 +751,7 @@ class SubmissionsController extends Controller
                 'submission' => $submission,
             ]);
 
-            return $this->refresh();
+            return $this->_redirectToReturnUrl();
         }
 
         // Get the URL for redirection (ignore last page checks, already done)
@@ -1278,6 +1278,13 @@ class SubmissionsController extends Controller
             hash_equals((string)$form->uid, (string)($data['formUid'] ?? '')) &&
             (int)($data['submissionId'] ?? 0) === (int)$submission->id &&
             hash_equals((string)$submission->uid, (string)($data['submissionUid'] ?? ''));
+    }
+
+    private function _redirectToReturnUrl(): Response
+    {
+        return $this->redirect(UrlHelper::getSubmissionReturnUrl(
+            $this->_getTypedParam('siteId', 'id'),
+        ));
     }
 
     private function _getTypedParam(string $name, string $type, mixed $default = null, bool $bodyParam = true): mixed

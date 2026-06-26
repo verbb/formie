@@ -79,4 +79,27 @@ class UrlHelper extends CraftUrlHelper
         return $fallback ?? static::siteUrl();
     }
 
+    public static function getSubmissionReturnUrl(?int $siteId = null): string
+    {
+        $request = Craft::$app->getRequest();
+
+        $returnUrl = $request->getValidatedBodyParam('returnUrl');
+
+        if ($returnUrl && static::isSameSiteUrl($returnUrl)) {
+            return $returnUrl;
+        }
+
+        $referrer = $request->getReferrer();
+
+        if ($referrer && static::isSameSiteUrl($referrer)) {
+            return $referrer;
+        }
+
+        if ($siteId) {
+            return static::siteUrl($request->getPathInfo(), null, null, $siteId);
+        }
+
+        return static::siteUrl();
+    }
+
 }
