@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.0.11 - 2026-06-26
+
 ### Changed
 - Send CSRF tokens from `session.tokens.csrf` on client REST `submit`, `refreshSession`, and `setPage` requests when guest CSRF validation is enabled on the server.
 

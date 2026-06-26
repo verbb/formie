@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.0.11 - 2026-06-26
+
 ### Added
 - Add Radio field **Other** choice support with free-text input, show/hide behaviour, and client-side validation when the Other option is selected. ([#1875](https://github.com/verbb/formie/issues/1875))
 - Add the `password-validation` field module for Password fields, enforcing minimum length and uppercase, lowercase, and special character requirements on the front-end. ([#1880](https://github.com/verbb/formie/issues/1880))

@@ -1,6 +1,6 @@
 {
   "name": "@verbb/formie-browser",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -70,7 +70,7 @@
     "@placekit/autocomplete-js": "^2.2.1",
     "@uppy/core": "^5.2.0",
     "@uppy/xhr-upload": "^5.2.0",
-    "@verbb/formie-core": "1.0.10",
+    "@verbb/formie-core": "1.0.11",
     "expression-language": "^2.5.4",
     "flatpickr": "^4.6.13",
     "friendly-challenge": "^0.9.19",

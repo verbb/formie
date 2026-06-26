@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 1.0.11 - 2026-06-26
+
+### Changed
+- Released alongside the other `@verbb/formie-*` packages to keep versions aligned (@verbb/formie-vue).
+
 ## 1.0.10 - 2026-06-26
 
 ### Changed
