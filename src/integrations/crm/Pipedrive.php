@@ -47,6 +47,7 @@ class Pipedrive extends Crm
     public ?array $leadFieldMapping = null;
     public ?array $organizationFieldMapping = null;
     public ?array $noteFieldMapping = null;
+    public bool $mergeMultiOptionFields = false;
 
 
     // Public Methods
@@ -278,6 +279,15 @@ class Pipedrive extends Crm
 
                 // Update or create
                 if ($existingPersonId) {
+                    if ($this->mergeMultiOptionFields) {
+                        $personPayload = $this->_mergeMultiOptionFields(
+                            $personPayload,
+                            'person',
+                            $existingPersonId,
+                            $this->_getMultiOptionFieldHandles($this->getFormSettingValue('person') ?? []),
+                        );
+                    }
+
                     $response = $this->deliverPayload($submission, "persons/{$existingPersonId}", $personPayload, 'PUT');
                 } else {
                     $response = $this->deliverPayload($submission, 'persons', $personPayload);
@@ -553,6 +563,12 @@ class Pipedrive extends Crm
             'dataKey' => 'person',
         ]);
         $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'mergeMultiOptionFields',
+            'label' => Craft::t('formie', 'Merge Multi-Option Fields'),
+            'instructions' => Craft::t('formie', 'When updating an existing person, append mapped multi-option field values (such as labels) to any existing values, instead of replacing them.'),
+            'if' => 'mapToPerson',
+        ]);
+        $schema[] = SchemaHelper::lightswitchField([
             'name' => 'mapToDeal',
             'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Deal']),
             'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Deals']),
@@ -720,5 +736,54 @@ class Pipedrive extends Crm
         }
 
         return $customFields;
+    }
+
+    private function _getMultiOptionFieldHandles(array $integrationFields): array
+    {
+        $handles = [];
+
+        foreach ($integrationFields as $field) {
+            if ($field->sourceType === 'set' || $field->handle === 'label_ids') {
+                $handles[] = $field->handle;
+            }
+        }
+
+        return $handles;
+    }
+
+    private function _normalizeSetFieldValue(mixed $value): array
+    {
+        if (is_array($value)) {
+            return array_map('intval', $value);
+        }
+
+        if (is_string($value) && $value !== '') {
+            return array_map('intval', array_filter(array_map('trim', explode(',', $value))));
+        }
+
+        return [];
+    }
+
+    private function _mergeMultiOptionFields(array $payload, string $entityType, int $existingId, array $multiOptionFieldHandles): array
+    {
+        if (!$multiOptionFieldHandles) {
+            return $payload;
+        }
+
+        $response = $this->request('GET', "{$entityType}s/{$existingId}");
+        $existing = $response['data'] ?? [];
+
+        foreach ($multiOptionFieldHandles as $handle) {
+            if (!array_key_exists($handle, $payload) || !is_array($payload[$handle])) {
+                continue;
+            }
+
+            $payload[$handle] = array_values(array_unique(array_merge(
+                $this->_normalizeSetFieldValue($existing[$handle] ?? null),
+                array_map('intval', $payload[$handle]),
+            )));
+        }
+
+        return $payload;
     }
 }

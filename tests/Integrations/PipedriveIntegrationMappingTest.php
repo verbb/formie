@@ -56,3 +56,123 @@ it('Pipedrive EVENT_MODIFY_FIELD_MAPPING_VALUE leaves non-set arrays unchanged',
         ->and($value[1])->toBeArray()
         ->and($value[1])->toHaveKey('value');
 });
+
+it('Pipedrive _normalizeSetFieldValue handles arrays and comma-separated strings', function (): void {
+    $method = new ReflectionMethod(Pipedrive::class, '_normalizeSetFieldValue');
+    $method->setAccessible(true);
+
+    expect($method->invoke(new Pipedrive(), [1, '2', 3]))->toBe([1, 2, 3])
+        ->and($method->invoke(new Pipedrive(), '51, 52'))->toBe([51, 52])
+        ->and($method->invoke(new Pipedrive(), ''))->toBe([])
+        ->and($method->invoke(new Pipedrive(), null))->toBe([]);
+});
+
+it('Pipedrive _getMultiOptionFieldHandles returns set fields and label_ids', function (): void {
+    $method = new ReflectionMethod(Pipedrive::class, '_getMultiOptionFieldHandles');
+    $method->setAccessible(true);
+
+    $integration = new Pipedrive(['name' => 'Pipedrive', 'handle' => 'pipedrive']);
+
+    $handles = $method->invoke($integration, [
+        new IntegrationField(['handle' => 'name', 'sourceType' => 'varchar']),
+        new IntegrationField(['handle' => 'abc123', 'sourceType' => 'set']),
+        new IntegrationField(['handle' => 'label_ids', 'sourceType' => 'set']),
+        new IntegrationField(['handle' => 'stage_id', 'sourceType' => 'enum']),
+    ]);
+
+    expect($handles)->toBe(['abc123', 'label_ids']);
+});
+
+it('Pipedrive _mergeMultiOptionFields merges existing and mapped set field values', function (): void {
+    $integration = new class(['name' => 'Pipedrive', 'handle' => 'pipedrive']) extends Pipedrive {
+        public array $requests = [];
+
+        public function request(string $method, string $uri, array $options = []): mixed
+        {
+            $this->requests[] = compact('method', 'uri', 'options');
+
+            return [
+                'data' => [
+                    'label_ids' => [1, 2],
+                    'abc123def456' => '10, 11',
+                ],
+            ];
+        }
+    };
+
+    $method = new ReflectionMethod(Pipedrive::class, '_mergeMultiOptionFields');
+    $method->setAccessible(true);
+
+    $payload = [
+        'name' => 'Jane Doe',
+        'label_ids' => [3],
+        'abc123def456' => [12],
+    ];
+
+    $merged = $method->invoke(
+        $integration,
+        $payload,
+        'person',
+        8432,
+        ['label_ids', 'abc123def456'],
+    );
+
+    expect($merged['name'])->toBe('Jane Doe')
+        ->and($merged['label_ids'])->toBe([1, 2, 3])
+        ->and($merged['abc123def456'])->toBe([10, 11, 12])
+        ->and($integration->requests)->toHaveCount(1)
+        ->and($integration->requests[0]['method'])->toBe('GET')
+        ->and($integration->requests[0]['uri'])->toBe('persons/8432');
+});
+
+it('Pipedrive _mergeMultiOptionFields deduplicates overlapping option ids', function (): void {
+    $integration = new class(['name' => 'Pipedrive', 'handle' => 'pipedrive']) extends Pipedrive {
+        public function request(string $method, string $uri, array $options = []): mixed
+        {
+            return [
+                'data' => [
+                    'label_ids' => [1, 2],
+                ],
+            ];
+        }
+    };
+
+    $method = new ReflectionMethod(Pipedrive::class, '_mergeMultiOptionFields');
+    $method->setAccessible(true);
+
+    $merged = $method->invoke(
+        $integration,
+        ['label_ids' => [2, 3]],
+        'person',
+        8432,
+        ['label_ids'],
+    );
+
+    expect($merged['label_ids'])->toBe([1, 2, 3]);
+});
+
+it('Pipedrive _mergeMultiOptionFields skips unmapped multi-option fields', function (): void {
+    $integration = new class(['name' => 'Pipedrive', 'handle' => 'pipedrive']) extends Pipedrive {
+        public function request(string $method, string $uri, array $options = []): mixed
+        {
+            return [
+                'data' => [
+                    'label_ids' => [1, 2],
+                ],
+            ];
+        }
+    };
+
+    $method = new ReflectionMethod(Pipedrive::class, '_mergeMultiOptionFields');
+    $method->setAccessible(true);
+
+    $merged = $method->invoke(
+        $integration,
+        ['name' => 'Jane Doe'],
+        'person',
+        8432,
+        ['label_ids'],
+    );
+
+    expect($merged)->toBe(['name' => 'Jane Doe']);
+});
