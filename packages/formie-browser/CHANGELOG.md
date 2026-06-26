@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## 1.0.11 - 2026-06-25
+
+### Added
+- Add Radio field **Other** choice support with free-text input, show/hide behaviour, and client-side validation when the Other option is selected. ([#1875](https://github.com/verbb/formie/issues/1875))
+- Add the `password-validation` field module for Password fields, enforcing minimum length and uppercase, lowercase, and special character requirements on the front-end. ([#1880](https://github.com/verbb/formie/issues/1880))
+
+### Changed
+- Insert CSRF hidden inputs during token refresh when cached or statically rendered forms omit them via the `csrfInput: false` render option. ([#2121](https://github.com/verbb/formie/discussions/2121))
+
 ## 1.0.10 - 2026-06-26
 
 ### Changed

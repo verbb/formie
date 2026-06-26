@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 1.0.11 - 2026-06-25
+
+### Changed
+- Released alongside `@verbb/formie-browser` and `@verbb/formie-core` to keep package versions aligned, including Radio **Other** choice support, Password field client validation, cached-form CSRF refresh handling, and client REST CSRF token transport updates.
+
 ## 1.0.10 - 2026-06-26
 
 ### Changed

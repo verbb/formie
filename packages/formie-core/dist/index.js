@@ -3338,7 +3338,11 @@ async function Q(e, t) {
 	if (!n.ok) throw Error(`Request failed with status ${n.status}.`);
 	return n.json();
 }
-async function Ae(e) {
+function Ae(e, t) {
+	let n = t?.tokens?.csrf;
+	!n?.name || !n.value || (e[n.name] = n.value);
+}
+async function je(e) {
 	let t = Z(e.endpoint, "/actions/formie/client/forms/load"), n = JSON.stringify({
 		handle: e.formHandle,
 		siteId: e.siteId
@@ -3350,56 +3354,57 @@ async function Ae(e) {
 		body: n
 	});
 }
-function je(e) {
+function Me(e) {
 	return {
 		async submit({ definition: t, session: n, values: r, action: i }) {
-			let a = Z(e.endpoint, "/actions/formie/client/submissions/submit"), o = await R(t, r);
-			return Q(a, {
+			let a = Z(e.endpoint, "/actions/formie/client/submissions/submit"), o = await R(t, r), s = {
+				handle: e.formHandle,
+				siteId: e.siteId,
+				action: i,
+				session: n,
+				values: o
+			};
+			return Ae(s, n), Q(a, {
 				method: "POST",
 				credentials: e.credentials ?? "same-origin",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					handle: e.formHandle,
-					siteId: e.siteId,
-					action: i,
-					session: n,
-					values: o
-				})
+				body: JSON.stringify(s)
 			});
 		},
 		async refreshSession({ session: t }) {
-			return Q(Z(e.endpoint, "/actions/formie/client/sessions/refresh"), {
+			let n = Z(e.endpoint, "/actions/formie/client/sessions/refresh"), r = {
+				handle: e.formHandle,
+				siteId: e.siteId,
+				session: t
+			};
+			return Ae(r, t), Q(n, {
 				method: "POST",
 				credentials: e.credentials ?? "same-origin",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					handle: e.formHandle,
-					siteId: e.siteId,
-					session: t
-				})
+				body: JSON.stringify(r)
 			});
 		},
 		async setPage({ definition: t, session: n, values: r, currentPageId: i, targetPageId: a }) {
-			let o = Z(e.endpoint, "/actions/formie/client/forms/page"), s = await R(t, r);
-			return Q(o, {
+			let o = Z(e.endpoint, "/actions/formie/client/forms/page"), s = await R(t, r), c = {
+				handle: e.formHandle,
+				siteId: e.siteId,
+				currentPageId: i,
+				targetPageId: a,
+				session: n,
+				values: s
+			};
+			return Ae(c, n), Q(o, {
 				method: "POST",
 				credentials: e.credentials ?? "same-origin",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					handle: e.formHandle,
-					siteId: e.siteId,
-					currentPageId: i,
-					targetPageId: a,
-					session: n,
-					values: s
-				})
+				body: JSON.stringify(c)
 			});
 		}
 	};
 }
 //#endregion
 //#region src/graphql.ts
-var $ = "\n    id\n    currentPageId\n    tokens\n    continuation\n", Me = `
+var $ = "\n    id\n    currentPageId\n    tokens\n    continuation\n", Ne = `
     success
     submissionUid
     currentPageId
@@ -3420,13 +3425,13 @@ var $ = "\n    id\n    currentPageId\n    tokens\n    continuation\n", Me = `
     }
     quizResult
 `;
-function Ne(e) {
+function Pe(e) {
 	if (e.startsWith("http://") || e.startsWith("https://")) return e;
 	let t = e.trim();
 	return !t || t === "/" ? "/api" : t;
 }
-async function Pe(e, t, n) {
-	let r = await fetch(Ne(e.endpoint), {
+async function Fe(e, t, n) {
+	let r = await fetch(Pe(e.endpoint), {
 		method: "POST",
 		credentials: e.credentials ?? "same-origin",
 		headers: {
@@ -3444,8 +3449,8 @@ async function Pe(e, t, n) {
 	if (!i.data) throw Error("GraphQL returned no data.");
 	return i.data;
 }
-async function Fe(e) {
-	let t = await Pe(e, `
+async function Ie(e) {
+	let t = await Fe(e, `
             query ClientForm($handle: String!, $siteId: Int) {
                 formieClientForm(handle: $handle, siteId: $siteId) {
                     schemaVersion
@@ -3462,15 +3467,15 @@ async function Fe(e) {
 	if (!t.formieClientForm) throw Error("No client form definition was returned.");
 	return t.formieClientForm;
 }
-function Ie(e) {
+function Le(e) {
 	return {
 		async submit({ definition: t, session: n, values: r, action: i }) {
-			let a = await R(t, r), o = await Pe(e, `
+			let a = await R(t, r), o = await Fe(e, `
                     mutation SubmitFormieClientForm(
                         $input: FormieClientSubmitInput!
                     ) {
                         submitFormieClientForm(input: $input) {
-                            ${Me}
+                            ${Ne}
                         }
                     }
                 `, { input: {
@@ -3484,7 +3489,7 @@ function Ie(e) {
 			return o.submitFormieClientForm;
 		},
 		async refreshSession({ session: t }) {
-			let n = await Pe(e, `
+			let n = await Fe(e, `
                     mutation RefreshFormieClientSession(
                         $input: FormieClientSessionRefreshInput!
                     ) {
@@ -3501,7 +3506,7 @@ function Ie(e) {
 			return n.refreshFormieClientSession;
 		},
 		async setPage({ definition: t, session: n, values: r, currentPageId: i, targetPageId: a }) {
-			let o = await R(t, r), s = await Pe(e, `
+			let o = await R(t, r), s = await Fe(e, `
                     mutation SetFormieClientPage(
                         $input: FormieClientSetPageInput!
                     ) {
@@ -3524,31 +3529,31 @@ function Ie(e) {
 }
 //#endregion
 //#region src/text.ts
-var Le = (() => {
+var Re = (() => {
 	let e = Intl.Segmenter;
 	return e ? new e(void 0, { granularity: "grapheme" }) : null;
-})(), Re = /[\p{L}\p{N}\p{M}]+(?:['’._-][\p{L}\p{N}\p{M}]+)*/gu;
-function ze(e) {
+})(), ze = /[\p{L}\p{N}\p{M}]+(?:['’._-][\p{L}\p{N}\p{M}]+)*/gu;
+function Be(e) {
 	return typeof DOMParser < "u" ? new DOMParser().parseFromString(e, "text/html").body.textContent || "" : e.replace(/<[^>]*>/g, " ");
 }
-function Be(e) {
-	return ze(e);
-}
 function Ve(e) {
-	return Be(e).replace(/[\s\t\n\r]+/g, " ").trim();
+	return Be(e);
 }
 function He(e) {
-	return Le ? Array.from(Le.segment(e)).length : Array.from(e).length;
+	return Ve(e).replace(/[\s\t\n\r]+/g, " ").trim();
 }
 function Ue(e) {
-	return e.match(Re)?.length || 0;
+	return Re ? Array.from(Re.segment(e)).length : Array.from(e).length;
 }
 function We(e) {
-	let t = Be(e), n = Ve(e);
+	return e.match(ze)?.length || 0;
+}
+function Ge(e) {
+	let t = Ve(e), n = He(e);
 	return {
-		graphemeCount: He(t),
-		wordCount: Ue(n)
+		graphemeCount: Ue(t),
+		wordCount: We(n)
 	};
 }
 //#endregion
-export { ye as FRONTEND_CLIENT_EVENT_NAMES, v as allFields, Ee as coerceCalculationVariables, A as compositePartDefinitions, He as countGraphemes, ve as createFrontendFormInstance, Ie as createGraphqlFrontendTransport, ne as createRepeaterRowValue, je as createRestFrontendTransport, N as defaultValueForField, ke as evaluateCalculationExpression, h as evaluateConditionDefinition, P as fieldValueAsStrings, S as fieldValueContract, C as fieldValueStructure, g as finalizeConditionEvaluation, b as findFieldByHandle, y as findFieldById, De as formatCalculationValue, we as getCalculationFormula, Te as getCalculationVariableEntries, We as getTextLimitMetrics, Ue as getWordCount, O as isBooleanField, w as isCompositeField, te as isEmailField, E as isFileField, ee as isKnownFrontendFieldType, D as isMultiValueField, k as isNumericField, T as isRepeatableField, Ae as loadFrontendEnvelope, Fe as loadGraphqlFrontendEnvelope, Ve as normalizeText, Oe as readCalculationVariableValue, M as repeaterFieldDefinitions, j as repeaterRowDefinitions, x as serializeFieldValues, R as serializeTransportFieldValues };
+export { ye as FRONTEND_CLIENT_EVENT_NAMES, v as allFields, Ee as coerceCalculationVariables, A as compositePartDefinitions, Ue as countGraphemes, ve as createFrontendFormInstance, Le as createGraphqlFrontendTransport, ne as createRepeaterRowValue, Me as createRestFrontendTransport, N as defaultValueForField, ke as evaluateCalculationExpression, h as evaluateConditionDefinition, P as fieldValueAsStrings, S as fieldValueContract, C as fieldValueStructure, g as finalizeConditionEvaluation, b as findFieldByHandle, y as findFieldById, De as formatCalculationValue, we as getCalculationFormula, Te as getCalculationVariableEntries, Ge as getTextLimitMetrics, We as getWordCount, O as isBooleanField, w as isCompositeField, te as isEmailField, E as isFileField, ee as isKnownFrontendFieldType, D as isMultiValueField, k as isNumericField, T as isRepeatableField, je as loadFrontendEnvelope, Ie as loadGraphqlFrontendEnvelope, He as normalizeText, Oe as readCalculationVariableValue, M as repeaterFieldDefinitions, j as repeaterRowDefinitions, x as serializeFieldValues, R as serializeTransportFieldValues };
