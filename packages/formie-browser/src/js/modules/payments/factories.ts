@@ -33,6 +33,11 @@ type PaymentSetupResult = {
     onBeforeStage?: (stageCtx: import('#contracts/modules').SubmitHookContext) => void | Promise<void>;
 };
 
+export type PaymentAfterSubmitResult = {
+    /** Tear down the current widget and mount again (for example after a failed payment). */
+    remount?: boolean;
+};
+
 export type ManagedPaymentModuleAdapter<
     TProvider extends Record<string, unknown>,
     TApi,
@@ -74,7 +79,7 @@ export type ManagedPaymentModuleAdapter<
         options: NormalizedPaymentModuleOptions<TProvider>;
         provider: TProvider;
         result?: import('#contracts/schema').FormSubmitResult;
-    }) => void | Promise<void>;
+    }) => void | Promise<void> | PaymentAfterSubmitResult | Promise<PaymentAfterSubmitResult>;
 };
 
 export function createManagedPaymentModule<
@@ -318,13 +323,33 @@ export function createManagedPaymentModule<
                         return;
                     }
 
-                    await adapter.onAfterSubmit({
+                    const afterSubmitResult = await adapter.onAfterSubmit({
                         field: ctx.target,
                         services,
                         options,
                         provider: options.provider,
                         result,
                     });
+
+                    if (!afterSubmitResult?.remount || !adapter.mount) {
+                        return;
+                    }
+
+                    if (widget && adapter.unmount) {
+                        const api = await getApi();
+
+                        await adapter.unmount({
+                            api,
+                            widget,
+                            field: ctx.target,
+                            services,
+                            options,
+                            provider: options.provider,
+                        });
+                    }
+
+                    widget = null;
+                    await ensureMounted();
                 },
             };
         },

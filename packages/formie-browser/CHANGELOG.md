@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Fixed
+- Hide PayPal buttons after successful authorization so users are not prompted to pay again before submitting the form. Buttons are restored automatically when authorization is cleared after a failed submit.
+
 ## 1.0.11 - 2026-06-26
 
 ### Added

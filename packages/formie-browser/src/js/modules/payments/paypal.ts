@@ -64,6 +64,15 @@ function extractAuthIdFromAuthorization(result: Record<string, unknown> | null):
     return authId.trim();
 }
 
+function hidePayPalButtons(widget: PayPalButtonsInstance | null, placeholder: HTMLElement): void {
+    if (widget?.close) {
+        widget.close();
+    }
+
+    placeholder.removeAttribute('data-formie-paypal-rendered');
+    placeholder.innerHTML = '';
+}
+
 function getScriptUrl(clientId: string, currency: string): string {
     const params = [
         'intent=authorize',
@@ -137,6 +146,8 @@ export const paypalModule = definePaymentModule<PayPalProviderOptions, PayPalGlo
             style.tagline = provider.buttonTagline ?? true;
         }
 
+        let widget: PayPalButtonsInstance | null = null;
+
         const paypalOptions: PayPalButtonsOptions = {
             env: useSandbox ? 'sandbox' : 'production',
             style,
@@ -183,6 +194,8 @@ export const paypalModule = definePaymentModule<PayPalProviderOptions, PayPalGlo
                         // Allow submit to continue using order ID fallback on the backend.
                         services.addSuccess('PayPal approval received. Finalizing payment on submit.');
                     }
+
+                    hidePayPalButtons(widget, placeholder);
                 } catch {
                     services.addError('Unable to authorize payment. Please try again.');
                 }
@@ -191,9 +204,9 @@ export const paypalModule = definePaymentModule<PayPalProviderOptions, PayPalGlo
 
         const buttons = api.Buttons(paypalOptions);
         placeholder.setAttribute('data-formie-paypal-rendered', 'true');
-        const instance = buttons.render(placeholder);
+        widget = buttons.render(placeholder);
 
-        return instance;
+        return widget;
     },
     unmount: async (args) => {
         if (args.widget?.close) {
@@ -206,9 +219,16 @@ export const paypalModule = definePaymentModule<PayPalProviderOptions, PayPalGlo
             placeholder.innerHTML = '';
         }
     },
-    onAfterSubmit: async ({ services }) => {
+    onAfterSubmit: async ({ services, result }) => {
         services.updateInputs(['paypalOrderId', 'paypalAuthId'], '');
         services.removeSuccess();
         services.removeError();
+
+        // Restore buttons when auth was cleared but payment did not fully complete.
+        if (!result?.ok || result?.nextPage) {
+            return { remount: true };
+        }
+
+        return {};
     },
 });

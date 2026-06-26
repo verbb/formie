@@ -8,6 +8,10 @@ type PaymentSetupResult = {
     destroy?: () => void | Promise<void>;
     onBeforeStage?: (stageCtx: import('#contracts/modules').SubmitHookContext) => void | Promise<void>;
 };
+export type PaymentAfterSubmitResult = {
+    /** Tear down the current widget and mount again (for example after a failed payment). */
+    remount?: boolean;
+};
 export type ManagedPaymentModuleAdapter<TProvider extends Record<string, unknown>, TApi, TWidget> = {
     id: string;
     defaultRequiredInputSuffixes?: string[];
@@ -47,7 +51,7 @@ export type ManagedPaymentModuleAdapter<TProvider extends Record<string, unknown
         options: NormalizedPaymentModuleOptions<TProvider>;
         provider: TProvider;
         result?: import('#contracts/schema').FormSubmitResult;
-    }) => void | Promise<void>;
+    }) => void | Promise<void> | PaymentAfterSubmitResult | Promise<PaymentAfterSubmitResult>;
 };
 export declare function createManagedPaymentModule<TProvider extends Record<string, unknown>, TApi, TWidget>(adapter: ManagedPaymentModuleAdapter<TProvider, TApi, TWidget>): FormieModuleDefinition;
 export {};
