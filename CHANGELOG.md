@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 4.0.0-beta.10 - 2026-06-26
 
 ### Added
 - Add **Form Statuses** to label form lifecycle states in the control panel (active, draft, archived), with form builder assignment, index status menu filtering, bulk actions, and project config support. Rename existing submission workflow labels to **Submission Statuses**, with backward-compatible class aliases. ([#1471](https://github.com/verbb/formie/issues/1471))
