@@ -22,6 +22,7 @@ class SubmissionsController extends Controller
     // =========================================================================
 
     use CrossOriginRequestTrait;
+    use ClientGuestCsrfTrait;
 
     
     // Public Methods
@@ -29,9 +30,7 @@ class SubmissionsController extends Controller
 
     public function beforeAction($action): bool
     {
-        if (in_array($action->id, ['submit'], true)) {
-            $this->enableCsrfValidation = false;
-        }
+        $this->configureGuestCsrfValidation(['submit']);
 
         return parent::beforeAction($action);
     }

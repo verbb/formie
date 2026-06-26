@@ -5,8 +5,10 @@ declare(strict_types=1);
 use craft\errors\GqlException;
 use craft\models\GqlSchema;
 use GraphQL\Error\Error;
+use GraphQL\Type\Definition\ResolveInfo;
 use verbb\formie\gql\resolvers\HtmlFormResolver;
 use verbb\formie\gql\resolvers\ClientFormResolver;
+use verbb\formie\gql\resolvers\mutations\SubmissionResolver;
 use yii\web\NotFoundHttpException;
 
 it('returns a generic not-found message for unknown client form handles', function (): void {
@@ -94,6 +96,68 @@ it('requires submission mutation scopes for client graphql session mutations', f
                 'session' => [],
             ],
         ]))->toThrow(Error::class, 'Unable to perform the action.');
+    });
+})->group('security');
+
+it('requires submission mutation scopes for client graphql submit mutations', function (): void {
+    $form = formie()
+        ->form(['title' => 'Client GraphQL Submit Permissions'])
+        ->singleLineTextField('fullName')
+        ->create();
+
+    withGraphqlSchemaScope([
+        'formieForms.' . $form->uid . ':read',
+    ], function () use ($form): void {
+        expect(fn() => ClientFormResolver::submitForm(null, [
+            'input' => [
+                'handle' => (string)$form->handle,
+                'session' => [],
+                'values' => [
+                    'fullName' => 'Security Tester',
+                ],
+            ],
+        ]))->toThrow(Error::class, 'Unable to perform the action.');
+    });
+})->group('security');
+
+it('requires submission create scopes for save submission by handle mutations', function (): void {
+    $form = formie()
+        ->form(['title' => 'GraphQL Save Submission Permissions'])
+        ->singleLineTextField('fullName')
+        ->create();
+    $resolver = Craft::createObject(SubmissionResolver::class);
+    $resolveInfo = test()->createMock(ResolveInfo::class);
+
+    withGraphqlSchemaScope([
+        'formieForms.' . $form->uid . ':read',
+    ], function () use ($form, $resolver, $resolveInfo): void {
+        expect(fn() => $resolver->saveSubmissionByHandle(null, [
+            'formHandle' => (string)$form->handle,
+            'fields' => [
+                'fullName' => 'Security Tester',
+            ],
+        ], null, $resolveInfo))->toThrow(Error::class, 'Unable to perform the action.');
+    });
+})->group('security');
+
+it('requires submission delete scopes for delete submission mutations', function (): void {
+    $form = formie()
+        ->form(['title' => 'GraphQL Delete Submission Permissions'])
+        ->singleLineTextField('fullName')
+        ->create();
+    $submission = formie()
+        ->submission($form)
+        ->with(['fullName' => 'Delete Me'])
+        ->save();
+    $resolver = Craft::createObject(SubmissionResolver::class);
+    $resolveInfo = test()->createMock(ResolveInfo::class);
+
+    withGraphqlSchemaScope([
+        'formieForms.' . $form->uid . ':read',
+    ], function () use ($submission, $resolver, $resolveInfo): void {
+        expect(fn() => $resolver->deleteSubmission(null, [
+            'id' => (int)$submission->id,
+        ], null, $resolveInfo))->toThrow(Error::class, 'Unable to perform the action.');
     });
 })->group('security');
 

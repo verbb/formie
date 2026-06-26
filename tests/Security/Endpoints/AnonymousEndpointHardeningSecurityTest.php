@@ -653,6 +653,27 @@ it('rate limits anonymous payment webhook requests by handle reference and clien
     ]);
 })->group('security');
 
+it('rate limits anonymous payment callback requests by handle reference and client', function (): void {
+    $integration = createPaymentIntegrationFixture();
+
+    WebRequestTestHelper::withWebRequestContext(function ($request) use ($integration): void {
+        $request->setQueryParams([
+            'handle' => (string)$integration->handle,
+        ]);
+
+        $controller = new PaymentWebhooksController('formie-payment-security', Craft::$app);
+
+        for ($i = 0; $i < 60; $i++) {
+            $controller->actionProcessCallback();
+        }
+
+        expect(fn() => $controller->actionProcessCallback())->toThrow(TooManyRequestsHttpException::class);
+    }, [
+        'method' => 'POST',
+        'remoteAddr' => '198.51.100.58',
+    ]);
+})->group('security');
+
 it('fails closed when stripe webhook signing is not configured or supplied', function (): void {
     $integration = new Stripe([
         'name' => 'Security Stripe',

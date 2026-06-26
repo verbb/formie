@@ -29,7 +29,7 @@ class IntegrationsController extends Controller
     // Properties
     // =========================================================================
 
-    protected array|bool|int $allowAnonymous = ['callback'];
+    protected array|bool|int $allowAnonymous = ['callback' => self::ALLOW_ANONYMOUS_LIVE];
 
 
     // Public Methods

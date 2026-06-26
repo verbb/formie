@@ -27,7 +27,9 @@ Submission guards are global, built-in checks — not captcha integrations. They
 | `screen.runSubmissionGuards` | `screen` | Validate honeypot, minimum submit time, and replay token state |
 | `finalize.consumeReplayToken` | `finalize` | Consume the request token after successful processing |
 
-Guards only run for browser form POST requests that include `handle` and `submitAction`. GraphQL and headless submissions skip them.
+Guards run for every final submit. **Universal guards** (global throttling, IP throttling, replay protection, and a required request token) apply to browser, client REST, and GraphQL submissions. **Browser-only guards** (honeypot, minimum submit time, and form submit expiration) run only for traditional form posts that include `handle` and `submitAction` in the POST body.
+
+Client REST and GraphQL submissions must include a `requestToken` issued by a bootstrap call such as `formieClientForm` or `refreshFormieClientSession`. Drive-by API posts without a token are rejected.
 
 Day-to-day configuration lives in [Spam Protection](/forms/spam-protection#submission-guards). If you are upgrading from Formie 3 and used the old built-in captchas, see [Removed legacy captchas](/get-started/upgrading-from-v3#removed-legacy-captchas) in the upgrade guide.
 

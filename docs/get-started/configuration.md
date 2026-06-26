@@ -196,7 +196,8 @@ return [
 ### Security-sensitive runtime settings
 - Keep `allowedGraphqlOrigins` as narrow as possible when using headless/runtime forms. Avoid wildcard or broad origins when credentialed requests are allowed.
 - Public GraphQL schemas should only include the Formie form and submission scopes required by the front-end consuming them.
-- Keep `enableCsrfValidationForGuests` enabled unless you have a specific headless/runtime integration that cannot submit CSRF tokens.
+- Keep `enableCsrfValidationForGuests` enabled unless you have a specific headless/runtime integration that cannot submit CSRF tokens. Client REST transports should send the CSRF token from `session.tokens.csrf` in the JSON request body when this setting is enabled.
+- Store integration API keys and secrets in environment variables (for example `$STRIPE_SECRET_KEY`) rather than plaintext in the database when possible. Formie persists integration settings as JSON in `formie_integrations`; values that use Craft's env syntax are resolved at runtime and are not stored in project config exports.
 
 ### Sent Notifications
 - `sentNotifications` enables Sent Notifications.

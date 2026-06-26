@@ -35,6 +35,7 @@ final class WebRequestTestHelper
         try {
             /** @var Application $app */
             $app = self::createWebApplication($originalApp);
+            self::mirrorFormiePluginState($originalApp, $app);
             Formie::$plugin = $originalPlugin;
             self::registerFormieTranslations($app, $originalPlugin?->getBasePath());
 
@@ -145,6 +146,43 @@ final class WebRequestTestHelper
         }
 
         return Craft::createObject($config);
+    }
+
+    private static function mirrorFormiePluginState(ConsoleApplication $sourceApp, Application $targetApp): void
+    {
+        $sourcePlugins = $sourceApp->getPlugins();
+
+        if (!$sourcePlugins->isPluginEnabled('formie') || !$sourcePlugins->getPlugin('formie')) {
+            return;
+        }
+
+        $targetPlugins = $targetApp->getPlugins();
+        $sourceReflection = new \ReflectionClass($sourcePlugins);
+        $targetReflection = new \ReflectionClass($targetPlugins);
+
+        foreach (['_plugins', '_storedPluginInfo'] as $propertyName) {
+            if (!$sourceReflection->hasProperty($propertyName) || !$targetReflection->hasProperty($propertyName)) {
+                continue;
+            }
+
+            $sourceProperty = $sourceReflection->getProperty($propertyName);
+            $sourceProperty->setAccessible(true);
+            $value = $sourceProperty->getValue($sourcePlugins);
+
+            $targetProperty = $targetReflection->getProperty($propertyName);
+            $targetProperty->setAccessible(true);
+            $targetProperty->setValue($targetPlugins, $value);
+        }
+
+        foreach (['_pluginsLoaded' => true, '_loadingPlugins' => false] as $propertyName => $value) {
+            if (!$targetReflection->hasProperty($propertyName)) {
+                continue;
+            }
+
+            $targetProperty = $targetReflection->getProperty($propertyName);
+            $targetProperty->setAccessible(true);
+            $targetProperty->setValue($targetPlugins, $value);
+        }
     }
 
     private static function registerFormieTranslations(Application $app, ?string $pluginBasePath): void

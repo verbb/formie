@@ -134,7 +134,9 @@ Instead, Formie runs them through dedicated workflow tasks:
 1. **`screen.runSubmissionGuards`** — runs during the **`screen`** stage, before captcha and keyword checks. If a guard fails, the submission is marked as spam and `spamReason` is set.
 2. **`finalize.consumeReplayToken`** — runs during the **`finalize`** stage after a successful, complete submission. Replay protection only consumes the token once the submission has finished processing successfully, so failed or incomplete submissions can retry with the same token.
 
-Guards only run for normal browser form posts that include `handle` and `submitAction` in the POST body. GraphQL submissions, headless API usage, and other non-browser flows skip guards automatically.
+Guards run for every final submit. **Universal guards** (global throttling, IP throttling, replay protection, and a required request token) apply to browser, client REST, and GraphQL submissions. **Browser-only guards** (honeypot, minimum submit time, and form submit expiration) run only for traditional form posts that include `handle` and `submitAction` in the POST body, because they rely on hidden fields rendered in the browser.
+
+Client REST and GraphQL submissions must include a `requestToken` issued by `formieClientForm`, `refreshFormieClientSession`, or an equivalent bootstrap call. Drive-by API posts without a token are rejected.
 
 The honeypot field and `formStartedAt` timestamp are rendered automatically for browser forms. You do not need to add them manually in templates.
 

@@ -162,6 +162,135 @@ it('consumes request tokens after a completed submit and blocks replay attempts'
     }
 });
 
+it('skips browser-only submission guards for headless requests with a request token', function (): void {
+    $form = createGuardTestForm();
+
+    /** @var Settings $settings */
+    $settings = Formie::$plugin->getSettings();
+    $originalHoneypot = $settings->enableHoneypot;
+    $originalMinTime = $settings->enableMinimumSubmitTime;
+    $originalReplay = $settings->enableReplayProtection;
+
+    try {
+        $settings->enableHoneypot = true;
+        $settings->enableMinimumSubmitTime = true;
+        $settings->enableReplayProtection = false;
+
+        $reason = WebRequestTestHelper::withWebRequestContext(function () use ($form): ?string {
+            Craft::$app->getRequest()->setBodyParams([
+                'handle' => $form->handle,
+                'action' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+            ]);
+
+            $submission = new Submission();
+            $submission->setForm($form);
+
+            return Formie::$plugin->getSubmissionGuards()->validateRequest(new SubmissionRequest([
+                'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+                'form' => $form,
+                'submission' => $submission,
+                'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+                'requestToken' => 'headless-token-' . uniqid(),
+            ]));
+        }, [
+            'method' => 'POST',
+        ]);
+
+        expect($reason)->toBeNull();
+    } finally {
+        $settings->enableHoneypot = $originalHoneypot;
+        $settings->enableMinimumSubmitTime = $originalMinTime;
+        $settings->enableReplayProtection = $originalReplay;
+    }
+});
+
+it('requires a request token for headless submissions', function (): void {
+    $form = createGuardTestForm();
+
+    $reason = WebRequestTestHelper::withWebRequestContext(function () use ($form): ?string {
+        Craft::$app->getRequest()->setBodyParams([
+            'handle' => $form->handle,
+            'action' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+        ]);
+
+        $submission = new Submission();
+        $submission->setForm($form);
+
+        return Formie::$plugin->getSubmissionGuards()->validateRequest(new SubmissionRequest([
+            'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+            'form' => $form,
+            'submission' => $submission,
+            'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+        ]));
+    }, [
+        'method' => 'POST',
+    ]);
+
+    expect($reason)->toBe('Request token missing.');
+});
+
+it('blocks replayed headless submissions when replay protection is enabled', function (): void {
+    $form = createGuardTestForm();
+    $submissionGuards = Formie::$plugin->getSubmissionGuards();
+
+    /** @var Settings $settings */
+    $settings = Formie::$plugin->getSettings();
+    $original = $settings->enableReplayProtection;
+
+    try {
+        $settings->enableReplayProtection = true;
+        $requestToken = 'headless-replay-token-' . uniqid();
+
+        $reason = WebRequestTestHelper::withWebRequestContext(function () use ($form, $requestToken): ?string {
+            Craft::$app->getRequest()->setBodyParams([
+                'handle' => $form->handle,
+                'action' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+            ]);
+
+            $submission = new Submission();
+            $submission->setForm($form);
+
+            return Formie::$plugin->getSubmissionGuards()->validateRequest(new SubmissionRequest([
+                'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+                'form' => $form,
+                'submission' => $submission,
+                'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+                'requestToken' => $requestToken,
+            ]));
+        }, [
+            'method' => 'POST',
+        ]);
+
+        expect($reason)->toBeNull();
+
+        $submissionGuards->consumeReplayToken((string)$form->uid, $requestToken);
+
+        $blockedReason = WebRequestTestHelper::withWebRequestContext(function () use ($form, $requestToken): ?string {
+            Craft::$app->getRequest()->setBodyParams([
+                'handle' => $form->handle,
+                'action' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+            ]);
+
+            $submission = new Submission();
+            $submission->setForm($form);
+
+            return Formie::$plugin->getSubmissionGuards()->validateRequest(new SubmissionRequest([
+                'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+                'form' => $form,
+                'submission' => $submission,
+                'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+                'requestToken' => $requestToken,
+            ]));
+        }, [
+            'method' => 'POST',
+        ]);
+
+        expect($blockedReason)->toContain('already been used');
+    } finally {
+        $settings->enableReplayProtection = $original;
+    }
+});
+
 it('skips submission guards when the request is not a browser form post', function (): void {
     $form = createGuardTestForm();
 

@@ -81,6 +81,8 @@ class PaymentWebhooksController extends Controller
             throw new NotFoundHttpException('Integration not found');
         }
 
+        $this->_enforceWebhookRateLimit($handle);
+
         return $integration->processCallbacks();
     }
 

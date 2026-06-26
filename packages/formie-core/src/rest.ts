@@ -42,6 +42,16 @@ async function requestJson<T>(url: string, init: RequestInit): Promise<T> {
     return response.json() as Promise<T>;
 }
 
+function appendCsrfToken(body: Record<string, unknown>, session?: FrontendFormSession | null): void {
+    const csrf = session?.tokens?.csrf;
+
+    if (!csrf?.name || !csrf.value) {
+        return;
+    }
+
+    body[csrf.name] = csrf.value;
+}
+
 export async function loadFrontendEnvelope(options: RestFrontendTransportOptions): Promise<FrontendFormEnvelope> {
     const url = buildActionUrl(options.endpoint, '/actions/formie/client/forms/load');
     const body = JSON.stringify({
@@ -64,6 +74,15 @@ export function createRestFrontendTransport(options: RestFrontendTransportOption
         async submit({ definition, session, values, action }): Promise<FrontendSubmitResult> {
             const url = buildActionUrl(options.endpoint, '/actions/formie/client/submissions/submit');
             const serializedValues = await serializeTransportFieldValues(definition, values);
+            const body: Record<string, unknown> = {
+                handle: options.formHandle,
+                siteId: options.siteId,
+                action,
+                session,
+                values: serializedValues,
+            };
+
+            appendCsrfToken(body, session);
 
             return requestJson<FrontendSubmitResult>(url, {
                 method: 'POST',
@@ -71,17 +90,18 @@ export function createRestFrontendTransport(options: RestFrontendTransportOption
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    handle: options.formHandle,
-                    siteId: options.siteId,
-                    action,
-                    session,
-                    values: serializedValues,
-                }),
+                body: JSON.stringify(body),
             });
         },
         async refreshSession({ session }): Promise<FrontendFormSession> {
             const url = buildActionUrl(options.endpoint, '/actions/formie/client/sessions/refresh');
+            const body: Record<string, unknown> = {
+                handle: options.formHandle,
+                siteId: options.siteId,
+                session,
+            };
+
+            appendCsrfToken(body, session);
 
             return requestJson<FrontendFormSession>(url, {
                 method: 'POST',
@@ -89,16 +109,22 @@ export function createRestFrontendTransport(options: RestFrontendTransportOption
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    handle: options.formHandle,
-                    siteId: options.siteId,
-                    session,
-                }),
+                body: JSON.stringify(body),
             });
         },
         async setPage({ definition, session, values, currentPageId, targetPageId }): Promise<FrontendFormSession> {
             const url = buildActionUrl(options.endpoint, '/actions/formie/client/forms/page');
             const serializedValues = await serializeTransportFieldValues(definition, values);
+            const body: Record<string, unknown> = {
+                handle: options.formHandle,
+                siteId: options.siteId,
+                currentPageId,
+                targetPageId,
+                session,
+                values: serializedValues,
+            };
+
+            appendCsrfToken(body, session);
 
             return requestJson<FrontendFormSession>(url, {
                 method: 'POST',
@@ -106,14 +132,7 @@ export function createRestFrontendTransport(options: RestFrontendTransportOption
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    handle: options.formHandle,
-                    siteId: options.siteId,
-                    currentPageId,
-                    targetPageId,
-                    session,
-                    values: serializedValues,
-                }),
+                body: JSON.stringify(body),
             });
         },
     };

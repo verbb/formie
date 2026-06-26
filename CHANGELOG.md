@@ -90,7 +90,13 @@
 
 ### Changed
 - Redesign predefined/integration options UI.
-- GraphQL submission mutations skip browser-only spam guards when Craft is not handling a web request.
+- Apply universal submission guards (global throttling, IP throttling, replay protection, and required request tokens) to client REST and GraphQL submits. Browser-only guards (honeypot, minimum submit time, form expiration) still require traditional `handle` + `submitAction` form posts.
+- Align client REST CSRF validation with `enableCsrfValidationForGuests`. The `@verbb/formie-core` REST transport now sends the CSRF token from `session.tokens.csrf` when present.
+- Require `formie-accessForms` permission for Formie CP field helper JSON actions.
+- Rate-limit anonymous payment callback requests using the same budget as payment webhooks.
+
+### Removed
+- GraphQL submission mutations no longer skip all submission guards. Browser-only guard checks still require a traditional form POST shape; headless transports must supply a bootstrap `requestToken`.
 
 ### Fixed
 - Fix a HTML error with Signatures field.

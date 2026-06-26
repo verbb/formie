@@ -25,6 +25,7 @@ class FormsController extends Controller
     // =========================================================================
 
     use CrossOriginRequestTrait;
+    use ClientGuestCsrfTrait;
 
 
     // Public Methods
@@ -32,9 +33,7 @@ class FormsController extends Controller
 
     public function beforeAction($action): bool
     {
-        if (in_array($action->id, ['load', 'page'], true)) {
-            $this->enableCsrfValidation = false;
-        }
+        $this->configureGuestCsrfValidation(['load', 'page']);
 
         return parent::beforeAction($action);
     }

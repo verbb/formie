@@ -21,6 +21,7 @@ class SessionsController extends Controller
     // =========================================================================
 
     use CrossOriginRequestTrait;
+    use ClientGuestCsrfTrait;
     
 
     // Public Methods
@@ -28,9 +29,7 @@ class SessionsController extends Controller
 
     public function beforeAction($action): bool
     {
-        if (in_array($action->id, ['refresh'], true)) {
-            $this->enableCsrfValidation = false;
-        }
+        $this->configureGuestCsrfValidation(['refresh']);
 
         return parent::beforeAction($action);
     }

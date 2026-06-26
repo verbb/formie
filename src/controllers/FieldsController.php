@@ -32,6 +32,16 @@ class FieldsController extends Controller
     // Public Methods
     // =========================================================================
 
+    public function beforeAction($action): bool
+    {
+        if (!in_array($action->id, ['get-summary-html', 'get-signature-image'], true)) {
+            $this->requireLogin();
+            $this->requirePermission('formie-accessForms');
+        }
+
+        return parent::beforeAction($action);
+    }
+
     public function actionIndex(): Response
     {
         return $this->renderTemplate('formie/settings/fields', []);

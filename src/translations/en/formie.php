@@ -2289,6 +2289,7 @@ To review it please log into your control panel.
   'Replace `getFormBuilderPreviewHtml()` with `defineFormBuilderPreviewSchema()`.' => 'Replace `getFormBuilderPreviewHtml()` with `defineFormBuilderPreviewSchema()`.',
   'Replay Protection' => 'Replay Protection',
   'Replay protection token missing.' => 'Replay protection token missing.',
+  'Request token missing.' => 'Request token missing.',
   'Reply-To Email' => 'Reply-To Email',
   'Reply-To Name' => 'Reply-To Name',
   'Reply To:' => 'Reply To:',

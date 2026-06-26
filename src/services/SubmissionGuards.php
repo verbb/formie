@@ -42,7 +42,7 @@ class SubmissionGuards extends Component
             return false;
         }
 
-        return $this->_isBrowserFormSubmission();
+        return true;
     }
 
     public function validateRequest(SubmissionRequest $request): ?string
@@ -52,6 +52,15 @@ class SubmissionGuards extends Component
         }
 
         $settings = Formie::$plugin->getSettings();
+        $isBrowser = $this->_isBrowserFormSubmission();
+
+        if (!$isBrowser) {
+            $reason = $this->_validateHeadlessRequestToken($request);
+
+            if ($reason) {
+                return $reason;
+            }
+        }
 
         if ($settings->enableGlobalSubmissionThrottling) {
             $reason = $this->_validateGlobalSubmissionThrottling($settings);
@@ -69,6 +78,18 @@ class SubmissionGuards extends Component
             }
         }
 
+        if ($settings->enableReplayProtection) {
+            $reason = $this->_validateReplayProtection($request);
+
+            if ($reason) {
+                return $reason;
+            }
+        }
+
+        if (!$isBrowser) {
+            return null;
+        }
+
         if ($settings->enableHoneypot) {
             $reason = $this->_validateHoneypot($settings);
 
@@ -79,14 +100,6 @@ class SubmissionGuards extends Component
 
         if ($settings->enableMinimumSubmitTime) {
             $reason = $this->_validateMinimumSubmitTime($settings);
-
-            if ($reason) {
-                return $reason;
-            }
-        }
-
-        if ($settings->enableReplayProtection) {
-            $reason = $this->_validateReplayProtection($request);
 
             if ($reason) {
                 return $reason;
@@ -172,6 +185,17 @@ class SubmissionGuards extends Component
 
     // Private Methods
     // =========================================================================
+
+    private function _validateHeadlessRequestToken(SubmissionRequest $request): ?string
+    {
+        $requestToken = trim((string)$request->requestToken);
+
+        if ($requestToken === '') {
+            return Craft::t('formie', 'Request token missing.');
+        }
+
+        return null;
+    }
 
     private function _validateGlobalSubmissionThrottling(Settings $settings): ?string
     {
