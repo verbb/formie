@@ -116,8 +116,10 @@
 
     .formie-field-option:has(> input[data-formie-other-option]),
     .formie-other-option {
+        display: flex;
         flex-wrap: wrap;
-        align-items: flex-start;
+        align-items: center;
+        width: 100%;
     }
 
     .formie-field-option:has(> input[data-formie-other-option]:checked) > .formie-other-option-text,
