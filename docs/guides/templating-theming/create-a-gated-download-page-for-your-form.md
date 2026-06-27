@@ -3,7 +3,7 @@
 Creating a "gated" form is pretty common when you want to protect a resource from users by requiring them to complete the form first. You might want users to submit their email and name before accessing a PDF e-book (which you could also combine with a Payment field to collect payment), or other resources you don't want publicly accessible.
 
 :::tip
-Before diving in, have a read through our similar guide on [Build a success page for your form](/craft-plugins/formie/user-guides/build-a-success-page-for-your-form).
+Before diving in, have a read through our similar guide on [Build a success page for your form](/guides/templating-theming/build-a-success-page-for-your-form).
 :::
 
 ### Assembling the pieces
@@ -65,7 +65,7 @@ Thanks for filling out the form! Here are your resources:
 {{ asset.link }}
 ```
 
-Firstly, we're using the UID here because we don't want people to be able to guess a submission (read more about this in [Build a success page for your form](/craft-plugins/formie/user-guides/build-a-success-page-for-your-form)) and denying all access otherwise. 
+Firstly, we're using the UID here because we don't want people to be able to guess a submission (read more about this in [Build a success page for your form](/guides/templating-theming/build-a-success-page-for-your-form)) and denying all access otherwise. 
 
 You might also like to put some more checks in place, such as if the user is a Craft user, has paid for access, and more.
 

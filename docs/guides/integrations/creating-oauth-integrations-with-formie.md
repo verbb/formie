@@ -9,7 +9,7 @@ You don't even need to use Formie for your forms! Just let Formie handle the hea
 ### Pick an existing integration
 Take a look at the [existing integrations](https://verbb.io/craft-plugins/formie/docs/feature-tour/integrations) Formie already supports. If you're looking to make use of **Campaign Monitor**, **Mailchimp**, **Active Campaign**, and more — you're in luck! You can just use the clients in your project.
 
-Read more about this in the [Using Formie integration Guzzle clients in your own code](/craft-plugins/formie/user-guides/using-guzzle-clients-from-formie-integrations-in-your-own-code) guide.
+Read more about this in the [Using Formie integration Guzzle clients in your own code](/guides/integrations/using-guzzle-clients-from-formie-integrations-in-your-own-code) guide.
 
 ### Create your own integration
 If Formie doesn't already support your integration, then that's okay, we can make our own. Let's look at a real-world example by integrating with [GoToWebinar](https://www.goto.com/webinar) using OAuth.
@@ -325,7 +325,7 @@ We're also including `go-to-webinar/_plugin-settings` for our integration settin
 }) }}
 ```
 
-The rest of the integration class isn't relevant for this guide, but you can read more about it in [Building a CRM integration from scratch](/craft-plugins/formie/user-guides/building-a-crm-integration-from-scratch).
+The rest of the integration class isn't relevant for this guide, but you can read more about it in [Building a CRM integration from scratch](/guides/integrations/building-a-crm-integration-from-scratch).
 
 Finally, we'll create our custom League OAuth provider for Guzzle to use. This is purely because GoToWebinar requires the `clientId` and `clientSecret` to be included in the `Authorization` header as a `base64` string.
 

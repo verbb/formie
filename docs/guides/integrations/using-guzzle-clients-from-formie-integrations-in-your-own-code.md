@@ -77,6 +77,6 @@ You can of course do way more than `GET` requests. We could even subscribe a use
 ```
 
 ### Closing thoughts
-While creating Guzzle clients through Craft is very straightforward without Formie (Craft requires Guzzle), things can get complicated quick if an API provider requires OAuth, or other special handling (see [Creating OAuth integrations with Formie](/craft-plugins/formie/user-guides/creating-oauth-integrations-with-formie)).
+While creating Guzzle clients through Craft is very straightforward without Formie (Craft requires Guzzle), things can get complicated quick if an API provider requires OAuth, or other special handling (see [Creating OAuth integrations with Formie](/guides/integrations/creating-oauth-integrations-with-formie)).
 
 So using this approach takes away the burden of setting all that up, and you can worry about doing amazing things with APIs instead!

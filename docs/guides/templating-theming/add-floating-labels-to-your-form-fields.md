@@ -147,7 +147,7 @@ class Floating extends Position
 Here, we can configure `supports()` to only allow this on some field types.
 
 ### How we'll make it happen
-We're going to create a custom **Position** for labels in Formie, so that this behaviour is opt-in and content managed by users. We'll also be using [hooks](/craft-plugins/formie/docs/developers/hooks) to add Twig code to the default field template file. And finally, utilise [Theme Config](/craft-plugins/formie/docs/theming/theme-config) to add some classes to our elements if set to have a floating label.
+We're going to create a custom **Position** for labels in Formie, so that this behaviour is opt-in and content managed by users. We'll also be using [hooks](/developers/hooks) to add Twig code to the default field template file. And finally, utilise [Theme Config](/theming/theme-config) to add some classes to our elements if set to have a floating label.
 
 We've already created and registered the custom position. You can head to any form, edit a field, and you should be able to pick the **Floating** option as a label position.
 
@@ -180,7 +180,7 @@ and
 
 What this does is say "if the `field.labelPosition == 'above'` then render this include. Similarly, the second line, which allows us to conditionally render the label in different places. However, as soon as we pick neither `above` nor `below` for our label position, the label will disappear! That's because neither of these matches.
 
-So, we want to add in `{{ formieInclude('_includes/label', { position: 'floating' }) }}` to this template, but using template overrides would be annoying, as we'd have to override the `field.html` file. Instead, notice how we have some `{% hook %}` tags? These are [Twig hooks](/craft-plugins/formie/docs/developers/hooks) which we can call in PHP.
+So, we want to add in `{{ formieInclude('_includes/label', { position: 'floating' }) }}` to this template, but using template overrides would be annoying, as we'd have to override the `field.html` file. Instead, notice how we have some `{% hook %}` tags? These are [Twig hooks](/developers/hooks) which we can call in PHP.
 
 Looking at our implementation in the main plugin class:
 
