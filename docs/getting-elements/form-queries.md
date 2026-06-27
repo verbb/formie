@@ -2,12 +2,12 @@
 You can fetch forms in your templates or PHP code using form queries.
 
 ::: code
-```twig Twig
+```twig [Twig]
 {# Create a new form query #}
 {% set formQuery = craft.formie.forms() %}
 ```
 
-```php PHP
+```php [PHP]
 // Create a new form query
 $formQuery = \verbb\formie\elements\Form::find();
 ```
@@ -23,7 +23,7 @@ Formie form queries build on Craft element queries. See [Element Queries](https:
 The most common use is fetching a form by its handle, then passing it to a render function or reading its properties.
 
 ::: code
-```twig Twig
+```twig [Twig]
 {% set form = craft.formie.forms()
     .handle('contactForm')
     .one() %}
@@ -33,7 +33,7 @@ The most common use is fetching a form by its handle, then passing it to a rende
 {% endif %}
 ```
 
-```php PHP
+```php [PHP]
 $form = \verbb\formie\elements\Form::find()
     ->handle('contactForm')
     ->one();
@@ -67,13 +67,13 @@ Param | Description
 Narrows the query by form handle.
 
 ::: code
-```twig Twig
+```twig [Twig]
 {% set form = craft.formie.forms()
     .handle('contactForm')
     .one() %}
 ```
 
-```php PHP
+```php [PHP]
 $form = \verbb\formie\elements\Form::find()
     ->handle('contactForm')
     ->one();
@@ -84,13 +84,13 @@ $form = \verbb\formie\elements\Form::find()
 Narrows the query by the form’s field layout ID.
 
 ::: code
-```twig Twig
+```twig [Twig]
 {% set forms = craft.formie.forms()
     .layoutId(12)
     .all() %}
 ```
 
-```php PHP
+```php [PHP]
 $forms = \verbb\formie\elements\Form::find()
     ->layoutId(12)
     ->all();
@@ -101,13 +101,13 @@ $forms = \verbb\formie\elements\Form::find()
 Narrows the query by the number of pages in the form.
 
 ::: code
-```twig Twig
+```twig [Twig]
 {% set multiPageForms = craft.formie.forms()
     .pageCount('> 1')
     .all() %}
 ```
 
-```php PHP
+```php [PHP]
 $multiPageForms = \verbb\formie\elements\Form::find()
     ->pageCount('> 1')
     ->all();
@@ -118,13 +118,13 @@ $multiPageForms = \verbb\formie\elements\Form::find()
 Narrows the query by form template handle or by a form template object.
 
 ::: code
-```twig Twig
+```twig [Twig]
 {% set forms = craft.formie.forms()
     .template('contact')
     .all() %}
 ```
 
-```php PHP
+```php [PHP]
 $forms = \verbb\formie\elements\Form::find()
     ->template('contact')
     ->all();
@@ -135,13 +135,13 @@ $forms = \verbb\formie\elements\Form::find()
 Narrows the query by form template ID.
 
 ::: code
-```twig Twig
+```twig [Twig]
 {% set forms = craft.formie.forms()
     .templateId(1)
     .all() %}
 ```
 
-```php PHP
+```php [PHP]
 $forms = \verbb\formie\elements\Form::find()
     ->templateId(1)
     ->all();
@@ -152,13 +152,13 @@ $forms = \verbb\formie\elements\Form::find()
 Returns arrays of data instead of [Form](/reference/form) objects.
 
 ::: code
-```twig Twig
+```twig [Twig]
 {% set forms = craft.formie.forms()
     .asArray()
     .all() %}
 ```
 
-```php PHP
+```php [PHP]
 $forms = \verbb\formie\elements\Form::find()
     ->asArray()
     ->all();
@@ -169,7 +169,7 @@ $forms = \verbb\formie\elements\Form::find()
 Narrows the query by the forms’ creation dates.
 
 ::: code
-```twig Twig
+```twig [Twig]
 {% set start = date('first day of last month')|atom %}
 {% set end = date('first day of this month')|atom %}
 
@@ -178,7 +178,7 @@ Narrows the query by the forms’ creation dates.
     .all() %}
 ```
 
-```php PHP
+```php [PHP]
 $start = new \DateTime('first day of last month')->format(\DateTime::ATOM);
 $end = new \DateTime('first day of this month')->format(\DateTime::ATOM);
 
@@ -192,7 +192,7 @@ $forms = \verbb\formie\elements\Form::find()
 Narrows the query by the forms’ last-updated dates.
 
 ::: code
-```twig Twig
+```twig [Twig]
 {% set lastWeek = date('1 week ago')|atom %}
 
 {% set forms = craft.formie.forms()
@@ -200,7 +200,7 @@ Narrows the query by the forms’ last-updated dates.
     .all() %}
 ```
 
-```php PHP
+```php [PHP]
 $lastWeek = new \DateTime('1 week ago')->format(\DateTime::ATOM);
 
 $forms = \verbb\formie\elements\Form::find()
@@ -213,14 +213,14 @@ $forms = \verbb\formie\elements\Form::find()
 Returns results in the same order as the IDs passed to `id`.
 
 ::: code
-```twig Twig
+```twig [Twig]
 {% set forms = craft.formie.forms()
     .id([3, 1, 2])
     .fixedOrder()
     .all() %}
 ```
 
-```php PHP
+```php [PHP]
 $forms = \verbb\formie\elements\Form::find()
     ->id([3, 1, 2])
     ->fixedOrder()
@@ -232,13 +232,13 @@ $forms = \verbb\formie\elements\Form::find()
 Narrows the query by element ID.
 
 ::: code
-```twig Twig
+```twig [Twig]
 {% set form = craft.formie.forms()
     .id(1)
     .one() %}
 ```
 
-```php PHP
+```php [PHP]
 $form = \verbb\formie\elements\Form::find()
     ->id(1)
     ->one();
@@ -249,13 +249,13 @@ $form = \verbb\formie\elements\Form::find()
 Reverses the result order.
 
 ::: code
-```twig Twig
+```twig [Twig]
 {% set forms = craft.formie.forms()
     .inReverse()
     .all() %}
 ```
 
-```php PHP
+```php [PHP]
 $forms = \verbb\formie\elements\Form::find()
     ->inReverse()
     ->all();
@@ -266,13 +266,13 @@ $forms = \verbb\formie\elements\Form::find()
 Limits the number of forms returned.
 
 ::: code
-```twig Twig
+```twig [Twig]
 {% set forms = craft.formie.forms()
     .limit(10)
     .all() %}
 ```
 
-```php PHP
+```php [PHP]
 $forms = \verbb\formie\elements\Form::find()
     ->limit(10)
     ->all();
@@ -283,13 +283,13 @@ $forms = \verbb\formie\elements\Form::find()
 Skips a number of results.
 
 ::: code
-```twig Twig
+```twig [Twig]
 {% set forms = craft.formie.forms()
     .offset(3)
     .all() %}
 ```
 
-```php PHP
+```php [PHP]
 $forms = \verbb\formie\elements\Form::find()
     ->offset(3)
     ->all();
@@ -300,13 +300,13 @@ $forms = \verbb\formie\elements\Form::find()
 Sets the result order.
 
 ::: code
-```twig Twig
+```twig [Twig]
 {% set forms = craft.formie.forms()
     .orderBy('elements.dateCreated asc')
     .all() %}
 ```
 
-```php PHP
+```php [PHP]
 $forms = \verbb\formie\elements\Form::find()
     ->orderBy('elements.dateCreated asc')
     ->all();
@@ -317,13 +317,13 @@ $forms = \verbb\formie\elements\Form::find()
 Narrows the query by form title.
 
 ::: code
-```twig Twig
+```twig [Twig]
 {% set forms = craft.formie.forms()
     .title('*Contact*')
     .all() %}
 ```
 
-```php PHP
+```php [PHP]
 $forms = \verbb\formie\elements\Form::find()
     ->title('*Contact*')
     ->all();
@@ -334,13 +334,13 @@ $forms = \verbb\formie\elements\Form::find()
 Returns forms that have been soft-deleted.
 
 ::: code
-```twig Twig
+```twig [Twig]
 {% set forms = craft.formie.forms()
     .trashed()
     .all() %}
 ```
 
-```php PHP
+```php [PHP]
 $forms = \verbb\formie\elements\Form::find()
     ->trashed()
     ->all();
@@ -351,13 +351,13 @@ $forms = \verbb\formie\elements\Form::find()
 Narrows the query by UID.
 
 ::: code
-```twig Twig
+```twig [Twig]
 {% set form = craft.formie.forms()
     .uid('xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx')
     .one() %}
 ```
 
-```php PHP
+```php [PHP]
 $form = \verbb\formie\elements\Form::find()
     ->uid('xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx')
     ->one();

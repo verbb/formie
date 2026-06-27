@@ -5,7 +5,11 @@ Scheduled reports email a saved report on a daily or weekly cadence. Each delive
 - a **summary email** with submission counts (and per-form breakdown when multiple forms match)
 - an **export attachment** in the file type you choose, using the report’s filters, columns, and export filename setting
 
-Configure schedules under **Formie → Settings → Scheduled Reports**, or from a report’s **Scheduled** tab (**Formie → Reports → {report} → Edit → Scheduled**).
+Configure schedules under **Formie → Settings → Scheduled Reports**, or from a report's **Scheduled** tab (**Formie → Reports → {report} → Edit → Scheduled**).
+
+::: tip
+For a getting-started walkthrough, see [Saved reports and scheduled delivery](/guides/submissions-workflows/saved-reports-and-scheduled-delivery).
+:::
 
 ## Before you start: cron
 

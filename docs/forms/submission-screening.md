@@ -1,6 +1,10 @@
 # Submission Screening
 
-Submission screening is Formie’s unified layer for deciding whether a submission should be treated as legitimate before it is saved and dispatched. It runs in the submission workflow’s **`screen`** stage, immediately after field validation and before authorization, persistence, and notifications.
+::: tip
+For tuning guards, captchas, and keyword rules together in practice, see [Submission screening rules in practice](/guides/submissions-workflows/submission-screening-rules-in-practice).
+:::
+
+Submission screening is Formie's unified layer for deciding whether a submission should be treated as legitimate before it is saved and dispatched. It runs in the submission workflow’s **`screen`** stage, immediately after field validation and before authorization, persistence, and notifications.
 
 Screening combines **submission guards**, **captcha integrations**, and **server-side spam rules** so you can tune friction for real users while still blocking automated abuse.
 

@@ -1,5 +1,9 @@
 # Custom Field
 
+::: tip
+For plugin developers building a new adapter, see [Bringing your Craft field into Formie (Custom Field adapters)](/guides/fields/bringing-your-craft-field-into-formie-custom-field-adapters).
+:::
+
 The Custom Field field lets a form use supported Craft fields through Formie without adding a separate Formie field type for every provider.
 
 Custom Field is adapter-based. Each available option in **Custom Field Type** has explicit Formie support for rendering, validation, submissions, email summaries, exports, integrations and GraphQL.

@@ -1,5 +1,9 @@
 # Form Groups
 
+::: tip
+For defaults, restrictions, and scale patterns, see [Form groups and defaults at scale](/guides/control-panel-admin/form-groups-and-defaults-at-scale).
+:::
+
 Form groups help you organise forms in the control panel. They are useful when you manage many forms and want sidebar filters, clearer navigation, and a consistent place to create new forms.
 
 Form groups are **control panel organisation** with an optional **policies layer** for defaults and restrictions. They do not change how a form renders on the front end, which template an existing form uses, or how existing submissions behave until you change form settings.

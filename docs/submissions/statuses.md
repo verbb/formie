@@ -1,5 +1,9 @@
 # Submission Statuses
 
+::: tip
+For statuses combined with form conditions and post-submit routing, see [Submission statuses and conditional workflows](/guides/submissions-workflows/submission-statuses-and-conditional-workflows).
+:::
+
 Statuses are labels you can use to organize and manage submissions after they have been saved.
 
 They are useful when “new submission” is not enough detail for your team’s workflow.

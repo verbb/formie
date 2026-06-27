@@ -1,8 +1,8 @@
 # Automation Integration
-Automation integrations extend `Automation`. They are useful for webhook-style providers where Formie sends submission data to another service.
+Automation integrations extend `Automation`. They send submission data to another service — typically an HTTP endpoint you configure per form.
 
 ::: tip
-For a full walkthrough, see [Building a Webhook Integration from Scratch](https://verbb.io/craft-plugins/formie/user-guides/building-a-webhook-integration-from-scratch).
+For a full walkthrough, see [Building an Automation integration from scratch](/guides/integrations/building-an-automation-integration-from-scratch).
 :::
 
 ## Form Settings
@@ -76,5 +76,5 @@ protected function defineClient(): Client
 }
 ```
 
-For more on reusing the client outside the integration itself, see [Using Guzzle Clients from Formie Integrations in Your Own Code](https://verbb.io/craft-plugins/formie/user-guides/using-guzzle-clients-from-formie-integrations-in-your-own-code).
+For more on reusing the client outside the integration itself, see [Using Guzzle Clients from Formie Integrations in Your Own Code](/guides/integrations/using-guzzle-clients-from-formie-integrations-in-your-own-code).
 

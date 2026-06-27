@@ -2,6 +2,7 @@
 namespace verbb\formie\services;
 
 use verbb\formie\Formie;
+use verbb\formie\enums\workflow\Stage;
 use verbb\formie\enums\workflow\Task;
 use verbb\formie\events\RegisterWorkflowStagesEvent;
 use verbb\formie\events\RegisterStageTasksEvent;
@@ -206,7 +207,7 @@ class SubmissionWorkflow extends Component
         $stageSuccess = true;
 
         foreach ($tasks as $task) {
-            if (!$context->workflow->isTaskEnabled($task->getName())) {
+            if (!$this->_shouldRunTask($context, $stage, $task->getName())) {
                 continue;
             }
 
@@ -474,6 +475,49 @@ class SubmissionWorkflow extends Component
     private function _allTaskValues(): array
     {
         return array_map(static fn(Task $task) => $task->value, Task::cases());
+    }
+
+    private function _shouldRunTask(WorkflowContext $context, string $stage, string $taskName): bool
+    {
+        if ($this->_isBuiltInTask($taskName)) {
+            return $context->workflow->isTaskEnabled($taskName);
+        }
+
+        // Extension tasks registered into a built-in stage inherit that stage's
+        // mode matrix. Tasks inside a custom stage always run when the stage
+        // executes — the stage author decides whether to enter the stage.
+        if ($this->_isBuiltInStage($stage)) {
+            return $this->_isStageActiveForMode($stage, $context->workflow);
+        }
+
+        return true;
+    }
+
+    private function _isBuiltInTask(string $taskName): bool
+    {
+        return in_array($taskName, $this->_allTaskValues(), true);
+    }
+
+    private function _isBuiltInStage(string $stageName): bool
+    {
+        static $builtInStages = null;
+
+        $builtInStages ??= array_map(static fn(Stage $stage) => $stage->value, Stage::cases());
+
+        return in_array($stageName, $builtInStages, true);
+    }
+
+    private function _isStageActiveForMode(string $stage, WorkflowPolicy $workflow): bool
+    {
+        $prefix = $stage . '.';
+
+        foreach ($this->_allTaskValues() as $taskName) {
+            if (str_starts_with($taskName, $prefix) && $workflow->isTaskEnabled($taskName)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function _findPageById(Form $form, int $pageId): ?FieldLayoutPage

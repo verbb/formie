@@ -1,5 +1,9 @@
 # Stencils
 
+::: tip
+For team rollout and project-stencil patterns, see [Stencils for repeatable form types](/guides/control-panel-admin/stencils-for-repeatable-form-types).
+:::
+
 Stencils are reusable starter forms.
 
 They are useful when you want a faster, more consistent starting point than building every new form from scratch. A stencil can carry the same kinds of structure and setup you would normally define on a form, including fields and layout, pages, notifications, and form settings.

@@ -1,5 +1,9 @@
 # Query Submissions
 
+::: tip
+For rendering submission field values in Twig or PHP after you fetch them, see [The complete guide to rendering submission content](/guides/templating-theming/the-complete-guide-to-rendering-submission-content).
+:::
+
 Formie submissions are Craft elements, so GraphQL submission queries follow the same general pattern as other element queries. Use `formieSubmission` when you need one submission, `formieSubmissions` when you need a list, and `formieSubmissionCount` when you only need the total.
 
 ```graphql

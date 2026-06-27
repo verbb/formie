@@ -1,8 +1,10 @@
 # Submission Workflow
 
-Formie processes submissions through a staged workflow.
+::: tip
+Read [Submission workflow and stages explained](/guides/submissions-workflows/submission-workflow-and-stages-explained) first for why stages exist, workflow modes, and how to choose an extension point. For listener examples without custom classes, see [Using submission workflow events](/guides/submissions-workflows/using-submission-workflow-events).
+:::
 
-Instead of treating submission handling as one large save step, Formie moves through a series of smaller stages in order. That lets Formie handle multi-page navigation, draft saving, validation, captcha and spam checks, payment handling, persistence, notifications, integrations, and the final browser response in a predictable way.
+This page is the developer reference: stage and task names, workflow modes, code examples, and events for extending the pipeline.
 
 If you are extending submission handling, the workflow tells you where your code belongs. Instead of guessing where custom logic should run, you can choose the stage or task that owns that responsibility.
 
@@ -181,23 +183,13 @@ Event::on(SubmissionWorkflow::class, SubmissionWorkflow::EVENT_REGISTER_WORKFLOW
 });
 ```
 
-### Add a task to an existing stage
+To add a task inside an existing stage, see [Add work before integrations run](#add-work-before-integrations-run) above. For a full module walkthrough, see [Adding a custom workflow task from scratch](/guides/submissions-workflows/adding-a-custom-workflow-task-from-scratch). If you only need to observe or adjust behavior around an existing part of the workflow, the before and after stage or task events are often enough.
 
-Use a custom task when the stage is already correct, but you need one more step inside it.
+Extension tasks use custom names outside Formie's built-in `Task` enum. They run when their built-in stage is active for the current workflow mode — the same rules that skip dispatch on draft saves also skip extension tasks inserted into `dispatch`.
 
-```php
-use verbb\formie\enums\workflow\Task;
-use verbb\formie\events\RegisterStageTasksEvent;
-use verbb\formie\services\SubmissionWorkflow;
-use yii\base\Event;
+## Guides
 
-Event::on(SubmissionWorkflow::class, SubmissionWorkflow::EVENT_REGISTER_STAGE_TASKS, function(RegisterStageTasksEvent $event) {
-    if ($event->stage !== 'dispatch') {
-        return;
-    }
-
-    $event->insertTaskBefore(Task::DISPATCH_TRIGGER_INTEGRATIONS->value, new PushSubmissionToQueueTask());
-});
-```
-
-If you only need to observe or adjust behavior around an existing part of the workflow, the before and after stage or task events are often enough.
+- [Submission workflow and stages explained](/guides/submissions-workflows/submission-workflow-and-stages-explained) — why the pipeline exists, workflow modes in plain language, and how to choose an extension point
+- [Using submission workflow events](/guides/submissions-workflows/using-submission-workflow-events) — listeners without custom task or stage classes
+- [Adding a custom workflow task from scratch](/guides/submissions-workflows/adding-a-custom-workflow-task-from-scratch) — insert an ordered task into an existing stage
+- [Adding a custom workflow stage from scratch](/guides/submissions-workflows/adding-a-custom-workflow-stage-from-scratch) — register a new pipeline phase

@@ -59,5 +59,5 @@ public function sendPayload(Submission $submission): bool
 }
 ```
 
-Some messaging providers use OAuth and some use incoming webhooks. If the provider uses OAuth, see [OAuth Integration](/developers/custom-integration/oauth-integration). If the provider is mostly a configurable webhook, the [Automation Integration](/developers/custom-integration/automation-integration) pattern may be closer.
+Some messaging providers use OAuth and some use incoming HTTP endpoints. If the provider uses OAuth, see [OAuth Integration](/developers/custom-integration/oauth-integration). If the provider is mostly a configurable HTTP endpoint, the [Automation Integration](/developers/custom-integration/automation-integration) pattern may be closer.
 

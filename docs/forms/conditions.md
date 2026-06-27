@@ -1,5 +1,9 @@
 # Conditions
 
+::: tip
+For statuses plus conditions in one workflow story, see [Submission statuses and conditional workflows](/guides/submissions-workflows/submission-statuses-and-conditional-workflows).
+:::
+
 Conditions let a form change what happens based on answers already given.
 
 They are useful when the form should react to the person filling it out, instead of showing the same path to everyone. A simple form can show the same fields to everyone, but a longer form often works better when it can reveal, skip, or hold back parts of the flow depending on what someone has already entered.

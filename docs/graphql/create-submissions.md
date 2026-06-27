@@ -1,5 +1,9 @@
 # Create Submissions
 
+::: tip
+For bootstrap, tokens, page navigation, and final submit end-to-end, see [GraphQL submission flow end-to-end](/guides/frontend-headless/graphql-submission-flow-end-to-end).
+:::
+
 Formie creates a form-specific GraphQL mutation for each form. The mutation name follows this pattern:
 
 ```graphql

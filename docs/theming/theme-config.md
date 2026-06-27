@@ -630,7 +630,7 @@ The available condition context comes from the current render state, including `
 
 Some UI states change in the browser without a full server re-render — multipage tab changes, hidden pages, loading buttons, and validation errors on Ajax forms. Twig conditionals in `themeConfig` will not re-evaluate for those updates.
 
-Formie handles this with **root-level semantic class keys**. Define them at the top level of `themeConfig` (not inside a slot such as `pageTabLink`). Formie embeds the resolved classes on `data-formie-theme`, and the browser runtime toggles them as state changes.
+Formie handles this with **root-level semantic class keys**. Define them at the top level of `themeConfig` (not inside a slot such as `pageTabLink`). Formie embeds the resolved classes on `data-formie-theme`, and the browser package toggles them as state changes.
 
 | Key | Applied to | When |
 | --- | --- | --- |

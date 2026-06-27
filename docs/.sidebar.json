@@ -387,11 +387,19 @@
         ]
     },
     {
-        "title": "Migrations",
+        "title": "Guides",
         "collapsable": false,
         "children": [
-            "migrations/migrating-from-freeform",
-            "migrations/migrating-from-sprout-forms"
+            "guides/email-notifications/index",
+            "guides/integrations/index",
+            "guides/templating-theming/index",
+            "guides/fields/index",
+            "guides/submissions-workflows/index",
+            "guides/frontend-headless/index",
+            "guides/control-panel-admin/index",
+            "guides/developers/index",
+            "guides/configuration/index",
+            "guides/migrations-upgrades/index"
         ]
     }
 ]

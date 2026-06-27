@@ -1,4 +1,9 @@
 # Overview
+
+::: tip
+For end-to-end walkthroughs, see [Guides → Integrations](/guides/integrations/) — [Building a CRM integration from scratch](/guides/integrations/building-a-crm-integration-from-scratch), [Building an Automation integration from scratch](/guides/integrations/building-an-automation-integration-from-scratch), and related guides.
+:::
+
 You can add custom integrations by registering an integration class with Formie. Pick the base class that matches the integration you are building, then implement the pieces that are specific to your provider.
 
 ```php
@@ -38,7 +43,7 @@ Most integrations should extend one of Formie’s integration base classes.
 Type | Base class | Use
 --- | --- | ---
 Address provider | `AddressProvider` | Address autocomplete providers used by Address fields. See [Address Provider Integration](/developers/custom-integration/address-provider-integration).
-Automation | `Automation` | Webhook-style integrations that send submission payloads to another service. See [Automation Integration](/developers/custom-integration/automation-integration).
+Automation | `Automation` | Automation integrations that send submission payloads to another service. See [Automation Integration](/developers/custom-integration/automation-integration).
 Captcha | `Captcha` | Spam-protection integrations that validate submissions. See [Captcha Integration](/developers/custom-integration/captcha-integration).
 CRM | `Crm` | CRM integrations with one or more mappable provider objects. See [CRM Integration](/developers/custom-integration/crm-integration).
 Element | `Element` | Integrations that create or update Craft elements. See [Element Integration](/developers/custom-integration/element-integration).

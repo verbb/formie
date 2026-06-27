@@ -1,5 +1,9 @@
 # Multi-Site & Translation
 
+::: tip
+For a full translation workflow across Craft sites, see [Translating forms across Craft sites](/guides/control-panel-admin/translating-forms-across-craft-sites).
+:::
+
 If your Craft project runs [multiple sites](https://craftcms.com/docs/5.x/system/sites.html), Formie activates multi-site features automatically. There is no plugin setting to turn this on or off — when Craft is multi-site, Formie is too.
 
 This page explains the two things Formie handles in a multi-site setup, how to configure them, and what you will see in the control panel and on the front end.
@@ -215,7 +219,7 @@ That keeps delivery logic explicit and avoids surprises in queued or CLI sends. 
 
 ## Twig template overrides
 
-Twig `setFieldSettings()` overrides in templates are **runtime-only** for that render. They do not persist in the database.
+Twig `setFieldSettings()` overrides in templates apply only for that render. They do not persist in the database.
 
 For permanent per-site wording, use control panel site overrides so content editors can manage copy without deploys.
 

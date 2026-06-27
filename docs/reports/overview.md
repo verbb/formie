@@ -1,5 +1,9 @@
 # Reports
 
+::: tip
+For a getting-started walkthrough, see [Saved reports and scheduled delivery](/guides/submissions-workflows/saved-reports-and-scheduled-delivery).
+:::
+
 Reports are saved analytical views over Formie submissions. Use them when the submissions index is too operational — review, edit, change status — and you need answers like “how many enquiries came in last week, by form, excluding spam?” without exporting by hand each time.
 
 Open **Formie → Reports** to create and run reports. Report definitions sync through [project config](https://craftcms.com/docs/5.x/system/project-config.html), so filters, columns, and display settings deploy with your Craft project.
@@ -82,7 +86,7 @@ Users with **Export submissions** can also export from reports without full mana
 
 Report settings are stored under `formie.reports.{uid}` in project config. Scheduled delivery settings (recipients, schedule, email content) are stored under `formie.scheduledReports.{uid}`.
 
-Runtime fields such as `lastSentAt` live in the database and are not synced through project config.
+Database-only fields such as `lastSentAt` live in the database and are not synced through project config.
 
 ## Related reading
 

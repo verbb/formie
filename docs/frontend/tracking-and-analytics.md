@@ -1,5 +1,9 @@
 # Tracking and Analytics
 
+::: tip
+For GTM, GA4, and Meta setup walkthroughs, see [Client events — GTM, GA4, and Meta](/guides/frontend-headless/client-events-gtm-ga4-and-meta). To register reusable presets for authors, see [Custom client event templates](/guides/frontend-headless/custom-client-event-templates).
+:::
+
 Form submissions are often important analytics events. Google Tag Manager is the common example, but the same approach can be used for other tools that read from `window.dataLayer`, or for your own front-end code that listens for Formie submission events.
 
 The main thing to decide is when the event should be recorded. On a single-page form, that is usually after the form is completed. On a multi-page form, you might want an event on every page step, or only when the final submit succeeds.

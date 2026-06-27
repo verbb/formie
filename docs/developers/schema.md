@@ -1,4 +1,9 @@
 # Schema
+
+::: tip
+For the Craft macros analogy, field and integration patterns, and debugging schema issues, see [Everything you need to know about Formie schemas](/guides/developers/everything-you-need-to-know-about-formie-schemas).
+:::
+
 Formie uses PHP-defined schema to render many parts of the form builder, including field settings, notification settings, page button settings and integration form settings. A schema is an array of nodes that describe the UI the builder should render and the settings those inputs should save.
 
 Most schemas are built with `SchemaHelper` methods. You can also write raw schema nodes when you need a field or layout the helper does not cover.
@@ -111,7 +116,7 @@ Use `$el` for plain HTML elements and `children` to nest schema nodes. This is h
 ]
 ```
 
-Use `$cmp` when you need to render a registered form-builder component rather than a plain HTML element. Formie registers several builder-specific components and fields on top of the shared `plugin-kit-react` form schema system, including field builders, notification editors, integration settings, preview components and Formie-specific field inputs.
+Use `$cmp` when you need to render a registered form-builder component rather than a plain HTML element. Formie registers several builder-specific components and fields on top of the shared [SchemaForm](https://verbb.io/plugin-kit/forms/overview) system, including field builders, notification editors, integration settings, preview components and Formie-specific field inputs.
 
 ## Conditions
 Use `if` to show a schema node only when a condition is met. The simplest form checks another value in the same schema scope.
@@ -179,3 +184,7 @@ public function defineFormBuilderPreviewSchema(): array
 Preview helpers include `previewInput()`, `previewTextarea()`, `previewSelect()`, `previewChoiceList()`, `previewContainerParent()`, `previewElementField()`, `previewPhone()`, `previewPayment()`, `previewTable()`, `previewMessage()`, `previewRichText()`, `previewHtml()`, `previewHeading()`, `previewGroup()`, `previewSection()`, `previewSignature()`, `previewSummary()`, `previewAgree()` and `previewRecipients()`.
 
 Legacy template-string previews should be migrated to preview schema.
+
+## Guides
+
+- [Everything you need to know about Formie schemas](/guides/developers/everything-you-need-to-know-about-formie-schemas) — fields, integrations, and builder UI

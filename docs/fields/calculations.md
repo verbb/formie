@@ -1,5 +1,9 @@
 # Calculations
 
+::: tip
+For syntax, functions, and examples, see [Calculations field in detail](/guides/fields/calculations-field-in-detail). For a custom parser, see [Write your own parsing logic for the Calculations field](/guides/fields/write-your-own-parsing-logic-for-the-calculations-field).
+:::
+
 Use Calculations when one field value should be derived from other fields instead of typed manually.
 
 Calculations are useful for totals, scores, simple pricing, conditional formulas, and showing a result before final submission. They use expression syntax and field references, not Twig.
@@ -178,4 +182,3 @@ The front-end docs live on the separate browser UI reference site and cover rend
 
 - Use [Number](/fields/number) for user-entered numeric values.
 - Use [Summary](/fields/summary) to show a review of calculated and submitted values before final submission.
-

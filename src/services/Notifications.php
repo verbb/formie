@@ -823,7 +823,7 @@ class Notifications extends Component
                         Variables::STATIC_SITE,
                     ],
                 ],
-                'info' => Craft::t('formie', 'If not correctly configured, setting the "From" setting can lead to deliverability issues. Read [our guide](https://verbb.io/craft-plugins/formie/user-guides/how-to-keep-email-notifications-out-of-your-junk-emails) for tips.'),
+                'info' => Craft::t('formie', 'If not correctly configured, setting the "From" setting can lead to deliverability issues. Read [our guide](https://verbb.io/craft-plugins/formie/docs/guides/email-notifications/how-to-keep-email-notifications-out-of-your-junk-emails) for tips.'),
             ]),
             SchemaHelper::variableTextField([
                 'label' => Craft::t('formie', 'Reply-To Name'),
@@ -855,7 +855,7 @@ class Notifications extends Component
                         Variables::STATIC_SITE,
                     ],
                 ],
-                'info' => Craft::t('formie', 'Do not use the same email for "From" and "Reply-To". Read [our guide](https://verbb.io/craft-plugins/formie/user-guides/how-to-keep-email-notifications-out-of-your-junk-emails) for tips.'),
+                'info' => Craft::t('formie', 'Do not use the same email for "From" and "Reply-To". Read [our guide](https://verbb.io/craft-plugins/formie/docs/guides/email-notifications/how-to-keep-email-notifications-out-of-your-junk-emails) for tips.'),
             ]),
             SchemaHelper::variableTextField([
                 'label' => Craft::t('formie', 'CC'),

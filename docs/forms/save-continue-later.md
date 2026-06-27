@@ -1,5 +1,9 @@
 # Save & Continue Later
 
+::: tip
+For an end-to-end walkthrough — multi-page forms, resume links, retention, and headless setups — see [Save and continue later](/guides/submissions-workflows/save-and-continue-later).
+:::
+
 Formie stores all submissions in the database, including incomplete ones.
 
 That means there are two related things happening when someone does not finish a form in one go. Formie can keep track of in-progress submissions automatically, and you can optionally show a save button that creates a resume link for later.

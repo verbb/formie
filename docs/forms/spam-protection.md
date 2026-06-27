@@ -1,5 +1,9 @@
 # Spam Protection
 
+::: tip
+For keyword syntax and examples, see [Spam keywords in detail](/guides/configuration/spam-keywords-in-detail). For how screening layers work together in practice, see [Submission screening rules in practice](/guides/submissions-workflows/submission-screening-rules-in-practice).
+:::
+
 Spam protection is about reducing junk submissions without making the form harder for real people to use.
 
 Formie gives you a few layers to work with, so you can start with lighter filtering and add stronger checks only where they are needed. Most of the control lives in **Formie → Settings → Spam Protection**.
@@ -68,7 +72,7 @@ You can define each rule on a new line, and you can use parentheses to group log
 
 #### Referencing other content
 
-Spam keywords are stored in the runtime spam settings store (with optional project-config defaults), which means they are not always convenient to edit directly on staging or production when those values are project-scoped. If you want content admins to manage them, or you need them to vary by environment, you can reference another field instead.
+Spam keywords are stored in the spam settings store (with optional project-config defaults), which means they are not always convenient to edit directly on staging or production when those values are project-scoped. If you want content admins to manage them, or you need them to vary by environment, you can reference another field instead.
 
 This is commonly done with a Global Set. For example, if you had a Global Set called `Forms` and a field called `Spam Keywords`, you could reference it in the Formie spam keywords setting with `{forms.spamKeywords}`.
 
@@ -176,9 +180,9 @@ Use captchas when keyword matching and submission guards are not enough, or when
 
 See [Captchas](/integrations/captchas/) for provider-specific setup guides.
 
-## Runtime-managed settings
+## Control panel settings
 
-Spam handling, keyword rules, submission guards, and captcha provider credentials are stored in Formie’s runtime settings tables rather than `config/project` plugin settings. That lets privileged admins edit production values when `allowAdminChanges` is `false`.
+Spam handling, keyword rules, submission guards, and captcha provider credentials are stored in Formie’s dedicated settings tables rather than `config/project` plugin settings. That lets privileged admins edit production values when `allowAdminChanges` is `false`.
 
 Project-scoped rows can still deploy through project config. Site-scoped rows remain environment-local. Legacy `plugins.formie.settings` spam and captcha keys are stripped on save and migrated into the new stores automatically while compatibility mode is enabled.
 

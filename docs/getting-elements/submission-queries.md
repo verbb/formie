@@ -2,12 +2,12 @@
 You can fetch submissions in your templates or PHP code using submission queries.
 
 ::: code
-```twig Twig
+```twig [Twig]
 {# Create a new submission query #}
 {% set submissionQuery = craft.formie.submissions() %}
 ```
 
-```php PHP
+```php [PHP]
 // Create a new submission query
 $submissionQuery = \verbb\formie\elements\Submission::find();
 ```
@@ -16,14 +16,14 @@ $submissionQuery = \verbb\formie\elements\Submission::find();
 Once you’ve created a query, set any parameters you need, then fetch the result with `.one()` or `.all()`. A submission query returns [Submission](/reference/submission) objects unless you use `asArray()`.
 
 ::: tip
-Formie submission queries build on Craft element queries. See [Element Queries](https://craftcms.com/docs/5.x/development/element-queries) in the Craft docs if you want the broader query syntax.
+Formie submission queries build on Craft element queries. See [Element Queries](https://craftcms.com/docs/5.x/development/element-queries) in the Craft docs if you want the broader query syntax. For rendering fetched submission values, see [The complete guide to rendering submission content](/guides/templating-theming/the-complete-guide-to-rendering-submission-content).
 :::
 
 ## Fetch submissions for a form
 The most common use is fetching submissions for a specific form.
 
 ::: code
-```twig Twig
+```twig [Twig]
 {% set submissions = craft.formie.submissions()
     .form('contactForm')
     .limit(10)
@@ -34,7 +34,7 @@ The most common use is fetching submissions for a specific form.
 {% endfor %}
 ```
 
-```php PHP
+```php [PHP]
 $submissions = \verbb\formie\elements\Submission::find()
     ->form('contactForm')
     ->limit(10)
@@ -46,7 +46,7 @@ $submissions = \verbb\formie\elements\Submission::find()
 Submission queries can also filter by Formie field handles. Use `field(handle, value)` when the handle is dynamic, or call the field handle directly when it is known.
 
 ::: code
-```twig Twig
+```twig [Twig]
 {% set submissions = craft.formie.submissions()
     .form('contactForm')
     .field('emailAddress', 'jane@example.com')
@@ -58,7 +58,7 @@ Submission queries can also filter by Formie field handles. Use `field(handle, v
     .all() %}
 ```
 
-```php PHP
+```php [PHP]
 $submissions = \verbb\formie\elements\Submission::find()
     ->form('contactForm')
     ->field('emailAddress', 'jane@example.com')
@@ -107,13 +107,13 @@ Param | Description
 Narrows the query to submissions created on or after a date.
 
 ::: code
-```twig Twig
+```twig [Twig]
 {% set submissions = craft.formie.submissions()
     .after(date('2026-01-01'))
     .all() %}
 ```
 
-```php PHP
+```php [PHP]
 $submissions = \verbb\formie\elements\Submission::find()
     ->after(new \DateTime('2026-01-01'))
     ->all();
@@ -126,13 +126,13 @@ Clears Formie’s default incomplete and spam filters.
 By default, submission queries only return submissions where `isIncomplete` and `isSpam` are both `false`. Use `anyStatus()` when you need to include incomplete or spam submissions in the same query.
 
 ::: code
-```twig Twig
+```twig [Twig]
 {% set submissions = craft.formie.submissions()
     .anyStatus()
     .all() %}
 ```
 
-```php PHP
+```php [PHP]
 $submissions = \verbb\formie\elements\Submission::find()
     ->anyStatus()
     ->all();
@@ -143,13 +143,13 @@ $submissions = \verbb\formie\elements\Submission::find()
 Returns arrays of data instead of [Submission](/reference/submission) objects.
 
 ::: code
-```twig Twig
+```twig [Twig]
 {% set submissions = craft.formie.submissions()
     .asArray()
     .all() %}
 ```
 
-```php PHP
+```php [PHP]
 $submissions = \verbb\formie\elements\Submission::find()
     ->asArray()
     ->all();
@@ -160,13 +160,13 @@ $submissions = \verbb\formie\elements\Submission::find()
 Narrows the query to submissions created before a date.
 
 ::: code
-```twig Twig
+```twig [Twig]
 {% set submissions = craft.formie.submissions()
     .before(date('2026-02-01'))
     .all() %}
 ```
 
-```php PHP
+```php [PHP]
 $submissions = \verbb\formie\elements\Submission::find()
     ->before(new \DateTime('2026-02-01'))
     ->all();
@@ -177,7 +177,7 @@ $submissions = \verbb\formie\elements\Submission::find()
 Narrows the query by the submissions’ creation dates.
 
 ::: code
-```twig Twig
+```twig [Twig]
 {% set start = date('first day of last month')|atom %}
 {% set end = date('first day of this month')|atom %}
 
@@ -186,7 +186,7 @@ Narrows the query by the submissions’ creation dates.
     .all() %}
 ```
 
-```php PHP
+```php [PHP]
 $start = new \DateTime('first day of last month')->format(\DateTime::ATOM);
 $end = new \DateTime('first day of this month')->format(\DateTime::ATOM);
 
@@ -200,7 +200,7 @@ $submissions = \verbb\formie\elements\Submission::find()
 Narrows the query by the submissions’ last-updated dates.
 
 ::: code
-```twig Twig
+```twig [Twig]
 {% set lastWeek = date('1 week ago')|atom %}
 
 {% set submissions = craft.formie.submissions()
@@ -208,7 +208,7 @@ Narrows the query by the submissions’ last-updated dates.
     .all() %}
 ```
 
-```php PHP
+```php [PHP]
 $lastWeek = new \DateTime('1 week ago')->format(\DateTime::ATOM);
 
 $submissions = \verbb\formie\elements\Submission::find()
@@ -221,14 +221,14 @@ $submissions = \verbb\formie\elements\Submission::find()
 Narrows the query by a Formie field value.
 
 ::: code
-```twig Twig
+```twig [Twig]
 {% set submissions = craft.formie.submissions()
     .form('contactForm')
     .field('emailAddress', 'jane@example.com')
     .all() %}
 ```
 
-```php PHP
+```php [PHP]
 $submissions = \verbb\formie\elements\Submission::find()
     ->form('contactForm')
     ->field('emailAddress', 'jane@example.com')
@@ -239,14 +239,14 @@ $submissions = \verbb\formie\elements\Submission::find()
 You can also call the field handle directly when you know it ahead of time.
 
 ::: code
-```twig Twig
+```twig [Twig]
 {% set submissions = craft.formie.submissions()
     .form('contactForm')
     .emailAddress('jane@example.com')
     .all() %}
 ```
 
-```php PHP
+```php [PHP]
 $submissions = \verbb\formie\elements\Submission::find()
     ->form('contactForm')
     ->emailAddress('jane@example.com')
@@ -258,14 +258,14 @@ $submissions = \verbb\formie\elements\Submission::find()
 Returns results in the same order as the IDs passed to `id`.
 
 ::: code
-```twig Twig
+```twig [Twig]
 {% set submissions = craft.formie.submissions()
     .id([3, 1, 2])
     .fixedOrder()
     .all() %}
 ```
 
-```php PHP
+```php [PHP]
 $submissions = \verbb\formie\elements\Submission::find()
     ->id([3, 1, 2])
     ->fixedOrder()
@@ -277,13 +277,13 @@ $submissions = \verbb\formie\elements\Submission::find()
 Narrows the query by form handle or [Form](/reference/form) object.
 
 ::: code
-```twig Twig
+```twig [Twig]
 {% set submissions = craft.formie.submissions()
     .form('contactForm')
     .all() %}
 ```
 
-```php PHP
+```php [PHP]
 $submissions = \verbb\formie\elements\Submission::find()
     ->form('contactForm')
     ->all();
@@ -294,13 +294,13 @@ $submissions = \verbb\formie\elements\Submission::find()
 Narrows the query by form ID.
 
 ::: code
-```twig Twig
+```twig [Twig]
 {% set submissions = craft.formie.submissions()
     .formId(1)
     .all() %}
 ```
 
-```php PHP
+```php [PHP]
 $submissions = \verbb\formie\elements\Submission::find()
     ->formId(1)
     ->all();
@@ -311,13 +311,13 @@ $submissions = \verbb\formie\elements\Submission::find()
 Narrows the query by element ID.
 
 ::: code
-```twig Twig
+```twig [Twig]
 {% set submission = craft.formie.submissions()
     .id(1)
     .one() %}
 ```
 
-```php PHP
+```php [PHP]
 $submission = \verbb\formie\elements\Submission::find()
     ->id(1)
     ->one();
@@ -328,13 +328,13 @@ $submission = \verbb\formie\elements\Submission::find()
 Reverses the result order.
 
 ::: code
-```twig Twig
+```twig [Twig]
 {% set submissions = craft.formie.submissions()
     .inReverse()
     .all() %}
 ```
 
-```php PHP
+```php [PHP]
 $submissions = \verbb\formie\elements\Submission::find()
     ->inReverse()
     ->all();
@@ -345,7 +345,7 @@ $submissions = \verbb\formie\elements\Submission::find()
 Narrows the query by incomplete state.
 
 ::: code
-```twig Twig
+```twig [Twig]
 {% set incompleteSubmissions = craft.formie.submissions()
     .isIncomplete(true)
     .all() %}
@@ -355,7 +355,7 @@ Narrows the query by incomplete state.
     .all() %}
 ```
 
-```php PHP
+```php [PHP]
 $incompleteSubmissions = \verbb\formie\elements\Submission::find()
     ->isIncomplete(true)
     ->all();
@@ -370,7 +370,7 @@ $submissions = \verbb\formie\elements\Submission::find()
 Narrows the query by spam state.
 
 ::: code
-```twig Twig
+```twig [Twig]
 {% set spamSubmissions = craft.formie.submissions()
     .isSpam(true)
     .all() %}
@@ -380,7 +380,7 @@ Narrows the query by spam state.
     .all() %}
 ```
 
-```php PHP
+```php [PHP]
 $spamSubmissions = \verbb\formie\elements\Submission::find()
     ->isSpam(true)
     ->all();
@@ -395,13 +395,13 @@ $submissions = \verbb\formie\elements\Submission::find()
 Limits the number of submissions returned.
 
 ::: code
-```twig Twig
+```twig [Twig]
 {% set submissions = craft.formie.submissions()
     .limit(10)
     .all() %}
 ```
 
-```php PHP
+```php [PHP]
 $submissions = \verbb\formie\elements\Submission::find()
     ->limit(10)
     ->all();
@@ -412,13 +412,13 @@ $submissions = \verbb\formie\elements\Submission::find()
 Skips a number of results.
 
 ::: code
-```twig Twig
+```twig [Twig]
 {% set submissions = craft.formie.submissions()
     .offset(3)
     .all() %}
 ```
 
-```php PHP
+```php [PHP]
 $submissions = \verbb\formie\elements\Submission::find()
     ->offset(3)
     ->all();
@@ -429,13 +429,13 @@ $submissions = \verbb\formie\elements\Submission::find()
 Sets the result order.
 
 ::: code
-```twig Twig
+```twig [Twig]
 {% set submissions = craft.formie.submissions()
     .orderBy('elements.dateCreated asc')
     .all() %}
 ```
 
-```php PHP
+```php [PHP]
 $submissions = \verbb\formie\elements\Submission::find()
     ->orderBy('elements.dateCreated asc')
     ->all();
@@ -446,13 +446,13 @@ $submissions = \verbb\formie\elements\Submission::find()
 Narrows the query by submission status handle.
 
 ::: code
-```twig Twig
+```twig [Twig]
 {% set submissions = craft.formie.submissions()
     .status('approved')
     .all() %}
 ```
 
-```php PHP
+```php [PHP]
 $submissions = \verbb\formie\elements\Submission::find()
     ->status('approved')
     ->all();
@@ -463,13 +463,13 @@ $submissions = \verbb\formie\elements\Submission::find()
 Narrows the query by submission status ID.
 
 ::: code
-```twig Twig
+```twig [Twig]
 {% set submissions = craft.formie.submissions()
     .statusId(1)
     .all() %}
 ```
 
-```php PHP
+```php [PHP]
 $submissions = \verbb\formie\elements\Submission::find()
     ->statusId(1)
     ->all();
@@ -480,13 +480,13 @@ $submissions = \verbb\formie\elements\Submission::find()
 Narrows the query by submission title.
 
 ::: code
-```twig Twig
+```twig [Twig]
 {% set submissions = craft.formie.submissions()
     .title('*Jane*')
     .all() %}
 ```
 
-```php PHP
+```php [PHP]
 $submissions = \verbb\formie\elements\Submission::find()
     ->title('*Jane*')
     ->all();
@@ -497,13 +497,13 @@ $submissions = \verbb\formie\elements\Submission::find()
 Returns submissions that have been soft-deleted.
 
 ::: code
-```twig Twig
+```twig [Twig]
 {% set submissions = craft.formie.submissions()
     .trashed()
     .all() %}
 ```
 
-```php PHP
+```php [PHP]
 $submissions = \verbb\formie\elements\Submission::find()
     ->trashed()
     ->all();
@@ -514,13 +514,13 @@ $submissions = \verbb\formie\elements\Submission::find()
 Narrows the query by UID.
 
 ::: code
-```twig Twig
+```twig [Twig]
 {% set submission = craft.formie.submissions()
     .uid('xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx')
     .one() %}
 ```
 
-```php PHP
+```php [PHP]
 $submission = \verbb\formie\elements\Submission::find()
     ->uid('xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx')
     ->one();
@@ -531,13 +531,13 @@ $submission = \verbb\formie\elements\Submission::find()
 Narrows the query by owner user object, username, or email.
 
 ::: code
-```twig Twig
+```twig [Twig]
 {% set submissions = craft.formie.submissions()
     .user(currentUser)
     .all() %}
 ```
 
-```php PHP
+```php [PHP]
 $submissions = \verbb\formie\elements\Submission::find()
     ->user($currentUser)
     ->all();
@@ -548,13 +548,13 @@ $submissions = \verbb\formie\elements\Submission::find()
 Narrows the query by owner user ID.
 
 ::: code
-```twig Twig
+```twig [Twig]
 {% set submissions = craft.formie.submissions()
     .userId(currentUser.id)
     .all() %}
 ```
 
-```php PHP
+```php [PHP]
 $submissions = \verbb\formie\elements\Submission::find()
     ->userId($currentUser->id)
     ->all();

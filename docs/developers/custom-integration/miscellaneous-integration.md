@@ -1,7 +1,7 @@
 # Miscellaneous Integration
 Miscellaneous integrations extend `Miscellaneous`. Use this base class when the provider does not fit a more specific type, or when a single provider combines multiple patterns.
 
-For example, a provider might behave partly like a messaging integration and partly like a webhook integration. In that case, `Miscellaneous` gives you the common integration lifecycle without forcing the integration into a more specific base class.
+For example, a provider might behave partly like a messaging integration and partly like an automation integration. In that case, `Miscellaneous` gives you the common integration lifecycle without forcing the integration into a more specific base class.
 
 ## Form Settings
 Miscellaneous integrations define form settings with schema, just like other integrations.

@@ -1,5 +1,9 @@
 # Email Notifications
 
+::: tip
+For deliverability, branded templates, PDF attachments, and programmatic setup, see [Guides → Email Notifications](/guides/email-notifications/).
+:::
+
 Email notifications let a form send email when a submission happens.
 
 A single form can have multiple notifications, which means one form can often cover several email jobs without needing separate forms for each variation.

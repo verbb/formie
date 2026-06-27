@@ -1,5 +1,9 @@
 # Relations
 
+::: tip
+For use cases, entry/product patterns, and cached-page caveats, see [Relations between submissions and entries](/guides/submissions-workflows/relations-between-submissions-and-entries).
+:::
+
 Submissions can be related to other elements, not just left as standalone records.
 
 That is helpful when a submission belongs to something else on the site, such as an entry, product, or another business object.

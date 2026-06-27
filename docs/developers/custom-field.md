@@ -32,7 +32,7 @@ For fields that contain other fields, extend the parent field class that matches
 Formie fields are Formie components, not Craft custom fields. Some concepts will feel familiar if you have built Craft fields before, but use Formie’s field base classes and methods rather than Craft’s `Field` class. Refer to the [Field](/reference/field) object documentation for the data available on a field instance.
 
 ::: tip
-There is also a [step-by-step custom field guide](https://verbb.io/craft-plugins/formie/user-guides/creating-your-own-custom-field-from-scratch-formie-3) that walks through building a field from scratch.
+There is also a [step-by-step guide for creating a Formie field type](/guides/fields/creating-a-formie-field-type-from-scratch) that walks through building a field from scratch.
 :::
 
 ## Methods
@@ -75,6 +75,10 @@ Method | Description
 Refer to the [Field](/reference/field) object documentation for more.
 
 ## Custom Field adapters
+
+::: tip
+For a walkthrough, see [Bringing your Craft field into Formie (Custom Field adapters)](/guides/fields/bringing-your-craft-field-into-formie-custom-field-adapters).
+:::
 
 The built-in **Custom Field** field type lets Formie expose supported Craft fields without adding a separate Formie field type for every provider. Adapters are opt-in because Formie needs more than a Craft field class name to submit reliably.
 

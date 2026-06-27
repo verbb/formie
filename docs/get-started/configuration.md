@@ -1,4 +1,9 @@
 # Configuration
+
+::: tip
+For project config, environment variables, and control panel settings across staging and production, see [Project config, environment, and control panel settings](/guides/configuration/project-config-environment-and-control-panel-settings).
+:::
+
 Create a `formie.php` file under your `/config` directory with the following options available to you. You can also use multi-environment options to change these settings per environment.
 
 The example below shows the defaults already used by Formie, so you only need to add the settings you want to change.
@@ -193,11 +198,11 @@ return [
 - `anonymousClientRefreshRateLimit` limits anonymous token-refresh requests within the configured rate window. Set to `0` to disable the limit.
 - `anonymousClientRateWindowSeconds` sets the rate-limit window used by anonymous client bootstrap and token-refresh requests.
 
-### Security-sensitive runtime settings
-- Keep `allowedGraphqlOrigins` as narrow as possible when using headless/runtime forms. Avoid wildcard or broad origins when credentialed requests are allowed.
+### Security-sensitive settings
+- Keep `allowedGraphqlOrigins` as narrow as possible when using headless forms. Avoid wildcard or broad origins when credentialed requests are allowed.
 - Public GraphQL schemas should only include the Formie form and submission scopes required by the front-end consuming them.
-- Keep `enableCsrfValidationForGuests` enabled unless you have a specific headless/runtime integration that cannot submit CSRF tokens. Client REST transports should send the CSRF token from `session.tokens.csrf` in the JSON request body when this setting is enabled.
-- Store integration API keys and secrets in environment variables (for example `$STRIPE_SECRET_KEY`) rather than plaintext in the database when possible. Formie persists integration settings as JSON in `formie_integrations`; values that use Craft's env syntax are resolved at runtime and are not stored in project config exports.
+- Keep `enableCsrfValidationForGuests` enabled unless you have a specific headless integration that cannot submit CSRF tokens. Client REST transports should send the CSRF token from `session.tokens.csrf` in the JSON request body when this setting is enabled.
+- Store integration API keys and secrets in environment variables (for example `$STRIPE_SECRET_KEY`) rather than plaintext in the database when possible. Formie persists integration settings as JSON in `formie_integrations`; values that use Craft's env syntax are resolved when settings are loaded and are not stored in project config exports.
 
 ### Sent Notifications
 - `sentNotifications` enables Sent Notifications.
@@ -272,7 +277,7 @@ formie:
           - team@example.com
 ```
 
-Each report entry stores its analytical settings. Scheduled report entries store delivery configuration; the linked report is resolved by UID in each environment. Runtime fields such as `lastSentAt` are stored in the database only.
+Each report entry stores its analytical settings. Scheduled report entries store delivery configuration; the linked report is resolved by UID in each environment. Database-only fields such as `lastSentAt` are stored in the database only.
 
 See [Reports](/reports/overview) and [Scheduled reports](/reports/scheduled-reports) for control panel behaviour and cron setup.
 

@@ -1,5 +1,9 @@
 # Custom Client Event Templates
 
+::: tip
+For author workflow and a SaaS registration example, see [Custom client event templates](/guides/frontend-headless/custom-client-event-templates).
+:::
+
 Register predefined client event templates for the form builder **Tracking** tab. Templates appear in the **Add event** menu and in **Suggested for this page** when they match the current page context.
 
 Formie ships built-in templates for GTM, GA4, Meta, and a blank starter event. Use this event to add your own analytics presets for a project or plugin.
@@ -130,7 +134,7 @@ After insertion, a template becomes a normal page client event:
 ]
 ```
 
-At runtime, Formie resolves payload values server-side after a successful page submit. See [Tracking and analytics](/frontend/tracking-and-analytics) for how resolved events are pushed to `dataLayer` and returned in Ajax responses.
+When a submission succeeds, Formie resolves payload values server-side after a successful page submit. See [Tracking and analytics](/frontend/tracking-and-analytics) for how resolved events are pushed to `dataLayer` and returned in Ajax responses.
 
 ## Programmatic access
 

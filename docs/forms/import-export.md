@@ -1,5 +1,9 @@
 # Import & Export
 
+::: tip
+For moving forms between environments and staging-to-production workflow, see [Import and export between environments](/guides/control-panel-admin/import-and-export-between-environments).
+:::
+
 Form import and export is for moving form definitions, not submission data.
 
 Use it when you need to move a form between environments, reuse it on another project, or keep a portable copy of the form setup. You can manage both from `Formie → Settings → Import/Export`.

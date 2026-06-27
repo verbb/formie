@@ -1,5 +1,9 @@
 # Submission Content
 
+::: tip
+For querying submissions, field-type recipes, and common mistakes, see [The complete guide to rendering submission content](/guides/templating-theming/the-complete-guide-to-rendering-submission-content).
+:::
+
 Formie stores a submission once, then returns that content in different shapes depending on what you are doing with it.
 
 That is why the same field can look different in a template, an export, a summary screen, an email, or an integration payload. A simple text field might come back as a plain string in one place, while an address, name, or repeater field may need a structured array in another.

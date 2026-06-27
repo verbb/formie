@@ -1,6 +1,10 @@
 # Payment
 
-Use Payment when the form should collect or authorize a payment as part of the submission flow.
+::: tip
+For a full Stripe checkout walkthrough, see [Payment field with Stripe — full flow](/guides/fields/payment-field-with-stripe-full-flow).
+:::
+
+Use Payment when the form should collect or authorize a payment
 
 Use Payment when the form itself is responsible for taking payment. If the project already has a full checkout flow, it may be better to keep payment there and link the form to that process.
 

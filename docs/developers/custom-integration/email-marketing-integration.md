@@ -2,7 +2,7 @@
 Email marketing integrations extend `EmailMarketing`. They usually fetch lists from a provider, expose a list selector in the form builder, then map Formie fields to subscriber fields for the selected list.
 
 ::: tip
-For a full walkthrough, see [Building an Email Marketing Integration from Scratch](https://verbb.io/craft-plugins/formie/user-guides/building-an-email-marketing-integration-from-scratch).
+For a full walkthrough, see [Building an Email Marketing Integration from Scratch](/guides/integrations/building-an-email-marketing-integration-from-scratch).
 :::
 
 ## Form Settings Data

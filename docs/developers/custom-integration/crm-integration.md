@@ -2,7 +2,7 @@
 CRM integrations extend `Crm`. They usually fetch one or more provider objects, define field-mapping schema for those objects, then send mapped submission data to the CRM after a submission completes.
 
 ::: tip
-For a full walkthrough, see [Building a CRM Integration from Scratch](https://verbb.io/craft-plugins/formie/user-guides/building-a-crm-integration-from-scratch).
+For a full walkthrough, see [Building a CRM Integration from Scratch](/guides/integrations/building-a-crm-integration-from-scratch).
 :::
 
 ## Form Settings Data

@@ -2,7 +2,7 @@
 OAuth can apply to many integration types. Use it when Formie needs to connect to a provider account before it can fetch settings or send payloads.
 
 ::: tip
-For a full walkthrough, see [Creating OAuth Integrations with Formie](https://verbb.io/craft-plugins/formie/user-guides/creating-oauth-integrations-with-formie).
+For a full walkthrough, see [Creating OAuth Integrations with Formie](/guides/integrations/creating-oauth-integrations-with-formie).
 :::
 
 ## Provider Class

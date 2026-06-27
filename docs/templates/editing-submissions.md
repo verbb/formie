@@ -1,5 +1,9 @@
 # Editing Submissions
 
+::: tip
+For logged-in and signed-URL patterns, edit-existing workflow behaviour, and multi-page notes, see [Editing submissions on the front end](/guides/submissions-workflows/editing-submissions-on-the-front-end).
+:::
+
 Formie can render a saved submission back into the form so someone can edit it from the front end.
 
 That is useful for account areas, review flows, or any project where a submission may need to be updated after it was first created.

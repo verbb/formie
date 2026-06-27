@@ -49,4 +49,4 @@ rg -n "id:" . -g "*.screenshot.ts"
 - [Integrations](/integrations/address-providers/) for provider families and setup patterns.
 - [Developers](/developers/events/form-events) for extension points, events, and command-line tooling.
 - [Reference](/reference/form) for the core public objects most template authors work with.
-- [Migrations](/migrations/migrating-from-freeform) for moving from other form plugins.
+- [Guides](/guides/migrations-upgrades/) for long-form walkthroughs — including [migrating from Freeform or Sprout Forms](/guides/migrations-upgrades/migrating-from-freeform), version upgrades, and more. Browse by category in the sidebar.

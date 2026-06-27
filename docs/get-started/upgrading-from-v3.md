@@ -65,7 +65,7 @@ The **`screen`** stage now runs built-in submission guards (honeypot, minimum su
 
 ### Spam Protection settings
 
-Spam handling, keyword rules, submission guards, and captcha provider credentials are consolidated on **Settings → Spam Protection**. Legacy **Settings → Spam** and **Settings → Captchas** routes redirect there. Values are stored in runtime settings tables rather than `plugins.formie.settings` in project config.
+Spam handling, keyword rules, submission guards, and captcha provider credentials are consolidated on **Settings → Spam Protection**. Legacy **Settings → Spam** and **Settings → Captchas** routes redirect there. Values are stored in dedicated settings tables rather than `plugins.formie.settings` in project config.
 
 If you relied on the old built-in **Honeypot**, **Javascript**, or **Duplicate** captchas, see [Removed legacy captchas](#removed-legacy-captchas).
 
@@ -487,7 +487,7 @@ See [Submission Screening](/forms/submission-screening) for the full screening o
 
 Spam handling, keyword rules, submission guards, and captcha provider credentials now live on a single **Settings → Spam Protection** page. Legacy **Settings → Spam** and **Settings → Captchas** routes redirect there.
 
-Those values are stored in Formie’s runtime settings tables (`formie_spam_settings`, `formie_captcha_providers`) rather than `plugins.formie.settings` in project config. Legacy plugin settings keys are stripped on save and seeded into the new stores automatically while compatibility mode is enabled.
+Those values are stored in Formie’s dedicated settings tables (`formie_spam_settings`, `formie_captcha_providers`) rather than `plugins.formie.settings` in project config. Legacy plugin settings keys are stripped on save and seeded into the new stores automatically while compatibility mode is enabled.
 
 ### Custom code and GraphQL
 
@@ -1262,7 +1262,7 @@ These strings are included in Formie’s front-end translation seed via `Renderi
 
 Custom per-field validation overrides in the form builder now live under **Validation** as `validationMessages.{key}` (for example `validationMessages.required` and `validationMessages.unique`). Legacy field `errorMessage` values are migrated to `validationMessages.required` automatically.
 
-If a saved override still contains `{name}` or `{attribute}`, Formie resolves those to `{label}` at runtime, but new overrides should use `{label}` directly.
+If a saved override still contains `{name}` or `{attribute}`, Formie still maps those to `{label}` automatically, but new overrides should use `{label}` directly.
 
 ### Text limit counter copy
 
@@ -1304,7 +1304,7 @@ return [
 ];
 ```
 
-On the front end, pass `{ count }` when translating these strings. Formie’s browser `t()` helper resolves Craft-style plural branches at runtime.
+On the front end, pass `{ count }` when translating these strings. Formie’s browser `t()` helper resolves Craft-style plural branches when the form renders.
 
 ### Server-side unique-value messages
 
