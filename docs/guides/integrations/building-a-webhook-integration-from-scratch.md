@@ -374,4 +374,4 @@ In this instance, we might be happy with the default webhook integration, but ju
 ### Finishing up
 With all that in place, you should be able to create a new custom integration, add it to your form, test, and make a submission. A payload will be sent to the provided webhook endpoint.
 
-Don't forget that integrations are only run when visiting the control panel (read more about [why this happens](/craft-plugins/formie/docs/get-started/troubleshooting)).
+Don't forget that integrations are only run when visiting the control panel (read more about [why this happens](/get-started/troubleshooting)).

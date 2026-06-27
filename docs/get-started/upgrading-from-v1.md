@@ -58,7 +58,7 @@ Old | What to do instead
 ## Templates
 Formie v2 features a revamp of front-end templates, and as such, there are likely to be many breaking changes. If you use custom templates, or template overrides carefully read the below, and consult the following updated docs:
 
-- [Theming Overview](docs:theming)
+- [Theming Overview](docs:theming/overview)
 - [Theme Config](docs:theming/theme-config)
 - [Custom Rendering](docs:theming/custom-rendering)
 - [Custom Templates](docs:theming/template-overrides)

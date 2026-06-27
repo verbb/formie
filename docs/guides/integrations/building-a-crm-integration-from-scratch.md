@@ -642,4 +642,4 @@ Here, we've added a new `pipeline` object to map to, all while keeping the exist
 ### Finishing up
 With all that in place, you should be able to create a new custom integration, add it to your form, configure mapping, and make a submission. A payload will be sent to the providers' API.
 
-Don't forget that integrations are only run when visiting the control panel (read more about [why this happens](/craft-plugins/formie/docs/get-started/troubleshooting)).
+Don't forget that integrations are only run when visiting the control panel (read more about [why this happens](/get-started/troubleshooting)).

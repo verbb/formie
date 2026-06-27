@@ -142,7 +142,7 @@ Supply a nested array for the configuration form and fields should use when rend
 ],
 ```
 
-Continue reading the [theming](docs:theming) docs for more.
+Continue reading the [theming](docs:theming/overview) docs for more.
 
 ## Rich Text Configuration
 Formie uses a Rich Text field for numerous settings for forms, notifications and more. This field is powered by [TipTap](https://tiptap.scrumpy.io/). You have control over the configuration of these Rich Text fields, by providing a `.json` file with its configurations, very similar to how the [Redactor](https://plugins.craftcms.com/redactor) plugin works.

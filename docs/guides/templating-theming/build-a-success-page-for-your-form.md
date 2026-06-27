@@ -94,7 +94,7 @@ Just testing out the success page.
 Of course, you can make this your own from here!
 
 :::tip
-Have a look at [The complete guide to rendering submission content](/craft-plugins/formie/user-guides/the-complete-guide-to-rendering-submission-content) user guide for more ways to output submission content!
+Have a look at [The complete guide to rendering submission content](/guides/templating-theming/the-complete-guide-to-rendering-submission-content) user guide for more ways to output submission content!
 :::
 
 ### A new template
