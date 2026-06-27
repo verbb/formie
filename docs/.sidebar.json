@@ -113,8 +113,11 @@
         "title": "Guides",
         "collapsable": false,
         "children": [
-            "guides/migrating-from-freeform",
-            "guides/migrating-from-sprout-forms"
+            "guides/email-notifications/index",
+            "guides/integrations/index",
+            "guides/templating-theming/index",
+            "guides/fields/index",
+            "guides/migrations-upgrades/index"
         ]
     }
 ]
