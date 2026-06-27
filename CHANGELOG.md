@@ -1,5 +1,14 @@
 # Changelog
 
+## 3.1.30 - 2026-06-27
+
+### Added
+- Add `dompdf/dompdf:^3.0` support for PHP 8.5 compatibility.
+
+### Fixed
+- Fix 404 on page-reload form submissions when Safari advanced tracking protection is enabled.
+- Fix Address field "Use my location" button not rendering due to wrong sub-field handle and fieldtag context.
+
 ## 3.1.29 - 2026-06-20
 
 ### Changed
