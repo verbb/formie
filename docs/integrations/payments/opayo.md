@@ -14,11 +14,16 @@ Follow the below steps to connect to the Opayo API.
 1. Copy the **Integration Password** from Opayo and paste in the **Integration Password** field in Formie.
 1. Enter your **Vendor Name**  in the **Vendor Name** field in Formie.
 
-### Step 3. Test Connection
+### Step 3. Choose a checkout mode
+1. Select **Checkout Mode** for the integration:
+   - **Own Form** — card fields are rendered on your page and tokenised client-side. This is the default.
+   - **Drop-in Checkout** — card fields are rendered inside an Opayo-hosted iframe on your page, which can reduce PCI scope compared to Own Form.
+
+### Step 4. Test Connection
 1. Save this integration.
 1. Click on the **Refresh** button in the right-hand sidebar.
 
-### Step 4. Field Setting
+### Step 5. Field Setting
 1. Go to the form you want to enable this integration on.
 1. Add a **Payment** field to your form.
 1. Select Opayo for the **Payment Provider**.

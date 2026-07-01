@@ -1,15 +1,15 @@
 {
-    "name": "formie-frontend",
-    "private": true,
-    "dependencies": {
-        "@verbb/formie-browser": "1.0.11"
-    },
-    "devDependencies": {
-        "vite": "^7.3.5"
-    },
-    "scripts": {
-        "dev": "vite",
-        "build": "vite build",
-        "preview": "vite preview"
-    }
+  "name": "formie-frontend",
+  "private": true,
+  "dependencies": {
+    "@verbb/formie-browser": "1.0.11"
+  },
+  "devDependencies": {
+    "vite": "^7.3.5"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  }
 }

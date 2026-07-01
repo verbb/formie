@@ -3,6 +3,8 @@
 <input type="hidden" name="{{ field.getHtmlName('opayoSessionKey') }}">
 <input type="hidden" name="{{ field.getHtmlName('opayo3DSComplete') }}">
 
+{{ fieldtag('opayoDropIn') }}
+
 {% fieldtag 'subFieldRows' %}
     {% for row in field.getPaymentSubFields() %}
         {% fieldtag 'subFieldRow' %}

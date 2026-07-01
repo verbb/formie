@@ -1412,7 +1412,7 @@ var L = class {
 	"go-cardless": () => import("./chunks/go-cardless-DAT3ZaQf.js").then((e) => e.goCardlessModule),
 	mollie: () => import("./chunks/mollie-Bibhl67p.js").then((e) => e.mollieModule),
 	moneris: () => import("./chunks/moneris-H2wSqk9h.js").then((e) => e.monerisModule),
-	opayo: () => import("./chunks/opayo-CzhL1K0b.js").then((e) => e.opayoModule),
+	opayo: () => import("./chunks/opayo-CR0DtsLa.js").then((e) => e.opayoModule),
 	paddle: () => import("./chunks/paddle-DkvIxQdG.js").then((e) => e.paddleModule),
 	paypal: () => import("./chunks/paypal-CQpAF7Ua.js").then((e) => e.paypalModule),
 	payway: () => import("./chunks/payway-CwDkC7YZ.js").then((e) => e.paywayModule),

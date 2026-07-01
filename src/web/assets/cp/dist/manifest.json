@@ -100,8 +100,8 @@
       "_react-vendor-BZx6nXlC.js"
     ]
   },
-  "_formie-browser-Bbk90Bph.js": {
-    "file": "assets/formie-browser-Bbk90Bph.js",
+  "_formie-browser-9MHowECA.js": {
+    "file": "assets/formie-browser-9MHowECA.js",
     "name": "formie-browser"
   },
   "_plugin-kit-BvB4A_4z.js": {
@@ -323,7 +323,7 @@
     "src": "src/submissions/js/formie-submissions.js",
     "isEntry": true,
     "imports": [
-      "_formie-browser-Bbk90Bph.js"
+      "_formie-browser-9MHowECA.js"
     ],
     "css": [
       "submissions/css/formie-submissions.css"

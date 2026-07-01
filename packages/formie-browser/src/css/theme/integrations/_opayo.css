@@ -1,0 +1,9 @@
+@layer formie-theme {
+
+    /* Opayo drop-in checkout iframe mount point. */
+    .formie-opayo-drop-in {
+        width: 100%;
+        min-height: 10rem;
+        box-sizing: border-box;
+    }
+}

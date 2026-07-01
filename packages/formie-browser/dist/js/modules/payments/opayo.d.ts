@@ -5,7 +5,7 @@ type SagePayTokeniseResult = {
         message: string;
     }>;
 };
-type SagePayGlobal = {
+type SagePayOwnFormGlobal = {
     (opts: {
         merchantSessionKey: string;
     }): {
@@ -15,9 +15,24 @@ type SagePayGlobal = {
         }) => void;
     };
 };
+type SagePayCheckoutInstance = {
+    tokenise: (opts?: {
+        newMerchantSessionKey?: string;
+    }) => void;
+    destroy: () => void;
+};
+type SagePayCheckoutGlobal = {
+    (opts: {
+        merchantSessionKey: string;
+        containerSelector: string;
+        onTokenise?: (result: SagePayTokeniseResult) => void;
+        reusableCardIdentifier?: string;
+    }): SagePayCheckoutInstance;
+};
 declare global {
     interface Window {
-        sagepayOwnForm?: SagePayGlobal;
+        sagepayOwnForm?: SagePayOwnFormGlobal;
+        sagepayCheckout?: SagePayCheckoutGlobal;
     }
 }
 export declare const opayoModule: import("../../..").FormieModuleDefinition;

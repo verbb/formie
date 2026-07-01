@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Added
+- Add **Checkout Mode** setting to the Opayo payment integration, with **Own Form** (default) and **Drop-in Checkout** options. Drop-in Checkout renders card fields inside an Opayo-hosted iframe via `sagepayCheckout`, which can reduce PCI scope compared to own-form tokenisation, while reusing the existing server-side session key, transaction, and 3DS callback flow.
+
 ### Fixed
 - Hide PayPal buttons after successful authorization so users are not prompted to pay again before submitting the form. Buttons are restored automatically when authorization is cleared after a failed submit.
 

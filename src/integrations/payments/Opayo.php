@@ -23,6 +23,8 @@ use verbb\formie\models\Payment as PaymentModel;
 use verbb\formie\models\PaymentAction;
 use verbb\formie\models\PaymentDecision;
 use verbb\formie\models\Plan;
+use verbb\formie\models\SlotTag;
+use verbb\formie\theme\context\RenderContext;
 
 use Craft;
 use craft\helpers\App;
@@ -51,6 +53,8 @@ class Opayo extends Payment
     // =========================================================================
 
     public const EVENT_MODIFY_PAYLOAD = 'modifyPayload';
+    public const CHECKOUT_MODE_OWN_FORM = 'ownForm';
+    public const CHECKOUT_MODE_DROP_IN = 'dropIn';
 
     // https://stripe.com/docs/currencies#zero-decimal
     private const ZERO_DECIMAL_CURRENCIES = ['BIF','CLP','DJF','GNF','JPY','KMF','KRW','MGA','PYG','RWF','UGX','VND','VUV','XAF','XOF','XPF'];
@@ -97,6 +101,7 @@ class Opayo extends Payment
     public ?string $integrationKey = null;
     public ?string $integrationPassword = null;
     public bool|string $useSandbox = false;
+    public string $checkoutMode = self::CHECKOUT_MODE_OWN_FORM;
 
 
     // Public Methods
@@ -115,6 +120,20 @@ class Opayo extends Payment
     public function hasValidSettings(): bool
     {
         return App::parseEnv($this->vendorName) && App::parseEnv($this->integrationKey) && App::parseEnv($this->integrationPassword);
+    }
+
+    public function isDropInCheckoutMode(): bool
+    {
+        return $this->getCheckoutMode() === self::CHECKOUT_MODE_DROP_IN;
+    }
+
+    public function getCheckoutMode(): string
+    {
+        $mode = App::parseEnv($this->checkoutMode) ?: self::CHECKOUT_MODE_OWN_FORM;
+
+        return in_array($mode, [self::CHECKOUT_MODE_OWN_FORM, self::CHECKOUT_MODE_DROP_IN], true)
+            ? $mode
+            : self::CHECKOUT_MODE_OWN_FORM;
     }
 
     public function getReturnUrl(): string
@@ -144,6 +163,7 @@ class Opayo extends Payment
                 'amountFixed' => $this->getFieldSetting('amountFixed'),
                 'amountVariable' => $this->normalizeClientFieldReference($this->getFieldSetting('amountVariable')),
                 'sessionToken' => PaymentAccess::issueProviderSessionToken('opayo', (int)$this->id, (string)$this->handle),
+                'checkoutMode' => $this->getCheckoutMode(),
                 'requiredInputSuffixes' => ['opayoTokenId'],
                 'waitForValueMs' => 2500,
             ],
@@ -606,6 +626,10 @@ class Opayo extends Payment
 
     public function getPaymentSubFields($field): array
     {
+        if ($this->isDropInCheckoutMode()) {
+            return [];
+        }
+
         $subFields = [];
 
         $rowConfigs = [
@@ -710,6 +734,21 @@ class Opayo extends Payment
         return $subFields;
     }
 
+    protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
+    {
+        if ($key === 'opayoDropIn' && $this->isDropInCheckoutMode()) {
+            return SlotTag::make('div')
+                ->core([
+                    'data-formie-opayo-drop-in' => true,
+                ])
+                ->theme([
+                    'class' => 'formie-opayo-drop-in',
+                ]);
+        }
+
+        return null;
+    }
+
 
     // Protected Methods
     // =========================================================================
@@ -719,6 +758,7 @@ class Opayo extends Payment
         $rules = parent::defineRules();
 
         $rules[] = [['vendorName', 'integrationKey', 'integrationPassword'], 'required', 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [['checkoutMode'], 'in', 'range' => [self::CHECKOUT_MODE_OWN_FORM, self::CHECKOUT_MODE_DROP_IN]];
 
         return $rules;
     }

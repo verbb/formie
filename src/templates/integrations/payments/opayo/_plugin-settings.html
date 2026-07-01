@@ -48,4 +48,17 @@
     errors: integration.getErrors('useSandbox'),
 }) }}
 
+{{ macros.proxyField(fieldVariables, 'selectField', {
+    label: 'Checkout Mode' | t('formie'),
+    instructions: 'Choose how card details are collected. Drop-in Checkout renders card fields inside an Opayo-hosted iframe, which can reduce PCI scope compared to Own Form.' | t('formie'),
+    name: 'checkoutMode',
+    value: integration.settings.checkoutMode ?? 'ownForm',
+    options: [
+        { label: 'Own Form' | t('formie'), value: 'ownForm' },
+        { label: 'Drop-in Checkout' | t('formie'), value: 'dropIn' },
+    ],
+    warning: macros.configWarning('checkoutMode', 'formie'),
+    errors: integration.getErrors('checkoutMode'),
+}) }}
+
 {% endblock %}

@@ -1,7 +1,12 @@
+import opayoCss from '#theme-css/integrations/_opayo.css?inline';
+
 import { definePaymentModule } from '#modules/payments/api';
+import { ensureModuleStyles } from '#modules/styles';
 import { createDebug } from '#utils/debug';
 import { getPaymentProviderActionEventName } from '#utils/event-names';
 import { loadScriptAndEnsureGlobal } from '#utils/scripts';
+
+ensureModuleStyles('opayo', [opayoCss]);
 
 type SagePayTokeniseResult = {
     success: boolean;
@@ -9,7 +14,7 @@ type SagePayTokeniseResult = {
     errors?: Array<{ message: string }>;
 };
 
-type SagePayGlobal = {
+type SagePayOwnFormGlobal = {
     (opts: { merchantSessionKey: string }): {
         tokeniseCardDetails: (opts: {
             cardDetails: Record<string, string>;
@@ -18,34 +23,123 @@ type SagePayGlobal = {
     };
 };
 
+type SagePayCheckoutInstance = {
+    tokenise: (opts?: { newMerchantSessionKey?: string }) => void;
+    destroy: () => void;
+};
+
+type SagePayCheckoutGlobal = {
+    (opts: {
+        merchantSessionKey: string;
+        containerSelector: string;
+        onTokenise?: (result: SagePayTokeniseResult) => void;
+        reusableCardIdentifier?: string;
+    }): SagePayCheckoutInstance;
+};
+
 declare global {
     interface Window {
-        sagepayOwnForm?: SagePayGlobal;
+        sagepayOwnForm?: SagePayOwnFormGlobal;
+        sagepayCheckout?: SagePayCheckoutGlobal;
     }
 }
+
+type OpayoCheckoutMode = 'ownForm' | 'dropIn';
 
 type OpayoProviderOptions = {
     useSandbox?: boolean;
     handle?: string;
     sessionToken?: string | null;
+    checkoutMode?: OpayoCheckoutMode;
+};
+
+type OpayoDropInWidget = {
+    checkout: SagePayCheckoutInstance;
+    merchantSessionKey: string;
+    pendingAuthorize: ((success: boolean) => void) | null;
+    retriedTokenise: boolean;
 };
 
 const SCRIPT_ID = 'FORMIE_OPAYO_SCRIPT';
 const SCRIPT_SRC_LIVE = 'https://live.opayo.eu.elavon.com/api/v1/js/sagepay.js';
 const SCRIPT_SRC_SANDBOX = 'https://sandbox.opayo.eu.elavon.com/api/v1/js/sagepay.js';
+const DROP_IN_SELECTOR = '[data-formie-opayo-drop-in]';
 const debug = createDebug('payments', 'opayo');
 const CHALLENGE_EVENT = getPaymentProviderActionEventName('opayo', 'challenge');
 const CHALLENGE_RESPONSE_MESSAGE = 'formie:payment:opayo:challenge:response';
 
-export const opayoModule = definePaymentModule<OpayoProviderOptions, null, null>({
+function isDropInCheckoutMode(provider: OpayoProviderOptions): boolean {
+    return provider.checkoutMode === 'dropIn';
+}
+
+async function requestMerchantSessionKey(args: {
+    form: HTMLFormElement;
+    handle: string;
+    sessionToken: string;
+    services: {
+        addError: (message: string) => void;
+    };
+}): Promise<string | null> {
+    const { form, handle, sessionToken, services } = args;
+    const formData = new FormData();
+    formData.append('action', 'formie/payment-webhooks/process-callback');
+    formData.append('merchantSessionKey', 'true');
+    formData.append('handle', handle);
+    formData.append('sessionToken', sessionToken);
+
+    try {
+        const res = await fetch(form.action, {
+            method: 'POST',
+            body: formData,
+        });
+
+        if (res.status < 200 || res.status >= 300) {
+            services.addError(`${res.status}: ${res.statusText}`);
+            debug.warn('Merchant session request failed.', {
+                status: res.status,
+                statusText: res.statusText,
+            });
+
+            return null;
+        }
+
+        const response = await res.json();
+        const merchantSessionKey = response.merchantSessionKey;
+
+        if (!merchantSessionKey) {
+            services.addError('Unable to get merchant session.');
+            debug.warn('merchantSessionKey missing in callback response.');
+
+            return null;
+        }
+
+        return merchantSessionKey as string;
+    } catch {
+        services.addError('Network error. Please try again.');
+        debug.warn('Network error requesting merchant session.');
+
+        return null;
+    }
+}
+
+function ensureDropInContainerId(container: HTMLElement): string {
+    if (!container.id) {
+        container.id = `formie-opayo-drop-in-${Math.random().toString(36).slice(2, 9)}`;
+    }
+
+    return container.id;
+}
+
+export const opayoModule = definePaymentModule<OpayoProviderOptions, null, OpayoDropInWidget | null>({
     id: 'opayo',
     defaultRequiredInputSuffixes: ['opayoTokenId'],
     load: async(ctx) => {
         const { provider } = ctx.options;
         const useSandbox = Boolean(provider.useSandbox);
         const src = useSandbox ? SCRIPT_SRC_SANDBOX : SCRIPT_SRC_LIVE;
+        const globalName = isDropInCheckoutMode(provider) ? 'sagepayCheckout' : 'sagepayOwnForm';
 
-        await loadScriptAndEnsureGlobal<Window['sagepayOwnForm']>('sagepayOwnForm', {
+        await loadScriptAndEnsureGlobal<Window['sagepayOwnForm'] | Window['sagepayCheckout']>(globalName, {
             id: SCRIPT_ID,
             src,
             timeoutMs: 10000,
@@ -53,9 +147,118 @@ export const opayoModule = definePaymentModule<OpayoProviderOptions, null, null>
 
         return null;
     },
+    mount: async({ field, services, provider }) => {
+        if (!isDropInCheckoutMode(provider)) {
+            return null;
+        }
+
+        const form = services.form;
+        const sagepayCheckout = window.sagepayCheckout;
+        const container = field.querySelector<HTMLElement>(DROP_IN_SELECTOR);
+
+        if (!form?.action) {
+            services.addError('Form action is missing.');
+            debug.warn('Missing form action before drop-in mount.');
+
+            return null;
+        }
+
+        if (!sagepayCheckout) {
+            services.addError('Opayo script failed to load.');
+            debug.warn('sagepayCheckout global not available.');
+
+            return null;
+        }
+
+        if (!container) {
+            services.addError('Opayo drop-in container is missing.');
+            debug.warn('Drop-in container not found in payment field.');
+
+            return null;
+        }
+
+        const handle = (provider.handle || 'opayo') as string;
+        const merchantSessionKey = await requestMerchantSessionKey({
+            form,
+            handle,
+            sessionToken: provider.sessionToken || '',
+            services,
+        });
+
+        if (!merchantSessionKey) {
+            return null;
+        }
+
+        const containerId = ensureDropInContainerId(container);
+        const widget: OpayoDropInWidget = {
+            checkout: null as unknown as SagePayCheckoutInstance,
+            merchantSessionKey,
+            pendingAuthorize: null,
+            retriedTokenise: false,
+        };
+
+        widget.checkout = sagepayCheckout({
+            merchantSessionKey,
+            containerSelector: `#${containerId}`,
+            onTokenise: (result) => {
+                const resolve = widget.pendingAuthorize;
+                widget.pendingAuthorize = null;
+
+                if (!resolve) {
+                    debug.warn('Drop-in tokenisation completed without a pending authorize step.');
+                    return;
+                }
+
+                if (result.success && result.cardIdentifier) {
+                    services.updateInputs('opayoTokenId', result.cardIdentifier);
+                    services.updateInputs('opayoSessionKey', widget.merchantSessionKey);
+                    debug.log('Drop-in tokenization succeeded.', {
+                        hasCardIdentifier: !!result.cardIdentifier,
+                    });
+                    resolve(true);
+
+                    return;
+                }
+
+                if (!widget.retriedTokenise) {
+                    widget.retriedTokenise = true;
+                    void requestMerchantSessionKey({
+                        form,
+                        handle,
+                        sessionToken: provider.sessionToken || '',
+                        services,
+                    }).then((newMerchantSessionKey) => {
+                        if (!newMerchantSessionKey) {
+                            services.addError(result.errors?.[0]?.message || 'Tokenization failed.');
+                            debug.warn('Drop-in tokenization failed after session refresh.', result);
+                            resolve(false);
+
+                            return;
+                        }
+
+                        widget.merchantSessionKey = newMerchantSessionKey;
+                        widget.pendingAuthorize = resolve;
+                        widget.checkout.tokenise({ newMerchantSessionKey });
+                    });
+
+                    return;
+                }
+
+                services.addError(result.errors?.[0]?.message || 'Tokenization failed.');
+                debug.warn('Drop-in tokenization failed.', result);
+                resolve(false);
+            },
+        });
+
+        debug.log('Drop-in checkout mounted.', { containerId });
+
+        return widget;
+    },
+    unmount: async({ widget }) => {
+        widget?.checkout?.destroy?.();
+    },
     onBeforeAuthorize: async(args) => {
-        const { field, services, options } = args;
-        const provider = options.provider as OpayoProviderOptions;
+        const { field, services, options, provider, widget } = args;
         const handle = (provider.handle || 'opayo') as string;
         const form = services.form;
 
@@ -66,7 +269,23 @@ export const opayoModule = definePaymentModule<OpayoProviderOptions, null, null>
             return false;
         }
 
-        const sagepayOwnForm = (window as Window).sagepayOwnForm;
+        if (isDropInCheckoutMode(provider)) {
+            if (!widget) {
+                services.addError('Opayo drop-in checkout is not ready.');
+                debug.warn('Drop-in authorize requested before widget mount.');
+
+                return false;
+            }
+
+            widget.retriedTokenise = false;
+
+            return new Promise<boolean>((resolve) => {
+                widget.pendingAuthorize = resolve;
+                widget.checkout.tokenise();
+            });
+        }
+
+        const sagepayOwnForm = window.sagepayOwnForm;
 
         if (!sagepayOwnForm) {
             services.addError('Opayo script failed to load.');
@@ -83,72 +302,40 @@ export const opayoModule = definePaymentModule<OpayoProviderOptions, null, null>
         cardNumber = cardNumber.replace(/[\s/]/g, '');
         expiryDate = expiryDate.replace(/[\s/]/g, '');
 
+        const merchantSessionKey = await requestMerchantSessionKey({
+            form,
+            handle,
+            sessionToken: provider.sessionToken || '',
+            services,
+        });
+
+        if (!merchantSessionKey) {
+            return false;
+        }
+
         return new Promise<boolean>((resolve) => {
-            const formData = new FormData();
-            formData.append('action', 'formie/payment-webhooks/process-callback');
-            formData.append('merchantSessionKey', 'true');
-            formData.append('handle', handle);
-            formData.append('sessionToken', provider.sessionToken || '');
+            sagepayOwnForm({ merchantSessionKey }).tokeniseCardDetails({
+                cardDetails: {
+                    cardholderName,
+                    cardNumber,
+                    expiryDate,
+                    securityCode,
+                },
+                onTokenised: (result) => {
+                    if (result.success && result.cardIdentifier) {
+                        services.updateInputs('opayoTokenId', result.cardIdentifier);
+                        services.updateInputs('opayoSessionKey', merchantSessionKey);
+                        debug.log('Tokenization succeeded.', {
+                            hasCardIdentifier: !!result.cardIdentifier,
+                        });
 
-            fetch(form.action, {
-                method: 'POST',
-                body: formData,
-            }).then(async(res) => {
-                if (res.status < 200 || res.status >= 300) {
-                    services.addError(`${res.status}: ${res.statusText}`);
-                    debug.warn('Merchant session request failed.', {
-                        status: res.status,
-                        statusText: res.statusText,
-                    });
-                    resolve(false);
-
-                    return;
-                }
-
-                try {
-                    const response = await res.json();
-                    const merchantSessionKey = response.merchantSessionKey;
-
-                    if (!merchantSessionKey) {
-                        services.addError('Unable to get merchant session.');
-                        debug.warn('merchantSessionKey missing in callback response.');
+                        resolve(true);
+                    } else {
+                        services.addError(result.errors?.[0]?.message || 'Tokenization failed.');
+                        debug.warn('Tokenization failed.', result);
                         resolve(false);
-
-                        return;
                     }
-
-                    sagepayOwnForm({ merchantSessionKey }).tokeniseCardDetails({
-                        cardDetails: {
-                            cardholderName,
-                            cardNumber,
-                            expiryDate,
-                            securityCode,
-                        },
-                        onTokenised: (result) => {
-                            if (result.success && result.cardIdentifier) {
-                                services.updateInputs('opayoTokenId', result.cardIdentifier);
-                                services.updateInputs('opayoSessionKey', merchantSessionKey);
-                                debug.log('Tokenization succeeded.', {
-                                    hasCardIdentifier: !!result.cardIdentifier,
-                                });
-
-                                resolve(true);
-                            } else {
-                                services.addError(result.errors?.[0]?.message || 'Tokenization failed.');
-                                debug.warn('Tokenization failed.', result);
-                                resolve(false);
-                            }
-                        },
-                    });
-                } catch {
-                    services.addError('Unable to parse merchant session response.');
-                    debug.warn('Failed to parse merchant session response.');
-                    resolve(false);
-                }
-            }).catch(() => {
-                services.addError('Network error. Please try again.');
-                debug.warn('Network error requesting merchant session.');
-                resolve(false);
+                },
             });
         });
     },

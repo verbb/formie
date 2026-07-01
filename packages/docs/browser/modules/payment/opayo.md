@@ -2,6 +2,15 @@
 
 Opayo is a payment provider module used by Formie payment flows.
 
+## Checkout modes
+
+The Opayo integration supports two checkout modes, configured on the integration in **Formie → Settings → Payments**:
+
+- **Own Form** — card fields are rendered on the merchant page and tokenised with `sagepayOwnForm`.
+- **Drop-in Checkout** — card fields are rendered inside an Opayo-hosted iframe with `sagepayCheckout`.
+
+Both modes produce the same `opayoTokenId` and `opayoSessionKey` hidden inputs before submit. Server-side payment capture and 3DS handling are unchanged.
+
 ## Notes
 
 - Payment providers also participate in the generic `formie:payment:authorize:*` events documented on the main events page.
