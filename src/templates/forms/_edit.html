@@ -43,6 +43,14 @@ footer#global-footer {
     padding-bottom: 0;
 }
 
+/* Craft focuses #main / #content-container on load and applies its global focus ring. */
+.formie-form-page #main:focus,
+.formie-form-page #main:focus-visible,
+.formie-form-page #content-container:focus,
+.formie-form-page #content-container:focus-visible {
+    box-shadow: none;
+}
+
 .formie-form-builder  {
     //padding-bottom: 1rem;
     margin-bottom: 1rem;
