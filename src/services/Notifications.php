@@ -206,7 +206,11 @@ class Notifications extends Component
             $notificationRecord->attachAssets = $notification->attachAssets;
             $notificationRecord->enableConditions = $notification->enableConditions;
             $notificationRecord->conditions = $notification->conditions;
-            $notificationRecord->dispatchTiming = $notification->dispatchTiming;
+
+            if (DbSchema::columnExists(Table::FORMIE_NOTIFICATIONS, 'dispatchTiming')) {
+                $notificationRecord->dispatchTiming = $notification->dispatchTiming;
+            }
+
             $notificationRecord->customSettings = $notification->customSettings;
 
             // Clear content for conditionally-set recipients to prevent zombie data

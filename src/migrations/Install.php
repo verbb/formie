@@ -285,6 +285,7 @@ class Install extends Migration
             'attachAssets' => $this->text(),
             'enableConditions' => $this->boolean()->defaultValue(false),
             'conditions' => $this->text(),
+            'dispatchTiming' => $this->string(32)->notNull()->defaultValue('default'),
             'customSettings' => $this->text(),
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),
@@ -508,6 +509,7 @@ class Install extends Migration
         $this->createTable(Table::FORMIE_SUBMISSIONS, [
             'id' => $this->primaryKey(),
             'content' => $this->json(),
+            'integrationDispatchContext' => $this->json(),
             'formId' => $this->integer()->notNull(),
             'statusId' => $this->integer(),
             'userId' => $this->integer(),
