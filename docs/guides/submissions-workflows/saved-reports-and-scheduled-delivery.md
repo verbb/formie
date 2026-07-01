@@ -27,7 +27,7 @@ If the export is large, Formie queues it in the background — see [Large export
 
 Scheduled reports email a summary plus an export attachment on a daily or weekly cadence.
 
-1. Ensure server cron runs `./craft formie/reports/run-scheduled` — typically hourly. See [Before you start: cron](/reports/scheduled-reports#before-you-start-cron).
+1. Ensure server cron runs `./craft formie/cron/run` — typically hourly. See [Before you start: cron](/reports/scheduled-reports#before-you-start-cron).
 2. Create and save a report first, then open **Settings → Scheduled Reports** (or the report's **Scheduled** tab) and choose **New Scheduled Report**.
 3. Link the report, set **Schedule** (frequency, day, hour), and **Delivery** (file type, recipients, optional subject/message). See [Creating a scheduled report](/reports/scheduled-reports#creating-a-scheduled-report).
 4. **Save**, then use **Send Test Email** to verify delivery without waiting for cron.
@@ -36,7 +36,7 @@ After the first successful delivery, attachments use an **incremental window** �
 
 ## Checklist before go-live
 
-- Cron job registered and `./craft formie/reports/run-scheduled` runs without errors
+- Cron job registered and `./craft formie/cron/run` runs without errors
 - Test email received with expected summary and attachment
 - Recipients have **Access reports** or relevant export permissions — see [Permissions](/reports/overview#permissions)
 - Report and schedule settings deployed via project config to staging/production

@@ -135,6 +135,10 @@ class FileUploads extends Component
     {
         $settings = Formie::$plugin->getSettings();
 
+        if ($olderThanTimestamp === null && (int)$settings->maxIncompleteSubmissionAge <= 0) {
+            return 0;
+        }
+
         if ($olderThanTimestamp === null) {
             $olderThanTimestamp = time() - ((int)$settings->maxIncompleteSubmissionAge * 86400);
         }

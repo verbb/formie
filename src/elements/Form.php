@@ -3089,9 +3089,7 @@ class Form extends Element implements FormInterface
                 'instructions' => Craft::t('formie', 'After this duration has been met, submissions will be deleted.'),
                 'name' => 'dataRetentionValue',
                 'if' => 'dataRetention != "forever"',
-                'warning' => Craft::t('formie', 'We use Craft‘s [garbage collection]({link}) mechanism to remove submissions, so this may not always be actioned immediately.', [
-                    'link' => 'https://craftcms.com/docs/4.x/gc.html',
-                ]),
+                'warning' => Craft::t('formie', 'Expired submissions are removed by the `formie/cron/run` console command. Schedule it on cron for production sites. Without a schedule, Craft garbage collection provides a best-effort fallback and cleanup may be delayed.'),
             ]),
             SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'File Uploads'),

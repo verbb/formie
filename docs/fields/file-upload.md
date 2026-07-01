@@ -35,7 +35,7 @@ Both display types submit the same asset ID payload. **Upload Manager (Advanced)
 
 Each File Upload field can define **Asset Data Retention** in the field settings. When enabled, Formie deletes uploaded assets for that field after the configured duration while keeping the submission record. This is separate from the form-level **Data Retention** setting, which deletes entire submissions.
 
-Retention is processed through [Craft garbage collection](https://craftcms.com/docs/5.x/system/gc.html) and the `formie/gc/prune-file-upload-asset-retention` console command.
+Retention is processed by the `./craft formie/cron/run` or `./craft formie/gc/run` console commands. Schedule one of these on cron for production sites. Craft garbage collection provides a best-effort fallback on web requests.
 
 For GraphQL mutations, File Upload fields accept an array of `FileUploadInput` values. You can pass base64 file data for new uploads or asset IDs for existing assets (including assets staged via the Formie upload endpoints). See [Create Submissions](/graphql/create-submissions#file-upload-fields).
 

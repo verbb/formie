@@ -10,6 +10,7 @@ use verbb\formie\models\Settings;
 
 use Craft;
 use craft\helpers\App;
+use craft\helpers\Console;
 use craft\helpers\Db;
 use craft\helpers\Json;
 use craft\mail\transportadapters\BaseTransportAdapter;
@@ -143,7 +144,7 @@ class SentNotifications extends Component
         return $info;
     }
 
-    public function pruneSentNotifications(): void
+    public function pruneSentNotifications(mixed $consoleInstance = null): void
     {
         App::maxPowerCaptain();
         
@@ -158,15 +159,28 @@ class SentNotifications extends Component
         $date = new DateTime();
         $date->sub($interval);
 
-        $sentNotifications = SentNotification::find()
-            ->dateUpdated('< ' . Db::prepareDateForDb($date))
-            ->all();
+        $query = SentNotification::find()
+            ->dateUpdated('< ' . Db::prepareDateForDb($date));
 
-        foreach ($sentNotifications as $sentNotification) {
+        $count = (int)$query->count();
+
+        if ($consoleInstance && $count > 0) {
+            $consoleInstance->stdout('Preparing to prune ' . $count . ' sent notifications.' . PHP_EOL, Console::FG_YELLOW);
+        }
+
+        foreach (Db::each($query) as $sentNotification) {
             try {
                 Craft::$app->getElements()->deleteElement($sentNotification, true);
+
+                if ($consoleInstance) {
+                    $consoleInstance->stdout("Pruned sent notification with ID: #{$sentNotification->id}." . PHP_EOL, Console::FG_GREEN);
+                }
             } catch (Throwable $e) {
                 Formie::error('Failed to prune sent notification with ID: #' . $sentNotification->id);
+
+                if ($consoleInstance) {
+                    $consoleInstance->stdout("Failed to prune sent notification with ID: #{$sentNotification->id}." . PHP_EOL, Console::FG_RED);
+                }
             }
         }
     }

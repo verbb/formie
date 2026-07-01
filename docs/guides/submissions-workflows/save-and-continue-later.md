@@ -54,7 +54,7 @@ Align plugin settings with how long users might wait before returning:
 | Setting | Default | Purpose |
 | --- | --- | --- |
 | `saveResumeTokenTtlDays` | 14 | How long resume links stay valid |
-| `maxIncompleteSubmissionAge` | 30 | When incomplete submissions are garbage-collected |
+| `maxIncompleteSubmissionAge` | 30 | When incomplete submissions are removed by scheduled cleanup |
 | `submissionStateRetentionDays` | 30 | Retention for front-end submission state |
 | `maxSavedDraftsPerSession` | 10 | Saved drafts per browser session |
 

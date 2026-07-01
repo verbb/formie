@@ -12,6 +12,7 @@ use verbb\formie\elements\Submission as SubmissionElement;
 use verbb\formie\events\ModifyTwigEnvironmentEvent;
 use verbb\formie\server\ServerRenderPayloadBuilder;
 use verbb\formie\services\CaptchaProviders;
+use verbb\formie\services\Cleanup;
 use verbb\formie\services\Countries;
 use verbb\formie\services\Compatibility;
 use verbb\formie\services\CustomFields;
@@ -219,6 +220,7 @@ trait PluginTrait
                 'formPreview' => FormPreview::class,
                 'formTemplates' => FormTemplates::class,
                 'captchaProviders' => CaptchaProviders::class,
+                'cleanup' => Cleanup::class,
                 'integrations' => Integrations::class,
                 'integrationDispatch' => IntegrationDispatch::class,
                 'integrationExecutor' => IntegrationExecutor::class,
@@ -478,6 +480,11 @@ trait PluginTrait
     public function getCaptchaProviders(): CaptchaProviders
     {
         return $this->get('captchaProviders');
+    }
+
+    public function getCleanup(): Cleanup
+    {
+        return $this->get('cleanup');
     }
 
     public function getIntegrations(): Integrations

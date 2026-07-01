@@ -99,18 +99,60 @@ Option | Description
 ./craft formie/submissions/send-notification --submission-id=12345 --notification-id=12
 ```
 
+## Cron
+
+### Run Scheduled Tasks
+
+Runs Formie tasks that should be scheduled on cron: cleanup/retention and due scheduled reports.
+
+Schedule this command on production sites — for example, hourly:
+
+```shell
+./craft formie/cron/run
+```
+
+Option | Description
+--- | ---
+`--skip-gc` | Skip cleanup and retention tasks.
+`--skip-reports` | Skip scheduled report delivery.
+`--only` | Comma-separated task groups to run: `gc`, `reports`.
+
+Use `--only` or the skip flags when you want separate cron schedules — for example, daily cleanup and hourly reports:
+
+```shell
+# Daily cleanup at 3am
+0 3 * * * /path/to/craft formie/cron/run --only=gc
+
+# Hourly scheduled reports
+0 * * * * /path/to/craft formie/cron/run --only=reports
+```
+
+Craft's [garbage collection](https://craftcms.com/docs/5.x/system/gc.html) still runs Formie cleanup as a best-effort fallback on web requests, but production sites should not rely on it.
+
 ## Reports
 
 ### Run Scheduled Reports
 
-Sends any enabled scheduled reports that are due. Schedule this command on cron — for example, every hour — so [scheduled report](/reports/scheduled-reports) deliveries run automatically.
+Sends any enabled scheduled reports that are due. This is included in `./craft formie/cron/run`, or you can schedule it separately — for example, every hour — so [scheduled report](/reports/scheduled-reports) deliveries run automatically.
 
 ```shell
 ./craft formie/reports/run-scheduled
 ```
 
 
-## Garbage Collection
+## Cleanup
+
+### Run All Cleanup Tasks
+
+Runs every Formie cleanup and retention task. This is included in `./craft formie/cron/run`, or you can schedule it separately — for example, daily:
+
+```shell
+./craft formie/gc/run
+```
+
+Option | Description
+--- | ---
+`--only` | Comma-separated cleanup task handles. Omit to run all tasks. Handles: `incomplete-submissions`, `data-retention-submissions`, `sent-notifications`, `file-upload-asset-retention`, `stale-pending-uploads`, `report-exports`, `submission-states`, `draft-storage`.
 
 ### Prune Incomplete Submissions
 Deletes any incomplete submissions that exceed the "Maximum Incomplete Submission Age" plugin setting.
@@ -126,11 +168,25 @@ Deletes any submissions that exceed your data retention form settings.
 ./craft formie/gc/prune-data-retention-submissions
 ```
 
+### Prune Sent Notifications
+Deletes sent notifications that exceed the plugin's maximum age setting.
+
+```shell
+./craft formie/gc/prune-sent-notifications
+```
+
 ### Prune Submission States
 Deletes stale submission draft state records.
 
 ```shell
 ./craft formie/gc/prune-submission-states
+```
+
+### Prune Draft Storage
+Deletes expired submission draft storage rows.
+
+```shell
+./craft formie/gc/prune-draft-storage
 ```
 
 ### Prune File Upload Asset Retention
@@ -147,7 +203,12 @@ Deletes unfinalized staged File Upload assets that exceed the plugin's maximum i
 ./craft formie/gc/prune-stale-pending-uploads
 ```
 
-Each of the above commands are also run automatically through [Craft's Garbage Collection](https://craftcms.com/docs/5.x/system/gc.html), so there's no need to add these commands unless you want fine-grained control over when they run.
+### Prune Report Exports
+Deletes expired report export files.
+
+```shell
+./craft formie/gc/prune-report-exports
+```
 
 ## Delete Submissions
 You can bulk delete submissions with this command.

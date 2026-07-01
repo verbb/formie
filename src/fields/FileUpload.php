@@ -583,9 +583,7 @@ class FileUpload extends ElementField
                 'instructions' => Craft::t('formie', 'After this duration has been met, uploaded assets for this field are deleted while the submission is kept.'),
                 'name' => 'assetDataRetentionValue',
                 'if' => 'assetDataRetention != "forever"',
-                'warning' => Craft::t('formie', 'We use Craft‘s [garbage collection]({link}) mechanism to remove uploaded assets, so this may not always be actioned immediately.', [
-                    'link' => 'https://craftcms.com/docs/4.x/gc.html',
-                ]),
+                'warning' => Craft::t('formie', 'Uploaded assets are removed by the `formie/cron/run` console command. Schedule it on cron for production sites. Without a schedule, Craft garbage collection provides a best-effort fallback and cleanup may be delayed.'),
             ]),
         ];
     }

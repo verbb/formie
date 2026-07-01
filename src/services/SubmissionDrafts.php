@@ -286,6 +286,30 @@ class SubmissionDrafts extends Component
             ->execute();
     }
 
+    public function pruneExpiredDraftStorage(?int $olderThanTimestamp = null): int
+    {
+        if (!Craft::$app->getDb()->tableExists(Table::FORMIE_SUBMISSION_DRAFTS)) {
+            return 0;
+        }
+
+        $settings = Formie::$plugin->getSettings();
+
+        if ($olderThanTimestamp === null) {
+            $olderThanTimestamp = time() - ((int)$settings->submissionStateRetentionDays * 86400);
+        }
+
+        $olderThan = gmdate('Y-m-d H:i:s', $olderThanTimestamp);
+        $nowDate = gmdate('Y-m-d H:i:s', time());
+
+        return (int)Craft::$app->getDb()->createCommand()
+            ->delete(Table::FORMIE_SUBMISSION_DRAFTS, [
+                'or',
+                ['and', ['not', ['dateExpires' => null]], ['<', 'dateExpires', $nowDate]],
+                ['<', 'dateUpdated', $olderThan],
+            ])
+            ->execute();
+    }
+
     public function mergeDraftContentByUid(array $existingContent, array $incomingContent, array $clearFieldUids = []): array
     {
         return $this->_mergeContent($existingContent, $incomingContent, $clearFieldUids);

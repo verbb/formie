@@ -30,7 +30,7 @@ class DbStorage extends AbstractStorage
 
         $expiresAt = isset($row['dateExpires']) ? strtotime((string)$row['dateExpires']) : null;
         if ($expiresAt && $expiresAt <= time()) {
-            // Expired state is pruned lazily on read as well as by scheduled GC
+            // Expired state is pruned lazily on read and by scheduled cleanup tasks.
             // so stale resume attempts do not keep seeing dead draft records.
             $this->delete($key);
 

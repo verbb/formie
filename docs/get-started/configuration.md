@@ -182,7 +182,7 @@ return [
 - `plainTextHtmlSanitizationMode` controls how plain-text input values are handled when HTML is submitted. Use `preserve` or `sanitize`.
 
 ### Submissions
-- `maxIncompleteSubmissionAge` sets the maximum age of incomplete submissions in days before they are deleted during garbage collection. Set to `0` to disable automatic deletion.
+- `maxIncompleteSubmissionAge` sets the maximum age of incomplete submissions in days before they are deleted by scheduled cleanup. Set to `0` to disable automatic deletion.
 - `enableCsrfValidationForGuests` enables Craft’s CSRF validation checks for anonymous form submissions.
 - `useQueueForNotifications` sends email notifications through Craft’s queue. This is recommended for production sites so form submissions are not slowed down by email delivery.
 - `useQueueForIntegrations` sends integrations through Craft’s queue. This is recommended for production sites so form submissions are not slowed down by third-party APIs.
@@ -206,7 +206,7 @@ return [
 
 ### Sent Notifications
 - `sentNotifications` enables Sent Notifications.
-- `maxSentNotificationsAge` sets the number of days to keep sent notifications before they are deleted permanently. Set to `0` to disable automatic deletion.
+- `maxSentNotificationsAge` sets the number of days to keep sent notifications before they are deleted by scheduled cleanup. Set to `0` to disable automatic deletion.
 
 ### Spam
 - `saveSpam` saves spam submissions to the database.
@@ -296,7 +296,7 @@ Formie registers Craft user permissions under **Settings → Users → {user gro
 
 Users with **Export submissions** can export from reports without **Manage reports**.
 
-Scheduled email delivery also requires the `./craft formie/reports/run-scheduled` console command on a cron schedule. See [Scheduled reports](/reports/scheduled-reports).
+Scheduled email delivery requires a cron schedule. Use `./craft formie/cron/run` (recommended) or `./craft formie/reports/run-scheduled`. See [Scheduled reports](/reports/scheduled-reports).
 
 ### Alerts Configuration
 Supply additional email addresses to receive alert notifications, and optionally set `alertEmailsUserGroup` to a Craft user group UID to send alerts to every user in that group.

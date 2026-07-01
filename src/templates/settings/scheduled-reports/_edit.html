@@ -77,7 +77,7 @@
 
 <h2>{{ 'Schedule' | t('formie') }}</h2>
 
-<p class="light">{{ 'Scheduled reports only send when the console command runs on a cron schedule — for example, every hour.' | t('formie') }} <code>./craft formie/reports/run-scheduled</code></p>
+<p class="light">{{ 'Scheduled reports only send when the console command runs on a cron schedule — for example, every hour.' | t('formie') }} <code>./craft formie/cron/run</code></p>
 
 {{ forms.selectField({
     label: 'Frequency' | t('formie'),

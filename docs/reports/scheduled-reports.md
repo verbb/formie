@@ -13,15 +13,21 @@ For a getting-started walkthrough, see [Saved reports and scheduled delivery](/g
 
 ## Before you start: cron
 
-Deliveries do **not** send by themselves. They run when the console command executes on a server cron schedule — typically every hour:
+Deliveries do **not** send by themselves. They run when a console command executes on a server cron schedule — typically every hour:
+
+```shell
+./craft formie/cron/run
+```
+
+You can also run only scheduled reports:
 
 ```shell
 ./craft formie/reports/run-scheduled
 ```
 
-If this command is not scheduled, enabled scheduled reports will never send. Use **Send Test Email** on an existing scheduled report to verify delivery without waiting for cron.
+Or run cleanup and reports on separate schedules with `--only=reports` or `--only=gc`. See [Console commands — Cron](/developers/console-commands#cron).
 
-See [Console commands — Reports](/developers/console-commands#reports) for details.
+If no cron command is scheduled, enabled scheduled reports will never send. Use **Send Test Email** on an existing scheduled report to verify delivery without waiting for cron.
 
 ## Creating a scheduled report
 
@@ -67,7 +73,7 @@ Users need **Manage scheduled reports** to create, edit, delete, or test schedul
 
 ### Nothing sends on schedule
 
-Confirm `./craft formie/reports/run-scheduled` is on cron and that the scheduled report is **Enabled**, within any start/end dates, and due for the current hour/day.
+Confirm `./craft formie/cron/run` (or `./craft formie/reports/run-scheduled`) is on cron and that the scheduled report is **Enabled**, within any start/end dates, and due for the current hour/day.
 
 Run the command manually and check the console output for errors.
 
