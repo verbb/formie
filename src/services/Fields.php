@@ -6,7 +6,7 @@ use verbb\formie\base\FormField;
 use verbb\formie\base\FormFieldInterface;
 use verbb\formie\base\NestedFieldInterface;
 use verbb\formie\base\NestedFieldTrait;
-use verbb\formie\base\SubFieldInterface;
+use verbb\formie\base\SubfieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\events\FieldPageEvent;
 use verbb\formie\events\FieldRowEvent;
@@ -665,7 +665,7 @@ class Fields extends Component
         }
 
         // Allow fields to provide subfield options for mapping
-        if ($field instanceof SubFieldInterface) {
+        if ($field instanceof SubfieldInterface) {
             $config['subfieldOptions'] = $field->getSubfieldOptions();
             $config['hasSubfields'] = $field->hasSubfields();
         }

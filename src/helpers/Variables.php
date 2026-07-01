@@ -2,7 +2,7 @@
 namespace verbb\formie\helpers;
 
 use verbb\formie\Formie;
-use verbb\formie\base\SubFieldInterface;
+use verbb\formie\base\SubfieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ParseVariablesEvent;
@@ -483,8 +483,8 @@ class Variables
                     $values["{$prefix}{$field->handle}.{$k}"] = $formattedValue;
                 }
             }
-        } else if ($field instanceof SubFieldInterface && $field->hasSubfields()) {
-            foreach ($field->getSubFieldOptions() as $subfield) {
+        } else if ($field instanceof SubfieldInterface && $field->hasSubfields()) {
+            foreach ($field->getSubfieldOptions() as $subfield) {
                 $handle = "{$prefix}{$field->handle}.{$subfield['handle']}";
 
                 $values[$handle] = $submissionValue[$subfield['handle']] ?? '';
