@@ -367,7 +367,7 @@ class Formie extends Plugin
             ];
 
             if (Craft::$app->edition === CmsEdition::Pro) {
-                foreach (Form::find()->all() as $form) {
+                foreach (Form::find()->withCustomFields(false)->all() as $form) {
                     $suffix = ':' . $form->uid;
 
                     $formPermissions["formie-manageForms{$suffix}"] = [
@@ -513,7 +513,7 @@ class Formie extends Plugin
         Event::on(Gql::class, Gql::EVENT_REGISTER_GQL_SCHEMA_COMPONENTS, function(RegisterGqlSchemaComponentsEvent $event) {
             $label = Craft::t('formie', 'Formie');
 
-            $forms = Form::find()->all();
+            $forms = Form::find()->withCustomFields(false)->all();
 
             $event->queries[$label]['formieForms.all:read'] = ['label' => Craft::t('formie', 'View all forms')];
 

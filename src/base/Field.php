@@ -302,6 +302,13 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         return static::class;
     }
 
+    public function __toString(): string
+    {
+        // Required for compatibility with plugins like Typed Link, which call `array_unique()`
+        // on Craft field layout custom fields when preparing element queries.
+        return (string)($this->handle ?? $this->label ?? static::displayName());
+    }
+
     public function getDisplayType(): ?string
     {
         if (property_exists($this, 'displayType')) {

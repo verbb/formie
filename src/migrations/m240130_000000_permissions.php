@@ -33,7 +33,7 @@ class m240130_000000_permissions extends Migration
             'formie-manageFormSettings' => ['formie-showFormSettings'],
         ];
 
-        foreach (Form::find()->all() as $form) {
+        foreach (Form::find()->withCustomFields(false)->all() as $form) {
             $suffix = ':' . $form->uid;
 
             $toUpdate += [
