@@ -1,15 +1,22 @@
 # Changelog
 
-## Unreleased
+## 4.0.0-beta.11 - 2026-07-02
 
 ### Added
 - Add `Cleanup` service, `./craft formie/gc/run`, and `./craft formie/cron/run` console commands for scheduled cleanup and retention. `formie/cron/run` also runs due scheduled reports, with `--only`, `--skip-gc`, and `--skip-reports` for finer scheduling control.
 - Add `formie/gc/prune-sent-notifications` and `formie/gc/prune-draft-storage` console commands.
 - Add **Checkout Mode** setting to the Opayo payment integration, with **Own Form** (default) and **Drop-in Checkout** options. Drop-in Checkout renders card fields inside an Opayo-hosted iframe via `sagepayCheckout`, which can reduce PCI scope compared to own-form tokenisation, while reusing the existing server-side session key, transaction, and 3DS callback flow.
+- Added user guides for new areas of functionality.
+
+### Changed
+- User guides now sit alongside docs.
+- Hide PayPal buttons after successful authorization so users are not prompted to pay again before submitting the form. Buttons are restored automatically when authorization is cleared after a failed submit.
 
 ### Fixed
 - Do not purge stale pending uploads when `maxIncompleteSubmissionAge` is disabled.
-- Hide PayPal buttons after successful authorization so users are not prompted to pay again before submitting the form. Buttons are restored automatically when authorization is cleared after a failed submit.
+- Fix an error with statuses when migrating from Formie 2.
+- Fix an error migrating from Formie 2 and the Recipients field.
+- Fix `dispatchTiming` migration issue.
 
 ## 4.0.0-beta.10 - 2026-06-26
 
