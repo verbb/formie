@@ -5,6 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\events\ModifyMigrationAddressConfigEvent;
 use verbb\formie\fields;
 use verbb\formie\fields\Group;
+use verbb\formie\fields\Recipients;
 use verbb\formie\fields\Repeater;
 use verbb\formie\fields\subfields;
 use verbb\formie\helpers\StringHelper;
@@ -219,7 +220,10 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
 
         echo '    > Updating all forms with new field layout.' . PHP_EOL;
 
-        foreach ($forms as $form) {
+        Recipients::$relaxLegacyOptionValidation = true;
+
+        try {
+            foreach ($forms as $form) {
             $layoutConfig = (new Query())->select('layoutConfig')->from('{{%formie_newlayout}}')->where(['formId' => $form['id']])->scalar();
 
             if (!$layoutConfig) {
@@ -264,6 +268,9 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
             Db::update(Table::FORMIE_FORMS, ['layoutId' => $formLayout->id], ['id' => $form['id']]);
 
             echo '    > Updated Form ' . $form['handle'] . ' field layout.' . PHP_EOL;
+            }
+        } finally {
+            Recipients::$relaxLegacyOptionValidation = false;
         }
 
         return true;

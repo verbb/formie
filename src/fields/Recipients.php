@@ -6,6 +6,7 @@ use verbb\formie\base\DisplayTypeFieldInterface;
 use verbb\formie\base\Field;
 use verbb\formie\base\FieldInterface;
 use verbb\formie\base\IntegrationInterface;
+use verbb\formie\base\OptionsField;
 use verbb\formie\base\PreviewableFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
@@ -52,6 +53,12 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
 {
     // Static Methods
     // =========================================================================
+
+    /**
+     * When true, static recipient options may keep legacy Formie 2 values where the
+     * label and value were the same non-email string (e.g. enquiry routing labels).
+     */
+    public static bool $relaxLegacyOptionValidation = false;
 
     public static function displayName(): string
     {
@@ -893,8 +900,16 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
         $emailValidator = new EmailValidator();
 
         foreach ($this->options as &$option) {
+            if (OptionsField::isOptionHidden($option)) {
+                continue;
+            }
+
             $label = (string)($option['label'] ?? '');
             $value = (string)($option['value'] ?? '');
+
+            if ($value === '') {
+                continue;
+            }
 
             if (isset($labels[$label])) {
                 $option['label'] = [
@@ -908,17 +923,23 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
             $labels[$label] = true;
 
             foreach ($this->_parseRecipientEmails($value) as $email) {
-                if (!$emailValidator->validate($email)) {
-                    $option['value'] = [
-                        'value' => $value,
-                        'hasErrors' => true,
-                    ];
-                    $this->addError('options', Craft::t('formie', '“{email}” is not a valid email address.', [
-                        'email' => $email,
-                    ]));
-
-                    break;
+                if ($emailValidator->validate($email)) {
+                    continue;
                 }
+
+                if (static::$relaxLegacyOptionValidation && $value === $label) {
+                    continue 2;
+                }
+
+                $option['value'] = [
+                    'value' => $value,
+                    'hasErrors' => true,
+                ];
+                $this->addError('options', Craft::t('formie', '“{email}” is not a valid email address.', [
+                    'email' => $email,
+                ]));
+
+                break;
             }
         }
         unset($option);
