@@ -99,6 +99,10 @@ class FormStatuses extends Component
 
     public function hasConfiguredStatuses(): bool
     {
+        if (!Craft::$app->getDb()->tableExists(Table::FORMIE_FORM_STATUSES)) {
+            return false;
+        }
+
         return (bool)$this->getAllStatuses();
     }
 

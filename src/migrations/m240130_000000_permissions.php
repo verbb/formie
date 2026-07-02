@@ -1,7 +1,6 @@
 <?php
 namespace verbb\formie\migrations;
 
-use verbb\formie\elements\Form;
 use verbb\formie\helpers\Table;
 
 use Craft;
@@ -33,8 +32,8 @@ class m240130_000000_permissions extends Migration
             'formie-manageFormSettings' => ['formie-showFormSettings'],
         ];
 
-        foreach (Form::find()->all() as $form) {
-            $suffix = ':' . $form->uid;
+        foreach ((new Query())->select(['uid'])->from(Table::FORMIE_FORMS)->all() as $form) {
+            $suffix = ':' . $form['uid'];
 
             $toUpdate += [
                 "formie-manageSubmission{$suffix}" => ["formie-viewSubmissions{$suffix}", "formie-createSubmissions{$suffix}", "formie-saveSubmissions{$suffix}", "formie-deleteSubmissions{$suffix}"],
