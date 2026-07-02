@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.0.12 - 2026-07-02
+
 ### Added
 - Add Opayo **Drop-in Checkout** support to the `opayo` payment module via `sagepayCheckout`, including iframe mount on field init, `tokenise()` on authorize, and merchant session key refresh on tokenisation failure. **Own Form** mode continues to use `sagepayOwnForm`.
 
