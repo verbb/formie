@@ -5,6 +5,7 @@ use verbb\formie\migrations\plugins\MigrateFreeform4;
 use verbb\formie\migrations\plugins\MigrateFreeform5;
 use verbb\formie\migrations\plugins\MigrateSproutForms;
 use verbb\formie\migrations\plugins\Line;
+use verbb\formie\migrations\plugins\MigrationResult;
 
 use Craft;
 use craft\errors\MissingComponentException;
@@ -48,9 +49,11 @@ class MigrationsController extends SettingsAccessController
 
             try {
                 $result = $migration->run();
-                $outputs[$form->id] = $result->lines;
+                $outputs[$form->id] = MigrationResult::renderLinesHtml($result->lines);
             } catch (Throwable $e) {
-                $outputs[$form->id] = [Line::error('Failed to migrate: ' . $e->getMessage())];
+                $outputs[$form->id] = MigrationResult::renderLinesHtml([
+                    Line::error('Failed to migrate: ' . $e->getMessage()),
+                ]);
             }
         }
 
@@ -92,9 +95,11 @@ class MigrationsController extends SettingsAccessController
 
             try {
                 $result = $migration->run();
-                $outputs[$form->id] = $result->lines;
+                $outputs[$form->id] = MigrationResult::renderLinesHtml($result->lines);
             } catch (Throwable $e) {
-                $outputs[$form->id] = [Line::error('Failed to migrate: ' . $e->getMessage())];
+                $outputs[$form->id] = MigrationResult::renderLinesHtml([
+                    Line::error('Failed to migrate: ' . $e->getMessage()),
+                ]);
             }
         }
 
@@ -136,9 +141,11 @@ class MigrationsController extends SettingsAccessController
 
             try {
                 $result = $migration->run();
-                $outputs[$form->getId()] = $result->lines;
+                $outputs[$form->getId()] = MigrationResult::renderLinesHtml($result->lines);
             } catch (Throwable $e) {
-                $outputs[$form->getId()] = [Line::error('Failed to migrate: ' . $e->getMessage())];
+                $outputs[$form->getId()] = MigrationResult::renderLinesHtml([
+                    Line::error('Failed to migrate: ' . $e->getMessage()),
+                ]);
             }
         }
 
