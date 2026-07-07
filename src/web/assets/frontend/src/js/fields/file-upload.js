@@ -7,6 +7,8 @@ export class FormieFileUpload {
         this.$field = settings.$field;
 
         this.form.registerEvent('registerFormieValidation', this.registerValidation.bind(this));
+
+        // Handle uploaded asset IDs returned from Ajax submissions (added in 3.1.5).
         this.form.addEventListener(this.$form, eventKey('FormieFileUpload'), this.onUploadedAsset.bind(this));
     }
 
@@ -105,9 +107,16 @@ export class FormieFileUpload {
                 $anchor = $assetInput; // next one goes after this one
             });
 
-            // Reset the attribute to prevent re-uploading
+            // Browsers can't repopulate `<input type="file">` after upload, so remove `required` once
+            // asset IDs are injected as hidden inputs. Previously handled in `onAfterSubmit` for
+            // multi-page Ajax forms (https://github.com/verbb/formie/issues/1856,
+            // https://github.com/verbb/formie/issues/1910) but dropped when Ajax asset ID support
+            // was added in 3.1.5, causing payment resubmits to fail for required fields
+            // (https://github.com/verbb/formie/issues/2871).
             if ($fileInput) {
                 $fileInput.value = null;
+                $fileInput.removeAttribute('required');
+                $fileInput.setAttribute('aria-required', 'false');
             }
         }
     }
