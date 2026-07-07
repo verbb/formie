@@ -384,24 +384,28 @@ Follow the below steps to connect to the HubSpot API.
 1. Click the **New Integration** button.
 1. Select HubSpot as the **Integration Provider**.
 
-### Step 2. Connect to the HubSpot API
-1. Go to <a href="https://www.hubspot.com/" target="_blank">HubSpot</a> and login to your account.
-1. Click on the settings icon on the top-right of the screen.
-1. In the left-hand sidebar menu, click on **Integrations** → **Private Apps**.
-1. Click the **Create a private app** button.
-1. Fill out the details, and click the **Scopes** tab. Select the following scopes:
-    - `crm.lists.read`
-    - `crm.objects.companies.read`
-    - `crm.objects.companies.write`
+### Step 2. Create a HubSpot Private App
+1. Go to <a href="https://www.hubspot.com/" target="_blank">HubSpot</a> and login to your account. You must be a **super admin** to create private apps.
+1. In the left-hand sidebar, click **Development**.
+1. In the left-hand sidebar, click **Legacy Apps**.
+1. In the top right, click **Create legacy app**, then select **Private**.
+1. On the **Basic Info** tab, enter a name and description for your app.
+1. Click the **Scopes** tab, then click **Add new scope**.
+1. Select the scopes you need for the objects you plan to map in Formie:
     - `crm.objects.contacts.read`
     - `crm.objects.contacts.write`
     - `crm.objects.deals.read`
     - `crm.objects.deals.write`
+    - `crm.objects.companies.read`
+    - `crm.objects.companies.write`
     - `tickets`
     - `forms`
-1. Click the **Create App** button in the top right.
+    - `files`
+1. Click **Update**, then click **Create app** in the top right.
 1. In the dialog box, review the info about your app's access token, then click **Continue creating**.
-1. Copy the **Access Token** from HubSpot and paste in the **Access Token** field in Formie.
+1. Open the **Auth** tab for your private app.
+1. Click **Show token**, then click **Copy**.
+1. Paste the access token into the **Access Token** field in Formie.
 
 ### Step 3. Disable Automatic Form Collection
 1. In HubSpot, click on the **Settings** cog icon in the top right-hand of the screen.
