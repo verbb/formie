@@ -157,8 +157,9 @@ class FormSitePropagation extends Component
 
         $request = Craft::$app->getRequest();
         $requestedSite = Cp::requestedSite();
+        $requestedSiteId = $request instanceof \craft\web\Request ? $request->getParam('siteId') : null;
         $candidateIds = array_filter([
-            $request->getParam('siteId'),
+            $requestedSiteId,
             $requestedSite?->id,
             $form->siteId,
             Craft::$app->getSites()->getCurrentSite()->id,
