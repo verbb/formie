@@ -110,9 +110,11 @@ class ImportExportController extends SettingsAccessController
         }
 
         ob_start();
-        $this->stdout("Form: Preparing to import form “{$json['title']}”.");
-        $this->stdout("    > Form title is “{$json['title']}”.", Console::FG_GREEN);
-        $this->stdout("    > Form handle is “{$json['handle']}”.", ($existingForm ? Console::FG_RED : Console::FG_GREEN));
+        $title = Html::encode($json['title'] ?? '');
+        $handle = Html::encode($json['handle'] ?? '');
+        $this->stdout("Form: Preparing to import form “{$title}”.");
+        $this->stdout("    > Form title is “{$title}”.", Console::FG_GREEN);
+        $this->stdout("    > Form handle is “{$handle}”.", ($existingForm ? Console::FG_RED : Console::FG_GREEN));
 
         $pageCount = Craft::t('app', '{num, number} {num, plural, =1{page} other{pages}}', ['num' => count($json['pages'])]);
         $this->stdout("    > Form contains {$pageCount}.", Console::FG_GREEN);
@@ -153,7 +155,8 @@ class ImportExportController extends SettingsAccessController
             $this->stdout("Notifications: Preparing to import {$notificationCount}.");
 
             foreach ($json['notifications'] as $notification) {
-                $this->stdout("    > “{$notification['name']}”.", Console::FG_GREEN);
+                $name = Html::encode($notification['name'] ?? '');
+                $this->stdout("    > “{$name}”.", Console::FG_GREEN);
             }
         }
 
