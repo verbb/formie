@@ -234,14 +234,6 @@ class SubmissionsController extends Controller
         // Get the submission, or create a new one
         $submission = $this->_populateSubmission($form, null);
 
-        if ($request->getIsSiteRequest() && $submission->id) {
-            $editingSubmission = $this->_getTypedParam('editingSubmission', 'boolean');
-
-            if (!$editingSubmission || !$this->_validateSubmissionEditToken($form, $submission)) {
-                throw new ForbiddenHttpException('User is not permitted to perform this action');
-            }
-        }
-
         // For site requests, we can only edit existing ones, not create, due to this being potentially anonymous
         if ($request->getIsSiteRequest() && !$submission->id) {
             throw new ForbiddenHttpException('User is not permitted to perform this action');
@@ -255,10 +247,13 @@ class SubmissionsController extends Controller
         // Now populate the rest of it from the post data
         $submission->enabled = true;
         $submission->enabledForSite = true;
-        $submission->title = $request->getBodyParam('title') ?: $submission->title;
-        $submission->statusId = $request->getBodyParam('statusId', $submission->statusId);
-        $submission->isSpam = (bool)$request->getBodyParam('isSpam', $submission->isSpam);
         $submission->setScenario(Element::SCENARIO_LIVE);
+
+        if ($request->getIsCpRequest()) {
+            $submission->title = $request->getBodyParam('title') ?: $submission->title;
+            $submission->statusId = $request->getBodyParam('statusId', $submission->statusId);
+            $submission->isSpam = (bool)$request->getBodyParam('isSpam', $submission->isSpam);
+        }
 
         if ($request->getBodyParam('markAsComplete')) {
             $submission->isIncomplete = false;
@@ -1156,6 +1151,14 @@ class SubmissionsController extends Controller
             if (!$submission) {
                 throw new BadRequestHttpException("No submission exists with the ID \"$submissionId\"");
             }
+
+            if ($submission->formId && (int)$submission->formId !== (int)$form->id) {
+                throw new BadRequestHttpException("No submission exists with the ID \"$submissionId\"");
+            }
+
+            if ($request->getIsSiteRequest()) {
+                $this->_authorizeExistingSubmission($form, $submission, $editingSubmission);
+            }
         } else {
             $submission = new Submission();
         }
@@ -1254,6 +1257,23 @@ class SubmissionsController extends Controller
             hash_equals((string)$form->uid, (string)($data['formUid'] ?? '')) &&
             (int)($data['submissionId'] ?? 0) === (int)$submission->id &&
             hash_equals((string)$submission->uid, (string)($data['submissionUid'] ?? ''));
+    }
+
+    private function _authorizeExistingSubmission(Form $form, Submission $submission, ?bool $editingSubmission): void
+    {
+        if ($editingSubmission) {
+            if (!$this->_validateSubmissionEditToken($form, $submission)) {
+                throw new ForbiddenHttpException('User is not permitted to perform this action');
+            }
+
+            return;
+        }
+
+        $sessionSubmission = $form->getCurrentSubmission();
+
+        if (!$sessionSubmission || (int)$sessionSubmission->id !== (int)$submission->id) {
+            throw new ForbiddenHttpException('User is not permitted to perform this action');
+        }
     }
 
     /**

@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Fixed missing authorization for `integrations/form-settings`, which could allow SSRF and exposure of integration credentials.
+- Fixed missing authorization when resuming incomplete submissions via the `submit` action.
+- Fixed missing authorization for `sent-notifications/get-resend-modal-content`.
+- Fixed `save-submission` accepting sensitive parameters from front-end requests.
+- Fixed an XSS vulnerability for importing forms with manipulated form title, handle, or notification name content.
+
 ## 2.2.22 - 2026-05-30
 
 ### Fixed
