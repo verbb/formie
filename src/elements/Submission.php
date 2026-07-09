@@ -259,7 +259,8 @@ class Submission extends Element
             $sources[] = [
                 'key' => '*',
                 'label' => Craft::t('formie', 'All Forms'),
-                'defaultSort' => ['elements_sites.title', 'desc'],
+                // Default submission title format is a timestamp; sort chronologically, not alphabetically.
+                'defaultSort' => ['elements.dateCreated', 'desc'],
             ];
         }
 
@@ -285,7 +286,8 @@ class Submission extends Element
                     'handle' => $formHandle,
                 ],
                 'criteria' => ['formId' => $formId],
-                'defaultSort' => ['elements_sites.title', 'desc'],
+                // Default submission title format is a timestamp; sort chronologically, not alphabetically.
+                'defaultSort' => ['elements.dateCreated', 'desc'],
             ];
 
             $groupId = (int)($form['groupId'] ?? 0);
@@ -382,7 +384,7 @@ class Submission extends Element
     protected static function defineTableAttributes(): array
     {
         return [
-            'title' => ['label' => Craft::t('app', 'Title')],
+            'title' => ['label' => Craft::t('formie', 'Submission')],
             'id' => ['label' => Craft::t('app', 'ID')],
             'uid' => ['label' => Craft::t('app', 'UID')],
             'form' => ['label' => Craft::t('formie', 'Form')],
@@ -417,8 +419,9 @@ class Submission extends Element
     {
         return [
             [
-                'label' => Craft::t('app', 'Title'),
-                'orderBy' => 'elements_sites.title',
+                'label' => Craft::t('formie', 'Submission'),
+                // Titles are usually generated from {timestamp}; sort by creation date instead of the formatted string.
+                'orderBy' => 'elements.dateCreated',
                 'attribute' => 'title',
             ],
             [
