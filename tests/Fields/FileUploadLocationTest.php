@@ -54,3 +54,21 @@ it('requires upload location when no plugin default is configured', function ():
     expect($field->validate(['uploadLocationSource']))->toBeFalse()
         ->and($field->getErrors('uploadLocationSource'))->not->toBeEmpty();
 });
+
+it('excludes temporary uploads from upload location options', function (): void {
+    $field = new FileUpload();
+    $values = array_column($field->getSourceOptions(), 'value');
+
+    expect($values)->not->toContain('temp');
+});
+
+it('rejects temporary uploads as an upload location', function (): void {
+    $field = new FileUpload([
+        'label' => 'Resume',
+        'handle' => 'resume',
+        'uploadLocationSource' => 'temp',
+    ]);
+
+    expect($field->validate(['uploadLocationSource']))->toBeFalse()
+        ->and($field->getErrors('uploadLocationSource'))->not->toBeEmpty();
+});

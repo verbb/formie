@@ -3216,6 +3216,8 @@ To review it please log into your control panel.
   'Updating form submission content.' => 'Updating form submission content.',
   'Upload Location' => 'Upload Location',
   'Upload Location must be selected.' => 'Upload Location must be selected.',
+  'Temporary Uploads cannot be used as a form upload location. Choose an asset volume instead.' => 'Temporary Uploads cannot be used as a form upload location. Choose an asset volume instead.',
+  'Upload Location must be a valid asset volume.' => 'Upload Location must be a valid asset volume.',
   'Upload Manager (Advanced)' => 'Upload Manager (Advanced)',
   'Upload the JSON file that‘s been exported from Formie.' => 'Upload the JSON file that‘s been exported from Formie.',
   'Uppercase' => 'Uppercase',

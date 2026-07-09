@@ -54,6 +54,7 @@ use craft\helpers\Template;
 use craft\helpers\UrlHelper;
 use craft\models\Volume;
 use craft\models\VolumeFolder;
+use craft\services\ElementSources;
 use craft\services\Gql as GqlService;
 use craft\web\UploadedFile;
 
@@ -183,7 +184,22 @@ class FileUpload extends ElementField
 
     public function getSourceOptions(): array
     {
-        $options = parent::getSourceOptions();
+        // Match Craft's Assets field settings: real volumes only. Temporary Uploads (`temp`)
+        // is a staging location with no volume and must not be used as a submission destination.
+        $options = [];
+
+        foreach (Asset::sources(ElementSources::CONTEXT_SETTINGS) as $source) {
+            if (isset($source['heading'])) {
+                continue;
+            }
+
+            $options[] = [
+                'label' => $source['label'],
+                'value' => $source['key'],
+            ];
+        }
+
+        ArrayHelper::multisort($options, 'label', SORT_ASC, SORT_NATURAL | SORT_FLAG_CASE);
 
         return array_merge([['label' => Craft::t('formie', 'Select an option'), 'value' => '']], $options);
     }
@@ -436,16 +452,10 @@ class FileUpload extends ElementField
 
     public function getVolumeOptions(): array
     {
-        $volumes = [];
-
-        foreach (Craft::$app->getVolumes()->getAllVolumes() as $volume) {
-            $volumes[] = [
-                'label' => $volume->name,
-                'value' => 'folder:' . $volume->uid,
-            ];
-        }
-
-        return $volumes;
+        return array_values(array_filter(
+            $this->getSourceOptions(),
+            fn(array $option) => ($option['value'] ?? '') !== '',
+        ));
     }
 
     public function getFileKindOptions(): array
@@ -1245,7 +1255,27 @@ class FileUpload extends ElementField
             'message' => Craft::t('formie', 'Upload Location must be selected.'),
         ];
 
+        $rules[] = [
+            ['uploadLocationSource'],
+            'validateUploadLocationSource',
+            'skipOnEmpty' => true,
+        ];
+
         return $rules;
+    }
+
+    public function validateUploadLocationSource(string $attribute): void
+    {
+        $sourceKey = $this->_getEffectiveUploadLocationSource();
+
+        if ($sourceKey === 'temp') {
+            $this->addError($attribute, Craft::t('formie', 'Temporary Uploads cannot be used as a form upload location. Choose an asset volume instead.'));
+            return;
+        }
+
+        if ($sourceKey && !$this->_getVolume()) {
+            $this->addError($attribute, Craft::t('formie', 'Upload Location must be a valid asset volume.'));
+        }
     }
 
     private function _getEffectiveUploadLocationSource(): ?string
