@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { assignFieldReferences } from './fieldReferences';
+import { assignFieldReferences, ensureUniqueFieldReferencesInForm } from './fieldReferences';
+import { syncContainerRowsFromVariant } from './containerLayoutVariants';
 
 describe('assignFieldReferences', () => {
     it('regenerates references in layout variants when duplicating fixed parent fields', () => {
@@ -76,5 +77,81 @@ describe('assignFieldReferences', () => {
         expect(allReferences.size).toBe(6);
         expect(allReferences.has(sharedDateReference)).toBe(false);
         expect(allReferences.has(sharedTimeReference)).toBe(false);
+    });
+});
+
+describe('ensureUniqueFieldReferencesInForm', () => {
+    it('regenerates duplicate references across duplicated date fields before save', () => {
+        const duplicateReference = 'd294ef98-6bed-4de1-b072-31faedb5a304';
+
+        const pages = [{
+            rows: [{
+                fields: [{
+                    type: 'verbb\\formie\\fields\\Date',
+                    reference: 'parent-a',
+                    rows: [{
+                        fields: [
+                            { handle: 'date', reference: duplicateReference },
+                            { handle: 'time', reference: '92957918-fed7-4e63-ab7f-d669a8187f2f' },
+                        ],
+                    }],
+                }, {
+                    type: 'verbb\\formie\\fields\\Date',
+                    reference: 'parent-b',
+                    rows: [{
+                        fields: [
+                            { handle: 'date', reference: duplicateReference },
+                            { handle: 'time', reference: '92957918-fed7-4e63-ab7f-d669a8187f2f' },
+                        ],
+                    }],
+                }],
+            }],
+        }];
+
+        ensureUniqueFieldReferencesInForm(pages);
+
+        const references = [];
+        pages[0].rows[0].fields.forEach((field) => {
+            references.push(field.reference);
+            field.rows[0].fields.forEach((subField) => {
+                references.push(subField.reference);
+            });
+        });
+
+        expect(new Set(references).size).toBe(references.length);
+    });
+});
+
+describe('syncContainerRowsFromVariant', () => {
+    it('keeps active sub-field references when syncing from stale layout variants', () => {
+        const staleDateReference = 'd294ef98-6bed-4de1-b072-31faedb5a304';
+        const activeDateReference = '11111111-1111-4111-8111-111111111111';
+        const activeTimeReference = '22222222-2222-4222-8222-222222222222';
+
+        const field = {
+            settings: {
+                displayType: 'calendar',
+                rows: [{
+                    fields: [
+                        { handle: 'date', reference: activeDateReference },
+                        { handle: 'time', reference: activeTimeReference },
+                    ],
+                }],
+                layouts: {
+                    calendar: [{
+                        fields: [
+                            { handle: 'date', reference: staleDateReference },
+                            { handle: 'time', reference: activeTimeReference },
+                        ],
+                    }],
+                },
+            },
+        };
+
+        const syncedField = syncContainerRowsFromVariant(field);
+
+        expect(syncedField.settings.rows[0].fields[0].reference).toBe(activeDateReference);
+        expect(syncedField.settings.rows[0].fields[1].reference).toBe(activeTimeReference);
+        expect(syncedField.settings.layouts.calendar[0].fields[0].reference).toBe(activeDateReference);
     });
 });

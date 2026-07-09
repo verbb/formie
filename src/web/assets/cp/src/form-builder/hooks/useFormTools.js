@@ -4,6 +4,7 @@ import { cloneDeep } from 'lodash-es';
 import { useFormBuilderForm } from '@form-builder/contexts/FormBuilderFormContext';
 import {
     createFieldReference,
+    ensureUniqueFieldReferencesInForm,
     forEachFieldInLayoutMaps,
     forEachFieldInRows,
 } from '@form-builder/utils/fieldReferences';
@@ -253,6 +254,8 @@ const serializeFormData = (data = {}) => {
     (serialized.pages || []).forEach((page) => {
         assignMissingFieldReferences(page?.rows || []);
     });
+
+    ensureUniqueFieldReferencesInForm(serialized.pages || []);
 
     const fieldReferenceMap = {};
     (serialized.pages || []).forEach((page) => {

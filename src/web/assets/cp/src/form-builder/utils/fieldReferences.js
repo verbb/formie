@@ -110,6 +110,89 @@ const forEachFieldInLayoutMaps = (layouts, callback) => {
     });
 };
 
+const getFieldHandle = (field) => {
+    return String(field?.handle || field?.settings?.handle || '').trim();
+};
+
+const getActiveSubFieldRows = (field) => {
+    if (Array.isArray(field?.rows)) {
+        return field.rows;
+    }
+
+    if (Array.isArray(field?.settings?.rows)) {
+        return field.settings.rows;
+    }
+
+    return [];
+};
+
+const getActiveSubFieldReferenceMap = (field) => {
+    const referencesByHandle = new Map();
+
+    forEachFieldInRows(getActiveSubFieldRows(field), (subField) => {
+        const handle = getFieldHandle(subField);
+
+        if (!handle) {
+            return;
+        }
+
+        const reference = String(subField?.reference || '').trim();
+
+        if (reference) {
+            referencesByHandle.set(handle, reference);
+        }
+    });
+
+    return referencesByHandle;
+};
+
+const mergeActiveSubFieldReferences = (rows, referencesByHandle, options = {}) => {
+    const { forceNew = false } = options;
+
+    if (!Array.isArray(rows)) {
+        return rows;
+    }
+
+    return mapNestedRows(rows, (subField) => {
+        const handle = getFieldHandle(subField);
+        const activeReference = handle ? referencesByHandle.get(handle) : null;
+
+        if (activeReference) {
+            return {
+                ...subField,
+                reference: activeReference,
+            };
+        }
+
+        return assignFieldReferences(subField, { forceNew });
+    });
+};
+
+const ensureUniqueFieldReferencesInForm = (pages = []) => {
+    const seenReferences = new Set();
+
+    const ensureFieldReference = (field) => {
+        if (!field || typeof field !== 'object') {
+            return;
+        }
+
+        const existingReference = String(field.reference || '').trim();
+
+        if (!existingReference || seenReferences.has(existingReference)) {
+            field.reference = createFieldReference();
+        }
+
+        seenReferences.add(String(field.reference || '').trim());
+
+        forEachFieldInLayoutMaps(field.layouts, ensureFieldReference);
+        forEachFieldInLayoutMaps(field?.settings?.layouts, ensureFieldReference);
+    };
+
+    (pages || []).forEach((page) => {
+        forEachFieldInRows(page?.rows, ensureFieldReference);
+    });
+};
+
 const assignFieldReferences = (field, options = {}) => {
     if (!field || typeof field !== 'object') {
         return field;
@@ -187,7 +270,10 @@ const remapFieldReferencesInField = (field, referenceMap = {}) => {
 export {
     assignFieldReferences,
     createFieldReference,
+    ensureUniqueFieldReferencesInForm,
     forEachFieldInLayoutMaps,
     forEachFieldInRows,
+    getActiveSubFieldReferenceMap,
+    mergeActiveSubFieldReferences,
     remapFieldReferencesInField,
 };
