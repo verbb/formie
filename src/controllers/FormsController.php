@@ -19,6 +19,7 @@ use verbb\formie\models\FormTemplate;
 
 use Craft;
 use craft\db\Query;
+use craft\errors\InvalidElementException;
 use craft\enums\CmsEdition;
 use craft\helpers\Cp;
 use craft\helpers\DateTimeHelper;
@@ -494,7 +495,47 @@ class FormsController extends Controller
         if ($saveAsNew) {
             $this->requirePermission('formie-createForms');
 
-            $duplicatedForm = Craft::$app->getElements()->duplicateElement($form, $form->getDuplicateAttributes());
+            try {
+                $duplicatedForm = Craft::$app->getElements()->duplicateElement($form, $form->getDuplicateAttributes());
+            } catch (InvalidElementException $e) {
+                $errors = $e->element->getErrors();
+
+                Formie::error('Couldn\'t save form as new - {e}.', ['e' => Json::encode($errors)]);
+
+                if ($this->request->getAcceptsJson()) {
+                    return $this->asJson([
+                        'errors' => $errors,
+                    ]);
+                }
+
+                $this->setFailFlash(Craft::t('formie', 'Couldn\'t save form as new.'));
+
+                Craft::$app->getUrlManager()->setRouteParams([
+                    'form' => $form,
+                ]);
+
+                return null;
+            } catch (Throwable $e) {
+                Formie::error('Couldn\'t save form as new - {message}', [
+                    'message' => $e->getMessage(),
+                ]);
+
+                $errors = ['form' => [Craft::t('formie', 'Couldn\'t save form as new.')]];
+
+                if ($this->request->getAcceptsJson()) {
+                    return $this->asJson([
+                        'errors' => $errors,
+                    ]);
+                }
+
+                $this->setFailFlash(Craft::t('formie', 'Couldn\'t save form as new.'));
+
+                Craft::$app->getUrlManager()->setRouteParams([
+                    'form' => $form,
+                ]);
+
+                return null;
+            }
 
 
             if (!$duplicatedForm) {

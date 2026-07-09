@@ -2194,11 +2194,18 @@ class Form extends Element implements FormInterface
         // Check if we need to update any submission content due to field changes
         Formie::$plugin->getSubmissions()->updateSubmissionContent($this);
 
+        parent::afterSave($isNew);
+    }
+
+    public function afterPropagate(bool $isNew): void
+    {
+        // Site rows are managed by Craft during propagation/duplication. Sync enabled sites
+        // and titles once the element exists across sites to avoid duplicate inserts.
         if (Craft::$app->getIsMultiSite()) {
             Formie::$plugin->getFormSitePropagation()->syncFormSites($this);
         }
 
-        parent::afterSave($isNew);
+        parent::afterPropagate($isNew);
     }
 
     public function afterDelete(): void
@@ -3908,6 +3915,12 @@ class Form extends Element implements FormInterface
                     $field->rowId = null;
                     $field->reference = null;
                     $field->uid = '';
+
+                    // Duplicates should own independent field definitions, not share synced placements.
+                    $field->fieldId = null;
+                    $field->syncId = null;
+                    $field->isSynced = false;
+                    $field->usageCount = null;
 
                     if ($field instanceof ParentFieldInterface) {
                         $this->_clearLayoutIdentifiers($field->getFieldLayout());

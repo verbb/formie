@@ -543,7 +543,12 @@ abstract class ParentField extends Field implements ParentFieldInterface
                     $field->layoutId = null;
                     $field->pageId = null;
                     $field->rowId = null;
+                    $field->reference = null;
                     $field->uid = '';
+                    $field->fieldId = null;
+                    $field->syncId = null;
+                    $field->isSynced = false;
+                    $field->usageCount = null;
 
                     if ($field instanceof NestedFieldInterface) {
                         $this->_clearLayoutIdentifiers($field->getFieldLayout());
