@@ -11,6 +11,7 @@ use craft\mail\Message;
 use craft\web\Controller;
 
 use yii\validators\EmailValidator;
+use yii\web\ForbiddenHttpException;
 use yii\web\HttpException;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
@@ -61,6 +62,7 @@ class SentNotificationsController extends Controller
     public function actionGetResendModalContent(): Response
     {
         $this->requireAcceptsJson();
+        $this->requirePermission('formie-viewSentNotifications');
 
         $request = $this->request;
         $view = $this->getView();
@@ -68,6 +70,10 @@ class SentNotificationsController extends Controller
         $sentNotification = SentNotification::find()
             ->id($request->getParam('id'))
             ->one();
+
+        if (!$sentNotification) {
+            throw new HttpException(404);
+        }
 
         $modalHtml = $view->renderTemplate('formie/sent-notifications/_includes/resend-modal', [
             'sentNotification' => $sentNotification,
