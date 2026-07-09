@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 3.1.31 - 2026-07-09
 
 ### Fixed
 - Fixed a security vulnerability in the `locutus` dependency (CVE-2026-25521, CVE-2026-33994). ([#2876](https://github.com/verbb/formie/issues/2876))
@@ -12,6 +12,8 @@
 - Fixed missing authorization for `sent-notifications/get-resend-modal-content`.
 - Fixed `save-submission` allowing anonymous submission creation and accepting sensitive parameters from front-end requests.
 - Fixed an XSS vulnerability for importing forms with manipulated form title, handle, or notification name content.
+- Fix migration failure when Typed Link is installed by adding `__toString()` to Formie fields.
+- Fix required File Upload fields inside Repeaters breaking Stripe payment resubmits..
 
 ## 3.1.30 - 2026-06-27
 
