@@ -1,3 +1,5 @@
+import { createUid } from '@utils/createUid';
+
 const slugifyHandle = (value) => {
     return String(value || '')
         .trim()
@@ -28,7 +30,7 @@ export const createGroup = (name, groups) => {
     const trimmedName = String(name || '').trim() || Craft.t('formie', 'New Group');
 
     return {
-        uid: crypto.randomUUID(),
+        uid: createUid(),
         handle: createUniqueGroupHandle(trimmedName, groups),
         name: trimmedName,
         fields: [],

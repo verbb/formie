@@ -1,13 +1,7 @@
-const createFieldReference = () => {
-    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-        return crypto.randomUUID();
-    }
+import { createUid } from '@utils/createUid';
 
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (char) => {
-        const random = Math.floor(Math.random() * 16);
-        const value = char === 'x' ? random : ((random & 0x3) | 0x8);
-        return value.toString(16);
-    });
+const createFieldReference = () => {
+    return createUid();
 };
 
 const isLayoutRowsMap = (value) => {

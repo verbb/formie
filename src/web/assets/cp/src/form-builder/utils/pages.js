@@ -1,4 +1,5 @@
 import { generateHandle } from '@verbb/plugin-kit-react/utils';
+import { createUid } from '@utils/createUid';
 
 const getNextPageNumber = (pages = []) => {
     const maxFromExisting = (pages || []).reduce((maxValue, page) => {
@@ -26,7 +27,7 @@ const createNewPageData = (pages = [], options = {}) => {
     const generatedHandle = generateHandle(defaultLabel) || `page${nextPageNumber}`;
 
     return {
-        uid: crypto.randomUUID(),
+        uid: createUid(),
         label,
         _handle: generatedHandle,
         rows: [],
