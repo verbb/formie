@@ -5269,6 +5269,9 @@ function H(e, t) {
 		s.mode = "range";
 		let e = i instanceof HTMLInputElement && i.value ? V(i.value) : null, t = o instanceof HTMLInputElement && o.value ? V(o.value) : null;
 		e && (s.defaultDate = t ? [e, t] : [e]);
+	} else if (e.value) {
+		let t = V(e.value);
+		t && (s.defaultDate = t);
 	}
 	let l = {
 		...s,

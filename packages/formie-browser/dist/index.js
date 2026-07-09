@@ -1389,7 +1389,7 @@ var L = class {
 	"custom-google-maps": () => import("./chunks/custom-google-maps-BsaSirEZ.js").then((e) => e.customGoogleMapsModule),
 	"custom-link": () => import("./chunks/custom-link-CJ1-FjEM.js").then((e) => e.customLinkModule),
 	"custom-maps": () => import("./chunks/custom-maps-DYW_pBid.js").then((e) => e.customMapsModule),
-	"date-picker": () => import("./chunks/date-picker-5CA_-zGb.js").then((e) => e.datePickerModule),
+	"date-picker": () => import("./chunks/date-picker-F9BUBDSW.js").then((e) => e.datePickerModule),
 	"file-upload": () => import("./chunks/file-upload-rqfZNqlH.js").then((e) => e.fileUploadModule),
 	"upload-manager": () => import("./chunks/upload-manager-W-QDgxKD.js").then((e) => e.uploadManagerModule),
 	hidden: () => import("./chunks/hidden-D7_Ch-QN.js").then((e) => e.hiddenModule),
@@ -2231,7 +2231,9 @@ function sr() {
 			instance: D,
 			options: g,
 			unbinds: d
-		})), b && (ar(r, b, m, l, T, d), T && (d.push(_(b, T, r)), d.push(bn(b))), await or(r, m, b)), i.forEach((e) => {
+		})), b && (ar(r, b, m, l, T, d), T && (d.push(_(b, T, r)), d.push(bn(b))), await or(r, m, b), b.dispatchEvent(new CustomEvent("formie:state:reset")), window.setTimeout(() => {
+			b.dispatchEvent(new CustomEvent("formie:state:reset"));
+		}, 350)), i.forEach((e) => {
 			let t = l.on(`formie:stage:${e}:before`, async (t) => {
 				h(r, `formie:stage:${e}:before`, t);
 			}), n = l.on(`formie:stage:${e}:before`, async (e) => {

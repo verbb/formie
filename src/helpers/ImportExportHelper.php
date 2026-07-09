@@ -6,6 +6,9 @@ use verbb\formie\base\FieldInterface;
 use verbb\formie\base\ParentFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\fields;
+use verbb\formie\fields\Recipients;
+use verbb\formie\base\OptionsField;
+use verbb\formie\helpers\FieldOptionHelper;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\Plugin;
 use verbb\formie\models\EmailTemplate;
@@ -23,7 +26,9 @@ use verbb\formie\records\PdfTemplate as PdfTemplateRecord;
 use Craft;
 use craft\elements\Entry;
 use craft\helpers\Json;
+use craft\helpers\StringHelper;
 use craft\db\Query;
+use craft\validators\HandleValidator;
 
 use yii\base\Exception;
 
@@ -266,6 +271,11 @@ class ImportExportHelper
                 $emailTemplate = ArrayHelper::remove($notificationData, 'emailTemplate');
                 $pdfTemplate = ArrayHelper::remove($notificationData, 'pdfTemplate');
 
+                if (isset($notificationData['handle']) && !preg_match('/^' . HandleValidator::$handlePattern . '$/', $notificationData['handle'])) {
+                    // Legacy exports may suffix handles with invalid characters (e.g. ".1").
+                    $notificationData['handle'] = StringHelper::toHandle($notificationData['name'] ?? $notificationData['handle']);
+                }
+
                 // Find or create the notification, based on the form and notification handle
                 $notification = Formie::$plugin->getNotifications()->getFormNotificationByHandle($form, $notificationData['handle']) ?? new Notification();
 
@@ -351,7 +361,14 @@ class ImportExportHelper
             }
         }
 
-         Craft::$app->getElements()->saveElement($form);
+        // Legacy exports may keep placeholder recipient options where label and value match.
+        Recipients::$relaxLegacyOptionValidation = true;
+
+        try {
+            Craft::$app->getElements()->saveElement($form);
+        } finally {
+            Recipients::$relaxLegacyOptionValidation = false;
+        }
 
          self::_importSiteOverrides(
              $form,
@@ -439,6 +456,8 @@ class ImportExportHelper
 
                                 $field['settings']['rows'] = $nestedPages[0]['rows'];
                             }
+
+                            self::_normalizeImportedFieldOptions($type, $field);
                         }
                     }
                 }
@@ -447,6 +466,64 @@ class ImportExportHelper
                 $page['rows'] = array_filter($page['rows']);
             }
         }
+    }
+
+    private static function _normalizeImportedFieldOptions(string $type, array &$field): void
+    {
+        $settings = &$field['settings'];
+
+        if (!is_array($settings)) {
+            return;
+        }
+
+        if (isset($settings['options']) && is_array($settings['options'])) {
+            if ($type === Recipients::class) {
+                $settings['options'] = FieldOptionHelper::sanitizeRecipientPlaceholderOptions($settings['options']);
+            } elseif (is_subclass_of($type, OptionsField::class) || $type === OptionsField::class) {
+                $settings['options'] = FieldOptionHelper::normalizeOptionRows($settings['options']);
+            }
+        }
+
+        if ($type === fields\Date::class && ($settings['defaultOption'] ?? null) === 'today') {
+            if (isset($settings['rows']) && is_array($settings['rows'])) {
+                self::_clearImportedDateSubFieldDefaultValues($settings['rows']);
+            }
+
+            foreach ($settings['layouts'] ?? [] as &$layoutRows) {
+                if (is_array($layoutRows)) {
+                    self::_clearImportedDateSubFieldDefaultValues($layoutRows);
+                }
+            }
+            unset($layoutRows);
+        }
+    }
+
+    /**
+     * @param array<int, mixed> $rows
+     */
+    private static function _clearImportedDateSubFieldDefaultValues(array &$rows): void
+    {
+        foreach ($rows as &$row) {
+            if (!is_array($row)) {
+                continue;
+            }
+
+            foreach ($row['fields'] ?? [] as &$field) {
+                if (!is_array($field)) {
+                    continue;
+                }
+
+                if (array_key_exists('defaultValue', $field)) {
+                    $field['defaultValue'] = null;
+                }
+
+                if (isset($field['settings']) && is_array($field['settings']) && array_key_exists('defaultValue', $field['settings'])) {
+                    $field['settings']['defaultValue'] = null;
+                }
+            }
+            unset($field);
+        }
+        unset($row);
     }
 
     private static function buildFieldMap(array $fields, string $prefix = ''): array

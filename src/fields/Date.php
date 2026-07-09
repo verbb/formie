@@ -262,6 +262,20 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
             $config['defaultValue'] = null;
         }
 
+        if (($config['defaultOption'] ?? null) === 'today') {
+            // Subfield defaultValue rows are editor scaffolding only; "today" resolves dynamically.
+            if (isset($config['rows']) && is_array($config['rows'])) {
+                self::_clearSubFieldDefaultValues($config['rows']);
+            }
+
+            foreach ($config['layouts'] ?? [] as &$layoutRows) {
+                if (is_array($layoutRows)) {
+                    self::_clearSubFieldDefaultValues($layoutRows);
+                }
+            }
+            unset($layoutRows);
+        }
+
         if (array_key_exists('useDatePicker', $config) && $config['useDatePicker']) {
             $config['displayType'] = 'datePicker';
         }
@@ -467,6 +481,18 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
             is_array($activeRows) ? $activeRows : [],
             $defaultLayouts[$activeLayoutKey] ?? [],
         );
+
+        // Builder rows are flat field configs; normalize sub-field defaults to scalar preview values.
+        if (isset($settings['rows']) && is_array($settings['rows'])) {
+            $this->_sanitizeSubFieldRowsForBuilder($settings['rows']);
+        }
+
+        foreach ($settings['layouts'] ?? [] as &$layoutRows) {
+            if (is_array($layoutRows)) {
+                $this->_sanitizeSubFieldRowsForBuilder($layoutRows);
+            }
+        }
+        unset($layoutRows);
 
         return $settings;
     }
@@ -1480,7 +1506,6 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
     protected function getCalendarSubFields(): array
     {
         $fields = [];
-        $initialValue = $this->getInitialValue();
 
         $fields[0]['fields'][] = [
             'type' => subfields\DateDate::class,
@@ -1488,7 +1513,7 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
             'handle' => 'date',
             'required' => $this->required,
             'placeholder' => $this->placeholder,
-            'defaultValue' => $initialValue,
+            'defaultValue' => $this->_subFieldScaffoldDefaultValue('date'),
             'labelPosition' => HiddenPosition::class,
             'inputAttributes' => array_merge(($this->inputAttributes ?? []), [
                 [
@@ -1508,7 +1533,7 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
             'handle' => 'time',
             'required' => $this->required,
             'placeholder' => $this->placeholder,
-            'defaultValue' => $initialValue,
+            'defaultValue' => $this->_subFieldScaffoldDefaultValue('time'),
             'labelPosition' => HiddenPosition::class,
             'inputAttributes' => [
                 [
@@ -1703,7 +1728,6 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
     protected function _getDatePickerSubFields(): array
     {
         $fields = [];
-        $initialValue = $this->getInitialValue();
         $inputAttributes = array_merge(($this->inputAttributes ?? []), [
             [
                 'label' => 'autocomplete',
@@ -1717,7 +1741,7 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
             'handle' => 'date',
             'required' => $this->required,
             'placeholder' => $this->placeholder,
-            'defaultValue' => $initialValue,
+            'defaultValue' => $this->_subFieldScaffoldDefaultValue('date'),
             'labelPosition' => HiddenPosition::class,
             'inputAttributes' => $inputAttributes,
         ];
@@ -1728,7 +1752,7 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
             'handle' => 'time',
             'required' => $this->required,
             'placeholder' => $this->placeholder,
-            'defaultValue' => $initialValue,
+            'defaultValue' => $this->_subFieldScaffoldDefaultValue('time'),
             'labelPosition' => HiddenPosition::class,
             'inputAttributes' => $inputAttributes,
         ];
@@ -2792,6 +2816,111 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
     {
         return ($config['collectMode'] ?? self::COLLECT_SINGLE) === self::COLLECT_RANGE
             && ($config['displayType'] ?? '') === 'datePicker';
+    }
+
+    /**
+     * @param array<int, mixed> $rows
+     */
+    private static function _clearSubFieldDefaultValues(array &$rows): void
+    {
+        foreach ($rows as &$row) {
+            if (!is_array($row)) {
+                continue;
+            }
+
+            foreach ($row['fields'] ?? [] as &$field) {
+                if (!is_array($field)) {
+                    continue;
+                }
+
+                if (array_key_exists('defaultValue', $field)) {
+                    $field['defaultValue'] = null;
+                }
+
+                if (isset($field['settings']) && is_array($field['settings']) && array_key_exists('defaultValue', $field['settings'])) {
+                    $field['settings']['defaultValue'] = null;
+                }
+            }
+            unset($field);
+        }
+        unset($row);
+    }
+
+    /**
+     * @param array<int, mixed> $rows
+     */
+    private function _sanitizeSubFieldRowsForBuilder(array &$rows): void
+    {
+        foreach ($rows as &$row) {
+            if (!is_array($row)) {
+                continue;
+            }
+
+            foreach ($row['fields'] ?? [] as &$field) {
+                if (!is_array($field)) {
+                    continue;
+                }
+
+                $handle = $field['settings']['handle'] ?? $field['handle'] ?? null;
+                $handle = is_string($handle) && $handle !== '' ? $handle : null;
+
+                if (array_key_exists('defaultValue', $field)) {
+                    $field['defaultValue'] = $this->_normalizeBuilderSubFieldDefaultValue($field['defaultValue'], $handle);
+                }
+
+                if (isset($field['settings']) && is_array($field['settings']) && array_key_exists('defaultValue', $field['settings'])) {
+                    $field['settings']['defaultValue'] = $this->_normalizeBuilderSubFieldDefaultValue(
+                        $field['settings']['defaultValue'],
+                        $handle,
+                    );
+                }
+            }
+            unset($field);
+        }
+        unset($row);
+    }
+
+    private function _normalizeBuilderSubFieldDefaultValue(mixed $defaultValue, ?string $handle): mixed
+    {
+        if ($this->defaultOption === 'today') {
+            return null;
+        }
+
+        if ($defaultValue === null || $defaultValue === '') {
+            return null;
+        }
+
+        if ($handle !== null) {
+            $projected = $this->getSubFieldPartValue($defaultValue, $handle);
+
+            if ($projected === null || $projected === '') {
+                return null;
+            }
+
+            if (is_string($projected) || is_numeric($projected)) {
+                return (string)$projected;
+            }
+
+            return null;
+        }
+
+        if (is_string($defaultValue) || is_numeric($defaultValue)) {
+            return (string)$defaultValue;
+        }
+
+        return null;
+    }
+
+    /**
+     * Subfield row templates should not persist dynamic "today" timestamps in the builder.
+     */
+    private function _subFieldScaffoldDefaultValue(?string $handle = null): mixed
+    {
+        if ($this->defaultOption === 'today') {
+            return null;
+        }
+
+        return $this->_normalizeBuilderSubFieldDefaultValue($this->getInitialValue(), $handle);
     }
 
     private static function _gqlDateRangeTypeNameFromConfig(array $config, string $suffix): string

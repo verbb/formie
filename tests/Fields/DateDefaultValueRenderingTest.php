@@ -112,3 +112,76 @@ it('uses midnight for today defaults on date-only fields', function (): void {
         ->and($dateTime->format('Y-m-d'))->toBe((new DateTime('today'))->format('Y-m-d'))
         ->and($dateTime->format('H:i:s'))->toBe('00:00:00');
 });
+
+it('does not bake today timestamps into date builder layout scaffolding', function (): void {
+    $field = createDateFieldWithDefaults([
+        'defaultOption' => 'today',
+        'defaultValue' => null,
+        'displayType' => 'datePicker',
+    ]);
+
+    $settings = $field->getFormBuilderSettings();
+    $readSubFieldDefault = static function (array $subField): mixed {
+        if (isset($subField['settings']) && is_array($subField['settings'])) {
+            return $subField['settings']['defaultValue'] ?? null;
+        }
+
+        return $subField['defaultValue'] ?? null;
+    };
+
+    foreach ($settings['layouts'] ?? [] as $layoutRows) {
+        foreach ($layoutRows as $row) {
+            foreach ($row['fields'] ?? [] as $subField) {
+                expect($readSubFieldDefault($subField))->toBeNull();
+            }
+        }
+    }
+
+    foreach ($settings['rows'] ?? [] as $row) {
+        foreach ($row['fields'] ?? [] as $subField) {
+            expect($readSubFieldDefault($subField))->toBeNull();
+        }
+    }
+});
+
+it('normalizes object sub-field defaults into scalar builder preview values', function (): void {
+    $field = createDateFieldWithDefaults([
+        'defaultOption' => 'date',
+        'defaultValue' => '2024-06-15 14:30:00',
+        'displayType' => 'datePicker',
+    ]);
+
+    $objectDefault = new DateFieldValue('2024-06-15 14:30:00');
+    $field->setRows([
+        [
+            'fields' => [
+                [
+                    'type' => \verbb\formie\fields\subfields\DateDate::class,
+                    'handle' => 'date',
+                    'defaultValue' => $objectDefault,
+                ],
+                [
+                    'type' => \verbb\formie\fields\subfields\DateTime::class,
+                    'handle' => 'time',
+                    'defaultValue' => $objectDefault,
+                ],
+            ],
+        ],
+    ]);
+
+    $settings = $field->getFormBuilderSettings();
+    $defaultsByHandle = [];
+
+    foreach ($settings['rows'] ?? [] as $row) {
+        foreach ($row['fields'] ?? [] as $subField) {
+            $handle = $subField['settings']['handle'] ?? $subField['handle'] ?? null;
+
+            if ($handle) {
+                $defaultsByHandle[$handle] = $subField['settings']['defaultValue'] ?? $subField['defaultValue'] ?? null;
+            }
+        }
+    }
+
+    expect($defaultsByHandle['date'])->toBe('2024-06-15')
+        ->and($defaultsByHandle['time'])->toBe('14:30');
+});

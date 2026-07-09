@@ -6,9 +6,22 @@ const hasValue = (value) => {
     return value !== null && value !== undefined && value !== '';
 };
 
+const formatPreviewValue = (value) => {
+    if (!hasValue(value)) {
+        return '';
+    }
+
+    if (typeof value === 'string' || typeof value === 'number') {
+        return String(value);
+    }
+
+    // Builder rows should only carry scalar defaults, but guard against object leakage.
+    return '';
+};
+
 const SubFieldPreviewControl = ({ field }) => {
     const getFieldTypeByType = useAppStore((state) => { return state.getFieldTypeByType; });
-    const value = field?.defaultValue;
+    const value = formatPreviewValue(field?.defaultValue);
     const placeholder = field?.placeholder || '';
     const fieldType = useMemo(() => {
         if (!field?.type || typeof getFieldTypeByType !== 'function') {
@@ -31,7 +44,7 @@ const SubFieldPreviewControl = ({ field }) => {
                 type="text"
                 className="formie-field-preview-input"
                 placeholder={placeholder}
-                value={hasValue(value) ? value : ''}
+                value={value}
                 readOnly
             />
 

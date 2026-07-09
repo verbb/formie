@@ -17,6 +17,7 @@ use verbb\formie\fields\Hidden as HiddenField;
 use verbb\formie\fields\traits\PresentationFieldConfigTrait;
 use verbb\formie\fields\traits\SearchableDropdownFieldTrait;
 use verbb\formie\gql\types\generators\FieldOptionGenerator;
+use verbb\formie\helpers\FieldOptionHelper;
 use verbb\formie\helpers\OptionsMode;
 use verbb\formie\helpers\RecipientOptionSelectionHelper;
 use verbb\formie\helpers\RecipientTokenHelper;
@@ -120,6 +121,10 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
 
         if ($config['optionsMode'] === OptionsMode::DYNAMIC && $config['optionSource'] === null) {
             $config['optionsMode'] = OptionsMode::STATIC;
+        }
+
+        if (isset($config['options']) && is_array($config['options'])) {
+            $config['options'] = FieldOptionHelper::sanitizeRecipientPlaceholderOptions($config['options']);
         }
 
         if (
@@ -415,7 +420,7 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
             $value = [];
 
             foreach ($this->getResolvedOptions() as $option) {
-                if (!empty($option['default'])) {
+                if (FieldOptionHelper::isOptionDefault($option)) {
                     $value[] = $option['value'];
                 }
             }

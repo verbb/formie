@@ -152,10 +152,16 @@ function FormBuilderContent({
             captureUnloadWarningBaseline(stableSerialize(saveFormSnapshot(values)));
         };
 
+        // Schema hydration and nested field editors can normalize config after first paint.
+        const settleTimer = window.setTimeout(() => {
+            form.recaptureUnloadBaseline?.();
+        }, 350);
+
         return () => {
+            window.clearTimeout(settleTimer);
             delete form.recaptureUnloadBaseline;
         };
-    }, [captureUnloadWarningBaseline, form]);
+    }, [captureUnloadWarningBaseline, form, normalizedInitialData]);
 
     useEffect(() => {
         latestFormValuesRef.current = normalizedInitialData;

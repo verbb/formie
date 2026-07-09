@@ -1192,6 +1192,13 @@ export function createFormieClient(): FormieClient {
             }
 
             await refreshTokensIfNeeded(target, normalizedOptions, form);
+
+            // Recapture after captcha/token hydration and field-module init settle so
+            // programmatic post-mount value changes do not leave a false dirty state.
+            form.dispatchEvent(new CustomEvent('formie:state:reset'));
+            window.setTimeout(() => {
+                form.dispatchEvent(new CustomEvent('formie:state:reset'));
+            }, 350);
         }
 
         stageNames.forEach((stageName) => {

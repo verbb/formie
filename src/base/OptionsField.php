@@ -2,6 +2,7 @@
 namespace verbb\formie\base;
 
 use verbb\formie\Formie;
+use verbb\formie\helpers\FieldOptionHelper;
 use verbb\formie\helpers\OptionsMode;
 use verbb\formie\base\Field;
 use verbb\formie\base\FieldInterface;
@@ -351,7 +352,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Opti
             }
         }
 
-        $config['options'] = $options;
+        $config['options'] = FieldOptionHelper::normalizeOptionRows($options);
 
         $config['optionsMode'] = OptionsMode::normalize($config['optionsMode'] ?? null);
         $config['optionSource'] = OptionSourceConfigHelper::normalizeOptionSource(
@@ -1001,7 +1002,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Opti
                 return [
                     'label' => $option['label'] ?? '',
                     'value' => $option['value'] ?? '',
-                    'selected' => (bool)($option['default'] ?? false),
+                    'selected' => FieldOptionHelper::isOptionDefault($option),
                     'disabled' => self::isOptionFrontEndDisabled($option),
                 ];
             }, $this->getFieldOptions())),
@@ -1095,7 +1096,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Opti
             $defaultValues = [];
 
             foreach ($this->getResolvedOptions() as $option) {
-                if (!empty($option['default'])) {
+                if (FieldOptionHelper::isOptionDefault($option)) {
                     $defaultValues[] = (string)$option['value'];
                 }
             }
@@ -1104,7 +1105,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Opti
         }
 
         foreach ($this->getResolvedOptions() as $option) {
-            if (!empty($option['default'])) {
+            if (FieldOptionHelper::isOptionDefault($option)) {
                 return (string)$option['value'];
             }
         }

@@ -8,6 +8,8 @@ pest()
     ->extend(Tests\General\TestCase::class)
     ->in('Fields', 'Forms', 'Submissions', 'Queries', 'Integrations', 'Performance', 'Migrations', 'Frontend', 'Security', 'Theme', 'Services', 'Helpers', 'Notifications', 'Reports', 'Prosemirror', 'Payments');
 
+pest()->in('Unit');
+
 expect()->extend('toHaveFieldError', function (string $fieldHandle) {
     $errors = $this->value->getErrors($fieldHandle);
 

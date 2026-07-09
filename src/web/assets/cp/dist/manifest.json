@@ -36,6 +36,10 @@
       "_fontawesome-CFps8IC5.js"
     ]
   },
+  "_createUid-J7QOGqve.js": {
+    "file": "assets/createUid-J7QOGqve.js",
+    "name": "createUid"
+  },
   "_data-utils-B_R1Mnol.js": {
     "file": "assets/data-utils-B_R1Mnol.js",
     "name": "data-utils"
@@ -54,8 +58,8 @@
       "_react-vendor-DtO2kpgD.js"
     ]
   },
-  "_formie-browser-BZ6NX882.js": {
-    "file": "assets/formie-browser-BZ6NX882.js",
+  "_formie-browser-D-7P3n8r.js": {
+    "file": "assets/formie-browser-D-7P3n8r.js",
     "name": "formie-browser"
   },
   "_plugin-kit-CHaCAKFT.js": {
@@ -84,17 +88,8 @@
     "file": "assets/react-vendor-DtO2kpgD.js",
     "name": "react-vendor"
   },
-  "_style-BK1ATy7A.js": {
-    "file": "assets/style-BK1ATy7A.js",
-    "name": "style",
-    "imports": [
-      "_react-vendor-DtO2kpgD.js",
-      "_plugin-kit-react-BraRKYhB.js",
-      "_fontawesome-CFps8IC5.js"
-    ]
-  },
-  "_style-RHi_32jy.js": {
-    "file": "assets/style-RHi_32jy.js",
+  "_style-31QsypfA.js": {
+    "file": "assets/style-31QsypfA.js",
     "name": "style",
     "imports": [
       "_react-vendor-DtO2kpgD.js",
@@ -102,7 +97,17 @@
       "_plugin-kit-react-BraRKYhB.js",
       "_dndkit-CtGXKl8w.js",
       "_DragHandle-7rmYfuto.js",
+      "_createUid-J7QOGqve.js",
       "_useCpFormPayloadSync-C5sPfMoC.js"
+    ]
+  },
+  "_style-BK1ATy7A.js": {
+    "file": "assets/style-BK1ATy7A.js",
+    "name": "style",
+    "imports": [
+      "_react-vendor-DtO2kpgD.js",
+      "_plugin-kit-react-BraRKYhB.js",
+      "_fontawesome-CFps8IC5.js"
     ]
   },
   "_useCpFormPayloadSync-C5sPfMoC.js": {
@@ -138,19 +143,20 @@
     "isEntry": true,
     "imports": [
       "_react-vendor-DtO2kpgD.js",
-      "_style-RHi_32jy.js",
+      "_style-31QsypfA.js",
       "_plugin-kit-react-BraRKYhB.js",
       "_fontawesome-CFps8IC5.js",
       "_react-app-mt1kTCrV.js",
       "_dndkit-CtGXKl8w.js",
       "_DragHandle-7rmYfuto.js",
+      "_createUid-J7QOGqve.js",
       "_useCpFormPayloadSync-C5sPfMoC.js",
       "_plugin-kit-CHaCAKFT.js",
       "_data-utils-B_R1Mnol.js"
     ]
   },
   "src/form-builder/formie-form-builder.js": {
-    "file": "assets/formie-form-builder-CVSTUuUd.js",
+    "file": "assets/formie-form-builder-O_OK2gsg.js",
     "name": "formie-form-builder",
     "src": "src/form-builder/formie-form-builder.js",
     "isEntry": true,
@@ -158,6 +164,7 @@
       "_plugin-kit-react-BraRKYhB.js",
       "_react-vendor-DtO2kpgD.js",
       "_data-utils-B_R1Mnol.js",
+      "_createUid-J7QOGqve.js",
       "_plugin-kit-CHaCAKFT.js",
       "_fontawesome-CFps8IC5.js",
       "_react-app-mt1kTCrV.js",
@@ -180,12 +187,13 @@
       "_FormieErrorsPane-ChTjwvs9.js",
       "_useCpFormPayloadSync-C5sPfMoC.js",
       "_style-BK1ATy7A.js",
-      "_style-RHi_32jy.js",
+      "_style-31QsypfA.js",
       "_react-app-mt1kTCrV.js",
       "_plugin-kit-CHaCAKFT.js",
       "_data-utils-B_R1Mnol.js",
       "_dndkit-CtGXKl8w.js",
-      "_DragHandle-7rmYfuto.js"
+      "_DragHandle-7rmYfuto.js",
+      "_createUid-J7QOGqve.js"
     ]
   },
   "src/forms/js/formie-forms-index.js": {
@@ -271,7 +279,7 @@
     "src": "src/submissions/js/formie-submissions.js",
     "isEntry": true,
     "imports": [
-      "_formie-browser-BZ6NX882.js"
+      "_formie-browser-D-7P3n8r.js"
     ],
     "css": [
       "submissions/css/formie-submissions.css"
