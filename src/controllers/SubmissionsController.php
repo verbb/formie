@@ -209,12 +209,8 @@ class SubmissionsController extends Controller
         // Get the submission, or create a new one
         $submission = $this->_populateSubmission($form, null);
 
-        if ($request->getIsSiteRequest() && $submission->id) {
-            $editingSubmission = $this->_getTypedParam('editingSubmission', 'boolean');
-
-            if (!$editingSubmission || !$this->_validateSubmissionEditToken($form, $submission)) {
-                throw new ForbiddenHttpException('User is not permitted to perform this action');
-            }
+        if ($request->getIsSiteRequest() && !$submission->id) {
+            throw new ForbiddenHttpException('User is not permitted to perform this action');
         }
 
         if ($currentUser && !$submission->canSave($currentUser)) {
@@ -229,10 +225,13 @@ class SubmissionsController extends Controller
         // Now populate the rest of it from the post data
         $submission->enabled = true;
         $submission->enabledForSite = true;
-        $submission->title = $request->getBodyParam('title') ?: $submission->title;
-        $submission->statusId = $request->getBodyParam('statusId', $submission->statusId);
-        $submission->isSpam = (bool)$request->getBodyParam('isSpam', $submission->isSpam);
         $submission->setScenario(Element::SCENARIO_LIVE);
+
+        if ($request->getIsCpRequest()) {
+            $submission->title = $request->getBodyParam('title') ?: $submission->title;
+            $submission->statusId = $request->getBodyParam('statusId', $submission->statusId);
+            $submission->isSpam = (bool)$request->getBodyParam('isSpam', $submission->isSpam);
+        }
 
         if ($request->getBodyParam('markAsComplete')) {
             $submission->isIncomplete = false;
@@ -364,12 +363,14 @@ class SubmissionsController extends Controller
         }
 
         // Check if we should trigger email notifications or integrations if this was spam
-        if ($request->getBodyParam('sendNotifications')) {
-            Formie::$plugin->getSubmissions()->sendNotifications($submission);
-        }
+        if ($request->getIsCpRequest()) {
+            if ($request->getBodyParam('sendNotifications')) {
+                Formie::$plugin->getSubmissions()->sendNotifications($submission);
+            }
 
-        if ($request->getBodyParam('triggerIntegrations')) {
-            Formie::$plugin->getSubmissions()->triggerIntegrations($submission);
+            if ($request->getBodyParam('triggerIntegrations')) {
+                Formie::$plugin->getSubmissions()->triggerIntegrations($submission);
+            }
         }
 
         // Check if this is a front-end edit
@@ -1177,6 +1178,14 @@ class SubmissionsController extends Controller
             if (!$submission) {
                 throw new BadRequestHttpException("No submission exists with the ID \"$submissionId\"");
             }
+
+            if ($submission->formId && (int)$submission->formId !== (int)$form->id) {
+                throw new BadRequestHttpException("No submission exists with the ID \"$submissionId\"");
+            }
+
+            if ($request->getIsSiteRequest()) {
+                $this->_authorizeExistingSubmission($form, $submission, $editingSubmission);
+            }
         } else {
             $submission = new Submission();
         }
@@ -1278,6 +1287,23 @@ class SubmissionsController extends Controller
             hash_equals((string)$form->uid, (string)($data['formUid'] ?? '')) &&
             (int)($data['submissionId'] ?? 0) === (int)$submission->id &&
             hash_equals((string)$submission->uid, (string)($data['submissionUid'] ?? ''));
+    }
+
+    private function _authorizeExistingSubmission(Form $form, Submission $submission, ?bool $editingSubmission): void
+    {
+        if ($editingSubmission) {
+            if (!$this->_validateSubmissionEditToken($form, $submission)) {
+                throw new ForbiddenHttpException('User is not permitted to perform this action');
+            }
+
+            return;
+        }
+
+        $sessionSubmission = $form->getCurrentSubmission();
+
+        if (!$sessionSubmission || (int)$sessionSubmission->id !== (int)$submission->id) {
+            throw new ForbiddenHttpException('User is not permitted to perform this action');
+        }
     }
 
     private function _redirectToReturnUrl(): Response

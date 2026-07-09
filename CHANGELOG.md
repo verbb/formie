@@ -5,6 +5,11 @@
 ### Fixed
 - Fixed a validation error being raised for conditionally-hidden sub-fields in a Repeater when the same field was visible in another row. ([#2874](https://github.com/verbb/formie/issues/2874))
 - Fixed conditionally-hidden fields inside a Repeater not being revealed when they have a validation error on Ajax forms with a Stripe payment field. ([#2875](https://github.com/verbb/formie/issues/2875))
+- Fixed missing authorization for `integrations/form-settings`, which could allow SSRF and exposure of integration credentials.
+- Fixed missing authorization when resuming incomplete submissions via the `submit` action.
+- Fixed missing authorization for `sent-notifications/get-resend-modal-content`.
+- Fixed `save-submission` allowing anonymous submission creation and accepting sensitive parameters from front-end requests.
+- Fixed an XSS vulnerability for importing forms with manipulated form title, handle, or notification name content.
 
 ## 3.1.30 - 2026-06-27
 
