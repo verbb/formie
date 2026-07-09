@@ -37,6 +37,7 @@ import {
 import { useEngineField } from '@verbb/plugin-kit-react/forms/useEngineField';
 import { cn } from '@verbb/plugin-kit-react/utils';
 import { refreshIntegrationFormSettings } from '@form-builder/hooks/useFormTools';
+import { useFormBuilderApp } from '@form-builder/contexts/FormBuilderAppContext';
 
 const PREVIEW_LIMIT = 100;
 const PREVIEW_SUMMARY_CHIP_LIMIT = 6;
@@ -654,6 +655,7 @@ function isSameFormValue(a, b) {
 }
 
 function OptionDynamicSettingsField({ field, form }) {
+    const { formId } = useFormBuilderApp();
     const { value: optionsMode, setValue: setOptionsMode } = useEngineField(form, 'optionsMode');
     const { value: displayType } = useEngineField(form, 'displayType');
     const { value: optionSource, setValue: setOptionSourceValue } = useEngineField(form, 'optionSource');
@@ -1990,6 +1992,7 @@ function OptionDynamicSettingsField({ field, form }) {
 
         try {
             const result = await refreshIntegrationFormSettings(selectedIntegrationHandle, {}, {
+                formId,
                 refreshParams,
             });
 

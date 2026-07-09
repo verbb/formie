@@ -16,7 +16,7 @@ import { IntegrationErrorMessage } from './IntegrationErrorMessage';
 const SUCCESS_FEEDBACK_DURATION = 2200;
 
 function IntegrationActionButtonField({ field }) {
-    const { activeIntegrationHandle } = useFormBuilderApp();
+    const { activeIntegrationHandle, formId } = useFormBuilderApp();
     const { getValueAtPath } = useFormBuilderForm();
     const formId = useAppStore((state) => { return state.formId; });
     const [loading, setLoading] = useState(false);
@@ -70,7 +70,9 @@ function IntegrationActionButtonField({ field }) {
         const currentSettings = getValueAtPath(settingsPath, {}) || {};
 
         setLoading(true);
-        const result = await refreshIntegrationFormSettings(integrationHandle, currentSettings);
+        const result = await refreshIntegrationFormSettings(integrationHandle, currentSettings, {
+            formId,
+        });
         setLoading(false);
 
         if (typeof window !== 'undefined') {

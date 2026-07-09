@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+- Improve UI feedback for migrations.
+
+### Fixed
+- Require control panel access and per-form integration permissions for `integrations/form-settings`, filter sensitive integration attributes from request payloads, and require `formId` from the form builder client.
+- Reject anonymous front-end `save-submission` requests that attempt to create new submissions without going through `submit`.
+- Encode form title, handle, and notification names in the import preview summary to prevent stored XSS.
+
 ## 4.0.0-beta.11 - 2026-07-02
 
 ### Added

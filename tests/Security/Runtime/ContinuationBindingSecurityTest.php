@@ -150,3 +150,27 @@ it('rejects managed site submissions that try to continue by raw submission uid 
         ],
     ]);
 })->group('security');
+
+it('rejects anonymous site save-submission attempts to create a new submission', function (): void {
+    $form = formie()
+        ->form(['title' => 'Anonymous Save Submission Create Guard'])
+        ->singleLineTextField('fullName')
+        ->create();
+
+    WebRequestTestHelper::withWebRequestContext(function () use ($form): void {
+        expect(fn() => Formie::$plugin->getSubmissionProcessor()->executeManaged(new ManagedSubmissionRequest([
+            'handle' => $form->handle,
+            'processMode' => SubmissionWorkflow::PROCESS_MODE_EDIT_EXISTING,
+            'siteId' => (int)Craft::$app->getSites()->getCurrentSite()->id,
+            'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+            'fieldParamNamespace' => 'fields',
+        ])))->toThrow(ForbiddenHttpException::class);
+    }, [
+        'method' => 'POST',
+        'bodyParams' => [
+            'fields' => [
+                'fullName' => 'Anonymous Create',
+            ],
+        ],
+    ]);
+})->group('security');

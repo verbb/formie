@@ -20,7 +20,7 @@ function IntegrationRefreshSelectField({ field, form }) {
     const {
         value, setValue, setTouched, errors, isInvalid,
     } = useEngineField(form, field.name);
-    const { activeIntegrationHandle } = useFormBuilderApp();
+    const { activeIntegrationHandle, formId } = useFormBuilderApp();
     const { form: parentForm, getValueAtPath } = useFormBuilderForm();
     const [refreshing, setRefreshing] = useState(false);
     const [refreshError, setRefreshError] = useState(null);
@@ -97,6 +97,7 @@ function IntegrationRefreshSelectField({ field, form }) {
             ? field.refreshParams
             : {};
         const result = await refreshIntegrationFormSettings(integrationHandle, currentSettings, {
+            formId,
             refreshParams,
         });
         setRefreshing(false);

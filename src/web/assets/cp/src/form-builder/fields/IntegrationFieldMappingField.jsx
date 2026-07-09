@@ -382,7 +382,7 @@ const IntegrationFieldMappingField = ({ form, field }) => {
         setTouched,
         errors,
     } = useEngineField(form, field.name);
-    const { activeIntegrationHandle } = useFormBuilderApp();
+    const { activeIntegrationHandle, formId } = useFormBuilderApp();
     const { form: parentForm, getValueAtPath } = useFormBuilderForm();
     const [refreshLoading, setRefreshLoading] = useState(false);
     const [refreshError, setRefreshError] = useState(null);
@@ -575,6 +575,7 @@ const IntegrationFieldMappingField = ({ form, field }) => {
         await waitForNextFrame();
 
         const result = await refreshIntegrationFormSettings(integrationHandle, currentSettings, {
+            formId,
             dataKey: refreshDataKey,
         });
         setRefreshLoading(false);

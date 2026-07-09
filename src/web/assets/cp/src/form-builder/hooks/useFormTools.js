@@ -1371,6 +1371,11 @@ const refreshIntegrationFormSettings = async(handle, settings = {}, options = {}
         return { ok: false, error: 'Missing integration handle' };
     }
 
+    const formId = options?.formId;
+    if (!formId) {
+        return { ok: false, error: 'Missing formId' };
+    }
+
     const dataKey = String(options?.dataKey || '').trim();
     const refreshParams = options?.refreshParams && typeof options.refreshParams === 'object' && !Array.isArray(options.refreshParams)
         ? options.refreshParams
@@ -1380,6 +1385,7 @@ const refreshIntegrationFormSettings = async(handle, settings = {}, options = {}
         const response = await Craft.sendActionRequest('POST', 'formie/integrations/form-settings', {
             data: {
                 integration: handle,
+                formId,
                 settings,
                 ...(dataKey ? { dataKey } : {}),
                 ...refreshParams,
