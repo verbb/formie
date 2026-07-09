@@ -4,12 +4,19 @@ namespace verbb\formie\fields\subfields;
 use verbb\formie\base\ChildFieldInterface;
 use verbb\formie\fields\values\OptionValue;
 use verbb\formie\fields\Dropdown;
+use verbb\formie\fields\subfields\traits\DateSubFieldValueTrait;
 use verbb\formie\helpers\ValidationMessagesHelper;
 
 use craft\base\ElementInterface;
 
 class DateDropdown extends Dropdown implements ChildFieldInterface
 {
+    // Traits
+    // =========================================================================
+    
+    use DateSubFieldValueTrait;
+    
+        
     // Public Methods
     // =========================================================================
 

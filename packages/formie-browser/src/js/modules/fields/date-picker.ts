@@ -285,6 +285,12 @@ function initDatePicker(input: FlatpickrInput, options: DatePickerOptions): () =
         if (startDate) {
             defaultOptions.defaultDate = endDate ? [startDate, endDate] : [startDate];
         }
+    } else if (input.value) {
+        const defaultDate = parseSubmissionDate(input.value);
+
+        if (defaultDate) {
+            defaultOptions.defaultDate = defaultDate;
+        }
     }
 
     const mergedOptions = {

@@ -3,6 +3,7 @@ namespace verbb\formie\fields\subfields;
 
 use verbb\formie\base\ChildFieldInterface;
 use verbb\formie\fields\Number;
+use verbb\formie\fields\subfields\traits\DateSubFieldValueTrait;
 use verbb\formie\helpers\ValidationMessagesHelper;
 
 use craft\base\ElementInterface;
@@ -10,6 +11,12 @@ use craft\helpers\StringHelper;
 
 class DateNumber extends Number implements ChildFieldInterface
 {
+    // Traits
+    // =========================================================================
+    
+    use DateSubFieldValueTrait;
+    
+    
     // Public Methods
     // =========================================================================
 

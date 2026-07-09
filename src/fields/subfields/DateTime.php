@@ -7,6 +7,7 @@ use verbb\formie\base\Integration;
 use verbb\formie\models\SlotTag;
 use verbb\formie\theme\context\RenderContext;
 use verbb\formie\fields\SingleLineText;
+use verbb\formie\fields\subfields\traits\DateSubFieldValueTrait;
 use verbb\formie\helpers\SchemaHelper;
 
 use Craft;
@@ -31,7 +32,13 @@ class DateTime extends SingleLineText implements ChildFieldInterface
         return 'fields/single-line-text';
     }
 
-
+    
+    // Traits
+    // =========================================================================
+    
+    use DateSubFieldValueTrait;
+    
+    
     // Protected Methods
     // =========================================================================
 
