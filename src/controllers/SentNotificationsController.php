@@ -75,10 +75,15 @@ class SentNotificationsController extends Controller
 
         $request = $this->request;
         $view = $this->getView();
+        $currentUser = Craft::$app->getUser()->getIdentity();
 
         $sentNotification = SentNotification::find()
             ->id($request->getParam('id'))
             ->one();
+
+        if (!$sentNotification || !$sentNotification->canView($currentUser)) {
+            throw new ForbiddenHttpException('User is not permitted to perform this action');
+        }
 
         $modalHtml = $view->renderTemplate('formie/sent-notifications/_includes/resend-modal', [
             'sentNotification' => $sentNotification,
