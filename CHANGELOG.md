@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Fixed conditionally-hidden fields inside a Repeater not being revealed when they have a validation error on Ajax forms with a Stripe payment field. ([#2875](https://github.com/verbb/formie/issues/2875))
+
 ## 3.1.30 - 2026-06-27
 
 ### Added

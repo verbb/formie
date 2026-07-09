@@ -557,6 +557,12 @@ export class FormieFormTheme {
 
             if ($field) {
                 if (error) {
+                    // Server-side validation can flag fields the client currently treats as conditionally
+                    // hidden - most notably conditional fields inside a Repeater during a Stripe payment
+                    // re-submit. A hidden container is `display: none`, so it would swallow the error message.
+                    // Reveal it, so the error is actually visible to the user. https://github.com/verbb/formie/issues/2875
+                    this.revealConditionallyHidden($field);
+
                     this.validator?.showError($field, 'server', error);
                 }
 
@@ -569,6 +575,27 @@ export class FormieFormTheme {
 
         // Go to the first page with an error, for good UX
         this.togglePage(data, false);
+    }
+
+    revealConditionallyHidden($input) {
+        // Walk up from the errored input, un-hiding any conditionally-hidden ancestors so the message shows.
+        for (let $el = $input; $el && $el !== this.$form; $el = $el.parentElement) {
+            if ($el.nodeType === 1 && $el.hasAttribute('data-conditionally-hidden')) {
+                $el.removeAttribute('data-conditionally-hidden');
+                $el.conditionallyHidden = false;
+            }
+        }
+
+        // Re-enable any inputs that were disabled purely due to conditional hiding, so the user can correct them.
+        // This mirrors how `conditions.js` restores a field when its conditions are met.
+        const $container = $input.closest('[data-field-handle]');
+
+        if ($container) {
+            $container.querySelectorAll('[data-conditionally-hidden-disabled]').forEach(($el) => {
+                $el.removeAttribute('disabled');
+                $el.removeAttribute('data-conditionally-hidden-disabled');
+            });
+        }
     }
 
     onAjaxSuccess(data) {
