@@ -56,6 +56,9 @@ function stableSerialize(value) {
 
 export function useUnloadWarning({
     enabled = true,
+    autoCaptureBaseline = true,
+    baselineSettleQuietMs = null,
+    baselineSettleMaxMs = null,
     computeSnapshot,
     subscribe,
 }) {
@@ -67,6 +70,8 @@ export function useUnloadWarning({
     const suppressedRef = useRef(false);
     const frameRef = useRef(null);
     const timerRef = useRef(null);
+    const settleQuietTimerRef = useRef(null);
+    const settleMaxTimerRef = useRef(null);
 
     const clearScheduledWork = useCallback(() => {
         if (frameRef.current !== null) {
@@ -77,6 +82,18 @@ export function useUnloadWarning({
         if (timerRef.current !== null) {
             window.clearTimeout(timerRef.current);
             timerRef.current = null;
+        }
+    }, []);
+
+    const clearSettleTimers = useCallback(() => {
+        if (settleQuietTimerRef.current !== null) {
+            window.clearTimeout(settleQuietTimerRef.current);
+            settleQuietTimerRef.current = null;
+        }
+
+        if (settleMaxTimerRef.current !== null) {
+            window.clearTimeout(settleMaxTimerRef.current);
+            settleMaxTimerRef.current = null;
         }
     }, []);
 
@@ -100,11 +117,12 @@ export function useUnloadWarning({
     }, []);
 
     const captureBaseline = useCallback((snapshot = null) => {
+        clearSettleTimers();
         baselineRef.current = snapshot ?? computeSnapshotRef.current();
         readyRef.current = true;
         dirtyRef.current = false;
         suppressedRef.current = false;
-    }, []);
+    }, [clearSettleTimers]);
 
     const scheduleBaselineCapture = useCallback((snapshot = null) => {
         clearScheduledWork();
@@ -128,12 +146,38 @@ export function useUnloadWarning({
             return undefined;
         }
 
-        scheduleBaselineCapture();
+        const usesSettledBaseline = Number(baselineSettleQuietMs) > 0;
+
+        const scheduleSettledBaselineCapture = () => {
+            clearSettleTimers();
+            settleQuietTimerRef.current = window.setTimeout(() => {
+                settleQuietTimerRef.current = null;
+                captureBaseline();
+            }, baselineSettleQuietMs);
+        };
+
+        if (usesSettledBaseline) {
+            scheduleSettledBaselineCapture();
+
+            if (Number(baselineSettleMaxMs) > 0) {
+                settleMaxTimerRef.current = window.setTimeout(() => {
+                    settleMaxTimerRef.current = null;
+                    captureBaseline();
+                }, baselineSettleMaxMs);
+            }
+        } else if (autoCaptureBaseline) {
+            scheduleBaselineCapture();
+        }
 
         const unsubscribe = typeof subscribeRef.current === 'function'
             ? subscribeRef.current(() => {
                 if (suppressedRef.current) {
                     suppressedRef.current = false;
+                }
+
+                if (usesSettledBaseline && !readyRef.current) {
+                    scheduleSettledBaselineCapture();
+                    return;
                 }
 
                 if (timerRef.current !== null) {
@@ -164,19 +208,31 @@ export function useUnloadWarning({
 
         return () => {
             clearScheduledWork();
+            clearSettleTimers();
             window.removeEventListener('beforeunload', handleBeforeUnload);
 
             if (typeof unsubscribe === 'function') {
                 unsubscribe();
             }
         };
-    }, [clearScheduledWork, enabled, refreshDirtyState, scheduleBaselineCapture]);
+    }, [
+        autoCaptureBaseline,
+        baselineSettleMaxMs,
+        baselineSettleQuietMs,
+        captureBaseline,
+        clearScheduledWork,
+        clearSettleTimers,
+        enabled,
+        refreshDirtyState,
+        scheduleBaselineCapture,
+    ]);
 
     return {
         captureBaseline,
         refreshDirtyState,
         scheduleBaselineCapture,
         suppressWarning,
+        recaptureBaseline: captureBaseline,
         isDirty: () => {
             return dirtyRef.current;
         },

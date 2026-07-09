@@ -10,7 +10,7 @@ import {
 } from '@form-builder/hooks/useFormTools';
 import { useHandleSyncOnChange } from '@form-builder/hooks/useHandleSyncOnChange';
 import { stableSerialize, useUnloadWarning } from '@form-builder/hooks/useUnloadWarning';
-import { saveFormSnapshot } from '@form-builder/utils/formBuilderSnapshot';
+import { dirtyFormSnapshot } from '@form-builder/utils/formBuilderSnapshot';
 import { getFieldOverrideForSite, getSiteOverrideForSite, mergeSiteOverridesIntoFormData } from '@form-builder/utils/siteOverrides';
 import { FormBuilderErrorsPane } from '@form-builder/components/FormBuilderErrorsPane';
 import { FormBuilderFormProvider } from '@form-builder/contexts/FormBuilderFormContext';
@@ -117,13 +117,12 @@ function FormBuilderContent({
 
             const nextTemplateId = data?.templateId ?? null;
             setSelectedTemplateId(nextTemplateId);
-            refreshUnloadWarningDirtyState(stableSerialize(saveFormSnapshot(data)));
         },
     });
     const initialTitle = normalizedInitialData?.title;
     const computeDirtySnapshot = useCallback((values = null) => {
         const sourceValues = values ?? latestFormValuesRef.current ?? form?.store?.state?.values ?? normalizedInitialData;
-        return stableSerialize(saveFormSnapshot(sourceValues));
+        return stableSerialize(dirtyFormSnapshot(sourceValues));
     }, [form, normalizedInitialData]);
     const subscribeToFormChanges = useCallback((listener) => {
         if (!form?.store?.subscribe) {
@@ -134,34 +133,30 @@ function FormBuilderContent({
     }, [form]);
     const {
         captureBaseline: captureUnloadWarningBaseline,
-        refreshDirtyState: refreshUnloadWarningDirtyState,
+        recaptureBaseline: recaptureUnloadWarningBaseline,
         suppressWarning: suppressUnloadWarning,
     } = useUnloadWarning({
+        baselineSettleQuietMs: 400,
+        baselineSettleMaxMs: 3000,
         computeSnapshot: computeDirtySnapshot,
         subscribe: subscribeToFormChanges,
     });
 
     useEffect(() => {
-        if (!form?.store) {
+        if (!form) {
             return undefined;
         }
 
         form.recaptureUnloadBaseline = () => {
-            const values = form.store.state.values ?? {};
+            const values = form.store?.state?.values ?? {};
             latestFormValuesRef.current = values;
-            captureUnloadWarningBaseline(stableSerialize(saveFormSnapshot(values)));
+            recaptureUnloadWarningBaseline(stableSerialize(dirtyFormSnapshot(values)));
         };
-
-        // Schema hydration and nested field editors can normalize config after first paint.
-        const settleTimer = window.setTimeout(() => {
-            form.recaptureUnloadBaseline?.();
-        }, 350);
 
         return () => {
-            window.clearTimeout(settleTimer);
             delete form.recaptureUnloadBaseline;
         };
-    }, [captureUnloadWarningBaseline, form, normalizedInitialData]);
+    }, [form, recaptureUnloadWarningBaseline]);
 
     useEffect(() => {
         latestFormValuesRef.current = normalizedInitialData;
@@ -295,10 +290,10 @@ function FormBuilderContent({
                 latestFormValuesRef.current = normalizedServerFormData;
                 form.store.reset(normalizedServerFormData);
                 setTitle(normalizedServerFormData.title || '');
-                captureUnloadWarningBaseline(stableSerialize(saveFormSnapshot(normalizedServerFormData)));
+                captureUnloadWarningBaseline(stableSerialize(dirtyFormSnapshot(normalizedServerFormData)));
             } else if (!shouldSaveAsStencil) {
                 latestFormValuesRef.current = data;
-                captureUnloadWarningBaseline(stableSerialize(saveFormSnapshot(data)));
+                captureUnloadWarningBaseline(stableSerialize(dirtyFormSnapshot(data)));
             }
 
             if (result?.data?.formMeta) {

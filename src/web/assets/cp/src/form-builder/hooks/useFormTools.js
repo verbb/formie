@@ -74,7 +74,9 @@ const normalizeRows = (rows = []) => {
     const sourceRows = Array.isArray(rows) ? rows : [];
 
     return sourceRows.map((row) => {
-        const normalizedRow = createItem(row);
+        const normalizedRow = row?._id
+            ? { ...row, _id: row._id }
+            : createItem(row);
         const sourceFields = Array.isArray(row?.fields) ? row.fields : [];
 
         const normalizedFields = sourceFields.map((field) => {
@@ -82,7 +84,9 @@ const normalizeRows = (rows = []) => {
                 return null;
             }
 
-            const normalizedField = createItem(field);
+            const normalizedField = field?._id
+                ? { ...field, _id: field._id }
+                : createItem(field);
             const hasDirectRows = Array.isArray(field?.rows);
             const hasSettingsRows = Array.isArray(field?.settings?.rows);
 
@@ -247,43 +251,28 @@ const normalizeFormData = (data = {}) => {
     };
 };
 
-const serializeFormData = (data = {}) => {
-    const serialized = cloneDeep(data);
-    const notifications = Array.isArray(serialized?.notifications) ? serialized.notifications : [];
-
-    (serialized.pages || []).forEach((page) => {
-        assignMissingFieldReferences(page?.rows || []);
-    });
-
-    ensureUniqueFieldReferencesInForm(serialized.pages || []);
-
-    const fieldReferenceMap = {};
-    (serialized.pages || []).forEach((page) => {
-        Object.assign(fieldReferenceMap, collectFieldReferenceMap(page?.rows || []));
-    });
-
-    if (serialized?.settings?.integrations && typeof serialized.settings.integrations === 'object') {
-        remapFieldReferenceTokens(serialized.settings.integrations, fieldReferenceMap);
+const stripPrivateValues = (value) => {
+    if (!value || typeof value !== 'object') {
+        return;
     }
 
-    const stripPrivateValues = (value) => {
-        if (!value || typeof value !== 'object') {
-            return;
+    if (Array.isArray(value)) {
+        value.forEach(stripPrivateValues);
+        return;
+    }
+
+    Object.keys(value).forEach((key) => {
+        if (key === 'errors' || key.startsWith('_')) {
+            delete value[key];
         }
+    });
 
-        if (Array.isArray(value)) {
-            value.forEach(stripPrivateValues);
-            return;
-        }
+    Object.values(value).forEach(stripPrivateValues);
+};
 
-        Object.keys(value).forEach((key) => {
-            if (key === 'errors' || key.startsWith('_')) {
-                delete value[key];
-            }
-        });
-
-        Object.values(value).forEach(stripPrivateValues);
-    };
+const prepareFormSnapshotPayload = (data = {}) => {
+    const serialized = cloneDeep(data);
+    const notifications = Array.isArray(serialized?.notifications) ? serialized.notifications : [];
 
     stripPrivateValues(serialized);
 
@@ -303,6 +292,33 @@ const serializeFormData = (data = {}) => {
             notification.content = JSON.stringify(content);
         }
     });
+
+    return serialized;
+};
+
+// Dirty-state comparisons must not mutate field references. Date/Time fields intentionally
+// share sub-field references across active rows and per-display layout variants.
+const serializeFormDataForDirtyCheck = (data = {}) => {
+    return prepareFormSnapshotPayload(data);
+};
+
+const serializeFormData = (data = {}) => {
+    const serialized = prepareFormSnapshotPayload(data);
+
+    (serialized.pages || []).forEach((page) => {
+        assignMissingFieldReferences(page?.rows || []);
+    });
+
+    ensureUniqueFieldReferencesInForm(serialized.pages || []);
+
+    const fieldReferenceMap = {};
+    (serialized.pages || []).forEach((page) => {
+        Object.assign(fieldReferenceMap, collectFieldReferenceMap(page?.rows || []));
+    });
+
+    if (serialized?.settings?.integrations && typeof serialized.settings.integrations === 'object') {
+        remapFieldReferenceTokens(serialized.settings.integrations, fieldReferenceMap);
+    }
 
     return serialized;
 };
@@ -1523,6 +1539,7 @@ const useIntegrations = () => {
 export {
     normalizeFormData,
     serializeFormData,
+    serializeFormDataForDirtyCheck,
     prepareFormPreview,
     saveForm,
     saveAsStencil,
