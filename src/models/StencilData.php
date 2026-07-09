@@ -298,7 +298,9 @@ class StencilData extends Model
                 continue;
             }
 
-            foreach (($page['rows'] ?? []) as &$row) {
+            $rows = $page['rows'] ?? [];
+
+            foreach ($rows as &$row) {
                 if (!is_array($row)) {
                     continue;
                 }
@@ -308,6 +310,8 @@ class StencilData extends Model
                 $row['fields'] = $fields;
             }
             unset($row);
+
+            $page['rows'] = $rows;
         }
         unset($page);
     }
