@@ -10,6 +10,14 @@ const createFieldReference = () => {
     });
 };
 
+const isLayoutRowsMap = (value) => {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+        return false;
+    }
+
+    return Object.values(value).some((entry) => Array.isArray(entry));
+};
+
 const mapNestedRows = (rows, callback) => {
     return rows.map((row) => {
         return {
@@ -37,6 +45,71 @@ const syncNestedRows = (field, nestedRows) => {
     return nextField;
 };
 
+const syncLayoutMaps = (field, layouts) => {
+    const nextField = {
+        ...field,
+        layouts,
+    };
+
+    if (nextField.settings && typeof nextField.settings === 'object') {
+        nextField.settings = {
+            ...nextField.settings,
+            layouts,
+        };
+    }
+
+    return nextField;
+};
+
+const mapLayoutRowsMap = (layouts, callback) => {
+    if (!isLayoutRowsMap(layouts)) {
+        return layouts;
+    }
+
+    const nextLayouts = { ...layouts };
+
+    Object.keys(nextLayouts).forEach((layoutKey) => {
+        if (Array.isArray(nextLayouts[layoutKey])) {
+            nextLayouts[layoutKey] = mapNestedRows(nextLayouts[layoutKey], callback);
+        }
+    });
+
+    return nextLayouts;
+};
+
+const forEachFieldInRows = (rows, callback) => {
+    if (!Array.isArray(rows)) {
+        return;
+    }
+
+    rows.forEach((row) => {
+        if (!row || typeof row !== 'object' || !Array.isArray(row.fields)) {
+            return;
+        }
+
+        row.fields.forEach((field) => {
+            if (!field || typeof field !== 'object') {
+                return;
+            }
+
+            callback(field);
+
+            forEachFieldInRows(field.rows, callback);
+            forEachFieldInRows(field?.settings?.rows, callback);
+        });
+    });
+};
+
+const forEachFieldInLayoutMaps = (layouts, callback) => {
+    if (!isLayoutRowsMap(layouts)) {
+        return;
+    }
+
+    Object.values(layouts).forEach((rows) => {
+        forEachFieldInRows(rows, callback);
+    });
+};
+
 const assignFieldReferences = (field, options = {}) => {
     if (!field || typeof field !== 'object') {
         return field;
@@ -56,6 +129,19 @@ const assignFieldReferences = (field, options = {}) => {
         }));
     } else if (Array.isArray(nextField?.settings?.rows)) {
         nextField = syncNestedRows(nextField, mapNestedRows(nextField.settings.rows, (childField) => {
+            return assignFieldReferences(childField, options);
+        }));
+    }
+
+    // Date/Time and other fixed parent fields keep per-display-type sub-field rows in `layouts`.
+    // Duplication only refreshed active `rows` previously, so saving field settings could
+    // restore stale references from the copied layout variants.
+    if (isLayoutRowsMap(nextField.layouts)) {
+        nextField = syncLayoutMaps(nextField, mapLayoutRowsMap(nextField.layouts, (childField) => {
+            return assignFieldReferences(childField, options);
+        }));
+    } else if (isLayoutRowsMap(nextField?.settings?.layouts)) {
+        nextField = syncLayoutMaps(nextField, mapLayoutRowsMap(nextField.settings.layouts, (childField) => {
             return assignFieldReferences(childField, options);
         }));
     }
@@ -85,11 +171,23 @@ const remapFieldReferencesInField = (field, referenceMap = {}) => {
         }));
     }
 
+    if (isLayoutRowsMap(nextField.layouts)) {
+        nextField = syncLayoutMaps(nextField, mapLayoutRowsMap(nextField.layouts, (childField) => {
+            return remapFieldReferencesInField(childField, referenceMap);
+        }));
+    } else if (isLayoutRowsMap(nextField?.settings?.layouts)) {
+        nextField = syncLayoutMaps(nextField, mapLayoutRowsMap(nextField.settings.layouts, (childField) => {
+            return remapFieldReferencesInField(childField, referenceMap);
+        }));
+    }
+
     return nextField;
 };
 
 export {
     assignFieldReferences,
     createFieldReference,
+    forEachFieldInLayoutMaps,
+    forEachFieldInRows,
     remapFieldReferencesInField,
 };

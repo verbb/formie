@@ -2,7 +2,11 @@ import { useMemo } from 'react';
 import { cloneDeep } from 'lodash-es';
 
 import { useFormBuilderForm } from '@form-builder/contexts/FormBuilderFormContext';
-import { createFieldReference } from '@form-builder/utils/fieldReferences';
+import {
+    createFieldReference,
+    forEachFieldInLayoutMaps,
+    forEachFieldInRows,
+} from '@form-builder/utils/fieldReferences';
 import {
     createItem,
     normalizeCollection,
@@ -118,30 +122,19 @@ const normalizeRows = (rows = []) => {
 };
 
 const assignMissingFieldReferences = (rows = []) => {
-    if (!Array.isArray(rows)) {
-        return;
-    }
-
-    rows.forEach((row) => {
-        if (!row || typeof row !== 'object' || !Array.isArray(row.fields)) {
-            return;
+    forEachFieldInRows(rows, (field) => {
+        if (!String(field.reference || '').trim()) {
+            field.reference = createFieldReference();
         }
 
-        row.fields.forEach((field) => {
-            if (!field || typeof field !== 'object') {
-                return;
+        forEachFieldInLayoutMaps(field.layouts, (layoutField) => {
+            if (!String(layoutField.reference || '').trim()) {
+                layoutField.reference = createFieldReference();
             }
-
-            if (!String(field.reference || '').trim()) {
-                field.reference = createFieldReference();
-            }
-
-            if (Array.isArray(field.rows)) {
-                assignMissingFieldReferences(field.rows);
-            }
-
-            if (Array.isArray(field?.settings?.rows)) {
-                assignMissingFieldReferences(field.settings.rows);
+        });
+        forEachFieldInLayoutMaps(field?.settings?.layouts, (layoutField) => {
+            if (!String(layoutField.reference || '').trim()) {
+                layoutField.reference = createFieldReference();
             }
         });
     });
@@ -151,40 +144,33 @@ const collectFieldReferenceMap = (rows = []) => {
     const referenceByClientId = new Map();
     const referencesByHandle = new Map();
 
-    const walk = (sourceRows = []) => {
-        if (!Array.isArray(sourceRows)) {
+    const registerFieldReference = (field) => {
+        if (!field || typeof field !== 'object') {
             return;
         }
 
-        sourceRows.forEach((row) => {
-            if (!row || typeof row !== 'object' || !Array.isArray(row.fields)) {
-                return;
+        const reference = String(field.reference || '').trim();
+        const clientId = String(field._id || '').trim();
+        const handle = String(field.handle || '').trim();
+
+        if (reference && clientId) {
+            referenceByClientId.set(clientId, reference);
+        }
+
+        if (reference && handle) {
+            if (!referencesByHandle.has(handle)) {
+                referencesByHandle.set(handle, new Set());
             }
 
-            row.fields.forEach((field) => {
-                if (!field || typeof field !== 'object') {
-                    return;
-                }
+            referencesByHandle.get(handle).add(reference);
+        }
+    };
 
-                const reference = String(field.reference || '').trim();
-                const clientId = String(field._id || '').trim();
-                const handle = String(field.handle || '').trim();
-
-                if (reference && clientId) {
-                    referenceByClientId.set(clientId, reference);
-                }
-
-                if (reference && handle) {
-                    if (!referencesByHandle.has(handle)) {
-                        referencesByHandle.set(handle, new Set());
-                    }
-
-                    referencesByHandle.get(handle).add(reference);
-                }
-
-                walk(field.rows);
-                walk(field?.settings?.rows);
-            });
+    const walk = (sourceRows = []) => {
+        forEachFieldInRows(sourceRows, (field) => {
+            registerFieldReference(field);
+            forEachFieldInLayoutMaps(field.layouts, registerFieldReference);
+            forEachFieldInLayoutMaps(field?.settings?.layouts, registerFieldReference);
         });
     };
 
