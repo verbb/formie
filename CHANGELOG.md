@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Fixed a validation error being raised for conditionally-hidden sub-fields in a Repeater when the same field was visible in another row. ([#2874](https://github.com/verbb/formie/issues/2874))
 - Fixed conditionally-hidden fields inside a Repeater not being revealed when they have a validation error on Ajax forms with a Stripe payment field. ([#2875](https://github.com/verbb/formie/issues/2875))
 
 ## 3.1.30 - 2026-06-27

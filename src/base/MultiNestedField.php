@@ -106,6 +106,12 @@ abstract class MultiNestedField extends NestedField implements MultiNestedFieldI
                         continue;
                     }
 
+                    // Evaluating conditions above serializes the entire nested field value, which loops over every
+                    // row and calls `setParentField()` on these shared field instances. That leaves the field bound
+                    // to the _last_ row, so re-bind it to the current row before validating - otherwise the error
+                    // key (and validated value) can be misattributed to another row. See issue #2874.
+                    $field->setParentField($this, $rowKey);
+
                     // Roll our own validation, due to lack of field layout and elements
                     $attribute = 'field:' . $field->getErrorKey();
                     $isEmpty = fn() => $field->isValueEmpty($subValue, $element);
