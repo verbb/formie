@@ -1,14 +1,32 @@
 # Changelog
 
-## Unreleased
+## 4.0.0-beta.12 - 2026-07-09
 
 ### Changed
-- Improve UI feedback for migrations.
+- Improve UI feedback for third-party plugin migrations (Freeform, Sprout Forms, etc.), including clearer progress and result summaries.
+- Update the default **Contact** stencil to use field reference tokens in notification variables instead of legacy field handles.
 
 ### Fixed
 - Require control panel access and per-form integration permissions for `integrations/form-settings`, filter sensitive integration attributes from request payloads, and require `formId` from the form builder client.
 - Reject anonymous front-end `save-submission` requests that attempt to create new submissions without going through `submit`.
 - Encode form title, handle, and notification names in the import preview summary to prevent stored XSS.
+- Fix invalid email notification handles left over from Formie 2 upgrades (for example handles containing `.1`), which blocked saving forms in the v4 builder.
+- Fix false unload warnings in the form builder when opening or switching forms without making changes.
+- Fix an error when duplicating a form with nested Group or Repeater fields.
+- Fix duplicating Date/Time sub-fields in the form builder creating conflicting field references.
+- Fix required rich text fields (such as Agree **Description**) treating empty TipTap documents as valid content.
+- Fix Date/Time field default values not rendering correctly for calendar, dropdown, number, and text display types on the front-end and in previews.
+- Fix Date/Time values displaying incorrectly when editing submissions in the control panel.
+- Fix Date/Time field sorting in submission indexes using chronological order instead of raw JSON text.
+- Fix File Upload fields allowing the temporary upload volume to be selected when it should be restricted.
+- Fix File Upload fields showing a hard error when configured with an invalid or missing volume.
+- Fix Recipients, Dropdown, and other option-based fields not round-tripping import/export data correctly, including legacy placeholder options.
+- Fix Phone field country flag preview in the form builder.
+- Fix Signature field dimensions on the submission edit screen and add a download button for the stored image.
+- Fix Signature field canvas height on the front-end preserving the stored PNG aspect ratio when restoring values or resizing.
+- Fix submission index default sort order using `dateCreated` instead of title, matching the default timestamp-based submission title format.
+- Fix submission field content layout in the control panel to align more closely with Craft element editing styles.
+- Fix double-encoded submission `content` JSON after upgrading from Formie 3, and improve date part backfill during migration.
 
 ## 4.0.0-beta.11 - 2026-07-02
 
