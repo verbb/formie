@@ -271,42 +271,115 @@ class StencilData extends Model
     private function _createRemappedStencilData(): self
     {
         $serializedData = $this->getSerializedData();
-        $encoded = Json::encode($serializedData);
+        $referenceMap = [];
+        $handleMap = [];
+        $pages = $serializedData['pages'] ?? [];
 
-        if (!is_string($encoded) || $encoded === '') {
-            return new self($serializedData);
+        // Assign per-form references for every layout field, including nested sub-fields.
+        // Legacy stencils may omit `reference` entirely and still use `{field:handle}` tokens.
+        $this->_remapSerializedLayoutFieldReferences($pages, $referenceMap, $handleMap);
+        $serializedData['pages'] = $pages;
+
+        $tokenMap = $referenceMap;
+
+        foreach ($handleMap as $handle => $newReference) {
+            $tokenMap[$handle] = $newReference;
         }
 
-        $referenceMap = [];
-        $encoded = preg_replace_callback('/"reference":"([^"]+)"/', function($matches) use (&$referenceMap) {
-            $oldReference = trim((string)($matches[1] ?? ''));
+        $this->_rewriteSerializedFieldReferenceTokensInData($serializedData, $tokenMap);
 
-            if ($oldReference === '') {
-                return $matches[0];
-            }
-
-            $newReference = $referenceMap[$oldReference] ?? StringHelper::UUID();
-            $referenceMap[$oldReference] = $newReference;
-
-            return '"reference":"' . $newReference . '"';
-        }, $encoded) ?? $encoded;
-
-        $decoded = Json::decode($this->_rewriteSerializedFieldReferenceTokens($encoded, $referenceMap));
-
-        return new self(is_array($decoded) ? $decoded : $serializedData);
+        return new self($serializedData);
     }
 
-    private function _rewriteSerializedFieldReferenceTokens(string $encodedData, array $referenceMap): string
+    private function _remapSerializedLayoutFieldReferences(array &$pages, array &$referenceMap, array &$handleMap): void
     {
-        if ($referenceMap === [] || $encodedData === '') {
-            return $encodedData;
+        foreach ($pages as &$page) {
+            if (!is_array($page)) {
+                continue;
+            }
+
+            foreach (($page['rows'] ?? []) as &$row) {
+                if (!is_array($row)) {
+                    continue;
+                }
+
+                $fields = $row['fields'] ?? [];
+                $this->_remapSerializedRowFieldReferences($fields, $referenceMap, $handleMap);
+                $row['fields'] = $fields;
+            }
+            unset($row);
+        }
+        unset($page);
+    }
+
+    private function _remapSerializedRowFieldReferences(array &$fields, array &$referenceMap, array &$handleMap): void
+    {
+        foreach ($fields as &$field) {
+            if (!is_array($field)) {
+                continue;
+            }
+
+            $oldReference = trim((string)($field['reference'] ?? ''));
+
+            if ($oldReference !== '' && isset($referenceMap[$oldReference])) {
+                $newReference = $referenceMap[$oldReference];
+            } else {
+                $newReference = StringHelper::UUID();
+
+                if ($oldReference !== '') {
+                    $referenceMap[$oldReference] = $newReference;
+                }
+            }
+
+            $field['reference'] = $newReference;
+
+            $handle = trim((string)($field['settings']['handle'] ?? ''));
+
+            if ($handle !== '') {
+                $handleMap[$handle] = $newReference;
+            }
+
+            $nestedRows = $field['settings']['rows'] ?? null;
+
+            if (is_array($nestedRows)) {
+                foreach ($nestedRows as &$nestedRow) {
+                    if (!is_array($nestedRow)) {
+                        continue;
+                    }
+
+                    $nestedFields = $nestedRow['fields'] ?? [];
+                    $this->_remapSerializedRowFieldReferences($nestedFields, $referenceMap, $handleMap);
+                    $nestedRow['fields'] = $nestedFields;
+                }
+                unset($nestedRow);
+            }
+        }
+        unset($field);
+    }
+
+    private function _rewriteSerializedFieldReferenceTokensInData(mixed &$value, array $tokenMap): void
+    {
+        if ($tokenMap === []) {
+            return;
         }
 
-        $rewritten = preg_replace_callback('/\{field:[^}]+\}/', function($matches) use ($referenceMap) {
-            $rawToken = (string)($matches[0] ?? '');
-            return References::remapFieldReferenceToken($rawToken, $referenceMap);
-        }, $encodedData);
+        if (is_string($value)) {
+            $value = preg_replace_callback('/\{field:[^}]+\}/', function(array $matches) use ($tokenMap): string {
+                $rawToken = (string)($matches[0] ?? '');
 
-        return is_string($rewritten) && $rewritten !== '' ? $rewritten : $encodedData;
+                return References::remapFieldReferenceToken($rawToken, $tokenMap);
+            }, $value) ?? $value;
+
+            return;
+        }
+
+        if (!is_array($value)) {
+            return;
+        }
+
+        foreach ($value as &$nestedValue) {
+            $this->_rewriteSerializedFieldReferenceTokensInData($nestedValue, $tokenMap);
+        }
+        unset($nestedValue);
     }
 }
