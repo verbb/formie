@@ -353,3 +353,35 @@ it('normalizes calendar and datepicker request arrays into datetime values', fun
         ->and($datePickerValue->getPart('hour'))->toBe('14')
         ->and($datePickerValue->getPart('minute'))->toBe('0');
 });
+
+it('renders preview html from wall-clock parts without timezone conversion', function (): void {
+    $formatter = \Craft::$app->getFormatter();
+    $originalTimeZone = $formatter->timeZone;
+    $formatter->timeZone = 'Australia/Sydney';
+
+    try {
+        $field = new Date([
+            'handle' => 'dateSigned',
+            'displayType' => 'calendar',
+            'dateFormat' => 'd/m/Y',
+            'timeFormat' => 'g:i a',
+        ]);
+
+        $value = $field->normalizeValue([
+            'year' => '2026',
+            'month' => '7',
+            'day' => '9',
+            'hour' => '10',
+            'minute' => '34',
+            'second' => '21',
+            'ampm' => 'AM',
+        ], null);
+
+        $html = $field->getPreviewHtml($value, new Submission());
+
+        expect($html)->toContain('09/07/2026')
+            ->and($html)->toContain('10:34');
+    } finally {
+        $formatter->timeZone = $originalTimeZone;
+    }
+});

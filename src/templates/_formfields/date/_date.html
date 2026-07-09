@@ -6,8 +6,8 @@
 
 {# Prefer the field's configured format over Craft's locale "short" format. #}
 {% if value.parts is defined %}
-    {% set displayDate = value.formatDateForDisplay(value.parts) %}
-    {% set dateTime = date(value, false, false) %}
+    {% set displayDate = field.formatDatePartForDisplay(value.parts) %}
+    {% set dateTime = field.dateTimeFromValue(value) %}
 {% else %}
     {% set dateTime = (value ?? false) ? date(value, false, false) : null %}
     {% set displayDate = dateTime ? dateTime|date(dateFormat, false, false) : '' %}

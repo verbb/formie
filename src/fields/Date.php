@@ -297,6 +297,22 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
         return self::KIND_DATE;
     }
 
+    public function getSortOption(): array
+    {
+        // Date values are stored as JSON parts; use the comparable key so CP sorting is chronological.
+        $comparableSql = self::_valueSqlForComparable([$this]);
+
+        if ($comparableSql === null) {
+            return parent::getSortOption();
+        }
+
+        return [
+            'label' => $this->label,
+            'orderBy' => [$comparableSql, 'elements.id'],
+            'attribute' => "field:{$this->uid}",
+        ];
+    }
+
     public function getCollectsRange(): bool
     {
         return $this->collectMode === self::COLLECT_RANGE && $this->displayType === 'datePicker';
@@ -493,28 +509,25 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
 
     public function getPreviewHtml(mixed $value, ElementInterface $element): string
     {
-        $html = '';
-        
-        // Ensure that the timezone we use is UTC, as the dates are set in that. We don't want them converted
-        $timeZone = Craft::$app->getFormatter()->timeZone;
-        Craft::$app->getFormatter()->timeZone = 'UTC';
-
-        if ($value) {
-            if ($this->getCollectsRange() && $value instanceof DateRangeFieldValue) {
-                $html = $this->formatRangeValueForDisplay($value);
-            } else if ($this->getIsDateTime()) {
-                $html = Craft::$app->getFormatter()->asDatetime($value, Locale::LENGTH_SHORT);
-            } else if ($this->getIsTime()) {
-                $html = Craft::$app->getFormatter()->asTime($value, Locale::LENGTH_SHORT);
-            } else if ($this->getIsDate()) {
-                $html = Craft::$app->getFormatter()->asDate($value, Locale::LENGTH_SHORT);
-            }
+        if (!$value) {
+            return $this->renderPreviewText('');
         }
 
-        // Set the original timezone back, just in case
-        Craft::$app->getFormatter()->timeZone = $timeZone;
+        if ($this->getCollectsRange()) {
+            return $this->renderPreviewText($this->formatRangeValueForDisplay($value));
+        }
 
-        return $this->renderPreviewText($html);
+        // Render from stored date parts so CP previews stay wall-clock and avoid Craft formatter timezone shifts.
+        return $this->renderPreviewText($this->getValueAsString($value, $element));
+    }
+
+    public function dateTimeFromValue(mixed $value): ?\DateTime
+    {
+        $parts = $value instanceof DateFieldValue
+            ? $value->getParts()
+            : DateFieldValue::parseParts($value);
+
+        return DateFieldValue::partsToDateTime($parts);
     }
 
     public function normalizeValue(mixed $value, ?ElementInterface $element): mixed
