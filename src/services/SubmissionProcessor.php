@@ -478,7 +478,17 @@ class SubmissionProcessor extends Component
         ?DraftSubmissionState $progressState,
         Submission $submission
     ): void {
-        if (!Craft::$app->getRequest()->getIsSiteRequest() || !$submission->id) {
+        if (!Craft::$app->getRequest()->getIsSiteRequest()) {
+            return;
+        }
+
+        // Front-end save-submission is edit-only. Anonymous callers must use submit
+        // so captcha, spam screening, and workflow policies still apply to new entries.
+        if ($request->processMode === SubmissionWorkflow::PROCESS_MODE_EDIT_EXISTING && !$submission->id) {
+            throw new ForbiddenHttpException('User is not permitted to perform this action');
+        }
+
+        if (!$submission->id) {
             return;
         }
 
