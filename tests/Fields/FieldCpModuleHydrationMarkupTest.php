@@ -91,9 +91,10 @@ it('renders cp module hydration markers for shared module-backed fields', functi
 
     expect($signatureHtml)
         ->toContain('data-formie-field-handle="signature"')
-        ->and($signatureHtml)->toContain('data-formie-signature-canvas')
         ->and($signatureHtml)->toContain('data-formie-signature-input')
-        ->and($signatureHtml)->toContain('data-formie-signature-clear');
+        ->and($signatureHtml)->toContain('data-formie-signature-canvas')
+        ->and($signatureHtml)->toContain('data-formie-signature-clear')
+        ->and($signatureHtml)->toContain('get-signature-image');
 
     expect($repeaterHtml)
         ->toContain('data-formie-field-handle="lineItems"')
