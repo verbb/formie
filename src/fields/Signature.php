@@ -90,6 +90,19 @@ class Signature extends Field implements PreviewableFieldInterface
         ]);
     }
 
+    public function getDownloadUrl(Submission $submission): ?string
+    {
+        $accessToken = FieldAccess::issueAccessToken($submission, (int)$this->id);
+
+        if (!$accessToken) {
+            return null;
+        }
+
+        return StringHelper::sanitizeUrlAttribute(UrlHelper::actionUrl('formie/fields/get-signature-image', [
+            'accessToken' => $accessToken,
+        ]));
+    }
+
     public function getSettingGqlTypes(): array
     {
         return array_merge(parent::getSettingGqlTypes(), [
@@ -248,10 +261,17 @@ class Signature extends Field implements PreviewableFieldInterface
 
     protected function defineSubmissionHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
+        $downloadUrl = null;
+
+        if ($element instanceof Submission && is_string($value) && $value !== '') {
+            $downloadUrl = $this->getDownloadUrl($element);
+        }
+
         return Craft::$app->getView()->renderTemplate('formie/_formfields/signature/input', [
             'value' => $value,
             'field' => $this,
             'element' => $element,
+            'downloadUrl' => $downloadUrl,
         ]);
     }
 

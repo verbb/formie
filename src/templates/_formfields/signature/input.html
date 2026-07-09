@@ -4,7 +4,7 @@
         data-formie-signature-canvas
         width="640"
         height="180"
-        style="display: block; width: 100%; height: 180px;"
+        style="display: block; width: 100%;"
     ></canvas>
 
     <p
@@ -18,15 +18,27 @@
 
     <input type="hidden" name="{{ field.handle }}" value="{{ value ?? '' }}" data-formie-signature-input>
 
-    <button
-        type="button"
-        class="btn"
-        data-formie-signature-clear
-        aria-label="{{ 'Clear signature' | t('formie') }}"
-        title="{{ 'Clear signature' | t('formie') }}"
-    >
-        {{- 'Clear' | t('formie') -}}
-    </button>
+    <div class="formie-signature-actions">
+        {% if downloadUrl %}
+            <a
+                href="{{ downloadUrl }}"
+                class="btn"
+                download="{{ field.handle ~ '-signature.png' }}"
+            >
+                {{- 'Download' | t('formie') -}}
+            </a>
+        {% endif %}
+
+        <button
+            type="button"
+            class="btn"
+            data-formie-signature-clear
+            aria-label="{{ 'Clear signature' | t('formie') }}"
+            title="{{ 'Clear signature' | t('formie') }}"
+        >
+            {{- 'Clear' | t('formie') -}}
+        </button>
+    </div>
 </div>
 
 <noscript>
