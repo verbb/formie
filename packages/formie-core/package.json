@@ -1,6 +1,6 @@
 {
   "name": "@verbb/formie-core",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.0.13 - 2026-07-09
+
 ### Fixed
 - Fix Signature field canvas height preserving the stored PNG aspect ratio when restoring values or resizing, so signatures are not vertically stretched.
 - Fix Date/Time calendar fields not using an existing input value as the Flatpickr default date on init.
