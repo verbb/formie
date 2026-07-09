@@ -67,6 +67,25 @@ it('round-trips orphaned submission content when the current field layout cannot
         ->and($serialized['legacy-field-uid']['legacyChildUid'] ?? null)->toBe('Legacy Value');
 });
 
+it('hydrates submission content that was double-encoded as a JSON string', function (): void {
+    $form = formie()
+        ->form(['title' => 'Double Encoded Content'])
+        ->singleLineTextField('fullName')
+        ->create();
+
+    $field = $form->getFieldByHandle('fullName');
+    $submission = new Submission();
+    $submission->setForm($form);
+
+    $payload = [
+        $field->uid => 'Michaela Barnes',
+    ];
+
+    $submission->getContentManager()->normalizeFromDb($submission, json_encode(json_encode($payload)));
+
+    expect($submission->getFieldValue('fullName'))->toBe('Michaela Barnes');
+});
+
 it('persists multi-name subfields when values are normalized from request payload shape', function (): void {
     $form = formie()
         ->form(['title' => 'Multi Name Persistence'])

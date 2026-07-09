@@ -9,6 +9,7 @@ use verbb\formie\base\ParentFieldInterface;
 use verbb\formie\base\PreviewableFieldInterface;
 use verbb\formie\base\RepeatableParentFieldInterface;
 use verbb\formie\content\SubmissionContentManager;
+use verbb\formie\content\SubmissionContentNormalizer;
 use verbb\formie\content\SubmissionContentState;
 use verbb\formie\deprecations\SubmissionValueDeprecations;
 use verbb\formie\elements\actions\SetSubmissionSpam;
@@ -1614,22 +1615,7 @@ class Submission extends Element
 
     private function _normalizeSerializedContent(mixed $content): array
     {
-        if (is_array($content)) {
-            return $content;
-        }
-
-        if (is_string($content) && $content !== '') {
-            try {
-                $decoded = Json::decode($content);
-
-                if (is_array($decoded)) {
-                    return $decoded;
-                }
-            } catch (Throwable) {
-            }
-        }
-
-        return [];
+        return SubmissionContentNormalizer::decodeStoredPayload($content) ?? [];
     }
 
     private function _applySnapshotSettingsIfNeeded(): void

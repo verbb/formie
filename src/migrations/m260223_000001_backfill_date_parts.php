@@ -88,9 +88,11 @@ class m260223_000001_backfill_date_parts extends Migration
                     continue;
                 }
 
+                // Store native JSON objects in the JSON column. Encoding first would
+                // persist a JSON string value and break submission hydration.
                 $this->update(
                     Table::FORMIE_SUBMISSIONS,
-                    ['content' => Json::encode($content)],
+                    ['content' => $content],
                     ['id' => $submissionId]
                 );
             }

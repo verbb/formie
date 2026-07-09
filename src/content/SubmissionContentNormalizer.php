@@ -64,15 +64,46 @@ class SubmissionContentNormalizer
 
     public function normalizeFromDb(Submission $submission, null|string|array $content): void
     {
-        if (is_string($content) && Json::isJsonObject($content)) {
-            $content = Json::decode($content);
-        }
+        $content = self::decodeStoredPayload($content);
 
-        if (!$content || !is_array($content)) {
+        if (!$content) {
             return;
         }
 
         $this->normalizeDbPayload($submission, $content);
+    }
+
+    public static function decodeStoredPayload(mixed $content): ?array
+    {
+        if (is_array($content)) {
+            return $content;
+        }
+
+        if (!is_string($content) || trim($content) === '') {
+            return null;
+        }
+
+        // Some historical migrations wrote JSON-encoded strings into the JSON
+        // column, so decode repeatedly until we reach the uid-keyed payload.
+        while (is_string($content)) {
+            try {
+                $decoded = Json::decode($content);
+            } catch (\Throwable) {
+                return null;
+            }
+
+            if (is_array($decoded)) {
+                return $decoded;
+            }
+
+            if (!is_string($decoded) || $decoded === $content) {
+                return null;
+            }
+
+            $content = $decoded;
+        }
+
+        return null;
     }
 
     public function normalizeDbPayload(Submission $submission, array $content): void
