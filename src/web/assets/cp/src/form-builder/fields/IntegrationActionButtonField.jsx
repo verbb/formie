@@ -9,7 +9,6 @@ import { FieldLayout } from '@verbb/plugin-kit-react/forms/Field';
 import { getErrorMessage } from '@verbb/plugin-kit-react/utils';
 import { useFormBuilderApp } from '@form-builder/contexts/FormBuilderAppContext';
 import { useFormBuilderForm } from '@form-builder/contexts/FormBuilderFormContext';
-import useAppStore from '@form-builder/hooks/useAppStore';
 import { refreshIntegrationFormSettings } from '@form-builder/hooks/useFormTools';
 import { IntegrationErrorMessage } from './IntegrationErrorMessage';
 
@@ -18,7 +17,6 @@ const SUCCESS_FEEDBACK_DURATION = 2200;
 function IntegrationActionButtonField({ field }) {
     const { activeIntegrationHandle, formId } = useFormBuilderApp();
     const { getValueAtPath } = useFormBuilderForm();
-    const formId = useAppStore((state) => { return state.formId; });
     const [loading, setLoading] = useState(false);
     const [actionError, setActionError] = useState(null);
     const [showActionSuccess, setShowActionSuccess] = useState(false);
