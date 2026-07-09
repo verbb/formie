@@ -7,6 +7,7 @@ use verbb\formie\base\FieldInterface;
 use verbb\formie\base\NestedField;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\fields\Payment as PaymentField;
 use verbb\formie\helpers\ArrayHelper;
 
 use Craft;
@@ -184,6 +185,16 @@ class FieldLayout extends SavableComponent
             // Check when we're doing a submission from the front-end, and we choose to validate the current page only
             if ($element instanceof Submission && $element->validateCurrentPageOnly) {
                 if (!in_array($field->handle, $currentPageFieldHandles)) {
+                    return false;
+                }
+            }
+
+            // Payment fields should only be validated when submitting the page they belong to.
+            if ($field instanceof PaymentField) {
+                $currentPage = $element->getForm()?->getCurrentPage();
+                $fieldPage = $field->getPage();
+
+                if (!$fieldPage || !$currentPage || $fieldPage->id !== $currentPage->id) {
                     return false;
                 }
             }

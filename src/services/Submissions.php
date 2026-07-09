@@ -304,10 +304,23 @@ class Submissions extends Component
 
     public function processPayments(Submission $submission): bool
     {
+        // Never capture/charge during incomplete multi-page steps.
+        if ($submission->isIncomplete) {
+            return true;
+        }
+
         foreach ($submission->getFields() as $field) {
             if ($field instanceof formiefields\Payment) {
                 // No need to proceed further if field is conditionally hidden or disabled
                 if ($field->isConditionallyHidden($submission) || $field->getIsDisabled()) {
+                    continue;
+                }
+
+                // Only process payment for fields on the current page.
+                $currentPage = $submission->getForm()?->getCurrentPage();
+                $fieldPage = $field->getPage();
+
+                if (!$fieldPage || !$currentPage || $fieldPage->id !== $currentPage->id) {
                     continue;
                 }
                 
