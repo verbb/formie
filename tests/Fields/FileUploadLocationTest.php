@@ -72,3 +72,18 @@ it('rejects temporary uploads as an upload location', function (): void {
     expect($field->validate(['uploadLocationSource']))->toBeFalse()
         ->and($field->getErrors('uploadLocationSource'))->not->toBeEmpty();
 });
+
+it('returns a submission validation message for invalid upload locations', function (): void {
+    $field = new FileUpload([
+        'label' => 'Resume',
+        'handle' => 'resume',
+        'uploadLocationSource' => 'temp',
+    ]);
+
+    $method = new ReflectionMethod(FileUpload::class, '_getUploadLocationError');
+    $method->setAccessible(true);
+
+    expect($method->invoke($field, null))->toBe(Craft::t('app', 'The {field} field is set to an invalid volume.', [
+        'field' => 'Resume',
+    ]));
+});

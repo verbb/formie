@@ -279,7 +279,20 @@ class FileUpload extends ElementField
             $rules[] = [$this->handle, 'validateMaxFileSize'];
         }
 
+        $rules[] = [$this->handle, 'validateUploadLocation'];
+
         return $rules;
+    }
+
+    public function validateUploadLocation(ElementInterface $element): void
+    {
+        if ($this->isValueEmpty($element->getFieldValue($this->valueKey()), $element)) {
+            return;
+        }
+
+        if ($message = $this->_getUploadLocationError($element)) {
+            $element->addError($this->valueKey(), $message);
+        }
     }
 
     public function validateFileType(ElementInterface $element): void
@@ -1108,8 +1121,17 @@ class FileUpload extends ElementField
         $query = $element->getFieldValue($this->valueKey());
         $assetsService = Craft::$app->getAssets();
 
-        $getUploadFolderId = function() use ($element, &$_targetFolderId): int {
-            return $_targetFolderId ?? ($_targetFolderId = $this->_uploadFolder($element)->id);
+        $uploadFolderResolved = false;
+        $uploadFolderId = null;
+
+        $getUploadFolderId = function() use ($element, &$uploadFolderResolved, &$uploadFolderId): ?int {
+            if ($uploadFolderResolved) {
+                return $uploadFolderId;
+            }
+
+            $uploadFolderResolved = true;
+
+            return $uploadFolderId = $this->_resolveUploadFolderId($element);
         };
 
         // Were there any uploaded files?
@@ -1117,6 +1139,10 @@ class FileUpload extends ElementField
 
         if (!empty($uploadedFiles)) {
             $uploadFolderId = $getUploadFolderId();
+
+            if ($uploadFolderId === null) {
+                return;
+            }
 
             // Convert them to assets
             $assetIds = [];
@@ -1201,7 +1227,11 @@ class FileUpload extends ElementField
         $assets = $query->all();
 
         if (!empty($assets)) {
-            $rootRestrictedFolderId = $this->_uploadFolder($element)->id;
+            $rootRestrictedFolderId = $getUploadFolderId();
+
+            if ($rootRestrictedFolderId === null) {
+                return;
+            }
 
             $assetsToMove = array_filter($assets, function(Asset $asset) use ($rootRestrictedFolderId, $assetsService) {
                 if ($asset->folderId === $rootRestrictedFolderId) {
@@ -1266,16 +1296,63 @@ class FileUpload extends ElementField
 
     public function validateUploadLocationSource(string $attribute): void
     {
-        $sourceKey = $this->_getEffectiveUploadLocationSource();
+        if ($message = $this->_getUploadLocationError(null)) {
+            // Prefer a builder-specific message for Temporary Uploads when configuring the field.
+            if ($this->_getEffectiveUploadLocationSource() === 'temp') {
+                $this->addError($attribute, Craft::t('formie', 'Temporary Uploads cannot be used as a form upload location. Choose an asset volume instead.'));
+                return;
+            }
 
-        if ($sourceKey === 'temp') {
-            $this->addError($attribute, Craft::t('formie', 'Temporary Uploads cannot be used as a form upload location. Choose an asset volume instead.'));
-            return;
+            $this->addError($attribute, $message);
+        }
+    }
+
+    private function _resolveUploadFolderId(ElementInterface $element): ?int
+    {
+        try {
+            return $this->_uploadFolder($element)->id;
+        } catch (InvalidFsException|InvalidSubpathException $e) {
+            $element->addError($this->valueKey(), $e->getMessage());
+
+            return null;
+        }
+    }
+
+    private function _getUploadLocationError(?ElementInterface $element): ?string
+    {
+        if (!$this->_getEffectiveUploadLocationSource() || !$this->_getVolume()) {
+            return $this->_invalidUploadLocationMessage();
         }
 
-        if ($sourceKey && !$this->_getVolume()) {
-            $this->addError($attribute, Craft::t('formie', 'Upload Location must be a valid asset volume.'));
+        $subpath = trim($this->uploadLocationSubpath ?? '', '/');
+
+        // Static subpaths are validated during folder resolution; dynamic subpaths
+        // can fall back to Craft's temp folder for new/incomplete submissions.
+        if ($subpath === '' || !preg_match('/\{|\}/', $subpath)) {
+            return null;
         }
+
+        if ($element === null || !$element->id || !$element->enabled) {
+            return null;
+        }
+
+        try {
+            $this->_findFolder($element);
+        } catch (InvalidSubpathException $e) {
+            return Craft::t('app', 'The {field} field has an invalid subpath (“{subpath}”).', [
+                'field' => $this->label,
+                'subpath' => $e->subpath,
+            ]);
+        }
+
+        return null;
+    }
+
+    private function _invalidUploadLocationMessage(): string
+    {
+        return Craft::t('app', 'The {field} field is set to an invalid volume.', [
+            'field' => $this->label,
+        ]);
     }
 
     private function _getEffectiveUploadLocationSource(): ?string
@@ -1435,16 +1512,12 @@ class FileUpload extends ElementField
 
     private function _uploadFolder(?ElementInterface $element = null): VolumeFolder
     {
-        try {
-            if (!$this->_getEffectiveUploadLocationSource()) {
-                throw new InvalidFsException();
-            }
+        if ($error = $this->_getUploadLocationError($element)) {
+            throw new InvalidFsException($error);
+        }
 
+        try {
             return $this->_findFolder($element);
-        } catch (InvalidFsException $e) {
-            throw new InvalidFsException(Craft::t('app', 'The {field} field is set to an invalid volume.', [
-                'field' => $this->label,
-            ]), 0, $e);
         } catch (InvalidSubpathException $e) {
             // If this is a new/disabled element, the subpath probably just contained a token that returned null, like {id}
             // so use the user’s upload folder instead
