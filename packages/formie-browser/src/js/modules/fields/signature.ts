@@ -111,10 +111,44 @@ function drawValueOnCanvas(canvas: HTMLCanvasElement, value: string): void {
     };
 }
 
+function getImageDimensions(dataUrl: string): Promise<{ width: number; height: number } | null> {
+    return new Promise((resolve) => {
+        const image = new Image();
+        image.onload = () => {
+            resolve({
+                width: image.naturalWidth,
+                height: image.naturalHeight,
+            });
+        };
+        image.onerror = () => resolve(null);
+        image.src = dataUrl;
+    });
+}
+
+async function syncCanvasHeightToSignatureValue(canvas: HTMLCanvasElement, value: string): Promise<void> {
+    const dimensions = await getImageDimensions(value);
+
+    if (!dimensions?.width || !dimensions?.height) {
+        return;
+    }
+
+    const { width: containerWidth } = getCanvasSize(canvas);
+
+    if (!(containerWidth > 0)) {
+        return;
+    }
+
+    // Match the stored PNG aspect ratio so restored signatures are not vertically stretched.
+    const aspectHeight = Math.max(1, Math.round(containerWidth * (dimensions.height / dimensions.width)));
+    canvas.style.height = `${aspectHeight}px`;
+}
+
 async function restoreSignatureValue(signaturePad: SignaturePad, canvas: HTMLCanvasElement, value: string): Promise<void> {
     if (!value) {
         return;
     }
+
+    await syncCanvasHeightToSignatureValue(canvas, value);
 
     try {
         await signaturePad.fromDataURL(value);
@@ -184,6 +218,12 @@ function initSignatureField(
     };
 
     const resizeCanvas = async(): Promise<boolean> => {
+        const existingValue = input.value || (signaturePad.isEmpty() ? '' : signaturePad.toDataURL());
+
+        if (existingValue) {
+            await syncCanvasHeightToSignatureValue(canvas, existingValue);
+        }
+
         const { width, height } = getCanvasSize(canvas);
 
         if (!(width > 0) || !(height > 0)) {
@@ -195,8 +235,6 @@ function initSignatureField(
         if (!context) {
             return false;
         }
-
-        const existingValue = input.value || (signaturePad.isEmpty() ? '' : signaturePad.toDataURL());
 
         canvas.width = width * ratio;
         canvas.height = height * ratio;

@@ -20,7 +20,8 @@
     [data-formie-field-type="signature"] .formie-signature-canvas {
         display: block;
         width: var(--formie-signature-width);
-        height: var(--formie-signature-height);
+        min-height: var(--formie-signature-height);
+        height: auto;
         border: var(--formie-signature-border);
         background: var(--formie-signature-background);
         border-radius: var(--formie-signature-border-radius);
