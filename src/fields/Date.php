@@ -12,6 +12,7 @@ use verbb\formie\base\FixedParentField;
 use verbb\formie\base\PreviewableFieldInterface;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyDateTimeFormatEvent;
+use verbb\formie\events\ModifyFieldValueEvent;
 use verbb\formie\events\RegisterDateTimeFormatOptionsEvent;
 use verbb\formie\fields\values\DateFieldValue;
 use verbb\formie\fields\values\DateRangeFieldValue;
@@ -251,7 +252,9 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
                     $config['defaultValue'] = DateTimeHelper::toDateTime($config['defaultValue'], false, false) ?: null;
                 }
             } else if ($config['defaultOption'] === 'today') {
-                $config['defaultValue'] = DateTimeHelper::toDateTime(new DateTime('today'), false, false);
+                // Resolved dynamically in getDefaultValue() so "today" reflects the
+                // current request and respects whether the field collects time.
+                $config['defaultValue'] = null;
             } else {
                 $config['defaultValue'] = null;
             }
@@ -789,11 +792,37 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
     public function getDefaultDate(): ?string
     {
         // An alias for `defaultValue` for GQL, as `defaultValue` returns a date, not string
-        if ($this->defaultValue instanceof DateTime) {
-            return $this->defaultValue->format('Y-m-d\TH:i:s');
+        $defaultValue = $this->getDefaultValue();
+
+        if ($defaultValue instanceof DateTime) {
+            return $defaultValue->format('Y-m-d\TH:i:s');
         }
-        
-        return $this->defaultValue;
+
+        if ($defaultValue instanceof DateFieldValue) {
+            $dateTime = DateFieldValue::toDateTime($defaultValue);
+
+            return $dateTime?->format('Y-m-d\TH:i:s');
+        }
+
+        return is_string($defaultValue) ? $defaultValue : null;
+    }
+
+    public function getDefaultValue(): mixed
+    {
+        if ($this->defaultOption === 'today') {
+            $defaultValue = $this->normalizeValue($this->_resolveTodayDefaultDateTime(), null);
+
+            $event = new ModifyFieldValueEvent([
+                'value' => $defaultValue,
+                'field' => $this,
+            ]);
+
+            $this->trigger(static::EVENT_MODIFY_DEFAULT_VALUE, $event);
+
+            return $event->value;
+        }
+
+        return parent::getDefaultValue();
     }
 
     public function getSubFieldPartValue(mixed $value, string $handle): mixed
@@ -2059,6 +2088,16 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
 
     // Private Methods
     // =========================================================================
+
+    private function _resolveTodayDefaultDateTime(): DateTime
+    {
+        // Date-only fields should default to the start of today; date/time and
+        // time-only fields should default to the current wall-clock moment.
+        $dateTime = $this->getIsDate() ? new DateTime('today') : new DateTime();
+        $resolved = DateTimeHelper::toDateTime($dateTime, false, false);
+
+        return $resolved instanceof DateTime ? $resolved : new DateTime();
+    }
 
     private function _applyDisplaySettings(DateFieldValue|DateRangeFieldValue $value): void
     {

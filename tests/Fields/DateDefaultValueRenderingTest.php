@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use verbb\formie\elements\Form;
 use verbb\formie\fields\Date;
+use verbb\formie\fields\values\DateFieldValue;
 use verbb\formie\Formie;
 use verbb\formie\models\FieldLayout;
 
@@ -74,4 +75,40 @@ it('resolves date sub-field initial values as scalar parts', function (): void {
 
     expect($dateField->getInitialValue())->toBe('2024-06-15')
         ->and($timeField->getInitialValue())->toBe('14:30');
+});
+
+it('uses the current time for today defaults on date/time fields', function (): void {
+    $field = createDateFieldWithDefaults([
+        'defaultOption' => 'today',
+        'defaultValue' => null,
+    ]);
+
+    $now = new DateTime();
+    $defaultValue = $field->getDefaultValue();
+    $dateTime = DateFieldValue::toDateTime($defaultValue);
+
+    expect($dateTime)->toBeInstanceOf(DateTime::class)
+        ->and($dateTime->format('Y-m-d'))->toBe($now->format('Y-m-d'))
+        ->and($dateTime->format('H:i'))->toBe($now->format('H:i'));
+
+    $timeField = $field->getFieldByHandle('time');
+
+    expect($timeField->getInitialValue())->toBe($now->format('H:i'));
+});
+
+it('uses midnight for today defaults on date-only fields', function (): void {
+    $field = createDateFieldWithDefaults([
+        'defaultOption' => 'today',
+        'defaultValue' => null,
+        'displayType' => 'datePicker',
+    ]);
+
+    $timeSubField = $field->getFieldByHandle('time');
+    $timeSubField->enabled = false;
+
+    $dateTime = DateFieldValue::toDateTime($field->getDefaultValue());
+
+    expect($dateTime)->toBeInstanceOf(DateTime::class)
+        ->and($dateTime->format('Y-m-d'))->toBe((new DateTime('today'))->format('Y-m-d'))
+        ->and($dateTime->format('H:i:s'))->toBe('00:00:00');
 });
