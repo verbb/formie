@@ -2,6 +2,20 @@
 // Submission Edit Fields
 // ==========================================================================
 
+// CP submission edit reuses the front-end `.formie-form` wrapper so shared browser
+// modules can hydrate, but the surrounding chrome should stay Craft-native.
+// formie-browser `_tokens.css` sets body typography on `.formie-form` (~16px), which
+// otherwise bumps inherited label/option sizing. Reset the wrapper only — do not
+// restyle Craft `.field > .heading > label` rules (font-weight: 700, etc.).
+.fui-submission #content > .formie-form {
+    font-size: inherit;
+    line-height: inherit;
+    color: inherit;
+    font-family: inherit;
+    -webkit-font-smoothing: inherit;
+    -moz-osx-font-smoothing: inherit;
+}
+
 #fields .formie-rows,
 #fields .formie-subfield-rows,
 #fields .formie-nested-field-rows {
@@ -161,6 +175,13 @@
 
 #fields .formie-group-field {
     padding: 1rem;
+}
+
+#fields .formie-signature-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
 }
 
 // ==========================================================================
