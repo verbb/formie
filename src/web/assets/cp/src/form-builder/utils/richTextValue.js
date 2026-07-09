@@ -1,3 +1,5 @@
+import { isRichTextEmpty } from '@verbb/plugin-kit-react/utils';
+
 /**
  * Normalize stored rich-text values into TipTap schema content arrays.
  * Mirrors Formie PHP `RichText::from()` for client-side boundaries (builder previews/editors).
@@ -72,17 +74,5 @@ export const normalizeFieldEditorValues = (field) => {
 };
 
 export const hasRichTextValue = (value) => {
-    if (value == null || value === '') {
-        return false;
-    }
-
-    if (Array.isArray(value)) {
-        return value.length > 0;
-    }
-
-    if (typeof value === 'string') {
-        return value.trim().length > 0;
-    }
-
-    return true;
+    return !isRichTextEmpty(value);
 };
