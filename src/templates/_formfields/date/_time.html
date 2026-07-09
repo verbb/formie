@@ -2,7 +2,16 @@
 
 {% set id = (id ?? "time#{random()}") ~ '-time' -%}
 {% set name = name ?? null -%}
-{% set value = value ?? null -%}
+{% set timeFormat = field.getTimeFormat()|default('H:i') -%}
+
+{# Prefer the field's configured format over Craft's locale "short" format. #}
+{% if value.parts is defined %}
+    {% set displayTime = value.formatTimeForDisplay(value.parts) %}
+    {% set dateTime = date(value, false, false) %}
+{% else %}
+    {% set dateTime = value ?? null %}
+    {% set displayTime = dateTime ? dateTime|time(timeFormat, false, false) : '' %}
+{% endif %}
 
 {% if field.displayType != 'datePicker' or field.getIsDateTime() %}
     {% do view.registerAssetBundle('craft\\web\\assets\\timepicker\\TimepickerAsset') -%}
@@ -15,7 +24,7 @@
         autocomplete: false,
         size: 10,
         placeholder: ' ',
-        value: (value ? value|time('short', false, false) : ''),
+        value: displayTime,
         inputAttributes: field.displayType == 'datePicker' and not field.getIsDateTime() ? {
             'data-formie-date-datepicker-input': true,
         } : {},
@@ -39,8 +48,8 @@
     var $timePicker = $('#{{ id|namespaceInputId|e('js') }}');
     $timePicker.timepicker($.extend({{ options|json_encode(jsonOptions)|raw }}, Craft.timepickerOptions));
 
-    {% if value and value.format is defined %}
-        $timePicker.timepicker('setTime', {{ value.format('G') }}*3600 + {{ value.format('i') }}*60 + {{ value.format('s') }});
+    {% if dateTime and dateTime.format is defined %}
+        $timePicker.timepicker('setTime', {{ dateTime.format('G') }}*3600 + {{ dateTime.format('i') }}*60 + {{ dateTime.format('s') }});
     {% endif %}
 {%- endjs %}
 {% endif %}

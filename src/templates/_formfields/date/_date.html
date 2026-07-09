@@ -2,7 +2,16 @@
 
 {% set id = (id ?? "date#{random()}") ~ '-date' -%}
 {% set name = name ?? null -%}
-{% set value = (value ?? false) ? date(value, false, false) : null -%}
+{% set dateFormat = field.getDateFormat()|default('Y-m-d') -%}
+
+{# Prefer the field's configured format over Craft's locale "short" format. #}
+{% if value.parts is defined %}
+    {% set displayDate = value.formatDateForDisplay(value.parts) %}
+    {% set dateTime = date(value, false, false) %}
+{% else %}
+    {% set dateTime = (value ?? false) ? date(value, false, false) : null %}
+    {% set displayDate = dateTime ? dateTime|date(dateFormat, false, false) : '' %}
+{% endif %}
 
 <div class="datewrapper"
         {%- if block('attr') is defined %} {{ block('attr') }}{% endif %}>
@@ -11,7 +20,7 @@
         autocomplete: false,
         size: 10,
         placeholder: ' ',
-        value: value ? value|date('short', false, false) : '',
+        value: displayDate,
         inputAttributes: field.displayType == 'datePicker' and not field.getIsDateTime() ? {
             'data-formie-date-datepicker-input': true,
         } : {},
@@ -22,7 +31,7 @@
 {% if field.displayType != 'datePicker' or field.getIsDateTime() %}
 {%- js %}
     $('#{{ id|namespaceInputId|e('js') }}').datepicker($.extend({
-        defaultDate: new Date({% if value %}{{ value.format('Y') }}, {{ value.format('n')-1 }}, {{ value.format('j') }}{% endif %})
+        defaultDate: new Date({% if dateTime %}{{ dateTime.format('Y') }}, {{ dateTime.format('n')-1 }}, {{ dateTime.format('j') }}{% endif %})
     }, Craft.datepickerOptions));
 {%- endjs %}
 {% endif %}
