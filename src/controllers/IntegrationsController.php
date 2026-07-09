@@ -16,6 +16,7 @@ use craft\web\Controller;
 
 use yii\base\UnknownPropertyException;
 use yii\web\BadRequestHttpException;
+use yii\web\ForbiddenHttpException;
 use yii\web\Response;
 
 use Exception;
@@ -137,21 +138,29 @@ class IntegrationsController extends Controller
     public function actionFormSettings(): Response
     {
         $this->requirePostRequest();
+        $this->requireCpRequest();
 
         try {
             $request = $this->request;
             $handle = $request->getParam('integration');
             $settings = $request->getParam('settings');
+            $formId = (int)$request->getParam('formId');
 
             if (!$handle) {
                 return $this->asFailure(Craft::t('formie', 'Unknown integration: “{handle}”', ['handle' => $handle]));
             }
 
+            $this->_requireIntegrationFormPermission($formId);
+
             $integration = Formie::$plugin->getIntegrations()->getIntegrationByHandle($handle);
 
+            if (!$integration) {
+                throw new BadRequestHttpException(Craft::t('formie', 'Unknown integration: “{handle}”', ['handle' => $handle]));
+            }
+
             // Apply any settings provided by the payload. Particularly if we're enabling/disabling objects to fetch for.
-            if ($settings) {
-                $integration->setAttributes($settings, false);
+            if (is_array($settings)) {
+                $integration->setAttributes($this->_filterIntegrationFormSettings($settings), false);
             }
 
             // Apply any extra settings to the integration, useful when fetching specific data objects
@@ -363,5 +372,93 @@ class IntegrationsController extends Controller
         Auth::getInstance()->getTokens()->deleteTokenByOwnerReference('formie', $integration->id);
 
         return $this->asModelSuccess($integration, Craft::t('formie', '{name} disconnected.', ['name' => $integration->name]), 'integration');
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _requireIntegrationFormPermission(int $formId): void
+    {
+        $user = Craft::$app->getUser()->getIdentity();
+
+        if (!$formId) {
+            throw new BadRequestHttpException('Missing form ID.');
+        }
+
+        $form = Craft::$app->getElements()->getElementById($formId, Form::class);
+
+        if (!$form) {
+            $form = Formie::$plugin->getStencils()->getStencilById($formId);
+        }
+
+        if (!($form instanceof FormInterface)) {
+            throw new BadRequestHttpException('Invalid form ID.');
+        }
+
+        if ($form instanceof Form) {
+            if (!Formie::$plugin->getPermissions()->canShowFormBuilderTab($user, $form, 'formie-showFormIntegrations')) {
+                throw new ForbiddenHttpException('User is not permitted to perform this action');
+            }
+
+            return;
+        }
+
+        // Stencils do not have per-form integration scopes; require the global tab permission.
+        if (!$user || !$user->can('formie-showFormIntegrations')) {
+            throw new ForbiddenHttpException('User is not permitted to perform this action');
+        }
+    }
+
+    private function _filterIntegrationFormSettings(array $settings): array
+    {
+        $filtered = [];
+
+        foreach ($settings as $key => $value) {
+            if (!is_string($key) || !$this->_isAllowedIntegrationFormSetting($key)) {
+                continue;
+            }
+
+            $filtered[$key] = $value;
+        }
+
+        return $filtered;
+    }
+
+    private function _isAllowedIntegrationFormSetting(string $attribute): bool
+    {
+        if ($this->_isSensitiveIntegrationAttribute($attribute)) {
+            return false;
+        }
+
+        if (str_starts_with($attribute, 'mapTo')) {
+            return true;
+        }
+
+        if (str_ends_with($attribute, 'FieldMapping')) {
+            return true;
+        }
+
+        if (str_ends_with($attribute, 'Id')) {
+            return true;
+        }
+
+        return in_array($attribute, [
+            'sendEmailCampaign',
+            'attachFiles',
+        ], true);
+    }
+
+    private function _isSensitiveIntegrationAttribute(string $attribute): bool
+    {
+        $attribute = strtolower($attribute);
+
+        foreach (['key', 'secret', 'token', 'password', 'url', 'domain', 'uri', 'host', 'credential', 'auth'] as $pattern) {
+            if (str_contains($attribute, $pattern)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
