@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Fixed
+- Fix Signature field canvas height preserving the stored PNG aspect ratio when restoring values or resizing, so signatures are not vertically stretched.
+- Fix Date/Time calendar fields not using an existing input value as the Flatpickr default date on init.
+- Fix false unload warnings after front-end form init by resetting dirty state once captcha/token hydration and field modules have settled.
+
 ## 1.0.12 - 2026-07-02
 
 ### Added
