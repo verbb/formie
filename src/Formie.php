@@ -892,11 +892,12 @@ class Formie extends Plugin
 
                     return true;
                 },
-                'options' => ['formId', 'updateTitle'],
-                'helpSummary' => 'Re-saves Forms submissions.',
+                'options' => ['formId', 'updateTitle', 'updateSearchIndex'],
+                'helpSummary' => 'Re-saves Formie submissions.',
                 'optionsHelp' => [
                     'formId' => 'The form ID of the submissions to resave.',
                     'updateTitle' => 'Whether to force the title‘s to update according to the Submission Title Format.',
+                    'updateSearchIndex' => 'Whether to update search indexes while resaving. Pass this when rebuilding submission field search keywords in the control panel (resave alone does not refresh indexes).',
                 ],
             ];
         });
