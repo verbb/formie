@@ -20,7 +20,7 @@ use verbb\formie\models\FieldLayoutRow;
 use verbb\formie\models\Notification;
 use verbb\formie\models\Settings;
 use verbb\formie\positions\Hidden as HiddenPosition;
-use verbb\formie\prosemirror\toprosemirror\Renderer;
+use verbb\formie\models\RichText;
 
 use Craft;
 use craft\elements\Asset;
@@ -486,10 +486,8 @@ class MigrateFreeform4 extends BasePluginMigrator
                 $newField = new formiefields\Agree();
                 $this->_applyFieldDefaults($newField);
 
-                $description = (new Renderer)->render('<p>' . $field->getLabel() . '</p>');
-
+                $newField->description = RichText::fromHtml('<p>' . $field->getLabel() . '</p>');
                 $newField->defaultValue = $field->isChecked();
-                $newField->description = $description;
                 $newField->checkedValue = $field->getValue();
                 $newField->uncheckedValue = Craft::t('app', 'No');
                 break;

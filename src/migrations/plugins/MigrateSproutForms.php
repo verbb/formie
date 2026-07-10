@@ -20,7 +20,7 @@ use verbb\formie\helpers\Variables;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\Notification;
 use verbb\formie\positions\Hidden as HiddenPosition;
-use verbb\formie\prosemirror\toprosemirror\Renderer;
+use verbb\formie\models\RichText;
 
 use Craft;
 use craft\base\FieldInterface as CraftFieldInterface;
@@ -633,9 +633,7 @@ class MigrateSproutForms extends BasePluginMigrator
                 $newField = new formfields\Agree();
                 $this->_applyFieldDefaults($newField);
 
-                $description = (new Renderer)->render('<p>' . $field->optInMessage . '</p>');
-
-                $newField->description = $description['content'];
+                $newField->description = RichText::fromHtml('<p>' . $field->optInMessage . '</p>');
                 $newField->checkedValue = $field->optInValueWhenTrue;
                 $newField->uncheckedValue = $field->optInValueWhenFalse;
                 break;

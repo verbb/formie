@@ -16,10 +16,6 @@ Formie exposes its services to Twig like any Craft plugin. You can create notifi
     {% exit 404 %}
 {% endif %}
 
-{% set renderer = create({
-    class: 'verbb\\formie\\prosemirror\\toprosemirror\\Renderer',
-}) %}
-
 {% set notification = create({
     class: 'verbb\\formie\\models\\Notification',
     formId: form.id,
@@ -27,7 +23,7 @@ Formie exposes its services to Twig like any Craft plugin. You can create notifi
     subject: 'Thanks for your enquiry',
     to: '{field.emailAddress}',
     recipients: 'email',
-    content: renderer.render('<p><variable-tag value="{allFields}" label="All Fields"></variable-tag></p>').content | json_encode,
+    content: create('verbb\\formie\\models\\RichText', ['<p><variable-tag value="{allFields}" label="All Fields"></variable-tag></p>']).toJson(),
 }) %}
 
 {% do craft.formie.getPlugin().getNotifications().saveNotification(notification) %}

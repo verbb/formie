@@ -2,13 +2,12 @@
 
 declare(strict_types=1);
 
-use verbb\formie\prosemirror\tohtml\Renderer;
+use verbb\formie\models\RichText;
 
 function renderRichTextLink(string $href, ?string $target = '_blank'): string
 {
-    $document = [
-        'type' => 'doc',
-        'content' => [[
+    return RichText::from([
+        [
             'type' => 'paragraph',
             'content' => [[
                 'type' => 'text',
@@ -21,10 +20,8 @@ function renderRichTextLink(string $href, ?string $target = '_blank'): string
                     ], static fn(mixed $value): bool => $value !== null),
                 ]],
             ]],
-        ]],
-    ];
-
-    return (new Renderer())->render($document);
+        ],
+    ])->toHtml(null, false);
 }
 
 it('omits rel on internal links opened in a new tab', function (): void {

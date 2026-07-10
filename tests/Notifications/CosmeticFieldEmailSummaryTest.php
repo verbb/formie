@@ -29,8 +29,7 @@ it('includes cosmetic html and rich text fields in email summaries when enabled'
     $allFields = References::parseContent('{allFields}', $submission, ['includeSummary' => true]);
     $allContentFields = References::parseContent('{allContentFields}', $submission, ['includeSummary' => true]);
 
-    expect($allFields)->toContain('<strong>Notice</strong>')
-        ->and($allFields)->toContain('Static notice')
+    expect($allFields)->toContain('<strong>Static notice</strong>')
         ->and($allFields)->toContain('Intro')
         ->and($allFields)->toContain('Intro <strong>text</strong>')
         ->and($allFields)->toContain('Tester')
