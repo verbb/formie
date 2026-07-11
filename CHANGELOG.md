@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Fix multi-site form creation failing on fresh Formie 4 installs with “Base table or view not found: formie_form_site_overrides” by adding the site override tables to `Install.php` and backfilling them for affected installs.
+
 ## 4.0.0-beta.12 - 2026-07-09
 
 ### Changed
