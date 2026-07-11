@@ -1,5 +1,14 @@
 # Changelog
 
+## 3.1.32 - Unreleased
+
+### Changed
+- Bump `verbb/auth`.
+
+### Fixed
+- Fix email notifications failing to send when notification address fields contained an ampersand (`&`). ([#2879](https://github.com/verbb/formie/issues/2879))
+- Fix Marketo integration failing to refresh form settings with an "Invalid scope" error after connecting. ([#2718](https://github.com/verbb/formie/issues/2718))
+
 ## 3.1.31 - 2026-07-09
 
 ### Fixed
