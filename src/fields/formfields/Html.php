@@ -12,7 +12,7 @@ use verbb\formie\positions\Hidden as HiddenPosition;
 
 use Craft;
 use craft\base\ElementInterface;
-use craft\helpers\HTMLPurifier;
+use craft\helpers\HtmlPurifier;
 use craft\helpers\Json;
 
 use yii\base\Exception;
@@ -84,7 +84,7 @@ class Html extends FormField
 
         if ($this->purifyContent) {
             // Ensure we run it all through purifier
-            return HTMLPurifier::process($htmlContent, $this->_getPurifierConfig());
+            return HtmlPurifier::process($htmlContent, $this->_getPurifierConfig());
         }
 
         return $htmlContent;
