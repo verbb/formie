@@ -17,7 +17,7 @@ use verbb\formie\theme\context\RenderContext;
 use Craft;
 use craft\base\ElementInterface;
 use craft\helpers\Html as CraftHtml;
-use craft\helpers\HTMLPurifier;
+use craft\helpers\HtmlPurifier;
 use craft\helpers\Json;
 use craft\helpers\Template;
 
@@ -92,7 +92,7 @@ class Html extends CosmeticField
         }
 
         if ($this->purifyContent) {
-            return HTMLPurifier::process($htmlContent, $this->_getPurifierConfig());
+            return HtmlPurifier::process($htmlContent, $this->_getPurifierConfig());
         }
 
         return $htmlContent;
