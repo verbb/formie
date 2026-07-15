@@ -2,6 +2,9 @@
 
 ## 3.1.32 - Unreleased
 
+### Added
+- Add an optional **OAuth Redirect URI Override** plugin setting for integration OAuth callbacks. ([#1333](https://github.com/verbb/formie/issues/1333))
+
 ### Changed
 - Bump `verbb/auth`.
 

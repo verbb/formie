@@ -35,6 +35,7 @@ return [
         'useQueueForNotifications' => true,
         'useQueueForIntegrations' => true,
         'queuePriority' => null,
+        'redirectUri' => null,
 
         // Sent Notifications
         'sentNotifications' => true,
@@ -90,6 +91,7 @@ return [
 - `useQueueForNotifications` - Whether to use Craft‘s queue system to trigger emails. This is highly, **highly** recommended, to prevent slow submissions for your users. This may be useful to disable for local development.
 - `useQueueForIntegrations` - Whether to use Craft‘s queue system to trigger integrations. This is highly, **highly** recommended, to prevent slow submissions for your users. This may be useful to disable for local development.
 - `queuePriority` - Set the queue job priority, to determine if it should run with a different priority compared to other jobs. Default to the [Craft default](https://craftcms.com/docs/4.x/extend/queue-jobs.html#specifying-priority) of `1024`.
+- `redirectUri` - Overrides the OAuth redirect URI for integration connections. When omitted, Formie uses a site URL (`formie/integrations/callback`), or an action URL when Craft’s `headlessMode` is enabled. Environment variables are supported.
 
 ### Sent Notifications
 - `sentNotifications` - Whether to enable Sent Notifications functionality.

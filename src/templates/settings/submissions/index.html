@@ -52,6 +52,17 @@
             warning: macros.configWarning('useQueueForIntegrations', 'formie'),
         }) }}
 
+        {{ forms.autosuggestField({
+            label: 'OAuth Redirect URI Override' | t('formie'),
+            instructions: 'Set the OAuth redirect URI if you need to change it from the default. Use this for headless or multi-site installs when registering your app with third-party providers.' | t('formie'),
+            id: 'redirectUri',
+            name: 'redirectUri',
+            suggestEnvVars: true,
+            value: settings.redirectUri,
+            errors: settings.getErrors('redirectUri'),
+            warning: macros.configWarning('redirectUri', 'formie'),
+        }) }}
+
         {{ forms.selectField({
             label: 'Default Submissions State' | t('formie'),
             instructions: 'Set what sorts of submissions should be shown by default when viewing submissions.' | t('formie'),

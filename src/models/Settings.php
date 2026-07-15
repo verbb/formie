@@ -68,6 +68,7 @@ class Settings extends Model
     public bool $useQueueForNotifications = true;
     public bool $useQueueForIntegrations = true;
     public ?int $queuePriority = null;
+    public ?string $redirectUri = null;
     public bool $setOnlyCurrentPagePayload = false;
     public string|array $submissionsBehaviour = 'all';
     public string $submissionSidebarFormOrder = self::SUBMISSION_SIDEBAR_FORM_ORDER_DATE_CREATED_DESC;
