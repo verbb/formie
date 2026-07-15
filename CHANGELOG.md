@@ -1,5 +1,15 @@
 # Changelog
 
+## 3.1.32 - 2026-07-15
+
+### Added
+- Add an optional **OAuth Redirect URI Override** plugin setting for integration OAuth callbacks. #1333.
+
+### Fixed
+- Fix HtmlPurifier class casing in HTML field.
+- Fix Marketo integration failing to refresh form settings with an "Invalid scope" error after connecting. #2718.
+- Fix email notifications failing to send when notification address fields contained an ampersand (`&`). #2879.
+
 ## 3.1.31 - 2026-07-09
 
 ### Fixed
