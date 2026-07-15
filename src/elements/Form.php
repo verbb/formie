@@ -2031,7 +2031,7 @@ class Form extends Element
 
         // Prepare new data for the duplicated form
         return [
-            'handle' => HandleHelper::getUniqueHandle($formHandles, $this->handle),
+            'handle' => HandleHelper::getUniqueHandle($formHandles, $this->handle, maxLength: HandleHelper::getMaxFormHandle()),
             'title' => Craft::t('formie', '{title} Copy', ['title' => $this->title]),
             'formLayout' => $formLayout,
             'notifications' => $notifications,

@@ -205,7 +205,7 @@ class FormsController extends Controller
         $stencil->name = $this->request->getParam('title');
 
         // Resolve the handle, in case it already exists
-        $stencil->handle = HandleHelper::getUniqueHandle($stencilHandles, $handle);
+        $stencil->handle = HandleHelper::getUniqueHandle($stencilHandles, $handle, maxLength: 255);
 
         if ($templateId = $this->request->getParam('templateId')) {
             $template = Formie::$plugin->getFormTemplates()->getTemplateById($templateId);
