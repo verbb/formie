@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.2.24 - 2026-07-15
+
+### Fixed
+- Fix HtmlPurifier class casing in HTML field.
+
 ## 2.2.23 - 2026-07-09
 
 ### Fixed
