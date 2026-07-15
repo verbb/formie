@@ -1,17 +1,5 @@
 # Changelog
 
-## 3.1.32 - Unreleased
-
-### Added
-- Add an optional **OAuth Redirect URI Override** plugin setting for integration OAuth callbacks. ([#1333](https://github.com/verbb/formie/issues/1333))
-
-### Changed
-- Bump `verbb/auth`.
-
-### Fixed
-- Fix email notifications failing to send when notification address fields contained an ampersand (`&`). ([#2879](https://github.com/verbb/formie/issues/2879))
-- Fix Marketo integration failing to refresh form settings with an "Invalid scope" error after connecting. ([#2718](https://github.com/verbb/formie/issues/2718))
-
 ## 3.1.31 - 2026-07-09
 
 ### Fixed
@@ -1521,6 +1509,11 @@
 - `Submission::getCustomFields()` method has been deprecated. Use `Submission::getFields()` instead.
 - `Field::name` attribute has been deprecated. Use `Field::label` instead.
 - `Field::inputHtml()` method has been deprecated. Use `Field::cpInputHtml()` instead.
+
+## 2.2.24 - 2026-07-15
+
+### Fixed
+- Fix HtmlPurifier class casing in HTML field.
 
 ## 2.2.23 - 2026-07-09
 
