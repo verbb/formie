@@ -649,6 +649,15 @@ class SubmissionsController extends Controller
         // Run this regardless of the success state, or incomplete state
         Formie::$plugin->getSubmissions()->onAfterSubmission($success, $submission, $submitAction);
 
+        // Persist incomplete submissions in session so follow-up requests (payment confirmation /
+        // multi-page resume) can pass `_authorizeExistingSubmission()`. Single-page and last-page
+        // payment flows mark the submission incomplete again after creating a PaymentIntent, then
+        // return via the error path below — previously only multi-page "next page" navigation
+        // seeded the session, so payment resubmits on single-page forms got a 403.
+        if ($submission->id && $submission->isIncomplete) {
+            $form->setCurrentSubmission($submission);
+        }
+
         // If this submission is marked as spam, there will be errors - so choose how we treat feedback
         if ($submission->isSpam) {
             // Check if we need to show an error based on spam - we want to stop right here
@@ -693,9 +702,6 @@ class SubmissionsController extends Controller
         if (!empty($nextPage)) {
             // Update the current page to reflect the next page
             $form->setCurrentPage($nextPage);
-
-            // Set the active submission so we can keep going
-            $form->setCurrentSubmission($submission);
         }
 
         // We're all done with pages, delete any saved page state
