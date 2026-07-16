@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.2.25 - 2026-07-16
+
+### Added
+- Add missing translations.
+
+### Fixed
+- Fixed Stripe (and other payment) confirmation resubmits failing with a 403 on single-page forms after the recent `submit` authorization hardening. #2882.
+
 ## 2.2.24 - 2026-07-15
 
 ### Fixed
