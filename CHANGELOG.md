@@ -1,5 +1,14 @@
 # Changelog
 
+## 3.1.33 - 2026-07-16
+
+### Added
+- Add missing translations.
+
+### Fixed
+- Fixed Stripe (and other payment) confirmation resubmits failing with a 403 on single-page forms after the recent `submit` authorization hardening. #2882.
+- Fix HandleHelper::getUniqueHandle() producing handles over max length.
+
 ## 3.1.32 - 2026-07-15
 
 ### Added
