@@ -297,7 +297,7 @@ class ImportExportHelper
                 ->from(Table::FORMIE_FORMS)
                 ->column();
 
-            $json['handle'] = HandleHelper::getUniqueHandle($formHandles, $json['handle']);
+            $json['handle'] = HandleHelper::getUniqueHandle($formHandles, $json['handle'], maxLength: HandleHelper::getMaxFormHandle());
         }
 
         if ($formAction === 'update') {
