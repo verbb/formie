@@ -96,7 +96,7 @@ class StencilsController extends SettingsAccessController
 
             $stencils = Formie::$plugin->getStencils()->getAllStencils();
             $stencilHandles = ArrayHelper::getColumn($stencils, 'handle');
-            $stencil->handle = HandleHelper::getUniqueHandle($stencilHandles, $stencil->handle);
+            $stencil->handle = HandleHelper::getUniqueHandle($stencilHandles, $stencil->handle, maxLength: 255);
         }
 
         if ($templateId = $request->getParam('templateId')) {
