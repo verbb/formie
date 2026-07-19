@@ -114,6 +114,17 @@ class Install extends Migration
             'uid' => $this->uid(),
         ]);
 
+        $this->archiveTableIfExists(Table::FORMIE_FIELD_SITE_OVERRIDES);
+        $this->createTable(Table::FORMIE_FIELD_SITE_OVERRIDES, [
+            'id' => $this->primaryKey(),
+            'fieldId' => $this->integer()->notNull(),
+            'siteId' => $this->integer()->notNull(),
+            'overrides' => $this->json()->notNull(),
+            'dateCreated' => $this->dateTime()->notNull(),
+            'dateUpdated' => $this->dateTime()->notNull(),
+            'uid' => $this->uid(),
+        ]);
+
         $this->archiveTableIfExists(Table::FORMIE_FORM_FIELDS);
         $this->createTable(Table::FORMIE_FORM_FIELDS, [
             'id' => $this->primaryKey(),
@@ -166,6 +177,17 @@ class Install extends Migration
                 ->notNull(),
             'createdById' => $this->integer(),
             'updatedById' => $this->integer(),
+            'dateCreated' => $this->dateTime()->notNull(),
+            'dateUpdated' => $this->dateTime()->notNull(),
+            'uid' => $this->uid(),
+        ]);
+
+        $this->archiveTableIfExists(Table::FORMIE_FORM_SITE_OVERRIDES);
+        $this->createTable(Table::FORMIE_FORM_SITE_OVERRIDES, [
+            'id' => $this->primaryKey(),
+            'formId' => $this->integer()->notNull(),
+            'siteId' => $this->integer()->notNull(),
+            'overrides' => $this->json()->notNull(),
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),
             'uid' => $this->uid(),
@@ -601,6 +623,8 @@ class Install extends Migration
         $this->createIndex(null, Table::FORMIE_FIELD_LAYOUT_ROWS, 'layoutId', false);
         $this->createIndex(null, Table::FORMIE_FIELD_LAYOUT_ROWS, 'pageId', false);
         $this->createIndex(null, Table::FORMIE_FIELDS, 'handle', false);
+        $this->createIndex(null, Table::FORMIE_FIELD_SITE_OVERRIDES, ['fieldId', 'siteId'], true);
+        $this->createIndex(null, Table::FORMIE_FIELD_SITE_OVERRIDES, 'siteId', false);
         $this->createIndex(null, Table::FORMIE_FORM_FIELDS, 'fieldId', false);
         $this->createIndex(null, Table::FORMIE_FORM_FIELDS, 'layoutId', false);
         $this->createIndex(null, Table::FORMIE_FORM_FIELDS, 'pageId', false);
@@ -616,6 +640,8 @@ class Install extends Migration
         $this->createIndex(null, Table::FORMIE_FORMS, 'submitActionEntrySiteId', false);
         $this->createIndex(null, Table::FORMIE_FORMS, 'createdById', false);
         $this->createIndex(null, Table::FORMIE_FORMS, 'updatedById', false);
+        $this->createIndex(null, Table::FORMIE_FORM_SITE_OVERRIDES, ['formId', 'siteId'], true);
+        $this->createIndex(null, Table::FORMIE_FORM_SITE_OVERRIDES, 'siteId', false);
         $this->createIndex(null, Table::FORMIE_FORM_TEMPLATES, 'fieldLayoutId', false);
         $this->createIndex(null, Table::FORMIE_NOTIFICATIONS, 'formId', false);
         $this->createIndex(null, Table::FORMIE_NOTIFICATIONS, 'templateId', false);
@@ -661,6 +687,8 @@ class Install extends Migration
         $this->addForeignKey(null, Table::FORMIE_FIELD_LAYOUT_PAGES, ['layoutId'], Table::FORMIE_FIELD_LAYOUTS, ['id'], 'CASCADE', null);
         $this->addForeignKey(null, Table::FORMIE_FIELD_LAYOUT_ROWS, ['layoutId'], Table::FORMIE_FIELD_LAYOUTS, ['id'], 'CASCADE', null);
         $this->addForeignKey(null, Table::FORMIE_FIELD_LAYOUT_ROWS, ['pageId'], Table::FORMIE_FIELD_LAYOUT_PAGES, ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, Table::FORMIE_FIELD_SITE_OVERRIDES, ['fieldId'], Table::FORMIE_FIELDS, ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, Table::FORMIE_FIELD_SITE_OVERRIDES, ['siteId'], Table::SITES, ['id'], 'CASCADE', null);
         $this->addForeignKey(null, Table::FORMIE_FORM_FIELDS, ['fieldId'], Table::FORMIE_FIELDS, ['id'], 'CASCADE', null);
         $this->addForeignKey(null, Table::FORMIE_FORM_FIELDS, ['layoutId'], Table::FORMIE_FIELD_LAYOUTS, ['id'], 'CASCADE', null);
         $this->addForeignKey(null, Table::FORMIE_FORM_FIELDS, ['pageId'], Table::FORMIE_FIELD_LAYOUT_PAGES, ['id'], 'CASCADE', null);
@@ -675,6 +703,8 @@ class Install extends Migration
         $this->addForeignKey(null, Table::FORMIE_FORMS, ['submitActionEntryId'], '{{%entries}}', ['id'], 'SET NULL', null);
         $this->addForeignKey(null, Table::FORMIE_FORMS, ['createdById'], '{{%users}}', ['id'], 'SET NULL', null);
         $this->addForeignKey(null, Table::FORMIE_FORMS, ['updatedById'], '{{%users}}', ['id'], 'SET NULL', null);
+        $this->addForeignKey(null, Table::FORMIE_FORM_SITE_OVERRIDES, ['formId'], Table::FORMIE_FORMS, ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, Table::FORMIE_FORM_SITE_OVERRIDES, ['siteId'], Table::SITES, ['id'], 'CASCADE', null);
         $this->addForeignKey(null, Table::FORMIE_FORM_TEMPLATES, ['fieldLayoutId'], '{{%fieldlayouts}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, Table::FORMIE_NOTIFICATIONS, ['formId'], Table::FORMIE_FORMS, ['id'], 'CASCADE', null);
         $this->addForeignKey(null, Table::FORMIE_NOTIFICATIONS, ['templateId'], Table::FORMIE_EMAIL_TEMPLATES, ['id'], 'SET NULL', null);
@@ -721,7 +751,9 @@ class Install extends Migration
             'formie_fieldlayout_rows',
             'formie_fieldlayouts',
             'formie_fields',
+            'formie_field_site_overrides',
             'formie_forms',
+            'formie_form_site_overrides',
             'formie_formgroups',
             'formie_formtemplates',
             'formie_integrations',
@@ -853,7 +885,9 @@ class Install extends Migration
             'formie_fieldlayout_rows',
             'formie_fieldlayouts',
             'formie_fields',
+            'formie_field_site_overrides',
             'formie_forms',
+            'formie_form_site_overrides',
             'formie_formgroups',
             'formie_formtemplates',
             'formie_integrations',

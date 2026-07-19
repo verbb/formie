@@ -18,7 +18,7 @@ use verbb\formie\theme\context\RenderContext;
 use Craft;
 use craft\base\ElementInterface;
 use craft\helpers\Html as CraftHtml;
-use craft\helpers\HTMLPurifier;
+use craft\helpers\HtmlPurifier;
 use craft\helpers\Template;
 
 use GraphQL\Type\Definition\Type;
@@ -104,7 +104,7 @@ class Content extends CosmeticField
         $submissionElement = $submission instanceof Submission ? $submission : null;
         $html = $this->content->toHtml($submissionElement, false);
 
-        return HTMLPurifier::process($html);
+        return HtmlPurifier::process($html);
     }
 
     public function defineFormBuilderPreviewSchema(): array
