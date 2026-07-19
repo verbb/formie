@@ -34,7 +34,7 @@ export function ReportTableCell({ cell }) {
         }
 
         return (
-            <Button href={cell.url} variant="link" className="h-auto p-0 font-normal text-[var(--color-link)]">
+            <Button href={cell.url} variant="link" className="font-normal">
                 {label}
             </Button>
         );

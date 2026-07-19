@@ -1,7 +1,4 @@
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faMinus, faPlus } from '@fortawesome/pro-solid-svg-icons';
-
-import { Button } from '@verbb/plugin-kit-react/components';
+import { Button, Icon } from '@verbb/plugin-kit-react/components';
 import { cn } from '@verbb/plugin-kit-react/utils';
 
 export const isFieldColumn = (column) => (column?.type || 'attribute') === 'field';
@@ -52,17 +49,16 @@ export function ReportColumnToggleButton({
     return (
         <Button
             type="button"
-            size="none"
+            size="xs"
             variant={enabled ? 'secondary' : 'default'}
-            className="h-7 w-7 shrink-0 justify-center p-0"
+            className="shrink-0"
+            /* Square icon-only — size=none skips kit’s width=height rule and collapses to a wide pad. */
+            style={{ '--pk-btn-height': '1.75rem' }}
             disabled={disabled}
             aria-label={enabled ? removeLabel : addLabel}
             onClick={onClick}
         >
-            <FontAwesomeIcon
-                icon={enabled ? faMinus : faPlus}
-                className="size-3"
-            />
+            <Icon slot="start" icon={enabled ? 'minus' : 'plus'} />
         </Button>
     );
 }

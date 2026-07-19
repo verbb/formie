@@ -1,4 +1,4 @@
-import { generateHandle } from '@verbb/plugin-kit-react/utils';
+import { generateHandle } from '@verbb/plugin-kit-core';
 import { createUid } from '@utils/createUid';
 
 const getNextPageNumber = (pages = []) => {

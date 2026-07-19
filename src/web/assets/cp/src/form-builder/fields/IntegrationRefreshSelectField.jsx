@@ -1,13 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {
-    faArrowsRotate, faCheck,
-} from '@fortawesome/pro-solid-svg-icons';
+import { getErrorMessage } from '@verbb/plugin-kit-core';
 
-import { Button, ComboboxInput, SelectInput } from '@verbb/plugin-kit-react/components';
-import { FieldControl, FieldLayout } from '@verbb/plugin-kit-react/forms/Field';
-import { useEngineField } from '@verbb/plugin-kit-react/forms/useEngineField';
-import { cn, getErrorMessage } from '@verbb/plugin-kit-react/utils';
+import { Button, ComboboxInput, Icon, SelectInput } from '@verbb/plugin-kit-react/components';
+import { FieldLayout, useEngineField } from '@verbb/plugin-kit-react/forms';
+import { cn } from '@verbb/plugin-kit-react/utils';
 import { IntegrationErrorMessage } from './IntegrationErrorMessage';
 
 import { useFormBuilderApp } from '@form-builder/contexts/FormBuilderAppContext';
@@ -152,45 +148,42 @@ function IntegrationRefreshSelectField({ field, form }) {
             instructions={field.instructions}
             required={field.required}
             errors={errors}
-            withControl={false}
         >
             <div>
                 <div className="flex items-center gap-2">
-                    <FieldControl>
-                        {useCombobox ? (
-                            <ComboboxInput
-                                options={selectableOptions}
-                                placeholder={field.placeholder || Craft.t('formie', 'Select an option')}
-                                emptyMessage={field.emptyMessage || Craft.t('formie', 'No options found.')}
-                                value={value ?? ''}
-                                disabled={field.disabled}
-                                className="w-full"
-                                contentClassName={cn(
-                                    isInvalid && 'aria-invalid:border-destructive',
-                                )}
-                                onValueChange={(nextValue) => {
-                                    setValue(nextValue);
-                                    setTouched();
-                                    syncIntegrationSetting(field.name, nextValue);
-                                }}
-                            />
-                        ) : (
-                            <SelectInput
-                                options={options}
-                                placeholder={field.placeholder}
-                                onChange={(nextValue) => {
-                                    setValue(nextValue);
-                                    setTouched();
-                                    syncIntegrationSetting(field.name, nextValue);
-                                }}
-                                value={value ?? ''}
-                                isInvalid={isInvalid}
-                                triggerClassName={cn(
-                                    isInvalid && 'border-error',
-                                )}
-                            />
-                        )}
-                    </FieldControl>
+                    {useCombobox ? (
+                        <ComboboxInput
+                            options={selectableOptions}
+                            placeholder={field.placeholder || Craft.t('formie', 'Select an option')}
+                            emptyMessage={field.emptyMessage || Craft.t('formie', 'No options found.')}
+                            value={value ?? ''}
+                            disabled={field.disabled}
+                            className="w-full"
+                            contentClassName={cn(
+                                isInvalid && 'aria-invalid:border-destructive',
+                            )}
+                            onValueChange={(nextValue) => {
+                                setValue(nextValue);
+                                setTouched();
+                                syncIntegrationSetting(field.name, nextValue);
+                            }}
+                        />
+                    ) : (
+                        <SelectInput
+                            options={options}
+                            placeholder={field.placeholder}
+                            onChange={(nextValue) => {
+                                setValue(nextValue);
+                                setTouched();
+                                syncIntegrationSetting(field.name, nextValue);
+                            }}
+                            value={value ?? ''}
+                            isInvalid={isInvalid}
+                            triggerClassName={cn(
+                                isInvalid && 'border-error',
+                            )}
+                        />
+                    )}
 
                     <Button
                         type="button"
@@ -200,7 +193,7 @@ function IntegrationRefreshSelectField({ field, form }) {
                         className={showRefreshSuccess ? 'text-green-600' : ''}
                         aria-label={Craft.t('formie', 'Refresh Data')}
                     >
-                        <FontAwesomeIcon icon={showRefreshSuccess ? faCheck : faArrowsRotate} className="size-3.5" />
+                        <Icon slot="start" icon={showRefreshSuccess ? 'check' : 'arrows-rotate'} className="size-3.5" />
                     </Button>
                 </div>
 

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 
+import { takeAtLeast } from '@verbb/plugin-kit-core';
 import { Spinner } from '@verbb/plugin-kit-react/components';
-import { takeAtLeast } from '@verbb/plugin-kit-react/utils';
 import { useFormValues } from '@form-builder/hooks/useFormTools';
 import { LargeErrorState, StatePanel } from '@utils';
 import { QuestionnaireResultsBar } from '@form-builder/components/QuestionnaireResultsBar';

@@ -60,14 +60,13 @@ if (import.meta.hot) {
 import { bootstrapBuilderSiteFromUrl } from '@form-builder/utils/siteUrl';
 import useAppStore from '@form-builder/hooks/useAppStore';
 import { initializeRouterState } from '@form-builder/hooks/useUrlRouter';
-import { bootstrapShadowReactApp, ensureCraftNamespace, markContainerReady } from '@utils';
+import { bootstrapShadowReactApp, defineFormieCpConstructor, ensureCraftNamespace, markContainerReady, mountFormieReactApp } from '@utils';
 
 import { createElement, Fragment } from 'react';
-import { createRoot } from 'react-dom/client';
-import { registerFormComponents, registerFormFields } from '@verbb/plugin-kit-react/forms/registry';
-import { CodeEditorField } from '@verbb/plugin-kit-react/forms/fields/CodeEditorField';
+import { registerFormComponents } from '@verbb/plugin-kit-react/forms';
 
 import { FormBuilder } from '@form-builder/components/FormBuilder';
+import { registerFormieOwnedSchemaFields } from '@form-builder/fields/registerFormieOwnedSchemaFields';
 import {
     FormBuilderTabs, FormBuilderTabList, FormBuilderTabTrigger, FormBuilderTabContent,
 } from '@form-builder/components/FormBuilderTabs';
@@ -111,7 +110,7 @@ import { DevToolsToolbar } from '@form-builder/dev/DevToolsToolbar';
 
 ensureCraftNamespace('Formie');
 
-Craft.Formie.FormBuilder = function(settings) {
+defineFormieCpConstructor('FormBuilder', async (settings) => {
     if (!isSettingsForCurrentPath(settings)) {
         console.warn('Ignoring FormBuilder init for mismatched baseUrl/current path.', {
             baseUrl: settings?.baseUrl,
@@ -155,8 +154,8 @@ Craft.Formie.FormBuilder = function(settings) {
         NotificationTest,
         ...previewSchemaComponents,
     });
-    // Register form builder specific fields
-    registerFormFields({
+    // Formie-owned schema fields (ex-kit builtins + builder-specific custom fields).
+    registerFormieOwnedSchemaFields({
         pageConditions: PageConditionsField,
         notificationRecipients: NotificationRecipientsField,
         notificationConditions: NotificationConditionsField,
@@ -185,7 +184,6 @@ Craft.Formie.FormBuilder = function(settings) {
         formieTableDefaults: FormieTableDefaultsField,
         optionDynamicSettings: OptionDynamicSettingsField,
         optionSourceSettings: OptionDynamicSettingsField,
-        codeEditor: CodeEditorField,
     });
 
     // Initialize the store with form data
@@ -199,17 +197,25 @@ Craft.Formie.FormBuilder = function(settings) {
     // Initialize router state after store is loaded
     initializeRouterState();
 
-    const root = hmrRoot ?? createRoot(mountNode);
-    hmrRoot = root;
-    root.render(createElement(Fragment, null,
-        createElement(FormBuilder, {
-            initialData: settings.data || {},
-            schema: settings.schema || [],
-            schemaIndex: settings.schemaIndex || null,
-        }),
-        shouldRenderDevToolbar() ? createElement(DevToolsToolbar) : null));
+    const root = await mountFormieReactApp({
+        mountNode,
+        portalContainer,
+        shadowRootSelectors: boot.shadowRootSelectors,
+        portalClassName: boot.portalClassName,
+        translationCategory: boot.translationCategory,
+        existingRoot: hmrRoot,
+        children: createElement(Fragment, null,
+            createElement(FormBuilder, {
+                initialData: settings.data || {},
+                schema: settings.schema || [],
+                schemaIndex: settings.schemaIndex || null,
+            }),
+            shouldRenderDevToolbar() ? createElement(DevToolsToolbar) : null),
+    });
+
+    hmrRoot = root.root;
 
     markContainerReady(targetContainer, 'formie-form-builder--ready');
 
     persistHmrData();
-};
+});

@@ -556,9 +556,7 @@ class FileUpload extends ElementField
                 'options' => $this->getFileKindOptions(),
                 'if' => 'restrictFiles',
             ]),
-            [
-                '$el' => 'hr',
-            ],
+            SchemaHelper::separator(),
             [
                 '$el' => 'h3',
                 'children' => Craft::t('formie', 'Asset Retention'),

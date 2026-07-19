@@ -8,12 +8,8 @@ import {
     forEachFieldInLayoutMaps,
     forEachFieldInRows,
 } from '@form-builder/utils/fieldReferences';
-import {
-    createItem,
-    normalizeCollection,
-    evaluateCondition,
-} from '@verbb/plugin-kit-react/utils';
-import { takeAtLeast } from '@verbb/plugin-kit-react/utils';
+import { createItem, normalizeCollection, takeAtLeast } from '@verbb/plugin-kit-core';
+import { evaluateCondition } from '@verbb/plugin-kit-forms';
 
 import { getRequestErrorMessage, normalizeErrorText } from '@utils/requestError';
 import { extractSiteTranslationsFromFormData, stripTranslatableValuesToCanonical } from '@form-builder/utils/siteOverrides';

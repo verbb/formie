@@ -1,17 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-    Button,
-    DropdownMenuItem,
-    Input,
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from '@verbb/plugin-kit-react/components';
-import { useVariablePicker } from '@verbb/plugin-kit-react/components/tiptap/useVariablePicker';
-import { VariableCommandList } from '@verbb/plugin-kit-react/components/tiptap/VariableCommandList';
-import { VariableTransformControls } from '@verbb/plugin-kit-react/components/tiptap/VariableTransformControls';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronDown } from '@fortawesome/pro-solid-svg-icons';
+import { Button, DropdownItem, Icon, Input, Popover } from '@verbb/plugin-kit-react/components';
+import { useVariablePicker } from '@form-builder/fields/variable-picker/useVariablePicker';
+import { VariableCommandList } from '@form-builder/fields/variable-picker/VariableCommandList';
+import { VariableTransformControls } from '@form-builder/fields/variable-picker/VariableTransformControls';
 import { cn } from '@verbb/plugin-kit-react/utils';
 import { useTranslation } from '@verbb/plugin-kit-react/hooks';
 import {
@@ -34,6 +25,10 @@ import {
     shouldShowRepeaterRowTargeting,
 } from '@form-builder/fields/utils/repeaterRowTargeting';
 
+const syncPopoverOpen = (event, setOpen) => {
+    setOpen(Boolean(event.detail?.open ?? event.target?.open));
+};
+
 export function FormBuilderVariablePickerControl({
     value = '',
     onChange,
@@ -47,7 +42,9 @@ export function FormBuilderVariablePickerControl({
     pickerSearchPlaceholder,
     includeParentLabel = false,
     pickerContentClassName = 'min-w-[260px] max-w-[360px] p-0 overflow-hidden flex flex-col',
-    triggerClassName = 'min-w-0 text-[11px] flex-1 py-[5px] justify-between',
+    // Default sm matches EditableTable Condition `pk-select` and v1 picker trigger.
+    triggerSize = 'sm',
+    triggerClassName = 'min-w-0 flex-1 py-[6px] justify-between',
     wrapperClassName = '',
     alwaysShowActionsMenu = true,
     showActionsMenu = true,
@@ -231,19 +228,19 @@ export function FormBuilderVariablePickerControl({
 
     const defaultActionItems = (
         <>
-            <DropdownMenuItem
+            <DropdownItem
                 disabled={!canShowSettings}
-                onClick={() => {
+                onPkSelect={() => {
                     if (canShowSettings) {
                         setSettingsOpen(true);
                     }
                 }}
             >
                 {t('Configure Value')}
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => { onChange(''); }}>
+            </DropdownItem>
+            <DropdownItem onPkSelect={() => { onChange(''); }}>
                 {resolvedNoneOptionLabel}
-            </DropdownMenuItem>
+            </DropdownItem>
         </>
     );
 
@@ -260,45 +257,47 @@ export function FormBuilderVariablePickerControl({
 
     return (
         <div className={cn('flex items-center', wrapperClassName)}>
-            <Popover modal={false} open={pickerOpen} onOpenChange={setPickerOpen}>
-                <PopoverTrigger
-                    nativeButton={true}
-                    render={(
-                        <Button
-                            size="sm"
-                            variant="default"
-                            className={cn('min-w-0 flex-1 py-[6px] justify-between', isInvalid && 'border-error', triggerClassName)}
-                        >
-                            <span className="truncate flex-1 text-left">{selectedLabel}</span>
-                            <span className="ml-2 inline-flex items-center gap-1 shrink-0">
-                                {hasDefaultIndicator && (
-                                    <span className="shrink-0 rounded-[2px] bg-gray-50 px-1.5 py-[1px] text-[10px] text-gray-500 user-select-none">
-                                        {t('default')}
-                                    </span>
-                                )}
-                                {hasTransformIndicator && (
-                                    <span className="shrink-0 rounded-[2px] bg-gray-50 px-1.5 py-[1px] text-[10px] text-gray-500 user-select-none">
-                                        {selectedTokenMeta.transformerId}
-                                    </span>
-                                )}
-                                <FontAwesomeIcon icon={faChevronDown} className="size-2.5 pointer-events-none shrink-0" />
-                            </span>
-                        </Button>
+            {/*
+             * Popover host is inline-block and hug-content by default — grow it so the
+             * trigger can fill the row (v1 mapping). Flush panel keeps its own min/max width.
+             */}
+            <Popover
+                open={pickerOpen}
+                flush
+                placement="bottom-start"
+                sideOffset={6}
+                className="min-w-0 flex-1"
+                onPkOpenChange={(event) => { syncPopoverOpen(event, setPickerOpen); }}
+            >
+                <Button
+                    slot="trigger"
+                    size={triggerSize}
+                    variant="default"
+                    className={cn(
+                        'w-full min-w-0 justify-between',
+                        '[&::part(base)]:w-full [&::part(base)]:justify-between',
+                        // denser py on sm so the trigger matches sentence Show/All selects.
+                        triggerSize === 'sm' && 'py-[6px]',
+                        isInvalid && 'border-error',
+                        triggerClassName,
                     )}
-                />
-                <PopoverContent
-                    align="start"
-                    side="bottom"
-                    sideOffset={6}
-                    positionMethod="fixed"
-                    collisionAvoidance={{
-                        side: 'flip',
-                        align: 'shift',
-                        fallbackAxisSide: 'none',
-                    }}
-                    className={pickerContentClassName}
-                    portalClassName="z-250"
                 >
+                    <span className="truncate flex-1 text-left">{selectedLabel}</span>
+                    <span slot="end" className="inline-flex items-center gap-1 shrink-0">
+                        {hasDefaultIndicator && (
+                            <span className="shrink-0 rounded-[2px] bg-gray-50 px-1.5 py-[1px] text-[10px] text-gray-500 user-select-none">
+                                {t('default')}
+                            </span>
+                        )}
+                        {hasTransformIndicator && (
+                            <span className="shrink-0 rounded-[2px] bg-gray-50 px-1.5 py-[1px] text-[10px] text-gray-500 user-select-none">
+                                {selectedTokenMeta.transformerId}
+                            </span>
+                        )}
+                        <Icon icon="chevron-down" className="size-2.5 pointer-events-none shrink-0" />
+                    </span>
+                </Button>
+                <div className={pickerContentClassName}>
                     <VariableCommandList
                         search={picker.search}
                         onSearchChange={picker.setSearch}
@@ -320,8 +319,9 @@ export function FormBuilderVariablePickerControl({
                         isChildMode={!!picker.page}
                         selectFirstItem
                         autoFocusSearchInput={true}
+                        open={pickerOpen}
                     />
-                </PopoverContent>
+                </div>
             </Popover>
 
             {shouldShowActionsMenu && (
@@ -330,33 +330,27 @@ export function FormBuilderVariablePickerControl({
                 </VariablePickerActionsMenu>
             )}
 
-            <Popover modal={false} open={settingsOpen} onOpenChange={setSettingsOpen}>
-                <PopoverTrigger
-                    nativeButton={true}
-                    render={(
-                        <Button
-                            type="button"
-                            size="xs"
-                            variant="none"
-                            aria-hidden={true}
-                            tabIndex={-1}
-                            className="pointer-events-none h-0 w-0 overflow-hidden p-0 opacity-0"
-                        />
-                    )}
+            {/*
+              Settings opens programmatically from the actions menu. Keep a zero-size
+              trigger so pk-popover still has an anchor for placement.
+            */}
+            <Popover
+                open={settingsOpen}
+                flush
+                placement="bottom-end"
+                sideOffset={6}
+                onPkOpenChange={(event) => { syncPopoverOpen(event, setSettingsOpen); }}
+            >
+                <Button
+                    slot="trigger"
+                    type="button"
+                    size="xs"
+                    variant="none"
+                    aria-hidden={true}
+                    tabIndex={-1}
+                    className="pointer-events-none h-0 w-0 overflow-hidden p-0 opacity-0"
                 />
-                <PopoverContent
-                    align="end"
-                    side="bottom"
-                    sideOffset={6}
-                    positionMethod="fixed"
-                    collisionAvoidance={{
-                        side: 'flip',
-                        align: 'shift',
-                        fallbackAxisSide: 'none',
-                    }}
-                    className={settingsPopoverClassName}
-                    portalClassName="z-250"
-                >
+                <div className={settingsPopoverClassName}>
                     <RepeaterRowTargetingControls
                         key={settingsOpen ? String(settingsSessionKey) : 'closed'}
                         tokenValue={settingsTokenValue}
@@ -420,7 +414,7 @@ export function FormBuilderVariablePickerControl({
                             {t('Save')}
                         </Button>
                     </div>
-                </PopoverContent>
+                </div>
             </Popover>
         </div>
     );

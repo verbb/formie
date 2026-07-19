@@ -200,6 +200,20 @@ class Quiz extends OptionsField implements SortableFieldInterface, Questionnaire
                     'isCorrect' => false,
                     'points' => null,
                 ],
+                // Validation index (React still owns the visible column set / weighted Score).
+                'columns' => [
+                    [
+                        'type' => 'text',
+                        'name' => 'label',
+                        'label' => Craft::t('formie', 'Label'),
+                        'required' => true,
+                    ],
+                    [
+                        'type' => 'checkbox',
+                        'name' => 'isCorrect',
+                        'label' => Craft::t('formie', 'Correct'),
+                    ],
+                ],
             ]),
         ];
     }

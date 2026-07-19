@@ -1,9 +1,6 @@
 import { memo, useMemo, useState } from 'react';
 
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronDown, faChevronRight } from '@fortawesome/pro-solid-svg-icons';
-
-import { Input } from '@verbb/plugin-kit-react/components';
+import { Icon, Input } from '@verbb/plugin-kit-react/components';
 import { cn } from '@verbb/plugin-kit-react/utils';
 
 import { columnKey } from '@reports/components/ReportColumnsEditor';
@@ -125,8 +122,8 @@ export const ReportAvailableColumnsSidebar = memo(function ReportAvailableColumn
                                     })}
                                     onClick={() => { toggleFormExpanded(group.formId); }}
                                 >
-                                    <FontAwesomeIcon
-                                        icon={showFields ? faChevronDown : faChevronRight}
+                                    <Icon
+                                        icon={showFields ? 'chevron-down' : 'chevron-right'}
                                         className="size-3"
                                     />
                                 </button>

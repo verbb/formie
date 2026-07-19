@@ -3150,7 +3150,7 @@ Zur Überprüfung bitte im Bedienfeld anmelden.
   'Use a website key that matches the selected Enterprise Key Type. Keep using your Google Cloud API key and Project ID for server-side assessment requests.' => 'Verwenden Sie einen Website-Schlüssel, der dem ausgewählten Enterprise-Schlüsseltyp entspricht. Verwenden Sie für serverseitige Auswertungsanfragen weiterhin Ihren Google Cloud-API-Schlüssel und Ihre Projekt-ID.',
   'Use conditional logic to determine which email addresses receive this email notification.' => 'Verwenden Sie bedingte Logik, um festzulegen, welche E-Mail-Adressen diese E-Mail-Benachrichtigung erhalten.',
   'Use Credentials' => 'Anmeldedaten verwenden',
-  'Use custom field palette' => 'Benutzerdefinierte Feldpalette verwenden',
+  'Use Custom Field Palette' => 'Benutzerdefinierte Feldpalette verwenden',
   'Use Custom Template' => 'Benutzerdefinierte Vorlage verwenden',
   'Use Datalist Suggestions' => 'Vorschläge für Datenlisten verwenden',
   'Use Dedicated Permissions' => 'Spezielle Berechtigungen verwenden',

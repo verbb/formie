@@ -1,1 +1,5 @@
+/* Shadow-injected — NewFormApp card/layout/spacing are Tailwind utilities. */
 @import "@verbb/plugin-kit-react/style.css";
+@import "@verbb/plugin-kit-react/tailwind-theme.css";
+@import "tailwindcss";
+@import "@verbb/plugin-kit-react/tailwind-preflight-scope.css";

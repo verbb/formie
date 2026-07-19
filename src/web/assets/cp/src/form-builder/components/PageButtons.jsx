@@ -1,21 +1,14 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
-import {
-    Button,
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@verbb/plugin-kit-react/components';
-import { SchemaFormEngine, useSchemaFormEngine } from '@verbb/plugin-kit-react/forms';
 import { cn } from '@verbb/plugin-kit-react/utils';
+import { SchemaFormEngine, useSchemaFormEngine } from '@verbb/plugin-kit-react/forms';
+import { Button, Dialog } from '@verbb/plugin-kit-react/components';
 
 import { useFormValues } from '@form-builder/hooks/useFormTools';
 import { useBuilderActions } from '@form-builder/builder/useBuilderActions';
 import { useHandleSyncOnChange } from '@form-builder/hooks/useHandleSyncOnChange';
 import { useFormBuilderApp } from '@form-builder/contexts/FormBuilderAppContext';
+import { useResetDialogBodyScrollOnTabChange } from '@form-builder/hooks/useResetDialogBodyScrollOnTabChange';
 
 const getDefaultPageSettings = (settings = {}, pageIndex = 0) => {
     const isFirstPage = pageIndex === 0;
@@ -144,6 +137,11 @@ function PageButtons({ page, pageIndex, isAnyDragActive = false }) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [activePage, setActivePage] = useState(page?._handle || null);
     const [pages, setPages] = useState(formValues.pages || []);
+    const dialogBodyRef = useRef(null);
+    // Defer updatePages until pk-after-hide so Apply doesn't remount preview mid-exit.
+    const pendingCloseRef = useRef(null);
+    // Panel-owned scroll (v1 ModalTabs) — hook retained as no-op for shared imports.
+    useResetDialogBodyScrollOnTabChange(dialogBodyRef, isModalOpen);
 
     const formSchema = useMemo(() => {
         return pageButtonSettingsSchema?.schema ?? [];
@@ -195,9 +193,20 @@ function PageButtons({ page, pageIndex, isAnyDragActive = false }) {
             };
         });
 
-        updatePages(normalizedPages);
+        // Same as field edit: close first (exit animation), commit on pk-after-hide.
+        // Immediate updatePages re-renders the button preview and cuts the fade short.
+        pendingCloseRef.current = { type: 'save', pages: normalizedPages };
         setIsModalOpen(false);
     });
+
+    const handleAfterHide = () => {
+        const pending = pendingCloseRef.current;
+        pendingCloseRef.current = null;
+
+        if (pending?.type === 'save') {
+            updatePages(pending.pages);
+        }
+    };
 
     const displaySettings = useMemo(() => {
         return getDefaultPageSettings(page?.settings || {}, pageIndex);
@@ -254,60 +263,48 @@ function PageButtons({ page, pageIndex, isAnyDragActive = false }) {
                 </div>
             </div>
 
-            {isModalOpen && (
-                <Dialog
-                    open={isModalOpen}
-                    onOpenChange={() => {
-                        setIsModalOpen(false);
-                    }}
-                >
-                    <DialogContent className={cn(
-                        'w-[66%] h-[66%]',
-                        'max-w-auto',
-                        'min-w-[700px]',
-                        'min-h-[500px]',
-                    )}
-                    >
-                        <DialogHeader>
-                            <DialogTitle>
-                                {Craft.t('formie', 'Edit Buttons')}
-                            </DialogTitle>
-
-                            <DialogDescription className="hidden">
-                                {Craft.t('formie', 'Edit page button settings.')}
-                            </DialogDescription>
-                        </DialogHeader>
-
-                        <div className="flex flex-1 min-h-0 flex-col overflow-hidden">
-                            <div className="relative min-h-0 flex-1 overflow-hidden">
-                                <SchemaFormEngine
-                                    form={form}
-                                    className="flex h-full min-h-0 flex-col"
-                                />
-                            </div>
+            <Dialog
+                open={isModalOpen}
+                label={Craft.t('formie', 'Edit Buttons')}
+                withoutBodyPadding
+                className="formie-page-buttons-dialog"
+                onPkOpenChange={(event) => {
+                    setIsModalOpen(Boolean(event.detail?.open ?? event.target?.open));
+                }}
+                onPkAfterHide={handleAfterHide}
+            >
+                {/* Flush body (withoutBodyPadding) — tab list spans edge-to-edge;
+                 * panels own scroll + 1rem inset (v1 ModalTabs).
+                 * Intermediate flex-1 min-h-0 shells match field edit / v1 — without them
+                 * the form grows with tab content and clips under the footer with no scroll. */}
+                <div ref={dialogBodyRef} className="formie-page-buttons-dialog-body">
+                    <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
+                        <div className="flex h-full min-h-0 flex-col overflow-hidden">
+                            <SchemaFormEngine
+                                form={form}
+                                className="flex h-full min-h-0 flex-col"
+                            />
                         </div>
+                    </div>
+                </div>
 
-                        <DialogFooter className="flex flex-row justify-end gap-2">
-                            <Button
-                                type="button"
-                                onClick={() => {
-                                    setIsModalOpen(false);
-                                }}
-                            >
-                                {Craft.t('formie', 'Cancel')}
-                            </Button>
+                <Button
+                    slot="footer"
+                    type="button"
+                    data-dialog-close
+                >
+                    {Craft.t('formie', 'Cancel')}
+                </Button>
 
-                            <Button
-                                type="button"
-                                variant="primary"
-                                onClick={handleSave}
-                            >
-                                {Craft.t('formie', 'Apply')}
-                            </Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
-            )}
+                <Button
+                    slot="footer"
+                    type="button"
+                    variant="primary"
+                    onClick={handleSave}
+                >
+                    {Craft.t('formie', 'Apply')}
+                </Button>
+            </Dialog>
         </>
     );
 }

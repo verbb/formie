@@ -1,11 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import {
-    Button,
-    SelectInput,
-} from '@verbb/plugin-kit-react/components';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEmptySet, faPlus } from '@fortawesome/pro-solid-svg-icons';
+import { getErrorMessage } from '@verbb/plugin-kit-core';
+import { Button, Icon, SelectInput } from '@verbb/plugin-kit-react/components';
 
 import { StatePanel } from '@utils';
 import { CreateReportModal } from '@reports/components/CreateReportModal';
@@ -25,6 +21,31 @@ const getCreateUrl = () => Craft.getUrl('formie/reports/create');
 
 const replaceBrowserUrl = (url) => {
     window.history.replaceState({}, '', url);
+};
+
+/**
+ * Append a path segment before any query string.
+ * Craft `cpUrl()` often includes `?site=…`; naively doing `${base}/${id}` turns into
+ * `view-config?site=default/3` and 404s.
+ */
+const appendUrlPathSegment = (baseUrl, segment) => {
+    const url = new URL(baseUrl, window.location.origin);
+    url.pathname = `${url.pathname.replace(/\/$/, '')}/${encodeURIComponent(String(segment))}`;
+    return url.toString();
+};
+
+const readLoadReportError = async (response) => {
+    const fallback = Craft.t('formie', 'Unable to load report.');
+
+    try {
+        const payload = await response.json();
+        const parsed = getErrorMessage(payload);
+        const detail = parsed?.text || payload?.message || payload?.error || fallback;
+
+        return response.status ? `${detail} (${response.status})` : detail;
+    } catch {
+        return response.status ? `${fallback} (${response.status})` : fallback;
+    }
 };
 
 export const ReportsDashboardApp = ({ settings }) => {
@@ -52,14 +73,15 @@ export const ReportsDashboardApp = ({ settings }) => {
         setViewError(null);
 
         try {
-            const response = await fetch(`${settings.viewConfigUrl}/${reportId}`, {
+            const response = await fetch(appendUrlPathSegment(settings.viewConfigUrl, reportId), {
                 headers: {
                     Accept: 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
                 },
             });
 
             if (!response.ok) {
-                throw new Error(Craft.t('formie', 'Unable to load report.'));
+                throw new Error(await readLoadReportError(response));
             }
 
             const payload = await response.json();
@@ -137,7 +159,7 @@ export const ReportsDashboardApp = ({ settings }) => {
             <div className="w-full">
                 <StatePanel
                     variant="empty"
-                    icon={faEmptySet}
+                    icon="empty-set"
                     title={Craft.t('formie', 'No reports created')}
                     message={Craft.t('formie', 'Create a report to filter, chart, and export submission data across your forms. Reports are saved views you can open any time, download as CSV, or schedule by email.')}
                     containerClassName="py-20"
@@ -146,7 +168,7 @@ export const ReportsDashboardApp = ({ settings }) => {
                 >
                     {settings.canManageReports ? (
                         <Button type="button" variant="primary" onClick={openCreateModal}>
-                            <FontAwesomeIcon icon={faPlus} className="size-3" />
+                            <Icon slot="start" icon="plus" className="size-3" />
                             {Craft.t('formie', 'New report')}
                         </Button>
                     ) : null}
@@ -195,7 +217,7 @@ export const ReportsDashboardApp = ({ settings }) => {
                     ) : null}
                     {settings.canManageReports ? (
                         <Button type="button" variant="primary" onClick={openCreateModal}>
-                            <FontAwesomeIcon icon={faPlus} className="size-3" />
+                            <Icon slot="start" icon="plus" className="size-3" />
                             {Craft.t('formie', 'New report')}
                         </Button>
                     ) : null}

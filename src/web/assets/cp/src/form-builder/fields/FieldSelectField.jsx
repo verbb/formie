@@ -1,21 +1,7 @@
-import { useMemo, useState } from 'react';
+import { Fragment, useMemo } from 'react';
 
-import {
-    Combobox,
-    ComboboxPrimitiveInput,
-    ComboboxContent,
-    ComboboxEmpty,
-    ComboboxList,
-    ComboboxCollection,
-    ComboboxGroup,
-    ComboboxLabel,
-    ComboboxItem,
-    ComboboxHighlightedText,
-} from '@verbb/plugin-kit-react/components';
-import { FieldControl, FieldLayout } from '@verbb/plugin-kit-react/forms/Field';
-import { useEngineField } from '@verbb/plugin-kit-react/forms/useEngineField';
-import { cn } from '@verbb/plugin-kit-react/utils';
-
+import { Combobox, Option, OptionGroup } from '@verbb/plugin-kit-react/components';
+import { FieldLayout, useEngineField } from '@verbb/plugin-kit-react/forms';
 import useAppStore from '@form-builder/hooks/useAppStore';
 import { useFormValues, getFieldReferenceOptions } from '@form-builder/hooks/useFormTools';
 
@@ -27,7 +13,6 @@ function FieldSelectField({ field, form }) {
     const {
         value, setValue, setTouched, errors, isInvalid,
     } = useEngineField(form, field.name);
-    const [searchValue, setSearchValue] = useState('');
     const formValues = useFormValues();
     const getFieldTypeByType = useAppStore((state) => { return state.getFieldTypeByType; });
     const editingFieldId = form?.getFieldValue?.('_id') || form?.getFieldValue?.('id') || null;
@@ -125,15 +110,6 @@ function FieldSelectField({ field, form }) {
 
         return groups;
     }, [displayFieldOptions]);
-    const selectedOption = useMemo(() => {
-        if (value == null || value === '') {
-            return null;
-        }
-
-        return displayFieldOptions.find((option) => {
-            return String(option.value ?? '') === String(value ?? '');
-        }) || null;
-    }, [displayFieldOptions, value]);
     const placeholder = field.placeholder || field.emptyOptionLabel || Craft.t('formie', 'Select an option');
 
     return (
@@ -143,65 +119,41 @@ function FieldSelectField({ field, form }) {
             instructions={field.instructions}
             required={field.required}
             errors={errors}
-            withControl={false}
         >
+            {/* pk-combobox is string-valued and owns filtering/highlighting internally. */}
             <Combobox
-                items={groupedFieldOptions}
-                value={selectedOption}
-                onValueChange={(nextOption) => {
-                    setValue(nextOption?.value ?? '');
+                className="max-w-full"
+                value={value == null ? '' : String(value)}
+                placeholder={placeholder}
+                invalid={isInvalid}
+                emptyMessage={Craft.t('formie', 'No fields found.')}
+                onPkChange={(event) => {
+                    setValue(event.detail?.value ?? '');
                     setTouched();
                 }}
-                onInputValueChange={(nextValue) => {
-                    setSearchValue(nextValue);
-                }}
-                onOpenChange={(open) => {
-                    if (!open) {
-                        setSearchValue('');
-                    }
-                }}
-                itemToStringLabel={(item) => { return item?.displayLabel ?? item?.label ?? ''; }}
-                itemToStringValue={(item) => { return String(item?.value ?? ''); }}
             >
-                <FieldControl>
-                    <ComboboxPrimitiveInput
-                        placeholder={placeholder}
-                        showClear={false}
-                        className={cn(
-                            'w-fit max-w-full',
-                            isInvalid && 'border-error',
-                        )}
-                    />
-                </FieldControl>
+                {groupedFieldOptions.map((group) => {
+                    const optionNodes = group.items.map((option) => {
+                        const optionValue = String(option.value ?? '');
 
-                <ComboboxContent>
-                    <ComboboxEmpty>{Craft.t('formie', 'No fields found.')}</ComboboxEmpty>
+                        return (
+                            <Option key={optionValue || '__empty'} value={optionValue}>
+                                {option.displayLabel ?? option.label}
+                            </Option>
+                        );
+                    });
 
-                    <ComboboxList>
-                        <ComboboxCollection>
-                            {(group) => {
-                                return (
-                                    <ComboboxGroup key={group.value}>
-                                        {group.label ? (
-                                            <ComboboxLabel>{group.label}</ComboboxLabel>
-                                        ) : null}
+                    // Groups without a label (e.g. the leading empty option) render flat.
+                    if (!group.label) {
+                        return <Fragment key={group.value}>{optionNodes}</Fragment>;
+                    }
 
-                                        {group.items.map((option) => {
-                                            return (
-                                                <ComboboxItem key={option.value} value={option}>
-                                                    <ComboboxHighlightedText
-                                                        text={option.displayLabel}
-                                                        search={searchValue}
-                                                    />
-                                                </ComboboxItem>
-                                            );
-                                        })}
-                                    </ComboboxGroup>
-                                );
-                            }}
-                        </ComboboxCollection>
-                    </ComboboxList>
-                </ComboboxContent>
+                    return (
+                        <OptionGroup key={group.value} label={group.label}>
+                            {optionNodes}
+                        </OptionGroup>
+                    );
+                })}
             </Combobox>
         </FieldLayout>
     );

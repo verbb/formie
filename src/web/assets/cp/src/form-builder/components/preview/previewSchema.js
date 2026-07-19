@@ -1,4 +1,4 @@
-import { evaluateCondition } from '@verbb/plugin-kit-react/utils/schema';
+import { evaluateCondition } from '@verbb/plugin-kit-forms';
 
 const isBinding = (value) => {
     return Boolean(value) && typeof value === 'object' && !Array.isArray(value) && ('$bind' in value);

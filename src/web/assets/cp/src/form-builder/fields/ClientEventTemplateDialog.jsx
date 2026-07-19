@@ -1,25 +1,7 @@
-import { useMemo, useState } from 'react';
+import { Fragment, useMemo, useState } from 'react';
 
-import {
-    Button,
-    Combobox,
-    ComboboxCollection,
-    ComboboxContent,
-    ComboboxEmpty,
-    ComboboxGroup,
-    ComboboxHighlightedText,
-    ComboboxItem,
-    ComboboxLabel,
-    ComboboxList,
-    ComboboxPrimitiveInput,
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@verbb/plugin-kit-react/components';
 import { useTranslation } from '@verbb/plugin-kit-react/hooks';
+import { Button, Combobox, Dialog, Option, OptionGroup } from '@verbb/plugin-kit-react/components';
 
 import {
     collectMappableFields,
@@ -65,70 +47,38 @@ function FieldMappingCombobox({
     placeholder,
 }) {
     const t = useTranslation();
-    const [searchValue, setSearchValue] = useState('');
-    const selectedOption = useMemo(() => {
-        if (!value) {
-            return options[0]?.items?.[0] ?? null;
-        }
-
-        for (const group of options) {
-            const match = group.items.find((option) => option.value === value);
-
-            if (match) {
-                return match;
-            }
-        }
-
-        return null;
-    }, [options, value]);
 
     return (
         <Combobox
-            items={options}
-            value={selectedOption}
-            onValueChange={(nextOption) => {
-                onChange(nextOption?.value ?? '');
+            value={value ? String(value) : ''}
+            placeholder={placeholder || t('Select a field')}
+            emptyMessage={t('No fields found.')}
+            onPkChange={(event) => {
+                onChange(event.detail?.value ?? '');
             }}
-            onInputValueChange={(nextValue) => {
-                setSearchValue(nextValue);
-            }}
-            onOpenChange={(open) => {
-                if (!open) {
-                    setSearchValue('');
-                }
-            }}
-            itemToStringLabel={(item) => item?.displayLabel ?? item?.label ?? ''}
-            itemToStringValue={(item) => String(item?.value ?? '')}
         >
-            <ComboboxPrimitiveInput
-                placeholder={placeholder || t('Select a field')}
-                showClear={false}
-            />
+            {options.map((group) => {
+                const optionNodes = group.items.map((option) => {
+                    const optionValue = String(option.value ?? '');
 
-            <ComboboxContent>
-                <ComboboxEmpty>{t('No fields found.')}</ComboboxEmpty>
+                    return (
+                        <Option key={optionValue || '__empty'} value={optionValue}>
+                            {option.displayLabel ?? option.label}
+                        </Option>
+                    );
+                });
 
-                <ComboboxList>
-                    <ComboboxCollection>
-                        {(group) => (
-                            <ComboboxGroup key={group.value}>
-                                {group.label ? (
-                                    <ComboboxLabel>{group.label}</ComboboxLabel>
-                                ) : null}
+                // The leading empty option group has no label — render it flat.
+                if (!group.label) {
+                    return <Fragment key={group.value}>{optionNodes}</Fragment>;
+                }
 
-                                {group.items.map((option) => (
-                                    <ComboboxItem key={option.value || '__empty'} value={option}>
-                                        <ComboboxHighlightedText
-                                            text={option.displayLabel}
-                                            search={searchValue}
-                                        />
-                                    </ComboboxItem>
-                                ))}
-                            </ComboboxGroup>
-                        )}
-                    </ComboboxCollection>
-                </ComboboxList>
-            </ComboboxContent>
+                return (
+                    <OptionGroup key={group.value} label={group.label}>
+                        {optionNodes}
+                    </OptionGroup>
+                );
+            })}
         </Combobox>
     );
 }
@@ -184,60 +134,56 @@ function ClientEventTemplateDialog({
     }
 
     return (
-        <Dialog open={open} onOpenChange={handleOpenChange}>
-            <DialogContent className="max-w-[520px]">
-                <DialogHeader>
-                    <DialogTitle>{template.label}</DialogTitle>
-                    <DialogDescription>{template.description}</DialogDescription>
-                </DialogHeader>
+        <Dialog
+            open={open}
+            label={template.label}
+            description={template.description || ''}
+            className="formie-client-event-template-dialog"
+            onPkOpenChange={(event) => { handleOpenChange(event.detail?.open ?? event.target?.open ?? false); }}
+        >
+            {fieldSlots.length > 0 ? (
+                <div className="space-y-4">
+                    <p className="text-sm text-gray-600">
+                        {t('Map form fields to the template properties below. Use the variable picker in the event editor to adjust values later.')}
+                    </p>
 
-                <div className="p-4">
-                    {fieldSlots.length > 0 ? (
-                        <div className="space-y-4">
-                            <p className="text-sm text-gray-600">
-                                {t('Map form fields to the template properties below. Use the variable picker in the event editor to adjust values later.')}
-                            </p>
-
-                            {fieldSlots.map((slot) => (
-                                <div key={slot.key} className="space-y-1.5">
-                                    <label className="text-sm font-bold text-gray-800">
-                                        {slot.mappingLabel || slot.key}
-                                        {slot.required ? <span className="ml-1 text-rose-600">*</span> : null}
-                                    </label>
-                                    <FieldMappingCombobox
-                                        options={fieldOptionsBySlot[slot.key] || []}
-                                        value={mappings[slot.key] || ''}
-                                        onChange={(nextValue) => {
-                                            setMappings((current) => ({
-                                                ...current,
-                                                [slot.key]: nextValue,
-                                            }));
-                                        }}
-                                    />
-                                </div>
-                            ))}
+                    {fieldSlots.map((slot) => (
+                        <div key={slot.key} className="space-y-1.5">
+                            <label className="block text-sm font-bold text-gray-800">
+                                {slot.mappingLabel || slot.key}
+                                {slot.required ? <span className="ml-1 text-rose-600">*</span> : null}
+                            </label>
+                            <FieldMappingCombobox
+                                options={fieldOptionsBySlot[slot.key] || []}
+                                value={mappings[slot.key] || ''}
+                                onChange={(nextValue) => {
+                                    setMappings((current) => ({
+                                        ...current,
+                                        [slot.key]: nextValue,
+                                    }));
+                                }}
+                            />
                         </div>
-                    ) : (
-                        <p className="text-sm text-gray-600">
-                            {t('This template is ready to insert as-is.')}
-                        </p>
-                    )}
+                    ))}
                 </div>
+            ) : (
+                <p className="text-sm text-gray-600">
+                    {t('This template is ready to insert as-is.')}
+                </p>
+            )}
 
-                <DialogFooter className="flex flex-row justify-end gap-2">
-                    <Button type="button" onClick={() => handleOpenChange(false)}>
-                        {t('Cancel')}
-                    </Button>
-                    <Button
-                        type="button"
-                        variant="primary"
-                        disabled={requiredSlotsMissing}
-                        onClick={handleConfirm}
-                    >
-                        {t('Add event')}
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
+            <Button slot="footer" type="button" onClick={() => handleOpenChange(false)}>
+                {t('Cancel')}
+            </Button>
+            <Button
+                slot="footer"
+                type="button"
+                variant="primary"
+                disabled={requiredSlotsMissing}
+                onClick={handleConfirm}
+            >
+                {t('Add event')}
+            </Button>
         </Dialog>
     );
 }

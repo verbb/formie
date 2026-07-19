@@ -1,37 +1,30 @@
-import { Button } from '@verbb/plugin-kit-react/components';
+import { Button, Icon } from '@verbb/plugin-kit-react/components';
 import { cn } from '@verbb/plugin-kit-react/utils';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {
-    faCircleCheck,
-    faCircleInfo,
-    faEmptySet,
-    faExclamationTriangle,
-} from '@fortawesome/pro-solid-svg-icons';
 
 const VARIANT_CONFIG = {
     empty: {
-        icon: faEmptySet,
+        icon: 'empty-set',
         iconColor: 'text-slate-500',
         iconContainer: 'bg-slate-200/55',
         titleClassName: 'text-base font-medium text-gray-900',
         messageClassName: 'text-sm text-gray-500',
     },
     error: {
-        icon: faExclamationTriangle,
+        icon: 'triangle-exclamation',
         iconColor: 'text-rose-600',
         iconContainer: 'bg-rose-500/12',
         titleClassName: 'text-base font-medium text-gray-900',
         messageClassName: 'text-sm text-gray-500',
     },
     success: {
-        icon: faCircleCheck,
+        icon: 'circle-check',
         iconColor: 'text-emerald-600',
         iconContainer: 'bg-slate-100',
         titleClassName: 'text-base font-medium text-gray-900',
         messageClassName: 'text-sm text-gray-500',
     },
     info: {
-        icon: faCircleInfo,
+        icon: 'circle-info',
         iconColor: 'text-sky-600',
         iconContainer: 'bg-slate-100',
         titleClassName: 'text-base font-medium text-gray-900',
@@ -61,7 +54,7 @@ const StatePanel = ({
             <div className={contentClassName}>
                 {showIcon && resolvedIcon ? (
                     <div className={cn('mb-3 flex size-10 items-center justify-center rounded-[10px]', config.iconContainer)}>
-                        <FontAwesomeIcon icon={resolvedIcon} className={cn('size-5', config.iconColor)} />
+                        <Icon icon={resolvedIcon} className={cn('size-5', config.iconColor)} />
                     </div>
                 ) : null}
 

@@ -1,20 +1,8 @@
+import { createItem } from '@verbb/plugin-kit-core';
 import {
     useCallback, useEffect, useMemo, useRef, useState,
 } from 'react';
 import { cloneDeep, isEqual } from 'lodash-es';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-
-import {
-    faAsterisk,
-    faArrowDown,
-    faArrowLeft,
-    faArrowRight,
-    faArrowUp,
-    faEllipsis,
-    faPencil,
-    faPlus,
-    faTrash,
-} from '@fortawesome/pro-solid-svg-icons';
 
 import {
     DragDropProvider,
@@ -29,39 +17,15 @@ import {
 import { PointerActivationConstraints, Cursor } from '@dnd-kit/dom';
 import { CollisionPriority, CollisionType } from '@dnd-kit/abstract';
 
-import {
-    Button,
-    Select,
-    SelectTrigger,
-    SelectValue,
-    SelectContent,
-    SelectGroup,
-    SelectLabel,
-    SelectItem,
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogFooter,
-    DialogDescription,
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-    DropdownMenuSeparator,
-    Lightswitch,
-    Spinner,
-} from '@verbb/plugin-kit-react/components';
+import { Button, Dialog, DropdownItem, DropdownMenu, DropdownSeparator, Icon, Lightswitch, Option, OptionGroup, Select, Spinner } from '@verbb/plugin-kit-react/components';
 
 import {
-    FieldControl,
-    FieldLayout,
     SchemaFormEngine,
     useSchemaFormEngine,
     useEngineField,
+    FieldLayout,
 } from '@verbb/plugin-kit-react/forms';
-
-import { cn, createItem } from '@verbb/plugin-kit-react/utils';
+import { cn } from '@verbb/plugin-kit-react/utils';
 
 import { useFormBuilderApp } from '@form-builder/contexts/FormBuilderAppContext';
 import useAppStore from '@form-builder/hooks/useAppStore';
@@ -74,6 +38,7 @@ import { focusFirstVisibleInputIfEmpty } from '@form-builder/utils/focus';
 import { submitSchemaFormAfterPendingTableUpdates } from '@form-builder/utils/submitSchemaForm';
 import { normalizeFieldInstructions } from '@form-builder/utils/richTextValue';
 import { assignFieldReferences } from '@form-builder/utils/fieldReferences';
+import { useResetDialogBodyScrollOnTabChange } from '@form-builder/hooks/useResetDialogBodyScrollOnTabChange';
 import {
     collectFieldHandlesFromRows,
     prepareNewFieldForInsert,
@@ -86,6 +51,8 @@ const EXCLUDED_SUB_FIELD_SETTING_NAMES = [
     'uniqueValue',
     'handle',
     'enableContentEncryption',
+    // Compatible type switcher is for top-level fields only (see FieldFormBuilderTrait).
+    'type',
 ];
 
 const toKeyedMap = (value) => {
@@ -170,10 +137,13 @@ const sanitizeSubFieldSchema = (input, shouldSanitizeSettings = true) => {
     }
 
     if (
-        shouldSanitizeSettings
-        && (
-            (input.name && EXCLUDED_SUB_FIELD_SETTING_NAMES.includes(input.name))
-            || (input.$field && EXCLUDED_SUB_FIELD_SETTING_NAMES.includes(input.$field))
+        (input.name === 'type' || input.$field === 'type')
+        || (
+            shouldSanitizeSettings
+            && (
+                (input.name && EXCLUDED_SUB_FIELD_SETTING_NAMES.includes(input.name))
+                || (input.$field && EXCLUDED_SUB_FIELD_SETTING_NAMES.includes(input.$field))
+            )
         )
     ) {
         return null;
@@ -211,20 +181,29 @@ const sanitizeSubFieldSchemaIndex = (schemaIndex, shouldSanitizeSettings = true)
         return schemaIndex;
     }
 
-    if (!shouldSanitizeSettings) {
-        return schemaIndex;
-    }
+    const isExcludedFieldEntry = (field = {}) => {
+        // Always strip type — nested editors must not change field class.
+        if (field.name === 'type' || field.$field === 'type') {
+            return true;
+        }
+
+        if (!shouldSanitizeSettings) {
+            return false;
+        }
+
+        return (
+            (field.name && EXCLUDED_SUB_FIELD_SETTING_NAMES.includes(field.name))
+            || (field.$field && EXCLUDED_SUB_FIELD_SETTING_NAMES.includes(field.$field))
+        );
+    };
 
     return {
         ...schemaIndex,
-        schema: sanitizeSubFieldSchema(schemaIndex.schema || []),
+        // Schema tree always runs through sanitize so `type` is removed even when
+        // other exclusions are skipped (free nested layouts).
+        schema: sanitizeSubFieldSchema(schemaIndex.schema || [], shouldSanitizeSettings),
         fieldEntries: (schemaIndex.fieldEntries || []).filter((entry) => {
-            const field = entry?.field || {};
-
-            return !(
-                (field.name && EXCLUDED_SUB_FIELD_SETTING_NAMES.includes(field.name))
-                || (field.$field && EXCLUDED_SUB_FIELD_SETTING_NAMES.includes(field.$field))
-            );
+            return !isExcludedFieldEntry(entry?.field || {});
         }),
     };
 };
@@ -606,6 +585,10 @@ const SubFieldEditModal = ({
     const [fieldTypeLoadError, setFieldTypeLoadError] = useState(null);
     const contentRef = useRef(null);
     const hasAutofocusedRef = useRef(false);
+    // Panel-owned scroll (v1 ModalTabs) — hook retained as no-op for shared imports.
+    useResetDialogBodyScrollOnTabChange(contentRef);
+    const [open, setOpen] = useState(true);
+    const pendingCloseRef = useRef(null);
 
     useEffect(() => {
         if (fieldType) {
@@ -708,7 +691,8 @@ const SubFieldEditModal = ({
     });
 
     form.onSuccess((data) => {
-        onSave(data);
+        pendingCloseRef.current = { type: 'save', data };
+        setOpen(false);
     });
 
     useEffect(() => {
@@ -723,42 +707,61 @@ const SubFieldEditModal = ({
         });
     }, [hasSchemaConfig]);
 
+    const pillLabel = fieldType?.label || Craft.t('formie', 'Sub-Field');
+
+    const handleAfterHide = () => {
+        const pending = pendingCloseRef.current;
+        pendingCloseRef.current = null;
+
+        if (pending?.type === 'save') {
+            onSave(pending.data);
+            return;
+        }
+
+        onCancel();
+    };
+
     return (
-        <DialogContent className={cn(
-            'w-[calc(100vw-56px)] h-[calc(100dvh-56px)]',
-            'min-w-0 min-h-0 max-w-none',
-            'md:w-[56%] md:h-[56%]',
-            'md:min-w-[500px] md:min-h-[300px]',
-        )}
+        <Dialog
+            open={open}
+            withoutBodyPadding
+            className="formie-sub-field-edit-dialog"
+            // Confirm-only on cancelable pk-hide; side effects on pk-after-hide so
+            // exit animation is not cut short by unmounting the host mid-flight.
+            onPkOpenChange={(event) => {
+                setOpen(Boolean(event.detail?.open ?? event.target?.open));
+            }}
+            onPkAfterHide={handleAfterHide}
         >
-            <DialogHeader>
-                <DialogTitle className="flex flex-row items-center">
+            <div slot="header" className="formie-field-edit-header">
+                <h2 className="formie-field-edit-title">
                     {Craft.t('formie', 'Edit Field')}
 
-                    <div className={cn(
-                        'rounded-[20px]',
-                        'bg-[#d8e2ea]',
-                        'px-[10px] py-[6px]',
-                        'text-[10px]',
-                        'text-[#526176]',
-                        'ml-[10px]',
-                        'font-normal',
-                    )}>{fieldType?.label || Craft.t('formie', 'Sub-Field')}</div>
-                </DialogTitle>
+                    <div className="formie-field-edit-type-pill">{pillLabel}</div>
+                </h2>
+                <Button
+                    type="button"
+                    variant="none"
+                    size="none"
+                    icon
+                    className="formie-field-edit-close"
+                    aria-label={Craft.t('app', 'Close')}
+                    data-dialog-close
+                >
+                    <Icon slot="start" icon="xmark" />
+                </Button>
+            </div>
 
-                <DialogDescription className="hidden">
-                    {Craft.t('formie', 'Edit the sub-field settings.')}
-                </DialogDescription>
-            </DialogHeader>
-
-            <div ref={contentRef} className="flex-1 min-h-0 overflow-hidden">
+            <div ref={contentRef} className="formie-field-edit-dialog-body formie-sub-field-edit-dialog-body">
                 {hasSchemaConfig ? (
                     <SchemaFormEngine
                         form={form}
-                        className="h-full"
+                        className="flex h-full min-h-0 flex-col"
                     />
                 ) : (
-                    <div className="flex h-full items-center justify-center">
+                    // Absolute fill — h-full collapses when the body has no definite height
+                    // chain (spinner sat at the top). Matches v1 centered loading state.
+                    <div className="absolute inset-0 flex items-center justify-center">
                         {isLoadingFieldType ? (
                             <Spinner size="lg" />
                         ) : (
@@ -770,10 +773,10 @@ const SubFieldEditModal = ({
                 )}
             </div>
 
-            <DialogFooter className="flex flex-row justify-end gap-2">
+            <div slot="footer" className="flex w-full flex-row justify-end gap-2">
                 <Button
                     type="button"
-                    onClick={onCancel}
+                    data-dialog-close
                 >
                     {Craft.t('formie', 'Cancel')}
                 </Button>
@@ -788,8 +791,8 @@ const SubFieldEditModal = ({
                 >
                     {Craft.t('formie', 'Apply')}
                 </Button>
-            </DialogFooter>
-        </DialogContent>
+            </div>
+        </Dialog>
     );
 };
 
@@ -875,32 +878,23 @@ const SubFieldCard = ({
                     />
                 </div>
 
-                <button
-                    type="button"
+                {/* Label is display-only — pointer-events none so drag starts on the
+                 * card (dnd listens on the host). Click-to-edit is the card onClick. */}
+                <div
                     className={cn(
+                        'pointer-events-none',
                         'text-left truncate text-[#5f6c7b] font-medium text-sm',
                         'flex items-center gap-1 min-w-0',
-                        'cursor-pointer',
-                        'hover:text-[#33475b]',
                     )}
-                    onPointerDown={(event) => {
-                        event.stopPropagation();
-                    }}
-                    onClick={(event) => {
-                        event.preventDefault();
-                        event.stopPropagation();
-                        onOpenEdit();
-                    }}
-                    data-no-open-edit
                 >
                     <span className="truncate">{getFieldLabel(field)}</span>
 
                     {getFieldRequired(field) && (
                         <span className="text-error">
-                            <FontAwesomeIcon icon={faAsterisk} className="size-[10px]" />
+                            <Icon icon="asterisk" className="size-[10px]" />
                         </span>
                     )}
-                </button>
+                </div>
 
                 <div className={cn(
                     'ml-auto',
@@ -908,122 +902,106 @@ const SubFieldCard = ({
                     'opacity-0 group-hover:opacity-100 transition-opacity',
                     isDropdownOpen ? 'opacity-100' : '',
                 )} data-no-open-edit>
-                    <DropdownMenu size="sm" open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
-                        <DropdownMenuTrigger
-                            render={(
-                                <Button
-                                    variant="transparent"
-                                    size="sm"
-                                    className={cn(
-                                        'w-7 h-7 p-0 rounded-lg',
-                                    )}
-                                    data-dropdown-trigger
-                                />
+                    <DropdownMenu
+                        size="sm"
+                        placement="bottom-end"
+                        open={isDropdownOpen}
+                        onPkOpenChange={(event) => {
+                            setIsDropdownOpen(event.detail?.open ?? false);
+                        }}
+                    >
+                        <Button
+                            slot="trigger"
+                            variant="transparent"
+                            size="sm"
+                            className={cn(
+                                'w-7 h-7 p-0 rounded-lg',
                             )}
+                            data-dropdown-trigger
                         >
-                            <FontAwesomeIcon icon={faEllipsis} className="size-3.5" />
-                        </DropdownMenuTrigger>
+                            <Icon slot="start" icon="ellipsis" className="size-3.5" />
+                        </Button>
 
-                        <DropdownMenuContent align="end" className="min-w-[150px]">
-                            <DropdownMenuItem
-                                onClick={(event) => {
-                                    event.preventDefault();
-                                    event.stopPropagation();
-                                    onOpenEdit();
+                        <DropdownItem
+                            onPkSelect={() => {
+                                onOpenEdit();
+                                setIsDropdownOpen(false);
+                            }}
+                        >
+                            <Icon slot="start" icon="pen" />
+                            {Craft.t('formie', 'Edit')}
+                        </DropdownItem>
+
+                        <DropdownItem
+                            onPkSelect={() => {
+                                onToggleRequired();
+                                setIsDropdownOpen(false);
+                            }}
+                        >
+                            <Icon slot="start" icon="asterisk" />
+                            {getFieldRequired(field)
+                                ? Craft.t('formie', 'Make optional')
+                                : Craft.t('formie', 'Make required')}
+                        </DropdownItem>
+
+                        <DropdownSeparator />
+
+                        <DropdownItem
+                            onPkSelect={() => {
+                                onMoveUp();
+                                setIsDropdownOpen(false);
+                            }}
+                            disabled={!canMoveUp}
+                        >
+                            <Icon slot="start" icon="arrow-up" />
+                            {Craft.t('formie', 'Move up')}
+                        </DropdownItem>
+
+                        <DropdownItem
+                            onPkSelect={() => {
+                                onMoveDown();
+                                setIsDropdownOpen(false);
+                            }}
+                            disabled={!canMoveDown}
+                        >
+                            <Icon slot="start" icon="arrow-down" />
+                            {Craft.t('formie', 'Move down')}
+                        </DropdownItem>
+
+                        <DropdownItem
+                            onPkSelect={() => {
+                                onMoveLeft();
+                                setIsDropdownOpen(false);
+                            }}
+                            disabled={!canMoveLeft}
+                        >
+                            <Icon slot="start" icon="arrow-left" />
+                            {Craft.t('formie', 'Move left')}
+                        </DropdownItem>
+
+                        <DropdownItem
+                            onPkSelect={() => {
+                                onMoveRight();
+                                setIsDropdownOpen(false);
+                            }}
+                            disabled={!canMoveRight}
+                        >
+                            <Icon slot="start" icon="arrow-right" />
+                            {Craft.t('formie', 'Move right')}
+                        </DropdownItem>
+
+                        {canRemove && (
+                            <DropdownItem
+                                destructive
+                                onPkSelect={() => {
+                                    onDelete();
                                     setIsDropdownOpen(false);
                                 }}
                             >
-                                <FontAwesomeIcon icon={faPencil} />
-                                {Craft.t('formie', 'Edit')}
-                            </DropdownMenuItem>
-
-                            <DropdownMenuItem
-                                onClick={(event) => {
-                                    event.preventDefault();
-                                    event.stopPropagation();
-                                    onToggleRequired();
-                                    setIsDropdownOpen(false);
-                                }}
-                            >
-                                <FontAwesomeIcon icon={faAsterisk} />
-                                {getFieldRequired(field)
-                                    ? Craft.t('formie', 'Make optional')
-                                    : Craft.t('formie', 'Make required')}
-                            </DropdownMenuItem>
-
-                            <DropdownMenuSeparator />
-
-                            <DropdownMenuItem
-                                onClick={(event) => {
-                                    event.preventDefault();
-                                    event.stopPropagation();
-                                    onMoveUp();
-                                    setIsDropdownOpen(false);
-                                }}
-                                disabled={!canMoveUp}
-                                className={cn(!canMoveUp && 'opacity-50 pointer-events-none')}
-                            >
-                                <FontAwesomeIcon icon={faArrowUp} />
-                                {Craft.t('formie', 'Move up')}
-                            </DropdownMenuItem>
-
-                            <DropdownMenuItem
-                                onClick={(event) => {
-                                    event.preventDefault();
-                                    event.stopPropagation();
-                                    onMoveDown();
-                                    setIsDropdownOpen(false);
-                                }}
-                                disabled={!canMoveDown}
-                                className={cn(!canMoveDown && 'opacity-50 pointer-events-none')}
-                            >
-                                <FontAwesomeIcon icon={faArrowDown} />
-                                {Craft.t('formie', 'Move down')}
-                            </DropdownMenuItem>
-
-                            <DropdownMenuItem
-                                onClick={(event) => {
-                                    event.preventDefault();
-                                    event.stopPropagation();
-                                    onMoveLeft();
-                                    setIsDropdownOpen(false);
-                                }}
-                                disabled={!canMoveLeft}
-                                className={cn(!canMoveLeft && 'opacity-50 pointer-events-none')}
-                            >
-                                <FontAwesomeIcon icon={faArrowLeft} />
-                                {Craft.t('formie', 'Move left')}
-                            </DropdownMenuItem>
-
-                            <DropdownMenuItem
-                                onClick={(event) => {
-                                    event.preventDefault();
-                                    event.stopPropagation();
-                                    onMoveRight();
-                                    setIsDropdownOpen(false);
-                                }}
-                                disabled={!canMoveRight}
-                                className={cn(!canMoveRight && 'opacity-50 pointer-events-none')}
-                            >
-                                <FontAwesomeIcon icon={faArrowRight} />
-                                {Craft.t('formie', 'Move right')}
-                            </DropdownMenuItem>
-
-                            {canRemove && (
-                                <DropdownMenuItem
-                                    className="text-error focus:text-error"
-                                    onClick={(event) => {
-                                        event.preventDefault();
-                                        event.stopPropagation();
-                                        onDelete();
-                                        setIsDropdownOpen(false);
-                                    }}
-                                >
-                                    <FontAwesomeIcon icon={faTrash} />
-                                    {Craft.t('formie', 'Delete')}
-                                </DropdownMenuItem>
-                            )}
-                        </DropdownMenuContent>
+                                <Icon slot="start" icon="xmark" />
+                                {Craft.t('formie', 'Delete')}
+                            </DropdownItem>
+                        )}
                     </DropdownMenu>
                 </div>
             </div>
@@ -1322,15 +1300,14 @@ export const NestedLayoutField = ({ form, field }) => {
                 warning={field.warning}
                 required={field.required}
                 errors={errors}
-                withControl={false}
             >
-                <DragDropProvider
-                    sensors={sensors}
-                    plugins={dragDropPlugins}
-                    onDragStart={handleDragStart}
-                    onDragEnd={handleDragEnd}
-                >
-                    <FieldControl>
+                <div>
+                    <DragDropProvider
+                        sensors={sensors}
+                        plugins={dragDropPlugins}
+                        onDragStart={handleDragStart}
+                        onDragEnd={handleDragEnd}
+                    >
                         <div
                             ref={nestedBuilderRef}
                             role="group"
@@ -1348,23 +1325,24 @@ export const NestedLayoutField = ({ form, field }) => {
                                     'mb-3',
                                     'w-full max-w-[220px]',
                                 )}>
-                                    <Select onValueChange={handleAddFieldType} size="sm">
-                                        <SelectTrigger className="w-full p-1.5">
-                                            <FontAwesomeIcon icon={faPlus} className="size-3 text-gray-500" />
-                                            <SelectValue placeholder={Craft.t('formie', 'Add nested field')} />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectGroup>
-                                                <SelectLabel>{Craft.t('formie', 'Available Fields')}</SelectLabel>
-                                                {addableFieldTypes.map((fieldTypeOption) => {
-                                                    return (
-                                                        <SelectItem key={fieldTypeOption.type} value={fieldTypeOption.type}>
-                                                            {fieldTypeOption.label}
-                                                        </SelectItem>
-                                                    );
-                                                })}
-                                            </SelectGroup>
-                                        </SelectContent>
+                                    <Select
+                                        size="sm"
+                                        width="full"
+                                        value=""
+                                        placeholder={Craft.t('formie', 'Add nested field')}
+                                        onPkChange={(event) => {
+                                            handleAddFieldType(event.detail?.value ?? event.target?.value ?? '');
+                                        }}
+                                    >
+                                        <OptionGroup label={Craft.t('formie', 'Available Fields')}>
+                                            {addableFieldTypes.map((fieldTypeOption) => {
+                                                return (
+                                                    <Option key={fieldTypeOption.type} value={fieldTypeOption.type}>
+                                                        {fieldTypeOption.label}
+                                                    </Option>
+                                                );
+                                            })}
+                                        </OptionGroup>
                                     </Select>
                                 </div>
                             )}
@@ -1497,34 +1475,31 @@ export const NestedLayoutField = ({ form, field }) => {
                                 relativeToRef={nestedBuilderRef}
                             />
                         </div>
-                    </FieldControl>
 
-                    <DragOverlay dropAnimation={null}>
-                        <SubFieldPillGhost activeDragField={activeDragField} />
-                    </DragOverlay>
-                </DragDropProvider>
-            </FieldLayout >
+                        <DragOverlay dropAnimation={null}>
+                            <SubFieldPillGhost activeDragField={activeDragField} />
+                        </DragOverlay>
+                    </DragDropProvider>
+                </div>
+            </FieldLayout>
 
             {editingFieldState && (
-                <Dialog open={true} onOpenChange={() => { return setEditingFieldState(null); }}>
-                    <SubFieldEditModal
-                        field={editingFieldState.field}
-                        schemaDefinition={editorSchemaByType[editingFieldState.field.type]}
-                        fieldType={getFieldTypeByType(editingFieldState.field.type)}
-                        shouldSanitizeSettings={isFixedMode}
-                        onSave={(updatedField) => {
-                            updateField(editingFieldState.rowIndex, editingFieldState.fieldIndex, () => {
-                                return updatedField;
-                            });
-                            setEditingFieldState(null);
-                        }}
-                        onCancel={() => {
-                            setEditingFieldState(null);
-                        }}
-                    />
-                </Dialog>
-            )
-            }
+                <SubFieldEditModal
+                    field={editingFieldState.field}
+                    schemaDefinition={editorSchemaByType[editingFieldState.field.type]}
+                    fieldType={getFieldTypeByType(editingFieldState.field.type)}
+                    shouldSanitizeSettings={isFixedMode}
+                    onSave={(updatedField) => {
+                        updateField(editingFieldState.rowIndex, editingFieldState.fieldIndex, () => {
+                            return updatedField;
+                        });
+                        setEditingFieldState(null);
+                    }}
+                    onCancel={() => {
+                        setEditingFieldState(null);
+                    }}
+                />
+            )}
         </>
     );
 };

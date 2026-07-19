@@ -1,6 +1,6 @@
 import { cloneDeep } from 'lodash-es';
 
-import { generateHandle } from '@verbb/plugin-kit-react/utils';
+import { generateHandle } from '@verbb/plugin-kit-core';
 
 import { assignFieldReferences } from './fieldReferences';
 

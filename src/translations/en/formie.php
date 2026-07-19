@@ -3229,7 +3229,7 @@ To review it please log into your control panel.
   'Use a website key that matches the selected Enterprise Key Type. Keep using your Google Cloud API key and Project ID for server-side assessment requests.' => 'Use a website key that matches the selected Enterprise Key Type. Keep using your Google Cloud API key and Project ID for server-side assessment requests.',
   'Use conditional logic to determine which email addresses receive this email notification.' => 'Use conditional logic to determine which email addresses receive this email notification.',
   'Use Credentials' => 'Use Credentials',
-  'Use custom field palette' => 'Use custom field palette',
+  'Use Custom Field Palette' => 'Use Custom Field Palette',
   'Use Custom Template' => 'Use Custom Template',
   'Use Datalist Suggestions' => 'Use Datalist Suggestions',
   'Use Dedicated Permissions' => 'Use Dedicated Permissions',

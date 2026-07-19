@@ -179,7 +179,8 @@
                 </div>
             {% endif %}
         {% elseif integration.supportsConnection() and canEdit %}
-            <div class="fui-connect formie-integration-connect" style="min-height: 40px;"></div>
+            {# Same meta row chrome as OAuth Connect — Craft pads .heading / .input. #}
+            <div class="field lightswitch-field fui-connect formie-integration-connect"></div>
         {% endif %}
     {% endif %}
 </div>

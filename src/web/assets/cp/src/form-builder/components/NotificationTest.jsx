@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
-import { cn, takeAtLeast, getErrorMessage } from '@verbb/plugin-kit-react/utils';
+import { cn } from '@verbb/plugin-kit-react/utils';
 import { useTranslation } from '@verbb/plugin-kit-react/hooks';
-import { Label, Button, Input } from '@verbb/plugin-kit-react/components';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faExclamationTriangle, faCheck } from '@fortawesome/pro-solid-svg-icons';
-import { useSchemaEngineContext } from '@verbb/plugin-kit-react/forms/engine/context';
+import { Button, Icon, Input } from '@verbb/plugin-kit-react/components';
+import { FieldLayout, useSchemaEngineContext } from '@verbb/plugin-kit-react/forms';
 import { useFormValues } from '@form-builder/hooks/useFormTools';
+import { takeAtLeast, getErrorMessage } from '@verbb/plugin-kit-core';
 
 function ErrorDisplay({ error, className }) {
     const { heading, text, traceAsArray } = error;
@@ -18,7 +17,7 @@ function ErrorDisplay({ error, className }) {
             <div className={cn('flex flex-col gap-1', className)}>
                 {heading && (
                     <div className="flex items-center gap-1">
-                        <FontAwesomeIcon icon={faExclamationTriangle} className="size-3" />
+                        <Icon icon="triangle-exclamation" className="size-3" />
 
                         <div className="font-bold">{heading}</div>
                     </div>
@@ -97,33 +96,27 @@ function NotificationTest({ userEmail }) {
     };
 
     return (
-        <div className="">
-            <div className="">
-                <div className="mb-2">
-                    <Label htmlFor="to">{t('Send Test Email')}</Label>
+        <FieldLayout
+            name="to"
+            label={t('Send Test Email')}
+            instructions={t('Use the form below to send a test email to the nominated email address.')}
+        >
+            <div className={cn('flex items-center gap-4')}>
+                <Input
+                    id="to"
+                    value={to}
+                    onChange={(e) => { return setTo(e.target.value); }}
+                    type="text"
+                    placeholder="Enter email address"
+                />
 
-                    <p>{t('Use the form below to send a test email to the nominated email address.')}</p>
-                </div>
-
-                <div className={cn(
-                    'flex items-center gap-4',
-                )}>
-                    <Input
-                        id="to"
-                        value={to}
-                        onChange={(e) => { return setTo(e.target.value); }}
-                        type="text"
-                        placeholder="Enter email address"
-                    />
-
-                    <Button
-                        variant="primary"
-                        onClick={sendTestEmail}
-                        loading={loading}
-                    >
-                        {t('Send Test Email')}
-                    </Button>
-                </div>
+                <Button
+                    variant="primary"
+                    onClick={sendTestEmail}
+                    loading={loading}
+                >
+                    {t('Send Test Email')}
+                </Button>
             </div>
 
             {error && (
@@ -140,7 +133,7 @@ function NotificationTest({ userEmail }) {
                     <div className="text-success">{successMessage}</div>
                 </div>
             )}
-        </div>
+        </FieldLayout>
     );
 }
 

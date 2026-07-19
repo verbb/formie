@@ -1,15 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 
-import {
-    EditableTable,
-    SelectInput,
-} from '@verbb/plugin-kit-react/components';
-
-import { FieldLayout } from '@verbb/plugin-kit-react/forms/Field';
-import { useEngineField } from '@verbb/plugin-kit-react/forms/useEngineField';
-
 import { useTranslation } from '@verbb/plugin-kit-react/hooks';
-
+import { useEngineField, FieldLayout } from '@verbb/plugin-kit-react/forms';
+import { EditableTable, SelectInput } from '@verbb/plugin-kit-react/components';
 import useAppStore from '@form-builder/hooks/useAppStore';
 import { useFormValues } from '@form-builder/hooks/useFormTools';
 import { buildConditionFieldPicker } from '@form-builder/fields/utils/conditionFieldPicker';
@@ -300,16 +293,16 @@ function ConditionsFieldBase({
                                     />
                                 );
                             },
-                            className: 'w-[42%]',
-                            contentClassName: 'min-w-[320px] max-w-[480px] p-0 overflow-hidden flex flex-col',
-                            showActionsMenu: true,
+                            width: '42%',
+                            // Popup panel only — do not set contentClassName (cell projection).
+                            pickerContentClassName: 'min-w-[320px] max-w-[480px] p-0 overflow-hidden flex flex-col',
                         },
                         {
                             name: 'condition',
                             label: t('Condition'),
                             type: 'select',
                             options: conditionOptions,
-                            className: 'w-0',
+                            width: '28%',
                         },
                         {
                             name: 'value',

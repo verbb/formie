@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Button, MenuButton } from '@verbb/plugin-kit-react/components';
-
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCheck, faExternalLink, faEye, faPlus, faTableList } from '@fortawesome/pro-solid-svg-icons';
+import {
+    Button, ButtonGroup, DropdownItem, DropdownMenu, DropdownSeparator, Icon,
+} from '@verbb/plugin-kit-react/components';
 
 import { useFormBuilderApp } from '@form-builder/contexts/FormBuilderAppContext';
 import useAppStore from '@form-builder/hooks/useAppStore';
@@ -28,6 +27,11 @@ function FormBuilderHeader({ formRef }) {
     const selectedTemplateInfo = selectedTemplateId ? templateFieldLayoutInfo[String(selectedTemplateId)] : null;
     const canEditTemplateFields = Boolean(selectedTemplateId && selectedTemplateInfo?.hasFields);
     const resolvedStencilScopeLabel = stencilScopeLabel ? ` (${stencilScopeLabel})` : '';
+    const showViewSubmissions = Boolean(viewSubmissionsUrl);
+    const showTemplateFields = canEdit && canEditTemplateFields;
+    const showAddFields = canEdit && activeTab === 'fields';
+    const showEditableSave = canEdit;
+    const showReadOnlySaveCopy = !canEdit;
 
     useEffect(() => {
         if (isSaving || saveFeedbackState !== 'success') {
@@ -82,32 +86,6 @@ function FormBuilderHeader({ formRef }) {
         setSaveAction(saveDuplicateAction || 'saveAsNew');
         formRef.current?.handleSubmit?.();
     };
-
-    const saveMenuItems = canEdit
-        ? [
-            {
-                label: saveDuplicateLabel || Craft.t('formie', 'Save as a new form'),
-                onClick: handleDuplicateSave,
-            },
-            ...(entityType !== 'stencil' ? [
-                {
-                    label: Craft.t('formie', 'Save as a new stencil'),
-                    onClick: () => {
-                        setSaveAction('saveAsStencil');
-                        formRef.current?.handleSubmit?.();
-                    },
-                },
-            ] : []),
-            {
-                type: 'separator',
-            },
-            {
-                label: Craft.t('formie', 'Delete'),
-                variant: 'destructive',
-                onClick: handleDelete,
-            },
-        ]
-        : [];
 
     const handlePreview = async (event) => {
         event?.currentTarget?.blur?.();
@@ -178,28 +156,29 @@ function FormBuilderHeader({ formRef }) {
                 </div>
 
                 <div className={cn('form-builder-header-actions flex justify-between items-center gap-2')}>
-                    {viewSubmissionsUrl && (
+                    {showViewSubmissions && (
                         <Button
                             className="form-builder-header-secondary-action"
                             target="_blank"
                             rel="noopener"
-                            href={viewSubmissionsUrl}
+                            href={viewSubmissionsUrl || '#'}
                             aria-label={Craft.t('formie', 'View Submissions')}
                         >
                             <span className="form-builder-header-action-label-full">{Craft.t('formie', 'View Submissions')}</span>
                             <span className="form-builder-header-action-label-short">{Craft.t('formie', 'Submissions')}</span>
-                            <FontAwesomeIcon icon={faExternalLink} className="form-builder-submissions-icon-link size-3" />
-                            <FontAwesomeIcon icon={faTableList} className="form-builder-submissions-icon-compact size-3" />
+                            {/* Kit name is FA `arrow-up-right-from-square` (v1 faExternalLink). */}
+                            <Icon slot="end" icon="arrow-up-right-from-square" className="form-builder-submissions-icon-link size-3" />
+                            <Icon slot="end" icon="table-list" className="form-builder-submissions-icon-compact size-3" />
                         </Button>
                     )}
 
-                    {canEdit && canEditTemplateFields && (
+                    {showTemplateFields && (
                         <Button onClick={handleEditTemplateFields}>
                             {Craft.t('formie', 'Template Fields')}
                         </Button>
                     )}
 
-                    {canEdit && activeTab === 'fields' && (
+                    {showAddFields && (
                         <Button
                             type="button"
                             className="form-builder-add-fields-action form-builder-header-secondary-action"
@@ -208,7 +187,7 @@ function FormBuilderHeader({ formRef }) {
                                 setIsFieldTypeSidebarOpen(true);
                             }}
                         >
-                            <FontAwesomeIcon icon={faPlus} className="size-3" />
+                            <Icon slot="start" icon="plus" className="size-3" />
                             <span className="form-builder-header-action-label">{Craft.t('formie', 'Add fields')}</span>
                         </Button>
                     )}
@@ -220,35 +199,67 @@ function FormBuilderHeader({ formRef }) {
                         aria-label={Craft.t('formie', 'Form Preview')}
                         onClick={handlePreview}
                     >
-                        <FontAwesomeIcon icon={faEye} className="size-3" />
+                        <Icon slot="start" icon="eye" className="size-3" />
                         <span className="form-builder-header-action-label form-builder-header-action-label-full">{Craft.t('formie', 'Preview')}</span>
                     </Button>
 
-                    {canEdit ? (
-                        <MenuButton
-                            variant="primary"
-                            loading={isSaving}
-                            mainAction={{
-                                label: Craft.t('formie', 'Save'),
-                                labelClassName: showSavedState ? 'text-transparent' : '',
-                                icon: showSavedState ? (
-                                    <FontAwesomeIcon
-                                        icon={faCheck}
-                                        className={cn(
-                                            'size-3 transition-opacity duration-300',
-                                            'opacity-100',
-                                        )}
-                                    />
-                                ) : null,
-                                iconPosition: 'overlay',
-                                onClick: () => {
+                    {showEditableSave && (
+                        <ButtonGroup>
+                            <Button
+                                type="button"
+                                variant="primary"
+                                loading={isSaving}
+                                onClick={() => {
                                     setSaveAction('save');
                                     formRef.current?.handleSubmit?.();
-                                },
-                            }}
-                            menuItems={saveMenuItems}
-                        />
-                    ) : (
+                                }}
+                            >
+                                <span className={cn('inline-flex items-center', showSavedState && 'relative')}>
+                                    {showSavedState ? (
+                                        <span className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                                            <Icon
+                                                icon="check"
+                                                className="size-3 transition-opacity duration-300 opacity-100"
+                                            />
+                                        </span>
+                                    ) : null}
+                                    <span className={showSavedState ? 'text-transparent' : ''}>
+                                        {Craft.t('formie', 'Save')}
+                                    </span>
+                                </span>
+                            </Button>
+
+                            <DropdownMenu placement="bottom-end">
+                                <Button
+                                    slot="trigger"
+                                    type="button"
+                                    variant="primary"
+                                    groupTrigger
+                                    aria-label={Craft.t('app', 'Open menu')}
+                                />
+                                <DropdownItem value="save-as-new" onPkSelect={handleDuplicateSave}>
+                                    {saveDuplicateLabel || Craft.t('formie', 'Save as a new form')}
+                                </DropdownItem>
+                                {entityType !== 'stencil' ? (
+                                    <DropdownItem
+                                        value="save-as-stencil"
+                                        onPkSelect={() => {
+                                            setSaveAction('saveAsStencil');
+                                            formRef.current?.handleSubmit?.();
+                                        }}
+                                    >
+                                        {Craft.t('formie', 'Save as a new stencil')}
+                                    </DropdownItem>
+                                ) : null}
+                                <DropdownSeparator />
+                                <DropdownItem value="delete" destructive onPkSelect={handleDelete}>
+                                    {Craft.t('formie', 'Delete')}
+                                </DropdownItem>
+                            </DropdownMenu>
+                        </ButtonGroup>
+                    )}
+
+                    {showReadOnlySaveCopy && (
                         <Button
                             variant="primary"
                             loading={isSaving}

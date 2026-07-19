@@ -1,8 +1,6 @@
 import { useMemo } from 'react';
+import { useEngineField, FieldLayout } from '@verbb/plugin-kit-react/forms';
 import { EditableTable } from '@verbb/plugin-kit-react/components';
-import { FieldLayout } from '@verbb/plugin-kit-react/forms/Field';
-import { useEngineField } from '@verbb/plugin-kit-react/forms/useEngineField';
-
 import useAppStore from '@form-builder/hooks/useAppStore';
 import { useFormValues, getFieldReferenceOptions } from '@form-builder/hooks/useFormTools';
 
@@ -151,7 +149,6 @@ export const FormieStaticTableField = ({ form, field }) => {
             warning={field.warning}
             required={field.required}
             errors={errors}
-            withControl={false}
         >
             <EditableTable
                 columns={columns}
@@ -185,7 +182,6 @@ export const FormieStaticTableField = ({ form, field }) => {
                 allowAdd={false}
                 allowDelete={false}
                 allowReorder={false}
-                className=""
             />
         </FieldLayout>
     );

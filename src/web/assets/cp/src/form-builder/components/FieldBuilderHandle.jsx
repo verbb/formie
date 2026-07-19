@@ -1,11 +1,9 @@
 import { useEffect, useState } from 'react';
 
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCheck, faClipboard } from '@fortawesome/pro-solid-svg-icons';
-
 import useAppStore from '@form-builder/hooks/useAppStore';
-import { Button, copyToClipboardWithMeta } from '@verbb/plugin-kit-react/components';
+import { Button, Icon } from '@verbb/plugin-kit-react/components';
 import { cn } from '@verbb/plugin-kit-react/utils';
+import { copyToClipboardWithMeta } from '@utils/copyToClipboard';
 
 const FieldBuilderHandle = ({ handle, className, isAnyDragActive = false }) => {
     const showFieldHandles = useAppStore((state) => { return state.showFieldHandles; });
@@ -59,9 +57,9 @@ const FieldBuilderHandle = ({ handle, className, isAnyDragActive = false }) => {
             <span aria-hidden="true">{handle}</span>
             <span className="sr-only">{Craft.t('app', 'Copy to clipboard')}</span>
             {hasCopied ? (
-                <FontAwesomeIcon icon={faCheck} className="size-[9px]" aria-hidden="true" />
+                <Icon slot="end" icon="check" className="size-[9px]" aria-hidden="true" />
             ) : (
-                <FontAwesomeIcon icon={faClipboard} className="size-[9px]" aria-hidden="true" />
+                <Icon slot="end" icon="clipboard" className="size-[9px]" aria-hidden="true" />
             )}
         </Button>
     );

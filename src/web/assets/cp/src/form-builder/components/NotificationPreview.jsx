@@ -1,12 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
-import { cn, takeAtLeast } from '@verbb/plugin-kit-react/utils';
+import { cn } from '@verbb/plugin-kit-react/utils';
 import { useTranslation } from '@verbb/plugin-kit-react/hooks';
-import { Label, Button } from '@verbb/plugin-kit-react/components';
+import { Button, Icon } from '@verbb/plugin-kit-react/components';
+import { FieldLayout, useSchemaEngineContext } from '@verbb/plugin-kit-react/forms';
 import { LargeErrorState } from '@utils';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faExclamationTriangle } from '@fortawesome/pro-solid-svg-icons';
-import { useSchemaEngineContext } from '@verbb/plugin-kit-react/forms/engine/context';
 import { useFormValues } from '@form-builder/hooks/useFormTools';
+import { takeAtLeast } from '@verbb/plugin-kit-core';
 
 function NotificationPreview() {
     const form = useSchemaEngineContext();
@@ -83,27 +82,21 @@ function NotificationPreview() {
     };
 
     return (
-        <div>
-            <div className={cn(
-                'flex items-center justify-between mb-2',
-            )}>
-                <div className="">
-                    <Label>{t('Email Preview')}</Label>
-                    <p>{t('The example below shows a preview of this email notification.')}</p>
-                </div>
-
-                <div className="">
-                    <Button
-                        variant="primary"
-                        type="button"
-                        onClick={updatePreview}
-                        loading={loading}
-                    >
-                        {t('Refresh')}
-                    </Button>
-                </div>
-            </div>
-
+        <FieldLayout
+            name="emailPreview"
+            label={t('Email Preview')}
+            instructions={t('The example below shows a preview of this email notification.')}
+            headerEnd={(
+                <Button
+                    variant="primary"
+                    type="button"
+                    onClick={updatePreview}
+                    loading={loading}
+                >
+                    {t('Refresh')}
+                </Button>
+            )}
+        >
             <div className={cn(
                 'relative bg-white rounded',
                 'shadow-[0_0_0_1px_rgba(49,49,93,0.05),0_2px_5px_0_rgba(49,49,93,0.075),0_1px_3px_0_rgba(49,49,93,0.15)]',
@@ -199,7 +192,7 @@ function NotificationPreview() {
                         />
                     ) : (
                         <span className="flex items-center gap-1 text-warning">
-                            <FontAwesomeIcon icon={faExclamationTriangle} className="block size-4 shrink-0" />
+                            <Icon icon="triangle-exclamation" className="block size-4 shrink-0" />
                             <span className="flex-1">{email?.warning || t('No email content.')}</span>
                         </span>
                     )}
@@ -239,7 +232,7 @@ function NotificationPreview() {
                     </div>
                 )}
             </div>
-        </div>
+        </FieldLayout>
     );
 }
 

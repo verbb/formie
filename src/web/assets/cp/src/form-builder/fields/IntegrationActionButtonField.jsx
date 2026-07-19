@@ -1,12 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {
-    faArrowsRotate, faCheck,
-} from '@fortawesome/pro-solid-svg-icons';
+import { getErrorMessage } from '@verbb/plugin-kit-core';
 
-import { Button } from '@verbb/plugin-kit-react/components';
-import { FieldLayout } from '@verbb/plugin-kit-react/forms/Field';
-import { getErrorMessage } from '@verbb/plugin-kit-react/utils';
+import { Button, Icon } from '@verbb/plugin-kit-react/components';
+import { FieldLayout } from '@verbb/plugin-kit-react/forms';
 import { useFormBuilderApp } from '@form-builder/contexts/FormBuilderAppContext';
 import { useFormBuilderForm } from '@form-builder/contexts/FormBuilderFormContext';
 import { refreshIntegrationFormSettings } from '@form-builder/hooks/useFormTools';
@@ -118,14 +114,17 @@ function IntegrationActionButtonField({ field }) {
                 loading={loading}
                 className={showActionSuccess ? 'relative text-green-600' : 'relative'}
             >
-                <span className={`inline-flex items-center gap-1 ${showActionSuccess ? 'text-transparent' : ''}`}>
-                    <FontAwesomeIcon icon={faArrowsRotate} className="size-3" />
-                    {buttonLabel}
-                </span>
+                {/* Slot icons must be direct Button children for WC projection. */}
+                <Icon
+                    slot="start"
+                    icon="arrows-rotate"
+                    className={`size-3 ${showActionSuccess ? 'invisible' : ''}`}
+                />
+                <span className={showActionSuccess ? 'invisible' : undefined}>{buttonLabel}</span>
 
                 {showActionSuccess && (
-                    <FontAwesomeIcon
-                        icon={faCheck}
+                    <Icon
+                        icon="check"
                         className="absolute left-1/2 top-1/2 size-3 -translate-x-1/2 -translate-y-1/2"
                     />
                 )}
@@ -145,7 +144,6 @@ function IntegrationActionButtonField({ field }) {
             label={field.label}
             instructions={field.instructions}
             required={field.required}
-            withControl={false}
         >
             {content}
         </FieldLayout>

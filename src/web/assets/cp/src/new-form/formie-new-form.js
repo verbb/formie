@@ -1,13 +1,13 @@
 import { createElement } from 'react';
-import { createRoot } from 'react-dom/client';
+
 import { NewFormApp } from '@new-form/components/NewFormApp';
 import { NewFormErrorBoundary } from '@new-form/components/NewFormErrorBoundary';
-import { bootstrapShadowReactApp, ensureCraftNamespace, markContainerReady } from '@utils';
+import { bootstrapShadowReactApp, defineFormieCpConstructor, ensureCraftNamespace, markContainerReady, mountFormieReactApp } from '@utils';
 import newFormStyles from '@new-form/css/style.css?inline';
 
 ensureCraftNamespace('Formie');
 
-Craft.Formie.NewForm = function(settings = {}) {
+defineFormieCpConstructor('NewForm', async (settings = {}) => {
     const boot = bootstrapShadowReactApp({
         containerSelector: '.formie-new-form',
         pluginHandle: 'formie',
@@ -19,13 +19,17 @@ Craft.Formie.NewForm = function(settings = {}) {
         return;
     }
 
-    const { mountNode, targetContainer } = boot;
+    const { targetContainer } = boot;
 
-    const root = createRoot(mountNode);
-    root.render(
-        createElement(NewFormErrorBoundary, null,
+    await mountFormieReactApp({
+        mountNode: boot.mountNode,
+        portalContainer: boot.portalContainer,
+        shadowRootSelectors: boot.shadowRootSelectors,
+        portalClassName: boot.portalClassName,
+        translationCategory: boot.translationCategory,
+        children: createElement(NewFormErrorBoundary, null,
             createElement(NewFormApp, { settings })),
-    );
+    });
 
     markContainerReady(targetContainer, 'formie-new-form--ready');
-};
+});

@@ -1,15 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 
-import {
-    Button,
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-    Input,
-} from '@verbb/plugin-kit-react/components';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronDown, faMagnifyingGlass } from '@fortawesome/pro-solid-svg-icons';
+import { Button, DropdownItem, DropdownMenu, Icon, Input } from '@verbb/plugin-kit-react/components';
 
 import { ReportViewerViewPopover } from '@reports/components/ReportViewerViewPopover';
 import { ReportViewerDateRange } from '@reports/components/ReportViewerDateRange';
@@ -90,18 +81,15 @@ export function ReportViewerToolbar({
 
     return (
         <div className="flex flex-wrap items-center gap-2 rounded-lg border border-gray-200 bg-white p-2">
-            <div className="relative min-w-[220px] flex-1">
-                <FontAwesomeIcon
-                    icon={faMagnifyingGlass}
-                    className="pointer-events-none absolute left-3 top-1/2 size-3 -translate-y-1/2 text-gray-400"
-                />
-                <Input
-                    value={searchValue}
-                    placeholder={Craft.t('app', 'Search')}
-                    className="pl-9"
-                    onChange={(event) => { setSearchValue(event.target.value); }}
-                />
-            </div>
+            <Input
+                className="min-w-[220px] flex-1"
+                value={searchValue}
+                placeholder={Craft.t('app', 'Search')}
+                onChange={(event) => { setSearchValue(event.target.value); }}
+            >
+                {/* Adornment inside the control shell (part=base) — not absolutely positioned outside. */}
+                <Icon slot="start" icon="search" className="size-3 text-gray-400" />
+            </Input>
 
             <ReportViewerDateRange
                 startDate={dateRange?.startDate}
@@ -127,27 +115,22 @@ export function ReportViewerToolbar({
 
             {canExport ? (
                 <div ref={exportAnchorRef} className="relative inline-flex">
-                    <DropdownMenu>
-                        <DropdownMenuTrigger
-                            render={(
-                                <Button type="button" className="gap-2" disabled={exportLoading}>
-                                    {exportLoading
-                                        ? Craft.t('formie', 'Exporting…')
-                                        : Craft.t('formie', 'Export')}
-                                    <FontAwesomeIcon icon={faChevronDown} className="size-3" />
-                                </Button>
-                            )}
-                        />
-                        <DropdownMenuContent align="end" className="min-w-[160px]">
-                            {EXPORT_FORMATS.map((format) => (
-                                <DropdownMenuItem
-                                    key={format.value}
-                                    onClick={() => { onExport(format.value); }}
-                                >
-                                    {format.label}
-                                </DropdownMenuItem>
-                            ))}
-                        </DropdownMenuContent>
+                    <DropdownMenu placement="bottom-end">
+                        <Button slot="trigger" type="button" disabled={exportLoading}>
+                            {exportLoading
+                                ? Craft.t('formie', 'Exporting…')
+                                : Craft.t('formie', 'Export')}
+                            <Icon slot="end" icon="chevron-down" className="size-3" />
+                        </Button>
+                        {EXPORT_FORMATS.map((format) => (
+                            <DropdownItem
+                                key={format.value}
+                                value={format.value}
+                                onPkSelect={() => { onExport(format.value); }}
+                            >
+                                {format.label}
+                            </DropdownItem>
+                        ))}
                     </DropdownMenu>
 
                     {exportQueuedNoticeOpen ? (

@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTriangleExclamation, faChevronRight } from '@fortawesome/pro-solid-svg-icons';
 import { cn } from '@verbb/plugin-kit-react/utils';
+import { Icon } from '@verbb/plugin-kit-react/components';
 
 function IntegrationErrorMessage({ error, className = '' }) {
     const [showDetails, setShowDetails] = useState(false);
@@ -17,7 +16,7 @@ function IntegrationErrorMessage({ error, className = '' }) {
     return (
         <div className={cn('text-error', className)}>
             <div className="flex items-center gap-1">
-                <FontAwesomeIcon icon={faTriangleExclamation} className="size-3 shrink-0" />
+                <Icon icon="triangle-exclamation" className="size-3 shrink-0" />
                 <p className="text-sm font-semibold">{error.heading}</p>
             </div>
 
@@ -34,8 +33,8 @@ function IntegrationErrorMessage({ error, className = '' }) {
                             });
                         }}
                     >
-                        <FontAwesomeIcon
-                            icon={faChevronRight}
+                        <Icon
+                            icon="chevron-right"
                             className={cn('size-3 transition-transform', showDetails && 'rotate-90')}
                         />
                         {Craft.t('formie', showDetails ? 'Hide details' : 'Show details')}

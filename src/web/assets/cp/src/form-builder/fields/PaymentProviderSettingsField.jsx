@@ -3,11 +3,8 @@ import {
 } from 'react';
 import { isEqual } from 'lodash-es';
 
+import { SchemaFormEngine, useSchemaFormEngine, useEngineField, FieldLayout } from '@verbb/plugin-kit-react/forms';
 import { Spinner } from '@verbb/plugin-kit-react/components';
-import { FieldLayout } from '@verbb/plugin-kit-react/forms/Field';
-import { SchemaFormEngine, useSchemaFormEngine } from '@verbb/plugin-kit-react/forms';
-import { useEngineField } from '@verbb/plugin-kit-react/forms/useEngineField';
-
 import { fetchPaymentProviderSettingsSchema } from '@form-builder/hooks/useFormTools';
 
 const paymentProviderSchemaCache = {};
@@ -263,7 +260,6 @@ function PaymentProviderSettingsField({ field, form }) {
             label={field.label}
             instructions={field.instructions}
             required={field.required}
-            withControl={false}
         >
             {content}
         </FieldLayout>

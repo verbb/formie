@@ -1,26 +1,13 @@
+import { getErrorMessage } from '@verbb/plugin-kit-core';
 import {
     memo, useCallback, useEffect, useMemo, useRef, useState,
 } from 'react';
 
-import {
-    Button,
-    DropdownMenuItem,
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-    TiptapInput,
-} from '@verbb/plugin-kit-react/components';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {
-    faArrowsRotate, faCheck, faAsterisk,
-} from '@fortawesome/pro-solid-svg-icons';
-import { FieldControl, FieldLayout } from '@verbb/plugin-kit-react/forms/Field';
-import { useEngineField } from '@verbb/plugin-kit-react/forms/useEngineField';
+import { Button, DropdownItem, Icon } from '@verbb/plugin-kit-react/components';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@utils/formieTable';
+import { FieldLayout, useEngineField } from '@verbb/plugin-kit-react/forms';
 
-import { cn, getErrorMessage } from '@verbb/plugin-kit-react/utils';
+import { cn } from '@verbb/plugin-kit-react/utils';
 import { IntegrationErrorMessage } from './IntegrationErrorMessage';
 
 import { useVariableCategories } from '@form-builder/hooks/useVariableCategories';
@@ -30,6 +17,7 @@ import { refreshIntegrationFormSettings } from '@form-builder/hooks/useFormTools
 import useAppStore from '@form-builder/hooks/useAppStore';
 import { FormBuilderVariablePickerControl } from '@form-builder/fields/components/FormBuilderVariablePickerControl';
 import { VariablePickerActionsMenu } from '@form-builder/fields/components/VariablePickerActionsMenu';
+import { VariablePickerInputCell } from '@form-builder/fields/variable-picker/VariablePickerInputCell';
 import {
     buildVariableOptionIndex,
     collectSelectableValues,
@@ -284,17 +272,20 @@ const MappingValueControl = ({
                         pickerSearchPlaceholder={Craft.t('formie', 'Search values')}
                         includeParentLabel={true}
                         pickerContentClassName="min-w-[260px] max-w-[360px] p-0 overflow-hidden flex flex-col"
-                        wrapperClassName="w-full"
+                        // Compact xs tokens — host py-* does not pierce pk-button (same as conditions cells).
+                        triggerSize="xs"
+                        triggerClassName="min-w-0 justify-between"
+                        wrapperClassName="w-full min-w-0"
                         renderActionItems={({ canShowSettings, openSettings, t }) => {
                             return (
                                 <>
-                                    <DropdownMenuItem onClick={() => { handleModeChange(modeSwitchTarget); }}>
+                                    <DropdownItem onPkSelect={() => { handleModeChange(modeSwitchTarget); }}>
                                         {modeSwitchLabel}
-                                    </DropdownMenuItem>
+                                    </DropdownItem>
                                     {canShowSettings && (
-                                        <DropdownMenuItem onClick={openSettings}>
+                                        <DropdownItem onPkSelect={openSettings}>
                                             {t('Configure Value')}
-                                        </DropdownMenuItem>
+                                        </DropdownItem>
                                     )}
                                 </>
                             );
@@ -302,26 +293,36 @@ const MappingValueControl = ({
                     />
                 ) : (
                     <>
-                        <TiptapInput
+                        {/*
+                         * Bordered TipTap + insert-rail + (same as VariablePickerField / v1).
+                         * Do not use fitCell — mapping cells keep padded table chrome.
+                         */}
+                        <VariablePickerInputCell
                             value={mappingValue}
-                            onChange={(nextValue) => {
-                                onChange(String(nextValue || ''));
-                            }}
-                            className={cn([
-                                'w-full',
-                                '[&_.ProseMirror]:h-[30px]! [&_.ProseMirror]:pr-10 [&_.ProseMirror]:pl-[4px]! [&_.ProseMirror]:pt-[6px] [&_.ProseMirror]:text-xs',
-                            ])}
-                            placeholder={Craft.t('formie', 'Type text or use variables')}
+                            onChange={onChange}
                             variableCategories={mergedVariableCategories}
                             variableCategoryLabels={mergedVariableCategoryLabels}
                             variableCategoryOrder={variableCategoryOrder}
                             variableTransformerRegistry={variableTransformerRegistry}
-                            variablePickerTriggerCharacters={['@', '{']}
+                            placeholder={Craft.t('formie', 'Type text or use variables')}
+                            fitCell={false}
+                            className="min-w-0 flex-1"
+                            /*
+                             * v1 compact mapping density. [&_.ProseMirror] cannot pierce
+                             * shadow DOM — host --pk-tiptap-input-* tokens do.
+                             */
+                            inputClassName={cn(
+                                '[--pk-tiptap-input-height:30px]',
+                                '[--pk-tiptap-input-padding-block:6px]',
+                                '[--pk-tiptap-input-padding-inline-start:4px]',
+                                '[--pk-tiptap-input-padding-inline-end:2.5rem]',
+                                '[--pk-tiptap-input-font-size:12px]',
+                            )}
                         />
-                        <VariablePickerActionsMenu label={Craft.t('formie', 'More actions')} align="start">
-                            <DropdownMenuItem onClick={() => { handleModeChange(modeSwitchTarget); }}>
+                        <VariablePickerActionsMenu label={Craft.t('formie', 'More actions')} placement="bottom-start">
+                            <DropdownItem onPkSelect={() => { handleModeChange(modeSwitchTarget); }}>
                                 {modeSwitchLabel}
-                            </DropdownMenuItem>
+                            </DropdownItem>
                         </VariablePickerActionsMenu>
                     </>
                 )}
@@ -351,7 +352,7 @@ const MappingRow = memo(({
                 <div className="flex items-center gap-1">
                     <span className="font-normal">{integrationField.name}</span>
                     {integrationField.required && (
-                        <FontAwesomeIcon icon={faAsterisk} className="size-[9px] text-rose-600" title={Craft.t('formie', 'Required')} />
+                        <Icon icon="asterisk" className="size-[9px] text-rose-600" title={Craft.t('formie', 'Required')} />
                     )}
                 </div>
             </TableCell>
@@ -631,7 +632,6 @@ const IntegrationFieldMappingField = ({ form, field }) => {
             instructions={field.instructions}
             required={field.required}
             errors={errors}
-            withControl={false}
             headerEnd={showRefreshButton ? (
                 <Button
                     type="button"
@@ -641,73 +641,76 @@ const IntegrationFieldMappingField = ({ form, field }) => {
                     loading={refreshLoading}
                     aria-label={Craft.t('formie', 'Refresh Data')}
                 >
-                    <span className={cn('inline-flex items-center gap-1', showRefreshSuccess && 'text-transparent')}>
-                        <FontAwesomeIcon icon={faArrowsRotate} className="size-3" />
+                    {/* Slot icons must be direct Button children for WC projection. */}
+                    <Icon
+                        slot="start"
+                        icon="arrows-rotate"
+                        className={cn('size-3', showRefreshSuccess && 'invisible')}
+                    />
+                    <span className={showRefreshSuccess ? 'invisible' : undefined}>
                         {Craft.t('formie', 'Refresh')}
                     </span>
 
                     {showRefreshSuccess && (
-                        <FontAwesomeIcon
-                            icon={faCheck}
+                        <Icon
+                            icon="check"
                             className="absolute left-1/2 top-1/2 size-3 -translate-x-1/2 -translate-y-1/2"
                         />
                     )}
                 </Button>
             ) : null}
         >
-            <FieldControl>
-                <div role="group">
-                    <IntegrationErrorMessage error={refreshError} className="-mt-1 mb-2" />
+            <div role="group">
+                <IntegrationErrorMessage error={refreshError} className="-mt-1 mb-2" />
 
-                    {!integrationFields.length && (
-                        <div className="rounded-md border border-gray-200 p-6 text-center text-sm text-gray-500">
-                            <div className="space-y-2">
-                                <p>{Craft.t('formie', 'No fields available.')}</p>
+                {!integrationFields.length && (
+                    <div className="rounded-md border border-gray-200 p-6 text-center text-sm text-gray-500">
+                        <div className="space-y-2">
+                            <p>{Craft.t('formie', 'No fields available.')}</p>
 
-                            </div>
                         </div>
-                    )}
+                    </div>
+                )}
 
-                    {!!integrationFields.length && (
-                        <Table>
-                            <TableHeader>
+                {!!integrationFields.length && (
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead className="w-1/2">{Craft.t('formie', field.integrationLabel || 'Integration Field')}</TableHead>
+                                <TableHead className="w-1/2">{Craft.t('formie', 'Value')}</TableHead>
+                            </TableRow>
+                        </TableHeader>
+
+                        <TableBody>
+                            {visibleIntegrationFields.map((integrationField) => {
+                                const mappingValue = normalizeMappingValue(value?.[integrationField.handle]);
+                                return (
+                                    <MappingRow
+                                        key={integrationField.handle}
+                                        integrationField={integrationField}
+                                        mappingValue={mappingValue}
+                                        onMappingValueChange={updateMappingValue}
+                                        variableCategories={baseVariableCategories}
+                                        baseVariableOptionIndex={baseVariableOptionIndex}
+                                        baseFieldOptionValues={baseFieldOptionValues}
+                                        variableTransformerRegistry={variableTransformerRegistry}
+                                        globalVariableCategoryLabels={globalVariableCategoryLabels}
+                                        variableCategoryOrder={variableCategoryOrder}
+                                    />
+                                );
+                            })}
+
+                            {isRenderingRemainingRows && (
                                 <TableRow>
-                                    <TableHead className="w-1/2">{Craft.t('formie', field.integrationLabel || 'Integration Field')}</TableHead>
-                                    <TableHead className="w-1/2">{Craft.t('formie', 'Value')}</TableHead>
+                                    <TableCell colSpan={2} className="px-2 py-3 text-center text-xs text-gray-500">
+                                        {Craft.t('formie', 'Loading remaining fields…')}
+                                    </TableCell>
                                 </TableRow>
-                            </TableHeader>
-
-                            <TableBody>
-                                {visibleIntegrationFields.map((integrationField) => {
-                                    const mappingValue = normalizeMappingValue(value?.[integrationField.handle]);
-                                    return (
-                                        <MappingRow
-                                            key={integrationField.handle}
-                                            integrationField={integrationField}
-                                            mappingValue={mappingValue}
-                                            onMappingValueChange={updateMappingValue}
-                                            variableCategories={baseVariableCategories}
-                                            baseVariableOptionIndex={baseVariableOptionIndex}
-                                            baseFieldOptionValues={baseFieldOptionValues}
-                                            variableTransformerRegistry={variableTransformerRegistry}
-                                            globalVariableCategoryLabels={globalVariableCategoryLabels}
-                                            variableCategoryOrder={variableCategoryOrder}
-                                        />
-                                    );
-                                })}
-
-                                {isRenderingRemainingRows && (
-                                    <TableRow>
-                                        <TableCell colSpan={2} className="px-2 py-3 text-center text-xs text-gray-500">
-                                            {Craft.t('formie', 'Loading remaining fields…')}
-                                        </TableCell>
-                                    </TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
-                    )}
-                </div>
-            </FieldControl>
+                            )}
+                        </TableBody>
+                    </Table>
+                )}
+            </div>
         </FieldLayout>
     );
 };

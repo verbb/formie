@@ -1,30 +1,16 @@
+import { takeAtLeast, createItem, generateHandle, findUniqueHandle } from '@verbb/plugin-kit-core';
+import { getRichTextText } from '@utils/tiptapUtils';
 import React, {
     useEffect, useRef, useState,
 } from 'react';
 
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogFooter,
-    DialogDescription,
-    Button,
-    Spinner,
-    Input,
-} from '@verbb/plugin-kit-react/components';
+import { Button, Dialog, Icon, Input, Spinner, TiptapInput } from '@verbb/plugin-kit-react/components';
 
-import {
-    cn, takeAtLeast, createItem, generateHandle, findUniqueHandle, getRichTextText,
-} from '@verbb/plugin-kit-react/utils';
+import { cn } from '@verbb/plugin-kit-react/utils';
 import { useFormValues } from '@form-builder/hooks/useFormTools';
 import { useBuilderActions } from '@form-builder/builder/useBuilderActions';
 import { useVariableCategories } from '@form-builder/hooks/useVariableCategories';
 import { LargeErrorState, StatePanel } from '@utils';
-
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSearch } from '@fortawesome/pro-solid-svg-icons';
-import { TiptapInput } from '@verbb/plugin-kit-react/components';
 
 const getHandleSourceText = (value) => {
     return getRichTextText(value)
@@ -97,6 +83,7 @@ const ExistingNotifications = ({ onClose }) => {
     const [isLoadingResults, setIsLoadingResults] = useState(false);
     const resultsRequestIdRef = useRef(0);
     const previousSelectedFormKeyRef = useRef(null);
+    const searchInputRef = useRef(null);
     const notificationVariableCategories = useVariableCategories({
         groups: ['fieldsVariables', 'staticFormVariables', 'staticGeneralVariables', 'staticSiteVariables'],
         content: 'singleLine',
@@ -153,6 +140,21 @@ const ExistingNotifications = ({ onClose }) => {
     useEffect(() => {
         handleOpen();
     }, []);
+
+    // Content mounts after the dialog's open focus pass (spinner first). Focus search once ready.
+    useEffect(() => {
+        if (loading || error || !mounted || !existingNotifications.length) {
+            return;
+        }
+
+        const frameId = window.requestAnimationFrame(() => {
+            searchInputRef.current?.focus?.({ preventScroll: true });
+        });
+
+        return () => {
+            window.cancelAnimationFrame(frameId);
+        };
+    }, [loading, error, mounted, existingNotifications.length]);
 
     const fetchExistingNotifications = async() => {
         setError(null);
@@ -333,6 +335,13 @@ const ExistingNotifications = ({ onClose }) => {
 
         const keyChanged = previousSelectedFormKeyRef.current !== selectedFormKey;
         previousSelectedFormKeyRef.current = selectedFormKey;
+        const willFetchResults = selectedFormKey === '*'
+            ? meetsSearchMinimum
+            : (!hasSearch || meetsSearchMinimum);
+
+        // Show loading for the whole debounce + request window so search feels live
+        // (v1 feedback); do not wait until fetchExistingNotificationsForSelectedForm runs.
+        setIsLoadingResults(willFetchResults);
 
         const timeoutId = window.setTimeout(() => {
             if (selectedFormKey === '*') {
@@ -437,190 +446,169 @@ const ExistingNotifications = ({ onClose }) => {
     };
 
     return (
-        <Dialog open={true} onOpenChange={handleClose}>
-            <DialogContent className={cn(
-                'w-[calc(100vw-24px)] h-[calc(100dvh-24px)]',
-                'min-w-0 min-h-0 max-w-none',
-                'md:w-[66%] md:h-[66%]',
-                'md:min-w-[600px] md:min-h-[400px]',
-            )}>
-                <DialogHeader>
-                    <DialogTitle>
-                        {Craft.t('formie', 'Add Existing Notification')}
-                    </DialogTitle>
+        <Dialog
+            open
+            label={Craft.t('formie', 'Add Existing Notification')}
+            withoutBodyPadding
+            className="formie-existing-notifications-dialog"
+            onPkOpenChange={(event) => {
+                if (!(event.detail?.open ?? event.target?.open ?? false)) {
+                    handleClose();
+                }
+            }}
+        >
+            <div className="flex h-full min-h-0 flex-col overflow-hidden">
+                {error && (
+                    <LargeErrorState
+                        error={error}
+                        message={Craft.t('formie', 'Unable to load existing notifications.')}
+                        detailsLabel={Craft.t('formie', 'Show error details')}
+                        actionLabel={Craft.t('formie', 'Try Again')}
+                        onAction={handleOpen}
+                        containerClassName="absolute inset-0 z-10 flex items-center justify-center bg-white"
+                    />
+                )}
 
-                    <DialogDescription className="hidden">
-                        {Craft.t('formie', 'Add existing notifications to this form.')}
-                    </DialogDescription>
-                </DialogHeader>
+                {loading && (
+                    <div className="flex h-full min-h-0 items-center justify-center">
+                        <Spinner size="lg" />
+                    </div>
+                )}
 
-                <div className="h-full overflow-hidden">
-                    {error && (
-                        <LargeErrorState
-                            error={error}
-                            message={Craft.t('formie', 'Unable to load existing notifications.')}
-                            detailsLabel={Craft.t('formie', 'Show error details')}
-                            actionLabel={Craft.t('formie', 'Try Again')}
-                            onAction={handleOpen}
-                            containerClassName="absolute inset-0 z-10 flex items-center justify-center bg-white"
-                        />
-                    )}
-
-                    {loading && (
-                        <div className="h-full flex items-center justify-center">
-                            <Spinner size="lg" />
-                        </div>
-                    )}
-
-                    {!loading && !error && mounted && existingNotifications.length && (
-                        <div className="flex h-full flex-col md:flex-row">
-                            <div className={cn(
-                                'relative',
-                                'bg-[#f3f7fc]',
-                                'border-b md:border-b-0 md:border-r',
-                                'border-[rgba(51,64,77,.1)]',
-                                'rounded-t-lg md:rounded-t-none md:rounded-l-lg',
-                                'overflow-auto',
-                                'w-full max-h-[180px] md:max-h-none md:w-[240px]',
-                                'px-2 pt-3',
-                            )}>
-                                <div className="space-y-1">
-                                    {existingNotifications.map((item, index) => {
-                                        if (item.heading) {
-                                            return (
-                                                <div key={`heading-${String(item.heading)}-${index}`} className="mt-4 ml-[10px]">
-                                                    <h3 className="text-[11px] font-bold text-gray-500 uppercase">
-                                                        {item.heading}
-                                                    </h3>
-                                                </div>
-                                            );
-                                        }
-
+                {!loading && !error && mounted && existingNotifications.length && (
+                    <div className="flex h-full min-h-0 flex-col md:flex-row">
+                        <div className={cn(
+                            'relative',
+                            'bg-[#f3f7fc]',
+                            'border-b md:border-b-0 md:border-r',
+                            'border-[rgba(51,64,77,.1)]',
+                            'overflow-auto',
+                            'w-full max-h-[180px] md:max-h-none md:w-[240px] md:shrink-0',
+                            'px-2 pt-3',
+                        )}>
+                            <div className="space-y-1">
+                                {existingNotifications.map((item, index) => {
+                                    if (item.heading) {
                                         return (
-                                            <Button
-                                                key={item.key ?? `notification-source-${index}`}
-                                                variant="transparent"
-                                                onClick={() => { return selectTab(item); }}
-                                                className={cn(
-                                                    'w-full',
-                                                    'gap-2',
-                                                    'px-[10px]',
-                                                    'py-[7px]',
-                                                    'text-left',
-                                                    'text-[13px]',
-                                                    'rounded-lg',
-                                                    'justify-start',
-                                                    selectedForm?.key === item.key
-                                                        ? 'bg-gray-500 hover:not-disabled:bg-gray-500 text-white'
-                                                        : ' ',
-                                                )}
-                                            >
-                                                <span>{item.label}</span>
-                                            </Button>
+                                            <div key={`heading-${String(item.heading)}-${index}`} className="mt-4 ml-[10px]">
+                                                <h3 className="text-[11px] font-bold text-gray-500 uppercase">
+                                                    {item.heading}
+                                                </h3>
+                                            </div>
                                         );
-                                    })}
-                                </div>
-                            </div>
+                                    }
 
-                            <div className="flex-1 flex flex-col min-h-0">
-                                <div className="p-3 md:p-4 border-b border-gray-100">
-                                    <div className="relative">
-                                        <FontAwesomeIcon
-                                            icon={faSearch}
-                                            className="absolute size-4 left-2 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm"
-                                        />
-
-                                        <Input
-                                            value={search}
-                                            onChange={(e) => { return setSearch(e.target.value); }}
-                                            placeholder={Craft.t('formie', 'Search')}
-                                            className="pl-7"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="flex-1 overflow-y-auto p-3 md:p-4">
-                                    {isLoadingResults ? (
-                                        <div className="h-full flex items-center justify-center">
-                                            <Spinner size="lg" />
-                                        </div>
-                                    ) : (selectedForm?.key === '*' && !hasSearch) ? (
-                                        <StatePanel
-                                            variant="info"
-                                            showIcon={false}
-                                            message={Craft.t('formie', 'Search to browse notifications across all forms and stencils.')}
-                                            containerClassName="py-4"
-                                            contentClassName="flex flex-col items-center text-center"
-                                            messageClassName="mb-0 text-sm text-gray-500"
-                                        />
-                                    ) : (selectedForm?.key === '*' && hasSearch && !meetsSearchMinimum) ? (
-                                        <StatePanel
-                                            variant="info"
-                                            showIcon={false}
-                                            message={Craft.t('formie', 'Type at least 3 characters to search all notifications.')}
-                                            containerClassName="py-4"
-                                            contentClassName="flex flex-col items-center text-center"
-                                            messageClassName="mb-0 text-sm text-gray-500"
-                                        />
-                                    ) : (selectedForm && (selectedForm.notifications || []).length > 0) ? (
-                                        <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-                                            {(selectedForm.notifications || []).map((notification, notificationIndex) => {
-                                                return (
-                                                    <ExistingNotificationItem
-                                                        key={getNotificationSelectionKey(notification) || notificationIndex}
-                                                        notification={notification}
-                                                        variableCategories={notificationVariableCategories}
-                                                        selected={isNotificationSelected(notification)}
-                                                        onSelected={(selected) => { return notificationSelected(notification, selected); }}
-                                                    />
-                                                );
-                                            })}
-                                        </div>
-                                    ) : (
-                                        <StatePanel
-                                            variant="empty"
-                                            showIcon={false}
-                                            message={Craft.t('formie', 'No notifications found.')}
-                                            containerClassName="py-4"
-                                            contentClassName="flex flex-col items-center text-center"
-                                            messageClassName="mb-0 text-sm text-gray-500"
-                                        />
-                                    )}
-                                </div>
+                                    return (
+                                        <Button
+                                            key={item.key ?? `notification-source-${index}`}
+                                            type="button"
+                                            size="none"
+                                            variant="transparent"
+                                            onClick={() => { return selectTab(item); }}
+                                            className={cn(
+                                                'formie-existing-picker-nav-item',
+                                                selectedForm?.key === item.key && 'is-selected',
+                                            )}
+                                        >
+                                            {item.label}
+                                        </Button>
+                                    );
+                                })}
                             </div>
                         </div>
-                    )}
 
-                    {!loading && !error && !mounted && (
-                        <StatePanel
-                            variant="empty"
-                            showIcon={false}
-                            message={Craft.t('formie', 'No existing notifications to select.')}
-                            containerClassName="h-full flex items-center justify-center"
-                            contentClassName="flex flex-col items-center text-center"
-                            messageClassName="mb-0 text-sm text-gray-500"
-                        />
-                    )}
-                </div>
+                        <div className="flex min-h-0 flex-1 flex-col">
+                            <div className="border-b border-gray-100 p-3 md:p-4">
+                                <Input
+                                    ref={searchInputRef}
+                                    autofocus
+                                    value={search}
+                                    onChange={(e) => { return setSearch(e.target.value); }}
+                                    placeholder={Craft.t('formie', 'Search')}
+                                >
+                                    <Icon slot="start" icon="search" className="size-4" />
+                                </Input>
+                            </div>
 
-                <DialogFooter className="flex justify-between">
-                    <div className="flex gap-2">
-                        <Button onClick={handleClose}>
-                            {Craft.t('app', 'Cancel')}
-                        </Button>
+                            <div className="flex-1 overflow-y-auto p-3 md:p-4">
+                                {isLoadingResults ? (
+                                    <div className="h-full flex items-center justify-center">
+                                        <Spinner size="lg" />
+                                    </div>
+                                ) : (selectedForm?.key === '*' && !hasSearch) ? (
+                                    <StatePanel
+                                        variant="info"
+                                        showIcon={false}
+                                        message={Craft.t('formie', 'Search to browse notifications across all forms and stencils.')}
+                                        containerClassName="py-4"
+                                        contentClassName="flex flex-col items-center text-center"
+                                        messageClassName="mb-0 text-sm text-gray-500"
+                                    />
+                                ) : (selectedForm?.key === '*' && hasSearch && !meetsSearchMinimum) ? (
+                                    <StatePanel
+                                        variant="info"
+                                        showIcon={false}
+                                        message={Craft.t('formie', 'Type at least 3 characters to search all notifications.')}
+                                        containerClassName="py-4"
+                                        contentClassName="flex flex-col items-center text-center"
+                                        messageClassName="mb-0 text-sm text-gray-500"
+                                    />
+                                ) : (selectedForm && (selectedForm.notifications || []).length > 0) ? (
+                                    <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                                        {(selectedForm.notifications || []).map((notification, notificationIndex) => {
+                                            return (
+                                                <ExistingNotificationItem
+                                                    key={getNotificationSelectionKey(notification) || notificationIndex}
+                                                    notification={notification}
+                                                    variableCategories={notificationVariableCategories}
+                                                    selected={isNotificationSelected(notification)}
+                                                    onSelected={(selected) => { return notificationSelected(notification, selected); }}
+                                                />
+                                            );
+                                        })}
+                                    </div>
+                                ) : (
+                                    <StatePanel
+                                        variant="empty"
+                                        showIcon={false}
+                                        message={Craft.t('formie', 'No notifications found.')}
+                                        containerClassName="py-4"
+                                        contentClassName="flex flex-col items-center text-center"
+                                        messageClassName="mb-0 text-sm text-gray-500"
+                                    />
+                                )}
+                            </div>
+                        </div>
                     </div>
+                )}
 
-                    <div className="flex gap-2">
-                        <Button
-                            variant="primary"
-                            disabled={totalSelected === 0}
-                            onClick={addNotifications}
-                        >
-                            {submitText}
-                        </Button>
-                    </div>
-                </DialogFooter>
-            </DialogContent>
+                {!loading && !error && !mounted && (
+                    <StatePanel
+                        variant="empty"
+                        showIcon={false}
+                        message={Craft.t('formie', 'No existing notifications to select.')}
+                        containerClassName="h-full flex items-center justify-center"
+                        contentClassName="flex flex-col items-center text-center"
+                        messageClassName="mb-0 text-sm text-gray-500"
+                    />
+                )}
+            </div>
+
+            {/* justify-between: Cancel left, primary submit right */}
+            <div slot="footer" className="flex w-full justify-between gap-2">
+                <Button type="button" onClick={handleClose}>
+                    {Craft.t('app', 'Cancel')}
+                </Button>
+
+                <Button
+                    type="button"
+                    variant="primary"
+                    disabled={totalSelected === 0}
+                    onClick={addNotifications}
+                >
+                    {submitText}
+                </Button>
+            </div>
         </Dialog>
     );
 };
@@ -639,6 +627,7 @@ const ExistingNotificationItem = ({
             onClick={() => { return onSelected(!selected); }}
         >
             <div className="space-y-1">
+                {/* readonly TiptapInput: parses {tokens} into chips; chrome stripped via [readonly]. */}
                 <div className="font-medium text-sm">
                     <TiptapInput value={notification.name} readOnly variableCategories={variableCategories} />
                 </div>

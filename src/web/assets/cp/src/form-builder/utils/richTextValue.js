@@ -1,4 +1,4 @@
-import { isRichTextEmpty } from '@verbb/plugin-kit-react/utils';
+import { isRichTextEmpty } from '@utils/tiptapUtils';
 
 /**
  * Normalize stored rich-text values into TipTap schema content arrays.

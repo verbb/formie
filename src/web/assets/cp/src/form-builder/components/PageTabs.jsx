@@ -2,10 +2,8 @@ import {
     useState, useEffect, useMemo, useRef,
 } from 'react';
 import { useDroppable } from '@dnd-kit/react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCog, faPlus, faTriangleExclamation } from '@fortawesome/pro-solid-svg-icons';
 
-import { Button } from '@verbb/plugin-kit-react/components';
+import { Button, Icon } from '@verbb/plugin-kit-react/components';
 import { cn } from '@verbb/plugin-kit-react/utils';
 import { useFormValue } from '@form-builder/hooks/useFormTools';
 import useUrlRouter from '@form-builder/hooks/useUrlRouter';
@@ -18,7 +16,7 @@ import { ScrollArea } from '@verbb/plugin-kit-react/components';
 import { announceFormBuilderStatus } from '@form-builder/utils/accessibility';
 
 function DroppablePageTab({
-    page, pageIndex, isActive, hasErrors, onTabClick, onTabDoubleClick, isAnyDragActive = false,
+    page, pageIndex, isActive, hasErrors, onTabClick, onTabDoubleClick,
 }) {
     const { ref, isDropTarget } = useDroppable({
         id: `page-tab-${pageIndex}`,
@@ -30,6 +28,7 @@ function DroppablePageTab({
             <Button
                 type="button"
                 variant="none"
+                size="none"
                 onMouseDown={(e) => {
                     // Prevent first click from being consumed by focus move when coming from an input in the right pane.
                     e.preventDefault();
@@ -37,40 +36,10 @@ function DroppablePageTab({
                 onClick={() => { return onTabClick(page); }}
                 onDoubleClick={() => { return onTabDoubleClick(page); }}
                 className={cn(
-                    'outline-none shadow-none',
-
-                    'relative',
-                    'h-full',
-                    'w-full min-w-0',
                     'form-builder-page-tab-button',
-                    'px-[15px]',
-                    'text-[#64788d]',
-                    'text-[12px]',
-                    'font-medium',
-                    'uppercase',
-                    'rounded-none',
-
-                    !isAnyDragActive && 'hover:text-sky-600',
-                    !isAnyDragActive && 'hover:bg-transparent',
-
-                    'focus-visible:shadow-[inset_0_0_0_2px_var(--color-sky-600)]',
-
-                    hasErrors ? 'text-error' : '',
-
-                    // Active state
-                    isActive ? [
-                        'after:content-[""]',
-                        'after:absolute',
-                        'after:bottom-0',
-                        'after:left-[15px]',
-                        'after:right-0',
-                        'after:w-[calc(100%-30px)]',
-                        'after:h-[2px]',
-                        'after:bg-sky-600',
-                    ] : [],
-
-                    // Drop target state
-                    isDropTarget ? 'bg-[#e5f5f8]' : '',
+                    isActive && 'is-active',
+                    isDropTarget && 'is-drop-target',
+                    hasErrors && 'has-errors',
                 )}
             >
                 <span className="block truncate">{page.label}</span>
@@ -185,9 +154,9 @@ function PageTabs({ isAnyDragActive = false }) {
     return (
         <div className={cn(
             'form-builder-page-tabs',
-            'flex items-center gap-2 mx-2',
+            'flex items-center gap-2',
             'h-full',
-        )}>
+        )} data-drag-active={isAnyDragActive ? 'true' : undefined}>
             <ScrollArea size="xs" orientation="horizontal" className="h-full flex-1 min-w-0" contentClassName="h-full">
                 <div className={cn(
                     'flex items-center gap-1 h-full',
@@ -209,7 +178,6 @@ function PageTabs({ isAnyDragActive = false }) {
                                     hasErrors={hasErrors}
                                     onTabClick={handleTabClick}
                                     onTabDoubleClick={handleTabDoubleClick}
-                                    isAnyDragActive={isAnyDragActive}
                                 />
                             );
                         })
@@ -218,46 +186,48 @@ function PageTabs({ isAnyDragActive = false }) {
                             'flex items-center gap-1.5 px-[15px] text-[12px] font-medium uppercase',
                             hasPageListErrors ? 'text-error' : 'text-[#64788d]',
                         )}>
-                            {hasPageListErrors && <FontAwesomeIcon icon={faTriangleExclamation} className="size-3" />}
+                            {hasPageListErrors && <Icon icon="triangle-exclamation" className="size-3" />}
                             <span>{Craft.t('formie', 'No pages')}</span>
                         </div>
                     )}
                 </div>
             </ScrollArea>
 
-            {enableMultiPageForms && (
+            {/* ml-auto: ScrollArea may not flex-fill (WC host), so pin actions to the far right.
+                mr-1 + page-tabs margin-inline 8px ≈ v1 mx-2 + gear mr-1 gap before the sidebar. */}
+            <div className="ml-auto flex shrink-0 items-center gap-2 mr-1">
+                {enableMultiPageForms && (
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleQuickAddPage}
+                        className={cn(
+                            'form-builder-page-tab-action',
+                            hasPageListErrors && 'has-errors',
+                        )}
+                        aria-label={Craft.t('formie', 'New Page')}
+                        aria-invalid={hasPageListErrors || undefined}
+                    >
+                        <Icon slot="start" icon="plus" />
+                    </Button>
+                )}
+
                 <Button
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={handleQuickAddPage}
+                    onClick={handleSettingsClick}
                     className={cn(
-                        'p-2',
-                        hasPageListErrors ? 'text-error border-error' : 'text-gray-600',
-                        !isAnyDragActive && (hasPageListErrors ? 'hover:text-error' : 'hover:text-gray-800'),
+                        'form-builder-page-tab-action',
+                        hasPageListErrors && 'has-errors',
                     )}
-                    aria-label={Craft.t('formie', 'New Page')}
+                    aria-label={Craft.t('formie', 'Page Settings')}
                     aria-invalid={hasPageListErrors || undefined}
                 >
-                    <FontAwesomeIcon icon={faPlus} className="size-4" />
+                    <Icon slot="start" icon="gear" />
                 </Button>
-            )}
-
-            <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleSettingsClick}
-                className={cn(
-                    'p-2 mr-1',
-                    hasPageListErrors ? 'text-error border-error' : 'text-gray-600',
-                    !isAnyDragActive && (hasPageListErrors ? 'hover:text-error' : 'hover:text-gray-800'),
-                )}
-                aria-label={Craft.t('formie', 'Page Settings')}
-                aria-invalid={hasPageListErrors || undefined}
-            >
-                <FontAwesomeIcon icon={faCog} className="size-4" />
-            </Button>
+            </div>
 
             <PageSettingsModal
                 isOpen={isSettingsModalOpen}

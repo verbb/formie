@@ -2482,9 +2482,7 @@ class Form extends Element implements FormInterface
                 'warning' => Craft::t('formie', 'You must use Ajax submissions when using some payment integrations in your form.'),
                 'if' => 'formBuilder.ajaxSubmissionForced || formBuilder.allowedSubmitMethods == "ajax"',
             ]),
-            [
-                '$el' => 'hr',
-            ],
+            SchemaHelper::separator(),
             [
                 '$el' => 'h3',
                 'children' => Craft::t('formie', 'Quiz Scoring'),
@@ -2519,10 +2517,9 @@ class Form extends Element implements FormInterface
                 'name' => 'settings.quizShowScoreAfterSubmit',
                 'if' => 'formBuilder.hasQuizFields && settings.scoringEnabled',
             ]),
-            [
-                '$el' => 'hr',
+            SchemaHelper::separator([
                 'if' => 'formBuilder.hasQuizFields',
-            ],
+            ]),
             [
                 '$el' => 'h3',
                 'children' => Craft::t('formie', 'After Submit'),
@@ -2700,9 +2697,7 @@ class Form extends Element implements FormInterface
                 'name' => 'settings.loadingIndicatorText',
                 'if' => 'settings.loadingIndicator == "text"',
             ]),
-            [
-                '$el' => 'hr',
-            ],
+            SchemaHelper::separator(),
             [
                 '$el' => 'h3',
                 'children' => Craft::t('formie', 'Validation'),
@@ -2740,9 +2735,7 @@ class Form extends Element implements FormInterface
                     ['label' => Craft::t('formie', 'Bottom of Form'), 'value' => 'bottom-form'],
                 ],
             ]),
-            [
-                '$el' => 'hr',
-            ],
+            SchemaHelper::separator(),
             [
                 '$el' => 'h3',
                 'children' => Craft::t('formie', 'Availability'),
@@ -2795,9 +2788,7 @@ class Form extends Element implements FormInterface
                     ], RichTextHelper::getRichTextConfig('forms.scheduleFormExpiredMessage'))),
                 ],
             ],
-            [
-                '$el' => 'hr',
-            ],
+            SchemaHelper::separator(),
             [
                 '$el' => 'h3',
                 'children' => Craft::t('formie', 'Submission Limits'),
@@ -2857,9 +2848,7 @@ class Form extends Element implements FormInterface
                     ], RichTextHelper::getRichTextConfig('forms.limitSubmissionsMessage'))),
                 ],
             ],
-            [
-                '$el' => 'hr',
-            ],
+            SchemaHelper::separator(),
             [
                 '$el' => 'h3',
                 'children' => Craft::t('formie', 'Advanced'),
@@ -2886,8 +2875,12 @@ class Form extends Element implements FormInterface
 
         return SchemaHelper::schemaNode([        
             '$cmp' => 'Notifications',
-            'schema' => $compiledSchema['schema'],
-            'schemaIndex' => $compiledSchema,
+            // Nested under `props` so SchemaFormEngine does not strip `schema` as bookkeeping
+            // (top-level `schema` is reserved for nested SchemaRenderer trees).
+            'props' => [
+                'schema' => $compiledSchema['schema'],
+                'schemaIndex' => $compiledSchema,
+            ],
             'schemaChildPrefix' => 'notifications.*.',
         ]);
     }
@@ -2941,9 +2934,7 @@ class Form extends Element implements FormInterface
             ]),
             ...($formStatusField = $this->_formStatusSelectSchemaField()) ? [$formStatusField] : [],
             ...($formGroupField = $this->_formGroupSelectSchemaField()) ? [$formGroupField] : [],
-            [
-                '$el' => 'hr',
-            ],
+            SchemaHelper::separator(),
             [
                 '$el' => 'h3',
                 'children' => Craft::t('formie', 'Submissions'),
@@ -2999,9 +2990,7 @@ class Form extends Element implements FormInterface
                 'name' => 'settings.cpSubmissionFieldConditions',
                 'options' => CpSubmissionFieldConditions::formOptions(),
             ]),
-            [
-                '$el' => 'hr',
-            ],
+            SchemaHelper::separator(),
             [
                 '$el' => 'h3',
                 'children' => Craft::t('formie', 'Client Event Defaults'),
@@ -3036,9 +3025,7 @@ class Form extends Element implements FormInterface
                 ]),
                 'conditionOptions' => ConditionsHelper::getConditionOptions(),
             ],
-            [
-                '$el' => 'hr',
-            ],
+            SchemaHelper::separator(),
             [
                 '$el' => 'h3',
                 'children' => Craft::t('formie', 'Privacy'),
@@ -3113,10 +3100,9 @@ class Form extends Element implements FormInterface
                     ],
                 ],
             ]),
-            [
-                '$el' => 'hr',
+            SchemaHelper::separator([
                 'if' => Craft::$app->edition !== Craft::Solo,
-            ],
+            ]),
             [
                 '$el' => 'h3',
                 'children' => Craft::t('formie', 'Permissions'),
@@ -3131,9 +3117,7 @@ class Form extends Element implements FormInterface
                 'name' => 'settings.usePerFormPermissions',
                 'if' => Craft::$app->edition !== Craft::Solo,
             ]),
-            [
-                '$el' => 'hr',
-            ],
+            SchemaHelper::separator(),
             [
                 '$el' => 'h3',
                 'children' => Craft::t('formie', 'Advanced'),
@@ -3151,10 +3135,9 @@ class Form extends Element implements FormInterface
                 'reservedHandles' => $reservedFormHandles,
                 'warning' => Craft::t('formie', 'Changing this may result in your {entity} not working as expected.', ['entity' => $builderEntityLabel]),
             ]),
-            [
-                '$el' => 'hr',
+            SchemaHelper::separator([
                 'if' => 'id',
-            ],
+            ]),
             [
                 '$cmp' => 'FormMetaDetails',
             ],
@@ -3493,6 +3476,9 @@ class Form extends Element implements FormInterface
             [
                 '$field' => 'list',
                 'name' => 'pages',
+                // Inline field errors only — same as page settings. Otherwise ListField
+                // also surfaces getGroupedErrorsForPath('pages') ("pages: Button Label…").
+                'showGroupedErrors' => false,
                 'className' => 'flex h-full min-h-0 flex-1 flex-col',
                 'schemaChildPrefix' => 'pages.*.',
                 'schema' => [

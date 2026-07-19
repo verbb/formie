@@ -189,9 +189,13 @@ trait PluginTrait
                 'cpAssets' => [
                     'class' => VitePluginService::class,
                     'assetClass' => CpReactAsset::class,
-                    'useDevServer' => true,
+                    // Default off: Craft serves built CP dist. Kit changes are picked up by
+                    // rebuilding plugin-kit (`npm run build:plugin-kit`) then the CP — not by
+                    // Vite HMR into kit src. Opt in with FORMIE_USE_VITE_DEV_SERVER=true for
+                    // plugin-local HMR only (same model as Navigation).
+                    'useDevServer' => filter_var(App::parseEnv('$FORMIE_USE_VITE_DEV_SERVER') ?: false, FILTER_VALIDATE_BOOL),
                     'devServerPublic' => rtrim(App::parseEnv('$FORMIE_CP_DEV_SERVER_PUBLIC') ?: 'http://localhost:3900/', '/') . '/',
-                    'errorEntry' => 'js/main.js',
+                    'errorEntry' => 'src/plugin-kit-register.js',
                     'cacheKeySuffix' => '',
                     'devServerInternal' => rtrim(App::parseEnv('$FORMIE_CP_DEV_SERVER_INTERNAL') ?: 'http://localhost:3900/', '/') . '/',
                     'checkDevServer' => true,

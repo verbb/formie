@@ -1,10 +1,6 @@
 import { useState } from 'react';
 
-import {
-    PaneTabs,
-    PaneTabsList,
-    PaneTabsTrigger,
-} from '@verbb/plugin-kit-react/components';
+import { Tab, Tabs } from '@verbb/plugin-kit-react/components';
 import { useCpFormPayloadSync } from '@utils';
 
 import { DefaultsTabPanels } from '@defaults/components/DefaultsTabPanels';
@@ -73,16 +69,14 @@ export const DefaultsApp = ({ settings }) => {
 
     return (
         <div className="formie-defaults-app">
-            <PaneTabs defaultValue="form" className="w-full">
-                <PaneTabsList aria-label={Craft.t('formie', 'Defaults sections')}>
-                    {DEFAULT_TABS.map((tab) => {
-                        return (
-                            <PaneTabsTrigger key={tab.id} value={tab.id}>
-                                {Craft.t('formie', tab.label)}
-                            </PaneTabsTrigger>
-                        );
-                    })}
-                </PaneTabsList>
+            <Tabs variant="pane" aria-label={Craft.t('formie', 'Defaults sections')} className="w-full">
+                {DEFAULT_TABS.map((tab) => {
+                    return (
+                        <Tab key={tab.id} slot="nav" value={tab.id}>
+                            {Craft.t('formie', tab.label)}
+                        </Tab>
+                    );
+                })}
 
                 <DefaultsTabPanels
                     settings={settings}
@@ -94,7 +88,7 @@ export const DefaultsApp = ({ settings }) => {
                     updateValidationMessageDefaults={updateValidationMessageDefaults}
                     context="global"
                 />
-            </PaneTabs>
+            </Tabs>
         </div>
     );
 };

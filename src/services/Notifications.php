@@ -991,9 +991,7 @@ class Notifications extends Component
             [
                 '$cmp' => 'NotificationPreview',
             ],
-            [
-                '$el' => 'hr',
-            ],
+            SchemaHelper::separator(),
             [
                 '$cmp' => 'NotificationTest',
                 'props' => [

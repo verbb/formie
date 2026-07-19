@@ -1,40 +1,7 @@
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {
-    faArrowsRotate,
-    faChevronDown,
-    faChevronRight,
-    faChevronUp,
-    faLinkSlash,
-    faSliders,
-} from '@fortawesome/pro-solid-svg-icons';
 
-import {
-    Button,
-    ComboboxInput,
-    Dialog,
-    DialogContent,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-    SelectInput,
-    Spinner,
-} from '@verbb/plugin-kit-react/components';
-import {
-    FieldControl,
-    FieldHeader,
-    FieldInstructions,
-    FieldLabel,
-    FieldRoot,
-} from '@verbb/plugin-kit-react/forms/Field';
-import { useEngineField } from '@verbb/plugin-kit-react/forms/useEngineField';
+import { Button, Combobox, ComboboxInput, Dialog, DropdownItem, DropdownMenu, Icon, Option, Popover, SelectInput, Spinner } from '@verbb/plugin-kit-react/components';
+import { FieldLayout, useEngineField } from '@verbb/plugin-kit-react/forms';
 import { cn } from '@verbb/plugin-kit-react/utils';
 import { refreshIntegrationFormSettings } from '@form-builder/hooks/useFormTools';
 import { useFormBuilderApp } from '@form-builder/contexts/FormBuilderAppContext';
@@ -72,65 +39,28 @@ function SettingSelectField({
     emptyMessage,
 }) {
     return (
-        <FieldRoot name={name}>
-            <FieldHeader className="space-y-0.5">
-                <FieldLabel>{label}</FieldLabel>
-                {instructions ? (
-                    <FieldInstructions>{instructions}</FieldInstructions>
-                ) : null}
-            </FieldHeader>
-            <FieldControl>
-                {useCombobox ? (
-                    <ComboboxInput
-                        options={options}
-                        value={value ?? ''}
-                        placeholder={placeholder || Craft.t('formie', 'Select an option')}
-                        emptyMessage={emptyMessage || Craft.t('formie', 'No options found.')}
-                        disabled={disabled}
-                        className="w-full"
-                        onValueChange={onChange}
-                    />
-                ) : (
-                    <SelectInput
-                        options={options}
-                        value={value}
-                        placeholder={placeholder}
-                        disabled={disabled}
-                        onChange={onChange}
-                    />
-                )}
-            </FieldControl>
-        </FieldRoot>
+        <FieldLayout name={name} label={label} instructions={instructions}>
+            {useCombobox ? (
+                <ComboboxInput
+                    options={options}
+                    value={value ?? ''}
+                    placeholder={placeholder || Craft.t('formie', 'Select an option')}
+                    emptyMessage={emptyMessage || Craft.t('formie', 'No options found.')}
+                    disabled={disabled}
+                    className="w-full"
+                    onValueChange={onChange}
+                />
+            ) : (
+                <SelectInput
+                    options={options}
+                    value={value}
+                    placeholder={placeholder}
+                    disabled={disabled}
+                    onChange={onChange}
+                />
+            )}
+        </FieldLayout>
     );
-}
-
-const CHAIN_FIELD_WIDTH_DEFAULT = 'w-[200px]';
-const CHAIN_DROPDOWN_CONTENT_CLASS = '!w-max !min-w-[var(--anchor-width)] max-w-[min(520px,var(--available-width))]';
-
-function getIntegrationChainFieldWidthClass(step) {
-    const labels = [
-        String(step.label ?? ''),
-        ...step.options.map((option) => String(option.label ?? '')),
-    ];
-    const longest = labels.reduce((max, label) => Math.max(max, label.length), 0);
-
-    if (longest > 34) {
-        return 'w-[320px]';
-    }
-
-    if (longest > 28) {
-        return 'w-[280px]';
-    }
-
-    if (longest > 22) {
-        return 'w-[240px]';
-    }
-
-    if (longest > 16) {
-        return 'w-[220px]';
-    }
-
-    return CHAIN_FIELD_WIDTH_DEFAULT;
 }
 
 function PathSeparator() {
@@ -139,15 +69,16 @@ function PathSeparator() {
             className="inline-flex h-9 w-3.5 shrink-0 items-center justify-center text-gray-400"
             aria-hidden="true"
         >
-            <FontAwesomeIcon icon={faChevronRight} className="size-2.5" />
+            <Icon icon="chevron-right" className="size-2.5" />
         </span>
     );
 }
 
-function PathSeparatorLabelSpacer() {
-    return <span className="inline-block w-3.5 shrink-0" aria-hidden="true" />;
-}
-
+/**
+ * Integration source path — one column per step (label above control).
+ * Width follows content with a modest floor/ceiling so short values stay
+ * compact and long option labels can grow instead of equal fixed buckets.
+ */
 function IntegrationSourceChain({ steps }) {
     if (!steps.length) {
         return null;
@@ -155,50 +86,52 @@ function IntegrationSourceChain({ steps }) {
 
     return (
         <div
-            className="space-y-1"
+            className="flex flex-wrap items-end gap-x-1 gap-y-2"
             role="group"
             aria-label={Craft.t('formie', 'Integration option source settings')}
         >
-            <div className="flex flex-wrap items-center gap-x-1">
-                {steps.map((step, index) => {
-                    const fieldWidthClass = getIntegrationChainFieldWidthClass(step);
+            {steps.map((step, index) => {
+                return (
+                    <Fragment key={step.key}>
+                        {index > 0 && <PathSeparator />}
+                        {/*
+                          pk-combobox defaults to fit-content; cap long labels so the
+                          path can wrap instead of forcing equal fixed columns.
+                        */}
+                        <div className="formie-integration-chain-step flex max-w-[22rem] flex-col gap-1">
+                            <span className="text-xs font-medium text-gray-700">{step.label}</span>
+                            <Combobox
+                                value={String(step.value ?? '')}
+                                placeholder={step.placeholder || Craft.t('formie', 'Select…')}
+                                emptyMessage={Craft.t('formie', 'No options found.')}
+                                disabled={step.disabled}
+                                onPkChange={(event) => {
+                                    const next = event.detail?.value;
+                                    const resolved = Array.isArray(next) ? next[0] : next;
+                                    step.onChange?.(resolved ?? '');
+                                }}
+                            >
+                                {step.options.map((option) => {
+                                    const optionValue = String(option.value ?? '');
 
-                    return (
-                        <Fragment key={`${step.key}-label`}>
-                            {index > 0 && <PathSeparatorLabelSpacer />}
-                            <div className={cn(fieldWidthClass, 'shrink-0')}>
-                                <span className="text-xs font-medium text-gray-700">{step.label}</span>
-                            </div>
-                        </Fragment>
-                    );
-                })}
-            </div>
-            <div className="flex flex-wrap items-center gap-x-1 gap-y-1">
-                {steps.map((step, index) => {
-                    const fieldWidthClass = getIntegrationChainFieldWidthClass(step);
-
-                    return (
-                        <Fragment key={step.key}>
-                            {index > 0 && <PathSeparator />}
-                            <div className={cn(fieldWidthClass, 'shrink-0')}>
-                                <ComboboxInput
-                                    options={step.options}
-                                    value={step.value ?? ''}
-                                    placeholder={step.placeholder || Craft.t('formie', 'Select…')}
-                                    emptyMessage={Craft.t('formie', 'No options found.')}
-                                    disabled={step.disabled}
-                                    className="w-full"
-                                    contentClassName={CHAIN_DROPDOWN_CONTENT_CLASS}
-                                    onValueChange={step.onChange}
-                                />
-                                {step.errorMessage ? (
-                                    <p className="mt-1 text-xs text-red-600">{step.errorMessage}</p>
-                                ) : null}
-                            </div>
-                        </Fragment>
-                    );
-                })}
-            </div>
+                                    return (
+                                        <Option
+                                            key={optionValue || '__empty'}
+                                            value={optionValue}
+                                            disabled={option.disabled}
+                                        >
+                                            {option.label}
+                                        </Option>
+                                    );
+                                })}
+                            </Combobox>
+                            {step.errorMessage ? (
+                                <p className="text-xs text-red-600">{step.errorMessage}</p>
+                            ) : null}
+                        </div>
+                    </Fragment>
+                );
+            })}
         </div>
     );
 }
@@ -295,17 +228,21 @@ function PredefinedMappingPopover({
     onLabelChange,
     onValueChange,
 }) {
+    // v1 PopoverContent: w-[min(92vw,320px)] space-y-3 p-4 — flush panel + content inset.
     return (
-        <Popover modal={false}>
-            <PopoverTrigger
-                render={(
-                    <Button type="button" variant="ghost" size="sm">
-                        <FontAwesomeIcon icon={faSliders} className="mr-1" />
-                        {Craft.t('formie', 'Mapping')}
-                    </Button>
-                )}
-            />
-            <PopoverContent align="end" className="w-[min(92vw,320px)] space-y-3 p-4">
+        <Popover
+            placement="bottom-end"
+            flush
+            style={{
+                '--pk-popover-flush-min-width': 'min(92vw, 320px)',
+                '--pk-popover-flush-max-width': 'min(92vw, 320px)',
+            }}
+        >
+            <Button slot="trigger" type="button" variant="transparent" size="sm">
+                <Icon slot="start" icon="sliders" />
+                {Craft.t('formie', 'Mapping')}
+            </Button>
+            <div className="formie-predefined-mapping-popover space-y-3 p-4">
                 <div className="space-y-1">
                     <p className="text-sm font-medium text-gray-800">
                         {Craft.t('formie', 'Label & value mapping')}
@@ -324,7 +261,7 @@ function PredefinedMappingPopover({
                             value={labelKey}
                             placeholder={Craft.t('formie', 'Label')}
                             disabled={disabled}
-                            triggerClassName="w-full"
+                            width="full"
                             onChange={onLabelChange}
                         />
                         <p className="text-xs text-gray-500">
@@ -340,7 +277,7 @@ function PredefinedMappingPopover({
                             value={valueKey}
                             placeholder={Craft.t('formie', 'Value')}
                             disabled={disabled}
-                            triggerClassName="w-full"
+                            width="full"
                             onChange={onValueChange}
                         />
                         <p className="text-xs text-gray-500">
@@ -348,7 +285,7 @@ function PredefinedMappingPopover({
                         </p>
                     </div>
                 </div>
-            </PopoverContent>
+            </div>
         </Popover>
     );
 }
@@ -405,64 +342,59 @@ function DynamicOptionsPreview({
                         />
                     )}
                     {sourceType === 'integration' && (
-                        <DropdownMenu size="sm">
-                            <DropdownMenuTrigger
-                                render={(
-                                    <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="sm"
-                                        disabled={busy || loadingIntegrationConfig}
-                                    />
-                                )}
+                        <DropdownMenu size="sm" placement="bottom-end">
+                            <Button
+                                slot="trigger"
+                                type="button"
+                                variant="transparent"
+                                size="sm"
+                                disabled={busy || loadingIntegrationConfig}
                             >
-                                <FontAwesomeIcon icon={faArrowsRotate} className="mr-1" />
+                                <Icon slot="start" icon="arrows-rotate" />
                                 {Craft.t('formie', 'Refresh')}
-                                <FontAwesomeIcon icon={faChevronDown} className="ml-1" />
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuItem
-                                    disabled={busy || loadingIntegrationConfig}
-                                    onClick={onRefreshPreview}
-                                >
-                                    <FontAwesomeIcon icon={faArrowsRotate} />
-                                    {Craft.t('formie', 'Refresh Preview')}
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                    disabled={busy || loadingIntegrationConfig || !selectedIntegrationHandle}
-                                    onClick={onRefreshIntegrationData}
-                                >
-                                    <FontAwesomeIcon icon={faArrowsRotate} />
-                                    {Craft.t('formie', 'Refresh Integration Data')}
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
+                                <Icon slot="end" icon="chevron-down" />
+                            </Button>
+                            <DropdownItem
+                                disabled={busy || loadingIntegrationConfig}
+                                onPkSelect={onRefreshPreview}
+                            >
+                                <Icon slot="start" icon="arrows-rotate" />
+                                {Craft.t('formie', 'Refresh Preview')}
+                            </DropdownItem>
+                            <DropdownItem
+                                disabled={busy || loadingIntegrationConfig || !selectedIntegrationHandle}
+                                onPkSelect={onRefreshIntegrationData}
+                            >
+                                <Icon slot="start" icon="arrows-rotate" />
+                                {Craft.t('formie', 'Refresh Integration Data')}
+                            </DropdownItem>
                         </DropdownMenu>
                     )}
                     <Button
                         type="button"
-                        variant="ghost"
+                        variant="transparent"
                         size="sm"
                         disabled={busy || loadingIntegrationConfig || controlsLoading}
                         onClick={onConvertClick}
                     >
-                        <FontAwesomeIcon icon={faLinkSlash} className="mr-1" />
+                        <Icon slot="start" icon="link-slash" />
                         {Craft.t('formie', 'Convert')}
                     </Button>
                     <Button
                         type="button"
-                        variant="ghost"
+                        variant="transparent"
                         size="sm"
                         aria-expanded={expanded}
                         onClick={() => { onExpandedChange(!expanded); }}
                     >
                         {expanded ? (
                             <>
-                                <FontAwesomeIcon icon={faChevronUp} className="mr-1" />
+                                <Icon slot="start" icon="chevron-up" />
                                 {Craft.t('formie', 'Collapse')}
                             </>
                         ) : (
                             <>
-                                <FontAwesomeIcon icon={faChevronDown} className="mr-1" />
+                                <Icon slot="start" icon="chevron-down" />
                                 {Craft.t('formie', 'Expand')}
                             </>
                         )}
@@ -557,38 +489,40 @@ function ConvertToStaticDialog({
     onConfirm,
 }) {
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-md">
-                <DialogHeader>
-                    <DialogTitle>{Craft.t('formie', 'Convert to static options?')}</DialogTitle>
-                </DialogHeader>
-                <div className="px-4 py-4 text-sm leading-relaxed text-gray-600">
-                    {Craft.t(
-                        'formie',
-                        'This will resolve the current source and copy all options into the static options table. The field will no longer update from {source}.',
-                        { source: sourceLabel || Craft.t('formie', 'this source') },
-                    )}
-                </div>
-                <DialogFooter className="gap-2 sm:justify-end">
-                    <Button
-                        type="button"
-                        variant="ghost"
-                        disabled={busy}
-                        onClick={() => { onOpenChange(false); }}
-                    >
-                        {Craft.t('formie', 'Cancel')}
-                    </Button>
-                    <Button
-                        type="button"
-                        variant="primary"
-                        disabled={busy}
-                        onClick={onConfirm}
-                    >
-                        <FontAwesomeIcon icon={faLinkSlash} className="mr-1" />
-                        {Craft.t('formie', 'Convert')}
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
+        <Dialog
+            open={open}
+            label={Craft.t('formie', 'Convert to static options?')}
+            className="formie-convert-static-options-dialog"
+            onPkOpenChange={(event) => {
+                onOpenChange(Boolean(event.detail?.open));
+            }}
+        >
+            <div className="text-sm leading-relaxed text-gray-600">
+                {Craft.t(
+                    'formie',
+                    'This will resolve the current source and copy all options into the static options table. The field will no longer update from {source}.',
+                    { source: sourceLabel || Craft.t('formie', 'this source') },
+                )}
+            </div>
+            <Button
+                slot="footer"
+                type="button"
+                variant="transparent"
+                disabled={busy}
+                onClick={() => { onOpenChange(false); }}
+            >
+                {Craft.t('formie', 'Cancel')}
+            </Button>
+            <Button
+                slot="footer"
+                type="button"
+                variant="primary"
+                disabled={busy}
+                onClick={onConfirm}
+            >
+                <Icon slot="start" icon="link-slash" />
+                {Craft.t('formie', 'Convert')}
+            </Button>
         </Dialog>
     );
 }
@@ -2352,14 +2286,11 @@ function OptionDynamicSettingsField({ field, form }) {
 
                         {sourceType === 'integration' && (
                             <div className="space-y-2">
-                                <FieldRoot name="integrationSourceSettings">
-                                    <FieldHeader className="space-y-0.5">
-                                        <FieldLabel>{Craft.t('formie', 'Source')}</FieldLabel>
-                                        <FieldInstructions>
-                                            {Craft.t('formie', 'Choose the connected integration and settings to pull options from.')}
-                                        </FieldInstructions>
-                                    </FieldHeader>
-                                </FieldRoot>
+                                <FieldLayout
+                                    name="integrationSourceSettings"
+                                    label={Craft.t('formie', 'Source')}
+                                    instructions={Craft.t('formie', 'Choose the connected integration and settings to pull options from.')}
+                                />
                                 {showIntegrationChainSkeleton ? (
                                     <IntegrationChainSkeleton
                                         message={
@@ -2401,14 +2332,11 @@ function OptionDynamicSettingsField({ field, form }) {
 
                         {sourceType === 'provider' && (
                             <div className="space-y-2">
-                                <FieldRoot name="registeredSourceSettings">
-                                    <FieldHeader className="space-y-0.5">
-                                        <FieldLabel>{Craft.t('formie', 'Source')}</FieldLabel>
-                                        <FieldInstructions>
-                                            {Craft.t('formie', 'Choose a registered custom provider and configure its settings.')}
-                                        </FieldInstructions>
-                                    </FieldHeader>
-                                </FieldRoot>
+                                <FieldLayout
+                                    name="registeredSourceSettings"
+                                    label={Craft.t('formie', 'Source')}
+                                    instructions={Craft.t('formie', 'Choose a registered custom provider and configure its settings.')}
+                                />
                                 {showRegisteredChainSkeleton ? (
                                     <IntegrationChainSkeleton
                                         message={Craft.t('formie', 'Loading custom providers…')}

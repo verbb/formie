@@ -1,13 +1,9 @@
 import { useMemo, useState } from 'react';
 
-import {
-    ComboboxInput,
-    PaneTabsContent,
-    SelectInput,
-} from '@verbb/plugin-kit-react/components';
+import { ComboboxInput, SelectInput } from '@verbb/plugin-kit-react/components';
 import { FieldLayout } from '@verbb/plugin-kit-react/forms';
-
 import { DefaultsSectionIntro } from '@defaults/components/DefaultsSectionIntro';
+import { DefaultsTabPanel } from '@defaults/components/DefaultsTabPanel';
 import { DefaultsVariableCategoriesProvider } from '@defaults/components/DefaultsVariableCategoriesProvider';
 import { SchemaDefaultsPanel } from '@defaults/components/SchemaDefaultsPanel';
 import { getAtPath } from '@defaults/utils/defaultsEditorState';
@@ -79,7 +75,7 @@ export const DefaultsTabPanels = ({
 
     return (
         <DefaultsVariableCategoriesProvider settings={settings}>
-            <PaneTabsContent value="form" className="formie-defaults-panel">
+            <DefaultsTabPanel value="form">
                 <DefaultsSectionIntro
                     title={Craft.t('formie', 'New Form Defaults')}
                     description={formDefaultsDescription}
@@ -116,9 +112,9 @@ export const DefaultsTabPanels = ({
                     values={values.formDefaults || {}}
                     onChange={updateFormDefaults}
                 />
-            </PaneTabsContent>
+            </DefaultsTabPanel>
 
-            <PaneTabsContent value="fields" className="formie-defaults-panel">
+            <DefaultsTabPanel value="fields">
                 <DefaultsSectionIntro
                     title={Craft.t('formie', 'Field Defaults')}
                     description={fieldDefaultsDescription}
@@ -191,9 +187,9 @@ export const DefaultsTabPanels = ({
                         {Craft.t('formie', 'No field types expose default settings yet.')}
                     </p>
                 )}
-            </PaneTabsContent>
+            </DefaultsTabPanel>
 
-            <PaneTabsContent value="validation" className="formie-defaults-panel">
+            <DefaultsTabPanel value="validation">
                 <DefaultsSectionIntro
                     title={Craft.t('formie', 'Validation Message Defaults')}
                     description={validationDescription}
@@ -206,9 +202,9 @@ export const DefaultsTabPanels = ({
                     values={values.validationMessageDefaults || {}}
                     onChange={updateValidationMessageDefaults}
                 />
-            </PaneTabsContent>
+            </DefaultsTabPanel>
 
-            <PaneTabsContent value="notifications" className="formie-defaults-panel">
+            <DefaultsTabPanel value="notifications">
                 <DefaultsSectionIntro
                     title={Craft.t('formie', 'Notification Defaults')}
                     description={notificationDescription}
@@ -233,9 +229,9 @@ export const DefaultsTabPanels = ({
                     values={values.notificationDefaults || {}}
                     onChange={updateNotificationDefaults}
                 />
-            </PaneTabsContent>
+            </DefaultsTabPanel>
 
-            <PaneTabsContent value="integrations" className="formie-defaults-panel">
+            <DefaultsTabPanel value="integrations">
                 <DefaultsSectionIntro
                     title={Craft.t('formie', 'Integration Defaults')}
                     description={integrationDescription}
@@ -263,7 +259,7 @@ export const DefaultsTabPanels = ({
                         {Craft.t('formie', 'No captcha integrations with form settings are available.')}
                     </p>
                 )}
-            </PaneTabsContent>
+            </DefaultsTabPanel>
         </DefaultsVariableCategoriesProvider>
     );
 };

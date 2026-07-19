@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { evaluateCondition } from '@verbb/plugin-kit-react/utils';
+import { evaluateCondition } from '@verbb/plugin-kit-forms';
 
 const toKeyedMap = (value) => {
     return value && typeof value === 'object' ? value : {};

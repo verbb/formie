@@ -1,4 +1,4 @@
-import { createItem } from '@verbb/plugin-kit-react/utils';
+import { createItem } from '@verbb/plugin-kit-core';
 
 const PAGE_CONTEXTS = {
     ANY: 'any',

@@ -340,6 +340,22 @@ class Name extends FixedParentField implements SortableFieldInterface, Previewab
         ];
     }
 
+    /**
+     * Multi-name validates on sub-fields; the Validation tab has no visible fields.
+     * Hide the tab with the same condition instead of leaving an empty panel.
+     */
+    protected function modifyFormBuilderTabs(array $tabs): array
+    {
+        foreach ($tabs as &$tab) {
+            if (($tab['handle'] ?? null) === 'validation') {
+                $tab['if'] = 'useMultipleFields != true';
+            }
+        }
+        unset($tab);
+
+        return $tabs;
+    }
+
     public function defineFormBuilderAppearanceSchema(): array
     {
         return [

@@ -261,6 +261,7 @@ class Phone extends Field implements SortableFieldInterface, PreviewableFieldInt
                 'placeholder' => Craft::t('formie', 'Select an option'),
                 'options' => $this->getCountryOptions(),
                 'multiple' => true,
+                'width' => 'full',
             ]),
             SchemaHelper::comboboxField([
                 'label' => Craft::t('formie', 'Country Default Value'),

@@ -10,8 +10,8 @@ import { RestrictToVerticalAxis } from '@dnd-kit/abstract/modifiers';
 import { RestrictToElement } from '@dnd-kit/dom/modifiers';
 import { isSortable, useSortable } from '@dnd-kit/react/sortable';
 
-import { Checkbox } from '@verbb/plugin-kit-react/components';
 import { cn } from '@verbb/plugin-kit-react/utils';
+import { Checkbox } from '@verbb/plugin-kit-react/components';
 import { DragHandle } from '@field-palette/components/DragHandle';
 
 import { columnKey } from '@reports/components/ReportColumnsEditor';
@@ -123,22 +123,30 @@ export function ReportViewerColumnList({ columns, onChange }) {
             return;
         }
 
-        const { source, target } = event.operation;
+        const { source } = event.operation;
 
-        if (!isSortable(source) || !isSortable(target)) {
+        // Same pattern as ReportColumnsEditor / IntegrationDispatchStepList — use the
+        // sortable source’s initialIndex → index. Relying on target.sortable.index
+        // often no-ops (indexes already equal, or target isn’t sortable).
+        if (!isSortable(source)) {
             return;
         }
 
-        const fromIndex = source.sortable.index;
-        const toIndex = target.sortable.index;
+        const { initialIndex, index } = source;
 
-        if (fromIndex === toIndex) {
+        if (
+            initialIndex === index
+            || initialIndex < 0
+            || index < 0
+            || initialIndex >= columns.length
+            || index >= columns.length
+        ) {
             return;
         }
 
         const nextColumns = [...columns];
-        const [moved] = nextColumns.splice(fromIndex, 1);
-        nextColumns.splice(toIndex, 0, moved);
+        const [moved] = nextColumns.splice(initialIndex, 1);
+        nextColumns.splice(index, 0, moved);
         onChange(nextColumns);
     }, [columns, finishDragSession, onChange]);
 

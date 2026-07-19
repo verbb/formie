@@ -1,14 +1,13 @@
 import { createElement } from 'react';
-import { createRoot } from 'react-dom/client';
 
 import { FieldPaletteApp } from '@field-palette/components/FieldPaletteApp';
-import { bootstrapShadowReactApp, ensureCraftNamespace, markContainerReady } from '@utils';
+import { bootstrapShadowReactApp, defineFormieCpConstructor, ensureCraftNamespace, markContainerReady, mountFormieReactApp } from '@utils';
 
 import fieldPaletteStyles from '@field-palette/css/style.css?inline';
 
 ensureCraftNamespace('Formie');
 
-Craft.Formie.FieldPalette = function(settings = {}) {
+defineFormieCpConstructor('FieldPalette', async (settings = {}) => {
     const boot = bootstrapShadowReactApp({
         containerSelector: '.formie-field-palette',
         pluginHandle: 'formie',
@@ -20,11 +19,16 @@ Craft.Formie.FieldPalette = function(settings = {}) {
         return;
     }
 
-    const { mountNode, targetContainer } = boot;
+    const { targetContainer } = boot;
 
-    createRoot(mountNode).render(
-        createElement(FieldPaletteApp, { settings }),
-    );
+    await mountFormieReactApp({
+        mountNode: boot.mountNode,
+        portalContainer: boot.portalContainer,
+        shadowRootSelectors: boot.shadowRootSelectors,
+        portalClassName: boot.portalClassName,
+        translationCategory: boot.translationCategory,
+        children: createElement(FieldPaletteApp, { settings }),
+    });
 
     markContainerReady(targetContainer, 'formie-field-palette--ready');
-};
+});

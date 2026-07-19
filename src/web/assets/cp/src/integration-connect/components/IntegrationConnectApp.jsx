@@ -1,17 +1,9 @@
+import { getErrorMessage } from '@verbb/plugin-kit-core';
 import {
     useEffect, useRef, useState,
 } from 'react';
 
-import {
-    Button,
-    Dialog,
-    DialogContent,
-    Status,
-} from '@verbb/plugin-kit-react/components';
-
-import { cn, getErrorMessage } from '@verbb/plugin-kit-react/utils';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronRight, faExclamationTriangle } from '@fortawesome/pro-solid-svg-icons';
+import { Button, Dialog, Icon, Status } from '@verbb/plugin-kit-react/components';
 
 const getFormInputs = () => {
     let form = document.getElementById('main-form');
@@ -79,11 +71,10 @@ export const IntegrationConnectApp = ({ settings }) => {
     const initialSnapshotRef = useRef('');
 
     const statusType = statusText === 'Error' ? 'off' : (statusText === 'Connected' ? 'on' : 'gray');
-
-    const closeModal = () => {
-        setShowModal(false);
-        setShowDetails(false);
-    };
+    // OAuth meta row uses “Connect”; API check-connection uses “Refresh” once linked.
+    const actionLabel = statusText === 'Connected'
+        ? Craft.t('formie', 'Refresh')
+        : Craft.t('formie', 'Connect');
 
     const resolveModalError = (sourceError) => {
         const parsedError = getErrorMessage(sourceError);
@@ -181,11 +172,11 @@ export const IntegrationConnectApp = ({ settings }) => {
         }
     };
 
+    // Host is Craft `.field.lightswitch-field` — use `.heading` / `.input` so meta padding matches OAuth Connect.
     if (isDirty) {
         return (
-            <div className="flex items-center justify-between -mx-[14px] py-2 gap-2 h-[46px]">
-                <span className="flex items-center gap-2 text-warning">
-                    <FontAwesomeIcon icon={faExclamationTriangle} className="size-3" />
+            <div className="heading">
+                <span className="warning with-icon">
                     {Craft.t('formie', 'Save this integration to connect.')}
                 </span>
             </div>
@@ -193,87 +184,99 @@ export const IntegrationConnectApp = ({ settings }) => {
     }
 
     return (
-        <div className="flex items-center justify-between -mx-[14px] py-2 gap-2 h-[46px]">
-            <div className="flex items-center gap-2">
-                <Status status={statusType} className="mx-1" />
-                <span>{Craft.t('formie', statusText)}</span>
+        <>
+            <div className="heading">
+                <Status status={statusType} />
+                {Craft.t('formie', statusText)}
             </div>
 
-            <div className="">
+            <div className="input ltr">
+                {/* default = Craft .btn fill (slate); secondary is dark gray-on-white. */}
                 <Button
                     type="button"
                     size="sm"
+                    variant="default"
                     loading={loading}
                     spinnerSize="xs"
                     onClick={refresh}
                     disabled={loading || isDirty}
                 >
-                    {Craft.t('formie', 'Refresh')}
+                    {actionLabel}
+                </Button>
+            </div>
+
+            {/*
+             * Match formie-plugin-repo-alt DialogContent error panel:
+             * 66% × 66% (600×400 floor), no title chrome, centered icon/heading/mono + Show details.
+             */}
+            <Dialog
+                open={showModal}
+                withoutHeader
+                className="formie-integration-connect-dialog"
+                onPkOpenChange={(event) => {
+                    const open = Boolean(event.detail?.open);
+                    setShowModal(open);
+
+                    if (!open) {
+                        setShowDetails(false);
+                    }
+                }}
+            >
+                <Button
+                    type="button"
+                    variant="none"
+                    size="none"
+                    icon
+                    data-dialog="close"
+                    className="formie-integration-connect-dialog-close"
+                    aria-label={Craft.t('app', 'Close')}
+                >
+                    <Icon icon="xmark" />
                 </Button>
 
-                <Dialog
-                    open={showModal}
-                    onOpenChange={(open) => {
-                        setShowModal(open);
+                <div className="formie-integration-connect-error">
+                    <div className="formie-integration-connect-error__stack">
+                        <div className="formie-integration-connect-error__icon">
+                            <Icon icon="triangle-exclamation" />
+                        </div>
 
-                        if (!open) {
-                            setShowDetails(false);
-                        }
-                    }}
-                >
-                    <DialogContent className={cn(
-                        'w-[66%] h-[66%]',
-                        'min-w-[600px]',
-                        'min-h-[400px]',
-                    )}
-                    showCloseButton={true}
-                    autoFocusFirstInput={false}
-                    >
-                        <div className="flex h-full w-full items-center justify-center p-8 text-center">
-                            <div className="flex max-w-[680px] flex-col items-center gap-2 text-sm text-rose-600">
-                                <div className="flex items-center justify-center">
-                                    <FontAwesomeIcon icon={faExclamationTriangle} className="size-10" />
-                                </div>
+                        <h3 className="formie-integration-connect-error__heading">
+                            {errorMessage?.heading || Craft.t('formie', 'Connection error')}
+                        </h3>
 
-                                <h3 className="m-0 text-base font-semibold">
-                                    {errorMessage?.heading || Craft.t('formie', 'Connection error')}
-                                </h3>
+                        <p className="formie-integration-connect-error__message">
+                            {errorMessage?.text || Craft.t('formie', 'An unexpected error occurred.')}
+                        </p>
 
-                                <p className="m-0 text-xs font-mono">
-                                    {errorMessage?.text || Craft.t('formie', 'An unexpected error occurred.')}
-                                </p>
+                        {errorMessage?.traceAsString ? (
+                            <div className="formie-integration-connect-error__details">
+                                <button
+                                    type="button"
+                                    className="formie-integration-connect-error__details-toggle"
+                                    onClick={() => {
+                                        setShowDetails((value) => {
+                                            return !value;
+                                        });
+                                    }}
+                                >
+                                    <Icon
+                                        icon="chevron-right"
+                                        className={showDetails ? 'is-open' : undefined}
+                                    />
+                                    {Craft.t('formie', showDetails ? 'Hide details' : 'Show details')}
+                                </button>
 
-                                {errorMessage?.traceAsString ? (
-                                    <div className="w-full">
-                                        <button
-                                            type="button"
-                                            className="mx-auto mt-1 flex cursor-pointer items-center gap-1 text-xs"
-                                            onClick={() => {
-                                                setShowDetails((value) => {
-                                                    return !value;
-                                                });
-                                            }}
-                                        >
-                                            <FontAwesomeIcon
-                                                icon={faChevronRight}
-                                                className={cn('size-3 transition-transform', showDetails && 'rotate-90')}
-                                            />
-                                            {Craft.t('formie', showDetails ? 'Hide details' : 'Show details')}
-                                        </button>
-
-                                        {showDetails ? (
-                                            <div
-                                                className="mt-3 max-h-[180px] overflow-auto rounded-md bg-slate-50 p-3 text-left text-xs"
-                                                dangerouslySetInnerHTML={{ __html: errorMessage.traceAsString }}
-                                            />
-                                        ) : null}
-                                    </div>
+                                {showDetails ? (
+                                    <div
+                                        className="formie-integration-connect-error__trace"
+                                        dangerouslySetInnerHTML={{ __html: errorMessage.traceAsString }}
+                                    />
                                 ) : null}
                             </div>
-                        </div>
-                    </DialogContent>
-                </Dialog>
-            </div>
-        </div>
+                        ) : null}
+                    </div>
+                </div>
+            </Dialog>
+        </>
     );
 };

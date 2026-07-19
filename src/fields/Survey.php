@@ -394,6 +394,15 @@ class Survey extends OptionsField implements SortableFieldInterface, Questionnai
                 'newRowDefaults' => [
                     'points' => null,
                 ],
+                // Validation index (React still owns Score when scoring is enabled).
+                'columns' => [
+                    [
+                        'type' => 'text',
+                        'name' => 'label',
+                        'label' => Craft::t('formie', 'Label'),
+                        'required' => true,
+                    ],
+                ],
             ]),
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Enable Multiple Rows'),

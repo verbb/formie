@@ -6,21 +6,8 @@ import {
     startTransition,
     useState,
 } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {
-    faArrowDown, faArrowUp, faEllipsis, faPlus, faTrash,
-} from '@fortawesome/pro-solid-svg-icons';
 
-import {
-    Button,
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-    Input,
-    Lightswitch,
-} from '@verbb/plugin-kit-react/components';
+import { Button, DropdownItem, DropdownMenu, DropdownSeparator, Icon, Input, Lightswitch } from '@verbb/plugin-kit-react/components';
 import { cn } from '@verbb/plugin-kit-react/utils';
 
 import {
@@ -45,6 +32,7 @@ import {
     findFieldLocation,
     getFieldListForLocation,
     groupNameInputId,
+    hydratePaletteForEditor,
     moveFieldByOffset,
     moveFieldToGroup,
     moveGroupByOffset,
@@ -116,6 +104,10 @@ const clonePalette = (palette) => {
     };
 };
 
+const cloneEditorPalette = (palette, metaPalette = null) => {
+    return hydratePaletteForEditor(clonePalette(palette || { groups: [], unassigned: [] }), metaPalette);
+};
+
 function GroupBlock({
     group,
     groupIndex,
@@ -160,48 +152,43 @@ function GroupBlock({
 
                 {canEdit ? (
                     <div className="formie-field-palette-row-actions">
-                        <DropdownMenu size="sm">
-                            <DropdownMenuTrigger
-                                render={(
-                                    <Button
-                                        type="button"
-                                        variant="none"
-                                        size="xs"
-                                        className="formie-field-palette-menu-trigger"
-                                        aria-label={Craft.t('formie', 'Actions for {name}', { name: group.name })}
-                                    />
-                                )}
+                        <DropdownMenu size="sm" placement="bottom-end">
+                            <Button
+                                slot="trigger"
+                                type="button"
+                                variant="none"
+                                size="xs"
+                                className="formie-field-palette-menu-trigger"
+                                aria-label={Craft.t('formie', 'Actions for {name}', { name: group.name })}
                             >
-                                <FontAwesomeIcon icon={faEllipsis} className="size-3.5" />
-                            </DropdownMenuTrigger>
+                                <Icon slot="start" icon="ellipsis" className="size-3.5" />
+                            </Button>
 
-                            <DropdownMenuContent align="end" className="min-w-[160px]">
-                                <DropdownMenuItem
-                                    disabled={!canMoveUp}
-                                    onClick={() => { onMoveGroup(group.uid, -1); }}
-                                >
-                                    <FontAwesomeIcon icon={faArrowUp} />
-                                    {Craft.t('formie', 'Move up')}
-                                </DropdownMenuItem>
+                            <DropdownItem
+                                disabled={!canMoveUp}
+                                onPkSelect={() => { onMoveGroup(group.uid, -1); }}
+                            >
+                                <Icon slot="start" icon="arrow-up" />
+                                {Craft.t('formie', 'Move up')}
+                            </DropdownItem>
 
-                                <DropdownMenuItem
-                                    disabled={!canMoveDown}
-                                    onClick={() => { onMoveGroup(group.uid, 1); }}
-                                >
-                                    <FontAwesomeIcon icon={faArrowDown} />
-                                    {Craft.t('formie', 'Move down')}
-                                </DropdownMenuItem>
+                            <DropdownItem
+                                disabled={!canMoveDown}
+                                onPkSelect={() => { onMoveGroup(group.uid, 1); }}
+                            >
+                                <Icon slot="start" icon="arrow-down" />
+                                {Craft.t('formie', 'Move down')}
+                            </DropdownItem>
 
-                                <DropdownMenuSeparator />
+                            <DropdownSeparator />
 
-                                <DropdownMenuItem
-                                    className="text-error focus:text-error"
-                                    onClick={() => { onDelete(group.uid); }}
-                                >
-                                    <FontAwesomeIcon icon={faTrash} />
-                                    {Craft.t('formie', 'Delete')}
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
+                            <DropdownItem
+                                destructive
+                                onPkSelect={() => { onDelete(group.uid); }}
+                            >
+                                <Icon slot="start" icon="xmark" />
+                                {Craft.t('formie', 'Delete')}
+                            </DropdownItem>
                         </DropdownMenu>
                     </div>
                 ) : (
@@ -343,60 +330,55 @@ function SortableFieldRow({
 
             {canEdit && !isDragSource ? (
                 <div className="formie-field-palette-row-actions">
-                    <DropdownMenu size="sm">
-                        <DropdownMenuTrigger
-                            render={(
-                                <Button
-                                    type="button"
-                                    variant="none"
-                                    size="xs"
-                                    className="formie-field-palette-menu-trigger"
-                                    aria-label={Craft.t('formie', 'Actions for {label}', { label: field.defaultLabel })}
-                                />
-                            )}
+                    <DropdownMenu size="sm" placement="bottom-end">
+                        <Button
+                            slot="trigger"
+                            type="button"
+                            variant="none"
+                            size="xs"
+                            className="formie-field-palette-menu-trigger"
+                            aria-label={Craft.t('formie', 'Actions for {label}', { label: field.defaultLabel })}
                         >
-                            <FontAwesomeIcon icon={faEllipsis} className="size-3.5" />
-                        </DropdownMenuTrigger>
+                            <Icon slot="start" icon="ellipsis" className="size-3.5" />
+                        </Button>
 
-                        <DropdownMenuContent align="end" className="min-w-[180px]">
-                            <DropdownMenuItem
-                                disabled={!canMoveUp}
-                                onClick={() => { onMoveField(field.fieldClass, -1); }}
-                            >
-                                <FontAwesomeIcon icon={faArrowUp} />
-                                {Craft.t('formie', 'Move up')}
-                            </DropdownMenuItem>
+                        <DropdownItem
+                            disabled={!canMoveUp}
+                            onPkSelect={() => { onMoveField(field.fieldClass, -1); }}
+                        >
+                            <Icon slot="start" icon="arrow-up" />
+                            {Craft.t('formie', 'Move up')}
+                        </DropdownItem>
 
-                            <DropdownMenuItem
-                                disabled={!canMoveDown}
-                                onClick={() => { onMoveField(field.fieldClass, 1); }}
-                            >
-                                <FontAwesomeIcon icon={faArrowDown} />
-                                {Craft.t('formie', 'Move down')}
-                            </DropdownMenuItem>
+                        <DropdownItem
+                            disabled={!canMoveDown}
+                            onPkSelect={() => { onMoveField(field.fieldClass, 1); }}
+                        >
+                            <Icon slot="start" icon="arrow-down" />
+                            {Craft.t('formie', 'Move down')}
+                        </DropdownItem>
 
-                            {moveTargets.length ? (
-                                <>
-                                    <DropdownMenuSeparator />
+                        {moveTargets.length ? (
+                            <>
+                                <DropdownSeparator />
 
-                                    {moveTargets.map((target) => {
-                                        return (
-                                            <DropdownMenuItem
-                                                key={target.value}
-                                                onClick={() => {
-                                                    onMoveFieldToGroup(
-                                                        field.fieldClass,
-                                                        target.value === UNASSIGNED_SORTABLE_GROUP ? null : target.value,
-                                                    );
-                                                }}
-                                            >
-                                                {Craft.t('formie', 'Move to {name}', { name: target.label })}
-                                            </DropdownMenuItem>
-                                        );
-                                    })}
-                                </>
-                            ) : null}
-                        </DropdownMenuContent>
+                                {moveTargets.map((target) => {
+                                    return (
+                                        <DropdownItem
+                                            key={target.value}
+                                            onPkSelect={() => {
+                                                onMoveFieldToGroup(
+                                                    field.fieldClass,
+                                                    target.value === UNASSIGNED_SORTABLE_GROUP ? null : target.value,
+                                                );
+                                            }}
+                                        >
+                                            {Craft.t('formie', 'Move to {name}', { name: target.label })}
+                                        </DropdownItem>
+                                    );
+                                })}
+                            </>
+                        ) : null}
                     </DropdownMenu>
                 </div>
             ) : null}
@@ -450,13 +432,19 @@ function FieldDropZone({
 
 export function FieldPaletteApp({ settings, onPayloadChange = null }) {
     const canEdit = settings.canEdit !== false;
-    const [palette, setPalette] = useState(() => { return clonePalette(settings.palette || { groups: [], unassigned: [] }); });
+    const metaPalette = settings.fieldMetaSeed || null;
+    const [palette, setPalette] = useState(() => {
+        return cloneEditorPalette(settings.palette, metaPalette);
+    });
     const [isDndHydrated, setIsDndHydrated] = useState(false);
     const [activeDrag, setActiveDrag] = useState(null);
     const paletteRef = useRef(palette);
     const previousPaletteRef = useRef(null);
     const groupsContainerRef = useRef(null);
+    const onPayloadChangeRef = useRef(onPayloadChange);
     const useDnd = canEdit && isDndHydrated;
+
+    onPayloadChangeRef.current = onPayloadChange;
 
     const sensors = useMemo(() => {
         return [
@@ -479,13 +467,17 @@ export function FieldPaletteApp({ settings, onPayloadChange = null }) {
         payload: palettePayload,
     });
 
+    // Embedded hosts (Form Groups) keep the *editor* palette in React state — including
+    // defaultLabel for the name column / placeholders. Save-shaped serialize drops those
+    // keys; remounting from that payload left empty labels. Notify via ref so an inline
+    // parent callback identity change cannot reset→setState loop.
     useEffect(() => {
-        if (!onPayloadChange) {
+        if (!onPayloadChangeRef.current) {
             return;
         }
 
-        onPayloadChange(palettePayload);
-    }, [onPayloadChange, palettePayload]);
+        onPayloadChangeRef.current(cloneEditorPalette(palette, metaPalette));
+    }, [palette, metaPalette]);
 
     useEffect(() => {
         if (!canEdit) {
@@ -757,7 +749,7 @@ export function FieldPaletteApp({ settings, onPayloadChange = null }) {
             {canEdit ? (
                 <div className="formie-field-palette-toolbar">
                     <Button type="button" variant="dashed" onClick={handleAddGroup}>
-                        <FontAwesomeIcon icon={faPlus} className="size-3" />
+                        <Icon slot="start" icon="plus" className="size-3" />
                         {Craft.t('formie', 'Add group')}
                     </Button>
                 </div>

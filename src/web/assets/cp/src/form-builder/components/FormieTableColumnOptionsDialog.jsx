@@ -1,17 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 
-import {
-    Button,
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    EditableTable,
-} from '@verbb/plugin-kit-react/components';
 import { useTranslation } from '@verbb/plugin-kit-react/hooks';
-import { cn } from '@verbb/plugin-kit-react/utils';
+import { Button, Dialog, EditableTable } from '@verbb/plugin-kit-react/components';
 
 const normalizeOptionRows = (options = []) => {
     if (!Array.isArray(options)) {
@@ -84,48 +74,38 @@ function FormieTableColumnOptionsDialog({
     };
 
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className={cn(
-                'w-[35%] h-[35%]',
-                'max-w-auto',
-                'min-w-[200px]',
-                'min-h-[200px]',
-            )}>
-                <DialogHeader>
-                    <DialogTitle>{t('Dropdown Options')}</DialogTitle>
-                    <DialogDescription>
-                        {columnHeading
-                            ? t('Define the available options for “{heading}”.', { heading: columnHeading })
-                            : t('Define the available options.')}
-                    </DialogDescription>
-                </DialogHeader>
+        <Dialog
+            open={open}
+            label={t('Dropdown Options')}
+            onPkOpenChange={(event) => { onOpenChange(event.detail?.open ?? event.target?.open ?? false); }}
+        >
+            <div className="grid grid-cols-1 gap-4">
+                <p className="text-sm text-slate-600">
+                    {columnHeading
+                        ? t('Define the available options for “{heading}”.', { heading: columnHeading })
+                        : t('Define the available options.')}
+                </p>
 
-                <div className="h-full overflow-y-auto">
-                    <div className="grid grid-cols-1 gap-4 p-4">
-                        <div className="space-y-4">
-                            <EditableTable
-                                columns={tableColumns}
-                                rows={rows}
-                                onChange={setRows}
-                                addRowLabel={t('Add an option')}
-                                allowReorder={true}
-                                allowAdd={true}
-                                allowDelete={true}
-                            />
-                        </div>
-                    </div>
+                <div className="space-y-4">
+                    <EditableTable
+                        columns={tableColumns}
+                        rows={rows}
+                        onChange={setRows}
+                        addRowLabel={t('Add an option')}
+                        allowReorder={true}
+                        allowAdd={true}
+                        allowDelete={true}
+                    />
                 </div>
+            </div>
 
-                <DialogFooter className="gap-2">
-                    <Button type="button" onClick={() => { onOpenChange(false); }}>
-                        {t('Cancel')}
-                    </Button>
+            <Button slot="footer" type="button" onClick={() => { onOpenChange(false); }}>
+                {t('Cancel')}
+            </Button>
 
-                    <Button type="button" variant="primary" onClick={handleSave}>
-                        {t('Done')}
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
+            <Button slot="footer" type="button" variant="primary" onClick={handleSave}>
+                {t('Done')}
+            </Button>
         </Dialog>
     );
 }

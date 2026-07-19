@@ -25,8 +25,10 @@
             {% endfor %}
         </div>
 
+        {# Craft `.btn` chrome for CP; `add icon` owns the plus. Do not also use
+           `formie-button` — its ::before plus + Craft’s 10px padding overlap the label. #}
         {% set buttonAttributes = {
-            class: 'btn formie-button formie-repeater-add-button',
+            class: 'btn add icon formie-repeater-add-button',
             type: 'button',
             data: {
                 'min-rows': field.minRows,

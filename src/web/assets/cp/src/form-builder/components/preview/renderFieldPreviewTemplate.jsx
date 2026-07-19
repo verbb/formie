@@ -1,6 +1,5 @@
 import React, { createElement } from 'react';
-import { getFormComponentRegistry } from '@verbb/plugin-kit-react/forms/registry';
-import { normalizeAttrs } from '@verbb/plugin-kit-react/utils/schema';
+import { getFormComponentRegistry, normalizeAttrs } from '@verbb/plugin-kit-react/forms';
 import { PreviewSchemaProvider } from './PreviewSchemaContext';
 import {
     resolvePreviewNodeAttrs,

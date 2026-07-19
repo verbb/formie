@@ -1,4 +1,4 @@
-import { clone, findRecursive } from '@verbb/plugin-kit-react/utils';
+import { clone, findRecursive } from '@verbb/plugin-kit-core';
 import { getFieldReferenceOptions } from '@form-builder/hooks/useFormTools';
 
 export const buildConditionFieldPicker = ({

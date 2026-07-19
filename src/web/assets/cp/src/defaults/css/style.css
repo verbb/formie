@@ -1,4 +1,8 @@
+/* Kit tokens/FOUCE + Tailwind — needed for AppErrorBoundary / StatePanel utilities. */
 @import "@verbb/plugin-kit-react/style.css";
+@import "@verbb/plugin-kit-react/tailwind-theme.css";
+@import "tailwindcss";
+@import "@verbb/plugin-kit-react/tailwind-preflight-scope.css";
 
 .formie-defaults-app {
     display: flex;
@@ -6,11 +10,19 @@
     gap: 1.5rem;
 }
 
+/* Pane panels are unpadded in kit; Formie owns inset on `.formie-defaults-panel`. */
 .formie-defaults-panel {
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
+    /* Match ReportTabPanel / FormBuilderTabContent `p-6` / `max-[640px]:p-4`. */
     padding: 1.5rem;
+}
+
+@media (max-width: 640px) {
+    .formie-defaults-panel {
+        padding: 1rem;
+    }
 }
 
 .formie-defaults-section-title {

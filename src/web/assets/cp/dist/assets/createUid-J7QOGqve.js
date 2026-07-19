@@ -1,1 +1,0 @@
-const o=()=>typeof crypto<"u"&&typeof crypto.randomUUID=="function"?crypto.randomUUID():"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,r=>{const x=Math.floor(Math.random()*16);return(r==="x"?x:x&3|8).toString(16)});export{o as c};

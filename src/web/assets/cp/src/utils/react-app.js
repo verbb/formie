@@ -1,4 +1,19 @@
-import { configurePluginKitReact, createCraftHostBridge } from '@verbb/plugin-kit-react/utils';
+// Head FOUCE tokens. Component imports register custom elements.
+import '@verbb/plugin-kit-react/style.css';
+import pluginKitStyles from '@verbb/plugin-kit-react/style.css?inline';
+
+import { createElement, StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+
+import {
+    createCraftHostBridge,
+    configure,
+    mountShadowApp,
+    PluginKitProvider,
+} from '@verbb/plugin-kit-react/utils';
+
+// Register Formie-only pk-icon names before any CP React tree mounts.
+import './formieIcons.js';
 
 export const ensureCraftNamespace = (namespacePath) => {
     if (!namespacePath) {
@@ -19,50 +34,72 @@ export const ensureCraftNamespace = (namespacePath) => {
     return current;
 };
 
-export const createShadowMount = (container, {
-    styleTexts,
-    styleNamespace,
-    styleAttr,
-    rootAttr,
-} = {}) => {
-    if (!styleAttr || !rootAttr) {
-        throw new Error('createShadowMount() requires styleAttr and rootAttr.');
-    }
+const buildFormieReactConfig = ({
+    portalContainer,
+    portalClassName,
+    shadowRootSelectors,
+    translationCategory,
+}) => ({
+    portalContainer,
+    portalClassName: portalClassName || `${translationCategory}-ui`,
+    shadowRootSelectors,
+    translationCategory: translationCategory || 'formie',
+    // Formie calls hostRequest / element selectors heavily.
+    hostBridge: createCraftHostBridge(),
+});
 
-    if (!Array.isArray(styleTexts)) {
-        throw new Error('createShadowMount() requires styleTexts array.');
-    }
-
-    if (!container.attachShadow) {
-        return { mountNode: container, portalContainer: undefined };
-    }
-
-    const shadowRoot = container.shadowRoot ?? container.attachShadow({ mode: 'open' });
-
-    shadowRoot.querySelectorAll(`[${styleAttr}]`).forEach((node) => { return node.remove(); });
-
-    styleTexts.forEach((cssText, index) => {
-        if (!cssText) {
-            return;
-        }
-
-        const style = document.createElement('style');
-        style.setAttribute(styleAttr, `${styleNamespace}-${index}`);
-        style.textContent = cssText;
-        shadowRoot.appendChild(style);
+/**
+ * Mount (or re-render) a Formie CP React app.
+ * Custom elements register via component imports — no registerAll.
+ */
+export const mountFormieReactApp = ({
+    mountNode,
+    portalContainer,
+    shadowRootSelectors,
+    translationCategory = 'formie',
+    portalClassName,
+    children,
+    strictMode = false,
+    existingRoot = null,
+}) => {
+    const config = buildFormieReactConfig({
+        portalContainer,
+        portalClassName,
+        shadowRootSelectors,
+        translationCategory,
     });
 
-    let mountNode = shadowRoot.querySelector(`[${rootAttr}]`);
+    const tree = createElement(
+        PluginKitProvider,
+        config,
+        strictMode ? createElement(StrictMode, null, children) : children,
+    );
 
-    if (!mountNode) {
-        mountNode = document.createElement('div');
-        mountNode.setAttribute(rootAttr, '');
-        shadowRoot.appendChild(mountNode);
+    if (existingRoot) {
+        configure(config);
+        existingRoot.render(tree);
+
+        return {
+            root: existingRoot,
+            container: mountNode,
+            unmount: () => { existingRoot.unmount(); },
+        };
     }
 
-    return { mountNode, portalContainer: shadowRoot };
+    const root = createRoot(mountNode);
+    root.render(tree);
+
+    return {
+        root,
+        container: mountNode,
+        unmount: () => { root.unmount(); },
+    };
 };
 
+/**
+ * Prepare a shadow-DOM mount point and inject kit tokens + screen-local CSS.
+ * Pair with `mountFormieReactApp()` for CP screens.
+ */
 export const bootstrapShadowReactApp = ({
     containerSelector,
     pluginHandle,
@@ -78,11 +115,11 @@ export const bootstrapShadowReactApp = ({
         throw new Error('bootstrapShadowReactApp() requires a kebab-case pluginHandle.');
     }
 
-    const resolvedStyleNamespace = styleNamespace || pluginHandle;
     const resolvedStyleAttr = styleAttr || `data-${pluginHandle}-shadow-style`;
     const resolvedRootAttr = rootAttr || `data-${pluginHandle}-shadow-root`;
-    const resolvedPortalClassName = portalClassName || `${pluginHandle}-ui`;
     const resolvedTranslationCategory = translationCategory || pluginHandle;
+    // Tokens into each shadow root — head FOUCE CSS alone does not pierce shadow.
+    const resolvedStyleTexts = [pluginKitStyles, ...(styleTexts || [])];
 
     const targetContainer = document.querySelector(containerSelector);
 
@@ -94,22 +131,21 @@ export const bootstrapShadowReactApp = ({
         return null;
     }
 
-    const { mountNode, portalContainer } = createShadowMount(targetContainer, {
-        styleTexts,
-        styleNamespace: resolvedStyleNamespace,
+    const { mountNode, portalContainer } = mountShadowApp({
+        element: targetContainer,
+        styles: resolvedStyleTexts,
         styleAttr: resolvedStyleAttr,
         rootAttr: resolvedRootAttr,
     });
 
-    configurePluginKitReact({
-        portalClassName: resolvedPortalClassName,
+    return {
+        targetContainer,
+        mountNode,
         portalContainer,
-        shadowRootSelectors: [`[${resolvedRootAttr}]`],
+        portalClassName: portalClassName || `${pluginHandle}-ui`,
         translationCategory: resolvedTranslationCategory,
-        hostBridge: createCraftHostBridge(),
-    });
-
-    return { targetContainer, mountNode, portalContainer };
+        shadowRootSelectors: [`[${resolvedRootAttr}]`],
+    };
 };
 
 export const markContainerReady = (container, readyClassName) => {
@@ -133,4 +169,18 @@ export const injectDocumentStyleText = (cssText, styleId) => {
     style.setAttribute('data-formie-style-id', styleId);
     style.textContent = cssText;
     document.head.appendChild(style);
+};
+
+/**
+ * Craft CP templates call `new Craft.Formie.SomeEntry(settings)` — async functions are not
+ * valid constructors, so expose a sync wrapper and run async bootstrap inside.
+ */
+export const defineFormieCpConstructor = (name, runner) => {
+    const Constructor = function Constructor(settings) {
+        void runner(settings);
+    };
+
+    Craft.Formie[name] = Constructor;
+
+    return Constructor;
 };

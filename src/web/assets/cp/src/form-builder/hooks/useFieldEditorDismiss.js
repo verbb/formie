@@ -13,11 +13,17 @@ function getFieldEditorSessionKey(field) {
     return field?._id ?? field?.id ?? `${field?.type || 'field'}-new`;
 }
 
+/**
+ * Dirty/new-field confirm for field-edit dismiss.
+ *
+ * `attemptDismiss` only returns whether close may proceed — it must NOT unmount
+ * the dialog. Callers run side effects (onDismiss / onSave / onDelete) from
+ * `pk-after-hide` so the kit exit animation can finish first.
+ */
 function useFieldEditorDismiss({
     field,
     fieldDisplayLabel,
     form,
-    onDismiss,
     dismissAttemptRef,
     isBaselineReady = true,
 }) {
@@ -63,17 +69,12 @@ function useFieldEditorDismiss({
             currentValues,
         );
 
-        if (!confirmFieldEditorDismiss({
+        return confirmFieldEditorDismiss({
             isNew,
             isDirty,
             fieldLabel: fieldDisplayLabel,
-        })) {
-            return false;
-        }
-
-        onDismiss({ deleteIfNew: isNew });
-        return true;
-    }, [field, fieldDisplayLabel, onDismiss]);
+        });
+    }, [field, fieldDisplayLabel]);
 
     useEffect(() => {
         if (!dismissAttemptRef) {

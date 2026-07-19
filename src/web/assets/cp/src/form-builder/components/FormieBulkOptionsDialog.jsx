@@ -1,29 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import {
-    Button,
-    ToggleGroup,
-    ToggleGroupItem,
-    SelectInput,
-    Textarea,
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogDescription,
-    DialogFooter,
-    Spinner,
-} from '@verbb/plugin-kit-react/components';
-import {
-    FieldRoot,
-    FieldHeader,
-    FieldLabel,
-    FieldInstructions,
-    FieldControl,
-} from '@verbb/plugin-kit-react/forms';
+import { getErrorMessage } from '@verbb/plugin-kit-core';
+import { hostRequest } from '@verbb/plugin-kit-react/utils';
 import { useTranslation } from '@verbb/plugin-kit-react/hooks';
-import { cn, getErrorMessage, hostRequest } from '@verbb/plugin-kit-react/utils';
-
+import { Button, Dialog, ToggleGroup, Toggle, SelectInput, Textarea, Spinner } from '@verbb/plugin-kit-react/components';
+import { FieldLayout } from '@verbb/plugin-kit-react/forms';
 import { buildBulkPreview, parseBulkPreviewRows, countBulkPreviewRows } from './bulkOptions.utils';
 
 function FormieBulkOptionsDialog({
@@ -44,6 +25,16 @@ function FormieBulkOptionsDialog({
     const [bulkLabelOption, setBulkLabelOption] = useState('');
     const [bulkValueOption, setBulkValueOption] = useState('');
     const [bulkPreview, setBulkPreview] = useState('');
+
+    useEffect(() => {
+        if (!open) {
+            return;
+        }
+
+        // Re-open always starts on Append (v1 default), even if the last
+        // session left Replace selected while this dialog stayed mounted.
+        setBulkMode('append');
+    }, [open]);
 
     useEffect(() => {
         if (!open || selectedPredefinedOption || predefinedOptions.length === 0) {
@@ -122,166 +113,157 @@ function FormieBulkOptionsDialog({
     };
 
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className={cn(
-                'w-[66%] h-[66%]',
-                'max-w-auto',
-                'min-w-[600px]',
-                'min-h-[400px]',
-            )}>
-                <DialogHeader>
-                    <DialogTitle>{t('Bulk Add Options')}</DialogTitle>
-                    <DialogDescription>
-                        {t('Select from predefined options and customize or paste your own to bulk add options.')}
-                    </DialogDescription>
-                </DialogHeader>
+        <Dialog
+            open={open}
+            label={t('Bulk Add Options')}
+            description={t('Select from predefined options and customize or paste your own to bulk add options.')}
+            className="formie-bulk-options-dialog"
+            withoutBodyPadding
+            onPkOpenChange={(event) => {
+                onOpenChange(event.detail?.open ?? event.target?.open ?? false);
+            }}
+        >
+            {/*
+              v1: description lives in the dialog header; body is a padded
+              two-column grid. Dialog height is fit-content (400px floor) so
+              the empty state stays compact like v1 rather than a tall void.
+            */}
+            <div className="formie-bulk-options-dialog-body">
+                <div className="grid grid-cols-2 gap-4 p-4">
+                    <div className="space-y-4">
+                        <FieldLayout
+                            name="bulk-predefined-options"
+                            label={t('Predefined Options')}
+                            instructions={t('Select which predefined option set to import from.')}
+                        >
+                            <SelectInput
+                                options={predefinedOptions}
+                                value={selectedPredefinedOption}
+                                onChange={(value) => {
+                                    setSelectedPredefinedOption(String(value ?? ''));
+                                }}
+                            />
+                        </FieldLayout>
 
-                <div className="h-full overflow-y-auto">
-                    <div className="grid grid-cols-2 gap-4 p-4">
-                        <div className="space-y-4">
-                            <FieldRoot name="bulk-predefined-options">
-                                <FieldHeader className="space-y-0.5">
-                                    <FieldLabel>{t('Predefined Options')}</FieldLabel>
-                                    <FieldInstructions>
-                                        {t('Select which predefined option set to import from.')}
-                                    </FieldInstructions>
-                                </FieldHeader>
+                        {bulkLoading && <Spinner className="p-4 mt-8" />}
 
-                                <FieldControl>
-                                    <SelectInput
-                                        options={predefinedOptions}
-                                        value={selectedPredefinedOption}
-                                        onChange={(value) => {
-                                            setSelectedPredefinedOption(String(value ?? ''));
-                                        }}
-                                    />
-                                </FieldControl>
-                            </FieldRoot>
+                        {bulkError && (
+                            <div className="text-sm text-rose-600 space-y-1">
+                                {bulkError.heading && <div className="font-semibold">{bulkError.heading}</div>}
+                                {bulkError.text && <div>{bulkError.text}</div>}
+                                {bulkError.traceAsArray?.length > 0 && (
+                                    <div className="text-[10px] font-mono mt-2 opacity-80">
+                                        {bulkError.traceAsArray.map((line, index) => {
+                                            return (
+                                                <div key={index} className="whitespace-pre-wrap">
+                                                    {line}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        )}
 
-                            {bulkLoading && <Spinner className="p-4 mt-8" />}
+                        {!bulkLoading && bulkLabelOptions.length > 0 && (
+                            <FieldLayout
+                                name="bulk-option-label"
+                                label={t('Option Label')}
+                                instructions={t('Choose which source field is used as the label.')}
+                            >
+                                <SelectInput
+                                    options={bulkLabelOptions}
+                                    value={bulkLabelOption}
+                                    onChange={(value) => {
+                                        setBulkLabelOption(String(value ?? ''));
+                                    }}
+                                />
+                            </FieldLayout>
+                        )}
 
-                            {bulkError && (
-                                <div className="text-sm text-rose-600 space-y-1">
-                                    {bulkError.heading && <div className="font-semibold">{bulkError.heading}</div>}
-                                    {bulkError.text && <div>{bulkError.text}</div>}
-                                    {bulkError.traceAsArray?.length > 0 && (
-                                        <div className="text-[10px] font-mono mt-2 opacity-80">
-                                            {bulkError.traceAsArray.map((line, index) => {
-                                                return (
-                                                    <div key={index} className="whitespace-pre-wrap">
-                                                        {line}
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    )}
-                                </div>
-                            )}
+                        {!bulkLoading && bulkValueOptions.length > 0 && (
+                            <FieldLayout
+                                name="bulk-option-value"
+                                label={t('Option Value')}
+                                instructions={t('Choose which source field is used as the value.')}
+                            >
+                                <SelectInput
+                                    options={bulkValueOptions}
+                                    value={bulkValueOption}
+                                    onChange={(value) => {
+                                        setBulkValueOption(String(value ?? ''));
+                                    }}
+                                />
+                            </FieldLayout>
+                        )}
 
-                            {!bulkLoading && bulkLabelOptions.length > 0 && (
-                                <FieldRoot name="bulk-option-label">
-                                    <FieldHeader className="space-y-0.5">
-                                        <FieldLabel>{t('Option Label')}</FieldLabel>
-                                        <FieldInstructions>
-                                            {t('Choose which source field is used as the label.')}
-                                        </FieldInstructions>
-                                    </FieldHeader>
+                        {!bulkLoading && bulkLabelOptions.length > 0 && (
+                            <FieldLayout
+                                name="bulk-import-mode"
+                                label={t('Add Mode')}
+                                instructions={t('Append adds to existing rows, replace overwrites them.')}
+                            >
+                                {/*
+                                  pk-toggle-group is array-valued and uses data-value +
+                                  pk-value-change (not React ToggleGroupItem / onValueChange).
+                                */}
+                                <ToggleGroup
+                                    value={[bulkMode]}
+                                    onPkValueChange={(event) => {
+                                        const next = event.detail?.value;
+                                        const resolvedValue = Array.isArray(next) ? next[0] : next;
 
-                                    <FieldControl>
-                                        <SelectInput
-                                            options={bulkLabelOptions}
-                                            value={bulkLabelOption}
-                                            onChange={(value) => {
-                                                setBulkLabelOption(String(value ?? ''));
-                                            }}
-                                        />
-                                    </FieldControl>
-                                </FieldRoot>
-                            )}
+                                        // Exclusive mode can emit [] when re-clicking the
+                                        // active item — keep a mode selected (Append default).
+                                        if (resolvedValue === 'append' || resolvedValue === 'replace') {
+                                            setBulkMode(resolvedValue);
+                                        } else {
+                                            setBulkMode('append');
+                                        }
+                                    }}
+                                    variant="outline"
+                                    spacing={0}
+                                >
+                                    <Toggle data-value="append">{t('Append')}</Toggle>
+                                    <Toggle data-value="replace">{t('Replace')}</Toggle>
+                                </ToggleGroup>
+                            </FieldLayout>
+                        )}
+                    </div>
 
-                            {!bulkLoading && bulkValueOptions.length > 0 && (
-                                <FieldRoot name="bulk-option-value">
-                                    <FieldHeader className="space-y-0.5">
-                                        <FieldLabel>{t('Option Value')}</FieldLabel>
-                                        <FieldInstructions>
-                                            {t('Choose which source field is used as the value.')}
-                                        </FieldInstructions>
-                                    </FieldHeader>
-
-                                    <FieldControl>
-                                        <SelectInput
-                                            options={bulkValueOptions}
-                                            value={bulkValueOption}
-                                            onChange={(value) => {
-                                                setBulkValueOption(String(value ?? ''));
-                                            }}
-                                        />
-                                    </FieldControl>
-                                </FieldRoot>
-                            )}
-
-                            {!bulkLoading && bulkLabelOptions.length > 0 && (
-                                <FieldRoot name="bulk-import-mode">
-                                    <FieldHeader className="space-y-0.5">
-                                        <FieldLabel>{t('Add Mode')}</FieldLabel>
-                                        <FieldInstructions>
-                                            {t('Append adds to existing rows, replace overwrites them.')}
-                                        </FieldInstructions>
-                                    </FieldHeader>
-
-                                    <ToggleGroup
-                                        value={bulkMode}
-                                        onValueChange={(value) => {
-                                            const resolvedValue = Array.isArray(value) ? value[0] : value;
-
-                                            if (resolvedValue === 'append' || resolvedValue === 'replace') {
-                                                setBulkMode(resolvedValue);
-                                            }
-                                        }}
-                                        variant="outline"
-                                        spacing={0}
-                                    >
-                                        <ToggleGroupItem value="append">{t('Append')}</ToggleGroupItem>
-                                        <ToggleGroupItem value="replace">{t('Replace')}</ToggleGroupItem>
-                                    </ToggleGroup>
-                                </FieldRoot>
-                            )}
-                        </div>
-
-                        <div className="flex min-h-[260px] flex-col">
-                            <FieldRoot name="bulk-preview">
-                                <FieldHeader className="space-y-0.5">
-                                    <FieldLabel>
-                                        {t('Preview')}
-                                        {bulkPreview.trim() !== '' && (
-                                            <span className="ml-2 font-normal text-gray-500">
-                                                ({t('{count} options', { count: countBulkPreviewRows(bulkPreview) })})
-                                            </span>
-                                        )}
-                                    </FieldLabel>
-                                </FieldHeader>
-
-                                <FieldControl className="flex flex-1 flex-col">
-                                    <Textarea
-                                        className="min-h-[260px] flex-1 text-xs"
-                                        value={bulkPreview}
-                                        onChange={(event) => { setBulkPreview(event.target.value); }}
-                                    />
-                                </FieldControl>
-                            </FieldRoot>
-                        </div>
+                    <div className="formie-bulk-options-preview flex min-h-0 flex-col">
+                        <FieldLayout
+                            name="bulk-preview"
+                            className="formie-bulk-options-preview-field flex min-h-0 flex-1 flex-col"
+                        >
+                            {/*
+                              Count stays regular weight — pk-field label slot inherits bold,
+                              so only the "Preview" word should pick that up.
+                            */}
+                            <span slot="label">
+                                {t('Preview')}
+                                {bulkPreview.trim() !== '' && (
+                                    <span className="ml-2 font-normal text-gray-500">
+                                        ({t('{count} options', { count: countBulkPreviewRows(bulkPreview) })})
+                                    </span>
+                                )}
+                            </span>
+                            <Textarea
+                                className="formie-bulk-options-preview-textarea text-xs"
+                                value={bulkPreview}
+                                onChange={(event) => { setBulkPreview(event.target.value); }}
+                            />
+                        </FieldLayout>
                     </div>
                 </div>
+            </div>
 
-                <DialogFooter className="gap-2">
-                    <Button type="button" onClick={() => { onOpenChange(false); }}>
-                        {t('Cancel')}
-                    </Button>
-                    <Button type="button" variant="primary" onClick={handleSave}>
-                        {t('Add Options')}
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
+            <Button slot="footer" type="button" onClick={() => { onOpenChange(false); }}>
+                {t('Cancel')}
+            </Button>
+            <Button slot="footer" type="button" variant="primary" onClick={handleSave}>
+                {t('Add Options')}
+            </Button>
         </Dialog>
     );
 }

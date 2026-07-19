@@ -119,6 +119,7 @@ class Plugin extends BasePlugin
             'depends' => $depends,
         ];
 
+        // React app entry — importing components registers kit custom elements.
         $viteService->register($path, false, $scriptOptions, $styleOptions);
 
         // Provide nice build errors - only in dev

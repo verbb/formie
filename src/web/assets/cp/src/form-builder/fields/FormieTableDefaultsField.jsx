@@ -2,10 +2,10 @@ import {
     useCallback, useEffect, useMemo, useSyncExternalStore,
 } from 'react';
 
-import { EditableTable } from '@verbb/plugin-kit-react/components';
-import { FieldLayout } from '@verbb/plugin-kit-react/forms/Field';
-import { useEditableTableFieldBinding } from '@verbb/plugin-kit-react/forms';
 import { useTranslation } from '@verbb/plugin-kit-react/hooks';
+import { EditableTable } from '@verbb/plugin-kit-react/components';
+import { FieldLayout } from '@verbb/plugin-kit-react/forms';
+import { useEditableTableFieldBinding } from '@utils/useEditableTableFieldBinding';
 
 import {
     applyDefaultRowCountConstraints,
@@ -124,7 +124,6 @@ function FormieTableDefaultsField({ form, field }) {
             warning={field.warning}
             required={field.required}
             errors={errors}
-            withControl={false}
         >
             <EditableTable
                 columns={tableColumns}
@@ -135,7 +134,6 @@ function FormieTableDefaultsField({ form, field }) {
                 allowReorder={(field.allowReorder ?? true) && !isLockedStatic}
                 allowAdd={(field.allowAdd ?? true) && !isLockedStatic && !atMaxRows}
                 allowDelete={(field.allowDelete ?? true) && !isLockedStatic && !atMinRows}
-                className=""
                 fieldName={field.name}
                 cellErrors={cellErrors}
                 modifyColumn={modifyColumn}

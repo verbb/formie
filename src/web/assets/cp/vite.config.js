@@ -1,4 +1,4 @@
-import fs from 'node:fs/promises';
+import fsPromises from 'node:fs/promises';
 import path from 'node:path';
 import { defineConfig, loadEnv } from 'vite';
 
@@ -39,10 +39,10 @@ const copyWidgetsVendorFiles = () => ({
         const sourceDir = path.resolve('./src/widgets/js/vendor');
         const destinationDir = path.resolve('./dist/widgets/js/vendor');
 
-        await fs.mkdir(destinationDir, { recursive: true });
+        await fsPromises.mkdir(destinationDir, { recursive: true });
 
         await Promise.all(widgetVendorFiles.map((fileName) => {
-            return fs.copyFile(path.join(sourceDir, fileName), path.join(destinationDir, fileName));
+            return fsPromises.copyFile(path.join(sourceDir, fileName), path.join(destinationDir, fileName));
         }));
     },
 });
@@ -70,16 +70,34 @@ const createManualChunkName = (id) => {
         return 'formie-browser';
     }
 
-    if (id.includes('/node_modules/@verbb/plugin-kit-react/')) {
-        return 'plugin-kit-react';
-    }
-
-    if (id.includes('/node_modules/@verbb/plugin-kit/')) {
+    // Kit React facades + WC components + register must share one chunk.
+    // Splitting them produced reciprocal import / dynamicImport cycles:
+    // - static: PHP ManifestHelper hangs (no visited set)
+    // - dynamic: browser module graph deadlocks; CP spinner never clears
+    if (
+        (
+            id.includes('plugin-kit-web')
+            && (
+                id.includes('/components/')
+                || id.includes('/register')
+                || id.includes('/plugin-kit')
+            )
+        )
+        || id.includes('/node_modules/@verbb/plugin-kit-react/')
+    ) {
         return 'plugin-kit';
     }
 
-    if (id.includes('/node_modules/@fortawesome/')) {
-        return 'fontawesome';
+    if (id.includes('/node_modules/@verbb/plugin-kit-forms/')) {
+        return 'plugin-kit-forms';
+    }
+
+    if (id.includes('/node_modules/@verbb/plugin-kit-core/')) {
+        return 'plugin-kit-core';
+    }
+
+    if (id.includes('/node_modules/lit/')) {
+        return 'lit';
     }
 
     if (
@@ -115,38 +133,19 @@ export default defineConfig(async ({ command, mode }) => {
     const previewServerPort = parseServerPort(env.FORMIE_CP_PREVIEW_PORT, 4390);
     const hmrProtocol = env.FORMIE_CP_DEV_SERVER_HMR_PROTOCOL || 'ws';
 
-    // When `@verbb/plugin-kit-react` is monorepo-linked (includes `src/`), compile from
-    // source for HMR and so CP builds pick up local plugin-kit changes without a separate
-    // dist build. Published npm installs only ship `dist/` — skip dev aliases so CSS
-    // imports resolve through package `exports` → `dist/css/style.css`.
-    let pluginKitReactDevAliases = [];
-
-    try {
-        const { getPluginKitReactViteDevAliases } = await import('@verbb/plugin-kit-react/vite-dev');
-        const aliases = getPluginKitReactViteDevAliases();
-        const styleCssAlias = aliases.find((alias) => String(alias.find).includes('style.css'));
-        const linkedStyleCssPath = styleCssAlias?.replacement;
-        const canCompileFromSrc = linkedStyleCssPath
-            ? await fs.access(linkedStyleCssPath).then(() => true).catch(() => false)
-            : false;
-
-        if (canCompileFromSrc) {
-            pluginKitReactDevAliases = aliases;
-        }
-    } catch {
-        // Older installs without `./vite-dev` in the published package
-    }
-
+    // Kit packages come from npm. Do not force-alias `@tiptap/*` / `@codemirror/*` —
+    // plugin-kit-react nests matching TipTap versions, and aliasing an older core
+    // breaks `@tiptap/react` (e.g. missing `isNodeViewSelected`).
     const optimizeDepsInclude = [
         'lodash-es',
         'react',
         'react-dom',
-        '@verbb/plugin-kit',
+        'lit',
+        '@verbb/plugin-kit-core',
+        '@verbb/plugin-kit-forms',
+        '@verbb/plugin-kit-react',
         'jexl',
     ];
-    if (!pluginKitReactDevAliases.length) {
-        optimizeDepsInclude.push('@verbb/plugin-kit-react');
-    }
 
     return {
         // CP production bundles are published under Craft's cpresources path, so
@@ -207,6 +206,8 @@ export default defineConfig(async ({ command, mode }) => {
             },
         },
 
+        // Optional plugin-local HMR only — Craft must set FORMIE_USE_VITE_DEV_SERVER=true.
+        // Kit comes from npm — bump @verbb/plugin-kit-* and reinstall to pick up kit changes.
         server: {
             origin: devServerPublicUrl,
             host: devServerHost,
@@ -250,8 +251,6 @@ export default defineConfig(async ({ command, mode }) => {
 
         resolve: {
             alias: [
-                ...pluginKitReactDevAliases,
-                // Allow shortcuts in JS, CSS and Twig for ease of development.
                 { find: '@form-builder', replacement: path.resolve('./src/form-builder') },
                 { find: '@new-form', replacement: path.resolve('./src/new-form') },
                 { find: '@integration-connect', replacement: path.resolve('./src/integration-connect') },
@@ -261,31 +260,30 @@ export default defineConfig(async ({ command, mode }) => {
                 { find: '@reports', replacement: path.resolve('./src/reports') },
                 { find: '@utils', replacement: path.resolve('./src/utils') },
 
-                // React 19 already provides useSyncExternalStore. Some linked package dependencies
+                // React 19 already provides useSyncExternalStore. Some package dependencies
                 // still import the legacy shim entry, which Vite resolves to CJS files during dev.
                 { find: /^use-sync-external-store\/shim(?:\/index\.js)?$/, replacement: path.resolve('./src/shims/use-sync-external-store-shim.js') },
                 { find: /^use-sync-external-store\/shim\/with-selector(?:\.js)?$/, replacement: path.resolve('./src/shims/use-sync-external-store-with-selector.js') },
             ],
-            // Keep linked workspace packages on the consumer app's singleton copies for
-            // React/runtime-sensitive libraries during local development.
+            // Keep React / Lit / kit icons on one singleton across the CP graph.
             dedupe: [
                 'react',
                 'react-dom',
                 'zustand',
+                'lit',
+                '@lit/react',
+                '@lit/reactive-element',
+                'lit-element',
+                'lit-html',
+                '@verbb/plugin-kit-icons',
                 '@dnd-kit/abstract',
                 '@dnd-kit/dom',
                 '@dnd-kit/react',
-                '@fortawesome/fontawesome-svg-core',
-                '@fortawesome/pro-regular-svg-icons',
-                '@fortawesome/pro-solid-svg-icons',
-                '@fortawesome/react-fontawesome',
             ],
-            preserveSymlinks: true,
         },
 
         optimizeDeps: {
             include: optimizeDepsInclude,
-            ...(pluginKitReactDevAliases.length ? { exclude: ['@verbb/plugin-kit-react'] } : {}),
         },
 
         test: {

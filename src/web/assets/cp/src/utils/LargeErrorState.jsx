@@ -1,4 +1,4 @@
-import { getErrorMessage } from '@verbb/plugin-kit-react/utils';
+import { getErrorMessage } from '@verbb/plugin-kit-core';
 import { StatePanel } from './StatePanel';
 
 const LargeErrorState = ({

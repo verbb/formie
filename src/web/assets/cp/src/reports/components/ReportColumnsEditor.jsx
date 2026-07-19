@@ -10,11 +10,8 @@ import { PointerActivationConstraints } from '@dnd-kit/dom';
 import { RestrictToVerticalAxis } from '@dnd-kit/abstract/modifiers';
 import { isSortable, useSortable } from '@dnd-kit/react/sortable';
 
-import {
-    Input,
-    Lightswitch,
-} from '@verbb/plugin-kit-react/components';
 import { cn } from '@verbb/plugin-kit-react/utils';
+import { Input, Lightswitch } from '@verbb/plugin-kit-react/components';
 import { DragHandle } from '@field-palette/components/DragHandle';
 import { ReportAvailableColumnsSidebar } from '@reports/components/ReportAvailableColumnsSidebar';
 import {

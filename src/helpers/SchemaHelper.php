@@ -41,7 +41,16 @@ class SchemaHelper
             }
 
             if (isset($node['$field']) && isset($node['name']) && (isset($node['schema']) || isset($node['children'])) && !isset($node['schemaChildPrefix'])) {
-                if (in_array($node['$field'], ['list', 'table', 'formieTableColumns', 'formieTableDefaults'], true)) {
+                // Row-backed tables (including Formie-owned quiz/likert option UIs) index
+                // column rules as `options.*.label` so blank required cells validate.
+                if (in_array($node['$field'], [
+                    'list',
+                    'table',
+                    'formieTableColumns',
+                    'formieTableDefaults',
+                    'quizOptions',
+                    'likertOptions',
+                ], true)) {
                     $node['schemaChildPrefix'] = "{$node['name']}.*.";
                 }
 
@@ -95,6 +104,17 @@ class SchemaHelper
     {
         return array_merge([
             '$field' => 'select',
+        ], $config);
+    }
+
+    /**
+     * Horizontal rule between schema sections (`pk-separator` via `$cmp: Separator`).
+     * Prefer this over `['$el' => 'hr']` — the schema engine also maps legacy `$el: hr`.
+     */
+    public static function separator(array $config = []): array
+    {
+        return array_merge([
+            '$cmp' => 'Separator',
         ], $config);
     }
 
@@ -603,21 +623,11 @@ class SchemaHelper
     {
         $children = ArrayHelper::remove($config, 'children', []);
 
+        // Cluster layout lives on kit FieldWrap (`data-pk-field-wrap-controls`).
+        // Pass children through so we do not double-wrap flex rows.
         return array_merge([
             '$cmp' => 'FieldWrap',
-            'children' => [
-                [
-                    '$el' => 'div',
-                    'attrs' => [
-                        'style' => [
-                            'display' => 'flex',
-                            'alignItems' => 'baseline',
-                            'gap' => '0.5rem',
-                        ],
-                    ],
-                    'children' => $children,
-                ],
-            ],
+            'children' => $children,
         ], $config);
     }
 
@@ -1137,23 +1147,29 @@ class SchemaHelper
                 [
                     '$cmp' => 'ModalTabsList',
                     'children' => array_map(function($tab) {
-                        return [
+                        // Tab-level `if` hides trigger + content together (SchemaItem).
+                        // Prefer this over walking nested field visibility at runtime.
+                        return array_filter([
                             '$cmp' => 'ModalTabsTrigger',
                             'props' => [
                                 'value' => $tab['handle'],
                             ],
                             'children' => $tab['label'],
-                        ];
+                            'if' => $tab['if'] ?? null,
+                            'hideOnIf' => $tab['hideOnIf'] ?? null,
+                        ], static fn(mixed $value): bool => $value !== null);
                     }, $tabsWithContent),
                 ],
                 ...array_map(function($tab) {
-                    return [
+                    return array_filter([
                         '$cmp' => 'ModalTabsContent',
                         'props' => array_merge([
                             'value' => $tab['handle'],
                         ], $tab['props'] ?? []),
-                        'children' => $tab['content'],  
-                    ];
+                        'children' => $tab['content'],
+                        'if' => $tab['if'] ?? null,
+                        'hideOnIf' => $tab['hideOnIf'] ?? null,
+                    ], static fn(mixed $value): bool => $value !== null);
                 }, $tabsWithContent),
             ],
         ]);
@@ -1286,6 +1302,20 @@ class SchemaHelper
 
         if ($fieldType === 'richText') {
             $node['linkSelectorStorageKeyPrefix'] ??= 'FormieInput.LinkTo';
+        }
+
+        // Legacy schema chrome used raw <hr>; canonicalize to kit Separator `$cmp`.
+        if (($node['$el'] ?? null) === 'hr') {
+            unset($node['$el']);
+            $node['$cmp'] = 'Separator';
+
+            $attrs = $node['attrs'] ?? null;
+            if (is_array($attrs)) {
+                if (!isset($node['className']) && isset($attrs['class'])) {
+                    $node['className'] = $attrs['class'];
+                }
+                unset($node['attrs']);
+            }
         }
 
         return $node;

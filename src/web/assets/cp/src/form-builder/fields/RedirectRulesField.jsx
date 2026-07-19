@@ -1,16 +1,8 @@
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus, faXmark } from '@fortawesome/pro-solid-svg-icons';
-
-import {
-    Button,
-    Input,
-    SelectInput,
-} from '@verbb/plugin-kit-react/components';
-import { FieldLayout } from '@verbb/plugin-kit-react/forms/Field';
-import { ElementSelectField } from '@verbb/plugin-kit-react/forms/fields/ElementSelectField';
-import { useEngineField } from '@verbb/plugin-kit-react/forms/useEngineField';
+import { Button, Icon, Input, SelectInput } from '@verbb/plugin-kit-react/components';
+import { FieldLayout, useEngineField } from '@verbb/plugin-kit-react/forms';
+import { ElementSelectField } from '@utils/ElementSelectField';
 import { useTranslation } from '@verbb/plugin-kit-react/hooks';
-import { createItem } from '@verbb/plugin-kit-react/utils';
+import { createItem } from '@verbb/plugin-kit-core';
 
 import { RedirectRuleConditionsField } from './RedirectRuleConditionsField';
 
@@ -85,7 +77,7 @@ function RedirectRuleItem({
                     aria-label={t('Remove redirect rule')}
                     className="p-2 text-gray-500 hover:text-red-500"
                 >
-                    <FontAwesomeIcon icon={faXmark} className="size-[14px]" />
+                    <Icon slot="start" icon="xmark" className="size-[14px]" />
                 </Button>
             </div>
 
@@ -178,7 +170,7 @@ function RedirectRulesField({ field, form }) {
                 ))}
 
                 <Button type="button" variant="default" onClick={addRule}>
-                    <FontAwesomeIcon icon={faPlus} className="mr-1 size-3" />
+                    <Icon slot="start" icon="plus" className="size-3" />
                     {t('Add redirect rule')}
                 </Button>
             </div>

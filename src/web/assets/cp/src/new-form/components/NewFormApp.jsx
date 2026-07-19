@@ -1,20 +1,15 @@
+import { buildUniqueHandleFromSource, getErrorMessage } from '@verbb/plugin-kit-core';
 import {
     useEffect, useMemo, useRef, useState,
 } from 'react';
-import { buildUniqueHandleFromSource } from '@verbb/plugin-kit-react/utils';
-import {
-    Button, Input, SelectInput,
-    Separator,
-} from '@verbb/plugin-kit-react/components';
 
-import {
-    FieldLayout,
-} from '@verbb/plugin-kit-react/forms/Field';
+import { Button, Icon, Input, SelectInput, Separator } from '@verbb/plugin-kit-react/components';
 
-import { cn, getErrorMessage } from '@verbb/plugin-kit-react/utils';
+import { FieldLayout } from '@verbb/plugin-kit-react/forms';
+import { cn } from '@verbb/plugin-kit-react/utils';
 
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronDown, faChevronUp } from '@fortawesome/pro-solid-svg-icons';
+/** Kit inputs dispatch this on Enter; SchemaFormEngine is not used on New Form. */
+const PK_IMPLICIT_SUBMIT_EVENT = 'pk-implicit-submit';
 
 const uniqueHandles = (settings) => {
     const handles = [
@@ -71,6 +66,8 @@ export const NewFormApp = ({ settings }) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isVisible, setIsVisible] = useState(false);
 
+    const formRef = useRef(null);
+    const submitInFlightRef = useRef(false);
     const lastGeneratedHandleRef = useRef(initialValues.handle || buildHandle(initialValues.name, settings));
     const normalizedReservedHandles = useMemo(() => {
         return uniqueHandles(settings).map((value) => { return String(value).toLowerCase(); });
@@ -155,14 +152,18 @@ export const NewFormApp = ({ settings }) => {
     };
 
     const submitAjax = async() => {
-        if (isSubmitting) {
+        // Sync guard — React state alone can let click + requestSubmit both enter.
+        if (submitInFlightRef.current || isSubmitting) {
             return;
         }
 
         if (!validateClient()) {
+            // Handle errors live under Advanced — open it when client validation fails there.
+            setAdvancedVisible(true);
             return;
         }
 
+        submitInFlightRef.current = true;
         setIsSubmitting(true);
         setFormError(null);
         setNameErrors([]);
@@ -205,12 +206,14 @@ export const NewFormApp = ({ settings }) => {
                     setFormError(toGeneralError(payload, settings.saveErrorText));
                 }
 
+                submitInFlightRef.current = false;
                 setIsSubmitting(false);
                 return;
             }
 
             if (typeof payload.redirect !== 'string' || payload.redirect.trim() === '') {
                 setFormError(toGeneralError(payload, settings.saveErrorText));
+                submitInFlightRef.current = false;
                 setIsSubmitting(false);
                 return;
             }
@@ -219,6 +222,7 @@ export const NewFormApp = ({ settings }) => {
         } catch (error) {
             console.error('Failed to save item.', error);
             setFormError(toGeneralError(error, settings.saveErrorText));
+            submitInFlightRef.current = false;
             setIsSubmitting(false);
         }
     };
@@ -227,6 +231,26 @@ export const NewFormApp = ({ settings }) => {
         event.preventDefault();
         submitAjax();
     };
+
+    // pk-input Enter → pk-implicit-submit (SchemaFormEngine is not used here).
+    useEffect(() => {
+        const form = formRef.current;
+
+        if (!form) {
+            return undefined;
+        }
+
+        const onImplicitSubmit = (event) => {
+            event.preventDefault();
+            submitAjax();
+        };
+
+        form.addEventListener(PK_IMPLICIT_SUBMIT_EVENT, onImplicitSubmit);
+
+        return () => {
+            form.removeEventListener(PK_IMPLICIT_SUBMIT_EVENT, onImplicitSubmit);
+        };
+    });
 
     const resolvedTitleText = settings.titleText || (isStencilMode
         ? Craft.t('formie', 'Create your stencil')
@@ -260,7 +284,7 @@ export const NewFormApp = ({ settings }) => {
                     <p className="text-gray-400">{resolvedIntroText}</p>
                 </div>
 
-                <form className="space-y-6" onSubmit={handleSubmit}>
+                <form ref={formRef} className="space-y-6" onSubmit={handleSubmit}>
                     <FieldLayout
                         name="title"
                         label={Craft.t('app', 'Name')}
@@ -297,7 +321,7 @@ export const NewFormApp = ({ settings }) => {
                             aria-expanded={advancedVisible}
                             aria-controls="new-form-advanced"
                         >
-                            <FontAwesomeIcon icon={advancedVisible ? faChevronUp : faChevronDown} className="size-3" />
+                            <Icon icon={advancedVisible ? 'chevron-up' : 'chevron-down'} className="size-3" />
                             {Craft.t('app', 'Advanced')}
                         </button>
 
@@ -347,6 +371,7 @@ export const NewFormApp = ({ settings }) => {
                             size="lg"
                             spinnerSize="xs"
                             loading={isSubmitting}
+                            onClick={handleSubmit}
                         >
                             {settings.submitLabel || Craft.t('formie', 'Next')}
                         </Button>

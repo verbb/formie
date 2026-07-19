@@ -1,4 +1,8 @@
+/* Kit tokens + Tailwind — DragHandle / menu triggers use utility classes. */
 @import "@verbb/plugin-kit-react/style.css";
+@import "@verbb/plugin-kit-react/tailwind-theme.css";
+@import "tailwindcss";
+@import "@verbb/plugin-kit-react/tailwind-preflight-scope.css";
 
 .formie-field-palette-app {
     --formie-palette-row-padding-x: 1rem;

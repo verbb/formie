@@ -1,4 +1,4 @@
-import { getRichTextText } from '@verbb/plugin-kit-react/utils';
+import { getRichTextText } from '@utils/tiptapUtils';
 
 import { hasRichTextValue } from '@form-builder/utils/richTextValue';
 

@@ -1,52 +1,56 @@
-import { useMemo } from 'react';
+import { useMemo, useRef, useState } from 'react';
 
-import { Button } from '@verbb/plugin-kit-react/components';
+import { cn } from '@verbb/plugin-kit-react/utils';
 import { SchemaFormEngine, useSchemaFormEngine } from '@verbb/plugin-kit-react/forms';
+import { Button, Dialog } from '@verbb/plugin-kit-react/components';
 import { useHandleSyncOnChange } from '@form-builder/hooks/useHandleSyncOnChange';
+import { collectSchemaDefaultValues } from '@form-builder/utils/collectSchemaDefaultValues';
 
 import {
     injectReservedHandlesIntoSchema,
     injectReservedHandlesIntoSchemaIndex,
 } from '@form-builder/utils/handleValidation';
 
-import {
-    DialogFooter,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogDescription,
-} from '@verbb/plugin-kit-react/components';
-
-import { cn } from '@verbb/plugin-kit-react/utils';
-
 function NotificationEdit({
     notification, schema, schemaIndex, reservedHandles = [], onSave, onCancel, onDelete,
 }) {
-    // const formRef = useRef(null);
     const isNew = !notification?.id;
+    const [open, setOpen] = useState(true);
+    const pendingCloseRef = useRef(null);
+
+    // Prefer schemaIndex.schema — top-level `schema` on `$cmp: Notifications` is stripped
+    // by SchemaFormEngine bookkeeping and never reaches this component as a prop.
+    const resolvedSchema = schemaIndex?.schema ?? schema ?? [];
 
     const schemaWithReservedHandles = useMemo(() => {
-        return injectReservedHandlesIntoSchema(schema, reservedHandles);
-    }, [schema, reservedHandles]);
+        return injectReservedHandlesIntoSchema(resolvedSchema, reservedHandles);
+    }, [resolvedSchema, reservedHandles]);
     const schemaIndexWithReservedHandles = useMemo(() => {
         return injectReservedHandlesIntoSchemaIndex(schemaIndex, reservedHandles);
     }, [schemaIndex, reservedHandles]);
     const handleSyncOnChange = useHandleSyncOnChange(schemaWithReservedHandles);
 
+    // Schema field defaults (e.g. dispatchTiming → "default") must seed the store for
+    // new notifications — Advanced may never mount before Apply if the user stays on Content.
+    const initialValues = useMemo(() => {
+        const schemaDefaults = collectSchemaDefaultValues(schemaWithReservedHandles || []);
+        return {
+            ...schemaDefaults,
+            ...(notification || {}),
+        };
+    }, [notification, schemaWithReservedHandles]);
+
     const form = useSchemaFormEngine({
         schema: schemaWithReservedHandles,
         schemaIndex: schemaIndexWithReservedHandles,
-        defaultValues: notification,
+        defaultValues: initialValues,
         onChange: handleSyncOnChange,
     });
 
     form.onSuccess((data) => {
-        onSave(data);
+        pendingCloseRef.current = { type: 'save', data };
+        setOpen(false);
     });
-
-    const handleCancel = () => {
-        onCancel();
-    };
 
     const handleSave = (e) => {
         e.preventDefault();
@@ -65,66 +69,78 @@ function NotificationEdit({
             return;
         }
 
-        onDelete();
+        pendingCloseRef.current = { type: 'delete' };
+        setOpen(false);
+    };
+
+    const handleAfterHide = () => {
+        const pending = pendingCloseRef.current;
+        pendingCloseRef.current = null;
+
+        if (pending?.type === 'save') {
+            onSave(pending.data);
+            return;
+        }
+
+        if (pending?.type === 'delete') {
+            onDelete();
+            return;
+        }
+
+        onCancel();
     };
 
     return (
-        <DialogContent className={cn(
-            'w-[calc(100vw-24px)] h-[calc(100dvh-24px)]',
-            'min-w-0 min-h-0 max-w-none',
-            'md:w-[66%] md:h-[66%]',
-            'md:min-w-[600px] md:min-h-[400px]',
-        )}
+        <Dialog
+            open={open}
+            withoutBodyPadding
+            label={isNew ? Craft.t('formie', 'New Notification') : Craft.t('formie', 'Edit Notification')}
+            // Match v1 DialogContent sizing:
+            // mobile: calc(100vw/dvh - 24px); md+: 66% with min 600×400.
+            className="formie-notification-edit-dialog"
+            onPkOpenChange={(event) => {
+                setOpen(Boolean(event.detail?.open ?? event.target?.open));
+            }}
+            onPkAfterHide={handleAfterHide}
         >
-            <DialogHeader>
-                <DialogTitle>
-                    {isNew ? Craft.t('formie', 'New Notification') : Craft.t('formie', 'Edit Notification')}
-                </DialogTitle>
-
-                <DialogDescription className="hidden">
-                    {Craft.t('formie', 'Edit the notification for this form.')}
-                </DialogDescription>
-            </DialogHeader>
-
-            <div className="flex-1 min-h-0 overflow-hidden">
+            <div className={cn(
+                'flex h-full min-h-0 flex-col overflow-hidden',
+            )}
+            >
                 <SchemaFormEngine
                     form={form}
-                    className="h-full"
+                    className="h-full min-h-0"
                 />
             </div>
 
-            <DialogFooter className={cn(
-                'flex flex-row gap-2',
-                isNew ? 'justify-end' : 'justify-between',
+            {!isNew && (
+                <Button
+                    slot="footer"
+                    type="button"
+                    style={{ marginInlineEnd: 'auto' }}
+                    onClick={handleDelete}
+                >
+                    {Craft.t('formie', 'Delete')}
+                </Button>
             )}
+
+            <Button
+                slot="footer"
+                type="button"
+                data-dialog-close
             >
-                {!isNew && (
-                    <Button
-                        type="button"
-                        onClick={handleDelete}
-                    >
-                        {Craft.t('formie', 'Delete')}
-                    </Button>
-                )}
+                {Craft.t('app', 'Cancel')}
+            </Button>
 
-                <div className="flex flex-row justify-end gap-2">
-                    <Button
-                        type="button"
-                        onClick={handleCancel}
-                    >
-                        {Craft.t('formie', 'Cancel')}
-                    </Button>
-
-                    <Button
-                        type="button"
-                        variant="primary"
-                        onClick={handleSave}
-                    >
-                        {Craft.t('formie', 'Apply')}
-                    </Button>
-                </div>
-            </DialogFooter>
-        </DialogContent>
+            <Button
+                slot="footer"
+                type="button"
+                variant="primary"
+                onClick={handleSave}
+            >
+                {Craft.t('formie', 'Apply')}
+            </Button>
+        </Dialog>
     );
 }
 

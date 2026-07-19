@@ -172,6 +172,65 @@ export const serializePaletteForSave = (palette) => {
     };
 };
 
+/**
+ * Index editor field meta (defaultLabel, icon, type) by fieldClass from a seed palette.
+ * Used when remounting from a save-shaped palette that omitted display-only keys.
+ */
+export const indexPaletteFieldMeta = (metaPalette) => {
+    const metaByClass = {};
+
+    const indexFields = (fields) => {
+        (fields || []).forEach((field) => {
+            if (!field?.fieldClass || metaByClass[field.fieldClass]) {
+                return;
+            }
+
+            metaByClass[field.fieldClass] = {
+                defaultLabel: field.defaultLabel || field.fieldClass,
+                icon: field.icon ?? null,
+                type: field.type ?? field.fieldClass,
+            };
+        });
+    };
+
+    (metaPalette?.groups || []).forEach((group) => {
+        indexFields(group.fields);
+    });
+    indexFields(metaPalette?.unassigned);
+
+    return metaByClass;
+};
+
+/**
+ * Ensure every field has defaultLabel (and related meta) for the name column / placeholders.
+ */
+export const hydratePaletteForEditor = (palette, metaPalette = null) => {
+    const metaByClass = indexPaletteFieldMeta(metaPalette || palette);
+
+    const hydrateFields = (fields) => {
+        return (fields || []).map((field) => {
+            const meta = metaByClass[field.fieldClass] || {};
+
+            return {
+                ...field,
+                defaultLabel: field.defaultLabel || meta.defaultLabel || field.fieldClass,
+                icon: field.icon ?? meta.icon ?? null,
+                type: field.type ?? meta.type ?? field.fieldClass,
+            };
+        });
+    };
+
+    return {
+        groups: (palette?.groups || []).map((group) => {
+            return {
+                ...group,
+                fields: hydrateFields(group.fields),
+            };
+        }),
+        unassigned: hydrateFields(palette?.unassigned),
+    };
+};
+
 export const moveGroupByOffset = (palette, groupUid, offset) => {
     const groupIndex = (palette.groups || []).findIndex((group) => { return group.uid === groupUid; });
 

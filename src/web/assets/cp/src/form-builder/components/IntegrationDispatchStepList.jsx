@@ -1,6 +1,4 @@
 import { useCallback, useRef, useState } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowDown, faArrowUp, faEllipsis } from '@fortawesome/pro-solid-svg-icons';
 import {
     DragDropProvider,
     DragOverlay,
@@ -11,15 +9,7 @@ import { RestrictToVerticalAxis } from '@dnd-kit/abstract/modifiers';
 import { RestrictToElement } from '@dnd-kit/dom/modifiers';
 import { isSortable, useSortable } from '@dnd-kit/react/sortable';
 
-import {
-    Button,
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-    SelectInput,
-    Status,
-} from '@verbb/plugin-kit-react/components';
+import { Button, DropdownItem, DropdownMenu, Icon, SelectInput, Status } from '@verbb/plugin-kit-react/components';
 import { cn } from '@verbb/plugin-kit-react/utils';
 import { DragHandle } from '@field-palette/components/DragHandle';
 
@@ -176,42 +166,37 @@ function IntegrationDispatchStepRow({
 
             {!isDragSource ? (
                 <div className="formie-integration-dispatch-step-actions">
-                <DropdownMenu size="sm">
-                    <DropdownMenuTrigger
-                        render={(
-                            <Button
-                                type="button"
-                                variant="none"
-                                size="xs"
-                                className="formie-integration-dispatch-menu-trigger"
-                                aria-label={Craft.t('formie', 'Actions for {name}', { name: integration.name })}
-                            />
-                        )}
+                <DropdownMenu size="sm" placement="bottom-end">
+                    <Button
+                        slot="trigger"
+                        type="button"
+                        variant="none"
+                        size="xs"
+                        className="formie-integration-dispatch-menu-trigger"
+                        aria-label={Craft.t('formie', 'Actions for {name}', { name: integration.name })}
                     >
-                        <FontAwesomeIcon icon={faEllipsis} className="size-3.5" />
-                    </DropdownMenuTrigger>
+                        <Icon slot="start" icon="ellipsis" className="size-3.5" />
+                    </Button>
 
-                    <DropdownMenuContent align="end" className="min-w-[180px]">
-                        <DropdownMenuItem
-                            disabled={!canMoveUp}
-                            onClick={() => {
-                                onMove(index, -1);
-                            }}
-                        >
-                            <FontAwesomeIcon icon={faArrowUp} />
-                            {Craft.t('formie', 'Move up')}
-                        </DropdownMenuItem>
+                    <DropdownItem
+                        disabled={!canMoveUp}
+                        onPkSelect={() => {
+                            onMove(index, -1);
+                        }}
+                    >
+                        <Icon slot="start" icon="arrow-up" />
+                        {Craft.t('formie', 'Move up')}
+                    </DropdownItem>
 
-                        <DropdownMenuItem
-                            disabled={!canMoveDown}
-                            onClick={() => {
-                                onMove(index, 1);
-                            }}
-                        >
-                            <FontAwesomeIcon icon={faArrowDown} />
-                            {Craft.t('formie', 'Move down')}
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
+                    <DropdownItem
+                        disabled={!canMoveDown}
+                        onPkSelect={() => {
+                            onMove(index, 1);
+                        }}
+                    >
+                        <Icon slot="start" icon="arrow-down" />
+                        {Craft.t('formie', 'Move down')}
+                    </DropdownItem>
                 </DropdownMenu>
                 </div>
             ) : (

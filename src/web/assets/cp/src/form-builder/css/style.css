@@ -1,17 +1,597 @@
 @layer dnd-kit, base, components, utilities;
 
+/* Kit tokens/FOUCE + Tailwind @theme bridge (Craft-aligned PK colors). */
 @import "@verbb/plugin-kit-react/style.css";
+@import "@verbb/plugin-kit-react/tailwind-theme.css";
+@import "tailwindcss";
+@import "@verbb/plugin-kit-react/tailwind-preflight-scope.css";
 
 @import "./preview.css";
 @import "../components/integration-dispatch-settings.css";
 
 /* Add form builder-specific styles below this line */
 
-@layer base {
-    /* Match document scroll stability so nested panes don't shift when selects open. */
-    .overflow-auto {
-        scrollbar-gutter: stable;
+/*
+ * Notification editor — v1 DialogContent sizing.
+ * Tokens inherit into pk-dialog shadow (.dialog uses --pk-dialog-*).
+ * Mobile: viewport − 24px inset. md+: 66% with 600×400 floor.
+ */
+pk-dialog.formie-notification-edit-dialog {
+    --pk-dialog-width: calc(100vw - 24px);
+    --pk-dialog-max-width: calc(100vw - 24px);
+    --pk-dialog-height: calc(100dvh - 24px);
+    --pk-dialog-max-height: calc(100dvh - 24px);
+    --pk-dialog-min-width: 0;
+    --pk-dialog-min-height: 0;
+}
+
+/* Calculations Syntax Guide — v1 DialogContent `max-w-4xl` (56rem), content-hug height. */
+pk-dialog.formie-calculations-syntax-guide-dialog {
+    --pk-dialog-width: min(100vw - 2rem, 56rem);
+    --pk-dialog-max-width: 56rem;
+    --pk-dialog-height: fit-content;
+    --pk-dialog-min-height: 0;
+}
+
+/*
+ * Choose Custom Field Type — v1 DialogContent max-w-[640px].
+ * Stock label/description header + footer actions; body keeps min-h-[280px] centering.
+ */
+pk-dialog.formie-custom-field-adapter-dialog {
+    --pk-dialog-width: min(640px, calc(100vw - 24px));
+    --pk-dialog-max-width: min(640px, calc(100vw - 24px));
+    --pk-dialog-height: fit-content;
+    --pk-dialog-max-height: calc(100dvh - 24px);
+    --pk-dialog-min-width: 0;
+    --pk-dialog-min-height: 0;
+}
+
+@media (min-width: 768px) {
+    pk-dialog.formie-notification-edit-dialog {
+        --pk-dialog-width: 66%;
+        --pk-dialog-max-width: 66%;
+        --pk-dialog-height: 66%;
+        --pk-dialog-max-height: calc(100dvh - 24px);
+        --pk-dialog-min-width: 600px;
+        --pk-dialog-min-height: 400px;
     }
+}
+
+/*
+ * Edit Pages / Edit Field — same v1 DialogContent floor as notifications.
+ * Host Tailwind width/height never reach shadow .dialog; size via tokens.
+ */
+pk-dialog.formie-page-settings-dialog,
+pk-dialog.formie-field-edit-dialog {
+    --pk-dialog-width: calc(100vw - 24px);
+    --pk-dialog-max-width: calc(100vw - 24px);
+    --pk-dialog-height: calc(100dvh - 24px);
+    --pk-dialog-max-height: calc(100dvh - 24px);
+    --pk-dialog-min-width: 0;
+    --pk-dialog-min-height: 0;
+}
+
+/* Sub-field (Name/Address/Date children via NestedLayoutField) — v1 used a 56px viewport inset on small screens (not 24px). */
+pk-dialog.formie-sub-field-edit-dialog {
+    --pk-dialog-width: calc(100vw - 56px);
+    --pk-dialog-max-width: calc(100vw - 56px);
+    --pk-dialog-height: calc(100dvh - 56px);
+    --pk-dialog-max-height: calc(100dvh - 56px);
+    --pk-dialog-min-width: 0;
+    --pk-dialog-min-height: 0;
+}
+
+@media (min-width: 768px) {
+    pk-dialog.formie-page-settings-dialog {
+        --pk-dialog-width: 60%;
+        --pk-dialog-max-width: 60%;
+        --pk-dialog-height: 60%;
+        --pk-dialog-max-height: calc(100dvh - 24px);
+        --pk-dialog-min-width: 600px;
+        --pk-dialog-min-height: 400px;
+    }
+
+    pk-dialog.formie-field-edit-dialog {
+        --pk-dialog-width: 66%;
+        --pk-dialog-max-width: 66%;
+        --pk-dialog-height: 66%;
+        --pk-dialog-max-height: calc(100dvh - 24px);
+        --pk-dialog-min-width: 600px;
+        --pk-dialog-min-height: 400px;
+    }
+
+    /*
+     * Sub-field edit (NestedLayoutField only — Name/Address/Date children) — v1
+     * DialogContent (56% × 56%, 500 × 300). Nested under Edit Field, so the full
+     * token set must be set (not only max-width) or it inherits the parent's 66%.
+     * Group/Repeater nested fields use formie-field-edit-dialog (66%) like top-level.
+     */
+    pk-dialog.formie-sub-field-edit-dialog {
+        --pk-dialog-width: 56%;
+        --pk-dialog-max-width: 56%;
+        --pk-dialog-height: 56%;
+        --pk-dialog-max-height: calc(100dvh - 24px);
+        --pk-dialog-min-width: 500px;
+        --pk-dialog-min-height: 300px;
+    }
+}
+
+/*
+ * Edit Buttons — v1 DialogContent floor (66% × 66%, 700 × 500).
+ * Tabbed modal: reuses the field-edit body/tabs treatment below (flush list, 1rem panel).
+ */
+pk-dialog.formie-page-buttons-dialog {
+    --pk-dialog-width: calc(100vw - 24px);
+    --pk-dialog-max-width: calc(100vw - 24px);
+    --pk-dialog-height: calc(100dvh - 24px);
+    --pk-dialog-max-height: calc(100dvh - 24px);
+    --pk-dialog-min-width: 0;
+    --pk-dialog-min-height: 0;
+}
+
+@media (min-width: 768px) {
+    pk-dialog.formie-page-buttons-dialog {
+        --pk-dialog-width: 66%;
+        --pk-dialog-max-width: 66%;
+        --pk-dialog-height: 66%;
+        --pk-dialog-max-height: calc(100dvh - 24px);
+        --pk-dialog-min-width: 700px;
+        --pk-dialog-min-height: 500px;
+    }
+}
+
+/*
+ * Tracking template mapping dialog (GA4/GTM/etc.) — v1 DialogContent max-w-[520px].
+ * Opened from inside the Edit Buttons (page-buttons) dialog, so it DOM-inherits that
+ * dialog's --pk-dialog-width/height:66% + 700×500 floors. Reset the full token set so
+ * this compact modal sizes to content and caps at 520px instead of the parent's 66%.
+ */
+pk-dialog.formie-client-event-template-dialog {
+    --pk-dialog-width: min(520px, calc(100vw - 24px));
+    --pk-dialog-max-width: min(520px, calc(100vw - 24px));
+    --pk-dialog-height: fit-content;
+    --pk-dialog-max-height: calc(100dvh - 24px);
+    --pk-dialog-min-width: 0;
+    --pk-dialog-min-height: 0;
+}
+
+/*
+ * Convert predefined/provider/integration options to static rows — v1 DialogContent max-w-md.
+ * Nested under Edit Field, so without a full token reset it inherits the parent 66% shell.
+ */
+pk-dialog.formie-convert-static-options-dialog {
+    --pk-dialog-width: min(28rem, calc(100vw - 24px));
+    --pk-dialog-max-width: min(28rem, calc(100vw - 24px));
+    --pk-dialog-height: fit-content;
+    --pk-dialog-max-height: calc(100dvh - 24px);
+    --pk-dialog-min-width: 0;
+    --pk-dialog-min-height: 0;
+}
+
+/*
+ * Bulk Add Options — v1 DialogContent (66% × 66%, 600×400 floor).
+ * Opened from inside the field-edit dialog, so it DOM-inherits that dialog's
+ * --pk-dialog-* tokens. Reset the full set. Height matches v1 so the preview
+ * textarea can flex-fill the right column instead of staying ~4 rows tall.
+ */
+pk-dialog.formie-bulk-options-dialog {
+    --pk-dialog-width: calc(100vw - 24px);
+    --pk-dialog-max-width: calc(100vw - 24px);
+    --pk-dialog-height: calc(100dvh - 24px);
+    --pk-dialog-max-height: calc(100dvh - 24px);
+    --pk-dialog-min-width: 0;
+    --pk-dialog-min-height: 0;
+}
+
+@media (min-width: 768px) {
+    pk-dialog.formie-bulk-options-dialog {
+        --pk-dialog-width: 66%;
+        --pk-dialog-max-width: 66%;
+        --pk-dialog-height: 66%;
+        --pk-dialog-max-height: calc(100dvh - 24px);
+        --pk-dialog-min-width: 600px;
+        --pk-dialog-min-height: 400px;
+    }
+}
+
+pk-dialog.formie-bulk-options-dialog::part(body) {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+    padding: 0;
+}
+
+.formie-bulk-options-dialog-body {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.formie-bulk-options-dialog-body > .grid {
+    flex: 1 1 auto;
+    min-height: 0;
+    align-items: stretch;
+}
+
+/* Stretch pk-field → control → textarea so the preview fills the right column. */
+.formie-bulk-options-preview-field {
+    min-height: 0;
+}
+
+.formie-bulk-options-preview-field::part(form-control),
+.formie-bulk-options-preview-field::part(control) {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.formie-bulk-options-preview-textarea {
+    flex: 1 1 auto;
+    min-height: 260px;
+    height: 100%;
+}
+
+.formie-bulk-options-preview-textarea::part(form-control),
+.formie-bulk-options-preview-textarea::part(textarea) {
+    flex: 1 1 auto;
+    min-height: 260px;
+    height: 100%;
+}
+
+/* v1 mapping PopoverContent: min(92vw, 320px); height is content-sized. */
+.formie-predefined-mapping-popover {
+    box-sizing: border-box;
+    width: min(92vw, 320px);
+    max-width: 100%;
+}
+
+/* Integration source path — content-sized steps; truncate inside the 22rem cap. */
+.formie-integration-chain-step pk-combobox {
+    max-width: 100%;
+}
+
+/*
+ * Edit Pages content pane — v1 inset (~24px). Sidebar owns its own chrome;
+ * dialog uses without-body-padding so the split layout is flush.
+ */
+.formie-page-settings-dialog-content {
+    flex: 1 1 auto;
+    min-width: 0;
+    width: 100%;
+    overflow-x: hidden;
+    padding: 1rem;
+}
+
+/* Link variant hardcodes sky in shadow — host text-error cannot pierce. */
+pk-button.formie-page-settings-delete[variant='link']::part(base) {
+    color: var(--pk-color-error, #d81f23);
+}
+
+pk-button.formie-page-settings-delete[variant='link']:hover:not([disabled])::part(base) {
+    color: var(--pk-color-rose-700, #be123c);
+}
+
+/* Page reorder grip — compact icon button; host Tailwind cannot size shadow chrome. */
+pk-button.formie-page-settings-drag-handle[icon] {
+    color: var(--pk-color-gray-500, #606d7b);
+    cursor: move;
+    --pk-btn-icon-size: 12px;
+}
+
+pk-button.formie-page-settings-drag-handle[icon]:hover:not([disabled]) {
+    color: var(--pk-color-sky-600, #0284c7);
+}
+
+pk-button.formie-page-settings-drag-handle[icon]::part(base) {
+    color: inherit;
+    background: transparent;
+}
+
+/*
+ * Edit Field header — pixel match v1 DialogHeader:
+ * bg #f3f7fb, py-4 px-4, border-b gray-150; title 15px/semibold/leading-none.
+ * Close is absolute (right-4, vertically centered) so it cannot stretch header height.
+ * Panel owns scroll (v1 ModalTabs); tab list stays outside the scrollport.
+ */
+.formie-field-edit-header {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+    padding: 1rem;
+    border-bottom: 1px solid var(--pk-color-gray-150, #d7e1ec);
+    border-radius: var(--pk-radius-lg, 6px) var(--pk-radius-lg, 6px) 0 0;
+    background: #f3f7fb;
+    text-align: left;
+}
+
+.formie-field-edit-title {
+    display: flex;
+    flex-flow: row wrap;
+    align-items: center;
+    margin: 0;
+    /* Leave room for absolute close — same as v1 title next to right-4 icon. */
+    padding-inline-end: 2rem;
+    color: var(--pk-color-gray-900, #1f2937);
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1;
+}
+
+.formie-field-edit-type-pill {
+    display: inline-flex;
+    align-items: center;
+    margin-inline-start: 10px;
+    padding: 6px 10px;
+    border-radius: 20px;
+    background: #d8e2ea;
+    color: #526176;
+    font-size: 10px;
+    font-weight: 400;
+    line-height: 1;
+}
+
+/* v1 DialogHeader close: absolute right-4 top-1/2 -translate-y-1/2, size-4.5 glyph. */
+pk-button.formie-field-edit-close {
+    position: absolute;
+    top: 50%;
+    right: 1rem;
+    transform: translateY(-50%);
+    z-index: 1;
+    opacity: 0.7;
+    color: var(--pk-color-gray-600, #515f6c);
+    --pk-btn-height: 1.125rem;
+    --pk-btn-icon-size: 1.125rem;
+    --pk-btn-padding-inline: 0;
+}
+
+pk-button.formie-field-edit-close:hover:not([disabled]) {
+    opacity: 1;
+}
+
+pk-button.formie-field-edit-close::part(base) {
+    width: 1.125rem;
+    min-width: 1.125rem;
+    height: 1.125rem;
+    min-height: 1.125rem;
+    padding: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+/*
+ * Tabbed modals (field / sub-field edit + page buttons): match v1 ModalTabs —
+ * list is outside the scrollport; each pk-tab-panel owns overflow-y. Sticky
+ * list + body scroll rubber-bands off under Mac trackpad inertia.
+ *
+ * Height chain: dialog body (flex, overflow hidden) → wrapper (flex-1 min-h-0)
+ * → SchemaFormEngine form (h-full) → pk-tabs (height 100%) → panel (flex 1 + scroll).
+ */
+pk-dialog.formie-field-edit-dialog::part(body),
+pk-dialog.formie-sub-field-edit-dialog::part(body),
+pk-dialog.formie-page-buttons-dialog::part(body) {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+    padding: 0;
+}
+
+.formie-field-edit-dialog-body,
+.formie-page-buttons-dialog-body,
+.formie-sub-field-edit-dialog-body {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    width: 100%;
+    min-height: 0;
+    height: 100%;
+}
+
+/* Sub-field loading/error absolute-center needs a positioned fill shell. */
+.formie-sub-field-edit-dialog-body {
+    position: relative;
+}
+
+pk-dialog.formie-field-edit-dialog pk-tabs[variant='modal'],
+pk-dialog.formie-sub-field-edit-dialog pk-tabs[variant='modal'],
+pk-dialog.formie-page-buttons-dialog pk-tabs[variant='modal'] {
+    /* Kit modal defaults: height 100%, panel flex 1 1 0%, list flex-shrink 0 (not sticky). */
+    height: 100%;
+    min-height: 0;
+    /* v1 ModalTabs panel padding — single 1rem inset (no extra wrapper padding). */
+    --pk-tabs-panel-padding: 1rem;
+    /* Belt-and-suspenders if an older kit build still used flex-basis auto. */
+    --pk-tabs-panel-flex: 1 1 0%;
+}
+
+/* Contain trackpad overscroll so nested field/sub-field dialogs do not bounce the parent. */
+pk-dialog.formie-field-edit-dialog pk-tab-panel::part(content),
+pk-dialog.formie-sub-field-edit-dialog pk-tab-panel::part(content),
+pk-dialog.formie-page-buttons-dialog pk-tab-panel::part(content) {
+    overscroll-behavior-y: contain;
+}
+
+/*
+ * Spike: Craft ElementIndex hosted in kit Dialog (Attach Assets).
+ * Size close to Craft’s element selector modal; let CP index chrome fill the body.
+ */
+pk-dialog.formie-craft-element-index-dialog {
+    --pk-dialog-width: min(960px, calc(100vw - 24px));
+    --pk-dialog-max-width: min(960px, calc(100vw - 24px));
+    --pk-dialog-height: min(720px, calc(100dvh - 24px));
+    --pk-dialog-max-height: min(720px, calc(100dvh - 24px));
+    --pk-dialog-min-width: 0;
+    --pk-dialog-min-height: 0;
+}
+
+.formie-craft-element-index-shell {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.formie-craft-element-index-status {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1.5rem;
+    color: var(--gray-550, #596673);
+    font-size: 0.875rem;
+}
+
+.formie-craft-element-index-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* Craft’s modal body expects a full-height index; nudge layout into our shell. */
+.formie-craft-element-index-body > .element-index {
+    height: 100%;
+    min-height: 0;
+}
+
+.formie-craft-element-index-body .element-index,
+.formie-craft-element-index-body .content {
+    height: 100%;
+}
+
+/*
+ * Kit pane tabs pad the panel (`--pk-tabs-panel-padding: 1rem`). Formie already
+ * owns inset via FormBuilderTabContent (`p-6`); old PaneTabsContent had none.
+ * Selector must beat shadow `:host([variant='pane'])` on the host cascade.
+ */
+pk-tabs.form-builder-section-tabs[variant='pane'] {
+    --pk-tabs-panel-padding: 0;
+}
+
+/*
+ * Integrations sidebar rows: Craft/v1 density (7px 10px, 16px icon, 10px gap).
+ * Host Tailwind cannot style shadow .button — use tokens + ::part(base).
+ * Must live outside breakpoint media queries (sidebar is desktop-first).
+ * Selector must beat :host([size='none']) token resets (0 padding / 1em icons).
+ * Leading icon = slot=start, status = slot=end (label flexes between them).
+ */
+pk-button.form-builder-integrations-nav-item[size='none'] {
+    display: block;
+    width: 100%;
+    font-size: 13px;
+    --pk-btn-height: auto;
+    --pk-btn-padding-inline: 10px;
+    --pk-btn-padding-block: 7px;
+    --pk-btn-icon-size: 16px;
+    --pk-btn-icon-gap: 8px;
+    --pk-btn-radius: var(--pk-radius-lg);
+    --pk-btn-font: 13px;
+}
+
+pk-button.form-builder-integrations-nav-item[size='none']::part(base) {
+    width: 100%;
+    justify-content: flex-start;
+    text-align: left;
+    height: auto;
+    min-height: auto;
+    padding-block: 7px;
+    padding-inline: 10px;
+    gap: 8px;
+}
+
+pk-button.form-builder-integrations-nav-item.is-selected[size='none']::part(base),
+pk-button.form-builder-integrations-nav-item.is-selected[size='none']:hover::part(base) {
+    background: var(--gray-500, #6b7280);
+    color: #fff;
+}
+
+/* Disabled ring is gray-500 by default — invisible on the selected gray pill. */
+pk-button.form-builder-integrations-nav-item.is-selected pk-status[status='disabled'] {
+    --pk-status-ring: var(--pk-color-gray-200, #e5e7eb);
+}
+
+/*
+ * Existing Fields / Existing Notifications pickers — v1 DialogContent (66% × 66%,
+ * 600×400 floor). Fixed height keeps loading ↔ loaded shells from jumping.
+ * without-body-padding: sidebar + content are flush to the panel edges.
+ */
+pk-dialog.formie-existing-fields-dialog,
+pk-dialog.formie-existing-notifications-dialog {
+    --pk-dialog-width: calc(100vw - 24px);
+    --pk-dialog-max-width: calc(100vw - 24px);
+    --pk-dialog-height: calc(100dvh - 24px);
+    --pk-dialog-max-height: calc(100dvh - 24px);
+    --pk-dialog-min-width: 0;
+    --pk-dialog-min-height: 0;
+}
+
+@media (min-width: 768px) {
+    pk-dialog.formie-existing-fields-dialog,
+    pk-dialog.formie-existing-notifications-dialog {
+        --pk-dialog-width: 66%;
+        --pk-dialog-max-width: 66%;
+        --pk-dialog-height: 66%;
+        --pk-dialog-max-height: calc(100dvh - 24px);
+        --pk-dialog-min-width: 600px;
+        --pk-dialog-min-height: 400px;
+    }
+}
+
+pk-dialog.formie-existing-fields-dialog::part(body),
+pk-dialog.formie-existing-notifications-dialog::part(body) {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+    padding: 0;
+}
+
+/*
+ * Existing picker sidebar nav — same density as integrations nav / v1.
+ * Host Tailwind cannot style shadow .button — tokens + ::part(base).
+ */
+pk-button.formie-existing-picker-nav-item[size='none'],
+pk-button.existing-notifications-nav-item[size='none'] {
+    display: block;
+    width: 100%;
+    font-size: 13px;
+    --pk-btn-height: auto;
+    --pk-btn-padding-inline: 10px;
+    --pk-btn-padding-block: 7px;
+    --pk-btn-radius: var(--pk-radius-lg);
+    --pk-btn-font: 13px;
+}
+
+pk-button.formie-existing-picker-nav-item[size='none']::part(base),
+pk-button.existing-notifications-nav-item[size='none']::part(base) {
+    width: 100%;
+    justify-content: flex-start;
+    text-align: left;
+    height: auto;
+    min-height: auto;
+    padding-block: 7px;
+    padding-inline: 10px;
+}
+
+pk-button.formie-existing-picker-nav-item.is-selected[size='none']::part(base),
+pk-button.formie-existing-picker-nav-item.is-selected[size='none']:hover::part(base),
+pk-button.existing-notifications-nav-item.is-selected[size='none']::part(base),
+pk-button.existing-notifications-nav-item.is-selected[size='none']:hover::part(base) {
+    background: var(--pk-color-gray-500, #606d7b);
+    color: #fff;
+}
+
+/* Error chrome for pane section tabs — kit also styles :host([data-has-errors]);
+ * keep host vars so Formie can override without forking pk-tab. */
+.form-builder-section-tab[data-has-errors] {
+    --pk-tabs-trigger-color: var(--pk-color-error, #d81f23);
+    --pk-tabs-trigger-hover-color: var(--pk-color-rose-700, #be123c);
+    --pk-tabs-trigger-selected-color: var(--pk-color-error, #d81f23);
+    --pk-tabs-trigger-selected-hover-color: var(--pk-color-rose-700, #be123c);
 }
 
 .form-builder-h3 {
@@ -92,23 +672,15 @@
     height: calc(100dvh - 183px);
 }
 
-/* Empty dropzone field picker: clip any horizontal overflow in the combobox popup. */
-.form-builder-empty-dropzone-field-select [data-slot='combobox-content'],
-.form-builder-empty-dropzone-field-select [data-slot='combobox-list'] {
+/* Empty dropzone field picker: clip horizontal overflow; keep list left-aligned under text-center parent. */
+.form-builder-empty-dropzone-field-select pk-combobox::part(panel),
+.form-builder-empty-dropzone-field-select pk-combobox::part(panel-body) {
     overflow-x: clip;
     max-width: 100%;
 }
 
-.form-builder-empty-dropzone-field-select [data-slot='combobox-list'] {
+.form-builder-empty-dropzone-field-select pk-combobox::part(panel-body) {
     overflow-y: auto;
-}
-
-.form-builder-empty-dropzone-field-select [data-slot='combobox-separator'] {
-    margin-inline: 0;
-}
-
-.form-builder-empty-dropzone-field-select [data-slot='combobox-item'] > span {
-    min-width: 0;
 }
 
 .form-builder-header {
@@ -140,6 +712,127 @@
     display: none;
 }
 
+/*
+ * Page toolbar (Page 1, +, settings) — v1 modal-tab density.
+ * Host Tailwind on pk-button does not pierce shadow .button; use tokens + ::part(base).
+ */
+.form-builder-page-toolbar {
+    background: var(--pk-color-white, #fff);
+    /* Match prior Tailwind: ring + soft drop (v1 page toolbar chrome). */
+    box-shadow:
+        0 0 0 1px var(--gray-100, var(--pk-color-gray-100, #e4edf6)),
+        0 1px 5px hsl(from var(--gray-200, var(--pk-color-gray-200, #cdd8e4)) h s l / 40%);
+}
+
+.form-builder-page-tabs {
+    margin-inline: 8px;
+}
+
+pk-button.form-builder-page-tab-button[size='none'] {
+    display: block;
+    height: 100%;
+    max-width: 100%;
+    --pk-btn-height: 100%;
+    --pk-btn-padding-inline: 15px;
+    --pk-btn-radius: 0;
+}
+
+pk-button.form-builder-page-tab-button[size='none']::part(base) {
+    position: relative;
+    justify-content: flex-start;
+    width: 100%;
+    height: 100%;
+    min-height: 55px;
+    padding-inline: 15px;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    color: #64788d;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.4;
+    text-transform: uppercase;
+}
+
+pk-button.form-builder-page-tab-button[size='none']:hover:not([disabled])::part(base) {
+    background: transparent;
+    color: var(--pk-color-sky-600, #0284c7);
+}
+
+.form-builder-page-tabs[data-drag-active='true'] pk-button.form-builder-page-tab-button[size='none']:hover:not([disabled])::part(base) {
+    color: #64788d;
+}
+
+.form-builder-page-tabs[data-drag-active='true'] pk-button.form-builder-page-tab-action[size='sm']:hover:not([disabled])::part(base) {
+    color: var(--pk-color-gray-600, #515f6c);
+    background: transparent;
+}
+
+pk-button.form-builder-page-tab-button.has-errors[size='none']::part(base) {
+    color: var(--pk-color-error, #d81f23);
+}
+
+pk-button.form-builder-page-tab-button.is-drop-target[size='none']::part(base) {
+    background: #e5f5f8;
+}
+
+pk-button.form-builder-page-tab-button.is-active[size='none']::part(base) {
+    color: #64788d;
+}
+
+pk-button.form-builder-page-tab-button.is-active[size='none']::part(base)::after {
+    content: '';
+    position: absolute;
+    right: 15px;
+    /* variant=none uses border-width:0 — bottom:-1px (old 1px-border compensate) clipped
+     * half the 2px bar under the toolbar overflow, so the active indicator read as 1px. */
+    bottom: 0;
+    left: 15px;
+    height: 2px;
+    background: var(--pk-color-sky-600, #0284c7);
+    pointer-events: none;
+}
+
+pk-button.form-builder-page-tab-button[size='none']::part(base):focus-visible {
+    box-shadow: inset 0 0 0 2px var(--pk-color-sky-600, #0284c7);
+}
+
+pk-button.form-builder-page-tab-action[size='sm'] {
+    flex-shrink: 0;
+    color: var(--pk-color-gray-600, #515f6c);
+    /* 34px square action buttons — icon size stays 16px, padding fills the box. */
+    --pk-btn-icon-size: 16px;
+    --pk-btn-height: 34px;
+    --pk-btn-padding-inline: 0;
+}
+
+pk-button.form-builder-page-tab-action[size='sm']::part(base) {
+    width: 34px;
+    height: 34px;
+    min-height: 34px;
+    padding-inline: 0;
+    color: inherit;
+}
+
+pk-button.form-builder-page-tab-action[size='sm']:hover:not([disabled])::part(base) {
+    color: var(--pk-color-gray-800, #33404d);
+    background: var(--pk-color-slate-150, #607d9f26);
+}
+
+pk-button.form-builder-page-tab-action.has-errors[size='sm'] {
+    color: var(--pk-color-error, #d81f23);
+}
+
+pk-button.form-builder-page-tab-action.has-errors[size='sm']::part(base) {
+    border-color: var(--pk-color-error, #d81f23);
+    color: var(--pk-color-error, #d81f23);
+}
+
+pk-button.form-builder-page-tab-action.has-errors[size='sm']:hover:not([disabled])::part(base) {
+    color: var(--pk-color-error, #d81f23);
+    background: transparent;
+}
+
 @media (hover: none), (pointer: coarse) {
     .form-builder-field-actions,
     .form-builder-field-handle {
@@ -168,6 +861,25 @@
 
     .form-builder-header-action-label-short {
         display: inline;
+    }
+
+    /*
+     * Preview drops its text at this breakpoint (label-full only). Zero shadow-tree
+     * padding/gap so the control is a square icon button — host padding alone cannot
+     * reach pk-button ::part(base).
+     */
+    .form-builder-preview-action {
+        width: var(--pk-btn-height-default);
+        min-width: var(--pk-btn-height-default);
+        --pk-btn-padding-inline: 0;
+        --pk-btn-icon-gap: 0;
+    }
+
+    .form-builder-preview-action::part(base) {
+        width: 100%;
+        padding-inline: 0;
+        gap: 0;
+        justify-content: center;
     }
 
     .form-builder-field-type-backdrop {
@@ -229,14 +941,17 @@
         margin-left: 4px;
     }
 
-    .form-builder-page-tab-button {
-        padding-right: 13px;
-        padding-left: 13px;
+    pk-button.form-builder-page-tab-button[size='none'] {
+        --pk-btn-padding-inline: 13px;
     }
 
-    .form-builder-page-tab-button::after {
+    pk-button.form-builder-page-tab-button[size='none']::part(base) {
+        padding-inline: 13px;
+    }
+
+    pk-button.form-builder-page-tab-button.is-active[size='none']::part(base)::after {
+        right: 13px;
         left: 13px;
-        width: calc(100% - 26px);
     }
 
     .form-builder-canvas-scroll {
@@ -248,14 +963,23 @@
     }
 
     .form-builder-header-secondary-action {
-        width: 36px;
-        min-width: 36px;
-        height: 36px;
+        width: var(--pk-btn-height-default);
+        min-width: var(--pk-btn-height-default);
+        height: var(--pk-btn-height-default);
+        --pk-btn-height: var(--pk-btn-height-default);
+        --pk-btn-padding-inline: 0;
+        --pk-btn-icon-gap: 0;
         justify-content: center;
-        padding-top: 0;
-        padding-right: 0;
-        padding-bottom: 0;
-        padding-left: 0;
+        padding: 0;
+    }
+
+    .form-builder-header-secondary-action::part(base) {
+        width: 100%;
+        height: 100%;
+        min-height: 100%;
+        padding-inline: 0;
+        gap: 0;
+        justify-content: center;
     }
 
     .form-builder-header-action-label,

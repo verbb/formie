@@ -1,26 +1,7 @@
 import { startTransition, useEffect, useMemo, useState } from 'react';
 
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus } from '@fortawesome/pro-solid-svg-icons';
-
-import {
-    ALL_VALUE,
-    Button,
-    CheckboxSelect,
-    Input,
-    Lightswitch,
-    PaneTabs,
-    PaneTabsContent,
-    PaneTabsList,
-    PaneTabsTrigger,
-    SelectInput,
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@verbb/plugin-kit-react/components';
+import { ALL_VALUE, Button, CheckboxSelect, Icon, Input, Lightswitch, SelectInput, Tab, TabPanel, Tabs } from '@verbb/plugin-kit-react/components';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@utils/formieTable';
 import { FieldLayout } from '@verbb/plugin-kit-react/forms';
 import { FormieErrorsPane } from '@utils/FormieErrorsPane';
 import { useCpFormPayloadSync } from '@utils';
@@ -43,6 +24,12 @@ import {
 import styles from '@reports/css/style.css?inline';
 
 const REPORT_TAB_CONTENT_CLASS = 'flex flex-col gap-5 p-6 max-[640px]:p-4';
+
+const ReportTabPanel = ({ value, children }) => (
+    <TabPanel value={value}>
+        <div className={REPORT_TAB_CONTENT_CLASS}>{children}</div>
+    </TabPanel>
+);
 
 const REPORT_TABS = ['general', 'filters', 'columns', 'display', 'scheduled'];
 
@@ -296,18 +283,28 @@ export const ReportEditorApp = ({ settings }) => {
                 <FormieErrorsPane errors={errorMessages} />
             ) : null}
 
-            <PaneTabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-                <PaneTabsList aria-label={Craft.t('formie', 'Report sections')}>
-                    <PaneTabsTrigger value="general">{Craft.t('formie', 'General')}</PaneTabsTrigger>
-                    <PaneTabsTrigger value="filters">{Craft.t('formie', 'Filters')}</PaneTabsTrigger>
-                    <PaneTabsTrigger value="columns">{Craft.t('formie', 'Columns')}</PaneTabsTrigger>
-                    <PaneTabsTrigger value="display">{Craft.t('formie', 'Display')}</PaneTabsTrigger>
-                    {settings.canManageScheduled ? (
-                        <PaneTabsTrigger value="scheduled">{Craft.t('formie', 'Scheduled')}</PaneTabsTrigger>
-                    ) : null}
-                </PaneTabsList>
+            <Tabs
+                variant="pane"
+                value={activeTab}
+                aria-label={Craft.t('formie', 'Report sections')}
+                className="w-full"
+                onPkChange={(event) => {
+                    const next = event.detail?.value;
+                    if (typeof next !== 'string' || !next) {
+                        return;
+                    }
+                    handleTabChange(next);
+                }}
+            >
+                <Tab slot="nav" value="general">{Craft.t('formie', 'General')}</Tab>
+                <Tab slot="nav" value="filters">{Craft.t('formie', 'Filters')}</Tab>
+                <Tab slot="nav" value="columns">{Craft.t('formie', 'Columns')}</Tab>
+                <Tab slot="nav" value="display">{Craft.t('formie', 'Display')}</Tab>
+                {settings.canManageScheduled ? (
+                    <Tab slot="nav" value="scheduled">{Craft.t('formie', 'Scheduled')}</Tab>
+                ) : null}
 
-                <PaneTabsContent value="general" className={REPORT_TAB_CONTENT_CLASS}>
+                <ReportTabPanel value="general">
                     <FieldLayout
                         name="name"
                         label={Craft.t('formie', 'Name')}
@@ -348,9 +345,9 @@ export const ReportEditorApp = ({ settings }) => {
                             onCheckedChange={(enabled) => { updateValue('chart.enabled', enabled); }}
                         />
                     </FieldLayout>
-                </PaneTabsContent>
+                </ReportTabPanel>
 
-                <PaneTabsContent value="filters" className={REPORT_TAB_CONTENT_CLASS}>
+                <ReportTabPanel value="filters">
                     <FieldLayout
                         name="filters.formIds"
                         label={Craft.t('formie', 'Forms')}
@@ -441,9 +438,9 @@ export const ReportEditorApp = ({ settings }) => {
                             }}
                         />
                     </FieldLayout>
-                </PaneTabsContent>
+                </ReportTabPanel>
 
-                <PaneTabsContent value="columns" className={REPORT_TAB_CONTENT_CLASS}>
+                <ReportTabPanel value="columns">
                     <p className="m-0 text-sm text-gray-500">
                         {Craft.t('formie', 'Choose which submission attributes and fields to include in this report. Drag to reorder columns for the table and export.')}
                     </p>
@@ -483,9 +480,9 @@ export const ReportEditorApp = ({ settings }) => {
                             <p className="m-0 text-sm text-gray-500">{Craft.t('formie', 'Loading field columns…')}</p>
                         )
                     ) : null}
-                </PaneTabsContent>
+                </ReportTabPanel>
 
-                <PaneTabsContent value="display" className={REPORT_TAB_CONTENT_CLASS}>
+                <ReportTabPanel value="display">
                     <FieldLayout
                         name="display.useFieldHandles"
                         label={Craft.t('formie', 'Field Handles in Export Headers')}
@@ -525,10 +522,10 @@ export const ReportEditorApp = ({ settings }) => {
                             onChange={(nextValue) => { updateValue('export.filename', nextValue); }}
                         />
                     </FieldLayout>
-                </PaneTabsContent>
+                </ReportTabPanel>
 
                 {settings.canManageScheduled ? (
-                    <PaneTabsContent value="scheduled" className={REPORT_TAB_CONTENT_CLASS}>
+                    <ReportTabPanel value="scheduled">
                         <p className="m-0 text-sm text-gray-500">
                             {Craft.t('formie', 'Email this report on a schedule. Delivery uses the filters, columns, and display settings saved on this report.')}
                         </p>
@@ -536,7 +533,7 @@ export const ReportEditorApp = ({ settings }) => {
                         {settings.scheduledReportsNewUrl ? (
                             <div className="mb-4">
                                 <Button href={settings.scheduledReportsNewUrl} variant="primary">
-                                    <FontAwesomeIcon icon={faPlus} className="size-3" /> {Craft.t('formie', 'New Scheduled Report')}
+                                    <Icon slot="start" icon="plus" className="size-3" /> {Craft.t('formie', 'New Scheduled Report')}
                                 </Button>
                             </div>
                         ) : null}
@@ -559,7 +556,7 @@ export const ReportEditorApp = ({ settings }) => {
                                                     href={scheduledReport.editUrl}
                                                     variant="link"
                                                     size="none"
-                                                    className="h-auto p-0 font-normal text-[var(--color-link)]"
+                                                    className="h-auto p-0 font-normal"
                                                 >
                                                     {scheduledReport.name}
                                                 </Button>
@@ -584,9 +581,9 @@ export const ReportEditorApp = ({ settings }) => {
                         ) : (
                             <p className="text-sm text-gray-500">{Craft.t('formie', 'No scheduled deliveries for this report yet.')}</p>
                         )}
-                    </PaneTabsContent>
+                    </ReportTabPanel>
                 ) : null}
-            </PaneTabs>
+            </Tabs>
         </div>
     );
 };

@@ -302,6 +302,7 @@ class Address extends FixedParentField implements PreviewableFieldInterface
                 'placeholder' => Craft::t('formie', 'Select an option'),
                 'options' => $this->getCountryOptions(),
                 'multiple' => true,
+                'width' => 'full',
             ]),
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Preselect Country from IP'),

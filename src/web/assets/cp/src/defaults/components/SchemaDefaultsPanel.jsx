@@ -7,32 +7,29 @@ import { normalizeSelectFieldDefaults } from '@defaults/utils/defaultsEditorStat
 export const SchemaDefaultsPanel = ({
     panelKey, schema, schemaIndex, values, onChange,
 }) => {
-    const hasHandledInitialChangeRef = useRef(false);
-    const initialValues = useMemo(() => {
+    const onChangeRef = useRef(onChange);
+    onChangeRef.current = onChange;
+
+    // Re-seed only when the panel identity changes — not when parent echoes our onChange
+    // back as `values`. `useSchemaFormEngine` returns a new `form` object every render;
+    // putting it (or live `values`) in a reset effect causes reset→notify→setState (#185).
+    const seedValues = useMemo(() => {
         return normalizeSelectFieldDefaults(schema, values || {});
-    }, [panelKey, schema, values]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional: panelKey/schema only
+    }, [panelKey, schema]);
 
     const form = useSchemaFormEngine({
         schema: schema || [],
         schemaIndex: schemaIndex || null,
-        defaultValues: initialValues,
+        defaultValues: seedValues,
         onChange: (data) => {
-            if (!hasHandledInitialChangeRef.current) {
-                hasHandledInitialChangeRef.current = true;
-
-                if (JSON.stringify(data || {}) === JSON.stringify(initialValues || {})) {
-                    return;
-                }
-            }
-
-            onChange(data || {});
+            onChangeRef.current(data || {});
         },
     });
 
     useEffect(() => {
-        hasHandledInitialChangeRef.current = false;
-        form.store.reset(initialValues);
-    }, [panelKey, form, initialValues]);
+        form.store.reset(seedValues);
+    }, [panelKey, seedValues, form.store]);
 
     if (!schema?.length) {
         return null;

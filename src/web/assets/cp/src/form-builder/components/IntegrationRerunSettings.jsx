@@ -1,13 +1,8 @@
 import {
     useCallback, useMemo, useState,
 } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronDown, faChevronRight } from '@fortawesome/pro-solid-svg-icons';
 
-import {
-    Checkbox,
-    SelectInput,
-} from '@verbb/plugin-kit-react/components';
+import { Checkbox, Icon, SelectInput } from '@verbb/plugin-kit-react/components';
 import { useFormBuilderForm } from '@form-builder/contexts/FormBuilderFormContext';
 
 export const RERUN_POLICIES_PATH = 'settings.integrationPolicies.rerun';
@@ -158,8 +153,8 @@ function IntegrationRerunSettings({
                 }}
                 aria-expanded={expanded}
             >
-                <FontAwesomeIcon
-                    icon={expanded ? faChevronDown : faChevronRight}
+                <Icon
+                    icon={expanded ? 'chevron-down' : 'chevron-right'}
                     className="size-3 shrink-0 text-gray-500"
                 />
                 <div className="min-w-0 flex-1">
@@ -247,22 +242,19 @@ function IntegrationRerunSettings({
                                                             const checked = (config.events || []).includes(option.value);
 
                                                             return (
-                                                                <label
+                                                                <Checkbox
                                                                     key={option.value}
-                                                                    className="flex items-center gap-2 text-sm text-gray-700"
+                                                                    checked={checked}
+                                                                    onCheckedChange={(nextChecked) => {
+                                                                        toggleCustomEvent(
+                                                                            integration.handle,
+                                                                            option.value,
+                                                                            Boolean(nextChecked),
+                                                                        );
+                                                                    }}
                                                                 >
-                                                                    <Checkbox
-                                                                        checked={checked}
-                                                                        onCheckedChange={(nextChecked) => {
-                                                                            toggleCustomEvent(
-                                                                                integration.handle,
-                                                                                option.value,
-                                                                                Boolean(nextChecked),
-                                                                            );
-                                                                        }}
-                                                                    />
-                                                                    <span>{option.label}</span>
-                                                                </label>
+                                                                    {option.label}
+                                                                </Checkbox>
                                                             );
                                                         })}
                                                     </div>

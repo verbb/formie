@@ -1,7 +1,5 @@
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faLock } from '@fortawesome/pro-solid-svg-icons';
-
 import { cn } from '@verbb/plugin-kit-react/utils';
+import { Icon } from '@verbb/plugin-kit-react/components';
 
 const FieldBuilderEncryptedBadge = ({ enabled, className }) => {
     if (!enabled) {
@@ -19,7 +17,7 @@ const FieldBuilderEncryptedBadge = ({ enabled, className }) => {
             )}
             title={Craft.t('formie', 'Enable Content Encryption')}
         >
-            <FontAwesomeIcon icon={faLock} className="size-2.5" />
+            <Icon icon="lock" className="size-2.5" />
             <span>{Craft.t('formie', 'Encrypted')}</span>
         </div>
     );

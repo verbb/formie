@@ -1,21 +1,16 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import {
-    Button,
-    DropdownMenuRadioGroup,
-    DropdownMenuRadioItem,
-    EditableTable,
-} from '@verbb/plugin-kit-react/components';
-import { FieldLayout } from '@verbb/plugin-kit-react/forms/Field';
-import { useEditableTableFieldBinding } from '@verbb/plugin-kit-react/forms';
+import { Button, EditableTable, Icon } from '@verbb/plugin-kit-react/components';
+import { FieldLayout } from '@verbb/plugin-kit-react/forms';
+import { useEditableTableFieldBinding } from '@utils/useEditableTableFieldBinding';
 import { useTranslation } from '@verbb/plugin-kit-react/hooks';
-
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus } from '@fortawesome/pro-solid-svg-icons';
 
 import { FormieBulkOptionsDialog } from '@form-builder/components/FormieBulkOptionsDialog';
 import {
-    resolveOptionAvailabilityValue,
+    applyOptionAvailabilityMenuSelect,
+    getOptionAvailabilityRowMenuItems,
+    getOptionAvailabilityRowModifier,
+    patchRowAvailability,
 } from '@form-builder/utils/optionAvailability';
 import { syncLikertRowValues } from '@form-builder/utils/likertRowValues';
 import { syncQuestionOptionValues } from '@form-builder/utils/questionOptionValues';
@@ -61,71 +56,30 @@ function FormieEditableTableField({ form, field }) {
                 return row;
             }
 
-            const next = { ...(row && typeof row === 'object' ? row : {}) };
-            delete next.disabled;
-            delete next._id;
-
-            if (availability) {
-                next.availability = availability;
-            } else {
-                delete next.availability;
-            }
-
-            return next;
+            return patchRowAvailability(row, availability);
         });
 
         setRows(nextRows);
     }, [field.name, form, setRows]);
 
-    const renderOptionRowMenuItems = useCallback(({ row, rowIndex }) => {
-        if (!hasOptionRowMenu || row?.optgroup) {
+    const getRowMenuItems = useCallback((row) => {
+        if (!hasOptionRowMenu) {
             return null;
         }
 
-        const currentValue = resolveOptionAvailabilityValue(row);
+        return getOptionAvailabilityRowMenuItems(row, t);
+    }, [hasOptionRowMenu, t]);
 
-        return (
-            <DropdownMenuRadioGroup
-                value={currentValue}
-                onValueChange={(value) => {
-                    updateRowAvailability(rowIndex, value === 'visible' ? null : value);
-                }}
-            >
-                <DropdownMenuRadioItem value="visible">
-                    {t('Visible')}
-                </DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="hidden">
-                    {t('Hidden')}
-                </DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="disabled">
-                    {t('Disabled')}
-                </DropdownMenuRadioItem>
-            </DropdownMenuRadioGroup>
-        );
-    }, [hasOptionRowMenu, t, updateRowAvailability]);
+    const handleRowMenuSelect = useCallback((detail) => {
+        applyOptionAvailabilityMenuSelect(detail, updateRowAvailability);
+    }, [updateRowAvailability]);
 
     const modifyOptionRow = useCallback((row) => {
-        if (!hasOptionRowMenu || row?.optgroup) {
+        if (!hasOptionRowMenu) {
             return null;
         }
 
-        const availability = resolveOptionAvailabilityValue(row);
-
-        if (availability === 'hidden') {
-            return {
-                cellClassName: 'bg-amber-50/80',
-                title: t('Hidden from the front-end form'),
-            };
-        }
-
-        if (availability === 'disabled') {
-            return {
-                cellClassName: 'bg-slate-100/90',
-                title: t('Disabled on the front-end form'),
-            };
-        }
-
-        return null;
+        return getOptionAvailabilityRowModifier(row, t);
     }, [hasOptionRowMenu, t]);
 
     const hasBulkOptions = Boolean(field.enableBulkOptions && field.predefinedOptions?.length);
@@ -186,36 +140,37 @@ function FormieEditableTableField({ form, field }) {
     }
 
     return (
-        <FieldLayout
-            name={field.name}
-            label={field.label}
-            instructions={field.instructions}
-            warning={field.warning}
-            required={field.required}
-            errors={errors}
-            withControl={false}
-            headerEnd={hasBulkOptions ? (
-                <Button type="button" size="sm" onClick={() => { setIsBulkDialogOpen(true); }}>
-                    <FontAwesomeIcon icon={faPlus} className="size-3" />
-                    {t('Bulk add options')}
-                </Button>
-            ) : null}
-        >
-            <EditableTable
-                columns={field.columns}
-                rows={rows}
-                onChange={handleRowsChange}
-                onCellChange={handleTableCellChange}
-                addRowLabel={field.addRowLabel}
-                allowReorder={field.allowReorder}
-                allowAdd={field.allowAdd}
-                allowDelete={field.allowDelete}
-                className=""
-                fieldName={field.name}
-                cellErrors={cellErrors}
-                modifyRow={hasOptionRowMenu ? modifyOptionRow : undefined}
-                renderRowMenuItemsBeforeCore={hasOptionRowMenu ? renderOptionRowMenuItems : undefined}
-            />
+        <>
+            <FieldLayout
+                name={field.name}
+                label={field.label}
+                instructions={field.instructions}
+                warning={field.warning}
+                required={field.required}
+                errors={errors}
+                headerEnd={hasBulkOptions ? (
+                    <Button type="button" size="sm" onClick={() => { setIsBulkDialogOpen(true); }}>
+                        <Icon slot="start" icon="plus" className="size-3" />
+                        {t('Bulk add options')}
+                    </Button>
+                ) : null}
+            >
+                <EditableTable
+                    columns={field.columns}
+                    rows={rows}
+                    onChange={handleRowsChange}
+                    onCellChange={handleTableCellChange}
+                    addRowLabel={field.addRowLabel}
+                    allowReorder={field.allowReorder}
+                    allowAdd={field.allowAdd}
+                    allowDelete={field.allowDelete}
+                    fieldName={field.name}
+                    cellErrors={cellErrors}
+                    modifyRow={hasOptionRowMenu ? modifyOptionRow : undefined}
+                    getRowMenuItems={hasOptionRowMenu ? getRowMenuItems : undefined}
+                    onRowMenuSelect={hasOptionRowMenu ? handleRowMenuSelect : undefined}
+                />
+            </FieldLayout>
 
             {hasBulkOptions && (
                 <FormieBulkOptionsDialog
@@ -226,7 +181,7 @@ function FormieEditableTableField({ form, field }) {
                     onSave={handleBulkSave}
                 />
             )}
-        </FieldLayout>
+        </>
     );
 }
 

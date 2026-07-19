@@ -1,33 +1,37 @@
-import {
-    Button,
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuGroup,
-    DropdownMenuTrigger,
-} from '@verbb/plugin-kit-react/components';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEllipsis } from '@fortawesome/pro-solid-svg-icons';
+import { Button, DropdownMenu, Icon } from '@verbb/plugin-kit-react/components';
 
+/**
+ * Stock `<pk-dropdown-menu>` actions trigger for the variable picker.
+ * Trigger uses `slot="trigger"`; items are direct menu children.
+ *
+ * Flex alignment/sizing must land on the menu host (the flex item) — classes on
+ * the inner Button cannot `self-center` the host, and `-mr-1` ate cell padding.
+ */
 export function VariablePickerActionsMenu({
     label,
-    align = 'end',
+    placement = 'bottom-end',
     sideOffset = 8,
     children,
 }) {
     return (
-        <DropdownMenu size="sm">
-            <DropdownMenuTrigger
-                render={(
-                    <Button className="rounded-none w-7 h-7 -mr-2" variant="none" aria-label={label} size="icon-xs">
-                        <FontAwesomeIcon icon={faEllipsis} className="size-3" />
-                    </Button>
-                )}
-            />
-            <DropdownMenuContent align={align} sideOffset={sideOffset}>
-                <DropdownMenuGroup>
-                    {children}
-                </DropdownMenuGroup>
-            </DropdownMenuContent>
+        <DropdownMenu
+            size="sm"
+            placement={placement}
+            side-offset={sideOffset}
+            className="inline-flex size-[26px] shrink-0 items-center justify-center self-center -mr-[0.5rem]"
+        >
+            <Button
+                slot="trigger"
+                type="button"
+                size="none"
+                icon
+                variant="none"
+                aria-label={label}
+                className="size-full [&::part(base)]:size-full [&::part(base)]:justify-center"
+            >
+                <Icon slot="start" icon="ellipsis" className="size-3" />
+            </Button>
+            {children}
         </DropdownMenu>
     );
 }

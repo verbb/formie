@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from 'react';
 
-import { VariableCategoriesProvider } from '@verbb/plugin-kit-react/forms';
+import { VariableCategoriesProvider } from '@utils/VariableCategoriesProvider';
 
 import { resolveStaticVariableCategories } from '@defaults/utils/variableCategories';
 

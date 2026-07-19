@@ -3,47 +3,9 @@ import React, {
 } from 'react';
 import { useDraggable, useDragOperation } from '@dnd-kit/react';
 
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-    faClone, faXmark, faAsterisk, faRefresh, faEyeSlash,
-    faPencil,
-    faEllipsis,
-    faEye,
-    faTriangleExclamation,
-    faArrowUp,
-    faArrowDown,
-    faArrowLeft,
-    faArrowRight,
-    faLinkSlash,
-    faLock,
-    faPlus,
-} from '@fortawesome/pro-solid-svg-icons';
-
-import {
-    Button,
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogFooter,
-    DialogDescription,
-    Spinner,
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-    TiptapContent,
+    Button, Combobox, Dialog, DropdownItem, DropdownMenu, DropdownSeparator, Icon, Option, Spinner, TiptapContent,
 } from '@verbb/plugin-kit-react/components';
-import {
-    Combobox,
-    ComboboxPrimitiveInput,
-    ComboboxContent,
-    ComboboxEmpty,
-    ComboboxList,
-    ComboboxItem,
-    ComboboxHighlightedText,
-} from '@verbb/plugin-kit-react/components/Combobox';
 
 import { SchemaFormEngine, useSchemaFormEngine } from '@verbb/plugin-kit-react/forms';
 import { useHandleSyncOnChange } from '@form-builder/hooks/useHandleSyncOnChange';
@@ -66,14 +28,13 @@ import {
     injectReservedHandlesIntoSchemaIndex,
     collectTopLevelReservedHandles,
 } from '@form-builder/utils/handleValidation';
-import {
-    cn,
-} from '@verbb/plugin-kit-react/utils';
+import { cn } from '@verbb/plugin-kit-react/utils';
 import { focusFirstVisibleInputIfEmpty } from '@form-builder/utils/focus';
 import { syncContainerRowsFromVariant } from '@form-builder/utils/containerLayoutVariants';
 import { announceFormBuilderStatus, focusFieldActionsTrigger } from '@form-builder/utils/accessibility';
 import { submitSchemaFormAfterPendingTableUpdates } from '@form-builder/utils/submitSchemaForm';
 import { useFieldEditorDismiss } from '@form-builder/hooks/useFieldEditorDismiss';
+import { useResetDialogBodyScrollOnTabChange } from '@form-builder/hooks/useResetDialogBodyScrollOnTabChange';
 import { normalizeFieldEditorValues, normalizeRichTextValue, hasRichTextValue } from '@form-builder/utils/richTextValue';
 import {
     getFieldDisplayLabel,
@@ -625,111 +586,107 @@ const Field = ({
                     'z-10',
                     isDropdownOpen && 'opacity-100',
                 )}>
-                    <DropdownMenu size="sm" open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
-                        <DropdownMenuTrigger
-                            render={(
-                                <Button
-                                    variant="transparent"
-                                    size="sm"
-                                    className={cn(
-                                        'w-7 h-7 p-0',
-                                        'rounded-lg',
-                                    )}
-                                    data-dropdown-trigger
-                                    data-form-builder-field-actions-trigger={field?._id}
-                                    aria-label={Craft.t('formie', 'Actions for {label}', { label: fieldDisplayLabel })}
-                                />
+                    <DropdownMenu
+                        size="sm"
+                        placement="bottom-end"
+                        open={isDropdownOpen}
+                        onPkOpenChange={(event) => {
+                            setIsDropdownOpen(event.detail?.open ?? false);
+                        }}
+                    >
+                        <Button
+                            slot="trigger"
+                            variant="transparent"
+                            size="sm"
+                            className={cn(
+                                'w-7 h-7 p-0',
+                                'rounded-lg',
                             )}
+                            data-dropdown-trigger
+                            data-form-builder-field-actions-trigger={field?._id}
+                            aria-label={Craft.t('formie', 'Actions for {label}', { label: fieldDisplayLabel })}
                         >
-                            <FontAwesomeIcon
-                                icon={faEllipsis}
-                                className="size-3.5"
-                            />
-                        </DropdownMenuTrigger>
+                            <Icon slot="start" icon="ellipsis"
+                                className="size-3.5" />
+                        </Button>
 
-                        <DropdownMenuContent align="end" className="min-w-[140px]">
-                            <DropdownMenuItem onClick={handleEdit}>
-                                <FontAwesomeIcon icon={faPencil} />
-                                {Craft.t('formie', 'Edit')}
-                            </DropdownMenuItem>
+                        <DropdownItem onPkSelect={handleEdit}>
+                            <Icon slot="start" icon="pen" />
+                            {Craft.t('formie', 'Edit')}
+                        </DropdownItem>
 
-                            {!isBuilderField && (
-                                <DropdownMenuItem onClick={handleToggleRequired}>
-                                    <FontAwesomeIcon icon={faAsterisk} />
-                                    {field.required
-                                        ? Craft.t('formie', 'Make optional')
-                                        : Craft.t('formie', 'Make required')
-                                    }
-                                </DropdownMenuItem>
-                            )}
+                        {!isBuilderField && (
+                            <DropdownItem onPkSelect={handleToggleRequired}>
+                                <Icon slot="start" icon="asterisk" />
+                                {field.required
+                                    ? Craft.t('formie', 'Make optional')
+                                    : Craft.t('formie', 'Make required')
+                                }
+                            </DropdownItem>
+                        )}
 
-                            <DropdownMenuItem onClick={handleDuplicate}>
-                                <FontAwesomeIcon icon={faClone} />
-                                {Craft.t('formie', 'Duplicate')}
-                            </DropdownMenuItem>
+                        <DropdownItem onPkSelect={handleDuplicate}>
+                            <Icon slot="start" icon="clone" />
+                            {Craft.t('formie', 'Duplicate')}
+                        </DropdownItem>
 
-                            {canAddExistingFieldsToGroup && (
-                                <DropdownMenuItem onClick={handleOpenGroupExistingFields}>
-                                    <FontAwesomeIcon icon={faPlus} />
-                                    {Craft.t('formie', 'Add existing fields')}
-                                </DropdownMenuItem>
-                            )}
+                        {canAddExistingFieldsToGroup && (
+                            <DropdownItem onPkSelect={handleOpenGroupExistingFields}>
+                                <Icon slot="start" icon="plus" />
+                                {Craft.t('formie', 'Add existing fields')}
+                            </DropdownItem>
+                        )}
 
-                            {isSyncedField && (
-                                <DropdownMenuItem onClick={handleDetachSync}>
-                                    <FontAwesomeIcon icon={faLinkSlash} />
-                                    {Craft.t('formie', 'Detach sync')}
-                                </DropdownMenuItem>
-                            )}
+                        {isSyncedField && (
+                            <DropdownItem onPkSelect={handleDetachSync}>
+                                <Icon slot="start" icon="link-slash" />
+                                {Craft.t('formie', 'Detach sync')}
+                            </DropdownItem>
+                        )}
 
-                            <DropdownMenuSeparator />
+                        <DropdownSeparator />
 
-                            <DropdownMenuItem
-                                onClick={handleMoveUp}
-                                disabled={!canMoveUp}
-                                className={cn(!canMoveUp && 'opacity-50 pointer-events-none')}
-                            >
-                                <FontAwesomeIcon icon={faArrowUp} />
-                                {Craft.t('formie', 'Move up')}
-                            </DropdownMenuItem>
+                        <DropdownItem
+                            onPkSelect={handleMoveUp}
+                            disabled={!canMoveUp}
+                        >
+                            <Icon slot="start" icon="arrow-up" />
+                            {Craft.t('formie', 'Move up')}
+                        </DropdownItem>
 
-                            <DropdownMenuItem
-                                onClick={handleMoveDown}
-                                disabled={!canMoveDown}
-                                className={cn(!canMoveDown && 'opacity-50 pointer-events-none')}
-                            >
-                                <FontAwesomeIcon icon={faArrowDown} />
-                                {Craft.t('formie', 'Move down')}
-                            </DropdownMenuItem>
+                        <DropdownItem
+                            onPkSelect={handleMoveDown}
+                            disabled={!canMoveDown}
+                        >
+                            <Icon slot="start" icon="arrow-down" />
+                            {Craft.t('formie', 'Move down')}
+                        </DropdownItem>
 
-                            <DropdownMenuItem
-                                onClick={handleMoveLeft}
-                                disabled={!canMoveLeft}
-                                className={cn(!canMoveLeft && 'opacity-50 pointer-events-none')}
-                            >
-                                <FontAwesomeIcon icon={faArrowLeft} />
-                                {Craft.t('formie', 'Move left')}
-                            </DropdownMenuItem>
+                        <DropdownItem
+                            onPkSelect={handleMoveLeft}
+                            disabled={!canMoveLeft}
+                        >
+                            <Icon slot="start" icon="arrow-left" />
+                            {Craft.t('formie', 'Move left')}
+                        </DropdownItem>
 
-                            <DropdownMenuItem
-                                onClick={handleMoveRight}
-                                disabled={!canMoveRight}
-                                className={cn(!canMoveRight && 'opacity-50 pointer-events-none')}
-                            >
-                                <FontAwesomeIcon icon={faArrowRight} />
-                                {Craft.t('formie', 'Move right')}
-                            </DropdownMenuItem>
+                        <DropdownItem
+                            onPkSelect={handleMoveRight}
+                            disabled={!canMoveRight}
+                        >
+                            <Icon slot="start" icon="arrow-right" />
+                            {Craft.t('formie', 'Move right')}
+                        </DropdownItem>
 
-                            <DropdownMenuSeparator />
+                        <DropdownSeparator />
 
-                            <DropdownMenuItem
-                                onClick={handleDelete}
-                                className="text-error focus:text-error"
-                            >
-                                <FontAwesomeIcon icon={faXmark} />
-                                {Craft.t('formie', 'Delete')}
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
+                        <DropdownItem
+                            onPkSelect={handleDelete}
+                            destructive
+                        >
+                            <Icon slot="start" icon="xmark" />
+                            {Craft.t('formie', 'Delete')}
+                        </DropdownItem>
                     </DropdownMenu>
                 </div>
 
@@ -780,7 +737,7 @@ const Field = ({
                                             'text-[10px] font-medium text-[#b45309]',
                                             shouldUseFieldLabel && 'ml-2',
                                         )}>
-                                            <FontAwesomeIcon icon={faRefresh} className="size-2.5" />
+                                            <Icon icon="refresh" className="size-2.5" />
                                             <span>{Craft.t('formie', 'Synced')}</span>
                                         </div>
                                     )}
@@ -801,7 +758,7 @@ const Field = ({
                                             )}
                                             title={field.builderNote || Craft.t('formie', 'Field settings require unlock to edit.')}
                                         >
-                                            <FontAwesomeIcon icon={faLock} className="size-2.5" />
+                                            <Icon icon="lock" className="size-2.5" />
                                             <span>{Craft.t('formie', 'Locked')}</span>
                                         </div>
                                     )}
@@ -814,7 +771,7 @@ const Field = ({
                                             'text-[10px] font-medium text-[#0077b6]',
                                             shouldUseFieldLabel && 'ml-2',
                                         )}>
-                                            <FontAwesomeIcon icon={faEye} className="size-3" />
+                                            <Icon icon="eye" className="size-3" />
                                             <span>{Craft.t('formie', 'Conditions')}</span>
                                         </div>
                                     )}
@@ -830,7 +787,7 @@ const Field = ({
                                             )}
                                             title={Craft.t('formie', 'Payment fields should be placed on the final page to avoid incomplete paid submissions.')}
                                         >
-                                            <FontAwesomeIcon icon={faTriangleExclamation} className="size-3" />
+                                            <Icon icon="triangle-exclamation" className="size-3" />
                                             <span>{Craft.t('formie', 'Payment Placement')}</span>
                                         </div>
                                     )}
@@ -843,7 +800,7 @@ const Field = ({
                                             'text-[10px] font-medium text-[#475569]',
                                             shouldUseFieldLabel && 'ml-2',
                                         )}>
-                                            <FontAwesomeIcon icon={faXmark} className="size-3" />
+                                            <Icon icon="xmark" className="size-3" />
                                             <span>{Craft.t('formie', 'Disabled')}</span>
                                         </div>
                                     )}
@@ -856,7 +813,7 @@ const Field = ({
                                             'text-[10px] font-medium text-[#4f46e5]',
                                             shouldUseFieldLabel && 'ml-2',
                                         )}>
-                                            <FontAwesomeIcon icon={faEyeSlash} className="size-3" />
+                                            <Icon icon="eye-slash" className="size-3" />
                                             <span>{Craft.t('formie', 'Hidden')}</span>
                                         </div>
                                     )}
@@ -888,17 +845,11 @@ const Field = ({
             </div >
 
             {isAdapterPickerOpen && (
-                <Dialog open={true} onOpenChange={(open) => {
-                    if (!open) {
-                        handleCustomFieldAdapterCancel();
-                    }
-                }}>
-                    <CustomFieldAdapterPickerModal
-                        adapters={customFieldAdapters}
-                        onSelect={handleCustomFieldAdapterSelect}
-                        onCancel={handleCustomFieldAdapterCancel}
-                    />
-                </Dialog>
+                <CustomFieldAdapterPickerModal
+                    adapters={customFieldAdapters}
+                    onSelect={handleCustomFieldAdapterSelect}
+                    onCancel={handleCustomFieldAdapterCancel}
+                />
             )}
 
             {showGroupExistingFields && groupExistingFieldsPlacement && (
@@ -911,31 +862,24 @@ const Field = ({
             )}
 
             {editingField !== null && (
-                <Dialog open={true} onOpenChange={(open) => {
-                    if (!open) {
-                        fieldEditorDismissAttemptRef.current?.();
-                    }
-                }}>
-                    <FieldEditModal
-                        field={editingField}
-                        fieldType={fieldType}
-                        errors={fieldModalErrors}
-                        reservedHandles={topLevelReservedHandles}
-                        dismissAttemptRef={fieldEditorDismissAttemptRef}
-                        onSave={handleSaveField}
-                        onCancel={() => {
-                            closeFieldEditor({ deleteIfNew: true });
-                        }}
-                        onDismiss={({ deleteIfNew = false } = {}) => {
-                            closeFieldEditor({ deleteIfNew });
-                        }}
-                        onDelete={() => {
-                            closeFieldEditor({ deleteAlways: true });
-                        }}
-                    />
-                </Dialog>
-            )
-            }
+                <FieldEditModal
+                    field={editingField}
+                    fieldType={fieldType}
+                    errors={fieldModalErrors}
+                    reservedHandles={topLevelReservedHandles}
+                    dismissAttemptRef={fieldEditorDismissAttemptRef}
+                    onSave={handleSaveField}
+                    onCancel={() => {
+                        closeFieldEditor({ deleteIfNew: true });
+                    }}
+                    onDismiss={({ deleteIfNew = false } = {}) => {
+                        closeFieldEditor({ deleteIfNew });
+                    }}
+                    onDelete={() => {
+                        closeFieldEditor({ deleteAlways: true });
+                    }}
+                />
+            )}
         </>
     );
 };
@@ -947,7 +891,8 @@ const CustomFieldAdapterIcon = ({ icon }) => {
 
     return (
         <span
-            className="flex size-5 shrink-0 items-center justify-center text-[#33475b] [&_svg]:size-5"
+            slot="start"
+            className="flex size-4 shrink-0 items-center justify-center text-[#33475b] [&_svg]:size-4"
             aria-hidden="true"
             dangerouslySetInnerHTML={{ __html: icon }}
         />
@@ -955,8 +900,7 @@ const CustomFieldAdapterIcon = ({ icon }) => {
 };
 
 const CustomFieldAdapterPickerModal = ({ adapters, onSelect, onCancel }) => {
-    const [selectedAdapter, setSelectedAdapter] = useState(null);
-    const [searchValue, setSearchValue] = useState('');
+    const [selectedAdapter, setSelectedAdapter] = useState('');
     const selectedAdapterDefinition = useMemo(() => {
         return adapters.find((adapter) => { return adapter.type === selectedAdapter; }) || null;
     }, [adapters, selectedAdapter]);
@@ -970,76 +914,51 @@ const CustomFieldAdapterPickerModal = ({ adapters, onSelect, onCancel }) => {
     };
 
     return (
-        <DialogContent className={cn(
-            'w-[calc(100vw-24px)] max-w-[640px]',
-            'min-w-0',
-        )}
+        <Dialog
+            open
+            label={Craft.t('formie', 'Choose Custom Field Type')}
+            description={Craft.t('formie', 'Choose which Craft field adapter should power this Formie field. This cannot be changed later.')}
+            className="formie-custom-field-adapter-dialog"
+            onPkOpenChange={(event) => {
+                if (!(event.detail?.open ?? event.target?.open ?? false)) {
+                    onCancel();
+                }
+            }}
         >
-            <DialogHeader>
-                <DialogTitle>
-                    {Craft.t('formie', 'Choose Custom Field Type')}
-                </DialogTitle>
-
-                <DialogDescription>
-                    {Craft.t('formie', 'Choose which Craft field adapter should power this Formie field. This cannot be changed later.')}
-                </DialogDescription>
-            </DialogHeader>
-
+            {/* v1: min-h-[280px] vertically centers the combobox in a short-content modal. */}
             <div className="flex min-h-[280px] items-center justify-center px-4 py-8">
                 <div className="w-full max-w-[500px]">
+                    {/* Stock pk-combobox: string values; icon via Option start slot; kit highlights matches. */}
                     <Combobox
-                        items={adapters}
-                        value={selectedAdapterDefinition}
-                        onValueChange={(adapter) => {
-                            setSelectedAdapter(adapter?.type ?? null);
-                        }}
-                        onInputValueChange={(value) => {
-                            setSearchValue(String(value ?? ''));
-                        }}
-                        itemToStringLabel={(adapter) => {
-                            return adapter?.label ?? '';
-                        }}
-                        itemToStringValue={(adapter) => {
-                            return adapter?.type ?? '';
+                        className="w-full"
+                        value={selectedAdapter}
+                        placeholder={Craft.t('formie', 'Choose a field type…')}
+                        emptyMessage={Craft.t('formie', 'No field types found.')}
+                        onPkChange={(event) => {
+                            setSelectedAdapter(String(event.detail?.value ?? ''));
                         }}
                     >
-                        <ComboboxPrimitiveInput
-                            placeholder={Craft.t('formie', 'Choose a field type…')}
-                            className="w-full"
-                            showClear={false}
-                        />
+                        {adapters.map((adapter) => {
+                            const sourceLabel = adapter.sourceLabel || Craft.t('formie', 'Custom adapter');
 
-                        <ComboboxContent className="z-[10000] w-[var(--anchor-width)]">
-                            <ComboboxEmpty>{Craft.t('formie', 'No field types found.')}</ComboboxEmpty>
-
-                            <ComboboxList>
-                                {(adapter) => {
-                                    const sourceLabel = adapter.sourceLabel || Craft.t('formie', 'Custom adapter');
-
-                                    return (
-                                        <ComboboxItem
-                                            key={adapter.type}
-                                            value={adapter}
-                                            className="py-2"
-                                        >
-                                            <span className="flex min-w-0 items-center gap-2.5">
-                                                <CustomFieldAdapterIcon icon={adapter.icon} />
-
-                                                <span className="min-w-0 flex-1">
-                                                    <span className="block text-sm font-semibold leading-5 text-[#33475b]">
-                                                        <ComboboxHighlightedText text={adapter.label} search={searchValue} />
-                                                    </span>
-
-                                                    <span className="block text-xs leading-4 text-gray-500">
-                                                        {sourceLabel}
-                                                    </span>
-                                                </span>
-                                            </span>
-                                        </ComboboxItem>
-                                    );
-                                }}
-                            </ComboboxList>
-                        </ComboboxContent>
+                            return (
+                                <Option
+                                    key={adapter.type}
+                                    value={adapter.type}
+                                    label={adapter.label}
+                                >
+                                    <CustomFieldAdapterIcon icon={adapter.icon} />
+                                    <span className="flex min-w-0 flex-col">
+                                        <span className="text-sm font-semibold leading-5 text-[#33475b]">
+                                            {adapter.label}
+                                        </span>
+                                        <span className="text-xs leading-4 text-gray-500">
+                                            {sourceLabel}
+                                        </span>
+                                    </span>
+                                </Option>
+                            );
+                        })}
                     </Combobox>
 
                     {selectedAdapterDefinition?.craftFieldClasses?.length > 0 && (
@@ -1050,24 +969,24 @@ const CustomFieldAdapterPickerModal = ({ adapters, onSelect, onCancel }) => {
                 </div>
             </div>
 
-            <DialogFooter className="flex flex-row justify-end gap-2">
-                <Button
-                    type="button"
-                    onClick={onCancel}
-                >
-                    {Craft.t('formie', 'Cancel')}
-                </Button>
+            <Button
+                slot="footer"
+                type="button"
+                onClick={onCancel}
+            >
+                {Craft.t('formie', 'Cancel')}
+            </Button>
 
-                <Button
-                    type="button"
-                    variant="primary"
-                    onClick={handleApply}
-                    disabled={!selectedAdapter}
-                >
-                    {Craft.t('formie', 'Continue')}
-                </Button>
-            </DialogFooter>
-        </DialogContent>
+            <Button
+                slot="footer"
+                type="button"
+                variant="primary"
+                onClick={handleApply}
+                disabled={!selectedAdapter}
+            >
+                {Craft.t('formie', 'Continue')}
+            </Button>
+        </Dialog>
     );
 };
 
@@ -1079,12 +998,18 @@ const FieldEditModal = ({
     reservedHandles = [],
     dismissAttemptRef = null,
     onSave,
-    onCancel,
+    onCancel: _onCancel,
     onDismiss,
     onDelete,
 }) => {
     const contentRef = useRef(null);
     const hasAutofocusedRef = useRef(false);
+    // Panel-owned scroll (v1 ModalTabs) — hook retained as no-op for shared imports.
+    useResetDialogBodyScrollOnTabChange(contentRef);
+    // Controlled open so Cancel/Apply/Delete can close through pk-dialog (exit animation)
+    // before the parent unmounts this tree on pk-after-hide.
+    const [open, setOpen] = useState(true);
+    const pendingCloseRef = useRef(null);
     const [isSchemaUiReady, setIsSchemaUiReady] = useState(false);
     const activeFieldType = fieldType;
     const customFieldAdapters = Array.isArray(activeFieldType?.data?.customFieldAdapters)
@@ -1170,14 +1095,15 @@ const FieldEditModal = ({
             }
             : data;
 
-        onSave(nextData);
+        // Defer parent unmount until after the exit animation.
+        pendingCloseRef.current = { type: 'save', data: nextData };
+        setOpen(false);
     });
 
     useFieldEditorDismiss({
         field,
         fieldDisplayLabel,
         form,
-        onDismiss,
         dismissAttemptRef,
         isBaselineReady: hasSchemaConfig ? isSchemaUiReady : true,
     });
@@ -1237,10 +1163,6 @@ const FieldEditModal = ({
         submitSchemaFormAfterPendingTableUpdates(form);
     };
 
-    const handleCancel = () => {
-        onCancel();
-    };
-
     const handleDelete = () => {
         if (field?.builderLocked && isSettingsLocked) {
             window.alert(Craft.t('formie', 'This field is locked. Unlock it before deleting.'));
@@ -1256,51 +1178,83 @@ const FieldEditModal = ({
         if (!isConfirmed) {
             return;
         }
-        onDelete();
+
+        pendingCloseRef.current = { type: 'delete' };
+        setOpen(false);
+    };
+
+    const handleAfterHide = () => {
+        const pending = pendingCloseRef.current;
+        pendingCloseRef.current = null;
+
+        if (pending?.type === 'save') {
+            onSave(pending.data);
+            return;
+        }
+
+        if (pending?.type === 'delete') {
+            onDelete();
+            return;
+        }
+
+        onDismiss({ deleteIfNew: Boolean(field?._isNew) });
     };
 
     // Only persisted layout fields have a Craft element id; new/duplicated fields rely on Cancel (deleteIfNew) or the canvas menu.
     const canDeleteFromModal = Boolean(field?.id);
 
     return (
-        <DialogContent className={cn(
-            'w-[calc(100vw-24px)] h-[calc(100dvh-24px)]',
-            'min-w-0 min-h-0 max-w-none',
-            'md:w-[66%] md:h-[66%]',
-            'md:min-w-[600px] md:min-h-[400px]',
-        )}
+        <Dialog
+            open={open}
+            withoutBodyPadding
+            className="formie-field-edit-dialog"
+            // Confirm on cancelable pk-hide; side effects run on pk-after-hide so the
+            // exit animation is not cut short by unmounting the host mid-flight.
+            onPkHide={(event) => {
+                if (pendingCloseRef.current) {
+                    return;
+                }
+
+                if (dismissAttemptRef?.current && !dismissAttemptRef.current()) {
+                    event.preventDefault();
+                }
+            }}
+            onPkOpenChange={(event) => {
+                setOpen(Boolean(event.detail?.open ?? event.target?.open));
+            }}
+            onPkAfterHide={handleAfterHide}
         >
-            <DialogHeader>
-                <DialogTitle className="flex flex-row items-center">
+            {/* Custom header: lock/type pill + v1 DialogHeader chrome (absolute close). */}
+            <div slot="header" className="formie-field-edit-header">
+                <h2 className="formie-field-edit-title">
                     {Craft.t('formie', 'Edit Field')}
 
                     {field?.builderLocked && (
-                        <FontAwesomeIcon
-                            icon={faLock}
+                        <Icon
+                            icon="lock"
                             className="ml-2 size-3.5 text-[#64748b]"
                             title={Craft.t('formie', 'Locked field')}
                         />
                     )}
 
                     {showFieldTypePill && (
-                        <div className={cn(
-                            'rounded-[20px]',
-                            'bg-[#d8e2ea]',
-                            'px-[10px] py-[6px]',
-                            'text-[10px]',
-                            'text-[#526176]',
-                            'ml-[10px]',
-                            'font-normal',
-                        )}>{fieldTypePillLabel}</div>
+                        <div className="formie-field-edit-type-pill">{fieldTypePillLabel}</div>
                     )}
-                </DialogTitle>
+                </h2>
+                <Button
+                    type="button"
+                    variant="none"
+                    size="none"
+                    icon
+                    className="formie-field-edit-close"
+                    aria-label={Craft.t('app', 'Close')}
+                    data-dialog-close
+                >
+                    <Icon slot="start" icon="xmark" />
+                </Button>
+            </div>
 
-                <DialogDescription className="hidden">
-                    {Craft.t('formie', 'Edit the field for this form.')}
-                </DialogDescription>
-            </DialogHeader>
-
-            <div ref={contentRef} className="flex flex-1 min-h-0 flex-col overflow-hidden">
+            <div ref={contentRef} className="formie-field-edit-dialog-body">
                 <FieldEditorNotices
                     field={field}
                     isSyncedField={isSyncedField}
@@ -1310,15 +1264,15 @@ const FieldEditModal = ({
                 />
 
                 {hasSchemaConfig ? (
-                    <div className="relative min-h-0 flex-1">
+                    <div className="relative flex min-h-0 flex-1 flex-col">
                         <div className={cn(
-                            'h-full',
+                            'flex h-full min-h-0 flex-col',
                             !isSchemaUiReady && 'invisible pointer-events-none',
                             isSettingsLocked && 'pointer-events-none select-none opacity-60',
                         )}>
                             <SchemaFormEngine
                                 form={form}
-                                className="h-full"
+                                className="flex h-full min-h-0 flex-col"
                             />
                         </div>
 
@@ -1347,10 +1301,12 @@ const FieldEditModal = ({
                 )}
             </div>
 
-            <DialogFooter className={cn(
-                'flex flex-row gap-2',
-                canDeleteFromModal ? 'justify-between' : 'justify-end',
-            )}
+            <div
+                slot="footer"
+                className={cn(
+                    'flex w-full flex-row gap-2',
+                    canDeleteFromModal ? 'justify-between' : 'justify-end',
+                )}
             >
                 {canDeleteFromModal && (
                     <Button
@@ -1365,7 +1321,7 @@ const FieldEditModal = ({
                 <div className="flex flex-row justify-end gap-2">
                     <Button
                         type="button"
-                        onClick={handleCancel}
+                        data-dialog-close
                     >
                         {Craft.t('formie', 'Cancel')}
                     </Button>
@@ -1379,8 +1335,8 @@ const FieldEditModal = ({
                         {Craft.t('formie', 'Apply')}
                     </Button>
                 </div>
-            </DialogFooter>
-        </DialogContent>
+            </div>
+        </Dialog>
     );
 };
 

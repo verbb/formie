@@ -1,21 +1,6 @@
-import { Fragment, useMemo, useState } from 'react';
+import { Fragment, useMemo } from 'react';
 
-import {
-    Combobox,
-    ComboboxChip,
-    ComboboxChips,
-    ComboboxChipsInput,
-    ComboboxCollection,
-    ComboboxContent,
-    ComboboxEmpty,
-    ComboboxGroup,
-    ComboboxHighlightedText,
-    ComboboxItem,
-    ComboboxLabel,
-    ComboboxList,
-    ComboboxValue,
-    useComboboxAnchor,
-} from '@verbb/plugin-kit-react/components';
+import { Combobox, Option, OptionGroup } from '@verbb/plugin-kit-react/components';
 
 export const ALL_FORMS_VALUE = '*';
 
@@ -83,9 +68,6 @@ export const ReportFormsSelect = ({
     emptyMessage,
     onChange,
 }) => {
-    const [searchValue, setSearchValue] = useState('');
-    const anchor = useComboboxAnchor();
-
     const groupedItems = useMemo(() => {
         const formOptions = (options || []).filter((option) => option.value && option.value !== ALL_FORMS_VALUE);
         const groups = [];
@@ -154,27 +136,27 @@ export const ReportFormsSelect = ({
         );
     }, [allItems]);
 
-    const getChipLabel = (item) => getFormOptionLabel(item, duplicateTitles);
+    // pk-combobox is string-valued in multiple mode; feed it the selected string values.
+    const selectedValues = useMemo(() => {
+        const isAllSelected = formIds === ALL_FORMS_VALUE
+            || (Array.isArray(formIds) && formIds.length === 1 && String(formIds[0]) === ALL_FORMS_VALUE);
 
-    const selectedItems = useMemo(() => {
-        if (formIds === ALL_FORMS_VALUE || formIds === ['*']) {
-            return includeAllOption
-                ? allItems.filter((item) => item.value === ALL_FORMS_VALUE)
-                : [];
+        if (isAllSelected) {
+            return includeAllOption ? [ALL_FORMS_VALUE] : [];
         }
 
         if (!Array.isArray(formIds) || formIds.length === 0) {
             return [];
         }
 
-        const selectedValues = new Set(formIds.map(String));
+        const knownValues = new Set(allItems.map((item) => item.value));
 
-        return allItems.filter((item) => selectedValues.has(item.value));
+        return formIds.map(String).filter((value) => knownValues.has(value));
     }, [allItems, formIds, includeAllOption]);
 
-    const handleChange = (nextValue) => {
-        const selected = Array.isArray(nextValue) ? nextValue : [];
-        const values = selected.map((item) => item.value);
+    const handleChange = (event) => {
+        const raw = event.detail?.value;
+        const values = Array.isArray(raw) ? raw : (raw ? [raw] : []);
 
         onChange?.(normalizeFormIds(values, includeAllOption));
     };
@@ -182,64 +164,34 @@ export const ReportFormsSelect = ({
     return (
         <Combobox
             multiple
-            items={groupedItems}
-            value={selectedItems}
+            width="full"
+            className="w-full"
             disabled={disabled}
-            onValueChange={handleChange}
-            onInputValueChange={setSearchValue}
-            onOpenChange={(open) => {
-                if (!open) {
-                    setSearchValue('');
-                }
-            }}
-            itemToStringLabel={(item) => {
-                if (!item || item.isAllOption) {
-                    return item?.label ?? '';
-                }
-
-                return `${item.label} ${item.handle ?? ''}`.trim();
-            }}
-            itemToStringValue={(item) => toStringValue(item?.value)}
+            values={selectedValues}
+            placeholder={placeholder || Craft.t('formie', 'Search forms…')}
+            emptyMessage={emptyMessage || Craft.t('formie', 'No forms found.')}
+            onPkChange={handleChange}
         >
-            <ComboboxChips ref={anchor}>
-                <ComboboxValue>
-                    {(items) => (
-                        <Fragment>
-                            {items.map((item) => (
-                                <ComboboxChip key={toStringValue(item.value)}>
-                                    {getChipLabel(item)}
-                                </ComboboxChip>
-                            ))}
-                            <ComboboxChipsInput placeholder={placeholder || Craft.t('formie', 'Search forms…')} />
-                        </Fragment>
-                    )}
-                </ComboboxValue>
-            </ComboboxChips>
+            {groupedItems.map((group) => {
+                // Chip labels come from each option's rendered label, so bake the
+                // disambiguating handle into it here (matching the old chip/highlight text).
+                const optionNodes = group.items.map((item) => (
+                    <Option key={toStringValue(item.value)} value={toStringValue(item.value)}>
+                        {getFormOptionLabel(item, duplicateTitles)}
+                    </Option>
+                ));
 
-            <ComboboxContent anchor={anchor}>
-                <ComboboxEmpty>{emptyMessage || Craft.t('formie', 'No forms found.')}</ComboboxEmpty>
+                // The "All Forms" pseudo-group has no label — render it flat.
+                if (!group.label) {
+                    return <Fragment key={group.value}>{optionNodes}</Fragment>;
+                }
 
-                <ComboboxList>
-                    <ComboboxCollection>
-                        {(group) => (
-                            <ComboboxGroup key={group.value}>
-                                {group.label ? (
-                                    <ComboboxLabel>{group.label}</ComboboxLabel>
-                                ) : null}
-
-                                {group.items.map((item) => (
-                                    <ComboboxItem key={toStringValue(item.value)} value={item}>
-                                        <ComboboxHighlightedText
-                                            text={getFormOptionLabel(item, duplicateTitles)}
-                                            search={searchValue}
-                                        />
-                                    </ComboboxItem>
-                                ))}
-                            </ComboboxGroup>
-                        )}
-                    </ComboboxCollection>
-                </ComboboxList>
-            </ComboboxContent>
+                return (
+                    <OptionGroup key={group.value} label={group.label}>
+                        {optionNodes}
+                    </OptionGroup>
+                );
+            })}
         </Combobox>
     );
 };

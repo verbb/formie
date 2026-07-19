@@ -1,21 +1,20 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import {
     ALL_VALUE,
     CheckboxSelect,
     Input,
     Lightswitch,
-    PaneTabs,
-    PaneTabsContent,
-    PaneTabsList,
-    PaneTabsTrigger,
     SelectInput,
+    Tab,
+    Tabs,
 } from '@verbb/plugin-kit-react/components';
 import { FieldLayout } from '@verbb/plugin-kit-react/forms';
 import { useCpFormPayloadSync } from '@utils';
 import { FormieErrorsPane } from '@utils/FormieErrorsPane';
 
 import { DefaultsSectionIntro } from '@defaults/components/DefaultsSectionIntro';
+import { DefaultsTabPanel } from '@defaults/components/DefaultsTabPanel';
 import { DefaultsTabPanels } from '@defaults/components/DefaultsTabPanels';
 import { setAtPath } from '@defaults/utils/defaultsEditorState';
 import { FieldPaletteApp } from '@field-palette/components/FieldPaletteApp';
@@ -164,6 +163,12 @@ export const FormGroupSettingsApp = ({ settings }) => {
         });
     };
 
+    const handleFieldPaletteChange = useCallback((palette) => {
+        setValues((currentValues) => {
+            return setAtPath(currentValues, 'fieldPalette', palette);
+        });
+    }, []);
+
     return (
         <div className="formie-form-group-settings-app formie-defaults-app">
             {errorMessages.length ? (
@@ -172,18 +177,16 @@ export const FormGroupSettingsApp = ({ settings }) => {
                 </div>
             ) : null}
 
-            <PaneTabs defaultValue="general" className="w-full">
-                <PaneTabsList aria-label={Craft.t('formie', 'Form group settings sections')}>
-                    {tabs.map((tab) => {
-                        return (
-                            <PaneTabsTrigger key={tab.id} value={tab.id}>
-                                {Craft.t('formie', tab.label)}
-                            </PaneTabsTrigger>
-                        );
-                    })}
-                </PaneTabsList>
+            <Tabs variant="pane" aria-label={Craft.t('formie', 'Form group settings sections')} className="w-full">
+                {tabs.map((tab) => {
+                    return (
+                        <Tab key={tab.id} slot="nav" value={tab.id}>
+                            {Craft.t('formie', tab.label)}
+                        </Tab>
+                    );
+                })}
 
-                <PaneTabsContent value="general" className="formie-defaults-panel">
+                <DefaultsTabPanel value="general">
                     <DefaultsSectionIntro
                         title={Craft.t('formie', 'General')}
                         description={Craft.t('formie', 'Form group details and optional restrictions. Blank settings inherit from global Formie settings.')}
@@ -264,7 +267,7 @@ export const FormGroupSettingsApp = ({ settings }) => {
                             </FieldLayout>
                         </>
                     ) : null}
-                </PaneTabsContent>
+                </DefaultsTabPanel>
 
                 <DefaultsTabPanels
                     settings={settings}
@@ -277,7 +280,7 @@ export const FormGroupSettingsApp = ({ settings }) => {
                     context="group"
                 />
 
-                <PaneTabsContent value="field-palette" className="formie-defaults-panel">
+                <DefaultsTabPanel value="field-palette">
                     <DefaultsSectionIntro
                         title={Craft.t('formie', 'Field Palette')}
                         description={Craft.t('formie', 'Organise the field types shown in the form builder. Rename groups and fields, reorder them, and disable field types you do not want authors to add.')}
@@ -285,7 +288,7 @@ export const FormGroupSettingsApp = ({ settings }) => {
 
                     <FieldLayout
                         name="useCustomFieldPalette"
-                        label={Craft.t('formie', 'Use custom field palette')}
+                        label={Craft.t('formie', 'Use Custom Field Palette')}
                         instructions={Craft.t('formie', 'When enabled, forms in this group use this palette instead of the global palette from Formie settings.')}
                     >
                         <Lightswitch
@@ -299,16 +302,18 @@ export const FormGroupSettingsApp = ({ settings }) => {
                             settings={{
                                 canEdit: settings.canEdit !== false,
                                 palette: values.fieldPalette || settings.fieldPaletteSeed || { groups: [], unassigned: [] },
+                                // Seed keeps defaultLabel when values.fieldPalette was save-shaped.
+                                fieldMetaSeed: settings.fieldPaletteSeed || null,
                             }}
-                            onPayloadChange={(palette) => { updateValue('fieldPalette', palette); }}
+                            onPayloadChange={handleFieldPaletteChange}
                         />
                     ) : (
                         <p className="formie-defaults-note">
                             {Craft.t('formie', 'Forms in this group use the global field palette from Formie settings.')}
                         </p>
                     )}
-                </PaneTabsContent>
-            </PaneTabs>
+                </DefaultsTabPanel>
+            </Tabs>
         </div>
     );
 };

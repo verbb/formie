@@ -6,7 +6,7 @@ import {
     updateItem,
     deleteItem,
     duplicateItem,
-} from '@verbb/plugin-kit-react/utils';
+} from '@verbb/plugin-kit-core';
 import {
     addAt,
     insertAt,

@@ -31,5 +31,14 @@
     "build:formie-react": "npm run build:formie-browser && npm run build -w @verbb/formie-react",
     "build:formie-vue": "npm run build:formie-browser && npm run build -w @verbb/formie-vue",
     "build:formie-web-components": "npm run build:formie-browser && npm run build -w @verbb/formie-web-components"
+  },
+  "dependencies": {
+    "@verbb/plugin-kit-codemirror-core": "^2.0.3",
+    "@verbb/plugin-kit-core": "^2.0.3",
+    "@verbb/plugin-kit-forms": "^2.0.3",
+    "@verbb/plugin-kit-icons": "^2.0.3",
+    "@verbb/plugin-kit-react": "^2.0.3",
+    "@verbb/plugin-kit-tiptap-core": "^2.0.3",
+    "@verbb/plugin-kit-web": "^2.0.3"
   }
 }

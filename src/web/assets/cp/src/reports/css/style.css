@@ -1,5 +1,8 @@
+/* Kit tokens/FOUCE + Tailwind @theme bridge (Craft-aligned PK colors). */
 @import "@verbb/plugin-kit-react/style.css";
+@import "@verbb/plugin-kit-react/tailwind-theme.css";
 @import "tailwindcss";
+@import "@verbb/plugin-kit-react/tailwind-preflight-scope.css";
 
 .formie-report-table-wrap {
     display: flex;

@@ -264,6 +264,8 @@ trait FieldFormBuilderTrait
             return $tab['content'];
         }));
 
+        $tabs = $this->modifyFormBuilderTabs($tabs);
+
         $tabs = array_map(function($tab) {
             if (isset($tab['content'])) {
                 $tab['content'] = SchemaHelper::schemaNode($tab['content']);
@@ -281,6 +283,16 @@ trait FieldFormBuilderTrait
         $schema = SchemaHelper::normalizeSchema(SchemaHelper::modalTabs($event->tabs));
 
         return SchemaHelper::applyTranslatableToSchema($schema, static::translatableProperties());
+    }
+
+    /**
+     * Hook for field-specific tab meta (e.g. tab-level `if` when every field in a
+     * tab is gated by the same condition). Prefer this over runtime “empty tab”
+     * scanning — SchemaItem already evaluates `if` cheaply on store updates.
+     */
+    protected function modifyFormBuilderTabs(array $tabs): array
+    {
+        return $tabs;
     }
 
     public function defineFormBuilderGeneralSchema(): array
@@ -347,6 +359,12 @@ trait FieldFormBuilderTrait
 
     private function _getCompatibleFieldTypeSchema(): ?array
     {
+        // Child/sub-fields keep a fixed type (Name First, Address Line 1, …).
+        // Changing type under a parent would break layout identity and submission data.
+        if ($this instanceof ChildFieldInterface) {
+            return null;
+        }
+
         $fieldTypes = array_values(array_unique(array_filter(array_merge([
             static::class,
         ], static::compatibleFieldTypes()))));

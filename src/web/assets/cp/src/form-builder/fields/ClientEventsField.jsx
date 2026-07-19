@@ -1,32 +1,17 @@
-import { useMemo, useState } from 'react';
+import { Fragment, useMemo, useState } from 'react';
 import { cloneDeep } from 'lodash-es';
+import { createItem } from '@verbb/plugin-kit-core';
 
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus, faXmark } from '@fortawesome/pro-solid-svg-icons';
-
-import {
-    Button,
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuGroup,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuTrigger,
-    EditableTable,
-    Input,
-    Lightswitch,
-    TiptapInput,
-} from '@verbb/plugin-kit-react/components';
-import { FieldLayout } from '@verbb/plugin-kit-react/forms/Field';
-import { useEngineField } from '@verbb/plugin-kit-react/forms/useEngineField';
+import { Button, DropdownItem, DropdownLabel, DropdownMenu, EditableTable, Icon, Input, Lightswitch } from '@verbb/plugin-kit-react/components';
+import { FieldLayout, useEngineField } from '@verbb/plugin-kit-react/forms';
 import { useTranslation } from '@verbb/plugin-kit-react/hooks';
-import { cn, createItem } from '@verbb/plugin-kit-react/utils';
 
 import { useFormBuilderForm } from '@form-builder/contexts/FormBuilderFormContext';
 import { useVariableCategories } from '@form-builder/hooks/useVariableCategories';
 import useAppStore from '@form-builder/hooks/useAppStore';
 import { ClientEventConditionsField } from '@form-builder/fields/ClientEventConditionsField';
 import { ClientEventTemplateDialog } from '@form-builder/fields/ClientEventTemplateDialog';
+import { VariablePickerInputCell } from '@form-builder/fields/variable-picker/VariablePickerInputCell';
 import {
     getPageContext,
     getPageIndexFromFieldName,
@@ -47,24 +32,6 @@ const CLIENT_EVENT_VARIABLE_CONFIG = {
 };
 
 const CLIENT_EVENT_CARD_CLASSNAME = 'relative rounded-sm border border-[rgba(96,125,159,0.25)] bg-[rgba(96,125,159,0.03)] p-4';
-
-const EDITABLE_TIPTAP_CLASSNAME = [
-    'w-full',
-    '[&_.ProseMirror]:min-h-[30px]',
-    '[&_.ProseMirror]:h-full',
-    '[&_.ProseMirror]:border-none',
-    '[&_.ProseMirror]:rounded-none',
-    '[&_.ProseMirror]:bg-transparent',
-    '[&_.ProseMirror]:px-2',
-    '[&_.ProseMirror]:pr-10',
-    '[&_.ProseMirror]:py-[6px]',
-    '[&_.ProseMirror]:text-xs',
-    '[&_.ProseMirror]:shadow-none',
-    '[&_.ProseMirror]:focus-visible:border-none',
-    '[&_.ProseMirror]:focus-visible:shadow-none',
-    '[&_.ProseMirror]:focus-visible:inset-ring-1',
-    '[&_.ProseMirror]:focus-visible:inset-ring-gray-200',
-];
 
 const createDefaultPayloadRow = () => ({
     ...createItem({}),
@@ -110,36 +77,28 @@ function ClientEventPayloadRows({
                 label: t('Property'),
                 type: 'text',
                 placeholder: 'formHandle',
-                className: 'w-[180px] max-w-[180px]',
+                width: '180px',
             },
             {
                 name: 'value',
                 label: t('Value'),
+                // Flush cell padding so TipTap rail + variable + insert sit like v1.
+                contentClassName: 'p-0! min-w-[220px]',
                 renderCell: ({
                     value: cellValue,
                     isInvalid,
                     updateValue,
                 }) => {
                     return (
-                        <TiptapInput
+                        <VariablePickerInputCell
                             value={cellValue ?? ''}
-                            onChange={(nextValue) => {
-                                updateValue(nextValue);
-                            }}
+                            onChange={updateValue}
                             isInvalid={isInvalid}
-                            className={cn(
-                                EDITABLE_TIPTAP_CLASSNAME,
-                                isInvalid && [
-                                    '[&_.ProseMirror]:inset-ring-1',
-                                    '[&_.ProseMirror]:inset-ring-rose-600',
-                                    '[&_.ProseMirror]:focus-visible:inset-ring-rose-600',
-                                ],
-                            )}
                             variableCategories={variableCategories}
                             variableCategoryLabels={variableCategoryLabels}
                             variableCategoryOrder={variableCategoryOrder}
                             variableTransformerRegistry={variableTransformerRegistry}
-                            variablePickerTriggerCharacters={['@', '{']}
+                            className="min-h-[32px]"
                         />
                     );
                 },
@@ -230,7 +189,7 @@ function ClientEventItem({
                     aria-label={t('Remove client event')}
                     className="p-2 text-gray-500 hover:text-red-500"
                 >
-                    <FontAwesomeIcon icon={faXmark} className="size-[14px]" />
+                    <Icon slot="start" icon="xmark" className="size-[14px]" />
                 </Button>
             </div>
 
@@ -442,44 +401,34 @@ function ClientEventsField({ field, form }) {
 
                 <div className="flex flex-wrap items-center gap-2">
                     {clientEventTemplates.length > 0 ? (
-                        <DropdownMenu>
-                            <DropdownMenuTrigger
-                                render={(
-                                    <Button type="button" variant="default">
-                                        <FontAwesomeIcon icon={faPlus} className="mr-1 size-3" />
-                                        {t('Add event')}
-                                    </Button>
-                                )}
-                            />
-                            <DropdownMenuContent
-                                align="start"
-                                className="min-w-[280px] max-h-[min(360px,var(--available-height))] overflow-y-auto"
-                            >
-                                {[...templatesByCategory.entries()].map(([categoryLabel, templates]) => (
-                                    <DropdownMenuGroup key={categoryLabel}>
-                                        <DropdownMenuLabel className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-                                            {categoryLabel}
-                                        </DropdownMenuLabel>
-                                        {templates.map((template) => (
-                                            <DropdownMenuItem
-                                                key={template.handle}
-                                                onClick={() => handleTemplateSelect(template)}
-                                            >
-                                                <div className="min-w-0">
-                                                    <div className="truncate text-sm">{template.label}</div>
-                                                    {template.description ? (
-                                                        <div className="truncate text-xs text-gray-500">{template.description}</div>
-                                                    ) : null}
-                                                </div>
-                                            </DropdownMenuItem>
-                                        ))}
-                                    </DropdownMenuGroup>
-                                ))}
-                            </DropdownMenuContent>
+                        <DropdownMenu size="sm" placement="bottom-start">
+                            <Button slot="trigger" type="button" variant="default">
+                                <Icon slot="start" icon="plus" className="size-3" />
+                                {t('Add event')}
+                            </Button>
+                            {[...templatesByCategory.entries()].map(([categoryLabel, templates]) => (
+                                <Fragment key={categoryLabel}>
+                                    <DropdownLabel>{categoryLabel}</DropdownLabel>
+                                    {templates.map((template) => (
+                                        <DropdownItem
+                                            key={template.handle}
+                                            value={template.handle}
+                                            onPkSelect={() => handleTemplateSelect(template)}
+                                        >
+                                            <div className="min-w-0">
+                                                <div className="truncate text-sm">{template.label}</div>
+                                                {template.description ? (
+                                                    <div className="truncate text-xs text-gray-500">{template.description}</div>
+                                                ) : null}
+                                            </div>
+                                        </DropdownItem>
+                                    ))}
+                                </Fragment>
+                            ))}
                         </DropdownMenu>
                     ) : (
                         <Button type="button" variant="default" onClick={() => addEvent()}>
-                            <FontAwesomeIcon icon={faPlus} className="mr-1 size-3" />
+                            <Icon slot="start" icon="plus" className="size-3" />
                             {t('Add event')}
                         </Button>
                     )}

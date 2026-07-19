@@ -3,7 +3,7 @@ import { useRef } from 'react';
 import { FormBuilderHeader } from './FormBuilderHeader.jsx';
 import { FormBuilderContent } from './FormBuilderContent.jsx';
 import { FormBuilderErrorBoundary } from './FormBuilderErrorBoundary.jsx';
-import { useKeyboardShortcuts } from '@verbb/plugin-kit-react/hooks/useKeyboardShortcuts';
+import { useKeyboardShortcuts } from '@utils/useKeyboardShortcuts';
 import { FormBuilderAppProvider } from '@form-builder/contexts/FormBuilderAppContext';
 import { useFormBuilderDocumentTitle } from '@form-builder/hooks/useFormBuilderDocumentTitle';
 import { useFormBuilderSiteCrumb } from '@form-builder/hooks/useFormBuilderSiteCrumb';

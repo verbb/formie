@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
 import { cloneDeep } from 'lodash-es';
 
-import { zustandHmrFix } from '@verbb/plugin-kit-react/utils';
+import { zustandHmrFix } from '@utils/zustandHmrFix';
 import { isAjaxSubmissionForcedByPayments } from '@form-builder/utils/paymentSubmission';
 
 import { createFieldTypesSlice } from './slices/fieldTypesSlice';

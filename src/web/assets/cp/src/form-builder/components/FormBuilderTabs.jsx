@@ -1,12 +1,6 @@
-import {
-    PaneTabs,
-    PaneTabsList,
-    PaneTabsTrigger,
-    PaneTabsContent,
-} from '@verbb/plugin-kit-react/components';
-
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTriangleExclamation } from '@fortawesome/pro-solid-svg-icons';
+import { Fragment, createContext, useContext, useEffect, useMemo } from 'react';
+import { Icon, Tab, TabPanel, Tabs } from '@verbb/plugin-kit-react/components';
+import { cn } from '@verbb/plugin-kit-react/utils';
 
 import useUrlRouter from '@form-builder/hooks/useUrlRouter';
 import { useFormBuilderTabErrors } from '@form-builder/builder/useFormBuilderTabErrors';
@@ -15,13 +9,7 @@ import { useFormValues } from '@form-builder/hooks/useFormTools';
 import { formHasQuestionnaireFields } from '@form-builder/utils/questionnaireFields';
 import useAppStore from '@form-builder/hooks/useAppStore';
 
-import { cn } from '@verbb/plugin-kit-react/utils';
-
-import {
-    createContext, useContext, useEffect,
-} from 'react';
-
-// Create a context to pass tab error information down
+// Tab error map is owned by Formie (schema prefixes) — not a kit tabs concern.
 const TabErrorsContext = createContext({});
 
 export const useTabErrors = () => {
@@ -31,13 +19,51 @@ export const useTabErrors = () => {
 function FormBuilderTabs({
     children, schema, schemaNode, className, ...props
 }) {
-    // Get global tab state from store
     const { activeTab } = useFormBuilderApp();
     const router = useUrlRouter();
     const tabErrors = useFormBuilderTabErrors(schemaNode ?? schema);
     const formValues = useFormValues();
     const getFieldTypeByType = useAppStore((state) => { return state.getFieldTypeByType; });
     const hasQuestionnaireFields = formHasQuestionnaireFields(formValues, getFieldTypeByType);
+
+    // Only pane-level FormBuilderTabTrigger values. Nested ModalTabs emit pk-change after
+    // their own select; kit pk-tabs ignores foreign selects, but fail-closed here too.
+    const paneTabValues = useMemo(() => {
+        const root = schemaNode ?? schema;
+        const values = new Set();
+
+        const visit = (nodes) => {
+            if (!Array.isArray(nodes)) {
+                return;
+            }
+
+            nodes.forEach((node) => {
+                if (!node || typeof node !== 'object') {
+                    return;
+                }
+
+                if (node.$cmp === 'FormBuilderTabTrigger' && typeof node.props?.value === 'string') {
+                    values.add(node.props.value);
+                }
+
+                if (Array.isArray(node.children)) {
+                    visit(node.children);
+                } else if (node.children && typeof node.children === 'object') {
+                    visit(Object.values(node.children));
+                }
+            });
+        };
+
+        if (Array.isArray(root?.children)) {
+            visit(root.children);
+        } else if (root?.children && typeof root.children === 'object') {
+            visit(Object.values(root.children));
+        } else if (Array.isArray(root)) {
+            visit(root);
+        }
+
+        return values;
+    }, [schema, schemaNode]);
 
     useEffect(() => {
         if (activeTab === 'results' && !hasQuestionnaireFields) {
@@ -47,76 +73,96 @@ function FormBuilderTabs({
 
     return (
         <TabErrorsContext.Provider value={tabErrors}>
-            <PaneTabs
-                value={activeTab}
-                onValueChange={router.navigateToTab}
+            <Tabs
+                variant="pane"
+                value={activeTab || ''}
+                // Stock kit has no routing — Formie's URL sync stays on the wrapper.
+                // Nested controls also emit `pk-change`; Tabs facade filters host-only events,
+                // and we still require a known pane tab value before navigating.
+                onPkChange={(event) => {
+                    const next = event.detail?.value;
+                    if (typeof next !== 'string' || !next) {
+                        return;
+                    }
+
+                    // Fail closed: if we could not collect pane triggers, never route
+                    // from a nested ModalTabs value (e.g. "advanced") that would hide
+                    // every panel while leaving the URL on /notifications.
+                    if (paneTabValues.size === 0 || !paneTabValues.has(next)) {
+                        return;
+                    }
+
+                    router.navigateToTab(next);
+                }}
                 className={cn(
-                    'min-w-0 overflow-hidden',
+                    'form-builder-section-tabs',
+                    // min-w-0 for flex shrink; do not use overflow-hidden here —
+                    // it clips pane frame + selected-tab elevation shadows.
+                    'min-w-0',
                     className,
                 )}
                 {...props}
             >
                 {children}
-            </PaneTabs>
+            </Tabs>
         </TabErrorsContext.Provider>
     );
 }
 
 FormBuilderTabs.usesSchemaNode = true;
 
-function FormBuilderTabList({ children, className, ...props }) {
-    return (
-        <PaneTabsList
-            className={cn(
-                'min-w-0 max-w-full flex-nowrap overflow-x-auto overflow-y-hidden',
-                className,
-            )}
-            {...props}
-        >
-            {children}
-        </PaneTabsList>
-    );
+/**
+ * Schema still nests triggers under FormBuilderTabList. pk-tabs only discovers
+ * `pk-tab` nodes assigned to `slot="nav"`, so this must not introduce a DOM wrapper.
+ */
+function FormBuilderTabList({ children }) {
+    return <Fragment>{children}</Fragment>;
 }
 
 function FormBuilderTabTrigger({
     children, value, schema, className, ...props
 }) {
-    // Get tab errors from context
     const tabErrors = useTabErrors();
-
-
-    // Check if this specific tab has errors
     const hasErrors = Boolean(tabErrors[value]);
 
-    return <PaneTabsTrigger
-        value={value}
-        data-has-errors={hasErrors}
-        className={cn(
-            'form-builder-section-tab',
-            'flex shrink-0 items-center gap-1',
-            hasErrors && 'text-error data-[active]:text-error',
-            className,
-        )}
-        {...props}
-    >
-        {children}
-
-        {hasErrors && (
-            <FontAwesomeIcon icon={faTriangleExclamation} className="block size-3" />
-        )}
-    </PaneTabsTrigger>;
+    return (
+        <Tab
+            value={value}
+            data-has-errors={hasErrors ? 'true' : undefined}
+            className={cn(
+                'form-builder-section-tab',
+                'shrink-0',
+                className,
+            )}
+            {...props}
+            // Must win over any schema props — pk-tabs only indexes nav-slot tabs.
+            slot="nav"
+        >
+            {/* Keep icon in the default label slot — status slot :has(::slotted(*)) is flaky. */}
+            <span className="inline-flex items-center gap-1">
+                {children}
+                {hasErrors ? (
+                    <Icon icon="triangle-exclamation" className="block size-3" />
+                ) : null}
+            </span>
+        </Tab>
+    );
 }
 
-function FormBuilderTabContent({ padded, children, ...props }) {
+function FormBuilderTabContent({
+    padded, children, className, ...props
+}) {
     return (
-        <PaneTabsContent {...props}>
+        <TabPanel className={className} {...props}>
             <div className={cn(
                 padded !== false && 'gap-4 p-6 max-[640px]:p-4',
                 'flex flex-col',
-                // 'gap-4',
                 'min-h-full',
-            )}>{children}</div>
-        </PaneTabsContent>
+            )}
+            >
+                {children}
+            </div>
+        </TabPanel>
     );
 }
 

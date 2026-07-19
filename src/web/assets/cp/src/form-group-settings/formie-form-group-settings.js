@@ -1,15 +1,16 @@
 import { createElement } from 'react';
-import { createRoot } from 'react-dom/client';
 
+import { DefaultsErrorBoundary } from '@defaults/components/DefaultsErrorBoundary';
 import { FormGroupSettingsApp } from '@form-group-settings/components/FormGroupSettingsApp';
-import { bootstrapShadowReactApp, ensureCraftNamespace, markContainerReady } from '@utils';
+import { registerFormieOwnedSchemaFields } from '@form-builder/fields/registerFormieOwnedSchemaFields';
+import { bootstrapShadowReactApp, defineFormieCpConstructor, ensureCraftNamespace, markContainerReady, mountFormieReactApp } from '@utils';
 
 import defaultsStyles from '@defaults/css/style.css?inline';
 import fieldPaletteStyles from '@field-palette/css/style.css?inline';
 
 ensureCraftNamespace('Formie');
 
-Craft.Formie.FormGroupSettings = function(settings = {}) {
+defineFormieCpConstructor('FormGroupSettings', async (settings = {}) => {
     const boot = bootstrapShadowReactApp({
         containerSelector: '.formie-form-group-settings',
         pluginHandle: 'formie',
@@ -21,11 +22,21 @@ Craft.Formie.FormGroupSettings = function(settings = {}) {
         return;
     }
 
-    const { mountNode, targetContainer } = boot;
+    const { targetContainer } = boot;
 
-    createRoot(mountNode).render(
-        createElement(FormGroupSettingsApp, { settings }),
-    );
+    // Field / form / notification default schemas reuse Formie-owned `$field` keys
+    // (variablePicker, handle, richText, …) — same registration as global Defaults.
+    registerFormieOwnedSchemaFields();
+
+    await mountFormieReactApp({
+        mountNode: boot.mountNode,
+        portalContainer: boot.portalContainer,
+        shadowRootSelectors: boot.shadowRootSelectors,
+        portalClassName: boot.portalClassName,
+        translationCategory: boot.translationCategory,
+        children: createElement(DefaultsErrorBoundary, null,
+            createElement(FormGroupSettingsApp, { settings })),
+    });
 
     markContainerReady(targetContainer, 'formie-form-group-settings--ready');
-};
+});

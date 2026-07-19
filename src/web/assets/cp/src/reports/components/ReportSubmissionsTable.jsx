@@ -1,7 +1,4 @@
-import { Button } from '@verbb/plugin-kit-react/components';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCaretDown, faCaretUp } from '@fortawesome/pro-solid-svg-icons';
-import { faChevronLeft, faChevronRight } from '@fortawesome/pro-regular-svg-icons';
+import { Button, Icon } from '@verbb/plugin-kit-react/components';
 
 import { ReportTableCell } from '@reports/components/ReportTableCell';
 
@@ -89,8 +86,8 @@ export function ReportSubmissionsTable({
                                         <span className="inline-flex items-center gap-1">
                                             {column.header}
                                             {isActive ? (
-                                                <FontAwesomeIcon
-                                                    icon={sort.dir === 'asc' ? faCaretUp : faCaretDown}
+                                                <Icon
+                                                    icon={sort.dir === 'asc' ? 'caret-up' : 'caret-down'}
                                                     className="size-3 opacity-70"
                                                 />
                                             ) : null}
@@ -136,7 +133,7 @@ export function ReportSubmissionsTable({
                             disabled={loading || pagination.page <= 1}
                             onClick={() => { onPageChange(pagination.page - 1); }}
                         >
-                            <FontAwesomeIcon icon={faChevronLeft} className="size-3" />
+                            <Icon slot="start" icon="chevron-left" className="size-3" />
                         </Button>
                         <Button
                             type="button"
@@ -146,7 +143,7 @@ export function ReportSubmissionsTable({
                             disabled={loading || pagination.page >= pagination.totalPages}
                             onClick={() => { onPageChange(pagination.page + 1); }}
                         >
-                            <FontAwesomeIcon icon={faChevronRight} className="size-3" />
+                            <Icon slot="start" icon="chevron-right" className="size-3" />
                         </Button>
                     </div>
                     <div>

@@ -1,7 +1,5 @@
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTriangleExclamation } from '@fortawesome/pro-solid-svg-icons';
-
 import { cn } from '@verbb/plugin-kit-react/utils';
+import { Icon } from '@verbb/plugin-kit-react/components';
 
 function FormieErrorsPane({
     errors = [],
@@ -31,7 +29,7 @@ function FormieErrorsPane({
             aria-labelledby={headingId}
         >
             <div className="flex items-center gap-1.5">
-                <FontAwesomeIcon icon={faTriangleExclamation} className="size-3 text-rose-600" />
+                <Icon icon="triangle-exclamation" className="size-3 text-rose-600" />
 
                 <h2 id={headingId} className="text-base font-bold">
                     {heading}

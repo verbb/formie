@@ -3,44 +3,8 @@ import React, {
 } from 'react';
 import { useDragOperation, useDraggable, useDroppable } from '@dnd-kit/react';
 import { CollisionPriority, CollisionType } from '@dnd-kit/abstract';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-import {
-    faArrowDown,
-    faArrowLeft,
-    faArrowRight,
-    faArrowUp,
-    faAsterisk,
-    faClone,
-    faEllipsis,
-    faEye,
-    faLinkSlash,
-    faLock,
-    faPencil,
-    faPlus,
-    faRefresh,
-    faTrash,
-} from '@fortawesome/pro-solid-svg-icons';
-
-import {
-    faPlusSquare,
-} from '@fortawesome/pro-regular-svg-icons';
-
-import {
-    Button,
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-    TiptapContent,
-} from '@verbb/plugin-kit-react/components';
+import { Button, Dialog, DropdownItem, DropdownMenu, DropdownSeparator, Icon, TiptapContent } from '@verbb/plugin-kit-react/components';
 
 import { SchemaFormEngine, useSchemaFormEngine } from '@verbb/plugin-kit-react/forms';
 import { cn } from '@verbb/plugin-kit-react/utils';
@@ -51,6 +15,7 @@ import { useBuilderActions } from '@form-builder/builder/useBuilderActions';
 import { MAX_FIELDS_PER_ROW } from '@form-builder/builder/constants';
 import { useHandleSyncOnChange } from '@form-builder/hooks/useHandleSyncOnChange';
 import { useFieldEditorDismiss } from '@form-builder/hooks/useFieldEditorDismiss';
+import { useResetDialogBodyScrollOnTabChange } from '@form-builder/hooks/useResetDialogBodyScrollOnTabChange';
 import {
     collectFieldHandlesFromRows,
     buildDuplicatedFieldData,
@@ -88,6 +53,8 @@ const EXCLUDED_SUB_FIELD_SETTING_NAMES = [
     'uniqueValue',
     'handle',
     'enableContentEncryption',
+    // Compatible type switcher is for top-level fields only (see FieldFormBuilderTrait).
+    'type',
 ];
 
 const sanitizeSubFieldSchema = (input, shouldSanitizeSettings = true) => {
@@ -102,10 +69,13 @@ const sanitizeSubFieldSchema = (input, shouldSanitizeSettings = true) => {
     }
 
     if (
-        shouldSanitizeSettings
-        && (
-            (input.name && EXCLUDED_SUB_FIELD_SETTING_NAMES.includes(input.name))
-            || (input.$field && EXCLUDED_SUB_FIELD_SETTING_NAMES.includes(input.$field))
+        (input.name === 'type' || input.$field === 'type')
+        || (
+            shouldSanitizeSettings
+            && (
+                (input.name && EXCLUDED_SUB_FIELD_SETTING_NAMES.includes(input.name))
+                || (input.$field && EXCLUDED_SUB_FIELD_SETTING_NAMES.includes(input.$field))
+            )
         )
     ) {
         return null;
@@ -143,20 +113,26 @@ const sanitizeSubFieldSchemaIndex = (schemaIndex, shouldSanitizeSettings = true)
         return schemaIndex;
     }
 
-    if (!shouldSanitizeSettings) {
-        return schemaIndex;
-    }
+    const isExcludedFieldEntry = (field = {}) => {
+        if (field.name === 'type' || field.$field === 'type') {
+            return true;
+        }
+
+        if (!shouldSanitizeSettings) {
+            return false;
+        }
+
+        return (
+            (field.name && EXCLUDED_SUB_FIELD_SETTING_NAMES.includes(field.name))
+            || (field.$field && EXCLUDED_SUB_FIELD_SETTING_NAMES.includes(field.$field))
+        );
+    };
 
     return {
         ...schemaIndex,
-        schema: sanitizeSubFieldSchema(schemaIndex.schema || []),
+        schema: sanitizeSubFieldSchema(schemaIndex.schema || [], shouldSanitizeSettings),
         fieldEntries: (schemaIndex.fieldEntries || []).filter((entry) => {
-            const field = entry?.field || {};
-
-            return !(
-                (field.name && EXCLUDED_SUB_FIELD_SETTING_NAMES.includes(field.name))
-                || (field.$field && EXCLUDED_SUB_FIELD_SETTING_NAMES.includes(field.$field))
-            );
+            return !isExcludedFieldEntry(entry?.field || {});
         }),
     };
 };
@@ -298,12 +274,16 @@ const NestedFieldEditModal = ({
     shouldSanitizeSettings = true,
     dismissAttemptRef = null,
     onSave,
-    onCancel,
+    onCancel: _onCancel,
     onDismiss,
     onDelete,
 }) => {
     const contentRef = useRef(null);
     const hasAutofocusedRef = useRef(false);
+    // Panel-owned scroll (v1 ModalTabs) — hook retained as no-op for shared imports.
+    useResetDialogBodyScrollOnTabChange(contentRef);
+    const [open, setOpen] = useState(true);
+    const pendingCloseRef = useRef(null);
     const activeFieldType = fieldType;
     const resolvedFieldTypeLabel = typeof activeFieldType?.label === 'string'
         ? activeFieldType.label.trim()
@@ -371,14 +351,14 @@ const NestedFieldEditModal = ({
     });
 
     form.onSuccess((data) => {
-        onSave(data);
+        pendingCloseRef.current = { type: 'save', data };
+        setOpen(false);
     });
 
     useFieldEditorDismiss({
         field,
         fieldDisplayLabel,
         form,
-        onDismiss,
         dismissAttemptRef,
         isBaselineReady: hasSchemaConfig,
     });
@@ -401,35 +381,90 @@ const NestedFieldEditModal = ({
 
     const canDeleteFromModal = Boolean(field?.id);
 
+    const handleDelete = () => {
+        if (isSettingsLocked) {
+            return;
+        }
+
+        const confirmationMessage = Craft.t('formie', 'Are you sure you want to delete "{name}"?', {
+            name: fieldDisplayLabel,
+        });
+
+        if (!window.confirm(confirmationMessage)) {
+            return;
+        }
+
+        pendingCloseRef.current = { type: 'delete' };
+        setOpen(false);
+    };
+
+    const handleAfterHide = () => {
+        const pending = pendingCloseRef.current;
+        pendingCloseRef.current = null;
+
+        if (pending?.type === 'save') {
+            onSave(pending.data);
+            return;
+        }
+
+        if (pending?.type === 'delete') {
+            onDelete();
+            return;
+        }
+
+        onDismiss({ deleteIfNew: Boolean(field?._isNew) });
+    };
+
     return (
-        <DialogContent
-            className="w-[66%] h-[66%] max-w-auto min-w-[600px] min-h-[400px]"
+        <Dialog
+            open={open}
+            withoutBodyPadding
+            className="formie-field-edit-dialog"
+            onPkHide={(event) => {
+                if (pendingCloseRef.current) {
+                    return;
+                }
+
+                if (dismissAttemptRef?.current && !dismissAttemptRef.current()) {
+                    event.preventDefault();
+                }
+            }}
+            onPkOpenChange={(event) => {
+                setOpen(Boolean(event.detail?.open ?? event.target?.open));
+            }}
+            onPkAfterHide={handleAfterHide}
         >
-            <DialogHeader>
-                <DialogTitle className="flex flex-row items-center">
+            {/* Custom header: lock/type pill + v1 DialogHeader chrome (absolute close). */}
+            <div slot="header" className="formie-field-edit-header">
+                <h2 className="formie-field-edit-title">
                     {Craft.t('formie', 'Edit Field')}
 
                     {field?.builderLocked && (
-                        <FontAwesomeIcon
-                            icon={faLock}
+                        <Icon
+                            icon="lock"
                             className="ml-2 size-3.5 text-[#64748b]"
                             title={Craft.t('formie', 'Locked field')}
                         />
                     )}
 
                     {showFieldTypePill && (
-                        <div className="rounded-[20px] bg-[#d8e2ea] px-[10px] py-[6px] text-[10px] text-[#526176] ml-[10px] font-normal">
-                            {resolvedFieldTypeLabel}
-                        </div>
+                        <div className="formie-field-edit-type-pill">{resolvedFieldTypeLabel}</div>
                     )}
-                </DialogTitle>
+                </h2>
+                <Button
+                    type="button"
+                    variant="none"
+                    size="none"
+                    icon
+                    className="formie-field-edit-close"
+                    aria-label={Craft.t('app', 'Close')}
+                    data-dialog-close
+                >
+                    <Icon slot="start" icon="xmark" />
+                </Button>
+            </div>
 
-                <DialogDescription className="hidden">
-                    {Craft.t('formie', 'Edit the field for this form.')}
-                </DialogDescription>
-            </DialogHeader>
-
-            <div ref={contentRef} className="flex min-h-0 flex-1 flex-col overflow-hidden">
+            <div ref={contentRef} className="formie-field-edit-dialog-body">
                 <FieldEditorNotices
                     field={field}
                     isSyncedField={isSyncedField}
@@ -439,12 +474,12 @@ const NestedFieldEditModal = ({
                 />
 
                 {hasSchemaConfig ? (
-                    <div className="relative min-h-0 flex-1">
+                    <div className="relative flex min-h-0 flex-1 flex-col">
                         <div className={cn(
-                            'h-full',
+                            'flex h-full min-h-0 flex-col',
                             isSettingsLocked && 'pointer-events-none select-none opacity-60',
                         )}>
-                            <SchemaFormEngine form={form} className="h-full" />
+                            <SchemaFormEngine form={form} className="flex h-full min-h-0 flex-col" />
                         </div>
 
                         {isSettingsLocked && (
@@ -463,19 +498,21 @@ const NestedFieldEditModal = ({
                 )}
             </div>
 
-            <DialogFooter className={cn(
-                'flex flex-row gap-2',
-                canDeleteFromModal ? 'justify-between' : 'justify-end',
-            )}
+            <div
+                slot="footer"
+                className={cn(
+                    'flex w-full flex-row gap-2',
+                    canDeleteFromModal ? 'justify-between' : 'justify-end',
+                )}
             >
                 {canDeleteFromModal && (
-                    <Button type="button" onClick={onDelete} disabled={isSettingsLocked}>
+                    <Button type="button" onClick={handleDelete} disabled={isSettingsLocked}>
                         {Craft.t('formie', 'Delete')}
                     </Button>
                 )}
 
                 <div className="flex flex-row justify-end gap-2">
-                    <Button type="button" onClick={onCancel}>
+                    <Button type="button" data-dialog-close>
                         {Craft.t('formie', 'Cancel')}
                     </Button>
 
@@ -496,8 +533,8 @@ const NestedFieldEditModal = ({
                         {Craft.t('formie', 'Apply')}
                     </Button>
                 </div>
-            </DialogFooter>
-        </DialogContent>
+            </div>
+        </Dialog>
     );
 };
 
@@ -691,210 +728,186 @@ const NestedFieldCard = ({
                     'z-10',
                     isDropdownOpen && 'opacity-100',
                 )}>
-                    <DropdownMenu size="sm" open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
-                        <DropdownMenuTrigger
-                            render={(
-                                <Button
-                                    variant="transparent"
-                                    size="sm"
-                                    className="w-7 h-7 p-0 rounded-lg"
-                                    data-form-builder-field-actions-trigger={nestedField?._id}
-                                    aria-label={Craft.t('formie', 'Actions for {label}', { label: nestedFieldDisplayLabel })}
-                                    onClick={(event) => {
-                                        event.stopPropagation();
-                                    }}
-                                />
-                            )}
+                    <DropdownMenu
+                        size="sm"
+                        placement="bottom-end"
+                        open={isDropdownOpen}
+                        onPkOpenChange={(event) => {
+                            setIsDropdownOpen(event.detail?.open ?? false);
+                        }}
+                    >
+                        <Button
+                            slot="trigger"
+                            variant="transparent"
+                            size="sm"
+                            className="w-7 h-7 p-0 rounded-lg"
+                            data-form-builder-field-actions-trigger={nestedField?._id}
+                            aria-label={Craft.t('formie', 'Actions for {label}', { label: nestedFieldDisplayLabel })}
+                            onClick={(event) => {
+                                event.stopPropagation();
+                            }}
                         >
-                            <FontAwesomeIcon icon={faEllipsis} className="size-3.5" />
-                        </DropdownMenuTrigger>
+                            <Icon slot="start" icon="ellipsis" className="size-3.5" />
+                        </Button>
 
-                        <DropdownMenuContent align="end" className="min-w-[140px]">
-                            <DropdownMenuItem onClick={(event) => {
-                                event.preventDefault();
-                                event.stopPropagation();
-                                setEditing(true);
-                                setIsDropdownOpen(false);
-                            }}>
-                                <FontAwesomeIcon icon={faPencil} />
-                                {Craft.t('formie', 'Edit')}
-                            </DropdownMenuItem>
+                        <DropdownItem onPkSelect={() => {
+                            setEditing(true);
+                            setIsDropdownOpen(false);
+                        }}>
+                            <Icon slot="start" icon="pen" />
+                            {Craft.t('formie', 'Edit')}
+                        </DropdownItem>
 
-                            <DropdownMenuItem onClick={(event) => {
-                                event.preventDefault();
-                                event.stopPropagation();
+                        <DropdownItem onPkSelect={() => {
+                            updateNestedField(pageIndex, rowIndex, fieldIndex, nestedRowIndex, nestedFieldIndex, {
+                                required: !nestedField?.required,
+                            });
 
-                                updateNestedField(pageIndex, rowIndex, fieldIndex, nestedRowIndex, nestedFieldIndex, {
-                                    required: !nestedField?.required,
+                            setIsDropdownOpen(false);
+                        }}>
+                            <Icon slot="start" icon="asterisk" />
+                            {nestedField?.required
+                                ? Craft.t('formie', 'Make optional')
+                                : Craft.t('formie', 'Make required')}
+                        </DropdownItem>
+
+                        <DropdownItem onPkSelect={() => {
+                            duplicateField();
+                            setIsDropdownOpen(false);
+                        }}>
+                            <Icon slot="start" icon="clone" />
+                            {Craft.t('formie', 'Duplicate')}
+                        </DropdownItem>
+
+                        {isSyncedField && (
+                            <DropdownItem onPkSelect={() => {
+                                const confirmationMessage = Craft.t('formie', 'Are you sure you want to detach "{name}"? This field will become independent and future changes will no longer sync.', {
+                                    name: nestedFieldDisplayLabel,
                                 });
 
+                                if (!window.confirm(confirmationMessage)) {
+                                    return;
+                                }
+
+                                updateNestedField(
+                                    pageIndex,
+                                    rowIndex,
+                                    fieldIndex,
+                                    nestedRowIndex,
+                                    nestedFieldIndex,
+                                    detachSyncedFieldData(nestedField),
+                                );
+
                                 setIsDropdownOpen(false);
                             }}>
-                                <FontAwesomeIcon icon={faAsterisk} />
-                                {nestedField?.required
-                                    ? Craft.t('formie', 'Make optional')
-                                    : Craft.t('formie', 'Make required')}
-                            </DropdownMenuItem>
+                                <Icon slot="start" icon="link-slash" />
+                                {Craft.t('formie', 'Detach sync')}
+                            </DropdownItem>
+                        )}
 
-                            <DropdownMenuItem onClick={(event) => {
-                                event.preventDefault();
-                                event.stopPropagation();
+                        <DropdownSeparator />
 
-                                duplicateField();
+                        <DropdownItem
+                            disabled={!canMoveUp}
+                            onPkSelect={() => {
+                                if (!canMoveUp) {
+                                    return;
+                                }
+
+                                if (hasRowSiblings) {
+                                    moveField(nestedRowIndex - 1, -1, true);
+                                    announceNestedFieldMove(nestedRowIndex, 0);
+                                } else if (prevRow) {
+                                    const targetIndex = Math.max((prevRow.fields?.length || 0) - 1, -1);
+                                    moveField(nestedRowIndex - 1, targetIndex, false);
+                                    announceNestedFieldMove(nestedRowIndex - 1, targetIndex + 1);
+                                }
+
                                 setIsDropdownOpen(false);
-                            }}>
-                                <FontAwesomeIcon icon={faClone} />
-                                {Craft.t('formie', 'Duplicate')}
-                            </DropdownMenuItem>
+                            }}
+                        >
+                            <Icon slot="start" icon="arrow-up" />
+                            {Craft.t('formie', 'Move up')}
+                        </DropdownItem>
 
-                            {isSyncedField && (
-                                <DropdownMenuItem onClick={(event) => {
-                                    event.preventDefault();
-                                    event.stopPropagation();
+                        <DropdownItem
+                            disabled={!canMoveDown}
+                            onPkSelect={() => {
+                                if (!canMoveDown) {
+                                    return;
+                                }
 
-                                    const confirmationMessage = Craft.t('formie', 'Are you sure you want to detach "{name}"? This field will become independent and future changes will no longer sync.', {
-                                        name: nestedFieldDisplayLabel,
-                                    });
+                                if (hasRowSiblings) {
+                                    moveField(nestedRowIndex, -1, true);
+                                    announceNestedFieldMove(nestedRowIndex + 1, 0);
+                                } else if (nextRow) {
+                                    const targetIndex = Math.max((nextRow.fields?.length || 0) - 1, -1);
+                                    moveField(nestedRowIndex + 1, targetIndex, false);
+                                    announceNestedFieldMove(nestedRowIndex, targetIndex + 1);
+                                }
 
-                                    if (!window.confirm(confirmationMessage)) {
-                                        return;
-                                    }
+                                setIsDropdownOpen(false);
+                            }}
+                        >
+                            <Icon slot="start" icon="arrow-down" />
+                            {Craft.t('formie', 'Move down')}
+                        </DropdownItem>
 
-                                    updateNestedField(
-                                        pageIndex,
-                                        rowIndex,
-                                        fieldIndex,
-                                        nestedRowIndex,
-                                        nestedFieldIndex,
-                                        detachSyncedFieldData(nestedField),
-                                    );
+                        <DropdownItem
+                            disabled={!canMoveLeft}
+                            onPkSelect={() => {
+                                if (!canMoveLeft) {
+                                    return;
+                                }
 
-                                    setIsDropdownOpen(false);
-                                }}>
-                                    <FontAwesomeIcon icon={faLinkSlash} />
-                                    {Craft.t('formie', 'Detach sync')}
-                                </DropdownMenuItem>
-                            )}
+                                moveField(nestedRowIndex, nestedFieldIndex - 2, false);
+                                announceNestedFieldMove(nestedRowIndex, nestedFieldIndex - 1);
+                                setIsDropdownOpen(false);
+                            }}
+                        >
+                            <Icon slot="start" icon="arrow-left" />
+                            {Craft.t('formie', 'Move left')}
+                        </DropdownItem>
 
-                            <DropdownMenuSeparator />
+                        <DropdownItem
+                            disabled={!canMoveRight}
+                            onPkSelect={() => {
+                                if (!canMoveRight) {
+                                    return;
+                                }
 
-                            <DropdownMenuItem
-                                disabled={!canMoveUp}
-                                className={cn(!canMoveUp && 'opacity-50 pointer-events-none')}
-                                onClick={(event) => {
-                                    event.preventDefault();
-                                    event.stopPropagation();
-                                    if (!canMoveUp) {
-                                        return;
-                                    }
+                                moveField(nestedRowIndex, nestedFieldIndex + 1, false);
+                                announceNestedFieldMove(nestedRowIndex, nestedFieldIndex + 1);
+                                setIsDropdownOpen(false);
+                            }}
+                        >
+                            <Icon slot="start" icon="arrow-right" />
+                            {Craft.t('formie', 'Move right')}
+                        </DropdownItem>
 
-                                    if (hasRowSiblings) {
-                                        moveField(nestedRowIndex - 1, -1, true);
-                                        announceNestedFieldMove(nestedRowIndex, 0);
-                                    } else if (prevRow) {
-                                        const targetIndex = Math.max((prevRow.fields?.length || 0) - 1, -1);
-                                        moveField(nestedRowIndex - 1, targetIndex, false);
-                                        announceNestedFieldMove(nestedRowIndex - 1, targetIndex + 1);
-                                    }
+                        <DropdownSeparator />
 
-                                    setIsDropdownOpen(false);
-                                }}
-                            >
-                                <FontAwesomeIcon icon={faArrowUp} />
-                                {Craft.t('formie', 'Move up')}
-                            </DropdownMenuItem>
+                        <DropdownItem
+                            destructive
+                            onPkSelect={() => {
+                                const confirmationMessage = Craft.t('formie', 'Are you sure you want to delete "{name}"?', {
+                                    name: nestedFieldDisplayLabel,
+                                });
 
-                            <DropdownMenuItem
-                                disabled={!canMoveDown}
-                                className={cn(!canMoveDown && 'opacity-50 pointer-events-none')}
-                                onClick={(event) => {
-                                    event.preventDefault();
-                                    event.stopPropagation();
-                                    if (!canMoveDown) {
-                                        return;
-                                    }
+                                if (!window.confirm(confirmationMessage)) {
+                                    return;
+                                }
 
-                                    if (hasRowSiblings) {
-                                        moveField(nestedRowIndex, -1, true);
-                                        announceNestedFieldMove(nestedRowIndex + 1, 0);
-                                    } else if (nextRow) {
-                                        const targetIndex = Math.max((nextRow.fields?.length || 0) - 1, -1);
-                                        moveField(nestedRowIndex + 1, targetIndex, false);
-                                        announceNestedFieldMove(nestedRowIndex, targetIndex + 1);
-                                    }
-
-                                    setIsDropdownOpen(false);
-                                }}
-                            >
-                                <FontAwesomeIcon icon={faArrowDown} />
-                                {Craft.t('formie', 'Move down')}
-                            </DropdownMenuItem>
-
-                            <DropdownMenuItem
-                                disabled={!canMoveLeft}
-                                className={cn(!canMoveLeft && 'opacity-50 pointer-events-none')}
-                                onClick={(event) => {
-                                    event.preventDefault();
-                                    event.stopPropagation();
-                                    if (!canMoveLeft) {
-                                        return;
-                                    }
-
-                                    moveField(nestedRowIndex, nestedFieldIndex - 2, false);
-                                    announceNestedFieldMove(nestedRowIndex, nestedFieldIndex - 1);
-                                    setIsDropdownOpen(false);
-                                }}
-                            >
-                                <FontAwesomeIcon icon={faArrowLeft} />
-                                {Craft.t('formie', 'Move left')}
-                            </DropdownMenuItem>
-
-                            <DropdownMenuItem
-                                disabled={!canMoveRight}
-                                className={cn(!canMoveRight && 'opacity-50 pointer-events-none')}
-                                onClick={(event) => {
-                                    event.preventDefault();
-                                    event.stopPropagation();
-                                    if (!canMoveRight) {
-                                        return;
-                                    }
-
-                                    moveField(nestedRowIndex, nestedFieldIndex + 1, false);
-                                    announceNestedFieldMove(nestedRowIndex, nestedFieldIndex + 1);
-                                    setIsDropdownOpen(false);
-                                }}
-                            >
-                                <FontAwesomeIcon icon={faArrowRight} />
-                                {Craft.t('formie', 'Move right')}
-                            </DropdownMenuItem>
-
-                            <DropdownMenuSeparator />
-
-                            <DropdownMenuItem
-                                className="text-error focus:text-error"
-                                onClick={(event) => {
-                                    event.preventDefault();
-                                    event.stopPropagation();
-
-                                    const confirmationMessage = Craft.t('formie', 'Are you sure you want to delete "{name}"?', {
-                                        name: nestedFieldDisplayLabel,
-                                    });
-
-                                    if (!window.confirm(confirmationMessage)) {
-                                        return;
-                                    }
-
-                                    deleteNestedField(pageIndex, rowIndex, fieldIndex, nestedRowIndex, nestedFieldIndex);
-                                    announceFormBuilderStatus(Craft.t('formie', '{label} field deleted.', {
-                                        label: nestedFieldDisplayLabel,
-                                    }));
-                                    setIsDropdownOpen(false);
-                                }}
-                            >
-                                <FontAwesomeIcon icon={faTrash} />
-                                {Craft.t('formie', 'Delete')}
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
+                                deleteNestedField(pageIndex, rowIndex, fieldIndex, nestedRowIndex, nestedFieldIndex);
+                                announceFormBuilderStatus(Craft.t('formie', '{label} field deleted.', {
+                                    label: nestedFieldDisplayLabel,
+                                }));
+                                setIsDropdownOpen(false);
+                            }}
+                        >
+                            <Icon slot="start" icon="xmark" />
+                            {Craft.t('formie', 'Delete')}
+                        </DropdownItem>
                     </DropdownMenu>
                 </div>
 
@@ -936,7 +949,7 @@ const NestedFieldCard = ({
                                                 'text-[10px] font-medium text-[#b45309]',
                                                 shouldUseNestedFieldLabel && 'ml-2',
                                             )}>
-                                                <FontAwesomeIcon icon={faRefresh} className="size-2.5" />
+                                                <Icon icon="refresh" className="size-2.5" />
                                                 <span>{Craft.t('formie', 'Synced')}</span>
                                             </div>
                                         )}
@@ -949,7 +962,7 @@ const NestedFieldCard = ({
                                                 'text-[10px] font-medium text-[#0077b6]',
                                                 shouldUseNestedFieldLabel && 'ml-2',
                                             )}>
-                                                <FontAwesomeIcon icon={faEye} className="size-3" />
+                                                <Icon slot="start" icon="eye" className="size-3" />
                                                 <span>{Craft.t('formie', 'Conditions')}</span>
                                             </div>
                                         )}
@@ -977,48 +990,42 @@ const NestedFieldCard = ({
             </div>
 
             {editing && (
-                <Dialog open={true} onOpenChange={(open) => {
-                    if (!open) {
-                        nestedFieldEditorDismissAttemptRef.current?.();
-                    }
-                }}>
-                    <NestedFieldEditModal
-                        field={nestedField}
-                        fieldType={nestedFieldType}
-                        reservedHandles={nestedReservedHandles}
-                        shouldSanitizeSettings={shouldSanitizeSettings}
-                        dismissAttemptRef={nestedFieldEditorDismissAttemptRef}
-                        onSave={(updatedField) => {
-                            updateNestedField(pageIndex, rowIndex, fieldIndex, nestedRowIndex, nestedFieldIndex, {
-                                ...updatedField,
-                                handle: isSyncedField ? nestedField.handle : updatedField.handle,
-                                _isNew: false,
-                            });
-                            setEditing(false);
-                        }}
-                        onCancel={() => {
-                            closeNestedFieldEditor({ deleteIfNew: true });
-                        }}
-                        onDismiss={({ deleteIfNew = false } = {}) => {
-                            closeNestedFieldEditor({ deleteIfNew });
-                        }}
-                        onDelete={() => {
-                            const confirmationMessage = Craft.t('formie', 'Are you sure you want to delete "{name}"?', {
-                                name: nestedFieldDisplayLabel,
-                            });
+                <NestedFieldEditModal
+                    field={nestedField}
+                    fieldType={nestedFieldType}
+                    reservedHandles={nestedReservedHandles}
+                    shouldSanitizeSettings={shouldSanitizeSettings}
+                    dismissAttemptRef={nestedFieldEditorDismissAttemptRef}
+                    onSave={(updatedField) => {
+                        updateNestedField(pageIndex, rowIndex, fieldIndex, nestedRowIndex, nestedFieldIndex, {
+                            ...updatedField,
+                            handle: isSyncedField ? nestedField.handle : updatedField.handle,
+                            _isNew: false,
+                        });
+                        setEditing(false);
+                    }}
+                    onCancel={() => {
+                        closeNestedFieldEditor({ deleteIfNew: true });
+                    }}
+                    onDismiss={({ deleteIfNew = false } = {}) => {
+                        closeNestedFieldEditor({ deleteIfNew });
+                    }}
+                    onDelete={() => {
+                        const confirmationMessage = Craft.t('formie', 'Are you sure you want to delete "{name}"?', {
+                            name: nestedFieldDisplayLabel,
+                        });
 
-                            if (!window.confirm(confirmationMessage)) {
-                                return;
-                            }
+                        if (!window.confirm(confirmationMessage)) {
+                            return;
+                        }
 
-                            deleteNestedField(pageIndex, rowIndex, fieldIndex, nestedRowIndex, nestedFieldIndex);
-                            announceFormBuilderStatus(Craft.t('formie', '{label} field deleted.', {
-                                label: nestedFieldDisplayLabel,
-                            }));
-                            setEditing(false);
-                        }}
-                    />
-                </Dialog>
+                        deleteNestedField(pageIndex, rowIndex, fieldIndex, nestedRowIndex, nestedFieldIndex);
+                        announceFormBuilderStatus(Craft.t('formie', '{label} field deleted.', {
+                            label: nestedFieldDisplayLabel,
+                        }));
+                        setEditing(false);
+                    }}
+                />
             )}
         </>
     );
@@ -1043,7 +1050,9 @@ const ContainerFieldPreview = ({
     const showStructureIds = Boolean(
         builderDevSettings?.enabled && builderDevSettings?.showRowAndFieldIds,
     );
-    const rows = resolveContainerRows(field, fieldType);
+    // resolveContainerRows returns { rows, source } — do not assign the object itself.
+    const { rows: resolvedContainerRows } = resolveContainerRows(field, fieldType);
+    const rows = Array.isArray(resolvedContainerRows) ? resolvedContainerRows : [];
     const { source } = useDragOperation();
     const activeData = source?.data?.current ?? source?.data;
     const isDragging = Boolean(activeData);
@@ -1252,7 +1261,7 @@ const ContainerFieldPreview = ({
                     'rounded-md border border-dashed border-gray-200 text-gray-500 bg-white',
                     'gap-2 px-3 py-2 m-3',
                 ])}>
-                    <FontAwesomeIcon icon={faPlusSquare} className="size-3.5" />
+                    <Icon icon="plus-square" className="size-3.5" />
                     {field?.addLabel || field?.settings?.addLabel || Craft.t('formie', 'Add another row')}
                 </div>
             )}

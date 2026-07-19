@@ -1,28 +1,25 @@
 import {
     useCallback, useEffect, useState, useMemo, useRef,
 } from 'react';
-import { get, isEqual, set } from 'lodash-es';
+import { isEqual } from 'lodash-es';
+import { collectSchemaDefaultValues } from '@form-builder/utils/collectSchemaDefaultValues';
 
+import { renderMarkdown } from '@verbb/plugin-kit-core';
+import { cn } from '@verbb/plugin-kit-react/utils';
+import { SchemaFormEngine, useSchemaFormEngine } from '@verbb/plugin-kit-react/forms';
 import {
     Button,
+    Option,
+    OptionGroup,
     Select,
-    SelectContent,
-    SelectGroup,
-    SelectItem,
-    SelectLabel,
-    SelectTrigger,
-    SelectValue,
     Status,
     Spinner,
 } from '@verbb/plugin-kit-react/components';
-import { SchemaFormEngine, useSchemaFormEngine } from '@verbb/plugin-kit-react/forms';
-import { renderMarkdown } from '@verbb/plugin-kit-react/utils';
 import useUrlRouter from '@form-builder/hooks/useUrlRouter';
 import {
     useIntegrations,
     fetchIntegrationFormSettingsConfig,
 } from '@form-builder/hooks/useFormTools';
-import { cn } from '@verbb/plugin-kit-react/utils';
 import { useFormBuilderApp } from '@form-builder/contexts/FormBuilderAppContext';
 import { useFormBuilderForm } from '@form-builder/contexts/FormBuilderFormContext';
 import useAppStore from '@form-builder/hooks/useAppStore';
@@ -100,37 +97,6 @@ const getNestedErrors = (errors, prefix) => {
     });
 
     return nestedErrors;
-};
-
-const collectSchemaDefaultValues = (node, prefix = '', defaults = {}) => {
-    if (Array.isArray(node)) {
-        node.forEach((child) => {
-            collectSchemaDefaultValues(child, prefix, defaults);
-        });
-        return defaults;
-    }
-
-    if (!node || typeof node !== 'object') {
-        return defaults;
-    }
-
-    if (node.$field && node.name && Object.prototype.hasOwnProperty.call(node, 'defaultValue')) {
-        const path = `${prefix}${node.name}`;
-
-        if (path && get(defaults, path) === undefined) {
-            set(defaults, path, node.defaultValue);
-        }
-    }
-
-    const childPrefix = `${prefix}${typeof node.schemaChildPrefix === 'string' ? node.schemaChildPrefix : ''}`;
-
-    if (node.schema) {
-        collectSchemaDefaultValues(node.schema, childPrefix, defaults);
-    } else if (node.children) {
-        collectSchemaDefaultValues(node.children, childPrefix, defaults);
-    }
-
-    return defaults;
 };
 
 function Integrations({ schema }) {
@@ -351,39 +317,32 @@ function Integrations({ schema }) {
                                         <Button
                                             key={integration.handle}
                                             variant="transparent"
+                                            size="none"
                                             onClick={() => { return handleIntegrationSelect(integration); }}
                                             className={cn(
-                                                'w-full',
-                                                'gap-1.5 md:gap-2',
-                                                'px-2 md:px-[10px]',
-                                                'py-[7px]',
-                                                'text-left',
+                                                'form-builder-integrations-nav-item',
+                                                'w-full min-w-0',
                                                 'text-[13px]',
-                                                'rounded-lg',
-                                                'justify-start',
-                                                'min-w-0',
-                                                isSelected
-                                                    ? 'bg-gray-500! text-white'
-                                                    : ' ',
+                                                isSelected && 'is-selected',
                                             )}
                                         >
+                                            {/*
+                                             * Host Tailwind (px/gap/bg) does not pierce pk-button shadow.
+                                             * Density via --pk-btn-* + ::part(base); icons/status via start/end slots.
+                                             */}
                                             {integration.icon && !failedIcons[iconKey] && (
                                                 <img
+                                                    slot="start"
                                                     src={integration.icon}
                                                     alt=""
-                                                    className="size-4 shrink-0"
                                                     onError={() => {
                                                         handleIconError(iconKey);
                                                     }}
                                                 />
                                             )}
-                                            <span className="min-w-0 flex-1 truncate">{integration.name}</span>
+                                            <span className="truncate">{integration.name}</span>
                                             <Status
-                                                className={cn(
-                                                    'ml-auto',
-                                                    'shrink-0',
-                                                    isSelected && !integrationEnabled && 'shadow-[inset_0_0_0_2px_var(--gray-200)]',
-                                                )}
+                                                slot="end"
                                                 status={integrationEnabled ? 'enabled' : 'disabled'}
                                             />
                                         </Button>
@@ -398,25 +357,18 @@ function Integrations({ schema }) {
                     <div className="mt-2 border-t border-[rgba(51,64,77,.15)] pt-3">
                         <Button
                             variant="transparent"
+                            size="none"
                             onClick={() => {
                                 router.navigateToIntegration(DISPATCH_SETTINGS_HANDLE);
                             }}
                             className={cn(
-                                'w-full',
-                                'gap-1.5 md:gap-2',
-                                'px-2 md:px-[10px]',
-                                'py-[7px]',
-                                'text-left',
+                                'form-builder-integrations-nav-item',
+                                'w-full min-w-0',
                                 'text-[13px]',
-                                'rounded-lg',
-                                'justify-start',
-                                'min-w-0',
-                                isDispatchSettingsActive
-                                    ? 'bg-gray-500! text-white'
-                                    : ' ',
+                                isDispatchSettingsActive && 'is-selected',
                             )}
                         >
-                            <span className="min-w-0 flex-1 truncate">{Craft.t('formie', 'Settings')}</span>
+                            <span className="truncate">{Craft.t('formie', 'Settings')}</span>
                         </Button>
                     </div>
                 )}
@@ -430,8 +382,12 @@ function Integrations({ schema }) {
 
                     <Select
                         size="sm"
+                        width="full"
+                        placeholder={Craft.t('formie', 'Select an integration')}
                         value={activeIntegrationHandle || ''}
-                        onValueChange={(value) => {
+                        onPkChange={(event) => {
+                            const value = event.detail?.value ?? event.target?.value;
+
                             if (value === DISPATCH_SETTINGS_HANDLE) {
                                 router.navigateToIntegration(DISPATCH_SETTINGS_HANDLE);
                                 return;
@@ -446,81 +402,47 @@ function Integrations({ schema }) {
                             }
                         }}
                     >
-                        <SelectTrigger className="w-full">
-                            <SelectValue placeholder={Craft.t('formie', 'Select an integration')}>
-                                {isDispatchSettingsActive ? (
-                                    <span className="min-w-0 truncate">{Craft.t('formie', 'Settings')}</span>
-                                ) : activeIntegration ? (
-                                    <span className="flex min-w-0 items-center gap-2">
-                                        {activeIntegration.icon && !failedIcons[`${activeIntegration.handle}:${activeIntegration.icon || ''}`] && (
-                                            <img
-                                                src={activeIntegration.icon}
-                                                alt=""
-                                                className="size-4 shrink-0"
-                                                onError={() => {
-                                                    handleIconError(`${activeIntegration.handle}:${activeIntegration.icon || ''}`);
-                                                }}
-                                            />
-                                        )}
-                                        <span className="min-w-0 truncate">{activeIntegration.name}</span>
-                                        <Status
-                                            className="ml-auto shrink-0"
-                                            status={getIntegrationEnabledState(
-                                                activeIntegration,
-                                                getValueAtPath(`settings.integrations.${activeIntegration.handle}`, null),
-                                            ) ? 'enabled' : 'disabled'}
-                                        />
-                                    </span>
-                                ) : null}
-                            </SelectValue>
-                        </SelectTrigger>
+                        {integrationGroups.map((group) => {
+                            return (
+                                <OptionGroup key={group.handle} label={group.label}>
+                                    {group.integrations.map((integration) => {
+                                        const integrationSettings = getValueAtPath(`settings.integrations.${integration.handle}`, null);
+                                        const integrationEnabled = getIntegrationEnabledState(integration, integrationSettings);
+                                        const iconKey = `${integration.handle}:${integration.icon || ''}`;
 
-                        <SelectContent align="start">
-                            {integrationGroups.map((group) => {
-                                return (
-                                    <SelectGroup key={group.handle}>
-                                        <SelectLabel>{group.label}</SelectLabel>
-
-                                        {group.integrations.map((integration) => {
-                                            const integrationSettings = getValueAtPath(`settings.integrations.${integration.handle}`, null);
-                                            const integrationEnabled = getIntegrationEnabledState(integration, integrationSettings);
-                                            const iconKey = `${integration.handle}:${integration.icon || ''}`;
-
-                                            return (
-                                                <SelectItem key={integration.handle} value={integration.handle}>
-                                                    <span className="flex min-w-0 items-center gap-2">
-                                                        {integration.icon && !failedIcons[iconKey] && (
-                                                            <img
-                                                                src={integration.icon}
-                                                                alt=""
-                                                                className="size-4 shrink-0"
-                                                                onError={() => {
-                                                                    handleIconError(iconKey);
-                                                                }}
-                                                            />
-                                                        )}
-                                                        <span className="min-w-0 truncate">{integration.name}</span>
-                                                        <Status
-                                                            className="ml-auto shrink-0"
-                                                            status={integrationEnabled ? 'enabled' : 'disabled'}
+                                        return (
+                                            <Option key={integration.handle} value={integration.handle}>
+                                                <span className="flex min-w-0 items-center gap-2">
+                                                    {integration.icon && !failedIcons[iconKey] && (
+                                                        <img
+                                                            src={integration.icon}
+                                                            alt=""
+                                                            className="size-4 shrink-0"
+                                                            onError={() => {
+                                                                handleIconError(iconKey);
+                                                            }}
                                                         />
-                                                    </span>
-                                                </SelectItem>
-                                            );
-                                        })}
-                                    </SelectGroup>
-                                );
-                            })}
+                                                    )}
+                                                    <span className="min-w-0 truncate">{integration.name}</span>
+                                                    <Status
+                                                        className="ml-auto shrink-0"
+                                                        status={integrationEnabled ? 'enabled' : 'disabled'}
+                                                    />
+                                                </span>
+                                            </Option>
+                                        );
+                                    })}
+                                </OptionGroup>
+                            );
+                        })}
 
-                            {showDispatchSettings && (
-                                <SelectGroup>
-                                    <SelectLabel>{Craft.t('formie', 'Form settings')}</SelectLabel>
-                                    <SelectItem value={DISPATCH_SETTINGS_HANDLE}>
-                                        {Craft.t('formie', 'Settings')}
-                                    </SelectItem>
-                                </SelectGroup>
-                            )}
-                        </SelectContent>
+                        {showDispatchSettings && (
+                            <OptionGroup label={Craft.t('formie', 'Form settings')}>
+                                <Option value={DISPATCH_SETTINGS_HANDLE}>
+                                    {Craft.t('formie', 'Settings')}
+                                </Option>
+                            </OptionGroup>
+                        )}
                     </Select>
                 </div>
 

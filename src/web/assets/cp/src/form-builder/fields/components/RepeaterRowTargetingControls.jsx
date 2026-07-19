@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { Input, SelectInput } from '@verbb/plugin-kit-react/components';
 import { useTranslation } from '@verbb/plugin-kit-react/hooks';
+import { Input, SelectInput } from '@verbb/plugin-kit-react/components';
 import {
     getRepeaterRowPresetOptions,
     parseRepeaterRowTargeting,

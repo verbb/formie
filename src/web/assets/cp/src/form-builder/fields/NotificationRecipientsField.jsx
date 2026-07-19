@@ -1,12 +1,8 @@
 import { useMemo } from 'react';
 
-import { EditableTable } from '@verbb/plugin-kit-react/components';
-
-import { FieldLayout } from '@verbb/plugin-kit-react/forms/Field';
-import { useEngineField } from '@verbb/plugin-kit-react/forms/useEngineField';
-
 import { useTranslation } from '@verbb/plugin-kit-react/hooks';
-
+import { useEngineField, FieldLayout } from '@verbb/plugin-kit-react/forms';
+import { EditableTable } from '@verbb/plugin-kit-react/components';
 import useAppStore from '@form-builder/hooks/useAppStore';
 import { useFormValues } from '@form-builder/hooks/useFormTools';
 import { buildConditionFieldPicker } from '@form-builder/fields/utils/conditionFieldPicker';
@@ -58,7 +54,6 @@ function NotificationRecipientsField({ field, form }) {
             instructions={field.instructions}
             required={field.required}
             errors={errors}
-            withControl={false}
         >
             <EditableTable
                 columns={[
@@ -88,15 +83,14 @@ function NotificationRecipientsField({ field, form }) {
                                 />
                             );
                         },
-                        contentClassName: 'min-w-[260px] max-w-[360px] p-0 overflow-hidden flex flex-col',
-                        showActionsMenu: true,
+                        pickerContentClassName: 'min-w-[260px] max-w-[360px] p-0 overflow-hidden flex flex-col',
                     },
                     {
                         name: 'condition',
                         label: t('Condition'),
                         type: 'select',
                         options: conditionOptions,
-                        className: 'w-0',
+                        thin: true,
                     },
                     {
                         name: 'value',

@@ -1,23 +1,13 @@
+import { takeAtLeast, createItem, generateHandle, findUniqueHandle } from '@verbb/plugin-kit-core';
 import React, {
     useState, useEffect, useMemo, useRef,
 } from 'react';
 
 import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogFooter,
-    DialogDescription,
-    Button,
-    Spinner,
-    Input,
-    MenuButton,
+    Button, ButtonGroup, Dialog, DropdownItem, DropdownMenu, Icon, Input, Spinner,
 } from '@verbb/plugin-kit-react/components';
 
-import {
-    cn, takeAtLeast, createItem, generateHandle, findUniqueHandle,
-} from '@verbb/plugin-kit-react/utils';
+import { cn } from '@verbb/plugin-kit-react/utils';
 import { useFormValues } from '@form-builder/hooks/useFormTools';
 import { useBuilderActions } from '@form-builder/builder/useBuilderActions';
 import { useFormBuilderApp } from '@form-builder/contexts/FormBuilderAppContext';
@@ -25,9 +15,6 @@ import { collectFieldHandlesFromRows } from '@form-builder/utils/duplicateField'
 import { getDevToolsConfig } from '@form-builder/dev/config';
 import { createMockExistingFieldsData } from '@form-builder/dev/scenarios/existingFieldsStressScenario';
 import { LargeErrorState, StatePanel } from '@utils';
-
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronDown, faSearch } from '@fortawesome/pro-solid-svg-icons';
 
 const getExistingFieldSettings = (field = {}) => {
     if (field?.settings && typeof field.settings === 'object') {
@@ -244,6 +231,7 @@ const ExistingFields = ({ onClose, nestedPlacement = null }) => {
     const [isLoadingResults, setIsLoadingResults] = useState(false);
     const resultsRequestIdRef = useRef(0);
     const previousSelectedFormKeyRef = useRef(null);
+    const searchInputRef = useRef(null);
     const builderDevSettings = useMemo(() => {
         if (!import.meta.env.DEV) {
             return null;
@@ -366,6 +354,21 @@ const ExistingFields = ({ onClose, nestedPlacement = null }) => {
     useEffect(() => {
         handleOpen();
     }, []);
+
+    // Content mounts after the dialog's open focus pass (spinner first). Focus search once ready.
+    useEffect(() => {
+        if (loading || loadError || !mounted || !existingFields.length) {
+            return;
+        }
+
+        const frameId = window.requestAnimationFrame(() => {
+            searchInputRef.current?.focus?.({ preventScroll: true });
+        });
+
+        return () => {
+            window.cancelAnimationFrame(frameId);
+        };
+    }, [loading, loadError, mounted, existingFields.length]);
 
     const fetchExistingFieldsForSelectedForm = async(formKey, searchTerm = '') => {
         if (!formKey) {
@@ -586,11 +589,8 @@ const ExistingFields = ({ onClose, nestedPlacement = null }) => {
             ? meetsSearchMinimum
             : (!hasSearch || meetsSearchMinimum);
 
-        // Avoid a one-frame "no fields found" flash on tab switches by
-        // entering loading state immediately when a fetch is expected.
-        if (keyChanged) {
-            setIsLoadingResults(willFetchResults);
-        }
+        // Loading for the whole debounce + request window (tab switch and search).
+        setIsLoadingResults(willFetchResults);
 
         const timeoutId = window.setTimeout(() => {
             if (selectedFormKey === '*') {
@@ -809,231 +809,221 @@ const ExistingFields = ({ onClose, nestedPlacement = null }) => {
     };
 
     return (
-        <Dialog open={true} onOpenChange={handleClose}>
-            <DialogContent className={cn(
-                'w-[calc(100vw-24px)] h-[calc(100dvh-24px)]',
-                'min-w-0 min-h-0 max-w-none',
-                'md:w-[66%] md:h-[66%]',
-                'md:min-w-[600px] md:min-h-[400px]',
-            )}>
-                <DialogHeader>
-                    <DialogTitle>
-                        {Craft.t('formie', 'Add Existing Field')}
-                    </DialogTitle>
+        <Dialog
+            open
+            label={Craft.t('formie', 'Add Existing Field')}
+            withoutBodyPadding
+            // Panel size via tokens (host Tailwind never reaches shadow .dialog).
+            className="formie-existing-fields-dialog"
+            onPkOpenChange={(event) => {
+                if (!(event.detail?.open ?? event.target?.open ?? false)) {
+                    handleClose();
+                }
+            }}
+        >
+            {/*
+              Fixed dialog height (66%) means loading/error/content all fill the
+              same shell — no jump when the form list arrives.
+            */}
+            <div className="flex h-full min-h-0 flex-col overflow-hidden">
+                {loadError && (
+                    <LargeErrorState
+                        error={loadError}
+                        message={Craft.t('formie', 'Unable to load existing fields.')}
+                        detailsLabel={Craft.t('formie', 'Show error details')}
+                        actionLabel={Craft.t('formie', 'Try Again')}
+                        onAction={handleOpen}
+                        containerClassName="absolute inset-0 z-10 flex items-center justify-center bg-white"
+                    />
+                )}
 
-                    <DialogDescription className="hidden">
-                        {nestedGroupPlacement
-                            ? Craft.t('formie', 'Add existing fields to this group.')
-                            : Craft.t('formie', 'Add existing fields to this form.')}
-                    </DialogDescription>
-                </DialogHeader>
+                {loading && (
+                    <div className="flex h-full min-h-0 items-center justify-center">
+                        <Spinner size="lg" />
+                    </div>
+                )}
 
-                <div className="h-full overflow-hidden">
-                    {loadError && (
-                        <LargeErrorState
-                            error={loadError}
-                            message={Craft.t('formie', 'Unable to load existing fields.')}
-                            detailsLabel={Craft.t('formie', 'Show error details')}
-                            actionLabel={Craft.t('formie', 'Try Again')}
-                            onAction={handleOpen}
-                            containerClassName="absolute inset-0 z-10 flex items-center justify-center bg-white"
-                        />
-                    )}
-
-                    {loading && (
-                        <div className="h-full flex items-center justify-center">
-                            <Spinner size="lg" />
-                        </div>
-                    )}
-
-                    {!loading && !loadError && mounted && existingFields.length && (
-                        <div className="flex h-full flex-col md:flex-row">
-                            <div className={cn(
-                                'relative',
-                                'bg-[#f3f7fc]',
-                                'border-b md:border-b-0 md:border-r',
-                                'border-[rgba(51,64,77,.1)]',
-                                'rounded-t-lg md:rounded-t-none md:rounded-l-lg',
-                                'overflow-auto',
-                                'w-full max-h-[180px] md:max-h-none md:w-[240px]',
-                                'px-2 pt-3',
-                            )}>
-                                <div className="space-y-1">
-                                    {existingFields.map((form, index) => {
-                                        if (form.heading) {
-                                            return (
-                                                <div key={index} className="mt-4 ml-[10px]">
-                                                    <h3 className="text-[11px] font-bold text-gray-500 uppercase">
-                                                        {form.heading}
-                                                    </h3>
-                                                </div>
-                                            );
-                                        }
-
+                {!loading && !loadError && mounted && existingFields.length && (
+                    <div className="flex h-full min-h-0 flex-col md:flex-row">
+                        <div className={cn(
+                            'relative',
+                            'bg-[#f3f7fc]',
+                            'border-b md:border-b-0 md:border-r',
+                            'border-[rgba(51,64,77,.1)]',
+                            'overflow-auto',
+                            'w-full max-h-[180px] md:max-h-none md:w-[240px] md:shrink-0',
+                            'px-2 pt-3',
+                        )}>
+                            <div className="space-y-1">
+                                {existingFields.map((form, index) => {
+                                    if (form.heading) {
                                         return (
-                                            <Button
-                                                key={index}
-                                                variant="transparent"
-                                                onClick={() => { return selectTab(form); }}
-                                                className={cn(
-                                                    'w-full',
-                                                    'gap-2',
-                                                    'px-[10px]',
-                                                    'py-[7px]',
-                                                    'text-left',
-                                                    'text-[13px]',
-                                                    'rounded-lg',
-                                                    'justify-start',
-                                                    selectedForm?.key === form.key
-                                                        ? 'bg-gray-500 hover:not-disabled:bg-gray-500 text-white'
-                                                        : ' ',
-                                                )}
-                                            >
-                                                <span>{form.label}</span>
-                                            </Button>
+                                            <div key={index} className="mt-4 ml-[10px]">
+                                                <h3 className="text-[11px] font-bold text-gray-500 uppercase">
+                                                    {form.heading}
+                                                </h3>
+                                            </div>
                                         );
-                                    })}
-                                </div>
+                                    }
+
+                                    return (
+                                        <Button
+                                            key={index}
+                                            type="button"
+                                            size="none"
+                                            variant="transparent"
+                                            onClick={() => { return selectTab(form); }}
+                                            className={cn(
+                                                'formie-existing-picker-nav-item',
+                                                selectedForm?.key === form.key && 'is-selected',
+                                            )}
+                                        >
+                                            {form.label}
+                                        </Button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        <div className="flex min-h-0 flex-1 flex-col">
+                            <div className="border-b border-gray-100 p-3 md:p-4">
+                                <Input
+                                    ref={searchInputRef}
+                                    autofocus
+                                    value={search}
+                                    onChange={(e) => { return setSearch(e.target.value); }}
+                                    placeholder={Craft.t('formie', 'Search')}
+                                >
+                                    <Icon slot="start" icon="search" className="size-4" />
+                                </Input>
                             </div>
 
-                            <div className="flex-1 flex flex-col min-h-0">
-                                <div className="p-3 md:p-4 border-b border-gray-100">
-                                    <div className="relative">
-                                        <FontAwesomeIcon
-                                            icon={faSearch}
-                                            className="absolute size-4 left-2 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm"
-                                        />
-
-                                        <Input
-                                            value={search}
-                                            onChange={(e) => { return setSearch(e.target.value); }}
-                                            placeholder={Craft.t('formie', 'Search')}
-                                            className="pl-7"
-                                        />
+                            <div className="flex-1 overflow-y-auto p-3 md:p-4">
+                                {isLoadingResults && !shouldMockExistingFields ? (
+                                    <div className="h-full flex items-center justify-center">
+                                        <Spinner size="lg" />
                                     </div>
-                                </div>
+                                ) : (!shouldMockExistingFields && selectedForm?.key === '*' && !hasSearch) ? (
+                                    <StatePanel
+                                        variant="info"
+                                        showIcon={false}
+                                        message={Craft.t('formie', 'Search to browse fields across all forms.')}
+                                        containerClassName="py-4"
+                                        contentClassName="flex flex-col items-center text-center"
+                                        messageClassName="mb-0 text-sm text-gray-500"
+                                    />
+                                ) : (!shouldMockExistingFields && selectedForm?.key === '*' && hasSearch && !meetsSearchMinimum) ? (
+                                    <StatePanel
+                                        variant="info"
+                                        showIcon={false}
+                                        message={Craft.t('formie', 'Type at least 3 characters to search all forms.')}
+                                        containerClassName="py-4"
+                                        contentClassName="flex flex-col items-center text-center"
+                                        messageClassName="mb-0 text-sm text-gray-500"
+                                    />
+                                ) : (hasFilteredSelectedFields) ? (
+                                    <div className="space-y-4">
+                                        {filteredSelectedForm.pages.map((page, pIndex) => {
+                                            return (
+                                                <div key={pIndex}>
+                                                    <div className={cn(
+                                                        'relative mb-3',
 
-                                <div className="flex-1 overflow-y-auto p-3 md:p-4">
-                                    {isLoadingResults && !shouldMockExistingFields ? (
-                                        <div className="h-full flex items-center justify-center">
-                                            <Spinner size="lg" />
-                                        </div>
-                                    ) : (!shouldMockExistingFields && selectedForm?.key === '*' && !hasSearch) ? (
-                                        <StatePanel
-                                            variant="info"
-                                            showIcon={false}
-                                            message={Craft.t('formie', 'Search to browse fields across all forms.')}
-                                            containerClassName="py-4"
-                                            contentClassName="flex flex-col items-center text-center"
-                                            messageClassName="mb-0 text-sm text-gray-500"
-                                        />
-                                    ) : (!shouldMockExistingFields && selectedForm?.key === '*' && hasSearch && !meetsSearchMinimum) ? (
-                                        <StatePanel
-                                            variant="info"
-                                            showIcon={false}
-                                            message={Craft.t('formie', 'Type at least 3 characters to search all forms.')}
-                                            containerClassName="py-4"
-                                            contentClassName="flex flex-col items-center text-center"
-                                            messageClassName="mb-0 text-sm text-gray-500"
-                                        />
-                                    ) : (hasFilteredSelectedFields) ? (
-                                        <div className="space-y-4">
-                                            {filteredSelectedForm.pages.map((page, pIndex) => {
-                                                return (
-                                                    <div key={pIndex}>
+                                                        'after:absolute after:top-[50%] after:left-0 after:w-full after:h-[1px] after:bg-[#e2e8f0] after:-translate-y-[50%]',
+                                                    )}>
                                                         <div className={cn(
-                                                            'relative mb-3',
-
-                                                            'after:absolute after:top-[50%] after:left-0 after:w-full after:h-[1px] after:bg-[#e2e8f0] after:-translate-y-[50%]',
+                                                            'inline-block relative bg-white pr-[10px] z-[1]',
+                                                            'uppercase font-semibold text-[11px] text-slate-600',
                                                         )}>
-                                                            <div className={cn(
-                                                                'inline-block relative bg-white pr-[10px] z-[1]',
-                                                                'uppercase font-semibold text-[11px] text-slate-600',
-                                                            )}>
-                                                                {page.label}
-                                                            </div>
-                                                        </div>
-
-                                                        <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-                                                            {page.fields.map((field, fieldIndex) => {
-                                                                return (
-                                                                    <ExistingFieldItem
-                                                                        key={getFieldSelectionKey(field) || fieldIndex}
-                                                                        field={field}
-                                                                        selected={isFieldSelected(field)}
-                                                                        onSelected={(selected) => { return fieldSelected(field, selected); }}
-                                                                    />
-                                                                );
-                                                            })}
+                                                            {page.label}
                                                         </div>
                                                     </div>
-                                                );
-                                            })}
-                                        </div>
-                                    ) : (
-                                        <StatePanel
-                                            variant="empty"
-                                            showIcon={false}
-                                            message={Craft.t('formie', 'No fields found.')}
-                                            containerClassName="py-4"
-                                            contentClassName="flex flex-col items-center text-center"
-                                            messageClassName="mb-0 text-sm text-gray-500"
-                                        />
-                                    )}
-                                </div>
+
+                                                    <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                                                        {page.fields.map((field, fieldIndex) => {
+                                                            return (
+                                                                <ExistingFieldItem
+                                                                    key={getFieldSelectionKey(field) || fieldIndex}
+                                                                    field={field}
+                                                                    selected={isFieldSelected(field)}
+                                                                    onSelected={(selected) => { return fieldSelected(field, selected); }}
+                                                                />
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                ) : (
+                                    <StatePanel
+                                        variant="empty"
+                                        showIcon={false}
+                                        message={Craft.t('formie', 'No fields found.')}
+                                        containerClassName="py-4"
+                                        contentClassName="flex flex-col items-center text-center"
+                                        messageClassName="mb-0 text-sm text-gray-500"
+                                    />
+                                )}
                             </div>
-                        </div>
-                    )}
-
-                    {!loading && !loadError && !mounted && (
-                        <StatePanel
-                            variant="empty"
-                            showIcon={false}
-                            message={Craft.t('formie', 'No existing fields to select.')}
-                            containerClassName="h-full flex items-center justify-center"
-                            contentClassName="flex flex-col items-center text-center"
-                            messageClassName="mb-0 text-sm text-gray-500"
-                        />
-                    )}
-                </div>
-
-                {submitError && (
-                    <div className="border-t border-rose-100 bg-rose-50/40 px-6 py-3 text-sm text-rose-600">
-                        <div className="font-medium">
-                            {submitError.heading || Craft.t('formie', 'Unable to add fields')}
-                        </div>
-
-                        <div className="mt-1">
-                            {submitError.text || submitError.message || Craft.t('formie', 'An error has occurred.')}
                         </div>
                     </div>
                 )}
 
-                <DialogFooter className="flex justify-between">
-                    <div className="flex gap-2">
-                        <Button onClick={handleClose}>
-                            {Craft.t('app', 'Cancel')}
-                        </Button>
+                {!loading && !loadError && !mounted && (
+                    <StatePanel
+                        variant="empty"
+                        showIcon={false}
+                        message={Craft.t('formie', 'No existing fields to select.')}
+                        containerClassName="h-full flex items-center justify-center"
+                        contentClassName="flex flex-col items-center text-center"
+                        messageClassName="mb-0 text-sm text-gray-500"
+                    />
+                )}
+            </div>
+
+            {submitError && (
+                <div className="border-t border-rose-100 bg-rose-50/40 px-6 py-3 text-sm text-rose-600">
+                    <div className="font-medium">
+                        {submitError.heading || Craft.t('formie', 'Unable to add fields')}
                     </div>
 
-                    <div className="flex gap-2">
-                        <MenuButton
+                    <div className="mt-1">
+                        {submitError.text || submitError.message || Craft.t('formie', 'An error has occurred.')}
+                    </div>
+                </div>
+            )}
+
+            {/* justify-between: Cancel left, split submit right */}
+            <div slot="footer" className="flex w-full justify-between gap-2">
+                <Button type="button" onClick={handleClose}>
+                    {Craft.t('app', 'Cancel')}
+                </Button>
+
+                <ButtonGroup>
+                    <Button
+                        type="button"
+                        variant="primary"
+                        disabled={totalSelected === 0 || isSubmitting}
+                        onClick={addFields}
+                    >
+                        {submitText}
+                    </Button>
+                    <DropdownMenu placement="bottom-end">
+                        <Button
+                            slot="trigger"
+                            type="button"
                             variant="primary"
                             disabled={totalSelected === 0 || isSubmitting}
-                            mainAction={{
-                                label: submitText,
-                                onClick: addFields,
-                            }}
-                            menuItems={[
-                                {
-                                    label: syncedText,
-                                    onClick: addSynced,
-                                },
-                            ]}
+                            groupTrigger
+                            aria-label={Craft.t('app', 'Open menu')}
                         />
-                    </div>
-                </DialogFooter>
-            </DialogContent>
+                        <DropdownItem value="synced" onPkSelect={addSynced}>
+                            {syncedText}
+                        </DropdownItem>
+                    </DropdownMenu>
+                </ButtonGroup>
+            </div>
         </Dialog>
     );
 };

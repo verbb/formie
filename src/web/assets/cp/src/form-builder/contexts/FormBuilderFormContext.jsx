@@ -2,7 +2,7 @@ import {
     createContext, useCallback, useContext, useEffect, useMemo, useState,
 } from 'react';
 import { get as getValue } from 'lodash-es';
-import { hasSchemaErrorsCached } from '@verbb/plugin-kit-react/utils/schemaIndexCache';
+import { hasSchemaErrorsCached } from '@utils/schemaIndexCache';
 
 const FormBuilderFormContext = createContext(null);
 

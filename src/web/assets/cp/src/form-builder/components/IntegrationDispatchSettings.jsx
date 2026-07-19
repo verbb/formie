@@ -1,13 +1,7 @@
 import { useCallback, useMemo } from 'react';
 import { cloneDeep } from 'lodash-es';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faWandMagicSparkles } from '@fortawesome/pro-solid-svg-icons';
 
-import {
-    Button,
-    Lightswitch,
-    SelectInput,
-} from '@verbb/plugin-kit-react/components';
+import { Button, Icon, Lightswitch, SelectInput } from '@verbb/plugin-kit-react/components';
 import { useFormBuilderForm } from '@form-builder/contexts/FormBuilderFormContext';
 import { IntegrationDispatchStepList } from '@form-builder/components/IntegrationDispatchStepList';
 import { IntegrationRerunSettings } from '@form-builder/components/IntegrationRerunSettings';
@@ -235,7 +229,7 @@ function IntegrationDispatchSettings({
                                     className="shrink-0"
                                     onClick={applyRecommendedSetup}
                                 >
-                                    <FontAwesomeIcon icon={faWandMagicSparkles} className="mr-2 size-3.5" />
+                                    <Icon slot="start" icon="wand-magic-sparkles" className="size-3.5" />
                                     {Craft.t('formie', 'Apply recommended setup')}
                                 </Button>
                             </div>

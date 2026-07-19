@@ -8,3 +8,6 @@ export * from './drag.js';
 export * from './react-app.js';
 export * from './requestError.js';
 export * from './useCpFormPayloadSync.js';
+export * from './formieTable.jsx';
+export * from './formieLabel.jsx';
+export * from './copyToClipboard.js';

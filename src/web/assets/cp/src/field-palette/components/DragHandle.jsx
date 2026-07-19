@@ -1,5 +1,5 @@
-import { Button } from '@verbb/plugin-kit-react/components';
 import { cn } from '@verbb/plugin-kit-react/utils';
+import { Button } from '@verbb/plugin-kit-react/components';
 
 export function DragHandle({
     handleRef,

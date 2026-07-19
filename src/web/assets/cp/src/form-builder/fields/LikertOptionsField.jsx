@@ -1,23 +1,16 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import {
-    Button,
-    DropdownMenuRadioGroup,
-    DropdownMenuRadioItem,
-    EditableTable,
-    Lightswitch,
-} from '@verbb/plugin-kit-react/components';
-import { FieldLayout } from '@verbb/plugin-kit-react/forms/Field';
-import { useEditableTableFieldBinding } from '@verbb/plugin-kit-react/forms';
-import { useEngineField } from '@verbb/plugin-kit-react/forms/useEngineField';
+import { Button, EditableTable, Icon, Lightswitch } from '@verbb/plugin-kit-react/components';
+import { FieldLayout, useEngineField } from '@verbb/plugin-kit-react/forms';
+import { useEditableTableFieldBinding } from '@utils/useEditableTableFieldBinding';
 import { useTranslation } from '@verbb/plugin-kit-react/hooks';
-
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus } from '@fortawesome/pro-solid-svg-icons';
 
 import { FormieBulkOptionsDialog } from '@form-builder/components/FormieBulkOptionsDialog';
 import {
-    resolveOptionAvailabilityValue,
+    applyOptionAvailabilityMenuSelect,
+    getOptionAvailabilityRowMenuItems,
+    getOptionAvailabilityRowModifier,
+    patchRowAvailability,
 } from '@form-builder/utils/optionAvailability';
 import { syncLikertColumnValues } from '@form-builder/utils/likertColumnValues';
 
@@ -122,71 +115,22 @@ function LikertOptionsField({ form, field }) {
                 return row;
             }
 
-            const next = { ...(row && typeof row === 'object' ? row : {}) };
-            delete next.disabled;
-            delete next._id;
-
-            if (availability) {
-                next.availability = availability;
-            } else {
-                delete next.availability;
-            }
-
-            return next;
+            return patchRowAvailability(row, availability);
         });
 
         setRowsWithValues(nextRows);
     }, [field.name, form, setRowsWithValues]);
 
-    const renderOptionRowMenuItems = useCallback(({ row, rowIndex }) => {
-        if (row?.optgroup) {
-            return null;
-        }
+    const getRowMenuItems = useCallback((row) => {
+        return getOptionAvailabilityRowMenuItems(row, t);
+    }, [t]);
 
-        const currentValue = resolveOptionAvailabilityValue(row);
-
-        return (
-            <DropdownMenuRadioGroup
-                value={currentValue}
-                onValueChange={(value) => {
-                    updateRowAvailability(rowIndex, value === 'visible' ? null : value);
-                }}
-            >
-                <DropdownMenuRadioItem value="visible">
-                    {t('Visible')}
-                </DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="hidden">
-                    {t('Hidden')}
-                </DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="disabled">
-                    {t('Disabled')}
-                </DropdownMenuRadioItem>
-            </DropdownMenuRadioGroup>
-        );
-    }, [t, updateRowAvailability]);
+    const handleRowMenuSelect = useCallback((detail) => {
+        applyOptionAvailabilityMenuSelect(detail, updateRowAvailability);
+    }, [updateRowAvailability]);
 
     const modifyOptionRow = useCallback((row) => {
-        if (row?.optgroup) {
-            return null;
-        }
-
-        const availability = resolveOptionAvailabilityValue(row);
-
-        if (availability === 'hidden') {
-            return {
-                cellClassName: 'bg-amber-50/80',
-                title: t('Hidden from the front-end form'),
-            };
-        }
-
-        if (availability === 'disabled') {
-            return {
-                cellClassName: 'bg-slate-100/90',
-                title: t('Disabled on the front-end form'),
-            };
-        }
-
-        return null;
+        return getOptionAvailabilityRowModifier(row, t);
     }, [t]);
 
     const hasBulkOptions = Boolean(field.enableBulkOptions && field.predefinedOptions?.length);
@@ -196,48 +140,50 @@ function LikertOptionsField({ form, field }) {
     }
 
     return (
-        <FieldLayout
-            name={field.name}
-            label={field.label}
-            instructions={field.instructions}
-            warning={field.warning}
-            required={field.required}
-            errors={errors}
-            withControl={false}
-            headerEnd={(
-                <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-2">
-                        <span className="text-sm text-gray-600">{t('Enable Scoring')}</span>
-                        <Lightswitch
-                            checked={Boolean(scoringEnabled)}
-                            onCheckedChange={(checked) => { setScoringEnabled(checked); }}
-                            size="sm"
-                        />
+        <>
+            <FieldLayout
+                name={field.name}
+                label={field.label}
+                instructions={field.instructions}
+                warning={field.warning}
+                required={field.required}
+                errors={errors}
+                headerEnd={(
+                    <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm text-gray-600">{t('Enable Scoring')}</span>
+                            <Lightswitch
+                                checked={Boolean(scoringEnabled)}
+                                onCheckedChange={(checked) => { setScoringEnabled(checked); }}
+                                size="sm"
+                            />
+                        </div>
+                        {hasBulkOptions ? (
+                            <Button type="button" size="sm" onClick={() => { setIsBulkDialogOpen(true); }}>
+                                <Icon slot="start" icon="plus" className="size-3" />
+                                {t('Bulk add options')}
+                            </Button>
+                        ) : null}
                     </div>
-                    {hasBulkOptions ? (
-                        <Button type="button" size="sm" onClick={() => { setIsBulkDialogOpen(true); }}>
-                            <FontAwesomeIcon icon={faPlus} className="size-3" />
-                            {t('Bulk add options')}
-                        </Button>
-                    ) : null}
-                </div>
-            )}
-        >
-            <EditableTable
-                key={columnsLayoutKey}
-                columns={columns}
-                rows={rows}
-                onChange={setRowsWithValues}
-                onCellChange={handleLikertCellChange}
-                addRowLabel={field.addRowLabel}
-                allowReorder={field.allowReorder}
-                allowAdd={field.allowAdd}
-                allowDelete={field.allowDelete}
-                fieldName={field.name}
-                cellErrors={cellErrors}
-                modifyRow={field.enableOptionRowMenu ? modifyOptionRow : undefined}
-                renderRowMenuItemsBeforeCore={field.enableOptionRowMenu ? renderOptionRowMenuItems : undefined}
-            />
+                )}
+            >
+                <EditableTable
+                    key={columnsLayoutKey}
+                    columns={columns}
+                    rows={rows}
+                    onChange={setRowsWithValues}
+                    onCellChange={handleLikertCellChange}
+                    addRowLabel={field.addRowLabel}
+                    allowReorder={field.allowReorder}
+                    allowAdd={field.allowAdd}
+                    allowDelete={field.allowDelete}
+                    fieldName={field.name}
+                    cellErrors={cellErrors}
+                    modifyRow={field.enableOptionRowMenu ? modifyOptionRow : undefined}
+                    getRowMenuItems={field.enableOptionRowMenu ? getRowMenuItems : undefined}
+                    onRowMenuSelect={field.enableOptionRowMenu ? handleRowMenuSelect : undefined}
+                />
+            </FieldLayout>
 
             {hasBulkOptions && (
                 <FormieBulkOptionsDialog
@@ -248,7 +194,7 @@ function LikertOptionsField({ form, field }) {
                     onSave={handleBulkSave}
                 />
             )}
-        </FieldLayout>
+        </>
     );
 }
 

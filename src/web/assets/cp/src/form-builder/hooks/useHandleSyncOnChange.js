@@ -1,16 +1,37 @@
 import { useCallback, useMemo, useRef } from 'react';
 import { get as getValue } from 'lodash-es';
 
-import { extractFields } from '@verbb/plugin-kit-react/utils/schema';
-import { buildUniqueHandleFromSource, getRichTextText } from '@verbb/plugin-kit-react/utils';
+import { buildUniqueHandleFromSource } from '@verbb/plugin-kit-core';
+import { extractFields } from '@verbb/plugin-kit-forms';
+import { getRichTextText } from '@utils/tiptapUtils';
 
+/**
+ * Name/label sources may be plain strings, TipTap node arrays/docs, or JSON strings
+ * of those (variablePicker / pk-tiptap store). Always reduce to human text for handles.
+ */
 const normalizeHandleSourceValue = (value) => {
     if (value == null) {
         return value;
     }
 
-    if (typeof value === 'object') {
-        const text = getRichTextText(value)
+    let candidate = value;
+
+    if (typeof value === 'string') {
+        const trimmed = value.trim();
+
+        if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
+            try {
+                candidate = JSON.parse(trimmed);
+            } catch {
+                return value;
+            }
+        } else {
+            return value;
+        }
+    }
+
+    if (typeof candidate === 'object') {
+        const text = getRichTextText(candidate)
             .replace(/\{[^}]*\}/g, ' ')
             .replace(/\s+/g, ' ')
             .trim();

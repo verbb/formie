@@ -1,20 +1,11 @@
+import { generateHandle, findUniqueHandle } from '@verbb/plugin-kit-core';
 import {
     useState, useMemo, useEffect, useRef, useSyncExternalStore,
 } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus } from '@fortawesome/pro-solid-svg-icons';
 
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogFooter,
-    DialogDescription,
-    Button,
-} from '@verbb/plugin-kit-react/components';
+import { Button, Dialog, Icon, Separator } from '@verbb/plugin-kit-react/components';
 
-import { cn, generateHandle, findUniqueHandle } from '@verbb/plugin-kit-react/utils';
+import { cn } from '@verbb/plugin-kit-react/utils';
 import { useFormValues } from '@form-builder/hooks/useFormTools';
 import { useBuilderActions } from '@form-builder/builder/useBuilderActions';
 import { useFormBuilderApp } from '@form-builder/contexts/FormBuilderAppContext';
@@ -73,16 +64,29 @@ function SortablePageItem({
                 {page.label}
             </span>
 
-            <div ref={handleRef} className="">
+            {/* Fixed-size SVG in start slot — size-full in the default slot collapses to 0. */}
+            <div ref={handleRef} className="shrink-0">
                 <Button
+                    type="button"
                     variant="none"
+                    size="sm"
+                    icon
                     aria-label={Craft.t('formie', 'Reorder page {label}', { label: page.label })}
-                    className={cn(
-                        'size-6 rounded-none p-1 text-gray-500',
-                        'bg-transparent',
-                        'hover:cursor-move',
-                    )}>
-                    <svg className="size-full inline-block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor">
+                    className="formie-page-settings-drag-handle"
+                    onClick={(event) => {
+                        // Keep row activation from firing when grabbing the handle.
+                        event.stopPropagation();
+                    }}
+                >
+                    <svg
+                        slot="start"
+                        className="block size-4"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 448 512"
+                        fill="currentColor"
+                        focusable="false"
+                        aria-hidden="true"
+                    >
                         <path d="M71.3 295.6c-21.9-21.9-21.9-57.3 0-79.2s57.3-21.9 79.2 0 21.9 57.3 0 79.2s-57.4 21.9-79.2 0zM184.4 182.5c-21.9-21.9-21.9-57.3 0-79.2s57.3-21.9 79.2 0 21.9 57.3 0 79.2-57.3 21.8-79.2 0zm0 147c21.9-21.9 57.3-21.9 79.2 0s21.9 57.3 0 79.2s-57.3 21.9-79.2 0c-21.9-21.8-21.9-57.3 0-79.2zM297.5 216.4c21.9-21.9 57.3-21.9 79.2 0s21.9 57.3 0 79.2s-57.3 21.9-79.2 0c-21.8-21.9-21.8-57.3 0-79.2z" />
                     </svg>
                 </Button>
@@ -212,15 +216,28 @@ function PageSettingsModal({
                 return;
             }
 
-            const labelCandidates = Array.from(root.querySelectorAll('input[name$=".label"]:not([type="hidden"]):not([disabled])'));
-            const visibleLabelInput = labelCandidates.find((input) => {
-                return isVisibleElement(input);
-            });
-            const fallbackCandidates = Array.from(root.querySelectorAll('input:not([type="hidden"]):not([disabled])'));
-            const fallbackVisibleInput = fallbackCandidates.find((input) => {
-                return isVisibleElement(input);
-            });
-            const labelInput = visibleLabelInput || fallbackVisibleInput;
+            // Page Label is pk-field[data-name=label] → slotted pk-input. Native
+            // <input> lives in shadow — query hosts and call focus() (delegates inward).
+            const labelField = Array.from(
+                root.querySelectorAll('pk-field[data-name="label"], pk-field[data-name$=".label"]'),
+            ).find(isVisibleElement);
+
+            const controlFromField = labelField
+                ? labelField.querySelector('pk-input:not([disabled]), pk-textarea:not([disabled]), input:not([type="hidden"]):not([disabled]), textarea:not([disabled])')
+                : null;
+
+            const labelHosts = Array.from(
+                root.querySelectorAll('pk-input:not([disabled]), pk-textarea:not([disabled])'),
+            ).filter(isVisibleElement);
+
+            const lightDomInputs = Array.from(
+                root.querySelectorAll('input[name$=".label"]:not([type="hidden"]):not([disabled]), input[name="label"]:not([type="hidden"]):not([disabled]), input:not([type="hidden"]):not([disabled])'),
+            ).filter(isVisibleElement);
+
+            const labelInput = controlFromField
+                || labelHosts[0]
+                || lightDomInputs[0]
+                || null;
 
             if (!labelInput) {
                 attempts += 1;
@@ -232,9 +249,32 @@ function PageSettingsModal({
 
             labelInput.focus?.();
 
-            if (labelInput instanceof HTMLInputElement || labelInput instanceof HTMLTextAreaElement) {
-                const cursorPosition = labelInput.value.length;
-                labelInput.setSelectionRange?.(cursorPosition, cursorPosition);
+            // Prefer the real text control for caret placement (shadow or light DOM).
+            const nativeInput = labelInput instanceof HTMLInputElement || labelInput instanceof HTMLTextAreaElement
+                ? labelInput
+                : labelInput.shadowRoot?.querySelector?.('input, textarea');
+
+            if (nativeInput instanceof HTMLInputElement || nativeInput instanceof HTMLTextAreaElement) {
+                const cursorPosition = nativeInput.value.length;
+                nativeInput.setSelectionRange?.(cursorPosition, cursorPosition);
+            }
+
+            // pk-dialog.show() focuses the <dialog> in its own rAF, which can land
+            // AFTER this call when the modal opens and creates a page in one action
+            // (toolbar "+ New Page"). Verify focus stuck and re-assert if stolen.
+            attempts += 1;
+            if (attempts < maxAttempts) {
+                window.setTimeout(() => {
+                    let deepActive = document.activeElement;
+                    while (deepActive?.shadowRoot?.activeElement) {
+                        deepActive = deepActive.shadowRoot.activeElement;
+                    }
+
+                    const focusHost = deepActive?.getRootNode?.()?.host ?? deepActive;
+                    if (focusHost !== labelInput && deepActive !== nativeInput) {
+                        tryFocus();
+                    }
+                }, 60);
             }
         };
 
@@ -515,110 +555,112 @@ function PageSettingsModal({
     }
 
     return (
-        <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className={cn(
-                'w-[calc(100vw-24px)] h-[calc(100dvh-24px)]',
-                'min-w-0 min-h-0 max-w-none',
-                'md:w-[60%] md:h-[60%]',
-                'md:min-w-[600px] md:min-h-[400px]',
-            )}>
-                <DialogHeader>
-                    <DialogTitle>
-                        {Craft.t('formie', 'Edit Pages')}
-                    </DialogTitle>
+        <Dialog
+            open={isOpen}
+            label={Craft.t('formie', 'Edit Pages')}
+            withoutBodyPadding
+            className="formie-page-settings-dialog"
+            onPkOpenChange={(event) => {
+                if (!(event.detail?.open ?? event.target?.open ?? false)) {
+                    onClose();
+                }
+            }}
+        >
+            {/*
+             * v1 scroll model: one body scroller (right-edge scrollbar). Sidebar grows
+             * with pages + New Page in flow; desktop list has no own overflow. Mobile
+             * caps the list at 180px so the form pane stays usable.
+             */}
+            <div ref={contentRef} className="h-full overflow-y-auto">
+                <div className="flex min-h-full flex-1 flex-col md:flex-row">
+                    <div className={cn(
+                        'formie-page-settings-sidebar',
+                        'relative',
+                        'bg-[#f3f7fc]',
+                        'border-b border-gray-200 md:border-b-0 md:border-r',
+                        'w-full min-h-0 md:w-[200px] md:min-h-full',
+                        'shrink-0 basis-auto md:basis-[200px]',
+                        'flex flex-col',
+                    )}>
+                        <div
+                            ref={pageListRef}
+                            className="formie-page-settings-page-list max-h-[180px] overflow-y-auto md:max-h-none md:overflow-visible"
+                        >
+                            <DragDropProvider onDragEnd={handleDragEnd}>
+                                {pages.map((page, pageIndex) => {
+                                    const isActive = activePage && activePage === page._handle;
+                                    const hasErrors = hasPageErrors(page, pageIndex);
 
-                    <DialogDescription className="hidden">
-                        {Craft.t('formie', 'Edit the pages for this form.')}
-                    </DialogDescription>
-                </DialogHeader>
-
-                <div ref={contentRef} className="h-full overflow-y-auto">
-                    <div className="flex min-h-full flex-1 flex-col md:flex-row">
-                        <div className={cn(
-                            'relative',
-                            'bg-[#f3f7fc]',
-                            'border-b border-gray-200 md:border-b-0 md:border-r',
-                            'w-full min-h-0 md:w-[200px] md:min-h-full',
-                            'shrink-0 basis-auto md:basis-[200px]',
-                            'flex flex-col',
-                        )}>
-                            <div ref={pageListRef} className="max-h-[180px] overflow-y-auto md:max-h-none">
-                                <DragDropProvider onDragEnd={handleDragEnd}>
-                                    {pages.map((page, pageIndex) => {
-                                        const isActive = activePage && activePage === page._handle;
-                                        const hasErrors = hasPageErrors(page, pageIndex);
-
-                                        return (
-                                            <DraggableSidebarItem
-                                                key={page._handle}
-                                                page={page}
-                                                pageIndex={pageIndex}
-                                                isActive={isActive}
-                                                onClick={() => { return handlePageClick(page); }}
-                                                hasErrors={hasErrors}
-                                            />
-                                        );
-                                    })}
-                                </DragDropProvider>
-                            </div>
-
-                            <div className="p-3">
-                                {enableMultiPageForms && (
-                                    <Button
-                                        variant="dashed"
-                                        onClick={handleAddPage}
-                                        className="tw-w-full tw-flex tw-items-center tw-justify-center tw-gap-2"
-                                    >
-                                        <FontAwesomeIcon icon={faPlus} className="size-3" />
-                                        {Craft.t('formie', 'New Page')}
-                                    </Button>
-                                )}
-                            </div>
+                                    return (
+                                        <DraggableSidebarItem
+                                            key={page._handle}
+                                            page={page}
+                                            pageIndex={pageIndex}
+                                            isActive={isActive}
+                                            onClick={() => { return handlePageClick(page); }}
+                                            hasErrors={hasErrors}
+                                        />
+                                    );
+                                })}
+                            </DragDropProvider>
                         </div>
 
-                        <div className="flex-1 min-w-0 w-full overflow-x-hidden p-3 md:p-4">
-                            <SchemaFormEngine
-                                form={form}
-                                className="mb-8 space-y-4"
-                            />
-
-                            {pages.length > 1 && (
-                                <>
-                                    <hr />
-
-                                    <Button
-                                        variant="link"
-                                        size="none"
-                                        onClick={handleDeletePage}
-                                        className="text-error mt-4"
-                                    >
-                                        {Craft.t('formie', 'Delete')}
-                                    </Button>
-                                </>
+                        <div className="p-3">
+                            {enableMultiPageForms && (
+                                <Button
+                                    variant="dashed"
+                                    onClick={handleAddPage}
+                                    className="tw-w-full tw-flex tw-items-center tw-justify-center tw-gap-2"
+                                >
+                                    <Icon slot="start" icon="plus" className="size-3" />
+                                    {Craft.t('formie', 'New Page')}
+                                </Button>
                             )}
                         </div>
                     </div>
+
+                    <div className="formie-page-settings-dialog-content">
+                        <SchemaFormEngine
+                            form={form}
+                            className="mb-8 space-y-6"
+                        />
+
+                        {pages.length > 1 && (
+                            <>
+                                <Separator className="my-6" />
+
+                                <Button
+                                    variant="link"
+                                    size="none"
+                                    onClick={handleDeletePage}
+                                    className="formie-page-settings-delete"
+                                >
+                                    {Craft.t('formie', 'Delete')}
+                                </Button>
+                            </>
+                        )}
+                    </div>
                 </div>
+            </div>
 
-                <DialogFooter className="flex flex-row gap-2">
-                    <Button
-                        type="button"
-                        onClick={handleCancel}
-                    >
-                        {Craft.t('formie', 'Close')}
-                    </Button>
+            <Button
+                slot="footer"
+                type="button"
+                onClick={handleCancel}
+            >
+                {Craft.t('formie', 'Close')}
+            </Button>
 
-                    <Button
-                        type="button"
-                        variant="primary"
-                        onClick={handleSave}
-                        className="flex items-center gap-2"
-                    >
-                        {Craft.t('formie', 'Apply')}
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog >
+            <Button
+                slot="footer"
+                type="button"
+                variant="primary"
+                onClick={handleSave}
+                className="flex items-center gap-2"
+            >
+                {Craft.t('formie', 'Apply')}
+            </Button>
+        </Dialog>
     );
 }
 

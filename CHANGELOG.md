@@ -1,5 +1,10 @@
 # Changelog
 
+## 4.0.0-beta.13 - 2026-07-19
+
+### Changed
+- Update JS/CSS control panel handling to `@verbb/plugin-kit` v2.
+
 ## 4.0.0-beta.12 - 2026-07-09
 
 ### Changed

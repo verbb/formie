@@ -6,10 +6,7 @@ import {
     useState,
 } from 'react';
 
-import {
-    Button,
-    ButtonGroup,
-} from '@verbb/plugin-kit-react/components';
+import { Button, ButtonGroup } from '@verbb/plugin-kit-react/components';
 
 import { ReportDataLoadingOverlay } from '@reports/components/ReportDataLoadingOverlay';
 import { ReportSubmissionsChart } from '@reports/components/ReportSubmissionsChart';

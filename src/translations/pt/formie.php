@@ -3150,7 +3150,7 @@ To review it please log into your control panel.
   'Use a website key that matches the selected Enterprise Key Type. Keep using your Google Cloud API key and Project ID for server-side assessment requests.' => 'Utilize uma chave do site que corresponda ao tipo de chave empresarial selecionado. Continue a utilizar a sua chave da API do Google Cloud e o ID do projeto para pedidos de avaliação do lado do servidor.',
   'Use conditional logic to determine which email addresses receive this email notification.' => 'Utilize lógica condicional para determinar quais os endereços de e-mail que recebem esta notificação por e-mail.',
   'Use Credentials' => 'Utilizar credenciais',
-  'Use custom field palette' => 'Utilizar a paleta de campos personalizados',
+  'Use Custom Field Palette' => 'Utilizar a paleta de campos personalizados',
   'Use Custom Template' => 'Utilizar modelo personalizado',
   'Use Datalist Suggestions' => 'Utilizar as sugestões da lista de dados',
   'Use Dedicated Permissions' => 'Utilizar permissões específicas',

@@ -1,4 +1,4 @@
-import { parseTokenWithDefault } from '@verbb/plugin-kit-react/components/tiptap/variableSerialization';
+import { parseTokenWithDefault } from '@verbb/plugin-kit-tiptap-core';
 import {
     createSyntheticRepeaterSubFieldOption,
     getRepeaterBaseToken,
@@ -64,7 +64,18 @@ const variableValuesMatchReference = (tokenValue = '', optionValue = '') => {
         return true;
     }
 
-    return getRepeaterBaseToken(comparableToken) === getRepeaterBaseToken(comparableOption);
+    // Repeater bases only apply to field tokens (`{field:…}`). Non-field tokens
+    // (e.g. `{timestamp}`, `{form:name}`) both resolve to '', which previously
+    // matched every static variable to the first catalog leaf — wiping type
+    // hints like date → Date Format off Current Date/Time.
+    const tokenBase = getRepeaterBaseToken(comparableToken);
+    const optionBase = getRepeaterBaseToken(comparableOption);
+
+    if (!tokenBase || !optionBase) {
+        return false;
+    }
+
+    return tokenBase === optionBase;
 };
 
 export const findOptionLabelByValue = (variableCategories = {}, tokenValue = '', {

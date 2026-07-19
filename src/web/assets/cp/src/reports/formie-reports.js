@@ -1,14 +1,13 @@
 import { createElement } from 'react';
-import { createRoot } from 'react-dom/client';
 
 import { ReportEditorApp, reportEditorStyles } from '@reports/components/ReportEditorApp';
 import { ReportsDashboardApp, reportsDashboardStyles } from '@reports/components/ReportsDashboardApp';
 import { ReportViewApp, reportViewStyles } from '@reports/components/ReportViewApp';
-import { bootstrapShadowReactApp, ensureCraftNamespace, markContainerReady } from '@utils';
+import { bootstrapShadowReactApp, defineFormieCpConstructor, ensureCraftNamespace, markContainerReady, mountFormieReactApp } from '@utils';
 
 ensureCraftNamespace('Formie');
 
-Craft.Formie.Reports = function(settings = {}) {
+defineFormieCpConstructor('Reports', async (settings = {}) => {
     const mode = settings.mode || 'dashboard';
 
     const configByMode = {
@@ -45,11 +44,16 @@ Craft.Formie.Reports = function(settings = {}) {
         return;
     }
 
-    const { mountNode, targetContainer } = boot;
+    const { targetContainer } = boot;
 
-    createRoot(mountNode).render(
-        createElement(config.App, { settings }),
-    );
+    await mountFormieReactApp({
+        mountNode: boot.mountNode,
+        portalContainer: boot.portalContainer,
+        shadowRootSelectors: boot.shadowRootSelectors,
+        portalClassName: boot.portalClassName,
+        translationCategory: boot.translationCategory,
+        children: createElement(config.App, { settings }),
+    });
 
     markContainerReady(targetContainer, config.readyClass);
-};
+});

@@ -4,9 +4,6 @@ import {
 import React from 'react';
 import { get, cloneDeep } from 'lodash-es';
 
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faGripDotsVertical, faPlus, faChevronDown, faXmark } from '@fortawesome/pro-solid-svg-icons';
-
 import {
     DragDropProvider,
     DragOverlay,
@@ -34,18 +31,7 @@ import {
     prepareNewFieldForInsert,
 } from '@form-builder/utils/duplicateField';
 import {
-    Button,
-    Combobox,
-    ComboboxPrimitiveInput,
-    ComboboxContent,
-    ComboboxEmpty,
-    ComboboxList,
-    ComboboxCollection,
-    ComboboxGroup,
-    ComboboxLabel,
-    ComboboxItem,
-    ComboboxSeparator,
-    ComboboxTrigger,
+    Button, Combobox, Icon, Option, OptionGroup, Separator,
 } from '@verbb/plugin-kit-react/components';
 import { Field } from './Field';
 import { PageTabs } from './PageTabs';
@@ -284,6 +270,18 @@ function FieldBuilder({ fields }) {
         }));
     };
 
+    const fieldTypeByType = useMemo(() => {
+        const map = new Map();
+
+        groupedFieldTypeOptions.forEach((group) => {
+            group.items.forEach((fieldType) => {
+                map.set(fieldType.type, fieldType);
+            });
+        });
+
+        return map;
+    }, [groupedFieldTypeOptions]);
+
     const EmptyDroppableZone = ({ pageIndex }) => {
         const { ref, isDropTarget } = useDroppable({
             id: 'empty-dropzone',
@@ -292,20 +290,28 @@ function FieldBuilder({ fields }) {
             },
             collisionDetector: expandedPointerIntersection,
         });
-        const [selectedFieldType, setSelectedFieldType] = useState(null);
+        // Controlled string value; cleared after insert so the same type can be chosen again.
+        const [selectedFieldType, setSelectedFieldType] = useState('');
 
-        const handleAddField = (fieldType) => {
+        const handleAddField = (event) => {
+            const nextType = String(event.detail?.value ?? '');
+            const fieldType = fieldTypeByType.get(nextType);
+
+            if (!fieldType) {
+                setSelectedFieldType('');
+                return;
+            }
+
             const newField = buildNewFieldForInsert(fieldType);
 
             if (!newField) {
+                setSelectedFieldType('');
                 return;
             }
 
             addFieldToPage(pageIndex, newField);
             announceFieldAdded(fieldType);
-
-            // Reset selection so users can add the same field type again.
-            setSelectedFieldType(null);
+            setSelectedFieldType('');
         };
 
         return (
@@ -321,78 +327,49 @@ function FieldBuilder({ fields }) {
             >
                 <span className={cn('flex flex-col items-center justify-center text-center')}>
                     <div className="size-8 bg-[#60a6fb]/15 rounded-[8px] flex items-center justify-center">
-                        <FontAwesomeIcon icon={faPlus} className="text-[#2563eb] size-4" />
+                        <Icon icon="plus" className="text-[#2563eb] size-4" />
                     </div>
 
                     <p className="my-2 w-full text-[#33475b] truncate text-wrap font-medium text-sm">{Craft.t('formie', 'Add a new field')}</p>
                     <p className="w-full text-gray-500 truncate text-wrap text-xs">{Craft.t('formie', 'Drag and drop a field here, or select one below.')}</p>
 
-                    <div className="form-builder-empty-dropzone-field-select mt-4 flex w-full min-w-0 max-w-[220px] flex-col gap-2">
+                    <div className="form-builder-empty-dropzone-field-select mt-4 flex w-full min-w-0 max-w-[220px] flex-col gap-2 text-left">
                         <Combobox
-                            items={groupedFieldTypeOptions}
-                            value={selectedFieldType}
+                            popupMode
                             size="sm"
-                            onValueChange={handleAddField}
-                            itemToStringLabel={(item) => {
-                                return item?.groupLabel ? `${item.label} ${item.groupLabel}` : (item?.label ?? '');
-                            }}
-                            itemToStringValue={(item) => { return item?.type ?? item?.value ?? ''; }}
+                            width="full"
+                            className="w-full min-w-0"
+                            value={selectedFieldType}
+                            placeholder={Craft.t('formie', 'Select a field type')}
+                            searchPlaceholder={Craft.t('formie', 'Search fields')}
+                            emptyMessage={Craft.t('formie', 'No fields found.')}
+                            // Prefer below (empty dropzones have room); pk-combobox flip covers viewport edges.
+                            placement="bottom-start"
+                            onPkChange={handleAddField}
                         >
-                            <ComboboxTrigger
-                                render={(
-                                    <Button
-                                        size="sm"
-                                        className="w-full min-w-0 py-1.5 justify-between"
-                                    >
-                                        <span className="min-w-0 truncate">
-                                            {selectedFieldType?.label ?? Craft.t('formie', 'Select a field type')}
-                                        </span>
-                                        <FontAwesomeIcon icon={faChevronDown} className="size-3 shrink-0 pointer-events-none" />
-                                    </Button>
-                                )}
-                            />
-
-                            <ComboboxContent
-                                side="top"
-                                className="w-[var(--anchor-width)] min-w-[var(--anchor-width)] max-w-[var(--anchor-width)] overflow-x-clip"
-                            >
-                                <ComboboxPrimitiveInput
-                                    showTrigger={false}
-                                    placeholder={Craft.t('formie', 'Search fields')}
-                                />
-                                <ComboboxEmpty>{Craft.t('formie', 'No fields found.')}</ComboboxEmpty>
-
-                                <ComboboxList>
-                                    <ComboboxCollection>
-                                        {(group, index) => {
-                                            return (
-                                                <ComboboxGroup key={group.value}>
-                                                    {index > 0 && <ComboboxSeparator />}
-                                                    <ComboboxLabel>{group.label}</ComboboxLabel>
-
-                                                    {group.items.map((fieldType) => {
-                                                        return (
-                                                            <ComboboxItem
-                                                                key={fieldType.type}
-                                                                value={fieldType}
-                                                            >
-                                                                <span
-                                                                    className={cn(
-                                                                        'size-[13px] shrink-0 overflow-hidden',
-                                                                        '[&_svg]:size-full!',
-                                                                    )}
-                                                                    dangerouslySetInnerHTML={{ __html: fieldType.icon }}
-                                                                />
-                                                                <span className="min-w-0 truncate">{fieldType.label}</span>
-                                                            </ComboboxItem>
-                                                        );
-                                                    })}
-                                                </ComboboxGroup>
-                                            );
-                                        }}
-                                    </ComboboxCollection>
-                                </ComboboxList>
-                            </ComboboxContent>
+                            {groupedFieldTypeOptions.map((group, index) => {
+                                return (
+                                    <React.Fragment key={group.value}>
+                                        {index > 0 ? <Separator /> : null}
+                                        <OptionGroup label={group.label}>
+                                            {group.items.map((fieldType) => {
+                                                return (
+                                                    <Option key={fieldType.type} value={fieldType.type}>
+                                                        {fieldType.icon ? (
+                                                            <span
+                                                                slot="start"
+                                                                className="size-[13px] shrink-0 overflow-hidden [&_svg]:size-full!"
+                                                                dangerouslySetInnerHTML={{ __html: fieldType.icon }}
+                                                            />
+                                                        ) : null}
+                                                        {fieldType.label}
+                                                    </Option>
+                                                );
+                                            })}
+                                        </OptionGroup>
+                                    </React.Fragment>
+                                );
+                            })}
                         </Combobox>
                     </div>
                 </span>
@@ -537,7 +514,7 @@ function FieldBuilder({ fields }) {
                     isDragging && 'opacity-0',
                     'transition-opacity',
                     isFieldDragging ? 'opacity-100' : '',
-                )}><FontAwesomeIcon icon={faGripDotsVertical} className="size-3" /></span>
+                )}><Icon icon="grip-dots-vertical" className="size-3" /></span>
             </div>
         );
     };
@@ -575,7 +552,7 @@ function FieldBuilder({ fields }) {
                     <span className={cn(
                         'ml-auto',
                         'text-gray-400',
-                    )}><FontAwesomeIcon icon={faGripDotsVertical} /></span>
+                    )}><Icon icon="grip-dots-vertical" /></span>
                 )}
             </div>
         );
@@ -1029,9 +1006,8 @@ function FieldBuilder({ fields }) {
                     )}>
                         {/* Header: Page Tabs */}
                         <div className={cn(
+                            'form-builder-page-toolbar',
                             'absolute top-0 left-0 w-full h-[55px] z-1',
-                            'bg-white',
-                            'shadow-[0_0_0_1px_var(--gray-100),0_1px_5px__hsl(from_var(--gray-200)_h_s_l_/_40%)]',
                         )}>
                             <PageTabs isAnyDragActive={isDragging} />
                         </div>
@@ -1097,7 +1073,7 @@ function FieldBuilder({ fields }) {
                                     setIsFieldTypeSidebarOpen(false);
                                 }}
                             >
-                                <FontAwesomeIcon icon={faXmark} className="size-4" />
+                                <Icon icon="xmark" className="size-4" />
                             </button>
                         </div>
 
@@ -1111,7 +1087,7 @@ function FieldBuilder({ fields }) {
                                     setIsFieldTypeSidebarOpen(false);
                                 }}
                             >
-                                <FontAwesomeIcon icon={faPlus} className="size-3" />
+                                <Icon slot="start" icon="plus" className="size-3" />
                                 {Craft.t('formie', 'Add existing fields')}
                             </Button>
                         </div>

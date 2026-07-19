@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
-import { VariableCategoriesProvider as Provider } from '@verbb/plugin-kit-react/forms';
 import { useTranslation } from '@verbb/plugin-kit-react/hooks';
+import { VariableCategoriesProvider as Provider } from '@utils/VariableCategoriesProvider';
 import useAppStore from '@form-builder/hooks/useAppStore';
 import { useVariableCategoriesResolver } from '@form-builder/hooks/useVariableCategories';
 import { useRepeaterVariableConfigureSection } from '@form-builder/hooks/useRepeaterVariableConfigureSection';
