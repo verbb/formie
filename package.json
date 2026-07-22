@@ -4,6 +4,9 @@
   "devDependencies": {
     "prettier": "^3.8.3"
   },
+  "overrides": {
+    "locutus": "^3.0.36"
+  },
   "workspaces": [
     "packages/*",
     "src/web/assets/cp",
