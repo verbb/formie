@@ -12,6 +12,10 @@
             background: #fff;
         }
     </style>
+    {# Embed published theme CSS — asRaw() iframe must not depend on external <link> or Vite. #}
+    {% if themeCss ?? false %}
+        <style>{{ themeCss|raw }}</style>
+    {% endif %}
 </head>
 <body>
     {{ formHtml|raw }}

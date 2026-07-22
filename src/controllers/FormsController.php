@@ -365,6 +365,7 @@ class FormsController extends Controller
 
         $html = Craft::$app->getView()->renderTemplate('formie/forms/_preview-frame', [
             'formHtml' => $preview['html'],
+            'themeCss' => $preview['themeCss'] ?? '',
         ]);
 
         return $this->asRaw($html);

@@ -54,7 +54,9 @@ it('renders stock preview HTML for a simple form', function (): void {
     $preview = Formie::$plugin->getFormPreview()->renderPreviewFrame($token);
 
     expect($preview['html'])->toContain('data-formie-form')
-        ->and($preview['html'])->toContain('fullName');
+        ->and($preview['html'])->toContain('fullName')
+        ->and($preview['themeCss'] ?? '')->toContain('@layer formie-base')
+        ->and($preview['themeCss'] ?? '')->toContain('.formie-form');
 });
 
 it('uses stock template paths when useStockTemplates is enabled', function (): void {

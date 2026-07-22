@@ -24,23 +24,59 @@ class FrontendAssets extends Component
             return $this->_browserAssetUrls;
         }
 
+        $published = $this->getPublishedBrowserAssetUrls();
+
         if ($this->_shouldUseDevServer()) {
             $publicUrl = $this->_getDevServerPublicUrl();
 
+            // Keep the published CSS URL even in Vite mode. The entry JS imports CSS for
+            // HMR, but production formie.js does not re-inject formie.css — if the Vite
+            // script fails to load in the browser (common for CP preview iframes), a null
+            // css URL left forms completely unstyled.
             return $this->_browserAssetUrls = [
-                'css' => null,
+                'css' => $published['css'],
                 'js' => "{$publicUrl}src/js/formie.ts",
                 'viteClient' => "{$publicUrl}@vite/client",
             ];
         }
 
+        return $this->_browserAssetUrls = $published;
+    }
+
+    public function getPublishedBrowserAssetUrls(): array
+    {
         $assetBundle = Craft::$app->getAssetManager()->getBundle(FrontendAsset::class);
 
-        return $this->_browserAssetUrls = [
+        return [
             'css' => $assetBundle ? rtrim($assetBundle->baseUrl, '/') . '/css/formie.css' : null,
             'js' => $assetBundle ? rtrim($assetBundle->baseUrl, '/') . '/js/formie.js' : null,
             'viteClient' => null,
         ];
+    }
+
+    public function withPublishedBrowserAssets(callable $callback): mixed
+    {
+        $previous = $this->_browserAssetUrls;
+        $this->_browserAssetUrls = $this->getPublishedBrowserAssetUrls();
+
+        try {
+            return $callback();
+        } finally {
+            $this->_browserAssetUrls = $previous;
+        }
+    }
+
+    public function getPublishedThemeCssContents(): string
+    {
+        $path = Craft::getAlias('@verbb/formie/web/assets/frontend/dist/css/formie.css');
+
+        if (!is_string($path) || !is_file($path)) {
+            return '';
+        }
+
+        $css = file_get_contents($path);
+
+        return is_string($css) ? $css : '';
     }
 
 

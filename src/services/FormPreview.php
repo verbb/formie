@@ -104,25 +104,33 @@ class FormPreview extends Component
         // Route path for actionInput() — not a full URL.
         $form->setActionUrl('formie/forms/preview-submit');
 
-        // Inline assets in the iframe document — registered CP assets are not output with asRaw().
-        $html = (string)Formie::$plugin->getRendering()->renderForm($form, [
-            'useStockTemplates' => true,
-            'previewMode' => true,
-            'theme' => 'formie',
-            'includeCss' => true,
-            'includeJs' => true,
-            'outputCss' => true,
-            'outputJs' => true,
-            'outputCssLocation' => FormTemplate::PAGE_FOOTER,
-            'outputJsLocation' => FormTemplate::PAGE_HEADER,
-            'customInputs' => [
-                'previewToken' => $token,
-            ],
-        ]);
+        // asRaw() preview documents do not flush Craft-registered head assets. Force published
+        // frontend URLs (never Vite localhost) and embed theme CSS in the frame <head> so the
+        // iframe cannot end up unstyled when a <link> 404s or Vite sets css via JS only.
+        $frontendAssets = Formie::$plugin->getFrontendAssets();
+
+        $html = (string)$frontendAssets->withPublishedBrowserAssets(function() use ($form, $token) {
+            return Formie::$plugin->getRendering()->renderForm($form, [
+                'useStockTemplates' => true,
+                'previewMode' => true,
+                'theme' => 'formie',
+                // CSS is embedded in _preview-frame.twig — skip the body <link> duplicate.
+                'includeCss' => false,
+                'includeJs' => true,
+                'outputCss' => false,
+                'outputJs' => true,
+                'outputCssLocation' => FormTemplate::PAGE_FOOTER,
+                'outputJsLocation' => FormTemplate::PAGE_HEADER,
+                'customInputs' => [
+                    'previewToken' => $token,
+                ],
+            ]);
+        });
 
         return [
             'html' => $html,
             'previewKey' => $token,
+            'themeCss' => $frontendAssets->getPublishedThemeCssContents(),
         ];
     }
 
