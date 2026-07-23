@@ -10,6 +10,9 @@ use verbb\formie\models\Notification;
 use Craft;
 use craft\web\Controller;
 
+use yii\web\BadRequestHttpException;
+use yii\web\ForbiddenHttpException;
+use yii\web\NotFoundHttpException;
 use yii\web\Response;
 
 class EmailController extends Controller
@@ -17,11 +20,21 @@ class EmailController extends Controller
     // Public Methods
     // =========================================================================
 
+    public function beforeAction($action): bool
+    {
+        if (!parent::beforeAction($action)) {
+            return false;
+        }
+
+        // Email preview/test is a CP-only form builder concern — never allow front-end sessions.
+        $this->requireCpRequest();
+
+        return true;
+    }
+
     public function actionPreview(): Response
     {
         $this->requirePostRequest();
-
-        $request = $this->request;
 
         $notification = new Notification();
         $submission = new Submission();
@@ -95,7 +108,15 @@ class EmailController extends Controller
 
         // Create a new Notification model from this - it'll be a serialized array from Vue
         if ($notificationParams = $request->getParam('notification')) {
-            $notification->setAttributes($notificationParams, false);
+            if (!is_array($notificationParams)) {
+                throw new BadRequestHttpException('Invalid notification payload.');
+            }
+
+            // Only assign known Notification attributes (ignores Vue-only keys like attachAssetsHtml)
+            $notification->setAttributes(array_intersect_key(
+                $notificationParams,
+                $notification->getAttributes()
+            ), false);
         }
 
         // Ensure some settings are type-cast
@@ -106,12 +127,25 @@ class EmailController extends Controller
 
         // If a stencil, create a fake form
         if (!$formId) {
-            $form = new Form();
+            // Stencil editing lives under Formie settings
+            $this->requirePermission('formie-accessSettings');
+
             $stencil = Formie::$plugin->getStencils()->getStencilByHandle($handle);
 
+            if (!$stencil) {
+                throw new NotFoundHttpException('Stencil not found.');
+            }
+
+            $form = new Form();
             $stencil->applyStencilToForm($form);
         } else {
             $form = Formie::$plugin->getForms()->getFormById($formId);
+
+            if (!$form) {
+                throw new NotFoundHttpException('Form not found.');
+            }
+
+            $this->_requireFormNotificationAccess($form);
         }
 
         // Create a fake submission for this form.
@@ -119,5 +153,25 @@ class EmailController extends Controller
 
         // Populate all fields with fake content
         Formie::$plugin->getSubmissions()->populateFakeSubmission($submission);
+    }
+
+    private function _requireFormNotificationAccess(Form $form): void
+    {
+        $user = Craft::$app->getUser();
+        $suffix = ':' . $form->uid;
+
+        $canManageForm = $user->checkPermission('formie-manageForms')
+            || $user->checkPermission("formie-manageForms{$suffix}");
+
+        if (!$canManageForm) {
+            throw new ForbiddenHttpException('User is not permitted to perform this action');
+        }
+
+        $canShowNotifications = $user->checkPermission('formie-showNotifications')
+            || $user->checkPermission("formie-showNotifications{$suffix}");
+
+        if (!$canShowNotifications) {
+            throw new ForbiddenHttpException('User is not permitted to perform this action');
+        }
     }
 }
