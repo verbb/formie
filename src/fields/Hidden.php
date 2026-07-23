@@ -1,7 +1,6 @@
 <?php
 namespace verbb\formie\fields;
 
-use verbb\formie\Formie;
 use verbb\formie\base\Field;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
@@ -18,11 +17,9 @@ use craft\base\PreviewableFieldInterface;
 use craft\base\SortableFieldInterface;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\UrlHelper;
-use craft\web\View;
 
 use GraphQL\Type\Definition\Type;
 
-use Throwable;
 use DateTime;
 
 class Hidden extends Field implements InlineEditableFieldInterface, PreviewableFieldInterface, SortableFieldInterface
@@ -159,20 +156,10 @@ class Hidden extends Field implements InlineEditableFieldInterface, PreviewableF
         $inputOptions = parent::getFrontEndInputOptions($form, $value, $renderOptions);
         $defaultValue = (string)$this->defaultValue;
 
+        // Parse custom defaults through the sandboxed variable engine (same as serializeValue),
+        // never Craft's unsandboxed site view — populated values must not execute Twig.
         if ($this->defaultOption === 'custom') {
-            try {
-                $defaultValue = Craft::$app->getView()->renderString(
-                    $defaultValue,
-                    [
-                        'field' => $this,
-                        'form' => $form,
-                    ],
-                    View::TEMPLATE_MODE_SITE
-                );
-            } catch (Throwable $e) {
-                $defaultValue = (string)$this->defaultValue;
-                Formie::error('Failed to render hidden field template: ' . $e->getMessage());
-            }
+            $defaultValue = (string)Variables::getParsedValue($defaultValue, null, $form);
         }
 
         $inputOptions['defaultValue'] = $defaultValue;

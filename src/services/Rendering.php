@@ -433,8 +433,12 @@ class Rendering extends Component
                 $field = $form->getFieldByHandle($key);
 
                 // Prevent users using long-hand Twig `{{` to prevent injection execution. Only an issue for some fields like Hidden fields.
+                // Loop until stable so nested delimiters (e.g. `{{{{7*7}}}}`) cannot re-form after a single pass.
                 if (is_string($value)) {
-                    $value = str_replace(['{{', '}}', '{%', '%}'], ['{', '}', '', ''], $value);
+                    do {
+                        $previous = $value;
+                        $value = str_replace(['{{', '}}', '{%', '%}'], ['{', '}', '', ''], $value);
+                    } while ($value !== $previous);
                 }
 
                 if ($field) {
