@@ -771,42 +771,59 @@ Follow the below steps to connect to the Outseta API.
 ## Pardot
 Follow the below steps to connect to the Pardot API.
 
+:::tip
+Pardot uses Salesforce OAuth. As of Spring ‘26, Salesforce recommends **External Client Apps** for new integrations. Legacy **Connected Apps** may still work if you already have one, but new Connected Apps can no longer be created by default in many orgs. The steps below use External Client Apps.
+:::
+
+:::warning
+Do **not** share the same Pardot/Salesforce OAuth connection across production and staging by copying the database. Each environment should use its own External Client App and be connected separately.
+:::
+
 ### Step 1. Create the Integration
 1. Navigate to **Formie** → **Settings** → **CRM**.
 1. Click the **New Integration** button.
 1. Select Pardot as the **Integration Provider**.
 
 ### Step 2. Connect to the Pardot API
-1. Go to <a href="https://www.salesforce.com" target="_blank">Pardot</a> and login to your account.
+1. Go to <a href="https://www.salesforce.com" target="_blank">Salesforce</a> (Pardot) and login to your account.
 1. In the main menu, on the top-right, click the **Settings** icon and select **Setup**.
-1. In the left-hand sidebar, click on **Apps** → **App Manager**.
-1. Click the **New Connected App** button.
-1. Fill out all required fields.
-1. In the **API (Enable OAuth Settings)** section, tick the **Enable OAuth Settings** checkbox.
-    - In the **Callback URL** field, enter the value from the **Redirect URI** field in Formie.
-    - In the **Selected OAuth Scopes** field, select the following permissions from the list and click **Add** arrow button:
-        - **Manage Pardot services (pardot_api)**.
-        - **Perform requests on your behalf at any time (refresh_token, offline_access)**.
-    - Untick **Require Proof Key for Code Exchange (PKCE) Extension for Supported Authorization Flows**.
-    - Tick **Require Secret for Web Server Flow**.
-    - Untick **Require Secret for Refresh Token Flow**.
+1. In the left-hand sidebar (or Quick Find), go to **Apps** → **External Client Apps** → **External Client App Manager**.
+1. Click the **New External Client App** button.
+1. Fill out the **Basic Information** fields.
+1. In the **API (Enable OAuth Settings)** section, tick the **Enable OAuth** checkbox.
+    - In the **Callback URL** field, paste the **Redirect URI** value from Formie.
+    - In the **Selected OAuth Scopes** field, select the following permissions from the list and click the **Add** arrow button:
+        - **Manage Pardot services (pardot_api)**
+        - **Perform requests on your behalf at any time (refresh_token, offline_access)**
+1. In the **Flow Enablement** section (labels may vary slightly by Salesforce release):
+    - Enable the Authorization Code / Web Server flow (sometimes labelled **Enable Authorization Code and Credentials Flow**). This is required for Formie’s **Connect** button.
+1. In the **Security** section:
+    - Tick **Require secret for Web Server Flow**.
+    - Tick **Require secret for Refresh Token Flow**.
+    - Untick **Require Proof Key for Code Exchange (PKCE) Extension for Supported Authorization Flows**. Formie does not currently use PKCE for Pardot; leaving this enabled will prevent connecting.
+    - **Enable Refresh Token Rotation** may already be required and locked. Formie supports rotated refresh tokens.
+    - **Limit Idle Refresh Token Time-to-Live (TTL) to 30 Days** may already be required and locked.
+    - Leave **Enforce Refresh Token IP Allowlist** unticked unless you intentionally manage a Salesforce IP allowlist for token refresh.
+1. Click the **Create** (or **Save**) button.
+1. Open the app’s **Settings** → **OAuth Settings**, then reveal the **Consumer Key** and **Consumer Secret**.
+1. Copy the **Consumer Key** and paste in the **Consumer Key** field in Formie.
+1. Copy the **Consumer Secret** and paste in the **Consumer Secret** field in Formie.
+1. Open the app’s **Policies** (or **Manage** → **Edit Policies**, depending on your Salesforce UI).
+1. In the **OAuth policies** / **App Authorization** section:
+    - In the **Permitted Users** field, select **All users may self-authorize** (or your org’s preferred approved-users policy).
+    - In the **IP Relaxation** field, select **Relax IP restrictions**, unless you use a static egress IP and prefer stricter controls.
+    - In the **Refresh Token Policy** field:
+        - Prefer **Refresh token is valid until revoked**, if available.
+        - If that option is no longer shown, select **Expire refresh token if not used for specific time** and choose a long inactivity window.
+        - Do **not** select **Immediately expire refresh token**.
 1. Click the **Save** button.
-1. Copy the **Consumer Key** from Pardot and paste in the **Consumer Key** field in Formie.
-1. Copy the **Consumer Secret** from Pardot and paste in the **Consumer Secret** field in Formie.
-1. Click on the **Manage** button.
-1. Click on the **Edit Policies** button.
-1. In the **OAuth policies** section:
-    - In the **Permitted Users** field, select **All users may self-authorize**.
-    - In the **IP Relaxation** field, select **Relaxed IP restrictions**.
-1. Click the **Save** button.
-1. In the main menu, on the top-right, click the **Settings** icon and select **Setup**.
-1. Enter **Business Unit** in the Quick Find box, and click on **Business Unit Setup**.
-1. Copy the **Business Unit ID** from Pardot and paste in the **Business Unit ID** field in Formie.
+1. In Setup, enter **Business Unit** in the Quick Find box, and click on **Business Unit Setup**.
+1. Copy the **Business Unit ID** and paste in the **Business Unit ID** field in Formie.
 
 ### Step 3. Test Connection
 1. Save this integration.
 1. Click on the **Connect** button in the right-hand sidebar.
-1. You‘ll be redirected to Pardot, where you must approve Formie to access your Pardot account.
+1. You‘ll be redirected to Salesforce/Pardot, where you must approve Formie to access your Pardot account.
 
 ### Step 4. Form Setting
 1. Go to the form you want to enable this integration on.
@@ -930,6 +947,14 @@ Follow the below steps to connect to the Salesflare API.
 ## Salesforce
 Follow the below steps to connect to the Salesforce API.
 
+:::tip
+As of Spring ‘26, Salesforce recommends **External Client Apps** for new integrations. Legacy **Connected Apps** may still work if you already have one, but new Connected Apps can no longer be created by default in many orgs. The steps below use External Client Apps.
+:::
+
+:::warning
+Do **not** share the same Salesforce OAuth connection (Consumer Key / tokens) across production and staging by copying the database. Each environment should use its own External Client App and be connected separately. Sharing tokens can invalidate the refresh token and cause intermittent `INVALID_SESSION_ID` errors.
+:::
+
 ### Step 1. Create the Integration
 1. Navigate to **Formie** → **Settings** → **CRM**.
 1. Click the **New Integration** button.
@@ -938,30 +963,42 @@ Follow the below steps to connect to the Salesforce API.
 ### Step 2. Connect to the Salesforce API
 1. Go to <a href="https://www.salesforce.com" target="_blank">Salesforce</a> and login to your account.
 1. In the main menu, on the top-right, click the **Settings** icon and select **Setup**.
-1. In the left-hand sidebar, click on **Apps** → **App Manager**.
-1. Click the **New Connected App** button.
-1. Fill out all required fields.
-1. In the **API (Enable OAuth Settings)** section, tick the **Enable OAuth Settings** checkbox.
-    - In the **Callback URL** field, enter the value from the **Redirect URI** field in Formie.
-    - In the **Selected OAuth Scopes** field, select the following permissions from the list and click **Add** arrow button:
+1. In the left-hand sidebar (or Quick Find), go to **Apps** → **External Client Apps** → **External Client App Manager**.
+1. Click the **New External Client App** button.
+1. Fill out the **Basic Information** fields.
+1. In the **API (Enable OAuth Settings)** section, tick the **Enable OAuth** checkbox.
+    - In the **Callback URL** field, paste the **Redirect URI** value from Formie.
+    - In the **Selected OAuth Scopes** field, select the following permissions from the list and click the **Add** arrow button:
         - **Manage user data via APIs (api)**
         - **Access unique user identifiers (openid)**
         - **Perform requests at any time (refresh_token, offline_access)**
-    - Untick **Require Proof Key for Code Exchange (PKCE) Extension for Supported Authorization Flows**.
-    - Tick **Require Secret for Web Server Flow**.
-    - Untick **Require Secret for Refresh Token Flow**.
-1. Click the **Save** button.
+1. In the **Flow Enablement** section (labels may vary slightly by Salesforce release):
+    - Enable the Authorization Code / Web Server flow (sometimes labelled **Enable Authorization Code and Credentials Flow**). This is required for Formie’s **Connect** button.
+1. In the **Security** section:
+    - Tick **Require secret for Web Server Flow**.
+    - Tick **Require secret for Refresh Token Flow**.
+    - Untick **Require Proof Key for Code Exchange (PKCE) Extension for Supported Authorization Flows**. Formie does not currently use PKCE for Salesforce; leaving this enabled will prevent connecting.
+    - **Enable Refresh Token Rotation** may already be required and locked. Formie supports rotated refresh tokens.
+    - **Limit Idle Refresh Token Time-to-Live (TTL) to 30 Days** may already be required and locked. Active form submissions keep the token alive; infrequently used integrations may need reconnecting after long idle periods.
+    - Leave **Enforce Refresh Token IP Allowlist** unticked unless you intentionally manage a Salesforce IP allowlist for token refresh.
+1. Click the **Create** (or **Save**) button.
+1. Open the app’s **Settings** → **OAuth Settings**, then reveal the **Consumer Key** and **Consumer Secret**.
 1. Copy the **Consumer Key** from Salesforce and paste in the **Consumer Key** field in Formie.
 1. Copy the **Consumer Secret** from Salesforce and paste in the **Consumer Secret** field in Formie.
-1. Click on the **Manage** button.
-1. Click on the **Edit Policies** button.
-1. In the **OAuth policies** section:
-    - In the **Permitted Users** field, select **All users may self-authorize**.
-    - In the **IP Relaxation** field, select **Relax IP restrictions**.
-    - In the **Refresh Token Policy** field, select **Refresh token is valid until revoked**.
-1. In the **Session Policies** section:
-    - Untick **High assurance session required**.
+1. Open the app’s **Policies** (or **Manage** → **Edit Policies**, depending on your Salesforce UI).
+1. In the **OAuth policies** / **App Authorization** section:
+    - In the **Permitted Users** field, select **All users may self-authorize** (or your org’s preferred approved-users policy).
+    - In the **IP Relaxation** field, select **Relax IP restrictions**, unless you use a static egress IP and prefer stricter controls.
+    - In the **Refresh Token Policy** field:
+        - Prefer **Refresh token is valid until revoked**, if available.
+        - If that option is no longer shown (common when the 30-day idle TTL is enforced), select **Expire refresh token if not used for specific time** and choose a long inactivity window.
+        - Do **not** select **Immediately expire refresh token**. That disables usable refresh tokens and will cause Formie to lose its Salesforce connection after the access token expires.
+1. Untick **High Assurance Session Required** if shown.
 1. Click the **Save** button.
+
+:::tip
+**Use Credentials** (username/password) is a legacy option and is **not** supported by External Client Apps. Prefer the normal **Connect** OAuth flow above. Only use credentials with an older Connected App that still allows the username-password OAuth flow.
+:::
 
 ### Step 3. Test Connection
 1. Save this integration.
