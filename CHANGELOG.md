@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Fix integration field mapping excluding Multi-line Text fields from the variable picker. Mapping now accepts multi-line sources for string/date/number destinations.
+
 ## 4.0.0-beta.13 - 2026-07-19
 
 ### Changed

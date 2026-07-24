@@ -24,8 +24,10 @@ import {
     getComparableTokenValue,
 } from '@form-builder/fields/utils/variablePicker';
 
+// Integration destinations accept string payloads — include multi-line text
+// (`content: any`) alongside single-line/date/number sources.
 const MAPPING_VARIABLE_CONFIG = {
-    content: 'singleLine',
+    content: 'any',
     types: ['text', 'date', 'number'],
     groupFieldsByPage: true,
     groups: [

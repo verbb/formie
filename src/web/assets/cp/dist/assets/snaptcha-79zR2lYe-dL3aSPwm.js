@@ -1,0 +1,1 @@
+import{p as e}from"../submissions/js/formie-submissions.js";var t=e({id:`snaptcha`,defaultPlaceholderSelector:`[data-snaptcha-captcha-placeholder]`});export{t as snaptchaModule};
