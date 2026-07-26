@@ -222,6 +222,18 @@ abstract class OptionsField extends Field implements InlineEditableFieldInterfac
             return $value;
         }
 
+        // Decrypt content-encrypted values before matching against options. Sub-fields (e.g. Address
+        // Country) inherit `enableContentEncryption` from their parent and are stored encrypted.
+        if (is_string($value)) {
+            $value = parent::normalizeValue($value, $element);
+        } else if (is_array($value)) {
+            foreach ($value as $i => $val) {
+                if (is_string($val)) {
+                    $value[$i] = parent::normalizeValue($val, $element);
+                }
+            }
+        }
+
         // Ensure multi-option fields are normalized separately first
         if ($value === '' && $this->multi) {
             $value = [];
@@ -291,12 +303,13 @@ abstract class OptionsField extends Field implements InlineEditableFieldInterfac
 
             foreach ($value as $selectedValue) {
                 /** @var OptionData $selectedValue */
-                $serialized[] = $selectedValue->value;
+                // Pass through parent so content encryption is applied when enabled
+                $serialized[] = parent::serializeValue($selectedValue->value, $element);
             }
 
             return $serialized;
         } else if ($value instanceof SingleOptionFieldData) {
-            return $value->value;
+            return parent::serializeValue($value->value, $element);
         }
 
         return parent::serializeValue($value, $element);
