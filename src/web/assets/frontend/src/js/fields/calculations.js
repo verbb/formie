@@ -93,6 +93,14 @@ export class FormieCalculations {
 
                         variables[variableKey].push($target.value);
                     }
+                } else if (type === 'verbb\\formie\\fields\\Agree') {
+                    // Agree fields render a hidden empty input + checkbox. Use the
+                    // checked state (not `.value`, which is always "1") and skip the hidden input.
+                    if ($target.type === 'hidden') {
+                        return;
+                    }
+
+                    variables[variableKey] = $target.checked;
                 } else {
                     variables[variableKey] = $target.value;
                 }
