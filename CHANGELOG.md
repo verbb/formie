@@ -1529,6 +1529,21 @@
 - `Field::name` attribute has been deprecated. Use `Field::label` instead.
 - `Field::inputHtml()` method has been deprecated. Use `Field::cpInputHtml()` instead.
 
+## 2.2.27 - 2026-07-27
+
+### Fixed
+- Fixed Agree fields not appearing in the Calculations formula field picker.
+
+## 2.2.26 - 2026-07-27
+
+### Changed
+- Enforce CP and Formie permissions on email preview and test-send actions.
+- Harden Twig delimiter stripping for populated values and parse Hidden defaults via Variables.
+
+### Fixed
+- Fixed Calculations fields not evaluating Agree field values correctly for conditionals.
+- Fixed filtering Sent Notifications by failed status not working. #2895.
+
 ## 2.2.25 - 2026-07-16
 
 ### Added
