@@ -114,6 +114,7 @@ export default {
             let fields = this.$store.getters['form/plainTextFields']({
                 includeGeneral: false,
                 includedTypes: [
+                    'verbb\\formie\\fields\\Agree',
                     'verbb\\formie\\fields\\Calculations',
                     'verbb\\formie\\fields\\Checkboxes',
                 ],
