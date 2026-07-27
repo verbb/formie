@@ -1,5 +1,19 @@
 # Changelog
 
+## 3.1.34 - 2026-07-27
+
+### Changed
+- Enforce CP and Formie permissions on email preview and test-send actions.
+- Harden Twig delimiter stripping for populated values and parse Hidden defaults via Variables.
+
+### Fixed
+- Fixed Agree fields not appearing in the Calculations formula field picker.
+- Fixed Calculations fields not evaluating Agree field values correctly for conditionals.
+- Fix encrypted Address Country (and other option sub-fields) failing validation on later multi-page steps with “Country is invalid,” because encrypted values were not decrypted before option matching.
+- Fixed filtering Sent Notifications by failed status not working. #2895.
+- Fix broken encoding in French translation.
+- Fix filtering submissions by ID in the All forms index view.
+
 ## 3.1.33 - 2026-07-16
 
 ### Added
