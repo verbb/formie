@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.2.27 - 2026-07-27
+
+### Fixed
+- Fixed Agree fields not appearing in the Calculations formula field picker.
+
 ## 2.2.26 - 2026-07-27
 
 ### Changed
