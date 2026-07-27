@@ -104,6 +104,7 @@ export default {
 
         calculationsVariables() {
             let fields = this.$store.getters['form/plainTextFields'](false, [
+                'verbb\\formie\\fields\\formfields\\Agree',
                 'verbb\\formie\\fields\\formfields\\Calculations',
                 'verbb\\formie\\fields\\formfields\\Checkboxes',
             ]);
