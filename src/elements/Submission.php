@@ -414,15 +414,17 @@ class Submission extends CustomElement
 
         $form = $this->getForm();
 
-        if (!$form) {
-            return false;
+        if ($form && $user->can("formie-deleteSubmissions:$form->uid")) {
+            return true;
         }
 
-        if (!$user->can("formie-deleteSubmissions:$form->uid")) {
-            return false;
+        // Front-end: allow users to delete their own submissions without CP permissions.
+        // Ownership requires the form's "Collect User" setting so `userId` is stored.
+        if (Craft::$app->getRequest()->getIsSiteRequest()) {
+            return (bool)$this->userId && (int)$this->userId === (int)$user->id;
         }
 
-        return true;
+        return false;
     }
 
     public function getActionMenuItems(): array

@@ -853,7 +853,7 @@ class SubmissionsController extends Controller
             throw new NotFoundHttpException('Submission not found');
         }
 
-        if (!$submission->canDelete($currentUser)) {
+        if (!$currentUser || !$submission->canDelete($currentUser)) {
             throw new ForbiddenHttpException('User is not permitted to perform this action');
         }
 

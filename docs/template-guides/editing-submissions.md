@@ -62,3 +62,30 @@ You can also take complete control over the form's HTML if you wish.
     <button type="submit" data-submit-action="submit">Save</button>
 </form>
 ```
+
+## Deleting Submissions
+
+Logged-in users can delete their **own** submissions from the front end without Formie control panel delete permissions. The form must have **Collect User** enabled so submissions are tied to the user.
+
+Always query submissions for the current user — never trust a raw ID from the request alone in your template:
+
+```twig
+{% set submission = craft.formie.submissions
+    .id(submissionId)
+    .user(currentUser)
+    .isIncomplete(true)
+    .one() %}
+
+{% if submission %}
+    <form method="post">
+        {{ csrfInput() }}
+        {{ actionInput('formie/submissions/delete-submission') }}
+        {{ hiddenInput('submissionId', submission.id) }}
+        {{ redirectInput('account/submissions') }}
+
+        <button type="submit">Delete</button>
+    </form>
+{% endif %}
+```
+
+`delete-submission` only allows the delete when the submission’s `userId` matches the current user (or the user has Formie delete permissions). Other users’ submissions cannot be deleted this way.
