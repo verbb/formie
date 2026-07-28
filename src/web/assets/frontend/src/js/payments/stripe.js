@@ -283,7 +283,8 @@ export class FormieStripe extends FormiePaymentProvider {
                 return false;
             }
 
-            this.paymentInformation.amount = amountValue * 100;
+            // Round to avoid float precision issues (e.g. 5.1 * 100 === 509.99999999999994)
+            this.paymentInformation.amount = Math.round(amountValue * 100);
         }
 
         if (this.hasDynamicValue('currency')) {

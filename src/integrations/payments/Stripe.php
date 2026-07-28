@@ -86,7 +86,8 @@ class Stripe extends Payment
             return $amount;
         }
 
-        return ceil($amount * 100);
+        // Round to avoid float precision issues (e.g. 5.1 * 100 === 509.99999999999994)
+        return (float)round($amount * 100);
     }
 
     public static function fromStripeAmount(float $amount, string $currency): float
