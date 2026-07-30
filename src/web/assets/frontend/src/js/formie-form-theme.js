@@ -578,6 +578,31 @@ export class FormieFormTheme {
     }
 
     revealConditionallyHidden($input) {
+        const $container = $input.closest('[data-field-handle]');
+
+        // Re-evaluate client-side conditions from current DOM values first. On multi-page forms the
+        // server can disagree when a controlling field lived on another page and was never posted,
+        // while the DOM still holds the real value — trust the client evaluation in that case.
+        if ($container && $container.hasAttribute('data-field-conditions')) {
+            $container.dispatchEvent(new CustomEvent('onFormieEvaluateConditions', {
+                bubbles: true,
+                detail: { init: false },
+            }));
+        }
+
+        // Still hidden after re-evaluation? Only force-reveal when nested in a Group/Repeater,
+        // where row-scoped conditions can leave the client out of sync with server validation
+        // (e.g. Stripe payment re-submits). https://github.com/verbb/formie/issues/2875
+        // Top-level fields that conditions still hide should stay hidden.
+        const stillHidden = $container && (
+            $container.hasAttribute('data-conditionally-hidden') || $container.conditionallyHidden
+        );
+        const isNested = !!$input.closest('[data-field-type="group"], [data-field-type="repeater"]');
+
+        if (stillHidden && !isNested) {
+            return;
+        }
+
         // Walk up from the errored input, un-hiding any conditionally-hidden ancestors so the message shows.
         for (let $el = $input; $el && $el !== this.$form; $el = $el.parentElement) {
             if ($el.nodeType === 1 && $el.hasAttribute('data-conditionally-hidden')) {
@@ -588,8 +613,6 @@ export class FormieFormTheme {
 
         // Re-enable any inputs that were disabled purely due to conditional hiding, so the user can correct them.
         // This mirrors how `conditions.js` restores a field when its conditions are met.
-        const $container = $input.closest('[data-field-handle]');
-
         if ($container) {
             $container.querySelectorAll('[data-conditionally-hidden-disabled]').forEach(($el) => {
                 $el.removeAttribute('disabled');
@@ -770,14 +793,29 @@ export class FormieFormTheme {
 
     togglePageInputs($page, hidden) {
         $page.querySelectorAll('input, textarea, select, button').forEach(($input) => {
+            // Keep `type="hidden"` enabled on non-current pages so their values are still submitted.
+            // Conditions on later pages often depend on Hidden fields (e.g. prefilled country), and
+            // disabled inputs are omitted from the request — leaving the incomplete submission empty.
+            if (($input.getAttribute('type') || '').toLowerCase() === 'hidden') {
+                return;
+            }
+
             if (hidden) {
                 if (!$input.disabled) {
                     $input.setAttribute('disabled', true);
                     $input.setAttribute('data-fui-page-hidden-disabled', true);
                 }
             } else if ($input.hasAttribute('data-fui-page-hidden-disabled')) {
-                $input.removeAttribute('disabled');
-                $input.removeAttribute('data-fui-page-hidden-disabled');
+                // If conditions hid this field while its page was already page-hidden, the input only
+                // got the page-hidden marker (conditions skip already-disabled inputs). Hand ownership
+                // back to conditions instead of re-enabling a still-conditionally-hidden control.
+                if ($input.closest('[data-conditionally-hidden]')) {
+                    $input.removeAttribute('data-fui-page-hidden-disabled');
+                    $input.setAttribute('data-conditionally-hidden-disabled', true);
+                } else {
+                    $input.removeAttribute('disabled');
+                    $input.removeAttribute('data-fui-page-hidden-disabled');
+                }
             }
         });
     }
