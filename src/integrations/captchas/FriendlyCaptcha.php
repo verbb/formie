@@ -24,6 +24,7 @@ class FriendlyCaptcha extends Captcha
     public string $apiVersion = 'v1';
     public string $language = 'en';
     public string $startMode = 'none';
+    public string $theme = 'auto';
 
 
     // Public Methods
@@ -62,6 +63,7 @@ class FriendlyCaptcha extends Captcha
             'formId' => $form->getFormId(),
             'language' => $this->_getMatchedLanguageId() ?? 'en',
             'startMode' => $this->startMode ?? 'none',
+            'theme' => $this->theme ?? 'auto',
             'apiVersion' => $this->apiVersion,
         ];
 
@@ -161,6 +163,7 @@ class FriendlyCaptcha extends Captcha
         $settings = [
             'siteKey' => $this->siteKey,
             'language' => $this->language,
+            'theme' => $this->theme,
         ];
 
         if ($this->apiVersion === 'v2') {

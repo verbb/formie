@@ -56,3 +56,16 @@
     ],
     warning: macros.configWarning('startMode', 'formie'),
 }) }}
+
+{{ macros.proxyField(fieldVariables, 'selectField', {
+    label: 'Theme' | t('formie'),
+    instructions: 'Select the theme for Friendly Captcha to use. V2 only supports light, dark, or auto (not custom CSS). Refer to {link}.' | t('formie', { link: '[docs](https://developer.friendlycaptcha.com/docs/v2/sdk/configuration#data-theme)' }),
+    name: 'theme',
+    value: integration.settings.theme ?? 'auto',
+    options: [
+        { label: 'Auto' | t('formie'), value: 'auto' },
+        { label: 'Light' | t('formie'), value: 'light' },
+        { label: 'Dark' | t('formie'), value: 'dark' },
+    ],
+    warning: macros.configWarning('theme', 'formie'),
+}) }}

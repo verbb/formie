@@ -12,6 +12,7 @@ export class FormieFriendlyCaptcha extends FormieCaptchaProvider {
         this.siteKey = settings.siteKey;
         this.language = settings.language;
         this.startMode = settings.startMode;
+        this.theme = settings.theme || 'auto';
         this.providerName = 'FriendlyCaptcha';
         this.widgets = new Map();
     }
@@ -60,6 +61,14 @@ export class FormieFriendlyCaptcha extends FormieCaptchaProvider {
         this.form.addEventListener(this.$form, eventKey('onFormieSubmitError', this.providerName), this.onSubmitError.bind(this));
 
         try {
+            // V1 uses a `dark` class on the widget element (no `auto` theme option).
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const useDark = this.theme === 'dark' || (this.theme === 'auto' && prefersDark);
+
+            if (useDark) {
+                $container.classList.add('dark');
+            }
+
             const widget = new WidgetInstance($container, {
                 sitekey: this.siteKey,
                 startMode: this.startMode,

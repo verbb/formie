@@ -1905,6 +1905,7 @@ return [
   'Select the theme for hCaptcha to use.' => 'Select the theme for hCaptcha to use.',
   'Select the theme for reCAPTCHA to use.' => 'Select the theme for reCAPTCHA to use.',
   'Select the theme for Turnstile to use.' => 'Select the theme for Turnstile to use.',
+  'Select the theme for Friendly Captcha to use. V2 only supports light, dark, or auto (not custom CSS). Refer to {link}.' => 'Select the theme for Friendly Captcha to use. V2 only supports light, dark, or auto (not custom CSS). Refer to {link}.',
   'Select the type of badge to display.' => 'Select the type of badge to display.',
   'Select the type of captcha to use.' => 'Select the type of captcha to use.',
   'Select the type of payment to use.' => 'Select the type of payment to use.',

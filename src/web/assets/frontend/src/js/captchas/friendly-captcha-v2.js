@@ -24,6 +24,7 @@ export class FormieFriendlyCaptcha extends FormieCaptchaProvider {
         this.siteKey = settings.siteKey;
         this.language = settings.language;
         this.startMode = settings.startMode;
+        this.theme = settings.theme || 'auto';
         this.providerName = 'FriendlyCaptcha';
         this.widgets = new Map();
         this.sdk = getSharedFriendlyCaptchaSdk();
@@ -92,6 +93,7 @@ export class FormieFriendlyCaptcha extends FormieCaptchaProvider {
                 sitekey: this.siteKey,
                 startMode: this.startMode,
                 language: this.language,
+                theme: this.theme,
             });
 
             widget.addEventListener('frc:widget.complete', (event) => {
