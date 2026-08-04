@@ -236,6 +236,7 @@ class User extends Element
             $hashedPassword = null;
 
             $userGroups = [];
+            $missingGroupUids = [];
 
             if ($this->mergeUserGroups) {
                 $userGroups = $user->getGroups();
@@ -244,7 +245,18 @@ class User extends Element
             foreach ($this->groupUids as $groupUid) {
                 if ($group = Craft::$app->getUserGroups()->getGroupByUid($groupUid)) {
                     $userGroups[] = $group;
+                } else {
+                    $missingGroupUids[] = $groupUid;
                 }
+            }
+
+            if ($missingGroupUids) {
+                Integration::error($this, Craft::t('formie', 'Unable to find user group(s) “{uids}” for “{type}” element integration.', [
+                    'uids' => implode(', ', $missingGroupUids),
+                    'type' => $this->handle,
+                ]), true);
+
+                return false;
             }
 
             if ($userGroups) {
