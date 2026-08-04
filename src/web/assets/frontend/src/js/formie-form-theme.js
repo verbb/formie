@@ -793,11 +793,22 @@ export class FormieFormTheme {
 
     togglePageInputs($page, hidden) {
         $page.querySelectorAll('input, textarea, select, button').forEach(($input) => {
-            // Keep `type="hidden"` enabled on non-current pages so their values are still submitted.
-            // Conditions on later pages often depend on Hidden fields (e.g. prefilled country), and
-            // disabled inputs are omitted from the request — leaving the incomplete submission empty.
+            // Keep top-level Formie Hidden *fields* enabled on non-current pages so their values are
+            // still submitted. Conditions on later pages often depend on them (e.g. prefilled country),
+            // and disabled inputs are omitted from the request — leaving the incomplete submission empty.
+            // Do not exempt every type="hidden": Checkboxes/Agree/File Upload empty companions (and
+            // nested Group/Repeater children) would otherwise post incomplete payloads that wipe
+            // sibling values. https://github.com/verbb/formie/issues/2910
             if (($input.getAttribute('type') || '').toLowerCase() === 'hidden') {
-                return;
+                const $field = $input.closest('[data-field-type]');
+
+                if (
+                    $field &&
+                    $field.getAttribute('data-field-type') === 'hidden' &&
+                    !$field.closest('[data-field-type="group"], [data-field-type="repeater"]')
+                ) {
+                    return;
+                }
             }
 
             if (hidden) {
