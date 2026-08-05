@@ -872,6 +872,7 @@ return [
   'Fitle' => 'Fitle',
   'Fixed' => 'Fixed',
   'Fixed Value' => 'Fixed Value',
+  'Flexible' => 'Flexible',
   'Focus' => 'Focus',
   'Follow Up' => 'Follow Up',
   'Force a specific language when displaying Friendly Captcha. Choose "Auto" for Formie to automatically match your site’s language.' => 'Force a specific language when displaying Friendly Captcha. Choose "Auto" for Formie to automatically match your site’s language.',
