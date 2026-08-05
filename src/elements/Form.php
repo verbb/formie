@@ -339,6 +339,15 @@ class Form extends Element
         return true;
     }
 
+    public function canSave(User $user): bool
+    {
+        if (parent::canSave($user)) {
+            return true;
+        }
+
+        return $user->can('formie-manageForms') || $user->can("formie-manageForms:{$this->uid}");
+    }
+
     public function canDelete(User $user): bool
     {
         if (parent::canDelete($user)) {
