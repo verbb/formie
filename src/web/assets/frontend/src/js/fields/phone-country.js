@@ -113,9 +113,30 @@ export class FormiePhoneCountry {
         // Trigger the country changing now, in case it's been populated
         this.$field.dispatchEvent(new Event('countrychange', { bubbles: true }));
 
+        // Keep the country dropdown button in sync when the tel input is enabled/disabled after
+        // init (multi-page page-hidden, or conditions). intl-tel-input disables the button to match
+        // a disabled input at init, but won't re-enable it when `disabled` is later removed.
+        this.syncCountryButton();
+        this._countryButtonObserver = new MutationObserver(() => { return this.syncCountryButton(); });
+        this._countryButtonObserver.observe(this.$field, { attributes: true, attributeFilter: ['disabled'] });
+
         // Update the form hash, so we don't get change warnings
         if (this.form.formTheme) {
             this.form.formTheme.updateFormHash();
+        }
+    }
+
+    syncCountryButton() {
+        const $btn = this.$field.closest('.iti')?.querySelector('.iti__selected-country');
+
+        if (!$btn) {
+            return;
+        }
+
+        if (this.$field.disabled) {
+            $btn.setAttribute('disabled', true);
+        } else {
+            $btn.removeAttribute('disabled');
         }
     }
 
