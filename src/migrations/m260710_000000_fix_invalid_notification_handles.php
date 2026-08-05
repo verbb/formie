@@ -114,7 +114,7 @@ class m260710_000000_fix_invalid_notification_handles extends Migration
 
             if ($hasChanged) {
                 $this->update(Table::FORMIE_STENCILS, [
-                    'data' => $data,
+                    'data' => Json::encode($data),
                 ], ['id' => $stencil['id']], [], false);
             }
         }
