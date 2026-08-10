@@ -1,5 +1,26 @@
 # Changelog
 
+## 3.1.35 - 2026-08-10
+
+### Added
+- Add Salesforce/Pardot OAuth PKCE support.
+- Add Flexible size option for Cloudflare Turnstile captchas. #2913.
+- Add Theme setting for Friendly Captcha (light/dark/auto). #2907.
+
+### Changed
+- Bump `nystudio107/craft-plugin-vite`.
+- Bump `verbb/base`.
+- Bump `verbb/auth`.
+- Allow logged-in front-end users to delete their own submissions via `delete-submission` without Formie CP delete permissions (requires the form’s Collect User setting).
+
+### Fixed
+- Fix Phone country dropdown stuck disabled on multi-page forms.
+- Fixed the Restore action being permanently disabled for trashed forms. #2912.
+- Fix multi-page forms wiping Group field values when advancing pages, caused by empty companion hidden inputs (Checkboxes, Agree, File Upload, etc.) still posting from non-current pages. #2910.
+- Fix User element integration silently skipping group assignment when a configured group UID no longer resolves. #2909.
+- Fix multi-page forms disabling Hidden fields on other pages, which broke later-page conditions and could reveal the wrong field on validation.
+- Fixed Stripe dynamic amounts failing with floating-point rounding errors (e.g. `5.1` becoming `509.99999999999994` cents). #2903.
+
 ## 3.1.34 - 2026-07-27
 
 ### Changed
