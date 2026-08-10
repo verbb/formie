@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Fix Advanced Upload Manager (and related front-end XHR helpers) failing when Craft’s `csrfTokenName` is customised away from `CRAFT_CSRF_TOKEN`.
 - Fix integration field mapping excluding Multi-line Text fields from the variable picker. Mapping now accepts multi-line sources for string/date/number destinations.
 
 ## 4.0.0-beta.13 - 2026-07-19

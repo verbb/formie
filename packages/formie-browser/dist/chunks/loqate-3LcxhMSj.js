@@ -1,0 +1,76 @@
+import { i as e } from "./constants-DVcJAvc5.js";
+import { t } from "./api-DvlROAFO.js";
+import { r as n } from "./scripts-CbQ7agX3.js";
+//#region src/js/modules/address/loqate.ts
+var r = "FORMIE_LOQATE_SCRIPT", i = t({
+	id: "loqate",
+	load: async () => {
+		await n("pca", {
+			id: r,
+			src: "https://services.pcapredict.com/js/address-3.91.min.js",
+			async: !0,
+			defer: !0
+		});
+		let e = document.createElement("link");
+		return e.href = "https://services.pcapredict.com/css/address-3.91.min.css", e.rel = "stylesheet", e.type = "text/css", document.querySelector(`link[href="${e.href}"]`) || document.body.appendChild(e), window.pca;
+	},
+	mount: ({ api: t, field: n, services: r, provider: i }) => {
+		let a = i.namespace || "", o = i.apiKey || "";
+		if (!o) throw Error("Loqate API key is required");
+		let s = (t) => {
+			if (a) return `${a}[${t}]`;
+			let r = e(n, t);
+			return r?.name ? r.name : r?.id ? r.id : "";
+		}, c = s("autoComplete");
+		if (!c) throw Error("Loqate: could not find autocomplete input within address field");
+		let l = [
+			{
+				element: c,
+				field: "",
+				mode: t.fieldMode.SEARCH
+			},
+			{
+				element: s("address1"),
+				field: "Line1",
+				mode: t.fieldMode.POPULATE
+			},
+			{
+				element: s("address2"),
+				field: "Line2",
+				mode: t.fieldMode.POPULATE
+			},
+			{
+				element: s("address3"),
+				field: "Line3",
+				mode: t.fieldMode.POPULATE
+			},
+			{
+				element: s("city"),
+				field: "City",
+				mode: t.fieldMode.POPULATE
+			},
+			{
+				element: s("state"),
+				field: "Province",
+				mode: t.fieldMode.POPULATE
+			},
+			{
+				element: s("zip"),
+				field: "PostalCode",
+				mode: t.fieldMode.POPULATE
+			},
+			{
+				element: s("country"),
+				field: "CountryName",
+				mode: t.fieldMode.COUNTRY
+			}
+		].filter((e) => e.element), u = new t.Address(l, {
+			key: o,
+			simulateReactEvents: !0,
+			...i.reconfigurableOptions || {}
+		});
+		return typeof u.load == "function" && u.load(), u;
+	}
+});
+//#endregion
+export { i as loqateModule };

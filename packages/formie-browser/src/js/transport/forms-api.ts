@@ -1,4 +1,5 @@
 import type { FormEndpointPayload, FormSubmitResult } from '#contracts/schema';
+import { appendFormCsrfToFormData } from '#utils/csrf';
 import { createDebug } from '#utils/debug';
 import { requestJson } from '#utils/http';
 
@@ -220,12 +221,7 @@ export async function requestSetPage(url: string, form?: HTMLFormElement, pageId
             }
         });
 
-        const csrfInput = form.querySelector('input[name="CRAFT_CSRF_TOKEN"]') as HTMLInputElement | null;
-        const csrfValue = csrfInput?.value?.trim();
-
-        if (csrfValue) {
-            body.append('CRAFT_CSRF_TOKEN', csrfValue);
-        }
+        appendFormCsrfToFormData(body, form);
     }
 
     debug.log('requestSetPage start.', {
@@ -257,12 +253,7 @@ export function clearSubmissionOnUnload(endpoint: string, form: HTMLFormElement)
         }
     });
 
-    const csrfInput = form.querySelector('input[name="CRAFT_CSRF_TOKEN"]') as HTMLInputElement | null;
-    const csrfValue = csrfInput?.value?.trim();
-
-    if (csrfValue) {
-        body.append('CRAFT_CSRF_TOKEN', csrfValue);
-    }
+    appendFormCsrfToFormData(body, form);
 
     debug.log('clearSubmissionOnUnload start.', {
         requestUrl: requestUrl.toString(),

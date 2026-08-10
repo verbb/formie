@@ -425,6 +425,8 @@ function applyRefreshTokensToForm(form: HTMLFormElement, refreshTokens: FormEndp
             csrfInput.name = refreshTokens.csrf.param;
             csrfInput.value = refreshTokens.csrf.token;
             csrfInput.setAttribute('autocomplete', 'off');
+            // Match server-rendered CSRF inputs so helpers can resolve custom token names.
+            csrfInput.setAttribute('data-formie-csrf', '');
             form.prepend(csrfInput);
         }
     }

@@ -1,0 +1,344 @@
+import { t as e } from "./debug-BV0DvdHx.js";
+import { n as t } from "./constants-DVcJAvc5.js";
+import { r as n, t as r } from "./shared-Bx9s0i0P.js";
+import { initFormieCombobox as i } from "./combobox-C0EuExSI.js";
+//#region src/js/modules/fields/address-state.ts
+var a = "[data-formie-address-state-dynamic]", o = "[data-formie-address-state-input]", s = "[data-formie-address-state-autofill-anchor]", c = "formie-address-autofill-start", l = t.country, u = "address-state", d = "formie/address/subdivisions", f = ["formie-select", "formie-dropdown-input"], p = [
+	0,
+	100,
+	300
+], m = e("fields", "address-state"), h = /* @__PURE__ */ new Map(), g = /* @__PURE__ */ new Map();
+function _(e) {
+	return e.closest("[data-formie-field-type=\"address\"]") || e.closest("[data-formie-address-field-layout]")?.closest("[data-formie-field]") || e.closest("[data-formie-field]");
+}
+function v(e) {
+	let t = e.querySelector(l);
+	return t instanceof HTMLInputElement || t instanceof HTMLSelectElement ? t : null;
+}
+function y(e) {
+	let t = e.querySelector(a);
+	return t instanceof HTMLInputElement || t instanceof HTMLSelectElement ? t : null;
+}
+function b(e) {
+	return e.querySelector("[data-formie-field-label]");
+}
+function x(e) {
+	e.dispatchEvent(new Event("input", { bubbles: !0 })), e.dispatchEvent(new Event("change", { bubbles: !0 }));
+}
+function S(e, t) {
+	if (!(e instanceof HTMLSelectElement)) return;
+	let n = e._formieTomSelect;
+	n && n.getValue() !== t && n.setValue(t, !0);
+}
+function C(e, t) {
+	if (e.value !== t) {
+		e.value = t, x(e);
+		return;
+	}
+	S(e, t);
+}
+function w(e, t) {
+	e.autofillAnchor && (e.autofillAnchor.value = t);
+}
+function T(e) {
+	let t = e.autofillAnchor?.value?.trim() || "", n = e.stateControl.value?.trim() || "", r = t || n;
+	r && (e.pendingStateValue = r);
+}
+function E(e) {
+	return e.pendingStateValue?.trim() || e.autofillAnchor?.value?.trim() || e.stateControl.value?.trim() || "";
+}
+function D(e) {
+	if (e.autofillAnchor) return e.autofillAnchor;
+	let t = e.addressRoot.querySelector(s);
+	if (t instanceof HTMLInputElement) e.autofillAnchor = t;
+	else {
+		let t = document.createElement("input");
+		t.type = "text", t.setAttribute("data-formie-address-state-autofill-anchor", "true"), t.setAttribute("autocomplete", "address-level1"), t.setAttribute("tabindex", "-1"), t.setAttribute("aria-hidden", "true"), t.className = "formie-sr-only", e.addressRoot.appendChild(t), e.autofillAnchor = t;
+	}
+	return e.stateControl.setAttribute("autocomplete", "off"), e.stateControl.value && !e.autofillAnchor.value && (e.autofillAnchor.value = e.stateControl.value), e.autofillAnchor;
+}
+function O(e) {
+	T(e);
+	let t = E(e);
+	if (!t) return;
+	let n = e.lastSubdivisions, r = n.length > 0 && N(t, n) || t;
+	C(e.stateControl, r), S(e.stateControl, r), w(e, r), e.pendingStateValue = r;
+}
+function k(e, t, n, r) {
+	let i = new URL(e.startsWith("/") ? e : `/actions/${e}`, window.location.origin);
+	return i.searchParams.set("country", t), i.searchParams.set("optionLabel", n), i.searchParams.set("optionValue", r), i.toString();
+}
+function A(e, t, n, r) {
+	return [
+		e,
+		t,
+		n,
+		r
+	].join("|");
+}
+function j(e) {
+	return h.has(e);
+}
+async function M(e, t, n, r) {
+	let i = A(e, t, n, r);
+	return h.has(i) ? h.get(i) || null : (g.has(i) || g.set(i, (async () => {
+		try {
+			let a = await fetch(k(r, e, t, n), { headers: { Accept: "application/json" } });
+			if (!a.ok) return h.set(i, null), null;
+			let o = await a.json();
+			return h.set(i, o), o;
+		} catch (t) {
+			return m.warn("Failed fetching subdivisions.", {
+				country: e,
+				error: t
+			}), h.set(i, null), null;
+		} finally {
+			g.delete(i);
+		}
+	})()), g.get(i) || null);
+}
+function N(e, t) {
+	let n = e.trim().toLowerCase();
+	if (!n) return null;
+	for (let e of t) if (e.value.toLowerCase() === n || (e.name || "").toLowerCase() === n || (e.short || "").toLowerCase() === n || e.label.toLowerCase() === n) return e.value;
+	return null;
+}
+function P(e, t) {
+	[
+		"id",
+		"name",
+		"required",
+		"disabled",
+		"placeholder",
+		"aria-describedby",
+		"data-formie-input-id",
+		"data-formie-input-type",
+		"data-formie-input-error-state",
+		"data-formie-address-state-dynamic",
+		"data-formie-address-state-hide-when-unused",
+		"data-formie-address-state-use-searchable",
+		"data-formie-address-state-use-datalist",
+		"data-formie-address-state-option-label",
+		"data-formie-address-state-option-value"
+	].forEach((n) => {
+		let r = e.getAttribute(n);
+		if (r === null) {
+			t.removeAttribute(n);
+			return;
+		}
+		t.setAttribute(n, r);
+	});
+}
+function F(e, t) {
+	t.className = e.className;
+}
+function I(e, t) {
+	let n = [...f];
+	e.classList.contains("formie-input-error") && n.push("formie-input-error"), t.className = n.join(" ");
+}
+function L(e, t) {
+	return e.parentNode?.replaceChild(t, e), t;
+}
+function R(e, t) {
+	let n = document.createElement("input");
+	return n.type = "text", P(e, n), F(e, n), n.setAttribute("data-formie-input-type", "text"), n.setAttribute("data-formie-address-state-input", "true"), n.setAttribute("data-formie-single-line-text-input", "true"), n.setAttribute("autocomplete", "off"), n.removeAttribute("data-formie-combobox-input"), n.value = t, n;
+}
+function z(e, t, n, r = "") {
+	e.innerHTML = "";
+	let i = document.createElement("option");
+	i.value = "", i.textContent = n || "", e.appendChild(i), t.forEach((t) => {
+		let n = document.createElement("option");
+		n.value = t.value, n.textContent = t.label, e.appendChild(n);
+	}), e.value = N(r, t) || r;
+}
+function B(e, t, n, r) {
+	let i = document.createElement("select");
+	return P(e, i), I(e, i), i.setAttribute("data-formie-input-type", "select"), i.setAttribute("data-formie-address-state-input", "true"), i.setAttribute("data-formie-select", "true"), i.setAttribute("data-formie-dropdown-input", "true"), i.removeAttribute("data-formie-single-line-text-input"), i.setAttribute("autocomplete", "off"), z(i, n, r, t), i;
+}
+function V(e, t, n, r) {
+	let i = e.list;
+	if (!r || n.length === 0) {
+		e.removeAttribute("list"), i && i.remove();
+		return;
+	}
+	let a = e.ownerDocument.getElementById(t);
+	a || (a = e.ownerDocument.createElement("datalist"), a.id = t, e.insertAdjacentElement("afterend", a)), a.innerHTML = "", n.forEach((t) => {
+		let n = e.ownerDocument.createElement("option");
+		n.value = t.label, a?.appendChild(n);
+	}), e.setAttribute("list", t);
+}
+function H(e, t) {
+	let { stateField: n, stateControl: r, required: i } = e;
+	if (n.classList.toggle("formie-conditionally-hidden", !t), n.toggleAttribute("data-formie-conditionally-hidden", !t), !t) {
+		r.required = !1, r.disabled = !0;
+		return;
+	}
+	r.disabled = !1, r.required = i;
+}
+function U(e) {
+	if (e.fetchingAnnouncementEl) return e.fetchingAnnouncementEl;
+	let t = document.createElement("div");
+	return t.className = "formie-sr-only", t.setAttribute("data-formie-address-state-fetching-announce", "true"), t.setAttribute("aria-live", "polite"), t.setAttribute("aria-atomic", "true"), e.addressRoot.appendChild(t), e.fetchingAnnouncementEl = t, t;
+}
+function W() {
+	let e = document.createElement("div");
+	e.className = "formie-address-state-skeleton", e.setAttribute("data-formie-address-state-skeleton", "true"), e.setAttribute("aria-hidden", "true");
+	let t = document.createElement("div");
+	return t.className = "formie-address-state-skeleton-input", e.appendChild(t), e;
+}
+function G(e) {
+	e.addressRoot.setAttribute("data-formie-address-state-fetching", "true"), e.countryControl?.setAttribute("aria-busy", "true"), e.stateControl.setAttribute("aria-hidden", "true"), e.stateControl.setAttribute("tabindex", "-1"), e.stateField.classList.remove("formie-conditionally-hidden"), e.stateField.removeAttribute("data-formie-conditionally-hidden"), e.stateField.setAttribute("data-formie-address-state-skeleton-active", "true");
+	let t = e.stateField.querySelector("[data-formie-field-control]");
+	t instanceof HTMLElement && (e.skeletonEl || (e.skeletonEl = W(), t.appendChild(e.skeletonEl)), e.skeletonEl.removeAttribute("hidden")), U(e).textContent = "Loading state or province options for the selected country.";
+}
+function K(e) {
+	e.addressRoot.removeAttribute("data-formie-address-state-fetching"), e.countryControl?.removeAttribute("aria-busy"), e.stateControl.removeAttribute("aria-hidden"), e.stateControl.removeAttribute("tabindex"), e.stateField.removeAttribute("data-formie-address-state-skeleton-active"), e.skeletonEl?.setAttribute("hidden", "hidden"), e.fetchingAnnouncementEl && (e.fetchingAnnouncementEl.textContent = "");
+}
+function q(e, t) {
+	let n = b(e);
+	if (!n) return;
+	let r = n.querySelector("[data-formie-field-required]");
+	n.textContent = t, r && n.appendChild(r);
+}
+function J(e, t) {
+	e.setAttribute("data-formie-combobox-input", "true"), r(e, "combobox", "before-init", {
+		select: e,
+		options: { placeholder: t }
+	});
+	let n = i(e, { placeholder: t });
+	return r(e, "combobox", "after-init", {
+		combobox: e._formieTomSelect,
+		options: { placeholder: t }
+	}), n;
+}
+async function Y(e, t) {
+	let { hideWhenUnused: n = !0, useSearchable: r = !0, useDatalist: i = !0, optionLabel: a = "name", optionValue: o = "name", placeholder: s = null, subdivisionsAction: c = d } = t, l = e.countryControl?.value?.trim() || "";
+	T(e);
+	let u = E(e), f = ++e.fetchGeneration;
+	if (e.comboboxCleanup?.(), e.comboboxCleanup = null, !l) {
+		if (q(e.stateField, e.stateField.dataset.formieAddressStateDefaultLabel || "State / Province"), K(e), n) {
+			H(e, !1), C(e.stateControl, ""), w(e, ""), e.pendingStateValue = "", e.lastSubdivisions = [];
+			return;
+		}
+		if (H(e, !0), e.stateControl instanceof HTMLSelectElement) {
+			let t = R(e.stateControl, u);
+			e.stateControl = L(e.stateControl, t);
+		} else e.stateControl.disabled = !0, e.stateControl.placeholder = s || e.stateControl.placeholder;
+		e.lastSubdivisions = [];
+		return;
+	}
+	j(A(l, a, o, c)) || G(e);
+	let p = await M(l, a, o, c);
+	if (f !== e.fetchGeneration) return;
+	let m = p?.subdivisions || [], h = p?.administrativeAreaUsed ?? !0, g = p?.administrativeAreaLabel || "State / Province";
+	if (e.lastSubdivisions = m, K(e), n && !h) {
+		H(e, !1), C(e.stateControl, ""), w(e, ""), e.pendingStateValue = "";
+		return;
+	}
+	if (H(e, !0), q(e.stateField, g), m.length > 0) {
+		let t = e.stateControl instanceof HTMLSelectElement ? e.stateControl : B(e.stateControl, u, m, s);
+		e.stateControl === t ? (I(e.stateControl, t), z(t, m, s, t.value)) : e.stateControl = L(e.stateControl, t), r ? e.comboboxCleanup = J(t, s) : t.removeAttribute("data-formie-combobox-input"), C(t, N(u, m) || u), O(e);
+		return;
+	}
+	let _ = e.stateControl instanceof HTMLInputElement ? e.stateControl : R(e.stateControl, u);
+	e.stateControl !== _ && (e.stateControl = L(e.stateControl, _)), _.disabled = !1, V(_, e.datalistId, m, i), C(_, u), O(e);
+}
+function X(e, t) {
+	let n = () => {
+		T(e), e.countryControl?.value?.trim() && (e.lastCountry = "", Y(e, t).then(() => {
+			O(e);
+		}));
+	};
+	p.forEach((t) => {
+		let r = window.setTimeout(n, t);
+		e.autofillSweepTimers.push(r);
+	});
+}
+function Z(e) {
+	e.countryChangeTimer !== null && (window.clearTimeout(e.countryChangeTimer), e.countryChangeTimer = null), e.autofillSweepTimers.forEach((e) => {
+		window.clearTimeout(e);
+	}), e.autofillSweepTimers = [];
+}
+function Q(e, t) {
+	let n = _(e);
+	if (!n) return m.warn("Address root not found; skipping field."), () => {};
+	let r = y(e);
+	if (!r) return m.warn("Dynamic state control not found; skipping field."), () => {};
+	let i = b(e);
+	i && !e.dataset.formieAddressStateDefaultLabel && (e.dataset.formieAddressStateDefaultLabel = i.textContent?.trim() || "State / Province");
+	let s = {
+		addressRoot: n,
+		stateField: e,
+		stateControl: r,
+		countryControl: v(n),
+		autofillAnchor: null,
+		pendingStateValue: r.value?.trim() || "",
+		datalistId: `formie-address-state-datalist-${r.getAttribute("data-formie-input-id") || Math.random().toString(36).slice(2)}`,
+		comboboxCleanup: null,
+		skeletonEl: null,
+		fetchingAnnouncementEl: null,
+		autofillSweepTimers: [],
+		countryChangeTimer: null,
+		lastCountry: "",
+		fetchGeneration: 0,
+		required: r.required,
+		lastSubdivisions: []
+	};
+	D(s);
+	let l = (e = !1) => {
+		let n = s.countryControl?.value?.trim() || "";
+		if (!e && n === s.lastCountry) return;
+		let r = s.lastCountry, i = E(s);
+		s.lastCountry = n, Y(s, t).then(() => {
+			O(s), !(!r || !n || r === n) && !N(i, s.lastSubdivisions) && !E(s) && (C(s.stateControl, ""), w(s, ""));
+		});
+	}, u = () => {
+		s.countryChangeTimer !== null && window.clearTimeout(s.countryChangeTimer), s.countryChangeTimer = window.setTimeout(() => {
+			s.countryChangeTimer = null, T(s), l(!0);
+		}, 50);
+	}, d = (e) => {
+		let n = e.target;
+		if (!(n instanceof HTMLInputElement || n instanceof HTMLSelectElement)) return;
+		let r = n === s.autofillAnchor, i = n.matches(a) || n.matches(o);
+		if (!(!r && !i) && (i && !r && w(s, n.value), T(s), s.countryControl?.value?.trim())) {
+			if (s.lastSubdivisions.length > 0) {
+				O(s);
+				return;
+			}
+			s.lastCountry = "", Y(s, t).then(() => {
+				O(s);
+			});
+		}
+	}, f = (e) => {
+		if (e.animationName !== c) return;
+		let r = e.target;
+		(r instanceof HTMLInputElement || r instanceof HTMLSelectElement) && n.contains(r) && (T(s), s.countryControl?.value?.trim() && (s.lastCountry = "", Y(s, t).then(() => {
+			O(s);
+		})));
+	}, p = (e) => {
+		let n = e.detail?.state?.trim();
+		if (!n) {
+			l();
+			return;
+		}
+		s.pendingStateValue = n, w(s, n), Y(s, t).then(() => {
+			C(s.stateControl, n), S(s.stateControl, n), s.lastCountry = s.countryControl?.value?.trim() || "";
+		});
+	};
+	return s.countryControl?.addEventListener("change", u), s.countryControl?.addEventListener("input", u), n.addEventListener("input", d), n.addEventListener("change", d), n.addEventListener("animationstart", f), n.addEventListener("formie:address:google:populate", p), n.addEventListener("formie:address:address-finder:populate", p), n.addEventListener("formie:address:loqate:populate", p), n.addEventListener("formie:address:place-kit:populate", p), l(), X(s, t), () => {
+		Z(s), K(s), s.skeletonEl?.remove(), s.fetchingAnnouncementEl?.remove(), s.autofillAnchor?.remove(), s.comboboxCleanup?.(), s.countryControl?.removeEventListener("change", u), s.countryControl?.removeEventListener("input", u), n.removeEventListener("input", d), n.removeEventListener("change", d), n.removeEventListener("animationstart", f), n.removeEventListener("formie:address:google:populate", p), n.removeEventListener("formie:address:address-finder:populate", p), n.removeEventListener("formie:address:loqate:populate", p), n.removeEventListener("formie:address:place-kit:populate", p);
+	};
+}
+var $ = {
+	id: u,
+	kind: "field",
+	match: (e) => !!e.target.querySelector(a),
+	setup: async (e) => {
+		let t = e.options || {}, r = n(e), i = r.map((e) => Q(e, t));
+		return m.log("Module setup.", { fieldCount: r.length }), { destroy: () => {
+			i.forEach((e) => e()), m.log("Module destroy.", { fieldCount: r.length });
+		} };
+	}
+};
+//#endregion
+export { $ as addressStateModule };

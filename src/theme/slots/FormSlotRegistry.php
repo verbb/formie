@@ -11,6 +11,7 @@ use verbb\formie\models\FieldLayoutRow;
 use verbb\formie\models\SlotTag;
 use verbb\formie\theme\context\RenderContext;
 
+use Craft;
 use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 
@@ -98,6 +99,8 @@ class FormSlotRegistry extends Component
                 'accept-charset' => 'utf-8',
                 'data-formie' => true,
                 'data-formie-form' => true,
+                // Let JS resolve CSRF by Craft's configured token name (not a hard-coded CRAFT_CSRF_TOKEN).
+                'data-formie-csrf-param' => Craft::$app->getRequest()->csrfParam,
                 'data-formie-init' => $context->renderOption('initJs', true) ? false : 'false',
                 'data-formie-handle' => $form?->handle,
                 'data-formie-static-cache' => $hasStaticCache ? true : false,

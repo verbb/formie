@@ -6,6 +6,7 @@ import type { FormieModuleDefinition } from '#contracts/modules';
 import { dispatchFieldEvent, releaseFormValidators, retainFormValidators } from '#modules/fields/shared';
 import { ensureModuleStyles } from '#modules/styles';
 import { getFieldModuleEventName, getFormStateEventName } from '#utils/event-names';
+import { applyFormCsrfToRecord, appendFormCsrfToFormData, getFormCsrfToken } from '#utils/csrf';
 import { requestJson } from '#utils/http';
 import { createDebug } from '#utils/debug';
 
@@ -199,11 +200,8 @@ function getUploadContext(form: HTMLFormElement | null, field: HTMLElement, drop
         }
     });
 
-    const csrfInput = form.querySelector('input[name="CRAFT_CSRF_TOKEN"]');
-
-    if (csrfInput instanceof HTMLInputElement && csrfInput.value.trim()) {
-        context.CRAFT_CSRF_TOKEN = csrfInput.value.trim();
-    }
+    // Honour custom Craft csrfTokenName values from the rendered form.
+    applyFormCsrfToRecord(context, form);
 
     return context;
 }
@@ -230,6 +228,8 @@ function buildHydrateFormData(form: HTMLFormElement | null, field: HTMLElement, 
     assetIds.forEach((assetId) => {
         body.append('assetIds[]', String(assetId));
     });
+
+    appendFormCsrfToFormData(body, form);
 
     return body;
 }
@@ -707,6 +707,10 @@ function bindUploadManagerField(field: HTMLElement, form: HTMLFormElement | null
         restrictions,
     });
 
+    // Resolve once for Uppy's allow-list; per-request meta/header refresh
+    // still re-reads the live form token (including custom csrfTokenName).
+    const initialCsrf = getFormCsrfToken(resolvedForm);
+
     uppy.use(XHRUpload, {
         endpoint: uploadEndpoint,
         fieldName: 'file',
@@ -725,7 +729,7 @@ function bindUploadManagerField(field: HTMLElement, form: HTMLFormElement | null
             'draftContextToken',
             'draftContext',
             'submissionId',
-            'CRAFT_CSRF_TOKEN',
+            ...(initialCsrf ? [initialCsrf.name] : []),
         ],
         getResponseData(xhr) {
             try {
@@ -735,6 +739,13 @@ function bindUploadManagerField(field: HTMLElement, form: HTMLFormElement | null
             }
         },
         onBeforeRequest(xhr, _retryCount, files) {
+            // Header works regardless of csrfTokenName / allowedMetaFields.
+            const csrf = getFormCsrfToken(resolvedForm);
+
+            if (csrf) {
+                xhr.setRequestHeader('X-CSRF-Token', csrf.value);
+            }
+
             const uppyFile = files[0];
 
             if (!uppyFile?.id || !uppyFile.size) {

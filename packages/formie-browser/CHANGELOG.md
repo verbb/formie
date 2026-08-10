@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Fixed
+- Fix Advanced Upload Manager and form transport helpers hard-coding `CRAFT_CSRF_TOKEN`, so uploads and related XHR requests work when Craft’s `csrfTokenName` is customised.
+
 ## 1.0.13 - 2026-07-09
 
 ### Fixed

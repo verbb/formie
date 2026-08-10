@@ -567,8 +567,15 @@ class Rendering extends Component
      */
     private function _resolveCsrfInputOptions(array $renderOptions): ?array
     {
+        // Stamp a stable marker so front-end JS can find the CSRF input when
+        // sites customise Craft's csrfTokenName away from CRAFT_CSRF_TOKEN.
+        $defaults = [
+            'autocomplete' => 'off',
+            'data-formie-csrf' => true,
+        ];
+
         if (!array_key_exists('csrfInput', $renderOptions)) {
-            return ['autocomplete' => 'off'];
+            return $defaults;
         }
 
         $csrfInput = $renderOptions['csrfInput'];
@@ -578,14 +585,16 @@ class Rendering extends Component
         }
 
         if ($csrfInput === true) {
-            return ['autocomplete' => 'off'];
+            return $defaults;
         }
 
         if (is_array($csrfInput)) {
-            return array_merge(['autocomplete' => 'off'], $csrfInput);
+            return array_merge($defaults, $csrfInput, [
+                'data-formie-csrf' => true,
+            ]);
         }
 
-        return ['autocomplete' => 'off'];
+        return $defaults;
     }
 
     private function _resolveFormAssetSettings(Form $form, array $renderOptions = []): array

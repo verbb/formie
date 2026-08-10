@@ -44,9 +44,13 @@ const buildConnectionPayload = (settings) => {
         type,
     };
 
-    // Keep CSRF token if present in serialized form.
-    if (values.CRAFT_CSRF_TOKEN) {
-        payload.CRAFT_CSRF_TOKEN = values.CRAFT_CSRF_TOKEN;
+    // Honour custom Craft csrfTokenName values from the CP form.
+    const csrfTokenName = typeof Craft !== 'undefined' && Craft.csrfTokenName
+        ? Craft.csrfTokenName
+        : null;
+
+    if (csrfTokenName && values[csrfTokenName]) {
+        payload[csrfTokenName] = values[csrfTokenName];
     }
 
     // Include only the selected integration type settings.

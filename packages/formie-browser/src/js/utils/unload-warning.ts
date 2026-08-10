@@ -1,5 +1,6 @@
+import { isFormCsrfFieldName } from '#utils/csrf';
+
 const DIRTY_TRACKING_IGNORED_FIELD_NAMES = new Set([
-    'CRAFT_CSRF_TOKEN',
     'action',
     'redirect',
     'requestToken',
@@ -64,19 +65,25 @@ function stableSerialize(value: unknown): string {
     return serializeStableValue(value, new WeakSet<object>());
 }
 
-function shouldTrackFieldName(name: string): boolean {
+function shouldTrackFieldName(name: string, form: HTMLFormElement): boolean {
     if (!name) {
         return false;
     }
 
     const normalizedName = name.endsWith('[]') ? name.slice(0, -2) : name;
 
+    // Ignore CSRF regardless of custom csrfTokenName so token refresh
+    // does not mark the form dirty.
+    if (isFormCsrfFieldName(normalizedName, form)) {
+        return false;
+    }
+
     return !DIRTY_TRACKING_IGNORED_FIELD_NAMES.has(normalizedName);
 }
 
 function buildTrackedSnapshot(form: HTMLFormElement): string {
     const entries = Array.from(new FormData(form).entries()).filter(([name]) => {
-        return shouldTrackFieldName(String(name || ''));
+        return shouldTrackFieldName(String(name || ''), form);
     });
 
     return stableSerialize(entries);

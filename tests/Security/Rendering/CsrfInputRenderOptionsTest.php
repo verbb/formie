@@ -27,7 +27,9 @@ it('renders the default csrf input when csrfInput is not provided', function ():
     $csrfParam = Craft::$app->getConfig()->getGeneral()->csrfTokenName;
     $html = renderFormHtmlForCsrfTests($form);
 
-    expect($html)->toContain('name="' . $csrfParam . '"');
+    expect($html)->toContain('name="' . $csrfParam . '"')
+        ->toContain('data-formie-csrf')
+        ->toContain('data-formie-csrf-param="' . $csrfParam . '"');
 })->group('security');
 
 it('omits the csrf input when csrfInput is false', function (): void {

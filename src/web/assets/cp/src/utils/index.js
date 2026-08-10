@@ -1,9 +1,11 @@
 export * from './array.js';
 export * from './createUid.js';
-export * from './AppErrorBoundary.jsx';
-export * from './LargeErrorState.jsx';
+export {
+    AppErrorBoundary,
+    LargeErrorState,
+    StatePanel,
+} from '@verbb/plugin-kit-react/utils';
 export * from './FormieErrorsPane.jsx';
-export * from './StatePanel.jsx';
 export * from './drag.js';
 export * from './react-app.js';
 export * from './requestError.js';
