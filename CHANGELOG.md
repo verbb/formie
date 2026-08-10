@@ -1543,6 +1543,11 @@
 - `Field::name` attribute has been deprecated. Use `Field::label` instead.
 - `Field::inputHtml()` method has been deprecated. Use `Field::cpInputHtml()` instead.
 
+## 2.2.28 - 2026-08-10
+
+### Fixed
+- Fix User element integration silently skipping group assignment when a configured group UID no longer resolves. #2909.
+
 ## 2.2.27 - 2026-07-27
 
 ### Fixed
