@@ -800,7 +800,7 @@ Do **not** share the same Pardot/Salesforce OAuth connection across production a
 1. In the **Security** section:
     - Tick **Require secret for Web Server Flow**.
     - Tick **Require secret for Refresh Token Flow**.
-    - Untick **Require Proof Key for Code Exchange (PKCE) Extension for Supported Authorization Flows**. Formie does not currently use PKCE for Pardot; leaving this enabled will prevent connecting.
+    - **Require Proof Key for Code Exchange (PKCE) Extension for Supported Authorization Flows** may be enabled or disabled. Formie uses PKCE (S256) for the OAuth connect flow.
     - **Enable Refresh Token Rotation** may already be required and locked. Formie supports rotated refresh tokens.
     - **Limit Idle Refresh Token Time-to-Live (TTL) to 30 Days** may already be required and locked.
     - Leave **Enforce Refresh Token IP Allowlist** unticked unless you intentionally manage a Salesforce IP allowlist for token refresh.
@@ -977,7 +977,7 @@ Do **not** share the same Salesforce OAuth connection (Consumer Key / tokens) ac
 1. In the **Security** section:
     - Tick **Require secret for Web Server Flow**.
     - Tick **Require secret for Refresh Token Flow**.
-    - Untick **Require Proof Key for Code Exchange (PKCE) Extension for Supported Authorization Flows**. Formie does not currently use PKCE for Salesforce; leaving this enabled will prevent connecting.
+    - **Require Proof Key for Code Exchange (PKCE) Extension for Supported Authorization Flows** may be enabled or disabled. Formie uses PKCE (S256) for the OAuth connect flow.
     - **Enable Refresh Token Rotation** may already be required and locked. Formie supports rotated refresh tokens.
     - **Limit Idle Refresh Token Time-to-Live (TTL) to 30 Days** may already be required and locked. Active form submissions keep the token alive; infrequently used integrations may need reconnecting after long idle periods.
     - Leave **Enforce Refresh Token IP Allowlist** unticked unless you intentionally manage a Salesforce IP allowlist for token refresh.
