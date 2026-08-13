@@ -39,7 +39,7 @@
             :notification-ref="this"
             :fields-schema="schema.fieldsSchema"
             :tabs-schema="schema.tabsSchema"
-            @update:notification="notification = $event"
+            @update:notification="onUpdateNotification"
             @delete="deleteNotification"
             @closed="onModalClosed"
         />
@@ -103,6 +103,11 @@ export default {
     },
 
     methods: {
+        onUpdateNotification(value) {
+            // Keep the shared Vuex / builder object in place; never replace the prop reference.
+            Object.assign(this.notification, value);
+        },
+
         openModal() {
             this.showModal = true;
         },

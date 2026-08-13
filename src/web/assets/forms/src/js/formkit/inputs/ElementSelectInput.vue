@@ -99,11 +99,17 @@ export default {
             this.createModal();
 
             // Craft's sortable moves DOM nodes when elements are reordered.
-            // Watch for childList mutations to detect sorts.
+            // Debounce so transient remove+insert during a sort (or chip re-render)
+            // doesn't briefly sync an incomplete selection back into FormKit.
             this._sortObserver = new MutationObserver(() => {
-                if (this.modal) {
-                    this.domToModel();
+                if (!this.modal) {
+                    return;
                 }
+
+                clearTimeout(this._syncTimeout);
+                this._syncTimeout = setTimeout(() => {
+                    this.domToModel();
+                }, 50);
             });
 
             this._sortObserver.observe(this.$refs.elements, { childList: true });
@@ -115,6 +121,9 @@ export default {
             this._sortObserver.disconnect();
             this._sortObserver = null;
         }
+
+        clearTimeout(this._syncTimeout);
+        this._syncTimeout = null;
     },
 
     methods: {
@@ -181,7 +190,9 @@ export default {
 
             // Read from the live DOM order rather than this.modal.$elements, which maintains
             // insertion order and doesn't update after drag-and-drop reordering.
-            $(this.$refs.elements).find('[data-id]').each((_, el) => {
+            // Match Craft's chip selector (`> li > .element`) so nested [data-id] nodes
+            // (actions, thumbs, etc.) aren't treated as selected elements.
+            $(this.$refs.elements).find('> li > .element[data-id]').each((_, el) => {
                 elements.push({ id: el.dataset.id, siteId: el.dataset.siteId });
             });
 

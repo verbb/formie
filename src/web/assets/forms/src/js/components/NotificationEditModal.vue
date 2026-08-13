@@ -26,7 +26,7 @@
                 <div class="fui-modal-content" :style="{ height: (!mounted) ? '80%' : '' }">
                     <div v-if="!mounted" class="fui-loading fui-loading-lg" style="height: 100%;"></div>
 
-                    <FormKitForm v-if="mounted" ref="fieldForm" :model-value="notification" @update:model-value="notification = $event" @submit="submitHandler" @submit-raw="submitHandlerRaw">
+                    <FormKitForm v-if="mounted" ref="fieldForm" v-model="notificationModel" @submit="submitHandler" @submit-raw="submitHandlerRaw">
                         <FormKitSchema :schema="fieldsSchema" />
                     </FormKitForm>
                 </div>
@@ -102,6 +102,18 @@ export default {
     },
 
     computed: {
+        // FormKit emits a new object on change; assign back onto the existing notification
+        // so Vuex / newNotificationModel stay in sync (same pattern as FieldEditModal).
+        notificationModel: {
+            get() {
+                return this.notification;
+            },
+
+            set(value) {
+                Object.assign(this.notification, value);
+            },
+        },
+
         notificationErrors() {
             return this.notification.errors;
         },
@@ -197,8 +209,9 @@ export default {
         },
 
         onCancelModal() {
-            // Restore original state and exit
-            this.$emit('update:notification', this.originalNotification);
+            // Restore original state onto the shared notification object and exit
+            Object.assign(this.notification, this.originalNotification);
+            this.$emit('update:notification', this.notification);
 
             this.closeModal();
         },

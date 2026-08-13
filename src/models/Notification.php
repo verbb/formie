@@ -67,8 +67,8 @@ class Notification extends Model
 
     public function __construct($config = [])
     {
-        // Normalize the options
-        unset($config['attachAssetsHtml']);
+        // Normalize Vue-only / transient keys
+        unset($config['attachAssetsHtml'], $config['attachAssetsOptions']);
 
         parent::__construct($config);
     }

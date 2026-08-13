@@ -145,6 +145,9 @@ class Notifications extends Component
             $notification->id = $notificationRecord->id;
             $notification->to = $notificationRecord->to;
 
+            // Clear memoized notifications so subsequent reads in this request see the saved data
+            $this->_notifications = null;
+
             $transaction->commit();
         } catch (Throwable $e) {
             $transaction->rollBack();

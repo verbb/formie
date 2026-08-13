@@ -614,13 +614,6 @@ class Emails extends Component
     private function _attachAssetsToEmail($assets, Message $message): void
     {
         foreach ($assets as $asset) {
-            $path = Assets::getFullAssetFilePath($asset);
-
-            // If a non-local asset, store so we can delete later
-            if (!($asset->getVolume()->getFs() instanceof LocalFsInterface)) {
-                $this->_tempAttachments[] = $path;
-            }
-
             // Check for asset size, 0kb files are technically invalid (or at least spammy)
             if (!$asset->size) {
                 Formie::info('Not attaching “' . $asset->filename . '” due to invalid file size: ' . $asset->size . '.');
@@ -635,12 +628,34 @@ class Emails extends Component
                 continue;
             }
 
-            if ($path) {
-                $message->attach($path, [
-                    'fileName' => $asset->filename,
-                    'contentType' => $asset->getMimeType(),
+            try {
+                $path = Assets::getFullAssetFilePath($asset);
+            } catch (Throwable $e) {
+                Formie::warning('Not attaching “{filename}” because the asset file could not be read: {error}', [
+                    'filename' => $asset->filename,
+                    'error' => $e->getMessage(),
                 ]);
+
+                continue;
             }
+
+            // If a non-local asset, store so we can delete later
+            if ($path && !($asset->getVolume()->getFs() instanceof LocalFsInterface)) {
+                $this->_tempAttachments[] = $path;
+            }
+
+            if (!$path || !is_file($path)) {
+                Formie::warning('Not attaching “{filename}” because the asset file could not be read.', [
+                    'filename' => $asset->filename,
+                ]);
+
+                continue;
+            }
+
+            $message->attach($path, [
+                'fileName' => $asset->filename,
+                'contentType' => $asset->getMimeType(),
+            ]);
         }
     }
 
