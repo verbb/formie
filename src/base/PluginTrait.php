@@ -233,10 +233,14 @@ trait PluginTrait
             'allowedFunctions' => [],
             'allowedMethods' => [],
             'allowedProperties' => [],
+            'allowedClasses' => [],
         ]);
 
+        // Keep __toString on models for printing field values; Element/ElementQuery
+        // methods come from verbb/base allowedClasses defaults.
         $event->allowedMethods[Model::class] = ['__toString'];
-        $event->allowedMethods[OptionData::class] = ['__toString'];
+
+        $event->allowedClasses[] = OptionData::class;
 
         $event->allowedProperties[OptionData::class] = function(OptionData $value, string $property): bool {
             return property_exists($value, $property);
@@ -288,6 +292,7 @@ trait PluginTrait
                 'allowedFunctions' => $event->allowedFunctions,
                 'allowedMethods' => $event->allowedMethods,
                 'allowedProperties' => $event->allowedProperties,
+                'allowedClasses' => $event->allowedClasses,
             ],
             'tokens' => Tokens::class,
             'vite' => [
