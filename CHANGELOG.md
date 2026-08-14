@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+- Bump `verbb/base` (sandbox allows safe Craft value/query object methods by class family).
+
+### Fixed
+- Fix element fields (Entries, Categories, etc.) failing in email notification Twig when calling query methods like `.one()` or `[0]`, caused by the Twig sandbox method allow-list. #2920.
+
 ## 2.2.28 - 2026-08-10
 
 ### Fixed
