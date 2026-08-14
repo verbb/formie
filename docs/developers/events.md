@@ -2263,10 +2263,13 @@ Event::on(Formie::class, Formie::EVENT_MODIFY_TWIG_ENVIRONMENT, function(ModifyT
         'alias',
     ];
 
-    // Add allowed methods
-    // i.e. to allow `craft.entries.one()`
-    $event->allowedMethods[\craft\web\twig\variables\CraftVariable::class] = 'entries';
-    $event->allowedMethods[\craft\elements\db\ElementQuery::class] = 'one';
+    // Prefer allowing whole safe *value* object types (merged with verbb/base defaults
+    // for Element, ElementQuery, ElementCollection, DateTime, etc.).
+    // Do not allow service/container classes (e.g. CraftVariable / Application).
+    $event->allowedClasses[] = \DateTimeZone::class;
+
+    // Or allow specific methods on a class
+    $event->allowedMethods[\craft\web\twig\variables\CraftVariable::class] = ['entries'];
 
     // Add allowed properties
     $event->allowedProperties[\craft\base\Element::class] = 'title';

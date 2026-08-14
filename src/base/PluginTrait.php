@@ -72,9 +72,11 @@ trait PluginTrait
             'allowedFunctions' => [],
             'allowedMethods' => [],
             'allowedProperties' => [],
+            'allowedClasses' => [],
         ]);
 
-        $event->allowedMethods[FieldValueInterface::class] = ['__toString'];
+        // Field value objects (Name, Address, options data, etc.)
+        $event->allowedClasses[] = FieldValueInterface::class;
 
         $event->allowedProperties[FieldValueInterface::class] = function(FieldValueInterface $value, string $property): bool {
             if ($value instanceof Model && in_array($property, $value->attributes(), true)) {
@@ -136,6 +138,7 @@ trait PluginTrait
                     'allowedFunctions' => $event->allowedFunctions,
                     'allowedMethods' => $event->allowedMethods,
                     'allowedProperties' => $event->allowedProperties,
+                    'allowedClasses' => $event->allowedClasses,
                 ],
                 'vite' => [
                     'class' => VitePluginService::class,
