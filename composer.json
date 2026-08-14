@@ -40,7 +40,7 @@
         "symfony/expression-language": "^5.0 || ^6.0 || ^7.0",
         "theiconic/name-parser": "^1.0",
         "verbb/auth": "^2.0.44",
-        "verbb/base": "^3.0.13"
+        "verbb/base": "^3.0.14"
     },
     "autoload": {
         "psr-4": {
