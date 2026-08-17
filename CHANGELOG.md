@@ -6,6 +6,7 @@
 - Bump `verbb/base` (sandbox allows safe Craft value/query object methods by class family).
 
 ### Fixed
+- Fix multi-page next/submit buttons with conditions staying disabled from the second page. #2921.
 - Fix element fields (Entries, Categories, etc.) failing in email notification Twig when calling query methods like `.one()` or `[0]`, caused by the Twig sandbox method allow-list. #2920.
 
 ## 3.1.35 - 2026-08-10

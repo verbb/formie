@@ -820,7 +820,14 @@ export class FormieFormTheme {
                 // If conditions hid this field while its page was already page-hidden, the input only
                 // got the page-hidden marker (conditions skip already-disabled inputs). Hand ownership
                 // back to conditions instead of re-enabling a still-conditionally-hidden control.
-                if ($input.closest('[data-conditionally-hidden]')) {
+                // Do not match the conditions target itself (next/submit buttons): `closest()` hits
+                // the button, and conditions do not re-run until a field changes, so it would stay
+                // disabled. Nested inputs inside a hidden field still hand off as intended.
+                // https://github.com/verbb/formie/issues/2921
+                if (
+                    $input.closest('[data-conditionally-hidden]') &&
+                    !$input.hasAttribute('data-conditionally-hidden')
+                ) {
                     $input.removeAttribute('data-fui-page-hidden-disabled');
                     $input.setAttribute('data-conditionally-hidden-disabled', true);
                 } else {

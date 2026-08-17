@@ -248,12 +248,19 @@ export class FormieConditions {
 
         const isPage = $field.hasAttribute('data-fui-page');
 
+        // Next/submit buttons are the conditions target themselves, not a wrapper with nested inputs.
+        const $conditionInputs = Array.from($field.querySelectorAll('input, textarea, select, button'));
+
+        if ($field.matches('input, textarea, select, button')) {
+            $conditionInputs.unshift($field);
+        }
+
         // Show or hide? Also toggle the disabled state to sort out any hidden required fields
         if ((finalResult && showRule !== 'show') || (!finalResult && showRule === 'show')) {
             $field.conditionallyHidden = true;
             $field.setAttribute(isPage ? 'data-fui-page-hidden' : 'data-conditionally-hidden', true);
 
-            $field.querySelectorAll('input, textarea, select, button').forEach(($input) => {
+            $conditionInputs.forEach(($input) => {
                 if (!$input.disabled) {
                     $input.setAttribute('disabled', true);
                     $input.setAttribute('data-conditionally-hidden-disabled', true);
@@ -263,9 +270,11 @@ export class FormieConditions {
             $field.conditionallyHidden = false;
             $field.removeAttribute(isPage ? 'data-fui-page-hidden' : 'data-conditionally-hidden');
 
-            $field.querySelectorAll('[data-conditionally-hidden-disabled]').forEach(($input) => {
-                $input.removeAttribute('disabled');
-                $input.removeAttribute('data-conditionally-hidden-disabled');
+            $conditionInputs.forEach(($input) => {
+                if ($input.hasAttribute('data-conditionally-hidden-disabled')) {
+                    $input.removeAttribute('disabled');
+                    $input.removeAttribute('data-conditionally-hidden-disabled');
+                }
             });
         }
 
