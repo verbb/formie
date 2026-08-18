@@ -104,3 +104,53 @@ it('resolves Group child field via {field:ref:selector} and getMappedFieldValue'
 
     expect($value)->toBe('Group Value');
 });
+
+it('resolves Group child field via nested field reference token (picker legacy format)', function () use ($groupRows): void {
+    $form = formie()
+        ->form(['title' => 'Complex Group Nested Ref'])
+        ->groupField('groupContent', ['rows' => $groupRows])
+        ->create();
+
+    $submission = formie()->submission($form)->with([
+        'groupContent' => ['innerText' => 'Nested Ref Value'],
+    ])->save();
+
+    $groupField = ArrayHelper::firstWhere($submission->getFields(), 'handle', 'groupContent');
+    $innerField = $groupField?->getFieldByHandle('innerText');
+    expect($innerField)->not->toBeNull()
+        ->and($innerField->reference)->not->toBeEmpty();
+
+    // Variable/field pickers historically emitted `{field:nestedUid}` for Group children.
+    $token = References::field((string)$innerField->reference);
+
+    $integration = new HubSpot(['name' => 'HubSpot', 'handle' => 'hubspot']);
+    $integrationField = new IntegrationField(['type' => IntegrationField::TYPE_STRING]);
+    $value = $integration->getMappedFieldValue($token, $submission, $integrationField);
+
+    expect($value)->toBe('Nested Ref Value')
+        ->and(References::parseContent("Title {$token}", $submission))->toBe('Title Nested Ref Value');
+});
+
+it('applies Group child tokens in submission title format', function () use ($groupRows): void {
+    $form = formie()
+        ->form(['title' => 'Group Title Format'])
+        ->groupField('groupContent', ['rows' => $groupRows])
+        ->create();
+
+    $groupField = $form->getFieldByHandle('groupContent');
+    $innerField = $groupField?->getFieldByHandle('innerText');
+    expect($groupField)->not->toBeNull()
+        ->and($innerField)->not->toBeNull();
+
+    $parentScopedToken = References::field((string)$groupField->reference, 'innerText');
+    $nestedUidToken = References::field((string)$innerField->reference);
+    $form->settings->submissionTitleFormat = "Lead {$parentScopedToken} / {$nestedUidToken}";
+
+    $submission = formie()->submission($form)->with([
+        'groupContent' => ['innerText' => 'Acme'],
+    ])->save();
+
+    $submission->updateTitle($form);
+
+    expect($submission->title)->toBe('Lead Acme / Acme');
+});

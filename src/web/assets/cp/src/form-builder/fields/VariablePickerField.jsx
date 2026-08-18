@@ -7,6 +7,7 @@ import {
     useVariableTagConfigureSession,
     VariableTagConfigureOverlay,
 } from '@form-builder/fields/variable-picker/VariableTagConfigureOverlay';
+import { expandVariableHydrateAliases } from '@form-builder/fields/variable-picker/variablePickerUtils';
 import { readPkTiptapChangeValue, normalizePkTiptapStoreValue, usePkTiptapEditor } from '@form-builder/fields/utils/pkTiptapField';
 
 /**
@@ -42,6 +43,12 @@ export function VariablePickerField({ form, field }) {
         return getVariableCategories(variableConfig, { form });
     }, [variableCategories, variableConfig, form, getVariableCategories]);
 
+    // TipTap chip hydrate only — picker UI keeps canonical parent-scoped values.
+    const editorVariableCategories = useMemo(
+        () => expandVariableHydrateAliases(resolvedVariableCategories ?? {}),
+        [resolvedVariableCategories],
+    );
+
     const hasVariables = Object.values(resolvedVariableCategories ?? {}).some(
         (items) => Array.isArray(items) && items.length > 0,
     );
@@ -72,7 +79,7 @@ export function VariablePickerField({ form, field }) {
                 <TiptapInput
                     ref={hostRef}
                     value={normalizePkTiptapStoreValue(value)}
-                    variableCategories={resolvedVariableCategories ?? {}}
+                    variableCategories={editorVariableCategories}
                     variableTagConfigure={openConfigureSession}
                     onPkVariableTagConfigure={(event) => {
                         openConfigureSession(event?.detail);

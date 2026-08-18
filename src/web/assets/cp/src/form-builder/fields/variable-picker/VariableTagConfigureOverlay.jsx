@@ -267,6 +267,11 @@ export function VariableTagConfigureOverlay({
             sideOffset={6}
             // Cross-shadow chip inside pk-tiptap — element anchor, not `for` id.
             anchor={session.anchor}
+            // Triggerless controlled popover: keep the host out of flow. An
+            // `inline-block` host still contributes layout and stretches the TipTap
+            // wrapper + absolute insert rail (extra padding under the field).
+            // Same idea as controlled `pk-dialog` without a trigger.
+            className="absolute left-0 top-0 h-0 w-0 overflow-visible border-0 p-0"
             onPkOpenChange={(event) => {
                 if (!(event.detail?.open ?? event.target?.open ?? false)) {
                     closeConfig();

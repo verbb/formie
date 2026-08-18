@@ -3,6 +3,9 @@
 ## Unreleased
 
 ### Fixed
+- Fix Group nested field values being ignored in submission title format tokens and Element/integration field mappings when the picker stored a child field reference. ([#2922](https://github.com/verbb/formie/issues/2922))
+- Fix Group nested field variable chips showing “Unknown field” after refresh when the saved token still used a nested field reference.
+- Fix the variable-tag configure popover expanding TipTap variable-picker fields (extra padding under the control and a misaligned insert `+` button).
 - Fix Advanced Upload Manager (and related front-end XHR helpers) failing when Craft’s `csrfTokenName` is customised away from `CRAFT_CSRF_TOKEN`.
 - Fix integration field mapping excluding Multi-line Text fields from the variable picker. Mapping now accepts multi-line sources for string/date/number destinations.
 

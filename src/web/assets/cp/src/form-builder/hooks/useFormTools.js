@@ -966,7 +966,9 @@ const buildVariablePickerSecondaryOptions = (field, referenceConfig, config) => 
     const appendNestedOptions = (sourceField, labelPrefix = '') => {
         const nestedFields = getNestedFields(sourceField);
         const parentIsRepeater = isRepeatableParentFieldType(sourceField, config);
-        const parentReference = parentIsRepeater ? getFieldTokenReference(sourceField) : null;
+        // Group (and other non-repeatable containers) must emit `{field:parentRef:childHandle}` —
+        // nested field UIDs alone do not resolve against top-level submission content.
+        const parentReference = getFieldTokenReference(sourceField);
 
         nestedFields.forEach((nestedField) => {
             const nestedReference = getFieldTokenReference(nestedField);
@@ -979,13 +981,14 @@ const buildVariablePickerSecondaryOptions = (field, referenceConfig, config) => 
             const nestedLabelBase = nestedField.label || nestedField.handle || '';
             const nestedLabel = labelPrefix ? `${labelPrefix}${nestedLabelBase}` : nestedLabelBase;
             const nestedPrimarySource = getVariableSourceBySelector(nestedTypeConfig, '');
+            const nestedHandle = nestedField.handle || '';
 
             if (parentIsRepeater && parentReference) {
                 if (nestedReferenceConfig.allowPrimary !== false && shouldIncludeVariableSource(nestedPrimarySource, nestedField, config)) {
                     pushRepeaterScopedReferenceOptions(options, {
                         parentReference,
                         nestedLabel,
-                        selectorHandle: nestedField.handle || '',
+                        selectorHandle: nestedHandle,
                         selectorLabel: '',
                         source: nestedPrimarySource,
                     });
@@ -1009,6 +1012,41 @@ const buildVariablePickerSecondaryOptions = (field, referenceConfig, config) => 
                             source,
                         });
                     });
+            } else if (parentReference && nestedHandle) {
+                // TipTap matches chips by exact option value; keep legacy nested-UID
+                // tokens as hydrate aliases so refresh still labels Group children.
+                const nestedUidHydrate = nestedReference
+                    ? [`{field:${nestedReference}}`]
+                    : undefined;
+
+                if (nestedReferenceConfig.allowPrimary !== false && shouldIncludeVariableSource(nestedPrimarySource, nestedField, config)) {
+                    options.push(applyVariableSourceMetadata({
+                        label: nestedLabel,
+                        value: `{field:${parentReference}:${nestedHandle}}`,
+                        ...(nestedUidHydrate ? { hydrateValues: nestedUidHydrate } : {}),
+                    }, nestedPrimarySource));
+                }
+
+                nestedReferenceConfig.selectors
+                    .filter((selector) => {
+                        return shouldIncludeSelector(selector, config.target, nestedField, nestedReferenceConfig, config);
+                    })
+                    .forEach((selector) => {
+                        const source = getVariableSourceBySelector(nestedTypeConfig, selector.handle);
+                        if (!shouldIncludeVariableSource(source, nestedField, config)) {
+                            return;
+                        }
+
+                        const selectorHydrate = nestedReference
+                            ? [`{field:${nestedReference}:${selector.handle}}`]
+                            : undefined;
+
+                        options.push(applyVariableSourceMetadata({
+                            label: `${nestedLabel}: ${selector.label || selector.handle}`,
+                            value: `{field:${parentReference}:${nestedHandle}:${selector.handle}}`,
+                            ...(selectorHydrate ? { hydrateValues: selectorHydrate } : {}),
+                        }, source));
+                    });
             } else if (nestedReferenceConfig.allowPrimary !== false && shouldIncludeVariableSource(nestedPrimarySource, nestedField, config)) {
                 options.push(applyVariableSourceMetadata({
                     label: nestedLabel,
@@ -1016,7 +1054,7 @@ const buildVariablePickerSecondaryOptions = (field, referenceConfig, config) => 
                 }, nestedPrimarySource));
             }
 
-            if (!parentIsRepeater) {
+            if (!parentIsRepeater && !parentReference) {
                 nestedReferenceConfig.selectors
                     .filter((selector) => {
                         return shouldIncludeSelector(selector, config.target, nestedField, nestedReferenceConfig, config);
@@ -1077,6 +1115,26 @@ const buildFieldReferenceOptions = (field, config, visited = new Set()) => {
     const fieldLabel = field?.label || field?.handle || '';
     const label = config.labelPrefix ? `${config.labelPrefix}${fieldLabel}` : fieldLabel;
     const isChildField = Boolean(config.isChildField);
+    // When nested under a Group (fieldSelect / flat pickers), tokens must stay
+    // parent-scoped: `{field:groupRef:childHandle}` rather than the child's UID.
+    const tokenParentReference = typeof config.tokenParentReference === 'string' ? config.tokenParentReference.trim() : '';
+    const tokenSelectorPrefix = typeof config.tokenSelectorPrefix === 'string' ? config.tokenSelectorPrefix.trim() : '';
+    const buildFieldToken = (selectorHandle = '') => {
+        const baseReference = tokenParentReference || fieldReference;
+        if (!baseReference) {
+            return null;
+        }
+
+        const parts = [baseReference];
+        if (tokenSelectorPrefix) {
+            parts.push(tokenSelectorPrefix);
+        }
+        if (selectorHandle) {
+            parts.push(selectorHandle);
+        }
+
+        return `{field:${parts.join(':')}}`;
+    };
 
     // Only apply enabled checks for nested child fields. Top-level fields are always considered selectable.
     if (isChildField && !getFieldEnabled(field)) {
@@ -1119,7 +1177,7 @@ const buildFieldReferenceOptions = (field, config, visited = new Set()) => {
     if (referenceConfig.allowPrimary !== false && fieldReference && shouldIncludePrimaryFieldReference()) {
         const option = {
             label,
-            value: `{field:${fieldReference}}`,
+            value: buildFieldToken() || `{field:${fieldReference}}`,
             fieldLabel,
             fieldHandle: field?.handle || '',
             fieldReference,
@@ -1149,7 +1207,7 @@ const buildFieldReferenceOptions = (field, config, visited = new Set()) => {
             .forEach((selector) => {
                 const option = {
                     label: `${label}: ${selector.label || selector.handle}`,
-                    value: `{field:${fieldReference}:${selector.handle}}`,
+                    value: buildFieldToken(selector.handle) || `{field:${fieldReference}:${selector.handle}}`,
                     fieldLabel,
                     fieldHandle: field?.handle || '',
                     fieldReference,
@@ -1186,12 +1244,61 @@ const buildFieldReferenceOptions = (field, config, visited = new Set()) => {
 
     if (!config.topLevelOnly && referenceConfig.allowNested && referenceConfig.nestedMode === 'childrenOnly') {
         const children = getNestedFields(field);
+        const parentIsRepeater = isRepeatableParentFieldType(field, config);
+        const parentReference = getFieldTokenReference(field);
 
         children.forEach((childField) => {
+            const childHandle = childField?.handle || '';
+
+            // Repeater children use scoped parent tokens in the variable-picker path;
+            // for fieldSelect flatten them the same way so mappings resolve.
+            if (parentIsRepeater && parentReference) {
+                const nestedTypeConfig = config.getFieldTypeByType?.(childField.type) || {};
+                const nestedReferenceConfig = getFieldTypeReferenceConfig(nestedTypeConfig);
+                const nestedLabelBase = childField.label || childField.handle || '';
+                const nestedLabel = `${label}: ${nestedLabelBase}`;
+                const nestedPrimarySource = getVariableSourceBySelector(nestedTypeConfig, '');
+
+                if (nestedReferenceConfig.allowPrimary !== false && shouldIncludeVariableSource(nestedPrimarySource, childField, config)) {
+                    pushRepeaterScopedReferenceOptions(options, {
+                        parentReference,
+                        nestedLabel,
+                        selectorHandle: childHandle,
+                        selectorLabel: '',
+                        source: nestedPrimarySource,
+                    });
+                }
+
+                nestedReferenceConfig.selectors
+                    .filter((selector) => {
+                        return shouldIncludeSelector(selector, config.target, childField, nestedReferenceConfig, config);
+                    })
+                    .forEach((selector) => {
+                        const source = getVariableSourceBySelector(nestedTypeConfig, selector.handle);
+                        if (!shouldIncludeVariableSource(source, childField, config)) {
+                            return;
+                        }
+
+                        pushRepeaterScopedReferenceOptions(options, {
+                            parentReference,
+                            nestedLabel,
+                            selectorHandle: selector.handle,
+                            selectorLabel: selector.label || selector.handle,
+                            source,
+                        });
+                    });
+
+                return;
+            }
+
+            const nextSelectorPrefix = [tokenSelectorPrefix, childHandle].filter(Boolean).join(':');
+
             options.push(...buildFieldReferenceOptions(childField, {
                 ...config,
                 labelPrefix: `${label}: `,
                 isChildField: true,
+                tokenParentReference: tokenParentReference || parentReference || '',
+                tokenSelectorPrefix: nextSelectorPrefix,
             }, nextVisited));
         });
     }

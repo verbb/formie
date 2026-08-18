@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import { TiptapInput } from '@verbb/plugin-kit-react/components';
 import { cn } from '@verbb/plugin-kit-react/utils';
 import { useVariableCategoriesContext } from '@utils/VariableCategoriesProvider';
@@ -7,6 +7,7 @@ import {
     useVariableTagConfigureSession,
     VariableTagConfigureOverlay,
 } from '@form-builder/fields/variable-picker/VariableTagConfigureOverlay';
+import { expandVariableHydrateAliases } from '@form-builder/fields/variable-picker/variablePickerUtils';
 import {
     readPkTiptapChangeValue,
     normalizePkTiptapStoreValue,
@@ -48,6 +49,12 @@ export function VariablePickerInputCell({
     const resolvedOrder = variableCategoryOrder ?? contextOrder;
     const resolvedRegistry = variableTransformerRegistry ?? contextRegistry ?? {};
 
+    // TipTap chip hydrate only — picker UI keeps canonical parent-scoped values.
+    const editorVariableCategories = useMemo(
+        () => expandVariableHydrateAliases(variableCategories ?? {}),
+        [variableCategories],
+    );
+
     const hasVariables = Object.values(variableCategories ?? {}).some(
         (items) => Array.isArray(items) && items.length > 0,
     );
@@ -75,7 +82,7 @@ export function VariablePickerInputCell({
             <TiptapInput
                 ref={hostRef}
                 value={stored}
-                variableCategories={variableCategories ?? {}}
+                variableCategories={editorVariableCategories}
                 variableTagConfigure={openConfigureSession}
                 onPkVariableTagConfigure={(event) => {
                     openConfigureSession(event?.detail);

@@ -92,3 +92,53 @@ export function matchesVariableQuery(item, normalizedQuery) {
         || String(item.value ?? '').toLowerCase().includes(normalizedQuery)
     );
 }
+
+/**
+ * TipTap hydrates chips by exact option `.value`. Group children pick as
+ * `{field:parentRef:childHandle}` but saved titles may still use legacy
+ * `{field:nestedUid}` — expand those `hydrateValues` into sibling options so
+ * refresh resolves labels without duplicating entries in the insert picker.
+ */
+export function expandVariableHydrateAliases(variableCategories = {}) {
+    const expandItems = (items = []) => {
+        return items.flatMap((item) => {
+            if (!item || typeof item !== 'object') {
+                return [];
+            }
+
+            const children = Array.isArray(item.children)
+                ? expandItems(item.children)
+                : item.children;
+            const base = children !== item.children
+                ? { ...item, children }
+                : item;
+            const canonicalValue = item.value != null ? String(item.value) : '';
+            const aliases = Array.isArray(item.hydrateValues)
+                ? item.hydrateValues
+                    .map((value) => String(value || '').trim())
+                    .filter((value) => value && value !== canonicalValue)
+                : [];
+
+            if (!aliases.length) {
+                return [base];
+            }
+
+            // Sibling options for TipTap lookup only — same label/metadata, no nest.
+            const aliasOptions = aliases.map((value) => ({
+                ...base,
+                value,
+                children: undefined,
+                hydrateValues: undefined,
+            }));
+
+            return [base, ...aliasOptions];
+        });
+    };
+
+    return Object.fromEntries(
+        Object.entries(variableCategories ?? {}).map(([key, items]) => [
+            key,
+            Array.isArray(items) ? expandItems(items) : items,
+        ]),
+    );
+}

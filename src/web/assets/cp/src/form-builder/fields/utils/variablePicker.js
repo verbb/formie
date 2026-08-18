@@ -114,8 +114,14 @@ export const findOptionLabelByValue = (variableCategories = {}, tokenValue = '',
             const labelBase = String(item.label || item.value || '');
             const label = buildDisplayLabel(parentLabel, labelBase);
             const value = item.value != null ? String(item.value) : '';
+            const hydrateValues = Array.isArray(item.hydrateValues)
+                ? item.hydrateValues.map((entry) => String(entry || ''))
+                : [];
+            const matches = [value, ...hydrateValues].some((candidate) => {
+                return variableValuesMatchReference(comparableToken, candidate);
+            });
 
-            if (variableValuesMatchReference(comparableToken, value)) {
+            if (matches) {
                 if (isRepeaterSubFieldOption(item)) {
                     repeaterMatch = label;
                     repeaterMatchedOption = item;
@@ -160,7 +166,14 @@ export const findInitialPickerPageForValue = (variableCategories = {}, tokenValu
             }
 
             const value = item.value != null ? String(item.value) : '';
-            if (variableValuesMatchReference(comparableToken, value)) {
+            const hydrateValues = Array.isArray(item.hydrateValues)
+                ? item.hydrateValues.map((entry) => String(entry || ''))
+                : [];
+            const matches = [value, ...hydrateValues].some((candidate) => {
+                return variableValuesMatchReference(comparableToken, candidate);
+            });
+
+            if (matches) {
                 return parent;
             }
 
@@ -266,7 +279,14 @@ export const findVariableOptionByValue = (variableCategories = {}, tokenValue = 
             }
 
             const value = item.value != null ? String(item.value) : '';
-            if (!variableValuesMatchReference(comparableToken, value)) {
+            const hydrateValues = Array.isArray(item.hydrateValues)
+                ? item.hydrateValues.map((entry) => String(entry || ''))
+                : [];
+            const matches = [value, ...hydrateValues].some((candidate) => {
+                return variableValuesMatchReference(comparableToken, candidate);
+            });
+
+            if (!matches) {
                 return;
             }
 
@@ -317,11 +337,19 @@ export const buildVariableOptionIndex = (variableCategories = {}, {
             const labelBase = String(item.label || item.value || '');
             const label = buildDisplayLabel(parentLabel, labelBase);
             const value = item.value != null ? String(item.value) : '';
+            const indexValues = [
+                value,
+                ...(Array.isArray(item.hydrateValues)
+                    ? item.hydrateValues.map((entry) => String(entry || ''))
+                    : []),
+            ].filter(Boolean);
 
-            if (value && !optionByValue.has(value)) {
-                optionByValue.set(value, item);
-                labelByValue.set(value, label);
-            }
+            indexValues.forEach((indexValue) => {
+                if (!optionByValue.has(indexValue)) {
+                    optionByValue.set(indexValue, item);
+                    labelByValue.set(indexValue, label);
+                }
+            });
 
             if (Array.isArray(item.children) && item.children.length) {
                 walk(item.children, labelBase);

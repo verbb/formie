@@ -16,4 +16,5 @@ export {
     getVariableCategoryEntries,
     matchesVariableQuery,
     toTopLevelGroups,
+    expandVariableHydrateAliases,
 } from './variablePickerUtils.js';
