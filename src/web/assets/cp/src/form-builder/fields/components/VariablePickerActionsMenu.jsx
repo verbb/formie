@@ -18,7 +18,7 @@ export function VariablePickerActionsMenu({
             size="sm"
             placement={placement}
             side-offset={sideOffset}
-            className="inline-flex size-[26px] shrink-0 items-center justify-center self-center -mr-[0.5rem]"
+            className="inline-flex size-[22px] shrink-0 items-center justify-center self-center -mr-[0.5rem]"
         >
             <Button
                 slot="trigger"

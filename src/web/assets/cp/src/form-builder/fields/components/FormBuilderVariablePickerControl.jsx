@@ -42,10 +42,14 @@ export function FormBuilderVariablePickerControl({
     pickerSearchPlaceholder,
     includeParentLabel = false,
     pickerContentClassName = 'min-w-[260px] max-w-[360px] p-0 overflow-hidden flex flex-col',
-    // Default sm matches EditableTable Condition `pk-select` and v1 picker trigger.
-    triggerSize = 'sm',
-    triggerClassName = 'min-w-0 flex-1 py-[6px] justify-between',
+    // Default xs matches EditableTable Condition/Value `pk-select` chips.
+    triggerSize = 'xs',
+    triggerClassName = 'min-w-0 flex-1 justify-between',
+    // Extra classes on the trigger Popover host (e.g. conditions override align-self).
+    popoverClassName = 'min-w-0 flex-1',
     wrapperClassName = '',
+    // Extra classes on the inner flex row (ET cells need an explicit row height to center).
+    rowClassName = '',
     alwaysShowActionsMenu = true,
     showActionsMenu = true,
     includeNoneOptionInPicker = true,
@@ -256,79 +260,85 @@ export function FormBuilderVariablePickerControl({
         : defaultActionItems;
 
     return (
-        <div className={cn('flex items-center', wrapperClassName)}>
+        <div className={cn('box-border w-full', wrapperClassName)}>
             {/*
-             * Popover host is inline-block and hug-content by default — grow it so the
-             * trigger can fill the row (v1 mapping). Flush panel keeps its own min/max width.
+             * Keep trigger + ⋯ on an inner flex row. Conditions pass an explicit
+             * `h-[34px]` (ET cell) + `items-center`. Note: pk-popover :host sets
+             * `align-self: flex-start`, which would otherwise pin the Field chip to
+             * the top of the row — override via `popoverClassName` / CSS.
              */}
-            <Popover
-                open={pickerOpen}
-                flush
-                placement="bottom-start"
-                sideOffset={6}
-                className="min-w-0 flex-1"
-                onPkOpenChange={(event) => { syncPopoverOpen(event, setPickerOpen); }}
-            >
-                <Button
-                    slot="trigger"
-                    size={triggerSize}
-                    variant="default"
-                    className={cn(
-                        'w-full min-w-0 justify-between',
-                        '[&::part(base)]:w-full [&::part(base)]:justify-between',
-                        // denser py on sm so the trigger matches sentence Show/All selects.
-                        triggerSize === 'sm' && 'py-[6px]',
-                        isInvalid && 'border-error',
-                        triggerClassName,
-                    )}
+            <div className={cn('flex w-full items-center', rowClassName)}>
+                {/*
+                 * Popover host defaults to flex:none — conditions CSS grows it so the
+                 * trigger fills the row. Flush panel keeps its own min/max width.
+                 */}
+                <Popover
+                    open={pickerOpen}
+                    flush
+                    placement="bottom-start"
+                    sideOffset={6}
+                    className={popoverClassName}
+                    onPkOpenChange={(event) => { syncPopoverOpen(event, setPickerOpen); }}
                 >
-                    <span className="truncate flex-1 text-left">{selectedLabel}</span>
-                    <span slot="end" className="inline-flex items-center gap-1 shrink-0">
-                        {hasDefaultIndicator && (
-                            <span className="shrink-0 rounded-[2px] bg-gray-50 px-1.5 py-[1px] text-[10px] text-gray-500 user-select-none">
-                                {t('default')}
-                            </span>
+                    <Button
+                        slot="trigger"
+                        size={triggerSize}
+                        variant="default"
+                        className={cn(
+                            'w-full min-w-0 justify-between',
+                            '[&::part(base)]:w-full [&::part(base)]:justify-between',
+                            isInvalid && 'border-error',
+                            triggerClassName,
                         )}
-                        {hasTransformIndicator && (
-                            <span className="shrink-0 rounded-[2px] bg-gray-50 px-1.5 py-[1px] text-[10px] text-gray-500 user-select-none">
-                                {selectedTokenMeta.transformerId}
-                            </span>
-                        )}
-                        <Icon icon="chevron-down" className="size-2.5 pointer-events-none shrink-0" />
-                    </span>
-                </Button>
-                <div className={pickerContentClassName}>
-                    <VariableCommandList
-                        search={picker.search}
-                        onSearchChange={picker.setSearch}
-                        groups={pickerGroups}
-                        options={picker.options}
-                        onSelect={(item, baseVariable) => {
-                            if (item?.value === '__none__') {
-                                onChange('');
-                                setPickerOpen(false);
-                                return;
-                            }
+                    >
+                        <span className="truncate flex-1 text-left">{selectedLabel}</span>
+                        <span slot="end" className="inline-flex items-center gap-1 shrink-0">
+                            {hasDefaultIndicator && (
+                                <span className="shrink-0 rounded-[2px] bg-gray-50 px-1.5 py-[1px] text-[10px] text-gray-500 user-select-none">
+                                    {t('default')}
+                                </span>
+                            )}
+                            {hasTransformIndicator && (
+                                <span className="shrink-0 rounded-[2px] bg-gray-50 px-1.5 py-[1px] text-[10px] text-gray-500 user-select-none">
+                                    {selectedTokenMeta.transformerId}
+                                </span>
+                            )}
+                            <Icon icon="chevron-down" className="size-2.5 pointer-events-none shrink-0" />
+                        </span>
+                    </Button>
+                    <div className={pickerContentClassName}>
+                        <VariableCommandList
+                            search={picker.search}
+                            onSearchChange={picker.setSearch}
+                            groups={pickerGroups}
+                            options={picker.options}
+                            onSelect={(item, baseVariable) => {
+                                if (item?.value === '__none__') {
+                                    onChange('');
+                                    setPickerOpen(false);
+                                    return;
+                                }
 
-                            picker.handleSelect(item, baseVariable);
-                        }}
-                        placeholder={resolvedSearchPlaceholder}
-                        showSearch
-                        shouldFilter={false}
-                        onBack={picker.page ? picker.handleBack : undefined}
-                        isChildMode={!!picker.page}
-                        selectFirstItem
-                        autoFocusSearchInput={true}
-                        open={pickerOpen}
-                    />
-                </div>
-            </Popover>
+                                picker.handleSelect(item, baseVariable);
+                            }}
+                            placeholder={resolvedSearchPlaceholder}
+                            showSearch
+                            shouldFilter={false}
+                            onBack={picker.page ? picker.handleBack : undefined}
+                            isChildMode={!!picker.page}
+                            selectFirstItem
+                            autoFocusSearchInput={true}
+                            open={pickerOpen}
+                        />
+                    </div>
+                </Popover>
 
-            {shouldShowActionsMenu && (
-                <VariablePickerActionsMenu label={t('More actions')}>
-                    {actionItems}
-                </VariablePickerActionsMenu>
-            )}
+                {shouldShowActionsMenu && (
+                    <VariablePickerActionsMenu label={t('More actions')}>
+                        {actionItems}
+                    </VariablePickerActionsMenu>
+                )}
+            </div>
 
             {/*
               Settings opens programmatically from the actions menu. Keep a zero-size

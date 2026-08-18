@@ -515,6 +515,48 @@ pk-button.form-builder-integrations-nav-item.is-selected pk-status[status='disab
 }
 
 /*
+ * Conditions Field column trigger — match EditableTable Condition/Value `pk-select`
+ * size="xs" chip metrics (4×8 pad, 11px / lh 1.25, radius-sm, 10px chevron).
+ * `!important` on ::part — button tokens live in `@layer pk-component` and size
+ * tiers still set a fixed height; we must win for chip density.
+ */
+pk-button.form-builder-condition-field-trigger {
+    --pk-btn-height: auto;
+    --pk-btn-padding-block: 4px;
+    --pk-btn-padding-inline: 8px;
+    --pk-btn-font: 11px;
+    --pk-btn-radius: var(--pk-radius-sm, 2px);
+    --pk-btn-icon-size: 0.625rem;
+    --pk-btn-icon-gap: 0.25rem;
+    font-size: 11px;
+    line-height: 1.25;
+}
+
+pk-button.form-builder-condition-field-trigger::part(base) {
+    box-sizing: border-box !important;
+    height: auto !important;
+    min-height: 0 !important;
+    padding-block: 4px !important;
+    padding-inline: 8px !important;
+    font-size: 11px !important;
+    line-height: 1.25 !important;
+    border-radius: var(--pk-radius-sm, 2px) !important;
+}
+
+/*
+ * pk-popover :host pins `align-self: flex-start` + `flex: none` so Field sticks to
+ * the top of the ET row while Condition/Value `pk-select` chips sit on the cell
+ * middle. Force center + grow so the trigger shares the row with ⋯.
+ */
+pk-popover.form-builder-condition-field-popover {
+    align-self: center !important;
+    flex: 1 1 0% !important;
+    min-width: 0 !important;
+    max-width: 100%;
+    width: auto;
+}
+
+/*
  * Existing Fields / Existing Notifications pickers — v1 DialogContent (66% × 66%,
  * 600×400 floor). Fixed height keeps loading ↔ loaded shells from jumping.
  * without-body-padding: sidebar + content are flush to the panel edges.

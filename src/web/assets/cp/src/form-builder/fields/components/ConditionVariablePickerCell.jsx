@@ -23,11 +23,15 @@ export function ConditionVariablePickerCell({
                 column.pickerContentClassName
                 || 'min-w-[260px] max-w-[360px] p-0 overflow-hidden flex flex-col'
             }
-            // Match EditableTable Condition `pk-select` (`size="sm"`) and v1 picker trigger.
-            triggerSize="sm"
-            triggerClassName="min-w-0 flex-1 justify-between"
-            // Match select/combobox cell inset (ET td padding-inline 0.5rem).
-            wrapperClassName="px-2"
+            // Match EditableTable Condition/Value `pk-select` (`size="xs"`) chip height.
+            // Tokens / popover align-self overrides live in style.css (see DECISIONS).
+            triggerSize="none"
+            triggerClassName="form-builder-condition-field-trigger min-w-0 w-full justify-between"
+            // Popover :host uses align-self:flex-start — class restores row centering + flex-1.
+            popoverClassName="form-builder-condition-field-popover"
+            // Explicit 34px row (ET cell) — do not rely on h-full vs min-height on the slot wrapper.
+            wrapperClassName="box-border"
+            rowClassName="h-[34px] px-2"
             alwaysShowActionsMenu={false}
             renderActionItems={({ canShowSettings, openSettings, t }) => {
                 return (
