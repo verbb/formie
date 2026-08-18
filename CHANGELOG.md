@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Fix submitting a filled Date/Time field throwing `Undefined property: DateFieldValue::$date` during validation when resolving nested `date`/`time` paths (including Date fields inside Group/Repeater). ([#2923](https://github.com/verbb/formie/issues/2923))
 - Fix Group nested field values being ignored in submission title format tokens and Element/integration field mappings when the picker stored a child field reference. ([#2922](https://github.com/verbb/formie/issues/2922))
 - Fix Group nested field variable chips showing “Unknown field” after refresh when the saved token still used a nested field reference.
 - Fix the variable-tag configure popover expanding TipTap variable-picker fields (extra padding under the control and a misaligned insert `+` button).

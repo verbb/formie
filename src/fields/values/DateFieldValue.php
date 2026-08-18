@@ -379,6 +379,24 @@ class DateFieldValue extends BaseFieldValue
         return $this->stringify();
     }
 
+    /**
+     * Virtual date/time/part keys for ArrayHelper and Twig-style property access.
+     * Stored state lives in `$parts`; `date`/`time` are display projections only.
+     */
+    public function __isset(string $name): bool
+    {
+        return $this->canResolvePath($name);
+    }
+
+    public function __get(string $name): mixed
+    {
+        if (!$this->canResolvePath($name)) {
+            throw new \yii\base\UnknownPropertyException('Getting unknown property: ' . static::class . '::' . $name);
+        }
+
+        return $this->getPathValue($name);
+    }
+
     public function isEmpty(): bool
     {
         return empty($this->parts);

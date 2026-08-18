@@ -3,10 +3,12 @@
 declare(strict_types=1);
 
 use verbb\formie\Formie;
+use verbb\formie\content\SubmissionContentAccessor;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\values\DateFieldValue;
 use verbb\formie\fields\values\SingleOptionFieldValue;
 use verbb\formie\fields\Date;
+use verbb\formie\helpers\ArrayHelper;
 
 it('preserves partial date parts for inputs without coercing to a fake datetime', function (): void {
     $field = new Date([
@@ -384,4 +386,99 @@ it('renders preview html from wall-clock parts without timezone conversion', fun
     } finally {
         $formatter->timeZone = $originalTimeZone;
     }
+});
+
+it('exposes virtual date and time keys for ArrayHelper property access', function (): void {
+    $value = new DateFieldValue([
+        'year' => '2024',
+        'month' => '6',
+        'day' => '15',
+        'hour' => '10',
+        'minute' => '30',
+        'second' => '0',
+    ]);
+
+    expect(isset($value->date))->toBeTrue()
+        ->and($value->date)->toBe('2024-06-15')
+        ->and($value->time)->toBe('10:30:00')
+        ->and(ArrayHelper::getValue($value, 'date'))->toBe('2024-06-15')
+        ->and(ArrayHelper::getValue(['eventDate' => $value], 'eventDate.date'))->toBe('2024-06-15');
+});
+
+it('resolves nested DateFieldValue paths through submission content accessor', function (): void {
+    $accessor = new SubmissionContentAccessor();
+    $value = new DateFieldValue([
+        'year' => '2024',
+        'month' => '6',
+        'day' => '15',
+        'hour' => '10',
+        'minute' => '30',
+    ]);
+
+    expect($accessor->resolvePathValue($value, 'date'))->toBe('2024-06-15')
+        ->and($accessor->resolvePathValue(['eventDate' => $value], 'eventDate.date'))->toBe('2024-06-15')
+        ->and($accessor->resolvePathValue(['eventDate' => $value], 'eventDate.time'))->toBe('10:30:00')
+        ->and($accessor->resolvePathValue(['eventDate' => $value], 'eventDate.year'))->toBe('2024');
+});
+
+it('validates and saves filled calendar date fields without undefined date property errors', function (): void {
+    $form = formie()
+        ->form(['title' => 'Calendar Date Submit #2923'])
+        ->dateField('eventDate', [
+            'displayType' => 'calendar',
+            'dateFormat' => 'Y-m-d',
+            'timeFormat' => 'H:i',
+        ])
+        ->create();
+
+    $submission = formie()->submission($form)
+        ->with([
+            'eventDate' => [
+                'date' => '2024-06-15',
+                'time' => '10:30',
+            ],
+        ])
+        ->save();
+
+    $stored = $submission->getFieldValue('eventDate');
+
+    expect($stored)->toBeInstanceOf(DateFieldValue::class)
+        ->and($submission->getFieldValue('eventDate.date'))->toBe('2024-06-15')
+        ->and($submission->getFieldValue('eventDate.time'))->not->toBe('')
+        ->and($submission)->not->toHaveFieldError('eventDate')
+        ->and($submission)->not->toHaveFieldError('eventDate.date');
+});
+
+it('validates and saves Group-nested calendar date fields without undefined date property errors', function (): void {
+    $form = formie()
+        ->form(['title' => 'Group Nested Date Submit #2923'])
+        ->groupField('eventGroup', [
+            'rows' => [[
+                'fields' => [[
+                    'type' => Date::class,
+                    'handle' => 'eventDate',
+                    'label' => 'Event Date',
+                    'displayType' => 'calendar',
+                    'dateFormat' => 'Y-m-d',
+                    'timeFormat' => 'H:i',
+                ]],
+            ]],
+        ])
+        ->create();
+
+    $submission = formie()->submission($form)
+        ->with([
+            'eventGroup' => [
+                'eventDate' => [
+                    'date' => '2024-06-15',
+                    'time' => '10:30',
+                ],
+            ],
+        ])
+        ->save();
+
+    expect($submission->getFieldValue('eventGroup.eventDate'))->toBeInstanceOf(DateFieldValue::class)
+        ->and($submission->getFieldValue('eventGroup.eventDate.date'))->toBe('2024-06-15')
+        ->and($submission)->not->toHaveFieldError('eventGroup.eventDate')
+        ->and($submission)->not->toHaveFieldError('eventGroup.eventDate.date');
 });

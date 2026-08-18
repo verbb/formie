@@ -121,7 +121,7 @@ class SubmissionContentAccessor
 
     public function resolvePathValue(mixed $fieldValue, ?string $path): mixed
     {
-        if ($path === null) {
+        if ($path === null || $path === '') {
             return $fieldValue;
         }
 
@@ -129,11 +129,52 @@ class SubmissionContentAccessor
             return $fieldValue->getPathValue($path);
         }
 
-        if (is_array($fieldValue) || $fieldValue instanceof \ArrayAccess || $fieldValue instanceof \stdClass) {
-            return ArrayHelper::getValue($fieldValue, $path);
+        if (!is_array($fieldValue) && !$fieldValue instanceof \ArrayAccess && !$fieldValue instanceof \stdClass) {
+            return $fieldValue;
         }
 
-        return $fieldValue;
+        // Walk one segment at a time. Nested FieldValueInterface objects (e.g. Date
+        // inside Group/Repeater) expose virtual keys like `date`/`time` via
+        // getPathValue — ArrayHelper property access on those keys fatals in PHP 8+.
+        $segments = explode('.', $path);
+        $current = $fieldValue;
+
+        foreach ($segments as $index => $segment) {
+            if ($current instanceof FieldValueInterface) {
+                return $current->getPathValue(implode('.', array_slice($segments, $index)));
+            }
+
+            if (is_array($current)) {
+                if (!array_key_exists($segment, $current)) {
+                    return null;
+                }
+
+                $current = $current[$segment];
+                continue;
+            }
+
+            if ($current instanceof \ArrayAccess) {
+                if (!isset($current[$segment])) {
+                    return null;
+                }
+
+                $current = $current[$segment];
+                continue;
+            }
+
+            if ($current instanceof \stdClass) {
+                if (!property_exists($current, $segment)) {
+                    return null;
+                }
+
+                $current = $current->{$segment};
+                continue;
+            }
+
+            return $current;
+        }
+
+        return $current;
     }
 
     public function splitFieldPath(string $fieldPath): array

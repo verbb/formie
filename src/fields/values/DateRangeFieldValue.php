@@ -164,6 +164,24 @@ class DateRangeFieldValue extends BaseFieldValue
         $this->end = DateFieldValue::normalizeParts(self::parseSideParts($parts));
     }
 
+    /**
+     * Virtual start/end (and side-part) keys for ArrayHelper property access.
+     * Same contract as DateFieldValue — range sides are projections, not stored props.
+     */
+    public function __isset(string $name): bool
+    {
+        return $this->canResolvePath($name);
+    }
+
+    public function __get(string $name): mixed
+    {
+        if (!$this->canResolvePath($name)) {
+            throw new \yii\base\UnknownPropertyException('Getting unknown property: ' . static::class . '::' . $name);
+        }
+
+        return $this->getPathValue($name);
+    }
+
     public function canResolvePath(string $path): bool
     {
         if ($path === 'start' || $path === 'end') {
