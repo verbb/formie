@@ -1,4 +1,5 @@
 import type { ValidationContext, ValidationInput } from '#validation/types';
+import { isValidationSkipped } from '#validation/skip';
 
 export function stripTags(value: string): string {
     const doc = new DOMParser().parseFromString(value, 'text/html');
@@ -43,5 +44,8 @@ export function getComparableInput(ctx: ValidationContext): ValidationInput | nu
         return null;
     }
 
-    return sourceField.querySelector(ctx.config.fieldsSelector) as ValidationInput | null;
+    return Array.from(sourceField.querySelectorAll(ctx.config.fieldsSelector)).find((node): node is ValidationInput => {
+        return (node instanceof HTMLInputElement || node instanceof HTMLSelectElement || node instanceof HTMLTextAreaElement)
+            && !isValidationSkipped(node);
+    }) ?? null;
 }

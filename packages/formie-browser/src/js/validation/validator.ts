@@ -12,6 +12,7 @@ import type {
 import { t } from '#utils/i18n';
 import { getValidatorEventName } from '#utils/event-names';
 import { createDebug } from '#utils/debug';
+import { isValidationSkipped } from '#validation/skip';
 
 type ValidatorDefinition = {
     validate: (ctx: ValidationContext) => boolean;
@@ -142,13 +143,13 @@ export class FormieValidator {
 
     inputs(inputOrSelector: Element | null = null): ValidationInput[] {
         if (isValidationInput(inputOrSelector)) {
-            return [inputOrSelector];
+            return isValidationSkipped(inputOrSelector) ? [] : [inputOrSelector];
         }
 
         const root = inputOrSelector || this.form;
 
         return Array.from(root.querySelectorAll(this.config.fieldsSelector)).filter((input): input is ValidationInput => {
-            return isValidationInput(input);
+            return isValidationInput(input) && !isValidationSkipped(input);
         });
     }
 
@@ -358,6 +359,11 @@ export class FormieValidator {
 
         fieldContainer.querySelectorAll('input, select, textarea').forEach((fieldInput) => {
             const element = fieldInput as HTMLElement;
+
+            if (isValidationSkipped(element)) {
+                return;
+            }
+
             element.setAttribute('aria-invalid', 'true');
             if (this.config.inputErrorClass.length) {
                 element.classList.add(...this.config.inputErrorClass);
@@ -513,7 +519,7 @@ export class FormieValidator {
     }
 
     blurHandler(event: Event): void {
-        if (!(event.target instanceof HTMLElement) || !isValidationInput(event.target) || !event.target.form?.isSameNode(this.form)) {
+        if (!(event.target instanceof HTMLElement) || !isValidationInput(event.target) || isValidationSkipped(event.target) || !event.target.form?.isSameNode(this.form)) {
             return;
         }
 
@@ -539,7 +545,7 @@ export class FormieValidator {
     }
 
     changeHandler(event: Event): void {
-        if (!(event.target instanceof HTMLElement) || !isValidationInput(event.target) || !event.target.form?.isSameNode(this.form)) {
+        if (!(event.target instanceof HTMLElement) || !isValidationInput(event.target) || isValidationSkipped(event.target) || !event.target.form?.isSameNode(this.form)) {
             return;
         }
 
@@ -570,7 +576,7 @@ export class FormieValidator {
     }
 
     inputHandler(event: Event): void {
-        if (!(event.target instanceof HTMLElement) || !isValidationInput(event.target) || !event.target.form?.isSameNode(this.form)) {
+        if (!(event.target instanceof HTMLElement) || !isValidationInput(event.target) || isValidationSkipped(event.target) || !event.target.form?.isSameNode(this.form)) {
             return;
         }
 

@@ -92,3 +92,22 @@ it('preserves structural field slot tags for upload manager display type', funct
         ->and($fieldTag?->themeAttributes['class'] ?? [])->toContain('formie-field')
         ->and($dropzoneTag?->coreAttributes['data-formie-upload-manager'] ?? null)->toBeTrue();
 });
+
+it('opts the upload manager browse input out of client validation', function (): void {
+    $form = formie()
+        ->form(['title' => 'Upload Manager Validation Skip'])
+        ->create();
+
+    $field = new FileUpload([
+        'displayType' => 'uploadManager',
+        'handle' => 'attachments',
+    ]);
+    $context = RenderContext::from([
+        'form' => $form,
+        'field' => $field,
+    ]);
+    $browseInputTag = $field->renderSlotTag('fieldBrowseInput', $context);
+
+    expect($browseInputTag?->coreAttributes['data']['formie-upload-manager-input'] ?? null)->toBeTrue()
+        ->and($browseInputTag?->coreAttributes['data']['formie-validation-skip'] ?? null)->toBeTrue();
+});

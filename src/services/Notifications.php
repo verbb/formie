@@ -1157,32 +1157,8 @@ class Notifications extends Component
 
     private function _getConditionFieldOptionConfig(): array
     {
-        return [
+        return ConditionsHelper::getConditionFieldOptionConfig([
             'includeSubmissionDate' => true,
-            'siteNameOptions' => array_merge([
-                ['label' => Craft::t('formie', 'Select an option'), 'value' => ''],
-            ], array_map(function($site) {
-                return [
-                    'label' => $site->name,
-                    'value' => $site->name,
-                ];
-            }, Craft::$app->getSites()->getAllSites())),
-            'siteHandleOptions' => array_merge([
-                ['label' => Craft::t('formie', 'Select an option'), 'value' => ''],
-            ], array_map(function($site) {
-                return [
-                    'label' => $site->name,
-                    'value' => $site->handle,
-                ];
-            }, Craft::$app->getSites()->getAllSites())),
-            'statusOptions' => array_merge([
-                ['label' => Craft::t('formie', 'Select an option'), 'value' => ''],
-            ], array_map(function($status) {
-                return [
-                    'label' => $status->name,
-                    'value' => $status->handle,
-                ];
-            }, Formie::$plugin->getSubmissionStatuses()->getAllStatuses())),
-        ];
+        ]);
     }
 }

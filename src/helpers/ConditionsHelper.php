@@ -7,8 +7,12 @@ use verbb\formie\conditions\ConditionSetEvaluator;
 use verbb\formie\conditions\ConditionValueResolver;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\Formie;
+use verbb\formie\models\SubmissionStatus;
 
 use Craft;
+
+use craft\models\Site;
 
 class ConditionsHelper
 {
@@ -45,18 +49,65 @@ class ConditionsHelper
         ];
     }
 
+    /**
+     * Default select options for condition Value columns (sites, statuses).
+     * Pass `form` to limit statuses to that form's allowed set; values are handles
+     * because `{submission:status}` resolves via Submission::getStatus().
+     */
+    public static function getConditionFieldOptionConfig(array $config = []): array
+    {
+        /** @var Form|null $form */
+        $form = $config['form'] ?? null;
+
+        return [
+            'includeSubmissionDate' => (bool)($config['includeSubmissionDate'] ?? false),
+            'siteNameOptions' => $config['siteNameOptions'] ?? self::getSiteNameSelectOptions(),
+            'siteHandleOptions' => $config['siteHandleOptions'] ?? self::getSiteHandleSelectOptions(),
+            'statusOptions' => $config['statusOptions'] ?? self::getStatusSelectOptions($form),
+        ];
+    }
+
+    public static function getSiteNameSelectOptions(): array
+    {
+        return self::_selectOptionsWithPlaceholder(array_map(function(Site $site) {
+            return [
+                'label' => $site->name,
+                'value' => $site->name,
+            ];
+        }, Craft::$app->getSites()->getAllSites()));
+    }
+
+    public static function getSiteHandleSelectOptions(): array
+    {
+        return self::_selectOptionsWithPlaceholder(array_map(function(Site $site) {
+            return [
+                'label' => $site->name,
+                'value' => $site->handle,
+            ];
+        }, Craft::$app->getSites()->getAllSites()));
+    }
+
+    public static function getStatusSelectOptions(?Form $form = null): array
+    {
+        $statuses = $form
+            ? Formie::$plugin->getFormGroupPolicy()->getSubmissionStatusesForForm($form)
+            : Formie::$plugin->getSubmissionStatuses()->getAllStatuses();
+
+        return self::_selectOptionsWithPlaceholder(array_map(function(SubmissionStatus $status) {
+            return [
+                'label' => $status->name,
+                'value' => $status->handle,
+            ];
+        }, $statuses));
+    }
+
     public static function getConditionFieldOptions(array $config = []): array
     {
-        $includeSubmissionDate = (bool)($config['includeSubmissionDate'] ?? false);
-        $siteNameOptions = $config['siteNameOptions'] ?? [
-            ['label' => Craft::t('formie', 'Select an option'), 'value' => ''],
-        ];
-        $siteHandleOptions = $config['siteHandleOptions'] ?? [
-            ['label' => Craft::t('formie', 'Select an option'), 'value' => ''],
-        ];
-        $statusOptions = $config['statusOptions'] ?? [
-            ['label' => Craft::t('formie', 'Select an option'), 'value' => ''],
-        ];
+        $config = self::getConditionFieldOptionConfig($config);
+        $includeSubmissionDate = (bool)$config['includeSubmissionDate'];
+        $siteNameOptions = $config['siteNameOptions'];
+        $siteHandleOptions = $config['siteHandleOptions'];
+        $statusOptions = $config['statusOptions'];
 
         $submissionOptions = [
             ['label' => Craft::t('formie', 'Title'), 'value' => '{submission:title}'],
@@ -164,6 +215,13 @@ class ConditionsHelper
             'clearOnHide' => ($conditions['clearOnHide'] ?? true) !== false,
             'rules' => $rules,
         ];
+    }
+
+    private static function _selectOptionsWithPlaceholder(array $options): array
+    {
+        return array_merge([
+            ['label' => Craft::t('formie', 'Select an option'), 'value' => ''],
+        ], $options);
     }
 
     private static function _getSetEvaluator(): ConditionSetEvaluator

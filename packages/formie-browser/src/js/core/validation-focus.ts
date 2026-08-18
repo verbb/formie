@@ -1,4 +1,5 @@
 import { addThemeClasses } from '#theme/theme-classes';
+import { isValidationSkipped } from '#validation/skip';
 
 function appendDescribedBy(input: HTMLElement, describedById: string): void {
     const current = (input.getAttribute('aria-describedby') || '').trim();
@@ -24,15 +25,19 @@ function getFirstErroredField(form: HTMLFormElement): HTMLElement | null {
 }
 
 function getFieldFocusTarget(field: HTMLElement): HTMLElement | null {
-    const invalidControl = field.querySelector('[aria-invalid="true"]') as HTMLElement | null;
+    const invalidControl = Array.from(field.querySelectorAll('[aria-invalid="true"]')).find((node) => {
+        return !isValidationSkipped(node);
+    }) as HTMLElement | undefined;
 
     if (invalidControl) {
         return invalidControl;
     }
 
-    return field.querySelector(
+    return Array.from(field.querySelectorAll(
         'input:not([type="hidden"]):not([disabled]), select:not([disabled]), textarea:not([disabled])',
-    ) as HTMLElement | null;
+    )).find((node) => {
+        return !isValidationSkipped(node);
+    }) as HTMLElement | undefined ?? null;
 }
 
 function getFormLevelErrorTarget(form: HTMLFormElement): HTMLElement | null {
@@ -61,6 +66,11 @@ export function enhanceServerRenderedFieldErrors(form: HTMLFormElement): void {
 
         field.querySelectorAll('input, select, textarea').forEach((input) => {
             const element = input as HTMLElement;
+
+            if (isValidationSkipped(element)) {
+                return;
+            }
+
             element.setAttribute('aria-invalid', 'true');
             addThemeClasses(element, form, 'fieldControlError');
             element.setAttribute('data-formie-input-has-error', 'true');

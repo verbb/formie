@@ -2,7 +2,12 @@
 
 ## Unreleased
 
+### Added
+- Add `data-formie-validation-skip` so helper controls can opt out of client-side validation without field-specific validator exceptions.
+
 ### Fixed
+- Fix page (and other form-builder) conditions showing an empty Value dropdown for Submission Status by always supplying status select options. ([#2925](https://github.com/verbb/formie/issues/2925))
+- Fix required File Upload fields using Upload Manager never passing client-side validation after a successful upload. ([#2924](https://github.com/verbb/formie/issues/2924))
 - Fix submitting a filled Date/Time field throwing `Undefined property: DateFieldValue::$date` during validation when resolving nested `date`/`time` paths (including Date fields inside Group/Repeater). ([#2923](https://github.com/verbb/formie/issues/2923))
 - Fix Group nested field values being ignored in submission title format tokens and Element/integration field mappings when the picker stored a child field reference. ([#2922](https://github.com/verbb/formie/issues/2922))
 - Fix Group nested field variable chips showing “Unknown field” after refresh when the saved token still used a nested field reference.

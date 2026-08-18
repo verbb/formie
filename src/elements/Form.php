@@ -2668,6 +2668,7 @@ class Form extends Element implements FormInterface
                 'instructions' => Craft::t('formie', 'Configure redirect targets to apply when conditions match.'),
                 'fieldOptions' => ConditionsHelper::getConditionFieldOptions([
                     'includeSubmissionDate' => true,
+                    'form' => $this,
                 ]),
                 'conditionOptions' => ConditionsHelper::getConditionOptions(),
             ],
@@ -2966,6 +2967,7 @@ class Form extends Element implements FormInterface
                 ],
                 'fieldOptions' => ConditionsHelper::getConditionFieldOptions([
                     'includeSubmissionDate' => true,
+                    'form' => $this,
                 ]),
                 'conditionOptions' => ConditionsHelper::getConditionOptions(),
             ],
@@ -3022,6 +3024,7 @@ class Form extends Element implements FormInterface
                 ],
                 'fieldOptions' => ConditionsHelper::getConditionFieldOptions([
                     'includeSubmissionDate' => true,
+                    'form' => $this,
                 ]),
                 'conditionOptions' => ConditionsHelper::getConditionOptions(),
             ],
@@ -3272,6 +3275,7 @@ class Form extends Element implements FormInterface
                                 'if' => '$item.settings.enablePageConditions',
                                 'fieldOptions' => ConditionsHelper::getConditionFieldOptions([
                                     'includeSubmissionDate' => true,
+                                    'form' => $this,
                                 ]),
                                 'conditionOptions' => ConditionsHelper::getConditionOptions(),
                             ],
@@ -3293,6 +3297,7 @@ class Form extends Element implements FormInterface
 
         $fieldOptions = ConditionsHelper::getConditionFieldOptions([
             'includeSubmissionDate' => true,
+            'form' => $this,
         ]);
 
         $tabs = [
