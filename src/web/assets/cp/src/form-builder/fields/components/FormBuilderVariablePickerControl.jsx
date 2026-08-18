@@ -260,7 +260,7 @@ export function FormBuilderVariablePickerControl({
         : defaultActionItems;
 
     return (
-        <div className={cn('box-border w-full', wrapperClassName)}>
+        <div className={cn('relative box-border w-full', wrapperClassName)}>
             {/*
              * Keep trigger + ⋯ on an inner flex row. Conditions pass an explicit
              * `h-[34px]` (ET cell) + `items-center`. Note: pk-popover :host sets
@@ -341,14 +341,18 @@ export function FormBuilderVariablePickerControl({
             </div>
 
             {/*
-              Settings opens programmatically from the actions menu. Keep a zero-size
-              trigger so pk-popover still has an anchor for placement.
-            */}
+              Settings opens programmatically from the actions menu. Anchor must exist
+              for pk-popover placement, but the host defaults to ~21px inline-block even
+              with an h-0 trigger — that alone stretched ET Field cells to ~56px and
+              dropped Condition/Value (middle-aligned) below the Field chip. Pull the
+              host out of flow.
+             */}
             <Popover
                 open={settingsOpen}
                 flush
                 placement="bottom-end"
                 sideOffset={6}
+                className="pointer-events-none absolute right-0 top-0 h-0 w-0 overflow-hidden opacity-0"
                 onPkOpenChange={(event) => { syncPopoverOpen(event, setSettingsOpen); }}
             >
                 <Button
