@@ -15,6 +15,10 @@ Submissions can be related to Craft elements — entries, categories, products, 
 
 Getting-started walkthrough for saved reports and scheduled email delivery — links to the reports reference for formats, permissions, cron, and troubleshooting.
 
+##### [Run PHP on Next vs when the form is finished](/guides/submissions-workflows/run-php-on-next-vs-when-the-form-is-finished)
+
+Every page POST uses the same pipeline. This guide shows the two public hooks — after a successful Next, and when the last visible page is submitted — without `afterTask` archaeology.
+
 ##### [Submission screening rules in practice](/guides/submissions-workflows/submission-screening-rules-in-practice)
 
 Submission screening is Formie's unified layer for deciding whether a submission is legitimate before it is saved and dispatched. This guide shows how guards, captchas, and content rules work together in practice — and how to tune them without blocking real users.

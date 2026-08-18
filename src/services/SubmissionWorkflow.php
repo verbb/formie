@@ -6,6 +6,8 @@ use verbb\formie\enums\workflow\Stage;
 use verbb\formie\enums\workflow\Task;
 use verbb\formie\events\RegisterWorkflowStagesEvent;
 use verbb\formie\events\RegisterStageTasksEvent;
+use verbb\formie\events\SubmissionCompleteEvent;
+use verbb\formie\events\SubmissionPageAdvanceEvent;
 use verbb\formie\events\SubmissionRequestEvent;
 use verbb\formie\events\SubmissionWorkflowStageEvent;
 use verbb\formie\events\SubmissionWorkflowTaskEvent;
@@ -29,6 +31,7 @@ use verbb\formie\workflow\stages\ValidateStage;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 
+use Craft;
 use craft\helpers\Json;
 
 use yii\base\Component;
@@ -57,6 +60,12 @@ class SubmissionWorkflow extends Component
     public const EVENT_BEFORE_TASK = 'beforeTask';
     public const EVENT_AFTER_TASK = 'afterTask';
 
+    /**
+     * Fired after a successful save when the visitor advanced to another page
+     * (Next). Does not fire on Back, save-and-continue, or final submit.
+     */
+    public const EVENT_AFTER_PAGE_ADVANCE = 'afterPageAdvance';
+
 
     // Static Methods
     // =========================================================================
@@ -82,8 +91,14 @@ class SubmissionWorkflow extends Component
         // payment-replay execution.
         $workflow = $this->_getSubmitWorkflow($request);
         $context = new WorkflowContext($request, $workflow);
-        $stages = $this->_createWorkflowStages();
-        $context = $this->_runWorkflowStages($context, $stages);
+        WorkflowContext::push($context);
+
+        try {
+            $stages = $this->_createWorkflowStages();
+            $context = $this->_runWorkflowStages($context, $stages);
+        } finally {
+            WorkflowContext::pop();
+        }
 
         if (!$context->success) {
             $submissionErrors = $request->submission->getErrors();
@@ -376,6 +391,12 @@ class SubmissionWorkflow extends Component
                 $context->workflowExecution->haltedAtStage = $stageName;
                 $context->workflowExecution->success = $stageResult->success;
             }
+
+            // Intent events fire after a successful save, before dispatch, so
+            // listeners can mutate status and still affect notifications.
+            if ($stageName === Stage::SAVE->value && !$stageResult->halt && $stageResult->success) {
+                $this->_raiseSaveStageLifecycleEvents($context);
+            }
         }
 
         if (!$context->workflowExecution->halted) {
@@ -518,6 +539,58 @@ class SubmissionWorkflow extends Component
         }
 
         return false;
+    }
+
+    /**
+     * Raise the public Next / complete hooks after persist succeeded and
+     * payment did not fail or pause. Dispatch has not run yet.
+     */
+    private function _raiseSaveStageLifecycleEvents(WorkflowContext $context): void
+    {
+        if (!empty($context->taskState['save.spamDiscarded'])) {
+            return;
+        }
+
+        if (!$context->processingSuccess) {
+            return;
+        }
+
+        $request = $context->request;
+        $submission = $request->submission;
+        $form = $request->form;
+
+        if ($context->isPageAdvance()) {
+            $this->trigger(self::EVENT_AFTER_PAGE_ADVANCE, new SubmissionPageAdvanceEvent([
+                'submission' => $submission,
+                'form' => $form,
+                'request' => $request,
+                'context' => $context,
+                'fromPage' => $form->getCurrentPage(),
+                'toPage' => $context->nextPage,
+            ]));
+
+            return;
+        }
+
+        if (!$context->isCompletion() || !$submission->id) {
+            return;
+        }
+
+        // Snapshot so we only persist listener status changes, not the fact
+        // that persist just wrote a default status on a new submission.
+        $statusIdBefore = $submission->statusId;
+
+        $submission->trigger(Submission::EVENT_AFTER_COMPLETE, new SubmissionCompleteEvent([
+            'submission' => $submission,
+            'form' => $form,
+            'request' => $request,
+            'context' => $context,
+            'fromPage' => $form->getCurrentPage(),
+        ]));
+
+        if ($submission->statusId !== $statusIdBefore) {
+            Craft::$app->getElements()->saveElement($submission, false);
+        }
     }
 
     private function _findPageById(Form $form, int $pageId): ?FieldLayoutPage

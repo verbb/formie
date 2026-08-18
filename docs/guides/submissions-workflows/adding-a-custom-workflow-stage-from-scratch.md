@@ -10,6 +10,7 @@ Read [Submission workflow and stages explained](/guides/submissions-workflows/su
 
 | Approach | Use when |
 | --- | --- |
+| `EVENT_AFTER_PAGE_ADVANCE` / `EVENT_AFTER_COMPLETE` | Successful Next, or the form actually finished — not a new stage. |
 | Custom task in an existing stage | One ordered step inside `screen`, `save`, `dispatch`, etc. |
 | **Custom stage** | A new lifecycle phase — fraud scoring, enrichment, compliance hold — with its own stage name and position in the pipeline. |
 | `beforeStage` / `afterStage` on a built-in stage | Lightweight observation without registering new pipeline structure. |
@@ -220,6 +221,7 @@ If the stage never runs, confirm the anchor stage name in `insertStageAfter()`. 
 
 ## Related
 
+- [Run PHP on Next vs when the form is finished](/guides/submissions-workflows/run-php-on-next-vs-when-the-form-is-finished)
 - [Using submission workflow events](/guides/submissions-workflows/using-submission-workflow-events)
 - [Adding a custom workflow task from scratch](/guides/submissions-workflows/adding-a-custom-workflow-task-from-scratch)
 - [Submission workflow and stages explained](/guides/submissions-workflows/submission-workflow-and-stages-explained)

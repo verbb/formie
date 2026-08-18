@@ -40,7 +40,7 @@ Event::on(Submission::class, Submission::EVENT_BEFORE_SAVE, function(ModelEvent 
 ### The `afterSaveSubmission` event
 The event that is triggered after a submission is saved. For multi-page forms, this event will occur on each page submission, as the submission is saved in its incomplete state.
 
-If you need to run code during the submission lifecycle rather than on every element save, use the submission workflow events.
+If you need to run code when the visitor clicks Next, or only when the form is finished, use `EVENT_AFTER_PAGE_ADVANCE` and `EVENT_AFTER_COMPLETE` instead. See [Run PHP on Next vs when the form is finished](/guides/submissions-workflows/run-php-on-next-vs-when-the-form-is-finished).
 
 ```php
 use craft\events\ModelEvent;
@@ -52,12 +52,45 @@ Event::on(Submission::class, Submission::EVENT_AFTER_SAVE, function(ModelEvent $
 });
 ```
 
+### The `afterComplete` event
+The event that is triggered when a submission **becomes complete** — last reachable page submitted (later pages may be hidden by conditions), payment replay that finishes the form, or a control-panel mark-complete. It does not fire on intermediate page steps or later edits of an already complete submission.
+
+On a front-end submit this fires after persist and **before** notifications and integrations. Status changes made on `$event->submission` are persisted for you.
+
+```php
+use verbb\formie\elements\Submission;
+use verbb\formie\events\SubmissionCompleteEvent;
+use yii\base\Event;
+
+Event::on(Submission::class, Submission::EVENT_AFTER_COMPLETE, function(SubmissionCompleteEvent $event) {
+    $submission = $event->submission;
+    $form = $event->form;
+    // ...
+});
+```
+
 ### Submission workflow events
 The submission workflow handles each page request and the final completed submission. Use these events when you need to hook into a specific stage or task in the submission process.
 
 ::: tip
-For copy-paste listener patterns, see [Using submission workflow events](/guides/submissions-workflows/using-submission-workflow-events). For stage and task names, see [Submission Workflow](/developers/submission-workflow).
+For Next vs finished-form listeners, see [Run PHP on Next vs when the form is finished](/guides/submissions-workflows/run-php-on-next-vs-when-the-form-is-finished). For copy-paste stage/task patterns, see [Using submission workflow events](/guides/submissions-workflows/using-submission-workflow-events). For stage and task names, see [Submission Workflow](/developers/submission-workflow).
 :::
+
+### The `afterPageAdvance` event
+The event that is triggered after a successful **Next** — the current page was accepted and another reachable page will be shown. It does not fire on Back, save-and-continue, single-page forms, or final submit.
+
+```php
+use verbb\formie\events\SubmissionPageAdvanceEvent;
+use verbb\formie\services\SubmissionWorkflow;
+use yii\base\Event;
+
+Event::on(SubmissionWorkflow::class, SubmissionWorkflow::EVENT_AFTER_PAGE_ADVANCE, function(SubmissionPageAdvanceEvent $event) {
+    $submission = $event->submission;
+    $fromPage = $event->fromPage;
+    $toPage = $event->toPage;
+    // ...
+});
+```
 
 ### The `beforeSetPage` event
 The event that is triggered before Formie stores the current page navigation state for a form.
@@ -137,7 +170,7 @@ Event::on(SubmissionWorkflow::class, SubmissionWorkflow::EVENT_BEFORE_TASK, func
     $stage = $event->stage;
     $task = $event->task;
 
-    if ($stage === 'dispatch' && $task === 'notifications') {
+    if ($stage === 'dispatch' && $task === 'dispatch.sendNotifications') {
         // ...
     }
 });

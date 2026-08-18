@@ -46,8 +46,10 @@ class ProcessPaymentsTask implements TaskInterface
 
                 $submission->isIncomplete = false;
                 $submission->validateCurrentPageOnly = false;
+                $context->becameComplete = true;
             } else {
                 $submission->isIncomplete = true;
+                $context->becameComplete = false;
             }
 
             return TaskResult::continue();
@@ -55,6 +57,7 @@ class ProcessPaymentsTask implements TaskInterface
 
         if (!in_array($paymentDecision->status, [PaymentDecision::STATUS_SUCCEEDED, PaymentDecision::STATUS_NOT_REQUIRED], true)) {
             $submission->isIncomplete = true;
+            $context->becameComplete = false;
             Craft::$app->getElements()->saveElement($submission, false);
         }
 

@@ -10,6 +10,7 @@ Read [Submission workflow and stages explained](/guides/submissions-workflows/su
 
 | Approach | Use when |
 | --- | --- |
+| `EVENT_AFTER_PAGE_ADVANCE` / `EVENT_AFTER_COMPLETE` | Successful Next, or the form actually finished. See [Run PHP on Next vs when the form is finished](/guides/submissions-workflows/run-php-on-next-vs-when-the-form-is-finished). |
 | `Submission::EVENT_AFTER_SAVE` | You care about the element being saved, regardless of how the request arrived. |
 | `beforeStage` / `afterStage` | You need request-level logic around an entire phase, without a dedicated task name. |
 | `beforeTask` / `afterTask` | A few lines beside an existing built-in task is enough — no new class or ordering contract. |

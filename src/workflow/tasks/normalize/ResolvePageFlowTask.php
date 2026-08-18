@@ -68,8 +68,11 @@ class ResolvePageFlowTask implements TaskInterface
 
             $submission->isIncomplete = false;
             $submission->validateCurrentPageOnly = false;
+            // Last reachable page (conditions may have skipped later pages).
+            $context->becameComplete = true;
         } else {
             $submission->isIncomplete = true;
+            $context->becameComplete = false;
         }
 
         $context->nextPage = $nextPage;

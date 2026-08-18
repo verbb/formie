@@ -84,27 +84,26 @@ Conditions affect **behaviour during and immediately after submit**. Statuses af
 A practical workflow:
 
 1. **Conditions** route urgent enquiries — high budget reveals a priority page and sends a dedicated notification to sales.
-2. New submissions land in status `new` (form default).
-3. Staff move submissions to `in-progress` while working them, then `closed` when done.
+2. **Submission status rules** on the form set status `new` or `in-progress` on **Final submit** (optionally with field conditions).
+3. Staff move submissions to `closed` when done.
 
-Conditions do not set statuses automatically. If you need status changes based on submission content, use a module that listens for `Submission::EVENT_AFTER_SAVE` or a custom workflow task in the `save` stage.
+Enable **Submission Status Rules** in form settings. Rules evaluate in order; the first match wins. Use the **Final submit** trigger so intermediate Next clicks do not change status.
+
+If the rule cannot live on one form — for example every form that uses a `request` template — listen to `Submission::EVENT_AFTER_COMPLETE` instead of `EVENT_AFTER_SAVE`. See [Run PHP on Next vs when the form is finished](/guides/submissions-workflows/run-php-on-next-vs-when-the-form-is-finished).
 
 ```php
-use craft\events\ModelEvent;
 use verbb\formie\elements\Submission;
+use verbb\formie\events\SubmissionCompleteEvent;
 use yii\base\Event;
 
-Event::on(Submission::class, Submission::EVENT_AFTER_SAVE, function(ModelEvent $event) {
-    $submission = $event->sender;
+Event::on(Submission::class, Submission::EVENT_AFTER_COMPLETE, function(SubmissionCompleteEvent $event) {
+    $submission = $event->submission;
 
     if ($submission->getFieldValue('priority') === 'urgent') {
-        $submission->statusId = Formie::$plugin->getStatuses()->getStatusByHandle('in-progress')->id;
-        Craft::$app->elements->saveElement($submission, false);
+        $submission->setStatus('in-progress');
     }
 });
 ```
-
-Avoid infinite save loops — use `$event->isValid` checks and skip when the status is already correct.
 
 ## Control panel editing
 
@@ -112,6 +111,7 @@ When editing submissions in the CP, Formie can apply the same field and page con
 
 ## Related
 
+- [Run PHP on Next vs when the form is finished](/guides/submissions-workflows/run-php-on-next-vs-when-the-form-is-finished)
 - [Submission Statuses](/submissions/statuses)
 - [Conditions](/forms/conditions)
 - [Submission workflow and stages explained](/guides/submissions-workflows/submission-workflow-and-stages-explained)

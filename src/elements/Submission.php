@@ -16,6 +16,7 @@ use verbb\formie\elements\actions\SetSubmissionSpam;
 use verbb\formie\elements\actions\SetSubmissionStatus;
 use verbb\formie\elements\conditions\SubmissionCondition;
 use verbb\formie\elements\db\SubmissionQuery;
+use verbb\formie\events\SubmissionCompleteEvent;
 use verbb\formie\events\SubmissionMarkedAsSpamEvent;
 use verbb\formie\events\SubmissionRulesEvent;
 use verbb\formie\fields\FileUpload;
@@ -33,6 +34,7 @@ use verbb\formie\models\Settings;
 use verbb\formie\models\SubmissionStatus;
 use verbb\formie\models\ValueContext;
 use verbb\formie\records\Submission as SubmissionRecord;
+use verbb\formie\workflow\WorkflowContext;
 use Craft;
 use craft\base\Component;
 use craft\base\Element;
@@ -70,6 +72,13 @@ class Submission extends Element
 
     public const EVENT_DEFINE_RULES = 'defineSubmissionRules';
     public const EVENT_BEFORE_MARKED_AS_SPAM = 'beforeMarkedAsSpam';
+
+    /**
+     * Fired when a submission becomes complete: last reachable page submitted,
+     * payment replay that finishes the form, or a control-panel mark-complete.
+     * Does not fire on intermediate page steps or later edits of a complete submission.
+     */
+    public const EVENT_AFTER_COMPLETE = 'afterComplete';
 
     // Static Methods
     // =========================================================================
@@ -465,6 +474,7 @@ class Submission extends Element
     private ?array $_pagesForField = null;
     private ?array $_assetsToDelete = [];
     private bool $_previousIsSpam = false;
+    private bool $_previousIsIncomplete = false;
     private ?int $_previousStatusId = null;
     private array $_captchaData = [];
     private ?array $_validationAttributeNames = null;
@@ -1183,13 +1193,14 @@ class Submission extends Element
         // Save the current status and spam state before saving so we can compare
         if ($this->id) {
             $previousSettings = (new Query())
-                ->select(['statusId', 'isSpam'])
+                ->select(['statusId', 'isSpam', 'isIncomplete'])
                 ->from([Table::FORMIE_SUBMISSIONS])
                 ->where(['id' => $this->id])
                 ->one();
 
             $this->_previousStatusId = $previousSettings['statusId'] ?? null;
             $this->_previousIsSpam = (bool)($previousSettings['isSpam'] ?? false);
+            $this->_previousIsIncomplete = (bool)($previousSettings['isIncomplete'] ?? false);
         }
 
         if (!$this->statusId && ($form = $this->getForm()) && ($defaultStatus = $form->getDefaultStatus())) {
@@ -1271,6 +1282,31 @@ class Submission extends Element
         }
 
         parent::afterSave($isNew);
+
+        $this->_raiseAfterCompleteIfNeeded($isNew);
+    }
+
+    /**
+     * Direct element saves (CP mark-complete, imports) that flip incomplete →
+     * complete. Workflow persist skips this path so `EVENT_AFTER_COMPLETE`
+     * waits until the save stage finishes (payment may still fail).
+     */
+    private function _raiseAfterCompleteIfNeeded(bool $isNew): void
+    {
+        if ($this->isIncomplete || WorkflowContext::current()) {
+            return;
+        }
+
+        $becameComplete = $isNew || $this->_previousIsIncomplete;
+
+        if (!$becameComplete) {
+            return;
+        }
+
+        $this->trigger(self::EVENT_AFTER_COMPLETE, new SubmissionCompleteEvent([
+            'submission' => $this,
+            'form' => $this->getForm(),
+        ]));
     }
 
     public function beforeDelete(): bool

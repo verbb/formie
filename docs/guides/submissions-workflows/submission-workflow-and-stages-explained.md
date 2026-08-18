@@ -8,6 +8,8 @@ If you are extending submission handling, the workflow tells you where your code
 
 That model also explains practical behaviour worth knowing early: why save-and-continue skips spam checks, why integrations wait until after payment succeeds, and why hooking `Submission::EVENT_AFTER_SAVE` is not always the same as hooking into a front-end submit.
 
+If you only need “run PHP on Next” or “run PHP when the form is finished,” start with [Run PHP on Next vs when the form is finished](/guides/submissions-workflows/run-php-on-next-vs-when-the-form-is-finished). This page is the pipeline itself.
+
 This guide walks through what runs in each stage, which requests use the full pipeline, and how to choose an extension point. For stage and task names, code examples, and events, see [Submission Workflow](/developers/submission-workflow).
 
 ## Prerequisites
@@ -66,15 +68,17 @@ See [Save and continue later](/guides/submissions-workflows/save-and-continue-la
 
 You do not always need a custom workflow task. Match the hook to what you actually care about:
 
+**You need to run code after a successful Next, or only when the form is finished** — use `EVENT_AFTER_PAGE_ADVANCE` / `EVENT_AFTER_COMPLETE`. See [Run PHP on Next vs when the form is finished](/guides/submissions-workflows/run-php-on-next-vs-when-the-form-is-finished). Every page POST uses `submit` mode; Next and Submit both post `submitAction=submit`. Completeness is `isIncomplete` / next reachable page after page flow, including conditionally hidden last pages.
+
 **You need to react whenever the submission element is saved** — including control panel edits, imports, or API updates — use a submission **element event** such as `Submission::EVENT_AFTER_SAVE`. That fires on the element, not on the front-end submit request.
 
 **You need logic only during a front-end submit** — for example extra screening before spam checks, or work that should never run on draft saves — listen to **workflow stage or task events** and check the request mode is `submit`.
 
 **The stage is right but you need one more step inside it** — for example queue a job after save but before Mailchimp runs — register a **custom workflow task** in that stage, positioned before or after a built-in task.
 
-**You need a new phase in the pipeline** — for example a fraud score after screening but before save — register a **custom workflow stage**.
+**You need a new phase in the pipeline** — for example a fraud score after screening but before save — register a **custom workflow stage**. Page vs complete is not a new stage.
 
-If you are unsure, start with the smallest hook. Element events are the broadest; workflow events are narrower and usually what you want for submit-time behaviour. See [Using submission workflow events](/guides/submissions-workflows/using-submission-workflow-events) for copy-paste listener patterns.
+If you are unsure, start with the smallest hook. The two lifecycle events cover the common page-step and finished-form cases. Element events are the broadest; stage and task events are the escape hatch for a named slot in the pipeline.
 
 ## When you are ready to implement
 
@@ -91,6 +95,7 @@ For full walkthroughs with module structure and copy-paste classes, see [Using s
 
 ## Related
 
+- [Run PHP on Next vs when the form is finished](/guides/submissions-workflows/run-php-on-next-vs-when-the-form-is-finished)
 - [Using submission workflow events](/guides/submissions-workflows/using-submission-workflow-events)
 - [Adding a custom workflow task from scratch](/guides/submissions-workflows/adding-a-custom-workflow-task-from-scratch)
 - [Adding a custom workflow stage from scratch](/guides/submissions-workflows/adding-a-custom-workflow-stage-from-scratch)

@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Added
+- Add `Submission::EVENT_AFTER_COMPLETE` and `SubmissionWorkflow::EVENT_AFTER_PAGE_ADVANCE` so modules can hook a successful Next or a finished form without `afterTask` guards. See [Run PHP on Next vs when the form is finished](/guides/submissions-workflows/run-php-on-next-vs-when-the-form-is-finished).
 - Add `data-formie-validation-skip` so helper controls can opt out of client-side validation without field-specific validator exceptions.
 
 ### Changed
