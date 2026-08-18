@@ -193,6 +193,7 @@ document.addEventListener('formie:validator:ready', (event) => {
 - Bail out early when your rule is not declared on the current field.
 - Put rule options into the `data-formie-validation` JSON instead of hard-coding them in JavaScript.
 - Resolve related fields by Formie field handle for consistency with the rest of Formie's browser behavior.
+- Mark helper controls that are not value carriers with `data-formie-validation-skip` instead of special-casing them in a rule. The validator will not collect or live-validate those inputs.
 
 ## Related pages
 

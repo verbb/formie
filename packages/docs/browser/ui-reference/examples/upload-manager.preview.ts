@@ -71,6 +71,7 @@ const preview: FormiePreviewSourceDefinition = {
                                                                 class="formie-sr-only"
                                                                 multiple
                                                                 data-formie-upload-manager-input
+                                                                data-formie-validation-skip
                                                                 tabindex="-1"
                                                             />
 

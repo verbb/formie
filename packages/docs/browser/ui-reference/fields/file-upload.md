@@ -56,6 +56,7 @@ File Upload fields span a field wrapper, one or more controls, and supporting hi
 | `data-formie-upload-manager` | Dropzone selector used by the `upload-manager` module | Required for Advanced upload behaviour |
 | `data-formie-upload-manager-browse` | Browse button inside the dropzone | Required |
 | `data-formie-upload-manager-input` | Hidden file input used for browse selection | Required |
+| `data-formie-validation-skip` | Opts the browse input out of client-side validation; required state is owned by the status input | Required |
 | `data-formie-upload-manager-status` | Screen-reader-only validation status input | Required for required validation |
 | `data-formie-upload-manager-list` | Uploaded file list container | Required |
 | `data-formie-input-type="upload-manager"` | Server-rendered display-type marker on the dropzone | Recommended |

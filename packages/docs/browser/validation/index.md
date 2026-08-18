@@ -11,7 +11,10 @@ The validator:
 - renders errors back into Formie's field and messages markup
 - skips conditionally hidden fields
 - skips hidden pages until the final submit pass
+- skips controls marked `data-formie-validation-skip`
 - treats checkbox and radio groups as one logical field so duplicate errors are not rendered
+
+Use `data-formie-validation-skip` on helper controls that are not the field's value carrier — for example a file picker that is cleared after selection. Put the attribute on the control itself, not the field wrapper.
 
 ## When validation runs
 

@@ -1700,6 +1700,9 @@ class FileUpload extends ElementField
                     'multiple' => $limitFiles != 1,
                     'accept' => $this->getAccept(),
                     'data-formie-upload-manager-input' => true,
+                    // Picker only: value is cleared after selection. Required is owned by
+                    // the status input + uploadManagerRequired, not this control.
+                    'data-formie-validation-skip' => true,
                     'tabindex' => -1,
                 ])
                 ->theme([
