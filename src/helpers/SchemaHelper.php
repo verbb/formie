@@ -545,6 +545,24 @@ class SchemaHelper
         ], $config);
     }
 
+    // ElementSelectField persists a list of `{id, siteId}` refs (limit 1 is still `[{…}]`).
+    public static function firstElementSelectIds(mixed $value): array
+    {
+        $first = is_array($value) ? ($value[0] ?? null) : null;
+
+        if (!is_array($first)) {
+            return [null, null];
+        }
+
+        $id = $first['id'] ?? null;
+        $siteId = $first['siteId'] ?? null;
+
+        return [
+            ($id === null || $id === '') ? null : (int)$id,
+            ($siteId === null || $siteId === '') ? null : (int)$siteId,
+        ];
+    }
+
     public static function fieldSelectField(array $config = []): array
     {
         return array_merge([

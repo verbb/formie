@@ -6,6 +6,7 @@ use verbb\formie\elements\Form as FormElement;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\HandleHelper;
 use verbb\formie\helpers\Plugin;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\Stencil;
 use verbb\formie\models\StencilData;
@@ -136,8 +137,9 @@ class StencilsController extends Controller
         $stencil->id = $stencilId;
         $stencil->name = $request->getParam('title', $stencil->name);
         $stencil->handle = $request->getParam('handle', $stencil->handle);
-        $stencil->submitActionEntryId = $request->getParam('submitActionEntryId.id');
-        $stencil->submitActionEntrySiteId = $request->getParam('submitActionEntryId.siteId');
+        [$stencil->submitActionEntryId, $stencil->submitActionEntrySiteId] = SchemaHelper::firstElementSelectIds(
+            $request->getParam('submitActionEntry'),
+        );
 
         $originalName = $stencil->name;
 

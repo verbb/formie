@@ -598,8 +598,9 @@ class Forms extends Component
         $form->fileUploadsAction = $request->getParam('fileUploadsAction', $form->fileUploadsAction);
         $form->dataRetention = $request->getParam('dataRetention', $form->dataRetention);
         $form->dataRetentionValue = $request->getParam('dataRetentionValue', $form->dataRetentionValue);
-        $form->submitActionEntryId = $request->getParam('submitActionEntryId.id');
-        $form->submitActionEntrySiteId = $request->getParam('submitActionEntryId.siteId');
+        [$form->submitActionEntryId, $form->submitActionEntrySiteId] = SchemaHelper::firstElementSelectIds(
+            $request->getParam('submitActionEntry'),
+        );
 
         // Populate the form builder layout (pages/rows/fields)
         if ($pages = $request->getParam('pages')) {
