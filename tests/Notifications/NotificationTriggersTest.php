@@ -27,9 +27,10 @@ function notificationTriggersSubmissionWithStatusChange(SubmissionStatus $previo
     return $submission;
 }
 
-function notificationTriggersStatus(string $handle, string $name = 'Status'): SubmissionStatus
+function notificationTriggersStatus(string $handle, string $name = 'Status', int $id = 1): SubmissionStatus
 {
     return new SubmissionStatus([
+        'id' => $id,
         'name' => $name,
         'handle' => $handle,
         'color' => 'green',
@@ -37,8 +38,8 @@ function notificationTriggersStatus(string $handle, string $name = 'Status'): Su
 }
 
 it('sends notifications configured for the new submission status', function (): void {
-    $accepted = notificationTriggersStatus('accepted', 'Accepted');
-    $new = notificationTriggersStatus('new', 'New');
+    $accepted = notificationTriggersStatus('accepted', 'Accepted', 8001);
+    $new = notificationTriggersStatus('new', 'New', 8002);
 
     $form = new Form();
     $form->id = 7002;
@@ -78,9 +79,16 @@ it('sends notifications configured for the new submission status', function (): 
     $submission = notificationTriggersSubmissionWithStatusChange($new, $accepted);
     $submission->setForm($form);
 
+    // Queueing never raises EVENT_BEFORE_SEND_NOTIFICATION; cancel the email so the test
+    // only asserts which notification was selected.
+    $settings = Formie::$plugin->getSettings();
+    $previousUseQueue = $settings->useQueueForNotifications;
+    $settings->useQueueForNotifications = false;
+
     $sent = [];
     $handler = function ($event) use (&$sent): void {
         $sent[] = $event->notification->handle ?? null;
+        $event->isValid = false;
     };
 
     Event::on(Notifications::class, Notifications::EVENT_BEFORE_SEND_NOTIFICATION, $handler);
@@ -90,6 +98,7 @@ it('sends notifications configured for the new submission status', function (): 
 
         expect($sent)->toBe(['acceptedAlert']);
     } finally {
+        $settings->useQueueForNotifications = $previousUseQueue;
         Event::off(Notifications::class, Notifications::EVENT_BEFORE_SEND_NOTIFICATION, $handler);
     }
 });

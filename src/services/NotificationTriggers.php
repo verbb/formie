@@ -45,8 +45,9 @@ class NotificationTriggers extends Component
             return false;
         }
 
+        // getStatus() is Craft's element status handle (string), not a SubmissionStatus model.
         $status = $submission->getStatus();
 
-        return $status && (string)$status->handle === (string)$statusHandle;
+        return $status !== null && (string)$status === (string)$statusHandle;
     }
 }
