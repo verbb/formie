@@ -729,8 +729,8 @@
       "_scripts-CbQ7agX3-C-1aO496.js"
     ]
   },
-  "_registerFormieOwnedSchemaFields-CGYBpIYY.js": {
-    "file": "assets/registerFormieOwnedSchemaFields-CGYBpIYY.js",
+  "_registerFormieOwnedSchemaFields-CMwI5JbT.js": {
+    "file": "assets/registerFormieOwnedSchemaFields-CMwI5JbT.js",
     "name": "registerFormieOwnedSchemaFields",
     "imports": [
       "_rolldown-runtime-QTnfLwEv.js",
@@ -773,12 +773,12 @@
       "_DragHandle-DwvWl8AU.js"
     ]
   },
-  "_style-CdqSWR-C.js": {
-    "file": "assets/style-CdqSWR-C.js",
+  "_style-By62hdpu.js": {
+    "file": "assets/style-By62hdpu.js",
     "name": "style",
     "imports": [
       "_rolldown-runtime-QTnfLwEv.js",
-      "_registerFormieOwnedSchemaFields-CGYBpIYY.js",
+      "_registerFormieOwnedSchemaFields-CMwI5JbT.js",
       "_dndkit-D4XU4if7.js",
       "_plugin-kit-BV-4zoir.js",
       "_utils-y8d4mXZ4.js"
@@ -809,11 +809,11 @@
     "isEntry": true,
     "imports": [
       "_rolldown-runtime-QTnfLwEv.js",
-      "_registerFormieOwnedSchemaFields-CGYBpIYY.js",
+      "_registerFormieOwnedSchemaFields-CMwI5JbT.js",
       "_dndkit-D4XU4if7.js",
       "_plugin-kit-BV-4zoir.js",
       "_utils-y8d4mXZ4.js",
-      "_style-CdqSWR-C.js"
+      "_style-By62hdpu.js"
     ]
   },
   "src/field-palette/formie-field-palette.js": {
@@ -829,13 +829,13 @@
     ]
   },
   "src/form-builder/formie-form-builder.js": {
-    "file": "assets/formie-form-builder-BiU2iKYI.js",
+    "file": "assets/formie-form-builder-DX5lThR5.js",
     "name": "formie-form-builder",
     "src": "src/form-builder/formie-form-builder.js",
     "isEntry": true,
     "imports": [
       "_rolldown-runtime-QTnfLwEv.js",
-      "_registerFormieOwnedSchemaFields-CGYBpIYY.js",
+      "_registerFormieOwnedSchemaFields-CMwI5JbT.js",
       "_dndkit-D4XU4if7.js",
       "_data-utils-DB0piEGt.js",
       "_plugin-kit-BV-4zoir.js",
@@ -852,11 +852,11 @@
     "isEntry": true,
     "imports": [
       "_rolldown-runtime-QTnfLwEv.js",
-      "_registerFormieOwnedSchemaFields-CGYBpIYY.js",
+      "_registerFormieOwnedSchemaFields-CMwI5JbT.js",
       "_dndkit-D4XU4if7.js",
       "_plugin-kit-BV-4zoir.js",
       "_utils-y8d4mXZ4.js",
-      "_style-CdqSWR-C.js",
+      "_style-By62hdpu.js",
       "_style-BikVq8d9.js"
     ]
   },

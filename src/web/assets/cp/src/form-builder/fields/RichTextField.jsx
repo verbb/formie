@@ -55,8 +55,8 @@ export function RichTextField({ form, field }) {
         (items) => Array.isArray(items) && items.length > 0,
     );
 
-    // Lit attribute expects a CSV list; React may also assign a string property.
-    const buttonsAttr = Array.isArray(buttons) ? buttons.join(',') : String(buttons || 'bold,italic');
+    // Lit `buttons` accepts CSV or string[]; pass the array so @lit/react sets the prototype property.
+    const buttonsProp = Array.isArray(buttons) ? buttons : String(buttons || 'bold,italic');
 
     return (
         <FieldLayout
@@ -91,9 +91,10 @@ export function RichTextField({ form, field }) {
                     }}
                     placeholder={field.placeholder}
                     rows={field.rows}
-                    // Lit property is `buttonsAttr` (`buttons` is a getter-only CSV parse).
-                    buttonsAttr={buttonsAttr}
-                    {...(field.linkOptions && { linkOptionsAttr: typeof field.linkOptions === 'string'
+                    // Must match pk-tiptap-editor props (`buttons` / `linkOptions`) — Attr suffixes
+                    // become inert HTML attrs and the toolbar falls back to bold/italic (#2929).
+                    buttons={buttonsProp}
+                    {...(field.linkOptions && { linkOptions: typeof field.linkOptions === 'string'
                         ? field.linkOptions
                         : JSON.stringify(field.linkOptions) })}
                     {...(field.linkSelectorStorageKeyPrefix && {

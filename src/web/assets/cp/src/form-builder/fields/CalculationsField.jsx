@@ -248,7 +248,7 @@ export function CalculationsField({ form, field }) {
                     ref={hostRef}
                     value={normalizePkTiptapStoreValue(value)}
                     // Empty stock button list — CalculationsToolbar owns the chrome via slot="toolbar".
-                    buttonsAttr=""
+                    buttons=""
                     rows={field.rows ?? 8}
                     placeholder={field.placeholder}
                     variableTagConfigure={openConfigureSession}
