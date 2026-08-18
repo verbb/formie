@@ -3,6 +3,7 @@ namespace verbb\formie\helpers;
 
 use verbb\formie\Formie;
 use verbb\formie\base\FieldInterface;
+use verbb\formie\base\ParentFieldInterface;
 use verbb\formie\base\RepeatableParentFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
@@ -1460,20 +1461,39 @@ class Variables
         if (!$renderCache->hasFieldReferenceIndex($cacheKey)) {
             $fieldsByReference = [];
 
+            // Index Group/Name/Address children too — variable pickers historically emitted
+            // `{field:nestedUid}` for Group kids, which must resolve via valueKey().
+            // Skip Repeater children: those need scoped parent tokens (`scope=first`, etc.).
             foreach ($submission->getFields() as $field) {
-                $fieldReference = trim((string)($field->reference ?? ''));
-
-                if ($fieldReference === '') {
-                    continue;
-                }
-
-                $fieldsByReference[$fieldReference] = $field;
+                self::_indexFieldReference($fieldsByReference, $field);
             }
 
             $renderCache->setFieldReferenceIndex($cacheKey, $fieldsByReference);
         }
 
         return $renderCache->getFieldByReference($cacheKey, $reference);
+    }
+
+    private static function _indexFieldReference(array &$fieldsByReference, FieldInterface $field): void
+    {
+        $fieldReference = trim((string)($field->reference ?? ''));
+
+        if ($fieldReference !== '') {
+            $fieldsByReference[$fieldReference] = $field;
+        }
+
+        // Repeater rows are multi-valued; bare nested refs cannot pick a row without scope.
+        if ($field instanceof RepeatableParentFieldInterface) {
+            return;
+        }
+
+        if (!($field instanceof ParentFieldInterface)) {
+            return;
+        }
+
+        foreach ($field->getFields() as $nestedField) {
+            self::_indexFieldReference($fieldsByReference, $nestedField);
+        }
     }
 
     private static function _getPrefixedEnvironmentVariableKeys(string $prefix): array
@@ -1691,15 +1711,17 @@ class Variables
             return TableReferenceHelper::resolve($submission, $field, $selector, $params);
         }
 
-        $fieldHandle = $field->handle;
+        // Nested Group (and sub-field) instances carry a dotted valueKey like `group.innerText`.
+        // Bare `$field->handle` misses the parent path and returns empty for nested tokens.
+        $fieldKey = $field->valueKey();
 
         if ($selector === '') {
-            return $submission->getFieldValue($fieldHandle);
+            return $submission->getFieldValue($fieldKey);
         }
 
         $path = str_replace(':', '.', $selector);
 
-        return $submission->getFieldValue($fieldHandle . '.' . $path);
+        return $submission->getFieldValue($fieldKey . '.' . $path);
     }
 
     private static function _getCurrentUser(?Submission $submission = null): bool|User|IdentityInterface|null
