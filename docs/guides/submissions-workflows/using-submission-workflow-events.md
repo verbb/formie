@@ -4,13 +4,13 @@ Most submission extensions do not need a custom task or stage. Formie fires **wo
 
 This walkthrough wires those listeners from a Craft module with four common patterns. When you outgrow events — ordered steps inside a stage, a new pipeline phase, or stable task names in logs — see the [custom task](/guides/submissions-workflows/adding-a-custom-workflow-task-from-scratch) and [custom stage](/guides/submissions-workflows/adding-a-custom-workflow-stage-from-scratch) guides.
 
-Read [Submission workflow and stages explained](/guides/submissions-workflows/submission-workflow-and-stages-explained) first if the pipeline is new to you. For Next vs finished-form hooks, see [Run PHP on Next vs when the form is finished](/guides/submissions-workflows/run-php-on-next-vs-when-the-form-is-finished). For every event payload, see [Submission Events](/developers/events/submission-events).
+Read [Submission workflow and stages explained](/guides/submissions-workflows/submission-workflow-and-stages-explained) first if the pipeline is new to you. For page-submit vs form-submit hooks, see [Run custom code on page submit or form submit](/guides/submissions-workflows/run-custom-code-on-page-submit-or-form-submit). For every event payload, see [Submission Events](/developers/events/submission-events).
 
 ## When events are enough
 
 | Extension point | Use when |
 | --- | --- |
-| `EVENT_AFTER_PAGE_ADVANCE` / `EVENT_AFTER_COMPLETE` | Successful Next, or the form actually finished. Start here for those two intents. |
+| `EVENT_AFTER_PAGE_ADVANCE` / `EVENT_AFTER_COMPLETE` | Page submit, or the form actually submitted. Start here for those two intents. |
 | `Submission::EVENT_BEFORE_SAVE` / `EVENT_AFTER_SAVE` | The element save itself — including control panel edits, imports, and API updates — not the front-end submit request lifecycle. |
 | **`beforeStage` / `afterStage`** | Logic around a whole phase (`validate`, `screen`, `save`, `dispatch`, …). |
 | **`beforeTask` / `afterTask`** | Logic beside one built-in step — after validation, after persistence, before integrations. |
@@ -239,7 +239,7 @@ Keep listeners fast. Queue slow API calls from `afterTask` or `afterStage` rathe
 
 ## Related
 
-- [Run PHP on Next vs when the form is finished](/guides/submissions-workflows/run-php-on-next-vs-when-the-form-is-finished)
+- [Run custom code on page submit or form submit](/guides/submissions-workflows/run-custom-code-on-page-submit-or-form-submit)
 - [Submission workflow and stages explained](/guides/submissions-workflows/submission-workflow-and-stages-explained)
 - [Adding a custom workflow task from scratch](/guides/submissions-workflows/adding-a-custom-workflow-task-from-scratch)
 - [Adding a custom workflow stage from scratch](/guides/submissions-workflows/adding-a-custom-workflow-stage-from-scratch)

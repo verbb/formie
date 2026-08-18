@@ -87,9 +87,9 @@ A practical workflow:
 2. **Submission status rules** on the form set status `new` or `in-progress` on **Final submit** (optionally with field conditions).
 3. Staff move submissions to `closed` when done.
 
-Enable **Submission Status Rules** in form settings. Rules evaluate in order; the first match wins. Use the **Final submit** trigger so intermediate Next clicks do not change status.
+Enable **Submission Status Rules** in form settings. Rules evaluate in order; the first match wins. Use the **Final submit** trigger so intermediate page submits do not change status.
 
-If the rule cannot live on one form — for example every form that uses a `request` template — listen to `Submission::EVENT_AFTER_COMPLETE` instead of `EVENT_AFTER_SAVE`. See [Run PHP on Next vs when the form is finished](/guides/submissions-workflows/run-php-on-next-vs-when-the-form-is-finished).
+If the rule cannot live on one form — for example every form that uses a `request` template — listen to `Submission::EVENT_AFTER_COMPLETE` instead of `EVENT_AFTER_SAVE`. See [Run custom code on page submit or form submit](/guides/submissions-workflows/run-custom-code-on-page-submit-or-form-submit).
 
 ```php
 use verbb\formie\elements\Submission;
@@ -111,7 +111,7 @@ When editing submissions in the CP, Formie can apply the same field and page con
 
 ## Related
 
-- [Run PHP on Next vs when the form is finished](/guides/submissions-workflows/run-php-on-next-vs-when-the-form-is-finished)
+- [Run custom code on page submit or form submit](/guides/submissions-workflows/run-custom-code-on-page-submit-or-form-submit)
 - [Submission Statuses](/submissions/statuses)
 - [Conditions](/forms/conditions)
 - [Submission workflow and stages explained](/guides/submissions-workflows/submission-workflow-and-stages-explained)

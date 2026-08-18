@@ -40,7 +40,7 @@ Event::on(Submission::class, Submission::EVENT_BEFORE_SAVE, function(ModelEvent 
 ### The `afterSaveSubmission` event
 The event that is triggered after a submission is saved. For multi-page forms, this event will occur on each page submission, as the submission is saved in its incomplete state.
 
-If you need to run code when the visitor clicks Next, or only when the form is finished, use `EVENT_AFTER_PAGE_ADVANCE` and `EVENT_AFTER_COMPLETE` instead. See [Run PHP on Next vs when the form is finished](/guides/submissions-workflows/run-php-on-next-vs-when-the-form-is-finished).
+If you need to run code on a page submit, or only when the form is submitted, use `EVENT_AFTER_PAGE_ADVANCE` and `EVENT_AFTER_COMPLETE` instead. See [Run custom code on page submit or form submit](/guides/submissions-workflows/run-custom-code-on-page-submit-or-form-submit).
 
 ```php
 use craft\events\ModelEvent;
@@ -73,11 +73,11 @@ Event::on(Submission::class, Submission::EVENT_AFTER_COMPLETE, function(Submissi
 The submission workflow handles each page request and the final completed submission. Use these events when you need to hook into a specific stage or task in the submission process.
 
 ::: tip
-For Next vs finished-form listeners, see [Run PHP on Next vs when the form is finished](/guides/submissions-workflows/run-php-on-next-vs-when-the-form-is-finished). For copy-paste stage/task patterns, see [Using submission workflow events](/guides/submissions-workflows/using-submission-workflow-events). For stage and task names, see [Submission Workflow](/developers/submission-workflow).
+For page-submit vs form-submit listeners, see [Run custom code on page submit or form submit](/guides/submissions-workflows/run-custom-code-on-page-submit-or-form-submit). For copy-paste stage/task patterns, see [Using submission workflow events](/guides/submissions-workflows/using-submission-workflow-events). For stage and task names, see [Submission Workflow](/developers/submission-workflow).
 :::
 
 ### The `afterPageAdvance` event
-The event that is triggered after a successful **Next** — the current page was accepted and another reachable page will be shown. It does not fire on Back, save-and-continue, single-page forms, or final submit.
+The event that is triggered after a successful **page submit** — the current page was accepted and another reachable page will be shown. It does not fire on Back, save-and-continue, single-page forms, or form submit.
 
 ```php
 use verbb\formie\events\SubmissionPageAdvanceEvent;

@@ -1,7 +1,7 @@
 # Submission Workflow
 
 ::: tip
-Read [Submission workflow and stages explained](/guides/submissions-workflows/submission-workflow-and-stages-explained) first for why stages exist, workflow modes, and how to choose an extension point. For Next vs finished-form listeners, see [Run PHP on Next vs when the form is finished](/guides/submissions-workflows/run-php-on-next-vs-when-the-form-is-finished). For listener examples without custom classes, see [Using submission workflow events](/guides/submissions-workflows/using-submission-workflow-events).
+Read [Submission workflow and stages explained](/guides/submissions-workflows/submission-workflow-and-stages-explained) first for why stages exist, workflow modes, and how to choose an extension point. For page-submit vs form-submit listeners, see [Run custom code on page submit or form submit](/guides/submissions-workflows/run-custom-code-on-page-submit-or-form-submit). For listener examples without custom classes, see [Using submission workflow events](/guides/submissions-workflows/using-submission-workflow-events).
 :::
 
 This page is the developer reference: stage and task names, workflow modes, code examples, and events for extending the pipeline.
@@ -25,13 +25,13 @@ You do not always need a custom workflow task. Pick the smallest extension point
 
 | Use this | When it fits best |
 | --- | --- |
-| `EVENT_AFTER_PAGE_ADVANCE` / `EVENT_AFTER_COMPLETE` | You want code on a successful Next, or only when the form is finished. See [Run PHP on Next vs when the form is finished](/guides/submissions-workflows/run-php-on-next-vs-when-the-form-is-finished). |
+| `EVENT_AFTER_PAGE_ADVANCE` / `EVENT_AFTER_COMPLETE` | You want code on a page submit, or only when the form is submitted. See [Run custom code on page submit or form submit](/guides/submissions-workflows/run-custom-code-on-page-submit-or-form-submit). |
 | Submission element events | You need to react to the element being saved or deleted, regardless of where that save came from. |
 | Workflow stage or task events | You need request-level behavior during a specific submission phase such as validation, screening, save, dispatch, or finalize. |
 | Custom workflow task | The stage is already correct, but you need to insert one more piece of work into that stage. |
 | Custom workflow stage | You need a brand new phase in the pipeline, not just one more task in an existing stage. |
 
-As a rule of thumb, use `Submission::EVENT_AFTER_COMPLETE` when the form just finished, `EVENT_AFTER_PAGE_ADVANCE` when Next succeeded, `Submission::EVENT_AFTER_SAVE` when you care about the element save itself, and stage/task events when you care about a named slot in the request lifecycle.
+As a rule of thumb, use `Submission::EVENT_AFTER_COMPLETE` when the form was submitted, `EVENT_AFTER_PAGE_ADVANCE` when a page was submitted, `Submission::EVENT_AFTER_SAVE` when you care about the element save itself, and stage/task events when you care about a named slot in the request lifecycle.
 
 ## Submission stages
 
@@ -190,7 +190,7 @@ Extension tasks use custom names outside Formie's built-in `Task` enum. They run
 
 ## Guides
 
-- [Run PHP on Next vs when the form is finished](/guides/submissions-workflows/run-php-on-next-vs-when-the-form-is-finished) — Next vs last visible page, without stage/task events
+- [Run custom code on page submit or form submit](/guides/submissions-workflows/run-custom-code-on-page-submit-or-form-submit) — page submit vs last visible page, without stage/task events
 - [Submission workflow and stages explained](/guides/submissions-workflows/submission-workflow-and-stages-explained) — why the pipeline exists, workflow modes in plain language, and how to choose an extension point
 - [Using submission workflow events](/guides/submissions-workflows/using-submission-workflow-events) — listeners without custom task or stage classes
 - [Adding a custom workflow task from scratch](/guides/submissions-workflows/adding-a-custom-workflow-task-from-scratch) — insert an ordered task into an existing stage

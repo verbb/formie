@@ -70,9 +70,9 @@ class WorkflowContext
     }
 
     /**
-     * Successful Next: this POST accepted the current page and there is another
-     * reachable page. Next and Submit both post `submitAction=submit`; the
-     * discriminator is `nextPage` / `isIncomplete` after resolve-page-flow.
+     * Page submit: this POST accepted the current page and there is another
+     * reachable page. Page submit and form submit both post `submitAction=submit`;
+     * the discriminator is `nextPage` / `isIncomplete` after resolve-page-flow.
      */
     public function isPageAdvance(): bool
     {

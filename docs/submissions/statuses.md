@@ -21,7 +21,7 @@ Each form can choose a default status for new submissions, and optional **submis
 
 That means different forms can enter your process in different states, depending on how they are handled internally.
 
-Enable rules under the form’s **Submissions** settings. Rules run in order; the first match wins. Optional conditions can limit a rule to certain answers. For module code when a rule cannot be expressed per form, see [Run PHP on Next vs when the form is finished](/guides/submissions-workflows/run-php-on-next-vs-when-the-form-is-finished).
+Enable rules under the form’s **Submissions** settings. Rules run in order; the first match wins. Optional conditions can limit a rule to certain answers. For module code when a rule cannot be expressed per form, see [Run custom code on page submit or form submit](/guides/submissions-workflows/run-custom-code-on-page-submit-or-form-submit).
 
 Statuses are separate from whether a submission is:
 

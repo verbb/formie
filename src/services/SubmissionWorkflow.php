@@ -61,8 +61,9 @@ class SubmissionWorkflow extends Component
     public const EVENT_AFTER_TASK = 'afterTask';
 
     /**
-     * Fired after a successful save when the visitor advanced to another page
-     * (Next). Does not fire on Back, save-and-continue, or final submit.
+     * Fired after a successful save when the visitor submitted a page and
+     * another reachable page will be shown. Does not fire on Back,
+     * save-and-continue, or form submit.
      */
     public const EVENT_AFTER_PAGE_ADVANCE = 'afterPageAdvance';
 

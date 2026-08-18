@@ -71,7 +71,7 @@ it('fires afterComplete on a single-page submit and not afterPageAdvance', funct
     }
 });
 
-it('fires afterPageAdvance on Next and afterComplete on the last page', function (): void {
+it('fires afterPageAdvance on page submit and afterComplete on form submit', function (): void {
     $form = formie()
         ->form(['title' => 'Lifecycle Multipage'])
         ->settings(['disableCaptchas' => true])

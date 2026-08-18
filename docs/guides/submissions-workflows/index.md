@@ -15,9 +15,9 @@ Submissions can be related to Craft elements — entries, categories, products, 
 
 Getting-started walkthrough for saved reports and scheduled email delivery — links to the reports reference for formats, permissions, cron, and troubleshooting.
 
-##### [Run PHP on Next vs when the form is finished](/guides/submissions-workflows/run-php-on-next-vs-when-the-form-is-finished)
+##### [Run custom code on page submit or form submit](/guides/submissions-workflows/run-custom-code-on-page-submit-or-form-submit)
 
-Every page POST uses the same pipeline. This guide shows the two public hooks — after a successful Next, and when the last visible page is submitted — without `afterTask` archaeology.
+Every page POST uses the same pipeline. This guide shows the two public hooks — after a page submit, and when the form is submitted — without `afterTask` archaeology.
 
 ##### [Submission screening rules in practice](/guides/submissions-workflows/submission-screening-rules-in-practice)
 
