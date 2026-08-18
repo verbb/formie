@@ -93,7 +93,12 @@ function preferSameRow<TElement extends Element>(targetNode: Element, candidates
 }
 
 export function resolveConditionSource(condition: ConditionDefinition): ConditionSource | null {
-    if (condition.source?.target === 'field' && condition.source.handle) {
+    if (!condition.source?.target || !condition.source.handle) {
+        return null;
+    }
+
+    // Field inputs + submission snapshot keys both use `source.handle`.
+    if (condition.source.target === 'field' || condition.source.target === 'submission') {
         return condition.source;
     }
 

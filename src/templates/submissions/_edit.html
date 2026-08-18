@@ -66,10 +66,12 @@
 
 {% block content %}
 
+{# Snapshot for client conditions that use `{submission:*}` (status, title, …). #}
 {% set attributes = {
     id: form.getRenderId(),
     class: 'formie-form',
     'data-fui-form': formConfigJson,
+    'data-formie-submission': submissionClientContext|default({})|json_encode,
 } %}
 
 <div {{ attr(attributes) }}>
@@ -183,7 +185,7 @@
                     <ul class="padded">
                         {% for status in statuses %}
                             <li>
-                                <a data-val="{{ status.id }}" data-label="{{ status.name }}" data-color="{{ status.color }}" {% if submission.statusId == status.id %}class="sel"{% endif %} href="javascript:;">
+                                <a data-val="{{ status.id }}" data-handle="{{ status.handle }}" data-label="{{ status.name }}" data-color="{{ status.color }}" {% if submission.statusId == status.id %}class="sel"{% endif %} href="javascript:;">
                                     <span class="status {{ status.color }}"></span>{{ status.name }}
                                 </a>
                             </li>
@@ -436,12 +438,27 @@ $(function () {
     new Garnish.MenuBtn($statusSelect, {
         onOptionSelect: function(data) {
             var val = $(data).data('val');
+            var handle = $(data).data('handle') || '';
             var label = $(data).data('label');
             var color = $(data).data('color');
             $('#statusId').val(val);
 
             var html = '<span class="status ' + color + '"></span>' + label;
             $statusSelect.html(html);
+
+            // Keep client condition snapshots in sync so `{submission:status}` re-evaluates.
+            var formEl = document.querySelector('[data-fui-form][data-formie-submission]');
+            if (formEl) {
+                var snap = {};
+                try {
+                    snap = JSON.parse(formEl.getAttribute('data-formie-submission') || '{}') || {};
+                } catch (e) {
+                    snap = {};
+                }
+                snap.status = String(handle || '');
+                formEl.setAttribute('data-formie-submission', JSON.stringify(snap));
+                formEl.dispatchEvent(new CustomEvent('formie:submission-context-change', { bubbles: true }));
+            }
         }
     });
 

@@ -3,6 +3,10 @@ import { CONDITION_SELECTOR, getConditionNodes, parseConditionSettings } from '#
 import { applyConditionVisibility } from '#modules/fields/conditions/effects';
 import { evaluateConditionSettings } from '#modules/fields/conditions/evaluator';
 import { queryConditionInputs } from '#modules/fields/conditions/references';
+import {
+    SUBMISSION_CONTEXT_ATTR,
+    SUBMISSION_CONTEXT_CHANGE_EVENT,
+} from '#modules/fields/conditions/submission-context';
 import type { ConditionEntry, ConditionInput } from '#modules/fields/conditions/types';
 import { getConditionInputEventNames } from '#modules/fields/conditions/values';
 import { createDebug } from '#utils/debug';
@@ -81,6 +85,9 @@ export const conditionsModule: FormieModuleDefinition = {
             entries.forEach((entry) => {
                 const result = evaluateConditionSettings(entry.settings, (condition) => {
                     return queryConditionInputs(scopeRoot, entry.node, condition);
+                }, {
+                    root: scopeRoot,
+                    from: entry.node,
                 });
 
                 const displayMode = entry.node.hasAttribute('data-formie-page')
@@ -185,6 +192,16 @@ export const conditionsModule: FormieModuleDefinition = {
                 sourceUnbinds.push(() => {
                     ctx.form?.removeEventListener('reset', resetHandler);
                 });
+
+                // CP status menu (etc.) updates `data-formie-submission` and fires this event.
+                const submissionContextHandler = () => {
+                    scheduleEvaluateAll();
+                };
+
+                ctx.form.addEventListener(SUBMISSION_CONTEXT_CHANGE_EVENT, submissionContextHandler);
+                sourceUnbinds.push(() => {
+                    ctx.form?.removeEventListener(SUBMISSION_CONTEXT_CHANGE_EVENT, submissionContextHandler);
+                });
             }
         };
 
@@ -249,6 +266,7 @@ export const conditionsModule: FormieModuleDefinition = {
                 'data-formie-conditionally-hidden',
                 'data-formie-page-hidden',
                 'data-formie-row-hidden',
+                SUBMISSION_CONTEXT_ATTR,
             ],
         });
 

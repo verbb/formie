@@ -159,10 +159,6 @@ class ConditionsHelper
     {
         $fieldMap = self::getClientFieldReferenceMap($form);
 
-        if (!$fieldMap) {
-            return $conditions;
-        }
-
         foreach (($conditions['conditions'] ?? []) as $index => $condition) {
             $fieldReference = $condition['field'] ?? null;
 
@@ -176,6 +172,33 @@ class ConditionsHelper
         }
 
         return $conditions;
+    }
+
+    /**
+     * Snapshot of `{submission:*}` values for client condition evaluation (CP + front-end).
+     * Keys match condition option identifiers (`status`, `title`, `formName`, …).
+     */
+    public static function getClientSubmissionContext(?Submission $submission): array
+    {
+        if (!$submission) {
+            return [];
+        }
+
+        $form = $submission->getForm();
+        $site = Craft::$app->getSites()->getSiteById((int)$submission->siteId);
+        $dateCreated = $submission->dateCreated;
+
+        return [
+            'title' => (string)($submission->title ?? ''),
+            'id' => (string)($submission->id ?? ''),
+            'uid' => (string)($submission->uid ?? ''),
+            'status' => (string)($submission->getStatus() ?? ''),
+            'formName' => (string)($form?->title ?? ''),
+            'siteName' => (string)($site?->name ?? ''),
+            'siteHandle' => (string)($site?->handle ?? ''),
+            'dateCreated' => $dateCreated?->format('c') ?? '',
+            'date' => $dateCreated?->format('Y-m-d H:i:s') ?? '',
+        ];
     }
 
     public static function getClientFieldReferenceMap(Form $form): array
@@ -267,12 +290,13 @@ class ConditionsHelper
                 return [
                     'raw' => $trimmedReference,
                     'target' => $expression->target,
-                    'handle' => '',
-                    'selector' => '',
+                    // Property key for client snapshots (`status`, `title`, …).
+                    'handle' => $expression->identifier,
+                    'selector' => $expression->selector,
                     'defaultValue' => $expression->default,
                     'transformerId' => $expression->transformerId,
                     'transformerParams' => $expression->transformerParams,
-                    'isValid' => true,
+                    'isValid' => $expression->identifier !== '',
                 ];
             }
 

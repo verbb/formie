@@ -27,7 +27,9 @@ class ConditionValueResolver
 
         if ($expression->isValid) {
             if ($expression->target !== 'field') {
-                return $submission->getFieldValue($fieldReference);
+                // Non-field tokens (`{submission:status}`, `{form:name}`, …) resolve
+                // through the variables map — not content field keys.
+                return Variables::getFieldAndValueForReference($fieldReference, $submission)['value'] ?? null;
             }
 
             $resolved = Variables::getFieldAndValueForReference($fieldReference, $submission);

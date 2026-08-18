@@ -7,6 +7,7 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\errors\StaleSubmissionStateException;
 use verbb\formie\helpers\ClientEventsHelper;
+use verbb\formie\helpers\ConditionsHelper;
 use verbb\formie\helpers\SetPageReturnUrlHelper;
 use verbb\formie\helpers\SiteHelper;
 use verbb\formie\helpers\StringHelper;
@@ -236,6 +237,7 @@ class SubmissionsController extends Controller
         // Add some settings just for submission editing
         $formConfigJson['settings']['outputJs'] = false;
         $variables['formConfigJson'] = $formConfigJson;
+        $variables['submissionClientContext'] = ConditionsHelper::getClientSubmissionContext($variables['submission']);
 
         return $this->renderTemplate('formie/submissions/_edit', $variables);
     }

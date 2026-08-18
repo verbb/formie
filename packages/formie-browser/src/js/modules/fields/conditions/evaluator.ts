@@ -2,6 +2,7 @@ import { evaluateConditionDefinition, finalizeConditionEvaluation } from '@verbb
 
 import type { ConditionDefinition, ParsedConditionSettings, ConditionInput } from '#modules/fields/conditions/types';
 import { resolveConditionSource } from '#modules/fields/conditions/references';
+import { readSubmissionConditionValues } from '#modules/fields/conditions/submission-context';
 import { readConditionValues } from '#modules/fields/conditions/values';
 
 function isInputVisible(input: ConditionInput): boolean {
@@ -30,12 +31,24 @@ function getConditionVisibility(inputs: ConditionInput[]): boolean | null {
 export function evaluateConditionSettings(
     settings: ParsedConditionSettings,
     getConditionInputs: (condition: ConditionDefinition) => Array<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
+    options: {
+        root?: Element;
+        from?: Element;
+    } = {},
 ): { finalResult: boolean; shouldHide: boolean } {
+    const root = options.root;
+    const from = options.from || root;
+
     const groupedResults = settings.conditions.map((condition) => {
         const inputs = getConditionInputs(condition);
         const source = resolveConditionSource(condition);
 
-        return evaluateConditionDefinition(condition, readConditionValues(inputs, source), {
+        // `{submission:*}` is not a DOM field — read the snapshot emitted on the form.
+        const actualValues = source?.target === 'submission' && root && from
+            ? readSubmissionConditionValues(root, source, from)
+            : readConditionValues(inputs, source);
+
+        return evaluateConditionDefinition(condition, actualValues, {
             visibility: getConditionVisibility(inputs),
         });
     });
