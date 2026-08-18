@@ -34,7 +34,7 @@ class ValidateQuizRetakeTask implements TaskInterface
         $submission = $context->request->submission;
         $currentPage = $form->getCurrentPage();
 
-        if (!$form->isLastPage($currentPage)) {
+        if (!$form->isLastPage($currentPage, $submission)) {
             return TaskResult::continue();
         }
 

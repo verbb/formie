@@ -35,7 +35,10 @@ class ValidateSubmissionTask implements TaskInterface
         $form = $context->request->form;
         $currentPage = $form->getCurrentPage();
         $submission->setScenario(Element::SCENARIO_LIVE);
-        $submission->validateCurrentPageOnly = !$form->isLastPage($currentPage);
+        // Final page = no next *visible* page for this submission (same contract as ResolvePageFlowTask).
+        // Structural isLastPage() without $submission would keep validating only the current page when
+        // a later page is conditionally hidden, while still marking the submission complete (#2927).
+        $submission->validateCurrentPageOnly = !$form->isLastPage($currentPage, $submission);
         $submission->validate();
 
         return TaskResult::continue();

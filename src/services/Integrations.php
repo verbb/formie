@@ -1174,8 +1174,9 @@ class Integrations extends Component
                 // Lastly, check if we're forcing to return the captcha. Notably, when prepping the JS variables
                 // for ajax forms. They might not show it immediately, but they need it prepped on-load.
                 if ($form->hasMultiplePages() && !$force) {
-                    // Only show the captcha on the last page - unless we specify otherwise in settings
-                    if (!$integration->showAllPages && !$form->isLastPage($page)) {
+                    // Only show the captcha on the last *reachable* page for this submission
+                    // (conditionally hidden later pages must not keep captchas off the real final page).
+                    if (!$integration->showAllPages && !$form->isLastPage($page, $form->getCurrentSubmission())) {
                         continue;
                     }
                 }

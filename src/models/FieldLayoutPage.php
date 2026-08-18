@@ -215,7 +215,9 @@ class FieldLayoutPage extends SavableComponent implements TranslatableProperties
     public function getClientPayload(Form $form, int $index): array
     {
         $pageSettings = $this->getPageSettings();
-        $isLastPage = $form->isLastPage($this);
+        // Prefer submission-aware last-page when editing/resuming so primary action is submit
+        // when later pages are conditionally hidden for this submission.
+        $isLastPage = $form->isLastPage($this, $form->getCurrentSubmission());
         $secondaryActions = [];
 
         if ($index > 0 && $pageSettings->showBackButton) {

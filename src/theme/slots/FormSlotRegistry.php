@@ -2,6 +2,7 @@
 namespace verbb\formie\theme\slots;
 
 use verbb\formie\Formie;
+use verbb\formie\helpers\ConditionsHelper;
 use verbb\formie\helpers\Html;
 use verbb\formie\models\Settings;
 use verbb\formie\helpers\SetPageReturnUrlHelper;
@@ -82,6 +83,7 @@ class FormSlotRegistry extends Component
         $hasStaticCache = $settings->hasStaticCache();
         $errorAriaLive = $settings->errorAriaLive;
         $pendingClientEvents = false;
+        $submissionContext = ConditionsHelper::getClientSubmissionContext($context->submission);
 
         if ($form) {
             $flashEvents = Formie::$plugin->getService()->getFlash($form->getFlashNamespace(), 'clientEvents');
@@ -127,6 +129,8 @@ class FormSlotRegistry extends Component
                 'data-formie-theme-config' => (is_array($renderThemeConfig) && $renderThemeConfig !== []) ? Json::encode($renderThemeConfig) : false,
                 'data-formie-frontend-theme' => (is_string($renderTheme) && $renderTheme !== '' && $renderTheme !== 'formie') ? $renderTheme : false,
                 'data-formie-pending-client-events' => $pendingClientEvents,
+                // Lets `{submission:*}` page/field conditions evaluate in the browser.
+                'data-formie-submission' => $submissionContext ? Json::encode($submissionContext) : false,
             ])
             ->theme([
                 'class' => [

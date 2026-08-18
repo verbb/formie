@@ -1222,14 +1222,28 @@ class Form extends Element implements FormInterface
         $this->_currentPage = null;
     }
 
-    public function isLastPage(FieldLayoutPage $currentPage = null): bool
+    /**
+     * Whether `$currentPage` is the last *reachable* page in the flow.
+     *
+     * Pass `$submission` whenever conditions matter: `getNextPage()` only skips
+     * conditionally hidden pages when a submission is provided. Without it, a
+     * structurally later (but hidden) page still counts as “next”, so callers
+     * that decide final submit / full validation can wrongly treat a last
+     * *visible* page as mid-flow (#2927).
+     */
+    public function isLastPage(FieldLayoutPage $currentPage = null, Submission $submission = null): bool
     {
-        return !((bool)$this->getNextPage($currentPage));
+        return !((bool)$this->getNextPage($currentPage, $submission));
     }
 
-    public function isFirstPage(FieldLayoutPage $currentPage = null): bool
+    /**
+     * Whether `$currentPage` is the first *reachable* page in the flow.
+     *
+     * Same submission contract as {@see isLastPage()} / {@see getPreviousPage()}.
+     */
+    public function isFirstPage(FieldLayoutPage $currentPage = null, Submission $submission = null): bool
     {
-        return !((bool)$this->getPreviousPage($currentPage));
+        return !((bool)$this->getPreviousPage($currentPage, $submission));
     }
 
     public function getCurrentSubmission(): ?Submission
@@ -1557,7 +1571,7 @@ class Form extends Element implements FormInterface
 
         // We don't want to show the redirect URL on unfinished multi-page forms, so check first
         if ($this->settings->submitMethod == 'page-reload') {
-            if ($checkLastPage && !$this->isLastPage()) {
+            if ($checkLastPage && !$this->isLastPage(null, $submission)) {
                 return $url;
             }
         }
