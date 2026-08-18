@@ -11,6 +11,7 @@
 - Fix conditions Field column vertical alignment (trigger + ⋯ vs Condition/Value) when projected into EditableTable custom cells.
 
 ### Fixed
+- Fix element-field variable tokens with a property selector resolving empty (e.g. `{field:<ref>:title}`). Unindexed selectors now resolve against related elements and join multi-value results. ([#2930](https://github.com/verbb/formie/issues/2930))
 - Fix status-change notifications never sending: the trigger compared `Submission::getStatus()` as a status model, but it returns the handle string. ([#2931](https://github.com/verbb/formie/issues/2931))
 - Fix rich text toolbars always showing only Bold/Italic — pass `buttons` / `linkOptions` to `pk-tiptap-editor` instead of the obsolete `*Attr` prop names so configured buttons reach the element. ([#2929](https://github.com/verbb/formie/issues/2929))
 - Fix final submit validating only the current page when a later page is conditionally hidden — `isLastPage()` / `isFirstPage()` now accept the submission so they skip unreachable pages the same way as `getNextPage()`. ([#2927](https://github.com/verbb/formie/issues/2927))

@@ -2,6 +2,7 @@
 namespace verbb\formie\helpers;
 
 use verbb\formie\Formie;
+use verbb\formie\base\ElementField;
 use verbb\formie\base\FieldInterface;
 use verbb\formie\base\ParentFieldInterface;
 use verbb\formie\base\RepeatableParentFieldInterface;
@@ -1709,6 +1710,12 @@ class Variables
 
         if ($field instanceof Table) {
             return TableReferenceHelper::resolve($submission, $field, $selector, $params);
+        }
+
+        // Element relation fields: selectors are related-element properties, not Formie sub-fields.
+        // `{field:uid:title}` must not become getFieldValue('handle.title') (always empty).
+        if ($field instanceof ElementField) {
+            return ElementReferenceHelper::resolve($submission, $field, $selector, $params);
         }
 
         // Nested Group (and sub-field) instances carry a dotted valueKey like `group.innerText`.

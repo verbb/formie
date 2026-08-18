@@ -778,6 +778,55 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
         return StringHelper::sanitizeUrlAttribute(is_string($url) ? $url : null);
     }
 
+    /**
+     * Resolve a variable-picker property against one related element.
+     *
+     * Handles Formie reference aliases (`url`, `cpUrl`, `__toString`) plus
+     * normal element attributes / ArrayAccess keys used by field subclasses.
+     */
+    public function resolveElementProperty(ElementInterface $element, string $property): mixed
+    {
+        $property = trim($property);
+
+        // Empty property = the field's formatted label (same as bare field token intent).
+        if ($property === '' || $property === '__toString') {
+            return $this->getElementLabel($element);
+        }
+
+        if ($property === 'url') {
+            return $this->getSafeElementUrl($element);
+        }
+
+        if ($property === 'cpUrl') {
+            return $this->getSafeElementUrl($element, true);
+        }
+
+        // Prefer ArrayAccess so custom fields and attributes resolve the Craft way.
+        if ($element instanceof \ArrayAccess) {
+            try {
+                if (isset($element[$property])) {
+                    return $element[$property];
+                }
+            } catch (Throwable) {
+                // Fall through to attribute / dotted path access.
+            }
+        }
+
+        try {
+            if (isset($element->{$property})) {
+                return $element->{$property};
+            }
+        } catch (Throwable) {
+            // Ignore inaccessible dynamic properties.
+        }
+
+        if (str_contains($property, '.')) {
+            return ArrayHelper::getValue($element, $property);
+        }
+
+        return null;
+    }
+
     public function getSettingGqlTypes(): array
     {
         return array_merge(parent::getSettingGqlTypes(), [
