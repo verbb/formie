@@ -5,8 +5,15 @@
 ### Added
 - Add `data-formie-validation-skip` so helper controls can opt out of client-side validation without field-specific validator exceptions.
 
+### Changed
+- Tighten conditions UI density: sentence Show/All selects and the Field picker trigger now use `xs` to match Condition/Value table chips.
+- Fix conditions Field column vertical alignment (trigger + ⋯ vs Condition/Value) when projected into EditableTable custom cells.
+
 ### Fixed
+- Fix final submit validating only the current page when a later page is conditionally hidden — `isLastPage()` / `isFirstPage()` now accept the submission so they skip unreachable pages the same way as `getNextPage()`. ([#2927](https://github.com/verbb/formie/issues/2927))
+- Fix redirect Entry selections on the Behaviour tab (and stencils) never persisting because save read `submitActionEntryId` instead of the posted `submitActionEntry` list. ([#2926](https://github.com/verbb/formie/issues/2926))
 - Fix page (and other form-builder) conditions showing an empty Value dropdown for Submission Status by always supplying status select options. ([#2925](https://github.com/verbb/formie/issues/2925))
+- Fix CP submission edit (Follow field conditions) always hiding pages whose conditions use `{submission:*}` tokens — the client now evaluates those from a submission snapshot instead of treating them as missing fields. ([#2925](https://github.com/verbb/formie/issues/2925))
 - Fix required File Upload fields using Upload Manager never passing client-side validation after a successful upload. ([#2924](https://github.com/verbb/formie/issues/2924))
 - Fix submitting a filled Date/Time field throwing `Undefined property: DateFieldValue::$date` during validation when resolving nested `date`/`time` paths (including Date fields inside Group/Repeater). ([#2923](https://github.com/verbb/formie/issues/2923))
 - Fix Group nested field values being ignored in submission title format tokens and Element/integration field mappings when the picker stored a child field reference. ([#2922](https://github.com/verbb/formie/issues/2922))
