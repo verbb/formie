@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 4.0.0-beta.14 - 2026-08-19
 
 ### Added
 - Add `Submission::EVENT_AFTER_COMPLETE` and `SubmissionWorkflow::EVENT_AFTER_PAGE_ADVANCE` so modules can hook a page submit or a form submit without `afterTask` guards. See [Run custom code on page submit or form submit](/guides/submissions-workflows/run-custom-code-on-page-submit-or-form-submit).
