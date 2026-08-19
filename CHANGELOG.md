@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Added
+- Add support for `dompdf/dompdf` v3.
+
 ### Changed
 - Bump `verbb/base` (sandbox allows safe Craft value/query object methods by class family).
 
