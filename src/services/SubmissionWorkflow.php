@@ -435,8 +435,10 @@ class SubmissionWorkflow extends Component
             // Full submit runs the canonical task graph, including screening,
             // workflow-aware persistence, dispatch, and finalization.
             self::PROCESS_MODE_SUBMIT => array_values(array_filter($allTasks, static fn(string $taskName) => $taskName !== Task::SAVE_PERSIST_SUBMISSION_DIRECT->value)),
-            // Edit-existing skips spam/captcha and notifications, but can re-run
-            // integrations that opt in via integration re-run policies on editExisting.
+            // Edit-existing validates and saves existing records. Integrations may
+            // re-run per CP/front-end edit policies; status-change notifications
+            // fire from Submission::afterSave. Revision edits (CP and complete FE)
+            // skip visitor page-flow tasks; incomplete FE edits use continuation.
             self::PROCESS_MODE_EDIT_EXISTING => [
                 Task::PREPARE_APPLY_DRAFT_CONTEXT->value,
                 Task::PREPARE_INITIALIZE_SUBMIT_REQUEST->value,

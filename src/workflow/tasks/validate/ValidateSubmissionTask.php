@@ -3,6 +3,7 @@ namespace verbb\formie\workflow\tasks\validate;
 
 use verbb\formie\enums\workflow\Stage;
 use verbb\formie\enums\workflow\Task;
+use verbb\formie\helpers\SubmissionEditBehaviour;
 use verbb\formie\services\SubmissionWorkflow;
 use verbb\formie\workflow\WorkflowContext;
 use verbb\formie\workflow\tasks\TaskInterface;
@@ -35,10 +36,20 @@ class ValidateSubmissionTask implements TaskInterface
         $form = $context->request->form;
         $currentPage = $form->getCurrentPage();
         $submission->setScenario(Element::SCENARIO_LIVE);
-        // Final page = no next *visible* page for this submission (same contract as ResolvePageFlowTask).
-        // Structural isLastPage() without $submission would keep validating only the current page when
-        // a later page is conditionally hidden, while still marking the submission complete (#2927).
-        $submission->validateCurrentPageOnly = !$form->isLastPage($currentPage, $submission);
+
+        $editBehaviour = SubmissionEditBehaviour::resolve($context->request);
+
+        if (SubmissionEditBehaviour::isRevision($editBehaviour)) {
+            // Revision edits (CP and completed front-end) validate the whole submission,
+            // not a single page tab from visitor progression semantics.
+            $submission->validateCurrentPageOnly = false;
+        } else {
+            // Final page = no next *visible* page for this submission (same contract as ResolvePageFlowTask).
+            // Structural isLastPage() without $submission would keep validating only the current page when
+            // a later page is conditionally hidden, while still marking the submission complete (#2927).
+            $submission->validateCurrentPageOnly = !$form->isLastPage($currentPage, $submission);
+        }
+
         $submission->validate();
 
         return TaskResult::continue();

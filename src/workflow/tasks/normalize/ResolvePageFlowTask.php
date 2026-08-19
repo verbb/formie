@@ -3,6 +3,7 @@ namespace verbb\formie\workflow\tasks\normalize;
 
 use verbb\formie\enums\workflow\Stage;
 use verbb\formie\enums\workflow\Task;
+use verbb\formie\helpers\SubmissionEditBehaviour;
 use verbb\formie\services\SubmissionWorkflow;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\workflow\WorkflowContext;
@@ -29,6 +30,12 @@ class ResolvePageFlowTask implements TaskInterface
     public function execute(WorkflowContext $context): TaskResult
     {
         $request = $context->request;
+        $editBehaviour = SubmissionEditBehaviour::resolve($request);
+
+        if (SubmissionEditBehaviour::isRevision($editBehaviour)) {
+            return $this->_executeRevisionEdit($context);
+        }
+
         $form = $request->form;
         $submission = $request->submission;
 
@@ -83,6 +90,32 @@ class ResolvePageFlowTask implements TaskInterface
 
     // Private Methods
     // =========================================================================
+
+    /**
+     * Revision edits save the submission record in place. They must not
+     * re-derive completion, default status, or next-page state from visitor
+     * multi-page submit semantics (#2932).
+     */
+    private function _executeRevisionEdit(WorkflowContext $context): TaskResult
+    {
+        $request = $context->request;
+        $submission = $request->submission;
+
+        if ($request->pageId !== null) {
+            $currentPage = $this->_findPageById((int)$request->pageId, $request->form->getPages());
+
+            if ($currentPage) {
+                $request->form->setCurrentPage($currentPage);
+            }
+        }
+
+        $submission->setScenario(Element::SCENARIO_LIVE);
+        $submission->validateCurrentPageOnly = false;
+        $context->becameComplete = false;
+        $context->nextPage = null;
+
+        return TaskResult::continue();
+    }
 
     private function _findPageById(int $pageId, array $pages): ?FieldLayoutPage
     {
