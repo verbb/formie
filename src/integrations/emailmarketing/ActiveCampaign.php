@@ -118,13 +118,13 @@ class ActiveCampaign extends EmailMarketing
             $tags = ArrayHelper::remove($fieldValues, 'tags');
 
             $payload = [
-                'contact' => [
+                'contact' => array_filter([
                     'email' => $email,
                     'firstName' => $firstName,
                     'lastName' => $lastName,
                     'phone' => $phone,
                     'fieldValues' => $this->_prepCustomFields($fieldValues),
-                ],
+                ]),
             ];
 
             $response = $this->deliverPayload($submission, 'contact/sync', $payload);
