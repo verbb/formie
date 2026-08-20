@@ -171,8 +171,6 @@ class FileUpload extends ElementField
     {
         $rules = parent::getElementValidationRules();
 
-        $rules[] = 'validateFileType';
-
         if ($this->restrictFiles) {
             $rules[] = 'validateFileType';
         }
