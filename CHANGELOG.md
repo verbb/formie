@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 2.2.29 - 2026-08-20
 
 ### Added
 - Add support for `dompdf/dompdf` v3.
@@ -9,8 +9,8 @@
 - Bump `verbb/base` (sandbox allows safe Craft value/query object methods by class family).
 
 ### Fixed
-- Fix element fields (Entries, Categories, etc.) failing in email notification Twig when calling query methods like `.one()` or `[0]`, caused by the Twig sandbox method allow-list. #2920.
 - Fix CleanTalk captcha validation missing imports, and resolve the API key via `App::parseEnv()` instead of `App::env()`. #2936.
+- Fix element fields (Entries, Categories, etc.) failing in email notification Twig when calling query methods like `.one()` or `[0]`, caused by the Twig sandbox method allow-list. #2920.
 
 ## 2.2.28 - 2026-08-10
 
