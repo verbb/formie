@@ -205,7 +205,14 @@ function Notifications({ schema, schemaIndex }) {
     );
 
     return (
-        <div className="space-y-4">
+        <>
+            {/*
+             * Prefer flex+gap over space-y when this tree also mounts pk-dialog.
+             * space-y uses :not(:last-child) on DOM siblings — controlled dialogs stay
+             * in-tree (even with a zero layout box) and steal last-child, adding margin
+             * under the trigger/content when the modal opens. gap ignores out-of-flow hosts.
+             */}
+            <div className="flex flex-col gap-4">
             {notifications.length === 0 ? (
                 <StatePanel
                     variant="empty"
@@ -328,7 +335,9 @@ function Notifications({ schema, schemaIndex }) {
                     </div>
                 </>
             )}
+            </div>
 
+            {/* Overlay hosts sit outside the spaced stack so they never participate in sibling CSS. */}
             {editingNotification !== null && (
                 <NotificationEdit
                     notification={editingNotification}
@@ -353,7 +362,7 @@ function Notifications({ schema, schemaIndex }) {
             {isExistingNotificationsOpen && (
                 <ExistingNotifications onClose={closeExistingNotificationsModal} />
             )}
-        </div>
+        </>
     );
 }
 

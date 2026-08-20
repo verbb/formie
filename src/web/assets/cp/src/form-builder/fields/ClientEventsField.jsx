@@ -359,7 +359,8 @@ function ClientEventsField({ field, form }) {
             required={field.required}
             errors={errors}
         >
-            <div className="space-y-3">
+            {/* Overlays outside space-y / use gap — in-tree pk-dialog steals :last-child. */}
+            <div className="flex flex-col gap-3">
                 {!isFormDefaultsMode && suggestedTemplates.length > 0 ? (
                     <div className="space-y-2">
                         <p className="text-xs font-medium text-gray-600">{t('Suggested for this page')}</p>
@@ -439,15 +440,15 @@ function ClientEventsField({ field, form }) {
                         </Button>
                     ) : null}
                 </div>
-
-                <ClientEventTemplateDialog
-                    open={templateDialogOpen}
-                    onOpenChange={setTemplateDialogOpen}
-                    template={pendingTemplate}
-                    pages={builderPages}
-                    onConfirm={handleTemplateConfirm}
-                />
             </div>
+
+            <ClientEventTemplateDialog
+                open={templateDialogOpen}
+                onOpenChange={setTemplateDialogOpen}
+                template={pendingTemplate}
+                pages={builderPages}
+                onConfirm={handleTemplateConfirm}
+            />
         </FieldLayout>
     );
 }

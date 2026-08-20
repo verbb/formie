@@ -243,7 +243,11 @@ export function CalculationsField({ form, field }) {
             required={field.required}
             errors={errors}
         >
-            <div className="relative space-y-2">
+            {/*
+             * Keep dialog/overlay hosts outside the spaced stack — space-y uses
+             * :not(:last-child) and treats in-tree pk-dialog as a layout sibling.
+             */}
+            <div className="relative flex flex-col gap-2">
                 <TiptapEditor
                     ref={hostRef}
                     value={normalizePkTiptapStoreValue(value)}
@@ -280,24 +284,6 @@ export function CalculationsField({ form, field }) {
                     </div>
                 </TiptapEditor>
 
-                <CalculationsSyntaxGuideDialog
-                    open={guideOpen}
-                    onOpenChange={setGuideOpen}
-                />
-
-                {session ? (
-                    <VariableTagConfigureOverlay
-                        session={session}
-                        onClose={closeSession}
-                        variableCategories={resolvedVariableCategories}
-                        variableCategoryLabels={variableCategoryLabels}
-                        variableCategoryOrder={variableCategoryOrder}
-                        variableTransformerRegistry={variableTransformerRegistry}
-                        renderVariableConfigureSection={renderVariableConfigureSection}
-                        resolveVariableTagLabel={resolveVariableTagLabel}
-                    />
-                ) : null}
-
                 {validation.type !== 'idle' && (
                     <div className="space-y-1">
                         <p className={cn(
@@ -320,6 +306,24 @@ export function CalculationsField({ form, field }) {
                     </div>
                 )}
             </div>
+
+            <CalculationsSyntaxGuideDialog
+                open={guideOpen}
+                onOpenChange={setGuideOpen}
+            />
+
+            {session ? (
+                <VariableTagConfigureOverlay
+                    session={session}
+                    onClose={closeSession}
+                    variableCategories={resolvedVariableCategories}
+                    variableCategoryLabels={variableCategoryLabels}
+                    variableCategoryOrder={variableCategoryOrder}
+                    variableTransformerRegistry={variableTransformerRegistry}
+                    renderVariableConfigureSection={renderVariableConfigureSection}
+                    resolveVariableTagLabel={resolveVariableTagLabel}
+                />
+            ) : null}
         </FieldLayout>
     );
 }

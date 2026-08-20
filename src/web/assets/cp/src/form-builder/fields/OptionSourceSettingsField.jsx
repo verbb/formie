@@ -2243,7 +2243,9 @@ function OptionDynamicSettingsField({ field, form }) {
     ]);
 
     return (
-        <div className="space-y-4">
+        <>
+            {/* Overlays outside space-y — in-tree pk-dialog steals :last-child margin. */}
+            <div className="flex flex-col gap-4">
                 <SettingSelectField
                     name="optionsType"
                     label={optionsFieldLabel}
@@ -2260,7 +2262,7 @@ function OptionDynamicSettingsField({ field, form }) {
                 )}
 
                 {isDynamic && (
-                    <div className="space-y-3">
+                    <div className="flex flex-col gap-3">
                         {sourceType === 'predefined' && (
                             <div className="space-y-2">
                                 <SettingSelectField
@@ -2409,18 +2411,20 @@ function OptionDynamicSettingsField({ field, form }) {
                             onRefreshIntegrationData={handleRefreshIntegrationData}
                             onConvertClick={() => { setConvertDialogOpen(true); }}
                         />
-
-                        <ConvertToStaticDialog
-                            open={convertDialogOpen}
-                            onOpenChange={setConvertDialogOpen}
-                            sourceLabel={convertSourceLabel}
-                            busy={busy}
-                            onConfirm={handleConvertToStatic}
-                        />
                     </div>
                 )}
+            </div>
 
-        </div>
+            {isDynamic ? (
+                <ConvertToStaticDialog
+                    open={convertDialogOpen}
+                    onOpenChange={setConvertDialogOpen}
+                    sourceLabel={convertSourceLabel}
+                    busy={busy}
+                    onConfirm={handleConvertToStatic}
+                />
+            ) : null}
+        </>
     );
 }
 

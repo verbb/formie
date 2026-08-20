@@ -192,53 +192,55 @@ export const ReportsDashboardApp = ({ settings }) => {
     }
 
     return (
-        <div className="w-full space-y-4">
-            <header className="mb-4 flex flex-wrap items-center justify-between gap-4">
-                <div className="flex min-w-0 items-center gap-3">
-                    <h1 className="truncate text-lg font-bold text-gray-900">
-                        {Craft.t('formie', 'Reports')}
-                    </h1>
+        <>
+            <div className="flex w-full flex-col gap-4">
+                <header className="flex flex-wrap items-center justify-between gap-4">
+                    <div className="flex min-w-0 items-center gap-3">
+                        <h1 className="truncate text-lg font-bold text-gray-900">
+                            {Craft.t('formie', 'Reports')}
+                        </h1>
 
-                    {reports.length > 1 ? (
-                        <SelectInput
-                            value={selectedReportId}
-                            options={reports}
-                            onChange={(value) => { handleReportChange(value); }}
-                            triggerClassName="min-w-[220px]"
-                        />
-                    ) : null}
-                </div>
+                        {reports.length > 1 ? (
+                            <SelectInput
+                                value={selectedReportId}
+                                options={reports}
+                                onChange={(value) => { handleReportChange(value); }}
+                                triggerClassName="min-w-[220px]"
+                            />
+                        ) : null}
+                    </div>
 
-                <div className="flex items-center gap-2">
-                    {settings.canManageReports && editUrl ? (
-                        <Button href={editUrl}>
-                            {Craft.t('app', 'Edit')}
-                        </Button>
-                    ) : null}
-                    {settings.canManageReports ? (
-                        <Button type="button" variant="primary" onClick={openCreateModal}>
-                            <Icon slot="start" icon="plus" className="size-3" />
-                            {Craft.t('formie', 'New report')}
-                        </Button>
-                    ) : null}
-                </div>
-            </header>
+                    <div className="flex items-center gap-2">
+                        {settings.canManageReports && editUrl ? (
+                            <Button href={editUrl}>
+                                {Craft.t('app', 'Edit')}
+                            </Button>
+                        ) : null}
+                        {settings.canManageReports ? (
+                            <Button type="button" variant="primary" onClick={openCreateModal}>
+                                <Icon slot="start" icon="plus" className="size-3" />
+                                {Craft.t('formie', 'New report')}
+                            </Button>
+                        ) : null}
+                    </div>
+                </header>
 
-            {viewError ? (
-                <p className="text-sm text-rose-600">{viewError}</p>
-            ) : null}
+                {viewError ? (
+                    <p className="text-sm text-rose-600">{viewError}</p>
+                ) : null}
 
-            {isLoadingView && !viewConfig ? (
-                <p className="text-sm text-gray-500">{Craft.t('app', 'Loading')}</p>
-            ) : null}
+                {isLoadingView && !viewConfig ? (
+                    <p className="text-sm text-gray-500">{Craft.t('app', 'Loading')}</p>
+                ) : null}
 
-            {viewConfig ? (
-                <ReportViewApp
-                    key={viewConfig.report?.id}
-                    settings={viewConfig}
-                    embedded
-                />
-            ) : null}
+                {viewConfig ? (
+                    <ReportViewApp
+                        key={viewConfig.report?.id}
+                        settings={viewConfig}
+                        embedded
+                    />
+                ) : null}
+            </div>
 
             {settings.canManageReports ? (
                 <CreateReportModal
@@ -253,7 +255,7 @@ export const ReportsDashboardApp = ({ settings }) => {
                     onCreated={handleCreated}
                 />
             ) : null}
-        </div>
+        </>
     );
 };
 
