@@ -10,6 +10,7 @@
 
 ### Fixed
 - Fix element fields (Entries, Categories, etc.) failing in email notification Twig when calling query methods like `.one()` or `[0]`, caused by the Twig sandbox method allow-list. #2920.
+- Fix CleanTalk captcha validation missing imports, and resolve the API key via `App::parseEnv()` instead of `App::env()`. #2936.
 
 ## 2.2.28 - 2026-08-10
 

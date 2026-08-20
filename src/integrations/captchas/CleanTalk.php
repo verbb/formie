@@ -1,12 +1,14 @@
 <?php
 namespace verbb\formie\integrations\captchas;
 
-use craft\helpers\App;
 use verbb\formie\base\Captcha;
 use verbb\formie\elements\Submission;
+use verbb\formie\helpers\ArrayHelper;
 
 use Craft;
-use verbb\formie\helpers\ArrayHelper;
+use craft\helpers\App;
+
+use Throwable;
 
 class CleanTalk extends Captcha
 {
@@ -39,7 +41,7 @@ class CleanTalk extends Captcha
 
     public function validateSubmission(Submission $submission): bool
     {
-        $apiKey = App::env($this->apiKey);
+        $apiKey = App::parseEnv($this->apiKey);
         $ip = Craft::$app->getRequest()->getUserIP();
         $userAgent = Craft::$app->getRequest()->getUserAgent();
 
@@ -64,7 +66,7 @@ class CleanTalk extends Captcha
 
                 return false;
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $this->spamReason = 'CleanTalk validation failed: ' . $e->getMessage();
 
             return false;
@@ -77,4 +79,5 @@ class CleanTalk extends Captcha
     {
         return $this->apiKey;
     }
+
 }
