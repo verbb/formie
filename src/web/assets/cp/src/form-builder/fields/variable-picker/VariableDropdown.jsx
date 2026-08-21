@@ -119,7 +119,7 @@ export function VariableDropdown({
                 buttonClassName ?? '',
             )}
         >
-            <Icon slot="start" icon="plus-circle" />
+            <Icon slot="start" icon="circle-plus-outline" />
             {buttonLabel && <span>{buttonLabel}</span>}
         </Button>
     );

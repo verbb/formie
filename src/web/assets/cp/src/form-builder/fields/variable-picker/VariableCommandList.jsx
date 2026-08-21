@@ -271,7 +271,7 @@ export function VariableCommandList({
                     data-slot="command-input-wrapper"
                     className="flex items-center border-b border-slate-150 px-2"
                 >
-                    <Icon icon="search" className="mr-2 size-3 shrink-0 opacity-50" />
+                    <Icon icon="magnifying-glass" className="mr-2 size-3 shrink-0 opacity-50" />
                     <input
                         ref={searchInputRef}
                         data-slot="command-input"

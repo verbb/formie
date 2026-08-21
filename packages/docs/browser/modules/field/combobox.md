@@ -6,9 +6,9 @@ Combobox enhances Dropdown fields and other dropdown display types with a filter
 
 Formie adds the `combobox` module to a form’s client module manifest when **Use searchable dropdown** is enabled and the field renders a `<select>`:
 
-- [Dropdown](/fields/dropdown)
-- Element relation fields when **Display type** is **Dropdown** ([Entries](/fields/entries), [Categories](/fields/categories), [Users](/fields/users), [Products](/fields/products), [Variants](/fields/variants))
-- [Recipients](/fields/recipients) when shown as a dropdown
+- Dropdown
+- Element relation fields when **Display type** is **Dropdown** ([Entries](/browser/ui-reference/fields/entries), [Categories](/browser/ui-reference/fields/categories), Users, Products, Variants)
+- [Recipients](/browser/ui-reference/fields/recipients) when shown as a dropdown
 
 ## Markup
 
@@ -42,6 +42,6 @@ The shared module lifecycle also exposes scoped events such as `formie:module:co
 
 ## Related pages
 
-- [Dropdown field](/fields/dropdown)
+- [Fields](/browser/ui-reference/fields/)
 - [Overview](/browser/modules/)
 - [JavaScript events](/browser/behavior/javascript-events)

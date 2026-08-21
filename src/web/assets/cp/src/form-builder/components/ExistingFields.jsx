@@ -894,7 +894,7 @@ const ExistingFields = ({ onClose, nestedPlacement = null }) => {
                                     onChange={(e) => { return setSearch(e.target.value); }}
                                     placeholder={Craft.t('formie', 'Search')}
                                 >
-                                    <Icon slot="start" icon="search" className="size-4" />
+                                    <Icon slot="start" icon="magnifying-glass" className="size-4" />
                                 </Input>
                             </div>
 

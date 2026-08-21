@@ -64,7 +64,7 @@ function SortablePageItem({
                 {page.label}
             </span>
 
-            {/* Fixed-size SVG in start slot — size-full in the default slot collapses to 0. */}
+            {/* Icon in start slot — size-full in the default slot collapses to 0. */}
             <div ref={handleRef} className="shrink-0">
                 <Button
                     type="button"
@@ -78,17 +78,7 @@ function SortablePageItem({
                         event.stopPropagation();
                     }}
                 >
-                    <svg
-                        slot="start"
-                        className="block size-4"
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 448 512"
-                        fill="currentColor"
-                        focusable="false"
-                        aria-hidden="true"
-                    >
-                        <path d="M71.3 295.6c-21.9-21.9-21.9-57.3 0-79.2s57.3-21.9 79.2 0 21.9 57.3 0 79.2s-57.4 21.9-79.2 0zM184.4 182.5c-21.9-21.9-21.9-57.3 0-79.2s57.3-21.9 79.2 0 21.9 57.3 0 79.2-57.3 21.8-79.2 0zm0 147c21.9-21.9 57.3-21.9 79.2 0s21.9 57.3 0 79.2s-57.3 21.9-79.2 0c-21.9-21.8-21.9-57.3 0-79.2zM297.5 216.4c21.9-21.9 57.3-21.9 79.2 0s21.9 57.3 0 79.2s-57.3 21.9-79.2 0c-21.8-21.9-21.8-57.3 0-79.2z" />
-                    </svg>
+                    <Icon slot="start" icon="grip-move" className="block size-4" />
                 </Button>
             </div>
 

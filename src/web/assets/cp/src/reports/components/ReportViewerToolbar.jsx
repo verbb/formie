@@ -88,7 +88,7 @@ export function ReportViewerToolbar({
                 onChange={(event) => { setSearchValue(event.target.value); }}
             >
                 {/* Adornment inside the control shell (part=base) — not absolutely positioned outside. */}
-                <Icon slot="start" icon="search" className="size-3 text-gray-400" />
+                <Icon slot="start" icon="magnifying-glass" className="size-3 text-gray-400" />
             </Input>
 
             <ReportViewerDateRange

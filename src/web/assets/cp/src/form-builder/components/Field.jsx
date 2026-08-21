@@ -737,7 +737,7 @@ const Field = ({
                                             'text-[10px] font-medium text-[#b45309]',
                                             shouldUseFieldLabel && 'ml-2',
                                         )}>
-                                            <Icon icon="refresh" className="size-2.5" />
+                                            <Icon icon="arrows-rotate" className="size-2.5" />
                                             <span>{Craft.t('formie', 'Synced')}</span>
                                         </div>
                                     )}

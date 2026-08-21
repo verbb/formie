@@ -118,7 +118,7 @@ export function HandleField({ form, field }) {
                     aria-label={Craft.t('formie', 'Regenerate handle')}
                     tabIndex={-1}
                 >
-                    <Icon icon="refresh" className="block size-3.5" />
+                    <Icon icon="arrows-rotate" className="block size-3.5" />
                 </button>
             </div>
         </FieldLayout>
