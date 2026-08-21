@@ -1,5 +1,21 @@
 # Changelog
 
+## 3.1.36 - 2026-08-21
+
+### Added
+- Add support for `dompdf/dompdf` v3.
+
+### Changed
+- Active Campaign Email contact payload to use array_filter.
+- Bump `verbb/base` (sandbox allows safe Craft value/query object methods by class family).
+
+### Fixed
+- Fix File Upload fields rejecting every file when Restrict allowed file types was off and no file kinds were selected. #2935.
+- Fix CleanTalk captcha validation missing imports, and resolve the API key via `App::parseEnv()` instead of `App::env()`. #2936.
+- Fix multi-page next/submit buttons with conditions staying disabled from the second page. #2921.
+- Fix element fields (Entries, Categories, etc.) failing in email notification Twig when calling query methods like `.one()` or `[0]`, caused by the Twig sandbox method allow-list. #2920.
+- Fix notification “Attach Assets” selections not always persisting from the form builder (notably when replacing assets), and skip unreadable remote assets (e.g. S3) instead of failing the entire email send. #2919.
+
 ## 3.1.35 - 2026-08-10
 
 ### Added
