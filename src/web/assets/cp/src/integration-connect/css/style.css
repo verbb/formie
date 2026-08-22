@@ -10,15 +10,19 @@
     isolation: isolate;
 }
 
-/* pk-status in Craft `.heading` — align with native `.status` dots. */
-.formie-integration-connect > .heading {
-    display: flex;
-    align-items: center;
-    gap: 0.35rem;
+/* pk-status in Craft `.heading` — match native `.status` inline spacing (not flex). */
+.formie-integration-connect > .heading pk-status.formie-integration-connect__status-icon {
+    display: inline-block;
+    vertical-align: middle;
+    width: 0.75rem;
+    height: 0.75rem;
+    margin-inline-end: 10px;
+    --pk-status-ring: var(--gray-500);
 }
 
-.formie-integration-connect > .heading pk-status {
-    flex-shrink: 0;
+/* Craft `.warning.with-icon` only adds 2px after the glyph. */
+.fui-connect > .heading .warning.with-icon::before {
+    margin-inline-end: 7px;
 }
 
 /*

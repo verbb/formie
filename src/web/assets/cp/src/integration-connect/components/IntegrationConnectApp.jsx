@@ -74,7 +74,10 @@ export const IntegrationConnectApp = ({ settings }) => {
     const [showDetails, setShowDetails] = useState(false);
     const initialSnapshotRef = useRef('');
 
-    const statusType = statusText === 'Error' ? 'off' : (statusText === 'Connected' ? 'on' : 'gray');
+    const statusType = statusText === 'Error'
+        ? 'off'
+        : (statusText === 'Connected' ? 'on' : 'disabled');
+    const statusLabelMuted = statusText !== 'Connected' && statusText !== 'Error';
     // OAuth meta row uses “Connect”; API check-connection uses “Refresh” once linked.
     const actionLabel = statusText === 'Connected'
         ? Craft.t('formie', 'Refresh')
@@ -190,15 +193,17 @@ export const IntegrationConnectApp = ({ settings }) => {
     return (
         <>
             <div className="heading">
-                <Status status={statusType} />
-                {Craft.t('formie', statusText)}
+                <Status
+                    status={statusType}
+                    className="formie-integration-connect__status-icon"
+                /><span className={statusLabelMuted ? 'light' : undefined}>{Craft.t('formie', statusText)}</span>
             </div>
 
             <div className="input ltr">
                 {/* default = Craft .btn fill (slate); secondary is dark gray-on-white. */}
                 <Button
                     type="button"
-                    size="sm"
+                    size="xs"
                     variant="default"
                     loading={loading}
                     spinnerSize="xs"
