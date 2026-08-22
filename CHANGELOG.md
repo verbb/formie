@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Fix Recent Submissions widget breaking the control panel because `WidgetsVendorAsset` published from a `src/` path that is not shipped in the package (#2939).
 - Fix opening dialogs adding a spurious gap under the trigger/content when the overlay was a sibling inside a Tailwind `space-y-*` stack (`:not(:last-child)` treats in-tree `pk-dialog` hosts as layout siblings). Notifications, Reports, Client Events, Calculations, and dynamic option “convert to static” now keep overlays outside those stacks (or use `gap` instead).
 
 ## 4.0.0-beta.14 - 2026-08-19

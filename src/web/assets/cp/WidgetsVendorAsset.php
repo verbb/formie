@@ -11,7 +11,7 @@ class WidgetsVendorAsset extends AssetBundle
 
     public function init(): void
     {
-        $this->sourcePath = '@verbb/formie/web/assets/cp/src/widgets/js/vendor';
+        $this->sourcePath = '@verbb/formie/web/assets/cp/dist/widgets/js/vendor';
 
         $this->depends = [
             CraftCpAsset::class,
