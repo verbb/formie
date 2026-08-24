@@ -4,6 +4,7 @@ namespace verbb\formie\integrations\crm;
 use verbb\formie\Formie;
 use verbb\formie\base\Crm;
 use verbb\formie\base\Integration;
+use verbb\formie\base\OptionsField;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyPayloadEvent;
 use verbb\formie\helpers\ArrayHelper;
@@ -550,6 +551,20 @@ class Pardot extends Crm implements OAuthProviderInterface
         $payloadData = $this->generateSubmissionPayloadValues($submission);
 
         $payload = $payloadData['submission'] ?? [];
+
+        // Multi-option fields are encoded as arrays of option objects for JSON export. Flattening
+        // those produces indexed keys (e.g. SolutionInterest.0.value) which Pardot form handlers
+        // cannot map to a single external field.
+        foreach ($submission->getFields() as $field) {
+            if ($field->getIsCosmetic() || !$field instanceof OptionsField || !$field->multi) {
+                continue;
+            }
+
+            $payload[$field->handle] = $field->getValueAsString(
+                $submission->getFieldValue($field->handle),
+                $submission,
+            );
+        }
 
         // Flatten array to dot-notation
         $payload = ArrayHelper::flatten($payload);
