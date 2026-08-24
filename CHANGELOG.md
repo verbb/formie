@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Fix cached form CSRF refresh URLs generating a double subdomain when `CRAFT_BASE_CP_URL` is set alongside per-site subdomains (e.g. `my-project.staging.example.com`).
+
 ## 3.1.36 - 2026-08-21
 
 ### Added

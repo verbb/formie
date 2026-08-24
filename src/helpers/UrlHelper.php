@@ -17,10 +17,17 @@ class UrlHelper extends CraftUrlHelper
         // Otherwise, sub-directory installs would be affected.
         // https://github.com/verbb/formie/issues/2479
         $url = static::actionUrl($path, $params, $scheme, $showScriptName);
-        $baseSiteUrl = parse_url(static::baseSiteUrl())['host'] ?? '';
-        $baseCpUrl = parse_url(static::baseCpUrl())['host'] ?? '';
+        $baseSiteUrlHost = parse_url(static::baseSiteUrl())['host'] ?? '';
+        $baseCpUrlHost = parse_url(static::baseCpUrl())['host'] ?? '';
+        $urlHost = parse_url($url)['host'] ?? '';
 
-        return str_replace($baseCpUrl, $baseSiteUrl, $url);
+        // Only swap when the URL host matches the CP host exactly. Otherwise, nested subdomains
+        // like `my-project.staging.example.com` can be corrupted when replacing `staging.example.com`.
+        if ($baseCpUrlHost && $baseSiteUrlHost && $urlHost === $baseCpUrlHost && $baseCpUrlHost !== $baseSiteUrlHost) {
+            return str_replace($baseCpUrlHost, $baseSiteUrlHost, $url);
+        }
+
+        return $url;
     }
 
     public static function isSameSiteUrl(?string $url): bool
