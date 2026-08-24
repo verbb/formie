@@ -136,6 +136,7 @@ function repeaterField(node) {
         // Populate props with defaults
         node.context.initialValue = get(node.context.attrs, 'initialValue', []);
         node.context.generateValue = get(node.context.attrs, 'generateValue', true);
+        node.context.generateHandle = get(node.context.attrs, 'generateHandle', false);
         node.context.repeatable = get(node.context.attrs, 'repeatable', true);
         node.context.showHeader = get(node.context.attrs, 'showHeader', true);
         node.context.confirmDelete = get(node.context.attrs, 'confirmDelete', false);
