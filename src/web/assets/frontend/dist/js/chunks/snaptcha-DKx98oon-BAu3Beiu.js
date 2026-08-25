@@ -1,0 +1,1 @@
+import{n as e}from"./api-BUb6P-xu-D86_SVPb.js";var t=e({id:`snaptcha`,defaultPlaceholderSelector:`[data-snaptcha-captcha-placeholder]`});export{t as snaptchaModule};
