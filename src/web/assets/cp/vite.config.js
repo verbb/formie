@@ -62,7 +62,9 @@ const parseServerPort = (value, fallback) => {
 };
 
 const createManualChunkName = (id) => {
-    if (!id.includes('node_modules')) {
+    const isKitPackagePath = id.includes('plugin-kit-repo/') || id.includes('@verbb/plugin-kit-');
+
+    if (!id.includes('node_modules') && !isKitPackagePath) {
         return null;
     }
 
@@ -71,12 +73,9 @@ const createManualChunkName = (id) => {
     }
 
     // Kit React facades + WC components + register must share one chunk.
-    // Splitting them produced reciprocal import / dynamicImport cycles:
-    // - static: PHP ManifestHelper hangs (no visited set)
-    // - dynamic: browser module graph deadlocks; CP spinner never clears
     if (
         (
-            id.includes('plugin-kit-web')
+            (id.includes('plugin-kit-web') || id.includes('plugin-kit-repo/plugin-kit-web'))
             && (
                 id.includes('/components/')
                 || id.includes('/register')
@@ -84,6 +83,7 @@ const createManualChunkName = (id) => {
             )
         )
         || id.includes('/node_modules/@verbb/plugin-kit-react/')
+        || id.includes('plugin-kit-repo/plugin-kit-react')
     ) {
         return 'plugin-kit';
     }
@@ -92,7 +92,10 @@ const createManualChunkName = (id) => {
         return 'plugin-kit-forms';
     }
 
-    if (id.includes('/node_modules/@verbb/plugin-kit-core/')) {
+    if (
+        id.includes('/node_modules/@verbb/plugin-kit-core/')
+        || id.includes('plugin-kit-repo/plugin-kit-core')
+    ) {
         return 'plugin-kit-core';
     }
 
@@ -253,7 +256,6 @@ export default defineConfig(async ({ command, mode }) => {
             alias: [
                 { find: '@form-builder', replacement: path.resolve('./src/form-builder') },
                 { find: '@new-form', replacement: path.resolve('./src/new-form') },
-                { find: '@integration-connect', replacement: path.resolve('./src/integration-connect') },
                 { find: '@defaults', replacement: path.resolve('./src/defaults') },
                 { find: '@field-palette', replacement: path.resolve('./src/field-palette') },
                 { find: '@form-group-settings', replacement: path.resolve('./src/form-group-settings') },
@@ -276,6 +278,8 @@ export default defineConfig(async ({ command, mode }) => {
                 'lit-element',
                 'lit-html',
                 '@verbb/plugin-kit-icons',
+                '@verbb/plugin-kit-web',
+                '@verbb/plugin-kit-core',
                 '@dnd-kit/abstract',
                 '@dnd-kit/dom',
                 '@dnd-kit/react',

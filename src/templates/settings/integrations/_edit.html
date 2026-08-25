@@ -149,38 +149,54 @@
 
         {% if integration.supportsOAuthConnection() %}
             {% if not canEdit %}
-                <form id="main-form" class="field lightswitch-field fui-connect" method="post" accept-charset="UTF-8">
+                <form id="fui-integration-oauth-form" class="field lightswitch-field pk-connect-field" method="post" accept-charset="UTF-8">
                     {{ csrfInput() }}
             {% else %}
-                <div class="field lightswitch-field fui-connect">
+                <div class="field lightswitch-field pk-connect-field">
             {% endif %}
-
-            {% if connected %}
-                <div class="heading">
-                    <span class="status on"></span>{{ 'Connected' | t('formie') }}
-                </div>
-
-                <div class="input ltr">
-                    <a class="btn small formsubmit" data-action="formie/integrations/disconnect" data-param="integration" data-value="{{ integration.handle }}" data-redirect="{{ craft.app.request.url | hash }}">{{ 'Disconnect' | t('formie') }}</a>
-                </div>
-            {% else %}
-                <div class="heading">
-                    <span class="status disabled"></span>{{ 'Not connected' | t('formie') }}
-                </div>
-
-                <div class="input ltr">
-                    <a class="btn small formsubmit" data-action="formie/integrations/connect" data-param="integration" data-value="{{ integration.handle }}" data-redirect="{{ craft.app.request.url | hash }}">{{ 'Connect' | t('formie') }}</a>
-                </div>
-            {% endif %}
-
+                    <pk-connect-oauth
+                        {% if connected %}connected{% endif %}
+                        {% if not canEdit %}skip-dirty-watch{% endif %}
+                        connect-action="formie/integrations/connect"
+                        disconnect-action="formie/integrations/disconnect"
+                        param-name="integration"
+                        param-value="{{ integration.handle }}"
+                        connect-redirect="{{ craft.app.request.url | hash }}"
+                        disconnect-redirect="{{ craft.app.request.url | hash }}"
+                        label-connected="{{ 'Connected' | t('formie') }}"
+                        label-not-connected="{{ 'Not connected' | t('formie') }}"
+                        label-connect="{{ 'Connect' | t('formie') }}"
+                        label-disconnect="{{ 'Disconnect' | t('formie') }}"
+                        label-save-to-connect="{{ 'Save this integration to connect.' | t('formie') }}"
+                    ></pk-connect-oauth>
             {% if not canEdit %}
                 </form>
             {% else %}
                 </div>
             {% endif %}
         {% elseif integration.supportsConnection() and canEdit %}
-            {# Same meta row chrome as OAuth Connect — Craft pads .heading / .input. #}
-            <div class="field lightswitch-field fui-connect formie-integration-connect"></div>
+            {% set connectionStatus = integration.getIsConnected() ? 'connected' : 'disconnected' %}
+            <div class="field lightswitch-field pk-connect-field" data-connection-status="{{ connectionStatus }}">
+                <pk-connect
+                    action="formie/integrations/check-connection"
+                    id-param="id"
+                    status="{{ connectionStatus }}"
+                    source-id="{{ integration.id }}"
+                    type="{{ className(integration) }}"
+                    label-connected="{{ 'Connected' | t('formie') }}"
+                    label-not-connected="{{ 'Not connected' | t('formie') }}"
+                    label-connecting="{{ 'Connecting...' | t('formie') }}"
+                    label-error="{{ 'Error' | t('formie') }}"
+                    label-connect="{{ 'Connect' | t('formie') }}"
+                    label-refresh="{{ 'Refresh' | t('formie') }}"
+                    label-save-to-connect="{{ 'Save this integration to connect.' | t('formie') }}"
+                    label-error-heading="{{ 'Connection error' | t('formie') }}"
+                    label-generic-error="{{ 'An error occurred while checking the integration connection.' | t('formie') }}"
+                    label-show-details="{{ 'Show details' | t('formie') }}"
+                    label-hide-details="{{ 'Hide details' | t('formie') }}"
+                    label-close="{{ 'Close' | t('app') }}"
+                ></pk-connect>
+            </div>
         {% endif %}
     {% endif %}
 </div>
@@ -209,43 +225,6 @@
 
 {% if integration is not defined or not integration.handle %}
     new Craft.HandleGenerator('#name', '#handle');
-{% endif %}
-
-{% if canEdit %}
-// Add event listeners to all form inputs, to detect a change. Show a message to save when changed.
-$(document).ready(function() {
-    var html = '<div class="heading"><span class="warning with-icon">{{ 'Save this integration to connect.' | t('formie') }}</span></div>';
-    
-    $('#main-form').find('input, select, textarea').on('input', function() {
-        $('.fui-connect').not('.formie-integration-connect').html(html);
-    });
-
-    $('#main-form').find('.lightswitch').on('change', function() {
-        $('.fui-connect').not('.formie-integration-connect').html(html);
-    });
-});
-{% endif %}
-
-{% if not isNewIntegration and integration.supportsConnection() and not integration.supportsOAuthConnection() and canEdit %}
-(() => {
-    const settings = {
-        connected: {{ integration.getIsConnected() | json_encode | raw }},
-        integration: {{ integration.handle | json_encode | raw }},
-        integrationId: {{ integration.id | json_encode | raw }},
-        integrationType: {{ className(integration) | json_encode | raw }},
-    };
-
-    const mountApp = () => {
-        if (!window.Craft?.Formie?.IntegrationConnect) {
-            window.setTimeout(mountApp, 25);
-            return;
-        }
-
-        new window.Craft.Formie.IntegrationConnect(settings);
-    };
-
-    mountApp();
-})();
 {% endif %}
 
 {% endjs %}

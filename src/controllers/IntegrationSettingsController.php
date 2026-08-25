@@ -249,7 +249,9 @@ class IntegrationSettingsController extends Controller
         $baseUrl = "formie/integrations/$typeKebab";
         $continueEditingUrl = "formie/integrations/$typeKebab/edit/{id}";
 
-        Plugin::registerCpIntegrationConnectAssets();
+        if (!$isNewIntegration && $integration->supportsConnection()) {
+            Plugin::registerCpIntegrationConnectAssets();
+        }
 
         return $this->renderTemplate('formie/settings/integrations/_edit', [
             'integration' => $integration,

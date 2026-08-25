@@ -1,39 +1,8 @@
-import { createElement } from 'react';
+/**
+ * Formie integration edit — connect row (`<pk-connect>` / `<pk-connect-oauth>`).
+ */
+import '@verbb/plugin-kit-web/plugin-kit.css';
+import '@verbb/plugin-kit-web/styles/connect/pk-connect.css';
+import { registerCpConnectKit } from '@verbb/plugin-kit-web/connect/register-cp-connect.js';
 
-import { IntegrationConnectApp } from '@integration-connect/components/IntegrationConnectApp';
-import { IntegrationConnectErrorBoundary } from '@integration-connect/components/IntegrationConnectErrorBoundary';
-import {
-    defineFormieCpConstructor,
-    ensureCraftNamespace,
-    injectDocumentStyleText,
-    markContainerReady,
-    mountFormieReactApp,
-} from '@utils';
-
-import integrationConnectStyles from '@integration-connect/css/style.css?inline';
-
-ensureCraftNamespace('Formie');
-
-defineFormieCpConstructor('IntegrationConnect', async (settings = {}) => {
-    const targetContainer = document.querySelector('.formie-integration-connect');
-
-    if (!targetContainer) {
-        console.error('IntegrationConnect container not found: .formie-integration-connect');
-        return;
-    }
-
-    // Light DOM on Craft `.field.lightswitch-field` so meta `.heading` / `.input` padding
-    // matches OAuth Connect (shadow would isolate those Craft rules).
-    injectDocumentStyleText(integrationConnectStyles, 'formie-integration-connect');
-
-    await mountFormieReactApp({
-        mountNode: targetContainer,
-        portalContainer: document.body,
-        portalClassName: 'formie-ui',
-        translationCategory: 'formie',
-        children: createElement(IntegrationConnectErrorBoundary, null,
-            createElement(IntegrationConnectApp, { settings })),
-    });
-
-    markContainerReady(targetContainer, 'formie-integration-connect--ready');
-});
+void registerCpConnectKit();
