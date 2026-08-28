@@ -11,7 +11,9 @@ class m260616_000000_integrations_access_permission extends Migration
 {
     public function safeUp(): bool
     {
-        $permissionName = Permissions::PERM_ACCESS_INTEGRATIONS;
+        // Craft stores permission names lowercased and matches them case-sensitively when
+        // reading them back, so any rows we create here must already be lowercase.
+        $permissionName = strtolower(Permissions::PERM_ACCESS_INTEGRATIONS);
 
         $permissionId = (new Query())
             ->select(['id'])
@@ -32,7 +34,7 @@ class m260616_000000_integrations_access_permission extends Migration
             ->select(['upu.userId'])
             ->from(['upu' => Table::USERPERMISSIONS_USERS])
             ->innerJoin(['up' => Table::USERPERMISSIONS], '[[up.id]] = [[upu.permissionId]]')
-            ->where(['up.name' => 'formie-accessSettings'])
+            ->where(['up.name' => strtolower(Permissions::PERM_ACCESS_SETTINGS)])
             ->column();
 
         $userIds = array_unique(array_map('intval', $userIds));
@@ -63,7 +65,7 @@ class m260616_000000_integrations_access_permission extends Migration
     public function safeDown(): bool
     {
         $this->delete(Table::USERPERMISSIONS, [
-            'name' => Permissions::PERM_ACCESS_INTEGRATIONS,
+            'name' => strtolower(Permissions::PERM_ACCESS_INTEGRATIONS),
         ]);
 
         return true;

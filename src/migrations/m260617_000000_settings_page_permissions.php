@@ -14,13 +14,15 @@ class m260617_000000_settings_page_permissions extends Migration
     public function safeUp(): bool
     {
         $permissions = Formie::$plugin->getPermissions();
-        $pagePermissions = array_keys($permissions->getSettingsPermissionDefinitions());
+        // Craft stores permission names lowercased and matches them case-sensitively when
+        // reading them back, so any rows we create here must already be lowercase.
+        $pagePermissions = array_map('strtolower', array_keys($permissions->getSettingsPermissionDefinitions()));
 
         $userIds = (new Query())
             ->select(['upu.userId'])
             ->from(['upu' => Table::USERPERMISSIONS_USERS])
             ->innerJoin(['up' => Table::USERPERMISSIONS], '[[up.id]] = [[upu.permissionId]]')
-            ->where(['up.name' => Permissions::PERM_ACCESS_SETTINGS])
+            ->where(['up.name' => strtolower(Permissions::PERM_ACCESS_SETTINGS)])
             ->column();
 
         $userIds = array_unique(array_map('intval', $userIds));
@@ -79,7 +81,7 @@ class m260617_000000_settings_page_permissions extends Migration
         $permissions = Formie::$plugin->getPermissions();
 
         $this->delete(Table::USERPERMISSIONS, [
-            'name' => array_keys($permissions->getSettingsPermissionDefinitions()),
+            'name' => array_map('strtolower', array_keys($permissions->getSettingsPermissionDefinitions())),
         ]);
 
         return true;

@@ -44,6 +44,7 @@ Jump directly to the sections most likely to need attention:
 - [Translation Strings](#translation-strings) if the project overrides Formie **plugin UI** messages in translation files.
 - [Form Content Translations](#form-content-translations) if the project mapped field labels or form messages through `formie.php` or `site.php`.
 - [Submission and form statuses](#submission-and-form-statuses) if custom PHP, Twig, or module code references status services, models, events, or database tables.
+- [Reports and submission export](#reports-and-submission-export) if editors expect an **Export** button on the submissions index.
 
 ## Changes at a Glance
 
@@ -110,6 +111,32 @@ Adding form statuses meant the old generic “statuses” naming was no longer c
 Submission status project config stays at `formie.statuses`. Form statuses use a new `formie.formStatuses` key and `formie_form_statuses` table.
 
 If your project has custom PHP, Twig, or module code that references the Formie 3 names, see [Submission and form statuses](#submission-and-form-statuses).
+
+### Reports and submission export
+
+Formie 3 exposed **Export** on the submissions element index (CSV export of the current source and filters). Formie 4 removes that control panel action for all forms — the button disappears when no element exporters are registered, which is expected after upgrade.
+
+Submission export now lives in **[Reports](/reports/overview)**:
+
+- **Formie → Reports** — saved filters, columns, charts, on-demand export (CSV, Excel, JSON, XML, text), and [scheduled email delivery](/reports/scheduled-reports)
+- For a one-off file without saving a report definition, run a report scoped to the form(s) you need and choose **Export** on the report run screen
+
+Train editors and support staff on this workflow before cutover if they rely on the old submissions index export.
+
+**Permissions** — report access is split from submission management. Under **Settings → Users → {group} → Formie**, assign:
+
+| Permission | Purpose |
+| --- | --- |
+| **Access reports** | Open **Formie → Reports** and run saved reports |
+| **Export submissions** | Export from reports (without full manage access) |
+| **Manage reports** | Create, edit, delete reports; includes export |
+| **Manage scheduled reports** | Configure delivery under **Settings → Scheduled Reports** and on a report’s **Scheduled** tab |
+
+Administrators bypass these checks.
+
+**Custom code** — PHP/Twig export helpers such as `getFieldValueForExport()` and `getValuesForExport()` are unchanged. Only the built-in control panel export action moved. Third-party modules can still register custom submission element exporters if needed.
+
+See [Reports](/reports/overview), [Saved reports and scheduled delivery](/guides/submissions-workflows/saved-reports-and-scheduled-delivery), and [Submissions overview](/submissions/overview#export-submission-data).
 
 ## Custom Fields
 
@@ -1511,3 +1538,4 @@ Old | New
 `SubmissionStatuses::getStatusesForForm()` | `SubmissionStatuses::getSubmissionStatusesForForm()`
 `Table::FORMIE_STATUSES` | `Table::FORMIE_SUBMISSION_STATUSES`
 Database table `formie_statuses` | `formie_submission_statuses`
+Submissions index **Export** button | **Formie → Reports** → run report → **Export**

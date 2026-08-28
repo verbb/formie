@@ -11,11 +11,13 @@ class m260620_000000_spam_protection_settings_page extends Migration
 {
     public function safeUp(): bool
     {
-        $permissionName = (new Permissions())->settingsPagePermissionKey('spam-protection');
-        $legacyPermissionNames = [
+        // Craft stores permission names lowercased and matches them case-sensitively when
+        // reading them back, so any rows we create here must already be lowercase.
+        $permissionName = strtolower((new Permissions())->settingsPagePermissionKey('spam-protection'));
+        $legacyPermissionNames = array_map('strtolower', [
             (new Permissions())->settingsPagePermissionKey('spam'),
             (new Permissions())->settingsPagePermissionKey('captchas'),
-        ];
+        ]);
 
         $permissionId = (new Query())
             ->select(['id'])
@@ -67,7 +69,7 @@ class m260620_000000_spam_protection_settings_page extends Migration
     public function safeDown(): bool
     {
         $this->delete(Table::USERPERMISSIONS, [
-            'name' => (new Permissions())->settingsPagePermissionKey('spam-protection'),
+            'name' => strtolower((new Permissions())->settingsPagePermissionKey('spam-protection')),
         ]);
 
         return true;

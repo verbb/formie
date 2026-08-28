@@ -10,7 +10,9 @@ class m260606_000000_stencil_access_permission extends Migration
 {
     public function safeUp(): bool
     {
-        $permissionName = 'formie-accessStencils';
+        // Craft stores permission names lowercased and matches them case-sensitively when
+        // reading them back, so any rows we create here must already be lowercase.
+        $permissionName = strtolower('formie-accessStencils');
 
         $permissionId = (new Query())
             ->select(['id'])
@@ -30,7 +32,7 @@ class m260606_000000_stencil_access_permission extends Migration
             ->select(['upu.userId'])
             ->from(['upu' => Table::USERPERMISSIONS_USERS])
             ->innerJoin(['up' => Table::USERPERMISSIONS], '[[up.id]] = [[upu.permissionId]]')
-            ->where(['up.name' => 'formie-accessForms'])
+            ->where(['up.name' => strtolower('formie-accessForms')])
             ->column();
 
         $userIds = array_unique(array_map('intval', $userIds));
@@ -61,7 +63,7 @@ class m260606_000000_stencil_access_permission extends Migration
     public function safeDown(): bool
     {
         $this->delete(Table::USERPERMISSIONS, [
-            'name' => 'formie-accessStencils',
+            'name' => strtolower('formie-accessStencils'),
         ]);
 
         return true;

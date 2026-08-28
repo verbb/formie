@@ -14,14 +14,17 @@ class m260617_000001_report_permissions extends Migration
 
     public function safeUp(): bool
     {
-        $permissions = [
+        // Craft always stores permission names lowercased, and compares them with a strict
+        // (case-sensitive) match when reading them back. Inserting the camel-cased constants
+        // directly would create rows Craft can never match, so lowercase everything here.
+        $permissions = array_map('strtolower', [
             Permissions::PERM_ACCESS_REPORTS,
             Permissions::PERM_MANAGE_REPORTS,
             Permissions::PERM_EXPORT_SUBMISSIONS,
             Permissions::PERM_MANAGE_SCHEDULED_REPORTS,
-        ];
+        ]);
 
-        $sourcePermission = Permissions::PERM_ACCESS_SUBMISSIONS;
+        $sourcePermission = strtolower(Permissions::PERM_ACCESS_SUBMISSIONS);
         $userIds = (new Query())
             ->select(['upu.userId'])
             ->from(['upu' => Table::USERPERMISSIONS_USERS])
@@ -73,12 +76,12 @@ class m260617_000001_report_permissions extends Migration
     public function safeDown(): bool
     {
         $this->delete(Table::USERPERMISSIONS, [
-            'name' => [
+            'name' => array_map('strtolower', [
                 Permissions::PERM_ACCESS_REPORTS,
                 Permissions::PERM_MANAGE_REPORTS,
                 Permissions::PERM_EXPORT_SUBMISSIONS,
                 Permissions::PERM_MANAGE_SCHEDULED_REPORTS,
-            ],
+            ]),
         ]);
 
         return true;

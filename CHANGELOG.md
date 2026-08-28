@@ -9,6 +9,7 @@
 - Integration credentials connect uses Plugin Kit `<pk-connect>` (declarative Twig + WC bundle) instead of the React `IntegrationConnectApp` mount.
 
 ### Fixed
+- Fix Formie permissions such as “Access reports” never saving for a user group — some permission-seeding migrations inserted camel-cased names into `userpermissions`, but Craft stores names lowercased and matches them case-sensitively, so the assignment could never be read back. Existing mixed-case rows are now normalised (and merged into their lowercase equivalents) by a new migration.
 - Fix Recent Submissions widget breaking the control panel because `WidgetsVendorAsset` published from a `src/` path that is not shipped in the package (#2939).
 - Fix opening dialogs adding a spurious gap under the trigger/content when the overlay was a sibling inside a Tailwind `space-y-*` stack (`:not(:last-child)` treats in-tree `pk-dialog` hosts as layout siblings). Notifications, Reports, Client Events, Calculations, and dynamic option “convert to static” now keep overlays outside those stacks (or use `gap` instead).
 
