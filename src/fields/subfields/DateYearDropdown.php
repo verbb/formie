@@ -35,7 +35,7 @@ class DateYearDropdown extends DateDropdown implements SubFieldInnerFieldInterfa
     // =========================================================================
 
     public string $validationFormatParam = 'Y';
-    public int $minYearRange = 100;
+    public int $minYearRange = -100;
     public int $maxYearRange = 100;
 
 

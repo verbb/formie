@@ -7,6 +7,9 @@
 - Fix Table field column handles not being auto-generated in camelCase from the column heading in the form builder.
 - Fix Pardot form handler payloads sending multi-option fields (Checkboxes, multi-select Dropdown) as indexed keys (e.g. `SolutionInterest.0.value`) instead of a single comma-separated field value.
 - Fix cached form CSRF refresh URLs generating a double subdomain when `CRAFT_BASE_CP_URL` is set alongside per-site subdomains (e.g. `my-project.staging.example.com`).
+- Fix Craft 4 to Craft 5 migration always creating Date field subfields in `Year, Month, Day` order, instead of the order defined by the field’s “Date Format” setting.
+- Fix Craft 4 to Craft 5 migration not carrying the Date field’s year range across to the nested Year subfield, leaving it with an invalid `100` to `100` range.
+- Fix Craft 4 to Craft 5 migration not updating page conditions (page visibility and next button conditions) to the new `{field:handle}` field reference syntax.
 - Fix email notification conditions using nested field references (e.g. `{group[nested]}`) not being migrated to the new syntax correctly.
 
 ## 3.1.36 - 2026-08-21

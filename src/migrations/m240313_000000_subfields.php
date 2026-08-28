@@ -7,6 +7,7 @@ use verbb\formie\fields;
 use verbb\formie\fields\subfields;
 use verbb\formie\models\FieldLayout;
 use verbb\formie\positions\Hidden as HiddenPosition;
+use verbb\formie\helpers\DateTimeHelper;
 use verbb\formie\helpers\Table;
 
 use Craft;
@@ -366,7 +367,7 @@ class m240313_000000_subfields extends Migration
     {
         return [
             [
-                'fields' => [
+                'fields' => DateTimeHelper::orderSubfieldConfigs($settings, [
                     [
                         'type' => subfields\DateYearDropdown::class,
                         'label' => $settings['yearLabel'] ?? Craft::t('formie', 'Year'),
@@ -374,6 +375,8 @@ class m240313_000000_subfields extends Migration
                         'enabled' => true,
                         'placeholder' => $settings['yearPlaceholder'] ?? null,
                         'options' => [],
+                        'minYearRange' => $settings['minYearRange'] ?? -100,
+                        'maxYearRange' => $settings['maxYearRange'] ?? 100,
                     ],
                     [
                         'type' => subfields\DateMonthDropdown::class,
@@ -426,7 +429,7 @@ class m240313_000000_subfields extends Migration
                             ['value' => 'PM', 'label' => Craft::t('formie', 'PM')],
                         ],
                     ],
-                ],
+                ]),
             ],
         ];
     }
@@ -435,7 +438,7 @@ class m240313_000000_subfields extends Migration
     {
         return [
             [
-                'fields' => [
+                'fields' => DateTimeHelper::orderSubfieldConfigs($settings, [
                     [
                         'type' => subfields\DateYearNumber::class,
                         'label' => $settings['yearLabel'] ?? Craft::t('formie', 'Year'),
@@ -507,7 +510,7 @@ class m240313_000000_subfields extends Migration
                             ['value' => 'PM', 'label' => Craft::t('formie', 'PM')],
                         ],
                     ],
-                ],
+                ]),
             ],
         ];
     }

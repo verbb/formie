@@ -7,6 +7,7 @@ use verbb\formie\fields;
 use verbb\formie\fields\Group;
 use verbb\formie\fields\Repeater;
 use verbb\formie\fields\subfields;
+use verbb\formie\helpers\DateTimeHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\FieldLayout;
@@ -1157,7 +1158,7 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
     {
         return [
             [
-                'fields' => [
+                'fields' => $this->_orderDateSubfields($settings, [
                     [
                         'type' => subfields\DateYearDropdown::class,
                         'label' => trim($settings['yearLabel'] ?? '') ?: Craft::t('formie', 'Year'),
@@ -1165,6 +1166,8 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
                         'enabled' => $settings['includeDate'] ?? true,
                         'placeholder' => $settings['yearPlaceholder'] ?? null,
                         'options' => [],
+                        'minYearRange' => $settings['minYearRange'] ?? -100,
+                        'maxYearRange' => $settings['maxYearRange'] ?? 100,
                     ],
                     [
                         'type' => subfields\DateMonthDropdown::class,
@@ -1217,7 +1220,7 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
                             ['value' => 'PM', 'label' => Craft::t('formie', 'PM')],
                         ],
                     ],
-                ],
+                ]),
             ],
         ];
     }
@@ -1226,7 +1229,7 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
     {
         return [
             [
-                'fields' => [
+                'fields' => $this->_orderDateSubfields($settings, [
                     [
                         'type' => subfields\DateYearNumber::class,
                         'label' => trim($settings['yearLabel'] ?? '') ?: Craft::t('formie', 'Year'),
@@ -1298,7 +1301,7 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
                             ['value' => 'PM', 'label' => Craft::t('formie', 'PM')],
                         ],
                     ],
-                ],
+                ]),
             ],
         ];
     }
@@ -1379,6 +1382,11 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
                 ],
             ],
         ];
+    }
+
+    private function _orderDateSubfields(array $settings, array $fields): array
+    {
+        return DateTimeHelper::orderSubfieldConfigs($settings, $fields);
     }
 
     private function _generateOptions(int $start, int $end, ?string $placeholder = null): array

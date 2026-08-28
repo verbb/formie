@@ -35,13 +35,13 @@ class m251114_000000_email_conditions_mapping extends Migration
                             // Rename any old array-like syntax `group[nested][field]` with dot-notation `group.nested.field`
                             if (str_contains($conditionField, '[')) {
                                 $hasChanged = true;
-                                $conditionsSettings['conditions'][$conditionKey]['field'] = str_replace(['[', ']'], ['.', ''], $conditionField);
+                                $conditionsSettings['conditions'][$conditionKey]['field'] = $conditionField = str_replace(['[', ']'], ['.', ''], $conditionField);
                             }
 
                             // Rename `{*}` to `{field:*}` - but watch out for `{submission:*}`
                             if (str_starts_with($conditionField, '{') && !str_starts_with($conditionField, '{submission:') && !str_starts_with($conditionField, '{field:')) {
                                 $hasChanged = true;
-                                $conditionsSettings['conditions'][$conditionKey]['field'] = str_replace('{', '{field:', $conditionField);
+                                $conditionsSettings['conditions'][$conditionKey]['field'] = $conditionField = str_replace('{', '{field:', $conditionField);
                             }
                         }
                     }
