@@ -1031,7 +1031,6 @@ class Form extends Element
 
     public function getRedirectUrl(bool $checkLastPage = true, bool $includeQueryString = true): string
     {
-        $request = Craft::$app->getRequest();
         $url = '';
 
         // We don't want to show the redirect URL on unfinished multi-page forms, so check first
@@ -1056,23 +1055,28 @@ class Form extends Element
             $url = Craft::$app->getView()->renderString($this->settings->submitActionUrl);
         }
 
-        // Add any query params to the URL automatically (think utm)
-        if ($url && $request->getIsSiteRequest() && $includeQueryString) {
-            // But only add query strings if they don't override any set for the redirect URL already
-            // For example, the request URL might be `submissionId=12` but the redirect is `submissionId={id}`
-            // we wouldn't want to overwrite the latter with the former. Specifically set URLs take precedence.
-            $requestParams = $request->getQueryStringWithoutPath();
-            $urlParams = explode('?', $url)[1] ?? '';
-
-            // UrlHelper will take care of normalization. The important bit is to override request params if
-            // there's any duplication.
-            $url = UrlHelper::url($url, $requestParams . '&' . $urlParams);
-        }
-
         // Handle any special characters defined in the URL and encode them properly
         $url = str_replace("&amp;", "&", htmlspecialchars($url));
 
         return $url;
+    }
+
+    public function renderRedirectUrl(Submission $submission, ?string $redirectTemplate = null, bool $includeQueryString = true): string
+    {
+        $redirectTemplate ??= $this->getRedirectUrl();
+
+        if ($redirectTemplate === '') {
+            return '';
+        }
+
+        $redirectUrl = Formie::$plugin->getTemplates()->renderObjectTemplate($redirectTemplate, $submission);
+        $redirectUrl = str_replace('&amp;', '&', htmlspecialchars($redirectUrl));
+
+        if ($includeQueryString) {
+            $redirectUrl = UrlHelper::appendRequestQueryString($redirectUrl);
+        }
+
+        return $redirectUrl;
     }
 
     public function getRedirectEntry(): ?Entry

@@ -738,7 +738,7 @@ class SubmissionsController extends Controller
             // Refresh, there's still more pages to complete. Or check if we should "redirect" to a template-defined
             // URL, which is set for every page (commonly the first one, once a submission is available)
             if ($settings->pageRedirectUrl) {
-                $url = Formie::$plugin->getTemplates()->renderObjectTemplate($settings->pageRedirectUrl, $submission);
+                $url = $form->renderRedirectUrl($submission, $settings->pageRedirectUrl);
 
                 return $this->redirect($url);
             }
@@ -761,15 +761,21 @@ class SubmissionsController extends Controller
             return $this->_redirectToReturnUrl();
         }
 
-        // Get the URL for redirection (ignore last page checks, already done)
-        $url = $form->getRedirectUrl(false);
-
         // Check if `EVENT_AFTER_SUBMISSION_REQUEST` has overridden the redirectUrl
         if ($event->redirectUrl) {
             return $this->redirect($event->redirectUrl);
         }
 
-        return $this->redirectToPostedUrl($submission, $url);
+        // Get the URL for redirection (ignore last page checks, already done)
+        $url = $this->getPostedRedirectUrl($submission);
+
+        if ($url === null) {
+            $url = $form->renderRedirectUrl($submission, $form->getRedirectUrl(false));
+        } else {
+            $url = UrlHelper::appendRequestQueryString($url);
+        }
+
+        return $this->redirect($url);
     }
 
     public function actionSetPage(): Response
@@ -1064,12 +1070,9 @@ class SubmissionsController extends Controller
         // Try and get the redirect from the template, as it might've been altered in templates
         $redirect = $this->request->getValidatedBodyParam('redirect');
 
-        // Otherwise, use the form defined
-        if (!$redirect) {
-            $redirect = $form->getRedirectUrl();
-        }
-
-        $redirectUrl = Formie::$plugin->getTemplates()->renderObjectTemplate($redirect, $submission);
+        $redirectUrl = $redirect
+            ? $form->renderRedirectUrl($submission, $redirect)
+            : $form->renderRedirectUrl($submission);
 
         // Set the `redirectUrl` unless we've passed in an override
         $extras['redirectUrl'] = $extras['redirectUrl'] ?? $redirectUrl;

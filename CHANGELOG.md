@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Fix redirect URLs evaluating request query string values as object-template Twig syntax during Ajax and page submissions. Query params are now appended to rendered redirect URLs as literal values.
 - Fix Table field column handles not being auto-generated in camelCase from the column heading in the form builder.
 - Fix Pardot form handler payloads sending multi-option fields (Checkboxes, multi-select Dropdown) as indexed keys (e.g. `SolutionInterest.0.value`) instead of a single comma-separated field value.
 - Fix cached form CSRF refresh URLs generating a double subdomain when `CRAFT_BASE_CP_URL` is set alongside per-site subdomains (e.g. `my-project.staging.example.com`).
