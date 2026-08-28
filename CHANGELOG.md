@@ -7,6 +7,7 @@
 - Fix Table field column handles not being auto-generated in camelCase from the column heading in the form builder.
 - Fix Pardot form handler payloads sending multi-option fields (Checkboxes, multi-select Dropdown) as indexed keys (e.g. `SolutionInterest.0.value`) instead of a single comma-separated field value.
 - Fix cached form CSRF refresh URLs generating a double subdomain when `CRAFT_BASE_CP_URL` is set alongside per-site subdomains (e.g. `my-project.staging.example.com`).
+- Fix email notification conditions using nested field references (e.g. `{group[nested]}`) not being migrated to the new syntax correctly.
 
 ## 3.1.36 - 2026-08-21
 
