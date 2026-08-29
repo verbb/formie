@@ -1,5 +1,16 @@
 # Changelog
 
+## 3.1.37 - 2026-08-29
+
+### Fixed
+- Fix a security vulnerability with how submission redirect URLs were handled.
+- Fix Date field Formie 2 to 3 migration issues for sub-field ordering, date range.
+- Fix email notification conditions using nested field references (e.g. `{group[nested]}`) not being migrated to the new syntax correctly.
+- Fix redirect URLs evaluating request query string values as object-template Twig syntax during Ajax and page submissions.
+- Fix Table field column handles not being auto-generated in camelCase from the column heading in the form builder.
+- Fix Pardot form handler payloads sending multi-option fields (Checkboxes, multi-select Dropdown) as indexed keys (e.g. `SolutionInterest.0.value`) instead of a single comma-separated field value.
+- Fix cached form CSRF refresh URLs generating a double subdomain when `CRAFT_BASE_CP_URL` is set alongside per-site subdomains (e.g. `my-project.staging.example.com`).
+
 ## 3.1.36 - 2026-08-21
 
 ### Added
