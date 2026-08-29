@@ -64,6 +64,18 @@ class SubmissionsController extends Controller
     {
         $settings = Formie::$plugin->getSettings();
 
+        // Guard against Control Panel context-confusion for anonymous-allowed front-end actions.
+        // Craft can be tricked into classifying a request as a Control Panel request (e.g. via a
+        // percent-encoded `/%61dmin/actions/...` path). Because CP requests skip the site-request
+        // authorization/ownership checks and are redirected via Craft's *unsandboxed* object-template
+        // renderer, a guest hitting the CP variant of these actions could turn a signed `redirect`/
+        // `returnUrl` into arbitrary Twig execution. Guests must only ever use the site route.
+        if (is_array($this->allowAnonymous) && array_key_exists($action->id, $this->allowAnonymous)) {
+            if (Craft::$app->getUser()->getIsGuest() && !$this->request->getIsSiteRequest()) {
+                throw new ForbiddenHttpException('Anonymous submissions are only permitted through the site request.');
+            }
+        }
+
         if ($action->id === 'submit' && Craft::$app->getUser()->isGuest && !$settings->enableCsrfValidationForGuests) {
             $this->enableCsrfValidation = false;
         }

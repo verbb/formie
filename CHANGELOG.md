@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Security
+- Fix a security vulnerability with how submission redirect URLs were handled.
+
 ## 2.2.29 - 2026-08-20
 
 ### Added
