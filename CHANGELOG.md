@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Security
+- Fix a security vulnerability with how submission redirect URLs were handled.
+
 ### Fixed
 - Fix redirect URLs evaluating request query string values as object-template Twig syntax during Ajax and page submissions. Query params are now appended to rendered redirect URLs as literal values.
 - Fix Table field column handles not being auto-generated in camelCase from the column heading in the form builder.

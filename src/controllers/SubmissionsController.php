@@ -70,6 +70,18 @@ class SubmissionsController extends Controller
     {
         $settings = Formie::$plugin->getSettings();
 
+        // Guard against Control Panel context-confusion for anonymous-allowed front-end actions.
+        // Craft can be tricked into classifying a request as a Control Panel request (e.g. via a
+        // percent-encoded `/%61dmin/actions/...` path). Because CP requests skip the site-request
+        // authorization/ownership checks and are redirected via Craft's *unsandboxed* object-template
+        // renderer, a guest hitting the CP variant of these actions could turn a signed `redirect`/
+        // `returnUrl` into arbitrary Twig execution. Guests must only ever use the site route.
+        if (is_array($this->allowAnonymous) && array_key_exists($action->id, $this->allowAnonymous)) {
+            if (Craft::$app->getUser()->getIsGuest() && !$this->request->getIsSiteRequest()) {
+                throw new ForbiddenHttpException('Anonymous submissions are only permitted through the site request.');
+            }
+        }
+
         if ($action->id === 'submit' && Craft::$app->getUser()->isGuest && !$settings->enableCsrfValidationForGuests) {
             $this->enableCsrfValidation = false;
         }
@@ -407,7 +419,7 @@ class SubmissionsController extends Controller
                 return $this->_redirectToReturnUrl();
             }
 
-            return $this->redirectToPostedUrl($submission);
+            return $this->_redirectToPostedUrl($form, $submission);
         }
 
         if ($request->getAcceptsJson()) {
@@ -423,7 +435,7 @@ class SubmissionsController extends Controller
 
         $this->setSuccessFlash(Craft::t('formie', 'Submission saved.'));
 
-        return $this->redirectToPostedUrl($submission);
+        return $this->_redirectToPostedUrl($form, $submission);
     }
 
     public function actionSubmit(): ?Response
@@ -1320,6 +1332,21 @@ class SubmissionsController extends Controller
         return $this->redirect(UrlHelper::getSubmissionReturnUrl(
             $this->_getTypedParam('siteId', 'id'),
         ));
+    }
+
+    private function _redirectToPostedUrl(Form $form, Submission $submission): Response
+    {
+        // Never use Craft's `redirectToPostedUrl()` here, as it renders the posted `redirect` value with
+        // the *unsandboxed* Twig view. The `redirect` value is HMAC-signed, but Formie signs
+        // attacker-influenced URLs (e.g. `returnUrl` derived from the request URL), so it must always be
+        // rendered through Formie's restricted sandbox to prevent object-template injection.
+        $redirect = $this->request->getValidatedBodyParam('redirect');
+
+        if ($redirect) {
+            return $this->redirect($form->renderRedirectUrl($submission, $redirect));
+        }
+
+        return $this->_redirectToReturnUrl();
     }
 
     private function _getTypedParam(string $name, string $type, mixed $default = null, bool $bodyParam = true): mixed
