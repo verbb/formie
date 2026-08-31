@@ -1467,7 +1467,9 @@ class Submission extends CustomElement
         }
 
         if ($attribute == 'sendNotification') {
-            if (($form = $this->getForm()) && $form->getNotifications()) {
+            $currentUser = Craft::$app->getUser()->getIdentity();
+
+            if (($form = $this->getForm()) && $form->getNotifications() && $currentUser && ($currentUser->can('formie-saveSubmissions') || $currentUser->can("formie-saveSubmissions:$form->uid"))) {
                 return Html::a(Craft::t('formie', 'Send'), '#', [
                     'class' => 'btn small formsubmit js-fui-submission-modal-send-btn',
                     'data-id' => $this->id,

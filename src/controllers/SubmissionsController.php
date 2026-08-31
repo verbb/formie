@@ -900,6 +900,7 @@ class SubmissionsController extends Controller
 
     public function actionGetSendNotificationModalContent(): Response
     {
+        $this->requirePostRequest();
         $this->requireAcceptsJson();
 
         $request = $this->request;
@@ -911,7 +912,13 @@ class SubmissionsController extends Controller
             ->isSpam(null)
             ->one();
 
-        $notifications = $submission->getForm()->getNotifications();
+        if (!$submission) {
+            throw new NotFoundHttpException('Submission not found');
+        }
+
+        $this->_requireSubmissionPermission($submission);
+
+        $notifications = $submission->getForm()?->getNotifications() ?? [];
 
         $modalHtml = $view->renderTemplate('formie/submissions/_includes/send-notification-modal', [
             'submission' => $submission,
@@ -928,6 +935,7 @@ class SubmissionsController extends Controller
 
     public function actionSendNotification(): Response
     {
+        $this->requirePostRequest();
         $this->requireAcceptsJson();
 
         $request = $this->request;
@@ -941,16 +949,20 @@ class SubmissionsController extends Controller
             ->isSpam(null)
             ->one();
 
-        if (!$notification) {
-            $error = Craft::t('formie', 'Notification not found.');
+        if (!$submission) {
+            $error = Craft::t('formie', 'Submission not found.');
 
             $this->setFailFlash($error);
 
             return $this->asFailure($error);
         }
 
-        if (!$submission) {
-            $error = Craft::t('formie', 'Submission not found.');
+        $this->_requireSubmissionPermission($submission, true);
+
+        // The notification must belong to the submission's form. Otherwise an arbitrary notification
+        // (including one with attacker-chosen recipients) could be rendered against any submission.
+        if (!$notification || (int)$notification->formId !== (int)$submission->formId) {
+            $error = Craft::t('formie', 'Notification not found.');
 
             $this->setFailFlash($error);
 
@@ -970,6 +982,7 @@ class SubmissionsController extends Controller
 
     public function actionRunIntegration(): Response
     {
+        $this->requirePostRequest();
         $this->requireAcceptsJson();
 
         $request = $this->request;
@@ -988,6 +1001,8 @@ class SubmissionsController extends Controller
 
             return $this->asFailure($error);
         }
+
+        $this->_requireSubmissionPermission($submission, true);
 
         $form = $submission->getForm();
 
@@ -1076,6 +1091,34 @@ class SubmissionsController extends Controller
 
     // Private Methods
     // =========================================================================
+
+    private function _requireSubmissionPermission(Submission $submission, bool $requireSave = false): void
+    {
+        $currentUser = Craft::$app->getUser()->getIdentity();
+
+        if (!$currentUser || !$submission->canView($currentUser)) {
+            throw new ForbiddenHttpException('User is not permitted to perform this action');
+        }
+
+        if (!$requireSave) {
+            return;
+        }
+
+        // Sending notifications and re-running integrations distribute submission content to email
+        // recipients and third-party systems, so view-only access isn't enough. Note that `canSave()`
+        // can't be used here, as it intentionally defers to the controller for site requests.
+        $formUid = $submission->getForm()?->uid;
+
+        if ($currentUser->can('formie-saveSubmissions')) {
+            return;
+        }
+
+        if ($formUid && $currentUser->can("formie-saveSubmissions:$formUid")) {
+            return;
+        }
+
+        throw new ForbiddenHttpException('User is not permitted to perform this action');
+    }
 
     private function _returnJsonResponse(bool $success, Submission $submission, Form $form, ?FieldLayoutPage $nextPage, array $extras = []): Response
     {
