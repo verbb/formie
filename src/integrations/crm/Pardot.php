@@ -552,11 +552,11 @@ class Pardot extends Crm implements OAuthProviderInterface
 
         $payload = $payloadData['submission'] ?? [];
 
-        // Multi-option fields are encoded as arrays of option objects for JSON export. Flattening
-        // those produces indexed keys (e.g. SolutionInterest.0.value) which Pardot form handlers
+        // Option fields are encoded as option objects (or arrays of them) for JSON export. Flattening
+        // those produces keys like `Industry.value` or `Services.0.value` which Pardot form handlers
         // cannot map to a single external field.
         foreach ($submission->getFields() as $field) {
-            if ($field->getIsCosmetic() || !$field instanceof OptionsField || !$field->multi) {
+            if ($field->getIsCosmetic() || !$field instanceof OptionsField) {
                 continue;
             }
 

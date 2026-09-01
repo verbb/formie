@@ -6,6 +6,7 @@
 - Fix a security vulnerability with how permissions were handled for some submission actions.
 - Fix sending an email notification and running an integration for a submission not requiring the “Save submissions” permission.
 - Fix an error when sending an email notification for a submission that no longer exists.
+- Fix Pardot form handler payloads sending single-select option fields (Dropdown, Radio) as `field.value` instead of a single field value.
 
 ## 3.1.37 - 2026-08-29
 
