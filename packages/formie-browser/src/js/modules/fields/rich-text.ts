@@ -141,7 +141,9 @@ function initRichTextField(container: HTMLElement, input: RichTextInput, options
         actions: getActions(options.buttons),
         onChange: (html: string) => {
             const emptyParagraph = '<p><br></p>';
-            input.value = input.placeholder && html === emptyParagraph ? '' : html;
+            // Treat Pell's empty document as blank so required validation matches
+            // a never-touched textarea (and so clearing the editor can fail required).
+            input.value = (!html || html === emptyParagraph) ? '' : html;
             // Bubble both generic input and a namespaced rich-text change hook.
             input.dispatchEvent(new Event('input', { bubbles: true }));
             dispatchFieldEvent(input, MODULE_ID, 'populate', {

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+- Fix required Multi-line Text fields with Rich Text enabled being skipped by client-side validation — the backing `<textarea>` lives in a `display: none` wrapper, so visibility is now judged from the rich-text editor host instead. ([#2947](https://github.com/verbb/formie/issues/2947))
+- Fix field validation errors relying on `aria-errormessage` alone — also merge the error message id into `aria-describedby` (keeping any instruction ids) so assistive tech with weak `aria-errormessage` support still announces the error. ([#2946](https://github.com/verbb/formie/issues/2946))
+
 ### Changed
 - OAuth integration connect uses Plugin Kit `<pk-connect-oauth>`; removed jQuery dirty-form glue.
 

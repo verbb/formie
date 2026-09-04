@@ -308,7 +308,7 @@ function P(e, t, n) {
 		styleWithCSS: !0,
 		actions: N(n.buttons),
 		onChange: (e) => {
-			t.value = t.placeholder && e === "<p><br></p>" ? "" : e, t.dispatchEvent(new Event("input", { bubbles: !0 })), r(t, k, "populate", {
+			t.value = !e || e === "<p><br></p>" ? "" : e, t.dispatchEvent(new Event("input", { bubbles: !0 })), r(t, k, "populate", {
 				richText: t,
 				value: t.value
 			});
