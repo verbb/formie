@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 3.1.38 - 2026-09-04
 
 ### Fixed
 - Fix a security vulnerability with how permissions were handled for some submission actions.
