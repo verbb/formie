@@ -1,16 +1,6 @@
+import { appendDescribedBy, setErrorMessageReference } from '#core/field-error-aria';
 import { addThemeClasses } from '#theme/theme-classes';
 import { isValidationSkipped } from '#validation/skip';
-
-function appendDescribedBy(input: HTMLElement, describedById: string): void {
-    const current = (input.getAttribute('aria-describedby') || '').trim();
-    const items = current ? current.split(/\s+/) : [];
-
-    if (!items.includes(describedById)) {
-        items.push(describedById);
-    }
-
-    input.setAttribute('aria-describedby', items.join(' ').trim());
-}
 
 function getFirstErroredField(form: HTMLFormElement): HTMLElement | null {
     const fields = Array.from(form.querySelectorAll('[data-formie-field-handle]')) as HTMLElement[];
@@ -59,8 +49,6 @@ export function enhanceServerRenderedFieldErrors(form: HTMLFormElement): void {
         field.setAttribute('data-formie-field-has-error', 'true');
         addThemeClasses(field, form, 'fieldLayoutError');
 
-        const errorContainer = field.querySelector('[data-formie-field-errors]') as HTMLElement | null;
-        const errorContainerId = errorContainer?.id || '';
         const primaryError = field.querySelector('[data-formie-field-error]') as HTMLElement | null;
         const primaryErrorId = primaryError?.id || '';
 
@@ -75,12 +63,14 @@ export function enhanceServerRenderedFieldErrors(form: HTMLFormElement): void {
             addThemeClasses(element, form, 'fieldControlError');
             element.setAttribute('data-formie-input-has-error', 'true');
 
-            if (errorContainerId) {
-                appendDescribedBy(element, errorContainerId);
+            if (primaryErrorId) {
+                // Pair aria-errormessage + aria-describedby on the message id (#2946).
+                setErrorMessageReference(element, primaryErrorId);
             }
 
-            if (primaryErrorId) {
-                element.setAttribute('aria-errormessage', primaryErrorId);
+            const instructions = field.querySelector('[data-formie-instructions]') as HTMLElement | null;
+            if (instructions?.id) {
+                appendDescribedBy(element, instructions.id);
             }
         });
     });

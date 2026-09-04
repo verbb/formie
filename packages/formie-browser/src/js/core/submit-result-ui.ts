@@ -1,5 +1,10 @@
 import type { FormSubmitResult } from '#contracts/schema';
 import { applyErrorAriaLive, getErrorAriaLivePreference, resolveSubmitErrorAriaLive } from '#core/error-aria-live';
+import {
+    appendDescribedBy,
+    clearFieldErrorAria,
+    setErrorMessageReference,
+} from '#core/field-error-aria';
 import { ensureFieldErrorContainer as resolveFieldErrorContainer } from '#core/field-error-container';
 import { syncPageTabErrors } from '#core/page-tab-errors';
 import { focusFirstValidationError } from '#core/validation-focus';
@@ -160,40 +165,10 @@ function ensureFieldErrorContainer(fieldNode: Element): HTMLElement {
     });
 }
 
-function removeDescribedBy(input: HTMLElement, describedById: string): void {
-    const current = (input.getAttribute('aria-describedby') || '').trim();
-
-    if (!current) {
-        return;
-    }
-
-    const nextValue = current.split(/\s+/).filter((item) => {
-        return item !== describedById;
-    }).join(' ').trim();
-
-    if (nextValue) {
-        input.setAttribute('aria-describedby', nextValue);
-        return;
-    }
-
-    input.removeAttribute('aria-describedby');
-}
-
-function setErrorMessageReference(input: HTMLElement, errorMessageId: string): void {
-    input.setAttribute('aria-errormessage', errorMessageId);
-}
-
-function clearErrorMessageReference(input: HTMLElement, errorMessageId: string): void {
-    if (input.getAttribute('aria-errormessage') === errorMessageId) {
-        input.removeAttribute('aria-errormessage');
-    }
-}
-
 export function clearFieldErrors(form: HTMLFormElement): void {
     form.querySelectorAll('[data-formie-field-handle]').forEach((fieldNode) => {
         const fieldElement = fieldNode as HTMLElement;
         const container = fieldElement.querySelector('[data-formie-field-errors]') as HTMLElement | null;
-        const containerId = container?.id || '';
         const errorMessageIds = Array.from(fieldElement.querySelectorAll('[data-formie-field-error]')).map((node) => {
             return (node as HTMLElement).id;
         }).filter(Boolean);
@@ -214,14 +189,7 @@ export function clearFieldErrors(form: HTMLFormElement): void {
             element.removeAttribute('aria-invalid');
             removeThemeClasses(element, form, 'fieldControlError');
             element.removeAttribute('data-formie-input-has-error');
-
-            if (containerId) {
-                removeDescribedBy(element, containerId);
-            }
-
-            errorMessageIds.forEach((errorMessageId) => {
-                clearErrorMessageReference(element, errorMessageId);
-            });
+            clearFieldErrorAria(element, errorMessageIds);
         });
     });
 
@@ -286,17 +254,6 @@ export function clearAriaInvalid(form: HTMLFormElement): void {
     });
 }
 
-function appendDescribedBy(input: HTMLElement, describedById: string): void {
-    const current = (input.getAttribute('aria-describedby') || '').trim();
-    const items = current ? current.split(/\s+/) : [];
-
-    if (!items.includes(describedById)) {
-        items.push(describedById);
-    }
-
-    input.setAttribute('aria-describedby', items.join(' ').trim());
-}
-
 export function renderFieldErrors(form: HTMLFormElement, fieldErrors: Record<string, string[]>): void {
     const errorAriaLive = resolveSubmitErrorAriaLive(getErrorAriaLivePreference(form));
 
@@ -327,7 +284,8 @@ export function renderFieldErrors(form: HTMLFormElement, fieldErrors: Record<str
         });
 
         // Point every control in the field at the first rendered message while
-        // still rendering the full list for visual output.
+        // still rendering the full list for visual output. Pair aria-errormessage
+        // with aria-describedby on that message id (#2946).
         const primaryErrorId = (container.querySelector('[data-formie-field-error]') as HTMLElement | null)?.id;
 
         fieldNode.querySelectorAll('input, select, textarea').forEach((input) => {
@@ -335,7 +293,6 @@ export function renderFieldErrors(form: HTMLFormElement, fieldErrors: Record<str
             element.setAttribute('aria-invalid', 'true');
             addThemeClasses(element, form, 'fieldControlError');
             element.setAttribute('data-formie-input-has-error', 'true');
-            appendDescribedBy(element, containerId);
 
             if (primaryErrorId) {
                 setErrorMessageReference(element, primaryErrorId);

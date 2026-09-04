@@ -1,4 +1,8 @@
 import { ensureFieldErrorContainer } from '#core/field-error-container';
+import {
+    clearFieldErrorAria,
+    setErrorMessageReference,
+} from '#core/field-error-aria';
 import { syncPageTabErrors } from '#core/page-tab-errors';
 import rules from '#validation/rules';
 import { applyErrorAriaLive, resolveValidationErrorAriaLive } from '#core/error-aria-live';
@@ -43,44 +47,8 @@ function isValidationInput(node: Element | null): node is ValidationInput {
     );
 }
 
-function removeDescribedBy(input: HTMLElement, describedById: string): void {
-    const current = (input.getAttribute('aria-describedby') || '').trim();
-
-    if (!current) {
-        return;
-    }
-
-    const filtered = current.split(/\s+/).filter((item) => {
-        return item !== describedById;
-    });
-
-    if (filtered.length) {
-        input.setAttribute('aria-describedby', filtered.join(' '));
-        return;
-    }
-
-    input.removeAttribute('aria-describedby');
-}
-
-function appendDescribedBy(input: HTMLElement, describedById: string): void {
-    const current = (input.getAttribute('aria-describedby') || '').trim();
-    const items = current ? current.split(/\s+/) : [];
-
-    if (!items.includes(describedById)) {
-        items.push(describedById);
-    }
-
-    input.setAttribute('aria-describedby', items.join(' ').trim());
-}
-
-function setErrorMessageReference(input: HTMLElement, errorMessageId: string): void {
-    input.setAttribute('aria-errormessage', errorMessageId);
-}
-
-function clearErrorMessageReference(input: HTMLElement, errorMessageId: string): void {
-    if (input.getAttribute('aria-errormessage') === errorMessageId) {
-        input.removeAttribute('aria-errormessage');
-    }
+function isPainted(element: HTMLElement): boolean {
+    return !!(element.offsetWidth || element.offsetHeight || element.getClientRects().length);
 }
 
 export class FormieValidator {
@@ -267,7 +235,11 @@ export class FormieValidator {
         }
 
         const errorMessages = fieldContainer.querySelector('[data-formie-field-errors]') as HTMLElement | null;
-        const errorContainerId = errorMessages?.id || '';
+        // Capture message ids before nodes are removed so aria-errormessage / describedby
+        // can be cleared (querying after remove finds nothing).
+        const errorMessageIds = Array.from(fieldContainer.querySelectorAll('[data-formie-field-error]')).map((node) => {
+            return (node as HTMLElement).id;
+        }).filter(Boolean);
 
         fieldContainer.querySelectorAll('[data-formie-field-error]').forEach((node) => {
             node.remove();
@@ -284,18 +256,7 @@ export class FormieValidator {
                 element.classList.remove(...this.config.inputErrorClass);
             }
             element.removeAttribute('data-formie-input-has-error');
-
-            if (errorContainerId) {
-                removeDescribedBy(element, errorContainerId);
-            }
-
-            fieldContainer.querySelectorAll('[data-formie-field-error]').forEach((errorNode) => {
-                const errorMessageId = (errorNode as HTMLElement).id;
-
-                if (errorMessageId) {
-                    clearErrorMessageReference(element, errorMessageId);
-                }
-            });
+            clearFieldErrorAria(element, errorMessageIds);
         });
 
         // Nested field wrappers inherit error state so repeaters/groups can reflect
@@ -369,7 +330,7 @@ export class FormieValidator {
                 element.classList.add(...this.config.inputErrorClass);
             }
             element.setAttribute('data-formie-input-has-error', 'true');
-            appendDescribedBy(element, errorMessages.id);
+            // Pair aria-errormessage + aria-describedby on the message id (#2946).
             setErrorMessageReference(element, errorId);
         });
 
@@ -515,7 +476,17 @@ export class FormieValidator {
             return !!options.includeHiddenPages;
         }
 
-        return !!(element.offsetWidth || element.offsetHeight || element.getClientRects().length);
+        // Rich Text keeps the real <textarea> in a display:none wrapper while the
+        // contenteditable UI is painted. Geometry on the textarea is always zero,
+        // so validate against the editor host when present (#2947).
+        const field = element.closest('[data-formie-field-handle]');
+        const richTextHost = field?.querySelector('[data-formie-rich-text]');
+
+        if (richTextHost instanceof HTMLElement) {
+            return isPainted(richTextHost);
+        }
+
+        return isPainted(element);
     }
 
     blurHandler(event: Event): void {
