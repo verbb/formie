@@ -554,16 +554,24 @@ class Pardot extends Crm implements OAuthProviderInterface
 
         // Option fields are encoded as option objects (or arrays of them) for JSON export. Flattening
         // those produces keys like `Industry.value` or `Services.0.value` which Pardot form handlers
-        // cannot map to a single external field.
+        // cannot map to a single external field. Multi-select values must also use semicolons
+        // (Salesforce/Pardot convention), not the comma-separated string from getValueAsString().
         foreach ($submission->getFields() as $field) {
             if ($field->getIsCosmetic() || !$field instanceof OptionsField) {
                 continue;
             }
 
-            $payload[$field->handle] = $field->getValueAsString(
-                $submission->getFieldValue($field->handle),
-                $submission,
-            );
+            $value = $submission->getFieldValue($field->handle);
+
+            if ($field->multi) {
+                $values = array_map(function($item) {
+                    return $item->value;
+                }, (array)$value);
+
+                $payload[$field->handle] = implode(';', $values);
+            } else {
+                $payload[$field->handle] = $field->getValueAsString($value, $submission);
+            }
         }
 
         // Flatten array to dot-notation
