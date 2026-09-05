@@ -268,12 +268,14 @@
     </div>
 </div>
 
+{% set canSaveSubmissions = craft.formie.plugin.permissions.canSaveSubmissions(currentUser, form) %}
+
 {% set notifications = form.getNotifications() %}
 {% set pdfDownloadUrl = submission.id ? submission.getPdfDownloadUrl() : null %}
 
-{% if (notifications and not isNew and not submission.isSpam) or pdfDownloadUrl %}
+{% if (notifications and not isNew and not submission.isSpam and canSaveSubmissions) or pdfDownloadUrl %}
     <div id="meta-details" class="meta">
-        {% if notifications and not isNew and not submission.isSpam %}
+        {% if notifications and not isNew and not submission.isSpam and canSaveSubmissions %}
             <div class="field">
                 <div class="heading">
                     <label class="">{{ 'Email' | t('formie') }}</label>
@@ -317,7 +319,7 @@
     {% endif %}
 {% endfor %}
 
-{% if integrations and not isNew and not submission.isSpam %}
+{% if integrations and not isNew and not submission.isSpam and canSaveSubmissions %}
     <div id="meta-details" class="meta">
         {% set integrationsField %}
             <div>

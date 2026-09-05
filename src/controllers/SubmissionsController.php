@@ -8,11 +8,13 @@ use verbb\formie\elements\Submission;
 use verbb\formie\errors\StaleSubmissionStateException;
 use verbb\formie\helpers\ClientEventsHelper;
 use verbb\formie\helpers\ConditionsHelper;
+use verbb\formie\helpers\References;
 use verbb\formie\helpers\SetPageReturnUrlHelper;
 use verbb\formie\helpers\SiteHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\TypeHelper;
 use verbb\formie\helpers\Table;
+use verbb\formie\helpers\UrlHelper as FormieUrlHelper;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\IntegrationResponse;
 use verbb\formie\models\ManagedSubmissionRequest;
@@ -62,6 +64,7 @@ class SubmissionsController extends Controller
     // =========================================================================
 
     use CrossOriginRequestTrait;
+    use AnonymousSiteRequestGuardTrait;
 
 
     // Public Methods
@@ -70,6 +73,8 @@ class SubmissionsController extends Controller
     public function beforeAction($action): bool
     {
         $settings = Formie::$plugin->getSettings();
+
+        $this->forbidGuestControlPanelAnonymousActions($action->id);
 
         if (in_array($action->id, ['submit', 'save-submission'], true) && Craft::$app->getUser()->isGuest && !$settings->enableCsrfValidationForGuests) {
             $this->enableCsrfValidation = false;
@@ -288,6 +293,7 @@ class SubmissionsController extends Controller
 
     public function actionGetSendNotificationModalContent(): Response
     {
+        $this->requirePostRequest();
         $this->requireAcceptsJson();
 
         $view = $this->getView();
@@ -298,7 +304,13 @@ class SubmissionsController extends Controller
             ->isSpam(null)
             ->one();
 
-        $notifications = $submission->getForm()->getNotifications();
+        if (!$submission) {
+            throw new NotFoundHttpException('Submission not found');
+        }
+
+        $this->_requireSubmissionPermission($submission);
+
+        $notifications = $submission->getForm()?->getNotifications() ?? [];
 
         $modalHtml = $view->renderTemplate('formie/submissions/_includes/send-notification-modal', [
             'submission' => $submission,
@@ -315,6 +327,7 @@ class SubmissionsController extends Controller
 
     public function actionSendNotification(): Response
     {
+        $this->requirePostRequest();
         $this->requireAcceptsJson();
 
         $notificationId = $this->request->getRequiredParam('notificationId');
@@ -326,16 +339,20 @@ class SubmissionsController extends Controller
             ->isSpam(null)
             ->one();
 
-        if (!$notification) {
-            $error = Craft::t('formie', 'Notification not found.');
+        if (!$submission) {
+            $error = Craft::t('formie', 'Submission not found.');
 
             $this->setFailFlash($error);
 
             return $this->asFailure($error);
         }
 
-        if (!$submission) {
-            $error = Craft::t('formie', 'Submission not found.');
+        $this->_requireSubmissionPermission($submission, true);
+
+        // The notification must belong to the submission's form. Otherwise an arbitrary notification
+        // (including one with attacker-chosen recipients) could be rendered against any submission.
+        if (!$notification || (int)$notification->formId !== (int)$submission->formId) {
+            $error = Craft::t('formie', 'Notification not found.');
 
             $this->setFailFlash($error);
 
@@ -400,6 +417,7 @@ class SubmissionsController extends Controller
 
     public function actionRunIntegration(): Response
     {
+        $this->requirePostRequest();
         $this->requireAcceptsJson();
 
         $integrationId = $this->request->getRequiredParam('integrationId');
@@ -417,6 +435,8 @@ class SubmissionsController extends Controller
 
             return $this->asFailure($error);
         }
+
+        $this->_requireSubmissionPermission($submission, true);
 
         $form = $submission->getForm();
 
@@ -683,7 +703,7 @@ class SubmissionsController extends Controller
             return $this->redirect($this->_currentUrlWithoutParams(self::STALE_SUBMISSION_STATE_QUERY_PARAMS));
         }
 
-        return $this->redirectToPostedUrl($submission, $form->getRedirectUrl());
+        return $this->_redirectToFrontEndPostedUrl($form, $submission);
     }
 
     public function setAllowTestOverrides(bool $allow): void
@@ -694,6 +714,55 @@ class SubmissionsController extends Controller
 
     // Private Methods
     // =========================================================================
+
+    /**
+     * Front-end completion redirects must never use Craft's `redirectToPostedUrl()`.
+     *
+     * That helper renders the HMAC-signed `redirect` body param with the *unsandboxed*
+     * object-template Twig view. Formie may sign attacker-influenced URLs (e.g. returnUrl
+     * derived from the request), so resolve through References + sanitize instead.
+     */
+    private function _redirectToFrontEndPostedUrl(Form $form, Submission $submission): Response
+    {
+        $redirect = $this->request->getValidatedBodyParam('redirect');
+
+        if (is_string($redirect) && $redirect !== '') {
+            $url = References::parseContent($redirect, $submission);
+            $url = StringHelper::sanitizeRedirectUrl($url);
+            $url = FormieUrlHelper::appendRequestQueryString($url);
+
+            return $this->redirect($url);
+        }
+
+        return $this->redirect($form->getRedirectUrl());
+    }
+
+    /**
+     * Sending notifications / re-running integrations distribute submission content, so view-only
+     * access is not enough when `$requireSave` is true. Prefer Permissions helpers (group + form
+     * scopes) over raw `User::can()` checks.
+     */
+    private function _requireSubmissionPermission(Submission $submission, bool $requireSave = false): void
+    {
+        $currentUser = Craft::$app->getUser()->getIdentity();
+
+        if (!$currentUser || !$submission->canView($currentUser)) {
+            throw new ForbiddenHttpException('User is not permitted to perform this action');
+        }
+
+        if (!$requireSave) {
+            return;
+        }
+
+        // Note that `Submission::canSave()` intentionally allows site-request edits without Formie
+        // save permissions — those checks live in the controller/processor. CP side-effects must
+        // use the Permissions service directly.
+        if (Formie::$plugin->getPermissions()->canSaveSubmissions($currentUser, $submission->getForm())) {
+            return;
+        }
+
+        throw new ForbiddenHttpException('User is not permitted to perform this action');
+    }
 
     private function _createSubmitJsonResponsePayload(
         SubmissionResponse $response,

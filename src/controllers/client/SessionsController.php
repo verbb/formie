@@ -3,6 +3,7 @@ namespace verbb\formie\controllers\client;
 
 use verbb\formie\Formie;
 use verbb\formie\client\models\SessionRefreshRequest;
+use verbb\formie\controllers\AnonymousSiteRequestGuardTrait;
 use verbb\formie\controllers\CrossOriginRequestTrait;
 
 use craft\web\Controller;
@@ -22,6 +23,7 @@ class SessionsController extends Controller
 
     use CrossOriginRequestTrait;
     use ClientGuestCsrfTrait;
+    use AnonymousSiteRequestGuardTrait;
     
 
     // Public Methods
@@ -29,6 +31,7 @@ class SessionsController extends Controller
 
     public function beforeAction($action): bool
     {
+        $this->forbidGuestControlPanelAnonymousActions($action->id);
         $this->configureGuestCsrfValidation(['refresh']);
 
         return parent::beforeAction($action);

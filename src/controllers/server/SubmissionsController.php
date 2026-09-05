@@ -3,6 +3,7 @@ namespace verbb\formie\controllers\server;
 
 use verbb\formie\Formie;
 use verbb\formie\client\models\PageTransitionRequest;
+use verbb\formie\controllers\AnonymousSiteRequestGuardTrait;
 use verbb\formie\controllers\CrossOriginRequestTrait;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
@@ -20,6 +21,7 @@ use Craft;
 use craft\web\Controller;
 
 use yii\web\BadRequestHttpException;
+use yii\web\ForbiddenHttpException;
 use yii\web\Response;
 
 class SubmissionsController extends Controller
@@ -43,6 +45,7 @@ class SubmissionsController extends Controller
     // =========================================================================
 
     use CrossOriginRequestTrait;
+    use AnonymousSiteRequestGuardTrait;
 
 
     // Public Methods
@@ -50,6 +53,8 @@ class SubmissionsController extends Controller
 
     public function beforeAction($action): bool
     {
+        $this->forbidGuestControlPanelAnonymousActions($action->id);
+
         if (in_array($action->id, ['submit', 'set-page', 'clear-submission'], true)) {
             $settings = Formie::$plugin->getSettings();
 

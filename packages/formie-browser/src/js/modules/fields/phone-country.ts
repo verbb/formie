@@ -163,6 +163,30 @@ function initPhoneField(phoneInput: PhoneInput, countryInput: HTMLInputElement, 
     phoneInput.addEventListener('countrychange', syncCountry);
     phoneInput.addEventListener('blur', syncCountry);
     syncCountry();
+
+    // Keep the country dropdown button in sync when the tel input is enabled/disabled after
+    // init (multi-page page-hidden, or conditions). intl-tel-input disables the button to match
+    // a disabled input at init, but won't re-enable it when `disabled` is later removed.
+    const syncCountryButton = () => {
+        const button = phoneInput.closest('.iti')?.querySelector('.iti__selected-country');
+
+        if (!(button instanceof HTMLElement)) {
+            return;
+        }
+
+        if (phoneInput.disabled) {
+            button.setAttribute('disabled', 'true');
+        } else {
+            button.removeAttribute('disabled');
+        }
+    };
+
+    syncCountryButton();
+    const countryButtonObserver = new MutationObserver(() => {
+        syncCountryButton();
+    });
+    countryButtonObserver.observe(phoneInput, { attributes: true, attributeFilter: ['disabled'] });
+
     debug.log('Initialized.', {
         inputName: phoneInput.name,
         restrictedCountries: phoneInput.restrictedCountries,
@@ -177,6 +201,7 @@ function initPhoneField(phoneInput: PhoneInput, countryInput: HTMLInputElement, 
     return () => {
         phoneInput.removeEventListener('countrychange', syncCountry);
         phoneInput.removeEventListener('blur', syncCountry);
+        countryButtonObserver.disconnect();
         validator.destroy();
         delete phoneInput.allowedCountries;
         delete phoneInput.validator;

@@ -2,17 +2,33 @@
 
 ## Unreleased
 
-### Fixed
-- Fix required Multi-line Text fields with Rich Text enabled being skipped by client-side validation — the backing `<textarea>` lives in a `display: none` wrapper, so visibility is now judged from the rich-text editor host instead. ([#2947](https://github.com/verbb/formie/issues/2947))
-- Fix field validation errors relying on `aria-errormessage` alone — also merge the error message id into `aria-describedby` (keeping any instruction ids) so assistive tech with weak `aria-errormessage` support still announces the error. ([#2946](https://github.com/verbb/formie/issues/2946))
-
 ### Changed
 - OAuth integration connect uses Plugin Kit `<pk-connect-oauth>`; removed jQuery dirty-form glue.
-
-### Changed
 - Integration credentials connect uses Plugin Kit `<pk-connect>` (declarative Twig + WC bundle) instead of the React `IntegrationConnectApp` mount.
+- Bump `verbb/auth` to `^2.0.44` (Salesforce/Pardot OAuth PKCE and session refresh).
+- Allow `dompdf/dompdf` `^3.0` alongside v1/v2.
+- Add Theme setting for Friendly Captcha (light/dark/auto). (#2907)
 
 ### Fixed
+- Fix a security vulnerability with how permissions were handled for some submission actions.
+- Fix sending an email notification and running an integration for a submission not requiring the “Save submissions” permission.
+- Fix a security vulnerability with how submission redirect URLs were handled (guest Control Panel variants of anonymous front-end actions are rejected; front-end completion no longer renders posted `redirect` values through Craft’s unsandboxed object-template Twig).
+- Fix email preview and test-send actions not enforcing Control Panel and Formie permissions.
+- Fix required Multi-line Text fields with Rich Text enabled being skipped by client-side validation — the backing `<textarea>` lives in a `display: none` wrapper, so visibility is now judged from the rich-text editor host instead. ([#2947](https://github.com/verbb/formie/issues/2947))
+- Fix field validation errors relying on `aria-errormessage` alone — also merge the error message id into `aria-describedby` (keeping any instruction ids) so assistive tech with weak `aria-errormessage` support still announces the error. ([#2946](https://github.com/verbb/formie/issues/2946))
+- Fix redirect URLs merging request query string values in a way that could leave brace-bearing params available for later template interpretation. Query params are now appended after reference parsing as literal (encoded) values.
+- Fix cached form CSRF refresh URLs generating a double subdomain when `CRAFT_BASE_CP_URL` is set alongside per-site subdomains (e.g. `my-project.staging.example.com`).
+- Fix an error when sending an email notification for a submission that no longer exists.
+- Fix Pardot form handler payloads sending option fields as indexed/`field.value` keys instead of a single field value, and multi-option values with commas instead of Salesforce/Pardot semicolons.
+- Fix ActiveCampaign Email marketing contact payloads sending blank unmapped properties (now `array_filter`’d like the CRM path). (#2934)
+- Fix User element integration silently skipping group assignment when a configured group UID no longer resolves. (#2909)
+- Fix Phone country dropdown stuck disabled on multi-page forms (and when conditions re-enable the tel input).
+- Fix Agree fields not appearing in the Calculations formula field picker.
+- Fix filtering submissions by ID (and UID) in the All forms index view.
+- Fix broken French translation encoding (`\\u{a0}` literals).
+- Fix missing validator/payment translation keys.
+- Fix Date field upgrade path for sub-field ordering and year range when migrating to Formie 4.
+- Fix page and next-button conditions using nested/legacy field references not being migrated to `{field:…}` syntax.
 - Fix Formie permissions such as “Access reports” never saving for a user group — some permission-seeding migrations inserted camel-cased names into `userpermissions`, but Craft stores names lowercased and matches them case-sensitively, so the assignment could never be read back. Existing mixed-case rows are now normalised (and merged into their lowercase equivalents) by a new migration.
 - Fix Recent Submissions widget breaking the control panel because `WidgetsVendorAsset` published from a `src/` path that is not shipped in the package (#2939).
 - Fix opening dialogs adding a spurious gap under the trigger/content when the overlay was a sibling inside a Tailwind `space-y-*` stack (`:not(:last-child)` treats in-tree `pk-dialog` hosts as layout siblings). Notifications, Reports, Client Events, Calculations, and dynamic option “convert to static” now keep overlays outside those stacks (or use `gap` instead).

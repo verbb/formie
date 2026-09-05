@@ -11,7 +11,8 @@ var t = e({
 			sitekey: n.siteKey || "",
 			formFieldName: "frc-captcha-response",
 			language: n.language,
-			startMode: n.startMode || "none"
+			startMode: n.startMode || "none",
+			theme: n.theme || "auto"
 		});
 		return i.addEventListener("frc:widget.complete", (e) => {
 			let t = e.detail;

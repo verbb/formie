@@ -252,7 +252,7 @@ class Calculations extends Field implements PreviewableFieldInterface
                 'validationAction' => 'formie/fields/validate-calculations-formula',
                 'variableConfig' => [
                     'content' => Variables::CONTENT_SINGLE_LINE,
-                    'types' => [Variables::TYPE_TEXT, Variables::TYPE_EMAIL, Variables::TYPE_NUMBER],
+                    'types' => [Variables::TYPE_TEXT, Variables::TYPE_EMAIL, Variables::TYPE_NUMBER, Variables::TYPE_BOOLEAN],
                     'groups' => [
                         Variables::STATIC_FIELDS,
                     ],

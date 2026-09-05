@@ -2,7 +2,6 @@
 namespace verbb\formie\helpers;
 
 use craft\elements\Entry;
-use craft\helpers\UrlHelper;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\models\FormSettings;
@@ -103,17 +102,15 @@ class SubmissionRedirectRulesHelper
 
     private static function _finalizeRedirectUrl(string $url, bool $includeQueryString): string
     {
-        $request = \Craft::$app->getRequest();
-
-        if ($url && $request->getIsSiteRequest() && $includeQueryString) {
-            $requestParams = $request->getQueryStringWithoutPath();
-            $urlParams = explode('?', $url)[1] ?? '';
-            $url = UrlHelper::url($url, $requestParams . '&' . $urlParams);
+        // Append after References::parseContent so request query values stay literal
+        // (braces encoded) rather than merging into a later template pass.
+        if ($url && $includeQueryString) {
+            $url = \verbb\formie\helpers\UrlHelper::appendRequestQueryString($url);
         }
 
         $url = mb_convert_encoding($url, 'UTF-8', 'ISO-8859-1');
 
-        return \craft\helpers\StringHelper::sanitizeRedirectUrl($url);
+        return StringHelper::sanitizeRedirectUrl($url);
     }
 
     private static function _getRuleEntry(array $rule): ?Entry

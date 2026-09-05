@@ -1544,7 +1544,16 @@ class Submission extends Element
         }
 
         if ($attribute == 'sendNotification') {
-            if (($form = $this->getForm()) && $form->getNotifications()) {
+            $currentUser = Craft::$app->getUser()->getIdentity();
+            $form = $this->getForm();
+
+            // Side-effect action — require save, not just view.
+            if (
+                $form
+                && $form->getNotifications()
+                && $currentUser
+                && Formie::$plugin->getPermissions()->canSaveSubmissions($currentUser, $form)
+            ) {
                 return Html::a(Craft::t('formie', 'Send'), '#', [
                     'class' => 'btn small formsubmit js-fui-submission-modal-send-btn',
                     'data-id' => $this->id,

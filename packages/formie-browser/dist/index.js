@@ -1044,8 +1044,8 @@ var Rt = class {
 	"place-kit": () => import("./chunks/place-kit-DKp5M6pj.js").then((e) => e.placeKitModule)
 }, Vt = {
 	"captcha-eu": () => import("./chunks/captcha-eu-DkiXD2Uv.js").then((e) => e.captchaEuModule),
-	"friendly-captcha-v1": () => import("./chunks/friendly-captcha-v1-Bb7uq3D7.js").then((e) => e.friendlyCaptchaV1Module),
-	"friendly-captcha-v2": () => import("./chunks/friendly-captcha-v2-Dy_jagXy.js").then((e) => e.friendlyCaptchaV2Module),
+	"friendly-captcha-v1": () => import("./chunks/friendly-captcha-v1-DDljioOk.js").then((e) => e.friendlyCaptchaV1Module),
+	"friendly-captcha-v2": () => import("./chunks/friendly-captcha-v2-B_pq2PfM.js").then((e) => e.friendlyCaptchaV2Module),
 	hcaptcha: () => import("./chunks/hcaptcha-Bf4zN7mM.js").then((e) => e.hcaptchaModule),
 	"recaptcha-enterprise": () => import("./chunks/recaptcha-enterprise-DU2669RI.js").then((e) => e.recaptchaEnterpriseModule),
 	"recaptcha-v2-checkbox": () => import("./chunks/recaptcha-v2-checkbox-COjdzwJ0.js").then((e) => e.recaptchaV2CheckboxModule),
@@ -1065,7 +1065,7 @@ var Rt = class {
 	"file-upload": () => import("./chunks/file-upload-CnEzVmVb.js").then((e) => e.fileUploadModule),
 	"upload-manager": () => import("./chunks/upload-manager-BQAM0xjI.js").then((e) => e.uploadManagerModule),
 	hidden: () => import("./chunks/hidden-D7_Ch-QN.js").then((e) => e.hiddenModule),
-	"phone-country": () => import("./chunks/phone-country-21NHTKme.js").then((e) => e.phoneCountryModule),
+	"phone-country": () => import("./chunks/phone-country-BolGj5yY.js").then((e) => e.phoneCountryModule),
 	"password-validation": () => import("./chunks/password-validation-DtnLIQAV.js").then((e) => e.passwordValidationModule),
 	"address-country": () => import("./chunks/address-country-Rx6GQTND.js").then((e) => e.addressCountryModule),
 	"address-state": () => import("./chunks/address-state-BwE01m2_.js").then((e) => e.addressStateModule),

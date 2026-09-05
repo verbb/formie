@@ -3,6 +3,7 @@ namespace verbb\formie\controllers\server;
 
 use verbb\formie\Formie;
 use verbb\formie\compatibility\client\RefreshTokensCompatibility;
+use verbb\formie\controllers\AnonymousSiteRequestGuardTrait;
 use verbb\formie\controllers\CrossOriginRequestTrait;
 use verbb\formie\elements\Form;
 use verbb\formie\helpers\SiteHelper;
@@ -20,6 +21,7 @@ class FormsController extends Controller
     // =========================================================================
 
     use CrossOriginRequestTrait;
+    use AnonymousSiteRequestGuardTrait;
 
 
     // Properties
@@ -33,6 +35,8 @@ class FormsController extends Controller
 
     public function beforeAction($action): bool
     {
+        $this->forbidGuestControlPanelAnonymousActions($action->id);
+
         if (in_array($action->id, ['refresh-tokens', 'render'], true)) {
             $this->enableCsrfValidation = false;
         }

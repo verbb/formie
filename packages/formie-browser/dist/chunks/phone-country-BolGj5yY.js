@@ -2612,7 +2612,19 @@ function ke(e, t, n) {
 		let e = i.getSelectedCountryData()?.iso2 || "";
 		e && (t.value = e.toUpperCase());
 	};
-	return e.addEventListener("countrychange", s), e.addEventListener("blur", s), s(), $.log("Initialized.", {
+	e.addEventListener("countrychange", s), e.addEventListener("blur", s), s();
+	let c = () => {
+		let t = e.closest(".iti")?.querySelector(".iti__selected-country");
+		t instanceof HTMLElement && (e.disabled ? t.setAttribute("disabled", "true") : t.removeAttribute("disabled"));
+	};
+	c();
+	let l = new MutationObserver(() => {
+		c();
+	});
+	return l.observe(e, {
+		attributes: !0,
+		attributeFilter: ["disabled"]
+	}), $.log("Initialized.", {
 		inputName: e.name,
 		restrictedCountries: e.restrictedCountries
 	}), a(e, X, "init", {
@@ -2620,7 +2632,7 @@ function ke(e, t, n) {
 		validator: i,
 		validatorOptions: r
 	}), () => {
-		e.removeEventListener("countrychange", s), e.removeEventListener("blur", s), i.destroy(), delete e.allowedCountries, delete e.validator, delete e.$countryInput, delete e.restrictedCountries, $.log("Destroyed.", { inputName: e.name });
+		e.removeEventListener("countrychange", s), e.removeEventListener("blur", s), l.disconnect(), i.destroy(), delete e.allowedCountries, delete e.validator, delete e.$countryInput, delete e.restrictedCountries, $.log("Destroyed.", { inputName: e.name });
 	};
 }
 var Ae = {

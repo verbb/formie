@@ -4,6 +4,7 @@ namespace verbb\formie\controllers\client;
 use verbb\formie\Formie;
 use verbb\formie\client\models\LoadContext;
 use verbb\formie\client\models\PageTransitionRequest;
+use verbb\formie\controllers\AnonymousSiteRequestGuardTrait;
 use verbb\formie\controllers\CrossOriginRequestTrait;
 use verbb\formie\helpers\SiteHelper;
 use verbb\formie\elements\Form;
@@ -26,6 +27,7 @@ class FormsController extends Controller
 
     use CrossOriginRequestTrait;
     use ClientGuestCsrfTrait;
+    use AnonymousSiteRequestGuardTrait;
 
 
     // Public Methods
@@ -33,6 +35,7 @@ class FormsController extends Controller
 
     public function beforeAction($action): bool
     {
+        $this->forbidGuestControlPanelAnonymousActions($action->id);
         $this->configureGuestCsrfValidation(['load', 'page']);
 
         return parent::beforeAction($action);

@@ -5,8 +5,12 @@ use verbb\formie\Formie;
 use verbb\formie\base\Crm;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
+use verbb\formie\base\OptionsField;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyPayloadEvent;
+use verbb\formie\fields\values\MultiOptionFieldValue;
+use verbb\formie\fields\values\OptionValue;
+use verbb\formie\fields\values\SingleOptionFieldValue;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
@@ -606,6 +610,42 @@ class Pardot extends Crm implements OAuthProviderInterface
         $payloadData = $this->generateSubmissionPayloadValues($submission);
 
         $payload = $payloadData['submission'] ?? [];
+
+        // Option fields are encoded as option objects (or arrays of them) for JSON export. Flattening
+        // those produces keys like `Industry.value` or `Services.0.value` which Pardot form handlers
+        // cannot map to a single external field. Multi-select values must also use semicolons
+        // (Salesforce/Pardot convention), not the comma-separated string from __toString().
+        foreach ($submission->getFields() as $field) {
+            if ($field->getIsCosmetic() || !$field instanceof OptionsField) {
+                continue;
+            }
+
+            $value = $submission->getFieldValue($field->handle);
+
+            if ($field->multi) {
+                $values = [];
+
+                if ($value instanceof MultiOptionFieldValue) {
+                    $values = $value->values();
+                } elseif (is_iterable($value)) {
+                    foreach ($value as $item) {
+                        if ($item instanceof OptionValue) {
+                            $values[] = (string)$item->value;
+                        } elseif (is_array($item) && array_key_exists('value', $item)) {
+                            $values[] = (string)$item['value'];
+                        } elseif ($item !== null && $item !== '') {
+                            $values[] = (string)$item;
+                        }
+                    }
+                }
+
+                $payload[$field->handle] = implode(';', $values);
+            } else {
+                $payload[$field->handle] = $value instanceof SingleOptionFieldValue || $value instanceof OptionValue
+                    ? (string)$value->value
+                    : (string)$field->getValueAsString($value, $submission);
+            }
+        }
 
         // Flatten array to dot-notation
         $payload = ArrayHelper::flatten($payload);

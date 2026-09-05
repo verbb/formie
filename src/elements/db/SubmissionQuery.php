@@ -654,7 +654,7 @@ class SubmissionQuery extends ElementQuery
             $result = (new Query())
                 ->select(['formId'])
                 ->from(Table::FORMIE_SUBMISSIONS)
-                ->where(['id' => (array)$this->id])
+                ->where(Db::parseNumericParam('id', $this->id))
                 ->column();
 
             $this->_resolvedFormIdsCacheKey = $cacheKey;
@@ -668,7 +668,7 @@ class SubmissionQuery extends ElementQuery
             $result = (new Query())
                 ->select(['formId'])
                 ->from(Table::FORMIE_SUBMISSIONS)
-                ->where(['uid' => (array)$this->uid])
+                ->where(Db::parseParam('uid', $this->uid))
                 ->column();
 
             $this->_resolvedFormIdsCacheKey = $cacheKey;

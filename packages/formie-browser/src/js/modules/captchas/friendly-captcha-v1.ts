@@ -8,6 +8,7 @@ type FriendlyCaptchaProviderOptions = {
     siteKey?: string | null;
     language?: string;
     startMode?: string;
+    theme?: string;
 };
 
 export const friendlyCaptchaV1Module = defineCaptchaModule<
@@ -24,6 +25,15 @@ export const friendlyCaptchaV1Module = defineCaptchaModule<
         return import('friendly-challenge');
     },
     mount: ({ api, container, provider, services }) => {
+        // V1 uses a `dark` class on the widget element (no `auto` theme option).
+        const theme = provider.theme || 'auto';
+        const prefersDark = window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false;
+        const useDark = theme === 'dark' || (theme === 'auto' && prefersDark);
+
+        if (useDark) {
+            container.classList.add('dark');
+        }
+
         return new api.WidgetInstance(container, {
             sitekey: provider.siteKey || '',
             startMode: (provider.startMode as 'auto' | 'focus' | 'none' | undefined) || 'none',

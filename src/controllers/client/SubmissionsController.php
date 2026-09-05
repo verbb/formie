@@ -3,6 +3,7 @@ namespace verbb\formie\controllers\client;
 
 use verbb\formie\Formie;
 use verbb\formie\client\models\SubmitRequest;
+use verbb\formie\controllers\AnonymousSiteRequestGuardTrait;
 use verbb\formie\controllers\CrossOriginRequestTrait;
 use verbb\formie\helpers\SiteHelper;
 
@@ -23,6 +24,7 @@ class SubmissionsController extends Controller
 
     use CrossOriginRequestTrait;
     use ClientGuestCsrfTrait;
+    use AnonymousSiteRequestGuardTrait;
 
     
     // Public Methods
@@ -30,6 +32,7 @@ class SubmissionsController extends Controller
 
     public function beforeAction($action): bool
     {
+        $this->forbidGuestControlPanelAnonymousActions($action->id);
         $this->configureGuestCsrfValidation(['submit']);
 
         return parent::beforeAction($action);

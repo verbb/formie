@@ -10,6 +10,7 @@ type FriendlyCaptchaProviderOptions = {
     siteKey?: string | null;
     language?: string;
     startMode?: string;
+    theme?: string;
 };
 
 export const friendlyCaptchaV2Module = defineCaptchaModule<
@@ -34,6 +35,7 @@ export const friendlyCaptchaV2Module = defineCaptchaModule<
             formFieldName: 'frc-captcha-response',
             language: provider.language,
             startMode: (provider.startMode as 'auto' | 'focus' | 'none' | undefined) || 'none',
+            theme: (provider.theme as 'auto' | 'light' | 'dark' | undefined) || 'auto',
         });
 
         widget.addEventListener('frc:widget.complete', (event) => {

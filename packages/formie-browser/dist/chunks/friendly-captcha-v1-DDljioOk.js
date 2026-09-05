@@ -5,18 +5,21 @@ var t = e({
 	defaultPlaceholderSelector: "[data-friendly-captcha-placeholder]",
 	defaultTokenFieldNames: ["frc-captcha-solution"],
 	load: async () => import("./friendly-challenge-Dj5_cNd1.js"),
-	mount: ({ api: e, container: t, provider: n, services: r }) => new e.WidgetInstance(t, {
-		sitekey: n.siteKey || "",
-		startMode: n.startMode || "none",
-		language: n.language || "en",
-		solutionFieldName: "frc-captcha-solution",
-		doneCallback: (e) => {
-			typeof e == "string" && e.trim() !== "" && r.tokens.write(e.trim()), r.errors.clear();
-		},
-		errorCallback: () => {
-			r.tokens.clear();
-		}
-	}),
+	mount: ({ api: e, container: t, provider: n, services: r }) => {
+		let i = n.theme || "auto", a = window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? !1;
+		return (i === "dark" || i === "auto" && a) && t.classList.add("dark"), new e.WidgetInstance(t, {
+			sitekey: n.siteKey || "",
+			startMode: n.startMode || "none",
+			language: n.language || "en",
+			solutionFieldName: "frc-captcha-solution",
+			doneCallback: (e) => {
+				typeof e == "string" && e.trim() !== "" && r.tokens.write(e.trim()), r.errors.clear();
+			},
+			errorCallback: () => {
+				r.tokens.clear();
+			}
+		});
+	},
 	screen: async ({ widget: e, placeholder: t, services: n, stageCtx: r }) => {
 		if (!n.tokens.has() && (await e.start(), !await n.tokens.wait())) {
 			let e = n.errors.getDefaultMessage();

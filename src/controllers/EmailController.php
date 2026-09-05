@@ -7,10 +7,14 @@ use verbb\formie\elements\Submission;
 use verbb\formie\helpers\RichTextHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\Notification;
+use verbb\formie\services\Permissions;
 
 use Craft;
 use craft\web\Controller;
 
+use yii\web\BadRequestHttpException;
+use yii\web\ForbiddenHttpException;
+use yii\web\NotFoundHttpException;
 use yii\web\Response;
 
 class EmailController extends Controller
@@ -18,11 +22,19 @@ class EmailController extends Controller
     // Public Methods
     // =========================================================================
 
+    public function beforeAction($action): bool
+    {
+        // Email preview/test is a CP-only form builder concern — never allow front-end sessions.
+        // Check before parent::beforeAction(): site-classified requests can hit Craft's
+        // ServiceUnavailable gate (system offline) before we can reject non-CP access.
+        $this->requireCpRequest();
+
+        return parent::beforeAction($action);
+    }
+
     public function actionPreview(): Response
     {
         $this->requirePostRequest();
-
-        $request = $this->request;
 
         $notification = new Notification();
         $submission = new Submission();
@@ -97,8 +109,17 @@ class EmailController extends Controller
 
         // Create a new Notification model from this - it'll be a serialized array from React
         if ($notificationParams = $request->getParam('notification')) {
+            if (!is_array($notificationParams)) {
+                throw new BadRequestHttpException('Invalid notification payload.');
+            }
+
             $notificationParams = $this->_normalizeNotificationParams($notificationParams);
-            $notification->setAttributes($notificationParams, false);
+
+            // Only assign known Notification attributes (ignores React-only keys)
+            $notification->setAttributes(array_intersect_key(
+                $notificationParams,
+                $notification->getAttributes()
+            ), false);
         }
 
         // Ensure some settings are type-cast
@@ -110,28 +131,44 @@ class EmailController extends Controller
         // Prefer an explicit form ID when provided.
         if ($formId) {
             $form = Formie::$plugin->getForms()->getFormById($formId);
+
+            if (!$form) {
+                throw new NotFoundHttpException('Form not found.');
+            }
+
+            $this->_requireFormNotificationAccess($form);
         } else {
             $form = null;
 
             // For stencil previews, hydrate a throwaway Form from the stencil.
             if ($isStencil && $handle) {
+                // Stencil editing lives under Formie settings
+                $this->requirePermission(Permissions::PERM_ACCESS_SETTINGS);
+
                 $stencil = Formie::$plugin->getStencils()->getStencilByHandle($handle);
 
-                if ($stencil) {
-                    $form = new Form();
-                    $stencil->applyStencilToForm($form);
+                if (!$stencil) {
+                    throw new NotFoundHttpException('Stencil not found.');
                 }
+
+                $form = new Form();
+                $stencil->applyStencilToForm($form);
             }
 
             // Fallback for non-stencil previews/tests that only provide a handle.
             if (!$form && $handle) {
                 $form = Formie::$plugin->getForms()->getFormByHandle($handle);
+
+                if (!$form) {
+                    throw new NotFoundHttpException('Form not found.');
+                }
+
+                $this->_requireFormNotificationAccess($form);
             }
         }
 
-        // Keep preview/test resilient when form context cannot be resolved.
         if (!$form) {
-            $form = new Form();
+            throw new BadRequestHttpException('Form context is required for email preview.');
         }
 
         // Always hydrate a fake submission so preview rendering can resolve the
@@ -140,6 +177,20 @@ class EmailController extends Controller
 
         // Populate all fields with fake content
         Formie::$plugin->getSubmissions()->populateFakeSubmission($submission, $notification);
+    }
+
+    private function _requireFormNotificationAccess(Form $form): void
+    {
+        $user = Craft::$app->getUser()->getIdentity();
+        $permissions = Formie::$plugin->getPermissions();
+
+        if (!$permissions->canManageForm($user, $form)) {
+            throw new ForbiddenHttpException('User is not permitted to perform this action');
+        }
+
+        if (!$permissions->canShowFormBuilderTab($user, $form, 'formie-showNotifications')) {
+            throw new ForbiddenHttpException('User is not permitted to perform this action');
+        }
     }
 
     private function _normalizeNotificationParams(array $notificationParams): array
