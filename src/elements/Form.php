@@ -1768,6 +1768,14 @@ class Form extends Element
 
     public function setSessionKey(?string $value): void
     {
+        // Drop any submission resolved under a different session scope. Templates often call
+        // `populateFormValues()` before `renderForm({ sessionKey })`, which can cache an
+        // unscoped incomplete submission — that submissionId then gets rendered with the new
+        // sessionKey and fails `_authorizeExistingSubmission()` with a 403 on submit.
+        if ($this->_sessionKey !== $value) {
+            $this->_currentSubmission = null;
+        }
+
         $this->_sessionKey = $value;
     }
 
