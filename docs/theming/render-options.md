@@ -27,6 +27,20 @@ To get around this, we can set a scope for the form on how to save this session 
 
 Now, any submissions created will have their session data scoped to this form **and** the provided `entry.id`.
 
+If you also call `populateFormValues()`, apply the session key first so population and rendering use the same session scope:
+
+```twig
+{% set form = craft.formie.forms.handle('contactForm').one() %}
+{% set renderOptions = { sessionKey: entry.id } %}
+
+{% do form.applyRenderOptions(renderOptions) %}
+{% do craft.formie.populateFormValues(form, {
+    eventName: entry.title,
+}, true) %}
+
+{{ craft.formie.renderForm(form, renderOptions) }}
+```
+
 ## Custom Variables
 In addition to the set above options, you can also supply your own. These won't do anything with the default Formie templates, but if you are using [Custom Rendering](docs:theming/custom-rendering) or [Template Overrides](docs:theming/template-overrides) this can be useful in supplying your own variables.
 
