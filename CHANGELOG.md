@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 4.0.0-beta.15 - 2026-09-05
 
 ### Changed
 - OAuth integration connect uses Plugin Kit `<pk-connect-oauth>`; removed jQuery dirty-form glue.
