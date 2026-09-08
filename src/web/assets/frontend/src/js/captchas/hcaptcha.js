@@ -1,5 +1,5 @@
 import { FormieCaptchaProvider } from './captcha-provider';
-import { t, eventKey, ensureVariable } from '../utils/utils';
+import { eventKey } from '../utils/utils';
 
 export class FormieHcaptcha extends FormieCaptchaProvider {
     constructor(settings = {}) {
@@ -12,6 +12,7 @@ export class FormieHcaptcha extends FormieCaptchaProvider {
         this.language = settings.language;
         this.loadingMethod = settings.loadingMethod;
         this.scriptId = 'FORMIE_HCAPTCHA_SCRIPT';
+        this.onloadCallbackName = 'formieHcaptchaOnLoad';
         this.providerName = 'Hcaptcha';
         this.widgetIds = new Map();
     }
@@ -32,36 +33,80 @@ export class FormieHcaptcha extends FormieCaptchaProvider {
         this.destroyCaptcha($placeholder);
     }
 
-    initCaptcha($placeholder) {
-        // Fetch and attach the script only once - this is in case there are multiple forms on the page.
-        // They all go to a single callback which resolves its loaded state
-        if (!document.getElementById(this.scriptId)) {
-            const $script = document.createElement('script');
-            $script.id = this.scriptId;
-            $script.src = `https://js.hcaptcha.com/1/api.js?recaptchacompat=off&render=explicit&hl=${this.language}`;
+    getHcaptchaApi() {
+        // hCaptcha defines `window.hcaptcha` before its JS API is fully ready. Waiting on the
+        // global alone (or script.onload) races and can leave widgets in a broken state where
+        // `execute()` never calls back — especially when the script is first loaded as a modal
+        // opens. Use hCaptcha's own `onload` callback, and share one promise for every form.
+        if (window.formieHcaptchaReady) {
+            return window.formieHcaptchaReady;
+        }
 
-            if (this.loadingMethod.includes('async')) {
-                $script.async = true;
-            }
-
-            if (this.loadingMethod.includes('defer')) {
-                $script.defer = true;
-            }
-
-            // Wait until hcaptcha.js has loaded, then initialize
-            $script.onload = () => {
-                ensureVariable('hcaptcha', 5000).then(() => {
-                    this.renderCaptcha($placeholder);
-                });
+        window.formieHcaptchaReady = new Promise((resolve, reject) => {
+            const finish = () => {
+                delete window[this.onloadCallbackName];
+                resolve(window.hcaptcha);
             };
 
-            document.body.appendChild($script);
-        } else {
-            // Ensure that hcaptcha has been loaded and ready to use
-            ensureVariable('hcaptcha').then(() => {
-                this.renderCaptcha($placeholder);
-            });
-        }
+            // Preloaded (or already-initialised) API — safe to use immediately.
+            if (document.getElementById(this.scriptId) && window.hcaptcha) {
+                finish();
+                return;
+            }
+
+            window[this.onloadCallbackName] = finish;
+
+            if (!document.getElementById(this.scriptId)) {
+                const $script = document.createElement('script');
+                $script.id = this.scriptId;
+                $script.src = `https://js.hcaptcha.com/1/api.js?recaptchacompat=off&render=explicit&onload=${this.onloadCallbackName}&hl=${this.language}`;
+
+                if (this.loadingMethod.includes('async')) {
+                    $script.async = true;
+                }
+
+                if (this.loadingMethod.includes('defer')) {
+                    $script.defer = true;
+                }
+
+                $script.onerror = () => {
+                    delete window.formieHcaptchaReady;
+                    delete window[this.onloadCallbackName];
+                    reject(new Error('Failed to load hCaptcha script'));
+                };
+
+                document.body.appendChild($script);
+            } else {
+                // Script tag is already on the page (e.g. site preload) but the API is not ready
+                // yet, and we cannot retrofit `onload` onto an existing tag. Wait for the global;
+                // a preload started at page load is unlikely to hit the early-define race that
+                // happens when injecting at modal-open time.
+                const start = Date.now();
+                const waitForGlobal = () => {
+                    if (window.hcaptcha) {
+                        finish();
+                    } else if ((Date.now() - start) >= 10000) {
+                        delete window.formieHcaptchaReady;
+                        delete window[this.onloadCallbackName];
+                        reject(new Error('Timed out waiting for hCaptcha'));
+                    } else {
+                        setTimeout(waitForGlobal, 30);
+                    }
+                };
+
+                waitForGlobal();
+            }
+        });
+
+        return window.formieHcaptchaReady;
+    }
+
+    initCaptcha($placeholder) {
+        this.getHcaptchaApi().then(() => {
+            this.renderCaptcha($placeholder);
+        }).catch((error) => {
+            console.error(error);
+        });
     }
 
     destroyCaptcha($placeholder) {
