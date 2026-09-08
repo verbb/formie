@@ -5,6 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\FileUpload;
+use verbb\formie\helpers\FileUploadRetentionHelper;
 
 use Craft;
 use craft\elements\Asset;
@@ -76,9 +77,11 @@ class FileUploadController extends Controller
         }
 
         $submissionId = $this->_resolveSubmissionId($form, $submissionId);
-        $field = $form->getFieldByHandle($fieldHandle);
+        // Upload Manager posts data-formie-field-handle (valueKey), including nested
+        // Group/Repeater paths like `group.documents` or `repeater.0.documents`.
+        $field = FileUploadRetentionHelper::resolveFileUploadFieldForContentKey($form, $fieldHandle);
 
-        if (!$field || !($field instanceof FileUpload)) {
+        if (!$field) {
             throw new BadRequestHttpException('Invalid file upload field.');
         }
 
@@ -214,7 +217,10 @@ class FileUploadController extends Controller
             return [];
         }
 
-        $value = $submission->getFieldValue($field->handle);
+        // Prefer the posted content key so repeater row indexes (`repeater.0.upload`)
+        // resolve; fall back to the field's valueKey for Group-scoped instances.
+        $contentKey = trim((string)$this->request->getBodyParam('fieldHandle', ''));
+        $value = $submission->getFieldValue($contentKey !== '' ? $contentKey : $field->valueKey());
 
         if (!$value || !method_exists($value, 'ids')) {
             return [];
@@ -240,9 +246,9 @@ class FileUploadController extends Controller
             throw new BadRequestHttpException('Invalid upload context.');
         }
 
-        $field = $form->getFieldByHandle($fieldHandle);
+        $field = FileUploadRetentionHelper::resolveFileUploadFieldForContentKey($form, $fieldHandle);
 
-        if (!$field || !($field instanceof FileUpload)) {
+        if (!$field) {
             throw new BadRequestHttpException('Invalid upload context.');
         }
 

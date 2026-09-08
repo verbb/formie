@@ -7,6 +7,7 @@ import { dispatchFieldEvent, releaseFormValidators, retainFormValidators } from 
 import { ensureModuleStyles } from '#modules/styles';
 import { getFieldModuleEventName, getFormStateEventName } from '#utils/event-names';
 import { applyFormCsrfToRecord, appendFormCsrfToFormData, getFormCsrfToken } from '#utils/csrf';
+import { fieldKeyToInputName } from '#utils/field-references';
 import { requestJson } from '#utils/http';
 import { createDebug } from '#utils/debug';
 
@@ -532,9 +533,20 @@ function getAssetInputName(field: HTMLElement): string {
         return existingAssetInput.name;
     }
 
-    const fieldHandle = getFieldHandle(field);
+    // Prefer the template anchor name — nested Group/Repeater fields use
+    // `fields[group][upload][]`, not a dotted `fields[group.upload][]`.
+    const anchorInput = getHiddenInputs(field).find((input) => {
+        return input.hasAttribute(HIDDEN_INPUT_ANCHOR_ATTR);
+    });
 
-    return fieldHandle ? `fields[${fieldHandle}][]` : 'fields[fileUpload][]';
+    if (anchorInput?.name) {
+        return anchorInput.name.endsWith('[]') ? anchorInput.name : `${anchorInput.name}[]`;
+    }
+
+    const fieldHandle = getFieldHandle(field);
+    const inputName = fieldHandle ? fieldKeyToInputName(fieldHandle) : '';
+
+    return inputName ? `${inputName}[]` : 'fields[fileUpload][]';
 }
 
 function countManagedAssets(state: UploadManagerState): number {

@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Fix Upload Manager returning “Invalid file upload field” when a File Upload field is nested under a Group (and related nested content-key paths), and writing staged asset ids under the correct nested input names. ([#2948](https://github.com/verbb/formie/issues/2948))
+
 ## 4.0.0-beta.15 - 2026-09-05
 
 ### Changed

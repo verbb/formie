@@ -1063,7 +1063,7 @@ var Rt = class {
 	"custom-maps": () => import("./chunks/custom-maps-DVXtokDg.js").then((e) => e.customMapsModule),
 	"date-picker": () => import("./chunks/date-picker-BEU7E1oD.js").then((e) => e.datePickerModule),
 	"file-upload": () => import("./chunks/file-upload-CnEzVmVb.js").then((e) => e.fileUploadModule),
-	"upload-manager": () => import("./chunks/upload-manager-BQAM0xjI.js").then((e) => e.uploadManagerModule),
+	"upload-manager": () => import("./chunks/upload-manager-C0NZNpC-.js").then((e) => e.uploadManagerModule),
 	hidden: () => import("./chunks/hidden-D7_Ch-QN.js").then((e) => e.hiddenModule),
 	"phone-country": () => import("./chunks/phone-country-BolGj5yY.js").then((e) => e.phoneCountryModule),
 	"password-validation": () => import("./chunks/password-validation-DtnLIQAV.js").then((e) => e.passwordValidationModule),
