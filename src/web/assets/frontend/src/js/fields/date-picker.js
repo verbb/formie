@@ -137,7 +137,7 @@ export class FormieDatePicker {
 
         if (!this.locales.includes(this.locale)) {
             const $script = document.createElement('script');
-            $script.src = getScriptUrl(this.$form, `https://npmcdn.com/flatpickr@4.6.9/dist/l10n/${this.locale}.js`);
+            $script.src = getScriptUrl(this.$form, `https://npmcdn.com/flatpickr@4.6.13/dist/l10n/${this.locale}.js`);
             $script.defer = false;
             $script.async = false;
             $script.onload = () => {

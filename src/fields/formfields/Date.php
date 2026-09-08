@@ -784,18 +784,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
     public function getFrontEndJsModules(): ?array
     {
         if ($this->displayType === 'calendar' && $this->useDatePicker) {
-            $locale = Craft::$app->getLocale()->id;
-
-            // Handle language variants
-            if (preg_match('/^([a-z]{2})-/', $locale, $matches)) {
-                $locale = $matches[1];
-            }
-
-            $supportedLocales = ['ar', 'at', 'az', 'be', 'bg', 'bn', 'cat', 'cs', 'cy', 'da', 'de', 'eo', 'es', 'et', 'fa', 'fi', 'fo', 'fr', 'gr', 'he', 'hi', 'hr', 'hu', 'id', 'is', 'it', 'ja', 'km', 'ko', 'kz', 'lt', 'lv', 'mk', 'mn', 'ms', 'my', 'nl', 'no', 'pa', 'pl', 'pt', 'ro', 'ru', 'si', 'sk', 'sl', 'sq', 'sr-cyr', 'sr', 'sv', 'th', 'tr', 'uk', 'vn', 'zh-tw', 'zh'];
-
-            if (in_array(strtolower($locale), $supportedLocales, true)) {
-                $locale = strtolower($locale);
-            }
+            $locale = $this->_getDatePickerLocale();
 
             // When dealing with offsets, ensure that we calculate client-side for caching
             $minDate = null;
@@ -1544,5 +1533,70 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
         $this->trigger(self::EVENT_REGISTER_TIME_FORMAT_OPTIONS, $event);
 
         return $event->options;
+    }
+
+    private function _getDatePickerLocale(): string
+    {
+        $locale = strtolower(str_replace('_', '-', Craft::$app->getLocale()->id));
+
+        // Flatpickr uses non-standard codes for some languages vs Craft/BCP 47
+        $aliases = [
+            'nb' => 'no', // Norwegian Bokmål
+            'ca' => 'cat', // Catalan
+            'el' => 'gr', // Greek
+            'vi' => 'vn', // Vietnamese
+            'kk' => 'kz', // Kazakh
+            'zh-hant' => 'zh-tw',
+            'zh-hk' => 'zh-tw',
+            'zh-mo' => 'zh-tw',
+            'sr-cyrl' => 'sr-cyr',
+            'de-at' => 'at',
+        ];
+
+        if (isset($aliases[$locale])) {
+            $locale = $aliases[$locale];
+        }
+
+        // Locale filenames available from Flatpickr's CDN l10n build
+        $supportedLocales = [
+            'ar', 'at', 'az', 'be', 'bg', 'bn', 'bs', 'cat', 'ckb', 'cs', 'cy', 'da', 'de',
+            'eo', 'es', 'et', 'fa', 'fi', 'fo', 'fr', 'ga', 'gr', 'he', 'hi', 'hr', 'hu',
+            'hy', 'id', 'is', 'it', 'ja', 'ka', 'km', 'ko', 'kz', 'lt', 'lv', 'mk', 'mn',
+            'ms', 'my', 'nl', 'nn', 'no', 'pa', 'pl', 'pt', 'ro', 'ru', 'si', 'sk', 'sl',
+            'sq', 'sr', 'sr-cyr', 'sv', 'th', 'tr', 'uk', 'uz', 'vn', 'zh', 'zh-tw',
+        ];
+
+        if (in_array($locale, $supportedLocales, true)) {
+            return $locale;
+        }
+
+        // Prefer language-region (e.g. zh-tw) before falling back to language-only
+        if (preg_match('/^([a-z]{2,3})-([a-z0-9]+)/', $locale, $matches)) {
+            $regional = $matches[1] . '-' . $matches[2];
+
+            if (isset($aliases[$regional])) {
+                $regional = $aliases[$regional];
+            }
+
+            if (in_array($regional, $supportedLocales, true)) {
+                return $regional;
+            }
+
+            $language = $aliases[$matches[1]] ?? $matches[1];
+
+            if (in_array($language, $supportedLocales, true)) {
+                return $language;
+            }
+        }
+
+        if (preg_match('/^([a-z]{2,3})/', $locale, $matches)) {
+            $language = $aliases[$matches[1]] ?? $matches[1];
+
+            if (in_array($language, $supportedLocales, true)) {
+                return $language;
+            }
+        }
+
+        return 'en';
     }
 }
