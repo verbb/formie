@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Fix Date field calendar locale not mapping Craft language codes to Flatpickr (e.g. Norwegian `nb` → `no`, Catalan `ca` → `cat`, Greek `el` → `gr`), and preserve regional locales like `zh-TW`.
 - Fix `sessionKey` render option causing a 403 on submit when `populateFormValues()` was called before `renderForm()`, which could cache an incomplete submission from a different session scope.
 
 ## 3.1.38 - 2026-09-04
