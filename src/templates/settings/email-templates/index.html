@@ -1,10 +1,13 @@
 {% extends 'formie/_layouts/settings' %}
 
+{% set selectedTab = 'email-templates' %}
+{% set pageTitle = 'Email Templates' | t('formie') %}
+
 {% block actionButton %}
     <a href="{{ url('formie/settings/email-templates/new') }}" class="btn submit add icon">{{ 'New Template' | t('formie') }}</a>
 {% endblock %}
 
-{% block content %}
+{% block settingsContent %}
     <div id="email-templates-vue-admin-table"></div>
 {% endblock %}
 

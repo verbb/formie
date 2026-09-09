@@ -1,12 +1,14 @@
 {% extends 'formie/_layouts/settings' %}
 
+{% set selectedTab = craft.app.request.getSegment(3) ?? 'captchas' %}
+
 {% block actionButton %}
     {% if craft.app.config.general.allowAdminChanges %}
         <a href="{{ url("formie/settings/#{typeName | kebab}/new") }}" class="btn submit add icon">{{ 'New Integration' | t('formie') }}</a>
     {% endif %}
 {% endblock %}
 
-{% block content %}
+{% block settingsContent %}
     <div id="integrations-vue-admin-table"></div>
 {% endblock %}
 

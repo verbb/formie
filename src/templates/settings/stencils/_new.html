@@ -2,6 +2,8 @@
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
+{% set selectedTab = 'stencils' %}
+
 {% set crumbs = [
     { label: craft.formie.getPluginName() | t('formie'), url: url('formie') },
     { label: 'Settings' | t('app'), url: url('formie/settings') },
@@ -27,8 +29,7 @@
 
             {# Would be great to use v-model, but Craft's fields add `inputAttributes` to the outer div element #}
             {{ forms.textField({
-                first: true,
-                label: 'Name' | t('app'),
+                    label: 'Name' | t('app'),
                 instructions: 'What this stencil will be called in the control panel.' | t('formie'),
                 id: 'title',
                 name: 'title',

@@ -1,7 +1,11 @@
+{% extends 'formie/_layouts/settings' %}
+
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
-{% extends 'formie/_layouts/settings' %}
+{% set selectedTab = 'captchas' %}
+{% set pageTitle = 'Captchas' | t('formie') %}
+
 
 {% set bodyClass = 'formie-settings-integrations' %}
 
@@ -11,7 +15,7 @@
 
 {% do view.registerAssetBundle('verbb\\formie\\web\\assets\\cp\\CpAsset') -%}
 
-{% block content %}
+{% block settingsContent %}
 
 {% if groupedIntegrations %}
     {{ actionInput('formie/integration-settings/save-captchas') }}
@@ -74,8 +78,7 @@
                             {{ hiddenInput('integrations[' ~ handle ~ '][type]', className(integration)) }}
 
                             {{ forms.booleanMenuField({
-                                first: true,
-                                label: 'Enabled' | t('formie'),
+                                                    label: 'Enabled' | t('formie'),
                                 instructions: 'Whether to enable this integration.' | t('formie'),
                                 name: 'integrations[' ~ handle ~ '][enabled]',
                                 includeEnvVars: true,

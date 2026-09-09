@@ -3,18 +3,18 @@
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
-{% block content %}
+{% set selectedTab = 'sent-notifications' %}
+{% set pageTitle = 'Sent Notifications' | t('formie') %}
 
-<h2>{{ 'Sent Notifications' | t('formie') }}</h2>
+{% block settingsContent %}
+
 
 <form action="" method="post" accept-charset="UTF-8" data-saveshortcut>
-    <input type="hidden" name="action" value="formie/settings/save-settings">
+    {{ actionInput('formie/settings/save-settings') }}
     {{ redirectInput('formie/settings/sent-notifications') }}
     {{ csrfInput() }}
 
-    {% namespace 'settings' %}
-        {{ forms.lightswitchField({
-            first: true,
+            {{ forms.lightswitchField({
             label: 'Enable Sent Notifications' | t('formie'),
             instructions: 'Whether to enable saving email notifications as sent notifications.' | t('formie'),
             name: 'sentNotifications',
@@ -32,8 +32,7 @@
             autofocus: true,
             warning: macros.configWarning('maxSentNotificationsAge', 'formie'),
         }) }}
-    {% endnamespace %}
-
+    
     <hr>
 
     <input type="submit" class="btn submit" value="{{ 'Save' | t('formie') }}">

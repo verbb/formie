@@ -1,10 +1,13 @@
 {% extends 'formie/_layouts/settings' %}
 
+{% set selectedTab = 'stencils' %}
+{% set pageTitle = 'Stencils' | t('formie') %}
+
 {% block actionButton %}
     <a href="{{ url('formie/settings/stencils/new') }}" class="btn submit add icon">{{ 'New Stencil' | t('formie') }}</a>
 {% endblock %}
 
-{% block content %}
+{% block settingsContent %}
     <div id="stencils-vue-admin-table"></div>
 {% endblock %}
 

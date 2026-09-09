@@ -3,9 +3,11 @@
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
-{% block content %}
+{% set selectedTab = 'import-export' %}
+{% set pageTitle = 'Review Import' | t('formie') %}
 
-<h2>{{ 'Review Import' | t('formie') }}</h2>
+{% block settingsContent %}
+
 
 {% if errors is defined %}
     <p class="error">
@@ -14,7 +16,7 @@
 {% endif %}
 
 <form method="post" accept-charset="UTF-8" enctype="multipart/form-data">
-    <input type="hidden" name="action" value="formie/import-export/import-complete">
+    {{ actionInput('formie/import-export/import-complete') }}
     {{ redirectInput('formie/settings/import-export/import-completed/{id}') }}
     {{ hiddenInput('filename', filename) }}
     {{ csrfInput() }}

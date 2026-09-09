@@ -17,6 +17,7 @@ use verbb\formie\positions\AboveInput;
 
 use Craft;
 use craft\base\ElementInterface;
+use craft\helpers\UrlHelper;
 use craft\errors\MissingComponentException;
 
 use yii\base\InvalidConfigException;
@@ -252,6 +253,15 @@ class Formie
 
         $navItems['support-heading'] = ['heading' => Craft::t('formie', 'Support')];
         $navItems['support'] = ['title' => Craft::t('formie', 'Get Support')];
+
+        foreach ($navItems as $handle => &$item) {
+            if (isset($item['heading'])) {
+                continue;
+            }
+
+            $item['url'] = UrlHelper::cpUrl('formie/settings/' . $handle);
+        }
+        unset($item);
 
         return $navItems;
     }

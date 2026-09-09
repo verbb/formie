@@ -3,18 +3,18 @@
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
-{% block content %}
+{% set selectedTab = 'notifications' %}
+{% set pageTitle = 'Notifications' | t('formie') %}
 
-<h2>{{ 'Notifications' | t('formie') }}</h2>
+{% block settingsContent %}
+
 
 <form action="" method="post" accept-charset="UTF-8" data-saveshortcut>
-    <input type="hidden" name="action" value="formie/settings/save-settings">
+    {{ actionInput('formie/settings/save-settings') }}
     {{ redirectInput('formie/settings/notifications') }}
     {{ csrfInput() }}
 
-    {% namespace 'settings' %}
-        {{ forms.textField({
-            first: true,
+            {{ forms.textField({
             label: 'Empty Value Placeholder' | t('formie'),
             instructions: 'When a field has no value and considered "empty", this text will be shown in email notifications.' | t('formie'),
             name: 'emptyValuePlaceholder',
@@ -57,8 +57,7 @@
             }) }}
         </div>
 
-    {% endnamespace %}
-
+    
     <hr>
 
     <input type="submit" class="btn submit" value="{{ 'Save' | t('formie') }}">

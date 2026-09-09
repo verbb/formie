@@ -1,10 +1,13 @@
 {% extends 'formie/_layouts/settings' %}
 
+{% set selectedTab = 'statuses' %}
+{% set pageTitle = 'Statuses' | t('formie') %}
+
 {% block actionButton %}
     <a href="{{ url('formie/settings/statuses/new') }}" class="btn submit add icon">{{ 'New Status' | t('formie') }}</a>
 {% endblock %}
 
-{% block content %}
+{% block settingsContent %}
     <div id="statuses-vue-admin-table"></div>
 {% endblock %}
 

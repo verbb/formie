@@ -1,4 +1,4 @@
-{% extends 'formie/_layouts' %}
+{% extends 'verbb-base/_layouts/settings' %}
 
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
@@ -7,27 +7,24 @@
 {% do view.registerAssetBundle('verbb\\formie\\web\\assets\\cp\\CpAsset') -%}
 
 {% set crumbs = [
-    { label: craft.formie.getPluginName() | t('formie'), url: url('formie') },
-    { label: 'Settings' | t('app'), url: url('formie/settings') },
-] %}
+    { label: 'Settings' | t('app'), url: url('settings') },
+    { label: 'Plugins' | t('app'), url: url('settings/plugins') },
+    { label: craft.formie.getPluginName() | t('formie'), url: url('formie/settings') },
+] | merge(crumbs ?? []) %}
 
-{% set selectedSubnavItem = 'settings' %}
-{% set selectedTab = selectedTab ?? craft.app.request.getSegment(3) ?? 'general' %}
+{% set pageTabs = {} %}
+{% for handle, item in craft.formie.getSettingsNavItems() %}
+    {% if item.heading is defined %}
+        {% set pageTabs = pageTabs | merge({ (handle): item }) %}
+    {% else %}
+        {% set pageTabs = pageTabs | merge({ (handle): {
+            title: item.title,
+            url: item.url ?? url('formie/settings/' ~ handle),
+        } }) %}
+    {% endif %}
+{% endfor %}
 
-{% block sidebar %}
-    <nav class="formie-settings-tabs">
-        <ul>
-            {% for handle, item in craft.formie.getSettingsNavItems() %}
-                {% if item.heading is defined %}
-                    <li class="heading"><span>{{ item.heading }}</span></li>
-                {% else %}
-                    <li>
-                        <a href="{{ url('formie/settings/' ~ handle) }}" {% if handle == selectedTab %}class="sel"{% endif %}>
-                            {{ item.title }}
-                        </a>
-                    </li>
-                {% endif %}
-            {% endfor %}
-        </ul>
-    </nav>
-{% endblock %}
+{% set pageTitle = pageTitle ?? false %}
+{% if title is not defined and pageTitle %}
+    {% set title = pageTitle %}
+{% endif %}

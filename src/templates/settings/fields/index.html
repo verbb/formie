@@ -3,17 +3,18 @@
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
-{% block content %}
+{% set selectedTab = 'fields' %}
+{% set pageTitle = 'Fields' | t('formie') %}
 
-<h2>{{ 'Fields' | t('formie') }}</h2>
+{% block settingsContent %}
+
 
 <form action="" method="post" accept-charset="UTF-8" data-saveshortcut>
-    <input type="hidden" name="action" value="formie/settings/save-settings">
+    {{ actionInput('formie/settings/save-settings') }}
     {{ redirectInput('formie/settings/fields') }}
     {{ csrfInput() }}
 
-    {% namespace 'settings' %}
-        {{ forms.checkboxGroupField({
+            {{ forms.checkboxGroupField({
             label: 'Disabled Field Types' | t('formie'),
             instructions: 'Select any field types to be unavailable to pick from when creating your forms.' | t('formie'),
             id: 'disabledFields',
@@ -120,8 +121,7 @@
                 warning: macros.configWarning('defaultDateTime', 'formie'),
             }) }}
         </div>
-    {% endnamespace %}
-
+    
     <hr>
 
     <input type="submit" class="btn submit" value="{{ 'Save' | t('formie') }}">

@@ -211,6 +211,7 @@ class Settings extends Model
     {
         $rules = parent::defineRules();
 
+        $rules[] = [['pluginName'], 'trim'];
         $rules[] = [['pluginName', 'defaultPage', 'maxIncompleteSubmissionAge', 'maxSentNotificationsAge'], 'required'];
         $rules[] = [['pluginName'], 'string', 'max' => 52];
         $rules[] = [['maxIncompleteSubmissionAge', 'maxSentNotificationsAge'], 'number', 'integerOnly' => true];

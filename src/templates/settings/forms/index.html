@@ -3,7 +3,10 @@
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
-{% block content %}
+{% set selectedTab = 'forms' %}
+{% set pageTitle = 'Forms' | t('formie') %}
+
+{% block settingsContent %}
 
 {% set formTemplateOptions = [{  }] %}
 {% for template in formTemplates %}
@@ -12,16 +15,13 @@
     ]) %}
 {% endfor %}
 
-<h2>{{ 'Forms' | t('formie') }}</h2>
 
 <form action="" method="post" accept-charset="UTF-8" data-saveshortcut>
-    <input type="hidden" name="action" value="formie/settings/save-settings">
+    {{ actionInput('formie/settings/save-settings') }}
     {{ redirectInput('formie/settings/forms') }}
     {{ csrfInput() }}
 
-    {% namespace 'settings' %}
-        {{ forms.selectField({
-            first: true,
+            {{ forms.selectField({
             label: 'Default Form Template' | t('formie'),
             instructions: 'Select a Form Template to be used as the default for all new forms.' | t('formie'),
             name: 'defaultFormTemplate',
@@ -103,8 +103,7 @@
             errors: settings.getErrors('includeRevisionElementUsage'),
             warning: macros.configWarning('includeRevisionElementUsage', 'formie'),
         }) }}
-    {% endnamespace %}
-
+    
     <hr>
 
     <input type="submit" class="btn submit" value="{{ 'Save' | t('formie') }}">

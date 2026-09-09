@@ -1,10 +1,13 @@
 {% extends 'formie/_layouts/settings' %}
 
+{% set selectedTab = 'pdf-templates' %}
+{% set pageTitle = 'PDF Templates' | t('formie') %}
+
 {% block actionButton %}
     <a href="{{ url('formie/settings/pdf-templates/new') }}" class="btn submit add icon">{{ 'New Template' | t('formie') }}</a>
 {% endblock %}
 
-{% block content %}
+{% block settingsContent %}
     <div id="pdf-templates-vue-admin-table"></div>
 {% endblock %}
 

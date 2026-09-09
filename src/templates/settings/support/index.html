@@ -3,7 +3,9 @@
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
-{% block content %}
+{% set selectedTab = 'support' %}
+
+{% block settingsContent %}
 
 <div class="formie-help">
     <h2>{{ 'Send a message to {name} support' | t('formie', { name: craft.formie.getPluginName() }) }}</h2>

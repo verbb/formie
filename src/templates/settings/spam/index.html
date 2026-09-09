@@ -3,9 +3,11 @@
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
-{% block content %}
+{% set selectedTab = 'spam' %}
+{% set pageTitle = 'Spam Settings' | t('formie') %}
 
-<h2>{{ 'Spam Settings' | t('formie') }}</h2>
+{% block settingsContent %}
+
 
     <div class="fui-settings-block">
         <h3>{{ 'Captchas' | t('formie') }}</h3>
@@ -13,13 +15,11 @@
     </div>
 
 <form action="" method="post" accept-charset="UTF-8" data-saveshortcut>
-    <input type="hidden" name="action" value="formie/settings/save-settings">
+    {{ actionInput('formie/settings/save-settings') }}
     {{ redirectInput('formie/settings/spam') }}
     {{ csrfInput() }}
 
-    {% namespace 'settings' %}
-        {{ forms.lightswitchField({
-            first: true,
+            {{ forms.lightswitchField({
             label: 'Save Spam Submissions' | t('formie'),
             instructions: 'Whether to save spam submissions, so they can be viewed in the control panel. Otherwise, spam submissions will be discarded.' | t('formie'),
             name: 'saveSpam',
@@ -81,8 +81,7 @@
             warning: macros.configWarning('spamKeywords', 'formie'),
         }) }}
 
-    {% endnamespace %}
-
+    
     <hr>
 
     <input type="submit" class="btn submit" value="{{ 'Save' | t('formie') }}">

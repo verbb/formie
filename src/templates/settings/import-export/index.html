@@ -3,9 +3,11 @@
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
-{% block content %}
+{% set selectedTab = 'import-export' %}
+{% set pageTitle = 'Import Form' | t('formie') %}
 
-<h2>{{ 'Import Form' | t('formie') }}</h2>
+{% block settingsContent %}
+
 <p>{{ 'Select a Formie-exported JSON file for the form to import. You‘ll be able to configure your import at the next step.' | t('formie') }}</p>
 
 {% if importError %}
@@ -15,7 +17,7 @@
 {% endif %}
 
 <form method="post" accept-charset="UTF-8" enctype="multipart/form-data">
-    <input type="hidden" name="action" value="formie/import-export/import">
+    {{ actionInput('formie/import-export/import') }}
     {{ redirectInput('formie/settings/import-export/import-configure/{filename}') }}
     {{ csrfInput() }}
 
@@ -42,7 +44,7 @@
 {% endif %}
 
 <form method="post" accept-charset="UTF-8" enctype="multipart/form-data">
-    <input type="hidden" name="action" value="formie/import-export/export">
+    {{ actionInput('formie/import-export/export') }}
     {{ csrfInput() }}
 
     {% set formOptions = [{ label: 'Select an option' | t('formie'), value: '' }] %}
