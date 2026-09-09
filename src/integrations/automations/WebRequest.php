@@ -164,7 +164,8 @@ class WebRequest extends Automation
             }
         }
 
-        return Craft::createGuzzleClient($config);
+        // Shares Automation::createAutomationHttpClient so redirects stay disabled.
+        return $this->createAutomationHttpClient($config);
     }
 
     protected function defineFormSettingsSchema(FormInterface $form): array

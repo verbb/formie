@@ -1,4 +1,7 @@
-{% set csrfInputOptions = csrfInputOptions ?? { autocomplete: 'off' } %}
+{# Explicit null omits CSRF — do not use ?? here; it would resurrect defaults. #}
+{% if csrfInputOptions is not defined %}
+    {% set csrfInputOptions = { autocomplete: 'off' } %}
+{% endif %}
 {% if csrfInputOptions is not null %}
     {{ csrfInput(csrfInputOptions) }}
 {% endif %}

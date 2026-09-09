@@ -15,7 +15,7 @@ export type {
     CalculationVariableEntry,
 } from './calculations';
 export { evaluateConditionDefinition, finalizeConditionEvaluation } from './conditions';
-export { createRestFrontendTransport, loadFrontendEnvelope } from './rest';
+export { buildActionUrl, createRestFrontendTransport, loadFrontendEnvelope } from './rest';
 export { createGraphqlFrontendTransport, loadGraphqlFrontendEnvelope } from './graphql';
 export {
     allFields,

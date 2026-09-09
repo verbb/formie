@@ -27,14 +27,15 @@ class QuestionnaireResults extends Component
             return null;
         }
 
-        $contentRows = $this->_getSubmissionContentRows($form->id);
+        // Decode each submission content blob once; aggregators scan the structured arrays.
+        $decodedContents = $this->_getDecodedSubmissionContents($form->id);
 
-        $aggregatedQuestions = array_map(function(QuestionnaireFieldInterface&OptionsField $field) use ($contentRows): array {
-            return $this->_aggregateQuestion($field, $contentRows);
+        $aggregatedQuestions = array_map(function(QuestionnaireFieldInterface&OptionsField $field) use ($decodedContents): array {
+            return $this->_aggregateQuestion($field, $decodedContents);
         }, $questions);
 
         $results = [
-            'totalResponses' => $this->_countResponsesWithAnswers($questions, $contentRows),
+            'totalResponses' => $this->_countResponsesWithAnswers($questions, $decodedContents),
             'questions' => $aggregatedQuestions,
         ];
 
@@ -83,9 +84,28 @@ class QuestionnaireResults extends Component
     }
 
     /**
-     * @param array<int, QuestionnaireFieldInterface&OptionsField> $questions
+     * @return array<int, array>
      */
-    private function _countResponsesWithAnswers(array $questions, array $contentRows): int
+    private function _getDecodedSubmissionContents(int $formId): array
+    {
+        $decoded = [];
+
+        foreach ($this->_getSubmissionContentRows($formId) as $row) {
+            $content = Json::decodeIfJson($row['content'] ?? null);
+
+            if (is_array($content)) {
+                $decoded[] = $content;
+            }
+        }
+
+        return $decoded;
+    }
+
+    /**
+     * @param array<int, QuestionnaireFieldInterface&OptionsField> $questions
+     * @param array<int, array> $decodedContents
+     */
+    private function _countResponsesWithAnswers(array $questions, array $decodedContents): int
     {
         if ($questions === []) {
             return 0;
@@ -93,13 +113,7 @@ class QuestionnaireResults extends Component
 
         $count = 0;
 
-        foreach ($contentRows as $row) {
-            $content = Json::decodeIfJson($row['content'] ?? null);
-
-            if (!is_array($content)) {
-                continue;
-            }
-
+        foreach ($decodedContents as $content) {
             foreach ($questions as $question) {
                 if (!array_key_exists($question->uid, $content)) {
                     continue;
@@ -115,10 +129,13 @@ class QuestionnaireResults extends Component
         return $count;
     }
 
-    private function _aggregateQuestion(QuestionnaireFieldInterface&OptionsField $questionField, array $contentRows): array
+    /**
+     * @param array<int, array> $decodedContents
+     */
+    private function _aggregateQuestion(QuestionnaireFieldInterface&OptionsField $questionField, array $decodedContents): array
     {
         if ($questionField instanceof Survey && $questionField->displayType === Survey::DISPLAY_RANK) {
-            return $this->_aggregateRankQuestion($questionField, $contentRows);
+            return $this->_aggregateRankQuestion($questionField, $decodedContents);
         }
 
         $optionRows = $this->_buildOptionRows($questionField);
@@ -126,10 +143,8 @@ class QuestionnaireResults extends Component
         $totalResponses = 0;
         $totalVotes = 0;
 
-        foreach ($contentRows as $row) {
-            $content = Json::decodeIfJson($row['content'] ?? null);
-
-            if (!is_array($content) || !array_key_exists($fieldUid, $content)) {
+        foreach ($decodedContents as $content) {
+            if (!array_key_exists($fieldUid, $content)) {
                 continue;
             }
 
@@ -157,20 +172,21 @@ class QuestionnaireResults extends Component
 
         $result = $this->_formatQuestionResult($questionField, $optionRows, $totalResponses, $totalVotes);
 
-        return $this->_appendLikertScoringSummary($questionField, $contentRows, $result);
+        return $this->_appendLikertScoringSummary($questionField, $decodedContents, $result);
     }
 
-    private function _aggregateRankQuestion(Survey $questionField, array $contentRows): array
+    /**
+     * @param array<int, array> $decodedContents
+     */
+    private function _aggregateRankQuestion(Survey $questionField, array $decodedContents): array
     {
         $optionRows = $this->_buildOptionRows($questionField);
         $fieldUid = $questionField->uid;
         $totalResponses = 0;
         $totalVotes = 0;
 
-        foreach ($contentRows as $row) {
-            $content = Json::decodeIfJson($row['content'] ?? null);
-
-            if (!is_array($content) || !array_key_exists($fieldUid, $content)) {
+        foreach ($decodedContents as $content) {
+            if (!array_key_exists($fieldUid, $content)) {
                 continue;
             }
 
@@ -200,7 +216,7 @@ class QuestionnaireResults extends Component
             }
         }
 
-        return $this->_appendLikertScoringSummary($questionField, $contentRows, $this->_formatQuestionResult(
+        return $this->_appendLikertScoringSummary($questionField, $decodedContents, $this->_formatQuestionResult(
             $questionField,
             $optionRows,
             $totalResponses,
@@ -208,9 +224,12 @@ class QuestionnaireResults extends Component
         ));
     }
 
+    /**
+     * @param array<int, array> $decodedContents
+     */
     private function _appendLikertScoringSummary(
         QuestionnaireFieldInterface&OptionsField $questionField,
-        array $contentRows,
+        array $decodedContents,
         array $result,
     ): array {
         if (
@@ -231,10 +250,8 @@ class QuestionnaireResults extends Component
         $fieldUid = $questionField->uid;
         $scores = [];
 
-        foreach ($contentRows as $row) {
-            $content = Json::decodeIfJson($row['content'] ?? null);
-
-            if (!is_array($content) || !array_key_exists($fieldUid, $content)) {
+        foreach ($decodedContents as $content) {
+            if (!array_key_exists($fieldUid, $content)) {
                 continue;
             }
 

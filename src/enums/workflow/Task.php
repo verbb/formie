@@ -34,6 +34,7 @@ enum Task: string
     case SAVE_SET_PROCESSING_SUCCESS = 'save.setProcessingSuccess';
 
     case DISPATCH_GUARD_DISPATCH_ELIGIBILITY = 'dispatch.guardDispatchEligibility';
+    case DISPATCH_CLAIM_REPLAY_TOKEN = 'dispatch.claimReplayToken';
     case DISPATCH_SEND_NOTIFICATIONS = 'dispatch.sendNotifications';
     case DISPATCH_TRIGGER_INTEGRATIONS = 'dispatch.triggerIntegrations';
     case DISPATCH_SEND_SPAM_NOTIFICATIONS = 'dispatch.sendSpamNotifications';

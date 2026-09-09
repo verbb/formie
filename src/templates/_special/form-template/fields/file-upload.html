@@ -8,10 +8,11 @@
 <input type="hidden" name="{{ field.getHtmlName() }}" value="" data-formie-file-upload-anchor="true">
 
 {# Output any existing element IDs for already-uploaded assets, which can be overidden #}
-{# when uploading new files #}
+{# when uploading new files. Include an upload capability token so hydrate/delete are not ID-only. #}
 {% if value %}
     {% for element in value.all() %}
-        <input type="hidden" name="{{ field.getHtmlName('[]') }}" value="{{ element.id }}" data-formie-file-upload-asset-id="true">
+        {% set uploadToken = field.getUploadCapabilityToken(element) %}
+        <input type="hidden" name="{{ field.getHtmlName('[]') }}" value="{{ element.id }}" data-formie-file-upload-asset-id="true"{% if uploadToken %} data-formie-file-upload-token="{{ uploadToken }}"{% endif %}>
     {% endfor %}
 {% endif %}
 

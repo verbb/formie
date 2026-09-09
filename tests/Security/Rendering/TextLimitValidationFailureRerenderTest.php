@@ -11,6 +11,7 @@ use verbb\formie\services\SubmissionWorkflow;
 it('renders text limit field and form errors after a page-reload validation failure', function (): void {
     $form = formie()
         ->form(['title' => 'Text Limit Failure Rerender'])
+        ->settings(['disableCaptchas' => true])
         ->singleLineTextField('message', [
             'limit' => true,
             'max' => 10,
@@ -37,28 +38,31 @@ it('renders text limit field and form errors after a page-reload validation fail
     $failedSubmission->addError('form', $form->settings->getErrorMessage());
     $form->setCurrentSubmission($failedSubmission);
 
-    $view = Craft::$app->getView();
-    $oldTemplateMode = $view->getTemplateMode();
-    $view->setTemplateMode(View::TEMPLATE_MODE_CP);
+    Tests\Support\WebRequestTestHelper::withWebRequestContext(function () use ($form): void {
+        $view = Craft::$app->getView();
+        $oldTemplateMode = $view->getTemplateMode();
+        $view->setTemplateMode(View::TEMPLATE_MODE_SITE);
 
-    try {
-        $html = (string)Formie::$plugin->getRendering()->renderForm($form);
-    } finally {
-        $view->setTemplateMode($oldTemplateMode);
-    }
+        try {
+            $html = (string)Formie::$plugin->getRendering()->renderForm($form);
+        } finally {
+            $view->setTemplateMode($oldTemplateMode);
+        }
 
-    expect($html)
-        ->toContain('formie-field-has-error')
-        ->toContain('formie-input-error')
-        ->toContain('data-formie-field-error')
-        ->toContain('data-formie-max-chars="10"')
-        ->toContain('aria-invalid="true"')
-        ->toContain($form->settings->getErrorMessage());
+        expect($html)
+            ->toContain('formie-field-has-error')
+            ->toContain('formie-input-error')
+            ->toContain('data-formie-field-error')
+            ->toContain('data-formie-max-chars="10"')
+            ->toContain('aria-invalid="true"')
+            ->toContain($form->settings->getErrorMessage());
+    });
 })->group('security');
 
 it('renders text limit input error state for failed page-reload submissions', function (): void {
     $form = formie()
         ->form(['title' => 'Text Limit Input Rerender'])
+        ->settings(['disableCaptchas' => true])
         ->singleLineTextField('message', [
             'limit' => true,
             'max' => 5,

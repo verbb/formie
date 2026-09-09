@@ -66,7 +66,7 @@ class TriggerIntegration extends CraftBaseJob implements DebuggableJobInterface
         Craft::$app->getSites()->setCurrentSite($submission->getSite());
 
         if ($this->stepHandles) {
-            Formie::$plugin->getIntegrationExecutor()->runQueuedJob(
+            $result = Formie::$plugin->getIntegrationExecutor()->runQueuedJob(
                 $submission,
                 $this->stepHandles,
                 $this->processMode,
@@ -78,6 +78,12 @@ class TriggerIntegration extends CraftBaseJob implements DebuggableJobInterface
                 ],
                 $this->runAfterNotifications,
             );
+
+            if (!$result->success) {
+                $failed = $result->failedHandles ? Json::encode($result->failedHandles) : 'unknown';
+
+                throw new Exception('Failed to trigger orchestrated integrations: ' . $failed . '.');
+            }
 
             $this->setProgress($queue, 1);
 

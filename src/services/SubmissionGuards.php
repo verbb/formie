@@ -124,11 +124,37 @@ class SubmissionGuards extends Component
         return Craft::$app->getCache()->get($cacheKey) !== false;
     }
 
+    /**
+     * Atomically claim a replay token before dispatch side effects.
+     * Uses cache->add() so concurrent workers cannot both win.
+     * Returns false when the token was already claimed/consumed.
+     */
+    public function claimReplayToken(string $formUid, string $requestToken): bool
+    {
+        $requestToken = trim($requestToken);
+
+        if ($requestToken === '') {
+            return false;
+        }
+
+        return Craft::$app->getCache()->add(
+            $this->_replayCacheKey($formUid, $requestToken),
+            true,
+            self::REPLAY_CACHE_DURATION,
+        );
+    }
+
     public function consumeReplayToken(string $formUid, string $requestToken): void
     {
         $requestToken = trim($requestToken);
 
         if ($requestToken === '') {
+            return;
+        }
+
+        // Prefer atomic claim; fall back to set so finalize remains idempotent
+        // when claim already ran at dispatch start.
+        if ($this->claimReplayToken($formUid, $requestToken)) {
             return;
         }
 

@@ -11,6 +11,7 @@ use craft\helpers\ArrayHelper;
 use craft\services\Config;
 use craft\web\Application;
 use verbb\formie\Formie;
+use verbb\formie\web\twig\Extension as FormieTwigExtension;
 
 final class WebRequestTestHelper
 {
@@ -38,6 +39,9 @@ final class WebRequestTestHelper
             self::mirrorFormiePluginState($originalApp, $app);
             Formie::$plugin = $originalPlugin;
             self::registerFormieTranslations($app, $originalPlugin?->getBasePath());
+            // Mirrored plugin state skips Formie::init(), so Twig tags like fieldtag
+            // are missing on the fresh web View until we register them explicitly.
+            $app->getView()->registerTwigExtension(new FormieTwigExtension());
 
             $request = $app->getRequest();
             $response = $app->getResponse();

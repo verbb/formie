@@ -32,7 +32,7 @@ class SendNotificationsTask implements TaskInterface
             return TaskResult::continue();
         }
 
-        if ($dispatchState->hasMarker(DispatchState::MARKER_NOTIFICATIONS)) {
+        if (!$dispatchState->claimMarker(DispatchState::MARKER_NOTIFICATIONS)) {
             return TaskResult::continue(['reason' => 'notificationsAlreadyMarked']);
         }
 
@@ -47,8 +47,6 @@ class SendNotificationsTask implements TaskInterface
         } else {
             Formie::$plugin->getNotifications()->sendNotifications($submission);
         }
-
-        $dispatchState->markMarker(DispatchState::MARKER_NOTIFICATIONS);
 
         return TaskResult::continue();
     }

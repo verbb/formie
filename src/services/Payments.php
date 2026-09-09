@@ -15,10 +15,10 @@ use verbb\formie\records\Payment as PaymentRecord;
 
 use Craft;
 use craft\base\Component;
-use craft\base\MemoizableArray;
 use craft\db\Query;
 use craft\events\ConfigEvent;
 use craft\helpers\Db;
+use craft\helpers\Json;
 use craft\models\FieldLayout;
 
 use yii\base\ErrorException;
@@ -43,7 +43,7 @@ class Payments extends Component
     // Properties
     // =========================================================================
 
-    private ?MemoizableArray $_payments = null;
+    private array $_paymentByKey = [];
 
 
     // Public Methods
@@ -51,27 +51,47 @@ class Payments extends Component
 
     public function getAllPayments(): array
     {
-        return $this->_payments()->all();
+        return array_map(static function(array $result): Payment {
+            return new Payment($result);
+        }, $this->_createPaymentsQuery()->all());
     }
 
     public function getPaymentById(int $id): ?Payment
     {
-        return $this->_payments()->firstWhere('id', $id);
+        return $this->_findPayment(['id' => $id]);
     }
 
     public function getPaymentByReference(string $reference): ?Payment
     {
-        return $this->_payments()->firstWhere('reference', $reference);
+        $reference = trim($reference);
+
+        if ($reference === '') {
+            return null;
+        }
+
+        return $this->_findPayment(['reference' => $reference]);
     }
 
     public function getSubmissionPayments(Submission $submission): array
     {
-        return $this->_payments()->where('submissionId', $submission->id)->all();
+        if (!$submission->id) {
+            return [];
+        }
+
+        return array_map(static function(array $result): Payment {
+            return new Payment($result);
+        }, $this->_createPaymentsQuery()->where(['submissionId' => (int)$submission->id])->all());
     }
 
     public function getPaymentByUid(string $uid): ?Payment
     {
-        return $this->_payments()->firstWhere('uid', $uid, true);
+        $uid = trim($uid);
+
+        if ($uid === '') {
+            return null;
+        }
+
+        return $this->_findPayment(['uid' => $uid]);
     }
 
     public function resolvePaymentSuccessRedirectUrl(Payment $payment, Submission $submission, Form $form, ?string $url): string
@@ -161,7 +181,7 @@ class Payments extends Component
         }
 
         // Clear caches
-        $this->_payments = null;
+        $this->_paymentByKey = [];
 
         // Fire an 'afterSavePayment' event
         if ($this->hasEventHandlers(self::EVENT_AFTER_SAVE_PAYMENT)) {
@@ -199,7 +219,7 @@ class Payments extends Component
         ]);
 
         // Clear caches
-        $this->_payments = null;
+        $this->_paymentByKey = [];
 
         // Fire an 'afterDeletePayment' event
         if ($this->hasEventHandlers(self::EVENT_AFTER_DELETE_PAYMENT)) {
@@ -214,20 +234,20 @@ class Payments extends Component
 
     // Private Methods
     // =========================================================================
-    
-    private function _payments(): MemoizableArray
+
+    private function _findPayment(array $where): ?Payment
     {
-        if (!isset($this->_payments)) {
-            $payments = [];
+        $cacheKey = Json::encode($where);
 
-            foreach ($this->_createPaymentsQuery()->all() as $result) {
-                $payments[] = new Payment($result);
-            }
-
-            $this->_payments = new MemoizableArray($payments);
+        if (array_key_exists($cacheKey, $this->_paymentByKey)) {
+            return $this->_paymentByKey[$cacheKey];
         }
 
-        return $this->_payments;
+        $result = $this->_createPaymentsQuery()->where($where)->one();
+        $payment = $result ? new Payment($result) : null;
+        $this->_paymentByKey[$cacheKey] = $payment;
+
+        return $payment;
     }
 
     private function _createPaymentsQuery(): Query

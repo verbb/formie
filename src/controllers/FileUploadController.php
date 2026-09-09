@@ -6,6 +6,8 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\FileUpload;
 use verbb\formie\helpers\FileUploadRetentionHelper;
+use verbb\formie\helpers\UploadAccess;
+use verbb\formie\services\SubmissionDrafts;
 
 use Craft;
 use craft\elements\Asset;
@@ -121,11 +123,14 @@ class FileUploadController extends Controller
             $field->uid
         );
 
+        $uploadToken = UploadAccess::issueToken((int)$asset->id, (int)$form->id, (string)$field->uid);
+
         return $this->asJson([
             'success' => true,
             'assetId' => (int)$asset->id,
             'filename' => $asset->filename,
             'url' => $asset->url,
+            'uploadToken' => $uploadToken,
             'inputKey' => $inputKey !== '' ? $inputKey : null,
         ]);
     }
@@ -136,7 +141,13 @@ class FileUploadController extends Controller
         $this->requireAcceptsJson();
 
         $assetId = (int)$this->request->getRequiredBodyParam('assetId');
+        $uploadToken = trim((string)$this->request->getBodyParam('uploadToken', ''));
         [$form, $field] = $this->_resolveUploadContext();
+
+        // Capability tokens bind asset+form+field; CSRF alone is not ownership.
+        if (!UploadAccess::matches($assetId, (int)$form->id, (string)$field->uid, $uploadToken)) {
+            throw new BadRequestHttpException('Invalid upload capability.');
+        }
 
         if (!Formie::$plugin->getFileUploads()->removeUploadByAssetId($assetId, (int)$form->id, $field->uid)) {
             throw new BadRequestHttpException('Upload not found.');
@@ -158,17 +169,28 @@ class FileUploadController extends Controller
 
         [$form, $field] = $this->_resolveUploadContext();
         $assetIds = array_values(array_filter(array_map('intval', $assetIds)));
-        $uploads = Formie::$plugin->getFileUploads()->getUploadMetadata($assetIds, (int)$form->id, $field->uid);
-        $authorizedAssetIds = array_values(array_unique(array_map(static function(array $upload): int {
-            return (int)($upload['assetId'] ?? 0);
-        }, $uploads)));
+        $uploadTokens = $this->_normalizeUploadTokensParam();
+        $formId = (int)$form->id;
+        $fieldUid = (string)$field->uid;
 
+        $authorizedByToken = [];
+
+        foreach ($assetIds as $assetId) {
+            $token = $uploadTokens[$assetId] ?? null;
+
+            if (UploadAccess::matches($assetId, $formId, $fieldUid, is_string($token) ? $token : null)) {
+                $authorizedByToken[] = $assetId;
+            }
+        }
+
+        $authorizedAssetIds = array_values(array_unique($authorizedByToken));
         $missingAssetIds = array_values(array_diff($assetIds, $authorizedAssetIds));
 
+        // Submission-linked assets require continuation/edit access — not bare submissionUid.
         if ($missingAssetIds) {
             $authorizedAssetIds = array_values(array_unique(array_merge(
                 $authorizedAssetIds,
-                $this->_resolveSubmissionAssetIds($form, $field, $missingAssetIds),
+                $this->_resolveAuthorizedSubmissionAssetIds($form, $field, $missingAssetIds),
             )));
         }
 
@@ -179,12 +201,22 @@ class FileUploadController extends Controller
         $assetMap = [];
 
         foreach ($assets as $asset) {
-            $assetMap[(int)$asset->id] = [
-                'assetId' => (int)$asset->id,
+            $assetId = (int)$asset->id;
+            $token = $uploadTokens[$assetId] ?? null;
+
+            if (!is_string($token) || !UploadAccess::matches($assetId, $formId, $fieldUid, $token)) {
+                $token = UploadAccess::issueToken($assetId, $formId, $fieldUid);
+            }
+
+            $assetMap[$assetId] = [
+                'assetId' => $assetId,
                 'filename' => (string)$asset->filename,
                 'url' => $asset->url ?: null,
+                'uploadToken' => $token,
             ];
         }
+
+        $uploads = Formie::$plugin->getFileUploads()->getUploadMetadata($authorizedAssetIds, $formId, $fieldUid);
 
         return $this->asJson([
             'success' => true,
@@ -199,7 +231,29 @@ class FileUploadController extends Controller
     // Private Methods
     // =========================================================================
 
-    private function _resolveSubmissionAssetIds(Form $form, FileUpload $field, array $assetIds): array
+    private function _normalizeUploadTokensParam(): array
+    {
+        $raw = $this->request->getBodyParam('uploadTokens', []);
+
+        if (!is_array($raw)) {
+            return [];
+        }
+
+        $tokens = [];
+
+        foreach ($raw as $key => $value) {
+            $assetId = is_numeric($key) ? (int)$key : 0;
+            $token = is_string($value) ? trim($value) : '';
+
+            if ($assetId > 0 && $token !== '') {
+                $tokens[$assetId] = $token;
+            }
+        }
+
+        return $tokens;
+    }
+
+    private function _resolveAuthorizedSubmissionAssetIds(Form $form, FileUpload $field, array $assetIds): array
     {
         $submissionUid = trim((string)$this->request->getBodyParam('submissionUid', ''));
 
@@ -213,7 +267,7 @@ class FileUploadController extends Controller
             ->status(null)
             ->one();
 
-        if (!$submission) {
+        if (!$submission || !$this->_canAccessSubmissionUploads($form, $submission)) {
             return [];
         }
 
@@ -229,6 +283,48 @@ class FileUploadController extends Controller
         $allowedIds = array_map('intval', $value->ids());
 
         return array_values(array_intersect($assetIds, $allowedIds));
+    }
+
+    private function _canAccessSubmissionUploads(Form $form, Submission $submission): bool
+    {
+        $user = Craft::$app->getUser()->getIdentity();
+
+        if ($user && Formie::$plugin->getPermissions()->canViewSubmissions($user, $form)) {
+            return true;
+        }
+
+        if (!Craft::$app->getRequest()->getIsSiteRequest()) {
+            return false;
+        }
+
+        $progressState = Formie::$plugin->getSubmissionDrafts()->getProgressState($form);
+
+        if ($progressState && (int)$progressState->submissionId === (int)$submission->id) {
+            return true;
+        }
+
+        $resumeToken = trim((string)$this->request->getBodyParam('resumeToken', ''));
+
+        if ($resumeToken === '') {
+            $resumeToken = trim((string)$this->request->getBodyParam('continuationToken', ''));
+        }
+
+        if ($resumeToken === '') {
+            return false;
+        }
+
+        $verified = Formie::$plugin->getSubmissionDrafts()->verifyResumeToken($resumeToken, [
+            SubmissionDrafts::RESUME_CAPABILITY_READ,
+        ]);
+
+        if (!$verified && $resumeToken !== '') {
+            // Edit tokens only carry `edit`; accept those for hydrate of the same submission.
+            $verified = Formie::$plugin->getSubmissionDrafts()->verifyResumeToken($resumeToken, [
+                SubmissionDrafts::RESUME_CAPABILITY_EDIT,
+            ]);
+        }
+
+        return $verified !== null && (int)($verified->submissionId ?? 0) === (int)$submission->id;
     }
 
     private function _resolveUploadContext(): array

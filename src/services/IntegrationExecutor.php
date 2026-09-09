@@ -9,6 +9,7 @@ use verbb\formie\Formie;
 use verbb\formie\jobs\TriggerIntegration;
 use verbb\formie\models\IntegrationDispatchContext;
 use verbb\formie\models\IntegrationDispatchPlan;
+use verbb\formie\models\IntegrationExecutionResult;
 use verbb\formie\models\IntegrationResponse;
 
 use Craft;
@@ -40,11 +41,12 @@ class IntegrationExecutor extends Component
         array $handles,
         array $triggerContext,
         ?IntegrationDispatchPlan $plan = null,
-    ): void {
+    ): IntegrationExecutionResult {
+        $result = new IntegrationExecutionResult();
         $form = $submission->getForm();
 
         if (!$form || !$handles) {
-            return;
+            return $result;
         }
 
         $integrationsByHandle = $this->_indexIntegrationsByHandle($form);
@@ -67,12 +69,14 @@ class IntegrationExecutor extends Component
 
             $response = Formie::$plugin->getIntegrations()->sendIntegrationPayload($integration, $submission);
             $success = $this->_integrationResponseSucceeded($response);
+            $result->recordAttempt((string)$handle, $success);
 
             if ($context) {
                 $this->_recordIntegrationResult($integration, $submission, $context, $success, $response);
             }
 
             if (!$success && $plan?->shouldStopOnFailure()) {
+                $result->markStoppedOnFailure();
                 break;
             }
         }
@@ -80,6 +84,8 @@ class IntegrationExecutor extends Component
         if ($context) {
             Formie::$plugin->getIntegrationDispatch()->saveContext($submission, $context);
         }
+
+        return $result;
     }
 
     public function queueSteps(
@@ -119,7 +125,7 @@ class IntegrationExecutor extends Component
         string $processMode,
         array $triggerContext,
         bool $runAfterNotifications = false,
-    ): void {
+    ): IntegrationExecutionResult {
         $form = $submission->getForm();
         $plan = null;
 
@@ -127,14 +133,18 @@ class IntegrationExecutor extends Component
             $plan = Formie::$plugin->getIntegrationDispatch()->getPlan($form);
         }
 
-        $this->runSteps($submission, $handles, $triggerContext, $plan);
+        $result = $this->runSteps($submission, $handles, $triggerContext, $plan);
 
-        if ($runAfterNotifications && $form) {
+        // After-phase notifications still run when this queued batch owns that phase,
+        // even if a step failed — unless stop-on-failure already halted the plan upstream.
+        if ($runAfterNotifications && $form && $result->success) {
             Formie::$plugin->getIntegrationDispatch()->sendNotifications(
                 $submission,
                 IntegrationDispatch::PHASE_AFTER,
             );
         }
+
+        return $result;
     }
 
 

@@ -94,6 +94,51 @@ class DispatchState
         return $this->_hasSubmissionWorkflowStageMarker((int)$submission->id, $stage, $this->idempotencyKey);
     }
 
+    /**
+     * Atomically claim a dispatch stage before side effects.
+     * Inserts the marker row; unique (submissionId, stage, idempotencyKey) makes this exclusive.
+     * Returns false when another worker already claimed or completed the stage.
+     * Crash after claim but before external success → at-most-once (no automatic retry of that stage).
+     */
+    public function claimMarker(string $stage): bool
+    {
+        $submission = $this->request->submission;
+
+        if (!$submission->id) {
+            return false;
+        }
+
+        if ($this->hasMarker($stage)) {
+            return false;
+        }
+
+        try {
+            $now = new DateTime();
+            $dateNow = Db::prepareDateForDb($now);
+            Craft::$app->getDb()->createCommand()->insert(Table::FORMIE_SUBMISSION_WORKFLOW, [
+                'submissionId' => $submission->id,
+                'stage' => $stage,
+                'idempotencyKey' => $this->idempotencyKey,
+                'isDispatched' => true,
+                'dateDispatched' => $dateNow,
+                'dateCreated' => $dateNow,
+                'dateUpdated' => $dateNow,
+                'meta' => null,
+            ])->execute();
+
+            return true;
+        } catch (Throwable $e) {
+            // Duplicate key = concurrent claim; treat as already owned elsewhere.
+            if ($this->hasMarker($stage)) {
+                return false;
+            }
+
+            Formie::error('Unable to claim dispatch marker - {e}.', ['e' => $e->getMessage()]);
+
+            return false;
+        }
+    }
+
     public function markMarker(string $stage): void
     {
         $submission = $this->request->submission;

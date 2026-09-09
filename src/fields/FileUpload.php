@@ -19,6 +19,7 @@ use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\FieldBuilderPolicy;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\Table;
+use verbb\formie\helpers\UploadAccess;
 use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\ClientModule;
@@ -164,6 +165,23 @@ class FileUpload extends ElementField
     public function fieldKind(): string
     {
         return self::KIND_FILE;
+    }
+
+    /**
+     * Capability token for hydrate/delete of a rendered asset. Bound to this field's form + uid.
+     */
+    public function getUploadCapabilityToken(Asset|int $asset): ?string
+    {
+        $assetId = $asset instanceof Asset ? (int)$asset->id : (int)$asset;
+        $form = $this->getForm();
+        $formId = (int)($form->id ?? 0);
+        $fieldUid = trim((string)($this->uid ?? ''));
+
+        if ($assetId <= 0 || $formId <= 0 || $fieldUid === '') {
+            return null;
+        }
+
+        return UploadAccess::issueToken($assetId, $formId, $fieldUid);
     }
 
     public function getFieldTypeConfigData(): array

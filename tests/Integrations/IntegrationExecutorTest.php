@@ -89,7 +89,7 @@ it('runs integration steps synchronously with trigger context', function (): voi
             executorTestIntegration('alpha'),
             executorTestIntegration('beta'),
         ], function () use ($submission, &$triggered): void {
-            Formie::$plugin->getIntegrationExecutor()->runSteps(
+            $result = Formie::$plugin->getIntegrationExecutor()->runSteps(
                 $submission,
                 ['alpha', 'beta'],
                 [
@@ -99,6 +99,10 @@ it('runs integration steps synchronously with trigger context', function (): voi
                     'operatorInitiated' => false,
                 ],
             );
+
+            expect($result->success)->toBeTrue()
+                ->and($result->attempted)->toBe(2)
+                ->and($result->succeeded)->toBe(2);
         });
 
         expect($triggered)->toBe(['alpha', 'beta']);

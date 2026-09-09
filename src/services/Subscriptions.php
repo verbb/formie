@@ -13,10 +13,10 @@ use verbb\formie\records\Subscription as SubscriptionRecord;
 
 use Craft;
 use craft\base\Component;
-use craft\base\MemoizableArray;
 use craft\db\Query;
 use craft\events\ConfigEvent;
 use craft\helpers\Db;
+use craft\helpers\Json;
 use craft\models\FieldLayout;
 
 use yii\base\ErrorException;
@@ -47,7 +47,7 @@ class Subscriptions extends Component
     // Properties
     // =========================================================================
 
-    private ?MemoizableArray $_subscriptions = null;
+    private array $_subscriptionByKey = [];
 
 
     // Public Methods
@@ -55,27 +55,47 @@ class Subscriptions extends Component
 
     public function getAllSubscriptions(): array
     {
-        return $this->_subscriptions()->all();
+        return array_map(static function(array $result): Subscription {
+            return new Subscription($result);
+        }, $this->_createSubscriptionsQuery()->all());
     }
 
     public function getSubscriptionById(int $id): ?Subscription
     {
-        return $this->_subscriptions()->firstWhere('id', $id);
+        return $this->_findSubscription(['id' => $id]);
     }
 
     public function getSubscriptionByReference(string $reference): ?Subscription
     {
-        return $this->_subscriptions()->firstWhere('reference', $reference);
+        $reference = trim($reference);
+
+        if ($reference === '') {
+            return null;
+        }
+
+        return $this->_findSubscription(['reference' => $reference]);
     }
 
     public function getSubmissionSubscriptions(Submission $submission): array
     {
-        return $this->_subscriptions()->where('submissionId', $submission->id)->all();
+        if (!$submission->id) {
+            return [];
+        }
+
+        return array_map(static function(array $result): Subscription {
+            return new Subscription($result);
+        }, $this->_createSubscriptionsQuery()->where(['submissionId' => (int)$submission->id])->all());
     }
 
     public function getSubscriptionByUid(string $uid): ?Subscription
     {
-        return $this->_subscriptions()->firstWhere('uid', $uid, true);
+        $uid = trim($uid);
+
+        if ($uid === '') {
+            return null;
+        }
+
+        return $this->_findSubscription(['uid' => $uid]);
     }
 
     public function saveSubscription(Subscription $subscription, bool $runValidation = true): bool
@@ -127,7 +147,7 @@ class Subscriptions extends Component
         }
 
         // Clear caches
-        $this->_subscriptions = null;
+        $this->_subscriptionByKey = [];
 
         // Fire an 'afterSaveSubscription' event
         if ($this->hasEventHandlers(self::EVENT_AFTER_SAVE_SUBSCRIPTION)) {
@@ -165,7 +185,7 @@ class Subscriptions extends Component
         ]);
 
         // Clear caches
-        $this->_subscriptions = null;
+        $this->_subscriptionByKey = [];
 
         // Fire an 'afterDeleteSubscription' event
         if ($this->hasEventHandlers(self::EVENT_AFTER_DELETE_SUBSCRIPTION)) {
@@ -225,20 +245,20 @@ class Subscriptions extends Component
 
     // Private Methods
     // =========================================================================
-    
-    private function _subscriptions(): MemoizableArray
+
+    private function _findSubscription(array $where): ?Subscription
     {
-        if (!isset($this->_subscriptions)) {
-            $subscriptions = [];
+        $cacheKey = Json::encode($where);
 
-            foreach ($this->_createSubscriptionsQuery()->all() as $result) {
-                $subscriptions[] = new Subscription($result);
-            }
-
-            $this->_subscriptions = new MemoizableArray($subscriptions);
+        if (array_key_exists($cacheKey, $this->_subscriptionByKey)) {
+            return $this->_subscriptionByKey[$cacheKey];
         }
 
-        return $this->_subscriptions;
+        $result = $this->_createSubscriptionsQuery()->where($where)->one();
+        $subscription = $result ? new Subscription($result) : null;
+        $this->_subscriptionByKey[$cacheKey] = $subscription;
+
+        return $subscription;
     }
 
     private function _createSubscriptionsQuery(): Query

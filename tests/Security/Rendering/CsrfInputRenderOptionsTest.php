@@ -19,41 +19,49 @@ function renderFormHtmlForCsrfTests($form, array $renderOptions = []): string
 }
 
 it('renders the default csrf input when csrfInput is not provided', function (): void {
-    $form = formie()
-        ->form(['title' => 'CSRF Default'])
-        ->singleLineTextField('message')
-        ->create();
+    Tests\Support\WebRequestTestHelper::withWebRequestContext(function (): void {
+        $form = formie()
+            ->form(['title' => 'CSRF Default'])
+            ->singleLineTextField('message')
+            ->create();
 
-    $csrfParam = Craft::$app->getConfig()->getGeneral()->csrfTokenName;
-    $html = renderFormHtmlForCsrfTests($form);
+        $csrfParam = Craft::$app->getConfig()->getGeneral()->csrfTokenName;
+        $html = renderFormHtmlForCsrfTests($form);
 
-    expect($html)->toContain('name="' . $csrfParam . '"')
-        ->toContain('data-formie-csrf')
-        ->toContain('data-formie-csrf-param="' . $csrfParam . '"');
+        expect($html)->toContain('name="' . $csrfParam . '"')
+            ->toContain('data-formie-csrf')
+            ->toContain('data-formie-csrf-param="' . $csrfParam . '"');
+    });
 })->group('security');
 
 it('omits the csrf input when csrfInput is false', function (): void {
-    $form = formie()
-        ->form(['title' => 'CSRF Omitted'])
-        ->singleLineTextField('message')
-        ->create();
+    Tests\Support\WebRequestTestHelper::withWebRequestContext(function (): void {
+        $form = formie()
+            ->form(['title' => 'CSRF Omitted'])
+            ->singleLineTextField('message')
+            ->create();
 
-    $csrfParam = Craft::$app->getConfig()->getGeneral()->csrfTokenName;
-    $html = renderFormHtmlForCsrfTests($form, ['csrfInput' => false]);
+        $csrfParam = Craft::$app->getConfig()->getGeneral()->csrfTokenName;
+        $html = renderFormHtmlForCsrfTests($form, ['csrfInput' => false]);
 
-    expect($html)->not->toContain('name="' . $csrfParam . '"')
-        ->toContain('name="requestToken"');
+        expect($html)->not->toContain('name="' . $csrfParam . '"')
+            ->toContain('name="requestToken"');
+    });
 })->group('security');
 
 it('passes csrfInput options through to Craft csrfInput', function (): void {
-    $form = formie()
-        ->form(['title' => 'CSRF Async'])
-        ->singleLineTextField('message')
-        ->create();
+    Tests\Support\WebRequestTestHelper::withWebRequestContext(function (): void {
+        $form = formie()
+            ->form(['title' => 'CSRF Async'])
+            ->singleLineTextField('message')
+            ->create();
 
-    $html = renderFormHtmlForCsrfTests($form, [
-        'csrfInput' => ['async' => true],
-    ]);
+        $html = renderFormHtmlForCsrfTests($form, [
+            'csrfInput' => ['async' => true],
+        ]);
 
-    expect($html)->toContain('data-csrf-token-value');
+        // Craft async CSRF renders a custom element (not a classic hidden input).
+        expect($html)->toContain('<craft-csrf-input')
+            ->and($html)->not->toContain('name="' . Craft::$app->getConfig()->getGeneral()->csrfTokenName . '"');
+    });
 })->group('security');

@@ -569,9 +569,12 @@ class Rendering extends Component
     {
         // Stamp a stable marker so front-end JS can find the CSRF input when
         // sites customise Craft's csrfTokenName away from CRAFT_CSRF_TOKEN.
+        // Force sync CSRF by default: Craft's async <craft-csrf-input> omits
+        // attribute options, so data-formie-csrf would never land on the field.
         $defaults = [
             'autocomplete' => 'off',
             'data-formie-csrf' => true,
+            'async' => false,
         ];
 
         if (!array_key_exists('csrfInput', $renderOptions)) {

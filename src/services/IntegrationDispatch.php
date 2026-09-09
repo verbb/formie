@@ -69,6 +69,7 @@ class IntegrationDispatch extends Component
         $isSubmissionEdit = $processMode === SubmissionWorkflow::PROCESS_MODE_EDIT_EXISTING;
         $immediateHandles = $plan->getImmediateHandles($form);
         $queuedHandles = $plan->getQueuedHandles($form);
+        $needsAfterNotifications = $this->needsAfterNotificationsPhase($form);
 
         if (!$triggerContext) {
             $triggerContext = [
@@ -79,8 +80,15 @@ class IntegrationDispatch extends Component
             ];
         }
 
+        $immediateResult = null;
+
         if ($immediateHandles) {
-            $executor->runSteps($submission, $immediateHandles, $triggerContext, $plan);
+            $immediateResult = $executor->runSteps($submission, $immediateHandles, $triggerContext, $plan);
+
+            // Stop-on-failure must apply across immediate → queued phase boundaries.
+            if ($immediateResult->stoppedOnFailure) {
+                return;
+            }
         }
 
         if ($queuedHandles && $settings->useQueueForIntegrations) {
@@ -89,19 +97,42 @@ class IntegrationDispatch extends Component
                 $queuedHandles,
                 $processMode,
                 $triggerContext,
-                $plan->notificationTiming === IntegrationDispatchPlan::NOTIFICATION_TIMING_AFTER,
+                $needsAfterNotifications,
             );
 
             return;
         }
 
         if ($queuedHandles) {
-            $executor->runSteps($submission, $queuedHandles, $triggerContext, $plan);
+            $queuedResult = $executor->runSteps($submission, $queuedHandles, $triggerContext, $plan);
+
+            if ($queuedResult->stoppedOnFailure) {
+                return;
+            }
         }
 
-        if ($plan->notificationTiming === IntegrationDispatchPlan::NOTIFICATION_TIMING_AFTER) {
+        if ($needsAfterNotifications) {
             $this->sendNotifications($submission, self::PHASE_AFTER);
         }
+    }
+
+    /**
+     * True when any enabled notification would send in the after-integrations phase,
+     * including per-notification overrides when the form-wide default is before.
+     */
+    public function needsAfterNotificationsPhase(Form $form): bool
+    {
+        if (!$this->shouldOrchestrate($form)) {
+            return false;
+        }
+
+        foreach ($form->getEnabledNotifications() as $notification) {
+            if ($this->shouldSendNotificationAtPhase($notification, $form, self::PHASE_AFTER)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function sendNotifications(Submission $submission, string $phase): void

@@ -17,6 +17,8 @@ use craft\helpers\Html;
 use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 
+use GuzzleHttp\Client;
+
 use yii\helpers\Markdown;
 
 abstract class Automation extends Integration
@@ -100,14 +102,56 @@ abstract class Automation extends Integration
         $url = Formie::$plugin->getTemplates()->renderObjectTemplate($url, $submission);
         $url = trim((string)App::parseEnv($url));
 
-        if (!$this->_isPublicHttpEndpoint($url)) {
+        if (!$this->isPublicHttpEndpoint($url)) {
             throw new IntegrationException(Craft::t('formie', 'Outbound integration URL must use a public HTTP or HTTPS endpoint.'));
         }
 
         return $url;
     }
 
-    private function _isPublicHttpEndpoint(string $url): bool
+    /**
+     * Automations call operator-configured URLs. Never follow redirects: the
+     * first-hop public-IP check would otherwise be bypassed by a 302 to a private host.
+     */
+    protected function defineClient(): Client
+    {
+        return $this->createAutomationHttpClient();
+    }
+
+    protected function createAutomationHttpClient(array $config = [], ?string $endpointUrl = null): Client
+    {
+        $config['allow_redirects'] = false;
+
+        if ($endpointUrl !== null) {
+            $this->_applyDnsPin($config, $endpointUrl);
+        }
+
+        if (App::devMode() && !array_key_exists('verify', $config)) {
+            $config['verify'] = false;
+        }
+
+        return Craft::createGuzzleClient($config);
+    }
+
+    /**
+     * Pin the connection to the public IPs we just validated so a DNS rebinding
+     * race between resolve-time and connect-time cannot redirect to a private host.
+     * Absolute automation URLs rebuild a pinned client per request while preserving
+     * any injected handler (tests) and subclass client config (auth headers).
+     */
+    public function request(string $method, string $uri, array $options = []): mixed
+    {
+        if (preg_match('#^https?://#i', $uri) === 1) {
+            $config = $this->getClient()->getConfig();
+            $config['allow_redirects'] = false;
+            $this->_applyDnsPin($config, $uri);
+            $this->_client = new Client($config);
+        }
+
+        return parent::request($method, $uri, $options);
+    }
+
+    protected function isPublicHttpEndpoint(string $url): bool
     {
         if ($url === '') {
             return false;
@@ -143,6 +187,59 @@ abstract class Automation extends Integration
         }
 
         return true;
+    }
+
+    /**
+     * Force curl to connect using a validated public IP for this host:port.
+     * Re-validates at pin time so a late DNS change cannot introduce a private IP.
+     */
+    private function _applyDnsPin(array &$config, string $url): void
+    {
+        $parts = parse_url($url);
+
+        if (!is_array($parts)) {
+            throw new IntegrationException(Craft::t('formie', 'Outbound integration URL must use a public HTTP or HTTPS endpoint.'));
+        }
+
+        $scheme = strtolower((string)($parts['scheme'] ?? ''));
+        $host = trim((string)($parts['host'] ?? ''));
+
+        if (!in_array($scheme, ['http', 'https'], true) || $host === '') {
+            throw new IntegrationException(Craft::t('formie', 'Outbound integration URL must use a public HTTP or HTTPS endpoint.'));
+        }
+
+        // Literal IP hosts are already the connect target; still require public.
+        if (filter_var($host, FILTER_VALIDATE_IP)) {
+            if (!$this->_isPublicIp($host)) {
+                throw new IntegrationException(Craft::t('formie', 'Outbound integration URL must use a public HTTP or HTTPS endpoint.'));
+            }
+
+            return;
+        }
+
+        $ips = $this->_resolveEndpointIps($host);
+
+        if (!$ips) {
+            throw new IntegrationException(Craft::t('formie', 'Outbound integration URL must use a public HTTP or HTTPS endpoint.'));
+        }
+
+        foreach ($ips as $ip) {
+            if (!$this->_isPublicIp($ip)) {
+                throw new IntegrationException(Craft::t('formie', 'Outbound integration URL must use a public HTTP or HTTPS endpoint.'));
+            }
+        }
+
+        $ip = $ips[0];
+        $port = isset($parts['port']) ? (int)$parts['port'] : ($scheme === 'https' ? 443 : 80);
+        $resolve = $config['curl'][CURLOPT_RESOLVE] ?? [];
+
+        if (!is_array($resolve)) {
+            $resolve = [];
+        }
+
+        // CURLOPT_RESOLVE entry format: host:port:address
+        $resolve[] = sprintf('%s:%d:%s', $host, $port, $ip);
+        $config['curl'][CURLOPT_RESOLVE] = array_values(array_unique($resolve));
     }
 
     private function _resolveEndpointIps(string $host): array

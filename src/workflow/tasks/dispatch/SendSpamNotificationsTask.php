@@ -35,12 +35,11 @@ class SendSpamNotificationsTask implements TaskInterface
             return TaskResult::continue();
         }
 
-        if ($dispatchState->hasMarker(DispatchState::MARKER_SPAM_NOTIFICATIONS)) {
+        if (!$dispatchState->claimMarker(DispatchState::MARKER_SPAM_NOTIFICATIONS)) {
             return TaskResult::continue(['reason' => 'spamNotificationsAlreadyMarked']);
         }
 
         $this->_sendSpamNotifications($context);
-        $dispatchState->markMarker(DispatchState::MARKER_SPAM_NOTIFICATIONS);
 
         return TaskResult::continue();
     }

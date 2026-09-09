@@ -34,7 +34,8 @@ class TriggerIntegrationsTask implements TaskInterface
 
         $isSubmissionEdit = $dispatchState->isSubmissionEditDispatch();
 
-        if (!$isSubmissionEdit && $dispatchState->hasMarker(DispatchState::MARKER_INTEGRATIONS)) {
+        // Edits may re-run integrations; non-edit submits claim the stage first.
+        if (!$isSubmissionEdit && !$dispatchState->claimMarker(DispatchState::MARKER_INTEGRATIONS)) {
             return TaskResult::continue(['reason' => 'integrationsAlreadyMarked']);
         }
 
@@ -43,10 +44,6 @@ class TriggerIntegrationsTask implements TaskInterface
             $context->request->processMode,
             IntegrationTriggerEvents::resolveFromProcessMode($context->request->processMode),
         );
-
-        if (!$isSubmissionEdit) {
-            $dispatchState->markMarker(DispatchState::MARKER_INTEGRATIONS);
-        }
 
         return TaskResult::continue();
     }

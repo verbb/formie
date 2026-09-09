@@ -90,7 +90,8 @@ class PaymentWebhooksController extends Controller
     {
         $payment = $this->_requirePaymentFromStatusToken();
 
-        $paymentUid = $this->request->getRequiredParam('paymentUid');
+        // Status token is the capability; do not require a client-supplied paymentUid.
+        $paymentUid = (string)$payment->uid;
         $shouldCheckGateway = (bool)$this->request->getParam('checkGateway');
 
         if (!$integration = $payment->getIntegration()) {

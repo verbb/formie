@@ -8,6 +8,7 @@ use Tests\Support\WebRequestTestHelper;
 use verbb\formie\controllers\FileUploadController;
 use verbb\formie\fields\FileUpload;
 use verbb\formie\Formie;
+use verbb\formie\helpers\UploadAccess;
 use yii\web\BadRequestHttpException;
 
 function decodeControllerJsonPayload(mixed $data): array
@@ -35,12 +36,16 @@ it('hydrates tracked upload assets when upload context is provided', function ()
     $asset = UploadTestHelper::seedAsset('upload-hydrate.txt', 'tracked', $volume);
 
     Formie::$plugin->getFileUploads()->trackSubmissionAsset($asset, (int)$form->id, null, $field->uid);
+    $token = UploadAccess::issueToken((int)$asset->id, (int)$form->id, (string)$field->uid);
 
-    WebRequestTestHelper::withWebRequestContext(function ($request) use ($form, $field, $asset): void {
+    WebRequestTestHelper::withWebRequestContext(function ($request) use ($form, $field, $asset, $token): void {
         $request->setBodyParams([
             'handle' => (string)$form->handle,
             'fieldHandle' => (string)$field->handle,
             'assetIds' => [(int)$asset->id],
+            'uploadTokens' => [
+                (int)$asset->id => $token,
+            ],
         ]);
 
         $controller = new FileUploadController('formie-file-upload-hydrate', Craft::$app);
@@ -50,7 +55,8 @@ it('hydrates tracked upload assets when upload context is provided', function ()
         expect($payload['success'] ?? false)->toBeTrue()
             ->and($payload['assets'] ?? [])->toHaveCount(1)
             ->and($payload['assets'][0]['assetId'] ?? null)->toBe((int)$asset->id)
-            ->and($payload['assets'][0]['filename'] ?? null)->toContain('upload-hydrate');
+            ->and($payload['assets'][0]['filename'] ?? null)->toContain('upload-hydrate')
+            ->and($payload['assets'][0]['uploadToken'] ?? null)->not->toBeEmpty();
     }, [
         'method' => 'POST',
         'headers' => [
@@ -59,7 +65,7 @@ it('hydrates tracked upload assets when upload context is provided', function ()
     ]);
 });
 
-it('hydrates submission-linked assets when submission uid is provided', function (): void {
+it('hydrates submission-linked assets when a capability token is provided', function (): void {
     $volume = UploadTestHelper::ensureUploadVolume();
     $form = formie()
         ->form(['title' => 'File Upload Hydrate Submission'])
@@ -68,18 +74,23 @@ it('hydrates submission-linked assets when submission uid is provided', function
             'allowedKinds' => ['text'],
         ])
         ->create();
+    $field = $form->getFieldByHandle('documents');
     $asset = UploadTestHelper::seedAsset('upload-hydrate-submission.txt', 'tracked', $volume);
     $submission = formie()
         ->submission($form)
         ->with(['documents' => [$asset->id]])
         ->save();
+    $token = UploadAccess::issueToken((int)$asset->id, (int)$form->id, (string)$field->uid);
 
-    WebRequestTestHelper::withWebRequestContext(function ($request) use ($form, $submission, $asset): void {
+    WebRequestTestHelper::withWebRequestContext(function ($request) use ($form, $submission, $asset, $token): void {
         $request->setBodyParams([
             'handle' => (string)$form->handle,
             'fieldHandle' => 'documents',
             'submissionUid' => (string)$submission->uid,
             'assetIds' => [(int)$asset->id],
+            'uploadTokens' => [
+                (int)$asset->id => $token,
+            ],
         ]);
 
         $controller = new FileUploadController('formie-file-upload-hydrate-submission', Craft::$app);
@@ -122,12 +133,16 @@ it('resolves nested group file upload fields for upload manager context', functi
 
     $asset = UploadTestHelper::seedAsset('nested-group-upload.txt', 'tracked', $volume);
     Formie::$plugin->getFileUploads()->trackSubmissionAsset($asset, (int)$form->id, null, $nestedField->uid);
+    $token = UploadAccess::issueToken((int)$asset->id, (int)$form->id, (string)$nestedField->uid);
 
-    WebRequestTestHelper::withWebRequestContext(function ($request) use ($form, $asset): void {
+    WebRequestTestHelper::withWebRequestContext(function ($request) use ($form, $asset, $token): void {
         $request->setBodyParams([
             'handle' => (string)$form->handle,
             'fieldHandle' => 'detailsGroup.nestedDocuments',
             'assetIds' => [(int)$asset->id],
+            'uploadTokens' => [
+                (int)$asset->id => $token,
+            ],
         ]);
 
         $controller = new FileUploadController('formie-file-upload-hydrate-nested', Craft::$app);

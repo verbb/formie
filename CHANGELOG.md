@@ -2,7 +2,27 @@
 
 ## Unreleased
 
+### Changed
+- Normalize CP General Settings to the shared `verbb-base` settings layout (Settings → Plugins → Formie crumbs, `pageTabs` / `pageTitle` / `pageAction` helpers) and trim `pluginName` on save.
+- Bump transitive `symfony/cache` to `6.4.45` (CVE-2026-45073 advisory floor).
+
 ### Fixed
+- Fix anonymous File Upload hydrate/delete treating form+field+asset ID as authorization — issue an unguessable upload capability token on upload (and when rendering existing assets), require it for hydrate/delete, and restrict submission-linked hydrate to CP view permission, matching draft progress, or a verified resume/continuation token.
+- Fix automation HTTP clients following redirects after the public-endpoint SSRF guard — outbound automation requests no longer follow redirects (shared by Web Request / Zapier / Make / n8n).
+- Fix automation outbound requests racing DNS between public-IP validation and connect — absolute automation URLs pin `CURLOPT_RESOLVE` to a re-validated public IP (rebinding-resistant with redirects already disabled).
+- Fix the double-encoded submission content repair migration using MySQL-only `JSON_TYPE` — detect double-encoded payloads in PHP so PostgreSQL upgrades succeed.
+- Fix orchestrated integration queue jobs acknowledging unsuccessful `IntegrationResponse` results as successful — `IntegrationExecutor` now returns structured results and `TriggerIntegration` fails the job on unsuccessful steps.
+- Fix integration “stop on failure” only applying inside one immediate/queued batch — failure with stop now prevents later phases from running.
+- Fix per-notification “after integrations” timing being skipped when the form-wide default is before integrations — the after phase runs whenever any notification needs it.
+- Fix dispatch notification/integration/spam stages using check-then-act markers — stages are claimed atomically before side effects (at-most-once on crash after claim).
+- Fix replay-protection tokens being consumed only after dispatch — claim the token at dispatch start (`cache->add`) so concurrent completes cannot double-deliver notifications/integrations.
+- Fix payment status polling still requiring a client-supplied `paymentUid` after opaque `statusToken` resolution — the token alone is the capability.
+- Fix payment and subscription lookups loading the entire history into memory — ID/UID/reference/submission queries are scoped in SQL.
+- Fix missing `formie_payments.submissionId` index for hot payment lookup/poll paths (Install + migration).
+- Fix questionnaire results re-decoding every submission content blob per question — content is decoded once per aggregation run.
+- Fix `@verbb/formie-core` REST transport dropping Craft subdirectory install paths when resolving action URLs from absolute endpoints.
+- Fix `@verbb/formie-core` form instances accepting concurrent submits and applying transport results after `destroy()` — overlapping submits are rejected and destruction is terminal.
+- Fix form `csrfInput: false` being ignored because Twig `??` treated explicit `null` as missing — null now omits the CSRF field; default CSRF stays sync so `data-formie-csrf` is present for Formie refresh JS.
 - Fix Upload Manager returning “Invalid file upload field” when a File Upload field is nested under a Group (and related nested content-key paths), and writing staged asset ids under the correct nested input names. ([#2948](https://github.com/verbb/formie/issues/2948))
 
 ## 4.0.0-beta.15 - 2026-09-05

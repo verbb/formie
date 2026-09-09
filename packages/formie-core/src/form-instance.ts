@@ -491,6 +491,9 @@ export function createFrontendFormInstance({ envelope, transport }: CreateFronte
     const subscribers = new Set<(state: FrontendFormState) => void>();
     const defaults = initialValues(envelope);
 
+    // Bumped on destroy so stale async completions cannot revive state.
+    let operationGeneration = 0;
+
     let state: FrontendFormState = {
         status: 'ready',
         definition: envelope.definition,
@@ -509,6 +512,10 @@ export function createFrontendFormInstance({ envelope, transport }: CreateFronte
     state = applyDerivedState(state);
 
     const publish = () => {
+        if (state.status === 'destroyed') {
+            return;
+        }
+
         const snapshot = cloneState(state);
         subscribers.forEach((listener) => {
             listener(snapshot);
@@ -516,8 +523,17 @@ export function createFrontendFormInstance({ envelope, transport }: CreateFronte
     };
 
     const setState = (updater: (current: FrontendFormState) => FrontendFormState) => {
+        // Destruction is terminal — ignore late transport completions.
+        if (state.status === 'destroyed') {
+            return;
+        }
+
         state = updater(state);
         publish();
+    };
+
+    const isStale = (generation: number) => {
+        return state.status === 'destroyed' || generation !== operationGeneration;
     };
 
     const instance: FrontendFormInstance = {
@@ -564,6 +580,39 @@ export function createFrontendFormInstance({ envelope, transport }: CreateFronte
             }));
         },
         async submit(action) {
+            if (state.status === 'destroyed') {
+                return {
+                    success: false,
+                    isFinalPage: false,
+                    errors: {
+                        form: ['Form instance has been destroyed.'],
+                        fields: {},
+                        pages: {},
+                    },
+                    messages: {
+                        error: 'Form instance has been destroyed.',
+                    },
+                    session: state.session,
+                } satisfies FrontendSubmitResult;
+            }
+
+            // Reject overlapping submits on the shared imperative API.
+            if (state.status === 'submitting') {
+                return {
+                    success: false,
+                    isFinalPage: false,
+                    errors: {
+                        form: ['A submission is already in progress.'],
+                        fields: {},
+                        pages: {},
+                    },
+                    messages: {
+                        error: 'A submission is already in progress.',
+                    },
+                    session: state.session,
+                } satisfies FrontendSubmitResult;
+            }
+
             const page = state.definition.pages.find((item) => item.id === state.currentPageId);
             const requestedAction: FrontendSubmitAction = action || page?.actions.primary.type || 'submit';
             const transportAction = requestedAction === 'next' ? 'submit' : requestedAction;
@@ -593,6 +642,8 @@ export function createFrontendFormInstance({ envelope, transport }: CreateFronte
                 }
             }
 
+            const generation = operationGeneration;
+
             setState((current) => ({
                 ...current,
                 status: 'submitting',
@@ -610,6 +661,10 @@ export function createFrontendFormInstance({ envelope, transport }: CreateFronte
                     values: state.values,
                     action: transportAction,
                 });
+
+                if (isStale(generation)) {
+                    return result;
+                }
 
                 setState((current) => applyDerivedState({
                     ...current,
@@ -645,18 +700,24 @@ export function createFrontendFormInstance({ envelope, transport }: CreateFronte
                     session: state.session,
                 };
 
-                setState((current) => ({
-                    ...current,
-                    status: 'ready',
-                    errors: result.errors,
-                    lastSubmitResult: result,
-                }));
-                emitter.emit('formie:submit:result', result);
+                if (!isStale(generation)) {
+                    setState((current) => ({
+                        ...current,
+                        status: 'ready',
+                        errors: result.errors,
+                        lastSubmitResult: result,
+                    }));
+                    emitter.emit('formie:submit:result', result);
+                }
 
                 return result;
             }
         },
         async setPage(pageId) {
+            if (state.status === 'destroyed' || state.status === 'submitting') {
+                return;
+            }
+
             if (!transport.setPage) {
                 setState((current) => applyDerivedState({
                     ...current,
@@ -669,6 +730,8 @@ export function createFrontendFormInstance({ envelope, transport }: CreateFronte
 
                 return;
             }
+
+            const generation = operationGeneration;
 
             setState((current) => ({
                 ...current,
@@ -684,6 +747,10 @@ export function createFrontendFormInstance({ envelope, transport }: CreateFronte
                     targetPageId: pageId,
                 });
 
+                if (isStale(generation)) {
+                    return;
+                }
+
                 setState((current) => applyDerivedState({
                     ...current,
                     status: 'ready',
@@ -697,18 +764,26 @@ export function createFrontendFormInstance({ envelope, transport }: CreateFronte
             } catch (error) {
                 const message = error instanceof Error ? error.message : 'Unable to change page.';
 
-                setState((current) => ({
-                    ...current,
-                    status: 'ready',
-                }));
-                emitter.emit('formie:page:navigate:error', {
-                    currentPageId: state.currentPageId,
-                    nextPageId: pageId,
-                    error: message,
-                });
+                if (!isStale(generation)) {
+                    setState((current) => ({
+                        ...current,
+                        status: 'ready',
+                    }));
+                    emitter.emit('formie:page:navigate:error', {
+                        currentPageId: state.currentPageId,
+                        nextPageId: pageId,
+                        error: message,
+                    });
+                }
             }
         },
         async refreshSession() {
+            if (state.status === 'destroyed' || state.status === 'submitting') {
+                return;
+            }
+
+            const generation = operationGeneration;
+
             setState((current) => ({
                 ...current,
                 status: 'refreshing',
@@ -721,6 +796,10 @@ export function createFrontendFormInstance({ envelope, transport }: CreateFronte
                     session: state.session,
                 });
 
+                if (isStale(generation)) {
+                    return;
+                }
+
                 setState((current) => applyDerivedState({
                     ...current,
                     status: 'ready',
@@ -731,16 +810,22 @@ export function createFrontendFormInstance({ envelope, transport }: CreateFronte
             } catch (error) {
                 const message = error instanceof Error ? error.message : 'Unable to refresh session.';
 
-                setState((current) => ({
-                    ...current,
-                    status: 'ready',
-                }));
-                emitter.emit('formie:session:refresh:error', {
-                    error: message,
-                });
+                if (!isStale(generation)) {
+                    setState((current) => ({
+                        ...current,
+                        status: 'ready',
+                    }));
+                    emitter.emit('formie:session:refresh:error', {
+                        error: message,
+                    });
+                }
             }
         },
         reset() {
+            if (state.status === 'destroyed') {
+                return;
+            }
+
             setState((current) => applyDerivedState({
                 ...current,
                 session: envelope.session,
@@ -756,10 +841,11 @@ export function createFrontendFormInstance({ envelope, transport }: CreateFronte
             emitter.emit('formie:state:reset', null);
         },
         async destroy() {
-            setState((current) => ({
-                ...current,
+            operationGeneration += 1;
+            state = {
+                ...state,
                 status: 'destroyed',
-            }));
+            };
             subscribers.clear();
         },
         on(eventName, callback) {

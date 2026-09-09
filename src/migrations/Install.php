@@ -647,6 +647,7 @@ class Install extends Migration
         $this->createIndex(null, Table::FORMIE_NOTIFICATIONS, 'templateId', false);
         $this->createIndex(null, Table::FORMIE_PAYMENTS, 'integrationId', false);
         $this->createIndex(null, Table::FORMIE_PAYMENTS, 'fieldId', false);
+        $this->createIndex(null, Table::FORMIE_PAYMENTS, 'submissionId', false);
         $this->createIndex(null, Table::FORMIE_PAYMENTS, 'reference', false);
         $this->createIndex(null, Table::FORMIE_PAYMENT_PLANS, 'integrationId', false);
         $this->createIndex(null, Table::FORMIE_PAYMENT_PLANS, 'handle', true);

@@ -8,28 +8,46 @@ import type {
 import { serializeTransportFieldValues } from './schema';
 
 export type RestFrontendTransportOptions = {
+    /**
+     * Craft web root used to build action URLs.
+     * Absolute examples: `https://example.test/` or `https://example.test/craft/`.
+     * Relative examples: `/` or `/craft`.
+     * Must include any subdirectory install path; root-relative action paths are appended.
+     */
     endpoint: string;
     formHandle: string;
     siteId?: number;
     credentials?: RequestCredentials;
 };
 
-function buildActionUrl(baseUrl: string, path: string): string {
+/**
+ * Join an install/web base with a root-relative Craft action path.
+ * Absolute bases keep their pathname (subdirectory installs); absolute action paths are not treated as origin-only.
+ */
+export function buildActionUrl(baseUrl: string, path: string): string {
     if (path.startsWith('http://') || path.startsWith('https://')) {
         return path;
     }
 
+    const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+
     if (baseUrl.startsWith('http://') || baseUrl.startsWith('https://')) {
-        return new URL(path, baseUrl).toString();
+        const base = new URL(baseUrl);
+        const basePath = base.pathname.replace(/\/+$/, '');
+        base.pathname = `${basePath}${normalizedPath}`;
+        base.search = '';
+        base.hash = '';
+
+        return base.toString();
     }
 
     const normalizedBaseUrl = baseUrl.trim();
 
     if (!normalizedBaseUrl || normalizedBaseUrl === '/') {
-        return path;
+        return normalizedPath;
     }
 
-    return `${normalizedBaseUrl.replace(/\/+$/, '')}${path}`;
+    return `${normalizedBaseUrl.replace(/\/+$/, '')}${normalizedPath}`;
 }
 
 async function requestJson<T>(url: string, init: RequestInit): Promise<T> {

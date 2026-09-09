@@ -520,7 +520,7 @@ function _e(e) {
 	}), Object.keys(t.fields).length > 0 && (t.form = [e.definition.settings.validation.formErrorMessage || "Please correct the highlighted fields."]), t;
 }
 function ve({ envelope: e, transport: t }) {
-	let n = new B(), r = /* @__PURE__ */ new Set(), i = de(e), a = {
+	let n = new B(), r = /* @__PURE__ */ new Set(), i = de(e), a = 0, o = {
 		status: "ready",
 		definition: e.definition,
 		session: e.session,
@@ -535,26 +535,27 @@ function ve({ envelope: e, transport: t }) {
 		currentPageId: e.session.currentPageId || e.definition.settings.initialPageId,
 		lastSubmitResult: null
 	};
-	a = Y(a);
-	let o = () => {
-		let e = H(a);
+	o = Y(o);
+	let s = () => {
+		if (o.status === "destroyed") return;
+		let e = H(o);
 		r.forEach((t) => {
 			t(e);
 		});
-	}, s = (e) => {
-		a = e(a), o();
-	}, c = {
+	}, c = (e) => {
+		o.status !== "destroyed" && (o = e(o), s());
+	}, l = (e) => o.status === "destroyed" || e !== a, u = {
 		id: e.session.id,
 		getState() {
-			return H(a);
+			return H(o);
 		},
 		subscribe(e) {
-			return r.add(e), e(H(a)), () => {
+			return r.add(e), e(H(o)), () => {
 				r.delete(e);
 			};
 		},
 		setValue(e, t) {
-			s((n) => {
+			c((n) => {
 				let r = Object.fromEntries(Object.entries(n.errors.fields).filter(([t]) => t !== e && !t.startsWith(`${e}.`)));
 				return r[e] = [], Y({
 					...n,
@@ -570,7 +571,7 @@ function ve({ envelope: e, transport: t }) {
 			});
 		},
 		patchValues(e) {
-			s((t) => Y({
+			c((t) => Y({
 				...t,
 				values: {
 					...t.values,
@@ -579,25 +580,48 @@ function ve({ envelope: e, transport: t }) {
 			}));
 		},
 		async submit(e) {
-			let r = a.definition.pages.find((e) => e.id === a.currentPageId), i = e || r?.actions.primary.type || "submit", o = i === "next" ? "submit" : i;
-			if (o !== "back" && o !== "save" && a.definition.settings.validation.onSubmit) {
-				let e = _e(a);
+			if (o.status === "destroyed") return {
+				success: !1,
+				isFinalPage: !1,
+				errors: {
+					form: ["Form instance has been destroyed."],
+					fields: {},
+					pages: {}
+				},
+				messages: { error: "Form instance has been destroyed." },
+				session: o.session
+			};
+			if (o.status === "submitting") return {
+				success: !1,
+				isFinalPage: !1,
+				errors: {
+					form: ["A submission is already in progress."],
+					fields: {},
+					pages: {}
+				},
+				messages: { error: "A submission is already in progress." },
+				session: o.session
+			};
+			let r = o.definition.pages.find((e) => e.id === o.currentPageId), i = e || r?.actions.primary.type || "submit", s = i === "next" ? "submit" : i;
+			if (s !== "back" && s !== "save" && o.definition.settings.validation.onSubmit) {
+				let e = _e(o);
 				if (e.form.length > 0 || Object.keys(e.fields).length > 0) {
 					let t = {
 						success: !1,
 						isFinalPage: !1,
 						errors: e,
 						messages: { error: e.form[0] || null },
-						session: a.session
+						session: o.session
 					};
-					return s((n) => ({
+					return c((n) => ({
 						...n,
 						errors: e,
 						lastSubmitResult: t
 					})), n.emit("formie:submit:result", t), t;
 				}
 			}
-			s((e) => ({
+			let u = a;
+			c((e) => ({
 				...e,
 				status: "submitting",
 				errors: {
@@ -608,12 +632,12 @@ function ve({ envelope: e, transport: t }) {
 			}));
 			try {
 				let e = await t.submit({
-					definition: a.definition,
-					session: a.session,
-					values: a.values,
-					action: o
+					definition: o.definition,
+					session: o.session,
+					values: o.values,
+					action: s
 				});
-				return s((t) => Y({
+				return l(u) ? e : (c((t) => Y({
 					...t,
 					status: "ready",
 					session: e.session ?? t.session,
@@ -621,9 +645,9 @@ function ve({ envelope: e, transport: t }) {
 					errors: e.errors,
 					lastSubmitResult: e
 				})), n.emit("formie:submit:result", e), (e.currentPageId || e.nextPageId) && n.emit("formie:page:navigate", {
-					currentPageId: a.currentPageId,
+					currentPageId: o.currentPageId,
 					nextPageId: e.nextPageId || e.currentPageId
-				}), e;
+				}), e);
 			} catch (e) {
 				let t = e instanceof Error ? e.message : "Submission failed.", r = {
 					success: !1,
@@ -634,19 +658,20 @@ function ve({ envelope: e, transport: t }) {
 						pages: {}
 					},
 					messages: { error: t },
-					session: a.session
+					session: o.session
 				};
-				return s((e) => ({
+				return l(u) || (c((e) => ({
 					...e,
 					status: "ready",
 					errors: r.errors,
 					lastSubmitResult: r
-				})), n.emit("formie:submit:result", r), r;
+				})), n.emit("formie:submit:result", r)), r;
 			}
 		},
 		async setPage(e) {
+			if (o.status === "destroyed" || o.status === "submitting") return;
 			if (!t.setPage) {
-				s((t) => Y({
+				c((t) => Y({
 					...t,
 					currentPageId: e,
 					session: {
@@ -656,66 +681,71 @@ function ve({ envelope: e, transport: t }) {
 				}));
 				return;
 			}
-			s((e) => ({
+			let r = a;
+			c((e) => ({
 				...e,
 				status: "refreshing"
 			}));
 			try {
-				let r = await t.setPage({
-					definition: a.definition,
-					session: a.session,
-					values: a.values,
-					currentPageId: a.currentPageId,
+				let i = await t.setPage({
+					definition: o.definition,
+					session: o.session,
+					values: o.values,
+					currentPageId: o.currentPageId,
 					targetPageId: e
 				});
-				s((e) => Y({
+				if (l(r)) return;
+				c((e) => Y({
 					...e,
 					status: "ready",
-					session: r,
-					currentPageId: r.currentPageId
+					session: i,
+					currentPageId: i.currentPageId
 				})), n.emit("formie:page:navigate", {
-					currentPageId: a.currentPageId,
+					currentPageId: o.currentPageId,
 					nextPageId: e
 				});
 			} catch (t) {
-				let r = t instanceof Error ? t.message : "Unable to change page.";
-				s((e) => ({
+				let i = t instanceof Error ? t.message : "Unable to change page.";
+				l(r) || (c((e) => ({
 					...e,
 					status: "ready"
 				})), n.emit("formie:page:navigate:error", {
-					currentPageId: a.currentPageId,
+					currentPageId: o.currentPageId,
 					nextPageId: e,
-					error: r
-				});
+					error: i
+				}));
 			}
 		},
 		async refreshSession() {
-			s((e) => ({
+			if (o.status === "destroyed" || o.status === "submitting") return;
+			let e = a;
+			c((e) => ({
 				...e,
 				status: "refreshing"
 			}));
 			try {
-				let e = await t.refreshSession({
-					formHandle: a.definition.handle,
-					siteId: a.definition.siteId ?? void 0,
-					session: a.session
+				let r = await t.refreshSession({
+					formHandle: o.definition.handle,
+					siteId: o.definition.siteId ?? void 0,
+					session: o.session
 				});
-				s((t) => Y({
-					...t,
+				if (l(e)) return;
+				c((e) => Y({
+					...e,
 					status: "ready",
-					session: e,
-					currentPageId: e.currentPageId || t.currentPageId
-				})), n.emit("formie:session:refreshed", e);
-			} catch (e) {
-				let t = e instanceof Error ? e.message : "Unable to refresh session.";
-				s((e) => ({
+					session: r,
+					currentPageId: r.currentPageId || e.currentPageId
+				})), n.emit("formie:session:refreshed", r);
+			} catch (t) {
+				let r = t instanceof Error ? t.message : "Unable to refresh session.";
+				l(e) || (c((e) => ({
 					...e,
 					status: "ready"
-				})), n.emit("formie:session:refresh:error", { error: t });
+				})), n.emit("formie:session:refresh:error", { error: r }));
 			}
 		},
 		reset() {
-			s((t) => Y({
+			o.status !== "destroyed" && (c((t) => Y({
 				...t,
 				session: e.session,
 				values: { ...i },
@@ -726,21 +756,21 @@ function ve({ envelope: e, transport: t }) {
 				},
 				currentPageId: e.session.currentPageId || e.definition.settings.initialPageId,
 				lastSubmitResult: null
-			})), n.emit("formie:state:reset", null);
+			})), n.emit("formie:state:reset", null));
 		},
 		async destroy() {
-			s((e) => ({
-				...e,
+			a += 1, o = {
+				...o,
 				status: "destroyed"
-			})), r.clear();
+			}, r.clear();
 		},
 		on(e, t) {
 			return n.on(e, t);
 		}
 	};
 	return queueMicrotask(() => {
-		n.emit("formie:client:ready", c.getState());
-	}), c;
+		n.emit("formie:client:ready", u.getState());
+	}), u;
 }
 //#endregion
 //#region src/event-names.ts
@@ -3331,9 +3361,13 @@ function ke(e, t, n) {
 //#region src/rest.ts
 function Z(e, t) {
 	if (t.startsWith("http://") || t.startsWith("https://")) return t;
-	if (e.startsWith("http://") || e.startsWith("https://")) return new URL(t, e).toString();
-	let n = e.trim();
-	return !n || n === "/" ? t : `${n.replace(/\/+$/, "")}${t}`;
+	let n = t.startsWith("/") ? t : `/${t}`;
+	if (e.startsWith("http://") || e.startsWith("https://")) {
+		let t = new URL(e);
+		return t.pathname = `${t.pathname.replace(/\/+$/, "")}${n}`, t.search = "", t.hash = "", t.toString();
+	}
+	let r = e.trim();
+	return !r || r === "/" ? n : `${r.replace(/\/+$/, "")}${n}`;
 }
 async function Q(e, t) {
 	let n = await fetch(e, t);
@@ -3558,4 +3592,4 @@ function Ge(e) {
 	};
 }
 //#endregion
-export { ye as FRONTEND_CLIENT_EVENT_NAMES, v as allFields, Ee as coerceCalculationVariables, A as compositePartDefinitions, Ue as countGraphemes, ve as createFrontendFormInstance, Le as createGraphqlFrontendTransport, ne as createRepeaterRowValue, Me as createRestFrontendTransport, N as defaultValueForField, ke as evaluateCalculationExpression, h as evaluateConditionDefinition, P as fieldValueAsStrings, S as fieldValueContract, C as fieldValueStructure, g as finalizeConditionEvaluation, b as findFieldByHandle, y as findFieldById, De as formatCalculationValue, we as getCalculationFormula, Te as getCalculationVariableEntries, Ge as getTextLimitMetrics, We as getWordCount, O as isBooleanField, w as isCompositeField, te as isEmailField, E as isFileField, ee as isKnownFrontendFieldType, D as isMultiValueField, k as isNumericField, T as isRepeatableField, je as loadFrontendEnvelope, Ie as loadGraphqlFrontendEnvelope, He as normalizeText, Oe as readCalculationVariableValue, M as repeaterFieldDefinitions, j as repeaterRowDefinitions, x as serializeFieldValues, R as serializeTransportFieldValues };
+export { ye as FRONTEND_CLIENT_EVENT_NAMES, v as allFields, Z as buildActionUrl, Ee as coerceCalculationVariables, A as compositePartDefinitions, Ue as countGraphemes, ve as createFrontendFormInstance, Le as createGraphqlFrontendTransport, ne as createRepeaterRowValue, Me as createRestFrontendTransport, N as defaultValueForField, ke as evaluateCalculationExpression, h as evaluateConditionDefinition, P as fieldValueAsStrings, S as fieldValueContract, C as fieldValueStructure, g as finalizeConditionEvaluation, b as findFieldByHandle, y as findFieldById, De as formatCalculationValue, we as getCalculationFormula, Te as getCalculationVariableEntries, Ge as getTextLimitMetrics, We as getWordCount, O as isBooleanField, w as isCompositeField, te as isEmailField, E as isFileField, ee as isKnownFrontendFieldType, D as isMultiValueField, k as isNumericField, T as isRepeatableField, je as loadFrontendEnvelope, Ie as loadGraphqlFrontendEnvelope, He as normalizeText, Oe as readCalculationVariableValue, M as repeaterFieldDefinitions, j as repeaterRowDefinitions, x as serializeFieldValues, R as serializeTransportFieldValues };

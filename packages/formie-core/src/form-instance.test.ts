@@ -464,4 +464,43 @@ describe('createFrontendFormInstance', () => {
 
         expect(callback).toHaveBeenCalledTimes(1);
     });
+
+    it('rejects concurrent submit calls and keeps destroy terminal', async() => {
+        const pending: Array<(value: any) => void> = [];
+        const transport: FrontendTransport = {
+            ...createTransport(),
+            submit: vi.fn(() => new Promise((resolve) => {
+                pending.push(resolve);
+            })),
+        };
+        const envelope = createEnvelope([createTextField('trigger', 'trigger')]);
+        envelope.definition.settings.validation.onSubmit = false;
+
+        const runtime = createFrontendFormInstance({
+            envelope,
+            transport,
+        });
+
+        const first = runtime.submit('submit');
+        const second = await runtime.submit('submit');
+
+        expect(transport.submit).toHaveBeenCalledTimes(1);
+        expect(second.success).toBe(false);
+        expect(second.errors.form[0]).toContain('already in progress');
+
+        const sessionSnapshot = runtime.getState().session;
+        await runtime.destroy();
+        expect(runtime.getState().status).toBe('destroyed');
+
+        pending.forEach((resolve) => resolve({
+            success: true,
+            isFinalPage: true,
+            errors: { form: [], fields: {}, pages: {} },
+            messages: {},
+            session: sessionSnapshot,
+        }));
+        await first;
+
+        expect(runtime.getState().status).toBe('destroyed');
+    });
 });

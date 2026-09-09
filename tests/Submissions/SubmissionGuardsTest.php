@@ -162,6 +162,16 @@ it('consumes request tokens after a completed submit and blocks replay attempts'
     }
 });
 
+it('claims replay tokens atomically so only one concurrent worker wins', function (): void {
+    $form = createGuardTestForm();
+    $submissionGuards = Formie::$plugin->getSubmissionGuards();
+    $requestToken = 'claim-token-' . uniqid();
+
+    expect($submissionGuards->claimReplayToken((string)$form->uid, $requestToken))->toBeTrue()
+        ->and($submissionGuards->claimReplayToken((string)$form->uid, $requestToken))->toBeFalse()
+        ->and($submissionGuards->isReplayTokenConsumed((string)$form->uid, $requestToken))->toBeTrue();
+});
+
 it('skips browser-only submission guards for headless requests with a request token', function (): void {
     $form = createGuardTestForm();
 

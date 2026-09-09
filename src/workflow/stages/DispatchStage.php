@@ -6,6 +6,7 @@ use verbb\formie\services\SubmissionWorkflow;
 use verbb\formie\workflow\StageInterface;
 use verbb\formie\workflow\StageResult;
 use verbb\formie\workflow\WorkflowContext;
+use verbb\formie\workflow\tasks\dispatch\ClaimReplayTokenTask;
 use verbb\formie\workflow\tasks\dispatch\GuardDispatchEligibilityTask;
 use verbb\formie\workflow\tasks\dispatch\MarkDispatchFinalizedTask;
 use verbb\formie\workflow\tasks\dispatch\SendNotificationsTask;
@@ -30,6 +31,8 @@ class DispatchStage implements StageInterface
     {
         return $this->workflow->runStageTasks($context, $this->getName(), [
             new GuardDispatchEligibilityTask(),
+            // Claim before side effects so concurrent completes cannot double-dispatch.
+            new ClaimReplayTokenTask(),
             new SendNotificationsTask(),
             new TriggerIntegrationsTask(),
             new SendSpamNotificationsTask(),

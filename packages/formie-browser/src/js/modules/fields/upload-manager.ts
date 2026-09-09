@@ -22,6 +22,7 @@ const SORT_UP_SELECTOR = '[data-formie-upload-manager-sort="up"]';
 const SORT_DOWN_SELECTOR = '[data-formie-upload-manager-sort="down"]';
 const HIDDEN_INPUT_ANCHOR_ATTR = 'data-formie-file-upload-anchor';
 const HIDDEN_INPUT_VALUE_ATTR = 'data-formie-file-upload-asset-id';
+const HIDDEN_INPUT_TOKEN_ATTR = 'data-formie-file-upload-token';
 const FORM_RESET_EVENT = getFormStateEventName('reset');
 const REPEATER_INIT_ROW_EVENT = getFieldModuleEventName('repeater', 'init-row');
 const MODULE_ID = 'upload-manager';
@@ -51,6 +52,7 @@ type UploadResponse = {
     assetId?: number;
     filename?: string;
     url?: string | null;
+    uploadToken?: string | null;
     errors?: Record<string, string[]>;
 };
 
@@ -64,11 +66,13 @@ type HydrateResponse = {
         assetId?: number;
         filename?: string;
         url?: string | null;
+        uploadToken?: string | null;
     }>;
 };
 
 type ManagedFile = {
     assetId: number | null;
+    uploadToken: string | null;
     filename: string;
     uppyFileId: string | null;
     listItem: HTMLElement;
@@ -158,19 +162,44 @@ function readAssetIdsFromDom(field: HTMLElement, assetInputName: string): number
     });
 }
 
-function syncHiddenAssetInputs(field: HTMLElement, anchorInput: HTMLInputElement, assetInputName: string, assetIds: number[]): void {
+function readUploadTokensFromDom(field: HTMLElement, assetInputName: string): Record<number, string> {
+    const tokens: Record<number, string> = {};
+
+    getUploadedAssetInputs(field, assetInputName).forEach((input) => {
+        const assetId = toPositiveInt(input.value);
+        const token = input.getAttribute(HIDDEN_INPUT_TOKEN_ATTR)?.trim() || '';
+
+        if (assetId && token) {
+            tokens[assetId] = token;
+        }
+    });
+
+    return tokens;
+}
+
+function syncHiddenAssetInputs(
+    field: HTMLElement,
+    anchorInput: HTMLInputElement,
+    assetInputName: string,
+    assets: Array<{ assetId: number; uploadToken: string | null }>,
+): void {
     let insertionPoint: HTMLInputElement = anchorInput;
 
     getUploadedAssetInputs(field, assetInputName).forEach((hiddenInput) => {
         hiddenInput.remove();
     });
 
-    assetIds.forEach((assetId) => {
+    assets.forEach(({ assetId, uploadToken }) => {
         const hiddenInput = document.createElement('input');
         hiddenInput.type = 'hidden';
         hiddenInput.name = assetInputName;
         hiddenInput.value = String(assetId);
         hiddenInput.setAttribute(HIDDEN_INPUT_VALUE_ATTR, 'true');
+
+        if (uploadToken) {
+            hiddenInput.setAttribute(HIDDEN_INPUT_TOKEN_ATTR, uploadToken);
+        }
+
         insertionPoint.insertAdjacentElement('afterend', hiddenInput);
         insertionPoint = hiddenInput;
     });
@@ -191,7 +220,7 @@ function getUploadContext(form: HTMLFormElement | null, field: HTMLElement, drop
         return context;
     }
 
-    const passthroughNames = ['renderId', 'draftContextToken', 'draftContext', 'submissionId'] as const;
+    const passthroughNames = ['renderId', 'draftContextToken', 'draftContext', 'submissionId', 'resumeToken', 'continuationToken', 'submissionUid'] as const;
 
     passthroughNames.forEach((name) => {
         const input = form.querySelector(`input[name="${name}"]`);
@@ -207,7 +236,12 @@ function getUploadContext(form: HTMLFormElement | null, field: HTMLElement, drop
     return context;
 }
 
-function buildHydrateFormData(form: HTMLFormElement | null, field: HTMLElement, assetIds: number[]): FormData {
+function buildHydrateFormData(
+    form: HTMLFormElement | null,
+    field: HTMLElement,
+    assetIds: number[],
+    uploadTokens: Record<number, string> = {},
+): FormData {
     const body = new FormData();
     const handle = getFormHandle(form);
     const fieldHandle = getFieldHandle(field);
@@ -220,14 +254,24 @@ function buildHydrateFormData(form: HTMLFormElement | null, field: HTMLElement, 
         body.append('fieldHandle', fieldHandle);
     }
 
-    const submissionUidInput = form?.querySelector('input[name="submissionUid"]');
+    const passthroughNames = ['submissionUid', 'resumeToken', 'continuationToken'] as const;
 
-    if (submissionUidInput instanceof HTMLInputElement && submissionUidInput.value.trim()) {
-        body.append('submissionUid', submissionUidInput.value.trim());
-    }
+    passthroughNames.forEach((name) => {
+        const input = form?.querySelector(`input[name="${name}"]`);
+
+        if (input instanceof HTMLInputElement && input.value.trim()) {
+            body.append(name, input.value.trim());
+        }
+    });
 
     assetIds.forEach((assetId) => {
         body.append('assetIds[]', String(assetId));
+
+        const token = uploadTokens[assetId];
+
+        if (token) {
+            body.append(`uploadTokens[${assetId}]`, token);
+        }
     });
 
     appendFormCsrfToFormData(body, form);
@@ -556,27 +600,29 @@ function countManagedAssets(state: UploadManagerState): number {
 }
 
 function syncUploadedAssetsEvent(state: UploadManagerState): void {
-    const assetIds = state.files.map((file) => {
-        return file.assetId;
-    }).filter((assetId): assetId is number => {
-        return assetId !== null;
-    });
+    const assets = state.files
+        .filter((file): file is ManagedFile & { assetId: number } => {
+            return file.assetId !== null;
+        })
+        .map((file) => {
+            return {
+                assetId: file.assetId,
+                uploadToken: file.uploadToken,
+                filename: file.filename,
+            };
+        });
 
-    syncHiddenAssetInputs(state.field, state.anchorInput, state.assetInputName, assetIds);
+    syncHiddenAssetInputs(state.field, state.anchorInput, state.assetInputName, assets);
 
     if (state.statusInput) {
-        state.statusInput.value = assetIds.length ? 'uploaded' : '';
+        state.statusInput.value = assets.length ? 'uploaded' : '';
     }
 
     dispatchFieldEvent(state.field, 'file-upload', 'uploaded-assets-sync', {
-        assets: assetIds.map((assetId) => {
-            const managed = state.files.find((file) => {
-                return file.assetId === assetId;
-            });
-
+        assets: assets.map(({ assetId, filename }) => {
             return {
                 assetId,
-                filename: managed?.filename || '',
+                filename,
             };
         }),
     });
@@ -911,6 +957,10 @@ function bindUploadManagerField(field: HTMLElement, form: HTMLFormElement | null
 
             body.append('assetId', String(managedFile.assetId));
 
+            if (managedFile.uploadToken) {
+                body.append('uploadToken', managedFile.uploadToken);
+            }
+
             try {
                 await requestJson<DeleteResponse>(deleteEndpoint, {
                     method: 'POST',
@@ -929,13 +979,14 @@ function bindUploadManagerField(field: HTMLElement, form: HTMLFormElement | null
         syncSortControls();
     };
 
-    const addManagedFileFromAsset = (assetId: number, filename: string) => {
+    const addManagedFileFromAsset = (assetId: number, filename: string, uploadToken: string | null = null) => {
         const { listItem, removeButton, sortUpButton, sortDownButton } = createListItem(field, filename);
         listItem.classList.add('is-complete');
         fileList.append(listItem);
 
         const managedFile: ManagedFile = {
             assetId,
+            uploadToken,
             filename,
             uppyFileId: null,
             listItem,
@@ -953,10 +1004,12 @@ function bindUploadManagerField(field: HTMLElement, form: HTMLFormElement | null
             return;
         }
 
+        const uploadTokens = readUploadTokensFromDom(field, assetInputName);
+
         try {
             const response = await requestJson<HydrateResponse>(hydrateEndpoint, {
                 method: 'POST',
-                body: buildHydrateFormData(resolvedForm, field, assetIds),
+                body: buildHydrateFormData(resolvedForm, field, assetIds, uploadTokens),
             });
 
             const assets = response.assets || [];
@@ -979,7 +1032,11 @@ function bindUploadManagerField(field: HTMLElement, form: HTMLFormElement | null
                     return;
                 }
 
-                addManagedFileFromAsset(assetId, asset.filename || `Asset #${assetId}`);
+                addManagedFileFromAsset(
+                    assetId,
+                    asset.filename || `Asset #${assetId}`,
+                    toTrimmedString(asset.uploadToken) || uploadTokens[assetId] || null,
+                );
             });
 
             syncUploadedAssetsEvent(state);
@@ -1057,6 +1114,7 @@ function bindUploadManagerField(field: HTMLElement, form: HTMLFormElement | null
         }
 
         managedFile.assetId = assetId;
+        managedFile.uploadToken = toTrimmedString(body.uploadToken) || null;
         managedFile.filename = body.filename || managedFile.filename;
         markUploadComplete(managedFile.listItem);
         syncUploadedAssetsEvent(state);
@@ -1096,6 +1154,7 @@ function bindUploadManagerField(field: HTMLElement, form: HTMLFormElement | null
 
         const managedFile: ManagedFile = {
             assetId: null,
+            uploadToken: null,
             filename: file.name || 'Upload',
             uppyFileId: file.id,
             listItem,

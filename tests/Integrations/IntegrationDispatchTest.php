@@ -67,3 +67,28 @@ it('records integration dispatch context results', function (): void {
     expect($context->wasSuccessful('user'))->toBeTrue()
         ->and($context->getResult('user')['elementId'])->toBe(99);
 });
+
+it('detects when any notification requires the after-integrations phase', function (): void {
+    $form = new class extends Form {
+        public array $auditNotifications = [];
+
+        public function getEnabledNotifications(): array
+        {
+            return $this->auditNotifications;
+        }
+    };
+    $form->settings->integrationDispatch = [
+        'enabled' => true,
+        'notificationTiming' => IntegrationDispatchPlan::NOTIFICATION_TIMING_BEFORE,
+    ];
+    $form->auditNotifications = [
+        new Notification([
+            'name' => 'After Override',
+            'dispatchTiming' => Notification::DISPATCH_TIMING_AFTER,
+        ]),
+    ];
+
+    $service = new IntegrationDispatch();
+
+    expect($service->needsAfterNotificationsPhase($form))->toBeTrue();
+});
