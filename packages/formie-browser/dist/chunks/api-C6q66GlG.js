@@ -372,7 +372,7 @@ function H(t, n = {}) {
 function Te(e) {
 	return e.code === de || e.meta?.resetState === !0;
 }
-function Ee(e, t) {
+function U(e, t) {
 	let r = t.submitData, i = /* @__PURE__ */ new Set(), a = !1;
 	if (Array.isArray(r) && r.length > 0) {
 		let t = r.filter((e) => typeof e == "object" && !!e && "event" in e && typeof e.event == "string");
@@ -390,7 +390,7 @@ function Ee(e, t) {
 		detail: { data: l }
 	})), k.log("Dispatching fallback payment action event.", { eventName: u })), { hasPaymentFollowUpEvent: a };
 }
-function De(e, t, n) {
+function Ee(e, t, n) {
 	if (k.log("Applying submit result state.", {
 		ok: t.ok,
 		action: n,
@@ -401,7 +401,7 @@ function De(e, t, n) {
 		H(e), k.log("Resetting state due to stale/reset marker.");
 		return;
 	}
-	let r = Ee(e, t);
+	let r = U(e, t);
 	if (!t.ok && t.redirect?.url && !r.hasPaymentFollowUpEvent) {
 		k.log("Applying redirect fallback for failed result.", {
 			url: t.redirect.url,
@@ -443,7 +443,7 @@ function De(e, t, n) {
 }
 //#endregion
 //#region src/js/modules/payments/constants.ts
-var Oe = 2500, ke = {
+var De = 2500, Oe = {
 	bpoint: ["bpointToken"],
 	stripe: ["stripePaymentIntentId"],
 	paypal: ["paypalOrderId", "paypalAuthId"],
@@ -458,25 +458,25 @@ var Oe = 2500, ke = {
 };
 //#endregion
 //#region src/js/utils/fields.ts
-function Ae(e) {
+function ke(e) {
 	return e.replace("{field:", "").replace("{", "").replace("}", "").replace("]", "").split("[").join("][");
 }
-function je(e) {
-	return `fields[${Ae(e)}]`;
+function Ae(e) {
+	return `fields[${ke(e)}]`;
 }
-function Me(e, t) {
-	let n = je(t), r = Array.from(e.querySelectorAll(`[name="${n}"]`)), i = Array.from(e.querySelectorAll(`[name="${n}[]"]`));
+function je(e, t) {
+	let n = Ae(t), r = Array.from(e.querySelectorAll(`[name="${n}"]`)), i = Array.from(e.querySelectorAll(`[name="${n}[]"]`));
 	return (i.length ? i : r).filter((e) => e instanceof HTMLElement);
 }
-function U(e, t) {
-	let n = Me(e, t);
+function W(e, t) {
+	let n = je(e, t);
 	for (let e of n) {
 		let t = e.closest("[data-formie-field-handle]")?.querySelector("[data-formie-field-label]")?.childNodes[0]?.textContent?.trim();
 		if (t) return t;
 	}
 	return "";
 }
-function W(e) {
+function G(e) {
 	let t = e.replace(/[^\d.,-]/g, ""), n = t.includes(","), r = t.includes(".");
 	if (n && r) t = t.lastIndexOf(",") > t.lastIndexOf(".") ? t.replace(/\./g, "").replace(",", ".") : t.replace(/,/g, "");
 	else if (n && !r) {
@@ -487,13 +487,17 @@ function W(e) {
 }
 //#endregion
 //#region src/js/modules/payments/utils.ts
-function G(e, t) {
+function K(e) {
+	let t = e;
+	return !t.closest("[data-formie-conditionally-hidden]") && !t.closest("[data-formie-row-hidden]") && !t.closest("[data-formie-page-hidden]") && !t.closest("[hidden]");
+}
+function q(e, t) {
 	let n = t.replace(/"/g, "\\\"");
 	return e.querySelector(`input[name$="[${n}]"]`) || e.querySelector(`input[name$="${n}"]`);
 }
-function K(e, t) {
+function J(e, t) {
 	let n = t.find((t) => {
-		let n = G(e, t);
+		let n = q(e, t);
 		return !n || String(n.value || "").trim() === "";
 	});
 	return {
@@ -501,41 +505,41 @@ function K(e, t) {
 		missingSuffix: n
 	};
 }
-async function q(e, t, n) {
-	let r = K(e, t);
+async function Y(e, t, n) {
+	let r = J(e, t);
 	if (r.ok) return r;
 	let i = Date.now() + Math.max(n, 0);
 	for (; Date.now() < i;) {
 		await c(120);
-		let n = K(e, t);
+		let n = J(e, t);
 		if (n.ok) return n;
 	}
-	return K(e, t);
+	return J(e, t);
 }
 //#endregion
 //#region src/js/modules/payments/host.ts
-var Ne = /* @__PURE__ */ new Set([
+var Me = /* @__PURE__ */ new Set([
 	"handle",
 	"requiredInputSuffixes",
 	"waitForValueMs",
 	"errorMessage"
-]), J = "[data-payment-success]", Y = "[data-payment-error]";
-function X(e, t) {
+]), X = "[data-payment-success]", Z = "[data-payment-error]";
+function Ne(e, t) {
 	return (typeof t.handle == "string" && t.handle.trim() !== "" ? t.handle.trim() : "") || e;
 }
 function Pe(e, t, n) {
-	let r = t || {}, i = Object.entries(r).reduce((e, [t, n]) => (Ne.has(t) || (e[t] = n), e), {}), a = Array.isArray(r.requiredInputSuffixes) ? r.requiredInputSuffixes.map(String).filter(Boolean) : n.defaultRequiredInputSuffixes || [], o = Number(r.waitForValueMs ?? n.defaultWaitForValueMs ?? 2500), s = typeof r.errorMessage == "string" && r.errorMessage.trim() !== "" ? r.errorMessage.trim() : "Payment authorization is incomplete.";
+	let r = t || {}, i = Object.entries(r).reduce((e, [t, n]) => (Me.has(t) || (e[t] = n), e), {}), a = Array.isArray(r.requiredInputSuffixes) ? r.requiredInputSuffixes.map(String).filter(Boolean) : n.defaultRequiredInputSuffixes || [], o = Number(r.waitForValueMs ?? n.defaultWaitForValueMs ?? 2500), s = typeof r.errorMessage == "string" && r.errorMessage.trim() !== "" ? r.errorMessage.trim() : "Payment authorization is incomplete.";
 	return {
-		handle: X(e, r),
+		handle: Ne(e, r),
 		transport: {
 			requiredInputSuffixes: a,
-			waitForValueMs: Number.isFinite(o) ? o : Oe,
+			waitForValueMs: Number.isFinite(o) ? o : De,
 			errorMessage: s
 		},
 		provider: i
 	};
 }
-function Z(e, t, n) {
+function Q(e, t, n) {
 	return e.addEventListener(t, n), () => {
 		e.removeEventListener(t, n);
 	};
@@ -552,47 +556,47 @@ function Fe(e, t) {
 		updateInputs: (e, t) => {
 			let r = Array.isArray(e) ? e : [e];
 			for (let e of r) {
-				let r = G(a, e) ?? n.querySelector(`input[name*="${e}"]`);
+				let r = q(a, e) ?? n.querySelector(`input[name*="${e}"]`);
 				r && (r.value = t);
 			}
 		},
 		addError: (e) => {
-			let t = n.querySelector("[data-formie-field-type] > div, [data-field-type] > div") || n, a = t.querySelector(Y);
+			let t = n.querySelector("[data-formie-field-type] > div, [data-field-type] > div") || n, a = t.querySelector(Z);
 			a && a.remove();
 			let s = document.createElement("div");
 			s.setAttribute("data-payment-error", ""), s.textContent = e, o(s, r || i, "fieldError"), t.appendChild(s);
 		},
 		removeError: () => {
-			n.querySelector(Y)?.remove();
+			n.querySelector(Z)?.remove();
 		},
 		addSuccess: (e) => {
-			let t = n.querySelector("[data-formie-field-type] > div, [data-field-type] > div") || n, a = t.querySelector(J);
+			let t = n.querySelector("[data-formie-field-type] > div, [data-field-type] > div") || n, a = t.querySelector(X);
 			a && a.remove();
 			let s = document.createElement("div");
 			s.setAttribute("data-payment-success", ""), s.textContent = e, o(s, r || i, "successMessage"), t.appendChild(s);
 		},
 		removeSuccess: () => {
-			n.querySelector(J)?.remove();
+			n.querySelector(X)?.remove();
 		},
-		hasToken: () => K(a, c).ok,
-		waitForToken: (e = t.transport.waitForValueMs) => q(a, c, e).then((e) => e.ok),
+		hasToken: () => J(a, c).ok,
+		waitForToken: (e = t.transport.waitForValueMs) => Y(a, c, e).then((e) => e.ok),
 		getFieldValue: (e, t = "string") => {
 			let n = h(e);
-			return t === "float" || t === "int" || t === "number" ? W(n) : n;
+			return t === "float" || t === "int" || t === "number" ? G(n) : n;
 		},
 		resolveAmount: (e) => {
-			let t = r || i, n = String(e.type || "").toLowerCase() === "dynamic" && typeof e.variable == "string" && e.variable.trim() !== "", a = e.value ?? (n ? e.variable : e.fixed), o = String(a ?? "").trim(), c = typeof a == "number" ? a : W(o);
+			let t = r || i, n = String(e.type || "").toLowerCase() === "dynamic" && typeof e.variable == "string" && e.variable.trim() !== "", a = e.value ?? (n ? e.variable : e.fixed), o = String(a ?? "").trim(), c = typeof a == "number" ? a : G(o);
 			if (Number.isFinite(c) && c > 0) return {
 				ok: !0,
 				value: c
 			};
 			if (o !== "") {
-				let e = h(o), n = W(e);
+				let e = h(o), n = G(e);
 				if (Number.isFinite(n) && n > 0) return {
 					ok: !0,
 					value: n
 				};
-				let r = U(t, o);
+				let r = W(t, o);
 				if (!e) return {
 					ok: !1,
 					error: r ? s("Provide a value for \"{label}\" to proceed.", { label: r }) : s("Provide a payment amount to proceed.")
@@ -615,7 +619,7 @@ function Fe(e, t) {
 					ok: !0,
 					value: n
 				};
-				let r = U(t, o);
+				let r = W(t, o);
 				if (!e) return {
 					ok: !1,
 					error: r ? s("Provide a value for \"{label}\" to proceed.", { label: r }) : s("Provide a payment currency to proceed.")
@@ -675,20 +679,16 @@ function Fe(e, t) {
 			return { billing_details: t };
 		},
 		events: {
-			onForm: (e, t) => r ? Z(r, e, t) : () => {},
-			onRoot: (e, t) => Z(i, e, t)
+			onForm: (e, t) => r ? Q(r, e, t) : () => {},
+			onRoot: (e, t) => Q(i, e, t)
 		}
 	};
 }
 //#endregion
 //#region src/js/modules/payments/factories.ts
-var Q = r("payments");
-function $(e) {
-	let t = e;
-	return !t.closest("[data-formie-page-hidden]") && !t.closest("[hidden]");
-}
+var $ = r("payments");
 function Ie(e) {
-	let t = e.defaultRequiredInputSuffixes ?? ke[e.id] ?? [];
+	let t = e.defaultRequiredInputSuffixes ?? Oe[e.id] ?? [];
 	return {
 		id: e.id,
 		kind: "payment",
@@ -698,7 +698,7 @@ function Ie(e) {
 			r.__formiePaymentModuleRegistry = i;
 			let a = i[e.id];
 			if (a?.destroy) {
-				Q.warn("Found stale payment module instance; destroying previous.", { moduleId: e.id });
+				$.warn("Found stale payment module instance; destroying previous.", { moduleId: e.id });
 				try {
 					await a.destroy();
 				} catch {}
@@ -707,8 +707,8 @@ function Ie(e) {
 				...n,
 				options: o,
 				services: s
-			}, l = [], u = null, d = null, f = null, p = null, m = async () => (u ||= (Q.log("Loading payment provider API.", { moduleId: e.id }), e.load(c)), u), h = async () => {
-				if (!e.mount || d || !$(n.target)) return;
+			}, l = [], u = null, d = null, f = null, p = null, m = async () => (u ||= ($.log("Loading payment provider API.", { moduleId: e.id }), e.load(c)), u), h = async () => {
+				if (!e.mount || d || !K(n.target)) return;
 				let t = await m();
 				try {
 					d = await e.mount({
@@ -717,12 +717,12 @@ function Ie(e) {
 						services: s,
 						options: o,
 						provider: o.provider
-					}), Q.log("Payment widget mounted.", {
+					}), $.log("Payment widget mounted.", {
 						moduleId: e.id,
 						handle: o.handle
 					});
 				} catch {
-					Q.warn("Payment widget mount failed.", {
+					$.warn("Payment widget mount failed.", {
 						moduleId: e.id,
 						handle: o.handle
 					});
@@ -737,16 +737,18 @@ function Ie(e) {
 					root: t
 				}), f.destroy && l.push(f.destroy);
 			}
-			e.mount && $(n.target) && await h(), ["formie:page:navigate:after", "formie:submit:result"].forEach((e) => {
+			e.mount && K(n.target) && await h(), ["formie:page:navigate:after", "formie:submit:result"].forEach((e) => {
 				let t = () => {
 					h();
 				};
 				n.root.addEventListener(e, t), l.push(() => {
 					n.root.removeEventListener(e, t);
 				});
-			});
+			}), l.push(n.on("formie:conditions:evaluated", () => {
+				h();
+			}));
 			let g = async () => {
-				if (Q.log("Destroying payment module.", {
+				if ($.log("Destroying payment module.", {
 					moduleId: e.id,
 					handle: o.handle
 				}), l.forEach((e) => e()), d && e.unmount) {
@@ -758,12 +760,12 @@ function Ie(e) {
 						services: s,
 						options: o,
 						provider: o.provider
-					}), Q.log("Payment widget unmounted.", {
+					}), $.log("Payment widget unmounted.", {
 						moduleId: e.id,
 						handle: o.handle
 					});
 				}
-				i[e.id]?.destroy === g && delete i[e.id], Q.log("Payment module destroy complete.", {
+				i[e.id]?.destroy === g && delete i[e.id], $.log("Payment module destroy complete.", {
 					moduleId: e.id,
 					handle: o.handle
 				});
@@ -775,7 +777,7 @@ function Ie(e) {
 						await f.onBeforeStage(t);
 						return;
 					}
-					if (t.stage !== "authorize" || t.action !== "submit" || n.target.closest("[data-formie-page]")?.hasAttribute("data-formie-page-hidden")) return;
+					if (t.stage !== "authorize" || t.action !== "submit" || !K(n.target)) return;
 					await h();
 					let r = await m();
 					if (e.onBeforeAuthorize) {
@@ -791,7 +793,7 @@ function Ie(e) {
 							p = null;
 						});
 						let i = await p;
-						if (Q.log("onBeforeAuthorize resolved.", {
+						if ($.log("onBeforeAuthorize resolved.", {
 							moduleId: e.id,
 							handle: o.handle,
 							ok: i
@@ -802,8 +804,8 @@ function Ie(e) {
 						return;
 					}
 					if (o.transport.requiredInputSuffixes.length === 0) return;
-					let i = await q(n.form || n.root, o.transport.requiredInputSuffixes, o.transport.waitForValueMs);
-					i.ok || (Q.warn("Required payment input(s) missing.", {
+					let i = await Y(n.form || n.root, o.transport.requiredInputSuffixes, o.transport.waitForValueMs);
+					i.ok || ($.warn("Required payment input(s) missing.", {
 						moduleId: e.id,
 						handle: o.handle,
 						missingSuffix: i.missingSuffix
@@ -839,4 +841,4 @@ function Ie(e) {
 //#region src/js/modules/payments/api.ts
 var Le = Ie;
 //#endregion
-export { I as a, x as c, y as d, ae as f, B as i, S as l, V as n, xe as o, m as p, De as r, ue as s, Le as t, b as u };
+export { I as a, x as c, y as d, ae as f, B as i, S as l, V as n, xe as o, m as p, Ee as r, ue as s, Le as t, b as u };

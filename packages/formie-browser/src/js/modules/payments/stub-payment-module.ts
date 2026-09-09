@@ -1,6 +1,7 @@
 import type { FormieModuleDefinition } from '#contracts/modules';
 import {
     getPaymentProviderHandle,
+    isPaymentFieldActive,
     waitForRequiredPaymentInputs,
     type PaymentProviderOptions,
 } from '#modules/payments/utils';
@@ -39,6 +40,10 @@ export function createStubPaymentModule({ id }: StubPaymentModuleConfig): Formie
                     }
 
                     if (requiredInputSuffixes.length === 0) {
+                        return;
+                    }
+
+                    if (!isPaymentFieldActive(targetRoot)) {
                         return;
                     }
 

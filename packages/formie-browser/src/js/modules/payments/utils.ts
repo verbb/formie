@@ -15,6 +15,20 @@ export function getPaymentProviderHandle(id: string, options: PaymentProviderOpt
     return id;
 }
 
+/**
+ * Payment widgets should neither mount nor enforce authorize tokens when the
+ * field (or an ancestor row/page) is hidden by conditions / page flow.
+ * Matches server-side `isConditionallyHidden()` skips in payment workflow tasks.
+ */
+export function isPaymentFieldActive(element: Element): boolean {
+    const node = element as HTMLElement;
+
+    return !node.closest('[data-formie-conditionally-hidden]')
+        && !node.closest('[data-formie-row-hidden]')
+        && !node.closest('[data-formie-page-hidden]')
+        && !node.closest('[hidden]');
+}
+
 export function findPaymentInputBySuffix(root: Element, suffix: string): HTMLInputElement | null {
     const escapedSuffix = suffix.replace(/"/g, '\\"');
     return (root.querySelector(`input[name$="[${escapedSuffix}]"]`) ||

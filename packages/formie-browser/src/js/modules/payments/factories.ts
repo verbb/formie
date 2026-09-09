@@ -10,18 +10,12 @@ import {
     type PaymentHostServices,
     normalizePaymentModuleOptions,
 } from '#modules/payments/host';
-import { waitForRequiredPaymentInputs } from '#modules/payments/utils';
+import { isPaymentFieldActive, waitForRequiredPaymentInputs } from '#modules/payments/utils';
 import { createDebug } from '#utils/debug';
 
 type Cleanup = () => void;
 type PaymentModuleRegistry = Record<string, { destroy: () => Promise<void> }>;
 const debug = createDebug('payments');
-
-function isTargetVisible(element: Element): boolean {
-    const node = element as HTMLElement;
-
-    return !node.closest('[data-formie-page-hidden]') && !node.closest('[hidden]');
-}
 
 export type PaymentModuleSetupContext<TProvider extends Record<string, unknown>> = Omit<ModuleSetupContext, 'options'> & {
     options: NormalizedPaymentModuleOptions<TProvider>;
@@ -149,7 +143,7 @@ export function createManagedPaymentModule<
             };
 
             const ensureMounted = async() => {
-                if (!adapter.mount || widget || !isTargetVisible(ctx.target)) {
+                if (!adapter.mount || widget || !isPaymentFieldActive(ctx.target)) {
                     return;
                 }
 
@@ -190,10 +184,11 @@ export function createManagedPaymentModule<
                 }
             }
 
-            if (adapter.mount && isTargetVisible(ctx.target)) {
+            if (adapter.mount && isPaymentFieldActive(ctx.target)) {
                 await ensureMounted();
             }
 
+            // Remount when page flow or field conditions reveal this payment field.
             const visibilityEvents = ['formie:page:navigate:after', 'formie:submit:result'];
             visibilityEvents.forEach((eventName) => {
                 const handleVisibility = () => {
@@ -205,6 +200,11 @@ export function createManagedPaymentModule<
                     ctx.root.removeEventListener(eventName, handleVisibility as EventListener);
                 });
             });
+
+            // Conditions emit on the module bus (not only as page-nav DOM events).
+            cleanups.push(ctx.on('formie:conditions:evaluated', () => {
+                void ensureMounted();
+            }));
 
             const destroy = async() => {
                 debug.log('Destroying payment module.', {
@@ -253,12 +253,10 @@ export function createManagedPaymentModule<
                         return;
                     }
 
-                    // Multi-page forms can mount payment modules for fields on
-                    // hidden pages. Only enforce authorize checks for payment
-                    // fields on the active/visible page.
-                    const fieldElement = ctx.target as HTMLElement;
-                    const page = fieldElement.closest('[data-formie-page]') as HTMLElement | null;
-                    if (page?.hasAttribute('data-formie-page-hidden')) {
+                    // Skip authorize when the field is hidden by page flow or
+                    // conditional logic (e.g. Stripe vs bank-transfer choice).
+                    // Server-side payment tasks already skip these fields.
+                    if (!isPaymentFieldActive(ctx.target)) {
                         return;
                     }
 

@@ -1,4 +1,5 @@
 import type { FormieModuleDefinition } from '#contracts/modules';
+import { isPaymentFieldActive } from '#modules/payments/utils';
 
 type PaymentProviderConfig = {
     handle: string;
@@ -120,6 +121,15 @@ export const paymentModule: FormieModuleDefinition = {
                 }
 
                 if (!hasPaymentField) {
+                    return;
+                }
+
+                // Same rule as managed payment modules: do not require tokens
+                // when every payment field is hidden by conditions or page flow.
+                const paymentFields = Array.from(
+                    targetRoot.querySelectorAll('[data-formie-field-type="payment"]'),
+                );
+                if (paymentFields.length > 0 && paymentFields.every((field) => !isPaymentFieldActive(field))) {
                     return;
                 }
 
