@@ -28,13 +28,13 @@ class ClientSessionService extends Component
     // Public Methods
     // =========================================================================
 
-    public function issueInitialSession(Form $form, ?string $currentPageId = null, bool $enforceAbuseLimit = false): FormSession
+    public function issueInitialSession(Form $form, ?string $currentPageId = null, bool $enforceAbuseLimit = false, ?bool $includeProgressContinuation = null): FormSession
     {
         if ($enforceAbuseLimit) {
             $this->_enforceAnonymousClientRateLimit($form, self::RATE_SCOPE_BOOTSTRAP);
         }
 
-        return $this->_buildSession($form, $currentPageId);
+        return $this->_buildSession($form, $currentPageId, $includeProgressContinuation);
     }
 
     public function refreshSession(SessionRefreshRequest $request, bool $enforceAbuseLimit = false): FormSession
@@ -82,7 +82,9 @@ class ClientSessionService extends Component
             Formie::$plugin->getSubmissionWorkflow()->setPageNavigationState($form, $targetPageId, $submissionId);
         }
 
-        return $this->_buildSession($form, (string)$targetPageId);
+        // Page transitions own an active draft — keep continuation even when
+        // automatic restore is off so the next client submit stays on the same row.
+        return $this->_buildSession($form, (string)$targetPageId, $submissionId ? true : null);
     }
 
     public function enforceAnonymousRateLimit(Form $form, string $scope = self::RATE_SCOPE_REFRESH): void
@@ -136,7 +138,7 @@ class ClientSessionService extends Component
     // Private Methods
     // =========================================================================
 
-    private function _buildSession(Form $form, ?string $currentPageId): FormSession
+    private function _buildSession(Form $form, ?string $currentPageId, ?bool $includeProgressContinuation = null): FormSession
     {
         $tokens = $this->buildTokenPayload($form);
 
@@ -152,17 +154,24 @@ class ClientSessionService extends Component
                 'render' => $tokens['renderId'] ?? null,
                 'captchas' => $tokens['captchas'] ?? [],
             ],
-            'continuation' => $this->_buildContinuation($form),
+            'continuation' => $this->_buildContinuation($form, $includeProgressContinuation),
         ]);
     }
 
-    private function _buildContinuation(Form $form): ?array
+    private function _buildContinuation(Form $form, ?bool $includeProgressContinuation = null): ?array
     {
         $progressState = Formie::$plugin->getSubmissionDrafts()->getProgressState($form);
+        // Default follows the form setting: automatic restore advertises leftover
+        // progress on bootstrap; disabled forms only get a token when a caller
+        // forces include (e.g. post-submit session rebuild for the next page).
+        $includeProgressContinuation ??= $form->settings->automaticSubmissionState;
+        $continuationToken = $includeProgressContinuation
+            ? $this->_resolveContinuationToken($progressState)
+            : null;
         $continuation = array_filter([
             'draftContext' => $form->getDraftContext(),
             'draftContextToken' => $form->getDraftContextToken(),
-            'continuationToken' => $this->_resolveContinuationToken($progressState),
+            'continuationToken' => $continuationToken,
         ], static function($value) {
             return $value !== null && $value !== '';
         });

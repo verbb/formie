@@ -7,6 +7,7 @@
 - Bump transitive `symfony/cache` to `6.4.45` (CVE-2026-45073 advisory floor).
 
 ### Fixed
+- Fix “Restore In-Progress Submissions Automatically” still restoring incomplete submissions on revisit when disabled — server render no longer hydrates from leftover progress, and submit/client continuation ignore bare progress unless the browser already holds that submission (or a resume/continuation token). Resume links are unchanged.
 - Fix anonymous File Upload hydrate/delete treating form+field+asset ID as authorization — issue an unguessable upload capability token on upload (and when rendering existing assets), require it for hydrate/delete, and restrict submission-linked hydrate to CP view permission, matching draft progress, or a verified resume/continuation token.
 - Fix automation HTTP clients following redirects after the public-endpoint SSRF guard — outbound automation requests no longer follow redirects (shared by Web Request / Zapier / Make / n8n).
 - Fix automation outbound requests racing DNS between public-IP validation and connect — absolute automation URLs pin `CURLOPT_RESOLVE` to a re-validated public IP (rebinding-resistant with redirects already disabled).

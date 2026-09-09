@@ -48,11 +48,25 @@ class SubmissionProcessor extends Component
         );
 
         $progressState = $this->resolveProgressState($form);
+        $continuation = (array)($request->session['continuation'] ?? []);
         $submission = $this->resolveClientContinuationSubmission(
             $form,
             $progressState,
-            (array)($request->session['continuation'] ?? [])
+            $continuation,
         );
+
+        if (
+            !$submission
+            && $progressState?->submissionId
+            && !$form->settings->automaticSubmissionState
+            && !$this->_resolveSubmissionIdFromContinuationToken($form, $continuation)
+        ) {
+            // Leftover progress from a previous visit — drop it so the next pages
+            // cannot silently resume after a failed unload clear.
+            Formie::$plugin->getSubmissionDrafts()->clearProgressState($form);
+            $progressState = null;
+        }
+
         $submission ??= new Submission();
         $this->primeSubmission($submission, $form, $progressState, $request->siteId);
         $submission->setFieldValues($request->values);
@@ -93,9 +107,14 @@ class SubmissionProcessor extends Component
             $progressState,
             $request->submissionId,
             $request->resumeToken,
+            $request->submissionUid,
             $isIncomplete,
         );
         $submission ??= new Submission();
+
+        // Re-read after resolve — abandoned leftover progress is cleared when
+        // automatic restore is off and the post is not an in-session continuation.
+        $progressState = $this->resolveProgressState($form);
 
         $this->enforceManagedSiteSubmissionAuthorization($form, $request, $progressState, $submission);
         $this->primeSubmission($submission, $form, $progressState, $request->siteId);
@@ -245,7 +264,7 @@ class SubmissionProcessor extends Component
 
     public function resolveContinuationSubmission(Form $form, ?DraftSubmissionState $progressState = null, ?string $submissionUid = null, ?bool $isIncomplete = true): ?Submission
     {
-        if ($progressState?->submissionId) {
+        if ($progressState?->submissionId && $this->_mayUseProgressStateForContinuation($form, $submissionUid, $progressState)) {
             $submission = $this->_findSubmissionById((int)$progressState->submissionId, $isIncomplete, (int)$form->id);
 
             if ($submission) {
@@ -262,21 +281,29 @@ class SubmissionProcessor extends Component
         array $continuation = [],
         ?bool $isIncomplete = true
     ): ?Submission {
-        if ($progressState?->submissionId) {
-            $submission = $this->_findSubmissionById((int)$progressState->submissionId, $isIncomplete, (int)$form->id);
+        $continuationSubmissionId = $this->_resolveSubmissionIdFromContinuationToken($form, $continuation);
 
-            if ($submission) {
-                return $submission;
+        // Prefer an explicit client continuation token. When automatic restore is
+        // off, bare progress alone must not revive a previous visit.
+        if ($progressState?->submissionId) {
+            $progressSubmissionId = (int)$progressState->submissionId;
+            $mayUseProgress = $form->settings->automaticSubmissionState
+                || ($continuationSubmissionId !== null && $continuationSubmissionId === $progressSubmissionId);
+
+            if ($mayUseProgress) {
+                $submission = $this->_findSubmissionById($progressSubmissionId, $isIncomplete, (int)$form->id);
+
+                if ($submission) {
+                    return $submission;
+                }
             }
         }
 
-        $submissionId = $this->_resolveSubmissionIdFromContinuationToken($form, $continuation);
-
-        if (!$submissionId) {
+        if (!$continuationSubmissionId) {
             return null;
         }
 
-        return $this->_findSubmissionById($submissionId, $isIncomplete, (int)$form->id);
+        return $this->_findSubmissionById($continuationSubmissionId, $isIncomplete, (int)$form->id);
     }
 
     public function primeSubmission(Submission $submission, Form $form, ?DraftSubmissionState $progressState = null, ?int $siteId = null): void
@@ -450,11 +477,23 @@ class SubmissionProcessor extends Component
         ?DraftSubmissionState $progressState = null,
         ?int $submissionId = null,
         ?string $resumeToken = null,
+        ?string $submissionUid = null,
         ?bool $isIncomplete = true
     ): ?Submission {
         $submissionId = $this->_normalizeNullableInt($submissionId)
-            ?? ($progressState?->submissionId ? (int)$progressState->submissionId : null)
             ?? $this->_resolveSubmissionIdFromResumeToken($form, $resumeToken);
+
+        if (!$submissionId && $progressState?->submissionId) {
+            $progressSubmissionId = (int)$progressState->submissionId;
+
+            // Automatic restore uses bare progress. With it off, only continue when
+            // the browser already holds this submission (multi-page / same visit).
+            if ($this->_mayUseProgressStateForContinuation($form, $submissionUid, $progressState)) {
+                $submissionId = $progressSubmissionId;
+            } else {
+                Formie::$plugin->getSubmissionDrafts()->clearProgressState($form);
+            }
+        }
 
         if ($submissionId) {
             $submission = $this->_findSubmissionById($submissionId, $isIncomplete, (int)$form->id);
@@ -470,6 +509,31 @@ class SubmissionProcessor extends Component
         }
 
         return null;
+    }
+
+    /**
+     * Whether leftover draft progress may continue this request.
+     *
+     * When automatic restore is enabled, progress alone is enough. When it is
+     * disabled, the posted submission UID must match the progress submission so
+     * a fresh page-1 visit cannot revive an abandoned incomplete submission.
+     */
+    private function _mayUseProgressStateForContinuation(
+        Form $form,
+        ?string $submissionUid,
+        ?DraftSubmissionState $progressState,
+    ): bool {
+        if (!$progressState?->submissionId) {
+            return false;
+        }
+
+        if ($form->settings->automaticSubmissionState) {
+            return true;
+        }
+
+        $posted = $this->_findSubmissionByUid($submissionUid, true, (int)$form->id);
+
+        return $posted !== null && (int)$posted->id === (int)$progressState->submissionId;
     }
 
     private function enforceManagedSiteSubmissionAuthorization(
@@ -552,7 +616,18 @@ class SubmissionProcessor extends Component
         $nextPageId = $response->nextPage?->id ? (string)$response->nextPage->id : null;
         $currentPageId = $currentPage?->id ? (string)$currentPage->id : null;
 
-        $session = Formie::$plugin->getClientSessionService()->issueInitialSession($form, $currentPageId);
+        // After a successful in-progress submit, always attach progress continuation
+        // so the next page can continue even when automatic restore is disabled.
+        $includeProgressContinuation = $response->success
+            && (bool)$submission->id
+            && ($response->nextPage || $submitAction === SubmissionWorkflow::SUBMIT_ACTION_SAVE);
+
+        $session = Formie::$plugin->getClientSessionService()->issueInitialSession(
+            $form,
+            $currentPageId,
+            false,
+            $includeProgressContinuation ? true : null,
+        );
         $session->continuation = array_filter([
             ...($session->continuation ?? []),
             'draftContext' => $request->session['continuation']['draftContext'] ?? ($session->continuation['draftContext'] ?? null),

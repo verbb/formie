@@ -3674,6 +3674,13 @@ class Form extends Element implements FormInterface
             return;
         }
 
+        // Disabled "Restore In-Progress Submissions Automatically" means a normal
+        // revisit starts blank. Resume links hydrate via resumeToken separately;
+        // in-session multi-page continuity uses progress state on submit, not render.
+        if (!$this->settings->automaticSubmissionState) {
+            return;
+        }
+
         $submissionDrafts = Formie::$plugin->getSubmissionDrafts();
         $draftState = $submissionDrafts->getProgressState($this);
 
@@ -3694,10 +3701,12 @@ class Form extends Element implements FormInterface
             return;
         }
 
+        // Match submit-time continuation lookups: do not call status(null) after
+        // isIncomplete(true) — SubmissionQuery::status(null) clears isIncomplete.
         $submission = Submission::find()
             ->id((int)$draftState->submissionId)
             ->isIncomplete(true)
-            ->status(null)
+            ->isSpam(null)
             ->one();
 
         if (!$submission || (int)$submission->formId !== (int)$this->id) {
