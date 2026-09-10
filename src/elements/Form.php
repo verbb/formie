@@ -1061,9 +1061,26 @@ class Form extends Element
         return $url;
     }
 
+    /**
+     * Signed `returnUrl` for the front-end form. Path-only — never the raw request URL.
+     */
+    public function getHashedReturnUrl(): string
+    {
+        return UrlHelper::hashSubmissionReturnUrl();
+    }
+
     public function renderRedirectUrl(Submission $submission, ?string $redirectTemplate = null, bool $includeQueryString = true): string
     {
         $redirectTemplate ??= $this->getRedirectUrl();
+
+        if ($redirectTemplate === '') {
+            return '';
+        }
+
+        // Posted `returnUrl` blobs must never be treated as redirect templates.
+        if (str_starts_with($redirectTemplate, 'formie.returnUrl:')) {
+            $redirectTemplate = $this->getRedirectUrl();
+        }
 
         if ($redirectTemplate === '') {
             return '';

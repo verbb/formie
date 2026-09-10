@@ -86,13 +86,53 @@ class UrlHelper extends CraftUrlHelper
         return $fallback ?? static::siteUrl();
     }
 
+    /**
+     * HMAC for the form `returnUrl` field.
+     *
+     * Intentionally signs only the current path (no query string). Signing
+     * `craft.app.request.url` made every Formie form a signing oracle over
+     * attacker-controlled input, and those blobs were reusable as `redirect`
+     * because Craft’s `hashData()` is not purpose-bound.
+     */
+    public static function hashSubmissionReturnUrl(?string $url = null): string
+    {
+        $request = Craft::$app->getRequest();
+
+        if ($url === null) {
+            $path = trim($request->getPathInfo(), '/');
+            $url = $path === '' ? '/' : '/' . $path;
+        } else {
+            $url = static::stripQueryString($url);
+        }
+
+        // Never sign Twig/object-template metacharacters.
+        $url = str_replace(['{', '}'], '', $url);
+
+        if ($url === '' || !static::isSameSiteUrl($url)) {
+            $url = '/';
+        }
+
+        return Craft::$app->getSecurity()->hashData('formie.returnUrl:' . $url);
+    }
+
     public static function getSubmissionReturnUrl(?int $siteId = null): string
     {
         $request = Craft::$app->getRequest();
 
         $returnUrl = $request->getValidatedBodyParam('returnUrl');
 
-        if ($returnUrl && static::isSameSiteUrl($returnUrl)) {
+        if (is_string($returnUrl) && str_starts_with($returnUrl, 'formie.returnUrl:')) {
+            $returnUrl = substr($returnUrl, strlen('formie.returnUrl:'));
+        }
+
+        // Reject legacy or forged values that could carry object-template syntax.
+        if (
+            is_string($returnUrl) &&
+            $returnUrl !== '' &&
+            !str_contains($returnUrl, '{') &&
+            !str_contains($returnUrl, '}') &&
+            static::isSameSiteUrl($returnUrl)
+        ) {
             return $returnUrl;
         }
 
