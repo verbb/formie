@@ -1122,8 +1122,10 @@ class SubmissionsController extends Controller
 
     private function _returnJsonResponse(bool $success, Submission $submission, Form $form, ?FieldLayoutPage $nextPage, array $extras = []): Response
     {
-        // Try and get the redirect from the template, as it might've been altered in templates
-        $redirect = $this->request->getValidatedBodyParam('redirect');
+        // Prefer the form's configured redirect. A posted `redirect` is only honoured when it
+        // was HMAC-signed via `redirectInput()` at render time (typically the form settings URL).
+        // Never fall back to treating other signed body params (e.g. `returnUrl`) as templates.
+        $redirect = $this->_getPostedRedirectTemplate();
 
         $redirectUrl = $redirect
             ? $form->renderRedirectUrl($submission, $redirect)
@@ -1379,17 +1381,34 @@ class SubmissionsController extends Controller
 
     private function _redirectToPostedUrl(Form $form, Submission $submission): Response
     {
-        // Never use Craft's `redirectToPostedUrl()` here, as it renders the posted `redirect` value with
-        // the *unsandboxed* Twig view. The `redirect` value is HMAC-signed, but Formie signs
-        // attacker-influenced URLs (e.g. `returnUrl` derived from the request URL), so it must always be
-        // rendered through Formie's restricted sandbox to prevent object-template injection.
-        $redirect = $this->request->getValidatedBodyParam('redirect');
+        // Never use Craft's `redirectToPostedUrl()` here — it renders with the *unsandboxed* Twig view.
+        // Only honour a posted `redirect` that came from `redirectInput()` (form settings / template).
+        $redirect = $this->_getPostedRedirectTemplate();
 
         if ($redirect) {
             return $this->redirect($form->renderRedirectUrl($submission, $redirect));
         }
 
         return $this->_redirectToReturnUrl();
+    }
+
+    /**
+     * Returns the posted `redirect` body param when it is a valid HMAC and not a `returnUrl` blob.
+     */
+    private function _getPostedRedirectTemplate(): ?string
+    {
+        $redirect = $this->request->getValidatedBodyParam('redirect');
+
+        if (!is_string($redirect) || $redirect === '') {
+            return null;
+        }
+
+        // Purpose-bound `returnUrl` values must not be replayed as redirect templates.
+        if (str_starts_with($redirect, 'formie.returnUrl:')) {
+            return null;
+        }
+
+        return $redirect;
     }
 
     private function _getTypedParam(string $name, string $type, mixed $default = null, bool $bodyParam = true): mixed
