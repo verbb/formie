@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 3.1.39 - 2026-09-13
 
 ### Changed
 - Bump `verbb/base` (Twig sandbox no longer allows Illuminate collection callable gadgets / `collect()`).
