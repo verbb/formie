@@ -1613,6 +1613,15 @@
 - `Field::name` attribute has been deprecated. Use `Field::label` instead.
 - `Field::inputHtml()` method has been deprecated. Use `Field::cpInputHtml()` instead.
 
+## 2.2.31 - 2026-09-12
+
+### Changed
+- Bump `verbb/base` (Twig sandbox no longer allows Illuminate collection callable gadgets / `collect()`).
+
+### Fixed
+- Fix Date field calendar locale not mapping Craft language codes to Flatpickr (e.g. Norwegian `nb` → `no`, Catalan `ca` → `cat`, Greek `el` → `gr`), and preserve regional locales like `zh-TW`.
+- Fix `sessionKey` render option causing a 403 on submit when `populateFormValues()` was called before `renderForm()`, which could cache an incomplete submission from a different session scope.
+
 ## 2.2.30 - 2026-08-29
 
 ### Fixed
@@ -3261,7 +3270,6 @@
 - Fixed an error with most mailers sending large attachments (over 15mb) to email notifications.
 
 ## 2.0.21 - 2023-01-30
-
 > {warning} If you are using Twig in hidden fields' default value, refer to breaking changes.
 
 ### Added
@@ -3315,7 +3323,6 @@
 - Hidden field "Default Value" now no longer supports full Twig syntax (anything that requires double `{{` brackets). Shorthand (`{`) Twig is still supported.
 
 ## 2.0.20 - 2022-12-15
-
 > {warning} Webhook integrations have their payload altered. They now no longer group submission/form data in a `json` key, they are instead "flat" values. Your Zapier and custom Webhook endpoints will need to factor in this change.
 
 ### Added
@@ -3749,7 +3756,6 @@
 - Fixed an error when exporting submissions where a Craft field had the same handle as a Formie field.
 
 ## 2.0.0 - 2022-07-11
-
 > {warning} If you are using custom templates, template overrides, or anything to do with front-end template manipulation, please note we have completely revamped our front-end templates. Refer to the [Upgrading from v1](docs/get-started/upgrading-from-v1#templates) guide.
 
 ### Added
@@ -4052,7 +4058,6 @@
 - Fixed an error with most mailers sending large attachments (over 15mb) to email notifications.
 
 ## 1.6.22 - 2023-01-30
-
 > {warning} If you are using Twig in hidden fields' default value, refer to breaking changes.
 
 ### Added
@@ -4376,7 +4381,6 @@ The fix was already present for Contacts.
 - Fixed an error when applying project config updates with stencils.
 
 ## 1.5.15 - 2022-04-23
-
 > {warning} If you are using custom templates, or template overrides, please read through the breaking changes.
 
 ### Added
@@ -5109,7 +5113,6 @@ The fix was already present for Contacts.
 - Removed `columnWidth` from GraphQL queries (it did nothing).
 
 ## 1.4.13 - 2021-08-09
-
 > {warning} Please read through the Breaking Changes before updating.
 
 ### Added
@@ -5400,7 +5403,6 @@ The fix was already present for Contacts.
 - Fixed fatal errors when installing from a fresh install.
 
 ## 1.4.0 - 2021-04-20
-
 > {warning} Please read through the Breaking Changes before updating.
 
 ### Added
@@ -5577,7 +5579,6 @@ The fix was already present for Contacts.
 - Fixed email parsing error for email notifications in rare circumstances (where an env variable contained spaces).
 
 ## 1.3.21 - 2021-03-01
-
 - Removed `craft.formie.getVisibleFields()`.
 
 ### Fixed
@@ -5933,7 +5934,6 @@ The fix was already present for Contacts.
 - Fixed HTML field errors when the vendor folder didn’t have write permissions (such as Servd).
 
 ## 1.3.3 - 2020-12-06
-
 > {warning} If you are overriding templates for `field.html`, you **must** update your template to include `data-field-config="{{ field.getConfigJson(form) | json_encode | raw }}"`. This is the new and improved method for fields to define their config settings, picked up by JavaScript classes. Without making this change, field JS will not work. Refer to [this commit change](https://github.com/verbb/formie/commit/c5d5eda10b39063e1cf782b38f84bebe0da6fdf9#diff-ba26d5dbf9dcd3281c9b0b3c16f822eff1d2943c2134518d4ecea26d10907be4R90-R92).
 
 ### Added
