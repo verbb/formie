@@ -1,7 +1,7 @@
 {% extends 'formie/_layouts/settings' %}
 
 {% set selectedTab = 'stencils' %}
-{% set pageTitle = 'Stencils' | t('formie') %}
+{% set title = 'Stencils' | t('formie') %}
 
 {% block actionButton %}
     <a href="{{ url('formie/settings/stencils/new') }}" class="btn submit add icon">{{ 'New Stencil' | t('formie') }}</a>
@@ -39,7 +39,7 @@
 
     new Craft.VueAdminTable({
         columns: columns,
-        container: '#stencils-vue-admin-table',
+        container: '#{{ 'stencils-vue-admin-table' | namespaceInputId('settings') }}',
         deleteAction: 'formie/stencils/delete',
         tableData: {{ tableData | json_encode | raw }},
     });

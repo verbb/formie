@@ -1,6 +1,7 @@
 {% extends 'formie/_layouts/settings' %}
 
 {% set selectedTab = craft.app.request.getSegment(3) ?? 'captchas' %}
+{% set title = typeName | t('formie') %}
 
 {% block actionButton %}
     {% if craft.app.config.general.allowAdminChanges %}
@@ -78,7 +79,7 @@ var columns = [
 
 new Craft.VueAdminTable({
     columns: columns,
-    container: '#integrations-vue-admin-table',
+    container: '#{{ 'integrations-vue-admin-table' | namespaceInputId('settings') }}',
     emptyMessage: Craft.t('formie', 'No integrations exist yet.'),
     tableData: {{ tableData | json_encode | raw }},
 

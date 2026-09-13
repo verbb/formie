@@ -1,7 +1,7 @@
 {% extends 'formie/_layouts/settings' %}
 
 {% set selectedTab = 'pdf-templates' %}
-{% set pageTitle = 'PDF Templates' | t('formie') %}
+{% set title = 'PDF Templates' | t('formie') %}
 
 {% block actionButton %}
     <a href="{{ url('formie/settings/pdf-templates/new') }}" class="btn submit add icon">{{ 'New Template' | t('formie') }}</a>
@@ -40,7 +40,7 @@
 
     new Craft.VueAdminTable({
         columns: columns,
-        container: '#pdf-templates-vue-admin-table',
+        container: '#{{ 'pdf-templates-vue-admin-table' | namespaceInputId('settings') }}',
         deleteAction: 'formie/pdf-templates/delete',
         reorderAction: 'formie/pdf-templates/reorder',
         reorderSuccessMessage: Craft.t('formie', 'Templates reordered.'),
@@ -48,4 +48,3 @@
         tableData: {{ tableData | json_encode | raw }},
     });
 {% endjs %}
-

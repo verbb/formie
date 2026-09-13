@@ -1,7 +1,7 @@
 {% extends 'formie/_layouts/settings' %}
 
 {% set selectedTab = 'statuses' %}
-{% set pageTitle = 'Statuses' | t('formie') %}
+{% set title = 'Statuses' | t('formie') %}
 
 {% block actionButton %}
     <a href="{{ url('formie/settings/statuses/new') }}" class="btn submit add icon">{{ 'New Status' | t('formie') }}</a>
@@ -40,7 +40,7 @@
 
     new Craft.VueAdminTable({
         columns: columns,
-        container: '#statuses-vue-admin-table',
+        container: '#{{ 'statuses-vue-admin-table' | namespaceInputId('settings') }}',
         deleteAction: 'formie/statuses/delete',
         minItems: 1,
         reorderAction: 'formie/statuses/reorder',
