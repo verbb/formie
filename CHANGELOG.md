@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 3.1.40 - 2026-09-14
 
 ### Fixed
 - Fix settings page titles and admin tables after settings normalization.
