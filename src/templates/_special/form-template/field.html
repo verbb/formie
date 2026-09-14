@@ -33,9 +33,7 @@
         {% hook 'formie.field.input-after' %}
     {% endfieldtag %}
 
-    {% if errors %}
-        {{ formieInclude('_includes/field-errors') }}
-    {% endif %}
+    {{ formieInclude('_includes/field-errors') }}
 
     {% hook 'formie.field.field-end' %}
 {% endfieldtag %}

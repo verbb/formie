@@ -1154,6 +1154,8 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         if ($key === 'fieldErrors') {
             return new HtmlTag('div', [
                 'class' => 'fui-errors',
+                'aria-live' => 'polite',
+                'aria-atomic' => 'true',
                 'data' => [
                     'field-error-messages' => true,
                 ],

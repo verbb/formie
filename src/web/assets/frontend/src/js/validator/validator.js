@@ -170,7 +170,7 @@ class FormieValidator {
         const errorMessages = fieldContainer.querySelector('[data-field-error-messages]');
 
         if (errorMessages) {
-            errorMessages.remove();
+            errorMessages.innerHTML = '';
         }
 
         removeClasses(input, this.config.inputErrorClass);
@@ -204,6 +204,11 @@ class FormieValidator {
             fieldContainer.appendChild(errorMessages);
         }
 
+        // Keep the live region itself stable; screen readers announce content changes
+        // more reliably than a newly inserted region that is already populated.
+        errorMessages.setAttribute('aria-live', 'polite');
+        errorMessages.setAttribute('aria-atomic', 'true');
+
         // Find or create error element
         let errorElement = fieldContainer.querySelector(`[data-field-error-message-${validatorName}]`);
 
@@ -234,8 +239,6 @@ class FormieValidator {
 
             // Set an ID for the error element for accessibility
             errorElement.setAttribute('id', errorId);
-            errorElement.setAttribute('aria-live', 'polite');
-            errorElement.setAttribute('aria-atomic', true);
         }
 
         // Add error classes to field
