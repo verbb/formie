@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Fix 400 errors when importing and exporting forms from settings.
 - Fix client-side validation errors not being announced reliably by screen readers by keeping an empty live region in the rendered field markup. ([#2954](https://github.com/verbb/formie/issues/2954))
 
 ## 3.1.40 - 2026-09-14

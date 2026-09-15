@@ -6,7 +6,10 @@
 {% set selectedTab = 'import-export' %}
 {% set pageTitle = 'Import Form' | t('formie') %}
 
-{% block settingsContent %}
+{# These standalone forms submit action parameters outside the settings namespace. #}
+{% block blockContent %}
+
+<h2>{{ pageTitle }}</h2>
 
 <p>{{ 'Select a Formie-exported JSON file for the form to import. You‘ll be able to configure your import at the next step.' | t('formie') }}</p>
 

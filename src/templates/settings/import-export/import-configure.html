@@ -6,8 +6,10 @@
 {% set selectedTab = 'import-export' %}
 {% set pageTitle = 'Review Import' | t('formie') %}
 
-{% block settingsContent %}
+{# The import action expects top-level parameters, including the CSRF token. #}
+{% block blockContent %}
 
+<h2>{{ pageTitle }}</h2>
 
 {% if errors is defined %}
     <p class="error">
