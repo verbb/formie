@@ -6,7 +6,10 @@
 {% set selectedTab = 'spam' %}
 {% set pageTitle = 'Spam Settings' | t('formie') %}
 
-{% block settingsContent %}
+{# Action parameters must remain outside the shared settings namespace. #}
+{% block blockContent %}
+
+<h2>{{ pageTitle }}</h2>
 
 
     <div class="fui-settings-block">
@@ -18,6 +21,8 @@
     {{ actionInput('formie/settings/save-settings') }}
     {{ redirectInput('formie/settings/spam') }}
     {{ csrfInput() }}
+
+    {% namespace 'settings' %}
 
             {{ forms.lightswitchField({
             label: 'Save Spam Submissions' | t('formie'),
@@ -82,6 +87,8 @@
         }) }}
 
     
+    {% endnamespace %}
+
     <hr>
 
     <input type="submit" class="btn submit" value="{{ 'Save' | t('formie') }}">

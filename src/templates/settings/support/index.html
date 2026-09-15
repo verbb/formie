@@ -6,7 +6,8 @@
 {% set selectedTab = 'support' %}
 {% set title = 'Support' | t('formie') %}
 
-{% block settingsContent %}
+{# Action parameters must remain outside the shared settings namespace. #}
+{% block blockContent %}
 
 <div class="formie-help">
     <h2>{{ 'Send a message to {name} support' | t('formie', { name: craft.formie.getPluginName() }) }}</h2>

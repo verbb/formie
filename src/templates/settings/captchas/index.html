@@ -15,7 +15,8 @@
 
 {% do view.registerAssetBundle('verbb\\formie\\web\\assets\\cp\\CpAsset') -%}
 
-{% block settingsContent %}
+{# Action parameters must remain outside the shared settings namespace. #}
+{% block blockContent %}
 
 {% if groupedIntegrations %}
     {{ actionInput('formie/integration-settings/save-captchas') }}
@@ -27,13 +28,14 @@
                 <nav class="fui-integrations-tabs" data-vui-tabs>
                     <ul>
                         {% for name, integrations in groupedIntegrations %}
+                            {% set firstGroup = loop.first %}
                             <li class="heading"><span>{{ name | kebab | replace('-', ' ') }}</span></li>
 
                             {% for integration in integrations %}
                                 {% set handle = integration.getHandle() %}
 
                                 <li>
-                                    <a id="tab-{{ loop.index }}" href="#tab-{{ handle }}" class="tab" :class="{ 'error': !isEmpty(get(form, 'settings.integrations.{{ handle }}.errors')) }">
+                                    <a id="tab-{{ loop.index }}" href="#tab-{{ handle }}" class="tab{{ firstGroup and loop.first ? ' sel' }}" tabindex="{{ firstGroup and loop.first ? '0' : '-1' }}" :class="{ 'error': !isEmpty(get(form, 'settings.integrations.{{ handle }}.errors')) }">
                                         {% if integration.iconUrl %}
                                             <img class="formie-integration-icon" src="{{ integration.iconUrl }}">
                                         {% else %}
@@ -61,10 +63,12 @@
         <div class="fui-form-integrations-wrapper">
             <div class="fui-form-integrations-inner-wrapper">
                 {% for name, integrations in groupedIntegrations %}
+                    {% set firstGroup = loop.first %}
                     {% for integration in integrations %}
                         {% set handle = integration.getHandle() %}
 
-                        <div id="tab-{{ handle }}" class="hidden">
+                        {# Match the initial selected tab so a fresh page has a visible settings panel. #}
+                        <div id="tab-{{ handle }}" class="{{ firstGroup and loop.first ? '' : 'hidden' }}">
                             <div class="fui-integrations-header">
                                 <h2>{{ integration.getName() }} {{ 'Settings' | t('formie') }}</h2>
                             </div>

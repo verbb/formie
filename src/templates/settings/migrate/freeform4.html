@@ -16,7 +16,8 @@
     {% endif %}
 {% endblock %}
 
-{% block settingsContent %}
+{# Action parameters must remain outside the shared settings namespace. #}
+{% block blockContent %}
 
     {{ actionInput('formie/migrations/freeform4') }}
     {{ redirectInput('formie/settings/freeform4') }}

@@ -6,7 +6,10 @@
 {% set selectedTab = 'forms' %}
 {% set pageTitle = 'Forms' | t('formie') %}
 
-{% block settingsContent %}
+{# Action parameters must remain outside the shared settings namespace. #}
+{% block blockContent %}
+
+<h2>{{ pageTitle }}</h2>
 
 {% set formTemplateOptions = [{  }] %}
 {% for template in formTemplates %}
@@ -20,6 +23,8 @@
     {{ actionInput('formie/settings/save-settings') }}
     {{ redirectInput('formie/settings/forms') }}
     {{ csrfInput() }}
+
+    {% namespace 'settings' %}
 
             {{ forms.selectField({
             label: 'Default Form Template' | t('formie'),
@@ -104,6 +109,8 @@
             warning: macros.configWarning('includeRevisionElementUsage', 'formie'),
         }) }}
     
+    {% endnamespace %}
+
     <hr>
 
     <input type="submit" class="btn submit" value="{{ 'Save' | t('formie') }}">

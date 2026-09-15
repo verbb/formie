@@ -6,13 +6,18 @@
 {% set selectedTab = 'notifications' %}
 {% set pageTitle = 'Notifications' | t('formie') %}
 
-{% block settingsContent %}
+{# Action parameters must remain outside the shared settings namespace. #}
+{% block blockContent %}
+
+<h2>{{ pageTitle }}</h2>
 
 
 <form action="" method="post" accept-charset="UTF-8" data-saveshortcut>
     {{ actionInput('formie/settings/save-settings') }}
     {{ redirectInput('formie/settings/notifications') }}
     {{ csrfInput() }}
+
+    {% namespace 'settings' %}
 
             {{ forms.textField({
             label: 'Empty Value Placeholder' | t('formie'),
@@ -58,6 +63,8 @@
         </div>
 
     
+    {% endnamespace %}
+
     <hr>
 
     <input type="submit" class="btn submit" value="{{ 'Save' | t('formie') }}">

@@ -6,13 +6,18 @@
 {% set selectedTab = 'fields' %}
 {% set pageTitle = 'Fields' | t('formie') %}
 
-{% block settingsContent %}
+{# Action parameters must remain outside the shared settings namespace. #}
+{% block blockContent %}
+
+<h2>{{ pageTitle }}</h2>
 
 
 <form action="" method="post" accept-charset="UTF-8" data-saveshortcut>
     {{ actionInput('formie/settings/save-settings') }}
     {{ redirectInput('formie/settings/fields') }}
     {{ csrfInput() }}
+
+    {% namespace 'settings' %}
 
             {{ forms.checkboxGroupField({
             label: 'Disabled Field Types' | t('formie'),
@@ -122,6 +127,8 @@
             }) }}
         </div>
     
+    {% endnamespace %}
+
     <hr>
 
     <input type="submit" class="btn submit" value="{{ 'Save' | t('formie') }}">

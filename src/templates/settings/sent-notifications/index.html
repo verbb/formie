@@ -6,13 +6,18 @@
 {% set selectedTab = 'sent-notifications' %}
 {% set pageTitle = 'Sent Notifications' | t('formie') %}
 
-{% block settingsContent %}
+{# Action parameters must remain outside the shared settings namespace. #}
+{% block blockContent %}
+
+<h2>{{ pageTitle }}</h2>
 
 
 <form action="" method="post" accept-charset="UTF-8" data-saveshortcut>
     {{ actionInput('formie/settings/save-settings') }}
     {{ redirectInput('formie/settings/sent-notifications') }}
     {{ csrfInput() }}
+
+    {% namespace 'settings' %}
 
             {{ forms.lightswitchField({
             label: 'Enable Sent Notifications' | t('formie'),
@@ -33,6 +38,8 @@
             warning: macros.configWarning('maxSentNotificationsAge', 'formie'),
         }) }}
     
+    {% endnamespace %}
+
     <hr>
 
     <input type="submit" class="btn submit" value="{{ 'Save' | t('formie') }}">
