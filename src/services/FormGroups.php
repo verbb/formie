@@ -164,9 +164,10 @@ class FormGroups extends Component
         }
 
         if ($group && Craft::$app->getIsMultiSite()) {
-            $forms = Form::find()->groupId($group->id)->status(null)->all();
+            $forms = Form::find()->forProjectConfig()->groupId($group->id)->site('*')->unique()->status(null)->all();
 
             foreach ($forms as $form) {
+                $form->title = Formie::$plugin->getFormSiteOverrides()->resolveCanonicalFormTitle($form);
                 Formie::$plugin->getFormSitePropagation()->syncFormSites($form);
             }
         }

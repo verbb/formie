@@ -22,6 +22,8 @@
 - Load the form builder consistently with pretty URLs and Craft query routes.
 - Preserve group site restrictions when a manager has access to only some sites.
 - Keep created-site-only forms on their source site when group availability changes.
+- Apply group site policy changes to forms on every site, including forms outside the current editor’s view.
+- Honor the selected site when looking up forms that are unavailable on the primary site.
 - Allow existing fields and notifications to be selected with the keyboard.
 - Honor per-form permissions in form and submission indexes and GraphQL operations.
 - Load form indexes for users without permission to create forms.

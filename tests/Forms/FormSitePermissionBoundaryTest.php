@@ -136,3 +136,32 @@ it('does not move a created-site-only form when its source is excluded by group 
     expect($enabledIds())->toBe([$sourceId]);
     expect(Form::find()->id($form->id)->siteId($sourceId)->one()?->getFieldByHandle('message'))->not->toBeNull();
 });
+
+it('loads regional forms through explicit site queries and the public form service', function (): void {
+    if (!Craft::$app->getIsMultiSite()) {
+        $this->markTestSkipped('Multi-site contract.');
+    }
+    $sites = Craft::$app->getSites()->getAllSiteIds();
+    $regionalId = (int)$sites[1];
+    $group = new FormGroup(['name' => 'Regional lookup', 'handle' => 'regionalLookup' . bin2hex(random_bytes(5)),
+        'settings' => ['sitePolicy' => ['enabledSiteIds' => [$regionalId]]]]);
+    expect(Formie::$plugin->getFormGroups()->saveGroup($group))->toBeTrue();
+    $form = formie()->form(['groupId' => $group->id, 'siteId' => $regionalId, 'sourceSiteId' => $regionalId])
+        ->singleLineTextField('message')->create();
+    expect(Form::find()->id($form->id)->siteId($regionalId)->one()?->siteId)->toBe($regionalId);
+    expect(Form::find()->id($form->id)->siteId($sites[0])->one())->toBeNull();
+    expect(Form::find()->id($form->id)->siteId(max($sites) + 1000)->one())->toBeNull();
+    expect((int)Form::find()->id($form->id)->site('*')->unique()->count())->toBe(1);
+    $loaded = Formie::$plugin->getForms()->getFormByHandle($form->handle, $regionalId);
+    expect($loaded?->id)->toBe($form->id);
+    expect($loaded?->getFieldByHandle('message'))->not->toBeNull();
+    Formie::$plugin->getForms()->invalidateFormCaches();
+    WebRequestTestHelper::withWebRequestContext(function ($request) use ($form, $sites): void {
+        $controller = new \verbb\formie\controllers\client\FormsController('forms', Formie::$plugin);
+        $response = $controller->runAction('load');
+        expect($response->data['definition']['handle'])->toBe($form->handle);
+        expect($response->data['session']['tokens']['csrf']['value'])->not->toBeEmpty();
+        $request->setBodyParams(['handle' => $form->handle, 'siteId' => $sites[0]]);
+        expect(fn() => $controller->runAction('load'))->toThrow(\yii\web\NotFoundHttpException::class);
+    }, ['method' => 'POST', 'bodyParams' => ['handle' => $form->handle, 'siteId' => $regionalId], 'headers' => ['Accept' => 'application/json']]);
+});

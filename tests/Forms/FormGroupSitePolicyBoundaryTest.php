@@ -62,3 +62,52 @@ it('validates selected group sites while retaining an explicit unrestricted choi
     expect($service->applyPayload($group, $payload))->toBeTrue();
     expect($group->getSettingsModel()->getSitePolicyModel()->enabledSiteIds)->toBeNull();
 });
+
+it('applies group availability changes to regional forms outside the current editor site', function (bool $limited): void {
+    if (!Craft::$app->getIsMultiSite()) {
+        $this->markTestSkipped('Multi-site contract.');
+    }
+    $sites = Craft::$app->getSites()->getAllSiteIds();
+    $group = new FormGroup(['name' => 'Regional policy', 'handle' => 'regionalPolicy' . bin2hex(random_bytes(5)),
+        'settings' => ['sitePolicy' => ['enabledSiteIds' => [$sites[1]]]]]);
+    expect(Formie::$plugin->getFormGroups()->saveGroup($group))->toBeTrue();
+    $form = formie()->form(['groupId' => $group->id, 'siteId' => $sites[1], 'sourceSiteId' => $sites[1]])
+        ->singleLineTextField('message')->create();
+    $enabledIds = fn() => array_map('intval', (new Query())->select('siteId')->from('{{%elements_sites}}')
+        ->where(['elementId' => $form->id, 'enabled' => true])->orderBy('siteId')->column());
+    expect($enabledIds())->toBe([(int)$sites[1]]);
+    $user = User::find()->admin(true)->one();
+    if ($limited) {
+        $name = 'regionalManager' . bin2hex(random_bytes(6));
+        $user = new User(['username' => $name, 'email' => $name . '@example.test']);
+        expect(Craft::$app->getElements()->saveElement($user))->toBeTrue();
+        expect(Craft::$app->getUserPermissions()->saveUserPermissions($user->id, [
+            'accessCp', 'accessPlugin-formie', Formie::$plugin->getPermissions()->settingsPagePermissionKey('form-groups'),
+            'editSite:' . Craft::$app->getSites()->getSiteById($sites[0])->uid,
+            'editSite:' . Craft::$app->getSites()->getSiteById($sites[2])->uid,
+        ]))->toBeTrue();
+    }
+    $projectConfig = Craft::$app->getProjectConfig();
+    WebRequestTestHelper::withWebRequestContext(function ($request) use ($user, $group, $sites, $projectConfig, $limited, $form): void {
+        Craft::$app->set('projectConfig', $projectConfig);
+        Craft::$app->getUser()->setIdentity(User::find()->id($user->id)->status(null)->one());
+        $request->setIsCpRequest(true);
+        $payload = Formie::$plugin->getFormGroupDefaults()->getEditorValues($group);
+        $payload['sitePolicyEnabledSiteIds'] = [(string)$sites[2]];
+        $request->setBodyParams([
+            $request->csrfParam => $request->getCsrfToken(), 'id' => $group->id, 'siteId' => $sites[0],
+            'name' => $group->name, 'handle' => $group->handle, 'settings' => json_encode($payload),
+        ]);
+        $response = (new FormGroupsController('form-groups', Formie::$plugin))->runAction('save');
+        expect($response?->statusCode)->toBe(302);
+        if ($limited) {
+            expect(fn() => Craft::configure(\verbb\formie\elements\Form::find(), ['forProjectConfig' => true]))
+                ->toThrow(\yii\base\UnknownPropertyException::class);
+            expect(\verbb\formie\elements\Form::find()->id($form->id)->site('*')->status(null)->all())->toBe([]);
+        }
+    }, ['method' => 'POST']);
+    expect($enabledIds())->toBe([(int)$sites[2]]);
+    $reloaded = \verbb\formie\elements\Form::find()->id($form->id)->siteId($sites[2])->one();
+    expect($reloaded?->getFieldByHandle('message'))->not->toBeNull();
+    expect((int)$reloaded->sourceSiteId)->toBe((int)$sites[1]);
+})->with(['administrator' => false, 'settings-only manager' => true]);

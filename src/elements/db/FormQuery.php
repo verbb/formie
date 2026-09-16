@@ -26,6 +26,9 @@ class FormQuery extends ElementQuery
 
     protected array $defaultOrderBy = ['elements.dateCreated' => SORT_DESC];
 
+    private bool $_forProjectConfig = false;
+    private mixed $_requestedSiteId = null;
+
 
     // Public Methods
     // =========================================================================
@@ -104,6 +107,23 @@ class FormQuery extends ElementQuery
     {
         $this->pageCount = $value;
         return $this;
+    }
+
+    /** @internal Apply authorized shared configuration independently of CP index visibility. */
+    public function forProjectConfig(): static
+    {
+        $this->_forProjectConfig = true;
+
+        return $this;
+    }
+
+    public function prepare($builder): Query
+    {
+        // Form content is shared, but availability still uses elements_sites.
+        // Craft otherwise replaces this criterion because Form is not localized.
+        $this->_requestedSiteId = $this->siteId;
+
+        return parent::prepare($builder);
     }
 
 
@@ -198,7 +218,7 @@ class FormQuery extends ElementQuery
         }
 
         // Scope CP form indexes to the forms the current user can view or manage.
-        if (Craft::$app->getRequest()->getIsCpRequest() && Craft::$app->edition !== Craft::Solo) {
+        if (!$this->_forProjectConfig && Craft::$app->getRequest()->getIsCpRequest() && Craft::$app->edition !== Craft::Solo) {
             $accessibleFormIds = Formie::$plugin->getPermissions()->getAccessibleFormIds(Craft::$app->getUser()->getIdentity());
 
             if ($accessibleFormIds !== null) {
@@ -210,11 +230,19 @@ class FormQuery extends ElementQuery
             return false;
         }
 
-        if (Formie::$plugin->getFormSitePropagation()->isEnabled() && Craft::$app->getRequest()->getIsCpRequest()) {
-            $siteId = $this->_resolveIndexSiteId();
+        if (Formie::$plugin->getFormSitePropagation()->isEnabled()) {
+            $this->siteId = $this->_requestedSiteId ?? Craft::$app->getSites()->getCurrentSite()->id;
 
-            if ($siteId !== null) {
-                $this->siteId = $siteId;
+            if ($this->siteId === '*') {
+                $this->siteId = Craft::$app->getSites()->getAllSiteIds();
+            }
+
+            if (!$this->_forProjectConfig && Craft::$app->getRequest()->getIsCpRequest()) {
+                $siteId = $this->_resolveIndexSiteId();
+
+                if ($siteId !== null) {
+                    $this->siteId = $siteId;
+                }
             }
         }
 
