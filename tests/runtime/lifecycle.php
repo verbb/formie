@@ -32,6 +32,10 @@ $check = static function (bool $condition, string $message): void {
 $types = [\verbb\formie\elements\Form::class, \verbb\formie\elements\Submission::class, \verbb\formie\elements\SentNotification::class];
 if (in_array($mode, ['seed', 'reinstalled'], true)) {
     $check($app->getPlugins()->isPluginEnabled('formie'), 'Formie is enabled');
+    $statusHandles = array_column(\verbb\formie\Formie::$plugin->getFormStatuses()->getAllStatuses(), 'handle');
+    sort($statusHandles);
+    $check($statusHandles === ['active', 'archived', 'draft'], 'Installation seeds the standard form statuses');
+    $check(\verbb\formie\Formie::$plugin->getStencils()->getStencilByHandle('contactForm') !== null, 'Installation seeds the Contact Form stencil');
     $form = \verbb\formie\Formie::$plugin->getFactories()->form(['handle' => 'lifecycleContact'])
         ->singleLineTextField('message')->create();
     $submission = \verbb\formie\Formie::$plugin->getFactories()->submission($form)->with(['message' => 'Lifecycle content'])->save();

@@ -31,6 +31,14 @@ class Install extends Migration
     // Public Methods
     // =========================================================================
 
+    public function init(): void
+    {
+        parent::init();
+
+        // Seed after the schema transaction on every supported Craft version.
+        $this->on(self::EVENT_AFTER_UP, fn() => $this->insertDefaultData());
+    }
+
     public function safeUp(): bool
     {
         // Ensure that the Auth module kicks off setting up tables
@@ -876,13 +884,6 @@ class Install extends Migration
 
     // Protected Methods
     // =========================================================================
-
-    protected function afterUp(): void
-    {
-        $this->insertDefaultData();
-        
-        parent::afterUp();
-    }
 
     protected function dropForeignKeys(): void
     {
