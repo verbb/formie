@@ -82,12 +82,12 @@
     "test:browser": "npm run build && node tests/browser/build.mjs && playwright test --config tests/browser/playwright.config.ts"
   },
   "dependencies": {
-    "@verbb/plugin-kit-codemirror-core": "^2.0.14",
-    "@verbb/plugin-kit-core": "^2.0.14",
-    "@verbb/plugin-kit-forms": "^2.0.14",
-    "@verbb/plugin-kit-icons": "^2.0.14",
-    "@verbb/plugin-kit-react": "^2.0.14",
-    "@verbb/plugin-kit-tiptap-core": "^2.0.14",
-    "@verbb/plugin-kit-web": "^2.0.14"
+    "@verbb/plugin-kit-codemirror-core": "^2.0.18",
+    "@verbb/plugin-kit-core": "^2.0.18",
+    "@verbb/plugin-kit-forms": "^2.0.18",
+    "@verbb/plugin-kit-icons": "^2.0.18",
+    "@verbb/plugin-kit-react": "^2.0.18",
+    "@verbb/plugin-kit-tiptap-core": "^2.0.18",
+    "@verbb/plugin-kit-web": "^2.0.18"
   }
 }
