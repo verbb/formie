@@ -93,6 +93,24 @@ class SubmissionsController extends Controller
             return ExitCode::UNSPECIFIED_ERROR;
         }
 
+        $dates = [];
+
+        foreach (['before', 'after'] as $bound) {
+            if ($this->$bound === null) {
+                continue;
+            }
+
+            $date = trim($this->$bound) !== '' ? DateTimeHelper::toDateTime($this->$bound) : false;
+
+            if ($date === false) {
+                $this->stderr("Invalid --$bound date." . PHP_EOL, Console::FG_RED);
+
+                return ExitCode::USAGE;
+            }
+
+            $dates[$bound] = $date;
+        }
+
         foreach ($formIds as $formId) {
             $query = Submission::find()->formId($formId);
 
@@ -110,12 +128,12 @@ class SubmissionsController extends Controller
                 $query->isIncomplete(null);
             }
 
-            if ($this->before) {
-                $query->before(DateTimeHelper::toDateTime($this->before));
+            if (isset($dates['before'])) {
+                $query->before($dates['before']);
             }
 
-            if ($this->after) {
-                $query->after(DateTimeHelper::toDateTime($this->after));
+            if (isset($dates['after'])) {
+                $query->after($dates['after']);
             }
 
             $count = (int)$query->count();
