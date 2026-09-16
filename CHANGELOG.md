@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 4.0.0-beta.16 - 2026-09-17
 
 ### Added
 - Add console commands to inspect unresolved payments, reconcile gateway status, record verified outcomes and resume submission processing.
