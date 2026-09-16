@@ -31,7 +31,7 @@
 - Require all visible payment fields to be on the final submission page before processing payments.
 - Fixed a rate limit bypass vulnerability.
 - Fixed a CSRF vulnerability.
-- Fixed an information disclosure vulnerability.
+- Fixed information disclosure vulnerabilities.
 - Preserve every report export column when labels repeat, and retain numeric labels as JSON object keys.
 - Keep unresolved earlier payment attempts blocked until their gateway outcome is verified.
 - Route users with settings page permissions to a page they can access.

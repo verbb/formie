@@ -126,7 +126,7 @@ class ReportEditor extends Component
     private function _formOptions(?User $user): array
     {
         $permissions = Formie::$plugin->getPermissions();
-        $includeAll = $permissions->canViewSubmissions($user, null);
+        $includeAll = $user?->admin || $user?->can(Permissions::PERM_VIEW_SUBMISSIONS);
         $formsByGroupId = [];
         $ungrouped = [];
 
