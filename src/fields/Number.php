@@ -11,6 +11,7 @@ use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\SlotTag;
+use verbb\formie\query\NumericValueQueryHelper;
 
 use verbb\formie\theme\context\RenderContext;
 
@@ -25,6 +26,7 @@ use Faker\Generator as FakerFactory;
 
 use GraphQL\Type\Definition\Type;
 
+use yii\db\ExpressionInterface;
 use yii\db\Schema;
 
 use Throwable;
@@ -48,6 +50,13 @@ class Number extends Field implements SortableFieldInterface, PreviewableFieldIn
     {
         // Don't use integer columns, so we can handle large numbers as strings
         return Schema::TYPE_JSON;
+    }
+
+    public static function queryCondition(array $instances, mixed $value, array &$params): array|string|ExpressionInterface|false|null
+    {
+        $condition = parent::queryCondition($instances, $value, $params);
+
+        return is_array($condition) ? NumericValueQueryHelper::applyRangeConditions($condition, $params) : $condition;
     }
 
     public static function supportsGqlConfigProvider(): bool
@@ -154,6 +163,18 @@ class Number extends Field implements SortableFieldInterface, PreviewableFieldIn
         }
 
         return (string)$value;
+    }
+
+    public function getSortOption(): array
+    {
+        $option = parent::getSortOption();
+        $valueSql = $this->getValueSql();
+
+        if ($valueSql !== null) {
+            $option['orderBy'][0] = NumericValueQueryHelper::buildSortKeySql($valueSql);
+        }
+
+        return $option;
     }
 
     public function getElementValidationRules(): array
