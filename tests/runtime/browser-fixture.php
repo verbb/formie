@@ -55,5 +55,24 @@ $widget = new \verbb\formie\widgets\RecentSubmissions([
 if (!Craft::$app->getDashboard()->saveWidget($widget)) {
     throw new RuntimeException('Cannot save browser dashboard widget.');
 }
+$scopedForm = \verbb\formie\Formie::$plugin->getFactories()->form(['title' => 'Scoped role form', 'handle' => 'scopedRoleForm'])
+    ->settings(['usePerFormPermissions' => true])->singleLineTextField('message')->create();
+$otherForm = \verbb\formie\Formie::$plugin->getFactories()->form(['title' => 'Other role form', 'handle' => 'otherRoleForm'])
+    ->settings(['usePerFormPermissions' => true])->singleLineTextField('message')->create();
+$scopedUser = new \craft\elements\User(['username' => 'browserScopedEditor', 'email' => 'scoped-editor@example.test', 'newPassword' => 'testing-only-password']);
+if (!Craft::$app->getElements()->saveElement($scopedUser)) {
+    throw new RuntimeException('Cannot save browser scoped editor.');
+}
+Craft::$app->getUsers()->activateUser($scopedUser);
+Craft::$app->set('userPermissions', new \craft\services\UserPermissions());
+if (!Craft::$app->getUserPermissions()->saveUserPermissions($scopedUser->id, [
+    'accessCp', 'accessPlugin-formie', 'formie-accessForms', 'formie-accessSubmissions',
+    'formie-manageForms:' . $scopedForm->uid,
+    'formie-viewSubmissions:' . $scopedForm->uid,
+    'formie-createSubmissions:' . $scopedForm->uid,
+    ...array_map(fn($site) => 'editSite:' . $site->uid, Craft::$app->getSites()->getAllSites()),
+])) {
+    throw new RuntimeException('Cannot save browser scoped permissions.');
+}
 Craft::$app->getProjectConfig()->saveModifiedConfigData();
 file_put_contents(dirname(__DIR__, 2) . '/.cache/verbb-tests/browser-enabled.json', json_encode(['formId' => $form->id, 'journeyId' => $journey->id, 'renderedId' => $rendered->id, 'renderedNativeId' => $native->id]));

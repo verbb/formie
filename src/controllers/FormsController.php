@@ -133,13 +133,12 @@ class FormsController extends Controller
     public function actionIndex(): Response
     {
         $this->requirePermission('formie-accessForms');
+        Plugin::registerCpFormsIndexAssets();
 
         $canCreateForms = Craft::$app->getUser()->checkPermission('formie-createForms');
         $editableFormGroups = [];
 
         if ($canCreateForms) {
-            Plugin::registerCpFormsIndexAssets();
-
             foreach (Formie::$plugin->getFormGroups()->getAllGroups() as $group) {
                 $editableFormGroups[] = [
                     'handle' => $group->handle,

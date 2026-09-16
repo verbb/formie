@@ -19,6 +19,7 @@
 ### Fixed
 - Allow existing fields and notifications to be selected with the keyboard.
 - Honor per-form permissions in form and submission indexes and GraphQL operations.
+- Load form indexes for users without permission to create forms.
 - Require all visible payment fields to be on the final submission page before processing payments.
 - Fixed a rate limit bypass vulnerability.
 - Fixed a CSRF vulnerability.
