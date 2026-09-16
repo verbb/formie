@@ -17,6 +17,7 @@
 - Bump transitive `symfony/cache` to `6.4.45` (CVE-2026-45073 advisory floor).
 
 ### Fixed
+- Allow settings page permissions to be assigned independently while preserving access to all settings for existing roles.
 - Remove all Formie tables when uninstalling the plugin.
 - Fixed an XSS vulnerability.
 - Make frontend builds work from a clean checkout with published Plugin Kit packages and complete TipTap dependencies.

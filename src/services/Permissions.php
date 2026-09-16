@@ -144,6 +144,10 @@ class Permissions extends Component
             return true;
         }
 
+        if ($user->can($this->settingsPagePermissionKey($page))) {
+            return true;
+        }
+
         $page = $this->normalizeSettingsPage($page);
 
         if ($page === 'spam-protection') {

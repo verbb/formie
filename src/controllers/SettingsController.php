@@ -6,6 +6,7 @@ use verbb\formie\helpers\FieldBuilderPolicy;
 use verbb\formie\helpers\IntegrationApiErrors;
 use verbb\formie\helpers\Plugin;
 use verbb\formie\models\Settings;
+use verbb\formie\services\SpamProtection;
 
 use Craft;
 use craft\helpers\Json;
@@ -15,6 +16,20 @@ use yii\web\Response;
 
 class SettingsController extends SettingsAccessController
 {
+    // Constants
+    // =========================================================================
+
+    private const PAGE_SETTINGS = [
+        'general' => ['pluginName', 'defaultPage'],
+        'forms' => ['enableUnloadWarning', 'errorAriaLive', 'enableBackSubmission', 'enableMultiPageForms', 'ajaxTimeout', 'includeDraftElementUsage', 'includeRevisionElementUsage'],
+        'notifications' => ['useQueueForNotifications', 'emptyValuePlaceholder', 'maxEmailAttachmentSizeMb', 'sendEmailAlerts', 'alertEmailsUserGroup', 'alertEmails'],
+        'sent-notifications' => ['sentNotifications', 'maxSentNotificationsAge'],
+        'submissions' => ['maxIncompleteSubmissionAge', 'enableCsrfValidationForGuests', 'submissionsBehaviour', 'submissionSidebarFormOrder', 'defaultCpSubmissionFieldConditions', 'reportTablePageSize', 'reportAsyncExportRowThreshold', 'reportInteractiveExportExpiryHours', 'reportScheduledExportExpiryHours', 'reportExportSingleUseDownload'],
+        'integrations-settings' => ['useQueueForIntegrations', 'queuePriority', 'redirectUri', 'integrationApiErrorHandling', 'sendIntegrationAlerts', 'integrationAlertEmailsUserGroup', 'integrationAlertEmails'],
+        'spam-protection' => SpamProtection::SETTING_KEYS,
+    ];
+
+
     // Public Methods
     // =========================================================================
 
@@ -210,6 +225,10 @@ class SettingsController extends SettingsAccessController
         $settingsParams = $request->getParam('settings');
 
         if (is_array($settingsParams)) {
+            if (!$permissions->canAccessSettings($user) && array_diff(array_keys($settingsParams), self::PAGE_SETTINGS[$page] ?? [])) {
+                throw new ForbiddenHttpException('User is not permitted to perform this action');
+            }
+
             $settingsParams = Formie::$plugin->getFormDefaults()->normalizeSettingsPayload($settingsParams);
         }
 

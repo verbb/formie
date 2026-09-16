@@ -33,7 +33,7 @@ class SettingsAccessController extends Controller
 
         $permissions = Formie::$plugin->getPermissions();
         $user = Craft::$app->getUser()->getIdentity();
-        $page = $this->settingsPage ?? $this->_resolveSettingsPageFromRequest();
+        $page = $this->settingsPage ?? $this->_resolveSettingsPage($action->id);
 
         if (!$permissions->canAccessSettingsPage($user, $page)) {
             throw new ForbiddenHttpException('User is not permitted to perform this action');
@@ -46,40 +46,26 @@ class SettingsAccessController extends Controller
     // Private Methods
     // =========================================================================
 
-    private function _resolveSettingsPageFromRequest(): string
+    private function _resolveSettingsPage(string $actionId): string
     {
-        $request = Craft::$app->getRequest();
-
-        if ($request->getSegment(2) !== 'settings') {
-            return 'general';
+        if ($this->id === 'migrations') {
+            return 'migrate/' . $actionId;
         }
 
-        $section = $request->getSegment(3) ?: 'general';
-
-        if (isset(self::SAVE_ACTION_PAGES[$section])) {
-            return self::SAVE_ACTION_PAGES[$section];
+        if ($this->id !== 'settings') {
+            return $this->id;
         }
 
-        if ($section === 'save-captchas') {
-            return 'spam-protection';
+        if (isset(self::SAVE_ACTION_PAGES[$actionId])) {
+            return self::SAVE_ACTION_PAGES[$actionId];
         }
 
-        if ($section === 'save-settings') {
+        if ($actionId === 'save-settings') {
             return Formie::$plugin->getPermissions()->normalizeSettingsPage(
-                (string)$request->getBodyParam('page', 'general'),
+                (string)$this->request->getBodyParam('page', 'general'),
             );
         }
 
-        if (in_array($section, ['spam', 'captchas'], true)) {
-            return 'spam-protection';
-        }
-
-        if ($section === 'migrate') {
-            $plugin = $request->getSegment(4);
-
-            return $plugin ? "migrate/$plugin" : 'general';
-        }
-
-        return $section;
+        return $actionId === 'index' ? 'general' : $actionId;
     }
 }

@@ -687,6 +687,8 @@ Formie registers Craft user permissions under **Settings → Users → {user gro
 
 Users with **Export submissions** can export from reports without **Manage reports**.
 
+To restrict settings access, assign individual page permissions such as **Forms settings** or **Email notifications settings**. Leave **Access all settings** unselected for these roles; that permission grants access to every settings page. Administrators retain access to all settings.
+
 Scheduled email delivery requires a cron schedule. Use `./craft formie/cron/run` (recommended) or `./craft formie/reports/run-scheduled`. See [Scheduled reports](/reports/scheduled-reports).
 
 ### Alerts Configuration

@@ -471,9 +471,9 @@ class Formie extends Plugin
                     'formie-accessStencils' => ['label' => Craft::t('formie', 'Access stencils')],
                     Permissions::PERM_ACCESS_INTEGRATIONS => ['label' => Craft::t('formie', 'Access integrations')],
                     Permissions::PERM_ACCESS_SETTINGS => [
-                        'label' => Craft::t('formie', 'Access settings'),
-                        'nested' => $permissions->getSettingsPermissionDefinitions(),
+                        'label' => Craft::t('formie', 'Access all settings'),
                     ],
+                    ...$permissions->getSettingsPermissionDefinitions(),
                 ],
             ];
         });
