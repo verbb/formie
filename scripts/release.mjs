@@ -45,6 +45,7 @@ const internalDependencyManifests = [
     'packages/formie-vue/package.json',
     'packages/formie-web-components/package.json',
     'packages/docs/package.json',
+    'src/web/assets/frontend/package.json',
 ];
 
 const rollbackPaths = [
@@ -327,6 +328,7 @@ try {
         'packages/formie-vue/package.json',
         'packages/formie-web-components/package.json',
         'packages/docs/package.json',
+        'src/web/assets/frontend/package.json',
         'packages/formie-core/CHANGELOG.md',
         'packages/formie-browser/CHANGELOG.md',
         'packages/formie-react/CHANGELOG.md',

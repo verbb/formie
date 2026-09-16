@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Sync published @verbb/formie-* and @verbb/plugin-kit npm pins, then rebuild
+ * Sync current @verbb/formie-* and split Plugin Kit npm pins, then rebuild
  * Formie's bundled CP and frontend assets.
  *
  * Run after publishing Formie npm packages and Plugin Kit npm packages.
@@ -20,10 +20,21 @@ const dryRun = args.includes('--dry-run');
 const readArg = (name) => {
     const index = args.indexOf(name);
 
-    return index === -1 ? null : args[index + 1] ?? null;
+    if (index === -1) {
+        return null;
+    }
+
+    const value = args[index + 1];
+
+    if (!value || value.startsWith('--')) {
+        throw new Error(`Missing value for ${name}.`);
+    }
+
+    return value;
 };
 
 const paths = {
+    rootPackageJson: new URL('../package.json', import.meta.url),
     cpPackageJson: new URL('../src/web/assets/cp/package.json', import.meta.url),
     frontendPackageJson: new URL('../src/web/assets/frontend/package.json', import.meta.url),
     formieBrowserPackageJson: new URL('../packages/formie-browser/package.json', import.meta.url),
@@ -64,6 +75,16 @@ const resolveFormieVersion = () => {
     }
 };
 
+const dependencyTypes = ['dependencies', 'devDependencies', 'peerDependencies'];
+const manifests = [
+    { file: 'package.json', url: paths.rootPackageJson },
+    { file: 'src/web/assets/cp/package.json', url: paths.cpPackageJson },
+    { file: 'src/web/assets/frontend/package.json', url: paths.frontendPackageJson },
+].map((entry) => ({ ...entry, value: readJson(entry.url) }));
+const kitPackages = [...new Set(manifests.flatMap(({ value }) => dependencyTypes.flatMap((type) => (
+    Object.keys(value[type] ?? {}).filter((name) => name.startsWith('@verbb/plugin-kit-'))
+))))];
+
 const resolvePluginKitVersion = () => {
     const arg = readArg('--plugin-kit-version');
 
@@ -71,45 +92,46 @@ const resolvePluginKitVersion = () => {
         return arg;
     }
 
-    const pluginKitVersion = npmVersion('@verbb/plugin-kit');
-    const pluginKitReactVersion = npmVersion('@verbb/plugin-kit-react');
+    const versions = kitPackages.map((name) => [name, npmVersion(name)]);
 
-    if (pluginKitVersion !== pluginKitReactVersion) {
-        throw new Error(
-            `Plugin Kit versions are out of sync on npm (${pluginKitVersion} vs ${pluginKitReactVersion}). `
-            + 'Pass --plugin-kit-version explicitly after aligning releases.',
-        );
+    if (!versions.length || new Set(versions.map(([, version]) => version)).size !== 1) {
+        throw new Error(`Split Plugin Kit releases are out of sync: ${JSON.stringify(versions)}. Pass --plugin-kit-version after verifying a compatible release.`);
     }
 
-    return pluginKitVersion;
+    return versions[0][1];
 };
 
 const formieVersion = resolveFormieVersion();
+
+if (formieVersion !== readJson(paths.formieBrowserPackageJson).version) {
+    throw new Error('The Formie asset version must match this checkout. Check out the matching source before rebuilding.');
+}
+
 const pluginKitVersion = resolvePluginKitVersion();
+const plannedChanges = [];
 
-const cpPackage = readJson(paths.cpPackageJson);
-const frontendPackage = readJson(paths.frontendPackageJson);
+for (const manifest of manifests) {
+    const updates = [];
 
-const plannedChanges = [
-    {
-        file: 'src/web/assets/cp/package.json',
-        updates: [
-            ['devDependencies.@verbb/plugin-kit', cpPackage.devDependencies?.['@verbb/plugin-kit'], pluginKitVersion],
-            ['dependencies.@verbb/plugin-kit-react', cpPackage.dependencies?.['@verbb/plugin-kit-react'], pluginKitVersion],
-        ],
-    },
-    {
-        file: 'src/web/assets/frontend/package.json',
-        updates: [
-            ['dependencies.@verbb/formie-browser', frontendPackage.dependencies?.['@verbb/formie-browser'], formieVersion],
-        ],
-    },
-];
+    for (const type of dependencyTypes) {
+        for (const [name, current] of Object.entries(manifest.value[type] ?? {})) {
+            const next = name.startsWith('@verbb/plugin-kit-')
+                ? pluginKitVersion
+                : (name === '@verbb/formie-browser' && manifest.url === paths.frontendPackageJson ? formieVersion : null);
 
-console.log('Rebuild Formie plugin assets from published npm');
+            if (next !== null) {
+                updates.push([`${type}.${name}`, current, next]);
+                manifest.value[type][name] = next;
+            }
+        }
+    }
+
+    plannedChanges.push({ ...manifest, updates });
+}
+
+console.log('Rebuild Formie assets from current source and published split Plugin Kit packages');
 console.log(`  @verbb/formie-browser -> ${formieVersion}`);
-console.log(`  @verbb/plugin-kit -> ${pluginKitVersion}`);
-console.log(`  @verbb/plugin-kit-react -> ${pluginKitVersion}`);
+console.log(`  ${kitPackages.length} split Plugin Kit packages -> ${pluginKitVersion}`);
 
 for (const { file, updates } of plannedChanges) {
     for (const [label, current, next] of updates) {
@@ -123,12 +145,11 @@ if (dryRun) {
     process.exit(0);
 }
 
-cpPackage.devDependencies['@verbb/plugin-kit'] = pluginKitVersion;
-cpPackage.dependencies['@verbb/plugin-kit-react'] = pluginKitVersion;
-frontendPackage.dependencies['@verbb/formie-browser'] = formieVersion;
-
-writeJson(paths.cpPackageJson, cpPackage);
-writeJson(paths.frontendPackageJson, frontendPackage);
+for (const { url, value, updates } of plannedChanges) {
+    if (updates.length) {
+        writeJson(url, value);
+    }
+}
 
 run('npm', ['install', '--ignore-scripts']);
 run('npm', ['run', 'build:cp']);

@@ -18,10 +18,10 @@ class WidgetsVendorAsset extends AssetBundle
         ];
 
         $this->js = [
-            'Chart.bundle.min.js',
             'moment-with-locales.min.js',
+            'Chart.min.js',
             'chartjs-adapter-moment.min.js',
-            'deepmerge.min.js',
+            'deepmerge.js',
         ];
 
         parent::init();

@@ -1,4 +1,5 @@
 import fsPromises from 'node:fs/promises';
+import { createRequire } from 'node:module';
 import path from 'node:path';
 import { defineConfig, loadEnv } from 'vite';
 
@@ -19,14 +20,22 @@ const cpBundleDirectories = {
     'formie-field-palette': 'field-palette',
     'formie-form-group-settings': 'form-group-settings',
     'formie-reports': 'reports',
+    'formie-tiptap': 'tiptap',
 };
 
-const widgetVendorFiles = [
-    'Chart.bundle.min.js',
-    'moment-with-locales.min.js',
-    'chartjs-adapter-moment.min.js',
-    'deepmerge.min.js',
-];
+const require = createRequire(import.meta.url);
+// Use locked dependencies so advisory scans cover the standalone dashboard
+// scripts too. Chart's unbundled build avoids embedding an obsolete Moment.
+const widgetVendorFiles = {
+    'Chart.min.js': 'chartjs-v2/dist/Chart.min.js',
+    'moment-with-locales.min.js': 'moment/min/moment-with-locales.min.js',
+    'chartjs-adapter-moment.min.js': 'chartjs-adapter-moment/dist/chartjs-adapter-moment.min.js',
+    'deepmerge.js': 'deepmerge/dist/umd.js',
+    'Chart.LICENSE.md': 'chartjs-v2/LICENSE.md',
+    'moment.LICENSE': 'moment/LICENSE',
+    'chartjs-adapter-moment.LICENSE.md': 'chartjs-adapter-moment/LICENSE.md',
+    'deepmerge.LICENSE.txt': 'deepmerge/license.txt',
+};
 
 const getCpBundleDirectory = (bundleName) => {
     return cpBundleDirectories[bundleName] ?? null;
@@ -36,13 +45,12 @@ const copyWidgetsVendorFiles = () => ({
     name: 'copy-widgets-vendor-files',
     apply: 'build',
     async closeBundle() {
-        const sourceDir = path.resolve('./src/widgets/js/vendor');
         const destinationDir = path.resolve('./dist/widgets/js/vendor');
 
         await fsPromises.mkdir(destinationDir, { recursive: true });
 
-        await Promise.all(widgetVendorFiles.map((fileName) => {
-            return fsPromises.copyFile(path.join(sourceDir, fileName), path.join(destinationDir, fileName));
+        await Promise.all(Object.entries(widgetVendorFiles).map(([fileName, packagePath]) => {
+            return fsPromises.copyFile(require.resolve(packagePath), path.join(destinationDir, fileName));
         }));
     },
 });
@@ -180,6 +188,7 @@ export default defineConfig(async ({ command, mode }) => {
                     'formie-field-palette': path.resolve('./src/field-palette/formie-field-palette.js'),
                     'formie-form-group-settings': path.resolve('./src/form-group-settings/formie-form-group-settings.js'),
                     'formie-reports': path.resolve('./src/reports/formie-reports.js'),
+                    'formie-tiptap': path.resolve('./src/tiptap/formie-tiptap.js'),
                 },
                 output: {
                     entryFileNames: (chunkInfo) => {

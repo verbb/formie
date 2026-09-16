@@ -7,7 +7,10 @@
 - Add extensible TipTap nodes, marks, toolbar controls, and constrained TextStyle definitions across Formie editing, previews, and PHP rendering, including opt-in font family, font size, text/background color, line height, and Small caps controls.
 
 ### Changed
+- Pin Formie's bundled TipTap and ProseMirror graph to `3.22.4` so extension code shares one qualified runtime.
 - Stream all report export formats, including Excel, JSON and XML, and preserve the initial submission order while reading batches.
+- Manage dashboard chart dependencies through the package lockfile so dependency audits cover shipped widget scripts.
+- Update frontend and test dependencies to patched releases.
 - Normalize CP General Settings to the shared `verbb-base` settings layout (Settings → Plugins → Formie crumbs, `pageTabs` / `pageTitle` / `pageAction` helpers) and trim `pluginName` on save.
 - Bump transitive `symfony/cache` to `6.4.45` (CVE-2026-45073 advisory floor).
 
@@ -19,6 +22,7 @@
 - Preserve completed report downloads across queue retries, clean up interrupted export workspaces, report progress and reject incomplete output.
 - Fix Mollie checkout initialization using the wrong redirect helper, and allow corrected attempts after explicit API rejections.
 - Keep payment amounts aligned with their currency precision when retrying or reconciling payments.
+- Keep asset rebuild tooling aligned with the current split Plugin Kit packages.
 - Avoid charging an extra minor unit for decimal Stripe and Opayo amounts, and use Stripe's required UGX amount format.
 - Fixed XSS vulnerabilities.
 - Fixed payment verification vulnerabilities.

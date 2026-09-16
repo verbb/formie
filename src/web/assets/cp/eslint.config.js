@@ -1,5 +1,5 @@
-import baseConfig from '@verbb/plugin-kit/eslint/config.base.js';
-import { createReactHooksConfig } from '@verbb/plugin-kit/eslint/config.react-hooks.js';
+import baseConfig from '@verbb/plugin-kit-core/eslint/config.base.js';
+import { createReactHooksConfig } from '@verbb/plugin-kit-core/eslint/config.react-hooks.js';
 
 import { defineConfig } from 'eslint/config';
 
