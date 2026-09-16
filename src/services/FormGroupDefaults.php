@@ -363,10 +363,9 @@ class FormGroupDefaults extends Component
             return null;
         }
 
-        $editableIds = Formie::$plugin->getFormSitePropagation()->getEditableSiteIds();
         $ids = array_values(array_unique(array_filter(array_map('intval', $value))));
 
-        return array_values(array_intersect($ids, $editableIds)) ?: null;
+        return $ids === [] ? null : $ids;
     }
 
     private function _shouldInheritDefaultValue(mixed $value): bool

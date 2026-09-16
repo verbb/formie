@@ -20,6 +20,7 @@
 - Preserve configured form availability across sites when an editor has access to only some sites.
 - Resolve editable form sites for the requested user instead of the current session.
 - Load the form builder consistently with pretty URLs and Craft query routes.
+- Preserve group site restrictions when a manager has access to only some sites.
 - Allow existing fields and notifications to be selected with the keyboard.
 - Honor per-form permissions in form and submission indexes and GraphQL operations.
 - Load form indexes for users without permission to create forms.
