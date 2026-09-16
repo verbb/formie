@@ -336,46 +336,7 @@ class SubmissionQuery extends ElementQuery
 
     protected function customFields(): array
     {
-        if (!$this->withCustomFields) {
-            return [];
-        }
-
-        // Craft will try and load custom fields when dealing with provisional drafts, which is rough for performance
-        // As submissions don't make use of provisional draft, we can discard this.
-        if ($this->withProvisionalDrafts || $this->provisionalDrafts) {
-            return [];
-        }
-
-        $formIds = $this->_resolveFormIds();
-        $criteriaHandles = array_keys($this->_fieldCriteriaByHandle);
-
-        // If we have explicit field criteria, only hydrate those fields.
-        if ($criteriaHandles) {
-            return $this->_loadCustomFieldsForHandles($criteriaHandles, $formIds);
-        }
-
-        // If restricting to a form, only load the fields we need for performance.
-        if ($formIds) {
-            $fieldsByForm = Formie::$plugin->getFields()->getAllFieldsForForms($formIds);
-            $fieldsById = [];
-
-            foreach ($fieldsByForm as $fields) {
-                foreach ($fields as $field) {
-                    $fieldsById[$field->id] = $field;
-                }
-            }
-
-            return array_values($fieldsById);
-        }
-
-        // For all-source queries, avoid instantiating every Formie field definition unless
-        // the query actually references field handles (criteria/search/orderBy).
-        $requiredHandles = $this->_resolveRequiredFieldHandlesForAllSources();
-
-        if ($requiredHandles) {
-            return $this->_loadCustomFieldsForHandles($requiredHandles);
-        }
-
+        // Formie fields are not Craft fields; their criteria are applied in afterPrepare().
         return [];
     }
 
