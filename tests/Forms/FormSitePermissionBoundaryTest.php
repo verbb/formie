@@ -104,3 +104,35 @@ it('resolves editable form sites for the supplied user independently of the curr
         expect($propagation->getEditableSiteIds($admin))->toBe($allSites);
     });
 });
+
+it('does not move a created-site-only form when its source is excluded by group policy', function (): void {
+    if (!Craft::$app->getIsMultiSite()) {
+        $this->markTestSkipped('Multi-site contract.');
+    }
+    $sites = Craft::$app->getSites()->getAllSiteIds();
+    $sourceId = (int)$sites[0];
+    $otherId = (int)$sites[1];
+    $group = new FormGroup(['name' => 'Created site policy', 'handle' => 'createdSite' . bin2hex(random_bytes(5)),
+        'settings' => ['sitePolicy' => ['enabledSiteIds' => [$sourceId, $otherId], 'propagation' => 'createdSiteOnly']]]);
+    expect(Formie::$plugin->getFormGroups()->saveGroup($group))->toBeTrue();
+    $form = formie()->form(['groupId' => $group->id, 'siteId' => $sourceId, 'sourceSiteId' => $sourceId])
+        ->singleLineTextField('message')->create();
+    $enabledIds = fn() => array_map('intval', (new Query())->select('siteId')->from('{{%elements_sites}}')
+        ->where(['elementId' => $form->id, 'enabled' => true])->orderBy('siteId')->column());
+    expect($enabledIds())->toBe([$sourceId]);
+
+    $settings = $group->getSettingsModel();
+    $settings->sitePolicy['enabledSiteIds'] = [$otherId];
+    $group->setSettingsModel($settings);
+    expect(Formie::$plugin->getFormGroups()->saveGroup($group))->toBeTrue();
+    expect($enabledIds())->toBe([]);
+    $reloaded = Form::find()->id($form->id)->siteId($sourceId)->status(null)->one();
+    expect((int)$reloaded->sourceSiteId)->toBe($sourceId);
+    expect(Formie::$plugin->getFormSitePropagation()->validateFormSiteAvailability($reloaded))->not->toBeNull();
+
+    $settings->sitePolicy['enabledSiteIds'] = [$sourceId, $otherId];
+    $group->setSettingsModel($settings);
+    expect(Formie::$plugin->getFormGroups()->saveGroup($group))->toBeTrue();
+    expect($enabledIds())->toBe([$sourceId]);
+    expect(Form::find()->id($form->id)->siteId($sourceId)->one()?->getFieldByHandle('message'))->not->toBeNull();
+});

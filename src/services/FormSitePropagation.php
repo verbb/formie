@@ -341,7 +341,7 @@ class FormSitePropagation extends Component
             return [$createdSiteId];
         }
 
-        return $candidateIds === [] ? [$createdSiteId] : [reset($candidateIds)];
+        return [];
     }
 
     private function _filterSameLanguage(array $candidateIds, Site $referenceSite, array $sitesById): array
