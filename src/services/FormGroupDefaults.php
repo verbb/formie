@@ -8,7 +8,6 @@ use verbb\formie\models\FormGroupSettings;
 use verbb\formie\models\FormSitePolicy;
 
 use Craft;
-use craft\helpers\App;
 
 use yii\base\Component;
 
@@ -219,7 +218,9 @@ class FormGroupDefaults extends Component
 
     private function _normalizeFieldPalettePayload(array $payload): ?array
     {
-        if (!(App::normalizeBooleanValue($payload['useCustomFieldPalette'] ?? false) ?? false)) {
+        $enabled = $payload['useCustomFieldPalette'] ?? false;
+
+        if ((!is_bool($enabled) && !is_int($enabled) && !is_string($enabled)) || !filter_var($enabled, FILTER_VALIDATE_BOOL)) {
             return null;
         }
 
