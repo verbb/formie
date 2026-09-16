@@ -427,6 +427,7 @@ class Form extends Element implements FormInterface
     private array $_submitData = [];
     private array $_pendingSubmissionMetadata = [];
     private array $_previousGroupFieldUids = [];
+    private array $_submissionsToDelete = [];
 
     private array $_themeConfig = [];
     private string $_frontendTheme = 'formie';
@@ -2202,23 +2203,46 @@ class Form extends Element implements FormInterface
         parent::afterPropagate($isNew);
     }
 
+    public function beforeDelete(): bool
+    {
+        if (!parent::beforeDelete()) {
+            return false;
+        }
+
+        // A permanent form deletion cascades its submission records before afterDelete().
+        $this->_submissionsToDelete = Submission::find()
+            ->formId($this->id)
+            ->site('*')->unique()
+            ->status(null)
+            ->trashed($this->hardDelete ? null : false)
+            ->all();
+
+        foreach ($this->_submissionsToDelete as $submission) {
+            $submission->setForm($this);
+        }
+
+        return true;
+    }
+
     public function afterDelete(): void
     {
-        $layoutId = $this->layoutId;
-
-        // Delete any submissions made on this form.
-        $submissions = Submission::find()->formId($this->id)->all();
         $elementsService = Craft::$app->getElements();
 
-        foreach ($submissions as $submission) {
-            if (!$elementsService->deleteElement($submission)) {
+        foreach ($this->_submissionsToDelete as $submission) {
+            $submission->deletedWithOwner = true;
+
+            if (!$elementsService->deleteElement($submission, $this->hardDelete)) {
                 Formie::error("Unable to delete submission ”{$submission->id}” for form ”{$this->id}”: " . Json::encode($submission->getErrors()) . ".");
             }
         }
 
-        if ($layoutId) {
-            Formie::$plugin->getFields()->deleteLayoutById($layoutId);
+        $this->_submissionsToDelete = [];
+
+        if ($this->hardDelete && $this->layoutId) {
+            Formie::$plugin->getFields()->deleteLayoutById($this->layoutId);
         }
+
+        parent::afterDelete();
     }
 
     public function beforeRestore(): bool
@@ -2245,10 +2269,9 @@ class Form extends Element implements FormInterface
 
     public function afterRestore(): void
     {
-        $db = Craft::$app->getDb();
-
-        // Restore any submissions deleted
-        $submissions = Submission::find()->formId($this->id)->trashed(true)->all();
+        // Restore only submissions that were trashed with this form.
+        $submissions = Submission::find()->formId($this->id)->site('*')->unique()->status(null)->trashed(true)
+            ->andWhere(['elements.deletedWithOwner' => true])->all();
         $elementsService = Craft::$app->getElements();
 
         foreach ($submissions as $submission) {
