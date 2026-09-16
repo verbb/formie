@@ -68,7 +68,7 @@ class FormTemplate extends BaseTemplate
 
     public function canDelete(): bool
     {
-        return !Form::find()->trashed(null)->template($this)->one();
+        return !Form::find()->withoutCpIndexScope()->trashed(null)->template($this)->site('*')->unique()->status(null)->exists();
     }
 
     public function getFieldLayout(): FieldLayout

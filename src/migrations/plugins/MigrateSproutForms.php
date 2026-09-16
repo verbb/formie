@@ -386,7 +386,7 @@ class MigrateSproutForms extends BasePluginMigrator
         $handle = $form->handle;
 
         while (true) {
-            if (!Form::find()->handle($handle)->exists()) {
+            if (!Form::find()->withoutCpIndexScope()->handle($handle)->site('*')->unique()->status(null)->exists()) {
                 return $handle;
             }
 

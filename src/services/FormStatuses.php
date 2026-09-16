@@ -133,6 +133,10 @@ class FormStatuses extends Component
             return null;
         }
 
+        if (ctype_digit($value)) {
+            return $this->getStatusById((int)$value)?->id;
+        }
+
         if ($status = $this->getStatusByHandle($value)) {
             return (int)$status->id;
         }

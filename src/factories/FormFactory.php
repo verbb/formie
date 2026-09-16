@@ -66,7 +66,7 @@ final class FormFactory
         } while (
             isset(self::$autoHandlesIssued[$handle]) ||
             in_array(strtolower($handle), array_map('strtolower', array_merge(self::RESERVED_HANDLES, \craft\validators\HandleValidator::$baseReservedWords)), true) ||
-            Form::find()->handle($handle)->status(null)->one() !== null
+            Form::find()->withoutCpIndexScope()->handle($handle)->site('*')->unique()->status(null)->exists()
         );
 
         self::$autoHandlesIssued[$handle] = true;

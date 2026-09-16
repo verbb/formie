@@ -2216,7 +2216,7 @@ class Form extends Element implements FormInterface
         $i = 0;
         $handle = $this->handle;
 
-        while (Form::find()->handle($handle)->exists()) {
+        while (Form::find()->withoutCpIndexScope()->handle($handle)->site('*')->unique()->status(null)->exists()) {
             $i++;
             $handle = $this->handle . $i;
         }
@@ -3474,7 +3474,7 @@ class Form extends Element implements FormInterface
 
         $rules[] = [
             'handle', function($attribute, $params, Validator $validator): void {
-                $query = static::find()->handle($this->$attribute);
+                $query = static::find()->withoutCpIndexScope()->handle($this->$attribute)->site('*')->unique()->status(null);
 
                 if ($this->id) {
                     $query = $query->id("not {$this->id}");

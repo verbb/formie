@@ -70,7 +70,7 @@ class FormStatus extends Model
 
     public function canDelete(): bool
     {
-        return !$this->isDefault && !Form::find()->formStatusId($this->id)->one();
+        return !$this->isDefault && !Form::find()->withoutCpIndexScope()->formStatusId($this->id)->site('*')->unique()->status(null)->exists();
     }
 
     public function getConfig(): array

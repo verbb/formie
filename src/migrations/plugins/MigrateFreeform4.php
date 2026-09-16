@@ -74,7 +74,7 @@ class MigrateFreeform4 extends BasePluginMigrator
         }
 
         if ($this->submissionsOnly) {
-            $this->_form = FormieForm::find()->handle($this->_freeformForm->handle)->one();
+            $this->_form = FormieForm::find()->withoutCpIndexScope()->handle($this->_freeformForm->handle)->site('*')->unique()->status(null)->one();
 
             if (!$this->_form) {
                 $this->error("Form: No Formie form found with handle “{$this->_freeformForm->handle}”. Migrate the form first or run without --submissions-only.");
@@ -388,7 +388,7 @@ class MigrateFreeform4 extends BasePluginMigrator
         }
 
         while (true) {
-            if (!FormieForm::find()->handle($handle)->exists()) {
+            if (!FormieForm::find()->withoutCpIndexScope()->handle($handle)->site('*')->unique()->status(null)->exists()) {
                 return $handle;
             }
 

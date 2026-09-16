@@ -26,6 +26,8 @@
 - Honor the selected site when looking up forms that are unavailable on the primary site.
 - Keep cached form lookups isolated to the requested site.
 - Include regional forms in permission settings, GraphQL schemas and submission queries.
+- Preserve unique form handles and recognize shared settings in use across every site.
+- Resolve numeric form-status filters correctly.
 - Restore configured form availability on secondary sites when upgrading existing installations.
 - Include regional forms in report choices, summaries and scheduled exports.
 - Process regional forms in queued field moves and console export and cleanup commands.
