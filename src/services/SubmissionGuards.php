@@ -276,7 +276,7 @@ class SubmissionGuards extends Component
         }
 
         $since = (new \DateTimeImmutable("-{$minutes} minutes"))->format('Y-m-d H:i:s');
-        $count = (int)(new Query())
+        $query = (new Query())
             ->from(['s' => Table::FORMIE_SUBMISSIONS])
             ->innerJoin(
                 ['e' => CraftTable::ELEMENTS],
@@ -286,8 +286,14 @@ class SubmissionGuards extends Component
                 's.formId' => $formId,
                 's.ipAddress' => $ip,
             ])
-            ->andWhere(['>', 's.dateCreated', $since])
-            ->count('*', Craft::$app->getDb());
+            ->andWhere(['>', 's.dateCreated', $since]);
+
+        // Continuing a saved page or payment must not throttle the submission against itself.
+        if ($request->submission->id) {
+            $query->andWhere(['not', ['s.id' => $request->submission->id]]);
+        }
+
+        $count = (int)$query->count('*', Craft::$app->getDb());
 
         if ($count > 0) {
             return Craft::t('formie', 'Too many submissions from this IP address.');
