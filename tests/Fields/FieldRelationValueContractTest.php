@@ -72,10 +72,12 @@ it('resolves seeded relation elements through projection wrappers', function ():
 });
 
 it('keeps unresolved relation projection wrappers deterministic', function (): void {
+    $missingId = (int)(new \craft\db\Query())->from('{{%elements}}')->max('id') + 1;
+
     foreach (relationContractFields() as $field) {
         $value = $field->normalizeValue([
-            ['id' => '7'],
-            ['id' => '12'],
+            ['id' => (string)$missingId],
+            ['id' => (string)($missingId + 1)],
         ], null);
 
         expect($field->serializeValue($value, null))->toBe([])
@@ -85,4 +87,3 @@ it('keeps unresolved relation projection wrappers deterministic', function (): v
             ->and((string)$field->getValueForSummary($value, null))->toBe('');
     }
 });
-
