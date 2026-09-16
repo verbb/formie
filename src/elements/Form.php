@@ -21,6 +21,7 @@ use verbb\formie\elements\actions\SetFormStatus;
 use verbb\formie\elements\conditions\FormCondition;
 use verbb\formie\elements\db\FormQuery;
 use verbb\formie\events\ModifyFormSlotTagEvent;
+use verbb\formie\fields\Group;
 use verbb\formie\fields\Quiz;
 use verbb\formie\gql\interfaces\FieldInterface as GqlFieldInterface;
 use verbb\formie\helpers\ArrayHelper;
@@ -425,6 +426,7 @@ class Form extends Element implements FormInterface
     private bool $_routeContextHydrated = false;
     private array $_submitData = [];
     private array $_pendingSubmissionMetadata = [];
+    private array $_previousGroupFieldUids = [];
 
     private array $_themeConfig = [];
     private string $_frontendTheme = 'formie';
@@ -2108,6 +2110,18 @@ class Form extends Element implements FormInterface
             Formie::$plugin->getFormDefaults()->applyCaptchaDefaultsToNewForm($this);
         }
 
+        // Retain old containers before saving the layout deletes removed Group fields.
+        $previousFields = $isNew ? [] : (new Query())
+            ->select(['ff.uid', 'f.type'])
+            ->from(['ff' => Table::FORMIE_FORM_FIELDS])
+            ->innerJoin(['f' => Table::FORMIE_FIELDS], '[[f.id]] = [[ff.fieldId]]')
+            ->where(['ff.layoutId' => $this->layoutId])
+            ->all();
+        $this->_previousGroupFieldUids = array_column(array_filter(
+            $previousFields,
+            fn(array $field) => is_a($field['type'], Group::class, true),
+        ), 'uid');
+
         // Save the field layout as the last step
         if (!Formie::$plugin->getFields()->saveLayout($this->getFormLayout())) {
             $this->addErrors($this->getFormLayout()->getErrors());
@@ -2172,7 +2186,7 @@ class Form extends Element implements FormInterface
         }
 
         // Check if we need to update any submission content due to field changes
-        Formie::$plugin->getSubmissions()->updateSubmissionContent($this);
+        Formie::$plugin->getSubmissions()->updateSubmissionContent($this, $this->_previousGroupFieldUids);
 
         parent::afterSave($isNew);
     }

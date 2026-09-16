@@ -51,3 +51,37 @@ it('preserves stored values when fields move into and out of a group', function 
 })->with([
     'zero' => [0], 'false' => [false], 'empty string' => [''], 'null' => [null], 'empty array' => [[]], 'text' => ['Retain'],
 ])->with(['into', 'out'])->with(['primary' => false, 'regional' => true]);
+
+it('relocates values between groups without replacing newer answers', function (mixed $value, bool $enabled): void {
+    $form = formie()->form(['enabled' => $enabled])->groupField('before', ['rows' => [['fields' => [
+        ['type' => \verbb\formie\fields\SingleLineText::class, 'handle' => 'sibling', 'label' => 'Sibling'],
+    ]]]])->groupField('after', ['rows' => [['fields' => [
+        ['type' => \verbb\formie\fields\SingleLineText::class, 'handle' => 'moved', 'label' => 'Moved'],
+    ]]]])->create();
+    $submission = formie()->submission($form)->save();
+    $before = $form->getFieldByHandle('before');
+    $after = $form->getFieldByHandle('after');
+    $moved = $after->getFieldByHandle('moved');
+    $sibling = $before->getFieldByHandle('sibling');
+    $content = [$before->uid => [$moved->uid => $value, $sibling->uid => 'Keep sibling']];
+    \craft\helpers\Db::update(Table::FORMIE_SUBMISSIONS, ['content' => $content], ['id' => $submission->id]);
+    $read = function () use ($submission): array {
+        $content = Json::decode((new \craft\db\Query())->select('content')->from(Table::FORMIE_SUBMISSIONS)->where(['id' => $submission->id])->scalar());
+        ksort($content);
+        return $content;
+    };
+    $expected = [$before->uid => [$sibling->uid => 'Keep sibling'], $after->uid => [$moved->uid => $value]];
+    ksort($expected);
+    $job = new UpdateSubmissionContent(['formId' => $form->id]);
+    $job->execute(Craft::$app->getQueue());
+    expect($read())->toBe($expected);
+    $job->execute(Craft::$app->getQueue());
+    expect($read())->toBe($expected);
+    // A visitor may already have saved at the new location before the delayed job executes.
+    $content[$after->uid] = [$moved->uid => null];
+    \craft\helpers\Db::update(Table::FORMIE_SUBMISSIONS, ['content' => $content], ['id' => $submission->id]);
+    $job->execute(Craft::$app->getQueue());
+    expect($read()[$after->uid][$moved->uid])->toBeNull();
+    expect($read()[$before->uid][$sibling->uid])->toBe('Keep sibling');
+})->with(['text' => ['Retain'], 'zero' => [0], 'false' => [false], 'empty' => [''], 'null' => [null], 'array' => [[]]])
+    ->with(['enabled' => true, 'disabled' => false]);

@@ -7,14 +7,11 @@ use verbb\formie\fields as formiefields;
 use verbb\formie\helpers\Table;
 
 use Craft;
-use craft\base\Element;
 use craft\db\Query;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Db;
 use craft\helpers\Json;
 use craft\i18n\Translation;
 use craft\queue\BaseJob;
-use Throwable;
 
 class UpdateSubmissionContent extends BaseJob
 {
@@ -22,6 +19,7 @@ class UpdateSubmissionContent extends BaseJob
     // =========================================================================
 
     public ?int $formId = null;
+    public array $previousGroupFieldUids = [];
 
 
     // Public Methods
@@ -29,24 +27,29 @@ class UpdateSubmissionContent extends BaseJob
 
     public function execute($queue): void
     {
-        $form = Form::find()->withoutCpIndexScope()->id($this->formId)->site('*')->unique()->one();
+        $form = Form::find()->withoutCpIndexScope()->id($this->formId)->site('*')->unique()->status(null)->one();
 
         if (!$form) {
             return;
         }
 
-        // Check if we've moved fields in or our of Group fields. Their content needs to be re-arranged.
-        $nonGroupFields = [];
-        $groupFields = [];
+        // Only Groups can release their children. Repeater and composite values stay opaque.
+        $destinations = [];
+        $groupUids = $this->previousGroupFieldUids;
 
         foreach ($form->getFields() as $field) {
-            // Just handle Group fields. Sub-Fields and Repeaters cannot be extracted out. T
             if ($field instanceof formiefields\Group) {
-                $groupFields[] = $field;
+                $groupUids[] = $field->uid;
+
+                foreach ($field->getFields() as $child) {
+                    $destinations[$child->uid] = $field->uid;
+                }
             } else {
-                $nonGroupFields[] = $field;
+                $destinations[$field->uid] = null;
             }
         }
+
+        $groupUids = array_values(array_unique($groupUids));
 
         $submissions = (new Query())->from(Table::FORMIE_SUBMISSIONS)->where(['formId' => $this->formId])->all();
 
@@ -56,43 +59,51 @@ class UpdateSubmissionContent extends BaseJob
                 'total' => count($submissions),
             ]));
 
-            $contentChanged = false;
-            $content = Json::decode($submission['content']);
+            $original = Json::decode($submission['content']);
+            $content = $original;
 
-            foreach ($groupFields as $groupField) {
-                $groupFieldUid = Db::uidById(Table::FORMIE_FORM_FIELDS, $groupField->id);
+            foreach ($destinations as $fieldUid => $destinationUid) {
+                // A later submission edit at the destination wins over stale queued content.
+                $destination = $destinationUid === null ? $content : ($content[$destinationUid] ?? []);
+                $found = is_array($destination) && array_key_exists($fieldUid, $destination);
+                $value = $found ? $destination[$fieldUid] : null;
 
-                // Was the content for a grouped field found at the top level?
-                foreach ($groupField->getFields() as $nestedField) {
-                    $nestedFieldUid = Db::uidById(Table::FORMIE_FORM_FIELDS, $nestedField->id);
+                if (!$found && array_key_exists($fieldUid, $content)) {
+                    $value = $content[$fieldUid];
+                    $found = true;
+                }
 
-                    if (array_key_exists($nestedFieldUid, $content)) {
-                        $foundValue = ArrayHelper::remove($content, $nestedFieldUid);
-                        // Move it to the Group field content
-                        $content[$groupFieldUid][$nestedFieldUid] = $foundValue;
-                        $contentChanged = true;
+                foreach ($groupUids as $groupUid) {
+                    if ($groupUid === $destinationUid || !isset($content[$groupUid]) || !is_array($content[$groupUid])) {
+                        continue;
+                    }
+
+                    if (array_key_exists($fieldUid, $content[$groupUid])) {
+                        if (!$found) {
+                            $value = $content[$groupUid][$fieldUid];
+                            $found = true;
+                        }
+
+                        unset($content[$groupUid][$fieldUid]);
                     }
                 }
 
-                // Was the content for a non-grouped field found within the group field?
-                foreach ($nonGroupFields as $nonGroupField) {
-                    $nonGroupFieldUid = Db::uidById(Table::FORMIE_FORM_FIELDS, $nonGroupField->id);
-
-                    if (isset($content[$groupFieldUid]) && is_array($content[$groupFieldUid]) && array_key_exists($nonGroupFieldUid, $content[$groupFieldUid])) {
-                        $foundValue = $content[$groupFieldUid][$nonGroupFieldUid];
-                        // Move it out of the Group field content
-                        $content[$nonGroupFieldUid] = $foundValue;
-                        unset($content[$groupFieldUid][$nonGroupFieldUid]);
-                        $contentChanged = true;
+                if ($found) {
+                    if ($destinationUid === null) {
+                        $content[$fieldUid] = $value;
+                    } else {
+                        unset($content[$fieldUid]);
+                        $content[$destinationUid][$fieldUid] = $value;
                     }
                 }
             }
 
-            if ($contentChanged) {
+            if ($content !== $original) {
                 Db::update(Table::FORMIE_SUBMISSIONS, ['content' => $content], ['id' => $submission['id']]);
             }
         }
     }
+
 
     // Protected Methods
     // =========================================================================

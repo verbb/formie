@@ -62,6 +62,7 @@
 - Render notification emails on all supported Craft 5 versions.
 - Preserve custom decimal-field query precision on all supported Craft 5 versions.
 - Preserve zero, false, and empty submission values when moving fields into or out of groups.
+- Preserve submission answers when moving fields between groups or removing their former group, including disabled forms.
 - Require POST requests when importing forms or migrating from another form plugin.
 - Allow settings page permissions to be assigned independently while preserving access to all settings for existing roles.
 - Remove all Formie tables when uninstalling the plugin.

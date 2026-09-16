@@ -478,20 +478,21 @@ class Submissions extends Component
         $submission->setUser(User::find()->one());
     }
 
-    public function updateSubmissionContent(Form $form): void
+    public function updateSubmissionContent(Form $form, array $previousGroupFieldUids = []): void
     {
         /* @var Settings $settings */
         $settings = Formie::$plugin->getSettings();
 
-        // Check if we've moved fields in or our of Group fields. Their content needs to be re-arranged.
+        // Include removed groups: their stored children still need moving to the current layout.
         // More performant if we don't spin up the queue job unless we need to
         $hasGroupField = array_filter($form->getFields(), function($field) {
             return $field instanceof formiefields\Group;
         });
 
-        if ($hasGroupField) {
+        if ($hasGroupField || $previousGroupFieldUids) {
             Queue::push(new UpdateSubmissionContent([
                 'formId' => $form->id,
+                'previousGroupFieldUids' => $previousGroupFieldUids,
             ]), $settings->queuePriority);
         }
     }
