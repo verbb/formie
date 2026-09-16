@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\Radio;
-use verbb\formie\fields\traits\OtherOptionFieldTrait;
 use verbb\formie\theme\context\RenderContext;
 
 it('stores a custom radio value when the other option is selected', function (): void {
@@ -26,7 +25,7 @@ it('stores a custom radio value when the other option is selected', function ():
         ->submission($form)
         ->with([
             'priority' => [
-                'value' => OtherOptionFieldTrait::OTHER_OPTION_VALUE,
+                'value' => Radio::OTHER_OPTION_VALUE,
                 'other' => 'Custom priority',
             ],
         ])
@@ -46,7 +45,7 @@ it('stores a custom radio value when the other option is selected', function ():
 it('rejects static option values that use the reserved other sentinel', function (): void {
     $field = new Radio([
         'options' => [
-            ['label' => 'Other', 'value' => OtherOptionFieldTrait::OTHER_OPTION_VALUE],
+            ['label' => 'Other', 'value' => Radio::OTHER_OPTION_VALUE],
         ],
         'enableOtherOption' => true,
     ]);
@@ -68,19 +67,16 @@ it('requires custom text when the other option is selected', function (): void {
         ])
         ->create();
 
-    Craft::$app->getRequest()->setBodyParams([
-        'fields' => [
-            'priority' => OtherOptionFieldTrait::OTHER_OPTION_VALUE,
-        ],
-    ]);
 
-    $submission = formie()
-        ->submission($form)
-        ->with(['priority' => OtherOptionFieldTrait::OTHER_OPTION_VALUE])
-        ->allowValidationFailure()
-        ->save();
+    \Tests\Support\WebRequestTestHelper::withWebRequestContext(function () use ($form): void {
+        $submission = formie()
+            ->submission($form)
+            ->with(['priority' => Radio::OTHER_OPTION_VALUE])
+            ->allowValidationFailure()
+            ->save();
 
-    expect($submission)->toHaveFieldError('priority');
+        expect($submission)->toHaveFieldError('priority');
+    }, ['bodyParams' => ['fields' => ['priority' => Radio::OTHER_OPTION_VALUE]]]);
 });
 
 it('applies radio other option theme config tags', function (): void {
@@ -119,4 +115,17 @@ it('applies radio other option theme config tags', function (): void {
     expect($tag?->attributes['class'] ?? [])->toContain('formie-other-option-text')
         ->and($tag?->attributes['class'] ?? [])->toContain('theme-other-text')
         ->and($tag?->attributes['placeholder'] ?? null)->toBe('Custom other text');
+});
+
+it('rejects empty custom answers without relying on an HTTP request', function (): void {
+    $form = formie()->form()->radioField('choice', [
+        'enableOtherOption' => true,
+        'options' => [['label' => 'One', 'value' => 'one']],
+    ])->create();
+
+    $submission = formie()->submission($form)
+        ->with(['choice' => ['value' => Radio::OTHER_OPTION_VALUE, 'other' => '   ']])
+        ->allowValidationFailure()->save();
+
+    expect($submission)->toHaveFieldError('choice');
 });

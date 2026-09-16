@@ -63,7 +63,7 @@ it('excludes builder note fields from front-end client payload', function (): vo
         ])
         ->create();
 
-    $page = $form->getFieldLayout()?->getPages()[0];
+    $page = $form->getFormLayout()?->getPages()[0];
     $handles = [];
 
     foreach ($page?->getRows() ?? [] as $row) {

@@ -16,7 +16,7 @@ it('resolves cp submission field condition settings from form and plugin default
     expect($form->getCpSubmissionFieldConditions())->toBe(CpSubmissionFieldConditions::MUTED);
 
     $form->settings->cpSubmissionFieldConditions = CpSubmissionFieldConditions::SHOW_ALL;
-    $form->setSettings($form->settings);
+    $form->setSettings($form->settings->getAttributes());
 
     expect($form->getCpSubmissionFieldConditions())->toBe(CpSubmissionFieldConditions::SHOW_ALL)
         ->and($form->cpSubmissionFollowsFieldConditions())->toBeFalse();
@@ -46,7 +46,7 @@ it('marks conditionally hidden cp submission fields for follow and muted modes',
             ->toContain('class="field formie-conditionally-hidden"');
 
         $form->settings->cpSubmissionFieldConditions = CpSubmissionFieldConditions::MUTED;
-        $form->setSettings($form->settings);
+        $form->setSettings($form->settings->getAttributes());
 
         $mutedHtml = (string)$hiddenField?->getSubmissionHtml($submission->getFieldValue('otherReason'), $submission);
 
@@ -70,6 +70,7 @@ it('clears conditionally hidden field values when saving submissions from the co
 
     WebRequestTestHelper::withWebRequestContext(function ($request) use ($form, $submission): void {
         $request->setIsCpRequest(true);
+        Craft::$app->getUser()->setIdentity(\craft\elements\User::find()->admin(true)->one());
         $request->setBodyParams([
             'handle' => $form->handle,
             'submissionId' => (int)$submission->id,
@@ -88,7 +89,7 @@ it('clears conditionally hidden field values when saving submissions from the co
         'requestUri' => "/admin/formie/submissions/{$form->handle}/{$submission->id}",
     ]);
 
-    $saved = formie()->submission($form)->find($submission->id);
+    $saved = \verbb\formie\elements\Submission::find()->id($submission->id)->one();
 
     expect($saved?->getFieldValue('otherReason'))->toBeNull();
 });

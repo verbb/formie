@@ -232,7 +232,7 @@ it('accepts year-only dropdown values when other date parts are disabled', funct
         $subField->required = false;
     }
 
-    Formie::$plugin->getForms()->saveForm($form);
+    expect(Craft::$app->getElements()->saveElement($form))->toBeTrue();
 
     $submission = formie()->submission($form)
         ->with([

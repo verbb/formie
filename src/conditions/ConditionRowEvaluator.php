@@ -130,6 +130,23 @@ class ConditionRowEvaluator
 
     private function _equals(mixed $subject, mixed $expected): bool
     {
+        // Recipient tokens use randomized authenticated encryption. Compare
+        // their typed payloads, never the ciphertext or an unverified decode.
+        if (is_string($subject) && is_string($expected)
+            && str_starts_with($subject, 'base64:') && str_starts_with($expected, 'base64:')
+            && str_starts_with((string)base64_decode(substr($subject, 7), true), 'crypt:')
+            && str_starts_with((string)base64_decode(substr($expected, 7), true), 'crypt:')) {
+            try {
+                $subjectPayload = \verbb\formie\helpers\RecipientTokenHelper::decodePayload($subject);
+                $expectedPayload = \verbb\formie\helpers\RecipientTokenHelper::decodePayload($expected);
+            } catch (\Throwable) {
+                return false;
+            }
+            if ($subjectPayload !== null && $expectedPayload !== null) {
+                return $subjectPayload === $expectedPayload;
+            }
+        }
+
         $booleanSubject = $this->_normalizeBooleanComparable($subject);
         $booleanExpected = $this->_normalizeBooleanComparable($expected);
 

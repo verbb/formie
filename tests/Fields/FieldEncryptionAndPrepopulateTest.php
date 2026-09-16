@@ -29,6 +29,9 @@ it('stores encrypted field values as non-plaintext payloads when encryption is e
 
     expect(is_string($content))->toBeTrue()
         ->and(str_contains((string)$content, $plainText))->toBeFalse();
+
+    $loaded = \verbb\formie\elements\Submission::find()->id($submission->id)->status(null)->one();
+    expect($loaded->getFieldValue('secretValue'))->toBe($plainText);
 });
 
 it('keeps pre-populate query-string feature callable in current runtime context', function (): void {

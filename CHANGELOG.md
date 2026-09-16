@@ -7,6 +7,9 @@
 - Bump transitive `symfony/cache` to `6.4.45` (CVE-2026-45073 advisory floor).
 
 ### Fixed
+- Handle omitted optional Table column handles and Note styles, and retain values from Table columns without handles when rendering or exporting submissions.
+- Preserve cleared submission values, including empty checkboxes, tables and dates, through serialization and apply hidden-field clearing during CP edits.
+- Compare encrypted recipient condition payloads rather than randomized ciphertext.
 - Fix form factories exhausting automatic handles or generating Craft-reserved handles.
 - Fix client-side payment authorize still requiring a Stripe/provider token when the Payment field is hidden by conditional logic (e.g. bank transfer vs card) — authorize and mount now skip fields marked conditionally/row/page hidden, matching server-side payment workflow skips.
 - Fix “Restore In-Progress Submissions Automatically” still restoring incomplete submissions on revisit when disabled — server render no longer hydrates from leftover progress, and submit/client continuation ignore bare progress unless the browser already holds that submission (or a resume/continuation token). Resume links are unchanged.

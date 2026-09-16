@@ -3,37 +3,36 @@ namespace verbb\formie\fields;
 
 use verbb\formie\Formie;
 use verbb\formie\base\Field;
-use verbb\formie\base\SortableFieldInterface;
 use verbb\formie\base\FieldInterface;
+use verbb\formie\base\FixedParentField;
+use verbb\formie\base\FixedParentFieldInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
-use verbb\formie\base\FixedParentFieldInterface;
-use verbb\formie\base\FixedParentField;
 use verbb\formie\base\PreviewableFieldInterface;
+use verbb\formie\base\SortableFieldInterface;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyDateTimeFormatEvent;
 use verbb\formie\events\ModifyFieldValueEvent;
 use verbb\formie\events\RegisterDateTimeFormatOptionsEvent;
-use verbb\formie\fields\values\DateFieldValue;
-use verbb\formie\fields\values\DateRangeFieldValue;
 use verbb\formie\fields\definitions\FieldClientModules;
 use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\fields\definitions\FieldValueClass;
+use verbb\formie\fields\subfields\DateYear;
+use verbb\formie\fields\values\DateFieldValue;
+use verbb\formie\fields\values\DateRangeFieldValue;
 use verbb\formie\fields\values\OptionValue;
 use verbb\formie\fields\values\SingleOptionFieldValue;
-use verbb\formie\fields\subfields\DateYear;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\helpers\StringHelper;
+use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\ClientModule;
-use verbb\formie\models\SlotTag;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Notification;
+use verbb\formie\models\SlotTag;
 use verbb\formie\positions\Hidden as HiddenPosition;
-
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
@@ -47,12 +46,6 @@ use craft\helpers\Db;
 use craft\helpers\Json;
 use craft\i18n\Locale;
 
-use Faker\Generator as FakerFactory;
-
-use GraphQL\Type\Definition\InputObjectType;
-use GraphQL\Type\Definition\ObjectType;
-use GraphQL\Type\Definition\Type;
-
 use yii\base\Event;
 use yii\db\ExpressionInterface;
 use yii\db\Schema;
@@ -61,6 +54,11 @@ use yii\validators\Validator;
 
 use DateTime;
 use DateTimeZone;
+
+use Faker\Generator as FakerFactory;
+use GraphQL\Type\Definition\InputObjectType;
+use GraphQL\Type\Definition\ObjectType;
+use GraphQL\Type\Definition\Type;
 
 class Date extends FixedParentField implements SortableFieldInterface, PreviewableFieldInterface
 {
@@ -106,11 +104,6 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
             'type' => DateTimeType::getType(),
             'description' => $config['instructions'] ?? null,
         ];
-    }
-
-    public function themeConfigKey(): string
-    {
-        return 'dateTime';
     }
 
     public static function toDateTime($value): DateTime|bool
@@ -192,6 +185,252 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
         return Db::parseParam($comparableSql, $normalizedComparableValue, columnType: Schema::TYPE_STRING);
     }
 
+    private static function _valueSqlForPart(array $instances, string $partKey): ?string
+    {
+        $db = Craft::$app->getDb();
+        $qb = $db->getQueryBuilder();
+        $sqlByInstance = [];
+
+        foreach ($instances as $instance) {
+            if (!$instance instanceof self || !$instance->uid) {
+                continue;
+            }
+
+            $partSql = $qb->jsonExtract('formie_submissions.content', [$instance->uid, $partKey]);
+            if ($partKey === 'ampm') {
+                $columnType = 'CHAR(2)';
+            } else {
+                $columnType = $db->getIsPgsql() ? 'INTEGER' : 'SIGNED';
+            }
+            $sqlByInstance[] = "CAST($partSql AS $columnType)";
+        }
+
+        if (empty($sqlByInstance)) {
+            return null;
+        }
+
+        if (count($sqlByInstance) === 1) {
+            return $sqlByInstance[0];
+        }
+
+        return sprintf('COALESCE(%s)', implode(',', $sqlByInstance));
+    }
+
+    private static function _valueSqlForComparable(array $instances): ?string
+    {
+        $db = Craft::$app->getDb();
+        $qb = $db->getQueryBuilder();
+        $sqlByInstance = [];
+
+        foreach ($instances as $instance) {
+            if (!$instance instanceof self || !$instance->uid) {
+                continue;
+            }
+
+            $year = self::_partSqlAsText($qb, $db, $instance->uid, 'year');
+            $month = self::_partSqlAsText($qb, $db, $instance->uid, 'month');
+            $day = self::_partSqlAsText($qb, $db, $instance->uid, 'day');
+            $hour = self::_partSqlAsText($qb, $db, $instance->uid, 'hour');
+            $minute = self::_partSqlAsText($qb, $db, $instance->uid, 'minute');
+            $second = self::_partSqlAsText($qb, $db, $instance->uid, 'second');
+
+            $sqlByInstance[] = "CASE WHEN $year IS NOT NULL AND $month IS NOT NULL AND $day IS NOT NULL THEN CONCAT(LPAD($year, 4, '0'), LPAD($month, 2, '0'), LPAD($day, 2, '0'), LPAD(COALESCE($hour, '0'), 2, '0'), LPAD(COALESCE($minute, '0'), 2, '0'), LPAD(COALESCE($second, '0'), 2, '0')) ELSE NULL END";
+        }
+
+        if (empty($sqlByInstance)) {
+            return null;
+        }
+
+        if (count($sqlByInstance) === 1) {
+            return $sqlByInstance[0];
+        }
+
+        return sprintf('COALESCE(%s)', implode(',', $sqlByInstance));
+    }
+
+    private static function _partSqlAsText(object $qb, object $db, string $fieldUid, string $partKey): string
+    {
+        $partSql = $qb->jsonExtract('formie_submissions.content', [$fieldUid, $partKey]);
+        $textSql = "TRIM(BOTH '\"' FROM CAST($partSql AS TEXT))";
+
+        if ($db->getIsMysql()) {
+            $textSql = "TRIM(BOTH '\"' FROM CAST($partSql AS CHAR(16)))";
+        }
+
+        return "NULLIF($textSql, '')";
+    }
+
+    private static function _normalizeComparableQueryValue(mixed $value): mixed
+    {
+        if (is_array($value)) {
+            if (empty($value)) {
+                return null;
+            }
+
+            $operator = strtolower((string)array_shift($value));
+
+            if ($operator !== 'and' && $operator !== 'or' && $operator !== 'not') {
+                return null;
+            }
+
+            $normalized = [$operator];
+
+            foreach ($value as $item) {
+                $leaf = self::_normalizeComparableQueryValue($item);
+
+                if ($leaf === null) {
+                    return null;
+                }
+
+                $normalized[] = $leaf;
+            }
+
+            return $normalized;
+        }
+
+        if (!is_string($value)) {
+            return null;
+        }
+
+        $value = trim($value);
+
+        if ($value === '') {
+            return null;
+        }
+
+        if ($value === ':empty:' || $value === ':notempty:') {
+            return $value;
+        }
+
+        if (!preg_match('/^(?:(>=|<=|<>|!=|>|<|=)\s*)?(.*)$/', $value, $matches)) {
+            return null;
+        }
+
+        $operator = $matches[1] ?? '';
+        $operand = trim($matches[2] ?? '');
+
+        if ($operand === '') {
+            return null;
+        }
+
+        $comparable = self::_comparableKeyFromOperand($operand);
+
+        if ($comparable === null) {
+            return null;
+        }
+
+        return trim(($operator ? "$operator " : '') . $comparable);
+    }
+
+    private static function _comparableKeyFromOperand(string $operand): ?string
+    {
+        $parsed = date_parse($operand);
+
+        if (($parsed['error_count'] ?? 0) > 0) {
+            return null;
+        }
+
+        if (!isset($parsed['year'], $parsed['month'], $parsed['day']) || !$parsed['year'] || !$parsed['month'] || !$parsed['day']) {
+            return null;
+        }
+
+        $hour = ($parsed['hour'] ?? null) !== null ? (int)$parsed['hour'] : 0;
+        $minute = ($parsed['minute'] ?? null) !== null ? (int)$parsed['minute'] : 0;
+        $second = ($parsed['second'] ?? null) !== null ? (int)$parsed['second'] : 0;
+
+        return sprintf(
+            '%04d%02d%02d%02d%02d%02d',
+            (int)$parsed['year'],
+            (int)$parsed['month'],
+            (int)$parsed['day'],
+            $hour,
+            $minute,
+            $second
+        );
+    }
+
+    private static function _configCollectsRange(array $config): bool
+    {
+        return ($config['collectMode'] ?? self::COLLECT_SINGLE) === self::COLLECT_RANGE
+            && ($config['displayType'] ?? '') === 'datePicker';
+    }
+
+    private static function _clearSubFieldDefaultValues(array &$rows): void
+    {
+        foreach ($rows as &$row) {
+            if (!is_array($row)) {
+                continue;
+            }
+
+            $row['fields'] = is_array($row['fields'] ?? null) ? $row['fields'] : [];
+            foreach ($row['fields'] as &$field) {
+                if (!is_array($field)) {
+                    continue;
+                }
+
+                if (array_key_exists('defaultValue', $field)) {
+                    $field['defaultValue'] = null;
+                }
+
+                if (isset($field['settings']) && is_array($field['settings']) && array_key_exists('defaultValue', $field['settings'])) {
+                    $field['settings']['defaultValue'] = null;
+                }
+            }
+            unset($field);
+        }
+        unset($row);
+    }
+
+    private static function _gqlDateRangeTypeNameFromConfig(array $config, string $suffix): string
+    {
+        $formHandle = $config['formHandle'] ?? 'form';
+        $fieldHandle = $config['handle'] ?? 'field';
+
+        return "{$formHandle}_{$fieldHandle}_FormieDateRange{$suffix}";
+    }
+
+    private static function _gqlDateRangeTypeFromConfig(array $config): Type
+    {
+        $typeName = self::_gqlDateRangeTypeNameFromConfig($config, '');
+
+        if ($type = GqlEntityRegistry::getEntity($typeName)) {
+            return $type;
+        }
+
+        return GqlEntityRegistry::createEntity($typeName, new ObjectType([
+            'name' => $typeName,
+            'fields' => [
+                'start' => [
+                    'name' => 'start',
+                    'type' => DateTimeType::getType(),
+                    'resolve' => fn(array $source) => DateFieldValue::toDateTime($source['start'] ?? []),
+                ],
+                'end' => [
+                    'name' => 'end',
+                    'type' => DateTimeType::getType(),
+                    'resolve' => fn(array $source) => DateFieldValue::toDateTime($source['end'] ?? []),
+                ],
+            ],
+        ]));
+    }
+
+    private static function _gqlDateRangeInputTypeFromConfig(array $config): Type
+    {
+        $typeName = self::_gqlDateRangeTypeNameFromConfig($config, 'Input');
+
+        if ($type = GqlEntityRegistry::getEntity($typeName)) {
+            return $type;
+        }
+
+        return GqlEntityRegistry::createEntity($typeName, new InputObjectType([
+            'name' => $typeName,
+            'fields' => fn() => [
+                'start' => Type::nonNull(DateTimeType::getType()),
+                'end' => Type::nonNull(DateTimeType::getType()),
+            ],
+        ]));
+    }
+
 
     // Constants
     // =========================================================================
@@ -268,7 +507,8 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
                 self::_clearSubFieldDefaultValues($config['rows']);
             }
 
-            foreach ($config['layouts'] ?? [] as &$layoutRows) {
+            $config['layouts'] = is_array($config['layouts'] ?? null) ? $config['layouts'] : [];
+            foreach ($config['layouts'] as &$layoutRows) {
                 if (is_array($layoutRows)) {
                     self::_clearSubFieldDefaultValues($layoutRows);
                 }
@@ -487,7 +727,8 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
             $this->_sanitizeSubFieldRowsForBuilder($settings['rows']);
         }
 
-        foreach ($settings['layouts'] ?? [] as &$layoutRows) {
+        $settings['layouts'] = is_array($settings['layouts'] ?? null) ? $settings['layouts'] : [];
+        foreach ($settings['layouts'] as &$layoutRows) {
             if (is_array($layoutRows)) {
                 $this->_sanitizeSubFieldRowsForBuilder($layoutRows);
             }
@@ -1354,6 +1595,12 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
         ]);
     }
 
+    public function themeConfigKey(): string
+    {
+        return 'dateTime';
+    }
+
+
     // Protected Methods
     // =========================================================================
 
@@ -1715,7 +1962,7 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
 
     protected function getRangeCalendarSubFields(): array
     {
-        $baseFields = $this->_getDatePickerSubFields()[0]['fields'] ?? [];
+        $baseFields = $this->getDatePickerSubFields()[0]['fields'] ?? [];
 
         return [[
             'fields' => array_merge(
@@ -1725,7 +1972,7 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
         ]];
     }
 
-    protected function _getDatePickerSubFields(): array
+    protected function getDatePickerSubFields(): array
     {
         $fields = [];
         $inputAttributes = array_merge(($this->inputAttributes ?? []), [
@@ -2193,170 +2440,6 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
         };
     }
 
-    private static function _valueSqlForPart(array $instances, string $partKey): ?string
-    {
-        $db = Craft::$app->getDb();
-        $qb = $db->getQueryBuilder();
-        $sqlByInstance = [];
-
-        foreach ($instances as $instance) {
-            if (!$instance instanceof self || !$instance->uid) {
-                continue;
-            }
-
-            $partSql = $qb->jsonExtract('formie_submissions.content', [$instance->uid, $partKey]);
-            if ($partKey === 'ampm') {
-                $columnType = 'CHAR(2)';
-            } else {
-                $columnType = $db->getIsPgsql() ? 'INTEGER' : 'SIGNED';
-            }
-            $sqlByInstance[] = "CAST($partSql AS $columnType)";
-        }
-
-        if (empty($sqlByInstance)) {
-            return null;
-        }
-
-        if (count($sqlByInstance) === 1) {
-            return $sqlByInstance[0];
-        }
-
-        return sprintf('COALESCE(%s)', implode(',', $sqlByInstance));
-    }
-
-    private static function _valueSqlForComparable(array $instances): ?string
-    {
-        $db = Craft::$app->getDb();
-        $qb = $db->getQueryBuilder();
-        $sqlByInstance = [];
-
-        foreach ($instances as $instance) {
-            if (!$instance instanceof self || !$instance->uid) {
-                continue;
-            }
-
-            $year = self::_partSqlAsText($qb, $db, $instance->uid, 'year');
-            $month = self::_partSqlAsText($qb, $db, $instance->uid, 'month');
-            $day = self::_partSqlAsText($qb, $db, $instance->uid, 'day');
-            $hour = self::_partSqlAsText($qb, $db, $instance->uid, 'hour');
-            $minute = self::_partSqlAsText($qb, $db, $instance->uid, 'minute');
-            $second = self::_partSqlAsText($qb, $db, $instance->uid, 'second');
-
-            $sqlByInstance[] = "CASE WHEN $year IS NOT NULL AND $month IS NOT NULL AND $day IS NOT NULL THEN CONCAT(LPAD($year, 4, '0'), LPAD($month, 2, '0'), LPAD($day, 2, '0'), LPAD(COALESCE($hour, '0'), 2, '0'), LPAD(COALESCE($minute, '0'), 2, '0'), LPAD(COALESCE($second, '0'), 2, '0')) ELSE NULL END";
-        }
-
-        if (empty($sqlByInstance)) {
-            return null;
-        }
-
-        if (count($sqlByInstance) === 1) {
-            return $sqlByInstance[0];
-        }
-
-        return sprintf('COALESCE(%s)', implode(',', $sqlByInstance));
-    }
-
-    private static function _partSqlAsText(object $qb, object $db, string $fieldUid, string $partKey): string
-    {
-        $partSql = $qb->jsonExtract('formie_submissions.content', [$fieldUid, $partKey]);
-        $textSql = "TRIM(BOTH '\"' FROM CAST($partSql AS TEXT))";
-
-        if ($db->getIsMysql()) {
-            $textSql = "TRIM(BOTH '\"' FROM CAST($partSql AS CHAR(16)))";
-        }
-
-        return "NULLIF($textSql, '')";
-    }
-
-    private static function _normalizeComparableQueryValue(mixed $value): mixed
-    {
-        if (is_array($value)) {
-            if (empty($value)) {
-                return null;
-            }
-
-            $operator = strtolower((string)array_shift($value));
-
-            if ($operator !== 'and' && $operator !== 'or' && $operator !== 'not') {
-                return null;
-            }
-
-            $normalized = [$operator];
-
-            foreach ($value as $item) {
-                $leaf = self::_normalizeComparableQueryValue($item);
-
-                if ($leaf === null) {
-                    return null;
-                }
-
-                $normalized[] = $leaf;
-            }
-
-            return $normalized;
-        }
-
-        if (!is_string($value)) {
-            return null;
-        }
-
-        $value = trim($value);
-
-        if ($value === '') {
-            return null;
-        }
-
-        if ($value === ':empty:' || $value === ':notempty:') {
-            return $value;
-        }
-
-        if (!preg_match('/^(?:(>=|<=|<>|!=|>|<|=)\s*)?(.*)$/', $value, $matches)) {
-            return null;
-        }
-
-        $operator = $matches[1] ?? '';
-        $operand = trim($matches[2] ?? '');
-
-        if ($operand === '') {
-            return null;
-        }
-
-        $comparable = self::_comparableKeyFromOperand($operand);
-
-        if ($comparable === null) {
-            return null;
-        }
-
-        return trim(($operator ? "$operator " : '') . $comparable);
-    }
-
-    private static function _comparableKeyFromOperand(string $operand): ?string
-    {
-        $parsed = date_parse($operand);
-
-        if (($parsed['error_count'] ?? 0) > 0) {
-            return null;
-        }
-
-        if (!isset($parsed['year'], $parsed['month'], $parsed['day']) || !$parsed['year'] || !$parsed['month'] || !$parsed['day']) {
-            return null;
-        }
-
-        $hour = ($parsed['hour'] ?? null) !== null ? (int)$parsed['hour'] : 0;
-        $minute = ($parsed['minute'] ?? null) !== null ? (int)$parsed['minute'] : 0;
-        $second = ($parsed['second'] ?? null) !== null ? (int)$parsed['second'] : 0;
-
-        return sprintf(
-            '%04d%02d%02d%02d%02d%02d',
-            (int)$parsed['year'],
-            (int)$parsed['month'],
-            (int)$parsed['day'],
-            $hour,
-            $minute,
-            $second
-        );
-    }
-
     /**
      * Normalize incoming request-style date values into canonical part maps
      * without leaking presentation format concerns into DateFieldValue.
@@ -2812,43 +2895,6 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
         return true;
     }
 
-    private static function _configCollectsRange(array $config): bool
-    {
-        return ($config['collectMode'] ?? self::COLLECT_SINGLE) === self::COLLECT_RANGE
-            && ($config['displayType'] ?? '') === 'datePicker';
-    }
-
-    /**
-     * @param array<int, mixed> $rows
-     */
-    private static function _clearSubFieldDefaultValues(array &$rows): void
-    {
-        foreach ($rows as &$row) {
-            if (!is_array($row)) {
-                continue;
-            }
-
-            foreach ($row['fields'] ?? [] as &$field) {
-                if (!is_array($field)) {
-                    continue;
-                }
-
-                if (array_key_exists('defaultValue', $field)) {
-                    $field['defaultValue'] = null;
-                }
-
-                if (isset($field['settings']) && is_array($field['settings']) && array_key_exists('defaultValue', $field['settings'])) {
-                    $field['settings']['defaultValue'] = null;
-                }
-            }
-            unset($field);
-        }
-        unset($row);
-    }
-
-    /**
-     * @param array<int, mixed> $rows
-     */
     private function _sanitizeSubFieldRowsForBuilder(array &$rows): void
     {
         foreach ($rows as &$row) {
@@ -2856,7 +2902,8 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
                 continue;
             }
 
-            foreach ($row['fields'] ?? [] as &$field) {
+            $row['fields'] = is_array($row['fields'] ?? null) ? $row['fields'] : [];
+            foreach ($row['fields'] as &$field) {
                 if (!is_array($field)) {
                     continue;
                 }
@@ -2923,53 +2970,4 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
         return $this->_normalizeBuilderSubFieldDefaultValue($this->getInitialValue(), $handle);
     }
 
-    private static function _gqlDateRangeTypeNameFromConfig(array $config, string $suffix): string
-    {
-        $formHandle = $config['formHandle'] ?? 'form';
-        $fieldHandle = $config['handle'] ?? 'field';
-
-        return "{$formHandle}_{$fieldHandle}_FormieDateRange{$suffix}";
-    }
-
-    private static function _gqlDateRangeTypeFromConfig(array $config): Type
-    {
-        $typeName = self::_gqlDateRangeTypeNameFromConfig($config, '');
-
-        if ($type = GqlEntityRegistry::getEntity($typeName)) {
-            return $type;
-        }
-
-        return GqlEntityRegistry::createEntity($typeName, new ObjectType([
-            'name' => $typeName,
-            'fields' => [
-                'start' => [
-                    'name' => 'start',
-                    'type' => DateTimeType::getType(),
-                    'resolve' => fn(array $source) => DateFieldValue::toDateTime($source['start'] ?? []),
-                ],
-                'end' => [
-                    'name' => 'end',
-                    'type' => DateTimeType::getType(),
-                    'resolve' => fn(array $source) => DateFieldValue::toDateTime($source['end'] ?? []),
-                ],
-            ],
-        ]));
-    }
-
-    private static function _gqlDateRangeInputTypeFromConfig(array $config): Type
-    {
-        $typeName = self::_gqlDateRangeTypeNameFromConfig($config, 'Input');
-
-        if ($type = GqlEntityRegistry::getEntity($typeName)) {
-            return $type;
-        }
-
-        return GqlEntityRegistry::createEntity($typeName, new InputObjectType([
-            'name' => $typeName,
-            'fields' => fn() => [
-                'start' => Type::nonNull(DateTimeType::getType()),
-                'end' => Type::nonNull(DateTimeType::getType()),
-            ],
-        ]));
-    }
 }

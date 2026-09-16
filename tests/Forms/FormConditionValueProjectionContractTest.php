@@ -60,8 +60,9 @@ it('obscures recipients condition values instead of exposing raw recipient paylo
     $normalized = $submission->getFieldValue('department');
     $conditionValue = $submission->getFieldValueForCondition('department');
 
-    expect($conditionValue)->toBe('id:0')
-        ->and($field->serializeValue($normalized, $submission))->toBe('sales@example.test');
+    expect($conditionValue)->toStartWith('base64:')
+        ->and($conditionValue)->not->toContain('sales@example.test')
+        ->and($field->serializeValue($normalized, $submission))->toBe(['value' => 'sales@example.test', 'label' => 'Sales']);
 
     $reference = $field->reference ?? 'department';
 
@@ -70,9 +71,20 @@ it('obscures recipients condition values instead of exposing raw recipient paylo
         'conditions' => [[
             'field' => References::field($reference),
             'condition' => '=',
-            'value' => 'id:0',
+            'value' => $conditionValue,
         ]],
     ], $submission))->toBeTrue();
+
+    foreach ([$field->getFakeValue('support@example.test'), 'base64:' . base64_encode('crypt:invalid')] as $nonMatching) {
+        expect(ConditionsHelper::getConditionalTestResult([
+            'conditionRule' => 'all',
+            'conditions' => [[
+                'field' => References::field($reference),
+                'condition' => '=',
+                'value' => $nonMatching,
+            ]],
+        ], $submission))->toBeFalse();
+    }
 });
 
 it('uses handle keyed condition subjects for container fields', function (): void {

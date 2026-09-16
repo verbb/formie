@@ -231,7 +231,7 @@ class Table extends Field
     public function validateColumns(): void
     {
         foreach ($this->columns as &$col) {
-            if ($col['handle']) {
+            if (!empty($col['handle'])) {
                 $error = null;
 
                 if (!preg_match('/^' . HandleValidator::$handlePattern . '$/', $col['handle'])) {
@@ -365,7 +365,7 @@ class Table extends Field
                 // Accept both persisted column IDs and client handle keys so
                 // edited builder payloads and normalized row values round-trip
                 // through the same serializer.
-                $value = $row[$colId] ?? (($column['handle'] && array_key_exists($column['handle'], $row)) ? $row[$column['handle']] : null);
+                $value = $row[$colId] ?? ((!empty($column['handle']) && array_key_exists($column['handle'], $row)) ? $row[$column['handle']] : null);
                 $value = $this->_serializeCellValue($column['type'], $value);
 
                 if (is_string($value) && !$supportsMb4) {
@@ -426,7 +426,9 @@ class Table extends Field
         $columns = [];
 
         foreach ($this->columns as $key => $col) {
-            $columns[$col['handle']] = $key;
+            if (!empty($col['handle'])) {
+                $columns[$col['handle']] = $key;
+            }
         }
 
         // Allow population via either `col1` or the handle of the column
@@ -1035,7 +1037,7 @@ class Table extends Field
         foreach ($value as $rowId => $row) {
             foreach ($this->columns as $colId => $col) {
                 // Ensure column values are prepped correctly
-                $cellValue = $row[$col['handle']] ?? null;
+                $cellValue = $row[$colId] ?? $row[$col['handle'] ?? ''] ?? null;
                 $cellValue = $this->_normalizeCellValueAsString($col['type'], $cellValue);
 
                 $values[] = $cellValue;
@@ -1056,7 +1058,7 @@ class Table extends Field
         foreach ($value as $rowId => $row) {
             foreach ($this->columns as $colId => $col) {
                 // Ensure column values are prepped correctly
-                $cellValue = $row[$col['handle']] ?? null;
+                $cellValue = $row[$colId] ?? $row[$col['handle'] ?? ''] ?? null;
                 $cellValue = $this->_normalizeCellValueAsString($col['type'], $cellValue);
 
                 $values[$this->getExportLabel($element) . ': ' . ($rowId + 1) . ': ' . $col['heading']] = $cellValue;
@@ -1080,7 +1082,7 @@ class Table extends Field
 
             foreach ($this->columns as $colId => $col) {
                 // Ensure column values are prepped correctly
-                $cellValue = $row[$col['handle']] ?? null;
+                $cellValue = $row[$colId] ?? $row[$col['handle'] ?? ''] ?? null;
                 $cellValue = $this->_normalizeCellValueAsString($col['type'], $cellValue);
 
                 $rowValues .= Html::tag('td', $cellValue);
@@ -1149,7 +1151,9 @@ class Table extends Field
         if (is_string($value) && !empty($value)) {
             $value = Json::decodeIfJson($value);
         } else if ($value === null) {
-            $value = $defaults;
+            // Defaults initialize new submissions; they must not refill a
+            // cleared table when an existing submission is loaded again.
+            $value = $this->isFresh($element) ? $defaults : [];
         }
 
         if (!is_array($value)) {
@@ -1183,7 +1187,7 @@ class Table extends Field
                     $cellValue = $defaults[$rowIndex][$colId] ?? '';
                 } else if (array_key_exists($colId, $row)) {
                     $cellValue = $row[$colId];
-                } else if ($col['handle'] && array_key_exists($col['handle'], $row)) {
+                } else if (!empty($col['handle']) && array_key_exists($col['handle'], $row)) {
                     $cellValue = $row[$col['handle']];
                 } else {
                     $cellValue = null;
@@ -1192,7 +1196,7 @@ class Table extends Field
                 $cellValue = $this->_normalizeCellValue($col['type'], $cellValue, $fromRequest);
                 $row[$colId] = $cellValue;
 
-                if ($col['handle']) {
+                if (!empty($col['handle'])) {
                     $row[$col['handle']] = $cellValue;
                 }
             }

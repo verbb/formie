@@ -78,8 +78,8 @@ it('renders password validation client attributes and registers the client modul
         'value' => '',
     ]));
 
-    expect($tag?->attributes['data-formie-password-min-length'] ?? null)->toBe(6)
-        ->and($tag?->attributes['data-formie-password-require-uppercase'] ?? null)->toBeTrue();
+    expect($tag?->attributes['data']['formie-password-min-length'] ?? null)->toBe(6)
+        ->and($tag?->attributes['data']['formie-password-require-uppercase'] ?? null)->toBeTrue();
 
     $moduleIds = array_values(array_map(
         static fn(array $module): string => (string)$module['id'],

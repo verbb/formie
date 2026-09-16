@@ -88,7 +88,7 @@ class Note extends BuilderField
     public function modifyFieldSettings(array $settings): array
     {
         $settings = parent::modifyFieldSettings($settings);
-        $settings['noteStyle'] = $settings['noteStyle'] ?: 'tip';
+        $settings['noteStyle'] = ($settings['noteStyle'] ?? null) ?: 'tip';
 
         return $settings;
     }

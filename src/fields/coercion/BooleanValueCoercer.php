@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\fields\coercion;
 
+use verbb\formie\fields\values\DateFieldValue;
 use verbb\formie\fields\values\FieldValueInterface;
 use verbb\formie\helpers\StringHelper;
 
@@ -13,6 +14,11 @@ final class BooleanValueCoercer
 
     public static function toBoolean(mixed $value): bool
     {
+        // The date client's parts array describes the editor, not an opt-in.
+        if ($value instanceof DateFieldValue) {
+            return self::toBoolean($value->toValueString());
+        }
+
         if ($value instanceof FieldValueInterface) {
             return self::toBoolean($value->toClientValue());
         }

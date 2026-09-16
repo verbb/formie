@@ -131,6 +131,7 @@ trait FieldFormBuilderTrait
         $tabSchemas = array_values(array_filter([
             $this->defineFormBuilderGeneralSchema(),
             $this->defineFormBuilderSettingsSchema(),
+            $this->defineFormBuilderValidationSchema(),
             $this->defineFormBuilderAppearanceSchema(),
             $this->defineFormBuilderAdvancedSchema(),
         ]));
@@ -285,16 +286,6 @@ trait FieldFormBuilderTrait
         return SchemaHelper::applyTranslatableToSchema($schema, static::translatableProperties());
     }
 
-    /**
-     * Hook for field-specific tab meta (e.g. tab-level `if` when every field in a
-     * tab is gated by the same condition). Prefer this over runtime “empty tab”
-     * scanning — SchemaItem already evaluates `if` cheaply on store updates.
-     */
-    protected function modifyFormBuilderTabs(array $tabs): array
-    {
-        return $tabs;
-    }
-
     public function defineFormBuilderGeneralSchema(): array
     {
         return FieldCompatibility::resolveLegacySchema($this, 'defineGeneralSchema', 'defineFormBuilderGeneralSchema');
@@ -332,6 +323,16 @@ trait FieldFormBuilderTrait
     protected function supportedDefaults(): array
     {
         return [];
+    }
+
+    /**
+     * Hook for field-specific tab meta (e.g. tab-level `if` when every field in a
+     * tab is gated by the same condition). Prefer this over runtime “empty tab”
+     * scanning — SchemaItem already evaluates `if` cheaply on store updates.
+     */
+    protected function modifyFormBuilderTabs(array $tabs): array
+    {
+        return $tabs;
     }
 
 

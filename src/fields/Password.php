@@ -13,10 +13,9 @@ use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\models\ClientModule;
 use verbb\formie\models\ClientModuleContext;
-use verbb\formie\models\SlotTag;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Notification;
-
+use verbb\formie\models\SlotTag;
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
@@ -55,11 +54,6 @@ class Password extends Field implements SortableFieldInterface, PreviewableField
         return self::KIND_TEXT;
     }
 
-    protected function shouldTrimNormalizedPlainText(): bool
-    {
-        return false;
-    }
-
     public function isValueEmpty(mixed $value, ?ElementInterface $element): bool
     {
         // Evaluate password fields differently. Because we don't populate the value back to the
@@ -69,7 +63,7 @@ class Password extends Field implements SortableFieldInterface, PreviewableField
         // We don't want to tell _what_ the value is, just if it can skip validation.
         $isValueEmpty = parent::isValueEmpty($value, $element);
 
-        if ($isValueEmpty && $element->id) {
+        if ($isValueEmpty && $element?->id) {
             $savedElement = Craft::$app->getElements()->getElementById($element->id, Submission::class);
 
             if ($savedElement) {
@@ -113,7 +107,7 @@ class Password extends Field implements SortableFieldInterface, PreviewableField
 
         $value = (string)$element->getFieldValue($this->valueKey());
 
-        if ($this->isValueEmpty($value, $element)) {
+        if (parent::isValueEmpty($value, $element)) {
             return;
         }
 
@@ -133,7 +127,7 @@ class Password extends Field implements SortableFieldInterface, PreviewableField
 
         $value = (string)$element->getFieldValue($this->valueKey());
 
-        if ($this->isValueEmpty($value, $element)) {
+        if (parent::isValueEmpty($value, $element)) {
             return;
         }
 
@@ -150,7 +144,7 @@ class Password extends Field implements SortableFieldInterface, PreviewableField
 
         $value = (string)$element->getFieldValue($this->valueKey());
 
-        if ($this->isValueEmpty($value, $element)) {
+        if (parent::isValueEmpty($value, $element)) {
             return;
         }
 
@@ -167,7 +161,7 @@ class Password extends Field implements SortableFieldInterface, PreviewableField
 
         $value = (string)$element->getFieldValue($this->valueKey());
 
-        if ($this->isValueEmpty($value, $element)) {
+        if (parent::isValueEmpty($value, $element)) {
             return;
         }
 
@@ -309,6 +303,7 @@ class Password extends Field implements SortableFieldInterface, PreviewableField
         ];
     }
 
+
     // Protected Methods
     // =========================================================================
 
@@ -429,4 +424,10 @@ class Password extends Field implements SortableFieldInterface, PreviewableField
     {
         return StringFieldValue::class;
     }
+
+    protected function shouldTrimNormalizedPlainText(): bool
+    {
+        return false;
+    }
+
 }

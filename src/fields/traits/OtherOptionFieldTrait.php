@@ -134,29 +134,9 @@ trait OtherOptionFieldTrait
             return;
         }
 
-        $fields = Craft::$app->getRequest()->getBodyParam('fields', []);
+        $selected = $this->extractSelectedValuesForValidation($element->getFieldValue($this->valueKey()));
 
-        if (!is_array($fields)) {
-            return;
-        }
-
-        $hasOtherSelected = false;
-        $otherText = '';
-
-        if ($this->multi) {
-            $raw = $fields[$this->handle] ?? null;
-
-            if (is_array($raw)) {
-                $hasOtherSelected = in_array(self::OTHER_OPTION_VALUE, $raw, true);
-                $otherText = trim((string)($raw['other'] ?? ''));
-            }
-        } else {
-            $raw = $fields[$this->handle] ?? null;
-            $hasOtherSelected = (string)$raw === self::OTHER_OPTION_VALUE;
-            $otherText = trim((string)($fields[$this->handle . 'Other'] ?? ''));
-        }
-
-        if ($hasOtherSelected && $otherText === '') {
+        if (in_array(self::OTHER_OPTION_VALUE, $selected, true)) {
             $element->addError($this->valueKey(), Craft::t('formie', 'Please enter a value for “{label}”.', [
                 'label' => $this->getOtherOptionLabel(),
             ]));
@@ -352,7 +332,8 @@ trait OtherOptionFieldTrait
         }
 
         if (!$this->multi) {
-            $fields = Craft::$app->getRequest()->getBodyParam('fields', []);
+            $request = Craft::$app->getRequest();
+            $fields = $request instanceof \craft\web\Request ? $request->getBodyParam('fields', []) : [];
 
             if (is_array($fields) && array_key_exists($this->handle . 'Other', $fields)) {
                 return (string)$fields[$this->handle . 'Other'];
@@ -381,6 +362,11 @@ trait OtherOptionFieldTrait
     {
         $otherText = trim((string)($otherText ?? ''));
 
+        // Keep the sentinel until validation can reject an empty custom answer.
+        if ($otherText === '') {
+            return $value;
+        }
+
         if ($this->multi && is_array($value)) {
             return array_map(static function($item) use ($otherText) {
                 return (string)$item === self::OTHER_OPTION_VALUE ? $otherText : $item;
@@ -402,7 +388,7 @@ trait OtherOptionFieldTrait
 
         $allowed = $this->getValidationOptionValues();
 
-        foreach ($value->all() as $option) {
+        foreach ($value instanceof MultiOptionFieldValue ? $value->all() : [$value] as $option) {
             $optionValue = (string)($option->value ?? '');
 
             if ($option->valid || $optionValue === '' || in_array($optionValue, $allowed, true)) {
