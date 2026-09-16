@@ -303,6 +303,8 @@ When you have independently verified a successful charge, record the gateway ref
 
 The command checks the amount and currency against the saved payment, rejects a conflicting reference and asks you to confirm the outcome. It saves your note with the payment. It does not create a charge or resume submission processing.
 
+Earlier attempts may not have a saved gateway account record. Repeated submissions keep these attempts unresolved. Verify the original gateway account as well as the transaction before recording an outcome, and include that account verification in your note. The command does not infer the original account from the integration’s current credentials.
+
 If the gateway confirms that no charge occurred, and any open checkout or authorisation can no longer complete, record a failed outcome to permit a fresh attempt:
 
 ```shell

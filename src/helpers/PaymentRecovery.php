@@ -3,7 +3,12 @@ namespace verbb\formie\helpers;
 
 use verbb\formie\Formie;
 use verbb\formie\base\Payment as PaymentIntegration;
+use verbb\formie\integrations\payments\Bpoint;
 use verbb\formie\integrations\payments\Eway;
+use verbb\formie\integrations\payments\Mollie;
+use verbb\formie\integrations\payments\Moneris;
+use verbb\formie\integrations\payments\Opayo;
+use verbb\formie\integrations\payments\Paddle;
 use verbb\formie\models\Payment;
 
 use Craft;
@@ -57,7 +62,16 @@ class PaymentRecovery
                 throw new RuntimeException('Only unresolved payments can be resolved.');
             }
 
-            if ($payment->subscriptionId || !(new DeliveryAttempt((int)$payment->submissionId, 'payment-owner', (string)$payment->uid))->getMetadata()) {
+            $owner = (new DeliveryAttempt((int)$payment->submissionId, 'payment-owner', (string)$payment->uid))->getMetadata();
+            $integration = $payment->getIntegration();
+
+            // Older attempts may predate the ownership ledger. Only the explicit
+            // operator flow can resolve them; never invent a trusted account record.
+            $supportsRecovery = $integration instanceof Bpoint || $integration instanceof Eway
+                || $integration instanceof Mollie || $integration instanceof Moneris
+                || $integration instanceof Opayo || $integration instanceof Paddle;
+
+            if ($payment->subscriptionId || (!$owner && !$supportsRecovery)) {
                 throw new RuntimeException('This payment uses a different recovery flow. Use its gateway status check.');
             }
 

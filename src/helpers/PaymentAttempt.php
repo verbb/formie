@@ -97,11 +97,13 @@ class PaymentAttempt
                 return PaymentDecision::succeeded($integration->handle, $payment->reference);
             }
 
-            self::verifyAccount($integration, $payment, $account, requireExisting: false);
-
-            if (!$isNew && !$knownOwner && !$payment->reference && !$payment->response) {
+            // A retry cannot establish the original account or outcome. Keep
+            // earlier unverified attempts unresolved until an operator checks them.
+            if (!$isNew && !$knownOwner) {
                 throw new DeliveryOutcomeUnknownException('This earlier payment has no saved outcome. Check the gateway before retrying.');
             }
+
+            self::verifyAccount($integration, $payment, $account, requireExisting: false);
 
             return $process($payment, $attempt);
         } catch (Throwable $e) {

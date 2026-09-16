@@ -366,3 +366,31 @@ it('does not resend after a worker exits immediately after the gateway accepts a
         expect($payments)->toHaveCount(1)->and($payments[0]->status)->toBe(Payment::STATUS_PENDING);
     } finally { @unlink($path); }
 });
+
+it('keeps unverified earlier attempts pending until an operator records their outcome', function (string $outcome, string $savedState): void {
+    [$integration, $submission] = paymentAttemptFixture('eway');
+    $payment = new Payment([
+        'submissionId' => $submission->id,
+        'integrationId' => $integration->id,
+        'fieldId' => $integration->getField()->id,
+        'amount' => 25,
+        'currency' => 'USD',
+        'status' => Payment::STATUS_PENDING,
+        'reference' => $savedState === 'reference' ? 'earlier-' . uniqid() : null,
+        'response' => $savedState === 'receipt' ? ['TransactionStatus' => true] : null,
+    ]);
+    expect(Formie::$plugin->getPayments()->savePayment($payment))->toBeTrue();
+
+    for ($retry = 0; $retry < 3; $retry++) {
+        $integration->apiKey = 'current-account-' . $retry;
+        expect($integration->processPayment($submission)->status)->toBe('pending');
+        expect(Formie::$plugin->getPayments()->getPaymentById($payment->id)->status)->toBe(Payment::STATUS_PENDING);
+    }
+
+    expect($integration->requests)->toBe([]);
+    expect((new DeliveryAttempt((int)$submission->id, 'payment-owner', (string)$payment->uid))->getMetadata())->toBeNull();
+    $reference = $payment->reference ?: ($outcome === 'success' ? 'verified-' . uniqid() : '');
+    PaymentRecovery::resolve($payment->id, $outcome, 25, 'USD', $reference, 'Operator independently verified the original gateway account and outcome.');
+    expect($integration->processPayment($submission)->status)->toBe('succeeded');
+    expect($integration->requests)->toHaveCount($outcome === 'success' ? 0 : 1);
+})->with(['success', 'failed'])->with(['empty', 'reference', 'receipt']);
