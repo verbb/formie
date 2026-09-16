@@ -82,17 +82,10 @@ class ProcessPaymentsTask implements TaskInterface
         $submission = $context->request->submission;
         $currentPageId = (int)($context->request->form->getCurrentPage()?->id ?? 0);
         $decision = PaymentDecision::notRequired();
-        $firstMisplacedPaymentField = null;
+        $paymentFields = [];
 
         foreach ($submission->getFields() as $field) {
             if (!$field instanceof formiefields\Payment) {
-                continue;
-            }
-
-            // For multi-page forms, only process payment fields on the active page.
-            // This prevents first-page submits from prematurely running payment logic
-            // for fields that live on later pages.
-            if ($currentPageId > 0 && (int)($field->pageId ?? 0) > 0 && (int)$field->pageId !== $currentPageId) {
                 continue;
             }
 
@@ -107,15 +100,20 @@ class ProcessPaymentsTask implements TaskInterface
                 continue;
             }
 
-            // Set the payment field on the integration, for ease-of-use.
+            // Validate the whole payment layout before any provider can charge.
+            // Payment is deferred on earlier pages, so skipping them here would
+            // silently accept an unpaid requirement on the final submit.
             if ($currentPageId > 0 && (int)($field->pageId ?? 0) > 0 && (int)$field->pageId !== $currentPageId) {
-                if ($firstMisplacedPaymentField === null) {
-                    $firstMisplacedPaymentField = $field;
-                }
+                $message = Craft::t('formie', 'Payment field must be placed on the final page to process payment.');
+                $submission->addError($field->errorKey(), $message);
 
-                continue;
+                return PaymentDecision::failed($message);
             }
 
+            $paymentFields[] = [$field, $paymentIntegration];
+        }
+
+        foreach ($paymentFields as [$field, $paymentIntegration]) {
             $paymentIntegration->setField($field);
             $fieldDecision = $paymentIntegration instanceof PaymentIntegration
                 ? $paymentIntegration->resolvePaymentDecision($submission)
@@ -125,14 +123,6 @@ class ProcessPaymentsTask implements TaskInterface
             if (in_array($fieldDecision->status, [PaymentDecision::STATUS_FAILED, PaymentDecision::STATUS_ACTION_REQUIRED, PaymentDecision::STATUS_PENDING], true)) {
                 break;
             }
-        }
-
-        // Misconfigured multi-page forms should fail loudly, not silently skip payment.
-        if ($decision->status === PaymentDecision::STATUS_NOT_REQUIRED && $firstMisplacedPaymentField) {
-            $message = Craft::t('formie', 'Payment field must be placed on the final page to process payment.');
-            $submission->addError($firstMisplacedPaymentField->errorKey(), $message);
-
-            return PaymentDecision::failed($message);
         }
 
         return $decision;

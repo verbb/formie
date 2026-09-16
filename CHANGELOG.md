@@ -17,6 +17,7 @@
 - Bump transitive `symfony/cache` to `6.4.45` (CVE-2026-45073 advisory floor).
 
 ### Fixed
+- Require all visible payment fields to be on the final submission page before processing payments.
 - Fixed a rate limit bypass vulnerability.
 - Preserve every report export column when labels repeat, and retain numeric labels as JSON object keys.
 - Keep unresolved earlier payment attempts blocked until their gateway outcome is verified.

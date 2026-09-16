@@ -12,6 +12,8 @@ Use Payment when the form itself is responsible for taking payment. If the proje
 
 Start with a form containing a Payment field and connect a provider using its setup page below. Configure the amount and currency, then use the provider’s test environment to complete the form. Inspect both the saved submission and the provider’s transaction before using live credentials. Also test a declined or cancelled payment; the confirmation shown to the visitor must match the actual payment outcome.
 
+For a multi-page form, place every enabled Payment field on the final page shown to the visitor. Payment runs when the form is completed. A visible Payment field on an earlier page prevents completion, so test each path when page or field conditions change what visitors see.
+
 ## Key Settings
 
 - **Payment integration** - Choose the provider used by this field.
