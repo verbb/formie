@@ -332,7 +332,6 @@ class FormsController extends Controller
         $response = $this->asCpScreen()
             ->docTitle(Craft::t('formie', 'Form Preview'))
             ->title(Craft::t('formie', 'Form Preview'))
-            ->toolbarHtml(Formie::$plugin->getFormPreview()->getSlideoutToolbarHtml())
             ->contentHtml(Formie::$plugin->getFormPreview()->getSlideoutContentHtml($previewKey))
             ->prepareScreen(function (CraftResponse $response, string $containerId): void {
                 Formie::$plugin->getFormPreview()->registerSlideoutPaneHeader($containerId);
@@ -341,6 +340,15 @@ class FormsController extends Controller
         $screen = $response->getBehavior(CpScreenResponseBehavior::NAME);
 
         if ($screen instanceof CpScreenResponseBehavior) {
+            $notice = Formie::$plugin->getFormPreview()->getSlideoutToolbarHtml();
+
+            if (method_exists($screen, 'toolbarHtml')) {
+                $screen->toolbarHtml($notice);
+            } else {
+                // Before Craft 5.7, keep the preview notice above the iframe in the body.
+                $screen->contentHtml($notice . Formie::$plugin->getFormPreview()->getSlideoutContentHtml($previewKey));
+            }
+
             $screen->slideoutBodyClass = 'so-full-details formie-form-preview-slideout';
         }
 

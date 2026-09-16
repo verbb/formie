@@ -5,6 +5,20 @@ declare(strict_types=1);
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 
+it('opens a preview slideout with its frame and unsaved-submission notice', function (): void {
+    \Tests\Support\WebRequestTestHelper::withWebRequestContext(function ($request): void {
+        $request->setIsCpRequest(true);
+        Craft::$app->getUser()->setIdentity(\craft\elements\User::find()->admin(true)->one());
+        $token = Formie::$plugin->getFormPreview()->createSession(['title' => 'Preview', 'handle' => 'preview', 'pages' => []]);
+        $request->setQueryParams(['previewKey' => $token]);
+        $controller = new \verbb\formie\controllers\FormsController('forms', Formie::$plugin);
+        $screen = $controller->actionPreviewSlideout()->getBehavior(\craft\web\CpScreenResponseBehavior::NAME);
+        expect($screen->contentHtml)->toContain('<iframe');
+        $notice = property_exists($screen, 'toolbarHtml') ? $screen->toolbarHtml : $screen->contentHtml;
+        expect($notice)->toContain('Submissions are not saved.');
+    });
+});
+
 it('stores and retrieves preview sessions for the current user', function (): void {
     \Tests\Support\WebRequestTestHelper::withWebRequestContext(function (): void {
         $admin = \craft\elements\User::find()->admin(true)->one();
