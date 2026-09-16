@@ -65,7 +65,7 @@ class SettingsAccessController extends Controller
         }
 
         if ($section === 'save-settings') {
-            return $permissions->normalizeSettingsPage(
+            return Formie::$plugin->getPermissions()->normalizeSettingsPage(
                 (string)$request->getBodyParam('page', 'general'),
             );
         }

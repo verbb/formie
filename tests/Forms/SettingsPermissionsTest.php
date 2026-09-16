@@ -47,3 +47,25 @@ it('registers a settings permission definition for every settings page', functio
         expect($definitions)->toHaveKey($permissions->settingsPagePermissionKey($page));
     }
 });
+
+it('authorizes a settings save using its posted page', function (string $page): void {
+    \Tests\Support\WebRequestTestHelper::withWebRequestContext(function ($request) use ($page): void {
+        // Craft resolves its segment cache during construction, before setPathInfo can affect it.
+        $request = new \craft\web\Request([
+            'pathInfo' => 'formie/settings/save-settings',
+            'isCpRequest' => true,
+            'isConsoleRequest' => false,
+            'cookieValidationKey' => 'settings-request-test',
+        ]);
+        Craft::$app->set('request', $request);
+        expect($request->getSegments())->toBe(['formie', 'settings', 'save-settings']);
+        Craft::$app->getUser()->setIdentity(\craft\elements\User::find()->admin(true)->one());
+        $request->setBodyParams([
+            $request->csrfParam => $request->getCsrfToken(),
+            'page' => $page,
+        ]);
+        $controller = new \verbb\formie\controllers\SettingsController('settings', Formie::$plugin);
+
+        expect($controller->beforeAction(new \yii\base\Action('save-settings', $controller)))->toBeTrue();
+    }, ['method' => 'POST', 'requestUri' => '/admin/formie/settings/save-settings']);
+})->with(['general', 'forms', 'spam']);

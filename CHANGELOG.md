@@ -17,6 +17,7 @@
 - Bump transitive `symfony/cache` to `6.4.45` (CVE-2026-45073 advisory floor).
 
 ### Fixed
+- Allow settings save requests to resolve their posted settings page without an error.
 - Supply a document title for every beta settings page so Craft 5 can render them without adding a settings-content heading.
 - Keep field error live regions mounted without reserving empty layout space, honour the configured announcement priority, and associate definition-driven errors with their controls. ([#2954](https://github.com/verbb/formie/issues/2954))
 - Preserve payment attempts and gateway receipts across interrupted Moneris, Eway, BPOINT, Opayo, Mollie and Paddle requests, and stop ambiguous outcomes from triggering another purchase.
