@@ -53,6 +53,13 @@ class ScheduledReports extends Component
         return $this->_scheduledReports()->firstWhere('id', $id);
     }
 
+    public function getFreshScheduledReportById(int $id): ?ScheduledReport
+    {
+        $this->_scheduledReports = null;
+
+        return Craft::$app->getDb()->useMaster(fn() => $this->getScheduledReportById($id));
+    }
+
     public function getScheduledReportByUid(string $uid): ?ScheduledReport
     {
         return $this->_scheduledReports()->firstWhere('uid', $uid, true);

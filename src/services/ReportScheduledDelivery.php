@@ -23,6 +23,34 @@ class ReportScheduledDelivery extends Component
     // Public Methods
     // =========================================================================
 
+    public function sendIfDue(ScheduledReport $scheduledReport): bool
+    {
+        if (!$scheduledReport->id) {
+            throw new \InvalidArgumentException('Scheduled report must be saved before delivery.');
+        }
+
+        $mutex = Craft::$app->getMutex();
+        $lock = 'formie:scheduled-report:' . $scheduledReport->id;
+
+        if (!$mutex->acquire($lock)) {
+            return false;
+        }
+
+        try {
+            // Another runner may have delivered this period after our initial selection.
+            $schedules = Formie::$plugin->getScheduledReports();
+            $current = $schedules->getFreshScheduledReportById($scheduledReport->id);
+
+            if (!$current || !$current->enabled || !$schedules->isDue($current)) {
+                return false;
+            }
+
+            return $this->send($current);
+        } finally {
+            $mutex->release($lock);
+        }
+    }
+
     public function send(ScheduledReport $scheduledReport, bool $testSend = false, ?User $triggeredBy = null): bool
     {
         $report = Formie::$plugin->getReports()->getReportById((int)$scheduledReport->reportId);

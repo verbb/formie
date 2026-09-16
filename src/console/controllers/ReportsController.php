@@ -34,7 +34,12 @@ class ReportsController extends Controller
             $this->stdout("Sending scheduled report “{$scheduledReport->name}”…\n", Console::FG_YELLOW);
 
             try {
-                Formie::$plugin->getReportScheduledDelivery()->send($scheduledReport);
+                if (!Formie::$plugin->getReportScheduledDelivery()->sendIfDue($scheduledReport)) {
+                    $this->stdout("Skipped.\n", Console::FG_YELLOW);
+
+                    continue;
+                }
+
                 $sent++;
                 $this->stdout("Sent.\n", Console::FG_GREEN);
             } catch (\Throwable $e) {
