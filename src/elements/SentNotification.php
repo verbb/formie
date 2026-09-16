@@ -296,7 +296,7 @@ class SentNotification extends Element
     public function getForm(): ?Form
     {
         if (!$this->_form && $this->formId) {
-            $this->_form = Form::find()->id($this->formId)->one();
+            $this->_form = Form::find()->withoutCpIndexScope()->id($this->formId)->site('*')->unique()->status(null)->one();
         }
 
         return $this->_form;
