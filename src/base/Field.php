@@ -842,8 +842,19 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
         $value = $element->getFieldValue($this->valueKey());
         $value = trim($value);
 
+        $content = [$this->uid => $value];
+
+        // Follow the stored parent structure, matching any row of a repeater.
+        for ($parent = $this->getParentField(); $parent; $parent = $parent->getParentField()) {
+            if ($parent instanceof RepeatableParentFieldInterface) {
+                $content = [$content];
+            }
+
+            $content = [$parent->uid => $content];
+        }
+
         // Use a DB lookup for performance
-        $contentQuery = Craft::$app->getDb()->getQueryBuilder()->jsonContains('s.content', [$this->uid => $value]);
+        $contentQuery = Craft::$app->getDb()->getQueryBuilder()->jsonContains('s.content', $content);
 
         $query = (new Query())
             ->from(['s' => Table::FORMIE_SUBMISSIONS])

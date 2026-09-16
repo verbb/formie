@@ -17,6 +17,7 @@
 - Bump transitive `symfony/cache` to `6.4.45` (CVE-2026-45073 advisory floor).
 
 ### Fixed
+- Enforce unique values for fields inside groups and repeaters.
 - Stop enforcing saved number bounds when limits are disabled.
 - Apply selected submission states consistently to report summaries, tables, charts and exports.
 - Sort report tables and exports by the displayed form name.
