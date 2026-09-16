@@ -131,6 +131,16 @@ class IntegrationTriggers extends Component
         $integration->context['triggerEvent'] = IntegrationTriggerEvents::MANUAL;
         $integration->context['operatorInitiated'] = true;
 
-        return Formie::$plugin->getIntegrations()->sendIntegrationPayload($integration, $submission);
+        $response = false;
+        $send = function () use ($integration, $submission, &$response): bool {
+            $response = Formie::$plugin->getIntegrations()->sendIntegrationPayload($integration, $submission);
+            return $response instanceof IntegrationResponse ? $response->success : (bool)$response;
+        };
+        if ($submission->id && $submission->uid) {
+            (new \verbb\formie\helpers\DeliveryAttempt((int)$submission->id, 'integration:' . $integration->handle, StringHelper::UUID()))->execute([], $send);
+        } else {
+            $send();
+        }
+        return $response;
     }
 }

@@ -2,24 +2,23 @@
 namespace verbb\formie\services;
 
 use verbb\formie\Formie;
+use verbb\formie\elements\Form;
+use verbb\formie\elements\Submission;
 use verbb\formie\enums\workflow\Stage;
 use verbb\formie\enums\workflow\Task;
-use verbb\formie\events\RegisterWorkflowStagesEvent;
 use verbb\formie\events\RegisterStageTasksEvent;
+use verbb\formie\events\RegisterWorkflowStagesEvent;
 use verbb\formie\events\SubmissionCompleteEvent;
 use verbb\formie\events\SubmissionPageAdvanceEvent;
 use verbb\formie\events\SubmissionRequestEvent;
 use verbb\formie\events\SubmissionWorkflowStageEvent;
 use verbb\formie\events\SubmissionWorkflowTaskEvent;
 use verbb\formie\models\FieldLayoutPage;
-use verbb\formie\models\SubmissionResponse;
 use verbb\formie\models\SubmissionRequest;
-use verbb\formie\workflow\StageRegistry;
+use verbb\formie\models\SubmissionResponse;
 use verbb\formie\workflow\StageInterface;
+use verbb\formie\workflow\StageRegistry;
 use verbb\formie\workflow\StageResult;
-use verbb\formie\workflow\WorkflowContext;
-use verbb\formie\workflow\WorkflowPolicy;
-use verbb\formie\workflow\tasks\TaskInterface;
 use verbb\formie\workflow\stages\AuthorizeStage;
 use verbb\formie\workflow\stages\DispatchStage;
 use verbb\formie\workflow\stages\FinalizeStage;
@@ -28,8 +27,9 @@ use verbb\formie\workflow\stages\PrepareStage;
 use verbb\formie\workflow\stages\SaveStage;
 use verbb\formie\workflow\stages\ScreenStage;
 use verbb\formie\workflow\stages\ValidateStage;
-use verbb\formie\elements\Form;
-use verbb\formie\elements\Submission;
+use verbb\formie\workflow\tasks\TaskInterface;
+use verbb\formie\workflow\WorkflowContext;
+use verbb\formie\workflow\WorkflowPolicy;
 
 use Craft;
 use craft\helpers\Json;
@@ -39,6 +39,19 @@ use yii\web\BadRequestHttpException;
 
 class SubmissionWorkflow extends Component
 {
+    // Static Methods
+    // =========================================================================
+
+    public static function getAllowedSubmitActions(): array
+    {
+        return [
+            self::SUBMIT_ACTION_SUBMIT,
+            self::SUBMIT_ACTION_BACK,
+            self::SUBMIT_ACTION_SAVE,
+        ];
+    }
+
+
     // Constants
     // =========================================================================
 
@@ -68,75 +81,28 @@ class SubmissionWorkflow extends Component
     public const EVENT_AFTER_PAGE_ADVANCE = 'afterPageAdvance';
 
 
-    // Static Methods
-    // =========================================================================
-
-    public static function getAllowedSubmitActions(): array
-    {
-        return [
-            self::SUBMIT_ACTION_SUBMIT,
-            self::SUBMIT_ACTION_BACK,
-            self::SUBMIT_ACTION_SAVE,
-        ];
-    }
-
-
     // Public Methods
     // =========================================================================
 
     public function processSubmissionRequest(SubmissionRequest $request): SubmissionResponse
     {
-        // All submission entry surfaces collapse into the same stage engine. The
-        // request decides which tasks are enabled, but stage ordering and stage
-        // events stay consistent across controller, managed-client, mutation, and
-        // payment-replay execution.
-        $workflow = $this->_getSubmitWorkflow($request);
-        $context = new WorkflowContext($request, $workflow);
-        WorkflowContext::push($context);
+        // Cover validation through finalization, rather than consuming a token
+        // before delivery has succeeded. Also serialize tokenless existing-record replays.
+        $identity = $request->requestToken ?: ($request->submission->id ? 'submission:' . $request->submission->id : null);
+        $key = $identity === null ? null : 'formie.workflow.' . hash('sha256', $request->form->uid . '|' . $identity);
+        $mutex = Craft::$app->getMutex();
+
+        if ($key !== null && !$mutex->acquire($key, 10)) {
+            throw new \RuntimeException('Submission processing is already in progress. Retry later.');
+        }
 
         try {
-            $stages = $this->_createWorkflowStages();
-            $context = $this->_runWorkflowStages($context, $stages);
+            return $this->_processSubmissionRequest($request);
         } finally {
-            WorkflowContext::pop();
-        }
-
-        if (!$context->success) {
-            $submissionErrors = $request->submission->getErrors();
-            $haltedStage = $context->workflowExecution->haltedAtStage;
-            $haltedStageResult = $haltedStage ? ($context->workflowExecution->stageResults[$haltedStage] ?? null) : null;
-            $paymentDecision = $context->taskState['payment.decision'] ?? null;
-
-            if (is_object($paymentDecision) && method_exists($paymentDecision, 'toArray')) {
-                $paymentDecision = $paymentDecision->toArray();
+            if ($key !== null) {
+                $mutex->release($key);
             }
-
-            Formie::info('Couldn’t save submission due to workflow errors - {e}.', ['e' => Json::encode($submissionErrors)]);
-            Formie::warning('Workflow failure details: haltedStage="{stage}" stageMeta={meta} paymentStatus="{paymentStatus}" paymentMessage="{paymentMessage}" paymentDecision={paymentDecision}.', [
-                'stage' => $haltedStage ?? '',
-                'meta' => Json::encode($haltedStageResult?->meta ?? []),
-                'paymentStatus' => (string)($context->response->paymentStatus ?? ''),
-                'paymentMessage' => (string)($context->response->paymentMessage ?? ''),
-                'paymentDecision' => Json::encode($paymentDecision ?? []),
-            ]);
         }
-
-        $context->response->success = $context->success;
-        $context->response->nextPage = $context->nextPage;
-        $context->response->form = $request->form;
-        $context->response->submission = $request->submission;
-        $context->response->workflowResult = [
-            'success' => $context->workflowExecution->success,
-            'halted' => $context->workflowExecution->halted,
-            'haltedAtStage' => $context->workflowExecution->haltedAtStage,
-            'stages' => array_map(static fn($result) => [
-                'success' => $result->success,
-                'halt' => $result->halt,
-                'meta' => $result->meta,
-            ], $context->workflowExecution->stageResults),
-        ];
-
-        return $context->response;
     }
 
     public function setPageNavigationState(Form $form, ?int $pageId, ?int $submissionId = null): void
@@ -444,6 +410,7 @@ class SubmissionWorkflow extends Component
                 Task::PREPARE_INITIALIZE_SUBMIT_REQUEST->value,
                 Task::NORMALIZE_HANDLE_BACK_NAVIGATION->value,
                 Task::NORMALIZE_RESOLVE_PAGE_FLOW->value,
+                Task::NORMALIZE_CLEAR_CONDITIONALLY_HIDDEN_FIELDS->value,
                 Task::NORMALIZE_ENSURE_SUBMISSION_DEFAULTS->value,
                 Task::VALIDATE_SUBMISSION->value,
                 Task::AUTHORIZE_HALT_ON_SUBMISSION_ERRORS->value,
@@ -606,4 +573,60 @@ class SubmissionWorkflow extends Component
 
         return null;
     }
+
+    private function _processSubmissionRequest(SubmissionRequest $request): SubmissionResponse
+    {
+        // All submission entry surfaces collapse into the same stage engine. The
+        // request decides which tasks are enabled, but stage ordering and stage
+        // events stay consistent across controller, managed-client, mutation, and
+        // payment-replay execution.
+        $workflow = $this->_getSubmitWorkflow($request);
+        $context = new WorkflowContext($request, $workflow);
+        WorkflowContext::push($context);
+
+        try {
+            $stages = $this->_createWorkflowStages();
+            $context = $this->_runWorkflowStages($context, $stages);
+        } finally {
+            WorkflowContext::pop();
+        }
+
+        if (!$context->success) {
+            $submissionErrors = $request->submission->getErrors();
+            $haltedStage = $context->workflowExecution->haltedAtStage;
+            $haltedStageResult = $haltedStage ? ($context->workflowExecution->stageResults[$haltedStage] ?? null) : null;
+            $paymentDecision = $context->taskState['payment.decision'] ?? null;
+
+            if (is_object($paymentDecision) && method_exists($paymentDecision, 'toArray')) {
+                $paymentDecision = $paymentDecision->toArray();
+            }
+
+            Formie::info('Couldn’t save submission due to workflow errors - {e}.', ['e' => Json::encode($submissionErrors)]);
+            Formie::warning('Workflow failure details: haltedStage="{stage}" stageMeta={meta} paymentStatus="{paymentStatus}" paymentMessage="{paymentMessage}" paymentDecision={paymentDecision}.', [
+                'stage' => $haltedStage ?? '',
+                'meta' => Json::encode($haltedStageResult?->meta ?? []),
+                'paymentStatus' => (string)($context->response->paymentStatus ?? ''),
+                'paymentMessage' => (string)($context->response->paymentMessage ?? ''),
+                'paymentDecision' => Json::encode($paymentDecision ?? []),
+            ]);
+        }
+
+        $context->response->success = $context->success;
+        $context->response->nextPage = $context->nextPage;
+        $context->response->form = $request->form;
+        $context->response->submission = $request->submission;
+        $context->response->workflowResult = [
+            'success' => $context->workflowExecution->success,
+            'halted' => $context->workflowExecution->halted,
+            'haltedAtStage' => $context->workflowExecution->haltedAtStage,
+            'stages' => array_map(static fn($result) => [
+                'success' => $result->success,
+                'halt' => $result->halt,
+                'meta' => $result->meta,
+            ], $context->workflowExecution->stageResults),
+        ];
+
+        return $context->response;
+    }
+
 }

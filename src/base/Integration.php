@@ -802,19 +802,35 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     public function request(string $method, string $uri, array $options = []): mixed
     {
-        // If an OAuth-based integration, use the Auth module's client to do the request
-        if (static::supportsOAuthConnection()) {
-            return $this->OAuthRequest($method, $uri, $options);
+        $writes = !in_array(strtoupper($method), ['GET', 'HEAD', 'OPTIONS'], true);
+        try {
+            // If an OAuth-based integration, use the Auth module's client to do the request
+            if (static::supportsOAuthConnection()) {
+                $result = $this->OAuthRequest($method, $uri, $options);
+                if ($writes) {
+                    $this->context['deliveryWriteAccepted'] = true;
+                }
+                return $result;
+            }
+
+            $response = $this->getClient()->request($method, ltrim($uri, '/'), $options);
+            if ($writes) {
+                $this->context['deliveryWriteAccepted'] = true;
+            }
+            $text = (string)$response->getBody()->getContents();
+
+            if (Json::isJsonObject($text)) {
+                return Json::decode($text);
+            }
+
+            return $text;
+        } catch (\Throwable $e) {
+            $response = $e instanceof \GuzzleHttp\Exception\RequestException ? $e->getResponse() : null;
+            if ($writes && (!$response || $response->getStatusCode() >= 500 || $response->getStatusCode() === 408)) {
+                $this->context['deliveryUncertain'] = true;
+            }
+            throw $e;
         }
-
-        $response = $this->getClient()->request($method, ltrim($uri, '/'), $options);
-        $text = (string)$response->getBody()->getContents();
-
-        if (Json::isJsonObject($text)) {
-            return Json::decode($text);
-        }
-
-        return $text;
     }
 
     public function deliverPayload(Submission $submission, string $endpoint, mixed $payload, string $method = 'POST', string $contentType = 'json'): mixed

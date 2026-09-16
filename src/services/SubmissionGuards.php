@@ -125,8 +125,8 @@ class SubmissionGuards extends Component
     }
 
     /**
-     * Atomically claim a replay token before dispatch side effects.
-     * Uses cache->add() so concurrent workers cannot both win.
+     * Add a replay marker if it does not already exist. Workflow execution
+     * is serialized separately and consumes this marker at finalization.
      * Returns false when the token was already claimed/consumed.
      */
     public function claimReplayToken(string $formUid, string $requestToken): bool
@@ -152,8 +152,7 @@ class SubmissionGuards extends Component
             return;
         }
 
-        // Prefer atomic claim; fall back to set so finalize remains idempotent
-        // when claim already ran at dispatch start.
+        // Refresh the expiry if this token has already been consumed.
         if ($this->claimReplayToken($formUid, $requestToken)) {
             return;
         }

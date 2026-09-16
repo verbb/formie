@@ -1,21 +1,22 @@
 <?php
 namespace verbb\formie\services;
 
-use verbb\formie\cache\IntegrationLookupCache;
 use verbb\formie\Formie;
 use verbb\formie\base\Captcha;
+use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
+use verbb\formie\cache\IntegrationLookupCache;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\errors\IntegrationException;
 use verbb\formie\events\IntegrationEvent;
 use verbb\formie\events\ModifyFormIntegrationEvent;
 use verbb\formie\events\ModifyFormIntegrationsEvent;
 use verbb\formie\events\RegisterIntegrationsEvent;
-use verbb\formie\errors\IntegrationException;
 use verbb\formie\events\TriggerIntegrationEvent;
 use verbb\formie\events\TriggerIntegrationFailureEvent;
-use verbb\formie\base\FormInterface;
+use verbb\formie\gql\types\input\CaptchaInputType;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\DbSchema;
 use verbb\formie\helpers\IntegrationTriggerEvents;
@@ -23,18 +24,17 @@ use verbb\formie\helpers\Plugin;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
-use verbb\formie\jobs\TriggerIntegration;
-use verbb\formie\gql\types\input\CaptchaInputType;
 use verbb\formie\integrations\addressproviders;
+use verbb\formie\integrations\automations;
 use verbb\formie\integrations\captchas;
 use verbb\formie\integrations\crm;
 use verbb\formie\integrations\elements;
 use verbb\formie\integrations\emailmarketing;
 use verbb\formie\integrations\helpdesk;
-use verbb\formie\integrations\miscellaneous;
 use verbb\formie\integrations\messaging;
+use verbb\formie\integrations\miscellaneous;
 use verbb\formie\integrations\payments;
-use verbb\formie\integrations\automations;
+use verbb\formie\jobs\TriggerIntegration;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\IntegrationResponse;
 use verbb\formie\models\MissingIntegration;
@@ -56,15 +56,29 @@ use craft\helpers\Queue;
 use craft\queue\Queue as CraftQueue;
 
 use yii\base\Component;
+use yii\base\InvalidConfigException;
 use yii\base\UnknownPropertyException;
 use yii\db\ActiveRecord;
+use yii\db\Exception;
 
 use Throwable;
-use yii\base\InvalidConfigException;
-use yii\db\Exception;
 
 class Integrations extends Component
 {
+
+    // Static Methods
+    // =========================================================================
+
+    public static function resolveScopeForNew(?string $requestedScope = null): string
+    {
+        if ($requestedScope === self::SCOPE_PROJECT && Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
+            return self::SCOPE_PROJECT;
+        }
+
+        return self::SCOPE_SITE;
+    }
+
+
     // Constants
     // =========================================================================
 
@@ -312,15 +326,6 @@ class Integrations extends Component
         return $this->getAllIntegrationTypes()[$type] ?? [];
     }
 
-    public static function resolveScopeForNew(?string $requestedScope = null): string
-    {
-        if ($requestedScope === self::SCOPE_PROJECT && Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
-            return self::SCOPE_PROJECT;
-        }
-
-        return self::SCOPE_SITE;
-    }
-
     public function getAllIntegrations(): array
     {
         return $this->_integrations()->all();
@@ -387,21 +392,10 @@ class Integrations extends Component
         $executor->runSteps($submission, $handles, $triggerContext);
     }
 
-    private function _buildTriggerContext(
-        string $processMode,
-        ?string $triggerEvent,
-        bool $operatorInitiated,
-    ): array {
-        return [
-            'processMode' => $processMode,
-            'isSubmissionEdit' => $processMode === SubmissionWorkflow::PROCESS_MODE_EDIT_EXISTING,
-            'triggerEvent' => $triggerEvent ?? IntegrationTriggerEvents::resolveFromProcessMode($processMode),
-            'operatorInitiated' => $operatorInitiated,
-        ];
-    }
-
     public function sendIntegrationPayload(Integration $integration, Submission $submission): bool|IntegrationResponse
     {
+        unset($integration->context['deliveryUncertain'], $integration->context['deliveryWriteAccepted']);
+
         $event = new TriggerIntegrationEvent([
             'submission' => $submission,
             'type' => get_class($integration),
@@ -416,8 +410,18 @@ class Integrations extends Component
         try {
             $response = $integration->sendPayLoad($event->submission);
         } catch (Throwable $e) {
+            if (!empty($integration->context['deliveryUncertain']) || !empty($integration->context['deliveryWriteAccepted'])) {
+                $e = new \verbb\formie\errors\DeliveryOutcomeUnknownException('Delivery outcome unknown. Check the destination before running this integration again.', 0, $e);
+            }
             $this->handleTriggerIntegrationFailed($integration, $submission, $e);
             throw $e;
+        }
+
+        $succeeded = $response instanceof IntegrationResponse ? $response->success : (bool)$response;
+        if (!$succeeded && (!empty($integration->context['deliveryUncertain']) || !empty($integration->context['deliveryWriteAccepted']))) {
+            $error = new \verbb\formie\errors\DeliveryOutcomeUnknownException('Delivery outcome unknown. Check the destination before running this integration again.');
+            $this->handleTriggerIntegrationFailed($integration, $submission, $error);
+            throw $error;
         }
 
         if ($response instanceof IntegrationResponse && !$response->success) {
@@ -1520,6 +1524,19 @@ class Integrations extends Component
         $query->andWhere(['uid' => $uid]);
 
         return $query->one() ?? new IntegrationRecord();
+    }
+
+    private function _buildTriggerContext(
+        string $processMode,
+        ?string $triggerEvent,
+        bool $operatorInitiated,
+    ): array {
+        return [
+            'processMode' => $processMode,
+            'isSubmissionEdit' => $processMode === SubmissionWorkflow::PROCESS_MODE_EDIT_EXISTING,
+            'triggerEvent' => $triggerEvent ?? IntegrationTriggerEvents::resolveFromProcessMode($processMode),
+            'operatorInitiated' => $operatorInitiated,
+        ];
     }
 
 }

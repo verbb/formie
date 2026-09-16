@@ -9,16 +9,22 @@ use verbb\formie\models\Notification;
 use Craft;
 use craft\helpers\Json;
 use craft\queue\BaseJob as CraftBaseJob;
+
 use Exception;
 
 class SendNotification extends CraftBaseJob implements DebuggableJobInterface
 {
+    // Traits
+    // =========================================================================
+
     use DebuggableJobTrait;
+
 
     // Properties
     // =========================================================================
 
     public ?int $submissionId = null;
+    public ?string $executionUid = null;
     public ?int $notificationId = null;
     public array $submissionData = [];
     public array $notificationData = [];
@@ -28,6 +34,12 @@ class SendNotification extends CraftBaseJob implements DebuggableJobInterface
 
     // Public Methods
     // =========================================================================
+
+    public function init(): void
+    {
+        parent::init();
+        $this->executionUid ??= \craft\helpers\StringHelper::UUID();
+    }
 
     public function execute($queue): void
     {
@@ -60,11 +72,11 @@ class SendNotification extends CraftBaseJob implements DebuggableJobInterface
 
         $this->setProgress($queue, 0.75);
 
-        $sentResponse = Formie::$plugin->getNotifications()->sendNotificationEmail($notification, $submission, $this);
-        $success = $sentResponse['success'] ?? false;
+        $sentResponse = Formie::$plugin->getNotifications()->sendNotificationEmail($notification, $submission, $this, $this->_executionIdentity($queue));
+        $success = $sentResponse === true || ($sentResponse['success'] ?? false);
         $error = $sentResponse['error'] ?? false;
 
-        if ($error) {
+        if (!$success) {
             // Check if we should send the nominated admin(s) an email about this error.
             Formie::$plugin->getEmails()->sendFailAlertEmail($notification, $submission, $sentResponse);
 
@@ -160,4 +172,18 @@ class SendNotification extends CraftBaseJob implements DebuggableJobInterface
             'fields' => $fields,
         ];
     }
+
+    private function _executionIdentity($queue): string
+    {
+        if ($this->executionUid) {
+            return $this->executionUid;
+        }
+        // Older serialized jobs predate executionUid. Craft's queue row provides
+        // a stable fallback; never generate a new identity while retrying a job.
+        if (method_exists($queue, 'getJobId') && ($id = $queue->getJobId())) {
+            return 'queue:' . $id;
+        }
+        throw new \RuntimeException('Unable to identify this delivery attempt. Check its outcome before explicitly sending again.');
+    }
+
 }

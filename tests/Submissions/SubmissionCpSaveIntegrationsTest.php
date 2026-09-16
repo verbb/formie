@@ -2,6 +2,10 @@
 
 declare(strict_types=1);
 
+beforeEach(function (): void {
+    \verbb\formie\Formie::$plugin->getSettings()->useQueueForIntegrations = false;
+});
+
 use Tests\Support\WebRequestTestHelper;
 use Craft;
 use verbb\formie\base\Integration;
@@ -47,10 +51,13 @@ function withCpSaveTestIntegration(object $form, Integration $integration, calla
 
     Event::on(Integrations::class, Integrations::EVENT_MODIFY_FORM_INTEGRATIONS, $handler);
 
+    (new ReflectionMethod(Integrations::class, '_resetIntegrationCaches'))->invoke(Formie::$plugin->getIntegrations());
+
     try {
         return $callback();
     } finally {
         Event::off(Integrations::class, Integrations::EVENT_MODIFY_FORM_INTEGRATIONS, $handler);
+        (new ReflectionMethod(Integrations::class, '_resetIntegrationCaches'))->invoke(Formie::$plugin->getIntegrations());
     }
 }
 
@@ -80,7 +87,7 @@ it('detects when a form has integrations that allow cp save re-runs', function (
 it('applies cp submission sidebar attributes during managed saves', function (): void {
     $status = new \verbb\formie\models\SubmissionStatus([
         'name' => 'Accepted',
-        'handle' => 'acceptedCpSave',
+        'handle' => 'acceptedCpSave' . uniqid(),
         'color' => 'green',
     ]);
 
@@ -98,6 +105,7 @@ it('applies cp submission sidebar attributes during managed saves', function ():
 
     WebRequestTestHelper::withWebRequestContext(function ($request) use ($form, $submission, $status): void {
         $request->setIsCpRequest(true);
+        Craft::$app->getUser()->setIdentity(\craft\elements\User::find()->admin(true)->one());
         $request->setBodyParams([
             'handle' => $form->handle,
             'submissionId' => (int)$submission->id,
@@ -154,6 +162,10 @@ it('dispatches cp element saves through the integration coordinator', function (
 
     try {
         withCpSaveTestIntegration($form, $integration, function () use ($submission): void {
+            expect($submission->isIncomplete)->toBeFalse()->and($submission->isSpam)->toBeFalse();
+            expect($submission->getForm()->settings->integrationPolicies)->toHaveKey('rerun.cpSaveTest');
+            expect(Formie::$plugin->getIntegrationExecutor()->resolveLegacyHandles($submission->getForm()))->toContain('cpSaveTest');
+            expect(IntegrationRerunPolicies::formHasIntegrationAllowingEvent($submission->getForm(), IntegrationTriggerEvents::CP_SAVE))->toBeTrue();
             Formie::$plugin->getIntegrationTriggers()->dispatchCpElementSave($submission);
         });
     } finally {
@@ -195,13 +207,8 @@ it('does not double-trigger integrations when cp saves go through the submission
 
     try {
         withCpSaveTestIntegration($form, $integration, function () use ($form, $existing): void {
-            WebRequestTestHelper::withWebRequestContext(function (): void {
+            WebRequestTestHelper::withWebRequestContext(function () use ($form, $existing): void {
                 Craft::$app->getRequest()->setIsCpRequest(true);
-            }, [
-                'method' => 'POST',
-                'hostInfo' => 'https://craft.example.test',
-                'httpHost' => 'craft.example.test',
-            ]);
 
             $response = (new SubmissionWorkflow())->processSubmissionRequest(new SubmissionRequest([
                 'processMode' => SubmissionWorkflow::PROCESS_MODE_EDIT_EXISTING,
@@ -211,6 +218,7 @@ it('does not double-trigger integrations when cp saves go through the submission
             ]));
 
             expect($response->success)->toBeTrue();
+            });
         });
     } finally {
         Event::off(Integrations::class, Integrations::EVENT_BEFORE_TRIGGER_INTEGRATION, $beforeHandler);

@@ -3,8 +3,8 @@ namespace verbb\formie\jobs;
 
 use verbb\formie\Formie;
 use verbb\formie\base\Integration;
-use verbb\formie\helpers\IntegrationTriggerEvents;
 use verbb\formie\elements\Submission;
+use verbb\formie\helpers\IntegrationTriggerEvents;
 use verbb\formie\models\IntegrationResponse;
 use verbb\formie\services\SubmissionWorkflow;
 
@@ -17,7 +17,11 @@ use Exception;
 
 class TriggerIntegration extends CraftBaseJob implements DebuggableJobInterface
 {
+    // Traits
+    // =========================================================================
+
     use DebuggableJobTrait;
+
 
     // Properties
     // =========================================================================
@@ -26,6 +30,7 @@ class TriggerIntegration extends CraftBaseJob implements DebuggableJobInterface
     public ?int $integrationId = null;
     public ?string $integrationHandle = null;
     public array $stepHandles = [];
+    public ?string $executionUid = null;
     public string $processMode = SubmissionWorkflow::PROCESS_MODE_SUBMIT;
     public bool $runAfterNotifications = false;
     public ?int $formId = null;
@@ -42,6 +47,12 @@ class TriggerIntegration extends CraftBaseJob implements DebuggableJobInterface
 
     // Public Methods
     // =========================================================================
+
+    public function init(): void
+    {
+        parent::init();
+        $this->executionUid ??= \craft\helpers\StringHelper::UUID();
+    }
 
     public function execute($queue): void
     {
@@ -77,6 +88,7 @@ class TriggerIntegration extends CraftBaseJob implements DebuggableJobInterface
                     'operatorInitiated' => $this->operatorInitiated,
                 ],
                 $this->runAfterNotifications,
+                $this->_executionIdentity($queue),
             );
 
             if (!$result->success) {
@@ -120,7 +132,11 @@ class TriggerIntegration extends CraftBaseJob implements DebuggableJobInterface
 
         $this->setProgress($queue, 0.75);
 
-        $response = Formie::$plugin->getIntegrations()->sendIntegrationPayload($integration, $submission);
+        $identity = $this->_executionIdentity($queue);
+        $response = (new \verbb\formie\helpers\DeliveryAttempt((int)$submission->id, 'integration:' . $integration->handle, $identity))->execute([], function () use ($integration, $submission) {
+            $result = Formie::$plugin->getIntegrations()->sendIntegrationPayload($integration, $submission);
+            return $result instanceof IntegrationResponse && !$result->success ? false : $result;
+        });
 
         // Check if some integrations return a response object for more detail
         if (($response instanceof IntegrationResponse) && !$response->success) {
@@ -134,6 +150,7 @@ class TriggerIntegration extends CraftBaseJob implements DebuggableJobInterface
         $this->setProgress($queue, 1);
     }
     
+
 
     // Protected Methods
     // =========================================================================
@@ -331,4 +348,18 @@ class TriggerIntegration extends CraftBaseJob implements DebuggableJobInterface
 
         return '[redacted]';
     }
+
+    private function _executionIdentity($queue): string
+    {
+        if ($this->executionUid) {
+            return $this->executionUid;
+        }
+        // Older serialized jobs predate executionUid. Craft's queue row provides
+        // a stable fallback; never generate a new identity while retrying a job.
+        if (method_exists($queue, 'getJobId') && ($id = $queue->getJobId())) {
+            return 'queue:' . $id;
+        }
+        throw new \RuntimeException('Unable to identify this delivery attempt. Check its outcome before explicitly sending again.');
+    }
+
 }

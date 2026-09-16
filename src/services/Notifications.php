@@ -1,17 +1,18 @@
 <?php
 namespace verbb\formie\services;
 
-use verbb\formie\base\FormInterface;
 use verbb\formie\Formie;
+use verbb\formie\base\FormInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\events\NotificationEvent;
 use verbb\formie\events\ModifyExistingNotificationsEvent;
 use verbb\formie\events\ModifyNotificationSchemaEvent;
+use verbb\formie\events\NotificationEvent;
 use verbb\formie\events\SendNotificationEvent;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\ConditionsHelper;
 use verbb\formie\helpers\DbSchema;
+use verbb\formie\helpers\DeliveryAttempt;
 use verbb\formie\helpers\RichTextHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
@@ -35,9 +36,9 @@ use yii\db\Exception;
 
 use Throwable;
 
-use Twig\Error\SyntaxError;
-use Twig\Error\RuntimeError;
 use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
 
 class Notifications extends Component
 {
@@ -122,7 +123,7 @@ class Notifications extends Component
         }
     }
 
-    public function sendNotification(Notification $notification, Submission $submission, ?bool $useQueue = null): void
+    public function sendNotification(Notification $notification, Submission $submission, ?bool $useQueue = null, ?string $deliveryKey = null): void
     {
         $settings = Formie::$plugin->getSettings();
         $useQueue ??= $settings->useQueueForNotifications;
@@ -131,34 +132,74 @@ class Notifications extends Component
             return;
         }
 
-        if ($useQueue) {
-            // Queue after evaluating conditions so delayed jobs do not have to
-            // recompute submission-dependent rules against a potentially changed
-            // submission state.
-            Queue::push(new SendNotification([
-                'submissionId' => $submission->id,
-                'notificationId' => $notification->id,
-            ]), $settings->queuePriority);
+        $deliveryKey ??= DeliveryAttempt::workflowIdentity() ?? StringHelper::UUID();
+        $db = Craft::$app->getDb();
+        $inTransaction = (bool)$db->getTransaction()?->getIsActive();
+        if ($inTransaction) {
+            // Status notifications originate inside element saves. Persist their
+            // queue jobs in the same transaction; never send before it commits.
+            $queue = Craft::$app->getQueue();
+            if (!$queue instanceof \craft\queue\Queue || $queue->db !== $db) {
+                throw new \RuntimeException('Transactional notification delivery requires the Craft database queue.');
+            }
+            $useQueue = true;
+        }
 
+        if ($useQueue) {
+            $enqueue = function () use ($submission, $notification, $settings, $deliveryKey): bool {
+                Queue::push(new SendNotification([
+                    'submissionId' => $submission->id,
+                    'notificationId' => $notification->id,
+                    'executionUid' => $deliveryKey,
+                ]), $settings->queuePriority);
+                return true;
+            };
+            // Duplicate enqueue after a worker crash is safe: both jobs carry the
+            // same notification delivery identity and the send itself is guarded.
+            if ($inTransaction) {
+                $enqueue();
+            } else {
+                (new DeliveryAttempt((int)$submission->id, 'notification-queue:' . $notification->id, $deliveryKey))
+                    ->execute([], $enqueue, PHP_INT_MAX);
+            }
             return;
         }
 
-        $this->sendNotificationEmail($notification, $submission);
+        $result = $this->sendNotificationEmail($notification, $submission, null, $deliveryKey);
+        if ($result !== true && !($result['success'] ?? false)) {
+            throw new \RuntimeException($result['error'] ?? 'Notification delivery failed.');
+        }
     }
 
-    public function sendNotificationEmail(Notification $notification, Submission $submission, $queueJob = null): array|bool
+    public function sendNotificationEmail(Notification $notification, Submission $submission, $queueJob = null, ?string $deliveryKey = null): array|bool
     {
-        $event = new SendNotificationEvent([
-            'submission' => $submission,
-            'notification' => $notification,
-        ]);
-        $this->trigger(self::EVENT_BEFORE_SEND_NOTIFICATION, $event);
+        $send = function () use ($notification, $submission, $queueJob): array|bool {
+            $event = new SendNotificationEvent([
+                'submission' => $submission,
+                'notification' => $notification,
+            ]);
+            $this->trigger(self::EVENT_BEFORE_SEND_NOTIFICATION, $event);
+            if (!$event->isValid) {
+                return true;
+            }
+            return Formie::$plugin->getEmails()->sendEmail($event->notification, $event->submission, $queueJob);
+        };
 
-        if (!$event->isValid) {
-            return true;
+        // Unsaved submissions can still be used for previews/test notifications.
+        if (!$submission->id || !$submission->uid) {
+            return $send();
         }
-
-        return Formie::$plugin->getEmails()->sendEmail($event->notification, $event->submission, $queueJob);
+        $deliveryKey ??= DeliveryAttempt::workflowIdentity() ?? StringHelper::UUID();
+        $response = ['success' => true];
+        (new DeliveryAttempt((int)$submission->id, 'notification-send:' . ($notification->uid ?: $notification->id), $deliveryKey))
+            ->execute([], function () use ($send, &$response): bool {
+                $response = $send();
+                if (!empty($response['deliveryOutcomeUnknown'])) {
+                    throw new \RuntimeException('Notification delivery outcome unknown. Check the mail provider before explicitly resending.');
+                }
+                return $response === true || (bool)($response['success'] ?? false);
+            });
+        return $response;
     }
 
     public function saveNotification(Notification $notification, bool $runValidation = true): bool

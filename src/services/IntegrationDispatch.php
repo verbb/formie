@@ -1,9 +1,9 @@
 <?php
 namespace verbb\formie\services;
 
+use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\Formie;
 use verbb\formie\helpers\IntegrationTriggerEvents;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\IntegrationDispatchContext;
@@ -12,7 +12,6 @@ use verbb\formie\models\Notification;
 use verbb\formie\services\SubmissionWorkflow;
 
 use Craft;
-use craft\helpers\Json;
 
 use yii\base\Component;
 
@@ -135,7 +134,7 @@ class IntegrationDispatch extends Component
         return false;
     }
 
-    public function sendNotifications(Submission $submission, string $phase): void
+    public function sendNotifications(Submission $submission, string $phase, ?string $deliveryKey = null): void
     {
         $form = $submission->getForm();
 
@@ -148,7 +147,7 @@ class IntegrationDispatch extends Component
                 continue;
             }
 
-            Formie::$plugin->getNotifications()->sendNotification($notification, $submission);
+            Formie::$plugin->getNotifications()->sendNotification($notification, $submission, null, $deliveryKey);
         }
     }
 
@@ -194,7 +193,7 @@ class IntegrationDispatch extends Component
         Craft::$app->getDb()->createCommand()
             ->update(
                 Table::FORMIE_SUBMISSIONS,
-                ['integrationDispatchContext' => Json::encode($submission->integrationDispatchContext)],
+                ['integrationDispatchContext' => $submission->integrationDispatchContext],
                 ['id' => $submission->id],
             )
             ->execute();

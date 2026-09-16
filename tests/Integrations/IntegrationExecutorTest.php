@@ -29,9 +29,13 @@ function executorTestIntegration(string $handle): Integration
             return new IntegrationFormSettings();
         }
 
+        public bool $succeeds = true;
+        public int $calls = 0;
+
         public function sendPayload(Submission $submission): bool
         {
-            return true;
+            $this->calls++;
+            return $this->succeeds;
         }
     };
 }
@@ -142,5 +146,36 @@ it('sets manual trigger context for operator-initiated integration runs', functi
 
         expect($integration->context['triggerEvent'] ?? null)->toBe(IntegrationTriggerEvents::MANUAL)
             ->and($integration->context['operatorInitiated'] ?? null)->toBeTrue();
+    });
+});
+
+
+it('retries failed queued steps without repeating completed steps', function (): void {
+    $form = formie()->form()->singleLineTextField('fullName')->create();
+    $form->settings->integrationDispatch = ['enabled' => true];
+    $submission = formie()->submission($form)->with(['fullName' => 'Retry'])->save();
+    $first = executorTestIntegration('completedStep');
+    $second = executorTestIntegration('retryStep');
+    $second->succeeds = false;
+    $context = [
+        'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+        'isSubmissionEdit' => false,
+        'triggerEvent' => IntegrationTriggerEvents::SUBMIT,
+        'operatorInitiated' => false,
+    ];
+
+    withExecutorTestIntegrations($form, [$first, $second], function () use ($submission, $first, $second, $context): void {
+        $executor = Formie::$plugin->getIntegrationExecutor();
+        $run = fn(string $key) => $executor->runQueuedJob($submission, ['completedStep', 'retryStep'], SubmissionWorkflow::PROCESS_MODE_SUBMIT, $context, false, $key);
+        expect($run('retry-job')->success)->toBeFalse();
+        // Simulate a stale submission object loaded by another worker.
+        $submission->integrationDispatchContext = null;
+        $second->succeeds = true;
+        expect($run('retry-job')->success)->toBeTrue();
+        expect($first->calls)->toBe(1)->and($second->calls)->toBe(2);
+        expect($run('retry-job')->success)->toBeTrue();
+        expect($first->calls)->toBe(1)->and($second->calls)->toBe(2);
+        expect($run('separate-job')->success)->toBeTrue();
+        expect($first->calls)->toBe(2)->and($second->calls)->toBe(3);
     });
 });

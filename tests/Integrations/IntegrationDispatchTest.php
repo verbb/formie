@@ -92,3 +92,24 @@ it('detects when any notification requires the after-integrations phase', functi
 
     expect($service->needsAfterNotificationsPhase($form))->toBeTrue();
 });
+
+
+it('round trips integration context and reads previously double encoded context', function (): void {
+    $form = formie()->form()->singleLineTextField('fullName')->create();
+    $submission = formie()->submission($form)->with(['fullName' => 'Context'])->save();
+    $context = new \verbb\formie\models\IntegrationDispatchContext();
+    $context->record('example', ['success' => true, 'elementId' => 42]);
+    $service = new IntegrationDispatch();
+    $service->saveContext($submission, $context);
+    $raw = (new \craft\db\Query())->select(['integrationDispatchContext'])
+        ->from(\verbb\formie\helpers\Table::FORMIE_SUBMISSIONS)->where(['id' => $submission->id])->scalar();
+    expect(\craft\helpers\Json::decodeIfJson($raw))->toBe($context->toStorageArray());
+
+    // Simulate the historical encoding for compatibility with already saved rows.
+    Craft::$app->getDb()->createCommand()->update(\verbb\formie\helpers\Table::FORMIE_SUBMISSIONS,
+        ['integrationDispatchContext' => \craft\helpers\Json::encode($context->toStorageArray())],
+        ['id' => $submission->id],
+    )->execute();
+    $restored = \verbb\formie\elements\Submission::find()->id($submission->id)->status(null)->isIncomplete(null)->one();
+    expect($service->loadContext($restored)->getResult('example'))->toBe(['success' => true, 'elementId' => 42]);
+});

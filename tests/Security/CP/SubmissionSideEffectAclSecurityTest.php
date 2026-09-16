@@ -13,15 +13,14 @@ use yii\web\NotFoundHttpException;
 /**
  * CP side-effect actions (send notification / run integration) must require an
  * authenticated Formie-capable user and bind notifications to the submission's form.
- *
- * Note: Craft Solo (this test edition) makes User::can() always true, so permission
- * denial is asserted via guest identity (null), not a non-admin User element.
+
  */
 
 function submissionSideEffectFixture(): array
 {
     $form = formie()
         ->form(['title' => 'Side Effect ACL'])
+        ->settings(['usePerFormPermissions' => true])
         ->singleLineTextField('fullName')
         ->create();
 
@@ -200,4 +199,30 @@ it('returns not found for send-notification modal when submission is missing', f
             'id' => '999999999',
         ],
     ]);
+})->group('security');
+
+it('enforces persisted user permissions for one form through the notification modal action', function (): void {
+    $allowed = submissionSideEffectFixture();
+    $denied = submissionSideEffectFixture();
+    $user = new \craft\elements\User(['username' => 'acl' . uniqid(), 'email' => 'acl' . uniqid() . '@example.test']);
+    expect(Craft::$app->getElements()->saveElement($user))->toBeTrue();
+    $permissions = Formie::$plugin->getPermissions();
+    expect(Craft::$app->getUserPermissions()->saveUserPermissions($user->id, [
+        'accessCp', 'accessPlugin-formie',
+        \verbb\formie\services\Permissions::PERM_ACCESS_SUBMISSIONS,
+        $permissions->scopedPermission(\verbb\formie\services\Permissions::PERM_VIEW_SUBMISSIONS, $permissions->formScope($allowed['form'])),
+    ]))->toBeTrue();
+    WebRequestTestHelper::withWebRequestContext(function ($request) use ($user, $allowed, $denied): void {
+        $request->setIsCpRequest(true);
+        Craft::$app->getView()->setTemplateMode(\craft\web\View::TEMPLATE_MODE_CP);
+        Craft::$app->getUser()->setIdentity(\craft\elements\User::find()->id($user->id)->one());
+        $csrf = [$request->csrfParam => $request->getCsrfToken()];
+        $request->setBodyParams($csrf + ['id' => $denied['submission']->id]);
+        expect(fn() => (new SubmissionsController('submissions', Formie::$plugin))->runAction('get-send-notification-modal-content'))
+            ->toThrow(ForbiddenHttpException::class, 'User is not permitted');
+        $request->setBodyParams($csrf + ['id' => $allowed['submission']->id]);
+        $result = (new SubmissionsController('submissions', Formie::$plugin))->runAction('get-send-notification-modal-content');
+        expect($result->data['success'])->toBeTrue()
+            ->and($result->data['modalHtml'])->toContain('Send Email Notification', 'value="' . $allowed['submission']->id . '"');
+    }, ['method' => 'POST', 'headers' => ['Accept' => 'application/json']]);
 })->group('security');

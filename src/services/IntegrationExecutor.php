@@ -1,20 +1,26 @@
 <?php
 namespace verbb\formie\services;
 
+use verbb\formie\Formie;
 use verbb\formie\base\Element;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\Formie;
+use verbb\formie\helpers\Table;
 use verbb\formie\jobs\TriggerIntegration;
 use verbb\formie\models\IntegrationDispatchContext;
 use verbb\formie\models\IntegrationDispatchPlan;
 use verbb\formie\models\IntegrationExecutionResult;
 use verbb\formie\models\IntegrationResponse;
+use verbb\formie\models\SubmissionRequest;
+use verbb\formie\workflow\tasks\dispatch\DispatchState;
 
 use Craft;
 use craft\base\ElementInterface;
+use craft\db\Query;
+use craft\helpers\Json;
 use craft\helpers\Queue;
+use craft\helpers\StringHelper;
 
 use yii\base\Component;
 
@@ -41,7 +47,10 @@ class IntegrationExecutor extends Component
         array $handles,
         array $triggerContext,
         ?IntegrationDispatchPlan $plan = null,
+        ?string $executionKey = null,
     ): IntegrationExecutionResult {
+        $executionKey ??= \verbb\formie\helpers\DeliveryAttempt::workflowIdentity()
+            ?? ($submission->id && $submission->uid ? StringHelper::UUID() : null);
         $result = new IntegrationExecutionResult();
         $form = $submission->getForm();
 
@@ -54,6 +63,13 @@ class IntegrationExecutor extends Component
             ? Formie::$plugin->getIntegrationDispatch()->loadContext($submission)
             : null;
 
+        $delivery = $executionKey === null ? null : new DispatchState(new SubmissionRequest([
+            'form' => $form,
+            'submission' => $submission,
+            'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+            'requestToken' => 'integration-job:' . $executionKey,
+        ]), true);
+
         foreach ($handles as $handle) {
             $integration = $integrationsByHandle[$handle] ?? null;
 
@@ -65,14 +81,30 @@ class IntegrationExecutor extends Component
                 continue;
             }
 
-            $integration->populateContext($submission);
+            $success = true;
+            $execute = function () use ($integration, $submission, $context, $result, $handle, &$success): bool {
+                $integration->populateContext($submission);
+                $response = Formie::$plugin->getIntegrations()->sendIntegrationPayload($integration, $submission);
+                $success = $this->_integrationResponseSucceeded($response);
+                $result->recordAttempt((string)$handle, $success);
 
-            $response = Formie::$plugin->getIntegrations()->sendIntegrationPayload($integration, $submission);
-            $success = $this->_integrationResponseSucceeded($response);
-            $result->recordAttempt((string)$handle, $success);
+                if ($context) {
+                    $this->_recordIntegrationResult($integration, $submission, $context, $success, $response);
+                    // Persist successful outputs before checkpointing this step so
+                    // later retries can still reference earlier created elements.
+                    Formie::$plugin->getIntegrationDispatch()->saveContext($submission, $context);
+                }
 
-            if ($context) {
-                $this->_recordIntegrationResult($integration, $submission, $context, $success, $response);
+                return $success;
+            };
+
+            if ($delivery) {
+                $attempt = new \verbb\formie\helpers\DeliveryAttempt((int)$submission->id, 'integration:' . $handle, $executionKey);
+                $delivery->runOnce('integration.' . substr(hash('sha256', (string)$handle), 0, 48),
+                    fn() => $attempt->execute([], fn(string $key) => $execute()),
+                );
+            } else {
+                $execute();
             }
 
             if (!$success && $plan?->shouldStopOnFailure()) {
@@ -105,18 +137,29 @@ class IntegrationExecutor extends Component
 
         $integrationContext = Formie::$plugin->getSubmissionMetadata()->buildIntegrationContext($submission);
 
-        Queue::push(new TriggerIntegration([
-            'submissionId' => $submission->id,
-            'stepHandles' => array_values($handles),
-            'processMode' => $processMode,
-            'triggerEvent' => $triggerContext['triggerEvent'] ?? null,
-            'operatorInitiated' => (bool)($triggerContext['operatorInitiated'] ?? false),
-            'runAfterNotifications' => $runAfterNotifications,
-            'formId' => $form->id ?? null,
-            'formHandle' => $form->handle ?? null,
-            'formTitle' => $form->title ?? null,
-            'integrationContext' => $integrationContext,
-        ]), $settings->queuePriority);
+        $identity = \verbb\formie\helpers\DeliveryAttempt::workflowIdentity() ?? StringHelper::UUID();
+        $enqueue = function (string $executionUid) use ($submission, $handles, $processMode, $triggerContext, $runAfterNotifications, $form, $integrationContext, $settings): bool {
+            Queue::push(new TriggerIntegration([
+                'submissionId' => $submission->id,
+                'stepHandles' => array_values($handles),
+                'executionUid' => $executionUid,
+                'processMode' => $processMode,
+                'triggerEvent' => $triggerContext['triggerEvent'] ?? null,
+                'operatorInitiated' => (bool)($triggerContext['operatorInitiated'] ?? false),
+                'runAfterNotifications' => $runAfterNotifications,
+                'formId' => $form->id ?? null,
+                'formHandle' => $form->handle ?? null,
+                'formTitle' => $form->title ?? null,
+                'integrationContext' => $integrationContext,
+            ]), $settings->queuePriority);
+            return true;
+        };
+        (new \verbb\formie\helpers\DeliveryAttempt((int)$submission->id, 'integration-queue', $identity))->execute(
+            ['handles' => array_values($handles), 'processMode' => $processMode, 'triggerContext' => $triggerContext, 'afterNotifications' => $runAfterNotifications],
+            $enqueue,
+            // A repeated enqueue uses the same guarded integration execution ID.
+            PHP_INT_MAX,
+        );
     }
 
     public function runQueuedJob(
@@ -125,26 +168,31 @@ class IntegrationExecutor extends Component
         string $processMode,
         array $triggerContext,
         bool $runAfterNotifications = false,
+        ?string $executionKey = null,
     ): IntegrationExecutionResult {
-        $form = $submission->getForm();
-        $plan = null;
+        // Serialize the batch as well as individual steps, including context and
+        // after-notifications. A worker may have loaded the submission before waiting.
+        $key = 'formie.integration-job.' . $submission->id;
+        $mutex = Craft::$app->getMutex();
 
-        if ($form && Formie::$plugin->getIntegrationDispatch()->shouldOrchestrate($form)) {
-            $plan = Formie::$plugin->getIntegrationDispatch()->getPlan($form);
+        if (!$mutex->acquire($key, 10)) {
+            throw new \RuntimeException('Integration delivery is already in progress. Retry later.');
         }
 
-        $result = $this->runSteps($submission, $handles, $triggerContext, $plan);
+        try {
+            if ($submission->id) {
+                $stored = (new Query())
+                    ->select(['integrationDispatchContext'])
+                    ->from(Table::FORMIE_SUBMISSIONS)
+                    ->where(['id' => $submission->id])
+                    ->scalar();
+                $submission->integrationDispatchContext = IntegrationDispatchContext::fromSubmission(Json::decodeIfJson($stored))->toStorageArray();
+            }
 
-        // After-phase notifications still run when this queued batch owns that phase,
-        // even if a step failed — unless stop-on-failure already halted the plan upstream.
-        if ($runAfterNotifications && $form && $result->success) {
-            Formie::$plugin->getIntegrationDispatch()->sendNotifications(
-                $submission,
-                IntegrationDispatch::PHASE_AFTER,
-            );
+            return $this->_runQueuedJob($submission, $handles, $triggerContext, $runAfterNotifications, $executionKey);
+        } finally {
+            $mutex->release($key);
         }
-
-        return $result;
     }
 
 
@@ -228,4 +276,41 @@ class IntegrationExecutor extends Component
 
         return null;
     }
+
+    private function _runQueuedJob(
+        Submission $submission,
+        array $handles,
+        array $triggerContext,
+        bool $runAfterNotifications,
+        ?string $executionKey,
+    ): IntegrationExecutionResult {
+        $form = $submission->getForm();
+        $plan = null;
+
+        if ($form && Formie::$plugin->getIntegrationDispatch()->shouldOrchestrate($form)) {
+            $plan = Formie::$plugin->getIntegrationDispatch()->getPlan($form);
+        }
+
+        $result = $this->runSteps($submission, $handles, $triggerContext, $plan, $executionKey);
+
+        // Deliver the after phase only after the entire batch has succeeded.
+        if ($runAfterNotifications && $form && $result->success) {
+            $send = fn() => Formie::$plugin->getIntegrationDispatch()->sendNotifications($submission, IntegrationDispatch::PHASE_AFTER, $executionKey);
+
+            if ($executionKey === null) {
+                $send();
+            } else {
+                $delivery = new DispatchState(new SubmissionRequest([
+                    'form' => $form,
+                    'submission' => $submission,
+                    'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+                    'requestToken' => 'integration-job:' . $executionKey,
+                ]), true);
+                $delivery->runOnce('afterNotifications', $send);
+            }
+        }
+
+        return $result;
+    }
+
 }

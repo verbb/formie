@@ -10,8 +10,8 @@ use verbb\formie\fields\FileUpload;
 use verbb\formie\fields\Group;
 use verbb\formie\fields\Repeater;
 use verbb\formie\helpers\Assets;
-use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\References;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\Notification;
 use verbb\formie\models\Settings;
 
@@ -29,9 +29,10 @@ use craft\mail\Message;
 use yii\base\Component;
 use yii\base\Exception;
 
+use Throwable;
+
 use Html2Text\Html2Text;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
-use Throwable;
 
 class Emails extends Component
 {
@@ -393,6 +394,7 @@ class Emails extends Component
             $this->_attachPdfToEmail($notification, $newEmail, $submission);
         }
 
+        $deliveryStarted = false;
         try {
             $event = new MailEvent([
                 'email' => $newEmail,
@@ -421,6 +423,7 @@ class Emails extends Component
                 return ['error' => $error];
             }
 
+            $deliveryStarted = true;
             if (!Craft::$app->getMailer()->send($newEmail)) {
                 $mailerError = $this->_formatMailerError($newEmail);
 
@@ -445,7 +448,7 @@ class Emails extends Component
                     Formie::$plugin->getSentNotifications()->saveSentNotification($submission, $notification, $newEmail, false, $error);
                 }
 
-                return ['error' => $error];
+                return ['error' => $error, 'deliveryOutcomeUnknown' => $deliveryStarted];
             }
 
             // Save the sent notification, as successful
@@ -469,7 +472,7 @@ class Emails extends Component
             // Save the sent notification, as failed
             Formie::$plugin->getSentNotifications()->saveSentNotification($submission, $notification, $newEmail, false, $error);
 
-            return ['error' => $error];
+            return ['error' => $error, 'deliveryOutcomeUnknown' => $deliveryStarted];
         }
 
         // Raise an 'afterSendEmail' event

@@ -475,7 +475,7 @@ $(function () {
 
             var data = { submissionId: submissionId, integrationId: integrationId };
 
-            if (window.confirm(Craft.t('formie', 'Are you sure you want to trigger the {name} integration?', { name: label }))) {
+            if (window.confirm(Craft.t('formie', 'Are you sure you want to trigger the {name} integration? If an earlier attempt may have succeeded, check the destination before sending again.', { name: label }))) {
                 $spinner.removeClass('hidden');
 
                 Craft.sendActionRequest('POST', 'formie/submissions/run-integration', { data })

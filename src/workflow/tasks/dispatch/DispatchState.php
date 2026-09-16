@@ -95,47 +95,36 @@ class DispatchState
     }
 
     /**
-     * Atomically claim a dispatch stage before side effects.
-     * Inserts the marker row; unique (submissionId, stage, idempotencyKey) makes this exclusive.
-     * Returns false when another worker already claimed or completed the stage.
-     * Crash after claim but before external success → at-most-once (no automatic retry of that stage).
+     * Serialize a logical side effect and record completion only after success.
+     * Failed callbacks remain retryable. Providers should also receive idempotency
+     * keys: a process crash after external success cannot be resolved by a DB marker.
      */
-    public function claimMarker(string $stage): bool
+    public function runOnce(string $stage, callable $callback): bool
     {
-        $submission = $this->request->submission;
-
-        if (!$submission->id) {
-            return false;
+        if (!$this->request->submission->id) {
+            return $callback() !== false;
         }
 
-        if ($this->hasMarker($stage)) {
-            return false;
+        $key = 'formie.dispatch.' . hash('sha256', $this->request->submission->id . '|' . $stage . '|' . ($this->idempotencyKey ?? ''));
+        $mutex = Craft::$app->getMutex();
+
+        if (!$mutex->acquire($key, 10)) {
+            throw new \RuntimeException('Submission delivery is already in progress. Retry later.');
         }
 
         try {
-            $now = new DateTime();
-            $dateNow = Db::prepareDateForDb($now);
-            Craft::$app->getDb()->createCommand()->insert(Table::FORMIE_SUBMISSION_WORKFLOW, [
-                'submissionId' => $submission->id,
-                'stage' => $stage,
-                'idempotencyKey' => $this->idempotencyKey,
-                'isDispatched' => true,
-                'dateDispatched' => $dateNow,
-                'dateCreated' => $dateNow,
-                'dateUpdated' => $dateNow,
-                'meta' => null,
-            ])->execute();
-
-            return true;
-        } catch (Throwable $e) {
-            // Duplicate key = concurrent claim; treat as already owned elsewhere.
             if ($this->hasMarker($stage)) {
                 return false;
             }
 
-            Formie::error('Unable to claim dispatch marker - {e}.', ['e' => $e->getMessage()]);
+            if ($callback() === false) {
+                return false;
+            }
 
-            return false;
+            $this->markMarker($stage);
+            return true;
+        } finally {
+            $mutex->release($key);
         }
     }
 
@@ -167,6 +156,7 @@ class DispatchState
             )->execute();
         } catch (Throwable $e) {
             Formie::error('Unable to persist dispatch marker - {e}.', ['e' => $e->getMessage()]);
+            throw $e;
         }
     }
 
@@ -211,7 +201,7 @@ class DispatchState
         } catch (Throwable $e) {
             Formie::error('Unable to read dispatch marker - {e}.', ['e' => $e->getMessage()]);
 
-            return false;
+            throw $e;
         }
     }
 

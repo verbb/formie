@@ -5,9 +5,9 @@ use verbb\formie\Formie;
 use verbb\formie\enums\workflow\Stage;
 use verbb\formie\enums\workflow\Task;
 use verbb\formie\helpers\IntegrationTriggerEvents;
-use verbb\formie\workflow\WorkflowContext;
 use verbb\formie\workflow\tasks\TaskInterface;
 use verbb\formie\workflow\tasks\TaskResult;
+use verbb\formie\workflow\WorkflowContext;
 
 class TriggerIntegrationsTask implements TaskInterface
 {
@@ -34,16 +34,19 @@ class TriggerIntegrationsTask implements TaskInterface
 
         $isSubmissionEdit = $dispatchState->isSubmissionEditDispatch();
 
-        // Edits may re-run integrations; non-edit submits claim the stage first.
-        if (!$isSubmissionEdit && !$dispatchState->claimMarker(DispatchState::MARKER_INTEGRATIONS)) {
-            return TaskResult::continue(['reason' => 'integrationsAlreadyMarked']);
-        }
+        $dispatch = function () use ($context): void {
+            Formie::$plugin->getIntegrationTriggers()->dispatchFromWorkflow(
+                $context->request->submission,
+                $context->request->processMode,
+                IntegrationTriggerEvents::resolveFromProcessMode($context->request->processMode),
+            );
+        };
 
-        Formie::$plugin->getIntegrationTriggers()->dispatchFromWorkflow(
-            $context->request->submission,
-            $context->request->processMode,
-            IntegrationTriggerEvents::resolveFromProcessMode($context->request->processMode),
-        );
+        if ($isSubmissionEdit) {
+            $dispatch();
+        } else {
+            $dispatchState->runOnce(DispatchState::MARKER_INTEGRATIONS, $dispatch);
+        }
 
         return TaskResult::continue();
     }
