@@ -561,6 +561,11 @@ class FormDefaults extends Component
 
     public function migrateLegacyFieldDefaults(array $settings): array
     {
+        // Partial settings updates must not clear previously configured field defaults.
+        if (!array_intersect(['fieldDefaults', 'defaultFileUploadVolume', 'defaultDateDisplayType', 'defaultDateValueOption', 'defaultDateTime'], array_keys($settings))) {
+            return $settings;
+        }
+
         $fieldDefaults = $settings['fieldDefaults'] ?? [];
 
         if (!is_array($fieldDefaults)) {

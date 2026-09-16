@@ -9,11 +9,14 @@ use verbb\formie\services\Integrations;
 use verbb\formie\services\SpamProtection;
 
 it('stores spam settings in the runtime database table', function (): void {
+    $spamProtection = Formie::$plugin->getSpamProtection();
+    expect($spamProtection->saveValues($spamProtection->getSettingsValues()))->toBeTrue();
+
     $row = (new \craft\db\Query())
         ->from([Table::FORMIE_SPAM_SETTINGS])
         ->one();
 
-    expect($row)->not->toBeNull()
+    expect($row)->toBeArray()
         ->and($row['scope'])->toBeIn([Integrations::SCOPE_PROJECT, Integrations::SCOPE_SITE]);
 });
 

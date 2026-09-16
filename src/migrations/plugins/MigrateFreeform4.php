@@ -10,7 +10,6 @@ use verbb\formie\events\ModifyMigrationFormEvent;
 use verbb\formie\events\ModifyMigrationNotificationEvent;
 use verbb\formie\events\ModifyMigrationSubmissionEvent;
 use verbb\formie\fields as formiefields;
-use verbb\formie\models\RichText;
 use verbb\formie\helpers\References;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Variables;

@@ -7,7 +7,12 @@
 - Bump transitive `symfony/cache` to `6.4.45` (CVE-2026-45073 advisory floor).
 
 ### Fixed
+- Preserve legacy spam, CAPTCHA and field-default settings during upgrades, and refresh schema lookups after migration changes.
+- Preserve restricted user and group submission access when upgrading from Formie 2.
+- Migrate integration field-handle tokens to stable field references.
 - Clone localized form layouts without serializing callbacks or mutating canonical form settings and notifications.
+- Migrate notification field-handle tokens to stable references when upgrading from Formie 3.
+- Fix Freeform 5 migration imports and scope submission migration to the selected form ID.
 - Preserve field translations on import and field identities when updating existing forms from exports.
 - Handle omitted optional Table column handles and Note styles, and retain values from Table columns without handles when rendering or exporting submissions.
 - Preserve cleared submission values, including empty checkboxes, tables and dates, through serialization and apply hidden-field clearing during CP edits.

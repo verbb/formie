@@ -62,7 +62,7 @@ final class Freeform5FixtureFactory
         $suffix = strtolower(bin2hex(random_bytes(4)));
         $formUid = self::uid();
         $templateId = 'template-' . $suffix;
-        $formHandle = 'f' . substr($suffix, 0, 1);
+        $formHandle = 'fixture' . $suffix;
 
         $template = new NotificationTemplate();
         $template->uid = self::uid();
@@ -136,9 +136,7 @@ final class Freeform5FixtureFactory
                     'interests' => ['a', 'c'],
                     'choice' => 'daily',
                     'scheduledAt' => '2026-01-20 10:00:00',
-                    'profileGroup' => [
-                        'groupNote' => 'Nested note',
-                    ],
+                    'groupNote' => 'Nested note',
                 ],
             ],
             [
@@ -155,9 +153,7 @@ final class Freeform5FixtureFactory
                     'interests' => ['b'],
                     'choice' => 'weekly',
                     'scheduledAt' => '2026-01-21 11:00:00',
-                    'profileGroup' => [
-                        'groupNote' => 'Second nested note',
-                    ],
+                    'groupNote' => 'Second nested note',
                 ],
             ],
         ];
@@ -215,7 +211,13 @@ final class Freeform5FixtureFactory
             ->setFormSubmissions(new FormSubmissionCollection([$formSubmissions]));
 
         $importer = Craft::$container->get(FreeformImporter::class);
-        $importer->import($dataset, new SilentSse());
+        $identity = Craft::$app->getUser()->getIdentity();
+        Craft::$app->getUser()->setIdentity(\craft\elements\User::find()->admin(true)->one());
+        try {
+            $importer->import($dataset, new SilentSse());
+        } finally {
+            Craft::$app->getUser()->setIdentity($identity);
+        }
 
         $formRecord = FormRecord::findOne(['uid' => $formUid]);
         $importedForm = $formRecord ? Freeform::getInstance()->forms->getFormById((int)$formRecord->id) : null;
@@ -340,6 +342,13 @@ final class Freeform5FixtureFactory
         $field->handle = $handle;
         $field->type = $type;
         $field->required = $required;
+        if (($metadata['options'] ?? null) instanceof OptionCollection) {
+            $metadata['optionConfiguration'] = [
+                'source' => 'custom', 'useCustomValues' => true,
+                'options' => $metadata['options']->toArray(),
+            ];
+            unset($metadata['options']);
+        }
         $field->metadata = $metadata;
 
         return $field;

@@ -155,18 +155,14 @@ it('exposes schema-backed field type defaults config for supported field types',
 it('exposes schema-backed form and notification defaults config', function (): void {
     $service = Formie::$plugin->getFormDefaults();
 
-    expect($service->getFormDefaultsSchemaConfig()['schema'] ?? null)->toHaveCount(16)
+    expect($service->getFormDefaultsSchemaConfig()['schema'] ?? null)->toHaveCount(17)
         ->and($service->getNotificationDefaultsSchemaConfig()['schema'] ?? null)->toHaveCount(9);
 });
 
 it('applies captcha integration defaults to integrations settings', function (): void {
     $captchas = Formie::$plugin->getFormDefaults()->getIntegrationCaptchaOptions();
 
-    if ($captchas === []) {
-        expect(true)->toBeTrue();
-
-        return;
-    }
+    expect($captchas === [])->toBeFalse();
 
     $handle = $captchas[0]['handle'];
     Formie::$plugin->getSettings()->integrationDefaults = [
@@ -184,11 +180,7 @@ it('applies captcha integration defaults to integrations settings', function ():
 it('applies captcha integration defaults to new forms', function (): void {
     $captchas = Formie::$plugin->getFormDefaults()->getIntegrationCaptchaOptions();
 
-    if ($captchas === []) {
-        expect(true)->toBeTrue();
-
-        return;
-    }
+    expect($captchas === [])->toBeFalse();
 
     $handle = $captchas[0]['handle'];
     Formie::$plugin->getSettings()->integrationDefaults = [
@@ -222,11 +214,7 @@ it('prepares select field defaults from class defaults for checkboxes hidden and
     expect($service->prepareFieldTypeDefaultsForEditor(Checkboxes::class)['layout'] ?? null)->toBe('vertical')
         ->and($service->prepareFieldTypeDefaultsForEditor(Hidden::class)['defaultOption'] ?? null)->toBe('custom');
 
-    if (!Formie::$plugin->getFields()->getRegisteredFieldByType(Users::class, false)) {
-        expect(true)->toBeTrue();
-
-        return;
-    }
+    expect(!Formie::$plugin->getFields()->getRegisteredFieldByType(Users::class, false))->toBeFalse();
 
     expect($service->prepareFieldTypeDefaultsForEditor(Users::class)['labelSource'] ?? null)->toBe('email');
 });

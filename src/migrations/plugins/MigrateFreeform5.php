@@ -12,7 +12,7 @@ use verbb\formie\events\ModifyMigrationFormEvent;
 use verbb\formie\events\ModifyMigrationNotificationEvent;
 use verbb\formie\events\ModifyMigrationSubmissionEvent;
 use verbb\formie\fields as formiefields;
-use verbb\formie\models\RichText;
+use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\References;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Variables;
@@ -210,10 +210,9 @@ class MigrateFreeform5 extends BasePluginMigrator
         $statusesService = Formie::$plugin->getSubmissionStatuses();
         $statuses = $statusesService->getAllStatuses();
         $fallbackStatus = $statusesService->getDefaultStatus() ?? (reset($statuses) ?: null);
-        $formHandle = $this->_freeformForm->handle;
 
         $this->migrateSubmissionBatches(
-            fn() => FreeformSubmission::find()->form($formHandle),
+            fn() => FreeformSubmission::find()->formId($this->_freeformForm->getId()),
             function ($entry) use ($statusesService, $fallbackStatus) {
                 /* @var FreeformSubmission $entry */
                 $submission = new Submission();

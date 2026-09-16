@@ -8,6 +8,7 @@ use verbb\formie\helpers\IntegrationApiErrors;
 use verbb\formie\helpers\Plugin;
 use verbb\formie\positions\AboveInput;
 use verbb\formie\positions\BelowInput;
+use verbb\formie\services\FormDefaults;
 
 use Craft;
 use craft\base\Model;
@@ -186,8 +187,8 @@ class Settings extends Model
             $config['submissionsBehaviour'] = 'all';
         }
 
-        if (is_array($config) && Formie::$plugin?->getFormDefaults()) {
-            $config = Formie::$plugin->getFormDefaults()->migrateLegacyFieldDefaults($config);
+        if (is_array($config)) {
+            $config = (new FormDefaults())->migrateLegacyFieldDefaults($config);
         }
 
         $config = $this->_normalizeFailAlertSettingsConfig($config);
@@ -205,8 +206,8 @@ class Settings extends Model
         unset($values['submissionStateMode']);
         unset($values['submissionStore']);
 
-        if (is_array($values) && Formie::$plugin?->getFormDefaults()) {
-            $values = Formie::$plugin->getFormDefaults()->migrateLegacyFieldDefaults($values);
+        if (is_array($values)) {
+            $values = (new FormDefaults())->migrateLegacyFieldDefaults($values);
         }
 
         if (is_array($values)) {

@@ -32,7 +32,7 @@ class m240130_000000_permissions extends Migration
             'formie-manageFormSettings' => ['formie-showFormSettings'],
         ];
 
-        foreach ((new Query())->select(['uid'])->from(Table::FORMIE_FORMS)->all() as $form) {
+        foreach ((new Query())->select(['elements.uid'])->from(['forms' => Table::FORMIE_FORMS])->innerJoin(['elements' => Table::ELEMENTS], '[[elements.id]] = [[forms.id]]')->all() as $form) {
             $suffix = ':' . $form['uid'];
 
             $toUpdate += [
@@ -55,59 +55,78 @@ class m240130_000000_permissions extends Migration
             array_map('strtolower', array_keys($toUpdate)),
             array_map(fn($newPermissions) => array_map('strtolower', $newPermissions), array_values($toUpdate)));
 
-        $toDelete = [];
+        // Snapshot both direct and inherited grants before changing names: the old
+        // submissions navigation permission now has the meaning "view every form".
+        $grants = [];
 
-        // Now add the new permissions to existing users where applicable
-        foreach ($toUpdate as $oldPermission => $newPermissions) {
-            $userIds = (new Query())
-                ->select(['upu.userId'])
-                ->from(['upu' => Table::USERPERMISSIONS_USERS])
-                ->innerJoin(['up' => Table::USERPERMISSIONS], '[[up.id]] = [[upu.permissionId]]')
-                ->where(['up.name' => $oldPermission])
-                ->column($this->db);
+        foreach ([Table::USERPERMISSIONS_USERS => 'userId', Table::USERPERMISSIONS_USERGROUPS => 'groupId'] as $table => $ownerColumn) {
+            $rows = (new Query())
+                ->select(['up.name', 'ownerId' => 'link.' . $ownerColumn])
+                ->from(['link' => $table])
+                ->innerJoin(['up' => Table::USERPERMISSIONS], '[[up.id]] = [[link.permissionId]]')
+                ->where(['up.name' => array_keys($toUpdate)])
+                ->all($this->db);
 
-            $userIds = array_unique($userIds);
+            foreach ($rows as $row) {
+                $targets = $toUpdate[$row['name']];
 
-            if (!empty($userIds)) {
-                $insert = [];
+                if ($row['name'] === strtolower('formie-viewSentNotifications')) {
+                    $targets[] = $row['name'];
+                }
 
-                foreach ($newPermissions as $newPermission) {
-                    $existingPermission = (new Query())
-                        ->from(['up' => Table::USERPERMISSIONS])
-                        ->where(['up.name' => $newPermission])
-                        ->column($this->db);
+                foreach ($targets as $name) {
+                    $grants[$table][$ownerColumn][$row['ownerId']][$name] = true;
+                }
+            }
+        }
 
-                    if (!$existingPermission) {
-                        $this->insert(Table::USERPERMISSIONS, [
-                            'name' => $newPermission,
-                        ]);
+        $this->delete(Table::USERPERMISSIONS, ['name' => array_keys($toUpdate)]);
 
-                        $newPermissionId = $this->db->getLastInsertID(Table::USERPERMISSIONS);
+        foreach ($grants as $table => $columns) {
+            foreach ($columns as $ownerColumn => $owners) {
+                foreach ($owners as $ownerId => $names) {
+                    foreach (array_keys($names) as $name) {
+                        $permissionId = (new Query())->select('id')->from(Table::USERPERMISSIONS)->where(['name' => $name])->scalar($this->db);
 
-                        foreach ($userIds as $userId) {
-                            $insert[] = [$newPermissionId, $userId];
+                        if (!$permissionId) {
+                            $this->insert(Table::USERPERMISSIONS, ['name' => $name]);
+                            $permissionId = $this->db->getLastInsertID();
+                        }
+
+                        $link = ['permissionId' => $permissionId, $ownerColumn => $ownerId];
+
+                        if (!(new Query())->from($table)->where($link)->exists($this->db)) {
+                            $this->insert($table, $link);
                         }
                     }
                 }
-
-                $this->batchInsert(Table::USERPERMISSIONS_USERS, ['permissionId', 'userId'], $insert);
             }
-
-            // Special-case not to delete some origin permissions
-            if ($oldPermission === strtolower('formie-viewSentNotifications')) {
-                continue;
-            }
-
-            if ($oldPermission === strtolower('formie-viewSubmissions')) {
-                continue;
-            }
-
-            $toDelete[] = $oldPermission;
         }
 
-        $this->delete(Table::USERPERMISSIONS, [
-            'name' => $toDelete,
-        ]);
+        // Group grants also live in project config; keep its source of truth in sync
+        // so a later config apply cannot restore the obsolete broader permission.
+        $projectConfig = Craft::$app->getProjectConfig();
+
+        foreach ($projectConfig->get('users.groups') ?? [] as $uid => $group) {
+            $original = $group['permissions'] ?? [];
+            $mapped = [];
+
+            foreach ($original as $name) {
+                $name = strtolower($name);
+                $mapped = array_merge($mapped, $toUpdate[$name] ?? [$name]);
+
+                if ($name === strtolower('formie-viewSentNotifications')) {
+                    $mapped[] = $name;
+                }
+            }
+
+            $mapped = array_values(array_unique($mapped));
+            sort($mapped);
+
+            if ($mapped !== $original) {
+                $projectConfig->set('users.groups.' . $uid . '.permissions', $mapped, 'Migrate Formie group permissions');
+            }
+        }
 
         return true;
     }

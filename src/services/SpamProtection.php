@@ -187,6 +187,11 @@ class SpamProtection extends Component
 
     public function hydrateSettings(Settings $settings): void
     {
+        // Preserve legacy values until the settings migration has seeded their new store.
+        if (!$this->getRow()) {
+            return;
+        }
+
         $values = $this->getSettingsValues();
 
         foreach (self::SETTING_KEYS as $key) {

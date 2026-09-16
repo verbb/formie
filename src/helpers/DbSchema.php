@@ -10,26 +10,14 @@ class DbSchema
 
     public static function tableExists(string $table): bool
     {
-        static $cache = [];
-
-        if (!array_key_exists($table, $cache)) {
-            $cache[$table] = Craft::$app->getDb()->tableExists($table);
-        }
-
-        return $cache[$table];
+        // Craft invalidates its schema cache when migrations create or alter tables.
+        // A separate negative cache would hide those changes for the entire process.
+        return Craft::$app->getDb()->tableExists($table);
     }
 
     public static function columnExists(string $table, string $column): bool
     {
-        static $cache = [];
-
-        $key = $table . '.' . $column;
-
-        if (!array_key_exists($key, $cache)) {
-            $cache[$key] = self::tableExists($table)
-                && Craft::$app->getDb()->columnExists($table, $column);
-        }
-
-        return $cache[$key];
+        return self::tableExists($table)
+            && Craft::$app->getDb()->columnExists($table, $column);
     }
 }

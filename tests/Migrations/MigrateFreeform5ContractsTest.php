@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use Craft;
 use craft\db\Query;
 use Solspace\Freeform\Freeform as FreeformPlugin;
 use verbb\formie\elements\Form;
@@ -12,51 +11,21 @@ use Tests\Support\Fixtures\Freeform5FixtureFactory;
 
 function ensureFreeformPluginReady(): bool
 {
-    if (!class_exists(FreeformPlugin::class)) {
-        return false;
-    }
+    return class_exists(FreeformPlugin::class)
+        && Craft::$app->getPlugins()->isPluginEnabled('freeform')
+        && Craft::$app->getDb()->tableExists('{{%freeform_forms}}');
+}
 
-    $db = Craft::$app->getDb();
-    $plugins = Craft::$app->plugins;
-    $projectConfig = Craft::$app->projectConfig;
-
-    $pluginRow = (new Query())
-        ->from('{{%plugins}}')
-        ->where(['handle' => 'freeform'])
-        ->one();
-
-    if ($pluginRow) {
-        if (!$projectConfig->get('plugins.freeform')) {
-            $projectConfig->set('plugins.freeform', [
-                'edition' => 'express',
-                'enabled' => true,
-                'schemaVersion' => (string)($pluginRow['schemaVersion'] ?? ''),
-            ]);
-        }
-    } else {
-        try {
-            $plugins->installPlugin('freeform');
-        } catch (Throwable) {
-            return false;
-        }
-    }
-
-    // Force a reload because plugin service can be pre-loaded before project config keys are hydrated.
-    foreach (['_pluginsLoaded' => false, '_loadingPlugins' => false, '_storedPluginInfo' => [], '_plugins' => []] as $propertyName => $value) {
-        $property = new ReflectionProperty($plugins, $propertyName);
-        $property->setAccessible(true);
-        $property->setValue($plugins, $value);
-    }
-
-    $plugins->loadPlugins();
-
-    // Ensure plugin modules are loaded for this request.
-    return $plugins->getPlugin('freeform') !== null && $db->tableExists('{{%freeform_forms}}');
+function loadMigrationFixture(): array
+{
+    $fixture = json_decode(file_get_contents(dirname(__DIR__, 2) . '/.cache/verbb-tests/migration-fixture.json'), true, flags: JSON_THROW_ON_ERROR);
+    $fixture['freeformForm'] = FreeformPlugin::getInstance()->forms->getFormById($fixture['formId']);
+    return $fixture;
 }
 
 it('no-ops safely when target freeform form id does not exist', function (): void {
     if (!ensureFreeformPluginReady()) {
-        test()->markTestSkipped('Freeform plugin is not installed/enabled. Run plugin migration suite setup before this test.');
+        throw new RuntimeException('Migration suite requires the installed Freeform fixture plugin.');
     }
 
     $initialCount = (int)Form::find()->status(null)->count();
@@ -106,10 +75,10 @@ it('normalizes notification handles by replacing dashes', function (): void {
 
 it('maps every supported _mapField field class to a Formie field instance', function (): void {
     if (!ensureFreeformPluginReady()) {
-        test()->markTestSkipped('Freeform plugin is not installed/enabled. Run plugin migration suite setup before this test.');
+        throw new RuntimeException('Migration suite requires the installed Freeform fixture plugin.');
     }
 
-    $fixture = Freeform5FixtureFactory::createLargeFixture(true);
+    $fixture = loadMigrationFixture();
     $freeformForm = $fixture['freeformForm'];
 
     expect($freeformForm)->not->toBeNull();
@@ -184,10 +153,10 @@ it('maps every supported _mapField field class to a Formie field instance', func
 
 it('migrates a large freeform v5 fixture with exact layout settings notifications and submissions', function (): void {
     if (!ensureFreeformPluginReady()) {
-        test()->markTestSkipped('Freeform plugin is not installed/enabled. Run plugin migration suite setup before this test.');
+        throw new RuntimeException('Migration suite requires the installed Freeform fixture plugin.');
     }
 
-    $fixture = Freeform5FixtureFactory::createLargeFixture(true);
+    $fixture = loadMigrationFixture();
     $fixtureFieldHandles = [];
 
     foreach (($fixture['freeformForm']?->getPages() ?? []) as $page) {
@@ -217,8 +186,6 @@ it('migrates a large freeform v5 fixture with exact layout settings notification
         ->and(implode(' ', $messages))->not->toContain('Cannot assign string to property verbb\\formie\\models\\Notification::$content')
         ->and(implode(' ', $messages))->toContain('All entries completed.');
 
-    $migratedSubmissionMessages = array_values(array_filter($messages, static fn($message) => str_contains((string)$message, 'Migrated Freeform submission')));
-    expect($migratedSubmissionMessages)->toHaveCount(2);
 
     foreach ([
         'fullName',
@@ -244,7 +211,8 @@ it('migrates a large freeform v5 fixture with exact layout settings notification
         expect(implode(' ', $messages))->not->toContain("Failed to migrate “{$submissionHandle}”");
     }
 
-    $migratedForm = Form::find()->title((string)$fixture['formTitle'])->status(null)->one();
+    expect($result->stats['submissionsMigrated'] ?? null)->toBe(2);
+    $migratedForm = Form::find()->title((string)$fixture['formTitle'])->status(null)->orderBy('elements.id DESC')->one();
     expect($migratedForm)->not->toBeNull();
 
     $migratedSubmissions = Submission::find()
@@ -254,4 +222,32 @@ it('migrates a large freeform v5 fixture with exact layout settings notification
         ->all();
 
     expect($migratedSubmissions)->toHaveCount(2);
+    expect(array_map(fn($page) => $page->label, $migratedForm->getPages()))->toBe(['Primary Page', 'Secondary Page'])
+        ->and($migratedForm->settings->submitMethod)->toBe('ajax')
+        ->and($migratedForm->settings->submitAction)->toBe('url')
+        ->and($migratedForm->settings->submitActionUrl)->toBe('https://example.test/thanks');
+    $pages = $migratedForm->getPages();
+    expect(array_map(fn($field) => $field->handle, $pages[0]->getRows()[0]->getFields()))->toBe(['fullName', 'contactEmail', 'alternateName'])
+        ->and($migratedForm->getFieldByHandle('fullName')->required)->toBeTrue()
+        ->and($migratedForm->getFieldByHandle('fullName')->placeholder)->toBe('Full Name');
+    foreach ([
+        ['fullName' => 'Alice Example', 'contactEmail' => 'alice@example.test', 'age' => '34', 'source' => 'direct', 'details' => 'Long notes A', 'secretToken' => 'secret-a'],
+        ['fullName' => 'Bob Example', 'contactEmail' => 'bob@example.test', 'age' => '44', 'source' => 'referral', 'details' => 'Long notes B', 'secretToken' => 'secret-b'],
+    ] as $index => $expectedValues) {
+        foreach ($expectedValues as $handle => $expected) {
+            expect($migratedSubmissions[$index]->getFieldValueAsString($handle))->toBe($expected);
+        }
+    }
+    expect($migratedSubmissions[0]->getFieldValue('profileGroup.groupNote'))->toBe('Nested note')
+        ->and($migratedSubmissions[1]->getFieldValue('profileGroup.groupNote'))->toBe('Second nested note');
+    $notifications = $migratedForm->getNotifications();
+    expect($notifications)->toHaveCount(1)
+        ->and($notifications[0]->to)->toBe('ops@example.test')
+        ->and($notifications[0]->from)->toBe('no-reply@example.test')
+        ->and($notifications[0]->fromName)->toBe('Fixture Sender')
+        ->and($notifications[0]->replyTo)->toBe('reply@example.test')
+        ->and($notifications[0]->subject)->toBe('Fixture notification');
+    $body = \verbb\formie\helpers\References::parseContent((string)$notifications[0]->content, $migratedSubmissions[0]);
+    expect($body)->toContain('Body for', 'alice@example.test');
+
 })->group('migrate-plugins');

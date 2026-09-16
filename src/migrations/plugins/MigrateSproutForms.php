@@ -14,7 +14,6 @@ use verbb\formie\fields;
 use verbb\formie\fields\values\AddressFieldValue;
 use verbb\formie\fields\values\NameFieldValue;
 use verbb\formie\fields\values\PhoneFieldValue;
-use verbb\formie\models\RichText;
 use verbb\formie\helpers\References;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\FieldLayoutPage;
