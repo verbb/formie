@@ -439,9 +439,20 @@ class ReportQuery extends Component
 
     private function applyViewerSort(ElementQueryInterface $query, ?string $sort, string $sortDir = 'desc'): void
     {
-        $allowed = ['id', 'dateCreated', 'dateUpdated', 'title', 'status'];
+        $allowed = ['id', 'dateCreated', 'dateUpdated', 'title', 'status', 'formName'];
         $sort = in_array($sort, $allowed, true) ? $sort : 'dateCreated';
         $direction = strtolower($sortDir) === 'asc' ? SORT_ASC : SORT_DESC;
+
+        if ($sort === 'formName') {
+            // Match the form title displayed for each submission's original site.
+            $query->leftJoin(
+                ['report_form_site' => Table::ELEMENTS_SITES],
+                '[[report_form_site.elementId]] = [[formie_submissions.formId]] AND [[report_form_site.siteId]] = [[elements_sites.siteId]]',
+            );
+            $query->orderBy(['report_form_site.title' => $direction, 'elements.id' => SORT_ASC]);
+
+            return;
+        }
 
         if ($sort === 'status') {
             $query->orderBy(['statusId' => $direction, 'dateCreated' => SORT_DESC]);
