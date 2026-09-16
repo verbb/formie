@@ -98,12 +98,8 @@ class UrlHelper extends CraftUrlHelper
     {
         $request = Craft::$app->getRequest();
 
-        if ($url === null) {
-            $path = trim($request->getPathInfo(), '/');
-            $url = $path === '' ? '/' : '/' . $path;
-        } else {
-            $url = static::stripQueryString($url);
-        }
+        // Preserve the site/base path, which Craft removes from getPathInfo().
+        $url = static::stripQueryString($url ?? $request->getUrl());
 
         // Never sign Twig/object-template metacharacters.
         $url = str_replace(['{', '}'], '', $url);
