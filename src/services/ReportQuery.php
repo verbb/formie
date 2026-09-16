@@ -330,42 +330,9 @@ class ReportQuery extends Component
 
     private function applyStateFilters(ElementQueryInterface $query, array $filters): void
     {
-        $includeComplete = (bool)($filters['includeComplete'] ?? true);
-        $includeIncomplete = (bool)($filters['includeIncomplete'] ?? true);
-        $includeSpam = (bool)($filters['includeSpam'] ?? false);
-
-        if ($includeComplete && $includeIncomplete && $includeSpam) {
-            $query->isIncomplete(null)->isSpam(null);
-
-            return;
-        }
-
-        if (!$includeComplete && !$includeIncomplete && !$includeSpam) {
-            $query->id(false);
-
-            return;
-        }
-
-        if ($includeSpam && !$includeComplete && !$includeIncomplete) {
-            $query->isSpam(true)->isIncomplete(false);
-
-            return;
-        }
-
-        if ($includeIncomplete && !$includeComplete && !$includeSpam) {
-            $query->isIncomplete(true)->isSpam(false);
-
-            return;
-        }
-
-        if ($includeComplete && !$includeIncomplete && !$includeSpam) {
-            $query->isIncomplete(false)->isSpam(false);
-
-            return;
-        }
-
-        // Mixed inclusion requires OR semantics; fall back to broad query and filter at export time for now.
+        // Use the same disjoint state categories as charts, including incomplete spam.
         $query->isIncomplete(null)->isSpam(null);
+        $this->applyDbStateFilters($query, $filters, 'formie_submissions');
     }
 
     private function applyStatusFilters(ElementQueryInterface $query, array $filters): void
@@ -485,7 +452,7 @@ class ReportQuery extends Component
         $query->orderBy([$sort => $direction]);
     }
 
-    private function applyDbStateFilters(Query $query, array $filters): void
+    private function applyDbStateFilters(Query $query, array $filters, string $alias = 'submissions'): void
     {
         $includeComplete = (bool)($filters['includeComplete'] ?? true);
         $includeIncomplete = (bool)($filters['includeIncomplete'] ?? true);
@@ -506,21 +473,21 @@ class ReportQuery extends Component
         if ($includeComplete) {
             $conditions[] = [
                 'and',
-                ['submissions.isIncomplete' => false],
-                ['submissions.isSpam' => false],
+                [$alias . '.isIncomplete' => false],
+                [$alias . '.isSpam' => false],
             ];
         }
 
         if ($includeIncomplete) {
             $conditions[] = [
                 'and',
-                ['submissions.isIncomplete' => true],
-                ['submissions.isSpam' => false],
+                [$alias . '.isIncomplete' => true],
+                [$alias . '.isSpam' => false],
             ];
         }
 
         if ($includeSpam) {
-            $conditions[] = ['submissions.isSpam' => true];
+            $conditions[] = [$alias . '.isSpam' => true];
         }
 
         $query->andWhere($conditions);

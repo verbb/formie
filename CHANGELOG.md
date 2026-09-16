@@ -17,6 +17,7 @@
 - Bump transitive `symfony/cache` to `6.4.45` (CVE-2026-45073 advisory floor).
 
 ### Fixed
+- Apply selected submission states consistently to report tables, charts and exports.
 - Preserve configured form availability across sites when an editor has access to only some sites.
 - Resolve editable form sites for the requested user instead of the current session.
 - Load the form builder consistently with pretty URLs and Craft query routes.
