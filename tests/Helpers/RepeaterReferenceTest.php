@@ -79,7 +79,7 @@ it('applies array transforms to repeater scope=all values', function (): void {
         ],
     ])->save();
 
-    $token = '{field:' . $ref . ':innerText;scope=all;transform=join;separator=|}';
+    $token = References::field($ref, 'innerText', ['scope' => 'all', 'transform' => 'join', 'separator' => '|']);
 
     expect($submission->getFieldValue($token))->toBe('Alpha|Beta');
 });

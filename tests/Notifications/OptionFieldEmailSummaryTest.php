@@ -17,7 +17,7 @@ it('renders checkbox labels in all-fields email summary when options come from s
 
     $submission = formie()
         ->submission($form)
-        ->with(['artists' => ['42-Artist Name']])
+        ->with(['artists' => ['placeholder']])
         ->save();
 
     $submission->snapshot = [
@@ -30,14 +30,17 @@ it('renders checkbox labels in all-fields email summary when options come from s
         ],
     ];
 
-    \Craft::$app->elements->saveElement($submission);
+    // Model historical content whose original option is no longer offered.
+    $submission->setFieldValue('artists', ['42-Artist Name']);
+    expect(\Craft::$app->elements->saveElement($submission, false))->toBeTrue();
 
     $reloaded = Submission::find()->id($submission->id)->one();
 
     $html = References::parseContent('{allFields}', $reloaded, ['includeSummary' => true]);
 
     expect($html)->toContain('Artist Name')
-        ->and($html)->toContain('artists');
+        ->and($html)->not->toContain('42-Artist Name')
+        ->and($html)->toContain('Artists');
 });
 
 it('falls back to option values in all-fields email summary when labels cannot be resolved', function (): void {
@@ -52,8 +55,12 @@ it('falls back to option values in all-fields email summary when labels cannot b
 
     $submission = formie()
         ->submission($form)
-        ->with(['artists' => ['42-Artist Name']])
+        ->with(['artists' => ['placeholder']])
         ->save();
+
+    // Historical values can outlive the form options that originally allowed them.
+    $submission->setFieldValue('artists', ['42-Artist Name']);
+    expect(\Craft::$app->elements->saveElement($submission, false))->toBeTrue();
 
     $reloaded = Submission::find()->id($submission->id)->one();
 
@@ -74,8 +81,11 @@ it('falls back to option values in field summary projection when labels cannot b
 
     $submission = formie()
         ->submission($form)
-        ->with(['department' => 'support'])
+        ->with(['department' => 'placeholder'])
         ->save();
+
+    $submission->setFieldValue('department', 'support');
+    expect(\Craft::$app->elements->saveElement($submission, false))->toBeTrue();
 
     $reloaded = Submission::find()->id($submission->id)->one();
 

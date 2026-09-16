@@ -6,16 +6,16 @@ use verbb\formie\base\ElementField;
 use verbb\formie\base\FieldInterface;
 use verbb\formie\base\ParentFieldInterface;
 use verbb\formie\base\RepeatableParentFieldInterface;
+use verbb\formie\compatibility\variables\VariableSourceCompatibility;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\fields\Table;
 use verbb\formie\events\RegisterTransformersEvent;
-use verbb\formie\compatibility\variables\VariableSourceCompatibility;
 use verbb\formie\events\RegisterVariablesEvent;
-use verbb\formie\variables\VariableSourceInterface;
+use verbb\formie\fields\Table;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\models\Notification;
 use verbb\formie\models\ReferenceExpression;
+use verbb\formie\variables\VariableSourceInterface;
 
 use Craft;
 use craft\elements\User;
@@ -33,65 +33,6 @@ use Throwable;
 
 class Variables
 {
-    // Constants
-    // =========================================================================
-
-    public const EVENT_REGISTER_VARIABLES = 'registerVariables';
-    public const EVENT_REGISTER_TRANSFORMERS = 'registerTransformers';
-    public const TARGET_CUSTOM = 'custom';
-    public const CONTENT_ANY = 'any';
-    public const CONTENT_SINGLE_LINE = 'singleLine';
-
-    public const TYPE_TEXT = 'text';
-    public const TYPE_EMAIL = 'email';
-    public const TYPE_NUMBER = 'number';
-    public const TYPE_CALCULATIONS = 'calculations';
-    public const TYPE_URL = 'url';
-    public const TYPE_DATE = 'date';
-    public const TYPE_BOOLEAN = 'boolean';
-    public const TYPE_ARRAY = 'array';
-
-    public const GROUP_FIELDS = 'fieldsVariables';
-    public const GROUP_FORM = 'formVariables';
-    public const GROUP_SUBMISSION = 'submissionVariables';
-    public const GROUP_SYSTEM = 'systemVariables';
-    public const GROUP_CURRENT_TIME = 'currentTimeVariables';
-    public const GROUP_ENVIRONMENT = 'environmentVariables';
-    public const GROUP_CURRENT_SITE = 'siteVariables';
-    public const GROUP_CURRENT_USER = 'userVariables';
-    public const GROUP_DISPATCH = 'dispatchVariables';
-    public const GROUP_CUSTOM = 'customVariables';
-
-    public const STATIC_FIELDS = self::GROUP_FIELDS;
-    public const STATIC_FORM = 'staticFormVariables';
-    public const STATIC_GENERAL = 'staticGeneralVariables';
-    public const STATIC_SITE = 'staticSiteVariables';
-    public const STATIC_DISPATCH = 'staticDispatchVariables';
-    public const STATIC_CUSTOM = 'staticCustomVariables';
-
-    public const ENVIRONMENT_VARIABLE_PREFIX = 'FORMIE_';
-
-    private const RESERVED_VARIABLE_TARGETS = [
-        'field',
-        'form',
-        'submission',
-        'site',
-        'user',
-        'system',
-        'env',
-        'dispatch',
-        'metadata',
-        'timestamp',
-        'allFields',
-        'allContentFields',
-        'allVisibleFields',
-        self::TARGET_CUSTOM,
-    ];
-
-    private static ?array $_registeredVariableSources = null;
-    private static array $_customVariableResolutionCache = [];
-    
-
     // Static Methods
     // =========================================================================
 
@@ -335,9 +276,7 @@ class Variables
      * Use this when resolving many reference tokens (e.g. integration field mappings) to avoid
      * rebuilding context and re-parsing all fields on every References::parseValue() call.
      *
-     * @param bool $includeSummary Whether to include allFields / allContentFields / allVisibleFields.
      *        Summary variables are expensive and intentionally opt-in.
-     * @param bool $parseEnvValues Whether string variable values should resolve env aliases before interpolation.
      */
     public static function getVariablesForSubmission(Submission $submission, ?Notification $notification = null, bool $includeSummary = false, bool $parseEnvValues = true): array
     {
@@ -586,7 +525,7 @@ class Variables
                 }
 
                 try {
-                    return Craft::$app->getFormatter()->asDatetime($value, $pattern);
+                    return Craft::$app->getFormatter()->asDatetime($value, 'php:' . $pattern);
                 } catch (Throwable) {
                     return $value;
                 }
@@ -700,10 +639,6 @@ class Variables
 
         return $value;
     }
-
-
-    // Private Methods
-    // =========================================================================
 
     private static function _getFormVariableDefinitions(): array
     {
@@ -1429,6 +1364,12 @@ class Variables
     {
         $form = $submission->form;
 
+        // Preview submissions share a display ID but have distinct UIDs.
+        // Keep their variables and field-reference indexes isolated.
+        if ($submission->uid) {
+            return 'submission:' . $submission->uid;
+        }
+
         if ($submission->id) {
             return 'submission' . $submission->id;
         }
@@ -1844,4 +1785,67 @@ class Variables
 
         return $variables;
     }
+
+
+    // Constants
+    // =========================================================================
+
+    public const EVENT_REGISTER_VARIABLES = 'registerVariables';
+    public const EVENT_REGISTER_TRANSFORMERS = 'registerTransformers';
+    public const TARGET_CUSTOM = 'custom';
+    public const CONTENT_ANY = 'any';
+    public const CONTENT_SINGLE_LINE = 'singleLine';
+
+    public const TYPE_TEXT = 'text';
+    public const TYPE_EMAIL = 'email';
+    public const TYPE_NUMBER = 'number';
+    public const TYPE_CALCULATIONS = 'calculations';
+    public const TYPE_URL = 'url';
+    public const TYPE_DATE = 'date';
+    public const TYPE_BOOLEAN = 'boolean';
+    public const TYPE_ARRAY = 'array';
+
+    public const GROUP_FIELDS = 'fieldsVariables';
+    public const GROUP_FORM = 'formVariables';
+    public const GROUP_SUBMISSION = 'submissionVariables';
+    public const GROUP_SYSTEM = 'systemVariables';
+    public const GROUP_CURRENT_TIME = 'currentTimeVariables';
+    public const GROUP_ENVIRONMENT = 'environmentVariables';
+    public const GROUP_CURRENT_SITE = 'siteVariables';
+    public const GROUP_CURRENT_USER = 'userVariables';
+    public const GROUP_DISPATCH = 'dispatchVariables';
+    public const GROUP_CUSTOM = 'customVariables';
+
+    public const STATIC_FIELDS = self::GROUP_FIELDS;
+    public const STATIC_FORM = 'staticFormVariables';
+    public const STATIC_GENERAL = 'staticGeneralVariables';
+    public const STATIC_SITE = 'staticSiteVariables';
+    public const STATIC_DISPATCH = 'staticDispatchVariables';
+    public const STATIC_CUSTOM = 'staticCustomVariables';
+
+    public const ENVIRONMENT_VARIABLE_PREFIX = 'FORMIE_';
+
+    private const RESERVED_VARIABLE_TARGETS = [
+        'field',
+        'form',
+        'submission',
+        'site',
+        'user',
+        'system',
+        'env',
+        'dispatch',
+        'metadata',
+        'timestamp',
+        'allFields',
+        'allContentFields',
+        'allVisibleFields',
+        self::TARGET_CUSTOM,
+    ];
+
+
+    // Properties
+    // =========================================================================
+
+    private static ?array $_registeredVariableSources = null;
+    private static array $_customVariableResolutionCache = [];
 }

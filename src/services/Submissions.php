@@ -12,10 +12,10 @@ use verbb\formie\deprecations\SubmissionsDeprecations;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\PruneSubmissionEvent;
+use verbb\formie\fields as formiefields;
 use verbb\formie\fields\values\AddressFieldValue;
 use verbb\formie\fields\values\MultiOptionFieldValue;
 use verbb\formie\fields\values\NameFieldValue;
-use verbb\formie\fields as formiefields;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\DataRetentionHelper;
 use verbb\formie\helpers\References;
@@ -31,8 +31,8 @@ use Craft;
 use craft\base\Element;
 use craft\db\Query;
 use craft\db\Table as CraftTable;
-use craft\elements\db\ElementQuery;
 use craft\elements\Asset;
+use craft\elements\db\ElementQuery;
 use craft\elements\User;
 use craft\events\DefineSourceSortOptionsEvent;
 use craft\events\DefineSourceTableAttributesEvent;
@@ -46,14 +46,14 @@ use craft\helpers\Search as SearchHelper;
 use craft\helpers\Session;
 use craft\helpers\UrlHelper;
 
-use yii\base\Event;
 use yii\base\Component;
+use yii\base\Event;
 
 use DateInterval;
 use DateTime;
 use DateTimeZone;
-use Throwable;
 use Exception;
+use Throwable;
 
 use Faker;
 use libphonenumber\PhoneNumberUtil;
@@ -556,10 +556,6 @@ class Submissions extends Component
         );
     }
 
-
-    // Private Methods
-    // =========================================================================
-
     public function getFakeFieldContent(array $fields, array $emailRecipientHandles = []): array
     {
         $fieldContent = [];
@@ -567,7 +563,10 @@ class Submissions extends Component
         $faker = Faker\Factory::create();
 
         foreach ($fields as $key => $field) {
-            if (in_array($field->handle, $emailRecipientHandles, true)) {
+            // Notification tokens use stable field references; keep handle support
+            // for callers that explicitly provide a list of preview handles.
+            if (in_array($field->reference, $emailRecipientHandles, true)
+                || in_array($field->handle, $emailRecipientHandles, true)) {
                 $fieldContent[$field->handle] = $faker->email();
 
                 continue;
@@ -578,6 +577,10 @@ class Submissions extends Component
 
         return $fieldContent;
     }
+
+
+    // Private Methods
+    // =========================================================================
 
     private function _getEmailPreviewFieldHandles(Notification $notification): array
     {

@@ -56,5 +56,5 @@ it('resolves reference tokens set via craft.formie.ref in submit action messages
     $submission = formie()->submission($form)->save();
 
     expect($form->settings->getSubmitActionMessage($submission))
-        ->toBe('Thanks ' . $submission->uid);
+        ->toBe('<p>Thanks ' . $submission->uid . '</p>');
 });

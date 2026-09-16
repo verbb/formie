@@ -13,6 +13,7 @@
 - Clone localized form layouts without serializing callbacks or mutating canonical form settings and notifications.
 - Migrate notification field-handle tokens to stable references when upgrading from Formie 3.
 - Fix Freeform 5 migration imports and scope submission migration to the selected form ID.
+- Format date variable presets using their PHP date patterns.
 - Preserve field translations on import and field identities when updating existing forms from exports.
 - Discard pending data uploads when a field is cleared, preserve them during partial-page merges, and apply nested field edits over stored UID values.
 - Apply file size and detected-type validation to data uploads, and normalize client file payloads consistently with GraphQL uploads.
@@ -26,6 +27,7 @@
 - Duplicate form layout trees without serializing runtime callbacks or mutating the source layout.
 - Fix native JSON stencil persistence, date import settings, checkbox coercion, blank password validation and empty Other-option validation.
 - Compare encrypted recipient condition payloads rather than randomized ciphertext.
+- Resolve stable field references when generating notification preview recipients and isolate cached values between previews.
 - Fix form factories exhausting automatic handles or generating Craft-reserved handles.
 - Fix client-side payment authorize still requiring a Stripe/provider token when the Payment field is hidden by conditional logic (e.g. bank transfer vs card) — authorize and mount now skip fields marked conditionally/row/page hidden, matching server-side payment workflow skips.
 - Fix “Restore In-Progress Submissions Automatically” still restoring incomplete submissions on revisit when disabled — server render no longer hydrates from leftover progress, and submit/client continuation ignore bare progress unless the browser already holds that submission (or a resume/continuation token). Resume links are unchanged.

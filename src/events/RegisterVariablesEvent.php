@@ -14,4 +14,12 @@ class RegisterVariablesEvent extends Event
 
     public array $sources = [];
 
+
+    // Public Methods
+    // =========================================================================
+
+    public function register(string $target, string $handle, string $label): VariableSource
+    {
+        return VariableSourceCompatibility::registerLegacySource($this, $target, $handle, $label);
+    }
 }

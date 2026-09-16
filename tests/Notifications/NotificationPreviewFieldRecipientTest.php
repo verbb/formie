@@ -23,7 +23,7 @@ it('renders notification preview when To references a hidden field', function ()
     $notification = new Notification([
         'name' => 'Preview Recipient',
         'handle' => 'previewRecipient' . uniqid(),
-        'to' => References::field('recipientEmail'),
+        'to' => References::field((string)$form->getFieldByHandle('recipientEmail')->reference),
         'from' => 'sender@example.test',
         'subject' => 'Preview Subject',
         'content' => 'Preview body',
@@ -51,8 +51,8 @@ it('uses email preview values for field references in Cc and Bcc', function (): 
         'name' => 'Preview Cc Bcc',
         'handle' => 'previewCcBcc' . uniqid(),
         'to' => 'recipient@example.test',
-        'cc' => References::field('ccEmail'),
-        'bcc' => References::field('bccEmail'),
+        'cc' => References::field((string)$form->getFieldByHandle('ccEmail')->reference),
+        'bcc' => References::field((string)$form->getFieldByHandle('bccEmail')->reference),
         'from' => 'sender@example.test',
         'subject' => 'Preview Subject',
         'content' => 'Preview body',
@@ -68,4 +68,29 @@ it('uses email preview values for field references in Cc and Bcc', function (): 
     expect($result)->not->toHaveKey('error')
         ->and($result['email']->getCc())->not->toBeEmpty()
         ->and($result['email']->getBcc())->not->toBeEmpty();
+});
+
+it('isolates recipient values between previews with the same display id', function (): void {
+    $form = formie()->form(['title' => 'Independent Notification Previews'])
+        ->hiddenField('recipientEmail')->create();
+    $notification = new Notification([
+        'name' => 'Independent Preview',
+        'handle' => 'independentPreview' . uniqid(),
+        'to' => References::field((string)$form->getFieldByHandle('recipientEmail')->reference),
+        'from' => 'sender@example.test',
+        'subject' => 'Preview',
+        'content' => 'Preview body',
+    ]);
+
+    foreach (['first@example.test', 'second@example.test'] as $recipient) {
+        $submission = new Submission();
+        $submission->setForm($form);
+        Formie::$plugin->getSubmissions()->populateFakeSubmission($submission, $notification);
+        $submission->setFieldValue('recipientEmail', $recipient);
+
+        $result = Formie::$plugin->getEmails()->renderEmail($notification, $submission);
+
+        expect($result)->not->toHaveKey('error')
+            ->and(array_keys($result['email']->getTo()))->toBe([$recipient]);
+    }
 });

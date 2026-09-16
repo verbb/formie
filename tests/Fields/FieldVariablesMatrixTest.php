@@ -26,70 +26,45 @@ it('keeps registry-driven field variable sources aligned with registered fields'
     }
 });
 
-it('executes transform parsing for every registered transformer definition', function (): void {
-    $registry = Variables::getCategoryConfig()['transformerRegistry'] ?? [];
-
-    $form = formie()
-        ->form(['title' => 'Variables Matrix'])
-        ->singleLineTextField('fullName')
-        ->numberField('score')
-        ->agreeField('terms')
-        ->create();
-
-    $submission = formie()->submission($form)->with([
-        'fullName' => 'Value Matrix',
-        'score' => '42.5',
-        'terms' => true,
-    ])->save();
-
-    $tokenByType = [
-        Variables::TYPE_TEXT => '{field:fullName}',
-        Variables::TYPE_NUMBER => '{field:score}',
-        Variables::TYPE_DATE => '{submission:date}',
-        'boolean' => '{field:terms}',
+it('gives every registered transformation an independently specified result', function (): void {
+    $form = formie()->form()->singleLineTextField('words')->numberField('score')->agreeField('terms')
+        ->repeaterField('choices', ['rows' => [['fields' => [['type' => \verbb\formie\fields\SingleLineText::class, 'handle' => 'item', 'label' => 'Item']]]]])->create();
+    $submission = formie()->submission($form)->with(['words' => 'hello WORLD', 'score' => '42.5', 'terms' => true, 'choices' => [['item' => 'one'], ['item' => 'two']]])->save();
+    $submission->dateCreated = new DateTime('2026-02-03 04:05:06', new DateTimeZone('UTC'));
+    $cases = [
+        'text:lower' => ['{field:words;transform=lower}', 'hello world'],
+        'text:upper' => ['{field:words;transform=upper}', 'HELLO WORLD'],
+        'text:title' => ['{field:words;transform=title}', 'Hello World'],
+        'text:capitalize' => ['{field:words;transform=capitalize}', 'Hello WORLD'],
+        'text:replace' => ['{field:words;transform=replace;search=WORLD;replace=visitor}', 'hello visitor'],
+        'text:truncate' => ['{field:words;transform=truncate;length=5;suffix=~}', 'hell~'],
+        'number:round' => ['{field:score;transform=round}', '43'],
+        'number:floor' => ['{field:score;transform=floor}', '42'],
+        'number:ceil' => ['{field:score;transform=ceil}', '43'],
+        'number:format' => ['{field:score;transform=format;decimals=2}', '42.50'],
+        'date:format' => ['{submission:date;transform=format;preset=isoDate}', '2026-02-03'],
+        'boolean:map' => ['{field:terms;transform=map;trueLabel=Accepted;falseLabel=Declined}', 'Accepted'],
+        'array:join' => ['{field:choices;transform=join;separator=%7C}', 'one|two'],
+        'array:first' => ['{field:choices;transform=first}', 'one'],
+        'array:last' => ['{field:choices;transform=last}', 'two'],
+        'array:count' => ['{field:choices;transform=count}', '2'],
     ];
-
-    foreach ($registry as $valueType => $definitions) {
-        $token = $tokenByType[$valueType] ?? '{formName}';
-
+    $registered = [];
+    foreach (Variables::getCategoryConfig()['transformerRegistry'] as $type => $definitions) {
         foreach ($definitions as $definition) {
-            $id = $definition['id'] ?? '';
-            if (!$id) {
-                continue;
-            }
-
-            $params = [];
-            foreach (($definition['params'] ?? []) as $param) {
-                $name = $param['name'] ?? '';
-                if (!$name) {
-                    continue;
-                }
-
-                if (array_key_exists('default', $param)) {
-                    $params[$name] = (string)$param['default'];
-                    continue;
-                }
-
-                if (($param['type'] ?? '') === 'number') {
-                    $params[$name] = '2';
-                } else {
-                    $params[$name] = 'x';
-                }
-            }
-
-            $parts = [];
-            foreach ($params as $name => $value) {
-                $parts[] = "{$name}={$value}";
-            }
-
-            $suffix = $parts ? ';' . implode(';', $parts) : '';
-            $template = rtrim($token, '}') . ";transform={$id}{$suffix}}";
-
-            $parsed = References::parseContent($template, $submission, ['includeSummary' => true]);
-
-            expect($parsed)->not->toBeNull()
-                ->and($parsed)->not->toContain('{');
+            $registered[] = $type . ':' . $definition['id'];
         }
+    }
+    sort($registered);
+    $covered = array_keys($cases);
+    sort($covered);
+    expect($covered)->toBe($registered);
+    foreach ($cases as [$template, $expected]) {
+        foreach ($form->getFields() as $field) {
+            $selector = $field->handle === 'choices' ? ':item;scope=all' : '';
+            $template = str_replace('{field:' . $field->handle . ';', '{field:' . $field->reference . $selector . ';', $template);
+        }
+        expect(References::parseContent($template, $submission))->toBe($expected);
     }
 });
 
