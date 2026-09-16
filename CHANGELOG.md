@@ -17,6 +17,7 @@
 - Bump transitive `symfony/cache` to `6.4.45` (CVE-2026-45073 advisory floor).
 
 ### Fixed
+- Honor per-form permissions in form and submission indexes and GraphQL operations.
 - Require all visible payment fields to be on the final submission page before processing payments.
 - Fixed a rate limit bypass vulnerability.
 - Fixed a CSRF vulnerability.

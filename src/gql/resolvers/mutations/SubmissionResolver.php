@@ -6,12 +6,10 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\gql\mutations\SubmissionMutation;
 use verbb\formie\helpers\StringHelper;
-use verbb\formie\helpers\Table;
 
 use Craft;
 use craft\base\ElementInterface;
 use craft\gql\base\ElementMutationResolver;
-use craft\helpers\Db;
 use craft\helpers\Gql;
 use craft\helpers\Json;
 
@@ -201,9 +199,7 @@ class SubmissionResolver extends ElementMutationResolver
             return false;
         }
 
-        $formUid = Db::uidById(Table::FORMIE_FORMS, $submission->getForm()->id);
-
-        $scope = 'formieSubmissions.' . $formUid;
+        $scope = 'formieSubmissions.' . $submission->getForm()->uid;
         $canDeleteAll = Gql::canSchema('formieSubmissions.all', 'delete');
         $canDelete = Gql::canSchema($scope, 'delete');
 

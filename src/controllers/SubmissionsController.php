@@ -113,7 +113,7 @@ class SubmissionsController extends Controller
         $forms = (new Query())
             ->select([
                 'f.id',
-                'f.uid',
+                'e.uid',
                 'f.handle',
                 'es.title',
             ])

@@ -5,6 +5,7 @@ use verbb\formie\Formie as FormiePlugin;
 use verbb\formie\elements\Form;
 use verbb\formie\models\RichText;
 
+use craft\db\Table as CraftTable;
 use craft\helpers\Db;
 use craft\helpers\Gql as GqlHelper;
 
@@ -44,7 +45,7 @@ class Gql extends GqlHelper
             return false;
         }
 
-        $allowedFormIds = array_map('intval', array_values(Db::idsByUids(Table::FORMIE_FORMS, $allowedFormUids)));
+        $allowedFormIds = array_map('intval', array_values(Db::idsByUids(CraftTable::ELEMENTS, $allowedFormUids)));
 
         return in_array((int)$form->id, $allowedFormIds, true);
     }

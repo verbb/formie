@@ -211,7 +211,7 @@ class Submission extends Element
         // Keep source construction lightweight by avoiding full Form element hydration.
         $formColumns = [
             'f.id',
-            'f.uid',
+            'e.uid',
             'f.handle',
             'es.title',
         ];

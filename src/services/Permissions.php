@@ -544,7 +544,7 @@ class Permissions extends Component
             return [];
         }
 
-        $select = ['f.id', 'f.uid'];
+        $select = ['f.id', 'e.uid'];
         $query = (new Query())
             ->from(['f' => Table::FORMIE_FORMS])
             ->innerJoin(['e' => CraftTable::ELEMENTS], '[[e.id]] = [[f.id]]')
