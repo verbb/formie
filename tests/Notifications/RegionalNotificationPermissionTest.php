@@ -23,9 +23,10 @@ it('checks regional sent notification access against its actual form', function 
     expect(Craft::$app->getElements()->saveElement($user))->toBeTrue();
     $permissions = Formie::$plugin->getPermissions();
     Craft::$app->set('userPermissions', new \craft\services\UserPermissions());
-    $grants = ['accessCp', 'accessPlugin-formie', Permissions::PERM_ACCESS_SUBMISSIONS];
+    $grants = ['accessCp', 'accessPlugin-formie', 'formie-accessSentNotifications'];
     if ($allowed) { $grants[] = $permissions->scopedPermission(Permissions::PERM_VIEW_SENT_NOTIFICATIONS, $permissions->groupScope($group->handle)); }
     expect(Craft::$app->getUserPermissions()->saveUserPermissions($user->id, $grants))->toBeTrue();
+    expect(User::find()->id($user->id)->status(null)->one()->can($permissions->scopedPermission(Permissions::PERM_VIEW_SENT_NOTIFICATIONS, $permissions->groupScope($group->handle))))->toBe($allowed);
     WebRequestTestHelper::withWebRequestContext(function ($request) use ($user, $notice, $form, $allowed): void {
         $request->setIsCpRequest(true);
         $viewer = User::find()->id($user->id)->status(null)->one();
