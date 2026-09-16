@@ -43,8 +43,8 @@ it('counts spaces toward character limits consistently', function (): void {
         ])
         ->create();
 
-    $valid = formie()->submission($form)->with(['value' => '   '])->save();
-    $invalid = formie()->submission($form)->with(['value' => '    '])->allowValidationFailure()->save();
+    $valid = formie()->submission($form)->with(['value' => 'a b'])->save();
+    $invalid = formie()->submission($form)->with(['value' => 'a  b'])->allowValidationFailure()->save();
 
     expect($valid->id)->not->toBeNull()
         ->and($invalid)->toHaveFieldError('value');

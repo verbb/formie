@@ -8,9 +8,7 @@ use verbb\formie\helpers\SchemaHelper;
 
 it('returns schema unchanged when multi-site is disabled', function (): void {
     if (Craft::$app->getIsMultiSite()) {
-        expect(true)->toBeTrue();
-
-        return;
+        test()->markTestSkipped('Requires the single-site runtime; covered by --suite=single-site.');
     }
 
     $schema = SchemaHelper::modalTabs([
@@ -28,9 +26,7 @@ it('returns schema unchanged when multi-site is disabled', function (): void {
 
 it('marks translatable properties inside modal tab schema roots', function (): void {
     if (!Craft::$app->getIsMultiSite()) {
-        expect(true)->toBeTrue();
-
-        return;
+        test()->markTestSkipped('Requires the multisite runtime; covered by the default suite.');
     }
 
     $field = Formie::$plugin->getFields()->getRegisteredFieldByType(SingleLineText::class);

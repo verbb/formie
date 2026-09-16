@@ -28,9 +28,9 @@ it('embeds render themeConfig on the form element when a render frame is active'
     ]);
 
     try {
-        $tag = Formie::$plugin->getFormSlotRegistry()->resolve('form', RenderContext::from([
+        $tag = \Tests\Support\WebRequestTestHelper::withWebRequestContext(fn() => Formie::$plugin->getFormSlotRegistry()->resolve('form', RenderContext::from([
             'form' => $form,
-        ]));
+        ])));
 
         $encodedThemeConfig = $tag?->coreAttributes['data']['formie-theme-config'] ?? null;
 

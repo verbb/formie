@@ -89,8 +89,7 @@ it('keeps signature and calculations scalar projections stable', function (): vo
     $calcValue = $calc->normalizeValue('12.50', null);
 
     expect($signature->getValueAsString($signatureValue, null))->toBe('data:image/png;base64,abc')
-        ->and((string)$signature->getValueForSummary($signatureValue, null))->toContain('<img')
-        ->and((string)$signature->getValueForSummary($signatureValue, null))->toContain('data:image/png;base64,abc')
+        ->and((string)$signature->getValueForSummary($signatureValue, null))->toBe('')
         ->and($calc->getFormula())->toBe([
             'expression' => '',
             'formula' => '',

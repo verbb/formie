@@ -13,6 +13,7 @@ it('overrides the default submit action when a redirect rule matches', function 
     $form = formie()
         ->form(['title' => 'Redirect Rule Match'])
         ->singleLineTextField('tier')
+        ->settings(['disableCaptchas' => true])
         ->create();
 
     $form->settings->setAttributes([
@@ -48,6 +49,7 @@ it('uses the default submit action when redirect rules are disabled', function (
     $form = formie()
         ->form(['title' => 'Redirect Rules Disabled'])
         ->singleLineTextField('tier')
+        ->settings(['disableCaptchas' => true])
         ->create();
 
     $form->settings->setAttributes([
@@ -82,6 +84,7 @@ it('uses the default submit action when no redirect rules match', function (): v
     $form = formie()
         ->form(['title' => 'Redirect Rule No Match'])
         ->singleLineTextField('tier')
+        ->settings(['disableCaptchas' => true])
         ->create();
 
     $form->settings->setAttributes([
@@ -117,6 +120,7 @@ it('uses the first matching redirect rule', function (): void {
     $form = formie()
         ->form(['title' => 'Redirect Rule Order'])
         ->singleLineTextField('tier')
+        ->settings(['disableCaptchas' => true])
         ->create();
 
     $form->settings->setAttributes([
@@ -168,6 +172,7 @@ it('resolves entry redirect rules', function (): void {
     $form = formie()
         ->form(['title' => 'Redirect Rule Entry'])
         ->singleLineTextField('tier')
+        ->settings(['disableCaptchas' => true])
         ->create();
 
     $form->settings->setAttributes([
@@ -205,6 +210,7 @@ it('returns the default message action from redirect rule workflow responses', f
     $form = formie()
         ->form(['title' => 'Redirect Rule Message Default'])
         ->singleLineTextField('tier')
+        ->settings(['disableCaptchas' => true])
         ->create();
 
     $form->settings->setAttributes([

@@ -14,16 +14,19 @@ use verbb\formie\gql\queries\SubmissionQuery;
 use verbb\formie\gql\types\generators\FormGenerator;
 use verbb\formie\gql\types\generators\SubmissionGenerator;
 
-it('captures a graphql schema generation baseline for remaining complex form fields', function (string $profileLabel, int $formCount, int $fieldSetCount): void {
-    seedGraphqlComplexFieldPerfForms($formCount, $fieldSetCount);
+beforeEach(fn() => \Tests\Support\UploadTestHelper::ensureUploadVolume());
 
-    withGraphqlComplexFieldPerfSchema([
-        'formieForms.all:read',
-        'formieSubmissions.all:read',
-        'formieSubmissions.all:create',
-        'formieSubmissions.all:save',
-        'formieSubmissions.all:delete',
-    ], function () use ($profileLabel, $formCount, $fieldSetCount): void {
+it('captures a graphql schema generation baseline for remaining complex form fields', function (string $profileLabel, int $formCount, int $fieldSetCount): void {
+    $forms = seedGraphqlComplexFieldPerfForms($formCount, $fieldSetCount);
+    $scope = [];
+    foreach ($forms as $form) {
+        $scope[] = "formieForms.{$form->uid}:read";
+        foreach (['read', 'create', 'save', 'delete'] as $action) {
+            $scope[] = "formieSubmissions.{$form->uid}:{$action}";
+        }
+    }
+
+    withGraphqlComplexFieldPerfSchema($scope, function () use ($profileLabel, $formCount, $fieldSetCount): void {
         $combined = measureGraphqlComplexFieldPerfPhase(function (): array {
             return [
                 'formQueries' => FormQuery::getQueries(false),
@@ -75,8 +78,9 @@ it('captures a graphql schema generation baseline for remaining complex form fie
         ));
 
         expect(count($combined['result']['submissionMutations']))->toBeGreaterThanOrEqual($formCount)
-            ->and(count($combined['result']['formTypes']))->toBeGreaterThanOrEqual($formCount)
-            ->and(count($combined['result']['submissionTypes']))->toBeGreaterThanOrEqual($formCount);
+            ->and(count($combined['result']['formTypes']))->toBe($formCount)
+            ->and(count($combined['result']['submissionTypes']))->toBe($formCount)
+            ->and($combined['elapsedMs'])->toBeLessThan(5000);
     });
 })->with([
     'small' => ['small', 5, 2],
@@ -84,8 +88,9 @@ it('captures a graphql schema generation baseline for remaining complex form fie
     'large' => ['large', 30, 3],
 ])->group('perf');
 
-function seedGraphqlComplexFieldPerfForms(int $formCount, int $fieldSetCount): void
+function seedGraphqlComplexFieldPerfForms(int $formCount, int $fieldSetCount): array
 {
+    $forms = [];
     $recipientOptions = [
         ['label' => 'Sales', 'value' => 'sales@example.test'],
         ['label' => 'Support', 'value' => 'support@example.test'],
@@ -113,8 +118,9 @@ function seedGraphqlComplexFieldPerfForms(int $formCount, int $fieldSetCount): v
                 ]);
         }
 
-        $builder->create();
+        $forms[] = $builder->create();
     }
+    return $forms;
 }
 
 function withGraphqlComplexFieldPerfSchema(array $scope, callable $callback): void

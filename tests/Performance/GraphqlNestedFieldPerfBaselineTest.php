@@ -20,15 +20,16 @@ use verbb\formie\gql\types\generators\FormGenerator;
 use verbb\formie\gql\types\generators\SubmissionGenerator;
 
 it('captures a graphql schema generation baseline for nested fields', function (string $profileLabel, int $formCount, int $fieldSetCount): void {
-    seedGraphqlNestedFieldPerfForms($formCount, $fieldSetCount);
+    $forms = seedGraphqlNestedFieldPerfForms($formCount, $fieldSetCount);
+    $scope = [];
+    foreach ($forms as $form) {
+        $scope[] = "formieForms.{$form->uid}:read";
+        foreach (['read', 'create', 'save', 'delete'] as $action) {
+            $scope[] = "formieSubmissions.{$form->uid}:{$action}";
+        }
+    }
 
-    withGraphqlNestedFieldPerfSchema([
-        'formieForms.all:read',
-        'formieSubmissions.all:read',
-        'formieSubmissions.all:create',
-        'formieSubmissions.all:save',
-        'formieSubmissions.all:delete',
-    ], function () use ($profileLabel, $formCount, $fieldSetCount): void {
+    withGraphqlNestedFieldPerfSchema($scope, function () use ($profileLabel, $formCount, $fieldSetCount): void {
         $combined = measureGraphqlNestedFieldPerfPhase(function (): array {
             return [
                 'formQueries' => FormQuery::getQueries(false),
@@ -80,8 +81,9 @@ it('captures a graphql schema generation baseline for nested fields', function (
         ));
 
         expect(count($combined['result']['submissionMutations']))->toBeGreaterThanOrEqual($formCount)
-            ->and(count($combined['result']['formTypes']))->toBeGreaterThanOrEqual($formCount)
-            ->and(count($combined['result']['submissionTypes']))->toBeGreaterThanOrEqual($formCount);
+            ->and(count($combined['result']['formTypes']))->toBe($formCount)
+            ->and(count($combined['result']['submissionTypes']))->toBe($formCount)
+            ->and($combined['elapsedMs'])->toBeLessThan(5000);
     });
 })->with([
     'small' => ['small', 5, 2],
@@ -89,8 +91,9 @@ it('captures a graphql schema generation baseline for nested fields', function (
     'large' => ['large', 30, 3],
 ])->group('perf');
 
-function seedGraphqlNestedFieldPerfForms(int $formCount, int $fieldSetCount): void
+function seedGraphqlNestedFieldPerfForms(int $formCount, int $fieldSetCount): array
 {
+    $forms = [];
     $nameRows = (new Name(['useMultipleFields' => true]))->getSubFields();
     $addressRows = (new Address())->getSubFields();
     $nestedRows = [[
@@ -141,8 +144,9 @@ function seedGraphqlNestedFieldPerfForms(int $formCount, int $fieldSetCount): vo
                 ]);
         }
 
-        $builder->create();
+        $forms[] = $builder->create();
     }
+    return $forms;
 }
 
 function withGraphqlNestedFieldPerfSchema(array $scope, callable $callback): void

@@ -21,7 +21,7 @@ it('captures submission query field-loading baseline for repeated criteria queri
         ->repeaterField('lineItems', ['rows' => $rows])
         ->create();
 
-    formie()->submission($form)->with([
+    $needle = formie()->submission($form)->with([
         'fullName' => 'Needle',
         'groupContent' => ['innerText' => 'Group Needle'],
         'lineItems' => [
@@ -38,22 +38,25 @@ it('captures submission query field-loading baseline for repeated criteria queri
         ],
     ])->save();
 
-    $criteriaQueryMs = measureSubmissionQueryFieldLoadingPerfPhase(function () use ($form): void {
+    $criteriaQueryMs = measureSubmissionQueryFieldLoadingPerfPhase(function () use ($form, $needle): void {
         for ($i = 0; $i < 80; $i++) {
-            Submission::find()
+            $results = Submission::find()
                 ->form($form)
                 ->fullName('Needle')
                 ->all();
+            expect(array_map(fn($row) => $row->id, $results))->toBe([$needle->id]);
 
-            Submission::find()
+            $results = Submission::find()
                 ->form($form)
                 ->groupContent(['innerText' => 'Group Needle'])
                 ->all();
+            expect(array_map(fn($row) => $row->id, $results))->toBe([$needle->id]);
 
-            Submission::find()
+            $results = Submission::find()
                 ->form($form)
                 ->lineItems(['innerText' => 'Row Needle'])
                 ->all();
+            expect(array_map(fn($row) => $row->id, $results))->toBe([$needle->id]);
         }
     });
 
@@ -64,7 +67,7 @@ it('captures submission query field-loading baseline for repeated criteria queri
         ], JSON_UNESCAPED_SLASHES)
     ));
 
-    expect($criteriaQueryMs)->toBeLessThan(30000);
+    expect($criteriaQueryMs)->toBeLessThan(5000);
 })->group('perf');
 
 function measureSubmissionQueryFieldLoadingPerfPhase(callable $callback): int

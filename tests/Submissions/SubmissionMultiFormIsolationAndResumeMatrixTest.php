@@ -167,13 +167,9 @@ it('retains advanced values independently across different multipage forms', fun
 function isolationMatrixHandle(): string
 {
     static $counter = 2000;
-    $alphabet = 'abcdefghijklmnopqrstuvwxyz';
 
     do {
-        $first = intdiv($counter, 26) % 26;
-        $second = $counter % 26;
-        $handle = $alphabet[$first] . $alphabet[$second];
-        $counter++;
+        $handle = 'isolationForm' . $counter++;
     } while (Form::find()->handle($handle)->status(null)->one() !== null);
 
     return $handle;

@@ -167,6 +167,7 @@ function createFourPageSingleFieldForm(string $submitMethod): mixed
         ->onPage(2)->singleLineTextField('pageTwoValue', ['required' => true])
         ->onPage(3)->singleLineTextField('pageThreeValue', ['required' => true])
         ->onPage(4)->singleLineTextField('pageFourValue', ['required' => true])
+        ->settings(['disableCaptchas' => true])
         ->create();
 }
 
@@ -208,6 +209,7 @@ function createAdvancedFourPageForm(string $submitMethod): mixed
                     ]],
                 ]],
             ])
+        ->settings(['disableCaptchas' => true])
         ->create();
 }
 
@@ -255,15 +257,5 @@ function reloadSubmission(?int $id): Submission
 
 function multipageMatrixHandle(): string
 {
-    static $counter = 1000;
-    $alphabet = 'abcdefghijklmnopqrstuvwxyz';
-
-    do {
-        $first = intdiv($counter, 26) % 26;
-        $second = $counter % 26;
-        $handle = 'matrix' . $alphabet[$first] . $alphabet[$second];
-        $counter++;
-    } while (Form::find()->handle($handle)->status(null)->one() !== null);
-
-    return $handle;
+    return 'test' . bin2hex(random_bytes(8));
 }

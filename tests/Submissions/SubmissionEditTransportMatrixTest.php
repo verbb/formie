@@ -8,7 +8,7 @@ use verbb\formie\services\SubmissionWorkflow;
 
 dataset('edit_submit_methods', ['ajax', 'page-reload']);
 
-it('keeps edit-existing persistence behavior stable across submit methods', function (string $submitMethod): void {
+it('keeps edit-existing workflow persistence stable under each submit-method setting', function (string $submitMethod): void {
     $form = formie()
         ->form(['title' => 'Edit Transport ' . $submitMethod])
         ->singleLineTextField('fullName', ['required' => true])

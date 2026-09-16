@@ -97,6 +97,10 @@ const modelMove = ({
     asNewRow,
 }) => {
     const rows = layout.map((r) => { return [...r]; });
+    // A field dropped back into its own singleton row stays in that row.
+    if (fromRow === toRow && rows[fromRow].length === 1) {
+        return rows;
+    }
     const isOriginalSameRowMove = fromRow === toRow;
     const moved = rows[fromRow][fromField];
     rows[fromRow].splice(fromField, 1);

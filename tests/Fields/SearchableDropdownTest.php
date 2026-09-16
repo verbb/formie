@@ -82,8 +82,8 @@ it('renders combobox data attributes when searchable dropdown is enabled', funct
         'value' => '',
     ]));
 
-    expect($tag?->coreAttributes['data-formie-combobox-input'] ?? null)->toBeTrue()
-        ->and($tag?->coreAttributes['data-formie-dropdown-input'] ?? null)->toBeTrue();
+    expect($tag?->coreAttributes['data']['formie-combobox-input'] ?? null)->toBeTrue()
+        ->and($tag?->coreAttributes['data']['formie-dropdown-input'] ?? null)->toBeTrue();
 });
 
 it('preserves useSearchable when normalizing dropdown field config', function (): void {

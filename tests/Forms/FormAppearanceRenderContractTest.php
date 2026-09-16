@@ -23,8 +23,8 @@ it('renders page tabs and progress only when their display settings are enabled'
         ], false);
         expect(Craft::$app->getElements()->saveElement($form))->toBeTrue();
 
-        $hiddenTabs = $view->renderTemplate('formie/_special/form-template/form/tabs', ['form' => $form]);
-        $hiddenProgress = $view->renderTemplate('formie/_special/form-template/form/progress', ['form' => $form]);
+        $hiddenTabs = $view->renderTemplate('formie/_special/form-template/form/tabs', ['form' => $form, 'submission' => null]);
+        $hiddenProgress = $view->renderTemplate('formie/_special/form-template/form/progress', ['form' => $form, 'submission' => null]);
 
         $form->settings->setAttributes([
             'displayPageTabs' => true,
@@ -32,8 +32,8 @@ it('renders page tabs and progress only when their display settings are enabled'
         ], false);
         expect(Craft::$app->getElements()->saveElement($form))->toBeTrue();
 
-        $shownTabs = $view->renderTemplate('formie/_special/form-template/form/tabs', ['form' => $form]);
-        $shownProgress = $view->renderTemplate('formie/_special/form-template/form/progress', ['form' => $form]);
+        $shownTabs = $view->renderTemplate('formie/_special/form-template/form/tabs', ['form' => $form, 'submission' => null]);
+        $shownProgress = $view->renderTemplate('formie/_special/form-template/form/progress', ['form' => $form, 'submission' => null]);
     } finally {
         $view->setTemplateMode($oldTemplateMode);
     }

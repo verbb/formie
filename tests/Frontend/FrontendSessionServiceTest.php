@@ -72,9 +72,8 @@ it('issues opaque runtime continuation tokens instead of exposing submission uid
 
     $submission->isIncomplete = true;
     expect(Craft::$app->getElements()->saveElement($submission))->toBeTrue();
-    Formie::$plugin->getSubmissionDrafts()->upsertProgressState($form, $submission, $form->getCurrentPage()?->id);
-
-    $session = WebRequestTestHelper::withWebRequestContext(function () use ($form): array {
+    $session = WebRequestTestHelper::withWebRequestContext(function () use ($form, $submission): array {
+        Formie::$plugin->getSubmissionDrafts()->upsertProgressState($form, $submission, $form->getCurrentPage()?->id);
         return Formie::$plugin->getClientSessionService()->issueInitialSession($form)->toArrayRecursive();
     }, [
         'method' => 'POST',

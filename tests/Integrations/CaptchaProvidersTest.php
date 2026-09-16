@@ -8,6 +8,18 @@ use verbb\formie\integrations\captchas\Hcaptcha;
 use verbb\formie\integrations\captchas\Turnstile;
 use verbb\formie\services\Integrations;
 
+beforeEach(function (): void {
+    $this->captchaTransaction = Craft::$app->getDb()->beginTransaction();
+});
+
+afterEach(function (): void {
+    $this->captchaTransaction->rollBack();
+    // The provider store separately caches database rows; rollback cannot invalidate them.
+    $providers = Formie::$plugin->getCaptchaProviders();
+    (new ReflectionMethod($providers, '_resetCache'))->invoke($providers);
+    Formie::$plugin->getIntegrations()->resetCaptchaCaches();
+});
+
 it('seeds one captcha provider row per registry handle', function (): void {
     $handles = [];
 

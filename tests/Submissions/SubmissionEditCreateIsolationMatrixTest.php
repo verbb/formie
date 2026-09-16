@@ -16,6 +16,7 @@ it('keeps create-new and edit-existing submission flows isolated for the same fo
     $form = formie()
         ->form(['title' => 'Edit/Create Isolation Matrix'])
         ->singleLineTextField('fullName', ['required' => true])
+        ->settings(['disableCaptchas' => true])
         ->create();
 
     $existing = formie()
@@ -63,6 +64,7 @@ it('isolates draft state keys between edit-existing and create-new contexts for 
     $form = formie()
         ->form(['title' => 'Edit/Create Draft Isolation'])
         ->singleLineTextField('fullName')
+        ->settings(['disableCaptchas' => true])
         ->create();
 
     $existing = formie()
@@ -90,6 +92,7 @@ it('uses explicit managed submission ids when saving existing submissions', func
     $form = formie()
         ->form(['title' => 'Managed Edit Existing Id'])
         ->singleLineTextField('fullName')
+        ->settings(['disableCaptchas' => true])
         ->create();
 
     $existing = formie()
@@ -142,6 +145,7 @@ it('rejects anonymous site edits that identify a completed submission by id only
     $form = formie()
         ->form(['title' => 'Managed Edit Existing Token Required'])
         ->singleLineTextField('fullName')
+        ->settings(['disableCaptchas' => true])
         ->create();
 
     $existing = formie()
@@ -193,6 +197,7 @@ it('keeps CP edit save redirects in the control panel message branch', function 
     $form = formie()
         ->form(['title' => 'CP Edit Message Redirect'])
         ->singleLineTextField('fullName')
+        ->settings(['disableCaptchas' => true])
         ->create();
 
     $existing = formie()
@@ -202,6 +207,7 @@ it('keeps CP edit save redirects in the control panel message branch', function 
 
     WebRequestTestHelper::withWebRequestContext(function ($request) use ($form, $existing): void {
         $request->setIsCpRequest(true);
+        Craft::$app->getUser()->setIdentity(\craft\elements\User::find()->admin(true)->one());
         $wrongRedirect = "https://craft.example.test/formie/submissions/{$form->handle}/{$existing->id}";
         $request->setBodyParams([
             'handle' => $form->handle,

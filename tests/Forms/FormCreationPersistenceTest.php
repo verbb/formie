@@ -7,17 +7,7 @@ use verbb\formie\Formie;
 
 function creationTestHandle(): string
 {
-    static $counter = 4000;
-    $alphabet = 'abcdefghijklmnopqrstuvwxyz';
-
-    do {
-        $first = intdiv($counter, 26) % 26;
-        $second = $counter % 26;
-        $handle = $alphabet[$first] . $alphabet[$second];
-        $counter++;
-    } while (Form::find()->handle($handle)->status(null)->one() !== null);
-
-    return $handle;
+    return 'test' . bin2hex(random_bytes(8));
 }
 
 it('creates and persists a minimal form and can fetch it by identifiers', function (): void {

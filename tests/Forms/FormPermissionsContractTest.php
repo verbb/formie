@@ -10,7 +10,9 @@ it('denies form actions for users without permissions', function (): void {
         ->singleLineTextField('fullName')
         ->create();
 
-    $user = new User();
+    $user = new class extends User {
+        public function can(string $permission): bool { return false; }
+    };
     $user->admin = false;
 
     expect($form->canView($user))->toBeFalse()

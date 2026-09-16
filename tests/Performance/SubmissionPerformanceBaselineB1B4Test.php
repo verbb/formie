@@ -11,7 +11,7 @@ use verbb\formie\services\SubmissionWorkflow;
 it('captures B1 baseline for final submit workflow path', function (): void {
     $form = formie()
         ->form(['title' => 'Perf B1 Final Submit'])
-        ->singleLineTextField('fullName')
+        ->singleLineTextField('fullName', ['label' => 'Full Name'])
         ->emailField('email')
         ->numberField('score')
         ->create();
@@ -32,7 +32,12 @@ it('captures B1 baseline for final submit workflow path', function (): void {
     $elapsedMs = (int)((microtime(true) - $started) * 1000);
 
     expect($response->success)->toBeTrue()
-        ->and($elapsedMs)->toBeLessThan(20000);
+        ->and($response->submission->id)->not->toBeNull();
+    $saved = Submission::find()->id($response->submission->id)->status(null)->one();
+    expect($saved->getFieldValue('fullName'))->toBe('Perf User')
+        ->and($saved->getFieldValue('email'))->toBe('perf@example.test');
+    expect($response->success)->toBeTrue()
+        ->and($elapsedMs)->toBeLessThan(5000);
 })->group('perf');
 
 it('captures B2 baseline for partial multipage update path', function (): void {
@@ -64,7 +69,9 @@ it('captures B2 baseline for partial multipage update path', function (): void {
             'pageId' => (int)$pages[0]->id,
         ]));
 
-        $submission = $first->submission;
+        $submission = Submission::find()->id($first->submission->id)->status(null)->isIncomplete(null)->one();
+        $form->setCurrentPage($pages[1]);
+        $submission->setForm($form);
         $submission->setFieldValueFromRequest('pageTwoField', 'p2');
 
         $started = microtime(true);
@@ -77,9 +84,14 @@ it('captures B2 baseline for partial multipage update path', function (): void {
         ]));
         $elapsedMs = (int)((microtime(true) - $started) * 1000);
 
+        expect($second->success)->toBeTrue()
+            ->and($second->submission->id)->not->toBeNull();
+        $saved = Submission::find()->id($second->submission->id)->status(null)->isIncomplete(null)->one();
+        expect($saved->getFieldValue('pageOneField'))->toBe('p1')
+            ->and($saved->getFieldValue('pageTwoField'))->toBe('p2');
         expect($first->success)->toBeTrue()
             ->and($second->success)->toBeTrue()
-            ->and($elapsedMs)->toBeLessThan(20000);
+            ->and($elapsedMs)->toBeLessThan(5000);
     } finally {
         $settings->setOnlyCurrentPagePayload = $originalPartialPayload;
     }
@@ -88,7 +100,7 @@ it('captures B2 baseline for partial multipage update path', function (): void {
 it('captures B3 baseline for mixed-family normalization pass', function (): void {
     $form = formie()
         ->form(['title' => 'Perf B3 Normalize'])
-        ->singleLineTextField('fullName')
+        ->singleLineTextField('fullName', ['label' => 'Full Name'])
         ->emailField('email')
         ->numberField('score')
         ->create();
@@ -102,20 +114,20 @@ it('captures B3 baseline for mixed-family normalization pass', function (): void
     $started = microtime(true);
 
     for ($i = 0; $i < 300; $i++) {
-        $submission->getFieldValue('fullName');
-        $submission->getFieldValue('email');
-        $submission->getFieldValue('score');
+        expect($submission->getFieldValue('fullName'))->toBe('Normalize Runner')
+            ->and($submission->getFieldValue('email'))->toBe('normalize@example.test')
+            ->and($submission->getFieldValueAsString('score'))->toBe('12');
     }
 
     $elapsedMs = (int)((microtime(true) - $started) * 1000);
 
-    expect($elapsedMs)->toBeLessThan(20000);
+    expect($elapsedMs)->toBeLessThan(5000);
 })->group('perf');
 
 it('captures B4 baseline for export and summary projection paths', function (): void {
     $form = formie()
         ->form(['title' => 'Perf B4 Projections'])
-        ->singleLineTextField('fullName')
+        ->singleLineTextField('fullName', ['label' => 'Full Name'])
         ->emailField('email')
         ->groupField('details', [
             'rows' => [[
@@ -137,11 +149,14 @@ it('captures B4 baseline for export and summary projection paths', function (): 
     $started = microtime(true);
 
     for ($i = 0; $i < 150; $i++) {
-        $submission->getValuesForExport();
-        $submission->getValuesForSummary();
+        $export = $submission->getValuesForExport();
+        $summary = $submission->getValuesForSummary();
+        expect($export['Full Name'])->toBe('Projection Runner')
+            ->and($export['Email'])->toBe('projection@example.test')
+            ->and($summary[0]['text'])->toContain('Projection Runner');
     }
 
     $elapsedMs = (int)((microtime(true) - $started) * 1000);
 
-    expect($elapsedMs)->toBeLessThan(30000);
+    expect($elapsedMs)->toBeLessThan(5000);
 })->group('perf');

@@ -15,13 +15,11 @@ use verbb\formie\services\SubmissionMetadata;
 it('captures request metadata and pending form custom data during workflow capture', function (): void {
     $form = new Form();
     $form->id = 5001;
-    $form->setSubmissionMetadata([
-        'campaignId' => 'summer-sale',
-    ]);
 
     $submission = new Submission();
 
     WebRequestTestHelper::withWebRequestContext(function () use ($form, $submission): void {
+        $form->setSubmissionMetadata(['campaignId' => 'summer-sale']);
         $_COOKIE['hubspotutk'] = 'hubspot-cookie';
         $_COOKIE['visitor_id12345'] = 'pardot-cookie';
 

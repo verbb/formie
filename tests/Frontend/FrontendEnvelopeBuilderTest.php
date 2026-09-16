@@ -11,6 +11,7 @@ use verbb\formie\fields\SingleLineText;
 use Tests\Support\WebRequestTestHelper;
 
 it('builds a canonical client bootstrap for simple and advanced config fields', function(): void {
+    \Tests\Support\UploadTestHelper::ensureUploadVolume();
     $form = formie()
         ->form(['title' => 'Frontend Envelope'])
         ->singleLineTextField('fullName', ['required' => true, 'placeholder' => 'Your name'])

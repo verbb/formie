@@ -44,7 +44,9 @@ it('allows admins and denies guests for form element ACLs', function (): void {
     $admin = new User();
     $admin->admin = true;
 
-    $guest = new User();
+    $guest = new class extends User {
+        public function can(string $permission): bool { return false; }
+    };
     $guest->admin = false;
 
     expect($form->canView($admin))->toBeTrue()

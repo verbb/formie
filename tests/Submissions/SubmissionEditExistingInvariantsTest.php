@@ -310,6 +310,21 @@ it('sends status-change notifications when cp workflow saves change the submissi
             ],
         ]);
 
+        // Managed saves persist the queue intent inside their transaction,
+        // even when ordinary non-transactional delivery is synchronous.
+        expect($sent)->toBe([]);
+        $queue = Craft::$app->getQueue();
+        $jobs = [];
+        foreach ((new \craft\db\Query())->select('job')->from($queue->tableName)->column() as $payload) {
+            $job = $queue->serializer->unserialize($payload);
+            if ($job instanceof \verbb\formie\jobs\SendNotification && $job->submissionId === (int)$existing->id) {
+                $jobs[] = $job;
+            }
+        }
+        expect($jobs)->toHaveCount(1);
+        $notification = Formie::$plugin->getNotifications()->getNotificationById($jobs[0]->notificationId);
+        $saved = Submission::find()->id($existing->id)->status(null)->one();
+        Formie::$plugin->getNotifications()->sendNotificationEmail($notification, $saved);
         expect($sent)->toBe([$notificationHandle]);
     } finally {
         $settings->useQueueForNotifications = $previousUseQueue;

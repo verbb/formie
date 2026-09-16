@@ -8,10 +8,6 @@ use verbb\formie\helpers\Plugin;
 
 function commerceRelationContractFields(): array
 {
-    if (!class_exists(Products::class) || !class_exists(Variants::class)) {
-        return [];
-    }
-
     return [
         new Products(['handle' => 'productsRel']),
         new Variants(['handle' => 'variantsRel']),

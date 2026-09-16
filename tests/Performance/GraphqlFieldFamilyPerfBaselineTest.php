@@ -15,15 +15,16 @@ use verbb\formie\gql\types\generators\FormGenerator;
 use verbb\formie\gql\types\generators\SubmissionGenerator;
 
 it('captures a graphql schema generation baseline for mixed field families', function (string $profileLabel, int $formCount, int $fieldSetCount): void {
-    seedGraphqlFieldFamilyPerfForms($formCount, $fieldSetCount);
+    $forms = seedGraphqlFieldFamilyPerfForms($formCount, $fieldSetCount);
+    $scope = [];
+    foreach ($forms as $form) {
+        $scope[] = "formieForms.{$form->uid}:read";
+        foreach (['read', 'create', 'save', 'delete'] as $action) {
+            $scope[] = "formieSubmissions.{$form->uid}:{$action}";
+        }
+    }
 
-    withGraphqlFieldFamilyPerfSchema([
-        'formieForms.all:read',
-        'formieSubmissions.all:read',
-        'formieSubmissions.all:create',
-        'formieSubmissions.all:save',
-        'formieSubmissions.all:delete',
-    ], function () use ($profileLabel, $formCount, $fieldSetCount): void {
+    withGraphqlFieldFamilyPerfSchema($scope, function () use ($profileLabel, $formCount, $fieldSetCount): void {
         $combined = measureGraphqlFieldFamilyPerfPhase(function (): array {
             return [
                 'formQueries' => FormQuery::getQueries(false),
@@ -75,8 +76,9 @@ it('captures a graphql schema generation baseline for mixed field families', fun
         ));
 
         expect(count($combined['result']['submissionMutations']))->toBeGreaterThanOrEqual($formCount)
-            ->and(count($combined['result']['formTypes']))->toBeGreaterThanOrEqual($formCount)
-            ->and(count($combined['result']['submissionTypes']))->toBeGreaterThanOrEqual($formCount);
+            ->and(count($combined['result']['formTypes']))->toBe($formCount)
+            ->and(count($combined['result']['submissionTypes']))->toBe($formCount)
+            ->and($combined['elapsedMs'])->toBeLessThan(5000);
     });
 })->with([
     'small' => ['small', 5, 3],
@@ -84,8 +86,9 @@ it('captures a graphql schema generation baseline for mixed field families', fun
     'large' => ['large', 30, 4],
 ])->group('perf');
 
-function seedGraphqlFieldFamilyPerfForms(int $formCount, int $fieldSetCount): void
+function seedGraphqlFieldFamilyPerfForms(int $formCount, int $fieldSetCount): array
 {
+    $forms = [];
     $options = [
         ['label' => 'One', 'value' => 'one'],
         ['label' => 'Two', 'value' => 'two'],
@@ -108,8 +111,9 @@ function seedGraphqlFieldFamilyPerfForms(int $formCount, int $fieldSetCount): vo
                 ->dateField("date{$formIndex}_{$fieldIndex}");
         }
 
-        $builder->create();
+        $forms[] = $builder->create();
     }
+    return $forms;
 }
 
 function withGraphqlFieldFamilyPerfSchema(array $scope, callable $callback): void

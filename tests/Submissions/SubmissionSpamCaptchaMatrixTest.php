@@ -12,6 +12,7 @@ it('keeps spam behaviour contract for message and success modes when keyword spa
     $form = formie()
         ->form(['title' => 'Spam Matrix'])
         ->singleLineTextField('message')
+        ->settings(['disableCaptchas' => true])
         ->create();
 
     /** @var Settings $settings */
@@ -32,6 +33,7 @@ it('keeps spam behaviour contract for message and success modes when keyword spa
 
         $settings->spamBehaviour = Settings::SPAM_BEHAVIOUR_MESSAGE;
         $messageModeResponse = $process->processSubmissionRequest(new SubmissionRequest([
+            'requestToken' => Craft::$app->getSecurity()->generateRandomString(),
             'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
             'form' => $form,
             'submission' => $messageModeSubmission,
@@ -44,6 +46,7 @@ it('keeps spam behaviour contract for message and success modes when keyword spa
 
         $settings->spamBehaviour = Settings::SPAM_BEHAVIOUR_SUCCESS;
         $successModeResponse = $process->processSubmissionRequest(new SubmissionRequest([
+            'requestToken' => Craft::$app->getSecurity()->generateRandomString(),
             'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
             'form' => $form,
             'submission' => $successModeSubmission,
@@ -64,9 +67,13 @@ it('keeps spam behaviour contract for message and success modes when keyword spa
 });
 
 it('keeps non-spam submit success deterministic when no captcha integrations are enabled', function (): void {
+    Formie::$plugin->getSettings()->spamKeywords = '';
+    Formie::$plugin->getSettings()->enableSuspiciousTextDetection = false;
+    Formie::$plugin->getSettings()->enableGlobalSubmissionThrottling = false;
     $form = formie()
         ->form(['title' => 'Captcha Matrix Baseline'])
         ->singleLineTextField('message')
+        ->settings(['disableCaptchas' => true])
         ->create();
 
     $submission = new Submission();
@@ -74,7 +81,8 @@ it('keeps non-spam submit success deterministic when no captcha integrations are
     $submission->setFieldValueFromRequest('message', 'safe-content');
 
     $response = (new SubmissionWorkflow())->processSubmissionRequest(new SubmissionRequest([
-        'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+        'requestToken' => Craft::$app->getSecurity()->generateRandomString(),
+            'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
         'form' => $form,
         'submission' => $submission,
         'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
@@ -85,9 +93,11 @@ it('keeps non-spam submit success deterministic when no captcha integrations are
 });
 
 it('applies show-success spam behaviour without persisting discarded spam submissions', function (): void {
+    \Tests\Support\WebRequestTestHelper::withWebRequestContext(function (): void {
     $form = formie()
         ->form(['title' => 'Spam Discard Matrix'])
         ->singleLineTextField('message')
+        ->settings(['disableCaptchas' => true])
         ->create();
 
     /** @var Settings $settings */
@@ -106,6 +116,7 @@ it('applies show-success spam behaviour without persisting discarded spam submis
         $submission->setFieldValueFromRequest('message', 'contains blocked-keyword content');
 
         $response = (new SubmissionWorkflow())->processSubmissionRequest(new SubmissionRequest([
+            'requestToken' => Craft::$app->getSecurity()->generateRandomString(),
             'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
             'form' => $form,
             'submission' => $submission,
@@ -121,4 +132,5 @@ it('applies show-success spam behaviour without persisting discarded spam submis
         $settings->spamBehaviour = $originalBehaviour;
         $settings->saveSpam = $originalSaveSpam;
     }
+    });
 });

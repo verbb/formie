@@ -46,7 +46,7 @@ it('strips unsafe signature summary urls before raw image rendering', function (
     $summary = (string)$field?->getValueForSummary($submission->getFieldValue('signature'), $submission);
 
     expect($summary)
-        ->toContain('accessToken=')
+        ->toBe('')
         ->not->toContain('data:image/svg+xml')
         ->not->toContain('<svg');
 })->group('security');

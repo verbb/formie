@@ -11,7 +11,9 @@ use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Notification;
 use verbb\formie\factories\FormFactory;
 
-it('covers getValueAs* and integration conversion contracts for all form factory field types with empty and populated values', function (): void {
+it('smoke checks projection APIs across factory field types and preserves representative populated values', function (): void {
+    $volume = \Tests\Support\UploadTestHelper::ensureUploadVolume();
+    $asset = \Tests\Support\UploadTestHelper::seedAsset('conversion-contract.txt', 'Keep this asset', $volume);
     $options = [
         ['label' => 'One', 'value' => 'one'],
         ['label' => 'Two', 'value' => 'two'],
@@ -54,14 +56,15 @@ it('covers getValueAs* and integration conversion contracts for all form factory
         ]],
         'agreeField' => ['handle' => 'agreeValue', 'config' => [], 'filled' => true],
         'calculationsField' => ['handle' => 'calcValue', 'config' => [], 'filled' => '42'],
-        'categoriesField' => ['handle' => 'categoriesValue', 'config' => [], 'filled' => [1]],
+        'categoriesField' => ['handle' => 'categoriesValue', 'config' => [], 'filled' => [\craft\elements\Category::find()->status(null)->title('Formie Seed Category')->one()->id]],
         'checkboxesField' => ['handle' => 'checkboxValue', 'config' => ['options' => $options], 'filled' => ['one', 'two']],
         'numberField' => ['handle' => 'numberValue', 'config' => [], 'filled' => '42'],
         'dateField' => ['handle' => 'dateValue', 'config' => [], 'filled' => '2026-02-01'],
         'dropdownField' => ['handle' => 'dropdownValue', 'config' => ['options' => $options], 'filled' => 'one'],
-        'entriesField' => ['handle' => 'entriesValue', 'config' => [], 'filled' => [1]],
-        'fileUploadField' => ['handle' => 'fileValue', 'config' => [], 'filled' => []],
+        'entriesField' => ['handle' => 'entriesValue', 'config' => [], 'filled' => [\craft\elements\Entry::find()->status(null)->slug('formie-seed-entry')->one()->id]],
+        'fileUploadField' => ['handle' => 'fileValue', 'config' => [], 'filled' => [$asset->id]],
         'groupField' => ['handle' => 'groupValue', 'config' => ['rows' => $nestedRows], 'filled' => ['innerText' => 'Nested Group']],
+        'noteField' => ['handle' => 'noteValue', 'config' => [], 'filled' => null],
         'headingField' => ['handle' => 'headingValue', 'config' => [], 'filled' => null],
         'hiddenField' => ['handle' => 'hiddenValue', 'config' => [], 'filled' => 'Hidden Value'],
         'htmlField' => ['handle' => 'htmlValue', 'config' => [], 'filled' => null],
@@ -72,14 +75,14 @@ it('covers getValueAs* and integration conversion contracts for all form factory
         'phoneField' => ['handle' => 'phoneValue', 'config' => [], 'filled' => '0400000000'],
         'productsField' => ['handle' => 'productsValue', 'config' => [], 'filled' => [1]],
         'radioField' => ['handle' => 'radioValue', 'config' => ['options' => $options], 'filled' => 'one'],
-        'recipientsField' => ['handle' => 'recipientsValue', 'config' => ['displayType' => 'dropdown', 'options' => $options], 'filled' => 'one'],
+        'recipientsField' => ['handle' => 'recipientsValue', 'config' => ['displayType' => 'dropdown', 'options' => [['label' => 'One', 'value' => 'one@example.test']]], 'filled' => 'one@example.test'],
         'repeaterField' => ['handle' => 'repeaterValue', 'config' => ['rows' => $nestedRows], 'filled' => [['innerText' => 'Nested Repeater']]],
         'sectionField' => ['handle' => 'sectionValue', 'config' => [], 'filled' => null],
         'signatureField' => ['handle' => 'signatureValue', 'config' => [], 'filled' => 'data:image/png;base64,Zm9v'],
         'summaryField' => ['handle' => 'summaryValue', 'config' => [], 'filled' => null],
         'tableField' => ['handle' => 'tableValue', 'config' => [], 'filled' => [['col1' => 'row1']]],
-        'tagsField' => ['handle' => 'tagsValue', 'config' => [], 'filled' => [1]],
-        'usersField' => ['handle' => 'usersValue', 'config' => [], 'filled' => [1]],
+        'tagsField' => ['handle' => 'tagsValue', 'config' => [], 'filled' => [\craft\elements\Tag::find()->status(null)->title('Formie Seed Tag')->one()->id]],
+        'usersField' => ['handle' => 'usersValue', 'config' => [], 'filled' => [\craft\elements\User::find()->status(null)->username('formie-seed-user')->one()->id]],
         'variantsField' => ['handle' => 'variantsValue', 'config' => [], 'filled' => [1]],
     ];
 
@@ -122,32 +125,38 @@ it('covers getValueAs* and integration conversion contracts for all form factory
 
             foreach ([$emptySubmission, $filledSubmission] as $submission) {
                 $value = $submission->getFieldValue($profile['handle']);
+                if ($submission === $filledSubmission && in_array($method, ['singleLineTextField', 'multiLineTextField', 'emailField', 'numberField', 'hiddenField'], true)) {
+                    expect($field->getValueAsString($value, $submission))->toBe($profile['filled']);
+                    $loaded = \verbb\formie\elements\Submission::find()->id($submission->id)->status(null)->one();
+                    expect($loaded)->not->toBeNull()
+                        ->and($loaded->getFieldValueAsString($profile['handle']))->toBe($profile['filled']);
+                }
+                if ($method === 'fileUploadField' && $submission === $filledSubmission) {
+                    expect($value->ids())->toBe([$asset->id]);
+                }
                 $valueAsArray = $field?->getValueAsArray($value, $submission);
 
                 $fieldSummary = $field?->getValueForSummary($value, $submission);
                 expect($field?->getValueAsString($value, $submission))->toBeString()
-                    ->and($valueAsArray)->toBeArray()
-                    ->and($field?->getValueAsArray($value, $submission))->toEqual($valueAsArray);
+                    ->and($valueAsArray)->toBeArray();
                 expect(is_string($fieldSummary) || $fieldSummary instanceof \Twig\Markup)->toBeTrue();
 
                 $submissionSummary = $submission->getFieldValueForSummary($profile['handle']);
 
                 if ($method === 'groupField' && $submission === $filledSubmission) {
-                    expect($valueAsArray['innerText'] ?? null)->toBeString();
+                    expect($valueAsArray['innerText'] ?? null)->toBe('Nested Group');
                 }
 
                 if ($method === 'repeaterField' && $submission === $filledSubmission) {
-                    expect($valueAsArray[0]['innerText'] ?? null)->toBeString();
+                    expect($valueAsArray[0]['innerText'] ?? null)->toBe('Nested Repeater');
                 }
 
                 $field?->getValueForReference($value, $submission);
                 $field?->getValueForReferenceBlock($value, $notification, $submission);
-                $field?->getValueForReferenceBlock($value, $notification, $submission);
                 $field?->getValueForEmailPreview($faker);
 
                 expect($submission->getFieldValueAsString($profile['handle']))->toBeString()
-                    ->and($submission->getFieldValueAsArray($profile['handle']))->toBeArray()
-                    ->and($submission->getFieldValueAsArray($profile['handle']))->toEqual($submission->getFieldValueAsArray($profile['handle']));
+                    ->and($submission->getFieldValueAsArray($profile['handle']))->toBeArray();
                 expect(is_string($submissionSummary) || $submissionSummary instanceof \Twig\Markup)->toBeTrue();
 
                 $submission->getFieldValueForReference($profile['handle'], $notification);

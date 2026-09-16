@@ -21,7 +21,7 @@ it('returns subdivisions for a valid country code', function (): void {
 })->group('fields');
 
 it('hides administrative area metadata for countries without subdivisions in the address format', function (): void {
-    $metadata = Formie::$plugin->getCountries()->getAddressFormatMetadata('GB');
+    $metadata = Formie::$plugin->getCountries()->getAddressFormatMetadata('DE');
 
     expect($metadata['administrativeAreaUsed'])->toBeFalse();
 })->group('fields');
@@ -51,6 +51,7 @@ it('returns null when no geo country header is present', function (): void {
 
 it('returns country lookup json from the country-from-ip endpoint', function (): void {
     WebRequestTestHelper::withWebRequestContext(function ($request): void {
+        $request->getHeaders()->set('Accept', 'application/json');
         $request->getHeaders()->set('CF-IPCountry', 'US');
 
         $controller = new AddressController('formie-address-country-from-ip', Craft::$app);

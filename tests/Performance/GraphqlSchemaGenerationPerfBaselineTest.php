@@ -15,15 +15,16 @@ use verbb\formie\gql\types\generators\FormGenerator;
 use verbb\formie\gql\types\generators\SubmissionGenerator;
 
 it('captures a graphql schema generation baseline for synthetic form volume', function (string $profileLabel, int $formCount, int $fieldCount, int $maxElapsedMs): void {
-    seedGraphqlPerfForms($formCount, $fieldCount);
+    $forms = seedGraphqlPerfForms($formCount, $fieldCount);
+    $scope = [];
+    foreach ($forms as $form) {
+        $scope[] = "formieForms.{$form->uid}:read";
+        foreach (['read', 'create', 'save', 'delete'] as $action) {
+            $scope[] = "formieSubmissions.{$form->uid}:{$action}";
+        }
+    }
 
-    withGraphqlPerfSchema([
-        'formieForms.all:read',
-        'formieSubmissions.all:read',
-        'formieSubmissions.all:create',
-        'formieSubmissions.all:save',
-        'formieSubmissions.all:delete',
-    ], function () use ($profileLabel, $formCount, $fieldCount, $maxElapsedMs): void {
+    withGraphqlPerfSchema($scope, function () use ($profileLabel, $formCount, $fieldCount, $maxElapsedMs): void {
         $combined = measureGraphqlPerfPhase(function (): array {
             return [
                 'formQueries' => FormQuery::getQueries(false),
@@ -83,8 +84,8 @@ it('captures a graphql schema generation baseline for synthetic form volume', fu
         expect($combined['result']['formQueries'])->toHaveCount(3)
             ->and($combined['result']['submissionQueries'])->toHaveCount(3)
             ->and(count($combined['result']['submissionMutations']))->toBeGreaterThanOrEqual($formCount + 1)
-            ->and(count($combined['result']['formTypes']))->toBeGreaterThanOrEqual($formCount)
-            ->and(count($combined['result']['submissionTypes']))->toBeGreaterThanOrEqual($formCount)
+            ->and(count($combined['result']['formTypes']))->toBe($formCount)
+            ->and(count($combined['result']['submissionTypes']))->toBe($formCount)
             // Soft guardrail: fail only on obvious regressions.
             ->and($combined['elapsedMs'])->toBeLessThan($maxElapsedMs);
     });
@@ -94,8 +95,9 @@ it('captures a graphql schema generation baseline for synthetic form volume', fu
     'large' => ['large', 30, 15, 60000],
 ])->group('perf');
 
-function seedGraphqlPerfForms(int $formCount, int $fieldCount): void
+function seedGraphqlPerfForms(int $formCount, int $fieldCount): array
 {
+    $forms = [];
     for ($formIndex = 1; $formIndex <= $formCount; $formIndex++) {
         $builder = formie()->form([
             'title' => "GraphQL Perf Form {$formIndex}",
@@ -105,8 +107,9 @@ function seedGraphqlPerfForms(int $formCount, int $fieldCount): void
             $builder->singleLineTextField("field{$formIndex}_{$fieldIndex}");
         }
 
-        $builder->create();
+        $forms[] = $builder->create();
     }
+    return $forms;
 }
 
 function withGraphqlPerfSchema(array $scope, callable $callback): void

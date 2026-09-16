@@ -5,6 +5,8 @@ declare(strict_types=1);
 use verbb\formie\content\SubmissionContentNormalizer;
 use verbb\formie\elements\Submission;
 
+beforeEach(fn() => \Tests\Support\UploadTestHelper::ensureUploadVolume());
+
 it('captures current-page field handle lookup baseline', function (): void {
     $form = formie()
         ->form(['title' => 'Submission Current Page Handle Perf'])

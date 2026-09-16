@@ -10,6 +10,7 @@ use yii\base\Event;
 it('fires the expected lifecycle events for each workflow process mode', function (): void {
     $form = formie()
         ->form(['title' => 'Workflow Mode Matrix'])
+        ->settings(['disableCaptchas' => true])
         ->singleLineTextField('fullName', ['required' => true])
         ->create();
 
@@ -87,6 +88,7 @@ it('fires the expected lifecycle events for each workflow process mode', functio
 it('enforces validation for submit mode while allowing save-draft mode bypass', function (): void {
     $form = formie()
         ->form(['title' => 'Workflow Validation Matrix'])
+        ->settings(['disableCaptchas' => true])
         ->singleLineTextField('fullName', ['required' => true])
         ->create();
 

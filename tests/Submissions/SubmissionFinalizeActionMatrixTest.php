@@ -14,6 +14,7 @@ it('keeps finalize submit actions stable across ajax and page-reload submit meth
     $form = formie()
         ->form(['title' => "Finalize {$submitAction} {$submitMethod}"])
         ->singleLineTextField('fullName', ['required' => true])
+        ->settings(['disableCaptchas' => true])
         ->create();
 
     $form->settings->setAttributes([
@@ -55,7 +56,7 @@ it('keeps finalize submit actions stable across ajax and page-reload submit meth
     $clientConfig = $form->getClientConfig();
     $settings = $clientConfig['settings'] ?? [];
 
-    expect($response->success)->toBeTrue()
+    expect($response->success)->toBeTrue(json_encode($response->submission->getErrors()))
         ->and($response->submission->id)->not->toBeNull()
         ->and($settings['submitMethod'] ?? null)->toBe($submitMethod)
         ->and($form->settings->submitAction)->toBe($submitAction)

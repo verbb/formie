@@ -71,7 +71,7 @@ it('filters conditions out of cp edit manifests when the form shows all fields',
         'title' => 'CP Conditions Render Target',
     ]);
     $form->settings->cpSubmissionFieldConditions = 'show-all';
-    $form->setSettings($form->settings);
+    $form->setSettings($form->settings->getAttributes());
 
     $builder = Formie::$plugin->getClientModuleManifestBuilder();
     $frontendModuleIds = array_values(array_map(static fn(array $module): string => (string)$module['id'], $builder->buildCanonical($form, ClientModule::RENDER_TARGET_FRONTEND)));
@@ -102,7 +102,7 @@ it('uses muted cp display mode when configured on the form', function (): void {
         'title' => 'CP Conditions Muted Target',
     ]);
     $form->settings->cpSubmissionFieldConditions = 'muted';
-    $form->setSettings($form->settings);
+    $form->setSettings($form->settings->getAttributes());
 
     $builder = Formie::$plugin->getClientModuleManifestBuilder();
     $cpModules = $builder->buildCanonical($form, ClientModule::RENDER_TARGET_CP_EDIT);

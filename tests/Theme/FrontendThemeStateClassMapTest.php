@@ -112,9 +112,9 @@ it('embeds tab link state classes on data-formie-theme', function (): void {
         ],
     ]);
 
-    $tag = Formie::$plugin->getFormSlotRegistry()->resolve('form', RenderContext::from([
+    $tag = \Tests\Support\WebRequestTestHelper::withWebRequestContext(fn() => Formie::$plugin->getFormSlotRegistry()->resolve('form', RenderContext::from([
         'form' => $form,
-    ]));
+    ])));
 
     $encodedTheme = $tag?->coreAttributes['data']['formie-theme'] ?? null;
 

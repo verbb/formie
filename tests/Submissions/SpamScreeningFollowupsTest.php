@@ -183,7 +183,7 @@ it('allowlists entire domains but not unrelated addresses', function (): void {
         $settings->enableAllowedEmailDomains = true;
         $settings->allowedEmailDomains = "company.com\n";
         $settings->enableBlockedEmailDomains = true;
-        $settings->blockedEmailDomains = "company.com\n";
+        $settings->blockedEmailDomains = "company.com\ngmail.com\n";
 
         expect(SpamHelper::checkGlobalEmailRules($submission))->toBeFalse();
 

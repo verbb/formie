@@ -15,15 +15,16 @@ use verbb\formie\gql\types\generators\FormGenerator;
 use verbb\formie\gql\types\generators\SubmissionGenerator;
 
 it('captures a graphql schema generation baseline for element-backed field families', function (string $profileLabel, int $formCount, int $fieldSetCount): void {
-    seedGraphqlElementFieldPerfForms($formCount, $fieldSetCount);
+    $forms = seedGraphqlElementFieldPerfForms($formCount, $fieldSetCount);
+    $scope = [];
+    foreach ($forms as $form) {
+        $scope[] = "formieForms.{$form->uid}:read";
+        foreach (['read', 'create', 'save', 'delete'] as $action) {
+            $scope[] = "formieSubmissions.{$form->uid}:{$action}";
+        }
+    }
 
-    withGraphqlElementFieldPerfSchema([
-        'formieForms.all:read',
-        'formieSubmissions.all:read',
-        'formieSubmissions.all:create',
-        'formieSubmissions.all:save',
-        'formieSubmissions.all:delete',
-    ], function () use ($profileLabel, $formCount, $fieldSetCount): void {
+    withGraphqlElementFieldPerfSchema($scope, function () use ($profileLabel, $formCount, $fieldSetCount): void {
         $combined = measureGraphqlElementFieldPerfPhase(function (): array {
             return [
                 'formQueries' => FormQuery::getQueries(false),
@@ -75,8 +76,9 @@ it('captures a graphql schema generation baseline for element-backed field famil
         ));
 
         expect(count($combined['result']['submissionMutations']))->toBeGreaterThanOrEqual($formCount)
-            ->and(count($combined['result']['formTypes']))->toBeGreaterThanOrEqual($formCount)
-            ->and(count($combined['result']['submissionTypes']))->toBeGreaterThanOrEqual($formCount);
+            ->and(count($combined['result']['formTypes']))->toBe($formCount)
+            ->and(count($combined['result']['submissionTypes']))->toBe($formCount)
+            ->and($combined['elapsedMs'])->toBeLessThan(5000);
     });
 })->with([
     'small' => ['small', 5, 2],
@@ -84,8 +86,9 @@ it('captures a graphql schema generation baseline for element-backed field famil
     'large' => ['large', 30, 3],
 ])->group('perf');
 
-function seedGraphqlElementFieldPerfForms(int $formCount, int $fieldSetCount): void
+function seedGraphqlElementFieldPerfForms(int $formCount, int $fieldSetCount): array
 {
+    $forms = [];
     for ($formIndex = 1; $formIndex <= $formCount; $formIndex++) {
         $builder = formie()->form([
             'title' => "GraphQL Element Field Perf {$formIndex}",
@@ -101,8 +104,9 @@ function seedGraphqlElementFieldPerfForms(int $formCount, int $fieldSetCount): v
                 ->usersField("users{$formIndex}_{$fieldIndex}");
         }
 
-        $builder->create();
+        $forms[] = $builder->create();
     }
+    return $forms;
 }
 
 function withGraphqlElementFieldPerfSchema(array $scope, callable $callback): void

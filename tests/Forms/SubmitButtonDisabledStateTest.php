@@ -37,9 +37,9 @@ it('renders the disable submit until valid data attribute on the form slot', fun
 
     $reloaded = Form::find()->id($form->id)->one();
 
-    $tag = Formie::$plugin->getFormSlotRegistry()->resolve('form', RenderContext::from([
+    $tag = \Tests\Support\WebRequestTestHelper::withWebRequestContext(fn() => Formie::$plugin->getFormSlotRegistry()->resolve('form', RenderContext::from([
         'form' => $reloaded,
-    ]));
+    ])));
 
     expect($reloaded?->settings->disableSubmitButtonUntilValid)->toBeTrue()
         ->and($tag?->coreAttributes['data']['formie-disable-submit-until-valid'] ?? null)->toBeTrue();
@@ -51,9 +51,9 @@ it('omits the disable submit until valid data attribute when disabled', function
         ->singleLineTextField('fullName')
         ->create();
 
-    $tag = Formie::$plugin->getFormSlotRegistry()->resolve('form', RenderContext::from([
+    $tag = \Tests\Support\WebRequestTestHelper::withWebRequestContext(fn() => Formie::$plugin->getFormSlotRegistry()->resolve('form', RenderContext::from([
         'form' => $form,
-    ]));
+    ])));
 
     expect($form->settings->disableSubmitButtonUntilValid)->toBeFalse()
         ->and($tag?->coreAttributes['data']['formie-disable-submit-until-valid'] ?? null)->toBeNull();
