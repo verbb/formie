@@ -51,56 +51,70 @@ class UpdateSubmissionContent extends BaseJob
 
         $groupUids = array_values(array_unique($groupUids));
 
-        $submissions = (new Query())->from(Table::FORMIE_SUBMISSIONS)->where(['formId' => $this->formId])->all();
+        $db = Craft::$app->getDb();
+        $submissionIds = (new Query())->select('id')->from(Table::FORMIE_SUBMISSIONS)
+            ->where(['formId' => $this->formId])->orderBy(['id' => SORT_ASC])->column();
 
-        foreach ($submissions as $i => $submission) {
-            $this->setProgress($queue, $i / count($submissions), Translation::prep('app', '{step, number} of {total, number}', [
+        foreach ($submissionIds as $i => $id) {
+            $this->setProgress($queue, $i / count($submissionIds), Translation::prep('app', '{step, number} of {total, number}', [
                 'step' => $i + 1,
-                'total' => count($submissions),
+                'total' => count($submissionIds),
             ]));
 
-            $original = Json::decode($submission['content']);
-            $content = $original;
+            $db->transaction(function () use ($db, $id, $destinations, $groupUids): void {
+                // Lock the latest row until relocation completes so a concurrent edit cannot be overwritten.
+                $submission = $db->createCommand(
+                    'SELECT [[content]] FROM ' . Table::FORMIE_SUBMISSIONS . ' WHERE [[id]] = :id AND [[formId]] = :formId FOR UPDATE',
+                    [':id' => $id, ':formId' => $this->formId],
+                )->noCache()->queryOne();
 
-            foreach ($destinations as $fieldUid => $destinationUid) {
-                // A later submission edit at the destination wins over stale queued content.
-                $destination = $destinationUid === null ? $content : ($content[$destinationUid] ?? []);
-                $found = is_array($destination) && array_key_exists($fieldUid, $destination);
-                $value = $found ? $destination[$fieldUid] : null;
-
-                if (!$found && array_key_exists($fieldUid, $content)) {
-                    $value = $content[$fieldUid];
-                    $found = true;
+                if ($submission === false) {
+                    return;
                 }
 
-                foreach ($groupUids as $groupUid) {
-                    if ($groupUid === $destinationUid || !isset($content[$groupUid]) || !is_array($content[$groupUid])) {
-                        continue;
+                $original = Json::decode($submission['content']) ?? [];
+                $content = $original;
+
+                foreach ($destinations as $fieldUid => $destinationUid) {
+                    // A later submission edit at the destination wins over stale queued content.
+                    $destination = $destinationUid === null ? $content : ($content[$destinationUid] ?? []);
+                    $found = is_array($destination) && array_key_exists($fieldUid, $destination);
+                    $value = $found ? $destination[$fieldUid] : null;
+
+                    if (!$found && array_key_exists($fieldUid, $content)) {
+                        $value = $content[$fieldUid];
+                        $found = true;
                     }
 
-                    if (array_key_exists($fieldUid, $content[$groupUid])) {
-                        if (!$found) {
-                            $value = $content[$groupUid][$fieldUid];
-                            $found = true;
+                    foreach ($groupUids as $groupUid) {
+                        if ($groupUid === $destinationUid || !isset($content[$groupUid]) || !is_array($content[$groupUid])) {
+                            continue;
                         }
 
-                        unset($content[$groupUid][$fieldUid]);
+                        if (array_key_exists($fieldUid, $content[$groupUid])) {
+                            if (!$found) {
+                                $value = $content[$groupUid][$fieldUid];
+                                $found = true;
+                            }
+
+                            unset($content[$groupUid][$fieldUid]);
+                        }
+                    }
+
+                    if ($found) {
+                        if ($destinationUid === null) {
+                            $content[$fieldUid] = $value;
+                        } else {
+                            unset($content[$fieldUid]);
+                            $content[$destinationUid][$fieldUid] = $value;
+                        }
                     }
                 }
 
-                if ($found) {
-                    if ($destinationUid === null) {
-                        $content[$fieldUid] = $value;
-                    } else {
-                        unset($content[$fieldUid]);
-                        $content[$destinationUid][$fieldUid] = $value;
-                    }
+                if ($content !== $original) {
+                    Db::update(Table::FORMIE_SUBMISSIONS, ['content' => $content], ['id' => $id]);
                 }
-            }
-
-            if ($content !== $original) {
-                Db::update(Table::FORMIE_SUBMISSIONS, ['content' => $content], ['id' => $submission['id']]);
-            }
+            });
         }
     }
 

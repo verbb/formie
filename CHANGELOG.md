@@ -17,6 +17,7 @@
 - Bump transitive `symfony/cache` to `6.4.45` (CVE-2026-45073 advisory floor).
 
 ### Fixed
+- Preserve submission edits made while queued field moves are running.
 - Preserve form fields and submission data when restoring deleted forms, and clean up child submissions and configured uploads on permanent deletion.
 - Preserve zero values in group and repeater value projections.
 - Enforce unique values for fields inside groups and repeaters.
