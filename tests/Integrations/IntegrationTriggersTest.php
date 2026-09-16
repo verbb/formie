@@ -52,6 +52,10 @@ function withIntegrationTriggersSyncQueue(callable $callback): mixed
 
 function withCoordinatorTestIntegration(object $form, Integration $integration, callable $callback): mixed
 {
+    // Synthetic form IDs can overlap persisted fixtures cached by earlier tests.
+    $originalIntegrations = Formie::$plugin->getIntegrations();
+    Formie::$plugin->set('integrations', new Integrations());
+
     $handler = function(ModifyFormIntegrationsEvent $event) use ($form, $integration): void {
         if ((int)($event->form?->id ?? 0) === (int)$form->id) {
             $event->integrations[] = $integration;
@@ -64,6 +68,7 @@ function withCoordinatorTestIntegration(object $form, Integration $integration, 
         return $callback();
     } finally {
         Event::off(Integrations::class, Integrations::EVENT_MODIFY_FORM_INTEGRATIONS, $handler);
+        Formie::$plugin->set('integrations', $originalIntegrations);
     }
 }
 
