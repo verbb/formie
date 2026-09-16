@@ -8,6 +8,31 @@ use verbb\formie\controllers\SettingsController;
 use verbb\formie\Formie;
 use yii\web\ForbiddenHttpException;
 
+it('returns the correct access decision for integration settings actions', function (bool $allowed): void {
+    $name = 'integrationSettings' . bin2hex(random_bytes(6));
+    $user = new User(['username' => $name, 'email' => $name . '@example.test']);
+    expect(Craft::$app->getElements()->saveElement($user))->toBeTrue();
+    $grants = ['accessCp', 'accessPlugin-formie'];
+    if ($allowed) { $grants[] = Formie::$plugin->getPermissions()->settingsPagePermissionKey('spam-protection'); }
+    expect(Craft::$app->getUserPermissions()->saveUserPermissions($user->id, $grants))->toBeTrue();
+    WebRequestTestHelper::withWebRequestContext(function () use ($user, $allowed): void {
+        $request = new \craft\web\Request([
+            'pathInfo' => 'formie/integration-settings/save-captchas',
+            'isCpRequest' => true, 'isConsoleRequest' => false, 'cookieValidationKey' => 'integration-settings-test',
+        ]);
+        Craft::$app->set('request', $request);
+        Craft::$app->getUser()->setIdentity(User::find()->id($user->id)->status(null)->one());
+        $request->setBodyParams([$request->csrfParam => $request->getCsrfToken()]);
+        $controller = new \verbb\formie\controllers\IntegrationSettingsController('integration-settings', Formie::$plugin);
+        $action = new \yii\base\Action('save-captchas', $controller);
+        if ($allowed) {
+            expect($controller->beforeAction($action))->toBeTrue();
+        } else {
+            expect(fn() => $controller->beforeAction($action))->toThrow(ForbiddenHttpException::class);
+        }
+    }, ['method' => 'POST']);
+})->with(['permitted' => true, 'denied' => false]);
+
 it('limits settings saves to the authorized page', function (array $settings, bool $allowed, bool $allSettings = false): void {
     $name = 'settings' . bin2hex(random_bytes(8));
     $user = new User(['username' => $name, 'email' => $name . '@example.test']);

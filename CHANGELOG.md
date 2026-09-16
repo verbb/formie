@@ -63,6 +63,7 @@
 - Make frontend builds work from a clean checkout with published Plugin Kit packages and complete TipTap dependencies.
 - Require POST requests for control panel deletion and notification resend actions.
 - Allow settings save requests to resolve their posted settings page without an error.
+- Return permission errors correctly when integration settings access is denied.
 - Supply a document title for every beta settings page so Craft 5 can render them without adding a settings-content heading.
 - Keep field error live regions mounted without reserving empty layout space, honour the configured announcement priority, and associate definition-driven errors with their controls. ([#2954](https://github.com/verbb/formie/issues/2954))
 - Preserve payment attempts and gateway receipts across interrupted Moneris, Eway, BPOINT, Opayo, Mollie and Paddle requests, and stop ambiguous outcomes from triggering another purchase.

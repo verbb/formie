@@ -14,8 +14,8 @@ use verbb\formie\services\Integrations as IntegrationsService;
 use Craft;
 use craft\helpers\Json;
 use craft\web\Controller;
-use craft\web\ForbiddenHttpException;
 
+use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
 
