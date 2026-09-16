@@ -81,3 +81,26 @@ it('does not substitute an editor site for a disjoint explicit group policy', fu
         expect(Formie::$plugin->getFormSiteOverrides()->getBuilderSitesForForm($form))->toBe([]);
     });
 });
+
+it('resolves editable form sites for the supplied user independently of the current session', function (): void {
+    if (!Craft::$app->getIsMultiSite()) {
+        $this->markTestSkipped('Multi-site contract.');
+    }
+    $primary = (int)Craft::$app->getSites()->getPrimarySite()->id;
+    $editor = formSiteBoundaryEditor($primary);
+    WebRequestTestHelper::withWebRequestContext(function () use ($editor, $primary): void {
+        $admin = User::find()->admin(true)->one();
+        Craft::$app->getUser()->setIdentity($admin);
+        Craft::$app->set('sites', new \craft\services\Sites());
+        // Prime the host's current-session cache before asking for another user.
+        $allSites = Craft::$app->getSites()->getEditableSiteIds();
+        expect(count($allSites))->toBeGreaterThan(1);
+        $propagation = Formie::$plugin->getFormSitePropagation();
+        expect($propagation->getEditableSiteIds($editor))->toBe([$primary]);
+        expect(array_column($propagation->getSiteOptionsForEditor($editor), 'value'))->toBe([$primary]);
+        expect(array_map(fn($site) => (int)$site->id, Formie::$plugin->getFormSiteOverrides()->getEditableSites($editor)))->toBe([$primary]);
+        Craft::$app->getUser()->setIdentity($editor);
+        expect($propagation->getEditableSiteIds())->toBe([$primary]);
+        expect($propagation->getEditableSiteIds($admin))->toBe($allSites);
+    });
+});

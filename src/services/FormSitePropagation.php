@@ -43,7 +43,18 @@ class FormSitePropagation extends Component
         $user ??= Craft::$app->getUser()->getIdentity();
 
         if ($user) {
-            return Craft::$app->getSites()->getEditableSiteIds($user);
+            $sites = Craft::$app->getSites();
+
+            if (!Craft::$app->getIsMultiSite()) {
+                return $sites->getAllSiteIds(true);
+            }
+
+            // Craft's editable-site cache belongs to the current session and
+            // does not accept a user argument. Resolve this identity directly.
+            return array_values(array_map(
+                fn(Site $site) => (int)$site->id,
+                array_filter($sites->getAllSites(true), fn(Site $site) => $user->can('editSite:' . $site->uid)),
+            ));
         }
 
         return Craft::$app->getSites()->getAllSiteIds();
