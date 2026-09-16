@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Fix Brevo double opt-in settings allowing the required template ID and redirection URL to be saved empty.
 - Fix multi-page form redirects losing the current site's base path.
 - Fix prefilled submission values being lost when rendering a form without a `sessionKey`. ([#2956](https://github.com/verbb/formie/issues/2956))
 - Fix the captcha settings layout and show the first provider when opening the page.

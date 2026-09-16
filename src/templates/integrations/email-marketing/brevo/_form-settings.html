@@ -86,6 +86,7 @@
         name: 'templateId',
         required: true,
         value: form.settings.integrations[handle].templateId ?? '',
+        errors: form.settings.integrations[handle].errors.templateId ?? null,
     }) }}
 
     {{ forms.textField({
@@ -95,5 +96,6 @@
         name: 'redirectionUrl',
         required: true,
         value: form.settings.integrations[handle].redirectionUrl ?? '',
+        errors: form.settings.integrations[handle].errors.redirectionUrl ?? null,
     }) }}
 </div>
