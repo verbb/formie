@@ -27,7 +27,7 @@ it('omits stripe receipt_email when the mapped receipt address resolves empty', 
 
     $payload = [];
     $method = new ReflectionMethod(Stripe::class, '_setPayloadDetails');
-    $method->invoke($integration, $payload, $submission, 'single');
+    $method->invokeArgs($integration, [&$payload, $submission, 'single']);
 
     expect($payload)->not->toHaveKey('receipt_email');
 });
@@ -58,7 +58,7 @@ it('includes stripe receipt_email when the mapped receipt address resolves', fun
 
     $payload = [];
     $method = new ReflectionMethod(Stripe::class, '_setPayloadDetails');
-    $method->invoke($integration, $payload, $submission, 'single');
+    $method->invokeArgs($integration, [&$payload, $submission, 'single']);
 
     expect($payload)->toHaveKey('receipt_email')
         ->and($payload['receipt_email'])->toBe('customer@example.test');

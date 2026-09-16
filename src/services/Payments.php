@@ -169,7 +169,9 @@ class Payments extends Component
             $paymentRecord->note = $payment->note;
             $paymentRecord->response = $payment->response;
 
-            $paymentRecord->save(false);
+            if (!$paymentRecord->save(false)) {
+                throw new \RuntimeException('Unable to save payment.');
+            }
 
             $payment->id = $paymentRecord->id;
             $payment->uid = $paymentRecord->uid;

@@ -9,6 +9,7 @@ use verbb\formie\events\ModifyPaymentCurrencyOptionsEvent;
 use verbb\formie\events\ModifyPaymentPayloadEvent;
 use verbb\formie\events\PaymentReceiveWebhookEvent;
 use verbb\formie\fields;
+use verbb\formie\helpers\DeliveryAttempt;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\ClientModule;
 use verbb\formie\models\ClientModuleContext;
@@ -20,25 +21,18 @@ use Craft;
 use craft\helpers\App;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
-use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
 use craft\web\Response;
 
 use yii\base\Event;
 
-use GuzzleHttp\Client;
-
-use Throwable;
 use Exception;
+use Throwable;
+
+use GuzzleHttp\Client;
 
 class Square extends Payment
 {
-    // Constants
-    // =========================================================================
-
-    public const EVENT_MODIFY_PAYLOAD = 'modifyPayload';
-
-
     // Static Methods
     // =========================================================================
 
@@ -47,6 +41,13 @@ class Square extends Payment
         return 'Square';
     }
     
+
+
+    // Constants
+    // =========================================================================
+
+    public const EVENT_MODIFY_PAYLOAD = 'modifyPayload';
+
 
     // Properties
     // =========================================================================
@@ -123,12 +124,10 @@ class Square extends Payment
             }
 
             // Prepare Square API payload
-            $idempotencyKey = StringHelper::UUID();
             $formattedAmount = (int)round($amount * 100); // Amount in the smallest currency unit
 
             $payload = [
                 'source_id' => $squarePaymentId,
-                'idempotency_key' => $idempotencyKey,
                 'amount_money' => [
                     'amount' => $formattedAmount,
                     'currency' => $currency,
@@ -145,14 +144,21 @@ class Square extends Payment
             ]);
             $this->trigger(self::EVENT_MODIFY_PAYLOAD, $event);
 
-            $response = $this->request('POST', 'payments', ['json' => $event->payload]);
+            $operation = 'square:' . $this->handle . ':' . $field->id;
+            $response = (new DeliveryAttempt((int)$submission->id, $operation, (string)$submission->uid))->execute(
+                $event->payload,
+                fn(string $key) => $this->request('POST', 'payments', ['json' => array_merge($event->payload, ['idempotency_key' => $key])]),
+                23 * 3600,
+                fn(array $result) => $result['payment']['id'] ?? '',
+                fn(string $id) => $this->request('GET', 'payments/' . rawurlencode($id)),
+            );
             $data = $response['payment'] ?? null;
 
             if (!$data || ($data['status'] ?? '') !== 'COMPLETED') {
                 throw new Exception('Payment not completed successfully.');
             }
 
-            $payment = new PaymentModel();
+            $payment = Formie::$plugin->getPayments()->getPaymentByReference($data['id']) ?? new PaymentModel();
             $payment->integrationId = $this->id;
             $payment->submissionId = $submission->id;
             $payment->fieldId = $field->id;
@@ -162,7 +168,9 @@ class Square extends Payment
             $payment->reference = $data['id'] ?? '';
             $payment->response = $response;
 
-            Formie::$plugin->getPayments()->savePayment($payment);
+            if (!Formie::$plugin->getPayments()->savePayment($payment)) {
+                throw new \verbb\formie\errors\DeliveryOutcomeUnknownException('Unable to save the accepted payment.');
+            }
 
             $result = true;
         } catch (Throwable $e) {
@@ -184,13 +192,16 @@ class Square extends Payment
             $payment->fieldId = $field->id;
             $payment->amount = $amount;
             $payment->currency = $currency;
-            $payment->status = PaymentModel::STATUS_FAILED;
+            $uncertain = $e instanceof \verbb\formie\errors\DeliveryOutcomeUnknownException;
+            $payment->status = $uncertain ? PaymentModel::STATUS_PROCESSING : PaymentModel::STATUS_FAILED;
             $payment->reference = null;
             $payment->response = ['message' => $e->getMessage()];
 
             Formie::$plugin->getPayments()->savePayment($payment);
 
-            return PaymentDecision::failed($e->getMessage(), $this->handle);
+            return $uncertain
+                ? PaymentDecision::pending($e->getMessage(), $this->handle)
+                : PaymentDecision::failed($e->getMessage(), $this->handle);
         }
 
         // Allow events to say the response is invalid
@@ -265,6 +276,7 @@ class Square extends Payment
         ];
     }
     
+
 
     // Protected Methods
     // =========================================================================

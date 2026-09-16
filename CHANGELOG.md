@@ -14,7 +14,9 @@
 - Clone localized form layouts without serializing callbacks or mutating canonical form settings and notifications.
 - Preserve typed dates when expiring subscriptions and archiving payment plans.
 - Migrate notification field-handle tokens to stable references when upgrading from Formie 3.
+- Keep successful Stripe payment intents from regressing on delayed webhooks, verify their integration, restore subscription invoice updates, and return retryable responses on processing failures.
 - Score submitted quiz answers using current field identities and option values.
+- Persist completed submission state when replaying successful payment webhooks.
 - Fix Freeform 5 migration imports and scope submission migration to the selected form ID.
 - Format date variable presets using their PHP date patterns.
 - Preserve field translations on import and field identities when updating existing forms from exports.
@@ -27,6 +29,8 @@
 - Handle omitted optional Table column handles and Note styles, and retain values from Table columns without handles when rendering or exporting submissions.
 - Fix HubSpot form mapping exposing and submitting only the first communication subscription consent checkbox.
 - Fix CRM array mappings including option metadata instead of selected values, apply field-mapping event changes to outgoing payloads, and format Pardot multi-select values consistently.
+- Verify PayPal authorization/capture amount, currency, status and submission association; persist request identities and reconcile interrupted or pending captures.
+- Reuse PayWay transaction identities within its retry window, verify transaction ownership and amounts, and reconcile pending payments.
 - Preserve cleared submission values, including empty checkboxes, tables and dates, through serialization and apply hidden-field clearing during CP edits.
 - Prevent nested shared-field saves from overwriting updated labels; preserve shared definitions in nested layouts and stencil materialization.
 - Duplicate form layout trees without serializing runtime callbacks or mutating the source layout.
@@ -34,6 +38,7 @@
 - Compare encrypted recipient condition payloads rather than randomized ciphertext.
 - Resolve stable field references when generating notification preview recipients and isolate cached values between previews.
 - Persist delivery attempt identities before external calls, stop uncertain integration/email retries, and checkpoint individual notifications.
+- Reuse Square payment keys; recover Stripe customer, payment intent, subscription and schedule creation; reconcile GoCardless payment/subscription duplicate-key responses.
 - Queue status-change notifications atomically with element transactions, even when ordinary notification delivery is synchronous.
 - Store integration dispatch context as native JSON and read existing double-encoded context during submission hydration.
 - Checkpoint successful queued integration steps so retries skip completed steps and resume failed delivery.

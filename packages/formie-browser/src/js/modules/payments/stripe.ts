@@ -66,7 +66,7 @@ type StripeFieldState = Element & {
 
 const ZERO_DECIMAL_CURRENCIES = new Set([
     'BIF', 'CLP', 'DJF', 'GNF', 'JPY', 'KMF', 'KRW', 'MGA', 'PYG',
-    'RWF', 'UGX', 'VND', 'VUV', 'XAF', 'XOF', 'XPF',
+    'RWF', 'VND', 'VUV', 'XAF', 'XOF', 'XPF',
 ]);
 
 function toStripeSubunitAmount(amount: number, currency: string): number {
@@ -74,7 +74,7 @@ function toStripeSubunitAmount(amount: number, currency: string): number {
         return Math.ceil(amount);
     }
 
-    return Math.ceil(amount * 100);
+    return Math.round((amount + Number.EPSILON) * 100);
 }
 
 function clearPlaceholderError(placeholder: HTMLElement | null, themeSource: Element | null): void {

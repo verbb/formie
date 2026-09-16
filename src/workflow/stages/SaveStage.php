@@ -35,10 +35,15 @@ class SaveStage implements StageInterface
 
     public function execute(WorkflowContext $context): StageResult
     {
+        // A webhook replay already has a persisted payment. Resolve its completion
+        // state before saving; initial submissions still need an ID before charging.
+        $replay = $context->request->processMode === SubmissionWorkflow::PROCESS_MODE_PAYMENT_REPLAY;
+
         return $this->process->runStageTasks($context, $this->getName(), [
+            ...($replay ? [new ProcessPaymentsTask()] : []),
             new PersistSubmissionWorkflowTask(),
             new PersistSubmissionDirectTask(),
-            new ProcessPaymentsTask(),
+            ...($replay ? [] : [new ProcessPaymentsTask()]),
             new ApplyCompletionFromPaymentStateTask(),
             new PersistQuestionnaireScoringTask(),
             new SetProcessingSuccessTask(),

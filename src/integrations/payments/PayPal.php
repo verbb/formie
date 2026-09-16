@@ -7,11 +7,13 @@ use verbb\formie\base\FieldInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Payment;
 use verbb\formie\elements\Submission;
+use verbb\formie\errors\DeliveryOutcomeUnknownException;
 use verbb\formie\events\ModifyPaymentCurrencyOptionsEvent;
 use verbb\formie\events\ModifyPaymentPayloadEvent;
 use verbb\formie\events\PaymentReceiveWebhookEvent;
 use verbb\formie\fields;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\DeliveryAttempt;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Variables;
@@ -31,10 +33,10 @@ use craft\web\Response;
 
 use yii\base\Event;
 
-use GuzzleHttp\Client;
-
-use Throwable;
 use Exception;
+use Throwable;
+
+use GuzzleHttp\Client;
 
 class PayPal extends Payment
 {
@@ -47,12 +49,16 @@ class PayPal extends Payment
     }
     
 
+
     // Properties
     // =========================================================================
 
     public ?string $clientId = null;
     public ?string $clientSecret = null;
     public bool|string $useSandbox = false;
+
+    private ?string $_accessToken = null;
+    private int $_accessTokenExpires = 0;
 
 
     // Public Methods
@@ -98,102 +104,47 @@ class PayPal extends Payment
         ]);
     }
 
-    protected function getOptionalGraphqlPaymentInputFieldKeys(): array
-    {
-        return ['paypalAuthId'];
-    }
-
     public function processPayment(Submission $submission): PaymentDecision
     {
-        $response = null;
-        $result = false;
-
-        // Allow events to cancel sending
-        if (!$this->beforeProcessPayment($submission)) {
-            return PaymentDecision::notRequired();
+        $mutex = Craft::$app->getMutex();
+        $lock = 'formie.paypal.' . hash('sha256', $submission->id . ':' . $this->getField()?->id);
+        if (!$mutex->acquire($lock, 10)) {
+            return PaymentDecision::pending('PayPal payment is already being processed.', $this->handle);
         }
-
-        // Get the amount from the field, which handles dynamic fields
-        $amount = $this->getAmount($submission);
-        $currency = $this->getFieldSetting('currency');
-
-        // Capture the authorized payment
         try {
-            $field = $this->getField();
-            $paymentPayload = $this->getPaymentFieldPayload($submission);
-            $authId = $paymentPayload->string('paypalAuthId') ?? '';
-            $orderId = $paymentPayload->string('paypalOrderId') ?? '';
-
-            if (!$authId) {
-                if (!$orderId) {
-                    throw new Exception('Missing PayPal authorization data for payment.');
-                }
-
-                $authorization = $this->request('POST', "v2/checkout/orders/{$orderId}/authorize");
-                $authId = trim((string)$this->_extractAuthorizationId($authorization));
-
-                if (!$authId) {
-                    throw new Exception('Missing Authorization ID for payment.');
-                }
-            }
-
-            $response = $this->request('POST', "v2/payments/authorizations/{$authId}/capture");
-
-            $payment = new PaymentModel();
-            $payment->integrationId = $this->id;
-            $payment->submissionId = $submission->id;
-            $payment->fieldId = $field->id;
-            $payment->amount = $amount;
-            $payment->currency = $currency;
-            $payment->status = PaymentModel::STATUS_SUCCESS;
-            $payment->reference = $response['id'] ?? '';
-            $payment->response = $response;
-
-            Formie::$plugin->getPayments()->savePayment($payment);
-
-            $result = true;
-        } catch (Throwable $e) {
-            // Save a different payload to logs
-            Integration::error($this, Craft::t('formie', 'Payment error: “{message}” {file}:{line}. Response: “{response}”', [
-                'message' => Integration::getExceptionLogMessage($e),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'response' => Json::encode($response),
-            ]));
-
-            Integration::apiError($this, $e, $this->throwApiError);
-
-            // Provide a client-friendly error, rather than expose the full error
-            $message = $this->getFriendlyPaymentErrorMessage($e);
-            $this->addFieldError($submission, Craft::t('formie', 'A payment error has occurred “{message}”.', ['message' => $message]));
-            
-            $payment = new PaymentModel();
-            $payment->integrationId = $this->id;
-            $payment->submissionId = $submission->id;
-            $payment->fieldId = $field->id;
-            $payment->amount = $amount;
-            $payment->currency = $currency;
-            $payment->status = PaymentModel::STATUS_FAILED;
-            $payment->reference = null;
-            $payment->response = ['message' => $e->getMessage()];
-
-            Formie::$plugin->getPayments()->savePayment($payment);
-
-            return PaymentDecision::failed($e->getMessage(), $this->handle);
+            return $this->_processPayment($submission);
+        } finally {
+            $mutex->release($lock);
         }
+    }
 
-        // Allow events to say the response is invalid
-        if (!$this->afterProcessPayment($submission, $result)) {
-            return PaymentDecision::succeeded($this->handle);
+    public function getTransaction(PaymentModel $payment): void
+    {
+        if (!$payment->reference || in_array($payment->status, [PaymentModel::STATUS_SUCCESS, PaymentModel::STATUS_FAILED], true)) {
+            return;
         }
+        $submission = $payment->getSubmission();
+        if (!$submission || $payment->integrationId !== $this->id) {
+            throw new Exception('Invalid PayPal payment context.');
+        }
+        $capture = $this->_requestApi('GET', 'v2/payments/captures/' . rawurlencode($payment->reference));
+        $this->_applyCapture($payment, $capture, $submission);
+        if (!Formie::$plugin->getPayments()->savePayment($payment)) {
+            throw new DeliveryOutcomeUnknownException('Unable to save the PayPal payment status.');
+        }
+        Formie::$plugin->getSubmissionProcessor()->replayPaymentIfSuccessful($payment);
+    }
 
-        return $result ? PaymentDecision::succeeded($this->handle) : PaymentDecision::failed(null, $this->handle);
+    public function getTransactionStatus(PaymentModel $payment): void
+    {
+        $this->getTransaction($payment);
     }
 
     public function fetchConnection(): bool
     {
         try {
             $response = $this->request('POST', 'v1/oauth2/token', [
+                'headers' => ['Content-Type' => 'application/x-www-form-urlencoded'],
                 'form_params' => [
                     'grant_type' => 'client_credentials',
                 ],
@@ -378,6 +329,7 @@ class PayPal extends Payment
     }
     
 
+
     // Protected Methods
     // =========================================================================
 
@@ -434,9 +386,91 @@ class PayPal extends Payment
         return $defaults;
     }
 
+    protected function getOptionalGraphqlPaymentInputFieldKeys(): array
+    {
+        return ['paypalAuthId'];
+    }
+
 
     // Private Methods
     // =========================================================================
+
+    private function _requestApi(string $method, string $uri, array $options = []): array
+    {
+        if (!$this->_accessToken || $this->_accessTokenExpires <= time()) {
+            $token = $this->request('POST', 'v1/oauth2/token', [
+                'headers' => ['Content-Type' => 'application/x-www-form-urlencoded'],
+                'form_params' => ['grant_type' => 'client_credentials'],
+            ]);
+            $this->_accessToken = $token['access_token'] ?? null;
+            $this->_accessTokenExpires = time() + max(0, (int)($token['expires_in'] ?? 0) - 30);
+            if (!$this->_accessToken) {
+                throw new Exception('Unable to authenticate with PayPal.');
+            }
+        }
+        $options['headers']['Authorization'] = 'Bearer ' . $this->_accessToken;
+        return $this->request($method, $uri, $options);
+    }
+
+    private function _accountIdentity(): string
+    {
+        return hash('sha256', (string)App::parseEnv($this->clientId) . ':' . (int)App::parseBooleanEnv($this->useSandbox));
+    }
+
+    private function _invoiceId(Submission $submission, int $fieldId): string
+    {
+        return 'formie-' . $submission->uid . '-' . $fieldId;
+    }
+
+    private function _paymentAmount(float $amount, string $currency): array
+    {
+        $digits = (new \Money\Currencies\ISOCurrencies())->subunitFor(new \Money\Currency($currency));
+        return ['value' => number_format($amount, $digits, '.', ''), 'currency_code' => $currency];
+    }
+
+    private function _verifyAmount(array $actual, array $expected): void
+    {
+        $value = (string)($actual['value'] ?? '');
+        if (($actual['currency_code'] ?? '') !== $expected['currency_code'] || !preg_match('/^\d+(?:\.\d+)?$/D', $value)) {
+            throw new Exception('PayPal currency or amount does not match the submission.');
+        }
+        $parser = new \Money\Parser\DecimalMoneyParser(new \Money\Currencies\ISOCurrencies());
+        $currency = new \Money\Currency($expected['currency_code']);
+        if (!$parser->parse($value, $currency)->equals($parser->parse($expected['value'], $currency))) {
+            throw new Exception('PayPal amount does not match the submission.');
+        }
+    }
+
+    private function _paymentRecord(Submission $submission, int $fieldId, float $amount, string $currency): PaymentModel
+    {
+        foreach (Formie::$plugin->getPayments()->getSubmissionPayments($submission) as $payment) {
+            if ($payment->integrationId === $this->id && $payment->fieldId === $fieldId) {
+                return $payment;
+            }
+        }
+        return new PaymentModel(['integrationId' => $this->id, 'submissionId' => $submission->id,
+            'fieldId' => $fieldId, 'amount' => $amount, 'currency' => $currency]);
+    }
+
+    private function _applyCapture(PaymentModel $payment, array $capture, Submission $submission): void
+    {
+        try {
+            $this->_verifyAmount($capture['amount'] ?? [], $this->_paymentAmount($payment->amount, $payment->currency));
+            if (empty($capture['id']) || ($capture['invoice_id'] ?? '') !== $this->_invoiceId($submission, (int)$payment->fieldId)
+                || ($payment->reference && $payment->reference !== $capture['id'])) {
+                throw new Exception('PayPal capture does not match the submission.');
+            }
+        } catch (Throwable $e) {
+            throw new DeliveryOutcomeUnknownException('Unable to verify the PayPal capture. Check the payment before retrying.', 0, $e);
+        }
+        $payment->reference = $capture['id'];
+        $payment->response = $capture;
+        $payment->status = match ($capture['status'] ?? '') {
+            'COMPLETED' => PaymentModel::STATUS_SUCCESS,
+            'DECLINED', 'FAILED', 'DENIED', 'REFUNDED', 'PARTIALLY_REFUNDED' => PaymentModel::STATUS_FAILED,
+            default => PaymentModel::STATUS_PROCESSING,
+        };
+    }
 
     private function _extractAuthorizationId(array $authorizationResponse): ?string
     {
@@ -460,4 +494,105 @@ class PayPal extends Payment
 
         return $authId !== '' ? $authId : null;
     }
+
+    private function _processPayment(Submission $submission): PaymentDecision
+    {
+        if (!$this->beforeProcessPayment($submission)) {
+            return PaymentDecision::notRequired();
+        }
+
+        $field = $this->getField();
+        $amount = $this->getAmount($submission);
+        $currency = strtoupper((string)$this->getFieldSetting('currency'));
+        $payment = null;
+
+        try {
+            if (!$submission->id || !$submission->uid || !$field?->id || !$this->id || $amount <= 0) {
+                throw new Exception('Save the submission and configure a valid payment amount before payment.');
+            }
+            $expected = $this->_paymentAmount($amount, $currency);
+            $payload = $this->getPaymentFieldPayload($submission);
+            $authId = trim($payload->string('paypalAuthId') ?? '');
+            $orderId = trim($payload->string('paypalOrderId') ?? '');
+            $account = $this->_accountIdentity();
+
+            if ($orderId !== '') {
+                $order = $this->_requestApi('GET', 'v2/checkout/orders/' . rawurlencode($orderId));
+                $units = $order['purchase_units'] ?? [];
+                if (count($units) !== 1) {
+                    throw new Exception('Expected one PayPal purchase unit.');
+                }
+                $this->_verifyAmount($units[0]['amount'] ?? [], $expected);
+                $orderAuthId = $this->_extractAuthorizationId($order);
+                if (!$orderAuthId && $authId === '') {
+                    $order = (new DeliveryAttempt((int)$submission->id, 'paypal.authorize:' . $field->id, (string)$submission->uid))->execute(
+                        ['account' => $account, 'orderId' => $orderId, 'amount' => $expected],
+                        fn(string $key) => $this->_requestApi('POST', 'v2/checkout/orders/' . rawurlencode($orderId) . '/authorize', [
+                            'headers' => ['PayPal-Request-Id' => $key, 'Prefer' => 'return=representation'],
+                        ]),
+                        5 * 3600,
+                        fn(array $result) => $result['id'] ?? '',
+                        fn(string $id) => $this->_requestApi('GET', 'v2/checkout/orders/' . rawurlencode($id)),
+                    );
+                    $orderAuthId = $this->_extractAuthorizationId($order);
+                }
+                if (!$orderAuthId || ($authId !== '' && $authId !== $orderAuthId)) {
+                    throw new Exception('PayPal authorization does not match the approved order.');
+                }
+                $authId = $orderAuthId;
+            }
+            if ($authId === '') {
+                throw new Exception('Missing PayPal authorization data for payment.');
+            }
+
+            $authorization = $this->_requestApi('GET', 'v2/payments/authorizations/' . rawurlencode($authId));
+            if (($authorization['id'] ?? '') !== $authId) {
+                throw new Exception('Invalid PayPal authorization response.');
+            }
+            $this->_verifyAmount($authorization['amount'] ?? [], $expected);
+            DeliveryAttempt::claimResource((int)$submission->id, 'paypal:' . $account, $authId, (int)$field->id);
+
+            $body = ['amount' => $expected, 'invoice_id' => $this->_invoiceId($submission, (int)$field->id), 'final_capture' => true];
+            $capture = (new DeliveryAttempt((int)$submission->id, 'paypal.capture:' . $field->id, (string)$submission->uid))->execute(
+                ['account' => $account, 'authorizationId' => $authId, 'body' => $body],
+                fn(string $key) => $this->_requestApi('POST', 'v2/payments/authorizations/' . rawurlencode($authId) . '/capture', [
+                    'json' => $body,
+                    'headers' => ['PayPal-Request-Id' => $key, 'Prefer' => 'return=representation'],
+                ]),
+                5 * 3600,
+                fn(array $result) => $result['id'] ?? '',
+                fn(string $id) => $this->_requestApi('GET', 'v2/payments/captures/' . rawurlencode($id)),
+            );
+
+            $payment = $this->_paymentRecord($submission, (int)$field->id, $amount, $currency);
+            $this->_applyCapture($payment, $capture, $submission);
+            if (!Formie::$plugin->getPayments()->savePayment($payment)) {
+                throw new DeliveryOutcomeUnknownException('Unable to save the accepted PayPal payment.');
+            }
+            if ($payment->status === PaymentModel::STATUS_SUCCESS) {
+                $this->afterProcessPayment($submission, true);
+                return PaymentDecision::succeeded($this->handle);
+            }
+            return $payment->status === PaymentModel::STATUS_FAILED
+                ? PaymentDecision::failed('PayPal did not complete the payment.', $this->handle)
+                : PaymentDecision::pending('PayPal is still processing the payment.', $this->handle, $payment->reference);
+        } catch (Throwable $e) {
+            Integration::apiError($this, $e, $this->throwApiError);
+            $message = $this->getFriendlyPaymentErrorMessage($e);
+            $this->addFieldError($submission, $message);
+            if ($e instanceof DeliveryOutcomeUnknownException) {
+                if ($submission->id && $field?->id && $this->id) {
+                    $payment ??= $this->_paymentRecord($submission, (int)$field->id, $amount, $currency);
+                    $payment->status = PaymentModel::STATUS_PROCESSING;
+                    $payment->message = 'PayPal payment outcome requires confirmation.';
+                    if (!Formie::$plugin->getPayments()->savePayment($payment)) {
+                        throw $e;
+                    }
+                }
+                return PaymentDecision::pending($message, $this->handle, $payment?->reference);
+            }
+            return PaymentDecision::failed($message, $this->handle);
+        }
+    }
+
 }

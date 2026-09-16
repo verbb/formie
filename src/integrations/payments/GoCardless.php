@@ -10,9 +10,8 @@ use verbb\formie\events\PaymentReceiveWebhookEvent;
 use verbb\formie\fields;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\PaymentAccess;
-use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\References;
-
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\ClientModule;
 use verbb\formie\models\ClientModuleContext;
 use verbb\formie\models\Payment as PaymentModel;
@@ -27,24 +26,15 @@ use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 use craft\web\Response;
 
+use Exception;
+use Throwable;
+
+use GuzzleHttp\Client;
 use Money\Currencies\ISOCurrencies;
 use Money\Currency;
 
-use GuzzleHttp\Client;
-
-use Throwable;
-use Exception;
-
 class GoCardless extends Payment
 {
-    // Constants
-    // =========================================================================
-
-    public const EVENT_MODIFY_PAYLOAD = 'modifyPayload';
-
-    private const API_VERSION = '2015-07-06';
-
-
     // Static Methods
     // =========================================================================
 
@@ -52,6 +42,14 @@ class GoCardless extends Payment
     {
         return 'GoCardless';
     }
+
+
+    // Constants
+    // =========================================================================
+
+    public const EVENT_MODIFY_PAYLOAD = 'modifyPayload';
+
+    private const API_VERSION = '2015-07-06';
 
 
     // Properties
@@ -956,12 +954,7 @@ class GoCardless extends Payment
             'reference' => $reference,
         ];
 
-        $apiResponse = $this->request('POST', 'payments', [
-            'json' => ['payments' => $payload],
-            'headers' => [
-                'Idempotency-Key' => substr($payment->uid . '-pm-create', 0, 120),
-            ],
-        ]);
+        $apiResponse = $this->_createResourceOnce($payment, 'payments', $payload, '-pm-create');
 
         $gcPayment = $apiResponse['payments'] ?? [];
 
@@ -970,6 +963,42 @@ class GoCardless extends Payment
         }
 
         return $gcPayment;
+    }
+
+    private function _createResourceOnce(PaymentModel $payment, string $resource, array $payload, string $suffix): array
+    {
+        $key = substr($payment->uid . $suffix, 0, 120);
+        $fetch = fn(string $id) => $this->request('GET', $resource . '/' . rawurlencode($id));
+
+        return (new \verbb\formie\helpers\DeliveryAttempt((int)$payment->submissionId, 'gocardless:' . $resource, $key, $key))->execute(
+            $payload,
+            function (string $requestKey) use ($resource, $payload, $fetch): array {
+                try {
+                    return $this->request('POST', $resource, [
+                        'json' => [$resource => $payload],
+                        'headers' => ['Idempotency-Key' => $requestKey],
+                    ]);
+                } catch (\GuzzleHttp\Exception\RequestException $e) {
+                    $response = $e->getResponse();
+                    $body = $response ? Json::decodeIfJson((string)$response->getBody()) : null;
+                    if ($response?->getStatusCode() === 409 && is_array($body)) {
+                        foreach ($body['error']['errors'] ?? [] as $error) {
+                            if (($error['reason'] ?? null) === 'idempotent_creation_conflict' && !empty($error['links']['conflicting_resource_id'])) {
+                                try {
+                                    return $fetch($error['links']['conflicting_resource_id']);
+                                } catch (Throwable $lookupError) {
+                                    throw new \verbb\formie\errors\DeliveryOutcomeUnknownException('Unable to retrieve the already accepted GoCardless resource.', 0, $lookupError);
+                                }
+                            }
+                        }
+                    }
+                    throw $e;
+                }
+            },
+            23 * 3600,
+            fn(array $result) => $result[$resource]['id'] ?? '',
+            $fetch,
+        );
     }
 
     private function _isSubscriptionPayment(PaymentModel $payment): bool
@@ -1025,12 +1054,7 @@ class GoCardless extends Payment
             ],
         ];
 
-        $apiResponse = $this->request('POST', 'subscriptions', [
-            'json' => ['subscriptions' => $payload],
-            'headers' => [
-                'Idempotency-Key' => substr($payment->uid . '-sub-create', 0, 120),
-            ],
-        ]);
+        $apiResponse = $this->_createResourceOnce($payment, 'subscriptions', $payload, '-sub-create');
 
         $gcSubscription = $apiResponse['subscriptions'] ?? [];
 

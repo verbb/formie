@@ -7,11 +7,13 @@ use verbb\formie\base\FieldInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Payment;
 use verbb\formie\elements\Submission;
+use verbb\formie\errors\DeliveryOutcomeUnknownException;
 use verbb\formie\events\ModifyPaymentCurrencyOptionsEvent;
 use verbb\formie\events\ModifyPaymentPayloadEvent;
 use verbb\formie\events\PaymentReceiveWebhookEvent;
 use verbb\formie\fields;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\DeliveryAttempt;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Variables;
@@ -31,19 +33,13 @@ use craft\web\Response;
 
 use yii\base\Event;
 
-use GuzzleHttp\Client;
-
-use Throwable;
 use Exception;
+use Throwable;
+
+use GuzzleHttp\Client;
 
 class PayWay extends Payment
 {
-    // Constants
-    // =========================================================================
-
-    public const EVENT_MODIFY_PAYLOAD = 'modifyPayload';
-
-
     // Static Methods
     // =========================================================================
 
@@ -64,6 +60,13 @@ class PayWay extends Payment
         return $event->currencies;
     }
     
+
+
+    // Constants
+    // =========================================================================
+
+    public const EVENT_MODIFY_PAYLOAD = 'modifyPayload';
+
 
     // Properties
     // =========================================================================
@@ -110,131 +113,47 @@ class PayWay extends Payment
 
     public function processPayment(Submission $submission): PaymentDecision
     {
-        $response = null;
-        $result = false;
-        $status = null;
-
-        // Allow events to cancel sending
-        if (!$this->beforeProcessPayment($submission)) {
-            return PaymentDecision::notRequired();
+        $mutex = Craft::$app->getMutex();
+        $lock = 'formie.payway.' . hash('sha256', $submission->id . ':' . $this->getField()?->id);
+        if (!$mutex->acquire($lock, 10)) {
+            return PaymentDecision::pending('PayWay payment is already being processed.', $this->handle);
         }
-
-        // Get the amount from the field, which handles dynamic fields
-        $amount = $this->getAmount($submission);
-        $currency = $this->getFieldSetting('currency');
-
-        // Capture the authorized payment
         try {
-            $field = $this->getField();
-            $paymentPayload = $this->getPaymentFieldPayload($submission);
-            $paywayTokenId = $paymentPayload->string('paywayTokenId');
-
-            if (!$paywayTokenId || !is_string($paywayTokenId)) {
-                throw new Exception("Missing `paywayTokenId` from payload: {$paywayTokenId}.");
-            }
-
-            if (!$amount) {
-                throw new Exception("Missing `amount` from payload: {$amount}.");
-            }
-
-            if (!$currency) {
-                throw new Exception("Missing `currency` from payload: {$currency}.");
-            }
-
-            $requestCurrency = strtolower(trim((string)$currency));
-
-            if ($requestCurrency !== 'aud') {
-                throw new Exception('PayWay supports AUD currency only.');
-            }
-
-            $payload = [
-                'singleUseTokenId' => $paywayTokenId,
-                'principalAmount' => $amount,
-                'currency' => $requestCurrency,
-                'transactionType' => 'payment',
-                'customerNumber' => $submission->id,
-                'orderNumber' => $submission->id,
-                'merchantId' => App::parseEnv($this->merchantId),
-                'customerIpAddress' => Craft::$app->getRequest()->getUserIP(),
-            ];
-
-            // Raise a `modifySinglePayload` event
-            $event = new ModifyPaymentPayloadEvent([
-                'integration' => $this,
-                'submission' => $submission,
-                'payload' => $payload,
-            ]);
-            $this->trigger(self::EVENT_MODIFY_PAYLOAD, $event);
-
-            $response = $this->request('POST', 'transactions', ['form_params' => $event->payload]);
-
-            $status = strtolower((string)($response['status'] ?? ''));
-            $responseText = $response['responseText'] ?? null;
-
-            if ($status !== 'approved' && $status !== 'approved*' && $status !== 'pending') {
-                throw new Exception(StringHelper::titleize($status) . ': ' . $responseText);
-            }
-
-            $payment = new PaymentModel();
-            $payment->integrationId = $this->id;
-            $payment->submissionId = $submission->id;
-            $payment->fieldId = $field->id;
-            $payment->amount = $amount;
-            $payment->currency = $currency;
-            $payment->reference = $response['transactionId'] ?? '';
-            $payment->response = $response;
-
-            if ($status === 'pending') {
-                $payment->status = PaymentModel::STATUS_PENDING;
-            }
-
-            if ($status === 'approved' || $status === 'approved*') {
-                $payment->status = PaymentModel::STATUS_SUCCESS;
-            }
-
-            Formie::$plugin->getPayments()->savePayment($payment);
-
-            $result = $status === 'approved' || $status === 'approved*';
-        } catch (Throwable $e) {
-            // Save a different payload to logs
-            Integration::error($this, Craft::t('formie', 'Payment error: “{message}” {file}:{line}. Response: “{response}”', [
-                'message' => Integration::getExceptionLogMessage($e),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'response' => Json::encode($response),
-            ]));
-
-            Integration::apiError($this, $e, $this->throwApiError);
-
-            // Provide a client-friendly error, rather than expose the full error
-            $message = $this->getFriendlyPaymentErrorMessage($e);
-            $this->addFieldError($submission, Craft::t('formie', 'A payment error has occurred “{message}”.', ['message' => $message]));
-            
-            $payment = new PaymentModel();
-            $payment->integrationId = $this->id;
-            $payment->submissionId = $submission->id;
-            $payment->fieldId = $field->id;
-            $payment->amount = $amount;
-            $payment->currency = $currency;
-            $payment->status = PaymentModel::STATUS_FAILED;
-            $payment->reference = null;
-            $payment->response = ['message' => $e->getMessage()];
-
-            Formie::$plugin->getPayments()->savePayment($payment);
-
-            return PaymentDecision::failed($e->getMessage(), $this->handle);
+            return $this->_processPayment($submission);
+        } finally {
+            $mutex->release($lock);
         }
+    }
 
-        // Allow events to say the response is invalid
-        if (!$this->afterProcessPayment($submission, $result)) {
-            return PaymentDecision::succeeded($this->handle);
+    public function getTransaction(PaymentModel $payment): void
+    {
+        if (!$payment->reference || in_array($payment->status, [PaymentModel::STATUS_SUCCESS, PaymentModel::STATUS_FAILED], true)) {
+            return;
         }
-
-        if ($status === 'pending') {
-            return PaymentDecision::pending(null, $this->handle);
+        $submission = $payment->getSubmission();
+        if (!$submission || $payment->integrationId !== $this->id) {
+            throw new Exception('Invalid PayWay payment context.');
         }
+        $response = $this->request('GET', 'transactions/' . rawurlencode($payment->reference));
+        $this->_validateTransaction($response, $submission, (float)$payment->amount, (string)$payment->currency);
+        if ((string)$response['transactionId'] !== $payment->reference) {
+            throw new DeliveryOutcomeUnknownException('PayWay returned a different transaction.');
+        }
+        $payment->status = match (strtolower((string)($response['status'] ?? ''))) {
+            'approved', 'approved*' => PaymentModel::STATUS_SUCCESS,
+            'declined', 'voided' => PaymentModel::STATUS_FAILED,
+            default => PaymentModel::STATUS_PENDING,
+        };
+        $payment->response = $response;
+        if (!Formie::$plugin->getPayments()->savePayment($payment)) {
+            throw new DeliveryOutcomeUnknownException('Unable to save the PayWay payment outcome.');
+        }
+        Formie::$plugin->getSubmissionProcessor()->replayPaymentIfSuccessful($payment);
+    }
 
-        return $result ? PaymentDecision::succeeded($this->handle) : PaymentDecision::failed(null, $this->handle);
+    public function getTransactionStatus(PaymentModel $payment): void
+    {
+        $this->getTransaction($payment);
     }
 
     public function fetchConnection(): bool
@@ -314,6 +233,7 @@ class PayWay extends Payment
     }
     
 
+
     // Protected Methods
     // =========================================================================
 
@@ -347,4 +267,158 @@ class PayWay extends Payment
 
         return $defaults;
     }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _processPayment(Submission $submission): PaymentDecision
+    {
+        $response = null;
+        $result = false;
+        $status = null;
+        $field = $this->getField();
+        $payment = null;
+
+        // Allow events to cancel sending
+        if (!$this->beforeProcessPayment($submission)) {
+            return PaymentDecision::notRequired();
+        }
+
+        // Get the amount from the field, which handles dynamic fields
+        $amount = $this->getAmount($submission);
+        $currency = $this->getFieldSetting('currency');
+
+        // Capture the authorized payment
+        try {
+            if (!$submission->id || !$submission->uid || !$field?->id || !$this->id) {
+                throw new Exception('Save the submission and configure a payment field before payment.');
+            }
+            $paymentPayload = $this->getPaymentFieldPayload($submission);
+            $paywayTokenId = $paymentPayload->string('paywayTokenId');
+
+            if (!$paywayTokenId || !is_string($paywayTokenId)) {
+                throw new Exception("Missing `paywayTokenId` from payload: {$paywayTokenId}.");
+            }
+
+            if ($amount <= 0) {
+                throw new Exception("Missing `amount` from payload: {$amount}.");
+            }
+
+            if (!$currency) {
+                throw new Exception("Missing `currency` from payload: {$currency}.");
+            }
+
+            $requestCurrency = strtolower(trim((string)$currency));
+
+            if ($requestCurrency !== 'aud') {
+                throw new Exception('PayWay supports AUD currency only.');
+            }
+
+            $payload = [
+                'singleUseTokenId' => $paywayTokenId,
+                'principalAmount' => $amount,
+                'currency' => $requestCurrency,
+                'transactionType' => 'payment',
+                'customerNumber' => $submission->id,
+                'orderNumber' => $submission->id,
+                'merchantId' => App::parseEnv($this->merchantId),
+                'customerIpAddress' => Craft::$app->getRequest()->getIsConsoleRequest() ? null : Craft::$app->getRequest()->getUserIP(),
+            ];
+
+            // Raise a `modifySinglePayload` event
+            $event = new ModifyPaymentPayloadEvent([
+                'integration' => $this,
+                'submission' => $submission,
+                'payload' => $payload,
+            ]);
+            $this->trigger(self::EVENT_MODIFY_PAYLOAD, $event);
+
+            $this->_validateTransaction(['transactionId' => 'request'] + $event->payload, $submission, (float)$amount, (string)$currency);
+
+            // PayWay retains idempotency keys for 24 hours; leave a safety margin.
+            $response = (new DeliveryAttempt((int)$submission->id, 'payway:' . $this->id . ':' . $field->id, (string)$submission->uid))->execute(
+                ['payload' => $event->payload, 'account' => hash('sha256', (string)App::parseEnv($this->secretKey))],
+                fn(string $key) => $this->request('POST', 'transactions', [
+                    'form_params' => $event->payload,
+                    'headers' => ['Idempotency-Key' => $key],
+                ]),
+                23 * 3600,
+                fn(array $data) => (string)($data['transactionId'] ?? ''),
+                fn(string $reference) => $this->request('GET', 'transactions/' . rawurlencode($reference)),
+            );
+            $this->_validateTransaction($response, $submission, (float)$amount, (string)$currency);
+            $payment = Formie::$plugin->getPayments()->getPaymentByReference((string)$response['transactionId']);
+            if ($payment && ($payment->submissionId !== $submission->id || $payment->fieldId !== $field->id || $payment->integrationId !== $this->id)) {
+                throw new DeliveryOutcomeUnknownException('PayWay transaction belongs to another payment.');
+            }
+
+            $status = strtolower((string)($response['status'] ?? ''));
+
+            if (!in_array($status, ['approved', 'approved*', 'declined', 'voided'], true)) {
+                $status = 'pending';
+            }
+
+            $payment ??= new PaymentModel();
+            $payment->integrationId = $this->id;
+            $payment->submissionId = $submission->id;
+            $payment->fieldId = $field->id;
+            $payment->amount = $amount;
+            $payment->currency = $currency;
+            $payment->reference = $response['transactionId'] ?? '';
+            $payment->response = $response;
+
+            $payment->status = PaymentModel::STATUS_FAILED;
+            if ($status === 'pending') {
+                $payment->status = PaymentModel::STATUS_PENDING;
+            }
+
+            if ($status === 'approved' || $status === 'approved*') {
+                $payment->status = PaymentModel::STATUS_SUCCESS;
+            }
+
+            if (!Formie::$plugin->getPayments()->savePayment($payment)) {
+                throw new DeliveryOutcomeUnknownException('Unable to save the PayWay payment outcome.');
+            }
+
+            $result = $status === 'approved' || $status === 'approved*';
+        } catch (DeliveryOutcomeUnknownException $e) {
+            return PaymentDecision::pending($e->getMessage(), $this->handle);
+        } catch (Throwable $e) {
+            $message = $this->getFriendlyPaymentErrorMessage($e);
+            $this->addFieldError($submission, Craft::t('formie', 'A payment error has occurred “{message}”.', ['message' => $message]));
+            return PaymentDecision::failed($message, $this->handle);
+        }
+
+        // Allow events to say the response is invalid
+        if (!$this->afterProcessPayment($submission, $result)) {
+            return PaymentDecision::failed(null, $this->handle);
+        }
+
+        if ($status === 'pending') {
+            return PaymentDecision::pending(null, $this->handle);
+        }
+
+        if (!$result) {
+            $message = Craft::t('formie', 'The payment was not approved.');
+            $this->addFieldError($submission, $message);
+            return PaymentDecision::failed($message, $this->handle);
+        }
+
+        return PaymentDecision::succeeded($this->handle);
+    }
+
+    private function _validateTransaction(array $response, Submission $submission, float $amount, string $currency): void
+    {
+        if (empty($response['transactionId'])
+            || strtolower((string)($response['currency'] ?? '')) !== strtolower($currency)
+            || !isset($response['principalAmount']) || !is_numeric($response['principalAmount'])
+            || number_format((float)$response['principalAmount'], 2, '.', '') !== number_format($amount, 2, '.', '')
+            || (string)($response['orderNumber'] ?? '') !== (string)$submission->id
+            || (string)($response['customerNumber'] ?? '') !== (string)$submission->id
+            || ($response['transactionType'] ?? '') !== 'payment') {
+            throw new DeliveryOutcomeUnknownException('Unable to verify the PayWay amount, currency or submission association.');
+        }
+    }
+
 }
