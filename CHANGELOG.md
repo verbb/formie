@@ -31,6 +31,7 @@
 - Restore configured form availability on secondary sites when upgrading existing installations.
 - Include regional forms in report choices, summaries and scheduled exports.
 - Process regional forms in queued field moves and console export and cleanup commands.
+- Apply configured file-upload retention to forms on every site.
 - Allow existing fields and notifications to be selected with the keyboard.
 - Honor per-form permissions in form and submission indexes and GraphQL operations.
 - Load form indexes for users without permission to create forms.

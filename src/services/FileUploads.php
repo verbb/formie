@@ -183,7 +183,7 @@ class FileUploads extends Component
 
     public function pruneExpiredFieldAssets(mixed $consoleInstance = null): int
     {
-        $forms = Form::find()->status(null)->all();
+        $forms = Form::find()->withoutCpIndexScope()->site('*')->unique()->status(null)->all();
         $purgedAssetCount = 0;
 
         foreach ($forms as $form) {
