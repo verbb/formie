@@ -4,7 +4,7 @@ import React, {
 } from 'react';
 
 import {
-    Button, ButtonGroup, Dialog, DropdownItem, DropdownMenu, Icon, Input, Spinner,
+    Button, ButtonGroup, Checkbox, Dialog, DropdownItem, DropdownMenu, Icon, Input, Spinner,
 } from '@verbb/plugin-kit-react/components';
 
 import { cn } from '@verbb/plugin-kit-react/utils';
@@ -1035,13 +1035,19 @@ const ExistingFieldItem = ({ field, selected, onSelected }) => {
     return (
         <div
             className={cn(
-                'p-3 border border-[2px] rounded-lg cursor-pointer transition-colors',
+                'flex items-start gap-3 p-3 border border-[2px] rounded-lg cursor-pointer transition-colors',
                 selected
                     ? 'border-blue-500 bg-blue-50'
                     : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50',
             )}
             onClick={() => { return onSelected(!selected); }}
         >
+            <Checkbox
+                checked={selected}
+                aria-label={label}
+                onCheckedChange={onSelected}
+                onClick={(event) => { event.stopPropagation(); }}
+            />
             <div className="flex items-center gap-2">
                 <div className="flex-1">
                     <div className="font-medium text-sm">

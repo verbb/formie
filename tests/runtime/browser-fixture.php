@@ -4,6 +4,13 @@ $form = \verbb\formie\Formie::$plugin->getFactories()->form(['title' => 'Browser
     ->singleLineTextField('visitorName', ['label' => 'Visitor name', 'required' => true])
     ->emailField('visitorEmail', ['label' => 'Visitor email', 'required' => true])
     ->create();
+$form->setNotifications([new \verbb\formie\models\Notification([
+    'name' => 'Browser notification', 'handle' => 'browserNotification',
+    'subject' => 'Browser notification subject', 'to' => 'admin@example.test', 'enabled' => false,
+])]);
+if (!Craft::$app->getElements()->saveElement($form)) {
+    throw new RuntimeException('Cannot save browser notification picker fixture.');
+}
 \Tests\Support\UploadTestHelper::ensureUploadVolume();
 $journey = \verbb\formie\Formie::$plugin->getFactories()->form(['title' => 'Browser journey', 'handle' => 'browserJourney'])
     ->multiPage(2)->onPage(1)

@@ -4,7 +4,7 @@ import React, {
     useEffect, useRef, useState,
 } from 'react';
 
-import { Button, Dialog, Icon, Input, Spinner, TiptapInput } from '@verbb/plugin-kit-react/components';
+import { Button, Checkbox, Dialog, Icon, Input, Spinner, TiptapInput } from '@verbb/plugin-kit-react/components';
 
 import { cn } from '@verbb/plugin-kit-react/utils';
 import { useFormValues } from '@form-builder/hooks/useFormTools';
@@ -619,13 +619,19 @@ const ExistingNotificationItem = ({
     return (
         <div
             className={cn(
-                'p-3 border border-[2px] rounded-lg cursor-pointer transition-colors',
+                'flex items-start gap-3 p-3 border border-[2px] rounded-lg cursor-pointer transition-colors',
                 selected
                     ? 'border-blue-500 bg-blue-50'
                     : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50',
             )}
             onClick={() => { return onSelected(!selected); }}
         >
+            <Checkbox
+                checked={selected}
+                aria-label={getRichTextText(notification.name)}
+                onCheckedChange={onSelected}
+                onClick={(event) => { event.stopPropagation(); }}
+            />
             <div className="space-y-1">
                 {/* readonly TiptapInput: parses {tokens} into chips; chrome stripped via [readonly]. */}
                 <div className="font-medium text-sm">
