@@ -18,6 +18,8 @@ it('lists the forms and submission sources assigned to a persisted role', functi
     $name = 'scopedRole' . bin2hex(random_bytes(6));
     $user = new User(['username' => $name, 'email' => $name . '@example.test']);
     expect(Craft::$app->getElements()->saveElement($user))->toBeTrue();
+    // Register permissions after this test's forms have been created.
+    Craft::$app->set('userPermissions', new \craft\services\UserPermissions());
     expect(Craft::$app->getUserPermissions()->saveUserPermissions($user->id, [
         'accessCp', 'accessPlugin-formie', Permissions::PERM_ACCESS_FORMS, Permissions::PERM_ACCESS_SUBMISSIONS,
         Permissions::PERM_MANAGE_FORMS . ':' . $allowed->uid,

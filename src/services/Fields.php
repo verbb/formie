@@ -750,6 +750,15 @@ class Fields extends Component
         $query = $this->_createFormFieldConfigQuery()
             ->where(['ff.id' => $ids]);
 
+        if (Craft::$app->getRequest()->getIsCpRequest()) {
+            $layouts = (new Query())
+                ->select(['layoutId'])
+                ->from(Table::FORMIE_FORMS)
+                ->where(['id' => Form::find()->ids()]);
+
+            $query->andWhere(['ff.layoutId' => $layouts]);
+        }
+
         if ($excludeForm && $excludeForm->layoutId) {
             $query->andWhere(['not', ['ff.layoutId' => $excludeForm->layoutId]]);
         }

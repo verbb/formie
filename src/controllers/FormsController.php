@@ -62,6 +62,14 @@ class FormsController extends Controller
 
     public function beforeAction($action): bool
     {
+        if (in_array($action->id, ['get-existing-fields', 'get-existing-field-configs', 'get-existing-notifications', 'get-form-usage'], true)) {
+            $this->requireCpRequest();
+
+            if (!Craft::$app->getUser()->checkPermission('formie-accessStencils')) {
+                $this->requirePermission('formie-accessForms');
+            }
+        }
+
         if (in_array($action->id, ['render', 'refresh-tokens'], true)) {
             $this->enableCsrfValidation = false;
         }
