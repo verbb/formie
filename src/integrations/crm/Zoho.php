@@ -5,9 +5,10 @@ use verbb\formie\Formie;
 use verbb\formie\base\Crm;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
-use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\base\OAuthIntegrationTrait;
 use verbb\formie\elements\Submission;
+use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
@@ -144,6 +145,23 @@ class Zoho extends Crm implements OAuthProviderInterface
     {
         return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
     }
+
+    public function getFieldMappingValues(Submission $submission, ?array $fieldMapping, mixed $fieldSettings = [])
+    {
+        $fields = is_string($fieldSettings) ? $this->getFormSettingValue($fieldSettings) : $fieldSettings;
+        $fieldValues = parent::getFieldMappingValues($submission, $fieldMapping, $fields);
+
+        foreach ($fieldValues as $handle => $value) {
+            $integrationField = ArrayHelper::firstWhere($fields, 'handle', $handle);
+
+            if ($integrationField instanceof IntegrationField) {
+                $fieldValues[$handle] = $this->_getPickListPayloadValue($value, $integrationField);
+            }
+        }
+
+        return $fieldValues;
+    }
+
     public function fetchFormSettings(): IntegrationFormSettings
     {
         $settings = [];
@@ -480,9 +498,12 @@ class Zoho extends Crm implements OAuthProviderInterface
             $pickListValues = $field['pick_list_values'] ?? [];
 
             foreach ($pickListValues as $pickListValue) {
+                $actualValue = $pickListValue['actual_value'] ?? $pickListValue['display_value'];
+
                 $options[] = [
                     'label' => $pickListValue['display_value'],
-                    'value' => $pickListValue['id'] ?? $pickListValue['actual_value'],
+                    'value' => $pickListValue['id'] ?? $actualValue,
+                    'actualValue' => $actualValue,
                 ];
             }
 
@@ -504,6 +525,24 @@ class Zoho extends Crm implements OAuthProviderInterface
         }
 
         return $customFields;
+    }
+
+    private function _getPickListPayloadValue(mixed $value, IntegrationField $integrationField): mixed
+    {
+        if (is_array($value)) {
+            return array_map(fn($item) => $this->_getPickListPayloadValue($item, $integrationField), $value);
+        }
+
+        foreach ($integrationField->options['options'] ?? [] as $option) {
+            if ((string)($option['value'] ?? '') !== (string)$value) {
+                continue;
+            }
+
+            // Older cached field metadata has no actual value, but its label is still safer than sending the option ID.
+            return $option['actualValue'] ?? $option['label'] ?? $value;
+        }
+
+        return $value;
     }
 
     private function _getModuleFields($module): array

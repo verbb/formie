@@ -17,6 +17,7 @@
 - Bump transitive `symfony/cache` to `6.4.45` (CVE-2026-45073 advisory floor).
 
 ### Fixed
+- Fix Zoho picklist mappings sending option metadata IDs instead of their API values. ([#2959](https://github.com/verbb/formie/issues/2959))
 - Reject invalid date filters before deleting submissions from console commands.
 - Preserve submission edits made while queued field moves are running.
 - Preserve form fields and submission data when restoring deleted forms, and clean up child submissions and configured uploads on permanent deletion.
