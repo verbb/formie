@@ -69,3 +69,35 @@ it('offers regional report forms and fields only to permitted submission viewers
         if ($allowed) { expect(array_column($groups[0]['columns'], 'handle'))->toContain('message'); }
     });
 })->with(['allowed' => true, 'denied' => false]);
+
+it('keeps an explicitly loaded regional form usable in the primary control panel', function (string $scenario): void {
+    if (!Craft::$app->getIsMultiSite()) { $this->markTestSkipped('Multi-site contract.'); }
+    [$form, $report] = regionalReportFixture();
+    $admin = User::find()->admin(true)->one();
+    WebRequestTestHelper::withWebRequestContext(function ($request) use ($admin, $form, $report, $scenario): void {
+        $request->setIsCpRequest(true);
+        Craft::$app->getUser()->setIdentity($admin);
+        // Each simulated request must resolve its own editable default site.
+        $requestedSite = new ReflectionProperty(\craft\helpers\Cp::class, '_requestedSite');
+        $before = $requestedSite->getValue();
+        $requestedSite->setValue(null, null);
+        Formie::$plugin->getForms()->invalidateFormCaches();
+        try {
+            expect(\craft\helpers\Cp::requestedSite()->id)->toBe(Craft::$app->getSites()->getPrimarySite()->id);
+            expect(\verbb\formie\elements\Form::find()->id($form->id)->one())->toBeNull();
+            if ($scenario === 'query') {
+                expect(\verbb\formie\elements\Form::find()->id($form->id)->siteId($form->siteId)->one()?->id)->toBe($form->id);
+            } elseif ($scenario === 'report') {
+                $data = Formie::$plugin->getReportQuery()->getTableData($report, user: $admin);
+                expect($data['pagination']['total'])->toBe(1);
+                expect(array_values($data['rows'][0]['cells']))->toBe([['type' => 'text', 'value' => 'Regional value']]);
+            } else {
+                parse_str(parse_url($form->getCpEditUrl(), PHP_URL_QUERY), $params);
+                expect($params['site'] ?? null)->toBe(Craft::$app->getSites()->getSiteById($form->siteId)->handle);
+            }
+        } finally {
+            $requestedSite->setValue(null, $before);
+            Formie::$plugin->getForms()->invalidateFormCaches();
+        }
+    });
+})->with(['query', 'report', 'edit link']);

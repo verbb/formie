@@ -243,7 +243,7 @@ class FormQuery extends ElementQuery
                 $this->siteId = Craft::$app->getSites()->getAllSiteIds();
             }
 
-            if (!$this->_skipCpIndexScope && Craft::$app->getRequest()->getIsCpRequest()) {
+            if ($this->_requestedSiteId === null && !$this->_skipCpIndexScope && Craft::$app->getRequest()->getIsCpRequest()) {
                 $siteId = $this->_resolveIndexSiteId();
 
                 if ($siteId !== null) {
