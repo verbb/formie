@@ -8,6 +8,10 @@ use verbb\formie\helpers\StatusColorHelper;
 
 it('maps formie status colors to craft color enums', function (): void {
     expect(StatusColorHelper::resolveColor('green'))->toBe(Color::Green)
+        ->and(StatusColorHelper::resolveColor('blue', 'approved'))->toBe(Color::Blue)
+        ->and(StatusColorHelper::resolveColor('green', 'expired'))->toBe(Color::Red)
+        ->and(StatusColorHelper::resolveColor('pending'))->toBe(Color::Orange)
+        ->and(StatusColorHelper::resolveColor('unknown', 'custom'))->toBe(Color::Gray)
         ->and(StatusColorHelper::resolveColor('grey'))->toBe(Color::Gray)
         ->and(StatusColorHelper::resolveColor('turquoise'))->toBe(Color::Teal)
         ->and(StatusColorHelper::resolveColor('light'))->toBe(Color::Gray)

@@ -5,6 +5,9 @@ use craft\enums\Color;
 
 class StatusColorHelper
 {
+    // Static Methods
+    // =========================================================================
+
     /**
      * Maps Formie status colors to Craft CP `Color` enums.
      *
@@ -25,7 +28,7 @@ class StatusColorHelper
                 return $lifecycleColor;
             }
 
-            $fromHandle = Color::tryFromStatus($handle);
+            $fromHandle = self::_fromStatus($handle);
 
             if ($fromHandle) {
                 return $fromHandle;
@@ -33,7 +36,7 @@ class StatusColorHelper
         }
 
         if ($color) {
-            $resolved = Color::tryFrom($color) ?? Color::tryFromStatus($color);
+            $resolved = Color::tryFrom($color) ?? self::_fromStatus($color);
 
             if ($resolved) {
                 return $resolved;
@@ -51,5 +54,22 @@ class StatusColorHelper
         }
 
         return Color::Gray;
+    }
+
+    private static function _fromStatus(string $status): ?Color
+    {
+        if (method_exists(Color::class, 'tryFromStatus')) {
+            return Color::tryFromStatus($status);
+        }
+
+        // Craft's status aliases predate its Color enum helper, added in 5.2.
+        return match ($status) {
+            'on', 'live', 'active', 'enabled', 'turquoise' => Color::Teal,
+            'off', 'suspended', 'expired' => Color::Red,
+            'warning' => Color::Amber,
+            'pending' => Color::Orange,
+            'grey' => Color::Gray,
+            default => Color::tryFrom($status),
+        };
     }
 }
