@@ -299,13 +299,12 @@ class ClientSessionService extends Component
     {
         $request = Craft::$app->getRequest();
         $ip = trim((string)($request->getUserIP() ?? 'unknown'));
-        $userAgent = trim((string)$request->getUserAgent());
 
+        // The shared address budget must survive client/session header changes.
         return implode('|', [
             $scope,
             (string)$form->uid,
             $ip !== '' ? $ip : 'unknown',
-            $userAgent !== '' ? $userAgent : 'unknown',
         ]);
     }
 }
