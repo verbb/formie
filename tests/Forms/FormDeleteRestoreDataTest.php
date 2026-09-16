@@ -23,7 +23,9 @@ it('restores form fields and all cascade-deleted submission states while retaini
     $uid = $form->getFieldByHandle('message')->uid;
     $ids = [];
     foreach (['complete', 'incomplete', 'spam', 'previouslyTrashed'] as $state) {
-        $submission = formie()->submission($form)->with(['message' => $state])->save();
+        $submission = new Submission(['siteId' => $form->siteId, 'title' => 'Restore ' . $state]);
+        $submission->setForm($form);
+        $submission->setFieldValue('message', $state);
         $submission->isIncomplete = $state === 'incomplete';
         $submission->isSpam = $state === 'spam';
         expect(Craft::$app->getElements()->saveElement($submission))->toBeTrue();
