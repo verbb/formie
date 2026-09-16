@@ -70,9 +70,7 @@ function PaymentProviderSettingsField({ field, form }) {
             return;
         }
 
-        const rootValue = (typeof form?.getValueAtPath === 'function')
-            ? form.getValueAtPath('providerSettings', providerSettingsRootValue)
-            : providerSettingsRootValue;
+        const rootValue = form?.getFieldValue?.('providerSettings') ?? providerSettingsRootValue;
         const hasObjectRoot = rootValue && typeof rootValue === 'object' && !Array.isArray(rootValue);
 
         // New fields can start with providerSettings as [].
@@ -158,6 +156,39 @@ function PaymentProviderSettingsField({ field, form }) {
             fieldEntries: [],
         };
     }, []);
+    const providerSettingNames = useMemo(() => {
+        const names = new Set();
+
+        (schemaConfig?.schemaIndex?.fieldEntries || []).forEach((entry) => {
+            const name = String(entry?.path || entry?.field?.name || '').split('.')[0];
+
+            if (name) {
+                names.add(name);
+            }
+        });
+
+        return names;
+    }, [schemaConfig]);
+    const handleNestedChange = (values) => {
+        if (!providerSettingsPath || typeof form?.setFieldValue !== 'function') {
+            return;
+        }
+
+        const existing = form?.getFieldValue?.(providerSettingsPath) || {};
+        const scopedValues = Object.fromEntries(Object.entries(values || {}).filter(([key]) => {
+            return providerSettingNames.has(key);
+        }));
+        const mergedValues = {
+            ...(existing && typeof existing === 'object' ? existing : {}),
+            ...scopedValues,
+        };
+
+        if (isEqual(existing, mergedValues)) {
+            return;
+        }
+
+        form.setFieldValue(providerSettingsPath, mergedValues);
+    };
 
     const nestedForm = useSchemaFormEngine({
         schema: schemaConfig?.schema || [],
@@ -166,25 +197,7 @@ function PaymentProviderSettingsField({ field, form }) {
         errors: nestedErrors,
         parentForm: form,
         parentPath: providerSettingsPath || undefined,
-        onChange: (values) => {
-            if (!providerSettingsPath || typeof form?.setFieldValue !== 'function') {
-                return;
-            }
-
-            const existing = typeof form?.getValueAtPath === 'function'
-                ? (form.getValueAtPath(providerSettingsPath, {}) || {})
-                : {};
-            const mergedValues = {
-                ...(existing && typeof existing === 'object' ? existing : {}),
-                ...(values && typeof values === 'object' ? values : {}),
-            };
-
-            if (isEqual(existing, mergedValues)) {
-                return;
-            }
-
-            form.setFieldValue(providerSettingsPath, mergedValues);
-        },
+        onChange: handleNestedChange,
     });
 
     useEffect(() => {
@@ -211,14 +224,19 @@ function PaymentProviderSettingsField({ field, form }) {
             return;
         }
 
-        const existing = typeof form?.getValueAtPath === 'function'
-            ? (form.getValueAtPath(providerSettingsPath, {}) || {})
-            : {};
+        const existing = form?.getFieldValue?.(providerSettingsPath) || {};
+        const scopedInitialValues = Object.fromEntries(Object.entries(initialValues).filter(([key]) => {
+            return providerSettingNames.has(key);
+        }));
+        const mergedInitialValues = {
+            ...(existing && typeof existing === 'object' ? existing : {}),
+            ...scopedInitialValues,
+        };
 
-        if (!isEqual(existing, initialValues)) {
-            form.setFieldValue(providerSettingsPath, initialValues);
+        if (!isEqual(existing, mergedInitialValues)) {
+            form.setFieldValue(providerSettingsPath, mergedInitialValues);
         }
-    }, [providerHandle, providerConfigKey, schemaConfig, nestedForm, initialValues, providerSettingsPath, form]);
+    }, [providerHandle, providerConfigKey, schemaConfig, nestedForm, initialValues, providerSettingNames, providerSettingsPath, form]);
 
     const content = (
         <div>

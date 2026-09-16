@@ -1,5 +1,15 @@
 <?php
 require __DIR__ . '/verify.php';
+$paymentIntegration = new \verbb\formie\integrations\payments\Stripe([
+    'name' => 'Browser Stripe',
+    'handle' => 'browserStripe',
+    'enabled' => true,
+    'publishableKey' => 'pk_test_browser',
+    'secretKey' => 'sk_test_browser',
+]);
+if (!\verbb\formie\Formie::$plugin->getIntegrations()->saveIntegration($paymentIntegration, false)) {
+    throw new RuntimeException('Cannot save browser payment integration fixture.');
+}
 $form = \verbb\formie\Formie::$plugin->getFactories()->form(['title' => 'Browser contract', 'handle' => 'browserContract'])
     ->singleLineTextField('visitorName', ['label' => 'Visitor name', 'required' => true])
     ->emailField('visitorEmail', ['label' => 'Visitor email', 'required' => true])
