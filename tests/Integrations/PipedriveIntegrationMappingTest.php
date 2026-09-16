@@ -49,12 +49,7 @@ it('Pipedrive EVENT_MODIFY_FIELD_MAPPING_VALUE leaves non-set arrays unchanged',
 
     $value = $integration->getMappedFieldValue(References::field($ref), $submission, $integrationField);
 
-    expect($value)->toBeArray()
-        ->and($value)->toHaveCount(2)
-        ->and($value[0])->toBeArray()
-        ->and($value[0])->toHaveKey('value')
-        ->and($value[1])->toBeArray()
-        ->and($value[1])->toHaveKey('value');
+    expect($value)->toBe(['1', '2']);
 });
 
 it('Pipedrive _normalizeSetFieldValue handles arrays and comma-separated strings', function (): void {

@@ -36,11 +36,11 @@ it('Salesforce EVENT_MODIFY_FIELD_MAPPING_VALUE formats DateTime raw values with
     $event = new ModifyFieldIntegrationValueEvent([
         'integration' => $integration,
         'integrationField' => $integrationField,
-        'rawValue' => new DateTime('2026-01-15 12:34:56'),
+        'rawValue' => new DateTime('2026-01-15 12:34:56', new \DateTimeZone('UTC')),
         'value' => '2026-01-15 12:34:56',
     ]);
 
     Event::trigger(Salesforce::class, Integration::EVENT_MODIFY_FIELD_MAPPING_VALUE, $event);
 
-    expect($event->value)->toBe('2026-01-15T12:34:56');
+    expect($event->value)->toBe('2026-01-15T12:34:56.000Z');
 });

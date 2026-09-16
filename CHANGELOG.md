@@ -25,6 +25,8 @@
 - Fix generic GraphQL submission saves failing to normalize form fields, and validate field and captcha maps against the selected form.
 - Include saved nested field layouts in GraphQL input schemas and preserve explicit nulls when clearing nested submission values.
 - Handle omitted optional Table column handles and Note styles, and retain values from Table columns without handles when rendering or exporting submissions.
+- Fix HubSpot form mapping exposing and submitting only the first communication subscription consent checkbox.
+- Fix CRM array mappings including option metadata instead of selected values, apply field-mapping event changes to outgoing payloads, and format Pardot multi-select values consistently.
 - Preserve cleared submission values, including empty checkboxes, tables and dates, through serialization and apply hidden-field clearing during CP edits.
 - Prevent nested shared-field saves from overwriting updated labels; preserve shared definitions in nested layouts and stencil materialization.
 - Duplicate form layout trees without serializing runtime callbacks or mutating the source layout.

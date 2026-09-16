@@ -10,29 +10,29 @@ use verbb\formie\events\IntegrationConnectionEvent;
 use verbb\formie\events\IntegrationFormSettingsEvent;
 use verbb\formie\events\ModifyFieldIntegrationValueEvent;
 use verbb\formie\events\ModifyFieldIntegrationValuesEvent;
+use verbb\formie\events\ModifyIntegrationFormSettingsSchemaEvent;
 use verbb\formie\events\ModifyIntegrationSlotTagEvent;
 use verbb\formie\events\SendIntegrationPayloadEvent;
-use verbb\formie\helpers\ConditionsHelper;
-use verbb\formie\helpers\IntegrationHelper;
-use verbb\formie\helpers\IntegrationApiErrors;
-use verbb\formie\helpers\IntegrationRerunPolicies;
-use verbb\formie\helpers\IntegrationTriggerEvents;
 use verbb\formie\fields\Agree;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\ConditionsHelper;
+use verbb\formie\helpers\IntegrationApiErrors;
+use verbb\formie\helpers\IntegrationHelper;
+use verbb\formie\helpers\IntegrationRerunPolicies;
+use verbb\formie\helpers\IntegrationTriggerEvents;
 use verbb\formie\helpers\References;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\helpers\Variables;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
-use verbb\formie\models\SlotTag;
+use verbb\formie\helpers\Variables;
 use verbb\formie\models\ClientModule;
 use verbb\formie\models\ClientModuleContext;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
-use verbb\formie\events\ModifyIntegrationFormSettingsSchemaEvent;
 use verbb\formie\models\IntegrationFormSettings;
 use verbb\formie\models\IntegrationSettingsContext;
 use verbb\formie\models\Phone;
+use verbb\formie\models\SlotTag;
 use verbb\formie\models\Stencil;
 use verbb\formie\options\IntegrationOptionSourceHelper;
 use verbb\formie\options\OptionList;
@@ -51,13 +51,12 @@ use craft\validators\HandleValidator;
 use craft\validators\UniqueValidator;
 use craft\web\Response;
 
-use GuzzleHttp\Exception\RequestException;
-use GuzzleHttp\Client;
-
 use Error;
 use Exception;
 use Throwable;
 
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
 use verbb\auth\Auth;
 use verbb\auth\base\OAuthProviderInterface;
 use verbb\auth\base\OAuthProviderTrait;
@@ -65,60 +64,6 @@ use verbb\auth\models\Token;
 
 abstract class Integration extends SavableComponent implements IntegrationInterface
 {
-    // Constants
-    // =========================================================================
-
-    public const EVENT_BEFORE_SEND_PAYLOAD = 'beforeSendPayload';
-    public const EVENT_AFTER_SEND_PAYLOAD = 'afterSendPayload';
-    public const EVENT_BEFORE_CHECK_CONNECTION = 'beforeCheckConnection';
-    public const EVENT_AFTER_CHECK_CONNECTION = 'afterCheckConnection';
-    public const EVENT_BEFORE_FETCH_FORM_SETTINGS = 'beforeFetchFormSettings';
-    public const EVENT_AFTER_FETCH_FORM_SETTINGS = 'afterFetchFormSettings';
-    public const EVENT_MODIFY_FIELD_MAPPING_VALUES = 'modifyFieldMappingValues';
-    public const EVENT_MODIFY_FIELD_MAPPING_VALUE = 'modifyFieldMappingValue';
-    public const EVENT_MODIFY_INTEGRATION_FORM_SETTINGS_SCHEMA = 'modifyIntegrationFormSettingsSchema';
-    public const EVENT_MODIFY_SLOT_TAG = 'modifySlotTag';
-
-    
-    public const TYPE_ADDRESS_PROVIDER = 'addressProvider';
-    public const TYPE_CAPTCHA = 'captcha';
-    public const TYPE_ELEMENT = 'element';
-    public const TYPE_EMAIL_MARKETING = 'emailMarketing';
-    public const TYPE_CRM = 'crm';
-    public const TYPE_HELP_DESK = 'helpDesk';
-    public const TYPE_MESSAGING = 'messaging';
-    public const TYPE_PAYMENT = 'payment';
-    public const TYPE_AUTOMATION = 'automation';
-    public const TYPE_MISC = 'miscellaneous';
-    public const TYPE_CUSTOM = 'custom';
-    
-    public const CATEGORY_ADDRESS_PROVIDERS = 'addressProviders';
-    public const CATEGORY_CAPTCHAS = 'captchas';
-    public const CATEGORY_ELEMENTS = 'elements';
-    public const CATEGORY_EMAIL_MARKETING = 'emailMarketing';
-    public const CATEGORY_CRM = 'crm';
-    public const CATEGORY_HELP_DESK = 'helpDesk';
-    public const CATEGORY_MESSAGING = 'messaging';
-    public const CATEGORY_PAYMENTS = 'payments';
-    public const CATEGORY_AUTOMATIONS = 'automations';
-    public const CATEGORY_MISC = 'miscellaneous';
-    public const CATEGORY_CUSTOM = 'custom';
-
-    public const SCENARIO_FORM = 'form';
-
-    public const CONNECT_SUCCESS = 'success';
-    public const CONNECT_FAIL = 'fail';
-    public const OAUTH_CALLBACK_ACTION = 'formie/integrations/callback';
-
-
-    // Traits
-    // =========================================================================
-
-    use OAuthProviderTrait {
-        request as OAuthRequest;
-    }
-
-
     // Static Methods
     // =========================================================================
 
@@ -188,77 +133,6 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         }
 
         return $definitions;
-    }
-
-    public function getOptionSourceBuilderConfig(string $provider): array
-    {
-        $definition = static::_getOptionSourceDefinition($provider);
-
-        if (!$definition) {
-            return [
-                'error' => Craft::t('formie', 'Unknown integration option provider.'),
-            ];
-        }
-
-        $settings = $this->getFormSettings();
-
-        if ($settings === false) {
-            return [
-                'error' => Craft::t('formie', 'Refresh the integration settings first.'),
-            ];
-        }
-
-        return $this->buildOptionSourceBuilderConfig($provider, $settings, $definition);
-    }
-
-    public function resolveOptionSourceOptions(string $provider, array $params = []): OptionList
-    {
-        $definition = static::_getOptionSourceDefinition($provider);
-
-        if (!$definition) {
-            return OptionList::error(Craft::t('formie', 'Unknown integration option provider.'));
-        }
-
-        $collectionParam = (string)($definition['collectionParam'] ?? 'collectionId');
-        $remoteHandleParam = (string)($definition['remoteHandleParam'] ?? 'remoteHandle');
-        $collectionId = (string)($params[$collectionParam] ?? '');
-        $remoteHandle = (string)($params[$remoteHandleParam] ?? '');
-
-        if ($collectionId === '') {
-            return OptionList::error((string)($definition['collectionRequiredMessage'] ?? Craft::t('formie', 'Select a list.')));
-        }
-
-        if ($remoteHandle === '') {
-            return OptionList::error((string)($definition['remoteHandleRequiredMessage'] ?? Craft::t('formie', 'Select an option source.')));
-        }
-
-        try {
-            $settings = $this->getFormSettings();
-
-            if ($settings === false) {
-                return OptionList::error(Craft::t('formie', 'Refresh the integration settings first.'));
-            }
-
-            foreach ($this->getOptionSourceCollections($settings, $definition) as $collection) {
-                if ((string)$collection['id'] !== $collectionId) {
-                    continue;
-                }
-
-                foreach ($collection['fields'] as $field) {
-                    if (!$field instanceof IntegrationField || $field->handle !== $remoteHandle) {
-                        continue;
-                    }
-
-                    return OptionList::fromRows(IntegrationOptionSourceHelper::flattenIntegrationFieldOptions($field->options));
-                }
-            }
-
-            return OptionList::error((string)($definition['notFoundMessage'] ?? Craft::t('formie', 'Option source not found. Refresh the integration data.')));
-        } catch (Throwable $e) {
-            Craft::error('Integration option source failed to resolve: ' . $e->getMessage(), __METHOD__);
-
-            return OptionList::error(Craft::t('formie', 'Unable to resolve integration options.'));
-        }
     }
 
     public static function getRequiredPlugins(): array
@@ -359,9 +233,96 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return IntegrationHelper::convertValueForIntegration($value, $integrationField);
     }
 
-    private static function isEmpty($value): bool
+    private static function _isEmpty($value): bool
     {
         return $value === '' || $value === [] || $value === null;
+    }
+
+    protected static function defineOptionSources(): array
+    {
+        return [];
+    }
+
+    private static function _getOptionSourceDefinition(string $provider): ?array
+    {
+        foreach (static::defineOptionSources() as $definition) {
+            if (!is_array($definition) || (string)($definition['handle'] ?? '') !== $provider) {
+                continue;
+            }
+
+            return $definition;
+        }
+
+        return null;
+    }
+
+    private static function _sanitizeQueueHeaders(mixed $headers): mixed
+    {
+        if (!is_array($headers)) {
+            return $headers;
+        }
+
+        foreach ($headers as $key => $value) {
+            if (in_array(mb_strtolower((string)$key), ['authorization', 'x-api-key', 'api-key'], true)) {
+                $headers[$key] = '[redacted]';
+            }
+        }
+
+        return $headers;
+    }
+
+
+    // Constants
+    // =========================================================================
+
+    public const EVENT_BEFORE_SEND_PAYLOAD = 'beforeSendPayload';
+    public const EVENT_AFTER_SEND_PAYLOAD = 'afterSendPayload';
+    public const EVENT_BEFORE_CHECK_CONNECTION = 'beforeCheckConnection';
+    public const EVENT_AFTER_CHECK_CONNECTION = 'afterCheckConnection';
+    public const EVENT_BEFORE_FETCH_FORM_SETTINGS = 'beforeFetchFormSettings';
+    public const EVENT_AFTER_FETCH_FORM_SETTINGS = 'afterFetchFormSettings';
+    public const EVENT_MODIFY_FIELD_MAPPING_VALUES = 'modifyFieldMappingValues';
+    public const EVENT_MODIFY_FIELD_MAPPING_VALUE = 'modifyFieldMappingValue';
+    public const EVENT_MODIFY_INTEGRATION_FORM_SETTINGS_SCHEMA = 'modifyIntegrationFormSettingsSchema';
+    public const EVENT_MODIFY_SLOT_TAG = 'modifySlotTag';
+
+
+    public const TYPE_ADDRESS_PROVIDER = 'addressProvider';
+    public const TYPE_CAPTCHA = 'captcha';
+    public const TYPE_ELEMENT = 'element';
+    public const TYPE_EMAIL_MARKETING = 'emailMarketing';
+    public const TYPE_CRM = 'crm';
+    public const TYPE_HELP_DESK = 'helpDesk';
+    public const TYPE_MESSAGING = 'messaging';
+    public const TYPE_PAYMENT = 'payment';
+    public const TYPE_AUTOMATION = 'automation';
+    public const TYPE_MISC = 'miscellaneous';
+    public const TYPE_CUSTOM = 'custom';
+
+    public const CATEGORY_ADDRESS_PROVIDERS = 'addressProviders';
+    public const CATEGORY_CAPTCHAS = 'captchas';
+    public const CATEGORY_ELEMENTS = 'elements';
+    public const CATEGORY_EMAIL_MARKETING = 'emailMarketing';
+    public const CATEGORY_CRM = 'crm';
+    public const CATEGORY_HELP_DESK = 'helpDesk';
+    public const CATEGORY_MESSAGING = 'messaging';
+    public const CATEGORY_PAYMENTS = 'payments';
+    public const CATEGORY_AUTOMATIONS = 'automations';
+    public const CATEGORY_MISC = 'miscellaneous';
+    public const CATEGORY_CUSTOM = 'custom';
+
+    public const SCENARIO_FORM = 'form';
+
+    public const CONNECT_SUCCESS = 'success';
+    public const CONNECT_FAIL = 'fail';
+    public const OAUTH_CALLBACK_ACTION = 'formie/integrations/callback';
+
+
+    // Traits
+    // =========================================================================
+
+    use OAuthProviderTrait {
+        request as OAuthRequest;
     }
 
 
@@ -700,7 +661,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     public function checkConnection(bool $useCache = true): bool
     {
-        if ($useCache && $status = $this->getCache('connection')) {
+        if ($useCache && $status = $this->_getCache('connection')) {
             if ($status === self::CONNECT_SUCCESS) {
                 return true;
             }
@@ -728,7 +689,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         $this->trigger(self::EVENT_AFTER_CHECK_CONNECTION, $event);
 
         // Update the cache
-        $this->setCache(['connection' => $event->success]);
+        $this->_setCache(['connection' => $event->success]);
 
         return $event->success;
     }
@@ -740,7 +701,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         }
 
         if (static::supportsConnection()) {
-            return $this->getCache('connection') === self::CONNECT_SUCCESS;
+            return $this->_getCache('connection') === self::CONNECT_SUCCESS;
         }
 
         return false;
@@ -750,7 +711,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     {
         // If using the cache (the default), don't fetch it automatically. Just save API requests a tad.
         if ($useCache) {
-            $settings = $this->getCache('settings') ?: [];
+            $settings = $this->_getCache('settings') ?: [];
 
             // Add support for emoji in cached content
             $settings = Json::decode(StringHelper::shortcodesToEmoji((string)Json::encode($settings)));
@@ -790,7 +751,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         $this->trigger(self::EVENT_AFTER_FETCH_FORM_SETTINGS, $event);
 
         // Save a serialised version to the cache, that retains classes
-        $this->setCache(['settings' => $settings->serialize()]);
+        $this->_setCache(['settings' => $settings->serialize()]);
 
         // Always deal with a `IntegrationFormSettings` model
         return $settings;
@@ -900,25 +861,26 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
                 // including field-specific integration projections, while plain
                 // strings are treated as authored literals.
                 $resolved = Variables::getFieldAndValueForReference($fieldKey, $submission);
-                $value = static::convertValueForIntegration($resolved['value'], $integrationField);
+                $rawValue = $resolved['value'];
+                $value = static::convertValueForIntegration($rawValue, $integrationField);
                 $field = $resolved['field'];
 
                 // Most integrations treat empty values as "leave unmapped" to
                 // avoid clearing remote data unintentionally. Element syncing is
                 // the main exception because overwriteValues explicitly opts into
                 // sending blanks as real updates.
-                $shouldSet = !self::isEmpty($value) || ($this instanceof Element && $this->overwriteValues);
+                $shouldSet = !self::_isEmpty($value) || ($this instanceof Element && $this->overwriteValues);
             } else {
+                $rawValue = $fieldKey;
                 $value = static::convertValueForIntegration($fieldKey, $integrationField);
                 $field = null;
                 $shouldSet = true;
             }
 
             if ($shouldSet) {
-                $fieldValues[$tag] = $value;
-
                 $eventConfig = [
                     'value' => $value,
+                    'rawValue' => $rawValue,
                     'submission' => $submission,
                     'integrationField' => $integrationField,
                     'integration' => $this,
@@ -928,7 +890,9 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
                     $eventConfig['field'] = $field;
                 }
 
-                $this->trigger(static::EVENT_MODIFY_FIELD_MAPPING_VALUE, new ModifyFieldIntegrationValueEvent($eventConfig));
+                $event = new ModifyFieldIntegrationValueEvent($eventConfig);
+                $this->trigger(static::EVENT_MODIFY_FIELD_MAPPING_VALUE, $event);
+                $fieldValues[$tag] = $event->value;
             }
         }
 
@@ -1073,7 +1037,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         $field = $resolved['field'];
         $rawValue = $resolved['value'];
 
-        if ($field === null && self::isEmpty($rawValue)) {
+        if ($field === null && self::_isEmpty($rawValue)) {
             Integration::info($this, Craft::t('formie', 'Unable to find field “{field}” for opt-in in submission.', [
                 'field' => $optInField,
             ]));
@@ -1132,6 +1096,77 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public function beforeSaveForm(array $settings): void
     {
         
+    }
+
+    public function getOptionSourceBuilderConfig(string $provider): array
+    {
+        $definition = static::_getOptionSourceDefinition($provider);
+
+        if (!$definition) {
+            return [
+                'error' => Craft::t('formie', 'Unknown integration option provider.'),
+            ];
+        }
+
+        $settings = $this->getFormSettings();
+
+        if ($settings === false) {
+            return [
+                'error' => Craft::t('formie', 'Refresh the integration settings first.'),
+            ];
+        }
+
+        return $this->buildOptionSourceBuilderConfig($provider, $settings, $definition);
+    }
+
+    public function resolveOptionSourceOptions(string $provider, array $params = []): OptionList
+    {
+        $definition = static::_getOptionSourceDefinition($provider);
+
+        if (!$definition) {
+            return OptionList::error(Craft::t('formie', 'Unknown integration option provider.'));
+        }
+
+        $collectionParam = (string)($definition['collectionParam'] ?? 'collectionId');
+        $remoteHandleParam = (string)($definition['remoteHandleParam'] ?? 'remoteHandle');
+        $collectionId = (string)($params[$collectionParam] ?? '');
+        $remoteHandle = (string)($params[$remoteHandleParam] ?? '');
+
+        if ($collectionId === '') {
+            return OptionList::error((string)($definition['collectionRequiredMessage'] ?? Craft::t('formie', 'Select a list.')));
+        }
+
+        if ($remoteHandle === '') {
+            return OptionList::error((string)($definition['remoteHandleRequiredMessage'] ?? Craft::t('formie', 'Select an option source.')));
+        }
+
+        try {
+            $settings = $this->getFormSettings();
+
+            if ($settings === false) {
+                return OptionList::error(Craft::t('formie', 'Refresh the integration settings first.'));
+            }
+
+            foreach ($this->getOptionSourceCollections($settings, $definition) as $collection) {
+                if ((string)$collection['id'] !== $collectionId) {
+                    continue;
+                }
+
+                foreach ($collection['fields'] as $field) {
+                    if (!$field instanceof IntegrationField || $field->handle !== $remoteHandle) {
+                        continue;
+                    }
+
+                    return OptionList::fromRows(IntegrationOptionSourceHelper::flattenIntegrationFieldOptions($field->options));
+                }
+            }
+
+            return OptionList::error((string)($definition['notFoundMessage'] ?? Craft::t('formie', 'Option source not found. Refresh the integration data.')));
+        } catch (Throwable $e) {
+            Craft::error('Integration option source failed to resolve: ' . $e->getMessage(), __METHOD__);
+
+            return OptionList::error(Craft::t('formie', 'Unable to resolve integration options.'));
+        }
     }
 
 
@@ -1258,22 +1293,17 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
                 '$field' => 'integrationConditions',
                 'name' => 'conditions',
                 'if' => 'enableConditions',
-                'fieldOptions' => ConditionsHelper::getConditionFieldOptions($this->_getConditionFieldOptionConfig()),
+                'fieldOptions' => ConditionsHelper::getConditionFieldOptions($this->getConditionFieldOptionConfig()),
                 'conditionOptions' => ConditionsHelper::getConditionOptions(),
             ],
         ];
     }
 
-    protected function _getConditionFieldOptionConfig(): array
+    protected function getConditionFieldOptionConfig(): array
     {
         return ConditionsHelper::getConditionFieldOptionConfig([
             'includeSubmissionDate' => true,
         ]);
-    }
-
-    protected static function defineOptionSources(): array
-    {
-        return [];
     }
 
     protected function getOptionSourceCollections(IntegrationFormSettings $settings, array $definition): array
@@ -1558,35 +1588,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return $filtered;
     }
 
-    private static function _getOptionSourceDefinition(string $provider): ?array
-    {
-        foreach (static::defineOptionSources() as $definition) {
-            if (!is_array($definition) || (string)($definition['handle'] ?? '') !== $provider) {
-                continue;
-            }
-
-            return $definition;
-        }
-
-        return null;
-    }
-
-    private static function _sanitizeQueueHeaders(mixed $headers): mixed
-    {
-        if (!is_array($headers)) {
-            return $headers;
-        }
-
-        foreach ($headers as $key => $value) {
-            if (in_array(mb_strtolower((string)$key), ['authorization', 'x-api-key', 'api-key'], true)) {
-                $headers[$key] = '[redacted]';
-            }
-        }
-
-        return $headers;
-    }
-
-    private function setCache(array $values): void
+    private function _setCache(array $values): void
     {
         if ($this->cache === null) {
             $this->cache = [];
@@ -1610,7 +1612,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         Db::update(Table::FORMIE_INTEGRATIONS, ['cache' => $data], ['id' => $this->id]);
     }
 
-    private function getCache(string $key): mixed
+    private function _getCache(string $key): mixed
     {
         if ($this->cache === null) {
             $this->cache = [];

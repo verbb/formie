@@ -7,6 +7,7 @@ use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\base\OptionsField;
 use verbb\formie\elements\Submission;
+use verbb\formie\events\ModifyFieldIntegrationValueEvent;
 use verbb\formie\events\ModifyPayloadEvent;
 use verbb\formie\fields\values\MultiOptionFieldValue;
 use verbb\formie\fields\values\OptionValue;
@@ -68,6 +69,18 @@ class Pardot extends Crm implements OAuthProviderInterface
 
     // Public Methods
     // =========================================================================
+
+    public function init(): void
+    {
+        parent::init();
+
+        // Apply Pardot's array encoding to both direct lookups and outgoing mapping batches.
+        $this->on(self::EVENT_MODIFY_FIELD_MAPPING_VALUE, function(ModifyFieldIntegrationValueEvent $event) {
+            if ($event->integrationField->getType() === IntegrationField::TYPE_ARRAY && is_array($event->value)) {
+                $event->value = implode(';', $event->value);
+            }
+        });
+    }
 
     public function getUseSandbox(): string
     {
@@ -496,18 +509,6 @@ class Pardot extends Crm implements OAuthProviderInterface
         }
 
         return true;
-    }
-
-    public function getMappedFieldValue(string $mappedFieldValue, Submission $submission, IntegrationField $integrationField): mixed
-    {
-        $value = parent::getMappedFieldValue($mappedFieldValue, $submission, $integrationField);
-
-        // SalesForce needs values delimited with semicolon's
-        if ($integrationField->getType() === IntegrationField::TYPE_ARRAY) {
-            $value = is_array($value) ? implode(';', $value) : $value;
-        }
-
-        return $value;
     }
 
     public function populateContext(?Submission $submission = null): void

@@ -150,6 +150,11 @@ class Salesforce extends Crm implements OAuthProviderInterface
 
             foreach ($event->fieldValues as $tag => $value) {
                 $integrationField = ArrayHelper::firstWhere($event->fieldSettings, 'handle', $tag);
+                if ($integrationField?->getType() === IntegrationField::TYPE_ARRAY && is_array($value)) {
+                    $event->fieldValues[$tag] = implode(';', $value);
+                    continue;
+                }
+
                 if (!$integrationField || $integrationField->getType() !== IntegrationField::TYPE_DATETIME) {
                     continue;
                 }
