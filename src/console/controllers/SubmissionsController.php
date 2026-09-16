@@ -183,7 +183,11 @@ class SubmissionsController extends Controller
 
         $failed = false;
 
+        $baseIntegration = $integration;
+
         foreach ($submissions as $submission) {
+            $integration = clone $baseIntegration;
+
             // Ensure that the integration settings are prepped from the form settings
             $form = $submission->getForm();
             $formSettings = $form->settings->integrations[$this->integration] ?? [];
