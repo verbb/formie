@@ -29,7 +29,7 @@ class UpdateSubmissionContent extends BaseJob
 
     public function execute($queue): void
     {
-        $form = Form::find()->id($this->formId)->one();
+        $form = Form::find()->withoutCpIndexScope()->id($this->formId)->site('*')->unique()->one();
 
         if (!$form) {
             return;

@@ -78,7 +78,7 @@ class FormsController extends Controller
         if ($this->formHandle !== null) {
             $formHandle = explode(',', $this->formHandle);
 
-            $formIds = Form::find()->handle($formHandle)->ids();
+            $formIds = Form::find()->handle($formHandle)->site('*')->unique()->ids();
         }
 
         if (!$this->formId && !$this->formHandle) {
@@ -94,7 +94,7 @@ class FormsController extends Controller
         }
 
         foreach ($formIds as $formId) {
-            $query = Form::find()->id($formId);
+            $query = Form::find()->id($formId)->site('*')->unique();
 
             $count = (int)$query->count();
 
@@ -145,7 +145,7 @@ class FormsController extends Controller
             ];
         }
 
-        $allForms = Formie::$plugin->getForms()->getAllForms();
+        $allForms = Form::find()->site('*')->unique()->all();
 
         if (!empty($allForms)) {
             $listEntries[] = [
@@ -190,7 +190,7 @@ class FormsController extends Controller
             if (is_numeric($idOrHandle)) {
                 $formIds[] = $idOrHandle;
             } else {
-                $formIds[] = Form::find()->handle($idOrHandle)->one()->id ?? null;
+                $formIds[] = Form::find()->handle($idOrHandle)->site('*')->unique()->one()->id ?? null;
             }
         }
 
@@ -199,7 +199,7 @@ class FormsController extends Controller
             return ExitCode::UNSPECIFIED_ERROR;
         }
 
-        $query = Form::find()->id($formIds);
+        $query = Form::find()->id($formIds)->site('*')->unique();
         $count = (int)$query->count();
 
         if ($count === 0) {

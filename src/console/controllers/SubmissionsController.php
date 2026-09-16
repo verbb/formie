@@ -77,7 +77,7 @@ class SubmissionsController extends Controller
         if ($this->formHandle !== null) {
             $formHandle = explode(',', $this->formHandle);
 
-            $formIds = Form::find()->handle($formHandle)->ids();
+            $formIds = Form::find()->handle($formHandle)->site('*')->unique()->ids();
         }
 
         if (!$this->formId && !$this->formHandle) {

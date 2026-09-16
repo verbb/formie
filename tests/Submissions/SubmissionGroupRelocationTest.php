@@ -6,12 +6,23 @@ use craft\helpers\Json;
 use verbb\formie\helpers\Table;
 use verbb\formie\jobs\UpdateSubmissionContent;
 
-it('preserves stored values when fields move into and out of a group', function (mixed $value, string $direction): void {
-    $form = formie()->form()->singleLineTextField('outside')->groupField('group', ['rows' => [['fields' => [
+it('preserves stored values when fields move into and out of a group', function (mixed $value, string $direction, bool $regional): void {
+    $config = [];
+    if ($regional) {
+        if (!Craft::$app->getIsMultiSite()) { $this->markTestSkipped('Multi-site contract.'); }
+        $siteId = Craft::$app->getSites()->getAllSiteIds()[1];
+        $group = new \verbb\formie\models\FormGroup(['name' => 'Regional relocation', 'handle' => 'regionalMove' . bin2hex(random_bytes(5)),
+            'settings' => ['sitePolicy' => ['enabledSiteIds' => [$siteId]]]]);
+        expect(\verbb\formie\Formie::$plugin->getFormGroups()->saveGroup($group))->toBeTrue();
+        $config = ['groupId' => $group->id, 'siteId' => $siteId, 'sourceSiteId' => $siteId];
+    }
+    $form = formie()->form($config)->singleLineTextField('outside')->groupField('group', ['rows' => [['fields' => [
         ['type' => \verbb\formie\fields\SingleLineText::class, 'handle' => 'inside', 'label' => 'Inside'],
         ['type' => \verbb\formie\fields\SingleLineText::class, 'handle' => 'sibling', 'label' => 'Sibling'],
     ]]]])->create();
-    $submission = formie()->submission($form)->save();
+    $submission = new \verbb\formie\elements\Submission(['siteId' => $form->siteId, 'title' => 'Relocation submission']);
+    $submission->setForm($form);
+    expect(Craft::$app->getElements()->saveElement($submission))->toBeTrue();
     $group = $form->getFieldByHandle('group');
     $outside = $form->getFieldByHandle('outside')->uid;
     $inside = $group->getFieldByHandle('inside')->uid;
@@ -39,4 +50,4 @@ it('preserves stored values when fields move into and out of a group', function 
     expect($canonicalize($read()))->toBe($canonicalize($expected));
 })->with([
     'zero' => [0], 'false' => [false], 'empty string' => [''], 'null' => [null], 'empty array' => [[]], 'text' => ['Retain'],
-])->with(['into', 'out']);
+])->with(['into', 'out'])->with(['primary' => false, 'regional' => true]);
