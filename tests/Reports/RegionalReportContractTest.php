@@ -8,14 +8,14 @@ use verbb\formie\Formie;
 use verbb\formie\models\{FormGroup, Report, ReportSettings, ReportExportFile};
 use verbb\formie\services\{Permissions, ReportColumns};
 
-function regionalReportFixture(): array
+function regionalReportFixture(bool $disableOriginalSite = false): array
 {
     $sites = Craft::$app->getSites()->getAllSiteIds();
     $group = new FormGroup(['name' => 'Regional report', 'handle' => 'regionalReport' . bin2hex(random_bytes(5)),
         'settings' => ['sitePolicy' => ['enabledSiteIds' => [$sites[1]]]]]);
     expect(Formie::$plugin->getFormGroups()->saveGroup($group))->toBeTrue();
     $form = formie()->form(['groupId' => $group->id, 'siteId' => $sites[1], 'sourceSiteId' => $sites[1]])
-        ->singleLineTextField('message')->create();
+        ->settings(['usePerFormPermissions' => true])->singleLineTextField('message')->create();
     $submission = new \verbb\formie\elements\Submission(['siteId' => $form->siteId, 'title' => 'Regional submission']);
     $submission->setForm($form);
     $submission->setFieldValue('message', 'Regional value');
@@ -25,12 +25,18 @@ function regionalReportFixture(): array
         'display' => ['fieldColumnsMode' => ReportColumns::FIELD_COLUMNS_MODE_SELECTED],
         'columns' => [['type' => 'field', 'handle' => 'message', 'label' => 'Message', 'enabled' => true]]]));
     expect(Formie::$plugin->getReports()->saveReport($report))->toBeTrue();
+    if ($disableOriginalSite) {
+        $settings = $group->getSettingsModel();
+        $settings->sitePolicy['enabledSiteIds'] = [$sites[0]];
+        $group->setSettingsModel($settings);
+        expect(Formie::$plugin->getFormGroups()->saveGroup($group))->toBeTrue();
+    }
     return [$form, $report];
 }
 
-it('includes regional forms in scheduled report queries summaries and export bytes', function (): void {
+it('includes regional forms in scheduled report queries summaries and export bytes', function (bool $disableOriginalSite): void {
     if (!Craft::$app->getIsMultiSite()) { $this->markTestSkipped('Multi-site contract.'); }
-    [$form, $report] = regionalReportFixture();
+    [$form, $report] = regionalReportFixture($disableOriginalSite);
     expect(Craft::$app->getSites()->getCurrentSite()->id)->toBe(Craft::$app->getSites()->getPrimarySite()->id);
     $service = Formie::$plugin->getReportQuery();
     expect($service->resolveFormIds([$form->id], null, false))->toBe([(int)$form->id]);
@@ -43,7 +49,34 @@ it('includes regional forms in scheduled report queries summaries and export byt
     try {
         expect(array_map('str_getcsv', file($export['path'], FILE_IGNORE_NEW_LINES)))->toBe([["\xEF\xBB\xBFMessage"], ['Regional value']]);
     } finally { unlink($export['path']); }
-});
+})->with(['original site enabled' => false, 'original site disabled' => true]);
+
+it('resolves historical submission fields and checks their form permissions', function (bool $allowed): void {
+    if (!Craft::$app->getIsMultiSite()) { $this->markTestSkipped('Multi-site contract.'); }
+    [$form, $report] = regionalReportFixture(true);
+    $name = 'historicalViewer' . bin2hex(random_bytes(6));
+    $user = new User(['username' => $name, 'email' => $name . '@example.test']);
+    expect(Craft::$app->getElements()->saveElement($user))->toBeTrue();
+    $permissions = Formie::$plugin->getPermissions();
+    $grant = $permissions->scopedPermission(Permissions::PERM_VIEW_SUBMISSIONS, $permissions->formScope($form));
+    $grants = ['accessCp', 'accessPlugin-formie', Permissions::PERM_ACCESS_SUBMISSIONS];
+    if ($allowed) { $grants[] = $grant; }
+    Craft::$app->set('userPermissions', new \craft\services\UserPermissions());
+    expect(Craft::$app->getUserPermissions()->saveUserPermissions($user->id, $grants))->toBeTrue();
+    WebRequestTestHelper::withWebRequestContext(function ($request) use ($user, $form, $grant, $allowed): void {
+        $request->setIsCpRequest(true);
+        $viewer = User::find()->id($user->id)->status(null)->one();
+        Craft::$app->getUser()->setIdentity($viewer);
+        expect($viewer->can($grant))->toBe($allowed);
+        $submission = \verbb\formie\elements\Submission::find()->formId($form->id)->one();
+        expect($submission)->not->toBeNull();
+        expect($submission->canView($viewer))->toBe($allowed);
+        expect($submission->getForm()?->siteId)->toBe($form->siteId);
+        expect($submission->getFieldValue('message'))->toBe('Regional value');
+        // Resolving a historical relationship must not expose the disabled form publicly.
+        expect(Formie::$plugin->getForms()->getFormById($form->id, $form->siteId))->toBeNull();
+    });
+})->with(['permitted viewer' => true, 'unrelated viewer' => false]);
 
 it('offers regional report forms and fields only to permitted submission viewers', function (bool $allowed): void {
     if (!Craft::$app->getIsMultiSite()) { $this->markTestSkipped('Multi-site contract.'); }

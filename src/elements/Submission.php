@@ -834,17 +834,17 @@ class Submission extends Element
             if (array_key_exists($cacheKey, self::$_formByIdCache)) {
                 $this->_form = self::$_formByIdCache[$cacheKey];
             } else {
-                $this->_form = Formie::$plugin->getForms()->getFormById((int)$this->formId, $siteId);
+                // Historical submissions still need their original site's schema after availability changes.
+                // Resolve the relationship independently of CP index visibility; permissions use this form.
+                $this->_form = Form::find()->withoutCpIndexScope()->id($this->formId)->siteId($siteId)->status(null)->one();
 
                 // If no form found yet, and the submission has been trashed, maybe the form has been trashed?
                 if (!$this->_form && $this->trashed) {
-                    $form = Form::find()->id($this->formId)->siteId($siteId)->trashed(true)->one();
+                    $this->_form = Form::find()->withoutCpIndexScope()->id($this->formId)->siteId($siteId)->status(null)->trashed(true)->one();
+                }
 
-                    if ($form && Formie::$plugin->getFormSiteOverrides()->isEnabled()) {
-                        $form = Formie::$plugin->getFormSiteOverrides()->applyToForm($form, $siteId, true);
-                    }
-
-                    $this->_form = $form;
+                if ($this->_form && Formie::$plugin->getFormSiteOverrides()->isEnabled()) {
+                    $this->_form = Formie::$plugin->getFormSiteOverrides()->applyToForm($this->_form, $siteId, true);
                 }
 
                 self::$_formByIdCache[$cacheKey] = $this->_form;
