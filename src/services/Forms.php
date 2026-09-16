@@ -44,7 +44,7 @@ class Forms extends Component
     // Properties
     // =========================================================================
 
-    private ?FormLookupCache $_formLookupCache = null;
+    private array $_formLookupCaches = [];
 
 
     // Public Methods
@@ -216,7 +216,7 @@ class Forms extends Component
 
     public function invalidateFormCaches(): void
     {
-        $this->_formLookupCache?->reset();
+        $this->_formLookupCaches = [];
     }
 
     public function buildFormFromPost(): Form
@@ -912,21 +912,19 @@ class Forms extends Component
 
     private function _getFormLookupCache(): FormLookupCache
     {
-        if ($this->_formLookupCache === null) {
-            $this->_formLookupCache = new FormLookupCache();
-        }
+        $siteId = (int)Craft::$app->getSites()->getCurrentSite()->id;
 
-        return $this->_formLookupCache;
+        return $this->_formLookupCaches[$siteId] ??= new FormLookupCache();
     }
 
     private function _getFormLayoutCacheKey(int $layoutId, ?int $siteId): string
     {
-        return $layoutId . ':' . ($siteId ?? 'default');
+        return $layoutId . ':' . ($siteId ?? Craft::$app->getSites()->getCurrentSite()->id);
     }
 
     private function _getFormLookupKey(string|int $value, ?int $siteId): string
     {
-        return $value . ':' . ($siteId ?? 'default');
+        return $value . ':' . ($siteId ?? Craft::$app->getSites()->getCurrentSite()->id);
     }
 
     /**
@@ -962,10 +960,6 @@ class Forms extends Component
         $handle = strtolower((string)$form->handle);
         $uid = strtolower((string)$form->uid);
         $resolvedSiteId = $siteId ?? ($form->siteId ? (int)$form->siteId : null);
-
-        $cache->formsById[$this->_getFormLookupKey($id, null)] ??= $form;
-        $cache->formsByHandle[$this->_getFormLookupKey($handle, null)] ??= $form;
-        $cache->formsByUid[$this->_getFormLookupKey($uid, null)] ??= $form;
 
         if ($resolvedSiteId !== null) {
             $cache->formsById[$this->_getFormLookupKey($id, $resolvedSiteId)] ??= $form;
@@ -1007,10 +1001,8 @@ class Forms extends Component
 
             $this->_cacheFormLookup($form);
 
-            $defaultKey = $this->_getFormLayoutCacheKey($layoutId, null);
             $siteKey = $this->_getFormLayoutCacheKey($layoutId, $form->siteId ? (int)$form->siteId : null);
 
-            $cache->formsByLayoutId[$defaultKey] ??= $form;
             $cache->formsByLayoutId[$siteKey] ??= $form;
         }
     }
