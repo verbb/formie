@@ -66,7 +66,8 @@ class UpdateSubmissionContent extends BaseJob
                 foreach ($groupField->getFields() as $nestedField) {
                     $nestedFieldUid = Db::uidById(Table::FORMIE_FORM_FIELDS, $nestedField->id);
 
-                    if ($foundValue = ArrayHelper::remove($content, $nestedFieldUid)) {
+                    if (array_key_exists($nestedFieldUid, $content)) {
+                        $foundValue = ArrayHelper::remove($content, $nestedFieldUid);
                         // Move it to the Group field content
                         $content[$groupFieldUid][$nestedFieldUid] = $foundValue;
                         $contentChanged = true;
@@ -77,7 +78,8 @@ class UpdateSubmissionContent extends BaseJob
                 foreach ($nonGroupFields as $nonGroupField) {
                     $nonGroupFieldUid = Db::uidById(Table::FORMIE_FORM_FIELDS, $nonGroupField->id);
 
-                    if ($foundValue = ArrayHelper::getValue($content, $groupFieldUid . '.' . $nonGroupFieldUid)) {
+                    if (isset($content[$groupFieldUid]) && is_array($content[$groupFieldUid]) && array_key_exists($nonGroupFieldUid, $content[$groupFieldUid])) {
+                        $foundValue = $content[$groupFieldUid][$nonGroupFieldUid];
                         // Move it out of the Group field content
                         $content[$nonGroupFieldUid] = $foundValue;
                         unset($content[$groupFieldUid][$nonGroupFieldUid]);
