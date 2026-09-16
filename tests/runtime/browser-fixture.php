@@ -46,6 +46,7 @@ $widgetForm = \verbb\formie\Formie::$plugin->getFactories()->form([
     'handle' => 'widgetContract',
 ])->singleLineTextField('message')->create();
 \verbb\formie\Formie::$plugin->getFactories()->submission($widgetForm)->save();
+$previousIdentity = Craft::$app->getUser()->getIdentity();
 Craft::$app->getUser()->setIdentity(\craft\elements\User::find()->username('admin')->one());
 $widget = new \verbb\formie\widgets\RecentSubmissions([
     'title' => 'Browser widget contract',
@@ -55,6 +56,7 @@ $widget = new \verbb\formie\widgets\RecentSubmissions([
 if (!Craft::$app->getDashboard()->saveWidget($widget)) {
     throw new RuntimeException('Cannot save browser dashboard widget.');
 }
+Craft::$app->getUser()->setIdentity($previousIdentity);
 $scopedForm = \verbb\formie\Formie::$plugin->getFactories()->form(['title' => 'Scoped role form', 'handle' => 'scopedRoleForm'])
     ->settings(['usePerFormPermissions' => true])->singleLineTextField('message')->create();
 $otherForm = \verbb\formie\Formie::$plugin->getFactories()->form(['title' => 'Other role form', 'handle' => 'otherRoleForm'])
