@@ -95,6 +95,16 @@ it('requires a successful Opayo payment belonging to the current submission and 
     if ($difference === 'amount') { $payment->amount = 1; }
     if ($difference === 'currency') { $payment->currency = 'EUR'; }
     expect(Formie::$plugin->getPayments()->savePayment($payment))->toBeTrue();
+    if ($difference === 'pending') {
+        // Model a known modern checkout so this case reaches the provider's
+        // continuation check. Unverified earlier attempts have separate coverage.
+        \verbb\formie\helpers\PaymentAttempt::verifyAccount($integration, $payment, [
+            'vendorName' => $integration->vendorName,
+            'integrationKey' => $integration->integrationKey,
+            'integrationPassword' => $integration->integrationPassword,
+            'useSandbox' => $integration->useSandbox,
+        ], requireExisting: false);
+    }
     $integration->payload = ['opayo3DSComplete' => $payment->reference];
 
     expect($integration->processPayment($submission)->status)->toBe($difference === 'valid' ? 'succeeded' : 'failed');
