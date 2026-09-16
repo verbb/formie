@@ -194,7 +194,7 @@ abstract class RepeatableParentField extends ParentField implements RepeatablePa
                 $subValue = $element->getFieldValue("$this->handle.$rowKey.$field->handle");
                 $valueAsString = $field->getValueAsString($subValue, $element);
 
-                if ($valueAsString) {
+                if ($valueAsString !== '') {
                     $values[] = $valueAsString;
                 }
             }
@@ -251,7 +251,7 @@ abstract class RepeatableParentField extends ParentField implements RepeatablePa
                     $valueAsArray = $valueAsArray[0];
                 }
 
-                if ($valueAsArray) {
+                if ($valueAsArray !== null && $valueAsArray !== '' && $valueAsArray !== []) {
                     $values[$rowKey][$field->handle] = $valueAsArray;
                 }
             }

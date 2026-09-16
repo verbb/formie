@@ -138,7 +138,7 @@ abstract class ContainerParentField extends ParentField implements ParentFieldIn
             $subValue = $element->getFieldValue($field->valueKey());
             $valueAsString = $field->getValueAsString($subValue, $element);
 
-            if ($valueAsString) {
+            if ($valueAsString !== '') {
                 $values[] = $valueAsString;
             }
         }
@@ -163,7 +163,7 @@ abstract class ContainerParentField extends ParentField implements ParentFieldIn
                 $valueAsArray = $valueAsArray[0];
             }
 
-            if ($valueAsArray) {
+            if ($valueAsArray !== null && $valueAsArray !== '' && $valueAsArray !== []) {
                 $values[$field->handle] = $valueAsArray;
             }
         }
