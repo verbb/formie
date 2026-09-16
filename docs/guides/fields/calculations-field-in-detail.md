@@ -1,4 +1,4 @@
-# Calculations field in detail
+# Calculations Field in Detail
 
 This guide walks through Calculations syntax, field references, built-in functions, and practical examples. Use it alongside the [Calculations field reference](/fields/calculations) when you are building pricing, scoring, or conditional output on a form.
 
@@ -7,7 +7,7 @@ This guide walks through Calculations syntax, field references, built-in functio
 - At least one [Calculations field](/fields/calculations) on a form
 - Other fields whose values the formula will reference (Number fields work best for arithmetic)
 
-## Field references
+## Field References
 
 Always insert references with the variable picker in the formula editor. Formie stores stable tokens — not raw handles:
 
@@ -17,7 +17,7 @@ Always insert references with the variable picker in the formula editor. Formie 
 
 Do not type `{myFieldHandle}` manually. The token ID is generated when the field is created and stays stable even if you rename the handle.
 
-### Sub-values and selectors
+### Sub-Values and Selectors
 
 When a field exposes multiple referenceable values, add a selector:
 
@@ -32,7 +32,7 @@ Concatenate name parts:
 {field:a1b2c3:firstName} ~ " " ~ {field:a1b2c3:lastName}
 ```
 
-### Table columns and row scope
+### Table Columns and Row Scope
 
 Table fields expose each column separately. Pick the column in the variable picker, then choose which rows to read:
 
@@ -63,7 +63,7 @@ Calculations use [Symfony Expression Syntax](https://symfony.com/doc/current/ref
 ({field:a1b2c3} * 50) + ({field:d4e5f6} * 25)
 ```
 
-### Comparison and logic
+### Comparison and Logic
 
 | Operator | Meaning |
 | --- | --- |
@@ -79,7 +79,7 @@ Calculations use [Symfony Expression Syntax](https://symfony.com/doc/current/ref
 
 Also supported: strict comparisons (`===`, `!==`), regex `matches`, `in` / `not in`, ranges with `..`, and bitwise operators.
 
-### Ternary and concatenation
+### Ternary and Concatenation
 
 ```text
 {field:a1b2c3} >= 10 ? {field:a1b2c3} * {field:d4e5f6} * 0.9 : {field:a1b2c3} * {field:d4e5f6}
@@ -87,7 +87,7 @@ Also supported: strict comparisons (`===`, `!==`), regex `matches`, `in` / `not 
 
 Use `~` for string concatenation.
 
-## Built-in functions
+## Built-in Functions
 
 Formie registers these functions in addition to Symfony's defaults:
 
@@ -107,13 +107,13 @@ Combine functions with ternary logic:
 notEmpty({field:a1b2c3}) ? {field:a1b2c3} * 1.1 : 0
 ```
 
-## How values are coerced
+## How Values Are Coerced
 
 On the front end, Formie casts numeric-looking strings to numbers before evaluation so `1 + 2` equals `3`, not `12`. Empty Number field values become `0`. Checkbox values arrive as arrays; when every item is numeric, Formie may sum them for use in arithmetic.
 
 Text and Email fields can be referenced, but treat them as text unless you know the submitted value is always numeric.
 
-## Formatting the result
+## Formatting the Result
 
 Use the Calculations field settings before reaching for custom JavaScript:
 
@@ -123,9 +123,9 @@ Use the Calculations field settings before reaching for custom JavaScript:
 
 When display formatting needs locale-specific currency or custom rounding, use the [before/after evaluate events](/guides/fields/write-your-own-parsing-logic-for-the-calculations-field).
 
-## Worked examples
+## Worked Examples
 
-### Simple line total
+### Simple Line Total
 
 Number field `quantity`, Number field `unitPrice`, Calculations field `lineTotal`:
 
@@ -135,19 +135,19 @@ Number field `quantity`, Number field `unitPrice`, Calculations field `lineTotal
 
 Set number formatting to 2 decimal places and prefix `$`.
 
-### Volume discount
+### Volume Discount
 
 ```text
 {field:qty} >= 10 ? {field:qty} * {field:price} * 0.9 : {field:qty} * {field:price}
 ```
 
-### Conditional label
+### Conditional Label
 
 ```text
 {field:score} >= 70 ? "Pass" : "Retake required"
 ```
 
-### Shipping tier
+### Shipping Tier
 
 Dropdown field `region` with values `local`, `national`, `international`; Number field `weight`:
 
@@ -155,14 +155,8 @@ Dropdown field `region` with values `local`, `national`, `international`; Number
 {field:region} == "local" ? 5 : ({field:region} == "national" ? 12 : 25 + {field:weight} * 2)
 ```
 
-## Submitted value and integrations
+## Submitted Value and Integrations
 
 Calculations stores the computed result at submit time. Treat it as derived output in exports, notifications, and CRM mappings — not as user-entered input.
 
 If a formula depends on external APIs, complex branching, or data outside the form, custom code or an integration is usually easier to maintain than an enormous expression.
-
-## Related
-
-- [Calculations field](/fields/calculations)
-- [Write your own parsing logic for the Calculations field](/guides/fields/write-your-own-parsing-logic-for-the-calculations-field)
-- [Number field](/fields/number)

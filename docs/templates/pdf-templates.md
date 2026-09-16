@@ -4,7 +4,7 @@ PDF templates are used when a notification should attach a generated PDF.
 
 The control-panel choice to attach a PDF belongs with [Email Notifications](/forms/email-notifications). PDF templates cover the Twig template that produces the PDF itself.
 
-## Creating a PDF template
+## Creating a PDF Template
 
 Start by creating a Twig template for the PDF output. For example, you might create `templates/_pdf/index.html` with:
 
@@ -20,7 +20,7 @@ Once that is saved, edit the email notification that should attach the PDF. In t
 
 When the notification is sent, Formie will render the Twig template and attach the resulting PDF to the email.
 
-## Available variables
+## Available Variables
 
 Your PDF template has access to the following variables:
 
@@ -36,7 +36,7 @@ This gives you two common approaches:
 - build the PDF entirely from your own Twig template
 - use `contentHtml` as the base and wrap it with your own heading, footer, or layout
 
-## Example template
+## Example Template
 
 ```twig
 <h1>{{ form.title }}</h1>

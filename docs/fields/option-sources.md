@@ -4,7 +4,7 @@ Use the **Options** setting on Dropdown, Radio and Checkboxes when the available
 
 Option sources are useful for long or changing lists — countries, CRM picklists, Mailchimp interest groups, HubSpot form properties — without copying hundreds of rows into the field or relying on Twig overrides on every render.
 
-## Choosing an option type
+## Choosing an Option Type
 
 In the form builder, open the field’s **Options** setting and pick one of the available types:
 
@@ -28,7 +28,7 @@ Use **Static** for short, fixed lists you want full control over in the form bui
 - Option **availability** (visible, hidden, disabled) is managed per row.
 - Submitted values are stored without a separate label snapshot.
 
-Static is the default for legacy fields that only define an `options` table.
+Static options use the field’s `options` table.
 
 ## Predefined
 
@@ -76,7 +76,7 @@ Use **Template** when the option list should be built in Twig for a specific pag
 
 When **Template** is selected, the options table and provider settings are hidden. The form builder shows a short note that options are supplied at render time.
 
-### How it works
+### How It Works
 
 1. Save the field with **Options** set to **Template**. You do not define rows in the form builder.
 2. In your template, load the form and override the field’s `options` before rendering.
@@ -129,19 +129,19 @@ For nested fields inside Group or Repeater fields, include the parent handle —
 
 **Prefer Predefined or Integration when possible.** If the list comes from a stable provider Formie already supports, use **Predefined** or **Integration** instead. You get builder preview, refresh controls, stricter validation and consistent behaviour on cached forms.
 
-### When Template mode is a good fit
+### When Template Mode Is a Good Fit
 
 - Options depend on the current entry, category, site or logged-in user.
 - A developer controls the template and wants full flexibility per render.
 - The list is intentionally different on different templates that reuse the same form.
 
-### When to use something else
+### When to Use Something Else
 
 - Authors should manage or preview the list in the form builder → **Static**, **Predefined** or **Integration**.
 - The list must be validated strictly against known values at submit time → **Static**, **Predefined** or **Integration**.
 - The form is often served from static cache without per-request Twig execution → avoid **Template**, or ensure the cache varies per context.
 
-## Submitted values
+## Submitted Values
 
 | Option type | What is stored |
 | --- | --- |
@@ -159,7 +159,7 @@ Keep option **values** stable once submissions, integrations or reports depend o
 
 **Template** does not enforce an `in` range against a stored list. Use it only when a developer controls the render-time options deliberately.
 
-## Picking entries, categories, users or tags
+## Picking Entries, Categories, Users or Tags
 
 **Predefined** and **Integration** on Dropdown, Radio and Checkboxes cover built-in lists and integration data only.
 

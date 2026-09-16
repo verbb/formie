@@ -1,8 +1,8 @@
-# Submission handling
+# Submission Handling
 
 Submission handling covers the browser-side flow around validation, stage processing, page submits, final submits, loading state, and provider follow-up work. This page is about understanding where Formie's submit lifecycle gives you extension points before you move down to lower-level API control.
 
-## Submit flow
+## Submit Flow
 
 Formie intercepts the normal browser submit flow and wraps it in a structured lifecycle.
 
@@ -17,7 +17,7 @@ On every submit attempt, Formie can:
 
 On multi-page forms, moving to the next page is still a submit attempt. That is why `formie:submit:*` events can fire on intermediate page submits, while `formie:submit:final:*` is reserved for the final form submission.
 
-## Submit lifecycle events
+## Submit Lifecycle Events
 
 Use [JavaScript events](/browser/behavior/javascript-events) when you want to intercept submit flow at the DOM-event level.
 
@@ -40,7 +40,7 @@ document.addEventListener('formie:submit:result', (event) => {
 });
 ```
 
-## Browser-side validation
+## Browser-Side Validation
 
 If you need custom client-side validation before Formie continues with submission, register validators when the validator API is ready:
 
@@ -60,7 +60,7 @@ document.addEventListener('formie:validator:ready', (event) => {
 
 This keeps your custom rule inside Formie's normal validation and error-display flow. Use [Build a custom validator](/browser/validation/build-a-custom-validator) for the full authoring pattern.
 
-## Loading and action state
+## Loading and Action State
 
 During an active submit cycle, Formie updates the form and submit controls with loading state so you can react in CSS or surrounding UI.
 
@@ -72,7 +72,7 @@ Useful hooks include:
 
 These are most useful for styling and UX adjustments, not for replacing Formie's submit pipeline.
 
-## Multi-page submissions
+## Multi-Page Submissions
 
 On multi-page forms, submission handling also updates page and tab state as the user progresses.
 
@@ -84,7 +84,7 @@ Formie will:
 
 If you only need to respond to page changes, use the page lifecycle events on [JavaScript events](/browser/behavior/javascript-events) rather than treating every page step as a full custom submit flow.
 
-## Payment and provider follow-up actions
+## Payment and Provider Follow-up Actions
 
 Some submissions can pause for payment-provider follow-up work such as a Stripe confirm step, an Opayo challenge, or an external redirect.
 
@@ -96,15 +96,15 @@ Those flows surface through the payment events documented on [JavaScript events]
 
 ## JavaScript API
 
-If you need to mount, unmount, update, or re-initialize forms programmatically, move from event handling to [JavaScript API](/browser/).
+If you need to mount, unmount, update, or re-initialise forms programmatically, move from event handling to [JavaScript API](/browser/).
 
-## Start here
+## Start Here
 
 - Use [JavaScript events](/browser/behavior/javascript-events) to understand which submit lifecycle event to hook into.
 - Use [JavaScript API](/browser/) if you need to submit or manage mounted forms programmatically.
 
-## Related pages
+## Related Pages
 
 - [Validation](/browser/validation/)
 - [JavaScript events](/browser/behavior/javascript-events)
-- [Manual initialization](/browser/behavior/manual-initialization)
+- [Manual initialisation](/browser/behavior/manual-initialization)

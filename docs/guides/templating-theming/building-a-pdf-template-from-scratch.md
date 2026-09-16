@@ -1,4 +1,4 @@
-# Building a PDF template from scratch
+# Building a PDF Template from Scratch
 
 PDF templates let Formie attach a generated PDF when an email notification sends — useful for invoices, certificates, signed agreements, or printable summaries. This guide walks through creating a PDF template from scratch and attaching it to a notification.
 
@@ -8,7 +8,7 @@ PDF templates let Formie attach a generated PDF when an email notification sends
 - A PDF library configured in Craft (Dompdf is bundled with Formie)
 - [PDF Templates](/templates/pdf-templates) reference
 
-## How PDF attachments work
+## How PDF Attachments Work
 
 The flow has three pieces:
 
@@ -18,7 +18,7 @@ The flow has three pieces:
 
 When the notification sends, Formie renders your Twig template to HTML, converts it to PDF, and attaches the file to the email.
 
-## Create the Twig template
+## Create the Twig Template
 
 Start with a simple layout. PDF renderers work best with straightforward HTML and inline-friendly CSS:
 
@@ -64,7 +64,7 @@ Start with a simple layout. PDF renderers work best with straightforward HTML an
 </html>
 ```
 
-### Available variables
+### Available Variables
 
 | Variable | Description |
 | --- | --- |
@@ -88,7 +88,7 @@ You can build the PDF entirely from your own template, or wrap `contentHtml` whe
 3. Set **HTML Template** to your template path (for example `_pdf/submission-summary`)
 4. Save
 
-## Attach to an email notification
+## Attach to an Email Notification
 
 1. Edit the form's email notification
 2. Under template settings, enable **Attach PDF Template**
@@ -97,7 +97,7 @@ You can build the PDF entirely from your own template, or wrap `contentHtml` whe
 
 Submit the form to test. The notification email should include the PDF attachment.
 
-## Improve field output
+## Improve Field Output
 
 `getFieldValueAsString()` is a good default for PDF text. For complex fields, choose a method that matches the output you need:
 
@@ -111,7 +111,7 @@ Submit the form to test. The notification email should include the PDF attachmen
 
 PDF engines vary in CSS support. Keep layouts simple; avoid flexbox features that Dompdf handles poorly; test with real submission data including file uploads and signatures.
 
-## Add branding
+## Add Branding
 
 Extend the template with your site identity:
 
@@ -124,7 +124,7 @@ Extend the template with your site identity:
 
 Use absolute URLs for images — relative paths often fail in PDF generation.
 
-## Filter which fields appear
+## Filter Which Fields Appear
 
 Skip empty or cosmetic fields:
 
@@ -153,10 +153,3 @@ Adjust the condition to match your needs — `includeInEmailFieldSummaries`, fie
 **Garbled complex fields** — Switch from `getFieldValue()` to `getFieldValueAsString()` or summary output.
 
 **PDF not attached** — Confirm **Attach PDF Template** is enabled on the notification and the PDF Template record is saved.
-
-## Related
-
-- [PDF Templates](/templates/pdf-templates)
-- [Email Notifications](/forms/email-notifications)
-- [Submission Content](/developers/submission-content)
-- [Building an Email Notification template from scratch](/guides/email-notifications/building-an-email-notification-template-from-scratch)

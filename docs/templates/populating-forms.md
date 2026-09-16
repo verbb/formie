@@ -18,7 +18,7 @@ This is useful when the form should start with known information instead of maki
 > [!NOTE]
 > Looking to update or override settings for the field before they are rendered? See [Overriding Settings](/templates/overriding-settings). This includes setting available options for Dropdown, Checkbox, Radio, and similar fields.
 
-## Standard fields
+## Standard Fields
 
 Most fields accept a simple string value, including text fields, dropdowns, and multi-line text.
 
@@ -30,7 +30,7 @@ Most fields accept a simple string value, including text fields, dropdowns, and 
 }) %}
 ```
 
-## Element fields
+## Element Fields
 
 For element fields such as Entries, Categories, Tags, Users, Products, and Variants, pass an array of element IDs.
 
@@ -120,7 +120,7 @@ To populate a Table field, pass an array of row objects keyed by the table colum
 }) %}
 ```
 
-## Forcing values
+## Forcing Values
 
 `populateFormValues()` works by setting initial values before render. That means it behaves much like a default value on a field.
 
@@ -137,7 +137,7 @@ When you do need to override an existing incomplete submission, pass `true` as t
 
 This is most useful for values that should always be set from the template, such as hidden fields or relationship fields that should not drift.
 
-## URL pre-population
+## URL Pre-Population
 
 Fields can also be populated from the URL using each field's `Prefill Query Parameter` setting.
 

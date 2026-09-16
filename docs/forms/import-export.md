@@ -8,7 +8,7 @@ Form import and export is for moving form definitions, not submission data.
 
 Use it when you need to move a form between environments, reuse it on another project, or keep a portable copy of the form setup. You can manage both from `Formie → Settings → Import/Export`.
 
-## Exporting a form
+## Exporting a Form
 
 When you export a form, Formie downloads a JSON file containing the pieces that make up the form itself, including:
 
@@ -22,7 +22,7 @@ When you export a form, Formie downloads a JSON file containing the pieces that 
 
 This is a structural export of the form, not a dump of what people have submitted through it.
 
-## Importing a form
+## Importing a Form
 
 To import a form, upload a JSON file that was previously exported from Formie. Formie will review that file first, then step you through how it should be applied.
 

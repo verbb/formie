@@ -8,9 +8,9 @@ Stencils are reusable starter forms.
 
 They are useful when you want a faster, more consistent starting point than building every new form from scratch. A stencil can carry the same kinds of structure and setup you would normally define on a form, including fields and layout, pages, notifications, and form settings.
 
-That means a stencil is more than a visual starting point. It can carry real behavior with it as well.
+That means a stencil is more than a visual starting point. It can carry real behaviour with it as well.
 
-## When to use stencils
+## When to Use Stencils
 
 Stencils are especially helpful when:
 
@@ -20,7 +20,7 @@ Stencils are especially helpful when:
 
 Formie includes a default `Contact Form` stencil as a general starting point, and you can create your own when you need something more specific.
 
-## Creating and using stencils
+## Creating and Using Stencils
 
 Create and manage stencils under **Formie → Stencils** (requires the **Access stencils** permission). Building a stencil works much like building a normal form, so you can define the layout, notifications, and form settings you want to reuse.
 
@@ -28,7 +28,7 @@ Choose **New stencil** to create one you can edit in the control panel. Once a s
 
 Saving a form as a stencil from the form builder creates a new stencil you can edit later.
 
-### Synced fields
+### Synced Fields
 
 Stencils can include **synced fields**—the same shared field definitions you use across forms.
 
@@ -36,11 +36,11 @@ When you add an existing field as a synced field while building a stencil, Formi
 
 If a shared definition cannot be found on the current environment (for example, a project stencil references a handle that does not exist yet), Formie falls back to creating an independent field copy from the stencil settings.
 
-## Shared starting points
+## Shared Starting Points
 
 Stencils are best treated as starting templates, not shared live forms. Changes made to a stencil affect future forms created from it, not forms that already exist.
 
-## Project stencils (developers)
+## Project Stencils (Developers)
 
 Some stencils are created as **project stencils** and stored in project config (`formie.stencils`). They are useful for starter kits and defaults that should be versioned with the site and shared across a team.
 

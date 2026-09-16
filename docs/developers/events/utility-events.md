@@ -1,8 +1,29 @@
 # Utility Events
 
+## TipTap Events
+
+### The `registerExtensions` Event
+
+The event that registers matching TipTap nodes, marks, extensions, and safe
+TextStyle definitions before Formie's rich-text editors are created.
+
+```php
+use verbb\formie\events\RegisterTiptapExtensionsEvent;
+use verbb\formie\services\TiptapExtensions;
+use yii\base\Event;
+
+Event::on(TiptapExtensions::class, TiptapExtensions::EVENT_REGISTER_EXTENSIONS, function(RegisterTiptapExtensionsEvent $event) {
+    $event->registerExtension('acme/abbreviation', new AbbreviationMark());
+});
+```
+
+Persisted extensions also require a matching browser registration. See
+[TipTap extensions](/developers/tiptap-extensions) for the complete PHP,
+JavaScript, toolbar, TextStyle, and asset-loading contract.
+
 ## Stencil Events
 
-### The `beforeSaveStencil` event
+### The `beforeSaveStencil` Event
 The event that is triggered before a stencil is saved.
 
 ```php
@@ -17,7 +38,7 @@ Event::on(Stencils::class, Stencils::EVENT_BEFORE_SAVE_STENCIL, function(Stencil
 });
 ```
 
-### The `afterSaveStencil` event
+### The `afterSaveStencil` Event
 The event that is triggered after a stencil is saved.
 
 ```php
@@ -32,7 +53,7 @@ Event::on(Stencils::class, Stencils::EVENT_AFTER_SAVE_STENCIL, function(StencilE
 });
 ```
 
-### The `beforeDeleteStencil` event
+### The `beforeDeleteStencil` Event
 The event that is triggered before a stencil is deleted.
 
 ```php
@@ -46,7 +67,7 @@ Event::on(Stencils::class, Stencils::EVENT_BEFORE_DELETE_STENCIL, function(Stenc
 });
 ```
 
-### The `beforeApplyStencilDelete` event
+### The `beforeApplyStencilDelete` Event
 The event that is triggered before a stencil is deleted.
 
 ```php
@@ -60,7 +81,7 @@ Event::on(Stencils::class, Stencils::EVENT_BEFORE_APPLY_STENCIL_DELETE, function
 });
 ```
 
-### The `afterDeleteStencil` event
+### The `afterDeleteStencil` Event
 The event that is triggered after a stencil is deleted.
 
 ```php
@@ -76,7 +97,7 @@ Event::on(Stencils::class, Stencils::EVENT_AFTER_DELETE_STENCIL, function(Stenci
 
 ## Migration Events
 
-### The `modifyField` event
+### The `modifyField` Event
 The event that is triggered during a migration (from Sprout Forms or Freeform), trying to map the respective third-party field to a Formie field. The `field` variable represents the Sprout Forms or Freeform field, and `newField` represents the Formie equivalent field.
 
 You can use this event to map a custom Sprout Forms or Freeform field to a field Formie can understand.
@@ -103,7 +124,7 @@ Event::on(MigrateSproutForms::class, MigrateSproutForms::EVENT_MODIFY_FIELD, fun
 });
 ```
 
-### The `modifyForm` event
+### The `modifyForm` Event
 The event that is triggered during a migration when a third-party form is mapped to a Formie form.
 
 ```php
@@ -118,7 +139,7 @@ Event::on(MigrateFreeform5::class, MigrateFreeform5::EVENT_MODIFY_FORM, function
 });
 ```
 
-### The `modifyNotification` event
+### The `modifyNotification` Event
 The event that is triggered during a migration when a third-party notification is mapped to a Formie notification.
 
 ```php
@@ -134,7 +155,7 @@ Event::on(MigrateFreeform5::class, MigrateFreeform5::EVENT_MODIFY_NOTIFICATION, 
 });
 ```
 
-### The `modifySubmission` event
+### The `modifySubmission` Event
 The event that is triggered during a migration when a third-party submission is mapped to a Formie submission.
 
 ```php
@@ -151,7 +172,7 @@ Event::on(MigrateFreeform5::class, MigrateFreeform5::EVENT_MODIFY_SUBMISSION, fu
 
 ## Variable Events
 
-### The `registerVariables` event
+### The `registerVariables` Event
 
 The event that is triggered to register custom variable sources for the variable picker and server-side reference resolution.
 
@@ -171,7 +192,7 @@ Event::on(Variables::class, Variables::EVENT_REGISTER_VARIABLES, function(Regist
 
 See [Custom variable sources](/developers/custom-variable-sources) for token rules, picker metadata, transforms, and troubleshooting.
 
-### The `registerClientEventTemplates` event
+### The `registerClientEventTemplates` Event
 
 The event that is triggered to register client event templates for the form builder **Tracking** tab.
 
@@ -199,7 +220,7 @@ Event::on(ClientEventTemplates::class, ClientEventTemplates::EVENT_REGISTER_CLIE
 
 See [Custom client event templates](/developers/custom-client-event-templates) for template properties, payload rows, page contexts, and troubleshooting.
 
-### The `registerTransformers` event
+### The `registerTransformers` Event
 The event that is triggered to register additional variable transformers used when variable values are parsed.
 
 ```php
@@ -218,7 +239,7 @@ Event::on(Variables::class, Variables::EVENT_REGISTER_TRANSFORMERS, function(Reg
 
 ## Email Domain Events
 
-### The `modifyFreeEmailDomains` event
+### The `modifyFreeEmailDomains` Event
 The event that is triggered when Formie prepares the list of free email domains.
 
 ```php
@@ -231,7 +252,7 @@ Event::on(EmailDomains::class, EmailDomains::EVENT_MODIFY_FREE_EMAIL_DOMAINS, fu
 });
 ```
 
-### The `modifyTwigEnvironment` event
+### The `modifyTwigEnvironment` Event
 The event that is triggered to modify the allowed items in the Twig Sandbox used to parse some content like Email Notifications.
 
 Formie uses a Twig Sandbox with a limited set of allowed Tags, Filter and Functions. This also extends to the allowed Methods and Properties. This is a security measure to prevent Twig injections into the fields that support Twig.
@@ -268,7 +289,7 @@ Event::on(Formie::class, Formie::EVENT_MODIFY_TWIG_ENVIRONMENT, function(ModifyT
 });
 ```
 
-### The `defineHiddenDefaultTemplateContext` event
+### The `defineHiddenDefaultTemplateContext` Event
 
 Triggered when resolving a Hidden field **Template** default value. Use this to inject project-specific variables (for example an `event` entry) without opening arbitrary `craft.entries()` access in CP-authored templates.
 

@@ -17,7 +17,9 @@ Use this page to preserve the summary token and container attributes used by the
 | `[data-formie-summary-blocks]` | Replaceable summary block wrapper | Required |
 | `data-formie-field-type="summary"` | Field identity marker | Recommended |
 
-## Behavior
+<span id="behavior"></span>
+
+## Behaviour
 
 The `summary` module:
 
@@ -29,7 +31,7 @@ The `summary` module:
 
 Summary emits field events as it becomes active and refreshes its rendered content.
 
-#### The `formie:field:summary:field-visible` event
+#### The `formie:field:summary:field-visible` Event
 
 Triggered when the summary field is visible enough to start participating in refreshes.
 
@@ -47,7 +49,7 @@ document.addEventListener('formie:field:summary:field-visible', (event) => {
 });
 ```
 
-#### The `formie:field:summary:fetch-summary` event
+#### The `formie:field:summary:fetch-summary` Event
 
 Triggered after fresh summary HTML has been fetched for the field.
 
@@ -65,7 +67,7 @@ document.addEventListener('formie:field:summary:fetch-summary', (event) => {
 });
 ```
 
-## Related pages
+## Related Pages
 
 - [Calculations](/browser/ui-reference/fields/calculations)
 - [JavaScript events](/browser/behavior/javascript-events)

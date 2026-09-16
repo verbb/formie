@@ -4,7 +4,11 @@ Use Checkboxes when someone can choose more than one option from a list.
 
 Use Checkboxes for multiple-choice questions where more than one answer can be true. If only one answer should be selected, use Radio or Dropdown instead.
 
-## Key settings
+## Allow Several Interests
+
+Add a Checkboxes field named **Interests** to a signup form and enter the options **Events**, **News** and **Training**. Save the form, select two options and submit. Confirm that both choices are saved. Use Radio or Dropdown when the visitor must choose only one option.
+
+## Key Settings
 
 - **Options** - Define the available choices. Keep option values stable once submissions, exports or integrations depend on them.
 - **Layout** - Choose whether options appear vertically or horizontally.
@@ -30,7 +34,7 @@ If you only provide one value on a line, Formie uses it for both the label and v
 
 For longer or integration-driven lists, set **Options** to **Predefined** or **Integration** instead of maintaining a static options table. See [Option Sources](/fields/option-sources).
 
-## Option availability
+## Option Availability
 
 Use the row menu on an option to set its **availability**:
 
@@ -44,17 +48,17 @@ Only one state applies at a time. Prefer hiding over deleting an option once sub
 
 If the options need to come from template logic, you can override the field’s `options` before rendering the form. See [Overriding Settings](/templates/overriding-settings).
 
-## Submitted value
+## Submitted Value
 
 Checkboxes store multiple selected option values. In templates, exports and integrations, treat the value as a list of selected options rather than a single string.
 
 When querying or saving submissions through GraphQL, the field handle is used as the field name. Query the form’s `formFields` and include `inputTypeName` if you need to confirm the generated input type for a specific form.
 
-## Theme config
+## Theme Config
 
 The Checkboxes field can be targeted with the `checkboxes` theme config key.
 
-See [Checkboxes Field theme config](/theming/theme-config#checkboxes-field) for the full list of field-specific theme tags.
+See [Checkboxes Field theme config](/reference/theme-tag-reference#checkboxes-field) for the full list of field-specific theme tags.
 
 ```twig
 {{ craft.formie.renderForm('contactForm', {
@@ -79,13 +83,13 @@ Use theme config for class and attribute changes. Use a template override only w
 
 For full Tailwind, Bootstrap and other framework examples, see [Formie theme configs](https://github.com/verbb/formie-theme-configs).
 
-## Front-end reference
+## Front-End Reference
 
-The front-end docs live on the separate browser UI reference site and cover rendered markup, data attributes, styling classes and JavaScript behavior for custom front-end implementations.
+The front-end docs live on the separate browser UI reference site and cover rendered markup, data attributes, styling classes and JavaScript behaviour for custom front-end implementations.
 
-- [Checkboxes](/browser/ui-reference/fields/checkboxes)
+- [Checkboxes](https://docs.verbb.io/formie/browser/ui-reference/fields/checkboxes)
 
-## Related fields
+## Related Fields
 
 - Use [Radio](/fields/radio) when exactly one visible option should be selected.
 - Use [Dropdown](/fields/dropdown) when the option list is long or should take less space.

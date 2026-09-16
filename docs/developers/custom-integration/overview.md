@@ -146,7 +146,7 @@ public function fetchFormSettings(): IntegrationFormSettings
 
 If your integration caches selectable provider fields, you can expose them as dynamic option lists for Dropdown, Radio and Checkboxes fields. Declare sources in `defineOptionSources()` on the integration class.
 
-See [Option Sources](/developers/custom-integration/option-sources) for storage shapes, builder labels, testing, and examples from Mailchimp and CRM integrations.
+See [Option Sources](/developers/custom-integration/integration-option-sources) for storage shapes, builder labels, testing, and examples from Mailchimp and CRM integrations.
 
 ```php
 use verbb\formie\models\IntegrationCollection;
@@ -267,7 +267,7 @@ public function fetchConnection(): bool
 ## Type Guides
 The integration type pages cover the details that differ between base classes:
 
-- [Option Sources](/developers/custom-integration/option-sources)
+- [Option Sources](/developers/custom-integration/integration-option-sources)
 - [Address Provider Integration](/developers/custom-integration/address-provider-integration)
 - [Automation Integration](/developers/custom-integration/automation-integration)
 - [Captcha Integration](/developers/custom-integration/captcha-integration)

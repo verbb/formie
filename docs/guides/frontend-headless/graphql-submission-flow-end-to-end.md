@@ -1,325 +1,249 @@
-# GraphQL submission flow end-to-end
+# GraphQL Submission Flow End-to-End
 
-This walkthrough follows a contact form from GraphQL bootstrap through page navigation, token refresh, and final submission — the same flow `@verbb/formie-react` and `@verbb/formie-core` use internally. Use it when building a custom GraphQL client or debugging headless submit failures.
+Build a small contact form that loads a Formie session, submits answers through GraphQL and displays validation errors. This guide uses a single-page form with text fields so you can follow the complete request flow before adding multi-page navigation or complex fields.
 
-## Prerequisites
+Formie's frontend packages handle this flow for you. Use this walkthrough when writing your own client or investigating the requests it sends.
 
-- Formie with GraphQL enabled and a public schema including Formie scopes
-- A form with handle `contactForm` (adjust examples to match yours)
-- [Query Forms](/graphql/query-forms), [Rendering Forms](/graphql/rendering-forms), [Create Submissions](/graphql/create-submissions)
+## Prepare the Contact Form
 
-## Overview
+Create a form with handle `contactForm`, a Single-Line Text field with handle `yourName`, and a required Email Address field with handle `emailAddress`. Save it. For this first local test, use no Payment fields or captcha providers; connect those after the basic flow works.
 
-```mermaid
-sequenceDiagram
-    participant App
-    participant Craft as Craft GraphQL
-    participant Formie
+In Craft's GraphQL settings, enable the endpoint and give the schema access to read this form and create its submissions. The client mutations need both permissions. A browser-accessible schema must not expose private submission queries or unrelated forms. Do not embed a privileged GraphQL token in browser code.
 
-    App->>Craft: formieClientForm
-    Craft->>Formie: Build definition + session
-    Formie-->>App: definition, session.tokens
+The example assumes the GraphQL endpoint is `/api` on the same origin as the page. Replace that path if your Craft endpoint differs. Using the same origin keeps cookies with the requests. Cross-origin deployments also need a matching CORS and cookie configuration; establish that separately before testing the form.
 
-    App->>Craft: submitFormieClientForm (page 1)
-    Craft->>Formie: Validate, save, screen
-    Formie-->>App: success, clientEvents, nextPage?
+## Load the Definition and Session
 
-    App->>Craft: refreshFormieClientSession (if cached)
-    Formie-->>App: fresh tokens
-
-    App->>Craft: submitFormieClientForm (final)
-    Formie-->>App: success, redirect/message
-```
-
-Formie front-end packages handle this sequence automatically. Custom clients should follow the same order.
-
-## Step 1 — Bootstrap the form
-
-Query `formieClientForm` for the structured definition and session:
+The form definition describes the fields and layout. The session holds the current page, request tokens and continuation data for this visitor. Query the session's subfields because it is a GraphQL object:
 
 ```graphql
-query FormieForm($handle: String!, $siteId: Int, $locale: String) {
-    formieClientForm(handle: $handle, siteId: $siteId, locale: $locale) {
+query ContactForm($handle: String!) {
+    formieClientForm(handle: $handle) {
         schemaVersion
         definition
-        session
-    }
-}
-```
-
-Variables:
-
-```json
-{
-    "handle": "contactForm",
-    "siteId": 1,
-    "locale": "en"
-}
-```
-
-Read tokens from `session.tokens`:
-
-```json
-{
-    "session": {
-        "id": "formie-contactForm-abc123",
-        "currentPageId": "page-1",
-        "tokens": {
-            "csrf": {
-                "name": "CRAFT_CSRF_TOKEN",
-                "value": "3YV0bKqQx..."
-            },
-            "request": "m1f8A2pQ...",
-            "render": "formie-contactForm-abc123",
-            "captchas": {}
+        session {
+            id
+            currentPageId
+            tokens
+            continuation
         }
     }
 }
 ```
 
-Store `request` and `csrf` — every submit and refresh needs them.
+Send `{"handle":"contactForm"}` as the variables. Keep the returned session intact, including `tokens` and `continuation`; do not invent token values or share a session between visitors. A missing form or permission produces an error before you can submit.
 
-### Alternative — rendered HTML only
+## Submit the Answers
 
-If you only need Formie-owned HTML (no custom field UI), use `formieHtmlForm`:
-
-```graphql
-query FormHtml($handle: String!, $input: ServerRenderPayloadInput) {
-    formieHtmlForm(handle: $handle, input: $input) {
-        html
-    }
-}
-```
-
-The HTML includes hidden inputs for CSRF and request tokens. Include browser assets separately. See [Rendering Forms](/graphql/rendering-forms).
-
-## Step 2 — Inspect field input types
-
-Before building a typed mutation, discover each field's GraphQL input type:
+The client mutation accepts one `input` object. Supply the form handle, the current session and a `values` map keyed by field handle:
 
 ```graphql
-{
-    formieForm(handle: "contactForm") {
-        formFields {
-            handle
-            inputTypeName
+mutation SubmitContact($input: FormieClientSubmitInput!) {
+    submitFormieClientForm(input: $input) {
+        success
+        submissionUid
+        isFinalPage
+        nextPageId
+        errors
+        messages
+        session {
+            id
+            currentPageId
+            tokens
+            continuation
         }
     }
 }
 ```
 
-Complex fields use generated types like `contactForm_yourName_FormieNameInput`.
+Construct variables in JavaScript from the actual bootstrap response:
 
-## Step 3 — Submit via the client mutation (recommended)
-
-Formie front-end packages use `submitFormieClientForm` — a structured payload mutation that handles multi-page state, captchas, and payment follow-up.
-
-Conceptually, your client sends:
-
-- Current page field values
-- Session ID and tokens from bootstrap
-- Captcha responses when enabled
-
-The exact input shape matches what `@verbb/formie-core` serializes. Prefer this mutation over raw per-form mutations when building on Formie's client stack.
-
-## Step 4 — Submit via per-form mutation
-
-Each form also has a dedicated mutation: `save_<formHandle>_Submission`.
-
-Basic single-field example:
-
-```graphql
-mutation SaveSubmission($yourName: String) {
-    save_contactForm_Submission(yourName: $yourName) {
-        title
-        ... on contactForm_Submission {
-            yourName
-        }
-    }
-}
+```javascript
+const variables = {
+    input: {
+        handle: 'contactForm',
+        action: 'submit',
+        session: envelope.session,
+        values: {
+            yourName: 'Alex Taylor',
+            emailAddress: 'alex@example.test',
+        },
+    },
+};
 ```
 
-With CSRF and request token (when `enableCsrfValidationForGuests` is on):
+Here `envelope` is the returned `data.formieClientForm` object. The complete example below defines it and sends the request. Always replace your session with the one returned by the mutation, including on validation failure when a session is present.
 
-```graphql
-mutation SaveSubmission(
-    $yourName: String
-    $requestToken: String
-) {
-    save_contactForm_Submission(
-        yourName: $yourName
-        requestToken: $requestToken
-    ) {
-        title
+## Build a Working Page
+
+Create `templates/contact-client.twig` in the Craft project. This complete example uses the public schema configured above and the same-origin `/api` endpoint. It deliberately uses browser text output rather than inserting returned messages as HTML.
+
+```twig
+<form id="contact-client" novalidate>
+    <label for="contact-name">Your Name</label>
+    <input id="contact-name" name="yourName" autocomplete="name">
+    <label for="contact-email">Email Address</label>
+    <input id="contact-email" name="emailAddress" type="email" autocomplete="email" required>
+    <button type="submit" disabled>Send Enquiry</button>
+    <p role="status" aria-live="polite"></p>
+</form>
+
+{% js %}
+const contactElement = document.querySelector('#contact-client');
+const contactButton = contactElement.querySelector('button');
+const contactStatus = contactElement.querySelector('[role="status"]');
+let contactSession;
+
+async function contactRequest(query, variables) {
+    const response = await fetch('/api', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({ query, variables }),
+    });
+    if (!response.ok) {
+        throw new Error(`Request failed (${response.status}).`);
     }
-}
-```
-
-### Name and Address fields
-
-```graphql
-mutation SaveSubmission(
-    $yourName: contactForm_yourName_FormieNameInput
-    $yourAddress: contactForm_yourAddress_FormieAddressInput
-) {
-    save_contactForm_Submission(yourName: $yourName, yourAddress: $yourAddress) {
-        ... on contactForm_Submission {
-            yourName
-            yourAddress
-        }
+    const result = await response.json();
+    if (result.errors?.length || !result.data) {
+        throw new Error(result.errors?.[0]?.message || 'No form response was returned.');
     }
+    return result.data;
 }
-```
 
-```json
-{
-    "yourName": { "firstName": "Jane", "lastName": "Doe" },
-    "yourAddress": {
-        "address1": "42 Wallaby Way",
-        "city": "Sydney",
-        "state": "NSW",
-        "zip": "2000",
-        "country": "Australia"
-    }
-}
-```
+const contactSessionSelection = 'id currentPageId tokens continuation';
 
-### Generic saveSubmission
-
-When your client should not depend on form-specific mutation names:
-
-```graphql
-mutation SaveSubmission($formHandle: String!, $fields: ArrayType) {
-    saveSubmission(formHandle: $formHandle, fields: $fields) {
-        id
-        ... on contactForm_Submission {
-            yourName
-            emailAddress
-        }
-    }
-}
-```
-
-```json
-{
-    "formHandle": "contactForm",
-    "fields": {
-        "yourName": "Jane Doe",
-        "emailAddress": "jane@example.test"
-    }
-}
-```
-
-For Formie npm packages, prefer `submitFormieClientForm`.
-
-## Step 5 — Captchas
-
-When a captcha is enabled, Formie adds an argument named `{handle}Captcha` in camelCase — for example `turnstileCaptcha`:
-
-```graphql
-mutation SaveSubmission(
-    $yourName: String
-    $turnstileCaptcha: FormieCaptchaInput
-) {
-    save_contactForm_Submission(
-        yourName: $yourName
-        turnstileCaptcha: $turnstileCaptcha
-    ) {
-        title
-    }
-}
-```
-
-```json
-{
-    "turnstileCaptcha": {
-        "name": "cf-turnstile-response",
-        "value": "<token from widget>"
-    }
-}
-```
-
-Query the generated schema for the exact argument name per form.
-
-## Step 6 — Multi-page navigation
-
-For multi-page forms:
-
-1. Submit current page values.
-2. If the response indicates a next page, update local state with the new page ID from the session.
-3. Repeat until the final page completes.
-
-Use `setFormieClientPage` when saving navigation state without a full submit (for example, back-button behaviour in custom UIs).
-
-Incomplete submissions are saved in the database as the user progresses — the same as browser Ajax forms.
-
-## Step 7 — Refresh session tokens
-
-On statically cached pages or after failed submits, refresh tokens before retrying:
-
-```graphql
-mutation RefreshSession($handle: String!, $sessionId: String!) {
-    refreshFormieClientSession(handle: $handle, sessionId: $sessionId) {
-        session
-    }
-}
-```
-
-Apply the returned `session.tokens` to subsequent requests. See [Cached forms in production](/guides/frontend-headless/cached-forms-in-production).
-
-## Step 8 — Handle validation errors
-
-Validation failures return GraphQL errors with field messages in extensions:
-
-```json
-{
-    "errors": [{
-        "message": "{\"emailAddress\":[\"Email Address cannot be blank.\"]}",
-        "extensions": {
-            "category": "validation",
-            "errors": {
-                "emailAddress": ["Email Address cannot be blank."]
+async function loadContact() {
+    const data = await contactRequest(`
+        query ContactForm($handle: String!) {
+            formieClientForm(handle: $handle) {
+                schemaVersion
+                definition
+                session { ${contactSessionSelection} }
             }
         }
-    }],
-    "data": { "save_contactForm_Submission": null }
+    `, { handle: 'contactForm' });
+    if (!data.formieClientForm) {
+        throw new Error('The contact form is unavailable.');
+    }
+    contactSession = data.formieClientForm.session;
+    contactButton.disabled = false;
 }
-```
 
-Map `extensions.errors` keys to field handles in your UI.
-
-## Step 9 — Client events in the response
-
-Successful Ajax/GraphQL submits include resolved analytics events:
-
-```json
-{
-    "success": true,
-    "clientEvents": [{
-        "event": "formPageSubmission",
-        "payload": {
-            "event": "formPageSubmission",
-            "formHandle": "contactForm",
-            "email": "jane@example.com"
+contactElement.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    if (contactButton.disabled || !contactSession) return;
+    contactButton.disabled = true;
+    contactStatus.textContent = 'Sending your enquiry…';
+    try {
+        const data = await contactRequest(`
+            mutation SubmitContact($input: FormieClientSubmitInput!) {
+                submitFormieClientForm(input: $input) {
+                    success submissionUid isFinalPage nextPageId errors messages
+                    session { ${contactSessionSelection} }
+                }
+            }
+        `, {
+            input: {
+                handle: 'contactForm',
+                action: 'submit',
+                session: contactSession,
+                values: {
+                    yourName: contactElement.elements.yourName.value,
+                    emailAddress: contactElement.elements.emailAddress.value,
+                },
+            },
+        });
+        const result = data.submitFormieClientForm;
+        if (!result) throw new Error('No submission response was returned.');
+        if (result.session) contactSession = result.session;
+        if (!result.success) {
+            contactStatus.textContent = Object.values(result.errors || {}).flat().join(' ')
+                || 'Please check your answers and try again.';
+            contactButton.disabled = false;
+            return;
         }
-    }]
+        if (!result.isFinalPage || result.nextPageId) {
+            throw new Error('This example requires a single-page contact form.');
+        }
+        contactStatus.textContent = 'Thanks. Your enquiry has been submitted.';
+    } catch (error) {
+        contactStatus.textContent = error.message;
+        contactButton.disabled = false;
+    }
+});
+
+loadContact().catch((error) => {
+    contactStatus.textContent = error.message;
+});
+{% endjs %}
+```
+
+Open `/contact-client`. The button becomes available after bootstrap succeeds. An empty email should produce a field-validation message; entering a valid email should show the confirmation. The button stays disabled after success to avoid another deliberate submission of the completed form.
+
+## Distinguish Validation from Request Errors
+
+For `submitFormieClientForm`, field validation is returned in `data.submitFormieClientForm.errors` with `success: false`. Display these messages beside the affected inputs in a production UI and move focus to the first invalid field or an error summary. The small example combines them in a live status region.
+
+GraphQL syntax, permission and transport failures are separate from field validation. Check the top-level `errors` array and HTTP status as well. The typed `save_<handle>_Submission` mutations use a different validation-error contract; see [Create Submissions](/graphql/create-submissions). Do not apply that contract to the client mutation.
+
+## Refresh a Session
+
+A cached page must obtain a visitor-specific session before submitting. When refreshing an existing session, send that whole session to the refresh mutation:
+
+```graphql
+mutation RefreshContact($input: FormieClientSessionRefreshInput!) {
+    refreshFormieClientSession(input: $input) {
+        id
+        currentPageId
+        tokens
+        continuation
+    }
 }
 ```
 
-Push to `dataLayer` or your analytics SDK in the client.
+In the page's JavaScript, a refresh uses the existing `contactRequest` helper and replaces `contactSession`:
 
-## Step 10 — Payments
+```javascript
+async function refreshContact() {
+    const data = await contactRequest(`
+        mutation RefreshContact($input: FormieClientSessionRefreshInput!) {
+            refreshFormieClientSession(input: $input) {
+                id currentPageId tokens continuation
+            }
+        }
+    `, { input: { handle: 'contactForm', session: contactSession } });
+    contactSession = data.refreshFormieClientSession;
+}
+```
 
-Payment fields require provider UI (Stripe.js, and so on) and must use `submitFormieClientForm` so 3DS replay and session continuity work. See [Headless Payments](/graphql/payments).
+Add this function inside the existing `{% js %}` block if your UI needs an explicit refresh action. A refresh returns the session directly, not an envelope containing another `session` property. Do not automatically retry a submission after a network timeout: the server may already have saved it. Preserve the session and investigate the result before sending again.
 
-## Submission guards note
+## Add Multiple Pages
 
-Browser-only submission guards (honeypot, minimum submit time, form submit expiration) run for traditional form POSTs with `handle` and `submitAction`. GraphQL and client REST submissions skip browser-only guards but still require a valid `requestToken` from bootstrap.
+For a multi-page form, render the fields belonging to `session.currentPageId` from the definition. Submit that page's values with the same client mutation. Keep the returned session and show `nextPageId` when present. Only show a final confirmation when the result succeeds and the flow has completed.
 
-## Related
+For navigation without a normal submit, use:
 
-- [Query Forms](/graphql/query-forms)
-- [Create Submissions](/graphql/create-submissions)
-- [Rendering Forms](/graphql/rendering-forms)
-- [Building a headless contact form with Formie React](/guides/frontend-headless/building-a-headless-contact-form-with-formie-react)
-- [Cached forms in production](/guides/frontend-headless/cached-forms-in-production)
+```graphql
+mutation ChangeContactPage($input: FormieClientSetPageInput!) {
+    setFormieClientPage(input: $input) {
+        id
+        currentPageId
+        tokens
+        continuation
+    }
+}
+```
+
+Its input contains `handle`, the current `session`, `currentPageId`, `targetPageId` and `values`. Use page IDs from the definition and returned session, not hard-coded labels. Replace your session with the result. Page navigation is not a substitute for submitting and validating the final page.
+
+The single-page UI above must be extended to render each page before using a multi-page form. [Formie's frontend packages](https://docs.verbb.io/formie/react/) provide that rendering and navigation flow.
+
+## Verify the Saved Result
+
+Submit a valid test enquiry and find it in **Formie → Submissions**. Check the answers and complete state. If you configured a notification, inspect its delivery too. Repeat with an invalid email and confirm that the page shows an error and no completed enquiry is created.
+
+Try a schema without access to the form and confirm that bootstrap or submission fails. Test two browser sessions to confirm their session values remain separate. Keep this page out of full-page caches that would cache visitor tokens.
+
+After this works, add [captcha handling](/graphql/create-submissions#captchas), [complex fields](/graphql/create-submissions#complex-fields), or [Headless Payments](/graphql/headless-payments) as needed. Complex values and uploads need their documented serialisation; the two text inputs above do not cover those field types.

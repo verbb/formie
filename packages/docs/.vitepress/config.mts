@@ -30,10 +30,6 @@ export default defineConfig({
                     replacement: fileURLToPath(new URL('../../../node_modules/mark.js/dist/mark.es6.js', import.meta.url)),
                 },
                 {
-                    find: '@verbb/vitepress-theme',
-                    replacement: fileURLToPath(new URL('../../../../verbb-vitepress-theme/src/index.ts', import.meta.url)),
-                },
-                {
                     find: '@verbb/formie-browser',
                     replacement: `${formieBrowserSource}/index.ts`,
                 },
@@ -117,15 +113,15 @@ export default defineConfig({
                     text: 'Getting Started',
                     items: [
                         { text: 'Overview', link: '/browser/' },
-                        { text: 'JavaScript events', link: '/browser/behavior/javascript-events' },
-                        { text: 'Submission handling', link: '/browser/behavior/submission-handling' },
+                        { text: 'JavaScript Events', link: '/browser/behavior/javascript-events' },
+                        { text: 'Submission Handling', link: '/browser/behavior/submission-handling' },
                     ],
                 },
                 {
                     text: 'Advanced',
                     items: [
-                        { text: 'Custom client', link: '/browser/behavior/custom-client' },
-                        { text: 'Manual initialization', link: '/browser/behavior/manual-initialization' },
+                        { text: 'Custom Client', link: '/browser/behavior/custom-client' },
+                        { text: 'Manual Initialisation', link: '/browser/behavior/manual-initialization' },
                         { text: 'Migrating from Formie Plugin', link: '/browser/behavior/migrating-from-formie-plugin' },
                     ],
                 },
@@ -133,12 +129,12 @@ export default defineConfig({
                     text: 'Validation',
                     items: [
                         { text: 'Overview', link: '/browser/validation/' },
-                        { text: 'Built-in rules', link: '/browser/validation/built-in-rules' },
-                        { text: 'Build a custom validator', link: '/browser/validation/build-a-custom-validator' },
+                        { text: 'Built-in Rules', link: '/browser/validation/built-in-rules' },
+                        { text: 'Build a Custom Validator', link: '/browser/validation/build-a-custom-validator' },
                     ],
                 },
                 {
-                    text: 'UI reference',
+                    text: 'UI Reference',
                     items: [
                         {
                             text: 'Fields',
@@ -179,46 +175,46 @@ export default defineConfig({
                                 { text: 'Progress', link: '/browser/ui-reference/components/progress' },
                             ],
                         },
-                        { text: 'CSS variables', link: '/browser/ui-reference/css-variables' },
+                        { text: 'CSS Variables', link: '/browser/ui-reference/css-variables' },
                     ],
                 },
                 {
                     text: 'Modules',
                     items: [
                         { text: 'Overview', link: '/browser/modules/' },
-                        { text: 'Build a custom module', link: '/browser/modules/build-a-custom-module' },
+                        { text: 'Build a Custom Module', link: '/browser/modules/build-a-custom-module' },
                         {
-                            text: 'Field modules',
+                            text: 'Field Modules',
                             collapsed: true,
                             items: [
                                 { text: 'Calculations', link: '/browser/modules/field/calculations' },
                                 { text: 'Conditions', link: '/browser/modules/field/conditions' },
-                                { text: 'Date picker', link: '/browser/modules/field/date-picker' },
-                                { text: 'File upload', link: '/browser/modules/field/file-upload' },
-                                { text: 'Upload manager', link: '/browser/modules/field/upload-manager' },
-                                { text: 'Phone country', link: '/browser/modules/field/phone-country' },
+                                { text: 'Date Picker', link: '/browser/modules/field/date-picker' },
+                                { text: 'File Upload', link: '/browser/modules/field/file-upload' },
+                                { text: 'Upload Manager', link: '/browser/modules/field/upload-manager' },
+                                { text: 'Phone Country', link: '/browser/modules/field/phone-country' },
                                 { text: 'Repeater', link: '/browser/modules/field/repeater' },
-                                { text: 'Rich text', link: '/browser/modules/field/rich-text' },
+                                { text: 'Rich Text', link: '/browser/modules/field/rich-text' },
                                 { text: 'Signature', link: '/browser/modules/field/signature' },
                                 { text: 'Summary', link: '/browser/modules/field/summary' },
                                 { text: 'Table', link: '/browser/modules/field/table' },
                             ],
                         },
                         {
-                            text: 'Address modules',
+                            text: 'Address Modules',
                             collapsed: true,
                             items: [
                                 { text: 'Address Finder', link: '/browser/modules/address/address-finder' },
-                                { text: 'Google address', link: '/browser/modules/address/google-address' },
+                                { text: 'Google Address', link: '/browser/modules/address/google-address' },
                                 { text: 'Loqate', link: '/browser/modules/address/loqate' },
                                 { text: 'PlaceKit', link: '/browser/modules/address/place-kit' },
                             ],
                         },
                         {
-                            text: 'Captcha modules',
+                            text: 'Captcha Modules',
                             collapsed: true,
                             items: [
-                                { text: 'CAPTCHA.eu', link: '/browser/modules/captcha/captcha-eu' },
+                                { text: 'CAPTCHA.Eu', link: '/browser/modules/captcha/captcha-eu' },
                                 { text: 'Friendly Captcha', link: '/browser/modules/captcha/friendly-captcha' },
                                 { text: 'hCaptcha', link: '/browser/modules/captcha/hcaptcha' },
                                 { text: 'reCAPTCHA', link: '/browser/modules/captcha/recaptcha' },
@@ -227,7 +223,7 @@ export default defineConfig({
                             ],
                         },
                         {
-                            text: 'Payment modules',
+                            text: 'Payment Modules',
                             collapsed: true,
                             items: [
                                 { text: 'Bpoint', link: '/browser/modules/payment/bpoint' },
@@ -255,17 +251,17 @@ export default defineConfig({
                     ],
                 },
                 {
-                    text: 'Server-rendered',
+                    text: 'Server-Rendered',
                     items: [
                         { text: 'Overview', link: '/react/server-rendered/overview' },
                         { text: 'Styling', link: '/react/server-rendered/styling' },
                     ],
                 },
                 {
-                    text: 'Client-rendered',
+                    text: 'Client-Rendered',
                     items: [
                         { text: 'Overview', link: '/react/client-rendered/overview' },
-                        { text: 'Component customization', link: '/react/client-rendered/component-customization' },
+                        { text: 'Component Customisation', link: '/react/client-rendered/component-customization' },
                     ],
                 },
             ],
@@ -278,17 +274,17 @@ export default defineConfig({
                     ],
                 },
                 {
-                    text: 'Server-rendered',
+                    text: 'Server-Rendered',
                     items: [
                         { text: 'Overview', link: '/vue/server-rendered/overview' },
                         { text: 'Styling', link: '/vue/server-rendered/styling' },
                     ],
                 },
                 {
-                    text: 'Client-rendered',
+                    text: 'Client-Rendered',
                     items: [
                         { text: 'Overview', link: '/vue/client-rendered/overview' },
-                        { text: 'Component customization', link: '/vue/client-rendered/component-customization' },
+                        { text: 'Component Customisation', link: '/vue/client-rendered/component-customization' },
                     ],
                 },
             ],
@@ -311,7 +307,7 @@ export default defineConfig({
                     text: 'Component Mode',
                     items: [
                         { text: 'Overview', link: '/web-components/component-mode/overview' },
-                        { text: 'Component customization', link: '/web-components/component-mode/component-customization' },
+                        { text: 'Component Customisation', link: '/web-components/component-mode/component-customization' },
                     ],
                 },
             ],

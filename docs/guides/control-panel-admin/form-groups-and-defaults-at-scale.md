@@ -1,4 +1,4 @@
-# Form groups and defaults at scale
+# Form Groups and Defaults at Scale
 
 When a project grows past a handful of forms, the control panel gets noisy and new forms drift from your standards. Form groups organise the forms index, enforce policies, and layer group-level defaults on top of global Formie settings — without changing how forms render on the front end.
 
@@ -7,7 +7,7 @@ When a project grows past a handful of forms, the control panel gets noisy and n
 - [Form Groups](/forms/form-groups)
 - [Configuration](/get-started/configuration) — global defaults in `config/formie.php` and **Settings → Defaults**
 
-## When to use groups
+## When to Use Groups
 
 Form groups help when:
 
@@ -19,7 +19,7 @@ If you only have a few forms, skip groups — **All forms** works fine.
 
 Groups do **not** change front-end rendering, templates, or existing submission behaviour until you change form settings.
 
-## Step 1 — Plan your group structure
+## Step 1 — Plan Your Group Structure
 
 A typical agency or enterprise layout:
 
@@ -31,7 +31,7 @@ A typical agency or enterprise layout:
 
 Create groups under **Formie → Settings → Form Groups**. Each group has a name, handle, and sort order. Definitions live in [project config](/get-started/configuration#form-groups-project-config) and travel with the repo.
 
-## Step 2 — Configure site policy (multi-site)
+## Step 2 — Configure Site Policy (Multi-Site)
 
 On multi-site Craft installs, each group restricts **which sites** forms may exist on and how new forms **propagate**.
 
@@ -44,7 +44,7 @@ Example: an **Australia Forms** group with only the Australia site enabled, prop
 
 See [Translating forms across Craft sites](/guides/control-panel-admin/translating-forms-across-craft-sites) for how availability differs from translation.
 
-## Step 3 — Set group defaults
+## Step 3 — Set Group Defaults
 
 Blank group settings inherit from global **Formie → Settings → Defaults**. Override only what the group needs:
 
@@ -58,25 +58,25 @@ Blank group settings inherit from global **Formie → Settings → Defaults**. O
 
 New forms created in the group pick up these defaults. Existing forms are unchanged until you edit them.
 
-### Submission limits vs groups
+### Submission Limits vs Groups
 
 [Submission limits](/forms/submission-limits) are **per form**, not per group. If your group often uses per-user or per-IP limits, preset **Collect User** or **Collect IP** on the group **Form Defaults** tab so new forms inherit the privacy settings those limits need.
 
 Global abuse throttling lives under **Settings → Spam Protection** — separate from form submission limits.
 
-## Step 4 — Custom field palette
+## Step 4 — Custom Field Palette
 
 Enable **Use custom field palette** on the **Field Palette** tab when a team should only see a subset of field types — for example, no Payment or Repeater for marketing self-service authors.
 
 When disabled, the group inherits the global palette from **Settings → Fields**.
 
-## Step 5 — Allowed submission statuses
+## Step 5 — Allowed Submission Statuses
 
 Restrict which submission statuses forms in the group may use. Choose **All** to allow every status, or pick a subset for workflow consistency (for example, Support forms may only use **New**, **In progress**, **Closed**).
 
 This policy applies to all forms in the group; individual forms cannot override it.
 
-## Step 6 — Work in the forms index
+## Step 6 — Work in the Forms Index
 
 When at least one group exists, the sidebar shows:
 
@@ -88,7 +88,7 @@ Creating a form from a group source pre-assigns that group. Use **Move to group*
 
 The submissions index groups forms under the same headings when groups exist.
 
-## Step 7 — Layer config file defaults
+## Step 7 — Layer Config File Defaults
 
 For developer-controlled defaults that apply before the control panel, use `config/formie.php`:
 
@@ -116,15 +116,8 @@ Precedence in practice:
 
 Document which layer owns which setting so editors know where to look.
 
-## Step 8 — Combine with stencils
+## Step 8 — Combine with Stencils
 
 Groups organise *where* forms live; [stencils](/forms/stencils) define *what* new forms start with. Set `defaultFormStencil` globally or train authors to pick a stencil when creating forms in each group.
 
 See [Stencils for repeatable form types](/guides/control-panel-admin/stencils-for-repeatable-form-types).
-
-## Related
-
-- [Form Groups](/forms/form-groups)
-- [Configuration](/get-started/configuration)
-- [Stencils for repeatable form types](/guides/control-panel-admin/stencils-for-repeatable-form-types)
-- [Translating forms across Craft sites](/guides/control-panel-admin/translating-forms-across-craft-sites)

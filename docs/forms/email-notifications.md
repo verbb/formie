@@ -25,7 +25,7 @@ That means you can often keep one notification and branch the recipients based o
 
 If the email should only send for certain submissions, use [Conditions](/forms/conditions).
 
-## Email content
+## Email Content
 
 The content editor stays fairly simple on purpose, so the email is more likely to work across mail clients.
 
@@ -42,13 +42,15 @@ A notification can also use:
 
 That keeps the notification focused on who gets the email and what it should contain, while the template controls presentation.
 
-## Preview and test send
+## Preview and Test Send
 
 Use the preview tab when you want a quick check of the rendered output with sample content.
 
-Use a test send when you want to check real delivery, styling, or mail-provider behavior before relying on the notification in production.
+Use a test send when you want to check real delivery, styling, or mail-provider behaviour before relying on the notification in production.
 
-## Queue behavior
+<span id="queue-behavior"></span>
+
+## Queue Behaviour
 
 Formie can send notifications through Craft’s queue. That is usually the better choice because it keeps submission requests faster for the person filling out the form.
 

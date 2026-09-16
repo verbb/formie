@@ -4,7 +4,7 @@ PlaceKit is an address provider module that enhances an Address field with provi
 
 ## Events
 
-#### The `formie:address:place-kit:before-init` event
+#### The `formie:address:place-kit:before-init` Event
 
 Triggered before the PlaceKit provider initializes.
 
@@ -15,7 +15,7 @@ document.addEventListener('formie:address:place-kit:before-init', (event) => {
 });
 ```
 
-#### The `formie:address:place-kit:populate` event
+#### The `formie:address:place-kit:populate` Event
 
 Triggered when PlaceKit writes selected address data into the field sub-fields.
 
@@ -26,7 +26,7 @@ document.addEventListener('formie:address:place-kit:populate', (event) => {
 });
 ```
 
-## Related pages
+## Related Pages
 
 - [Address field](/browser/ui-reference/fields/address)
 - [Overview](/browser/modules/)

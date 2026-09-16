@@ -1,4 +1,4 @@
-# CAPTCHA.eu
+# CAPTCHA.Eu
 
 CAPTCHA.eu is a managed captcha provider module for CAPTCHA.eu challenges inside Formie forms.
 
@@ -10,7 +10,7 @@ CAPTCHA.eu is a managed captcha provider module for CAPTCHA.eu challenges inside
 
 CAPTCHA.eu relies on the shared module lifecycle and the broader submit flow documented on [JavaScript events](/browser/behavior/javascript-events).
 
-#### The `formie:module:captcha-eu:after-setup` event
+#### The `formie:module:captcha-eu:after-setup` Event
 
 Triggered after the CAPTCHA.eu module has finished setup for its target form.
 
@@ -21,7 +21,7 @@ document.addEventListener('formie:module:captcha-eu:after-setup', (event) => {
 });
 ```
 
-## Related pages
+## Related Pages
 
 - [Overview](/browser/modules/)
 - [JavaScript events](/browser/behavior/javascript-events)

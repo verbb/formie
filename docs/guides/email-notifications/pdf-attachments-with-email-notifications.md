@@ -1,12 +1,18 @@
-# PDF attachments with Email Notifications
+# PDF Attachments with Email Notifications
 
-Email notifications can attach a generated PDF — useful for invoices, application summaries, signed agreements, or printable copies of what the user submitted. Formie renders a Twig PDF template at send time and attaches the result. This walkthrough creates the template, links it to a notification, and covers layout options.
+Email notifications can attach a generated PDF — useful for invoices, application summaries, signed agreements, or printable copies of what the user submitted. Formie renders a Twig [PDF template](/templates/pdf-templates) at send time and attaches the result. This walkthrough creates the template, links it to a notification, and covers layout options.
 
-## Prerequisites
+## Prepare an Application Form
 
-- [Email Notifications](/forms/email-notifications) on at least one form
-- [PDF Templates](/templates/pdf-templates)
-- A working Craft mail transport
+You need permission to edit forms and PDF templates, access to your Craft project’s `templates/` directory, and a working mail transport. Start with a form named **Application**, handle `application`, containing Name and Email Address fields. Add an email notification addressed to a test mailbox you control and save the form. See [Email Notifications](/forms/email-notifications) if you have not created one before.
+
+Create `templates/apply.twig` with the following content:
+
+```twig
+{{ craft.formie.renderForm('application') }}
+```
+
+Open `/apply`, submit once and confirm that the notification reaches your test mailbox before adding a PDF. This separates delivery problems from PDF rendering problems.
 
 ## Overview
 
@@ -18,7 +24,7 @@ Three pieces work together:
 
 Global PDF defaults (`pdfPaperSize`, `pdfPaperOrientation`) live in [Configuration](/get-started/configuration).
 
-## Step 1 — Create the Twig template
+## Step 1 — Create the Twig Template
 
 Create a template file, for example `templates/_pdf/application-summary.html`:
 
@@ -65,7 +71,7 @@ Available variables:
 | `form` | Form element |
 | `contentHtml` | HTML from the notification's email content field |
 
-## Step 2 — Register the PDF template in Formie
+## Step 2 — Register the PDF Template in Formie
 
 1. Go to **Formie → Settings → PDF Templates**
 2. Create a new template (for example `Application Summary`)
@@ -74,7 +80,7 @@ Available variables:
 
 Configure paper size and orientation in the template settings or rely on global `pdfPaperSize` / `pdfPaperOrientation` in `config/formie.php` (`letter` / `portrait` by default).
 
-## Step 3 — Enable attachment on the notification
+## Step 3 — Enable Attachment on the Notification
 
 1. Open the form in the form builder
 2. Edit the email notification (admin copy or user confirmation)
@@ -84,7 +90,7 @@ Configure paper size and orientation in the template settings or rely on global 
 
 When the notification sends, Formie renders the PDF template and attaches the file.
 
-## Step 4 — Use contentHtml for shared body copy
+## Step 4 — Use contentHtml for Shared Body Copy
 
 If the PDF should mirror the email body, wrap `contentHtml`:
 
@@ -100,7 +106,7 @@ If the PDF should mirror the email body, wrap `contentHtml`:
 
 The email content field stays the single source for message copy; the PDF wraps it with print-friendly layout.
 
-## Step 5 — Set notification defaults (optional)
+## Step 5 — Set Notification Defaults (Optional)
 
 Pre-enable PDF attachment for new notifications project-wide:
 
@@ -117,21 +123,22 @@ return [
 
 Form [groups](/forms/form-groups) can override notification defaults per team.
 
-## Step 6 — Test send
+## Step 6 — Test Send
 
 1. Open the notification **Preview** tab for a quick render check
 2. Use **Send test email** to verify attachment size, fonts, and mail client behaviour
-3. Submit a real test entry on the front end
+3. Open `/apply`, enter a test name and email address, and submit the form.
+4. Open the resulting email and its PDF attachment. Confirm the form title, submission date and both answers match the submission in Craft. A preview alone does not verify attachment delivery.
 
 Large file upload fields increase PDF generation time — keep `useQueueForNotifications` enabled in production.
 
-## File uploads in PDFs
+## File Uploads in PDFs
 
 File Upload field values in PDFs are typically filenames or links depending on field summary settings. For images embedded in PDFs, custom Twig referencing asset URLs may be needed — test with your PDF renderer and mail provider attachment limits.
 
 For arbitrary extra files (not generated PDFs), see [Attaching extra assets to Email Notifications](/guides/email-notifications/attaching-extra-assets-to-email-notifications).
 
-## Branded PDF layout
+## Branded PDF Layout
 
 For headers, footers, and brand colours shared across PDFs, use a base Twig layout and extend it in each PDF template — same pattern as [Building an Email Notification template from scratch](/guides/email-notifications/building-an-email-notification-template-from-scratch) for HTML email.
 
@@ -152,10 +159,3 @@ For headers, footers, and brand colours shared across PDFs, use a base Twig layo
 
 - Submissions load forms with site override merge — PDF uses submission `siteId`
 - For multi-site copy, see [Multi-site notification content](/guides/email-notifications/multi-site-notification-content)
-
-## Related
-
-- [PDF Templates](/templates/pdf-templates)
-- [Email Notifications](/forms/email-notifications)
-- [Building an Email Notification template from scratch](/guides/email-notifications/building-an-email-notification-template-from-scratch)
-- [Attaching extra assets to Email Notifications](/guides/email-notifications/attaching-extra-assets-to-email-notifications)

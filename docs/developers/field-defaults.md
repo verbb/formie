@@ -4,7 +4,7 @@ Formie can apply organisation-wide defaults when a new field is added to a form.
 
 Third-party fields do not participate automatically. Each field type must opt in by declaring which settings can be defaulted, and those settings must already exist in the field’s form-builder schema.
 
-## How defaults are applied
+## How Defaults Are Applied
 
 When Formie creates a new field instance, it merges stored defaults into the field config before the field model is constructed.
 
@@ -72,7 +72,7 @@ Each handle in `supportedDefaults()` must match a schema field `name` in one of 
 
 Formie does not scan the Conditions tab, preview schema, or nested layout-builder schemas.
 
-## Schema extraction
+## Schema Extraction
 
 Formie builds the Defaults UI from the same schema nodes used in the field edit modal. You do not maintain a separate defaults form.
 
@@ -102,13 +102,13 @@ public function getDefaultableSettingsSchema(): array
 
 If a handle is listed in `supportedDefaults()` but cannot be found in the tab schemas, it is skipped silently and will not appear in the Defaults UI.
 
-### Custom defaults schema
+### Custom Defaults Schema
 
 Most fields should rely on schema extraction. Override `getDefaultableSettingsSchema()` only when you need a defaults-specific schema that differs from the field modal, for example when remapping storage keys or supplying Defaults-only options.
 
 Form-level defaults use this pattern via `SchemaHelper::extractDefaultsSchema()` and `FormDefaultableTrait`. Field types normally do not need that level of indirection.
 
-## Inherit vs explicit values
+## Inherit vs Explicit Values
 
 Project config and the Defaults UI treat empty values as “inherit Formie’s built-in behaviour for this field type”.
 
@@ -132,7 +132,7 @@ Example project config:
 
 Keys must be the fully qualified field class name.
 
-## Choosing good default settings
+## Choosing Good Default Settings
 
 Prefer settings that are:
 
@@ -148,13 +148,13 @@ Avoid exposing:
 
 Formie currently merges defaults into the top-level field config only. Nested subfield defaults are not supported yet.
 
-## Field properties and validation
+## Field Properties and Validation
 
 Defaulted settings must exist as public properties on the field class, and should be included in `settingsAttributes()` if they are not already part of the base `Field` attribute list.
 
 If a setting needs normalisation before it is assigned to a new field, Formie handles known cases in `FormDefaults::normalizeFieldDefaultValue()`. Third-party fields rarely need this, but you can request or implement normalisation there for non-trivial value types such as dates.
 
-## Extending Formie base fields
+## Extending Formie Base Fields
 
 If your custom field extends a Formie field that already defines `supportedDefaults()`, you inherit that list unless you override it.
 
@@ -167,18 +167,36 @@ protected function supportedDefaults(): array
 }
 ```
 
-## Programmatic access
+## Programmatic Access
 
 The Defaults editor is powered by `verbb\formie\services\FormDefaults`.
 
 Useful methods when building tooling or tests:
 
-Method | Description
---- | ---
-`getFieldTypeDefaultsConfig()` | Returns compiled Defaults UI config for every field type that opts in.
-`resolveFieldTypeDefaults(string $fieldClass)` | Returns stored defaults for one field class.
-`applyToNewField(array &$config, string $fieldClass, ?array $supported = null)` | Merges defaults into a field config array.
-`getSupportedDefaults()` | Returns the supported handle list for a field instance.
+::: reference
+### `getFieldTypeDefaultsConfig()`
+
+Returns compiled Defaults UI config for every field type that opts in.
+:::
+
+::: reference
+### `resolveFieldTypeDefaults(string $fieldClass)`
+
+Returns stored defaults for one field class.
+:::
+
+::: reference
+### `applyToNewField(array &$config, string $fieldClass, ?array $supported = null)`
+
+Merges defaults into a field config array.
+:::
+
+::: reference
+### `getSupportedDefaults()`
+
+Returns the supported handle list for a field instance.
+:::
+
 
 Registered third-party fields appear automatically in `getFieldTypeDefaultsConfig()` once `supportedDefaults()` is non-empty and schema extraction finds at least one setting.
 

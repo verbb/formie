@@ -17,9 +17,9 @@ Entries keeps its own field identity, but the visible control inherits the attri
 | `data-formie-field-type="entries"` | Field identity marker on the outer wrapper | Required |
 | `data-formie-input` and `data-formie-input-id` | Shared input identity hooks from the rendered choice control | Required |
 | `<select>` / `data-formie-checkbox-input` / `data-formie-radio-input` | Control-level hooks inherited from the selected display type | Required |
-| Hidden empty input for checkbox display | Preserves empty-state submission behavior | Recommended for checkbox display |
+| Hidden empty input for checkbox display | Preserves empty-state submission behaviour | Recommended for checkbox display |
 
-## Display types
+## Display Types
 
 Entries can render as:
 
@@ -30,7 +30,7 @@ Entries can render as:
 
 The docs preview uses mocked entry options so the display variants are easy to review without a live element query.
 
-## Related pages
+## Related Pages
 
 - [Categories](/browser/ui-reference/fields/categories)
 - [Checkboxes](/browser/ui-reference/fields/checkboxes)

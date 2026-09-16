@@ -1,8 +1,8 @@
-# Upload manager
+# Upload Manager
 
 Upload manager enhances File Upload fields when **Display type** is **Upload Manager (Advanced)**. It is powered by [Uppy](https://uppy.io/) (`@uppy/core` + `@uppy/xhr-upload`) and stages files immediately through Formie’s upload endpoints.
 
-## When it loads
+## When It Loads
 
 Formie adds the `upload-manager` module to a form’s client module manifest when a File Upload field uses **Upload Manager (Advanced)**. The `file-upload` module is not loaded for those fields.
 
@@ -36,7 +36,7 @@ Uploaded asset IDs are synchronized through the same hidden-input contract as Si
 
 ## Events
 
-#### The `formie:field:file-upload:uploaded-assets-sync` event
+#### The `formie:field:file-upload:uploaded-assets-sync` Event
 
 Triggered after uploaded asset IDs have been synchronized into hidden inputs and the upload manager file list.
 
@@ -50,7 +50,7 @@ document.addEventListener('formie:field:file-upload:uploaded-assets-sync', (even
 });
 ```
 
-#### The `formie:field:file-upload:uploaded-assets-reordered` event
+#### The `formie:field:file-upload:uploaded-assets-reordered` Event
 
 Triggered after the user reorders uploaded files with the sort controls.
 
@@ -64,7 +64,7 @@ document.addEventListener('formie:field:file-upload:uploaded-assets-reordered', 
 
 The shared module lifecycle also exposes scoped events such as `formie:module:upload-manager:init` and `formie:module:upload-manager:destroy`.
 
-## Related pages
+## Related Pages
 
 - [File Upload field](/browser/ui-reference/fields/file-upload)
 - [File upload module](/browser/modules/field/file-upload)

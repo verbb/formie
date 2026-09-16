@@ -19,7 +19,7 @@ Once you’ve created a query, set any parameters you need, then fetch the resul
 Formie form queries build on Craft element queries. See [Element Queries](https://craftcms.com/docs/5.x/development/element-queries) in the Craft docs if you want the broader query syntax.
 :::
 
-## Fetch a form by handle
+## Fetch a Form by Handle
 The most common use is fetching a form by its handle, then passing it to a render function or reading its properties.
 
 ::: code

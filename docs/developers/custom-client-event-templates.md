@@ -8,7 +8,7 @@ Register predefined client event templates for the form builder **Tracking** tab
 
 Formie ships built-in templates for GTM, GA4, Meta, and a blank starter event. Use this event to add your own analytics presets for a project or plugin.
 
-## Register a template
+## Register a Template
 
 Listen for `ClientEventTemplates::EVENT_REGISTER_CLIENT_EVENT_TEMPLATES` in your module's `init()` method and push one or more template definitions onto the event.
 
@@ -45,22 +45,76 @@ Event::on(ClientEventTemplates::class, ClientEventTemplates::EVENT_REGISTER_CLIE
 
 When an author picks the template, Formie materializes it into a normal page client event. Authors can edit the event name, payload, and conditions afterwards.
 
-## Template properties
+## Template Properties
 
-| Property | Required | Description |
-| --- | --- | --- |
-| `handle` | Yes | Unique template identifier. Use a project or plugin prefix, e.g. `acme_demo_request`. |
-| `label` | Yes | Author-facing name in the **Add event** menu. |
-| `description` | No | Short helper text shown under the label in the menu. |
-| `category` | No | Internal grouping key. Defaults to `general`. |
-| `categoryLabel` | No | Group heading in the **Add event** menu. Defaults to `General`. |
-| `event` | No | Default analytics event name. Defaults to `formPageSubmission`. |
-| `pageContexts` | No | Where the template may be suggested. Defaults to `['any']`. |
-| `payload` | No | Default payload rows. See below. |
+::: reference
+### `handle`
+
+**Required:** Yes
+
+Unique template identifier. Use a project or plugin prefix, e.g. `acme_demo_request`.
+:::
+
+::: reference
+### `label`
+
+**Required:** Yes
+
+Author-facing name in the **Add event** menu.
+:::
+
+::: reference
+### `description`
+
+**Required:** No
+
+Short helper text shown under the label in the menu.
+:::
+
+::: reference
+### `category`
+
+**Required:** No
+
+Internal grouping key. Defaults to `general`.
+:::
+
+::: reference
+### `categoryLabel`
+
+**Required:** No
+
+Group heading in the **Add event** menu. Defaults to `General`.
+:::
+
+::: reference
+### `event`
+
+**Required:** No
+
+Default analytics event name. Defaults to `formPageSubmission`.
+:::
+
+::: reference
+### `pageContexts`
+
+**Required:** No
+
+Where the template may be suggested. Defaults to `['any']`.
+:::
+
+::: reference
+### `payload`
+
+**Required:** No
+
+Default payload rows. See below.
+:::
+
 
 Handles must be unique across all registered templates. If two templates share a handle, the last one registered wins.
 
-## Page contexts
+## Page Contexts
 
 `pageContexts` controls which templates appear in **Suggested for this page**. They do not prevent an author from adding a template manually from **Add event**.
 
@@ -72,11 +126,11 @@ Handles must be unique across all registered templates. If two templates share a
 | `middle-page` | A middle page of a multi-page form |
 | `last-page` | The final page of a multi-page form |
 
-## Payload rows
+## Payload Rows
 
 Each payload row becomes one property on the materialized client event.
 
-### Static rows
+### Static Rows
 
 Use `kind` => `static` (or omit `kind`) for values that are already known or use Formie reference tokens.
 
@@ -87,7 +141,7 @@ Use `kind` => `static` (or omit `kind`) for values that are already known or use
 
 Static values can use the same reference tokens as other variable-aware builder fields, such as `{form:handle}`, `{form:name}`, and `{field:reference}`.
 
-### Field mapping rows
+### Field Mapping Rows
 
 Use `kind` => `field` when the author should choose a form field during template insertion.
 
@@ -102,17 +156,30 @@ Use `kind` => `field` when the author should choose a form field during template
 ],
 ```
 
-| Property | Description |
-| --- | --- |
-| `fieldTypes` | Limits which field types can be mapped. Use Formie field type handles such as `email`, `number`, `single-line-text`, and `calculations`. |
-| `mappingLabel` | Label shown in the mapping dialog. Defaults to the payload `key`. |
-| `required` | When `true`, the author must map the field before the template can be inserted. |
+::: reference
+### `fieldTypes`
+
+Limits which field types can be mapped. Use Formie field type handles such as `email`, `number`, `single-line-text`, and `calculations`.
+:::
+
+::: reference
+### `mappingLabel`
+
+Label shown in the mapping dialog. Defaults to the payload `key`.
+:::
+
+::: reference
+### `required`
+
+When `true`, the author must map the field before the template can be inserted.
+:::
+
 
 When the template is inserted, Formie stores the mapped value as a field reference token, e.g. `{field:a1b2c3}`.
 
 Templates with one or more `field` rows open a mapping dialog before insertion. Templates with only static rows are inserted immediately.
 
-## Materialized event shape
+## Materialized Event Shape
 
 After insertion, a template becomes a normal page client event:
 
@@ -136,7 +203,7 @@ After insertion, a template becomes a normal page client event:
 
 When a submission succeeds, Formie resolves payload values server-side after a successful page submit. See [Tracking and analytics](/frontend/tracking-and-analytics) for how resolved events are pushed to `dataLayer` and returned in Ajax responses.
 
-## Programmatic access
+## Programmatic Access
 
 You can also read or materialize templates in PHP:
 
@@ -153,18 +220,18 @@ $event = Formie::$plugin->getClientEventTemplates()->materializeTemplate('acme_d
 
 ## Troubleshooting
 
-### The template does not appear in the builder
+### The Template Does Not Appear in the Builder
 
 - Confirm the event listener is registered during module `init()`.
 - Ensure `handle` is unique and not empty.
 - Hard-refresh the control panel after changing plugin code.
 
-### A field cannot be mapped
+### A Field Cannot Be Mapped
 
 - Check that `fieldTypes` includes the field's type handle.
 - Mapping only includes fields on the current form layout.
 
-### Suggested templates do not show for a page
+### Suggested Templates Do Not Show for a Page
 
 - Check `pageContexts` against the current page position.
 - The built-in `blank` template is excluded from suggestions because it applies everywhere and is always available from **Add event**.

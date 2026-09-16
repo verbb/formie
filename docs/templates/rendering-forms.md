@@ -24,7 +24,7 @@ If you're using a Form Field in an entry or other element, you can get the Form 
 {{ craft.formie.renderForm(form) }}
 ```
 
-## Render options
+## Render Options
 
 You can pass render options as the second argument.
 

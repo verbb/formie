@@ -8,24 +8,39 @@ Formie can render a saved submission back into the form so someone can edit it f
 
 That is useful for account areas, review flows, or any project where a submission may need to be updated after it was first created.
 
-## The basic pattern
+## The Basic Pattern
 
 1. fetch the submission
 2. make sure the current user is allowed to edit it
 3. set that submission on the form
 4. render the form again
 
+This example assumes visitors signed in before submitting `contactForm`, and the form collected the current user (`collectUser`). Put it in the account-area template that receives `submissionUid` in its query string. Exclude the route from full-page caching.
+
 ```twig
-{% set submission = craft.formie.submissions.id(craft.app.request.getSegment(3)).one() %}
+{% requireLogin %}
+{% header "Cache-Control: private, no-store" %}
+{% set submissionUid = craft.app.request.getQueryParam('submissionUid') %}
+{% if not submissionUid or submissionUid is iterable or not (submissionUid matches '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i') %}
+    {% exit 404 %}
+{% endif %}
+
+{% set submission = craft.formie.submissions()
+    .form('contactForm')
+    .siteId(currentSite.id)
+    .uid(submissionUid)
+    .userId(currentUser.id)
+    .one() %}
 
 {% if not submission %}
     {% exit 404 %}
 {% endif %}
 
 {% do submission.form.setSubmission(submission) %}
-
 {{ craft.formie.renderForm(submission.form) }}
 ```
+
+Verify that the owner can edit and that a different signed-in account receives 404 for the same URL.
 
 ## Security
 

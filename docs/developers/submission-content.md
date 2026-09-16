@@ -14,7 +14,7 @@ When a value does not look the way you expect, the first question to ask is not 
 
 The `Submission` element gives you helper methods for the most common formats.
 
-### Get the normal field value
+### Get the Normal Field Value
 
 Use `getFieldValue()` when you want the field's normal value without forcing a particular format.
 
@@ -42,7 +42,7 @@ $firstName = $submission->firstName;
 
 For simple fields, this is often enough. For more complex fields such as Address, Name, Group, Repeater, or Table, you will usually want one of the more explicit methods below.
 
-### Get a string value
+### Get a String Value
 
 Use `getFieldValueAsString()` when you need plain text. This is useful for logs, simple output, spam tools, or anywhere you need a field collapsed into a readable string.
 
@@ -75,7 +75,7 @@ $values = $submission->getValuesAsString();
 ```
 :::
 
-### Get an array value
+### Get an Array Value
 
 Use `getFieldValueAsArray()` when a field has meaningful structure that you want to preserve. This is common for Address, Name, and more complex custom or nested fields.
 
@@ -114,7 +114,7 @@ $values = $submission->getValuesAsArray();
 
 This is usually the safest format when you are building your own payloads or working with field data that is more than a single text value.
 
-### Get export values
+### Get Export Values
 
 Use `getFieldValueForExport()` or `getValuesForExport()` when the result is going into a CSV, spreadsheet, or report.
 
@@ -137,7 +137,7 @@ $paymentTotal = $submission->getFieldValue('payment', ValueContext::export());
 
 Export output can flatten complex fields into multiple columns. For example, an Address field may become several export columns instead of one nested array.
 
-### Get summary values
+### Get Summary Values
 
 Use `getFieldValueForSummary()` or `getValuesForSummary()` when you are building a review screen, confirmation step, or summary output.
 
@@ -176,7 +176,7 @@ foreach ($summaryItems as $item) {
 
 Summary values are designed for display, not for integrations or exports.
 
-### Work with nested field paths
+### Work with Nested Field Paths
 
 You can access nested values with dot notation. This is useful for Group fields, Address sub-values, and repeater rows.
 
@@ -198,7 +198,7 @@ This is often the simplest way to pull out one specific nested value without wor
 
 Date/Time fields also support formatted nested paths such as `eventDate.date`, `eventDate.time`, and, for date ranges, `booking.startDate` or `booking.end`. Composite datetime output uses the field's configured date and time formats, so casting the value object to string matches `getFieldValueAsString()`.
 
-### Use context-specific helpers
+### Use Context-Specific Helpers
 
 Formie also includes helpers for values that are being prepared for a specific system or job:
 
@@ -233,6 +233,6 @@ $integrationValue = $submission->getFieldValue('billingAddress', ValueContext::i
 ```
 :::
 
-Use **reference** when you need the singular, string-like field value. Use **reference block** when you need the richer block value used by notification field rendering. Deprecated aliases such as `getFieldValueForEmail()` and `ValueContext::email()` still work while you upgrade, but new code should prefer the reference / reference-block names.
+Use **reference** when you need the singular, string-like field value. Use **reference block** when you need the richer block value used by notification field rendering.
 
 If you need full control, `getFieldValue()` also accepts an explicit context object, but the convenience methods above are usually clearer.

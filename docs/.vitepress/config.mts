@@ -88,14 +88,13 @@ export default defineConfig({
     cleanUrls: true,
     appearance: false,
     lastUpdated: true,
-    ignoreDeadLinks: [/^\/browser\//],
     vite: {
         ssr: {
             noExternal: ['@verbb/vitepress-theme'],
         },
         resolve: {
             alias: {
-                'mark.js/src/vanilla.js': fileURLToPath(new URL('../node_modules/mark.js/dist/mark.es6.js', import.meta.url)),
+                'mark.js/src/vanilla.js': fileURLToPath(new URL('../../node_modules/mark.js/dist/mark.es6.js', import.meta.url)),
             },
         },
         plugins: [

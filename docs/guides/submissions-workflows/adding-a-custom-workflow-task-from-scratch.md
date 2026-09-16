@@ -1,4 +1,4 @@
-# Adding a custom workflow task from scratch
+# Adding a Custom Workflow Task from Scratch
 
 Formie's submission pipeline is built from **stages**, and each stage runs an ordered list of **tasks**. Most of the time you can hook [stage or task events](/developers/submission-workflow) without writing new classes — but when you need a named step in the right place (before integrations, after spam checks, and so on), you register a custom task and insert it relative to a built-in anchor.
 
@@ -6,7 +6,7 @@ This walkthrough adds one task to the **dispatch** stage: queue an internal revi
 
 Read [Submission workflow and stages explained](/guides/submissions-workflows/submission-workflow-and-stages-explained) first if you have not worked with the pipeline yet. For task names, workflow modes, and event reference, see [Submission Workflow](/developers/submission-workflow).
 
-## When a custom task fits
+## When a Custom Task Fits
 
 | Approach | Use when |
 | --- | --- |
@@ -18,7 +18,7 @@ Read [Submission workflow and stages explained](/guides/submissions-workflows/su
 
 Custom tasks are extension tasks: their names are **not** part of Formie's built-in `Task` enum. Formie runs them when the built-in stage is active for the current [workflow mode](/developers/submission-workflow#workflow-modes) — so a task inserted into **dispatch** does not run on save-and-continue drafts, matching built-in dispatch behaviour.
 
-## Create your module
+## Create Your Module
 
 You need a [Craft module](https://craftcms.com/docs/5.x/extend/module-guide.html). All PHP in this guide lives in that module.
 
@@ -73,7 +73,7 @@ class FormieWorkflow extends Module
 
 `insertTaskBefore()` and `insertTaskAfter()` take a **built-in anchor task name** and your task instance. Formie logs a warning if the anchor cannot be found — double-check spelling against the [default tasks table](/developers/submission-workflow#default-tasks).
 
-## The task class
+## The Task Class
 
 Create `modules/formieworkflow/src/tasks/QueueHighValueReviewTask.php`. Every task implements `TaskInterface` and returns a `TaskResult` from `execute()`.
 
@@ -123,7 +123,7 @@ class QueueHighValueReviewTask implements TaskInterface
 
 Pick a **unique** task name. Duplicate names in one stage trigger a Formie warning in the logs.
 
-## The queue job
+## The Queue Job
 
 The task itself should stay fast — push heavy work to the queue so the visitor is not waiting on your API.
 
@@ -160,7 +160,7 @@ class ReviewHighValueSubmissionJob extends BaseJob
 
 Because this task sits **before** `dispatch.triggerIntegrations`, the submission is already saved and the queue job can safely load it by ID. Integrations still run after your task unless you halt the workflow (see below).
 
-## Task results
+## Task Results
 
 `TaskResult::continue()` means the stage keeps going — use this when work succeeded or when there is nothing to do for this request.
 
@@ -180,7 +180,7 @@ return TaskResult::halt(false, [
 
 Formie maps a task halt to a **stage halt**. The pipeline stops; later stages are skipped.
 
-## Choosing an anchor task
+## Choosing an Anchor Task
 
 Insert relative to the built-in task that marks the boundary you care about.
 
@@ -195,7 +195,7 @@ Insert relative to the built-in task that marks the boundary you care about.
 
 See the full list in [Submission Workflow — default tasks](/developers/submission-workflow#default-tasks).
 
-## When events are enough
+## When Events Are Enough
 
 If you only need a short side effect beside one built-in step, `afterTask` avoids a new class:
 
@@ -216,7 +216,7 @@ Event::on(SubmissionWorkflow::class, SubmissionWorkflow::EVENT_AFTER_TASK, funct
 
 Reach for a custom task when ordering matters for **multiple** extensions, you want a stable name in logs, or you need the `beforeTask` / `afterTask` events to target your logic explicitly. For several event-only patterns without new classes, see [Using submission workflow events](/guides/submissions-workflows/using-submission-workflow-events).
 
-## Finishing up
+## Finishing Up
 
 With the module enabled:
 
@@ -227,10 +227,3 @@ With the module enabled:
 Formie logs each stage and task at `info` level. If your task never appears, confirm the stage name in the event listener, the anchor task name, and that you are testing a full **submit** rather than save-and-continue.
 
 For a whole new phase in the pipeline — not just one more step inside an existing stage — see [Adding a custom workflow stage from scratch](/guides/submissions-workflows/adding-a-custom-workflow-stage-from-scratch).
-
-## Related
-
-- [Submission workflow and stages explained](/guides/submissions-workflows/submission-workflow-and-stages-explained)
-- [Submission Workflow](/developers/submission-workflow)
-- [Submission Events](/developers/events/submission-events)
-- [Integration dispatch and policies](/guides/integrations/integration-dispatch-and-policies)

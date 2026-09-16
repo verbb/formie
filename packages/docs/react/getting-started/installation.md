@@ -27,7 +27,7 @@ import '@verbb/formie-browser/css/formie-theme.css';
 
 Client-rendered forms do not require the browser theme. Only import it if you intentionally want to reuse Formie's shipped styling.
 
-## Browser requirements
+## Browser Requirements
 
 - server-rendered forms need an `endpoint`, a `formHandle`, and either `transport="rest"` or `transport="graphql"` unless you pass `source={{ payload }}` directly.
 - client-rendered forms need either a `source` definition or both `endpoint` and `formHandle`.
@@ -36,11 +36,11 @@ Client-rendered forms do not require the browser theme. Only import it if you in
 - If your frontend and Craft live on different domains, point `endpoint` at the Craft site, not the frontend app.
 - If Craft control panel lives under something like `/admin`, do not use the CP URL. Use the Craft site root for REST, or the GraphQL endpoint for GraphQL.
 
-## React app notes
+## React App Notes
 
 - In Next.js or other React Server Component setups, keep `@verbb/formie-react` usage inside client components.
 - If your app preloads payloads or client definition envelopes in a route loader, pass them into React instead of fetching again inside the form component.
 
-## Next step
+## Next Step
 
 Choose the right mode on [React](/react/).

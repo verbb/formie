@@ -4,11 +4,11 @@ Use this page when you are overriding Formie's shared field wrapper structure in
 
 ## Anatomy
 
-### Normal render
+### Normal Render
 
 <FormiePreview src="../examples/field-normal.preview.ts" />
 
-### Annotated render
+### Annotated Render
 
 <FormiePreview src="../examples/field-anatomy.preview.ts" />
 
@@ -22,8 +22,8 @@ Most field pages assume this shared wrapper structure still exists around the fi
 | `data-formie-field-type` | Field type identity for modules and styling | Preserve when present |
 | `data-formie-input-id` | Stable id used to coordinate label, errors, and browser helpers | Preserve when present |
 | `data-formie-field-has-error` | Browser error-state flag | Preserve when present |
-| `data-formie-conditions` | Serialized condition contract | Required when the field has conditions |
-| `data-formie-validation` | Serialized validation rule contract | Required when the field validates client-side |
+| `data-formie-conditions` | Serialised condition contract | Required when the field has conditions |
+| `data-formie-validation` | Serialised validation rule contract | Required when the field validates client-side |
 
 These shared structural nodes matter too:
 

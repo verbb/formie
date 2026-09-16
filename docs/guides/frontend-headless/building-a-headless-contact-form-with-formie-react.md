@@ -1,6 +1,8 @@
-# Building a headless contact form with Formie React
+# Building a Headless Contact Form with Formie React
 
 This walkthrough takes you from a Formie contact form in Craft to a working React front end that loads, renders, and submits the form over REST or GraphQL — without Twig templates on the page.
+
+The [React package documentation](https://docs.verbb.io/formie/react/) covers the component options available when adapting this example.
 
 ## Prerequisites
 
@@ -9,7 +11,7 @@ This walkthrough takes you from a Formie contact form in Craft to a working Reac
 - [Frontend Assets](/frontend/frontend-assets) — how Formie's browser packages fit together
 - [Rendering Forms](/graphql/rendering-forms) and [Create Submissions](/graphql/create-submissions) if you use GraphQL
 
-## Choose your rendering approach
+## Choose Your Rendering Approach
 
 Formie React supports two paths:
 
@@ -20,7 +22,7 @@ Formie React supports two paths:
 
 Both paths share the same transport options: `rest` or `graphql`. Start with server-rendered if you want the fastest path to a working form; move to client-rendered when you need full design control.
 
-## Step 1 — Install packages
+## Step 1 — Install Packages
 
 ```bash
 npm install @verbb/formie-browser @verbb/formie-core @verbb/formie-react react react-dom
@@ -32,7 +34,7 @@ Import Formie's CSS once in your app entry:
 import '@verbb/formie-browser/css/formie.css';
 ```
 
-## Step 2 — Configure Craft for headless access
+## Step 2 — Configure Craft for Headless Access
 
 Your React app needs to reach Craft's Formie endpoints.
 
@@ -42,7 +44,7 @@ Your React app needs to reach Craft's Formie endpoints.
 
 For local development, point your React app at `https://your-craft-site.test` and ensure the dev server can reach Craft.
 
-## Step 3 — Server-rendered contact form (REST)
+## Step 3 — Server-Rendered Contact Form (REST)
 
 The quickest headless setup: Formie fetches the form payload, mounts its HTML, and handles validation, conditions, and submission.
 
@@ -67,7 +69,7 @@ export function ContactForm() {
 
 That is enough for a single-page contact form with email validation, captchas, and success messaging configured in the Formie control panel.
 
-### GraphQL transport
+### GraphQL Transport
 
 Swap `transport="rest"` for `transport="graphql"` and point `endpoint` at your GraphQL URL (for example `https://your-craft-site.test/api`):
 
@@ -81,7 +83,7 @@ Swap `transport="rest"` for `transport="graphql"` and point `endpoint` at your G
 
 Formie uses `formieClientForm` and `submitFormieClientForm` under the hood. See [GraphQL submission flow end-to-end](/guides/frontend-headless/graphql-submission-flow-end-to-end) for the full query and mutation sequence.
 
-### Pre-fetched payload
+### Pre-Fetched Payload
 
 If your app already fetched the form payload (for example, during SSR or in a loader), pass it directly:
 
@@ -93,7 +95,7 @@ export function ContactForm({ payload }: { payload: FormEndpointPayload }) {
 }
 ```
 
-## Step 4 — Client-rendered contact form
+## Step 4 — Client-Rendered Contact Form
 
 When you need your own field components, use `<FormieClientForm />`. Formie loads the form definition; you render each field.
 
@@ -134,7 +136,7 @@ export function ContactForm() {
 
 Use `useFormie`, `useFormieField`, and `useFormiePage` from `@verbb/formie-react` when you need finer control over layout — for example, a custom multi-column grid or inline validation display.
 
-## Step 5 — Multi-site and locale
+## Step 5 — Multi-Site and Locale
 
 Pass `siteId` and `locale` when the form should render for a specific Craft site or language:
 
@@ -148,9 +150,9 @@ Pass `siteId` and `locale` when the form should render for a specific Craft site
 />
 ```
 
-Formie merges [site translation overrides](/forms/multi-site#content-translation) automatically. You do not need separate forms per language for label changes.
+Formie merges [site translation overrides](/forms/multi-site-and-translation#content-translation) automatically. You do not need separate forms per language for label changes.
 
-## Step 6 — Static caching
+## Step 6 — Static Caching
 
 If the React page is served from a static cache (Blitz, Craft Cloud, or a CDN), enable token refresh so CSRF and request tokens stay fresh:
 
@@ -213,7 +215,7 @@ If you configured client events in the form builder, resolved events are returne
 
 See [Client events — GTM, GA4, and Meta](/guides/frontend-headless/client-events-gtm-ga4-and-meta) for builder setup and GTM wiring.
 
-## Starter projects
+## Starter Projects
 
 The [React starter](https://formie-starters.verbb.io/react) and [Next.js starter](https://formie-starters.verbb.io/next) exercise all four combinations: HTML/component rendering × REST/GraphQL transport. Clone one of those repos when you want a working reference app rather than wiring from scratch.
 
@@ -232,11 +234,3 @@ The [React starter](https://formie-starters.verbb.io/react) and [Next.js starter
 **Validation errors on submit**
 
 - GraphQL returns field errors in `extensions.errors`. REST returns them in the submit response body. Both map to field handles configured in the form builder.
-
-## Related
-
-- [Frontend Assets](/frontend/frontend-assets)
-- [GraphQL submission flow end-to-end](/guides/frontend-headless/graphql-submission-flow-end-to-end)
-- [Cached forms in production](/guides/frontend-headless/cached-forms-in-production)
-- [Client events — GTM, GA4, and Meta](/guides/frontend-headless/client-events-gtm-ga4-and-meta)
-- [React package docs](https://docs.verbb.io/formie/react/)

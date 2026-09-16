@@ -4,7 +4,7 @@
 For tuning guards, captchas, and keyword rules together in practice, see [Submission screening rules in practice](/guides/submissions-workflows/submission-screening-rules-in-practice).
 :::
 
-Submission screening is Formie's unified layer for deciding whether a submission should be treated as legitimate before it is saved and dispatched. It runs in the submission workflow’s **`screen`** stage, immediately after field validation and before authorization, persistence, and notifications.
+Submission screening is Formie's unified layer for deciding whether a submission should be treated as legitimate before it is saved and dispatched. It runs in the submission workflow’s **`screen`** stage, immediately after field validation and before authorisation, persistence, and notifications.
 
 Screening combines **submission guards**, **captcha integrations**, and **server-side spam rules** so you can tune friction for real users while still blocking automated abuse.
 
@@ -24,7 +24,7 @@ For a deeper look at stages, tasks, and extension points, see [Submission Workfl
 
 ## Submission Guards
 
-Submission guards are global, built-in checks — not captcha integrations. They replaced the legacy **Honeypot**, **Javascript**, and **Duplicate** captcha types from earlier major versions.
+Submission guards are global, built-in checks — not captcha integrations.
 
 | Task | Stage | Purpose |
 | --- | --- | --- |
@@ -35,7 +35,7 @@ Guards run for every final submit. **Universal guards** (global throttling, IP t
 
 Client REST and GraphQL submissions must include a `requestToken` issued by a bootstrap call such as `formieClientForm` or `refreshFormieClientSession`. Drive-by API posts without a token are rejected.
 
-Day-to-day configuration lives in [Spam Protection](/forms/spam-protection#submission-guards). If you are upgrading from Formie 3 and used the old built-in captchas, see [Removed legacy captchas](/get-started/upgrading-from-v3#removed-legacy-captchas) in the upgrade guide.
+Day-to-day configuration lives in [Spam Protection](/forms/spam-protection#submission-guards).
 
 ## Captcha Integrations
 
@@ -53,7 +53,7 @@ Day-to-day behaviour of those settings (saving spam, user-visible responses, not
 
 Grouping guards, captchas, and spam rules in one workflow stage keeps behaviour predictable for custom code: validation errors surface in the **`validate`** stage, while spam and abuse signals are handled in **`screen`**. If you need to insert extra checks, register tasks before or after the built-in screening tasks without replacing the whole submission pipeline.
 
-### Extending screening
+### Extending Screening
 
 Use `SubmissionWorkflow::EVENT_REGISTER_STAGE_TASKS` to insert work relative to the built-in task names:
 

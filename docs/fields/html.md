@@ -2,20 +2,20 @@
 
 Use HTML when the form needs custom markup or Twig between fields.
 
-HTML is a cosmetic field for developers and agencies who need full control over markup, Twig includes, and layout fragments. If the content is just formatted copy for non-technical editors, use [Rich Text](/fields/content) instead.
+HTML is a cosmetic field for developers and agencies who need full control over markup, Twig includes, and layout fragments. If the content is just formatted copy for non-technical editors, use [Rich Text](/fields/rich-text) instead.
 
-## Key settings
+## Key Settings
 
 - **HTML content** - Define the markup rendered in the form, edited with a syntax-highlighted code editor in the form builder.
 - **Allow Twig** - When enabled, Twig in the HTML content is parsed in Formie’s sandbox when the form is rendered. This is separate from Craft notification templates and does not grant full CP Twig access.
 - **Purify content** - When enabled, output is passed through HTML Purifier before rendering.
 - **Visibility conditions** - Show or hide the content based on other form values when needed.
 
-## Submitted value
+## Submitted Value
 
 HTML is cosmetic and does not save a normal submitted value. Content is rendered at display time from the field settings.
 
-## Theme config
+## Theme Config
 
 The HTML field can be targeted with the `html` theme config key.
 
@@ -37,9 +37,9 @@ Use theme config for wrapper attributes. Use a template override only when the c
 
 For full Tailwind, Bootstrap and other framework examples, see [Formie theme configs](https://github.com/verbb/formie-theme-configs).
 
-## Related fields
+## Related Fields
 
-- Use [Rich Text](/fields/content) for WYSIWYG content editable by non-technical users.
+- Use [Rich Text](/fields/rich-text) for WYSIWYG content editable by non-technical users.
 - Use [Heading](/fields/heading) for simple section titles.
 - Use [Section](/fields/section) for visual dividers.
 - Use [Group](/fields/group) when fields should be structurally grouped.

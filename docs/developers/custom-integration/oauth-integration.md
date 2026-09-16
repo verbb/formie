@@ -26,7 +26,7 @@ class ExampleCrm extends Crm implements OAuthProviderInterface
 }
 ```
 
-Formie uses Verbb Auth under the hood. The provider class is responsible for the provider-specific OAuth behavior, while the integration owns Formie-specific settings and API calls.
+Formie uses Verbb Auth under the hood. The provider class is responsible for the provider-specific OAuth behaviour, while the integration owns Formie-specific settings and API calls.
 
 ## Provider Config
 Most OAuth integrations expose `clientId`, `clientSecret` and provider-specific settings as plugin-level integration settings. The OAuth trait reads `clientId`, `clientSecret`, `redirectUri`, `scopes`, `scopeSeparator` and `config` from the integration.
@@ -43,8 +43,10 @@ public function getOAuthProviderConfig(): array
 }
 ```
 
-## Authorization Options
-Override `getAuthorizationUrlOptions()` when the provider needs scopes or other authorization URL options.
+<span id="authorization-options"></span>
+
+## Authorisation Options
+Override `getAuthorizationUrlOptions()` when the provider needs scopes or other authorisation URL options.
 
 ```php
 public function getAuthorizationUrlOptions(): array

@@ -17,21 +17,23 @@ Use this page to preserve the canvas, hidden input, and clear action used by the
 | `[data-formie-signature-clear]` | Clear-button selector | Recommended |
 | `[data-formie-signature-message]` | User-facing status when canvas is unavailable or init fails | Recommended |
 
-## Behavior
+<span id="behavior"></span>
+
+## Behaviour
 
 The `signature` module:
 
 - mounts `SignaturePad` onto the canvas
 - synchronizes the drawn image back into the hidden input as a data URL
 - retries canvas sizing when the field starts hidden (multi-page forms, conditions, or late layout)
-- shows accurate status copy when JavaScript is disabled, canvas is unsupported, or initialization fails
+- shows accurate status copy when JavaScript is disabled, canvas is unsupported, or initialisation fails
 - responds to page navigation, resize, and visibility changes so the canvas can be remeasured safely
 
 ## Events
 
 Signature emits a field event once the drawing surface and `SignaturePad` instance are ready.
 
-#### The `formie:field:signature:init` event
+#### The `formie:field:signature:init` Event
 
 Triggered after the drawing surface and `SignaturePad` instance have been created.
 
@@ -49,7 +51,7 @@ document.querySelector('[data-clear-project-signature]')?.addEventListener('clic
 });
 ```
 
-## Related pages
+## Related Pages
 
 - [JavaScript events](/browser/behavior/javascript-events)
 - [Submission handling](/browser/behavior/submission-handling)

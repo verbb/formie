@@ -1,4 +1,4 @@
-# Project config, environment, and control panel settings
+# Project Config, Environment, and Control Panel Settings
 
 Formie does not store everything in one place. Some settings version with your Craft project, some live in `config/formie.php` on each server, and some stay in the database so privileged admins can edit them in production even when `allowAdminChanges` is off.
 
@@ -10,7 +10,7 @@ This guide gives you a mental model for **where to change a setting** and **what
 - [Spam Protection](/forms/spam-protection)
 - Craft [project config](https://craftcms.com/docs/5.x/system/project-config.html) basics
 
-## The problem this solves
+## The Problem This Solves
 
 These situations usually mean a setting is in the wrong scope — or you expected it to sync when it does not:
 
@@ -21,7 +21,7 @@ These situations usually mean a setting is in the wrong scope — or you expecte
 
 The fix is not memorising every table and YAML key. It is knowing which of three scopes owns the thing you are changing.
 
-## Three scopes — one sentence each
+## Three Scopes — One Sentence Each
 
 | Scope | One-line summary |
 | --- | --- |
@@ -31,11 +31,11 @@ The fix is not memorising every table and YAML key. It is knowing which of three
 
 Forms themselves (fields, notifications, layout) are **database content**. They do not move with project config alone. Use [Import and export between environments](/guides/control-panel-admin/import-and-export-between-environments) to promote form structure.
 
-## Walkthrough — promoting staging to production
+## Walkthrough — Promoting Staging to Production
 
 Imagine you finished work on staging and you are about to deploy. Here is what each scope does in that moment.
 
-### 1. Project config syncs structure
+### 1. Project Config Syncs Structure
 
 When production runs `project-config/sync`, Formie updates versioned resources such as:
 
@@ -48,7 +48,7 @@ These are the things your team typically wants identical across environments —
 
 Individual forms still point at a group by UID in the database; the group definition comes from project config.
 
-### 2. Environment config applies on the server
+### 2. Environment Config Applies on the Server
 
 `config/formie.php` is not synced by project config. Each environment reads its own file (or env-specific sections within it).
 
@@ -57,12 +57,11 @@ Typical per-environment differences:
 - `paymentWebhookProxyUrl` — dev tunnel vs real URLs on production
 - `redirectUri` — OAuth callback base URL
 - `useQueueForNotifications` / `useQueueForIntegrations` — queue behaviour
-- `compatibilityMode` — usually off on production after an upgrade
 - `formDefaults` — default submit method, retention, and similar plugin-wide defaults
 
 See [Configuration](/get-started/configuration) for every option. The point for deployment: **changing `formie.php` on staging does nothing to production until you deploy that file**.
 
-### 3. Control panel settings stay environment-local
+### 3. Control Panel Settings Stay Environment-Local
 
 Spam keywords, captcha provider secrets, and integration API keys live in dedicated database tables — **Settings → Spam Protection** and the integrations control panel — not in `plugins.formie.settings` project YAML.
 
@@ -76,13 +75,13 @@ So after `project-config/sync`, **these database rows are not replaced wholesale
 
 For keyword syntax and examples, see [Spam keywords in detail](/guides/configuration/spam-keywords-in-detail).
 
-### 4. Forms do not ride along with project config
+### 4. Forms Do Not Ride Along with Project Config
 
 Form layout, notifications, fields, and per-site label overrides are database content. Promoting them is a separate step — export JSON on staging, import on production — not something project config handles.
 
 Site **availability** for forms is tied to form group site policy (project config) plus `elements_sites` when you save a form. The form's fields and messages are still database rows.
 
-## Decision guide — where do I change this?
+## Decision Guide — Where Do I Change This?
 
 Use this when you know *what* you want to change but not *where*:
 
@@ -100,7 +99,7 @@ Use this when you know *what* you want to change but not *where*:
 
 Integration settings can reference Craft env syntax (`$STRIPE_SECRET_KEY`) in the CP; values are resolved when Formie reads them, not stored in exported project YAML.
 
-## After copying a database between environments
+## After Copying a Database Between Environments
 
 Database copies are common for staging refreshes or bad promotions. Treat this as a checklist, not an automatic sync:
 
@@ -111,7 +110,7 @@ Database copies are common for staging refreshes or bad promotions. Treat this a
 
 Project config sync alone does not undo a bad database copy.
 
-## Stencils — two types, two scopes
+## Stencils — Two Types, Two Scopes
 
 Stencils confuse people because both kinds look similar in the CP:
 
@@ -122,18 +121,9 @@ Stencils confuse people because both kinds look similar in the CP:
 
 Handles must be unique across both types. See [Stencils for repeatable form types](/guides/control-panel-admin/stencils-for-repeatable-form-types) for when to use each.
 
-## Security habits worth keeping
+## Security Habits Worth Keeping
 
 - Prefer env vars for API keys where the CP supports `$VAR` syntax
 - Do not commit CP-stored secrets into project YAML
 - Keep `allowedGraphqlOrigins` narrow for headless forms
 - Leave `enableCsrfValidationForGuests` enabled unless you have a documented exception
-- Turn off `compatibilityMode` on production once deprecations are clear ([template compatibility audit](/guides/migrations-upgrades/template-compatibility-audit-after-upgrade))
-
-## Related
-
-- [Configuration](/get-started/configuration)
-- [Spam Protection](/forms/spam-protection)
-- [Spam keywords in detail](/guides/configuration/spam-keywords-in-detail)
-- [Import and export between environments](/guides/control-panel-admin/import-and-export-between-environments)
-- [Stencils for repeatable form types](/guides/control-panel-admin/stencils-for-repeatable-form-types)

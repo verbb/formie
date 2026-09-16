@@ -1,21 +1,23 @@
-# Component customization
+<span id="component-customization"></span>
 
-## What you can customize
+# Component Customisation
 
-`<FormieClientForm />` supports three main customization layers:
+## What You Can Customise
+
+`<FormieClientForm />` supports three main customisation layers:
 
 - `components` for top-level `Form`, `Page`, **`Field`**, and error-summary replacements
 - `fieldComponents` for field-type-specific rendering (the control only)
 - `slots` for smaller layout regions inside the default component tree
 
-## Choose the right layer
+## Choose the Right Layer
 
 - Use `components` for major layout ownership.
 - Use `fieldComponents` for type-specific UI replacement.
 - Use `slots` for small structural intercepts.
 - Use hooks when the component needs direct form state and actions.
 
-## Combined example
+## Combined Example
 
 Real client-rendered forms often combine more than one layer:
 
@@ -70,7 +72,7 @@ export function ContactForm() {
 }
 ```
 
-## Top-level components
+## Top-Level Components
 
 Use `components` when you want to replace the top-level `Form` layout rather than one field type:
 
@@ -91,7 +93,7 @@ const components: FormieReactComponents = {
 };
 ```
 
-## Field components
+## Field Components
 
 Use `fieldComponents` when you want a React component for one specific field type:
 
@@ -143,7 +145,7 @@ These hooks are available inside client-rendered form trees:
 
 Use them when your custom React components need form state instead of only render props.
 
-## Custom actions example
+## Custom Actions Example
 
 ```tsx
 import { useFormie } from '@verbb/formie-react';

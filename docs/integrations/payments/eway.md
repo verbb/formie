@@ -1,5 +1,5 @@
 # Eway
-Follow the below steps to connect to the Eway API.
+Connect Eway to take payments through the provider configured for your form. You need access to configure the form in Craft and credentials for the destination account. The steps below establish the connection; finish by sending a test submission to verify the result.
 
 ### Step 1. Create the Integration
 1. Navigate to **Formie** → **Settings** → **Payments**.
@@ -21,3 +21,9 @@ Follow the below steps to connect to the Eway API.
 1. Go to the form you want to enable this integration on.
 1. Add a **Payment** field to your form.
 1. Select Eway for the **Payment Provider**.
+
+## Verify a Submission
+
+Save the form, open it on your site and submit recognisable test values. Complete a test payment and inspect both the saved submission and the provider’s transaction record. Confirm the amount, currency and final payment state before enabling live payments.
+
+If nothing arrives, check whether integration conditions matched, whether the submission was complete and non-spam, and whether Craft’s queue has processed the job. A successful connection check verifies credentials; it does not prove that field mapping and delivery work. See [Connect and Test an Integration](/integrations/connect-and-test-an-integration) for a complete mapping and verification workflow.

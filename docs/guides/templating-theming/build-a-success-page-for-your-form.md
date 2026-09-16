@@ -1,126 +1,95 @@
-# Build a success page for your form
+# Build a Success Page for Your Form
 
-After submit, Formie can show a message, hide the form, or redirect elsewhere. A dedicated success page lets you thank the user and show what they entered — useful for confirmations, gated content, or support requests.
+A success page confirms that a visitor has finished your form. This guide first creates a public thank-you page that shows no saved answers, then adds an account-only summary for forms completed by signed-in users.
 
-You can also show a summary *before* submit using the [Summary field](/fields/summary). This guide covers post-submit display.
+## Create a Public Thank-You Page
 
-## Prerequisites
+Start with an existing form whose handle is `contactForm`. A handle is the name you use to find the form in code. In the form builder, choose a URL redirect as the submit action and set its destination to `/thanks`. Save the form.
 
-- A form with submit action set to redirect to a URL
-- [Submission Content](/developers/submission-content) basics
-
-## Same-page success (page reload)
-
-This pattern keeps the user on the form URL but swaps the form for a submission summary. It requires **Page Reload** as the submit method because the template must re-render server-side.
-
-Create a form (the Contact Form stencil is fine) and ensure submit method is **Page Reload**.
+Create `templates/contact.twig` in your Craft project:
 
 ```twig
-{% set formSubmitted = false %}
-{% set submissionId = craft.app.request.getParam('submissionId') %}
-
-{% if submissionId %}
-    {% set submission = craft.formie.submissions.id(submissionId).one() %}
-
-    {% if submission %}
-        {% set formSubmitted = true %}
-
-        <h2>Thanks for your submission</h2>
-
-        {% for field in submission.getFields() %}
-            {% set value = submission.getFieldValueAsString(field.handle) %}
-
-            {% if value %}
-                <p>
-                    <strong>{{ field.name }}</strong><br>
-                    {{ value }}
-                </p>
-            {% endif %}
-        {% endfor %}
-    {% endif %}
-{% endif %}
-
-{% if not formSubmitted %}
-    {% set form = craft.formie.forms.handle('contactForm').one() %}
-
-    {% do form.setSettings({
-        redirectUrl: craft.app.request.url ~ '?submissionId={submission:id}',
-    }) %}
-
-    {{ craft.formie.renderForm(form) }}
-{% endif %}
+{{ craft.formie.renderForm('contactForm') }}
 ```
 
-After submit, the URL becomes something like `/contact?submissionId=1234`. The template detects the query parameter, fetches the submission, and renders field values with `getFieldValueAsString()` — the right helper for plain-text display.
-
-## Separate thank-you template (works with Ajax)
-
-Splitting templates is often easier to maintain and works with Ajax forms because you redirect to a different page.
-
-**Form template:**
+Create `templates/thanks.twig`:
 
 ```twig
-{# templates/form.html #}
+<h1>Thanks for Getting in Touch</h1>
+<p>Your enquiry has been submitted. Our team will reply using the details you provided.</p>
+```
 
-{% set form = craft.formie.forms.handle('contactForm').one() %}
+Open `/contact`, complete the form and submit it. You should arrive at `/thanks`; check **Formie → Submissions** to confirm the saved answers. This works with both Ajax and page-reload submission methods when the submit action redirects.
+
+Anyone can open the thank-you URL. It confirms the normal submission journey, but does not prove that the person viewing it submitted a form. Keep personal information, paid resources and other restricted content off this public page.
+
+## Show Answers to the Signed-In Submitter
+
+For an account area, you can show a saved submission after checking its owner. This example requires Craft user accounts, a working sign-in page and a form completed while the visitor is signed in. Enable **Collect User** under the form’s **Settings → Privacy** (`collectUser`); this records the signed-in Craft user as the submission owner. An Email Address field alone does not establish ownership.
+
+Replace `templates/contact.twig` with:
+
+```twig
+{% requireLogin %}
+{% header "Cache-Control: private, no-store" %}
+
+{% set form = craft.formie.forms().handle('contactForm').one() %}
+{% if not form %}
+    {% exit 404 %}
+{% endif %}
 
 {% do form.setSettings({
-    redirectUrl: '/thanks?submissionUid={submission:uid}',
+    collectUser: true,
+    submitAction: 'url',
+    submitActionUrl: '/thanks?submissionUid={submission:uid}',
 }) %}
 
 {{ craft.formie.renderForm(form) }}
 ```
 
-**Thank-you template:**
+Replace `templates/thanks.twig` with:
 
 ```twig
-{# templates/thanks.html #}
+{% requireLogin %}
+{% header "Cache-Control: private, no-store" %}
+{% header "Referrer-Policy: no-referrer" %}
 
-{% set submissionUid = craft.app.request.getParam('submissionUid') %}
-
-{% if not submissionUid %}
+{% set submissionUid = craft.app.request.getQueryParam('submissionUid') %}
+{% if not submissionUid or submissionUid is iterable or not (submissionUid matches '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i') %}
     {% exit 404 %}
 {% endif %}
 
 {% set submission = craft.formie.submissions()
+    .form('contactForm')
+    .siteId(currentSite.id)
     .uid(submissionUid)
+    .userId(currentUser.id)
+    .isIncomplete(false)
+    .isSpam(false)
     .one() %}
 
 {% if not submission %}
     {% exit 404 %}
 {% endif %}
 
-<h1>Thank you</h1>
+<h1>Thanks for Your Enquiry</h1>
 
 {% for field in submission.getFields() %}
     {% set value = submission.getFieldValueAsString(field.handle) %}
-
     {% if value %}
-        <p>
-            <strong>{{ field.name }}</strong><br>
-            {{ value }}
-        </p>
+        <p><strong>{{ field.name }}</strong><br>{{ value }}</p>
     {% endif %}
 {% endfor %}
 ```
 
-Invalid or missing parameters return 404 immediately — an exit-early flow keeps the template readable.
+The UID identifies the submission; the `userId` and form filters decide whether it belongs in this account page. A missing, invalid or other account’s UID returns 404. Keep Twig escaping enabled and limit the displayed fields if the form collects information that should not appear in an account summary.
 
-## Security and privacy
+Exclude both URLs from any full-page cache or CDN caching. The response headers help browsers and proxies, but an upstream cache must also be configured to bypass these routes. Do not send submission identifiers or answers to analytics.
 
-Both patterns pass a submission identifier in the URL. Numeric IDs can be guessed within a range, so prefer `{submission:uid}` over `{submission:id}` when the page shows submission content to unauthenticated users.
+## Verify the Result
 
-UIDs look like `92a47329-67f6-42c6-99e3-eb5b17ed7476` — effectively impossible to enumerate. Swap the query parameter name and fetch with `.uid()` as shown above.
+Sign in as a test user and submit the form. Confirm that the summary shows that submission’s answers. Open its URL while signed out; Craft should require sign-in. Sign in as a different user and open the same URL; it should return 404. Repeat with a missing UID and a UID from a different form.
 
-Whether this matters depends on sensitivity. A public contact form summary is lower risk than medical or financial data. When in doubt, use UID and keep the success page minimal.
+Existing submissions without an owner will not appear through this pattern. Do not infer their owner from a submitted email address. For anonymous forms, use the public confirmation above, or implement a separately reviewed, expiring access-link flow before displaying private answers.
 
-## Richer output
-
-`getFieldValueAsString()` is the quick option. For formatted HTML, summary blocks, or complex fields, see [The complete guide to rendering submission content](/guides/templating-theming/the-complete-guide-to-rendering-submission-content).
-
-## Related
-
-- [The complete guide to rendering submission content](/guides/templating-theming/the-complete-guide-to-rendering-submission-content)
-- [Rendering Forms](/templates/rendering-forms)
-- [Submission Content](/developers/submission-content)
-- [Reference tokens](/developers/reference-tokens)
+For formatted field output, see [Submission Content](/developers/submission-content). For authorised editing, see [Editing Submissions](/templates/editing-submissions).

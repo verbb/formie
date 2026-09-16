@@ -2,13 +2,13 @@
 
 Address is the address field, made up of multiple child inputs with optional autocomplete and current-location features.
 
-Use this page as the reference for the selectors and parts of the field that need to stay stable when you customize markup.
+Use this page as the reference for the selectors and parts of the field that need to stay stable when you customise markup.
 
 ## Preview
 
 <FormiePreview src="../examples/address.preview.ts" />
 
-## Field structure
+## Field Structure
 
 In the default output, Address behaves like a parent field that owns a group of child fields:
 
@@ -16,7 +16,7 @@ In the default output, Address behaves like a parent field that owns a group of 
 - each child input is still rendered as a normal field input
 - provider modules target the autocomplete child and populate related sub-fields
 
-## Browser selectors
+## Browser Selectors
 
 Address provider modules resolve sub-field inputs with `findAddressFieldInput()` and `ADDRESS_SELECTORS`. All address-owned hooks use the `data-formie-address-*` namespace:
 
@@ -36,9 +36,10 @@ Address provider modules resolve sub-field inputs with `findAddressFieldInput()`
 
 Preserve these selectors if you override the field template.
 
-Older forms may still render legacy bare hooks such as `[data-address1]` or `[data-state]`. Provider modules fall back to those automatically via `ADDRESS_LEGACY_SELECTORS`.
 
-## Built-in provider behavior
+<span id="built-in-provider-behavior"></span>
+
+## Built-in Provider Behaviour
 
 Current built-in address providers include:
 
@@ -49,7 +50,7 @@ Current built-in address providers include:
 
 Address providers mount against the target field, defer setup until the field becomes visible, and can re-check visibility after page navigation or submit results.
 
-## Address events
+## Address Events
 
 Provider-specific populate and lifecycle events are documented on [JavaScript events](/browser/behavior/javascript-events), for example:
 
@@ -58,7 +59,7 @@ Provider-specific populate and lifecycle events are documented on [JavaScript ev
 - `formie:address:address-finder:populate`
 - `formie:address:google:populate`
 
-## State / province loading
+## State / Province Loading
 
 When the State / Province sub-field uses **Dropdown when available**, picking a country fetches subdivision metadata. While that request is in flight:
 
@@ -66,7 +67,7 @@ When the State / Province sub-field uses **Dropdown when available**, picking a 
 - the state column shows a skeleton placeholder via `[data-formie-address-state-skeleton-active]` so layout does not jump
 - cached country lookups skip the loading UI on repeat selections
 
-## State / province autofill
+## State / Province Autofill
 
 Password managers and browser autofill target a persistent anchor input:
 
@@ -77,18 +78,18 @@ After subdivisions load, the module reconciles the anchor value onto the visible
 
 Custom Address templates do not need to render the autofill anchor manually. The `address-state` module injects it at runtime when **Dropdown when available** is enabled.
 
-## Styling classes
+## Styling Classes
 
-These classes are for presentation only. They are not behavior requirements:
+These classes are for presentation only. They are not behaviour requirements:
 
-### Field input
+### Field Input
 
 | Class | Description |
 | --- | --- |
 | `formie-input` | Shared address input styling and focus treatment |
 | `formie-field-nested` | Nested address subfield styling class |
 
-### Sub-field rows
+### Sub-Field Rows
 
 | Class | Description |
 | --- | --- |
@@ -102,13 +103,13 @@ These classes are for presentation only. They are not behavior requirements:
 | `formie-autocomplete-wrapper` | Address autocomplete wrapper styling class |
 | `formie-autocomplete-placeholder` | Address autocomplete placeholder styling class |
 
-### Location trigger
+### Location Trigger
 
 | Class | Description |
 | --- | --- |
 | `formie-address-location` | Current-location trigger styling class |
 
-### State / province loading
+### State / Province Loading
 
 | Class / attribute | Description |
 | --- | --- |
@@ -117,14 +118,14 @@ These classes are for presentation only. They are not behavior requirements:
 | `[data-formie-address-state-fetching]` | Set on the address root while subdivision data is loading |
 | `[data-formie-address-state-skeleton-active]` | Set on the state field while the skeleton is visible |
 
-## Validation notes
+## Validation Notes
 
 - Child inputs still validate as normal Formie inputs.
 - Required and error handling should stay aligned across parent and child output.
 - Heavy markup changes should be tested with real provider population flows.
 
-## Related pages
+## Related Pages
 
 - [Fields](/browser/ui-reference/fields/)
 - [JavaScript events](/browser/behavior/javascript-events)
-- [Manual initialization](/browser/behavior/manual-initialization)
+- [Manual initialisation](/browser/behavior/manual-initialization)

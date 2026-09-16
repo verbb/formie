@@ -20,7 +20,7 @@ This sits in the middle ground between full automatic rendering and fully custom
 </form>
 ```
 
-## What you still need
+## What You Still Need
 
 Once you stop using `renderForm()`, you become responsible for the outer form setup.
 
@@ -31,7 +31,7 @@ That usually means:
 - keeping the `data-fui-form` attribute with the form config on the form element
 - outputting assets yourself
 
-If that `data-fui-form` attribute is missing, Formie's browser startup cannot initialize the form properly.
+If that `data-fui-form` attribute is missing, Formie's browser startup cannot initialise the form properly.
 
 ## Assets
 
@@ -41,7 +41,7 @@ That gives you the right browser CSS, startup script, and translation seed witho
 
 See [Assets](/templates/assets) for the available helpers.
 
-## Render options
+## Render Options
 
 `renderPage()` accepts the same shared render options as `renderForm()`.
 

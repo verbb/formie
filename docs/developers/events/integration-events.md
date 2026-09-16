@@ -2,7 +2,7 @@
 
 ## Integration Model Events
 
-### The `registerFormieIntegrations` event
+### The `registerFormieIntegrations` Event
 The event that is triggered for registering integrations.
 
 ```php
@@ -25,7 +25,7 @@ Event::on(Integrations::class, Integrations::EVENT_REGISTER_INTEGRATIONS, functi
 });
 ```
 
-### The `modifyFormIntegrations` event
+### The `modifyFormIntegrations` Event
 The event that is triggered when all enabled integrations for a form is prepared for the front-end. This does not change the settings shown for the integration in the form builder.
 
 ```php
@@ -39,7 +39,7 @@ Event::on(Integrations::class, Integrations::EVENT_MODIFY_FORM_INTEGRATIONS, fun
 });
 ```
 
-### The `modifyFormIntegration` event
+### The `modifyFormIntegration` Event
 The event that is triggered when an integration instance is created for a form. If you want to modify the settings of an integration for a form, this would be a good event to do so.
 
 ```php
@@ -53,7 +53,7 @@ Event::on(Integrations::class, Integrations::EVENT_MODIFY_FORM_INTEGRATION, func
 });
 ```
 
-### The `beforeSaveIntegration` event
+### The `beforeSaveIntegration` Event
 The event that is triggered before an integration is saved.
 
 ```php
@@ -68,7 +68,7 @@ Event::on(Integrations::class, Integrations::EVENT_BEFORE_SAVE_INTEGRATION, func
 });
 ```
 
-### The `afterSaveIntegration` event
+### The `afterSaveIntegration` Event
 The event that is triggered after an integration is saved.
 
 ```php
@@ -83,7 +83,7 @@ Event::on(Integrations::class, Integrations::EVENT_AFTER_SAVE_INTEGRATION, funct
 });
 ```
 
-### The `beforeDeleteIntegration` event
+### The `beforeDeleteIntegration` Event
 The event that is triggered before an integration is deleted
 
 ```php
@@ -97,7 +97,7 @@ Event::on(Integrations::class, Integrations::EVENT_BEFORE_DELETE_INTEGRATION, fu
 });
 ```
 
-### The `beforeApplyIntegrationDelete` event
+### The `beforeApplyIntegrationDelete` Event
 The event that is triggered before an integration delete is applied to the database.
 
 ```php
@@ -111,7 +111,7 @@ Event::on(Integrations::class, Integrations::EVENT_BEFORE_APPLY_INTEGRATION_DELE
 });
 ```
 
-### The `afterDeleteIntegration` event
+### The `afterDeleteIntegration` Event
 The event that is triggered after an integration is deleted
 
 ```php
@@ -128,7 +128,7 @@ Event::on(Integrations::class, Integrations::EVENT_AFTER_DELETE_INTEGRATION, fun
 ## Integration Payload Events
 The below events are examples using the `Mailchimp` class, but any class that inherits from the `verbb\formie\base\Integration` class can use these events.
 
-### The `beforeSendPayload` event
+### The `beforeSendPayload` Event
 The event that is triggered before an integration sends its payload.
 
 The `isValid` event property can be set to `false` to prevent the payload from being sent.
@@ -148,7 +148,7 @@ Event::on(Mailchimp::class, Mailchimp::EVENT_BEFORE_SEND_PAYLOAD, function(SendI
 });
 ```
 
-### The `afterSendPayload` event
+### The `afterSendPayload` Event
 The event that is triggered after an integration sends its payload.
 
 The `isValid` event property can be set to `false` to flag a payload-sending response.
@@ -167,7 +167,7 @@ Event::on(Mailchimp::class, Mailchimp::EVENT_AFTER_SEND_PAYLOAD, function(SendIn
 });
 ```
 
-### The `modifyPaymentPayload` event
+### The `modifyPaymentPayload` Event
 The event that is triggered for Payment integrations, before sends its payload to the provider. Each provider may provide different events and objects to modify as part of the payment process.
 
 ```php
@@ -200,7 +200,7 @@ Event::on(Stripe::class, Stripe::EVENT_MODIFY_PLAN_PAYLOAD, function(ModifyPayme
 });
 ```
 
-### The `beforeValidateSubmission` event
+### The `beforeValidateSubmission` Event
 The event that is triggered before a captcha integration validates a submission.
 
 ```php
@@ -216,7 +216,7 @@ Event::on(Recaptcha::class, Recaptcha::EVENT_BEFORE_VALIDATE_SUBMISSION, functio
 });
 ```
 
-### The `afterValidateSubmission` event
+### The `afterValidateSubmission` Event
 The event that is triggered after a captcha integration validates a submission.
 
 ```php
@@ -231,7 +231,7 @@ Event::on(Recaptcha::class, Recaptcha::EVENT_AFTER_VALIDATE_SUBMISSION, function
 });
 ```
 
-### The `beforeProcessPayment` event
+### The `beforeProcessPayment` Event
 The event that is triggered before a payment integration processes a payment.
 
 ```php
@@ -248,7 +248,7 @@ Event::on(Stripe::class, Stripe::EVENT_BEFORE_PROCESS_PAYMENT, function(PaymentI
 });
 ```
 
-### The `afterProcessPayment` event
+### The `afterProcessPayment` Event
 The event that is triggered after a payment integration processes a payment.
 
 ```php
@@ -264,7 +264,7 @@ Event::on(Stripe::class, Stripe::EVENT_AFTER_PROCESS_PAYMENT, function(PaymentIn
 });
 ```
 
-### The `modifyCurrencyOptions` event
+### The `modifyCurrencyOptions` Event
 The event that is triggered when payment currency options are prepared.
 
 ```php
@@ -282,7 +282,7 @@ Event::on(Stripe::class, Stripe::EVENT_MODIFY_CURRENCY_OPTIONS, function(ModifyP
 
 ## Payment Model Events
 
-### The `beforeSavePayment` event
+### The `beforeSavePayment` Event
 The event that is triggered before a payment record is saved.
 
 ```php
@@ -297,7 +297,7 @@ Event::on(Payments::class, Payments::EVENT_BEFORE_SAVE_PAYMENT, function(Payment
 });
 ```
 
-### The `afterSavePayment` event
+### The `afterSavePayment` Event
 The event that is triggered after a payment record is saved.
 
 ```php
@@ -312,7 +312,7 @@ Event::on(Payments::class, Payments::EVENT_AFTER_SAVE_PAYMENT, function(PaymentE
 });
 ```
 
-### The `beforeDeletePayment` event
+### The `beforeDeletePayment` Event
 The event that is triggered before a payment record is deleted.
 
 ```php
@@ -326,7 +326,7 @@ Event::on(Payments::class, Payments::EVENT_BEFORE_DELETE_PAYMENT, function(Payme
 });
 ```
 
-### The `afterDeletePayment` event
+### The `afterDeletePayment` Event
 The event that is triggered after a payment record is deleted.
 
 ```php
@@ -342,7 +342,7 @@ Event::on(Payments::class, Payments::EVENT_AFTER_DELETE_PAYMENT, function(Paymen
 
 ## Payment Plan Events
 
-### The `beforeSavePlan` event
+### The `beforeSavePlan` Event
 The event that is triggered before a payment plan is saved.
 
 ```php
@@ -357,7 +357,7 @@ Event::on(Plans::class, Plans::EVENT_BEFORE_SAVE_PLAN, function(PlanEvent $event
 });
 ```
 
-### The `afterSavePlan` event
+### The `afterSavePlan` Event
 The event that is triggered after a payment plan is saved.
 
 ```php
@@ -372,7 +372,7 @@ Event::on(Plans::class, Plans::EVENT_AFTER_SAVE_PLAN, function(PlanEvent $event)
 });
 ```
 
-### The `beforeDeletePlan` event
+### The `beforeDeletePlan` Event
 The event that is triggered before a payment plan is deleted.
 
 ```php
@@ -386,7 +386,7 @@ Event::on(Plans::class, Plans::EVENT_BEFORE_DELETE_PLAN, function(PlanEvent $eve
 });
 ```
 
-### The `afterDeletePlan` event
+### The `afterDeletePlan` Event
 The event that is triggered after a payment plan is deleted.
 
 ```php
@@ -400,7 +400,7 @@ Event::on(Plans::class, Plans::EVENT_AFTER_DELETE_PLAN, function(PlanEvent $even
 });
 ```
 
-### The `archivePlan` event
+### The `archivePlan` Event
 The event that is triggered when a payment plan is archived.
 
 ```php
@@ -416,7 +416,7 @@ Event::on(Plans::class, Plans::EVENT_ARCHIVE_PLAN, function(PlanEvent $event) {
 
 ## Subscription Events
 
-### The `beforeSaveSubscription` event
+### The `beforeSaveSubscription` Event
 The event that is triggered before a subscription is saved.
 
 ```php
@@ -431,7 +431,7 @@ Event::on(Subscriptions::class, Subscriptions::EVENT_BEFORE_SAVE_SUBSCRIPTION, f
 });
 ```
 
-### The `afterSaveSubscription` event
+### The `afterSaveSubscription` Event
 The event that is triggered after a subscription is saved.
 
 ```php
@@ -446,7 +446,7 @@ Event::on(Subscriptions::class, Subscriptions::EVENT_AFTER_SAVE_SUBSCRIPTION, fu
 });
 ```
 
-### The `beforeDeleteSubscription` event
+### The `beforeDeleteSubscription` Event
 The event that is triggered before a subscription is deleted.
 
 ```php
@@ -460,7 +460,7 @@ Event::on(Subscriptions::class, Subscriptions::EVENT_BEFORE_DELETE_SUBSCRIPTION,
 });
 ```
 
-### The `afterDeleteSubscription` event
+### The `afterDeleteSubscription` Event
 The event that is triggered after a subscription is deleted.
 
 ```php
@@ -474,7 +474,7 @@ Event::on(Subscriptions::class, Subscriptions::EVENT_AFTER_DELETE_SUBSCRIPTION, 
 });
 ```
 
-### The `afterExpireSubscription` event
+### The `afterExpireSubscription` Event
 The event that is triggered after a subscription expires.
 
 ```php
@@ -488,7 +488,7 @@ Event::on(Subscriptions::class, Subscriptions::EVENT_AFTER_EXPIRE_SUBSCRIPTION, 
 });
 ```
 
-### The `beforeUpdateSubscription` event
+### The `beforeUpdateSubscription` Event
 The event that is triggered before a subscription is updated.
 
 ```php
@@ -502,7 +502,7 @@ Event::on(Subscriptions::class, Subscriptions::EVENT_BEFORE_UPDATE_SUBSCRIPTION,
 });
 ```
 
-### The `receiveSubscriptionPayment` event
+### The `receiveSubscriptionPayment` Event
 The event that is triggered when a subscription receives a payment.
 
 ```php
@@ -520,7 +520,7 @@ Event::on(Subscriptions::class, Subscriptions::EVENT_RECEIVE_SUBSCRIPTION_PAYMEN
 
 The following events use the `Mailchimp` class as an example, but any class that inherits from the `verbb\formie\base\Integration` class can use these events.
 
-### The `beforeCheckConnection` event
+### The `beforeCheckConnection` Event
 The event that is triggered before an integration has checked its connection.
 
 The `isValid` event property can be set to `false` to prevent the payload from being sent.
@@ -536,7 +536,7 @@ Event::on(Mailchimp::class, Mailchimp::EVENT_BEFORE_CHECK_CONNECTION, function(I
 });
 ```
 
-### The `afterCheckConnection` event
+### The `afterCheckConnection` Event
 The event that is triggered after an integration has checked its connection.
 
 ```php
@@ -555,7 +555,7 @@ Event::on(Mailchimp::class, Mailchimp::EVENT_AFTER_CHECK_CONNECTION, function(In
 The following events use the `Mailchimp` class as an example, but any class that inherits from the `verbb\formie\base\Integration` class can use these events.
 
 
-### The `beforeFetchFormSettings` event
+### The `beforeFetchFormSettings` Event
 The event that is triggered before an integration fetches its available settings for the form settings.
 
 The `isValid` event property can be set to `false` to prevent the payload from being sent.
@@ -571,7 +571,7 @@ Event::on(Mailchimp::class, Mailchimp::EVENT_BEFORE_FETCH_FORM_SETTINGS, functio
 });
 ```
 
-### The `afterFetchFormSettings` event
+### The `afterFetchFormSettings` Event
 The event that is triggered after an integration fetches its available settings for the form settings.
 
 ```php
@@ -586,7 +586,7 @@ Event::on(Mailchimp::class, Mailchimp::EVENT_AFTER_FETCH_FORM_SETTINGS, function
 });
 ```
 
-### The `modifyMappedFieldValue` event
+### The `modifyMappedFieldValue` Event
 The event that is triggered when parsing the field value made during submission to the field mapped in the provider. Using this event allows you to modify how Formie translates content from Craft into the third-party provider.
 
 ```php
@@ -607,7 +607,7 @@ Event::on(Mailchimp::class, Mailchimp::EVENT_MODIFY_FIELD_MAPPING_VALUE, functio
 });
 ```
 
-### The `modifyMappedFieldValues` event
+### The `modifyMappedFieldValues` Event
 The event that is triggered when parsing all the mapped values made during submission to the provider. Using this event allows you to modify how Formie translates content from Craft into the third-party provider.
 
 ```php
@@ -624,7 +624,7 @@ Event::on(Mailchimp::class, Mailchimp::EVENT_MODIFY_FIELD_MAPPING_VALUES, functi
 });
 ```
 
-### The `modifyIntegrationFormSettingsSchema` event
+### The `modifyIntegrationFormSettingsSchema` Event
 The event that is triggered to allow modification of an integration's form settings schema.
 
 ```php
@@ -640,7 +640,7 @@ Event::on(Mailchimp::class, Mailchimp::EVENT_MODIFY_INTEGRATION_FORM_SETTINGS_SC
 });
 ```
 
-### The `modifySlotTag` event
+### The `modifySlotTag` Event
 The event that is triggered when preparing an integration slot tag for rendering.
 
 This is most useful for integrations that participate in field rendering, such as payment integrations. Modify the `tag` event property to change how the integration-provided slot is rendered.
@@ -664,7 +664,7 @@ Event::on(Stripe::class, Stripe::EVENT_MODIFY_SLOT_TAG, function(ModifyIntegrati
 
 ## Element Integration Events
 
-### The `modifyElementFields` event
+### The `modifyElementFields` Event
 The event that is triggered for an Element integration, which returns the available fields to map Formie field values to for the element.
 
 ```php
@@ -679,7 +679,7 @@ Event::on(Entry::class, Entry::EVENT_MODIFY_ELEMENT_FIELDS, function(ModifyEleme
 });
 ```
 
-### The `modifyElementMatch` event
+### The `modifyElementMatch` Event
 The event that is triggered for an Element integration, when matching against an existing element. This determines whether the integration should create a new element, or update an existing one.
 
 ```php
@@ -699,7 +699,7 @@ Event::on(Entry::class, Entry::EVENT_MODIFY_ELEMENT_MATCH, function(ModifyElemen
 
 ## Microsoft Dynamics 365 Events
 
-### The `modifyRequiredLevels` event
+### The `modifyRequiredLevels` Event
 The event that is triggered to allow modification of the fields that are marked as required during field mapping in the model.
 
 Microsoft Dynamics 365 has [four AttributeRequiredLevel values](https://learn.microsoft.com/en-us/power-apps/developer/data-platform/webapi/reference/attributerequiredlevel). By default `SystemRequired` and `ApplicationRequired` fields will be marked as mandatory in the field mapping model. You can override this, by passing a specific array of values.
@@ -717,7 +717,7 @@ Event::on(MicrosoftDynamics365::class, MicrosoftDynamics365::EVENT_MODIFY_REQUIR
 });
 ```
 
-### The `modifyTargetSchemas` event
+### The `modifyTargetSchemas` Event
 The event that is triggered to allow modification of the target schemas when populating lookup/relational fields in the field mapping.
 
 By default Formie populates lookup/relational field values of entities discovered from the metadata of the Microsoft Dynamics 365 environment, but this event gives you a chance to modify both standard and custom entities to customise the values shown in the field mapping.
@@ -761,7 +761,7 @@ Event::on(MicrosoftDynamics365::class, MicrosoftDynamics365::EVENT_MODIFY_TARGET
 
 ## Automations Integration Events
 
-### The `modifyAutomationPayload` event
+### The `modifyAutomationPayload` Event
 The event that is triggered to allow modification of the payload sent to your defined automation URL.
 
 ```php
@@ -778,7 +778,7 @@ Event::on(Zapier::class, Zapier::EVENT_MODIFY_AUTOMATION_PAYLOAD, function(Modif
 
 ## Miscellaneous Integration Events
 
-### The `modifyMiscellaneousPayload` event
+### The `modifyMiscellaneousPayload` Event
 The event that is triggered to allow modification of the payload sent to the integration provider.
 
 ```php

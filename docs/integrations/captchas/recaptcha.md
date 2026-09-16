@@ -7,7 +7,7 @@ Follow the below steps to connect Formie to Google reCAPTCHA.
 1. Select **reCAPTCHA** in the left-hand sidebar.
 1. Turn on **Enabled**.
 
-### Step 2. Create your reCAPTCHA Keys
+### Step 2. Create Your reCAPTCHA Keys
 1. Go to the [reCAPTCHA Admin console](https://www.google.com/recaptcha/admin) or the [Google Cloud reCAPTCHA page](https://console.cloud.google.com/security/recaptcha).
 1. Create a new website key for the mode you want to use.
 1. Use a **score-based** key for **reCAPTCHA v3**.
@@ -36,7 +36,7 @@ Follow the below steps to connect Formie to Google reCAPTCHA.
 
 For most forms, **reCAPTCHA v3** is the best starting point. Use the checkbox or Enterprise challenge modes only when you need a visible challenge.
 
-## Score-based challenges and low scores
+## Score-Based Challenges and Low Scores
 
 reCAPTCHA v3 and **Enterprise score-based** modes return a score when the user submits. Formie compares that score to your **Minimum Score** threshold (globally under **Settings → Spam Protection**, or per form when you override it). Submissions below the threshold are treated as spam.
 
@@ -50,13 +50,13 @@ If score-based protection is too aggressive, try one of these instead:
 
 For **Enterprise** keys migrated from classic reCAPTCHA in Google Cloud, you can usually keep your existing **reCAPTCHA Type** in Formie after migration. Switch to **reCAPTCHA Enterprise** in Formie when you want Enterprise-specific key types or features. Key migration itself happens in Google's console, not in Formie.
 
-## Cookie consent and deferred loading
+## Cookie Consent and Deferred Loading
 
 Google reCAPTCHA loads third-party scripts that may require consent under GDPR and similar regulations. Formie does not integrate directly with consent management platforms (Cookiebot, OneTrust, Klaro, and so on).
 
-To delay captcha initialization until consent is granted:
+To delay captcha initialisation until consent is granted:
 
-1. Render the form with automatic initialization turned off:
+1. Render the form with automatic initialisation turned off:
 
 ```twig
 {{ craft.formie.renderForm(form, {
@@ -68,7 +68,7 @@ For [custom rendering](/theming/custom-rendering), set `data-formie-init="false"
 
 2. Output Formie's assets as usual with `craft.formie.formAssets(form)` or `craft.formie.frontendAssets()`.
 
-3. After your consent banner grants the relevant category, initialize Formie from your own bundle:
+3. After your consent banner grants the relevant category, initialise Formie from your own bundle:
 
 ```js
 import { formie } from '@verbb/formie-browser';
@@ -78,8 +78,14 @@ await formie({
 });
 ```
 
-Until you call `formie()`, captcha scripts are not loaded and captchas are not mounted. Users cannot complete a protected submit until initialization runs.
+Until you call `formie()`, captcha scripts are not loaded and captchas are not mounted. Users cannot complete a protected submit until initialisation runs.
 
 If consent is a hard requirement and you want to avoid Google scripts entirely, consider [Friendly Captcha](/integrations/captchas/friendly-captcha) or another provider that fits your compliance model.
 
-See also [Render Options — `initJs`](/templates/render-options#initjs) and the [Browser package manual initialization guide](https://docs.verbb.io/formie/browser/behavior/manual-initialization).
+See also [Render Options — `initJs`](/templates/render-options#initjs) and the [Browser package manual initialisation guide](https://docs.verbb.io/formie/browser/behavior/manual-initialization).
+
+## Verify a Submission
+
+Save the form, open it on your site and submit recognisable test values. Submit through the site and check the resulting submission and spam state. A saved credential alone does not verify the visitor-facing challenge or server-side check.
+
+If nothing arrives, check whether integration conditions matched, whether the submission was complete and non-spam, and whether Craft’s queue has processed the job. A successful connection check verifies credentials; it does not prove that field mapping and delivery work. See [Connect and Test an Integration](/integrations/connect-and-test-an-integration) for a complete mapping and verification workflow.

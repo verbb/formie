@@ -1,4 +1,4 @@
-# How to conditionally redirect users based on their input
+# How to Conditionally Redirect Users Based on Their Input
 
 Sometimes the thank-you destination should depend on what the user submitted — send opted-in users to one URL and everyone else to another, route by department, or branch on a quiz score. Formie supports this natively with **Redirect Rules**; the patterns below cover cases where you need more control.
 
@@ -7,7 +7,7 @@ Sometimes the thank-you destination should depend on what the user submitted —
 - A form with submit action set to **URL** or **Entry**
 - Familiarity with [Conditions](/forms/conditions) and [Reference tokens](/developers/reference-tokens)
 
-## Use Redirect Rules (recommended)
+## Use Redirect Rules (Recommended)
 
 Formie adds **Enable Redirect Rules** in form settings. Each rule has conditions and a redirect target. Rules are evaluated in order; the first match wins.
 
@@ -17,122 +17,24 @@ Formie adds **Enable Redirect Rules** in form settings. Each rule has conditions
 
 This works for both page-reload and Ajax forms, stays in the control panel, and does not require custom code. Prefer this approach whenever it covers your logic.
 
-## Intermediary template
+## Use an Account-Only Intermediary Template
 
-When redirect rules are not enough — for example, you need Twig logic that conditions cannot express — use an intermediary template.
+If a redirect needs server-side logic that the built-in rules cannot express, first establish access to the submission. Follow [the signed-in summary pattern](/guides/templating-theming/build-a-success-page-for-your-form#show-answers-to-the-signed-in-submitter), including collection of the current user, the form and site filters, and the ownership check.
 
-Set the form redirect to a path that includes the submission ID:
-
-```twig
-{% do form.setSettings({
-    redirectUrl: '/my-success-template?submissionId={submission:id}',
-}) %}
-```
-
-Create a Craft route in `config/routes.php`:
-
-```php
-return [
-    'my-success-template' => ['template' => '_forms/redirect'],
-];
-```
-
-In `_forms/redirect.html`, fetch the submission and branch:
+After that template has obtained the authorised `submission`, replace its output with this partial Twig snippet. It assumes your form has a Dropdown field with handle `department`, whose saved values include `sales`:
 
 ```twig
-{% set submissionId = craft.app.request.getParam('submissionId') %}
-{% set submission = craft.formie.submissions.id(submissionId).one() %}
-
-{% if not submission %}
-    {% exit 404 %}
-{% endif %}
-
-{% if submission.getFieldValue('myFieldToCheck') == 'some-value' %}
-    {% redirect 'https://example.com/thanks' %}
+{% if submission.getFieldValueAsString('department') == 'sales' %}
+    {% redirect '/sales/thanks' %}
 {% else %}
-    {% redirect 'https://example.com/sorry' %}
+    {% redirect '/support/thanks' %}
 {% endif %}
 ```
 
-This approach requires a full page reload (not Ajax-only in-place completion) because the redirect target is a server-rendered template.
+Create both destination templates before testing. Submit each choice as the owning user and confirm the destination. Then open the intermediary URL from another account and confirm it cannot read or branch on that submission. Do not fetch arbitrary numeric submission IDs or use a submitted email address to decide ownership.
 
-## JavaScript with a hidden field
+Use fixed server-controlled destinations. A hidden input is still editable by the visitor and should not decide access to a resource. For public forms without account ownership, use the built-in redirect rules above and keep the destination page free of private submission content.
 
-For Ajax forms, you can drive the redirect URL from a hidden field whose value JavaScript updates when another field changes. Formie resolves reference tokens in the redirect URL at submit time.
+## Test the Redirect Rules
 
-Create two fields:
-
-- An Agree field (handle `verified`)
-- A Hidden field (handle `redirectParam`)
-
-Set the form's redirect URL to `{field:redirectParam}` using the variable picker (insert the hidden field's reference token).
-
-Add JavaScript where the form is rendered:
-
-```javascript
-{% js %}
-const form = document.querySelector('[data-formie-form]');
-const verifiedField = form?.querySelector('[data-formie-field-handle="verified"]');
-const verifiedInput = verifiedField?.querySelector('input[type="checkbox"]');
-const redirectParamInput = form?.querySelector('[data-formie-field-handle="redirectParam"] input');
-
-const updateRedirectParam = (checked) => {
-    redirectParamInput.value = checked ? '/thanks' : '/sorry';
-};
-
-verifiedField?.addEventListener('onAfterFormieEvaluateConditions', (event) => {
-    if (event.target.conditionallyHidden) {
-        updateRedirectParam(false);
-    } else {
-        verifiedInput?.dispatchEvent(new Event('change', { bubbles: true }));
-    }
-});
-
-verifiedInput?.addEventListener('change', (event) => {
-    updateRedirectParam(event.target.checked);
-});
-{% endjs %}
-```
-
-Notes:
-
-- Use `[data-formie-form]` and `[data-formie-field-handle="..."]` — Formie's front-end selectors
-- Listen for `onAfterFormieEvaluateConditions` so hidden conditional fields evaluate as unchecked
-- The redirect URL is hashed in the form markup; you cannot change it directly — the hidden field + reference token is the supported workaround
-
-## PHP module event
-
-For Ajax and page-reload forms, hook into the submission workflow and override the redirect URL in PHP:
-
-```php
-use verbb\formie\events\SubmissionWorkflowStageEvent;
-use verbb\formie\services\SubmissionWorkflow;
-use yii\base\Event;
-
-Event::on(SubmissionWorkflow::class, SubmissionWorkflow::EVENT_AFTER_STAGE, function (SubmissionWorkflowStageEvent $event) {
-    if ($event->stage !== 'finalize') {
-        return;
-    }
-
-    $request = $event->request;
-    $submission = $request->submission;
-    $form = $request->form;
-
-    if ($event->context->nextPage !== null) {
-        return;
-    }
-
-    if ($submission->getFieldValue('myFieldToCheck') === 'some-value') {
-        $form->setRedirectUrl('/some-url');
-    }
-});
-```
-
-This runs after the submission workflow completes on the final page. Logic stays server-side and works with Ajax responses.
-
-## Related
-
-- [Conditions](/forms/conditions)
-- [Submission Workflow](/developers/submission-workflow)
-- [Reference tokens](/developers/reference-tokens)
-- [Overriding Settings](/templates/overriding-settings)
+Submit answers matching the first rule and check the URL. Repeat for a later rule and for answers matching none. Check both valid and invalid form input: a failed validation must not take the visitor to a success page. If several rules match, verify that their order produces the intended first match.

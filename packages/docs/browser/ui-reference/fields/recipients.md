@@ -17,9 +17,9 @@ Recipients keeps its own field identity, but the rendered control inherits the a
 | `data-formie-field-type="recipients"` | Field identity marker on the outer wrapper | Required |
 | `data-formie-input` and `data-formie-input-id` | Shared input identity hooks from the rendered choice control | Required |
 | `<select>` / `data-formie-checkbox-input` / `data-formie-radio-input` | Control-level hooks inherited from the selected display type | Required |
-| Hidden empty input for checkbox display | Preserves empty-state submission behavior | Recommended for checkbox display |
+| Hidden empty input for checkbox display | Preserves empty-state submission behaviour | Recommended for checkbox display |
 
-## Display types
+## Display Types
 
 Recipients can render as:
 
@@ -30,7 +30,7 @@ Recipients can render as:
 
 The backend decides which display type is rendered, but the browser layer uses the same attributes as the corresponding choice field.
 
-## Related pages
+## Related Pages
 
 - [Checkboxes](/browser/ui-reference/fields/checkboxes)
 - [Radio](/browser/ui-reference/fields/radio)

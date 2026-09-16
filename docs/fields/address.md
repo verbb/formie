@@ -4,7 +4,11 @@ Use the Address field when you need a structured postal address rather than one 
 
 Use Address when the value needs to be mapped to integrations, exported, queried, or displayed in parts. If you only need a casual location answer, Single-Line Text is usually simpler.
 
-## Key settings
+## Collect a Delivery Address
+
+Add an Address field named **Delivery Address** to your form. Enable the address parts needed for delivery and choose which are required. Save the form, enter a complete address on your site and submit. Inspect the saved address parts separately, including country and postal code. If you enable autocomplete, also test an address entered manually so visitors can recover when a suggestion is missing.
+
+## Key Settings
 
 - **Enabled sub-fields** - Choose which address parts are shown, such as address lines, city, state, postcode and country.
 - **Required sub-fields** - Require the specific address parts that matter for your workflow.
@@ -25,13 +29,13 @@ Place **Country** before **State / Province** in the sub-field layout when using
 
 While subdivisions load, the country field shows a loading indicator and the state column shows a skeleton placeholder so the layout does not jump. Password managers and browser autofill target a persistent hidden `address-level1` input; Formie reconciles that value onto the visible control once subdivision data is ready.
 
-## Submitted value
+## Submitted Value
 
 Address stores a structured value made from its sub-fields. This is useful when templates, exports or integrations need separate address parts instead of one free-text string.
 
 For GraphQL mutations, Address fields use a generated input object for the field handle. Query the form’s `formFields` and include `inputTypeName`, or see [Create Submissions](/graphql/create-submissions#name-and-address-fields).
 
-## Auto-complete and address providers
+## Auto-Complete and Address Providers
 
 Address auto-complete is configured in two places:
 
@@ -47,7 +51,7 @@ Provider setup is documented on the address provider integration pages:
 
 Current-location support depends on the selected provider. If you are building a custom provider, see [Address Provider Integration](/developers/custom-integration/address-provider-integration).
 
-## Developer hooks
+## Developer Hooks
 
 Plugins can modify subdivision option data before it is returned to the front end:
 
@@ -72,11 +76,11 @@ The subdivisions endpoint is `actions/formie/address/subdivisions` and accepts `
 
 IP-based country preselect uses `actions/formie/address/country-from-ip`, which returns `{ countryCode, countryName }` when a supported geo header is present on the request.
 
-## Theme config
+## Theme Config
 
 The Address field can be targeted with the `address` theme config key.
 
-See [Address Field theme config](/theming/theme-config#address-field) for the full list of field-specific theme tags.
+See [Address Field theme config](/reference/theme-tag-reference#address-field) for the full list of field-specific theme tags.
 
 ```twig
 {{ craft.formie.renderForm('contactForm', {
@@ -101,15 +105,15 @@ Some address sub-fields can also be targeted by theme config, such as `address1`
 
 For full Tailwind, Bootstrap and other framework examples, see [Formie theme configs](https://github.com/verbb/formie-theme-configs).
 
-## Front-end reference
+## Front-End Reference
 
-Autocomplete and current-location behavior depend on the configured address provider and Formie’s browser assets. Custom rendering should preserve the autocomplete sub-field and the manual address sub-fields that need to be populated.
+Autocomplete and current-location behaviour depend on the configured address provider and Formie’s browser assets. Custom rendering should preserve the autocomplete sub-field and the manual address sub-fields that need to be populated.
 
-The front-end docs live on the separate browser UI reference site and cover rendered markup, data attributes, styling classes and JavaScript behavior for custom front-end implementations.
+The front-end docs live on the separate browser UI reference site and cover rendered markup, data attributes, styling classes and JavaScript behaviour for custom front-end implementations.
 
-- [Address](/browser/ui-reference/fields/address)
+- [Address](https://docs.verbb.io/formie/browser/ui-reference/fields/address)
 
-## Related fields
+## Related Fields
 
 - Use [Single-Line Text](/fields/single-line-text) for informal location answers.
 - Use [Group](/fields/group) if you need a different custom set of structured fields.

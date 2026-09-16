@@ -19,7 +19,7 @@ Once you’ve created a query, set any parameters you need, then fetch the resul
 Formie submission queries build on Craft element queries. See [Element Queries](https://craftcms.com/docs/5.x/development/element-queries) in the Craft docs if you want the broader query syntax. For rendering fetched submission values, see [The complete guide to rendering submission content](/guides/templating-theming/the-complete-guide-to-rendering-submission-content).
 :::
 
-## Fetch submissions for a form
+## Fetch Submissions for a Form
 The most common use is fetching submissions for a specific form.
 
 ::: code
@@ -42,7 +42,7 @@ $submissions = \verbb\formie\elements\Submission::find()
 ```
 :::
 
-## Query by field value
+## Query by Field Value
 Submission queries can also filter by Formie field handles. Use `field(handle, value)` when the handle is dynamic, or call the field handle directly when it is known.
 
 ::: code

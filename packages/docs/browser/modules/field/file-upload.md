@@ -1,4 +1,4 @@
-# File upload
+# File Upload
 
 File upload manages selected files, uploaded asset ids, and the rendered summary output for **File Input (Simple)** File Upload fields.
 
@@ -6,7 +6,7 @@ For **Upload Manager (Advanced)** fields, see the [upload-manager module](/brows
 
 ## Events
 
-#### The `formie:field:file-upload:uploaded-assets-sync` event
+#### The `formie:field:file-upload:uploaded-assets-sync` Event
 
 Triggered after uploaded asset ids have been hydrated back into field state and summary output.
 
@@ -22,7 +22,7 @@ document.addEventListener('formie:field:file-upload:uploaded-assets-sync', (even
 
 The shared module lifecycle also exposes scoped events such as `formie:module:file-upload:after-setup`.
 
-## Related pages
+## Related Pages
 
 - [File Upload field](/browser/ui-reference/fields/file-upload)
 - [Upload manager module](/browser/modules/field/upload-manager)

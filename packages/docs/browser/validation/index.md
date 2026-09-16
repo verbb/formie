@@ -2,7 +2,7 @@
 
 Formie uses its own browser-side validator so field rules, error rendering, multi-page state, and module-enhanced inputs all stay inside the same client-side form flow instead of falling back to native browser validation UI.
 
-## What Formie validates
+## What Formie Validates
 
 The validator:
 
@@ -16,7 +16,7 @@ The validator:
 
 Use `data-formie-validation-skip` on helper controls that are not the field's value carrier — for example a file picker that is cleared after selection. Put the attribute on the control itself, not the field wrapper.
 
-## When validation runs
+## When Validation Runs
 
 On submit, Formie validates the active page first and validates hidden pages too on the final submit pass.
 
@@ -34,7 +34,7 @@ If the form is configured for live validation, Formie also validates while the u
 
 After the first submit attempt, Formie keeps validation live while the user fixes errors even if the initial interaction mode was lighter.
 
-## Rule payload shape
+## Rule Payload Shape
 
 Rules live on the field wrapper as a JSON array. Each rule needs a `type`, and rules can carry extra options for that validator.
 
@@ -52,7 +52,7 @@ Rules live on the field wrapper as a JSON array. Each rule needs a `type`, and r
 
 The validator turns that payload into a field-level rule map, so custom validators can inspect their own options with `getRule('your-rule-name')`.
 
-## Validator lifecycle
+## Validator Lifecycle
 
 When a form mounts, Formie emits `formie:validator:ready` with the validator instance in `event.detail.validator`.
 
@@ -66,13 +66,13 @@ document.addEventListener('formie:validator:ready', (event) => {
 
 If you already have the form element, the same instance is also available as `form.formieValidation`.
 
-## What to read next
+## What to Read Next
 
 - Use [Built-in rules](/browser/validation/built-in-rules) for the shipped rule names and payload shapes.
 - Use [Build a custom validator](/browser/validation/build-a-custom-validator) to register your own rules.
 - Use [JavaScript events](/browser/behavior/javascript-events) if you only need the event reference.
 
-## Related pages
+## Related Pages
 
 - [Built-in rules](/browser/validation/built-in-rules)
 - [Build a custom validator](/browser/validation/build-a-custom-validator)

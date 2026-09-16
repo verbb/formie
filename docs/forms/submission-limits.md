@@ -6,7 +6,7 @@ Configure them per form under **Formie → Forms → {form} → Settings → Beh
 
 Submission limits are separate from [Spam Protection](/forms/spam-protection) throttling, which marks rapid or flood submissions as spam. They are also separate from **Availability** settings on the same Behaviour tab, which control whether the form is shown at all.
 
-## How limits work
+## How Limits Work
 
 Turn on **Limit Submissions**, then choose **Apply Limit To**:
 
@@ -20,17 +20,17 @@ Set **Allow** to the number of submissions permitted for the chosen scope, and c
 
 Use **Message** to customise what visitors see when a limit is reached.
 
-### Per logged-in user limits
+### Per Logged-in User Limits
 
 Per-user limits require Formie to know who submitted. Enable **Collect User** under **Settings → Privacy** on the form (or preset it in **Formie → Settings → Defaults** or a form group’s **Form Defaults** tab).
 
 Anonymous visitors are not counted toward a per-user limit.
 
-### Per IP address limits
+### Per IP Address Limits
 
 Per-IP limits work best when **Collect IP** is enabled under **Settings → Privacy**, so Formie can reliably attribute submissions. If IP collection is off, behaviour may be less predictable depending on your setup.
 
-## Availability vs submission limits vs throttling
+## Availability vs Submission Limits vs Throttling
 
 Formie splits “who can submit and how often” across three layers:
 
@@ -46,7 +46,7 @@ Use **Submission limits** when you need a defined quota — one entry per person
 
 Use **Submission throttling** when you need sitewide or rapid-repeat protection during an attack. Throttling does not replace per-form caps; it complements them.
 
-### IP wait time vs IP count limits
+### IP Wait Time vs IP Count Limits
 
 These sound similar but behave differently:
 
@@ -55,7 +55,7 @@ These sound similar but behave differently:
 
 You can use both on the same form when it makes sense: throttling slows bots; count limits enforce your entry policy.
 
-## Form groups
+## Form Groups
 
 [Form groups](/forms/form-groups) do not enforce submission limits across every form in a group. Limits remain **per form**.
 
@@ -64,6 +64,6 @@ Groups can still help teams that rely on limits:
 - **Allowed submission statuses** (group **General** tab) restricts which statuses forms in the group may use.
 - **Form Defaults** can preset **Collect User** or **Collect IP** so new forms in the group are ready for per-user or per-IP limits.
 
-## Editing existing submissions
+## Editing Existing Submissions
 
 Changing or deleting an existing submission does not consume an additional limit slot. Limits apply when **creating** new submissions.

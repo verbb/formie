@@ -6,7 +6,7 @@ Snaptcha is a passive captcha module that keeps its hidden token state synchroni
 
 Snaptcha relies on the shared module lifecycle and the broader submit flow documented on [JavaScript events](/browser/behavior/javascript-events).
 
-#### The `formie:module:snaptcha:after-setup` event
+#### The `formie:module:snaptcha:after-setup` Event
 
 Triggered after the Snaptcha module has finished setup for its target form.
 
@@ -17,7 +17,7 @@ document.addEventListener('formie:module:snaptcha:after-setup', (event) => {
 });
 ```
 
-## Related pages
+## Related Pages
 
 - [Overview](/browser/modules/)
 - [JavaScript events](/browser/behavior/javascript-events)

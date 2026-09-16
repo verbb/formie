@@ -1,4 +1,4 @@
-# Template compatibility audit after upgrade
+# Template Compatibility Audit After Upgrade
 
 After a major upgrade, most regressions show up in Twig templates and front-end JavaScript — renamed render helpers, asset flags, submission value methods, and DOM event names. This audit explains what changed and how to find remaining call sites before production cutover.
 
@@ -8,7 +8,7 @@ After a major upgrade, most regressions show up in Twig templates and front-end 
 - [Upgrading From v3](/get-started/upgrading-from-v3) for context
 - [Rendering Forms](/templates/rendering-forms) and [Frontend Assets](/frontend/frontend-assets)
 
-## Step 1 — Find deprecated calls with Craft Deprecations
+## Step 1 — Find Deprecated Calls with Craft Deprecations
 
 With `compatibilityMode` enabled (the default), Formie keeps legacy Twig helpers, render options, and submission value methods working — but Craft logs a deprecation warning each time one is used.
 
@@ -17,15 +17,15 @@ With `compatibilityMode` enabled (the default), Formie keeps legacy Twig helpers
 3. Open **Craft → Utilities → Deprecations** and search for `formie` or `verbb\formie`.
 4. Each entry shows the deprecated call, its replacement, and the file and line that triggered it. Work through that list as your fix queue.
 
-If a template is not hit during manual testing, its deprecation will not appear yet. Use the [manual page verification](#step-10--manual-page-verification) checklist to make sure you exercise every form template, then re-check the Deprecations utility.
+If a template is not hit during manual testing, its deprecation will not appear yet. Use the [manual page verification](#step-10-—-manual-page-verification) checklist to make sure you exercise every form template, then re-check the Deprecations utility.
 
 The same warnings are written to `storage/logs/web.log` if you prefer tailing logs — the Utilities screen is usually faster to scan.
 
 The sections below are a reference for the most common template and front-end changes you will see in that list.
 
-## Step 2 — Twig render API updates
+## Step 2 — Twig Render API Updates
 
-### Form assets
+### Form Assets
 
 | Previous | Current |
 | --- | --- |
@@ -35,7 +35,7 @@ The sections below are a reference for the most common template and front-end ch
 | `craft.formie.renderFormJs(form)` | `craft.formie.formAssets(form, { includeCss: false })` |
 | `craft.formie.renderRuntimeAssets()` | `craft.formie.frontendAssets()` |
 
-### Render options on renderForm
+### Render Options on renderForm
 
 | Old option | New option |
 | --- | --- |
@@ -74,7 +74,7 @@ Output location options (`outputCssLocation`, `outputJsLocation`) are unchanged 
 
 Update `#{{ id }}` selectors in `{% js %}` blocks and analytics snippets.
 
-## Step 4 — Submission values in Twig
+## Step 4 — Submission Values in Twig
 
 ```twig
 {# Before #}
@@ -94,7 +94,7 @@ Use the helper that matches the job:
 - `getFieldValueForExport()` — CSV/reports
 - `getFieldValueForSummary()` — review screens
 
-## Step 5 — Front-end JavaScript events
+## Step 5 — Front-End JavaScript Events
 
 | Previous | Current |
 | --- | --- |
@@ -126,7 +126,7 @@ Temporary bridge (remove after migration):
 
 Or `compatibility: true` in `createFormieClient().mount()`.
 
-## Step 6 — Custom validators
+## Step 6 — Custom Validators
 
 ```js
 // Before
@@ -141,7 +141,7 @@ form?.addEventListener('formie:validator:ready', (event) => {
 });
 ```
 
-## Step 7 — Static cache snippets
+## Step 7 — Static Cache Snippets
 
 Remove any custom token-refresh JavaScript from templates — Formie handles static-cache token refresh when enabled. Enable:
 
@@ -153,7 +153,7 @@ And on Craft Cloud, async CSRF — see [Cached forms in production](/guides/fron
 
 Delete obsolete Blitz/Formie refresh snippets from templates after verifying submit works on cached pages.
 
-## Step 8 — GraphQL clients
+## Step 8 — GraphQL Clients
 
 | Old query field | New |
 | --- | --- |
@@ -163,13 +163,13 @@ Delete obsolete Blitz/Formie refresh snippets from templates after verifying sub
 
 Headless apps should bootstrap via `formieClientForm` and submit via `submitFormieClientForm`.
 
-## Step 9 — Theme config and CSS classes
+## Step 9 — Theme Config and CSS Classes
 
 Default theme prefix is `formie`, not `fui`. Deprecation logging will not catch stale CSS selectors — review custom stylesheets for `.fui-` rules and update to `.formie-` or CSS variables on `.formie-form`.
 
 Custom fields using Theme Config should use `defineFieldSlotTag()`.
 
-## Step 10 — Manual page verification
+## Step 10 — Manual Page Verification
 
 For each template that renders a form:
 
@@ -182,7 +182,7 @@ For each template that renders a form:
 
 Test one **page-reload** form and one **Ajax** form at minimum.
 
-## Step 11 — Confirm deprecations are clear
+## Step 11 — Confirm Deprecations Are Clear
 
 After fixing everything flagged in Step 1:
 
@@ -192,11 +192,3 @@ After fixing everything flagged in Step 1:
 4. Disable `compatibilityMode` only when that list stays empty after realistic staging traffic.
 
 Optional proactive pass: if you want to search the codebase before exercising every page, look in `templates/` and front-end `src/` for `renderFormAssets`, `getFormId`, `getValueAsString`, and `onAfterFormieSubmit`. The Deprecations utility remains the authoritative checklist once your templates are actually rendered.
-
-## Related
-
-- [Upgrading From v3](/get-started/upgrading-from-v3)
-- [Major upgrade — real-project checklist](/guides/migrations-upgrades/major-upgrade-real-project-checklist)
-- [Rendering Forms](/templates/rendering-forms)
-- [Frontend Assets](/frontend/frontend-assets)
-- [Cached forms in production](/guides/frontend-headless/cached-forms-in-production)

@@ -8,14 +8,14 @@ If your Craft site uses [Sprout Forms](https://sprout.barrelstrengthdesign.com/d
 - Sprout Forms still installed and **enabled**
 - Database backup before production migration
 
-## Before you migrate
+## Before You Migrate
 
 1. **Inventory forms** — handles, notification rules, front-end embed locations
 2. **Export Sprout submissions** if you need CSV archives beyond what migration copies
 3. **Run on staging** with both plugins enabled
 4. **Plan template updates** — Sprout render syntax differs from Formie
 
-## Run the migration
+## Run the Migration
 
 1. Navigate to **Formie → Settings → Migrations → Sprout Forms**
 2. Select Sprout forms to migrate
@@ -24,11 +24,11 @@ If your Craft site uses [Sprout Forms](https://sprout.barrelstrengthdesign.com/d
 
 Sprout Forms data is not modified.
 
-## Handle collisions
+## Handle Collisions
 
 Duplicate handles get a numeric suffix — `contactForm` becomes `contactForm1` if Formie already owns `contactForm`. Rename in the Formie builder and update templates.
 
-## Unsupported fields
+## Unsupported Fields
 
 | Sprout Forms field | Formie approach |
 | --- | --- |
@@ -37,7 +37,7 @@ Duplicate handles get a numeric suffix — `contactForm` becomes `contactForm1` 
 
 Most common Sprout field types (Single Line, Paragraph, Dropdown, Email, Number, Checkboxes, Radio) migrate cleanly.
 
-## After migration checklist
+## After Migration Checklist
 
 - Verify each form in the form builder
 - Update Twig from Sprout embed syntax to `craft.formie.renderForm()`
@@ -47,7 +47,7 @@ Most common Sprout field types (Single Line, Paragraph, Dropdown, Email, Number,
 - Compare submission counts
 - Update any Sprout-specific reporting or exports to Formie submissions index
 
-## Front-end cutover
+## Front-End Cutover
 
 Sprout templates often use:
 
@@ -74,14 +74,8 @@ Migrated notifications become Formie email notifications. Verify:
 - Variable tokens — Formie uses [field references](/developers/reference-tokens), not Sprout's token syntax; re-pick fields in the notification editor
 - Conditions — rebuild if Sprout used rule-based sending
 
-## When to keep Sprout temporarily
+## When to Keep Sprout Temporarily
 
 Run parallel if Sprout forms are embedded in hard-to-update legacy templates. Hide Sprout forms from navigation while Formie forms go live on new templates.
 
 Uninstall Sprout Forms only after all active forms migrate and historical submissions are accessible in Formie (or exported).
-
-## Related
-
-- [Migrating from Freeform](/guides/migrations-upgrades/migrating-from-freeform)
-- [Major upgrade — real-project checklist](/guides/migrations-upgrades/major-upgrade-real-project-checklist)
-- [Template compatibility audit after upgrade](/guides/migrations-upgrades/template-compatibility-audit-after-upgrade)

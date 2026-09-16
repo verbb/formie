@@ -4,7 +4,11 @@ Use Date/Time when the form needs a date, time, or both.
 
 Use Date/Time when the answer should behave like a real date or time. If the answer is vague, such as “Spring” or “next quarter,” Single-Line Text may be a better fit.
 
-## Key settings
+## Request an Appointment
+
+Add a Date/Time field named **Preferred Appointment** to an enquiry form and choose the date and time parts visitors should enter. Save the form and submit a sample appointment. Compare the displayed value with the saved submission and any confirmation email, especially when the site and visitor use different timezones. This field collects a requested time; it does not by itself reserve availability.
+
+## Key Settings
 
 - **Date and time mode** - Collect a date, a time, or both.
 - **Display type** - Render as a calendar picker, dropdowns or text-style inputs.
@@ -14,7 +18,7 @@ Use Date/Time when the answer should behave like a real date or time. If the ans
 - **Default value** - Pre-fill the field for new submissions.
 - **Date picker options** - Pass additional Flatpickr options when the calendar picker is enabled.
 
-## Date range
+## Date Range
 
 When **Display type** is **Calendar (Advanced)**, set **Value type** to **Date Range** to collect a start and end date/time in a single field.
 
@@ -22,7 +26,7 @@ Date range is only available for **Calendar (Advanced)**. Other display types co
 
 The front end uses Flatpickr range mode. Submitted values are stored as start/end part maps and formatted for output using the field's **Date Format** and **Time Format** settings.
 
-## Submitted value
+## Submitted Value
 
 Date/Time stores date/time data rather than vague text. Templates, exports and integrations should treat it as a date/time value and format it for the destination context.
 
@@ -37,7 +41,7 @@ Single values are stored as part maps (`year`, `month`, `day`, and optional time
 
 Internal part values are stored without leading zeros. Formatted output always uses the field's configured formats.
 
-### Output and templates
+### Output and Templates
 
 For a single date/time field:
 
@@ -56,7 +60,7 @@ For **Text Inputs** and **Dropdowns**, each date/time part is a number or option
 
 When querying or saving submissions through GraphQL, Date/Time fields can expose a field-specific content type. Query the form’s `formFields` and include `inputTypeName` when building mutations. Date range fields expose a form-specific type with `start` and `end` datetime values.
 
-## Notification variables
+## Notification Variables
 
 Date/Time fields expose variable selectors in the notification editor based on the field configuration:
 
@@ -72,11 +76,11 @@ Date/Time fields expose variable selectors in the notification editor based on t
 
 All composite datetime selectors use the field's **Date Format** and **Time Format** settings.
 
-## Theme config
+## Theme Config
 
 The Date/Time field can be targeted with the `dateTime` theme config key.
 
-See [Date/Time Field theme config](/theming/theme-config#date-time-field) for the full list of field-specific theme tags.
+See [Date/Time Field theme config](/reference/theme-tag-reference#date-time-field) for the full list of field-specific theme tags.
 
 ```twig
 {{ craft.formie.renderForm('contactForm', {
@@ -101,19 +105,19 @@ Use theme config for class and attribute changes. Use a template override only w
 
 For full Tailwind, Bootstrap and other framework examples, see [Formie theme configs](https://github.com/verbb/formie-theme-configs).
 
-## Front-end reference
+## Front-End Reference
 
 When the date picker is enabled, Formie relies on Flatpickr and the field’s browser assets. Custom-rendered forms must still include the required assets and preserve the field inputs Formie expects.
 
 Date range fields submit hidden start/end transport inputs in addition to the visible picker input. Preserve `data-formie-date-range-start-input` and `data-formie-date-range-end-input` when overriding templates.
 
-Use the Date Picker Options setting for Flatpickr-specific configuration, such as disabling dates or changing picker behavior. See the [Flatpickr documentation](https://flatpickr.js.org/) for supported options.
+Use the Date Picker Options setting for Flatpickr-specific configuration, such as disabling dates or changing picker behaviour. See the [Flatpickr documentation](https://flatpickr.js.org/) for supported options.
 
-The front-end docs live on the separate browser UI reference site and cover rendered markup, data attributes, styling classes and JavaScript behavior for custom front-end implementations.
+The front-end docs live on the separate browser UI reference site and cover rendered markup, data attributes, styling classes and JavaScript behaviour for custom front-end implementations.
 
-- [Date](/browser/ui-reference/fields/date)
+- [Date](https://docs.verbb.io/formie/browser/ui-reference/fields/date)
 
-## Related fields
+## Related Fields
 
 - Use [Single-Line Text](/fields/single-line-text) for approximate dates or informal time periods.
 - Use [Calculations](/fields/calculations) when a displayed value should be computed from date-related inputs.

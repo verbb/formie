@@ -7,7 +7,7 @@ Follow the below steps to connect Formie to the CleanTalk API.
 1. Select **CleanTalk** in the left-hand sidebar.
 1. Turn on **Enabled**.
 
-### Step 2. Get your CleanTalk Access Key
+### Step 2. Get Your CleanTalk Access Key
 1. Go to [CleanTalk](https://cleantalk.org/) and create an account, or sign in to an existing one.
 1. Add your website in the CleanTalk dashboard if prompted.
 1. Open your CleanTalk Control Panel at `https://cleantalk.org/my`.
@@ -24,3 +24,9 @@ Follow the below steps to connect Formie to the CleanTalk API.
 1. Save the form.
 
 CleanTalk screens submissions in the background, so there is no visible challenge on the front end.
+
+## Verify a Submission
+
+Save the form, open it on your site and submit recognisable test values. Submit through the site and check the resulting submission and spam state. A saved credential alone does not verify the visitor-facing challenge or server-side check.
+
+If nothing arrives, check whether integration conditions matched, whether the submission was complete and non-spam, and whether Craft’s queue has processed the job. A successful connection check verifies credentials; it does not prove that field mapping and delivery work. See [Connect and Test an Integration](/integrations/connect-and-test-an-integration) for a complete mapping and verification workflow.

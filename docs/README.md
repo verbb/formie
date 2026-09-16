@@ -2,7 +2,7 @@
 
 Formie’s docs are structured to help you install the plugin, build forms, put them on the site, style them, connect them to other systems, and extend them when needed.
 
-## Screenshot automation
+## Screenshot Automation
 
 Screenshots are generated with **`@verbb/docs-screenshots`**, the published npm package for Craft CP screenshot automation. This docs package depends on it in **devDependencies** and exposes it as **`npm run docs:screenshots`** (run that from the **Formie plugin root** — the directory that contains the plugin’s main `composer.json` and the npm script that invokes this docs workspace).
 
@@ -38,9 +38,9 @@ rg -n "id:" . -g "*.screenshot.ts"
 ## Sections
 
 - [Get Started](/get-started/installation-setup) for installation, requirements, configuration, troubleshooting, and upgrading.
-- [Forms](/forms/form-builder) for building forms, configuring behavior, spam protection, [submission screening](/forms/submission-screening), and setting up notifications.
-- [Submissions](/submissions/overview) for understanding saved records, statuses, exports, relations, and editing patterns.
-- [Fields](/fields/address) for choosing field types and understanding the settings that actually affect behavior.
+- [Forms](/forms/form-builder) for building forms, configuring behaviour, spam protection, [submission screening](/forms/submission-screening), and setting up notifications.
+- [Submissions](/submissions/submissions) for understanding saved records, statuses, exports, relations, and editing patterns.
+- [Fields](/fields/address) for choosing field types and understanding the settings that actually affect behaviour.
 - [Templates](/templates/rendering-forms) for Twig and Craft implementation patterns.
 - [Theming](/theming/overview) for theme config, overrides, and custom rendering.
 - [Frontend](/frontend/frontend-assets) for frontend packages, cached forms, and tracking patterns.

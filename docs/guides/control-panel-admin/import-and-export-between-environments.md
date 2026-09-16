@@ -1,4 +1,4 @@
-# Import and export between environments
+# Import and Export Between Environments
 
 Form import and export moves **form definitions** between environments — not submission data. Use it when staging a new form for production, cloning a client's enquiry form to another project, or backing up structure before a major edit.
 
@@ -7,7 +7,7 @@ Form import and export moves **form definitions** between environments — not s
 - [Import & Export](/forms/import-export)
 - Access to **Formie → Settings → Import/Export** on both environments
 
-## What export includes
+## What Export Includes
 
 Exporting a form produces a JSON file containing:
 
@@ -20,14 +20,14 @@ Exporting a form produces a JSON file containing:
 
 It is a structural snapshot — not a dump of submissions.
 
-## What export does not include
+## What Export Does Not Include
 
 - Submissions
 - Integration OAuth tokens (reconnect integrations per environment)
 - Spam settings and captcha secrets (see [Project config, environment, and control panel settings](/guides/configuration/project-config-environment-and-control-panel-settings))
 - Synced field **definitions** (only placements in the form — ensure definitions exist on the target environment)
 
-## Export workflow
+## Export Workflow
 
 1. On the **source** environment, open **Formie → Settings → Import/Export**
 2. Select the form(s) to export
@@ -36,7 +36,7 @@ It is a structural snapshot — not a dump of submissions.
 
 For multiple forms, export one at a time or automate via console commands if your deployment pipeline supports it.
 
-## Import workflow
+## Import Workflow
 
 1. On the **target** environment, open **Formie → Settings → Import/Export**
 2. Upload the JSON file
@@ -54,9 +54,9 @@ For multiple forms, export one at a time or automate via console commands if you
 
 Formie only supports its own export format. Arbitrary JSON will not import.
 
-## Environment promotion patterns
+## Environment Promotion Patterns
 
-### Staging → production (same project)
+### Staging → Production (Same Project)
 
 1. Build and test the form on staging
 2. Export JSON
@@ -64,18 +64,18 @@ Formie only supports its own export format. Arbitrary JSON will not import.
 4. Re-test notifications, integrations, and captchas on production URLs
 5. Run `project-config/sync` if the import touched project-scoped resources
 
-### Client template → new project
+### Client Template → New Project
 
 1. Export the canonical template forms from your starter Craft install
 2. Import on the client site as **Create new form**
 3. Rename handles to client conventions
 4. Assign [form groups](/forms/form-groups) and site policies for the client's multi-site setup
 
-### Disaster recovery before a big edit
+### Disaster Recovery Before a Big Edit
 
 Export the current form JSON before deleting fields or restructuring. Re-import if the edit goes wrong.
 
-## Combine with project config
+## Combine with Project Config
 
 Some Formie resources travel via project config instead of import/export:
 
@@ -90,7 +90,7 @@ Use import/export for **individual form snapshots**. Use project config for **te
 
 See [Stencils for repeatable form types](/guides/control-panel-admin/stencils-for-repeatable-form-types).
 
-## Post-import checklist
+## Post-Import Checklist
 
 - Field handles unchanged (or migration plan for submission data)
 - Email notifications send from correct domain on target environment
@@ -99,9 +99,3 @@ See [Stencils for repeatable form types](/guides/control-panel-admin/stencils-fo
 - Form enabled on expected sites (form group site policy)
 - Front-end template or headless app points at correct form handle
 - Test submit on production
-
-## Related
-
-- [Import & Export](/forms/import-export)
-- [Stencils for repeatable form types](/guides/control-panel-admin/stencils-for-repeatable-form-types)
-- [Project config, environment, and control panel settings](/guides/configuration/project-config-environment-and-control-panel-settings)

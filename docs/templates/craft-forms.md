@@ -4,7 +4,7 @@ Formie can also manage the fields for certain Craft-native forms, even when the 
 
 This is useful when you want content-managed labels and fields for common flows such as login, registration, or profile editing.
 
-## How it works
+## How It Works
 
 The basic pattern is:
 
@@ -28,7 +28,7 @@ The basic pattern is:
 </form>
 ```
 
-## Why `fieldNamespace` matters
+## Why `fieldNamespace` Matters
 
 By default, Formie names inputs under `fields[...]`.
 
@@ -50,7 +50,7 @@ With `fieldNamespace: ''`, that becomes:
 
 which is what Craft's user actions expect.
 
-## Login form
+## Login Form
 
 For a login form, create a Formie form with fields that match what Craft expects, such as:
 
@@ -87,7 +87,7 @@ You can also add normal Craft concerns around the form, such as error messages a
 </form>
 ```
 
-## Registration form
+## Registration Form
 
 For registration, the same pattern applies. Create a Formie form with fields such as:
 
@@ -116,7 +116,7 @@ If your site uses `useEmailAsUsername`, you may not need a separate `username` f
 
 If you want Formie to save a submission and then create or update the user, look at the [User integration](/integrations/elements/user).
 
-## Profile forms
+## Profile Forms
 
 Profile forms follow the same idea, but they usually need prefilled values from the current user and a hidden `userId` field for Craft.
 
@@ -148,11 +148,11 @@ This works well for core user attributes such as name and email.
 
 For user photos and custom user fields, it is usually better to template those separately rather than duplicating everything in Formie. File inputs cannot be pre-populated with an existing photo, and custom user fields already belong to Craft's normal `fields[...]` namespace.
 
-## Related forms
+## Related Forms
 
 The same overall pattern can be used for password reset and set-password forms, as long as the field handles and action endpoint match what Craft expects.
 
-## Good use cases
+## Good Use Cases
 
 This approach can work well for:
 
@@ -161,7 +161,7 @@ This approach can work well for:
 - profile update forms
 - password reset flows
 
-## When not to use it
+## When Not to Use It
 
 The main tradeoff is that this is no longer a normal Formie submission flow. Formie will not save a submission, email notifications will not send, and integrations will not run, because the form is being posted to Craft instead.
 

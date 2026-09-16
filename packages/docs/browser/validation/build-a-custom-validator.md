@@ -1,12 +1,12 @@
-# Build a custom validator
+# Build a Custom Validator
 
 If the built-in rules are not enough, register your own validator when Formie mounts a form. Each mounted form gets its own validator instance, exposed through `formie:validator:ready`.
 
-## 1. Add the rule to your field markup
+## 1. Add the Rule to Your Field Markup
 
 Custom validators still use the same `data-formie-validation` payload as the built-in rules.
 
-### Direct markup
+### Direct Markup
 
 ```html
 <div
@@ -19,7 +19,7 @@ Custom validators still use the same `data-formie-validation` payload as the bui
 </div>
 ```
 
-### Custom PHP field
+### Custom PHP Field
 
 If you are building a custom field in PHP, the normal pattern is to add browser validation rules from `defineValidationRules()`. Formie's field wrapper will then emit `data-formie-validation` for you automatically.
 
@@ -35,7 +35,7 @@ protected function defineValidationRules(): array
 
 That is the same pattern Formie's own fields use for rules like `email` and `number`.
 
-If your custom validator needs extra payload options beyond Formie's standard normalized keys, override `validationRules()` instead. The default normalization currently only keeps `type`, `fieldId`, `fieldHandle`, `min`, and `max`.
+If your custom validator needs extra payload options beyond Formie's standard normalised keys, override `validationRules()` instead. The default normalisation currently only keeps `type`, `fieldId`, `fieldHandle`, `min`, and `max`.
 
 ```php
 public function validationRules(): array
@@ -49,7 +49,7 @@ public function validationRules(): array
 }
 ```
 
-## 2. Register the validator
+## 2. Register the Validator
 
 ```js
 document.addEventListener('formie:validator:ready', (event) => {
@@ -84,7 +84,7 @@ document.addEventListener('formie:validator:ready', (event) => {
 });
 ```
 
-## 3. Use the validation context
+## 3. Use the Validation Context
 
 Your validator callback receives a context object with:
 
@@ -98,7 +98,7 @@ Your validator callback receives a context object with:
 
 In practice, `getRule()` is usually the most important part because it lets one validator read its own payload options.
 
-## Show a field error manually
+## Show a Field Error Manually
 
 When custom code already knows which input should be invalid, use the validator's `showError()` method instead of building error markup by hand.
 
@@ -116,7 +116,7 @@ document.addEventListener('formie:validator:ready', (event) => {
 
 `showError()` adds Formie's normal error attributes, message markup, theme classes, and page-tab error state for the field.
 
-## Run a remote check before submit
+## Run a Remote Check Before Submit
 
 Validator callbacks are synchronous. If your validation needs to call a controller action or another API, mount the form from your own bundle and use the mounted instance event bus. Instance event handlers are awaited by the submit pipeline, so they can update validation state before Formie's normal validation pass runs.
 
@@ -176,9 +176,9 @@ await formie({
 
 Use the stage payload's `formData` when your remote check needs the submitted values exactly as Formie will send them.
 
-## Replace or remove a rule
+## Replace or Remove a Rule
 
-If you need to swap out behavior for a mounted form, register the same name again or remove it:
+If you need to swap out behaviour for a mounted form, register the same name again or remove it:
 
 ```js
 document.addEventListener('formie:validator:ready', (event) => {
@@ -192,10 +192,10 @@ document.addEventListener('formie:validator:ready', (event) => {
 
 - Bail out early when your rule is not declared on the current field.
 - Put rule options into the `data-formie-validation` JSON instead of hard-coding them in JavaScript.
-- Resolve related fields by Formie field handle for consistency with the rest of Formie's browser behavior.
+- Resolve related fields by Formie field handle for consistency with the rest of Formie's browser behaviour.
 - Mark helper controls that are not value carriers with `data-formie-validation-skip` instead of special-casing them in a rule. The validator will not collect or live-validate those inputs.
 
-## Related pages
+## Related Pages
 
 - [Overview](/browser/validation/)
 - [Built-in rules](/browser/validation/built-in-rules)

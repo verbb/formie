@@ -7,7 +7,7 @@ Follow the below steps to connect Formie to Friendly Captcha.
 1. Select **Friendly Captcha** in the left-hand sidebar.
 1. Turn on **Enabled**.
 
-### Step 2. Get your Friendly Captcha Keys
+### Step 2. Get Your Friendly Captcha Keys
 1. Go to [Friendly Captcha](https://friendlycaptcha.com/) and create an account, or sign in to an existing one.
 1. In the dashboard, go to **Applications** and create a new application.
 1. Copy the **Sitekey** shown for the application.
@@ -31,3 +31,9 @@ Follow the below steps to connect Formie to Friendly Captcha.
 1. Save the form.
 
 Friendly Captcha relies on Formie's front-end output, so test it on the rendered form after saving your settings.
+
+## Verify a Submission
+
+Save the form, open it on your site and submit recognisable test values. Submit through the site and check the resulting submission and spam state. A saved credential alone does not verify the visitor-facing challenge or server-side check.
+
+If nothing arrives, check whether integration conditions matched, whether the submission was complete and non-spam, and whether Craft’s queue has processed the job. A successful connection check verifies credentials; it does not prove that field mapping and delivery work. See [Connect and Test an Integration](/integrations/connect-and-test-an-integration) for a complete mapping and verification workflow.

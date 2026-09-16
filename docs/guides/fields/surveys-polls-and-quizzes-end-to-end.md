@@ -1,4 +1,4 @@
-# Surveys, polls and quizzes end-to-end
+# Surveys, Polls and Quizzes End-to-End
 
 Formie separates **questionnaire** use cases into two field types: **Survey** for collecting and aggregating responses, and **Quiz** for scored assessments with pass/fail logic. Simple **polls** — single-question votes — are built with Survey fields using Radio or Dropdown presentation.
 
@@ -9,7 +9,7 @@ This walkthrough covers all three patterns from form setup through results.
 - [Survey field](/fields/survey)
 - [Quiz field](/fields/quiz)
 
-## Polls — one question, aggregate results
+## Polls — One Question, Aggregate Results
 
 A poll is a single Survey field where respondents pick one option and you review vote counts on the form **Results** tab.
 
@@ -23,7 +23,7 @@ After submissions arrive, open the form → **Results**. The Survey field shows 
 
 Polls do not use Quiz scoring. Keep options as static rows so results stay consistent in the Results tab.
 
-## Surveys — multi-question feedback
+## Surveys — Multi-Question Feedback
 
 Use Survey fields when you need varied question types in one form:
 
@@ -36,7 +36,7 @@ Use Survey fields when you need varied question types in one form:
 | Rating | Star rating |
 | Rank | Drag-and-drop preference ranking |
 
-### Example: customer satisfaction form
+### Example: Customer Satisfaction Form
 
 1. Add Survey fields for each question:
    - **Overall rating** — Presentation: **Rating**
@@ -46,7 +46,7 @@ Use Survey fields when you need varied question types in one form:
 
 Open **Results** to see per-question breakdowns. Likert and Rank fields use weighted scoring in the results aggregation (see below).
 
-### Likert scoring
+### Likert Scoring
 
 For Likert presentations with **static columns**:
 
@@ -57,15 +57,15 @@ Scoring requires static options — dynamic or integration-driven sources disabl
 
 When enabled, each submission's Likert score is the sum of points for selected columns. Multi-row Likert fields (enable **Multiple rows** for statement lists) sum across all answered rows. Results show average score and maximum possible score per question.
 
-### Rank results
+### Rank Results
 
 Rank submissions aggregate using weighted position scoring — higher-ranked options receive more weight in the bar chart on the Results tab.
 
-## Quizzes — scored assessments
+## Quizzes — Scored Assessments
 
 Use **Quiz** fields when respondents should receive a score and optionally pass or fail.
 
-### Form setup
+### Form Setup
 
 1. Create a form (for example `onboardingQuiz`).
 2. Add one or more **Quiz** fields.
@@ -83,7 +83,7 @@ Use **Quiz** fields when respondents should receive a score and optionally pass 
    - Choose **Allow retakes** — when disabled, the same logged-in user or IP cannot submit again after a scored attempt
    - Enable **Show score after submit** to include `quizResult` in Ajax/client responses
 
-### How scoring works
+### How Scoring Works
 
 | Field type | Scoring |
 | --- | --- |
@@ -92,7 +92,7 @@ Use **Quiz** fields when respondents should receive a score and optionally pass 
 
 Scores persist in `formie_submission_quiz_results` with overall score, percentage, pass/fail, and per-question JSON.
 
-### Show results after submit
+### Show Results After Submit
 
 When **Show score after submit** is enabled, successful final-page submits return:
 
@@ -119,23 +119,16 @@ When **Show score after submit** is enabled, successful final-page submits retur
 
 Wrong answers may include an `answerExplanation` HTML string when enabled on the field. Build your success page or client UI around this object.
 
-### Quiz Results tab
+### Quiz Results Tab
 
 Forms with Quiz fields and scoring enabled show a **Quiz summary** on **Results**: attempt count, average percentage, pass rate, and pass threshold.
 
-## Combining Survey and Quiz on one form
+## Combining Survey and Quiz on One Form
 
 You can mix field types on one form, but scoring only applies to Quiz fields when **Enable scoring** is on. Survey fields always feed the questionnaire Results tab; Quiz fields feed both per-question results and the Quiz summary when scoring is enabled.
 
 A common pattern: Survey fields for demographic questions, Quiz fields for the scored section.
 
-## Screening and incomplete submissions
+## Screening and Incomplete Submissions
 
 Quiz scoring runs when complete, non-spam submissions are saved. Draft saves and spam submissions are excluded. Configure [submission screening](/forms/submission-screening) and [spam protection](/forms/spam-protection) so automated abuse does not pollute poll or quiz results.
-
-## Related
-
-- [Survey field](/fields/survey)
-- [Quiz field](/fields/quiz)
-- [Form builder](/forms/form-builder)
-- [Submission screening rules in practice](/guides/submissions-workflows/submission-screening-rules-in-practice)

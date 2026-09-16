@@ -2,7 +2,7 @@
 
 Render options are the shared settings you can pass to Formie's render helpers, such as `renderForm()`, `renderPage()`, and `renderField()`.
 
-## Core options
+## Core Options
 
 ### `sessionKey`
 
@@ -100,7 +100,7 @@ Use this when a statically cached page needs per-form control — for example, C
 }) }}
 ```
 
-When `csrfInput` is `false`, enable [cached form token refresh](/frontend/cached-forms) so Formie can inject a fresh CSRF input on initialization.
+When `csrfInput` is `false`, enable [cached form token refresh](/frontend/cached-forms) so Formie can inject a fresh CSRF input on initialisation.
 
 ### `templateVars`
 
@@ -116,7 +116,7 @@ This is most useful when your Twig templates need a small amount of extra contex
 }) }}
 ```
 
-## Asset output
+## Asset Output
 
 ### `outputCss`
 
@@ -134,7 +134,7 @@ This is most useful when your layout already handles CSS separately, or when you
 
 `outputJs` controls whether Formie should output its front-end JavaScript when the form is rendered.
 
-This is most useful when your layout already handles JavaScript separately, or when you want more deliberate control over when Formie's browser behavior loads.
+This is most useful when your layout already handles JavaScript separately, or when you want more deliberate control over when Formie's browser behaviour loads.
 
 ```twig
 {{ craft.formie.renderForm(form, {
@@ -225,13 +225,15 @@ It can be used in the same way as `scriptAttributes`, and is supported as a Java
 <script type="module" src="/dist/formie.js" crossorigin="anonymous"></script>
 ```
 
-## Initialization
+<span id="initialization"></span>
+
+## Initialisation
 
 ### `initJs`
 
-`initJs` turns automatic browser initialization on or off for the rendered form.
+`initJs` turns automatic browser initialisation on or off for the rendered form.
 
-This is mainly useful when you are controlling initialization yourself.
+This is mainly useful when you are controlling initialisation yourself.
 
 ```twig
 {{ craft.formie.renderForm(form, {
@@ -239,11 +241,11 @@ This is mainly useful when you are controlling initialization yourself.
 }) }}
 ```
 
-Use this when you need to delay Formie initialization — for example until cookie consent is granted for captcha scripts. See [reCAPTCHA — Cookie consent and deferred loading](/integrations/captchas/recaptcha#cookie-consent-and-deferred-loading).
+Use this when you need to delay Formie initialisation — for example until cookie consent is granted for captcha scripts. See [reCAPTCHA — Cookie consent and deferred loading](/integrations/captchas/recaptcha#cookie-consent-and-deferred-loading).
 
 ### `useObserver`
 
-`useObserver` controls whether Formie's browser script should automatically initialize new forms added to the page later.
+`useObserver` controls whether Formie's browser script should automatically initialise new forms added to the page later.
 
 This matters most on pages where forms are injected after load, such as modal, Ajax, or front-end application workflows.
 

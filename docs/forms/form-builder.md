@@ -6,7 +6,7 @@ You use it to add pages and fields, but also to decide how the form should behav
 
 ![Fresh Formie form builder view](../_screenshots/forms/form-builder-create.png)
 
-## Building the form
+## Building the Form
 
 At its simplest, the builder lets you:
 
@@ -18,7 +18,7 @@ At its simplest, the builder lets you:
 
 For many forms, that is enough to get the structure in place. The more important decisions usually come from the settings that sit around the builder, because they affect how the form feels to the person filling it out.
 
-## Form settings
+## Form Settings
 
 Each form controls how submission feels on the front end.
 
@@ -57,7 +57,7 @@ Important examples include:
 
 These settings often end up being driven by policy rather than design, so it helps to check them early instead of leaving them until launch week.
 
-## Multi-page forms
+## Multi-Page Forms
 
 Multi-page forms are not just a layout choice.
 

@@ -4,7 +4,7 @@ Calculations evaluates a formula from other field values and writes the result i
 
 ## Events
 
-#### The `formie:field:calculations:before-evaluate` event
+#### The `formie:field:calculations:before-evaluate` Event
 
 Triggered right before the formula is evaluated.
 
@@ -19,7 +19,7 @@ document.addEventListener('formie:field:calculations:before-evaluate', (event) =
 });
 ```
 
-#### The `formie:field:calculations:after-evaluate` event
+#### The `formie:field:calculations:after-evaluate` Event
 
 Triggered after the formula is evaluated and before the result is written back into the input.
 
@@ -34,7 +34,7 @@ document.addEventListener('formie:field:calculations:after-evaluate', (event) =>
 
 The broader module lifecycle also includes scoped events such as `formie:module:calculations:after-setup`.
 
-## Related pages
+## Related Pages
 
 - [Calculations field](/browser/ui-reference/fields/calculations)
 - [Overview](/browser/modules/)

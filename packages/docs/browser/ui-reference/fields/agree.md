@@ -2,7 +2,7 @@
 
 Agree is the consent checkbox field used for terms, privacy, and one-line confirmations.
 
-Use this page to preserve the hidden input, checkbox attributes, and consent label structure when you customize the field.
+Use this page to preserve the hidden input, checkbox attributes, and consent label structure when you customise the field.
 
 ## Preview
 
@@ -18,34 +18,34 @@ Agree fields span a field wrapper, an optional hidden fallback input, and the vi
 | --- | --- | --- |
 | `data-formie-field-handle` | Stable field identity used by validation and error rendering | Required |
 
-### Hidden input
+### Hidden Input
 
 | Attribute | Purpose | Importance |
 | --- | --- | --- |
 | `data-formie-input-type="agree"` | Empty-state submission fallback | Recommended |
 
-### Field layout
+### Field Layout
 
 | Attribute | Purpose | Importance |
 | --- | --- | --- |
-| `data-formie-agree-field-layout` | Layout marker used by the checkbox-radio module | Required for agree behavior |
+| `data-formie-agree-field-layout` | Layout marker used by the checkbox-radio module | Required for agree behaviour |
 
-### Field input
+### Field Input
 
 | Attribute | Purpose | Importance |
 | --- | --- | --- |
-| `data-formie-agree-input` | Consent checkbox selector | Required for agree behavior |
+| `data-formie-agree-input` | Consent checkbox selector | Required for agree behaviour |
 | `data-formie-input-type="agree"` | Consent-specific input type marker in the rendered markup | Recommended |
 
-### Field option label
+### Field Option Label
 
 | Attribute | Purpose | Importance |
 | --- | --- | --- |
 | `data-formie-agree-option-label` | Consent text label attribute | Recommended |
 
-## Styling classes
+## Styling Classes
 
-These classes are for presentation only. They are not behavior requirements:
+These classes are for presentation only. They are not behaviour requirements:
 
 ### Field
 
@@ -53,21 +53,21 @@ These classes are for presentation only. They are not behavior requirements:
 | --- | --- |
 | `formie-agree-field` | Agree field wrapper styling class |
 
-### Field layout
+### Field Layout
 
 | Class | Description |
 | --- | --- |
 | `formie-agree-field-layout` | Agree field layout styling class |
 | `formie-agree-field-label` | Agree field label styling class |
 
-### Field options
+### Field Options
 
 | Class | Description |
 | --- | --- |
 | `formie-agree-options` | Agree option group styling class |
 | `formie-agree-option` | Agree option wrapper styling class |
 
-### Field input
+### Field Input
 
 | Class | Description |
 | --- | --- |
@@ -76,7 +76,7 @@ These classes are for presentation only. They are not behavior requirements:
 | `formie-agree-input` | Agree-specific checkbox styling class |
 | `formie-input-error` | Error-state styling class |
 
-### Field option label
+### Field Option Label
 
 | Class | Description |
 | --- | --- |
@@ -84,9 +84,11 @@ These classes are for presentation only. They are not behavior requirements:
 | `formie-checkbox-option-label` | Shared checkbox option label styling |
 | `formie-agree-option-label` | Agree-specific option label styling |
 
-## Behavior
+<span id="behavior"></span>
 
-Agree fields use the same checkbox-radio browser behavior as checkbox groups, but as a single consent option:
+## Behaviour
+
+Agree fields use the same checkbox-radio browser behaviour as checkbox groups, but as a single consent option:
 
 - required handling still applies at the field level
 - checked attributes stay synchronized with live state
@@ -96,7 +98,7 @@ Agree fields use the same checkbox-radio browser behavior as checkbox groups, bu
 
 Agree fields use the same shared checkbox-radio field events described on [JavaScript events](/browser/behavior/javascript-events).
 
-#### The `formie:field:checkbox-radio:init` event
+#### The `formie:field:checkbox-radio:init` Event
 
 Triggered after the agree field has been wired and its consent checkbox is ready.
 
@@ -114,7 +116,7 @@ document.addEventListener('formie:field:checkbox-radio:init', (event) => {
 });
 ```
 
-## Related pages
+## Related Pages
 
 - [Checkboxes](/browser/ui-reference/fields/checkboxes)
 - [Radio](/browser/ui-reference/fields/radio)

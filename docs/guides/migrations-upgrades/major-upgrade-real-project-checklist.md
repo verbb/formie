@@ -1,4 +1,4 @@
-# Major upgrade — real-project checklist
+# Major Upgrade — Real-Project Checklist
 
 Major Formie upgrades touch templates, custom fields, integrations, front-end JavaScript, spam settings, and status APIs. This checklist distils [Upgrading From v3](/get-started/upgrading-from-v3) into a practical project runbook — for upgrading an older Formie codebase.
 
@@ -16,7 +16,7 @@ return [
 ];
 ```
 
-## Phase 1 — Pre-upgrade audit
+## Phase 1 — Pre-Upgrade Audit
 
 - List custom Formie **fields**, **integrations**, **modules** listening to Formie events
 - Grep for deprecated APIs: `getStatuses()`, `renderFormAssets`, `onAfterFormieSubmit`, `defineGeneralSchema`, `getValueAsJson`
@@ -25,7 +25,7 @@ return [
 - Export critical forms JSON (**Settings → Import/Export**) as rollback snapshots
 - Review `translations/*/formie.php` for field labels that should move to CP site overrides
 
-## Phase 2 — Install and migrate
+## Phase 2 — Install and Migrate
 
 - Update Formie via Composer on staging
 - Run pending Craft migrations / `project-config/sync`
@@ -34,7 +34,7 @@ return [
 - Remove obsolete config keys: `enableGatsbyCompatibility`, `submissionStateMode`, `submissionStore`
 - Clear deprecation log baseline: `./craft clear-deprecations`
 
-## Phase 3 — Control panel verification
+## Phase 3 — Control Panel Verification
 
 - Open each form in the builder — schema loads without JS errors
 - Verify **Submission Statuses** and **Form Statuses** in the control panel
@@ -44,7 +44,7 @@ return [
 - Verify submission export via **Formie → Reports** (the **Export** button no longer appears on the submissions index — see [Reports and submission export](/get-started/upgrading-from-v3#reports-and-submission-export))
 - Grant **Access reports** and **Export submissions** (or **Manage reports**) to user groups that exported from the submissions index in Formie 3
 
-## Phase 4 — Template and front-end
+## Phase 4 — Template and Front-End
 
 Run the full [template compatibility audit](/guides/migrations-upgrades/template-compatibility-audit-after-upgrade). Minimum checks:
 
@@ -66,7 +66,7 @@ Run the full [template compatibility audit](/guides/migrations-upgrades/template
 - Submission status classes: `SubmissionStatuses`, `SubmissionStatus`
 - Theme config: `defineFieldSlotTag()` / `SlotTag` instead of `defineHtmlTag()` / `HtmlTag`
 
-## Phase 6 — Spam and screening
+## Phase 6 — Spam and Screening
 
 - Legacy Honeypot/Javascript/Duplicate **captcha integrations** removed — replaced by **submission guards**
 - Spam keywords and captcha secrets in **control panel settings**, not old `project.yaml` plugin keys
@@ -80,7 +80,7 @@ Run the full [template compatibility audit](/guides/migrations-upgrades/template
 - Update text-limit counter plural strings (see upgrading doc)
 - Multi-site: French copy in CP site overrides, not locale files
 
-## Phase 8 — Functional testing
+## Phase 8 — Functional Testing
 
 - Single-page form — page reload submit
 - Multi-page form — Ajax navigation, back button, incomplete save
@@ -93,7 +93,7 @@ Run the full [template compatibility audit](/guides/migrations-upgrades/template
 - Static cached page submit
 - Client events / GTM payload on success
 
-## Phase 9 — Production cutover
+## Phase 9 — Production Cutover
 
 - Deploy during low traffic
 - `project-config/sync` on production
@@ -101,7 +101,7 @@ Run the full [template compatibility audit](/guides/migrations-upgrades/template
 - Monitor Craft queue for notification/integration failures
 - Monitor `storage/logs/web.log` for Formie deprecations
 
-## Phase 10 — Disable compatibility mode
+## Phase 10 — Disable Compatibility Mode
 
 When staging shows **zero Formie deprecation warnings** after realistic traffic:
 
@@ -115,7 +115,7 @@ return [
 - Deploy config change
 - Watch logs for 48 hours
 
-## Quick replacement reference
+## Quick Replacement Reference
 
 | Old | New |
 | --- | --- |
@@ -130,10 +130,3 @@ return [
 | `enableJsEvents` | `enableClientEvents` |
 
 Full table in [Upgrading From v3](/get-started/upgrading-from-v3#replacement-reference).
-
-## Related
-
-- [Upgrading From v3](/get-started/upgrading-from-v3)
-- [Template compatibility audit after upgrade](/guides/migrations-upgrades/template-compatibility-audit-after-upgrade)
-- [Project config, environment, and control panel settings](/guides/configuration/project-config-environment-and-control-panel-settings)
-- [Cached forms in production](/guides/frontend-headless/cached-forms-in-production)

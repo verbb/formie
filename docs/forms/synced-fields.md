@@ -6,7 +6,7 @@ They are useful when a field should stay consistent everywhere it appears, inste
 
 This is especially useful for fields that appear repeatedly across a site, such as email addresses, phone numbers, consent checkboxes, and other common contact details.
 
-## When to use synced fields
+## When to Use Synced Fields
 
 Synced fields are a good fit when:
 
@@ -16,7 +16,7 @@ Synced fields are a good fit when:
 
 They are a poor fit when a field only looks similar but needs to drift over time. In that case, a normal copied field is usually the better choice.
 
-## Adding a synced field
+## Adding a Synced Field
 
 In the form builder, add a field from the existing fields picker instead of creating a new one. When you choose an existing field, you can add it as a synced field so it stays linked to the original.
 
@@ -29,27 +29,27 @@ That same picker can also add a normal copied field instead. The difference is i
 
 Because the field stays linked, editing it in one form means editing it everywhere. That is what makes synced fields useful, but it is also why they need a little more care.
 
-## Synced fields inside groups
+## Synced Fields Inside Groups
 
 You can add existing or synced fields inside **Group** fields from the form builder. This is useful when you want independent group wrappers — such as delivery and invoice address blocks — that each contain the same reusable field definition.
 
 Each group keeps its own label and settings, while synced nested fields stay linked to the shared definition. Submission values are namespaced by the group handle, for example `deliveryAddress.email` and `invoiceAddress.email`.
 
-## Working with shared fields
+## Working with Shared Fields
 
 Formie warns you about this in the builder, but it is still worth being deliberate. If you need an independent version later, the usual answer is to create a new field rather than trying to keep changing a shared one.
 
-## Synced fields in stencils
+## Synced Fields in Stencils
 
 You can add synced fields while building a [stencil](/forms/stencils). The stencil stores the shared definition by handle so new forms created from that stencil link to the same field definition.
 
 Project stencils resolve synced fields by handle, so the shared definition should already exist on each environment (or Formie will create an independent copy from the stencil field settings).
 
-## Synced fields and multi-site
+## Synced Fields and Multi-Site
 
 Synced fields store their shared label, handle, and definition settings in one global field definition. Every placement on every form points at that same definition.
 
-On multi-site projects, [content translation overrides](/forms/multi-site#content-translation) still apply per **field placement** — keyed by each placement’s reference, not by the shared definition id. That means:
+On multi-site projects, [content translation overrides](/forms/multi-site-and-translation#content-translation) still apply per **field placement** — keyed by each placement’s reference, not by the shared definition id. That means:
 
 - editing a synced field on the form’s **source site** updates the shared definition, which affects every form and every site that does not have a site override for that placement
 - editing a synced field on a **secondary site** saves a site override for that placement only; the shared definition stays unchanged

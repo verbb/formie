@@ -8,7 +8,7 @@ Use this page to preserve the message containers, semantics, and status variants
 
 <FormiePreview src="../examples/messages.preview.ts" />
 
-## Browser attributes
+## Browser Attributes
 
 Useful message-level hooks include:
 
@@ -24,7 +24,7 @@ Useful message-level hooks include:
 | `data-formie-error` | Inline error message content |
 | `data-formie-success` | Success message content |
 
-## Styling classes
+## Styling Classes
 
 | Class | Purpose |
 | --- | --- |
@@ -34,13 +34,13 @@ Useful message-level hooks include:
 | `formie-errors` | Error stack container |
 | `formie-successes` | Success stack container |
 
-## Accessibility notes
+## Accessibility Notes
 
-- Error messages should use alert-like semantics such as `role="alert"` and assertive live-region behavior when they need immediate attention.
+- Error messages should use alert-like semantics such as `role="alert"` and assertive live-region behaviour when they need immediate attention.
 - Success messages should prefer polite live-region semantics such as `role="status"`.
 - Long form-level guidance should remain outside field controls so it is easy to scan as one message surface.
 
-## Related pages
+## Related Pages
 
 - [Submission handling](/browser/behavior/submission-handling)
 - [CSS variables](/browser/ui-reference/css-variables)

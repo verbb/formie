@@ -20,7 +20,9 @@ Use this page to preserve the table body, row, template, and add/remove attribut
 | `data-formie-table-remove` | Remove-row button hook | Required for dynamic tables |
 | `data-formie-table-template` with `__ROW__` placeholders | Template source for new rows | Required for dynamic tables |
 
-## Behavior
+<span id="behavior"></span>
+
+## Behaviour
 
 The `table` module:
 
@@ -32,7 +34,7 @@ The `table` module:
 
 Table emits field events as rows are prepared, appended, and removed.
 
-#### The `formie:field:table:init` event
+#### The `formie:field:table:init` Event
 
 Triggered after the table field has been wired and its existing rows are ready.
 
@@ -50,7 +52,7 @@ document.addEventListener('formie:field:table:init', (event) => {
 });
 ```
 
-#### The `formie:field:table:append` event
+#### The `formie:field:table:append` Event
 
 Triggered after a new row has been appended from the configured template.
 
@@ -68,7 +70,7 @@ document.addEventListener('formie:field:table:append', (event) => {
 });
 ```
 
-#### The `formie:field:table:remove` event
+#### The `formie:field:table:remove` Event
 
 Triggered after an existing row has been removed.
 
@@ -86,7 +88,7 @@ document.addEventListener('formie:field:table:remove', (event) => {
 });
 ```
 
-## Related pages
+## Related Pages
 
 - [Repeater](/browser/ui-reference/fields/repeater)
 - [JavaScript events](/browser/behavior/javascript-events)

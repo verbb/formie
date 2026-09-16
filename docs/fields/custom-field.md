@@ -8,7 +8,7 @@ The Custom Field field lets a form use supported Craft fields through Formie wit
 
 Custom Field is adapter-based. Each available option in **Custom Field Type** has explicit Formie support for rendering, validation, submissions, email summaries, exports, integrations and GraphQL.
 
-## Supported adapters
+## Supported Adapters
 
 Formie includes these adapters:
 
@@ -18,7 +18,7 @@ Formie includes these adapters:
 
 Only available adapters are shown in the field settings. Third-party developers can register additional adapters for their own Craft fields.
 
-## Field settings
+## Field Settings
 
 1. Add **Custom Field** to a form.
 2. Choose a **Custom Field Type** in the picker modal.

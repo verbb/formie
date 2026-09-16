@@ -1,14 +1,14 @@
-# Translating forms across Craft sites
+# Translating Forms Across Craft Sites
 
 Multi-site Craft projects usually need the same form structure everywhere with different wording per site — not a completely different form per language. Formie stores one canonical layout and sparse per-site overrides for translatable text. This walkthrough takes a contact form from English source copy to French overrides without duplicating forms or fighting translation files.
 
 ## Prerequisites
 
 - Craft multi-site enabled with at least two sites
-- [Multi-Site & Translation](/forms/multi-site)
+- [Multi-Site & Translation](/forms/multi-site-and-translation)
 - [Translations](/forms/translations) — three layers of text in Formie
 
-## Two separate concerns
+## Two Separate Concerns
 
 Keep these distinct:
 
@@ -21,7 +21,7 @@ A form can be available on English and French with translated labels. Or availab
 
 Formie forms are **not** entry-style per-site documents. One field layout, handles, conditions, and integrations are shared. Per-site differences are mostly text.
 
-## Step 1 — Scope the form to the right sites
+## Step 1 — Scope the Form to the Right Sites
 
 Create or assign a [form group](/forms/form-groups) with the correct **Enabled Sites** and **Site Propagation** before authors build content.
 
@@ -38,7 +38,7 @@ Example — Australia-only form:
 
 Ungrouped forms are treated as available on all sites you can edit.
 
-## Step 2 — Build canonical copy on the source site
+## Step 2 — Build Canonical Copy on the Source Site
 
 Each form has a **source site** — where it was created. That site holds default translatable content.
 
@@ -49,7 +49,7 @@ Each form has a **source site** — where it was created. That site holds defaul
 
 Structural work (adding fields, conditions, integrations) updates the **shared canonical form** regardless of which site you are viewing when you save.
 
-## Step 3 — Add French overrides
+## Step 3 — Add French Overrides
 
 1. Use the **site switcher** (globe icon) in the form builder breadcrumb
 2. Select **French**
@@ -60,7 +60,7 @@ Only changed keys are stored in `formie_form_site_overrides`. The English source
 
 Translation icons beside field labels indicate overridable values. On the source site you edit the default; on other sites you edit overrides.
 
-## Step 4 — Translate nested and option fields
+## Step 4 — Translate Nested and Option Fields
 
 **Name, Address, Group, Repeater** — child field labels translate the same way as top-level fields. Override only the children that change.
 
@@ -70,7 +70,7 @@ Translation icons beside field labels indicate overridable values. On the source
 
 **Form messages** — error, success, limit, and scheduling messages support per-site overrides.
 
-## Step 5 — Verify front-end rendering
+## Step 5 — Verify Front-End Rendering
 
 No extra template code is required. When you render for a site, Formie merges overrides automatically:
 
@@ -86,7 +86,7 @@ This applies to:
 
 Submissions store `siteId` so you know which site they came from.
 
-## Step 6 — What not to put in translation files
+## Step 6 — What Not to Put in Translation Files
 
 Form builder content does **not** belong in `translations/*/formie.php`:
 
@@ -117,7 +117,7 @@ Many teams prefer instead:
 
 See [Multi-site notification content](/guides/email-notifications/multi-site-notification-content).
 
-## When you need different layouts per site
+## When You Need Different Layouts per Site
 
 Site overrides are for **different text on the same form**, not different field sets.
 
@@ -139,10 +139,3 @@ Use CP site overrides. A single `translations/en/formie.php` cannot distinguish 
 **Field added on French site appeared on English too**
 
 Structural changes are global. Only text overrides are per-site.
-
-## Related
-
-- [Multi-Site & Translation](/forms/multi-site)
-- [Translations](/forms/translations)
-- [Form groups and defaults at scale](/guides/control-panel-admin/form-groups-and-defaults-at-scale)
-- [Multi-site notification content](/guides/email-notifications/multi-site-notification-content)

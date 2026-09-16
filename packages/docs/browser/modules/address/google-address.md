@@ -1,10 +1,10 @@
-# Google address
+# Google Address
 
 Google address is an address provider module that uses Google address services to populate Formie address sub-fields.
 
 ## Events
 
-#### The `formie:address:google:populate` event
+#### The `formie:address:google:populate` Event
 
 Triggered when Google writes selected address data into the field sub-fields.
 
@@ -19,7 +19,7 @@ The event namespace uses `google`, while the module id remains `google-address`.
 
 The shared module lifecycle also exposes scoped events such as `formie:module:google-address:after-setup`.
 
-## Related pages
+## Related Pages
 
 - [Address field](/browser/ui-reference/fields/address)
 - [Overview](/browser/modules/)

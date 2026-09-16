@@ -3,7 +3,7 @@ Formie comes with a number of command line utilities that can be run on-demand, 
 
 ## Forms
 
-### Re-save Forms
+### Re-Save Forms
 Refer to the [Craft docs](https://craftcms.com/docs/5.x/reference/cli#resave) on available options.
 
 ```shell
@@ -68,7 +68,7 @@ Option | Description
 
 ## Submissions
 
-### Re-save Submissions
+### Re-Save Submissions
 Refer to the [Craft docs](https://craftcms.com/docs/5.x/reference/cli#resave) on available options.
 
 ```shell
@@ -266,3 +266,57 @@ Option | Description
 ```shell
 ./craft formie/migrate/freeform5 --form-handle=form1,anotherForm
 ```
+
+
+## Recover Payments
+
+Run these commands from your Craft project’s root directory when a payment remains unresolved after a timeout or interrupted request. A pending payment may already have charged the customer. Formie keeps its saved amount, gateway account and references so retrying the submission can’t silently create another purchase.
+
+Moneris, Eway, BPOINT, Opayo, Mollie and Paddle use this recovery flow. To list up to 100 unresolved payments, then inspect one payment in detail:
+
+```shell
+./craft formie/payments
+./craft formie/payments/inspect 123
+```
+
+Replace `123` with the local payment ID. The output includes the submission and integration IDs, amount, currency, gateway reference and merchant reference. For another page of results, pass the last payment ID and a limit: `./craft formie/payments/index 123 100`.
+
+### Check the Gateway
+
+Try a status lookup before making a manual decision:
+
+```shell
+./craft formie/payments/reconcile 123
+```
+
+This uses the integration’s transaction lookup where one is available. Eway can also find a payment by its unique invoice reference when the creation response was lost. Mollie can restore a missing reference from a webhook after verifying its transaction, saved owner and amount. A missing or unverified lookup result keeps the payment unresolved.
+
+If automatic lookup is unavailable, use the merchant reference to find the transaction in the original gateway account. Check the amount, currency and final transaction status. For a hosted checkout, confirm that it has completed or has been cancelled before deciding whether the customer can retry.
+
+### Record a Verified Outcome
+
+When you have independently verified a successful charge, record the gateway reference and a note identifying who checked it and the evidence used:
+
+```shell
+./craft formie/payments/resolve 123 success 25.00 USD "gateway-reference" "Checked by Alex in the gateway dashboard; amount and receipt match."
+```
+
+The command checks the amount and currency against the saved payment, rejects a conflicting reference and asks you to confirm the outcome. It saves your note with the payment. It does not create a charge or resume submission processing.
+
+If the gateway confirms that no charge occurred, and any open checkout or authorisation can no longer complete, record a failed outcome to permit a fresh attempt:
+
+```shell
+./craft formie/payments/resolve 123 failed 25.00 USD "" "Checked by Alex; gateway confirms no charge and no open checkout."
+```
+
+Use the saved gateway reference in place of `""` if the payment already has one. A timeout or an empty search result alone is insufficient evidence of failure. Confirmed command-line automation can pass `--confirmed=1 --interactive=0` after performing the same checks.
+
+### Resume a Successful Submission
+
+After verifying a successful payment, resume the submission’s remaining processing:
+
+```shell
+./craft formie/payments/resume 123
+```
+
+This can run the form’s configured notifications and integrations. Formie reuses its saved workflow state to avoid repeating completed delivery steps. If processing fails, the payment remains successful; resolve the reported processing error before running the command again.

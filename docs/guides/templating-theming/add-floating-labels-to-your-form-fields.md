@@ -1,4 +1,4 @@
-# Add floating labels to your form fields
+# Add Floating Labels to Your Form Fields
 
 Floating labels sit inside the input and animate out of the way when the user focuses or enters a value — similar to [Bootstrap's form-floating pattern](https://getbootstrap.com/docs/5.3/forms/floating-labels/). This guide adds floating labels as an opt-in label position editors can choose per field, without forking every field template.
 
@@ -15,7 +15,7 @@ The implementation has three parts:
 2. Override the field wrapper template so the label can render after the input
 3. Use **theme config** (via `EVENT_MODIFY_SLOT_TAG`) to add Bootstrap-compatible classes when floating is selected
 
-## Create your module
+## Create Your Module
 
 Floating labels are not a core Formie field type — they are a **label position** editors opt into per field. You implement that with a Craft module that registers a custom position, adjusts field wrapper markup, and applies Theme Config classes when floating is selected.
 
@@ -32,7 +32,7 @@ modules/
 
 Register the module in `config/app.php` as you would for any Craft module. The three parts below — position class, wrapper template override, and Theme Config hook — can live in one module file to start; split them as your project grows.
 
-### Main module class
+### Main Module Class
 
 The module class wires together label position registration and Theme Config class injection:
 
@@ -79,7 +79,7 @@ class FormieFloatingLabels extends Module
 
 Formie uses `Field::EVENT_MODIFY_SLOT_TAG` to modify field markup. Classes are applied to `fieldContent` (the wrapper) and `fieldInput` (the control).
 
-### Floating position class
+### Floating Position Class
 
 ```php
 <?php
@@ -136,7 +136,7 @@ Limit `supports()` to field types where floating labels make sense. Unsupported 
 
 After installing the module, edit any field in the form builder and choose **Floating** as the label position.
 
-## Add the floating label to the field template
+## Add the Floating Label to the Field Template
 
 Formie's default `field.html` renders labels above, left, right, and below the control — but not floating. Add a **field.html** override in your Form Template directory (see [Template Overrides](/theming/template-overrides)):
 
@@ -221,9 +221,3 @@ Bootstrap's form-floating CSS relies on `:placeholder-shown`. The module sets th
 ```
 
 Add this to your site's CSS bundle rather than inline Twig in production.
-
-## Related
-
-- [Theme config](/theming/theme-config)
-- [Template Overrides](/theming/template-overrides)
-- [Field Events](/developers/events/field-events)

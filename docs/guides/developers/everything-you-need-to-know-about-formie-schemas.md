@@ -1,4 +1,4 @@
-# Everything you need to know about Formie schemas
+# Everything You Need to Know About Formie Schemas
 
 Formie schemas are PHP arrays that describe control panel UI — field settings tabs, integration form settings, notification editors, and page button panels. They replace ad-hoc Twig/Vue templates in the form builder with a structured, normalizable format built on [SchemaForm](https://verbb.io/plugin-kit/forms/overview). This guide explains **when and why** to use schemas, and patterns for fields and integrations.
 
@@ -12,7 +12,7 @@ For node anatomy, `SchemaHelper` method tables, conditions, layout nodes, table 
 
 This guide covers **CP builder schemas** — not headless React consumer docs or GraphQL types.
 
-## Like Craft's Twig form macros, but in PHP
+## Like Craft's Twig Form Macros, but in PHP
 
 If you have built Craft plugin settings pages before, you have probably used Twig [form macros](https://craftcms.com/docs/5.x/reference/forms/forms.html) such as `forms.textField()`:
 
@@ -57,13 +57,13 @@ $formConfig = [
 
 Formie's `SchemaHelper` methods are convenience wrappers around that same idea — shorter nodes for common field types, plus Formie-specific settings such as field handles, conditions, and integration mapping controls. See the [Plugin Kit blog post on schema-driven forms](https://verbb.io/blog/plugin-kit#schema-driven-forms) for the broader picture of why Verbb built this pattern.
 
-## What a schema is
+## What a Schema Is
 
 A schema is an ordered array of **nodes**. Each node describes an input, layout wrapper, or registered component. The form builder renders the array; saved values map to setting keys on the field, form, or integration model.
 
 Prefer `SchemaHelper` for common inputs and Formie field settings. Use raw nodes when you need a field or layout the helper does not cover. See [Schema](/developers/schema) for the intro example, [Helpers](/developers/schema#helpers), [Schema Nodes](/developers/schema#schema-nodes), [Conditions](/developers/schema#conditions), [Layout and HTML](/developers/schema#layout-and-html), and [Tables](/developers/schema#tables).
 
-## Field schema methods
+## Field Schema Methods
 
 Custom fields implement tab-specific methods:
 
@@ -79,7 +79,7 @@ Implement the tab-specific methods above for custom fields. Each method returns 
 
 Field previews in the builder palette use `defineFormBuilderPreviewSchema()` — see [Preview Schema](/developers/schema#preview-schema).
 
-## Integration form settings schema
+## Integration Form Settings Schema
 
 Integrations that expose form-level settings implement `defineFormSettingsSchema()`:
 
@@ -104,13 +104,13 @@ protected function defineFormSettingsSchema(FormInterface $form): array
 
 Always start with `parent::defineFormSettingsSchema($form)` unless you have a specific reason not to — the parent includes the standard **Enabled** setting. Per-form integration UI is declared entirely through schema.
 
-## Settings schema vs front-end modules
+## Settings Schema vs Front-End Modules
 
 Schema covers **control panel configuration**. Captchas and address providers also need **client modules** (`getClientModule()`) for browser behaviour — schema alone does not inject JavaScript.
 
 See [Captcha Integration](/developers/custom-integration/captcha-integration) for the full split.
 
-## Normalization and validation
+## Normalisation and Validation
 
 Formie normalizes saved settings against schema definitions on save. Benefits:
 
@@ -120,7 +120,7 @@ Formie normalizes saved settings against schema definitions on save. Benefits:
 
 When adding a new setting to an existing field type, add the schema node and a default in the field's settings model — old saved fields pick up defaults on next edit.
 
-## Debugging schema issues
+## Debugging Schema Issues
 
 | Symptom | Check |
 | --- | --- |
@@ -130,12 +130,3 @@ When adding a new setting to an existing field type, add the schema node and a d
 | Integration tab empty | `defineFormSettingsSchema()` returns array; parent called |
 
 Hard-refresh the CP after PHP changes. Schema is server-rendered — no Vite rebuild for plugin PHP.
-
-## Related
-
-- [Schema](/developers/schema)
-- [SchemaForm overview](https://verbb.io/plugin-kit/forms/overview)
-- [Custom Field](/developers/custom-field)
-- [Custom Integration overview](/developers/custom-integration/overview)
-- [Creating a Formie field type from scratch](/guides/fields/creating-a-formie-field-type-from-scratch)
-- [Building a CRM integration from scratch](/guides/integrations/building-a-crm-integration-from-scratch)

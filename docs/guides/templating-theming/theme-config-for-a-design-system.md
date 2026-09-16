@@ -1,4 +1,4 @@
-# Theme config for a design system
+# Theme Config for a Design System
 
 If your site uses a design system — Tailwind utilities, Bootstrap components, or shared BEM classes — theme config is usually the best way to align Formie forms with it. You define HTML tags and attributes once, then reuse that configuration across every form.
 
@@ -7,7 +7,7 @@ If your site uses a design system — Tailwind utilities, Bootstrap components, 
 - [Theming Overview](/theming/overview) — understand when theme config fits vs template overrides
 - [Theme Config](/theming/theme-config) reference
 
-## Why theme config for design systems
+## Why Theme Config for Design Systems
 
 Formie's default markup uses stable `formie-*` classes and semantic `data-formie-*` hooks. Theme config lets you:
 
@@ -19,7 +19,7 @@ Formie's default markup uses stable `formie-*` classes and semantic `data-formie
 
 You get consistent output without maintaining dozens of Twig overrides.
 
-## Understand the form structure
+## Understand the Form Structure
 
 A simplified view of default output:
 
@@ -40,9 +40,9 @@ A simplified view of default output:
 </form>
 ```
 
-Each named part — `form`, `field`, `fieldLabel`, `fieldInput`, `submitButton`, and many more — is a **theme tag** you can configure. See the full tag list in [Theme Config](/theming/theme-config#theme-tags).
+Each named part — `form`, `field`, `fieldLabel`, `fieldInput`, `submitButton`, and many more — is a **theme tag** you can configure. See the full tag list in [Theme Config](/reference/theme-tag-reference#theme-tags).
 
-## Start with a shared config object
+## Start with a Shared Config Object
 
 Centralise theme config in a Twig variable or PHP array your templates include:
 
@@ -88,7 +88,7 @@ Use it when rendering any form:
 }) }}
 ```
 
-## Register globally through plugin config
+## Register Globally Through Plugin Config
 
 For site-wide defaults, put theme config in `config/formie.php`. Render-time config and events can still override it:
 
@@ -118,7 +118,7 @@ return [
 
 Priority (lowest to highest): plugin config → Twig `renderForm()` → PHP events.
 
-## Replace Formie classes entirely
+## Replace Formie Classes Entirely
 
 When your design system should not inherit `formie-*` classes, use `reset: true`:
 
@@ -140,7 +140,7 @@ When your design system should not inherit `formie-*` classes, use `reset: true`
 } %}
 ```
 
-## Target specific field types
+## Target Specific Field Types
 
 Apply config only to one field type using its camelCase key:
 
@@ -165,7 +165,7 @@ themeConfig: {
 
 Sub-field keys (`address1`, `nameFirst`, `dateDate`, etc.) target inner parts of Address, Name, and Date/Time fields without affecting other inputs.
 
-## Conditional classes
+## Conditional Classes
 
 Theme config supports structured conditionals — useful when a class should depend on field state:
 
@@ -187,7 +187,7 @@ recipients: {
 
 Available condition context includes `form`, `field`, `page`, `currentPage`, `row`, and `submission`.
 
-## Ajax and client-side state
+## Ajax and Client-Side State
 
 Some UI states change in the browser without a server re-render — tab changes, hidden pages, loading buttons, validation errors. Twig conditionals in `themeConfig` will not re-evaluate for those updates.
 
@@ -225,11 +225,11 @@ themeConfig: {
 
 If you use Tailwind JIT, safelist classes defined in PHP config or prefer Twig `renderForm()` theme config so utilities are discovered at build time.
 
-## Use ready-made presets
+## Use Ready-Made Presets
 
 The [Formie theme configs](https://github.com/verbb/formie-theme-configs) repository includes full Tailwind and Bootstrap examples. Copy a preset into your project and adjust tokens to match your design system rather than starting from scratch.
 
-## PHP events for dynamic config
+## PHP Events for Dynamic Config
 
 When config must vary by form handle, site, or user role, register theme config through `EVENT_MODIFY_SLOT_TAG`:
 
@@ -247,13 +247,6 @@ Event::on(Form::class, Form::EVENT_MODIFY_SLOT_TAG, function (ModifyFormSlotTagE
 
 Field-level events work the same way on `Field::EVENT_MODIFY_SLOT_TAG`.
 
-## When to step up to template overrides
+## When to Step Up to Template Overrides
 
 Theme config covers most design-system alignment. Reach for [Template Overrides](/theming/template-overrides) when you need different HTML structure — not just different classes. Reach for [Custom Rendering](/theming/custom-rendering) only when you are taking over the entire form output.
-
-## Related
-
-- [Theming Overview](/theming/overview)
-- [Theme Config](/theming/theme-config)
-- [Render Options](/templates/render-options)
-- [Add floating labels to your form fields](/guides/templating-theming/add-floating-labels-to-your-form-fields)

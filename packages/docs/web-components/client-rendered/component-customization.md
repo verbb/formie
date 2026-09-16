@@ -1,6 +1,8 @@
-# Component customization
+<span id="component-customization"></span>
 
-## What you can customize
+# Component Customisation
+
+## What You Can Customise
 
 `<formie-core-form>` renders from the client definition. Overrides go on **`FormieRegistry`**:
 
@@ -10,14 +12,14 @@
 
 Define your custom elements with **`customElements.define`** before you call the `register*` methods, and run registry setup **before** the host loads (or assign **`el.registry`** and call **`el.reload()`**).
 
-## Choose the right layer
+## Choose the Right Layer
 
 - Use **`registerField`** when you want one custom element to own the full field layout around the control.
 - Use **`registerFieldControl`** when the default field layout is fine but a specific field type needs a custom input.
 - Use **`registerRegion`** when you want to replace loading UI, page actions, error summary, or other named regions.
 - Listen on **`formie-core-form`** for composed **`formie:*`** events, or use **`getFormieInstance()`** after **`formie:client:ready`**, when you need imperative access to form state and actions from script.
 
-## Combined example
+## Combined Example
 
 This example registers a custom **field** host (shadow root + default **slot** for the control) and a custom **single-line text** control. You can use light DOM only for either piece; shadow + slot is one way to place the projected control.
 
@@ -177,11 +179,11 @@ el.transport = 'rest';
 document.body.append(el);
 ```
 
-## Field host
+## Field Host
 
 Use **`registerField(tagName)`** when you want one custom element to wrap every field’s control. Formie sets **`field`** and **`errors`** and projects the built-in or registry control as **light DOM children**; use a **shadow root + `<slot>`** (as above) or your own projection so the control appears where you want.
 
-## Field controls
+## Field Controls
 
 Use **`registerFieldControl(fieldKey, tagName)`** when you only replace the control for a field type. Formie sets **`field`**, **`value`**, **`errorKey`**, **`disabled`**, and **`hidden`**, and listens for **`FORMIE_CONTROL_VALUE_EVENT`** with **`detail`** = the next value.
 
@@ -247,11 +249,11 @@ el.transport = 'rest';
 document.body.append(el);
 ```
 
-## Layout regions
+## Layout Regions
 
 `registerRegion(key, tagName)` keys: **`form`**, **`page`**, **`errorSummary`**, **`loading`**, **`pageActions`**. The host passes the same props the built-in views use (see `@verbb/formie-web-components` source types if you need exact shapes).
 
-## Form instance and events outside the tree
+## Form Instance and Events Outside the Tree
 
 The host does not expose a hook-style API. Use either:
 
@@ -280,6 +282,6 @@ el.addEventListener('formie:submit:result', (e) => {
 document.body.append(el);
 ```
 
-## Deeper rendering
+## Deeper Rendering
 
 For a host other than **`formie-core-form`**, or a fully custom DOM tree, use **`renderFormView`** and **`@verbb/formie-core`** directly. Prefer **`FormieRegistry`** + **`formie-core-form`** until you need that escape hatch.

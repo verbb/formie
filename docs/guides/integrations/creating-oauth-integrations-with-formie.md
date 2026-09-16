@@ -1,4 +1,4 @@
-# Creating OAuth integrations with Formie
+# Creating OAuth Integrations with Formie
 
 OAuth is awkward to implement yourself — token storage, refresh flows, provider quirks, and scope handling add up quickly. Formie uses [Verbb Auth](https://github.com/verbb/auth) under the hood, so your integration can focus on Formie-specific settings and API calls while Formie manages connection, tokens, and authorized requests.
 
@@ -6,15 +6,15 @@ This guide walks through registering a custom OAuth integration in a Craft modul
 
 Read the [OAuth Integration](/developers/custom-integration/oauth-integration) reference first if you have not built an OAuth integration before.
 
-## When to build vs reuse
+## When to Build vs Reuse
 
 Before writing a custom class, check whether Formie already ships your provider. Formie includes OAuth connections for Campaign Monitor, Mailchimp, Google Sheets, HubSpot, Slack, Salesforce, and many others.
 
 If your provider is already supported, fetch the integration instance and call `$integration->request()` directly — no custom module required. See [Using Guzzle clients from Formie integrations in your own code](/guides/integrations/using-guzzle-clients-from-formie-integrations-in-your-own-code).
 
-When Formie does not support your provider, register a custom integration class. The example below connects to a fictional webinar API — adapt authorization URLs, scopes, token handling, and API base URLs to your provider's documentation.
+When Formie does not support your provider, register a custom integration class. The example below connects to a fictional webinar API — adapt authorisation URLs, scopes, token handling, and API base URLs to your provider's documentation.
 
-## Create your module
+## Create Your Module
 
 First, you need a [Craft module](https://craftcms.com/docs/5.x/extend/module-guide.html).
 
@@ -62,7 +62,7 @@ class GoToWebinar extends Module
 
 Push your integration class onto the category that best fits your provider — `$event->crm[]`, `$event->emailMarketing[]`, `$event->miscellaneous[]`, and so on.
 
-## The integration class
+## The Integration Class
 
 Create `modules/gotowebinar/src/integrations/GoToWebinar.php`. OAuth integrations implement `OAuthProviderInterface` and tell Formie which Verbb Auth provider class handles token exchange.
 
@@ -165,7 +165,7 @@ class GoToWebinar extends Miscellaneous implements OAuthProviderInterface
 
 If your integration also maps submission data to the provider, implement `fetchFormSettings()` and `sendPayload()` the same way you would for a non-OAuth integration — see [Building a CRM integration from scratch](/guides/integrations/building-a-crm-integration-from-scratch).
 
-### OAuth hooks
+### OAuth Hooks
 
 These methods connect Formie to your provider's OAuth flow:
 
@@ -180,7 +180,7 @@ These methods connect Formie to your provider's OAuth flow:
 
 Once connected, use `$this->request('GET', 'accounts')` for API calls. Formie routes requests through the stored token and refreshes when needed.
 
-### Plugin settings template
+### Plugin Settings Template
 
 Editors need your OAuth app's **Client ID** and **Client Secret**, plus the **Redirect URI** to register in the provider's developer console.
 
@@ -220,7 +220,7 @@ Store `clientId` and `clientSecret` in `.env` variables on production. Formie re
 
 The redirect URI shown in settings must match your provider app configuration exactly. Override globally with the `redirectUri` config setting if needed — see [Configuration](/get-started/configuration).
 
-### Custom OAuth provider
+### Custom OAuth Provider
 
 Most providers work with Verbb Auth's built-in provider classes. When a provider needs non-standard token requests — for example, Basic auth on the token endpoint — extend `GenericProvider`:
 
@@ -243,7 +243,7 @@ class GoToWebinar extends GenericProvider
 
 Browse Formie's built-in integrations for patterns before writing a custom provider — many providers share similar token endpoint behaviour.
 
-## Connect in the control panel
+## Connect in the Control Panel
 
 With the module in place:
 
@@ -253,7 +253,7 @@ With the module in place:
 
 If connection fails, check the redirect URI, scopes, and that your provider app is in the correct mode (sandbox vs production).
 
-## Using the authorized client
+## Using the Authorized Client
 
 After connecting, fetch the integration anywhere in your project and call the API:
 
@@ -277,7 +277,7 @@ Ensure your code runs after plugins load — see the [Guzzle clients guide](/gui
 
 You do not need to use Formie forms to benefit from this — any Craft module or console command can reuse a connected integration's client.
 
-## Finishing up
+## Finishing Up
 
 Every provider differs in scopes, token shape, and API base URLs. A practical path:
 
@@ -285,10 +285,3 @@ Every provider differs in scopes, token shape, and API base URLs. A practical pa
 2. Implement `OAuthProviderInterface` with your provider's URLs and scopes.
 3. Connect in the control panel and verify `$this->request()` works.
 4. Add `fetchFormSettings()` and `sendPayload()` if the integration should run on form submit.
-
-## Related
-
-- [OAuth Integration](/developers/custom-integration/oauth-integration)
-- [Using Guzzle clients from Formie integrations in your own code](/guides/integrations/using-guzzle-clients-from-formie-integrations-in-your-own-code)
-- [Building a CRM integration from scratch](/guides/integrations/building-a-crm-integration-from-scratch)
-- [Configuration](/get-started/configuration)

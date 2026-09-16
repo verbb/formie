@@ -20,7 +20,7 @@ This gives you a lot more freedom, but it also means you are taking on more resp
 </form>
 ```
 
-## What changes when you do this
+## What Changes When You Do This
 
 Once you render fields yourself, Formie is no longer responsible for the overall page structure.
 
@@ -31,7 +31,7 @@ That means you need to think about:
 - where messages and errors should appear
 - whether Formie's browser startup still has the data it needs to work
 
-## Rendering a specific field
+## Rendering a Specific Field
 
 You can also render a field directly by handle when you only need one field from the form.
 
@@ -39,13 +39,13 @@ You can also render a field directly by handle when you only need one field from
 {{ craft.formie.renderField(form, 'firstName') }}
 ```
 
-## Shared render options
+## Shared Render Options
 
 `renderField()` accepts the same core render options, plus a few field-specific overrides when needed.
 
 For example, you can still pass `themeConfig`, `fieldNamespace`, or `templateVars` here.
 
-## A practical warning
+## A Practical Warning
 
 Manual field rendering is not automatically better. It works best when you have a real layout need, not just because it feels more explicit.
 

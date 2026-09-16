@@ -6,15 +6,15 @@ When a page is served from static cache, the HTML may be older than the current 
 
 ## Automatic Refresh
 
-Formie can handle this for you. When static-cache support is enabled, Formie marks the form as cache-aware and refreshes the tokens it needs when the form is initialized. It also refreshes them again after submit attempts, so retries, page changes, and repeated submissions keep using fresh values.
+Formie can handle this for you. When static-cache support is enabled, Formie marks the form as cache-aware and refreshes the tokens it needs when the form is initialised. It also refreshes them again after submit attempts, so retries, page changes, and repeated submissions keep using fresh values.
 
 Static-cache support is enabled automatically when Blitz is installed and enabled. For other static-cache setups, enable the `staticCacheRefreshOnLoad` plugin setting in your [Formie config](/get-started/configuration).
 
 In most cases, Formie can support cached forms without extra JavaScript on the site.
 
-## Craft Cloud and async CSRF
+## Craft Cloud and Async CSRF
 
-On Craft Cloud and other full-page caches, a synchronous CSRF token in the rendered HTML can prevent the page from being cache-eligible in the first place — even if Formie refreshes tokens on initialization.
+On Craft Cloud and other full-page caches, a synchronous CSRF token in the rendered HTML can prevent the page from being cache-eligible in the first place — even if Formie refreshes tokens on initialisation.
 
 Craft supports async CSRF inputs globally via `asyncCsrfInputs` in `config/general.php` (or `CRAFT_ASYNC_CSRF_INPUTS=true`). Formie calls Craft's `csrfInput()` helper, so that global setting applies automatically.
 

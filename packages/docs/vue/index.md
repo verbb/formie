@@ -34,17 +34,17 @@ function onError(result: unknown) {
 
 The package has two rendering paths:
 
-- server-rendered forms, where Formie still owns the rendered HTML and browser behavior
+- server-rendered forms, where Formie still owns the rendered HTML and browser behaviour
 - client-rendered forms, where Vue renders from Formie's client definition
 
 If Craft is already rendering the final form HTML directly into the page and Vue is only wrapping the surrounding screen, use the [Browser](/browser/) docs instead.
 
-## Server-rendered Forms
+## Server-Rendered Forms
 
 Use server-rendered forms when:
 
 - you want the fastest, lowest-effort path to a working Vue form
-- you want Formie to keep owning the rendered markup, validation, and submit behavior
+- you want Formie to keep owning the rendered markup, validation, and submit behaviour
 - you want to keep the browser package theme, events, and modules
 
 Server-rendered forms come in two shapes:
@@ -56,7 +56,7 @@ Use `useFormieHtml()` only when you need lower-level ref ownership or imperative
 
 Start with [Server-rendered](/vue/server-rendered/overview).
 
-## Client-rendered Forms
+## Client-Rendered Forms
 
 Use client-rendered forms when:
 
@@ -81,7 +81,7 @@ Use REST when:
 
 Use GraphQL when:
 
-- your app already standardizes on GraphQL
+- your app already standardises on GraphQL
 - you want transport to stay inside an existing GraphQL client workflow
 - you are preloading `formieHtmlForm` for server-rendered forms or `formieClientForm` for client-rendered forms
 - For server-rendered forms, GraphQL usually means `transport="graphql"` or preloading `formieHtmlForm`, but submission still happens through the rendered form POST.

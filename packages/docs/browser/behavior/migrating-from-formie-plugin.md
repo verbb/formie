@@ -4,7 +4,7 @@ This page is for projects moving from the JavaScript bundled with older Formie p
 
 Use the bridge only as a migration step. The long-term target is Formie 4's canonical `formie:*` event surface.
 
-## What changed
+## What Changed
 
 The main browser changes from the old bundled Formie plugin JavaScript are:
 
@@ -14,9 +14,9 @@ The main browser changes from the old bundled Formie plugin JavaScript are:
 
 If your old code only listens for legacy event names, turn on compatibility while you migrate each listener to the new event surface.
 
-## Turn on compatibility
+## Turn on Compatibility
 
-### Managed or rendered forms
+### Managed or Rendered Forms
 
 If you are mounting from rendered HTML, enable compatibility on the root:
 
@@ -26,7 +26,7 @@ If you are mounting from rendered HTML, enable compatibility on the root:
 </form>
 ```
 
-### Your own bundle
+### Your Own Bundle
 
 If you mount with the package directly, pass `compatibility` in the mount options:
 
@@ -56,7 +56,7 @@ await formie.mount(root, {
 });
 ```
 
-## Event mapping
+## Event Mapping
 
 These legacy DOM events can be bridged during migration:
 
@@ -84,15 +84,19 @@ These validator events can be bridged too:
 
 Approximate mappings exist to keep older integrations alive, not to guarantee identical timing in every edge case.
 
-## Recommended migration path
+## Recommended Migration Path
 
 1. Turn on compatibility.
 2. Replace old event listeners with the canonical `formie:*` or `formie:validator:*` names.
 3. Test any submit-flow logic that relied on older event timing.
 4. Remove compatibility once the old listeners are gone.
 
-## Related pages
+## Related Pages
 
 - [JavaScript events](/browser/behavior/javascript-events)
 - [JavaScript API](/browser/)
 - [Custom client](/browser/behavior/custom-client)
+
+## Address Hooks
+
+Older forms may still render legacy bare hooks such as `[data-address1]` or `[data-state]`. Provider modules fall back to those automatically via `ADDRESS_LEGACY_SELECTORS`. Use the attributes in [Address Reference](/browser/ui-reference/fields/address) when updating your markup.

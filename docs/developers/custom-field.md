@@ -4,7 +4,7 @@ You can add your own fields to Formie in two ways: register a full Formie field 
 
 Use a full Formie field when you own the complete field behaviour. Use a Custom Field adapter when you want one Formie field type to bridge to a Craft field or plugin-provided Craft field with explicit support for front-end rendering, value handling, exports, integrations and GraphQL.
 
-## Register a Formie field type
+## Register a Formie Field Type
 
 Register a Formie field type when the field should appear as its own item in the form builder palette.
 
@@ -37,44 +37,240 @@ There is also a [step-by-step guide for creating a Formie field type](/guides/fi
 
 ## Methods
 
-Method | Description
---- | ---
-`displayName()` | Returns the name to be used for the field.
-`getInputTemplatePath()` | Returns the path to the front-end template for this field.
-`getReferenceBlockTemplatePath()` | Returns the path to the template used when the field is rendered as a reference block.
-`getSvgIconPath()` | Returns the path to the SVG icon used as the field type in the control panel.
-`defineFormBuilderPreviewSchema()` | Returns the preview schema shown in the form builder.
-`defineFormBuilderGeneralSchema()` | Defines the schema for the `General` tab in the field edit modal.
-`defineFormBuilderSettingsSchema()` | Defines the schema for the `Settings` tab in the field edit modal.
-`defineFormBuilderAppearanceSchema()` | Defines the schema for the `Appearance` tab in the field edit modal.
-`defineFormBuilderAdvancedSchema()` | Defines the schema for the `Advanced` tab in the field edit modal.
-`defineFormBuilderConditionsSchema()` | Defines the schema for the `Conditions` tab in the field edit modal.
-`supportedDefaults()` | Returns setting handles that can be configured as organisation-wide defaults in **Settings → Defaults**. See [Field Defaults](/developers/field-defaults).
-`defineValidationRules()` | Defines the validation rules sent to Formie’s front-end assets.
-`defineRules()` | Defines server-side Yii validation rules for the field model.
-`defineClientInput()` | Adds input-specific configuration to the client-rendered field definition.
-`clientDefinition()` | Declares the base field type and input metadata used in the structured client payload.
-`clientChildren()` | Declares whether the client payload is scalar, part-based, or row-based for nested fields.
-`defineClientModules()` | Registers optional client modules the field needs in client-rendered flows.
-`clientModules()` | Returns the normalized client-module manifest entries for browser-managed field behaviour.
-`references()` | Declares the field’s reference selectors and nested-reference rules for tokens and picker UIs.
-`variableSources()` | Returns the variable-picker sources exposed by the field.
-`conditions()` | Returns normalized field-condition metadata for browser-managed flows.
-`defineFieldSlotTag()` | Defines the HTML tag and attributes used by `fieldtag()` slots in the field’s Twig template.
-`getInputTemplateVariables()` | Adds variables available to the front-end field template.
-`defineValueAsString()` | Defines the field value when Formie needs a string value.
-`defineValueAsArray()` | Defines the field value when Formie needs an array value.
-`defineValueForExport()` | Defines the field value used in exports.
-`defineValueForSummary()` | Defines the field value used in summaries.
-`defineValueForReference()` | Defines the field value used for singular reference contexts.
-`defineValueForReferenceBlock()` | Defines the field value used before rendering reference-block content.
-`defineValueForIntegration()` | Defines the field value used when sending data to integrations.
-`fieldKind()` | Defines the kind of field for the client input contract.
-`valueClass()` | Declares value capabilities and client-payload serialization. It does not control the normal PHP/Twig submission value shape on its own.
+::: reference
+### `displayName()`
+
+**Returns:** `string`
+
+Returns the name to be used for the field.
+:::
+
+::: reference
+### `getInputTemplatePath()`
+
+**Returns:** `string`
+
+Returns the path to the front-end template for this field.
+:::
+
+::: reference
+### `getReferenceBlockTemplatePath()`
+
+**Returns:** `string`
+
+Returns the path to the template used when the field is rendered as a reference block.
+:::
+
+::: reference
+### `getSvgIconPath()`
+
+**Returns:** `string`
+
+Returns the path to the SVG icon used as the field type in the control panel.
+:::
+
+::: reference
+### `defineFormBuilderPreviewSchema()`
+
+**Returns:** `array`
+
+Returns the preview schema shown in the form builder.
+:::
+
+::: reference
+### `defineFormBuilderGeneralSchema()`
+
+**Returns:** `array`
+
+Defines the schema for the `General` tab in the field edit modal.
+:::
+
+::: reference
+### `defineFormBuilderSettingsSchema()`
+
+**Returns:** `array`
+
+Defines the schema for the `Settings` tab in the field edit modal.
+:::
+
+::: reference
+### `defineFormBuilderAppearanceSchema()`
+
+**Returns:** `array`
+
+Defines the schema for the `Appearance` tab in the field edit modal.
+:::
+
+::: reference
+### `defineFormBuilderAdvancedSchema()`
+
+**Returns:** `array`
+
+Defines the schema for the `Advanced` tab in the field edit modal.
+:::
+
+::: reference
+### `defineFormBuilderConditionsSchema()`
+
+**Returns:** `array`
+
+Defines the schema for the `Conditions` tab in the field edit modal.
+:::
+
+::: reference
+### `supportedDefaults()`
+
+Returns setting handles that can be configured as organisation-wide defaults in **Settings → Defaults**. See [Field Defaults](/developers/field-defaults).
+:::
+
+::: reference
+### `defineValidationRules()`
+
+Defines the validation rules sent to Formie’s front-end assets.
+:::
+
+::: reference
+### `defineRules()`
+
+Defines server-side Yii validation rules for the field model.
+:::
+
+::: reference
+### `defineClientInput()`
+
+Adds input-specific configuration to the client-rendered field definition.
+:::
+
+::: reference
+### `clientDefinition()`
+
+**Returns:** `verbb\formie\fields\definitions\FieldClientDefinition`
+
+Declares the base field type and input metadata used in the structured client payload.
+:::
+
+::: reference
+### `clientChildren()`
+
+**Returns:** `verbb\formie\fields\definitions\FieldClientChildren`
+
+Declares whether the client payload is scalar, part-based, or row-based for nested fields.
+:::
+
+::: reference
+### `defineClientModules()`
+
+Registers optional client modules the field needs in client-rendered flows.
+:::
+
+::: reference
+### `clientModules()`
+
+**Returns:** `verbb\formie\fields\definitions\FieldClientModules`
+
+Returns the normalised client-module manifest entries for browser-managed field behaviour.
+:::
+
+::: reference
+### `references()`
+
+**Returns:** `verbb\formie\fields\definitions\FieldReferences`
+
+Declares the field’s reference selectors and nested-reference rules for tokens and picker UIs.
+:::
+
+::: reference
+### `variableSources()`
+
+**Returns:** `array`
+
+Returns the variable-picker sources exposed by the field.
+:::
+
+::: reference
+### `conditions()`
+
+**Returns:** `verbb\formie\fields\definitions\FieldConditions`
+
+Returns normalised field-condition metadata for browser-managed flows.
+:::
+
+::: reference
+### `defineFieldSlotTag()`
+
+Defines the HTML tag and attributes used by `fieldtag()` slots in the field’s Twig template.
+:::
+
+::: reference
+### `getInputTemplateVariables()`
+
+**Returns:** `array`
+
+Adds variables available to the front-end field template.
+:::
+
+::: reference
+### `defineValueAsString()`
+
+Defines the field value when Formie needs a string value.
+:::
+
+::: reference
+### `defineValueAsArray()`
+
+Defines the field value when Formie needs an array value.
+:::
+
+::: reference
+### `defineValueForExport()`
+
+Defines the field value used in exports.
+:::
+
+::: reference
+### `defineValueForSummary()`
+
+Defines the field value used in summaries.
+:::
+
+::: reference
+### `defineValueForReference()`
+
+Defines the field value used for singular reference contexts.
+:::
+
+::: reference
+### `defineValueForReferenceBlock()`
+
+Defines the field value used before rendering reference-block content.
+:::
+
+::: reference
+### `defineValueForIntegration()`
+
+Defines the field value used when sending data to integrations.
+:::
+
+::: reference
+### `fieldKind()`
+
+**Returns:** `string`
+
+Defines the kind of field for the client input contract.
+:::
+
+::: reference
+### `valueClass()`
+
+**Returns:** `verbb\formie\fields\definitions\FieldValueClass`
+
+Declares value capabilities and client-payload serialisation. It does not control the normal PHP/Twig submission value shape on its own.
+:::
+
 
 Refer to the [Field](/reference/field) object documentation for more.
 
-## Custom Field adapters
+## Custom Field Adapters
 
 ::: tip
 For a walkthrough, see [Bringing your Craft field into Formie (Custom Field adapters)](/guides/fields/bringing-your-craft-field-into-formie-custom-field-adapters).
@@ -98,7 +294,7 @@ Built-in adapters include:
 - **Address (Google Maps)** — structured map values when a supported Google Maps Craft field class is installed.
 - **Maps** — structured map values when a supported Maps/SimpleMap Craft field class is installed.
 
-### Register an adapter
+### Register an Adapter
 
 Register adapters with `CustomFields::EVENT_REGISTER_CUSTOM_FIELD_ADAPTERS`:
 
@@ -168,7 +364,7 @@ SchemaHelper::textField([
 $placeholder = $this->getSetting($field, 'placeholder');
 ```
 
-### Value storage
+### Value Storage
 
 Custom Field uses JSON storage so adapters can support scalar and structured values through one Formie field type. Scalar adapters can return strings; structured adapters can return arrays or value objects and decide how those values appear in references, exports and integrations.
 
@@ -193,13 +389,46 @@ Custom field settings are defined with schema, not Twig templates. The schema te
 
 For custom fields, each method maps to a tab in the field edit modal. Omit a method, or return an empty array, to hide that tab.
 
-Method | Description
---- | ---
-`defineFormBuilderGeneralSchema()` | Define the schema for the `General` tab for field settings.
-`defineFormBuilderSettingsSchema()` | Define the schema for the `Settings` tab for field settings.
-`defineFormBuilderAppearanceSchema()` | Define the schema for the `Appearance` tab for field settings.
-`defineFormBuilderAdvancedSchema()` | Define the schema for the `Advanced` tab for field settings.
-`defineFormBuilderConditionsSchema()` | Define the schema for the `Conditions` tab for field settings.
+::: reference
+### `defineFormBuilderGeneralSchema()`
+
+**Returns:** `array`
+
+Define the schema for the `General` tab for field settings.
+:::
+
+::: reference
+### `defineFormBuilderSettingsSchema()`
+
+**Returns:** `array`
+
+Define the schema for the `Settings` tab for field settings.
+:::
+
+::: reference
+### `defineFormBuilderAppearanceSchema()`
+
+**Returns:** `array`
+
+Define the schema for the `Appearance` tab for field settings.
+:::
+
+::: reference
+### `defineFormBuilderAdvancedSchema()`
+
+**Returns:** `array`
+
+Define the schema for the `Advanced` tab for field settings.
+:::
+
+::: reference
+### `defineFormBuilderConditionsSchema()`
+
+**Returns:** `array`
+
+Define the schema for the `Conditions` tab for field settings.
+:::
+
 
 This is enough for a common field with a label, placeholder, default value and standard appearance/settings controls:
 

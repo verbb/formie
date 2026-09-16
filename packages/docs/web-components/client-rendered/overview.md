@@ -7,10 +7,10 @@ If you want to see client-rendered forms in a fuller app setup, use the [Web Com
 In this setup:
 
 - the host renders from Formie’s client definition
-- the front-end form behavior owns state, pages, validation, and submission
-- you can swap **field** hosts, **field controls**, and some layout regions using **custom elements** registered on `FormieRegistry` (see [Component customization](/web-components/client-rendered/component-customization))
+- the front-end form behaviour owns state, pages, validation, and submission
+- you can swap **field** hosts, **field controls**, and some layout regions using **custom elements** registered on `FormieRegistry` (see [Component customisation](/web-components/client-rendered/component-customization))
 
-## Custom element
+## Custom Element
 
 Start with a declarative host:
 
@@ -34,7 +34,7 @@ You can set the same options from JavaScript (`element.transport = 'graphql'`, a
 > `<formie-core-form>` is built with [Lit](https://lit.dev/). You do not need to install or learn Lit to use the element in your app.
 
 
-### Attributes and properties
+### Attributes and Properties
 
 | Name | Attribute | Type | Required | Description |
 | --- | --- | --- | --- | --- |
@@ -66,7 +66,7 @@ After the element connects and loads, you can use:
 </script>
 ```
 
-### Client events
+### Client Events
 
 The element re-dispatches core client events on the host (`bubbles` and `composed`):
 
@@ -86,7 +86,7 @@ Use **REST** when you want the simplest envelope load and standard client-render
 
 Use **GraphQL** when your stack already centers on GraphQL. In this mode Formie uses GraphQL for submit, session refresh, and page changes—not only the initial load.
 
-## GraphQL query
+## GraphQL Query
 
 Load `formieClientForm`:
 
@@ -107,7 +107,7 @@ query ClientForm($handle: String!, $siteId: Int) {
 
 Point `<formie-core-form transport="graphql" endpoint="…">` at your GraphQL HTTP endpoint. The element performs the envelope load using the same shape the core client expects.
 
-## Manual GraphQL mutations
+## Manual GraphQL Mutations
 
 If you build your own client-rendered form with `@verbb/formie-core`, these are the mutations the transport layer uses:
 
@@ -140,6 +140,6 @@ mutation SubmitForm($input: FormieClientSubmitInput!) {
 
 When you use `<formie-core-form transport="graphql">`, the built-in transport calls these for you.
 
-## Preloaded envelope
+## Preloaded Envelope
 
 `<formie-core-form>` always loads the envelope from the network using `endpoint`, `form-handle`, and `transport`. To hydrate from a payload you already have, instantiate the form engine with `@verbb/formie-core` in your own module instead of this element, or keep using [server-rendered forms](/web-components/server-rendered/overview) with a preloaded `payload` on `<formie-form>` where that fits.

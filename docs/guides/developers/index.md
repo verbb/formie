@@ -1,8 +1,8 @@
 # Developers
 
-Extension authoring, schemas, adapters, and advanced integration patterns.
+These guides explain how to extend Formie in your own modules and plugins, including building settings interfaces and connecting custom integrations.
 
 
-##### [Everything you need to know about Formie schemas](/guides/developers/everything-you-need-to-know-about-formie-schemas)
+## [Everything You Need to Know About Formie Schemas](/guides/developers/everything-you-need-to-know-about-formie-schemas)
 
-When and why to use Formie schemas — Craft macros analogy, field tab methods, integration form settings, normalization, and debugging. Helper and node reference lives in [Schema](/developers/schema).
+When and why to use Formie schemas — Craft macros analogy, field tab methods, integration form settings, normalisation, and debugging. Helper and node reference lives in [Schema](/developers/schema).

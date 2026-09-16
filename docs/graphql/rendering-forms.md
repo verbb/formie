@@ -52,21 +52,31 @@ query FormieForm($handle: String!, $siteId: Int, $locale: String) {
     formieClientForm(handle: $handle, siteId: $siteId, locale: $locale) {
         schemaVersion
         definition
-        session
+        session {
+            id
+            currentPageId
+            tokens
+            continuation
+        }
     }
 }
 ```
 
 This query is intended for Formie’s React, Vue and Web Component packages. The package docs are the better place for implementation details because they show the full front-end flow, including submitting, page changes and session refreshes.
 
-## Getting A CSRF Token
+## Getting a CSRF Token
 
 If you are building your own GraphQL-driven front-end, a common first step is getting the CSRF token and other request tokens needed for later interactions. Query `formieClientForm`, then read the values from `session.tokens`.
 
 ```graphql
 query FormieSessionTokens($handle: String!, $siteId: Int, $locale: String) {
     formieClientForm(handle: $handle, siteId: $siteId, locale: $locale) {
-        session
+        session {
+            id
+            currentPageId
+            tokens
+            continuation
+        }
     }
 }
 ```
@@ -105,4 +115,4 @@ Mutation | Purpose
 `refreshFormieClientSession` | Refreshes the form session payload.
 `setFormieClientPage` | Saves page navigation state for multi-page forms.
 
-Forms with Payment fields should use `submitFormieClientForm` in headless front-ends. See [Headless Payments](/graphql/payments).
+Forms with Payment fields should use `submitFormieClientForm` in headless front-ends. See [Headless Payments](/graphql/headless-payments).

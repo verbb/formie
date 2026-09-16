@@ -8,7 +8,7 @@ Form groups help you organise forms in the control panel. They are useful when y
 
 Form groups are **control panel organisation** with an optional **policies layer** for defaults and restrictions. They do not change how a form renders on the front end, which template an existing form uses, or how existing submissions behave until you change form settings.
 
-## Group settings
+## Group Settings
 
 When editing a form group under **Formie → Settings → Form Groups**, you can configure optional group settings across several tabs:
 
@@ -18,21 +18,21 @@ When editing a form group under **Formie → Settings → Form Groups**, you can
 
 Blank group settings inherit from global **Formie → Settings** defaults.
 
-### Site policy (multi-site)
+### Site Policy (Multi-Site)
 
 On multi-site Craft installs, each group can restrict **which sites** forms in the group exist on, and how new forms **propagate** across those sites. Configure this under the **General** tab → **Site Policy** (**Enabled Sites** and **Site Propagation**).
 
-See [Multi-Site & Translation](/forms/multi-site) for how availability differs from content translation, propagation modes, and form builder behaviour.
+See [Multi-Site & Translation](/forms/multi-site-and-translation) for how availability differs from content translation, propagation modes, and form builder behaviour.
 
-### Allowed submission statuses
+### Allowed Submission Statuses
 
 Use the **Allowed Submission Statuses** control in **General** to restrict which statuses are available for forms in the group. Choose **All** to allow every status. This policy applies to all forms in the group; individual forms cannot override it.
 
-### Custom field palette
+### Custom Field Palette
 
 Open the **Field Palette** tab and enable **Use custom field palette**. Forms in this group use that palette instead of the global one. When disabled, the group inherits the global palette from **Settings → Fields**.
 
-### Submission limits
+### Submission Limits
 
 [Submission limits](/forms/submission-limits) are configured **per form**, not at the group level. A form group does not enforce a shared entry cap across all of its forms.
 
@@ -40,7 +40,7 @@ If your group often uses per-user or per-IP limits, preset **Collect User** or *
 
 Global abuse throttling lives under **Settings → Spam Protection** and applies site-wide — it is separate from form submission limits.
 
-## When to use form groups
+## When to Use Form Groups
 
 Form groups are especially helpful when:
 
@@ -50,7 +50,7 @@ Form groups are especially helpful when:
 
 If you only have a handful of forms, you can skip groups entirely. The forms index works fine with just **All forms**.
 
-## Managing groups
+## Managing Groups
 
 Create and manage groups under **Formie → Settings → Form Groups**.
 
@@ -62,7 +62,7 @@ Each group has:
 
 Groups are stored in [project config](/get-started/configuration), so they can travel with the project across environments like statuses and stencils. Form group UIDs are used in the forms index source keys (`group:{uid}`), so sidebar filters stay stable after a database sync.
 
-## Forms index
+## Forms Index
 
 When at least one group exists, the forms index sidebar shows:
 
@@ -72,7 +72,7 @@ When at least one group exists, the forms index sidebar shows:
 
 When no groups exist, only **All forms** is shown.
 
-### Creating a new form
+### Creating a New Form
 
 On **All forms** or **Ungrouped**, the **New Form** button works like Craft’s entries and categories indexes: you can pick which group the new form should belong to from the split-button menu.
 
@@ -80,16 +80,16 @@ When you are already viewing a specific group, the primary **New Form** action c
 
 New forms created from a group source are pre-assigned to that group. You can change the group later in the form builder **Settings** tab.
 
-## Assigning and moving forms
+## Assigning and Moving Forms
 
 Assign a group per form in the form builder **Settings** tab. The setting is hidden when no groups exist or when editing a stencil.
 
 On the forms index, use the **Move to group** bulk action to move one or more forms into a group or back to **Ungrouped**.
 
-## Submissions index
+## Submissions Index
 
 When groups exist, the submissions index sidebar groups forms under their form group headings, with an **Ungrouped** section only when ungrouped forms are visible.
 
-## Form templates
+## Form Templates
 
-Form templates control front-end rendering. They are separate from form groups. The forms index no longer groups forms by template; use form groups for CP organisation and templates for rendering.
+Form templates control front-end rendering. They are separate from form groups. Use form groups for control-panel organisation and templates for rendering.

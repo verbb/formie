@@ -4,7 +4,7 @@ If you are using **client-rendered forms** (`<formie-core-form>`), the element o
 
 Web Components **server-rendered forms** (`<formie-form>`) mount the browser-owned Formie UI, so the styling surface is the same browser theme surface used by `@verbb/formie-browser`.
 
-## Import the browser CSS
+## Import the Browser CSS
 
 Server-rendered forms use the browser package theme:
 
@@ -19,9 +19,9 @@ import '@verbb/formie-browser/css/formie-base.css';
 import '@verbb/formie-browser/css/formie-theme.css';
 ```
 
-## Use tokens first
+## Use Tokens First
 
-The safest customization layer is the same `--formie-*` token surface used by the browser package.
+The safest customisation layer is the same `--formie-*` token surface used by the browser package.
 
 Use [Browser → CSS variables](/browser/ui-reference/css-variables) for the full token reference.
 
@@ -44,11 +44,11 @@ Scope those tokens on a wrapper around the custom element:
 </div>
 ```
 
-## Use `themeConfig` second
+## Use `themeConfig` Second
 
 There is no `theme-config` **attribute** on `<formie-form>` (objects do not map cleanly to attributes). Set the **`themeConfig` property** in JavaScript, or use `createFormieClient()` and pass `themeConfig` in the mount options.
 
-### On `<formie-form>` (property)
+### On `<formie-form>` (Property)
 
 ```html
 <formie-form
@@ -90,7 +90,7 @@ There is no `theme-config` **attribute** on `<formie-form>` (objects do not map 
 </script>
 ```
 
-### Add classes and attributes (client mount)
+### Add Classes and Attributes (Client Mount)
 
 Same `themeConfig` shape when mounting with `createFormieClient()`:
 
@@ -133,7 +133,7 @@ Same `themeConfig` shape when mounting with `createFormieClient()`:
 <div id="contact-form"></div>
 ```
 
-### Reset selected theme layers
+### Reset Selected Theme Layers
 
 ```html
 <script type="module">
@@ -170,7 +170,7 @@ Same `themeConfig` shape when mounting with `createFormieClient()`:
 <div id="contact-form"></div>
 ```
 
-### Compose with tokens
+### Compose with Tokens
 
 `themeConfig` and CSS tokens work well together. Use `themeConfig` for structure (wrappers, regions), then use CSS for the visual system:
 
@@ -195,7 +195,7 @@ Same `themeConfig` shape when mounting with `createFormieClient()`:
 }
 ```
 
-## Use CSS third
+## Use CSS Third
 
 If tokens are not enough, add targeted CSS against the shipped server-rendered markup.
 

@@ -4,7 +4,7 @@ Address Finder is an address provider module that looks up addresses and maps th
 
 ## Events
 
-#### The `formie:address:address-finder:populate` event
+#### The `formie:address:address-finder:populate` Event
 
 Triggered when Address Finder writes selected address data into the field sub-fields.
 
@@ -17,7 +17,7 @@ document.addEventListener('formie:address:address-finder:populate', (event) => {
 
 The shared module lifecycle also exposes scoped events such as `formie:module:address-finder:after-setup`.
 
-## Related pages
+## Related Pages
 
 - [Address field](/browser/ui-reference/fields/address)
 - [Overview](/browser/modules/)

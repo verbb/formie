@@ -1,13 +1,13 @@
-# Submission statuses and conditional workflows
+# Submission Statuses and Conditional Workflows
 
 Submission **statuses** are team workflow labels on saved submissions. **Conditions** change what the form shows and which notifications send based on answers. Together they let you route work after submit and tailor the form experience before submit.
 
 ## Prerequisites
 
-- [Submission Statuses](/submissions/statuses)
+- [Submission Statuses](/submissions/submission-statuses)
 - [Conditions](/forms/conditions)
 
-## Statuses — organise submissions after save
+## Statuses — Organise Submissions After Save
 
 Statuses answer "where is this submission in our process?" — separate from system states like complete, incomplete, or spam.
 
@@ -18,7 +18,7 @@ Typical handles:
 - `approved`
 - `closed`
 
-### Set up statuses
+### Set Up Statuses
 
 1. Go to **Formie → Settings → Submission Statuses**.
 2. Create statuses with name, handle, colour, and optional description.
@@ -29,7 +29,7 @@ Statuses sync through project config. You cannot delete the default status while
 
 Add statuses when a team actually needs review or follow-up. If every submission is handled the same way, the default status may be enough.
 
-### Statuses vs system states
+### Statuses vs System States
 
 | Concept | Examples | Managed by |
 | --- | --- | --- |
@@ -39,7 +39,7 @@ Add statuses when a team actually needs review or follow-up. If every submission
 
 A submission can be complete and `new`, or complete and `approved`, or marked spam regardless of status.
 
-## Conditions — change the form path
+## Conditions — Change the Form Path
 
 Conditions use three parts: field to check, comparison, and value. Choose whether **all** rules or **any one** rule must match.
 
@@ -51,7 +51,7 @@ Formie supports conditions on:
 - **Email notifications** — send or skip
 - **Notification recipients** — route to different people
 
-### Example: reveal follow-up fields
+### Example: Reveal Follow-Up Fields
 
 Show a "Please specify" text field only when Dropdown `reason` equals `other`:
 
@@ -61,14 +61,14 @@ Show a "Please specify" text field only when Dropdown `reason` equals `other`:
 
 Hidden required fields stop being required while hidden — the form is not blocked by fields the user cannot see.
 
-### Example: branch pages
+### Example: Branch Pages
 
 On a multi-page form, add page conditions so enterprise customers skip the consumer pricing page:
 
 1. Edit the page → **Conditions**.
 2. Set rules on `companySize` or similar qualifying field.
 
-### Example: conditional notifications
+### Example: Conditional Notifications
 
 Send a notification to sales only when `budget` is above a threshold:
 
@@ -77,7 +77,7 @@ Send a notification to sales only when `budget` is above a threshold:
 
 Use recipient conditions when the same notification template should go to different addresses depending on submission content.
 
-## Combining statuses and conditions
+## Combining Statuses and Conditions
 
 Conditions affect **behaviour during and immediately after submit**. Statuses affect **management afterward** in the control panel.
 
@@ -105,14 +105,6 @@ Event::on(Submission::class, Submission::EVENT_AFTER_COMPLETE, function(Submissi
 });
 ```
 
-## Control panel editing
+## Control Panel Editing
 
 When editing submissions in the CP, Formie can apply the same field and page conditions as the front end. Configure the default under **Formie → Settings → Submissions**, or override per form.
-
-## Related
-
-- [Run custom code on page submit or form submit](/guides/submissions-workflows/run-custom-code-on-page-submit-or-form-submit)
-- [Submission Statuses](/submissions/statuses)
-- [Conditions](/forms/conditions)
-- [Submission workflow and stages explained](/guides/submissions-workflows/submission-workflow-and-stages-explained)
-- [Email Notifications](/forms/email-notifications)

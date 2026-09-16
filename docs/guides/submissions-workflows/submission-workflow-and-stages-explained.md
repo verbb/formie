@@ -1,4 +1,4 @@
-# Submission workflow and stages explained
+# Submission Workflow and Stages Explained
 
 Formie processes submissions through a staged workflow.
 
@@ -17,7 +17,7 @@ This guide walks through what runs in each stage, which requests use the full pi
 - [Submission Workflow](/developers/submission-workflow) — canonical reference when you start writing code
 - [Submission Events](/developers/events/submission-events)
 
-## The pipeline at a glance
+## The Pipeline at a Glance
 
 Each stage contains smaller **tasks** with stable names — useful when you extend the workflow in PHP, but not something you need to memorise to understand the overall flow.
 
@@ -49,7 +49,7 @@ Browser POST
 
 Payment provider callbacks re-enter through **payment replay** — a shortened path through save, dispatch, and finalize rather than repeating validation from scratch.
 
-## Not every request runs the full pipeline
+## Not Every Request Runs the Full Pipeline
 
 The same form can trigger different workflow **modes**. The mode decides which stages run:
 
@@ -64,7 +64,7 @@ If you add custom logic to **dispatch**, it will not run when a visitor only sav
 
 See [Save and continue later](/guides/submissions-workflows/save-and-continue-later) for how draft mode fits multi-page forms, and [Submission screening rules in practice](/guides/submissions-workflows/submission-screening-rules-in-practice) for what runs during the **screen** stage on a full submit.
 
-## Where your custom code belongs
+## Where Your Custom Code Belongs
 
 You do not always need a custom workflow task. Match the hook to what you actually care about:
 
@@ -80,7 +80,7 @@ You do not always need a custom workflow task. Match the hook to what you actual
 
 If you are unsure, start with the smallest hook. The two lifecycle events cover the common page-step and finished-form cases. Element events are the broadest; stage and task events are the escape hatch for a named slot in the pipeline.
 
-## When you are ready to implement
+## When You Are Ready to Implement
 
 The [Submission Workflow](/developers/submission-workflow) developer reference has:
 
@@ -92,16 +92,3 @@ The [Submission Workflow](/developers/submission-workflow) developer reference h
 For full walkthroughs with module structure and copy-paste classes, see [Using submission workflow events](/guides/submissions-workflows/using-submission-workflow-events), [Adding a custom workflow task from scratch](/guides/submissions-workflows/adding-a-custom-workflow-task-from-scratch), and [Adding a custom workflow stage from scratch](/guides/submissions-workflows/adding-a-custom-workflow-stage-from-scratch).
 
 [Submission Events](/developers/events/submission-events) documents every event payload if you need the full reference.
-
-## Related
-
-- [Run custom code on page submit or form submit](/guides/submissions-workflows/run-custom-code-on-page-submit-or-form-submit)
-- [Using submission workflow events](/guides/submissions-workflows/using-submission-workflow-events)
-- [Adding a custom workflow task from scratch](/guides/submissions-workflows/adding-a-custom-workflow-task-from-scratch)
-- [Adding a custom workflow stage from scratch](/guides/submissions-workflows/adding-a-custom-workflow-stage-from-scratch)
-- [Submission Workflow](/developers/submission-workflow)
-- [Submission Events](/developers/events/submission-events)
-- [Submission screening rules in practice](/guides/submissions-workflows/submission-screening-rules-in-practice)
-- [Integration dispatch and policies](/guides/integrations/integration-dispatch-and-policies)
-- [Save and continue later](/guides/submissions-workflows/save-and-continue-later)
-- [Submission statuses and conditional workflows](/guides/submissions-workflows/submission-statuses-and-conditional-workflows)

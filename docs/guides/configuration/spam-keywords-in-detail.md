@@ -1,4 +1,4 @@
-# Spam keywords in detail
+# Spam Keywords in Detail
 
 Spam keywords are Formie's built-in content screening tool — match words, phrases, boolean logic, or IP addresses against a submission and mark it as spam during the **`screen`** workflow stage. This guide covers full syntax, real-world rule sets, and how keywords fit alongside email rules, text rules, guards, and captchas.
 
@@ -9,7 +9,7 @@ Spam keywords are Formie's built-in content screening tool — match words, phra
 
 Configure keywords under **Formie → Settings → Spam Protection → Content Rules → Spam Keywords**. Values live in Formie's [control panel settings store](/guides/configuration/project-config-environment-and-control-panel-settings) — not in `config/formie.php` by default.
 
-## How matching works
+## How Matching Works
 
 1. A visitor submits a form
 2. Field validation passes
@@ -20,11 +20,11 @@ Keywords check the **whole submission** — all field values combined — not in
 
 Evaluation order within spam checks (simplified): email rules → text rules → spam keywords → captcha/scoring integrations. See [Submission Screening](/forms/submission-screening) for the full pipeline.
 
-## Keyword definition syntax
+## Keyword Definition Syntax
 
 One rule per line. Lines starting with `#` are comments.
 
-### Simple word match
+### Simple Word Match
 
 ```text
 # Flags content containing the word "spam". Does not match "spamming" or "Spam".
@@ -33,7 +33,7 @@ One rule per line. Lines starting with `#` are comments.
 
 Matching is case-sensitive for the term as written. Use separate lines for case variants if needed.
 
-### Exact phrase
+### Exact Phrase
 
 ```text
 # Flags content containing the exact phrase "cheap ham"
@@ -54,7 +54,7 @@ Matching is case-sensitive for the term as written. Use separate lines for case 
 [match: spam OR phishing]
 ```
 
-### Grouped logic
+### Grouped Logic
 
 ```text
 # Flags content if it contains either "spam" or "junk" along with "email"
@@ -72,7 +72,7 @@ Use parentheses to group when mixing AND and OR.
 
 Useful for allowlist-style exceptions combined with other rules on separate lines (each line is evaluated).
 
-## IP address rules
+## IP Address Rules
 
 Match the submitter's IP — supports singular addresses, lists, ranges, and CIDR notation.
 
@@ -92,7 +92,7 @@ Match the submitter's IP — supports singular addresses, lists, ranges, and CID
 
 IP rules are evaluated alongside `[match:]` rules during `screen.runSpamChecks`.
 
-## Referencing external content
+## Referencing External Content
 
 Keywords are stored in control panel settings, which are awkward to edit on production when project-scoped. Reference a Global Set field instead:
 
@@ -104,9 +104,9 @@ If you have a Global Set `Forms` with field handle `spamKeywords`, Formie pulls 
 
 Field/global references work in keyword lines the same way as other Formie reference tokens.
 
-## Real-world rule sets
+## Real-World Rule Sets
 
-### Obvious junk phrases
+### Obvious Junk Phrases
 
 ```text
 # Common SEO spam
@@ -119,7 +119,7 @@ Field/global references work in keyword lines the same way as other Formie refer
 [match: suspended AND immediately]
 ```
 
-### Competitor / abuse blocklist
+### Competitor / Abuse Blocklist
 
 ```text
 # Block specific domains mentioned in message fields
@@ -129,7 +129,7 @@ Field/global references work in keyword lines the same way as other Formie refer
 
 Combine with [Email Rules](/forms/spam-protection#email-rules) blocked domains for defence in depth.
 
-### Internal test exclusions
+### Internal Test Exclusions
 
 ```text
 # Flag everything EXCEPT submissions mentioning our client code
@@ -138,7 +138,7 @@ Combine with [Email Rules](/forms/spam-protection#email-rules) blocked domains f
 
 Use carefully — broad NOT rules can have unexpected matches. Test with saved spam review enabled.
 
-### Office IP allowlist complement
+### Office IP Allowlist Complement
 
 Keywords do not allowlist IPs — they only flag. For office IPs that should never be blocked by keywords, rely on IP rules only targeting bad actors, not inverted NOT patterns.
 
@@ -149,7 +149,7 @@ Pair IP **block** rules with throttling instead:
 [ip: 203.0.113.0/24]
 ```
 
-### Editor-managed list via Global Set
+### Editor-Managed List via Global Set
 
 In the Global Set rich text or plain text field:
 
@@ -166,7 +166,7 @@ In **Spam Keywords** setting:
 
 Editors update the Global Set; Formie reads it at screening time.
 
-## Spam behaviour settings
+## Spam Behaviour Settings
 
 Keywords mark submissions as spam — they do not delete them. Related plugin settings:
 
@@ -180,7 +180,7 @@ Keywords mark submissions as spam — they do not delete them. Related plugin se
 
 Showing success to spammers avoids teaching bots which rules fired.
 
-## What keywords do not replace
+## What Keywords Do Not Replace
 
 | Layer | Use for |
 | --- | --- |
@@ -211,16 +211,9 @@ Browser-only guards (honeypot, minimum submit time) do **not** run on GraphQL; k
 
 - Confirm the keyword setting is saved on the correct site scope (multi-site)
 - Check Global Set reference resolves on production
-- Verify screening stage is not skipped by an earlier workflow customization
+- Verify screening stage is not skipped by an earlier workflow customisation
 
 **Keywords lost after deploy**
 
 - Confirm keywords are saved under **Settings → Spam Protection**, not in project config YAML
 - See [Project config, environment, and control panel settings](/guides/configuration/project-config-environment-and-control-panel-settings)
-
-## Related
-
-- [Spam Protection](/forms/spam-protection)
-- [Submission Screening](/forms/submission-screening)
-- [Project config, environment, and control panel settings](/guides/configuration/project-config-environment-and-control-panel-settings)
-- [Submission screening rules in practice](/guides/submissions-workflows/submission-screening-rules-in-practice)

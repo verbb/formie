@@ -14,7 +14,7 @@ Use this page to preserve the input attributes, hidden upload inputs, and summar
 
 <FormiePreview src="../examples/upload-manager.preview.ts" />
 
-## Display types
+## Display Types
 
 File Upload can render as:
 
@@ -83,7 +83,7 @@ Upload manager list items are created at runtime and include:
 | `data-formie-upload-manager-remove` | Remove button |
 | `data-formie-upload-manager-error` | Upload error message |
 
-## Supporting elements
+## Supporting Elements
 
 Both display types depend on hidden asset inputs:
 
@@ -92,7 +92,7 @@ Both display types depend on hidden asset inputs:
 | `data-formie-file-upload-anchor="true"` | Stable insertion point for uploaded asset IDs | Required when uploads are synchronized back into hidden inputs |
 | `data-formie-file-upload-asset-id="true"` | Stored uploaded asset IDs for restored state | Managed by Formie |
 
-### Field summary (Simple only)
+### Field Summary (Simple Only)
 
 | Attribute | Purpose | Importance |
 | --- | --- | --- |
@@ -102,7 +102,9 @@ Both display types depend on hidden asset inputs:
 
 If a summary container is missing on Simple fields, Formie can create one after the file input. Hand-authored templates should still keep it explicit when possible so the server-rendered and browser-updated states match.
 
-## Behavior
+<span id="behavior"></span>
+
+## Behaviour
 
 ### File Input (Simple)
 
@@ -130,7 +132,7 @@ See the [upload-manager module](/browser/modules/field/upload-manager) page for 
 
 File Upload emits field events when uploaded asset ids have been synchronized back into the field state.
 
-#### The `formie:field:file-upload:uploaded-assets-sync` event
+#### The `formie:field:file-upload:uploaded-assets-sync` Event
 
 Triggered after uploaded asset ids have been hydrated into the field state. Both display types emit this event.
 
@@ -148,7 +150,7 @@ document.addEventListener('formie:field:file-upload:uploaded-assets-sync', (even
 });
 ```
 
-#### The `formie:field:file-upload:uploaded-assets-reordered` event
+#### The `formie:field:file-upload:uploaded-assets-reordered` Event
 
 Triggered after the user reorders uploaded files in **Upload Manager (Advanced)** fields.
 
@@ -160,9 +162,9 @@ document.addEventListener('formie:field:file-upload:uploaded-assets-reordered', 
 });
 ```
 
-## Styling classes
+## Styling Classes
 
-These classes are for presentation only. They are not behavior requirements:
+These classes are for presentation only. They are not behaviour requirements:
 
 ### File Input (Simple)
 
@@ -196,13 +198,13 @@ These classes are for presentation only. They are not behavior requirements:
 | `formie-upload-manager-remove-button` | Remove button styling |
 | `formie-upload-manager-error` | Upload error message |
 
-## Accessibility notes
+## Accessibility Notes
 
 - Keep the file input or browse button explicitly labeled with the field label.
 - Uploaded state should remain close to the control so users can review staged files.
 - Error state should still apply through the surrounding field layout, not just the native file input or dropzone.
 
-## Related pages
+## Related Pages
 
 - [Upload manager module](/browser/modules/field/upload-manager)
 - [File upload module](/browser/modules/field/file-upload)

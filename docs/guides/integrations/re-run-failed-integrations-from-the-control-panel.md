@@ -1,4 +1,4 @@
-# Re-run failed integrations from the control panel
+# Re-Run Failed Integrations from the Control Panel
 
 Integrations can fail when a provider is down, credentials expire, or mapping sends invalid data. Formie lets operators manually re-trigger an integration for an existing submission from the control panel — without resubmitting the form or writing custom code.
 
@@ -9,7 +9,7 @@ This guide covers manual re-runs from the submission edit screen. For email deli
 - A saved submission with at least one enabled payload integration on its form
 - Permission to edit submissions in the control panel
 
-## When to re-run manually
+## When to Re-Run Manually
 
 Manual re-runs help when:
 
@@ -22,7 +22,7 @@ Manual re-runs are **not** a substitute for fixing systemic problems. If every s
 
 Enable **Send Email Alert for Failed Integration** under **Formie → Settings → Integrations** so your team is notified when failures happen automatically — you may not need to discover them by checking each submission.
 
-## Re-run from the submission edit screen
+## Re-Run from the Submission Edit Screen
 
 1. Go to **Formie → Submissions** and open the submission.
 2. In the sidebar, find the **Integrations** dropdown (visible when the form has enabled payload integrations and the submission is not spam or incomplete).
@@ -32,20 +32,15 @@ Enable **Send Email Alert for Failed Integration** under **Formie → Settings �
 
 The re-run uses the submission’s current field values and the form’s current integration settings. If you edited the submission or changed mapping since the original dispatch, the new values and settings apply.
 
-### What manual re-runs respect
+### What Manual Re-Runs Respect
 
-Manual triggers call `IntegrationTriggers::dispatchManualIntegration()`, which:
-
-- Loads the integration with the form’s saved settings
-- Populates integration context from the submission
-- Sends the payload through the normal `sendPayload()` path
-- Fires integration events and logging
+A manual re-run uses the saved integration settings and the submission’s current answers. It runs the integration’s normal delivery path, so its mapping, events and logging apply.
 
 Manual re-runs **still evaluate integration conditions**. If conditions fail for the submission, the integration will not send data even when triggered manually.
 
 Manual re-runs bypass re-run **policy** checks — policies govern automatic triggers on edit or resubmit, not operator-initiated runs.
 
-### What is not re-run
+### What Is Not Re-Run
 
 Manual integration re-runs do not:
 
@@ -54,7 +49,7 @@ Manual integration re-runs do not:
 - Re-run captcha or spam screening
 - Trigger other integrations unless you run each one separately
 
-## Re-run from the command line
+## Re-Run from the Command Line
 
 For bulk recovery or automation, use the Formie console command:
 
@@ -74,7 +69,7 @@ php craft formie/submissions/run-integration \
 
 The handle matches the integration handle in **Formie → Integrations**.
 
-## Troubleshooting failed integrations
+## Troubleshooting Failed Integrations
 
 When a re-run fails:
 
@@ -86,7 +81,7 @@ When a re-run fails:
 
 For dispatch order issues — for example, an automation running before a User integration creates an account — see [Integration dispatch and policies](/guides/integrations/integration-dispatch-and-policies).
 
-## Sent Notifications vs integration re-runs
+## Sent Notifications vs Integration Re-Runs
 
 These solve different problems:
 
@@ -96,10 +91,3 @@ These solve different problems:
 | Email notification was not sent or needs resending | **Formie → Sent Notifications** |
 
 A submission can succeed while an individual integration fails, or vice versa. Check the appropriate log or screen for the failure type you are investigating.
-
-## Related
-
-- [Sent Notifications](/forms/sent-notifications)
-- [Submission Workflow](/developers/submission-workflow)
-- [Integration dispatch and policies](/guides/integrations/integration-dispatch-and-policies)
-- [Configuration](/get-started/configuration)

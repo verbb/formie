@@ -1,6 +1,6 @@
-# Custom templating for Repeater fields
+# Custom Templating for Repeater Fields
 
-Repeater fields let users add and remove rows of nested fields. Most projects can style them with [theme config](/theming/theme-config#repeater-field), but when you need different markup — a card layout, a custom add/remove control, or tighter integration with your design system — template overrides are the right tool.
+Repeater fields let users add and remove rows of nested fields. Most projects can style them with [theme config](/reference/theme-tag-reference#repeater-field), but when you need different markup — a card layout, a custom add/remove control, or tighter integration with your design system — template overrides are the right tool.
 
 ## Prerequisites
 
@@ -8,7 +8,7 @@ Repeater fields let users add and remove rows of nested fields. Most projects ca
 - A [Form Template](/theming/template-overrides) with **Use Custom Template** enabled (for example `_forms`)
 - Familiarity with [Rendering Fields](/templates/rendering-fields)
 
-## Start with theme config
+## Start with Theme Config
 
 Before overriding templates, check whether theme config already solves the problem. Repeater exposes tags such as `nestedFieldRow`, `fieldAddButton`, and `fieldRemoveButton`:
 
@@ -33,7 +33,7 @@ Before overriding templates, check whether theme config already solves the probl
 
 Use a template override when the row structure itself needs to change, not just classes or attributes.
 
-## How Repeater values work
+## How Repeater Values Work
 
 Each Repeater row is a structured group of nested field values stored on the submission. In Twig, the field's `value` is an array of rows. Formie's front-end JavaScript manages row indexing, add/remove actions, and minimum row counts.
 
@@ -44,7 +44,7 @@ When you override Repeater templates, you must preserve the data attributes the 
 - `data-formie-repeater-add` and `data-formie-repeater-remove` on the buttons
 - A `<script type="text/x-template">` with `data-formie-repeater-template` and `__ROW__` placeholders for new rows
 
-## Set up your override directory
+## Set Up Your Override Directory
 
 Create a Form Template in **Formie → Settings → Form Templates**, enable **Use Custom Template**, and set the path to your override directory (for example `_forms`). Use **Copy Templates** to seed Formie's defaults, then edit the Repeater partials:
 
@@ -55,7 +55,7 @@ templates/_forms/fields/repeater/_row.html
 
 Assign that Form Template to the form you are customising.
 
-## Override the Repeater index template
+## Override the Repeater Index Template
 
 The index template renders the row container, existing rows, the add button, and the row template used when adding new rows. This example follows Formie's default structure using `fieldtag()` and `formieInclude()`:
 
@@ -95,7 +95,7 @@ The index template renders the row container, existing rows, the add button, and
 
 The `{% script %}` tag (or inline `<script>` for GraphQL rendering) holds the template for dynamically added rows. The `__ROW__` placeholder is replaced with the next row index when a user clicks add.
 
-## Override the row template
+## Override the Row Template
 
 Each row loops nested fields and renders them with `craft.formie.renderField()`:
 
@@ -121,15 +121,8 @@ Each row loops nested fields and renders them with `craft.formie.renderField()`:
 
 Formie handles input namespacing for nested fields automatically when you render through `renderField()`. You should not need to call `setParentField()` manually.
 
-## Customise from here
+## Customise from Here
 
 Once the override is in place, you can change wrappers, reorder nested fields, or add your own classes through `fieldtag()` overrides in the template. Keep the Repeater data attributes and the add/remove button slots intact so Formie's JavaScript continues to manage rows.
 
-If you only need different classes on existing elements, prefer [theme config](/theming/theme-config#repeater-field) — it survives Formie updates with less maintenance.
-
-## Related
-
-- [Repeater field](/fields/repeater)
-- [Rendering Fields](/templates/rendering-fields)
-- [Template Overrides](/theming/template-overrides)
-- [Theme config — Repeater](/theming/theme-config#repeater-field)
+If you only need different classes on existing elements, prefer [theme config](/reference/theme-tag-reference#repeater-field) — it survives Formie updates with less maintenance.

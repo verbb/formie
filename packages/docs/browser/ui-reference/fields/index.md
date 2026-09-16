@@ -7,7 +7,7 @@ That includes:
 - a visual preview of the default output
 - required attributes and which element they belong to when overriding markup
 - optional styling classes
-- browser hooks and events when a field has browser behavior
+- browser hooks and events when a field has browser behaviour
 - token and accessibility notes for common overrides
 
 For full Twig overrides, start with [Form](/browser/ui-reference/components/form) and [Field](/browser/ui-reference/components/field) before drilling into the field-specific pages.
@@ -16,7 +16,7 @@ Normal Formie-rendered output already includes these hooks for you. The attribut
 
 Those requirements often span more than one element: a field wrapper, one or more form controls, and sometimes supporting nodes such as hidden inputs, error containers, or subfield rows. The field pages should call out that ownership explicitly rather than imply everything belongs on a single element.
 
-## Field reference pages
+## Field Reference Pages
 
 - [Single Line Text](/browser/ui-reference/fields/single-line-text)
 - [Multi Line Text](/browser/ui-reference/fields/multi-line-text)
@@ -39,7 +39,7 @@ Those requirements often span more than one element: a field wrapper, one or mor
 - [Hidden](/browser/ui-reference/fields/hidden)
 - [Payment](/browser/ui-reference/fields/payment)
 
-## Field categories
+## Field Categories
 
 The browser package field surface broadly falls into these groups:
 
@@ -52,7 +52,7 @@ The browser package field surface broadly falls into these groups:
 
 As more field pages are promoted into the public reference set, they should follow the same structure and stay owned by the Browser docs rather than a separate “core” docs area.
 
-## Related pages
+## Related Pages
 
 - [Form](/browser/ui-reference/components/form)
 - [Field](/browser/ui-reference/components/field)

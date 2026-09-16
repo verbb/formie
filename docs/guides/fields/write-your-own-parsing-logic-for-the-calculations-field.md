@@ -1,13 +1,15 @@
-# Write your own parsing logic for the Calculations field
+# Write Your Own Parsing Logic for the Calculations Field
 
 The Calculations field evaluates a formula from other field values and shows the result in a read-only input. Formie uses a JavaScript implementation of Symfony Expression Syntax for front-end evaluation. When built-in formatting is not enough — currency display, rounding rules, capping input values before they enter the formula — you can hook into evaluation events and adjust the formula, variables, or result.
+
+The [Calculations module events](https://docs.verbb.io/formie/browser/modules/field/calculations) describe the browser hooks used to extend calculation behaviour.
 
 ## Prerequisites
 
 - A form with at least one [Calculations field](/fields/calculations)
 - Formie's front-end assets loaded on the page (included automatically when you use `craft.formie.renderForm()`)
 
-## How evaluation events work
+## How Evaluation Events Work
 
 Formie fires two document-level events around each evaluation:
 
@@ -20,7 +22,7 @@ Each event's `detail` includes a reference to the Calculations field element. Ma
 
 Variables in `event.detail.variables` use keys derived from the referenced fields — typically the field handle or the internal variable name Formie generated for the formula.
 
-## Format results as currency
+## Format Results as Currency
 
 Suppose you have two Number fields and a Calculations field with the formula `{fieldA} + {fieldB}`. You want the result shown as USD.
 
@@ -47,7 +49,7 @@ document.addEventListener('formie:field:calculations:after-evaluate', (event) =>
 
 The field shows `$0.00` on load (rather than `0`) and updates as currency when dependent fields change.
 
-## Round numeric results
+## Round Numeric Results
 
 The same pattern works for rounding:
 
@@ -67,7 +69,7 @@ document.addEventListener('formie:field:calculations:after-evaluate', (event) =>
 
 Given `1.276` and `7.682` for the two Number fields, the displayed result becomes `9`.
 
-## Cap values before evaluation
+## Cap Values Before Evaluation
 
 Use `before-evaluate` when you want to clamp or transform source values without changing what the user typed in the original fields.
 
@@ -93,7 +95,7 @@ document.addEventListener('formie:field:calculations:before-evaluate', (event) =
 
 The user can still enter values above 20 in the Number field; only the calculation respects the cap.
 
-## Advanced: modify the formula or inject functions
+## Advanced: Modify the Formula or Inject Functions
 
 You can replace the formula string or add custom variable objects (including functions) before evaluation:
 
@@ -122,9 +124,3 @@ Given `1` and `5`, the result becomes `6 is 🔥`.
 - Use the **after-evaluate** event for display formatting. Use **before-evaluate** for logic that affects what the expression sees.
 - Prefer the Calculations field's built-in prefix, suffix, and decimal settings when they are enough. Custom events are for behaviour the field settings cannot express.
 - For formula syntax and built-in functions, see [Calculations field in detail](/guides/fields/calculations-field-in-detail).
-
-## Related
-
-- [Calculations field](/fields/calculations)
-- [Calculations field in detail](/guides/fields/calculations-field-in-detail)
-- [Calculations module events](/browser/modules/field/calculations)

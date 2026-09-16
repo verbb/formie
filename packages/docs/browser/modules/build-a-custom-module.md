@@ -1,4 +1,4 @@
-# Build a custom module
+# Build a Custom Module
 
 Build a custom module when your field or browser enhancement needs to hook into Formie's lifecycle instead of living as an unrelated page script.
 
@@ -13,7 +13,7 @@ This example shows a custom `project-rating` module for a custom field.
 
 For custom modules, the public loading path is always `src`. Manifest entries without `src` are for Formie's own built-in modules, not for consumer-authored modules.
 
-## Example field markup
+## Example Field Markup
 
 The field still uses a normal Formie transport input for submission, but adds a couple of custom selectors for the module:
 
@@ -39,7 +39,7 @@ The field still uses a normal Formie transport input for submission, but adds a 
 </div>
 ```
 
-## 1. Write the module definition
+## 1. Write the Module Definition
 
 ```ts
 import type { FormieModuleDefinition } from '@verbb/formie-browser';
@@ -98,9 +98,9 @@ What this does:
 - `id` gives the module a stable manifest key
 - `kind: 'field'` marks it as a field-scoped module
 - `match()` confirms the target contains the selectors the module needs
-- `setup()` attaches behavior and returns `destroy()` cleanup
+- `setup()` attaches behaviour and returns `destroy()` cleanup
 
-## Choose the right module shape
+## Choose the Right Module Shape
 
 For custom field modules and core workflow modules, author a `FormieModuleDefinition` directly.
 
@@ -110,7 +110,7 @@ For provider modules, use the helper that matches the provider family:
 - `definePaymentModule()`
 - `defineAddressModule()`
 
-## Core workflow modules
+## Core Workflow Modules
 
 `kind: 'core'` modules attach to the form as a whole instead of one field or provider target.
 
@@ -144,13 +144,13 @@ const acmeCoreModule: FormieModuleDefinition = {
 };
 ```
 
-Core modules are the right place for form-level behavior that does not belong to one specific field, captcha, payment, or address target.
+Core modules are the right place for form-level behaviour that does not belong to one specific field, captcha, payment, or address target.
 
-## 2. Reference it from the form manifest
+## 2. Reference It from the Form Manifest
 
 Point the manifest item at the module file with `src` so Formie can import it lazily.
 
-### Direct markup
+### Direct Markup
 
 ```html
 <form
@@ -180,7 +180,7 @@ Point the manifest item at the module file with `src` so Formie can import it la
 
 The important bit is `targetId: "projectRating"`, which matches the field's `data-formie-field-handle`.
 
-### Custom PHP field
+### Custom PHP Field
 
 If you are building a custom field in PHP, add the client module from `defineClientModules()`. That is what feeds the form's `data-formie-modules` manifest.
 
@@ -198,7 +198,7 @@ protected function defineClientModules(): array
 
 This is the same PHP hook Formie uses for its own field modules, but for consumer-authored modules the important difference is the third argument: your public module file path in `src`.
 
-## 3. Listen to module lifecycle events while developing
+## 3. Listen to Module Lifecycle Events While Developing
 
 ```js
 document.addEventListener('formie:module:project-rating:after-setup', (event) => {
@@ -226,7 +226,7 @@ Use [JavaScript events](/browser/behavior/javascript-events) for the full lifecy
 - For custom modules, always provide `src`.
 - Keep submitted values in normal Formie inputs when the field still posts data.
 
-## Related pages
+## Related Pages
 
 - [Modules](/browser/modules/)
 - [JavaScript API](/browser/)

@@ -34,3 +34,9 @@ Turnstile widget mode is chosen in Cloudflare for the site key you created. Form
 ### Content Security Policy (CSP)
 
 If your site uses strict CSP headers (for example on Craft Cloud), allow scripts and frames from `https://challenges.cloudflare.com`. Formie also forwards your page CSP nonce to dynamically loaded captcha scripts when a `csp-nonce` meta tag is present.
+
+## Verify a Submission
+
+Save the form, open it on your site and submit recognisable test values. Submit through the site and check the resulting submission and spam state. A saved credential alone does not verify the visitor-facing challenge or server-side check.
+
+If nothing arrives, check whether integration conditions matched, whether the submission was complete and non-spam, and whether Craft’s queue has processed the job. A successful connection check verifies credentials; it does not prove that field mapping and delivery work. See [Connect and Test an Integration](/integrations/connect-and-test-an-integration) for a complete mapping and verification workflow.

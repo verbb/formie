@@ -1,4 +1,4 @@
-# Creating a Formie field type from scratch
+# Creating a Formie Field Type from Scratch
 
 In this guide we build a URL field from scratch — similar to Single-line Text, but with URL validation and optional front-end behaviour. By the end you will have a field that appears in the form builder palette, renders on the front end, validates submissions, and supports Theme Config.
 
@@ -9,7 +9,7 @@ This guide complements the [Custom Field developer reference](/developers/custom
 - A Craft module (see [Craft's module documentation](https://craftcms.com/docs/5.x/extend/module.html))
 - Familiarity with [Schema](/developers/schema) for form-builder settings
 
-## Create your module
+## Create Your Module
 
 First, you need a Craft module (see [Craft's module documentation](https://craftcms.com/docs/5.x/extend/module-guide.html)). Your field class lives in that module, along with the templates Formie renders on the front end and in email notifications.
 
@@ -68,7 +68,7 @@ class FormieUrlField extends Module
 
 Two things happen here. The template root registration lets Craft resolve paths like `formie-url-field/input` when Formie renders your field. The `RegisterFieldsEvent` listener adds `UrlField` to the palette — without it, your class never appears in the form builder.
 
-## Build the field class
+## Build the Field Class
 
 Create `modules/formieurlfield/src/fields/UrlField.php`. Extend `verbb\formie\base\Field` and implement the methods Formie expects for builder settings, front-end rendering, validation, and Theme Config.
 
@@ -233,13 +233,13 @@ class UrlField extends Field
 }
 ```
 
-### Form builder settings
+### Form Builder Settings
 
 Each settings tab in the form builder maps to a `defineFormBuilder*Schema()` method — General, Validation, Appearance, Advanced, Conditions. Return schema nodes from [SchemaHelper](/developers/schema) or raw arrays. See [Everything you need to know about Formie schemas](/guides/developers/everything-you-need-to-know-about-formie-schemas) for patterns.
 
 The preview palette uses `defineFormBuilderPreviewSchema()` with helpers like `previewInput()`.
 
-### Front-end rendering
+### Front-End Rendering
 
 Point `getInputTemplatePath()` at a lean Twig partial that calls `fieldtag()`. Formie handles labels, errors, and instructions around your input.
 
@@ -249,11 +249,11 @@ For Theme Config overrides, implement `defineFieldSlotTag()` and return a `SlotT
 
 Add rules in `getElementValidationRules()`. The URL field uses Craft's `UrlValidator` with Formie's standard required-field handling from the Validation tab schema.
 
-### Reference blocks
+### Reference Blocks
 
 Email notifications and other reference contexts use `getReferenceBlockTemplatePath()` — a small Twig partial that formats the stored value for humans reading an email.
 
-## Create templates
+## Create Templates
 
 With the field class in place, add the templates Formie loads when rendering the field.
 
@@ -282,11 +282,11 @@ With the field class in place, add the templates Formie loads when rendering the
 
 Add an SVG icon at `templates/icon.svg` for the form builder palette.
 
-## Test it
+## Test It
 
 Reload the control panel. Your **URL** field should appear in the field picker. Add it to a form, save, and preview on the front end. Enter invalid text — validation should reject it with a URL error.
 
-## Add a client module (optional)
+## Add a Client Module (Optional)
 
 When a field needs companion JavaScript, register a client module so Formie lazy-loads it only when the field is on the form:
 
@@ -310,9 +310,9 @@ protected function defineClientModules(): array
 }
 ```
 
-Author the module as a `FormieModuleDefinition` in that JS file. See [Build a custom module](/browser/modules/build-a-custom-module) for the full pattern with `match()`, `setup()`, and `destroy()`.
+Author the module as a `FormieModuleDefinition` in that JS file. See [Build a custom module](https://docs.verbb.io/formie/browser/modules/build-a-custom-module) for the full pattern with `match()`, `setup()`, and `destroy()`.
 
-## Value handling for complex fields
+## Value Handling for Complex Fields
 
 Scalar fields like URL can rely on Formie's defaults. When your field stores structured data, override the protected `defineValue*()` methods:
 
@@ -322,15 +322,8 @@ Scalar fields like URL can rely on Formie's defaults. When your field stores str
 
 Override the `defineValue*()` methods, not the public `getValue*()` wrappers — the public methods fire Formie value events.
 
-## When to use a full field vs a Custom Field adapter
+## When to Use a Full Field vs a Custom Field Adapter
 
 Register a full Formie field type when you own the complete behaviour and want a dedicated palette item.
 
 If you are bridging an existing Craft field from another plugin, consider a [Custom Field adapter](/guides/fields/bringing-your-craft-field-into-formie-custom-field-adapters) instead.
-
-## Related
-
-- [Custom Field (developer reference)](/developers/custom-field)
-- [Field object reference](/reference/field)
-- [Schema](/developers/schema)
-- [Theme Config](/theming/theme-config)

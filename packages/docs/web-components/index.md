@@ -11,7 +11,7 @@ The package exposes two hosts:
 
 If Craft is already rendering the final form HTML directly into the page and you do not need a custom element at the mount point, use the [Browser](/browser/) docs instead.
 
-## Server-rendered Forms
+## Server-Rendered Forms
 
 Use server-rendered forms when:
 
@@ -25,11 +25,11 @@ Server-rendered forms come in these shapes:
 - **Imperative** `document.createElement('formie-form')` and set properties
 - **`createFormieClient()`** when you need the full browser client without the `formie-form` wrapper
 
-Those are the same server-rendered browser behavior, not different products.
+Those are the same server-rendered browser behaviour, not different products.
 
 Start with [Server-rendered](/web-components/server-rendered/overview).
 
-## Client-rendered Forms
+## Client-Rendered Forms
 
 Use client-rendered forms when:
 
@@ -43,7 +43,7 @@ Start with [Client-rendered forms](/web-components/client-rendered/overview).
 
 ## Transport
 
-### Server-rendered forms (`formie-form`)
+### Server-Rendered Forms (`formie-form`)
 
 Use **REST** when you want the simplest path: Craft base URL or render URL, standard browser submit after paint.
 
@@ -51,7 +51,7 @@ Use **GraphQL** when the initial HTML payload should come from your GraphQL laye
 
 Set `transport` and `endpoint` on `<formie-form>` (or as properties). For object options such as `themeConfig` or a preloaded `payload`, use **JavaScript properties** on the element or `createFormieClient()`.
 
-### Client-rendered forms (`formie-core-form`)
+### Client-Rendered Forms (`formie-core-form`)
 
 Use **REST** when you want the default client definition envelope load and submit flow against Formie’s frontend actions.
 

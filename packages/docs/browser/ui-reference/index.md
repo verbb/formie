@@ -1,4 +1,4 @@
-# UI reference
+# UI Reference
 
 This section is the canonical visual and structural reference for the browser-owned Formie UI surface.
 
@@ -13,7 +13,7 @@ This area is owned by `@verbb/formie-browser` because that package owns:
 
 Framework package docs should link back here when they are using the same browser-owned markup and styling contracts.
 
-## In this section
+## In This Section
 
 - [Fields](/browser/ui-reference/fields/)
 - [Single Line Text](/browser/ui-reference/fields/single-line-text)
@@ -23,16 +23,16 @@ Framework package docs should link back here when they are using the same browse
 - [Loading](/browser/ui-reference/components/loading)
 - [CSS variables](/browser/ui-reference/css-variables)
 
-## How to use these pages
+## How to Use These Pages
 
 Field and component pages are designed to answer four questions:
 
 - what the default UI looks like
-- which attributes are required for browser behavior
+- which attributes are required for browser behaviour
 - which classes are optional styling hooks
 - which CSS variables and browser states are safe to target
 
-If you need browser lifecycle, module, or submit behavior, use the main Browser docs:
+If you need browser lifecycle, module, or submit behaviour, use the main Browser docs:
 
 - [JavaScript events](/browser/behavior/javascript-events)
 - [JavaScript API](/browser/)

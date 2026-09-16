@@ -9,8 +9,10 @@
 ### Changed
 - Pin Formie's bundled TipTap and ProseMirror graph to `3.22.4` so extension code shares one qualified runtime.
 - Stream all report export formats, including Excel, JSON and XML, and preserve the initial submission order while reading batches.
+- Align documentation filenames with page titles and update internal links.
 - Manage dashboard chart dependencies through the package lockfile so dependency audits cover shipped widget scripts.
-- Update frontend and test dependencies to patched releases.
+- Improve documentation for submission access, GraphQL clients, saved drafts, report delivery and integration setup; separate detailed reference material from walkthroughs.
+- Update frontend and test dependencies to patched releases, and resolve the frontend documentation theme from its published package.
 - Normalize CP General Settings to the shared `verbb-base` settings layout (Settings → Plugins → Formie crumbs, `pageTabs` / `pageTitle` / `pageAction` helpers) and trim `pluginName` on save.
 - Bump transitive `symfony/cache` to `6.4.45` (CVE-2026-45073 advisory floor).
 

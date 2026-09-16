@@ -5,11 +5,11 @@ Rendering your forms in a custom manner means not relying on Formie's render met
 Read [Theming Overview](/theming/overview) first if you want to compare custom rendering with the other theming options.
 :::
 
-Custom rendering is the most flexible option, but it also comes with the most responsibility. If you go down this path, you are taking over the form markup and the front-end behavior requirements that come with it.
+Custom rendering is the most flexible option, but it also comes with the most responsibility. If you go down this path, you are taking over the form markup and the front-end behaviour requirements that come with it.
 
 For many projects, [Theme Config](/theming/theme-config) or [Template Overrides](/theming/template-overrides) will give you enough control with far less maintenance. Custom rendering is best reserved for cases where you really do need to take over the entire output.
 
-## What You Need To Keep
+## What You Need to Keep
 Even when you render everything yourself, there are a few pieces you still need to keep in place for Formie to work properly:
 
 - the browser-facing form attributes and `data-formie-*` settings on the `<form>`
@@ -79,7 +79,7 @@ This guide serves as a starter. There are several aspects of templating that sho
 Stepping through the above, we prepare an array of HTML attributes, for the `<form>` element, and use Craft's `attr()` Twig function to apply them - it's a little easier than all those attributes!
 
 :::warning
-Make sure the form keeps Formie's browser attributes such as `data-formie`, `data-formie-form`, and the related `data-formie-*` settings. Without them, Formie's JavaScript will not initialize correctly, and features like client-side validation, conditions, payments, and captchas can break.
+Make sure the form keeps Formie's browser attributes such as `data-formie`, `data-formie-form`, and the related `data-formie-*` settings. Without them, Formie's JavaScript will not initialise correctly, and features like client-side validation, conditions, payments, and captchas can break.
 :::
 
 If you are intentionally deferring startup for a specific form, mirror `initJs: false` with `data-formie-init="false"` on the form root so Formie's automatic startup skips that form until your own bundle mounts it.
@@ -318,13 +318,13 @@ Without this, file uploads will not work.
 
 ## Common Things People Miss
 
-- Leaving out Formie's browser attributes on the `<form>`, which stops the front-end behavior from initializing correctly.
+- Leaving out Formie's browser attributes on the `<form>`, which stops the front-end behaviour from initializing correctly.
 - Using outdated hidden inputs, or forgetting to pass the current submission back through after validation fails.
 - Forgetting to render captchas at all.
 - Not using `multipart/form-data` when the form includes file uploads.
-- Assuming a one-page form is the whole story. Multi-page forms, payments, save and continue later, and conditional behavior all add more moving parts.
+- Assuming a one-page form is the whole story. Multi-page forms, payments, save and continue later, and conditional behaviour all add more moving parts.
 
-### Client-side validation and captchas
+### Client-Side Validation and Captchas
 
 Custom forms still need Formie's browser layer for Ajax submits and captchas. Output `craft.formie.formAssets(form)` (or the CSS/JS split) and include the required hidden inputs — especially `submitAction`, `handle`, `renderId`, and `requestToken`.
 
@@ -335,7 +335,7 @@ If Ajax submit fails with a generic error when fields are empty, either enable *
 See [reCAPTCHA](/integrations/captchas/recaptcha) for cookie-consent deferral with `initJs: false`.
 
 ### What's Not Covered
-Whilst we've covered the basics, there's still plenty left to address, such as different submit actions, multi-page navigation, save-and-resume flows, and payment-specific behavior. For more complete examples, consult the templates on [Formie's GitHub](https://github.com/verbb/formie/tree/craft-5/src/templates/_special/form-template).
+Whilst we've covered the basics, there's still plenty left to address, such as different submit actions, multi-page navigation, save-and-resume flows, and payment-specific behaviour. For more complete examples, consult the templates on [Formie's GitHub](https://github.com/verbb/formie/tree/craft-5/src/templates/_special/form-template).
 
 :::tip
 Check out the raw templates on [Formie's GitHub](https://github.com/verbb/formie/tree/craft-5/src/templates/_special/form-template) for the most up to date reference.

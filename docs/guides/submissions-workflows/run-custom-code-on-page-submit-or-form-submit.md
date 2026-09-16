@@ -1,10 +1,12 @@
-# Run custom code on page submit or form submit
+# Run Custom Code on Page Submit or Form Submit
 
 Every page POST walks the same submission pipeline. Submitting a page is not a different stage from submitting the form — both use `submit` mode, and both post `submitAction=submit`. Completeness is the outcome of page flow: if there is another reachable page, the submission stays incomplete; if this was the last **visible** page (later pages may be hidden by conditions), it becomes complete.
 
 Use the two public hooks below. You do not need `EVENT_AFTER_TASK` or a custom stage for these cases.
 
-## Which hook?
+Start with [Submission Workflow and Stages Explained](/guides/submissions-workflows/submission-workflow-and-stages-explained) if you need to understand when page submission and final submission occur. The [Submission Events reference](/developers/events/submission-events) describes the event objects used by listeners.
+
+## Which Hook?
 
 | You want to… | Hook |
 | --- | --- |
@@ -17,7 +19,7 @@ Use the two public hooks below. You do not need `EVENT_AFTER_TASK` or a custom s
 
 Both workflow hooks run after a successful save and **before** notifications and integrations, so a status change is visible to dispatch.
 
-## Example: extra work after a page submit
+## Example: Extra Work After a Page Submit
 
 ```php
 use verbb\formie\events\SubmissionPageAdvanceEvent;
@@ -35,7 +37,7 @@ Event::on(SubmissionWorkflow::class, SubmissionWorkflow::EVENT_AFTER_PAGE_ADVANC
 
 This does not fire on Back, save-and-continue, or single-page forms.
 
-## Example: set a status when the form is submitted
+## Example: Set a Status When the Form Is Submitted
 
 Prefer **Submission Status Rules** on the form when the rule is per-form. Use PHP when the logic is shared (for example every form on a `request` template):
 
@@ -59,14 +61,6 @@ Event::on(Submission::class, Submission::EVENT_AFTER_COMPLETE, function(Submissi
 
 The submission already has an ID. Mutating other attributes still requires `Craft::$app->getElements()->saveElement($submission)` if you need them written immediately; status changes from this listener are saved for you.
 
-## When to use stage and task events
+## When to Use Stage and Task Events
 
 Use `beforeStage` / `afterTask` when you need a slot the two hooks do not name — between persist and payments, after spam screening, skipping one dispatch step. Register a [custom task](/guides/submissions-workflows/adding-a-custom-workflow-task-from-scratch) when several modules must order relative to the same built-in step. Page submit vs form submit is not a reason to add a stage.
-
-## Related
-
-- [Submission workflow and stages explained](/guides/submissions-workflows/submission-workflow-and-stages-explained)
-- [Using submission workflow events](/guides/submissions-workflows/using-submission-workflow-events)
-- [Submission Statuses](/submissions/statuses)
-- [Submission Events](/developers/events/submission-events)
-- [Submission Workflow](/developers/submission-workflow)

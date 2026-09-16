@@ -1,4 +1,4 @@
-# Bringing your Craft field into Formie (Custom Field adapters)
+# Bringing Your Craft Field Into Formie (Custom Field Adapters)
 
 Your Craft site may already have field types from custom plugins — [Maps](https://plugins.craftcms.com/simplemap?craft5), [Google Maps](https://plugins.craftcms.com/google-maps?craft5), or your own field classes — or Craft's built-in Link field. Formie's **Custom Field** field type lets authors use those fields on forms without you building a full Formie field type for each one.
 
@@ -6,7 +6,7 @@ Each supported option is an **adapter** — explicit Formie code that handles fr
 
 Read the [Custom Field reference](/fields/custom-field) and [Custom Field adapters (developer reference)](/developers/custom-field#custom-field-adapters) before implementing — adapters touch more surfaces than a typical Craft field because Formie must submit, export, and integrate reliably on the front end.
 
-## Full field type vs adapter
+## Full Field Type vs Adapter
 
 | Approach | Use when |
 | --- | --- |
@@ -15,7 +15,7 @@ Read the [Custom Field reference](/fields/custom-field) and [Custom Field adapte
 
 Adapters are opt-in because Formie needs more than a Craft field class name to submit reliably on the front end. `craftFieldClasses()` is advisory metadata for availability detection — it does not make arbitrary Craft fields work automatically.
 
-## Built-in adapters
+## Built-in Adapters
 
 Formie ships three adapters today:
 
@@ -46,7 +46,7 @@ Bridges the [Google Maps](https://plugins.craftcms.com/google-maps?craft5) plugi
 
 Both map adapters implement structured value methods together — `normalizeValue()`, `serializeValue()`, `getValueAsString()`, GraphQL types, and client input metadata — so front-end submissions, exports, and integrations stay aligned.
 
-## Register an adapter from your module
+## Register an Adapter from Your Module
 
 When you need to bridge a Craft field Formie does not ship an adapter for, create an adapter class in your Craft module and register it at boot time.
 
@@ -65,7 +65,7 @@ Event::on(CustomFields::class, CustomFields::EVENT_REGISTER_CUSTOM_FIELD_ADAPTER
 
 Implement `CustomFieldAdapterInterface`. Most adapters extend `AbstractCustomFieldAdapter` and override only what differs from the scalar default — you do not need every method on day one. Start with builder settings and front-end rendering, then add value normalisation and export helpers as your field requires structured data.
 
-## Minimal adapter skeleton
+## Minimal Adapter Skeleton
 
 The skeleton below shows the minimum to appear in the Custom Field Type picker. Expand it with rendering, validation, and value methods from the checklist further down.
 
@@ -116,7 +116,7 @@ class ExampleCustomFieldAdapter extends AbstractCustomFieldAdapter
 
 After registration, **Example** appears in the Custom Field Type picker when `isAvailable()` returns true.
 
-## Adapter-owned settings
+## Adapter-Owned Settings
 
 Store settings under `customFieldAdapterSettings` using `settingName()` in schema nodes and `getSetting()` when reading values:
 
@@ -131,7 +131,7 @@ $placeholder = $this->getSetting($field, 'placeholder');
 
 This keeps the base Custom Field contract stable as adapters add provider-specific options.
 
-## What to implement
+## What to Implement
 
 Start with the methods your Craft field actually needs:
 
@@ -146,22 +146,16 @@ Start with the methods your Craft field actually needs:
 
 For structured values (maps, addresses, multi-part data), implement the value and GraphQL methods together so every output path sees the same shape.
 
-## Storage contract
+## Storage Contract
 
 The adapter is chosen when the field is created and **cannot be changed afterward** — each adapter may store a different value shape. Treat `customFieldAdapter` and `customFieldAdapterSettings` as part of the field's storage contract.
 
 Custom Field uses JSON storage so adapters can support both scalar strings and structured arrays through one Formie field type.
 
-## Testing checklist
+## Testing Checklist
 
 1. Add **Custom Field** to a form and pick your adapter type.
 2. Configure adapter settings and save the form.
 3. Submit from the front end — confirm the value persists on the submission.
 4. Check email notification summaries, exports, and any enabled integrations.
 5. If you support GraphQL, confirm the mutation argument type matches what clients send.
-
-## Related
-
-- [Custom Field](/fields/custom-field)
-- [Custom Field adapters](/developers/custom-field#custom-field-adapters)
-- [Creating a Formie field type from scratch](/guides/fields/creating-a-formie-field-type-from-scratch)

@@ -1,4 +1,4 @@
-# Date picker
+# Date Picker
 
 Date picker enhances Date fields rendered with the `datePicker` display type by mounting flatpickr on the transport input.
 
@@ -6,7 +6,7 @@ When the field's **Value type** is **Date Range**, the module mounts flatpickr i
 
 ## Events
 
-#### The `formie:field:date-picker:before-init` event
+#### The `formie:field:date-picker:before-init` Event
 
 Triggered before flatpickr is created.
 
@@ -18,7 +18,7 @@ document.addEventListener('formie:field:date-picker:before-init', (event) => {
 });
 ```
 
-#### The `formie:field:date-picker:after-init` event
+#### The `formie:field:date-picker:after-init` Event
 
 Triggered after flatpickr has been mounted on the field input.
 
@@ -34,7 +34,7 @@ document.addEventListener('formie:field:date-picker:after-init', (event) => {
 
 The shared module lifecycle also exposes scoped events such as `formie:module:date-picker:after-setup`.
 
-## Related pages
+## Related Pages
 
 - [Date field](/browser/ui-reference/fields/date)
 - [Overview](/browser/modules/)

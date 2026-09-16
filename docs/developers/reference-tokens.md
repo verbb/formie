@@ -1,10 +1,10 @@
-# Reference tokens
+# Reference Tokens
 
 Reference tokens are Formie's variable syntax for inserting dynamic submission, form, site, and user values into settings and content. They resolve **when Formie processes a submission** — not when your Twig template renders.
 
 Use the variable picker in the control panel wherever it is available, or build the same tokens from Twig or PHP when you override settings in templates.
 
-## Where tokens are used
+## Where Tokens Are Used
 
 Reference tokens appear anywhere Formie parses variable-aware content, including:
 
@@ -18,7 +18,7 @@ Reference tokens appear anywhere Formie parses variable-aware content, including
 Calculations use the same field-reference tokens, but the formula editor is **not** Twig. See [Calculations](/fields/calculations) for expression syntax.
 :::
 
-## How tokens work
+## How Tokens Work
 
 A token is a braced string Formie stores in settings, then resolves against the current submission:
 
@@ -39,12 +39,12 @@ Formie resolves tokens in stored content at submit time (or when previewing with
 
 That means these do **not** work in those settings:
 
-- Twig output syntax such as `{{ submission.uid }}`
-- Legacy flat tokens such as `{submissionUid}` or `{field:myHandle}`
+- Twig output syntax such as <code v-pre>{{ submission.uid }}</code>
+- A field handle in place of the stable field reference inserted by the variable picker
 
 Use reference tokens instead — the same strings the variable picker inserts.
 
-### Inline defaults
+### Inline Defaults
 
 Add a fallback when the resolved value is empty:
 
@@ -52,7 +52,7 @@ Add a fallback when the resolved value is empty:
 {submission:uid|pending}
 ```
 
-### Transforms and metadata
+### Transforms and Metadata
 
 Some contexts support transforms and extra metadata on the token body:
 
@@ -63,11 +63,11 @@ Some contexts support transforms and extra metadata on the token body:
 
 The variable picker configures these for you. When building tokens manually, match the picker output. See [Calculations](/fields/calculations) for transform examples on field references.
 
-## Built-in tokens
+## Built-in Tokens
 
 These tokens are available on every form. In the control panel, open the variable picker to insert them. From Twig, use `craft.formie.ref()` with the target and identifier shown in the **Twig** column.
 
-### Summary selectors
+### Summary Selectors
 
 | Label | Token | Twig |
 | --- | --- | --- |
@@ -110,7 +110,7 @@ These tokens are available on every form. In the control panel, open the variabl
 | System email | `{system:email}` | `craft.formie.ref('system', 'email')` |
 | System reply-to | `{system:replyTo}` | `craft.formie.ref('system', 'replyTo')` |
 
-### Current user
+### Current User
 
 Values reflect the logged-in user when the submission is made, or the submission's linked user when applicable.
 
@@ -124,7 +124,7 @@ Values reflect the logged-in user when the submission is made, or the submission
 | User first name | `{user:firstName}` | `craft.formie.ref('user', 'firstName')` |
 | User last name | `{user:lastName}` | `craft.formie.ref('user', 'lastName')` |
 
-### Current date/time
+### Current Date/Time
 
 | Label | Token | Twig |
 | --- | --- | --- |
@@ -140,7 +140,7 @@ When Craft environment variables are available, the picker lists `{env:KEY}` tok
 {{ craft.formie.ref('env', 'MY_ENV_KEY') }}
 ```
 
-## Field tokens
+## Field Tokens
 
 Field values use a **stable field reference**, not the field handle. Each field on a form has a reference ID that stays consistent when the handle changes.
 
@@ -164,7 +164,7 @@ Some fields expose multiple selectors (for example Name, Address, Date/Time, Tab
 Do not type `{field:myFieldHandle}`. Handles are for templates and `refField()` — stored tokens must use the field reference.
 :::
 
-## Custom variables
+## Custom Variables
 
 Register project-specific variables with `{custom:handle}` tokens. See [Custom variable sources](/developers/custom-variable-sources).
 
@@ -172,7 +172,7 @@ Register project-specific variables with `{custom:handle}` tokens. See [Custom v
 {{ craft.formie.ref('custom', 'acme_campaign') }}
 ```
 
-## Building tokens from Twig
+## Building Tokens from Twig
 
 Use `craft.formie.ref()` and `craft.formie.refField()` when overriding form settings in templates — for example a dynamic [submit action message](/templates/overriding-settings):
 
@@ -197,7 +197,7 @@ Use `craft.formie.ref()` and `craft.formie.refField()` when overriding form sett
 
 Concatenate the returned string with other text using Twig's `~` operator.
 
-## Resolving tokens in Twig templates
+## Resolving Tokens in Twig Templates
 
 When you already have a submission in a Twig template and want the **resolved value** (not the token string), use:
 

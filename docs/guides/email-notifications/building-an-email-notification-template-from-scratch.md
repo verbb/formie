@@ -1,22 +1,22 @@
-# Building an Email Notification template from scratch
+# Building an Email Notification Template from Scratch
 
 When someone submits your form, Formie sends notification emails through Craft's mailer — but the default content is functional, not branded. This walkthrough takes a contact form notification from plain field output to a responsive, on-brand email that matches the rest of your project.
 
 You will create a Formie Email Template record, wire it to a test notification, and build a reusable layout (with optional MJML) that wraps Formie's notification body content.
 
-## Before you start
+## Before You Start
 
 You need a form with at least one notification enabled — the Contact Form stencil (name, email, message) is a good starting point. Enable the **user-facing** notification for testing if you want to see the styled email in your inbox; admin notifications use the same template machinery.
 
 Create an [Email Template](/forms/email-notifications) record in Formie and point **HTML Template** at a Twig path such as `_forms/email-template`. Assign that template on the notification you are testing.
 
-## Layout with MJML (optional)
+## Layout with MJML (Optional)
 
 [ MJML](https://mjml.io/) simplifies responsive email HTML. Install the [MJML Craft plugin](https://plugins.craftcms.com/mjml) and the MJML CLI globally if you use the `mjmlCli` filter.
 
 You can also write plain HTML — the structure below still applies.
 
-### Email layout
+### Email Layout
 
 `/templates/_emails/_layout.html`:
 
@@ -63,7 +63,7 @@ You can also write plain HTML — the structure below still applies.
 
 The `{% block content %}` is extended by per-email templates — same pattern as site Twig layouts.
 
-### Craft system email wrapper
+### Craft System Email Wrapper
 
 `/templates/_emails/index.html`:
 
@@ -83,7 +83,7 @@ The `{% block content %}` is extended by per-email templates — same pattern as
 
 Point **Settings → Email → HTML Email Template** to `_emails` so Craft system mail uses the same shell.
 
-### Formie notification wrapper
+### Formie Notification Wrapper
 
 `/templates/_forms/email-template/index.html`:
 
@@ -97,7 +97,7 @@ Point **Settings → Email → HTML Email Template** to `_emails` so Craft syste
 
 Formie injects `contentHtml` the same way Craft injects `body` for system messages.
 
-## Override field HTML in notifications
+## Override Field HTML in Notifications
 
 When you use **All Fields** in a notification, Formie renders each field with small Twig partials. Override them under your email template path.
 
@@ -113,8 +113,3 @@ Example — `/templates/_forms/email-template/fields/email.html`:
 ```
 
 See [Template Overrides](/theming/template-overrides) for the full override map.
-
-## Related
-
-- [Email Notifications](/forms/email-notifications)
-- [Template Overrides](/theming/template-overrides)

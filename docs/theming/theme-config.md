@@ -1,5 +1,5 @@
 # Theme Config
-Using theme config is the recommended way to customize Formie's rendered HTML.
+Using theme config is the recommended way to customise Formie's rendered HTML.
 
 It gives you control over the HTML tags and attributes used to build a form, including pages, rows, fields, buttons, and more. That makes it useful for changing classes, adding attributes, adjusting wrappers, or changing the tag used for a particular part of the output.
 
@@ -116,290 +116,36 @@ Here is a more involved example:
                     </div>
 ```
 
-## Theme Tags
-As you can see above, you pass a Twig object with keys for different parts of the rendered HTML. Each key can define attributes, a different tag, or even remove that element entirely by returning `false` or `null`.
+<span id="theme-tags"></span>
+<span id="form-tags"></span>
+<span id="shared-field-tags"></span>
+<span id="address-field"></span>
+<span id="agree-field"></span>
+<span id="checkboxes-field"></span>
+<span id="date-time-field"></span>
+<span id="file-upload-field"></span>
+<span id="group-field"></span>
+<span id="heading-field"></span>
+<span id="multi-line-text-field"></span>
+<span id="name-field"></span>
+<span id="phone-field"></span>
+<span id="radio-field"></span>
+<span id="survey-likert-field"></span>
+<span id="survey-rank-field"></span>
+<span id="survey-rating-field"></span>
+<span id="repeater-field"></span>
+<span id="section-field"></span>
+<span id="signature-field"></span>
+<span id="single-line-text-field"></span>
+<span id="summary-field"></span>
+<span id="table-field"></span>
+<span id="captcha-and-integration-specific-tags"></span>
 
-Formie exposes several of these theme tags. Some apply to the overall form, some apply to all fields, and some are specific to particular field types. Every tag definition can use the following properties:
+## Detailed Reference
 
-| Attribute | Type | Description
-| - | - | -
-| `reset` | `Boolean` | Whether to retain or remove Formie's default `formie-*` classes for the element. |
-| `tag` | `String` | The HTML tag to use for that element. |
-| `attributes` | `Object` | A collection of HTML attributes for the element. Values such as `class`, `data`, `style`, and `aria` can be arrays or nested objects. This works much like Craft's [`attr`](https://craftcms.com/docs/4.x/functions.html#attr) helper. |
-| `cssVars` | `Object` | CSS custom properties to merge into the element's inline style. |
-| `prepend` / `append` | `Array|Object` | Extra content nodes to inject before or after the element content. |
+See [Theme Tag Reference](/reference/theme-tag-reference) for the complete lookup, including types and field-specific options.
 
-```twig
-{{ craft.formie.renderForm('contactForm', {
-    themeConfig: {
-        pages: {
-            tag: 'fieldset',
-            reset: true,
-            attributes: {
-                class: ['one', 'two'],
-                disabled: true,
-                readonly: false,
-                style: {
-                    'background-color': 'red',
-                    'font-size': '20px',
-                },
-            },
-        },
-    },
-}) }}
-```
-
-The available tags are grouped below.
-
-### Form tags
-- `form`
-- `formHeader`
-- `formMessagesTop`
-- `formNavigation`
-- `formBody`
-- `formFooter`
-- `formMessagesBottom`
-- `pages`
-- `messageError`
-- `messageSuccess`
-- `formTitle`
-- `pageTabs`
-- `pageTab`
-- `pageTabLink`
-- `page`
-- `pageContainer`
-- `pageHeader`
-- `pageBody`
-- `pageFooter`
-- `pageCaptchas`
-- `pageButtons`
-- `pageTitle`
-- `rows`
-- `row`
-- `captchaContainer`
-- `buttonContainer`
-- `submitButton`
-- `saveButton`
-- `backButton`
-- `progressWrapper`
-- `progress`
-- `progressContainer`
-- `progressValue`
-- `errors`
-- `error`
-
-### Shared field tags
-- `field`
-- `fieldLayout`
-- `fieldLabel`
-- `fieldRequired`
-- `fieldOptional`
-- `fieldInstructions`
-- `fieldContent`
-- `fieldControl`
-- `fieldErrors`
-- `fieldError`
-- `subFieldRows`
-- `subFieldRow`
-- `nestedFieldRows`
-- `nestedFieldRow`
-
-### Address Field
-- `subFieldRows`
-- `subFieldRow`
-- `fieldInput`
-
-### Agree Field
-- `fieldOptions`
-- `fieldInput`
-- `fieldOption`
-- `fieldOptionLabel`
-
-### Checkboxes Field
-- `fieldInput`
-- `fieldOptions`
-- `fieldOption`
-- `fieldOptionLabel`
-
-### Date/Time Field
-- `subFieldRows`
-- `subFieldRow`
-- `fieldInput`
-
-### File Upload Field
-- `fieldInput`
-- `fieldSummary`
-- `fieldSummaryContainer`
-- `fieldSummaryItem`
-
-### Group Field
-- `nestedFieldRows`
-- `nestedFieldRow`
-- `nestedFieldContainer`
-
-### Heading Field
-- `fieldHeading`
-
-### Multi-Line Text Field
-- `fieldInput`
-- `fieldLimit`
-- `fieldRichText`
-
-### Name Field
-- `subFieldRows`
-- `subFieldRow`
-- `fieldInput`
-
-### Phone Field
-- `fieldInput`
-- `fieldCountryInput`
-
-### Radio Field
-- `fieldInput`
-- `fieldOptions`
-- `fieldOption`
-- `fieldOptionLabel`
-- `fieldOtherOption`
-- `fieldOtherOptionInput`
-- `fieldOtherOptionLabel`
-- `fieldOtherOptionText`
-
-### Survey Likert Field
-- `likertFieldLayout`
-- `fieldColumnLabels`
-- `fieldColumnLabelsRow`
-- `fieldColumnLabel`
-- `fieldInputs`
-- `fieldInputsRow`
-- `fieldOption`
-- `fieldOptionLabel`
-- `fieldInput`
-
-Likert presentation styling is controlled through CSS custom properties on `likertFieldLayout`:
-
-- `--formie-survey-likert-label-color`
-- `--formie-survey-likert-option-background`
-
-Likert radios reuse the standard radio field styles and behaviour.
-
-```twig
-{{ craft.formie.renderForm('surveyForm', {
-    themeConfig: {
-        surveyLikert: {
-            likertFieldLayout: {
-                cssVars: {
-                    '--formie-survey-likert-option-background': 'var(--formie-color-surface)',
-                },
-            },
-        },
-    },
-}) }}
-```
-
-### Survey Rank Field
-- `rankFieldLayout`
-- `fieldOptions`
-- `fieldOption`
-- `fieldRankHandle`
-- `fieldOptionLabel`
-- `fieldInput`
-
-Rank presentation styling is controlled through CSS custom properties on `rankFieldLayout`:
-
-- `--formie-survey-rank-list-gap`
-- `--formie-survey-rank-item-background`
-- `--formie-survey-rank-item-border-color`
-- `--formie-survey-rank-handle-color`
-
-### Survey Rating Field
-- `ratingFieldLayout`
-- `fieldOptions`
-- `fieldOption`
-- `fieldInput`
-- `fieldOptionLabel`
-
-Rating presentation styling is controlled through CSS custom properties on `fieldOptions`:
-
-- `--formie-survey-rating-star-size`
-- `--formie-survey-rating-star-spacing`
-- `--formie-survey-rating-star-outline`
-- `--formie-survey-rating-star-filled`
-
-```twig
-{{ craft.formie.renderForm('surveyForm', {
-    themeConfig: {
-        surveyRating: {
-            fieldOptions: {
-                cssVars: {
-                    '--formie-survey-rating-star-size': '32px',
-                },
-            },
-        },
-    },
-}) }}
-```
-
-### Repeater Field
-- `nestedField`
-- `nestedFieldWrapper`
-- `nestedFieldRows`
-- `nestedFieldRow`
-- `nestedFieldContainer`
-- `fieldAddButton`
-- `fieldRemoveButton`
-
-### Section Field
-- `fieldSection`
-
-### Signature Field
-- `fieldCanvas`
-- `fieldInput`
-- `fieldRemoveButton`
-
-### Single-Line Text Field
-- `fieldInput`
-- `fieldLimit`
-
-### Summary Field
-- `fieldSummary`
-- `fieldSummaryBlocks`
-- `fieldSummaryBlock`
-- `fieldSummaryContainer`
-- `fieldSummaryHeading`
-- `fieldSummaryItem`
-- `fieldSummaryLabel`
-- `fieldSummaryValue`
-
-### Table Field
-- `fieldTableWrapper`
-- `fieldTable`
-- `fieldTableHeader`
-- `fieldTableHeaderRow`
-- `fieldTableHeaderColumn`
-- `fieldTableBody`
-- `fieldTableBodyRow`
-- `fieldTableBodyColumn`
-- `fieldAddButton`
-- `fieldRemoveButton`
-- `fieldTableRemoveColumn`
-- `tableCheckboxInput`
-- `tableColorInput`
-- `tableDateInput`
-- `tableEmailInput`
-- `tableHeadingInput`
-- `tableMultilineInput`
-- `tableNumberInput`
-- `tableSelectInput`
-- `tableSinglelineInput`
-- `tableTimeInput`
-- `tableUrlInput`
-
-### Captcha and integration-specific tags
-
-- `captcha`
-- `stripePlaceholder`
-
-### Targeting a field type
+## Targeting a Field Type
 
 You can also target a field type directly. This lets you apply the same tag config only to one type of field instead of all fields.
 
@@ -584,7 +330,7 @@ If you do not want to render a tag at all, you can return a falsey value.
 </div>
 ```
 
-### Conditional values
+### Conditional Values
 Theme config supports structured conditional values using `if`, `then`, and `else`.
 
 For example, if you want to add a class only when a Recipients field is hidden:
@@ -626,7 +372,7 @@ You can also use more explicit comparisons:
 
 The available condition context comes from the current render state, including `form`, `field`, `page`, `currentPage`, `row`, and `submission`.
 
-## Ajax / client state classes
+## Ajax / Client State Classes
 
 Some UI states change in the browser without a full server re-render — multipage tab changes, hidden pages, loading buttons, and validation errors on Ajax forms. Twig conditionals in `themeConfig` will not re-evaluate for those updates.
 
@@ -692,7 +438,7 @@ There are 3 methods for how you define a theme config, which are shown below in 
 
 Although each method is a different way to define a theme config, it all ends up being treated the same - just a different way of registering this configuration. Your project could even use a combination of all methods!
 
-### Render-time (Twig)
+### Render-Time (Twig)
 Used with `craft.formie.renderForm()` through [Render Options](/templates/render-options), this is the most direct way to provide theme config in a template.
 
 ```twig

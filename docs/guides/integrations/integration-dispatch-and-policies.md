@@ -1,10 +1,10 @@
-# Integration dispatch and policies
+# Integration Dispatch and Policies
 
 Imagine a contact form that sends to Mailchimp, posts to a CRM, and fires a Slack notification — but only when the user opts in, and only after the submission is saved. Formie separates **what** each integration does (credentials, mapping, API calls) from **when and how** it runs on each submission. The form builder's Integrations tab controls that dispatch behaviour — order, queue vs immediate execution, re-run policies, and per-integration conditions — without changing your integration PHP.
 
 This guide walks through configuring those controls on a real multi-integration form.
 
-## Where dispatch settings live
+## Where Dispatch Settings Live
 
 Open **Formie → Forms → {Your Form} → Integrations**. Each integration has its own settings panel. Form-level controls appear under **Integrations → Settings** at the bottom of the tab.
 
@@ -18,7 +18,7 @@ Open **Formie → Forms → {Your Form} → Integrations**. Each integration has
 
 Integration **credentials** (API keys, OAuth connection) are managed under **Formie → Integrations** and are shared across forms. Per-form settings reference those credentials but do not duplicate them.
 
-## Site scope and multi-site
+## Site Scope and Multi-Site
 
 Forms can exist on multiple Craft sites, but integration configuration is **structural** — the same integrations, conditions, and dispatch plan apply on every site where the form is enabled.
 
@@ -29,9 +29,9 @@ What differs per site:
 
 Integration conditions can target site context using `{submission:site}` variables — site name and handle appear in the condition field picker. Use conditions when one form should send to different providers (or skip dispatch) based on which site received the submission.
 
-For how site availability differs from translation, see [Multi-Site & Translation](/forms/multi-site).
+For how site availability differs from translation, see [Multi-Site & Translation](/forms/multi-site-and-translation).
 
-## Dispatch conditions (per integration)
+## Dispatch Conditions (per Integration)
 
 Each integration can enable **Conditions** to control whether it runs for a particular submission. This is separate from field visibility conditions — it gates the integration trigger itself.
 
@@ -49,7 +49,7 @@ Common patterns:
 
 Re-run policies and manual triggers **still respect conditions**. An operator cannot manually re-run an integration whose conditions fail for that submission.
 
-## Integration dispatch orchestration
+## Integration Dispatch Orchestration
 
 When a form has **two or more** payload integrations enabled, **Integrations → Settings → Dispatch** becomes available.
 
@@ -74,11 +74,11 @@ Formie shows a **Recommended for User & Entry flows** shortcut that enables disp
 
 When dispatch is disabled, enabled integrations run independently using Formie’s global `useQueueForIntegrations` setting — see [Configuration](/get-started/configuration).
 
-### Dispatch requires two active integrations
+### Dispatch Requires Two Active Integrations
 
 Orchestration only runs when at least two integrations are enabled on the form. If dispatch is enabled but only one integration is active, Formie falls back to default behaviour and shows a warning in the builder.
 
-## Re-run policies
+## Re-Run Policies
 
 By default, integrations run **once on submit**. Formie adds per-integration re-run policies under **Integrations → Settings → Per-integration behaviour**.
 
@@ -92,7 +92,7 @@ Re-run policies matter for Entry and User integrations that should update linked
 
 Integration conditions still apply on re-runs. Changing a submission’s status does not bypass condition checks.
 
-## Plugin-wide settings
+## Plugin-Wide Settings
 
 These plugin settings affect all forms:
 
@@ -105,7 +105,7 @@ These plugin settings affect all forms:
 
 API keys and secrets should use `.env` variables. Formie resolves env syntax when settings are loaded and does not export resolved secrets to project config — see [Configuration](/get-started/configuration).
 
-## How dispatch fits the workflow
+## How Dispatch Fits the Workflow
 
 Integrations trigger during the **dispatch** stage of the submission workflow — after validation, screening, and save:
 
@@ -118,7 +118,7 @@ Edit-existing and save-draft workflow modes skip most dispatch work. Edit-existi
 
 Avoid triggering integrations from `Submission::EVENT_AFTER_SAVE`. That bypasses re-run policies, workflow idempotency, and the CP save vs workflow split. Use `Integrations::EVENT_BEFORE_TRIGGER_INTEGRATION` or `IntegrationTriggers` when you need custom dispatch.
 
-## Putting it together
+## Putting It Together
 
 A typical registration form with User, Mailchimp, and Web Request integrations might configure:
 
@@ -129,11 +129,3 @@ A typical registration form with User, Mailchimp, and Web Request integrations m
 5. **Global queue** — `useQueueForIntegrations` enabled
 
 Submit once from the front end to create the user immediately, queue marketing and automation calls, and send the activation email after the user exists.
-
-## Related
-
-- [Form Builder](/forms/form-builder)
-- [Submission Workflow](/developers/submission-workflow)
-- [Configuration](/get-started/configuration)
-- [Re-run failed integrations from the control panel](/guides/integrations/re-run-failed-integrations-from-the-control-panel)
-- [Project config, environment, and control panel settings](/guides/configuration/project-config-environment-and-control-panel-settings)

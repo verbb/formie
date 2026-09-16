@@ -1,6 +1,6 @@
-# Payment field with Stripe — full flow
+# Payment Field with Stripe — Full Flow
 
-This walkthrough connects Stripe to a Formie form end to end: integration setup, Payment field configuration, form behaviour, and optional subscription features.
+This walkthrough connects Stripe to a Formie form end to end: [Stripe integration setup](/integrations/payments/stripe), [Payment field configuration](/fields/payment), form behaviour, and optional subscription features.
 
 ## Prerequisites
 
@@ -15,9 +15,9 @@ Stripe setup happens in two places:
 1. **Formie → Settings → Payments** — create and connect the Stripe integration.
 2. **Form builder** — add a Payment field and choose Stripe as the provider.
 
-Payment runs through Formie's submission workflow: the submission is validated and screened, payment is authorised or captured during the **save** stage, and notifications and integrations dispatch only after payment succeeds (for charge-at-submit flows).
+Payment runs through Formie's [submission workflow](/guides/submissions-workflows/submission-workflow-and-stages-explained): the submission is validated and screened, payment is authorised or captured during the **save** stage, and notifications and integrations dispatch only after payment succeeds (for charge-at-submit flows).
 
-## Step 1: Create the Stripe integration
+## Step 1: Create the Stripe Integration
 
 1. Go to **Formie → Settings → Payments**.
 2. Click **New Integration**.
@@ -28,7 +28,7 @@ Payment runs through Formie's submission workflow: the submission is validated a
 
 Use Stripe **Test Mode** keys while developing; switch to live keys before production.
 
-## Step 2: Configure webhooks (subscriptions)
+## Step 2: Configure Webhooks (Subscriptions)
 
 Webhooks are required for subscription payments and recommended for reliable status updates.
 
@@ -49,7 +49,7 @@ Webhooks are required for subscription payments and recommended for reliable sta
    - `plan.updated`
 5. Copy the **Signing secret** into Formie's **Webhook Signing Secret** field.
 
-## Step 3: Add a Payment field
+## Step 3: Add a Payment Field
 
 1. Edit your form.
 2. Set **Submission Method** to **Ajax (Client-side)**. Stripe tokenisation requires Formie's client submission flow.
@@ -60,7 +60,7 @@ Webhooks are required for subscription payments and recommended for reliable sta
 
 Save the form and preview on the front end. Stripe Elements (or the configured hosted UI) should render inside the Payment field.
 
-## Step 4: Submit and verify
+## Step 4: Submit and Verify
 
 1. Submit a test payment using Stripe test card `4242 4242 4242 4242`.
 2. Confirm the submission appears in **Formie → Submissions** with payment metadata.
@@ -75,7 +75,7 @@ For recurring payments:
 1. Edit the Payment field and set **Payment Type** to **Subscription**.
 2. Configure the recurring amount and interval per Stripe integration settings.
 
-### Payment limits
+### Payment Limits
 
 Limit how many billing cycles Stripe collects before auto-cancelling:
 
@@ -84,7 +84,7 @@ Limit how many billing cycles Stripe collects before auto-cancelling:
 
 Formie creates the subscription through a Stripe subscription schedule. Leave **No limit** for ongoing subscriptions.
 
-### Setup fees
+### Setup Fees
 
 Charge a one-time fee on the first invoice:
 
@@ -95,7 +95,7 @@ Setup fees use Stripe `add_invoice_items` on the first subscription invoice.
 
 Modify subscription payloads with the `modifySubscriptionPayload` and `modifySubscriptionSchedulePayload` events if your project needs custom Stripe parameters.
 
-## Dynamic amounts with Calculations
+## Dynamic Amounts with Calculations
 
 When the payment amount depends on other fields:
 
@@ -113,10 +113,3 @@ The Calculations field updates on the front end as inputs change; the Payment fi
 | Payment succeeds but no submission | Webhook/callback configuration; check Craft logs for payment replay errors |
 | Integration refresh fails | Secret key, API mode (test vs live), server outbound HTTPS |
 | Subscriptions stuck pending | Webhook signing secret and required subscription events |
-
-## Related
-
-- [Payment field](/fields/payment)
-- [Stripe integration](/integrations/payments/stripe)
-- [Calculations field in detail](/guides/fields/calculations-field-in-detail)
-- [Submission workflow and stages explained](/guides/submissions-workflows/submission-workflow-and-stages-explained)

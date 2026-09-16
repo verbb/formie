@@ -8,7 +8,7 @@ Use Calculations when one field value should be derived from other fields instea
 
 Calculations are useful for totals, scores, simple pricing, conditional formulas, and showing a result before final submission. They use expression syntax and field references, not Twig.
 
-## Key settings
+## Key Settings
 
 - **Formula** - Define the expression used to calculate the field value.
 - **Variable picker** - Insert references to other fields without typing handles manually.
@@ -16,7 +16,7 @@ Calculations are useful for totals, scores, simple pricing, conditional formulas
 - **Decimal handling** - Control how numeric results are rounded or formatted.
 - **Visibility** - Decide whether the calculated value should be shown to the user.
 
-## Field input values
+## Field Input Values
 
 Calculations work best with fields that produce numeric values. Number fields are read as numbers, and numeric-looking text values are cast to numbers before the formula is evaluated. That keeps expressions such as `1 + 2` numeric instead of joining the values as text.
 
@@ -28,7 +28,7 @@ For example, if `{field:a1b2c3}` is entered as `2` and `{field:d4e5f6}` is enter
 
 Empty numeric values are treated as `0` for Number fields. Text or Email fields can be referenced, but they are safest for comparisons or string output rather than arithmetic unless their submitted values are always numeric.
 
-## Field references
+## Field References
 
 Use the variable picker in the formula editor to insert fields from the current form. Formie inserts stable field-reference tokens such as:
 
@@ -52,7 +52,7 @@ Table fields expose each column as a scoped reference. Pick the column from the 
 
 The picker is the safest way to insert these references because it knows which fields and selectors are available for the formula.
 
-### Reference transforms
+### Reference Transforms
 
 Formie field references can include transforms in variable-aware contexts. Transforms are encoded on the reference token after the source value:
 
@@ -85,7 +85,7 @@ Available transforms include:
 
 For calculation formulas, prefer the formula operators and the Calculations field’s number formatting settings for the final result. Use picker-generated references so the formula stays aligned with the field references Formie expects.
 
-## Formula syntax
+## Formula Syntax
 
 Calculations use an expression syntax based on [Symfony Expression Syntax](https://symfony.com/doc/current/reference/formats/expression_language.html). **They do not support Twig.**
 
@@ -142,13 +142,13 @@ Use the string concatenation operator when the result should be text:
 
 Keep formulas focused and test them in the field settings before publishing the form. If a formula depends on external data or complex branching, custom code or an integration is usually easier to maintain.
 
-## Submitted value
+## Submitted Value
 
 Calculations stores the calculated result. The submitted value is derived from other fields, so integrations and exports should treat it as computed output rather than user-entered input.
 
 When querying or saving submissions through GraphQL, the field handle is used as the field name. Query the form’s `formFields` and include `inputTypeName` if you need to confirm the generated input type for a specific form.
 
-## Theme config
+## Theme Config
 
 The Calculations field can be targeted with the `calculations` theme config key.
 
@@ -170,15 +170,15 @@ Use theme config for class and attribute changes. Use a template override only w
 
 For full Tailwind, Bootstrap and other framework examples, see [Formie theme configs](https://github.com/verbb/formie-theme-configs).
 
-## Front-end reference
+## Front-End Reference
 
 Calculations need Formie’s front-end JavaScript to update as dependent fields change. If you custom-render the form, keep the required front-end assets and field data available.
 
-The front-end docs live on the separate browser UI reference site and cover rendered markup, data attributes, styling classes and JavaScript behavior for custom front-end implementations.
+The front-end docs live on the separate browser UI reference site and cover rendered markup, data attributes, styling classes and JavaScript behaviour for custom front-end implementations.
 
-- [Calculations](/browser/ui-reference/fields/calculations)
+- [Calculations](https://docs.verbb.io/formie/browser/ui-reference/fields/calculations)
 
-## Related fields
+## Related Fields
 
 - Use [Number](/fields/number) for user-entered numeric values.
 - Use [Summary](/fields/summary) to show a review of calculated and submitted values before final submission.

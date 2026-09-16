@@ -19,44 +19,44 @@ Checkbox groups depend on these structural attributes:
 | `data-formie-field-handle` | Stable field identity used by validation, conditions, and error rendering | Required |
 | `data-formie-max-options` | Max-selection enforcement | Optional |
 
-### Field layout
+### Field Layout
 
 | Attribute | Purpose | Importance |
 | --- | --- | --- |
-| `data-formie-checkboxes-field-layout` | Group selector used by the checkbox-radio module | Required for checkbox behavior |
+| `data-formie-checkboxes-field-layout` | Group selector used by the checkbox-radio module | Required for checkbox behaviour |
 
-### Hidden input
+### Hidden Input
 
 | Attribute | Purpose | Importance |
 | --- | --- | --- |
 | `name` fallback input | Ensures the field still submits when nothing is checked | Recommended |
 
-### Field options
+### Field Options
 
 | Attribute | Purpose | Importance |
 | --- | --- | --- |
-| `data-formie-checkboxes-options` | Option-group wrapper | Required for checkbox behavior |
+| `data-formie-checkboxes-options` | Option-group wrapper | Required for checkbox behaviour |
 
-### Field input
+### Field Input
 
 | Attribute | Purpose | Importance |
 | --- | --- | --- |
-| `data-formie-checkbox-input` | Checkbox selector used by Formie | Required for checkbox behavior |
+| `data-formie-checkbox-input` | Checkbox selector used by Formie | Required for checkbox behaviour |
 | `data-formie-input-id` | Stable option identity | Recommended |
 | `data-checkbox-toggle` | Optional "toggle all" checkbox hook | Preserve when using the built-in toggle option |
 
-## Styling classes
+## Styling Classes
 
-These classes are for presentation only. They are not behavior requirements:
+These classes are for presentation only. They are not behaviour requirements:
 
-### Field layout
+### Field Layout
 
 | Class | Description |
 | --- | --- |
 | `formie-checkboxes-field-layout` | Checkbox group layout styling class |
 | `formie-checkboxes-field-label` | Checkbox group label styling class |
 
-### Field options
+### Field Options
 
 | Class | Description |
 | --- | --- |
@@ -65,7 +65,7 @@ These classes are for presentation only. They are not behavior requirements:
 | `formie-field-option` | Shared option wrapper styling |
 | `formie-checkbox-option` | Checkbox option wrapper styling class |
 
-### Field input
+### Field Input
 
 | Class | Description |
 | --- | --- |
@@ -73,14 +73,16 @@ These classes are for presentation only. They are not behavior requirements:
 | `formie-checkbox-input` | Checkbox input styling class |
 | `formie-input-error` | Error-state styling class |
 
-### Field option label
+### Field Option Label
 
 | Class | Description |
 | --- | --- |
 | `formie-field-option-label` | Shared option label styling |
 | `formie-checkbox-option-label` | Checkbox option label styling class |
 
-## Behavior
+<span id="behavior"></span>
+
+## Behaviour
 
 The checkbox-radio module keeps checkbox fields aligned with Formie semantics by:
 
@@ -92,9 +94,9 @@ The checkbox-radio module keeps checkbox fields aligned with Formie semantics by
 
 Checkbox fields use the shared checkbox-radio field events described on [JavaScript events](/browser/behavior/javascript-events).
 
-#### The `formie:field:checkbox-radio:init` event
+#### The `formie:field:checkbox-radio:init` Event
 
-Triggered after the checkbox group has been wired and max-option or required behavior is active.
+Triggered after the checkbox group has been wired and max-option or required behaviour is active.
 
 ```js
 document.addEventListener('formie:field:checkbox-radio:init', (event) => {
@@ -110,7 +112,7 @@ document.addEventListener('formie:field:checkbox-radio:init', (event) => {
 });
 ```
 
-## Related pages
+## Related Pages
 
 - [Radio](/browser/ui-reference/fields/radio)
 - [Agree](/browser/ui-reference/fields/agree)

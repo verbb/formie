@@ -1,5 +1,5 @@
 # Stripe
-Follow the below steps to connect to the Stripe API.
+Connect Stripe to take payments through the provider configured for your form. You need access to configure the form in Craft and credentials for the destination account. The steps below establish the connection; finish by sending a test submission to verify the result.
 
 ### Step 1. Create the Integration
 1. Navigate to **Formie** → **Settings** → **Payments**.
@@ -17,7 +17,7 @@ Follow the below steps to connect to the Stripe API.
 1. Save this integration.
 1. Click on the **Refresh** button in the right-hand sidebar.
 
-### Step 4. Configure Webhooks (for subscriptions)
+### Step 4. Configure Webhooks (for Subscriptions)
 1. In order for subscriptions to work, you must populate some settings for webhooks.
 1. In Stripe, on the left-hand sidebar menu, click **Developers**.
 1. On the top sub-menu, click **Webhooks**.
@@ -50,7 +50,7 @@ Your form **must** use the Ajax (Client-side) submission method when using the S
 
 The Stripe payment integration supports both once-off payments and subscription-based payments.
 
-### Subscription payment limits
+### Subscription Payment Limits
 For subscription payments, you can optionally limit how many recurring payments Stripe collects before the subscription is cancelled automatically.
 
 1. Edit your **Payment** field and set **Payment Type** to **Subscription**.
@@ -60,7 +60,7 @@ For subscription payments, you can optionally limit how many recurring payments 
 
 When a limit is set, Formie creates the subscription through a Stripe subscription schedule. Stripe cancels the subscription after the configured number of successful billing cycles. Leave **Payment Limit** set to **No limit** for ongoing subscriptions.
 
-### Subscription setup fees
+### Subscription Setup Fees
 For subscription payments, you can optionally charge a one-time setup fee on the first invoice, in addition to the recurring subscription amount.
 
 1. Edit your **Payment** field and set **Payment Type** to **Subscription**.
@@ -72,3 +72,9 @@ For subscription payments, you can optionally charge a one-time setup fee on the
 The setup fee is added to the first subscription invoice through Stripe `add_invoice_items`. It works with both standard subscriptions and subscriptions that use a payment limit schedule.
 
 You can modify subscription payloads through the `modifySubscriptionPayload` and `modifySubscriptionSchedulePayload` events.
+
+## Verify a Submission
+
+Save the form, open it on your site and submit recognisable test values. Complete a test payment and inspect both the saved submission and the provider’s transaction record. Confirm the amount, currency and final payment state before enabling live payments.
+
+If nothing arrives, check whether integration conditions matched, whether the submission was complete and non-spam, and whether Craft’s queue has processed the job. A successful connection check verifies credentials; it does not prove that field mapping and delivery work. See [Connect and Test an Integration](/integrations/connect-and-test-an-integration) for a complete mapping and verification workflow.

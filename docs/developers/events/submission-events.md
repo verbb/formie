@@ -2,7 +2,7 @@
 
 ## Submission Lifecycle Events
 
-### The `defineSubmissionRules` event
+### The `defineSubmissionRules` Event
 The event that is triggered to modify or define additional validation rules for submissions.
 
 ```php
@@ -20,7 +20,7 @@ Event::on(Submission::class, Submission::EVENT_DEFINE_RULES, function(Submission
 });
 ```
 
-### The `beforeSaveSubmission` event
+### The `beforeSaveSubmission` Event
 The event that is triggered before a submission is saved. For multi-page forms, this event will occur on each page submission, as the submission is saved in its incomplete state.
 
 You can set `$event->isValid` to false to prevent saving.
@@ -37,7 +37,7 @@ Event::on(Submission::class, Submission::EVENT_BEFORE_SAVE, function(ModelEvent 
 });
 ```
 
-### The `afterSaveSubmission` event
+### The `afterSaveSubmission` Event
 The event that is triggered after a submission is saved. For multi-page forms, this event will occur on each page submission, as the submission is saved in its incomplete state.
 
 If you need to run code on a page submit, or only when the form is submitted, use `EVENT_AFTER_PAGE_ADVANCE` and `EVENT_AFTER_COMPLETE` instead. See [Run custom code on page submit or form submit](/guides/submissions-workflows/run-custom-code-on-page-submit-or-form-submit).
@@ -52,7 +52,7 @@ Event::on(Submission::class, Submission::EVENT_AFTER_SAVE, function(ModelEvent $
 });
 ```
 
-### The `afterComplete` event
+### The `afterComplete` Event
 The event that is triggered when a submission **becomes complete** — last reachable page submitted (later pages may be hidden by conditions), payment replay that finishes the form, or a control-panel mark-complete. It does not fire on intermediate page steps or later edits of an already complete submission.
 
 On a front-end submit this fires after persist and **before** notifications and integrations. Status changes made on `$event->submission` are persisted for you.
@@ -69,14 +69,14 @@ Event::on(Submission::class, Submission::EVENT_AFTER_COMPLETE, function(Submissi
 });
 ```
 
-### Submission workflow events
+### Submission Workflow Events
 The submission workflow handles each page request and the final completed submission. Use these events when you need to hook into a specific stage or task in the submission process.
 
 ::: tip
 For page-submit vs form-submit listeners, see [Run custom code on page submit or form submit](/guides/submissions-workflows/run-custom-code-on-page-submit-or-form-submit). For copy-paste stage/task patterns, see [Using submission workflow events](/guides/submissions-workflows/using-submission-workflow-events). For stage and task names, see [Submission Workflow](/developers/submission-workflow).
 :::
 
-### The `afterPageAdvance` event
+### The `afterPageAdvance` Event
 The event that is triggered after a successful **page submit** — the current page was accepted and another reachable page will be shown. It does not fire on Back, save-and-continue, single-page forms, or form submit.
 
 ```php
@@ -92,7 +92,7 @@ Event::on(SubmissionWorkflow::class, SubmissionWorkflow::EVENT_AFTER_PAGE_ADVANC
 });
 ```
 
-### The `beforeSetPage` event
+### The `beforeSetPage` Event
 The event that is triggered before Formie stores the current page navigation state for a form.
 
 ```php
@@ -108,7 +108,7 @@ Event::on(SubmissionWorkflow::class, SubmissionWorkflow::EVENT_BEFORE_SET_PAGE, 
 });
 ```
 
-### The `afterSetPage` event
+### The `afterSetPage` Event
 The event that is triggered after Formie stores the current page navigation state for a form.
 
 ```php
@@ -122,7 +122,7 @@ Event::on(SubmissionWorkflow::class, SubmissionWorkflow::EVENT_AFTER_SET_PAGE, f
 });
 ```
 
-### The `beforeStage` event
+### The `beforeStage` Event
 The event that is triggered before a submission workflow stage runs.
 
 ```php
@@ -141,7 +141,7 @@ Event::on(SubmissionWorkflow::class, SubmissionWorkflow::EVENT_BEFORE_STAGE, fun
 });
 ```
 
-### The `afterStage` event
+### The `afterStage` Event
 The event that is triggered after a submission workflow stage runs.
 
 ```php
@@ -158,7 +158,7 @@ Event::on(SubmissionWorkflow::class, SubmissionWorkflow::EVENT_AFTER_STAGE, func
 });
 ```
 
-### The `beforeTask` event
+### The `beforeTask` Event
 The event that is triggered before a task runs inside a submission workflow stage.
 
 ```php
@@ -176,7 +176,7 @@ Event::on(SubmissionWorkflow::class, SubmissionWorkflow::EVENT_BEFORE_TASK, func
 });
 ```
 
-### The `afterTask` event
+### The `afterTask` Event
 The event that is triggered after a task runs inside a submission workflow stage.
 
 ```php
@@ -192,7 +192,7 @@ Event::on(SubmissionWorkflow::class, SubmissionWorkflow::EVENT_AFTER_TASK, funct
 });
 ```
 
-### The `registerWorkflowStages` event
+### The `registerWorkflowStages` Event
 The event that is triggered when Formie registers submission workflow stages.
 
 ```php
@@ -206,7 +206,7 @@ Event::on(SubmissionWorkflow::class, SubmissionWorkflow::EVENT_REGISTER_WORKFLOW
 });
 ```
 
-### The `registerStageTasks` event
+### The `registerStageTasks` Event
 The event that is triggered when Formie registers the tasks for a submission workflow stage.
 
 ```php
@@ -221,7 +221,7 @@ Event::on(SubmissionWorkflow::class, SubmissionWorkflow::EVENT_REGISTER_STAGE_TA
 });
 ```
 
-### The `beforeDeleteSubmission` event
+### The `beforeDeleteSubmission` Event
 The event that is triggered before a submission is deleted.
 
 The `isValid` event property can be set to `false` to prevent the deletion from proceeding.
@@ -236,7 +236,7 @@ Event::on(Submission::class, Submission::EVENT_BEFORE_DELETE, function(Event $ev
 });
 ```
 
-### The `afterDeleteSubmission` event
+### The `afterDeleteSubmission` Event
 The event that is triggered after a submission is deleted.
 
 ```php
@@ -248,7 +248,7 @@ Event::on(Submission::class, Submission::EVENT_AFTER_DELETE, function(Event $eve
 });
 ```
 
-### The `afterPruneSubmission` event
+### The `afterPruneSubmission` Event
 The event that is triggered after a submission is pruned (permanently deleted) according to the data retention rules for the form.
 
 ```php
@@ -261,7 +261,7 @@ Event::on(Submissions::class, Submissions::EVENT_AFTER_PRUNE_SUBMISSION, functio
 });
 ```
 
-### The `beforeSendNotification` event
+### The `beforeSendNotification` Event
 The event that is triggered before an email notification is sent.
 
 The `isValid` event property can be set to `false` to prevent the notification from proceeding.
@@ -278,7 +278,7 @@ Event::on(Notifications::class, Notifications::EVENT_BEFORE_SEND_NOTIFICATION, f
 });
 ```
 
-### The `beforeTriggerIntegration` event
+### The `beforeTriggerIntegration` Event
 The event that is triggered before an integration is triggered.
 
 The `isValid` event property can be set to `false` to prevent the integration from proceeding.
@@ -296,7 +296,7 @@ Event::on(Integrations::class, Integrations::EVENT_BEFORE_TRIGGER_INTEGRATION, f
 });
 ```
 
-### The `modifyExportData` event
+### The `modifyExportData` Event
 The event that is triggered when preparing submission(s) to be exported.
 
 Modify the `exportData` event property to change the export data.
@@ -314,7 +314,7 @@ Event::on(SubmissionExport::class, SubmissionExport::EVENT_MODIFY_EXPORT_DATA, f
 
 ## Spam Events
 
-### The `beforeMarkedAsSpam` event
+### The `beforeMarkedAsSpam` Event
 The event that is triggered before a submission is marked as spam.
 
 The `isValid` event property can be set to `false` to prevent the submission from being marked as spam.
@@ -334,7 +334,7 @@ Event::on(Submission::class, Submission::EVENT_BEFORE_MARKED_AS_SPAM, function(S
 
 ## Submission Status Events
 
-### The `beforeSaveStatus` event
+### The `beforeSaveStatus` Event
 The event that is triggered before a submission status is saved.
 
 ```php
@@ -349,7 +349,7 @@ Event::on(SubmissionStatuses::class, SubmissionStatuses::EVENT_BEFORE_SAVE_STATU
 });
 ```
 
-### The `afterSaveStatus` event
+### The `afterSaveStatus` Event
 The event that is triggered after a submission status is saved.
 
 ```php
@@ -364,7 +364,7 @@ Event::on(SubmissionStatuses::class, SubmissionStatuses::EVENT_AFTER_SAVE_STATUS
 });
 ```
 
-### The `beforeDeleteStatus` event
+### The `beforeDeleteStatus` Event
 The event that is triggered before a submission status is deleted.
 
 ```php
@@ -378,7 +378,7 @@ Event::on(SubmissionStatuses::class, SubmissionStatuses::EVENT_BEFORE_DELETE_STA
 });
 ```
 
-### The `beforeApplyStatusDelete` event
+### The `beforeApplyStatusDelete` Event
 The event that is triggered before a submission status is deleted.
 
 ```php
@@ -392,7 +392,7 @@ Event::on(SubmissionStatuses::class, SubmissionStatuses::EVENT_BEFORE_APPLY_STAT
 });
 ```
 
-### The `afterDeleteStatus` event
+### The `afterDeleteStatus` Event
 The event that is triggered after a submission status is deleted.
 
 ```php

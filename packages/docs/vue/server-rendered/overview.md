@@ -8,9 +8,9 @@ In this setup:
 
 - Vue owns the host component
 - Formie still owns the rendered HTML inside it
-- the browser package still owns validation, submit flow, and browser-side behavior
+- the browser package still owns validation, submit flow, and browser-side behaviour
 
-Browser events and browser modules still apply for server-rendered forms. Use the [Browser](/browser/) docs when you need deeper browser behavior extension points.
+Browser events and browser modules still apply for server-rendered forms. Use the [Browser](/browser/) docs when you need deeper browser behaviour extension points.
 
 ## Component
 
@@ -64,7 +64,7 @@ In templates, use **kebab-case** for multi-word props (`form-handle`, `theme-con
 
 With `transport="graphql"`, GraphQL only loads the HTML payload. Submit still uses the rendered form action rather than a GraphQL mutation.
 
-### Callback props and events
+### Callback Props and Events
 
 For the common path, start with `onReady`, `onSuccess`, and `onError`.
 
@@ -131,9 +131,9 @@ Template-only equivalent with `v-on`:
 </template>
 ```
 
-## Advanced composable
+## Advanced Composable
 
-`useFormieHtml()` mounts the same server-rendered browser behavior, but lets your component own the host ref and imperative API directly.
+`useFormieHtml()` mounts the same server-rendered browser behaviour, but lets your component own the host ref and imperative API directly.
 
 ```vue
 <script setup lang="ts">
@@ -172,7 +172,7 @@ This is still the server-rendered path, but it is the lower-level escape hatch r
 | `theme` | `'formie' \| 'none'` | No | Uses the shipped browser theme or skips it. |
 | `themeConfig` | `Record<string, unknown>` | No | Passes additional theme configuration to the browser theme layer. |
 
-### Return value
+### Return Value
 
 The composable returns:
 
@@ -184,7 +184,7 @@ The composable returns:
 | `state.error` | `Ref<Error \| null>` | Mount error, if mount failed. |
 | `submit` | `function` | Imperative submit access for the mounted form. Accepts an optional `FormAction` and resolves to `FormSubmitResult \| null`. |
 
-### Events with the composable
+### Events with the Composable
 
 The composable does not expose callback props. Subscribe to browser events from `state.instance` instead:
 
@@ -223,7 +223,7 @@ watch(
 </template>
 ```
 
-## Advanced client
+## Advanced Client
 
 Use `createVueFormieClient()` when you need lower-level browser-client control instead of the Vue composable wrapper:
 
@@ -266,7 +266,7 @@ onBeforeUnmount(async () => {
 
 This returns the same browser client surface as `@verbb/formie-browser`, including `mount()`, `unmount()`, `update()`, `scan()`, `observe()`, and module registration.
 
-## Preloaded payloads
+## Preloaded Payloads
 
 If your app already fetched the HTML payload, pass it into Vue instead of fetching it again during mount:
 

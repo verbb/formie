@@ -1,17 +1,17 @@
-# CSS variables
+# CSS Variables
 
 The browser package theme is primarily configured through `--formie-*` custom properties on `.formie-form`.
 
-This page is exhaustive for the active root-level variable surface shipped in `packages/formie-browser/src/css/theme/_tokens.css`. Commented-out legacy variables are intentionally excluded.
+Use these root-level CSS variables to adjust the shipped theme. Set overrides on `.formie-form` so they apply to the form you are styling.
 
-Use these variables to restyle the shipped UI without changing browser behavior or replacing Formie's rendered markup.
+Use these variables to restyle the shipped UI without changing browser behaviour or replacing Formie's rendered markup.
 
-## Variable categories
+## Variable Categories
 
 The shipped root variable surface covers:
 
 - typography, spacing, radius, and border foundations
-- palette scales and semantic color aliases
+- palette scales and semantic colour aliases
 - form, message, button, navigation, progress, and loading layout
 - field-level sizing and specialized field surfaces such as summary, signature, repeater, and table
 
@@ -108,7 +108,7 @@ The shipped root variable surface covers:
 | `--formie-success-900` | `#14532d` | Success scale 900 |
 | `--formie-success-950` | `#052e16` | Success scale 950 |
 
-## Semantic colors and focus
+## Semantic Colours and Focus
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
@@ -116,20 +116,20 @@ The shipped root variable surface covers:
 | `--formie-color-surface` | `var(--formie-white)` | Main component surface |
 | `--formie-color-surface-subtle` | `var(--formie-neutral-50)` | Subtle surface fill |
 | `--formie-color-surface-muted` | `var(--formie-neutral-100)` | Muted surface fill |
-| `--formie-color-text` | `var(--formie-neutral-700)` | Default text color |
-| `--formie-color-text-muted` | `var(--formie-neutral-500)` | Muted text color |
-| `--formie-color-heading` | `var(--formie-neutral-900)` | Heading/high-emphasis color |
-| `--formie-color-border` | `var(--formie-neutral-300)` | Default border color |
-| `--formie-color-border-soft` | `var(--formie-neutral-200)` | Soft border color |
-| `--formie-color-primary` | `var(--formie-primary-400)` | Primary action color |
-| `--formie-color-primary-hover` | `var(--formie-primary-500)` | Hover primary color |
-| `--formie-color-primary-border` | `var(--formie-primary-500)` | Primary border color |
+| `--formie-color-text` | `var(--formie-neutral-700)` | Default text colour |
+| `--formie-color-text-muted` | `var(--formie-neutral-500)` | Muted text colour |
+| `--formie-color-heading` | `var(--formie-neutral-900)` | Heading/high-emphasis colour |
+| `--formie-color-border` | `var(--formie-neutral-300)` | Default border colour |
+| `--formie-color-border-soft` | `var(--formie-neutral-200)` | Soft border colour |
+| `--formie-color-primary` | `var(--formie-primary-400)` | Primary action colour |
+| `--formie-color-primary-hover` | `var(--formie-primary-500)` | Hover primary colour |
+| `--formie-color-primary-border` | `var(--formie-primary-500)` | Primary border colour |
 | `--formie-color-primary-soft` | `var(--formie-primary-100)` | Soft primary tint |
-| `--formie-color-focus-ring` | `var(--formie-primary-300)` | Focus-ring color |
-| `--formie-color-danger` | `var(--formie-danger-500)` | Error/danger color |
+| `--formie-color-focus-ring` | `var(--formie-primary-300)` | Focus-ring colour |
+| `--formie-color-danger` | `var(--formie-danger-500)` | Error/danger colour |
 | `--formie-color-danger-soft` | `var(--formie-danger-50)` | Soft danger tint |
 | `--formie-color-danger-dark` | `var(--formie-danger-900)` | Dark danger text/accent |
-| `--formie-color-success` | `var(--formie-success-500)` | Success color |
+| `--formie-color-success` | `var(--formie-success-500)` | Success colour |
 | `--formie-color-success-soft` | `var(--formie-success-50)` | Soft success tint |
 | `--formie-color-success-dark` | `var(--formie-success-900)` | Dark success text/accent |
 | `--formie-color-button-text` | `var(--formie-color-surface)` | High-contrast button text alias |
@@ -137,7 +137,7 @@ The shipped root variable surface covers:
 | `--formie-shadow-focus` | `0 0 0 3px rgba(119, 141, 238, 0.45)` | Default focus ring shadow |
 | `--formie-shadow-danger-focus` | `0 0 0 3px rgba(248, 180, 180, 0.45)` | Error focus ring shadow |
 
-## Form and messages
+## Form and Messages
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
@@ -154,7 +154,7 @@ The shipped root variable surface covers:
 | `--formie-message-size` | `var(--formie-font-size-sm)` | Message text size |
 | `--formie-message-line-height` | `var(--formie-line-height-relaxed)` | Message line height |
 
-## Buttons and icons
+## Buttons and Icons
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
@@ -163,8 +163,8 @@ The shipped root variable surface covers:
 | `--formie-button-border-radius` | `var(--formie-radius-sm)` | Button radius |
 | `--formie-button-background` | `var(--formie-neutral-100)` | Base button background |
 | `--formie-button-background-hover` | `var(--formie-neutral-200)` | Base button hover background |
-| `--formie-button-text-color` | `var(--formie-color-heading)` | Base button text color |
-| `--formie-button-color` | `var(--formie-button-text-color)` | Shared button current color |
+| `--formie-button-text-color` | `var(--formie-color-heading)` | Base button text colour |
+| `--formie-button-color` | `var(--formie-button-text-color)` | Shared button current colour |
 | `--formie-button-line-height` | `var(--formie-line-height-tight)` | Button line height |
 | `--formie-button-font-weight` | `var(--formie-font-weight-medium)` | Button font weight |
 | `--formie-button-min-height` | `var(--formie-space-10)` | Minimum button height |
@@ -179,7 +179,7 @@ The shipped root variable surface covers:
 | `--formie-button-icon-background-hover` | `var(--formie-neutral-200)` | Icon button hover background |
 | `--formie-button-icon-border` | `var(--formie-border-width) solid var(--formie-neutral-300)` | Icon button border |
 | `--formie-button-icon-border-hover` | `var(--formie-border-width) solid var(--formie-neutral-400)` | Icon button hover border |
-| `--formie-button-icon-color` | `var(--formie-neutral-950)` | Icon button color |
+| `--formie-button-icon-color` | `var(--formie-neutral-950)` | Icon button colour |
 | `--formie-button-opacity-disabled` | `0.7` | Disabled button opacity |
 | `--formie-button-shadow-focus` | `0 0 0 3px var(--formie-color-border-soft)` | Button focus shadow |
 | `--formie-icon-mask-plus` | `url(...)` | Add/plus icon mask |
@@ -188,7 +188,7 @@ The shipped root variable surface covers:
 | `--formie-icon-mask-close` | `url(...)` | Close/remove icon mask |
 | `--formie-button-primary-background` | `var(--formie-color-primary)` | Primary button background |
 | `--formie-button-primary-background-hover` | `var(--formie-color-primary-hover)` | Primary button hover background |
-| `--formie-button-primary-text-color` | `var(--formie-white)` | Primary button text color |
+| `--formie-button-primary-text-color` | `var(--formie-white)` | Primary button text colour |
 | `--formie-button-primary-border` | `var(--formie-border-width) solid transparent` | Primary button border |
 | `--formie-button-primary-border-hover` | `var(--formie-border-width) solid var(--formie-color-primary-hover)` | Primary button hover border |
 | `--formie-button-primary-shadow-focus` | `0 0 0 3px var(--formie-primary-300)` | Primary button focus shadow |
@@ -196,17 +196,17 @@ The shipped root variable surface covers:
 | `--formie-button-secondary-border-hover` | `var(--formie-button-secondary-border)` | Secondary button hover border |
 | `--formie-button-secondary-background` | `var(--formie-color-surface)` | Secondary button background |
 | `--formie-button-secondary-background-hover` | `var(--formie-neutral-100)` | Secondary button hover background |
-| `--formie-button-secondary-text-color` | `var(--formie-color-heading)` | Secondary button text color |
+| `--formie-button-secondary-text-color` | `var(--formie-color-heading)` | Secondary button text colour |
 | `--formie-button-ghost-border` | `var(--formie-border-width) solid transparent` | Ghost button border |
 | `--formie-button-ghost-border-hover` | `var(--formie-button-ghost-border)` | Ghost button hover border |
 | `--formie-button-ghost-background` | `transparent` | Ghost button background |
 | `--formie-button-ghost-background-hover` | `var(--formie-neutral-100)` | Ghost button hover background |
-| `--formie-button-ghost-text-color` | `var(--formie-color-heading)` | Ghost button text color |
+| `--formie-button-ghost-text-color` | `var(--formie-color-heading)` | Ghost button text colour |
 | `--formie-button-ghost-shadow-focus` | `var(--formie-button-shadow-focus)` | Ghost button focus shadow |
-| `--formie-button-link-text-color` | `var(--formie-color-primary)` | Link-style button color |
-| `--formie-button-link-text-color-hover` | `var(--formie-color-primary-hover)` | Link-style button hover color |
+| `--formie-button-link-text-color` | `var(--formie-color-primary)` | Link-style button colour |
+| `--formie-button-link-text-color-hover` | `var(--formie-color-primary-hover)` | Link-style button hover colour |
 
-## Navigation, progress, loading, and page layout
+## Navigation, Progress, Loading, and Page Layout
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
@@ -234,7 +234,7 @@ The shipped root variable surface covers:
 | `--formie-gap-page-buttons` | `var(--formie-space-4)` | Button group gap |
 | `--formie-title-page-size` | `var(--formie-font-size-lg)` | Page title size |
 
-## Rows, fields, and shared field surfaces
+## Rows, Fields, and Shared Field Surfaces
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
@@ -264,7 +264,7 @@ The shipped root variable surface covers:
 | `--formie-gap-field-control` | `var(--formie-space-2)` | Field control gap |
 | `--formie-gap-options` | `var(--formie-space-2)` | Option list gap |
 
-## Field-specific variables
+## Field-Specific Variables
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
@@ -325,7 +325,7 @@ The shipped root variable surface covers:
 | `--formie-table-remove-button-right` | `-14px` | Table remove button right offset |
 | `--formie-table-remove-button-transform` | `translate(0, -50%)` | Table remove button transform |
 
-## Override example
+## Override Example
 
 ```css
 .marketing-signup .formie-form {
@@ -339,14 +339,14 @@ The shipped root variable surface covers:
 }
 ```
 
-## Override guidance
+## Override Guidance
 
 - Prefer CSS variable overrides before replacing component classes.
 - Scope overrides to a wrapper when only one form family needs a different treatment.
-- Keep semantic variables aligned with interaction state, especially focus, error, and success colors.
+- Keep semantic variables aligned with interaction state, especially focus, error, and success colours.
 - Use this page as the root variable reference; component-local variables that are introduced inside specific selectors are documented on their component pages when relevant.
 
-## Related pages
+## Related Pages
 
 - [Buttons](/browser/ui-reference/components/buttons)
 - [Loading](/browser/ui-reference/components/loading)

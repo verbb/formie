@@ -4,6 +4,7 @@
         "collapsable": false,
         "children": [
             "get-started/installation-setup",
+            "get-started/creating-your-first-form",
             "get-started/requirements",
             "get-started/configuration",
             "get-started/troubleshooting",
@@ -17,7 +18,7 @@
         "children": [
             "forms/form-builder",
             "forms/form-groups",
-            "forms/multi-site",
+            "forms/multi-site-and-translation",
             "forms/translations",
             {
                 "title": "Fields",
@@ -76,8 +77,8 @@
         "title": "Submissions",
         "collapsable": false,
         "children": [
-            "submissions/overview",
-            "submissions/statuses",
+            "submissions/submissions",
+            "submissions/submission-statuses",
             "submissions/relations",
             "submissions/element-field"
         ]
@@ -86,7 +87,7 @@
         "title": "Reports",
         "collapsable": false,
         "children": [
-            "reports/overview",
+            "reports/reports",
             "reports/scheduled-reports"
         ]
     },
@@ -126,18 +127,6 @@
         ]
     },
     {
-        "title": "GraphQL",
-        "collapsable": false,
-        "children": [
-            "graphql/query-forms",
-            "graphql/query-submissions",
-            "graphql/rendering-forms",
-            "graphql/create-submissions",
-            "graphql/payments",
-            "graphql/payments/stripe"
-        ]
-    },
-    {
         "title": "Getting Elements",
         "collapsable": false,
         "children": [
@@ -149,6 +138,7 @@
         "title": "Integrations",
         "collapsable": false,
         "children": [
+            "integrations/connect-and-test-an-integration",
             {
                 "title": "Address Providers",
                 "collapsable": true,
@@ -195,7 +185,7 @@
                     "integrations/crm/agile-crm",
                     "integrations/crm/attio",
                     "integrations/crm/avochato",
-                    "integrations/crm/capsule-crm",
+                    "integrations/crm/capsule",
                     "integrations/crm/civicrm",
                     "integrations/crm/copper",
                     "integrations/crm/dotdigital",
@@ -208,7 +198,7 @@
                     "integrations/crm/klaviyo",
                     "integrations/crm/marketo",
                     "integrations/crm/maximizer",
-                    "integrations/crm/mercury",
+                    "integrations/crm/mercury-by-connective",
                     "integrations/crm/microsoft-dynamics-365",
                     "integrations/crm/nocrm",
                     "integrations/crm/outseta",
@@ -248,9 +238,9 @@
                     "integrations/email-marketing/aweber",
                     "integrations/email-marketing/beehiiv",
                     "integrations/email-marketing/benchmark",
-                    "integrations/email-marketing/brevo",
+                    "integrations/email-marketing/brevo-sendinblue",
                     "integrations/email-marketing/campaign-monitor",
-                    "integrations/email-marketing/campaign",
+                    "integrations/email-marketing/campaign-plugin",
                     "integrations/email-marketing/cleverreach",
                     "integrations/email-marketing/constant-contact",
                     "integrations/email-marketing/convertkit",
@@ -323,7 +313,7 @@
                     "integrations/payments/paypal",
                     "integrations/payments/square",
                     "integrations/payments/stripe",
-                    "integrations/payments/payway"
+                    "integrations/payments/westpac-payway"
                 ]
             }
         ]
@@ -350,15 +340,16 @@
             "developers/custom-field",
             "developers/field-defaults",
             "developers/reference-tokens",
+            "developers/tiptap-extensions",
             "developers/custom-variable-sources",
-            "developers/option-source-providers",
+            "developers/custom-option-source-providers",
             "developers/custom-client-event-templates",
             {
                 "title": "Custom Integration",
                 "collapsable": true,
                 "children": [
                     "developers/custom-integration/overview",
-                    "developers/custom-integration/option-sources",
+                    "developers/custom-integration/integration-option-sources",
                     "developers/custom-integration/address-provider-integration",
                     "developers/custom-integration/automation-integration",
                     "developers/custom-integration/captcha-integration",
@@ -372,7 +363,19 @@
                     "developers/custom-integration/payment-integration"
                 ]
             },
-            "developers/console-commands"
+            "developers/console-commands",
+            {
+                "title": "GraphQL",
+                "collapsable": false,
+                "children": [
+                    "graphql/query-forms",
+                    "graphql/query-submissions",
+                    "graphql/rendering-forms",
+                    "graphql/create-submissions",
+                    "graphql/headless-payments",
+                    "graphql/payments/stripe-headless"
+                ]
+            }
         ]
     },
     {
@@ -383,11 +386,13 @@
             "reference/page",
             "reference/field",
             "reference/submission",
-            "reference/notification"
+            "reference/notification",
+            "reference/graphql-form-reference",
+            "reference/theme-tag-reference"
         ]
     },
     {
-        "title": "Guides",
+        "title": "User Guides",
         "collapsable": false,
         "children": [
             "guides/email-notifications/index",

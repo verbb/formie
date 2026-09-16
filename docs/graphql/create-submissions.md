@@ -92,7 +92,7 @@ The generated input type usually follows this pattern:
 
 For example, a Name field with the handle `yourName` on the `contactForm` form would use `contactForm_yourName_FormieNameInput`.
 
-## Name And Address Fields
+## Name and Address Fields
 
 ```graphql
 mutation SaveSubmission(
@@ -340,7 +340,7 @@ If validation fails, Formie returns a GraphQL error with the validation errors e
 }
 ```
 
-## Deleting A Submission
+## Deleting a Submission
 
 Use `deleteSubmission` to delete a submission. It requires both `id` and `siteId`.
 
@@ -364,4 +364,4 @@ The mutation returns `true` when the submission was deleted.
 
 Payment fields require provider UI in your front-end (Stripe.js, PayPal SDK, and so on). Formie accepts provider references via GraphQL and returns structured payment follow-up metadata on submit.
 
-Use `submitFormieClientForm` for headless payment flows so session continuity and 3DS replay work correctly. See [Headless Payments](/graphql/payments) for the full BYO guide and per-provider reference keys.
+Use `submitFormieClientForm` for headless payment flows so session continuity and 3DS replay work correctly. See [Headless Payments](/graphql/headless-payments) for the full BYO guide and per-provider reference keys.

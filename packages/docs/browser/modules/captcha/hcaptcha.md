@@ -1,4 +1,4 @@
-# hCaptcha
+# HCaptcha
 
 hCaptcha is a managed captcha provider module for hCaptcha challenges inside Formie forms.
 
@@ -10,7 +10,7 @@ hCaptcha is a managed captcha provider module for hCaptcha challenges inside For
 
 hCaptcha relies on the shared module lifecycle and the broader submit flow documented on [JavaScript events](/browser/behavior/javascript-events).
 
-#### The `formie:module:hcaptcha:after-setup` event
+#### The `formie:module:hcaptcha:after-setup` Event
 
 Triggered after the hCaptcha module has finished setup for its target form.
 
@@ -21,7 +21,7 @@ document.addEventListener('formie:module:hcaptcha:after-setup', (event) => {
 });
 ```
 
-## Related pages
+## Related Pages
 
 - [Overview](/browser/modules/)
 - [JavaScript events](/browser/behavior/javascript-events)

@@ -1,10 +1,10 @@
-# Rich text
+# Rich Text
 
 Rich text mounts a Pell editor beside the textarea transport input used by Multi Line Text.
 
 ## Events
 
-#### The `formie:field:rich-text:before-init` event
+#### The `formie:field:rich-text:before-init` Event
 
 Triggered before the Pell editor is created.
 
@@ -15,7 +15,7 @@ document.addEventListener('formie:field:rich-text:before-init', (event) => {
 });
 ```
 
-#### The `formie:field:rich-text:after-init` event
+#### The `formie:field:rich-text:after-init` Event
 
 Triggered after the editor instance has been attached to the field.
 
@@ -29,7 +29,7 @@ document.addEventListener('formie:field:rich-text:after-init', (event) => {
 });
 ```
 
-#### The `formie:field:rich-text:populate` event
+#### The `formie:field:rich-text:populate` Event
 
 Triggered after the editor content has been synchronized back into the textarea value.
 
@@ -45,7 +45,7 @@ document.addEventListener('formie:field:rich-text:populate', (event) => {
 
 The broader module lifecycle also emits scoped events such as `formie:module:rich-text:after-setup`.
 
-## Related pages
+## Related Pages
 
 - [Multi Line Text field](/browser/ui-reference/fields/multi-line-text)
 - [Overview](/browser/modules/)

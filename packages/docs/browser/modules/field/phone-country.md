@@ -1,10 +1,10 @@
-# Phone country
+# Phone Country
 
 Phone country enhances a tel input with `intl-tel-input`, country selection, and validator integration.
 
 ## Events
 
-#### The `formie:field:phone-country:before-init` event
+#### The `formie:field:phone-country:before-init` Event
 
 Triggered before `intl-tel-input` is mounted.
 
@@ -15,7 +15,7 @@ document.addEventListener('formie:field:phone-country:before-init', (event) => {
 });
 ```
 
-#### The `formie:field:phone-country:init` event
+#### The `formie:field:phone-country:init` Event
 
 Triggered after the phone input, country synchronization, and validator wiring are ready.
 
@@ -32,7 +32,7 @@ document.addEventListener('formie:field:phone-country:init', (event) => {
 
 The shared module lifecycle also exposes scoped events such as `formie:module:phone-country:after-setup`.
 
-## Related pages
+## Related Pages
 
 - [Phone field](/browser/ui-reference/fields/phone)
 - [Overview](/browser/modules/)

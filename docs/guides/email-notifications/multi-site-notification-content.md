@@ -1,4 +1,4 @@
-# Multi-site notification content
+# Multi-Site Notification Content
 
 Multi-site forms often need notification emails in the right language with the right recipients — without duplicating every form. Formie supports per-site notification overrides in the builder, conditional notifications, and variable-driven single templates. This guide compares the patterns and recommends one for common setups.
 
@@ -6,10 +6,10 @@ Multi-site forms often need notification emails in the right language with the r
 
 - Craft multi-site with Formie forms enabled on multiple sites
 - [Email Notifications](/forms/email-notifications)
-- [Multi-Site & Translation](/forms/multi-site)
+- [Multi-Site & Translation](/forms/multi-site-and-translation)
 - [Translations](/forms/translations)
 
-## The problem
+## The Problem
 
 A contact form runs on English and French sites. You need:
 
@@ -17,9 +17,9 @@ A contact form runs on English and French sites. You need:
 - English copy for English submissions
 - Possibly different internal recipients per region
 
-Form field labels use [site overrides](/forms/multi-site#content-translation). Notifications need a deliberate strategy too.
+Form field labels use [site overrides](/forms/multi-site-and-translation#content-translation). Notifications need a deliberate strategy too.
 
-## Pattern 1 — Per-site notification overrides (builder)
+## Pattern 1 — Per-Site Notification Overrides (Builder)
 
 Notification subject and body can be edited per site in the form builder. Overrides store in `formie_form_site_overrides` with other translation data.
 
@@ -36,7 +36,7 @@ Notification subject and body can be edited per site in the form builder. Overri
 
 **Best for:** Marketing teams managing copy in the CP
 
-## Pattern 2 — Separate notifications with conditions
+## Pattern 2 — Separate Notifications with Conditions
 
 Create one notification per language (or region), each with a [condition](/forms/conditions) on site or language:
 
@@ -55,7 +55,7 @@ Use Craft site variables in conditions (current site at submit time matches subm
 
 **Best for:** Different recipients per site, or when legal requires separate templates per jurisdiction
 
-## Pattern 3 — Single notification with variables
+## Pattern 3 — Single Notification with Variables
 
 One notification body using the [variable picker](/developers/reference-tokens):
 
@@ -73,23 +73,23 @@ Or custom Twig in an [email template](/guides/email-notifications/building-an-em
 
 **Best for:** Minor per-site differences, shared layout
 
-## What about translation files?
+## What About Translation Files?
 
 Do **not** put notification subject/body in `translations/*/formie.php`. Notification copy edited in the builder belongs in the database (or site overrides) — same rule as field labels. See [Translations](/forms/translations).
 
 Plugin-owned strings in email *templates* (button labels, footer legal boilerplate shared across notifications) can use `site.php` or Twig `craft.app.language`.
 
-## Submission site matters
+## Submission Site Matters
 
 Submissions store `siteId`. When Formie sends notifications:
 
-1. The submission's site determines which [site overrides](/forms/multi-site) merge into field values in `{allFields}` output
+1. The submission's site determines which [site overrides](/forms/multi-site-and-translation) merge into field values in `{allFields}` output
 2. Conditions evaluate against submission context
 3. Variable tokens resolve for that site
 
 Ensure headless submits pass the correct `siteId` when creating submissions via GraphQL.
 
-## Queue and CLI behaviour
+## Queue and CLI Behaviour
 
 With `useQueueForNotifications` enabled (recommended), notifications queue after submit. The queued job carries submission ID and site context — per-site overrides apply the same as synchronous sends.
 
@@ -98,7 +98,7 @@ Test both:
 - Front-end submit on each site
 - Control panel test send while viewing each site in the builder
 
-## Recommended starting point
+## Recommended Starting Point
 
 | Scenario | Pattern |
 | --- | --- |
@@ -109,13 +109,6 @@ Test both:
 
 Many projects combine Pattern 2 for admin emails (fixed recipients per site) with Pattern 1 for user confirmations (translated copy).
 
-## Deliverability reminder
+## Deliverability Reminder
 
 Multi-site does not change mail best practices — use a consistent **From** you control, put the submitter in **Reply-To**, and set up SPF/DKIM/DMARC. See [How to keep Email Notifications out of your junk emails](/guides/email-notifications/how-to-keep-email-notifications-out-of-your-junk-emails).
-
-## Related
-
-- [Email Notifications](/forms/email-notifications)
-- [Multi-Site & Translation](/forms/multi-site)
-- [Translating forms across Craft sites](/guides/control-panel-admin/translating-forms-across-craft-sites)
-- [How to keep Email Notifications out of your junk emails](/guides/email-notifications/how-to-keep-email-notifications-out-of-your-junk-emails)

@@ -95,7 +95,7 @@ Captcha integrations usually focus on these methods:
 Method | Use
 --- | ---
 `renderHtml()` | Outputs the captcha markup for the form.
-`getClientModule()` | Registers front-end behavior for the captcha, when needed.
+`getClientModule()` | Registers front-end behaviour for the captcha, when needed.
 `getRefreshJsVariables()` | Returns data used when refreshing captcha tokens.
 `getGqlVariables()` | Returns GraphQL mutation variables for the captcha.
 `validateSubmission()` | Validates the submitted captcha value.
@@ -123,8 +123,10 @@ protected function defineFormSettingsSchema(FormInterface $form): array
 }
 ```
 
-## Front-End Behavior
-Use `renderHtml()` for markup and `getClientModule()` when the captcha needs JavaScript behavior. The client module keeps captcha behavior attached to the form lifecycle, so it can mount when the form appears, clean itself up when the form is replaced, and run checks before Formie submits the form.
+<span id="front-end-behavior"></span>
+
+## Front-End Behaviour
+Use `renderHtml()` for markup and `getClientModule()` when the captcha needs JavaScript behaviour. The client module keeps captcha behaviour attached to the form lifecycle, so it can mount when the form appears, clean itself up when the form is replaced, and run checks before Formie submits the form.
 
 Captcha modules should usually use `defineCaptchaModule()` from `@verbb/formie-browser`. It gives you shared services for finding placeholders, writing submitted token values, rendering inline errors and blocking the screen stage when the provider cannot produce a token.
 

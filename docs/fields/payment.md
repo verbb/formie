@@ -8,7 +8,11 @@ Use Payment when the form should collect or authorize a payment
 
 Use Payment when the form itself is responsible for taking payment. If the project already has a full checkout flow, it may be better to keep payment there and link the form to that process.
 
-## Key settings
+## Take a Test Payment
+
+Start with a form containing a Payment field and connect a provider using its setup page below. Configure the amount and currency, then use the provider’s test environment to complete the form. Inspect both the saved submission and the provider’s transaction before using live credentials. Also test a declined or cancelled payment; the confirmation shown to the visitor must match the actual payment outcome.
+
+## Key Settings
 
 - **Payment integration** - Choose the provider used by this field.
 - **Amount and currency** - Configure the amount to charge or authorize.
@@ -16,13 +20,13 @@ Use Payment when the form itself is responsible for taking payment. If the proje
 - **Provider behavior** - Configure provider-specific settings such as hosted UI, tokenization or redirects.
 - **Submission behavior** - Account for any Ajax or workflow requirements surfaced by the provider.
 
-## Submitted value
+## Submitted Value
 
 Payment stores payment-related submission data rather than normal text input. The exact value and records depend on the configured provider and whether the payment is authorized, captured, redirected or reconciled later.
 
-When querying or saving submissions through GraphQL, payment behavior depends on the provider and submission workflow. Query the form’s `formFields` and include `inputTypeName` when building a custom front end.
+When querying or saving submissions through GraphQL, payment behaviour depends on the provider and submission workflow. Query the form’s `formFields` and include `inputTypeName` when building a custom front end.
 
-## Payment providers
+## Payment Providers
 
 Payment providers are configured in two places:
 
@@ -39,13 +43,13 @@ Provider setup is documented on the payment integration pages:
 - [Opayo](/integrations/payments/opayo)
 - [Paddle](/integrations/payments/paddle)
 - [PayPal](/integrations/payments/paypal)
-- [PayWay](/integrations/payments/payway)
+- [PayWay](/integrations/payments/westpac-payway)
 - [Square](/integrations/payments/square)
 - [Stripe](/integrations/payments/stripe)
 
-Payment behavior depends on the selected provider. Some providers use hosted payment UI, some tokenize card details in the browser, and some complete payment through redirects or webhook updates. If you are building a custom provider, see [Payment Integration](/developers/custom-integration/payment-integration).
+Payment behaviour depends on the selected provider. Some providers use hosted payment UI, some tokenize card details in the browser, and some complete payment through redirects or webhook updates. If you are building a custom provider, see [Payment Integration](/developers/custom-integration/payment-integration).
 
-## Theme config
+## Theme Config
 
 The Payment field can be targeted with the `payment` theme config key.
 
@@ -72,16 +76,21 @@ Use theme config for surrounding markup and attributes. Be careful with template
 
 For full Tailwind, Bootstrap and other framework examples, see [Formie theme configs](https://github.com/verbb/formie-theme-configs).
 
-## Front-end reference
+## Front-End Reference
 
-Payment fields often depend on provider JavaScript, Ajax submission, redirects or webhook reconciliation. If you customize rendering, keep the provider’s required front-end assets and submission flow intact.
+Payment fields often depend on provider JavaScript, Ajax submission, redirects or webhook reconciliation. If you customise rendering, keep the provider’s required front-end assets and submission flow intact.
 
-The front-end docs live on the separate browser UI reference site and cover rendered markup, data attributes, styling classes and JavaScript behavior for custom front-end implementations.
+The front-end docs live on the separate browser UI reference site and cover rendered markup, data attributes, styling classes and JavaScript behaviour for custom front-end implementations.
 
-- [Payment](/browser/ui-reference/fields/payment)
+- [Payment](https://docs.verbb.io/formie/browser/ui-reference/fields/payment)
 
-## Related fields
+## Related Fields
 
 - Use [Products](/fields/products) or [Variants](/fields/variants) when the form should select Commerce elements.
 - Use [Calculations](/fields/calculations) when the payment amount is derived from other field values.
 
+
+
+## Recover Unresolved Payments
+
+If a visitor sees an unresolved payment after a timeout, check the gateway before asking them to pay again. Your developer can use the [payment recovery commands](/developers/console-commands#recover-payments) to inspect the saved attempt, verify its outcome and resume a successful submission.

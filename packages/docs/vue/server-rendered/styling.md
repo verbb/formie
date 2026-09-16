@@ -2,7 +2,7 @@
 
 If you are in client-rendered forms, Vue owns the visible UI and you should style your own components directly.
 
-## Import the browser CSS
+## Import the Browser CSS
 
 Server-rendered forms use the browser package theme:
 
@@ -17,9 +17,9 @@ import '@verbb/formie-browser/css/formie-base.css';
 import '@verbb/formie-browser/css/formie-theme.css';
 ```
 
-## Use tokens first
+## Use Tokens First
 
-The safest customization layer is the same `--formie-*` token surface used by the browser package.
+The safest customisation layer is the same `--formie-*` token surface used by the browser package.
 
 Use [Browser → CSS variables](/browser/ui-reference/css-variables) for the full token reference.
 
@@ -47,11 +47,11 @@ Scope those tokens on a wrapper around the form:
 
 When you use `useFormieHtml()`, wrap the element bound to `rootRef` the same way.
 
-## Use `themeConfig` second
+## Use `themeConfig` Second
 
-If tokens are not enough, `themeConfig` lets you inject classes, attributes, and reset behavior into the shipped server-rendered theme.
+If tokens are not enough, `themeConfig` lets you inject classes, attributes, and reset behaviour into the shipped server-rendered theme.
 
-### Add classes and attributes
+### Add Classes and Attributes
 
 Use this when you want to keep Formie's HTML structure but attach app-owned classes or data attributes at known theme hooks:
 
@@ -88,7 +88,7 @@ import { FormieForm } from '@verbb/formie-vue';
 </template>
 ```
 
-### Reset selected theme layers
+### Reset Selected Theme Layers
 
 Use this when you want Formie to keep the HTML structure, but you want to rebuild specific visual layers yourself:
 
@@ -121,7 +121,7 @@ import { FormieForm } from '@verbb/formie-vue';
 </template>
 ```
 
-### Compose with tokens
+### Compose with Tokens
 
 `themeConfig` and CSS tokens work well together. Use `themeConfig` for structural hooks, then use CSS for the visual system:
 
@@ -165,7 +165,7 @@ import { FormieForm } from '@verbb/formie-vue';
 }
 ```
 
-## Use CSS third
+## Use CSS Third
 
 If tokens are not enough, add targeted CSS against the shipped server-rendered markup.
 

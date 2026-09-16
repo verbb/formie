@@ -1,4 +1,4 @@
-# The complete guide to rendering submission content
+# The Complete Guide to Rendering Submission Content
 
 Formie stores a submission once, then returns that content in different shapes depending on what you are doing with it. The same Address field might be a plain string in a log, a structured array in a template, multiple CSV columns in an export, or HTML in a summary screen.
 
@@ -10,7 +10,7 @@ This guide focuses on **querying submissions**, **field-type recipes**, and **co
 - [Submission Queries](/getting-elements/submission-queries)
 - Basic Twig or PHP templating
 
-## Fetch a submission
+## Fetch a Submission
 
 Submissions are Craft elements. Query them in Twig or PHP:
 
@@ -53,7 +53,7 @@ Common query patterns:
 
 By default, queries exclude incomplete and spam submissions. Use `.anyStatus()` when you need those too. See [Submission Queries](/getting-elements/submission-queries) for the full parameter list.
 
-## Choose the right read method
+## Choose the Right Read Method
 
 Pick the helper that matches your output context — full examples live on [Submission Content](/developers/submission-content#reading-submission-values):
 
@@ -71,7 +71,7 @@ Submission-wide equivalents: `getValuesAsString()`, `getValuesAsArray()`, `getVa
 
 Use dot notation for nested paths (`billingAddress.postalCode`, `attendees.0.email`) — see [Work with nested field paths](/developers/submission-content#work-with-nested-field-paths).
 
-## Loop all fields
+## Loop All Fields
 
 When you do not know handles ahead of time, iterate the submission's fields:
 
@@ -89,7 +89,7 @@ Skip cosmetic fields (Headings, Sections, HTML blocks) if you only want user-ent
 
 For HTML-aware output per field, use summary or reference-block helpers — see [Get summary values](/developers/submission-content#get-summary-values).
 
-## Field-type patterns
+## Field-Type Patterns
 
 ### Address and Name
 
@@ -124,7 +124,7 @@ Summary and reference-block output include download links. String output is usua
 {{ submission.getFieldValueForSummary('resume')|raw }}
 ```
 
-### Element fields (Entries, Categories, Users)
+### Element Fields (Entries, Categories, Users)
 
 String output is typically titles or labels. Array output may include element IDs and metadata depending on the field:
 
@@ -144,17 +144,17 @@ Check payment records on the submission:
 {% endfor %}
 ```
 
-## Notifications and custom module code
+## Notifications and Custom Module Code
 
 Email notifications and integrations resolve reference tokens at send time. In PHP, use `getFieldValueForReference()` and `getFieldValueForReferenceBlock()` — see [Use context-specific helpers](/developers/submission-content#use-context-specific-helpers).
 
-## Editing submissions on the front end
+## Editing Submissions on the Front End
 
 When rendering a form pre-filled from an existing submission, Formie handles value population through the normal render flow. See [Editing submissions on the front end](/guides/submissions-workflows/editing-submissions-on-the-front-end) for the full pattern.
 
 Read methods are the same — you are still working with a `Submission` element.
 
-## Common mistakes
+## Common Mistakes
 
 **Using `getFieldValue()` for display of complex fields.** A Repeater or Address may return an object or array you cannot print directly. Reach for `getFieldValueAsString()` or `getFieldValueForSummary()`.
 
@@ -166,7 +166,7 @@ Read methods are the same — you are still working with a `Submission` element.
 
 **Mixing Twig field handles with notification tokens.** Notification settings use reference tokens like `{field:a1b2c3}`, not `{field:myHandle}`. See [Reference tokens](/developers/reference-tokens).
 
-## Quick reference
+## Quick Reference
 
 ```twig
 {# Simple text #}
@@ -187,11 +187,3 @@ Read methods are the same — you are still working with a `Submission` element.
 {# Shorthand property access (simple fields) #}
 {{ submission.firstName }}
 ```
-
-## Related
-
-- [Submission Content](/developers/submission-content)
-- [Submission Queries](/getting-elements/submission-queries)
-- [Editing submissions on the front end](/guides/submissions-workflows/editing-submissions-on-the-front-end)
-- [Build a success page for your form](/guides/templating-theming/build-a-success-page-for-your-form)
-- [Reference tokens](/developers/reference-tokens)

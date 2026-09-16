@@ -5,7 +5,7 @@ While Formie's default templates suit most needs, you can of course roll your ow
 Read [Theming Overview](/theming/overview) first if you want to compare template overrides with the other theming options.
 :::
 
-The great thing about Formie's custom templates is that it doesn't have to be all-or-nothing. You can choose to override a single template, or all. For instance, you might have very specific markup needs to a Dropdown field. You can override just the template for the dropdown field, and nothing else.
+You can override one template while keeping Formie’s defaults for the rest of the form. For example, if your design needs different Dropdown markup, override that field’s template and keep the existing page, button and label templates.
 
 ## Form Templates
 To get started, navigate to **Formie** → **Settings** → **Form Templates** and create a new template. Enable the **Use Custom Template** setting to be able to define a template directory for your custom templates to sit. For example, if your templates exist in `templates/_forms`, you would enter `_forms`.
@@ -184,7 +184,7 @@ For example, `form.html` includes partials like `form/navigation.html`, `form/pr
 
 For example, if you want to change the page navigation for a multi-page form, you can create `form/navigation.html` in your custom template directory and leave the rest of the form templates alone.
 
-### How it Works
+### How It Works
 Formie's templates use a custom Twig function for partials:
 
 ```twig

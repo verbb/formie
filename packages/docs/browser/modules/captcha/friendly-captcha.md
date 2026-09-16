@@ -10,7 +10,7 @@ Friendly Captcha support is provided by two managed captcha modules that share t
 
 Friendly Captcha relies on the shared module lifecycle and the broader submit flow documented on [JavaScript events](/browser/behavior/javascript-events).
 
-#### The `formie:module:friendly-captcha-v2:after-setup` event
+#### The `formie:module:friendly-captcha-v2:after-setup` Event
 
 Triggered after the Friendly Captcha v2 module has finished setup for its target form.
 
@@ -21,7 +21,7 @@ document.addEventListener('formie:module:friendly-captcha-v2:after-setup', (even
 });
 ```
 
-## Related pages
+## Related Pages
 
 - [Overview](/browser/modules/)
 - [JavaScript events](/browser/behavior/javascript-events)

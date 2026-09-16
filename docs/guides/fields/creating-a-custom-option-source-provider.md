@@ -1,17 +1,17 @@
-# Creating a custom option source provider
+# Creating a Custom Option Source Provider
 
 In this guide we build **Club contacts** — a custom option source provider that lists contact emails from entries in a chosen section. Authors pick the provider on a Recipients field, choose a section and email field, and Formie resolves `{ label, value }` rows at render time and again at submit time — so tampered POST values are rejected.
 
 Dropdown, Radio, Checkboxes, and Recipients fields can pull options from several built-in sources. When your options come from **local Craft data** (entries, categories, users) without OAuth or remote APIs, a custom **option source provider** is the right tool.
 
-This guide complements the [Custom Option Source Providers](/developers/option-source-providers) developer reference. Read [Option Sources](/fields/option-sources) for built-in source types; [Dynamic option sources in practice](/guides/fields/dynamic-option-sources-in-practice) helps you choose between them.
+This guide complements the [Custom Option Source Providers](/developers/custom-option-source-providers) developer reference. Read [Option Sources](/fields/option-sources) for built-in source types; [Dynamic option sources in practice](/guides/fields/dynamic-option-sources-in-practice) helps you choose between them.
 
 ## Prerequisites
 
 - A Craft module (see [Craft's module documentation](https://craftcms.com/docs/5.x/extend/module-guide.html))
-- Familiarity with the option source contract in [Custom Option Source Providers](/developers/option-source-providers)
+- Familiarity with the option source contract in [Custom Option Source Providers](/developers/custom-option-source-providers)
 
-## Create your module
+## Create Your Module
 
 First, you need a [Craft module](https://craftcms.com/docs/5.x/extend/module-guide.html). Your provider class lives in that module and is registered with Formie at boot time.
 
@@ -59,7 +59,7 @@ Reload the control panel after adding the module — providers are registered at
 
 The provider class implements `OptionSourceProviderInterface` directly. There is no Formie base class to extend.
 
-## Build the provider class
+## Build the Provider Class
 
 Create `modules/formieoptionproviders/src/providers/ClubRecipientsProvider.php`. The class declares its handle, which field types it supports, builder UI for authors, and how to resolve rows from Craft elements:
 
@@ -195,7 +195,7 @@ class ClubRecipientsProvider implements OptionSourceProviderInterface
 
 Replace field types and query logic with your own data source. The important parts are `getBuilderConfig()` — what authors configure in the form builder — and `resolveOptions()` — what the front end and submit validation see.
 
-## Configure a field in the builder
+## Configure a Field in the Builder
 
 With the provider registered, authors can use it on a form:
 
@@ -207,7 +207,7 @@ With the provider registered, authors can use it on a form:
 
 Formie resolves options at render time and again at submit time, so tampered POST values are validated against the same list.
 
-## Provider contract summary
+## Provider Contract Summary
 
 | Method | Purpose |
 | --- | --- |
@@ -219,7 +219,7 @@ Formie resolves options at render time and again at submit time, so tampered POS
 
 For Dropdown/Radio/Checkboxes providers, include `OptionSourceProviderHelper::USAGE_OPTIONS` in `usages()`.
 
-## Builder param fields
+## Builder Param Fields
 
 `getBuilderConfig()` uses the same shape as integration option sources:
 
@@ -230,13 +230,6 @@ For Dropdown/Radio/Checkboxes providers, include `OptionSourceProviderHelper::US
 
 Return `defaults` for params that should pre-fill when the provider is first selected.
 
-## When to use an integration instead
+## When to Use an Integration Instead
 
-Custom providers suit local Craft data and simple server lookups. Use a [custom integration option source](/developers/custom-integration/option-sources) when you need OAuth, cached remote metadata, refresh workflows, or reusable provider fields shared across multiple forms.
-
-## Related
-
-- [Custom Option Source Providers](/developers/option-source-providers)
-- [Option Sources](/fields/option-sources)
-- [Dynamic option sources in practice](/guides/fields/dynamic-option-sources-in-practice)
-- [Creating a Formie field type from scratch](/guides/fields/creating-a-formie-field-type-from-scratch)
+Custom providers suit local Craft data and simple server lookups. Use a [custom integration option source](/developers/custom-integration/integration-option-sources) when you need OAuth, cached remote metadata, refresh workflows, or reusable provider fields shared across multiple forms.

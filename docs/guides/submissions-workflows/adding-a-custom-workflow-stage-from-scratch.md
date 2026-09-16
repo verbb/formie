@@ -1,12 +1,12 @@
-# Adding a custom workflow stage from scratch
+# Adding a Custom Workflow Stage from Scratch
 
 Sometimes one more task inside `screen` or `dispatch` is not enough — you need a **new phase** in the pipeline with its own boundary in the logs, its own before/after stage events, and a clear place in the ordering between built-in stages.
 
-This walkthrough registers a **fraud score** stage that runs after Formie's spam screening and before authorization and save. A low score marks the submission as spam; a service failure halts the request so nothing is dispatched.
+This walkthrough registers a **fraud score** stage that runs after Formie's spam screening and before authorisation and save. A low score marks the submission as spam; a service failure halts the request so nothing is dispatched.
 
 Read [Submission workflow and stages explained](/guides/submissions-workflows/submission-workflow-and-stages-explained) and [Adding a custom workflow task from scratch](/guides/submissions-workflows/adding-a-custom-workflow-task-from-scratch) first — custom stages still use tasks internally, and the task guide covers `TaskInterface` and `TaskResult` in detail.
 
-## When a custom stage fits
+## When a Custom Stage Fits
 
 | Approach | Use when |
 | --- | --- |
@@ -17,7 +17,7 @@ Read [Submission workflow and stages explained](/guides/submissions-workflows/su
 
 Custom stages are inserted into Formie's stage registry. They run on **every** request that reaches that point in the pipeline unless you guard on `processMode` inside the stage — save-and-continue requests still walk through later stages even when most built-in tasks inside them are skipped.
 
-## Create your module
+## Create Your Module
 
 Use the same [Craft module](https://craftcms.com/docs/5.x/extend/module-guide.html) pattern as the task guide. Namespace `modules\formieworkflow`, module ID `formie-workflow`:
 
@@ -63,7 +63,7 @@ class FormieWorkflow extends Module
 
 `insertStageBefore()` and `insertStageAfter()` anchor on a **built-in stage name** — `prepare`, `normalize`, `validate`, `screen`, `authorize`, `save`, `dispatch`, or `finalize`. The fraud stage belongs after `screen` so captcha and keyword rules run first; adjust the anchor for your use case.
 
-## The stage class
+## The Stage Class
 
 A stage implements `StageInterface` and returns a `StageResult` from `execute()`. Most custom stages delegate to `SubmissionWorkflow::runStageTasks()` so you get task registration events and consistent logging — the same machinery built-in stages use.
 
@@ -103,7 +103,7 @@ class CheckFraudScoreStage implements StageInterface
 
 The `processMode` guard is important for custom stages. Unlike extension tasks inserted into built-in stages, a custom stage's `execute()` method is called whenever the pipeline reaches that slot — including save-and-continue and payment replay paths. Return early when the stage should only run on a full public submit.
 
-## The task class
+## The Task Class
 
 Keep the API call in a task so you can add more steps later without rewriting the stage.
 
@@ -175,7 +175,7 @@ Two different outcomes:
 
 Tasks inside a **custom** stage always run when the stage executes. Built-in mode filtering applies to built-in task names only.
 
-## How the pipeline changes
+## How the Pipeline Changes
 
 After registration, a full submit looks like:
 
@@ -195,7 +195,7 @@ Browser POST
 
 `beforeStage` and `afterStage` listeners can target `'fraudScore'` by name. `beforeTask` / `afterTask` listeners can target `'fraudScore.check'`.
 
-## Stage and task results
+## Stage and Task Results
 
 Stages use `StageResult`; tasks use `TaskResult`. When a task returns `halt`, Formie converts it to a stage halt and stops the pipeline.
 
@@ -208,7 +208,7 @@ Stages use `StageResult`; tasks use `TaskResult`. When a task returns `halt`, Fo
 
 You can also implement `execute()` without `runStageTasks()` when the stage is a single block of logic and you do not need task-level events.
 
-## Finishing up
+## Finishing Up
 
 1. Set `FRAUD_SCORE_URL` in `.env` and submit a clean test entry — the request should pass through to save and dispatch.
 2. Simulate a high score — confirm the submission is stored according to your spam handling settings and integrations respect spam state.
@@ -218,13 +218,3 @@ You can also implement `execute()` without `runStageTasks()` when the stage is a
 Watch `storage/logs/` for `Starting workflow stage "fraudScore"` and `Starting workflow task "fraudScore.check"`.
 
 If the stage never runs, confirm the anchor stage name in `insertStageAfter()`. If the task never runs, confirm the stage's `execute()` method is not returning early and that `runStageTasks()` is called with the correct stage name.
-
-## Related
-
-- [Run custom code on page submit or form submit](/guides/submissions-workflows/run-custom-code-on-page-submit-or-form-submit)
-- [Using submission workflow events](/guides/submissions-workflows/using-submission-workflow-events)
-- [Adding a custom workflow task from scratch](/guides/submissions-workflows/adding-a-custom-workflow-task-from-scratch)
-- [Submission workflow and stages explained](/guides/submissions-workflows/submission-workflow-and-stages-explained)
-- [Submission screening rules in practice](/guides/submissions-workflows/submission-screening-rules-in-practice)
-- [Submission Workflow](/developers/submission-workflow)
-- [Submission Events](/developers/events/submission-events)

@@ -4,7 +4,7 @@ Use Agree when the form needs one explicit yes/no acknowledgement, such as accep
 
 Use it for a single agreement checkbox. If the user should choose between multiple options, use Radio or Checkboxes instead.
 
-## Key settings
+## Key Settings
 
 ### General
 
@@ -17,7 +17,7 @@ Use it for a single agreement checkbox. If the user should choose between multip
 - **Checked value** — Label used in emails, exports, and other string output when the checkbox is selected (defaults to Yes).
 - **Unchecked value** — Label used in emails, exports, and other string output when the checkbox is not selected (defaults to No).
 
-## Submitted value
+## Submitted Value
 
 Agree stores a boolean (`true`, `false`, or `null` when empty). That is the canonical value for conditions, integrations, and most code paths.
 
@@ -41,11 +41,11 @@ Integrations that expect a boolean receive `true` or `false`. Integrations mappe
 
 When querying or saving submissions through GraphQL, the field handle is used as the field name. Query the form’s `formFields` and include `inputTypeName` if you need to confirm the generated input type for a specific form.
 
-## Theme config
+## Theme Config
 
 The Agree field can be targeted with the `agree` theme config key.
 
-See [Agree Field theme config](/theming/theme-config#agree-field) for the full list of field-specific theme tags.
+See [Agree Field theme config](/reference/theme-tag-reference#agree-field) for the full list of field-specific theme tags.
 
 ```twig
 {{ craft.formie.renderForm('contactForm', {
@@ -80,13 +80,13 @@ Use theme config for class and attribute changes. Use a template override only w
 
 For full Tailwind, Bootstrap and other framework examples, see [Formie theme configs](https://github.com/verbb/formie-theme-configs).
 
-## Front-end reference
+## Front-End Reference
 
-The front-end docs live on the separate browser UI reference site and cover rendered markup, data attributes, styling classes and JavaScript behavior for custom front-end implementations.
+The front-end docs live on the separate browser UI reference site and cover rendered markup, data attributes, styling classes and JavaScript behaviour for custom front-end implementations.
 
-- [Agree](/browser/ui-reference/fields/agree)
+- [Agree](https://docs.verbb.io/formie/browser/ui-reference/fields/agree)
 
-## Related fields
+## Related Fields
 
 - Use [Checkboxes](/fields/checkboxes) when the user can choose several acknowledgements.
 - Use [Radio](/fields/radio) when the user must choose between multiple explicit options.

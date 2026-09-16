@@ -1,4 +1,4 @@
-# Dynamic option sources in practice
+# Dynamic Option Sources in Practice
 
 Dropdown, Radio, and Checkboxes fields can pull their options from several source types — not just a manually maintained table. This walkthrough shows when to use each option source and how they behave at render and submit time.
 
@@ -6,7 +6,7 @@ Dropdown, Radio, and Checkboxes fields can pull their options from several sourc
 
 - [Option Sources reference](/fields/option-sources)
 
-## The five source types
+## The Five Source Types
 
 | Type | Best for |
 | --- | --- |
@@ -18,7 +18,7 @@ Dropdown, Radio, and Checkboxes fields can pull their options from several sourc
 
 Authors choose the type under the field's **Options** setting.
 
-## Static — full control in the builder
+## Static — Full Control in the Builder
 
 Use **Static** when the list is short, changes rarely, and authors should manage it directly.
 
@@ -29,7 +29,7 @@ Use **Static** when the list is short, changes rarely, and authors should manage
 
 Static is the default when the field only defines an `options` table in the builder.
 
-## Predefined — ship common datasets without maintenance
+## Predefined — Ship Common Datasets Without Maintenance
 
 Use **Predefined** when Formie already ships the list:
 
@@ -43,7 +43,7 @@ You can copy a predefined subset into a static table with **Bulk add options** w
 
 At submit time, Formie validates against the resolved list and stores **value and label** so notifications stay accurate if the predefined list changes later.
 
-## Integration — follow connected provider data
+## Integration — Follow Connected Provider Data
 
 Use **Integration** when options should track a connected service:
 
@@ -58,7 +58,7 @@ Before a source returns options, refresh provider data in the form's **Integrati
 
 **Convert to Static Options** freezes the current remote list into the static table and drops the provider link — useful when you want to stop depending on the remote source.
 
-## Template — developer-controlled per render
+## Template — Developer-Controlled per Render
 
 Use **Template** when the list depends on the current page, entry, user, or site — and a developer controls the Twig template:
 
@@ -83,14 +83,14 @@ Use **Template** when the list depends on the current page, entry, user, or site
 
 For nested fields, include the parent handle: `contactDetails.department`. See [Overriding Settings](/templates/overriding-settings).
 
-### Template caveats
+### Template Caveats
 
 - **No strict validation** — Formie does not enforce an `in` range against a stored list. Your template is responsible for sensible choices.
 - **No builder preview** — the form builder cannot know what Twig will output.
 - **Cached pages** — template overrides run when Twig renders the form. Statically cached HTML keeps options from the render that built the cache. See [Cached Forms](/frontend/cached-forms).
 - **Prefer Predefined or Integration** when a stable provider exists — you get preview, refresh, and stricter validation.
 
-## Custom Provider — local Craft data with builder UI
+## Custom Provider — Local Craft Data with Builder UI
 
 Use **Custom Provider** when options come from Craft elements or custom PHP logic and authors need configurable params in the builder:
 
@@ -100,11 +100,11 @@ Use **Custom Provider** when options come from Craft elements or custom PHP logi
 
 Formie resolves rows at render and submit time, with the same validation behaviour as Predefined and Integration sources.
 
-## Picking Craft elements
+## Picking Craft Elements
 
 When authors need users to pick **entries, categories, users, or tags** as relations — not flat option rows — use the dedicated element field types instead of option sources. Element fields return element IDs, which fits relations, GraphQL, and integration mapping better.
 
-## Choosing a source — decision flow
+## Choosing a Source — Decision Flow
 
 ```
 Is the list the same for every render?
@@ -119,9 +119,3 @@ Is the list the same for every render?
 ```
 
 Keep option **values** stable once submissions, integrations, or reports depend on them. Changing a value invalidates older submissions during strict validation.
-
-## Related
-
-- [Option Sources](/fields/option-sources)
-- [Creating a custom option source provider](/guides/fields/creating-a-custom-option-source-provider)
-- [Overriding Settings](/templates/overriding-settings)

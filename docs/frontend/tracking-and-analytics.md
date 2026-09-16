@@ -43,7 +43,7 @@ You can configure multiple events per page. Each configured event results in a s
 
 Use a different `event` value if your analytics setup expects one. The payload is a plain object suitable for `dataLayer.push()` and for listeners on the `formie:client-event` DOM event.
 
-### Event templates
+### Event Templates
 
 The builder includes predefined templates for common analytics setups such as GTM page submits, GA4 `generate_lead`, and Meta `Lead` events. Use **Add event** on the Tracking tab, or pick from **Suggested for this page** when a template matches the current page context.
 
@@ -53,7 +53,7 @@ Plugins and modules can register additional templates with [`ClientEventTemplate
 
 Each event also supports optional **conditions**, so you can limit when a configured event is pushed.
 
-### Form defaults
+### Form Defaults
 
 Use **Behaviour → Client Event Defaults** to define events once for the whole form. Pages that enable client events but do not define their own events will inherit these defaults. Use **Apply defaults to all pages** to copy the default set onto every page’s Tracking settings.
 

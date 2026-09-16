@@ -4,7 +4,11 @@ Use Email Address when the answer should be a valid email address.
 
 Use Email Address for reply-to addresses, contact details, notification variables, and integration mapping. If the value only looks like an email address but should not be validated as one, use Single-Line Text instead.
 
-## Key settings
+## Collect a Reply Address
+
+On a contact form, add an Email Address field named **Your Email** and make it required. Save the form and enter an invalid value on the site to check validation. Submit a valid test mailbox next, then check the saved submission. To send replies or confirmations to that address, select this field in the notification’s variable picker; naming the field does not connect it to a notification automatically.
+
+## Key Settings
 
 - **Placeholder** - Show example text before the user enters a value.
 - **Default value** - Pre-fill the field for new submissions.
@@ -14,19 +18,19 @@ Use Email Address for reply-to addresses, contact details, notification variable
 - **Blocked domains** - Reject email addresses from domains the form should not accept.
 - **Block Free Email Providers** - Reject addresses from common free email providers such as `gmail.com` or `hotmail.com`.
 
-## Submitted value
+## Submitted Value
 
 Email Address stores a single email string. Use this field when the value will be mapped into reply-to settings, CRM contacts, notification recipients or other email-aware systems.
 
 When querying or saving submissions through GraphQL, the field handle is used as the field name. Query the form’s `formFields` and include `inputTypeName` if you need to confirm the generated input type for a specific form.
 
-## Blocking domains
+## Blocking Domains
 
 Use **Blocked Domains** when you need to maintain a form-specific deny list. Use **Block Free Email Providers** when the form should reject addresses from common free providers.
 
 The built-in free-provider list is maintained in Formie’s source as [`free-email-domains.csv`](https://github.com/verbb/formie/blob/craft-5/src/data/free-email-domains.csv). The list is long, and developers can adjust it with the [`modifyFreeEmailDomains` event](/developers/events/utility-events#the-modifyfreeemaildomains-event).
 
-## Theme config
+## Theme Config
 
 The Email Address field can be targeted with the `emailAddress` theme config key.
 
@@ -48,7 +52,7 @@ Use theme config for class and attribute changes. Use a template override only w
 
 For full Tailwind, Bootstrap and other framework examples, see [Formie theme configs](https://github.com/verbb/formie-theme-configs).
 
-## Related fields
+## Related Fields
 
 - Use [Single-Line Text](/fields/single-line-text) when the value only looks like an email address but should not be validated as one.
 - Use [Recipients](/fields/recipients) when the submitter should choose where a notification is sent.

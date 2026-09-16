@@ -47,7 +47,7 @@ This is the simplest client-rendered entry point.
 | `slots` | `map` | No | Intercepts smaller layout regions inside the default component tree. Keys are slot names and values are Vue components. |
 | `className` | `string` | No | Adds a class to the rendered form root. |
 
-### Callback props and events
+### Callback Props and Events
 
 For the common path, start with `onReady`, `onSuccess`, and `onError`.
 
@@ -110,13 +110,13 @@ Use REST when:
 
 Use GraphQL when:
 
-- your app already standardizes on GraphQL
+- your app already standardises on GraphQL
 - you want transport to stay inside an existing GraphQL client workflow
 - you want to load `formieClientForm` yourself or through your existing data layer
 
 For client-rendered forms, GraphQL covers more than the initial load. Formie also uses GraphQL mutations for submit, session refresh, and page changes.
 
-## GraphQL query
+## GraphQL Query
 
 For GraphQL client-rendered forms, load `formieClientForm`:
 
@@ -137,7 +137,7 @@ query ClientForm($handle: String!, $siteId: Int) {
 
 That query returns the `FrontendFormEnvelope` Vue needs: `schemaVersion`, `definition`, and `session`.
 
-## Manual GraphQL mutations
+## Manual GraphQL Mutations
 
 If you use `<FormieClientForm transport="graphql" />`, Formie handles submit, session refresh, and page changes for you.
 
@@ -170,7 +170,7 @@ mutation SubmitForm($input: FormieClientSubmitInput!) {
 }
 ```
 
-## Preloaded definition
+## Preloaded Definition
 
 If your app already fetched the client definition envelope, pass it into `source` instead of loading it again inside the form component:
 

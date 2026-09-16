@@ -8,7 +8,7 @@ This page is the developer reference: stage and task names, workflow modes, code
 
 If you are extending submission handling, the workflow tells you where your code belongs. Instead of guessing where custom logic should run, you can choose the stage or task that owns that responsibility.
 
-## When to use this page
+## When to Use This Page
 
 Use the submission workflow when you need to:
 
@@ -19,7 +19,7 @@ Use the submission workflow when you need to:
 
 If you only need the full event reference, see [Submission Events](/developers/events/submission-events).
 
-## Choose the right extension point
+## Choose the Right Extension Point
 
 You do not always need a custom workflow task. Pick the smallest extension point that matches your goal.
 
@@ -27,16 +27,16 @@ You do not always need a custom workflow task. Pick the smallest extension point
 | --- | --- |
 | `EVENT_AFTER_PAGE_ADVANCE` / `EVENT_AFTER_COMPLETE` | You want code on a page submit, or only when the form is submitted. See [Run custom code on page submit or form submit](/guides/submissions-workflows/run-custom-code-on-page-submit-or-form-submit). |
 | Submission element events | You need to react to the element being saved or deleted, regardless of where that save came from. |
-| Workflow stage or task events | You need request-level behavior during a specific submission phase such as validation, screening, save, dispatch, or finalize. |
+| Workflow stage or task events | You need request-level behaviour during a specific submission phase such as validation, screening, save, dispatch, or finalize. |
 | Custom workflow task | The stage is already correct, but you need to insert one more piece of work into that stage. |
 | Custom workflow stage | You need a brand new phase in the pipeline, not just one more task in an existing stage. |
 
 As a rule of thumb, use `Submission::EVENT_AFTER_COMPLETE` when the form was submitted, `EVENT_AFTER_PAGE_ADVANCE` when a page was submitted, `Submission::EVENT_AFTER_SAVE` when you care about the element save itself, and stage/task events when you care about a named slot in the request lifecycle.
 
-## Submission stages
+## Submission Stages
 
 1. **`prepare`** sets up the submission request and restores any draft or save-and-continue context before other processing begins.
-2. **`normalize`** resolves page flow, back-button behavior, and default values so Formie knows the current submission state.
+2. **`normalize`** resolves page flow, back-button behaviour, and default values so Formie knows the current submission state.
 3. **`validate`** runs the form and field validation rules.
 4. **`screen`** runs submission guards, captcha checks, and spam screening before processing continues.
 5. **`authorize`** decides whether processing can continue, including payment-state checks and earlier submission errors.
@@ -46,7 +46,7 @@ As a rule of thumb, use `Submission::EVENT_AFTER_COMPLETE` when the form was sub
 
 That order matters. Validation needs to happen before a submission can be saved, and integrations do not run until the earlier stages have succeeded.
 
-### Default tasks
+### Default Tasks
 
 Each stage is made up of smaller tasks. These are the default tasks Formie uses for a normal `submit` request.
 
@@ -63,20 +63,20 @@ Each stage is made up of smaller tasks. These are the default tasks Formie uses 
 
 The task names are useful when you need to insert your own task before or after a specific built-in task.
 
-## Workflow modes
+## Workflow Modes
 
 Not every submission request runs every stage or task.
 
 - `submit` is the normal front-end submission flow. It runs validation, screening, save, dispatch, and finalize work.
 - `editExisting` updates an existing submission. It validates and saves, then can re-run integrations configured to run on front-end or control panel edits in **Integrations → Settings → When integrations re-run**. Notifications, captchas, and spam screening are skipped.
-- `saveDraft` is used for save-and-continue and back-navigation behavior. It saves submission state without validation, spam screening, notifications, or integrations.
+- `saveDraft` is used for save-and-continue and back-navigation behaviour. It saves submission state without validation, spam screening, notifications, or integrations.
 - `paymentReplay` resumes processing after a payment provider callback. It focuses on payment, persistence, dispatch, and response handling.
 
 When you add a task or listen for a task event, choose a stage that runs in the workflow mode you care about. For example, a task added to `dispatch` will not run when a user only saves a draft.
 
-## Practical examples
+## Practical Examples
 
-### Run logic only for full submit requests
+### Run Logic Only for Full Submit Requests
 
 Use a workflow event when your code should only run during the full public submit flow and not on drafts or edit-existing requests.
 
@@ -98,7 +98,7 @@ Event::on(SubmissionWorkflow::class, SubmissionWorkflow::EVENT_BEFORE_STAGE, fun
 });
 ```
 
-### Add work before integrations run
+### Add Work Before Integrations Run
 
 Use a custom task when the stage is already correct, but you need one more step inside it. This example inserts a task into `dispatch` before integrations are triggered.
 
@@ -117,7 +117,7 @@ Event::on(SubmissionWorkflow::class, SubmissionWorkflow::EVENT_REGISTER_STAGE_TA
 });
 ```
 
-### Run code for any submission save, including edits
+### Run Code for Any Submission Save, Including Edits
 
 If your code should run whenever the submission element is saved, use an element event instead of a dispatch-stage hook. That covers new submissions and edit-existing updates.
 
@@ -133,7 +133,7 @@ Event::on(Submission::class, Submission::EVENT_AFTER_SAVE, function(ModelEvent $
 });
 ```
 
-## Task results
+## Task Results
 
 Stages and tasks report whether work should continue or stop. A task can continue normally, halt successfully, or halt with a failure.
 
@@ -157,7 +157,7 @@ return TaskResult::halt(false, [
 
 Use `TaskResult::halt(true)` only when stopping is expected and should still count as successful. For example, a task may decide there is no more work to do for this request.
 
-## Extending the workflow
+## Extending the Workflow
 
 Formie exposes workflow events for:
 
@@ -170,7 +170,7 @@ Formie exposes workflow events for:
 
 That lets you extend the workflow without replacing the whole submission pipeline.
 
-### Add a new stage
+### Add a New Stage
 
 Use a custom stage when you need a new step in the submission pipeline, such as running a fraud score check after spam screening but before save or dispatch.
 
@@ -184,14 +184,6 @@ Event::on(SubmissionWorkflow::class, SubmissionWorkflow::EVENT_REGISTER_WORKFLOW
 });
 ```
 
-To add a task inside an existing stage, see [Add work before integrations run](#add-work-before-integrations-run) above. For a full module walkthrough, see [Adding a custom workflow task from scratch](/guides/submissions-workflows/adding-a-custom-workflow-task-from-scratch). If you only need to observe or adjust behavior around an existing part of the workflow, the before and after stage or task events are often enough.
+To add a task inside an existing stage, see [Add work before integrations run](#add-work-before-integrations-run) above. For a full module walkthrough, see [Adding a custom workflow task from scratch](/guides/submissions-workflows/adding-a-custom-workflow-task-from-scratch). If you only need to observe or adjust behaviour around an existing part of the workflow, the before and after stage or task events are often enough.
 
 Extension tasks use custom names outside Formie's built-in `Task` enum. They run when their built-in stage is active for the current workflow mode — the same rules that skip dispatch on draft saves also skip extension tasks inserted into `dispatch`.
-
-## Guides
-
-- [Run custom code on page submit or form submit](/guides/submissions-workflows/run-custom-code-on-page-submit-or-form-submit) — page submit vs last visible page, without stage/task events
-- [Submission workflow and stages explained](/guides/submissions-workflows/submission-workflow-and-stages-explained) — why the pipeline exists, workflow modes in plain language, and how to choose an extension point
-- [Using submission workflow events](/guides/submissions-workflows/using-submission-workflow-events) — listeners without custom task or stage classes
-- [Adding a custom workflow task from scratch](/guides/submissions-workflows/adding-a-custom-workflow-task-from-scratch) — insert an ordered task into an existing stage
-- [Adding a custom workflow stage from scratch](/guides/submissions-workflows/adding-a-custom-workflow-stage-from-scratch) — register a new pipeline phase

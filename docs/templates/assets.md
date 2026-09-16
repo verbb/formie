@@ -55,7 +55,7 @@ That is mainly useful when:
 
 - your CSP requires extra script attributes
 - you want to suppress CSS or JS in a specific context
-- you want finer control over browser initialization
+- you want finer control over browser initialisation
 
 When Formie outputs the browser JavaScript for you, it also outputs:
 

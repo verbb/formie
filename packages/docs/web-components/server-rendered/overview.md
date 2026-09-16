@@ -8,17 +8,17 @@ In this setup:
 
 - your app owns the custom-element host
 - Formie still owns the rendered HTML inside it
-- the browser package still owns validation, submit flow, and browser-side behavior
+- the browser package still owns validation, submit flow, and browser-side behaviour
 
-Browser events and browser modules still apply for Web Components server-rendered forms. Use the [Browser](/browser/) docs when you need deeper browser behavior extension points.
+Browser events and browser modules still apply for Web Components server-rendered forms. Use the [Browser](/browser/) docs when you need deeper browser behaviour extension points.
 
-## Custom element
+## Custom Element
 
 `<formie-form>` is the main Web Components entry point.
 
 Most authors start with **declarative HTML attributes** (what you would expect from a custom element). The same options are also available as **element properties** in JavaScript; setting either updates the other where reflection applies.
 
-### Declarative markup
+### Declarative Markup
 
 ```html
 <script type="module">
@@ -38,7 +38,7 @@ Most authors start with **declarative HTML attributes** (what you would expect f
 
 `mode` defaults to `html` if omitted, but spelling it out matches how you think about the element in docs and examples.
 
-### JavaScript properties
+### JavaScript Properties
 
 Use this when the element is created or configured from a script (or when you need options that are not representable as attributes, such as `themeConfig` or a preloaded `payload`):
 
@@ -74,12 +74,12 @@ This is the same configuration as the markup example above, not a separate API.
 | `locale` | `string` | No | Advanced override for locale-sensitive rendering and formatting. Most setups can rely on `site-id`. |
 | `auto-visible` | `boolean` | No | Reveals the mounted root automatically when it becomes ready. |
 | `mode` | `string` | No | Use `html` for this path (default). |
-| `static-cache` | `boolean` | No | Advanced token-refresh behavior for static or cached HTML reuse. |
+| `static-cache` | `boolean` | No | Advanced token-refresh behaviour for static or cached HTML reuse. |
 | `refresh-tokens` | `boolean` | No | Refreshes CSRF, request, render, and captcha tokens as Formie needs them. |
 
 Options that are **objects** (`themeConfig`, preloaded `payload`) are only available as **JavaScript properties** on the element, not as attributes.
 
-### Element events
+### Element Events
 
 The custom element dispatches these wrapper-level events:
 
@@ -100,7 +100,7 @@ The custom element dispatches these wrapper-level events:
 
 The rendered form still emits the normal browser `formie:*` DOM events inside the custom element host.
 
-## Client escape hatch
+## Client Escape Hatch
 
 Use `createFormieClient()` when the custom-element wrapper is not enough:
 

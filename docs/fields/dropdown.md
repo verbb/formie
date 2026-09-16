@@ -4,7 +4,11 @@ Use Dropdown when someone should choose from a defined list and the options do n
 
 Use Dropdown for compact choice fields, especially when the list is long. If the choices are few and should stay visible, Radio or Checkboxes may be clearer.
 
-## Key settings
+## Choose an Enquiry Type
+
+Add a Dropdown field named **Enquiry Type** to a contact form. Add options labelled **Sales** and **Support**, with values `sales` and `support`. Labels are the text visitors see; values are what conditions and integrations can use. Save the form, select Support and submit. Check the saved answer before connecting that choice to a notification condition.
+
+## Key Settings
 
 - **Options** - Define the available choices. Keep option values stable once submissions, exports or integrations depend on them.
 - **Multiple selections** - Allow one selected value or a list of selected values.
@@ -33,7 +37,7 @@ Instead of copying a long predefined or integration list into the static options
 
 See [Option Sources](/fields/option-sources) for predefined lists, Mailchimp groups, CRM picklists, template mode, converting to static options, and validation behaviour.
 
-## Option availability
+## Option Availability
 
 Use the row menu on an option to set its **availability**:
 
@@ -43,7 +47,7 @@ Use the row menu on an option to set its **availability**:
 
 Only one state applies at a time. Prefer hiding over deleting an option once submissions may reference its value.
 
-## Searchable dropdown
+## Searchable Dropdown
 
 Enable **Use searchable dropdown** when the option list is long enough that scrolling a native `<select>` is awkward. Formie renders a normal dropdown on the server, then enhances it on the front end so users can type to filter choices.
 
@@ -54,19 +58,19 @@ Enable **Use searchable dropdown** when the option list is long enough that scro
 
 The setting is also available on [Entries](/fields/entries), [Categories](/fields/categories), [Users](/fields/users), [Products](/fields/products), and [Recipients](/fields/recipients) when **Display type** is **Dropdown**.
 
-For JavaScript hooks and module events, see [Combobox module](/browser/modules/field/combobox) in the browser docs.
+For JavaScript hooks and module events, see [Combobox module](https://docs.verbb.io/formie/browser/modules/field/combobox) in the browser docs.
 
 ## Overriding Options
 
 If the options need to come from template logic, set the field’s **Options** type to **Template** in the form builder, then override the field’s `options` before rendering the form. See [Option Sources](/fields/option-sources#template) and [Overriding Settings](/templates/overriding-settings).
 
-## Submitted value
+## Submitted Value
 
 Dropdown stores the selected option value. When multiple selections are enabled, it stores a list of selected option values.
 
 When querying or saving submissions through GraphQL, the field handle is used as the field name. Query the form’s `formFields` and include `inputTypeName` if you need to confirm the generated input type for a specific form.
 
-## Theme config
+## Theme Config
 
 The Dropdown field can be targeted with the `dropdown` theme config key.
 
@@ -88,7 +92,7 @@ Use theme config for class and attribute changes. Use a template override only w
 
 For full Tailwind, Bootstrap and other framework examples, see [Formie theme configs](https://github.com/verbb/formie-theme-configs).
 
-## Related fields
+## Related Fields
 
 - Use [Radio](/fields/radio) when a short list should stay visible.
 - Use [Checkboxes](/fields/checkboxes) when several choices can be selected and visibility matters more than compactness.

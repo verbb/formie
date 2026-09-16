@@ -1,4 +1,4 @@
-# Building an Automation integration from scratch
+# Building an Automation Integration from Scratch
 
 Formie ships automation integrations out of the box — Web Request, Zapier, Make, and others — but you can register your own when you need a custom endpoint, payload shape, or authentication header. This walkthrough builds an automation integration from a Craft module: editors configure a URL per form, test the payload from the builder, and Formie POSTs submission data when someone submits.
 
@@ -6,7 +6,7 @@ We also cover extending the built-in Web Request integration when you only need 
 
 Read the [Automation Integration](/developers/custom-integration/automation-integration) reference first if you have not built an integration before — this guide walks through a complete example and explains how the pieces connect.
 
-## Create your module
+## Create Your Module
 
 First, you need a [Craft module](https://craftcms.com/docs/5.x/extend/module-guide.html). All of the PHP in this guide lives in that module.
 
@@ -57,7 +57,7 @@ The module file stays deliberately small. You tell Formie which integration clas
 
 The bulk of the work lives in `ExampleAutomation.php`.
 
-## The integration class
+## The Integration Class
 
 Create `modules/formieintegration/src/integrations/ExampleAutomation.php`. The class extends Formie's `Automation` base class and implements three moments editors care about:
 
@@ -223,7 +223,7 @@ This follows the same pattern as Formie's built-in [Web Request](/integrations/a
 
 Every endpoint has different requirements — treat method names and payload shapes as patterns to adapt.
 
-### Per-form settings
+### Per-Form Settings
 
 Automation integrations store connection details as public properties on the class (`$url`, `$method`, `$requestType`). Editors configure them per form on the **Integrations** tab — not in global plugin settings.
 
@@ -235,13 +235,13 @@ URLs can use Craft environment variables. The `Automation` base class resolves t
 
 Per-form integration UI is declared as schema nodes — see [Everything you need to know about Formie schemas](/guides/developers/everything-you-need-to-know-about-formie-schemas) for helper details.
 
-### Guzzle client
+### Guzzle Client
 
 Implement `defineClient()` when you need custom headers, authentication, or timeouts. The example uses a plain Guzzle client; add default headers for bearer tokens or API keys if your endpoint requires them.
 
 Prefer `$this->deliverPayload()` over calling the client directly — it fires payload events, respects opt-in settings, and integrates with Formie's error logging.
 
-### Test payload from the builder
+### Test Payload from the Builder
 
 `fetchFormSettings()` runs when an editor refreshes or tests the integration while editing a form. That is your chance to send a **sample request** to the configured URL so the editor can verify the endpoint before going live.
 
@@ -254,7 +254,7 @@ The pattern:
 
 Return `IntegrationFormSettings` with the payload so the control panel can display what was sent. Errors flow through `Integration::apiError()` and appear in the UI.
 
-### Sending the payload on submit
+### Sending the Payload on Submit
 
 `sendPayload()` runs when a real submission completes and this integration is dispatched.
 
@@ -265,7 +265,7 @@ Log failures with `Integration::error()` for detail in logs, and `Integration::a
 
 Return `false` on failure so Formie records the integration run correctly.
 
-## Extending an existing integration
+## Extending an Existing Integration
 
 When Formie's built-in Web Request integration is close to what you need, extend it and override payload generation:
 
@@ -290,7 +290,7 @@ class WebRequestCustom extends WebRequest
 
 Register `WebRequestCustom::class` on `$event->automations[]` instead of `ExampleAutomation::class`.
 
-## Finishing up
+## Finishing Up
 
 With the module in place:
 
@@ -299,10 +299,3 @@ With the module in place:
 3. Submit the form on the front end and confirm your endpoint receives the request.
 
 Integrations run as part of the [submission workflow](/developers/submission-workflow). For execution order, queue vs immediate mode, and conditions, see [Integration dispatch and policies](/guides/integrations/integration-dispatch-and-policies).
-
-## Related
-
-- [Automation Integration](/developers/custom-integration/automation-integration)
-- [Web Request integration](/integrations/automations/web-request)
-- [Using Guzzle clients from Formie integrations in your own code](/guides/integrations/using-guzzle-clients-from-formie-integrations-in-your-own-code)
-- [Submission Workflow](/developers/submission-workflow)

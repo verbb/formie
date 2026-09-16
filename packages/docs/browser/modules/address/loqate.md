@@ -6,7 +6,7 @@ Loqate is an address provider module for provider-backed address lookup and sub-
 
 Loqate does not currently have a dedicated address-provider event documented on the main events page, so the shared module lifecycle is the primary public hook.
 
-#### The `formie:module:loqate:after-setup` event
+#### The `formie:module:loqate:after-setup` Event
 
 Triggered after the Loqate module has finished setup for its target.
 
@@ -17,7 +17,7 @@ document.addEventListener('formie:module:loqate:after-setup', (event) => {
 });
 ```
 
-## Related pages
+## Related Pages
 
 - [Address field](/browser/ui-reference/fields/address)
 - [Overview](/browser/modules/)

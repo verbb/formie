@@ -2,7 +2,7 @@
 
 ## Notification Model Events
 
-### The `beforeSaveNotification` event
+### The `beforeSaveNotification` Event
 The event that is triggered before an email notification is saved.
 
 ```php
@@ -17,7 +17,7 @@ Event::on(Notifications::class, Notifications::EVENT_BEFORE_SAVE_NOTIFICATION, f
 });
 ```
 
-### The `afterSaveNotification` event
+### The `afterSaveNotification` Event
 The event that is triggered after an email notification is saved.
 
 ```php
@@ -32,7 +32,7 @@ Event::on(Notifications::class, Notifications::EVENT_AFTER_SAVE_NOTIFICATION, fu
 });
 ```
 
-### The `beforeDeleteNotification` event
+### The `beforeDeleteNotification` Event
 The event that is triggered before an email notification is deleted.
 
 ```php
@@ -46,7 +46,7 @@ Event::on(Notifications::class, Notifications::EVENT_BEFORE_DELETE_NOTIFICATION,
 });
 ```
 
-### The `afterDeleteNotification` event
+### The `afterDeleteNotification` Event
 The event that is triggered after an email notification is deleted.
 
 ```php
@@ -60,7 +60,7 @@ Event::on(Notifications::class, Notifications::EVENT_AFTER_DELETE_NOTIFICATION, 
 });
 ```
 
-### The `modifyExistingNotifications` event
+### The `modifyExistingNotifications` Event
 The event that is triggered to allow modifying of available existing notifications to select from.
 
 ```php
@@ -74,7 +74,7 @@ Event::on(Notifications::class, Notifications::EVENT_MODIFY_EXISTING_NOTIFICATIO
 });
 ```
 
-### The `modifyNotificationSchema` event
+### The `modifyNotificationSchema` Event
 The event that is triggered to allow modification of the notification editor schema.
 
 ```php
@@ -88,7 +88,7 @@ Event::on(Notifications::class, Notifications::EVENT_MODIFY_NOTIFICATION_SCHEMA,
 });
 ```
 
-### The `beforeSendNotification` event
+### The `beforeSendNotification` Event
 The event that is triggered before an email notification is queued or sent for a submission.
 
 The `isValid` event property can be set to `false` to prevent the notification from being sent.
@@ -109,7 +109,7 @@ Event::on(Notifications::class, Notifications::EVENT_BEFORE_SEND_NOTIFICATION, f
 
 ## Email Events
 
-### The `modifyRenderVariables` event
+### The `modifyRenderVariables` Event
 The event that is triggered to allow modification of the render variables used in templates.
 
 ```php
@@ -130,7 +130,7 @@ Event::on(Emails::class, Emails::EVENT_MODIFY_RENDER_VARIABLES, function(MailRen
 });
 ```
 
-### The `beforeRenderEmail` event
+### The `beforeRenderEmail` Event
 The event that is triggered before an email is rendered.
 
 ```php
@@ -146,7 +146,7 @@ Event::on(Emails::class, Emails::EVENT_BEFORE_RENDER_EMAIL, function(MailEvent $
 });
 ```
 
-### The `afterRenderEmail` event
+### The `afterRenderEmail` Event
 The event that is triggered after an email is rendered.
 
 ```php
@@ -162,7 +162,7 @@ Event::on(Emails::class, Emails::EVENT_AFTER_RENDER_EMAIL, function(MailEvent $e
 });
 ```
 
-### The `beforeSendEmail` event
+### The `beforeSendEmail` Event
 The event that is triggered before an email is sent.
 
 ```php
@@ -178,7 +178,7 @@ Event::on(Emails::class, Emails::EVENT_BEFORE_SEND_MAIL, function(MailEvent $eve
 });
 ```
 
-### The `afterSendEmail` event
+### The `afterSendEmail` Event
 The event that is triggered after an email is sent.
 
 ```php
@@ -196,7 +196,7 @@ Event::on(Emails::class, Emails::EVENT_AFTER_SEND_MAIL, function(MailEvent $even
 
 ## Email Template Events
 
-### The `beforeSaveEmailTemplate` event
+### The `beforeSaveEmailTemplate` Event
 The event that is triggered before an email template is saved.
 
 ```php
@@ -211,7 +211,7 @@ Event::on(EmailTemplates::class, EmailTemplates::EVENT_BEFORE_SAVE_EMAIL_TEMPLAT
 });
 ```
 
-### The `afterSaveEmailTemplate` event
+### The `afterSaveEmailTemplate` Event
 The event that is triggered after an email template is saved.
 
 ```php
@@ -226,7 +226,7 @@ Event::on(EmailTemplates::class, EmailTemplates::EVENT_AFTER_SAVE_EMAIL_TEMPLATE
 });
 ```
 
-### The `beforeDeleteEmailTemplate` event
+### The `beforeDeleteEmailTemplate` Event
 The event that is triggered before an email template is deleted.
 
 ```php
@@ -240,7 +240,7 @@ Event::on(EmailTemplates::class, EmailTemplates::EVENT_BEFORE_DELETE_EMAIL_TEMPL
 });
 ```
 
-### The `beforeApplyEmailTemplateDelete` event
+### The `beforeApplyEmailTemplateDelete` Event
 The event that is triggered before an email template is deleted.
 
 ```php
@@ -254,7 +254,7 @@ Event::on(EmailTemplates::class, EmailTemplates::EVENT_BEFORE_APPLY_EMAIL_TEMPLA
 });
 ```
 
-### The `afterDeleteEmailTemplate` event
+### The `afterDeleteEmailTemplate` Event
 The event that is triggered after an email template is deleted.
 
 ```php
@@ -270,7 +270,7 @@ Event::on(EmailTemplates::class, EmailTemplates::EVENT_AFTER_DELETE_EMAIL_TEMPLA
 
 ## PDF Template Events
 
-### The `beforeSavePdfTemplate` event
+### The `beforeSavePdfTemplate` Event
 The event that is triggered before a PDF template is saved.
 
 ```php
@@ -285,7 +285,7 @@ Event::on(PdfTemplates::class, PdfTemplates::EVENT_BEFORE_SAVE_PDF_TEMPLATE, fun
 });
 ```
 
-### The `afterSavePdfTemplate` event
+### The `afterSavePdfTemplate` Event
 The event that is triggered after a PDF template is saved.
 
 ```php
@@ -300,7 +300,7 @@ Event::on(PdfTemplates::class, PdfTemplates::EVENT_AFTER_SAVE_PDF_TEMPLATE, func
 });
 ```
 
-### The `beforeDeletePdfTemplate` event
+### The `beforeDeletePdfTemplate` Event
 The event that is triggered before a PDF template is deleted.
 
 ```php
@@ -314,7 +314,7 @@ Event::on(PdfTemplates::class, PdfTemplates::EVENT_BEFORE_DELETE_PDF_TEMPLATE, f
 });
 ```
 
-### The `beforeApplyPdfTemplateDelete` event
+### The `beforeApplyPdfTemplateDelete` Event
 The event that is triggered before a PDF template is deleted.
 
 ```php
@@ -328,7 +328,7 @@ Event::on(PdfTemplates::class, PdfTemplates::EVENT_BEFORE_APPLY_PDF_TEMPLATE_DEL
 });
 ```
 
-### The `afterDeletePdfTemplate` event
+### The `afterDeletePdfTemplate` Event
 The event that is triggered after a PDF template is deleted.
 
 ```php
@@ -342,7 +342,7 @@ Event::on(PdfTemplates::class, PdfTemplates::EVENT_AFTER_DELETE_PDF_TEMPLATE, fu
 });
 ```
 
-### The `beforeRenderPdf` event
+### The `beforeRenderPdf` Event
 The event that is triggered before a PDF is rendered. You can provide a `pdf` property to return a custom-rendered PDF.
 
 ```php
@@ -362,7 +362,7 @@ Event::on(PdfTemplates::class, PdfTemplates::EVENT_BEFORE_RENDER_PDF, function(P
 });
 ```
 
-### The `afterRenderPdf` event
+### The `afterRenderPdf` Event
 The event that is triggered after a PDF is rendered.
 
 ```php
@@ -377,7 +377,7 @@ Event::on(PdfTemplates::class, PdfTemplates::EVENT_AFTER_RENDER_PDF, function(Pd
 });
 ```
 
-### The `modifyRenderOptions` event
+### The `modifyRenderOptions` Event
 The event that is triggered to modify DOMPDF options before a PDF is rendered.
 
 ```php

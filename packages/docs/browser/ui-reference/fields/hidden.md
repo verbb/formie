@@ -17,11 +17,13 @@ Use this page when you need to preserve the hidden-field markup used for prefill
 | `name` | Submission payload key | Required |
 | `value` | Server-rendered or browser-populated hidden value | Required |
 
-## Behavior
+<span id="behavior"></span>
+
+## Behaviour
 
 The `hidden` module can populate hidden fields from declarative options such as a configured cookie name. It emits `formie:module:hidden:init` and `formie:module:hidden:destroy` at the module level.
 
-## Related pages
+## Related Pages
 
 - [JavaScript events](/browser/behavior/javascript-events)
 - [Submission handling](/browser/behavior/submission-handling)

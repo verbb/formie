@@ -27,7 +27,7 @@ The attribute mapping supports values like:
 
 If the native **Addresses** field has been added to your user field layout, address attributes can also be mapped.
 
-### Updating existing users
+### Updating Existing Users
 If you turn on **Update Users**, Formie can look for an existing user instead of always creating a new one.
 
 Use **Update Element Mapping** to choose which values should be treated as the match criteria, then use **Merge User Groups** if you want existing group assignments to be kept alongside the groups selected in the integration.

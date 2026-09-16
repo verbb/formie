@@ -2,7 +2,7 @@
 
 Use the Quiz field to collect scored answers in questionnaires. Each Quiz field presents a question with radio buttons, checkboxes, or a dropdown, and supports optional weighted scoring and answer explanations.
 
-## Key settings
+## Key Settings
 
 - **Question** - The question text shown to respondents.
 - **Field type** - Choose radio buttons, checkboxes, or a dropdown.
@@ -11,7 +11,7 @@ Use the Quiz field to collect scored answers in questionnaires. Each Quiz field 
 - **Enable answer explanation** - Provide rich text that explains the correct answer. Explanations are included in quiz results when a question is answered incorrectly.
 - **Randomize options** - Shuffle option order on the front-end without changing stored values.
 
-## Form scoring settings
+## Form Scoring Settings
 
 When a form includes Quiz fields, configure scoring under **Behaviour → Quiz Scoring**:
 
@@ -20,7 +20,7 @@ When a form includes Quiz fields, configure scoring under **Behaviour → Quiz S
 - **Allow retakes** - When disabled, the same logged-in user or IP address cannot submit the quiz again after a scored attempt.
 - **Show score after submit** - Include a `quizResult` object in Ajax and client submit responses after a successful final-page submit.
 
-## How scoring works
+## How Scoring Works
 
 For each Quiz field on a scored form:
 
@@ -29,7 +29,7 @@ For each Quiz field on a scored form:
 
 Scores are stored in `formie_submission_quiz_results` (one row per submission) with overall score, percentage, pass/fail status, and per-question JSON.
 
-## Submit response
+## Submit Response
 
 When **Show score after submit** is enabled, successful final-page submits include:
 
@@ -56,7 +56,7 @@ When **Show score after submit** is enabled, successful final-page submits inclu
 
 Wrong answers may include an `answerExplanation` HTML string when enabled on the field.
 
-## Results tab
+## Results Tab
 
 Forms with Quiz fields and scoring enabled show a **Quiz summary** on the Results tab with attempt count, average percentage, pass rate, and pass threshold.
 

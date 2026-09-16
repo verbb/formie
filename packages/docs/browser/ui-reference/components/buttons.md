@@ -2,13 +2,13 @@
 
 Buttons are the shared action surface for submit, back, save, and related form actions.
 
-Use this page to inspect default button treatment, alignment behavior, and loading-state hooks.
+Use this page to inspect default button treatment, alignment behaviour, and loading-state hooks.
 
 ## Preview
 
 <FormiePreview src="../examples/buttons.preview.ts" />
 
-## Button variants
+## Button Variants
 
 <FormiePreview src="../examples/buttons-variants.preview.ts" />
 
@@ -28,7 +28,7 @@ Action-role classes also exist for default ordering and layout:
 - `formie-button-submit`
 - `formie-button-save`
 
-## Browser attributes
+## Browser Attributes
 
 Useful button-level hooks include:
 
@@ -50,25 +50,25 @@ Group-level alignment uses:
 
 Common position values include `left`, `right`, `center`, `left-right`, `save-right`, and `save-left`.
 
-## Button positions
+## Button Positions
 
 <FormiePreview src="../examples/buttons-positions.preview.ts" />
 
 Button groups use `data-formie-buttons-position` to control alignment and save-button placement.
 
-## Loading state
+## Loading State
 
 <FormiePreview src="../examples/buttons-loading.preview.ts" />
 
 During an active submit cycle, Formie sets loading state on the active form and submitter. Keep those attributes intact if you replace button markup.
 
-## Accessibility notes
+## Accessibility Notes
 
 - Buttons use `:focus-visible` styling from the theme token set.
 - Loading buttons remain visually active but should continue to communicate action state clearly.
 - Disabled buttons rely on reduced opacity plus disabled semantics.
 
-## Related pages
+## Related Pages
 
 - [Loading](/browser/ui-reference/components/loading)
 - [CSS variables](/browser/ui-reference/css-variables)

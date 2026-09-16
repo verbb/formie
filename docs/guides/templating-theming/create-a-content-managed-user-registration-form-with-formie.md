@@ -1,4 +1,4 @@
-# Create a content-managed user registration form with Formie
+# Create a Content-Managed User Registration Form with Formie
 
 Formie can content-manage Craft-native forms — login, registration, password reset, and profile updates — so clients can edit labels, instructions, and field order in the form builder. Registration is a common starting point.
 
@@ -9,7 +9,7 @@ The tradeoff: the form posts to Craft's `users/save-user` action, not Formie's s
 - User registration enabled in Craft
 - [Craft Forms](/templates/craft-forms) pattern
 
-## Create the Formie form
+## Create the Formie Form
 
 Create a form called **User Registration** (handle `userRegistration`) with fields whose handles match Craft user properties:
 
@@ -25,7 +25,7 @@ If your site uses `useEmailAsUsername`, you can omit `username`.
 
 Match field types sensibly — use Email Address for `email`, Password for `password`, and so on. Custom user fields can be added too, but they must mirror Craft field types and use the `fields[...]` namespace (covered below).
 
-## Simple single-page registration
+## Simple Single-Page Registration
 
 For core user attributes only, follow the [Craft Forms](/templates/craft-forms) registration example:
 
@@ -53,7 +53,7 @@ The critical setting is `fieldNamespace: ''`. By default Formie names inputs und
 
 Without an empty namespace you would get `fields[email]`, which Craft's user actions do not read.
 
-## Adding custom user fields on a second page
+## Adding Custom User Fields on a Second Page
 
 Custom user fields belong to Craft's `fields[handle]` namespace. A practical pattern is to put native user properties on page 1 (no namespace) and custom fields on page 2 (`fields` namespace):
 
@@ -84,12 +84,6 @@ That produces the expected mix:
 <input type="text" name="fields[myCustomField]">
 ```
 
-## When to use the User integration instead
+## When to Use the User Integration Instead
 
 This pass-through pattern is ideal when you want Craft to own user creation and do not need Formie submissions. If you want Formie to save the submission, send notifications, and *also* create or update a user, use the [User integration](/integrations/elements/user) instead.
-
-## Related
-
-- [Craft Forms](/templates/craft-forms)
-- [User integration](/integrations/elements/user)
-- [Rendering Pages](/templates/rendering-pages)

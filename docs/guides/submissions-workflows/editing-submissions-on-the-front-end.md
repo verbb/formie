@@ -1,4 +1,4 @@
-# Editing submissions on the front end
+# Editing Submissions on the Front End
 
 Formie can render a saved submission back into the form so someone can update it from the front end — account areas, application review flows, or any case where data may change after first submit.
 
@@ -7,7 +7,7 @@ Formie can render a saved submission back into the form so someone can update it
 - [Editing Submissions reference](/templates/editing-submissions)
 - A route or template that loads the submission securely
 
-## The basic pattern
+## The Basic Pattern
 
 1. Fetch the submission.
 2. Confirm the current visitor may edit it.
@@ -38,7 +38,7 @@ When an edit form renders, Formie includes an **edit capability token** in the f
 
 The token is bearer access for that rendered edit form. Unauthenticated edit flows are supported, but treat the page URL as private — anyone with the link can edit until the token expires or the submission is deleted.
 
-### Example: logged-in author only
+### Example: Logged-in Author Only
 
 ```twig
 {% set submission = craft.formie.submissions()
@@ -56,11 +56,11 @@ The token is bearer access for that rendered edit form. Unauthenticated edit flo
 
 Querying by `user(currentUser)` ensures the submission belongs to the logged-in account.
 
-### Example: signed URL from a module
+### Example: Signed URL from a Module
 
 For email links without login, generate a time-limited signed URL in a controller that verifies the signature before rendering the edit template.
 
-## What happens on save
+## What Happens on Save
 
 Edit requests use the `editExisting` workflow mode:
 
@@ -71,22 +71,16 @@ Edit requests use the `editExisting` workflow mode:
 
 If you need notifications on front-end edits, trigger them from `Submission::EVENT_AFTER_SAVE` in a module when `$submission->isEditable()` context applies.
 
-## Multi-page forms
+## Multi-Page Forms
 
 Edit forms respect the submission's current page state. Users can navigate pages and save progress depending on form settings.
 
 Save-and-continue behaviour on edit forms follows the same draft rules as new submissions — see [Save and continue later](/guides/submissions-workflows/save-and-continue-later).
 
-## Pre-populating vs editing
+## Pre-Populating vs Editing
 
 `setSubmission()` is for editing an **existing** record. For pre-populating a **new** submission from defaults or query params, use field default values or `setFieldSettings()` — not `setSubmission()`.
 
-## Styling and success behaviour
+## Styling and Success Behaviour
 
 After a successful edit, configure redirect URL or message under form **Settings → Submit Action** the same as for new submissions. Use conditions if edit success should differ from first-time submit.
-
-## Related
-
-- [Editing Submissions](/templates/editing-submissions)
-- [Relations between submissions and entries](/guides/submissions-workflows/relations-between-submissions-and-entries)
-- [Submission workflow and stages explained](/guides/submissions-workflows/submission-workflow-and-stages-explained)

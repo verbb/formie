@@ -2,7 +2,7 @@
 
 ## Form Lifecycle Events
 
-### The `beforeSaveForm` event
+### The `beforeSaveForm` Event
 The event that is triggered before a form is saved. You can set `$event->isValid` to false to prevent saving.
 
 ```php
@@ -17,7 +17,7 @@ Event::on(Form::class, Form::EVENT_BEFORE_SAVE, function(ModelEvent $event) {
 });
 ```
 
-### The `afterSaveForm` event
+### The `afterSaveForm` Event
 The event that is triggered after a form is saved.
 
 ```php
@@ -31,7 +31,7 @@ Event::on(Form::class, Form::EVENT_AFTER_SAVE, function(ModelEvent $event) {
 });
 ```
 
-### The `beforeDeleteForm` event
+### The `beforeDeleteForm` Event
 The event that is triggered before a form is deleted.
 
 The `isValid` event property can be set to `false` to prevent the deletion from proceeding.
@@ -47,7 +47,7 @@ Event::on(Form::class, Form::EVENT_BEFORE_DELETE, function(Event $event) {
 });
 ```
 
-### The `afterDeleteForm` event
+### The `afterDeleteForm` Event
 The event that is triggered after a form is deleted.
 
 ```php
@@ -60,10 +60,8 @@ Event::on(Form::class, Form::EVENT_AFTER_DELETE, function(Event $event) {
 });
 ```
 
-### The `modifySlotTag` event
+### The `modifySlotTag` Event
 The event that is triggered when preparing a form slot tag for rendering. Modify the `tag` event property to change how a form is rendered.
-
-The older `modifyHtmlTag` event name remains as a deprecated alias.
 
 For more examples, consult the [Theme Config](/theming/theme-config) docs.
 
@@ -88,7 +86,7 @@ Event::on(Form::class, Form::EVENT_MODIFY_SLOT_TAG, function(ModifyFormSlotTagEv
 
 ## Form Render Events
 
-### The `modifyRenderForm` event
+### The `modifyRenderForm` Event
 The event that is triggered when a form is rendered using the `craft.formie.renderForm()` function.
 
 ```php
@@ -102,7 +100,7 @@ Event::on(Rendering::class, Rendering::EVENT_MODIFY_RENDER_FORM, function(Modify
 });
 ```
 
-### The `modifyRenderPage` event
+### The `modifyRenderPage` Event
 The event that is triggered when a form page is rendered using the `craft.formie.renderPage()` function.
 
 ```php
@@ -116,7 +114,7 @@ Event::on(Rendering::class, Rendering::EVENT_MODIFY_RENDER_PAGE, function(Modify
 });
 ```
 
-### The `modifyRenderField` event
+### The `modifyRenderField` Event
 The event that is triggered when a form field is rendered using the `craft.formie.renderField()` function.
 
 ```php
@@ -130,7 +128,7 @@ Event::on(Rendering::class, Rendering::EVENT_MODIFY_RENDER_FIELD, function(Modif
 });
 ```
 
-### The `modifyFormRenderOptions` event
+### The `modifyFormRenderOptions` Event
 The event that is triggered before a form is rendered, allowing render options to be changed in PHP.
 
 ```php
@@ -145,7 +143,7 @@ Event::on(Rendering::class, Rendering::EVENT_MODIFY_FORM_RENDER_OPTIONS, functio
 });
 ```
 
-### The `modifyFrontendJsTranslations` event
+### The `modifyFrontendJsTranslations` Event
 The event that is triggered to modify or define additional translation strings for Formie's front-end JavaScript.
 
 Those strings are encoded into the inline JSON translation seed that Formie outputs alongside its browser assets, and are then merged into the browser package's translation store at startup.
@@ -162,7 +160,7 @@ Event::on(Rendering::class, Rendering::EVENT_MODIFY_FRONTEND_JS_TRANSLATIONS, fu
 
 ## Form Template Events
 
-### The `beforeSaveFormTemplate` event
+### The `beforeSaveFormTemplate` Event
 The event that is triggered before a form template is saved.
 
 ```php
@@ -177,7 +175,7 @@ Event::on(FormTemplates::class, FormTemplates::EVENT_BEFORE_SAVE_FORM_TEMPLATE, 
 });
 ```
 
-### The `afterSaveFormTemplate` event
+### The `afterSaveFormTemplate` Event
 The event that is triggered after a form template is saved.
 
 ```php
@@ -192,7 +190,7 @@ Event::on(FormTemplates::class, FormTemplates::EVENT_AFTER_SAVE_FORM_TEMPLATE, f
 });
 ```
 
-### The `beforeDeleteFormTemplate` event
+### The `beforeDeleteFormTemplate` Event
 The event that is triggered before a form template is deleted.
 
 ```php
@@ -206,7 +204,7 @@ Event::on(FormTemplates::class, FormTemplates::EVENT_BEFORE_DELETE_FORM_TEMPLATE
 });
 ```
 
-### The `beforeApplyFormTemplateDelete` event
+### The `beforeApplyFormTemplateDelete` Event
 The event that is triggered before a form template is deleted.
 
 ```php
@@ -220,7 +218,7 @@ Event::on(FormTemplates::class, FormTemplates::EVENT_BEFORE_APPLY_FORM_TEMPLATE_
 });
 ```
 
-### The `afterDeleteFormTemplate` event
+### The `afterDeleteFormTemplate` Event
 The event that is triggered after a form template is deleted.
 
 ```php

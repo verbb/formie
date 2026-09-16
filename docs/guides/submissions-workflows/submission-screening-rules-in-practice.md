@@ -1,4 +1,4 @@
-# Submission screening rules in practice
+# Submission Screening Rules in Practice
 
 Submission screening is Formie's unified layer for deciding whether a submission is legitimate before it is saved and dispatched. This guide shows how guards, captchas, and content rules work together in practice — and how to tune them without blocking real users.
 
@@ -7,9 +7,9 @@ Submission screening is Formie's unified layer for deciding whether a submission
 - [Submission Screening](/forms/submission-screening)
 - [Spam Protection](/forms/spam-protection)
 
-## Where screening runs
+## Where Screening Runs
 
-For a normal `submit` request, screening happens in the workflow **`screen`** stage — after field validation, before authorization and save:
+For a normal `submit` request, screening happens in the workflow **`screen`** stage — after field validation, before authorisation and save:
 
 1. **`screen.runSubmissionGuards`** — honeypot, minimum submit time, form submit expiration, replay protection, throttling
 2. **`screen.runCaptchaChecks`** — enabled captcha integrations for the form
@@ -19,7 +19,7 @@ Draft saves and `editExisting` requests skip screening so editors and save-and-c
 
 After a successful complete submission, **`finalize.consumeReplayToken`** marks the `requestToken` as used so the same token cannot be replayed within 24 hours.
 
-## Layer 1: Submission guards
+## Layer 1: Submission Guards
 
 Guards are global passive checks under **Formie → Settings → Spam Protection → Submission Guards**. They are not captcha integrations and do not appear in the form builder captcha picker.
 
@@ -36,13 +36,13 @@ Guards are global passive checks under **Formie → Settings → Spam Protection
 
 Client REST and GraphQL must include a `requestToken` from `formieClientForm` or `refreshFormieClientSession`.
 
-### Practical tuning
+### Practical Tuning
 
 - **Minimum submit time** — start around 2–3 seconds. Too high catches fast legitimate users.
 - **Honeypot field name** — change from `formieHoneypot` only if it clashes with a real field handle.
 - **Form submit expiration** — enable for high-value forms left open on shared machines (hours/days threshold).
 
-## Layer 2: Captcha integrations
+## Layer 2: Captcha Integrations
 
 Enable captchas per form when guards and keywords are not enough:
 
@@ -53,9 +53,9 @@ Third-party scoring services (Akismet, CleanTalk, OOPSpam) classify content with
 
 See [Captchas](/integrations/captchas/) for provider setup.
 
-## Layer 3: Content rules
+## Layer 3: Content Rules
 
-### Email rules (global)
+### Email Rules (Global)
 
 Under **Content Rules → Email Rules**:
 
@@ -65,12 +65,12 @@ Under **Content Rules → Email Rules**:
 
 These run during `screen.runSpamChecks` and mark submissions as spam — not field validation errors. Per-field email settings still run separately during validation.
 
-### Text rules
+### Text Rules
 
 - **Suspicious text detection** — keyboard spam and random strings; add **Allowed terms** for product codes that look suspicious
 - **Maximum links** — spam when total links across all fields exceed the limit
 
-### Spam keywords
+### Spam Keywords
 
 Keyword and IP rules apply across all forms:
 
@@ -88,7 +88,7 @@ Reference another field or global set for environment-specific lists:
 
 See [Spam keywords in detail](/guides/configuration/spam-keywords-in-detail) for full syntax.
 
-## Submission throttling vs submission limits
+## Submission Throttling vs Submission Limits
 
 **Throttling** (under Spam Protection) is abuse protection — caps rapid repeat submits and marks excess as spam.
 
@@ -96,7 +96,7 @@ See [Spam keywords in detail](/guides/configuration/spam-keywords-in-detail) for
 
 Use throttling for floods; use submission limits for quotas.
 
-## Spam handling behaviour
+## Spam Handling Behaviour
 
 Under **Spam Protection → Spam handling**, choose:
 
@@ -105,7 +105,7 @@ Under **Spam Protection → Spam handling**, choose:
 - Whether spam triggers **email notifications**
 - Prune limit for stored spam
 
-## Example: balanced public contact form
+## Example: Balanced Public Contact Form
 
 | Layer | Setting |
 | --- | --- |
@@ -115,7 +115,7 @@ Under **Spam Protection → Spam handling**, choose:
 | Keywords | `[match: viagra OR cialis]` plus project-specific terms |
 | Throttling | IP wait time 30s on the contact form via submission limits; global throttling off unless under attack |
 
-## Extending screening
+## Extending Screening
 
 Insert custom tasks relative to built-in names:
 
@@ -133,10 +133,3 @@ Event::on(SubmissionWorkflow::class, SubmissionWorkflow::EVENT_REGISTER_STAGE_TA
     $event->insertTaskAfter(Task::SCREEN_RUN_SUBMISSION_GUARDS->value, new MyFraudScoreTask());
 });
 ```
-
-## Related
-
-- [Submission Screening](/forms/submission-screening)
-- [Spam Protection](/forms/spam-protection)
-- [Submission workflow and stages explained](/guides/submissions-workflows/submission-workflow-and-stages-explained)
-- [Spam keywords in detail](/guides/configuration/spam-keywords-in-detail)

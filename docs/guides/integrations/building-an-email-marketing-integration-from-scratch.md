@@ -1,4 +1,4 @@
-# Building an Email Marketing integration from scratch
+# Building an Email Marketing Integration from Scratch
 
 Formie ships with dozens of email marketing integrations — Mailchimp, Campaign Monitor, Klaviyo, and more — but you can register your own when your provider is not covered out of the box. This walkthrough builds a list-and-mapping integration from a Craft module: connect with an API key, let editors pick a list per form, map fields, and subscribe contacts when someone submits.
 
@@ -6,7 +6,7 @@ We also cover extending a built-in integration when you only need to adjust payl
 
 Read the [Custom Integration Overview](/developers/custom-integration/overview) and [Email Marketing Integration](/developers/custom-integration/email-marketing-integration) reference first if you have not built an integration before — this guide walks through a complete example and explains how the pieces connect.
 
-## Create your module
+## Create Your Module
 
 First, you need a [Craft module](https://craftcms.com/docs/5.x/extend/module-guide.html). All of the PHP in this guide lives in that module.
 
@@ -60,7 +60,7 @@ The module file stays deliberately small. You tell Formie which integration clas
 
 The bulk of the work lives in `ExampleEmailMarketing.php`.
 
-## The integration class
+## The Integration Class
 
 Create `modules/formieintegration/src/integrations/ExampleEmailMarketing.php`. The class extends Formie's `EmailMarketing` base class. That base class already handles a lot of the form-builder UI — list selection, field mapping, opt-in field, and conditions — so your class focuses on connecting to the provider API and sending the right payload shape.
 
@@ -211,7 +211,7 @@ class ExampleEmailMarketing extends EmailMarketing
 
 Every provider has different list APIs and payload shapes — treat the method names and response parsing as patterns to adapt.
 
-### Integration settings
+### Integration Settings
 
 Your integration needs global credentials — typically an API key — stored as public properties on the class (`$apiKey` in the example).
 
@@ -221,13 +221,13 @@ Sensitive values should support Craft environment variables. Store `$MY_PROVIDER
 
 For OAuth-based email marketing providers, see [Creating OAuth integrations with Formie](/guides/integrations/creating-oauth-integrations-with-formie) instead of API keys.
 
-### Guzzle client
+### Guzzle Client
 
 Formie uses [Guzzle](https://docs.guzzlephp.org/) for outbound HTTP. Implement `defineClient()` to configure authentication and your provider's base URL.
 
 Use `$this->request('GET', 'lists')` for JSON APIs — Formie decodes responses and handles common error paths. Use `fetchConnection()` for a lightweight test when an editor clicks **Test connection** in the control panel.
 
-### Fetching lists and mappable fields
+### Fetching Lists and Mappable Fields
 
 When an editor opens the **Integrations** tab on a form, Formie needs to know which lists exist and which fields can be mapped on each list. That is what `fetchFormSettings()` returns.
 
@@ -269,7 +269,7 @@ foreach ($lists as $list) {
 
 Map provider field types to `IntegrationField::TYPE_*` when the API returns typed metadata so Formie converts submission values correctly.
 
-### Form settings schema
+### Form Settings Schema
 
 The `EmailMarketing` base class already defines the core per-form UI:
 
@@ -283,7 +283,7 @@ Override `defineFormSettingsSchema()` when you need extra per-form settings. The
 
 Start with `parent::defineFormSettingsSchema($form)` so you keep the standard controls. Per-form integration UI is declared as schema nodes — see [Everything you need to know about Formie schemas](/guides/developers/everything-you-need-to-know-about-formie-schemas) for helper details.
 
-### Plugin settings template
+### Plugin Settings Template
 
 Global credentials and setup instructions are rendered with Twig. `getSettingsHtml()` points at `_plugin-settings.html`, shown when creating or editing the integration under **Formie → Integrations → Email Marketing**.
 
@@ -326,7 +326,7 @@ Global credentials and setup instructions are rendered with Twig. `getSettingsHt
 
 Step-by-step instructions in the template reduce support burden — tell editors exactly where to find the API key in the provider's dashboard.
 
-### Sending the payload
+### Sending the Payload
 
 `sendPayload()` runs when a submission completes and this integration is dispatched for the form.
 
@@ -336,7 +336,7 @@ Step-by-step instructions in the template reduce support burden — tell editors
 
 The base class respects the **Opt-in field** — if configured, the integration skips when the opt-in condition is not met. Return `false` on failure so Formie records the integration run as failed. Exceptions should go through `Integration::apiError()`.
 
-## Extending an existing integration
+## Extending an Existing Integration
 
 Creating a full integration from scratch is not always worth it. If Formie already ships your provider — Mailchimp, for example — extend the built-in class and override only what you need:
 
@@ -359,7 +359,7 @@ class MailchimpCustom extends Mailchimp
 
 Register `MailchimpCustom::class` on `$event->emailMarketing[]` instead of a from-scratch class.
 
-## Finishing up
+## Finishing Up
 
 With the module in place:
 
@@ -368,10 +368,3 @@ With the module in place:
 3. Submit the form on the front end and confirm the contact appears in the provider.
 
 Integrations run as part of the [submission workflow](/developers/submission-workflow) — typically queued after the submission is saved. For dispatch order, conditions, and re-run behaviour, see [Integration dispatch and policies](/guides/integrations/integration-dispatch-and-policies).
-
-## Related
-
-- [Email Marketing Integration](/developers/custom-integration/email-marketing-integration)
-- [Custom Integration Overview](/developers/custom-integration/overview)
-- [Creating OAuth integrations with Formie](/guides/integrations/creating-oauth-integrations-with-formie)
-- [Integration dispatch and policies](/guides/integrations/integration-dispatch-and-policies)

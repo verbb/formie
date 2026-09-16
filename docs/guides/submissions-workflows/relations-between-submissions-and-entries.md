@@ -1,4 +1,4 @@
-# Relations between submissions and entries
+# Relations Between Submissions and Entries
 
 Submissions can be related to Craft elements — entries, categories, products, users — so form data stays connected to the content it belongs to. Relations are set in Twig before render, not chosen manually by editors in the form builder.
 
@@ -6,7 +6,7 @@ Submissions can be related to Craft elements — entries, categories, products, 
 
 - [Relations reference](/submissions/relations)
 
-## When to use relations
+## When to Use Relations
 
 - A contact form on an entry page should link submissions to that entry.
 - Product enquiry forms should relate to the product being viewed.
@@ -14,7 +14,7 @@ Submissions can be related to Craft elements — entries, categories, products, 
 
 Relations complement **Entries fields** inside the form (where the user picks an entry). Template-set relations attach context the user did not choose — the current page, a related product, a campaign entry.
 
-## Attach relations before render
+## Attach Relations Before Render
 
 ```twig
 {% set entry = craft.entries.slug(craft.app.request.getSegment(2)).one() %}
@@ -37,7 +37,7 @@ Relations complement **Entries fields** inside the form (where the user picks an
 
 When the form submits, those elements are stored as relations on the submission.
 
-## Read relations from a submission
+## Read Relations from a Submission
 
 ```twig
 {% set submission = craft.formie.submissions.id(3344).one() %}
@@ -49,7 +49,7 @@ When the form submits, those elements are stored as relations on the submission.
 {% endif %}
 ```
 
-## Find submissions for an element
+## Find Submissions for an Element
 
 ```twig
 {% set entry = craft.entries.id(2242).one() %}
@@ -61,7 +61,7 @@ When the form submits, those elements are stored as relations on the submission.
 
 Use this on entry templates to show enquiry history, or in the CP via custom modules.
 
-## Pattern: entry contact form
+## Pattern: Entry Contact Form
 
 A common setup:
 
@@ -71,7 +71,7 @@ A common setup:
 
 The form definition stays generic; the template supplies context per page.
 
-## Pattern: product enquiry with hidden context
+## Pattern: Product Enquiry with Hidden Context
 
 Combine relations with visible product fields:
 
@@ -80,11 +80,11 @@ Combine relations with visible product fields:
 
 Integrations can map relation element IDs to CRM product fields.
 
-## Relations and editing
+## Relations and Editing
 
 When editing a submission on the front end, relations set at original render are preserved unless your edit template calls `setRelations()` again. See [Editing submissions on the front end](/guides/submissions-workflows/editing-submissions-on-the-front-end).
 
-## Relations vs Entries fields
+## Relations vs Entries Fields
 
 | | Template relations | Entries field |
 | --- | --- | --- |
@@ -94,12 +94,6 @@ When editing a submission on the front end, relations set at original render are
 
 Use both when needed — relation for the page the user was on, Entries field when they must pick from a broader list.
 
-## Cached pages
+## Cached Pages
 
 `setRelations()` runs when Twig renders the form. On statically cached pages, relations are fixed from the render that built the cache. Vary the cache by entry/product context, or avoid full-page caching on relation-heavy forms. See [Cached Forms](/frontend/cached-forms).
-
-## Related
-
-- [Relations](/submissions/relations)
-- [Editing submissions on the front end](/guides/submissions-workflows/editing-submissions-on-the-front-end)
-- [Entries field](/fields/entries)

@@ -47,52 +47,305 @@ The schema is rendered by the form builder UI, so these nodes are not Twig templ
 ## Helpers
 `SchemaHelper` keeps common nodes shorter and gives Formie a single place to apply its own defaults. Prefer helpers for common field types and reusable Formie settings.
 
-Method | Use
---- | ---
-`textField()` | Text input.
-`textareaField()` | Textarea input.
-`selectField()` | Select input.
-`comboboxField()` | Combobox input.
-`numberField()` | Number input.
-`dateField()` | Date input.
-`checkboxSelectField()` | Checkbox group.
-`checkboxField()` | Checkbox input.
-`lightswitchField()` | Lightswitch input.
-`colorField()` | Color input.
-`tableField()` | Editable table input.
-`staticTableField()` | Static table input.
-`variableTextField()` | Text input with variable-picker support.
-`richTextField()` | Rich text input.
-`htmlEditorField()` | Syntax-highlighted HTML/code input.
-`calculationsField()` | Calculation editor.
-`elementSelectField()` | Element select input.
-`fieldSelectField()` | Formie field select input.
-`groupField()` | Grouped schema fields.
-`fieldWrap()` | Shared label/instructions around multiple smaller fields.
+::: reference
+### `textField()`
+
+**Use:** Text input.
+
+Text input.
+:::
+
+::: reference
+### `textareaField()`
+
+**Use:** Textarea input.
+
+Textarea input.
+:::
+
+::: reference
+### `selectField()`
+
+**Use:** Select input.
+
+Select input.
+:::
+
+::: reference
+### `comboboxField()`
+
+**Use:** Combobox input.
+
+Combobox input.
+:::
+
+::: reference
+### `numberField()`
+
+**Use:** Number input.
+
+Number input.
+:::
+
+::: reference
+### `dateField()`
+
+**Use:** Date input.
+
+Date input.
+:::
+
+::: reference
+### `checkboxSelectField()`
+
+**Use:** Checkbox group.
+
+Checkbox group.
+:::
+
+::: reference
+### `checkboxField()`
+
+**Use:** Checkbox input.
+
+Checkbox input.
+:::
+
+::: reference
+### `lightswitchField()`
+
+**Use:** Lightswitch input.
+
+Lightswitch input.
+:::
+
+::: reference
+### `colorField()`
+
+**Use:** Colour input.
+
+Colour input.
+:::
+
+::: reference
+### `tableField()`
+
+**Use:** Editable table input.
+
+Editable table input.
+:::
+
+::: reference
+### `staticTableField()`
+
+**Use:** Static table input.
+
+Static table input.
+:::
+
+::: reference
+### `variableTextField()`
+
+**Use:** Text input with variable-picker support.
+
+Text input with variable-picker support.
+:::
+
+::: reference
+### `richTextField()`
+
+**Use:** Rich text input.
+
+Rich text input.
+:::
+
+::: reference
+### `htmlEditorField()`
+
+**Use:** Syntax-highlighted HTML/code input.
+
+Syntax-highlighted HTML/code input.
+:::
+
+::: reference
+### `calculationsField()`
+
+**Use:** Calculation editor.
+
+Calculation editor.
+:::
+
+::: reference
+### `elementSelectField()`
+
+**Use:** Element select input.
+
+Element select input.
+:::
+
+::: reference
+### `fieldSelectField()`
+
+**Use:** Formie field select input.
+
+Formie field select input.
+:::
+
+::: reference
+### `groupField()`
+
+**Use:** Grouped schema fields.
+
+Grouped schema fields.
+:::
+
+::: reference
+### `fieldWrap()`
+
+**Use:** Shared label/instructions around multiple smaller fields.
+
+Shared label/instructions around multiple smaller fields.
+:::
+
 
 Reusable Formie field-setting helpers include:
 
-Method | Use
---- | ---
-`labelField()` | Field label.
-`handleField()` | Field handle.
-`labelPosition()` | Label position.
-`subFieldLabelPosition()` | Sub-field label position.
-`instructions()` | Field instructions.
-`instructionsPosition()` | Instructions position.
-`cssClasses()` | CSS classes.
-`containerAttributesField()` | Container attributes.
-`inputAttributesField()` | Input attributes.
-`prePopulate()` | Prefill query parameter setting.
-`enableConditionsField()` | Enable conditions setting.
-`conditionsField()` | Conditions builder.
-`enableContentEncryptionField()` | Content encryption setting.
-`includeInEmailFieldSummariesField()` | Include in email field summaries setting.
-`includeInEmailField()` | Deprecated alias for `includeInEmailFieldSummariesField()`.
-`emailFieldSummaryValue()` | Email field summary value setting.
-`emailNotificationValue()` | Deprecated alias for `emailFieldSummaryValue()`.
-`visibility()` | Visibility setting.
-`matchField()` | Match another field.
+::: reference
+### `labelField()`
+
+**Use:** Field label.
+
+Field label.
+:::
+
+::: reference
+### `handleField()`
+
+**Use:** Field handle.
+
+Field handle.
+:::
+
+::: reference
+### `labelPosition()`
+
+**Use:** Label position.
+
+Label position.
+:::
+
+::: reference
+### `subFieldLabelPosition()`
+
+**Use:** Sub-field label position.
+
+Sub-field label position.
+:::
+
+::: reference
+### `instructions()`
+
+**Use:** Field instructions.
+
+Field instructions.
+:::
+
+::: reference
+### `instructionsPosition()`
+
+**Use:** Instructions position.
+
+Instructions position.
+:::
+
+::: reference
+### `cssClasses()`
+
+**Use:** CSS classes.
+
+CSS classes.
+:::
+
+::: reference
+### `containerAttributesField()`
+
+**Use:** Container attributes.
+
+Container attributes.
+:::
+
+::: reference
+### `inputAttributesField()`
+
+**Use:** Input attributes.
+
+Input attributes.
+:::
+
+::: reference
+### `prePopulate()`
+
+**Use:** Prefill query parameter setting.
+
+Prefill query parameter setting.
+:::
+
+::: reference
+### `enableConditionsField()`
+
+**Use:** Enable conditions setting.
+
+Enable conditions setting.
+:::
+
+::: reference
+### `conditionsField()`
+
+**Use:** Conditions builder.
+
+Conditions builder.
+:::
+
+::: reference
+### `enableContentEncryptionField()`
+
+**Use:** Content encryption setting.
+
+Content encryption setting.
+:::
+
+::: reference
+### `includeInEmailFieldSummariesField()`
+
+**Use:** Include in email field summaries setting.
+
+Include in email field summaries setting.
+:::
+
+::: reference
+### `emailFieldSummaryValue()`
+
+**Use:** Email field summary value setting.
+
+Email field summary value setting.
+:::
+
+::: reference
+### `visibility()`
+
+**Use:** Visibility setting.
+
+Visibility setting.
+:::
+
+::: reference
+### `matchField()`
+
+**Use:** Match another field.
+
+Match another field.
+:::
+
 
 ## Layout and HTML
 Use `$el` for plain HTML elements and `children` to nest schema nodes. This is helpful when you need grouping, extra explanatory content or a small layout wrapper around multiple inputs.
@@ -183,8 +436,4 @@ public function defineFormBuilderPreviewSchema(): array
 
 Preview helpers include `previewInput()`, `previewTextarea()`, `previewSelect()`, `previewChoiceList()`, `previewContainerParent()`, `previewElementField()`, `previewPhone()`, `previewPayment()`, `previewTable()`, `previewMessage()`, `previewRichText()`, `previewHtml()`, `previewHeading()`, `previewGroup()`, `previewSection()`, `previewSignature()`, `previewSummary()`, `previewAgree()` and `previewRecipients()`.
 
-Legacy template-string previews should be migrated to preview schema.
-
-## Guides
-
-- [Everything you need to know about Formie schemas](/guides/developers/everything-you-need-to-know-about-formie-schemas) — fields, integrations, and builder UI
+Define field previews with preview schema so the builder can render their structure.

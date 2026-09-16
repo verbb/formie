@@ -1,6 +1,6 @@
 # GoCardless
 
-Follow the below steps to connect to the GoCardless API.
+Connect GoCardless to take payments through the provider configured for your form. You need access to configure the form in Craft and credentials for the destination account. The steps below establish the connection; finish by sending a test submission to verify the result.
 
 Formie uses GoCardless **Billing Request Flows** for hosted Direct Debit authorisation. After the customer authorises their bank details, Formie creates a one-off payment or recurring subscription against the mandate and tracks status through webhooks and the status page.
 
@@ -51,7 +51,7 @@ Formie listens for payment status updates, billing request fulfilment, and subsc
 
 ## How It Works
 
-### Once-off payments
+### Once-Off Payments
 
 1. The customer submits your form.
 2. Formie creates a GoCardless **Billing Request** and **Billing Request Flow**.
@@ -85,3 +85,9 @@ Customers can cancel subscriptions using Formie’s subscription cancel URL when
 **Subscription active but submission still incomplete** — Ensure webhooks are configured and that the status page can refresh the subscription state. The submission finalises once the GoCardless subscription is active.
 
 **Sandbox testing** — Enable **Use Sandbox** on the integration and use sandbox API credentials.
+
+## Verify a Submission
+
+Save the form, open it on your site and submit recognisable test values. Complete a test payment and inspect both the saved submission and the provider’s transaction record. Confirm the amount, currency and final payment state before enabling live payments.
+
+If nothing arrives, check whether integration conditions matched, whether the submission was complete and non-spam, and whether Craft’s queue has processed the job. A successful connection check verifies credentials; it does not prove that field mapping and delivery work. See [Connect and Test an Integration](/integrations/connect-and-test-an-integration) for a complete mapping and verification workflow.

@@ -10,7 +10,7 @@ Use them for structural and visual contracts that are not owned by a single fiel
 - multipage progress
 - page navigation and tab state
 
-## Component reference pages
+## Component Reference Pages
 
 - [Buttons](/browser/ui-reference/components/buttons)
 - [Loading](/browser/ui-reference/components/loading)
@@ -18,7 +18,7 @@ Use them for structural and visual contracts that are not owned by a single fiel
 - [Page Navigation](/browser/ui-reference/components/page-navigation)
 - [Progress](/browser/ui-reference/components/progress)
 
-## Component contract focus
+## Component Contract Focus
 
 Each component page should document:
 
@@ -28,7 +28,7 @@ Each component page should document:
 - CSS variables
 - accessibility and interaction notes
 
-## Related pages
+## Related Pages
 
 - [Fields](/browser/ui-reference/fields/)
 - [CSS variables](/browser/ui-reference/css-variables)

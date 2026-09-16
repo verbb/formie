@@ -1,8 +1,8 @@
-# JavaScript events
+# JavaScript Events
 
-JavaScript events are the main extension surface for browser-managed forms. If Formie is already rendering and booting itself on the page, this is usually the first page to reach for: it covers lifecycle hooks, submit flow, field-module events, payment events, and the points where you can adjust behavior before modules initialize. For DOM replacement, manual re-initialization, or SPA-style transitions, pair this page with [Manual initialization](/browser/behavior/manual-initialization).
+JavaScript events are the main extension surface for browser-managed forms. If Formie is already rendering and booting itself on the page, this is usually the first page to reach for: it covers lifecycle hooks, submit flow, field-module events, payment events, and the points where you can adjust behaviour before modules initialise. For DOM replacement, manual re-initialisation, or SPA-style transitions, pair this page with [Manual initialisation](/browser/behavior/manual-initialization).
 
-## Mounted forms
+## Mounted Forms
 
 When Formie has mounted a form for you, listen for `formie:mount:after` and use the root element from the event target:
 
@@ -28,7 +28,7 @@ if (root instanceof Element) {
 }
 ```
 
-If you need imperative instance access rather than DOM events, initialize the form through `formie()` or the [Custom client](/browser/behavior/custom-client) and keep the returned handle in your own application code.
+If you need imperative instance access rather than DOM events, initialise the form through `formie()` or the [Custom client](/browser/behavior/custom-client) and keep the returned handle in your own application code.
 
 Field and module events also give you a hook to adjust options before Formie initializes browser controls:
 
@@ -39,13 +39,13 @@ document.addEventListener('formie:field:date-picker:before-init', (event) => {
 });
 ```
 
-## Root Formie events
+## Root Formie Events
 
 These are the main top-level events for mounted forms.
 
-### Form lifecycle
+### Form Lifecycle
 
-#### The `formie:mount:after` event
+#### The `formie:mount:after` Event
 
 The event that is triggered after a Formie root has mounted and is ready for browser-side interaction.
 
@@ -55,7 +55,7 @@ document.addEventListener('formie:mount:after', (event) => {
 });
 ```
 
-#### The `formie:unmount:before` event
+#### The `formie:unmount:before` Event
 
 The event that is triggered just before Formie tears down a mounted root and its browser state.
 
@@ -65,7 +65,7 @@ document.addEventListener('formie:unmount:before', (event) => {
 });
 ```
 
-#### The `formie:unmount:after` event
+#### The `formie:unmount:after` Event
 
 The event that is triggered after Formie has fully torn down a mounted root.
 
@@ -75,7 +75,7 @@ document.addEventListener('formie:unmount:after', (event) => {
 });
 ```
 
-#### The `formie:validator:ready` event
+#### The `formie:validator:ready` Event
 
 The event that is triggered when Formie's validator API is ready for a mounted form. The validator instance is available as `event.detail.validator`.
 
@@ -93,7 +93,7 @@ document.addEventListener('formie:validator:ready', (event) => {
 });
 ```
 
-#### The `formie:validator:show-error` event
+#### The `formie:validator:show-error` Event
 
 The event that is triggered when Formie renders a validation error onto one input's field UI.
 
@@ -103,7 +103,7 @@ document.addEventListener('formie:validator:show-error', (event) => {
 });
 ```
 
-#### The `formie:validator:clear-error` event
+#### The `formie:validator:clear-error` Event
 
 The event that is triggered when Formie clears a previously rendered validation error from one input's field UI.
 
@@ -113,7 +113,7 @@ document.addEventListener('formie:validator:clear-error', (event) => {
 });
 ```
 
-#### The `formie:validator:destroy` event
+#### The `formie:validator:destroy` Event
 
 The event that is triggered when Formie tears down the validator for a mounted form.
 
@@ -123,7 +123,7 @@ document.addEventListener('formie:validator:destroy', (event) => {
 });
 ```
 
-#### The `formie:theme:applied` event
+#### The `formie:theme:applied` Event
 
 The event that is triggered after Formie has applied its theme classes and visual state.
 
@@ -133,11 +133,11 @@ document.addEventListener('formie:theme:applied', (event) => {
 });
 ```
 
-### Submit lifecycle
+### Submit Lifecycle
 
 These events cover the submission flow. On multi-page forms, `formie:submit:*` events can run on each page submit attempt, while `formie:submit:final:*` events are reserved for the final submit when the form is actually being completed.
 
-#### The `formie:submit:before` event
+#### The `formie:submit:before` Event
 
 The event that is triggered before Formie starts handling a submit attempt.
 
@@ -147,7 +147,7 @@ document.addEventListener('formie:submit:before', (event) => {
 });
 ```
 
-#### The `formie:submit:after` event
+#### The `formie:submit:after` Event
 
 The event that is triggered after Formie has finished processing a submit attempt.
 
@@ -157,7 +157,7 @@ document.addEventListener('formie:submit:after', (event) => {
 });
 ```
 
-#### The `formie:submit:final:before` event
+#### The `formie:submit:final:before` Event
 
 The event that is triggered before Formie starts the final submit attempt for the whole form.
 
@@ -167,7 +167,7 @@ document.addEventListener('formie:submit:final:before', (event) => {
 });
 ```
 
-#### The `formie:submit:final:after` event
+#### The `formie:submit:final:after` Event
 
 The event that is triggered after Formie has completed the final submit attempt for the whole form.
 
@@ -177,9 +177,9 @@ document.addEventListener('formie:submit:final:after', (event) => {
 });
 ```
 
-#### The `formie:submit:result` event
+#### The `formie:submit:result` Event
 
-The event that is triggered after Formie has normalized the submit result and applied the resulting state changes.
+The event that is triggered after Formie has normalised the submit result and applied the resulting state changes.
 
 ```js
 document.addEventListener('formie:submit:result', (event) => {
@@ -187,11 +187,11 @@ document.addEventListener('formie:submit:result', (event) => {
 });
 ```
 
-### Page lifecycle
+### Page Lifecycle
 
 These events are triggered around multi-page navigation when Formie is moving between pages.
 
-#### The `formie:page:navigate` event
+#### The `formie:page:navigate` Event
 
 The event that is triggered before Formie persists state and applies a page change.
 
@@ -201,7 +201,7 @@ document.addEventListener('formie:page:navigate', (event) => {
 });
 ```
 
-#### The `formie:page:navigate:after` event
+#### The `formie:page:navigate:after` Event
 
 The event that is triggered after Formie has completed a page change and updated the active page state.
 
@@ -211,7 +211,7 @@ document.addEventListener('formie:page:navigate:after', (event) => {
 });
 ```
 
-#### The `formie:page:navigate:error` event
+#### The `formie:page:navigate:error` Event
 
 The event that is triggered when Formie cannot complete a page navigation request.
 
@@ -221,11 +221,11 @@ document.addEventListener('formie:page:navigate:error', (event) => {
 });
 ```
 
-### Token lifecycle
+### Token Lifecycle
 
 These events are triggered when Formie refreshes the submission and security tokens it needs for later requests.
 
-#### The `formie:refresh-tokens:after` event
+#### The `formie:refresh-tokens:after` Event
 
 The event that is triggered after Formie has requested refreshed submission and security tokens.
 
@@ -235,7 +235,7 @@ document.addEventListener('formie:refresh-tokens:after', (event) => {
 });
 ```
 
-#### The `formie:refresh-tokens:refreshed` event
+#### The `formie:refresh-tokens:refreshed` Event
 
 The event that is triggered after refreshed tokens have been written back into Formie's current form state.
 
@@ -245,11 +245,11 @@ document.addEventListener('formie:refresh-tokens:refreshed', (event) => {
 });
 ```
 
-### State lifecycle
+### State Lifecycle
 
 These events are triggered when Formie resets the broader submission state around a form.
 
-#### The `formie:state:reset` event
+#### The `formie:state:reset` Event
 
 The event that is triggered after Formie performs a full submission-state reset. This is broader than a native form reset and also clears hidden continuity inputs, resume-token state, page UI, and live validation state.
 
@@ -259,11 +259,11 @@ document.addEventListener('formie:state:reset', (event) => {
 });
 ```
 
-### Stage lifecycle
+### Stage Lifecycle
 
 These events are emitted for each submit pipeline stage, before and after Formie runs that stage.
 
-#### The `formie:stage:prepare:before` event
+#### The `formie:stage:prepare:before` Event
 
 The event that is triggered before Formie enters the prepare stage.
 
@@ -273,7 +273,7 @@ document.addEventListener('formie:stage:prepare:before', (event) => {
 });
 ```
 
-#### The `formie:stage:prepare:after` event
+#### The `formie:stage:prepare:after` Event
 
 The event that is triggered after Formie has completed the prepare stage.
 
@@ -283,9 +283,9 @@ document.addEventListener('formie:stage:prepare:after', (event) => {
 });
 ```
 
-#### The `formie:stage:normalize:before` event
+#### The `formie:stage:normalize:before` Event
 
-The event that is triggered before Formie enters the normalize stage.
+The event that is triggered before Formie enters the normalise stage.
 
 ```js
 document.addEventListener('formie:stage:normalize:before', (event) => {
@@ -293,9 +293,9 @@ document.addEventListener('formie:stage:normalize:before', (event) => {
 });
 ```
 
-#### The `formie:stage:normalize:after` event
+#### The `formie:stage:normalize:after` Event
 
-The event that is triggered after Formie has completed the normalize stage.
+The event that is triggered after Formie has completed the normalise stage.
 
 ```js
 document.addEventListener('formie:stage:normalize:after', (event) => {
@@ -303,7 +303,7 @@ document.addEventListener('formie:stage:normalize:after', (event) => {
 });
 ```
 
-#### The `formie:stage:validate:before` event
+#### The `formie:stage:validate:before` Event
 
 The event that is triggered before Formie enters the validate stage.
 
@@ -313,7 +313,7 @@ document.addEventListener('formie:stage:validate:before', (event) => {
 });
 ```
 
-#### The `formie:stage:validate:after` event
+#### The `formie:stage:validate:after` Event
 
 The event that is triggered after Formie has completed the validate stage.
 
@@ -323,7 +323,7 @@ document.addEventListener('formie:stage:validate:after', (event) => {
 });
 ```
 
-#### The `formie:stage:screen:before` event
+#### The `formie:stage:screen:before` Event
 
 The event that is triggered before Formie enters the screening stage.
 
@@ -333,7 +333,7 @@ document.addEventListener('formie:stage:screen:before', (event) => {
 });
 ```
 
-#### The `formie:stage:screen:after` event
+#### The `formie:stage:screen:after` Event
 
 The event that is triggered after Formie has completed the screening stage.
 
@@ -343,9 +343,9 @@ document.addEventListener('formie:stage:screen:after', (event) => {
 });
 ```
 
-#### The `formie:stage:authorize:before` event
+#### The `formie:stage:authorize:before` Event
 
-The event that is triggered before Formie enters the authorization stage.
+The event that is triggered before Formie enters the authorisation stage.
 
 ```js
 document.addEventListener('formie:stage:authorize:before', (event) => {
@@ -353,9 +353,9 @@ document.addEventListener('formie:stage:authorize:before', (event) => {
 });
 ```
 
-#### The `formie:stage:authorize:after` event
+#### The `formie:stage:authorize:after` Event
 
-The event that is triggered after Formie has completed the authorization stage.
+The event that is triggered after Formie has completed the authorisation stage.
 
 ```js
 document.addEventListener('formie:stage:authorize:after', (event) => {
@@ -363,7 +363,7 @@ document.addEventListener('formie:stage:authorize:after', (event) => {
 });
 ```
 
-#### The `formie:stage:dispatch:before` event
+#### The `formie:stage:dispatch:before` Event
 
 The event that is triggered before Formie enters the dispatch stage.
 
@@ -373,7 +373,7 @@ document.addEventListener('formie:stage:dispatch:before', (event) => {
 });
 ```
 
-#### The `formie:stage:dispatch:after` event
+#### The `formie:stage:dispatch:after` Event
 
 The event that is triggered after Formie has completed the dispatch stage.
 
@@ -383,7 +383,7 @@ document.addEventListener('formie:stage:dispatch:after', (event) => {
 });
 ```
 
-#### The `formie:stage:finalize:before` event
+#### The `formie:stage:finalize:before` Event
 
 The event that is triggered before Formie enters the finalize stage.
 
@@ -393,7 +393,7 @@ document.addEventListener('formie:stage:finalize:before', (event) => {
 });
 ```
 
-#### The `formie:stage:finalize:after` event
+#### The `formie:stage:finalize:after` Event
 
 The event that is triggered after Formie has completed the finalize stage.
 
@@ -403,13 +403,13 @@ document.addEventListener('formie:stage:finalize:after', (event) => {
 });
 ```
 
-## Field module events
+## Field Module Events
 
-These events are triggered by built-in field modules as they initialize, update, and react to user input.
+These events are triggered by built-in field modules as they initialise, update, and react to user input.
 
 ### `checkbox-radio`
 
-#### The `formie:field:checkbox-radio:init` event
+#### The `formie:field:checkbox-radio:init` Event
 
 The event that is triggered after the checkbox-radio field module is ready to manage option state in the field.
 
@@ -421,7 +421,7 @@ document.addEventListener('formie:field:checkbox-radio:init', (event) => {
 
 ### `calculations`
 
-#### The `formie:field:calculations:before-evaluate` event
+#### The `formie:field:calculations:before-evaluate` Event
 
 The event that is triggered before a calculations field evaluates its formula.
 
@@ -431,7 +431,7 @@ document.addEventListener('formie:field:calculations:before-evaluate', (event) =
 });
 ```
 
-#### The `formie:field:calculations:after-evaluate` event
+#### The `formie:field:calculations:after-evaluate` Event
 
 The event that is triggered after a calculations field has finished evaluating its formula.
 
@@ -443,7 +443,7 @@ document.addEventListener('formie:field:calculations:after-evaluate', (event) =>
 
 ### `combobox`
 
-#### The `formie:field:combobox:before-init` event
+#### The `formie:field:combobox:before-init` Event
 
 The event that is triggered before the combobox module initializes. Use this to adjust Tom Select options before the control is created.
 
@@ -453,9 +453,9 @@ document.addEventListener('formie:field:combobox:before-init', (event) => {
 });
 ```
 
-#### The `formie:field:combobox:after-init` event
+#### The `formie:field:combobox:after-init` Event
 
-The event that is triggered after the combobox module has initialized and attached to the field select.
+The event that is triggered after the combobox module has initialised and attached to the field select.
 
 ```js
 document.addEventListener('formie:field:combobox:after-init', (event) => {
@@ -465,7 +465,7 @@ document.addEventListener('formie:field:combobox:after-init', (event) => {
 
 ### `date-picker`
 
-#### The `formie:field:date-picker:before-init` event
+#### The `formie:field:date-picker:before-init` Event
 
 The event that is triggered before the date picker module initializes. Use this to adjust options before the picker is created.
 
@@ -475,9 +475,9 @@ document.addEventListener('formie:field:date-picker:before-init', (event) => {
 });
 ```
 
-#### The `formie:field:date-picker:after-init` event
+#### The `formie:field:date-picker:after-init` Event
 
-The event that is triggered after the date picker module has initialized and attached to the field input.
+The event that is triggered after the date picker module has initialised and attached to the field input.
 
 ```js
 document.addEventListener('formie:field:date-picker:after-init', (event) => {
@@ -487,7 +487,7 @@ document.addEventListener('formie:field:date-picker:after-init', (event) => {
 
 ### `file-upload`
 
-#### The `formie:field:file-upload:uploaded-assets-sync` event
+#### The `formie:field:file-upload:uploaded-assets-sync` Event
 
 The event that is triggered after uploaded assets have been synchronized back into the file upload field state. Both **File Input (Simple)** and **Upload Manager (Advanced)** fields emit this event.
 
@@ -497,7 +497,7 @@ document.addEventListener('formie:field:file-upload:uploaded-assets-sync', (even
 });
 ```
 
-#### The `formie:field:file-upload:uploaded-assets-reordered` event
+#### The `formie:field:file-upload:uploaded-assets-reordered` Event
 
 The event that is triggered after uploaded files have been reordered in an **Upload Manager (Advanced)** field.
 
@@ -509,9 +509,9 @@ document.addEventListener('formie:field:file-upload:uploaded-assets-reordered', 
 
 ### `upload-manager`
 
-#### The `formie:module:upload-manager:init` event
+#### The `formie:module:upload-manager:init` Event
 
-The event that is triggered after the upload-manager module has initialized on an Advanced File Upload field.
+The event that is triggered after the upload-manager module has initialised on an Advanced File Upload field.
 
 ```js
 document.addEventListener('formie:module:upload-manager:init', (event) => {
@@ -519,7 +519,7 @@ document.addEventListener('formie:module:upload-manager:init', (event) => {
 });
 ```
 
-#### The `formie:module:upload-manager:destroy` event
+#### The `formie:module:upload-manager:destroy` Event
 
 The event that is triggered after the upload-manager module has been destroyed and cleaned up.
 
@@ -531,7 +531,7 @@ document.addEventListener('formie:module:upload-manager:destroy', (event) => {
 
 ### `phone-country`
 
-#### The `formie:field:phone-country:before-init` event
+#### The `formie:field:phone-country:before-init` Event
 
 The event that is triggered before the phone-country module initializes. Use this to adjust configuration before the library attaches.
 
@@ -541,9 +541,9 @@ document.addEventListener('formie:field:phone-country:before-init', (event) => {
 });
 ```
 
-#### The `formie:field:phone-country:init` event
+#### The `formie:field:phone-country:init` Event
 
-The event that is triggered after the phone-country module has initialized and enhanced the field input.
+The event that is triggered after the phone-country module has initialised and enhanced the field input.
 
 ```js
 document.addEventListener('formie:field:phone-country:init', (event) => {
@@ -553,7 +553,7 @@ document.addEventListener('formie:field:phone-country:init', (event) => {
 
 ### `repeater`
 
-#### The `formie:field:repeater:init` event
+#### The `formie:field:repeater:init` Event
 
 The event that is triggered after the repeater module is ready to manage its rows.
 
@@ -563,7 +563,7 @@ document.addEventListener('formie:field:repeater:init', (event) => {
 });
 ```
 
-#### The `formie:field:repeater:append` event
+#### The `formie:field:repeater:append` Event
 
 The event that is triggered after the repeater has appended a new row.
 
@@ -573,7 +573,7 @@ document.addEventListener('formie:field:repeater:append', (event) => {
 });
 ```
 
-#### The `formie:field:repeater:init-row` event
+#### The `formie:field:repeater:init-row` Event
 
 The event that is triggered after a newly appended repeater row has finished initializing its nested fields and modules.
 
@@ -583,7 +583,7 @@ document.addEventListener('formie:field:repeater:init-row', (event) => {
 });
 ```
 
-#### The `formie:field:repeater:remove` event
+#### The `formie:field:repeater:remove` Event
 
 The event that is triggered after the repeater has removed a row.
 
@@ -595,7 +595,7 @@ document.addEventListener('formie:field:repeater:remove', (event) => {
 
 ### `rich-text`
 
-#### The `formie:field:rich-text:before-init` event
+#### The `formie:field:rich-text:before-init` Event
 
 The event that is triggered before the rich-text module initializes. Use this to adjust editor options before setup.
 
@@ -605,9 +605,9 @@ document.addEventListener('formie:field:rich-text:before-init', (event) => {
 });
 ```
 
-#### The `formie:field:rich-text:after-init` event
+#### The `formie:field:rich-text:after-init` Event
 
-The event that is triggered after the rich-text module has initialized and attached its editor instance.
+The event that is triggered after the rich-text module has initialised and attached its editor instance.
 
 ```js
 document.addEventListener('formie:field:rich-text:after-init', (event) => {
@@ -615,7 +615,7 @@ document.addEventListener('formie:field:rich-text:after-init', (event) => {
 });
 ```
 
-#### The `formie:field:rich-text:populate` event
+#### The `formie:field:rich-text:populate` Event
 
 The event that is triggered when the rich-text module populates or re-populates its editor content.
 
@@ -627,9 +627,9 @@ document.addEventListener('formie:field:rich-text:populate', (event) => {
 
 ### `signature`
 
-#### The `formie:field:signature:init` event
+#### The `formie:field:signature:init` Event
 
-The event that is triggered after the signature module has initialized its drawing surface.
+The event that is triggered after the signature module has initialised its drawing surface.
 
 ```js
 document.addEventListener('formie:field:signature:init', (event) => {
@@ -639,7 +639,7 @@ document.addEventListener('formie:field:signature:init', (event) => {
 
 ### `summary`
 
-#### The `formie:field:summary:fetch-summary` event
+#### The `formie:field:summary:fetch-summary` Event
 
 The event that is triggered when the summary field is about to collect the values it will display.
 
@@ -649,7 +649,7 @@ document.addEventListener('formie:field:summary:fetch-summary', (event) => {
 });
 ```
 
-#### The `formie:field:summary:field-visible` event
+#### The `formie:field:summary:field-visible` Event
 
 The event that is triggered when a field is considered visible enough to be included in summary output.
 
@@ -661,7 +661,7 @@ document.addEventListener('formie:field:summary:field-visible', (event) => {
 
 ### `table`
 
-#### The `formie:field:table:init` event
+#### The `formie:field:table:init` Event
 
 The event that is triggered after the table module is ready to manage its rows and controls.
 
@@ -671,7 +671,7 @@ document.addEventListener('formie:field:table:init', (event) => {
 });
 ```
 
-#### The `formie:field:table:append` event
+#### The `formie:field:table:append` Event
 
 The event that is triggered after the table field has appended a new row.
 
@@ -681,7 +681,7 @@ document.addEventListener('formie:field:table:append', (event) => {
 });
 ```
 
-#### The `formie:field:table:remove` event
+#### The `formie:field:table:remove` Event
 
 The event that is triggered after the table field has removed a row.
 
@@ -691,13 +691,13 @@ document.addEventListener('formie:field:table:remove', (event) => {
 });
 ```
 
-## Address provider events
+## Address Provider Events
 
 These events are triggered by the active address provider integration for a field.
 
 ### `place-kit`
 
-#### The `formie:address:place-kit:before-init` event
+#### The `formie:address:place-kit:before-init` Event
 
 The event that is triggered before the PlaceKit address provider initializes. Use this to adjust provider options before setup.
 
@@ -707,7 +707,7 @@ document.addEventListener('formie:address:place-kit:before-init', (event) => {
 });
 ```
 
-#### The `formie:address:place-kit:populate` event
+#### The `formie:address:place-kit:populate` Event
 
 The event that is triggered when PlaceKit writes selected address data into the field's sub-fields.
 
@@ -719,7 +719,7 @@ document.addEventListener('formie:address:place-kit:populate', (event) => {
 
 ### `address-finder`
 
-#### The `formie:address:address-finder:populate` event
+#### The `formie:address:address-finder:populate` Event
 
 The event that is triggered when Address Finder writes selected address data into the field's sub-fields.
 
@@ -731,7 +731,7 @@ document.addEventListener('formie:address:address-finder:populate', (event) => {
 
 ### `google`
 
-#### The `formie:address:google:populate` event
+#### The `formie:address:google:populate` Event
 
 The event that is triggered when Google writes selected address data into the field's sub-fields.
 
@@ -741,15 +741,17 @@ document.addEventListener('formie:address:google:populate', (event) => {
 });
 ```
 
-## Payment events
+## Payment Events
 
-These events cover generic payment authorization flow as well as provider-specific follow-up actions.
+These events cover generic payment authorisation flow as well as provider-specific follow-up actions.
 
-### Generic payment authorization events
+<span id="generic-payment-authorization-events"></span>
 
-#### The `formie:payment:authorize:before` event
+### Generic Payment Authorisation Events
 
-The event that is triggered before Formie starts the payment authorization flow.
+#### The `formie:payment:authorize:before` Event
+
+The event that is triggered before Formie starts the payment authorisation flow.
 
 ```js
 document.addEventListener('formie:payment:authorize:before', (event) => {
@@ -757,9 +759,9 @@ document.addEventListener('formie:payment:authorize:before', (event) => {
 });
 ```
 
-#### The `formie:payment:authorize:after` event
+#### The `formie:payment:authorize:after` Event
 
-The event that is triggered after Formie finishes the payment authorization flow.
+The event that is triggered after Formie finishes the payment authorisation flow.
 
 ```js
 document.addEventListener('formie:payment:authorize:after', (event) => {
@@ -767,9 +769,9 @@ document.addEventListener('formie:payment:authorize:after', (event) => {
 });
 ```
 
-#### The `formie:payment:authorize:error` event
+#### The `formie:payment:authorize:error` Event
 
-The event that is triggered when the payment authorization flow fails.
+The event that is triggered when the payment authorisation flow fails.
 
 ```js
 document.addEventListener('formie:payment:authorize:error', (event) => {
@@ -777,9 +779,9 @@ document.addEventListener('formie:payment:authorize:error', (event) => {
 });
 ```
 
-#### The `formie:payment:provider-authorize:before` event
+#### The `formie:payment:provider-authorize:before` Event
 
-The event that is triggered before the active payment provider performs its own authorization step.
+The event that is triggered before the active payment provider performs its own authorisation step.
 
 ```js
 document.addEventListener('formie:payment:provider-authorize:before', (event) => {
@@ -787,9 +789,9 @@ document.addEventListener('formie:payment:provider-authorize:before', (event) =>
 });
 ```
 
-#### The `formie:payment:provider-authorize:after` event
+#### The `formie:payment:provider-authorize:after` Event
 
-The event that is triggered after the active payment provider completes its own authorization step.
+The event that is triggered after the active payment provider completes its own authorisation step.
 
 ```js
 document.addEventListener('formie:payment:provider-authorize:after', (event) => {
@@ -797,9 +799,9 @@ document.addEventListener('formie:payment:provider-authorize:after', (event) => 
 });
 ```
 
-#### The `formie:payment:provider-authorize:error` event
+#### The `formie:payment:provider-authorize:error` Event
 
-The event that is triggered when the active payment provider cannot complete its authorization step.
+The event that is triggered when the active payment provider cannot complete its authorisation step.
 
 ```js
 document.addEventListener('formie:payment:provider-authorize:error', (event) => {
@@ -807,9 +809,9 @@ document.addEventListener('formie:payment:provider-authorize:error', (event) => 
 });
 ```
 
-### Provider action events
+### Provider Action Events
 
-#### The `formie:payment:stripe:confirm` event
+#### The `formie:payment:stripe:confirm` Event
 
 The event that is triggered when Stripe requires a follow-up confirmation step before the submission can continue.
 
@@ -819,7 +821,7 @@ document.addEventListener('formie:payment:stripe:confirm', (event) => {
 });
 ```
 
-#### The `formie:payment:opayo:challenge` event
+#### The `formie:payment:opayo:challenge` Event
 
 The event that is triggered when Opayo requires a challenge step before the submission can continue.
 
@@ -829,7 +831,7 @@ document.addEventListener('formie:payment:opayo:challenge', (event) => {
 });
 ```
 
-#### The `formie:payment:mollie:redirect` event
+#### The `formie:payment:mollie:redirect` Event
 
 The event that is triggered when Mollie requires a redirect before the submission can continue.
 
@@ -839,7 +841,7 @@ document.addEventListener('formie:payment:mollie:redirect', (event) => {
 });
 ```
 
-#### The `formie:payment:go-cardless:redirect` event
+#### The `formie:payment:go-cardless:redirect` Event
 
 The event that is triggered when GoCardless requires a redirect before the submission can continue.
 
@@ -849,9 +851,9 @@ document.addEventListener('formie:payment:go-cardless:redirect', (event) => {
 });
 ```
 
-#### The `formie:payment:paddle:initialize` event
+#### The `formie:payment:paddle:initialize` Event
 
-The event that is triggered when Paddle requires an initialization step before the submission can continue.
+The event that is triggered when Paddle requires an initialisation step before the submission can continue.
 
 ```js
 document.addEventListener('formie:payment:paddle:initialize', (event) => {
@@ -859,13 +861,13 @@ document.addEventListener('formie:payment:paddle:initialize', (event) => {
 });
 ```
 
-## Module lifecycle events
+## Module Lifecycle Events
 
 These events are triggered around module setup, teardown, and built-in module availability.
 
-### Generic lifecycle events
+### Generic Lifecycle Events
 
-#### The `formie:module:before-setup` event
+#### The `formie:module:before-setup` Event
 
 The event that is triggered before Formie sets up any module.
 
@@ -875,7 +877,7 @@ document.addEventListener('formie:module:before-setup', (event) => {
 });
 ```
 
-#### The `formie:module:after-setup` event
+#### The `formie:module:after-setup` Event
 
 The event that is triggered after Formie has finished setting up a module.
 
@@ -885,7 +887,7 @@ document.addEventListener('formie:module:after-setup', (event) => {
 });
 ```
 
-#### The `formie:module:before-destroy` event
+#### The `formie:module:before-destroy` Event
 
 The event that is triggered before Formie starts tearing down a module.
 
@@ -895,7 +897,7 @@ document.addEventListener('formie:module:before-destroy', (event) => {
 });
 ```
 
-#### The `formie:module:after-destroy` event
+#### The `formie:module:after-destroy` Event
 
 The event that is triggered after Formie has finished tearing down a module.
 
@@ -905,11 +907,11 @@ document.addEventListener('formie:module:after-destroy', (event) => {
 });
 ```
 
-### Scoped lifecycle events
+### Scoped Lifecycle Events
 
 Scoped lifecycle events are available for any module id. The examples below use the `date-picker` module to show the event shape.
 
-#### The `formie:module:date-picker:before-setup` event
+#### The `formie:module:date-picker:before-setup` Event
 
 The event that is triggered before the date-picker module is set up. Use this pattern with any module id you want to target.
 
@@ -919,7 +921,7 @@ document.addEventListener('formie:module:date-picker:before-setup', (event) => {
 });
 ```
 
-#### The `formie:module:date-picker:after-setup` event
+#### The `formie:module:date-picker:after-setup` Event
 
 The event that is triggered after the date-picker module has been set up and made available on the field.
 
@@ -929,7 +931,7 @@ document.addEventListener('formie:module:date-picker:after-setup', (event) => {
 });
 ```
 
-#### The `formie:module:date-picker:before-destroy` event
+#### The `formie:module:date-picker:before-destroy` Event
 
 The event that is triggered before the date-picker module is destroyed and detached from the field.
 
@@ -939,7 +941,7 @@ document.addEventListener('formie:module:date-picker:before-destroy', (event) =>
 });
 ```
 
-#### The `formie:module:date-picker:after-destroy` event
+#### The `formie:module:date-picker:after-destroy` Event
 
 The event that is triggered after the date-picker module has been destroyed and cleaned up.
 
@@ -949,13 +951,13 @@ document.addEventListener('formie:module:date-picker:after-destroy', (event) => 
 });
 ```
 
-### Module init and destroy events currently emitted by built-in modules
+### Module Init and Destroy Events Currently Emitted by Built-in Modules
 
 These events are currently emitted by built-in modules. The examples start with `checkbox-radio`, but the same pattern applies across the built-in module ids listed in this section.
 
-#### The `formie:module:checkbox-radio:init` event
+#### The `formie:module:checkbox-radio:init` Event
 
-The event that is triggered after the checkbox-radio module has initialized and is ready to manage the field.
+The event that is triggered after the checkbox-radio module has initialised and is ready to manage the field.
 
 ```js
 document.addEventListener('formie:module:checkbox-radio:init', (event) => {
@@ -963,7 +965,7 @@ document.addEventListener('formie:module:checkbox-radio:init', (event) => {
 });
 ```
 
-#### The `formie:module:checkbox-radio:destroy` event
+#### The `formie:module:checkbox-radio:destroy` Event
 
 The event that is triggered after the checkbox-radio module has been destroyed and cleaned up.
 
@@ -973,9 +975,9 @@ document.addEventListener('formie:module:checkbox-radio:destroy', (event) => {
 });
 ```
 
-#### The `formie:module:calculations:init` event
+#### The `formie:module:calculations:init` Event
 
-The event that is triggered after the calculations module has initialized and is ready to evaluate values.
+The event that is triggered after the calculations module has initialised and is ready to evaluate values.
 
 ```js
 document.addEventListener('formie:module:calculations:init', (event) => {
@@ -983,7 +985,7 @@ document.addEventListener('formie:module:calculations:init', (event) => {
 });
 ```
 
-#### The `formie:module:calculations:destroy` event
+#### The `formie:module:calculations:destroy` Event
 
 The event that is triggered after the calculations module has been destroyed and cleaned up.
 
@@ -993,9 +995,9 @@ document.addEventListener('formie:module:calculations:destroy', (event) => {
 });
 ```
 
-#### The `formie:module:conditions:init` event
+#### The `formie:module:conditions:init` Event
 
-The event that is triggered after the conditions module has initialized and is ready to evaluate visibility rules.
+The event that is triggered after the conditions module has initialised and is ready to evaluate visibility rules.
 
 ```js
 document.addEventListener('formie:module:conditions:init', (event) => {
@@ -1003,7 +1005,7 @@ document.addEventListener('formie:module:conditions:init', (event) => {
 });
 ```
 
-#### The `formie:module:conditions:destroy` event
+#### The `formie:module:conditions:destroy` Event
 
 The event that is triggered after the conditions module has been destroyed and cleaned up.
 
@@ -1013,9 +1015,9 @@ document.addEventListener('formie:module:conditions:destroy', (event) => {
 });
 ```
 
-#### The `formie:module:date-picker:init` event
+#### The `formie:module:date-picker:init` Event
 
-The event that is triggered after the date-picker module has initialized and attached its picker instance.
+The event that is triggered after the date-picker module has initialised and attached its picker instance.
 
 ```js
 document.addEventListener('formie:module:date-picker:init', (event) => {
@@ -1023,7 +1025,7 @@ document.addEventListener('formie:module:date-picker:init', (event) => {
 });
 ```
 
-#### The `formie:module:date-picker:destroy` event
+#### The `formie:module:date-picker:destroy` Event
 
 The event that is triggered after the date-picker module has been destroyed and cleaned up.
 
@@ -1033,9 +1035,9 @@ document.addEventListener('formie:module:date-picker:destroy', (event) => {
 });
 ```
 
-#### The `formie:module:file-upload:init` event
+#### The `formie:module:file-upload:init` Event
 
-The event that is triggered after the file-upload module has initialized and is ready to manage uploads.
+The event that is triggered after the file-upload module has initialised and is ready to manage uploads.
 
 ```js
 document.addEventListener('formie:module:file-upload:init', (event) => {
@@ -1043,7 +1045,7 @@ document.addEventListener('formie:module:file-upload:init', (event) => {
 });
 ```
 
-#### The `formie:module:file-upload:destroy` event
+#### The `formie:module:file-upload:destroy` Event
 
 The event that is triggered after the file-upload module has been destroyed and cleaned up.
 
@@ -1053,9 +1055,9 @@ document.addEventListener('formie:module:file-upload:destroy', (event) => {
 });
 ```
 
-#### The `formie:module:upload-manager:init` event
+#### The `formie:module:upload-manager:init` Event
 
-The event that is triggered after the upload-manager module has initialized and is ready to manage staged uploads.
+The event that is triggered after the upload-manager module has initialised and is ready to manage staged uploads.
 
 ```js
 document.addEventListener('formie:module:upload-manager:init', (event) => {
@@ -1063,7 +1065,7 @@ document.addEventListener('formie:module:upload-manager:init', (event) => {
 });
 ```
 
-#### The `formie:module:upload-manager:destroy` event
+#### The `formie:module:upload-manager:destroy` Event
 
 The event that is triggered after the upload-manager module has been destroyed and cleaned up.
 
@@ -1073,9 +1075,9 @@ document.addEventListener('formie:module:upload-manager:destroy', (event) => {
 });
 ```
 
-#### The `formie:module:hidden:init` event
+#### The `formie:module:hidden:init` Event
 
-The event that is triggered after the hidden module has initialized and applied its field behavior.
+The event that is triggered after the hidden module has initialised and applied its field behaviour.
 
 ```js
 document.addEventListener('formie:module:hidden:init', (event) => {
@@ -1083,7 +1085,7 @@ document.addEventListener('formie:module:hidden:init', (event) => {
 });
 ```
 
-#### The `formie:module:hidden:destroy` event
+#### The `formie:module:hidden:destroy` Event
 
 The event that is triggered after the hidden module has been destroyed and cleaned up.
 
@@ -1093,7 +1095,7 @@ document.addEventListener('formie:module:hidden:destroy', (event) => {
 });
 ```
 
-#### The `formie:module:payment:destroy` event
+#### The `formie:module:payment:destroy` Event
 
 The event that is triggered after the payment module has been destroyed and its provider state has been cleaned up.
 
@@ -1103,9 +1105,9 @@ document.addEventListener('formie:module:payment:destroy', (event) => {
 });
 ```
 
-#### The `formie:module:phone-country:init` event
+#### The `formie:module:phone-country:init` Event
 
-The event that is triggered after the phone-country module has initialized and enhanced the field input.
+The event that is triggered after the phone-country module has initialised and enhanced the field input.
 
 ```js
 document.addEventListener('formie:module:phone-country:init', (event) => {
@@ -1113,7 +1115,7 @@ document.addEventListener('formie:module:phone-country:init', (event) => {
 });
 ```
 
-#### The `formie:module:phone-country:destroy` event
+#### The `formie:module:phone-country:destroy` Event
 
 The event that is triggered after the phone-country module has been destroyed and cleaned up.
 
@@ -1123,9 +1125,9 @@ document.addEventListener('formie:module:phone-country:destroy', (event) => {
 });
 ```
 
-#### The `formie:module:repeater:init` event
+#### The `formie:module:repeater:init` Event
 
-The event that is triggered after the repeater module has initialized and is ready to manage its rows.
+The event that is triggered after the repeater module has initialised and is ready to manage its rows.
 
 ```js
 document.addEventListener('formie:module:repeater:init', (event) => {
@@ -1133,7 +1135,7 @@ document.addEventListener('formie:module:repeater:init', (event) => {
 });
 ```
 
-#### The `formie:module:repeater:destroy` event
+#### The `formie:module:repeater:destroy` Event
 
 The event that is triggered after the repeater module has been destroyed and cleaned up.
 
@@ -1143,9 +1145,9 @@ document.addEventListener('formie:module:repeater:destroy', (event) => {
 });
 ```
 
-#### The `formie:module:rich-text:init` event
+#### The `formie:module:rich-text:init` Event
 
-The event that is triggered after the rich-text module has initialized and attached its editor instance.
+The event that is triggered after the rich-text module has initialised and attached its editor instance.
 
 ```js
 document.addEventListener('formie:module:rich-text:init', (event) => {
@@ -1153,7 +1155,7 @@ document.addEventListener('formie:module:rich-text:init', (event) => {
 });
 ```
 
-#### The `formie:module:rich-text:destroy` event
+#### The `formie:module:rich-text:destroy` Event
 
 The event that is triggered after the rich-text module has been destroyed and cleaned up.
 
@@ -1163,9 +1165,9 @@ document.addEventListener('formie:module:rich-text:destroy', (event) => {
 });
 ```
 
-#### The `formie:module:signature:init` event
+#### The `formie:module:signature:init` Event
 
-The event that is triggered after the signature module has initialized and attached its drawing surface.
+The event that is triggered after the signature module has initialised and attached its drawing surface.
 
 ```js
 document.addEventListener('formie:module:signature:init', (event) => {
@@ -1173,7 +1175,7 @@ document.addEventListener('formie:module:signature:init', (event) => {
 });
 ```
 
-#### The `formie:module:signature:destroy` event
+#### The `formie:module:signature:destroy` Event
 
 The event that is triggered after the signature module has been destroyed and cleaned up.
 
@@ -1183,9 +1185,9 @@ document.addEventListener('formie:module:signature:destroy', (event) => {
 });
 ```
 
-#### The `formie:module:summary:init` event
+#### The `formie:module:summary:init` Event
 
-The event that is triggered after the summary module has initialized and is ready to collect summary values.
+The event that is triggered after the summary module has initialised and is ready to collect summary values.
 
 ```js
 document.addEventListener('formie:module:summary:init', (event) => {
@@ -1193,7 +1195,7 @@ document.addEventListener('formie:module:summary:init', (event) => {
 });
 ```
 
-#### The `formie:module:summary:destroy` event
+#### The `formie:module:summary:destroy` Event
 
 The event that is triggered after the summary module has been destroyed and cleaned up.
 
@@ -1203,9 +1205,9 @@ document.addEventListener('formie:module:summary:destroy', (event) => {
 });
 ```
 
-#### The `formie:module:table:init` event
+#### The `formie:module:table:init` Event
 
-The event that is triggered after the table module has initialized and is ready to manage its rows.
+The event that is triggered after the table module has initialised and is ready to manage its rows.
 
 ```js
 document.addEventListener('formie:module:table:init', (event) => {
@@ -1213,7 +1215,7 @@ document.addEventListener('formie:module:table:init', (event) => {
 });
 ```
 
-#### The `formie:module:table:destroy` event
+#### The `formie:module:table:destroy` Event
 
 The event that is triggered after the table module has been destroyed and cleaned up.
 
@@ -1223,9 +1225,9 @@ document.addEventListener('formie:module:table:destroy', (event) => {
 });
 ```
 
-#### The `formie:module:text-limit:init` event
+#### The `formie:module:text-limit:init` Event
 
-The event that is triggered after the text-limit module has initialized and is ready to track remaining characters.
+The event that is triggered after the text-limit module has initialised and is ready to track remaining characters.
 
 ```js
 document.addEventListener('formie:module:text-limit:init', (event) => {
@@ -1233,7 +1235,7 @@ document.addEventListener('formie:module:text-limit:init', (event) => {
 });
 ```
 
-#### The `formie:module:text-limit:destroy` event
+#### The `formie:module:text-limit:destroy` Event
 
 The event that is triggered after the text-limit module has been destroyed and cleaned up.
 
@@ -1245,9 +1247,9 @@ document.addEventListener('formie:module:text-limit:destroy', (event) => {
 
 Additional payment provider modules also emit provider-specific module init and destroy events when present in the manifest.
 
-#### The `formie:module:stripe:init` event
+#### The `formie:module:stripe:init` Event
 
-The event that is triggered after the Stripe module has initialized and is ready to manage provider-specific UI.
+The event that is triggered after the Stripe module has initialised and is ready to manage provider-specific UI.
 
 ```js
 document.addEventListener('formie:module:stripe:init', (event) => {
@@ -1255,7 +1257,7 @@ document.addEventListener('formie:module:stripe:init', (event) => {
 });
 ```
 
-#### The `formie:module:stripe:destroy` event
+#### The `formie:module:stripe:destroy` Event
 
 The event that is triggered after the Stripe module has been destroyed and cleaned up.
 
@@ -1265,9 +1267,9 @@ document.addEventListener('formie:module:stripe:destroy', (event) => {
 });
 ```
 
-#### The `formie:module:paypal:init` event
+#### The `formie:module:paypal:init` Event
 
-The event that is triggered after the PayPal module has initialized and is ready to manage provider-specific UI.
+The event that is triggered after the PayPal module has initialised and is ready to manage provider-specific UI.
 
 ```js
 document.addEventListener('formie:module:paypal:init', (event) => {
@@ -1275,7 +1277,7 @@ document.addEventListener('formie:module:paypal:init', (event) => {
 });
 ```
 
-#### The `formie:module:paypal:destroy` event
+#### The `formie:module:paypal:destroy` Event
 
 The event that is triggered after the PayPal module has been destroyed and cleaned up.
 
@@ -1285,9 +1287,9 @@ document.addEventListener('formie:module:paypal:destroy', (event) => {
 });
 ```
 
-## Conditions event
+## Conditions Event
 
-#### The `formie:conditions:evaluated` event
+#### The `formie:conditions:evaluated` Event
 
 The event that is triggered after Formie has evaluated conditional logic for a field or form-state change.
 
@@ -1297,10 +1299,10 @@ document.addEventListener('formie:conditions:evaluated', (event) => {
 });
 ```
 
-## Related pages
+## Related Pages
 
 - [Validation](/browser/validation/)
 - [Modules](/browser/modules/)
 - [JavaScript API](/browser/)
-- [Manual initialization](/browser/behavior/manual-initialization)
+- [Manual initialisation](/browser/behavior/manual-initialization)
 - [Submission handling](/browser/behavior/submission-handling)

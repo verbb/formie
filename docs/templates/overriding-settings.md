@@ -1,6 +1,6 @@
 # Overriding Settings
 
-Override settings in a template when the saved form should stay the same, but one render needs slightly different behavior.
+Override settings in a template when the saved form should stay the same, but one render needs slightly different behaviour.
 
 This works by loading the form, changing the setting on the form object, then rendering that form object. It can be useful for template-specific redirects, field labels, placeholders, visibility, or dynamic option lists.
 
@@ -49,7 +49,7 @@ Use `setFieldSettings()` when the change belongs to a field.
 {{ craft.formie.renderForm(form) }}
 ```
 
-### Required state
+### Required State
 
 Use a real boolean when changing whether a field is required. The string `'false'` is still a non-empty value in PHP/Twig contexts, so it can behave like an enabled setting.
 
@@ -93,7 +93,7 @@ For nested fields inside Group or Repeater fields, include the parent field hand
 }) %}
 ```
 
-### Container and input attributes
+### Container and Input Attributes
 
 `containerAttributes` and `inputAttributes` accept the same Craft-style attribute map you would pass to Craft’s `attr()` helper:
 

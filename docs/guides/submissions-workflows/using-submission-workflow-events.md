@@ -1,4 +1,4 @@
-# Using submission workflow events
+# Using Submission Workflow Events
 
 Most submission extensions do not need a custom task or stage. Formie fires **workflow events** at each stage and task boundary — enough for validation tweaks, audit logging, blocking dispatch on specific forms, and reacting after save or screening.
 
@@ -6,7 +6,7 @@ This walkthrough wires those listeners from a Craft module with four common patt
 
 Read [Submission workflow and stages explained](/guides/submissions-workflows/submission-workflow-and-stages-explained) first if the pipeline is new to you. For page-submit vs form-submit hooks, see [Run custom code on page submit or form submit](/guides/submissions-workflows/run-custom-code-on-page-submit-or-form-submit). For every event payload, see [Submission Events](/developers/events/submission-events).
 
-## When events are enough
+## When Events Are Enough
 
 | Extension point | Use when |
 | --- | --- |
@@ -21,7 +21,7 @@ Workflow events receive a `SubmissionRequest` and `WorkflowContext`. That gives 
 
 Events cannot skip a single task in the middle of a stage and leave the rest running. Setting `$event->isValid = false` on `beforeTask` halts the **entire stage**. When you need one step inserted or skipped without stopping what comes after, use a custom task.
 
-## Create your module
+## Create Your Module
 
 You need a [Craft module](https://craftcms.com/docs/5.x/extend/module-guide.html). This guide keeps everything in one bootstrap file — no extra classes required.
 
@@ -61,7 +61,7 @@ class FormieWorkflow extends Module
 }
 ```
 
-## Guard on process mode
+## Guard on Process Mode
 
 Workflow events fire for every request that walks the pipeline — full submits, save-and-continue drafts, edit-existing updates, and payment replays. Most front-end-only logic should return early unless the mode is a full submit:
 
@@ -75,7 +75,7 @@ Built-in tasks inside inactive stages are skipped automatically. **Stage-level**
 
 Task-level listeners only fire when that built-in task runs for the current mode — so `afterTask` on `dispatch.triggerIntegrations` does not run on save-and-continue, even without an explicit guard.
 
-## Example: reject blocked email domains after validation
+## Example: Reject Blocked Email Domains After Validation
 
 Use `afterTask` on `validate.validateSubmission` when Formie has already run field rules and you want to add project-specific checks. Errors on the submission are picked up by `authorize.haltOnSubmissionErrors` later in the pipeline.
 
@@ -106,7 +106,7 @@ Event::on(SubmissionWorkflow::class, SubmissionWorkflow::EVENT_AFTER_TASK, funct
 
 Use the [default tasks table](/developers/submission-workflow#default-tasks) for anchor names. Task names follow the `stage.handle` pattern — for example `dispatch.sendNotifications`, not `notifications`.
 
-## Example: sync to an external system after save
+## Example: Sync to an External System After Save
 
 Use `afterTask` on `save.persistSubmissionWorkflow` when the submission is stored and you want side effects before notifications or integrations. The submission has an ID; payment processing may still run in later save tasks.
 
@@ -139,7 +139,7 @@ Event::on(SubmissionWorkflow::class, SubmissionWorkflow::EVENT_AFTER_TASK, funct
 
 Check `$event->result` on `afterTask` and `afterStage` when you only want to react to successful work.
 
-## Example: skip dispatch for internal test forms
+## Example: Skip Dispatch for Internal Test Forms
 
 Use `beforeStage` on `dispatch` when an entire phase should not run. Set `$event->isValid = false` to halt the stage before any dispatch task executes — no notifications, integrations, or spam admin emails.
 
@@ -161,7 +161,7 @@ Event::on(SubmissionWorkflow::class, SubmissionWorkflow::EVENT_BEFORE_STAGE, fun
 
 The workflow stops at dispatch; finalize still runs so the visitor gets a coherent response. Use this sparingly — disabling notifications and integrations in form settings is usually clearer for editors.
 
-## Example: react after spam screening
+## Example: React After Spam Screening
 
 Use `afterStage` on `screen` when you care about the outcome of the whole screening phase rather than one task. `$event->result` describes whether the stage succeeded; the submission may already be flagged as spam.
 
@@ -188,7 +188,7 @@ Event::on(SubmissionWorkflow::class, SubmissionWorkflow::EVENT_AFTER_STAGE, func
 });
 ```
 
-## Vetoing a task with `beforeTask`
+## Vetoing a Task with `beforeTask`
 
 `beforeTask` and `beforeStage` extend Craft's `CancelableEvent`. Setting `$event->isValid = false` halts the current stage immediately — remaining tasks in that stage do not run.
 
@@ -211,7 +211,7 @@ Event::on(SubmissionWorkflow::class, SubmissionWorkflow::EVENT_BEFORE_TASK, func
 
 This stops **all** remaining dispatch work — including `dispatch.markDispatchFinalized`. Prefer form settings, integration conditions, or a [custom task](/guides/submissions-workflows/adding-a-custom-workflow-task-from-scratch) inserted before integrations when you only want to skip one step.
 
-## Workflow events vs element events
+## Workflow Events vs Element Events
 
 `Submission::EVENT_AFTER_SAVE` fires whenever the submission **element** is written — front-end submit, save-and-continue, control panel edit, queue jobs, imports.
 
@@ -219,7 +219,7 @@ Workflow events fire during the **submission request** and respect stage and tas
 
 If both could work, prefer the narrowest hook. Element events are broader; workflow events are more precise for submit-time behaviour.
 
-## When to move to a custom task or stage
+## When to Move to a Custom Task or Stage
 
 | Symptom | Better approach |
 | --- | --- |
@@ -229,19 +229,10 @@ If both could work, prefer the narrowest hook. Element events are broader; workf
 | New phase between built-in stages | [Custom stage](/guides/submissions-workflows/adding-a-custom-workflow-stage-from-scratch) |
 | React to any save regardless of source | `Submission::EVENT_AFTER_SAVE` |
 
-## Finishing up
+## Finishing Up
 
 1. Enable Craft dev mode and submit a form — watch `storage/logs/` for `Starting workflow stage` and `Starting workflow task` lines to confirm where your listener runs.
 2. Test save-and-continue and a full final submit — confirm guards behave as expected.
 3. If a listener never fires, check the task name against the [default tasks table](/developers/submission-workflow#default-tasks) and confirm the task runs in your workflow mode.
 
 Keep listeners fast. Queue slow API calls from `afterTask` or `afterStage` rather than blocking the visitor.
-
-## Related
-
-- [Run custom code on page submit or form submit](/guides/submissions-workflows/run-custom-code-on-page-submit-or-form-submit)
-- [Submission workflow and stages explained](/guides/submissions-workflows/submission-workflow-and-stages-explained)
-- [Adding a custom workflow task from scratch](/guides/submissions-workflows/adding-a-custom-workflow-task-from-scratch)
-- [Adding a custom workflow stage from scratch](/guides/submissions-workflows/adding-a-custom-workflow-stage-from-scratch)
-- [Submission Workflow](/developers/submission-workflow)
-- [Submission Events](/developers/events/submission-events)

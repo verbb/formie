@@ -4,7 +4,7 @@ Summary waits for the field to become visible, fetches server-rendered summary H
 
 ## Events
 
-#### The `formie:field:summary:field-visible` event
+#### The `formie:field:summary:field-visible` Event
 
 Triggered when the summary field is visible enough to start participating in refreshes.
 
@@ -18,7 +18,7 @@ document.addEventListener('formie:field:summary:field-visible', (event) => {
 });
 ```
 
-#### The `formie:field:summary:fetch-summary` event
+#### The `formie:field:summary:fetch-summary` Event
 
 Triggered after fresh summary HTML has been fetched for the field.
 
@@ -34,7 +34,7 @@ document.addEventListener('formie:field:summary:fetch-summary', (event) => {
 
 The shared module lifecycle also exposes scoped events such as `formie:module:summary:after-setup`.
 
-## Related pages
+## Related Pages
 
 - [Summary field](/browser/ui-reference/fields/summary)
 - [Overview](/browser/modules/)

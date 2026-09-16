@@ -1,8 +1,12 @@
-# Manual initialization
+<span id="manual-initialization"></span>
 
-Manual initialization is for cases where Formie is still rendering the form HTML for you, but you do not want Formie's startup script to auto-start that form for you.
+# Manual Initialisation
 
-## Manual initialization use cases
+Manual initialisation is for cases where Formie is still rendering the form HTML for you, but you do not want Formie's startup script to auto-start that form for you.
+
+<span id="manual-initialization-use-cases"></span>
+
+## Manual Initialisation Use Cases
 
 On a normal Craft-rendered page, Formie's startup script reads its page-level settings from the emitted script tag, scans the page for roots such as `[data-formie]` and `[data-formie-form]`, mounts them automatically, and can keep observing for later DOM inserts.
 
@@ -14,9 +18,9 @@ Once mounted, Formie handles the normal browser layer for you, including:
 - file upload, captcha, and payment module setup
 - browser events such as `formie:mount:after` and `formie:submit:result`
 
-This page covers the cases where you want to keep Formie-rendered HTML, disable automatic initialization, and then initialize those forms from your own frontend bundle when your page lifecycle says it is ready.
+This page covers the cases where you want to keep Formie-rendered HTML, disable automatic initialisation, and then initialise those forms from your own frontend bundle when your page lifecycle says it is ready.
 
-## Disable auto-init
+## Disable Auto-Init
 
 Disable automatic startup on the rendered form in Twig:
 
@@ -28,7 +32,9 @@ Disable automatic startup on the rendered form in Twig:
 
 `initJs` is form-scoped. It marks that rendered form as opt-out, but it does not turn off the startup script for the whole page.
 
-## Initialization
+<span id="initialization"></span>
+
+## Initialisation
 
 Import `formie()` from `@verbb/formie-browser` and target the rendered form root once your own bundle is ready:
 
@@ -41,7 +47,7 @@ await formie({
 });
 ```
 
-You can also initialize only part of the page:
+You can also initialise only part of the page:
 
 ```ts
 import { formie } from '@verbb/formie-browser';
@@ -94,7 +100,7 @@ This is helpful when:
 
 If your integration has explicit transition hooks and you want deterministic control, stop observation before swaps and restart it with `rescan()` or a fresh `formie()` mount when the new DOM is ready.
 
-## Hidden and modal forms
+## Hidden and Modal Forms
 
 By default, Formie mounts roots when they become visible. That is usually what you want for drawers, tabs, accordions, and modals.
 
@@ -106,21 +112,21 @@ If a specific form should mount immediately instead of waiting until it becomes 
 </form>
 ```
 
-Use that sparingly, because eager mounts can initialize heavier providers before the user can interact with them.
+Use that sparingly, because eager mounts can initialise heavier providers before the user can interact with them.
 
-## Advanced manual mounting
+## Advanced Manual Mounting
 
 If you need lower-level control than `formie()` gives you, the JavaScript API also exposes `mount()`, `unmount()`, `update()`, `scan()`, and `observe()`.
 
 Those methods are covered on [Custom client](/browser/behavior/custom-client).
 
-## Browser-package boundary
+## Browser-Package Boundary
 
-This page assumes Formie still owns the rendered form and its browser behavior. If your framework owns the render tree, component lifecycle, and routing model, the framework package docs are usually a better fit than stretching the browser package beyond its intended boundary.
+This page assumes Formie still owns the rendered form and its browser behaviour. If your framework owns the render tree, component lifecycle, and routing model, the framework package docs are usually a better fit than stretching the browser package beyond its intended boundary.
 
 Craft-first integrations such as Sprig should still be documented primarily in the main Formie plugin docs and linked here only when needed.
 
-## Related pages
+## Related Pages
 
 - [Custom client](/browser/behavior/custom-client)
 - [Modules](/browser/modules/)

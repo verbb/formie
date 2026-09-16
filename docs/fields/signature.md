@@ -4,24 +4,24 @@ Use Signature when the form needs someone to draw a signature with a mouse, fing
 
 Use Signature when a drawn signature is part of the form process. If the user only needs to type their name as acknowledgement, Single-Line Text or Agree will usually be simpler.
 
-## Key settings
+## Key Settings
 
 - **Background color** - Control the signature pad background.
-- **Pen color** - Control the drawing color.
+- **Pen color** - Control the drawing colour.
 - **Pen weight** - Control the stroke thickness.
 - **Required** - Require a signature before the form can be submitted.
 
-## Submitted value
+## Submitted Value
 
 Signature stores image-style signature data that Formie can render in submissions, summaries and notifications. Treat it as captured drawing data, not as a typed name.
 
 When querying or saving submissions through GraphQL, the field handle is used as the field name. Query the form’s `formFields` and include `inputTypeName` if you need to confirm the generated input type for a specific form.
 
-## Theme config
+## Theme Config
 
 The Signature field can be targeted with the `signature` theme config key.
 
-See [Signature Field theme config](/theming/theme-config#signature-field) for the full list of field-specific theme tags.
+See [Signature Field theme config](/reference/theme-tag-reference#signature-field) for the full list of field-specific theme tags.
 
 ```twig
 {{ craft.formie.renderForm('contactForm', {
@@ -46,15 +46,15 @@ Use theme config for class and attribute changes. Use a template override only w
 
 For full Tailwind, Bootstrap and other framework examples, see [Formie theme configs](https://github.com/verbb/formie-theme-configs).
 
-## Front-end reference
+## Front-End Reference
 
-Signature depends on Formie’s front-end JavaScript for the drawing canvas and hidden input value. If you override templates, preserve the canvas, hidden input and clear/remove button behavior.
+Signature depends on Formie’s front-end JavaScript for the drawing canvas and hidden input value. If you override templates, preserve the canvas, hidden input and clear/remove button behaviour.
 
-The front-end docs live on the separate browser UI reference site and cover rendered markup, data attributes, styling classes and JavaScript behavior for custom front-end implementations.
+The front-end docs live on the separate browser UI reference site and cover rendered markup, data attributes, styling classes and JavaScript behaviour for custom front-end implementations.
 
-- [Signature](/browser/ui-reference/fields/signature)
+- [Signature](https://docs.verbb.io/formie/browser/ui-reference/fields/signature)
 
-## Related fields
+## Related Fields
 
 - Use [Agree](/fields/agree) for a checkbox acknowledgement.
 - Use [Single-Line Text](/fields/single-line-text) when a typed name is enough.

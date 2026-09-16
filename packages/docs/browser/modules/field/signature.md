@@ -4,7 +4,7 @@ Signature mounts a drawing surface, keeps a hidden input synchronized, and respo
 
 ## Events
 
-#### The `formie:field:signature:init` event
+#### The `formie:field:signature:init` Event
 
 Triggered after the drawing surface and `SignaturePad` instance have been created.
 
@@ -24,7 +24,7 @@ document.querySelector('[data-clear-project-signature]')?.addEventListener('clic
 
 The shared module lifecycle also exposes scoped events such as `formie:module:signature:after-setup`.
 
-## Related pages
+## Related Pages
 
 - [Signature field](/browser/ui-reference/fields/signature)
 - [Overview](/browser/modules/)

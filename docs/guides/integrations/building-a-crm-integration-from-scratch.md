@@ -1,4 +1,4 @@
-# Building a CRM integration from scratch
+# Building a CRM Integration from Scratch
 
 Formie ships with dozens of CRM integrations — Salesforce, HubSpot, Pipedrive, and many more — but you can register your own when your provider is not covered out of the box. This walkthrough builds a multi-object CRM integration from a Craft module: connection settings, per-form field mapping, and sending submission data to a third-party API.
 
@@ -6,7 +6,7 @@ We also cover extending a built-in integration when you only need a little extra
 
 Read the [Custom Integration Overview](/developers/custom-integration/overview) and [CRM Integration](/developers/custom-integration/crm-integration) reference first if you have not built an integration before — this guide walks through a complete example and explains how the pieces connect.
 
-## Create your module
+## Create Your Module
 
 First, you need a [Craft module](https://craftcms.com/docs/5.x/extend/module-guide.html). All of the PHP in this guide lives in that module.
 
@@ -60,7 +60,7 @@ The module file stays deliberately small. You tell Formie which integration clas
 
 The bulk of the work lives in `ExampleCrm.php`.
 
-## The integration class
+## The Integration Class
 
 Create `modules/formieintegration/src/integrations/ExampleCrm.php`. The class extends Formie's `Crm` base class and implements the lifecycle from **plugin settings** (connect to the API) through **form settings** (map fields per form) to **send payload** (push data when someone submits).
 
@@ -274,7 +274,7 @@ class ExampleCrm extends Crm
 
 Every provider has different API requirements, so treat the method names and payload shapes as patterns to adapt — not copy-paste values.
 
-### Integration settings
+### Integration Settings
 
 Your integration almost always needs global settings — at minimum an API key to talk to the provider. Store these as public properties on the class (`$apiKey` in the example).
 
@@ -284,7 +284,7 @@ Sensitive values should support Craft environment variables. Store `$MY_CRM_API_
 
 Form-level mapping properties (`$mapToContact`, `$contactFieldMapping`, and so on) are validated separately when the form is saved, using `Integration::SCENARIO_FORM` and `validateFieldMapping`. That keeps "is the API key present?" separate from "did the editor map required CRM fields for this form?".
 
-### Guzzle client
+### Guzzle Client
 
 Formie uses [Guzzle](https://docs.guzzlephp.org/) for outbound HTTP. Implement `defineClient()` to return a configured client for your provider's base URL and authentication headers.
 
@@ -299,7 +299,7 @@ $json = Json::decode((string) $response->getBody());
 
 Use `fetchConnection()` for a lightweight test request when an editor clicks **Test connection** in the control panel. Any exception should flow through `Integration::apiError()` so the message appears in the UI and in logs.
 
-### Fetching form settings
+### Fetching Form Settings
 
 When an editor opens the **Integrations** tab on a form, Formie needs to know which CRM fields can be mapped. CRM integrations usually support multiple **objects** — contacts, deals, leads, accounts, opportunities, and so on.
 
@@ -342,7 +342,7 @@ Map provider field types to `IntegrationField::TYPE_*` in a small helper so drop
 
 If your CRM uses selectable object types rather than fixed keys, return an `IntegrationCollection` instead — see [CRM Integration](/developers/custom-integration/crm-integration) for that pattern.
 
-### Form settings schema
+### Form Settings Schema
 
 Plugin settings (API keys) use a Twig template — see below. **Per-form** settings — enable contact mapping, map deal fields, set conditions — are defined in PHP with `defineFormSettingsSchema()`.
 
@@ -357,7 +357,7 @@ The `if` attribute hides the mapping UI until the lightswitch is on. When an edi
 
 Each object follows the same pattern: opt in with a lightswitch, then map fields when that object is enabled. Per-form integration UI is declared as schema nodes — see [Everything you need to know about Formie schemas](/guides/developers/everything-you-need-to-know-about-formie-schemas) for helper details.
 
-### Plugin settings template
+### Plugin Settings Template
 
 Global credentials and setup instructions are still rendered with Twig. `getSettingsHtml()` points at `_plugin-settings.html`, shown when creating or editing the integration under **Formie → Integrations → CRM**.
 
@@ -400,7 +400,7 @@ Global credentials and setup instructions are still rendered with Twig. `getSett
 
 Use Craft's `autosuggestField` so editors can pick `$ENV_VAR` names for secrets. Step-by-step instructions in the template reduce support burden — tell people exactly where to find the API key in the provider's dashboard.
 
-### Sending the payload
+### Sending the Payload
 
 `sendPayload()` runs when a submission completes and this integration is dispatched for the form. That is the last step in the lifecycle.
 
@@ -416,11 +416,11 @@ Check each object's enable flag before sending — `$this->mapToContact` and `$t
 
 Return `false` on failure so Formie records the integration run as failed. Exceptions should go through `Integration::apiError()` for consistent logging.
 
-### Picklists and option sources
+### Picklists and Option Sources
 
-If your CRM caches picklist values (industry, lead source, pipeline stage), you can expose them to Dropdown, Radio, and Checkboxes fields through `defineOptionSources()`. See [Option Sources](/developers/custom-integration/option-sources).
+If your CRM caches picklist values (industry, lead source, pipeline stage), you can expose them to Dropdown, Radio, and Checkboxes fields through `defineOptionSources()`. See [Option Sources](/developers/custom-integration/integration-option-sources).
 
-## Extending an existing integration
+## Extending an Existing Integration
 
 Creating a full integration from scratch is not always worth it. If Formie already ships your provider — Salesforce, for example — extend the built-in class and override only what you need.
 
@@ -496,7 +496,7 @@ Register `SalesforceCustom::class` on `$event->crm[]` instead of `ExampleCrm::cl
 
 You keep the provider's OAuth flow, connection handling, and existing objects — and layer your extra object on top.
 
-## Finishing up
+## Finishing Up
 
 With the module in place:
 
@@ -507,10 +507,3 @@ With the module in place:
 Integrations run as part of the [submission workflow](/developers/submission-workflow) — typically queued after the submission is saved. If nothing fires immediately, check your queue and the submission's integration log in the control panel.
 
 For OAuth-based CRMs, see [Creating OAuth integrations with Formie](/guides/integrations/creating-oauth-integrations-with-formie). For dispatch order, conditions, and re-run behaviour, see [Integration dispatch and policies](/guides/integrations/integration-dispatch-and-policies).
-
-## Related
-
-- [CRM Integration](/developers/custom-integration/crm-integration)
-- [Custom Integration Overview](/developers/custom-integration/overview)
-- [Option Sources](/developers/custom-integration/option-sources)
-- [Submission Workflow](/developers/submission-workflow)

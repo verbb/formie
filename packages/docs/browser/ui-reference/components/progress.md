@@ -8,7 +8,7 @@ Use this page to preserve the progress wrapper, bar, value, and placement hooks 
 
 <FormiePreview src="../examples/progress.preview.ts" />
 
-## Browser attributes
+## Browser Attributes
 
 Useful progress hooks include:
 
@@ -21,7 +21,7 @@ Useful progress hooks include:
 | `data-formie-progress-state` | Start, middle, or end visual state |
 | `data-formie-progress-value` | Visible progress label |
 
-## Styling classes
+## Styling Classes
 
 | Class | Purpose |
 | --- | --- |
@@ -30,7 +30,7 @@ Useful progress hooks include:
 | `formie-progress-bar` | Filled progress bar |
 | `formie-progress-value` | Visible progress label |
 
-## Calculation modes
+## Calculation Modes
 
 The form builder’s **Page Progress Calculation** setting controls the percentage shown in the same progress markup.
 
@@ -48,7 +48,7 @@ For a four-page form, the values differ like this:
 | Page 3 | 50% | 75% |
 | Page 4 | 75% | 100% |
 
-## Related pages
+## Related Pages
 
 - [Page navigation](/browser/ui-reference/components/page-navigation)
 - [Submission handling](/browser/behavior/submission-handling)

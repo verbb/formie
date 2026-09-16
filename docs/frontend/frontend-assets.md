@@ -4,7 +4,7 @@ Formie handles a lot for you automatically on the front end.
 
 When you render a form normally, Formie outputs the assets it needs so the form can look right and behave properly in the browser. That includes things like validation, conditions, multi-page navigation, loading states, captchas, file uploads, payment flows, and token refresh when the form needs it.
 
-That automatic output also gives you access to Formie's browser-side behavior. Formie emits its startup script, page-level startup settings, and the inline JSON translations seed for front-end messages, so you can listen for events, respond to submission and page changes, add your own validation, build custom modules, or include the browser package in your own bundle when you need more control.
+That automatic output also gives you access to Formie's browser-side behaviour. Formie emits its startup script, page-level startup settings, and the inline JSON translations seed for front-end messages, so you can listen for events, respond to submission and page changes, add your own validation, build custom modules, or include the browser package in your own bundle when you need more control.
 
 In many projects, this default setup is all you need. When you want to go further, the browser and framework packages are there to build on top of it.
 
@@ -12,7 +12,7 @@ In many projects, this default setup is all you need. When you want to go furthe
 
 Using a Form Template or render options, you can change where those assets are output, or switch to manual output and include them yourself. That can be useful when you need tighter control over your page output or build pipeline.
 
-Leaving out Formie's assets entirely is usually a bad idea unless you are deliberately replacing that setup with your own browser-side integration. Without them, a form can lose the behavior it relies on in the browser.
+Leaving out Formie's assets entirely is usually a bad idea unless you are deliberately replacing that setup with your own browser-side integration. Without them, a form can lose the behaviour it relies on in the browser.
 
 If you need to control asset output yourself, see:
 
@@ -71,7 +71,7 @@ document.addEventListener('formie:validator:ready', (event) => {
 });
 ```
 
-That sort of extension is useful when you want to adjust behavior without replacing Formie's rendered markup.
+That sort of extension is useful when you want to adjust behaviour without replacing Formie's rendered markup.
 
 Read more in the [Browser package docs](https://docs.verbb.io/formie/browser/).
 
@@ -108,7 +108,7 @@ We also provide support for popular frontend frameworks to make integration even
 
 These packages generally give you two approaches:
 
-- server-rendered forms, where Formie still owns the rendered HTML and browser behavior
+- server-rendered forms, where Formie still owns the rendered HTML and browser behaviour
 - client-rendered forms, where your framework takes over the rendered UI while Formie still provides the form definition and submission flow
 
 ### React
@@ -126,7 +126,7 @@ The `@verbb/formie-web-components` package is useful when you want portable cust
 
 Check out the [Web Components starter](https://formie-starters.verbb.io/web-components) project to see it in action, and read further in the [Web Components package docs](https://docs.verbb.io/formie/web-components/).
 
-### Next.js
+### Next.Js
 
 Use the [Next.js starter](https://formie-starters.verbb.io/next) as the starting point, then refer to the [React package docs](https://docs.verbb.io/formie/react/) for the package itself.
 
@@ -137,17 +137,17 @@ Use the [Nuxt starter](https://formie-starters.verbb.io/nuxt) as the starting po
 ## Examples
 While we don't have dedicated packages to support these solutions, we've put together some example pages.
 
-### Barba.js
-When using [barba.js](https://barba.js.org/) for a SPA-like application with page transitions, you'll want to have fine-grained control over when Formie forms initialize. Particularly when navigating to and from a page where a Formie form exists.
+### Barba.Js
+When using [barba.js](https://barba.js.org/) for a SPA-like application with page transitions, you'll want to have fine-grained control over when Formie forms initialise. Particularly when navigating to and from a page where a Formie form exists.
 
 Have a look at our [Barba.js example](https://formie-starters.verbb.io/barba).
 
 ### Sprig
-If you are using [Sprig](https://putyourlightson.com/plugins/sprig), Formie can work well inside reactive Twig components, but you will usually want to pay attention to when forms are re-rendered and when Formie's browser behavior needs to initialize again.
+If you are using [Sprig](https://putyourlightson.com/plugins/sprig), Formie can work well inside reactive Twig components, but you will usually want to pay attention to when forms are re-rendered and when Formie's browser behaviour needs to initialise again.
 
 Read more on the [Sprig plugin page](https://putyourlightson.com/plugins/sprig) and have a look at our [Sprig example](https://formie-starters.verbb.io/sprig).
 
 ### Datastar
-If you are using [Datastar](https://putyourlightson.com/plugins/datastar), Formie can fit into a Twig-driven reactive frontend without needing a larger JavaScript framework, but the same considerations apply around re-rendering and front-end initialization.
+If you are using [Datastar](https://putyourlightson.com/plugins/datastar), Formie can fit into a Twig-driven reactive frontend without needing a larger JavaScript framework, but the same considerations apply around re-rendering and front-end initialisation.
 
 Read more on the [Datastar plugin page](https://putyourlightson.com/plugins/datastar) and have a look at our [Datastar example](https://formie-starters.verbb.io/datastar).

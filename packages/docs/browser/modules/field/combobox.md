@@ -2,7 +2,7 @@
 
 Combobox enhances Dropdown fields and other dropdown display types with a filterable select UI powered by [Tom Select](https://tom-select.js.org/). The native `<select>` remains in the DOM for submission, validation, conditions and calculations.
 
-## When it loads
+## When It Loads
 
 Formie adds the `combobox` module to a form’s client module manifest when **Use searchable dropdown** is enabled and the field renders a `<select>`:
 
@@ -16,7 +16,7 @@ Searchable dropdowns output `data-formie-combobox-input` on the native `<select>
 
 ## Events
 
-#### The `formie:field:combobox:before-init` event
+#### The `formie:field:combobox:before-init` Event
 
 Triggered before Tom Select is created.
 
@@ -26,7 +26,7 @@ document.addEventListener('formie:field:combobox:before-init', (event) => {
 });
 ```
 
-#### The `formie:field:combobox:after-init` event
+#### The `formie:field:combobox:after-init` Event
 
 Triggered after Tom Select has been mounted on the field.
 
@@ -40,7 +40,7 @@ document.addEventListener('formie:field:combobox:after-init', (event) => {
 
 The shared module lifecycle also exposes scoped events such as `formie:module:combobox:init` and `formie:module:combobox:destroy`.
 
-## Related pages
+## Related Pages
 
 - [Fields](/browser/ui-reference/fields/)
 - [Overview](/browser/modules/)

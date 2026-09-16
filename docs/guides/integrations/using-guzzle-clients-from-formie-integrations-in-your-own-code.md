@@ -1,4 +1,4 @@
-# Using Guzzle clients from Formie integrations in your own code
+# Using Guzzle Clients from Formie Integrations in Your Own Code
 
 Formie supports more than 50 integrations — Mailchimp, HubSpot, Salesforce, Google Sheets, and many others. Each one configures a Guzzle client with the correct authentication, base URI, and error handling. You can reuse that work in your own PHP or Twig code without reimplementing OAuth or API credentials.
 
@@ -46,7 +46,7 @@ $json = Json::decode((string)$response->getBody());
 
 Use `getClient()` when you need the raw Guzzle client — non-JSON payloads, custom headers, or direct access to the response object.
 
-### Practical example
+### Practical Example
 
 Suppose you want a checkbox on a user profile page to subscribe someone to a mailing list. Rather than building a separate Mailchimp connection, reuse Formie’s:
 
@@ -91,18 +91,12 @@ Subscribe a user directly:
 
 Use Twig integration calls carefully on cached pages — they run at render time, not on every cached page load.
 
-## OAuth and special handling
+## OAuth and Special Handling
 
 Creating a Guzzle client with Craft’s `Craft::createGuzzleClient()` is straightforward. OAuth, token refresh, and provider-specific auth headers are not.
 
 When a provider requires OAuth, let Formie manage the connection — see [Creating OAuth integrations with Formie](/guides/integrations/creating-oauth-integrations-with-formie). Formie stores tokens, refreshes them, and returns a ready-to-use client through `getClient()` and `request()`.
 
-## Closing thoughts
+## Closing Thoughts
 
 Formie integrations are not limited to form submissions. Anywhere you need an authenticated API client for a provider Formie already supports, fetch the integration instance and call `request()`. You get consistent credentials, env variable support, and OAuth handling without maintaining a parallel integration layer.
-
-## Related
-
-- [Automation Integration](/developers/custom-integration/automation-integration)
-- [OAuth Integration](/developers/custom-integration/oauth-integration)
-- [Creating OAuth integrations with Formie](/guides/integrations/creating-oauth-integrations-with-formie)

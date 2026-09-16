@@ -7,7 +7,7 @@ Follow the below steps to connect Formie to the Akismet API.
 1. Select **Akismet** in the left-hand sidebar.
 1. Turn on **Enabled**.
 
-### Step 2. Get your Akismet API Key
+### Step 2. Get Your Akismet API Key
 1. Go to [Akismet](https://akismet.com/) and create an account, or sign in to an existing one.
 1. After signing up, Akismet will email you your API key. You can also find it in your Akismet account.
 1. Copy the API key.
@@ -23,3 +23,9 @@ Follow the below steps to connect Formie to the Akismet API.
 1. Save the form.
 
 Akismet screens submissions in the background, so there is no visible challenge on the front end.
+
+## Verify a Submission
+
+Save the form, open it on your site and submit recognisable test values. Submit through the site and check the resulting submission and spam state. A saved credential alone does not verify the visitor-facing challenge or server-side check.
+
+If nothing arrives, check whether integration conditions matched, whether the submission was complete and non-spam, and whether Craft’s queue has processed the job. A successful connection check verifies credentials; it does not prove that field mapping and delivery work. See [Connect and Test an Integration](/integrations/connect-and-test-an-integration) for a complete mapping and verification workflow.

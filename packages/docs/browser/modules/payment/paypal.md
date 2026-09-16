@@ -8,9 +8,9 @@ PayPal is a payment provider module used by Formie payment flows.
 
 ## Events
 
-#### The `formie:payment:provider-authorize:before` event
+#### The `formie:payment:provider-authorize:before` Event
 
-Triggered before the active payment provider performs its authorization step.
+Triggered before the active payment provider performs its authorisation step.
 
 ```js
 document.addEventListener('formie:payment:provider-authorize:before', (event) => {
@@ -21,9 +21,9 @@ document.addEventListener('formie:payment:provider-authorize:before', (event) =>
 });
 ```
 
-#### The `formie:module:paypal:init` event
+#### The `formie:module:paypal:init` Event
 
-Triggered after the provider module has initialized and is ready to manage provider-specific UI.
+Triggered after the provider module has initialised and is ready to manage provider-specific UI.
 
 ```js
 document.addEventListener('formie:module:paypal:init', (event) => {
@@ -32,7 +32,7 @@ document.addEventListener('formie:module:paypal:init', (event) => {
 });
 ```
 
-## Related pages
+## Related Pages
 
 - [Payment field](/browser/ui-reference/fields/payment)
 - [Overview](/browser/modules/)

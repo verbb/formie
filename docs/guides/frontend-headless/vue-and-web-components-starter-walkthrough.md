@@ -1,6 +1,8 @@
-# Vue and Web Components starter walkthrough
+# Vue and Web Components Starter Walkthrough
 
 Formie ships first-class packages for Vue and Web Components alongside React. This walkthrough covers the same four integration stories — server-rendered HTML vs client-rendered UI, REST vs GraphQL — using the official starters as the reference implementation.
+
+Use the [Vue package documentation](https://docs.verbb.io/formie/vue/) or [Web Components package documentation](https://docs.verbb.io/formie/web-components/) for the options supported by the frontend you choose.
 
 ## Prerequisites
 
@@ -8,7 +10,7 @@ Formie ships first-class packages for Vue and Web Components alongside React. Th
 - Node.js and npm (or pnpm/yarn)
 - [Frontend Assets](/frontend/frontend-assets)
 
-## Package overview
+## Package Overview
 
 | Package | npm | Use when |
 | --- | --- | --- |
@@ -29,7 +31,7 @@ Import CSS once:
 import '@verbb/formie-browser/css/formie.css';
 ```
 
-## Vue — server-rendered form
+## Vue — Server-Rendered Form
 
 The `<FormieForm />` component mirrors the React API. Formie loads the payload, mounts HTML, and owns browser behaviour.
 
@@ -52,7 +54,7 @@ import '@verbb/formie-browser/css/formie.css';
 
 Props use kebab-case in templates (`form-handle`, `site-id`, `static-cache`). For GraphQL, set `transport="graphql"` and point `endpoint` at your GraphQL URL.
 
-### Pre-fetched payload
+### Pre-Fetched Payload
 
 When your app already has the bootstrap payload:
 
@@ -60,7 +62,7 @@ When your app already has the bootstrap payload:
 <FormieForm :source="{ payload }" />
 ```
 
-## Vue — client-rendered form
+## Vue — Client-Rendered Form
 
 Use `<FormieClientForm />` when you want Vue components for each field:
 
@@ -99,7 +101,7 @@ Start from the [Nuxt starter](https://formie-starters.verbb.io/nuxt). It demonst
 
 For Nuxt 3+, wrap `<FormieForm />` in `<ClientOnly>` when the page is statically generated and token refresh must run in the browser.
 
-## Web Components — drop-in embed
+## Web Components — Drop-in Embed
 
 Web Components work anywhere you can add a script tag — static HTML, WordPress, legacy PHP, or inside Vue/React without a framework binding layer.
 
@@ -119,7 +121,7 @@ Web Components work anywhere you can add a script tag — static HTML, WordPress
 
 Register the custom element once; then use `<formie-form>` or `<formie-client-form>` in markup.
 
-### Client-rendered custom element
+### Client-Rendered Custom Element
 
 For app-owned rendering via slots:
 
@@ -152,7 +154,7 @@ Event names match the browser package DOM events (`formie:submit:result`, `formi
 
 Both transports use the same session token model. Bootstrap via `formieClientForm`, submit via `submitFormieClientForm`. See [GraphQL submission flow end-to-end](/guides/frontend-headless/graphql-submission-flow-end-to-end).
 
-## Static caching
+## Static Caching
 
 Pass static-cache attributes on the custom element or props on Vue components:
 
@@ -178,7 +180,7 @@ Pass static-cache attributes on the custom element or props on Vue components:
 
 See [Cached forms in production](/guides/frontend-headless/cached-forms-in-production).
 
-## Starter repos
+## Starter Repos
 
 Clone and run the official starters — they are the canonical review surface for each package:
 
@@ -187,11 +189,3 @@ Clone and run the official starters — they are the canonical review surface fo
 - [Nuxt starter](https://formie-starters.verbb.io/nuxt)
 
 Each starter includes working examples for HTML mode, component mode, REST, and GraphQL. Use them as copy-paste references before building from the package README alone.
-
-## Related
-
-- [Frontend Assets](/frontend/frontend-assets)
-- [Building a headless contact form with Formie React](/guides/frontend-headless/building-a-headless-contact-form-with-formie-react) — parallel walkthrough for React
-- [GraphQL submission flow end-to-end](/guides/frontend-headless/graphql-submission-flow-end-to-end)
-- [Vue package docs](https://docs.verbb.io/formie/vue/)
-- [Web Components package docs](https://docs.verbb.io/formie/web-components/)

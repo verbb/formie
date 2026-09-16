@@ -18,38 +18,38 @@ Radio fields span a field wrapper, an options container, and one or more visible
 | --- | --- | --- |
 | `data-formie-field-handle` | Stable field identity used by validation, conditions, and error rendering | Required |
 
-### Field layout
+### Field Layout
 
 | Attribute | Purpose | Importance |
 | --- | --- | --- |
-| `data-formie-radio-field-layout` | Group selector used by the checkbox-radio module | Required for radio behavior |
+| `data-formie-radio-field-layout` | Group selector used by the checkbox-radio module | Required for radio behaviour |
 
-### Field options
-
-| Attribute | Purpose | Importance |
-| --- | --- | --- |
-| `data-formie-radio-options` | Option-group wrapper | Required for radio behavior |
-
-### Field input
+### Field Options
 
 | Attribute | Purpose | Importance |
 | --- | --- | --- |
-| `data-formie-radio-input` | Radio selector used by Formie | Required for radio behavior |
+| `data-formie-radio-options` | Option-group wrapper | Required for radio behaviour |
+
+### Field Input
+
+| Attribute | Purpose | Importance |
+| --- | --- | --- |
+| `data-formie-radio-input` | Radio selector used by Formie | Required for radio behaviour |
 | Shared `name` across options | Ensures one logical radio group | Required |
 | `data-formie-input-id` per option | Stable option identity | Recommended |
 
-## Styling classes
+## Styling Classes
 
-These classes are for presentation only. They are not behavior requirements:
+These classes are for presentation only. They are not behaviour requirements:
 
-### Field layout
+### Field Layout
 
 | Class | Description |
 | --- | --- |
 | `formie-radio-field-layout` | Radio group layout styling class |
 | `formie-radio-field-label` | Radio group label styling class |
 
-### Field options
+### Field Options
 
 | Class | Description |
 | --- | --- |
@@ -58,7 +58,7 @@ These classes are for presentation only. They are not behavior requirements:
 | `formie-field-option` | Shared option wrapper styling |
 | `formie-radio-option` | Radio option wrapper styling class |
 
-### Field input
+### Field Input
 
 | Class | Description |
 | --- | --- |
@@ -66,14 +66,14 @@ These classes are for presentation only. They are not behavior requirements:
 | `formie-radio-input` | Radio input styling class |
 | `formie-input-error` | Error-state styling class |
 
-### Field option label
+### Field Option Label
 
 | Class | Description |
 | --- | --- |
 | `formie-field-option-label` | Shared option label styling |
 | `formie-radio-option-label` | Radio option label styling class |
 
-### Other option
+### Other Option
 
 When the **Other** option is enabled, Formie renders a dedicated option row with its own theme config tags.
 
@@ -98,7 +98,9 @@ When the **Other** option is enabled, Formie renders a dedicated option row with
 | `formie-other-option-label` | Other option label styling class |
 | `formie-other-option-text` | Other text input styling class |
 
-## Behavior
+<span id="behavior"></span>
+
+## Behaviour
 
 The checkbox-radio module:
 
@@ -109,7 +111,7 @@ The checkbox-radio module:
 
 Radio fields use the shared checkbox-radio field events described on [JavaScript events](/browser/behavior/javascript-events).
 
-#### The `formie:field:checkbox-radio:init` event
+#### The `formie:field:checkbox-radio:init` Event
 
 Triggered after the radio group has been wired and is ready for interaction.
 
@@ -127,7 +129,7 @@ document.addEventListener('formie:field:checkbox-radio:init', (event) => {
 });
 ```
 
-## Related pages
+## Related Pages
 
 - [Checkboxes](/browser/ui-reference/fields/checkboxes)
 - [JavaScript events](/browser/behavior/javascript-events)

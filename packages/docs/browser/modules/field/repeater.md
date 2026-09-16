@@ -4,7 +4,7 @@ Repeater manages nested rows of fields, template cloning, and add or remove acti
 
 ## Events
 
-#### The `formie:field:repeater:init` event
+#### The `formie:field:repeater:init` Event
 
 Triggered after the repeater field has been wired and its existing rows are ready.
 
@@ -18,7 +18,7 @@ document.addEventListener('formie:field:repeater:init', (event) => {
 });
 ```
 
-#### The `formie:field:repeater:append` event
+#### The `formie:field:repeater:append` Event
 
 Triggered after a new row has been appended from the configured template.
 
@@ -32,7 +32,7 @@ document.addEventListener('formie:field:repeater:append', (event) => {
 });
 ```
 
-#### The `formie:field:repeater:init-row` event
+#### The `formie:field:repeater:init-row` Event
 
 Triggered after a newly appended row is ready for nested field or module work.
 
@@ -46,7 +46,7 @@ document.addEventListener('formie:field:repeater:init-row', (event) => {
 });
 ```
 
-#### The `formie:field:repeater:remove` event
+#### The `formie:field:repeater:remove` Event
 
 Triggered after an existing row has been removed.
 
@@ -60,7 +60,7 @@ document.addEventListener('formie:field:repeater:remove', (event) => {
 });
 ```
 
-## Related pages
+## Related Pages
 
 - [Repeater field](/browser/ui-reference/fields/repeater)
 - [Overview](/browser/modules/)

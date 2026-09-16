@@ -1,10 +1,10 @@
-# Custom client
+# Custom Client
 
 Use this page only when the default `formie({ element })` helper is not enough.
 
 If you just want to mount one or more rendered Formie forms from your own bundle, go back to [Browser](/browser/) and use `formie()`. This page is for the lower-level `createFormieClient()` escape hatch.
 
-## When this path makes sense
+## When This Path Makes Sense
 
 Reach for `createFormieClient()` when you need:
 
@@ -13,7 +13,7 @@ Reach for `createFormieClient()` when you need:
 - custom module registration
 - migration code that already depends on the full browser client surface
 
-## Create the client
+## Create the Client
 
 ```ts
 import { createFormieClient } from '@verbb/formie-browser';
@@ -22,7 +22,7 @@ import '@verbb/formie-browser/css/formie.css';
 const client = createFormieClient();
 ```
 
-## Scan the page
+## Scan the Page
 
 If your page already contains normal Formie roots such as `[data-formie]` or `[data-formie-form]`, scan the document:
 
@@ -30,7 +30,7 @@ If your page already contains normal Formie roots such as `[data-formie]` or `[d
 await client.scan(document);
 ```
 
-## Observe later DOM changes
+## Observe Later DOM Changes
 
 If your app swaps or appends rendered form markup later, start observation too:
 
@@ -46,7 +46,7 @@ Call the returned cleanup function when that observation scope should stop:
 stopObserving();
 ```
 
-## Mount one target explicitly
+## Mount One Target Explicitly
 
 If your app wants tighter control, mount one host element yourself:
 
@@ -67,10 +67,10 @@ if (root instanceof HTMLElement) {
 Useful advanced options include:
 
 - `payload` when your app already has the rendered Formie payload
-- `refreshTokens: false` when your app wants to fully own token refresh behavior
+- `refreshTokens: false` when your app wants to fully own token refresh behaviour
 - `compatibility` when you are migrating older Formie browser event listeners in stages
 
-## Useful package helpers
+## Useful Package Helpers
 
 The package also exports a few lower-level helpers that are mainly useful in custom integrations.
 
@@ -88,7 +88,7 @@ console.log(t('The request timed out.'));
 
 On plugin-rendered Craft pages, Formie can seed those translations for you through an inline JSON script tag. Reach for `mergeFormieTranslations()` when your own app owns the locale, such as in headless or fully custom bundle setups.
 
-### Event names
+### Event Names
 
 ```ts
 import {
@@ -100,24 +100,26 @@ console.log(FORMIE_HTML_EVENT_NAMES);
 console.log(getScopedModuleLifecycleEventName('project-rating', 'after-setup'));
 ```
 
-### Field-reference helpers
+### Field-Reference Helpers
 
 For advanced modules or surrounding UI that need to reason about Formie field keys and posted names, the package also exports helpers such as `buildFieldValueRegistry()`, `fieldKeyToInputName()`, `inputNameToFieldKey()`, and `resolveFieldReferenceLive()`.
 
-## What this path does not use
+## What This Path Does Not Use
 
 This package-import path does not use Formie's plugin-driven startup script flow.
 
-When you import `createFormieClient()` directly, you own client creation and lifecycle control from your own application code instead of relying on the plugin-emitted startup script and its automatic mounting behavior.
+When you import `createFormieClient()` directly, you own client creation and lifecycle control from your own application code instead of relying on the plugin-emitted startup script and its automatic mounting behaviour.
 
-## When to use Manual initialization instead
+<span id="when-to-use-manual-initialization-instead"></span>
 
-Use [Manual initialization](/browser/behavior/manual-initialization) when Formie is still rendering the form HTML for you, but you want to turn off auto-init and initialize those roots from your own frontend bundle.
+## When to Use Manual Initialisation Instead
 
-## Related pages
+Use [Manual initialisation](/browser/behavior/manual-initialization) when Formie is still rendering the form HTML for you, but you want to turn off auto-init and initialise those roots from your own frontend bundle.
+
+## Related Pages
 
 - [Browser](/browser/)
-- [Manual initialization](/browser/behavior/manual-initialization)
+- [Manual initialisation](/browser/behavior/manual-initialization)
 - [JavaScript events](/browser/behavior/javascript-events)
 - [Migrating from Formie Plugin](/browser/behavior/migrating-from-formie-plugin)
 - [Modules](/browser/modules/)

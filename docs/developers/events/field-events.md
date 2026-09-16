@@ -2,7 +2,7 @@
 
 ## Field Registration Events
 
-### The `registerFields` event
+### The `registerFields` Event
 The event that is triggered for registration of additional fields.
 
 ```php
@@ -16,7 +16,7 @@ Event::on(Fields::class, Fields::EVENT_REGISTER_FIELDS, function(RegisterFieldsE
 });
 ```
 
-### The `registerLabelPositions` event
+### The `registerLabelPositions` Event
 The event that is triggered for registration of additional label positions.
 
 ```php
@@ -31,7 +31,7 @@ Event::on(Fields::class, Fields::EVENT_REGISTER_LABEL_POSITIONS, function(Regist
 });
 ```
 
-### The `registerInstructionsPositions` event
+### The `registerInstructionsPositions` Event
 The event that is triggered for registration of additional instructions positions.
 
 ```php
@@ -46,7 +46,7 @@ Event::on(Fields::class, Fields::EVENT_REGISTER_INSTRUCTIONS_POSITIONS, function
 });
 ```
 
-### The `modifyExistingFields` event
+### The `modifyExistingFields` Event
 The event that is triggered to allow modifying of available existing fields to select from.
 
 ```php
@@ -60,7 +60,7 @@ Event::on(Fields::class, Fields::EVENT_MODIFY_EXISTING_FIELDS, function(ModifyEx
 });
 ```
 
-### The `modifyFieldConfig` event
+### The `modifyFieldConfig` Event
 The event that is triggered to allow modification of a field's form builder config. Listen on the field type you want to modify.
 
 ```php
@@ -74,7 +74,7 @@ Event::on(SingleLineText::class, SingleLineText::EVENT_MODIFY_FIELD_CONFIG, func
 });
 ```
 
-### The `modifyFieldSchema` event
+### The `modifyFieldSchema` Event
 The event that is triggered to allow modification of a field's form builder schema. Listen on the field type you want to modify.
 
 ```php
@@ -92,7 +92,7 @@ Event::on(SingleLineText::class, SingleLineText::EVENT_MODIFY_FIELD_SCHEMA, func
 
 These events run when a Formie field is saving, deleting, restoring, or propagating an element value. Listen on the field type you want to target.
 
-### The `beforeElementSave` event
+### The `beforeElementSave` Event
 The event that is triggered before a field saves its value to an element.
 
 ```php
@@ -109,7 +109,7 @@ Event::on(SingleLineText::class, SingleLineText::EVENT_BEFORE_ELEMENT_SAVE, func
 });
 ```
 
-### The `afterElementSave` event
+### The `afterElementSave` Event
 The event that is triggered after a field saves its value to an element.
 
 ```php
@@ -124,7 +124,7 @@ Event::on(SingleLineText::class, SingleLineText::EVENT_AFTER_ELEMENT_SAVE, funct
 });
 ```
 
-### The `afterElementPropagate` event
+### The `afterElementPropagate` Event
 The event that is triggered after a field value is propagated for an element.
 
 ```php
@@ -139,7 +139,7 @@ Event::on(SingleLineText::class, SingleLineText::EVENT_AFTER_ELEMENT_PROPAGATE, 
 });
 ```
 
-### The `beforeElementDelete` event
+### The `beforeElementDelete` Event
 The event that is triggered before a field value is deleted from an element.
 
 ```php
@@ -156,7 +156,7 @@ Event::on(FileUpload::class, FileUpload::EVENT_BEFORE_ELEMENT_DELETE, function(F
 });
 ```
 
-### The `afterElementDelete` event
+### The `afterElementDelete` Event
 The event that is triggered after a field value is deleted from an element.
 
 ```php
@@ -171,7 +171,7 @@ Event::on(FileUpload::class, FileUpload::EVENT_AFTER_ELEMENT_DELETE, function(Fi
 });
 ```
 
-### The `beforeElementRestore` event
+### The `beforeElementRestore` Event
 The event that is triggered before a field value is restored for an element.
 
 ```php
@@ -186,7 +186,7 @@ Event::on(FileUpload::class, FileUpload::EVENT_BEFORE_ELEMENT_RESTORE, function(
 });
 ```
 
-### The `afterElementRestore` event
+### The `afterElementRestore` Event
 The event that is triggered after a field value is restored for an element.
 
 ```php
@@ -203,7 +203,7 @@ Event::on(FileUpload::class, FileUpload::EVENT_AFTER_ELEMENT_RESTORE, function(F
 
 ## Field Events
 
-### The `modifyDefaultValue` event
+### The `modifyDefaultValue` Event
 The event that is triggered when preparing a field's default value. You can use this on any class that extends the `verbb\formie\base\Field` class.
 
 Modify the `value` event property to set the value used.
@@ -222,12 +222,10 @@ Event::on(SingleLineText::class, SingleLineText::EVENT_MODIFY_DEFAULT_VALUE, fun
 });
 ```
 
-### The `modifySlotTag` event
+### The `modifySlotTag` Event
 The event that is triggered when preparing a field slot tag for rendering. You can use this on any class that extends the `verbb\formie\base\Field` class.
 
 Modify the `tag` event property to change how a field is rendered.
-
-The older `modifyHtmlTag` event name remains as a deprecated alias.
 
 For more examples, consult the [Theme Config](/theming/theme-config) docs.
 
@@ -260,7 +258,7 @@ Event::on(SingleLineText::class, SingleLineText::EVENT_MODIFY_SLOT_TAG, function
 });
 ```
 
-### The `modifyValueAsString` event
+### The `modifyValueAsString` Event
 The event that is triggered when preparing a field's value to be represented as a string. You can use this on any class that extends the `verbb\formie\base\Field` class.
 
 Modify the `value` event property to set the value used.
@@ -280,7 +278,7 @@ Event::on(SingleLineText::class, SingleLineText::EVENT_MODIFY_VALUE_AS_STRING, f
 });
 ```
 
-### The `modifyValueAsJson` event
+### The `modifyValueAsJson` Event
 The event that is triggered when preparing a field's value to be represented as a JSON object. You can use this on any class that extends the `verbb\formie\base\Field` class.
 
 Modify the `value` event property to set the value used.
@@ -300,7 +298,7 @@ Event::on(SingleLineText::class, SingleLineText::EVENT_MODIFY_VALUE_AS_JSON, fun
 });
 ```
 
-### The `modifyValueAsArray` event
+### The `modifyValueAsArray` Event
 The event that is triggered when preparing a field's value to be represented as an array. You can use this on any class that extends the `verbb\formie\base\Field` class.
 
 Modify the `value` event property to set the value used.
@@ -320,7 +318,7 @@ Event::on(SingleLineText::class, SingleLineText::EVENT_MODIFY_VALUE_AS_ARRAY, fu
 });
 ```
 
-### The `modifyValueForExport` event
+### The `modifyValueForExport` Event
 The event that is triggered when preparing a field's value to be exported. You can use this on any class that extends the `verbb\formie\base\Field` class.
 
 Modify the `value` event property to set the value used.
@@ -340,7 +338,7 @@ Event::on(MultiLineText::class, MultiLineText::EVENT_MODIFY_VALUE_FOR_EXPORT, fu
 });
 ```
 
-### The `modifyValueForIntegration` event
+### The `modifyValueForIntegration` Event
 The event that is triggered when preparing a field's value to be used in integrations. You can use this on any class that extends the `verbb\formie\base\Field` class.
 
 Modify the `value` event property to set the value used.
@@ -362,7 +360,7 @@ Event::on(MultiLineText::class, MultiLineText::EVENT_MODIFY_VALUE_FOR_INTEGRATIO
 });
 ```
 
-### The `modifyValueForSummary` event
+### The `modifyValueForSummary` Event
 The event that is triggered when preparing a field's value to be represented in the Summary field. You can use this on any class that extends the `verbb\formie\base\Field` class.
 
 Modify the `value` event property to set the value used.
@@ -382,7 +380,7 @@ Event::on(Dropdown::class, Dropdown::EVENT_MODIFY_VALUE_FOR_SUMMARY, function(Mo
 });
 ```
 
-### The `modifyValueForEmail` event
+### The `modifyValueForEmail` Event
 The event that is triggered when preparing a field's value to be used in an Email Notification. You can use this on any class that extends the `verbb\formie\base\Field` class.
 
 Modify the `value` event property to set the value used.
@@ -402,7 +400,7 @@ Event::on(Dropdown::class, Dropdown::EVENT_MODIFY_VALUE_FOR_EMAIL, function(Modi
 });
 ```
 
-### The `modifyValueForEmailPreview` event
+### The `modifyValueForEmailPreview` Event
 The event that is triggered when preparing a field's value to be used in an Email Notification preview. You can use this on any class that extends the `verbb\formie\base\Field` class.
 
 Modify the `value` event property to set the value used.
@@ -419,7 +417,7 @@ Event::on(MultiLineText::class, MultiLineText::EVENT_MODIFY_VALUE_FOR_EMAIL_PREV
 
 ## Address Field Events
 
-### The `modifyNestedFieldLayout` event
+### The `modifyNestedFieldLayout` Event
 The event that is triggered to modify the nested field layout for the field.
 
 ```php
@@ -436,7 +434,7 @@ Event::on(Address::class, Address::EVENT_MODIFY_NESTED_FIELD_LAYOUT, function(Mo
 });
 ```
 
-### The `modifyAddressCountries` event
+### The `modifyAddressCountries` Event
 The event that is triggered to modify the available countries the address field has access to.
 
 ```php
@@ -452,7 +450,7 @@ Event::on(Countries::class, Countries::EVENT_MODIFY_ADDRESS_COUNTRIES, function(
 
 ## Date Field Events
 
-### The `modifyDateFormat` event
+### The `modifyDateFormat` Event
 The event that is triggered to modify the Date Format for the field.
 
 ```php
@@ -465,7 +463,7 @@ Event::on(Date::class, Date::EVENT_MODIFY_DATE_FORMAT, function(ModifyDateTimeFo
 });
 ```
 
-### The `modifyTimeFormat` event
+### The `modifyTimeFormat` Event
 The event that is triggered to modify the Time Format for the field.
 
 ```php
@@ -478,7 +476,7 @@ Event::on(Date::class, Date::EVENT_MODIFY_TIME_FORMAT, function(ModifyDateTimeFo
 });
 ```
 
-### The `registerDateFormatOptions` event
+### The `registerDateFormatOptions` Event
 The event that is triggered to register the available options to select for date formatting.
 
 ```php
@@ -491,7 +489,7 @@ Event::on(Date::class, Date::EVENT_REGISTER_DATE_FORMAT_OPTIONS, function(Regist
 });
 ```
 
-### The `registerTimeFormatOptions` event
+### The `registerTimeFormatOptions` Event
 The event that is triggered to register the available options to select for time formatting.
 
 ```php
@@ -504,7 +502,7 @@ Event::on(Date::class, Date::EVENT_REGISTER_TIME_FORMAT_OPTIONS, function(Regist
 });
 ```
 
-### The `modifyNestedFieldLayout` event
+### The `modifyNestedFieldLayout` Event
 The event that is triggered to modify the nested field layout for the field.
 
 ```php
@@ -533,7 +531,7 @@ Event::on(Date::class, Date::EVENT_MODIFY_NESTED_FIELD_LAYOUT, function(ModifyNe
 
 ## Email Field Events
 
-### The `modifyUniqueQuery` event
+### The `modifyUniqueQuery` Event
 The event that is triggered to modify the Submission query that determines whether this email is unique. You can modify the query to add your own logic.
 
 ```php
@@ -551,7 +549,7 @@ Event::on(Email::class, Email::EVENT_MODIFY_UNIQUE_QUERY, function(ModifyFieldUn
 });
 ```
 
-### The `modifyUniqueUserQuery` event
+### The `modifyUniqueUserQuery` Event
 The event that is triggered to modify the Craft user query that determines whether an email address is already associated with a user account. You can modify the query to add your own logic.
 
 ```php
@@ -574,7 +572,7 @@ Event::on(Email::class, Email::EVENT_MODIFY_UNIQUE_USER_QUERY, function(ModifyFi
 
 ## Element Field Events
 
-### The `modifyElementFieldQuery` event
+### The `modifyElementFieldQuery` Event
 The event that is triggered to modify the query for element fields, for when rendering options on the front-end.
 
 ```php
@@ -589,7 +587,7 @@ Event::on(Entries::class, Entries::EVENT_MODIFY_ELEMENT_QUERY, function(ModifyEl
 });
 ```
 
-### The `defineSelectionCriteria` event
+### The `defineSelectionCriteria` Event
 The event that is triggered to define additional selection criteria for element fields.
 
 ```php
@@ -604,7 +602,7 @@ Event::on(Entries::class, Entries::EVENT_DEFINE_SELECTION_CRITERIA, function(Ele
 
 ## HTML Field Events
 
-### The `modifyPurifierConfig` event
+### The `modifyPurifierConfig` Event
 The event that is triggered to modify the HTML Purifier config.
 
 ```php
@@ -620,7 +618,7 @@ Event::on(Html::class, Html::EVENT_MODIFY_PURIFIER_CONFIG, function(ModifyPurifi
 
 ## Name Field Events
 
-### The `modifyPrefixOptions` event
+### The `modifyPrefixOptions` Event
 The event that is triggered to modify the Prefix options for the field.
 
 ```php
@@ -634,7 +632,7 @@ Event::on(NamePrefix::class, NamePrefix::EVENT_MODIFY_PREFIX_OPTIONS, function(M
 });
 ```
 
-### The `modifyNestedFieldLayout` event
+### The `modifyNestedFieldLayout` Event
 The event that is triggered to modify the nested field layout for the field.
 
 ```php
@@ -653,7 +651,7 @@ Event::on(Name::class, Name::EVENT_MODIFY_NESTED_FIELD_LAYOUT, function(ModifyNe
 
 ## Phone Field Events
 
-### The `modifyPhoneCountries` event
+### The `modifyPhoneCountries` Event
 The event that is triggered to modify the available countries the phone field has access to.
 
 ```php
@@ -669,7 +667,7 @@ Event::on(Countries::class, Countries::EVENT_MODIFY_PHONE_COUNTRIES, function(Mo
 
 ## Predefined Field Options
 
-### The `registerPredefinedOptions` event
+### The `registerPredefinedOptions` Event
 The event that is triggered for registering predefined options for Dropdown, Radio Button and Checkboxes fields.
 
 ```php

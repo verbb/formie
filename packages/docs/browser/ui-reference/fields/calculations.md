@@ -17,7 +17,9 @@ Use this page to preserve the input attributes and understand how referenced fie
 | `data-formie-input` | Generic Formie input marker | Required |
 | `data-formie-input-id` | Stable input identity | Required |
 
-## Behavior
+<span id="behavior"></span>
+
+## Behaviour
 
 The `calculations` module:
 
@@ -29,7 +31,7 @@ The `calculations` module:
 
 Calculations emits field events around each formula evaluation.
 
-#### The `formie:field:calculations:before-evaluate` event
+#### The `formie:field:calculations:before-evaluate` Event
 
 Triggered right before the formula is evaluated.
 
@@ -49,7 +51,7 @@ document.addEventListener('formie:field:calculations:before-evaluate', (event) =
 });
 ```
 
-#### The `formie:field:calculations:after-evaluate` event
+#### The `formie:field:calculations:after-evaluate` Event
 
 Triggered right after the formula has been evaluated and before the result is written back into the field.
 
@@ -62,7 +64,7 @@ document.addEventListener('formie:field:calculations:after-evaluate', (event) =>
 });
 ```
 
-## Related pages
+## Related Pages
 
 - [Summary](/browser/ui-reference/fields/summary)
 - [JavaScript events](/browser/behavior/javascript-events)

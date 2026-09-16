@@ -161,7 +161,7 @@ Address providers usually focus on these methods:
 
 Method | Use
 --- | ---
-`getClientModule()` | Registers front-end behavior for the Address field.
+`getClientModule()` | Registers front-end behaviour for the Address field.
 `supportsCurrentLocation()` | Enables current-location support for providers that can handle it.
 `getSettingsHtml()` | Renders plugin-level settings for the provider.
 `hasValidSettings()` | Confirms the provider has enough settings to run.

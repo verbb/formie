@@ -74,7 +74,7 @@ protected function defineFormSettingsSchema(FormInterface $form): array
 
 CRM integrations often cache picklist fields on each object. Expose them to Dropdown, Radio and Checkboxes fields with `defineOptionSources()`, using `storage: objects` and the same object keys returned from `fetchFormSettings()`.
 
-See [Option Sources](/developers/custom-integration/option-sources).
+See [Option Sources](/developers/custom-integration/integration-option-sources).
 
 ## Sending Payloads
 Use `getFieldMappingValues()` to resolve each object mapping. When the mapping source contains a Formie field reference, Formie converts the value using the destination `IntegrationField` type.

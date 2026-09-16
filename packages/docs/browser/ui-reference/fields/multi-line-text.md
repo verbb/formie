@@ -8,7 +8,7 @@ Use this page to see the default markup and preserve the required attributes whe
 
 <FormiePreview src="../examples/multi-line-text.preview.ts" />
 
-## Rich text module
+## Rich Text Module
 
 Multi Line Text can also act as the transport field behind the `rich-text` module. In that mode, the textarea stays in the DOM as the submitted value, while the browser module mounts a Pell editor UI beside it.
 
@@ -27,7 +27,7 @@ Keep these rich-text attributes intact when you enable the module:
 
 Rich-text-enhanced Multi Line Text fields emit field events in addition to the broader events documented on [JavaScript events](/browser/behavior/javascript-events).
 
-#### The `formie:field:rich-text:before-init` event
+#### The `formie:field:rich-text:before-init` Event
 
 Triggered before the Pell editor is created. Use this to adjust editor options before the field mounts.
 
@@ -38,7 +38,7 @@ document.addEventListener('formie:field:rich-text:before-init', (event) => {
 });
 ```
 
-#### The `formie:field:rich-text:after-init` event
+#### The `formie:field:rich-text:after-init` Event
 
 Triggered after the editor instance has been attached to the field.
 
@@ -56,7 +56,7 @@ document.addEventListener('formie:field:rich-text:after-init', (event) => {
 });
 ```
 
-#### The `formie:field:rich-text:populate` event
+#### The `formie:field:rich-text:populate` Event
 
 Triggered after the editor content has been synchronized back into the textarea value.
 
@@ -76,7 +76,7 @@ document.addEventListener('formie:field:rich-text:populate', (event) => {
 
 The broader module lifecycle also emits `formie:module:rich-text:init` and `formie:module:rich-text:destroy` when you need global setup or teardown hooks.
 
-### Module example
+### Module Example
 
 Register the `rich-text` field module against a Multi Line Text field target:
 
@@ -120,23 +120,23 @@ Multi Line Text fields span an outer field wrapper plus the actual `<textarea>`.
 | `data-formie-field-handle` | Stable field identity used by validation, conditions, calculations, and error rendering | Required |
 | `data-formie-field-type="multi-line-text"` | Field-type marker on the outer wrapper | Recommended |
 
-### Field input
+### Field Input
 
 | Attribute | Description | Importance |
 | --- | --- | --- |
 | `name` | Submission payload key for the textarea value | Required |
 | `data-formie-input` | Generic Formie input marker included in normal output | Recommended |
-| `data-formie-input-id` | Stable input identity for browser behavior and module targeting | Recommended |
+| `data-formie-input-id` | Stable input identity for browser behaviour and module targeting | Recommended |
 | `data-formie-multi-line-text-input` | Textarea selector used by text-specific enhancements | Required for text-specific modules |
 | `data-formie-input-type="textarea"` | Server-rendered input-type metadata | Recommended |
 | `rows` | Initial control height | Optional |
 | `aria-describedby` | Connects instructions and errors | Recommended |
 
-## Styling classes
+## Styling Classes
 
-These classes are for presentation only. They are not behavior requirements:
+These classes are for presentation only. They are not behaviour requirements:
 
-### Field input
+### Field Input
 
 | Class | Description |
 | --- | --- |
@@ -144,13 +144,13 @@ These classes are for presentation only. They are not behavior requirements:
 | `formie-input` | Shared control styling and focus treatment |
 | `formie-input-error` | Error-state styling class |
 
-### Rich text
+### Rich Text
 
 | Class | Description |
 | --- | --- |
 | `formie-rich-text` | Pell editor mount surface for the rich-text enhancement |
 
-## Related pages
+## Related Pages
 
 - [Modules](/browser/modules/)
 - [Single Line Text](/browser/ui-reference/fields/single-line-text)

@@ -1,6 +1,6 @@
-# reCAPTCHA
+# ReCAPTCHA
 
-reCAPTCHA support is grouped across the Enterprise, v3, v2 Checkbox, and v2 Invisible variants because they share the same provider family and browser behavior.
+reCAPTCHA support is grouped across the Enterprise, v3, v2 Checkbox, and v2 Invisible variants because they share the same provider family and browser behaviour.
 
 ## Notes
 
@@ -10,7 +10,7 @@ reCAPTCHA support is grouped across the Enterprise, v3, v2 Checkbox, and v2 Invi
 
 reCAPTCHA relies on the shared module lifecycle and the broader submit flow documented on [JavaScript events](/browser/behavior/javascript-events).
 
-#### The `formie:module:recaptcha-v3:after-setup` event
+#### The `formie:module:recaptcha-v3:after-setup` Event
 
 Triggered after the active module has finished setup for its target form.
 
@@ -21,7 +21,7 @@ document.addEventListener('formie:module:recaptcha-v3:after-setup', (event) => {
 });
 ```
 
-## Related pages
+## Related Pages
 
 - [Overview](/browser/modules/)
 - [JavaScript events](/browser/behavior/javascript-events)

@@ -4,7 +4,7 @@ Use Hidden when the form needs to carry a value without showing it to the person
 
 Hidden fields are useful for context, attribution, and routing data. Do not rely on them for security-sensitive decisions because hidden values can still be changed before submission.
 
-## Key settings
+## Key Settings
 
 - **Default value** - Set the value submitted with the form.
 - **Value source** - Populate from a preset, **Custom Value**, **Template**, query string parameter, or cookie where supported.
@@ -25,13 +25,13 @@ Use **Template** when the hidden value must not be tampered with (for example ev
 
 Extend template context in PHP with `HiddenDefaultTemplateResolver::EVENT_DEFINE_CONTEXT` when you need entry lookups or other project-specific variables.
 
-## Submitted value
+## Submitted Value
 
 Hidden stores a submitted value like other fields, even though the user does not see a visible control. For **Custom Value** and preset sources, treat the stored value as user-modifiable browser data unless you validate it server-side. **Template** defaults are re-resolved on the server and ignore posted input.
 
 When querying or saving submissions through GraphQL, the field handle is used as the field name. Query the form’s `formFields` and include `inputTypeName` if you need to confirm the generated input type for a specific form.
 
-## Theme config
+## Theme Config
 
 The Hidden field can be targeted with the `hiddenField` theme config key.
 
@@ -51,19 +51,19 @@ The Hidden field can be targeted with the `hiddenField` theme config key.
 }) }}
 ```
 
-Hidden fields usually need little presentation customization. Use a template override only when the hidden input output itself needs to change.
+Hidden fields usually need little presentation customisation. Use a template override only when the hidden input output itself needs to change.
 
 For full Tailwind, Bootstrap and other framework examples, see [Formie theme configs](https://github.com/verbb/formie-theme-configs).
 
-## Front-end reference
+## Front-End Reference
 
 Hidden fields are still rendered into the page HTML. Do not place secrets, trusted prices, permission flags or other security-sensitive values in a hidden field without server-side validation.
 
-The front-end docs live on the separate browser UI reference site and cover rendered markup, data attributes, styling classes and JavaScript behavior for custom front-end implementations.
+The front-end docs live on the separate browser UI reference site and cover rendered markup, data attributes, styling classes and JavaScript behaviour for custom front-end implementations.
 
-- [Hidden](/browser/ui-reference/fields/hidden)
+- [Hidden](https://docs.verbb.io/formie/browser/ui-reference/fields/hidden)
 
-## Related fields
+## Related Fields
 
 - Use [Single-Line Text](/fields/single-line-text) when the user should see and edit the value.
 

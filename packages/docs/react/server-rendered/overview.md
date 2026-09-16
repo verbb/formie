@@ -8,9 +8,9 @@ In this setup:
 
 - React owns the host component
 - Formie still owns the rendered HTML inside it
-- the browser package still owns validation, submit flow, and browser-side behavior
+- the browser package still owns validation, submit flow, and browser-side behaviour
 
-Browser events and browser modules still apply for server-rendered forms. Use the [Browser](/browser/) docs when you need deeper browser behavior extension points.
+Browser events and browser modules still apply for server-rendered forms. Use the [Browser](/browser/) docs when you need deeper browser behaviour extension points.
 
 ## Component
 
@@ -58,7 +58,7 @@ export function ContactForm() {
 
 With `transport="graphql"`, GraphQL only loads the HTML payload. Submit still uses the rendered form action rather than a GraphQL mutation.
 
-### Callback props
+### Callback Props
 
 For the common path, start with `onReady`, `onSuccess`, and `onError`.
 
@@ -103,9 +103,9 @@ export function ContactForm() {
 }
 ```
 
-## Advanced hook
+## Advanced Hook
 
-`useFormieHtml()` mounts the same server-rendered browser behavior, but lets your component own the host ref and imperative API directly.
+`useFormieHtml()` mounts the same server-rendered browser behaviour, but lets your component own the host ref and imperative API directly.
 
 ```tsx
 import { useFormieHtml } from '@verbb/formie-react';
@@ -142,7 +142,7 @@ This is still the server-rendered path, but it is the lower-level escape hatch r
 | `theme` | `'formie' \| 'none'` | No | Uses the shipped browser theme or skips it. |
 | `themeConfig` | `Record<string, unknown>` | No | Passes additional theme configuration to the browser theme layer. |
 
-### Return value
+### Return Value
 
 The hook returns:
 
@@ -154,7 +154,7 @@ The hook returns:
 | `state.error` | `Error \| null` | Mount error, if mount failed. |
 | `submit` | `function` | Imperative submit access for the mounted form. Accepts an optional `FormAction` and resolves to `FormSubmitResult \| null`. |
 
-### Events with the hook
+### Events with the Hook
 
 The hook does not expose callback props. Subscribe to browser events from `state.instance` instead:
 
@@ -186,7 +186,7 @@ export function ContactForm() {
 }
 ```
 
-## Preloaded payloads
+## Preloaded Payloads
 
 If your app already fetched the HTML payload, pass it into React instead of fetching it again during mount:
 

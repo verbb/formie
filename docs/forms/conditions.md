@@ -26,7 +26,7 @@ Every condition is built from three parts:
 
 You can then choose whether all rules must match or whether any one of them is enough.
 
-## Common uses
+## Common Uses
 
 On fields, conditions are usually about relevance. A common example is only showing an `Other` text field when someone selected `Other` earlier in the form.
 
@@ -36,7 +36,7 @@ Page buttons can also respond to conditions. That is useful when someone should 
 
 Conditions are also available on notifications. You can decide whether a notification should send at all, or use recipient conditions when the email should go to different people depending on the submission.
 
-## Hidden required fields
+## Hidden Required Fields
 
 If a required field is hidden by conditions, Formie stops treating it as required while it is hidden.
 
@@ -44,4 +44,4 @@ That avoids the common problem of a form being blocked by a field the person can
 
 ## Control Panel Submissions
 
-When editing a submission in the control panel, Formie can apply the same field and page conditions used on the front end. Configure the default under **Formie → Settings → Submissions**, or override per form. See [Submissions](/submissions/overview#edit-submissions-in-the-control-panel).
+When editing a submission in the control panel, Formie can apply the same field and page conditions used on the front end. Configure the default under **Formie → Settings → Submissions**, or override per form. See [Submissions](/submissions/submissions#edit-submissions-in-the-control-panel).

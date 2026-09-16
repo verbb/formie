@@ -4,39 +4,237 @@ A Notification object represents one email notification attached to a form. A fo
 
 ## Properties
 
-Property | Description
---- | ---
-`id` | The notification ID.
-`formId` | The form ID this notification belongs to.
-`templateId` | The email template ID, when one is selected.
-`pdfTemplateId` | The PDF template ID, when one is selected.
-`name` | The control panel name for the notification.
-`handle` | The notification handle.
-`enabled` | Whether the notification is enabled.
-`subject` | The email subject.
-`recipients` | The recipient mode, such as `email` or `conditions`.
-`to` | The email address or variable content used for the `To` recipient.
-`toConditions` | Conditional recipient rules for the `To` recipient.
-`cc` | The email address or variable content used for the `Cc` recipient.
-`bcc` | The email address or variable content used for the `Bcc` recipient.
-`replyTo` | The reply-to email address or variable content.
-`replyToName` | The reply-to name or variable content.
-`from` | The sender email address.
-`fromName` | The sender name.
-`content` | The raw notification content.
-`attachFiles` | Whether user-uploaded files should be attached.
-`attachPdf` | Whether a PDF should be attached.
-`enableConditions` | Whether the notification has sending conditions enabled.
-`conditions` | The conditions used to decide whether the notification should send.
+::: reference
+### `id`
+
+**Type:** `int|null`
+
+The notification ID.
+:::
+
+::: reference
+### `formId`
+
+**Type:** `int|null`
+
+The form ID this notification belongs to.
+:::
+
+::: reference
+### `templateId`
+
+**Type:** `int|null`
+
+The email template ID, when one is selected.
+:::
+
+::: reference
+### `pdfTemplateId`
+
+**Type:** `int|null`
+
+The PDF template ID, when one is selected.
+:::
+
+::: reference
+### `name`
+
+**Type:** `string|null`
+
+The control panel name for the notification.
+:::
+
+::: reference
+### `handle`
+
+**Type:** `string|null`
+
+The notification handle.
+:::
+
+::: reference
+### `enabled`
+
+**Type:** `bool|null`
+
+Whether the notification is enabled.
+:::
+
+::: reference
+### `subject`
+
+**Type:** `string|null`
+
+The email subject.
+:::
+
+::: reference
+### `recipients`
+
+**Type:** `string`
+
+The recipient mode, such as `email` or `conditions`.
+:::
+
+::: reference
+### `to`
+
+**Type:** `string|null`
+
+The email address or variable content used for the `To` recipient.
+:::
+
+::: reference
+### `toConditions`
+
+**Type:** `array|null`
+
+Conditional recipient rules for the `To` recipient.
+:::
+
+::: reference
+### `cc`
+
+**Type:** `string|null`
+
+The email address or variable content used for the `Cc` recipient.
+:::
+
+::: reference
+### `bcc`
+
+**Type:** `string|null`
+
+The email address or variable content used for the `Bcc` recipient.
+:::
+
+::: reference
+### `replyTo`
+
+**Type:** `string|null`
+
+The reply-to email address or variable content.
+:::
+
+::: reference
+### `replyToName`
+
+**Type:** `string|null`
+
+The reply-to name or variable content.
+:::
+
+::: reference
+### `from`
+
+**Type:** `string|null`
+
+The sender email address.
+:::
+
+::: reference
+### `fromName`
+
+**Type:** `string|null`
+
+The sender name.
+:::
+
+::: reference
+### `content`
+
+**Type:** `string|null`
+
+The raw notification content.
+:::
+
+::: reference
+### `attachFiles`
+
+**Type:** `bool|null`
+
+Whether user-uploaded files should be attached.
+:::
+
+::: reference
+### `attachPdf`
+
+**Type:** `string|null`
+
+Whether a PDF should be attached.
+:::
+
+::: reference
+### `enableConditions`
+
+**Type:** `bool|null`
+
+Whether the notification has sending conditions enabled.
+:::
+
+::: reference
+### `conditions`
+
+**Type:** `array|null`
+
+The conditions used to decide whether the notification should send.
+:::
+
 
 ## Methods
 
-Method | Description
---- | ---
-`getParsedContent()` | Returns the notification content as rendered HTML.
-`getToEmail()` | Resolves the notification’s `To` recipient for a submission.
-`getStatusCondition()` | Returns the status condition for a submission, when applicable.
-`renderTemplate()` | Renders notification template content with supplied variables.
-`getTemplate()` | Returns the selected email template model, if one is set.
-`getPdfTemplate()` | Returns the selected PDF template model, if one is set.
-`getAssetAttachments()` | Returns asset attachments for the notification.
+::: reference
+### `getParsedContent()`
+
+**Returns:** `string`
+
+Returns the notification content as rendered HTML.
+:::
+
+::: reference
+### `getToEmail()`
+
+**Returns:** `string|null`
+
+Resolves the notification’s `To` recipient for a submission.
+:::
+
+::: reference
+### `getStatusCondition()`
+
+**Returns:** `string|null`
+
+Returns the status condition for a submission, when applicable.
+:::
+
+::: reference
+### `renderTemplate()`
+
+**Returns:** `string`
+
+Renders notification template content with supplied variables.
+:::
+
+::: reference
+### `getTemplate()`
+
+**Returns:** `verbb\formie\models\EmailTemplate|null`
+
+Returns the selected email template model, if one is set.
+:::
+
+::: reference
+### `getPdfTemplate()`
+
+**Returns:** `verbb\formie\models\PdfTemplate|null`
+
+Returns the selected PDF template model, if one is set.
+:::
+
+::: reference
+### `getAssetAttachments()`
+
+**Returns:** `array`
+
+Returns asset attachments for the notification.
+:::

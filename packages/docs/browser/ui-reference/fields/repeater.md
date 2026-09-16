@@ -20,7 +20,9 @@ Use this page to preserve the container, row, template, and add/remove button at
 | `data-formie-repeater-template` with `__ROW__` placeholders | Template source for appended rows | Required |
 | `data-formie-template-id` | Links the field, container, and template together | Required |
 
-## Behavior
+<span id="behavior"></span>
+
+## Behaviour
 
 The `repeater` module:
 
@@ -30,9 +32,9 @@ The `repeater` module:
 
 ## Events
 
-Repeater emits field events as rows are prepared, appended, initialized, and removed.
+Repeater emits field events as rows are prepared, appended, initialised, and removed.
 
-#### The `formie:field:repeater:init` event
+#### The `formie:field:repeater:init` Event
 
 Triggered after the repeater field has been wired and its existing rows are ready.
 
@@ -50,7 +52,7 @@ document.addEventListener('formie:field:repeater:init', (event) => {
 });
 ```
 
-#### The `formie:field:repeater:append` event
+#### The `formie:field:repeater:append` Event
 
 Triggered after a new row has been appended from the configured template.
 
@@ -68,7 +70,7 @@ document.addEventListener('formie:field:repeater:append', (event) => {
 });
 ```
 
-#### The `formie:field:repeater:init-row` event
+#### The `formie:field:repeater:init-row` Event
 
 Triggered after a newly appended row is ready for nested field or module work.
 
@@ -86,7 +88,7 @@ document.addEventListener('formie:field:repeater:init-row', (event) => {
 });
 ```
 
-#### The `formie:field:repeater:remove` event
+#### The `formie:field:repeater:remove` Event
 
 Triggered after an existing row has been removed.
 
@@ -104,8 +106,8 @@ document.addEventListener('formie:field:repeater:remove', (event) => {
 });
 ```
 
-## Related pages
+## Related Pages
 
 - [Table](/browser/ui-reference/fields/table)
 - [JavaScript events](/browser/behavior/javascript-events)
-- [Manual initialization](/browser/behavior/manual-initialization)
+- [Manual initialisation](/browser/behavior/manual-initialization)

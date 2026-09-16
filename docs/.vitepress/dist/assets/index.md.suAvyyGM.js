@@ -1,0 +1,1 @@
+import{Z as e,e as t,f as a}from"./chunks/framework.DmpHOl9T.js";const f=JSON.parse('{"title":"","description":"","frontmatter":{},"headers":[],"relativePath":"index.md","filePath":"index.md","lastUpdated":1780377007000}'),n={name:"index.md"};function r(s,d,o,c,i,p){return t(),a("div")}const m=e(n,[["render",r]]);export{f as __pageData,m as default};

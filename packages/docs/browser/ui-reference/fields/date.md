@@ -8,7 +8,7 @@ Use this page to see the default markup for each display type and preserve the e
 
 <FormiePreview src="../examples/date.preview.ts" />
 
-## Display types
+## Display Types
 
 Date can render as:
 
@@ -36,7 +36,7 @@ Date fields can render as one input or as several subfields, depending on the di
 | `data-formie-field-handle` | Stable field identity used by validation, conditions, calculations, and error rendering | Required |
 | `data-formie-field-type="date"` | Field identity marker on the outer wrapper | Recommended |
 
-### Field input
+### Field Input
 
 | Attribute | Description | Importance |
 | --- | --- | --- |
@@ -44,13 +44,13 @@ Date fields can render as one input or as several subfields, depending on the di
 | `data-formie-input` | Generic Formie input marker included in normal output | Recommended |
 | `data-formie-input-id` | Stable input identity for the rendered control | Recommended |
 
-### Date-picker input
+### Date-Picker Input
 
 | Attribute | Description | Importance |
 | --- | --- | --- |
 | `data-formie-date-datepicker-input` | Picker selector used by the `date-picker` module | Required for `datePicker` |
 
-### Date-range inputs
+### Date-Range Inputs
 
 | Attribute | Description | Importance |
 | --- | --- | --- |
@@ -58,17 +58,17 @@ Date fields can render as one input or as several subfields, depending on the di
 | `data-formie-date-range-end-input` | Hidden transport input for the range end value | Required for `datePicker` range fields |
 | `data-formie-date-range-input` | Optional marker on the visible picker input when range mode is active | Recommended for `datePicker` range fields |
 
-### Sub-field rows
+### Sub-Field Rows
 
 | Attribute | Description | Importance |
 | --- | --- | --- |
 | `data-formie-subfield-rows` / `data-formie-subfield-row` | Shared subfield layout attributes used by split date/time layouts | Required for split-field layouts |
 
-## Styling classes
+## Styling Classes
 
-These classes are for presentation only. They are not behavior requirements:
+These classes are for presentation only. They are not behaviour requirements:
 
-### Field layout
+### Field Layout
 
 | Class | Description |
 | --- | --- |
@@ -76,7 +76,7 @@ These classes are for presentation only. They are not behavior requirements:
 | `formie-subfield-fieldset` | Fieldset styling used by grouped subfields |
 | `formie-date-field-label` | Date-specific label styling class |
 
-### Field input
+### Field Input
 
 | Class | Description |
 | --- | --- |
@@ -85,14 +85,16 @@ These classes are for presentation only. They are not behavior requirements:
 | `formie-field-nested` | Nested subfield wrapper styling |
 | `formie-input-error` | Error-state styling class |
 
-### Sub-field rows
+### Sub-Field Rows
 
 | Class | Description |
 | --- | --- |
 | `formie-subfield-rows` | Subfield rows wrapper |
 | `formie-subfield-row` | Individual subfield row |
 
-## Behavior
+<span id="behavior"></span>
+
+## Behaviour
 
 Date always preserves one field identity, but its rendered controls vary by display type:
 
@@ -111,7 +113,7 @@ When the `date-picker` module is present, Formie:
 
 Date-picker-enhanced fields emit field events in addition to the broader events documented on [JavaScript events](/browser/behavior/javascript-events).
 
-#### The `formie:field:date-picker:before-init` event
+#### The `formie:field:date-picker:before-init` Event
 
 Triggered before flatpickr is created. Use this to adjust the picker options before the instance mounts.
 
@@ -123,7 +125,7 @@ document.addEventListener('formie:field:date-picker:before-init', (event) => {
 });
 ```
 
-#### The `formie:field:date-picker:after-init` event
+#### The `formie:field:date-picker:after-init` Event
 
 Triggered after flatpickr has been mounted on the field input.
 
@@ -142,7 +144,7 @@ document.addEventListener('formie:field:date-picker:after-init', (event) => {
 });
 ```
 
-## Related pages
+## Related Pages
 
 - [JavaScript events](/browser/behavior/javascript-events)
 - [Submission handling](/browser/behavior/submission-handling)

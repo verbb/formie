@@ -1,21 +1,23 @@
-# Component customization
+<span id="component-customization"></span>
 
-## What you can customize
+# Component Customisation
 
-`<FormieClientForm />` supports three main customization layers:
+## What You Can Customise
+
+`<FormieClientForm />` supports three main customisation layers:
 
 - `components` for top-level `Form`, `Page`, **`Field`**, and error-summary replacements
 - `fieldComponents` for field-type-specific rendering (the control only)
 - `slots` for smaller layout regions inside the default component tree
 
-## Choose the right layer
+## Choose the Right Layer
 
 - Use `components` for major layout ownership.
 - Use `fieldComponents` for type-specific UI replacement.
 - Use `slots` for small structural intercepts.
 - Use composables when the component needs direct form state and actions.
 
-## Combined example
+## Combined Example
 
 Real client-rendered forms often combine more than one layer. Custom `Field` components receive the **default slot** for the rendered control (same role as `children` in React).
 
@@ -86,7 +88,7 @@ const TextField = defineComponent({
 </template>
 ```
 
-## Top-level components
+## Top-Level Components
 
 Use `components` when you want to replace the top-level `Form` layout rather than one field type:
 
@@ -122,7 +124,7 @@ const components: FormieVueComponents = {
 };
 ```
 
-## Field components
+## Field Components
 
 Use `fieldComponents` when you want a Vue component for one specific field type:
 
@@ -188,7 +190,7 @@ Use them when your custom Vue components need form state instead of only render 
 
 In Vue, `useFormie()` returns `state` and `instance` as refs (`ShallowRef`). Use `.value` in script, or unwrap in templates.
 
-## Custom actions example
+## Custom Actions Example
 
 ```vue
 <script setup lang="ts">

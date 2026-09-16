@@ -10,7 +10,7 @@ The front-end and back-end pieces work together:
 2. The user adds a Payment field to a form and selects that provider.
 3. `renderFieldHtml()` renders the provider’s Payment field template.
 4. `getClientModule()` registers any front-end module the provider needs.
-5. The front-end module mounts the provider UI and writes the token, payment id or authorization value into hidden Payment field inputs.
+5. The front-end module mounts the provider UI and writes the token, payment id or authorisation value into hidden Payment field inputs.
 6. During the authorize stage, the module can block submission if the payment UI has not produced the required value.
 7. `processPayment()` reads the Payment field payload, calls the provider API and returns a `PaymentDecision`.
 8. If the provider uses redirects, callbacks or webhooks, the integration handles the follow-up provider response and updates the payment record.
@@ -261,7 +261,7 @@ Payment integrations commonly use these methods:
 Method | Use
 --- | ---
 `renderFieldHtml()` | Renders the provider’s Payment field template.
-`getClientModule()` | Registers front-end behavior for the Payment field.
+`getClientModule()` | Registers front-end behaviour for the Payment field.
 `processPayment()` | Captures or creates the payment after Formie receives the submission.
 `getAmount()` | Resolves the configured fixed or dynamic amount from the Payment field.
 `getCurrency()` | Resolves the configured fixed or dynamic currency from the Payment field.

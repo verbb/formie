@@ -72,6 +72,6 @@ public function sendPayload(Submission $submission): bool
 The base class handles several value conversions for Craft field types, including relation fields, date fields, option fields and table fields. If your destination element needs special conversion, listen for the element integration events or adjust the value before saving.
 
 ## Updating Elements
-Element integrations can support update behavior with settings such as `updateElement`, `updateElementMapping`, `overwriteValues` and `updateSearchIndexes`. Use these when the integration should find an existing element and update it instead of always creating a new element.
+Element integrations can support update behaviour with settings such as `updateElement`, `updateElementMapping`, `overwriteValues` and `updateSearchIndexes`. Use these when the integration should find an existing element and update it instead of always creating a new element.
 
 When a submission is edited (`PROCESS_MODE_EDIT_EXISTING`), integrations only re-run if configured in **Integrations → Settings → When integrations re-run**. Use **Also when submission is edited** for Entry integrations that should update linked elements on front-end or control panel saves.

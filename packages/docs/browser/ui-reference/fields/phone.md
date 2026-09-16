@@ -18,7 +18,7 @@ Phone fields can include both a visible tel input and, when country selection is
 | --- | --- | --- |
 | `data-formie-field-handle` | Stable field identity used by validation and error rendering | Required |
 
-### Field input
+### Field Input
 
 | Attribute | Purpose | Importance |
 | --- | --- | --- |
@@ -26,24 +26,26 @@ Phone fields can include both a visible tel input and, when country selection is
 | `data-formie-input` | Generic Formie input marker included in normal output | Recommended |
 | `data-formie-input-id` | Stable visible-input identity | Recommended |
 
-### Country input
+### Country Input
 
 | Attribute | Purpose | Importance |
 | --- | --- | --- |
 | `input[data-formie-phone-country-input]` | Country-code storage input kept in sync by the module | Required when country setting is enabled |
 
-## Styling classes
+## Styling Classes
 
-These classes are for presentation only. They are not behavior requirements:
+These classes are for presentation only. They are not behaviour requirements:
 
-### Field input
+### Field Input
 
 | Class | Description |
 | --- | --- |
 | `formie-input` | Shared tel-input styling and focus treatment |
 | `formie-input-error` | Error-state styling class |
 
-## Behavior
+<span id="behavior"></span>
+
+## Behaviour
 
 The `phone-country` module:
 
@@ -55,9 +57,9 @@ The `phone-country` module:
 
 Phone-country-enhanced fields emit field events in addition to the broader events documented on [JavaScript events](/browser/behavior/javascript-events).
 
-#### The `formie:field:phone-country:before-init` event
+#### The `formie:field:phone-country:before-init` Event
 
-Triggered before `intl-tel-input` is mounted. Use this to change the plugin options before initialization.
+Triggered before `intl-tel-input` is mounted. Use this to change the plugin options before initialisation.
 
 ```js
 document.addEventListener('formie:field:phone-country:before-init', (event) => {
@@ -66,7 +68,7 @@ document.addEventListener('formie:field:phone-country:before-init', (event) => {
 });
 ```
 
-#### The `formie:field:phone-country:init` event
+#### The `formie:field:phone-country:init` Event
 
 Triggered after the phone input, country synchronization, and validator wiring are ready.
 
@@ -90,7 +92,7 @@ document.addEventListener('formie:field:phone-country:init', (event) => {
 });
 ```
 
-## Related pages
+## Related Pages
 
 - [JavaScript events](/browser/behavior/javascript-events)
 - [Submission handling](/browser/behavior/submission-handling)

@@ -1,4 +1,4 @@
-# Built-in rules
+# Built-in Rules
 
 Formie's core validator registry currently ships five rule names: `required`, `email`, `url`, `number`, and `match`.
 
@@ -91,7 +91,7 @@ Checks that the field matches another field by Formie field handle.
 
 `match` resolves by `fieldHandle`, not raw input `name`, so it stays aligned with the rest of Formie's field-level DOM contract.
 
-## Related pages
+## Related Pages
 
 - [Overview](/browser/validation/)
 - [Build a custom validator](/browser/validation/build-a-custom-validator)
