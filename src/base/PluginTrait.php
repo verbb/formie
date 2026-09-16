@@ -77,6 +77,7 @@ use verbb\formie\services\SubmissionMetadata;
 use verbb\formie\services\Subscriptions;
 use verbb\formie\services\StorageManager;
 use verbb\formie\services\ThemeConfig;
+use verbb\formie\services\TiptapExtensions;
 use verbb\formie\services\WorkflowTaskRunner;
 use verbb\formie\theme\slots\FieldSlotRegistry;
 use verbb\formie\theme\slots\FormSlotRegistry;
@@ -282,6 +283,7 @@ trait PluginTrait
                     'allowedProperties' => $event->allowedProperties,
                 ],
                 'themeConfig' => ThemeConfig::class,
+                'tiptapExtensions' => TiptapExtensions::class,
                 'workflowTaskRunner' => WorkflowTaskRunner::class,
             ],
         ];
@@ -704,6 +706,11 @@ trait PluginTrait
     public function getThemeConfigService(): ThemeConfig
     {
         return $this->get('themeConfig');
+    }
+
+    public function getTiptapExtensions(): TiptapExtensions
+    {
+        return $this->get('tiptapExtensions');
     }
 
     public function getFormSlotRegistry(): FormSlotRegistry

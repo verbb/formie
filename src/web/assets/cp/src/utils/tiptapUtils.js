@@ -3,6 +3,8 @@ import Document from '@tiptap/extension-document';
 import Paragraph from '@tiptap/extension-paragraph';
 import Text from '@tiptap/extension-text';
 
+// Each zero-width code point is intentionally matched independently.
+// eslint-disable-next-line no-misleading-character-class
 const INVISIBLE_CHAR_PATTERN = /[\u200B\u200C\u200D\u2060\uFEFF]/g;
 
 const normalizeRichTextNodes = (value) => {

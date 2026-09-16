@@ -4,6 +4,7 @@
 
 ### Added
 - Add console commands to inspect unresolved payments, reconcile gateway status, record verified outcomes and resume submission processing.
+- Add extensible TipTap nodes, marks, toolbar controls, and constrained TextStyle definitions across Formie editing, previews, and PHP rendering, including opt-in font family, font size, text/background color, line height, and Small caps controls.
 
 ### Changed
 - Stream all report export formats, including Excel, JSON and XML, and preserve the initial submission order while reading batches.

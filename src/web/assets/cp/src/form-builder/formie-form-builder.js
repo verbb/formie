@@ -1,5 +1,6 @@
 // CSS needs to be inlined for Shadow DOM usage
 import formBuilderStyles from '@form-builder/css/style.css?inline';
+import { configureFormieTiptap } from '../tiptap/formie-tiptap.js';
 
 const hmrData = import.meta.hot?.data?.formBuilder ?? {};
 let hmrRoot = hmrData.root ?? null;
@@ -120,6 +121,8 @@ defineFormieCpConstructor('FormBuilder', async (settings) => {
     }
 
     hmrSettings = settings;
+
+    configureFormieTiptap(settings.tiptap);
 
     settings = applyDevScenarios(settings);
 

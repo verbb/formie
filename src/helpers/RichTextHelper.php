@@ -100,11 +100,11 @@ class RichTextHelper
                     'rows' => 3,
                 ],
                 'question' => [
-                    'buttons' => ['bold', 'italic', 'link', 'ulist', 'olist'],
+                    'buttons' => ['bold', 'italic', 'link', 'unordered-list', 'ordered-list'],
                     'rows' => 4,
                 ],
                 'content' => [
-                    'buttons' => ['bold', 'italic', 'underline', 'link', 'ulist', 'olist', 'heading2', 'heading3', 'paragraph'],
+                    'buttons' => ['bold', 'italic', 'underline', 'link', 'unordered-list', 'ordered-list', 'h2', 'h3', 'paragraph'],
                     'rows' => 8,
                 ],
                 'calculations' => [

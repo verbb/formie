@@ -94,6 +94,8 @@ export function RichTextField({ form, field }) {
                     // Must match pk-tiptap-editor props (`buttons` / `linkOptions`) — Attr suffixes
                     // become inert HTML attrs and the toolbar falls back to bold/italic (#2929).
                     buttons={buttonsProp}
+                    {...(field.toolbar && { toolbar: field.toolbar })}
+                    {...(field.textStyleOptions && { textStyleOptions: field.textStyleOptions })}
                     {...(field.linkOptions && { linkOptions: typeof field.linkOptions === 'string'
                         ? field.linkOptions
                         : JSON.stringify(field.linkOptions) })}

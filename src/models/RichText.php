@@ -2,6 +2,7 @@
 namespace verbb\formie\models;
 
 use verbb\formie\elements\Submission;
+use verbb\formie\Formie;
 use verbb\formie\helpers\References;
 use verbb\tiptap\Normalizer;
 use verbb\tiptap\RichText as TiptapRichText;
@@ -20,7 +21,7 @@ class RichText implements JsonSerializable, Stringable
 
     public static function fromHtml(string $html): self
     {
-        return new self(TiptapRichText::fromHtml($html));
+        return new self(TiptapRichText::fromHtml($html, self::_getAdditionalExtensions()));
     }
 
     public static function normalizeNodes(mixed $content): array|string
@@ -83,6 +84,7 @@ class RichText implements JsonSerializable, Stringable
                 ? fn (string $html): string => (string)References::parseContent($html, $submission)
                 : null,
             nl2br: $nl2br,
+            additionalExtensions: self::_getAdditionalExtensions(),
         );
     }
 
@@ -108,5 +110,14 @@ class RichText implements JsonSerializable, Stringable
     public function jsonSerialize(): array
     {
         return $this->_content->jsonSerialize();
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private static function _getAdditionalExtensions(): array
+    {
+        return Formie::$plugin?->getTiptapExtensions()->getPhpExtensions() ?? [];
     }
 }
