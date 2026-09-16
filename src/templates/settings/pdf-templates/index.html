@@ -1,4 +1,5 @@
 {% extends 'formie/_layouts/settings' %}
+{% set title = 'PDF Templates' | t('formie') %}
 
 {% block actionButton %}
     <a href="{{ url('formie/settings/pdf-templates/new') }}" class="btn submit add icon">{{ 'New Template' | t('formie') }}</a>
@@ -45,4 +46,3 @@
         tableData: {{ tableData | json_encode | raw }},
     });
 {% endjs %}
-

@@ -349,7 +349,9 @@ export const NewFormApp = ({ settings }) => {
                             {formError.traceAsString ? (
                                 <details className="mt-2 text-xs">
                                     <summary className="cursor-pointer">{Craft.t('formie', 'Show error details')}</summary>
-                                    <div className="mt-2 whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: formError.traceAsString }} />
+                                    <div className="mt-2 whitespace-pre-wrap">
+                                        {formError.traceAsString.replace(/<br\s*\/?>/gi, '\n')}
+                                    </div>
                                 </details>
                             ) : null}
                         </div>

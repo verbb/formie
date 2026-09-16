@@ -8,6 +8,18 @@ use verbb\formie\integrations\captchas\Recaptcha;
 use verbb\formie\models\ClientModuleContext;
 use verbb\formie\services\Integrations;
 
+beforeEach(function (): void {
+    $this->captchaTransaction = Craft::$app->getDb()->beginTransaction();
+});
+
+afterEach(function (): void {
+    $this->captchaTransaction->rollBack();
+    // The provider store separately caches database rows; rollback cannot invalidate them.
+    $providers = Formie::$plugin->getCaptchaProviders();
+    (new ReflectionMethod($providers, '_resetCache'))->invoke($providers);
+    Formie::$plugin->getIntegrations()->resetCaptchaCaches();
+});
+
 function configureRecaptchaProvider(callable $configure): Recaptcha
 {
     $recaptcha = Formie::$plugin->getIntegrations()->getCaptchaByHandle('recaptcha');
@@ -208,35 +220,42 @@ it('fails captcha saves when no captcha settings were posted', function (): void
 });
 
 it('enables recaptcha from posted spam protection captcha settings on production', function (): void {
-    Craft::$app->getConfig()->getGeneral()->allowAdminChanges = false;
+    $general = Craft::$app->getConfig()->getGeneral();
+    $allowAdminChanges = $general->allowAdminChanges;
 
-    $recaptcha = Formie::$plugin->getIntegrations()->getCaptchaByHandle('recaptcha');
-    $recaptcha->scope = Integrations::SCOPE_PROJECT;
-    $recaptcha->setEnabled(false);
-    $recaptcha->siteKey = 'test-site-key';
-    $recaptcha->secretKey = 'test-secret-key';
-    $recaptcha->type = Recaptcha::RECAPTCHA_TYPE_ENTERPRISE;
-    $recaptcha->projectId = 'test-project';
+    try {
+        $general->allowAdminChanges = false;
 
-    expect(Formie::$plugin->getIntegrations()->saveCaptcha($recaptcha))->toBeTrue();
+        $recaptcha = Formie::$plugin->getIntegrations()->getCaptchaByHandle('recaptcha');
+        $recaptcha->scope = Integrations::SCOPE_PROJECT;
+        $recaptcha->setEnabled(false);
+        $recaptcha->siteKey = 'test-site-key';
+        $recaptcha->secretKey = 'test-secret-key';
+        $recaptcha->type = Recaptcha::RECAPTCHA_TYPE_ENTERPRISE;
+        $recaptcha->projectId = 'test-project';
 
-    expect(Formie::$plugin->getIntegrations()->savePostedCaptchaConfigs([
-        'recaptcha' => [
-            'type' => Recaptcha::class,
-            'enabled' => '1',
-            'settings' => [
-                'type' => Recaptcha::RECAPTCHA_TYPE_ENTERPRISE,
-                'projectId' => 'test-project',
+        expect(Formie::$plugin->getIntegrations()->saveCaptcha($recaptcha))->toBeTrue();
+
+        expect(Formie::$plugin->getIntegrations()->savePostedCaptchaConfigs([
+            'recaptcha' => [
+                'type' => Recaptcha::class,
+                'enabled' => '1',
+                'settings' => [
+                    'type' => Recaptcha::RECAPTCHA_TYPE_ENTERPRISE,
+                    'projectId' => 'test-project',
+                ],
             ],
-        ],
-    ]))->toBeTrue();
+        ]))->toBeTrue();
 
-    $reloaded = Formie::$plugin->getIntegrations()->getCaptchaByHandle('recaptcha');
+        $reloaded = Formie::$plugin->getIntegrations()->getCaptchaByHandle('recaptcha');
 
-    expect($reloaded)->toBeInstanceOf(Recaptcha::class)
-        ->and($reloaded->getEnabled())->toBeTrue()
-        ->and($reloaded->getEnabledMenuValue())->toBe('1')
-        ->and($reloaded->isSiteScope())->toBeTrue();
+        expect($reloaded)->toBeInstanceOf(Recaptcha::class)
+            ->and($reloaded->getEnabled())->toBeTrue()
+            ->and($reloaded->getEnabledMenuValue())->toBe('1')
+            ->and($reloaded->isSiteScope())->toBeTrue();
+    } finally {
+        $general->allowAdminChanges = $allowAdminChanges;
+    }
 });
 
 it('normalizes legacy enabled values for captcha boolean menus', function (): void {

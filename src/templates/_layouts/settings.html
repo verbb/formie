@@ -27,6 +27,6 @@
 {% endfor %}
 
 {% set pageTitle = pageTitle ?? false %}
-{% if title is not defined and pageTitle %}
-    {% set title = pageTitle %}
+{% if title is not defined %}
+    {% set title = pageTitle ?: (craft.formie.getPluginName() | t('formie')) %}
 {% endif %}

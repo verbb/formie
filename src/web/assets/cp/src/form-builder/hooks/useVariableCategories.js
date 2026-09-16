@@ -53,7 +53,7 @@ const buildDispatchVariableOptions = (formValues = {}) => {
     const nameLookup = getIntegrationNameLookup(integrationsMap);
     const payloadHandles = new Set(getPayloadIntegrationHandles(integrationsMap));
 
-    let stepHandles = [];
+    let stepHandles;
 
     if (Array.isArray(plan.steps) && plan.steps.length) {
         stepHandles = plan.steps

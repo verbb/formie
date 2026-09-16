@@ -73,5 +73,14 @@ it('returns rich text config defaults for content fields', function (): void {
     expect($defaults)->toMatchArray([
         'rows' => 8,
     ])
-        ->and($defaults['buttons'])->toContain('bold', 'italic', 'link');
+        ->and($defaults['buttons'])->toContain(
+            'bold',
+            'italic',
+            'link',
+            'unordered-list',
+            'ordered-list',
+            'h2',
+            'h3',
+        )
+        ->and($defaults['buttons'])->not->toContain('ulist', 'olist', 'heading2', 'heading3');
 })->group('fields');

@@ -182,27 +182,34 @@ Craft.Formie.Chart = Garnish.Base.extend({
                         if (tooltipModel.body) {
                             const titleLines = tooltipModel.title || [];
                             const bodyLines = tooltipModel.body.map(getBody);
-                            const { dataPoints } = tooltipModel;
-
-                            let innerHtml = '<div>';
+                            const content = document.createElement('div');
 
                             titleLines.forEach((title) => {
                                 if (title && title != 'null') {
-                                    innerHtml += `<h3>${title}</h3>`;
+                                    const heading = document.createElement('h3');
+                                    heading.textContent = title;
+                                    content.append(heading);
                                 }
                             });
 
                             bodyLines.forEach((body, i) => {
                                 const colors = tooltipModel.labelColors[i];
-                                let style = `background:${colors.backgroundColor}`;
-                                style += `; border-color:${colors.borderColor}`;
-                                const span = `<span class="legend-dot" style="${style}"></span>`;
-                                innerHtml += `<div class="formie-widget-chart-tooltip-items">${span}<span>${body}</span>` + '</div>';
+                                const row = document.createElement('div');
+                                row.className = 'formie-widget-chart-tooltip-items';
+                                const dot = document.createElement('span');
+                                dot.className = 'legend-dot';
+                                dot.style.backgroundColor = colors.backgroundColor;
+                                dot.style.borderColor = colors.borderColor;
+                                const label = document.createElement('span');
+                                // Form labels are editor input, including when
+                                // they arrive through Chart.js tooltip values.
+                                label.textContent = body;
+                                row.append(dot, label);
+                                content.append(row);
                             });
-                            innerHtml += '</div>';
 
                             const tableRoot = tooltipEl.querySelector('.chartjs-tooltip-container');
-                            tableRoot.innerHTML = innerHtml;
+                            tableRoot.replaceChildren(content);
                         }
 
                         // `this` will be the overall tooltip

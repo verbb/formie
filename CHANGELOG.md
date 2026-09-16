@@ -11,12 +11,14 @@
 - Bump transitive `symfony/cache` to `6.4.45` (CVE-2026-45073 advisory floor).
 
 ### Fixed
+- Supply a document title for every beta settings page so Craft 5 can render them without adding a settings-content heading.
 - Preserve payment attempts and gateway receipts across interrupted Moneris, Eway, BPOINT, Opayo, Mollie and Paddle requests, and stop ambiguous outcomes from triggering another purchase.
 - Recover Eway payments by invoice reference and Mollie payments from verified webhook results when creation responses are lost.
 - Preserve completed report downloads across queue retries, clean up interrupted export workspaces, report progress and reject incomplete output.
 - Fix Mollie checkout initialization using the wrong redirect helper, and allow corrected attempts after explicit API rejections.
 - Keep payment amounts aligned with their currency precision when retrying or reconciling payments.
 - Avoid charging an extra minor unit for decimal Stripe and Opayo amounts, and use Stripe's required UGX amount format.
+- Fixed XSS vulnerabilities.
 - Fixed payment verification vulnerabilities.
 - Fixed an XML injection vulnerability.
 - Enforce weekly submission limits on Sundays and keep calendar limit periods from overlapping.
@@ -28,6 +30,7 @@
 - Recognize array-based wildcard form selections in report field columns.
 - Clone localized form layouts without serializing callbacks or mutating canonical form settings and notifications.
 - Preserve typed dates when expiring subscriptions and archiving payment plans.
+- Block shared-address, multicast, documentation and IPv6 transition networks in outbound automation requests.
 - Migrate notification field-handle tokens to stable references when upgrading from Formie 3.
 - Reject empty submission form scopes, enforce the requesting user's permissions for queued reports, and consume signed report download tokens atomically.
 - Preserve scheduled report delivery cursors when exports or emails fail, and clean up temporary report files after failures and direct downloads.
@@ -35,9 +38,11 @@
 - Preserve saved report date bounds when sending incremental scheduled exports.
 - Score submitted quiz answers using current field identities and option values.
 - Persist completed submission state when replaying successful payment webhooks.
+- Preserve Craft query-string routes in the form builder so saving and reloading keeps the editor available.
 - Fix Freeform 5 migration imports and scope submission migration to the selected form ID.
 - Format date variable presets using their PHP date patterns.
 - Preserve field translations on import and field identities when updating existing forms from exports.
+- Keep the form builder and existing-field picker available when an HTML field's Twig preview cannot render.
 - Discard pending data uploads when a field is cleared, preserve them during partial-page merges, and apply nested field edits over stored UID values.
 - Apply file size and detected-type validation to data uploads, and normalize client file payloads consistently with GraphQL uploads.
 - Preserve both new and retained files in mixed GraphQL upload requests.
@@ -58,6 +63,7 @@
 - Fix report date-filter migration, current project-config palette/group updates, and defaultable validation settings.
 - Handle missing payment providers during field rendering and return a boolean for unconfigured Mollie settings.
 - Resolve stable field references when generating notification preview recipients and isolate cached values between previews.
+- Fix missing schema helper import when rendering reCAPTCHA form settings.
 - Persist delivery attempt identities before external calls, stop uncertain integration/email retries, and checkpoint individual notifications.
 - Reuse Square payment keys; recover Stripe customer, payment intent, subscription and schedule creation; reconcile GoCardless payment/subscription duplicate-key responses.
 - Queue status-change notifications atomically with element transactions, even when ordinary notification delivery is synchronous.

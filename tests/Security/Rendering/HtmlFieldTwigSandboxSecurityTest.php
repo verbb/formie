@@ -65,3 +65,15 @@ it('still purifies hostile twig output from html fields', function (): void {
         ->not->toContain('<script')
         ->not->toContain('onerror=');
 })->group('security');
+
+it('keeps an invalid twig preview from breaking other builder field choices', function (): void {
+    $form = formie()->form()->htmlField('invalidPreview', [
+        'htmlContent' => '{{ craft.app.cache.cachePath }}', 'allowTwig' => true,
+    ])->singleLineTextField('usableField')->create();
+    $field = $form->getFieldByHandle('invalidPreview');
+    $settings = $field->modifyFieldSettings([]);
+    expect(json_encode($settings))->toContain('Unable to render HTML preview.')
+        ->not->toContain('cachePath', 'SecurityNotAllowedPropertyError');
+    $choices = \verbb\formie\Formie::$plugin->getFields()->getExistingFields();
+    expect(json_encode($choices))->toContain('usableField');
+})->group('security');

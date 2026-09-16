@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { buildBuilderRouteUrl, getBuilderRoutePath } from '../utils/builderRouteUrl';
 import useAppStore from './useAppStore';
 import { useFormBuilderApp } from '@form-builder/contexts/FormBuilderAppContext';
 
@@ -58,18 +59,6 @@ const getRoutePath = ({ activeTab, activePageHandle, activeIntegrationHandle }) 
     return '';
 };
 
-const applySiteQueryParam = (url) => {
-    const siteHandle = new URL(window.location.href).searchParams.get('site');
-
-    url.search = '';
-
-    if (siteHandle) {
-        url.searchParams.set('site', siteHandle);
-    }
-
-    return url;
-};
-
 // Standalone initialization function that can be called outside of React components
 export const initializeRouterState = () => {
     const {
@@ -77,8 +66,9 @@ export const initializeRouterState = () => {
     } = useAppStore.getState();
 
     // Parse current URL and set initial state
-    const path = window.location.pathname;
-    const baseUrlPath = getUrl(baseUrl).pathname;
+    const pathParam = Craft.pathParam || 'p';
+    const path = getBuilderRoutePath(getUrl(window.location.href), pathParam);
+    const baseUrlPath = getBuilderRoutePath(getUrl(baseUrl), pathParam);
     const relativePath = getRelativePath(path, baseUrlPath);
 
     // Set default state
@@ -137,12 +127,7 @@ function useUrlRouter() {
 
     // Generate URL from route state
     const generateUrl = (state) => {
-        const base = getUrl(baseUrl);
-        const basePath = normalizePath(base.pathname);
-
-        base.pathname = `${basePath}${getRoutePath(state)}`;
-
-        return applySiteQueryParam(base).toString();
+        return buildBuilderRouteUrl(baseUrl, getRoutePath(state), window.location.href, Craft.pathParam || 'p');
     };
 
     // Update URL without triggering navigation

@@ -42,8 +42,9 @@ function FormieErrorsPane({
                         <li
                             key={`${index}-${error}`}
                             className="list-disc font-mono text-xs"
-                            dangerouslySetInnerHTML={{ __html: error }}
-                        />
+                        >
+                            {error}
+                        </li>
                     );
                 })}
             </ul>

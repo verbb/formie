@@ -19,6 +19,7 @@ use craft\helpers\UrlHelper;
 
 use GuzzleHttp\Client;
 
+use yii\helpers\IpHelper;
 use yii\helpers\Markdown;
 
 abstract class Automation extends Integration
@@ -263,7 +264,19 @@ abstract class Automation extends Integration
 
     private function _isPublicIp(string $ip): bool
     {
-        return filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) !== false;
+        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_GLOBAL_RANGE) === false) {
+            return false;
+        }
+
+        // Global-range validation alone permits multicast and translation ranges
+        // that can carry a private IPv4 destination through an IPv6 connection.
+        foreach (['224.0.0.0/4', 'ff00::/8', '64:ff9b::/96', '2002::/16', '2001::/32'] as $range) {
+            if (IpHelper::inRange($ip, $range)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
 }

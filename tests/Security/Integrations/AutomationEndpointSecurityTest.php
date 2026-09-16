@@ -33,6 +33,9 @@ it('blocks automation endpoints that resolve to private or reserved networks', f
 })->with([
     'loopback' => ['http://127.0.0.1/internal'],
     'rfc1918' => ['http://10.0.0.1/internal'],
+    'shared address space metadata' => ['http://100.100.100.200/latest/meta-data'],
+    'benchmark network' => ['http://198.18.0.1/internal'],
+    'multicast' => ['http://239.255.255.250/internal'],
     'metadata' => ['http://169.254.169.254/latest/meta-data'],
     'reserved' => ['http://192.0.2.10/webhook'],
     'unsupported scheme' => ['file:///etc/passwd'],
@@ -113,3 +116,15 @@ it('pins automation DNS to a validated public IP on absolute URLs', function ():
     expect(fn() => $integration->request('GET', 'http://127.0.0.1/internal'))
         ->toThrow(IntegrationException::class);
 })->group('security');
+
+
+it('rejects non-global and transition addresses before connecting', function (string $ip, bool $allowed): void {
+    $integration = new SecurityWebRequestEndpointProbe(['name' => 'Address classification', 'handle' => 'addressClassification']);
+    $method = new ReflectionMethod(\verbb\formie\base\Automation::class, '_isPublicIp');
+    expect($method->invoke($integration, $ip))->toBe($allowed);
+})->with([
+    ['100.100.100.200', false], ['198.18.0.1', false], ['192.0.0.8', false],
+    ['224.0.0.1', false], ['239.255.255.250', false], ['2001:db8::1', false],
+    ['::ffff:127.0.0.1', false], ['64:ff9b::a00:1', false], ['2002:7f00:1::', false],
+    ['ff02::1', false], ['8.8.8.8', true], ['1.1.1.1', true], ['2606:4700:4700::1111', true],
+])->group('security');

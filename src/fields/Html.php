@@ -25,6 +25,7 @@ use GraphQL\Type\Definition\Type;
 
 use HTMLPurifier_Config;
 use HTMLPurifier_AttrDef_HTML_Bool;
+use Twig\Error\Error as TwigError;
 
 class Html extends CosmeticField
 {
@@ -219,7 +220,14 @@ class Html extends CosmeticField
         $form = $this->getForm();
 
         if ($form) {
-            $settings['_builderPreviewHtml'] = $this->getRenderedHtmlBlock($form, null, null);
+            try {
+                $settings['_builderPreviewHtml'] = $this->getRenderedHtmlBlock($form, null, null);
+            } catch (TwigError $e) {
+                // A broken preview must not prevent editors from opening the builder to repair it.
+                // Keep the sandbox enforced and never insert exception details into preview HTML.
+                Formie::error('Unable to render HTML field preview: ' . $e->getMessage());
+                $settings['_builderPreviewHtml'] = CraftHtml::tag('p', Craft::t('formie', 'Unable to render HTML preview.'));
+            }
         }
 
         return $settings;

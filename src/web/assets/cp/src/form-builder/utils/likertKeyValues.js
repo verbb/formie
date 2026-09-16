@@ -1,5 +1,5 @@
 export function createLikertKey(usedValues, prefix) {
-    let value = '';
+    let value;
 
     do {
         value = `${prefix}-${Math.random().toString(36).slice(2, 12)}`;

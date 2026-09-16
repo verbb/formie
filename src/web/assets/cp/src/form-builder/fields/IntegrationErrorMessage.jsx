@@ -42,9 +42,10 @@ function IntegrationErrorMessage({ error, className = '' }) {
 
                     {showDetails ? (
                         <div
-                            className="mt-2 max-h-[180px] overflow-auto rounded-md bg-slate-50 p-2 text-left text-xs"
-                            dangerouslySetInnerHTML={{ __html: error.traceAsString }}
-                        />
+                            className="mt-2 max-h-[180px] overflow-auto whitespace-pre-wrap rounded-md bg-slate-50 p-2 text-left text-xs"
+                        >
+                            {error.traceAsString.replace(/<br\s*\/?>/gi, '\n')}
+                        </div>
                     ) : null}
                 </div>
             )}
