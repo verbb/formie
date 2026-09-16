@@ -207,11 +207,15 @@ it('enforces persisted user permissions for one form through the notification mo
     $user = new \craft\elements\User(['username' => 'acl' . uniqid(), 'email' => 'acl' . uniqid() . '@example.test']);
     expect(Craft::$app->getElements()->saveElement($user))->toBeTrue();
     $permissions = Formie::$plugin->getPermissions();
+    $scopedPermission = $permissions->scopedPermission(\verbb\formie\services\Permissions::PERM_VIEW_SUBMISSIONS, $permissions->formScope($allowed['form']));
+    // Register the forms created by this fixture before saving their scoped grants.
+    Craft::$app->set('userPermissions', new \craft\services\UserPermissions());
     expect(Craft::$app->getUserPermissions()->saveUserPermissions($user->id, [
         'accessCp', 'accessPlugin-formie',
         \verbb\formie\services\Permissions::PERM_ACCESS_SUBMISSIONS,
-        $permissions->scopedPermission(\verbb\formie\services\Permissions::PERM_VIEW_SUBMISSIONS, $permissions->formScope($allowed['form'])),
+        $scopedPermission,
     ]))->toBeTrue();
+    expect(Craft::$app->getUserPermissions()->getPermissionsByUserId($user->id))->toContain(strtolower($scopedPermission));
     WebRequestTestHelper::withWebRequestContext(function ($request) use ($user, $allowed, $denied): void {
         $request->setIsCpRequest(true);
         Craft::$app->getView()->setTemplateMode(\craft\web\View::TEMPLATE_MODE_CP);
