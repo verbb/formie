@@ -54,6 +54,7 @@
 - Open form preview slideouts on all supported Craft 5 versions.
 - Display custom form and submission statuses on all supported Craft 5 versions.
 - Load form condition rules on all supported Craft 5 versions.
+- Apply empty and non-empty relation filters consistently to submission queries on all supported Craft 5 versions.
 - Preserve queued integration failure events on all supported Craft 5 versions.
 - Render notification emails on all supported Craft 5 versions.
 - Preserve custom decimal-field query precision on all supported Craft 5 versions.

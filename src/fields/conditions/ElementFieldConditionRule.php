@@ -5,13 +5,9 @@ use verbb\formie\base\ElementFieldInterface;
 
 use Craft;
 use craft\base\conditions\BaseElementSelectConditionRule;
-use craft\base\ElementInterface;
 use craft\elements\conditions\ElementConditionInterface;
 use craft\elements\db\ElementQueryInterface;
-use craft\elements\ElementCollection;
-use craft\helpers\Json;
 
-use yii\base\InvalidConfigException;
 use yii\db\Expression;
 use yii\db\QueryInterface;
 
@@ -37,21 +33,23 @@ class ElementFieldConditionRule extends BaseElementSelectConditionRule implement
     public function modifyQuery(QueryInterface $query): void
     {
         $field = $this->field();
-        $values = $this->elementQueryParam();
 
-        if ($values !== null) {
-            $jsonPath = [$field->uid];
-
-            $db = Craft::$app->getDb();
-            $qb = $db->getQueryBuilder();
-            $column = $qb->jsonExtract('formie_submissions.content', $jsonPath);
-
-            // Add our own query handling to allow parial matches for multi-array values
-            // Probably look at refactoring this back to `ElementField::queryCondition()`
-            foreach ($values as $i => $value) {
-                $query->andWhere(new Expression("JSON_CONTAINS($column, :val$i, '$')", [":val$i" => Json::encode($value)]));
-            }
+        if (!$field instanceof ElementFieldInterface || ($column = $field->getValueSql()) === null) {
+            return;
         }
+
+        // Match the resolved field value, including disabled targets but excluding deleted ones.
+        // Stored IDs alone are not evidence that a relation is still present.
+        $db = Craft::$app->getDb();
+        $contains = $db->getIsPgsql()
+            ? "CAST($column AS jsonb) @> jsonb_build_array([[elements.id]])"
+            : "JSON_CONTAINS($column, CAST([[elements.id]] AS CHAR))";
+        $related = $field::elementType()::find()->site('*')->unique()->status(null)->select(['elements.id']);
+        // Keep the correlation outside Craft's derived table for database portability.
+        $relatedQuery = $related->prepare($db->getQueryBuilder());
+        $relatedQuery->andWhere(new Expression($contains));
+
+        $query->andWhere([$this->elementQueryParam() === ':empty:' ? 'not exists' : 'exists', $relatedQuery]);
     }
 
 
@@ -99,9 +97,9 @@ class ElementFieldConditionRule extends BaseElementSelectConditionRule implement
         ]);
     }
 
-    protected function elementQueryParam(): array|null
+    protected function elementQueryParam(): string
     {
-        return $this->getElementIds();
+        return $this->operator === self::OPERATOR_EMPTY ? ':empty:' : ':notempty:';
     }
 
     protected function matchFieldValue($value): bool
