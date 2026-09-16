@@ -12,6 +12,7 @@
 
 ### Fixed
 - Supply a document title for every beta settings page so Craft 5 can render them without adding a settings-content heading.
+- Keep field error live regions mounted without reserving empty layout space, honour the configured announcement priority, and associate definition-driven errors with their controls. ([#2954](https://github.com/verbb/formie/issues/2954))
 - Preserve payment attempts and gateway receipts across interrupted Moneris, Eway, BPOINT, Opayo, Mollie and Paddle requests, and stop ambiguous outcomes from triggering another purchase.
 - Recover Eway payments by invoice reference and Mollie payments from verified webhook results when creation responses are lost.
 - Preserve completed report downloads across queue retries, clean up interrupted export workspaces, report progress and reject incomplete output.
@@ -35,11 +36,15 @@
 - Reject empty submission form scopes, enforce the requesting user's permissions for queued reports, and consume signed report download tokens atomically.
 - Preserve scheduled report delivery cursors when exports or emails fail, and clean up temporary report files after failures and direct downloads.
 - Keep successful Stripe payment intents from regressing on delayed webhooks, verify their integration, restore subscription invoice updates, and return retryable responses on processing failures.
+- Refresh tokens on cached Twig-rendered forms before submission.
 - Preserve saved report date bounds when sending incremental scheduled exports.
 - Score submitted quiz answers using current field identities and option values.
 - Persist completed submission state when replaying successful payment webhooks.
 - Preserve Craft query-string routes in the form builder so saving and reloading keeps the editor available.
 - Fix Freeform 5 migration imports and scope submission migration to the selected form ID.
+- Give managed text inputs accessible names and focus the first invalid input after submission.
+- Read current field structure metadata in managed frontend adapters.
+- Allow client form bootstrap to obtain the CSRF token required for subsequent submissions.
 - Format date variable presets using their PHP date patterns.
 - Preserve field translations on import and field identities when updating existing forms from exports.
 - Keep the form builder and existing-field picker available when an HTML field's Twig preview cannot render.
@@ -69,6 +74,7 @@
 - Queue status-change notifications atomically with element transactions, even when ordinary notification delivery is synchronous.
 - Store integration dispatch context as native JSON and read existing double-encoded context during submission hydration.
 - Checkpoint successful queued integration steps so retries skip completed steps and resume failed delivery.
+- Ignore stale frontend responses after reset or a newer navigation/refresh operation.
 - Fix form factories exhausting automatic handles or generating Craft-reserved handles.
 - Fix client-side payment authorize still requiring a Stripe/provider token when the Payment field is hidden by conditional logic (e.g. bank transfer vs card) — authorize and mount now skip fields marked conditionally/row/page hidden, matching server-side payment workflow skips.
 - Fix “Restore In-Progress Submissions Automatically” still restoring incomplete submissions on revisit when disabled — server render no longer hydrates from leftover progress, and submit/client continuation ignore bare progress unless the browser already holds that submission (or a resume/continuation token). Resume links are unchanged.

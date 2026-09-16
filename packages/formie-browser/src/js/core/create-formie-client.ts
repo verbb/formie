@@ -73,12 +73,12 @@ function parseBooleanOption(value: string | undefined, defaultValue: boolean): b
 }
 
 function inferStaticCacheOnLoadFromDataset(dataset: DOMStringMap): boolean {
-    if (dataset.formieRefreshTokens != null && dataset.formieRefreshTokens !== '') {
-        return parseBooleanOption(dataset.formieRefreshTokens, false);
+    if (dataset.formieRefreshTokens != null) {
+        return parseBooleanOption(dataset.formieRefreshTokens, true);
     }
 
-    if (dataset.formieStaticCache != null && dataset.formieStaticCache !== '') {
-        return parseBooleanOption(dataset.formieStaticCache, false);
+    if (dataset.formieStaticCache != null) {
+        return parseBooleanOption(dataset.formieStaticCache, true);
     }
 
     return false;

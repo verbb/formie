@@ -276,7 +276,6 @@ export function renderFieldErrors(form: HTMLFormElement, fieldErrors: Record<str
         messages.forEach((message, index) => {
             const errorNode = document.createElement('div');
             errorNode.setAttribute('data-formie-field-error', 'true');
-            errorNode.setAttribute('role', 'alert');
             errorNode.id = `${containerId}-${index + 1}`;
             addThemeClasses(errorNode, form, 'fieldError');
             errorNode.textContent = message;

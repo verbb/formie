@@ -146,6 +146,10 @@
         gap: var(--formie-gap-field-errors);
     }
 
+    .formie-field-errors:empty {
+        position: absolute;
+    }
+
     .formie-page-tabs {
         display: flex;
         flex-wrap: wrap;

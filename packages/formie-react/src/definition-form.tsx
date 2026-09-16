@@ -3,6 +3,8 @@ import {
     compositePartDefinitions,
     createRepeaterRowValue,
     createFrontendFormInstance,
+    getFrontendErrorAriaLive,
+    getFrontendFieldErrorId,
     createGraphqlFrontendTransport,
     createRestFrontendTransport,
     isCompositeField,
@@ -13,6 +15,7 @@ import {
     loadGraphqlFrontendEnvelope,
     repeaterRowDefinitions,
     type FrontendFieldDefinition,
+    type FrontendErrorAriaLive,
     type FrontendFormDefinition,
     type FrontendFormEnvelope,
     type FrontendFormSession,
@@ -87,6 +90,8 @@ export type FormiePageComponentProps = {
 export type FormieFieldProps = {
     field: FrontendFieldDefinition;
     errors: string[];
+    errorId: string;
+    errorAriaLive: FrontendErrorAriaLive;
     children?: ReactNode;
 };
 
@@ -99,6 +104,8 @@ export type FormieFieldComponentProps = {
     value: unknown;
     errors: string[];
     errorKey: string;
+    errorId: string;
+    errorAriaLive: FrontendErrorAriaLive;
     disabled: boolean;
     hidden: boolean;
     setValue(value: unknown): void;
@@ -180,7 +187,7 @@ function DefaultErrorSummary({ errors }: FormieErrorSummaryProps) {
     })));
 }
 
-function DefaultField({ field, errors, children }: FormieFieldProps) {
+function DefaultField({ field, errors, errorId, errorAriaLive, children }: FormieFieldProps) {
     const { slots } = useDefinitionContext();
 
     const renderSlot = (slotKey: string, child: ReactNode, attributes?: Record<string, unknown>) => {
@@ -214,21 +221,34 @@ function DefaultField({ field, errors, children }: FormieFieldProps) {
             key: 'input',
             className: 'formie-react-input',
         }, children)),
-        errors.length > 0 ? renderSlot('errors', createElement('ul', {
+        renderSlot('errors', createElement('ul', {
             key: 'errors',
+            id: errorId,
             className: 'formie-react-field-errors',
+            style: errors.length === 0 ? { position: 'absolute' } : undefined,
+            'data-formie-field-errors': true,
+            'aria-live': errorAriaLive === 'off' ? undefined : errorAriaLive,
+            'aria-atomic': errorAriaLive === 'off' ? undefined : 'true',
         }, errors.map((error, index) => {
             return createElement('li', { key: `${error}:${index}` }, error);
-        }))) : null,
+        })), {
+            id: errorId,
+            style: errors.length === 0 ? { position: 'absolute' } : undefined,
+            'data-formie-field-errors': true,
+            'aria-live': errorAriaLive === 'off' ? undefined : errorAriaLive,
+            'aria-atomic': errorAriaLive === 'off' ? undefined : 'true',
+        }),
     ]);
 }
 
 function DefaultForm({ definition, session, state, children, className, onSubmit }: FormieFormComponentProps) {
     return createElement('form', {
         className,
-        onSubmit: (event: Event) => {
+        onSubmit: async (event: Event) => {
             event.preventDefault();
-            onSubmit();
+            const form = event.currentTarget as HTMLFormElement;
+            await onSubmit();
+            requestAnimationFrame(() => form.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus());
         },
         'data-formie-definition': definition.handle,
         'data-formie-render-id': session.tokens.render,
@@ -282,11 +302,21 @@ function resolveFieldRendererType(field: FrontendFieldDefinition): FrontendField
     return field.type;
 }
 
-function renderNestedFieldInput(field: FrontendFieldDefinition, value: unknown, disabled: boolean, setValue: (value: unknown) => void): ReactNode {
+function errorReferenceAttributes(errors: string[], errorId: string) {
+    return errors.length > 0 ? {
+        'aria-invalid': 'true',
+        'aria-errormessage': errorId,
+        'aria-describedby': errorId,
+    } : {};
+}
+
+function renderNestedFieldInput(field: FrontendFieldDefinition, value: unknown, disabled: boolean, setValue: (value: unknown) => void, errors: string[] = [], errorId = ''): ReactNode {
     const contract = field.input;
 
     if (field.type === 'multi-line-text') {
         return createElement('textarea', {
+        'aria-label': field.label || field.handle,
+        ...errorReferenceAttributes(errors, errorId),
             value: typeof value === 'string' ? value : '',
             disabled,
             placeholder: typeof contract.placeholder === 'string' ? contract.placeholder : undefined,
@@ -302,6 +332,8 @@ function renderNestedFieldInput(field: FrontendFieldDefinition, value: unknown, 
         const multiple = contract.multiple === true;
 
         return createElement('select', {
+        'aria-label': field.label || field.handle,
+        ...errorReferenceAttributes(errors, errorId),
             value: multiple ? undefined : (typeof value === 'string' ? value : ''),
             disabled,
             multiple,
@@ -331,6 +363,8 @@ function renderNestedFieldInput(field: FrontendFieldDefinition, value: unknown, 
         : (field.type === 'email' ? 'email' : (field.type === 'phone' ? 'tel' : (field.type === 'number' ? 'number' : 'text')));
 
     return createElement('input', {
+        'aria-label': field.label || field.handle,
+        ...errorReferenceAttributes(errors, errorId),
         type: inputType,
         value: typeof value === 'string' ? value : '',
         disabled,
@@ -555,9 +589,11 @@ function CompositeFieldInput({
 function FileFieldInput({
     field,
     value,
+    errors,
+    errorId,
     disabled,
     setValue,
-}: Pick<FormieFieldComponentProps, 'field' | 'value' | 'disabled' | 'setValue'>) {
+}: Pick<FormieFieldComponentProps, 'field' | 'value' | 'errors' | 'errorId' | 'disabled' | 'setValue'>) {
     const contract = field.input;
     const files = Array.isArray(value) ? value : [];
     const multiple = contract.multiple === true;
@@ -583,6 +619,7 @@ function FileFieldInput({
         createElement('input', {
             key: 'input',
             type: 'file',
+            ...errorReferenceAttributes(errors, errorId),
             disabled,
             multiple,
             onChange: (event: Event) => {
@@ -686,7 +723,7 @@ function RepeaterFieldInput({
 }
 
 function defaultFieldRenderer(props: FormieFieldComponentProps): ReactNode {
-    const { field, value, errorKey, disabled, setValue } = props;
+    const { field, value, errorKey, errorId, disabled, setValue } = props;
     const contract = field.input;
     const rendererType = resolveFieldRendererType(field);
 
@@ -714,6 +751,8 @@ function defaultFieldRenderer(props: FormieFieldComponentProps): ReactNode {
         return createElement(FileFieldInput, {
             field,
             value,
+            errors: props.errors,
+            errorId,
             disabled,
             setValue,
         });
@@ -730,11 +769,11 @@ function defaultFieldRenderer(props: FormieFieldComponentProps): ReactNode {
     }
 
     if (rendererType === 'multi-line-text') {
-        return renderNestedFieldInput(field, value, disabled, setValue);
+        return renderNestedFieldInput(field, value, disabled, setValue, props.errors, errorId);
     }
 
     if (rendererType === 'dropdown') {
-        return renderNestedFieldInput(field, value, disabled, setValue);
+        return renderNestedFieldInput(field, value, disabled, setValue, props.errors, errorId);
     }
 
     if (rendererType === 'radio') {
@@ -752,6 +791,7 @@ function defaultFieldRenderer(props: FormieFieldComponentProps): ReactNode {
                 createElement('input', {
                     key: 'input',
                     type: 'radio',
+                    ...errorReferenceAttributes(props.errors, errorId),
                     checked: value === optionValue,
                     disabled: optionDisabled,
                     onChange: () => {
@@ -780,6 +820,7 @@ function defaultFieldRenderer(props: FormieFieldComponentProps): ReactNode {
                 createElement('input', {
                     key: 'input',
                     type: 'checkbox',
+                    ...errorReferenceAttributes(props.errors, errorId),
                     checked,
                     disabled: optionDisabled,
                     onChange: () => {
@@ -804,6 +845,7 @@ function defaultFieldRenderer(props: FormieFieldComponentProps): ReactNode {
             createElement('input', {
                 key: 'input',
                 type: 'checkbox',
+                ...errorReferenceAttributes(props.errors, errorId),
                 checked: value === true,
                 disabled,
                 onChange: (event: Event) => {
@@ -828,7 +870,7 @@ function defaultFieldRenderer(props: FormieFieldComponentProps): ReactNode {
         }, `Unsupported field type: ${String(field.meta?.fieldType ?? field.type)}`);
     }
 
-    return renderNestedFieldInput(field, value, disabled, setValue);
+    return renderNestedFieldInput(field, value, disabled, setValue, props.errors, errorId);
 }
 
 function ConfigFieldNode({
@@ -857,15 +899,21 @@ function ConfigFieldNode({
     const rendererType = resolveFieldRendererType(field);
     const renderer = fieldComponents[field.type] || fieldComponents[rendererType] || defaultFieldRenderer;
     const Field = components.Field || DefaultField;
+    const errorId = getFrontendFieldErrorId(state.session, errorKey);
+    const errorAriaLive = getFrontendErrorAriaLive(state.definition);
 
     return createElement(Field, {
         field,
         errors,
+        errorId,
+        errorAriaLive,
         children: renderer({
             field,
             value,
             errors,
             errorKey,
+            errorId,
+            errorAriaLive,
             disabled,
             hidden,
             setValue,
@@ -983,7 +1031,7 @@ function ConfigRenderer({ className }: { className?: string }) {
         state,
         className,
         onSubmit: () => {
-            void instance.submit();
+            return instance.submit();
         },
         children: [
             createElement(ErrorSummary, {

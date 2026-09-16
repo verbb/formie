@@ -21,12 +21,7 @@ it('outputs field error position on the field layout', function (): void {
     $view->setTemplateMode(View::TEMPLATE_MODE_CP);
 
     try {
-        $html = $view->renderTemplate('formie/_special/form-template/field', [
-            'form' => $form,
-            'field' => $field,
-            'value' => '',
-            'element' => null,
-        ]);
+        $html = (string)\verbb\formie\Formie::$plugin->getRendering()->renderField($form, $field, ['value' => '']);
     } finally {
         $view->setTemplateMode($oldTemplateMode);
     }
@@ -46,12 +41,7 @@ it('defaults field error position to below input', function (): void {
     $view->setTemplateMode(View::TEMPLATE_MODE_CP);
 
     try {
-        $html = $view->renderTemplate('formie/_special/form-template/field', [
-            'form' => $form,
-            'field' => $field,
-            'value' => '',
-            'element' => null,
-        ]);
+        $html = (string)\verbb\formie\Formie::$plugin->getRendering()->renderField($form, $field, ['value' => '']);
     } finally {
         $view->setTemplateMode($oldTemplateMode);
     }

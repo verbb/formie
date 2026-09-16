@@ -1,12 +1,15 @@
 import {
     compositePartDefinitions,
     createRepeaterRowValue,
+    getFrontendErrorAriaLive,
+    getFrontendFieldErrorId,
     isCompositeField,
     isFileField,
     isKnownFrontendFieldType,
     isRepeatableField,
     repeaterRowDefinitions,
     type FrontendFieldDefinition,
+    type FrontendErrorAriaLive,
     type FrontendFormDefinition,
     type FrontendFormInstance,
     type FrontendFormState,
@@ -45,6 +48,9 @@ function bindRegistryControlHost(
     field: FrontendFieldDefinition,
     value: unknown,
     errorKey: string,
+    errors: string[],
+    errorId: string,
+    errorAriaLive: FrontendErrorAriaLive,
     disabled: boolean,
     hidden: boolean,
     onChange: (v: unknown) => void,
@@ -68,6 +74,9 @@ function bindRegistryControlHost(
     el.field = field;
     el.value = value;
     el.errorKey = errorKey;
+    el.errors = errors;
+    el.errorId = errorId;
+    el.errorAriaLive = errorAriaLive;
     el.disabled = disabled;
     el.hidden = hidden;
 }
@@ -78,6 +87,9 @@ function renderRegistryControl(
     field: FrontendFieldDefinition,
     value: unknown,
     errorKey: string,
+    errors: string[],
+    errorId: string,
+    errorAriaLive: FrontendErrorAriaLive,
     disabled: boolean,
     hidden: boolean,
     onChange: (v: unknown) => void,
@@ -85,7 +97,7 @@ function renderRegistryControl(
     return html`<div
         class="starter-core-registry-host min-w-0"
         ${ref((host) => {
-            bindRegistryControlHost(host, registryTag, field, value, errorKey, disabled, hidden, onChange);
+            bindRegistryControlHost(host, registryTag, field, value, errorKey, errors, errorId, errorAriaLive, disabled, hidden, onChange);
         })}
     ></div>`;
 }
@@ -94,42 +106,42 @@ function wrapField(
     ctx: RenderViewContext,
     field: FrontendFieldDefinition,
     errors: string[],
+    errorId: string,
+    errorAriaLive: FrontendErrorAriaLive,
     control: TemplateResult,
     layout: 'default' | 'compositePart' = 'default',
 ): TemplateResult {
     if (layout === 'compositePart') {
-        return wrapCompositePartField(field, errors, control);
+        return wrapCompositePartField(field, errors, errorId, errorAriaLive, control);
     }
 
     const tag = ctx.registry.fieldTag;
 
     if (!tag) {
-        return wrapDefaultField(field, errors, control);
+        return wrapDefaultField(field, errors, errorId, errorAriaLive, control);
     }
 
     const s = st(tag);
 
-    return staticHtml`<${s} .field=${field} .errors=${errors}>${control}</${s}>`;
+    return staticHtml`<${s} .field=${field} .errors=${errors} .errorId=${errorId} .errorAriaLive=${errorAriaLive}>${control}</${s}>`;
 }
 
 /** Matches Vue starter name-part layout: one bordered card on the parent, parts inside the grid. */
-function wrapCompositePartField(field: FrontendFieldDefinition, errors: string[], control: TemplateResult): TemplateResult {
+function wrapCompositePartField(field: FrontendFieldDefinition, errors: string[], errorId: string, errorAriaLive: FrontendErrorAriaLive, control: TemplateResult): TemplateResult {
     return html`
         <div class="starter-component-subfield" data-formie-field-type=${field.type}>
             ${field.label
                 ? html`<label class="starter-component-subfield-label">${field.label}</label>`
                 : nothing}
             <div class="starter-component-injected-control grid gap-2 text-slate-900">${control}</div>
-            ${errors.length > 0
-                ? html`<ul class="grid gap-1 text-sm text-red-600">
-                      ${errors.map((err) => html`<li>${err}</li>`)}
-                  </ul>`
-                : nothing}
+            <ul id=${errorId} data-formie-field-errors aria-live=${errorAriaLive === 'off' ? nothing : errorAriaLive} aria-atomic=${errorAriaLive === 'off' ? nothing : 'true'} style=${errors.length === 0 ? 'position: absolute' : nothing} class="grid gap-1 text-sm text-red-600">
+                ${errors.map((err) => html`<li>${err}</li>`)}
+            </ul>
         </div>
     `;
 }
 
-function wrapDefaultField(field: FrontendFieldDefinition, errors: string[], control: TemplateResult): TemplateResult {
+function wrapDefaultField(field: FrontendFieldDefinition, errors: string[], errorId: string, errorAriaLive: FrontendErrorAriaLive, control: TemplateResult): TemplateResult {
     return html`
         <div class="starter-component-card" data-formie-field-type=${field.type}>
             ${field.label
@@ -139,11 +151,9 @@ function wrapDefaultField(field: FrontendFieldDefinition, errors: string[], cont
                 ? html`<div class="starter-component-help">${unsafeHTML(field.instructions)}</div>`
                 : nothing}
             <div class="starter-component-injected-control grid gap-2 text-slate-900">${control}</div>
-            ${errors.length > 0
-                ? html`<ul class="grid gap-1 text-sm text-red-600">
-                      ${errors.map((err) => html`<li>${err}</li>`)}
-                  </ul>`
-                : nothing}
+            <ul id=${errorId} data-formie-field-errors aria-live=${errorAriaLive === 'off' ? nothing : errorAriaLive} aria-atomic=${errorAriaLive === 'off' ? nothing : 'true'} style=${errors.length === 0 ? 'position: absolute' : nothing} class="grid gap-1 text-sm text-red-600">
+                ${errors.map((err) => html`<li>${err}</li>`)}
+            </ul>
         </div>
     `;
 }
@@ -153,12 +163,18 @@ function renderNestedInput(
     value: unknown,
     disabled: boolean,
     setValue: (v: unknown) => void,
+    errors: string[] = [],
+    errorId = '',
 ): TemplateResult {
     const contract = field.input;
 
     if (field.type === 'multi-line-text') {
         return html`
             <textarea
+            aria-label=${field.label || field.handle}
+            aria-invalid=${errors.length > 0 ? "true" : nothing}
+            aria-errormessage=${errors.length > 0 ? errorId : nothing}
+            aria-describedby=${errors.length > 0 ? errorId : nothing}
                 class="starter-component-control"
                 .value=${typeof value === 'string' ? value : ''}
                 ?disabled=${disabled}
@@ -176,6 +192,10 @@ function renderNestedInput(
 
         return html`
             <select
+            aria-label=${field.label || field.handle}
+            aria-invalid=${errors.length > 0 ? "true" : nothing}
+            aria-errormessage=${errors.length > 0 ? errorId : nothing}
+            aria-describedby=${errors.length > 0 ? errorId : nothing}
                 class="starter-component-control"
                 ?disabled=${disabled}
                 multiple=${multiple}
@@ -217,6 +237,10 @@ function renderNestedInput(
 
     return html`
         <input
+            aria-label=${field.label || field.handle}
+            aria-invalid=${errors.length > 0 ? "true" : nothing}
+            aria-errormessage=${errors.length > 0 ? errorId : nothing}
+            aria-describedby=${errors.length > 0 ? errorId : nothing}
             class="starter-component-control"
             type=${inputType}
             .value=${typeof value === 'string' ? value : ''}
@@ -243,11 +267,14 @@ function renderDefaultControl(ctx: RenderViewContext, props: FieldNodeProps): Te
     }
 
     if (isFileField(field)) {
-        return renderFile(field, value, disabled, setValue);
+        return renderFile(field, value, disabled, setValue, props.errors, props.errorId);
     }
 
     if (rendererType === 'signature') {
         return html`<formie-internal-signature
+            aria-invalid=${props.errors.length > 0 ? 'true' : nothing}
+            aria-errormessage=${props.errors.length > 0 ? props.errorId : nothing}
+            aria-describedby=${props.errors.length > 0 ? props.errorId : nothing}
             .field=${field}
             .modules=${ctx.state.definition.modules}
             .value=${typeof value === 'string' ? value : ''}
@@ -259,7 +286,7 @@ function renderDefaultControl(ctx: RenderViewContext, props: FieldNodeProps): Te
     }
 
     if (rendererType === 'multi-line-text' || rendererType === 'dropdown') {
-        return renderNestedInput(field, value, disabled, setValue);
+        return renderNestedInput(field, value, disabled, setValue, props.errors, props.errorId);
     }
 
     if (rendererType === 'radio') {
@@ -275,6 +302,9 @@ function renderDefaultControl(ctx: RenderViewContext, props: FieldNodeProps): Te
                         <label class="flex items-center gap-2 text-sm text-slate-800">
                             <input
                                 type="radio"
+                                aria-invalid=${props.errors.length > 0 ? 'true' : nothing}
+                                aria-errormessage=${props.errors.length > 0 ? props.errorId : nothing}
+                                aria-describedby=${props.errors.length > 0 ? props.errorId : nothing}
                                 name=${`${field.id}-radio`}
                                 .checked=${value === optionValue}
                                 ?disabled=${optionDisabled}
@@ -305,6 +335,9 @@ function renderDefaultControl(ctx: RenderViewContext, props: FieldNodeProps): Te
                         <label class="flex items-center gap-2 text-sm text-slate-800">
                             <input
                                 type="checkbox"
+                                aria-invalid=${props.errors.length > 0 ? 'true' : nothing}
+                                aria-errormessage=${props.errors.length > 0 ? props.errorId : nothing}
+                                aria-describedby=${props.errors.length > 0 ? props.errorId : nothing}
                                 .checked=${checked}
                                 ?disabled=${optionDisabled}
                                 @change=${() => {
@@ -330,6 +363,9 @@ function renderDefaultControl(ctx: RenderViewContext, props: FieldNodeProps): Te
             <label class="flex items-start gap-2 text-sm text-slate-800">
                 <input
                     type="checkbox"
+                    aria-invalid=${props.errors.length > 0 ? 'true' : nothing}
+                    aria-errormessage=${props.errors.length > 0 ? props.errorId : nothing}
+                    aria-describedby=${props.errors.length > 0 ? props.errorId : nothing}
                     .checked=${value === true}
                     ?disabled=${disabled}
                     @change=${(e: Event) => {
@@ -348,7 +384,7 @@ function renderDefaultControl(ctx: RenderViewContext, props: FieldNodeProps): Te
         </div>`;
     }
 
-    return renderNestedInput(field, value, disabled, setValue);
+    return renderNestedInput(field, value, disabled, setValue, props.errors, props.errorId);
 }
 
 function renderFile(
@@ -356,6 +392,8 @@ function renderFile(
     value: unknown,
     disabled: boolean,
     setValue: (v: unknown) => void,
+    errors: string[] = [],
+    errorId = '',
 ): TemplateResult {
     const contract = field.input;
     const files = Array.isArray(value) ? value : [];
@@ -380,6 +418,9 @@ function renderFile(
         <div class="grid gap-2">
             <input
                 type="file"
+                aria-invalid=${errors.length > 0 ? 'true' : nothing}
+                aria-errormessage=${errors.length > 0 ? errorId : nothing}
+                aria-describedby=${errors.length > 0 ? errorId : nothing}
                 class="starter-component-control"
                 ?disabled=${disabled}
                 multiple=${multiple}
@@ -499,6 +540,8 @@ type FieldNodeProps = {
     value: unknown;
     errors: string[];
     errorKey: string;
+    errorId?: string;
+    errorAriaLive?: FrontendErrorAriaLive;
     disabled: boolean;
     setValue(v: unknown): void;
 };
@@ -517,6 +560,8 @@ function renderFieldNode(
     }
 
     const rendererType = resolveFieldRendererType(field);
+    const errorId = getFrontendFieldErrorId(ctx.state.session, errorKey);
+    const errorAriaLive = getFrontendErrorAriaLive(ctx.state.definition);
     const regTag =
         ctx.registry.fieldControls[field.type] || ctx.registry.fieldControls[rendererType] || null;
 
@@ -526,10 +571,10 @@ function renderFieldNode(
     };
 
     const inner = regTag
-        ? renderRegistryControl(ctx, regTag, field, value, errorKey, disabled, hidden, syncSet)
-        : renderDefaultControl(ctx, { ...props, setValue: syncSet });
+        ? renderRegistryControl(ctx, regTag, field, value, errorKey, errors, errorId, errorAriaLive, disabled, hidden, syncSet)
+        : renderDefaultControl(ctx, { ...props, errorId, errorAriaLive, setValue: syncSet });
 
-    return wrapField(ctx, field, errors, inner, fieldLayout);
+    return wrapField(ctx, field, errors, errorId, errorAriaLive, inner, fieldLayout);
 }
 
 function renderNestedRow(
@@ -661,9 +706,11 @@ export function renderFormView(ctx: RenderViewContext): TemplateResult {
             class=${ctx.formClass || 'starter-component-form starter-core-preview text-slate-900'}
             data-formie-definition=${ctx.state.definition.handle}
             data-formie-render-id=${renderId}
-            @submit=${(e: Event) => {
+            @submit=${async (e: Event) => {
                 e.preventDefault();
-                void ctx.instance.submit();
+                const form = e.currentTarget as HTMLFormElement;
+                await ctx.instance.submit();
+                requestAnimationFrame(() => form.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus());
             }}
         >
             ${formInner}

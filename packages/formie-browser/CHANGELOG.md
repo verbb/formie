@@ -6,6 +6,10 @@
 - Add `data-formie-validation-skip` so helper controls (such as the Upload Manager browse input) can opt out of client-side validation.
 
 ### Fixed
+- Let the persistent field error region own announcements without reserving empty layout space or overriding its configured priority with nested assertive alerts. ([#2954](https://github.com/verbb/formie/issues/2954))
+- Keep Stripe checkout amounts aligned with server rounding and UGX currency conversion.
+- Open Paddle checkout using the transaction created by the server.
+- Refresh cached form tokens when Twig emits the static-cache attribute without a value.
 - Fix required File Upload fields using Upload Manager never passing client-side validation after a successful upload. ([#2924](https://github.com/verbb/formie/issues/2924))
 - Fix Advanced Upload Manager and form transport helpers hard-coding `CRAFT_CSRF_TOKEN`, so uploads and related XHR requests work when Craft’s `csrfTokenName` is customised.
 

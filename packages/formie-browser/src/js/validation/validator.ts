@@ -309,7 +309,6 @@ export class FormieValidator {
         errorElement.setAttribute('data-formie-field-error', 'true');
         errorElement.setAttribute(`data-formie-field-error-${validatorName}`, 'true');
         errorElement.setAttribute('id', errorId);
-        errorElement.setAttribute('role', 'alert');
         if (this.config.messageClass.length) {
             errorElement.classList.add(...this.config.messageClass);
         }

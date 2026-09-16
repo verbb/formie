@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+- Keep field error regions mounted without reserving empty layout space, respect Formie's announcement preference, and associate invalid controls with their messages. ([#2954](https://github.com/verbb/formie/issues/2954))
+- Give default text controls accessible names and focus the first invalid input after submission.
+
 ## 1.0.13 - 2026-07-09
 
 ### Changed

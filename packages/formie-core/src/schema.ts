@@ -52,6 +52,9 @@ export function isKnownFrontendFieldType(fieldType: string): fieldType is KnownF
 }
 
 export function fieldValueContract(field: FrontendFieldDefinition): FrontendFieldValueContract {
+    if (field.client?.children) {
+        return { structure: field.client.children.model, valueClass: field.client.valueClass };
+    }
     if (!field.runtime) {
         throw new Error(`Field "${field.handle}" is missing field value metadata.`);
     }

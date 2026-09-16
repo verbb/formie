@@ -205,7 +205,7 @@ class FieldSlotRegistry extends Component
 
         if ($errorAriaLive !== Settings::ERROR_ARIA_LIVE_OFF) {
             $core['aria-live'] = $errorAriaLive;
-            $core['aria-atomic'] = true;
+            $core['aria-atomic'] = 'true';
         }
 
         return SlotTag::make('div')
@@ -222,7 +222,6 @@ class FieldSlotRegistry extends Component
         return SlotTag::make('div')
             ->core([
                 'data-formie-field-error' => true,
-                'role' => 'alert',
             ])
             ->theme([
                 'class' => [

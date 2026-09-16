@@ -36,7 +36,13 @@ class FormsController extends Controller
     public function beforeAction($action): bool
     {
         $this->forbidGuestControlPanelAnonymousActions($action->id);
-        $this->configureGuestCsrfValidation(['load', 'page']);
+        // Initial bootstrap supplies the token required by subsequent mutations.
+        // It reads a public form and retains the endpoint's CORS policy.
+        if ($action->id === 'load') {
+            $this->enableCsrfValidation = false;
+        } else {
+            $this->configureGuestCsrfValidation(['page']);
+        }
 
         return parent::beforeAction($action);
     }

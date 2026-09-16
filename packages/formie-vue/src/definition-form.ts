@@ -2,6 +2,8 @@ import {
     FRONTEND_CLIENT_EVENT_NAMES,
     compositePartDefinitions,
     createFrontendFormInstance,
+    getFrontendErrorAriaLive,
+    getFrontendFieldErrorId,
     createGraphqlFrontendTransport,
     createRepeaterRowValue,
     createRestFrontendTransport,
@@ -13,6 +15,7 @@ import {
     loadGraphqlFrontendEnvelope,
     repeaterRowDefinitions,
     type FrontendFieldDefinition,
+    type FrontendErrorAriaLive,
     type FrontendFieldType,
     type FrontendFormDefinition,
     type FrontendFormEnvelope,
@@ -94,6 +97,8 @@ export type FormiePageComponentProps = {
 export type FormieFieldProps = {
     field: FrontendFieldDefinition;
     errors: string[];
+    errorId: string;
+    errorAriaLive: FrontendErrorAriaLive;
 };
 
 export type FormieErrorSummaryProps = {
@@ -105,6 +110,8 @@ export type FormieFieldComponentProps = {
     value: unknown;
     errors: string[];
     errorKey: string;
+    errorId: string;
+    errorAriaLive: FrontendErrorAriaLive;
     disabled: boolean;
     hidden: boolean;
     setValue: (value: unknown) => void;
@@ -148,6 +155,14 @@ const fieldComponentProps = {
     errorKey: {
         type: String,
         required: true,
+    },
+    errorId: {
+        type: String,
+        default: '',
+    },
+    errorAriaLive: {
+        type: String as PropType<FrontendErrorAriaLive>,
+        default: 'polite',
     },
     disabled: {
         type: Boolean,
@@ -278,6 +293,14 @@ const DefaultErrorSummary = defineComponent({
             type: Array as PropType<string[]>,
             required: true,
         },
+        errorId: {
+            type: String,
+            required: true,
+        },
+        errorAriaLive: {
+            type: String as PropType<FrontendErrorAriaLive>,
+            required: true,
+        },
     },
     setup(props) {
         return () => {
@@ -307,6 +330,14 @@ const DefaultField = defineComponent({
         },
         errors: {
             type: Array as PropType<string[]>,
+            required: true,
+        },
+        errorId: {
+            type: String,
+            required: true,
+        },
+        errorAriaLive: {
+            type: String as PropType<FrontendErrorAriaLive>,
             required: true,
         },
     },
@@ -340,17 +371,25 @@ const DefaultField = defineComponent({
                 }, children), {
                     class: 'formie-vue-input',
                 }),
-                props.errors.length > 0
-                    ? renderSlotWrapper(context, 'errors', h('ul', {
+                renderSlotWrapper(context, 'errors', h('ul', {
+                        id: props.errorId,
                         class: 'formie-vue-field-errors',
+                        style: props.errors.length === 0 ? { position: 'absolute' } : undefined,
+                        'data-formie-field-errors': true,
+                        'aria-live': props.errorAriaLive === 'off' ? undefined : props.errorAriaLive,
+                        'aria-atomic': props.errorAriaLive === 'off' ? undefined : 'true',
                     }, props.errors.map((error, index) => {
                         return h('li', {
                             key: `${error}:${index}`,
                         }, error);
                     })), {
+                        id: props.errorId,
                         class: 'formie-vue-field-errors',
-                    })
-                    : null,
+                        style: props.errors.length === 0 ? { position: 'absolute' } : undefined,
+                        'data-formie-field-errors': true,
+                        'aria-live': props.errorAriaLive === 'off' ? undefined : props.errorAriaLive,
+                        'aria-atomic': props.errorAriaLive === 'off' ? undefined : 'true',
+                    }),
             ]);
         };
     },
@@ -383,9 +422,11 @@ const DefaultForm = defineComponent({
     setup(props, componentContext) {
         return () => h('form', {
             class: props.className,
-            onSubmit: (event: Event) => {
+            onSubmit: async (event: Event) => {
                 event.preventDefault();
-                props.onSubmit();
+                const form = event.currentTarget as HTMLFormElement;
+                await props.onSubmit();
+                requestAnimationFrame(() => form.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus());
             },
             'data-formie-definition': props.definition.handle,
             'data-formie-render-id': props.session.tokens.render,
@@ -663,6 +704,7 @@ const FileFieldInput = defineComponent({
                 h('input', {
                     key: 'input',
                     type: 'file',
+                    ...errorReferenceAttributes(props.errors, props.errorId),
                     disabled: props.disabled,
                     multiple,
                     onChange: (event: Event) => {
@@ -706,10 +748,14 @@ const ConfigFieldNode = defineComponent({
             const rendererType = resolveFieldRendererType(props.field);
             const renderer = context.fieldComponents.value[props.field.type] || context.fieldComponents.value[rendererType] || DefaultFieldInput;
             const FieldComponent = context.components.value.Field || DefaultField;
+            const errorId = getFrontendFieldErrorId(state.session, props.errorKey);
+            const errorAriaLive = getFrontendErrorAriaLive(state.definition);
 
             return h(FieldComponent, {
                 field: props.field,
                 errors: props.errors,
+                errorId,
+                errorAriaLive,
             }, {
                 default: () => [
                     h(renderer, {
@@ -717,6 +763,8 @@ const ConfigFieldNode = defineComponent({
                         value: props.value,
                         errors: props.errors,
                         errorKey: props.errorKey,
+                        errorId,
+                        errorAriaLive,
                         disabled: props.disabled,
                         hidden,
                         setValue: props.setValue,
@@ -927,11 +975,21 @@ const RepeaterFieldInput = defineComponent({
     },
 });
 
-function renderNestedFieldInput(field: FrontendFieldDefinition, value: unknown, disabled: boolean, setValue: (value: unknown) => void) {
+function errorReferenceAttributes(errors: string[], errorId: string) {
+    return errors.length > 0 ? {
+        'aria-invalid': 'true',
+        'aria-errormessage': errorId,
+        'aria-describedby': errorId,
+    } : {};
+}
+
+function renderNestedFieldInput(field: FrontendFieldDefinition, value: unknown, disabled: boolean, setValue: (value: unknown) => void, errors: string[] = [], errorId = '') {
     const contract = field.input;
 
     if (field.type === 'multi-line-text') {
         return h('textarea', {
+        'aria-label': field.label || field.handle,
+        ...errorReferenceAttributes(errors, errorId),
             value: typeof value === 'string' ? value : '',
             disabled,
             placeholder: typeof contract.placeholder === 'string' ? contract.placeholder : undefined,
@@ -947,6 +1005,8 @@ function renderNestedFieldInput(field: FrontendFieldDefinition, value: unknown, 
         const multiple = contract.multiple === true;
 
         return h('select', {
+        'aria-label': field.label || field.handle,
+        ...errorReferenceAttributes(errors, errorId),
             value: multiple ? undefined : (typeof value === 'string' ? value : ''),
             disabled,
             multiple,
@@ -976,6 +1036,8 @@ function renderNestedFieldInput(field: FrontendFieldDefinition, value: unknown, 
         : (field.type === 'email' ? 'email' : (field.type === 'phone' ? 'tel' : (field.type === 'number' ? 'number' : 'text')));
 
     return h('input', {
+        'aria-label': field.label || field.handle,
+        ...errorReferenceAttributes(errors, errorId),
         type: inputType,
         value: typeof value === 'string' || typeof value === 'number' ? String(value) : '',
         disabled,
@@ -1019,7 +1081,7 @@ const DefaultFieldInput = defineComponent({
             }
 
             if (rendererType === 'multi-line-text' || rendererType === 'dropdown') {
-                return renderNestedFieldInput(props.field, props.value, props.disabled, props.setValue);
+                return renderNestedFieldInput(props.field, props.value, props.disabled, props.setValue, props.errors, props.errorId);
             }
 
             if (rendererType === 'radio') {
@@ -1037,6 +1099,7 @@ const DefaultFieldInput = defineComponent({
                         h('input', {
                             key: 'input',
                             type: 'radio',
+                            ...errorReferenceAttributes(props.errors, props.errorId),
                             checked: props.value === optionValue,
                             disabled: optionDisabled,
                             onChange: () => {
@@ -1067,6 +1130,7 @@ const DefaultFieldInput = defineComponent({
                         h('input', {
                             key: 'input',
                             type: 'checkbox',
+                            ...errorReferenceAttributes(props.errors, props.errorId),
                             checked,
                             disabled: optionDisabled,
                             onChange: () => {
@@ -1093,6 +1157,7 @@ const DefaultFieldInput = defineComponent({
                     h('input', {
                         key: 'input',
                         type: 'checkbox',
+                        ...errorReferenceAttributes(props.errors, props.errorId),
                         checked: props.value === true,
                         disabled: props.disabled,
                         onChange: (event: Event) => {
@@ -1117,7 +1182,7 @@ const DefaultFieldInput = defineComponent({
                 }, `Unsupported field type: ${String(props.field.meta?.fieldType ?? props.field.type)}`);
             }
 
-            return renderNestedFieldInput(props.field, props.value, props.disabled, props.setValue);
+            return renderNestedFieldInput(props.field, props.value, props.disabled, props.setValue, props.errors, props.errorId);
         };
     },
 });
@@ -1203,7 +1268,7 @@ const ConfigRenderer = defineComponent({
                 state,
                 className: props.className,
                 onSubmit: () => {
-                    void instance.submit();
+                    return instance.submit();
                 },
             }, {
                 default: () => [

@@ -11,8 +11,8 @@ function createTextField(id: string, handle: string, overrides: Partial<Frontend
         type: 'single-line-text',
         required: false,
         validation: [],
-        runtime: {
-            structure: 'scalar',
+        client: {
+            children: { model: 'scalar' },
         },
         input: {
             kind: 'text',
@@ -392,9 +392,9 @@ describe('createFrontendFormInstance', () => {
         const result = await runtime.submit('submit');
 
         expect(result.success).toBe(false);
-        expect(result.errors.fields.confirm).toEqual(['This value must match the related field.']);
-        expect(result.errors.fields.quantity).toEqual(['Please enter a value less than or equal to 4.']);
-        expect(result.errors.fields.website).toEqual(['Please enter a valid URL.']);
+        expect(result.errors.fields.confirm).toEqual(['confirm must match email.']);
+        expect(result.errors.fields.quantity).toEqual(['quantity must be no greater than 4.']);
+        expect(result.errors.fields.website).toEqual(['website is not a valid URL.']);
         expect(result.errors.fields.topics).toEqual(['Please select no more than 2 options.']);
     });
 
@@ -503,4 +503,53 @@ describe('createFrontendFormInstance', () => {
 
         expect(runtime.getState().status).toBe('destroyed');
     });
+    it('ignores a pending submission after reset and allows a fresh submission', async() => {
+        const pending: Array<(value: any) => void> = [];
+        const transport = createTransport({ submit: vi.fn(() => new Promise((resolve) => pending.push(resolve))) });
+        const runtime = createFrontendFormInstance({
+            envelope: createEnvelope([createTextField('trigger', 'trigger')]),
+            transport,
+        });
+        const listener = vi.fn();
+        runtime.on('formie:submit:result', listener);
+        const old = runtime.submit('submit');
+        runtime.reset();
+        expect(runtime.getState().status).toBe('ready');
+        runtime.setValue('trigger', 'yes');
+        const fresh = runtime.submit('submit');
+        const response = (page: string) => ({
+            success: true, isFinalPage: true, currentPageId: page,
+            errors: { form: [], fields: {}, pages: {} }, messages: {},
+        });
+        pending[0](response('obsolete-page'));
+        await old;
+        expect(runtime.getState().status).toBe('submitting');
+        expect(runtime.getState().currentPageId).toBe('page-1');
+        expect(listener).not.toHaveBeenCalled();
+        pending[1](response('page-2'));
+        await fresh;
+        expect(runtime.getState().status).toBe('ready');
+        expect(runtime.getState().currentPageId).toBe('page-2');
+        expect(listener).toHaveBeenCalledTimes(1);
+    });
+
+    it.each([true, false])('keeps newer navigation when an older refresh finishes (remote: %s)', async(remote) => {
+        let finishRefresh!: (session: FrontendFormSession) => void;
+        const transport = createTransport({
+            refreshSession: vi.fn(() => new Promise((resolve) => { finishRefresh = resolve; })),
+        });
+        if (!remote) transport.setPage = undefined;
+        const runtime = createFrontendFormInstance({
+            envelope: createEnvelope([createTextField('trigger', 'trigger')]), transport,
+        });
+        runtime.setValue('trigger', 'yes');
+        const oldSession = runtime.getState().session;
+        const pending = runtime.refreshSession();
+        await runtime.setPage('page-2');
+        finishRefresh(oldSession);
+        await pending;
+        expect(runtime.getState().currentPageId).toBe('page-2');
+        expect(runtime.getState().status).toBe('ready');
+    });
+
 });

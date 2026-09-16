@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+- Expose Formie's field-error announcement preference and stable, form-scoped error-region IDs to definition-driven renderers. ([#2954](https://github.com/verbb/formie/issues/2954))
+- Read the field structure metadata emitted by current Craft client bootstrap responses.
+
 ## 1.0.13 - 2026-07-09
 
 ### Changed

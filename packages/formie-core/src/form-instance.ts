@@ -642,7 +642,7 @@ export function createFrontendFormInstance({ envelope, transport }: CreateFronte
                 }
             }
 
-            const generation = operationGeneration;
+            const generation = ++operationGeneration;
 
             setState((current) => ({
                 ...current,
@@ -718,9 +718,12 @@ export function createFrontendFormInstance({ envelope, transport }: CreateFronte
                 return;
             }
 
+            const generation = ++operationGeneration;
+
             if (!transport.setPage) {
                 setState((current) => applyDerivedState({
                     ...current,
+                    status: 'ready',
                     currentPageId: pageId,
                     session: {
                         ...current.session,
@@ -730,8 +733,6 @@ export function createFrontendFormInstance({ envelope, transport }: CreateFronte
 
                 return;
             }
-
-            const generation = operationGeneration;
 
             setState((current) => ({
                 ...current,
@@ -782,7 +783,7 @@ export function createFrontendFormInstance({ envelope, transport }: CreateFronte
                 return;
             }
 
-            const generation = operationGeneration;
+            const generation = ++operationGeneration;
 
             setState((current) => ({
                 ...current,
@@ -826,10 +827,12 @@ export function createFrontendFormInstance({ envelope, transport }: CreateFronte
                 return;
             }
 
+            operationGeneration += 1;
             setState((current) => applyDerivedState({
                 ...current,
+                status: 'ready',
                 session: envelope.session,
-                values: { ...defaults },
+                values: cloneValue(defaults),
                 errors: {
                     form: [],
                     fields: {},

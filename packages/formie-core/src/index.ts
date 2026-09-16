@@ -41,6 +41,8 @@ export {
     serializeTransportFieldValues,
 } from './schema';
 export { countGraphemes, getTextLimitMetrics, getWordCount, normalizeText } from './text';
+export { getFrontendErrorAriaLive, getFrontendFieldErrorId } from './accessibility';
+export type { FrontendErrorAriaLive } from './accessibility';
 
 export type {
     FrontendFieldDefinition,

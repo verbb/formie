@@ -929,6 +929,7 @@ class Form extends Element implements FormInterface
                     'onSubmit' => (bool)$this->settings->validationOnSubmit,
                     'disableSubmitUntilValid' => (bool)$this->settings->disableSubmitButtonUntilValid,
                     'formErrorMessage' => $this->getFrontendErrorMessage(),
+                    'errorAriaLive' => Formie::$plugin->getSettings()->errorAriaLive,
                 ],
                 'progress' => [
                     'enabled' => $this->hasMultiplePages(),

@@ -1,11 +1,13 @@
 {% set errorMessagePosition = (errorMessagePosition ?? craft.formie.getErrorMessagePosition(field, form)) %}
 
-{% if errors and errorMessagePosition.shouldDisplay(position) %}
+{% if errorMessagePosition.shouldDisplay(position) %}
     {% fieldtag 'fieldErrors' %}
-        {% set error = errors | first %}
+        {% if errors %}
+            {% set error = errors | first %}
 
-        {% fieldtag 'fieldError' %}
-            {{- error -}}
-        {% endfieldtag %}
+            {% fieldtag 'fieldError' %}
+                {{- error -}}
+            {% endfieldtag %}
+        {% endif %}
     {% endfieldtag %}
 {% endif %}
