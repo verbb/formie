@@ -8,18 +8,25 @@ use Tests\Support\UploadTestHelper;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\FileUpload;
 
+function unresolvedUploadAssetIds(): array
+{
+    $nextId = (int)(new \craft\db\Query())->from('{{%elements}}')->max('id') + 1;
+    return [(string)$nextId, (string)($nextId + 1)];
+}
+
 it('normalizes id-map payloads into fixed-order asset queries', function (): void {
     $field = new FileUpload([
         'handle' => 'attachments',
     ]);
 
+    $missingIds = unresolvedUploadAssetIds();
     $normalized = $field->normalizeValue([
-        ['id' => '7'],
+        ['id' => $missingIds[0]],
         ['id' => ''],
-        ['id' => '12'],
+        ['id' => $missingIds[1]],
     ], null);
 
-    expect($normalized->id)->toBe(['7', '12'])
+    expect($normalized->id)->toBe($missingIds)
         ->and($normalized->fixedOrder)->toBeTrue()
         ->and($field->serializeValue($normalized, null))->toBe([]);
 });
@@ -53,12 +60,13 @@ it('keeps unresolved file-upload projections deterministic across wrappers', fun
         ->fileUploadField('attachments', ['restrictFiles' => false])
         ->create();
 
+    $missingIds = unresolvedUploadAssetIds();
     $submission = formie()
         ->submission($form)
         ->with([
             'attachments' => [
-                ['id' => '7'],
-                ['id' => '12'],
+                ['id' => $missingIds[0]],
+                ['id' => $missingIds[1]],
             ],
         ])
         ->allowValidationFailure()
