@@ -21,7 +21,7 @@ it('renders notification preview when from name and from email are set', functio
         'content' => 'Preview body',
     ]);
 
-    $submission = new Submission();
+    $submission = new Submission(['siteId' => $form->siteId]);
     $submission->setForm($form);
 
     Formie::$plugin->getSubmissions()->populateFakeSubmission($submission, $notification);
@@ -29,5 +29,6 @@ it('renders notification preview when from name and from email are set', functio
     $result = Formie::$plugin->getEmails()->renderEmail($notification, $submission);
 
     expect($result)->not->toHaveKey('error')
+        ->and($result['email']->siteId)->toBe($submission->siteId)
         ->and($result['email']->getFrom())->toBe(['sender@example.test' => 'Example Sender']);
 });

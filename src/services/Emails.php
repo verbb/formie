@@ -71,8 +71,12 @@ class Emails extends Component
         $newEmail = Craft::createObject([
             'class' => $mailer->messageClass, 
             'mailer' => $mailer,
-            'siteId' => $submission->siteId,
         ]);
+
+        // Site-aware mail settings were added in Craft 5.6.
+        if ($newEmail->canSetProperty('siteId')) {
+            $newEmail->siteId = $submission->siteId;
+        }
 
         $event = new MailEvent([
             'email' => $newEmail,
