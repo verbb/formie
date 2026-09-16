@@ -20,6 +20,9 @@ it('isolates per-form integration settings in bulk commands', function (): void 
         $submissions[$label] = $factory->submission($forms[$label])->with(['message' => $label])->save();
         expect($forms[$label]->settings->integrations)->toHaveKey('privateFixture');
     }
+    // The command uses newest-first ordering, independently of the supplied ID order.
+    \craft\helpers\Db::update('{{%elements}}', ['dateCreated' => '2026-01-02 00:00:00'], ['id' => $submissions['firstOverride']->id]);
+    \craft\helpers\Db::update('{{%elements}}', ['dateCreated' => '2026-01-01 00:00:00'], ['id' => $submissions['secondDefault']->id]);
     // Replace registry enumeration only. Inherited lookup caching, form cloning,
     // the actual Mailchimp model, and CLI attribute application remain unchanged.
     $registry = new class extends \verbb\formie\services\Integrations {
@@ -49,6 +52,7 @@ it('isolates per-form integration settings in bulk commands', function (): void 
     $cli->submissionId = implode(',', array_map(fn($submission) => $submission->id, $submissions));
     $cli->integration = 'privateFixture';
     expect($cli->actionRunIntegration())->toBe(0);
+    expect(array_column($dispatch->seen, 'submissionId'))->toBe([$submissions['firstOverride']->id, $submissions['secondDefault']->id]);
     $byId = array_column($dispatch->seen, 'useDoubleOptIn', 'submissionId');
     expect($byId[$submissions['firstOverride']->id])->toBeTrue();
     expect($byId[$submissions['secondDefault']->id])->toBeFalse();
