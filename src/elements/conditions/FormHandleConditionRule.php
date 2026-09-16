@@ -8,23 +8,21 @@ use Craft;
 use craft\base\conditions\BaseMultiSelectConditionRule;
 use craft\base\ElementInterface;
 use craft\elements\conditions\ElementConditionRuleInterface;
-use craft\elements\conditions\HintableConditionRuleTrait;
 use craft\elements\db\ElementQueryInterface;
 
 class FormHandleConditionRule extends BaseMultiSelectConditionRule implements ElementConditionRuleInterface
 {
-    // Traits
-    // =========================================================================
-
-    use HintableConditionRuleTrait;
-
-
     // Public Methods
     // =========================================================================
 
     public function getLabel(): string
     {
         return Craft::t('formie', 'Form');
+    }
+
+    public function showLabelHint(): bool
+    {
+        return Craft::$app->getUser()->getIdentity()?->getPreference('showFieldHandles') ?? false;
     }
 
     public function getExclusiveQueryParams(): array
