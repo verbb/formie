@@ -2,12 +2,23 @@
 
 ## Unreleased
 
+### Added
+- Add console commands to inspect unresolved payments, reconcile gateway status, record verified outcomes and resume submission processing.
+
 ### Changed
 - Normalize CP General Settings to the shared `verbb-base` settings layout (Settings → Plugins → Formie crumbs, `pageTabs` / `pageTitle` / `pageAction` helpers) and trim `pluginName` on save.
 - Bump transitive `symfony/cache` to `6.4.45` (CVE-2026-45073 advisory floor).
 
 ### Fixed
+- Preserve payment attempts and gateway receipts across interrupted Moneris, Eway, BPOINT, Opayo, Mollie and Paddle requests, and stop ambiguous outcomes from triggering another purchase.
+- Recover Eway payments by invoice reference and Mollie payments from verified webhook results when creation responses are lost.
+- Fix Mollie checkout initialization using the wrong redirect helper, and allow corrected attempts after explicit API rejections.
+- Keep payment amounts aligned with their currency precision when retrying or reconciling payments.
+- Avoid charging an extra minor unit for decimal Stripe and Opayo amounts, and use Stripe's required UGX amount format.
+- Fixed payment verification vulnerabilities.
+- Fixed an XML injection vulnerability.
 - Enforce weekly submission limits on Sundays and keep calendar limit periods from overlapping.
+- Use the correct currency minor unit when creating Paddle prices.
 - Preserve legacy spam, CAPTCHA and field-default settings during upgrades, and refresh schema lookups after migration changes.
 - Preserve restricted user and group submission access when upgrading from Formie 2.
 - Migrate integration field-handle tokens to stable field references.
@@ -36,6 +47,7 @@
 - Duplicate form layout trees without serializing runtime callbacks or mutating the source layout.
 - Fix native JSON stencil persistence, date import settings, checkbox coercion, blank password validation and empty Other-option validation.
 - Compare encrypted recipient condition payloads rather than randomized ciphertext.
+- Handle missing payment providers during field rendering and return a boolean for unconfigured Mollie settings.
 - Resolve stable field references when generating notification preview recipients and isolate cached values between previews.
 - Persist delivery attempt identities before external calls, stop uncertain integration/email retries, and checkpoint individual notifications.
 - Reuse Square payment keys; recover Stripe customer, payment intent, subscription and schedule creation; reconcile GoCardless payment/subscription duplicate-key responses.

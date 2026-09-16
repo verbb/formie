@@ -10,6 +10,8 @@ use verbb\formie\events\ModifyPaymentPayloadEvent;
 use verbb\formie\events\PaymentReceiveWebhookEvent;
 use verbb\formie\fields;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\DeliveryAttempt;
+use verbb\formie\helpers\PaymentAttempt;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\References;
 use verbb\formie\models\ClientModule;
@@ -29,10 +31,13 @@ use craft\web\Response;
 
 use yii\base\Event;
 
-use GuzzleHttp\Client;
-
-use Throwable;
 use Exception;
+use Throwable;
+
+use GuzzleHttp\Client;
+use Money\Currencies\ISOCurrencies;
+use Money\Currency;
+
 
 class Paddle extends Payment
 {
@@ -94,112 +99,32 @@ class Paddle extends Payment
 
     public function processPayment(Submission $submission): PaymentDecision
     {
-        $field = $this->getField();
-        $paymentPayload = $this->getPaymentFieldPayload($submission);
-
-        // Get the amount from the field, which handles dynamic fields
-        $amount = $this->getAmount($submission);
-        $currency = $this->getFieldSetting('currency');
-
-        // Check if we're initializing the payment
-        $paddleCheckoutData = $paymentPayload->array('paddleCheckoutData');
-        $hasCheckoutData = !empty($paddleCheckoutData);
-
-        // Allow events to cancel sending
         if (!$this->beforeProcessPayment($submission)) {
             return PaymentDecision::notRequired();
         }
 
-        // If no checkout payload is present, initialize checkout.
-        // Never re-initialize when checkout data exists, even if the init flag is stale.
-        if (!$hasCheckoutData) {
-            // Persist the pending payment before handing control to the browser
-            // so the eventual checkout callback can resume against a concrete
-            // Formie payment record instead of recreating state heuristically.
-            // Create a payment right away so we can use it for redirect or fail, rather than multiple
-            $payment = new PaymentModel();
-            $payment->integrationId = $this->id;
-            $payment->submissionId = $submission->id;
-            $payment->fieldId = $field->id;
-            $payment->amount = $amount;
-            $payment->currency = $currency;
-            $payment->status = PaymentModel::STATUS_PENDING;
+        return PaymentAttempt::run($this, $submission, $this->getAmount($submission), $this->getFieldSetting('currency'), [
+            'apiKey' => $this->apiKey,
+            'useSandbox' => $this->useSandbox,
+        ], fn(PaymentModel $payment, PaymentAttempt $attempt) => $this->_processCheckout($submission, $payment, $attempt),
+            allowCreate: !$this->getPaymentFieldPayload($submission)->array('paddleCheckoutData'),
+        );
+    }
 
-            // Save the payment now, to pass on to Paddle
-            Formie::$plugin->getPayments()->savePayment($payment);
-
-            try {
-                $items = $this->_getOrCreateProducts($submission);
-            } catch (Throwable $e) {
-                $this->addFieldError($submission, $e->getMessage());
-
-                return PaymentDecision::failed($e->getMessage(), $this->handle);
-            }
-
-            $payload = [
-                'items' => $items,
-                'customData' => [
-                    'formiePaymentUId' => $payment->id,
-                ],
-                'customer' => [],
-            ];
-
-            // Add in extra settings configured at the field level
-            $this->_setPayloadDetails($payload, $submission);
-
-            // Raise a `modifySinglePayload` event
-            $event = new ModifyPaymentPayloadEvent([
-                'integration' => $this,
-                'submission' => $submission,
-                'payload' => $payload,
-            ]);
-            $this->trigger(self::EVENT_MODIFY_PAYLOAD, $event);
-
-            $submission->getForm()->addSubmitData([
-                'event' => 'formie:payment:paddle:initialize',
-                'data' => $event->payload,
-            ]);
-
-            // Allow events to say the response is invalid
-            if (!$this->afterProcessPayment($submission, false)) {
-                return PaymentDecision::succeeded($this->handle);
-            }
-
-            return PaymentDecision::requiresAction(
-                $payment->reference,
-                PaymentAction::initializeEvent('formie:payment:paddle:initialize')
-                    ->forProvider($this->handle)
-                    ->withMessage(Craft::t('formie', 'Please wait while payment data is initialized.'))
-                    ->withPayload($event->payload)
-                    ->resumeMode(PaymentAction::RESUME_MODE_CLIENT)
-            );
+    public function getTransaction(PaymentModel $payment): void
+    {
+        if ($payment->integrationId !== $this->id || !$payment->reference) {
+            throw new Exception('Invalid Paddle payment.');
         }
 
-        if ($hasCheckoutData) {
-            if (!$paddleCheckoutData || !is_array($paddleCheckoutData)) {
-                throw new Exception("Invalid checkout data: {$paddleCheckoutData}.");
-            }
+        $transaction = $this->request('GET', 'transactions/' . rawurlencode($payment->reference))['data'] ?? [];
+        $this->_verifyTransaction($payment, $transaction);
+        $payment->response = $transaction;
+        $payment->status = PaymentModel::STATUS_SUCCESS;
 
-            // Returned checkout data is treated as the browser's proof that the
-            // initialize step completed, so the workflow can continue without
-            // re-opening checkout or regenerating products.
-            $payment = new PaymentModel();
-            $payment->integrationId = $this->id;
-            $payment->submissionId = $submission->id;
-            $payment->fieldId = $field->id;
-            $payment->amount = $amount;
-            $payment->currency = $currency;
-            $payment->status = PaymentModel::STATUS_SUCCESS;
-            $payment->reference = $paddleCheckoutData['id'] ?? '';
-            $payment->response = $paddleCheckoutData;
-
-            Formie::$plugin->getPayments()->savePayment($payment);
-
-            return PaymentDecision::succeeded($this->handle, $payment->reference);
+        if (!Formie::$plugin->getPayments()->savePayment($payment)) {
+            throw new Exception('Unable to save the verified Paddle payment.');
         }
-
-        // Should not generally hit this, but keep a deterministic fallback.
-        return PaymentDecision::failed(Craft::t('formie', 'Unable to process payment.'), $this->handle);
     }
 
     public function fetchConnection(): bool
@@ -363,6 +288,154 @@ class Paddle extends Payment
     // Private Methods
     // =========================================================================
 
+    private function _processCheckout(Submission $submission, PaymentModel $payment, PaymentAttempt $attempt): PaymentDecision
+    {
+        $field = $this->getField();
+        $paymentPayload = $this->getPaymentFieldPayload($submission);
+
+        // Get the amount from the field, which handles dynamic fields
+        $amount = $payment->amount;
+        $currency = $this->getFieldSetting('currency');
+
+        // Check if we're initializing the payment
+        $paddleCheckoutData = $paymentPayload->array('paddleCheckoutData');
+        $hasCheckoutData = !empty($paddleCheckoutData);
+
+        $payments = Formie::$plugin->getPayments();
+
+        if ($hasCheckoutData) {
+            // Checkout events are an untrusted hint. Only the transaction created
+            // on our server for this submission may complete its payment.
+            $transactionId = $paddleCheckoutData['transaction_id'] ?? null;
+
+            if (!$payment || !$payment->reference || !is_string($transactionId) || $transactionId !== $payment->reference) {
+                throw new Exception('Paddle checkout does not match the saved payment.');
+            }
+
+            $this->getTransaction($payment);
+
+            return PaymentDecision::succeeded($this->handle, $payment->reference);
+        }
+
+        if ($payment?->status === PaymentModel::STATUS_SUCCESS) {
+            return PaymentDecision::succeeded($this->handle, $payment->reference);
+        }
+
+        // Save the local owner before creating a provider checkout. Repeated
+        // initialization reuses its transaction instead of adding new charges.
+        $payment->status = PaymentModel::STATUS_PENDING;
+
+        // Save the payment now, to pass on to Paddle
+        if (!$payments->savePayment($payment)) {
+            throw new Exception('Unable to save the pending Paddle payment.');
+        }
+
+        if ($payment->reference) {
+            $payload = $payment->response['checkout'] ?? ['transactionId' => $payment->reference];
+        } else {
+
+            $items = $this->_getOrCreateProducts($submission, $payment);
+
+            $payload = [
+                'items' => $items,
+                'customData' => [
+                    'formiePaymentUId' => $payment->id,
+                ],
+                'customer' => [],
+            ];
+
+            // Add in extra settings configured at the field level
+            $this->_setPayloadDetails($payload, $submission);
+
+            // Raise a `modifySinglePayload` event
+            $event = new ModifyPaymentPayloadEvent([
+                'integration' => $this,
+                'submission' => $submission,
+                'payload' => $payload,
+            ]);
+            $this->trigger(self::EVENT_MODIFY_PAYLOAD, $event);
+
+            $payload = $event->payload;
+            $transactionPayload = [
+                'items' => array_map(static fn(array $item): array => [
+                    'price_id' => $item['priceId'],
+                    'quantity' => $item['quantity'],
+                ], $payload['items']),
+                'currency_code' => $currency,
+                'collection_mode' => 'automatic',
+                'custom_data' => $payload['customData'],
+            ];
+            $transaction = $attempt->request($transactionPayload,
+                fn() => $this->request('POST', 'transactions', ['json' => $transactionPayload])['data'] ?? [],
+                static fn(array $transaction) => $transaction['id'] ?? null,
+            );
+            $reference = $transaction['id'] ?? null;
+
+            if (!is_string($reference) || !preg_match('/^txn_[a-z0-9]{26}$/', $reference)) {
+                throw new Exception('Paddle did not return a transaction reference.');
+            }
+
+            // Persist the provider reference before the browser can pay it.
+            // Custom data sent by Paddle.js is never used as authorization.
+            unset($payload['items'], $payload['customData']);
+            $payload['transactionId'] = $reference;
+            $payment->reference = $reference;
+            $payment->response = ['checkout' => $payload];
+
+            if (!$payments->savePayment($payment)) {
+                throw new Exception('Unable to save the Paddle checkout reference.');
+            }
+        }
+
+        $submission->getForm()->addSubmitData([
+            'event' => 'formie:payment:paddle:initialize',
+            'data' => $payload,
+        ]);
+
+        // Allow events to say the response is invalid
+        if (!$this->afterProcessPayment($submission, false)) {
+            return PaymentDecision::succeeded($this->handle);
+        }
+
+        return PaymentDecision::requiresAction(
+            $payment->reference,
+            PaymentAction::initializeEvent('formie:payment:paddle:initialize')
+                ->forProvider($this->handle)
+                ->withMessage(Craft::t('formie', 'Please wait while payment data is initialized.'))
+                ->withPayload($payload)
+                ->resumeMode(PaymentAction::RESUME_MODE_CLIENT)
+        );
+    }
+
+    private function _verifyTransaction(PaymentModel $payment, array $transaction): void
+    {
+        $total = $transaction['details']['totals']['total'] ?? null;
+        $items = $transaction['items'] ?? [];
+        $price = $items[0]['price']['unit_price'] ?? [];
+        $expected = $this->_minorAmount($payment->amount, $payment->currency);
+
+        if (($transaction['id'] ?? null) !== $payment->reference
+            || !in_array($transaction['status'] ?? null, ['paid', 'completed'], true)
+            || ($transaction['currency_code'] ?? null) !== $payment->currency
+            || !is_array($items) || count($items) !== 1
+            || ($items[0]['quantity'] ?? null) !== 1
+            || ($price['currency_code'] ?? null) !== $payment->currency
+            || (string)($price['amount'] ?? '') !== $expected
+            || !is_string($total) || !ctype_digit($total)
+            // Paddle may add tax to the configured price; it may not collect less.
+            || (float)$total < (float)$expected) {
+            throw new Exception('Paddle has not verified the expected payment.');
+        }
+    }
+
+    private function _minorAmount(float $amount, string $currency): string
+    {
+        $digits = (new ISOCurrencies())->subunitFor(new Currency($currency));
+
+        return number_format(round($amount * (10 ** $digits)), 0, '.', '');
+    }
+
+
     private function _setPayloadDetails(array &$payload, Submission $submission): void
     {
         $field = $this->getField();
@@ -409,7 +482,7 @@ class Paddle extends Payment
 
     }
 
-    private function _getOrCreateProducts(Submission $submission): mixed
+    private function _getOrCreateProducts(Submission $submission, PaymentModel $payment): mixed
     {
         $field = $this->getField();
         $orderDescription = $this->getFieldSetting('orderDescription', 'Formie: ' . $submission->getForm()->title);
@@ -435,7 +508,7 @@ class Paddle extends Payment
         ]);
 
         // Create the product - no means to query by a custom ID via Paddle yet
-        $priceId = $this->_createProduct($payload);
+        $priceId = $this->_createProduct($payload, $payment);
 
         return [
             [
@@ -445,17 +518,26 @@ class Paddle extends Payment
         ];
     }
 
-    private function _createProduct(array $payload)
+    private function _createResourceOnce(PaymentModel $payment, string $resource, array $payload): array
     {
-        $productResponse = $this->request('POST', 'products', [
-            'json' => [
+        $attempt = new DeliveryAttempt((int)$payment->submissionId, 'paddle.' . $this->id . '.' . $resource, (string)$payment->uid);
+
+        return $attempt->execute($payload,
+            fn() => $this->request('POST', $resource, ['json' => $payload]),
+            reference: static fn(array $response) => $response['data']['id'] ?? '',
+            reconcile: fn(string $id) => $this->request('GET', $resource . '/' . rawurlencode($id)),
+        );
+    }
+
+    private function _createProduct(array $payload, PaymentModel $payment)
+    {
+        $productResponse = $this->_createResourceOnce($payment, 'products', [
                 'name' => $payload['nickname'],
                 'type' => 'custom',
                 'tax_category' => 'standard',
                 'custom_data' => [
                     'id' => $payload['id'],
                 ],
-            ],
         ]);
 
         $product = $productResponse['data'] ?? null;
@@ -464,16 +546,14 @@ class Paddle extends Payment
             throw new Exception('Failed to create Paddle product.');
         }
 
-        $priceResponse = $this->request('POST', 'prices', [
-            'json' => [
+        $priceResponse = $this->_createResourceOnce($payment, 'prices', [
                 'type' => 'custom',
                 'product_id' => $product['id'],
                 'description' => $payload['nickname'],
                 'unit_price' => [
-                    'amount' => (string)($payload['amount'] * 100),
+                    'amount' => $this->_minorAmount($payload['amount'], $payload['currency']),
                     'currency_code' => $payload['currency'],
                 ],
-            ],
         ]);
 
         $price = $priceResponse['data'] ?? null;

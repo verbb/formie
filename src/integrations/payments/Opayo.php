@@ -14,9 +14,11 @@ use verbb\formie\fields;
 use verbb\formie\fields\values\AddressFieldValue;
 use verbb\formie\fields\values\NameFieldValue;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\PaymentAttempt;
 use verbb\formie\helpers\PaymentAccess;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
+use verbb\formie\helpers\Table;
 use verbb\formie\models\ClientModule;
 use verbb\formie\models\ClientModuleContext;
 use verbb\formie\models\Payment as PaymentModel;
@@ -27,6 +29,7 @@ use verbb\formie\models\SlotTag;
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
+use craft\db\Query;
 use craft\helpers\App;
 use craft\helpers\Component;
 use craft\helpers\DateTimeHelper;
@@ -81,7 +84,7 @@ class Opayo extends Payment
             return $amount;
         }
 
-        return ceil($amount * 100);
+        return round($amount * 100);
     }
 
     public static function fromOpayoAmount(float $amount, string $currency): float
@@ -188,180 +191,18 @@ class Opayo extends Payment
 
     public function processPayment(Submission $submission): PaymentDecision
     {
-        $payload = [];
-        $response = null;
-        $result = false;
-        $paymentReference = null;
-
-        // Allow events to cancel sending
         if (!$this->beforeProcessPayment($submission)) {
             return PaymentDecision::notRequired();
-        }        
+        }
 
-        // Get the amount from the field, which handles dynamic fields
-        $amount = $this->getAmount($submission);
         $currency = $this->getCurrency($submission);
 
-        // Capture the authorized payment
-        try {
-            $field = $this->getField();
-            $paymentPayload = $this->getPaymentFieldPayload($submission);
-            $opayoTokenId = $paymentPayload->string('opayoTokenId');
-            $opayoSessionKey = $paymentPayload->string('opayoSessionKey');
-            $opayo3DSComplete = $paymentPayload->string('opayo3DSComplete');
-
-            // Check if we've returned from a 3DS challenge. We've already captured the payment, and recorded the successful payment.
-            if ($opayo3DSComplete) {
-                // Verify that we indeed have a verified payment - just in case people are trying to send through _any_ value
-                if (Formie::$plugin->getPayments()->getPaymentByReference($opayo3DSComplete)) {
-                    // We can return true here to allow the form to continue with the submission process
-                    return PaymentDecision::succeeded($this->handle, $opayo3DSComplete);
-                } else {
-                    throw new Exception('Unable to find payment by "' . $opayo3DSComplete . '".');
-                }
-            }
-
-            if (!$opayoTokenId || !is_string($opayoTokenId)) {
-                throw new Exception("Missing `opayoTokenId` from payload: {$opayoTokenId}.");
-            }
-
-            if (!$opayoSessionKey || !is_string($opayoSessionKey)) {
-                throw new Exception("Missing `opayoSessionKey` from payload: {$opayoSessionKey}.");
-            }
-
-            if (!$amount) {
-                throw new Exception("Missing `amount` from payload: {$amount}.");
-            }
-
-            if (!$currency) {
-                throw new Exception("Missing `currency` from payload: {$currency}.");
-            }
-
-            // Generate the payload data
-            $payload = $this->_getPayload($opayoSessionKey, $opayoTokenId, $submission, $amount, $currency);
-
-            // Raise a `modifySinglePayload` event
-            $event = new ModifyPaymentPayloadEvent([
-                'integration' => $this,
-                'submission' => $submission,
-                'payload' => $payload,
-            ]);
-            $this->trigger(self::EVENT_MODIFY_PAYLOAD, $event);
-
-            $payload = $event->payload;
-
-            // Trigger the Opato payment to be captured
-            $response = $this->request('POST', 'transactions', ['json' => $payload]);
-
-            $status = $response['status'] ?? null;
-            $statusDetail = $response['statusDetail'] ?? null;
-
-            // Was this a 3DS challenge? We need to redirect the user
-            $acsUrl = $response['acsUrl'] ?? null;
-
-            if ($acsUrl) {
-                $payment = new PaymentModel();
-                $payment->integrationId = $this->id;
-                $payment->submissionId = $submission->id;
-                $payment->fieldId = $field->id;
-                $payment->amount = self::fromOpayoAmount($amount, $currency);
-                $payment->currency = $currency;
-                $payment->reference = $response['transactionId'] ?? '';
-                $payment->response = $response;
-                $payment->status = PaymentModel::STATUS_PENDING;
-                $paymentReference = $payment->reference;
-
-                Formie::$plugin->getPayments()->savePayment($payment);
-
-                $threeDSSessionData = [
-                    'submissionId' => $submission->id,
-                    'fieldId' => $field->id,
-                    'amount' => $amount,
-                    'currency' => $currency,
-                    'reference' => $response['transactionId'] ?? '',
-                ];
-
-                // Store the data we need for 3DS against the form, which is added is the Ajax response
-                $submission->getForm()->addSubmitData([
-                    'event' => 'formie:payment:opayo:challenge',
-                    'data' => [
-                        'acsUrl' => $acsUrl,
-                        'creq' => $response['cReq'] ?? '',
-                        'returnUrl' => $this->getReturnUrl(),
-                        'threeDSSessionData' => base64_encode(Json::encode($threeDSSessionData)),
-                    ],
-                ]);
-
-                return PaymentDecision::requiresAction(
-                    $payment->reference,
-                    PaymentAction::challengeEvent('formie:payment:opayo:challenge', $acsUrl)
-                        ->forProvider($this->handle)
-                        ->withMessage(Craft::t('formie', 'This payment requires 3D Secure authentication. Please follow the instructions on-screen to continue.'))
-                        ->withPayload([
-                            'acsUrl' => $acsUrl,
-                            'creq' => $response['cReq'] ?? '',
-                            'returnUrl' => $this->getReturnUrl(),
-                            'threeDSSessionData' => base64_encode(Json::encode($threeDSSessionData)),
-                        ])
-                        ->resumeMode(PaymentAction::RESUME_MODE_CALLBACK, $this->getReturnUrl())
-                );
-            }
-
-            if ($status !== 'Ok') {
-                throw new Exception(StringHelper::titleize($status) . ': ' . $statusDetail);
-            }
-
-            $payment = new PaymentModel();
-            $payment->integrationId = $this->id;
-            $payment->submissionId = $submission->id;
-            $payment->fieldId = $field->id;
-            $payment->amount = self::fromOpayoAmount($amount, $currency);
-            $payment->currency = $currency;
-            $payment->reference = $response['transactionId'] ?? '';
-            $payment->response = $response;
-            $payment->status = PaymentModel::STATUS_SUCCESS;
-            $paymentReference = $payment->reference;
-
-            Formie::$plugin->getPayments()->savePayment($payment);
-
-            $result = true;
-        } catch (Throwable $e) {
-            // Save a different payload to logs
-            Integration::error($this, Craft::t('formie', 'Payment error: “{message}” {file}:{line}. Response: “{response}”. Payload: “{payload}”', [
-                'message' => Integration::getExceptionLogMessage($e),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'response' => Json::encode($response),
-                'payload' => Json::encode($payload),
-            ]));
-
-            Integration::apiError($this, $e, $this->throwApiError);
-
-            // Provide a client-friendly error, rather than expose the full error
-            $message = $this->getFriendlyPaymentErrorMessage($e);
-            $this->addFieldError($submission, Craft::t('formie', 'A payment error has occurred “{message}”.', ['message' => $message]));
-            
-            $payment = new PaymentModel();
-            $payment->integrationId = $this->id;
-            $payment->submissionId = $submission->id;
-            $payment->fieldId = $field->id;
-            $payment->amount = self::fromOpayoAmount($amount, $currency);
-            $payment->currency = $currency;
-            $payment->status = PaymentModel::STATUS_FAILED;
-            $payment->reference = null;
-            $payment->response = ['message' => $e->getMessage()];
-
-            Formie::$plugin->getPayments()->savePayment($payment);
-
-            return PaymentDecision::failed($e->getMessage(), $this->handle, $paymentReference);
-        }
-
-        // Allow events to say the response is invalid
-        if (!$this->afterProcessPayment($submission, $result)) {
-            return PaymentDecision::succeeded($this->handle);
-        }
-
-        return $result ? PaymentDecision::succeeded($this->handle) : PaymentDecision::failed(null, $this->handle);
+        return PaymentAttempt::run($this, $submission, self::fromOpayoAmount($this->getAmount($submission), (string)$currency), $currency, [
+            'vendorName' => $this->vendorName,
+            'integrationKey' => $this->integrationKey,
+            'integrationPassword' => $this->integrationPassword,
+            'useSandbox' => $this->useSandbox,
+        ], fn(PaymentModel $payment, PaymentAttempt $attempt) => $this->_processPayment($submission, $payment, $attempt));
     }
 
     public function processCallback(): Response
@@ -395,130 +236,74 @@ class Opayo extends Payment
             return $callbackResponse;
         }
         
-        $response = [];
-        $responseData = [];
-
         $cres = $request->getParam('cres');
-        $data = $request->getParam('threeDSSessionData');
+        $token = $request->getParam('threeDSSessionData');
+        $identity = is_string($token) ? PaymentAccess::resolveStatusToken($token) : null;
+        $payments = Formie::$plugin->getPayments();
+        $payment = $identity ? $payments->getPaymentByUid($identity['paymentUid']) : null;
 
-        if (!$cres || !$data) {
-            Integration::error($this, 'Callback not signed or signing secret not set.');
-            $callbackResponse->data = 'ok';
-
-            return $callbackResponse;
+        if (!is_string($cres) || $cres === '' || !$payment
+            || $payment->id !== $identity['paymentId']
+            || $payment->integrationId !== $this->id || !$payment->reference) {
+            throw new BadRequestHttpException('Invalid Opayo challenge.');
         }
 
-        // Get the data sent to Opayo
-        $data = Json::decode(base64_decode($data));
-        $submissionId = $data['submissionId'] ?? null;
-        $fieldId = $data['fieldId'] ?? null;
-        $amount = $data['amount'] ?? null;
-        $currency = $data['currency'] ?? null;
-        $transactionId = $data['reference'] ?? null;
+        $transactionId = $payment->reference;
+        $mutex = Craft::$app->getMutex();
+        $lock = PaymentAttempt::lockName((int)$payment->submissionId, (int)$payment->integrationId, (int)$payment->fieldId);
+
+        if (!$mutex->acquire($lock, 10)) {
+            throw new BadRequestHttpException('Opayo challenge is already being processed.');
+        }
 
         try {
-            // Process the 3DS challenge
-            $response = $this->request('POST', "transactions/$transactionId/3d-secure-challenge", [
-                'json' => [
-                    'threeDSSessionData' => $transactionId,
-                    'cRes' => $cres,
-                ],
-            ]);
+            // Re-read after acquiring the lock so duplicate callbacks observe the
+            // first callback's persisted outcome instead of re-running the charge.
+            $row = (new Query())->from(Table::FORMIE_PAYMENTS)->where([
+                'id' => $payment->id, 'integrationId' => $this->id, 'reference' => $transactionId,
+            ])->one();
 
-            $status = $response['status'] ?? null;
-            $statusDetail = $response['statusDetail'] ?? null;
-
-            if ($status !== 'Ok') {
-                throw new Exception(StringHelper::titleize($status) . ': ' . $statusDetail);
+            if (!$row) {
+                throw new Exception('Opayo payment no longer exists.');
             }
 
-            // Record the payment
-            $payment = Formie::$plugin->getPayments()->getPaymentByReference($transactionId);
+            $payment = new PaymentModel($row);
 
-            if ($payment) {
+            if ($payment->status !== PaymentModel::STATUS_SUCCESS) {
+                if ($payment->status !== PaymentModel::STATUS_PENDING) {
+                    throw new Exception('Opayo payment is not awaiting a challenge.');
+                }
+
+                $response = $this->request('POST', 'transactions/' . rawurlencode($transactionId) . '/3d-secure-challenge', [
+                    'json' => ['threeDSSessionData' => $transactionId, 'cRes' => $cres],
+                ]);
+
+                if (($response['status'] ?? null) !== 'Ok'
+                    || (isset($response['transactionId']) && $response['transactionId'] !== $transactionId)) {
+                    throw new Exception('Opayo has not verified the payment.');
+                }
+
                 $payment->status = PaymentModel::STATUS_SUCCESS;
-                $payment->reference = $transactionId;
                 $payment->response = $response;
 
-                Formie::$plugin->getPayments()->savePayment($payment);
-            } else {
-                throw new Exception('Unable to find payment by "' . $transactionId . '".');
+                if (!$payments->savePayment($payment)) {
+                    throw new Exception('Unable to save the verified Opayo payment.');
+                }
             }
 
-            $responseData['success'] = true;
-            $responseData['transactionId'] = $transactionId;
+            $responseData = ['success' => true, 'transactionId' => $transactionId];
         } catch (Throwable $e) {
-            // Save a different payload to logs
-            Integration::error($this, Craft::t('formie', 'Payment error: “{message}” {file}:{line}. Response: “{response}. Payload: “{payload}”', [
-                'message' => Integration::getExceptionLogMessage($e),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'response' => Json::encode($response),
-                'payload' => Json::encode($data ?? []),
-            ]));
-
-            $shouldShowError = true;
-
-            // There's a scenario we need to ignore with Opayo, where we get the response `{"description":"Operation not allowed for this transaction","code":1017}`
-            // but the transaction has actually gone through successfully.
-            if ($e instanceof RequestException && $e->getResponse()) {
-                $rawResponse = $e->getResponse();
-                $messageText = (string)$rawResponse->getBody()->getContents();
-                $response = Json::decode($messageText);
-                $code = $response['code'] ?? null;
-
-                if ($code == '1017') {
-                    $shouldShowError = false;
-
-                    // Record the payment
-                    $payment = Formie::$plugin->getPayments()->getPaymentByReference($transactionId);
-
-                    if ($payment) {
-                        $payment->status = PaymentModel::STATUS_SUCCESS;
-                        $payment->reference = $transactionId;
-                        $payment->response = $response;
-
-                        Formie::$plugin->getPayments()->savePayment($payment);
-                    }
-
-                    $responseData['success'] = true;
-                    $responseData['transactionId'] = $transactionId;
-                }
-            }
-
-            if ($shouldShowError) {
-                Integration::apiError($this, $e, $this->throwApiError);
-
-                $error = ['message' => $e->getMessage()];
-
-                $payment = new PaymentModel();
-                $payment->response = $error;
-
-                // Try and update the existing pending payment to failed, and merge content
-                if ($transactionId) {
-                    if ($payment = Formie::$plugin->getPayments()->getPaymentByReference($transactionId)) {
-                        if (is_array($payment->response)) {
-                            $payment->response['message'] = $e->getMessage();
-                        }
-                    }
-                }
-                
-                $payment->integrationId = $this->id;
-                $payment->submissionId = $submissionId;
-                $payment->fieldId = $fieldId;
-                $payment->amount = self::fromOpayoAmount($amount, $currency);
-                $payment->currency = $currency;
-                $payment->status = PaymentModel::STATUS_FAILED;
-                $payment->reference = $transactionId;
-
-                Formie::$plugin->getPayments()->savePayment($payment);
-
-                $responseData['error'] = $error;
-            }
+            // Error 1017 (operation not allowed) is not proof of payment. Leave
+            // uncertain outcomes pending for reconciliation rather than granting
+            // access or overwriting stored ownership from callback parameters.
+            Integration::apiError($this, $e, false);
+            $responseData = ['error' => ['message' => Craft::t('formie', 'Unable to verify your payment. Please try again or contact support.')]];
+        } finally {
+            $mutex->release($lock);
         }
 
         // Send back some JS to trigger the iframe to close, and the submission to submit
-        $callbackResponse->data = '<script>window.parent.postMessage({ message: "formie:payment:opayo:challenge:response", value: ' . Json::encode($responseData) . ' }, "*");</script>';
+        $callbackResponse->data = '<script>window.parent.postMessage({ message: "formie:payment:opayo:challenge:response", value: ' . Json::encode($responseData, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) . ' }, "*");</script>';
 
         return $callbackResponse;
     }
@@ -786,6 +571,152 @@ class Opayo extends Payment
 
     // Private Methods
     // =========================================================================
+
+    private function _processPayment(Submission $submission, PaymentModel $payment, PaymentAttempt $attempt): PaymentDecision
+    {
+        $payload = [];
+        $result = false;
+        $paymentReference = null;
+
+        // Get the amount from the field, which handles dynamic fields
+        $amount = self::toOpayoAmount($payment->amount, (string)$payment->currency);
+        $currency = $this->getCurrency($submission);
+
+        // Capture the authorized payment
+        $field = $this->getField();
+        $paymentPayload = $this->getPaymentFieldPayload($submission);
+        $opayoTokenId = $paymentPayload->string('opayoTokenId');
+        $opayoSessionKey = $paymentPayload->string('opayoSessionKey');
+        $opayo3DSComplete = $paymentPayload->string('opayo3DSComplete');
+
+        // Check if we've returned from a 3DS challenge. We've already captured the payment, and recorded the successful payment.
+        if ($opayo3DSComplete) {
+            $payment = Formie::$plugin->getPayments()->getPaymentByReference($opayo3DSComplete);
+
+            // A known reference is not proof of a successful payment, nor may
+            // one submission reuse another visitor's completed challenge.
+            if ($payment && $payment->status === PaymentModel::STATUS_SUCCESS
+                && $payment->integrationId === $this->id
+                && $payment->submissionId === $submission->id
+                && $payment->fieldId === $field->id
+                && $payment->currency === $currency
+                && self::toOpayoAmount($payment->amount, $currency) === $amount) {
+                return PaymentDecision::succeeded($this->handle, $opayo3DSComplete);
+            }
+
+            $message = Craft::t('formie', 'Unable to verify your payment. Please try again or contact support.');
+            $this->addFieldError($submission, $message);
+
+            return PaymentDecision::failed($message, $this->handle);
+        }
+
+        if ((!$opayoTokenId || !is_string($opayoTokenId)) && !$attempt->hasReceipt()) {
+            throw new Exception("Missing `opayoTokenId` from payload: {$opayoTokenId}.");
+        }
+
+        if ((!$opayoSessionKey || !is_string($opayoSessionKey)) && !$attempt->hasReceipt()) {
+            throw new Exception("Missing `opayoSessionKey` from payload: {$opayoSessionKey}.");
+        }
+
+        if (!$amount) {
+            throw new Exception("Missing `amount` from payload: {$amount}.");
+        }
+
+        if (!$currency) {
+            throw new Exception("Missing `currency` from payload: {$currency}.");
+        }
+
+        // Generate the payload data
+        $payload = $this->_getPayload((string)$opayoSessionKey, (string)$opayoTokenId, $submission, $amount, $currency);
+        $payload['vendorTxCode'] = $attempt->merchantReference();
+
+        // Raise a `modifySinglePayload` event
+        $event = new ModifyPaymentPayloadEvent([
+            'integration' => $this,
+            'submission' => $submission,
+            'payload' => $payload,
+        ]);
+        $this->trigger(self::EVENT_MODIFY_PAYLOAD, $event);
+
+        $payload = $event->payload;
+
+        // Trigger the Opato payment to be captured
+        $response = $attempt->request($payload, fn() => $this->request('POST', 'transactions', ['json' => $payload]), static fn(array $response) => $response['transactionId'] ?? null);
+
+        $status = $response['status'] ?? null;
+        $statusDetail = $response['statusDetail'] ?? null;
+
+        // Was this a 3DS challenge? We need to redirect the user
+        $acsUrl = $response['acsUrl'] ?? null;
+
+        if ($acsUrl) {
+            $payment->reference = $response['transactionId'] ?? '';
+            $payment->response = $response;
+            $payment->status = PaymentModel::STATUS_PENDING;
+            $paymentReference = $payment->reference;
+
+            if (!$payment->reference || !Formie::$plugin->getPayments()->savePayment($payment)) {
+                throw new Exception('Unable to save the pending Opayo payment.');
+            }
+
+            // The callback carries only a signed, expiring capability; all
+            // ownership and monetary values are reloaded from this payment.
+            $threeDSSessionData = PaymentAccess::issueStatusToken($payment);
+
+            if (!$threeDSSessionData) {
+                throw new Exception('Unable to create the Opayo challenge token.');
+            }
+
+            // Store the data we need for 3DS against the form, which is added is the Ajax response
+            $submission->getForm()->addSubmitData([
+                'event' => 'formie:payment:opayo:challenge',
+                'data' => [
+                    'acsUrl' => $acsUrl,
+                    'creq' => $response['cReq'] ?? '',
+                    'returnUrl' => $this->getReturnUrl(),
+                    'threeDSSessionData' => $threeDSSessionData,
+                ],
+            ]);
+
+            return PaymentDecision::requiresAction(
+                $payment->reference,
+                PaymentAction::challengeEvent('formie:payment:opayo:challenge', $acsUrl)
+                    ->forProvider($this->handle)
+                    ->withMessage(Craft::t('formie', 'This payment requires 3D Secure authentication. Please follow the instructions on-screen to continue.'))
+                    ->withPayload([
+                        'acsUrl' => $acsUrl,
+                        'creq' => $response['cReq'] ?? '',
+                        'returnUrl' => $this->getReturnUrl(),
+                        'threeDSSessionData' => $threeDSSessionData,
+                    ])
+                    ->resumeMode(PaymentAction::RESUME_MODE_CALLBACK, $this->getReturnUrl())
+            );
+        }
+
+        if (in_array($status, ['NotAuthed', 'Rejected'], true)) {
+            $attempt->reject((string)$status . ': ' . $statusDetail);
+        }
+
+        if ($status !== 'Ok' || !$payment->reference) {
+            throw new Exception('Opayo has not confirmed the payment.');
+        }
+
+        $payment->reference = $response['transactionId'] ?? '';
+        $payment->response = $response;
+        $payment->status = PaymentModel::STATUS_SUCCESS;
+        $paymentReference = $payment->reference;
+
+        $attempt->save();
+
+        $result = true;
+
+        // Allow events to say the response is invalid
+        if (!$this->afterProcessPayment($submission, $result)) {
+            return PaymentDecision::succeeded($this->handle);
+        }
+
+        return $result ? PaymentDecision::succeeded($this->handle) : PaymentDecision::failed(null, $this->handle);
+    }
 
     private function _getPayload(string $opayoSessionKey, string $opayoTokenId, Submission $submission, int $amount, string $currency): array
     {

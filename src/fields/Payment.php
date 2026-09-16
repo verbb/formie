@@ -3,23 +3,22 @@ namespace verbb\formie\fields;
 
 use verbb\formie\Formie;
 use verbb\formie\base\Field;
-use verbb\formie\base\Payment as PaymentIntegration;
 use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
+use verbb\formie\base\Payment as PaymentIntegration;
 use verbb\formie\elements\Submission;
-use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\helpers\StringHelper;
-use verbb\formie\fields\values\PaymentFieldValue;
 use verbb\formie\fields\definitions\FieldClientModules;
 use verbb\formie\fields\definitions\FieldValueClass;
+use verbb\formie\fields\values\PaymentFieldValue;
 use verbb\formie\gql\types\input\PaymentInputType;
 use verbb\formie\gql\types\Json as GqlJson;
+use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\ClientModule;
 use verbb\formie\models\ClientModuleContext;
-use verbb\formie\models\SlotTag;
 use verbb\formie\models\Notification;
+use verbb\formie\models\SlotTag;
 use verbb\formie\options\predefined\Currencies;
-
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
@@ -28,10 +27,8 @@ use craft\helpers\Html;
 use craft\helpers\Json;
 use craft\helpers\Template;
 
-use GraphQL\Type\Definition\Type;
-
 use Faker\Generator as FakerFactory;
-
+use GraphQL\Type\Definition\Type;
 use Twig\Markup;
 
 class Payment extends Field
@@ -47,6 +44,11 @@ class Payment extends Field
     public static function getSvgIconPath(): string
     {
         return 'formie/_formfields/payment/icon.svg';
+    }
+
+    public static function gqlContentTypeFromConfig(array $config): Type|array
+    {
+        return PaymentInputType::getTypeFromConfig($config);
     }
 
 
@@ -99,11 +101,6 @@ class Payment extends Field
         $data->setElement($element);
 
         return $data;
-    }
-
-    public static function gqlContentTypeFromConfig(array $config): Type|array
-    {
-        return PaymentInputType::getTypeFromConfig($config);
     }
 
     public function getContentGqlType(): Type|array
@@ -173,7 +170,7 @@ class Payment extends Field
             $integration->setField($this);
         }
 
-        return $integration;
+        return $integration instanceof PaymentIntegration ? $integration : null;
     }
 
     public function beforeSave(bool $isNew): bool
@@ -309,6 +306,7 @@ class Payment extends Field
             SchemaHelper::conditionsField(),
         ];
     }
+
 
     // Protected Methods
     // =========================================================================

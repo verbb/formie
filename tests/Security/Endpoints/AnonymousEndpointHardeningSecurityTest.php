@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+beforeEach(fn() => \Tests\Support\UploadTestHelper::ensureUploadVolume());
+
 use Tests\Support\UploadTestHelper;
 use Tests\Support\WebRequestTestHelper;
 use yii\web\BadRequestHttpException;
@@ -59,9 +61,18 @@ function withEnvOverrides(array $values, callable $callback): mixed
     }
 }
 
-function createPaymentIntegrationFixture(): Mollie
+class SecurityPollingMollie extends Mollie
 {
-    $integration = new Mollie([
+    public function getTransaction(PaymentModel $payment): void
+    {
+        // Capability and rate-limit tests use a deterministic pending gateway response.
+    }
+}
+
+function createPaymentIntegrationFixture(bool $stubGateway = false): Mollie
+{
+    $class = $stubGateway ? SecurityPollingMollie::class : Mollie::class;
+    $integration = new $class([
         'name' => 'Security Payment Integration ' . uniqid(),
         'handle' => 'securityPayment' . uniqid(),
         'enabled' => false,
@@ -72,9 +83,9 @@ function createPaymentIntegrationFixture(): Mollie
     return $integration;
 }
 
-function createPaymentFixture(array $overrides = []): PaymentModel
+function createPaymentFixture(array $overrides = [], bool $stubGateway = false): PaymentModel
 {
-    $integration = createPaymentIntegrationFixture();
+    $integration = createPaymentIntegrationFixture($stubGateway);
     $form = formie()
         ->form(['title' => 'Security Payment Fixture'])
         ->singleLineTextField('fullName')
@@ -186,7 +197,7 @@ it('renders summary html only when presented with a valid field access token', f
     ]);
 })->group('security');
 
-it('generates opaque signature image urls instead of exposing raw submission identifiers', function (): void {
+it('generates opaque signature download urls instead of exposing raw submission identifiers', function (): void {
     $form = formie()
         ->form(['title' => 'Anonymous Signature Capability'])
         ->signatureField('signature')
@@ -199,7 +210,7 @@ it('generates opaque signature image urls instead of exposing raw submission ide
         ->save();
 
     $signatureField = $form->getFieldByHandle('signature');
-    $imageUrl = $signatureField->getImageUrl($submission, $signaturePayload);
+    $imageUrl = $signatureField->getDownloadUrl($submission);
 
     expect($imageUrl)
         ->toContain('accessToken=')
@@ -243,7 +254,7 @@ it('rejects raw payment uids for anonymous payment polling', function (): void {
 })->group('security');
 
 it('treats payment status polling as an opaque token capability', function (): void {
-    $payment = createPaymentFixture();
+    $payment = createPaymentFixture(stubGateway: true);
     $statusToken = PaymentAccess::issueStatusToken($payment);
 
     WebRequestTestHelper::withWebRequestContext(function ($request) use ($statusToken): void {
@@ -274,7 +285,7 @@ it('rejects expired payment status tokens', function (): void {
 })->group('security');
 
 it('rate limits anonymous payment status polling by token and client', function (): void {
-    $payment = createPaymentFixture();
+    $payment = createPaymentFixture(stubGateway: true);
     $statusToken = PaymentAccess::issueStatusToken($payment);
 
     WebRequestTestHelper::withWebRequestContext(function ($request) use ($statusToken): void {
@@ -562,7 +573,7 @@ it('accepts correctly signed gocardless webhook payloads before processing them'
 
             return ['payments' => [
                 'id' => 'PM123',
-                'status' => 'submitted',
+                'status' => 'confirmed',
                 'metadata' => [
                     'formiePaymentId' => (string)$this->context['paymentId'],
                 ],
@@ -574,7 +585,7 @@ it('accepts correctly signed gocardless webhook payloads before processing them'
     withEnvOverrides([
         'GO_CARDLESS_ACCESS_TOKEN' => 'test-token',
         'GO_CARDLESS_WEBHOOK_SECRET' => 'correct-secret',
-    ], function () use ($integration): void {
+    ], function () use ($integration, $payment): void {
         $payload = json_encode([
             'events' => [[
                 'resource_type' => 'payments',
@@ -584,13 +595,17 @@ it('accepts correctly signed gocardless webhook payloads before processing them'
             ]],
         ], JSON_THROW_ON_ERROR);
 
-        WebRequestTestHelper::withWebRequestContext(function ($request) use ($integration, $payload): void {
+        WebRequestTestHelper::withWebRequestContext(function ($request) use ($integration, $payload, $payment): void {
             $request->setRawBody($payload);
             $request->getHeaders()->set('Webhook-Signature', hash_hmac('sha256', $payload, 'correct-secret'));
 
             $response = $integration->processWebhook();
 
             expect($integration->requested)->toBeTrue();
+            $saved = Formie::$plugin->getPayments()->getPaymentById($payment->id);
+            expect($saved->status)->toBe(PaymentModel::STATUS_SUCCESS)
+                ->and($saved->reference)->toBe('PM123')
+                ->and($saved->response['gcPayment']['status'])->toBe('confirmed');
         }, [
             'method' => 'POST',
         ]);

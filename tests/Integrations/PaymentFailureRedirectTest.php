@@ -51,7 +51,6 @@ it('resolves failed external payment redirects back to the stored form url', fun
     WebRequestTestHelper::withWebRequestContext(function ($request) use ($statusToken): void {
         $request->setQueryParams([
             'statusToken' => $statusToken,
-            'paymentUid' => (string)$payment->uid,
         ]);
 
         $controller = new PaymentWebhooksController('formie-payment-failure', Craft::$app);

@@ -12,7 +12,9 @@ use verbb\formie\events\ModifySubFieldsEvent;
 use verbb\formie\events\PaymentReceiveWebhookEvent;
 use verbb\formie\fields;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\PaymentAttempt;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\helpers\Table;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\ClientModule;
 use verbb\formie\models\ClientModuleContext;
@@ -22,6 +24,7 @@ use verbb\formie\models\PaymentDecision;
 use verbb\formie\models\Plan;
 
 use Craft;
+use craft\db\Query;
 use craft\helpers\App;
 use craft\helpers\Component;
 use craft\helpers\DateTimeHelper;
@@ -30,10 +33,12 @@ use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
 use craft\web\Response;
 
-use GuzzleHttp\Client;
-
-use Throwable;
 use Exception;
+use Throwable;
+
+use GuzzleHttp\Client;
+use Money\Currencies\ISOCurrencies;
+use Money\Currency;
 
 class Eway extends Payment
 {
@@ -100,119 +105,79 @@ class Eway extends Payment
 
     public function processPayment(Submission $submission): PaymentDecision
     {
-        $response = null;
-        $result = false;
-
-        // Allow events to cancel sending
         if (!$this->beforeProcessPayment($submission)) {
             return PaymentDecision::notRequired();
         }
 
-        // Get the amount from the field, which handles dynamic fields
-        $amount = $this->getAmount($submission);
         $currency = $this->getFieldSetting('currency');
 
-        // Capture the authorized payment
+        return PaymentAttempt::run($this, $submission, $this->getAmount($submission), $currency, [
+            'apiKey' => $this->apiKey,
+            'apiPassword' => $this->apiPassword,
+            'useSandbox' => $this->useSandbox,
+        ], fn(PaymentModel $payment, PaymentAttempt $attempt) => $this->_processPayment($submission, $payment, $attempt));
+    }
+
+    public function getTransaction(PaymentModel $payment): void
+    {
+        $mutex = Craft::$app->getMutex();
+        $lock = PaymentAttempt::lockName((int)$payment->submissionId, (int)$payment->integrationId, (int)$payment->fieldId);
+
+        if (!$mutex->acquire($lock, 10)) {
+            throw new Exception('This payment is already being processed.');
+        }
+
         try {
-            $field = $this->getField();
-            $paymentPayload = $this->getPaymentFieldPayload($submission);
-            $cardData = $paymentPayload->array('ewayTokenData');
+            $row = Craft::$app->getDb()->useMaster(fn() => (new Query())->from(Table::FORMIE_PAYMENTS)->where(['id' => $payment->id, 'integrationId' => $this->id])->one());
 
-            if (!$cardData || !is_array($cardData)) {
-                throw new Exception('Invalid card details payload.');
+            if (!$row) {
+                throw new Exception('Eway payment not found.');
             }
 
-            $cardNumber = trim((string)($cardData['cardNumber'] ?? ''));
-            $securityCode = trim((string)($cardData['securityCode'] ?? ''));
-            [$expiryMonth, $expiryYear] = $this->_normalizeExpiry((string)($cardData['expiryDate'] ?? ''));
+            $current = new PaymentModel($row);
 
-            if ($cardNumber === '' || $securityCode === '' || $expiryMonth === '' || $expiryYear === '') {
-                throw new Exception('Invalid card details. Please verify card number, expiry, and CVC.');
+            if ($current->status === PaymentModel::STATUS_SUCCESS) {
+                $payment->status = $current->status;
+                return;
             }
 
-            $payload = [
-                'Customer' => [
-                    'CardDetails' => [
-                        'Name' => $cardData['cardholderName'] ?? '',
-                        'Number' => $cardNumber,
-                        'ExpiryMonth' => $expiryMonth,
-                        'ExpiryYear' => $expiryYear,
-                        'CVN' => $securityCode,
-                    ],
-                ],
-                'Payment' => [
-                    'TotalAmount' => $amount * 100, // in cents
-                    'CurrencyCode' => strtoupper($currency),
-                ],
-                'Method' => 'ProcessPayment',
-                'TransactionType' => 'Purchase',
-            ];
+            PaymentAttempt::verifyAccount($this, $current, ['apiKey' => $this->apiKey, 'apiPassword' => $this->apiPassword, 'useSandbox' => $this->useSandbox]);
+            $merchantReference = (new PaymentAttempt($current))->merchantReference();
+            $uri = $current->reference ? 'Transaction/' . rawurlencode($current->reference) : 'Transaction/InvoiceRef/' . rawurlencode($merchantReference);
+            $response = $this->request('GET', $uri);
+            $transactions = $response['Transactions'] ?? [];
+            $transaction = count($transactions) === 1 ? reset($transactions) : [];
+            $currency = new Currency((string)$current->currency);
+            $currencyCode = str_pad((string)(new ISOCurrencies())->numericCodeFor($currency), 3, '0', STR_PAD_LEFT);
 
-            // Raise a `modifySinglePayload` event
-            $event = new ModifyPaymentPayloadEvent([
-                'integration' => $this,
-                'submission' => $submission,
-                'payload' => $payload,
-            ]);
-            $this->trigger(self::EVENT_MODIFY_PAYLOAD, $event);
-
-            $response = $this->request('POST', 'Transaction', ['json' => $event->payload]);
-
-            $transactionStatus = $response['TransactionStatus'] ?? false;
-
-            if (!$transactionStatus) {
-                throw new Exception($this->_extractGatewayErrorMessage($response));
+            if (!empty($response['Errors']) || !$transaction || empty($transaction['TransactionID'])
+                || ($transaction['InvoiceReference'] ?? null) !== $merchantReference
+                || ($current->reference && (string)$transaction['TransactionID'] !== $current->reference)
+                || str_pad((string)($transaction['CurrencyCode'] ?? ''), 3, '0', STR_PAD_LEFT) !== $currencyCode
+                || (string)($transaction['TotalAmount'] ?? '') !== (string)$this->_minorAmount($current->amount, (string)$current->currency)
+                || (int)($transaction['TransactionType'] ?? 0) !== 1) {
+                throw new Exception('The Eway transaction owner, amount or currency could not be verified.');
             }
 
-            $payment = new PaymentModel();
-            $payment->integrationId = $this->id;
-            $payment->submissionId = $submission->id;
-            $payment->fieldId = $field->id;
-            $payment->amount = $amount;
-            $payment->currency = $currency;
-            $payment->status = PaymentModel::STATUS_SUCCESS;
-            $payment->reference = $response['TransactionID'] ?? '';
-            $payment->response = $response;
+            if (($transaction['TransactionStatus'] ?? null) !== true || ($transaction['TransactionCaptured'] ?? null) !== true) {
+                throw new Exception('Eway has not confirmed a captured payment.');
+            }
 
-            Formie::$plugin->getPayments()->savePayment($payment);
+            $current->reference = (string)$transaction['TransactionID'];
+            $current->response = $transaction;
+            $current->status = PaymentModel::STATUS_SUCCESS;
+            $current->message = null;
 
-            $result = true;
-        } catch (Throwable $e) {
-            // Save a different payload to logs
-            Integration::error($this, Craft::t('formie', 'Payment error: “{message}” {file}:{line}. Response: “{response}”', [
-                'message' => Integration::getExceptionLogMessage($e),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'response' => Json::encode($response),
-            ]));
+            if (!Formie::$plugin->getPayments()->savePayment($current)) {
+                throw new Exception('Unable to save the verified Eway payment.');
+            }
 
-            Integration::apiError($this, $e, $this->throwApiError);
-
-            $this->addFieldError($submission, $e->getMessage());
-            
-            $payment = new PaymentModel();
-            $payment->integrationId = $this->id;
-            $payment->submissionId = $submission->id;
-            $payment->fieldId = $field->id;
-            $payment->amount = $amount;
-            $payment->currency = $currency;
-            $payment->status = PaymentModel::STATUS_FAILED;
-            $payment->reference = null;
-            $payment->code = $this->_extractGatewayErrorCode($response);
-            $payment->message = $e->getMessage();
-            $payment->response = ['message' => $e->getMessage()];
-
-            Formie::$plugin->getPayments()->savePayment($payment);
-
-            return PaymentDecision::failed($e->getMessage(), $this->handle);
+            $payment->reference = $current->reference;
+            $payment->response = $current->response;
+            $payment->status = $current->status;
+        } finally {
+            $mutex->release($lock);
         }
-
-        // Allow events to say the response is invalid
-        if (!$this->afterProcessPayment($submission, $result)) {
-            return PaymentDecision::succeeded($this->handle);
-        }
-
-        return $result ? PaymentDecision::succeeded($this->handle) : PaymentDecision::failed(null, $this->handle);
     }
 
     public function fetchConnection(): bool
@@ -427,6 +392,91 @@ class Eway extends Payment
 
     // Private Methods
     // =========================================================================
+
+    private function _processPayment(Submission $submission, PaymentModel $payment, PaymentAttempt $attempt): PaymentDecision
+    {
+        $result = false;
+
+        // Get the amount from the field, which handles dynamic fields
+        $amount = $payment->amount;
+        $currency = $this->getFieldSetting('currency');
+
+        // Capture the authorized payment
+        $field = $this->getField();
+        $paymentPayload = $this->getPaymentFieldPayload($submission);
+        $cardData = $paymentPayload->array('ewayTokenData');
+
+        if ((!$cardData || !is_array($cardData)) && !$attempt->hasReceipt()) {
+            throw new Exception('Invalid card details payload.');
+        }
+
+        $cardNumber = trim((string)($cardData['cardNumber'] ?? ''));
+        $securityCode = trim((string)($cardData['securityCode'] ?? ''));
+        [$expiryMonth, $expiryYear] = $this->_normalizeExpiry((string)($cardData['expiryDate'] ?? ''));
+
+        if (($cardNumber === '' || $securityCode === '' || $expiryMonth === '' || $expiryYear === '') && !$attempt->hasReceipt()) {
+            throw new Exception('Invalid card details. Please verify card number, expiry, and CVC.');
+        }
+
+        $payload = [
+            'Customer' => [
+                'CardDetails' => [
+                    'Name' => $cardData['cardholderName'] ?? '',
+                    'Number' => $cardNumber,
+                    'ExpiryMonth' => $expiryMonth,
+                    'ExpiryYear' => $expiryYear,
+                    'CVN' => $securityCode,
+                ],
+            ],
+            'Payment' => [
+                'TotalAmount' => $this->_minorAmount($amount, $currency),
+                'CurrencyCode' => strtoupper($currency),
+                'InvoiceReference' => $attempt->merchantReference(),
+            ],
+            'Method' => 'ProcessPayment',
+            'TransactionType' => 'Purchase',
+        ];
+
+        // Raise a `modifySinglePayload` event
+        $event = new ModifyPaymentPayloadEvent([
+            'integration' => $this,
+            'submission' => $submission,
+            'payload' => $payload,
+        ]);
+        $this->trigger(self::EVENT_MODIFY_PAYLOAD, $event);
+
+        $response = $attempt->request($event->payload, fn() => $this->request('POST', 'Transaction', ['json' => $event->payload]), static fn(array $response) => $response['TransactionID'] ?? null);
+
+        $transactionStatus = $response['TransactionStatus'] ?? false;
+
+        if ($transactionStatus === false && in_array((string)($response['ResponseCode'] ?? ''), ['05', '14', '51', '54', '57', '62', '65', '75', 'N7'], true)) {
+            $attempt->reject($this->_extractGatewayErrorMessage($response));
+        }
+
+        if ($transactionStatus !== true || empty($response['TransactionID'])) {
+            throw new Exception('Eway has not confirmed the payment.');
+        }
+
+        $payment->status = PaymentModel::STATUS_SUCCESS;
+        $payment->reference = $response['TransactionID'] ?? '';
+        $payment->response = $response;
+
+        $attempt->save();
+
+        $result = true;
+
+        // Allow events to say the response is invalid
+        if (!$this->afterProcessPayment($submission, $result)) {
+            return PaymentDecision::succeeded($this->handle);
+        }
+
+        return $result ? PaymentDecision::succeeded($this->handle) : PaymentDecision::failed(null, $this->handle);
+    }
+
+    private function _minorAmount(float $amount, string $currency): int
+    {
+        return (int)round($amount * (10 ** (new ISOCurrencies())->subunitFor(new Currency($currency))));
+    }
 
     private function _normalizeExpiry(string $expiryDate): array
     {

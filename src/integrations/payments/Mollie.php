@@ -9,9 +9,13 @@ use verbb\formie\events\ModifyPaymentPayloadEvent;
 use verbb\formie\events\PaymentReceiveWebhookEvent;
 use verbb\formie\fields;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\DeliveryAttempt;
 use verbb\formie\helpers\PaymentAccess;
-use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\helpers\PaymentAttempt;
 use verbb\formie\helpers\References;
+use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\helpers\StringHelper;
+use verbb\formie\helpers\Table;
 use verbb\formie\models\ClientModule;
 use verbb\formie\models\ClientModuleContext;
 use verbb\formie\models\IntegrationField;
@@ -21,30 +25,25 @@ use verbb\formie\models\PaymentDecision;
 use verbb\formie\models\Plan;
 
 use Craft;
+use craft\db\Query;
 use craft\helpers\App;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
-use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
 use craft\web\Response;
 
 use yii\base\Event;
 
+use Exception;
+use Throwable;
+
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
-
-use Throwable;
-use Exception;
+use Money\Currencies\ISOCurrencies;
+use Money\Currency;
 
 class Mollie extends Payment
 {
-    // Constants
-    // =========================================================================
-
-    public const EVENT_MODIFY_PAYLOAD = 'modifyPayload';
-    public const EVENT_RECEIVE_WEBHOOK = 'receiveWebhook';
-
-
     // Static Methods
     // =========================================================================
 
@@ -52,6 +51,13 @@ class Mollie extends Payment
     {
         return 'Mollie';
     }
+
+
+    // Constants
+    // =========================================================================
+
+    public const EVENT_MODIFY_PAYLOAD = 'modifyPayload';
+    public const EVENT_RECEIVE_WEBHOOK = 'receiveWebhook';
 
 
     // Properties
@@ -80,7 +86,7 @@ class Mollie extends Payment
 
     public function hasValidSettings(): bool
     {
-        return App::parseEnv($this->apiKey);
+        return (bool)App::parseEnv($this->apiKey);
     }
 
     public function getReturnUrl(array $params = []): string
@@ -115,120 +121,15 @@ class Mollie extends Payment
 
     public function processPayment(Submission $submission): PaymentDecision
     {
-        $response = null;
-        $result = false;
-        $field = $this->getField();
-
-        // Get the amount from the field, which handles dynamic fields
-        $amount = $this->getAmount($submission);
-        $currency = $this->getFieldSetting('currency');
-
-        // Create a payment right away so we can use it for redirect or fail, rather than multiple
-        $payment = new PaymentModel();
-        $payment->integrationId = $this->id;
-        $payment->submissionId = $submission->id;
-        $payment->fieldId = $field->id;
-        $payment->amount = $amount;
-        $payment->currency = $currency;
-
-        // Allow events to cancel sending
         if (!$this->beforeProcessPayment($submission)) {
             return PaymentDecision::notRequired();
         }
 
-        try {
-            $payment->status = PaymentModel::STATUS_REDIRECT;
-            $payment->redirectUrl = StringHelper::sanitizeRedirectUrl((string)Craft::$app->getRequest()->getReferrer());
+        $currency = $this->getFieldSetting('currency');
 
-            // Create the payment immediately so we can pass a reference to the Mollie payment
-            Formie::$plugin->getPayments()->savePayment($payment);
-
-            $payload = [
-                'amount' => [
-                    'currency' => $currency,
-                    'value' => number_format($amount, 2, '.', ''),
-                ],
-                'redirectUrl' => $this->getReturnUrl([
-                    'statusToken' => PaymentAccess::issueStatusToken($payment),
-                ]),
-                'webhookUrl' => $this->getRedirectUri(),
-                'metadata' => [
-                    'formiePaymentId' => $payment->id,
-                ],
-            ];
-
-            // Add in extra settings configured at the field level
-            $this->_setPayloadDetails($payload, $submission);
-
-            // Raise a `modifySinglePayload` event
-            $event = new ModifyPaymentPayloadEvent([
-                'integration' => $this,
-                'submission' => $submission,
-                'payload' => $payload,
-            ]);
-            $this->trigger(self::EVENT_MODIFY_PAYLOAD, $event);
-
-            $response = $this->request('POST', 'payments', ['json' => $event->payload]);
-
-            $paymentId = $response['id'] ?? null;
-            $checkoutUrl = $response['_links']['checkout']['href'] ?? null;
-
-            // Update the Formie payment with Mollie payment details
-            $payment->reference = $paymentId;
-            $payment->response = $response;
-
-            Formie::$plugin->getPayments()->savePayment($payment);
-
-            // Redirect via the front-end for a nicer UX than just a sudden redirect away.
-            $submission->getForm()->addSubmitData([
-                'event' => 'formie:payment:mollie:redirect',
-                'data' => [
-                    'checkoutUrl' => $checkoutUrl,
-                ],
-            ]);
-
-            // Allow events to say the response is invalid
-            if (!$this->afterProcessPayment($submission, $result)) {
-                return PaymentDecision::succeeded($this->handle);
-            }
-
-            return PaymentDecision::requiresAction(
-                $payment->reference,
-                PaymentAction::redirectEvent('formie:payment:mollie:redirect', $checkoutUrl)
-                    ->forProvider($this->handle)
-                    ->withMessage(Craft::t('formie', 'Please wait while you are redirected to complete payment.'))
-                    ->withPayload(['checkoutUrl' => $checkoutUrl])
-                    ->resumeMode(PaymentAction::RESUME_MODE_WEBHOOK, $this->getRedirectUri())
-            );
-        } catch (Throwable $e) {
-            $gatewayErrorMessage = $this->_extractMollieErrorMessage($e, $response, $currency, $amount);
-
-            // Save a different payload to logs
-            Integration::error($this, Craft::t('formie', 'Payment error: “{message}” {file}:{line}. Response: “{response}”', [
-                'message' => $gatewayErrorMessage,
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'response' => Json::encode($response),
-            ]));
-
-            Integration::apiError($this, $e, $this->throwApiError);
-
-            $this->addFieldError($submission, $gatewayErrorMessage);
-
-            // Update the payment if one has already been made
-            $payment->status = PaymentModel::STATUS_FAILED;
-            $payment->message = $gatewayErrorMessage;
-            $payment->response = [
-                'message' => $gatewayErrorMessage,
-                'rawResponse' => $response,
-            ];
-
-            Formie::$plugin->getPayments()->savePayment($payment);
-
-            return PaymentDecision::failed($gatewayErrorMessage, $this->handle, $payment->reference);
-        }
-
-        return PaymentDecision::succeeded($this->handle);
+        return PaymentAttempt::run($this, $submission, $this->getAmount($submission), $currency, [
+            'apiKey' => $this->apiKey,
+        ], fn(PaymentModel $payment, PaymentAttempt $attempt) => $this->_processPayment($submission, $payment, $attempt));
     }
 
     public function processWebhook(): Response
@@ -239,34 +140,50 @@ class Mollie extends Payment
 
         $paymentId = $request->getParam('id');
 
-        if (!$paymentId) {
+        if (!is_string($paymentId) || $paymentId === '') {
             Integration::error($this, 'Mollie webhook triggered with no payment ID.');
             $response->data = 'error';
 
             return $response;
         }
 
-        $payment = Formie::$plugin->getPayments()->getPaymentByReference($paymentId);
+        $response->data = 'success';
 
-        if (!$payment || (int)$payment->integrationId !== (int)$this->id) {
-            Integration::info($this, 'Mollie webhook ignored for unknown local payment reference.');
-            $response->data = 'success';
-
+        if (strlen($paymentId) > 255 || !preg_match('/^tr_[a-zA-Z0-9]+$/', $paymentId)) {
             return $response;
         }
 
         try {
-            // Fetch latest payment info from Mollie
-            $molliePayment = $this->request('GET', "payments/{$paymentId}");
+            $row = Craft::$app->getDb()->useMaster(fn() => (new Query())->from(Table::FORMIE_PAYMENTS)->where([
+                'reference' => $paymentId, 'integrationId' => $this->id,
+            ])->one());
 
-            $metadata = $molliePayment['metadata'] ?? [];
-            $formiePaymentId = $metadata['formiePaymentId'] ?? null;
+            if (!$row) {
+                // Only the payment-specific URL supplied to Mollie can trigger
+                // a lookup when the create response was lost locally.
+                $localId = $request->getQueryParam('formiePaymentId');
+                $token = $request->getQueryParam('recoveryToken');
 
-            if (!$formiePaymentId || (string)$formiePaymentId !== (string)$payment->id) {
-                Integration::error($this, 'Mollie webhook metadata did not match the stored Formie payment.');
-                $response->data = 'success';
+                if (!is_string($localId) || !ctype_digit($localId) || !is_string($token) || strlen($token) !== 64) {
+                    return $response;
+                }
 
-                return $response;
+                $row = Craft::$app->getDb()->useMaster(fn() => (new Query())->from(Table::FORMIE_PAYMENTS)->where([
+                    'id' => $localId, 'integrationId' => $this->id, 'reference' => null,
+                    'status' => [PaymentModel::STATUS_PENDING, PaymentModel::STATUS_REDIRECT],
+                ])->one());
+
+                if (!$row || !hash_equals($this->_webhookRecoveryToken(new PaymentModel($row)), $token)) {
+                    return $response;
+                }
+            }
+
+            $payment = new PaymentModel($row);
+            $formiePaymentId = $payment->id;
+            $molliePayment = $this->request('GET', 'payments/' . rawurlencode($paymentId));
+
+            if (($molliePayment['id'] ?? null) !== $paymentId) {
+                throw new Exception('Mollie returned a different payment reference.');
             }
 
             $this->_updateFormiePaymentStatus($payment, $molliePayment);
@@ -284,6 +201,7 @@ class Mollie extends Payment
         } catch (Throwable $e) {
             Integration::apiError($this, $e, false);
 
+            $response->setStatusCode(503);
             $response->data = 'error';
         }
 
@@ -415,6 +333,7 @@ class Mollie extends Payment
     }
     
 
+
     // Protected Methods
     // =========================================================================
 
@@ -449,8 +368,116 @@ class Mollie extends Payment
     }
     
 
+
     // Private Methods
     // =========================================================================
+
+    private function _processPayment(Submission $submission, PaymentModel $payment, PaymentAttempt $attempt): PaymentDecision
+    {
+        $result = false;
+        $field = $this->getField();
+
+        // Get the amount from the field, which handles dynamic fields
+        $amount = $payment->amount;
+        $currency = $this->getFieldSetting('currency');
+
+        $payment->status = PaymentModel::STATUS_REDIRECT;
+        $payment->redirectUrl = StringHelper::sanitizeRedirectUrl((string)Craft::$app->getRequest()->getReferrer());
+
+        $attempt->save();
+
+        $payload = [
+            'amount' => [
+                'currency' => $currency,
+                'value' => $this->_formatAmount($amount, $currency),
+            ],
+            'redirectUrl' => $this->getReturnUrl([
+                'statusToken' => PaymentAccess::issueStatusToken($payment),
+            ]),
+            'webhookUrl' => UrlHelper::urlWithParams($this->getRedirectUri(), [
+                'formiePaymentId' => $payment->id,
+                'recoveryToken' => $this->_webhookRecoveryToken($payment),
+            ]),
+            'metadata' => [
+                'formiePaymentId' => $payment->id,
+            ],
+        ];
+
+        // Add in extra settings configured at the field level
+        $this->_setPayloadDetails($payload, $submission);
+
+        // Raise a `modifySinglePayload` event
+        $event = new ModifyPaymentPayloadEvent([
+            'integration' => $this,
+            'submission' => $submission,
+            'payload' => $payload,
+        ]);
+        $this->trigger(self::EVENT_MODIFY_PAYLOAD, $event);
+
+        $event->payload['metadata']['formiePaymentId'] = $payment->id;
+        $event->payload['metadata']['formiePaymentUid'] = $payment->uid;
+        $event->payload['metadata']['submissionId'] = $payment->submissionId;
+        $event->payload['metadata']['fieldId'] = $payment->fieldId;
+
+        $response = $attempt->request($event->payload, function(string $key) use ($event): array {
+            try {
+                return $this->request('POST', 'payments', ['json' => $event->payload, 'headers' => ['Idempotency-Key' => $key]]);
+            } catch (RequestException $e) {
+                $status = $e->getResponse()?->getStatusCode();
+                $error = Json::decodeIfJson((string)$e->getResponse()?->getBody());
+
+                // Preserve an explicit API rejection as a receipt. Timeouts,
+                // conflicts, rate limits and server failures remain unresolved.
+                if (in_array($status, [400, 401, 403, 404, 405, 415, 422], true)
+                    && is_array($error) && ($error['status'] ?? null) === $status
+                    && is_string($error['detail'] ?? null) && empty($error['id'])) {
+                    return ['formieRejected' => true, 'status' => $status, 'detail' => $error['detail']];
+                }
+
+                throw $e;
+            }
+        }, static fn(array $response) => $response['id'] ?? null);
+
+        if (($response['formieRejected'] ?? false) === true) {
+            $attempt->reject($this->_extractMollieErrorMessage(new Exception(), $response, $currency, $amount));
+        }
+
+        $paymentId = $response['id'] ?? null;
+        $checkoutUrl = $response['_links']['checkout']['href'] ?? null;
+
+        if (!$paymentId || !$checkoutUrl) {
+            throw new Exception('Mollie did not return a checkout reference and URL.');
+        }
+
+        // Update the Formie payment with Mollie payment details
+        $payment->reference = $paymentId;
+        $payment->response = $response;
+
+        $attempt->save();
+
+        // Redirect via the front-end for a nicer UX than just a sudden redirect away.
+        $submission->getForm()->addSubmitData([
+            'event' => 'formie:payment:mollie:redirect',
+            'data' => [
+                'checkoutUrl' => $checkoutUrl,
+            ],
+        ]);
+
+        // Allow events to say the response is invalid
+        if (!$this->afterProcessPayment($submission, $result)) {
+            return PaymentDecision::succeeded($this->handle);
+        }
+
+        return PaymentDecision::requiresAction(
+            $payment->reference,
+            PaymentAction::redirectEvent('formie:payment:mollie:redirect', $checkoutUrl)
+                ->forProvider($this->handle)
+                ->withMessage(Craft::t('formie', 'Please wait while you are redirected to complete payment.'))
+                ->withPayload(['checkoutUrl' => $checkoutUrl])
+                ->resumeMode(PaymentAction::RESUME_MODE_WEBHOOK, $this->getRedirectUri())
+        );
+
+    }
 
     private function _setPayloadDetails(array &$payload, Submission $submission): void
     {
@@ -479,32 +506,81 @@ class Mollie extends Payment
         }
     }
 
+    private function _webhookRecoveryToken(PaymentModel $payment): string
+    {
+        return hash_hmac('sha256', 'mollie-webhook|' . $payment->integrationId . '|' . $payment->id . '|' . $payment->uid, Formie::$plugin->getSettings()->getSecurityKey());
+    }
+
     private function _updateFormiePaymentStatus(PaymentModel $payment, array $molliePayment): void
     {
-        $payment->reference = $molliePayment['id'] ?? $payment->reference;
-        $payment->response = $molliePayment;
+        $mutex = Craft::$app->getMutex();
+        $lock = PaymentAttempt::lockName((int)$payment->submissionId, (int)$payment->integrationId, (int)$payment->fieldId);
 
-        $status = $molliePayment['status'] ?? '';
-
-        switch ($status) {
-            case 'paid':
-                $payment->status = PaymentModel::STATUS_SUCCESS;
-                break;
-            case 'failed':
-            case 'expired':
-            case 'canceled':
-                $payment->status = PaymentModel::STATUS_FAILED;
-                $payment->message = $this->_resolveMollieFailureMessage($molliePayment, $status);
-                break;
-            case 'pending':
-            case 'open':
-            default:
-                $payment->status = PaymentModel::STATUS_PENDING;
-                break;
+        if (!$mutex->acquire($lock, 10)) {
+            throw new Exception('Mollie payment is already being updated.');
         }
 
-        Formie::$plugin->getPayments()->savePayment($payment);
-        Formie::$plugin->getSubmissionProcessor()->replayPaymentIfSuccessful($payment);
+        try {
+            $row = Craft::$app->getDb()->useMaster(fn() => (new Query())->from(Table::FORMIE_PAYMENTS)->where(['id' => $payment->id, 'integrationId' => $this->id])->one());
+
+            if (!$row) {
+                throw new Exception('Mollie payment no longer exists.');
+            }
+
+            $current = new PaymentModel($row);
+
+            if (($current->reference && ($molliePayment['id'] ?? null) !== $current->reference)
+                || empty($molliePayment['id'])
+                || (string)($molliePayment['metadata']['formiePaymentId'] ?? '') !== (string)$current->id
+                || ($molliePayment['amount']['currency'] ?? null) !== $current->currency
+                || ($molliePayment['amount']['value'] ?? null) !== $this->_formatAmount($current->amount, (string)$current->currency)) {
+                throw new Exception('Mollie payment ownership or amount could not be verified.');
+            }
+
+            if (!$current->reference) {
+                if (($molliePayment['metadata']['formiePaymentUid'] ?? null) !== $current->uid
+                    || !in_array($current->status, [PaymentModel::STATUS_PENDING, PaymentModel::STATUS_REDIRECT], true)
+                    || !(new DeliveryAttempt((int)$current->submissionId, 'payment-purchase', (string)$current->uid))->getMetadata()) {
+                    throw new Exception('This Mollie payment is not awaiting a creation result.');
+                }
+
+                PaymentAttempt::verifyAccount($this, $current, ['apiKey' => $this->apiKey]);
+                $current->reference = $molliePayment['id'];
+            }
+
+            if ($current->status !== PaymentModel::STATUS_SUCCESS) {
+                $status = $molliePayment['status'] ?? '';
+                $current->response = $molliePayment;
+                $current->status = match ($status) {
+                    'paid' => PaymentModel::STATUS_SUCCESS,
+                    'failed', 'expired', 'canceled' => PaymentModel::STATUS_FAILED,
+                    default => PaymentModel::STATUS_PENDING,
+                };
+                $current->message = $current->status === PaymentModel::STATUS_FAILED ? $this->_resolveMollieFailureMessage($molliePayment, $status) : null;
+
+                if (!Formie::$plugin->getPayments()->savePayment($current)) {
+                    throw new Exception('Unable to save the verified Mollie payment.');
+                }
+            }
+
+            $payment->reference = $current->reference;
+            $payment->status = $current->status;
+            $payment->message = $current->message;
+            $payment->response = $current->response;
+        } finally {
+            $mutex->release($lock);
+        }
+
+        $result = Formie::$plugin->getSubmissionProcessor()->replayPaymentIfSuccessful($payment);
+
+        if ($result && !$result->response?->success) {
+            throw new Exception('The payment is verified, but submission processing needs to be retried.');
+        }
+    }
+
+    private function _formatAmount(float $amount, string $currency): string
+    {
+        return number_format($amount, (new ISOCurrencies())->subunitFor(new Currency($currency)), '.', '');
     }
 
     private function _extractMollieErrorMessage(Throwable $e, mixed $response, mixed $currency, mixed $amount): string

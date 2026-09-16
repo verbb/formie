@@ -10,9 +10,13 @@ type PaddleGlobal = {
         eventCallback?: (e: { name: string; data?: unknown }) => void;
     }) => void;
     Checkout: {
-        open: (data: { items?: unknown[] }) => void;
+        open: (data: PaddleCheckout) => void;
         close: () => void;
     };
+};
+
+type PaddleCheckout = {
+    transactionId?: string;
 };
 
 type PaddleProviderOptions = {
@@ -74,9 +78,9 @@ export const paddleModule = definePaymentModule<PaddleProviderOptions, null, nul
             },
         });
 
-        const openCheckout = (data?: { items?: unknown[] }) => {
-            if (!data?.items) {
-                services.addError('Missing Paddle checkout items.');
+        const openCheckout = (data?: PaddleCheckout) => {
+            if (!data?.transactionId) {
+                services.addError('Missing Paddle checkout transaction.');
 
                 return false;
             }
@@ -94,7 +98,7 @@ export const paddleModule = definePaymentModule<PaddleProviderOptions, null, nul
             return true;
         };
 
-        const unbindCheckout = services.events.onForm(CHECKOUT_EVENT, ((event: CustomEvent<{ data?: { items?: unknown[] } }>) => {
+        const unbindCheckout = services.events.onForm(CHECKOUT_EVENT, ((event: CustomEvent<{ data?: PaddleCheckout }>) => {
             openCheckout(event.detail?.data);
         }) as EventListener);
 

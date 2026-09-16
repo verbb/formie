@@ -10,6 +10,7 @@ use verbb\formie\events\ModifyPaymentPayloadEvent;
 use verbb\formie\events\PaymentReceiveWebhookEvent;
 use verbb\formie\fields;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\PaymentAttempt;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\ClientModule;
@@ -102,166 +103,46 @@ class Moneris extends Payment
 
     public function processPayment(Submission $submission): PaymentDecision
     {
-        $response = null;
-        $result = false;
-
-        // Allow events to cancel sending
         if (!$this->beforeProcessPayment($submission)) {
             return PaymentDecision::notRequired();
         }
 
-        // Get the amount from the field, which handles dynamic fields
-        $amount = $this->getAmount($submission);
         $currency = $this->getFieldSetting('currency');
 
-        // Capture the authorized payment
-        try {
-            $field = $this->getField();
-            $paymentPayload = $this->getPaymentFieldPayload($submission);
-            $monerisTokenId = $paymentPayload->string('monerisTokenId') ?? '';
-
-            if (!$monerisTokenId) {
-                throw new Exception("Missing `monerisTokenId` from payload: {$monerisTokenId}.");
-            }
-
-            if (!$amount) {
-                throw new Exception("Missing `amount` from payload: {$amount}.");
-            }
-
-            if (!$currency) {
-                throw new Exception("Missing `currency` from payload: {$currency}.");
-            }
-
-            $orderId = 'submission-' . $submission->id . '-' . date("dmy-G:i:s");
-            $formattedAmount = number_format($amount, 2, '.', '');
-            $storeId = App::parseEnv($this->storeId);
-            $apiToken = App::parseEnv($this->apiToken);
-            $payload = [
-                'xml' => <<<XML
-                    <?xml version="1.0" encoding="UTF-8"?>
-                    <request>
-                        <store_id>{$storeId}</store_id>
-                        <api_token>{$apiToken}</api_token>
-                        <res_purchase_cc>
-                            <order_id>{$orderId}</order_id>
-                            <amount>{$formattedAmount}</amount>
-                            <data_key>{$monerisTokenId}</data_key>
-                            <crypt_type>7</crypt_type>
-                        </res_purchase_cc>
-                    </request>
-                XML,
-            ];
-
-            // Raise a `modifySinglePayload` event
-            $event = new ModifyPaymentPayloadEvent([
-                'integration' => $this,
-                'submission' => $submission,
-                'payload' => $payload,
-            ]);
-            $this->trigger(self::EVENT_MODIFY_PAYLOAD, $event);
-
-            $response = $this->getClient()->request('POST', 'gateway2/servlet/MpgRequest', [
-                'body' => $event->payload['xml'],
-            ]);
-
-            $xml = new SimpleXMLElement((string)$response->getBody());
-            $receipt = $xml->receipt ?? null;
-
-            if (!$receipt) {
-                throw new Exception('Missing receipt in Moneris response.');
-            }
-
-            // Handle Moneris-specific casing
-            $responseCode = isset($receipt->ResponseCode) && is_numeric((string)$receipt->ResponseCode)
-                ? (int)$receipt->ResponseCode
-                : 999;
-
-            $isComplete = strtolower((string)($receipt->Complete ?? 'false')) === 'true';
-            $message = (string)($receipt->Message ?? 'Unknown');
-            $transactionId = (string)($receipt->TransID ?? null);
-
-            if ($responseCode >= 50 || !$isComplete) {
-                throw new Exception("Transaction declined: {$message}");
-            }
-
-            $payment = new PaymentModel();
-            $payment->integrationId = $this->id;
-            $payment->submissionId = $submission->id;
-            $payment->fieldId = $field->id;
-            $payment->amount = $amount;
-            $payment->currency = $currency;
-            $payment->reference = $transactionId;
-            $payment->status = PaymentModel::STATUS_SUCCESS;
-            $payment->response = Json::decode(Json::encode($receipt)); // Convert XML to array
-
-            Formie::$plugin->getPayments()->savePayment($payment);
-
-            $result = true;
-        } catch (Throwable $e) {
-            // Save a different payload to logs
-            Integration::error($this, Craft::t('formie', 'Payment error: “{message}” {file}:{line}. Response: “{response}”', [
-                'message' => Integration::getExceptionLogMessage($e),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'response' => Json::encode($response),
-            ]));
-
-            Integration::apiError($this, $e, $this->throwApiError);
-
-            $this->addFieldError($submission, $e->getMessage());
-            
-            $payment = new PaymentModel();
-            $payment->integrationId = $this->id;
-            $payment->submissionId = $submission->id;
-            $payment->fieldId = $field->id;
-            $payment->amount = $amount;
-            $payment->currency = $currency;
-            $payment->status = PaymentModel::STATUS_FAILED;
-            $payment->reference = null;
-            $payment->response = ['message' => $e->getMessage()];
-
-            Formie::$plugin->getPayments()->savePayment($payment);
-
-            return PaymentDecision::failed($e->getMessage(), $this->handle);
-        }
-
-        // Allow events to say the response is invalid
-        if (!$this->afterProcessPayment($submission, $result)) {
-            return PaymentDecision::succeeded($this->handle);
-        }
-
-        return $result ? PaymentDecision::succeeded($this->handle) : PaymentDecision::failed(null, $this->handle);
+        return PaymentAttempt::run($this, $submission, $this->getAmount($submission), $currency, [
+            'storeId' => $this->storeId,
+            'apiToken' => $this->apiToken,
+            'useSandbox' => $this->useSandbox,
+        ], fn(PaymentModel $payment, PaymentAttempt $attempt) => $this->_processPayment($submission, $payment, $attempt));
     }
 
     public function fetchConnection(): bool
     {
         try {
-        $storeId = App::parseEnv($this->storeId);
-        $apiToken = App::parseEnv($this->apiToken);
+            $storeId = htmlspecialchars(App::parseEnv($this->storeId) ?? '', ENT_XML1 | ENT_QUOTES, 'UTF-8');
+            $apiToken = htmlspecialchars(App::parseEnv($this->apiToken) ?? '', ENT_XML1 | ENT_QUOTES, 'UTF-8');
 
-        $xml = <<<XML
-            <?xml version="1.0" encoding="UTF-8"?>
-            <request>
-                <store_id>{$storeId}</store_id>
-                <api_token>{$apiToken}</api_token>
-                <res_get_expiring_data>
-                    <month>12</month>
-                    <year>2060</year>
-                </res_get_expiring_data>
-            </request>
-        XML;
+            $xml = trim(<<<XML
+                <?xml version="1.0" encoding="UTF-8"?>
+                <request>
+                    <store_id>{$storeId}</store_id>
+                    <api_token>{$apiToken}</api_token>
+                    <res_get_expiring_data>
+                        <month>12</month>
+                        <year>2060</year>
+                    </res_get_expiring_data>
+                </request>
+            XML);
 
-        $this->getClient()->request('POST', 'gateway2/servlet/MpgRequest', [
-            'body' => $xml,
-        ]);
+            $this->getClient()->request('POST', 'gateway2/servlet/MpgRequest', [
+                'body' => $xml,
+            ]);
 
-        return true;
-    } catch (Throwable $e) {
-        Integration::apiError($this, $e);
-        return false;
-    }
-
-        return true;
+            return true;
+        } catch (Throwable $e) {
+            Integration::apiError($this, $e);
+            return false;
+        }
     }
 
     public function defineFormBuilderGeneralSchema(): array
@@ -351,4 +232,111 @@ class Moneris extends Payment
 
         return $useSandbox ? 'https://esqa.moneris.com/' : 'https://www3.moneris.com/';
     }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _processPayment(Submission $submission, PaymentModel $payment, PaymentAttempt $attempt): PaymentDecision
+    {
+        $result = false;
+
+        // Get the amount from the field, which handles dynamic fields
+        $amount = $payment->amount;
+        $currency = $this->getFieldSetting('currency');
+
+        // Capture the authorized payment
+        $field = $this->getField();
+        $paymentPayload = $this->getPaymentFieldPayload($submission);
+        $monerisTokenId = $paymentPayload->string('monerisTokenId') ?? '';
+
+        if (!$monerisTokenId && !$attempt->hasReceipt()) {
+            throw new Exception("Missing `monerisTokenId` from payload: {$monerisTokenId}.");
+        }
+
+        if (!$amount) {
+            throw new Exception("Missing `amount` from payload: {$amount}.");
+        }
+
+        if (!$currency) {
+            throw new Exception("Missing `currency` from payload: {$currency}.");
+        }
+
+        $orderId = $attempt->merchantReference();
+        $formattedAmount = number_format($amount, 2, '.', '');
+        $storeId = htmlspecialchars((string)App::parseEnv($this->storeId), ENT_XML1 | ENT_QUOTES, 'UTF-8');
+        $apiToken = htmlspecialchars((string)App::parseEnv($this->apiToken), ENT_XML1 | ENT_QUOTES, 'UTF-8');
+        // The token comes from the browser. Keep it inside its text node so
+        // it cannot introduce transaction parameters into the gateway XML.
+        $monerisTokenId = htmlspecialchars($monerisTokenId, ENT_XML1 | ENT_QUOTES, 'UTF-8');
+        $payload = [
+            'xml' => trim(<<<XML
+                <?xml version="1.0" encoding="UTF-8"?>
+                <request>
+                    <store_id>{$storeId}</store_id>
+                    <api_token>{$apiToken}</api_token>
+                    <res_purchase_cc>
+                        <order_id>{$orderId}</order_id>
+                        <amount>{$formattedAmount}</amount>
+                        <data_key>{$monerisTokenId}</data_key>
+                        <crypt_type>7</crypt_type>
+                    </res_purchase_cc>
+                </request>
+            XML),
+        ];
+
+        // Raise a `modifySinglePayload` event
+        $event = new ModifyPaymentPayloadEvent([
+            'integration' => $this,
+            'submission' => $submission,
+            'payload' => $payload,
+        ]);
+        $this->trigger(self::EVENT_MODIFY_PAYLOAD, $event);
+
+        $response = $attempt->request($event->payload, function() use ($event): array {
+            $response = $this->getClient()->request('POST', 'gateway2/servlet/MpgRequest', ['body' => $event->payload['xml']]);
+            $xml = new SimpleXMLElement((string)$response->getBody());
+            return isset($xml->receipt) ? Json::decode(Json::encode($xml->receipt)) : [];
+        }, static fn(array $receipt) => $receipt['TransID'] ?? $receipt['TxnNumber'] ?? null);
+        $receipt = $response;
+
+        if (!$receipt) {
+            throw new Exception('Missing receipt in Moneris response.');
+        }
+
+        // Handle Moneris-specific casing
+        $responseCode = isset($receipt['ResponseCode']) && is_numeric((string)$receipt['ResponseCode'])
+            ? (int)$receipt['ResponseCode']
+            : 999;
+
+        $isComplete = strtolower((string)($receipt['Complete'] ?? 'false')) === 'true';
+        $message = (string)($receipt['Message'] ?? 'Unknown');
+        $transactionId = (string)($receipt['TransID'] ?? $receipt['TxnNumber'] ?? null);
+
+        $timedOut = strtolower((string)($receipt['TimedOut'] ?? 'false')) === 'true';
+
+        if ($isComplete && !$timedOut && $responseCode >= 50 && $responseCode < 900) {
+            $attempt->reject("Transaction declined: {$message}");
+        }
+
+        if (!$isComplete || $timedOut || $responseCode >= 50 || !$transactionId) {
+            throw new Exception('Moneris has not confirmed the payment.');
+        }
+
+        $payment->reference = $transactionId;
+        $payment->status = PaymentModel::STATUS_SUCCESS;
+        $payment->response = $receipt;
+
+        $attempt->save();
+
+        $result = true;
+
+        // Allow events to say the response is invalid
+        if (!$this->afterProcessPayment($submission, $result)) {
+            return PaymentDecision::succeeded($this->handle);
+        }
+
+        return $result ? PaymentDecision::succeeded($this->handle) : PaymentDecision::failed(null, $this->handle);
+    }
+
 }

@@ -12,6 +12,7 @@ use verbb\formie\events\ModifySubFieldsEvent;
 use verbb\formie\events\PaymentReceiveWebhookEvent;
 use verbb\formie\fields;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\PaymentAttempt;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\ClientModule;
@@ -32,10 +33,12 @@ use craft\web\Response;
 
 use yii\base\Event;
 
-use GuzzleHttp\Client;
-
-use Throwable;
 use Exception;
+use Throwable;
+
+use GuzzleHttp\Client;
+use Money\Currencies\ISOCurrencies;
+use Money\Currency;
 
 class Bpoint extends Payment
 {
@@ -78,137 +81,17 @@ class Bpoint extends Payment
 
     public function processPayment(Submission $submission): PaymentDecision
     {
-        $response = null;
-        $result = false;
-
-        // Allow events to cancel sending
         if (!$this->beforeProcessPayment($submission)) {
             return PaymentDecision::notRequired();
         }
 
-        $amount = $this->getAmount($submission);
         $currency = strtoupper((string)($this->getFieldSetting('currency') ?: 'AUD'));
-        $field = $this->getField();
-        $paymentPayload = $this->getPaymentFieldPayload($submission);
-        $cardToken = $paymentPayload->string('bpointToken') ?? '';
 
-        try {
-            if (!$cardToken || !$amount || !$currency) {
-                throw new Exception(Craft::t('formie', 'Missing required payment data.'));
-            }
-
-            $txnReq = [
-                'Action' => 'payment',
-                'Amount' => (int)round($amount * 100),
-                'Currency' => $currency,
-                'MerchantReference' => "Formie Submission #{$submission->id}",
-                'Crn1' => (string)$submission->id,
-            ];
-
-            if (is_string($cardToken) && Json::isJsonObject($cardToken)) {
-                if (!$this->_canProcessRawCardPayload()) {
-                    throw new Exception(Craft::t('formie', 'BPOINT raw card payloads are disabled outside development. Use DVToken/AuthKey flow, or set `FORMIE_BPOINT_ALLOW_RAW_CARD_DATA=true` for controlled non-production testing.'));
-                }
-
-                $cardData = Json::decode($cardToken);
-
-                $cardNumber = trim((string)($cardData['cardNumber'] ?? ''));
-                $expiryDate = $this->_normalizeExpiryDate((string)($cardData['expiryDate'] ?? ''));
-                $cvn = trim((string)($cardData['cvn'] ?? $cardData['securityCode'] ?? ''));
-
-                if (!$cardNumber || !$expiryDate || !$cvn) {
-                    throw new Exception(Craft::t('formie', 'Invalid BPOINT card details.'));
-                }
-
-                $txnReq['CardDetails'] = [
-                    'CardHolderName' => trim((string)($cardData['cardholderName'] ?? '')),
-                    'CardNumber' => $cardNumber,
-                    'ExpiryDate' => $expiryDate,
-                    'Cvn' => $cvn,
-                ];
-            } else {
-                // Support legacy behavior where `bpointToken` contains a DVToken string.
-                $txnReq['DVTokenData'] = [
-                    'DVToken' => trim((string)$cardToken),
-                    'UpdateDVTokenExpiryDate' => false,
-                ];
-            }
-
-            $payload = [
-                'TxnReq' => $txnReq,
-            ];
-
-            // Raise a `modifySinglePayload` event
-            $event = new ModifyPaymentPayloadEvent([
-                'integration' => $this,
-                'submission' => $submission,
-                'payload' => $payload,
-            ]);
-            $this->trigger(self::EVENT_MODIFY_PAYLOAD, $event);
-
-            $response = $this->request('POST', 'txns', [
-                'json' => $event->payload,
-            ]);
-
-            $apiResponse = $response['APIResponse'] ?? [];
-            $txnResponse = $response['TxnResp'] ?? [];
-            $apiResponseCode = (string)($apiResponse['ResponseCode'] ?? '');
-            $txnResponseCode = (string)($txnResponse['ResponseCode'] ?? '');
-            $bankResponseCode = (string)($txnResponse['BankResponseCode'] ?? '');
-            $responseCode = $txnResponseCode ?: $apiResponseCode;
-            $isApproved = $responseCode === '0' || $bankResponseCode === '00';
-
-            if (!$isApproved) {
-                throw new Exception('Transaction declined: ' . ($txnResponse['ResponseText'] ?? $apiResponse['ResponseText'] ?? 'Unknown error'));
-            }
-
-            $payment = new PaymentModel();
-            $payment->integrationId = $this->id;
-            $payment->submissionId = $submission->id;
-            $payment->fieldId = $field->id;
-            $payment->amount = $amount;
-            $payment->currency = $currency;
-            $payment->status = PaymentModel::STATUS_SUCCESS;
-            $payment->reference = $txnResponse['ReceiptNumber'] ?? $txnResponse['TxnNumber'] ?? '';
-            $payment->response = $response;
-
-            Formie::$plugin->getPayments()->savePayment($payment);
-
-            $result = true;
-        } catch (Throwable $e) {
-            // Save a different payload to logs
-            Integration::error($this, Craft::t('formie', 'Payment error: “{message}” {file}:{line}. Response: “{response}”', [
-                'message' => Integration::getExceptionLogMessage($e),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'response' => Json::encode($response),
-            ]));
-
-            Integration::apiError($this, $e, $this->throwApiError);
-
-            $this->addFieldError($submission, $e->getMessage());
-            
-            $payment = new PaymentModel();
-            $payment->integrationId = $this->id;
-            $payment->submissionId = $submission->id;
-            $payment->fieldId = $field->id;
-            $payment->amount = $amount;
-            $payment->currency = $currency;
-            $payment->status = PaymentModel::STATUS_FAILED;
-            $payment->reference = null;
-            $payment->response = ['message' => $e->getMessage()];
-
-            Formie::$plugin->getPayments()->savePayment($payment);
-
-            return PaymentDecision::failed($e->getMessage(), $this->handle);
-        }
-
-        // Allow events to say the response is invalid
-        if (!$this->afterProcessPayment($submission, $result)) {
-            return PaymentDecision::succeeded($this->handle);
-        }
-
-        return $result ? PaymentDecision::succeeded($this->handle) : PaymentDecision::failed(null, $this->handle);
+        return PaymentAttempt::run($this, $submission, $this->getAmount($submission), $currency, [
+            'merchantNumber' => $this->merchantNumber,
+            'username' => $this->username,
+            'password' => $this->password,
+        ], fn(PaymentModel $payment, PaymentAttempt $attempt) => $this->_processPayment($submission, $payment, $attempt));
     }
 
     public function fetchConnection(): bool
@@ -401,6 +284,103 @@ class Bpoint extends Payment
 
     // Private Methods
     // =========================================================================
+
+    private function _processPayment(Submission $submission, PaymentModel $payment, PaymentAttempt $attempt): PaymentDecision
+    {
+        $result = false;
+
+        $amount = $payment->amount;
+        $currency = strtoupper((string)($this->getFieldSetting('currency') ?: 'AUD'));
+        $field = $this->getField();
+        $paymentPayload = $this->getPaymentFieldPayload($submission);
+        $cardToken = $attempt->hasReceipt() ? '' : ($paymentPayload->string('bpointToken') ?? '');
+
+        if ((!$cardToken || !$amount || !$currency) && !$attempt->hasReceipt()) {
+            throw new Exception(Craft::t('formie', 'Missing required payment data.'));
+        }
+
+        $txnReq = [
+            'Action' => 'payment',
+            'Amount' => (int)round($amount * (10 ** (new ISOCurrencies())->subunitFor(new Currency($currency)))),
+            'Currency' => $currency,
+            'MerchantReference' => $attempt->merchantReference(),
+            'Crn1' => (string)$submission->id,
+        ];
+
+        if (is_string($cardToken) && Json::isJsonObject($cardToken)) {
+            if (!$this->_canProcessRawCardPayload()) {
+                throw new Exception(Craft::t('formie', 'BPOINT raw card payloads are disabled outside development. Use DVToken/AuthKey flow, or set `FORMIE_BPOINT_ALLOW_RAW_CARD_DATA=true` for controlled non-production testing.'));
+            }
+
+            $cardData = Json::decode($cardToken);
+
+            $cardNumber = trim((string)($cardData['cardNumber'] ?? ''));
+            $expiryDate = $this->_normalizeExpiryDate((string)($cardData['expiryDate'] ?? ''));
+            $cvn = trim((string)($cardData['cvn'] ?? $cardData['securityCode'] ?? ''));
+
+            if (!$cardNumber || !$expiryDate || !$cvn) {
+                throw new Exception(Craft::t('formie', 'Invalid BPOINT card details.'));
+            }
+
+            $txnReq['CardDetails'] = [
+                'CardHolderName' => trim((string)($cardData['cardholderName'] ?? '')),
+                'CardNumber' => $cardNumber,
+                'ExpiryDate' => $expiryDate,
+                'Cvn' => $cvn,
+            ];
+        } else {
+            // Support legacy behavior where `bpointToken` contains a DVToken string.
+            $txnReq['DVTokenData'] = [
+                'DVToken' => trim((string)$cardToken),
+                'UpdateDVTokenExpiryDate' => false,
+            ];
+        }
+
+        $payload = [
+            'TxnReq' => $txnReq,
+        ];
+
+        // Raise a `modifySinglePayload` event
+        $event = new ModifyPaymentPayloadEvent([
+            'integration' => $this,
+            'submission' => $submission,
+            'payload' => $payload,
+        ]);
+        $this->trigger(self::EVENT_MODIFY_PAYLOAD, $event);
+
+        $response = $attempt->request($event->payload, fn() => $this->request('POST', 'txns', ['json' => $event->payload]), static fn(array $response) => $response['TxnResp']['ReceiptNumber'] ?? $response['TxnResp']['TxnNumber'] ?? null);
+
+        $apiResponse = $response['APIResponse'] ?? [];
+        $txnResponse = $response['TxnResp'] ?? [];
+        $apiResponseCode = (string)($apiResponse['ResponseCode'] ?? '');
+        $txnResponseCode = (string)($txnResponse['ResponseCode'] ?? '');
+        $bankResponseCode = (string)($txnResponse['BankResponseCode'] ?? '');
+        $responseCode = $txnResponseCode ?: $apiResponseCode;
+        $isApproved = $apiResponseCode === '0' && $txnResponseCode === '0';
+
+        if (!$isApproved && in_array($bankResponseCode, ['05', '14', '51', '54', '57', '62', '65', '75', 'N7'], true) && $apiResponseCode === '0') {
+            $attempt->reject('Transaction declined: ' . ($txnResponse['ResponseText'] ?? 'Declined'));
+        }
+
+        if (!$isApproved || !$payment->reference) {
+            throw new Exception('BPOINT has not confirmed the payment.');
+        }
+
+        $payment->status = PaymentModel::STATUS_SUCCESS;
+        $payment->reference = $txnResponse['ReceiptNumber'] ?? $txnResponse['TxnNumber'] ?? '';
+        $payment->response = $response;
+
+        $attempt->save();
+
+        $result = true;
+
+        // Allow events to say the response is invalid
+        if (!$this->afterProcessPayment($submission, $result)) {
+            return PaymentDecision::succeeded($this->handle);
+        }
+
+        return $result ? PaymentDecision::succeeded($this->handle) : PaymentDecision::failed(null, $this->handle);
+    }
 
     private function _normalizeExpiryDate(string $expiryDate): string
     {
