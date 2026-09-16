@@ -19,7 +19,7 @@
 ### Fixed
 - Preserve zero values in group and repeater value projections.
 - Enforce unique values for fields inside groups and repeaters.
-- Stop enforcing saved number bounds when limits are disabled.
+- Stop enforcing saved number bounds in server and client validation when limits are disabled.
 - Apply selected submission states consistently to report summaries, tables, charts and exports.
 - Sort report tables and exports by the displayed form name.
 - Allow report managers to use report exports and retrieve their queued downloads.

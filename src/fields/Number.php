@@ -476,8 +476,8 @@ class Number extends Field implements SortableFieldInterface, PreviewableFieldIn
         $validators = parent::defineValidationRules();
         $validators[] = [
             'type' => 'number',
-            'min' => $this->min,
-            'max' => $this->max,
+            'min' => $this->limit ? $this->min : null,
+            'max' => $this->limit ? $this->max : null,
         ];
 
         return $validators;
@@ -486,8 +486,8 @@ class Number extends Field implements SortableFieldInterface, PreviewableFieldIn
     protected function defineClientInput(): array
     {
         return array_merge(parent::defineClientInput(), [
-            'min' => $this->min,
-            'max' => $this->max,
+            'min' => $this->limit ? $this->min : null,
+            'max' => $this->limit ? $this->max : null,
             'inputType' => 'number',
         ]);
     }
