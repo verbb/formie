@@ -6,7 +6,7 @@ it('boots Craft and keeps Formie ready in integration runtime', function (): voi
     $plugins = Craft::$app->plugins;
     $formie = $plugins->getPlugin('formie');
 
-    expect(Craft::$app)->not->toBeNull()
-        ->and($formie)->not->toBeNull()
+    expect(Craft::$app)->toBeInstanceOf(\craft\console\Application::class)
+        ->and($formie)->toBeInstanceOf(\verbb\formie\Formie::class)
         ->and($plugins->isPluginEnabled('formie'))->toBeTrue();
 });
