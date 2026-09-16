@@ -117,7 +117,7 @@ class SubmissionArguments extends ElementArguments
 
     private static function _getSchemaScopedForms(): array
     {
-        $forms = Formie::$plugin->getForms()->getAllFormsWithLayouts();
+        $forms = Formie::$plugin->getForms()->getAllFormsWithLayouts(forSchema: true);
 
         if (GqlHelper::isSchemaAwareOf('formieSubmissions.all')) {
             return $forms;

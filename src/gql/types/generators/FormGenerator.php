@@ -21,7 +21,7 @@ class FormGenerator extends Generator implements GeneratorInterface, SingleGener
 
     public static function generateTypes(mixed $context = null): array
     {
-        $forms = Formie::$plugin->getForms()->getAllFormsWithLayouts();
+        $forms = Formie::$plugin->getForms()->getAllFormsWithLayouts(forSchema: true);
         $gqlTypes = [];
 
         foreach ($forms as $form) {

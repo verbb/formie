@@ -26,7 +26,7 @@ class SubmissionMutation extends Mutation
     {
         $mutationList = [];
         $createDeleteMutation = false;
-        $forms = Formie::$plugin->getForms()->getAllFormsWithLayouts();
+        $forms = Formie::$plugin->getForms()->getAllFormsWithLayouts(forSchema: true);
         $canCreateAll = Gql::canSchema('formieSubmissions.all', 'create');
         $canSaveAll = Gql::canSchema('formieSubmissions.all', 'save');
         $canDeleteAll = Gql::canSchema('formieSubmissions.all', 'delete');

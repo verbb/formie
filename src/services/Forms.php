@@ -165,9 +165,9 @@ class Forms extends Component
         return $cache->formsByLayoutId[$cacheKey] = null;
     }
 
-    public function getAllForms(): array
+    public function getAllForms(bool $forSchema = false): array
     {
-        $cache = $this->_getFormLookupCache();
+        $cache = $this->_getFormLookupCache($forSchema);
 
         if ($cache->allForms !== null) {
             return $cache->allForms;
@@ -177,23 +177,31 @@ class Forms extends Component
             return $cache->allForms = $cache->allFormsWithLayouts;
         }
 
-        $forms = Form::find()->all();
-        $this->_primeForms($forms);
+        $query = Form::find();
+
+        if ($forSchema) {
+            // Shared permission and GraphQL definitions must include every site's forms.
+            $query->withoutCpIndexScope()->site('*')->unique();
+        }
+
+        $forms = $query->all();
+
+        if (!$forSchema) {
+            $this->_primeForms($forms);
+        }
 
         return $cache->allForms = $forms;
     }
 
-    public function getAllFormsWithLayouts(): array
+    public function getAllFormsWithLayouts(bool $forSchema = false): array
     {
-        $cache = $this->_getFormLookupCache();
+        $cache = $this->_getFormLookupCache($forSchema);
 
         if ($cache->allFormsWithLayouts !== null) {
             return $cache->allFormsWithLayouts;
         }
 
-        $forms = $cache->allForms ?? Form::find()->all();
-        $this->_primeForms($forms);
-        $cache->allForms = $forms;
+        $forms = $this->getAllForms($forSchema);
 
         // This variant exists for callers that need the full form + layout graph. Hydrating layouts in
         // one pass keeps repeated form->getFormLayout()/getFields() access on a shared request-local graph
@@ -910,11 +918,11 @@ class Forms extends Component
         }
     }
 
-    private function _getFormLookupCache(): FormLookupCache
+    private function _getFormLookupCache(bool $forSchema = false): FormLookupCache
     {
-        $siteId = (int)Craft::$app->getSites()->getCurrentSite()->id;
+        $key = $forSchema ? 'schema' : (int)Craft::$app->getSites()->getCurrentSite()->id;
 
-        return $this->_formLookupCaches[$siteId] ??= new FormLookupCache();
+        return $this->_formLookupCaches[$key] ??= new FormLookupCache();
     }
 
     private function _getFormLayoutCacheKey(int $layoutId, ?int $siteId): string

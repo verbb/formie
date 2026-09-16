@@ -415,22 +415,9 @@ class SubmissionQuery extends ElementQuery
 
     private function _resolveFormIdValue(array|string $value): mixed
     {
-        if (is_string($value) && $this->_isExactHandleParam($value)) {
-            return Formie::$plugin->getForms()->getFormByHandle($value)?->id ?: false;
-        }
-
-        if (is_array($value) && $this->_isExactHandleListParam($value)) {
-            $ids = [];
-
-            foreach ($value as $handle) {
-                $form = Formie::$plugin->getForms()->getFormByHandle($handle);
-
-                if ($form) {
-                    $ids[] = (int)$form->id;
-                }
-            }
-
-            return $ids ?: false;
+        if ((is_string($value) && $this->_isExactHandleParam($value)) ||
+            (is_array($value) && $this->_isExactHandleListParam($value))) {
+            return Form::find()->withoutCpIndexScope()->handle($value)->site('*')->unique()->ids() ?: false;
         }
 
         return (new Query())

@@ -553,7 +553,7 @@ class Formie extends Plugin
         Event::on(Gql::class, Gql::EVENT_REGISTER_GQL_SCHEMA_COMPONENTS, function(RegisterGqlSchemaComponentsEvent $event) {
             $label = Craft::t('formie', 'Formie');
 
-            $forms = $this->getForms()->getAllForms();
+            $forms = $this->getForms()->getAllForms(forSchema: true);
 
             $event->queries[$label]['formieForms.all:read'] = ['label' => Craft::t('formie', 'View all forms')];
 

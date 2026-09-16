@@ -699,7 +699,7 @@ class Permissions extends Component
         ];
 
         if (Craft::$app->edition === CmsEdition::Pro) {
-            foreach (Formie::$plugin->getForms()->getAllForms() as $form) {
+            foreach (Formie::$plugin->getForms()->getAllForms(forSchema: true) as $form) {
                 if (!$this->formUsesDedicatedPermissions($form)) {
                     continue;
                 }
@@ -754,7 +754,7 @@ class Permissions extends Component
         ];
 
         if (Craft::$app->edition === CmsEdition::Pro) {
-            foreach (Formie::$plugin->getForms()->getAllForms() as $form) {
+            foreach (Formie::$plugin->getForms()->getAllForms(forSchema: true) as $form) {
                 if (!$this->formUsesDedicatedPermissions($form)) {
                     continue;
                 }
@@ -823,7 +823,7 @@ class Permissions extends Component
         ];
 
         if (Craft::$app->edition === CmsEdition::Pro) {
-            foreach (Formie::$plugin->getForms()->getAllForms() as $form) {
+            foreach (Formie::$plugin->getForms()->getAllForms(forSchema: true) as $form) {
                 if (!$this->formUsesDedicatedPermissions($form)) {
                     continue;
                 }
