@@ -68,6 +68,7 @@ ddev test --suite=commerce
 ddev test --suite=migration
 ddev test --suite=migration --task=mutations
 ddev test --task=upgrade
+ddev test --task=lifecycle
 ```
 
 The default runtime has a primary site and two secondary sites sharing a different
@@ -76,6 +77,8 @@ must name the lane that exercises them; missing required tables, fields or fixtu
 files must fail. Commerce and Freeform are locked development dependencies, enabled
 only in their dedicated suites. Freeform fixtures are imported before the test
 process because its query implementation caches the form registry for the process.
+
+The lifecycle task creates a populated form, verifies that disabling and enabling retain its records, checks that uninstall removes all Formie tables and elements, and confirms that a fresh reinstall can save and reload submission content. It runs only in the owned disposable application.
 
 The upgrade task installs the locked Formie 3.1.39 baseline on Craft 5.11.1 in a
 separate generated app with an `upg_` table prefix. It creates real forms, a synced

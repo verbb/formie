@@ -37,6 +37,7 @@
         "profile": "tests/bin/perf.php",
         "browser-fixture": "tests/runtime/browser-fixture.php",
         "mutations": "tests/runtime/mutations.php",
-        "upgrade": "tests/runtime/upgrade.php"
+        "upgrade": "tests/runtime/upgrade.php",
+        "lifecycle": "tests/runtime/lifecycle.php"
     }
 }

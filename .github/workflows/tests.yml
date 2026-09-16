@@ -109,6 +109,7 @@ jobs:
         with:
           version: '1.25.4'
           autostart: false
+      - run: ddev test --task=lifecycle
       - run: ddev test --task=upgrade
       - uses: actions/upload-artifact@v4
         if: always()
