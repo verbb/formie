@@ -159,7 +159,7 @@ class Number extends Field implements SortableFieldInterface, PreviewableFieldIn
     public function getElementValidationRules(): array
     {
         $rules = parent::getElementValidationRules();
-        $rules[] = [$this->handle, 'number', 'min' => $this->min, 'max' => $this->max];
+        $rules[] = [$this->handle, 'number', 'min' => $this->limit ? $this->min : null, 'max' => $this->limit ? $this->max : null];
 
         foreach ($this->getUniqueValueElementValidationRules() as $rule) {
             $rules[] = $rule;
