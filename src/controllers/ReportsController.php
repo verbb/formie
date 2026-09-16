@@ -13,6 +13,7 @@ use craft\helpers\UrlHelper;
 use craft\web\Controller;
 use craft\web\Response;
 
+use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 
 class ReportsController extends Controller
@@ -356,7 +357,7 @@ class ReportsController extends Controller
 
     public function actionExport(int $id): Response
     {
-        $this->requirePermission(Permissions::PERM_EXPORT_SUBMISSIONS);
+        $this->_requireExportPermission();
 
         $report = Formie::$plugin->getReports()->getReportById($id);
 
@@ -414,7 +415,7 @@ class ReportsController extends Controller
 
     public function actionExportStatus(string $uid): Response
     {
-        $this->requirePermission(Permissions::PERM_EXPORT_SUBMISSIONS);
+        $this->_requireExportPermission();
 
         $exportFile = Formie::$plugin->getReportExportFiles()->getExportFileByUid($uid);
 
@@ -458,7 +459,7 @@ class ReportsController extends Controller
 
     public function actionDownloadQueuedExport(string $uid): Response
     {
-        $this->requirePermission(Permissions::PERM_EXPORT_SUBMISSIONS);
+        $this->_requireExportPermission();
 
         $exportFile = Formie::$plugin->getReportExportFiles()->getExportFileByUid($uid);
 
@@ -478,6 +479,13 @@ class ReportsController extends Controller
 
     // Private Methods
     // =========================================================================
+
+    private function _requireExportPermission(): void
+    {
+        if (!Formie::$plugin->getPermissions()->canExportSubmissions(Craft::$app->getUser()->getIdentity())) {
+            throw new ForbiddenHttpException(Craft::t('app', 'User is not permitted to perform this action'));
+        }
+    }
 
     private function _sendExportFile(ReportExportFile $exportFile): Response
     {
