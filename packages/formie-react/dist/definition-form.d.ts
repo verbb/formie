@@ -1,4 +1,4 @@
-import { type FrontendFieldDefinition, type FrontendFormDefinition, type FrontendFormEnvelope, type FrontendFormSession, type FrontendFormInstance, type FrontendFormState, type FrontendSubmitResult } from '@verbb/formie-core';
+import { type FrontendFieldDefinition, type FrontendErrorAriaLive, type FrontendFormDefinition, type FrontendFormEnvelope, type FrontendFormSession, type FrontendFormInstance, type FrontendFormState, type FrontendSubmitResult } from '@verbb/formie-core';
 import { type ReactNode } from 'react';
 export type FormieDefinitionSource = {
     transport: 'rest';
@@ -47,6 +47,8 @@ export type FormiePageComponentProps = {
 export type FormieFieldProps = {
     field: FrontendFieldDefinition;
     errors: string[];
+    errorId: string;
+    errorAriaLive: FrontendErrorAriaLive;
     children?: ReactNode;
 };
 export type FormieErrorSummaryProps = {
@@ -57,6 +59,8 @@ export type FormieFieldComponentProps = {
     value: unknown;
     errors: string[];
     errorKey: string;
+    errorId: string;
+    errorAriaLive: FrontendErrorAriaLive;
     disabled: boolean;
     hidden: boolean;
     setValue(value: unknown): void;

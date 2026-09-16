@@ -27,6 +27,7 @@
 - Fixed XSS vulnerabilities.
 - Fixed payment verification vulnerabilities.
 - Fixed an XML injection vulnerability.
+- Include current frontend package fixes in production assets and reject builds that resolve outdated runtime copies.
 - Enforce weekly submission limits on Sundays and keep calendar limit periods from overlapping.
 - Use the correct currency minor unit when creating Paddle prices.
 - Preserve legacy spam, CAPTCHA and field-default settings during upgrades, and refresh schema lookups after migration changes.

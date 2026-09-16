@@ -47,6 +47,14 @@ export type FrontendFieldDefinition = {
         }>;
     } | null;
     validation: FrontendValidationRule[];
+    client?: {
+        children: {
+            model: FrontendFieldValueStructure;
+            mode?: 'parts' | 'rows';
+        };
+        valueClass?: FrontendFieldValueClass;
+    };
+    /** Older bootstrap payloads used runtime.structure. */
     runtime?: FrontendFieldValueContract;
     input: Record<string, unknown>;
     moduleRefs?: string[];
@@ -85,6 +93,7 @@ export type FrontendFormDefinition = {
             onBlur: boolean;
             onSubmit: boolean;
             formErrorMessage?: string;
+            errorAriaLive?: 'polite' | 'assertive' | 'off';
         };
         progress?: {
             enabled: boolean;

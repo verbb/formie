@@ -1,13 +1,13 @@
 import { c as e, d as t, l as n, o as r, r as i, t as a, u as o } from "./chunks/event-names-BCI2FLD8.js";
-import { a as s, c, d as l, f as u, i as d, l as f, n as p, o as m, p as h, r as g, s as _, t as v, u as y } from "./chunks/api-C6q66GlG.js";
+import { a as s, c, d as l, f as u, i as d, l as f, n as p, o as m, p as h, r as g, s as _, t as v, u as y } from "./chunks/api-DO_VRqeF.js";
 import { a as b, i as x, n as ee, r as te, t as S } from "./chunks/debug-BV0DvdHx.js";
 import { n as ne, r as C, t as w } from "./chunks/theme-classes-Tv7q7ToE.js";
 import { i as T, t as E } from "./chunks/csrf-DxHg_ZYt.js";
 import { t as D } from "./chunks/http-D-JExro7.js";
 import { a as re, i as O, n as ie, r as ae, t as oe } from "./chunks/i18n-BY1ds1BL.js";
-import { n as se, t as ce } from "./chunks/api-yyKZxh-a.js";
+import { n as se, t as ce } from "./chunks/api-Bdo8IEDo.js";
 import { n as le, r as ue, t as de } from "./chunks/field-references.keys-58ZSTrCW.js";
-import { i as fe, n as pe, r as me, t as he } from "./chunks/field-references.resolver-CHwn0G0L.js";
+import { i as fe, n as pe, r as me, t as he } from "./chunks/field-references.resolver-DVyat1BQ.js";
 import { t as ge } from "./chunks/api-DvlROAFO.js";
 //#region src/js/compatibility/event-map.ts
 var _e = [
@@ -141,7 +141,7 @@ function Ce(e, t, n, r, i) {
 function we({ target: e, form: n, instance: r, options: i, unbinds: a }) {
 	i.legacyDomEvents && _e.forEach((i) => {
 		let o = (t) => {
-			!(t instanceof CustomEvent) || !xe(i, t.detail) || be(i.target === "document" ? document : n, i.legacyEvent, Ce(i, t.detail, e, n, r));
+			t instanceof CustomEvent && xe(i, t.detail) && be(i.target === "document" ? document : n, i.legacyEvent, Ce(i, t.detail, e, n, r));
 		};
 		e.addEventListener(t(i.canonicalEvent), o), a.push(() => {
 			e.removeEventListener(t(i.canonicalEvent), o);
@@ -168,12 +168,12 @@ function Te({ target: e, form: t, validatorDetail: n, options: r, unbinds: i }) 
 	};
 	k(document, "formieValidatorInitialized", c);
 	let l = (e) => {
-		!(e instanceof CustomEvent) || !A(e.detail, a) || k(document, "formieValidatorDestroyed", {
+		e instanceof CustomEvent && A(e.detail, a) && k(document, "formieValidatorDestroyed", {
 			...c,
 			...e.detail
 		});
 	}, u = (n) => {
-		!(n instanceof CustomEvent) || !A(n.detail, a) || !(n.target instanceof Element) || t.contains(n.target) && k(n.target, "formieValidatorShowError", {
+		n instanceof CustomEvent && A(n.detail, a) && n.target instanceof Element && t.contains(n.target) && k(n.target, "formieValidatorShowError", {
 			...n.detail,
 			addValidator: o,
 			removeValidator: s,
@@ -181,7 +181,7 @@ function Te({ target: e, form: t, validatorDetail: n, options: r, unbinds: i }) 
 			target: e
 		});
 	}, d = (n) => {
-		!(n instanceof CustomEvent) || !A(n.detail, a) || !(n.target instanceof Element) || t.contains(n.target) && k(n.target, "formieValidatorClearError", {
+		n instanceof CustomEvent && A(n.detail, a) && n.target instanceof Element && t.contains(n.target) && k(n.target, "formieValidatorClearError", {
 			...n.detail,
 			addValidator: o,
 			removeValidator: s,
@@ -253,7 +253,7 @@ function Ie(e) {
 function Le(e) {
 	e.querySelectorAll("[data-formie-field-handle]").forEach((t) => {
 		let n = t;
-		if (!(n.getAttribute("data-formie-field-has-error") === "true" || n.querySelector("[data-formie-field-error]") !== null)) return;
+		if (n.getAttribute("data-formie-field-has-error") !== "true" && n.querySelector("[data-formie-field-error]") === null) return;
 		n.setAttribute("data-formie-field-has-error", "true"), w(n, e, "fieldLayoutError");
 		let r = n.querySelector("[data-formie-field-error]")?.id || "";
 		n.querySelectorAll("input, select, textarea").forEach((t) => {
@@ -524,14 +524,14 @@ function et(e, t) {
 function tt(e, t) {
 	t.querySelectorAll("input, select, textarea").forEach((t) => {
 		let n = Qe(t) ? t : null;
-		!n || n.closest("[data-formie-page]") || $e(n) && et(e, n);
+		n && !n.closest("[data-formie-page]") && $e(n) && et(e, n);
 	});
 }
 function nt(e, t) {
 	let n = /* @__PURE__ */ new Set();
 	return t.querySelectorAll("input, select, textarea").forEach((t) => {
 		let r = Qe(t) ? t : null;
-		!r || !r.name || r.disabled || r instanceof HTMLInputElement && (r.type === "submit" || r.type === "button" || r.type === "reset" || r.type === "image") || (r.name.startsWith("fields[") && n.add(r.name), $e(r) && et(e, r));
+		r && r.name && !r.disabled && (r instanceof HTMLInputElement && (r.type === "submit" || r.type === "button" || r.type === "reset" || r.type === "image") || (r.name.startsWith("fields[") && n.add(r.name), $e(r) && et(e, r)));
 	}), n;
 }
 function rt(e, t) {
@@ -862,7 +862,7 @@ function Dt(e, t) {
 		let a = St(i), o = a.id && a.id.trim() ? a.id : `${t}-errors`;
 		a.id = o, ke(a, n), w(i, e, "fieldLayoutError"), i.setAttribute("data-formie-field-has-error", "true"), r.forEach((t, n) => {
 			let r = document.createElement("div");
-			r.setAttribute("data-formie-field-error", "true"), r.setAttribute("role", "alert"), r.id = `${o}-${n + 1}`, w(r, e, "fieldError"), r.textContent = t, a.appendChild(r);
+			r.setAttribute("data-formie-field-error", "true"), r.id = `${o}-${n + 1}`, w(r, e, "fieldError"), r.textContent = t, a.appendChild(r);
 		});
 		let s = a.querySelector("[data-formie-field-error]")?.id;
 		i.querySelectorAll("input, select, textarea").forEach((t) => {
@@ -977,7 +977,7 @@ var Rt = class {
 	}
 	async emit(e, t) {
 		let n = this.listeners.get(e);
-		if (!(!n || n.size === 0)) for (let e of n) await e(t);
+		if (n && n.size !== 0) for (let e of n) await e(t);
 	}
 	async emitSafe(e, t) {
 		let n = this.listeners.get(e), r = {
@@ -1039,57 +1039,57 @@ var Rt = class {
 	}
 }, Bt = {
 	"address-finder": () => import("./chunks/address-finder-BGumGzzt.js").then((e) => e.addressFinderModule),
-	"google-address": () => import("./chunks/google-address-zSHkvgOS.js").then((e) => e.googleAddressModule),
+	"google-address": () => import("./chunks/google-address-Be3Hpn0P.js").then((e) => e.googleAddressModule),
 	loqate: () => import("./chunks/loqate-3LcxhMSj.js").then((e) => e.loqateModule),
-	"place-kit": () => import("./chunks/place-kit-DKp5M6pj.js").then((e) => e.placeKitModule)
+	"place-kit": () => import("./chunks/place-kit-D8xs0Y-e.js").then((e) => e.placeKitModule)
 }, Vt = {
-	"captcha-eu": () => import("./chunks/captcha-eu-DkiXD2Uv.js").then((e) => e.captchaEuModule),
-	"friendly-captcha-v1": () => import("./chunks/friendly-captcha-v1-DDljioOk.js").then((e) => e.friendlyCaptchaV1Module),
-	"friendly-captcha-v2": () => import("./chunks/friendly-captcha-v2-B_pq2PfM.js").then((e) => e.friendlyCaptchaV2Module),
-	hcaptcha: () => import("./chunks/hcaptcha-Bf4zN7mM.js").then((e) => e.hcaptchaModule),
-	"recaptcha-enterprise": () => import("./chunks/recaptcha-enterprise-DU2669RI.js").then((e) => e.recaptchaEnterpriseModule),
-	"recaptcha-v2-checkbox": () => import("./chunks/recaptcha-v2-checkbox-COjdzwJ0.js").then((e) => e.recaptchaV2CheckboxModule),
-	"recaptcha-v2-invisible": () => import("./chunks/recaptcha-v2-invisible-BjamgoeT.js").then((e) => e.recaptchaV2InvisibleModule),
-	"recaptcha-v3": () => import("./chunks/recaptcha-v3-DxY3nbcR.js").then((e) => e.recaptchaV3Module),
-	snaptcha: () => import("./chunks/snaptcha-D7MajzuL.js").then((e) => e.snaptchaModule),
-	turnstile: () => import("./chunks/turnstile-C7AyGPD2.js").then((e) => e.turnstileModule)
+	"captcha-eu": () => import("./chunks/captcha-eu-DtJ4kud5.js").then((e) => e.captchaEuModule),
+	"friendly-captcha-v1": () => import("./chunks/friendly-captcha-v1-Abcy0iat.js").then((e) => e.friendlyCaptchaV1Module),
+	"friendly-captcha-v2": () => import("./chunks/friendly-captcha-v2-BBq5GuOg.js").then((e) => e.friendlyCaptchaV2Module),
+	hcaptcha: () => import("./chunks/hcaptcha-DrXnK9zK.js").then((e) => e.hcaptchaModule),
+	"recaptcha-enterprise": () => import("./chunks/recaptcha-enterprise-6aJj61Rq.js").then((e) => e.recaptchaEnterpriseModule),
+	"recaptcha-v2-checkbox": () => import("./chunks/recaptcha-v2-checkbox-B3jD4B36.js").then((e) => e.recaptchaV2CheckboxModule),
+	"recaptcha-v2-invisible": () => import("./chunks/recaptcha-v2-invisible-BlkaTOSs.js").then((e) => e.recaptchaV2InvisibleModule),
+	"recaptcha-v3": () => import("./chunks/recaptcha-v3-BnQgTIgY.js").then((e) => e.recaptchaV3Module),
+	snaptcha: () => import("./chunks/snaptcha-NyioM81q.js").then((e) => e.snaptchaModule),
+	turnstile: () => import("./chunks/turnstile-CbzvXD52.js").then((e) => e.turnstileModule)
 }, Ht = {
-	calculations: () => import("./chunks/calculations-DXgnE4fF.js").then((e) => e.calculationsModule),
-	"checkbox-radio": () => import("./chunks/checkbox-radio-4CwQ2c_z.js").then((e) => e.checkboxRadioModule),
-	combobox: () => import("./chunks/combobox-C0EuExSI.js").then((e) => e.comboboxModule),
-	conditions: () => import("./chunks/conditions-BCclrtEo.js").then((e) => e.conditionsModule),
-	"custom-google-maps": () => import("./chunks/custom-google-maps-BsaSirEZ.js").then((e) => e.customGoogleMapsModule),
+	calculations: () => import("./chunks/calculations-CqAOk6jj.js").then((e) => e.calculationsModule),
+	"checkbox-radio": () => import("./chunks/checkbox-radio-CwY-O1Ld.js").then((e) => e.checkboxRadioModule),
+	combobox: () => import("./chunks/combobox-CJ9uGS09.js").then((e) => e.comboboxModule),
+	conditions: () => import("./chunks/conditions-CvRRwH53.js").then((e) => e.conditionsModule),
+	"custom-google-maps": () => import("./chunks/custom-google-maps-B40lH0O1.js").then((e) => e.customGoogleMapsModule),
 	"custom-link": () => import("./chunks/custom-link-CJ1-FjEM.js").then((e) => e.customLinkModule),
-	"custom-maps": () => import("./chunks/custom-maps-DVXtokDg.js").then((e) => e.customMapsModule),
-	"date-picker": () => import("./chunks/date-picker-BEU7E1oD.js").then((e) => e.datePickerModule),
-	"file-upload": () => import("./chunks/file-upload-CnEzVmVb.js").then((e) => e.fileUploadModule),
-	"upload-manager": () => import("./chunks/upload-manager-qXq1lv_6.js").then((e) => e.uploadManagerModule),
+	"custom-maps": () => import("./chunks/custom-maps-Dp8LrcQI.js").then((e) => e.customMapsModule),
+	"date-picker": () => import("./chunks/date-picker-B4gHNqYN.js").then((e) => e.datePickerModule),
+	"file-upload": () => import("./chunks/file-upload-Da4hiE1f.js").then((e) => e.fileUploadModule),
+	"upload-manager": () => import("./chunks/upload-manager-C3d9IKfW.js").then((e) => e.uploadManagerModule),
 	hidden: () => import("./chunks/hidden-D7_Ch-QN.js").then((e) => e.hiddenModule),
-	"phone-country": () => import("./chunks/phone-country-BolGj5yY.js").then((e) => e.phoneCountryModule),
-	"password-validation": () => import("./chunks/password-validation-DtnLIQAV.js").then((e) => e.passwordValidationModule),
+	"phone-country": () => import("./chunks/phone-country-gBAWit-T.js").then((e) => e.phoneCountryModule),
+	"password-validation": () => import("./chunks/password-validation-6LSXwDwO.js").then((e) => e.passwordValidationModule),
 	"address-country": () => import("./chunks/address-country-Rx6GQTND.js").then((e) => e.addressCountryModule),
-	"address-state": () => import("./chunks/address-state-BwE01m2_.js").then((e) => e.addressStateModule),
+	"address-state": () => import("./chunks/address-state-LpuMNcRp.js").then((e) => e.addressStateModule),
 	repeater: () => import("./chunks/repeater-BVnPUqTj.js").then((e) => e.repeaterModule),
-	"rich-text": () => import("./chunks/rich-text-CZEjRUgh.js").then((e) => e.richTextModule),
-	signature: () => import("./chunks/signature-IOhuicje.js").then((e) => e.signatureModule),
+	"rich-text": () => import("./chunks/rich-text-uTktJio2.js").then((e) => e.richTextModule),
+	signature: () => import("./chunks/signature-BeDpLdjk.js").then((e) => e.signatureModule),
 	summary: () => import("./chunks/summary-Dks0gXS3.js").then((e) => e.summaryModule),
 	"survey-likert": () => import("./chunks/survey-likert-DkE6bR7B.js").then((e) => e.surveyLikertModule),
 	"survey-rank": () => import("./chunks/survey-rank-DN6x4IZM.js").then((e) => e.surveyRankModule),
 	"survey-rating": () => import("./chunks/survey-rating-BnsNL9U5.js").then((e) => e.surveyRatingModule),
 	table: () => import("./chunks/table-CAjCJHrL.js").then((e) => e.tableModule),
-	"text-limit": () => import("./chunks/text-limit-BYqjIKKI.js").then((e) => e.textLimitModule)
+	"text-limit": () => import("./chunks/text-limit-CdED3BKc.js").then((e) => e.textLimitModule)
 }, Ut = {
-	bpoint: () => import("./chunks/bpoint-qZbwu2MA.js").then((e) => e.bpointModule),
-	eway: () => import("./chunks/eway-DnBY61g0.js").then((e) => e.ewayModule),
-	"go-cardless": () => import("./chunks/go-cardless-DYKfvmhm.js").then((e) => e.goCardlessModule),
-	mollie: () => import("./chunks/mollie-CpMc8UPJ.js").then((e) => e.mollieModule),
-	moneris: () => import("./chunks/moneris-CY0fwzf2.js").then((e) => e.monerisModule),
-	opayo: () => import("./chunks/opayo-k3b4QDPH.js").then((e) => e.opayoModule),
-	paddle: () => import("./chunks/paddle-KRar3Wmy.js").then((e) => e.paddleModule),
-	paypal: () => import("./chunks/paypal-Dqbpj1jC.js").then((e) => e.paypalModule),
-	payway: () => import("./chunks/payway-DOMaq72p.js").then((e) => e.paywayModule),
-	square: () => import("./chunks/square-CWS54iji.js").then((e) => e.squareModule),
-	stripe: () => import("./chunks/stripe-hRbROHHv.js").then((e) => e.stripeModule)
+	bpoint: () => import("./chunks/bpoint-CPrkFbH7.js").then((e) => e.bpointModule),
+	eway: () => import("./chunks/eway-CjnE1ek4.js").then((e) => e.ewayModule),
+	"go-cardless": () => import("./chunks/go-cardless-2WNw2dNU.js").then((e) => e.goCardlessModule),
+	mollie: () => import("./chunks/mollie-Cb3_zOO0.js").then((e) => e.mollieModule),
+	moneris: () => import("./chunks/moneris-D9YJ0STm.js").then((e) => e.monerisModule),
+	opayo: () => import("./chunks/opayo-DszIHt75.js").then((e) => e.opayoModule),
+	paddle: () => import("./chunks/paddle-By8INjta.js").then((e) => e.paddleModule),
+	paypal: () => import("./chunks/paypal-CX6oodJY.js").then((e) => e.paypalModule),
+	payway: () => import("./chunks/payway-B9lk3ZwB.js").then((e) => e.paywayModule),
+	square: () => import("./chunks/square-Cclnde_T.js").then((e) => e.squareModule),
+	stripe: () => import("./chunks/stripe-CFSoIK2h.js").then((e) => e.stripeModule)
 }, Wt = {
 	...Ht,
 	...Bt,
@@ -1314,7 +1314,7 @@ function ln(e, t = {}) {
 			o = null, l();
 		}, 120);
 	}, p = (e) => {
-		t.shouldWarn && !t.shouldWarn() || l() && (e.preventDefault(), e.returnValue = "");
+		(!t.shouldWarn || t.shouldWarn()) && l() && (e.preventDefault(), e.returnValue = "");
 	};
 	return e.addEventListener("input", f), e.addEventListener("change", f), window.addEventListener("beforeunload", p), d(), {
 		captureBaseline: u,
@@ -1536,7 +1536,7 @@ var gn = class {
 		let o = i.getAttribute("data-formie-field-handle") || "field", s = `${o}-error`;
 		a.id = a.id || `${o}-errors`, ke(a, De(this.config.errorAriaLive, this.submitted));
 		let c = document.createElement("div");
-		c.setAttribute("data-formie-field-error", "true"), c.setAttribute(`data-formie-field-error-${t}`, "true"), c.setAttribute("id", s), c.setAttribute("role", "alert"), this.config.messageClass.length && c.classList.add(...this.config.messageClass), c.textContent = r, a.appendChild(c), i.setAttribute("data-formie-field-has-error", "true"), i.querySelectorAll("input, select, textarea").forEach((e) => {
+		c.setAttribute("data-formie-field-error", "true"), c.setAttribute(`data-formie-field-error-${t}`, "true"), c.setAttribute("id", s), this.config.messageClass.length && c.classList.add(...this.config.messageClass), c.textContent = r, a.appendChild(c), i.setAttribute("data-formie-field-has-error", "true"), i.querySelectorAll("input, select, textarea").forEach((e) => {
 			let t = e;
 			j(t) || (t.setAttribute("aria-invalid", "true"), this.config.inputErrorClass.length && t.classList.add(...this.config.inputErrorClass), t.setAttribute("data-formie-input-has-error", "true"), Me(t, s));
 		});
@@ -1569,7 +1569,7 @@ var gn = class {
 	getFieldErrors(e = this.errors) {
 		let t = {};
 		return e.forEach((e) => {
-			!e.handle || t[e.handle]?.length || (t[e.handle] = [e.message]);
+			e.handle && !t[e.handle]?.length && (t[e.handle] = [e.message]);
 		}), t;
 	}
 	getRule(e, t) {
@@ -1602,19 +1602,19 @@ var gn = class {
 		return n instanceof HTMLElement ? hn(n) : hn(e);
 	}
 	blurHandler(e) {
-		!(e.target instanceof HTMLElement) || !B(e.target) || j(e.target) || !e.target.form?.isSameNode(this.form) || e instanceof CustomEvent || e.target instanceof HTMLInputElement && e.target.type === "file" || e.target instanceof HTMLInputElement && (e.target.type === "checkbox" || e.target.type === "radio") || (this.isDirty(e.target) && this.activated.add(e.target), this.shouldShowError(e.target) && this.validate(e.target));
+		e.target instanceof HTMLElement && B(e.target) && !j(e.target) && e.target.form?.isSameNode(this.form) && (e instanceof CustomEvent || e.target instanceof HTMLInputElement && e.target.type === "file" || e.target instanceof HTMLInputElement && (e.target.type === "checkbox" || e.target.type === "radio") || (this.isDirty(e.target) && this.activated.add(e.target), this.shouldShowError(e.target) && this.validate(e.target)));
 	}
 	changeHandler(e) {
-		if (!(!(e.target instanceof HTMLElement) || !B(e.target) || j(e.target) || !e.target.form?.isSameNode(this.form)) && !(e instanceof CustomEvent)) {
+		if (e.target instanceof HTMLElement && B(e.target) && !j(e.target) && e.target.form?.isSameNode(this.form) && !(e instanceof CustomEvent)) {
 			if (e.target instanceof HTMLSelectElement) {
 				this.activated.add(e.target), this.validate(e.target);
 				return;
 			}
-			e.target instanceof HTMLInputElement && (e.target.type !== "file" && e.target.type !== "checkbox" && e.target.type !== "radio" || (this.activated.add(e.target), this.validate(e.target)));
+			e.target instanceof HTMLInputElement && (e.target.type === "file" || e.target.type === "checkbox" || e.target.type === "radio") && (this.activated.add(e.target), this.validate(e.target));
 		}
 	}
 	inputHandler(e) {
-		!(e.target instanceof HTMLElement) || !B(e.target) || j(e.target) || !e.target.form?.isSameNode(this.form) || e instanceof CustomEvent || e.target instanceof HTMLInputElement && (e.target.type === "checkbox" || e.target.type === "radio") || this.shouldShowError(e.target) && this.validate(e.target);
+		e.target instanceof HTMLElement && B(e.target) && !j(e.target) && e.target.form?.isSameNode(this.form) && (e instanceof CustomEvent || e.target instanceof HTMLInputElement && (e.target.type === "checkbox" || e.target.type === "radio") || this.shouldShowError(e.target) && this.validate(e.target));
 	}
 	submit(e = null, { final: t = !1 } = {}) {
 		return this.submitted = !0, z.log("Submit validation requested.", { final: t }), this.boundListeners || this.addEventListeners(), this.removeAllErrors(), this.validate(e, { includeHiddenPages: t });
@@ -1676,10 +1676,10 @@ var V = "[data-formie]:not([data-formie-init=\"false\"]), [data-formie-form]:not
 function U(e, t) {
 	if (e == null || e === "") return t;
 	let n = e.toLowerCase();
-	return !(n === "false" || n === "0" || n === "off");
+	return n !== "false" && n !== "0" && n !== "off";
 }
 function jn(e) {
-	return e.formieRefreshTokens != null && e.formieRefreshTokens !== "" ? U(e.formieRefreshTokens, !1) : e.formieStaticCache != null && e.formieStaticCache !== "" && U(e.formieStaticCache, !1);
+	return e.formieRefreshTokens == null ? e.formieStaticCache != null && U(e.formieStaticCache, !0) : U(e.formieRefreshTokens, !0);
 }
 function W(e) {
 	let t = e instanceof HTMLElement ? e.dataset : {};
@@ -1926,16 +1926,17 @@ function ar(e, t, n, r, i, a) {
 			}
 			n.preventDefault();
 			let r = n.currentTarget, i = r?.getAttribute("data-formie-page-id"), a = r?.getAttribute("href");
-			if (!(!i || !a)) {
+			if (i && a) {
 				p(t, i), h(e, "formie:page:navigate", {
 					pageId: i,
 					href: a
 				});
 				try {
+					let n = await Ke(a, t, i);
 					h(e, "formie:page:navigate:after", {
 						pageId: i,
 						href: a,
-						response: await Ke(a, t, i)
+						response: n
 					});
 				} catch (t) {
 					console.error("[formie] Failed to persist page navigation state.", t), h(e, "formie:page:navigate:error", {
@@ -2037,7 +2038,7 @@ async function or(e, t, n) {
 	let r = t.formHandle || e.dataset.formieHandle, i = In(t, e), a = n?.querySelector("input[name=\"renderId\"]")?.value || void 0;
 	if (!r) return;
 	let o = await Ge(i, r, a);
-	!o || !n || (Z(n, o), h(e, "formie:refresh-tokens:after", o));
+	o && n && (Z(n, o), h(e, "formie:refresh-tokens:after", o));
 }
 function sr() {
 	let e = /* @__PURE__ */ new Map(), t = new zt(), n = /* @__PURE__ */ new Map(), r = /* @__PURE__ */ new Map(), i = [
@@ -2289,8 +2290,8 @@ function sr() {
 				...r.options,
 				...n
 			};
-			let i = ne(t, n.payload?.theme || r.options.payload?.theme || er(t, r.form)?.theme, r.form);
-			return r.validator && (r.validator.config.fieldContainerErrorClass = i.fieldLayoutError || [], r.validator.config.inputErrorClass = i.fieldControlError || [], r.validator.config.messagesClass = i.fieldErrors || [], r.validator.config.messageClass = i.fieldError || []), Object.keys(i).length && h(t, "formie:theme:applied", {
+			let i = n.payload?.theme || r.options.payload?.theme || er(t, r.form)?.theme, a = ne(t, i, r.form);
+			return r.validator && (r.validator.config.fieldContainerErrorClass = a.fieldLayoutError || [], r.validator.config.inputErrorClass = a.fieldControlError || [], r.validator.config.messagesClass = a.fieldErrors || [], r.validator.config.messageClass = a.fieldError || []), Object.keys(a).length && h(t, "formie:theme:applied", {
 				hasClasses: !0,
 				reason: "update"
 			}), r.instance;
@@ -2434,7 +2435,7 @@ function fr(e) {
 }
 function pr(e) {
 	let t = /* @__PURE__ */ new Set(), n = [];
-	for (let r of e) !Q(r) || t.has(r) || (t.add(r), n.push(r));
+	for (let r of e) Q(r) && !t.has(r) && (t.add(r), n.push(r));
 	return n;
 }
 function $(e) {

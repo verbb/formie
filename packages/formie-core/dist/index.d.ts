@@ -7,5 +7,7 @@ export { buildActionUrl, createRestFrontendTransport, loadFrontendEnvelope } fro
 export { createGraphqlFrontendTransport, loadGraphqlFrontendEnvelope } from './graphql';
 export { allFields, compositePartDefinitions, createRepeaterRowValue, defaultValueForField, fieldValueContract, fieldValueStructure, fieldValueAsStrings, findFieldById, findFieldByHandle, isBooleanField, isCompositeField, isEmailField, isFileField, isKnownFrontendFieldType, isMultiValueField, isNumericField, isRepeatableField, repeaterFieldDefinitions, repeaterRowDefinitions, serializeFieldValues, serializeTransportFieldValues, } from './schema';
 export { countGraphemes, getTextLimitMetrics, getWordCount, normalizeText } from './text';
+export { getFrontendErrorAriaLive, getFrontendFieldErrorId } from './accessibility';
+export type { FrontendErrorAriaLive } from './accessibility';
 export type { FrontendFieldDefinition, FrontendFieldValueContract, FrontendFieldValueStructure, FrontendFieldType, FrontendFieldValueClass, FrontendFormDefinition, FrontendFormEnvelope, FrontendFormSession, KnownFrontendFieldType, FrontendPageDefinition, FrontendRowDefinition, FrontendFormEventName, FrontendFormFieldState, FrontendFormInstance, FrontendFormPageState, FrontendFormState, FrontendSubmitAction, FrontendSubmitResult, FrontendTransport, FrontendValidationRule, } from './types';
 //# sourceMappingURL=index.d.ts.map

@@ -1,0 +1,1 @@
+import{n as e}from"./api-Bdo8IEDo-DpXB3MYv.js";var t=e({id:`snaptcha`,defaultPlaceholderSelector:`[data-snaptcha-captcha-placeholder]`});export{t as snaptchaModule};
