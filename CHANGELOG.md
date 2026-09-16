@@ -17,6 +17,7 @@
 - Bump transitive `symfony/cache` to `6.4.45` (CVE-2026-45073 advisory floor).
 
 ### Fixed
+- Preserve configured form availability across sites when an editor has access to only some sites.
 - Allow existing fields and notifications to be selected with the keyboard.
 - Honor per-form permissions in form and submission indexes and GraphQL operations.
 - Load form indexes for users without permission to create forms.

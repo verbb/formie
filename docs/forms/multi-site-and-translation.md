@@ -57,7 +57,7 @@ There are two controls:
 
 Choose which sites forms in this group are allowed to exist on.
 
-- Check **All** (or leave every site unchecked in the “allow all” pattern) to permit any site you can edit in the control panel.
+- Check **All** (or leave every site unchecked in the “allow all” pattern) to permit all configured sites. Editors only see choices for sites they can edit.
 - Check individual sites — for example, only **Site 2** — to restrict the group to those sites.
 
 When a group is limited to specific sites:
@@ -83,9 +83,11 @@ If a propagation mode matches zero enabled sites, Formie blocks the save and sho
 
 Formie syncs Craft’s `elements_sites` table when a form is saved or when group policy changes, so the form’s enabled state matches the policy.
 
+An editor’s site permissions limit where they can manage the form. Saving from one permitted site does not change the group’s availability policy or disable the form on other sites.
+
 ### Ungrouped Forms
 
-Forms with no group are treated as available on **all sites you can edit**. They appear in the **Ungrouped** index source on every site, and you can create them from any site context.
+Forms with no group are available on **all configured sites**. Editors see them in the **Ungrouped** index source on sites they can edit, and can create them from those site contexts.
 
 Use ungrouped forms when the same form should genuinely be global. Use a restricted group when only certain sites should see or manage forms in that bucket.
 

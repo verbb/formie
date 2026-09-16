@@ -127,10 +127,6 @@ class FormSitePropagation extends Component
             $editableIds,
         ));
 
-        if ($enabledIds === []) {
-            $enabledIds = $editableIds;
-        }
-
         return $enabledIds;
     }
 
@@ -291,17 +287,14 @@ class FormSitePropagation extends Component
     {
         $sitesService = Craft::$app->getSites();
         $referenceSite = $this->_resolveReferenceSite($form);
-        $editableIds = $this->getEditableSiteIds();
-
-        $enabledIds = $policy->enabledSiteIds ?? $editableIds;
+        // Availability belongs to the shared form policy, not the editor saving it.
+        // Builder choices are filtered separately by the user's editable sites.
+        $siteIds = $sitesService->getAllSiteIds();
+        $enabledIds = $policy->enabledSiteIds ?? $siteIds;
         $enabledIds = array_values(array_intersect(
             array_map('intval', $enabledIds),
-            $editableIds,
+            $siteIds,
         ));
-
-        if ($enabledIds === []) {
-            $enabledIds = $editableIds;
-        }
 
         $sitesById = [];
         foreach ($sitesService->getAllSites() as $site) {
