@@ -8,7 +8,8 @@ test('loads the shipped dashboard chart libraries and keeps tooltip labels as te
     await page.locator('input[name="password"]').fill('testing-only-password');
     await page.getByRole('button', { name: 'Sign in', exact: true }).click();
     await page.waitForURL(url => !url.pathname.endsWith('/login'));
-    await page.goto('/admin/dashboard');
+    // Login already lands on the dashboard; another navigation cancels host requests.
+    await expect(page).toHaveURL(url => (url.searchParams.get('p') ?? url.pathname).replace(/^\//, '') === 'admin/dashboard');
     await expect(page.locator('.fui-recent-submissions-container canvas')).toBeVisible();
     await expect.poll(() => page.evaluate(() => Object.keys((window as any).Chart?.instances ?? {}).length)).toBeGreaterThan(0);
     const chartState = await page.evaluate(() => {

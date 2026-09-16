@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 for (const kind of ['field', 'notification']) {
-    test(`copies an existing ${kind} with the keyboard and preserves it after reload`, async ({ page }) => {
+    test(`copies an existing ${kind} with the keyboard and preserves it after reload`, async ({ page, browserName }) => {
         await page.goto('/admin/login');
         await page.getByRole('textbox', { name: 'Username or Email', exact: true }).fill('admin');
         await page.locator('input[name="password"]').fill('testing-only-password');
@@ -28,7 +28,8 @@ for (const kind of ['field', 'notification']) {
         await expect(choice).toBeVisible();
         await picker.getByRole('textbox', { name: 'Search', exact: true }).focus();
         for (let i = 0; i < 30 && !(await choice.evaluate(el => el.matches(':focus'))); i++) {
-            await page.keyboard.press('Tab');
+            // macOS WebKit uses Option-Tab to include native buttons and checkboxes.
+            await page.keyboard.press(browserName === 'webkit' && process.platform === 'darwin' ? 'Alt+Tab' : 'Tab');
         }
         await expect(choice).toBeFocused();
         await page.keyboard.press('Space');

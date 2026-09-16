@@ -10,9 +10,9 @@ test('creates a form in the control panel and preserves its field after reload',
     await page.locator('pk-field[data-name="title"]').getByRole('textbox').fill(`Browser authored ${Date.now()}`);
     await page.getByRole('button', { name: 'Next', exact: true }).click();
     await page.getByRole('button', { name: 'Add Single-line Text', exact: true }).dblclick();
-    await expect(page.getByRole('button', { name: 'Apply', exact: true })).toBeVisible();
     // Scope through the dialog host because its controls are slotted into shadow DOM.
     const dialog = page.locator('.formie-field-edit-dialog');
+    await expect(dialog.getByRole('button', { name: 'Apply', exact: true })).toBeVisible();
     await dialog.locator('pk-field[data-name="label"]').getByRole('textbox').fill('Delivery instructions');
     await dialog.locator('pk-field[data-name="placeholder"]').getByRole('textbox').fill('Where should we leave it?');
     await dialog.getByRole('button', { name: 'Apply', exact: true }).click();
