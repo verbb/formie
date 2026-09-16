@@ -3,6 +3,7 @@ namespace verbb\formie\workflow\tasks\save;
 
 use verbb\formie\base\Payment as PaymentIntegration;
 use verbb\formie\Formie;
+use verbb\formie\elements\Submission;
 use verbb\formie\models\Payment as PaymentModel;
 use verbb\formie\models\PaymentDecision;
 use verbb\formie\enums\workflow\Stage;
@@ -14,6 +15,11 @@ use verbb\formie\workflow\tasks\TaskResult;
 use verbb\formie\fields as formiefields;
 
 use Craft;
+
+use Throwable;
+
+use Money\Currencies\ISOCurrencies;
+use Money\Currency;
 
 class ProcessPaymentsTask implements TaskInterface
 {
@@ -162,6 +168,18 @@ class ProcessPaymentsTask implements TaskInterface
                 );
             }
 
+            $paymentIntegration->setField($field);
+
+            // Gateway success verifies the original purchase. Completion also
+            // requires that purchase to cover the submission as it exists now.
+            if ($storedPayment->status === PaymentModel::STATUS_SUCCESS
+                && (!$paymentIntegration instanceof PaymentIntegration || !$this->_matchesPaymentRequirement($paymentIntegration, $submission, $storedPayment))) {
+                $message = Craft::t('formie', 'The saved payment does not match the current amount and currency. Review the payment before completing this submission.');
+                $submission->addError($field->errorKey(), $message);
+
+                return PaymentDecision::failed($message, $paymentIntegration->handle ?? null, $storedPayment->reference);
+            }
+
             $decision = $decision->merge($this->_decisionFromStoredPayment($storedPayment, $paymentIntegration->handle ?? null));
 
             if (in_array($decision->status, [PaymentDecision::STATUS_FAILED, PaymentDecision::STATUS_PENDING, PaymentDecision::STATUS_ACTION_REQUIRED], true)) {
@@ -170,6 +188,26 @@ class ProcessPaymentsTask implements TaskInterface
         }
 
         return $decision;
+    }
+
+    private function _matchesPaymentRequirement(PaymentIntegration $integration, Submission $submission, PaymentModel $payment): bool
+    {
+        try {
+            $currency = strtoupper((string)$integration->getCurrency($submission));
+
+            if ($currency === '' || $currency !== strtoupper((string)$payment->currency)) {
+                return false;
+            }
+
+            $precision = (new ISOCurrencies())->subunitFor(new Currency($currency));
+            $amount = $integration->getPaymentAmount($submission);
+
+            return is_finite($amount) && is_finite($payment->amount) && $amount > 0
+                && abs(round($amount, $precision) - round($payment->amount, $precision)) < 0.00000001;
+        } catch (Throwable) {
+            // Missing or invalid provider settings cannot establish a paid total.
+            return false;
+        }
     }
 
     private function _resolveLatestStoredPayment(array $payments, int $fieldId, int $integrationId): ?PaymentModel

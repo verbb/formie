@@ -15,6 +15,8 @@ The front-end and back-end pieces work together:
 7. `processPayment()` reads the Payment field payload, calls the provider API and returns a `PaymentDecision`.
 8. If the provider uses redirects, callbacks or webhooks, the integration handles the follow-up provider response and updates the payment record.
 
+When a saved payment completes through a callback or webhook, Formie compares its amount and currency with the current submission before completing the form. `getPaymentAmount($submission)` must return the amount in the major currency units stored on the payment record. Its default implementation calls `getAmount()`; override it if your provider’s `getAmount()` returns minor API units. `getCurrency($submission)` resolves the configured fixed or dynamic currency, falling back to the field’s `currency` setting.
+
 ## PHP Integration
 
 ```php

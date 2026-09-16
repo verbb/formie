@@ -13,7 +13,14 @@ it('accepts a signed Stripe event once and ignores a tampered event without chan
     $integration = new Stripe(['name' => 'Signed webhook fixture', 'handle' => 'stripe' . bin2hex(random_bytes(8)), 'webhookSecretKey' => 'whsec_local_contract']);
     expect(Formie::$plugin->getIntegrations()->saveIntegration($integration, false))->toBeTrue();
     $form = formie()->form()->settings(['disableCaptchas' => true])->singleLineTextField('name')
-        ->paymentField('payment', ['paymentIntegration' => $integration->handle, 'paymentIntegrationType' => Stripe::class])->create();
+        ->paymentField('payment', [
+            'paymentIntegration' => $integration->handle,
+            'paymentIntegrationType' => Stripe::class,
+            'providerSettings' => [$integration->handle => [
+                'amountType' => 'fixed', 'amountFixed' => 25,
+                'currencyType' => 'fixed', 'currencyFixed' => 'USD',
+            ]],
+        ])->create();
     $submission = formie()->submission($form)->with(['name' => 'Paid visitor'])->save();
     $submission->isIncomplete = true;
     expect(Craft::$app->getElements()->saveElement($submission, false))->toBeTrue();

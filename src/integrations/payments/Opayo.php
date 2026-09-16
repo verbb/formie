@@ -184,6 +184,11 @@ class Opayo extends Payment
         return self::toOpayoAmount(parent::getAmount($submission), $this->getCurrency($submission));
     }
 
+    public function getPaymentAmount(Submission $submission): float
+    {
+        return self::fromOpayoAmount($this->getAmount($submission), (string)$this->getCurrency($submission));
+    }
+
     public function getCurrency(Submission $submission): ?string
     {
         return (string)$this->getFieldSetting('currency');

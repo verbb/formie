@@ -361,7 +361,16 @@ abstract class Payment extends Integration
             return (string)References::parseValue($currencyVariable, $submission);
         }
 
-        return null;
+        return $this->getFieldSetting('currency');
+    }
+
+    /**
+     * Resolve the amount in the major currency units stored on payment records.
+     * Providers whose getAmount() returns API units must convert them here.
+     */
+    public function getPaymentAmount(Submission $submission): float
+    {
+        return $this->getAmount($submission);
     }
 
     public function processWebhooks(): Response

@@ -322,3 +322,5 @@ After verifying a successful payment, resume the submission’s remaining proces
 ```
 
 This can run the form’s configured notifications and integrations. Formie reuses its saved workflow state to avoid repeating completed delivery steps. If processing fails, the payment remains successful; resolve the reported processing error before running the command again.
+
+The saved payment must match the submission’s current amount and currency. If the submission or payment settings changed while checkout was pending, review the difference before resuming. The original successful charge remains recorded, and a mismatch keeps the submission incomplete without creating another charge.

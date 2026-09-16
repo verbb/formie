@@ -230,6 +230,11 @@ class Stripe extends Payment
         return self::toStripeAmount(parent::getAmount($submission), $this->getCurrency($submission));
     }
 
+    public function getPaymentAmount(Submission $submission): float
+    {
+        return self::fromStripeAmount($this->getAmount($submission), (string)$this->getCurrency($submission));
+    }
+
     public function getSubscriptionPaymentLimit(Submission $submission): ?int
     {
         $limitType = $this->getFieldSetting('subscriptionLimitType');
