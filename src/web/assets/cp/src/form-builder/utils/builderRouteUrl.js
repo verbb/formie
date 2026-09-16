@@ -3,6 +3,13 @@ export const getBuilderRoutePath = (url, pathParam = 'p') => {
     return url.searchParams.get(pathParam) ?? url.pathname;
 };
 
+// Compare both Craft URL formats as paths, preserving an installation subfolder.
+export const getBuilderPathname = (url, pathParam = 'p') => {
+    const route = url.searchParams.get(pathParam);
+
+    return route === null ? url.pathname : new URL(route.replace(/^\/+/, ''), url).pathname;
+};
+
 export const buildBuilderRouteUrl = (baseUrl, route, currentUrl, pathParam = 'p') => {
     const url = new URL(baseUrl, currentUrl);
     const path = getBuilderRoutePath(url, pathParam).replace(/\/+$/, '') + route;

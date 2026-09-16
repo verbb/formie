@@ -1,6 +1,7 @@
 // CSS needs to be inlined for Shadow DOM usage
 import formBuilderStyles from '@form-builder/css/style.css?inline';
 import { configureFormieTiptap } from '../tiptap/formie-tiptap.js';
+import { getBuilderPathname } from './utils/builderRouteUrl';
 
 const hmrData = import.meta.hot?.data?.formBuilder ?? {};
 let hmrRoot = hmrData.root ?? null;
@@ -26,8 +27,9 @@ const isSettingsForCurrentPath = (settings) => {
     }
 
     try {
-        const basePath = new URL(baseUrl, window.location.origin).pathname.replace(/\/+$/, '');
-        const currentPath = window.location.pathname.replace(/\/+$/, '');
+        const pathParam = Craft.pathParam || 'p';
+        const basePath = getBuilderPathname(new URL(baseUrl, window.location.origin), pathParam).replace(/\/+$/, '');
+        const currentPath = getBuilderPathname(new URL(window.location.href), pathParam).replace(/\/+$/, '');
 
         if (!basePath || !currentPath) {
             return true;

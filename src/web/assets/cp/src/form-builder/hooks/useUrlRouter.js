@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { buildBuilderRouteUrl, getBuilderRoutePath } from '../utils/builderRouteUrl';
+import { buildBuilderRouteUrl, getBuilderPathname } from '../utils/builderRouteUrl';
 import useAppStore from './useAppStore';
 import { useFormBuilderApp } from '@form-builder/contexts/FormBuilderAppContext';
 
@@ -67,8 +67,8 @@ export const initializeRouterState = () => {
 
     // Parse current URL and set initial state
     const pathParam = Craft.pathParam || 'p';
-    const path = getBuilderRoutePath(getUrl(window.location.href), pathParam);
-    const baseUrlPath = getBuilderRoutePath(getUrl(baseUrl), pathParam);
+    const path = getBuilderPathname(getUrl(window.location.href), pathParam);
+    const baseUrlPath = getBuilderPathname(getUrl(baseUrl), pathParam);
     const relativePath = getRelativePath(path, baseUrlPath);
 
     // Set default state

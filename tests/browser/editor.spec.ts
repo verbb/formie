@@ -20,6 +20,13 @@ test('creates a form in the control panel and preserves its field after reload',
     await page.getByRole('button', { name: 'Save', exact: true }).click();
     await expect(page.locator('#notifications').getByText('Form saved.', { exact: true })).toBeVisible();
     await page.reload();
+    // Craft may generate query routes while the server also accepts pretty URLs.
+    const currentUrl = new URL(page.url());
+    const pathParam = await page.evaluate(() => (window as any).Craft.pathParam || 'p');
+    const route = currentUrl.searchParams.get(pathParam);
+    if (route) {
+        await page.goto(new URL(route, currentUrl).toString());
+    }
     await page.getByRole('button', { name: 'Edit Delivery instructions', exact: true }).click();
     await expect(dialog.locator('pk-field[data-name="label"]').getByRole('textbox')).toHaveValue('Delivery instructions');
     await expect(dialog.locator('pk-field[data-name="placeholder"]').getByRole('textbox')).toHaveValue('Where should we leave it?');
