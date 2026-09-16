@@ -106,6 +106,7 @@ class SentNotificationsController extends Controller
 
     public function actionResend(): Response
     {
+        $this->requirePostRequest();
         $this->requireAcceptsJson();
 
         $request = $this->request;
@@ -178,6 +179,7 @@ class SentNotificationsController extends Controller
 
     public function actionBulkResend(): Response
     {
+        $this->requirePostRequest();
         $this->requireAcceptsJson();
 
         $request = $this->request;

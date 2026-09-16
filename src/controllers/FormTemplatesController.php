@@ -110,6 +110,7 @@ class FormTemplatesController extends SettingsAccessController
 
     public function actionDelete(): Response
     {
+        $this->requirePostRequest();
         $this->requireAcceptsJson();
 
         $templateId = $this->request->getRequiredParam('id');

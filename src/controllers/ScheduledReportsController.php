@@ -113,10 +113,10 @@ class ScheduledReportsController extends SettingsAccessController
 
     public function actionDelete(): Response
     {
+        $this->requirePostRequest();
+
         if ($this->request->getAcceptsJson()) {
             $this->requireAcceptsJson();
-        } else {
-            $this->requirePostRequest();
         }
 
         $scheduledReportId = (int)$this->request->getRequiredParam('id');

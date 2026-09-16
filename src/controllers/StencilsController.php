@@ -221,6 +221,7 @@ class StencilsController extends Controller
 
     public function actionDelete(): Response
     {
+        $this->requirePostRequest();
         $this->requireAcceptsJson();
 
         $stencilId = $this->request->getRequiredParam('id');

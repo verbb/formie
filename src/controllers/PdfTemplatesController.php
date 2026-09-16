@@ -94,6 +94,7 @@ class PdfTemplatesController extends SettingsAccessController
 
     public function actionDelete(): Response
     {
+        $this->requirePostRequest();
         $this->requireAcceptsJson();
 
         $templateId = (int)$this->request->getRequiredParam('id');
