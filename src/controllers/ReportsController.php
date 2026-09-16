@@ -400,9 +400,16 @@ class ReportsController extends Controller
             columnOverride: $columnOverride,
         );
 
-        return Craft::$app->getResponse()->sendFile($export['path'], $export['filename'], [
+        $response = Craft::$app->getResponse()->sendFile($export['path'], $export['filename'], [
             'mimeType' => $export['mimeType'],
         ]);
+        $response->on(Response::EVENT_AFTER_SEND, static function() use ($export) {
+            if (is_file($export['path'])) {
+                @unlink($export['path']);
+            }
+        });
+
+        return $response;
     }
 
     public function actionExportStatus(string $uid): Response
@@ -441,8 +448,9 @@ class ReportsController extends Controller
 
         $response = $this->_sendExportFile($exportFile);
 
-        if (Formie::$plugin->getReportExportFiles()->shouldSingleUseDownload()) {
-            Formie::$plugin->getReportExportFiles()->markConsumed($exportFile);
+        if (Formie::$plugin->getReportExportFiles()->shouldSingleUseDownload()
+            && !Formie::$plugin->getReportExportFiles()->markConsumed($exportFile)) {
+            throw new NotFoundHttpException(Craft::t('formie', 'Export not found.'));
         }
 
         return $response;

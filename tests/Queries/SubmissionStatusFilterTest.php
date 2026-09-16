@@ -9,8 +9,8 @@ use verbb\formie\elements\Submission;
 
 it('filters submissions by status name when the label differs from the handle', function (): void {
     $status = new SubmissionStatus([
-        'name' => 'May Be',
-        'handle' => 'maybe',
+        'name' => 'May Be ' . uniqid(),
+        'handle' => 'maybe' . uniqid(),
         'color' => 'orange',
     ]);
 
@@ -30,14 +30,14 @@ it('filters submissions by status name when the label differs from the handle', 
     $byHandle = Submission::find()
         ->formId($form->id)
         ->anyStatus()
-        ->status('maybe')
+        ->status($status->handle)
         ->ids()
     ;
 
     $byName = Submission::find()
         ->formId($form->id)
         ->anyStatus()
-        ->status('May Be')
+        ->status($status->name)
         ->ids()
     ;
 

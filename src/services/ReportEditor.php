@@ -1,8 +1,8 @@
 <?php
 namespace verbb\formie\services;
 
-use verbb\formie\elements\Form;
 use verbb\formie\Formie;
+use verbb\formie\elements\Form;
 use verbb\formie\helpers\ReportDateBoundHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\helpers\Variables;
@@ -114,6 +114,11 @@ class ReportEditor extends Component
         return $this->_formOptions($user);
     }
 
+    public function normalizeFilterDateTime(mixed $value, bool $isEndDate): ?string
+    {
+        return $this->_normalizeFilterDateTime($value, $isEndDate);
+    }
+
 
     // Private Methods
     // =========================================================================
@@ -211,6 +216,9 @@ class ReportEditor extends Component
     private function _normalizeFilters(array $filters): array
     {
         $defaults = ReportSettings::defaultFilters();
+        if (array_key_exists('startDate', $filters) || array_key_exists('endDate', $filters)) {
+            $filters = ReportDateBoundHelper::migrateLegacyFilters($filters);
+        }
         $normalized = array_merge($defaults, $filters);
 
         $formIds = $normalized['formIds'] ?? '*';
@@ -233,11 +241,6 @@ class ReportEditor extends Component
         $normalized['endBound'] = ReportDateBoundHelper::normalizeBound($normalized['endBound'] ?? null, true);
 
         return $normalized;
-    }
-
-    public function normalizeFilterDateTime(mixed $value, bool $isEndDate): ?string
-    {
-        return $this->_normalizeFilterDateTime($value, $isEndDate);
     }
 
     private function _normalizeFilterDateTime(mixed $value, bool $isEndDate): ?string

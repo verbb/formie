@@ -526,7 +526,7 @@ export const resolveFieldColumnsForForms = (formIds, fieldColumnsByForm = {}) =>
         return [...merged.values()];
     };
 
-    if (formIds === '*' || formIds === ['*']) {
+    if (formIds === '*' || (Array.isArray(formIds) && formIds.length === 1 && formIds[0] === '*')) {
         return mergeColumns(Object.values(fieldColumnsByForm).flat());
     }
 

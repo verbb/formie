@@ -6,12 +6,14 @@
 - Add console commands to inspect unresolved payments, reconcile gateway status, record verified outcomes and resume submission processing.
 
 ### Changed
+- Stream all report export formats, including Excel, JSON and XML, and preserve the initial submission order while reading batches.
 - Normalize CP General Settings to the shared `verbb-base` settings layout (Settings → Plugins → Formie crumbs, `pageTabs` / `pageTitle` / `pageAction` helpers) and trim `pluginName` on save.
 - Bump transitive `symfony/cache` to `6.4.45` (CVE-2026-45073 advisory floor).
 
 ### Fixed
 - Preserve payment attempts and gateway receipts across interrupted Moneris, Eway, BPOINT, Opayo, Mollie and Paddle requests, and stop ambiguous outcomes from triggering another purchase.
 - Recover Eway payments by invoice reference and Mollie payments from verified webhook results when creation responses are lost.
+- Preserve completed report downloads across queue retries, clean up interrupted export workspaces, report progress and reject incomplete output.
 - Fix Mollie checkout initialization using the wrong redirect helper, and allow corrected attempts after explicit API rejections.
 - Keep payment amounts aligned with their currency precision when retrying or reconciling payments.
 - Avoid charging an extra minor unit for decimal Stripe and Opayo amounts, and use Stripe's required UGX amount format.
@@ -22,10 +24,15 @@
 - Preserve legacy spam, CAPTCHA and field-default settings during upgrades, and refresh schema lookups after migration changes.
 - Preserve restricted user and group submission access when upgrading from Formie 2.
 - Migrate integration field-handle tokens to stable field references.
+- Keep submissions arriving during scheduled report delivery eligible for the next export.
+- Recognize array-based wildcard form selections in report field columns.
 - Clone localized form layouts without serializing callbacks or mutating canonical form settings and notifications.
 - Preserve typed dates when expiring subscriptions and archiving payment plans.
 - Migrate notification field-handle tokens to stable references when upgrading from Formie 3.
+- Reject empty submission form scopes, enforce the requesting user's permissions for queued reports, and consume signed report download tokens atomically.
+- Preserve scheduled report delivery cursors when exports or emails fail, and clean up temporary report files after failures and direct downloads.
 - Keep successful Stripe payment intents from regressing on delayed webhooks, verify their integration, restore subscription invoice updates, and return retryable responses on processing failures.
+- Preserve saved report date bounds when sending incremental scheduled exports.
 - Score submitted quiz answers using current field identities and option values.
 - Persist completed submission state when replaying successful payment webhooks.
 - Fix Freeform 5 migration imports and scope submission migration to the selected form ID.
@@ -42,11 +49,13 @@
 - Fix CRM array mappings including option metadata instead of selected values, apply field-mapping event changes to outgoing payloads, and format Pardot multi-select values consistently.
 - Verify PayPal authorization/capture amount, currency, status and submission association; persist request identities and reconcile interrupted or pending captures.
 - Reuse PayWay transaction identities within its retry window, verify transaction ownership and amounts, and reconcile pending payments.
+- Protect streamed CSV/TSV report values and headings against spreadsheet formula injection.
 - Preserve cleared submission values, including empty checkboxes, tables and dates, through serialization and apply hidden-field clearing during CP edits.
 - Prevent nested shared-field saves from overwriting updated labels; preserve shared definitions in nested layouts and stencil materialization.
 - Duplicate form layout trees without serializing runtime callbacks or mutating the source layout.
 - Fix native JSON stencil persistence, date import settings, checkbox coercion, blank password validation and empty Other-option validation.
 - Compare encrypted recipient condition payloads rather than randomized ciphertext.
+- Fix report date-filter migration, current project-config palette/group updates, and defaultable validation settings.
 - Handle missing payment providers during field rendering and return a boolean for unconfigured Mollie settings.
 - Resolve stable field references when generating notification preview recipients and isolate cached values between previews.
 - Persist delivery attempt identities before external calls, stop uncertain integration/email retries, and checkpoint individual notifications.

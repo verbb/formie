@@ -2,7 +2,6 @@
 namespace verbb\formie\services;
 
 use verbb\formie\Formie;
-use craft\helpers\Db;
 use verbb\formie\models\Report;
 use verbb\formie\models\ReportExportFile;
 use verbb\formie\models\ScheduledReport;
@@ -13,6 +12,7 @@ use craft\base\Component;
 use craft\elements\db\ElementQueryInterface;
 use craft\elements\User;
 use craft\helpers\DateTimeHelper;
+use craft\helpers\Db;
 use craft\helpers\Template;
 use craft\mail\Message;
 
@@ -40,47 +40,53 @@ class ReportScheduledDelivery extends Component
             throw new \RuntimeException(Craft::t('formie', 'Scheduled report has no recipients.'));
         }
 
+        $startedAt = new DateTime();
         $exportResult = $this->_createExportDelivery($report, $scheduledReport, $delivery, $testSend);
-        $subject = $this->resolveSubject($report, $scheduledReport, $delivery, $testSend);
-        $htmlBody = $this->renderSummaryHtml(
-            $report,
-            $scheduledReport,
-            $delivery,
-            $testSend,
-            $exportResult,
-        );
-        $textBody = strip_tags(str_replace(['<br>', '<br/>', '<br />'], "\n", $htmlBody));
+        $sent = false;
 
-        $mailer = Craft::$app->getMailer();
-        /** @var Message $message */
-        $message = Craft::createObject([
-            'class' => $mailer->messageClass,
-            'mailer' => $mailer,
-        ]);
+        try {
+            $subject = $this->resolveSubject($report, $scheduledReport, $delivery, $testSend);
+            $htmlBody = $this->renderSummaryHtml(
+                $report,
+                $scheduledReport,
+                $delivery,
+                $testSend,
+                $exportResult,
+            );
+            $textBody = strip_tags(str_replace(['<br>', '<br/>', '<br />'], "\n", $htmlBody));
 
-        $message->setTo($recipients);
-        $message->setSubject($subject);
-        $message->setHtmlBody($htmlBody);
-        $message->setTextBody($textBody);
-
-        if (($exportResult['type'] ?? null) === 'attachment') {
-            $attachment = $exportResult['attachment'];
-            $message->attach($attachment['path'], [
-                'fileName' => $attachment['filename'],
-                'contentType' => $attachment['mimeType'],
+            $mailer = Craft::$app->getMailer();
+            /** @var Message $message */
+            $message = Craft::createObject([
+                'class' => $mailer->messageClass,
+                'mailer' => $mailer,
             ]);
+
+            $message->setTo($recipients);
+            $message->setSubject($subject);
+            $message->setHtmlBody($htmlBody);
+            $message->setTextBody($textBody);
+
+            if (($exportResult['type'] ?? null) === 'attachment') {
+                $attachment = $exportResult['attachment'];
+                $message->attach($attachment['path'], [
+                    'fileName' => $attachment['filename'],
+                    'contentType' => $attachment['mimeType'],
+                ]);
+            }
+
+            if (!$mailer->send($message)) {
+                throw new \RuntimeException(Craft::t('formie', 'Couldn’t send scheduled report email.'));
+            }
+
+            $sent = true;
+        } finally {
+            $this->_cleanupExportResult($exportResult, keepLinkedExport: $sent);
         }
-
-        if (!$mailer->send($message)) {
-            $this->_cleanupExportResult($exportResult);
-
-            throw new \RuntimeException(Craft::t('formie', 'Couldn’t send scheduled report email.'));
-        }
-
-        $this->_cleanupExportResult($exportResult, keepLinkedExport: true);
 
         if (!$testSend) {
-            Formie::$plugin->getScheduledReports()->markSent($scheduledReport);
+            // Arrivals during export or delivery must remain eligible for the next run.
+            Formie::$plugin->getScheduledReports()->markSent($scheduledReport, $startedAt);
         }
 
         return true;
@@ -173,10 +179,13 @@ class ReportScheduledDelivery extends Component
         ScheduledReport $scheduledReport,
         bool $testSend = false,
     ): ElementQueryInterface {
-        $query = Formie::$plugin->getReportQuery()->buildSubmissionQuery($report);
+        // Scheduled reports are operator-configured deliveries and run without
+        // a logged-in user. Keep their explicit saved form scope in console jobs.
+        $query = Formie::$plugin->getReportQuery()->buildSubmissionQuery($report, checkPermissions: $testSend);
 
         if (!$testSend && $scheduledReport->lastSentAt) {
-            $query->dateCreated('>= ' . Db::prepareDateForDb($scheduledReport->lastSentAt));
+            // Incremental delivery narrows the saved window; it must not replace either bound.
+            $query->andWhere(['>=', 'elements.dateCreated', Db::prepareDateForDb($scheduledReport->lastSentAt)]);
         }
 
         return $query;
@@ -198,20 +207,12 @@ class ReportScheduledDelivery extends Component
         $format = $delivery->format ?: 'csv';
         $query = $this->buildSubmissionQuery($report, $scheduledReport, $testSend);
 
-        try {
-            $export = Formie::$plugin->getReportExport()->export($report, $format, $query);
-        } catch (\Throwable $e) {
-            Formie::error('Scheduled report export failed: {message}', [
-                'message' => $e->getMessage(),
-            ]);
-
-            return ['type' => 'none'];
-        }
-
+        // A failed export must leave the delivery cursor unchanged so its rows can be retried.
+        $export = Formie::$plugin->getReportExport()->export($report, $format, $query);
         $path = $export['path'] ?? null;
 
         if (!$path || !is_file($path)) {
-            return ['type' => 'none'];
+            throw new \RuntimeException(Craft::t('formie', 'Scheduled report export file is missing.'));
         }
 
         if (!Formie::$plugin->getReportExport()->exceedsEmailAttachmentLimit($path)) {
@@ -285,7 +286,7 @@ class ReportScheduledDelivery extends Component
         return [
             'report' => $report,
             'scheduledReport' => $scheduledReport,
-            'summary' => Formie::$plugin->getReportQuery()->getSummaryCounts($report, null, $since),
+            'summary' => Formie::$plugin->getReportQuery()->getSummaryCounts($report, null, $since, checkPermissions: $testSend),
             'viewUrl' => $report->getCpRunUrl(),
             'periodLabel' => $this->_resolvePeriodLabel($scheduledReport, $testSend),
             'message' => trim((string)($delivery->emailMessage ?? '')),
@@ -320,18 +321,20 @@ class ReportScheduledDelivery extends Component
         if ($templatePath) {
             $oldTemplatesPath = $view->getTemplatesPath();
             $view->setTemplatesPath(Craft::$app->getPath()->getSiteTemplatesPath());
-            $body = $view->renderTemplate($templatePath, $renderVariables);
-            $view->setTemplatesPath($oldTemplatesPath);
-
-            return $body;
+            try {
+                return $view->renderTemplate($templatePath, $renderVariables);
+            } finally {
+                $view->setTemplatesPath($oldTemplatesPath);
+            }
         }
 
         $oldTemplateMode = $view->getTemplateMode();
         $view->setTemplateMode($view::TEMPLATE_MODE_CP);
-        $body = $view->renderTemplate('formie/_special/email-template', $renderVariables);
-        $view->setTemplateMode($oldTemplateMode);
-
-        return $body;
+        try {
+            return $view->renderTemplate('formie/_special/email-template', $renderVariables);
+        } finally {
+            $view->setTemplateMode($oldTemplateMode);
+        }
     }
 
     private function _resolvePeriodLabel(ScheduledReport $scheduledReport, bool $testSend): string

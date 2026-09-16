@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 const serializeFormIds = (formIds) => {
-    if (formIds === '*' || formIds === ['*']) {
+    if (formIds === '*' || (Array.isArray(formIds) && formIds.length === 1 && formIds[0] === '*')) {
         return '*';
     }
 

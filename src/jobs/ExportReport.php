@@ -21,41 +21,66 @@ class ExportReport extends CraftBaseJob
 
     public function execute($queue): void
     {
-        $exportFile = Formie::$plugin->getReportExportFiles()->getExportFileById((int)$this->exportFileId);
+        $mutex = Craft::$app->getMutex();
+        $lock = 'formie-report-export:' . (int)$this->exportFileId;
 
-        if (!$exportFile) {
-            throw new \RuntimeException('Unable to find report export file: ' . $this->exportFileId . '.');
+        if (!$mutex->acquire($lock)) {
+            throw new \RuntimeException('This report export is already running.');
         }
-
-        $this->setProgress($queue, 0.1);
-        Formie::$plugin->getReportExportFiles()->markRunning($exportFile);
 
         try {
-            $result = Formie::$plugin->getReportExport()->runQueuedExport($exportFile, function(float $progress) use ($queue): void {
-                $this->setProgress($queue, max(0.1, min(0.95, $progress)));
-            });
+            $files = Formie::$plugin->getReportExportFiles();
+            $exportFile = $files->getExportFileById((int)$this->exportFileId);
 
-            $exportFile = Formie::$plugin->getReportExportFiles()->markReady(
-                $exportFile,
-                $result['path'],
-                $result['filename'],
-                $result['mimeType'],
-            );
-
-            if ($exportFile->source === ReportExportFile::SOURCE_INTERACTIVE) {
-                Formie::$plugin->getReportExport()->sendReadyNotification($exportFile);
+            // Expired/deleted exports must not be recreated by a delayed retry.
+            if (!$exportFile || $exportFile->isExpired()) {
+                return;
             }
-        } catch (Throwable $e) {
-            Formie::$plugin->getReportExportFiles()->markFailed($exportFile, $e->getMessage());
-            Formie::error('Report export failed: {message}', [
-                'message' => $e->getMessage(),
-                'exportFileId' => $this->exportFileId,
-            ]);
 
-            throw $e;
+            if (in_array($exportFile->status, [ReportExportFile::STATUS_READY, ReportExportFile::STATUS_CONSUMED], true)) {
+                if (!$exportFile->filePath || !is_file($exportFile->filePath)) {
+                    throw new \RuntimeException('The completed export file is unavailable. Request a new export.');
+                }
+
+                $this->setProgress($queue, 1);
+                return;
+            }
+
+            $this->setProgress($queue, 0.05);
+
+            try {
+                $files->markRunning($exportFile);
+                $result = Formie::$plugin->getReportExport()->runQueuedExport($exportFile, function(float $progress) use ($queue): void {
+                    $this->setProgress($queue, 0.05 + 0.9 * max(0, min(1, $progress)));
+                });
+                $exportFile = $files->markReady($exportFile, $result['path'], $result['filename'], $result['mimeType']);
+            } catch (Throwable $e) {
+                try {
+                    $files->markFailed($exportFile, $e->getMessage());
+                } catch (Throwable $saveError) {
+                    Formie::error('Unable to persist report export failure: ' . $saveError->getMessage());
+                }
+
+                Formie::error('Report export failed: ' . $e->getMessage());
+                throw $e;
+            }
+
+            // Notification errors do not invalidate a finished download. A retry
+            // must neither rebuild its contents nor rotate a published token.
+            if ($exportFile->source === ReportExportFile::SOURCE_INTERACTIVE) {
+                try {
+                    if ($exportFile->notifyEmail && !Formie::$plugin->getReportExport()->sendReadyNotification($exportFile)) {
+                        Formie::error('Unable to send the ready notification for report export ' . $exportFile->id . '.');
+                    }
+                } catch (Throwable $e) {
+                    Formie::error('Report export ready notification failed: ' . $e->getMessage());
+                }
+            }
+
+            $this->setProgress($queue, 1);
+        } finally {
+            $mutex->release($lock);
         }
-
-        $this->setProgress($queue, 1);
     }
 
 

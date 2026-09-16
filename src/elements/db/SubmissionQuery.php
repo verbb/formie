@@ -1,7 +1,6 @@
 <?php
 namespace verbb\formie\elements\db;
 
-use craft\elements\User;
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\helpers\Table;
@@ -13,6 +12,7 @@ use craft\base\ElementInterface;
 use craft\db\Query;
 use craft\db\QueryAbortedException;
 use craft\elements\db\ElementQuery;
+use craft\elements\User;
 use craft\helpers\Db;
 use craft\helpers\Json;
 use craft\search\SearchQueryTerm;
@@ -47,6 +47,13 @@ class SubmissionQuery extends ElementQuery
         self::$_customFieldsByHandleScope[$scopeKey] = $fields;
     }
 
+
+    // Constants
+    // =========================================================================
+
+    private const FIELD_HANDLE_SCOPE_CACHE_MAX = 128;
+
+
     // Properties
     // =========================================================================
 
@@ -62,7 +69,6 @@ class SubmissionQuery extends ElementQuery
     public mixed $updateTitle = null;
 
     protected array $defaultOrderBy = ['elements.dateCreated' => SORT_DESC];
-    private const FIELD_HANDLE_SCOPE_CACHE_MAX = 128;
     private static array $_fieldHandleCacheByScope = [];
     private static array $_customFieldsByHandleScope = [];
     private array $_fieldCriteriaByHandle = [];
@@ -200,6 +206,18 @@ class SubmissionQuery extends ElementQuery
         return $this;
     }
 
+    public function createElement(array $row): ElementInterface
+    {
+        if (isset($row['integrationDispatchContext'])) {
+            // Earlier context saves encoded JSON before passing it to a JSON column.
+            $row['integrationDispatchContext'] = \verbb\formie\models\IntegrationDispatchContext::fromSubmission(
+                Json::decodeIfJson($row['integrationDispatchContext']),
+            )->toStorageArray();
+        }
+
+        return parent::createElement($row);
+    }
+
     public function afterPopulate(array $elements): array
     {
         $elements = parent::afterPopulate($elements);
@@ -214,17 +232,18 @@ class SubmissionQuery extends ElementQuery
         return $elements;
     }
 
-    private function _resolveStatusIdValue(array|string $value): mixed
-    {
-        return Formie::$plugin->getSubmissionStatuses()->resolveStatusIdParam($value);
-    }
-
 
     // Protected Methods
     // =========================================================================
 
     protected function beforePrepare(): bool
     {
+        // Permission filtering and unresolved handles use an empty scope to deny
+        // access. Only null means unrestricted; false/[] must never broaden it.
+        if ($this->formId === false || $this->formId === []) {
+            return false;
+        }
+
         $this->joinElementTable('formie_submissions');
 
         $submissionColumns = [
@@ -363,6 +382,15 @@ class SubmissionQuery extends ElementQuery
 
     // Protected Methods
     // =========================================================================
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _resolveStatusIdValue(array|string $value): mixed
+    {
+        return Formie::$plugin->getSubmissionStatuses()->resolveStatusIdParam($value);
+    }
 
     private function _applyCustomFieldParams(): void
     {
@@ -745,4 +773,5 @@ class SubmissionQuery extends ElementQuery
 
         return array_values(array_unique($attributes));
     }
+
 }

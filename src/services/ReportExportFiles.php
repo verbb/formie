@@ -10,6 +10,7 @@ use Craft;
 use craft\base\Component;
 use craft\elements\User;
 use craft\helpers\Db;
+use craft\helpers\FileHelper;
 use craft\helpers\StringHelper;
 
 use DateInterval;
@@ -59,7 +60,7 @@ class ReportExportFiles extends Component
         }
 
         $record = $exportFile->id
-            ? ReportExportFileRecord::findOne($exportFile->id)
+            ? Craft::$app->getDb()->useMaster(fn() => ReportExportFileRecord::findOne($exportFile->id))
             : new ReportExportFileRecord();
 
         if (!$record) {
@@ -84,7 +85,7 @@ class ReportExportFiles extends Component
 
         if ($exportFile->downloadToken !== null && $exportFile->downloadToken !== '') {
             $record->downloadTokenHash = $this->hashDownloadToken($exportFile->downloadToken);
-        } elseif ($exportFile->downloadTokenHash !== null) {
+        } else {
             $record->downloadTokenHash = $exportFile->downloadTokenHash;
         }
 
@@ -118,7 +119,7 @@ class ReportExportFiles extends Component
 
     public function getExportFileById(int $id): ?ReportExportFile
     {
-        $record = ReportExportFileRecord::findOne($id);
+        $record = Craft::$app->getDb()->useMaster(fn() => ReportExportFileRecord::findOne($id));
 
         return $record ? $this->_hydrate($record) : null;
     }
@@ -148,11 +149,16 @@ class ReportExportFiles extends Component
     public function markRunning(ReportExportFile $exportFile): void
     {
         $exportFile->status = ReportExportFile::STATUS_RUNNING;
-        $this->saveExportFile($exportFile);
+        $exportFile->error = null;
+        $this->_saveOrFail($exportFile);
     }
 
     public function markReady(ReportExportFile $exportFile, string $path, string $filename, string $mimeType): ReportExportFile
     {
+        if (!is_file($path) || !is_readable($path) || filesize($path) === false) {
+            throw new \RuntimeException('The report export file is unavailable.');
+        }
+
         $exportFile->status = ReportExportFile::STATUS_READY;
         $exportFile->filePath = $path;
         $exportFile->filename = $filename;
@@ -160,7 +166,7 @@ class ReportExportFiles extends Component
         $exportFile->error = null;
         $exportFile->downloadToken = StringHelper::UUID();
         $exportFile->downloadUrl = $exportFile->getDownloadUrl();
-        $this->saveExportFile($exportFile);
+        $this->_saveOrFail($exportFile);
 
         return $exportFile;
     }
@@ -169,17 +175,44 @@ class ReportExportFiles extends Component
     {
         $exportFile->status = ReportExportFile::STATUS_FAILED;
         $exportFile->error = $error;
-        $this->saveExportFile($exportFile);
+        $exportFile->downloadToken = null;
+        $exportFile->downloadTokenHash = null;
+        $exportFile->downloadUrl = null;
+        $this->_saveOrFail($exportFile);
     }
 
-    public function markConsumed(ReportExportFile $exportFile): void
+    public function markConsumed(ReportExportFile $exportFile): bool
     {
+        $downloadedAt = new DateTime();
+
+        if ($exportFile->id) {
+            $hash = $exportFile->downloadTokenHash;
+
+            if (!$hash && $exportFile->downloadToken) {
+                $hash = $this->hashDownloadToken($exportFile->downloadToken);
+            }
+
+            // Claim the persisted token atomically. Two requests that loaded the
+            // same valid link must not both receive the export.
+            if (!$hash || ReportExportFileRecord::updateAll([
+                'dateDownloaded' => Db::prepareDateForDb($downloadedAt),
+                'downloadTokenHash' => null,
+                'downloadUrl' => null,
+            ], ['and', [
+                'id' => $exportFile->id,
+                'status' => ReportExportFile::STATUS_READY,
+                'downloadTokenHash' => $hash,
+            ], ['or', ['dateExpires' => null], ['>', 'dateExpires', Db::prepareDateForDb($downloadedAt)]]]) !== 1) {
+                return false;
+            }
+        }
+
         // Single-use applies to signed links only — keep the export ready for CP downloads.
-        $exportFile->dateDownloaded = new DateTime();
+        $exportFile->dateDownloaded = $downloadedAt;
         $exportFile->downloadTokenHash = null;
         $exportFile->downloadToken = null;
         $exportFile->downloadUrl = null;
-        $this->saveExportFile($exportFile);
+        return true;
     }
 
     public function shouldSingleUseDownload(): bool
@@ -187,17 +220,39 @@ class ReportExportFiles extends Component
         return (bool)Formie::$plugin->getSettings()->reportExportSingleUseDownload;
     }
 
+    public function getWorkingDirectory(ReportExportFile $exportFile): string
+    {
+        if (!$exportFile->id) {
+            throw new \RuntimeException('An export must be saved before creating its workspace.');
+        }
+
+        return Craft::$app->getPath()->getTempPath() . '/formie-report-exports/' . (int)$exportFile->id;
+    }
+
     public function deleteExportFile(ReportExportFile $exportFile): bool
     {
-        if ($exportFile->filePath && is_file($exportFile->filePath)) {
-            @unlink($exportFile->filePath);
+        $lock = 'formie-report-export:' . (int)$exportFile->id;
+        $mutex = Craft::$app->getMutex();
+
+        if (!$mutex->acquire($lock)) {
+            return false;
         }
 
-        if (!$exportFile->id) {
-            return true;
-        }
+        try {
+            if ($exportFile->filePath && is_file($exportFile->filePath)) {
+                FileHelper::unlink($exportFile->filePath);
+            }
 
-        return (bool)ReportExportFileRecord::deleteAll(['id' => $exportFile->id]);
+            if (!$exportFile->id) {
+                return true;
+            }
+
+            FileHelper::removeDirectory($this->getWorkingDirectory($exportFile));
+
+            return (bool)ReportExportFileRecord::deleteAll(['id' => $exportFile->id]);
+        } finally {
+            $mutex->release($lock);
+        }
     }
 
     public function pruneExpired(): int
@@ -243,6 +298,13 @@ class ReportExportFiles extends Component
 
     // Private Methods
     // =========================================================================
+
+    private function _saveOrFail(ReportExportFile $exportFile): void
+    {
+        if (!$this->saveExportFile($exportFile)) {
+            throw new \RuntimeException('Unable to save report export status.');
+        }
+    }
 
     private function _hydrate(ReportExportFileRecord $record): ReportExportFile
     {

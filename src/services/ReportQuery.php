@@ -24,12 +24,12 @@ class ReportQuery extends Component
     // Public Methods
     // =========================================================================
 
-    public function buildSubmissionQuery(Report $report, ?User $user = null, array $viewer = []): ElementQueryInterface
+    public function buildSubmissionQuery(Report $report, ?User $user = null, array $viewer = [], bool $checkPermissions = true): ElementQueryInterface
     {
         $user ??= Craft::$app->getUser()->getIdentity();
         $filters = $this->resolveFilters($report, $viewer);
 
-        $formIds = $this->resolveFormIds($filters['formIds'] ?? '*', $user);
+        $formIds = $this->resolveFormIds($filters['formIds'] ?? '*', $user, $checkPermissions);
         $query = Submission::find()
             ->formId($formIds ?: false)
             ->status(null);
@@ -41,7 +41,7 @@ class ReportQuery extends Component
         return $query;
     }
 
-    public function getSummaryCounts(Report $report, ?User $user = null, ?DateTime $since = null, array $viewer = []): array
+    public function getSummaryCounts(Report $report, ?User $user = null, ?DateTime $since = null, array $viewer = [], bool $checkPermissions = true): array
     {
         $user ??= Craft::$app->getUser()->getIdentity();
         $filters = $this->resolveFilters($report, $viewer);
@@ -54,7 +54,7 @@ class ReportQuery extends Component
             }
         }
 
-        $formIds = $this->resolveFormIds($filters['formIds'] ?? '*', $user);
+        $formIds = $this->resolveFormIds($filters['formIds'] ?? '*', $user, $checkPermissions);
 
         $summary = [
             'total' => 0,
@@ -79,7 +79,7 @@ class ReportQuery extends Component
         foreach ($formIds as $formId) {
             $form = $forms[$formId] ?? null;
 
-            if (!$form || !$this->canViewFormSubmissions($user, $form)) {
+            if (!$form || ($checkPermissions && !$this->canViewFormSubmissions($user, $form))) {
                 continue;
             }
 
@@ -296,7 +296,7 @@ class ReportQuery extends Component
         return $filters;
     }
 
-    public function resolveFormIds(mixed $formIds, ?User $user = null): array
+    public function resolveFormIds(mixed $formIds, ?User $user = null, bool $checkPermissions = true): array
     {
         $user ??= Craft::$app->getUser()->getIdentity();
 
@@ -311,7 +311,7 @@ class ReportQuery extends Component
         $resolved = [];
 
         foreach ($forms as $form) {
-            if ($this->canViewFormSubmissions($user, $form)) {
+            if (!$checkPermissions || $this->canViewFormSubmissions($user, $form)) {
                 $resolved[] = (int)$form->id;
             }
         }

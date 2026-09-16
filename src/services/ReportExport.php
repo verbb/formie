@@ -2,6 +2,8 @@
 namespace verbb\formie\services;
 
 use verbb\formie\Formie;
+use verbb\formie\helpers\ReportExportRows;
+use verbb\formie\helpers\ReportExportWriter;
 use verbb\formie\helpers\Variables;
 use verbb\formie\jobs\ExportReport;
 use verbb\formie\models\Report;
@@ -10,15 +12,14 @@ use verbb\formie\models\ReportExportFile;
 use Craft;
 use craft\base\Component;
 use craft\elements\db\ElementQueryInterface;
+use craft\elements\User;
 use craft\helpers\FileHelper;
 use craft\helpers\Queue;
 use craft\mail\Message;
-use craft\web\BaseSpreadsheetResponseFormatter;
-use craft\web\CsvResponseFormatter;
-use craft\web\Response as CraftResponse;
+
+use yii\helpers\Markdown;
 
 use DateTime;
-use yii\helpers\Markdown;
 
 class ReportExport extends Component
 {
@@ -26,6 +27,13 @@ class ReportExport extends Component
     // =========================================================================
 
     public const DEFAULT_CHUNK_SIZE = 100;
+
+
+    // Properties
+    // =========================================================================
+
+    private mixed $_progressCallback = null;
+    private ?string $_workingDirectory = null;
 
 
     // Public Methods
@@ -57,30 +65,30 @@ class ReportExport extends Component
         $downloadFilename = $basename . '.' . $extension;
         $tempPath = $this->_createTempPath($basename, $extension);
 
-        if ($this->_supportsStreaming($format)) {
-            return $this->_streamSpreadsheetExport(
-                $tempPath,
-                $report,
-                $format,
-                $query,
-                $chunkSize,
-                $columnOverride,
-                $downloadFilename,
-            );
+        try {
+            $columns = Formie::$plugin->getReportColumns()->resolveColumns($report, $columnOverride);
+            $headers = array_column($columns, 'header');
+            $rows = ReportExportRows::iterate($query, $columns, $report->getSettingsModel()->display, $chunkSize, $this->_progressCallback);
+            ReportExportWriter::write($tempPath, $format, $headers, $rows);
+
+            return [
+                'path' => $tempPath,
+                'filename' => $downloadFilename,
+                'mimeType' => match ($format) {
+                    'json' => 'application/json',
+                    'xml' => 'application/xml',
+                    'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                    'text' => 'text/plain',
+                    default => 'text/csv',
+                },
+            ];
+        } catch (\Throwable $e) {
+            if (is_file($tempPath)) {
+                @unlink($tempPath);
+            }
+
+            throw $e;
         }
-
-        $headers = $this->_resolveExportHeaders($report, $columnOverride);
-        $rows = $this->_collectRows($report, $query, $chunkSize, $columnOverride);
-
-        $result = match ($format) {
-            'json' => $this->_writeJsonExport($tempPath, $rows),
-            'xml' => $this->_writeXmlExport($tempPath, $rows),
-            default => $this->_writeSpreadsheetExport($tempPath, $rows, $headers, $format),
-        };
-
-        $result['filename'] = $downloadFilename;
-
-        return $result;
     }
 
     public function getExportRowCount(?ElementQueryInterface $query): int
@@ -140,27 +148,40 @@ class ReportExport extends Component
         }
 
         $context = $exportFile->context ?? [];
-        $query = $this->_buildQueryFromContext($report, $context);
+        $scheduled = $exportFile->source === ReportExportFile::SOURCE_SCHEDULED;
+        $user = $exportFile->userId ? Craft::$app->getUsers()->getUserById($exportFile->userId) : null;
+
+        // Queue workers do not inherit the requesting editor's session. Resolve
+        // the owner explicitly and recheck current permissions before exporting.
+        if (!$scheduled && (!$user || !$user->can(Permissions::PERM_EXPORT_SUBMISSIONS))) {
+            throw new \RuntimeException(Craft::t('formie', 'Report export permission is no longer available.'));
+        }
+
+        $query = $this->_buildQueryFromContext($report, $context, $user, $scheduled);
         $columnOverride = $context['columnOverride'] ?? null;
         $format = $this->_normalizeFormat($exportFile->format);
 
-        $rowCount = $this->getExportRowCount($query);
-        $processed = 0;
+        $previousProgress = $this->_progressCallback;
+        $previousDirectory = $this->_workingDirectory;
+        $this->_progressCallback = $progressCallback;
 
-        $progress = function(int $batchCount) use ($progressCallback, $rowCount, &$processed): void {
-            $processed += $batchCount;
-
-            if ($progressCallback && $rowCount > 0) {
-                $progressCallback($processed / $rowCount);
+        try {
+            if ($exportFile->id) {
+                $this->_workingDirectory = Formie::$plugin->getReportExportFiles()->getWorkingDirectory($exportFile);
+                FileHelper::removeDirectory($this->_workingDirectory);
+                FileHelper::createDirectory($this->_workingDirectory);
             }
-        };
 
-        return $this->export(
-            report: $report,
-            format: $format,
-            query: $query,
-            columnOverride: $columnOverride,
-        );
+            return $this->export(
+                report: $report,
+                format: $format,
+                query: $query,
+                columnOverride: $columnOverride,
+            );
+        } finally {
+            $this->_progressCallback = $previousProgress;
+            $this->_workingDirectory = $previousDirectory;
+        }
     }
 
     public function sendReadyNotification(ReportExportFile $exportFile): bool
@@ -285,23 +306,23 @@ class ReportExport extends Component
     // Private Methods
     // =========================================================================
 
-    private function _buildQueryFromContext(Report $report, array $context): ElementQueryInterface
+    private function _buildQueryFromContext(Report $report, array $context, ?User $user = null, bool $scheduled = false): ElementQueryInterface
     {
         if (!empty($context['since'])) {
-            $query = Formie::$plugin->getReportQuery()->buildSubmissionQuery($report);
-            $query->dateCreated('>= ' . $context['since']);
+            $query = Formie::$plugin->getReportQuery()->buildSubmissionQuery($report, $user, checkPermissions: !$scheduled);
+            // Queued scheduled exports must retain the same saved bounds as attachments.
+            $query->andWhere(['>=', 'elements.dateCreated', $context['since']]);
 
             return $query;
         }
 
         $viewer = is_array($context['viewer'] ?? null) ? $context['viewer'] : [];
 
-        return Formie::$plugin->getReportQuery()->buildViewerQuery($report, null, $viewer);
-    }
+        if ($scheduled) {
+            return Formie::$plugin->getReportQuery()->buildSubmissionQuery($report, checkPermissions: false);
+        }
 
-    private function _supportsStreaming(string $format): bool
-    {
-        return in_array($format, ['csv', 'text'], true);
+        return Formie::$plugin->getReportQuery()->buildViewerQuery($report, $user, $viewer);
     }
 
     private function _normalizeFormat(string $format): string
@@ -318,6 +339,10 @@ class ReportExport extends Component
 
     private function _createTempPath(string $basename, string $extension): string
     {
+        if ($this->_workingDirectory) {
+            return $this->_workingDirectory . '/export.' . $extension;
+        }
+
         return Craft::$app->getPath()->getTempPath()
             . DIRECTORY_SEPARATOR
             . $basename
@@ -325,207 +350,6 @@ class ReportExport extends Component
             . uniqid('', true)
             . '.'
             . $extension;
-    }
-
-    /**
-     * Stream CSV/tab-delimited rows straight to disk so large exports stay memory-bounded.
-     */
-    private function _streamSpreadsheetExport(
-        string $path,
-        Report $report,
-        string $format,
-        ElementQueryInterface $query,
-        int $chunkSize,
-        ?array $columnOverride,
-        string $downloadFilename,
-    ): array {
-        $columns = Formie::$plugin->getReportColumns()->resolveColumns($report, $columnOverride);
-        $headers = array_column($columns, 'header');
-        $display = $report->getSettingsModel()->display;
-        $delimiter = $format === 'text' ? "\t" : ',';
-        $handle = fopen($path, 'wb');
-
-        if ($handle === false) {
-            throw new \RuntimeException(Craft::t('formie', 'Unable to create export file.'));
-        }
-
-        // UTF-8 BOM helps Excel open streamed CSV correctly on Windows.
-        if ($format === 'csv') {
-            fwrite($handle, "\xEF\xBB\xBF");
-        }
-
-        if ($headers !== []) {
-            fputcsv($handle, $headers, $delimiter);
-        }
-
-        $offset = 0;
-
-        while (true) {
-            $chunkQuery = clone $query;
-            $submissions = $chunkQuery->limit($chunkSize)->offset($offset)->all();
-
-            if (!$submissions) {
-                break;
-            }
-
-            foreach ($submissions as $submission) {
-                $assoc = Formie::$plugin->getReportColumns()->formatRowAssoc($submission, $columns, $display);
-                $row = [];
-
-                foreach ($headers as $header) {
-                    $row[] = (string)($assoc[$header] ?? '');
-                }
-
-                fputcsv($handle, $row, $delimiter);
-            }
-
-            $offset += $chunkSize;
-
-            if (count($submissions) < $chunkSize) {
-                break;
-            }
-        }
-
-        fclose($handle);
-
-        return [
-            'path' => $path,
-            'filename' => $downloadFilename,
-            'mimeType' => $format === 'text' ? 'text/plain' : 'text/csv',
-        ];
-    }
-
-    private function _collectRows(
-        Report $report,
-        ElementQueryInterface $query,
-        int $chunkSize,
-        ?array $columnOverride,
-    ): array {
-        $columns = Formie::$plugin->getReportColumns()->resolveColumns($report, $columnOverride);
-        $display = $report->getSettingsModel()->display;
-        $rows = [];
-        $offset = 0;
-
-        while (true) {
-            $chunkQuery = clone $query;
-            $submissions = $chunkQuery->limit($chunkSize)->offset($offset)->all();
-
-            if (!$submissions) {
-                break;
-            }
-
-            foreach ($submissions as $submission) {
-                $rows[] = Formie::$plugin->getReportColumns()->formatRowAssoc($submission, $columns, $display);
-            }
-
-            $offset += $chunkSize;
-
-            if (count($submissions) < $chunkSize) {
-                break;
-            }
-        }
-
-        return $this->_normaliseRows($rows);
-    }
-
-    private function _resolveExportHeaders(Report $report, ?array $columnOverride): array
-    {
-        $columns = Formie::$plugin->getReportColumns()->resolveColumns($report, $columnOverride);
-
-        return array_column($columns, 'header');
-    }
-
-    private function _writeSpreadsheetExport(string $path, array $rows, array $headers, string $format): array
-    {
-        $response = new CraftResponse();
-        $response->charset = 'UTF-8';
-        $response->data = $rows;
-
-        $formatter = match ($format) {
-            'xlsx' => $this->_createXlsxFormatter(),
-            'text' => Craft::createObject(CsvResponseFormatter::class, [
-                'delimiter' => "\t",
-                'contentType' => 'text/plain',
-            ]),
-            default => Craft::createObject(CsvResponseFormatter::class),
-        };
-
-        if ($rows === [] && $headers !== []) {
-            $formatter->headers = $headers;
-        }
-
-        $formatter->format($response);
-
-        if (@file_put_contents($path, $response->content) === false) {
-            throw new \RuntimeException(Craft::t('formie', 'Unable to create export file.'));
-        }
-
-        return [
-            'path' => $path,
-            'filename' => basename($path),
-            'mimeType' => match ($format) {
-                'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                'text' => 'text/plain',
-                default => 'text/csv',
-            },
-        ];
-    }
-
-    private function _createXlsxFormatter(): BaseSpreadsheetResponseFormatter
-    {
-        if (!class_exists('craft\\web\\XlsxResponseFormatter')) {
-            throw new \RuntimeException(Craft::t('formie', 'XLSX export requires Craft CMS 5.9 or later.'));
-        }
-
-        return Craft::createObject('craft\\web\\XlsxResponseFormatter');
-    }
-
-    private function _writeJsonExport(string $path, array $rows): array
-    {
-        file_put_contents($path, json_encode($rows, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) ?: '[]');
-
-        return [
-            'path' => $path,
-            'filename' => basename($path),
-            'mimeType' => 'application/json',
-        ];
-    }
-
-    private function _writeXmlExport(string $path, array $rows): array
-    {
-        $xml = new \SimpleXMLElement('<report/>');
-
-        foreach ($rows as $row) {
-            $submission = $xml->addChild('submission');
-
-            foreach ($row as $header => $value) {
-                $child = $submission->addChild('column', htmlspecialchars((string)$value, ENT_XML1 | ENT_QUOTES, 'UTF-8'));
-                $child->addAttribute('name', (string)$header);
-            }
-        }
-
-        $dom = dom_import_simplexml($xml)->ownerDocument;
-        $dom->formatOutput = true;
-        $dom->save($path);
-
-        return [
-            'path' => $path,
-            'filename' => basename($path),
-            'mimeType' => 'application/xml',
-        ];
-    }
-
-    private function _normaliseRows(array $rows): array
-    {
-        if (!$rows) {
-            return [];
-        }
-
-        $counts = array_map('count', $rows);
-        $key = array_flip($counts)[max($counts)];
-        $template = array_fill_keys(array_keys($rows[$key]), '');
-
-        return array_map(fn(array $row) => array_merge($template, $row), $rows);
     }
 
     private function _resolveExtension(string $format): string

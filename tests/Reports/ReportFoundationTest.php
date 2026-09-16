@@ -87,6 +87,7 @@ it('builds a submission query for a report', function (): void {
 
 it('resolves enabled report columns in order', function (): void {
     $settings = new ReportSettings();
+    $settings->display['fieldColumnsMode'] = ReportColumns::FIELD_COLUMNS_MODE_SELECTED;
     $settings->columns = [
         ['type' => 'attribute', 'handle' => 'title', 'label' => 'Submission Title', 'enabled' => true],
         ['type' => 'attribute', 'handle' => 'id', 'label' => 'Submission ID', 'enabled' => true],
@@ -190,6 +191,7 @@ it('returns paginated table data for a report', function (): void {
 
     $settings = new ReportSettings();
     $settings->filters['formIds'] = [$form->id];
+    $settings->display['fieldColumnsMode'] = ReportColumns::FIELD_COLUMNS_MODE_SELECTED;
     $settings->columns = [
         ['type' => 'attribute', 'handle' => 'id', 'label' => 'ID', 'enabled' => true],
         ['type' => 'field', 'handle' => 'fullName', 'label' => 'Full Name', 'enabled' => true],
@@ -273,6 +275,7 @@ it('respects viewer column override order in table data', function (): void {
 
     $settings = new ReportSettings();
     $settings->filters['formIds'] = [$form->id];
+    $settings->display['fieldColumnsMode'] = ReportColumns::FIELD_COLUMNS_MODE_SELECTED;
     $settings->columns = [
         ['type' => 'attribute', 'handle' => 'title', 'label' => 'Title', 'enabled' => true],
         ['type' => 'attribute', 'handle' => 'status', 'label' => 'Status', 'enabled' => true],
@@ -316,6 +319,7 @@ it('exports report data with viewer column overrides', function (): void {
 
     $settings = new ReportSettings();
     $settings->filters['formIds'] = [$form->id];
+    $settings->display['fieldColumnsMode'] = ReportColumns::FIELD_COLUMNS_MODE_SELECTED;
     $settings->columns = [
         ['type' => 'attribute', 'handle' => 'id', 'label' => 'ID', 'enabled' => true],
         ['type' => 'field', 'handle' => 'fullName', 'label' => 'Full Name', 'enabled' => true],
@@ -364,10 +368,7 @@ it('exports report data with viewer column overrides', function (): void {
     @unlink($export['path']);
 });
 
-it('writes real xlsx exports via Craft spreadsheet formatters', function (): void {
-    if (!class_exists('craft\\web\\XlsxResponseFormatter')) {
-        test()->markTestSkipped('XLSX export requires Craft CMS 5.9 or later.');
-    }
+it('writes real xlsx exports with the streaming writer', function (): void {
 
     $form = formie()
         ->form(['title' => 'XLSX Export Form'])
@@ -380,6 +381,7 @@ it('writes real xlsx exports via Craft spreadsheet formatters', function (): voi
 
     $settings = new ReportSettings();
     $settings->filters['formIds'] = [$form->id];
+    $settings->display['fieldColumnsMode'] = ReportColumns::FIELD_COLUMNS_MODE_SELECTED;
     $settings->columns = [
         ['type' => 'field', 'handle' => 'fullName', 'label' => 'Full Name', 'enabled' => true],
     ];
@@ -409,20 +411,21 @@ it('writes real xlsx exports via Craft spreadsheet formatters', function (): voi
     @unlink($export['path']);
 });
 
-it('guards csv exports against spreadsheet formula injection', function (): void {
+it('guards delimited exports against spreadsheet formula injection', function (string $format, string $value): void {
     $form = formie()
         ->form(['title' => 'CSV Injection Form'])
         ->singleLineTextField('fullName')
         ->create();
 
     formie()->submission($form)->with([
-        'fullName' => '=1+1',
+        'fullName' => $value,
     ])->save();
 
     $settings = new ReportSettings();
     $settings->filters['formIds'] = [$form->id];
+    $settings->display['fieldColumnsMode'] = ReportColumns::FIELD_COLUMNS_MODE_SELECTED;
     $settings->columns = [
-        ['type' => 'field', 'handle' => 'fullName', 'label' => 'Full Name', 'enabled' => true],
+        ['type' => 'field', 'handle' => 'fullName', 'label' => '=Hostile Header', 'enabled' => true],
     ];
 
     $report = new Report([
@@ -438,16 +441,23 @@ it('guards csv exports against spreadsheet formula injection', function (): void
 
     $export = Formie::$plugin->getReportExport()->export(
         report: $report,
-        format: 'csv',
+        format: $format,
         query: Formie::$plugin->getReportQuery()->buildSubmissionQuery($report, $admin),
     );
 
     $contents = file_get_contents($export['path']);
 
-    expect($contents)->toContain("\t=1+1");
+    $stream = fopen($export['path'], 'rb');
+    if ($format === 'csv') {
+        fread($stream, 3); // UTF-8 BOM
+    }
+    $delimiter = $format === 'text' ? "\t" : ',';
+    expect(fgetcsv($stream, 0, $delimiter, '"', ''))->toBe(["'=Hostile Header"])
+        ->and(fgetcsv($stream, 0, $delimiter, '"', ''))->toBe(["'" . trim($value)]);
+    fclose($stream);
 
     @unlink($export['path']);
-});
+})->with(['csv', 'text'])->with(['=1+1', '+1+1', '-1+1', '@SUM(A1)', ' =1+1']);
 
 it('resolves configurable export filenames from report settings', function (): void {
     $settings = new ReportSettings();
@@ -484,7 +494,7 @@ it('resolves general export filename variables for reports', function (): void {
         new DateTime('2026-06-17 14:30:00'),
     );
 
-    expect($filename)->toBe('siteExport-2026-06-17-14-30-00.csv');
+    expect($filename)->toBe('siteExport-2026-06-17-143000.csv');
 });
 
 it('fills chart buckets across the resolved date range', function (): void {
@@ -518,7 +528,8 @@ it('fills chart buckets across the resolved date range', function (): void {
 
     expect(Formie::$plugin->getReports()->saveReport($report))->toBeTrue();
 
-    formie()->submission($form)->with(['fullName' => 'Chart Test'])->save();
+    $submission = formie()->submission($form)->with(['fullName' => 'Chart Test'])->save();
+    Craft::$app->getDb()->createCommand()->update('{{%elements}}', ['dateCreated' => '2026-06-03 12:00:00'], ['id' => $submission->id])->execute();
 
     $admin = new User();
     $admin->admin = true;
@@ -544,7 +555,7 @@ it('resolves scheduled reports for a report', function (): void {
     expect(Formie::$plugin->getReports()->saveReport($report))->toBeTrue();
 
     $scheduledReport = new \verbb\formie\models\ScheduledReport([
-        'name' => 'Weekly summary',
+        'name' => 'Weekly summary ' . uniqid(),
         'reportId' => $report->id,
         'enabled' => true,
     ]);
@@ -560,7 +571,7 @@ it('resolves scheduled reports for a report', function (): void {
     $linked = Formie::$plugin->getScheduledReports()->getScheduledReportsForReport((int)$report->id);
 
     expect($linked)->toHaveCount(1)
-        ->and($linked[0]->name)->toBe('Weekly summary');
+        ->and($linked[0]->name)->toBe($scheduledReport->name);
 });
 
 it('returns empty summary when no forms are selected', function (): void {
@@ -764,6 +775,7 @@ it('runs queued report exports to a ready download file', function (): void {
 
     $settings = new ReportSettings();
     $settings->filters['formIds'] = [$form->id];
+    $settings->display['fieldColumnsMode'] = ReportColumns::FIELD_COLUMNS_MODE_SELECTED;
     $settings->columns = [
         ['type' => 'field', 'handle' => 'fullName', 'label' => 'Full Name', 'enabled' => true],
     ];
@@ -777,6 +789,7 @@ it('runs queued report exports to a ready download file', function (): void {
     expect(Formie::$plugin->getReports()->saveReport($report))->toBeTrue();
 
     $exportFile = new \verbb\formie\models\ReportExportFile([
+        'userId' => (int)User::find()->admin(true)->one()->id,
         'reportId' => (int)$report->id,
         'format' => 'csv',
         'context' => Formie::$plugin->getReportExport()->buildExportContext([], [
