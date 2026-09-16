@@ -25,6 +25,7 @@ final class WebRequestTestHelper
         $originalHttps = $_SERVER['HTTPS'] ?? null;
         $originalRequestUri = $_SERVER['REQUEST_URI'] ?? null;
         $originalRemoteAddr = $_SERVER['REMOTE_ADDR'] ?? null;
+        $originalCookies = $_COOKIE;
 
         $_SERVER['REQUEST_METHOD'] = strtoupper((string)($options['method'] ?? 'GET'));
         $_SERVER['SERVER_NAME'] = (string)($options['serverName'] ?? 'craft.example.test');
@@ -36,6 +37,7 @@ final class WebRequestTestHelper
         try {
             /** @var Application $app */
             $app = self::createWebApplication($originalApp);
+            $app->edition = $originalApp->edition;
             self::mirrorFormiePluginState($originalApp, $app);
             Formie::$plugin = $originalPlugin;
             self::registerFormieTranslations($app, $originalPlugin?->getBasePath());
@@ -44,6 +46,7 @@ final class WebRequestTestHelper
             $app->getView()->registerTwigExtension(new FormieTwigExtension());
 
             $request = $app->getRequest();
+            $request->setIsConsoleRequest(false);
             $response = $app->getResponse();
             $session = $app->getSession();
 
@@ -56,6 +59,7 @@ final class WebRequestTestHelper
             }
 
             $session->open();
+            \craft\helpers\Session::reset();
 
             $originalCraftApp = Craft::$app;
             Craft::$app = $app;
@@ -73,9 +77,19 @@ final class WebRequestTestHelper
 
             if (isset($app)) {
                 $app->getErrorHandler()->unregister();
+                // Craft uses db2 for database locks. Retained web application
+                // listeners must not keep either request-owned connection open.
+                $originalComponents = $originalApp->getComponents(false);
+                foreach ($app->getComponents(false) as $id => $component) {
+                    if ($component instanceof \yii\db\Connection && $component !== ($originalComponents[$id] ?? null)) {
+                        $component->close();
+                    }
+                }
             }
 
             Craft::$app = $originalApp;
+            \craft\helpers\Session::reset();
+            $_COOKIE = $originalCookies;
             Formie::$plugin = $originalPlugin;
             $originalApp->getErrorHandler()->register();
 
@@ -147,6 +161,17 @@ final class WebRequestTestHelper
 
         if (function_exists('craft_modify_app_config')) {
             craft_modify_app_config($config, 'web');
+        }
+
+        // Simulated requests belong to the same isolated test application. Reuse
+        // its connection instead of retaining one PDO connection per web app.
+        $config['components']['db'] = $originalApp->getDb();
+        // Application initialization can load plugins before state is mirrored below.
+        // Reuse their initialized registry so global listeners are not registered again.
+        $config['components']['plugins'] = clone $originalApp->getPlugins();
+        foreach ($originalApp->getPlugins()->getAllPlugins() as $handle => $plugin) {
+            $config['modules'][$handle] = $plugin;
+            $config['loadedModules'][get_class($plugin)] = $plugin;
         }
 
         return Craft::createObject($config);

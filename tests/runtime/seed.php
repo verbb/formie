@@ -19,147 +19,30 @@ use craft\models\UserGroup;
 use craft\models\Volume;
 use yii\console\ExitCode;
 
-$pluginRoot = dirname(__DIR__, 2);
-$envExample = $pluginRoot . '/.env.testing.example';
-$envFile = $pluginRoot . '/.env.testing';
-
-if (!file_exists($envExample)) {
-    fwrite(STDERR, "Missing .env template at {$envExample}\n");
-    exit(ExitCode::UNSPECIFIED_ERROR);
-}
-
-if (!file_exists($envFile)) {
-    if (!copy($envExample, $envFile)) {
-        fwrite(STDERR, "Unable to create {$envFile}\n");
-        exit(ExitCode::UNSPECIFIED_ERROR);
-    }
-
-    fwrite(STDOUT, "Created {$envFile} from .env.testing.example\n");
-} else {
-    fwrite(STDOUT, "{$envFile} already exists\n");
-}
-
-putenv('DOTENV_FILE=.env.testing');
-putenv('ENVIRONMENT=testing');
-
-require $pluginRoot . '/tests/bootstrap.php';
-
-/** @var craft\console\Application $app */
-$app = require CRAFT_VENDOR_PATH . '/craftcms/cms/bootstrap/console.php';
-
-$environment = getenv('ENVIRONMENT') ?: '';
-if ($environment !== 'testing') {
-    fwrite(STDERR, "Refusing to setup outside ENVIRONMENT=testing.\n");
-    exit(ExitCode::UNSPECIFIED_ERROR);
-}
-
-$runAction = static function(string $route, array $params = []) use ($app): int {
-    fwrite(STDOUT, "Running `craft {$route}`...\n");
-    return (int)$app->runAction($route, $params);
-};
-
-$driver = getenv('CRAFT_DB_DRIVER') ?: 'mysql';
-$server = getenv('CRAFT_DB_SERVER') ?: '127.0.0.1';
-$port = getenv('CRAFT_DB_PORT') ?: ($driver === 'pgsql' ? '5432' : '3306');
-$database = getenv('CRAFT_DB_DATABASE') ?: 'formie_react_test';
-$user = getenv('CRAFT_DB_USER') ?: 'root';
-$password = getenv('CRAFT_DB_PASSWORD');
-$password = $password !== false ? $password : '';
-$schema = getenv('CRAFT_DB_SCHEMA') ?: 'public';
-$tablePrefix = getenv('CRAFT_DB_TABLE_PREFIX') ?: '';
-$unixSocket = getenv('CRAFT_DB_UNIX_SOCKET') ?: '';
-
-if ($unixSocket !== '' && $driver === 'mysql') {
-    // setup/db does not expose a unix-socket option, so skip it for socket-based local setups.
-    fwrite(STDOUT, "Detected CRAFT_DB_UNIX_SOCKET; skipping `craft setup/db` and relying on .env.testing values.\n");
-} else {
-    $dbExit = $runAction('setup/db', [
-        'interactive' => 0,
-        'driver' => $driver,
-        'server' => $server,
-        'port' => $port,
-        'database' => $database,
-        'user' => $user,
-        'password' => $password,
-        'schema' => $schema,
-        'tablePrefix' => $tablePrefix,
-    ]);
-
-    if ($dbExit !== ExitCode::OK) {
-        fwrite(STDERR, "Database setup failed. Check your .env.testing CRAFT_DB_* values.\n");
-        exit($dbExit);
-    }
-}
-
-try {
-    $db = Craft::$app->getDb();
-    $db->open();
-} catch (Throwable $e) {
-    $socketHint = $unixSocket !== '' ? " (using unix socket: {$unixSocket})" : '';
-    fwrite(STDERR, "Database connectivity preflight failed{$socketHint}: {$e->getMessage()}\n");
-    fwrite(STDERR, "Check your .env.testing CRAFT_DB_* values and ensure the target database exists.\n");
-    exit(ExitCode::UNSPECIFIED_ERROR);
-}
-
-$tableNames = $db->getSchema()->getTableNames();
-
-if (!$tableNames) {
-    fwrite(STDOUT, "No existing tables found. Continuing with fresh install.\n");
-} else {
-    fwrite(STDOUT, "Dropping " . count($tableNames) . " existing tables...\n");
-}
-
-try {
-    if ($db->driverName === 'mysql') {
-        $db->createCommand('SET FOREIGN_KEY_CHECKS = 0')->execute();
-    } elseif ($db->driverName === 'sqlite') {
-        $db->createCommand('PRAGMA foreign_keys = OFF')->execute();
-    }
-
-    foreach ($tableNames as $tableName) {
-        $db->createCommand()->dropTable($tableName)->execute();
-    }
-} catch (Throwable $e) {
-    fwrite(STDERR, "Failed dropping existing tables: {$e->getMessage()}\n");
-    exit(ExitCode::UNSPECIFIED_ERROR);
-} finally {
-    try {
-        if ($db->driverName === 'mysql') {
-            $db->createCommand('SET FOREIGN_KEY_CHECKS = 1')->execute();
-        } elseif ($db->driverName === 'sqlite') {
-            $db->createCommand('PRAGMA foreign_keys = ON')->execute();
-        }
-    } catch (Throwable) {
-    }
-}
-
-$siteUrl = getenv('PRIMARY_SITE_URL') ?: 'http://localhost:8080';
-$installExit = $runAction('install/craft', [
-    'interactive' => 0,
-    'username' => 'admin',
-    'email' => 'admin@example.test',
-    'password' => 'password123',
-    'siteName' => 'Formie Test',
-    'siteUrl' => $siteUrl,
-    'language' => 'en-US',
-]);
-
-if ($installExit !== ExitCode::OK) {
-    fwrite(STDERR, "Craft install failed. Verify DB connectivity and rerun `composer test:setup`.\n");
-    exit($installExit);
-}
-
-$checkExit = $runAction('install/check');
-if ($checkExit !== ExitCode::OK) {
-    fwrite(STDERR, "Install finished without a healthy install state. Please inspect the console output above.\n");
-    exit(ExitCode::UNSPECIFIED_ERROR);
-}
-
-Craft::$app->setEdition(CmsEdition::Pro);
-
+require __DIR__ . '/verify.php';
 // Seed baseline fixtures.
 $site = Craft::$app->getSites()->getPrimarySite();
 $siteId = $site->id;
+
+// Two secondary sites share a group distinct from primary, so propagation tests
+// can distinguish all-sites from same-group behaviour instead of passing vacuously.
+if (!in_array('--single-site', $_SERVER['argv'], true)) {
+    $group = new \craft\models\SiteGroup(['name' => 'Translation fixtures']);
+    if (!Craft::$app->getSites()->saveGroup($group)) {
+        throw new RuntimeException('Cannot create translation site group.');
+    }
+    foreach (['translationOne', 'translationTwo'] as $handle) {
+        $secondary = new \craft\models\Site([
+            'groupId' => $group->id, 'name' => $handle, 'handle' => $handle,
+            'language' => 'en-US', 'hasUrls' => true,
+            'baseUrl' => $site->baseUrl . '/' . $handle . '/',
+        ]);
+        if (!Craft::$app->getSites()->saveSite($secondary)) {
+            throw new RuntimeException('Cannot create translation site: ' . json_encode($secondary->getErrors()));
+        }
+    }
+}
+
 
 $ensureUserGroup = static function(string $handle, string $name): UserGroup {
     $service = Craft::$app->getUserGroups();
@@ -220,7 +103,13 @@ $ensureCategoryGroup = static function(string $handle, string $name, int $siteId
         'name' => $name,
         'maxLevels' => null,
     ]);
-    $group->setSiteSettings([$siteId => $siteSettings]);
+    $allSiteSettings = [];
+    foreach (Craft::$app->getSites()->getAllSiteIds() as $targetSiteId) {
+        $settingsForSite = clone $siteSettings;
+        $settingsForSite->siteId = $targetSiteId;
+        $allSiteSettings[$targetSiteId] = $settingsForSite;
+    }
+    $group->setSiteSettings($allSiteSettings);
 
     if (!$service->saveGroup($group)) {
         throw new RuntimeException("Failed creating category group `{$handle}`: " . json_encode($group->getErrors()));
@@ -464,6 +353,9 @@ try {
     $ensureCategory($categoryGroup, $siteId);
     $section = $ensureSection($siteId);
     $ensureEntry($section, $siteId);
+    // Browser requests and rolled-back test fixtures must resolve the same stored filesystem.
+    \Tests\Support\UploadTestHelper::ensureUploadVolume();
+    Craft::$app->getProjectConfig()->saveModifiedConfigData();
 } catch (Throwable $e) {
     fwrite(STDERR, "Baseline seed failed: {$e->getMessage()}\n");
     exit(ExitCode::UNSPECIFIED_ERROR);
@@ -471,4 +363,3 @@ try {
 
 fwrite(STDOUT, "Test setup complete: install reset and baseline seed finished. You can now run `composer test`.\n");
 exit(ExitCode::OK);
-

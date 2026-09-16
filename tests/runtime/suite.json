@@ -1,0 +1,42 @@
+{
+    "project": "formie-react-tests",
+    "suites": {
+        "default": [
+            "--exclude-group=slow",
+            "--exclude-group=perf",
+            "--exclude-group=perf-large",
+            "--exclude-group=migrate-plugins"
+        ],
+        "all": [
+            "--exclude-group=perf-large",
+            "--exclude-group=migrate-plugins"
+        ],
+        "performance": [
+            "--group=perf"
+        ],
+        "slow": [
+            "--group=slow"
+        ],
+        "migration": [
+            "--group=migrate-plugins"
+        ],
+        "single-site": [
+            "--exclude-group=slow",
+            "--exclude-group=perf",
+            "--exclude-group=perf-large",
+            "--exclude-group=migrate-plugins"
+        ],
+        "commerce": [
+            "--exclude-group=slow",
+            "--exclude-group=perf",
+            "--exclude-group=perf-large",
+            "--exclude-group=migrate-plugins"
+        ]
+    },
+    "tasks": {
+        "profile": "tests/bin/perf.php",
+        "browser-fixture": "tests/runtime/browser-fixture.php",
+        "mutations": "tests/runtime/mutations.php",
+        "upgrade": "tests/runtime/upgrade.php"
+    }
+}

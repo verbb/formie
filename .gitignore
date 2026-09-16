@@ -39,3 +39,11 @@
 !.vscode/launch.json
 !.vscode/extensions.json
 node_modules
+
+/.cache/
+
+/.ddev/docker-compose.tests-local.yaml
+
+/.phpunit.result.cache
+
+/test-results/

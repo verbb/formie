@@ -1,12 +1,6 @@
 <?php
-
-declare(strict_types=1);
-
 namespace verbb\formie\factories;
 
-use Craft;
-use InvalidArgumentException;
-use RuntimeException;
 use verbb\formie\base\FieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\fields\Address;
@@ -14,6 +8,7 @@ use verbb\formie\fields\Agree;
 use verbb\formie\fields\Calculations;
 use verbb\formie\fields\Categories;
 use verbb\formie\fields\Checkboxes;
+use verbb\formie\fields\Content;
 use verbb\formie\fields\Date;
 use verbb\formie\fields\Dropdown;
 use verbb\formie\fields\Email;
@@ -24,7 +19,6 @@ use verbb\formie\fields\Group;
 use verbb\formie\fields\Heading;
 use verbb\formie\fields\Hidden;
 use verbb\formie\fields\Html;
-use verbb\formie\fields\Content;
 use verbb\formie\fields\MissingField;
 use verbb\formie\fields\MultiLineText;
 use verbb\formie\fields\Name;
@@ -48,13 +42,49 @@ use verbb\formie\fields\Users;
 use verbb\formie\fields\Variants;
 use verbb\formie\models\FieldLayout;
 
+use Craft;
+
+use InvalidArgumentException;
+use RuntimeException;
+
 final class FormFactory
 {
-    // Properties
+    // Static Methods
+    // =========================================================================
+
+    private static function _generateAutoHandle(): string
+    {
+        do {
+            $counter = self::$autoHandleCounter++;
+            // Grow beyond two letters instead of cycling through an exhausted namespace.
+            $handle = '';
+            do {
+                $handle = self::HANDLE_ALPHABET[$counter % 26] . $handle;
+                $counter = intdiv($counter, 26);
+            } while ($counter > 0);
+            $handle = str_pad($handle, 2, 'a', STR_PAD_LEFT);
+        } while (
+            isset(self::$autoHandlesIssued[$handle]) ||
+            in_array(strtolower($handle), array_map('strtolower', array_merge(self::RESERVED_HANDLES, \craft\validators\HandleValidator::$baseReservedWords)), true) ||
+            Form::find()->handle($handle)->status(null)->one() !== null
+        );
+
+        self::$autoHandlesIssued[$handle] = true;
+
+        return $handle;
+    }
+
+
+    // Constants
     // =========================================================================
 
     private const HANDLE_ALPHABET = 'abcdefghijklmnopqrstuvwxyz';
     private const RESERVED_HANDLES = ['id', 'uid', 'title', 'datecreated', 'dateupdated'];
+
+
+    // Properties
+    // =========================================================================
+
     private static int $autoHandleCounter = 0;
     private static array $autoHandlesIssued = [];
 
@@ -73,13 +103,13 @@ final class FormFactory
     {
         $defaultConfig = [
             'title' => 'Programmatic Form',
-            'handle' => self::generateAutoHandle(),
+            'handle' => self::_generateAutoHandle(),
         ];
 
         $this->formConfig = array_merge($defaultConfig, $config);
 
-        $this->ensurePage(0);
-        $this->ensureRow(0, 0);
+        $this->_ensurePage(0);
+        $this->_ensureRow(0, 0);
     }
 
     public function singleLineTextField(string $handle, array $config = []): self
@@ -272,7 +302,7 @@ final class FormFactory
         $pages = max(1, $pages);
 
         for ($i = 0; $i < $pages; $i++) {
-            $this->ensurePage($i);
+            $this->_ensurePage($i);
         }
 
         $this->currentPageIndex = 0;
@@ -284,10 +314,10 @@ final class FormFactory
     public function page(int $pageNumber): self
     {
         $index = max(0, $pageNumber - 1);
-        $this->ensurePage($index);
+        $this->_ensurePage($index);
         $this->currentPageIndex = $index;
         $this->currentRowIndex = 0;
-        $this->ensureRow($this->currentPageIndex, $this->currentRowIndex);
+        $this->_ensureRow($this->currentPageIndex, $this->currentRowIndex);
 
         return $this;
     }
@@ -319,8 +349,8 @@ final class FormFactory
 
     public function addFieldConfig(array $fieldConfig): self
     {
-        $this->ensurePage($this->currentPageIndex);
-        $this->ensureRow($this->currentPageIndex, $this->currentRowIndex);
+        $this->_ensurePage($this->currentPageIndex);
+        $this->_ensureRow($this->currentPageIndex, $this->currentRowIndex);
 
         $fieldClass = $fieldConfig['type'] ?? null;
 
@@ -340,7 +370,7 @@ final class FormFactory
 
         if ($this->singleFieldRows) {
             $this->currentRowIndex++;
-            $this->ensureRow($this->currentPageIndex, $this->currentRowIndex);
+            $this->_ensureRow($this->currentPageIndex, $this->currentRowIndex);
         }
 
         return $this;
@@ -357,10 +387,10 @@ final class FormFactory
 
     public function row(array $fieldConfigs = []): self
     {
-        $this->ensurePage($this->currentPageIndex);
+        $this->_ensurePage($this->currentPageIndex);
 
         $nextRowIndex = count($this->pages[$this->currentPageIndex]['rows']);
-        $this->ensureRow($this->currentPageIndex, $nextRowIndex);
+        $this->_ensureRow($this->currentPageIndex, $nextRowIndex);
         $this->currentRowIndex = $nextRowIndex;
 
         if ($fieldConfigs) {
@@ -461,7 +491,7 @@ final class FormFactory
     // Private Methods
     // =========================================================================
 
-    private function ensurePage(int $index): void
+    private function _ensurePage(int $index): void
     {
         if (!isset($this->pages[$index])) {
             $this->pages[$index] = [
@@ -472,9 +502,9 @@ final class FormFactory
         }
     }
 
-    private function ensureRow(int $pageIndex, int $rowIndex): void
+    private function _ensureRow(int $pageIndex, int $rowIndex): void
     {
-        $this->ensurePage($pageIndex);
+        $this->_ensurePage($pageIndex);
 
         if (!isset($this->pages[$pageIndex]['rows'][$rowIndex])) {
             $this->pages[$pageIndex]['rows'][$rowIndex] = [
@@ -483,21 +513,4 @@ final class FormFactory
         }
     }
 
-    private static function generateAutoHandle(): string
-    {
-        do {
-            $counter = self::$autoHandleCounter++;
-            $first = intdiv($counter, 26) % 26;
-            $second = $counter % 26;
-            $handle = self::HANDLE_ALPHABET[$first] . self::HANDLE_ALPHABET[$second];
-        } while (
-            isset(self::$autoHandlesIssued[$handle]) ||
-            in_array(strtolower($handle), self::RESERVED_HANDLES, true) ||
-            Form::find()->handle($handle)->status(null)->one() !== null
-        );
-
-        self::$autoHandlesIssued[$handle] = true;
-
-        return $handle;
-    }
 }

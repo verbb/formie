@@ -19,9 +19,6 @@ use yii\console\ExitCode;
 
 $pluginRoot = dirname(__DIR__, 2);
 
-putenv('DOTENV_FILE=' . (getenv('DOTENV_FILE') ?: '.env.testing'));
-putenv('ENVIRONMENT=' . (getenv('ENVIRONMENT') ?: 'testing'));
-
 require $pluginRoot . '/tests/bootstrap.php';
 require_once $pluginRoot . '/tests/Support/Factories/functions.php';
 require_once $pluginRoot . '/tests/Support/ResetTestDatabase.php';
@@ -87,7 +84,7 @@ class FormiePerfCommand extends yii\db\Command
     }
 }
 
-$app = require CRAFT_VENDOR_PATH . '/craftcms/cms/bootstrap/console.php';
+require $pluginRoot . '/tests/bootstrap-craft.php';
 
 if ((getenv('ENVIRONMENT') ?: '') !== 'testing') {
     fwrite(STDERR, "Refusing to run perf harness outside ENVIRONMENT=testing.\n");
@@ -95,11 +92,10 @@ if ((getenv('ENVIRONMENT') ?: '') !== 'testing') {
 }
 
 if (!Craft::$app->getDb()->tableExists('{{%plugins}}')) {
-    fwrite(STDERR, "Testing database is not installed. Run `composer test:setup` first.\n");
+    fwrite(STDERR, "Testing database is not installed. Run `ddev test` first.\n");
     exit(ExitCode::UNSPECIFIED_ERROR);
 }
 
-ensurePerfPluginReady();
 
 // Swap in an instrumented command class after Craft has booted so measured
 // scenarios can collect query counts without changing application code.
@@ -255,66 +251,6 @@ function perfScenarios(): array
         'graphql:schema' => 'runGraphqlSchemaPerfScenario',
         'client:manifest' => 'runClientManifestPerfScenario',
     ];
-}
-
-function ensurePerfPluginReady(): void
-{
-    $projectConfig = Craft::$app->getProjectConfig();
-    $pluginRows = (new craft\db\Query())
-        ->select(['handle', 'schemaVersion'])
-        ->from('{{%plugins}}')
-        ->where(['handle' => ['formie', 'freeform']])
-        ->all();
-
-    foreach ($pluginRows as $pluginRow) {
-        $handle = (string)($pluginRow['handle'] ?? '');
-
-        if ($handle === '') {
-            continue;
-        }
-
-        $key = 'plugins.' . $handle;
-        $pluginConfig = $projectConfig->get($key);
-
-        if (!$pluginConfig || empty($pluginConfig['enabled'])) {
-            $projectConfig->set($key, [
-                ...($pluginConfig ?: []),
-                'edition' => $handle === 'freeform' ? 'express' : 'standard',
-                'enabled' => true,
-                'schemaVersion' => (string)($pluginConfig['schemaVersion'] ?? $pluginRow['schemaVersion'] ?? ''),
-            ]);
-        }
-    }
-
-    // Craft can load the plugin service before this isolated test project config
-    // has plugin keys, which makes installed plugins appear absent and triggers a
-    // slow reinstall. Reload after hydrating the keys so the harness measures the
-    // scenario, not project-config recovery work.
-    reloadPerfPluginService();
-
-    if (!Craft::$app->plugins->isPluginEnabled('formie')) {
-        Craft::$app->plugins->installPlugin('formie');
-    }
-}
-
-function reloadPerfPluginService(): void
-{
-    $plugins = Craft::$app->plugins;
-    $reflection = new ReflectionClass($plugins);
-
-    foreach ([
-        '_pluginsLoaded' => false,
-        '_loadingPlugins' => false,
-        '_plugins' => [],
-    ] as $propertyName => $value) {
-        if (!$reflection->hasProperty($propertyName)) {
-            continue;
-        }
-
-        $property = $reflection->getProperty($propertyName);
-        $property->setAccessible(true);
-        $property->setValue($plugins, $value);
-    }
 }
 
 function ensurePerfSeed(array $profile, bool $fresh): array
