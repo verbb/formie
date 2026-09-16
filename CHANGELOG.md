@@ -29,6 +29,7 @@
 - Keep cached form lookups isolated to the requested site.
 - Resolve cached form lookups using the selected control-panel site.
 - Include regional forms in permission settings, GraphQL schemas and submission queries.
+- Preserve explicit GraphQL form filters when selecting submission fields through inline fragments.
 - Preserve unique form handles and recognize shared settings in use across every site.
 - Resolve numeric form-status filters correctly.
 - Respect form site availability when filtering by form status.

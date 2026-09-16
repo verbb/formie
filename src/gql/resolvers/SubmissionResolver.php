@@ -3,6 +3,7 @@ namespace verbb\formie\gql\resolvers;
 
 use verbb\formie\Formie;
 use verbb\formie\elements\Submission;
+use verbb\formie\elements\db\SubmissionQuery;
 use verbb\formie\gql\arguments\SubmissionArguments;
 use verbb\formie\helpers\Gql as GqlHelper;
 
@@ -56,27 +57,24 @@ class SubmissionResolver extends ElementResolver
     {
         $query = self::prepareElementQuery($source, $arguments, $context, $resolveInfo);
 
-        // Try and automatically set the submissions' context based on the inline fragment used. This is because submissions
-        // require a form context to resolve their custom field values, and sometimes, we don't want to supply the "form:handle"
-        // GQL query param for `formieSubmissions`. Instead, because we already use inline fragments (`...on contactForm_Submission`)
-        // We can make use of that, and set the form param on the Submission element query.
-        // Unfortunately, we don't have access to `$resolveInfo` in `prepareQuery()`.
-        foreach ($resolveInfo->fieldNodes as $fieldNode) {
-            if ($fieldNode->selectionSet === null) {
-                continue;
-            }
+        // Fragment context is a convenience for unscoped queries; explicit and source scopes take precedence.
+        if ($query instanceof SubmissionQuery && $query->formId === null && !array_key_exists('form', $arguments)) {
+            $formHandles = [];
 
-            if ($fieldNode->selectionSet) {
-                foreach ($fieldNode->selectionSet->selections as $selectionNode) {
+            foreach ($resolveInfo->fieldNodes as $fieldNode) {
+                foreach ($fieldNode->selectionSet?->selections ?? [] as $selectionNode) {
                     if ($selectionNode instanceof InlineFragmentNode) {
-                        $fragmentName = $selectionNode->typeCondition->name->value ?? '';
-                        $formHandle = self::formHandleFromFragmentType($fragmentName);
+                        $formHandle = self::formHandleFromFragmentType($selectionNode->typeCondition->name->value ?? '');
 
                         if ($formHandle) {
-                            $query->form($formHandle);
+                            $formHandles[] = $formHandle;
                         }
                     }
                 }
+            }
+
+            if ($formHandles) {
+                $query->form(array_values(array_unique($formHandles)));
             }
         }
 
