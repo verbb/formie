@@ -29,6 +29,7 @@
 - Include regional forms in permission settings, GraphQL schemas and submission queries.
 - Preserve unique form handles and recognize shared settings in use across every site.
 - Resolve numeric form-status filters correctly.
+- Respect form site availability when filtering by form status.
 - Restore configured form availability on secondary sites when upgrading existing installations.
 - Include regional forms in report choices, summaries and scheduled exports.
 - Preserve explicitly selected form sites when loading submission fields in the control panel.

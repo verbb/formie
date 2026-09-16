@@ -237,6 +237,12 @@ class FormQuery extends ElementQuery
         }
 
         if (Formie::$plugin->getFormSitePropagation()->isEnabled()) {
+            // Group availability applies independently of optional form statuses.
+            // Maintenance callers can explicitly include disabled rows with status(null).
+            if ($this->status) {
+                $this->subQuery->andWhere(['elements_sites.enabled' => true]);
+            }
+
             $this->siteId = $this->_requestedSiteId ?? Craft::$app->getSites()->getCurrentSite()->id;
 
             if ($this->siteId === '*') {
