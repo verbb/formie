@@ -881,16 +881,22 @@ class Formie extends Plugin
                     if ($controller->formId !== null) {
                         $formIds = explode(',', $controller->formId);
                     } else {
-                        $formIds = Form::find()->ids();
+                        $formIds = Form::find()->site('*')->unique()->status(null)->ids();
                     }
+
+                    $exitCode = 0;
 
                     foreach ($formIds as $formId) {
                         $criteria = ['formId' => $formId, 'updateTitle' => $controller->updateTitle];
 
-                        $controller->resaveElements(Submission::class, $criteria);
+                        $result = $controller->resaveElements(Submission::class, $criteria);
+
+                        if ($result !== 0) {
+                            $exitCode = $result;
+                        }
                     }
 
-                    return true;
+                    return $exitCode;
                 },
                 'options' => ['formId', 'updateTitle', 'updateSearchIndex'],
                 'helpSummary' => 'Re-saves Formie submissions.',
