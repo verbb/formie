@@ -17,6 +17,7 @@
 - Bump transitive `symfony/cache` to `6.4.45` (CVE-2026-45073 advisory floor).
 
 ### Fixed
+- Preserve every report export column when labels repeat, and retain numeric labels as JSON object keys.
 - Keep unresolved earlier payment attempts blocked until their gateway outcome is verified.
 - Route users with settings page permissions to a page they can access.
 - Fix submission queries on Craft 5.0.

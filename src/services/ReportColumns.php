@@ -380,12 +380,37 @@ class ReportColumns extends Component
     public function formatRowAssoc(Submission $submission, array $columns, array $display): array
     {
         $row = [];
+        $headers = $this->getExportHeaders($columns);
 
-        foreach ($columns as $column) {
-            $row[$column['header']] = $this->formatCell($submission, $column, $display);
+        foreach (array_values($columns) as $index => $column) {
+            $row[$headers[$index]] = $this->formatCell($submission, $column, $display);
         }
 
         return $row;
+    }
+
+    public function getExportHeaders(array $columns): array
+    {
+        $headers = array_map(static fn($column) => (string)$column['header'], array_values($columns));
+        $reserved = array_fill_keys($headers, true);
+        $used = [];
+
+        foreach ($headers as &$header) {
+            $label = $header;
+            $suffix = 2;
+
+            // Keep literal headings available, including labels such as "Value (2)".
+            // Otherwise resolving one duplicate could overwrite a later column.
+            if (isset($used[$header])) {
+                do {
+                    $header = $label . ' (' . $suffix++ . ')';
+                } while (isset($reserved[$header]) || isset($used[$header]));
+            }
+
+            $used[$header] = true;
+        }
+
+        return $headers;
     }
 
     public function formatCell(Submission $submission, array $column, array $display): mixed

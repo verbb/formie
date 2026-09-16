@@ -53,7 +53,8 @@ class ReportExportWriter
                 $first = true;
 
                 foreach ($rows as $row) {
-                    self::_writeAll($handle, ($first ? "\n" : ",\n") . json_encode($row, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR));
+                    // Numeric column labels are still object keys, not list indexes.
+                    self::_writeAll($handle, ($first ? "\n" : ",\n") . json_encode((object)$row, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR));
                     $first = false;
                 }
 

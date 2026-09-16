@@ -67,7 +67,7 @@ class ReportExport extends Component
 
         try {
             $columns = Formie::$plugin->getReportColumns()->resolveColumns($report, $columnOverride);
-            $headers = array_column($columns, 'header');
+            $headers = Formie::$plugin->getReportColumns()->getExportHeaders($columns);
             $rows = ReportExportRows::iterate($query, $columns, $report->getSettingsModel()->display, $chunkSize, $this->_progressCallback);
             ReportExportWriter::write($tempPath, $format, $headers, $rows);
 

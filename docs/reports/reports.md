@@ -37,6 +37,8 @@ From the report run screen, choose **Export** and pick a file type:
 
 The file extension is added automatically from the format you choose. The **Export Filename** setting on the report editor controls the basename only — not the extension.
 
+When columns share a label, exports add numbered suffixes such as `Value (2)` to keep every column distinct. Existing labels are preserved, so a suffix already used by another column is skipped. This applies to spreadsheet headings, JSON keys and XML column names; the report’s saved labels are unchanged.
+
 [Scheduled reports](/reports/scheduled-reports) attach exports in the **File Type** you choose on each schedule (CSV, Excel, JSON, XML, or text). That uses the same export engine as on-demand downloads.
 
 ## Large Exports
