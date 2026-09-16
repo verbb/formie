@@ -34,6 +34,7 @@ use yii\base\Event;
 use yii\web\BadRequestHttpException;
 use yii\web\Response;
 
+use NumberFormatter;
 use Throwable;
 
 use Twig\Markup;
@@ -101,7 +102,13 @@ abstract class Payment extends Integration
 
     public static function getDefaultCurrencyCode(): string
     {
-        $currency = strtoupper((string)(Craft::$app->getLocale()->getDefaultCurrency() ?: 'USD'));
+        $locale = Craft::$app->getLocale();
+
+        // Older Craft versions expose the locale but not its default-currency helper.
+        $currency = method_exists($locale, 'getDefaultCurrency')
+            ? $locale->getDefaultCurrency()
+            : (new NumberFormatter($locale->aliasOf ?? $locale->id, NumberFormatter::CURRENCY))->getTextAttribute(NumberFormatter::CURRENCY_CODE);
+        $currency = strtoupper((string)($currency ?: 'USD'));
 
         return $currency !== '' ? $currency : 'USD';
     }

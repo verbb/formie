@@ -50,6 +50,7 @@
 - Fix submission queries on Craft 5.0.
 - Create default statuses and the Contact Form stencil when installing on Craft 5.0.
 - Save form group settings on all supported Craft 5 versions.
+- Configure Stripe payment fields on all supported Craft 5 versions.
 - Preserve zero, false, and empty submission values when moving fields into or out of groups.
 - Require POST requests when importing forms or migrating from another form plugin.
 - Allow settings page permissions to be assigned independently while preserving access to all settings for existing roles.
