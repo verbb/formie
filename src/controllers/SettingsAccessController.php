@@ -35,7 +35,11 @@ class SettingsAccessController extends Controller
         $user = Craft::$app->getUser()->getIdentity();
         $page = $this->settingsPage ?? $this->_resolveSettingsPage($action->id);
 
-        if (!$permissions->canAccessSettingsPage($user, $page)) {
+        $canAccess = $this->id === 'settings' && $action->id === 'index'
+            ? $permissions->canAccessAnySettings($user)
+            : $permissions->canAccessSettingsPage($user, $page);
+
+        if (!$canAccess) {
             throw new ForbiddenHttpException('User is not permitted to perform this action');
         }
 

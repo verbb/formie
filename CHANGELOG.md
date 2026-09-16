@@ -17,6 +17,7 @@
 - Bump transitive `symfony/cache` to `6.4.45` (CVE-2026-45073 advisory floor).
 
 ### Fixed
+- Route users with settings page permissions to a page they can access.
 - Fix submission queries on Craft 5.0.
 - Preserve zero, false, and empty submission values when moving fields into or out of groups.
 - Require POST requests when importing forms or migrating from another form plugin.

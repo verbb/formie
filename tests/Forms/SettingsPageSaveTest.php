@@ -75,7 +75,7 @@ it('authorizes direct settings actions by their controller', function (string $c
         $controller = new $controllerClass($controllerId, Formie::$plugin);
         expect($controller->beforeAction(new \yii\base\Action('index', $controller)))->toBeTrue();
         $general = new SettingsController('settings', Formie::$plugin);
-        expect(fn() => $general->beforeAction(new \yii\base\Action('index', $general)))->toThrow(ForbiddenHttpException::class);
+        expect(fn() => $general->beforeAction(new \yii\base\Action('submissions', $general)))->toThrow(ForbiddenHttpException::class);
     }, ['method' => 'POST']);
 })->with([
     [\verbb\formie\controllers\FormGroupsController::class, 'form-groups', 'form-groups'],
@@ -83,3 +83,24 @@ it('authorizes direct settings actions by their controller', function (string $c
     [\verbb\formie\controllers\SubmissionStatusesController::class, 'submission-statuses', 'submission-statuses'],
     [\verbb\formie\controllers\ScheduledReportsController::class, 'scheduled-reports', 'scheduled-reports'],
 ]);
+
+it('routes the settings landing page to the first permitted page', function (bool $allowForms): void {
+    $name = 'settingsLanding' . bin2hex(random_bytes(8));
+    $user = new User(['username' => $name, 'email' => $name . '@example.test']);
+    expect(Craft::$app->getElements()->saveElement($user))->toBeTrue();
+    expect(Craft::$app->getUserPermissions()->saveUserPermissions($user->id, [
+        'accessCp', 'accessPlugin-formie', ...($allowForms ? ['formie-settingsForms'] : []),
+    ]))->toBeTrue();
+    WebRequestTestHelper::withWebRequestContext(function ($request) use ($user, $allowForms): void {
+        $request->setIsCpRequest(true);
+        Craft::$app->getUser()->setIdentity(User::find()->id($user->id)->status(null)->one());
+        $controller = new SettingsController('settings', Formie::$plugin);
+        if ($allowForms) {
+            $response = $controller->runAction('index');
+            expect($response->statusCode)->toBe(302)
+                ->and($response->headers->get('Location'))->toContain('formie/settings/forms');
+        } else {
+            expect(fn() => $controller->runAction('index'))->toThrow(ForbiddenHttpException::class);
+        }
+    }, ['method' => 'GET']);
+})->with([true, false]);
