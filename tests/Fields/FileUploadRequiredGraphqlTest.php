@@ -13,7 +13,7 @@ use verbb\formie\gql\types\input\FileUploadInputType;
 use verbb\formie\helpers\ValidationHelper;
 use Tests\Support\UploadTestHelper;
 
-const FILE_UPLOAD_REQUIRED_GQL_FIXTURE = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4////fwAJ+wP9KobjigAAAABJRU5ErkJggg==';
+const FILE_UPLOAD_REQUIRED_GQL_FIXTURE = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR4nGP4DwQACfsD/fteaysAAAAASUVORK5CYII=';
 
 it('treats graphql file upload mutation data as non-empty for required validation', function (): void {
     UploadTestHelper::ensureUploadVolume();
@@ -25,6 +25,7 @@ it('treats graphql file upload mutation data as non-empty for required validatio
             'restrictFiles' => false,
             'allowedKinds' => ['image'],
         ])
+        ->settings(['disableCaptchas' => true])
         ->create();
 
     $field = $form->getFieldByHandle('resume');
@@ -66,12 +67,14 @@ it('accepts required file upload submissions over the graphql mutation path', fu
             'restrictFiles' => false,
             'allowedKinds' => ['image'],
         ])
+        ->settings(['disableCaptchas' => true])
         ->create();
 
     $initialSubmissionCount = (int)Submission::find()->formId($form->id)->status(null)->isSpam(null)->isIncomplete(null)->count();
     $mutation = SubmissionMutation::createSaveMutation($form);
     $resolve = $mutation['resolve'];
     $resolveInfo = $this->createMock(ResolveInfo::class);
+    $resolveInfo->fieldDefinition = \GraphQL\Type\Definition\FieldDefinition::create(['name' => 'saveTest'] + $mutation);
     $arguments = [
         'resume' => [[
             'fileData' => FILE_UPLOAD_REQUIRED_GQL_FIXTURE,
@@ -123,12 +126,14 @@ it('rejects missing required file upload submissions over the graphql mutation p
             'restrictFiles' => false,
             'allowedKinds' => ['image'],
         ])
+        ->settings(['disableCaptchas' => true])
         ->create();
 
     $initialSubmissionCount = (int)Submission::find()->formId($form->id)->status(null)->isSpam(null)->isIncomplete(null)->count();
     $mutation = SubmissionMutation::createSaveMutation($form);
     $resolve = $mutation['resolve'];
     $resolveInfo = $this->createMock(ResolveInfo::class);
+    $resolveInfo->fieldDefinition = \GraphQL\Type\Definition\FieldDefinition::create(['name' => 'saveTest'] + $mutation);
 
     $gqlService = Craft::$app->getGql();
     $activeSchema = null;
@@ -166,15 +171,5 @@ it('rejects missing required file upload submissions over the graphql mutation p
 
 function fileUploadRequiredGraphqlHandle(): string
 {
-    static $counter = 700;
-    $alphabet = 'abcdefghijklmnopqrstuvwxyz';
-
-    do {
-        $first = intdiv($counter, 26) % 26;
-        $second = $counter % 26;
-        $handle = $alphabet[$first] . $alphabet[$second];
-        $counter++;
-    } while (Form::find()->handle($handle)->status(null)->one() !== null);
-
-    return $handle;
+    return 'test' . bin2hex(random_bytes(8));
 }

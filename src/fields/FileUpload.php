@@ -224,35 +224,27 @@ class FileUpload extends ElementField
 
     public function normalizeValue(mixed $value, ?ElementInterface $element): mixed
     {
-        if (is_array($value) && !isset($value['mutationData']) && array_is_list($value)) {
-            $hasCanonicalUploadPayload = false;
-            $assetIds = [];
+        $uploadedDataFiles = &$this->_getUploadedDataFiles($element);
 
-            foreach ($value as $item) {
-                if (!is_array($item)) {
-                    continue;
-                }
-
-                if (isset($item['assetId'])) {
-                    $assetId = (int)$item['assetId'];
-
-                    if ($assetId) {
-                        $assetIds[] = $assetId;
-                        $hasCanonicalUploadPayload = true;
-                    }
-
-                    continue;
-                }
-
-                if (!empty($item['fileData'])) {
-                    $hasCanonicalUploadPayload = true;
-                }
+        // Replacing a submitted value also replaces its staged bytes. Internal partial-page
+        // merges only rehydrate persisted IDs, so they preserve the pending upload payload.
+        if ($element instanceof Submission && !$element->getContentState()->isMergingPartialPayload
+            && (is_array($value) || $value === null || $value === '')) {
+            if (($paramName = $this->requestParamName($element)) !== null) {
+                unset($uploadedDataFiles[$paramName]);
             }
+        }
 
-            if ($hasCanonicalUploadPayload) {
-                $value = $assetIds && count($assetIds) === count($value)
-                    ? $assetIds
-                    : ['mutationData' => $value];
+        if (is_array($value) && !isset($value['mutationData']) && array_is_list($value)) {
+            foreach ($value as $item) {
+                if (is_array($item) && (isset($item['assetId']) || isset($item['fileData']))) {
+                    // Client envelopes and GraphQL share one decoder and retained-ID contract.
+                    $value = FileUploadInputType::normalizeValue(array_map(
+                        fn($entry) => is_numeric($entry) ? ['assetId' => (int)$entry] : $entry,
+                        $value,
+                    ));
+                    break;
+                }
             }
         }
 
@@ -261,7 +253,7 @@ class FileUpload extends ElementField
         if (is_array($value) && isset($value['mutationData'])) {
             if ($paramName = $this->requestParamName($element)) {
                 // Save for later, in the format `fields.repeater.rows.new2.fields.file`.
-                $this->_uploadedDataFiles[$paramName] = $value['mutationData'];
+                $uploadedDataFiles[$paramName] = $value['mutationData'];
             }
 
             unset($value['mutationData']);
@@ -332,6 +324,7 @@ class FileUpload extends ElementField
                 (string)($file['filename'] ?? ''),
                 $file['path'] ?? null,
                 $file['mimeType'] ?? null,
+                $file['data'] ?? null,
             ) as $message) {
                 $element->addError($this->valueKey(), $message);
             }
@@ -365,11 +358,9 @@ class FileUpload extends ElementField
         $sizeMinLimit = $this->sizeMinLimit * 1000 * 1000;
 
         foreach ($uploadedFiles as $file) {
-            // Watch for data (GQL), which doesn't support this validation yet
-            if (isset($file['path'])) {
-                if (file_exists($file['path']) && (filesize($file['path']) < $sizeMinLimit)) {
-                    $filenames[] = $file['filename'];
-                }
+            $size = $this->_getUploadedFileSize($file);
+            if ($size !== null && $size < $sizeMinLimit) {
+                $filenames[] = $file['filename'];
             }
         }
 
@@ -390,11 +381,9 @@ class FileUpload extends ElementField
         $sizeLimit = $this->sizeLimit * 1000 * 1000;
 
         foreach ($uploadedFiles as $file) {
-            // Watch for data (GQL), which doesn't support this validation yet
-            if (isset($file['path'])) {
-                if (file_exists($file['path']) && (filesize($file['path']) > $sizeLimit)) {
-                    $filenames[] = $file['filename'];
-                }
+            $size = $this->_getUploadedFileSize($file);
+            if ($size !== null && $size > $sizeLimit) {
+                $filenames[] = $file['filename'];
             }
         }
 
@@ -440,7 +429,7 @@ class FileUpload extends ElementField
         return $size > ((float)$this->sizeLimit * 1000 * 1000);
     }
 
-    public function getUploadTypeValidationErrors(string $filename, ?string $path = null, ?string $mimeType = null): array
+    public function getUploadTypeValidationErrors(string $filename, ?string $path = null, ?string $mimeType = null, ?string $data = null): array
     {
         $filename = $this->sanitizeUploadedFilename($filename);
 
@@ -470,7 +459,7 @@ class FileUpload extends ElementField
         }
 
         $declaredKind = Assets::getFileKindByExtension($filename);
-        $detectedKind = $this->_resolveDetectedFileKind($path, $mimeType);
+        $detectedKind = $this->_resolveDetectedFileKind($path, $mimeType, $data);
 
         if ($declaredKind !== Asset::KIND_UNKNOWN && $detectedKind !== null && $detectedKind !== Asset::KIND_UNKNOWN && $declaredKind !== $detectedKind) {
             $errors[] = Craft::t('formie', '“{filename}” does not match its detected file type.', [
@@ -722,6 +711,8 @@ class FileUpload extends ElementField
 
     public function beforeElementSave(ElementInterface $element, bool $isNew): bool
     {
+        $uploadedDataFiles = &$this->_getUploadedDataFiles($element);
+
         if (!parent::beforeElementSave($element, $isNew)) {
             return false;
         }
@@ -734,12 +725,18 @@ class FileUpload extends ElementField
         // First, check if there are any new uploaded files. We're not going to delete anything
         // unless we're replacing things.
         $uploadedFiles = $this->_getUploadedFiles($element);
+        $this->_assetsToDelete = [];
 
         if ($uploadedFiles) {
             // Get any already saved assets to delete later
             $value = $element->getFieldValue($this->valueKey());
 
-            $this->_assetsToDelete = $value->ids();
+            // GraphQL supplies the IDs to retain alongside its new mutation data.
+            // Those IDs are not replacement candidates, unlike ordinary file inputs.
+            $paramName = $this->requestParamName($element);
+            if ($paramName === null || !isset($uploadedDataFiles[$paramName])) {
+                $this->_assetsToDelete = $value->ids();
+            }
         }
 
         // Check if there are any invalid assets, likely done by bots. This is where the POST
@@ -1134,6 +1131,7 @@ class FileUpload extends ElementField
 
     private function _processAssets(ElementInterface $element): void
     {
+        $uploadedDataFiles = &$this->_getUploadedDataFiles($element);
         $query = $element->getFieldValue($this->valueKey());
         $assetsService = Craft::$app->getAssets();
 
@@ -1218,7 +1216,7 @@ class FileUpload extends ElementField
 
                 // Unset the GQL data, but only for this field. If in a repeater, there's more to process
                 if ($paramName = $this->requestParamName($element)) {
-                    unset($this->_uploadedDataFiles[$paramName]);
+                    unset($uploadedDataFiles[$paramName]);
                 }
 
                 // Tell the ajax frontend which persisted asset ids now belong to
@@ -1402,41 +1400,31 @@ class FileUpload extends ElementField
         return round($size, $precision) . ['B', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'][$i];
     }
 
+    private function &_getUploadedDataFiles(?ElementInterface $element): array
+    {
+        // Nested field instances can be rebuilt between normalization and saving.
+        // Pending bytes belong to the submission, keyed by the full field path.
+        if ($element instanceof Submission) {
+            return $element->getContentState()->uploadedDataFiles;
+        }
+
+        return $this->_uploadedDataFiles;
+    }
+
+    private function _getUploadedFileSize(array $file): ?int
+    {
+        // Data uploads have no temporary file until after validation succeeds.
+        if (isset($file['data']) && is_string($file['data'])) {
+            return strlen($file['data']);
+        }
+
+        return isset($file['path']) && is_file($file['path']) ? filesize($file['path']) : null;
+    }
+
     private function _getUploadedFiles(ElementInterface $element): array
     {
+        $uploadedDataFiles = &$this->_getUploadedDataFiles($element);
         $files = [];
-
-        // Grab data strings
-        if (isset($this->_uploadedDataFiles['data']) && is_array($this->_uploadedDataFiles['data'])) {
-            foreach ($this->_uploadedDataFiles['data'] as $index => $dataString) {
-                if (preg_match('/^data:(?<type>[a-z0-9]+\/[a-z0-9\+\-\.]+);base64,(?<data>.+)/i', $dataString, $matches)) {
-                    $type = $matches['type'];
-                    $data = base64_decode($matches['data']);
-
-                    if (!$data) {
-                        continue;
-                    }
-
-                    if (!empty($this->_uploadedDataFiles['filename'][$index])) {
-                        $filename = $this->_uploadedDataFiles['filename'][$index];
-                    } else {
-                        $extensions = FileHelper::getExtensionsByMimeType($type);
-
-                        if (empty($extensions)) {
-                            continue;
-                        }
-
-                        $filename = 'Uploaded_file.' . reset($extensions);
-                    }
-
-                    $files[] = [
-                        'filename' => $filename,
-                        'data' => $data,
-                        'type' => 'data',
-                    ];
-                }
-            }
-        }
 
         // See if we have uploaded file(s).
         $paramName = $this->requestParamName($element);
@@ -1445,8 +1433,8 @@ class FileUpload extends ElementField
             $uploadedFiles = UploadedFile::getInstancesByName($paramName);
 
             // Handle GraphQL
-            if (isset($this->_uploadedDataFiles[$paramName])) {
-                $files = $this->_uploadedDataFiles[$paramName];
+            if (isset($uploadedDataFiles[$paramName])) {
+                $files = $uploadedDataFiles[$paramName];
             }
 
             foreach ($uploadedFiles as $uploadedFile) {
@@ -1579,9 +1567,9 @@ class FileUpload extends ElementField
         return array_values(array_unique($extensions));
     }
 
-    private function _resolveDetectedFileKind(?string $path = null, ?string $mimeType = null): ?string
+    private function _resolveDetectedFileKind(?string $path = null, ?string $mimeType = null, ?string $data = null): ?string
     {
-        $mimeType = $this->_resolveDetectedMimeType($path, $mimeType);
+        $mimeType = $this->_resolveDetectedMimeType($path, $mimeType, $data);
 
         if (!$mimeType) {
             return null;
@@ -1618,13 +1606,13 @@ class FileUpload extends ElementField
         };
     }
 
-    private function _resolveDetectedMimeType(?string $path = null, ?string $mimeType = null): ?string
+    private function _resolveDetectedMimeType(?string $path = null, ?string $mimeType = null, ?string $data = null): ?string
     {
-        if ($path && is_file($path) && function_exists('finfo_open')) {
+        if (($data !== null || ($path && is_file($path))) && function_exists('finfo_open')) {
             $finfo = finfo_open(FILEINFO_MIME_TYPE);
 
             if ($finfo !== false) {
-                $resolvedMimeType = finfo_file($finfo, $path);
+                $resolvedMimeType = $data !== null ? finfo_buffer($finfo, $data) : finfo_file($finfo, $path);
                 finfo_close($finfo);
 
                 if (is_string($resolvedMimeType)) {

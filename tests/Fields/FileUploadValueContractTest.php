@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+beforeEach(fn() => \Tests\Support\UploadTestHelper::ensureUploadVolume());
+
 use Tests\Support\UploadTestHelper;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\FileUpload;
@@ -66,7 +68,7 @@ it('keeps unresolved file-upload projections deterministic across wrappers', fun
         ->and($submission->getFieldValueAsArray('attachments'))->toBe([])
         ->and($submission->getFieldValueForExport('attachments'))->toBe('')
         ->and((string)$submission->getFieldValueForSummary('attachments'))->toBe('')
-        ->and($submission->serializeFieldValues())->toBe([]);
+        ->and($submission->serializeFieldValues())->toBe([$form->getFieldByHandle('attachments')->uid => []]);
 });
 
 it('resolves seeded assets for file-upload projection wrappers', function (): void {

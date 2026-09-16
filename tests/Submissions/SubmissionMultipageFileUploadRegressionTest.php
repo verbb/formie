@@ -33,6 +33,7 @@ it('keeps file upload values stable across multipage submit steps with full payl
             ->repeaterField('repeatUpload', ['rows' => $rows])
         ->onPage(4)
             ->singleLineTextField('finalNote')
+        ->settings(['disableCaptchas' => true])
         ->create();
 
     $pages = $form->getPages();

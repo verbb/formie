@@ -30,16 +30,9 @@ class SubmissionContentAccessor
             return;
         }
 
-        if (array_key_exists($uid, $state->rawValuesByUid)) {
-            $rootValue = $state->rawValuesByUid[$uid];
-        } else if (array_key_exists($uid, $state->normalizedValuesByUid)) {
-            // If callers mutate a nested path after normalization has already
-            // happened, step back through the normalized root value instead of
-            // discarding the currently hydrated object graph.
-            $rootValue = $state->normalizedValuesByUid[$uid];
-        } else {
-            $rootValue = [];
-        }
+        // Nested paths use handles. Normalize stored UID keys before applying the
+        // edit, and preserve hydrated sibling values such as pending uploads.
+        $rootValue = $this->_getRootNormalizedValue($submission, $rootHandle);
 
         if ($rootValue instanceof FieldValueInterface) {
             $rootValue = $rootValue->toValueArray();

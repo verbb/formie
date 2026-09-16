@@ -34,6 +34,7 @@ it('blocks invalid single-page submissions over graphql mutation path', function
     $mutation = SubmissionMutation::createSaveMutation($form);
     $resolve = $mutation['resolve'];
     $resolveInfo = $this->createMock(ResolveInfo::class);
+    $resolveInfo->fieldDefinition = \GraphQL\Type\Definition\FieldDefinition::create($mutation);
 
     $gqlService = Craft::$app->getGql();
     $activeSchema = null;
@@ -88,9 +89,9 @@ function applyGraphqlValidationCase(array $values, string $case): array
         'multi name first required' => array_replace($values, ['multiName' => array_replace($values['multiName'], ['firstName' => ''])]),
         'address child required' => array_replace($values, ['shippingAddress' => array_replace($values['shippingAddress'], ['address1' => ''])]),
         'group child required' => array_replace($values, ['groupBlock' => array_replace($values['groupBlock'], ['groupRequiredText' => ''])]),
-        'repeater child required' => array_replace($values, ['repeatBlock' => [[
+        'repeater child required' => array_replace($values, ['repeatBlock' => ['rows' => [[
             'repeatRequiredText' => '',
-        ]]]),
+        ]]]]),
         default => $values,
     };
 }
@@ -155,9 +156,9 @@ function buildValidGraphqlSinglePagePayload(): array
         'groupBlock' => [
             'groupRequiredText' => 'Group value',
         ],
-        'repeatBlock' => [[
+        'repeatBlock' => ['rows' => [[
             'repeatRequiredText' => 'Repeater value',
-        ]],
+        ]]],
     ];
 }
 
@@ -176,15 +177,5 @@ function markGraphqlNestedSubFieldRequired(array $rows, string $handle): array
 
 function graphqlMatrixHandle(): string
 {
-    static $counter = 500;
-    $alphabet = 'abcdefghijklmnopqrstuvwxyz';
-
-    do {
-        $first = intdiv($counter, 26) % 26;
-        $second = $counter % 26;
-        $handle = $alphabet[$first] . $alphabet[$second];
-        $counter++;
-    } while (Form::find()->handle($handle)->status(null)->one() !== null);
-
-    return $handle;
+    return 'test' . bin2hex(random_bytes(8));
 }

@@ -2,13 +2,14 @@
 
 declare(strict_types=1);
 
+beforeEach(fn() => \Tests\Support\UploadTestHelper::ensureUploadVolume());
+
 use verbb\formie\elements\Submission;
 
-function seedUploadedFilesForField(object $field, array $filesByParam): void
+function seedUploadedFilesForField(object $field, Submission $submission, array $filesByParam): void
 {
-    $property = new ReflectionProperty($field, '_uploadedDataFiles');
-    $property->setAccessible(true);
-    $property->setValue($field, $filesByParam);
+    $submission->setFieldValue($field->handle, ['mutationData' => $filesByParam[$field->handle]]);
+    $submission->getFieldValue($field->handle);
 }
 
 it('rejects uploaded files whose extensions are not allowed for the field', function (): void {
@@ -28,7 +29,7 @@ it('rejects uploaded files whose extensions are not allowed for the field', func
     $tempPath = tempnam(sys_get_temp_dir(), 'formie-upload-');
     file_put_contents($tempPath, 'not really an svg');
 
-    seedUploadedFilesForField($field, [
+    seedUploadedFilesForField($field, $submission, [
         'attachments' => [[
             'filename' => 'payload.svg',
             'path' => $tempPath,
@@ -58,7 +59,7 @@ it('rejects uploaded files that exceed the configured max file size', function (
     $tempPath = tempnam(sys_get_temp_dir(), 'formie-upload-');
     file_put_contents($tempPath, str_repeat('A', 4096));
 
-    seedUploadedFilesForField($field, [
+    seedUploadedFilesForField($field, $submission, [
         'attachments' => [[
             'filename' => 'payload.txt',
             'path' => $tempPath,
@@ -88,7 +89,7 @@ it('rejects uploaded files whose detected content does not match the claimed fil
     $tempPath = tempnam(sys_get_temp_dir(), 'formie-upload-');
     file_put_contents($tempPath, 'definitely not a jpeg');
 
-    seedUploadedFilesForField($field, [
+    seedUploadedFilesForField($field, $submission, [
         'attachments' => [[
             'filename' => 'payload.jpg',
             'path' => $tempPath,
@@ -119,7 +120,7 @@ it('rejects active-content uploads even when the extension would otherwise be al
     $tempPath = tempnam(sys_get_temp_dir(), 'formie-upload-');
     file_put_contents($tempPath, '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>');
 
-    seedUploadedFilesForField($field, [
+    seedUploadedFilesForField($field, $submission, [
         'attachments' => [[
             'filename' => 'payload.svg',
             'path' => $tempPath,
@@ -152,7 +153,7 @@ it('rejects uploaded files above the configured file-count limit', function (): 
     file_put_contents($tempOne, 'one');
     file_put_contents($tempTwo, 'two');
 
-    seedUploadedFilesForField($field, [
+    seedUploadedFilesForField($field, $submission, [
         'attachments' => [
             [
                 'filename' => 'one.txt',

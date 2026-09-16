@@ -354,7 +354,17 @@ class SubmissionContentManager
             ]);
 
             if (array_key_exists($field->uid, $mergedContent)) {
-                $submission->setFieldValue($fieldHandle, $mergedContent[$field->uid]);
+                // Rehydrating persisted IDs must not discard unsaved upload bytes. Materialize
+                // the merged value inside this scope, including any nested upload fields.
+                $state = $submission->getContentState();
+                $wasMerging = $state->isMergingPartialPayload;
+                $state->isMergingPartialPayload = true;
+                try {
+                    $submission->setFieldValue($fieldHandle, $mergedContent[$field->uid]);
+                    $this->getFieldValue($submission, $fieldHandle);
+                } finally {
+                    $state->isMergingPartialPayload = $wasMerging;
+                }
             }
         }
     }

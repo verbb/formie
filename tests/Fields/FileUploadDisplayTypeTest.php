@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+beforeEach(fn() => \Tests\Support\UploadTestHelper::ensureUploadVolume());
+
 use verbb\formie\fields\FileUpload;
 use verbb\formie\Formie;
 use verbb\formie\helpers\FieldBuilderPolicy;
@@ -88,9 +90,9 @@ it('preserves structural field slot tags for upload manager display type', funct
     $fieldTag = $field->renderSlotTag('field', $context);
     $dropzoneTag = $field->renderSlotTag('fieldDropzone', $context);
 
-    expect($fieldTag?->coreAttributes['data-formie-field'] ?? null)->toBeTrue()
+    expect($fieldTag?->coreAttributes['data']['formie-field'] ?? null)->toBeTrue()
         ->and($fieldTag?->themeAttributes['class'] ?? [])->toContain('formie-field')
-        ->and($dropzoneTag?->coreAttributes['data-formie-upload-manager'] ?? null)->toBeTrue();
+        ->and($dropzoneTag?->coreAttributes['data']['formie-upload-manager'] ?? null)->toBeTrue();
 });
 
 it('opts the upload manager browse input out of client validation', function (): void {

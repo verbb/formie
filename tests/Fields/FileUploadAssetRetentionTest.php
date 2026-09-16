@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+beforeEach(fn() => \Tests\Support\UploadTestHelper::ensureUploadVolume());
+
 use Craft;
 use craft\elements\Asset;
 use Tests\Support\UploadTestHelper;
@@ -10,6 +12,7 @@ use verbb\formie\Formie;
 use verbb\formie\helpers\FileUploadRetentionHelper;
 
 it('collects nested file upload fields with asset retention settings', function (): void {
+    UploadTestHelper::ensureUploadVolume();
     $rows = [[
         'fields' => [[
             'type' => FileUpload::class,
@@ -41,6 +44,7 @@ it('purges uploaded assets for a field while keeping the submission', function (
     $form = formie()
         ->form(['title' => 'File Upload Asset Retention'])
         ->fileUploadField('documents', [
+            'restrictFiles' => false,
             'assetDataRetention' => 'days',
             'assetDataRetentionValue' => '1',
         ])
@@ -66,7 +70,7 @@ it('purges uploaded assets for a field while keeping the submission', function (
     expect($purged)->toBe(1)
         ->and(Asset::find()->id($asset->id)->status(null)->one())->toBeNull();
 
-    $reloaded = formie()->submission($form, (int)$submission->id);
+    $reloaded = \verbb\formie\elements\Submission::find()->id($submission->id)->one();
 
     expect($reloaded)->not->toBeNull()
         ->and($reloaded->getFieldValue('documents')->ids())->toBe([]);
@@ -83,6 +87,10 @@ it('purges repeater file upload assets independently of the submission record', 
             'allowedKinds' => ['text'],
             'assetDataRetention' => 'days',
             'assetDataRetentionValue' => '1',
+        ], [
+            'type' => \verbb\formie\fields\SingleLineText::class,
+            'handle' => 'description',
+            'label' => 'Description',
         ]],
     ]];
 
@@ -97,6 +105,7 @@ it('purges repeater file upload assets independently of the submission record', 
         ->with([
             'repeatUpload' => [[
                 'rowUpload' => [$asset->id],
+                'description' => 'Keep this row',
             ]],
         ])
         ->save();
@@ -111,7 +120,7 @@ it('purges repeater file upload assets independently of the submission record', 
 
     expect($purged)->toBe(1)
         ->and(Asset::find()->id($asset->id)->status(null)->one())->toBeNull()
-        ->and(formie()->submission($form, (int)$submission->id)?->getFieldValue('repeatUpload.0.rowUpload')->ids())->toBe([]);
+        ->and(\verbb\formie\elements\Submission::find()->id($submission->id)->one()?->getFieldValue('repeatUpload.0.rowUpload')->ids())->toBe([]);
 });
 
 it('resolves nested file upload fields from submission content keys', function (): void {

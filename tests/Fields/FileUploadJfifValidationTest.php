@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+beforeEach(fn() => \Tests\Support\UploadTestHelper::ensureUploadVolume());
+
 use verbb\formie\elements\Submission;
 
 it('rejects jfif uploads when the extension is not allowed by craft', function (): void {
@@ -49,10 +51,8 @@ it('rejects jfif uploads during submission validation', function (): void {
     $tempPath = tempnam(sys_get_temp_dir(), 'formie-upload-');
     file_put_contents($tempPath, 'fake jfif content');
 
-    $property = new ReflectionProperty($field, '_uploadedDataFiles');
-    $property->setAccessible(true);
-    $property->setValue($field, [
-        'attachments' => [[
+    $submission->setFieldValue('attachments', [
+        'mutationData' => [[
             'filename' => 'photo.jfif',
             'path' => $tempPath,
             'mimeType' => 'image/jpeg',
@@ -60,6 +60,7 @@ it('rejects jfif uploads during submission validation', function (): void {
         ]],
     ]);
 
+    $submission->getFieldValue('attachments');
     $field->validateFileType($submission);
 
     expect($submission->getErrors('attachments'))->not->toBeEmpty();

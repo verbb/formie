@@ -14,6 +14,12 @@
 - Migrate notification field-handle tokens to stable references when upgrading from Formie 3.
 - Fix Freeform 5 migration imports and scope submission migration to the selected form ID.
 - Preserve field translations on import and field identities when updating existing forms from exports.
+- Discard pending data uploads when a field is cleared, preserve them during partial-page merges, and apply nested field edits over stored UID values.
+- Apply file size and detected-type validation to data uploads, and normalize client file payloads consistently with GraphQL uploads.
+- Preserve both new and retained files in mixed GraphQL upload requests.
+- Reject malformed GraphQL upload data without reusing another file’s contents, and accept files containing only `0`.
+- Fix generic GraphQL submission saves failing to normalize form fields, and validate field and captcha maps against the selected form.
+- Include saved nested field layouts in GraphQL input schemas and preserve explicit nulls when clearing nested submission values.
 - Handle omitted optional Table column handles and Note styles, and retain values from Table columns without handles when rendering or exporting submissions.
 - Preserve cleared submission values, including empty checkboxes, tables and dates, through serialization and apply hidden-field clearing during CP edits.
 - Prevent nested shared-field saves from overwriting updated labels; preserve shared definitions in nested layouts and stencil materialization.

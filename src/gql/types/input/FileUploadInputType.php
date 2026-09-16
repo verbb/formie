@@ -64,13 +64,16 @@ class FileUploadInputType extends InputObjectType
             // Translate `fileData` to `data` which the Craft Assets field natively supports. Also handle filename.
             if (!empty($value['fileData'])) {
                 $dataString = ArrayHelper::remove($value, 'fileData');
+                // Each file must decode independently; a malformed later item must never
+                // inherit the previous file's bytes. Strict decoding rejects corrupt data.
+                $fileData = false;
 
-                if (preg_match('/^data:((?<type>[a-z0-9]+\/[a-z0-9\+\.\-]+);)?base64,(?<data>.+)/i', $dataString, $matches)) {
+                if (preg_match('/\Adata:((?<type>[a-z0-9]+\/[a-z0-9\+\.\-]+);)?base64,(?<data>.+)\z/is', $dataString, $matches)) {
                     // Decode the file
-                    $fileData = base64_decode($matches['data']);
+                    $fileData = base64_decode($matches['data'], true);
                 }
 
-                if ($fileData) {
+                if ($fileData !== false && $fileData !== '') {
                     if (empty($value['filename'])) {
                         // Make up a filename
                         $extension = null;
@@ -103,12 +106,12 @@ class FileUploadInputType extends InputObjectType
             }
         }
 
-        // If supplying a list of Asset IDs, just return. We don't need to normalize any further
-        if ($assetIds) {
+        // Keep the ID-only contract, but retain new data alongside IDs for mixed edits.
+        if ($assetIds && !$newValues) {
             return $assetIds;
         }
 
         // Save under `mutationData` so we can handle normalization easier for GQL-specific stuff
-        return ['mutationData' => $newValues];
+        return $assetIds + ['mutationData' => $newValues];
     }
 }

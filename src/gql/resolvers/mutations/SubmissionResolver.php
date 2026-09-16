@@ -16,7 +16,13 @@ use craft\helpers\Gql;
 use craft\helpers\Json;
 
 use GraphQL\Error\Error;
+use GraphQL\Type\Definition\FieldDefinition;
+use GraphQL\Type\Definition\InputObjectType;
+use GraphQL\Type\Definition\ListOfType;
+use GraphQL\Type\Definition\NonNull;
 use GraphQL\Type\Definition\ResolveInfo;
+use GraphQL\Type\Definition\Type;
+use GraphQL\Utils\Value;
 
 class SubmissionResolver extends ElementMutationResolver
 {
@@ -62,17 +68,39 @@ class SubmissionResolver extends ElementMutationResolver
         $mutationArguments = $arguments;
         unset($mutationArguments['formHandle'], $mutationArguments['fields'], $mutationArguments['captchas']);
 
-        if (is_array($fields)) {
-            $mutationArguments = array_merge($mutationArguments, $fields);
+        $mutation = SubmissionMutation::createSaveMutation($form);
+        $resolver = $mutation['resolve'][0];
+        $fieldDefinition = FieldDefinition::create($mutation);
+
+        // Generic maps bypass GraphQL's typed argument validation. Keep each map in its own
+        // namespace and coerce its values before handing them to the form-specific resolver.
+        $payloads = [
+            'fields' => [$fields ?? [], $resolver->getResolutionData(self::CONTENT_FIELD_KEY)],
+            'captchas' => [$captchas ?? [], Formie::$plugin->getIntegrations()->getGqlCaptchaArgumentsForForm($form)],
+        ];
+
+        foreach ($payloads as $payloadName => [$values, $definitions]) {
+            foreach ($values as $handle => $value) {
+                if (!array_key_exists($handle, $definitions)) {
+                    throw new Error('Unknown ' . $payloadName . ' argument: ' . $handle . '.');
+                }
+
+                $coerced = Value::coerceValue($value, $fieldDefinition->getArg($handle)->getType());
+
+                if (!empty($coerced['errors'])) {
+                    throw new Error('Invalid ' . $payloadName . ' argument: ' . $coerced['errors'][0]->getMessage());
+                }
+
+                $mutationArguments[$handle] = $coerced['value'];
+            }
         }
 
-        if (is_array($captchas)) {
-            $mutationArguments = array_merge($mutationArguments, $captchas);
-        }
+        // Craft recursively normalizes against ResolveInfo, which originally describes the
+        // generic maps rather than the flattened form fields. Preserve the caller's context.
+        $formResolveInfo = clone $resolveInfo;
+        $formResolveInfo->fieldDefinition = $fieldDefinition;
 
-        $resolver = SubmissionMutation::createConfiguredResolver($form);
-
-        return $resolver->saveSubmission($source, $mutationArguments, $context, $resolveInfo);
+        return $resolver->saveSubmission($source, $mutationArguments, $context, $formResolveInfo);
     }
 
     public function saveSubmission($source, array $arguments, $context, ResolveInfo $resolveInfo): ?ElementInterface
@@ -184,6 +212,63 @@ class SubmissionResolver extends ElementMutationResolver
         }
 
         return $elementService->deleteElementById($submissionId, Submission::class, $siteId);
+    }
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function recursivelyNormalizeArgumentValues(ResolveInfo $resolveInfo, array $mutationArguments): array
+    {
+        foreach ($mutationArguments as $handle => $value) {
+            $definition = $resolveInfo->fieldDefinition->getArg($handle);
+
+            if (!$definition) {
+                throw new Error('Unknown submission argument: ' . $handle . '.');
+            }
+
+            $mutationArguments[$handle] = $this->_normalizeArgumentValue($value, $definition->getType());
+        }
+
+        return $mutationArguments;
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _normalizeArgumentValue(mixed $value, Type $type, bool $applyNormalizer = true): mixed
+    {
+        // Craft's traversal assumes input objects are arrays, including nullable ones.
+        // Follow the input type at each level so clears stay null and sibling handles
+        // cannot overwrite each other's type definitions during recursive normalization.
+        if ($value === null) {
+            return null;
+        }
+
+        if ($type instanceof NonNull) {
+            return $this->_normalizeArgumentValue($value, $type->getWrappedType(), $applyNormalizer);
+        }
+
+        if ($type instanceof ListOfType) {
+            // Craft input types such as uploads normalize the whole list. Normalize each
+            // item's children first, then invoke that list-level normalizer only once.
+            $value = array_map(fn($item) => $this->_normalizeArgumentValue($item, $type->getWrappedType(), false), $value);
+            $type = Type::getNamedType($type);
+        } elseif ($type instanceof InputObjectType) {
+            $definitions = $type->getFields();
+
+            foreach ($value as $handle => $item) {
+                if (!isset($definitions[$handle])) {
+                    throw new Error('Unknown nested submission argument: ' . $handle . '.');
+                }
+
+                $value[$handle] = $this->_normalizeArgumentValue($item, $definitions[$handle]->getType());
+            }
+        }
+
+        $normalizer = $type->config['normalizeValue'] ?? null;
+
+        return $applyNormalizer && is_callable($normalizer) ? $normalizer($value) : $value;
     }
 
     private function _canMutateSubmissionForForm(Form $form, array $arguments): bool

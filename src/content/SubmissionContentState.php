@@ -11,6 +11,8 @@ class SubmissionContentState
     public array $orphanedValuesByUid = [];
     public ?SubmissionFieldCollection $fieldCollection = null;
     public array $currentPageFieldHandleMapsByPageId = [];
+    public array $uploadedDataFiles = [];
+    public bool $isMergingPartialPayload = false;
 
 
     // Public Methods
