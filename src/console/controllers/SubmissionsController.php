@@ -4,6 +4,7 @@ namespace verbb\formie\console\controllers;
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\models\IntegrationResponse;
 
 use Craft;
 use craft\console\Controller;
@@ -180,6 +181,8 @@ class SubmissionsController extends Controller
             return ExitCode::UNSPECIFIED_ERROR;
         }
 
+        $failed = false;
+
         foreach ($submissions as $submission) {
             // Ensure that the integration settings are prepped from the form settings
             $form = $submission->getForm();
@@ -187,12 +190,19 @@ class SubmissionsController extends Controller
             $integration->setAttributes($formSettings, false);
             $integration->populateContext($submission);
 
-            Formie::$plugin->getIntegrationTriggers()->dispatchManualIntegration($integration, $submission);
+            $result = Formie::$plugin->getIntegrationTriggers()->dispatchManualIntegration($integration, $submission);
+
+            if (!($result instanceof IntegrationResponse ? $result->success : $result)) {
+                $failed = true;
+                $this->stderr("Unable to trigger integration for submission #{$submission->id} ..." . PHP_EOL, Console::FG_RED);
+
+                continue;
+            }
 
             $this->stdout("Triggered integration for submission #{$submission->id} ..." . PHP_EOL, Console::FG_GREEN);
         }
 
-        return ExitCode::OK;
+        return $failed ? ExitCode::UNSPECIFIED_ERROR : ExitCode::OK;
     }
 
     /**
@@ -229,12 +239,21 @@ class SubmissionsController extends Controller
             return ExitCode::UNSPECIFIED_ERROR;
         }
 
+        $failed = false;
+
         foreach ($submissions as $submission) {
-            Formie::$plugin->getNotifications()->sendNotificationEmail($notification, $submission);
+            $result = Formie::$plugin->getNotifications()->sendNotificationEmail($notification, $submission);
+
+            if ($result !== true && !($result['success'] ?? false)) {
+                $failed = true;
+                $this->stderr("Unable to send notification for submission #{$submission->id} ..." . PHP_EOL, Console::FG_RED);
+
+                continue;
+            }
 
             $this->stdout("Sent notification for submission #{$submission->id} ..." . PHP_EOL, Console::FG_GREEN);
         }
 
-        return ExitCode::OK;
+        return $failed ? ExitCode::UNSPECIFIED_ERROR : ExitCode::OK;
     }
 }

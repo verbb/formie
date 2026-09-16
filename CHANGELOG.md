@@ -42,6 +42,7 @@
 - Preserve historical submission fields and exports after form site availability changes.
 - Process regional forms in queued field moves and console export and cleanup commands.
 - Re-save regional submissions and return accurate console exit codes.
+- Report failed notification and integration deliveries accurately in console commands.
 - Apply configured file-upload retention to forms on every site.
 - Allow existing fields and notifications to be selected with the keyboard.
 - Honor per-form permissions in form and submission indexes and GraphQL operations.
