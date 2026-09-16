@@ -362,6 +362,8 @@ class IntegrationsController extends Controller
 
     public function actionDisconnect(): ?Response
     {
+        $this->requirePostRequest();
+
         $integrationHandle = $this->request->getRequiredParam('integration');
 
         if (!($integration = Formie::$plugin->getIntegrations()->getIntegrationByHandle($integrationHandle))) {
