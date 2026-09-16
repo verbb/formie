@@ -15,7 +15,7 @@
         id: template.id,
         labelHtml: {
             url: template.getCpEditUrl(),
-            html: template.name,
+            html: template.name | e,
         },
         title: template.name | t('formie'),
         url: template.getCpEditUrl(),

@@ -15,7 +15,7 @@
         id: formGroup.id,
         labelHtml: {
             url: formGroup.getCpEditUrl(),
-            html: formGroup.name,
+            html: formGroup.name | e,
         },
         title: formGroup.name | t('formie'),
         url: formGroup.getCpEditUrl(),

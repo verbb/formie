@@ -63,7 +63,7 @@ class SubmissionStatus extends Model
     {
         return Html::tag('span', Html::tag('span', '', [
                 'class' => ['status', $this->color],
-            ]) . $this->getDisplayName(), [
+            ]) . Html::encode($this->getDisplayName()), [
             'class' => 'formieStatusLabel',
         ]);
     }
