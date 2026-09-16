@@ -17,7 +17,7 @@
 - Bump transitive `symfony/cache` to `6.4.45` (CVE-2026-45073 advisory floor).
 
 ### Fixed
-- Apply selected submission states consistently to report tables, charts and exports.
+- Apply selected submission states consistently to report summaries, tables, charts and exports.
 - Sort report tables and exports by the displayed form name.
 - Preserve configured form availability across sites when an editor has access to only some sites.
 - Resolve editable form sites for the requested user instead of the current session.

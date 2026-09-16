@@ -7,7 +7,7 @@ use craft\helpers\Db;
 use verbb\formie\Formie;
 use verbb\formie\models\{Report, ReportSettings};
 
-it('keeps report state selection consistent across table, chart and export', function (array $flags, array $expected): void {
+it('keeps report state selection consistent across summary, table, chart and export', function (array $flags, array $expected): void {
     $form = formie()->form()->singleLineTextField('message')->create();
     $ids = [];
     foreach (['complete' => [false, false], 'incomplete' => [true, false], 'spam' => [false, true], 'incompleteSpam' => [true, true]] as $name => [$incomplete, $spam]) {
@@ -23,6 +23,7 @@ it('keeps report state selection consistent across table, chart and export', fun
     $query = $service->buildSubmissionQuery($report, $admin);
     $actualNames = array_map(fn($row) => $row->getFieldValue('message'), $query->orderBy(['elements.id' => SORT_ASC])->all());
     $chartCount = array_sum(array_column($service->getChartData($report, $admin)['rows'], 'total'));
+    $summary = $service->getSummaryCounts($report, $admin);
     $table = $service->getTableData($report, user: $admin);
     $export = Formie::$plugin->getReportExport()->export($report, 'json', clone $query);
     try {
@@ -30,6 +31,16 @@ it('keeps report state selection consistent across table, chart and export', fun
         expect($actualNames)->toBe($expected);
         expect($table['pagination']['total'])->toBe(count($expected));
         expect($chartCount)->toBe(count($expected));
+        $counts = [
+            'total' => count($expected),
+            'complete' => (int)in_array('complete', $expected, true),
+            'incomplete' => (int)in_array('incomplete', $expected, true),
+            'spam' => count(array_intersect(['spam', 'incompleteSpam'], $expected)),
+        ];
+        foreach ($counts as $key => $count) {
+            expect($summary[$key])->toBe($count);
+            expect($summary['forms'][0][$key])->toBe($count);
+        }
         expect(array_column($exportRows, 'Message'))->toBe($expected);
         expect(array_column($table['rows'], 'id'))->toEqualCanonicalizing(array_map(fn($name) => $ids[$name], $expected));
     } finally { unlink($export['path']); }

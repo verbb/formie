@@ -419,6 +419,8 @@ class ReportQuery extends Component
 
     private function _applySummaryCountFilters(Query $query, array $filters): void
     {
+        $this->applyDbStateFilters($query, $filters);
+
         $startDate = DateTimeHelper::toDateTime($filters['startDate'] ?? null);
         $endDate = DateTimeHelper::toDateTime($filters['endDate'] ?? null);
 
