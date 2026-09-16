@@ -14,6 +14,7 @@
 - Clone localized form layouts without serializing callbacks or mutating canonical form settings and notifications.
 - Preserve typed dates when expiring subscriptions and archiving payment plans.
 - Migrate notification field-handle tokens to stable references when upgrading from Formie 3.
+- Score submitted quiz answers using current field identities and option values.
 - Fix Freeform 5 migration imports and scope submission migration to the selected form ID.
 - Format date variable presets using their PHP date patterns.
 - Preserve field translations on import and field identities when updating existing forms from exports.

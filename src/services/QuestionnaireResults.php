@@ -27,17 +27,90 @@ class QuestionnaireResults extends Component
             return null;
         }
 
-        // Decode each submission content blob once; aggregators scan the structured arrays.
-        $decodedContents = $this->_getDecodedSubmissionContents($form->id);
+        $scoring = Formie::$plugin->getQuestionnaireScoring();
+        $aggregates = [];
 
-        $aggregatedQuestions = array_map(function(QuestionnaireFieldInterface&OptionsField $field) use ($decodedContents): array {
-            return $this->_aggregateQuestion($field, $decodedContents);
-        }, $questions);
+        foreach ($questions as $field) {
+            $aggregates[] = [
+                'options' => $this->_buildOptionRows($field),
+                'responses' => 0,
+                'votes' => 0,
+                'scoreSum' => 0,
+                'scoreCount' => 0,
+                'columnPoints' => $field instanceof Survey && $field->displayType === Survey::DISPLAY_LIKERT && $field->scoringEnabled
+                    ? $scoring->getLikertColumnPoints($field) : [],
+            ];
+        }
 
-        $results = [
-            'totalResponses' => $this->_countResponsesWithAnswers($questions, $decodedContents),
-            'questions' => $aggregatedQuestions,
-        ];
+        $totalResponses = 0;
+
+        // Read bounded batches and decode each response once, regardless of how
+        // many questions the form contains. Retain only aggregate counters.
+        foreach ($this->_getSubmissionContentRows($form->id) as $row) {
+            $content = Json::decodeIfJson($row['content'] ?? null);
+
+            if (!is_array($content)) {
+                continue;
+            }
+
+            $answered = false;
+
+            foreach ($questions as $index => $field) {
+                if (!array_key_exists($field->uid, $content)) {
+                    continue;
+                }
+
+                $stored = $content[$field->uid];
+                $ranked = $field instanceof Survey && $field->displayType === Survey::DISPLAY_RANK;
+                $values = $ranked ? $this->_extractOrderedOptionValues($stored) : $this->_extractSelectedValues($field, $stored);
+                $aggregate = &$aggregates[$index];
+
+                if ($values !== []) {
+                    $answered = true;
+                    $aggregate['responses']++;
+
+                    foreach ($values as $position => $value) {
+                        $weight = $ranked ? count($values) - $position : 1;
+                        $aggregate['options'][$value] ??= ['label' => $value, 'value' => $value, 'count' => 0];
+                        $aggregate['options'][$value]['count'] += $weight;
+                        $aggregate['votes'] += $weight;
+                    }
+                }
+
+                if ($aggregate['columnPoints'] !== []) {
+                    $score = $scoring->scoreLikertSubmission($field, $stored, $aggregate['columnPoints']);
+
+                    if ($score !== null) {
+                        $aggregate['scoreSum'] += $score;
+                        $aggregate['scoreCount']++;
+                    }
+                }
+
+                unset($aggregate);
+            }
+
+            $totalResponses += (int)$answered;
+        }
+
+        $aggregatedQuestions = [];
+
+        foreach ($questions as $index => $field) {
+            $aggregate = $aggregates[$index];
+            $result = $this->_formatQuestionResult($field, $aggregate['options'], $aggregate['responses'], $aggregate['votes']);
+
+            if ($aggregate['scoreCount'] > 0) {
+                $result['scoring'] = [
+                    'enabled' => true,
+                    'averageScore' => round($aggregate['scoreSum'] / $aggregate['scoreCount'], 2),
+                    'maxScore' => $scoring->getLikertMaxScore($field, $aggregate['columnPoints']),
+                    'responseCount' => $aggregate['scoreCount'],
+                ];
+            }
+
+            $aggregatedQuestions[] = $result;
+        }
+
+        $results = ['totalResponses' => $totalResponses, 'questions' => $aggregatedQuestions];
 
         $quizSummary = Formie::$plugin->getQuestionnaireScoring()->getQuizSummary($form);
 
@@ -52,9 +125,6 @@ class QuestionnaireResults extends Component
     // Private Methods
     // =========================================================================
 
-    /**
-     * @return array<int, QuestionnaireFieldInterface&OptionsField>
-     */
     private function _getQuestionnaireFields(Form $form): array
     {
         $fields = [];
@@ -68,10 +138,10 @@ class QuestionnaireResults extends Component
         return $fields;
     }
 
-    private function _getSubmissionContentRows(int $formId): array
+    private function _getSubmissionContentRows(int $formId): iterable
     {
-        return (new Query())
-            ->select(['submissions.content'])
+        $query = (new Query())
+            ->select(['submissions.id', 'submissions.content'])
             ->from(['submissions' => Table::FORMIE_SUBMISSIONS])
             ->innerJoin(['elements' => '{{%elements}}'], '[[elements.id]] = [[submissions.id]]')
             ->where([
@@ -80,205 +150,20 @@ class QuestionnaireResults extends Component
                 'submissions.isSpam' => false,
                 'elements.dateDeleted' => null,
             ])
-            ->all();
+            ->orderBy(['submissions.id' => SORT_ASC])
+            ->limit(200);
+        $lastId = 0;
+
+        do {
+            $rows = (clone $query)->andWhere(['>', 'submissions.id', $lastId])->all();
+
+            foreach ($rows as $row) {
+                $lastId = (int)$row['id'];
+                yield $row;
+            }
+        } while (count($rows) === 200);
     }
 
-    /**
-     * @return array<int, array>
-     */
-    private function _getDecodedSubmissionContents(int $formId): array
-    {
-        $decoded = [];
-
-        foreach ($this->_getSubmissionContentRows($formId) as $row) {
-            $content = Json::decodeIfJson($row['content'] ?? null);
-
-            if (is_array($content)) {
-                $decoded[] = $content;
-            }
-        }
-
-        return $decoded;
-    }
-
-    /**
-     * @param array<int, QuestionnaireFieldInterface&OptionsField> $questions
-     * @param array<int, array> $decodedContents
-     */
-    private function _countResponsesWithAnswers(array $questions, array $decodedContents): int
-    {
-        if ($questions === []) {
-            return 0;
-        }
-
-        $count = 0;
-
-        foreach ($decodedContents as $content) {
-            foreach ($questions as $question) {
-                if (!array_key_exists($question->uid, $content)) {
-                    continue;
-                }
-
-                if ($this->_fieldHasAnswer($question, $content[$question->uid])) {
-                    $count++;
-                    break;
-                }
-            }
-        }
-
-        return $count;
-    }
-
-    /**
-     * @param array<int, array> $decodedContents
-     */
-    private function _aggregateQuestion(QuestionnaireFieldInterface&OptionsField $questionField, array $decodedContents): array
-    {
-        if ($questionField instanceof Survey && $questionField->displayType === Survey::DISPLAY_RANK) {
-            return $this->_aggregateRankQuestion($questionField, $decodedContents);
-        }
-
-        $optionRows = $this->_buildOptionRows($questionField);
-        $fieldUid = $questionField->uid;
-        $totalResponses = 0;
-        $totalVotes = 0;
-
-        foreach ($decodedContents as $content) {
-            if (!array_key_exists($fieldUid, $content)) {
-                continue;
-            }
-
-            $selectedValues = $this->_extractSelectedValues($questionField, $content[$fieldUid]);
-
-            if ($selectedValues === []) {
-                continue;
-            }
-
-            $totalResponses++;
-
-            foreach ($selectedValues as $selectedValue) {
-                if (!isset($optionRows[$selectedValue])) {
-                    $optionRows[$selectedValue] = [
-                        'label' => $selectedValue,
-                        'value' => $selectedValue,
-                        'count' => 0,
-                    ];
-                }
-
-                $optionRows[$selectedValue]['count']++;
-                $totalVotes++;
-            }
-        }
-
-        $result = $this->_formatQuestionResult($questionField, $optionRows, $totalResponses, $totalVotes);
-
-        return $this->_appendLikertScoringSummary($questionField, $decodedContents, $result);
-    }
-
-    /**
-     * @param array<int, array> $decodedContents
-     */
-    private function _aggregateRankQuestion(Survey $questionField, array $decodedContents): array
-    {
-        $optionRows = $this->_buildOptionRows($questionField);
-        $fieldUid = $questionField->uid;
-        $totalResponses = 0;
-        $totalVotes = 0;
-
-        foreach ($decodedContents as $content) {
-            if (!array_key_exists($fieldUid, $content)) {
-                continue;
-            }
-
-            $rankedValues = $this->_extractOrderedOptionValues($content[$fieldUid]);
-
-            if ($rankedValues === []) {
-                continue;
-            }
-
-            $totalResponses++;
-            $rankCount = count($rankedValues);
-
-            foreach ($rankedValues as $position => $selectedValue) {
-                // Higher-ranked items receive more weight so the bar chart reflects preference.
-                $weight = $rankCount - $position;
-
-                if (!isset($optionRows[$selectedValue])) {
-                    $optionRows[$selectedValue] = [
-                        'label' => $selectedValue,
-                        'value' => $selectedValue,
-                        'count' => 0,
-                    ];
-                }
-
-                $optionRows[$selectedValue]['count'] += $weight;
-                $totalVotes += $weight;
-            }
-        }
-
-        return $this->_appendLikertScoringSummary($questionField, $decodedContents, $this->_formatQuestionResult(
-            $questionField,
-            $optionRows,
-            $totalResponses,
-            $totalVotes,
-        ));
-    }
-
-    /**
-     * @param array<int, array> $decodedContents
-     */
-    private function _appendLikertScoringSummary(
-        QuestionnaireFieldInterface&OptionsField $questionField,
-        array $decodedContents,
-        array $result,
-    ): array {
-        if (
-            !($questionField instanceof Survey)
-            || $questionField->displayType !== Survey::DISPLAY_LIKERT
-            || !$questionField->scoringEnabled
-        ) {
-            return $result;
-        }
-
-        $scoring = Formie::$plugin->getQuestionnaireScoring();
-        $columnPoints = $scoring->getLikertColumnPoints($questionField);
-
-        if ($columnPoints === []) {
-            return $result;
-        }
-
-        $fieldUid = $questionField->uid;
-        $scores = [];
-
-        foreach ($decodedContents as $content) {
-            if (!array_key_exists($fieldUid, $content)) {
-                continue;
-            }
-
-            $score = $scoring->scoreLikertSubmission($questionField, $content[$fieldUid], $columnPoints);
-
-            if ($score !== null) {
-                $scores[] = $score;
-            }
-        }
-
-        if ($scores === []) {
-            return $result;
-        }
-
-        $result['scoring'] = [
-            'enabled' => true,
-            'averageScore' => round(array_sum($scores) / count($scores), 2),
-            'maxScore' => $scoring->getLikertMaxScore($questionField, $columnPoints),
-            'responseCount' => count($scores),
-        ];
-
-        return $result;
-    }
-
-    /**
-     * @param array<string, array{label: string, value: string, count: int}> $optionRows
-     */
     private function _formatQuestionResult(
         QuestionnaireFieldInterface&OptionsField $questionField,
         array $optionRows,
@@ -308,18 +193,6 @@ class QuestionnaireResults extends Component
         ];
     }
 
-    private function _fieldHasAnswer(QuestionnaireFieldInterface&OptionsField $field, mixed $stored): bool
-    {
-        if ($field instanceof Survey && $field->displayType === Survey::DISPLAY_RANK) {
-            return $this->_extractOrderedOptionValues($stored) !== [];
-        }
-
-        return $this->_extractSelectedValues($field, $stored) !== [];
-    }
-
-    /**
-     * @return string[]
-     */
     private function _extractSelectedValues(QuestionnaireFieldInterface&OptionsField $field, mixed $stored): array
     {
         if ($stored === null || $stored === '') {
@@ -374,9 +247,6 @@ class QuestionnaireResults extends Component
         return $optionRows;
     }
 
-    /**
-     * @return string[]
-     */
     private function _extractLikertMultipleRowsColumnValues(mixed $stored): array
     {
         if (!is_array($stored)) {
@@ -399,9 +269,6 @@ class QuestionnaireResults extends Component
         return $values;
     }
 
-    /**
-     * @return string[]
-     */
     private function _extractOrderedOptionValues(mixed $stored): array
     {
         if (!is_array($stored)) {
@@ -424,9 +291,6 @@ class QuestionnaireResults extends Component
         return $values;
     }
 
-    /**
-     * @return string[]
-     */
     private function _extractMultiOptionValues(mixed $stored): array
     {
         if (!is_array($stored)) {
@@ -449,9 +313,6 @@ class QuestionnaireResults extends Component
         return $values;
     }
 
-    /**
-     * @return string[]
-     */
     private function _extractSingleOptionValue(mixed $stored): array
     {
         if (is_string($stored) && $stored !== '') {

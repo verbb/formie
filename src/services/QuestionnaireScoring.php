@@ -5,6 +5,8 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\Quiz;
 use verbb\formie\fields\Survey;
+use verbb\formie\fields\values\MultiOptionFieldValue;
+use verbb\formie\fields\values\SingleOptionFieldValue;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\RichText;
 use verbb\formie\models\SubmissionQuizResult;
@@ -173,9 +175,6 @@ class QuestionnaireScoring extends Component
         ]);
     }
 
-    /**
-     * @return array<string, mixed>|null
-     */
     public function getQuizResultPayload(SubmissionQuizResult $result, Form $form, bool $includeExplanations = true): ?array
     {
         $questions = [];
@@ -212,12 +211,12 @@ class QuestionnaireScoring extends Component
             return null;
         }
 
-        $rows = (new Query())
+        $totals = (new Query())
             ->select([
-                'results.score',
-                'results.maxScore',
-                'results.percentage',
-                'results.passed',
+                'attemptCount' => new \yii\db\Expression('COUNT(*)'),
+                'totalScore' => new \yii\db\Expression('SUM([[results.score]])'),
+                'totalPercentage' => new \yii\db\Expression('SUM([[results.percentage]])'),
+                'passCount' => new \yii\db\Expression('SUM(CASE WHEN [[results.passed]] THEN 1 ELSE 0 END)'),
             ])
             ->from(['results' => Table::FORMIE_SUBMISSION_QUIZ_RESULTS])
             ->innerJoin(['submissions' => Table::FORMIE_SUBMISSIONS], '[[submissions.id]] = [[results.submissionId]]')
@@ -228,25 +227,17 @@ class QuestionnaireScoring extends Component
                 'submissions.isSpam' => false,
                 'elements.dateDeleted' => null,
             ])
-            ->all();
+            ->one();
 
-        if ($rows === []) {
+        $attemptCount = (int)($totals['attemptCount'] ?? 0);
+
+        if ($attemptCount === 0) {
             return null;
         }
 
-        $attemptCount = count($rows);
-        $totalScore = 0.0;
-        $totalPercentage = 0.0;
-        $passCount = 0;
-
-        foreach ($rows as $row) {
-            $totalScore += (float)$row['score'];
-            $totalPercentage += (float)$row['percentage'];
-
-            if ((bool)$row['passed']) {
-                $passCount++;
-            }
-        }
+        $totalScore = (float)$totals['totalScore'];
+        $totalPercentage = (float)$totals['totalPercentage'];
+        $passCount = (int)$totals['passCount'];
 
         return [
             'attemptCount' => $attemptCount,
@@ -290,9 +281,6 @@ class QuestionnaireScoring extends Component
         ]);
     }
 
-    /**
-     * @return array<string, float>
-     */
     public function getLikertColumnPoints(Survey $field): array
     {
         if (
@@ -387,9 +375,6 @@ class QuestionnaireScoring extends Component
     // Private Methods
     // =========================================================================
 
-    /**
-     * @return array<string, array{label: string, isCorrect: bool, points: ?float}>|null
-     */
     private function _getQuizOptionDefinitions(Quiz $field): ?array
     {
         $definitions = [];
@@ -417,11 +402,6 @@ class QuestionnaireScoring extends Component
         return $definitions === [] ? null : $definitions;
     }
 
-    /**
-     * @param array<string, array{label: string, isCorrect: bool, points: ?float}> $definitions
-     * @param string[] $selectedValues
-     * @return array<string, mixed>|null
-     */
     private function _scoreQuizField(Quiz $field, Submission $submission): ?array
     {
         $definitions = $this->_getQuizOptionDefinitions($field);
@@ -430,7 +410,7 @@ class QuestionnaireScoring extends Component
             return null;
         }
 
-        $selectedValues = $this->_extractSelectedValues($field, $submission->getFieldValue($field->uid));
+        $selectedValues = $this->_extractSelectedValues($field, $submission->getFieldValue($field->valueKey()));
         $isMulti = $field->fieldType === Quiz::FIELD_TYPE_CHECKBOXES;
         $weighted = $field->weightedScoreEnabled;
 
@@ -458,11 +438,6 @@ class QuestionnaireScoring extends Component
         ];
     }
 
-    /**
-     * @param array<string, array{label: string, isCorrect: bool, points: ?float}> $definitions
-     * @param string[] $selectedValues
-     * @return array{score: float, maxScore: float, isCorrect: bool}
-     */
     private function _scoreSingleSelectQuiz(array $definitions, array $selectedValues, bool $weighted): array
     {
         $correctValues = array_keys(array_filter(
@@ -514,11 +489,6 @@ class QuestionnaireScoring extends Component
         ];
     }
 
-    /**
-     * @param array<string, array{label: string, isCorrect: bool, points: ?float}> $definitions
-     * @param string[] $selectedValues
-     * @return array{score: float, maxScore: float, isCorrect: bool}
-     */
     private function _scoreMultiSelectQuiz(array $definitions, array $selectedValues, bool $weighted): array
     {
         $correctValues = array_keys(array_filter(
@@ -565,9 +535,6 @@ class QuestionnaireScoring extends Component
         ];
     }
 
-    /**
-     * @return string[]
-     */
     private function _extractSelectedValues(Quiz $field, mixed $stored): array
     {
         if ($stored === null || $stored === '') {
@@ -581,11 +548,10 @@ class QuestionnaireScoring extends Component
         return $this->_extractSingleOptionValue($stored);
     }
 
-    /**
-     * @return string[]
-     */
     private function _extractMultiOptionValues(mixed $stored): array
     {
+        $stored = MultiOptionFieldValue::toClientValueFrom($stored);
+
         if (!is_array($stored)) {
             return [];
         }
@@ -606,11 +572,10 @@ class QuestionnaireScoring extends Component
         return $values;
     }
 
-    /**
-     * @return string[]
-     */
     private function _extractSingleOptionValue(mixed $stored): array
     {
+        $stored = SingleOptionFieldValue::toClientValueFrom($stored);
+
         if (is_string($stored) && $stored !== '') {
             return [$stored];
         }
