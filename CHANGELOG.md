@@ -21,6 +21,7 @@
 - Enforce unique values for fields inside groups and repeaters.
 - Stop enforcing saved number bounds in server and client validation when limits are disabled.
 - Apply selected submission states consistently to report summaries, tables, charts and exports.
+- Load report charts and summaries on PostgreSQL.
 - Sort report tables and exports by the displayed form name.
 - Allow report managers to use report exports and retrieve their queued downloads.
 - Preserve configured form availability across sites when an editor has access to only some sites.

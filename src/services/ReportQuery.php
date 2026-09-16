@@ -126,13 +126,13 @@ class ReportQuery extends Component
             ->select([
                 'bucket' => new \yii\db\Expression('DATE([[elements.dateCreated]])'),
                 'complete' => new \yii\db\Expression(
-                    'SUM(CASE WHEN [[submissions.isIncomplete]] = 0 AND [[submissions.isSpam]] = 0 THEN 1 ELSE 0 END)',
+                    'SUM(CASE WHEN [[submissions.isIncomplete]] = FALSE AND [[submissions.isSpam]] = FALSE THEN 1 ELSE 0 END)',
                 ),
                 'incomplete' => new \yii\db\Expression(
-                    'SUM(CASE WHEN [[submissions.isIncomplete]] = 1 AND [[submissions.isSpam]] = 0 THEN 1 ELSE 0 END)',
+                    'SUM(CASE WHEN [[submissions.isIncomplete]] = TRUE AND [[submissions.isSpam]] = FALSE THEN 1 ELSE 0 END)',
                 ),
                 'spam' => new \yii\db\Expression(
-                    'SUM(CASE WHEN [[submissions.isSpam]] = 1 THEN 1 ELSE 0 END)',
+                    'SUM(CASE WHEN [[submissions.isSpam]] = TRUE THEN 1 ELSE 0 END)',
                 ),
             ])
             ->from(['submissions' => Table::FORMIE_SUBMISSIONS])
@@ -386,13 +386,13 @@ class ReportQuery extends Component
             ->select([
                 'formId' => 'submissions.formId',
                 'complete' => new \yii\db\Expression(
-                    'SUM(CASE WHEN [[submissions.isIncomplete]] = 0 AND [[submissions.isSpam]] = 0 THEN 1 ELSE 0 END)',
+                    'SUM(CASE WHEN [[submissions.isIncomplete]] = FALSE AND [[submissions.isSpam]] = FALSE THEN 1 ELSE 0 END)',
                 ),
                 'incomplete' => new \yii\db\Expression(
-                    'SUM(CASE WHEN [[submissions.isIncomplete]] = 1 AND [[submissions.isSpam]] = 0 THEN 1 ELSE 0 END)',
+                    'SUM(CASE WHEN [[submissions.isIncomplete]] = TRUE AND [[submissions.isSpam]] = FALSE THEN 1 ELSE 0 END)',
                 ),
                 'spam' => new \yii\db\Expression(
-                    'SUM(CASE WHEN [[submissions.isSpam]] = 1 THEN 1 ELSE 0 END)',
+                    'SUM(CASE WHEN [[submissions.isSpam]] = TRUE THEN 1 ELSE 0 END)',
                 ),
             ])
             ->from(['submissions' => Table::FORMIE_SUBMISSIONS])
