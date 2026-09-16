@@ -25,6 +25,7 @@
 - Apply group site policy changes to forms on every site, including forms outside the current editor’s view.
 - Honor the selected site when looking up forms that are unavailable on the primary site.
 - Keep cached form lookups isolated to the requested site.
+- Resolve cached form lookups using the selected control-panel site.
 - Include regional forms in permission settings, GraphQL schemas and submission queries.
 - Preserve unique form handles and recognize shared settings in use across every site.
 - Resolve numeric form-status filters correctly.

@@ -44,3 +44,37 @@ it('refreshes cached form collections when the current site changes', function (
     expect(array_column($forms->getAllForms(), 'id'))->not->toContain($form->id);
     expect($forms->getFormById($form->id))->toBeNull();
 });
+
+it('uses the selected control panel site for default lookup cache keys', function (string $method, string $attribute): void {
+    if (!Craft::$app->getIsMultiSite()) { $this->markTestSkipped('Multi-site contract.'); }
+    $sites = Craft::$app->getSites();
+    $primaryId = $sites->getPrimarySite()->id;
+    $regional = $sites->getSiteById($sites->getAllSiteIds()[1]);
+    $group = new FormGroup(['name' => 'Selected cache region', 'handle' => 'selectedCache' . bin2hex(random_bytes(5)),
+        'settings' => ['sitePolicy' => ['enabledSiteIds' => [$regional->id]]]]);
+    expect(Formie::$plugin->getFormGroups()->saveGroup($group))->toBeTrue();
+    $form = formie()->form(['groupId' => $group->id, 'siteId' => $regional->id, 'sourceSiteId' => $regional->id])->singleLineTextField('message')->create();
+    $admin = \craft\elements\User::find()->admin(true)->one();
+    \Tests\Support\WebRequestTestHelper::withWebRequestContext(function ($request) use ($admin, $form, $method, $attribute, $primaryId, $regional): void {
+        $request->setIsCpRequest(true);
+        Craft::$app->getUser()->setIdentity($admin);
+        $requestedSite = new ReflectionProperty(\craft\helpers\Cp::class, '_requestedSite');
+        $before = $requestedSite->getValue();
+        $requestedSite->setValue(null, null);
+        $forms = Formie::$plugin->getForms();
+        $forms->invalidateFormCaches();
+        try {
+            expect(\craft\helpers\Cp::requestedSite()->id)->toBe($regional->id);
+            expect($forms->$method($form->$attribute, $primaryId))->toBeNull();
+            expect($forms->$method($form->$attribute)?->siteId)->toBe($regional->id);
+            expect($forms->$method($form->$attribute, $primaryId))->toBeNull();
+            expect($forms->$method($form->$attribute, $regional->id)?->id)->toBe($form->id);
+        } finally {
+            $requestedSite->setValue(null, $before);
+            $forms->invalidateFormCaches();
+        }
+    }, ['queryParams' => ['site' => $regional->handle]]);
+})->with([
+    'id' => ['getFormById', 'id'], 'handle' => ['getFormByHandle', 'handle'],
+    'uid' => ['getFormByUid', 'uid'], 'layout' => ['getFormByLayoutId', 'layoutId'],
+]);

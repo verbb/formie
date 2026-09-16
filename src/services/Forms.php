@@ -26,6 +26,7 @@ use craft\base\FieldInterface;
 use craft\base\NestedElementInterface;
 use craft\db\Query;
 use craft\helpers\Console;
+use craft\helpers\Cp;
 use craft\helpers\Db;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\ElementHelper;
@@ -920,19 +921,32 @@ class Forms extends Component
 
     private function _getFormLookupCache(bool $forSchema = false): FormLookupCache
     {
-        $key = $forSchema ? 'schema' : (int)Craft::$app->getSites()->getCurrentSite()->id;
+        $key = $forSchema ? 'schema' : $this->_getDefaultFormSiteId();
 
         return $this->_formLookupCaches[$key] ??= new FormLookupCache();
     }
 
     private function _getFormLayoutCacheKey(int $layoutId, ?int $siteId): string
     {
-        return $layoutId . ':' . ($siteId ?? Craft::$app->getSites()->getCurrentSite()->id);
+        return $layoutId . ':' . ($siteId ?? $this->_getDefaultFormSiteId());
     }
 
     private function _getFormLookupKey(string|int $value, ?int $siteId): string
     {
-        return $value . ':' . ($siteId ?? Craft::$app->getSites()->getCurrentSite()->id);
+        return $value . ':' . ($siteId ?? $this->_getDefaultFormSiteId());
+    }
+
+    private function _getDefaultFormSiteId(): int
+    {
+        if (Formie::$plugin->getFormSitePropagation()->isEnabled() && Craft::$app->getRequest()->getIsCpRequest()) {
+            $requestedSite = Cp::requestedSite();
+
+            if ($requestedSite) {
+                return (int)$requestedSite->id;
+            }
+        }
+
+        return (int)Craft::$app->getSites()->getCurrentSite()->id;
     }
 
     /**
