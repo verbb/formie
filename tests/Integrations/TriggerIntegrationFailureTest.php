@@ -39,6 +39,32 @@ function integrationFailureTestIntegration(bool $shouldSucceed): Integration
     return $integration;
 }
 
+it('preserves the original failure event and current job ID for queued integrations', function (): void {
+    $integration = integrationFailureTestIntegration(false);
+    $integration->setQueueJob(new \verbb\formie\jobs\TriggerIntegration());
+    Formie::$plugin->getSettings()->sendIntegrationAlerts = false;
+    $exception = new RuntimeException('Controlled integration failure');
+    $captured = null;
+    $service = Formie::$plugin->getIntegrations();
+    $handler = function ($event) use (&$captured): void { $captured = $event; };
+    $service->on(Integrations::EVENT_AFTER_TRIGGER_INTEGRATION_FAILED, $handler);
+    // The host exposes a job ID only while a queue delivery is executing.
+    $queue = Craft::$app->getQueue();
+    $currentJobId = new ReflectionProperty($queue, '_executingJobId');
+    $previousJobId = $currentJobId->getValue($queue);
+    $currentJobId->setValue($queue, '42');
+
+    try {
+        $service->handleTriggerIntegrationFailed($integration, new Submission(), $exception);
+        expect($captured?->exception)->toBe($exception);
+        expect($captured?->fromQueue)->toBeTrue();
+        expect($captured?->queueJobId)->toBe(42);
+    } finally {
+        $service->off(Integrations::EVENT_AFTER_TRIGGER_INTEGRATION_FAILED, $handler);
+        $currentJobId->setValue($queue, $previousJobId);
+    }
+});
+
 it('fires EVENT_AFTER_TRIGGER_INTEGRATION_FAILED when sendIntegrationPayload returns false', function (): void {
     $integration = integrationFailureTestIntegration(false);
     $submission = new Submission();

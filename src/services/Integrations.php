@@ -464,7 +464,7 @@ class Integrations extends Component
         if ($fromQueue && $queueJobId === null) {
             $queue = Craft::$app->getQueue();
 
-            if ($queue instanceof CraftQueue) {
+            if ($queue instanceof CraftQueue && method_exists($queue, 'getJobId')) {
                 $currentJobId = (int)$queue->getJobId();
 
                 if ($currentJobId > 0) {
