@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Fix prefilled submission values being lost when rendering a form without a `sessionKey`. ([#2956](https://github.com/verbb/formie/issues/2956))
 - Fix the captcha settings layout and show the first provider when opening the page.
 - Fix saving additional settings and captchas, submitting support requests, and running form migrations after settings layout changes.
 - Fix 400 errors when importing and exporting forms from settings.
