@@ -13,6 +13,7 @@ it('enforces schedule windows for before, active, and expired periods', function
     $beforeStart = formie()
         ->form(['title' => 'Schedule Before Start'])
         ->singleLineTextField('fullName', ['required' => true])
+        ->settings(['disableCaptchas' => true])
         ->create();
     $beforeStart->settings->setAttributes([
         'scheduleForm' => true,
@@ -35,6 +36,7 @@ it('enforces schedule windows for before, active, and expired periods', function
     $active = formie()
         ->form(['title' => 'Schedule Active'])
         ->singleLineTextField('fullName', ['required' => true])
+        ->settings(['disableCaptchas' => true])
         ->create();
     $active->settings->setAttributes([
         'scheduleForm' => true,
@@ -57,6 +59,7 @@ it('enforces schedule windows for before, active, and expired periods', function
     $expired = formie()
         ->form(['title' => 'Schedule Expired'])
         ->singleLineTextField('fullName', ['required' => true])
+        ->settings(['disableCaptchas' => true])
         ->create();
     $expired->settings->setAttributes([
         'scheduleForm' => true,
@@ -87,6 +90,7 @@ it('exposes pending and expired schedule messages based on current schedule stat
     $pendingForm = formie()
         ->form(['title' => 'Pending Message Contract'])
         ->singleLineTextField('fullName')
+        ->settings(['disableCaptchas' => true])
         ->create();
     $pendingForm->settings->setAttributes([
         'scheduleForm' => true,
@@ -98,6 +102,7 @@ it('exposes pending and expired schedule messages based on current schedule stat
     $expiredForm = formie()
         ->form(['title' => 'Expired Message Contract'])
         ->singleLineTextField('fullName')
+        ->settings(['disableCaptchas' => true])
         ->create();
     $expiredForm->settings->setAttributes([
         'scheduleForm' => true,

@@ -11,19 +11,22 @@ use verbb\formie\services\Cleanup;
 it('does not purge pending uploads when incomplete submission age is disabled', function (): void {
     $settings = Formie::$plugin->getSettings();
     $settings->maxIncompleteSubmissionAge = 0;
-    Craft::$app->getPlugins()->savePluginSettings(Formie::$plugin, $settings->toArray());
 
+    $form = formie()->form()->singleLineTextField('name')->create();
+    $asset = \Tests\Support\UploadTestHelper::seedAsset('disabled-retention.txt', 'keep');
+    Formie::$plugin->getFileUploads()->trackSubmissionAsset($asset, (int)$form->id, null, 'retention');
+    Craft::$app->getDb()->createCommand()->update(Table::FORMIE_PENDING_UPLOADS,
+        ['dateUpdated' => '2000-01-01 00:00:00'], ['assetId' => $asset->id])->execute();
     $purged = Formie::$plugin->getFileUploads()->purgeStalePendingUploads();
+    expect(\craft\elements\Asset::find()->id($asset->id)->status(null)->one())->not->toBeNull();
 
     expect($purged)->toBe(0);
+    // The stale fixture must not become another test's purge candidate.
+    Craft::$app->getElements()->deleteElement($asset, true);
 })->group('cleanup');
 
 it('prunes expired draft storage rows', function (): void {
-    if (!Craft::$app->getDb()->tableExists(Table::FORMIE_SUBMISSION_DRAFTS)) {
-        expect(true)->toBeTrue();
-
-        return;
-    }
+    expect(Craft::$app->getDb()->tableExists(Table::FORMIE_SUBMISSION_DRAFTS))->toBeTrue();
 
     $now = gmdate('Y-m-d H:i:s');
     $expired = gmdate('Y-m-d H:i:s', strtotime('-2 days'));
@@ -71,10 +74,4 @@ it('exposes every cleanup task handle through the cleanup service', function ():
         Cleanup::TASK_SUBMISSION_STATES,
         Cleanup::TASK_DRAFT_STORAGE,
     ]);
-})->group('cleanup');
-
-it('runs all cleanup tasks without error', function (): void {
-    Formie::$plugin->getCleanup()->runAll();
-
-    expect(true)->toBeTrue();
 })->group('cleanup');

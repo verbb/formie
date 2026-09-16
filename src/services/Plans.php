@@ -176,7 +176,7 @@ class Plans extends Component
         }
 
         $plan->isArchived = true;
-        $plan->dateArchived = Db::prepareDateForDb(new DateTime());
+        $plan->dateArchived = new DateTime();
 
         return $this->savePlan($plan);
     }

@@ -203,7 +203,7 @@ class Subscriptions extends Component
         $subscription->dateExpired = $dateTime;
 
         if (!$subscription->dateExpired) {
-            $subscription->dateExpired = Db::prepareDateForDb(new DateTime());
+            $subscription->dateExpired = new DateTime();
         }
 
         $this->saveSubscription($subscription, false);

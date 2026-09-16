@@ -7,10 +7,12 @@
 - Bump transitive `symfony/cache` to `6.4.45` (CVE-2026-45073 advisory floor).
 
 ### Fixed
+- Enforce weekly submission limits on Sundays and keep calendar limit periods from overlapping.
 - Preserve legacy spam, CAPTCHA and field-default settings during upgrades, and refresh schema lookups after migration changes.
 - Preserve restricted user and group submission access when upgrading from Formie 2.
 - Migrate integration field-handle tokens to stable field references.
 - Clone localized form layouts without serializing callbacks or mutating canonical form settings and notifications.
+- Preserve typed dates when expiring subscriptions and archiving payment plans.
 - Migrate notification field-handle tokens to stable references when upgrading from Formie 3.
 - Fix Freeform 5 migration imports and scope submission migration to the selected form ID.
 - Format date variable presets using their PHP date patterns.

@@ -7,7 +7,6 @@ use verbb\formie\elements\db\SubmissionQuery;
 use verbb\formie\models\FormSettings;
 
 use Craft;
-use craft\helpers\DateTimeHelper;
 use craft\helpers\Db;
 
 use DateTime;
@@ -181,35 +180,39 @@ class SubmissionLimitHelper
         $query->dateCreated([
             'and',
             '>= ' . Db::prepareDateForDb($startDate),
-            '<= ' . Db::prepareDateForDb($endDate),
+            '< ' . Db::prepareDateForDb($endDate),
         ]);
     }
 
-    /**
-     * @return array{0: \DateTime, 1: \DateTime}
-     */
-    private static function _periodBounds(string $period): array
+    private static function _periodBounds(string $period, ?DateTime $now = null): array
     {
+        $now ??= new DateTime();
+        $today = (clone $now)->setTime(0, 0, 0);
+        // PHP's "monday this week -1 day" selects last Sunday when today is
+        // Sunday. Anchor the start to today's weekday so Sunday belongs to the
+        // new Sunday-to-Sunday window, including across timezone/DST changes.
+        $weekStart = (clone $today)->modify('-' . $today->format('w') . ' days');
+
         return match ($period) {
             self::PERIOD_DAY => [
-                DateTimeHelper::toDateTime(new DateTime('today')),
-                DateTimeHelper::toDateTime(new DateTime('tomorrow')),
+                $today,
+                (clone $today)->modify('+1 day'),
             ],
             self::PERIOD_WEEK => [
-                DateTimeHelper::toDateTime(new DateTime('monday this week'))->modify('-1 day'),
-                DateTimeHelper::toDateTime(new DateTime('monday next week'))->modify('-1 day'),
+                $weekStart,
+                (clone $weekStart)->modify('+1 week'),
             ],
             self::PERIOD_MONTH => [
-                DateTimeHelper::toDateTime(new DateTime('first day of this month'))->setTime(0, 0, 0),
-                DateTimeHelper::toDateTime(new DateTime('first day of next month'))->setTime(0, 0, 0),
+                (clone $today)->modify('first day of this month'),
+                (clone $today)->modify('first day of next month'),
             ],
             self::PERIOD_YEAR => [
-                DateTimeHelper::toDateTime(new DateTime('first day of January'))->setTime(0, 0, 0),
-                DateTimeHelper::toDateTime(new DateTime('first day of January next year'))->setTime(0, 0, 0),
+                (clone $today)->setDate((int)$today->format('Y'), 1, 1),
+                (clone $today)->setDate((int)$today->format('Y') + 1, 1, 1),
             ],
             default => [
-                DateTimeHelper::toDateTime(new DateTime('today')),
-                DateTimeHelper::toDateTime(new DateTime('tomorrow')),
+                $today,
+                (clone $today)->modify('+1 day'),
             ],
         };
     }

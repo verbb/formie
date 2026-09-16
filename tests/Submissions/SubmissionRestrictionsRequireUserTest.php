@@ -11,6 +11,7 @@ it('blocks guest submissions when require-user is enabled and allows authenticat
     $form = formie()
         ->form(['title' => 'Require User Restriction'])
         ->singleLineTextField('fullName', ['required' => true])
+        ->settings(['disableCaptchas' => true])
         ->create();
 
     $form->settings->setAttributes([
@@ -62,6 +63,7 @@ it('exposes the configured require-user message when form is unavailable to gues
     $form = formie()
         ->form(['title' => 'Require User Message Contract'])
         ->singleLineTextField('fullName')
+        ->settings(['disableCaptchas' => true])
         ->create();
 
     $form->settings->setAttributes([
