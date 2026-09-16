@@ -68,7 +68,7 @@ class ReportQuery extends Component
             return $summary;
         }
 
-        $forms = Form::find()
+        $forms = Form::find()->withoutCpIndexScope()->site('*')->unique()
             ->id($formIds)
             ->status(null)
             ->indexBy('id')
@@ -301,11 +301,11 @@ class ReportQuery extends Component
         $user ??= Craft::$app->getUser()->getIdentity();
 
         if ($formIds === '*' || $formIds === ['*']) {
-            $forms = Form::find()->status(null)->all();
+            $forms = Form::find()->withoutCpIndexScope()->site('*')->unique()->status(null)->all();
         } elseif ($formIds === null || $formIds === []) {
             return [];
         } else {
-            $forms = Form::find()->id($formIds)->status(null)->all();
+            $forms = Form::find()->withoutCpIndexScope()->site('*')->unique()->id($formIds)->status(null)->all();
         }
 
         $resolved = [];

@@ -25,6 +25,7 @@
 - Apply group site policy changes to forms on every site, including forms outside the current editor’s view.
 - Honor the selected site when looking up forms that are unavailable on the primary site.
 - Restore configured form availability on secondary sites when upgrading existing installations.
+- Include regional forms in report choices, summaries and scheduled exports.
 - Allow existing fields and notifications to be selected with the keyboard.
 - Honor per-form permissions in form and submission indexes and GraphQL operations.
 - Load form indexes for users without permission to create forms.

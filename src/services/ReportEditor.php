@@ -132,7 +132,7 @@ class ReportEditor extends Component
 
         foreach ($this->_queryFormOptionRows() as $row) {
             if (!$includeAll) {
-                $form = Form::find()->id((int)$row['id'])->status(null)->one();
+                $form = Form::find()->withoutCpIndexScope()->site('*')->unique()->id((int)$row['id'])->status(null)->one();
 
                 if (!$form || !$permissions->canViewSubmissions($user, $form)) {
                     continue;
@@ -174,7 +174,7 @@ class ReportEditor extends Component
 
     private function _queryFormOptionRows(): array
     {
-        $siteId = (int)Craft::$app->getSites()->getCurrentSite()->id;
+        $siteId = (int)Craft::$app->getSites()->getPrimarySite()->id;
 
         return (new Query())
             ->select([
@@ -187,7 +187,7 @@ class ReportEditor extends Component
             ->innerJoin(['elements' => Table::ELEMENTS], '[[elements.id]] = [[forms.id]]')
             ->innerJoin(
                 ['elements_sites' => Table::ELEMENTS_SITES],
-                '[[elements_sites.elementId]] = [[forms.id]] AND [[elements_sites.siteId]] = :siteId',
+                '[[elements_sites.elementId]] = [[forms.id]] AND [[elements_sites.siteId]] = COALESCE([[forms.sourceSiteId]], :siteId)',
                 [':siteId' => $siteId],
             )
             ->where([

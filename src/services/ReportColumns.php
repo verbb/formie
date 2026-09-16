@@ -85,7 +85,7 @@ class ReportColumns extends Component
             return [];
         }
 
-        $siteId = (int)Craft::$app->getSites()->getCurrentSite()->id;
+        $siteId = (int)Craft::$app->getSites()->getPrimarySite()->id;
         $formRows = (new Query())
             ->select([
                 'id' => 'elements.id',
@@ -97,7 +97,7 @@ class ReportColumns extends Component
             ->innerJoin(['elements' => Table::ELEMENTS], '[[elements.id]] = [[forms.id]]')
             ->innerJoin(
                 ['elements_sites' => Table::ELEMENTS_SITES],
-                '[[elements_sites.elementId]] = [[forms.id]] AND [[elements_sites.siteId]] = :siteId',
+                '[[elements_sites.elementId]] = [[forms.id]] AND [[elements_sites.siteId]] = COALESCE([[forms.sourceSiteId]], :siteId)',
                 [':siteId' => $siteId],
             )
             ->where([

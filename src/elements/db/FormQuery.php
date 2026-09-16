@@ -26,7 +26,7 @@ class FormQuery extends ElementQuery
 
     protected array $defaultOrderBy = ['elements.dateCreated' => SORT_DESC];
 
-    private bool $_forProjectConfig = false;
+    private bool $_skipCpIndexScope = false;
     private mixed $_requestedSiteId = null;
 
 
@@ -112,7 +112,13 @@ class FormQuery extends ElementQuery
     /** @internal Apply authorized shared configuration independently of CP index visibility. */
     public function forProjectConfig(): static
     {
-        $this->_forProjectConfig = true;
+        return $this->withoutCpIndexScope();
+    }
+
+    /** @internal Callers must authorize access independently of the CP form index. */
+    public function withoutCpIndexScope(): static
+    {
+        $this->_skipCpIndexScope = true;
 
         return $this;
     }
@@ -218,7 +224,7 @@ class FormQuery extends ElementQuery
         }
 
         // Scope CP form indexes to the forms the current user can view or manage.
-        if (!$this->_forProjectConfig && Craft::$app->getRequest()->getIsCpRequest() && Craft::$app->edition !== Craft::Solo) {
+        if (!$this->_skipCpIndexScope && Craft::$app->getRequest()->getIsCpRequest() && Craft::$app->edition !== Craft::Solo) {
             $accessibleFormIds = Formie::$plugin->getPermissions()->getAccessibleFormIds(Craft::$app->getUser()->getIdentity());
 
             if ($accessibleFormIds !== null) {
@@ -237,7 +243,7 @@ class FormQuery extends ElementQuery
                 $this->siteId = Craft::$app->getSites()->getAllSiteIds();
             }
 
-            if (!$this->_forProjectConfig && Craft::$app->getRequest()->getIsCpRequest()) {
+            if (!$this->_skipCpIndexScope && Craft::$app->getRequest()->getIsCpRequest()) {
                 $siteId = $this->_resolveIndexSiteId();
 
                 if ($siteId !== null) {
