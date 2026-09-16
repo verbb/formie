@@ -90,6 +90,11 @@ class FieldValueQueryHelper
         $castType = null;
 
         if ($db->getIsMysql()) {
+            // Unquoting JSON null produces the text 'null'; preserve its type before casting or filtering.
+            $column = $db->quoteColumnName($contentColumn);
+            $path = $db->quoteValue(sprintf('$.%s', implode('.', array_map(fn(string $segment) => sprintf('"%s"', $segment), $jsonPath))));
+            $sql = "CASE WHEN JSON_TYPE(JSON_EXTRACT($column, $path)) = 'NULL' THEN NULL ELSE $sql END";
+
             // If the field uses an optimized DB type, cast it so its values can be indexed.
             $castType = match (Db::parseColumnType($resolvedDbType)) {
                 Schema::TYPE_CHAR,

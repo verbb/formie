@@ -21,6 +21,7 @@
 - Enforce unique values for fields inside groups and repeaters.
 - Stop enforcing saved number bounds in server and client validation when limits are disabled.
 - Compare and sort Number fields numerically while preserving large values and decimal precision.
+- Match blank submission answers correctly in empty filters without confusing them with the text “null”.
 - Apply selected submission states consistently to report summaries, tables, charts and exports.
 - Load report charts and summaries on PostgreSQL.
 - Include the selected End Date in scheduled report delivery windows.
