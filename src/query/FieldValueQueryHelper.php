@@ -124,14 +124,15 @@ class FieldValueQueryHelper
             // If a length was specified, replace the default with that.
             $length = Db::parseColumnLength($resolvedDbType);
 
-            if ($length) {
-                $castType = preg_replace('/\(\d+\)/', "($length)", $castType);
-            } else if ($castType === 'DECIMAL') {
-                [$precision, $scale] = Db::parseColumnPrecisionAndScale($resolvedDbType) ?? [null, null];
-
-                if ($precision && $scale) {
+            if ($castType === 'DECIMAL') {
+                // Preserve zero scale and precision-only definitions on every supported Craft version.
+                if (preg_match('/^\w+\((\d+)(?:,\s*(\d+))?\)/', $resolvedDbType, $matches)) {
+                    $precision = (int)$matches[1];
+                    $scale = (int)($matches[2] ?? 0);
                     $castType .= "($precision,$scale)";
                 }
+            } else if ($length) {
+                $castType = preg_replace('/\(\d+\)/', "($length)", $castType);
             }
 
             $sql = "CAST($sql AS $castType)";
