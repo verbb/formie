@@ -1,8 +1,8 @@
 <?php
 namespace verbb\formie\services;
 
-use verbb\formie\elements\Form;
 use verbb\formie\Formie;
+use verbb\formie\elements\Form;
 use verbb\formie\events\StencilEvent;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\DbSchema;
@@ -18,10 +18,25 @@ use craft\helpers\Db;
 use craft\helpers\Json;
 
 use yii\base\Component;
+
 use Throwable;
 
 class Stencils extends Component
 {
+
+    // Static Methods
+    // =========================================================================
+
+    public static function resolveScopeForNew(?string $requestedScope = null): string
+    {
+        if ($requestedScope === self::SCOPE_PROJECT && Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
+            return self::SCOPE_PROJECT;
+        }
+
+        return self::SCOPE_SITE;
+    }
+
+
     // Constants
     // =========================================================================
 
@@ -44,15 +59,6 @@ class Stencils extends Component
 
     // Public Methods
     // =========================================================================
-
-    public static function resolveScopeForNew(?string $requestedScope = null): string
-    {
-        if ($requestedScope === self::SCOPE_PROJECT && Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
-            return self::SCOPE_PROJECT;
-        }
-
-        return self::SCOPE_SITE;
-    }
 
     public function getAllStencils(bool $withTrashed = false): array
     {
@@ -358,7 +364,7 @@ class Stencils extends Component
             $stencilRecord->name = $config['name'];
             $stencilRecord->handle = $config['handle'];
             $stencilRecord->scope = self::SCOPE_SITE;
-            $stencilRecord->data = Json::encode($config['data']);
+            $stencilRecord->data = $config['data'];
 
             if ($defaultStatusUid = $config['defaultStatus'] ?? null) {
                 $defaultStatus = Formie::$plugin->getSubmissionStatuses()->getStatusByUid($defaultStatusUid);

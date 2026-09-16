@@ -91,6 +91,7 @@ it('clears stale date subfield defaults when importing today defaults', function
                                                     'type' => 'verbb\\formie\\fields\\subfields\\DateDate',
                                                     'settings' => [
                                                         'handle' => 'date',
+                                                        'label' => 'Date',
                                                         'defaultValue' => '2024-09-26T09:50:07+10:00',
                                                     ],
                                                 ],
@@ -110,7 +111,7 @@ it('clears stale date subfield defaults when importing today defaults', function
 
     $importedForm = ImportExportHelper::importFormFromJson($export, 'create');
 
-    expect($importedForm->hasErrors())->toBeFalse();
+    expect($importedForm->hasErrors())->toBeFalse(json_encode($importedForm->getErrors()));
 
     $field = $importedForm->getFields()[0] ?? null;
 

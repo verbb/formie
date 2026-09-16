@@ -1,14 +1,14 @@
 <?php
 namespace verbb\formie\models;
 
-use verbb\formie\base\FormInterface;
 use verbb\formie\Formie;
+use verbb\formie\base\FormInterface;
 use verbb\formie\elements\Form;
-use verbb\formie\services\Stencils as StencilsService;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\models\FieldLayout;
 use verbb\formie\models\SubmissionStatus;
 use verbb\formie\records\Stencil as StencilRecord;
+use verbb\formie\services\Stencils as StencilsService;
 use verbb\formie\services\SubmissionStatuses;
 
 use Craft;
@@ -19,12 +19,12 @@ use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 use craft\validators\HandleValidator;
 
-use DateTime;
-
-use yii\web\ServerErrorHttpException;
-use yii\base\NotSupportedException;
-use yii\base\Exception;
 use yii\base\ErrorException;
+use yii\base\Exception;
+use yii\base\NotSupportedException;
+use yii\web\ServerErrorHttpException;
+
+use DateTime;
 
 class Stencil extends Model implements FormInterface
 {
@@ -64,8 +64,13 @@ class Stencil extends Model implements FormInterface
     {
         // Config normalization
         if (array_key_exists('data', $config)) {
-            if (is_string($config['data'])) {
-                $config['data'] = new StencilData(Json::decodeIfJson($config['data']));
+            // Older site-scoped stencils were encoded before being assigned to
+            // a native JSON column, leaving one additional JSON string layer.
+            for ($layer = 0; $layer < 2 && is_string($config['data']); $layer++) {
+                $config['data'] = Json::decodeIfJson($config['data']);
+            }
+            if (is_array($config['data'])) {
+                $config['data'] = new StencilData($config['data']);
             }
 
             if (!($config['data'] instanceof StencilData)) {

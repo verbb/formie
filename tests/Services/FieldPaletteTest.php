@@ -11,6 +11,10 @@ use verbb\formie\fields\SingleLineText;
 use verbb\formie\Formie;
 use verbb\formie\services\FieldPalette;
 
+beforeEach(function (): void {
+    $this->originalPalette = Craft::$app->getProjectConfig()->get(FieldPalette::CONFIG_KEY);
+});
+
 it('builds default palette groups from registered pickable field types', function (): void {
     $palette = Formie::$plugin->getFieldPalette()->getResolvedPalette();
 
@@ -180,6 +184,8 @@ it('applies palette label overrides to form builder field type groups', function
 });
 
 afterEach(function (): void {
-    Craft::$app->getProjectConfig()->remove(FieldPalette::CONFIG_KEY);
+    Craft::$app->getProjectConfig()->set(FieldPalette::CONFIG_KEY, $this->originalPalette);
+    // Restoring project config does not discard the resolved palette on the service.
+    Formie::$plugin->set('fieldPalette', new FieldPalette());
     Formie::$plugin->getFields()->resetFieldRegistryCache();
 });

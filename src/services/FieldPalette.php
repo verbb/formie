@@ -1,11 +1,11 @@
 <?php
 namespace verbb\formie\services;
 
-use verbb\formie\fields\MissingField;
-use verbb\formie\fields\CustomField;
 use verbb\formie\Formie;
-use verbb\formie\helpers\StringHelper;
 use verbb\formie\elements\Form;
+use verbb\formie\fields\CustomField;
+use verbb\formie\fields\MissingField;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\FormGroup;
 
 use Craft;
@@ -34,7 +34,7 @@ class FieldPalette extends Component
 
     public function hasStoredConfig(): bool
     {
-        return Craft::$app->getProjectConfig()->get(self::CONFIG_KEY, true) !== null;
+        return Craft::$app->getProjectConfig()->get(self::CONFIG_KEY) !== null;
     }
 
     public function getEditorConfig(): array
@@ -257,7 +257,7 @@ class FieldPalette extends Component
 
     private function _getStoredConfig(): ?array
     {
-        $config = Craft::$app->getProjectConfig()->get(self::CONFIG_KEY, true);
+        $config = Craft::$app->getProjectConfig()->get(self::CONFIG_KEY);
 
         return is_array($config) ? $config : null;
     }

@@ -7,8 +7,13 @@
 - Bump transitive `symfony/cache` to `6.4.45` (CVE-2026-45073 advisory floor).
 
 ### Fixed
+- Clone localized form layouts without serializing callbacks or mutating canonical form settings and notifications.
+- Preserve field translations on import and field identities when updating existing forms from exports.
 - Handle omitted optional Table column handles and Note styles, and retain values from Table columns without handles when rendering or exporting submissions.
 - Preserve cleared submission values, including empty checkboxes, tables and dates, through serialization and apply hidden-field clearing during CP edits.
+- Prevent nested shared-field saves from overwriting updated labels; preserve shared definitions in nested layouts and stencil materialization.
+- Duplicate form layout trees without serializing runtime callbacks or mutating the source layout.
+- Fix native JSON stencil persistence, date import settings, checkbox coercion, blank password validation and empty Other-option validation.
 - Compare encrypted recipient condition payloads rather than randomized ciphertext.
 - Fix form factories exhausting automatic handles or generating Craft-reserved handles.
 - Fix client-side payment authorize still requiring a Stripe/provider token when the Payment field is hidden by conditional logic (e.g. bank transfer vs card) — authorize and mount now skip fields marked conditionally/row/page hidden, matching server-side payment workflow skips.

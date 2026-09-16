@@ -1,22 +1,22 @@
 <?php
 namespace verbb\formie\services;
 
-use verbb\formie\cache\FieldGqlCache;
-use verbb\formie\cache\FieldLookupCache;
-use verbb\formie\cache\FieldRegistryCache;
 use verbb\formie\Formie;
 use verbb\formie\base\Field;
 use verbb\formie\base\FieldInterface;
-use verbb\formie\base\ParentFieldInterface;
 use verbb\formie\base\FixedParentFieldInterface;
+use verbb\formie\base\ParentFieldInterface;
+use verbb\formie\cache\FieldGqlCache;
+use verbb\formie\cache\FieldLookupCache;
+use verbb\formie\cache\FieldRegistryCache;
+use verbb\formie\elements\db\SubmissionQuery;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\elements\db\SubmissionQuery;
 use verbb\formie\events\ModifyExistingFieldsEvent;
 use verbb\formie\events\ModifyFieldConfigEvent;
 use verbb\formie\events\ModifyFieldRowConfigEvent;
-use verbb\formie\events\RegisterFieldsEvent;
 use verbb\formie\events\RegisterFieldOptionsEvent;
+use verbb\formie\events\RegisterFieldsEvent;
 use verbb\formie\fields as formiefields;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\Plugin;
@@ -30,13 +30,13 @@ use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\FieldLayoutRow;
 use verbb\formie\positions\AboveInput;
 use verbb\formie\positions\BelowInput;
+use verbb\formie\positions\Hidden as HiddenPosition;
 use verbb\formie\positions\LeftInput;
 use verbb\formie\positions\RightInput;
-use verbb\formie\positions\Hidden as HiddenPosition;
+use verbb\formie\records\Field as FieldRecord;
 use verbb\formie\records\FieldLayout as FieldLayoutRecord;
 use verbb\formie\records\FieldLayoutPage as FieldLayoutPageRecord;
 use verbb\formie\records\FieldLayoutRow as FieldLayoutRowRecord;
-use verbb\formie\records\Field as FieldRecord;
 use verbb\formie\records\FormField as FormFieldRecord;
 use verbb\formie\validators\LayoutHandleUniqueValidator;
 
@@ -45,25 +45,26 @@ use craft\base\Component;
 use craft\base\Field as CraftField;
 use craft\base\FieldInterface as CraftFieldInterface;
 use craft\db\Query;
-use craft\helpers\UrlHelper;
 use craft\errors\MissingComponentException;
 use craft\fields\BaseRelationField;
 use craft\fields\PlainText;
 use craft\helpers\Component as ComponentHelper;
 use craft\helpers\Db;
 use craft\helpers\Json;
+use craft\helpers\UrlHelper;
 use craft\models\GqlSchema;
 use craft\validators\HandleValidator;
 
+use yii\base\InvalidConfigException;
+use yii\db\Expression;
+
 use Exception;
-use GraphQL\Type\Definition\Type;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionProperty;
 use Throwable;
 
-use yii\base\InvalidConfigException;
-use yii\db\Expression;
+use GraphQL\Type\Definition\Type;
 
 class Fields extends Component
 {
@@ -91,7 +92,9 @@ class Fields extends Component
     private ?array $_reservedHandles = null;
     private array $_definitionIdsBeingDeleted = [];
     private static array $_savedSharedDefinitionIds = [];
+    private static int $_layoutSaveDepth = 0;
     
+
 
     // Public Methods
     // =========================================================================
@@ -822,7 +825,9 @@ class Fields extends Component
         }
 
         try {
-            $field = ComponentHelper::createComponent($config, FieldInterface::class);
+            $componentConfig = $config;
+            unset($componentConfig['syncedDefinitionHandle'], $componentConfig['syncedDefinitionId']);
+            $field = ComponentHelper::createComponent($componentConfig, FieldInterface::class);
         } catch (MissingComponentException $e) {
             $config['errorMessage'] = $e->getMessage();
             $config['expectedType'] = $config['type'];
@@ -965,6 +970,26 @@ class Fields extends Component
     public function getNestedFieldConfigs(array $fieldConfig): array
     {
         $settings = $this->getFieldConfigSettings($fieldConfig);
+        $nestedLayoutId = (int)($fieldConfig['nestedLayoutId'] ?? $settings['nestedLayoutId'] ?? 0);
+
+        // Saved parent fields reference a normalized layout instead of embedding rows.
+        // Read its child configs without hydrating fields, while allowing explicit draft rows.
+        if ($nestedLayoutId && !array_key_exists('rows', $fieldConfig) && !array_key_exists('rows', $settings)) {
+            $cache = $this->_getFieldLookupCache();
+
+            if (!array_key_exists($nestedLayoutId, $cache->nestedFieldConfigsByLayoutId)) {
+                $records = $this->_createFormFieldConfigQuery()->where(['ff.layoutId' => $nestedLayoutId])->all();
+                $cache->nestedFieldConfigsByLayoutId[$nestedLayoutId] = array_map(function(array $record): array {
+                    $config = $this->_normalizeFormFieldConfig($record);
+                    $config['enabled'] = (bool)($this->getFieldConfigSettings($config)['enabled'] ?? true);
+
+                    return $config;
+                }, $records);
+            }
+
+            return $cache->nestedFieldConfigsByLayoutId[$nestedLayoutId];
+        }
+
         $rows = $fieldConfig['rows'] ?? $settings['rows'] ?? [];
 
         if (!is_array($rows)) {
@@ -1327,6 +1352,10 @@ class Fields extends Component
         $transaction = Craft::$app->getDb()->beginTransaction();
         $layoutId = null;
 
+        if (self::$_layoutSaveDepth++ === 0) {
+            self::$_savedSharedDefinitionIds = [];
+        }
+
         try {
             $layoutRecord = $isNewLayout ? new FieldLayoutRecord() : FieldLayoutRecord::findOne($layout->id);
 
@@ -1338,7 +1367,6 @@ class Fields extends Component
             $layout->id = $layoutRecord->id;
             $layoutId = $layout->id;
             LayoutHandleUniqueValidator::beginLayoutSaveScope($layout);
-            self::$_savedSharedDefinitionIds = [];
 
             foreach ($layout->getPages() as $pageKey => $page) {
                 $page->layoutId = $layout->id;
@@ -1374,7 +1402,9 @@ class Fields extends Component
             }
         } finally {
             LayoutHandleUniqueValidator::endLayoutSaveScope($layoutId);
-            self::$_savedSharedDefinitionIds = [];
+            if (--self::$_layoutSaveDepth === 0) {
+                self::$_savedSharedDefinitionIds = [];
+            }
         }
 
         return false;
@@ -1867,6 +1897,11 @@ class Fields extends Component
         }
 
         return $this->_reservedHandles;
+    }
+
+    public function resetFieldRegistryCache(): void
+    {
+        $this->_resetFieldCaches();
     }
 
 
@@ -2407,11 +2442,6 @@ class Fields extends Component
         $this->_fieldRegistryCache?->reset();
         $this->_fieldGqlCache?->reset();
         SubmissionQuery::invalidateStaticCaches();
-    }
-
-    public function resetFieldRegistryCache(): void
-    {
-        $this->_resetFieldCaches();
     }
 
     private function _getFieldConfigById(int $id): array

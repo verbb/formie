@@ -24,6 +24,7 @@ it('stores synced definition metadata in stencil snapshots', function (): void {
 
     $sourceField = $sourceForm->getFieldByHandle('email');
     $syncedFieldConfig = $sourceField->getFormBuilderConfig();
+    unset($syncedFieldConfig['id'], $syncedFieldConfig['uid'], $syncedFieldConfig['reference'], $syncedFieldConfig['layoutId'], $syncedFieldConfig['pageId'], $syncedFieldConfig['rowId']);
     $syncedFieldConfig['fieldId'] = $sourceField->fieldId;
     $syncedFieldConfig['syncId'] = $sourceField->fieldId;
     $syncedFieldConfig['isSynced'] = true;
@@ -58,6 +59,7 @@ it('materializes new forms with synced fields linked to the shared definition', 
     $definitionId = $sourceField->fieldId;
 
     $syncedFieldConfig = $sourceField->getFormBuilderConfig();
+    unset($syncedFieldConfig['id'], $syncedFieldConfig['uid'], $syncedFieldConfig['reference'], $syncedFieldConfig['layoutId'], $syncedFieldConfig['pageId'], $syncedFieldConfig['rowId']);
     $syncedFieldConfig['fieldId'] = $definitionId;
     $syncedFieldConfig['syncId'] = $definitionId;
     $syncedFieldConfig['isSynced'] = true;
@@ -103,12 +105,13 @@ it('materializes new forms with synced fields linked to the shared definition', 
 });
 
 it('resolves shared definitions by handle when materializing stencils', function (): void {
+    $fieldHandle = 'stencilEmail' . uniqid();
     $sourceForm = formie()
         ->form(['title' => 'Stencil Handle Resolve Source', 'handle' => stencilSyncedFieldsHandle('handleSource')])
-        ->emailField('email', ['label' => 'Email'])
+        ->emailField($fieldHandle, ['label' => 'Email'])
         ->create();
 
-    $definitionId = $sourceForm->getFieldByHandle('email')->fieldId;
+    $definitionId = $sourceForm->getFieldByHandle($fieldHandle)->fieldId;
 
     $stencil = new Stencil([
         'name' => 'Handle Resolve Stencil',
@@ -126,10 +129,10 @@ it('resolves shared definitions by handle when materializing stencils', function
                             [
                                 'type' => Email::class,
                                 'reference' => StringHelper::UUID(),
-                                'syncedDefinitionHandle' => 'email',
+                                'syncedDefinitionHandle' => $fieldHandle,
                                 'settings' => [
                                     'label' => 'Email',
-                                    'handle' => 'email',
+                                    'handle' => $fieldHandle,
                                 ],
                             ],
                         ],
@@ -145,5 +148,5 @@ it('resolves shared definitions by handle when materializing stencils', function
     ]);
     $stencil->applyStencilToForm($newForm, true);
 
-    expect($newForm->getFieldByHandle('email')?->fieldId)->toBe($definitionId);
+    expect($newForm->getFieldByHandle($fieldHandle)?->fieldId)->toBe($definitionId);
 });

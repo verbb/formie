@@ -6,15 +6,7 @@ use verbb\formie\elements\Form;
 
 function duplicateFriendlySourceHandle(): string
 {
-    $alphabet = str_split('abcdefghijklmnopqrstuvwxyz');
-
-    foreach ($alphabet as $candidate) {
-        if (Form::find()->handle($candidate)->status(null)->one() === null) {
-            return $candidate;
-        }
-    }
-
-    return 'a';
+    return 'test' . bin2hex(random_bytes(8));
 }
 
 it('duplicates forms while preserving key settings and layout presence', function (): void {
@@ -54,4 +46,27 @@ it('supports delete and restore lifecycle for forms', function (): void {
         ->and($trashed)->not->toBeNull()
         ->and($restored)->toBeTrue()
         ->and($reloaded)->not->toBeNull();
+});
+
+it('duplicates nested layouts without changing the source field identities or labels', function (): void {
+    $source = formie()->form(['handle' => duplicateFriendlySourceHandle()])->groupField('contact', [
+        'rows' => [['fields' => [[
+            'type' => \verbb\formie\fields\SingleLineText::class,
+            'handle' => 'name', 'label' => 'Original',
+        ]]]],
+    ])->create();
+    $sourceField = $source->getFieldByHandle('contact')->getFieldByHandle('name');
+    $sourceId = $sourceField->id;
+    $sourceUid = $sourceField->uid;
+    $duplicate = Craft::$app->getElements()->duplicateElement($source, $source->getDuplicateAttributes());
+    $copiedField = $duplicate->getFieldByHandle('contact')->getFieldByHandle('name');
+    expect($sourceField->id)->toBe($sourceId)->and($sourceField->uid)->toBe($sourceUid)
+        ->and($copiedField)->not->toBe($sourceField)
+        ->and($copiedField->uid)->not->toBe($sourceUid);
+    $duplicate->getFieldByHandle('contact')->getFieldLayout()->getFieldByHandle('name')->label = 'Edited copy';
+    expect(Craft::$app->getElements()->saveElement($duplicate))->toBeTrue();
+    $reloaded = Form::find()->id($source->id)->one();
+    expect($reloaded->getFieldByHandle('contact')->getFieldByHandle('name')->label)->toBe('Original');
+    $reloadedCopy = Form::find()->id($duplicate->id)->one();
+    expect($reloadedCopy->getFieldByHandle('contact')->getFieldByHandle('name')->label)->toBe('Edited copy');
 });

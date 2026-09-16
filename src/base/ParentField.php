@@ -11,9 +11,9 @@ use verbb\formie\gql\interfaces\RowInterface;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
-use verbb\formie\query\NestedFieldQueryHelper;
 use verbb\formie\models\FieldLayout;
 use verbb\formie\models\FieldLayoutRow;
+use verbb\formie\query\NestedFieldQueryHelper;
 
 use Craft;
 use craft\base\Element;
@@ -21,9 +21,9 @@ use craft\base\ElementInterface;
 use craft\base\Field as CraftField;
 use craft\base\FieldInterface as CraftFieldInterface;
 use craft\db\Query;
-use craft\elements\ElementCollection;
 use craft\elements\db\ElementQuery;
 use craft\elements\db\ElementQueryInterface;
+use craft\elements\ElementCollection;
 use craft\helpers\ElementHelper;
 use craft\helpers\Template;
 use craft\services\Elements;
@@ -34,6 +34,15 @@ use GraphQL\Type\Definition\Type;
 
 abstract class ParentField extends Field implements ParentFieldInterface
 {
+    // Static Methods
+    // =========================================================================
+
+    public static function queryCondition(array $instances, mixed $value, array &$params): array|string|ExpressionInterface|false|null
+    {
+        return NestedFieldQueryHelper::buildQueryCondition($instances, $value);
+    }
+
+
     // Constants
     // =========================================================================
 
@@ -44,15 +53,6 @@ abstract class ParentField extends Field implements ParentFieldInterface
     // =========================================================================
 
     use ParentFieldCompatibility;
-
-
-    // Static Methods
-    // =========================================================================
-
-    public static function queryCondition(array $instances, mixed $value, array &$params): array|string|ExpressionInterface|false|null
-    {
-        return NestedFieldQueryHelper::buildQueryCondition($instances, $value);
-    }
 
 
     // Properties
@@ -229,6 +229,7 @@ abstract class ParentField extends Field implements ParentFieldInterface
     {
         $this->_fieldLayout = $fieldLayout;
         $this->_nestedLayoutBuilderConfig = null;
+        $this->_fieldsByHandle = null;
     }
 
     public function validateFieldLayout(): void
@@ -545,10 +546,13 @@ abstract class ParentField extends Field implements ParentFieldInterface
                     $field->rowId = null;
                     $field->reference = null;
                     $field->uid = '';
-                    $field->fieldId = null;
-                    $field->syncId = null;
-                    $field->isSynced = false;
-                    $field->usageCount = null;
+                    // A new parent needs new placements, but explicitly linked
+                    // child fields must keep their shared definition.
+                    if (!$field->getIsSynced()) {
+                        $field->fieldId = null;
+                        $field->syncId = null;
+                        $field->usageCount = null;
+                    }
 
                     if ($field instanceof NestedFieldInterface) {
                         $this->_clearLayoutIdentifiers($field->getFieldLayout());

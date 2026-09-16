@@ -3,13 +3,13 @@ namespace verbb\formie\helpers;
 
 use verbb\formie\Formie;
 use verbb\formie\base\FieldInterface;
+use verbb\formie\base\OptionsField;
 use verbb\formie\base\ParentFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\fields;
 use verbb\formie\fields\Recipients;
-use verbb\formie\base\OptionsField;
-use verbb\formie\helpers\FieldOptionHelper;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\FieldOptionHelper;
 use verbb\formie\helpers\Plugin;
 use verbb\formie\models\EmailTemplate;
 use verbb\formie\models\FieldLayout;
@@ -24,10 +24,10 @@ use verbb\formie\records\Notification as NotificationRecord;
 use verbb\formie\records\PdfTemplate as PdfTemplateRecord;
 
 use Craft;
+use craft\db\Query;
 use craft\elements\Entry;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
-use craft\db\Query;
 use craft\validators\HandleValidator;
 
 use yii\base\Exception;
@@ -140,7 +140,7 @@ class ImportExportHelper
             }
 
             // Get all field settings for all pages/rows (supports nested fields)
-            self::getFieldInfoForExport($page->getRows(), $pageData);
+            self::_getFieldInfoForExport($page->getRows(), $pageData);
 
             $pages[] = $pageData;
         }
@@ -174,7 +174,7 @@ class ImportExportHelper
 
         // Store the fields on an existing form, so we can retain their IDs later
         if ($existingForm) {
-            $existingFields = self::buildFieldMap($existingForm->getFields());
+            $existingFields = self::_buildFieldMap($existingForm->getFields());
 
             // Reset the form layout so it's from scratch
             $form->setFormLayout(new FieldLayout());
@@ -243,11 +243,11 @@ class ImportExportHelper
 
         // Traverse import data and update field IDs
         foreach ($pages as &$page) {
-            self::updateFieldIdsInImport($page, $existingFields);
+            self::_updateFieldIdsInImport($page, $existingFields);
         }
 
         // Ensure the pages/rows/fields are prepped properly
-        self::prepFieldsForImport($pages);
+        self::_prepFieldsForImport($pages);
 
         // Handle field layout and pages
         $form->getFormLayout()->setPages($pages);
@@ -330,6 +330,8 @@ class ImportExportHelper
 
         $siteOverrides = ArrayHelper::remove($json, 'siteOverrides');
         $fieldSiteOverrides = ArrayHelper::remove($json, 'fieldSiteOverrides');
+        $importReferences = [];
+        self::_extractImportReferences($json['pages'], $importReferences);
 
         // When creating a new form, change the handle
         if ($formAction === 'create') {
@@ -374,17 +376,14 @@ class ImportExportHelper
              $form,
              $siteOverrides ?? null,
              $fieldSiteOverrides ?? null,
+             $importReferences,
          );
 
          return $form;
     
     }
 
-
-    // Private Methods
-    // =========================================================================
-
-    private static function getFieldInfoForExport(array $rows, array &$pageData): void
+    private static function _getFieldInfoForExport(array $rows, array &$pageData): void
     {
         foreach ($rows as $rowId => $row) {
             foreach ($row['fields'] as $fieldId => $field) {
@@ -400,18 +399,19 @@ class ImportExportHelper
 
                 $pageData['rows'][$rowId]['fields'][$fieldId] = [
                     'type' => get_class($field),
+                    'reference' => $field->reference,
                     'settings' => $settings,
                 ];
 
                 // Handle nested fields
                 if ($field instanceof ParentFieldInterface) {
-                    self::getFieldInfoForExport($field->getRows(), $pageData['rows'][$rowId]['fields'][$fieldId]['settings']);
+                    self::_getFieldInfoForExport($field->getRows(), $pageData['rows'][$rowId]['fields'][$fieldId]['settings']);
                 }
             }
         }
     }
 
-    private static function prepFieldsForImport(array &$pages): void
+    private static function _prepFieldsForImport(array &$pages): void
     {
         foreach ($pages as $pageKey => &$page) {
             // Handle Formie v2 exports
@@ -452,7 +452,7 @@ class ImportExportHelper
                                 // Create a new variable, so we can use our recursive function
                                 $nestedPages = [['rows' => $nestedRows]];
 
-                                self::prepFieldsForImport($nestedPages);
+                                self::_prepFieldsForImport($nestedPages);
 
                                 $field['settings']['rows'] = $nestedPages[0]['rows'];
                             }
@@ -489,7 +489,8 @@ class ImportExportHelper
                 self::_clearImportedDateSubFieldDefaultValues($settings['rows']);
             }
 
-            foreach ($settings['layouts'] ?? [] as &$layoutRows) {
+            $settings['layouts'] = is_array($settings['layouts'] ?? null) ? $settings['layouts'] : [];
+            foreach ($settings['layouts'] as &$layoutRows) {
                 if (is_array($layoutRows)) {
                     self::_clearImportedDateSubFieldDefaultValues($layoutRows);
                 }
@@ -498,9 +499,6 @@ class ImportExportHelper
         }
     }
 
-    /**
-     * @param array<int, mixed> $rows
-     */
     private static function _clearImportedDateSubFieldDefaultValues(array &$rows): void
     {
         foreach ($rows as &$row) {
@@ -508,7 +506,8 @@ class ImportExportHelper
                 continue;
             }
 
-            foreach ($row['fields'] ?? [] as &$field) {
+            $row['fields'] = is_array($row['fields'] ?? null) ? $row['fields'] : [];
+            foreach ($row['fields'] as &$field) {
                 if (!is_array($field)) {
                     continue;
                 }
@@ -526,7 +525,7 @@ class ImportExportHelper
         unset($row);
     }
 
-    private static function buildFieldMap(array $fields, string $prefix = ''): array
+    private static function _buildFieldMap(array $fields, string $prefix = ''): array
     {
         $fieldMap = [];
 
@@ -537,14 +536,14 @@ class ImportExportHelper
             // Check for nested fields
             if ($field instanceof ParentFieldInterface) {
                 $nestedFields = $field->getFields();
-                $fieldMap = array_merge($fieldMap, self::buildFieldMap($nestedFields, $key));
+                $fieldMap = array_merge($fieldMap, self::_buildFieldMap($nestedFields, $key));
             }
         }
 
         return $fieldMap;
     }
 
-    private static function updateFieldIdsInImport(array &$data, array $existingFields, string $prefix = ''): void
+    private static function _updateFieldIdsInImport(array &$data, array $existingFields, string $prefix = ''): void
     {
         if (isset($data['rows'])) {
             foreach ($data['rows'] as &$row) {
@@ -558,11 +557,14 @@ class ImportExportHelper
 
                         if (isset($existingFields[$key])) {
                             $field['id'] = $existingFields[$key]->id;
+                            $field['fieldId'] = $existingFields[$key]->fieldId;
+                            $field['uid'] = $existingFields[$key]->uid;
+                            $field['reference'] = $existingFields[$key]->reference;
                         }
 
                         // Recursively handle nested fields
                         if ($rows && is_array($rows)) {
-                            self::updateFieldIdsInImport($field['settings'], $existingFields, $key);
+                            self::_updateFieldIdsInImport($field['settings'], $existingFields, $key);
                         }
                     }
                 }
@@ -635,7 +637,7 @@ class ImportExportHelper
         return $export;
     }
 
-    private static function _importSiteOverrides(Form $form, ?array $siteOverrides, ?array $fieldSiteOverrides): void
+    private static function _importSiteOverrides(Form $form, ?array $siteOverrides, ?array $fieldSiteOverrides, array $importReferences = []): void
     {
         if (!$form->id) {
             return;
@@ -649,6 +651,14 @@ class ImportExportHelper
 
         $pageKeyMap = self::_buildPageImportKeyMap($form);
         $fieldReferenceMap = self::_buildFieldReferenceMap($form);
+        $importedFields = self::_buildFieldMap($form->getFields());
+
+        foreach ($importReferences as $reference => $path) {
+            if (isset($importedFields[$path])) {
+                $fieldReferenceMap[$reference] = (int)$importedFields[$path]->fieldId;
+            }
+        }
+
 
         if (is_array($siteOverrides)) {
             foreach ($siteOverrides as $siteHandle => $overrides) {
@@ -707,6 +717,31 @@ class ImportExportHelper
         $site = Craft::$app->getSites()->getSiteByHandle($handle);
 
         return $site ? (int)$site->id : null;
+    }
+
+    private static function _extractImportReferences(array &$pages, array &$references, string $prefix = ''): void
+    {
+        foreach ($pages as &$page) {
+            foreach ($page['rows'] as &$row) {
+                foreach ($row['fields'] as &$field) {
+                    $handle = $field['handle'] ?? $field['settings']['handle'] ?? '';
+                    $path = $prefix ? "$prefix.$handle" : $handle;
+                    $reference = ArrayHelper::remove($field, 'reference');
+
+                    if ($reference) {
+                        // Placement references are globally unique. Keep their portable path
+                        // for translation remapping while the imported field gets a fresh one.
+                        $references[$reference] = $path;
+                    }
+
+                    if (!empty($field['settings']['rows'])) {
+                        $nestedPages = [['rows' => $field['settings']['rows']]];
+                        self::_extractImportReferences($nestedPages, $references, $path);
+                        $field['settings']['rows'] = $nestedPages[0]['rows'];
+                    }
+                }
+            }
+        }
     }
 
     private static function _buildFieldReferenceMap(Form $form): array

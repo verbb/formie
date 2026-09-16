@@ -1,9 +1,9 @@
 <?php
 namespace verbb\formie\services;
 
+use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\events\FormGroupEvent;
-use verbb\formie\Formie;
 use verbb\formie\helpers\DbSchema;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
@@ -156,6 +156,12 @@ class FormGroups extends Component
         $this->_groups = null;
 
         $group = $this->getGroupById($groupRecord->id);
+
+        // Craft fires this event before updating the working project config.
+        // Use the incoming policy for this request, including site propagation.
+        if ($group) {
+            $group->settings = is_array($data['settings'] ?? null) ? $data['settings'] : null;
+        }
 
         if ($group && Craft::$app->getIsMultiSite()) {
             $forms = Form::find()->groupId($group->id)->status(null)->all();

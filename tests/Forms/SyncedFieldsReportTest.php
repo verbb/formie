@@ -24,6 +24,7 @@ it('reports synced field definitions and the forms they appear on', function ():
     $definitionId = (int)$sourceField->fieldId;
 
     $syncedFieldConfig = $sourceField->getFormBuilderConfig();
+    unset($syncedFieldConfig['id'], $syncedFieldConfig['uid'], $syncedFieldConfig['reference'], $syncedFieldConfig['layoutId'], $syncedFieldConfig['pageId'], $syncedFieldConfig['rowId']);
     $syncedFieldConfig['fieldId'] = $definitionId;
     $syncedFieldConfig['syncId'] = $definitionId;
     $syncedFieldConfig['isSynced'] = true;

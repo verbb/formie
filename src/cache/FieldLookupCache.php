@@ -14,6 +14,7 @@ class FieldLookupCache
     public array $fieldsForForm = [];
     public array $fieldConfigById = [];
     public array $fieldConfigByReference = [];
+    public array $nestedFieldConfigsByLayoutId = [];
     public array $decodedFieldSettings = [];
     public array $existingFieldsByExcludeFormId = [];
 
@@ -31,6 +32,7 @@ class FieldLookupCache
         $this->fieldsForForm = [];
         $this->fieldConfigById = [];
         $this->fieldConfigByReference = [];
+        $this->nestedFieldConfigsByLayoutId = [];
         $this->decodedFieldSettings = [];
         $this->existingFieldsByExcludeFormId = [];
     }

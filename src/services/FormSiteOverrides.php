@@ -6,6 +6,7 @@ use verbb\formie\base\ParentFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\Formie;
 use verbb\formie\helpers\Table;
+use verbb\formie\models\FieldLayout;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\FieldLayoutPageSettings;
 use verbb\formie\models\FormSettings;
@@ -363,9 +364,11 @@ class FormSiteOverrides extends Component
         $target = $clone ? clone $form : $form;
 
         if ($clone) {
-            // `clone $form` is shallow — pages/fields are shared with the canonical layout cache.
-            $target->setFormLayout(unserialize(serialize($form->getFormLayout())));
-            $this->_cloneNestedLayoutsForForm($target);
+            // Clone mutable presentation state without serializing runtime callbacks.
+            $target->setFormLayout($this->_cloneLayout($form->getFormLayout()));
+            $target->settings = clone $form->settings;
+            $target->settings->setForm($target);
+            $target->setNotifications(array_map(static fn(Notification $notification) => clone $notification, $form->getNotifications() ?? []));
         }
 
         $overrides = $this->getOverrides((int)$form->id, $siteId);
@@ -687,32 +690,41 @@ class FormSiteOverrides extends Component
         }
     }
 
-    private function _cloneNestedLayoutsForForm(Form $form): void
+    private function _cloneLayout(FieldLayout $source): FieldLayout
     {
-        foreach ($form->getFields() as $field) {
-            if ($field instanceof FieldInterface) {
-                $this->_cloneNestedLayoutsForField($field);
-            }
-        }
-    }
+        $layout = clone $source;
+        $pages = [];
 
-    private function _cloneNestedLayoutsForField(FieldInterface $field): void
-    {
-        if (!$field instanceof ParentFieldInterface) {
-            return;
-        }
+        foreach ($source->getPages() as $sourcePage) {
+            $page = clone $sourcePage;
+            $page->setPageSettings($sourcePage->getPageSettings()?->toArray());
+            $rows = [];
 
-        $field->setFieldLayout(unserialize(serialize($field->getFieldLayout())));
+            foreach ($sourcePage->getRows() as $sourceRow) {
+                $row = clone $sourceRow;
+                $fields = [];
 
-        foreach ($field->getFieldLayout()->getPages() as $page) {
-            foreach ($page->getRows() as $row) {
-                foreach ($row->getFields() as $nestedField) {
-                    if ($nestedField instanceof FieldInterface) {
-                        $this->_cloneNestedLayoutsForField($nestedField);
+                foreach ($sourceRow->getFields() as $sourceField) {
+                    $field = clone $sourceField;
+
+                    if ($field instanceof ParentFieldInterface) {
+                        $field->setFieldLayout($this->_cloneLayout($sourceField->getFieldLayout()));
                     }
+
+                    $fields[] = $field;
                 }
+
+                $row->setFields($fields);
+                $rows[] = $row;
             }
+
+            $page->setRows($rows);
+            $pages[] = $page;
         }
+
+        $layout->setPages($pages);
+
+        return $layout;
     }
 
     private function _applyFieldOverrides(FieldInterface $field, array $fieldOverrides): void

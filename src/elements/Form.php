@@ -5,44 +5,46 @@ use verbb\formie\Formie;
 use verbb\formie\base\Crm;
 use verbb\formie\base\EmailMarketing;
 use verbb\formie\base\FieldInterface;
-use verbb\formie\base\OptionsField;
 use verbb\formie\base\FormDefaultableTrait;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\Miscellaneous;
+use verbb\formie\base\OptionsField;
 use verbb\formie\base\ParentFieldInterface;
+use verbb\formie\base\QuestionnaireFieldInterface;
+use verbb\formie\client\bootstrap\models\FormDefinition;
+use verbb\formie\client\models\LoadContext;
+use verbb\formie\deprecations\FormDeprecations;
+use verbb\formie\deprecations\ThemeConfigLegacyKeys;
 use verbb\formie\elements\actions\DuplicateForm;
 use verbb\formie\elements\actions\MoveFormToGroup;
 use verbb\formie\elements\actions\SetFormStatus;
 use verbb\formie\elements\conditions\FormCondition;
 use verbb\formie\elements\db\FormQuery;
-use verbb\formie\base\QuestionnaireFieldInterface;
-use verbb\formie\fields\Quiz;
-use verbb\formie\deprecations\FormDeprecations;
-use verbb\formie\deprecations\ThemeConfigLegacyKeys;
 use verbb\formie\events\ModifyFormSlotTagEvent;
+use verbb\formie\fields\Quiz;
 use verbb\formie\gql\interfaces\FieldInterface as GqlFieldInterface;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\ConditionsHelper;
 use verbb\formie\helpers\CpSubmissionFieldConditions;
 use verbb\formie\helpers\FieldAttributesHelper;
-use verbb\formie\helpers\ConditionsHelper;
 use verbb\formie\helpers\HandleHelper;
 use verbb\formie\helpers\Html;
 use verbb\formie\helpers\OptionsMode;
 use verbb\formie\helpers\References;
-use verbb\formie\helpers\SubmissionRedirectRulesHelper;
 use verbb\formie\helpers\RichTextHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
-use verbb\formie\helpers\Table;
 use verbb\formie\helpers\SubmissionLimitHelper;
+use verbb\formie\helpers\SubmissionRedirectRulesHelper;
+use verbb\formie\helpers\Table;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\ClientModule;
 use verbb\formie\models\FieldLayout as FormLayout;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\FieldLayoutPageSettings;
+use verbb\formie\models\FormGroup;
 use verbb\formie\models\FormSettings;
 use verbb\formie\models\FormStatus;
-use verbb\formie\models\FormGroup;
 use verbb\formie\models\FormTemplate;
 use verbb\formie\models\Notification;
 use verbb\formie\models\Settings;
@@ -50,8 +52,6 @@ use verbb\formie\models\SlotTag;
 use verbb\formie\models\SubmissionStatus;
 use verbb\formie\options\OptionSourceFieldInterface;
 use verbb\formie\records\Form as FormRecord;
-use verbb\formie\client\bootstrap\models\FormDefinition;
-use verbb\formie\client\models\LoadContext;
 use verbb\formie\services\Permissions;
 use verbb\formie\services\SubmissionDrafts;
 use verbb\formie\services\SubmissionStatuses;
@@ -61,22 +61,22 @@ use verbb\formie\theme\context\RenderContext;
 use Craft;
 use craft\base\Element;
 use craft\db\Query;
-use craft\elements\Entry;
-use craft\elements\User;
 use craft\elements\actions\Delete;
 use craft\elements\actions\Edit;
 use craft\elements\actions\Restore;
 use craft\elements\conditions\ElementConditionInterface;
 use craft\elements\db\ElementQueryInterface;
+use craft\elements\Entry;
+use craft\elements\User;
 use craft\errors\MissingComponentException;
 use craft\events\DefineElementHtmlEvent;
 use craft\helpers\Cp;
 use craft\helpers\DateTimeHelper;
-use craft\i18n\Locale;
 use craft\helpers\Db;
 use craft\helpers\Json;
 use craft\helpers\Session;
 use craft\helpers\UrlHelper;
+use craft\i18n\Locale;
 use craft\models\FieldLayout;
 use craft\validators\HandleValidator;
 use craft\web\View;
@@ -85,32 +85,15 @@ use yii\base\Exception;
 use yii\base\InvalidConfigException;
 use yii\validators\Validator;
 
-use Throwable;
 use DateTime;
 use DateTimeZone;
+use Throwable;
 
-use Twig\Error\SyntaxError;
 use Twig\Error\LoaderError;
+use Twig\Error\SyntaxError;
 
 class Form extends Element implements FormInterface
 {
-    // Constants
-    // =========================================================================
-
-    public const BUILDER_ENTITY_TYPE_FORM = 'form';
-    public const BUILDER_ENTITY_TYPE_STENCIL = 'stencil';
-
-    public const EVENT_MODIFY_SLOT_TAG = 'modifySlotTag';
-    public const EVENT_MODIFY_HTML_TAG = 'modifyHtmlTag';
-
-
-    // Traits
-    // =========================================================================
-
-    use FormDefaultableTrait;
-    use FormDeprecations;
-
-
     // Static Methods
     // =========================================================================
 
@@ -156,15 +139,6 @@ class Form extends Element implements FormInterface
     public static function translatableRootProperties(): array
     {
         return ['title'];
-    }
-
-    public function getSupportedSites(): array
-    {
-        if (!Craft::$app->getIsMultiSite()) {
-            return parent::getSupportedSites();
-        }
-
-        return Formie::$plugin->getFormSitePropagation()->resolveSiteIdsForForm($this);
     }
 
     public static function find(): FormQuery
@@ -367,11 +341,6 @@ class Form extends Element implements FormInterface
         ]);
     }
 
-    public function showStatusIndicator(): bool
-    {
-        return false;
-    }
-
     protected static function defineSearchableAttributes(): array
     {
         return ['title', 'handle'];
@@ -461,6 +430,36 @@ class Form extends Element implements FormInterface
     private string $_frontendTheme = 'formie';
     private ?string $_sessionKey = null;
     private static array $_renderSequenceCounters = [];
+
+    private static function _isFormStatusSidebarSource(array $source): bool
+    {
+        if (str_starts_with($source['key'] ?? '', 'formStatus:')) {
+            return true;
+        }
+
+        if (array_key_exists('heading', $source) && ($source['heading'] ?? '') === Craft::t('formie', 'Form Statuses')) {
+            return true;
+        }
+
+        return isset($source['criteria']['formStatusId']);
+    }
+
+
+    // Constants
+    // =========================================================================
+
+    public const BUILDER_ENTITY_TYPE_FORM = 'form';
+    public const BUILDER_ENTITY_TYPE_STENCIL = 'stencil';
+
+    public const EVENT_MODIFY_SLOT_TAG = 'modifySlotTag';
+    public const EVENT_MODIFY_HTML_TAG = 'modifyHtmlTag';
+
+
+    // Traits
+    // =========================================================================
+
+    use FormDefaultableTrait;
+    use FormDeprecations;
 
 
     // Public Methods
@@ -779,31 +778,6 @@ class Form extends Element implements FormInterface
         $this->_ensureDefaultStatusAllowed();
 
         return $this->_defaultStatus;
-    }
-
-    /**
-     * Ensures the cached default status is allowed for this form's status policy.
-     */
-    private function _ensureDefaultStatusAllowed(): void
-    {
-        if (!$this->_defaultStatus) {
-            return;
-        }
-
-        $allowedStatuses = Formie::$plugin->getFormGroupPolicy()->getSubmissionStatusesForForm($this);
-
-        if ($allowedStatuses === []) {
-            return;
-        }
-
-        foreach ($allowedStatuses as $status) {
-            if ((int)$status->id === (int)$this->_defaultStatus->id) {
-                return;
-            }
-        }
-
-        $this->_defaultStatus = $allowedStatuses[0];
-        $this->defaultStatusId = $this->_defaultStatus->id;
     }
 
     public function setDefaultStatus(?SubmissionStatus $status): void
@@ -2054,9 +2028,8 @@ class Form extends Element implements FormInterface
             ->from(Table::FORMIE_FORMS)
             ->column();
 
-        // Prepare the layout/pages/rows/fields by stripping out IDs and UIDs. 
-        // Use `unserialize/serialize` instead of `clone()` to deeply clone objects.
-        $formLayout = unserialize(serialize($this->getFormLayout()));
+        // Clone the layout tree without serializing runtime callbacks or services.
+        $formLayout = clone $this->getFormLayout();
         $this->_clearLayoutIdentifiers($formLayout);
 
         $formSettings = clone $this->settings;
@@ -2921,8 +2894,8 @@ class Form extends Element implements FormInterface
     {
         $maxFormHandleLength = HandleHelper::getMaxFormHandle();
         $reservedFormHandles = $this->getBuilderReservedHandles();
-        $builderEntityLabel = $this->getBuilderEntityLabel();
-        $builderEntityTitle = $this->getBuilderEntityLabel(true);
+        $builderEntityLabel = $this->_getBuilderEntityLabel();
+        $builderEntityTitle = $this->_getBuilderEntityLabel(true);
 
         return SchemaHelper::schemaNode([
             [
@@ -3186,65 +3159,6 @@ class Form extends Element implements FormInterface
             'uid',
             'title',
         ])));
-    }
-
-    private function getBuilderEntityLabel(bool $titleCase = false): string
-    {
-        $label = $this->getBuilderEntityType() === self::BUILDER_ENTITY_TYPE_STENCIL
-            ? Craft::t('formie', 'stencil')
-            : Craft::t('formie', 'form');
-
-        return $titleCase ? ucfirst($label) : $label;
-    }
-
-    private function _formStatusSelectSchemaField(): ?array
-    {
-        if ($this->getBuilderEntityType() !== self::BUILDER_ENTITY_TYPE_FORM) {
-            return null;
-        }
-
-        $statuses = Formie::$plugin->getFormStatuses()->getAllStatuses();
-
-        if (!$statuses) {
-            return null;
-        }
-
-        return SchemaHelper::selectField([
-            'label' => Craft::t('formie', 'Form Status'),
-            'instructions' => Craft::t('formie', 'Choose a status to help organise this form in the forms list.'),
-            'name' => 'formStatusId',
-            'options' => Formie::$plugin->getFormStatuses()->getFormStatusSelectOptions(),
-        ]);
-    }
-
-    private function _formGroupSelectSchemaField(): ?array
-    {
-        if ($this->getBuilderEntityType() !== self::BUILDER_ENTITY_TYPE_FORM) {
-            return null;
-        }
-
-        $groups = Formie::$plugin->getFormGroups()->getAllGroups();
-
-        if (!$groups) {
-            return null;
-        }
-
-        return SchemaHelper::selectField([
-            'label' => Craft::t('formie', 'Form Group'),
-            'instructions' => Craft::t('formie', 'Organise this form in the control panel forms list.'),
-            'name' => 'groupId',
-            'options' => array_merge([
-                [
-                    'value' => '',
-                    'label' => Craft::t('formie', 'Ungrouped'),
-                ],
-            ], array_map(function(FormGroup $group) {
-                return [
-                    'value' => $group->id,
-                    'label' => $group->name,
-                ];
-            }, $groups)),
-        ]);
     }
 
     public function definePageSettingsSchema(): array
@@ -3514,6 +3428,21 @@ class Form extends Element implements FormInterface
         return $compiled;
     }
 
+    public function getSupportedSites(): array
+    {
+        if (!Craft::$app->getIsMultiSite()) {
+            return parent::getSupportedSites();
+        }
+
+        return Formie::$plugin->getFormSitePropagation()->resolveSiteIdsForForm($this);
+    }
+
+    public function showStatusIndicator(): bool
+    {
+        return false;
+    }
+
+
     // Protected Methods
     // =========================================================================
 
@@ -3576,21 +3505,6 @@ class Form extends Element implements FormInterface
         };
     }
 
-    private function _formStatusAttributeHtml(): string
-    {
-        try {
-            if (!static::hasStatuses()) {
-                return '';
-            }
-
-            return Cp::componentStatusLabelHtml($this) ?? '';
-        } catch (\Throwable) {
-            $label = $this->getFormStatusModel()?->name ?? $this->getStatus();
-
-            return $label ? Html::encode($label) : '';
-        }
-    }
-
     protected function cpEditUrl(): ?string
     {
         $user = Craft::$app->getUser()->getIdentity();
@@ -3613,21 +3527,9 @@ class Form extends Element implements FormInterface
     }
     
 
+
     // Private Methods
     // =========================================================================
-
-    private static function _isFormStatusSidebarSource(array $source): bool
-    {
-        if (str_starts_with($source['key'] ?? '', 'formStatus:')) {
-            return true;
-        }
-
-        if (array_key_exists('heading', $source) && ($source['heading'] ?? '') === Craft::t('formie', 'Form Statuses')) {
-            return true;
-        }
-
-        return isset($source['criteria']['formStatusId']);
-    }
 
     private function _getFormUserMeta(?User $user): ?array
     {
@@ -3903,18 +3805,24 @@ class Form extends Element implements FormInterface
         $layout->id = null;
         $layout->uid = '';
 
-        foreach ($layout->getPages() as $page) {
+        $pages = [];
+        foreach ($layout->getPages() as $sourcePage) {
+            $page = clone $sourcePage;
             $page->id = null;
             $page->layoutId = null;
             $page->uid = '';
 
-            foreach ($page->getRows() as $row) {
+            $rows = [];
+            foreach ($page->getRows() as $sourceRow) {
+                $row = clone $sourceRow;
                 $row->id = null;
                 $row->layoutId = null;
                 $row->pageId = null;
                 $row->uid = '';
 
-                foreach ($row->getFields() as $field) {
+                $fields = [];
+                foreach ($row->getFields() as $sourceField) {
+                    $field = clone $sourceField;
                     $field->id = null;
                     $field->layoutId = null;
                     $field->pageId = null;
@@ -3929,13 +3837,121 @@ class Form extends Element implements FormInterface
                     $field->usageCount = null;
 
                     if ($field instanceof ParentFieldInterface) {
-                        $this->_clearLayoutIdentifiers($field->getFieldLayout());
+                        $nestedLayout = clone $field->getFieldLayout();
+                        $this->_clearLayoutIdentifiers($nestedLayout);
+                        $field->setFieldLayout($nestedLayout);
 
                         // Set after processing
                         $field->nestedLayoutId = null;
                     }
+                    $fields[] = $field;
                 }
+                $row->setFields($fields);
+                $rows[] = $row;
+            }
+            $page->setRows($rows);
+            $pages[] = $page;
+        }
+        $layout->setPages($pages);
+    }
+
+    /**
+     * Ensures the cached default status is allowed for this form's status policy.
+     */
+    private function _ensureDefaultStatusAllowed(): void
+    {
+        if (!$this->_defaultStatus) {
+            return;
+        }
+
+        $allowedStatuses = Formie::$plugin->getFormGroupPolicy()->getSubmissionStatusesForForm($this);
+
+        if ($allowedStatuses === []) {
+            return;
+        }
+
+        foreach ($allowedStatuses as $status) {
+            if ((int)$status->id === (int)$this->_defaultStatus->id) {
+                return;
             }
         }
+
+        $this->_defaultStatus = $allowedStatuses[0];
+        $this->defaultStatusId = $this->_defaultStatus->id;
     }
+
+    private function _getBuilderEntityLabel(bool $titleCase = false): string
+    {
+        $label = $this->getBuilderEntityType() === self::BUILDER_ENTITY_TYPE_STENCIL
+            ? Craft::t('formie', 'stencil')
+            : Craft::t('formie', 'form');
+
+        return $titleCase ? ucfirst($label) : $label;
+    }
+
+    private function _formStatusSelectSchemaField(): ?array
+    {
+        if ($this->getBuilderEntityType() !== self::BUILDER_ENTITY_TYPE_FORM) {
+            return null;
+        }
+
+        $statuses = Formie::$plugin->getFormStatuses()->getAllStatuses();
+
+        if (!$statuses) {
+            return null;
+        }
+
+        return SchemaHelper::selectField([
+            'label' => Craft::t('formie', 'Form Status'),
+            'instructions' => Craft::t('formie', 'Choose a status to help organise this form in the forms list.'),
+            'name' => 'formStatusId',
+            'options' => Formie::$plugin->getFormStatuses()->getFormStatusSelectOptions(),
+        ]);
+    }
+
+    private function _formGroupSelectSchemaField(): ?array
+    {
+        if ($this->getBuilderEntityType() !== self::BUILDER_ENTITY_TYPE_FORM) {
+            return null;
+        }
+
+        $groups = Formie::$plugin->getFormGroups()->getAllGroups();
+
+        if (!$groups) {
+            return null;
+        }
+
+        return SchemaHelper::selectField([
+            'label' => Craft::t('formie', 'Form Group'),
+            'instructions' => Craft::t('formie', 'Organise this form in the control panel forms list.'),
+            'name' => 'groupId',
+            'options' => array_merge([
+                [
+                    'value' => '',
+                    'label' => Craft::t('formie', 'Ungrouped'),
+                ],
+            ], array_map(function(FormGroup $group) {
+                return [
+                    'value' => $group->id,
+                    'label' => $group->name,
+                ];
+            }, $groups)),
+        ]);
+    }
+
+    private function _formStatusAttributeHtml(): string
+    {
+        try {
+            if (!static::hasStatuses()) {
+                return '';
+            }
+
+            return Cp::componentStatusLabelHtml($this) ?? '';
+        } catch (\Throwable) {
+            $label = $this->getFormStatusModel()?->name ?? $this->getStatus();
+
+            return $label ? Html::encode($label) : '';
+        }
+    }
+
 }

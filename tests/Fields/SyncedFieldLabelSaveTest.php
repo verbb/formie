@@ -39,9 +39,15 @@ it('persists synced field label changes when saving a form', function (): void {
 
     $reloadedSource = Form::find()->id($sourceForm->id)->one();
     $pages = $reloadedSource->getFormLayout()->getFormBuilderConfig();
+    foreach ($pages as &$page) {
+        unset($page['_handle'], $page['errors']);
+        foreach ($page['rows'] as &$row) { unset($row['errors']); }
+        unset($row);
+    }
+    unset($page);
     $pages[0]['rows'][0]['fields'][0]['label'] = 'Updated Email Label';
 
-    $reloadedSource->getFormLayout()->setPages($pages);
+    $reloadedSource->getFormLayout()->setPages(syncedFieldLabelSaveStripReadonlyMeta($pages));
 
     expect(Craft::$app->elements->saveElement($reloadedSource))->toBeTrue();
 
@@ -89,9 +95,15 @@ it('persists synced field label changes when the same definition appears twice i
 
     $reloadedForm = Form::find()->id($form->id)->one();
     $pages = $reloadedForm->getFormLayout()->getFormBuilderConfig();
+    foreach ($pages as &$page) {
+        unset($page['_handle'], $page['errors']);
+        foreach ($page['rows'] as &$row) { unset($row['errors']); }
+        unset($row);
+    }
+    unset($page);
     $pages[0]['rows'][0]['fields'][0]['rows'][0]['fields'][0]['label'] = 'Renamed Shared Text';
 
-    $reloadedForm->getFormLayout()->setPages($pages);
+    $reloadedForm->getFormLayout()->setPages(syncedFieldLabelSaveStripReadonlyMeta($pages));
 
     expect(Craft::$app->elements->saveElement($reloadedForm))->toBeTrue();
 
@@ -132,4 +144,13 @@ function syncedFieldLabelSaveStripImportedMeta(mixed $value): mixed
     }
 
     return $stripped;
+}
+
+function syncedFieldLabelSaveStripReadonlyMeta(array $value): array
+{
+    unset($value['errors'], $value['_handle']);
+    foreach ($value as $key => $entry) {
+        if (is_array($entry)) { $value[$key] = syncedFieldLabelSaveStripReadonlyMeta($entry); }
+    }
+    return $value;
 }

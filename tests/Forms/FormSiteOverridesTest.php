@@ -6,6 +6,12 @@ use verbb\formie\Formie;
 use verbb\formie\models\FormGroup;
 use verbb\formie\models\FormSitePolicy;
 
+beforeEach(function (): void {
+    if (!Craft::$app->getIsMultiSite()) {
+        test()->markTestSkipped('Requires the multisite runtime; covered by the default suite.');
+    }
+});
+
 it('returns empty overrides for the source site', function (): void {
     $service = Formie::$plugin->getFormSiteOverrides();
     $form = formie()
@@ -42,11 +48,7 @@ it('saves explicit translations payload without server-side diffing', function (
         }
     }
 
-    if ($secondarySiteId === null) {
-        expect(true)->toBeTrue();
-
-        return;
-    }
+    expect($secondarySiteId === null)->toBeFalse();
 
     $translations = [
         'title' => 'Explicit Translations Form (Site 2)',
@@ -453,11 +455,7 @@ it('resolves all-enabled propagation for ungrouped forms', function (): void {
 it('propagates canonical form titles to secondary element site rows', function (): void {
     $propagation = Formie::$plugin->getFormSitePropagation();
 
-    if (!$propagation->isEnabled()) {
-        expect(true)->toBeTrue();
-
-        return;
-    }
+    expect(!$propagation->isEnabled())->toBeFalse();
 
     $form = formie()
         ->form(['title' => 'Canonical Form Title'])
@@ -473,11 +471,7 @@ it('propagates canonical form titles to secondary element site rows', function (
         fn(int $siteId) => $siteId !== $sourceSiteId,
     ));
 
-    if ($secondarySiteIds === []) {
-        expect(true)->toBeTrue();
-
-        return;
-    }
+    expect($secondarySiteIds === [])->toBeFalse();
 
     $secondarySiteId = $secondarySiteIds[0];
 
@@ -493,15 +487,11 @@ it('propagates canonical form titles to secondary element site rows', function (
 it('merges nested child field overrides into form elements for front-end rendering', function (): void {
     $service = Formie::$plugin->getFormSiteOverrides();
 
-    if (!$service->isEnabled()) {
-        expect(true)->toBeTrue();
-
-        return;
-    }
+    expect(!$service->isEnabled())->toBeFalse();
 
     $form = formie()
         ->form(['title' => 'Nested Override Form'])
-        ->nameField('fullName', ['useMultipleFields' => true, 'label' => 'Name'])
+        ->nameField('fullName', ['useMultipleFields' => true, 'label' => 'Name', 'rows' => (new \verbb\formie\fields\Name(['useMultipleFields' => true]))->getSubFields()])
         ->create();
 
     Formie::$plugin->getFormSitePropagation()->syncFormSites($form);
@@ -510,11 +500,7 @@ it('merges nested child field overrides into form elements for front-end renderi
     $nameField = $canonicalForm->getFieldByHandle('fullName');
     $childField = $nameField?->getFieldByHandle('firstName');
 
-    if (!$childField) {
-        expect(true)->toBeTrue();
-
-        return;
-    }
+    expect(!$childField)->toBeFalse();
 
     $siteIds = Formie::$plugin->getFormSitePropagation()->resolveSiteIdsForForm($canonicalForm);
     $sourceSiteId = $service->getSourceSiteId($canonicalForm);
@@ -527,11 +513,7 @@ it('merges nested child field overrides into form elements for front-end renderi
         }
     }
 
-    if ($secondarySiteId === null) {
-        expect(true)->toBeTrue();
-
-        return;
-    }
+    expect($secondarySiteId === null)->toBeFalse();
 
     Formie::$plugin->getFieldSiteOverrides()->saveOverride(
         (int)$childField->fieldId,
@@ -569,19 +551,11 @@ it('exposes builder translatable config for client merge/extract', function (): 
 it('restricts form group availability to enabled sites', function (): void {
     $propagation = Formie::$plugin->getFormSitePropagation();
 
-    if (!$propagation->isEnabled()) {
-        expect(true)->toBeTrue();
-
-        return;
-    }
+    expect(!$propagation->isEnabled())->toBeFalse();
 
     $allSiteIds = Craft::$app->getSites()->getAllSiteIds();
 
-    if (count($allSiteIds) < 2) {
-        expect(true)->toBeTrue();
-
-        return;
-    }
+    expect(count($allSiteIds) < 2)->toBeFalse();
 
     $restrictedSiteId = (int)$allSiteIds[1];
     $otherSiteId = count($allSiteIds) > 2 ? (int)$allSiteIds[2] : (int)$allSiteIds[0];
@@ -608,19 +582,11 @@ it('restricts form group availability to enabled sites', function (): void {
 it('resolves the creation site for new forms restricted to a single enabled site', function (): void {
     $propagation = Formie::$plugin->getFormSitePropagation();
 
-    if (!$propagation->isEnabled()) {
-        expect(true)->toBeTrue();
-
-        return;
-    }
+    expect(!$propagation->isEnabled())->toBeFalse();
 
     $allSiteIds = Craft::$app->getSites()->getAllSiteIds();
 
-    if (count($allSiteIds) < 2) {
-        expect(true)->toBeTrue();
-
-        return;
-    }
+    expect(count($allSiteIds) < 2)->toBeFalse();
 
     $restrictedSiteId = (int)$allSiteIds[1];
 
@@ -640,30 +606,20 @@ it('resolves the creation site for new forms restricted to a single enabled site
     $form = new \verbb\formie\elements\Form();
     $form->groupId = $group->id;
 
-    Craft::$app->getRequest()->setBodyParams([
-        'siteId' => $restrictedSiteId,
-    ]);
-
-    expect($propagation->resolveCreationSiteIdForForm($form))->toBe($restrictedSiteId)
-        ->and($propagation->resolveSiteIdsForForm($form))->toBe([$restrictedSiteId]);
+    \Tests\Support\WebRequestTestHelper::withWebRequestContext(function () use ($propagation, $form, $restrictedSiteId): void {
+        expect($propagation->resolveCreationSiteIdForForm($form))->toBe($restrictedSiteId)
+            ->and($propagation->resolveSiteIdsForForm($form))->toBe([$restrictedSiteId]);
+    }, ['method' => 'POST', 'bodyParams' => ['siteId' => $restrictedSiteId]]);
 });
 
 it('limits builder site switcher options to form availability', function (): void {
     $siteOverrides = Formie::$plugin->getFormSiteOverrides();
 
-    if (!$siteOverrides->isEnabled()) {
-        expect(true)->toBeTrue();
-
-        return;
-    }
+    expect(!$siteOverrides->isEnabled())->toBeFalse();
 
     $allSiteIds = Craft::$app->getSites()->getAllSiteIds();
 
-    if (count($allSiteIds) < 2) {
-        expect(true)->toBeTrue();
-
-        return;
-    }
+    expect(count($allSiteIds) < 2)->toBeFalse();
 
     $restrictedSiteId = (int)$allSiteIds[1];
 
@@ -704,19 +660,11 @@ it('limits builder site switcher options to form availability', function (): voi
 it('propagates using the form source site site group instead of craft primary', function (): void {
     $propagation = Formie::$plugin->getFormSitePropagation();
 
-    if (!$propagation->isEnabled()) {
-        expect(true)->toBeTrue();
-
-        return;
-    }
+    expect(!$propagation->isEnabled())->toBeFalse();
 
     $allSiteIds = Craft::$app->getSites()->getAllSiteIds();
 
-    if (count($allSiteIds) < 2) {
-        expect(true)->toBeTrue();
-
-        return;
-    }
+    expect(count($allSiteIds) < 2)->toBeFalse();
 
     $sourceSiteId = (int)$allSiteIds[1];
     $otherSiteId = count($allSiteIds) > 2 ? (int)$allSiteIds[2] : (int)$allSiteIds[0];
@@ -730,11 +678,7 @@ it('propagates using the form source site site group instead of craft primary', 
         },
     ));
 
-    if (count($matchingSiteIds) < 2) {
-        expect(true)->toBeTrue();
-
-        return;
-    }
+    expect(count($matchingSiteIds) < 2)->toBeFalse();
 
     $group = new FormGroup([
         'name' => 'Source Site Group Propagation',
