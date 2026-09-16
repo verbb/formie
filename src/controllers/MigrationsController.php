@@ -26,6 +26,8 @@ class MigrationsController extends SettingsAccessController
 
     public function actionSproutForms(): void
     {
+        $this->requirePostRequest();
+
         App::maxPowerCaptain();
 
         // Backup!
@@ -66,6 +68,8 @@ class MigrationsController extends SettingsAccessController
 
     public function actionFreeform4(): void
     {
+        $this->requirePostRequest();
+
         App::maxPowerCaptain();
 
         // Backup!
@@ -112,6 +116,8 @@ class MigrationsController extends SettingsAccessController
 
     public function actionFreeform5(): void
     {
+        $this->requirePostRequest();
+
         App::maxPowerCaptain();
 
         // Backup!

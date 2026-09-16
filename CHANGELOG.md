@@ -17,6 +17,7 @@
 - Bump transitive `symfony/cache` to `6.4.45` (CVE-2026-45073 advisory floor).
 
 ### Fixed
+- Require POST requests when importing forms or migrating from another form plugin.
 - Allow settings page permissions to be assigned independently while preserving access to all settings for existing roles.
 - Remove all Formie tables when uninstalling the plugin.
 - Fixed an XSS vulnerability.

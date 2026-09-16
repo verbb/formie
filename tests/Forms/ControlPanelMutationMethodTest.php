@@ -26,6 +26,11 @@ it('requires POST before processing a control panel mutation', function (string 
     ['ScheduledReports', 'delete'],
     ['SentNotifications', 'resend'],
     ['SentNotifications', 'bulk-resend'],
+    ['ImportExport', 'import'],
+    ['ImportExport', 'import-complete'],
+    ['Migrations', 'freeform4'],
+    ['Migrations', 'freeform5'],
+    ['Migrations', 'sprout-forms'],
 ]);
 
 it('preserves a form status on GET and deletes it on a valid POST', function (): void {
@@ -60,5 +65,36 @@ it('preserves a form status on GET and deletes it on a valid POST', function ():
         } else {
             expect($stored()['dateDeleted'])->not->toBeNull();
         }
+    }
+});
+
+it('imports a form on a valid POST', function (): void {
+    $form = Formie::$plugin->getFactories()->form()->singleLineTextField('message')->create();
+    $payload = \verbb\formie\helpers\ImportExportHelper::generateFormExport($form);
+    $payload['handle'] = 'postedImport' . bin2hex(random_bytes(5));
+    $filename = 'formie-import-' . gmdate('ymd_His') . '.json';
+    $controller = new \verbb\formie\controllers\ImportExportController('import-export', Formie::$plugin);
+    $location = (new ReflectionMethod($controller, '_resolveImportFileLocation'))->invoke($controller, $filename);
+    file_put_contents($location, json_encode($payload, JSON_THROW_ON_ERROR));
+    $projectConfig = Craft::$app->getProjectConfig();
+    try {
+        WebRequestTestHelper::withWebRequestContext(function ($request) use ($filename, $projectConfig): void {
+            Craft::$app->set('projectConfig', $projectConfig);
+            $request->setIsCpRequest(true);
+            Craft::$app->getUser()->setIdentity(\craft\elements\User::find()->admin(true)->one());
+            $request->setBodyParams([
+                $request->csrfParam => $request->getCsrfToken(),
+                'filename' => $filename,
+                'formAction' => 'create',
+            ]);
+            // Recreate the real sites service after login so its guest permission cache is cleared.
+            Craft::$app->set('sites', new \craft\services\Sites());
+            (new \verbb\formie\controllers\ImportExportController('import-export', Formie::$plugin))->runAction('import-complete');
+        }, ['method' => 'POST']);
+        $imported = \verbb\formie\elements\Form::find()->handle($payload['handle'])->one();
+        expect($imported)->not->toBeNull()
+            ->and($imported?->getFieldByHandle('message'))->not->toBeNull();
+    } finally {
+        if (is_file($location)) { unlink($location); }
     }
 });

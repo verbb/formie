@@ -60,6 +60,8 @@ class ImportExportController extends SettingsAccessController
 
     public function actionImport(): ?Response
     {
+        $this->requirePostRequest();
+
         $request = $this->request;
         $uploadedFile = UploadedFile::getInstanceByName('file');
 
@@ -170,6 +172,8 @@ class ImportExportController extends SettingsAccessController
 
     public function actionImportComplete(): ?Response
     {
+        $this->requirePostRequest();
+
         $request = $this->request;
         $filename = $request->getParam('filename');
         $formAction = $request->getParam('formAction');
