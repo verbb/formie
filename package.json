@@ -90,7 +90,7 @@
         "payment": "^2.4.6",
         "pell": "^1.0.6",
         "places.js": "^1.19.0",
-        "qs": "^6.11.2",
+        "qs": "^6.16.0",
         "sanitize-html": "^2.12.1",
         "signature_pad": "^4.1.7",
         "sortablejs": "^1.15.2",
