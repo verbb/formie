@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Fix Google Places address autocomplete ignoring country-specific street and house-number ordering. ([#2963](https://github.com/verbb/formie/issues/2963))
 - Fix prefilled submission values being lost when rendering a form without a `sessionKey`. ([#2956](https://github.com/verbb/formie/issues/2956))
 
 ## 2.2.31 - 2026-09-12
