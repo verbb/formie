@@ -1,6 +1,27 @@
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
+{% set mode = integration.settings.mode ?? 'widget' %}
+
+{{ macros.proxyField(fieldVariables, 'selectField', {
+    label: 'Mode' | t('formie'),
+    instructions: 'Widget renders a visible "I am human" checkbox on the form. Hidden runs the challenge invisibly on submit without any UI.' | t('formie'),
+    name: 'mode',
+    required: true,
+    value: mode,
+    options: [
+        {
+            value: 'widget',
+            label: 'Widget (visible checkbox)' | t('formie'),
+        },
+        {
+            value: 'hidden',
+            label: 'Hidden (invisible on submit)' | t('formie'),
+        },
+    ],
+    warning: macros.configWarning('mode', 'formie'),
+}) }}
+
 {{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Public Key' | t('formie'),
     name: 'publicKey',
