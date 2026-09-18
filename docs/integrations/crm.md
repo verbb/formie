@@ -772,7 +772,7 @@ Follow the below steps to connect to the Outseta API.
 Follow the below steps to connect to the Pardot API.
 
 :::tip
-Pardot uses Salesforce OAuth. As of Spring ‘26, Salesforce recommends **External Client Apps** for new integrations. Legacy **Connected Apps** may still work if you already have one, but new Connected Apps can no longer be created by default in many orgs. The steps below use External Client Apps.
+Pardot uses Salesforce OAuth. Salesforce recommends **External Client Apps** for API integrations. Existing **Connected Apps** can continue to work, but Salesforce restricts the creation of new Connected Apps. The steps below use an External Client App.
 :::
 
 :::warning
@@ -800,7 +800,7 @@ Do **not** share the same Pardot/Salesforce OAuth connection across production a
 1. In the **Security** section:
     - Tick **Require secret for Web Server Flow**.
     - Tick **Require secret for Refresh Token Flow**.
-    - **Require Proof Key for Code Exchange (PKCE) Extension for Supported Authorization Flows** may be enabled or disabled. Formie uses PKCE (S256) for the OAuth connect flow.
+    - Tick **Require Proof Key for Code Exchange (PKCE) Extension for Supported Authorization Flows**. Formie uses PKCE with the S256 challenge method, and your Salesforce organisation may enforce this setting for all supported OAuth flows. See [Salesforce’s PKCE guidance](https://help.salesforce.com/s/articleView?id=005316703&type=1) for details.
     - **Enable Refresh Token Rotation** may already be required and locked. Formie supports rotated refresh tokens.
     - **Limit Idle Refresh Token Time-to-Live (TTL) to 30 Days** may already be required and locked.
     - Leave **Enforce Refresh Token IP Allowlist** unticked unless you intentionally manage a Salesforce IP allowlist for token refresh.
@@ -948,7 +948,7 @@ Follow the below steps to connect to the Salesflare API.
 Follow the below steps to connect to the Salesforce API.
 
 :::tip
-As of Spring ‘26, Salesforce recommends **External Client Apps** for new integrations. Legacy **Connected Apps** may still work if you already have one, but new Connected Apps can no longer be created by default in many orgs. The steps below use External Client Apps.
+Salesforce recommends **External Client Apps** for API integrations. Existing **Connected Apps** can continue to work, but Salesforce restricts the creation of new Connected Apps. The steps below use an External Client App.
 :::
 
 :::warning
@@ -977,7 +977,7 @@ Do **not** share the same Salesforce OAuth connection (Consumer Key / tokens) ac
 1. In the **Security** section:
     - Tick **Require secret for Web Server Flow**.
     - Tick **Require secret for Refresh Token Flow**.
-    - **Require Proof Key for Code Exchange (PKCE) Extension for Supported Authorization Flows** may be enabled or disabled. Formie uses PKCE (S256) for the OAuth connect flow.
+    - Tick **Require Proof Key for Code Exchange (PKCE) Extension for Supported Authorization Flows**. Formie uses PKCE with the S256 challenge method, and your Salesforce organisation may enforce this setting for all supported OAuth flows. See [Salesforce’s PKCE guidance](https://help.salesforce.com/s/articleView?id=005316703&type=1) for details.
     - **Enable Refresh Token Rotation** may already be required and locked. Formie supports rotated refresh tokens.
     - **Limit Idle Refresh Token Time-to-Live (TTL) to 30 Days** may already be required and locked. Active form submissions keep the token alive; infrequently used integrations may need reconnecting after long idle periods.
     - Leave **Enforce Refresh Token IP Allowlist** unticked unless you intentionally manage a Salesforce IP allowlist for token refresh.
@@ -1247,6 +1247,3 @@ Follow the below steps to connect to the Zoho API.
 1. In the left-hand sidebar, select the name you gave the integration.
 1. Enable the integration and fill out all required fields.
 1. Click **Save** to save the form.
-
-
-

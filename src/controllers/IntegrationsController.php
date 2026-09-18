@@ -19,6 +19,7 @@ use Throwable;
 
 use verbb\auth\Auth;
 use verbb\auth\helpers\Session;
+use verbb\auth\models\Token;
 
 class IntegrationsController extends Controller
 {
@@ -255,9 +256,7 @@ class IntegrationsController extends Controller
                 return $this->redirect($origin);
             }
 
-            // Save the token to the Auth plugin, with a reference to this integration
-            $token->reference = $integration->id;
-            Auth::getInstance()->getTokens()->upsertToken($token);
+            $this->_saveOAuthToken($token, $integration);
         } catch (Throwable $e) {
             // Check if there are any meaningful errors returned from providers
             $message = implode(', ', array_filter([$e->getMessage(), $this->request->getParam('error'), $this->request->getParam('error_description')]));
@@ -372,5 +371,17 @@ class IntegrationsController extends Controller
         }
 
         return false;
+    }
+
+    private function _saveOAuthToken(Token $token, IntegrationInterface $integration): void
+    {
+        // Save the token to the Auth plugin, with a reference to this integration.
+        $token->reference = $integration->id;
+        $tokens = Auth::getInstance()->getTokens();
+
+        // Confirm the token can be read back before reporting a successful connection.
+        if (!$tokens->upsertToken($token) || !$tokens->getTokenByOwnerReference('formie', (string)$integration->id)) {
+            throw new Exception(Craft::t('formie', 'Unable to save OAuth token.'));
+        }
     }
 }
