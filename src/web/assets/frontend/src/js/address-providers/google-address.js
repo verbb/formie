@@ -133,11 +133,11 @@ export class FormieGoogleAddress extends FormieAddressProvider {
 
         autocomplete.addEventListener('gmp-select', async({ placePrediction }) => {
             const place = placePrediction.toPlace();
-            await place.fetchFields({ fields: ['addressComponents', 'formattedAddress'] });
+            await place.fetchFields({ fields: ['addressComponents', 'formattedAddress', 'postalAddress'] });
 
             if (!place.addressComponents) { return; }
 
-            this.setAddressValues(place.addressComponents, place.formattedAddress);
+            this.setAddressValues(place.addressComponents, place.formattedAddress, place.postalAddress);
 
             const populateAddressEvent = new CustomEvent('populateAddress', {
                 bubbles: true,
@@ -146,6 +146,7 @@ export class FormieGoogleAddress extends FormieAddressProvider {
                     place,
                     formattedAddress: place.formattedAddress,
                     addressComponents: place.addressComponents,
+                    postalAddress: place.postalAddress,
                 },
             });
 
@@ -153,7 +154,7 @@ export class FormieGoogleAddress extends FormieAddressProvider {
         });
     }
 
-    setAddressValues(address, formattedAddress) {
+    setAddressValues(address, formattedAddress, postalAddress) {
         const formData = {};
         const componentMap = this.componentMap();
 
@@ -166,7 +167,14 @@ export class FormieGoogleAddress extends FormieAddressProvider {
             }
         }
 
-        if (formData.street_number && formData.route) {
+        // Postal address lines retain Google's country-aware ordering and include lower-level details such as subpremises.
+        const postalAddressLines = postalAddress?.addressLines?.filter((line) => {
+            return typeof line === 'string' && line.trim();
+        });
+
+        if (postalAddressLines?.length) {
+            this.setFieldValue('[data-address1]', postalAddressLines.join(', '));
+        } else if (formData.street_number && formData.route) {
             let street = `${formData.street_number} ${formData.route}`;
 
             if (formData.subpremise) {

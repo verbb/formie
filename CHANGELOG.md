@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Fix Google Places address autocomplete ignoring country-specific street and house-number ordering. ([#2963](https://github.com/verbb/formie/issues/2963))
 - Fix OAuth integrations reporting a successful connection when their access token was not persisted. ([#2961](https://github.com/verbb/formie/issues/2961))
 - Fix Zoho picklist mappings sending option metadata IDs instead of their API values. ([#2959](https://github.com/verbb/formie/issues/2959))
 - Fix Brevo double opt-in settings allowing the required template ID and redirection URL to be saved empty.
