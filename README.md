@@ -1,5 +1,5 @@
 > [!IMPORTANT]
-> **Formie 3** for **Craft 5** has some breaking changes. Consult our [Upgrading from v2](https://github.com/verbb/formie/blob/craft-5/docs/get-started/upgrading-from-v2.md) the details.
+> **Formie 3** for **Craft 5** has some breaking changes. Consult our [Upgrading from v2](https://github.com/verbb/formie/blob/craft-5/docs/get-started/upgrading-from-v2.md) guide for the details.
 >
 > Most aspects are backwards compatible and deprecated, but **Custom Fields** and **Custom Integrations** will be affected the most.
 
@@ -21,7 +21,7 @@ Formie is a Craft CMS plugin for creating user-friendly forms that your content 
 - Save incomplete submissions for users to come back to later.
 - Switch form submissions to be page-reload (POST), or async (Ajax).
 - Spam protection - Fight spam with our in-built keyword blocking and submission behaviour control.
-- Integrations API - Captchas, Address Providers, Elements, Email Marketing, CRM, Webhooks, Miscellanous.
+- Integrations API - Captchas, Address Providers, Elements, Email Marketing, CRM, Webhooks, Miscellaneous.
 - Migrate from Solspace Freeform or Sprout Forms with our handy migration assistants. 
 - Supports importing submissions via Feed Me.
 
@@ -67,8 +67,8 @@ Formie is a Craft CMS plugin for creating user-friendly forms that your content 
 - Total control over the HTML tags and attributes.
 - Perfect for utility CSS frameworks like [Tailwind](https://tailwindcss.com/) or [Bootstrap](https://getbootstrap.com/).
 - Ready-to-go themes for popular frameworks for you to easily extend and modify:
-    - [Tailwind](https://github.com/verbb/formie-theme-configs/blob/main/tailwind/index.html)
-    - [Bootstrap](https://github.com/verbb/formie-theme-configs/blob/main/bootstrap/index.html)
+    - [Tailwind](https://github.com/verbb/formie-theme-configs/blob/formie-3/tailwind/index.html)
+    - [Bootstrap](https://github.com/verbb/formie-theme-configs/blob/formie-3/bootstrap/index.html)
 
 ### Privacy & Data Retention
 - Set how long to keep submissions stored for (hours, days, weeks, month, years)
