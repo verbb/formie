@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 2.2.32 - 2026-09-20
 
 ### Fixed
 - Fix Google Places address autocomplete ignoring country-specific street and house-number ordering. ([#2963](https://github.com/verbb/formie/issues/2963))
