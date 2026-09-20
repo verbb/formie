@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 3.1.41 - 2026-09-20
 
 ### Fixed
 - Fix Google Places address autocomplete ignoring country-specific street and house-number ordering. ([#2963](https://github.com/verbb/formie/issues/2963))
@@ -1631,6 +1631,12 @@
 - `Submission::getCustomFields()` method has been deprecated. Use `Submission::getFields()` instead.
 - `Field::name` attribute has been deprecated. Use `Field::label` instead.
 - `Field::inputHtml()` method has been deprecated. Use `Field::cpInputHtml()` instead.
+
+## 2.2.32 - 2026-09-20
+
+### Fixed
+- Fix Google Places address autocomplete ignoring country-specific street and house-number ordering. ([#2963](https://github.com/verbb/formie/issues/2963))
+- Fix prefilled submission values being lost when rendering a form without a `sessionKey`. ([#2956](https://github.com/verbb/formie/issues/2956))
 
 ## 2.2.31 - 2026-09-12
 
