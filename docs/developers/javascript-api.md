@@ -335,6 +335,18 @@ $(document).on('onFormieInit', function(e) {
 
 Our JS hijacks the native submit handler of a form, and wraps it in a number of custom events that give you more fine-grained control over the flow of the form submission. This is used mostly for validation, and captcha support, but you can make use of these for your own needs.
 
+For a submission that passes each stage, the event order is:
+
+1. `onBeforeFormieSubmit`
+2. `onFormieValidate`
+3. `onAfterFormieValidate`
+4. `onFormieCaptchaValidate`
+5. `onFormiePaymentValidate`
+6. `onFormieCustomValidate`
+7. `onFormieSubmit`
+
+Calling `preventDefault()` on one of these events stops the submission pipeline at that stage. Captcha and payment integrations can do this while waiting for their own checks, then continue with the remaining stages. Your custom event listeners must also explicitly restart or continue submission after cancelling it; returning a Promise from a listener does not make Formie wait for it. See [Submit Handling](#submit-handling) for an asynchronous example.
+
 ### The `onBeforeFormieSubmit` event
 The event that is triggered before a form is submitted, and before validation is triggered. You can cancel a submission by using `preventDefault()`.
 
@@ -359,8 +371,8 @@ $('#formie-form-1').on('onBeforeFormieSubmit', function(e) {
 
 
 
-### The `onFormieCaptchaValidate` event
-The event that is triggered before a form is submitted, and before the validation is triggered. This event is specifically for captchas, triggered before client-side validation runs. You can cancel a submission by using `preventDefault()`.
+### The `onFormieCaptchaValidate` Event
+The event that is triggered after `onFormieValidate` and `onAfterFormieValidate` have completed without being cancelled, before payment and custom validation. This allows client-side validation to stop an invalid form before its captcha is executed. You can cancel a submission by using `preventDefault()`.
 
 :::code
 ```js JavaScript
@@ -385,8 +397,8 @@ $('#formie-form-1').on('onFormieCaptchaValidate', function(e) {
 
 
 
-### The `onFormieValidate` event
-The event that is triggered before a form is submitted, but after validation is triggered. You can use this event to handle custom validation. You can cancel a submission by using `preventDefault()`.
+### The `onFormieValidate` Event
+The event that is triggered to run client-side validation, before `onAfterFormieValidate` and captcha validation. Formie's theme listens to this event to validate the form. You can also use it for custom validation. Calling `preventDefault()` stops the remaining validation stages and submission.
 
 :::code
 ```js JavaScript
@@ -411,8 +423,10 @@ $('#formie-form-1').on('onFormieValidate', function(e) {
 
 
 
-### The `onAfterFormieValidate` event
-The event that is triggered before a form is submitted, after validation is triggered and after `onFormieValidate`. Like the `onFormieValidate` event, you can also use this to handle custom validation, if for some reason you prefer it to happen after all other validation events have been triggered. You can cancel a submission by using `preventDefault()`.
+### The `onAfterFormieValidate` Event
+The event that is triggered after `onFormieValidate` has completed without being cancelled, before captcha, payment and custom validation. You can use this to perform additional checks after client-side validation.
+
+Calling `preventDefault()` stops the remaining pipeline, including captcha, payment and custom validation. It does not create a resumable pause. Calling `e.detail.submitHandler.submitForm()` afterwards goes directly to `onFormieSubmit` and skips those checks. To restart validation after asynchronous work, use `processSubmit()` with a guard that allows your listener to pass on the next run, as shown in [Submit Handling](#submit-handling).
 
 :::code
 ```js JavaScript
@@ -534,46 +548,77 @@ $('#formie-form-1').on('modifyAjaxClient', function(e) {
 
 
 ## Submit Handling
-You may notice the above event's use `e.detail.submitHandler`. This contains a reference to the `FormieBaseForm` JS class we use to house this functionality. Through this, you can call a number of methods on a form to trigger different actions.
+The submission and validation events above provide `e.detail.submitHandler`, a reference to the form's `FormieFormBase` instance. Use it to restart the validation pipeline or report a submission error after your own checks.
 
 ## Methods
 
 Method | Description
 --- | ---
-`submitForm()` | Submits the form, and fires the `onFormieSubmit` event.
+`processSubmit()` | Restarts client-side validation, after-validation, captcha, payment and custom validation before submitting. Does not fire `onBeforeFormieSubmit` again.
+`submitForm()` | Fires `onFormieSubmit` and proceeds with submission. Does not run client-side validation, after-validation, captcha, payment or custom validation.
 `formAfterSubmit()` | Fires the `onAfterFormieSubmit` event.
 `formSubmitError()` | Fires the `onFormieSubmitError` event.
 
-In practice, what these events allow you to do is stop form submission, handle your business logic, then either manually trigger the form's submission, or throw an error. For example:
+For an asynchronous check after client-side validation, cancel `onAfterFormieValidate` synchronously, then call `processSubmit()` when your check succeeds. This runs validation again, so your listener needs a guard to avoid repeating the request indefinitely. Use `submitForm()` directly only when you have already handled every required validation stage.
+
+The following example is for a single-page form using Formie's theme JavaScript. Add it to your frontend JavaScript after the form's HTML is available, and replace `#formie-form-1` with your form's ID. `/api/check-form` is an example endpoint you must provide: it should accept the form's data and return JSON containing `{"valid": true}` or `{"valid": false}`. Keep any credentials required by your external API on the server.
 
 ```js
-let $form = document.querySelector('#formie-form-1');
-let submitHandler = null;
+const $form = document.querySelector('#formie-form-1');
+let checking = false;
+let resuming = false;
 
-// Setup our event listeners
-$form.addEventListener('onBeforeFormieSubmit', onBeforeSubmit);
-$form.addEventListener('onFormieValidate', onValidate);
+$form.addEventListener('onAfterFormieValidate', async (e) => {
+    // Allow the restarted pipeline through without repeating the API request.
+    if (resuming) {
+        resuming = false;
+        return;
+    }
 
-function onBeforeSubmit(e) {
-    // Save for later to trigger real submit
-    submitHandler = e.detail.submitHandler;
-}
-
-function onValidate(e) {
-    // Prevent the form from submitting while we check some things
+    // Cancel before awaiting anything: event dispatch does not wait for Promises.
     e.preventDefault();
 
-    // Some custom validation logic...
-    if (invalid) {
-        // Show that the form is invalid
-        submitHandler.formSubmitError();
-    } else {
-        // Otherwise, tell Formie to submit the form. Because we have stopped the process,
-        // we need to manually start it back up again.
-        submitHandler.submitForm();
+    if (checking) {
+        return;
     }
-}
+
+    const submitHandler = e.detail.submitHandler;
+    checking = true;
+
+    try {
+        const response = await fetch('/api/check-form', {
+            method: 'POST',
+            body: new FormData($form),
+        });
+
+        if (!response.ok) {
+            throw new Error('The form check failed.');
+        }
+
+        const result = await response.json();
+
+        if (result.valid !== true) {
+            submitHandler.formSubmitError();
+            return;
+        }
+
+        resuming = true;
+        submitHandler.processSubmit();
+    } catch (error) {
+        resuming = false;
+        submitHandler.formSubmitError();
+    } finally {
+        checking = false;
+    }
+});
+
+// A failed validation on restart must not leave the guard set for the next attempt.
+$form.addEventListener('onFormieValidateError', () => {
+    resuming = false;
+});
 ```
+
+On success, Formie repeats client-side validation and then reaches captcha, payment and custom validation. If the API rejects the check or the request fails, `formSubmitError()` lets Formie's theme display the configured error message and clear its loading state. For forms without the theme JavaScript, handle `onFormieSubmitError` in your own UI. If your API check depends on editable values, account for changes while the request is pending, such as by preventing edits until it completes.
 
 ## Conditions
 You can also hook into events that are triggered before and after conditional logic has been triggered for a field. This is useful in particular to be notified when a field has been conditionally hidden or shown, or to add additional handling before evaulating conditions.
