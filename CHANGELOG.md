@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Fix native Date fields showing missing or outdated minimum and maximum limits. ([#2964](https://github.com/verbb/formie/issues/2964))
+
 ## 3.1.41 - 2026-09-20
 
 ### Fixed
