@@ -257,18 +257,31 @@ class Forms extends Component
         $user = Craft::$app->getUser()->getIdentity();
         $permissions = Formie::$plugin->getPermissions();
         $siteOverrides = Formie::$plugin->getFormSiteOverrides();
+        $isStencilBuilder = $form->getBuilderEntityType() === Form::BUILDER_ENTITY_TYPE_STENCIL;
         $activeSiteId ??= $siteOverrides->getActiveSiteId();
-        $canonicalForm = $this->_getCanonicalFormForBuilder((int)$form->id) ?? $form;
-        $canonicalNotifications = Formie::$plugin->getNotifications()->getFormNotifications($canonicalForm);
+
+        // Stencils have an independent ID namespace and no per-site storage. Treating
+        // their IDs as Form element IDs can hydrate unrelated element or form data.
+        $canonicalForm = $isStencilBuilder
+            ? $form
+            : ($this->_getCanonicalFormForBuilder((int)$form->id) ?? $form);
+        $canonicalNotifications = $isStencilBuilder
+            ? ($canonicalForm->getNotifications() ?? [])
+            : Formie::$plugin->getNotifications()->getFormNotifications($canonicalForm);
         $canonicalNotificationsConfig = Formie::$plugin->getNotifications()->getNotificationsConfig($canonicalNotifications);
 
-        $activeSiteId = $siteOverrides->resolveBuilderActiveSiteId($canonicalForm, $activeSiteId);
+        if (!$isStencilBuilder) {
+            $activeSiteId = $siteOverrides->resolveBuilderActiveSiteId($canonicalForm, $activeSiteId);
+        }
+
         $canonicalData = [
             'id' => $canonicalForm->id,
             'uid' => $canonicalForm->uid,
-            'title' => $siteOverrides->resolveCanonicalFormTitle($canonicalForm),
+            'title' => $isStencilBuilder
+                ? (string)$canonicalForm->title
+                : $siteOverrides->resolveCanonicalFormTitle($canonicalForm),
             'handle' => $canonicalForm->handle,
-            'isStencil' => false,
+            'isStencil' => $isStencilBuilder,
             'layoutId' => $canonicalForm->layoutId,
             'templateId' => $canonicalForm->templateId,
             'groupId' => $canonicalForm->groupId,
@@ -293,10 +306,12 @@ class Forms extends Component
             'integrations' => Formie::$plugin->getIntegrations()->getIntegrationSummariesForForm(),
             'pages' => $canonicalForm->getFormLayout()->getFormBuilderConfig(),
         ];
-        $displayData = $siteOverrides->applyToBuilderData($canonicalData, $activeSiteId);
+        $displayData = $isStencilBuilder
+            ? $canonicalData
+            : $siteOverrides->applyToBuilderData($canonicalData, $activeSiteId);
 
         $viewSubmissionsUrl = null;
-        $submissions = Submission::find()->formId($form->id)->limit(1)->exists();
+        $submissions = !$isStencilBuilder && Submission::find()->formId($form->id)->limit(1)->exists();
         $showFieldHandles = (bool)($user?->admin && $user->getPreference('showFieldHandles'));
 
         if ($submissions && $permissions->canViewSubmissions($user, $form)) {
@@ -450,7 +465,9 @@ class Forms extends Component
             'formMeta' => $form->getFormMetaDetails(),
             'canonicalData' => $canonicalData,
             'translatableProperties' => Formie::$plugin->getFormSiteOverrides()->getBuilderTranslatableConfig(),
-            'multiSite' => $siteOverrides->getBuilderMultiSiteConfig($form, $activeSiteId),
+            'multiSite' => $isStencilBuilder
+                ? ['enabled' => false]
+                : $siteOverrides->getBuilderMultiSiteConfig($form, $activeSiteId),
             'data' => $displayData,
             'pageSettingsSchema' => $form->definePageSettingsSchema(),
             'pageButtonSettingsSchema' => $form->definePageButtonSettingsSchema(),

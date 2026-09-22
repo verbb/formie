@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Keep stencil builder data isolated from unrelated Craft elements and forms with the same numeric ID. ([#2968](https://github.com/verbb/formie/issues/2968))
+
 ## 4.0.0-beta.16 - 2026-09-17
 
 ### Added

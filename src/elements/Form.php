@@ -2948,7 +2948,7 @@ class Form extends Element implements FormInterface
                 'instructions' => Craft::t('formie', 'What this {entity} will be called in the control panel.', ['entity' => $builderEntityLabel]),
                 'name' => 'title',
                 'required' => true,
-                'translatable' => Craft::$app->getIsMultiSite(),
+                'translatable' => Craft::$app->getIsMultiSite() && $this->getBuilderEntityType() === self::BUILDER_ENTITY_TYPE_FORM,
             ]),
             ...($formStatusField = $this->_formStatusSelectSchemaField()) ? [$formStatusField] : [],
             ...($formGroupField = $this->_formGroupSelectSchemaField()) ? [$formGroupField] : [],
