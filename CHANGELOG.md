@@ -3,13 +3,6 @@
 ## Unreleased
 
 ### Fixed
-- Fix native Date fields showing missing or outdated minimum and maximum limits. ([#2964](https://github.com/verbb/formie/issues/2964))
-- Fix JavaScript API documentation for validation event order and resuming asynchronous checks without skipping captcha or payment validation. ([#2966](https://github.com/verbb/formie/issues/2966))
-- Fix settings forms inconsistently placing their Save button below the page content instead of in the page header.
-
-## 3.1.41 - 2026-09-20
-
-### Fixed
 - Fix Google Places address autocomplete ignoring country-specific street and house-number ordering. ([#2963](https://github.com/verbb/formie/issues/2963))
 - Fix OAuth integrations reporting a successful connection when their access token was not persisted. ([#2961](https://github.com/verbb/formie/issues/2961))
 - Fix Zoho picklist mappings sending option metadata IDs instead of their API values. ([#2959](https://github.com/verbb/formie/issues/2959))
@@ -20,6 +13,9 @@
 - Fix saving additional settings and captchas, submitting support requests, and running form migrations after settings layout changes.
 - Fix 400 errors when importing and exporting forms from settings.
 - Fix client-side validation errors not being announced reliably by screen readers by keeping an empty live region in the rendered field markup. ([#2954](https://github.com/verbb/formie/issues/2954))
+- Fix native Date fields showing missing or outdated minimum and maximum limits. ([#2964](https://github.com/verbb/formie/issues/2964))
+- Fix JavaScript API documentation for validation event order and resuming asynchronous checks without skipping captcha or payment validation. ([#2966](https://github.com/verbb/formie/issues/2966))
+- Fix settings forms inconsistently placing their Save button below the page content instead of in the page header.
 
 ## 3.1.40 - 2026-09-14
 
