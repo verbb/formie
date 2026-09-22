@@ -3,23 +3,14 @@
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
+{% set fullPageForm = true %}
 {% set selectedTab = 'fields' %}
 {% set pageTitle = 'Fields' | t('formie') %}
+{% set pageAction = 'formie/settings/save-settings' %}
+{% set pageUrl = 'formie/settings/fields' %}
 
-{# Action parameters must remain outside the shared settings namespace. #}
-{% block blockContent %}
-
-<h2>{{ pageTitle }}</h2>
-
-
-<form action="" method="post" accept-charset="UTF-8" data-saveshortcut>
-    {{ actionInput('formie/settings/save-settings') }}
-    {{ redirectInput('formie/settings/fields') }}
-    {{ csrfInput() }}
-
-    {% namespace 'settings' %}
-
-            {{ forms.checkboxGroupField({
+{% block settingsContent %}
+        {{ forms.checkboxGroupField({
             label: 'Disabled Field Types' | t('formie'),
             instructions: 'Select any field types to be unavailable to pick from when creating your forms.' | t('formie'),
             id: 'disabledFields',
@@ -127,11 +118,4 @@
             }) }}
         </div>
     
-    {% endnamespace %}
-
-    <hr>
-
-    <input type="submit" class="btn submit" value="{{ 'Save' | t('formie') }}">
-</form>
-
 {% endblock %}

@@ -5,6 +5,7 @@
 ### Fixed
 - Fix native Date fields showing missing or outdated minimum and maximum limits. ([#2964](https://github.com/verbb/formie/issues/2964))
 - Fix JavaScript API documentation for validation event order and resuming asynchronous checks without skipping captcha or payment validation. ([#2966](https://github.com/verbb/formie/issues/2966))
+- Fix settings forms inconsistently placing their Save button below the page content instead of in the page header.
 
 ## 3.1.41 - 2026-09-20
 

@@ -3,28 +3,19 @@
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
+{% set fullPageForm = true %}
 {% set selectedTab = 'spam' %}
 {% set pageTitle = 'Spam Settings' | t('formie') %}
+{% set pageAction = 'formie/settings/save-settings' %}
+{% set pageUrl = 'formie/settings/spam' %}
 
-{# Action parameters must remain outside the shared settings namespace. #}
-{% block blockContent %}
-
-<h2>{{ pageTitle }}</h2>
-
-
+{% block settingsContent %}
     <div class="fui-settings-block">
         <h3>{{ 'Captchas' | t('formie') }}</h3>
         <p>{{ 'Looking for captchas? Find ReCAPTCHA and more under <a href="{href}">Integrations</a>.' | t('formie', { href: url('formie/settings/captchas') }) | raw }}</p>
     </div>
 
-<form action="" method="post" accept-charset="UTF-8" data-saveshortcut>
-    {{ actionInput('formie/settings/save-settings') }}
-    {{ redirectInput('formie/settings/spam') }}
-    {{ csrfInput() }}
-
-    {% namespace 'settings' %}
-
-            {{ forms.lightswitchField({
+        {{ forms.lightswitchField({
             label: 'Save Spam Submissions' | t('formie'),
             instructions: 'Whether to save spam submissions, so they can be viewed in the control panel. Otherwise, spam submissions will be discarded.' | t('formie'),
             name: 'saveSpam',
@@ -87,11 +78,4 @@
         }) }}
 
     
-    {% endnamespace %}
-
-    <hr>
-
-    <input type="submit" class="btn submit" value="{{ 'Save' | t('formie') }}">
-</form>
-
 {% endblock %}

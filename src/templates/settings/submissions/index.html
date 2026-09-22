@@ -3,23 +3,14 @@
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
+{% set fullPageForm = true %}
 {% set selectedTab = 'submissions' %}
 {% set pageTitle = 'Submissions' | t('formie') %}
+{% set pageAction = 'formie/settings/save-settings' %}
+{% set pageUrl = 'formie/settings/submissions' %}
 
-{# Action parameters must remain outside the shared settings namespace. #}
-{% block blockContent %}
-
-<h2>{{ pageTitle }}</h2>
-
-
-<form action="" method="post" accept-charset="UTF-8" data-saveshortcut>
-    {{ actionInput('formie/settings/save-settings') }}
-    {{ redirectInput('formie/settings/submissions') }}
-    {{ csrfInput() }}
-
-    {% namespace 'settings' %}
-
-            {{ forms.textField({
+{% block settingsContent %}
+        {{ forms.textField({
             type: 'number',
             label: 'Maximum Incomplete Submission Age' | t('formie'),
             instructions: 'The maximum age of an incomplete submission in days before it is deleted in garbage collection. Set to 0 to disable automatic deletion.' | t('formie'),
@@ -100,11 +91,4 @@
             warning: macros.configWarning('submissionSidebarFormOrder', 'formie'),
         }) }}
     
-    {% endnamespace %}
-
-    <hr>
-
-    <input type="submit" class="btn submit" value="{{ 'Save' | t('formie') }}">
-</form>
-
 {% endblock %}
