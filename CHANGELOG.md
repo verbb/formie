@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 3.1.42 - 2026-09-23
 
 ### Changed
 - Resolve redirect URL placeholders as strict submission, field and form tokens instead of executing Twig, while rendering remaining form-authored Twig and object templates in Base's explicit sandbox.
