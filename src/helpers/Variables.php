@@ -295,6 +295,9 @@ class Variables
 
         $variables = Formie::$plugin->getRenderCache()->getVariables($cacheKey);
 
+        // Avoid falling back to a sandboxed `submission.form` traversal for form content fields.
+        $variables['form'] = $form;
+
         // Allow plugins to modify the variables
         $event = new ParseVariablesEvent([
             'submission' => $submission,

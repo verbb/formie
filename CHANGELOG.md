@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Fix form content fields being inaccessible in email notification variables after the Twig sandbox security changes.
+
 ## 2.2.34 - 2026-09-23
 
 ### Changed
