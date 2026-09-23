@@ -228,14 +228,17 @@ class StencilData extends Model
 
     public function populateToForm(Form $form): void
     {
-        $form->settings = $this->settings;
-        $form->userDeletedAction = $this->userDeletedAction;
-        $form->fileUploadsAction = $this->fileUploadsAction;
-        $form->dataRetention = $this->dataRetention;
-        $form->dataRetentionValue = $this->dataRetentionValue;
+        // Rebuild the data to strip legacy IDs and keep saves from mutating the cached stencil models.
+        $data = new self($this->getSerializedData());
 
-        $form->setNotifications($this->notifications);
+        $form->settings = $data->settings;
+        $form->userDeletedAction = $data->userDeletedAction;
+        $form->fileUploadsAction = $data->fileUploadsAction;
+        $form->dataRetention = $data->dataRetention;
+        $form->dataRetentionValue = $data->dataRetentionValue;
 
-        $form->setFormLayout(new FieldLayout(['pages' => $this->pages]));
+        $form->setNotifications($data->notifications);
+
+        $form->setFormLayout($data->getFieldLayout());
     }
 }

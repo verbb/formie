@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Fix creating forms from legacy stencils containing temporary page, row, or field IDs.
 - Fix editing stencils when the Solspace Calendar event integration is installed.
 - Fix form redirect responses failing after the submission was saved. ([#2969](https://github.com/verbb/formie/issues/2969))
 - Fix form content fields being inaccessible in email notification variables after the Twig sandbox security changes.
