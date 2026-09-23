@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Fix form redirect responses failing after the submission was saved. ([#2969](https://github.com/verbb/formie/issues/2969))
 - Fix form content fields being inaccessible in email notification variables after the Twig sandbox security changes.
 
 ## 2.2.34 - 2026-09-23
