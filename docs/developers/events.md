@@ -2213,9 +2213,9 @@ Event::on(Variables::class, Variables::EVENT_REGISTER_VARIABLES, function(Regist
 ```
 
 ### The `modifyTwigEnvironment` event
-The event that is triggered to modify the allowed items in the Twig Sandbox used to parse some content like Email Notifications.
+The event that is triggered when Formie configures the sandbox used to render form-authored Twig, including email notification values. Listeners can allow specific Twig tags, filters and functions, or specific methods and properties on objects supplied to those templates. A name must already be registered in the sandboxed Twig environment before allowing it here; this event does not register Craft globals, extensions or new Twig functions.
 
-Formie uses a Twig Sandbox with a limited set of allowed Tags, Filter and Functions. This also extends to the allowed Methods and Properties. This is a security measure to prevent Twig injections into the fields that support Twig.
+Methods and properties are granted individually. Broad class permissions are not supported. For example, to use a `DateTimeZone` object supplied as a template variable, allow only the method the template needs:
 
 ```php
 use verbb\formie\Formie;
@@ -2223,32 +2223,9 @@ use verbb\formie\events\ModifyTwigEnvironmentEvent;
 use yii\base\Event;
 
 Event::on(Formie::class, Formie::EVENT_MODIFY_TWIG_ENVIRONMENT, function(ModifyTwigEnvironmentEvent $event) {
-    // Add allowed Twig Tags
-    $event->allowedTags[] = [
-        'tag',
-    ];
-
-    // Add allowed Twig Filters
-    $event->allowedFilters[] = [
-        'format',
-        'format_number',
-    ];
-
-    // Add allowed Twig Functions
-    $event->allowedFunctions[] = [
-        'alias',
-    ];
-
-    // Prefer allowing whole safe *value* object types (merged with verbb/base defaults
-    // for Element, ElementQuery, ElementCollection, DateTime, etc.).
-    // Do not allow service/container classes (e.g. CraftVariable / Application).
-    $event->allowedClasses[] = \DateTimeZone::class;
-
-    // Or allow specific methods on a class
-    $event->allowedMethods[\craft\web\twig\variables\CraftVariable::class] = ['entries'];
-
-    // Add allowed properties
-    $event->allowedProperties[\craft\base\Element::class] = 'title';
+    $event->allowedTags[] = 'apply';
+    $event->allowedFilters[] = 'url_encode';
+    $event->allowedFunctions[] = 'cycle';
+    $event->allowedMethods[\DateTimeZone::class] = ['getName'];
 });
 ```
-

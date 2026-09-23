@@ -21,6 +21,7 @@ use verbb\formie\models\Settings;
 use Craft;
 use craft\base\ElementInterface;
 use craft\elements\Asset;
+use craft\elements\db\ElementQueryInterface;
 use craft\events\LocateUploadedFilesEvent;
 use craft\fields\Assets as CraftAssets;
 use craft\helpers\Assets;
@@ -33,6 +34,7 @@ use craft\web\UploadedFile;
 use yii\base\Event;
 
 use GraphQL\Type\Definition\Type;
+use Twig\Error\Error as TwigError;
 
 class FileUpload extends CraftAssets implements FormFieldInterface
 {
@@ -175,6 +177,16 @@ class FileUpload extends CraftAssets implements FormFieldInterface
             'volumes' => $this->getSourceOptions(),
             'fileKindOptions' => $this->getFileKindOptions(),
         ];
+    }
+
+    public function resolveDynamicPathToFolderId(?ElementInterface $element = null): int
+    {
+        return $this->_withSandboxedUploadLocationSubpath($element, fn() => parent::resolveDynamicPathToFolderId($element));
+    }
+
+    public function getInputSources(?ElementInterface $element = null): array|string|null
+    {
+        return $this->_withSandboxedUploadLocationSubpath($element, fn() => parent::getInputSources($element));
     }
 
     public function getFieldDefaults(): array
@@ -549,7 +561,9 @@ class FileUpload extends CraftAssets implements FormFieldInterface
 
     public function afterElementSave(ElementInterface $element, bool $isNew): void
     {
-        parent::afterElementSave($element, $isNew);
+        $this->_withSandboxedUploadLocationSubpath($element, function() use ($element, $isNew) {
+            parent::afterElementSave($element, $isNew);
+        });
 
         $elementService = Craft::$app->getElements();
 
@@ -600,6 +614,11 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         if ($paramName = $this->requestParamName($element)) {
             ArrayHelper::remove($this->_uploadedDataFiles, $paramName);
         }
+    }
+
+    protected function inputTemplateVariables(array|ElementQueryInterface $value = null, ?ElementInterface $element = null): array
+    {
+        return $this->_withSandboxedUploadLocationSubpath($element, fn() => parent::inputTemplateVariables($value, $element));
     }
 
     public function getContentGqlMutationArgumentType(): array|Type
@@ -728,6 +747,57 @@ class FileUpload extends CraftAssets implements FormFieldInterface
 
     // Private Methods
     // =========================================================================
+
+    private function _withSandboxedUploadLocationSubpath(?ElementInterface $element, callable $callback): mixed
+    {
+        $originalSubpath = $this->restrictedLocationSubpath;
+        $originalDefaultSubpath = $this->restrictedDefaultUploadSubpath;
+        $originalUnrestrictedSubpath = $this->defaultUploadLocationSubpath;
+
+        try {
+            $this->restrictedLocationSubpath = $this->_getSandboxedUploadLocationSubpath($this->uploadLocationSubpath, $element);
+            $this->restrictedDefaultUploadSubpath = $this->_getSandboxedUploadLocationSubpath($originalDefaultSubpath, $element);
+            $this->defaultUploadLocationSubpath = $this->_getSandboxedUploadLocationSubpath($originalUnrestrictedSubpath, $element);
+
+            return $callback();
+        } finally {
+            $this->restrictedLocationSubpath = $originalSubpath;
+            $this->restrictedDefaultUploadSubpath = $originalDefaultSubpath;
+            $this->defaultUploadLocationSubpath = $originalUnrestrictedSubpath;
+        }
+    }
+
+    private function _getSandboxedUploadLocationSubpath(?string $subpath, ?ElementInterface $element): string
+    {
+        $subpath = trim($subpath ?? '', '/');
+
+        if ($subpath === '' || !preg_match('/\{|\}/', $subpath)) {
+            return $subpath;
+        }
+
+        if ($element?->duplicateOf) {
+            $element = $element->duplicateOf->getCanonical();
+        }
+
+        try {
+            $renderedSubpath = Formie::$plugin->getSandboxedTemplates()->renderSandboxedObjectTemplate($subpath, $element, autoescape: false);
+        } catch (TwigError $e) {
+            return '{{ null }}';
+        }
+
+        if (
+            $renderedSubpath === '' ||
+            trim($renderedSubpath, '/') !== $renderedSubpath ||
+            str_contains($renderedSubpath, '{') ||
+            str_contains($renderedSubpath, '}')
+        ) {
+            // Preserve Craft's temporary-folder fallback for unresolved paths.
+            return '{{ null }}';
+        }
+
+        // Force Craft's dynamic-path validation without passing user-controlled Twig to its renderer.
+        return $renderedSubpath . '{{ "" }}';
+    }
 
     private function getVolume(): ?Volume
     {

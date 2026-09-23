@@ -1,5 +1,22 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+- Keep environment-variable placeholders literal in form-authored notification values and per-form automation URLs. Global mail and automation settings still resolve environment aliases.
+- Preserve Craft's HTML escaping for inline Twig in Formie reference and HTML content, while rendering URLs, paths and filenames as unescaped values through one sandbox policy.
+
+### Fixed
+- Restrict user-configured Twig rendering to Base's explicit sandbox and require administrator access for Formie settings routes.
+- Prevent submitted redirect templates and notification values from reaching unrestricted rendering or environment-variable expansion.
+- Fixed a high-severity server-side template injection vulnerability. ([GHSA-25q7-h5pg-6wjv](https://github.com/verbb/formie/security/advisories/GHSA-25q7-h5pg-6wjv))
+- Fixed a high-severity server-side template injection vulnerability. ([GHSA-3m2m-h2c6-gjwh](https://github.com/verbb/formie/security/advisories/GHSA-3m2m-h2c6-gjwh))
+- Fixed a high-severity server-side template injection vulnerability. ([GHSA-f55h-mf7f-7wx7](https://github.com/verbb/formie/security/advisories/GHSA-f55h-mf7f-7wx7))
+
+### Removed
+- Remove `Formie::$plugin->getTemplates()` and its legacy renderer; custom PHP integrations should use `getSandboxedTemplates()` and its explicit rendering methods.
+- Remove broad `allowedClasses` permissions from `modifyTwigEnvironment`; listeners must allow specific methods and properties instead.
+
 ## 2.2.32 - 2026-09-20
 
 ### Fixed

@@ -108,7 +108,7 @@ class WebRequest extends Automation
             Formie::$plugin->getSubmissions()->populateFakeSubmission($submission);
             $payload = $this->generatePayloadValues($submission);
 
-            $url = $form->settings->integrations[$this->handle]['url'] ?? $this->url;
+            $url = $form->settings->integrations[$this->handle]['url'] ?? App::parseEnv($this->url);
 
             $response = $this->deliverPayloadRequest($submission, $this->getEndpointUrl($url, $submission), $payload, $this->method, $this->requestType);
 
@@ -143,7 +143,7 @@ class WebRequest extends Automation
         try {
             $payload = $this->generatePayloadValues($submission);
 
-            $response = $this->deliverPayloadRequest($submission, $this->getEndpointUrl($this->url, $submission), $payload, $this->method, $this->requestType);
+            $response = $this->deliverPayloadRequest($submission, $this->getEndpointUrl(App::parseEnv($this->url), $submission), $payload, $this->method, $this->requestType);
 
             if ($response === false) {
                 return true;

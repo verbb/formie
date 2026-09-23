@@ -1,11 +1,10 @@
 <?php
 namespace verbb\formie\controllers;
 
-use craft\web\Controller;
 
 use yii\web\Response;
 
-class PermissionsController extends Controller
+class PermissionsController extends AdminController
 {
     // Public Methods
     // =========================================================================

@@ -6,7 +6,6 @@ use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyAutomationPayloadEvent;
 
 use Craft;
-use craft\helpers\App;
 use craft\helpers\Html;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
@@ -98,9 +97,9 @@ abstract class Automation extends Integration
 
     protected function getEndpointUrl($url, Submission $submission): bool|string|null
     {
-        $url = Formie::$plugin->getTemplates()->renderObjectTemplate($url, $submission);
+        $url = Formie::$plugin->getSandboxedTemplates()->renderSandboxedObjectTemplate($url, $submission, autoescape: false);
 
-        return App::parseEnv($url);
+        return $url;
     }
 
     protected function getWebhookUrl($url, Submission $submission): bool|string|null

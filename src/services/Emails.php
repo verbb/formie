@@ -77,8 +77,8 @@ class Emails extends Component
 
         $craftMailSettings = App::mailSettings();
 
-        $fromEmail = Variables::getParsedValue((string)$notification->from, $submission, $form, $notification, false, true) ?: $craftMailSettings->fromEmail;
-        $fromName = Variables::getParsedValue((string)$notification->fromName, $submission, $form, $notification, false, true) ?: $craftMailSettings->fromName;
+        $fromEmail = Variables::getParsedValue((string)$notification->from, $submission, $form, $notification, false, true) ?: App::parseEnv($craftMailSettings->fromEmail);
+        $fromName = Variables::getParsedValue((string)$notification->fromName, $submission, $form, $notification, false, true) ?: App::parseEnv($craftMailSettings->fromName);
 
         $fromEmail = $this->_getParsedEmails($fromEmail)[0] ?? null;
         $fromName = $this->_getFilteredString($fromName);
@@ -516,7 +516,7 @@ class Emails extends Component
 
     private function _getFilteredString($string): string
     {
-        $string = trim(App::parseEnv(trim($string)));
+        $string = trim($string);
 
         // Strip out any emoji's
         return trim(StringHelper::replaceMb4($string, ''));
@@ -534,9 +534,6 @@ class Emails extends Component
 
             // Also check for control characters, which aren't included above
             $email = preg_replace('/[^\PC\s]/u', '', $email);
-
-            // Handle .env variables
-            $email = App::parseEnv(trim($email));
 
             // Lowercase emails, just in case
             $email = strtolower(trim($email));
@@ -664,7 +661,7 @@ class Emails extends Component
 
         // Generate the filename correctly.
         $filenameFormat = $template->filenameFormat ?? 'Submission-{submission.id}';
-        $fileName = Formie::$plugin->getTemplates()->renderObjectTemplate($filenameFormat, $variables);
+        $fileName = Formie::$plugin->getSandboxedTemplates()->renderSandboxedObjectTemplate($filenameFormat, $variables, autoescape: false);
 
         $message->attach($pdfPath, ['fileName' => $fileName . '.pdf', 'contentType' => 'application/pdf']);
 

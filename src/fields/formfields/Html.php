@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\fields\formfields;
 
+use verbb\formie\Formie;
 use verbb\formie\base\FormField;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyPurifierConfigEvent;
@@ -76,7 +77,7 @@ class Html extends FormField
 
         // Render Twig content first
         if ($htmlContent) {
-            $htmlContent = Craft::$app->getView()->renderString($this->htmlContent);
+            $htmlContent = Formie::$plugin->getSandboxedTemplates()->renderSandboxedString($this->htmlContent);
         }
 
         // Add emoji support

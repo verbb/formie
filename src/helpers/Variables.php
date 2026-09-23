@@ -180,9 +180,6 @@ class Variables
             $form = $submission->form;
         }
 
-        // Parse aliases and env variables
-        $value = App::parseEnv($value);
-
         // Use a cache key based on the submission, or for unsaved submissions - the formId.
         // Be sure to prefix things by what they are to prevent ID collision between form/submission elements.
         // This helps to only cache it per-submission, when being run in queues.
@@ -298,13 +295,6 @@ class Variables
 
         $variables = Formie::$plugin->getRenderCache()->getVariables($cacheKey);
 
-        // Parse each variable on it's own to handle .env vars
-        foreach ($variables as $key => $variable) {
-            if (is_string($variable)) {
-                $variables[$key] = App::parseEnv($variable);
-            }
-        }
-
         // Allow plugins to modify the variables
         $event = new ParseVariablesEvent([
             'submission' => $submission,
@@ -317,7 +307,7 @@ class Variables
 
         // Try to parse submission + extra variables
         try {
-            return Formie::$plugin->getTemplates()->renderObjectTemplate($value, $submission, $event->variables);
+            return Formie::$plugin->getSandboxedTemplates()->renderSandboxedObjectTemplate($value, $submission, $event->variables);
         } catch (Throwable $e) {
             Formie::error(Craft::t('formie', 'Failed to render dynamic string “{value}”. Template error: “{message}” {file}:{line}', [
                 'value' => $originalValue,

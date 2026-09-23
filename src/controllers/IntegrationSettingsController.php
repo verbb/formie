@@ -10,12 +10,11 @@ use verbb\formie\models\MissingIntegration;
 use Craft;
 use craft\helpers\ArrayHelper;
 use craft\helpers\StringHelper;
-use craft\web\Controller;
 
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
 
-class IntegrationSettingsController extends Controller
+class IntegrationSettingsController extends AdminController
 {
     // Public Methods
     // =========================================================================

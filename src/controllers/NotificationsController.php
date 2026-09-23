@@ -4,11 +4,10 @@ namespace verbb\formie\controllers;
 use verbb\formie\Formie;
 use verbb\formie\models\Settings;
 
-use craft\web\Controller;
 
 use yii\web\Response;
 
-class NotificationsController extends Controller
+class NotificationsController extends AdminController
 {
     // Public Methods
     // =========================================================================

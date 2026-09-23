@@ -36,6 +36,8 @@ class FieldsController extends Controller
 
     public function actionIndex(): Response
     {
+        $this->requireAdmin(false);
+
         return $this->renderTemplate('formie/settings/fields', []);
     }
 

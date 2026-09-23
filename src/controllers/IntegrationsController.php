@@ -47,6 +47,7 @@ class IntegrationsController extends Controller
      */
     public function actionSaveIntegration(): ?Response
     {
+        $this->requireAdmin(false);
         $savedIntegration = null;
         $this->requirePostRequest();
 
@@ -102,6 +103,7 @@ class IntegrationsController extends Controller
      */
     public function actionReorderIntegrations(): Response
     {
+        $this->requireAdmin(false);
         $this->requirePostRequest();
         $this->requireAcceptsJson();
 
@@ -116,6 +118,7 @@ class IntegrationsController extends Controller
      */
     public function actionDeleteIntegration(): Response
     {
+        $this->requireAdmin(false);
         $this->requirePostRequest();
 
         $request = $this->request;
@@ -167,6 +170,7 @@ class IntegrationsController extends Controller
 
     public function actionCheckConnection(): Response
     {
+        $this->requireAdmin(false);
         $this->requirePostRequest();
 
         $request = $this->request;
@@ -199,6 +203,7 @@ class IntegrationsController extends Controller
 
     public function actionConnect(): Response
     {
+        $this->requireAdmin(false);
         $request = $this->request;
         $session = Craft::$app->getSession();
 
@@ -284,6 +289,7 @@ class IntegrationsController extends Controller
 
     public function actionDisconnect(): Response
     {
+        $this->requireAdmin(false);
         $request = $this->request;
         $session = Craft::$app->getSession();
 

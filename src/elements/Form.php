@@ -1276,7 +1276,7 @@ class Form extends Element
             $url = $this->getRedirectEntry()->url;
         } else if ($this->settings->submitAction == 'url' && $this->settings->submitActionUrl) {
             // Parse Twig
-            $url = Craft::$app->getView()->renderString($this->settings->submitActionUrl);
+            $url = Formie::$plugin->getSandboxedTemplates()->renderSandboxedString($this->settings->submitActionUrl, autoescape: false);
         }
 
         // Add any query params to the URL automatically (think utm)

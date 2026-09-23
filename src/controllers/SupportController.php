@@ -11,7 +11,6 @@ use craft\helpers\App;
 use craft\helpers\FileHelper;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
-use craft\web\Controller;
 use craft\web\UploadedFile;
 use craft\web\View;
 
@@ -25,7 +24,7 @@ use GuzzleHttp\Exception\RequestException;
 
 use Throwable;
 
-class SupportController extends Controller
+class SupportController extends AdminController
 {
     // Public Methods
     // =========================================================================

@@ -8,6 +8,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
+use craft\helpers\App;
 use craft\helpers\Json;
 
 use GuzzleHttp\Client;
@@ -68,7 +69,7 @@ class Zapier extends Automation
             Formie::$plugin->getSubmissions()->populateFakeSubmission($submission);
 
             // Ensure we're fetching the webhook from the form settings, or global integration settings
-            $webhook = $form->settings->integrations[$this->handle]['webhook'] ?? $this->webhook;
+            $webhook = $form->settings->integrations[$this->handle]['webhook'] ?? App::parseEnv($this->webhook);
 
             $payload = $this->generatePayloadValues($submission);
             $response = $this->deliverPayloadRequest($submission, $this->getEndpointUrl($webhook, $submission), $payload);
@@ -91,7 +92,7 @@ class Zapier extends Automation
         try {
             $payload = $this->generatePayloadValues($submission);
 
-            $response = $this->deliverPayload($submission, $this->getEndpointUrl($this->webhook, $submission), $payload);
+            $response = $this->deliverPayload($submission, $this->getEndpointUrl(App::parseEnv($this->webhook), $submission), $payload);
 
             if ($response === false) {
                 return true;

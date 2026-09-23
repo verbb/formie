@@ -430,7 +430,7 @@ class SubmissionsController extends Controller
                 return $this->refresh();
             }
 
-            return $this->redirectToPostedUrl($submission);
+            return $this->_redirectToPostedSandboxedUrl($submission);
         }
 
         if ($request->getAcceptsJson()) {
@@ -446,7 +446,7 @@ class SubmissionsController extends Controller
 
         $this->setSuccessFlash(Craft::t('formie', 'Submission saved.'));
 
-        return $this->redirectToPostedUrl($submission);
+        return $this->_redirectToPostedSandboxedUrl($submission);
     }
 
     /**
@@ -728,7 +728,7 @@ class SubmissionsController extends Controller
             // Refresh, there's still more pages to complete. Or check if we should "redirect" to a template-defined
             // URL, which is set for every page (commonly the first one, once a submission is available)
             if ($settings->pageRedirectUrl) {
-                $url = Formie::$plugin->getTemplates()->renderObjectTemplate($settings->pageRedirectUrl, $submission);
+                $url = Formie::$plugin->getSandboxedTemplates()->renderSandboxedObjectTemplate($settings->pageRedirectUrl, $submission, autoescape: false);
 
                 return $this->redirect($url);
             }
@@ -754,7 +754,10 @@ class SubmissionsController extends Controller
         // Get the URL for redirection (ignore last page checks, already done)
         $url = $form->getRedirectUrl(false);
 
-        return $this->redirectToPostedUrl($submission, $url);
+        $postedUrl = $this->getPostedRedirectUrl();
+        $redirectUrl = Formie::$plugin->getSandboxedTemplates()->renderSandboxedObjectTemplate($postedUrl ?? $url, $submission, autoescape: false);
+
+        return $this->redirect($redirectUrl);
     }
 
     public function actionSetPage(): Response
@@ -859,7 +862,7 @@ class SubmissionsController extends Controller
 
         $this->setSuccessFlash(Craft::t('app', 'Submission deleted.'));
 
-        return $this->redirectToPostedUrl($submission);
+        return $this->_redirectToPostedSandboxedUrl($submission);
     }
 
     public function actionGetSendNotificationModalContent(): Response
@@ -1044,6 +1047,14 @@ class SubmissionsController extends Controller
     // Private Methods
     // =========================================================================
 
+    private function _redirectToPostedSandboxedUrl(Submission $submission): Response
+    {
+        $url = $this->getPostedRedirectUrl() ?? $this->request->getPathInfo();
+        $url = Formie::$plugin->getSandboxedTemplates()->renderSandboxedObjectTemplate($url, $submission, autoescape: false);
+
+        return $this->redirect($url);
+    }
+
     private function _returnJsonResponse($success, $submission, $form, $nextPage, $extras = []): Response
     {
         // Try and get the redirect from the template, as it might've been altered in templates
@@ -1054,7 +1065,7 @@ class SubmissionsController extends Controller
             $redirect = $form->getRedirectUrl();
         }
 
-        $redirectUrl = Formie::$plugin->getTemplates()->renderObjectTemplate($redirect, $submission);
+        $redirectUrl = Formie::$plugin->getSandboxedTemplates()->renderSandboxedObjectTemplate($redirect, $submission, autoescape: false);
 
         $params = array_merge([
             'success' => $success,

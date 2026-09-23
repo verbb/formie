@@ -20,6 +20,7 @@ use verbb\formie\services\PredefinedOptions;
 use verbb\formie\services\Relations;
 use verbb\formie\services\RenderCache;
 use verbb\formie\services\Rendering;
+use verbb\formie\services\SandboxedTemplates;
 use verbb\formie\services\SentNotifications;
 use verbb\formie\services\Service;
 use verbb\formie\services\Statuses;
@@ -30,7 +31,7 @@ use verbb\formie\services\Syncs;
 use verbb\formie\services\Tokens;
 use verbb\formie\web\assets\forms\FormsAsset;
 use verbb\base\BaseHelper;
-use verbb\base\services\Templates;
+use verbb\base\services\Templates as BaseTemplates;
 
 use Craft;
 use craft\base\Model;
@@ -205,9 +206,9 @@ trait PluginTrait
         return $this->get('syncs');
     }
 
-    public function getTemplates(): Templates
+    public function getSandboxedTemplates(): SandboxedTemplates
     {
-        return $this->get('templates');
+        return $this->get('sandboxedTemplates');
     }
 
     public function getTokens(): Tokens
@@ -233,14 +234,10 @@ trait PluginTrait
             'allowedFunctions' => [],
             'allowedMethods' => [],
             'allowedProperties' => [],
-            'allowedClasses' => [],
         ]);
 
-        // Keep __toString on models for printing field values; Element/ElementQuery
-        // methods come from verbb/base allowedClasses defaults.
+        // Keep __toString on models for printing field values.
         $event->allowedMethods[Model::class] = ['__toString'];
-
-        $event->allowedClasses[] = OptionData::class;
 
         $event->allowedProperties[OptionData::class] = function(OptionData $value, string $property): bool {
             return property_exists($value, $property);
@@ -259,6 +256,40 @@ trait PluginTrait
         };
 
         Event::trigger(self::class, self::EVENT_MODIFY_TWIG_ENVIRONMENT, $event);
+
+        $sandboxedDefaults = new BaseTemplates();
+        $sandboxedMethods = $sandboxedDefaults->getDefaultSandboxedAllowedMethods();
+
+        foreach ($event->allowedMethods as $class => $methods) {
+            $sandboxedMethods[$class] = array_unique(array_merge($sandboxedMethods[$class] ?? [], (array)$methods));
+        }
+
+        $sandboxedProperties = $sandboxedDefaults->getDefaultSandboxedAllowedProperties();
+
+        foreach ($event->allowedProperties as $class => $properties) {
+            $defaults = $sandboxedProperties[$class] ?? [];
+
+            if ($defaults instanceof \Closure || $properties instanceof \Closure) {
+                $sandboxedProperties[$class] = static function(object $object, string $property) use ($defaults, $properties): bool {
+                    $defaultAllowed = $defaults instanceof \Closure ? $defaults($object, $property) : in_array($property, (array)$defaults, true);
+                    $extraAllowed = $properties instanceof \Closure ? $properties($object, $property) : in_array($property, (array)$properties, true);
+
+                    return $defaultAllowed || $extraAllowed;
+                };
+            } else {
+                $sandboxedProperties[$class] = array_unique(array_merge((array)$defaults, (array)$properties));
+            }
+        }
+
+        $sandboxedConfig = [
+            'class' => SandboxedTemplates::class,
+            'pluginClass' => Formie::class,
+            'allowedTags' => array_unique(array_merge($sandboxedDefaults->getDefaultSandboxedAllowedTags(), $event->allowedTags)),
+            'allowedFilters' => array_unique(array_merge($sandboxedDefaults->getDefaultSandboxedAllowedFilters(), $event->allowedFilters)),
+            'allowedFunctions' => array_unique(array_merge($sandboxedDefaults->getDefaultSandboxedAllowedFunctions(), $event->allowedFunctions)),
+            'allowedMethods' => $sandboxedMethods,
+            'allowedProperties' => $sandboxedProperties,
+        ];
 
         $this->setComponents([
             'emails' => Emails::class,
@@ -284,16 +315,7 @@ trait PluginTrait
             'submissions' => Submissions::class,
             'subscriptions' => Subscriptions::class,
             'syncs' => Syncs::class,
-            'templates' => [
-                'class' => Templates::class,
-                'pluginClass' => Formie::class,
-                'allowedTags' => $event->allowedTags,
-                'allowedFilters' => $event->allowedFilters,
-                'allowedFunctions' => $event->allowedFunctions,
-                'allowedMethods' => $event->allowedMethods,
-                'allowedProperties' => $event->allowedProperties,
-                'allowedClasses' => $event->allowedClasses,
-            ],
+            'sandboxedTemplates' => $sandboxedConfig,
             'tokens' => Tokens::class,
             'vite' => [
                 'class' => VitePluginService::class,

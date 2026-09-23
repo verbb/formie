@@ -7,12 +7,11 @@ use verbb\formie\models\Settings;
 
 use Craft;
 use craft\errors\MissingComponentException;
-use craft\web\Controller;
 
 use yii\web\BadRequestHttpException;
 use yii\web\Response;
 
-class SettingsController extends Controller
+class SettingsController extends AdminController
 {
     // Public Methods
     // =========================================================================
@@ -84,6 +83,7 @@ class SettingsController extends Controller
      */
     public function actionSaveSettings(): ?Response
     {
+        $this->requireAdmin();
         $this->requirePostRequest();
 
         $request = $this->request;

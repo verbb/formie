@@ -228,6 +228,7 @@ class FormsController extends Controller
      */
     public function actionSaveAsStencil(): ?Response
     {
+        $this->requireAdmin(false);
         $this->requirePostRequest();
 
         $stencils = Formie::$plugin->getStencils()->getAllStencils();
@@ -357,7 +358,7 @@ class FormsController extends Controller
 
         if ($this->request->getAcceptsJson()) {
             $url = $this->request->getValidatedBodyParam('redirect');
-            $url = Formie::$plugin->getTemplates()->renderObjectTemplate($url, $form);
+            $url = Formie::$plugin->getSandboxedTemplates()->renderSandboxedObjectTemplate($url, $form, autoescape: false);
 
             return $this->asJson([
                 'success' => false,

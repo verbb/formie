@@ -416,6 +416,11 @@ class Forms extends Component
             $form = new Form();
         }
 
+        $formUid = $form->uid ?? '';
+        $user = Craft::$app->getUser();
+        $canManageNotifications = $user->checkPermission('formie-manageNotifications') || ($formUid && $user->checkPermission("formie-manageNotifications:$formUid"));
+        $savedNotifications = !$canManageNotifications && $form->id ? $form->getNotifications() : [];
+
         // In case the handle is changed, to update the content table.
         $form->title = $request->getParam('title', $form->title);
         if ($duplicate) {
@@ -471,9 +476,15 @@ class Forms extends Component
                 $form->setFormFieldLayout($layout);
             }
 
-            // Set the notifications.
-            $notifications = Formie::$plugin->getNotifications()->buildNotificationsFromPost();
-            $form->setNotifications($notifications);
+            // A form editor without notification access must retain the saved definitions.
+            if ($canManageNotifications) {
+                $notifications = Formie::$plugin->getNotifications()->buildNotificationsFromPost();
+                $form->setNotifications($notifications);
+            }
+        }
+
+        if (!$canManageNotifications) {
+            $form->setNotifications($savedNotifications);
         }
 
         // Set custom field values.
