@@ -706,6 +706,10 @@ class Integrations extends Component
         }
 
         foreach ($this->getAllIntegrations() as $key => $integration) {
+            if (!$this->_isIntegrationAvailable($integration)) {
+                continue;
+            }
+
             if ($integration->getEnabled() && $integration->hasFormSettings()) {
                 // Fire a 'modifyFormIntegration' event
                 $event = new ModifyFormIntegrationEvent([
@@ -733,7 +737,7 @@ class Integrations extends Component
         $enabledIntegrations = [];
 
         // Use all integrations + captchas
-        $integrations = array_merge($this->getAllIntegrations(), $this->getAllCaptchas());
+        $integrations = array_merge(array_filter($this->getAllIntegrations(), [$this, '_isIntegrationAvailable']), $this->getAllCaptchas());
 
         foreach ($integrations as $key => $integration) {
             // Fire a 'modifyFormIntegration' event
@@ -930,6 +934,20 @@ class Integrations extends Component
 
     // Private Methods
     // =========================================================================
+
+    /**
+     * Returns whether an integration's type is currently available.
+     */
+    private function _isIntegrationAvailable(IntegrationInterface $integration): bool
+    {
+        foreach ($this->getAllIntegrationTypes() as $integrationTypes) {
+            if (in_array(get_class($integration), $integrationTypes, true)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     /**
      * Returns a memoizable array of all integrations.
