@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 2.2.33 - 2026-09-23
 
 ### Changed
 - Keep environment-variable placeholders literal in form-authored notification values and per-form automation URLs. Global mail and automation settings still resolve environment aliases.
