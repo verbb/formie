@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 2.2.34 - 2026-09-23
 
 ### Changed
 - Resolve redirect URL placeholders as strict submission, field and form tokens instead of executing Twig.
