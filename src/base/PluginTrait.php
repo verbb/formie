@@ -28,13 +28,13 @@ use verbb\formie\services\Stencils;
 use verbb\formie\services\Storage;
 use verbb\formie\services\Submissions;
 use verbb\formie\services\Subscriptions;
+use verbb\formie\services\Templates;
 use verbb\formie\web\assets\forms\FormsAsset;
 
 use Craft;
 
 use verbb\base\LogTrait;
 use verbb\base\helpers\Plugin;
-use verbb\base\services\Templates;
 
 use nystudio107\pluginvite\services\VitePluginService;
 
@@ -72,11 +72,10 @@ trait PluginTrait
             'allowedFunctions' => [],
             'allowedMethods' => [],
             'allowedProperties' => [],
-            'allowedClasses' => [],
         ]);
 
         // Field value objects (Name, Address, options data, etc.)
-        $event->allowedClasses[] = FieldValueInterface::class;
+        $event->allowedMethods[FieldValueInterface::class] = ['__toString'];
 
         $event->allowedProperties[FieldValueInterface::class] = function(FieldValueInterface $value, string $property): bool {
             if ($value instanceof Model && in_array($property, $value->attributes(), true)) {
@@ -133,12 +132,11 @@ trait PluginTrait
                 'templates' => [
                     'class' => Templates::class,
                     'pluginClass' => Formie::class,
-                    'allowedTags' => $event->allowedTags,
-                    'allowedFilters' => $event->allowedFilters,
-                    'allowedFunctions' => $event->allowedFunctions,
-                    'allowedMethods' => $event->allowedMethods,
-                    'allowedProperties' => $event->allowedProperties,
-                    'allowedClasses' => $event->allowedClasses,
+                    'additionalAllowedTags' => $event->allowedTags,
+                    'additionalAllowedFilters' => $event->allowedFilters,
+                    'additionalAllowedFunctions' => $event->allowedFunctions,
+                    'additionalAllowedMethods' => $event->allowedMethods,
+                    'additionalAllowedProperties' => $event->allowedProperties,
                 ],
                 'vite' => [
                     'class' => VitePluginService::class,

@@ -13,6 +13,6 @@ class ModifyTwigEnvironmentEvent extends Event
     public array $allowedFunctions = [];
     public array $allowedMethods = [];
     public array $allowedProperties = [];
-    /** @var class-string[] */
+    /** @deprecated Use allowedMethods and allowedProperties. Broad class permissions are not applied by the explicit sandbox. */
     public array $allowedClasses = [];
 }

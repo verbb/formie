@@ -303,7 +303,7 @@ class FormsController extends Controller
 
         if ($this->request->getAcceptsJson()) {
             $url = $this->request->getValidatedBodyParam('redirect');
-            $url = Formie::$plugin->getTemplates()->renderObjectTemplate($url, $form);
+            $url = StringHelper::sanitizeRedirectUrl(Formie::$plugin->getTemplates()->renderObjectTokens($url, $form));
 
             return $this->asJson([
                 'success' => false,

@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\fields;
 
+use verbb\formie\Formie;
 use verbb\formie\base\CosmeticField;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyPurifierConfigEvent;
@@ -86,7 +87,7 @@ class Html extends CosmeticField
 
         // Render Twig content first
         if ($htmlContent) {
-            $htmlContent = Craft::$app->getView()->renderString($this->htmlContent, $variables);
+            $htmlContent = Formie::$plugin->getTemplates()->renderSandboxedString($this->htmlContent, $variables);
         }
 
         if ($this->purifyContent) {

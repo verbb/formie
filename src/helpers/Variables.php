@@ -293,7 +293,7 @@ class Variables
 
         // Try to parse submission + extra variables
         try {
-            return Formie::$plugin->getTemplates()->renderObjectTemplate($value, $submission, $event->variables);
+            return Formie::$plugin->getTemplates()->renderSandboxedObjectTemplate($value, $submission, $event->variables);
         } catch (Throwable $e) {
             Formie::error('Failed to render dynamic string “{value}”. Template error: “{message}” {file}:{line}', [
                 'value' => $originalValue,

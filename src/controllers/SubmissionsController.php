@@ -778,14 +778,12 @@ class SubmissionsController extends Controller
             return $this->redirect($event->redirectUrl);
         }
 
-        // Get the URL for redirection (ignore last page checks, already done)
-        $url = $this->getPostedRedirectUrl($submission);
-
-        if ($url === null) {
-            $url = $form->renderRedirectUrl($submission, $form->getRedirectUrl(false));
-        } else {
-            $url = UrlHelper::appendRequestQueryString($url);
-        }
+        // Get the URL for redirection (ignore last page checks, already done).
+        // Craft's getPostedRedirectUrl() renders the signed value as unrestricted Twig.
+        $redirect = $this->_getPostedRedirectTemplate();
+        $url = $redirect
+            ? $form->renderRedirectUrl($submission, $redirect)
+            : $form->renderRedirectUrl($submission, $form->getRedirectUrl(false));
 
         return $this->redirect($url);
     }

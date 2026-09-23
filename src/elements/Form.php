@@ -1026,7 +1026,7 @@ class Form extends Element
 
     public function setRedirectUrl(string $value): void
     {
-        $this->_redirectUrl = $value;
+        $this->_redirectUrl = StringHelper::sanitizeRedirectUrl($value);
     }
 
     public function getRedirectUrl(bool $checkLastPage = true, bool $includeQueryString = true): string
@@ -1051,8 +1051,8 @@ class Form extends Element
         } else if ($this->settings->submitAction == 'entry' && $this->getRedirectEntry()) {
             $url = $this->getRedirectEntry()->url;
         } else if ($this->settings->submitAction == 'url' && $this->settings->submitActionUrl) {
-            // Parse Twig
-            $url = Craft::$app->getView()->renderString($this->settings->submitActionUrl);
+            // Submission placeholders are resolved after a submission exists.
+            $url = $this->settings->submitActionUrl;
         }
 
         // Handle any special characters defined in the URL and encode them properly
@@ -1086,8 +1086,13 @@ class Form extends Element
             return '';
         }
 
-        $redirectUrl = Formie::$plugin->getTemplates()->renderObjectTemplate($redirectTemplate, $submission);
+        $redirectUrl = Formie::$plugin->getTemplates()->renderObjectTokens($redirectTemplate, $submission);
         $redirectUrl = str_replace('&amp;', '&', htmlspecialchars($redirectUrl));
+        $redirectUrl = StringHelper::sanitizeRedirectUrl($redirectUrl);
+
+        if ($redirectUrl === '') {
+            return '';
+        }
 
         if ($includeQueryString) {
             $redirectUrl = UrlHelper::appendRequestQueryString($redirectUrl);

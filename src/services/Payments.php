@@ -78,7 +78,7 @@ class Payments extends Component
         $url = (string)($url ?? '');
 
         if ($url !== '') {
-            $url = Formie::$plugin->getTemplates()->renderObjectTemplate($url, $submission);
+            $url = Formie::$plugin->getTemplates()->renderObjectTokens($url, $submission);
         }
 
         $event = new PaymentSuccessRedirectEvent([
@@ -90,7 +90,7 @@ class Payments extends Component
 
         $this->trigger(self::EVENT_DEFINE_PAYMENT_SUCCESS_REDIRECT_URL, $event);
 
-        return $event->redirectUrl;
+        return StringHelper::sanitizeRedirectUrl((string)$event->redirectUrl);
     }
 
     public function savePayment(Payment $payment, bool $runValidation = true): bool

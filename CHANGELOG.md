@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+- Resolve redirect URL placeholders as strict submission, field and form tokens instead of executing Twig, while rendering remaining form-authored Twig and object templates in Base's explicit sandbox.
+- Require `verbb/base` 3.0.17 or later for the explicit sandbox renderers and collection safeguards.
+- Apply `EVENT_MODIFY_TWIG_ENVIRONMENT` permissions as additions to Twig sandbox defaults; broad `allowedClasses` permissions no longer apply to those renders.
+
+### Fixed
+- Fixed a high-severity server-side template injection vulnerability. ([GHSA-25q7-h5pg-6wjv](https://github.com/verbb/formie/security/advisories/GHSA-25q7-h5pg-6wjv))
+- Fixed a high-severity server-side template injection vulnerability. ([GHSA-3m2m-h2c6-gjwh](https://github.com/verbb/formie/security/advisories/GHSA-3m2m-h2c6-gjwh))
+- Fixed a high-severity server-side template injection vulnerability. ([GHSA-f55h-mf7f-7wx7](https://github.com/verbb/formie/security/advisories/GHSA-f55h-mf7f-7wx7))
+- Fixed a high-severity server-side template injection vulnerability.
+
 ## 3.1.41 - 2026-09-22
 
 ### Fixed
