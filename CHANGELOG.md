@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+- Resolve redirect URL placeholders as strict submission, field and form tokens instead of executing Twig.
+- Require `verbb/base` 2.0.15 or later for the explicit sandbox renderers.
+
+### Fixed
+- Fixed a high-severity server-side template injection vulnerability.
+
 ## 2.2.33 - 2026-09-23
 
 ### Changed

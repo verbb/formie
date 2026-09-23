@@ -71,6 +71,30 @@ class StringHelper extends CraftStringHelper
         return $antiXss->xss_clean((string)$str);
     }
 
+    public static function sanitizeRedirectUrl(string $url): string
+    {
+        $url = trim($url);
+
+        if ($url === '') {
+            return '';
+        }
+
+        $cleanUrl = preg_replace('/[\x00-\x1F\x7F]+/u', '', $url) ?? $url;
+        $decodedUrl = html_entity_decode($cleanUrl, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $normalizedUrl = preg_replace('/[\x00-\x20\x7F]+/u', '', $decodedUrl) ?? $decodedUrl;
+        $normalizedUrl = str_replace('\\', '/', $normalizedUrl);
+
+        if (str_starts_with($normalizedUrl, '//')) {
+            return '';
+        }
+
+        if (preg_match('/^([a-z][a-z0-9+\-.]*):/i', $normalizedUrl, $matches) && !in_array(strtolower($matches[1]), ['http', 'https'], true)) {
+            return '';
+        }
+
+        return parse_url($decodedUrl) === false ? '' : $cleanUrl;
+    }
+
     public static function decdec(string $str): string
     {
         $key = Formie::$plugin->getSettings()->getSecurityKey();

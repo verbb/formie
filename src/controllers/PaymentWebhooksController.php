@@ -3,6 +3,7 @@ namespace verbb\formie\controllers;
 
 use verbb\formie\Formie;
 use verbb\formie\base\Payment;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\Payment as PaymentModel;
 
 use Craft;
@@ -136,7 +137,10 @@ class PaymentWebhooksController extends Controller
                 $url = $payment->redirectUrl;
             } else {
                 $url = $form->getRedirectUrl(false, false);
+                $url = Formie::$plugin->getSandboxedTemplates()->renderObjectTokens($url, $submission);
             }
+
+            $url = StringHelper::sanitizeRedirectUrl((string)$url);
 
             return $this->asJson([
                 'status' => 'success',

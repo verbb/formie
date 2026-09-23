@@ -17,6 +17,7 @@ use verbb\formie\gql\interfaces\FieldInterface;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\HandleHelper;
 use verbb\formie\helpers\Html;
+use verbb\formie\helpers\StringHelper as FormieStringHelper;
 use verbb\formie\helpers\UrlHelper;
 use verbb\formie\models\FieldLayout;
 use verbb\formie\models\FieldLayoutPage;
@@ -1241,7 +1242,7 @@ class Form extends Element
 
     public function setRedirectUrl(string $value): void
     {
-        $this->_redirectUrl = $value;
+        $this->_redirectUrl = FormieStringHelper::sanitizeRedirectUrl($value);
     }
 
     /**
@@ -1275,21 +1276,13 @@ class Form extends Element
         } else if ($this->settings->submitAction == 'entry' && $this->getRedirectEntry()) {
             $url = $this->getRedirectEntry()->url;
         } else if ($this->settings->submitAction == 'url' && $this->settings->submitActionUrl) {
-            // Parse Twig
-            $url = Formie::$plugin->getSandboxedTemplates()->renderSandboxedString($this->settings->submitActionUrl, autoescape: false);
+            // Submission placeholders are resolved after a submission exists.
+            $url = $this->settings->submitActionUrl;
         }
 
-        // Add any query params to the URL automatically (think utm)
+        // Append request params as literals so brace-bearing values cannot become tokens later.
         if ($url && $request->getIsSiteRequest() && $includeQueryString) {
-            // But only add query strings if they don't override any set for the redirect URL already
-            // For example, the request URL might be `submissionId=12` but the redirect is `submissionId={id}`
-            // we wouldn't want to overwrite the latter with the former. Specifically set URLs take precedence.
-            $requestParams = $request->getQueryStringWithoutPath();
-            $urlParams = explode('?', $url)[1] ?? '';
-
-            // UrlHelper will take care of normalization. The important bit is to override request params if
-            // there's any duplication.
-            $url = UrlHelper::url($url, $requestParams . '&' . $urlParams);
+            $url = UrlHelper::appendRequestQueryString($url);
         }
 
         // Handle any special characters defined in the URL and encode them properly

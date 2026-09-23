@@ -5,6 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\helpers\HandleHelper;
 use verbb\formie\helpers\Plugin;
+use verbb\formie\helpers\StringHelper as FormieStringHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\Stencil;
 use verbb\formie\models\StencilData;
@@ -358,7 +359,7 @@ class FormsController extends Controller
 
         if ($this->request->getAcceptsJson()) {
             $url = $this->request->getValidatedBodyParam('redirect');
-            $url = Formie::$plugin->getSandboxedTemplates()->renderSandboxedObjectTemplate($url, $form, autoescape: false);
+            $url = FormieStringHelper::sanitizeRedirectUrl(Formie::$plugin->getSandboxedTemplates()->renderObjectTokens($url, $form));
 
             return $this->asJson([
                 'success' => false,

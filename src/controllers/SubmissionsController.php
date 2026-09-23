@@ -6,6 +6,7 @@ use verbb\formie\base\FormField;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\SubmissionEvent;
+use verbb\formie\helpers\StringHelper as FormieStringHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\IntegrationResponse;
 use verbb\formie\models\Settings;
@@ -728,7 +729,7 @@ class SubmissionsController extends Controller
             // Refresh, there's still more pages to complete. Or check if we should "redirect" to a template-defined
             // URL, which is set for every page (commonly the first one, once a submission is available)
             if ($settings->pageRedirectUrl) {
-                $url = Formie::$plugin->getSandboxedTemplates()->renderSandboxedObjectTemplate($settings->pageRedirectUrl, $submission, autoescape: false);
+                $url = FormieStringHelper::sanitizeRedirectUrl(Formie::$plugin->getSandboxedTemplates()->renderObjectTokens($settings->pageRedirectUrl, $submission));
 
                 return $this->redirect($url);
             }
@@ -755,7 +756,7 @@ class SubmissionsController extends Controller
         $url = $form->getRedirectUrl(false);
 
         $postedUrl = $this->getPostedRedirectUrl();
-        $redirectUrl = Formie::$plugin->getSandboxedTemplates()->renderSandboxedObjectTemplate($postedUrl ?? $url, $submission, autoescape: false);
+        $redirectUrl = FormieStringHelper::sanitizeRedirectUrl(Formie::$plugin->getSandboxedTemplates()->renderObjectTokens($postedUrl ?? $url, $submission));
 
         return $this->redirect($redirectUrl);
     }
@@ -1050,7 +1051,7 @@ class SubmissionsController extends Controller
     private function _redirectToPostedSandboxedUrl(Submission $submission): Response
     {
         $url = $this->getPostedRedirectUrl() ?? $this->request->getPathInfo();
-        $url = Formie::$plugin->getSandboxedTemplates()->renderSandboxedObjectTemplate($url, $submission, autoescape: false);
+        $url = FormieStringHelper::sanitizeRedirectUrl(Formie::$plugin->getSandboxedTemplates()->renderObjectTokens($url, $submission));
 
         return $this->redirect($url);
     }
@@ -1065,7 +1066,7 @@ class SubmissionsController extends Controller
             $redirect = $form->getRedirectUrl();
         }
 
-        $redirectUrl = Formie::$plugin->getSandboxedTemplates()->renderSandboxedObjectTemplate($redirect, $submission, autoescape: false);
+        $redirectUrl = FormieStringHelper::sanitizeRedirectUrl(Formie::$plugin->getSandboxedTemplates()->renderObjectTokens($redirect, $submission));
 
         $params = array_merge([
             'success' => $success,
