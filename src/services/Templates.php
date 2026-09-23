@@ -130,8 +130,7 @@ class Templates extends BaseTemplates
                 }
             }
         } else if ($object instanceof Model) {
-            foreach ($object->attributes() as $name) {
-                $value = $object->getAttribute($name);
+            foreach ($object->getAttributes() as $name => $value) {
                 $tokens[$name] = $this->_stringifyTokenValue($value);
                 $this->_addNestedTokens($tokens, $name, $value);
             }
@@ -200,7 +199,7 @@ class Templates extends BaseTemplates
         }
 
         if ($value instanceof Model) {
-            $value = array_combine($value->attributes(), array_map(fn(string $name) => $value->getAttribute($name), $value->attributes()));
+            $value = $value->getAttributes();
         }
 
         if (!is_array($value)) {
