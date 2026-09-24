@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Fixed a moderate-severity authorization vulnerability. (GHSA-p696-447f-9258)
 - Fixed a moderate-severity authorization vulnerability. (GHSA-qg3f-hm4x-h5h8)
 - Fixed a moderate-severity information disclosure vulnerability. (GHSA-963f-vfpf-f85p)
 
