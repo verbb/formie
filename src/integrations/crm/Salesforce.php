@@ -641,6 +641,7 @@ class Salesforce extends Crm implements OAuthProviderInterface
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
+        $rules[] = [['duplicateLeadTask', 'duplicateLeadTaskSubject'], 'safe', 'on' => [Integration::SCENARIO_FORM]];
 
         $contact = $this->getFormSettingValue('contact');
         $lead = $this->getFormSettingValue('lead');

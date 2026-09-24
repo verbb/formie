@@ -195,6 +195,7 @@ class Monday extends Miscellaneous
         $rules = parent::defineRules();
 
         $rules[] = [['apiKey'], 'required'];
+        $rules[] = [['boardId'], 'safe', 'on' => [Integration::SCENARIO_FORM]];
 
         $fields = $this->_getBoardSettings()->fields ?? [];
 

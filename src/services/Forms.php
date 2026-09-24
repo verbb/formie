@@ -70,6 +70,18 @@ class Forms extends Component
         return Form::find()->all();
     }
 
+    public function canManageFormIntegrations(Form $form): bool
+    {
+        $user = Craft::$app->getUser();
+
+        if (!$form->id) {
+            return $user->checkPermission('formie-createFormIntegrations');
+        }
+
+        return $user->checkPermission('formie-showFormIntegrations') ||
+            $user->checkPermission('formie-showFormIntegrations:' . $form->uid);
+    }
+
     public function buildFormFromPost(): Form
     {
         $request = Craft::$app->getRequest();
@@ -107,12 +119,25 @@ class Forms extends Component
             $form->getFormLayout()->setDeletedItems(Json::decodeIfJson($deleted));
         }
 
+        $oldIntegrationSettings = $form->settings->integrations ?? [];
+        $canManageFormIntegrations = $this->canManageFormIntegrations($form);
+
         // Merge in any new settings, while retaining existing ones. Important for users with permissions.
         if ($newSettings = $request->getParam('settings')) {
-            // Retain any integration form settings before wiping them
-            $oldIntegrationSettings = $form->settings->integrations ?? [];
-            $newIntegrationSettings = $newSettings['integrations'] ?? [];
-            $newSettings['integrations'] = array_merge($oldIntegrationSettings, $newIntegrationSettings);
+            if ($canManageFormIntegrations) {
+                $integrationsService = Formie::$plugin->getIntegrations();
+                $newIntegrationSettings = $newSettings['integrations'] ?? [];
+
+                if (!is_array($newIntegrationSettings)) {
+                    $newIntegrationSettings = [];
+                }
+
+                $newIntegrationSettings = $integrationsService->filterAllIntegrationFormSettings($newIntegrationSettings);
+                $mergedIntegrationSettings = array_merge($oldIntegrationSettings, $newIntegrationSettings);
+                $newSettings['integrations'] = $integrationsService->filterAllIntegrationFormSettings($mergedIntegrationSettings, true);
+            } else {
+                $newSettings['integrations'] = $oldIntegrationSettings;
+            }
 
             $form->settings->setAttributes($newSettings, false);
         }
@@ -124,10 +149,26 @@ class Forms extends Component
         $form->setFieldValuesFromRequest('fields');
 
         // Apply a chosen stencil, which will override a few things above
+        $appliedStencil = false;
+
         if ($stencilId = $request->getParam('applyStencilId')) {
             if ($stencil = Formie::$plugin->getStencils()->getStencilById($stencilId)) {
                 $stencil->applyStencilToForm($form);
+                $appliedStencil = true;
             }
+        }
+
+        // A stencil replaces the entire settings model, so enforce integration permissions again afterward.
+        if ($appliedStencil) {
+            if ($canManageFormIntegrations) {
+                $integrationSettings = $form->settings->integrations ?? [];
+                $integrationSettings = is_array($integrationSettings) ? $integrationSettings : [];
+                $integrationSettings = Formie::$plugin->getIntegrations()->filterAllIntegrationFormSettings($integrationSettings, true);
+            } else {
+                $integrationSettings = $oldIntegrationSettings;
+            }
+
+            $form->settings->setAttributes(['integrations' => $integrationSettings], false);
         }
 
         return $form;

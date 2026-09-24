@@ -268,6 +268,7 @@ class SharpSpring extends Crm
         $rules = parent::defineRules();
 
         $rules[] = [['accountId', 'secretKey'], 'required'];
+        $rules[] = [['endpoint'], 'safe', 'on' => [Integration::SCENARIO_FORM]];
 
         $contact = $this->getFormSettingValue('contact');
 

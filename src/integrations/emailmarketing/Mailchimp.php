@@ -272,6 +272,7 @@ class Mailchimp extends EmailMarketing
         $rules = parent::defineRules();
 
         $rules[] = [['apiKey'], 'required'];
+        $rules[] = [['appendTags', 'useDoubleOptIn'], 'safe', 'on' => [Integration::SCENARIO_FORM]];
 
         return $rules;
     }

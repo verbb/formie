@@ -122,6 +122,15 @@ class Question extends Captcha
     }
 
 
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineFormSettingAttributes(): array
+    {
+        return array_merge(parent::defineFormSettingAttributes(), ['questions']);
+    }
+
+
     // Private Methods
     // =========================================================================
 

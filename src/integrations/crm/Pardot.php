@@ -520,6 +520,7 @@ class Pardot extends Crm implements OAuthProviderInterface
         $rules = parent::defineRules();
 
         $rules[] = [['businessUnitId'], 'required'];
+        $rules[] = [['enableFormHandler'], 'safe', 'on' => [Integration::SCENARIO_FORM]];
 
         $prospect = $this->getFormSettingValue('prospect');
         $opportunity = $this->getFormSettingValue('opportunity');

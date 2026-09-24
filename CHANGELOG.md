@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Fixed a high-severity server-side request forgery vulnerability. ([GHSA-82jr-3xc8-86mr](https://github.com/verbb/formie/security/advisories/GHSA-82jr-3xc8-86mr))
 - Fix creating forms from legacy stencils containing temporary page, row, or field IDs.
 - Fix editing stencils when the Solspace Calendar event integration is installed.
 - Fix form redirect responses failing after the submission was saved. ([#2969](https://github.com/verbb/formie/issues/2969))

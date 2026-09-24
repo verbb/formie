@@ -626,6 +626,96 @@ class Integrations extends Component
         return $grouped;
     }
 
+    public function filterIntegrationFormSettings(IntegrationInterface $integration, array $settings): array
+    {
+        if (is_callable([$integration, 'hasFormSettings']) && !$integration->hasFormSettings()) {
+            return [];
+        }
+
+        // Existing third-party integrations historically received every form setting. Keep
+        // that behaviour unless they explicitly opt in to Formie's stricter allowlist.
+        if (!$this->_usesStrictFormSettingAttributes($integration)) {
+            return $settings;
+        }
+
+        $attributes = ['enabled'];
+
+        if (is_callable([$integration, 'getFormSettingAttributes'])) {
+            array_push($attributes, ...$integration->getFormSettingAttributes());
+        } elseif (is_callable([$integration, 'getValidators'])) {
+            foreach ($integration->getValidators() as $validator) {
+                if (in_array(Integration::SCENARIO_FORM, (array)$validator->on, true)) {
+                    array_push($attributes, ...$validator->getAttributeNames());
+                }
+            }
+        }
+
+        return array_intersect_key($settings, array_fill_keys($attributes, true));
+    }
+
+    private function _usesStrictFormSettingAttributes(IntegrationInterface $integration): bool
+    {
+        $class = get_class($integration);
+
+        if (str_starts_with($class, 'verbb\\formie\\integrations\\')) {
+            return true;
+        }
+
+        if (!method_exists($integration, 'getFormSettingAttributes')) {
+            return false;
+        }
+
+        $method = new \ReflectionMethod($integration, 'getFormSettingAttributes');
+        $declaringClass = $method->getDeclaringClass()->getName();
+
+        return $method->isPublic() && !str_starts_with($declaringClass, 'verbb\\formie\\');
+    }
+
+    public function filterAllIntegrationFormSettings(array $settings, bool $preserveMissing = false): array
+    {
+        $filtered = [];
+
+        foreach ($settings as $handle => $integrationSettings) {
+            if (!is_string($handle) || !is_array($integrationSettings)) {
+                continue;
+            }
+
+            $integration = $this->getIntegrationByHandle($handle) ?? $this->getCaptchaByHandle($handle);
+
+            if ($integration && !($integration instanceof MissingIntegration)) {
+                try {
+                    $filtered[$handle] = $this->filterIntegrationFormSettings($integration, $integrationSettings);
+                } catch (Throwable) {
+                    // Preserve existing settings when an integration's optional dependencies are unavailable.
+                    if ($preserveMissing) {
+                        $filtered[$handle] = $integrationSettings;
+                    }
+                }
+            } elseif ($preserveMissing) {
+                $filtered[$handle] = $integrationSettings;
+            }
+        }
+
+        return $filtered;
+    }
+
+    public function populateIntegrationFromFormSettings(IntegrationInterface $integration, array $settings): IntegrationInterface
+    {
+        $settings = $this->filterIntegrationFormSettings($integration, $settings);
+
+        // `enabled` belongs to the form, not the globally configured integration.
+        unset($settings['enabled']);
+
+        $formIntegration = clone $integration;
+        $formIntegration->setAttributes($settings, false);
+
+        if (is_callable([$formIntegration, 'setClient'])) {
+            $formIntegration->setClient(null);
+        }
+
+        return $formIntegration;
+    }
+
     public function getAllEnabledIntegrationsForForm(Form $form): array
     {
         $enabledIntegrations = [];
@@ -652,7 +742,7 @@ class Integrations extends Component
 
             // If this disabled globally? Then don't include it, otherwise populate the settings
             if ($integration && $integration->getEnabled()) {
-                $integration->setAttributes($formSettings, false);
+                $integration = $this->populateIntegrationFromFormSettings($integration, $formSettings);
 
                 $enabledIntegrations[] = $integration;
             }

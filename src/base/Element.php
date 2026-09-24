@@ -246,6 +246,17 @@ abstract class Element extends Integration
     // Protected Methods
     // =========================================================================
 
+    protected function defineFormSettingAttributes(): array
+    {
+        return array_merge(parent::defineFormSettingAttributes(), [
+            'attributeMapping',
+            'overwriteValues',
+            'updateElement',
+            'updateElementMapping',
+            'updateSearchIndexes',
+        ]);
+    }
+
     protected function getFieldTypeForField(string $fieldClass): string
     {
         // Provide a map of all native Craft fields to the data we expect

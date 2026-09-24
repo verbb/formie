@@ -218,6 +218,7 @@ class GoogleSheets extends Miscellaneous implements OAuthProviderInterface
         $rules[] = [['clientId', 'clientSecret', 'spreadsheetId'], 'required'];
 
         // Validate the following when saving form settings
+        $rules[] = [['spreadsheetId'], 'safe', 'on' => [Integration::SCENARIO_FORM]];
         $rules[] = [['sheetId'], 'required', 'on' => [Integration::SCENARIO_FORM]];
 
         return $rules;

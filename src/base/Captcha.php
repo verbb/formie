@@ -107,6 +107,11 @@ abstract class Captcha extends Integration
     // Protected Methods
     // =========================================================================
 
+    protected function defineFormSettingAttributes(): array
+    {
+        return array_merge(parent::defineFormSettingAttributes(), ['showAllPages']);
+    }
+
     protected function getOrSet(string $key, Closure $callable)
     {
         if ($value = Craft::$app->getSession()->get($key)) {

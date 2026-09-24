@@ -365,6 +365,7 @@ class Entry extends Element
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
+        $rules[] = [['createDraft'], 'safe', 'on' => [Integration::SCENARIO_FORM]];
 
         // Validate the following when saving form settings
         $rules[] = [['entryTypeSection', 'defaultAuthorId'], 'required', 'on' => [Integration::SCENARIO_FORM]];

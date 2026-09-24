@@ -731,6 +731,7 @@ class HubSpot extends Crm
         $rules = parent::defineRules();
 
         $rules[] = [['accessToken'], 'required'];
+        $rules[] = [['formId'], 'safe', 'on' => [Integration::SCENARIO_FORM]];
 
         $contact = $this->getFormSettingValue('contact');
         $deal = $this->getFormSettingValue('deal');
