@@ -196,6 +196,7 @@ class FormsController extends Controller
     public function actionSaveAsStencil(): ?Response
     {
         $this->requirePostRequest();
+        $this->requirePermission('formie-accessSettings');
 
         $stencils = Formie::$plugin->getStencils()->getAllStencils();
         $stencilHandles = ArrayHelper::getColumn($stencils, 'handle');

@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Fixed a moderate-severity authorization vulnerability. (GHSA-qg3f-hm4x-h5h8)
+
 ## 3.1.43 - 2026-09-24
 
 ### Fixed
