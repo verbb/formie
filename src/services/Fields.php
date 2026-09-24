@@ -429,6 +429,11 @@ class Fields extends Component
 
         /* @var Form[] $forms */
         $forms = $query->all();
+        $user = Craft::$app->getUser();
+        $forms = array_values(array_filter($forms, function(Form $form) use ($user) {
+            return $user->checkPermission('formie-manageForms')
+                || $user->checkPermission('formie-manageForms:' . $form->uid);
+        }));
 
         $allFields = [];
         $existingFields = [];

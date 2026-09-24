@@ -268,7 +268,7 @@ export default {
             this.errorMessage = '';
             this.loading = true;
 
-            const data = { formId: this.form.id };
+            const data = { formId: this.form.id, isStencil: this.form.isStencil };
 
             Craft.sendActionRequest('POST', 'formie/forms/get-existing-fields', { data }).then((response) => {
                 this.loading = false;

@@ -350,9 +350,11 @@ class FormsController extends Controller
 
     public function actionGetExistingFields(): Response
     {
-        $formId = $this->request->getRequiredParam('formId');
+        $this->requireCpRequest();
+        $this->requirePostRequest();
 
-        $form = Formie::$plugin->getForms()->getFormById($formId);
+        $target = $this->_getExistingResourceTarget();
+        $form = $target instanceof Form ? $target : null;
         $existingFields = Formie::$plugin->getFields()->getExistingFields($form);
 
         return $this->asJson($existingFields);
@@ -360,10 +362,11 @@ class FormsController extends Controller
 
     public function actionGetExistingNotifications(): Response
     {
-        $formId = $this->request->getRequiredParam('formId');
+        $this->requireCpRequest();
+        $this->requirePostRequest();
 
-        $form = Formie::$plugin->getForms()->getFormById($formId);
-        $existingNotifications = Formie::$plugin->getNotifications()->getExistingNotifications($form);
+        $target = $this->_getExistingResourceTarget(true);
+        $existingNotifications = Formie::$plugin->getNotifications()->getExistingNotifications($target);
 
         return $this->asJson($existingNotifications);
     }
@@ -371,6 +374,64 @@ class FormsController extends Controller
 
     // Private Methods
     // =========================================================================
+
+    private function _getExistingResourceTarget(bool $requireNotificationAccess = false): Form|Stencil|null
+    {
+        $formId = (int)$this->request->getParam('formId', 0);
+        $isStencil = filter_var($this->request->getParam('isStencil', false), FILTER_VALIDATE_BOOLEAN);
+
+        if ($isStencil) {
+            $this->requirePermission('formie-accessSettings');
+
+            if (!$formId) {
+                return null;
+            }
+
+            $stencil = Formie::$plugin->getStencils()->getStencilById($formId);
+
+            if (!$stencil) {
+                throw new NotFoundHttpException('Stencil not found.');
+            }
+
+            return $stencil;
+        }
+
+        if (!$formId) {
+            $this->requirePermission('formie-createForms');
+
+            if ($requireNotificationAccess) {
+                $this->requirePermission('formie-createNotifications');
+            }
+
+            return null;
+        }
+
+        $form = Formie::$plugin->getForms()->getFormById($formId);
+
+        if (!$form) {
+            throw new NotFoundHttpException('Form not found.');
+        }
+
+        $user = Craft::$app->getUser();
+        $suffix = ':' . $form->uid;
+        $canManageForm = $user->checkPermission('formie-manageForms')
+            || $user->checkPermission("formie-manageForms{$suffix}");
+
+        if (!$canManageForm) {
+            throw new ForbiddenHttpException('User is not permitted to perform this action');
+        }
+
+        if ($requireNotificationAccess) {
+            $canShowNotifications = $user->checkPermission('formie-showNotifications')
+                || $user->checkPermission("formie-showNotifications{$suffix}");
+
+            if (!$canShowNotifications) {
+                throw new ForbiddenHttpException('User is not permitted to perform this action');
+            }
+        }
+
+        return $form;
+    }
 
     private function _prepareVariableArray(array &$variables): void
     {

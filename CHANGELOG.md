@@ -4,6 +4,7 @@
 
 ### Fixed
 - Fixed a moderate-severity authorization vulnerability. (GHSA-qg3f-hm4x-h5h8)
+- Fixed a moderate-severity information disclosure vulnerability. (GHSA-963f-vfpf-f85p)
 
 ## 3.1.43 - 2026-09-24
 
