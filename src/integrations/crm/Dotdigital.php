@@ -54,6 +54,7 @@ class Dotdigital extends Crm
         $rules = parent::defineRules();
 
         $rules[] = [['username', 'password', 'apiDomain'], 'required'];
+        $rules[] = [['sendEmailCampaign'], 'safe', 'on' => [Integration::SCENARIO_FORM]];
 
         $contact = $this->getFormSettingValue('contact');
         $emailCampaign = $this->getFormSettingValue('emailCampaign');

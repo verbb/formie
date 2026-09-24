@@ -191,6 +191,7 @@ class Salesforce extends Crm
         $rules = parent::defineRules();
 
         $rules[] = [['clientId', 'clientSecret'], 'required'];
+        $rules[] = [['duplicateLeadTask', 'duplicateLeadTaskSubject'], 'safe', 'on' => [Integration::SCENARIO_FORM]];
 
         $contact = $this->getFormSettingValue('contact');
         $lead = $this->getFormSettingValue('lead');

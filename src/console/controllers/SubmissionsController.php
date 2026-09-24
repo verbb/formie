@@ -222,9 +222,9 @@ class SubmissionsController extends Controller
             // Ensure that the integration settings are prepped from the form settings
             $form = $submission->getForm();
             $formSettings = $form->settings->integrations[$this->integration] ?? [];
-            $integration->setAttributes($formSettings, false);
+            $formIntegration = Formie::$plugin->getIntegrations()->populateIntegrationFromFormSettings($integration, $formSettings);
 
-            Formie::$plugin->getSubmissions()->sendIntegrationPayload($integration, $submission);
+            Formie::$plugin->getSubmissions()->sendIntegrationPayload($formIntegration, $submission);
 
             $this->stdout("Triggered integration for submission #{$submission->id} ..." . PHP_EOL, Console::FG_GREEN);
         }

@@ -184,6 +184,17 @@ class WebRequest extends Automation
     // Protected Methods
     // =========================================================================
 
+    protected function defineFormSettingAttributes(): array
+    {
+        return array_merge(parent::defineFormSettingAttributes(), [
+            'webhook',
+            'method',
+            'requestType',
+            'headers',
+            'httpAuth',
+        ]);
+    }
+
     protected function defineClient(): Client
     {
         $config = [];

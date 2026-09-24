@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Fixed a high-severity server-side request forgery vulnerability. ([GHSA-82jr-3xc8-86mr](https://github.com/verbb/formie/security/advisories/GHSA-82jr-3xc8-86mr))
 - Fix form and stencil settings failing when an integration's required plugin is unavailable.
 - Fix form redirect responses failing after the submission was saved. ([#2969](https://github.com/verbb/formie/issues/2969))
 - Fix form content fields being inaccessible in email notification variables after the Twig sandbox security changes.

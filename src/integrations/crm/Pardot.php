@@ -93,6 +93,7 @@ class Pardot extends Crm
         $rules = parent::defineRules();
 
         $rules[] = [['clientId', 'clientSecret', 'businessUnitId'], 'required'];
+        $rules[] = [['enableFormHandler'], 'safe', 'on' => [Integration::SCENARIO_FORM]];
 
         $prospect = $this->getFormSettingValue('prospect');
         $opportunity = $this->getFormSettingValue('opportunity');

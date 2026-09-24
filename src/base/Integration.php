@@ -244,6 +244,23 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return $scenarios;
     }
 
+    public function getFormSettingAttributes(): array
+    {
+        $attributes = $this->defineFormSettingAttributes();
+
+        foreach ($this->getValidators() as $validator) {
+            // Global integration validators also run in the form scenario, but their
+            // attributes must never become form-controlled settings.
+            if (!in_array(self::SCENARIO_FORM, (array)$validator->on, true)) {
+                continue;
+            }
+
+            array_push($attributes, ...$validator->getAttributeNames());
+        }
+
+        return array_values(array_unique($attributes));
+    }
+
     public function getName(): string
     {
         return $this->name ?? '';
@@ -934,6 +951,24 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         ];
 
         return $rules;
+    }
+
+    protected function defineFormSettingAttributes(): array
+    {
+        $attributes = ['optInField'];
+
+        // Mapping controls are shared form settings across multiple integration types.
+        foreach (get_object_vars($this) as $attribute => $value) {
+            if (str_starts_with($attribute, 'mapTo') && is_bool($value)) {
+                $attributes[] = $attribute;
+            }
+
+            if (($attribute === 'fieldMapping' || str_ends_with($attribute, 'FieldMapping')) && (is_array($value) || $value === null)) {
+                $attributes[] = $attribute;
+            }
+        }
+
+        return $attributes;
     }
 
     protected function defineClient(): Client

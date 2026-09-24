@@ -707,6 +707,23 @@ All that's required is you return a `IntegrationFormSettings` object from this f
 
 This function is also called when using some Vue components to refresh the available settings.
 
+### Form Setting Attributes
+
+Formie's bundled integrations only apply explicitly form-scoped attributes from saved form settings. Existing custom integrations retain the legacy behaviour of receiving all saved form settings for backwards compatibility.
+
+Custom integrations can opt in to the same strict filtering by overriding `getFormSettingAttributes()`:
+
+```php
+public function getFormSettingAttributes(): array
+{
+    return array_merge(parent::getFormSettingAttributes(), [
+        'customFormOption',
+    ]);
+}
+```
+
+Always merge the parent result. It automatically includes attributes assigned to a validation rule with `'on' => [Integration::SCENARIO_FORM]`, along with common `mapTo*`, `fieldMapping`, and `*FieldMapping` attributes. Keep global connection settings such as API credentials and provider endpoints in the integration's plugin settings rather than including them as form setting attributes.
+
 ### `IntegrationFormSettings`
 An `IntegrationFormSettings` defines the available 'collections' of information available to your integration for the form. When creating the object, you should provide an array, which key you'll use in your template. For example, for a CRM integration, there are a number of different collections of data we might need, for contacts, leads and deals.
 

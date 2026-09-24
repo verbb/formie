@@ -286,7 +286,7 @@ class FormSettings extends Model
 
             // If this disabled globally? Then don't include it, otherwise populate the settings
             if ($integration && $integration->getEnabled()) {
-                $integration->setAttributes($formSettings, false);
+                $integration = Formie::$plugin->getIntegrations()->populateIntegrationFromFormSettings($integration, $formSettings);
 
                 $enabledIntegrations[] = $integration;
             }

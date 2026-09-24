@@ -83,6 +83,22 @@ class Forms extends Component
         return Form::find()->all();
     }
 
+    /**
+     * @param Form $form
+     * @return bool
+     */
+    public function canManageFormIntegrations(Form $form): bool
+    {
+        $user = Craft::$app->getUser();
+
+        if (!$form->id) {
+            return $user->checkPermission('formie-manageFormIntegrations');
+        }
+
+        return $user->checkPermission('formie-manageFormIntegrations') ||
+            $user->checkPermission('formie-manageFormIntegrations:' . $form->uid);
+    }
+
     public function getFormRecord($formId): ?Form
     {
         $result = $this->_createFormsQuery($formId)->one();
@@ -202,7 +218,9 @@ class Forms extends Component
             $integrations = Formie::$plugin->getIntegrations()->getAllEnabledIntegrationsForForm($form);
 
             foreach ($integrations as $integration) {
-                $integration->beforeSaveForm($form->settings->integrations[$integration->handle] ?? []);
+                $integrationSettings = $form->settings->integrations[$integration->handle] ?? [];
+                $integrationSettings = Formie::$plugin->getIntegrations()->filterIntegrationFormSettings($integration, $integrationSettings);
+                $integration->beforeSaveForm($integrationSettings);
                 $integration->setScenario(Integration::SCENARIO_FORM);
 
                 // Only validate integrations for non-new forms
@@ -443,12 +461,25 @@ class Forms extends Component
             $form->settings = new FormSettings();
         }
 
+        $oldIntegrationSettings = $form->settings->integrations ?? [];
+        $canManageFormIntegrations = $this->canManageFormIntegrations($form);
+
         // Merge in any new settings, while retaining existing ones. Important for users with permissions.
         if ($newSettings = $request->getParam('settings')) {
-            // Retain any integration form settings before wiping them
-            $oldIntegrationSettings = $form->settings->integrations ?? [];
-            $newIntegrationSettings = $newSettings['integrations'] ?? [];
-            $newSettings['integrations'] = array_merge($oldIntegrationSettings, $newIntegrationSettings);
+            if ($canManageFormIntegrations) {
+                $integrationsService = Formie::$plugin->getIntegrations();
+                $newIntegrationSettings = $newSettings['integrations'] ?? [];
+
+                if (!is_array($newIntegrationSettings)) {
+                    $newIntegrationSettings = [];
+                }
+
+                $newIntegrationSettings = $integrationsService->filterAllIntegrationFormSettings($newIntegrationSettings);
+                $mergedIntegrationSettings = array_merge($oldIntegrationSettings, $newIntegrationSettings);
+                $newSettings['integrations'] = $integrationsService->filterAllIntegrationFormSettings($mergedIntegrationSettings, true);
+            } else {
+                $newSettings['integrations'] = $oldIntegrationSettings;
+            }
 
             $form->settings->setAttributes($newSettings, false);
         }
@@ -466,9 +497,12 @@ class Forms extends Component
             // Formie::$plugin->getForms()->saveForm($form);
         }
 
+        $appliedStencil = false;
+
         if ($stencilId = $request->getParam('applyStencilId')) {
             if ($stencil = Formie::$plugin->getStencils()->getStencilById($stencilId)) {
                 Formie::$plugin->getStencils()->applyStencil($form, $stencil);
+                $appliedStencil = true;
             }
         } else {
             // Generate and set the field layout.
@@ -481,6 +515,19 @@ class Forms extends Component
                 $notifications = Formie::$plugin->getNotifications()->buildNotificationsFromPost();
                 $form->setNotifications($notifications);
             }
+        }
+
+        // A stencil replaces the entire settings model, so enforce integration permissions again afterward.
+        if ($appliedStencil) {
+            if ($canManageFormIntegrations) {
+                $integrationSettings = $form->settings->integrations ?? [];
+                $integrationSettings = is_array($integrationSettings) ? $integrationSettings : [];
+                $integrationSettings = Formie::$plugin->getIntegrations()->filterAllIntegrationFormSettings($integrationSettings, true);
+            } else {
+                $integrationSettings = $oldIntegrationSettings;
+            }
+
+            $form->settings->setAttributes(['integrations' => $integrationSettings], false);
         }
 
         if (!$canManageNotifications) {

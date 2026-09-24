@@ -56,6 +56,7 @@ class User extends Element
     public function defineRules(): array
     {
         $rules = parent::defineRules();
+        $rules[] = [['activateUser', 'groupUids', 'mergeUserGroups', 'sendActivationEmail'], 'safe', 'on' => [Integration::SCENARIO_FORM]];
 
         $fields = $this->getFormSettingValue('elements')[0]->fields ?? [];
 
