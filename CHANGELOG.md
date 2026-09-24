@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 3.1.43 - 2026-09-24
 
 ### Fixed
 - Fixed a high-severity server-side request forgery vulnerability. ([GHSA-82jr-3xc8-86mr](https://github.com/verbb/formie/security/advisories/GHSA-82jr-3xc8-86mr))
