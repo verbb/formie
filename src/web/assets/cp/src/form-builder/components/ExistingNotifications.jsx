@@ -162,6 +162,7 @@ const ExistingNotifications = ({ onClose }) => {
 
         const data = {
             formId: formValues.id,
+            isStencil: Boolean(formValues.isStencil),
             compact: true,
             includeNotifications: false,
         };
@@ -228,6 +229,7 @@ const ExistingNotifications = ({ onClose }) => {
             const response = await Craft.sendActionRequest('POST', 'formie/forms/get-existing-notifications', {
                 data: {
                     formId: formValues.id,
+                    isStencil: Boolean(formValues.isStencil),
                     compact: true,
                     includeNotifications: true,
                     formKey,

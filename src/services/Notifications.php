@@ -1115,6 +1115,12 @@ class Notifications extends Component
 
         /* @var Form[] $forms */
         $forms = $query->all();
+        $user = Craft::$app->getUser()->getIdentity();
+        $permissions = Formie::$plugin->getPermissions();
+        $forms = array_values(array_filter($forms, function(Form $form) use ($user, $permissions) {
+            return $permissions->canManageForm($user, $form)
+                && $permissions->canShowFormBuilderTab($user, $form, 'formie-showNotifications');
+        }));
         $stencils = Formie::$plugin->getStencils()->getAllStencils();
 
         if ($excludeForm instanceof Stencil) {

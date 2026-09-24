@@ -11,6 +11,7 @@
 - Render form-authored Twig and object templates in Base's explicit sandbox while retaining Formie 4's reference-token handling.
 
 ### Fixed
+- Fixed a moderate-severity information disclosure vulnerability. (GHSA-963f-vfpf-f85p)
 - Fixed a high-severity server-side request forgery vulnerability. ([GHSA-82jr-3xc8-86mr](https://github.com/verbb/formie/security/advisories/GHSA-82jr-3xc8-86mr))
 - Fixed a high-severity server-side template injection vulnerability. ([GHSA-f55h-mf7f-7wx7](https://github.com/verbb/formie/security/advisories/GHSA-f55h-mf7f-7wx7))
 - Fixed a high-severity server-side template injection vulnerability involving callable collection methods exposed to sandboxed Twig.

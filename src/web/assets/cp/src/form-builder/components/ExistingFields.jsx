@@ -412,6 +412,7 @@ const ExistingFields = ({ onClose, nestedPlacement = null }) => {
             const response = await Craft.sendActionRequest('POST', 'formie/forms/get-existing-fields', {
                 data: {
                     formId: formValues.id,
+                    isStencil: Boolean(formValues.isStencil),
                     compact: true,
                     includeFields: true,
                     formKey,
@@ -482,6 +483,7 @@ const ExistingFields = ({ onClose, nestedPlacement = null }) => {
                         Craft.sendActionRequest('POST', 'formie/forms/get-existing-fields', {
                             data: {
                                 formId: formValues.id,
+                                isStencil: Boolean(formValues.isStencil),
                                 compact: true,
                                 includeFields: false,
                             },
@@ -517,6 +519,7 @@ const ExistingFields = ({ onClose, nestedPlacement = null }) => {
         const response = await Craft.sendActionRequest('POST', 'formie/forms/get-existing-field-configs', {
             data: {
                 formId: formValues.id,
+                isStencil: Boolean(formValues.isStencil),
                 fieldIds,
             },
         });

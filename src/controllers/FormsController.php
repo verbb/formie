@@ -799,13 +799,15 @@ class FormsController extends Controller
 
     public function actionGetExistingFields(): Response
     {
-        $formId = $this->request->getRequiredParam('formId');
+        $this->requirePostRequest();
+
         $compact = (bool)$this->request->getParam('compact', false);
         $includeFields = (bool)$this->request->getParam('includeFields', true);
         $formKey = $this->request->getParam('formKey');
         $search = trim((string)$this->request->getParam('search', ''));
 
-        $form = Formie::$plugin->getForms()->getFormById($formId);
+        $target = $this->_getExistingResourceTarget();
+        $form = $target instanceof Form ? $target : null;
 
         if ($compact) {
             if (!$includeFields) {
@@ -822,10 +824,12 @@ class FormsController extends Controller
 
     public function actionGetExistingFieldConfigs(): Response
     {
-        $formId = $this->request->getRequiredParam('formId');
+        $this->requirePostRequest();
+
         $fieldIds = $this->request->getParam('fieldIds', []);
 
-        $form = Formie::$plugin->getForms()->getFormById($formId);
+        $target = $this->_getExistingResourceTarget();
+        $form = $target instanceof Form ? $target : null;
         $existingFieldConfigs = Formie::$plugin->getFields()->getExistingFieldConfigs($fieldIds, $form);
 
         return $this->asJson($existingFieldConfigs);
@@ -833,13 +837,14 @@ class FormsController extends Controller
 
     public function actionGetExistingNotifications(): Response
     {
-        $formId = $this->request->getRequiredParam('formId');
+        $this->requirePostRequest();
+
         $compact = (bool)$this->request->getParam('compact', false);
         $includeNotifications = (bool)$this->request->getParam('includeNotifications', true);
         $formKey = $this->request->getParam('formKey');
         $search = trim((string)$this->request->getParam('search', ''));
 
-        $form = Formie::$plugin->getForms()->getFormById($formId) ?? Formie::$plugin->getStencils()->getStencilById((int)$formId);
+        $form = $this->_getExistingResourceTarget(true);
 
         if ($compact) {
             if (!$includeNotifications) {
@@ -899,6 +904,57 @@ class FormsController extends Controller
 
     // Private Methods
     // =========================================================================
+
+    private function _getExistingResourceTarget(bool $requireNotificationAccess = false): Form|Stencil|null
+    {
+        $formId = (int)$this->request->getParam('formId', 0);
+        $isStencil = filter_var($this->request->getParam('isStencil', false), FILTER_VALIDATE_BOOLEAN);
+
+        if ($isStencil) {
+            $this->requirePermission('formie-accessStencils');
+
+            if (!$formId) {
+                return null;
+            }
+
+            $stencil = Formie::$plugin->getStencils()->getStencilById($formId);
+
+            if (!$stencil) {
+                throw new NotFoundHttpException('Stencil not found.');
+            }
+
+            return $stencil;
+        }
+
+        if (!$formId) {
+            $this->requirePermission('formie-createForms');
+
+            if ($requireNotificationAccess) {
+                $this->requirePermission('formie-createNotifications');
+            }
+
+            return null;
+        }
+
+        $form = Formie::$plugin->getForms()->getFormById($formId);
+
+        if (!$form) {
+            throw new NotFoundHttpException('Form not found.');
+        }
+
+        $user = Craft::$app->getUser()->getIdentity();
+        $permissions = Formie::$plugin->getPermissions();
+
+        if (!$permissions->canManageForm($user, $form)) {
+            throw new ForbiddenHttpException('User is not permitted to perform this action');
+        }
+
+        if ($requireNotificationAccess && !$permissions->canShowFormBuilderTab($user, $form, 'formie-showNotifications')) {
+            throw new ForbiddenHttpException('User is not permitted to perform this action');
+        }
+
+        return $form;
+    }
 
     private function _getClientRequestForm(): ?Form
     {
