@@ -494,17 +494,19 @@ class Variables
                 }
             }
         } else if ($field instanceof formfields\Group) {
-            if ($submissionValue && $row = $submissionValue->one()) {
-                if ($fieldLayout = $row->getFieldLayout()) {
-                    foreach ($row->getFieldLayout()->getCustomFields() as $nestedField) {
-                        $submissionValue = $row->getFieldValue($nestedField->handle);
-                        $fieldValues = self::_getParsedFieldValue($nestedField, $submissionValue, $submission, $notification, $rawValue);
+            $row = $submissionValue?->one();
 
-                        foreach ($fieldValues as $key => $fieldValue) {
-                            $handle = "{$prefix}{$field->handle}." . str_replace($prefix, '', $key);
+            // Preserve the nested variable shape when conditional logic leaves the group without a row.
+            // Otherwise strict Twig rendering treats the group's email HTML as the nested value's parent.
+            if ($fieldLayout = $field->getFieldLayout()) {
+                foreach ($fieldLayout->getCustomFields() as $nestedField) {
+                    $submissionValue = $row ? $row->getFieldValue($nestedField->handle) : $nestedField->normalizeValue(null);
+                    $fieldValues = self::_getParsedFieldValue($nestedField, $submissionValue, $submission, $notification, $rawValue);
 
-                            $values[$handle] = $fieldValue;
-                        }
+                    foreach ($fieldValues as $key => $fieldValue) {
+                        $handle = "{$prefix}{$field->handle}." . str_replace($prefix, '', $key);
+
+                        $values[$handle] = $fieldValue;
                     }
                 }
             }

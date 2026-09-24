@@ -4,6 +4,7 @@
 
 ### Fixed
 - Fixed a moderate-severity information disclosure vulnerability. (GHSA-963f-vfpf-f85p)
+- Fix nested Group field variables causing email notifications to fail when conditional logic omits the Group value.
 
 ## 2.2.35 - 2026-09-24
 
