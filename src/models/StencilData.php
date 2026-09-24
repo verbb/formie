@@ -4,6 +4,7 @@ namespace verbb\formie\models;
 use verbb\formie\base\FieldInterface;
 use verbb\formie\base\ParentField;
 use verbb\formie\elements\Form;
+use verbb\formie\helpers\References;
 use verbb\formie\models\FieldLayout;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\Notification;
@@ -12,7 +13,6 @@ use Craft;
 use craft\base\Model;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
-use verbb\formie\helpers\References;
 
 use DateTime;
 
@@ -112,6 +112,7 @@ class StencilData extends Model
 
         foreach ($layout->getPages() as $pageKey => $page) {
             $pageData = [
+                'uid' => $page->uid,
                 'label' => $page->label,
                 'settings' => $page->getPageSettings()?->toArray(),
             ];
@@ -135,6 +136,7 @@ class StencilData extends Model
     public FormSettings|array|null $settings = null;
     public array $pages = [];
     public array $notifications = [];
+    public array $translations = [];
 
 
     // Public Methods
@@ -167,10 +169,12 @@ class StencilData extends Model
             if (is_array($config['pages'])) {
                 foreach ($config['pages'] as &$page) {
                     if ($page instanceof FieldLayoutPage) {
+                        $page->uid ??= StringHelper::UUID();
                         continue;
                     }
 
                     $page = new FieldLayoutPage($page);
+                    $page->uid ??= StringHelper::UUID();
                 }
             }
         }
@@ -266,6 +270,7 @@ class StencilData extends Model
         $form->dataRetentionValue = $data->dataRetentionValue;
         $form->setNotifications($data->notifications);
         $form->setFormLayout(new FieldLayout(['pages' => $data->pages]));
+        $form->setPendingStencilTranslations($data->translations);
     }
 
     private function _createRemappedStencilData(): self
@@ -273,12 +278,35 @@ class StencilData extends Model
         $serializedData = $this->getSerializedData();
         $referenceMap = [];
         $handleMap = [];
+        $pageUidMap = [];
         $pages = $serializedData['pages'] ?? [];
 
         // Assign per-form references for every layout field, including nested sub-fields.
         // Legacy stencils may omit `reference` entirely and still use `{field:handle}` tokens.
-        $this->_remapSerializedLayoutFieldReferences($pages, $referenceMap, $handleMap);
+        $this->_remapSerializedLayoutFieldReferences($pages, $referenceMap, $handleMap, $pageUidMap);
         $serializedData['pages'] = $pages;
+
+        $translations = $serializedData['translations'] ?? [];
+
+        foreach ($translations as &$translation) {
+            if (!is_array($translation)) {
+                continue;
+            }
+
+            if (isset($translation['pages']) && is_array($translation['pages'])) {
+                $translation['pages'] = $this->_remapSerializedOverrideKeys($translation['pages'], $pageUidMap);
+            }
+
+            if (isset($translation['fieldOverrides']) && is_array($translation['fieldOverrides'])) {
+                $translation['fieldOverrides'] = $this->_remapSerializedOverrideKeys(
+                    $translation['fieldOverrides'],
+                    $referenceMap + $handleMap,
+                );
+            }
+        }
+        unset($translation);
+
+        $serializedData['translations'] = $translations;
 
         $tokenMap = $referenceMap;
 
@@ -291,11 +319,19 @@ class StencilData extends Model
         return new self($serializedData);
     }
 
-    private function _remapSerializedLayoutFieldReferences(array &$pages, array &$referenceMap, array &$handleMap): void
+    private function _remapSerializedLayoutFieldReferences(array &$pages, array &$referenceMap, array &$handleMap, array &$pageUidMap): void
     {
         foreach ($pages as &$page) {
             if (!is_array($page)) {
                 continue;
+            }
+
+            $oldPageUid = trim((string)($page['uid'] ?? ''));
+            $newPageUid = StringHelper::UUID();
+            $page['uid'] = $newPageUid;
+
+            if ($oldPageUid !== '') {
+                $pageUidMap[$oldPageUid] = $newPageUid;
             }
 
             $rows = $page['rows'] ?? [];
@@ -314,6 +350,18 @@ class StencilData extends Model
             $page['rows'] = $rows;
         }
         unset($page);
+    }
+
+    private function _remapSerializedOverrideKeys(array $overrides, array $keyMap): array
+    {
+        $remapped = [];
+
+        foreach ($overrides as $key => $value) {
+            $newKey = $keyMap[(string)$key] ?? (string)$key;
+            $remapped[$newKey] = $value;
+        }
+
+        return $remapped;
     }
 
     private function _remapSerializedRowFieldReferences(array &$fields, array &$referenceMap, array &$handleMap): void

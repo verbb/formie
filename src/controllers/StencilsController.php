@@ -119,6 +119,7 @@ class StencilsController extends Controller
         return $this->renderTemplate('formie/stencils/_edit', [
             'stencil' => $stencil,
             'canEdit' => $stencil->canEdit(),
+            'builderSiteCrumb' => Formie::$plugin->getFormSiteOverrides()->getBuilderSiteCrumbConfig(),
         ]);
     }
 
@@ -170,7 +171,10 @@ class StencilsController extends Controller
             $stencil->setDefaultStatus($status);
         }
 
-        $stencil->data = new StencilData();
+        $storedTranslations = $stencil->data->translations ?? [];
+        $stencil->data = new StencilData([
+            'translations' => $storedTranslations,
+        ]);
         $stencil->data->userDeletedAction = $request->getParam('userDeletedAction', $stencil->data->userDeletedAction);
         $stencil->data->fileUploadsAction = $request->getParam('fileUploadsAction', $stencil->data->fileUploadsAction);
         $stencil->data->dataRetention = $request->getParam('dataRetention', $stencil->data->dataRetention);
@@ -178,6 +182,18 @@ class StencilsController extends Controller
 
         $form = Formie::$plugin->getForms()->buildStencilFormFromPost();
         $stencil->data->populateFormData($form);
+
+        $translations = $request->getBodyParam('translations');
+
+        if (is_string($translations)) {
+            $translations = Json::decodeIfJson($translations);
+        }
+
+        $siteId = (int)($request->getParam('siteId') ?: Formie::$plugin->getFormSiteOverrides()->getActiveSiteId());
+
+        if (is_array($translations)) {
+            Formie::$plugin->getStencils()->saveTranslationBundle($stencil, $siteId, $translations);
+        }
 
         $form->handle .= mt_rand();
         $form->validate();
@@ -206,11 +222,10 @@ class StencilsController extends Controller
         if ($request->getAcceptsJson()) {
             $builderVariables = $this->_getStencilBuilderVariables($stencil);
 
-            return $this->asJson([
-                'success' => true,
-                'data' => $builderVariables['data'],
-                'redirect' => ($duplicate || $duplicateToSite || !$request->getParam('stencilId')) ? $stencil->getCpEditUrl() : null,
-            ]);
+            $builderVariables['success'] = true;
+            $builderVariables['redirect'] = ($duplicate || $duplicateToSite || !$request->getParam('stencilId')) ? $stencil->getCpEditUrl() : null;
+
+            return $this->asJson($builderVariables);
         }
 
         $this->setSuccessFlash(Craft::t('formie', 'Stencil saved.'));
@@ -289,7 +304,7 @@ class StencilsController extends Controller
         $variables['deleteRedirectUrl'] = UrlHelper::cpUrl('formie/stencils');
         $variables['deleteConfirmMessage'] = Craft::t('formie', 'Are you sure you want to delete this stencil?');
         $variables['deleteErrorMessage'] = Craft::t('formie', 'Couldn’t archive stencil.');
-        $variables['data'] = [
+        $canonicalData = [
             ...$variables['data'],
             'id' => $stencil->id,
             'uid' => $stencil->uid,
@@ -309,10 +324,19 @@ class StencilsController extends Controller
             'dataRetentionValue' => $stencil->data->dataRetentionValue,
             'userDeletedAction' => $stencil->data->userDeletedAction,
             'fileUploadsAction' => $stencil->data->fileUploadsAction,
-            'settings' => $stencil->getSettings(),
-            'notifications' => $form->getNotifications(),
+            'settings' => $stencil->getSettings()->getFormBuilderConfig(),
+            'notifications' => Formie::$plugin->getNotifications()->getNotificationsConfig($form->getNotifications()),
             'pages' => $form->getFormLayout()->getFormBuilderConfig(),
         ];
+
+        $multiSite = Formie::$plugin->getStencils()->getBuilderMultiSiteConfig($stencil);
+        $activeSiteId = (int)($multiSite['activeSiteId'] ?? 0);
+        $variables['canonicalData'] = $canonicalData;
+        $variables['multiSite'] = $multiSite;
+        $variables['data'] = $activeSiteId
+            ? Formie::$plugin->getStencils()->applyTranslationsToBuilderData($stencil, $canonicalData, $activeSiteId)
+            : $canonicalData;
+        $variables['translatableProperties']['form'] = [];
 
         return $variables;
     }

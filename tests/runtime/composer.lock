@@ -12884,16 +12884,16 @@
         },
         {
             "name": "verbb/base",
-            "version": "3.0.14",
+            "version": "3.0.17",
             "source": {
                 "type": "git",
                 "url": "https://github.com/verbb/verbb-base.git",
-                "reference": "c847f893fa7278413b6554324447137b815e7d3e"
+                "reference": "5f75dc606cdce82c8a2aa1c9abc7f9e7ac11d294"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/verbb/verbb-base/zipball/c847f893fa7278413b6554324447137b815e7d3e",
-                "reference": "c847f893fa7278413b6554324447137b815e7d3e",
+                "url": "https://api.github.com/repos/verbb/verbb-base/zipball/5f75dc606cdce82c8a2aa1c9abc7f9e7ac11d294",
+                "reference": "5f75dc606cdce82c8a2aa1c9abc7f9e7ac11d294",
                 "shasum": ""
             },
             "require": {
@@ -12930,15 +12930,15 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-08-14T11:53:23+00:00"
+            "time": "2026-09-23T12:08:56+00:00"
         },
         {
             "name": "verbb/formie",
-            "version": "4.0.0-beta.15",
+            "version": "4.0.0-beta.16",
             "dist": {
                 "type": "path",
                 "url": "../../..",
-                "reference": "dcf00fa044694f83d7ccfb9fe15bc3d440f45628"
+                "reference": "4856d333ca9301d122fd6a5d0ca8cc8cbca4a85a"
             },
             "require": {
                 "commerceguys/addressing": "^2.1.1",
@@ -12956,7 +12956,7 @@
                 "stripe/stripe-php": "^7.0 || ^8.0 || ^9.0 || ^10.0 || ^11.0 || ^12.0 || ^13.0 || ^14.0 || ^15.0 || ^16.0",
                 "symfony/expression-language": "^5.0 || ^6.0 || ^7.0",
                 "verbb/auth": "^2.0.44",
-                "verbb/base": "^3.0.11",
+                "verbb/base": "^3.0.17",
                 "verbb/tiptap": "^1.0.1"
             },
             "require-dev": {

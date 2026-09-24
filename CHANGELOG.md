@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Added
+- Add portable per-site translations to stencils and copy them into form overrides when creating forms from a stencil. ([#2968](https://github.com/verbb/formie/issues/2968))
+
 ### Changed
 - Require `verbb/base` 3.0.17 or later.
 - Render form-authored Twig and object templates in Base's explicit sandbox while retaining Formie 4's reference-token handling.

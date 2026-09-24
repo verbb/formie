@@ -204,10 +204,11 @@ function FormBuilderContent({
             multiSite,
             activeSiteId,
             canonicalData,
+            entityType,
         } = useAppStore.getState();
-        const isSourceSite = multiSite?.enabled
+        const shouldSaveSiteTranslations = multiSite?.enabled
             && Number(activeSiteId) !== Number(multiSite.sourceSiteId)
-            && currentSaveAction === 'save';
+            && (currentSaveAction === 'save' || entityType === 'stencil');
         const baseRequestData = isDuplicateSave ? {
             ...saveRequestData,
             ...saveDuplicateRequestData,
@@ -221,7 +222,7 @@ function FormBuilderContent({
             result = await saveForm(data, {
                 saveAsNew: shouldSaveAsNew,
                 action: saveActionUrl,
-                canonicalData: isSourceSite ? canonicalData : null,
+                canonicalData: shouldSaveSiteTranslations ? canonicalData : null,
                 sourceSiteId: multiSite?.sourceSiteId ?? null,
                 requestData: {
                     ...baseRequestData,

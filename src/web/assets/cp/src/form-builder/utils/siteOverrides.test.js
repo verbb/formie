@@ -462,4 +462,36 @@ describe('siteOverrides', () => {
         expect(stripped.pages[0].rows[0].fields[0].label).toBe('Name');
         expect(stripped.notifications[0].subject).toBe('Primary subject');
     });
+
+    it('uses stable field references for stencil fields without definition ids', () => {
+        const canonicalStencil = {
+            isStencil: true,
+            pages: [
+                {
+                    uid: 'stencil-page',
+                    rows: [
+                        {
+                            fields: [
+                                {
+                                    reference: 'stencil-field-reference',
+                                    fieldId: 501,
+                                    type: 'verbb\\formie\\fields\\SingleLineText',
+                                    label: 'Name',
+                                },
+                            ],
+                        },
+                    ],
+                },
+            ],
+        };
+        const translatedStencil = structuredClone(canonicalStencil);
+        translatedStencil.pages[0].rows[0].fields[0].label = 'Nom';
+
+        const translations = extractSiteTranslationsFromFormData(canonicalStencil, translatedStencil);
+        const merged = mergeSiteOverridesIntoFormData(canonicalStencil, {}, translations.fieldOverrides);
+
+        expect(translations.fieldOverrides['stencil-field-reference']).toEqual({ label: 'Nom' });
+        expect(translations.fieldOverrides[501]).toBeUndefined();
+        expect(merged.pages[0].rows[0].fields[0].label).toBe('Nom');
+    });
 });

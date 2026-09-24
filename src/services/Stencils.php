@@ -2,6 +2,8 @@
 namespace verbb\formie\services;
 
 use verbb\formie\Formie;
+use verbb\formie\base\FieldInterface;
+use verbb\formie\base\ParentFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\events\StencilEvent;
 use verbb\formie\helpers\ArrayHelper;
@@ -16,6 +18,7 @@ use craft\db\Query;
 use craft\events\ConfigEvent;
 use craft\helpers\Db;
 use craft\helpers\Json;
+use craft\models\Site;
 
 use yii\base\Component;
 
@@ -111,6 +114,205 @@ class Stencils extends Component
     public function getStencilByUid(string $uid): ?Stencil
     {
         return ArrayHelper::firstWhere($this->getAllStencils(), 'uid', $uid, false);
+    }
+
+    public function getBuilderMultiSiteConfig(Stencil $stencil, ?int $activeSiteId = null): array
+    {
+        $siteOverrides = Formie::$plugin->getFormSiteOverrides();
+
+        if (!$siteOverrides->isEnabled()) {
+            return ['enabled' => false];
+        }
+
+        $sites = $siteOverrides->getEditableSites();
+
+        if ($sites === []) {
+            return ['enabled' => false];
+        }
+
+        $siteIds = array_map(static fn(Site $site): int => (int)$site->id, $sites);
+        $sourceSiteId = $siteOverrides->getPrimarySiteId();
+
+        if (!in_array($sourceSiteId, $siteIds, true)) {
+            $sourceSiteId = (int)$siteIds[0];
+        }
+
+        $activeSiteId ??= $siteOverrides->getActiveSiteId();
+
+        if (!in_array($activeSiteId, $siteIds, true)) {
+            $activeSiteId = $sourceSiteId;
+        }
+
+        [$overrides, $fieldOverrides] = $this->_getBuilderTranslationMaps($stencil, $sites, $sourceSiteId);
+
+        return [
+            'enabled' => count($sites) > 1,
+            'sourceSiteId' => $sourceSiteId,
+            'activeSiteId' => $activeSiteId,
+            'sites' => array_map(static function(Site $site) use ($sourceSiteId): array {
+                return [
+                    'id' => (int)$site->id,
+                    'name' => $site->name,
+                    'handle' => $site->handle,
+                    'language' => $site->language,
+                    'source' => (int)$site->id === $sourceSiteId,
+                ];
+            }, $sites),
+            'overrides' => $overrides,
+            'fieldOverrides' => $fieldOverrides,
+            'layoutReadOnly' => false,
+        ];
+    }
+
+    public function applyTranslationsToBuilderData(Stencil $stencil, array $canonicalData, int $siteId): array
+    {
+        $config = $this->getBuilderMultiSiteConfig($stencil, $siteId);
+
+        if (empty($config['enabled']) || $siteId === (int)($config['sourceSiteId'] ?? 0)) {
+            return $canonicalData;
+        }
+
+        return Formie::$plugin->getFormSiteOverrides()->mergeOverridesIntoBuilderData(
+            $canonicalData,
+            $config['overrides'][$siteId] ?? [],
+            $config['fieldOverrides'][$siteId] ?? [],
+        );
+    }
+
+    public function saveTranslationBundle(Stencil $stencil, int $siteId, array $translations): void
+    {
+        $siteOverrides = Formie::$plugin->getFormSiteOverrides();
+        $config = $this->getBuilderMultiSiteConfig($stencil, $siteId);
+
+        if (empty($config['enabled']) || $siteId === (int)($config['sourceSiteId'] ?? 0)) {
+            return;
+        }
+
+        $site = Craft::$app->getSites()->getSiteById($siteId);
+
+        if (!$site) {
+            return;
+        }
+
+        $fieldOverrides = $siteOverrides->normalizeFieldOverrides(
+            is_array($translations['fieldOverrides'] ?? null) ? $translations['fieldOverrides'] : [],
+        );
+        unset($translations['fields'], $translations['fieldOverrides'], $translations['title']);
+
+        $bundle = $siteOverrides->normalizeOverrides($translations);
+
+        if ($fieldOverrides !== []) {
+            $bundle['fieldOverrides'] = $fieldOverrides;
+        }
+
+        if ($bundle === []) {
+            unset($stencil->data->translations[$site->uid]);
+
+            return;
+        }
+
+        $stencil->data->translations[$site->uid] = $bundle;
+    }
+
+    public function populateTranslationBundlesFromForm(Stencil $stencil, Form $form): void
+    {
+        $siteOverrides = Formie::$plugin->getFormSiteOverrides();
+
+        if (!$siteOverrides->isEnabled() || !$form->id) {
+            return;
+        }
+
+        $rootOverrides = $siteOverrides->getAllOverrides((int)$form->id);
+        $fieldOverrides = Formie::$plugin->getFieldSiteOverrides()->getAllForForm($form);
+        $fieldReferences = array_flip($this->_buildFieldReferenceMap($form));
+        $translations = [];
+
+        foreach (array_unique([...array_keys($rootOverrides), ...array_keys($fieldOverrides)]) as $siteId) {
+            $site = Craft::$app->getSites()->getSiteById((int)$siteId);
+
+            if (!$site) {
+                continue;
+            }
+
+            $bundle = $rootOverrides[$siteId] ?? [];
+            unset($bundle['title']);
+            $portableFields = [];
+
+            foreach ($fieldOverrides[$siteId] ?? [] as $fieldId => $override) {
+                $reference = $fieldReferences[(int)$fieldId] ?? null;
+
+                if ($reference && is_array($override)) {
+                    $portableFields[$reference] = $override;
+                }
+            }
+
+            if ($portableFields !== []) {
+                $bundle['fieldOverrides'] = $portableFields;
+            }
+
+            if ($bundle !== []) {
+                $translations[$site->uid] = $bundle;
+            }
+        }
+
+        $stencil->data->translations = $translations;
+    }
+
+    public function materializeTranslationsForForm(Form $form): void
+    {
+        $translations = $form->getPendingStencilTranslations();
+
+        if (!$form->id || $translations === []) {
+            return;
+        }
+
+        $siteOverrides = Formie::$plugin->getFormSiteOverrides();
+
+        if (!$siteOverrides->isEnabled()) {
+            return;
+        }
+
+        $availableSiteIds = Formie::$plugin->getFormSitePropagation()->resolveSiteIdsForForm($form);
+        $sourceSiteId = $siteOverrides->getSourceSiteId($form);
+        $fieldReferenceMap = $this->_buildFieldReferenceMap($form);
+
+        // Keep site UIDs and field references portable until the new form has local site and field IDs.
+        foreach ($translations as $siteUid => $bundle) {
+            if (!is_array($bundle)) {
+                continue;
+            }
+
+            $site = $this->_getSiteByUid((string)$siteUid);
+
+            if (
+                !$site
+                || (int)$site->id === $sourceSiteId
+                || !in_array((int)$site->id, $availableSiteIds, true)
+            ) {
+                continue;
+            }
+
+            $portableFields = is_array($bundle['fieldOverrides'] ?? null) ? $bundle['fieldOverrides'] : [];
+            $materializedFields = [];
+
+            foreach ($portableFields as $reference => $override) {
+                $fieldId = $fieldReferenceMap[(string)$reference] ?? null;
+
+                if ($fieldId && is_array($override)) {
+                    $materializedFields[$fieldId] = $override;
+                }
+            }
+
+            unset($bundle['fieldOverrides']);
+
+            if ($materializedFields !== []) {
+                $bundle['fieldOverrides'] = $materializedFields;
+            }
+
+            $siteOverrides->saveTranslationBundle((int)$form->id, (int)$site->id, $bundle);
+        }
+
+        $form->setPendingStencilTranslations([]);
     }
 
     public function saveStencil(Stencil $stencil, bool $runValidation = true): bool
@@ -312,6 +514,88 @@ class Stencils extends Component
 
     // Private Methods
     // =========================================================================
+
+    private function _getBuilderTranslationMaps(Stencil $stencil, array $sites, int $sourceSiteId): array
+    {
+        $sitesByUid = [];
+
+        foreach ($sites as $site) {
+            $sitesByUid[$site->uid] = $site;
+        }
+
+        $overrides = [];
+        $fieldOverrides = [];
+
+        foreach ($stencil->data->translations as $siteUid => $bundle) {
+            $site = $sitesByUid[(string)$siteUid] ?? null;
+
+            if (!$site || (int)$site->id === $sourceSiteId || !is_array($bundle)) {
+                continue;
+            }
+
+            $siteId = (int)$site->id;
+            $fields = $bundle['fieldOverrides'] ?? [];
+            unset($bundle['fieldOverrides'], $bundle['title']);
+
+            if ($bundle !== []) {
+                $overrides[$siteId] = $bundle;
+            }
+
+            if (is_array($fields) && $fields !== []) {
+                $fieldOverrides[$siteId] = $fields;
+            }
+        }
+
+        return [$overrides, $fieldOverrides];
+    }
+
+    private function _buildFieldReferenceMap(Form $form): array
+    {
+        $map = [];
+
+        foreach ($form->getFields() as $field) {
+            if ($field instanceof FieldInterface) {
+                $this->_collectFieldReferenceMap($field, $map);
+            }
+        }
+
+        return $map;
+    }
+
+    private function _collectFieldReferenceMap(FieldInterface $field, array &$map): void
+    {
+        $reference = trim((string)$field->reference);
+        $fieldId = (int)($field->fieldId ?: 0);
+
+        if ($reference !== '' && $fieldId) {
+            $map[$reference] = $fieldId;
+        }
+
+        if (!$field instanceof ParentFieldInterface) {
+            return;
+        }
+
+        foreach ($field->getFieldLayout()->getPages() as $page) {
+            foreach ($page->getRows() as $row) {
+                foreach ($row->getFields() as $nestedField) {
+                    if ($nestedField instanceof FieldInterface) {
+                        $this->_collectFieldReferenceMap($nestedField, $map);
+                    }
+                }
+            }
+        }
+    }
+
+    private function _getSiteByUid(string $uid): ?Site
+    {
+        foreach (Craft::$app->getSites()->getAllSites() as $site) {
+            if ($site->uid === $uid) {
+                return $site;
+            }
+        }
+
+        return null;
+    }
 
     private function _saveProjectStencil(Stencil $stencil, bool $isNewStencil): bool
     {

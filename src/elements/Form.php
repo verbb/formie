@@ -427,6 +427,7 @@ class Form extends Element implements FormInterface
     private array $_submitData = [];
     private array $_pendingSubmissionMetadata = [];
     private array $_previousGroupFieldUids = [];
+    private array $_pendingStencilTranslations = [];
     private array $_submissionsToDelete = [];
 
     private array $_themeConfig = [];
@@ -2200,6 +2201,11 @@ class Form extends Element implements FormInterface
             Formie::$plugin->getFormSitePropagation()->syncFormSites($this);
         }
 
+        if ($isNew && $this->_pendingStencilTranslations !== []) {
+            // Stencil references can only be resolved to field definition IDs after the layout has persisted.
+            Formie::$plugin->getStencils()->materializeTranslationsForForm($this);
+        }
+
         parent::afterPropagate($isNew);
     }
 
@@ -3169,6 +3175,16 @@ class Form extends Element implements FormInterface
         return $this->builderEntityType === self::BUILDER_ENTITY_TYPE_STENCIL
             ? self::BUILDER_ENTITY_TYPE_STENCIL
             : self::BUILDER_ENTITY_TYPE_FORM;
+    }
+
+    public function getPendingStencilTranslations(): array
+    {
+        return $this->_pendingStencilTranslations;
+    }
+
+    public function setPendingStencilTranslations(array $translations): void
+    {
+        $this->_pendingStencilTranslations = $translations;
     }
 
     public function getBuilderHandleNames(): array

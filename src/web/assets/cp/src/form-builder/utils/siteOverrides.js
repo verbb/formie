@@ -44,6 +44,14 @@ const getFieldDefinitionId = (field) => {
     return String(fieldId);
 };
 
+const getFieldOverrideKey = (field, preferReference = false) => {
+    if (preferReference) {
+        return getFieldStorageKey(field) || getFieldDefinitionId(field);
+    }
+
+    return getFieldDefinitionId(field) || getFieldStorageKey(field);
+};
+
 const getFieldStorageKey = (field) => {
     const reference = String(field?.reference ?? '').trim();
 
@@ -216,10 +224,12 @@ const getNotificationStorageKey = (notification) => {
 };
 
 const resolveFieldOverride = (fieldOverrides = {}, field) => {
-    const fieldDefinitionId = getFieldDefinitionId(field);
+    const keys = [getFieldDefinitionId(field), getFieldStorageKey(field)].filter(Boolean);
 
-    if (fieldDefinitionId && fieldOverrides[fieldDefinitionId]) {
-        return fieldOverrides[fieldDefinitionId];
+    for (const key of keys) {
+        if (fieldOverrides[key]) {
+            return fieldOverrides[key];
+        }
     }
 
     return null;
@@ -835,7 +845,7 @@ const diffPageSettings = (canonicalSettings = {}, postedSettings = {}) => {
     );
 };
 
-const diffFields = (canonicalFields = {}, postedFields = {}) => {
+const diffFields = (canonicalFields = {}, postedFields = {}, preferReferences = false) => {
     const diff = {};
     const seen = new Set();
 
@@ -844,7 +854,7 @@ const diffFields = (canonicalFields = {}, postedFields = {}) => {
             return;
         }
 
-        const fieldDefinitionId = getFieldDefinitionId(field);
+        const fieldDefinitionId = getFieldOverrideKey(field, preferReferences);
 
         if (!fieldDefinitionId || seen.has(fieldDefinitionId)) {
             return;
@@ -1008,6 +1018,7 @@ export const extractSiteTranslationsFromFormData = (canonicalData = {}, formData
     const fieldsDiff = diffFields(
         collectFieldsFromPages(canonicalPages),
         collectFieldsFromPages(postedPages),
+        Boolean(canonicalData.isStencil || formData.isStencil),
     );
 
     if (Object.keys(fieldsDiff).length) {

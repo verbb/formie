@@ -1307,18 +1307,22 @@ class FormSiteOverrides extends Component
     {
         $fieldId = (int)($field['fieldId'] ?? $field['settings']['fieldId'] ?? $field['syncId'] ?? $field['settings']['syncId'] ?? 0);
 
-        if (!$fieldId) {
-            return null;
+        if ($fieldId) {
+            if (isset($fieldOverrides[$fieldId]) && is_array($fieldOverrides[$fieldId])) {
+                return $fieldOverrides[$fieldId];
+            }
+
+            $fieldIdKey = (string)$fieldId;
+
+            if (isset($fieldOverrides[$fieldIdKey]) && is_array($fieldOverrides[$fieldIdKey])) {
+                return $fieldOverrides[$fieldIdKey];
+            }
         }
 
-        if (isset($fieldOverrides[$fieldId]) && is_array($fieldOverrides[$fieldId])) {
-            return $fieldOverrides[$fieldId];
-        }
+        $storageKey = $this->_getFieldStorageKey($field);
 
-        $fieldIdKey = (string)$fieldId;
-
-        if (isset($fieldOverrides[$fieldIdKey]) && is_array($fieldOverrides[$fieldIdKey])) {
-            return $fieldOverrides[$fieldIdKey];
+        if ($storageKey !== null && isset($fieldOverrides[$storageKey]) && is_array($fieldOverrides[$storageKey])) {
+            return $fieldOverrides[$storageKey];
         }
 
         return null;

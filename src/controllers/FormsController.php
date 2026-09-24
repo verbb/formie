@@ -714,6 +714,7 @@ class FormsController extends Controller
 
         // Populate the stencil data with data prepped for the form
         $stencil->data->populateFormData($form);
+        Formie::$plugin->getStencils()->populateTranslationBundlesFromForm($stencil, $form);
 
         // Don't validate the handle.
         $form->handle .= random_int(0, mt_getrandmax());
