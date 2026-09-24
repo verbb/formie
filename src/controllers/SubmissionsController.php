@@ -245,7 +245,9 @@ class SubmissionsController extends Controller
         }
 
         // Get the submission, or create a new one
-        $submission = $this->_populateSubmission($form, null);
+        // Control Panel saves are permission-checked above. Site saves must still prove ownership
+        // through the current session or a signed submission edit token.
+        $submission = $this->_populateSubmission($form, null, $request->getIsSiteRequest());
 
         // For site requests, we can only edit existing ones, not create, due to this being potentially anonymous
         if ($request->getIsSiteRequest() && !$submission->id) {
@@ -1159,7 +1161,7 @@ class SubmissionsController extends Controller
         return $form;
     }
 
-    private function _populateSubmission($form, $isIncomplete = true): Submission
+    private function _populateSubmission($form, $isIncomplete = true, bool $authorizeExistingSubmission = true): Submission
     {
         $request = $this->request;
 
@@ -1186,7 +1188,9 @@ class SubmissionsController extends Controller
                 throw new BadRequestHttpException("No submission exists with the ID \"$submissionId\"");
             }
 
-            if ($request->getIsSiteRequest()) {
+            // Public submission actions must prove ownership even when Craft classifies their action URL
+            // as a Control Panel request, which can legitimately occur in headless mode.
+            if ($authorizeExistingSubmission) {
                 $this->_authorizeExistingSubmission($form, $submission, $editingSubmission);
             }
         } else {
@@ -1211,8 +1215,8 @@ class SubmissionsController extends Controller
                 $submission->setUser($user);
             }
 
-            // Allow a `user` override (when editing a submission through the CP)
-            if ($request->getIsCpRequest() && $userParam) {
+            // Allow a `user` override only for the permission-checked Control Panel save action.
+            if (!$authorizeExistingSubmission && $request->getIsCpRequest() && $userParam) {
                 $submission->userId = $userParam[0] ?? null;
             }
         }

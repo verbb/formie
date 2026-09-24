@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Fixed a moderate-severity authorization vulnerability. (GHSA-p696-447f-9258)
 - Fixed a moderate-severity information disclosure vulnerability. (GHSA-963f-vfpf-f85p)
 - Fix nested Group field variables causing email notifications to fail when conditional logic omits the Group value.
 
