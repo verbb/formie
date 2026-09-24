@@ -2,7 +2,13 @@
 
 ## Unreleased
 
+### Changed
+- Require `verbb/base` 3.0.17 or later.
+- Render form-authored Twig and object templates in Base's explicit sandbox while retaining Formie 4's reference-token handling.
+
 ### Fixed
+- Fixed a high-severity server-side template injection vulnerability. ([GHSA-f55h-mf7f-7wx7](https://github.com/verbb/formie/security/advisories/GHSA-f55h-mf7f-7wx7))
+- Fixed a high-severity server-side template injection vulnerability involving callable collection methods exposed to sandboxed Twig.
 - Keep stencil builder data isolated from unrelated Craft elements and forms with the same numeric ID. ([#2968](https://github.com/verbb/formie/issues/2968))
 
 ## 4.0.0-beta.16 - 2026-09-17

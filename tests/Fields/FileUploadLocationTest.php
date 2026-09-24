@@ -3,7 +3,9 @@
 declare(strict_types=1);
 
 use Craft;
+use craft\errors\InvalidSubpathException;
 use Tests\Support\UploadTestHelper;
+use verbb\formie\elements\Submission;
 use verbb\formie\fields\FileUpload;
 use verbb\formie\Formie;
 
@@ -87,3 +89,45 @@ it('returns a submission validation message for invalid upload locations', funct
         'field' => 'Resume',
     ]));
 });
+
+it('blocks Craft environment access in upload location subpath Twig', function (): void {
+    $volume = UploadTestHelper::ensureUploadVolume();
+    $field = new FileUpload([
+        'uploadLocationSource' => 'folder:' . $volume->uid,
+        'uploadLocationSubpath' => '{{ craft.app.cache.cachePath }}',
+    ]);
+
+    $method = new ReflectionMethod(FileUpload::class, '_findFolder');
+    $method->setAccessible(true);
+
+    expect(fn() => $method->invoke($field, new Submission()))
+        ->toThrow(InvalidSubpathException::class);
+})->group('security');
+
+it('blocks callable gadgets in upload location subpath Twig', function (): void {
+    $volume = UploadTestHelper::ensureUploadVolume();
+    $field = new FileUpload([
+        'uploadLocationSource' => 'folder:' . $volume->uid,
+        'uploadLocationSubpath' => '{{ collect(["safe"]).map("strlen").first() }}',
+    ]);
+
+    $method = new ReflectionMethod(FileUpload::class, '_findFolder');
+    $method->setAccessible(true);
+
+    expect(fn() => $method->invoke($field, new Submission()))
+        ->toThrow(InvalidSubpathException::class);
+})->group('security');
+
+it('allows safe Twig in upload location subpaths', function (): void {
+    $volume = UploadTestHelper::ensureUploadVolume();
+    $field = new FileUpload([
+        'uploadLocationSource' => 'folder:' . $volume->uid,
+        'uploadLocationSubpath' => 'sandbox/{{ "folder"|upper }}',
+    ]);
+
+    $method = new ReflectionMethod(FileUpload::class, '_findFolder');
+    $method->setAccessible(true);
+    $folder = $method->invoke($field, new Submission());
+
+    expect($folder->path)->toBe('sandbox/FOLDER/');
+})->group('security');

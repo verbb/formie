@@ -38,10 +38,11 @@ class HiddenDefaultTemplateResolver
             $context = self::buildContext($field, $element);
             $variables = self::triggerDefineContext($field, $element, $context);
 
-            $resolved = Formie::$plugin->getTemplates()->renderObjectTemplate(
+            $resolved = Formie::$plugin->getTemplates()->renderSandboxedObjectTemplate(
                 $template,
                 $context,
                 $variables,
+                autoescape: false,
             );
         } catch (\Throwable $e) {
             Craft::error(

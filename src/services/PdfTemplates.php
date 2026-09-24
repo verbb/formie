@@ -318,7 +318,7 @@ class PdfTemplates extends Component
         ];
 
         $filenameFormat = $pdfTemplate->filenameFormat ?: 'Submission-{submission.id}';
-        $fileName = Formie::$plugin->getTemplates()->renderObjectTemplate($filenameFormat, $variables);
+        $fileName = Formie::$plugin->getTemplates()->renderSandboxedObjectTemplate($filenameFormat, $variables, autoescape: false);
 
         return $fileName . '.pdf';
     }

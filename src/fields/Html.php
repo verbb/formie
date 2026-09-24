@@ -89,7 +89,7 @@ class Html extends CosmeticField
         $htmlContent = trim((string)$this->htmlContent);
 
         if ($htmlContent && $this->allowTwig) {
-            $htmlContent = Formie::$plugin->getTemplates()->renderString($htmlContent, $variables);
+            $htmlContent = Formie::$plugin->getTemplates()->renderSandboxedString($htmlContent, $variables);
         }
 
         if ($this->purifyContent) {

@@ -63,7 +63,7 @@ it('allows submission attributes and field handles in sandboxed object templates
         ->with(['fullName' => 'Sandbox User'])
         ->save();
 
-    $allowedProperties = Formie::config()['components']['templates']['allowedProperties'][Submission::class] ?? null;
+    $allowedProperties = Formie::config()['components']['templates']['additionalAllowedProperties'][Submission::class] ?? null;
 
     expect($allowedProperties)->toBeCallable()
         ->and($allowedProperties($submission, 'id'))->toBeTrue()

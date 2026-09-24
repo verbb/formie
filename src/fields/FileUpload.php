@@ -66,7 +66,7 @@ use GraphQL\Type\Definition\Type;
 use yii\base\Event;
 use yii\base\InvalidConfigException;
 
-use Twig\Error\RuntimeError;
+use Twig\Error\Error as TwigError;
 
 class FileUpload extends ElementField
 {
@@ -1475,8 +1475,8 @@ class FileUpload extends ElementField
         if ($isDynamic) {
             // Prepare the path by parsing tokens and normalizing slashes.
             try {
-                $renderedSubpath = Craft::$app->getView()->renderObjectTemplate($subpath, $element);
-            } catch (InvalidConfigException|RuntimeError $e) {
+                $renderedSubpath = Formie::$plugin->getTemplates()->renderSandboxedObjectTemplate($subpath, $element, autoescape: false);
+            } catch (InvalidConfigException|TwigError $e) {
                 throw new InvalidSubpathException($subpath, null, 0, $e);
             }
 

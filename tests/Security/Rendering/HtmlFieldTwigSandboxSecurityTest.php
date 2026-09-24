@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Tests\Support\MaliciousPayloads;
 use verbb\formie\fields\Html;
-use Twig\Sandbox\SecurityNotAllowedPropertyError;
+use Twig\Error\Error;
 
 it('defaults html fields to twig disabled', function (): void {
     $field = new Html();
@@ -25,7 +25,7 @@ it('blocks craft environment access in sandboxed html field twig', function (): 
     $field = $form->getFieldByHandle('notice');
 
     expect(fn() => $field?->getRenderedHtmlBlock($form, null, null))
-        ->toThrow(SecurityNotAllowedPropertyError::class);
+        ->toThrow(Error::class);
 })->group('security');
 
 it('allows sandboxed html field twig to read form and submission context', function (): void {

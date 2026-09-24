@@ -43,7 +43,7 @@ use Throwable;
 public function sendPayload(Submission $submission): bool
 {
     try {
-        $message = Formie::$plugin->getTemplates()->renderObjectTemplate($this->message, $submission);
+        $message = Formie::$plugin->getTemplates()->renderSandboxedObjectTemplate($this->message, $submission, autoescape: false);
 
         $response = $this->deliverPayload($submission, 'messages', [
             'channel' => $this->channelId,
@@ -60,4 +60,3 @@ public function sendPayload(Submission $submission): bool
 ```
 
 Some messaging providers use OAuth and some use incoming HTTP endpoints. If the provider uses OAuth, see [OAuth Integration](/developers/custom-integration/oauth-integration). If the provider is mostly a configurable HTTP endpoint, the [Automation Integration](/developers/custom-integration/automation-integration) pattern may be closer.
-

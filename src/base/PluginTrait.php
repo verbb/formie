@@ -10,6 +10,7 @@ use verbb\formie\client\ClientSessionService;
 use verbb\formie\deprecations\PluginDeprecations;
 use verbb\formie\elements\Submission as SubmissionElement;
 use verbb\formie\events\ModifyTwigEnvironmentEvent;
+use verbb\formie\fields\values\FieldValueInterface;
 use verbb\formie\server\ServerRenderPayloadBuilder;
 use verbb\formie\services\CaptchaProviders;
 use verbb\formie\services\Cleanup;
@@ -75,6 +76,7 @@ use verbb\formie\services\SubmissionDrafts;
 use verbb\formie\services\SubmissionGuards;
 use verbb\formie\services\SubmissionMetadata;
 use verbb\formie\services\Subscriptions;
+use verbb\formie\services\Templates;
 use verbb\formie\services\StorageManager;
 use verbb\formie\services\ThemeConfig;
 use verbb\formie\services\TiptapExtensions;
@@ -89,7 +91,6 @@ use craft\helpers\App;
 
 use verbb\base\LogTrait;
 use verbb\base\helpers\Plugin;
-use verbb\base\services\Templates;
 use verbb\formie\helpers\Plugin as FormiePluginHelper;
 use verbb\formie\models\HiddenDefaultTemplateContext;
 use verbb\formie\models\HiddenDefaultTemplateFormContext;
@@ -276,11 +277,11 @@ trait PluginTrait
                 'templates' => [
                     'class' => Templates::class,
                     'pluginClass' => Formie::class,
-                    'allowedTags' => $event->allowedTags,
-                    'allowedFilters' => $event->allowedFilters,
-                    'allowedFunctions' => $event->allowedFunctions,
-                    'allowedMethods' => $event->allowedMethods,
-                    'allowedProperties' => $event->allowedProperties,
+                    'additionalAllowedTags' => $event->allowedTags,
+                    'additionalAllowedFilters' => $event->allowedFilters,
+                    'additionalAllowedFunctions' => $event->allowedFunctions,
+                    'additionalAllowedMethods' => $event->allowedMethods,
+                    'additionalAllowedProperties' => $event->allowedProperties,
                 ],
                 'themeConfig' => ThemeConfig::class,
                 'tiptapExtensions' => TiptapExtensions::class,

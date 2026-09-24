@@ -8,6 +8,7 @@ use verbb\formie\events\PaymentEvent;
 use verbb\formie\events\PaymentSuccessRedirectEvent;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\DbSchema;
+use verbb\formie\helpers\References;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\Payment;
@@ -99,7 +100,7 @@ class Payments extends Component
         $url = (string)($url ?? '');
 
         if ($url !== '') {
-            $url = Formie::$plugin->getTemplates()->renderObjectTemplate($url, $submission);
+            $url = References::parseContent($url, $submission);
         }
 
         $event = new PaymentSuccessRedirectEvent([

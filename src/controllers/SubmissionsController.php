@@ -966,7 +966,10 @@ class SubmissionsController extends Controller
 
     private function _redirectToPostedCpSubmissionUrl(Submission $submission): Response
     {
-        $url = $this->getPostedRedirectUrl($submission);
+        $redirect = $this->request->getValidatedBodyParam('redirect');
+        $url = is_string($redirect) && $redirect !== ''
+            ? References::parseContent($redirect, $submission)
+            : null;
 
         if ($url === null || $url === '') {
             $url = $submission->getCpEditUrl() ?? UrlHelper::cpUrl('formie/submissions');

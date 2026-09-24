@@ -100,7 +100,7 @@ abstract class Automation extends Integration
 
     protected function getEndpointUrl(string $url, Submission $submission): bool|string|null
     {
-        $url = Formie::$plugin->getTemplates()->renderObjectTemplate($url, $submission);
+        $url = Formie::$plugin->getTemplates()->renderSandboxedObjectTemplate($url, $submission, autoescape: false);
         $url = trim((string)App::parseEnv($url));
 
         if (!$this->isPublicHttpEndpoint($url)) {

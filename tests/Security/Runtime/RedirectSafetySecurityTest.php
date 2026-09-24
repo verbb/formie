@@ -5,8 +5,17 @@ declare(strict_types=1);
 use Tests\Support\WebRequestTestHelper;
 use verbb\formie\Formie;
 use verbb\formie\helpers\References;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\integrations\payments\Stripe;
 use verbb\formie\models\Payment;
+
+it('preserves legitimate redirects while rejecting obfuscated active schemes', function (): void {
+    expect(StringHelper::sanitizeRedirectUrl('/thanks?submission=42'))->toBe('/thanks?submission=42')
+        ->and(StringHelper::sanitizeRedirectUrl('https://payments.example.test/complete'))->toBe('https://payments.example.test/complete')
+        ->and(StringHelper::sanitizeRedirectUrl("java\nscript:alert(1)"))->toBe('')
+        ->and(StringHelper::sanitizeRedirectUrl('java&#x73;cript:alert(1)'))->toBe('')
+        ->and(StringHelper::sanitizeRedirectUrl('\\\\evil.example.test/path'))->toBe('');
+})->group('security');
 
 it('rejects javascript redirect urls resolved from submission references', function (): void {
     $form = formie()
