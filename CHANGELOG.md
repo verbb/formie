@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Fixed a moderate-severity information disclosure vulnerability. (GHSA-963f-vfpf-f85p)
+
 ## 2.2.35 - 2026-09-24
 
 ### Fixed
