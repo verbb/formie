@@ -278,6 +278,15 @@ class Recaptcha extends Captcha
     // Protected Methods
     // =========================================================================
 
+    protected function formSettingAttributes(): array
+    {
+        $settings = parent::formSettingAttributes();
+        $settings[] = 'formAction';
+        $settings[] = 'formMinScore';
+
+        return $settings;
+    }
+
     protected function defineFormSettingsSchema(FormInterface $form): array
     {
         if (!$this->hasValidSettings()) {

@@ -232,6 +232,16 @@ class Intercom extends HelpDesk implements OAuthProviderInterface
     // Protected Methods
     // =========================================================================
 
+    protected function formSettingAttributes(): array
+    {
+        $settings = parent::formSettingAttributes();
+        $settings[] = 'message';
+        $settings[] = 'mapToContact';
+        $settings[] = 'contactFieldMapping';
+
+        return $settings;
+    }
+
     protected function defineRules(): array
     {
         $rules = parent::defineRules();

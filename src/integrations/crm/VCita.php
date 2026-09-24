@@ -175,6 +175,15 @@ class VCita extends Crm
     // Protected Methods
     // =========================================================================
 
+    protected function formSettingAttributes(): array
+    {
+        $settings = parent::formSettingAttributes();
+        $settings[] = 'mapToClient';
+        $settings[] = 'clientFieldMapping';
+
+        return $settings;
+    }
+
     protected function defineRules(): array
     {
         $rules = parent::defineRules();

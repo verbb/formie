@@ -668,6 +668,32 @@ class Salesforce extends Crm implements OAuthProviderInterface
     // Protected Methods
     // =========================================================================
 
+    protected function formSettingAttributes(): array
+    {
+        $settings = parent::formSettingAttributes();
+        $settings[] = 'mapToContact';
+        $settings[] = 'mapToLead';
+        $settings[] = 'mapToOpportunity';
+        $settings[] = 'mapToAccount';
+        $settings[] = 'mapToCase';
+        $settings[] = 'mapToCampaignMember';
+        $settings[] = 'contactFieldMapping';
+        $settings[] = 'leadFieldMapping';
+        $settings[] = 'opportunityFieldMapping';
+        $settings[] = 'accountFieldMapping';
+        $settings[] = 'caseFieldMapping';
+        $settings[] = 'campaignMemberFieldMapping';
+        $settings[] = 'duplicateLeadTask';
+        $settings[] = 'duplicateLeadTaskSubject';
+        $settings[] = 'mapToContactAttachments';
+        $settings[] = 'mapToLeadAttachments';
+        $settings[] = 'mapToOpportunityAttachments';
+        $settings[] = 'mapToAccountAttachments';
+        $settings[] = 'mapToCaseAttachments';
+
+        return $settings;
+    }
+
     protected function defineRules(): array
     {
         $rules = parent::defineRules();

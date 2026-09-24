@@ -464,6 +464,19 @@ class Agile extends Crm
     // Protected Methods
     // =========================================================================
 
+    protected function formSettingAttributes(): array
+    {
+        $settings = parent::formSettingAttributes();
+        $settings[] = 'mapToContact';
+        $settings[] = 'mapToDeal';
+        $settings[] = 'mapToTask';
+        $settings[] = 'contactFieldMapping';
+        $settings[] = 'dealFieldMapping';
+        $settings[] = 'taskFieldMapping';
+
+        return $settings;
+    }
+
     protected function defineRules(): array
     {
         $rules = parent::defineRules();

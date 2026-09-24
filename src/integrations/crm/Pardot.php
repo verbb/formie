@@ -484,16 +484,13 @@ class Pardot extends Crm implements OAuthProviderInterface
                 // Generate flat payload values to send
                 $payload = $this->generatePayloadValues($submission);
 
-                // Send a raw request to the endpoint
-                $client = Craft::createGuzzleClient();
-                $request = $client->request('POST', $this->endpointUrl, [
+                // Form handlers must not receive the OAuth credentials used by
+                // Pardot's provider API client.
+                $response = $this->requestPublicEndpoint('POST', $this->endpointUrl, [
                     'form_params' => $payload,
                 ]);
 
-                // Parse the response, which will be plain text
-                $response = (string)$request->getBody();
-
-                if (str_contains($response, 'Please correct the following errors')) {
+                if (is_string($response) && str_contains($response, 'Please correct the following errors')) {
                     Integration::error($this, Craft::t('formie', 'Error in form handler response {response}. Sent payload {payload}', [
                         'response' => $response,
                         'payload' => Json::encode($payload),
@@ -532,6 +529,19 @@ class Pardot extends Crm implements OAuthProviderInterface
     
     // Protected Methods
     // =========================================================================
+
+    protected function formSettingAttributes(): array
+    {
+        $settings = parent::formSettingAttributes();
+        $settings[] = 'mapToProspect';
+        $settings[] = 'mapToOpportunity';
+        $settings[] = 'enableFormHandler';
+        $settings[] = 'prospectFieldMapping';
+        $settings[] = 'opportunityFieldMapping';
+        $settings[] = 'endpointUrl';
+
+        return $settings;
+    }
 
     protected function defineRules(): array
     {

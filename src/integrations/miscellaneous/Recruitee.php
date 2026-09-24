@@ -170,6 +170,15 @@ class Recruitee extends Miscellaneous
     // Protected Methods
     // =========================================================================
 
+    protected function formSettingAttributes(): array
+    {
+        $settings = parent::formSettingAttributes();
+        $settings[] = 'mapToCandidate';
+        $settings[] = 'candidateFieldMapping';
+
+        return $settings;
+    }
+
     protected function defineRules(): array
     {
         $rules = parent::defineRules();

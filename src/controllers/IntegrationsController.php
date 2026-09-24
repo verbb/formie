@@ -160,7 +160,7 @@ class IntegrationsController extends Controller
 
             // Apply any settings provided by the payload. Particularly if we're enabling/disabling objects to fetch for.
             if (is_array($settings)) {
-                $integration->setAttributes($this->_filterIntegrationFormSettings($settings), false);
+                $integration = Formie::$plugin->getIntegrations()->populateIntegrationFromFormSettings($integration, $settings);
             }
 
             // Apply any extra settings to the integration, useful when fetching specific data objects
@@ -178,6 +178,7 @@ class IntegrationsController extends Controller
     public function actionGetIntegrationFormSettingsConfig(): Response
     {
         $this->requireAcceptsJson();
+        $this->requireCpRequest();
 
         try {
             $handle = (string)($this->request->getBodyParam('handle') ?? $this->request->getQueryParam('handle') ?? '');
@@ -191,6 +192,8 @@ class IntegrationsController extends Controller
             if ($formId <= 0) {
                 throw new BadRequestHttpException('Missing or invalid param: formId.');
             }
+
+            $this->_requireIntegrationFormPermission($formId);
 
             $form = Craft::$app->getElements()->getElementById($formId, Form::class);
 
@@ -412,55 +415,4 @@ class IntegrationsController extends Controller
         }
     }
 
-    private function _filterIntegrationFormSettings(array $settings): array
-    {
-        $filtered = [];
-
-        foreach ($settings as $key => $value) {
-            if (!is_string($key) || !$this->_isAllowedIntegrationFormSetting($key)) {
-                continue;
-            }
-
-            $filtered[$key] = $value;
-        }
-
-        return $filtered;
-    }
-
-    private function _isAllowedIntegrationFormSetting(string $attribute): bool
-    {
-        if ($this->_isSensitiveIntegrationAttribute($attribute)) {
-            return false;
-        }
-
-        if (str_starts_with($attribute, 'mapTo')) {
-            return true;
-        }
-
-        if (str_ends_with($attribute, 'FieldMapping')) {
-            return true;
-        }
-
-        if (str_ends_with($attribute, 'Id')) {
-            return true;
-        }
-
-        return in_array($attribute, [
-            'sendEmailCampaign',
-            'attachFiles',
-        ], true);
-    }
-
-    private function _isSensitiveIntegrationAttribute(string $attribute): bool
-    {
-        $attribute = strtolower($attribute);
-
-        foreach (['key', 'secret', 'token', 'password', 'url', 'domain', 'uri', 'host', 'credential', 'auth'] as $pattern) {
-            if (str_contains($attribute, $pattern)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
 }

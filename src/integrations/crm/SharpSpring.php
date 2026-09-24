@@ -251,6 +251,17 @@ class SharpSpring extends Crm
     // Protected Methods
     // =========================================================================
 
+    protected function formSettingAttributes(): array
+    {
+        $settings = parent::formSettingAttributes();
+        $settings[] = 'mapToContact';
+        $settings[] = 'mapToForm';
+        $settings[] = 'contactFieldMapping';
+        $settings[] = 'endpoint';
+
+        return $settings;
+    }
+
     protected function defineRules(): array
     {
         $rules = parent::defineRules();

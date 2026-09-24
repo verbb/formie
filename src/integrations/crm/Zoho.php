@@ -349,6 +349,23 @@ class Zoho extends Crm implements OAuthProviderInterface
     // Protected Methods
     // =========================================================================
 
+    protected function formSettingAttributes(): array
+    {
+        $settings = parent::formSettingAttributes();
+        $settings[] = 'mapToContact';
+        $settings[] = 'mapToDeal';
+        $settings[] = 'mapToLead';
+        $settings[] = 'mapToAccount';
+        $settings[] = 'mapToQuote';
+        $settings[] = 'contactFieldMapping';
+        $settings[] = 'dealFieldMapping';
+        $settings[] = 'leadFieldMapping';
+        $settings[] = 'accountFieldMapping';
+        $settings[] = 'quoteFieldMapping';
+
+        return $settings;
+    }
+
     protected function defineRules(): array
     {
         $rules = parent::defineRules();

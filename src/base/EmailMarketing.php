@@ -84,6 +84,15 @@ abstract class EmailMarketing extends Integration
     // Protected Methods
     // =========================================================================
 
+    protected function formSettingAttributes(): array
+    {
+        $settings = parent::formSettingAttributes();
+        $settings[] = 'fieldMapping';
+        $settings[] = 'listId';
+
+        return $settings;
+    }
+
     protected function defineRules(): array
     {
         $rules = parent::defineRules();

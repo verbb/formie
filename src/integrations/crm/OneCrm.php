@@ -314,6 +314,21 @@ class OneCrm extends Crm implements OAuthProviderInterface
     // Protected Methods
     // =========================================================================
 
+    protected function formSettingAttributes(): array
+    {
+        $settings = parent::formSettingAttributes();
+        $settings[] = 'mapToContact';
+        $settings[] = 'mapToLead';
+        $settings[] = 'mapToAccount';
+        $settings[] = 'mapToOpportunity';
+        $settings[] = 'contactFieldMapping';
+        $settings[] = 'leadFieldMapping';
+        $settings[] = 'accountFieldMapping';
+        $settings[] = 'opportunityFieldMapping';
+
+        return $settings;
+    }
+
     protected function defineRules(): array
     {
         $rules = parent::defineRules();

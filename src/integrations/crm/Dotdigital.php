@@ -348,6 +348,17 @@ class Dotdigital extends Crm
     // Protected Methods
     // =========================================================================
 
+    protected function formSettingAttributes(): array
+    {
+        $settings = parent::formSettingAttributes();
+        $settings[] = 'mapToContact';
+        $settings[] = 'sendEmailCampaign';
+        $settings[] = 'contactFieldMapping';
+        $settings[] = 'emailSendMapping';
+
+        return $settings;
+    }
+
     protected function defineRules(): array
     {
         $rules = parent::defineRules();

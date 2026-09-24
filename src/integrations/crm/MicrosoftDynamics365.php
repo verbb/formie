@@ -395,6 +395,23 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
     // Protected Methods
     // =========================================================================
 
+    protected function formSettingAttributes(): array
+    {
+        $settings = parent::formSettingAttributes();
+        $settings[] = 'mapToContact';
+        $settings[] = 'mapToLead';
+        $settings[] = 'mapToOpportunity';
+        $settings[] = 'mapToAccount';
+        $settings[] = 'mapToIncident';
+        $settings[] = 'contactFieldMapping';
+        $settings[] = 'leadFieldMapping';
+        $settings[] = 'opportunityFieldMapping';
+        $settings[] = 'accountFieldMapping';
+        $settings[] = 'incidentFieldMapping';
+
+        return $settings;
+    }
+
     protected function defineRules(): array
     {
         $rules = parent::defineRules();

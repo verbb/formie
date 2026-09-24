@@ -66,7 +66,7 @@ class Discord extends Messaging
                 'content' => $message,
             ];
 
-            $response = $this->deliverPayload($submission, $webhookUrl, $payload);
+            $response = $this->deliverPayloadToPublicEndpoint($submission, $webhookUrl, $payload);
 
             if ($response === false) {
                 return true;
@@ -85,7 +85,7 @@ class Discord extends Messaging
         try {
             $webhookUrl = App::parseEnv($this->webhookUrl);
 
-            $this->request('GET', $webhookUrl);
+            $this->requestPublicEndpoint('GET', $webhookUrl);
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
@@ -98,6 +98,15 @@ class Discord extends Messaging
 
     // Protected Methods
     // =========================================================================
+
+    protected function formSettingAttributes(): array
+    {
+        $settings = parent::formSettingAttributes();
+        $settings[] = 'webhookUrl';
+        $settings[] = 'message';
+
+        return $settings;
+    }
 
     protected function defineRules(): array
     {

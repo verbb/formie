@@ -61,11 +61,8 @@ class Make extends Automation
 
             Formie::$plugin->getSubmissions()->populateFakeSubmission($submission);
 
-            // Ensure we're fetching the webhook from the form settings, or global integration settings
-            $webhook = $form->settings->integrations[$this->handle]['webhook'] ?? $this->webhook;
-
             $payload = $this->generatePayloadValues($submission);
-            $response = $this->deliverPayload($submission, $this->getEndpointUrl($webhook, $submission), $payload);
+            $response = $this->deliverPayload($submission, $this->getEndpointUrl($this->webhook, $submission), $payload);
 
             $rawResponse = (string)$response->getBody();
             $json = Json::decodeIfJson($rawResponse);
@@ -131,6 +128,14 @@ class Make extends Automation
     
     // Protected Methods
     // =========================================================================
+
+    protected function formSettingAttributes(): array
+    {
+        $settings = parent::formSettingAttributes();
+        $settings[] = 'webhook';
+
+        return $settings;
+    }
 
     protected function defineRules(): array
     {

@@ -67,9 +67,7 @@ class WebRequest extends Automation
             Formie::$plugin->getSubmissions()->populateFakeSubmission($submission);
             $payload = $this->generatePayloadValues($submission);
 
-            $url = $form->settings->integrations[$this->handle]['url'] ?? $this->url;
-
-            $response = $this->deliverPayload($submission, $this->getEndpointUrl($url, $submission), $payload, $this->method, $this->requestType);
+            $response = $this->deliverPayload($submission, $this->getEndpointUrl($this->url, $submission), $payload, $this->method, $this->requestType);
 
             $rawResponse = (string)$response->getBody();
             $json = Json::decodeIfJson($rawResponse);
@@ -135,6 +133,18 @@ class WebRequest extends Automation
 
     // Protected Methods
     // =========================================================================
+
+    protected function formSettingAttributes(): array
+    {
+        $settings = parent::formSettingAttributes();
+        $settings[] = 'url';
+        $settings[] = 'method';
+        $settings[] = 'requestType';
+        $settings[] = 'headers';
+        $settings[] = 'httpAuth';
+
+        return $settings;
+    }
 
     protected function defineRules(): array
     {

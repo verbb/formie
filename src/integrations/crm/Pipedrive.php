@@ -494,6 +494,24 @@ class Pipedrive extends Crm
     // Protected Methods
     // =========================================================================
 
+    protected function formSettingAttributes(): array
+    {
+        $settings = parent::formSettingAttributes();
+        $settings[] = 'mapToPerson';
+        $settings[] = 'mapToDeal';
+        $settings[] = 'mapToLead';
+        $settings[] = 'mapToOrganization';
+        $settings[] = 'mapToNote';
+        $settings[] = 'personFieldMapping';
+        $settings[] = 'dealFieldMapping';
+        $settings[] = 'leadFieldMapping';
+        $settings[] = 'organizationFieldMapping';
+        $settings[] = 'noteFieldMapping';
+        $settings[] = 'mergeMultiOptionFields';
+
+        return $settings;
+    }
+
     protected function defineRules(): array
     {
         $rules = parent::defineRules();

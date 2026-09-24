@@ -118,6 +118,14 @@ class Question extends Captcha
     // Protected Methods
     // =========================================================================
 
+    protected function formSettingAttributes(): array
+    {
+        $settings = parent::formSettingAttributes();
+        $settings[] = 'questions';
+
+        return $settings;
+    }
+
     protected function defineFormSettingsSchema(FormInterface $form): array
     {
         $schema = parent::defineFormSettingsSchema($form);

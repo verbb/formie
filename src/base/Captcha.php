@@ -150,6 +150,14 @@ abstract class Captcha extends Integration
     // Protected Methods
     // =========================================================================
 
+    protected function formSettingAttributes(): array
+    {
+        $settings = parent::formSettingAttributes();
+        $settings[] = 'showAllPages';
+
+        return $settings;
+    }
+
     protected function defineFormSettingsSchema(FormInterface $form): array
     {
         return [

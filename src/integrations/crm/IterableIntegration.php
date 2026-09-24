@@ -229,6 +229,18 @@ class IterableIntegration extends Crm
     // Protected Methods
     // =========================================================================
 
+    protected function formSettingAttributes(): array
+    {
+        $settings = parent::formSettingAttributes();
+        $settings[] = 'mapToUser';
+        $settings[] = 'mapToMessageType';
+        $settings[] = 'userFieldMapping';
+        $settings[] = 'messageTypeFieldMapping';
+        $settings[] = 'messageTypeId';
+
+        return $settings;
+    }
+
     protected function defineRules(): array
     {
         $rules = parent::defineRules();

@@ -324,11 +324,7 @@ class CalendarEvent extends Element
 
     public function getAuthor($form): array
     {
-        $defaultAuthorId = $form->settings->integrations[$this->handle]['defaultAuthorId'] ?? '';
-
-        if (!$defaultAuthorId) {
-            $defaultAuthorId = $this->defaultAuthorId;
-        }
+        $defaultAuthorId = $this->defaultAuthorId;
 
         if ($defaultAuthorId) {
             return User::find()->id($defaultAuthorId)->all();
@@ -340,6 +336,15 @@ class CalendarEvent extends Element
 
     // Protected Methods
     // =========================================================================
+
+    protected function formSettingAttributes(): array
+    {
+        $settings = parent::formSettingAttributes();
+        $settings[] = 'calendarId';
+        $settings[] = 'defaultAuthorId';
+
+        return $settings;
+    }
 
     protected function defineRules(): array
     {

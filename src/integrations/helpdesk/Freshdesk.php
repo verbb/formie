@@ -551,6 +551,17 @@ class Freshdesk extends HelpDesk
     // Protected Methods
     // =========================================================================
 
+    protected function formSettingAttributes(): array
+    {
+        $settings = parent::formSettingAttributes();
+        $settings[] = 'mapToContact';
+        $settings[] = 'mapToTicket';
+        $settings[] = 'contactFieldMapping';
+        $settings[] = 'ticketFieldMapping';
+
+        return $settings;
+    }
+
     protected function defineRules(): array
     {
         $rules = parent::defineRules();

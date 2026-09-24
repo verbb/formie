@@ -351,6 +351,15 @@ class Mailchimp extends EmailMarketing
     // Protected Methods
     // =========================================================================
 
+    protected function formSettingAttributes(): array
+    {
+        $settings = parent::formSettingAttributes();
+        $settings[] = 'appendTags';
+        $settings[] = 'useDoubleOptIn';
+
+        return $settings;
+    }
+
     protected function defineRules(): array
     {
         $rules = parent::defineRules();

@@ -5,12 +5,39 @@ declare(strict_types=1);
 use verbb\formie\elements\Submission;
 use verbb\formie\errors\IntegrationException;
 use verbb\formie\integrations\automations\WebRequest;
+use verbb\formie\integrations\crm\Pardot;
+use verbb\formie\integrations\messaging\Discord;
+use verbb\formie\integrations\messaging\Slack;
 
 class SecurityWebRequestEndpointProbe extends WebRequest
 {
     public function resolveEndpointForTest(string $url, Submission $submission): bool|string|null
     {
         return $this->getEndpointUrl($url, $submission);
+    }
+}
+
+class SecuritySlackPublicEndpointProbe extends Slack
+{
+    public array $history = [];
+
+    public function request(string $method, string $uri, array $options = []): mixed
+    {
+        throw new RuntimeException('Authenticated provider requests must not handle form-configured webhooks.');
+    }
+
+    protected function createPublicEndpointClient(string $endpoint, array $config = []): \GuzzleHttp\Client
+    {
+        $mockHandler = new \GuzzleHttp\Handler\MockHandler([
+            new \GuzzleHttp\Psr7\Response(200, [], '{"ok":true}'),
+        ]);
+        $stack = \GuzzleHttp\HandlerStack::create($mockHandler);
+        $stack->push(\GuzzleHttp\Middleware::history($this->history));
+
+        return new \GuzzleHttp\Client([
+            'handler' => $stack,
+            'allow_redirects' => false,
+        ]);
     }
 }
 
@@ -57,6 +84,57 @@ it('allows automation endpoints on public HTTP networks', function (): void {
     ]);
 
     expect($integration->resolveEndpointForTest('https://8.8.8.8/webhook', $submission))->toBe('https://8.8.8.8/webhook');
+})->group('security');
+
+it('allows public IPv6 literal endpoints', function (): void {
+    $form = formie()
+        ->form(['title' => 'Automation Public IPv6 Endpoint'])
+        ->singleLineTextField('target')
+        ->create();
+    $submission = formie()->submission($form)->save();
+    $integration = new SecurityWebRequestEndpointProbe([
+        'name' => 'Security Web Request IPv6',
+        'handle' => 'securityWebRequestIpv6',
+    ]);
+
+    expect($integration->resolveEndpointForTest('https://[2606:4700:4700::1111]/webhook', $submission))
+        ->toBe('https://[2606:4700:4700::1111]/webhook');
+})->group('security');
+
+it('blocks private form-configured endpoints for native integrations', function (string $integrationClass): void {
+    $integration = new $integrationClass([
+        'name' => 'Form endpoint security probe',
+        'handle' => 'formEndpointSecurityProbe',
+    ]);
+
+    expect(fn() => $integration->requestPublicEndpoint('POST', 'http://169.254.169.254/latest/meta-data/'))
+        ->toThrow(IntegrationException::class);
+})->with([
+    'Pardot form handler' => [Pardot::class],
+    'Discord webhook' => [Discord::class],
+    'Slack webhook' => [Slack::class],
+])->group('security');
+
+it('sends Slack webhooks without the OAuth provider request path', function (): void {
+    $form = formie()
+        ->form(['title' => 'Slack public endpoint'])
+        ->singleLineTextField('message')
+        ->create();
+    $submission = formie()
+        ->submission($form)
+        ->with(['message' => 'Hello'])
+        ->save();
+    $integration = new SecuritySlackPublicEndpointProbe([
+        'name' => 'Slack public endpoint',
+        'handle' => 'slackPublicEndpoint',
+        'channelType' => Slack::TYPE_WEBHOOK,
+        'webhook' => 'https://8.8.8.8/webhook',
+        'message' => 'Hello',
+    ]);
+
+    expect($integration->sendPayload($submission))->toBeTrue()
+        ->and($integration->history)->toHaveCount(1)
+        ->and($integration->history[0]['request']->hasHeader('Authorization'))->toBeFalse();
 })->group('security');
 
 it('does not follow HTTP redirects for automation delivery', function (): void {
@@ -120,7 +198,7 @@ it('pins automation DNS to a validated public IP on absolute URLs', function ():
 
 it('rejects non-global and transition addresses before connecting', function (string $ip, bool $allowed): void {
     $integration = new SecurityWebRequestEndpointProbe(['name' => 'Address classification', 'handle' => 'addressClassification']);
-    $method = new ReflectionMethod(\verbb\formie\base\Automation::class, '_isPublicIp');
+    $method = new ReflectionMethod(\verbb\formie\base\Integration::class, '_isPublicEndpointIp');
     expect($method->invoke($integration, $ip))->toBe($allowed);
 })->with([
     ['100.100.100.200', false], ['198.18.0.1', false], ['192.0.0.8', false],

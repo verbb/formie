@@ -116,10 +116,22 @@ protected function defineFormSettingsSchema(FormInterface $form): array
 
     return $schema;
 }
+
+protected function formSettingAttributes(): array
+{
+    $settings = parent::formSettingAttributes();
+    $settings[] = 'endpointUrl';
+
+    return $settings;
+}
 ```
 :::
 
 Always start with `parent::defineFormSettingsSchema($form)` unless you have a specific reason not to. The parent schema includes the standard Enabled setting.
+
+Formie 4 only saves and populates form-level integration attributes returned by `formSettingAttributes()`. Add every custom setting used by your form schema to this method. For registered integrations, undeclared values are discarded so form data cannot override plugin-level settings such as credentials or provider base URLs. Opaque settings for a temporarily unavailable integration are retained to avoid data loss, but are not hydrated at runtime.
+
+Custom integrations that send to a URL configured on each form should use `requestPublicEndpoint()` or `deliverPayloadToPublicEndpoint()`. Provider API calls with fixed endpoints should continue to use `request()` or `deliverPayload()`.
 
 ### Captchas and Address Providers
 

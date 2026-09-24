@@ -620,6 +620,75 @@ class Integrations extends Component
         return null;
     }
 
+    public function filterIntegrationFormSettings(IntegrationInterface $integration, array $settings): array
+    {
+        if (is_callable([$integration, 'hasFormSettings']) && !$integration::hasFormSettings()) {
+            return [];
+        }
+
+        return array_intersect_key($settings, array_fill_keys($integration->getFormSettingAttributes(), true));
+    }
+
+    public function filterAllIntegrationFormSettings(array $settings, bool $preserveMissing = false): array
+    {
+        $filtered = [];
+
+        foreach ($settings as $handle => $integrationSettings) {
+            if (is_object($integrationSettings)) {
+                if (method_exists($integrationSettings, 'getAttributes')) {
+                    $integrationSettings = $integrationSettings->getAttributes() ?? [];
+                } else {
+                    $integrationSettings = Json::decode(Json::encode($integrationSettings));
+                }
+            }
+
+            if (!is_string($handle) || !is_array($integrationSettings)) {
+                continue;
+            }
+
+            $integration = $this->getIntegrationByHandle($handle) ?? $this->getCaptchaByHandle($handle);
+
+            if ($integration && !($integration instanceof MissingIntegration)) {
+                try {
+                    if ($this->hasEventHandlers(self::EVENT_MODIFY_FORM_INTEGRATION)) {
+                        $event = new ModifyFormIntegrationEvent([
+                            'integration' => $integration,
+                        ]);
+                        $this->trigger(self::EVENT_MODIFY_FORM_INTEGRATION, $event);
+                        $integration = $event->integration;
+                    }
+
+                    $filtered[$handle] = $this->filterIntegrationFormSettings($integration, $integrationSettings);
+                } catch (Throwable) {
+                    // A registered integration with an invalid boundary must fail closed.
+                    continue;
+                }
+            } elseif ($preserveMissing) {
+                $filtered[$handle] = $integrationSettings;
+            }
+        }
+
+        return $filtered;
+    }
+
+    public function populateIntegrationFromFormSettings(IntegrationInterface $integration, array $settings): IntegrationInterface
+    {
+        $settings = $this->filterIntegrationFormSettings($integration, $settings);
+
+        // `enabled` controls whether a form uses the integration. It must not replace
+        // the globally configured integration's enabled state on the runtime clone.
+        unset($settings['enabled']);
+
+        $formIntegration = clone $integration;
+        $formIntegration->setAttributes($settings, false);
+
+        if (is_callable([$formIntegration, 'setClient'])) {
+            $formIntegration->setClient(null);
+        }
+
+        return $formIntegration;
+    }
+
     /**
      * Returns form builder config for one integration: compiled schema and current values for settings.integrations[handle].
      */
@@ -649,7 +718,8 @@ class Integrations extends Component
         if (!is_array($saved)) {
             $saved = [];
         }
-        $integration->setAttributes($saved, false);
+        $saved = $this->filterIntegrationFormSettings($integration, $saved);
+        $integration = $this->populateIntegrationFromFormSettings($integration, $saved);
 
         $schema = $integration->getFormSettingsSchema($form);
         $compiled = SchemaHelper::compileSchema($schema);
@@ -1072,8 +1142,7 @@ class Integrations extends Component
 
             // If this disabled globally? Then don't include it, otherwise populate the settings
             if ($integration && $integration->getEnabled()) {
-                $resolvedIntegration = clone $integration;
-                $resolvedIntegration->setAttributes($formSettings, false);
+                $resolvedIntegration = $this->populateIntegrationFromFormSettings($integration, $formSettings);
 
                 $enabledIntegrations[] = $resolvedIntegration;
             }

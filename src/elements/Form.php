@@ -1864,6 +1864,11 @@ class Form extends Element implements FormInterface
 
     public function setIntegrationSettings(string $handle, array $settings, bool $updateSnapshot = true): void
     {
+        $filtered = Formie::$plugin->getIntegrations()->filterAllIntegrationFormSettings([
+            $handle => $settings,
+        ], true);
+        $settings = $filtered[$handle] ?? [];
+
         // Get the integration settings so we only override what we want
         $integrationSettings = $this->settings->integrations[$handle] ?? [];
         
@@ -2111,6 +2116,12 @@ class Form extends Element implements FormInterface
         if ($isNew && !$this->isApplyingStencil) {
             Formie::$plugin->getFormDefaults()->applyCaptchaDefaultsToNewForm($this);
         }
+
+        // Form-scoped data must never persist global integration credentials or endpoints.
+        $integrationSettings = $this->settings->integrations ?? [];
+        $this->settings->setAttributes([
+            'integrations' => Formie::$plugin->getIntegrations()->filterAllIntegrationFormSettings($integrationSettings, true),
+        ], false);
 
         // Retain old containers before saving the layout deletes removed Group fields.
         $previousFields = $isNew ? [] : (new Query())

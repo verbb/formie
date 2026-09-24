@@ -124,7 +124,7 @@ class Slack extends Messaging implements OAuthProviderInterface
                     'text' => $this->_renderMessage($submission),
                 ];
 
-                $response = $this->deliverPayload($submission, $this->webhook, $payload);
+                $response = $this->deliverPayloadToPublicEndpoint($submission, $this->webhook, $payload);
             } else {
 
                 $channel = null;
@@ -175,6 +175,18 @@ class Slack extends Messaging implements OAuthProviderInterface
     
     // Protected Methods
     // =========================================================================
+
+    protected function formSettingAttributes(): array
+    {
+        $settings = parent::formSettingAttributes();
+        $settings[] = 'channelType';
+        $settings[] = 'userId';
+        $settings[] = 'channelId';
+        $settings[] = 'message';
+        $settings[] = 'webhook';
+
+        return $settings;
+    }
 
     protected function defineRules(): array
     {

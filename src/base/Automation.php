@@ -6,7 +6,6 @@ use verbb\formie\base\FormInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyAutomationPayloadEvent;
-use verbb\formie\errors\IntegrationException;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\Stencil;
@@ -19,7 +18,6 @@ use craft\helpers\UrlHelper;
 
 use GuzzleHttp\Client;
 
-use yii\helpers\IpHelper;
 use yii\helpers\Markdown;
 
 abstract class Automation extends Integration
@@ -103,11 +101,7 @@ abstract class Automation extends Integration
         $url = Formie::$plugin->getTemplates()->renderSandboxedObjectTemplate($url, $submission, autoescape: false);
         $url = trim((string)App::parseEnv($url));
 
-        if (!$this->isPublicHttpEndpoint($url)) {
-            throw new IntegrationException(Craft::t('formie', 'Outbound integration URL must use a public HTTP or HTTPS endpoint.'));
-        }
-
-        return $url;
+        return $this->requirePublicHttpEndpoint($url);
     }
 
     /**
@@ -124,7 +118,7 @@ abstract class Automation extends Integration
         $config['allow_redirects'] = false;
 
         if ($endpointUrl !== null) {
-            $this->_applyDnsPin($config, $endpointUrl);
+            return $this->createPublicEndpointClient($endpointUrl, $config);
         }
 
         if (App::devMode() && !array_key_exists('verify', $config)) {
@@ -145,138 +139,10 @@ abstract class Automation extends Integration
         if (preg_match('#^https?://#i', $uri) === 1) {
             $config = $this->getClient()->getConfig();
             $config['allow_redirects'] = false;
-            $this->_applyDnsPin($config, $uri);
-            $this->_client = new Client($config);
+            $this->_client = $this->createPublicEndpointClient($uri, $config);
         }
 
         return parent::request($method, $uri, $options);
-    }
-
-    protected function isPublicHttpEndpoint(string $url): bool
-    {
-        if ($url === '') {
-            return false;
-        }
-
-        $parts = parse_url($url);
-
-        if (!is_array($parts)) {
-            return false;
-        }
-
-        $scheme = strtolower((string)($parts['scheme'] ?? ''));
-        $host = trim((string)($parts['host'] ?? ''));
-
-        if (!in_array($scheme, ['http', 'https'], true) || $host === '') {
-            return false;
-        }
-
-        if (isset($parts['user']) || isset($parts['pass'])) {
-            return false;
-        }
-
-        $ips = $this->_resolveEndpointIps($host);
-
-        if (!$ips) {
-            return false;
-        }
-
-        foreach ($ips as $ip) {
-            if (!$this->_isPublicIp($ip)) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * Force curl to connect using a validated public IP for this host:port.
-     * Re-validates at pin time so a late DNS change cannot introduce a private IP.
-     */
-    private function _applyDnsPin(array &$config, string $url): void
-    {
-        $parts = parse_url($url);
-
-        if (!is_array($parts)) {
-            throw new IntegrationException(Craft::t('formie', 'Outbound integration URL must use a public HTTP or HTTPS endpoint.'));
-        }
-
-        $scheme = strtolower((string)($parts['scheme'] ?? ''));
-        $host = trim((string)($parts['host'] ?? ''));
-
-        if (!in_array($scheme, ['http', 'https'], true) || $host === '') {
-            throw new IntegrationException(Craft::t('formie', 'Outbound integration URL must use a public HTTP or HTTPS endpoint.'));
-        }
-
-        // Literal IP hosts are already the connect target; still require public.
-        if (filter_var($host, FILTER_VALIDATE_IP)) {
-            if (!$this->_isPublicIp($host)) {
-                throw new IntegrationException(Craft::t('formie', 'Outbound integration URL must use a public HTTP or HTTPS endpoint.'));
-            }
-
-            return;
-        }
-
-        $ips = $this->_resolveEndpointIps($host);
-
-        if (!$ips) {
-            throw new IntegrationException(Craft::t('formie', 'Outbound integration URL must use a public HTTP or HTTPS endpoint.'));
-        }
-
-        foreach ($ips as $ip) {
-            if (!$this->_isPublicIp($ip)) {
-                throw new IntegrationException(Craft::t('formie', 'Outbound integration URL must use a public HTTP or HTTPS endpoint.'));
-            }
-        }
-
-        $ip = $ips[0];
-        $port = isset($parts['port']) ? (int)$parts['port'] : ($scheme === 'https' ? 443 : 80);
-        $resolve = $config['curl'][CURLOPT_RESOLVE] ?? [];
-
-        if (!is_array($resolve)) {
-            $resolve = [];
-        }
-
-        // CURLOPT_RESOLVE entry format: host:port:address
-        $resolve[] = sprintf('%s:%d:%s', $host, $port, $ip);
-        $config['curl'][CURLOPT_RESOLVE] = array_values(array_unique($resolve));
-    }
-
-    private function _resolveEndpointIps(string $host): array
-    {
-        if (filter_var($host, FILTER_VALIDATE_IP)) {
-            return [$host];
-        }
-
-        $ips = gethostbynamel($host) ?: [];
-
-        if (function_exists('dns_get_record')) {
-            foreach (dns_get_record($host, DNS_AAAA) ?: [] as $record) {
-                if (isset($record['ipv6'])) {
-                    $ips[] = $record['ipv6'];
-                }
-            }
-        }
-
-        return array_values(array_unique(array_filter($ips, 'is_string')));
-    }
-
-    private function _isPublicIp(string $ip): bool
-    {
-        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_GLOBAL_RANGE) === false) {
-            return false;
-        }
-
-        // Global-range validation alone permits multicast and translation ranges
-        // that can carry a private IPv4 destination through an IPv6 connection.
-        foreach (['224.0.0.0/4', 'ff00::/8', '64:ff9b::/96', '2002::/16', '2001::/32'] as $range) {
-            if (IpHelper::inRange($ip, $range)) {
-                return false;
-            }
-        }
-
-        return true;
     }
 
 }

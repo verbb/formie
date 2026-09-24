@@ -835,6 +835,24 @@ class HubSpot extends Crm
     // Protected Methods
     // =========================================================================
 
+    protected function formSettingAttributes(): array
+    {
+        $settings = parent::formSettingAttributes();
+        $settings[] = 'mapToContact';
+        $settings[] = 'mapToDeal';
+        $settings[] = 'mapToCompany';
+        $settings[] = 'mapToTicket';
+        $settings[] = 'mapToForm';
+        $settings[] = 'contactFieldMapping';
+        $settings[] = 'dealFieldMapping';
+        $settings[] = 'companyFieldMapping';
+        $settings[] = 'ticketFieldMapping';
+        $settings[] = 'formFieldMapping';
+        $settings[] = 'formId';
+
+        return $settings;
+    }
+
     protected function defineRules(): array
     {
         $rules = parent::defineRules();

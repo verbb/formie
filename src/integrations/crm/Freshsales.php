@@ -565,6 +565,21 @@ class Freshsales extends Crm
     // Protected Methods
     // =========================================================================
 
+    protected function formSettingAttributes(): array
+    {
+        $settings = parent::formSettingAttributes();
+        $settings[] = 'mapToContact';
+        $settings[] = 'mapToLead';
+        $settings[] = 'mapToDeal';
+        $settings[] = 'mapToAccount';
+        $settings[] = 'contactFieldMapping';
+        $settings[] = 'leadFieldMapping';
+        $settings[] = 'dealFieldMapping';
+        $settings[] = 'accountFieldMapping';
+
+        return $settings;
+    }
+
     protected function defineRules(): array
     {
         $rules = parent::defineRules();

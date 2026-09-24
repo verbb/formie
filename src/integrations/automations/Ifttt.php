@@ -62,8 +62,6 @@ class Ifttt extends Automation
 
             Formie::$plugin->getSubmissions()->populateFakeSubmission($submission);
 
-            $this->eventName = $form->settings->integrations[$this->handle]['eventName'] ?? $this->eventName;
-
             $payload = $this->generatePayloadValues($submission);
 
             $response = $this->deliverPayload($submission, $this->getUrl(), $payload);
@@ -112,6 +110,14 @@ class Ifttt extends Automation
     
     // Protected Methods
     // =========================================================================
+
+    protected function formSettingAttributes(): array
+    {
+        $settings = parent::formSettingAttributes();
+        $settings[] = 'eventName';
+
+        return $settings;
+    }
 
     protected function defineRules(): array
     {

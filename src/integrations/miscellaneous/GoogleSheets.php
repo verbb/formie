@@ -121,8 +121,7 @@ class GoogleSheets extends Miscellaneous implements OAuthProviderInterface
             $formId = Craft::$app->getRequest()->getParam('formId');
             $form = Formie::$plugin->getForms()->getFormById($formId);
 
-            // Ensure we're fetching the spreadsheetId from the form settings, or global integration settings
-            $spreadsheetId = $form->settings->integrations[$this->handle]['spreadsheetId'] ? App::parseEnv($form->settings->integrations[$this->handle]['spreadsheetId']) : $this->getSpreadSheetId();
+            $spreadsheetId = $this->getSpreadSheetId();
 
             $spreadsheet = $this->request('GET', $spreadsheetId);
             $allSheets = $spreadsheet['sheets'] ?? [];
@@ -213,6 +212,15 @@ class GoogleSheets extends Miscellaneous implements OAuthProviderInterface
     
     // Protected Methods
     // =========================================================================
+
+    protected function formSettingAttributes(): array
+    {
+        $settings = parent::formSettingAttributes();
+        $settings[] = 'sheetId';
+        $settings[] = 'fieldMapping';
+
+        return $settings;
+    }
 
     protected function defineRules(): array
     {

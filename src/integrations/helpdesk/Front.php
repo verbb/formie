@@ -165,6 +165,16 @@ class Front extends HelpDesk implements OAuthProviderInterface
     // Protected Methods
     // =========================================================================
 
+    protected function formSettingAttributes(): array
+    {
+        $settings = parent::formSettingAttributes();
+        $settings[] = 'message';
+        $settings[] = 'mapToMessage';
+        $settings[] = 'messageFieldMapping';
+
+        return $settings;
+    }
+
     protected function defineRules(): array
     {
         $rules = parent::defineRules();

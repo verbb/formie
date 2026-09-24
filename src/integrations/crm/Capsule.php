@@ -390,6 +390,19 @@ class Capsule extends Crm
     // Protected Methods
     // =========================================================================
 
+    protected function formSettingAttributes(): array
+    {
+        $settings = parent::formSettingAttributes();
+        $settings[] = 'mapToPeople';
+        $settings[] = 'mapToOpportunity';
+        $settings[] = 'mapToTask';
+        $settings[] = 'peopleFieldMapping';
+        $settings[] = 'opportunityFieldMapping';
+        $settings[] = 'taskFieldMapping';
+
+        return $settings;
+    }
+
     protected function defineRules(): array
     {
         $rules = parent::defineRules();

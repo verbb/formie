@@ -202,6 +202,16 @@ class HelpScout extends HelpDesk implements OAuthProviderInterface
     // Protected Methods
     // =========================================================================
 
+    protected function formSettingAttributes(): array
+    {
+        $settings = parent::formSettingAttributes();
+        $settings[] = 'message';
+        $settings[] = 'mapToConversation';
+        $settings[] = 'conversationFieldMapping';
+
+        return $settings;
+    }
+
     protected function defineRules(): array
     {
         $rules = parent::defineRules();

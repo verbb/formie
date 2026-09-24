@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\models;
 
+use verbb\formie\Formie;
 use verbb\formie\base\FieldInterface;
 use verbb\formie\base\ParentField;
 use verbb\formie\elements\Form;
@@ -45,6 +46,7 @@ class StencilData extends Model
         }
 
         $integrations = $settings['integrations'] ?? [];
+        $integrations = Formie::$plugin->getIntegrations()->filterAllIntegrationFormSettings($integrations, true);
 
         $settings['integrations'] = array_filter($integrations, function($integration) {
             return isset($integration['enabled']) && $integration['enabled'];

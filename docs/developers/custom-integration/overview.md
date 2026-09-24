@@ -67,6 +67,7 @@ Method | Use
 `fetchConnection()` | Checks whether the integration can connect to the provider.
 `fetchFormSettings()` | Fetches provider data used by the form builder, such as lists, fields, channels or element layouts.
 `defineFormSettingsSchema()` | Defines the integration settings shown inside a form’s Integrations tab.
+`formSettingAttributes()` | Declares which integration attributes Formie may store and populate for each form.
 `sendPayload()` | Sends or saves data after a submission has completed.
 
 `getSettingsHtml()` still exists for plugin-level integration settings in Formie’s settings area. Form-specific integration settings are now defined with `defineFormSettingsSchema()`, not a Twig template.
@@ -92,6 +93,22 @@ protected function defineFormSettingsSchema(FormInterface $form): array
     return $schema;
 }
 ```
+
+Every field in the schema that is saved with the form must also be declared by `formSettingAttributes()`. Start with the parent attributes, then append the attributes owned by your integration.
+
+```php
+protected function formSettingAttributes(): array
+{
+    $settings = parent::formSettingAttributes();
+    $settings[] = 'url';
+
+    return $settings;
+}
+```
+
+For registered integrations, Formie discards undeclared form values before saving or populating the integration. Settings for an integration whose class is temporarily unavailable are retained as opaque data to avoid destructive form saves, but Formie does not hydrate them into an integration instance. This keeps plugin-level settings such as API keys and base URLs separate from form-level mappings and options.
+
+If a declared form setting contains an outbound URL, send to it with `requestPublicEndpoint()` or `deliverPayloadToPublicEndpoint()`. These methods use a credential-free client, reject private and reserved network targets, disable redirects and pin DNS resolution. Continue using `request()` and `deliverPayload()` for the integration provider's fixed API endpoints.
 
 Many integrations also use field mapping. The helper expects provider fields that have already been fetched into `IntegrationFormSettings`.
 

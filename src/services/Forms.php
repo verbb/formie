@@ -249,7 +249,9 @@ class Forms extends Component
 
     public function buildStencilFormFromPost(): Form
     {
-        return $this->_populateFormFromPost(new Form(), applyDefaultStencil: false);
+        return $this->_populateFormFromPost(new Form([
+            'builderEntityType' => Form::BUILDER_ENTITY_TYPE_STENCIL,
+        ]), applyDefaultStencil: false);
     }
 
     public function getFormBuilderVariables(Form $form, ?int $activeSiteId = null): array
@@ -638,10 +640,19 @@ class Forms extends Component
             $form->addError('pages', Craft::t('formie', 'Multi-page forms are disabled in Formie settings.'));
         }
 
+        $user = Craft::$app->getUser()->getIdentity();
+        $canManageIntegrations = $form->getBuilderEntityType() === Form::BUILDER_ENTITY_TYPE_STENCIL
+            ? ($user && $user->can('formie-showFormIntegrations'))
+            : Formie::$plugin->getPermissions()->canShowFormBuilderTab($user, $form, 'formie-showFormIntegrations');
+        $oldIntegrationSettings = $form->settings->integrations ?? [];
+
         // Merge in any new settings, while retaining existing ones. Important for users with permissions.
         if ($newSettings = $request->getParam('settings')) {
+            if (!$canManageIntegrations) {
+                unset($newSettings['integrations']);
+            }
+
             // Retain any integration form settings before wiping them
-            $oldIntegrationSettings = $form->settings->integrations ?? [];
             $newIntegrationSettings = $newSettings['integrations'] ?? [];
             $newSettings['integrations'] = array_merge($oldIntegrationSettings, $newIntegrationSettings);
 
@@ -662,6 +673,10 @@ class Forms extends Component
         if ($stencilId = $request->getParam('applyStencilId')) {
             if ($stencil = Formie::$plugin->getStencils()->getStencilById($stencilId)) {
                 $stencil->applyStencilToForm($form, true);
+
+                if (!$canManageIntegrations) {
+                    $form->settings->setAttributes(['integrations' => $oldIntegrationSettings], false);
+                }
             }
         } else if ($isNewForm && $applyDefaultStencil) {
             Formie::$plugin->getFormDefaults()->applyDefaultStencil($form);

@@ -57,6 +57,9 @@ use Throwable;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
+
+use yii\helpers\IpHelper;
+
 use verbb\auth\Auth;
 use verbb\auth\base\OAuthProviderInterface;
 use verbb\auth\base\OAuthProviderTrait;
@@ -428,6 +431,14 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         }
 
         return $attributes;
+    }
+
+    public function getFormSettingAttributes(): array
+    {
+        return array_values(array_unique(array_filter(
+            $this->formSettingAttributes(),
+            fn($attribute) => is_string($attribute) && $attribute !== '',
+        )));
     }
 
     public function supportsIntegrationApiErrorSeverity(): bool
@@ -833,6 +844,38 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         }
     }
 
+    public function requestPublicEndpoint(string $method, string $uri, array $options = []): mixed
+    {
+        $writes = !in_array(strtoupper($method), ['GET', 'HEAD', 'OPTIONS'], true);
+        $options['allow_redirects'] = false;
+
+        try {
+            // Use a clean client so provider credentials cannot be forwarded to
+            // a form-configured endpoint on an unrelated public host.
+            $response = $this->createPublicEndpointClient($uri)->request($method, $uri, $options);
+
+            if ($writes) {
+                $this->context['deliveryWriteAccepted'] = true;
+            }
+
+            $text = (string)$response->getBody()->getContents();
+
+            if (Json::isJsonObject($text)) {
+                return Json::decode($text);
+            }
+
+            return $text;
+        } catch (Throwable $e) {
+            $response = $e instanceof RequestException ? $e->getResponse() : null;
+
+            if ($writes && (!$response || $response->getStatusCode() >= 500 || $response->getStatusCode() === 408)) {
+                $this->context['deliveryUncertain'] = true;
+            }
+
+            throw $e;
+        }
+    }
+
     public function deliverPayload(Submission $submission, string $endpoint, mixed $payload, string $method = 'POST', string $contentType = 'json'): mixed
     {
         // Allow events to cancel sending
@@ -846,6 +889,23 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         ]);
 
         // Allow events to say the response is invalid
+        if (!$this->afterSendPayload($submission, $endpoint, $payload, $method, $response)) {
+            return false;
+        }
+
+        return $response;
+    }
+
+    public function deliverPayloadToPublicEndpoint(Submission $submission, string $endpoint, mixed $payload, string $method = 'POST', string $contentType = 'json'): mixed
+    {
+        if (!$this->beforeSendPayload($submission, $endpoint, $payload, $method, $contentType)) {
+            return false;
+        }
+
+        $response = $this->requestPublicEndpoint($method, $endpoint, [
+            $contentType => $payload,
+        ]);
+
         if (!$this->afterSendPayload($submission, $endpoint, $payload, $method, $response)) {
             return false;
         }
@@ -1189,6 +1249,16 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     // Protected Methods
     // =========================================================================
 
+    protected function formSettingAttributes(): array
+    {
+        return [
+            'enabled',
+            'optInField',
+            'enableConditions',
+            'conditions',
+        ];
+    }
+
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -1230,6 +1300,65 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         }
 
         return Craft::createGuzzleClient($options);
+    }
+
+    protected function createPublicEndpointClient(string $endpoint, array $config = []): Client
+    {
+        $config['allow_redirects'] = false;
+        $this->_applyPublicEndpointDnsPin($config, $endpoint);
+
+        if (App::devMode() && !array_key_exists('verify', $config)) {
+            $config['verify'] = false;
+        }
+
+        return Craft::createGuzzleClient($config);
+    }
+
+    protected function requirePublicHttpEndpoint(string $url): string
+    {
+        if (!$this->isPublicHttpEndpoint($url)) {
+            throw new IntegrationException(Craft::t('formie', 'Outbound integration URL must use a public HTTP or HTTPS endpoint.'));
+        }
+
+        return $url;
+    }
+
+    protected function isPublicHttpEndpoint(string $url): bool
+    {
+        if ($url === '') {
+            return false;
+        }
+
+        $parts = parse_url($url);
+
+        if (!is_array($parts)) {
+            return false;
+        }
+
+        $scheme = strtolower((string)($parts['scheme'] ?? ''));
+        $host = $this->_normalizePublicEndpointHost((string)($parts['host'] ?? ''));
+
+        if (!in_array($scheme, ['http', 'https'], true) || $host === '') {
+            return false;
+        }
+
+        if (isset($parts['user']) || isset($parts['pass'])) {
+            return false;
+        }
+
+        $ips = $this->_resolvePublicEndpointIps($host);
+
+        if (!$ips) {
+            return false;
+        }
+
+        foreach ($ips as $ip) {
+            if (!$this->_isPublicEndpointIp($ip)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     protected function defineFieldMappingSchema(string $settingsKey, ?string $selectedCollectionField = null): array
@@ -1527,6 +1656,99 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     // Private Methods
     // =========================================================================
+
+    private function _applyPublicEndpointDnsPin(array &$config, string $url): void
+    {
+        $parts = parse_url($url);
+
+        if (!is_array($parts)) {
+            throw new IntegrationException(Craft::t('formie', 'Outbound integration URL must use a public HTTP or HTTPS endpoint.'));
+        }
+
+        $scheme = strtolower((string)($parts['scheme'] ?? ''));
+        $host = $this->_normalizePublicEndpointHost((string)($parts['host'] ?? ''));
+
+        if (!in_array($scheme, ['http', 'https'], true) || $host === '' || isset($parts['user']) || isset($parts['pass'])) {
+            throw new IntegrationException(Craft::t('formie', 'Outbound integration URL must use a public HTTP or HTTPS endpoint.'));
+        }
+
+        if (filter_var($host, FILTER_VALIDATE_IP)) {
+            if (!$this->_isPublicEndpointIp($host)) {
+                throw new IntegrationException(Craft::t('formie', 'Outbound integration URL must use a public HTTP or HTTPS endpoint.'));
+            }
+
+            return;
+        }
+
+        $ips = $this->_resolvePublicEndpointIps($host);
+
+        if (!$ips) {
+            throw new IntegrationException(Craft::t('formie', 'Outbound integration URL must use a public HTTP or HTTPS endpoint.'));
+        }
+
+        foreach ($ips as $ip) {
+            if (!$this->_isPublicEndpointIp($ip)) {
+                throw new IntegrationException(Craft::t('formie', 'Outbound integration URL must use a public HTTP or HTTPS endpoint.'));
+            }
+        }
+
+        $ip = $ips[0];
+        $port = isset($parts['port']) ? (int)$parts['port'] : ($scheme === 'https' ? 443 : 80);
+        $resolve = $config['curl'][CURLOPT_RESOLVE] ?? [];
+
+        if (!is_array($resolve)) {
+            $resolve = [];
+        }
+
+        $resolveIp = filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) ? '[' . $ip . ']' : $ip;
+        $resolve[] = sprintf('%s:%d:%s', $host, $port, $resolveIp);
+        $config['curl'][CURLOPT_RESOLVE] = array_values(array_unique($resolve));
+    }
+
+    private function _normalizePublicEndpointHost(string $host): string
+    {
+        $host = trim($host);
+
+        if (str_starts_with($host, '[') && str_ends_with($host, ']')) {
+            return substr($host, 1, -1);
+        }
+
+        return $host;
+    }
+
+    private function _resolvePublicEndpointIps(string $host): array
+    {
+        if (filter_var($host, FILTER_VALIDATE_IP)) {
+            return [$host];
+        }
+
+        $ips = gethostbynamel($host) ?: [];
+
+        if (function_exists('dns_get_record')) {
+            foreach (dns_get_record($host, DNS_AAAA) ?: [] as $record) {
+                if (isset($record['ipv6'])) {
+                    $ips[] = $record['ipv6'];
+                }
+            }
+        }
+
+        return array_values(array_unique(array_filter($ips, 'is_string')));
+    }
+
+    private function _isPublicEndpointIp(string $ip): bool
+    {
+        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_GLOBAL_RANGE) === false) {
+            return false;
+        }
+
+        foreach (['224.0.0.0/4', 'ff00::/8', '64:ff9b::/96', '2002::/16', '2001::/32'] as $range) {
+            if (IpHelper::inRange($ip, $range)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 
     private function _getOptionSourceIntegrationCollections(IntegrationFormSettings $settings, array $definition): array
     {

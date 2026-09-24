@@ -1,12 +1,14 @@
 <?php
 namespace verbb\formie\base;
 
-use craft\base\SavableComponentInterface;
 use verbb\formie\models\ClientModule;
 use verbb\formie\models\ClientModuleContext;
 
+use craft\base\SavableComponentInterface;
+
 interface IntegrationInterface extends SavableComponentInterface
 {
+    public function getFormSettingAttributes(): array;
     public function getFormSettingsSchema(FormInterface $form): array;
     public function getClientModule(ClientModuleContext $context): ?ClientModule;
 

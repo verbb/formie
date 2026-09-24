@@ -153,6 +153,17 @@ class Trello extends Miscellaneous implements OAuthProviderInterface
     // Protected Methods
     // =========================================================================
 
+    protected function formSettingAttributes(): array
+    {
+        $settings = parent::formSettingAttributes();
+        $settings[] = 'boardId';
+        $settings[] = 'listId';
+        $settings[] = 'cardName';
+        $settings[] = 'cardDescription';
+
+        return $settings;
+    }
+
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
