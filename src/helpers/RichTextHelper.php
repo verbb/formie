@@ -131,7 +131,7 @@ class RichTextHelper
         ];
     }
 
-    private static function _getConfig(string $dir, string $file = null): bool|array
+    private static function _getConfig(string $dir, ?string $file = null): bool|array
     {
         if (!$file) {
             return false;
