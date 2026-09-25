@@ -4,14 +4,12 @@ namespace verbb\formie\services;
 use verbb\formie\Formie;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\Settings;
-use verbb\formie\models\SubmissionRequest;
-use verbb\formie\services\SubmissionWorkflow;
+use verbb\formie\models\SubmissionCommand;
 
 use Craft;
 use craft\base\Component;
 use craft\db\Query;
 use craft\db\Table as CraftTable;
-use craft\web\Request as WebRequest;
 
 class SubmissionGuards extends Component
 {
@@ -28,92 +26,53 @@ class SubmissionGuards extends Component
     // Public Methods
     // =========================================================================
 
-    public function shouldRunGuards(SubmissionRequest $request): bool
+    public function issueRequestToken(\verbb\formie\elements\Form $form): string
     {
-        if ($request->submitAction !== SubmissionWorkflow::SUBMIT_ACTION_SUBMIT) {
-            return false;
-        }
-
-        if (!in_array($request->processMode, [SubmissionWorkflow::PROCESS_MODE_SUBMIT], true)) {
-            return false;
-        }
-
-        if ($request->submission->isSpam) {
-            return false;
-        }
-
-        return true;
+        return Craft::$app->getSecurity()->hashData(\craft\helpers\Json::encode([
+            'form' => $form->uid,
+            'site' => $form->siteId,
+            'issued' => time(),
+            'nonce' => Craft::$app->getSecurity()->generateRandomString(),
+        ]));
     }
 
-    public function validateRequest(SubmissionRequest $request): ?string
+    public function validateRequest(SubmissionCommand $request, bool $browser): ?string
     {
-        if (!$this->shouldRunGuards($request)) {
+        if (!$request->isInteractive()) {
             return null;
         }
 
+        $payload = Craft::$app->getSecurity()->validateData((string)$request->requestToken);
+        $token = $payload === false ? null : \craft\helpers\Json::decodeIfJson($payload);
+        if (!is_array($token) || ($token['form'] ?? null) !== $request->form->uid
+            || (int)($token['site'] ?? 0) !== (int)$request->form->siteId
+            || (int)($token['issued'] ?? 0) > time()
+            || (int)($token['issued'] ?? 0) < time() - SubmissionOperations::RETENTION_SECONDS) {
+            throw new \yii\web\ForbiddenHttpException('Invalid or expired submission request.');
+        }
+
+        Formie::$plugin->getClientSessionService()->enforceAnonymousRateLimit($request->form);
         $settings = Formie::$plugin->getSettings();
-        $isBrowser = $this->_isBrowserFormSubmission();
-
-        if (!$isBrowser) {
-            $reason = $this->_validateHeadlessRequestToken($request);
-
-            if ($reason) {
-                return $reason;
-            }
+        if ($settings->enableGlobalSubmissionThrottling && ($reason = $this->_validateGlobalSubmissionThrottling($settings))) {
+            throw new \yii\web\TooManyRequestsHttpException($reason);
+        }
+        if ($settings->enableIpSubmissionThrottling && ($reason = $this->_validateIpSubmissionThrottling($settings, $request))) {
+            throw new \yii\web\TooManyRequestsHttpException($reason);
         }
 
-        if ($settings->enableGlobalSubmissionThrottling) {
-            $reason = $this->_validateGlobalSubmissionThrottling($settings);
-
-            if ($reason) {
-                return $reason;
-            }
+        // Browser honeypots protect every write. Minimum elapsed time applies to
+        // forward Submit only; saving/back navigation remains usable immediately.
+        if ($browser && $settings->enableHoneypot && ($reason = $this->_validateHoneypot($settings))) {
+            return $reason;
         }
-
-        if ($settings->enableIpSubmissionThrottling) {
-            $reason = $this->_validateIpSubmissionThrottling($settings, $request);
-
-            if ($reason) {
-                return $reason;
-            }
+        if ($browser && $request->operation === \verbb\formie\enums\SubmissionOperation::SUBMIT
+            && $request->navigation === \verbb\formie\enums\NavigationIntent::ADVANCE
+            && $settings->enableMinimumSubmitTime && ($reason = $this->_validateMinimumSubmitTime($settings))) {
+            return $reason;
         }
-
-        if ($settings->enableReplayProtection) {
-            $reason = $this->_validateReplayProtection($request);
-
-            if ($reason) {
-                return $reason;
-            }
+        if ($browser && $settings->enableFormSubmitExpiration) {
+            return $this->_validateFormSubmitExpiration($settings);
         }
-
-        if (!$isBrowser) {
-            return null;
-        }
-
-        if ($settings->enableHoneypot) {
-            $reason = $this->_validateHoneypot($settings);
-
-            if ($reason) {
-                return $reason;
-            }
-        }
-
-        if ($settings->enableMinimumSubmitTime) {
-            $reason = $this->_validateMinimumSubmitTime($settings);
-
-            if ($reason) {
-                return $reason;
-            }
-        }
-
-        if ($settings->enableFormSubmitExpiration) {
-            $reason = $this->_validateFormSubmitExpiration($settings);
-
-            if ($reason) {
-                return $reason;
-            }
-        }
-
         return null;
     }
 
@@ -164,63 +123,8 @@ class SubmissionGuards extends Component
         );
     }
 
-    public function shouldConsumeReplayToken(SubmissionRequest $request): bool
-    {
-        if (!$this->shouldRunGuards($request)) {
-            return false;
-        }
-
-        $settings = Formie::$plugin->getSettings();
-
-        if (!$settings->enableReplayProtection) {
-            return false;
-        }
-
-        $requestToken = trim((string)$request->requestToken);
-
-        if ($requestToken === '') {
-            return false;
-        }
-
-        return !$request->submission->isIncomplete;
-    }
-
-    public function shouldSkipCaptchaChecks(SubmissionRequest $request): bool
-    {
-        if ($request->submitAction !== SubmissionWorkflow::SUBMIT_ACTION_SUBMIT) {
-            return false;
-        }
-
-        if ($request->processMode !== SubmissionWorkflow::PROCESS_MODE_SUBMIT) {
-            return false;
-        }
-
-        $submission = $request->submission;
-
-        // Payment follow-up submits (e.g. Stripe confirm) reuse the same browser
-        // session and one-time captcha token. Captcha was already validated on the
-        // first final submit before the submission was persisted as incomplete.
-        if (!$submission->id || !$submission->isIncomplete || $submission->isSpam) {
-            return false;
-        }
-
-        return true;
-    }
-
-
     // Private Methods
     // =========================================================================
-
-    private function _validateHeadlessRequestToken(SubmissionRequest $request): ?string
-    {
-        $requestToken = trim((string)$request->requestToken);
-
-        if ($requestToken === '') {
-            return Craft::t('formie', 'Request token missing.');
-        }
-
-        return null;
-    }
 
     private function _validateGlobalSubmissionThrottling(Settings $settings): ?string
     {
@@ -231,6 +135,10 @@ class SubmissionGuards extends Component
         $mutexKey = self::GLOBAL_THROTTLE_CACHE_KEY . '.lock';
         $now = time();
         $lockAcquired = $mutex?->acquire($mutexKey, 3) ?? false;
+
+        if (!$lockAcquired) {
+            throw new \yii\web\TooManyRequestsHttpException('Please retry shortly.');
+        }
 
         try {
             $entry = $cache->get(self::GLOBAL_THROTTLE_CACHE_KEY);
@@ -260,7 +168,7 @@ class SubmissionGuards extends Component
         return null;
     }
 
-    private function _validateIpSubmissionThrottling(Settings $settings, SubmissionRequest $request): ?string
+    private function _validateIpSubmissionThrottling(Settings $settings, SubmissionCommand $request): ?string
     {
         $minutes = max(1, (int)$settings->ipSubmissionThrottleMinutes);
         $ip = trim((string)($request->submission->ipAddress ?? $this->_requestUserIp()));
@@ -368,42 +276,6 @@ class SubmissionGuards extends Component
         }
 
         return null;
-    }
-
-    private function _validateReplayProtection(SubmissionRequest $request): ?string
-    {
-        $requestToken = trim((string)$request->requestToken);
-
-        if ($requestToken === '') {
-            return Craft::t('formie', 'Replay protection token missing.');
-        }
-
-        $formUid = (string)$request->form->uid;
-
-        if ($this->isReplayTokenConsumed($formUid, $requestToken)) {
-            return Craft::t('formie', 'Request token has already been used.');
-        }
-
-        return null;
-    }
-
-    private function _isBrowserFormSubmission(): bool
-    {
-        $request = Craft::$app->getRequest();
-
-        if (!$request instanceof WebRequest) {
-            return false;
-        }
-
-        if (!$request->getIsPost()) {
-            return false;
-        }
-
-        $handle = $request->getBodyParam('handle');
-        $submitAction = $request->getBodyParam('submitAction');
-
-        return is_string($handle) && trim($handle) !== ''
-            && is_string($submitAction) && trim($submitAction) !== '';
     }
 
     private function _getBodyParam(string $name): mixed

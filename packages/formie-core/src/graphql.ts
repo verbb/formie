@@ -21,6 +21,7 @@ type GraphqlResponse<T> = {
 
 const FRONTEND_SESSION_SELECTION = `
     id
+    version
     currentPageId
     tokens
     continuation
@@ -28,6 +29,8 @@ const FRONTEND_SESSION_SELECTION = `
 
 const FRONTEND_SUBMIT_RESULT_SELECTION = `
     success
+    outcome
+    version
     submissionUid
     currentPageId
     nextPageId

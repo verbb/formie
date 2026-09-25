@@ -1,94 +1,36 @@
 # Submission Workflow and Stages Explained
 
-Formie processes submissions through a staged workflow.
+A visitor clicking Next, saving a draft and completing a form need different processing. Formie describes the requested operation explicitly, then runs the applicable tasks in a fixed sequence. This explains why invalid input doesn't spend a CAPTCHA token, why drafts don't send confirmation emails and why a pending payment keeps a submission incomplete.
 
-Instead of treating submission handling as one large save step, Formie moves through a series of smaller stages in order. That lets Formie handle multi-page navigation, draft saving, validation, captcha and spam checks, payment handling, persistence, notifications, integrations, and the final browser response in a predictable way.
+Before processing starts, the submission boundary resolves the form and optional saved record, checks the caller's authority and applies request integrity and rate safeguards. It locks the operation and submission resource, then checks the caller's expected version before applying submitted values. A stale page cannot silently overwrite a newer submission.
 
-If you are extending submission handling, the workflow tells you where your code belongs. Instead of guessing where custom logic should run, you can choose the stage or task that owns that responsibility.
+## Follow a Submission Through the Stages
 
-That model also explains practical behaviour worth knowing early: why save-and-continue skips spam checks, why integrations wait until after payment succeeds, and why hooking `Submission::EVENT_AFTER_SAVE` is not always the same as hooking into a front-end submit.
+| Stage | What Happens |
+| --- | --- |
+| Preflight | Interpret navigation, apply defaults, clear hidden values, enforce progression and select the next visible page. |
+| Validate | Check fields, the form and questionnaire retake eligibility. Invalid input stops here. |
+| Screen | Evaluate content spam, then verify CAPTCHA when the spam decision is not already known. |
+| Persist | Save the record, process applicable payments and recalculate questionnaire results. |
+| Dispatch | Start applicable notifications and integration work. |
+| Finalize | Apply outward spam policy, progression, upload bookkeeping and the terminal outcome. |
 
-If you only need custom code on a page submit or when the form is submitted, start with [Run custom code on page submit or form submit](/guides/submissions-workflows/run-custom-code-on-page-submit-or-form-submit). This page is the pipeline itself.
+The HTML, AJAX, REST or GraphQL adapter then maps that outcome to its response. A payment requiring another action or waiting on a provider is an expected outcome. The first persisted payment submission is incomplete; it becomes complete only after the required payment succeeds.
 
-This guide walks through what runs in each stage, which requests use the full pipeline, and how to choose an extension point. For stage and task names, code examples, and events, see [Submission Workflow](/developers/submission-workflow).
+## Understand the Operations
 
-## Prerequisites
+Submit accepts the current page or attempts final completion. Continuing an incomplete submission remains Submit. Back and Target describe navigation separately from the operation; a target cannot skip an intervening page that still needs validation.
 
-- [Submission Workflow](/developers/submission-workflow) — canonical reference when you start writing code
-- [Submission Events](/developers/events/submission-events)
+SaveDraft persists progress without field validation, content spam checks, CAPTCHA or dispatch. It still requires valid request integrity, ownership and rate safeguards. [Save and continue later](/guides/submissions-workflows/save-and-continue-later) explains the visitor-facing flow.
 
-## The Pipeline at a Glance
+Revise edits an existing record without visitor progression. It validates the record, recalculates questionnaire results and applies configured edit integration and status-change notification policies. Control panel creation uses an explicit administrative Submit policy: whole-record validation and the chosen status, without visitor screening, payments or automatic completion dispatch.
 
-Each stage contains smaller **tasks** with stable names — useful when you extend the workflow in PHP, but not something you need to memorise to understand the overall flow.
+PaymentReplay reads a saved submission and payment after a verified provider/domain callback. It does not repopulate fields from browser input, repeat validation or spend CAPTCHA. If payment permits completion, dispatch can continue.
 
-On a normal front-end submit, Formie moves through eight stages in order:
+## Choose an Extension Point
 
-1. **Prepare** — set up the request; restore save-and-continue or draft context
-2. **Normalize** — resolve page flow, back navigation, default values
-3. **Validate** — run field and form validation rules
-4. **Screen** — submission guards, captchas, spam keyword and content rules
-5. **Authorize** — stop if earlier errors exist; resolve payment state
-6. **Save** — persist the submission; process payments
-7. **Dispatch** — send notifications; trigger integrations
-8. **Finalize** — build the response; apply next-page or success behaviour
+For code that reacts to an accepted page or a completed submission, use the [semantic page and completion events](/guides/submissions-workflows/run-custom-code-on-page-submit-or-form-submit). For an audit trail around a named phase, use [workflow observation events](/guides/submissions-workflows/using-submission-workflow-events).
 
-The order matters. Validation runs before save. Integrations run in **dispatch**, after the submission is stored and payment has had its chance to succeed.
+For an ordered check that can stop processing, register a [custom task](/guides/submissions-workflows/adding-a-custom-workflow-task-from-scratch) inside a fixed stage. Registration must declare its applicable operations. Stages cannot be added or reordered.
 
-```
-Browser POST
-    → prepare (draft context, request init)
-    → normalize (pages, defaults)
-    → validate (field rules)
-    → screen (guards, captcha, spam)
-    → authorize (errors, payment state)
-    → save (persist, charge card)
-    → dispatch (email, CRM, automations)
-    → finalize (response, replay token)
-    → Browser response
-```
-
-Payment provider callbacks re-enter through **payment replay** — a shortened path through save, dispatch, and finalize rather than repeating validation from scratch.
-
-## Not Every Request Runs the Full Pipeline
-
-The same form can trigger different workflow **modes**. The mode decides which stages run:
-
-| Mode | Typical trigger | What you should expect |
-| --- | --- | --- |
-| **Submit** | Visitor completes a step or final submit | Full pipeline — validation, screening, save, dispatch |
-| **Save draft** | Save and continue, or back navigation on a multi-page form | Persists progress only — no validation, screening, notifications, or integrations |
-| **Edit existing** | Front-end or control panel edit of a saved submission | Validates and saves; may re-run integrations per form settings; skips notifications and screening |
-| **Payment replay** | Stripe/GoCardless callback or status poll | Resumes after payment — save, dispatch, finalize |
-
-If you add custom logic to **dispatch**, it will not run when a visitor only saves a draft. That is intentional — drafts are not finished submissions.
-
-See [Save and continue later](/guides/submissions-workflows/save-and-continue-later) for how draft mode fits multi-page forms, and [Submission screening rules in practice](/guides/submissions-workflows/submission-screening-rules-in-practice) for what runs during the **screen** stage on a full submit.
-
-## Where Your Custom Code Belongs
-
-You do not always need a custom workflow task. Match the hook to what you actually care about:
-
-**You need to run code after a page submit, or only when the form is submitted** — use `EVENT_AFTER_PAGE_ADVANCE` / `EVENT_AFTER_COMPLETE`. See [Run custom code on page submit or form submit](/guides/submissions-workflows/run-custom-code-on-page-submit-or-form-submit). Every page POST uses `submit` mode; page submit and form submit both post `submitAction=submit`. Completeness is `isIncomplete` / next reachable page after page flow, including conditionally hidden last pages.
-
-**You need to react whenever the submission element is saved** — including control panel edits, imports, or API updates — use a submission **element event** such as `Submission::EVENT_AFTER_SAVE`. That fires on the element, not on the front-end submit request.
-
-**You need logic only during a front-end submit** — for example extra screening before spam checks, or work that should never run on draft saves — listen to **workflow stage or task events** and check the request mode is `submit`.
-
-**The stage is right but you need one more step inside it** — for example queue a job after save but before Mailchimp runs — register a **custom workflow task** in that stage, positioned before or after a built-in task.
-
-**You need a new phase in the pipeline** — for example a fraud score after screening but before save — register a **custom workflow stage**. Page vs complete is not a new stage.
-
-If you are unsure, start with the smallest hook. The two lifecycle events cover the common page-step and finished-form cases. Element events are the broadest; stage and task events are the escape hatch for a named slot in the pipeline.
-
-## When You Are Ready to Implement
-
-The [Submission Workflow](/developers/submission-workflow) developer reference has:
-
-- Default task names per stage
-- Workflow mode details
-- Copy-paste examples for stage events, custom tasks, and task results
-- The full list of registration and before/after events
-
-For full walkthroughs with module structure and copy-paste classes, see [Using submission workflow events](/guides/submissions-workflows/using-submission-workflow-events), [Adding a custom workflow task from scratch](/guides/submissions-workflows/adding-a-custom-workflow-task-from-scratch), and [Adding a custom workflow stage from scratch](/guides/submissions-workflows/adding-a-custom-workflow-stage-from-scratch).
-
-[Submission Events](/developers/events/submission-events) documents every event payload if you need the full reference.
+Direct Craft element persistence remains available for imports and administrative code. It raises element events but does not run this workflow or automatically send notifications and integrations. Use an explicit operation when you need those lifecycle policies, and check its typed result before deciding what to show the caller.

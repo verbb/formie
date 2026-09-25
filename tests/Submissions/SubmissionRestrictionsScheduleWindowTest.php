@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use DateTime;
 use verbb\formie\elements\Submission;
-use verbb\formie\models\SubmissionRequest;
+use verbb\formie\models\SubmissionCommand;
 use verbb\formie\services\SubmissionWorkflow;
 
 it('enforces schedule windows for before, active, and expired periods', function (): void {
@@ -26,11 +26,11 @@ it('enforces schedule windows for before, active, and expired periods', function
     $beforeSubmission->setForm($beforeStart);
     $beforeSubmission->setFieldValueFromRequest('fullName', 'Before');
 
-    $beforeResponse = $workflow->processSubmissionRequest(new SubmissionRequest([
-        'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+    $beforeResponse = runSubmissionCommand(submissionCommand([
+        'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
         'form' => $beforeStart,
         'submission' => $beforeSubmission,
-        'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+        'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
     ]));
 
     $active = formie()
@@ -49,11 +49,11 @@ it('enforces schedule windows for before, active, and expired periods', function
     $activeSubmission->setForm($active);
     $activeSubmission->setFieldValueFromRequest('fullName', 'Active');
 
-    $activeResponse = $workflow->processSubmissionRequest(new SubmissionRequest([
-        'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+    $activeResponse = runSubmissionCommand(submissionCommand([
+        'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
         'form' => $active,
         'submission' => $activeSubmission,
-        'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+        'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
     ]));
 
     $expired = formie()
@@ -72,11 +72,11 @@ it('enforces schedule windows for before, active, and expired periods', function
     $expiredSubmission->setForm($expired);
     $expiredSubmission->setFieldValueFromRequest('fullName', 'Expired');
 
-    $expiredResponse = $workflow->processSubmissionRequest(new SubmissionRequest([
-        'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+    $expiredResponse = runSubmissionCommand(submissionCommand([
+        'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
         'form' => $expired,
         'submission' => $expiredSubmission,
-        'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+        'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
     ]));
 
     expect($beforeResponse->success)->toBeFalse()

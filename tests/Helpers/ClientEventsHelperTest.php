@@ -77,7 +77,7 @@ it('skips client events for save actions', function (): void {
         $form,
         $submission,
         (int)$page->id,
-        SubmissionWorkflow::SUBMIT_ACTION_SAVE,
+        'save',
     ))->toBe([]);
 });
 
@@ -140,7 +140,7 @@ it('falls back to form default client events when a page has none configured', f
         $form,
         $submission,
         (int)$page->id,
-        SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+        'submit',
     );
 
     expect($resolved)->toHaveCount(1)

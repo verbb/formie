@@ -28,10 +28,9 @@ class IntegrationTriggerEvents
     // Public Methods
     // =========================================================================
 
-    public static function resolveFromProcessMode(string $processMode, ?bool $isCpRequest = null): string
+    public static function resolveFromOperation(\verbb\formie\enums\SubmissionOperation $operation, bool $isCpRequest = false): string
     {
-        if ($processMode === SubmissionWorkflow::PROCESS_MODE_EDIT_EXISTING) {
-            $isCpRequest ??= Craft::$app->getRequest()->getIsCpRequest();
+        if ($operation === \verbb\formie\enums\SubmissionOperation::REVISE) {
 
             return $isCpRequest ? self::CP_SAVE : self::FRONTEND_EDIT;
         }

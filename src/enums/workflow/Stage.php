@@ -5,13 +5,11 @@ enum Stage: string
 {
     // Cases
     // =========================================================================
-    
-    case PREPARE = 'prepare';
-    case NORMALIZE = 'normalize';
+
+    case PREFLIGHT = 'preflight';
     case VALIDATE = 'validate';
     case SCREEN = 'screen';
-    case AUTHORIZE = 'authorize';
-    case SAVE = 'save';
+    case PERSIST = 'persist';
     case DISPATCH = 'dispatch';
     case FINALIZE = 'finalize';
 }

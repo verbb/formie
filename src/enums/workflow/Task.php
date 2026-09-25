@@ -5,42 +5,21 @@ enum Task: string
 {
     // Cases
     // =========================================================================
-    
-    case PREPARE_APPLY_DRAFT_CONTEXT = 'prepare.applyDraftContext';
-    case PREPARE_INITIALIZE_SUBMIT_REQUEST = 'prepare.initializeSubmitRequest';
 
-    case NORMALIZE_HANDLE_BACK_NAVIGATION = 'normalize.handleBackNavigation';
-    case NORMALIZE_RESOLVE_PAGE_FLOW = 'normalize.resolvePageFlow';
-    case NORMALIZE_CLEAR_CONDITIONALLY_HIDDEN_FIELDS = 'normalize.clearConditionallyHiddenFields';
-    case NORMALIZE_ENSURE_SUBMISSION_DEFAULTS = 'normalize.ensureSubmissionDefaults';
-    case NORMALIZE_CAPTURE_SUBMISSION_METADATA = 'normalize.captureSubmissionMetadata';
-    case NORMALIZE_APPLY_STATUS_RULES = 'normalize.applyStatusRules';
-
-    case VALIDATE_SUBMISSION = 'validate.validateSubmission';
-    case VALIDATE_QUIZ_RETAKE = 'validate.quizRetake';
-
-    case SCREEN_RUN_SUBMISSION_GUARDS = 'screen.runSubmissionGuards';
-    case SCREEN_RUN_CAPTCHA_CHECKS = 'screen.runCaptchaChecks';
-    case SCREEN_RUN_SPAM_CHECKS = 'screen.runSpamChecks';
-
-    case AUTHORIZE_HALT_ON_SUBMISSION_ERRORS = 'authorize.haltOnSubmissionErrors';
-    case AUTHORIZE_RESOLVE_PAYMENT_STATE = 'authorize.resolvePaymentState';
-
-    case SAVE_PROCESS_PAYMENTS = 'save.processPayments';
-    case SAVE_APPLY_COMPLETION_FROM_PAYMENT_STATE = 'save.applyCompletionFromPaymentState';
-    case SAVE_PERSIST_SUBMISSION_WORKFLOW = 'save.persistSubmissionWorkflow';
-    case SAVE_PERSIST_SUBMISSION_DIRECT = 'save.persistSubmissionDirect';
-    case SAVE_PERSIST_QUESTIONNAIRE_SCORING = 'save.persistQuestionnaireScoring';
-    case SAVE_SET_PROCESSING_SUCCESS = 'save.setProcessingSuccess';
-
-    case DISPATCH_GUARD_DISPATCH_ELIGIBILITY = 'dispatch.guardDispatchEligibility';
+    case PREFLIGHT_RESOLVE_NAVIGATION_INTENT = 'preflight.resolveNavigationIntent';
+    case PREFLIGHT_APPLY_SUBMISSION_DEFAULTS = 'preflight.applySubmissionDefaults';
+    case PREFLIGHT_CLEAR_HIDDEN_VALUES = 'preflight.clearHiddenValues';
+    case PREFLIGHT_ENFORCE_PROGRESSION = 'preflight.enforceProgression';
+    case PREFLIGHT_RESOLVE_TRANSITION = 'preflight.resolveTransition';
+    case PREFLIGHT_CAPTURE_METADATA = 'preflight.captureMetadata';
+    case PREFLIGHT_APPLY_STATUS_RULES = 'preflight.applyStatusRules';
+    case VALIDATE_SUBMISSION = 'validate.submission';
+    case SCREEN_EVALUATE_SPAM = 'screen.evaluateSpam';
+    case SCREEN_VERIFY_CAPTCHA = 'screen.verifyCaptcha';
+    case PERSIST_SUBMISSION = 'persist.submission';
+    case PERSIST_PROCESS_PAYMENT = 'persist.processPayment';
+    case PERSIST_QUESTIONNAIRE_RESULT = 'persist.questionnaireResult';
     case DISPATCH_SEND_NOTIFICATIONS = 'dispatch.sendNotifications';
     case DISPATCH_TRIGGER_INTEGRATIONS = 'dispatch.triggerIntegrations';
     case DISPATCH_SEND_SPAM_NOTIFICATIONS = 'dispatch.sendSpamNotifications';
-    case DISPATCH_MARK_DISPATCH_FINALIZED = 'dispatch.markDispatchFinalized';
-
-    case FINALIZE_APPLY_SPAM_BEHAVIOUR = 'finalize.applySpamBehaviour';
-    case FINALIZE_APPLY_PROGRESSION_STATE = 'finalize.applyProgressionState';
-    case FINALIZE_CONSUME_REPLAY_TOKEN = 'finalize.consumeReplayToken';
-    case FINALIZE_HYDRATE_RESPONSE = 'finalize.hydrateResponse';
 }

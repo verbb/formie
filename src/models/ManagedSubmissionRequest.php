@@ -11,7 +11,9 @@ class ManagedSubmissionRequest extends Model
     // =========================================================================
 
     public string $handle = '';
-    public string $processMode = SubmissionWorkflow::PROCESS_MODE_SUBMIT;
+    public \verbb\formie\enums\SubmissionOperation $operation = \verbb\formie\enums\SubmissionOperation::SUBMIT;
+    public ?int $expectedVersion = null;
+    public ?string $operationId = null;
     public ?int $siteId = null;
     public ?string $renderId = null;
     public ?string $requestToken = null;

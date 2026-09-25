@@ -20,10 +20,7 @@ try {
 } finally {
     $mutex->release($bootstrapLock);
 }
-$state = new \verbb\formie\workflow\tasks\dispatch\DispatchState(new \verbb\formie\models\SubmissionRequest([
-    'submission' => $submission,
-    'requestToken' => 'concurrent-delivery',
-]), true);
+$state = new \verbb\formie\workflow\tasks\dispatch\DispatchState($submission, \verbb\formie\enums\SubmissionOperation::SUBMIT, true, 'concurrent-delivery');
 
 $state->runOnce('concurrent', function () use ($argv): void {
     file_put_contents($argv[2], "delivered\n", FILE_APPEND | LOCK_EX);

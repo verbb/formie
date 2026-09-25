@@ -1,5 +1,5 @@
 import { c as e, d as t, l as n, o as r, r as i, t as a, u as o } from "./chunks/event-names-BCI2FLD8.js";
-import { a as s, c, d as l, f as u, i as d, l as f, n as p, o as m, p as h, r as g, s as _, t as v, u as y } from "./chunks/api-DO_VRqeF.js";
+import { a as s, c, d as l, f as u, i as d, l as f, n as p, o as m, p as h, r as g, s as _, t as v, u as y } from "./chunks/api-ManHfZo1.js";
 import { a as b, i as x, n as ee, r as te, t as S } from "./chunks/debug-BV0DvdHx.js";
 import { n as ne, r as C, t as w } from "./chunks/theme-classes-Tv7q7ToE.js";
 import { i as T, t as E } from "./chunks/csrf-DxHg_ZYt.js";
@@ -398,7 +398,9 @@ async function Ke(e, t, n) {
 		"renderId",
 		"draftContextToken",
 		"draftContext",
-		"continuationToken"
+		"continuationToken",
+		"requestToken",
+		"expectedVersion"
 	].forEach((e) => {
 		let n = t.querySelector(`input[name="${e}"]`)?.value?.trim();
 		n && i.append(e, n);
@@ -410,6 +412,10 @@ async function Ke(e, t, n) {
 		method: "POST",
 		body: i
 	});
+	if (t && a.session) {
+		let e = a.session, n = t.querySelector("input[name=\"expectedVersion\"]"), r = t.querySelector("input[name=\"requestToken\"]");
+		n && (n.value = String(e.version)), r && e.tokens?.request && (r.value = e.tokens.request);
+	}
 	return M.log("requestSetPage complete.", a), a;
 }
 function qe(e, t) {
@@ -1079,17 +1085,17 @@ var Rt = class {
 	table: () => import("./chunks/table-CAjCJHrL.js").then((e) => e.tableModule),
 	"text-limit": () => import("./chunks/text-limit-CdED3BKc.js").then((e) => e.textLimitModule)
 }, Ut = {
-	bpoint: () => import("./chunks/bpoint-CPrkFbH7.js").then((e) => e.bpointModule),
-	eway: () => import("./chunks/eway-CjnE1ek4.js").then((e) => e.ewayModule),
-	"go-cardless": () => import("./chunks/go-cardless-2WNw2dNU.js").then((e) => e.goCardlessModule),
-	mollie: () => import("./chunks/mollie-Cb3_zOO0.js").then((e) => e.mollieModule),
-	moneris: () => import("./chunks/moneris-D9YJ0STm.js").then((e) => e.monerisModule),
-	opayo: () => import("./chunks/opayo-DszIHt75.js").then((e) => e.opayoModule),
-	paddle: () => import("./chunks/paddle-By8INjta.js").then((e) => e.paddleModule),
-	paypal: () => import("./chunks/paypal-CX6oodJY.js").then((e) => e.paypalModule),
-	payway: () => import("./chunks/payway-B9lk3ZwB.js").then((e) => e.paywayModule),
-	square: () => import("./chunks/square-Cclnde_T.js").then((e) => e.squareModule),
-	stripe: () => import("./chunks/stripe-CFSoIK2h.js").then((e) => e.stripeModule)
+	bpoint: () => import("./chunks/bpoint-v5MBLngb.js").then((e) => e.bpointModule),
+	eway: () => import("./chunks/eway-CM3Kcz1s.js").then((e) => e.ewayModule),
+	"go-cardless": () => import("./chunks/go-cardless-BXV2tKzg.js").then((e) => e.goCardlessModule),
+	mollie: () => import("./chunks/mollie-Bc-OQ0f6.js").then((e) => e.mollieModule),
+	moneris: () => import("./chunks/moneris-JD3o1NJk.js").then((e) => e.monerisModule),
+	opayo: () => import("./chunks/opayo-CI5eBwYS.js").then((e) => e.opayoModule),
+	paddle: () => import("./chunks/paddle-Cu9It3oD.js").then((e) => e.paddleModule),
+	paypal: () => import("./chunks/paypal-SyNzMxRu.js").then((e) => e.paypalModule),
+	payway: () => import("./chunks/payway-CQEyl28d.js").then((e) => e.paywayModule),
+	square: () => import("./chunks/square-YS6IKKNG.js").then((e) => e.squareModule),
+	stripe: () => import("./chunks/stripe-Bxrc6JTi.js").then((e) => e.stripeModule)
 }, Wt = {
 	...Ht,
 	...Bt,

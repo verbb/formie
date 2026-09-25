@@ -75,7 +75,7 @@ trait SubmissionsDeprecations
 
     public function triggerIntegrations(
         Submission $submission,
-        string $processMode = SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+        \verbb\formie\enums\SubmissionOperation $operation = \verbb\formie\enums\SubmissionOperation::SUBMIT,
         ?string $triggerEvent = null,
         bool $operatorInitiated = false,
     ): void {
@@ -85,7 +85,7 @@ trait SubmissionsDeprecations
         Formie::$plugin->getIntegrationTriggers()->dispatch(new IntegrationTriggerRequest([
             'source' => IntegrationTriggers::SOURCE_WORKFLOW,
             'submission' => $submission,
-            'processMode' => $processMode,
+            'operation' => $operation,
             'triggerEvent' => $triggerEvent,
             'operatorInitiated' => $operatorInitiated,
         ]));

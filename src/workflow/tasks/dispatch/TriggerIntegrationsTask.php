@@ -2,8 +2,6 @@
 namespace verbb\formie\workflow\tasks\dispatch;
 
 use verbb\formie\Formie;
-use verbb\formie\enums\workflow\Stage;
-use verbb\formie\enums\workflow\Task;
 use verbb\formie\helpers\IntegrationTriggerEvents;
 use verbb\formie\workflow\tasks\TaskInterface;
 use verbb\formie\workflow\tasks\TaskResult;
@@ -13,16 +11,6 @@ class TriggerIntegrationsTask implements TaskInterface
 {
     // Public Methods
     // =========================================================================
-
-    public function getStage(): string
-    {
-        return Stage::DISPATCH->value;
-    }
-
-    public function getName(): string
-    {
-        return Task::DISPATCH_TRIGGER_INTEGRATIONS->value;
-    }
 
     public function execute(WorkflowContext $context): TaskResult
     {
@@ -36,17 +24,13 @@ class TriggerIntegrationsTask implements TaskInterface
 
         $dispatch = function () use ($context): void {
             Formie::$plugin->getIntegrationTriggers()->dispatchFromWorkflow(
-                $context->request->submission,
-                $context->request->processMode,
-                IntegrationTriggerEvents::resolveFromProcessMode($context->request->processMode),
+                $context->command->submission,
+                $context->command->operation,
+                IntegrationTriggerEvents::resolveFromOperation($context->command->operation, $context->command->authority->type === \verbb\formie\enums\SubmissionAuthorityType::CONTROL_PANEL),
             );
         };
 
-        if ($isSubmissionEdit) {
-            $dispatch();
-        } else {
-            $dispatchState->runOnce(DispatchState::MARKER_INTEGRATIONS, $dispatch);
-        }
+        $dispatchState->runOnce(DispatchState::MARKER_INTEGRATIONS, $dispatch);
 
         return TaskResult::continue();
     }

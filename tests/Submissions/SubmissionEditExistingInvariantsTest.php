@@ -6,10 +6,9 @@ use Tests\Support\WebRequestTestHelper;
 use verbb\formie\conditions\ConditionOperator;
 use verbb\formie\elements\Submission;
 use verbb\formie\Formie;
-use verbb\formie\helpers\SubmissionEditBehaviour;
 use verbb\formie\models\ManagedSubmissionRequest;
 use verbb\formie\models\Notification;
-use verbb\formie\models\SubmissionRequest;
+use verbb\formie\models\SubmissionCommand;
 use verbb\formie\models\SubmissionStatus;
 use verbb\formie\services\Notifications;
 use verbb\formie\services\SubmissionWorkflow;
@@ -87,18 +86,15 @@ function editInvariantsRunEditExisting(
     return WebRequestTestHelper::withWebRequestContext(function () use ($form, $submission, $pageId, $cpRequest): mixed {
         Craft::$app->getRequest()->setIsCpRequest($cpRequest);
 
-        $request = new SubmissionRequest([
-            'processMode' => SubmissionWorkflow::PROCESS_MODE_EDIT_EXISTING,
+        $request = submissionCommand([
+            'operation' => !$cpRequest && $submission->isIncomplete ? \verbb\formie\enums\SubmissionOperation::SUBMIT : \verbb\formie\enums\SubmissionOperation::REVISE,
             'form' => $form,
             'submission' => $submission,
-            'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+            'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
+            'pageId' => $pageId,
         ]);
 
-        if ($pageId !== null) {
-            $request->pageId = $pageId;
-        }
-
-        return (new SubmissionWorkflow())->processSubmissionRequest($request);
+        return runSubmissionCommand($request);
     }, [
         'method' => 'POST',
         'hostInfo' => 'https://craft.example.test',
@@ -106,46 +102,11 @@ function editInvariantsRunEditExisting(
     ]);
 }
 
-it('resolves edit behaviours for cp revision, complete front-end revision, and incomplete front-end continuation', function (): void {
-    $form = formie()
-        ->form(['title' => 'Edit Intent Resolver'])
-        ->singleLineTextField('fullName')
-        ->create();
-
-    $complete = formie()->submission($form)->with(['fullName' => 'Complete'])->save();
-    expect($complete->isIncomplete)->toBeFalse();
-
-    $incomplete = editInvariantsSaveIncomplete($form, ['fullName' => 'Incomplete']);
-    expect($incomplete->isIncomplete)->toBeTrue();
-
-    WebRequestTestHelper::withWebRequestContext(function () use ($form, $complete, $incomplete): void {
-        Craft::$app->getRequest()->setIsCpRequest(true);
-        $cpRequest = new SubmissionRequest([
-            'processMode' => SubmissionWorkflow::PROCESS_MODE_EDIT_EXISTING,
-            'form' => $form,
-            'submission' => $complete,
-        ]);
-        expect(SubmissionEditBehaviour::resolve($cpRequest))->toBe(SubmissionEditBehaviour::REVISION);
-
-        Craft::$app->getRequest()->setIsCpRequest(false);
-        $feCompleteRequest = new SubmissionRequest([
-            'processMode' => SubmissionWorkflow::PROCESS_MODE_EDIT_EXISTING,
-            'form' => $form,
-            'submission' => $complete,
-        ]);
-        expect(SubmissionEditBehaviour::resolve($feCompleteRequest))->toBe(SubmissionEditBehaviour::REVISION);
-
-        $feIncompleteRequest = new SubmissionRequest([
-            'processMode' => SubmissionWorkflow::PROCESS_MODE_EDIT_EXISTING,
-            'form' => $form,
-            'submission' => $incomplete,
-        ]);
-        expect(SubmissionEditBehaviour::resolve($feIncompleteRequest))->toBe(SubmissionEditBehaviour::CONTINUATION);
-    }, [
-        'method' => 'POST',
-        'hostInfo' => 'https://craft.example.test',
-        'httpHost' => 'craft.example.test',
-    ]);
+it('keeps revision operation policy explicit regardless of ambient request classification', function () {
+    $form = formie()->form()->create();
+    $submission = formie()->submission($form)->save();
+    $command = submissionCommand(['operation' => \verbb\formie\enums\SubmissionOperation::REVISE, 'form' => $form, 'submission' => $submission]);
+    expect($command->usesVisitorProgression())->toBeFalse();
 });
 
 it('keeps completed multi-page cp saves complete and preserves the selected status', function (): void {
@@ -160,14 +121,14 @@ it('keeps completed multi-page cp saves complete and preserves the selected stat
     expect($submission->isIncomplete)->toBeFalse();
 
     editInvariantsWithCpRequest(function () use ($form, $submission): void {
-        $result = Formie::$plugin->getSubmissionProcessor()->executeManaged(new ManagedSubmissionRequest([
+        $result = runManagedSubmission(new ManagedSubmissionRequest([
             'handle' => $form->handle,
-            'processMode' => SubmissionWorkflow::PROCESS_MODE_EDIT_EXISTING,
+            'operation' => \verbb\formie\enums\SubmissionOperation::REVISE,
             'siteId' => (int)$submission->siteId,
             'submissionId' => (int)$submission->id,
-            'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+            'submitAction' => 'submit',
             'fieldParamNamespace' => 'fields',
-        ]));
+        ]), \verbb\formie\enums\SubmissionAuthorityType::CONTROL_PANEL);
 
         expect($result->response->success)->toBeTrue();
     }, [
@@ -292,14 +253,14 @@ it('sends status-change notifications when cp workflow saves change the submissi
 
     try {
         editInvariantsWithCpRequest(function () use ($form, $existing): void {
-            $result = Formie::$plugin->getSubmissionProcessor()->executeManaged(new ManagedSubmissionRequest([
+            $result = runManagedSubmission(new ManagedSubmissionRequest([
                 'handle' => $form->handle,
-                'processMode' => SubmissionWorkflow::PROCESS_MODE_EDIT_EXISTING,
+                'operation' => \verbb\formie\enums\SubmissionOperation::REVISE,
                 'siteId' => (int)$existing->siteId,
                 'submissionId' => (int)$existing->id,
-                'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+                'submitAction' => 'submit',
                 'fieldParamNamespace' => 'fields',
-            ]));
+            ]), \verbb\formie\enums\SubmissionAuthorityType::CONTROL_PANEL);
 
             expect($result->response->success)->toBeTrue()
                 ->and($result->response->submission->isNewSubmission)->toBeFalse();
@@ -310,21 +271,8 @@ it('sends status-change notifications when cp workflow saves change the submissi
             ],
         ]);
 
-        // Managed saves persist the queue intent inside their transaction,
-        // even when ordinary non-transactional delivery is synchronous.
-        expect($sent)->toBe([]);
-        $queue = Craft::$app->getQueue();
-        $jobs = [];
-        foreach ((new \craft\db\Query())->select('job')->from($queue->tableName)->column() as $payload) {
-            $job = $queue->serializer->unserialize($payload);
-            if ($job instanceof \verbb\formie\jobs\SendNotification && $job->submissionId === (int)$existing->id) {
-                $jobs[] = $job;
-            }
-        }
-        expect($jobs)->toHaveCount(1);
-        $notification = Formie::$plugin->getNotifications()->getNotificationById($jobs[0]->notificationId);
-        $saved = Submission::find()->id($existing->id)->status(null)->one();
-        Formie::$plugin->getNotifications()->sendNotificationEmail($notification, $saved);
+        // Dispatch runs after the persistence transaction commits, so configured
+        // synchronous notifications execute in this request.
         expect($sent)->toBe([$notificationHandle]);
     } finally {
         $settings->useQueueForNotifications = $previousUseQueue;
@@ -341,14 +289,14 @@ it('marks incomplete cp submissions complete only when markAsComplete is posted'
     $incomplete = editInvariantsSaveIncomplete($form, ['fullName' => 'Still going']);
 
     editInvariantsWithCpRequest(function () use ($form, $incomplete): void {
-        $result = Formie::$plugin->getSubmissionProcessor()->executeManaged(new ManagedSubmissionRequest([
+        $result = runManagedSubmission(new ManagedSubmissionRequest([
             'handle' => $form->handle,
-            'processMode' => SubmissionWorkflow::PROCESS_MODE_EDIT_EXISTING,
+            'operation' => \verbb\formie\enums\SubmissionOperation::REVISE,
             'siteId' => (int)$incomplete->siteId,
             'submissionId' => (int)$incomplete->id,
-            'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+            'submitAction' => 'submit',
             'fieldParamNamespace' => 'fields',
-        ]));
+        ]), \verbb\formie\enums\SubmissionAuthorityType::CONTROL_PANEL);
 
         expect($result->response->success)->toBeTrue();
     }, [
@@ -362,14 +310,14 @@ it('marks incomplete cp submissions complete only when markAsComplete is posted'
         ->and($stillIncomplete->getFieldValue('fullName'))->toBe('Still going updated');
 
     editInvariantsWithCpRequest(function () use ($form, $incomplete): void {
-        $result = Formie::$plugin->getSubmissionProcessor()->executeManaged(new ManagedSubmissionRequest([
+        $result = runManagedSubmission(new ManagedSubmissionRequest([
             'handle' => $form->handle,
-            'processMode' => SubmissionWorkflow::PROCESS_MODE_EDIT_EXISTING,
+            'operation' => \verbb\formie\enums\SubmissionOperation::REVISE,
             'siteId' => (int)$incomplete->siteId,
             'submissionId' => (int)$incomplete->id,
-            'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+            'submitAction' => 'submit',
             'fieldParamNamespace' => 'fields',
-        ]));
+        ]), \verbb\formie\enums\SubmissionAuthorityType::CONTROL_PANEL);
 
         expect($result->response->success)->toBeTrue();
     }, [

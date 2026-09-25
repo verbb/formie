@@ -30,6 +30,8 @@ it('legacy set-page redirect follows signed return token and ignores referer', f
 
         $request->setBodyParams([
             'handle' => (string)$form->handle,
+            'requestToken' => $form->getRequestToken(),
+            'expectedVersion' => 0,
             'pageId' => (string)$pageId,
             SetPageReturnUrlHelper::QUERY_PARAM => $token,
         ]);
@@ -66,6 +68,8 @@ it('legacy set-page redirect rejects tampered return token', function (): void {
 
         $request->setBodyParams([
             'handle' => (string)$form->handle,
+            'requestToken' => $form->getRequestToken(),
+            'expectedVersion' => 0,
             'pageId' => (string)$pageId,
             SetPageReturnUrlHelper::QUERY_PARAM => 'not-a-valid-token',
         ]);

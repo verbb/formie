@@ -1,229 +1,90 @@
 # Adding a Custom Workflow Task from Scratch
 
-Formie's submission pipeline is built from **stages**, and each stage runs an ordered list of **tasks**. Most of the time you can hook [stage or task events](/developers/submission-workflow) without writing new classes — but when you need a named step in the right place (before integrations, after spam checks, and so on), you register a custom task and insert it relative to a built-in anchor.
+This guide adds a project-specific validation rule after Formie's field validation and before spam checks or CAPTCHA. A task gives the rule an explicit place in the workflow and a typed way to stop processing.
 
-This walkthrough adds one task to the **dispatch** stage: queue an internal review job for high-value orders **before** Formie triggers CRM integrations. The same pattern works in any stage — `screen`, `save`, `finalize`, and the rest.
+Start with an installed Formie form containing a required Single-Line Text field with the handle `orderReference`. You also need a bootstrapped Craft module. The example uses the namespace `modules\formieworkflow`, mapped to `modules/formieworkflow/src/` in your project's Composer autoload configuration. If you don't have a module yet, follow Craft's [module setup guide](https://craftcms.com/docs/5.x/extend/module-guide.html), including registering and bootstrapping the module, before continuing.
 
-Read [Submission workflow and stages explained](/guides/submissions-workflows/submission-workflow-and-stages-explained) first if you have not worked with the pipeline yet. For task names, workflow modes, and event reference, see [Submission Workflow](/developers/submission-workflow).
+## Create the Task
 
-## When a Custom Task Fits
+Create `modules/formieworkflow/src/tasks/CheckOrderTask.php`:
 
-| Approach | Use when |
-| --- | --- |
-| `EVENT_AFTER_PAGE_ADVANCE` / `EVENT_AFTER_COMPLETE` | Page submit, or the form actually submitted. See [Run custom code on page submit or form submit](/guides/submissions-workflows/run-custom-code-on-page-submit-or-form-submit). |
-| `Submission::EVENT_AFTER_SAVE` | You care about the element being saved, regardless of how the request arrived. |
-| `beforeStage` / `afterStage` | You need request-level logic around an entire phase, without a dedicated task name. |
-| `beforeTask` / `afterTask` | A few lines beside an existing built-in task is enough — no new class or ordering contract. |
-| **Custom workflow task** | The stage is already correct, but you need a **named, ordered** step inside it. |
-
-Custom tasks are extension tasks: their names are **not** part of Formie's built-in `Task` enum. Formie runs them when the built-in stage is active for the current [workflow mode](/developers/submission-workflow#workflow-modes) — so a task inserted into **dispatch** does not run on save-and-continue drafts, matching built-in dispatch behaviour.
-
-## Create Your Module
-
-You need a [Craft module](https://craftcms.com/docs/5.x/extend/module-guide.html). All PHP in this guide lives in that module.
-
-Set the namespace to `modules\formieworkflow` and the module ID to `formie-workflow`. Create this structure:
-
-```treeview
-my-project/
-├── modules/
-│   └── formieworkflow/
-│       └── src/
-│           ├── jobs/
-│           │   └── ReviewHighValueSubmissionJob.php
-│           ├── tasks/
-│           │   └── QueueHighValueReviewTask.php
-│           └── FormieWorkflow.php
-└── ...
-```
-
-Register the module in project config, then wire Formie events in `FormieWorkflow.php`:
-
-```php [modules/formieworkflow/src/FormieWorkflow.php]
-<?php
-namespace modules\formieworkflow;
-
-use Craft;
-use modules\formieworkflow\tasks\QueueHighValueReviewTask;
-use verbb\formie\enums\workflow\Task;
-use verbb\formie\events\RegisterStageTasksEvent;
-use verbb\formie\services\SubmissionWorkflow;
-use yii\base\Event;
-use yii\base\Module;
-
-class FormieWorkflow extends Module
-{
-    public function init(): void
-    {
-        parent::init();
-
-        Event::on(SubmissionWorkflow::class, SubmissionWorkflow::EVENT_REGISTER_STAGE_TASKS, function(RegisterStageTasksEvent $event) {
-            if ($event->stage !== 'dispatch') {
-                return;
-            }
-
-            $event->insertTaskBefore(
-                Task::DISPATCH_TRIGGER_INTEGRATIONS->value,
-                new QueueHighValueReviewTask(),
-            );
-        });
-    }
-}
-```
-
-`insertTaskBefore()` and `insertTaskAfter()` take a **built-in anchor task name** and your task instance. Formie logs a warning if the anchor cannot be found — double-check spelling against the [default tasks table](/developers/submission-workflow#default-tasks).
-
-## The Task Class
-
-Create `modules/formieworkflow/src/tasks/QueueHighValueReviewTask.php`. Every task implements `TaskInterface` and returns a `TaskResult` from `execute()`.
-
-```php [modules/formieworkflow/src/tasks/QueueHighValueReviewTask.php]
+```php
 <?php
 namespace modules\formieworkflow\tasks;
 
-use Craft;
-use modules\formieworkflow\jobs\ReviewHighValueSubmissionJob;
-use verbb\formie\enums\workflow\Stage;
+use verbb\formie\enums\SubmissionOutcomeType;
 use verbb\formie\workflow\WorkflowContext;
 use verbb\formie\workflow\tasks\TaskInterface;
 use verbb\formie\workflow\tasks\TaskResult;
 
-class QueueHighValueReviewTask implements TaskInterface
+class CheckOrderTask implements TaskInterface
 {
-    public function getStage(): string
-    {
-        return Stage::DISPATCH->value;
-    }
-
-    public function getName(): string
-    {
-        // Extension tasks use the same `stage.handle` pattern as built-in tasks.
-        return 'dispatch.queueHighValueReview';
-    }
-
     public function execute(WorkflowContext $context): TaskResult
     {
-        $submission = $context->request->submission;
-        $orderTotal = (float)($submission->getFieldValue('orderTotal') ?? 0);
+        $submission = $context->command->submission;
+        $reference = (string)$submission->getFieldValue('orderReference');
 
-        if ($orderTotal < 1000) {
-            return TaskResult::continue();
+        if ($reference !== '' && !str_starts_with($reference, 'ORD-')) {
+            $submission->addError('field:orderReference', 'Enter a reference beginning with ORD-.');
+            return TaskResult::stop($context->result(SubmissionOutcomeType::VALIDATION_FAILED));
         }
-
-        Craft::$app->getQueue()->push(new ReviewHighValueSubmissionJob([
-            'submissionId' => (int)$submission->id,
-        ]));
 
         return TaskResult::continue();
     }
 }
 ```
 
-`WorkflowContext` gives you the current `SubmissionRequest`, the in-progress `SubmissionResponse`, and shared `taskState` if you need to pass data to a later task in the same request.
+The task only executes work. Its name, stage placement and applicable operations belong to registration. `TaskResult::continue()` lets the next task run. A validation-failed outcome stops processing, preserves errors and leaves the request token available for corrected input. Place rejection checks before Persist: stopping later does not undo already committed work.
 
-Pick a **unique** task name. Duplicate names in one stage trigger a Formie warning in the logs.
+## Register the Task
 
-## The Queue Job
-
-The task itself should stay fast — push heavy work to the queue so the visitor is not waiting on your API.
-
-```php [modules/formieworkflow/src/jobs/ReviewHighValueSubmissionJob.php]
-<?php
-namespace modules\formieworkflow\jobs;
-
-use Craft;
-use craft\queue\BaseJob;
-use verbb\formie\elements\Submission;
-
-class ReviewHighValueSubmissionJob extends BaseJob
-{
-    public int $submissionId = 0;
-
-    public function execute($queue): void
-    {
-        $submission = Submission::find()->id($this->submissionId)->one();
-
-        if (!$submission) {
-            return;
-        }
-
-        // Notify finance, write to an internal system, etc.
-        Craft::info('High-value submission queued for review: ' . $submission->id, __METHOD__);
-    }
-
-    protected function defaultDescription(): ?string
-    {
-        return Craft::t('formie', 'Review high-value Formie submission');
-    }
-}
-```
-
-Because this task sits **before** `dispatch.triggerIntegrations`, the submission is already saved and the queue job can safely load it by ID. Integrations still run after your task unless you halt the workflow (see below).
-
-## Task Results
-
-`TaskResult::continue()` means the stage keeps going — use this when work succeeded or when there is nothing to do for this request.
+Add these imports to your module class:
 
 ```php
-return TaskResult::continue();
-```
-
-`TaskResult::halt(false)` stops the workflow and marks the request unsuccessful. Use this when something failed and later tasks (notifications, integrations) must not run.
-
-```php
-return TaskResult::halt(false, [
-    'reason' => 'reviewQueueFailed',
-]);
-```
-
-`TaskResult::halt(true)` stops the workflow but counts as success — useful when halting is expected, such as "nothing left to do for this mode".
-
-Formie maps a task halt to a **stage halt**. The pipeline stops; later stages are skipped.
-
-## Choosing an Anchor Task
-
-Insert relative to the built-in task that marks the boundary you care about.
-
-| Goal | Stage | Typical anchor |
-| --- | --- | --- |
-| Extra check before spam rules | `screen` | `screen.runSubmissionGuards` or `screen.runSpamChecks` |
-| Block save when business rules fail | `authorize` | `authorize.haltOnSubmissionErrors` |
-| Work after persistence, before payment | `save` | `save.persistSubmissionWorkflow` |
-| Internal job before email | `dispatch` | `dispatch.sendNotifications` |
-| Work before CRM / automations | `dispatch` | `dispatch.triggerIntegrations` |
-| Adjust response payload | `finalize` | `finalize.hydrateResponse` |
-
-See the full list in [Submission Workflow — default tasks](/developers/submission-workflow#default-tasks).
-
-## When Events Are Enough
-
-If you only need a short side effect beside one built-in step, `afterTask` avoids a new class:
-
-```php
+use modules\formieworkflow\tasks\CheckOrderTask;
+use verbb\formie\enums\SubmissionOperation;
+use verbb\formie\enums\workflow\Stage;
 use verbb\formie\enums\workflow\Task;
-use verbb\formie\events\SubmissionWorkflowTaskEvent;
+use verbb\formie\events\RegisterStageTasksEvent;
 use verbb\formie\services\SubmissionWorkflow;
+use verbb\formie\workflow\TaskDefinition;
 use yii\base\Event;
+```
 
-Event::on(SubmissionWorkflow::class, SubmissionWorkflow::EVENT_AFTER_TASK, function(SubmissionWorkflowTaskEvent $event) {
-    if ($event->task !== Task::DISPATCH_TRIGGER_INTEGRATIONS->value) {
+Inside the module's `init()` method, after `parent::init()`, register the listener. Replace `orders` with your form's handle:
+
+```php
+Event::on(SubmissionWorkflow::class, SubmissionWorkflow::EVENT_REGISTER_STAGE_TASKS, function(RegisterStageTasksEvent $event) {
+    if ($event->stage !== Stage::VALIDATE) {
         return;
     }
 
-    // Side effect after integrations run.
+    $event->insertTaskAfter(Task::VALIDATE_SUBMISSION, new TaskDefinition(
+        'acme.validateOrder',
+        new CheckOrderTask(),
+        [SubmissionOperation::SUBMIT],
+    ));
 });
 ```
 
-Reach for a custom task when ordering matters for **multiple** extensions, you want a stable name in logs, or you need the `beforeTask` / `afterTask` events to target your logic explicitly. For several event-only patterns without new classes, see [Using submission workflow events](/guides/submissions-workflows/using-submission-workflow-events).
+The registration runs for each workflow plan. To restrict this task to the `orders` form, add this at the start of `CheckOrderTask::execute()`:
 
-## Finishing Up
+```php
+if ($context->command->form->handle !== 'orders') {
+    return TaskResult::continue();
+}
+```
 
-With the module enabled:
+`acme.validateOrder` must be unique within the stage. The explicit Submit operation keeps the rule out of SaveDraft, Revise and PaymentReplay. Add Revise to the operation list if saved-record edits must follow the same rule.
 
-1. Submit a form on the front end with `orderTotal` below the threshold — integrations should behave as before, and your task should no-op.
-2. Submit with a value above the threshold — check `storage/logs/` for `Starting workflow task "dispatch.queueHighValueReview"` and confirm the queue job runs.
-3. Save a multi-page draft — dispatch tasks (including yours) should **not** run.
+## Choose a Position
 
-Formie logs each stage and task at `info` level. If your task never appears, confirm the stage name in the event listener, the anchor task name, and that you are testing a full **submit** rather than save-and-continue.
+`insertTaskBefore()` and `insertTaskAfter()` take a public anchor and a `TaskDefinition`. `prepend()` and `append()` place a task at a stage boundary. An unknown or internal anchor throws an exception, so use the [public anchor reference](/developers/submission-workflow#stages-and-public-anchors) when choosing a position.
 
-For a whole new phase in the pipeline — not just one more step inside an existing stage — see [Adding a custom workflow stage from scratch](/guides/submissions-workflows/adding-a-custom-workflow-stage-from-scratch).
+To check valid input before spam screening, the example's position after `validate.submission` is appropriate. To enqueue work for a completed submission before integrations, register a task in Dispatch before `Task::DISPATCH_TRIGGER_INTEGRATIONS`. The submission has been saved at that point. Queued work still needs its own delivery and retry policy; an after-task event does not prove that a remote request has completed.
+
+## Test the Result
+
+Submit the form with an empty required field. Formie's validation should reject it before any screening runs. Next, enter `INVALID-123`; your rule should show its field error without saving or using CAPTCHA. Correct the value to `ORD-123` and submit again. The normal workflow should continue.
+
+If your form supports save-and-continue, save a draft containing `INVALID-123`. The draft should save because the registration declares only Submit. Test another form too: the handle check should leave it unaffected. If the task is missing, check that the module is bootstrapped, its Composer namespace resolves, and the stage comparison uses `Stage::VALIDATE`.

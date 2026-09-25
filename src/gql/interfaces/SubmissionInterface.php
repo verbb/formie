@@ -49,6 +49,7 @@ class SubmissionInterface extends Element
     public static function getFieldDefinitions(): array
     {
         return Craft::$app->getGql()->prepareFieldDefinitions(array_merge(parent::getFieldDefinitions(), [
+            'stateVersion' => ['name' => 'stateVersion', 'type' => Type::int()],
             'status' => [
                 'name' => 'status',
                 'type' => Type::string(),

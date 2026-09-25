@@ -49,3 +49,13 @@ Calling `setSubmission()` is an access decision. Only set a submission on a fron
 When an edit form is rendered, Formie includes an edit capability token in the form. The token is required when the form is posted back, so a visitor cannot edit a submission by changing only the submitted `submissionId`.
 
 The token works as bearer access for that rendered edit form. This means unauthenticated edit flows are supported, but the page or link that renders the edit form should be treated as private access to that submission.
+
+## Submission Version
+
+Include this alongside the edit grant and request token in a custom edit form:
+
+```twig
+{{ hiddenInput('expectedVersion', submission.stateVersion) }}
+```
+
+ The version identifies the state the visitor edited. A stale version is rejected before posted values are applied; reload the record and review the changes before trying again. A submission ID or UID alone does not authorise editing.

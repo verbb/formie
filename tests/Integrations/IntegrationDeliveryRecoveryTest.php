@@ -33,7 +33,7 @@ it('stops a swallowed transport failure from being retried and permits an operat
     };
     Event::on(Integrations::class, Integrations::EVENT_MODIFY_FORM_INTEGRATIONS, $handler);
     try {
-        $run = fn() => Formie::$plugin->getIntegrationExecutor()->runQueuedJob($submission, [$integration->handle], 'submit', ['triggerEvent' => 'submit'], false, 'persisted-job');
+        $run = fn() => Formie::$plugin->getIntegrationExecutor()->runQueuedJob($submission, [$integration->handle], \verbb\formie\enums\SubmissionOperation::SUBMIT, ['triggerEvent' => 'submit'], false, 'persisted-job');
         expect($run)->toThrow(RuntimeException::class, 'Delivery outcome unknown');
         expect($run)->toThrow(RuntimeException::class, 'Delivery outcome unknown');
         expect($integration->calls)->toBe(1);

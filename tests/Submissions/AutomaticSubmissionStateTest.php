@@ -55,10 +55,10 @@ it('starts a new managed submission instead of bare progress when automatic rest
     $result = WebRequestTestHelper::withWebRequestContext(function () use ($form, $pages, $prior) {
         Formie::$plugin->getSubmissionDrafts()->upsertProgressState($form, $prior, $pages[1]->id);
 
-        return Formie::$plugin->getSubmissionProcessor()->executeManaged(new ManagedSubmissionRequest([
+        return runManagedSubmission(new ManagedSubmissionRequest([
             'handle' => $form->handle,
-            'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
-            'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+            'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
+            'submitAction' => 'submit',
             'pageId' => (int)$pages[0]->id,
             'fieldParamNamespace' => 'fields',
         ]));
@@ -100,12 +100,13 @@ it('continues the same managed submission when submissionUid matches progress wi
     $result = WebRequestTestHelper::withWebRequestContext(function () use ($form, $pages, $submission) {
         Formie::$plugin->getSubmissionDrafts()->upsertProgressState($form, $submission, $pages[0]->id);
 
-        return Formie::$plugin->getSubmissionProcessor()->executeManaged(new ManagedSubmissionRequest([
+        return runManagedSubmission(new ManagedSubmissionRequest([
             'handle' => $form->handle,
-            'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
-            'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+            'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
+            'submitAction' => 'submit',
             'pageId' => (int)$pages[0]->id,
             'submissionUid' => $submission->uid,
+            'expectedVersion' => $submission->stateVersion,
             'fieldParamNamespace' => 'fields',
         ]));
     }, [

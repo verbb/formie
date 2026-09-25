@@ -456,6 +456,7 @@ class Submission extends Element
     public ?int $userId = null;
     public ?int $updatedById = null;
     public ?string $ipAddress = null;
+    public int $stateVersion = 0;
     public bool $isIncomplete = false;
     public bool $isSpam = false;
     public ?string $spamReason = null;
@@ -597,17 +598,7 @@ class Submission extends Element
     
     public function canSave(User $user): bool
     {
-        if (parent::canView($user)) {
-            return true;
-        }
-
-        // Front-end requests don't require permissions here, they're in the controller
-        if (Craft::$app->getRequest()->getIsSiteRequest()) {
-            // But, if we're not editing an existing submission, disallow creation from the front-end
-            if (!$this->id) {
-                return false;
-            }
-
+        if (parent::canSave($user)) {
             return true;
         }
 
@@ -731,7 +722,7 @@ class Submission extends Element
             }
         }
 
-        return $validates;
+        return $validates && !$this->hasErrors();
     }
 
     public function getSupportedSites(): array
@@ -1264,6 +1255,10 @@ class Submission extends Element
         $record->dateUpdated = $this->dateUpdated;
 
         $record->save(false);
+        Craft::$app->getDb()->createCommand()->update(Table::FORMIE_SUBMISSIONS, [
+            'stateVersion' => new \yii\db\Expression('[[stateVersion]] + 1'),
+        ], ['id' => $this->id])->execute();
+        $this->stateVersion = (int)(new \craft\db\Query())->select('stateVersion')->from(Table::FORMIE_SUBMISSIONS)->where(['id' => $this->id])->scalar();
 
         // Reset cache as we might be acting on statuses below
         $this->_status = null;
@@ -1271,7 +1266,7 @@ class Submission extends Element
         // Check to see if we need to save any relations
         Formie::$plugin->getRelations()->saveRelations($this);
 
-        Formie::$plugin->getNotificationTriggers()->dispatchStatusChange($this);
+        // Side effects are initiated by explicit workflow/administrative operations, not persistence.
 
         foreach ($this->getFields() as $field) {
             $field->afterElementSave($this, $isNew);

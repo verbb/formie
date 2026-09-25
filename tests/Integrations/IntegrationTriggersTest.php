@@ -11,7 +11,7 @@ use verbb\formie\Formie;
 use verbb\formie\helpers\IntegrationRerunPolicies;
 use verbb\formie\helpers\IntegrationTriggerEvents;
 use verbb\formie\models\IntegrationFormSettings;
-use verbb\formie\models\SubmissionRequest;
+use verbb\formie\models\SubmissionCommand;
 use verbb\formie\services\Integrations;
 use verbb\formie\services\SubmissionWorkflow;
 
@@ -102,7 +102,7 @@ it('routes workflow integration dispatch through the coordinator', function (): 
                 withCoordinatorTestIntegration($form, $integration, function () use ($submission): void {
                     Formie::$plugin->getIntegrationTriggers()->dispatchFromWorkflow(
                         $submission,
-                        SubmissionWorkflow::PROCESS_MODE_EDIT_EXISTING,
+                        \verbb\formie\enums\SubmissionOperation::REVISE,
                         IntegrationTriggerEvents::FRONTEND_EDIT,
                     );
                 });
@@ -219,29 +219,19 @@ it('unifies spam unmark notifications and integration dispatch', function (): vo
     }
 });
 
-it('does not dispatch cp follow-ups when the submission was not unmarked as not spam', function (): void {
-    $submission = new Submission();
-    $submission->id = 920;
-
-    $triggerCount = 0;
-    $beforeHandler = function () use (&$triggerCount): void {
-        $triggerCount++;
-    };
-
-    Event::on(Integrations::class, Integrations::EVENT_BEFORE_TRIGGER_INTEGRATION, $beforeHandler);
-
+it('does not dispatch administrative follow-ups without an explicit unmark action', function () {
+    $form = formie()->form()->create();
+    $submission = formie()->submission($form)->save();
+    $command = submissionCommand(['operation' => \verbb\formie\enums\SubmissionOperation::REVISE, 'form' => $form, 'submission' => $submission]);
+    $context = new \verbb\formie\workflow\WorkflowContext($command);
+    $context->taskState['dispatch.state'] = new \verbb\formie\workflow\tasks\dispatch\DispatchState($submission, $command->operation, true);
+    $count = 0;
+    $handler = function () use (&$count) { $count++; };
+    Event::on(Integrations::class, Integrations::EVENT_BEFORE_TRIGGER_INTEGRATION, $handler);
     try {
-        Formie::$plugin->getIntegrationTriggers()->dispatchCpSubmissionFollowUps(
-            $submission,
-            new SubmissionRequest([
-                'processMode' => SubmissionWorkflow::PROCESS_MODE_EDIT_EXISTING,
-                'form' => new Form(),
-                'submission' => $submission,
-            ]),
-        );
-
-        expect($triggerCount)->toBe(0);
+        (new \verbb\formie\workflow\tasks\dispatch\RevisionFollowUpsTask())->execute($context);
+        expect($count)->toBe(0);
     } finally {
-        Event::off(Integrations::class, Integrations::EVENT_BEFORE_TRIGGER_INTEGRATION, $beforeHandler);
+        Event::off(Integrations::class, Integrations::EVENT_BEFORE_TRIGGER_INTEGRATION, $handler);
     }
 });

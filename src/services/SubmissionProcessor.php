@@ -2,25 +2,30 @@
 namespace verbb\formie\services;
 
 use verbb\formie\Formie;
-use verbb\formie\helpers\SiteHelper;
-use verbb\formie\helpers\ClientEventsHelper;
-use verbb\formie\helpers\StringHelper;
+use verbb\formie\client\models\SubmitRequest;
+use verbb\formie\client\models\SubmitResult;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\enums\NavigationIntent;
+use verbb\formie\enums\SubmissionAuthorityType;
+use verbb\formie\enums\SubmissionOperation;
+use verbb\formie\enums\SubmissionOutcomeType;
+use verbb\formie\enums\SubmissionPolicy;
 use verbb\formie\errors\StaleSubmissionStateException;
+use verbb\formie\helpers\ClientEventsHelper;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\ManagedSubmissionRequest;
 use verbb\formie\models\Payment as PaymentModel;
 use verbb\formie\models\PaymentDecision;
+use verbb\formie\models\SubmissionAuthority;
+use verbb\formie\models\SubmissionCommand;
 use verbb\formie\models\SubmissionExecutionResult;
-use verbb\formie\models\SubmissionRequest;
+use verbb\formie\models\SubmissionOutcome;
 use verbb\formie\models\SubmissionResponse;
-use verbb\formie\client\models\SubmitRequest;
-use verbb\formie\client\models\SubmitResult;
 use verbb\formie\state\DraftSubmissionState;
 
 use Craft;
-use craft\base\Element;
 use craft\helpers\UrlHelper;
 
 use yii\base\Component;
@@ -32,188 +37,130 @@ class SubmissionProcessor extends Component
     // Public Methods
     // =========================================================================
 
-    public function execute(SubmitRequest $request): SubmitResult
+    public function execute(SubmitRequest $input, SubmissionAuthorityType $authorityType): SubmitResult
     {
-        if ($request->siteId) {
-            SiteHelper::applyLocaleForSiteId((int)$request->siteId);
+        if ($authorityType !== SubmissionAuthorityType::VISITOR) {
+            throw new ForbiddenHttpException('This adapter requires visitor authority.');
         }
-
-        $form = $this->requireFormByHandle($request->handle, $request->siteId);
-        Formie::$plugin->getClientSessionService()->enforceAnonymousRateLimit($form);
-        $this->applyFormRequestContext(
-            $form,
-            $request->session['tokens']['render'] ?? null,
-            $request->session['continuation']['draftContext'] ?? null,
-            $request->session['tokens']['request'] ?? null,
+        $form = $this->requireFormByHandle($input->handle, $input->siteId);
+        $this->applyFormRequestContext($form, $input->session['tokens']['render'] ?? null, $input->session['continuation']['draftContext'] ?? null, $input->session['tokens']['request'] ?? null);
+        $progress = $this->resolveProgressState($form);
+        $submission = $this->resolveClientContinuationSubmission($form, $progress, (array)($input->session['continuation'] ?? [])) ?? new Submission();
+        $submission->setForm($form);
+        $operation = $input->action === 'save' ? SubmissionOperation::SAVE_DRAFT : SubmissionOperation::SUBMIT;
+        $navigation = $this->_navigation($input->action, $input->targetPageId);
+        $token = $input->session['tokens']['request'] ?? null;
+        $result = $this->_executeResolved(
+            $form, $submission, $operation, $navigation, $authorityType,
+            isset($input->session['version']) ? (int)$input->session['version'] : ($submission->id ? null : 0),
+            $input->operationId ?? $token, $token,
+            ['values' => $input->values, 'action' => $input->action, 'page' => $input->session['currentPageId'] ?? null, 'target' => $input->targetPageId, 'version' => $input->session['version'] ?? null, 'continuation' => $input->session['continuation'] ?? null],
+            function () use ($submission, $form, $progress, $input, $navigation): void {
+                $this->primeSubmission($submission, $form, $progress, $input->siteId);
+                if ($navigation !== NavigationIntent::BACK || Formie::$plugin->getSettings()->enableBackSubmission) {
+                    $submission->setFieldValues($input->values);
+                }
+            },
+            $this->_normalizeNullableInt($input->session['currentPageId'] ?? $progress?->currentPageId),
+            $input->targetPageId,
         );
-
-        $progressState = $this->resolveProgressState($form);
-        $continuation = (array)($request->session['continuation'] ?? []);
-        $submission = $this->resolveClientContinuationSubmission(
-            $form,
-            $progressState,
-            $continuation,
-        );
-
-        if (
-            !$submission
-            && $progressState?->submissionId
-            && !$form->settings->automaticSubmissionState
-            && !$this->_resolveSubmissionIdFromContinuationToken($form, $continuation)
-        ) {
-            // Leftover progress from a previous visit — drop it so the next pages
-            // cannot silently resume after a failed unload clear.
-            Formie::$plugin->getSubmissionDrafts()->clearProgressState($form);
-            $progressState = null;
-        }
-
-        $submission ??= new Submission();
-        $this->primeSubmission($submission, $form, $progressState, $request->siteId);
-        $submission->setFieldValues($request->values);
-        $submissionRequest = $this->createComponentSubmissionRequest($request, $form, $submission, $progressState);
-        $response = $this->runSubmissionRequest($submissionRequest);
-        $this->persistProgressState($submissionRequest, $response);
-
-        return $this->_buildClientResult($submissionRequest, $response, $request);
+        $form->resetRequestToken();
+        return $this->_buildClientResult($result->command, $result->response, $input);
     }
 
-    public function executeManaged(ManagedSubmissionRequest $request): SubmissionExecutionResult
+    public function executeManaged(ManagedSubmissionRequest $input, SubmissionAuthorityType $authorityType): SubmissionExecutionResult
     {
-        if ($request->siteId) {
-            SiteHelper::applyLocaleForSiteId((int)$request->siteId);
+        if (!in_array($authorityType, [SubmissionAuthorityType::VISITOR, SubmissionAuthorityType::CONTROL_PANEL], true)) {
+            throw new ForbiddenHttpException('Unsupported managed submission authority.');
         }
+        $form = $this->requireFormByHandle($input->handle, $input->siteId);
+        $draftContext = $input->draftContextToken ? $form->resolveDraftContextToken($input->draftContextToken) : $input->draftContext;
+        $this->applyFormRequestContext($form, $input->renderId, $draftContext, $input->requestToken);
+        $progress = $authorityType === SubmissionAuthorityType::VISITOR ? $this->resolveProgressState($form) : null;
+        $submission = $this->_resolveManagedContinuationSubmission($form, $progress, $input->submissionId, $input->resumeToken, $input->submissionUid, $input->operation === SubmissionOperation::REVISE ? null : true) ?? new Submission();
+        $submission->setForm($form);
+        $operation = $input->operation;
 
-        $form = $this->requireFormByHandle($request->handle, $request->siteId);
-
-        if (Craft::$app->getRequest()->getIsSiteRequest() && Craft::$app->getUser()->isGuest) {
-            Formie::$plugin->getClientSessionService()->enforceAnonymousRateLimit($form);
+        if ($authorityType === SubmissionAuthorityType::CONTROL_PANEL) {
+            $this->_requireCpPermission($form, $submission);
+            $operation = $submission->id ? SubmissionOperation::REVISE : SubmissionOperation::SUBMIT;
+        } else {
+            $this->_authorizeVisitor($form, $input, $progress, $submission);
+            if ($operation === SubmissionOperation::REVISE && $submission->isIncomplete) {
+                $operation = SubmissionOperation::SUBMIT;
+            }
         }
-
-        $draftContext = $request->draftContextToken
-            ? $form->resolveDraftContextToken($request->draftContextToken)
-            : $request->draftContext;
-        $isIncomplete = $request->processMode === SubmissionWorkflow::PROCESS_MODE_EDIT_EXISTING ? null : true;
-
-        $this->applyFormRequestContext(
-            $form,
-            $request->renderId,
-            $draftContext,
-            $request->requestToken,
+        if ($operation === SubmissionOperation::SUBMIT && $input->submitAction === 'save') {
+            $operation = SubmissionOperation::SAVE_DRAFT;
+        }
+        $policy = $authorityType === SubmissionAuthorityType::CONTROL_PANEL && !$submission->id
+            ? SubmissionPolicy::ADMINISTRATIVE_CREATE : SubmissionPolicy::STANDARD;
+        $navigation = $authorityType === SubmissionAuthorityType::CONTROL_PANEL || $operation === SubmissionOperation::REVISE
+            ? NavigationIntent::STAY : $this->_navigation($input->submitAction, $input->targetPageId);
+        $body = (array)Craft::$app->getRequest()->getBodyParams();
+        unset($body[Craft::$app->getRequest()->csrfParam], $body['requestToken']);
+        $body['_uploadedFiles'] = $this->_uploadedFileFingerprint();
+        $body['_target'] = [$input->submissionId, $input->submissionUid, $input->resumeToken, $input->submissionEditToken];
+        return $this->_executeResolved(
+            $form, $submission, $operation, $navigation, $authorityType, $input->expectedVersion ?? ($submission->id ? null : 0),
+            $input->operationId ?? $input->requestToken, $input->requestToken,
+            $body + ['operation' => $operation->value, 'page' => $input->pageId, 'target' => $input->targetPageId],
+            function () use ($submission, $form, $progress, $input, $authorityType, $navigation): void {
+                $this->primeSubmission($submission, $form, $progress, $input->siteId);
+                if ($navigation !== NavigationIntent::BACK || Formie::$plugin->getSettings()->enableBackSubmission) {
+                    $submission->setFieldValuesFromRequest($input->fieldParamNamespace);
+                }
+                $submission->setFieldParamNamespace($input->fieldParamNamespace);
+                if ($authorityType === SubmissionAuthorityType::CONTROL_PANEL) {
+                    Formie::$plugin->getSubmissions()->applyCpRequestAttributes($submission);
+                    if ($input->userId !== null) {
+                        $submission->userId = $input->userId;
+                    }
+                }
+            },
+            $input->pageId ?? $progress?->currentPageId, $input->targetPageId,
+            $policy, true,
         );
-
-        $progressState = $this->resolveProgressState($form);
-        $submission = $this->resolveManagedContinuationSubmission(
-            $form,
-            $progressState,
-            $request->submissionId,
-            $request->resumeToken,
-            $request->submissionUid,
-            $isIncomplete,
-        );
-        $submission ??= new Submission();
-
-        // Re-read after resolve — abandoned leftover progress is cleared when
-        // automatic restore is off and the post is not an in-session continuation.
-        $progressState = $this->resolveProgressState($form);
-
-        $this->enforceManagedSiteSubmissionAuthorization($form, $request, $progressState, $submission);
-        $this->primeSubmission($submission, $form, $progressState, $request->siteId);
-        $submission->setFieldValuesFromRequest($request->fieldParamNamespace);
-        $submission->setFieldParamNamespace($request->fieldParamNamespace);
-        Formie::$plugin->getSubmissions()->applyCpRequestAttributes($submission);
-
-        if ($request->userId !== null) {
-            $submission->userId = $request->userId;
-        }
-
-        $submissionRequest = $this->createManagedSubmissionRequest($request, $form, $submission, $progressState, $draftContext);
-        $response = $this->runSubmissionRequest($submissionRequest);
-        $this->persistProgressState($submissionRequest, $response);
-
-        if ($response->success) {
-            Formie::$plugin->getIntegrationTriggers()->dispatchCpSubmissionFollowUps(
-                $submissionRequest->submission,
-                $submissionRequest,
-            );
-        }
-
-        return new SubmissionExecutionResult([
-            'submissionRequest' => $submissionRequest,
-            'response' => $response,
-        ]);
     }
 
-    public function executeMutation(Form $form, Submission $submission, array $arguments): SubmissionExecutionResult
+    public function executeMutation(Form $form, Submission $submission, array $arguments, callable $populate): SubmissionExecutionResult
     {
-        $siteId = isset($arguments['siteId']) ? (int)$arguments['siteId'] : null;
-
-        if ($siteId) {
-            SiteHelper::applyLocaleForSiteId($siteId);
+        $permission = $submission->id ? 'save' : 'create';
+        if (!\craft\helpers\Gql::canSchema('formieSubmissions.all', $permission) && !\craft\helpers\Gql::canSchema('formieSubmissions.' . $form->uid, $permission)) {
+            throw new ForbiddenHttpException('Unable to perform the action.');
         }
-
-        $submissionRequest = $this->createMutationSubmissionRequest($form, $submission, $arguments);
-
-        $this->applyFormRequestContext(
-            $form,
-            null,
-            null,
-            $submissionRequest->requestToken,
+        $submission->setForm($form);
+        return $this->_executeResolved(
+            $form, $submission, $submission->id ? SubmissionOperation::REVISE : SubmissionOperation::SUBMIT,
+            $submission->id ? NavigationIntent::STAY : NavigationIntent::ADVANCE, SubmissionAuthorityType::GRAPHQL_ADMIN,
+            isset($arguments['expectedVersion']) ? (int)$arguments['expectedVersion'] : ($submission->id ? null : 0),
+            $arguments['operationId'] ?? $arguments['requestToken'] ?? null, null, $arguments, $populate,
+            $submission->id ? null : (int)$form->getPages()[array_key_last($form->getPages())]->id,
         );
-        $this->primeSubmission(
-            $submission,
-            $form,
-            null,
-            $submissionRequest->siteId ?? $submission->siteId
-        );
-
-        return new SubmissionExecutionResult([
-            'submissionRequest' => $submissionRequest,
-            'response' => $this->runSubmissionRequest($submissionRequest),
-        ]);
     }
 
     public function executePaymentReplay(PaymentModel $payment): SubmissionExecutionResult
     {
         $submission = $payment->getSubmission();
-
-        if (!$submission) {
-            throw new BadRequestHttpException('Unable to find submission for payment replay.');
+        $form = $submission?->getForm();
+        if (!$submission || !$form) {
+            throw new BadRequestHttpException('Unable to resolve the payment submission.');
         }
+        // The caller is a verified provider/domain adapter. Never populate from browser input or progress.
+        return $this->_executeResolved(
+            $form, $submission, SubmissionOperation::PAYMENT_REPLAY, NavigationIntent::STAY,
+            SubmissionAuthorityType::PAYMENT_REPLAY, $submission->stateVersion,
+            $this->_createPaymentReplayRequestToken($payment), null,
+            ['payment' => $payment->id, 'status' => $payment->status, 'reference' => $payment->reference], static function (): void {},
+        );
+    }
 
-        $form = $submission->getForm();
-
-        if (!$form) {
-            throw new BadRequestHttpException('Unable to find form for payment replay.');
+    public function executeCommand(SubmissionCommand $command): SubmissionOutcome
+    {
+        if ($command->authority->type !== SubmissionAuthorityType::TRUSTED_INTERNAL) {
+            throw new ForbiddenHttpException('Use the transport-specific boundary for external commands.');
         }
-
-        $requestToken = $this->_createPaymentReplayRequestToken($payment);
-
-        $this->applyFormRequestContext($form, null, null, $requestToken);
-        $this->primeSubmission($submission, $form, null, $submission->siteId);
-
-        if ($defaultStatus = $form->getDefaultStatus()) {
-            $submission->setStatus($defaultStatus);
-        }
-
-        $submission->setScenario(Element::SCENARIO_LIVE);
-        $submission->validateCurrentPageOnly = false;
-
-        $submissionRequest = new SubmissionRequest([
-            'processMode' => SubmissionWorkflow::PROCESS_MODE_PAYMENT_REPLAY,
-            'form' => $form,
-            'submission' => $submission,
-            'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
-            'siteId' => $submission->siteId,
-            'requestToken' => $requestToken,
-        ]);
-
-        $response = $this->runSubmissionRequest($submissionRequest);
-        $this->persistProgressState($submissionRequest, $response);
-
-        return new SubmissionExecutionResult([
-            'submissionRequest' => $submissionRequest,
-            'response' => $response,
-        ]);
+        return Formie::$plugin->getSubmissionOperations()->execute($command, fn() => Formie::$plugin->getSubmissionWorkflow()->process($command));
     }
 
     public function replayPaymentIfSuccessful(PaymentModel $payment): ?SubmissionExecutionResult
@@ -311,7 +258,7 @@ class SubmissionProcessor extends Component
         $submission->setForm($form);
         $submission->siteId = $siteId ?? $submission->siteId ?? Craft::$app->getSites()->getCurrentSite()->id;
 
-        if (is_array($progressState?->content) && $progressState->content) {
+        if (!$submission->id && is_array($progressState?->content) && $progressState->content) {
             $submission->getContentManager()->normalizeFromDb($submission, $progressState->content);
         }
 
@@ -363,116 +310,106 @@ class SubmissionProcessor extends Component
     // Private Methods
     // =========================================================================
 
-    private function createManagedSubmissionRequest(
-        ManagedSubmissionRequest $request,
-        Form $form,
-        Submission $submission,
-        ?DraftSubmissionState $progressState,
-        ?string $draftContext
-    ): SubmissionRequest {
-        $submitAction = $this->_normalizeManagedSubmitAction($request->submitAction);
-        $processMode = $request->processMode;
-
-        if ($processMode === SubmissionWorkflow::PROCESS_MODE_SUBMIT && $submitAction === SubmissionWorkflow::SUBMIT_ACTION_SAVE) {
-            // Managed clients can express "save" as a submit-style request. Fold
-            // that into the explicit save-draft mode before the workflow sees it
-            // so downstream stage policies remain unambiguous.
-            $processMode = SubmissionWorkflow::PROCESS_MODE_SAVE_DRAFT;
+    private function _executeResolved(
+        Form $form, Submission $submission, SubmissionOperation $operation, NavigationIntent $navigation,
+        SubmissionAuthorityType $authorityType, ?int $expectedVersion, ?string $operationId, ?string $requestToken,
+        array $payload, callable $populate, ?int $pageId = null, ?int $targetPageId = null,
+        SubmissionPolicy $policy = SubmissionPolicy::STANDARD, bool $browser = false,
+    ): SubmissionExecutionResult {
+        $scope = match ($authorityType) {
+            SubmissionAuthorityType::VISITOR => 'session:' . $this->_sessionScope(),
+            SubmissionAuthorityType::CONTROL_PANEL => 'user:' . Craft::$app->getUser()->getId(),
+            SubmissionAuthorityType::GRAPHQL_ADMIN => 'schema:' . Craft::$app->getGql()->getActiveSchema()->uid,
+            SubmissionAuthorityType::PAYMENT_REPLAY => 'payment:' . $submission->id,
+            default => 'internal',
+        };
+        $authority = new SubmissionAuthority($authorityType, (int)$form->id, $submission->id ? (int)$submission->id : null, $scope);
+        $operations = Formie::$plugin->getSubmissionOperations();
+        $command = new SubmissionCommand(
+            $operation, $navigation, $authority, $form, $submission, $expectedVersion, $operationId,
+            $operations->fingerprint(['payload' => $payload, 'site' => $form->siteId, 'operation' => $operation->value, 'navigation' => $navigation->value, 'version' => $operation === SubmissionOperation::PAYMENT_REPLAY ? null : $expectedVersion]),
+            $pageId, $targetPageId,
+            $authorityType !== SubmissionAuthorityType::CONTROL_PANEL || $form->cpSubmissionFollowsFieldConditions(),
+            $policy, $requestToken,
+            $authorityType === SubmissionAuthorityType::CONTROL_PANEL && StringHelper::toBoolean((string)Craft::$app->getRequest()->getBodyParam('sendNotifications')),
+            $authorityType === SubmissionAuthorityType::CONTROL_PANEL && StringHelper::toBoolean((string)Craft::$app->getRequest()->getBodyParam('triggerIntegrations')),
+        );
+        $guardReason = Formie::$plugin->getSubmissionGuards()->validateRequest($command, $browser);
+        $outcome = $operations->execute($command, function () use ($command, $populate, $guardReason): SubmissionOutcome {
+            if ($guardReason !== null) {
+                // Cheap bot checks can deliberately fake success, but never persist posted input.
+                return new SubmissionOutcome(SubmissionOutcomeType::REJECTED, data: [
+                    'fakeSuccess' => Formie::$plugin->getSettings()->spamBehaviour === \verbb\formie\models\Settings::SPAM_BEHAVIOUR_SUCCESS,
+                ]);
+            }
+            $populate();
+            $command->submission->isNewSubmission = in_array($command->operation, [SubmissionOperation::SUBMIT, SubmissionOperation::PAYMENT_REPLAY], true);
+            return Formie::$plugin->getSubmissionWorkflow()->process($command);
+        });
+        // A lost-response retry may resolve a new in-memory element. Restore the durable identity for adapters.
+        if ($outcome->submissionId && (int)$submission->id !== $outcome->submissionId) {
+            $submission = $this->_findSubmissionById($outcome->submissionId, null, (int)$form->id);
+            if (!$submission) {
+                throw new ForbiddenHttpException('Submission is unavailable.');
+            }
         }
-
-        return new SubmissionRequest([
-            'processMode' => $processMode,
-            'form' => $form,
-            'submission' => $submission,
-            'submitAction' => $submitAction,
-            'siteId' => $this->_normalizeNullableInt($request->siteId),
-            'pageId' => $this->_normalizeNullableInt($request->pageId)
-                ?? $this->_normalizeNullableInt($progressState?->currentPageId),
-            'targetPageId' => $this->_normalizeNullableInt($request->targetPageId),
-            'requestToken' => $this->_normalizeNullableString($request->requestToken),
-            'draftContext' => $this->_normalizeNullableString($draftContext),
-            'clearConditionallyHiddenFields' => Craft::$app->getRequest()->getIsCpRequest()
-                && $form->cpSubmissionFollowsFieldConditions(),
-        ]);
-    }
-
-    private function createComponentSubmissionRequest(
-        SubmitRequest $clientRequest,
-        Form $form,
-        Submission $submission,
-        ?DraftSubmissionState $progressState = null
-    ): SubmissionRequest {
-        $submitAction = $this->_normalizeComponentSubmitAction($clientRequest->action);
-
-        return new SubmissionRequest([
-            'processMode' => $submitAction === SubmissionWorkflow::SUBMIT_ACTION_SAVE
-                ? SubmissionWorkflow::PROCESS_MODE_SAVE_DRAFT
-                : SubmissionWorkflow::PROCESS_MODE_SUBMIT,
-            'form' => $form,
-            'submission' => $submission,
-            'submitAction' => $submitAction,
-            'siteId' => $this->_normalizeNullableInt($clientRequest->siteId),
-            'pageId' => $this->_normalizeNullableInt($clientRequest->session['currentPageId'] ?? null)
-                ?? $this->_normalizeNullableInt($progressState?->currentPageId),
-            'targetPageId' => null,
-            'requestToken' => $this->_normalizeNullableString($clientRequest->session['tokens']['request'] ?? null),
-            'draftContext' => $this->_normalizeNullableString($clientRequest->session['continuation']['draftContext'] ?? null),
-            'clearConditionallyHiddenFields' => true,
-        ]);
-    }
-
-    private function createMutationSubmissionRequest(Form $form, Submission $submission, array $arguments): SubmissionRequest
-    {
-        return new SubmissionRequest([
-            'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
-            'form' => $form,
-            'submission' => $submission,
-            'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
-            'siteId' => $this->_normalizeNullableInt($arguments['siteId'] ?? null),
-            'requestToken' => $this->_normalizeNullableString($arguments['requestToken'] ?? null),
-        ]);
-    }
-
-    private function runSubmissionRequest(SubmissionRequest $request): SubmissionResponse
-    {
-        $response = Formie::$plugin->getSubmissionWorkflow()->processSubmissionRequest($request);
-        $submission = $response->submission ?? $request->submission;
-        $form = $response->form ?? $request->form;
-
-        if (!$response->success && $submission->hasErrors() && !$submission->hasErrors('form')) {
+        $submission->clearErrors();
+        $submission->addErrors($outcome->errors);
+        $response = SubmissionResponse::fromOutcome($outcome, $form, $submission, $command);
+        if (!$response->success && !$submission->hasErrors('form') && !in_array($outcome->type, [SubmissionOutcomeType::PAYMENT_ACTION_REQUIRED, SubmissionOutcomeType::PAYMENT_PENDING], true)) {
             $submission->addError('form', $form->settings->getErrorMessage());
         }
-
-        return $response;
+        return new SubmissionExecutionResult(['command' => $command, 'response' => $response]);
     }
 
-    private function persistProgressState(SubmissionRequest $request, SubmissionResponse $response): void
+    private function _sessionScope(): string
     {
-        if (!$response->success) {
-            // Preserve the last known resume state on validation or workflow
-            // failures; clearing it here would strand multi-page drafts after a
-            // recoverable error.
-            return;
+        $session = Craft::$app->getSession();
+        $session->open();
+        if (!$session->has('formie:authority')) {
+            $session->set('formie:authority', Craft::$app->getSecurity()->generateRandomString());
         }
-
-        $submissionDrafts = Formie::$plugin->getSubmissionDrafts();
-
-        if ($request->submitAction === SubmissionWorkflow::SUBMIT_ACTION_SAVE) {
-            $submissionDrafts->upsertProgressState($request->form, $request->submission, $request->form->getCurrentPage()?->id);
-
-            return;
-        }
-
-        if ($response->nextPage) {
-            $submissionDrafts->upsertProgressState($request->form, $request->submission, $response->nextPage->id);
-
-            return;
-        }
-
-        $submissionDrafts->clearProgressState($request->form);
+        return hash('sha256', $session->get('formie:authority'));
     }
 
-    private function resolveManagedContinuationSubmission(
+    private function _uploadedFileFingerprint(): array
+    {
+        $files = $_FILES;
+        $hash = function (mixed $value) use (&$hash): mixed {
+            if (is_array($value)) {
+                return array_map($hash, $value);
+            }
+            return is_string($value) && is_file($value) ? hash_file('sha256', $value) : null;
+        };
+        foreach ($files as &$file) {
+            // Temporary paths change between retries; file contents and posted field paths identify the input.
+            $file['tmp_name'] = $hash($file['tmp_name'] ?? null);
+        }
+        return $files;
+    }
+
+    private function _navigation(?string $action, ?int $targetPageId): NavigationIntent
+    {
+        return $targetPageId ? NavigationIntent::TARGET : match ($action) {
+            'back' => NavigationIntent::BACK,
+            'save' => NavigationIntent::STAY,
+            default => NavigationIntent::ADVANCE,
+        };
+    }
+
+    private function _requireCpPermission(Form $form, Submission $submission): void
+    {
+        $user = Craft::$app->getUser()->getIdentity();
+        $permission = $submission->id ? 'formie-saveSubmissions' : 'formie-createSubmissions';
+        if (!$user || ($submission->id
+            ? !Formie::$plugin->getPermissions()->canSaveSubmissions($user, $form)
+            : (!$user->can($permission) && !$user->can($permission . ':' . $form->uid)
+                && !$user->can($permission . ':' . Formie::$plugin->getPermissions()->groupScope(Formie::$plugin->getPermissions()->getFormGroupHandle($form)))))) {
+            throw new ForbiddenHttpException('User is not permitted to perform this action.');
+        }
+    }
+
+    private function _resolveManagedContinuationSubmission(
         Form $form,
         ?DraftSubmissionState $progressState = null,
         ?int $submissionId = null,
@@ -536,19 +473,15 @@ class SubmissionProcessor extends Component
         return $posted !== null && (int)$posted->id === (int)$progressState->submissionId;
     }
 
-    private function enforceManagedSiteSubmissionAuthorization(
+    private function _authorizeVisitor(
         Form $form,
         ManagedSubmissionRequest $request,
         ?DraftSubmissionState $progressState,
         Submission $submission
     ): void {
-        if (!Craft::$app->getRequest()->getIsSiteRequest()) {
-            return;
-        }
-
         // Front-end save-submission is edit-only. Anonymous callers must use submit
         // so captcha, spam screening, and workflow policies still apply to new entries.
-        if ($request->processMode === SubmissionWorkflow::PROCESS_MODE_EDIT_EXISTING && !$submission->id) {
+        if ($request->operation === SubmissionOperation::REVISE && !$submission->id) {
             throw new ForbiddenHttpException('User is not permitted to perform this action');
         }
 
@@ -556,7 +489,7 @@ class SubmissionProcessor extends Component
             return;
         }
 
-        if ($request->processMode === SubmissionWorkflow::PROCESS_MODE_EDIT_EXISTING) {
+        if ($request->operation === SubmissionOperation::REVISE) {
             if (!$this->_validateSubmissionEditToken($form, $submission, $request->submissionEditToken)) {
                 throw new ForbiddenHttpException('User is not permitted to perform this action');
             }
@@ -577,11 +510,11 @@ class SubmissionProcessor extends Component
         throw new ForbiddenHttpException('User is not permitted to perform this action');
     }
 
-    private function _buildClientResult(SubmissionRequest $submissionRequest, SubmissionResponse $response, SubmitRequest $request): SubmitResult
+    private function _buildClientResult(SubmissionCommand $submissionRequest, SubmissionResponse $response, SubmitRequest $request): SubmitResult
     {
         $form = $submissionRequest->form;
-        $submission = $submissionRequest->submission;
-        $submitAction = $submissionRequest->submitAction;
+        $submission = $response->submission;
+        $submitAction = $response->submitAction;
         $fieldIdByHandle = [];
 
         foreach ($form->getFields() as $field) {
@@ -620,7 +553,7 @@ class SubmissionProcessor extends Component
         // so the next page can continue even when automatic restore is disabled.
         $includeProgressContinuation = $response->success
             && (bool)$submission->id
-            && ($response->nextPage || $submitAction === SubmissionWorkflow::SUBMIT_ACTION_SAVE);
+            && ($response->nextPage || $submitAction === 'save');
 
         $session = Formie::$plugin->getClientSessionService()->issueInitialSession(
             $form,
@@ -645,7 +578,7 @@ class SubmissionProcessor extends Component
                 : StringHelper::sanitizeMessageHtml(Craft::t('formie', 'Form submitted successfully.'));
         }
 
-        if ($submitAction === SubmissionWorkflow::SUBMIT_ACTION_SAVE && $response->success) {
+        if ($submitAction === 'save' && $response->success) {
             $notice = StringHelper::sanitizeMessageHtml($form->settings->getSubmitActionMessage($submission));
         }
 
@@ -693,6 +626,9 @@ class SubmissionProcessor extends Component
 
         return new SubmitResult(array_merge([
             'success' => $response->success,
+            'outcome' => $response->outcome->type->value,
+            'version' => $response->outcome->version,
+            'httpStatus' => $response->httpStatus,
             'submissionUid' => $submission->uid ?: null,
             'currentPageId' => $currentPageId,
             'nextPageId' => $nextPageId,
@@ -867,26 +803,6 @@ class SubmissionProcessor extends Component
         }
 
         return $query->one();
-    }
-
-    private function _normalizeManagedSubmitAction(mixed $action): string
-    {
-        $normalizedAction = $this->_normalizeNullableString($action);
-
-        if ($normalizedAction && in_array($normalizedAction, SubmissionWorkflow::getAllowedSubmitActions(), true)) {
-            return $normalizedAction;
-        }
-
-        return SubmissionWorkflow::SUBMIT_ACTION_SUBMIT;
-    }
-
-    private function _normalizeComponentSubmitAction(mixed $action): string
-    {
-        return match ($this->_normalizeNullableString($action)) {
-            SubmissionWorkflow::SUBMIT_ACTION_BACK => SubmissionWorkflow::SUBMIT_ACTION_BACK,
-            SubmissionWorkflow::SUBMIT_ACTION_SAVE => SubmissionWorkflow::SUBMIT_ACTION_SAVE,
-            default => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
-        };
     }
 
     private function _normalizeNullableInt(mixed $value): ?int

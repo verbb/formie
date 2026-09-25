@@ -210,7 +210,7 @@ export async function requestSetPage(url: string, form?: HTMLFormElement, pageId
     if (form) {
         // Page changes must carry the same continuity identifiers the submit flow
         // uses so the backend can persist draft/session state for multipage forms.
-        const inputNames = ['handle', 'renderId', 'draftContextToken', 'draftContext', 'continuationToken'];
+        const inputNames = ['handle', 'renderId', 'draftContextToken', 'draftContext', 'continuationToken', 'requestToken', 'expectedVersion'];
 
         inputNames.forEach((name) => {
             const input = form.querySelector(`input[name="${name}"]`) as HTMLInputElement | null;
@@ -231,10 +231,18 @@ export async function requestSetPage(url: string, form?: HTMLFormElement, pageId
     const result = await requestJson<{
         success?: boolean;
         pageId?: string | number;
+        session?: { version: number; tokens?: { request?: string } };
     }>(requestUrl.toString(), {
         method: 'POST',
         body,
     });
+    if (form && result.session) {
+        const session = result.session;
+        const version = form.querySelector<HTMLInputElement>('input[name="expectedVersion"]');
+        const token = form.querySelector<HTMLInputElement>('input[name="requestToken"]');
+        if (version) version.value = String(session.version);
+        if (token && session.tokens?.request) token.value = session.tokens.request;
+    }
     debug.log('requestSetPage complete.', result);
     return result;
 }

@@ -8,6 +8,7 @@ class FormSession extends BaseClientModel
     // Properties
     // =========================================================================
 
+    public int $version = 0;
     public string $id = '';
     public string $currentPageId = '';
     public array $tokens = [];

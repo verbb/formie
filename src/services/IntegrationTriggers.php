@@ -9,7 +9,6 @@ use verbb\formie\helpers\IntegrationTriggerEvents;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationResponse;
 use verbb\formie\models\IntegrationTriggerRequest;
-use verbb\formie\models\SubmissionRequest;
 
 use Craft;
 
@@ -40,7 +39,7 @@ class IntegrationTriggers extends Component
 
         Formie::$plugin->getIntegrations()->triggerIntegrations(
             $request->submission,
-            $request->processMode,
+            $request->operation,
             $request->triggerEvent,
             $request->operatorInitiated,
         );
@@ -48,14 +47,14 @@ class IntegrationTriggers extends Component
 
     public function dispatchFromWorkflow(
         Submission $submission,
-        string $processMode,
+        \verbb\formie\enums\SubmissionOperation $operation,
         ?string $triggerEvent = null,
     ): void {
         $this->dispatch(new IntegrationTriggerRequest([
             'source' => self::SOURCE_WORKFLOW,
             'submission' => $submission,
-            'processMode' => $processMode,
-            'triggerEvent' => $triggerEvent ?? IntegrationTriggerEvents::resolveFromProcessMode($processMode),
+            'operation' => $operation,
+            'triggerEvent' => $triggerEvent ?? IntegrationTriggerEvents::resolveFromOperation($operation),
         ]));
     }
 
@@ -74,7 +73,7 @@ class IntegrationTriggers extends Component
         $this->dispatch(new IntegrationTriggerRequest([
             'source' => self::SOURCE_CP_ELEMENT_SAVE,
             'submission' => $submission,
-            'processMode' => SubmissionWorkflow::PROCESS_MODE_EDIT_EXISTING,
+            'operation' => \verbb\formie\enums\SubmissionOperation::REVISE,
             'triggerEvent' => IntegrationTriggerEvents::CP_SAVE,
         ]));
     }
@@ -95,34 +94,10 @@ class IntegrationTriggers extends Component
         $this->dispatch(new IntegrationTriggerRequest([
             'source' => self::SOURCE_SPAM_UNMARK,
             'submission' => $submission,
-            'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+            'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
             'triggerEvent' => IntegrationTriggerEvents::UNMARK_SPAM,
             'operatorInitiated' => true,
         ]));
-    }
-
-    public function dispatchCpSubmissionFollowUps(Submission $submission, SubmissionRequest $submissionRequest): void
-    {
-        $request = Craft::$app->getRequest();
-
-        if (!$request->getIsCpRequest() || $request->getIsConsoleRequest()) {
-            return;
-        }
-
-        if ($submissionRequest->processMode !== SubmissionWorkflow::PROCESS_MODE_EDIT_EXISTING) {
-            return;
-        }
-
-        // Operator toggles on the CP submission edit form when unmarking spam.
-        if (!$submission->hasSpamChanged(true, false)) {
-            return;
-        }
-
-        $this->dispatchSpamUnmark(
-            $submission,
-            StringHelper::toBoolean($request->getBodyParam('sendNotifications')),
-            StringHelper::toBoolean($request->getBodyParam('triggerIntegrations')),
-        );
     }
 
     public function dispatchManualIntegration(Integration $integration, Submission $submission): bool|IntegrationResponse

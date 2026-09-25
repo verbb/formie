@@ -21,6 +21,7 @@ class ClientSessionType extends ObjectType
         return GqlEntityRegistry::getEntity(self::getName()) ?: GqlEntityRegistry::createEntity(self::getName(), new self([
             'name' => self::getName(),
             'fields' => [
+                'version' => ['name' => 'version', 'type' => Type::int()],
                 'id' => [
                     'name' => 'id',
                     'type' => Type::nonNull(Type::string()),

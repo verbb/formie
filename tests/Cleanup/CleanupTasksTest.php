@@ -65,6 +65,7 @@ it('prunes expired draft storage rows', function (): void {
 
 it('exposes every cleanup task handle through the cleanup service', function (): void {
     expect(Cleanup::taskHandles())->toBe([
+        Cleanup::TASK_SUBMISSION_OPERATIONS,
         Cleanup::TASK_INCOMPLETE_SUBMISSIONS,
         Cleanup::TASK_DATA_RETENTION_SUBMISSIONS,
         Cleanup::TASK_SENT_NOTIFICATIONS,

@@ -12,7 +12,7 @@ use verbb\formie\controllers\server\SubmissionsController as ServerSubmissionsCo
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\RichText;
-use verbb\formie\models\SubmissionRequest;
+use verbb\formie\models\SubmissionCommand;
 use verbb\formie\models\SubmissionResponse;
 use verbb\formie\services\SubmissionWorkflow;
 
@@ -45,11 +45,11 @@ it('does not evaluate Twig-style submission content when rerendering after a pag
     $submission->setFieldValueFromRequest('trackingToken', MaliciousPayloads::twigMathProbe());
     $submission->setFieldValueFromRequest('fullName', '');
 
-    $response = (new SubmissionWorkflow())->processSubmissionRequest(new SubmissionRequest([
-        'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+    $response = runSubmissionCommand(submissionCommand([
+        'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
         'form' => $form,
         'submission' => $submission,
-        'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+        'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
     ]));
 
     $form->setCurrentSubmission($response->submission);
@@ -95,11 +95,11 @@ it('escapes textarea content when rerendering plain text after a page-reload val
     $submission->setFieldValueFromRequest('message', $payload);
     $submission->setFieldValueFromRequest('fullName', '');
 
-    $response = (new SubmissionWorkflow())->processSubmissionRequest(new SubmissionRequest([
-        'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+    $response = runSubmissionCommand(submissionCommand([
+        'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
         'form' => $form,
         'submission' => $submission,
-        'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+        'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
     ]));
 
     $form->setCurrentSubmission($response->submission);
@@ -133,11 +133,11 @@ it('escapes single-line input values in attribute contexts after a page-reload v
     $submission->setFieldValueFromRequest('fullName', $payload);
     $submission->setFieldValueFromRequest('email', '');
 
-    $response = (new SubmissionWorkflow())->processSubmissionRequest(new SubmissionRequest([
-        'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+    $response = runSubmissionCommand(submissionCommand([
+        'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
         'form' => $form,
         'submission' => $submission,
-        'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+        'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
     ]));
 
     $form->setCurrentSubmission($response->submission);
@@ -166,11 +166,11 @@ it('preserves hostile values safely across multipage transitions when earlier pa
     $submission->setFieldValueFromRequest('pageOneField', $payload);
 
     $process = new SubmissionWorkflow();
-    $forward = $process->processSubmissionRequest(new SubmissionRequest([
-        'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+    $forward = runSubmissionCommand(submissionCommand([
+        'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
         'form' => $form,
         'submission' => $submission,
-        'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+        'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
         'pageId' => (int)$pages[0]->id,
     ]));
 
@@ -178,11 +178,11 @@ it('preserves hostile values safely across multipage transitions when earlier pa
         ->and($forward->nextPage?->id)->toBe($pages[1]->id);
 
     $submission = $forward->submission;
-    $back = $process->processSubmissionRequest(new SubmissionRequest([
-        'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+    $back = runSubmissionCommand(submissionCommand([
+        'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
         'form' => $form,
         'submission' => $submission,
-        'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_BACK,
+        'navigation' => \verbb\formie\enums\NavigationIntent::BACK,
         'pageId' => (int)$pages[1]->id,
     ]));
 
@@ -245,11 +245,11 @@ it('sanitizes submit json form errors while preserving safe html links', functio
     $submission->setForm($form);
     $submission->setFieldValueFromRequest('fullName', '');
 
-    $response = (new SubmissionWorkflow())->processSubmissionRequest(new SubmissionRequest([
-        'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+    $response = runSubmissionCommand(submissionCommand([
+        'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
         'form' => $form,
         'submission' => $submission,
-        'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+        'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
     ]));
     $response->submission->clearErrors('form');
     $response->submission->addError('form', '<p>Please retry. <a href="https://example.com/help">Help</a></p><script>alert("xss")</script>');
@@ -257,7 +257,7 @@ it('sanitizes submit json form errors while preserving safe html links', functio
     $controller = new SubmissionsController('formie-submissions-security', Craft::$app);
     $method = new ReflectionMethod(SubmissionsController::class, '_createSubmitJsonResponsePayload');
     $method->setAccessible(true);
-    $payload = $method->invoke($controller, $response, SubmissionWorkflow::SUBMIT_ACTION_SUBMIT, []);
+    $payload = $method->invoke($controller, $response, 'submit', []);
     $formErrors = $payload['errors']['form'] ?? [];
 
     expect($formErrors)->not->toBeEmpty()
@@ -275,18 +275,18 @@ it('sanitizes submit json field errors before returning legacy ajax payloads', f
     $submission->setForm($form);
     $submission->setFieldValueFromRequest('fullName', '');
 
-    $response = (new SubmissionWorkflow())->processSubmissionRequest(new SubmissionRequest([
-        'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+    $response = runSubmissionCommand(submissionCommand([
+        'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
         'form' => $form,
         'submission' => $submission,
-        'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+        'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
     ]));
     $response->submission->addError('fullName', '<script>alert("xss")</script><p>Retry this field.</p>');
 
     $controller = new SubmissionsController('formie-submissions-security', Craft::$app);
     $method = new ReflectionMethod(SubmissionsController::class, '_createSubmitJsonResponsePayload');
     $method->setAccessible(true);
-    $payload = $method->invoke($controller, $response, SubmissionWorkflow::SUBMIT_ACTION_SUBMIT, []);
+    $payload = $method->invoke($controller, $response, 'submit', []);
     $fieldErrors = $payload['errors']['fullName'] ?? [];
     $fieldErrorText = implode(' ', $fieldErrors);
 
@@ -305,18 +305,18 @@ it('sanitizes submit json field errors before returning runtime html ajax payloa
     $submission->setForm($form);
     $submission->setFieldValueFromRequest('fullName', '');
 
-    $response = (new SubmissionWorkflow())->processSubmissionRequest(new SubmissionRequest([
-        'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+    $response = runSubmissionCommand(submissionCommand([
+        'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
         'form' => $form,
         'submission' => $submission,
-        'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+        'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
     ]));
     $response->submission->addError('fullName', '<script>alert("xss")</script><p>Retry this field.</p>');
 
     $controller = new ServerSubmissionsController('formie-server-submissions-security', Craft::$app);
     $method = new ReflectionMethod(ServerSubmissionsController::class, '_createSubmitJsonResponsePayload');
     $method->setAccessible(true);
-    $payload = $method->invoke($controller, $response, SubmissionWorkflow::SUBMIT_ACTION_SUBMIT, []);
+    $payload = $method->invoke($controller, $response, 'submit', []);
     $fieldErrors = $payload['errors']['fullName'] ?? [];
     $fieldErrorText = implode(' ', $fieldErrors);
 
@@ -340,11 +340,11 @@ it('sanitizes submit json success messages while preserving safe html links', fu
     $submission->setForm($form);
     $submission->setFieldValueFromRequest('fullName', 'Security Tester');
 
-    $response = (new SubmissionWorkflow())->processSubmissionRequest(new SubmissionRequest([
-        'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+    $response = runSubmissionCommand(submissionCommand([
+        'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
         'form' => $form,
         'submission' => $submission,
-        'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+        'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
     ]));
 
     expect($response)->toBeInstanceOf(SubmissionResponse::class)
@@ -353,7 +353,7 @@ it('sanitizes submit json success messages while preserving safe html links', fu
     $controller = new SubmissionsController('formie-submissions-security', Craft::$app);
     $method = new ReflectionMethod(SubmissionsController::class, '_createSubmitJsonResponsePayload');
     $method->setAccessible(true);
-    $payload = $method->invoke($controller, $response, SubmissionWorkflow::SUBMIT_ACTION_SUBMIT, []);
+    $payload = $method->invoke($controller, $response, 'submit', []);
     $message = (string)($payload['submitActionMessage'] ?? '');
 
     expect($message)

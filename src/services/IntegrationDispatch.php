@@ -53,7 +53,7 @@ class IntegrationDispatch extends Component
 
     public function dispatchSubmission(
         Submission $submission,
-        string $processMode = SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+        \verbb\formie\enums\SubmissionOperation $operation = \verbb\formie\enums\SubmissionOperation::SUBMIT,
         array $triggerContext = [],
     ): void {
         $form = $submission->getForm();
@@ -65,16 +65,16 @@ class IntegrationDispatch extends Component
         $plan = $this->getPlan($form);
         $settings = Formie::$plugin->getSettings();
         $executor = Formie::$plugin->getIntegrationExecutor();
-        $isSubmissionEdit = $processMode === SubmissionWorkflow::PROCESS_MODE_EDIT_EXISTING;
+        $isSubmissionEdit = $operation === \verbb\formie\enums\SubmissionOperation::REVISE;
         $immediateHandles = $plan->getImmediateHandles($form);
         $queuedHandles = $plan->getQueuedHandles($form);
         $needsAfterNotifications = $this->needsAfterNotificationsPhase($form);
 
         if (!$triggerContext) {
             $triggerContext = [
-                'processMode' => $processMode,
+                'operation' => $operation,
                 'isSubmissionEdit' => $isSubmissionEdit,
-                'triggerEvent' => IntegrationTriggerEvents::resolveFromProcessMode($processMode),
+                'triggerEvent' => IntegrationTriggerEvents::resolveFromOperation($operation),
                 'operatorInitiated' => false,
             ];
         }
@@ -94,7 +94,7 @@ class IntegrationDispatch extends Component
             $executor->queueSteps(
                 $submission,
                 $queuedHandles,
-                $processMode,
+                $operation,
                 $triggerContext,
                 $needsAfterNotifications,
             );

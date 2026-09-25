@@ -6,11 +6,14 @@
 - Add portable per-site translations to stencils and copy them into form overrides when creating forms from a stencil. ([#2968](https://github.com/verbb/formie/issues/2968))
 
 ### Changed
+- Replace beta submission workflow APIs with explicit operations, authorised commands, typed outcomes and six fixed stages with operation-scoped custom tasks.
+- Require expected submission versions and retain bounded durable retry receipts to prevent duplicate and stale writes.
 - Require integrations to explicitly declare attributes that can be configured per form.
 - Require `verbb/base` 3.0.17 or later.
 - Render form-authored Twig and object templates in Base's explicit sandbox while retaining Formie 4's reference-token handling.
 
 ### Fixed
+- Stop invalid submissions before spam screening and CAPTCHA, and keep pending payment submissions incomplete until payment succeeds.
 - Fixed a moderate-severity information disclosure vulnerability. (GHSA-963f-vfpf-f85p)
 - Fixed a high-severity server-side request forgery vulnerability. ([GHSA-82jr-3xc8-86mr](https://github.com/verbb/formie/security/advisories/GHSA-82jr-3xc8-86mr))
 - Fixed a high-severity server-side template injection vulnerability. ([GHSA-f55h-mf7f-7wx7](https://github.com/verbb/formie/security/advisories/GHSA-f55h-mf7f-7wx7))

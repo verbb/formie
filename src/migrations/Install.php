@@ -47,6 +47,7 @@ class Install extends Migration
         $this->createTables();
         $this->createIndexes();
         $this->addForeignKeys();
+        (new m260926_000000_submission_operations())->safeUp();
 
         return true;
     }
@@ -784,6 +785,7 @@ class Install extends Migration
             'formie_stencils',
             'formie_submissions',
             'formie_submission_quiz_results',
+            'formie_submission_operations',
             'formie_submission_workflow',
             'formie_pending_uploads',
             'formie_submission_drafts',
@@ -917,6 +919,7 @@ class Install extends Migration
             'formie_stencils',
             'formie_submissions',
             'formie_submission_quiz_results',
+            'formie_submission_operations',
             'formie_submission_workflow',
             'formie_pending_uploads',
             'formie_submission_drafts',

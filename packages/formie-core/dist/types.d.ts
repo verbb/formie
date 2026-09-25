@@ -114,6 +114,7 @@ export type FrontendFormDefinition = {
     };
 };
 export type FrontendFormSession = {
+    version: number;
     id: string;
     currentPageId: string;
     tokens: {
@@ -140,6 +141,8 @@ export type FrontendFormEnvelope = {
     session: FrontendFormSession;
 };
 export type FrontendSubmitResult = {
+    outcome?: string;
+    version?: number | null;
     success: boolean;
     submissionUid?: string | null;
     currentPageId?: string | null;

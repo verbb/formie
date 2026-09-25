@@ -31,7 +31,7 @@ class TriggerIntegration extends CraftBaseJob implements DebuggableJobInterface
     public ?string $integrationHandle = null;
     public array $stepHandles = [];
     public ?string $executionUid = null;
-    public string $processMode = SubmissionWorkflow::PROCESS_MODE_SUBMIT;
+    public \verbb\formie\enums\SubmissionOperation $operation = \verbb\formie\enums\SubmissionOperation::SUBMIT;
     public bool $runAfterNotifications = false;
     public ?int $formId = null;
     public ?string $formHandle = null;
@@ -80,11 +80,11 @@ class TriggerIntegration extends CraftBaseJob implements DebuggableJobInterface
             $result = Formie::$plugin->getIntegrationExecutor()->runQueuedJob(
                 $submission,
                 $this->stepHandles,
-                $this->processMode,
+                $this->operation,
                 [
-                    'processMode' => $this->processMode,
-                    'isSubmissionEdit' => $this->processMode === SubmissionWorkflow::PROCESS_MODE_EDIT_EXISTING,
-                    'triggerEvent' => $this->triggerEvent ?? IntegrationTriggerEvents::resolveFromProcessMode($this->processMode),
+                    'operation' => $this->operation,
+                    'isSubmissionEdit' => $this->operation === \verbb\formie\enums\SubmissionOperation::REVISE,
+                    'triggerEvent' => $this->triggerEvent ?? IntegrationTriggerEvents::resolveFromOperation($this->operation),
                     'operatorInitiated' => $this->operatorInitiated,
                 ],
                 $this->runAfterNotifications,

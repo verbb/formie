@@ -1,37 +1,28 @@
 <?php
 namespace verbb\formie\workflow\tasks;
 
-class TaskResult
+use verbb\formie\models\SubmissionOutcome;
+
+final class TaskResult
 {
     // Static Methods
     // =========================================================================
 
-    public static function continue(array $meta = []): self
+    public static function continue(): self
     {
-        return new self(true, false, $meta);
+        return new self(null);
     }
 
-    public static function halt(bool $success, array $meta = []): self
+    public static function stop(SubmissionOutcome $outcome): self
     {
-        return new self($success, true, $meta);
+        return new self($outcome);
     }
 
 
-    // Properties
+    // Private Methods
     // =========================================================================
 
-    public bool $success;
-    public bool $halt;
-    public array $meta;
-
-
-    // Public Methods
-    // =========================================================================
-
-    public function __construct(bool $success = true, bool $halt = false, array $meta = [])
+    private function __construct(public readonly ?SubmissionOutcome $outcome)
     {
-        $this->success = $success;
-        $this->halt = $halt;
-        $this->meta = $meta;
     }
 }

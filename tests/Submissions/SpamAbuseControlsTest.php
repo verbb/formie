@@ -12,7 +12,7 @@ use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\SuspiciousTextHelper;
 use verbb\formie\models\FieldLayout;
 use verbb\formie\models\Settings;
-use verbb\formie\models\SubmissionRequest;
+use verbb\formie\models\SubmissionCommand;
 use verbb\formie\services\SubmissionGuards;
 use verbb\formie\services\SubmissionWorkflow;
 
@@ -32,7 +32,7 @@ function withAbuseControlPostContext(callable $callback, array $bodyParams = [])
     return WebRequestTestHelper::withWebRequestContext(function () use ($callback, $bodyParams): mixed {
         Craft::$app->getRequest()->setBodyParams(array_merge([
             'handle' => 'abuse-control-test-form',
-            'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+            'submitAction' => 'submit',
             'formStartedAt' => (string)((int)(microtime(true) * 1000) - 10000),
             'formieHoneypot' => '',
         ], $bodyParams));
@@ -187,34 +187,34 @@ it('flags browser submissions when global submission throttling is exceeded', fu
             $submission = new Submission();
             $submission->setForm($form);
 
-            return Formie::$plugin->getSubmissionGuards()->validateRequest(new SubmissionRequest([
-                'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+            return Formie::$plugin->getSubmissionGuards()->validateRequest(guardCommand($form, [
+                'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
                 'form' => $form,
                 'submission' => $submission,
-                'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
-                'requestToken' => 'throttle-token-1-' . uniqid(),
-            ]));
+                'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
+                'operationId' => 'throttle-token-1-' . uniqid(),
+            ]), true);
         }, [
             'handle' => $form->handle,
         ]);
 
-        $secondReason = withAbuseControlPostContext(function () use ($form): ?string {
+        $secondReason = fn() => withAbuseControlPostContext(function () use ($form): ?string {
             $submission = new Submission();
             $submission->setForm($form);
 
-            return Formie::$plugin->getSubmissionGuards()->validateRequest(new SubmissionRequest([
-                'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+            return Formie::$plugin->getSubmissionGuards()->validateRequest(guardCommand($form, [
+                'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
                 'form' => $form,
                 'submission' => $submission,
-                'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
-                'requestToken' => 'throttle-token-2-' . uniqid(),
-            ]));
+                'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
+                'operationId' => 'throttle-token-2-' . uniqid(),
+            ]), true);
         }, [
             'handle' => $form->handle,
         ]);
 
         expect($firstReason)->toBeNull()
-            ->and($secondReason)->toContain('rate limit');
+            ->and($secondReason)->toThrow(\yii\web\TooManyRequestsHttpException::class);
     } finally {
         $settings->enableGlobalSubmissionThrottling = $originalEnabled;
         $settings->globalSubmissionThrottleLimit = $originalLimit;

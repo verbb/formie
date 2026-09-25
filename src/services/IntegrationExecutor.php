@@ -12,7 +12,6 @@ use verbb\formie\models\IntegrationDispatchContext;
 use verbb\formie\models\IntegrationDispatchPlan;
 use verbb\formie\models\IntegrationExecutionResult;
 use verbb\formie\models\IntegrationResponse;
-use verbb\formie\models\SubmissionRequest;
 use verbb\formie\workflow\tasks\dispatch\DispatchState;
 
 use Craft;
@@ -63,12 +62,7 @@ class IntegrationExecutor extends Component
             ? Formie::$plugin->getIntegrationDispatch()->loadContext($submission)
             : null;
 
-        $delivery = $executionKey === null ? null : new DispatchState(new SubmissionRequest([
-            'form' => $form,
-            'submission' => $submission,
-            'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
-            'requestToken' => 'integration-job:' . $executionKey,
-        ]), true);
+        $delivery = $executionKey === null ? null : new DispatchState($submission, \verbb\formie\enums\SubmissionOperation::SUBMIT, true, 'integration-job:' . $executionKey);
 
         foreach ($handles as $handle) {
             $integration = $integrationsByHandle[$handle] ?? null;
@@ -123,7 +117,7 @@ class IntegrationExecutor extends Component
     public function queueSteps(
         Submission $submission,
         array $handles,
-        string $processMode,
+        \verbb\formie\enums\SubmissionOperation $operation,
         array $triggerContext,
         bool $runAfterNotifications = false,
     ): void {
@@ -138,12 +132,12 @@ class IntegrationExecutor extends Component
         $integrationContext = Formie::$plugin->getSubmissionMetadata()->buildIntegrationContext($submission);
 
         $identity = \verbb\formie\helpers\DeliveryAttempt::workflowIdentity() ?? StringHelper::UUID();
-        $enqueue = function (string $executionUid) use ($submission, $handles, $processMode, $triggerContext, $runAfterNotifications, $form, $integrationContext, $settings): bool {
+        $enqueue = function (string $executionUid) use ($submission, $handles, $operation, $triggerContext, $runAfterNotifications, $form, $integrationContext, $settings): bool {
             Queue::push(new TriggerIntegration([
                 'submissionId' => $submission->id,
                 'stepHandles' => array_values($handles),
                 'executionUid' => $executionUid,
-                'processMode' => $processMode,
+                'operation' => $operation,
                 'triggerEvent' => $triggerContext['triggerEvent'] ?? null,
                 'operatorInitiated' => (bool)($triggerContext['operatorInitiated'] ?? false),
                 'runAfterNotifications' => $runAfterNotifications,
@@ -155,7 +149,7 @@ class IntegrationExecutor extends Component
             return true;
         };
         (new \verbb\formie\helpers\DeliveryAttempt((int)$submission->id, 'integration-queue', $identity))->execute(
-            ['handles' => array_values($handles), 'processMode' => $processMode, 'triggerContext' => $triggerContext, 'afterNotifications' => $runAfterNotifications],
+            ['handles' => array_values($handles), 'operation' => $operation, 'triggerContext' => $triggerContext, 'afterNotifications' => $runAfterNotifications],
             $enqueue,
             // A repeated enqueue uses the same guarded integration execution ID.
             PHP_INT_MAX,
@@ -165,7 +159,7 @@ class IntegrationExecutor extends Component
     public function runQueuedJob(
         Submission $submission,
         array $handles,
-        string $processMode,
+        \verbb\formie\enums\SubmissionOperation $operation,
         array $triggerContext,
         bool $runAfterNotifications = false,
         ?string $executionKey = null,
@@ -300,12 +294,7 @@ class IntegrationExecutor extends Component
             if ($executionKey === null) {
                 $send();
             } else {
-                $delivery = new DispatchState(new SubmissionRequest([
-                    'form' => $form,
-                    'submission' => $submission,
-                    'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
-                    'requestToken' => 'integration-job:' . $executionKey,
-                ]), true);
+                $delivery = new DispatchState($submission, \verbb\formie\enums\SubmissionOperation::SUBMIT, true, 'integration-job:' . $executionKey);
                 $delivery->runOnce('afterNotifications', $send);
             }
         }

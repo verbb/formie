@@ -3724,9 +3724,14 @@ function K(e, t) {
 	return !r || r === "/" ? n : `${r.replace(/\/+$/, "")}${n}`;
 }
 async function q(e, t) {
-	let n = await fetch(e, t);
-	if (!n.ok) throw Error(`Request failed with status ${n.status}.`);
-	return n.json();
+	let n = await fetch(e, t), r = await n.json();
+	if (!n.ok && !(typeof r.outcome == "string" && [
+		403,
+		409,
+		422,
+		429
+	].includes(n.status))) throw Error(`Request failed with status ${n.status}.`);
+	return r;
 }
 function Fe(e, t) {
 	let n = t?.tokens?.csrf;
@@ -3794,8 +3799,10 @@ function J(e) {
 }
 //#endregion
 //#region src/graphql.ts
-var Y = "\n    id\n    currentPageId\n    tokens\n    continuation\n", Le = `
+var Y = "\n    id\n    version\n    currentPageId\n    tokens\n    continuation\n", Le = `
     success
+    outcome
+    version
     submissionUid
     currentPageId
     nextPageId

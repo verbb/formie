@@ -5,7 +5,7 @@ declare(strict_types=1);
 use verbb\formie\Formie;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\SingleLineText;
-use verbb\formie\models\SubmissionRequest;
+use verbb\formie\models\SubmissionCommand;
 use verbb\formie\services\SubmissionWorkflow;
 
 it('captures B1 baseline for final submit workflow path', function (): void {
@@ -23,11 +23,11 @@ it('captures B1 baseline for final submit workflow path', function (): void {
     $submission->setFieldValueFromRequest('score', '42');
 
     $started = microtime(true);
-    $response = (new SubmissionWorkflow())->processSubmissionRequest(new SubmissionRequest([
-        'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+    $response = runSubmissionCommand(submissionCommand([
+        'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
         'form' => $form,
         'submission' => $submission,
-        'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+        'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
     ]));
     $elapsedMs = (int)((microtime(true) - $started) * 1000);
 
@@ -61,11 +61,11 @@ it('captures B2 baseline for partial multipage update path', function (): void {
         $submission->setFieldValueFromRequest('pageOneField', 'p1');
 
         $process = new SubmissionWorkflow();
-        $first = $process->processSubmissionRequest(new SubmissionRequest([
-            'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+        $first = runSubmissionCommand(submissionCommand([
+            'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
             'form' => $form,
             'submission' => $submission,
-            'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+            'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
             'pageId' => (int)$pages[0]->id,
         ]));
 
@@ -75,11 +75,11 @@ it('captures B2 baseline for partial multipage update path', function (): void {
         $submission->setFieldValueFromRequest('pageTwoField', 'p2');
 
         $started = microtime(true);
-        $second = $process->processSubmissionRequest(new SubmissionRequest([
-            'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+        $second = runSubmissionCommand(submissionCommand([
+            'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
             'form' => $form,
             'submission' => $submission,
-            'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+            'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
             'pageId' => (int)$pages[1]->id,
         ]));
         $elapsedMs = (int)((microtime(true) - $started) * 1000);

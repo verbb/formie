@@ -14,7 +14,7 @@ class IntegrationTriggerRequest extends Model
 
     public string $source;
     public Submission $submission;
-    public string $processMode = SubmissionWorkflow::PROCESS_MODE_SUBMIT;
+    public \verbb\formie\enums\SubmissionOperation $operation = \verbb\formie\enums\SubmissionOperation::SUBMIT;
     public ?string $triggerEvent = null;
     public bool $operatorInitiated = false;
     public ?Integration $integration = null;

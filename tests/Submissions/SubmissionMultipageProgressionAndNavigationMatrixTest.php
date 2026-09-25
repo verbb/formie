@@ -7,7 +7,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\fields\Address;
 use verbb\formie\fields\Name;
 use verbb\formie\fields\SingleLineText;
-use verbb\formie\models\SubmissionRequest;
+use verbb\formie\models\SubmissionCommand;
 use verbb\formie\services\SubmissionWorkflow;
 
 dataset('multipage_submit_methods', ['ajax', 'page-reload']);
@@ -21,7 +21,7 @@ it('retains values across 4-page progression and back navigation using partial p
     $step1Submission->setForm($form);
     $step1Submission->setFieldValueFromRequest('pageOneValue', 'one');
 
-    $step1 = runSubmitStep($workflow, $form, $step1Submission, SubmissionWorkflow::SUBMIT_ACTION_SUBMIT, (int)$pages[0]->id);
+    $step1 = runSubmitStep($workflow, $form, $step1Submission, 'submit', (int)$pages[0]->id);
     expect($step1->success)->toBeTrue()
         ->and($step1->nextPage?->id)->toBe($pages[1]->id)
         ->and($step1->submission->isIncomplete)->toBeTrue();
@@ -29,7 +29,7 @@ it('retains values across 4-page progression and back navigation using partial p
     $step2Submission = reloadSubmission($step1->submission->id);
     $step2Submission->setFieldValueFromRequest('pageTwoValue', 'two');
 
-    $step2 = runSubmitStep($workflow, $form, $step2Submission, SubmissionWorkflow::SUBMIT_ACTION_SUBMIT, (int)$pages[1]->id);
+    $step2 = runSubmitStep($workflow, $form, $step2Submission, 'submit', (int)$pages[1]->id);
     expect($step2->success)->toBeTrue()
         ->and($step2->nextPage?->id)->toBe($pages[2]->id);
 
@@ -40,12 +40,12 @@ it('retains values across 4-page progression and back navigation using partial p
     $step3Submission = reloadSubmission($step2->submission->id);
     $step3Submission->setFieldValueFromRequest('pageThreeValue', 'three');
 
-    $step3 = runSubmitStep($workflow, $form, $step3Submission, SubmissionWorkflow::SUBMIT_ACTION_SUBMIT, (int)$pages[2]->id);
+    $step3 = runSubmitStep($workflow, $form, $step3Submission, 'submit', (int)$pages[2]->id);
     expect($step3->success)->toBeTrue()
         ->and($step3->nextPage?->id)->toBe($pages[3]->id);
 
     $backSubmission = reloadSubmission($step3->submission->id);
-    $back = runSubmitStep($workflow, $form, $backSubmission, SubmissionWorkflow::SUBMIT_ACTION_BACK, (int)$pages[3]->id);
+    $back = runSubmitStep($workflow, $form, $backSubmission, 'back', (int)$pages[3]->id);
     expect($back->success)->toBeTrue()
         ->and($back->nextPage?->id)->toBe($pages[2]->id)
         ->and($back->submission->getFieldValue('pageOneValue'))->toBe('one')
@@ -53,13 +53,13 @@ it('retains values across 4-page progression and back navigation using partial p
         ->and($back->submission->getFieldValue('pageThreeValue'))->toBe('three');
 
     $forwardSubmission = reloadSubmission($back->submission->id);
-    $forward = runSubmitStep($workflow, $form, $forwardSubmission, SubmissionWorkflow::SUBMIT_ACTION_SUBMIT, (int)$pages[2]->id);
+    $forward = runSubmitStep($workflow, $form, $forwardSubmission, 'submit', (int)$pages[2]->id);
     expect($forward->success)->toBeTrue()
         ->and($forward->nextPage?->id)->toBe($pages[3]->id);
 
     $finalSubmission = reloadSubmission($forward->submission->id);
     $finalSubmission->setFieldValueFromRequest('pageFourValue', 'four');
-    $final = runSubmitStep($workflow, $form, $finalSubmission, SubmissionWorkflow::SUBMIT_ACTION_SUBMIT, (int)$pages[3]->id);
+    $final = runSubmitStep($workflow, $form, $finalSubmission, 'submit', (int)$pages[3]->id);
 
     expect($final->success)->toBeTrue()
         ->and($final->nextPage)->toBeNull()
@@ -78,14 +78,14 @@ it('retains advanced nested values in multipage flows with partial page payloads
     $step1Submission = new Submission();
     $step1Submission->setForm($form);
     $step1Submission->setFieldValueFromRequest('contactEmail', 'advanced@example.test');
-    $step1 = runSubmitStep($workflow, $form, $step1Submission, SubmissionWorkflow::SUBMIT_ACTION_SUBMIT, (int)$pages[0]->id);
+    $step1 = runSubmitStep($workflow, $form, $step1Submission, 'submit', (int)$pages[0]->id);
 
     $step2Submission = reloadSubmission($step1->submission->id);
     $step2Submission->setFieldValueFromRequest('identity', [
         'firstName' => 'Ada',
         'lastName' => 'Lovelace',
     ]);
-    $step2 = runSubmitStep($workflow, $form, $step2Submission, SubmissionWorkflow::SUBMIT_ACTION_SUBMIT, (int)$pages[1]->id);
+    $step2 = runSubmitStep($workflow, $form, $step2Submission, 'submit', (int)$pages[1]->id);
 
     $step3Submission = reloadSubmission($step2->submission->id);
     $step3Submission->setFieldValueFromRequest('profileAddress', [
@@ -95,12 +95,12 @@ it('retains advanced nested values in multipage flows with partial page payloads
         'zip' => '3000',
         'country' => 'AU',
     ]);
-    $step3 = runSubmitStep($workflow, $form, $step3Submission, SubmissionWorkflow::SUBMIT_ACTION_SUBMIT, (int)$pages[2]->id);
+    $step3 = runSubmitStep($workflow, $form, $step3Submission, 'submit', (int)$pages[2]->id);
 
     $step4Submission = reloadSubmission($step3->submission->id);
     $step4Submission->setFieldValueFromRequest('groupMeta', ['groupRequiredText' => 'group-value']);
     $step4Submission->setFieldValueFromRequest('repeatMeta', [['repeatRequiredText' => 'repeat-value']]);
-    $final = runSubmitStep($workflow, $form, $step4Submission, SubmissionWorkflow::SUBMIT_ACTION_SUBMIT, (int)$pages[3]->id);
+    $final = runSubmitStep($workflow, $form, $step4Submission, 'submit', (int)$pages[3]->id);
 
     expect($final->success)->toBeTrue()
         ->and($final->nextPage)->toBeNull()
@@ -126,29 +126,29 @@ it('supports direct tab-style target page navigation without final submit', func
         $workflow,
         $form,
         $submission,
-        SubmissionWorkflow::SUBMIT_ACTION_SAVE,
+        'submit',
         (int)$pages[0]->id,
-        (int)$pages[2]->id
+        (int)$pages[1]->id
     );
 
     expect($jumpToPage3->success)->toBeTrue()
-        ->and($jumpToPage3->nextPage?->id)->toBe($pages[2]->id)
+        ->and($jumpToPage3->nextPage?->id)->toBe($pages[1]->id)
         ->and($jumpToPage3->submission->isIncomplete)->toBeTrue();
 
     $jumpNavigationSubmission = $jumpToPage3->submission;
-    $jumpNavigationSubmission->setFieldValueFromRequest('pageThreeValue', 'tab-three');
+    $jumpNavigationSubmission->setFieldValueFromRequest('pageTwoValue', 'tab-two');
 
     $jumpBackToPage2 = runSubmitStep(
         $workflow,
         $form,
         $jumpNavigationSubmission,
-        SubmissionWorkflow::SUBMIT_ACTION_SAVE,
-        (int)$pages[2]->id,
-        (int)$pages[1]->id
+        'submit',
+        (int)$pages[1]->id,
+        (int)$pages[0]->id
     );
 
     expect($jumpBackToPage2->success)->toBeTrue()
-        ->and($jumpBackToPage2->nextPage?->id)->toBe($pages[1]->id)
+        ->and($jumpBackToPage2->nextPage?->id)->toBe($pages[0]->id)
         ->and($jumpBackToPage2->submission->isIncomplete)->toBeTrue();
 })->with('multipage_submit_methods');
 
@@ -234,11 +234,11 @@ function runSubmitStep(
     int $pageId,
     ?int $targetPageId = null
 ): mixed {
-    return $workflow->processSubmissionRequest(new SubmissionRequest([
-        'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+    return runSubmissionCommand(submissionCommand([
+        'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
         'form' => $form,
         'submission' => $submission,
-        'submitAction' => $submitAction,
+        'navigation' => $targetPageId ? \verbb\formie\enums\NavigationIntent::TARGET : ($submitAction === 'back' ? \verbb\formie\enums\NavigationIntent::BACK : \verbb\formie\enums\NavigationIntent::ADVANCE),
         'pageId' => $pageId,
         'targetPageId' => $targetPageId,
     ]));

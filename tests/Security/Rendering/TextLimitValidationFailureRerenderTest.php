@@ -5,7 +5,7 @@ declare(strict_types=1);
 use craft\web\View;
 use verbb\formie\Formie;
 use verbb\formie\elements\Submission;
-use verbb\formie\models\SubmissionRequest;
+use verbb\formie\models\SubmissionCommand;
 use verbb\formie\services\SubmissionWorkflow;
 
 it('renders text limit field and form errors after a page-reload validation failure', function (): void {
@@ -24,11 +24,11 @@ it('renders text limit field and form errors after a page-reload validation fail
     $submission->setForm($form);
     $submission->setFieldValueFromRequest('message', str_repeat('a', 11));
 
-    $response = (new SubmissionWorkflow())->processSubmissionRequest(new SubmissionRequest([
-        'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+    $response = runSubmissionCommand(submissionCommand([
+        'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
         'form' => $form,
         'submission' => $submission,
-        'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+        'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
     ]));
 
     expect($response->success)->toBeFalse()
@@ -75,11 +75,11 @@ it('renders text limit input error state for failed page-reload submissions', fu
     $submission->setForm($form);
     $submission->setFieldValueFromRequest('message', 'abcdef');
 
-    $response = (new SubmissionWorkflow())->processSubmissionRequest(new SubmissionRequest([
-        'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+    $response = runSubmissionCommand(submissionCommand([
+        'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
         'form' => $form,
         'submission' => $submission,
-        'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+        'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
     ]));
 
     $form->setCurrentSubmission($response->submission);

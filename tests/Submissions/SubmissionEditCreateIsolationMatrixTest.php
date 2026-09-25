@@ -6,7 +6,7 @@ use verbb\formie\Formie;
 use verbb\formie\controllers\SubmissionsController;
 use verbb\formie\elements\Submission;
 use verbb\formie\models\ManagedSubmissionRequest;
-use verbb\formie\models\SubmissionRequest;
+use verbb\formie\models\SubmissionCommand;
 use verbb\formie\services\SubmissionWorkflow;
 use Tests\Support\WebRequestTestHelper;
 
@@ -29,22 +29,22 @@ it('keeps create-new and edit-existing submission flows isolated for the same fo
     $editingSubmission = Submission::find()->id($existing->id)->status(null)->one();
     $editingSubmission->setFieldValueFromRequest('fullName', 'Edited Existing');
 
-    $editResponse = $workflow->processSubmissionRequest(new SubmissionRequest([
-        'processMode' => SubmissionWorkflow::PROCESS_MODE_EDIT_EXISTING,
+    $editResponse = runSubmissionCommand(submissionCommand([
+        'operation' => \verbb\formie\enums\SubmissionOperation::REVISE,
         'form' => $form,
         'submission' => $editingSubmission,
-        'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+        'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
     ]));
 
     $newSubmission = new Submission();
     $newSubmission->setForm($form);
     $newSubmission->setFieldValueFromRequest('fullName', 'Brand New');
 
-    $createResponse = $workflow->processSubmissionRequest(new SubmissionRequest([
-        'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+    $createResponse = runSubmissionCommand(submissionCommand([
+        'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
         'form' => $form,
         'submission' => $newSubmission,
-        'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+        'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
     ]));
 
     $reloadedExisting = Submission::find()->id($existing->id)->status(null)->one();
@@ -109,13 +109,14 @@ it('uses explicit managed submission ids when saving existing submissions', func
     WebRequestTestHelper::withWebRequestContext(function () use ($form, $existing): void {
         $form->setSubmission($existing);
 
-        $result = Formie::$plugin->getSubmissionProcessor()->executeManaged(new ManagedSubmissionRequest([
+        $result = runManagedSubmission(new ManagedSubmissionRequest([
             'handle' => $form->handle,
-            'processMode' => SubmissionWorkflow::PROCESS_MODE_EDIT_EXISTING,
+            'operation' => \verbb\formie\enums\SubmissionOperation::REVISE,
             'siteId' => (int)$existing->siteId,
             'submissionId' => (int)$existing->id,
+            'expectedVersion' => $existing->stateVersion,
             'submissionEditToken' => $form->getSubmissionEditToken(),
-            'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+            'submitAction' => 'submit',
             'fieldParamNamespace' => 'fields',
         ]));
 
@@ -154,12 +155,13 @@ it('rejects anonymous site edits that identify a completed submission by id only
         ->save();
 
     WebRequestTestHelper::withWebRequestContext(function () use ($form, $existing): void {
-        expect(fn() => Formie::$plugin->getSubmissionProcessor()->executeManaged(new ManagedSubmissionRequest([
+        expect(fn() => runManagedSubmission(new ManagedSubmissionRequest([
             'handle' => $form->handle,
-            'processMode' => SubmissionWorkflow::PROCESS_MODE_EDIT_EXISTING,
+            'operation' => \verbb\formie\enums\SubmissionOperation::REVISE,
             'siteId' => (int)$existing->siteId,
             'submissionId' => (int)$existing->id,
-            'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+            'expectedVersion' => $existing->stateVersion,
+            'submitAction' => 'submit',
             'fieldParamNamespace' => 'fields',
         ])))->toThrow(ForbiddenHttpException::class);
     }, [
@@ -212,6 +214,7 @@ it('keeps CP edit save redirects in the control panel message branch', function 
         $request->setBodyParams([
             'handle' => $form->handle,
             'submissionId' => (int)$existing->id,
+            'expectedVersion' => $existing->stateVersion,
             'siteId' => (int)$existing->siteId,
             'redirect' => Craft::$app->getSecurity()->hashData($wrongRedirect),
             'fields' => [
@@ -219,7 +222,7 @@ it('keeps CP edit save redirects in the control panel message branch', function 
             ],
         ]);
 
-        $response = (new SubmissionsController('formie-submissions-test', Craft::$app))->actionSaveSubmission();
+        $response = (new SubmissionsController('formie-submissions-test', Craft::$app))->actionSaveAdminSubmission();
 
         expect($response->getHeaders()->get('Location'))
             ->toBe(craft\helpers\UrlHelper::cpUrl("formie/submissions/{$form->handle}/{$existing->id}"));

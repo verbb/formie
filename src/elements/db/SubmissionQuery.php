@@ -248,6 +248,7 @@ class SubmissionQuery extends ElementQuery
 
         $submissionColumns = [
             'formie_submissions.id',
+            'formie_submissions.stateVersion',
             'formie_submissions.formId',
             'formie_submissions.statusId',
             'formie_submissions.userId',

@@ -352,7 +352,7 @@ class Integrations extends Component
 
     public function triggerIntegrations(
         Submission $submission,
-        string $processMode = SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+        \verbb\formie\enums\SubmissionOperation $operation = \verbb\formie\enums\SubmissionOperation::SUBMIT,
         ?string $triggerEvent = null,
         bool $operatorInitiated = false,
     ): void {
@@ -362,12 +362,12 @@ class Integrations extends Component
             return;
         }
 
-        $triggerContext = $this->_buildTriggerContext($processMode, $triggerEvent, $operatorInitiated);
+        $triggerContext = $this->_buildTriggerContext($operation, $triggerEvent, $operatorInitiated);
 
         if (Formie::$plugin->getIntegrationDispatch()->shouldOrchestrate($form)) {
             Formie::$plugin->getIntegrationDispatch()->dispatchSubmission(
                 $submission,
-                $processMode,
+                $operation,
                 $triggerContext,
             );
 
@@ -384,7 +384,7 @@ class Integrations extends Component
         $settings = Formie::$plugin->getSettings();
 
         if ($settings->useQueueForIntegrations) {
-            $executor->queueSteps($submission, $handles, $processMode, $triggerContext);
+            $executor->queueSteps($submission, $handles, $operation, $triggerContext);
 
             return;
         }
@@ -1596,14 +1596,14 @@ class Integrations extends Component
     }
 
     private function _buildTriggerContext(
-        string $processMode,
+        \verbb\formie\enums\SubmissionOperation $operation,
         ?string $triggerEvent,
         bool $operatorInitiated,
     ): array {
         return [
-            'processMode' => $processMode,
-            'isSubmissionEdit' => $processMode === SubmissionWorkflow::PROCESS_MODE_EDIT_EXISTING,
-            'triggerEvent' => $triggerEvent ?? IntegrationTriggerEvents::resolveFromProcessMode($processMode),
+            'operation' => $operation,
+            'isSubmissionEdit' => $operation === \verbb\formie\enums\SubmissionOperation::REVISE,
+            'triggerEvent' => $triggerEvent ?? IntegrationTriggerEvents::resolveFromOperation($operation),
             'operatorInitiated' => $operatorInitiated,
         ];
     }

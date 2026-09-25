@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/Support/Factories/functions.php';
+require_once __DIR__ . '/Support/submission-workflow.php';
 
 pest()
     ->extend(Tests\General\TestCase::class)

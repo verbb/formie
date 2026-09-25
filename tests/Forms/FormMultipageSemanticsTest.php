@@ -5,7 +5,7 @@ declare(strict_types=1);
 use Craft;
 use verbb\formie\conditions\ConditionOperator;
 use verbb\formie\elements\Submission;
-use verbb\formie\models\SubmissionRequest;
+use verbb\formie\models\SubmissionCommand;
 use verbb\formie\services\SubmissionWorkflow;
 
 it('resolves current and next pages for multipage forms', function (): void {
@@ -75,11 +75,11 @@ it('treats the last visible page as final when a later page is conditionally hid
         ->and($form->isLastPage($pages[1], $submission))->toBeTrue();
 
     // Reproduce the tabs jump: submit from the last visible page with page 1 empty.
-    $response = (new SubmissionWorkflow())->processSubmissionRequest(new SubmissionRequest([
-        'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+    $response = runSubmissionCommand(submissionCommand([
+        'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
         'form' => $form,
         'submission' => $submission,
-        'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+        'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
         'pageId' => (int)$pages[1]->id,
     ]));
 

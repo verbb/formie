@@ -33,10 +33,10 @@ class DeliveryAttempt
         if (!$context) {
             return null;
         }
-        if ($context->request->requestToken) {
-            return 'workflow:' . $context->request->requestToken;
+        if ($context->command->operationId) {
+            return 'workflow:' . $context->command->operationId;
         }
-        if ($context->request->processMode !== SubmissionWorkflow::PROCESS_MODE_EDIT_EXISTING) {
+        if ($context->command->operation !== \verbb\formie\enums\SubmissionOperation::REVISE) {
             return 'completion';
         }
         return $context->taskState['delivery.identity'] ??= StringHelper::UUID();

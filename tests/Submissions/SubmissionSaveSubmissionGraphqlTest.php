@@ -92,6 +92,7 @@ it('updates an existing submission through saveSubmission', function (): void {
         return $resolver->saveSubmissionByHandle(null, [
             'formHandle' => (string)$form->handle,
             'id' => $created->id,
+            'expectedVersion' => $created->stateVersion,
             'fields' => [
                 'yourName' => 'After',
             ],
@@ -167,6 +168,7 @@ it('rejects saveSubmission updates without save scope', function (): void {
         expect(fn() => $resolver->saveSubmissionByHandle(null, [
             'formHandle' => (string)$form->handle,
             'id' => $created->id,
+            'expectedVersion' => $created->stateVersion,
             'fields' => [
                 'yourName' => 'Updated',
             ],
@@ -287,8 +289,8 @@ it('clears optional nested fields through GraphQL submission updates', function 
     $resolveInfo = $this->createMock(ResolveInfo::class);
     $resolveInfo->fieldDefinition = \GraphQL\Type\Definition\FieldDefinition::create($mutation);
     $arguments = $generic
-        ? ['id' => $submission->id, 'formHandle' => $form->handle, 'fields' => [$fieldHandle => null]]
-        : ['id' => $submission->id, $fieldHandle => null];
+        ? ['id' => $submission->id, 'expectedVersion' => $submission->stateVersion, 'formHandle' => $form->handle, 'fields' => [$fieldHandle => null]]
+        : ['id' => $submission->id, 'expectedVersion' => $submission->stateVersion, $fieldHandle => null];
 
     $saved = withSaveSubmissionGraphqlScope(['formieSubmissions.all:save'], fn() => ($mutation['resolve'])(null, $arguments, null, $resolveInfo));
     expect($form->getFieldByHandle($fieldHandle)->isValueEmpty($saved->getFieldValue($fieldHandle), $saved))->toBeTrue();

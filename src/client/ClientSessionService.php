@@ -51,41 +51,21 @@ class ClientSessionService extends Component
 
     public function persistPageState(PageTransitionRequest $request, bool $enforceAbuseLimit = false): FormSession
     {
-        $processor = Formie::$plugin->getSubmissionProcessor();
-        $form = $processor->requireFormByHandle($request->handle, $request->siteId);
-
-        if ($enforceAbuseLimit) {
-            $this->_enforceAnonymousClientRateLimit($form, self::RATE_SCOPE_REFRESH);
+        $result = Formie::$plugin->getSubmissionProcessor()->execute(new \verbb\formie\client\models\SubmitRequest([
+            'handle' => $request->handle,
+            'siteId' => $request->siteId,
+            'action' => 'back',
+            'targetPageId' => $request->targetPageId ? (int)$request->targetPageId : null,
+            'session' => $request->session,
+            'values' => $request->values,
+            'operationId' => $request->operationId,
+        ]), \verbb\formie\enums\SubmissionAuthorityType::VISITOR);
+        if (!$result->success) {
+            throw new \yii\web\HttpException($result->httpStatus, 'Page state could not be updated.');
         }
-
-        $targetPageId = (int)($request->targetPageId ?? 0);
-        $draftContextToken = $request->session['continuation']['draftContextToken'] ?? null;
-        $draftContext = is_string($draftContextToken) && trim($draftContextToken) !== ''
-            ? $form->resolveDraftContextToken(trim($draftContextToken))
-            : ($request->session['continuation']['draftContext'] ?? null);
-        $processor->applyFormRequestContext(
-            $form,
-            $request->session['tokens']['render'] ?? null,
-            $draftContext,
-        );
-
-        $progressState = $processor->resolveProgressState($form);
-        $submission = $processor->resolveClientContinuationSubmission(
-            $form,
-            $progressState,
-            (array)($request->session['continuation'] ?? [])
-        );
-        $submissionId = $this->_persistPageValues($form, $request, $progressState, $submission)
-            ?? ($submission?->id ? (int)$submission->id : null);
-
-        if ($targetPageId) {
-            Formie::$plugin->getSubmissionWorkflow()->setPageNavigationState($form, $targetPageId, $submissionId);
-        }
-
-        // Page transitions own an active draft — keep continuation even when
-        // automatic restore is off so the next client submit stays on the same row.
-        return $this->_buildSession($form, (string)$targetPageId, $submissionId ? true : null);
+        return $result->session;
     }
+
 
     public function enforceAnonymousRateLimit(Form $form, string $scope = self::RATE_SCOPE_REFRESH): void
     {
@@ -144,6 +124,7 @@ class ClientSessionService extends Component
 
         return new FormSession([
             'id' => (string)$form->getRenderId(),
+            'version' => $form->getCurrentSubmission()?->stateVersion ?? 0,
             'currentPageId' => $currentPageId ?: (string)($form->getCurrentPage()?->id ?? ''),
             'tokens' => [
                 'csrf' => isset($tokens['csrf']) ? [
@@ -202,46 +183,6 @@ class ClientSessionService extends Component
         ])->token;
     }
 
-    private function _persistPageValues(
-        Form $form,
-        PageTransitionRequest $request,
-        ?DraftSubmissionState $progressState = null,
-        ?Submission $submission = null,
-    ): ?int
-    {
-        if (!$request->values) {
-            return null;
-        }
-
-        $submissionDrafts = Formie::$plugin->getSubmissionDrafts();
-        $progressState ??= $submissionDrafts->getProgressState($form);
-        $draftState = $progressState ?? new DraftSubmissionState([
-            'formInstanceKey' => $submissionDrafts->resolveFormInstanceKey($form, null, [
-                'scope' => 'submit',
-                'instance' => $form->getSubmitStateKey(),
-            ]),
-            'version' => 1,
-        ]);
-        $workingSubmission = $submission ?? new Submission();
-        $workingSubmission->setForm($form);
-
-        if (is_array($progressState?->content) && $progressState->content) {
-            $workingSubmission->getContentManager()->normalizeFromDb($workingSubmission, $progressState->content);
-        }
-
-        // Page transitions persist serialized field state outside the submit
-        // workflow so refresh/back-next navigation can survive without firing
-        // save/dispatch side effects before the user actually submits.
-        $workingSubmission->setFieldValues($request->values);
-        $draftState->submissionId = $submission?->id ? (int)$submission->id : $draftState->submissionId;
-        $draftState->currentPageId = $request->targetPageId ? (int)$request->targetPageId : $draftState->currentPageId;
-        $draftState->content = $workingSubmission->serializeFieldValues();
-        $draftState->snapshot = is_array($workingSubmission->snapshot) ? $workingSubmission->snapshot : [];
-        $savedState = $submissionDrafts->saveDraftState($draftState);
-
-        return $savedState->submissionId ? (int)$savedState->submissionId : null;
-    }
-
     private function _enforceAnonymousClientRateLimit(Form $form, string $scope): void
     {
         $settings = Formie::$plugin->getSettings();
@@ -265,6 +206,10 @@ class ClientSessionService extends Component
         $now = time();
 
         $lockAcquired = $mutex?->acquire($mutexKey, 3) ?? false;
+
+        if (!$lockAcquired) {
+            throw new TooManyRequestsHttpException('Please retry shortly.');
+        }
 
         try {
             $entry = $cache->get($cacheKey);

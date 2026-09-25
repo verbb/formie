@@ -1,19 +1,19 @@
 <?php
 namespace verbb\formie\events;
 
-use verbb\formie\models\SubmissionRequest;
-use verbb\formie\workflow\StageResult;
+use verbb\formie\models\SubmissionCommand;
+use verbb\formie\workflow\tasks\TaskResult;
 use verbb\formie\workflow\WorkflowContext;
 
-use craft\events\CancelableEvent;
+use yii\base\Event;
 
-class SubmissionWorkflowStageEvent extends CancelableEvent
+class SubmissionWorkflowStageEvent extends Event
 {
     // Properties
     // =========================================================================
 
     public ?WorkflowContext $context = null;
-    public ?SubmissionRequest $request = null;
+    public ?SubmissionCommand $command = null;
     public string $stage = '';
-    public ?StageResult $result = null;
+    public ?TaskResult $result = null;
 }

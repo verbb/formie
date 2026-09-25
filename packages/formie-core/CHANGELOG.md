@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Changed
+- Carry submission versions and typed outcomes through REST and GraphQL; return expected rejection and conflict payloads to renderers.
+
 ### Fixed
 - Expose Formie's field-error announcement preference and stable, form-scoped error-region IDs to definition-driven renderers. ([#2954](https://github.com/verbb/formie/issues/2954))
 - Read the field structure metadata emitted by current Craft client bootstrap responses.

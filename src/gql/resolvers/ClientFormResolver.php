@@ -75,6 +75,7 @@ class ClientFormResolver
             'currentPageId' => $payload['currentPageId'] ?? null,
             'targetPageId' => $payload['targetPageId'] ?? null,
             'session' => (array)($payload['session'] ?? []),
+            'operationId' => $payload['operationId'] ?? null,
             'values' => (array)($payload['values'] ?? []),
         ]), true);
 
@@ -98,8 +99,9 @@ class ClientFormResolver
             'action' => (string)($payload['action'] ?? 'submit'),
             'siteId' => isset($payload['siteId']) ? (int)$payload['siteId'] : null,
             'session' => (array)($payload['session'] ?? []),
+            'operationId' => $payload['operationId'] ?? null,
             'values' => (array)($payload['values'] ?? []),
-        ]));
+        ]), \verbb\formie\enums\SubmissionAuthorityType::VISITOR);
 
         return $result->toArrayRecursive();
     }

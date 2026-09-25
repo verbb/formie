@@ -5,7 +5,7 @@ Spam keywords are Formie's built-in content screening tool — match words, phra
 ## Prerequisites
 
 - [Spam Protection](/forms/spam-protection)
-- [Submission Screening](/forms/submission-screening) — where `screen.runSpamChecks` runs
+- [Submission Screening](/forms/submission-screening) — where `screen.evaluateSpam` runs
 
 Configure keywords under **Formie → Settings → Spam Protection → Content Rules → Spam Keywords**. Values live in Formie's [control panel settings store](/guides/configuration/project-config-environment-and-control-panel-settings) — not in `config/formie.php` by default.
 
@@ -13,7 +13,7 @@ Configure keywords under **Formie → Settings → Spam Protection → Content R
 
 1. A visitor submits a form
 2. Field validation passes
-3. During **`screen.runSpamChecks`**, `SpamHelper` evaluates keyword and IP rules against submission content
+3. During **`screen.evaluateSpam`**, `SpamHelper` evaluates keyword and IP rules against submission content
 4. On match, the submission is marked spam with a reason; behaviour follows **Spam submission behavior** (show success or show message)
 
 Keywords check the **whole submission** — all field values combined — not individual fields in isolation.
@@ -90,7 +90,7 @@ Match the submitter's IP — supports singular addresses, lists, ranges, and CID
 [ip: 192.168.0.0/24]
 ```
 
-IP rules are evaluated alongside `[match:]` rules during `screen.runSpamChecks`.
+IP rules are evaluated alongside `[match:]` rules during `screen.evaluateSpam`.
 
 ## Referencing External Content
 

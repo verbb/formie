@@ -63,7 +63,9 @@ Argument | Type | Description
 `statusId` | `Int` | Set the submission status ID.
 `siteId` | `Int` | Set the submission site ID.
 `isIncomplete` | `Boolean` | Set whether the submission is incomplete.
-`requestToken` | `String` | Optional token for duplicate-submit and replay protection.
+`operationId` | `String` | Stable identity for retrying the same administrative operation.
+`expectedVersion` | `Int` | Required for an existing submission; use its current `stateVersion`.
+`requestToken` | `String` | Optional operation identity when `operationId` is omitted.
 `isNewSubmission` | `Boolean` | Useful when editing an existing submission and you need to control whether it is treated as new.
 `...` |  | Additional arguments are generated from the form’s field layout.
 
@@ -308,7 +310,9 @@ Argument | Type | Description
 `statusId` | `Int` | Set the submission status ID.
 `siteId` | `Int` | Set the submission site ID.
 `isIncomplete` | `Boolean` | Set whether the submission is incomplete.
-`requestToken` | `String` | Optional token for duplicate-submit and replay protection.
+`operationId` | `String` | Stable identity for retrying the same administrative operation.
+`expectedVersion` | `Int` | Required for an existing submission; use its current `stateVersion`.
+`requestToken` | `String` | Optional operation identity when `operationId` is omitted.
 `isNewSubmission` | `Boolean` | Useful when editing an existing submission and you need to control whether it is treated as new.
 
 `saveSubmission` returns `SubmissionInterface`. Use inline fragments on the form-specific submission type when you need field values in the response.

@@ -1,8 +1,8 @@
 # Run Custom Code on Page Submit or Form Submit
 
-Every page POST walks the same submission pipeline. Submitting a page is not a different stage from submitting the form — both use `submit` mode, and both post `submitAction=submit`. Completeness is the outcome of page flow: if there is another reachable page, the submission stays incomplete; if this was the last **visible** page (later pages may be hidden by conditions), it becomes complete.
+Every page POST walks the same submission pipeline. Submitting a page is not a different stage from submitting the form — both use the Submit operation, and both post `submitAction=submit`. Page flow determines whether completion can be attempted; required payment must also succeed: if there is another reachable page, the submission stays incomplete; if this was the last **visible** page (later pages may be hidden by conditions), it becomes complete.
 
-Use the two public hooks below. You do not need `EVENT_AFTER_TASK` or a custom stage for these cases.
+Use the two public hooks below. You do not need `EVENT_AFTER_TASK` or a custom task for these cases.
 
 Start with [Submission Workflow and Stages Explained](/guides/submissions-workflows/submission-workflow-and-stages-explained) if you need to understand when page submission and final submission occur. The [Submission Events reference](/developers/events/submission-events) describes the event objects used by listeners.
 
@@ -63,4 +63,4 @@ The submission already has an ID. Mutating other attributes still requires `Craf
 
 ## When to Use Stage and Task Events
 
-Use `beforeStage` / `afterTask` when you need a slot the two hooks do not name — between persist and payments, after spam screening, skipping one dispatch step. Register a [custom task](/guides/submissions-workflows/adding-a-custom-workflow-task-from-scratch) when several modules must order relative to the same built-in step. Page submit vs form submit is not a reason to add a stage.
+Use `beforeStage` / `afterTask` when you need a slot the two hooks do not name — between persist and payments, after spam screening. Register a [custom task](/guides/submissions-workflows/adding-a-custom-workflow-task-from-scratch) when several modules must order relative to the same built-in step. Page submit vs form submit is not a reason to add a stage.

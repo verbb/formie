@@ -24,6 +24,7 @@ class ClientSubmitInputType extends InputObjectType
         return GqlEntityRegistry::createEntity($typeName, new InputObjectType([
             'name' => $typeName,
             'fields' => [
+                'operationId' => ['name' => 'operationId', 'type' => Type::string()],
                 'handle' => [
                     'name' => 'handle',
                     'type' => Type::nonNull(Type::string()),

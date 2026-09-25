@@ -97,7 +97,7 @@ it('runs integration steps synchronously with trigger context', function (): voi
                 $submission,
                 ['alpha', 'beta'],
                 [
-                    'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+                    'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
                     'isSubmissionEdit' => false,
                     'triggerEvent' => IntegrationTriggerEvents::SUBMIT,
                     'operatorInitiated' => false,
@@ -119,14 +119,14 @@ it('builds batched TriggerIntegration jobs for queued steps', function (): void 
     $job = new TriggerIntegration([
         'submissionId' => 1022,
         'stepHandles' => ['queuedOne'],
-        'processMode' => SubmissionWorkflow::PROCESS_MODE_EDIT_EXISTING,
+        'operation' => \verbb\formie\enums\SubmissionOperation::REVISE,
         'triggerEvent' => IntegrationTriggerEvents::CP_SAVE,
         'runAfterNotifications' => true,
         'formHandle' => 'executorForm',
     ]);
 
     expect($job->stepHandles)->toBe(['queuedOne'])
-        ->and($job->processMode)->toBe(SubmissionWorkflow::PROCESS_MODE_EDIT_EXISTING)
+        ->and($job->operation)->toBe(\verbb\formie\enums\SubmissionOperation::REVISE)
         ->and($job->triggerEvent)->toBe(IntegrationTriggerEvents::CP_SAVE)
         ->and($job->runAfterNotifications)->toBeTrue();
 });
@@ -158,7 +158,7 @@ it('retries failed queued steps without repeating completed steps', function ():
     $second = executorTestIntegration('retryStep');
     $second->succeeds = false;
     $context = [
-        'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+        'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
         'isSubmissionEdit' => false,
         'triggerEvent' => IntegrationTriggerEvents::SUBMIT,
         'operatorInitiated' => false,
@@ -166,7 +166,7 @@ it('retries failed queued steps without repeating completed steps', function ():
 
     withExecutorTestIntegrations($form, [$first, $second], function () use ($submission, $first, $second, $context): void {
         $executor = Formie::$plugin->getIntegrationExecutor();
-        $run = fn(string $key) => $executor->runQueuedJob($submission, ['completedStep', 'retryStep'], SubmissionWorkflow::PROCESS_MODE_SUBMIT, $context, false, $key);
+        $run = fn(string $key) => $executor->runQueuedJob($submission, ['completedStep', 'retryStep'], \verbb\formie\enums\SubmissionOperation::SUBMIT, $context, false, $key);
         expect($run('retry-job')->success)->toBeFalse();
         // Simulate a stale submission object loaded by another worker.
         $submission->integrationDispatchContext = null;

@@ -138,7 +138,7 @@ class ClientEventsHelper
         ?int $pageId,
         string $submitAction,
     ): array {
-        if ($submitAction !== SubmissionWorkflow::SUBMIT_ACTION_SUBMIT) {
+        if ($submitAction !== 'submit') {
             return [];
         }
 

@@ -33,15 +33,15 @@ Formie runs every submission through a staged pipeline. This guide explains what
 
 ## [Using Submission Workflow Events](/guides/submissions-workflows/using-submission-workflow-events)
 
-Most extensions only need workflow event listeners — validation tweaks, post-save sync, blocking dispatch on test forms — without custom task or stage classes. This walkthrough wires the common patterns from a Craft module.
+Observe validation and integration dispatch from a Craft module. Execution-controlling checks use registered tasks and typed outcomes.
 
 ## [Adding a Custom Workflow Task from Scratch](/guides/submissions-workflows/adding-a-custom-workflow-task-from-scratch)
 
-When one ordered step inside an existing stage is what you need — before integrations, after spam checks, and so on — register a custom task and insert it relative to a built-in anchor. This walkthrough queues an internal review job before CRM dispatch.
+When one ordered step inside an existing stage is what you need — before integrations, after spam checks, and so on — register a custom task and insert it relative to a built-in anchor. This walkthrough adds and tests an order-reference rule after field validation.
 
-## [Adding a Custom Workflow Stage from Scratch](/guides/submissions-workflows/adding-a-custom-workflow-stage-from-scratch)
+## [Choosing a Workflow Stage](/guides/submissions-workflows/adding-a-custom-workflow-stage-from-scratch)
 
-When you need a new phase in the pipeline — not just another task inside `screen` or `dispatch` — register a custom stage. This walkthrough adds a fraud score check after spam screening and before authorisation.
+Choose one of the six fixed stages for your custom task. This guide maps common checks and actions to their supported public anchors.
 
 ## [Save and Continue Later](/guides/submissions-workflows/save-and-continue-later)
 

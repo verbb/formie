@@ -31,9 +31,9 @@ it('requires every enabled payment field to be on the final submission page', fu
     $workflow = Formie::$plugin->getSubmissionWorkflow();
     $response = null;
     foreach ($pages as $page) {
-        $response = $workflow->processSubmissionRequest(new \verbb\formie\models\SubmissionRequest([
-            'processMode' => \verbb\formie\services\SubmissionWorkflow::PROCESS_MODE_SUBMIT,
-            'form' => $form, 'submission' => $submission, 'submitAction' => 'submit', 'pageId' => (int)$page->id,
+        $response = runSubmissionCommand(submissionCommand([
+            'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
+            'form' => $form, 'submission' => $submission, 'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE, 'pageId' => (int)$page->id,
         ]));
         $submission = $response->submission;
     }
@@ -67,11 +67,11 @@ it('checks all payment placements before sending any purchase', function (bool $
     $submission = new Submission();
     $submission->setForm($form);
     $pages = $form->getPages();
-    $response = Formie::$plugin->getSubmissionWorkflow()->processSubmissionRequest(new \verbb\formie\models\SubmissionRequest([
-        'processMode' => \verbb\formie\services\SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+    $response = runSubmissionCommand(submissionCommand([
+        'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
         'form' => $form,
         'submission' => $submission,
-        'submitAction' => 'submit',
+        'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
         'pageId' => (int)$pages[1]->id,
     ]));
     expect($response->success)->toBe($disabled);

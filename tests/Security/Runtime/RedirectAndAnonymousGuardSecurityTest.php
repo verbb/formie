@@ -17,7 +17,7 @@ it('forbids guest control-panel variants of anonymous legacy submission actions'
 
         expect(fn() => $controller->beforeAction(
             new \yii\base\Action('submit', $controller)
-        ))->toThrow(ForbiddenHttpException::class, 'Anonymous submissions are only permitted through the site request.');
+        ))->toThrow(ForbiddenHttpException::class, 'Public submissions require the site request contract.');
     }, [
         'method' => 'POST',
         'requestUri' => '/admin/actions/formie/submissions/submit',
@@ -32,7 +32,7 @@ it('forbids guest control-panel variants of anonymous server submission actions'
 
         expect(fn() => $controller->beforeAction(
             new \yii\base\Action('submit', $controller)
-        ))->toThrow(ForbiddenHttpException::class, 'Anonymous submissions are only permitted through the site request.');
+        ))->toThrow(ForbiddenHttpException::class, 'Public submissions require the site request contract.');
     }, [
         'method' => 'POST',
         'requestUri' => '/admin/actions/formie/server/submissions/submit',

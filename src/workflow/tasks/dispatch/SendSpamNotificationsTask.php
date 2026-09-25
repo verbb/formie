@@ -2,8 +2,6 @@
 namespace verbb\formie\workflow\tasks\dispatch;
 
 use verbb\formie\Formie;
-use verbb\formie\enums\workflow\Stage;
-use verbb\formie\enums\workflow\Task;
 use verbb\formie\workflow\tasks\TaskInterface;
 use verbb\formie\workflow\tasks\TaskResult;
 use verbb\formie\workflow\WorkflowContext;
@@ -13,16 +11,6 @@ class SendSpamNotificationsTask implements TaskInterface
 {
     // Public Methods
     // =========================================================================
-
-    public function getStage(): string
-    {
-        return Stage::DISPATCH->value;
-    }
-
-    public function getName(): string
-    {
-        return Task::DISPATCH_SEND_SPAM_NOTIFICATIONS->value;
-    }
 
     public function execute(WorkflowContext $context): TaskResult
     {
@@ -45,7 +33,7 @@ class SendSpamNotificationsTask implements TaskInterface
 
     private function _sendSpamNotifications(WorkflowContext $context): void
     {
-        $submission = $context->request->submission;
+        $submission = $context->command->submission;
         $form = $submission->getForm();
 
         if (!$form) {

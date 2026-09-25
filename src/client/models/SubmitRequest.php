@@ -9,6 +9,8 @@ class SubmitRequest extends BaseClientModel
     // =========================================================================
 
     public string $handle = '';
+    public ?string $operationId = null;
+    public ?int $targetPageId = null;
     public string $action = 'submit';
     public ?int $siteId = null;
     public array $session = [];

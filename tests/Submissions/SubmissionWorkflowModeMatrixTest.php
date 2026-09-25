@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use verbb\formie\elements\Submission;
-use verbb\formie\models\SubmissionRequest;
+use verbb\formie\models\SubmissionCommand;
 use verbb\formie\services\SubmissionWorkflow;
 use yii\base\Event;
 
@@ -36,40 +36,40 @@ it('fires the expected lifecycle events for each workflow process mode', functio
         $submitSubmission->setForm($form);
         $submitSubmission->setFieldValueFromRequest('fullName', 'Submit Mode');
 
-        $submitResponse = $process->processSubmissionRequest(new SubmissionRequest([
-            'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+        $submitResponse = runSubmissionCommand(submissionCommand([
+            'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
             'form' => $form,
             'submission' => $submitSubmission,
-            'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+            'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
         ]));
 
         $draftSubmission = new Submission();
         $draftSubmission->setForm($form);
         $draftSubmission->setFieldValueFromRequest('fullName', 'Draft Mode');
 
-        $draftResponse = $process->processSubmissionRequest(new SubmissionRequest([
-            'processMode' => SubmissionWorkflow::PROCESS_MODE_SAVE_DRAFT,
+        $draftResponse = runSubmissionCommand(submissionCommand([
+            'operation' => \verbb\formie\enums\SubmissionOperation::SAVE_DRAFT,
             'form' => $form,
             'submission' => $draftSubmission,
-            'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SAVE,
+            'navigation' => \verbb\formie\enums\NavigationIntent::STAY,
         ]));
 
         $existing = formie()->submission($form)->with(['fullName' => 'Existing'])->save();
         $existing->setFieldValueFromRequest('fullName', 'Edited Existing');
 
-        $editResponse = $process->processSubmissionRequest(new SubmissionRequest([
-            'processMode' => SubmissionWorkflow::PROCESS_MODE_EDIT_EXISTING,
+        $editResponse = runSubmissionCommand(submissionCommand([
+            'operation' => \verbb\formie\enums\SubmissionOperation::REVISE,
             'form' => $form,
             'submission' => $existing,
-            'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+            'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
         ]));
 
         $replay = formie()->submission($form)->with(['fullName' => 'Replay'])->save();
-        $replayResponse = $process->processSubmissionRequest(new SubmissionRequest([
-            'processMode' => SubmissionWorkflow::PROCESS_MODE_PAYMENT_REPLAY,
+        $replayResponse = runSubmissionCommand(submissionCommand([
+            'operation' => \verbb\formie\enums\SubmissionOperation::PAYMENT_REPLAY,
             'form' => $form,
             'submission' => $replay,
-            'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+            'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
         ]));
 
         expect($submitResponse->success)->toBeTrue()
@@ -98,22 +98,22 @@ it('enforces validation for submit mode while allowing save-draft mode bypass', 
     $submitSubmission->setForm($form);
     $submitSubmission->setFieldValueFromRequest('fullName', '');
 
-    $submitResponse = $process->processSubmissionRequest(new SubmissionRequest([
-        'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+    $submitResponse = runSubmissionCommand(submissionCommand([
+        'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
         'form' => $form,
         'submission' => $submitSubmission,
-        'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+        'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
     ]));
 
     $draftSubmission = new Submission();
     $draftSubmission->setForm($form);
     $draftSubmission->setFieldValueFromRequest('fullName', '');
 
-    $draftResponse = $process->processSubmissionRequest(new SubmissionRequest([
-        'processMode' => SubmissionWorkflow::PROCESS_MODE_SAVE_DRAFT,
+    $draftResponse = runSubmissionCommand(submissionCommand([
+        'operation' => \verbb\formie\enums\SubmissionOperation::SAVE_DRAFT,
         'form' => $form,
         'submission' => $draftSubmission,
-        'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SAVE,
+        'navigation' => \verbb\formie\enums\NavigationIntent::STAY,
     ]));
 
     expect($submitResponse->success)->toBeFalse()

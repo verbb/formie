@@ -380,6 +380,11 @@ export function applyPageState(form: HTMLFormElement, nextPageId: string): void 
 }
 
 function syncSubmissionIdentity(form: HTMLFormElement, result: FormSubmitResult): void {
+    const session = result.meta?.session as { version?: number } | undefined;
+    const version = session?.version ?? result.meta?.version;
+    if (typeof version === 'number') {
+        setHiddenInputValue(form, 'expectedVersion', String(version));
+    }
     const submissionUid = result.meta?.submissionUid;
     if (typeof submissionUid === 'string' && submissionUid.trim() !== '') {
         setHiddenInputValue(form, 'submissionUid', submissionUid);
@@ -457,6 +462,7 @@ function resetSubmissionState(form: HTMLFormElement, options: ResetSubmissionSta
         setFormHiddenState(form, false);
     }
     removeHiddenInput(form, 'submissionId');
+    setHiddenInputValue(form, 'expectedVersion', '0');
     removeHiddenInput(form, 'submissionUid');
     removeHiddenInput(form, 'continuationToken');
     removeHiddenInput(form, 'pageId');

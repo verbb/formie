@@ -5,7 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\models\FormSettings;
-use verbb\formie\models\SubmissionRequest;
+use verbb\formie\models\SubmissionCommand;
 use verbb\formie\services\SubmissionWorkflow;
 
 class SubmissionStatusRulesHelper
@@ -13,7 +13,7 @@ class SubmissionStatusRulesHelper
     // Public Methods
     // =========================================================================
 
-    public static function applyRules(Form $form, Submission $submission, SubmissionRequest $request, ?bool $hasNextPage): void
+    public static function applyRules(Form $form, Submission $submission, SubmissionCommand $command, ?bool $hasNextPage): void
     {
         $settings = $form->getSettings();
 
@@ -34,7 +34,7 @@ class SubmissionStatusRulesHelper
 
             $trigger = (string)($rule['trigger'] ?? 'finalSubmit');
 
-            if (!self::_shouldApplyTrigger($trigger, $request, $hasNextPage)) {
+            if (!self::_shouldApplyTrigger($trigger, $command, $hasNextPage)) {
                 continue;
             }
 
@@ -66,24 +66,24 @@ class SubmissionStatusRulesHelper
     // Private Methods
     // =========================================================================
 
-    private static function _shouldApplyTrigger(string $trigger, SubmissionRequest $request, ?bool $hasNextPage): bool
+    private static function _shouldApplyTrigger(string $trigger, SubmissionCommand $command, ?bool $hasNextPage): bool
     {
-        if ($request->processMode !== SubmissionWorkflow::PROCESS_MODE_SUBMIT) {
+        if ($command->operation !== \verbb\formie\enums\SubmissionOperation::SUBMIT) {
             return false;
         }
 
-        if ($request->submitAction === SubmissionWorkflow::SUBMIT_ACTION_BACK) {
+        if ($command->navigation === \verbb\formie\enums\NavigationIntent::BACK) {
             return false;
         }
 
         if ($trigger === 'everyPage') {
-            return in_array($request->submitAction, [
-                SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
-                SubmissionWorkflow::SUBMIT_ACTION_SAVE,
+            return in_array($command->navigation, [
+                \verbb\formie\enums\NavigationIntent::ADVANCE,
+                \verbb\formie\enums\NavigationIntent::STAY,
             ], true);
         }
 
-        if ($request->submitAction !== SubmissionWorkflow::SUBMIT_ACTION_SUBMIT) {
+        if ($command->navigation !== \verbb\formie\enums\NavigationIntent::ADVANCE) {
             return false;
         }
 

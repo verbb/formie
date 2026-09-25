@@ -1,380 +1,73 @@
 <?php
 
-declare(strict_types=1);
-
 use Tests\Support\WebRequestTestHelper;
-use verbb\formie\elements\Form;
-use verbb\formie\elements\Submission;
 use verbb\formie\Formie;
-use verbb\formie\helpers\StringHelper;
+use verbb\formie\elements\Submission;
+use verbb\formie\enums\SubmissionAuthorityType;
+use verbb\formie\enums\SubmissionOperation;
+use verbb\formie\enums\NavigationIntent;
 use verbb\formie\models\Settings;
-use verbb\formie\models\SubmissionRequest;
-use verbb\formie\services\SubmissionWorkflow;
+use verbb\formie\models\SubmissionAuthority;
+use yii\web\ForbiddenHttpException;
+use yii\web\TooManyRequestsHttpException;
 
-function withSubmissionGuardsPostContext(callable $callback, array $bodyParams = []): mixed
-{
-    return WebRequestTestHelper::withWebRequestContext(function () use ($callback, $bodyParams): mixed {
-        Craft::$app->getRequest()->setBodyParams(array_merge([
-            'handle' => 'guard-test-form',
-            'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
-            'formStartedAt' => (string)((int)(microtime(true) * 1000) - 10000),
-            'formieHoneypot' => '',
-        ], $bodyParams));
-
-        return $callback();
-    }, [
-        'method' => 'POST',
-        'bodyParams' => [],
+function guardCommand($form, array $attributes = []) {
+    return submissionCommand($attributes + [
+        'form' => $form, 'submission' => new Submission(),
+        'authority' => new SubmissionAuthority(SubmissionAuthorityType::VISITOR, (int)$form->id, null, 'guard-session'),
+        'requestToken' => $form->getRequestToken(),
     ]);
 }
 
-function createGuardTestForm(): Form
-{
-    $form = new Form();
-    $form->handle = 'guard-test-' . uniqid();
-    $form->title = 'Guard Test';
-    $form->uid = StringHelper::UUID();
-    $form->setNotifications([]);
+it('requires a signed form-bound token for every interactive write', function ($operation, $navigation) {
+    $form = formie()->form()->create();
+    WebRequestTestHelper::withWebRequestContext(function () use ($form, $operation, $navigation) {
+        $command = guardCommand($form, ['operation' => $operation, 'navigation' => $navigation, 'requestToken' => 'untrusted']);
+        expect(fn() => Formie::$plugin->getSubmissionGuards()->validateRequest($command, false))->toThrow(ForbiddenHttpException::class);
+        $other = formie()->form()->create();
+        expect(fn() => Formie::$plugin->getSubmissionGuards()->validateRequest(guardCommand($form, ['requestToken' => $other->getRequestToken()]), false))->toThrow(ForbiddenHttpException::class);
+    }, ['method' => 'POST']);
+})->with([
+    [SubmissionOperation::SUBMIT, NavigationIntent::ADVANCE],
+    [SubmissionOperation::SUBMIT, NavigationIntent::BACK],
+    [SubmissionOperation::SAVE_DRAFT, NavigationIntent::STAY],
+]);
 
-    return $form;
-}
-
-it('flags honeypot submissions as spam during browser form posts', function (): void {
-    $form = createGuardTestForm();
-
-    /** @var Settings $settings */
+it('applies browser bot guards explicitly and keeps headless writes subject to integrity checks', function () {
+    $form = formie()->form()->create();
     $settings = Formie::$plugin->getSettings();
-    $original = $settings->enableHoneypot;
-
+    $original = $settings->getAttributes();
     try {
         $settings->enableHoneypot = true;
-
-        $reason = withSubmissionGuardsPostContext(function () use ($form): ?string {
-            $submission = new Submission();
-            $submission->setForm($form);
-
-            return Formie::$plugin->getSubmissionGuards()->validateRequest(new SubmissionRequest([
-                'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
-                'form' => $form,
-                'submission' => $submission,
-                'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
-                'requestToken' => 'honeypot-token-' . uniqid(),
-            ]));
-        }, [
-            'handle' => $form->handle,
-            'formieHoneypot' => 'bot-filled',
-        ]);
-
-        expect($reason)->toContain('Honeypot');
-    } finally {
-        $settings->enableHoneypot = $original;
-    }
+        $settings->enableMinimumSubmitTime = false;
+        WebRequestTestHelper::withWebRequestContext(function () use ($form) {
+            $guards = Formie::$plugin->getSubmissionGuards();
+            expect($guards->validateRequest(guardCommand($form), true))->toContain('Honeypot');
+            expect($guards->validateRequest(guardCommand($form), false))->toBeNull();
+            expect($guards->validateRequest(guardCommand($form, ['operation' => SubmissionOperation::SAVE_DRAFT]), true))->toContain('Honeypot');
+        }, ['method' => 'POST', 'bodyParams' => ['formieHoneypot' => 'bot']]);
+    } finally { $settings->setAttributes($original, false); }
 });
 
-it('flags fast browser submissions when minimum submit time is enabled', function (): void {
-    $form = createGuardTestForm();
-
-    /** @var Settings $settings */
+it('checks minimum submit time only on forward submission and enforces rate limits on drafts', function () {
+    $form = formie()->form()->create();
     $settings = Formie::$plugin->getSettings();
-    $originalEnabled = $settings->enableMinimumSubmitTime;
-    $originalSeconds = $settings->minimumSubmitTime;
-
+    $original = $settings->getAttributes();
     try {
+        $settings->enableHoneypot = false;
         $settings->enableMinimumSubmitTime = true;
         $settings->minimumSubmitTime = 30;
-
-        $reason = withSubmissionGuardsPostContext(function () use ($form): ?string {
-            $submission = new Submission();
-            $submission->setForm($form);
-
-            return Formie::$plugin->getSubmissionGuards()->validateRequest(new SubmissionRequest([
-                'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
-                'form' => $form,
-                'submission' => $submission,
-                'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
-                'requestToken' => 'min-time-token-' . uniqid(),
-            ]));
-        }, [
-            'handle' => $form->handle,
-            'formStartedAt' => (string)(int)(microtime(true) * 1000),
-        ]);
-
-        expect($reason)->toContain('too quickly');
-    } finally {
-        $settings->enableMinimumSubmitTime = $originalEnabled;
-        $settings->minimumSubmitTime = $originalSeconds;
-    }
-});
-
-it('consumes request tokens after a completed submit and blocks replay attempts', function (): void {
-    $form = createGuardTestForm();
-    $submissionGuards = Formie::$plugin->getSubmissionGuards();
-
-    /** @var Settings $settings */
-    $settings = Formie::$plugin->getSettings();
-    $original = $settings->enableReplayProtection;
-
-    try {
-        $settings->enableReplayProtection = true;
-        $requestToken = 'replay-token-' . uniqid();
-
-        $replayReason = withSubmissionGuardsPostContext(function () use ($form, $requestToken): ?string {
-            $submission = new Submission();
-            $submission->setForm($form);
-
-            return Formie::$plugin->getSubmissionGuards()->validateRequest(new SubmissionRequest([
-                'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
-                'form' => $form,
-                'submission' => $submission,
-                'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
-                'requestToken' => $requestToken,
-            ]));
-        }, [
-            'handle' => $form->handle,
-            'formStartedAt' => (string)((int)(microtime(true) * 1000) - 30000),
-        ]);
-
-        expect($replayReason)->toBeNull();
-
-        $submissionGuards->consumeReplayToken((string)$form->uid, $requestToken);
-
-        expect($submissionGuards->isReplayTokenConsumed((string)$form->uid, $requestToken))->toBeTrue();
-
-        $blockedReason = withSubmissionGuardsPostContext(function () use ($form, $requestToken): ?string {
-            $submission = new Submission();
-            $submission->setForm($form);
-
-            return Formie::$plugin->getSubmissionGuards()->validateRequest(new SubmissionRequest([
-                'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
-                'form' => $form,
-                'submission' => $submission,
-                'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
-                'requestToken' => $requestToken,
-            ]));
-        }, [
-            'handle' => $form->handle,
-            'formStartedAt' => (string)((int)(microtime(true) * 1000) - 30000),
-        ]);
-
-        expect($blockedReason)->toContain('already been used');
-    } finally {
-        $settings->enableReplayProtection = $original;
-    }
-});
-
-it('claims replay tokens atomically so only one concurrent worker wins', function (): void {
-    $form = createGuardTestForm();
-    $submissionGuards = Formie::$plugin->getSubmissionGuards();
-    $requestToken = 'claim-token-' . uniqid();
-
-    expect($submissionGuards->claimReplayToken((string)$form->uid, $requestToken))->toBeTrue()
-        ->and($submissionGuards->claimReplayToken((string)$form->uid, $requestToken))->toBeFalse()
-        ->and($submissionGuards->isReplayTokenConsumed((string)$form->uid, $requestToken))->toBeTrue();
-});
-
-it('skips browser-only submission guards for headless requests with a request token', function (): void {
-    $form = createGuardTestForm();
-
-    /** @var Settings $settings */
-    $settings = Formie::$plugin->getSettings();
-    $originalHoneypot = $settings->enableHoneypot;
-    $originalMinTime = $settings->enableMinimumSubmitTime;
-    $originalReplay = $settings->enableReplayProtection;
-
-    try {
-        $settings->enableHoneypot = true;
-        $settings->enableMinimumSubmitTime = true;
-        $settings->enableReplayProtection = false;
-
-        $reason = WebRequestTestHelper::withWebRequestContext(function () use ($form): ?string {
-            Craft::$app->getRequest()->setBodyParams([
-                'handle' => $form->handle,
-                'action' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
-            ]);
-
-            $submission = new Submission();
-            $submission->setForm($form);
-
-            return Formie::$plugin->getSubmissionGuards()->validateRequest(new SubmissionRequest([
-                'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
-                'form' => $form,
-                'submission' => $submission,
-                'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
-                'requestToken' => 'headless-token-' . uniqid(),
-            ]));
-        }, [
-            'method' => 'POST',
-        ]);
-
-        expect($reason)->toBeNull();
-    } finally {
-        $settings->enableHoneypot = $originalHoneypot;
-        $settings->enableMinimumSubmitTime = $originalMinTime;
-        $settings->enableReplayProtection = $originalReplay;
-    }
-});
-
-it('requires a request token for headless submissions', function (): void {
-    $form = createGuardTestForm();
-
-    $reason = WebRequestTestHelper::withWebRequestContext(function () use ($form): ?string {
-        Craft::$app->getRequest()->setBodyParams([
-            'handle' => $form->handle,
-            'action' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
-        ]);
-
-        $submission = new Submission();
-        $submission->setForm($form);
-
-        return Formie::$plugin->getSubmissionGuards()->validateRequest(new SubmissionRequest([
-            'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
-            'form' => $form,
-            'submission' => $submission,
-            'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
-        ]));
-    }, [
-        'method' => 'POST',
-    ]);
-
-    expect($reason)->toBe('Request token missing.');
-});
-
-it('blocks replayed headless submissions when replay protection is enabled', function (): void {
-    $form = createGuardTestForm();
-    $submissionGuards = Formie::$plugin->getSubmissionGuards();
-
-    /** @var Settings $settings */
-    $settings = Formie::$plugin->getSettings();
-    $original = $settings->enableReplayProtection;
-
-    try {
-        $settings->enableReplayProtection = true;
-        $requestToken = 'headless-replay-token-' . uniqid();
-
-        $reason = WebRequestTestHelper::withWebRequestContext(function () use ($form, $requestToken): ?string {
-            Craft::$app->getRequest()->setBodyParams([
-                'handle' => $form->handle,
-                'action' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
-            ]);
-
-            $submission = new Submission();
-            $submission->setForm($form);
-
-            return Formie::$plugin->getSubmissionGuards()->validateRequest(new SubmissionRequest([
-                'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
-                'form' => $form,
-                'submission' => $submission,
-                'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
-                'requestToken' => $requestToken,
-            ]));
-        }, [
-            'method' => 'POST',
-        ]);
-
-        expect($reason)->toBeNull();
-
-        $submissionGuards->consumeReplayToken((string)$form->uid, $requestToken);
-
-        $blockedReason = WebRequestTestHelper::withWebRequestContext(function () use ($form, $requestToken): ?string {
-            Craft::$app->getRequest()->setBodyParams([
-                'handle' => $form->handle,
-                'action' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
-            ]);
-
-            $submission = new Submission();
-            $submission->setForm($form);
-
-            return Formie::$plugin->getSubmissionGuards()->validateRequest(new SubmissionRequest([
-                'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
-                'form' => $form,
-                'submission' => $submission,
-                'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
-                'requestToken' => $requestToken,
-            ]));
-        }, [
-            'method' => 'POST',
-        ]);
-
-        expect($blockedReason)->toContain('already been used');
-    } finally {
-        $settings->enableReplayProtection = $original;
-    }
-});
-
-it('skips submission guards when the request is not a browser form post', function (): void {
-    $form = createGuardTestForm();
-
-    /** @var Settings $settings */
-    $settings = Formie::$plugin->getSettings();
-    $originalHoneypot = $settings->enableHoneypot;
-    $originalMinTime = $settings->enableMinimumSubmitTime;
-
-    try {
-        $settings->enableHoneypot = true;
-        $settings->enableMinimumSubmitTime = true;
-
-        $reason = WebRequestTestHelper::withWebRequestContext(function () use ($form): ?string {
-            Craft::$app->getRequest()->setBodyParams([]);
-
-            $submission = new Submission();
-            $submission->setForm($form);
-
-            return Formie::$plugin->getSubmissionGuards()->validateRequest(new SubmissionRequest([
-                'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
-                'form' => $form,
-                'submission' => $submission,
-                'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
-                'requestToken' => 'skip-guards-token-' . uniqid(),
-            ]));
-        }, [
-            'method' => 'POST',
-        ]);
-
-        expect($reason)->toBeNull();
-    } finally {
-        $settings->enableHoneypot = $originalHoneypot;
-        $settings->enableMinimumSubmitTime = $originalMinTime;
-    }
-});
-
-it('skips captcha checks when resubmitting an incomplete continuation submission', function (): void {
-    $form = createGuardTestForm();
-    $submissionGuards = Formie::$plugin->getSubmissionGuards();
-
-    $freshSubmission = new Submission();
-    $freshSubmission->setForm($form);
-
-    expect($submissionGuards->shouldSkipCaptchaChecks(new SubmissionRequest([
-        'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
-        'form' => $form,
-        'submission' => $freshSubmission,
-        'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
-    ])))->toBeFalse();
-
-    $continuationSubmission = new Submission();
-    $continuationSubmission->setForm($form);
-    $continuationSubmission->id = 101;
-    $continuationSubmission->isIncomplete = true;
-
-    expect($submissionGuards->shouldSkipCaptchaChecks(new SubmissionRequest([
-        'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
-        'form' => $form,
-        'submission' => $continuationSubmission,
-        'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
-    ])))->toBeTrue();
-
-    $spamContinuation = new Submission();
-    $spamContinuation->setForm($form);
-    $spamContinuation->id = 102;
-    $spamContinuation->isIncomplete = true;
-    $spamContinuation->isSpam = true;
-
-    expect($submissionGuards->shouldSkipCaptchaChecks(new SubmissionRequest([
-        'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
-        'form' => $form,
-        'submission' => $spamContinuation,
-        'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
-    ])))->toBeFalse();
+        WebRequestTestHelper::withWebRequestContext(function () use ($form, $settings) {
+            $guards = Formie::$plugin->getSubmissionGuards();
+            expect($guards->validateRequest(guardCommand($form), true))->not->toBeNull();
+            expect($guards->validateRequest(guardCommand($form, ['operation' => SubmissionOperation::SAVE_DRAFT, 'navigation' => NavigationIntent::STAY]), true))->toBeNull();
+            $settings->enableGlobalSubmissionThrottling = true;
+            $settings->globalSubmissionThrottleLimit = 1;
+            Craft::$app->getCache()->delete(\verbb\formie\services\SubmissionGuards::GLOBAL_THROTTLE_CACHE_KEY);
+            $guards->validateRequest(guardCommand($form), false);
+            expect(fn() => $guards->validateRequest(guardCommand($form, ['operation' => SubmissionOperation::SAVE_DRAFT]), false))->toThrow(TooManyRequestsHttpException::class);
+        }, ['method' => 'POST', 'bodyParams' => ['formStartedAt' => (string)(int)(microtime(true) * 1000)]]);
+    } finally { $settings->setAttributes($original, false); }
 });
 
 it('persists submission guard settings in the spam protection store', function (): void {

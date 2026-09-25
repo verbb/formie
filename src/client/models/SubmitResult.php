@@ -9,6 +9,9 @@ class SubmitResult extends BaseClientModel
     // =========================================================================
 
     public bool $success = false;
+    public string $outcome = '';
+    public ?int $version = null;
+    public int $httpStatus = 200;
     public ?string $submissionUid = null;
     public ?string $currentPageId = null;
     public ?string $nextPageId = null;

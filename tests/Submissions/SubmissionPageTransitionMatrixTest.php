@@ -3,12 +3,12 @@
 declare(strict_types=1);
 
 use verbb\formie\elements\Submission;
-use verbb\formie\models\SubmissionRequest;
+use verbb\formie\models\SubmissionCommand;
 use verbb\formie\services\SubmissionWorkflow;
 
-function runPageStep(SubmissionWorkflow $process, SubmissionRequest $request): mixed
+function runPageStep(SubmissionWorkflow $process, SubmissionCommand $request): mixed
 {
-    return $process->processSubmissionRequest($request);
+    return runSubmissionCommand($request);
 }
 
 it('keeps canonical multipage page-transition behavior for submit/back/save and target-page navigation', function (): void {
@@ -28,41 +28,41 @@ it('keeps canonical multipage page-transition behavior for submit/back/save and 
     $process = new SubmissionWorkflow();
 
     $submission->setFieldValueFromRequest('pageOneField', 'one');
-    $step1 = runPageStep($process, new SubmissionRequest([
-        'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+    $step1 = runPageStep($process, submissionCommand([
+        'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
         'form' => $form,
         'submission' => $submission,
-        'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+        'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
         'pageId' => (int)$pages[0]->id,
     ]));
 
     $submission = $step1->submission;
     $submission->setFieldValueFromRequest('pageOneField', 'one');
     $submission->setFieldValueFromRequest('pageTwoField', 'two');
-    $step2 = runPageStep($process, new SubmissionRequest([
-        'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+    $step2 = runPageStep($process, submissionCommand([
+        'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
         'form' => $form,
         'submission' => $submission,
-        'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+        'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
         'pageId' => (int)$pages[1]->id,
         'targetPageId' => (int)$pages[2]->id,
     ]));
 
     $submission = $step2->submission;
-    $back = runPageStep($process, new SubmissionRequest([
-        'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+    $back = runPageStep($process, submissionCommand([
+        'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
         'form' => $form,
         'submission' => $submission,
-        'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_BACK,
+        'navigation' => \verbb\formie\enums\NavigationIntent::BACK,
         'pageId' => (int)$pages[2]->id,
     ]));
 
     $submission = $back->submission;
-    $save = runPageStep($process, new SubmissionRequest([
-        'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+    $save = runPageStep($process, submissionCommand([
+        'operation' => \verbb\formie\enums\SubmissionOperation::SAVE_DRAFT,
         'form' => $form,
         'submission' => $submission,
-        'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SAVE,
+        'navigation' => \verbb\formie\enums\NavigationIntent::STAY,
         'pageId' => (int)$pages[1]->id,
     ]));
 
@@ -97,21 +97,21 @@ it('keeps the same transition contract for ajax submit-method forms', function (
     $submission->setFieldValueFromRequest('firstName', 'Ajax');
     $process = new SubmissionWorkflow();
 
-    $forward = runPageStep($process, new SubmissionRequest([
-        'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+    $forward = runPageStep($process, submissionCommand([
+        'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
         'form' => $form,
         'submission' => $submission,
-        'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+        'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
         'pageId' => (int)$pages[0]->id,
     ]));
 
     $submission = $forward->submission;
     $submission->setFieldValueFromRequest('firstName', 'Ajax');
-    $back = runPageStep($process, new SubmissionRequest([
-        'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+    $back = runPageStep($process, submissionCommand([
+        'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
         'form' => $form,
         'submission' => $submission,
-        'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_BACK,
+        'navigation' => \verbb\formie\enums\NavigationIntent::BACK,
         'pageId' => (int)$pages[1]->id,
     ]));
 

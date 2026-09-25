@@ -11,6 +11,7 @@
 {{ hiddenInput('siteId', craft.app.sites.currentSite.id) }}
 {{ hiddenInput('renderId', form.getRenderId()) }}
 {{ hiddenInput('requestToken', form.getRequestToken()) }}
+{{ hiddenInput('expectedVersion', form.getCurrentSubmission() ? form.getCurrentSubmission().stateVersion : 0) }}
 {{ hiddenInput('formStartedAt', '') }}
 
 {% if form.getRelations() %}

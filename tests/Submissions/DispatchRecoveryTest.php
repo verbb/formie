@@ -2,19 +2,14 @@
 
 declare(strict_types=1);
 
-use verbb\formie\models\SubmissionRequest;
+use verbb\formie\models\SubmissionCommand;
 use verbb\formie\services\SubmissionWorkflow;
 use verbb\formie\workflow\tasks\dispatch\DispatchState;
 
 it('records delivery only after success and permits retries after failures', function (?string $token): void {
     $form = formie()->form()->singleLineTextField('fullName')->create();
     $submission = formie()->submission($form)->with(['fullName' => 'Recovery'])->save();
-    $state = new DispatchState(new SubmissionRequest([
-        'form' => $form,
-        'submission' => $submission,
-        'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
-        'requestToken' => $token,
-    ]), true);
+    $state = new DispatchState($submission, \verbb\formie\enums\SubmissionOperation::SUBMIT, true, $token);
 
     expect(fn() => $state->runOnce('recovery', function (): void {
         throw new RuntimeException('Temporary delivery failure');
@@ -34,12 +29,7 @@ it('records delivery only after success and permits retries after failures', fun
 it('serializes concurrent delivery attempts without acknowledging unfinished work', function (): void {
     $form = formie()->form()->singleLineTextField('fullName')->create();
     $submission = formie()->submission($form)->with(['fullName' => 'Concurrent'])->save();
-    $state = new DispatchState(new SubmissionRequest([
-        'form' => $form,
-        'submission' => $submission,
-        'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
-        'requestToken' => 'concurrent-delivery',
-    ]), true);
+    $state = new DispatchState($submission, \verbb\formie\enums\SubmissionOperation::SUBMIT, true, 'concurrent-delivery');
     $log = tempnam(sys_get_temp_dir(), 'formie-delivery-');
     $workers = [];
     try {

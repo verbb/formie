@@ -13,6 +13,8 @@ class SubmissionArguments extends ElementMutationArguments
     public static function getArguments(): array
     {
         return array_merge(parent::getArguments(), [
+            'expectedVersion' => ['name' => 'expectedVersion', 'type' => Type::int(), 'description' => 'Required current state version when revising a submission.'],
+            'operationId' => ['name' => 'operationId', 'type' => Type::string(), 'description' => 'Stable identity for retrying this operation.'],
             'status' => [
                 'name' => 'status',
                 'type' => Type::string(),

@@ -1,81 +1,27 @@
 # Submission Screening
 
-::: tip
-For tuning guards, captchas, and keyword rules together in practice, see [Submission screening rules in practice](/guides/submissions-workflows/submission-screening-rules-in-practice).
-:::
+Formie checks valid final submissions for content spam and CAPTCHA before saving and dispatching them. Invalid field values stop in Validate, so visitors can correct mistakes without spending an external CAPTCHA token.
 
-Submission screening is Formie's unified layer for deciding whether a submission should be treated as legitimate before it is saved and dispatched. It runs in the submission workflow’s **`screen`** stage, immediately after field validation and before authorisation, persistence, and notifications.
+## Screening Order
 
-Screening combines **submission guards**, **captcha integrations**, and **server-side spam rules** so you can tune friction for real users while still blocking automated abuse.
+Screen first runs `screen.evaluateSpam`, including global email rules, link/text rules, spam keywords and IP rules. It then runs `screen.verifyCaptcha` for enabled providers, unless the submission is already known to be spam. A failed CAPTCHA marks the submission as spam and records the provider's reason.
 
-## How Screening Fits the Workflow
+SaveDraft and Revise skip content screening. PaymentReplay relies on the previously validated attempt. For the complete lifecycle and public extension anchors, see [Submission Workflow](/developers/submission-workflow).
 
-For a normal submit request, Formie runs the `screen` stage in a fixed order:
+## Request Safeguards
 
-1. **`screen.runSubmissionGuards`** — built-in passive checks: honeypot, minimum submit time, form submit expiration, and replay protection. These are configured globally under **Settings → Spam Protection → Submission Guards**. If a guard fails, the submission is marked as spam with a clear `spamReason`.
-2. **`screen.runCaptchaChecks`** — every captcha integration enabled for the form runs in turn. If a captcha fails validation, the submission is marked as spam with a clear reason and the captcha class is recorded for review.
-3. **`screen.runSpamChecks`** — global email rules (when enabled), then plugin-level spam keyword and IP rules against submission content.
+Integrity, ownership, replay and rate checks run at the explicit submission boundary before workflow tasks. These safeguards also protect drafts and page-state writes. Browser adapters additionally apply their honeypot, timing and expiration checks; interactive REST and GraphQL still require a signed request token issued by bootstrap or session refresh.
 
-That ordering means lightweight built-in checks run first, then provider-backed captchas, then broader text and network rules. Draft saves and non-submit actions skip this stage so editors and save-and-continue flows are not blocked by guards, captchas, or keyword lists.
+Successful operations retain a bounded durable receipt, so retries recover the saved outcome. Validation failures can reuse their token with corrected input. A reused token with a different operation or payload conflicts. Rate rejection returns 429 for structured HTTP transports; configured fake-success spam behaviour is a separate policy for bot/content rejection.
 
-Replay protection has a second workflow touchpoint. After a successful, complete submission, **`finalize.consumeReplayToken`** marks the `requestToken` as used so the same token cannot be replayed. Failed or incomplete submissions do not consume the token.
+Configure global checks under **Formie → Settings → Spam Protection**. The [spam protection reference](/forms/spam-protection) explains the available settings.
 
-For a deeper look at stages, tasks, and extension points, see [Submission Workflow](/developers/submission-workflow).
+## CAPTCHA and Content Rules
 
-## Submission Guards
+Configure CAPTCHA credentials under **Settings → Spam Protection → Captchas**, then enable the providers needed by each form. Provider-specific instructions are under [Captchas](/integrations/captchas/).
 
-Submission guards are global, built-in checks — not captcha integrations.
+Content rules run before external verification. This keeps local keyword, email and IP decisions available without requiring a third-party service. The [screening guide](/guides/submissions-workflows/submission-screening-rules-in-practice) shows how to test the rules and review false positives.
 
-| Task | Stage | Purpose |
-| --- | --- | --- |
-| `screen.runSubmissionGuards` | `screen` | Validate honeypot, minimum submit time, and replay token state |
-| `finalize.consumeReplayToken` | `finalize` | Consume the request token after successful processing |
+## Extending Screening
 
-Guards run for every final submit. **Universal guards** (global throttling, IP throttling, replay protection, and a required request token) apply to browser, client REST, and GraphQL submissions. **Browser-only guards** (honeypot, minimum submit time, and form submit expiration) run only for traditional form posts that include `handle` and `submitAction` in the POST body.
-
-Client REST and GraphQL submissions must include a `requestToken` issued by a bootstrap call such as `formieClientForm` or `refreshFormieClientSession`. Drive-by API posts without a token are rejected.
-
-Day-to-day configuration lives in [Spam Protection](/forms/spam-protection#submission-guards).
-
-## Captcha Integrations
-
-Captcha integrations cover everything from visible challenges to invisible tokens and third-party spam APIs that classify content without showing a puzzle.
-
-Configure provider credentials under **Formie → Settings → Spam Protection → Captchas**, then enable the ones you need per form. Provider-specific setup lives under [Captchas](/integrations/captchas/) in the integrations section of these docs.
-
-## Spam Keywords and Related Settings
-
-Spam keywords, IP lists, spam handling behaviour, and submission guard toggles live under **Formie → Settings → Spam Protection**. Keyword and IP rules apply across forms after guards and captcha checks, which keeps simple keyword blocking available even when you are not using a third-party provider.
-
-Day-to-day behaviour of those settings (saving spam, user-visible responses, notifications) is described in [Spam Protection](/forms/spam-protection).
-
-## Why a Dedicated Screening Stage
-
-Grouping guards, captchas, and spam rules in one workflow stage keeps behaviour predictable for custom code: validation errors surface in the **`validate`** stage, while spam and abuse signals are handled in **`screen`**. If you need to insert extra checks, register tasks before or after the built-in screening tasks without replacing the whole submission pipeline.
-
-### Extending Screening
-
-Use `SubmissionWorkflow::EVENT_REGISTER_STAGE_TASKS` to insert work relative to the built-in task names:
-
-- `screen.runSubmissionGuards`
-- `screen.runCaptchaChecks`
-- `screen.runSpamChecks`
-
-For example, insert a custom fraud-score task after guards but before captcha checks:
-
-```php
-use verbb\formie\enums\workflow\Task;
-use verbb\formie\events\RegisterStageTasksEvent;
-use verbb\formie\services\SubmissionWorkflow;
-use yii\base\Event;
-
-Event::on(SubmissionWorkflow::class, SubmissionWorkflow::EVENT_REGISTER_STAGE_TASKS, function(RegisterStageTasksEvent $event) {
-    if ($event->stage !== 'screen') {
-        return;
-    }
-
-    $event->insertTaskAfter(Task::SCREEN_RUN_SUBMISSION_GUARDS->value, new MyFraudScoreTask());
-});
-```
-
-The `SubmissionGuards` service (`Formie::$plugin->getSubmissionGuards()`) owns guard validation logic if you need to call it from custom tasks or tests.
+Register a Submit task before or after `Task::SCREEN_EVALUATE_SPAM` or `Task::SCREEN_VERIFY_CAPTCHA`. Registration declares its unique ID, handler and operations through `TaskDefinition`. Use the [custom task walkthrough](/guides/submissions-workflows/adding-a-custom-workflow-task-from-scratch) for a complete module example; checks that add field errors belong after `validate.submission` so they stop before screening.

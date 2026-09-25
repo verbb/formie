@@ -5,7 +5,7 @@ declare(strict_types=1);
 use craft\elements\User;
 use Tests\Support\WebRequestTestHelper;
 use verbb\formie\elements\Submission;
-use verbb\formie\models\SubmissionRequest;
+use verbb\formie\models\SubmissionCommand;
 use verbb\formie\services\SubmissionWorkflow;
 
 function withSubmissionWorkflowContext(callable $callback, array $options = []): mixed
@@ -41,11 +41,11 @@ it('enforces submission limits across configured periods', function (string $lim
     $submission->setFieldValueFromRequest('fullName', 'Blocked New');
 
     $response = withSubmissionWorkflowContext(function () use ($form, $submission) {
-        return (new SubmissionWorkflow())->processSubmissionRequest(new SubmissionRequest([
-            'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+        return runSubmissionCommand(submissionCommand([
+            'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
             'form' => $form,
             'submission' => $submission,
-            'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+            'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
         ]));
     });
 
@@ -73,11 +73,11 @@ it('allows editing an existing submission even when new submission limits are re
 
     $existing->setFieldValueFromRequest('fullName', 'Edited Existing');
 
-    $editResponse = (new SubmissionWorkflow())->processSubmissionRequest(new SubmissionRequest([
-        'processMode' => SubmissionWorkflow::PROCESS_MODE_EDIT_EXISTING,
+    $editResponse = runSubmissionCommand(submissionCommand([
+        'operation' => \verbb\formie\enums\SubmissionOperation::REVISE,
         'form' => $form,
         'submission' => $existing,
-        'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+        'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
     ]));
 
     expect($editResponse->success)->toBeTrue()
@@ -139,11 +139,11 @@ it('enforces per-ip submission limits without closing the form', function (): vo
         $submission->ipAddress = '203.0.113.10';
         $submission->setFieldValueFromRequest('fullName', 'Blocked IP Submission');
 
-        $response = (new SubmissionWorkflow())->processSubmissionRequest(new SubmissionRequest([
-            'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+        $response = runSubmissionCommand(submissionCommand([
+            'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
             'form' => $form,
             'submission' => $submission,
-            'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+            'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
         ]));
 
         expect($response->success)->toBeFalse()
@@ -192,11 +192,11 @@ it('enforces per-user submission limits for logged-in users', function (): void 
             $submission->setForm($form);
             $submission->setFieldValueFromRequest('fullName', 'Blocked User Submission');
 
-            return (new SubmissionWorkflow())->processSubmissionRequest(new SubmissionRequest([
-                'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+            return runSubmissionCommand(submissionCommand([
+                'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
                 'form' => $form,
                 'submission' => $submission,
-                'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+                'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
             ]));
         });
 

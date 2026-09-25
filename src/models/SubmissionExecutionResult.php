@@ -8,6 +8,6 @@ class SubmissionExecutionResult extends Model
     // Properties
     // =========================================================================
 
-    public ?SubmissionRequest $submissionRequest = null;
+    public ?SubmissionCommand $command = null;
     public ?SubmissionResponse $response = null;
 }

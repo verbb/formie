@@ -19,7 +19,7 @@ it('scores submitted answers through the save workflow and persists the exact pa
         ]])->create();
     WebRequestTestHelper::withWebRequestContext(function () use ($form, $correct, $multiple, $score, $passed, $multipleCorrect): void {
         $bootstrap = Formie::$plugin->getClientFormBootstrapBuilder()->build($form, new LoadContext(['handle' => $form->handle]));
-        $execution = Formie::$plugin->getSubmissionProcessor()->execute(new SubmitRequest([
+        $execution = runClientSubmission(new SubmitRequest([
             'handle' => $form->handle, 'action' => 'submit', 'session' => $bootstrap->session->toArrayRecursive(),
             'values' => ['single' => $correct ? 'yes' : 'no', 'multiple' => $multiple],
         ]));

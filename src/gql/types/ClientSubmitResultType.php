@@ -21,6 +21,8 @@ class ClientSubmitResultType extends ObjectType
         return GqlEntityRegistry::getEntity(self::getName()) ?: GqlEntityRegistry::createEntity(self::getName(), new self([
             'name' => self::getName(),
             'fields' => [
+                'outcome' => ['name' => 'outcome', 'type' => Type::string()],
+                'version' => ['name' => 'version', 'type' => Type::int()],
                 'success' => [
                     'name' => 'success',
                     'type' => Type::nonNull(Type::boolean()),

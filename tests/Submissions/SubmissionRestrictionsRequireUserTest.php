@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use craft\elements\User;
 use verbb\formie\elements\Submission;
-use verbb\formie\models\SubmissionRequest;
+use verbb\formie\models\SubmissionCommand;
 use verbb\formie\services\SubmissionWorkflow;
 
 it('blocks guest submissions when require-user is enabled and allows authenticated users', function (): void {
@@ -26,11 +26,11 @@ it('blocks guest submissions when require-user is enabled and allows authenticat
     $guestSubmission->setForm($form);
     $guestSubmission->setFieldValueFromRequest('fullName', 'Guest Attempt');
 
-    $guestResponse = (new SubmissionWorkflow())->processSubmissionRequest(new SubmissionRequest([
-        'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+    $guestResponse = runSubmissionCommand(submissionCommand([
+        'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
         'form' => $form,
         'submission' => $guestSubmission,
-        'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+        'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
     ]));
 
     expect($guestResponse->success)->toBeFalse()
@@ -45,11 +45,11 @@ it('blocks guest submissions when require-user is enabled and allows authenticat
         $authSubmission->setForm($form);
         $authSubmission->setFieldValueFromRequest('fullName', 'Authenticated User');
 
-        $authResponse = (new SubmissionWorkflow())->processSubmissionRequest(new SubmissionRequest([
-            'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+        $authResponse = runSubmissionCommand(submissionCommand([
+            'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
             'form' => $form,
             'submission' => $authSubmission,
-            'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+            'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
         ]));
 
         expect($authResponse->success)->toBeTrue()

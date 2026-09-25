@@ -9,15 +9,9 @@ Submission screening is Formie's unified layer for deciding whether a submission
 
 ## Where Screening Runs
 
-For a normal `submit` request, screening happens in the workflow **`screen`** stage — after field validation, before authorisation and save:
+A valid final Submit reaches Screen after field validation. Formie evaluates local content-spam rules first, then checks CAPTCHA unless the spam policy already determines the result. Request integrity, ownership, rate limits and browser bot safeguards run at the submission boundary before these tasks.
 
-1. **`screen.runSubmissionGuards`** — honeypot, minimum submit time, form submit expiration, replay protection, throttling
-2. **`screen.runCaptchaChecks`** — enabled captcha integrations for the form
-3. **`screen.runSpamChecks`** — email rules, text rules, spam keywords and IP lists
-
-Draft saves and `editExisting` requests skip screening so editors and save-and-continue flows are not blocked.
-
-After a successful complete submission, **`finalize.consumeReplayToken`** marks the `requestToken` as used so the same token cannot be replayed within 24 hours.
+SaveDraft and Revise skip content screening. Draft and page-state writes still encounter their applicable cheap safeguards. Invalid field values stop before any content spam check or external CAPTCHA call.
 
 ## Layer 1: Submission Guards
 
@@ -49,7 +43,7 @@ Enable captchas per form when guards and keywords are not enough:
 1. Configure provider credentials under **Settings → Spam Protection → Captchas**.
 2. Enable providers on the form in the form builder.
 
-Third-party scoring services (Akismet, CleanTalk, OOPSpam) classify content without showing a puzzle — they still run in `screen.runCaptchaChecks`.
+Third-party scoring services (Akismet, CleanTalk, OOPSpam) classify content without showing a puzzle — they still run in `screen.verifyCaptcha`.
 
 See [Captchas](/integrations/captchas/) for provider setup.
 
@@ -63,7 +57,7 @@ Under **Content Rules → Email Rules**:
 - **Blocked domains** — one domain per line
 - **Block free email providers** — rejects disposable/free addresses
 
-These run during `screen.runSpamChecks` and mark submissions as spam — not field validation errors. Per-field email settings still run separately during validation.
+These run during `screen.evaluateSpam` and mark submissions as spam — not field validation errors. Per-field email settings still run separately during validation.
 
 ### Text Rules
 

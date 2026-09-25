@@ -32,9 +32,9 @@ it('reconciles hosted payment completion with the current submission requirement
         expect($integration->getAmount($submission))->toBe(25.0);
         expect($integration->processPayment($submission)->status)->toBe('actionRequired');
         $submission->setFieldValue('total', $currentAmount);
-        $retry = Formie::$plugin->getSubmissionWorkflow()->processSubmissionRequest(new \verbb\formie\models\SubmissionRequest([
-            'processMode' => \verbb\formie\services\SubmissionWorkflow::PROCESS_MODE_SUBMIT,
-            'form' => $submission->getForm(), 'submission' => $submission, 'submitAction' => 'submit',
+        $retry = runSubmissionCommand(submissionCommand([
+            'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
+            'form' => $submission->getForm(), 'submission' => $submission, 'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
         ]));
         expect($retry->paymentStatus)->toBe($currentAmount === 25 ? 'actionRequired' : 'failed');
         Craft::$app->getRequest()->setBodyParams(['id' => 'tr_audit' . $integration->id]);
@@ -81,8 +81,8 @@ it('compares stored payments using each provider currency unit and current setti
         'reference' => 'verified-' . uniqid(),
     ]);
     expect(Formie::$plugin->getPayments()->savePayment($payment))->toBeTrue();
-    $response = Formie::$plugin->getSubmissionWorkflow()->processSubmissionRequest(new \verbb\formie\models\SubmissionRequest([
-        'processMode' => \verbb\formie\services\SubmissionWorkflow::PROCESS_MODE_PAYMENT_REPLAY,
+    $response = runSubmissionCommand(submissionCommand([
+        'operation' => \verbb\formie\enums\SubmissionOperation::PAYMENT_REPLAY,
         'form' => $form,
         'submission' => $submission,
     ]));

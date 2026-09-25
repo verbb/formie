@@ -6,7 +6,7 @@ use craft\elements\Entry;
 use verbb\formie\conditions\ConditionOperator;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\SubmissionRedirectRulesHelper;
-use verbb\formie\models\SubmissionRequest;
+use verbb\formie\models\SubmissionCommand;
 use verbb\formie\services\SubmissionWorkflow;
 
 it('overrides the default submit action when a redirect rule matches', function (): void {
@@ -237,11 +237,11 @@ it('returns the default message action from redirect rule workflow responses', f
     $submission->setForm($form);
     $submission->setFieldValueFromRequest('tier', 'standard');
 
-    $response = (new SubmissionWorkflow())->processSubmissionRequest(new SubmissionRequest([
-        'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+    $response = runSubmissionCommand(submissionCommand([
+        'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
         'form' => $form,
         'submission' => $submission,
-        'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+        'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
     ]));
 
     expect($response->success)->toBeTrue()

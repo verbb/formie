@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use craft\elements\Entry;
 use verbb\formie\elements\Submission;
-use verbb\formie\models\SubmissionRequest;
+use verbb\formie\models\SubmissionCommand;
 use verbb\formie\services\SubmissionWorkflow;
 
 dataset('finalize_submit_methods', ['ajax', 'page-reload']);
@@ -46,11 +46,11 @@ it('keeps finalize submit actions stable across ajax and page-reload submit meth
     $submission->setForm($form);
     $submission->setFieldValueFromRequest('fullName', 'Finalize Matrix');
 
-    $response = (new SubmissionWorkflow())->processSubmissionRequest(new SubmissionRequest([
-        'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+    $response = runSubmissionCommand(submissionCommand([
+        'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
         'form' => $form,
         'submission' => $submission,
-        'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+        'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
     ]));
 
     $clientConfig = $form->getClientConfig();

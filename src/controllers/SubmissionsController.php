@@ -19,7 +19,9 @@ use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\IntegrationResponse;
 use verbb\formie\models\ManagedSubmissionRequest;
 use verbb\formie\models\Settings;
-use verbb\formie\models\SubmissionRequest;
+use verbb\formie\models\SubmissionCommand;
+use verbb\formie\enums\SubmissionOperation;
+use verbb\formie\enums\SubmissionAuthorityType;
 use verbb\formie\models\SubmissionResponse;
 use verbb\formie\models\PaymentDecision;
 use verbb\formie\services\SubmissionDrafts;
@@ -492,7 +494,15 @@ class SubmissionsController extends Controller
 
         $this->requirePostRequest();
 
-        return $this->processSubmissionRequest(SubmissionWorkflow::PROCESS_MODE_EDIT_EXISTING);
+        return $this->processSubmissionRequest(SubmissionOperation::REVISE, SubmissionAuthorityType::VISITOR);
+    }
+
+    public function actionSaveAdminSubmission(): ?Response
+    {
+        $this->requirePostRequest();
+        $this->requireLogin();
+        $this->requireCpRequest();
+        return $this->processSubmissionRequest(SubmissionOperation::REVISE, SubmissionAuthorityType::CONTROL_PANEL);
     }
 
     public function actionSubmit(): ?Response
@@ -503,7 +513,7 @@ class SubmissionsController extends Controller
 
         $this->requirePostRequest();
 
-        return $this->processSubmissionRequest(SubmissionWorkflow::PROCESS_MODE_SUBMIT);
+        return $this->processSubmissionRequest(SubmissionOperation::SUBMIT, SubmissionAuthorityType::VISITOR);
     }
 
     public function actionSetPage(): Response
@@ -547,24 +557,29 @@ class SubmissionsController extends Controller
             $form->setDraftContext($draftContext);
         }
 
-        $submissionDrafts = Formie::$plugin->getSubmissionDrafts();
-        $progressState = $submissionDrafts->getProgressState($form);
-        $submissionId = $progressState?->submissionId ? (int)$progressState->submissionId : null;
-
-        Formie::$plugin->getSubmissionWorkflow()->setPageNavigationState($form, $pageId, $submissionId);
+        $session = Formie::$plugin->getClientSessionService()->persistPageState(new \verbb\formie\client\models\PageTransitionRequest([
+            'handle' => $handle,
+            'targetPageId' => (string)$pageId,
+            'session' => [
+                'tokens' => ['render' => $renderId, 'request' => $this->request->getBodyParam('requestToken')],
+                'version' => $this->request->getBodyParam('expectedVersion'),
+                'continuation' => ['draftContext' => $draftContext],
+            ],
+        ]), true);
 
         $redirectBase = SetPageReturnUrlHelper::resolveLegacySetPageRedirectUrl($this->request);
         if ($this->request->getAcceptsJson()) {
             return $this->asJson([
                 'success' => true,
                 'pageId' => $pageId,
+                'session' => $session->toArrayRecursive(),
             ]);
         }
 
         return $this->redirect($redirectBase);
     }
 
-    public function processSubmissionRequest(string $processMode): ?Response
+    public function processSubmissionRequest(SubmissionOperation $operation, SubmissionAuthorityType $authorityType): ?Response
     {
         // Handle is required to get the form
         $handle = $this->_parseTypedParam('handle', TypeHelper::TYPE_STRING);
@@ -579,14 +594,16 @@ class SubmissionsController extends Controller
         );
         $cpUserId = null;
 
-        if ($this->request->getIsCpRequest() && ($userParam = $this->request->getBodyParam('user'))) {
+        if ($authorityType === SubmissionAuthorityType::CONTROL_PANEL && ($userParam = $this->request->getBodyParam('user'))) {
             $cpUserId = isset($userParam[0]) ? (int)$userParam[0] : null;
         }
 
         try {
             $result = Formie::$plugin->getSubmissionProcessor()->executeManaged(new ManagedSubmissionRequest([
                 'handle' => $handle,
-                'processMode' => $processMode,
+                'operation' => $operation,
+                'expectedVersion' => $this->_parseTypedParam('expectedVersion', TypeHelper::TYPE_INT, null, false),
+                'operationId' => $this->_parseTypedParam('operationId', TypeHelper::TYPE_STRING, null, false),
                 'siteId' => $siteId,
                 'renderId' => $this->_parseTypedParam('renderId', TypeHelper::TYPE_STRING, null, false),
                 'requestToken' => $this->_parseTypedParam('requestToken', TypeHelper::TYPE_STRING),
@@ -601,12 +618,12 @@ class SubmissionsController extends Controller
                 'targetPageId' => $this->_parseTypedParam('targetPageId', TypeHelper::TYPE_ID),
                 'fieldParamNamespace' => $this->_namespace,
                 'userId' => $cpUserId,
-            ]));
+            ]), $authorityType);
         } catch (StaleSubmissionStateException $exception) {
             return $this->_handleStaleSubmissionState($exception->form, $exception->source, $exception->value);
         }
 
-        $submissionRequest = $result->submissionRequest;
+        $submissionRequest = $result->command;
         $response = $result->response;
         $form = $response->form;
         $submission = $response->submission;
@@ -617,7 +634,7 @@ class SubmissionsController extends Controller
             if ($this->request->getAcceptsJson()) {
                 return $this->asJson($this->_createSubmitJsonResponsePayload(
                     $response,
-                    $submissionRequest->submitAction,
+                    $response->submitAction,
                     [],
                     $submissionRequest,
                 ));
@@ -640,14 +657,14 @@ class SubmissionsController extends Controller
         }
 
         $saveResumePayload = [];
-        if ($submissionRequest->submitAction === SubmissionWorkflow::SUBMIT_ACTION_SAVE) {
+        if ($response->submitAction === 'save') {
             $saveResumePayload = $this->_createSaveResumePayload($form, $submission);
         }
 
         if ($this->request->getAcceptsJson()) {
             return $this->asJson($this->_createSubmitJsonResponsePayload(
                 $response,
-                $submissionRequest->submitAction,
+                $response->submitAction,
                 $saveResumePayload,
                 $submissionRequest,
             ));
@@ -657,7 +674,7 @@ class SubmissionsController extends Controller
             $this->_stashPageReloadClientEvents($form, $submission, $submissionRequest, $response);
         }
 
-        if ($submissionRequest->submitAction === SubmissionWorkflow::SUBMIT_ACTION_SAVE) {
+        if ($response->submitAction === 'save') {
             $message = $form->settings->getSubmitActionMessage($submission);
             $resumeUrl = $saveResumePayload['resumeUrl'] ?? null;
 
@@ -689,7 +706,7 @@ class SubmissionsController extends Controller
 
         Formie::$plugin->getService()->setFlash($form->getFlashNamespace(), 'submitted', true);
 
-        if ($submissionRequest->processMode === SubmissionWorkflow::PROCESS_MODE_EDIT_EXISTING && $this->request->getIsCpRequest()) {
+        if ($submissionRequest->authority->type === SubmissionAuthorityType::CONTROL_PANEL) {
             return $this->_redirectToPostedCpSubmissionUrl($submission);
         }
 
@@ -768,7 +785,7 @@ class SubmissionsController extends Controller
         SubmissionResponse $response,
         string $submitAction,
         array $payload = [],
-        ?SubmissionRequest $submissionRequest = null,
+        ?SubmissionCommand $submissionRequest = null,
     ): array {
         $form = $response->form;
         $submission = $response->submission;
@@ -779,6 +796,8 @@ class SubmissionsController extends Controller
         $payload['success'] = $response->success;
         $payload['submissionUid'] = $submission->uid;
         $payload['submitAction'] = $submitAction;
+        $payload['outcome'] = $response->outcome?->type->value;
+        $payload['version'] = $response->outcome?->version;
         $payload['events'] = [];
         $submitData = $form->getSubmitData();
 
@@ -803,7 +822,7 @@ class SubmissionsController extends Controller
             return $payload;
         }
 
-        if ($submitAction === SubmissionWorkflow::SUBMIT_ACTION_SAVE) {
+        if ($submitAction === 'save') {
             $payload['nextPageId'] = null;
             $payload['totalPages'] = count($pages);
             $payload['isFinalPage'] = false;
@@ -813,7 +832,7 @@ class SubmissionsController extends Controller
             $payload['isFinalPage'] = $nextPageId === null;
         }
 
-        if ($submitAction === SubmissionWorkflow::SUBMIT_ACTION_SAVE) {
+        if ($submitAction === 'save') {
             $payload['submitActionMessage'] = StringHelper::sanitizeMessageHtml($form->settings->getSubmitActionMessage($submission));
         }
 
@@ -873,7 +892,7 @@ class SubmissionsController extends Controller
     private function _stashPageReloadClientEvents(
         Form $form,
         Submission $submission,
-        SubmissionRequest $submissionRequest,
+        SubmissionCommand $submissionRequest,
         SubmissionResponse $response,
     ): void {
         if ($form->settings->submitMethod !== 'page-reload') {
@@ -884,7 +903,7 @@ class SubmissionsController extends Controller
             $form,
             $submission,
             self::_resolveSubmittedPageId($form, $submission, $submissionRequest, $response),
-            $submissionRequest->submitAction,
+            $response->submitAction,
         );
 
         if ($clientEvents) {
@@ -895,7 +914,7 @@ class SubmissionsController extends Controller
     private static function _resolveSubmittedPageId(
         Form $form,
         Submission $submission,
-        SubmissionRequest $submissionRequest,
+        SubmissionCommand $submissionRequest,
         SubmissionResponse $response,
     ): ?int {
         $pageId = (int)($submissionRequest->pageId ?? 0);
@@ -1096,7 +1115,7 @@ class SubmissionsController extends Controller
     {
         $action = $this->_parseTypedParam('submitAction', TypeHelper::TYPE_STRING);
 
-        return TypeHelper::getEnumParam($action, SubmissionWorkflow::getAllowedSubmitActions(), SubmissionWorkflow::SUBMIT_ACTION_SUBMIT);
+        return TypeHelper::getEnumParam($action, ['submit', 'save', 'back'], 'submit');
     }
 
 }

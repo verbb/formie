@@ -74,6 +74,7 @@ it('clears conditionally hidden field values when saving submissions from the co
         $request->setBodyParams([
             'handle' => $form->handle,
             'submissionId' => (int)$submission->id,
+            'expectedVersion' => $submission->stateVersion,
             'siteId' => (int)$submission->siteId,
             'fields' => [
                 'enquiryType' => 'support',
@@ -81,7 +82,7 @@ it('clears conditionally hidden field values when saving submissions from the co
             ],
         ]);
 
-        (new verbb\formie\controllers\SubmissionsController('formie-submissions-test', Craft::$app))->actionSaveSubmission();
+        (new verbb\formie\controllers\SubmissionsController('formie-submissions-test', Craft::$app))->actionSaveAdminSubmission();
     }, [
         'method' => 'POST',
         'hostInfo' => 'https://craft.example.test',

@@ -341,7 +341,7 @@ it('rate limits anonymous runtime submit requests with the shared refresh abuse 
         WebRequestTestHelper::withWebRequestContext(function ($request, $response) use ($form): void {
             Formie::$plugin->getClientSessionService()->buildTokenPayload($form, true);
 
-            expect(fn() => Formie::$plugin->getSubmissionProcessor()->execute(new SubmitRequest([
+            expect(fn() => runClientSubmission(new SubmitRequest([
                 'handle' => (string)$form->handle,
                 'siteId' => (int)$form->siteId,
                 'session' => Formie::$plugin->getClientSessionService()->issueInitialSession($form)->toArrayRecursive(),
@@ -375,16 +375,16 @@ it('clears conditionally hidden field values submitted through the client runtim
             'enquiryType' => 'general',
             'otherReason' => 'tampered hidden content',
         ]);
-        $request = new \verbb\formie\models\SubmissionRequest([
-            'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+        $request = submissionCommand([
+            'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
             'form' => $form,
             'submission' => $submission,
-            'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+            'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
             'siteId' => (int)$form->siteId,
             'clearConditionallyHiddenFields' => true,
         ]);
 
-        $response = Formie::$plugin->getSubmissionWorkflow()->processSubmissionRequest($request);
+        $response = runSubmissionCommand($request);
 
         $savedSubmission = \verbb\formie\elements\Submission::find()
             ->id((int)$submission->id)

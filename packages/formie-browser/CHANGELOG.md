@@ -5,6 +5,9 @@
 ### Added
 - Add `data-formie-validation-skip` so helper controls (such as the Upload Manager browse input) can opt out of client-side validation.
 
+### Changed
+- Carry expected submission versions and signed request tokens through submit and page-state requests.
+
 ### Fixed
 - Let the persistent field error region own announcements without reserving empty layout space or overriding its configured priority with nested assertive alerts. ([#2954](https://github.com/verbb/formie/issues/2954))
 - Keep Stripe checkout amounts aligned with server rounding and UGX currency conversion.

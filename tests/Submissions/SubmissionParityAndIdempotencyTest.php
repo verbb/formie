@@ -5,7 +5,7 @@ declare(strict_types=1);
 use craft\db\Query;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\Notification;
-use verbb\formie\models\SubmissionRequest;
+use verbb\formie\models\SubmissionCommand;
 use verbb\formie\services\SubmissionWorkflow;
 use verbb\formie\services\SubmissionDrafts;
 use verbb\formie\state\DraftSubmissionState;
@@ -82,42 +82,42 @@ it('deduplicates post-submit workflow markers by idempotency key', function (): 
     $workflow = new SubmissionWorkflow();
     $idempotencyKey = 'idem-' . uniqid();
 
-    $workflow->processSubmissionRequest(new SubmissionRequest([
-        'processMode' => SubmissionWorkflow::PROCESS_MODE_PAYMENT_REPLAY,
+    runSubmissionCommand(submissionCommand([
+        'operation' => \verbb\formie\enums\SubmissionOperation::PAYMENT_REPLAY,
         'form' => $form,
         'submission' => $submission,
-        'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
-        'requestToken' => $idempotencyKey,
+        'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
+        'operationId' => $idempotencyKey,
     ]));
     $countAfterFirst = (new Query())
         ->from(Table::FORMIE_SUBMISSION_WORKFLOW)
         ->where([
             'submissionId' => $submission->id,
-            'idempotencyKey' => $idempotencyKey,
+            'idempotencyKey' => hash('sha256', $idempotencyKey),
         ])
         ->count();
 
-    $workflow->processSubmissionRequest(new SubmissionRequest([
-        'processMode' => SubmissionWorkflow::PROCESS_MODE_PAYMENT_REPLAY,
+    runSubmissionCommand(submissionCommand([
+        'operation' => \verbb\formie\enums\SubmissionOperation::PAYMENT_REPLAY,
         'form' => $form,
         'submission' => $submission,
-        'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
-        'requestToken' => $idempotencyKey,
+        'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
+        'operationId' => $idempotencyKey,
     ]));
     $countAfterSecond = (new Query())
         ->from(Table::FORMIE_SUBMISSION_WORKFLOW)
         ->where([
             'submissionId' => $submission->id,
-            'idempotencyKey' => $idempotencyKey,
+            'idempotencyKey' => hash('sha256', $idempotencyKey),
         ])
         ->count();
 
-    $workflow->processSubmissionRequest(new SubmissionRequest([
-        'processMode' => SubmissionWorkflow::PROCESS_MODE_PAYMENT_REPLAY,
+    runSubmissionCommand(submissionCommand([
+        'operation' => \verbb\formie\enums\SubmissionOperation::PAYMENT_REPLAY,
         'form' => $form,
         'submission' => $submission,
-        'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
-        'requestToken' => $idempotencyKey . '-new',
+        'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
+        'operationId' => $idempotencyKey . '-new',
     ]));
     $countAfterDifferentKey = (new Query())
         ->from(Table::FORMIE_SUBMISSION_WORKFLOW)

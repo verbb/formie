@@ -50,7 +50,7 @@ it('persists frontend page navigation through the session service', function(): 
         return Formie::$plugin->getClientSessionService()->persistPageState(new PageTransitionRequest([
             'handle' => $form->handle,
             'targetPageId' => (string)$pages[1]->id,
-            'session' => [],
+            'session' => ['tokens' => ['request' => $form->getRequestToken()], 'version' => 0],
             'values' => [],
         ]))->toArrayRecursive();
     }, [

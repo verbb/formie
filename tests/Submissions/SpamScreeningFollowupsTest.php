@@ -9,7 +9,7 @@ use verbb\formie\Formie;
 use verbb\formie\helpers\SpamHelper;
 use verbb\formie\models\FieldLayout;
 use verbb\formie\models\Settings;
-use verbb\formie\models\SubmissionRequest;
+use verbb\formie\models\SubmissionCommand;
 use verbb\formie\services\SubmissionWorkflow;
 
 it('flags expired browser form sessions when submit expiration is enabled', function (): void {
@@ -28,13 +28,13 @@ it('flags expired browser form sessions when submit expiration is enabled', func
             $submission = new Submission();
             $submission->setForm($form);
 
-            return Formie::$plugin->getSubmissionGuards()->validateRequest(new SubmissionRequest([
-                'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+            return Formie::$plugin->getSubmissionGuards()->validateRequest(guardCommand($form, [
+                'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
                 'form' => $form,
                 'submission' => $submission,
-                'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
-                'requestToken' => 'expiration-token-' . uniqid(),
-            ]));
+                'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
+                'operationId' => 'expiration-token-' . uniqid(),
+            ]), true);
         }, [
             'handle' => $form->handle,
             'formStartedAt' => (string)((int)(microtime(true) * 1000) - 60000),

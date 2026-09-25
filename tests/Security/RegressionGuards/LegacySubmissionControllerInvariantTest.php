@@ -69,6 +69,8 @@ it('does not bind legacy anonymous page flows to raw submission uids', function 
     WebRequestTestHelper::withWebRequestContext(function ($request) use ($formA, $pageId, $submissionB): void {
         $request->setBodyParams([
             'handle' => (string)$formA->handle,
+            'requestToken' => $formA->getRequestToken(),
+            'expectedVersion' => 0,
             'pageId' => $pageId,
             'submissionUid' => (string)$submissionB->uid,
         ]);
@@ -78,7 +80,7 @@ it('does not bind legacy anonymous page flows to raw submission uids', function 
         $progressState = Formie::$plugin->getSubmissionDrafts()->getProgressState($formA);
 
         expect($response->data['success'] ?? null)->toBeTrue()
-            ->and($progressState?->submissionId)->toBeNull();
+            ->and($progressState?->submissionId)->not->toBe((int)$submissionB->id);
     }, [
         'method' => 'POST',
         'headers' => [

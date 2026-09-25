@@ -53,11 +53,12 @@ export function buildActionUrl(baseUrl: string, path: string): string {
 async function requestJson<T>(url: string, init: RequestInit): Promise<T> {
     const response = await fetch(url, init);
 
-    if (!response.ok) {
+    const payload = await response.json();
+    if (!response.ok && !(typeof payload.outcome === 'string' && [403, 409, 422, 429].includes(response.status))) {
         throw new Error(`Request failed with status ${response.status}.`);
     }
 
-    return response.json() as Promise<T>;
+    return payload as T;
 }
 
 function appendCsrfToken(body: Record<string, unknown>, session?: FrontendFormSession | null): void {

@@ -1,5 +1,8 @@
-import { describe, expect, it } from 'vitest';
-import { buildActionUrl } from './rest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { buildActionUrl, createRestFrontendTransport } from './rest';
+import type { FrontendFormDefinition, FrontendFormSession } from './types';
+
+afterEach(() => vi.unstubAllGlobals());
 
 describe('buildActionUrl', () => {
     it('preserves Craft subdirectory install paths for absolute bases', () => {
@@ -15,5 +18,29 @@ describe('buildActionUrl', () => {
     it('uses root-relative actions when the base is the site root', () => {
         expect(buildActionUrl('https://example.test/', '/actions/formie/client/forms/load'))
             .toBe('https://example.test/actions/formie/client/forms/load');
+    });
+});
+
+describe('submission outcomes', () => {
+    it.each([[422, 'validationFailed'], [409, 'stateConflict'], [403, 'rejected']])('preserves a domain outcome with HTTP %s', async (status, outcome) => {
+        const payload = { success: false, outcome, version: 2, errors: { fields: { name: ['Required'] } } };
+        vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify(payload), { status: Number(status) })));
+        const transport = createRestFrontendTransport({ endpoint: '/', formHandle: 'contact' });
+        const result = await transport.submit({
+            definition: { pages: [] } as unknown as FrontendFormDefinition,
+            session: { version: 1, tokens: {} } as FrontendFormSession,
+            values: {}, action: 'submit',
+        });
+        expect(result).toEqual(payload);
+    });
+
+    it('keeps unexpected server errors as transport failures', async () => {
+        vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ message: 'Internal failure' }), { status: 500 })));
+        const transport = createRestFrontendTransport({ endpoint: '/', formHandle: 'contact' });
+        await expect(transport.submit({
+            definition: { pages: [] } as unknown as FrontendFormDefinition,
+            session: { version: 1, tokens: {} } as FrontendFormSession,
+            values: {}, action: 'submit',
+        })).rejects.toThrow('Request failed with status 500.');
     });
 });

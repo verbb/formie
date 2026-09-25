@@ -53,7 +53,7 @@ Event::on(Submission::class, Submission::EVENT_AFTER_SAVE, function(ModelEvent $
 ```
 
 ### The `afterComplete` Event
-The event that is triggered when a submission **becomes complete** — last reachable page submitted (later pages may be hidden by conditions), payment replay that finishes the form, or a control-panel mark-complete. It does not fire on intermediate page steps or later edits of an already complete submission.
+The event that is triggered when a submission **becomes complete** — last reachable page submitted (later pages may be hidden by conditions), payment replay that finishes the form, or a control panel mark-complete. It does not fire on intermediate page steps or later edits of an already complete submission.
 
 On a front-end submit this fires after persist and **before** notifications and integrations. Status changes made on `$event->submission` are persisted for you.
 
@@ -92,38 +92,8 @@ Event::on(SubmissionWorkflow::class, SubmissionWorkflow::EVENT_AFTER_PAGE_ADVANC
 });
 ```
 
-### The `beforeSetPage` Event
-The event that is triggered before Formie stores the current page navigation state for a form.
-
-```php
-use verbb\formie\events\SubmissionRequestEvent;
-use verbb\formie\services\SubmissionWorkflow;
-use yii\base\Event;
-
-Event::on(SubmissionWorkflow::class, SubmissionWorkflow::EVENT_BEFORE_SET_PAGE, function(SubmissionRequestEvent $event) {
-    $request = $event->request;
-
-    // Prevent the page state from being stored.
-    // $event->isValid = false;
-});
-```
-
-### The `afterSetPage` Event
-The event that is triggered after Formie stores the current page navigation state for a form.
-
-```php
-use verbb\formie\events\SubmissionRequestEvent;
-use verbb\formie\services\SubmissionWorkflow;
-use yii\base\Event;
-
-Event::on(SubmissionWorkflow::class, SubmissionWorkflow::EVENT_AFTER_SET_PAGE, function(SubmissionRequestEvent $event) {
-    $request = $event->request;
-    // ...
-});
-```
-
 ### The `beforeStage` Event
-The event that is triggered before a submission workflow stage runs.
+The event that is triggered before an applicable submission workflow stage runs. Stage and task events are observation events; use a registered task returning a typed outcome to stop execution.
 
 ```php
 use verbb\formie\events\SubmissionWorkflowStageEvent;
@@ -131,7 +101,7 @@ use verbb\formie\services\SubmissionWorkflow;
 use yii\base\Event;
 
 Event::on(SubmissionWorkflow::class, SubmissionWorkflow::EVENT_BEFORE_STAGE, function(SubmissionWorkflowStageEvent $event) {
-    $request = $event->request;
+    $request = $event->command;
     $context = $event->context;
     $stage = $event->stage;
 
@@ -150,7 +120,7 @@ use verbb\formie\services\SubmissionWorkflow;
 use yii\base\Event;
 
 Event::on(SubmissionWorkflow::class, SubmissionWorkflow::EVENT_AFTER_STAGE, function(SubmissionWorkflowStageEvent $event) {
-    $request = $event->request;
+    $request = $event->command;
     $context = $event->context;
     $stage = $event->stage;
     $result = $event->result;
@@ -192,20 +162,6 @@ Event::on(SubmissionWorkflow::class, SubmissionWorkflow::EVENT_AFTER_TASK, funct
 });
 ```
 
-### The `registerWorkflowStages` Event
-The event that is triggered when Formie registers submission workflow stages.
-
-```php
-use verbb\formie\events\RegisterWorkflowStagesEvent;
-use verbb\formie\services\SubmissionWorkflow;
-use yii\base\Event;
-
-Event::on(SubmissionWorkflow::class, SubmissionWorkflow::EVENT_REGISTER_WORKFLOW_STAGES, function(RegisterWorkflowStagesEvent $event) {
-    $stages = $event->stages;
-    // ...
-});
-```
-
 ### The `registerStageTasks` Event
 The event that is triggered when Formie registers the tasks for a submission workflow stage.
 
@@ -216,7 +172,7 @@ use yii\base\Event;
 
 Event::on(SubmissionWorkflow::class, SubmissionWorkflow::EVENT_REGISTER_STAGE_TASKS, function(RegisterStageTasksEvent $event) {
     $stage = $event->stage;
-    $tasks = $event->tasks;
+    $tasks = $event->registry->all();
     // ...
 });
 ```

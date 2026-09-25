@@ -24,8 +24,8 @@ trait AnonymousSiteRequestGuardTrait
             return;
         }
 
-        if (Craft::$app->getUser()->getIsGuest() && !$this->request->getIsSiteRequest()) {
-            throw new ForbiddenHttpException('Anonymous submissions are only permitted through the site request.');
+        if (!$this->request->getIsSiteRequest()) {
+            throw new ForbiddenHttpException('Public submissions require the site request contract.');
         }
     }
 

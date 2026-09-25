@@ -4,8 +4,8 @@ namespace verbb\formie\workflow\tasks\dispatch;
 use verbb\formie\Formie;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
-use verbb\formie\models\SubmissionRequest;
-use verbb\formie\services\SubmissionWorkflow;
+use verbb\formie\elements\Submission;
+use verbb\formie\enums\SubmissionOperation;
 
 use Craft;
 use craft\db\Query;
@@ -37,45 +37,38 @@ class DispatchState
     // =========================================================================
 
     public function __construct(
-        public SubmissionRequest $request,
+        public Submission $submission,
+        public SubmissionOperation $operation,
         bool $initialSuccess,
         private ?string $idempotencyKey = null,
     ) {
-        $this->traceId = sprintf('%s-%s', $request->submission->id ?: 'new', StringHelper::randomString(8));
+        $this->traceId = sprintf('%s-%s', $submission->id ?: 'new', StringHelper::randomString(8));
         $this->success = $initialSuccess;
-        $this->idempotencyKey = $this->_resolveIdempotencyKey($this->idempotencyKey ?? $request->requestToken);
+        $this->idempotencyKey = $this->_resolveIdempotencyKey($this->idempotencyKey ?? null);
     }
 
     public function isDispatchable(): bool
     {
-        $isFinalSubmitAction = $this->request->submitAction === SubmissionWorkflow::SUBMIT_ACTION_SUBMIT;
-
-        if (!$isFinalSubmitAction || $this->request->submission->isIncomplete) {
-            return false;
-        }
-
-        return in_array($this->request->processMode, [
-            SubmissionWorkflow::PROCESS_MODE_SUBMIT,
-            SubmissionWorkflow::PROCESS_MODE_EDIT_EXISTING,
-            SubmissionWorkflow::PROCESS_MODE_PAYMENT_REPLAY,
-        ], true);
+        return !$this->submission->isIncomplete
+            && in_array($this->operation, [SubmissionOperation::SUBMIT, SubmissionOperation::REVISE, SubmissionOperation::PAYMENT_REPLAY], true);
     }
 
     public function isSubmissionEditDispatch(): bool
     {
-        return $this->request->processMode === SubmissionWorkflow::PROCESS_MODE_EDIT_EXISTING;
+        return $this->operation === SubmissionOperation::REVISE;
     }
+
 
     public function applySpamFailureIfNeeded(): void
     {
-        if ($this->request->submission->isSpam) {
+        if ($this->submission->isSpam) {
             $this->success = false;
         }
     }
 
     public function hasMarker(string $stage): bool
     {
-        $submission = $this->request->submission;
+        $submission = $this->submission;
 
         if (!$submission->id) {
             return false;
@@ -101,11 +94,11 @@ class DispatchState
      */
     public function runOnce(string $stage, callable $callback): bool
     {
-        if (!$this->request->submission->id) {
+        if (!$this->submission->id) {
             return $callback() !== false;
         }
 
-        $key = 'formie.dispatch.' . hash('sha256', $this->request->submission->id . '|' . $stage . '|' . ($this->idempotencyKey ?? ''));
+        $key = 'formie.dispatch.' . hash('sha256', $this->submission->id . '|' . $stage . '|' . ($this->idempotencyKey ?? ''));
         $mutex = Craft::$app->getMutex();
 
         if (!$mutex->acquire($key, 10)) {
@@ -130,7 +123,7 @@ class DispatchState
 
     public function markMarker(string $stage): void
     {
-        $submission = $this->request->submission;
+        $submission = $this->submission;
 
         if (!$submission->id || $this->hasMarker($stage)) {
             return;
@@ -164,7 +157,7 @@ class DispatchState
     {
         $settings = Formie::$plugin->getSettings();
 
-        return !$this->success && $this->request->submission->isSpam && $settings->spamEmailNotifications;
+        return !$this->success && $this->submission->isSpam && $settings->spamEmailNotifications;
     }
 
     public function isAlreadyFinalized(): bool
@@ -211,7 +204,7 @@ class DispatchState
             $idempotencyKey = trim($idempotencyKey);
 
             if ($idempotencyKey !== '') {
-                return $idempotencyKey;
+                return hash('sha256', $idempotencyKey);
             }
         }
 

@@ -6,7 +6,7 @@ use Tests\Support\UploadTestHelper;
 use verbb\formie\Formie;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\FileUpload;
-use verbb\formie\models\SubmissionRequest;
+use verbb\formie\models\SubmissionCommand;
 use verbb\formie\services\SubmissionWorkflow;
 
 it('keeps file upload values stable across multipage submit steps with full payloads', function (): void {
@@ -54,11 +54,11 @@ it('keeps file upload values stable across multipage submit steps with full payl
     $submission->setFieldValueFromRequest('repeatUpload', []);
     $submission->setFieldValueFromRequest('finalNote', '');
 
-    $step1 = $process->processSubmissionRequest(new SubmissionRequest([
-        'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+    $step1 = runSubmissionCommand(submissionCommand([
+        'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
         'form' => $form,
         'submission' => $submission,
-        'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+        'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
         'pageId' => (int)$pages[0]->id,
     ]));
 
@@ -76,11 +76,11 @@ it('keeps file upload values stable across multipage submit steps with full payl
     $submission->setFieldValueFromRequest('repeatUpload', []);
     $submission->setFieldValueFromRequest('finalNote', '');
 
-    $step2 = $process->processSubmissionRequest(new SubmissionRequest([
-        'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+    $step2 = runSubmissionCommand(submissionCommand([
+        'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
         'form' => $form,
         'submission' => $submission,
-        'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+        'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
         'pageId' => (int)$pages[1]->id,
     ]));
 
@@ -101,11 +101,11 @@ it('keeps file upload values stable across multipage submit steps with full payl
     ]]);
     $submission->setFieldValueFromRequest('finalNote', '');
 
-    $step3 = $process->processSubmissionRequest(new SubmissionRequest([
-        'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+    $step3 = runSubmissionCommand(submissionCommand([
+        'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
         'form' => $form,
         'submission' => $submission,
-        'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+        'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
         'pageId' => (int)$pages[2]->id,
     ]));
 
@@ -127,11 +127,11 @@ it('keeps file upload values stable across multipage submit steps with full payl
     ]]);
     $submission->setFieldValueFromRequest('finalNote', '');
 
-    $backToPage3 = $process->processSubmissionRequest(new SubmissionRequest([
-        'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+    $backToPage3 = runSubmissionCommand(submissionCommand([
+        'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
         'form' => $form,
         'submission' => $submission,
-        'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_BACK,
+        'navigation' => \verbb\formie\enums\NavigationIntent::BACK,
         'pageId' => (int)$pages[3]->id,
     ]));
 
@@ -153,11 +153,11 @@ it('keeps file upload values stable across multipage submit steps with full payl
     ]]);
     $submission->setFieldValueFromRequest('finalNote', '');
 
-    $forwardAgain = $process->processSubmissionRequest(new SubmissionRequest([
-        'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+    $forwardAgain = runSubmissionCommand(submissionCommand([
+        'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
         'form' => $form,
         'submission' => $submission,
-        'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+        'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
         'pageId' => (int)$pages[2]->id,
     ]));
 
@@ -179,11 +179,11 @@ it('keeps file upload values stable across multipage submit steps with full payl
     ]]);
     $submission->setFieldValueFromRequest('finalNote', 'Final page payload');
 
-    $finalStep = $process->processSubmissionRequest(new SubmissionRequest([
-        'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+    $finalStep = runSubmissionCommand(submissionCommand([
+        'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
         'form' => $form,
         'submission' => $submission,
-        'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+        'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
         'pageId' => (int)$pages[3]->id,
     ]));
 

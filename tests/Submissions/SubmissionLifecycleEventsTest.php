@@ -8,7 +8,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\events\SubmissionCompleteEvent;
 use verbb\formie\events\SubmissionPageAdvanceEvent;
 use verbb\formie\Formie;
-use verbb\formie\models\SubmissionRequest;
+use verbb\formie\models\SubmissionCommand;
 use verbb\formie\models\SubmissionStatus;
 use verbb\formie\services\SubmissionWorkflow;
 use yii\base\Event;
@@ -54,11 +54,11 @@ it('fires afterComplete on a single-page submit and not afterPageAdvance', funct
         $submission->setForm($form);
         $submission->setFieldValueFromRequest('fullName', 'Ada Lovelace');
 
-        $response = (new SubmissionWorkflow())->processSubmissionRequest(new SubmissionRequest([
-            'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+        $response = runSubmissionCommand(submissionCommand([
+            'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
             'form' => $form,
             'submission' => $submission,
-            'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+            'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
         ]));
 
         expect($response->success)->toBeTrue()
@@ -88,11 +88,11 @@ it('fires afterPageAdvance on page submit and afterComplete on form submit', fun
         $submission->setForm($form);
         $submission->setFieldValueFromRequest('pageOne', 'one');
 
-        $pageOneResponse = (new SubmissionWorkflow())->processSubmissionRequest(new SubmissionRequest([
-            'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+        $pageOneResponse = runSubmissionCommand(submissionCommand([
+            'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
             'form' => $form,
             'submission' => $submission,
-            'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+            'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
             'pageId' => (int)$pages[0]->id,
         ]));
 
@@ -106,11 +106,11 @@ it('fires afterPageAdvance on page submit and afterComplete on form submit', fun
 
         $pageOneResponse->submission->setFieldValueFromRequest('pageTwo', 'two');
 
-        $pageTwoResponse = (new SubmissionWorkflow())->processSubmissionRequest(new SubmissionRequest([
-            'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+        $pageTwoResponse = runSubmissionCommand(submissionCommand([
+            'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
             'form' => $form,
             'submission' => $pageOneResponse->submission,
-            'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+            'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
             'pageId' => (int)$pages[1]->id,
         ]));
 
@@ -160,11 +160,11 @@ it('fires afterComplete on the last visible page when a later page is hidden', f
         $submission->setFieldValueFromRequest('pageOne', 'one');
         $submission->setFieldValueFromRequest('pageTwo', 'visible-final');
 
-        $response = (new SubmissionWorkflow())->processSubmissionRequest(new SubmissionRequest([
-            'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+        $response = runSubmissionCommand(submissionCommand([
+            'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
             'form' => $form,
             'submission' => $submission,
-            'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+            'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
             'pageId' => (int)$pages[1]->id,
         ]));
 
@@ -191,21 +191,21 @@ it('does not fire lifecycle events for save-draft or failed validation', functio
         $draft->setForm($form);
         $draft->setFieldValueFromRequest('fullName', 'Draft');
 
-        $draftResponse = (new SubmissionWorkflow())->processSubmissionRequest(new SubmissionRequest([
-            'processMode' => SubmissionWorkflow::PROCESS_MODE_SAVE_DRAFT,
+        $draftResponse = runSubmissionCommand(submissionCommand([
+            'operation' => \verbb\formie\enums\SubmissionOperation::SAVE_DRAFT,
             'form' => $form,
             'submission' => $draft,
-            'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SAVE,
+            'navigation' => \verbb\formie\enums\NavigationIntent::STAY,
         ]));
 
         $invalid = new Submission();
         $invalid->setForm($form);
 
-        $invalidResponse = (new SubmissionWorkflow())->processSubmissionRequest(new SubmissionRequest([
-            'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+        $invalidResponse = runSubmissionCommand(submissionCommand([
+            'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
             'form' => $form,
             'submission' => $invalid,
-            'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+            'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
         ]));
 
         expect($draftResponse->success)->toBeTrue()
@@ -242,11 +242,11 @@ it('persists status changes made in afterComplete before dispatch', function ():
         $submission->setForm($form);
         $submission->setFieldValueFromRequest('fullName', 'Status Mutate');
 
-        $response = (new SubmissionWorkflow())->processSubmissionRequest(new SubmissionRequest([
-            'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+        $response = runSubmissionCommand(submissionCommand([
+            'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
             'form' => $form,
             'submission' => $submission,
-            'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+            'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
         ]));
 
         $reloaded = Formie::$plugin->getSubmissions()->getSubmissionById((int)$response->submission->id);

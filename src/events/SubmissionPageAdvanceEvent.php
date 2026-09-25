@@ -4,7 +4,7 @@ namespace verbb\formie\events;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\models\FieldLayoutPage;
-use verbb\formie\models\SubmissionRequest;
+use verbb\formie\models\SubmissionCommand;
 use verbb\formie\workflow\WorkflowContext;
 
 use yii\base\Event;
@@ -16,7 +16,7 @@ class SubmissionPageAdvanceEvent extends Event
 
     public ?Submission $submission = null;
     public ?Form $form = null;
-    public ?SubmissionRequest $request = null;
+    public ?SubmissionCommand $command = null;
     public ?WorkflowContext $context = null;
 
     /**

@@ -7,7 +7,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\fields\Address;
 use verbb\formie\fields\Name;
 use verbb\formie\fields\SingleLineText;
-use verbb\formie\models\SubmissionRequest;
+use verbb\formie\models\SubmissionCommand;
 use verbb\formie\services\SubmissionWorkflow;
 
 dataset('single_page_submit_methods', ['ajax', 'page-reload']);
@@ -40,11 +40,11 @@ it('blocks invalid single-page submissions for required field contracts across s
         $submission->setFieldValueFromRequest((string)$handle, $value);
     }
 
-    $response = (new SubmissionWorkflow())->processSubmissionRequest(new SubmissionRequest([
-        'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+    $response = runSubmissionCommand(submissionCommand([
+        'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
         'form' => $form,
         'submission' => $submission,
-        'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+        'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
     ]));
 
     $errors = $response->submission->getErrors();

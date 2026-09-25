@@ -98,10 +98,6 @@ class Submissions extends Component
     {
         $request = Craft::$app->getRequest();
 
-        if (!$request->getIsCpRequest()) {
-            return;
-        }
-
         if (($title = $request->getBodyParam('title')) !== null) {
             $submission->title = (string)$title;
         }

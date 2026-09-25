@@ -48,13 +48,15 @@ class SubmissionsController extends Controller
 
         $result = Formie::$plugin->getSubmissionProcessor()->execute(new SubmitRequest([
             'handle' => (string)$this->request->getBodyParam('handle', $this->request->getParam('handle', '')),
+            'operationId' => $this->request->getBodyParam('operationId'),
             'action' => (string)$this->request->getBodyParam('action', 'submit'),
             'siteId' => SiteHelper::resolveSiteIdFromRequest(),
             'session' => (array)$this->request->getBodyParam('session', []),
             'values' => (array)$this->request->getBodyParam('values', []),
-        ]));
+        ]), \verbb\formie\enums\SubmissionAuthorityType::VISITOR);
 
         $this->response->setNoCacheHeaders();
+        $this->response->setStatusCode($result->httpStatus);
 
         return $this->asJson($result->toArrayRecursive());
     }

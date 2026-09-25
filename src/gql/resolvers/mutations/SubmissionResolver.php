@@ -147,7 +147,8 @@ class SubmissionResolver extends ElementMutationResolver
             throw new Error('Impossible to change the form of an existing submission');
         }
 
-        $submission = $this->populateElementWithData($submission, $arguments, $resolveInfo);
+        $result = Formie::$plugin->getSubmissionProcessor()->executeMutation($form, $submission, $arguments, function () use ($form, $submission, $arguments, $resolveInfo): void {
+        $this->populateElementWithData($submission, $arguments, $resolveInfo);
 
         if (!empty($arguments['status'])) {
             $submission->setStatus($arguments['status']);
@@ -164,7 +165,7 @@ class SubmissionResolver extends ElementMutationResolver
             }
         }
 
-        $result = Formie::$plugin->getSubmissionProcessor()->executeMutation($form, $submission, $arguments);
+        });
         $response = $result->response;
         $success = $response->success;
 

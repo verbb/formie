@@ -1950,7 +1950,7 @@ class Form extends Element implements FormInterface
             return $this->_requestToken;
         }
 
-        $requestToken = Craft::$app->getSecurity()->generateRandomString();
+        $requestToken = Formie::$plugin->getSubmissionGuards()->issueRequestToken($this);
         $this->_requestToken = $requestToken;
 
         return $requestToken;

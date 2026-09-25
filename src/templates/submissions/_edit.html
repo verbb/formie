@@ -76,7 +76,9 @@
 
 <div {{ attr(attributes) }}>
     <div class="fui-i">
-        <input type="hidden" name="action" value="formie/submissions/save-submission">
+        <input type="hidden" name="action" value="formie/submissions/save-admin-submission">
+        {{ hiddenInput("expectedVersion", submission.stateVersion) }}
+        {{ hiddenInput("operationId", form.getRequestToken()) }}
         <input type="hidden" name="handle" value="{{ submission.form.handle }}">
         {{ redirectInput(submissionsIndexUrl) }}
         {{ csrfInput() }}

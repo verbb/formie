@@ -5,7 +5,7 @@ declare(strict_types=1);
 use verbb\formie\conditions\ConditionOperator;
 use verbb\formie\Formie;
 use verbb\formie\models\SubmissionStatus;
-use verbb\formie\models\SubmissionRequest;
+use verbb\formie\models\SubmissionCommand;
 use verbb\formie\elements\Submission;
 use verbb\formie\services\SubmissionWorkflow;
 
@@ -45,11 +45,11 @@ it('applies matching status rules on final submit', function (): void {
     $submission->setForm($form);
     $submission->setFieldValueFromRequest('tier', 'vip');
 
-    $response = (new SubmissionWorkflow())->processSubmissionRequest(new SubmissionRequest([
-        'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+    $response = runSubmissionCommand(submissionCommand([
+        'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
         'form' => $form,
         'submission' => $submission,
-        'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+        'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
     ]));
 
     expect($response->success)->toBeTrue()
@@ -82,11 +82,11 @@ it('applies status rules without conditions when enableConditions is disabled', 
     $submission = new Submission();
     $submission->setForm($form);
 
-    $response = (new SubmissionWorkflow())->processSubmissionRequest(new SubmissionRequest([
-        'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+    $response = runSubmissionCommand(submissionCommand([
+        'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
         'form' => $form,
         'submission' => $submission,
-        'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SAVE,
+        'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
     ]));
 
     expect($response->success)->toBeTrue()
@@ -130,11 +130,11 @@ it('skips status rules when conditions do not match', function (): void {
     $submission->setForm($form);
     $submission->setFieldValueFromRequest('tier', 'standard');
 
-    $response = (new SubmissionWorkflow())->processSubmissionRequest(new SubmissionRequest([
-        'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+    $response = runSubmissionCommand(submissionCommand([
+        'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
         'form' => $form,
         'submission' => $submission,
-        'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+        'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
     ]));
 
     expect($response->success)->toBeTrue()

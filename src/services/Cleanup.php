@@ -24,6 +24,7 @@ class Cleanup extends Service
     public const TASK_STALE_PENDING_UPLOADS = 'stale-pending-uploads';
     public const TASK_REPORT_EXPORTS = 'report-exports';
     public const TASK_SUBMISSION_STATES = 'submission-states';
+    public const TASK_SUBMISSION_OPERATIONS = 'submission-operations';
     public const TASK_DRAFT_STORAGE = 'draft-storage';
 
 
@@ -36,6 +37,7 @@ class Cleanup extends Service
     public static function taskHandles(): array
     {
         return [
+            self::TASK_SUBMISSION_OPERATIONS,
             self::TASK_INCOMPLETE_SUBMISSIONS,
             self::TASK_DATA_RETENTION_SUBMISSIONS,
             self::TASK_SENT_NOTIFICATIONS,
@@ -90,6 +92,10 @@ class Cleanup extends Service
     private function _tasks(Controller|ConsoleApplication|null $console): array
     {
         return [
+            self::TASK_SUBMISSION_OPERATIONS => [
+                'label' => 'purging expired submission operation receipts',
+                'run' => fn() => Formie::$plugin->getSubmissionOperations()->prune(),
+            ],
             self::TASK_INCOMPLETE_SUBMISSIONS => [
                 'label' => 'purging incomplete Formie submissions',
                 'run' => fn() => Formie::$plugin->getSubmissions()->pruneIncompleteSubmissions($console),

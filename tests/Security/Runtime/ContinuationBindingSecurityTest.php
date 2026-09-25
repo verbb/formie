@@ -90,12 +90,12 @@ it('rejects managed site submissions that try to continue by raw submission id a
     expect(Craft::$app->getElements()->saveElement($submission))->toBeTrue();
 
     WebRequestTestHelper::withWebRequestContext(function () use ($form, $submission): void {
-        expect(fn() => Formie::$plugin->getSubmissionProcessor()->executeManaged(new ManagedSubmissionRequest([
+        expect(fn() => runManagedSubmission(new ManagedSubmissionRequest([
             'handle' => $form->handle,
-            'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+            'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
             'siteId' => (int)$submission->siteId,
             'submissionId' => (int)$submission->id,
-            'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+            'submitAction' => 'submit',
             'fieldParamNamespace' => 'fields',
         ])))->toThrow(ForbiddenHttpException::class);
     }, [
@@ -122,17 +122,17 @@ it('rejects managed site submissions that try to continue by raw submission uid 
     expect(Craft::$app->getElements()->saveElement($submission))->toBeTrue();
 
     WebRequestTestHelper::withWebRequestContext(function () use ($form, $submission): void {
-        $result = Formie::$plugin->getSubmissionProcessor()->executeManaged(new ManagedSubmissionRequest([
+        $result = runManagedSubmission(new ManagedSubmissionRequest([
             'handle' => $form->handle,
-            'processMode' => SubmissionWorkflow::PROCESS_MODE_SUBMIT,
+            'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
             'siteId' => (int)$submission->siteId,
             'submissionUid' => (string)$submission->uid,
-            'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+            'submitAction' => 'submit',
             'fieldParamNamespace' => 'fields',
         ]));
 
-        expect($result->submissionRequest->submission->id)->not->toBe((int)$submission->id)
-            ->and($result->submissionRequest->submission->getFieldValue('fullName'))->toBe('Attacker Rewrite');
+        expect($result->command->submission->id)->not->toBe((int)$submission->id)
+            ->and($result->command->submission->getFieldValue('fullName'))->toBe('Attacker Rewrite');
 
         $freshSubmission = \verbb\formie\elements\Submission::find()
             ->id((int)$submission->id)
@@ -158,11 +158,11 @@ it('rejects anonymous site save-submission attempts to create a new submission',
         ->create();
 
     WebRequestTestHelper::withWebRequestContext(function () use ($form): void {
-        expect(fn() => Formie::$plugin->getSubmissionProcessor()->executeManaged(new ManagedSubmissionRequest([
+        expect(fn() => runManagedSubmission(new ManagedSubmissionRequest([
             'handle' => $form->handle,
-            'processMode' => SubmissionWorkflow::PROCESS_MODE_EDIT_EXISTING,
+            'operation' => \verbb\formie\enums\SubmissionOperation::REVISE,
             'siteId' => (int)Craft::$app->getSites()->getCurrentSite()->id,
-            'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+            'submitAction' => 'submit',
             'fieldParamNamespace' => 'fields',
         ])))->toThrow(ForbiddenHttpException::class);
     }, [

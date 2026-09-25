@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use verbb\formie\elements\Submission;
-use verbb\formie\models\SubmissionRequest;
+use verbb\formie\models\SubmissionCommand;
 use verbb\formie\services\SubmissionWorkflow;
 
 dataset('edit_submit_methods', ['ajax', 'page-reload']);
@@ -24,11 +24,11 @@ it('keeps edit-existing workflow persistence stable under each submit-method set
 
     $existing->setFieldValueFromRequest('fullName', 'After Edit');
 
-    $response = (new SubmissionWorkflow())->processSubmissionRequest(new SubmissionRequest([
-        'processMode' => SubmissionWorkflow::PROCESS_MODE_EDIT_EXISTING,
+    $response = runSubmissionCommand(submissionCommand([
+        'operation' => \verbb\formie\enums\SubmissionOperation::REVISE,
         'form' => $form,
         'submission' => $existing,
-        'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+        'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
     ]));
 
     $reloaded = Submission::find()->id($existing->id)->status(null)->one();
@@ -54,11 +54,11 @@ it('keeps edit-existing validation behavior stable across submit methods', funct
 
     $existing->setFieldValueFromRequest('fullName', '');
 
-    $response = (new SubmissionWorkflow())->processSubmissionRequest(new SubmissionRequest([
-        'processMode' => SubmissionWorkflow::PROCESS_MODE_EDIT_EXISTING,
+    $response = runSubmissionCommand(submissionCommand([
+        'operation' => \verbb\formie\enums\SubmissionOperation::REVISE,
         'form' => $form,
         'submission' => $existing,
-        'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+        'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
     ]));
 
     expect($response->success)->toBeFalse()

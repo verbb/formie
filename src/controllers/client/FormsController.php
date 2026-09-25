@@ -84,6 +84,7 @@ class FormsController extends Controller
             'handle' => (string)$this->request->getBodyParam('handle', $this->request->getParam('handle', '')),
             'siteId' => SiteHelper::resolveSiteIdFromRequest(),
             'currentPageId' => $this->request->getBodyParam('currentPageId'),
+            'operationId' => $this->request->getBodyParam('operationId'),
             'targetPageId' => $this->request->getBodyParam('targetPageId'),
             'session' => (array)$this->request->getBodyParam('session', []),
             'values' => (array)$this->request->getBodyParam('values', []),

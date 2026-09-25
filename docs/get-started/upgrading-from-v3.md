@@ -200,12 +200,9 @@ For stronger abuse protection, also enable one or more supported [Captcha integr
 
 ### How Guards Fit the Workflow
 
-Guards are not captcha integrations. They run through dedicated workflow tasks:
+Guards run at the explicit submission boundary, before workflow tasks. Browser honeypot, timing and expiration checks use browser context; interactive REST and GraphQL still require signed form-bound request tokens, ownership and rate safeguards. SaveDraft and page-state writes receive these cheap safeguards too.
 
-1. **`screen.runSubmissionGuards`** — runs first in the **`screen`** stage, before `screen.runCaptchaChecks` and `screen.runSpamChecks`. A failed guard marks the submission as spam and sets `spamReason`.
-2. **`finalize.consumeReplayToken`** — runs in the **`finalize`** stage after a successful, complete submission. Replay protection only consumes the `requestToken` once processing succeeds, so failed or incomplete submissions can retry.
-
-Guards only run for normal browser form POST requests that include `handle` and `submitAction`. GraphQL submissions and other headless flows skip them.
+Durable receipts identify a successful operation and recover its result if the caller loses the response. Reusing an operation with different input conflicts. Validation failures leave the token available for correction. HTML/AJAX clients post `expectedVersion`; client sessions carry `version`; administrative GraphQL edits post the record's `stateVersion` as `expectedVersion`.
 
 The honeypot input and `formStartedAt` timestamp are rendered automatically for browser forms. Replay protection reuses Formie’s existing per-render `requestToken`.
 
@@ -403,26 +400,45 @@ If you submit forms through GraphQL, review the current GraphQL docs. Formie now
 
 ## Submission Workflow
 
-> [!CAUTION]
-> Custom code that calls Formie’s payment-processing step directly should be updated to let the submission workflow run instead.
+Submission processing now uses Preflight, Validate, Screen, Persist, Dispatch and Finalize. Invalid submissions stop after Validate, before content spam or CAPTCHA. Direct element saves remain persistence-only; code needing submission lifecycle policies must use an explicit operation through `SubmissionProcessor`.
 
-Formie now processes submissions through a staged workflow. This affects custom code that expected submission processing to happen as one large save step.
+### Stable Formie 3 APIs
 
-Most integrations and notifications should keep working. If you previously called the payment processing step directly, update that code to let Formie's submission workflow run instead.
+| Formie 3 Contract | Formie 4 Treatment |
+| --- | --- |
+| `getSubmissionById()`, retention/pruning and element persistence | Retained. Direct persistence does not automatically dispatch status-change notifications or integrations. |
+| `onBeforeSubmission()` / `beforeSubmission` / `beforeIncompleteSubmission` | Move execution-controlling checks to a registered Submit task in Preflight or Validate. There is no cancellation-compatible wrapper around the new command boundary. |
+| `onAfterSubmission()` / `afterSubmission` / `afterIncompleteSubmission` | Observe the typed outcome, `EVENT_AFTER_PAGE_ADVANCE` or `Submission::EVENT_AFTER_COMPLETE`, according to the intended lifecycle boundary. |
+| `spamChecks()` / `beforeSpamCheck` / `afterSpamCheck` | Register a Submit task around `screen.evaluateSpam`, or observe that public task. Cheap request guards belong outside Screen. |
+| `beforeSendNotification`, `beforeTriggerIntegration` on `Submissions` | Compatibility event bridges remain; migrate listeners to `Notifications` and `Integrations`. |
+| `afterPruneSubmission` | Retained on `Submissions`. |
+| `sendNotifications()`, `sendNotification()`, `sendNotificationEmail()`, `triggerIntegrations()`, `sendIntegrationPayload()` | Deprecated forwarding methods remain; use their owning notification/integration services. |
+| `processPayments()` | Deprecated direct-call compatibility method remains. Normal submissions should use the workflow's payment operation. |
 
-::: code-group
-```php [Formie 3]
-$success = Formie::$plugin->getSubmissions()->processPayments($submission);
-```
+The old submission/spam lifecycle methods mixed execution and response policy. Their replacement is an explicit task or semantic event, not a method-name alias. See [Submission Workflow](/developers/submission-workflow) for registration and typed outcomes.
 
-```php [Formie 4]
-// Let Formie process the submission through the normal workflow.
-```
-:::
+### Earlier Formie 4 Betas
 
-`processPayments()` still exists as a compatibility shim, but standalone payment processing is no longer the main workflow path.
+Beta workflow stages, process modes, task identities and `WorkflowTaskRunner` have no compatibility aliases. Update extensions before using this checkout.
 
-If you need to add custom work during submission handling, add a workflow task or listen to the workflow events instead of replacing the whole submission pipeline. See [Submission Workflow](/developers/submission-workflow).
+Finish pending integration jobs from earlier Formie 4 betas before upgrading. Their serialized process-mode payload has been replaced by a typed submission operation.
+
+| Earlier Beta | Current Contract |
+| --- | --- |
+| Prepare / Normalize | Preflight; draft/request resolution is outside the workflow |
+| Save | Persist |
+| `screen.runSubmissionGuards` | Explicit outer boundary |
+| Authorize payment-state resolution | Internal Persist planning and payment processing |
+| `authorize.haltOnSubmissionErrors` | Validate stage boundary |
+| `finalize.hydrateResponse` | Transport adapter |
+| `editExisting` mode | `SubmissionOperation::REVISE` for persisted edits; incomplete visitor continuation uses Submit |
+| `SubmissionRequest`, mutable process/submit-action policy | Immutable `SubmissionCommand`, `SubmissionOperation`, `NavigationIntent` and explicit authority |
+| Custom stages / `StageInterface` | Register tasks within the six fixed stages |
+| Task `getName()` / `getStage()` | `TaskDefinition` registration metadata with mandatory operations |
+| Boolean task halt / generic event cancellation | `TaskResult::stop(SubmissionOutcome)` |
+| `WorkflowTaskRunner` | Explicit workflow operation or owning domain service |
+
+Control panel creation uses an administrative Submit policy: whole-record validation, status preservation, and no visitor progression, screening, payment or automatic completion dispatch. Existing CP edits use Revise. Public submit/edit actions remain visitor actions even for authenticated administrators; the submission editor posts to the explicit administrative action.
 
 
 ## Render Options
@@ -1326,7 +1342,7 @@ $submission = Submission::find()->id(123)->one();
 // Automatic dispatch (respects re-run policies and orchestration)
 Formie::$plugin->getIntegrationTriggers()->dispatch(new IntegrationTriggerRequest([
     'submission' => $submission,
-    'processMode' => SubmissionWorkflow::PROCESS_MODE_EDIT_EXISTING,
+    'operation' => \verbb\formie\enums\SubmissionOperation::REVISE,
     'triggerEvent' => IntegrationTriggerEvents::CP_SAVE,
 ]));
 

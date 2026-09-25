@@ -80,7 +80,7 @@ use verbb\formie\services\Templates;
 use verbb\formie\services\StorageManager;
 use verbb\formie\services\ThemeConfig;
 use verbb\formie\services\TiptapExtensions;
-use verbb\formie\services\WorkflowTaskRunner;
+use verbb\formie\services\SubmissionOperations;
 use verbb\formie\theme\slots\FieldSlotRegistry;
 use verbb\formie\theme\slots\FormSlotRegistry;
 use verbb\formie\web\assets\cp\CpReactAsset;
@@ -285,7 +285,7 @@ trait PluginTrait
                 ],
                 'themeConfig' => ThemeConfig::class,
                 'tiptapExtensions' => TiptapExtensions::class,
-                'workflowTaskRunner' => WorkflowTaskRunner::class,
+                'submissionOperations' => SubmissionOperations::class,
             ],
         ];
     }
@@ -689,9 +689,9 @@ trait PluginTrait
         return $this->get('submissionWorkflow');
     }
 
-    public function getWorkflowTaskRunner(): WorkflowTaskRunner
+    public function getSubmissionOperations(): SubmissionOperations
     {
-        return $this->get('workflowTaskRunner');
+        return $this->get('submissionOperations');
     }
 
     public function getSubmissionDrafts(): SubmissionDrafts

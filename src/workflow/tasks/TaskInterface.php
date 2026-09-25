@@ -8,7 +8,5 @@ interface TaskInterface
     // Public Methods
     // =========================================================================
 
-    public function getStage(): string;
-    public function getName(): string;
     public function execute(WorkflowContext $context): TaskResult;
 }

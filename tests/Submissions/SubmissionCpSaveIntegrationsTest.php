@@ -15,7 +15,7 @@ use verbb\formie\Formie;
 use verbb\formie\helpers\IntegrationRerunPolicies;
 use verbb\formie\helpers\IntegrationTriggerEvents;
 use verbb\formie\models\IntegrationFormSettings;
-use verbb\formie\models\SubmissionRequest;
+use verbb\formie\models\SubmissionCommand;
 use verbb\formie\services\Integrations;
 use verbb\formie\services\SubmissionWorkflow;
 
@@ -109,6 +109,7 @@ it('applies cp submission sidebar attributes during managed saves', function ():
         $request->setBodyParams([
             'handle' => $form->handle,
             'submissionId' => (int)$submission->id,
+            'expectedVersion' => $submission->stateVersion,
             'siteId' => (int)$submission->siteId,
             'title' => 'Updated Title',
             'statusId' => (int)$status->id,
@@ -117,7 +118,7 @@ it('applies cp submission sidebar attributes during managed saves', function ():
             ],
         ]);
 
-        (new verbb\formie\controllers\SubmissionsController('formie-submissions-test', Craft::$app))->actionSaveSubmission();
+        (new verbb\formie\controllers\SubmissionsController('formie-submissions-test', Craft::$app))->actionSaveAdminSubmission();
     }, [
         'method' => 'POST',
         'hostInfo' => 'https://craft.example.test',
@@ -210,11 +211,11 @@ it('does not double-trigger integrations when cp saves go through the submission
             WebRequestTestHelper::withWebRequestContext(function () use ($form, $existing): void {
                 Craft::$app->getRequest()->setIsCpRequest(true);
 
-            $response = (new SubmissionWorkflow())->processSubmissionRequest(new SubmissionRequest([
-                'processMode' => SubmissionWorkflow::PROCESS_MODE_EDIT_EXISTING,
+            $response = runSubmissionCommand(submissionCommand([
+                'operation' => \verbb\formie\enums\SubmissionOperation::REVISE,
                 'form' => $form,
                 'submission' => $existing,
-                'submitAction' => SubmissionWorkflow::SUBMIT_ACTION_SUBMIT,
+                'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
             ]));
 
             expect($response->success)->toBeTrue();

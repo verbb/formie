@@ -33,8 +33,8 @@ it('retains existing assets and saves new files when updating a submission over 
     $resolveInfo = $this->createMock(ResolveInfo::class);
     $resolveInfo->fieldDefinition = FieldDefinition::create($mutation);
     $arguments = $generic
-        ? ['id' => $submission->id, 'formHandle' => $form->handle, 'fields' => ['attachments' => $payload]]
-        : ['id' => $submission->id, 'attachments' => $payload];
+        ? ['id' => $submission->id, 'expectedVersion' => $submission->stateVersion, 'formHandle' => $form->handle, 'fields' => ['attachments' => $payload]]
+        : ['id' => $submission->id, 'expectedVersion' => $submission->stateVersion, 'attachments' => $payload];
     $gql = Craft::$app->getGql();
     $previousSchema = null;
     try {

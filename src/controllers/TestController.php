@@ -45,7 +45,7 @@ class TestController extends Controller
         $submissionsController = new SubmissionsController('submissions', Formie::$plugin);
         $submissionsController->setAllowTestOverrides(true);
 
-        return $submissionsController->processSubmissionRequest(SubmissionWorkflow::PROCESS_MODE_SUBMIT);
+        return $submissionsController->processSubmissionRequest(\verbb\formie\enums\SubmissionOperation::SUBMIT, \verbb\formie\enums\SubmissionAuthorityType::VISITOR);
     }
 
     public function actionQuerySubmissions(): Response
