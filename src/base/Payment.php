@@ -144,7 +144,7 @@ abstract class Payment extends Integration
         return Craft::$app->getView()->renderTemplate("formie/integrations/payments/{$handle}/_plugin-settings", $variables);
     }
 
-    public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, PaymentField $field, array $renderOptions = null): Markup
+    public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, PaymentField $field, ?array $renderOptions = null): Markup
     {
         $handle = $this->getIntegrationHandle();
 

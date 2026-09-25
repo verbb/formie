@@ -47,7 +47,7 @@ class Turnstile extends Captcha
         return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/turnstile/_plugin-settings', $variables);
     }
 
-    public function getFrontEndHtml(Form $form, FieldLayoutPage $page = null): string
+    public function getFrontEndHtml(Form $form, ?FieldLayoutPage $page = null): string
     {
         return Html::tag('div', null, [
             'class' => 'fui-captcha formie-turnstile-placeholder',
@@ -55,7 +55,7 @@ class Turnstile extends Captcha
         ]);
     }
 
-    public function getFrontEndJsVariables(Form $form, FieldLayoutPage $page = null): ?array
+    public function getFrontEndJsVariables(Form $form, ?FieldLayoutPage $page = null): ?array
     {
         $settings = [
             'siteKey' => App::parseEnv($this->siteKey),
@@ -75,7 +75,7 @@ class Turnstile extends Captcha
         ];
     }
 
-    public function getGqlVariables(Form $form, FieldLayoutPage $page = null): array
+    public function getGqlVariables(Form $form, ?FieldLayoutPage $page = null): array
     {
         return [
             'formId' => $form->getFormId(),

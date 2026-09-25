@@ -43,7 +43,7 @@ class Question extends Captcha
         ]);
     }
 
-    public function getFrontEndHtml(Form $form, FieldLayoutPage $page = null): string
+    public function getFrontEndHtml(Form $form, ?FieldLayoutPage $page = null): string
     {
         if (empty($this->questions)) {
             return '';

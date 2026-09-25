@@ -268,7 +268,7 @@ class Notifications extends Component
         return $notificationsConfig;
     }
 
-    public function getExistingNotifications(Form|Stencil $excludeForm = null): array
+    public function getExistingNotifications(Form|Stencil|null $excludeForm = null): array
     {
         if ($this->_existingNotifications !== null) {
             return $this->_existingNotifications;

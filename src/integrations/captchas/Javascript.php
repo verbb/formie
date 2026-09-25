@@ -47,7 +47,7 @@ class Javascript extends Captcha
         return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/javascript/_plugin-settings', $variables);
     }
 
-    public function getFrontEndHtml(Form $form, FieldLayoutPage $page = null): string
+    public function getFrontEndHtml(Form $form, ?FieldLayoutPage $page = null): string
     {
         $sessionKey = $this->getSessionKey($form, $page);
 
@@ -90,7 +90,7 @@ class Javascript extends Captcha
         ];
     }
 
-    public function getRefreshJsVariables(Form $form, FieldLayoutPage $page = null): array
+    public function getRefreshJsVariables(Form $form, ?FieldLayoutPage $page = null): array
     {
         $sessionKey = $this->getSessionKey($form, $page);
 
@@ -105,8 +105,8 @@ class Javascript extends Captcha
             'value' => $value,
         ];
     }
-    
-    public function getGqlVariables(Form $form, FieldLayoutPage $page = null): array
+
+    public function getGqlVariables(Form $form, ?FieldLayoutPage $page = null): array
     {
         return $this->getRefreshJsVariables($form, $page);
     }
@@ -157,7 +157,7 @@ class Javascript extends Captcha
     // Private Methods
     // =========================================================================
 
-    private function getSessionKey(Form $form, FieldLayoutPage $page = null): string
+    private function getSessionKey(Form $form, ?FieldLayoutPage $page = null): string
     {
         // Default the page to the last page, if not set.
         if (!$page) {

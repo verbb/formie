@@ -438,7 +438,7 @@ abstract class OptionsField extends Field implements InlineEditableFieldInterfac
         return $rules;
     }
 
-    protected function defineValueAsString(mixed $value, ElementInterface $element = null): string
+    protected function defineValueAsString(mixed $value, ?ElementInterface $element = null): string
     {
         if ($value instanceof MultiOptionsFieldData) {
             return implode(', ', array_map(function($item) {
@@ -449,7 +449,7 @@ abstract class OptionsField extends Field implements InlineEditableFieldInterfac
         return $value->value ?? '';
     }
 
-    protected function defineValueForIntegration(mixed $value, IntegrationField $integrationField, IntegrationInterface $integration, ElementInterface $element = null, string $fieldKey = ''): mixed
+    protected function defineValueForIntegration(mixed $value, IntegrationField $integrationField, IntegrationInterface $integration, ?ElementInterface $element = null, string $fieldKey = ''): mixed
     {
         // If mapping to an array, extract just the values
         if ($integrationField->getType() === IntegrationField::TYPE_ARRAY) {
@@ -466,7 +466,7 @@ abstract class OptionsField extends Field implements InlineEditableFieldInterfac
         return parent::defineValueForIntegration($value, $integrationField, $integration, $element);
     }
 
-    protected function defineValueForSummary(mixed $value, ElementInterface $element = null): string
+    protected function defineValueForSummary(mixed $value, ?ElementInterface $element = null): string
     {
         if ($value instanceof MultiOptionsFieldData) {
             return implode(', ', array_map(function($item) {

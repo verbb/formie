@@ -853,7 +853,7 @@ class Table extends Field
         ]);
     }
 
-    protected function defineValueAsString(mixed $value, ElementInterface $element = null): string
+    protected function defineValueAsString(mixed $value, ?ElementInterface $element = null): string
     {
         $values = [];
 
@@ -874,7 +874,7 @@ class Table extends Field
         return implode(', ', $values);
     }
 
-    protected function defineValueForExport(mixed $value, ElementInterface $element = null): mixed
+    protected function defineValueForExport(mixed $value, ?ElementInterface $element = null): mixed
     {
         $values = [];
 
@@ -895,7 +895,7 @@ class Table extends Field
         return $values;
     }
 
-    protected function defineValueForSummary(mixed $value, ElementInterface $element = null): string
+    protected function defineValueForSummary(mixed $value, ?ElementInterface $element = null): string
     {
         $headValues = '';
         $bodyValues = '';
@@ -1041,7 +1041,7 @@ class Table extends Field
         return $value;
     }
 
-    private function _validateCellValue(string $type, mixed $value, string &$error = null): bool
+    private function _validateCellValue(string $type, mixed $value, ?string &$error = null): bool
     {
         if ($value === null || $value === '') {
             return true;

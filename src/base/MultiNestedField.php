@@ -303,7 +303,7 @@ abstract class MultiNestedField extends NestedField implements MultiNestedFieldI
     // Protected Methods
     // =========================================================================
 
-    protected function defineValueAsString(mixed $value, ElementInterface $element = null): string
+    protected function defineValueAsString(mixed $value, ?ElementInterface $element = null): string
     {
         $values = [];
 
@@ -324,7 +324,7 @@ abstract class MultiNestedField extends NestedField implements MultiNestedFieldI
         return implode(', ', $values);
     }
 
-    protected function defineValueAsJson(mixed $value, ElementInterface $element = null): mixed
+    protected function defineValueAsJson(mixed $value, ?ElementInterface $element = null): mixed
     {
         $values = [];
 
@@ -345,7 +345,7 @@ abstract class MultiNestedField extends NestedField implements MultiNestedFieldI
         return $values;
     }
 
-    protected function defineValueForExport(mixed $value, ElementInterface $element = null): mixed
+    protected function defineValueForExport(mixed $value, ?ElementInterface $element = null): mixed
     {
         $values = [];
 
@@ -372,7 +372,7 @@ abstract class MultiNestedField extends NestedField implements MultiNestedFieldI
         return $values;
     }
 
-    protected function defineValueForSummary(mixed $value, ElementInterface $element = null): string
+    protected function defineValueForSummary(mixed $value, ?ElementInterface $element = null): string
     {
         $values = '';
 

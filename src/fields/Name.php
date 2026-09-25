@@ -481,13 +481,13 @@ class Name extends SubField implements InlineEditableFieldInterface, Previewable
         ]);
     }
 
-    protected function defineValueAsString(mixed $value, ElementInterface $element = null): string
+    protected function defineValueAsString(mixed $value, ?ElementInterface $element = null): string
     {
         // Always return a string for the "full name" value.
         return (string)$value;
     }
 
-    protected function defineValueAsJson(mixed $value, ElementInterface $element = null): mixed
+    protected function defineValueAsJson(mixed $value, ?ElementInterface $element = null): mixed
     {
         if ($this->useMultipleFields) {
             return parent::defineValueAsJson($value, $element);
@@ -496,7 +496,7 @@ class Name extends SubField implements InlineEditableFieldInterface, Previewable
         return $value;
     }
 
-    protected function defineValueForExport(mixed $value, ElementInterface $element = null): mixed
+    protected function defineValueForExport(mixed $value, ?ElementInterface $element = null): mixed
     {
         if ($this->useMultipleFields) {
             return parent::defineValueForExport($value, $element);
@@ -505,7 +505,7 @@ class Name extends SubField implements InlineEditableFieldInterface, Previewable
         return $value;
     }
 
-    protected function defineValueForSummary(mixed $value, ElementInterface $element = null): string
+    protected function defineValueForSummary(mixed $value, ?ElementInterface $element = null): string
     {
         // Always return a string for the summary, which makes sense given a "name" value.
         return (string)$value;

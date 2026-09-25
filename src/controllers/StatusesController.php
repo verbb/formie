@@ -24,7 +24,7 @@ class StatusesController extends SettingsAccessController
         return $this->renderTemplate('formie/settings/statuses', compact('statuses'));
     }
 
-    public function actionEdit(int $id = null, Status $status = null): Response
+    public function actionEdit(?int $id = null, ?Status $status = null): Response
     {
         $variables = compact('id', 'status');
 

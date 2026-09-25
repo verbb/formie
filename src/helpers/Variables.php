@@ -124,7 +124,7 @@ class Variables
         return $event->variables;
     }
 
-    public static function getParsedValue(mixed $value, Submission $submission = null, Form $form = null, Notification $notification = null, bool $includeSummary = false, bool $rawValue = false): ?string
+    public static function getParsedValue(mixed $value, ?Submission $submission = null, ?Form $form = null, ?Notification $notification = null, bool $includeSummary = false, bool $rawValue = false): ?string
     {
         $originalValue = $value;
 

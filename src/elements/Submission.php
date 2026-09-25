@@ -128,7 +128,7 @@ class Submission extends CustomElement
         return Formie::$plugin->getStatuses()->getStatusesArray();
     }
 
-    protected static function defineSources(string $context = null): array
+    protected static function defineSources(?string $context = null): array
     {
         $currentUser = Craft::$app->getUser()->getIdentity();
         $formQuery = Form::find();
@@ -185,7 +185,7 @@ class Submission extends CustomElement
         return $sources;
     }
 
-    protected static function defineActions(string $source = null): array
+    protected static function defineActions(?string $source = null): array
     {
         $elementsService = Craft::$app->getElements();
 

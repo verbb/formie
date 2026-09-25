@@ -32,7 +32,7 @@ class FormTemplatesController extends SettingsAccessController
         return $this->renderTemplate('formie/settings/form-templates', compact('formTemplates'));
     }
 
-    public function actionEdit(int $id = null, FormTemplate $template = null): Response
+    public function actionEdit(?int $id = null, ?FormTemplate $template = null): Response
     {
         $variables = compact('id', 'template');
 

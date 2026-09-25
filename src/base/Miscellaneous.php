@@ -72,7 +72,7 @@ abstract class Miscellaneous extends Integration
         return Craft::$app->getView()->renderTemplate("formie/integrations/miscellaneous/{$handle}/_form-settings", $variables);
     }
 
-    public function getFrontEndJsVariables(FieldInterface $field = null): ?array
+    public function getFrontEndJsVariables(?FieldInterface $field = null): ?array
     {
         return null;
     }

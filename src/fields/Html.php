@@ -242,7 +242,7 @@ class Html extends CosmeticField
         return $event->config;
     }
 
-    private function _getConfig(string $dir, string $file = null): bool|array
+    private function _getConfig(string $dir, ?string $file = null): bool|array
     {
         if (!$file) {
             $file = 'Default.json';

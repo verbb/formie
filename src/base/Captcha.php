@@ -73,22 +73,22 @@ abstract class Captcha extends Integration
         ]);
     }
 
-    public function getFrontEndHtml(Form $form, FieldLayoutPage $page = null): string
+    public function getFrontEndHtml(Form $form, ?FieldLayoutPage $page = null): string
     {
         return '';
     }
 
-    public function getFrontEndJsVariables(Form $form, FieldLayoutPage $page = null): ?array
+    public function getFrontEndJsVariables(Form $form, ?FieldLayoutPage $page = null): ?array
     {
         return null;
     }
 
-    public function getRefreshJsVariables(Form $form, FieldLayoutPage $page = null): array
+    public function getRefreshJsVariables(Form $form, ?FieldLayoutPage $page = null): array
     {
         return [];
     }
 
-    public function getGqlVariables(Form $form, FieldLayoutPage $page = null): ?array
+    public function getGqlVariables(Form $form, ?FieldLayoutPage $page = null): ?array
     {
         return null;
     }

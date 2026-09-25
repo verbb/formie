@@ -70,7 +70,7 @@ class IntegrationSettingsController extends SettingsAccessController
         return $this->renderTemplate('formie/settings/integrations', compact('integrations', 'typeName'));
     }
 
-    public function actionEditAddressProvider(int $integrationId = null, IntegrationInterface $integration = null): Response
+    public function actionEditAddressProvider(?int $integrationId = null, ?IntegrationInterface $integration = null): Response
     {
         return $this->_editIntegration($integrationId, $integration, 'Address Providers', Integration::TYPE_ADDRESS_PROVIDER);
     }
@@ -83,7 +83,7 @@ class IntegrationSettingsController extends SettingsAccessController
         return $this->renderTemplate('formie/settings/integrations', compact('integrations', 'typeName'));
     }
 
-    public function actionEditElement(int $integrationId = null, IntegrationInterface $integration = null): Response
+    public function actionEditElement(?int $integrationId = null, ?IntegrationInterface $integration = null): Response
     {
         return $this->_editIntegration($integrationId, $integration, 'Elements', Integration::TYPE_ELEMENT);
     }
@@ -96,7 +96,7 @@ class IntegrationSettingsController extends SettingsAccessController
         return $this->renderTemplate('formie/settings/integrations', compact('integrations', 'typeName'));
     }
 
-    public function actionEditEmailMarketing(int $integrationId = null, IntegrationInterface $integration = null): Response
+    public function actionEditEmailMarketing(?int $integrationId = null, ?IntegrationInterface $integration = null): Response
     {
         return $this->_editIntegration($integrationId, $integration, 'Email Marketing', Integration::TYPE_EMAIL_MARKETING);
     }
@@ -109,7 +109,7 @@ class IntegrationSettingsController extends SettingsAccessController
         return $this->renderTemplate('formie/settings/integrations', compact('integrations', 'typeName'));
     }
 
-    public function actionEditCrm(int $integrationId = null, IntegrationInterface $integration = null): Response
+    public function actionEditCrm(?int $integrationId = null, ?IntegrationInterface $integration = null): Response
     {
         return $this->_editIntegration($integrationId, $integration, 'CRM', Integration::TYPE_CRM);
     }
@@ -122,7 +122,7 @@ class IntegrationSettingsController extends SettingsAccessController
         return $this->renderTemplate('formie/settings/integrations', compact('integrations', 'typeName'));
     }
 
-    public function actionEditPayment(int $integrationId = null, IntegrationInterface $integration = null): Response
+    public function actionEditPayment(?int $integrationId = null, ?IntegrationInterface $integration = null): Response
     {
         return $this->_editIntegration($integrationId, $integration, 'Payments', Integration::TYPE_PAYMENT);
     }
@@ -135,7 +135,7 @@ class IntegrationSettingsController extends SettingsAccessController
         return $this->renderTemplate('formie/settings/integrations', compact('integrations', 'typeName'));
     }
 
-    public function actionEditAutomation(int $integrationId = null, IntegrationInterface $integration = null): Response
+    public function actionEditAutomation(?int $integrationId = null, ?IntegrationInterface $integration = null): Response
     {
         return $this->_editIntegration($integrationId, $integration, 'Automations', Integration::TYPE_AUTOMATION);
     }
@@ -148,7 +148,7 @@ class IntegrationSettingsController extends SettingsAccessController
         return $this->renderTemplate('formie/settings/integrations', compact('integrations', 'typeName'));
     }
 
-    public function actionEditMessaging(int $integrationId = null, IntegrationInterface $integration = null): Response
+    public function actionEditMessaging(?int $integrationId = null, ?IntegrationInterface $integration = null): Response
     {
         return $this->_editIntegration($integrationId, $integration, 'Messaging', Integration::TYPE_MESSAGING);
     }
@@ -161,7 +161,7 @@ class IntegrationSettingsController extends SettingsAccessController
         return $this->renderTemplate('formie/settings/integrations', compact('integrations', 'typeName'));
     }
 
-    public function actionEditHelpDesk(int $integrationId = null, IntegrationInterface $integration = null): Response
+    public function actionEditHelpDesk(?int $integrationId = null, ?IntegrationInterface $integration = null): Response
     {
         return $this->_editIntegration($integrationId, $integration, 'Help Desk', Integration::TYPE_HELP_DESK);
     }
@@ -174,7 +174,7 @@ class IntegrationSettingsController extends SettingsAccessController
         return $this->renderTemplate('formie/settings/integrations', compact('integrations', 'typeName'));
     }
 
-    public function actionEditMiscellaneous(int $integrationId = null, IntegrationInterface $integration = null): Response
+    public function actionEditMiscellaneous(?int $integrationId = null, ?IntegrationInterface $integration = null): Response
     {
         return $this->_editIntegration($integrationId, $integration, 'Miscellaneous', Integration::TYPE_MISC);
     }

@@ -29,7 +29,7 @@ class Json extends ScalarType
         return JsonHelper::decode($value);
     }
 
-    public function parseLiteral($valueNode, array $variables = null)
+    public function parseLiteral($valueNode, ?array $variables = null)
     {
         if (!property_exists($valueNode, 'value')) {
             throw new GqlException("Can not parse literals without a value: {$withoutValue}.");

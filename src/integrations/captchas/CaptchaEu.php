@@ -43,7 +43,7 @@ class CaptchaEu extends Captcha
         return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/captcha-eu/_plugin-settings', $variables);
     }
 
-    public function getFrontEndHtml(Form $form, FieldLayoutPage $page = null): string
+    public function getFrontEndHtml(Form $form, ?FieldLayoutPage $page = null): string
     {
         return Html::tag('div', null, [
             'class' => 'fui-captcha formie-captcha-eu-placeholder',

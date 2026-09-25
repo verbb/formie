@@ -65,7 +65,7 @@ class PayPal extends Payment
         return App::parseEnv($this->clientId) && App::parseEnv($this->clientSecret);
     }
 
-    public function getFrontEndJsVariables(FieldInterface $field = null): ?array
+    public function getFrontEndJsVariables(?FieldInterface $field = null): ?array
     {
         if (!$this->hasValidSettings()) {
             return null;

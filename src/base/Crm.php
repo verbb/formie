@@ -78,7 +78,7 @@ abstract class Crm extends Integration
         return parent::getFieldMappingValues($submission, $fieldMapping, $fields);
     }
 
-    public function getFrontEndJsVariables(FieldInterface $field = null): ?array
+    public function getFrontEndJsVariables(?FieldInterface $field = null): ?array
     {
         return null;
     }

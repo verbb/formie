@@ -414,7 +414,7 @@ class Fields extends Component
         return $fields;
     }
 
-    public function getExistingFields(Form $excludeForm = null): array
+    public function getExistingFields(?Form $excludeForm = null): array
     {
         if ($this->_existingFields) {
             return $this->_existingFields;
@@ -1061,7 +1061,7 @@ class Fields extends Component
         return true;
     }
 
-    public function getFieldOptions(FieldInterface $field, array $options = null): array
+    public function getFieldOptions(FieldInterface $field, ?array $options = null): array
     {
         if (empty($options)) {
             return [];
@@ -1078,7 +1078,7 @@ class Fields extends Component
         return $fieldOptions;
     }
 
-    public function getLabelPositions(FieldInterface $field = null): array
+    public function getLabelPositions(?FieldInterface $field = null): array
     {
         $labelPositions = [
             AboveInput::class,
@@ -1109,7 +1109,7 @@ class Fields extends Component
         return $event->options;
     }
 
-    public function getLabelPositionsOptions(FieldInterface $field = null): array
+    public function getLabelPositionsOptions(?FieldInterface $field = null): array
     {
         return array_map(function($class) {
             return [
@@ -1119,7 +1119,7 @@ class Fields extends Component
         }, $this->getLabelPositions($field));
     }
 
-    public function getInstructionsPositions(FieldInterface $field = null): array
+    public function getInstructionsPositions(?FieldInterface $field = null): array
     {
         $instructionsPositions = [
             AboveInput::class,
@@ -1147,7 +1147,7 @@ class Fields extends Component
         return $event->options;
     }
 
-    public function getInstructionsPositionsOptions(FieldInterface $field = null): array
+    public function getInstructionsPositionsOptions(?FieldInterface $field = null): array
     {
         return array_map(function($class) {
             return [

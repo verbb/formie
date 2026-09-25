@@ -113,7 +113,7 @@ class Opayo extends Payment
         return UrlHelper::siteUrl('formie/payment-webhooks/process-callback', ['handle' => $this->handle]);
     }
 
-    public function getFrontEndJsVariables(FieldInterface $field = null): ?array
+    public function getFrontEndJsVariables(?FieldInterface $field = null): ?array
     {
         if (!$this->hasValidSettings()) {
             return null;

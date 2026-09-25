@@ -71,7 +71,7 @@ class PayWay extends Payment
         return App::parseEnv($this->publishableKey) && App::parseEnv($this->secretKey);
     }
 
-    public function getFrontEndJsVariables(FieldInterface $field = null): ?array
+    public function getFrontEndJsVariables(?FieldInterface $field = null): ?array
     {
         if (!$this->hasValidSettings()) {
             return null;

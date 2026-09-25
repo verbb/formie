@@ -30,7 +30,7 @@ class PdfTemplatesController extends SettingsAccessController
         return $this->renderTemplate('formie/settings/pdf-templates', compact('pdfTemplates'));
     }
 
-    public function actionEdit(int $id = null, PdfTemplate $template = null): Response
+    public function actionEdit(?int $id = null, ?PdfTemplate $template = null): Response
     {
         $variables = compact('id', 'template');
 

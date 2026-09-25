@@ -218,7 +218,7 @@ class Signature extends Field implements PreviewableFieldInterface
         return Html::tag('img', null, ['src' => $value]);
     }
 
-    protected function defineValueForSummary(mixed $value, ElementInterface $element = null): string
+    protected function defineValueForSummary(mixed $value, ?ElementInterface $element = null): string
     {
         return Template::raw(Html::tag('img', null, ['src' => $value]));
     }

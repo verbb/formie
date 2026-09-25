@@ -31,7 +31,7 @@ class EmailTemplatesController extends SettingsAccessController
         return $this->renderTemplate('formie/settings/email-templates', compact('emailTemplates'));
     }
 
-    public function actionEdit(int $id = null, EmailTemplate $template = null): Response
+    public function actionEdit(?int $id = null, ?EmailTemplate $template = null): Response
     {
         $variables = compact('id', 'template');
 

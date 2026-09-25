@@ -696,7 +696,7 @@ class FileUpload extends ElementField
         return array_values($sources);
     }
 
-    protected function cpInputTemplateVariables(array|ElementQueryInterface $value = null, ?ElementInterface $element = null): array
+    protected function cpInputTemplateVariables(array|ElementQueryInterface|null $value = null, ?ElementInterface $element = null): array
     {
         $variables = parent::cpInputTemplateVariables($value, $element);
 
@@ -715,7 +715,7 @@ class FileUpload extends ElementField
         return $variables;
     }
 
-    protected function defineValueAsString(mixed $value, ElementInterface $element = null): string
+    protected function defineValueAsString(mixed $value, ?ElementInterface $element = null): string
     {
         return implode(', ', array_map(function($item) {
             // Handle when volumes don't have a public URL
@@ -723,7 +723,7 @@ class FileUpload extends ElementField
         }, $value->all()));
     }
 
-    protected function defineValueForIntegration(mixed $value, IntegrationField $integrationField, IntegrationInterface $integration, ElementInterface $element = null, string $fieldKey = ''): mixed
+    protected function defineValueForIntegration(mixed $value, IntegrationField $integrationField, IntegrationInterface $integration, ?ElementInterface $element = null, string $fieldKey = ''): mixed
     {
         if ($integrationField->getType() === IntegrationField::TYPE_ARRAY) {
             // For any element integrations, always return IDs (default behaviour)
@@ -743,7 +743,7 @@ class FileUpload extends ElementField
         return parent::defineValueForIntegration($value, $integrationField, $integration, $element);
     }
 
-    protected function defineValueForSummary(mixed $value, ElementInterface $element = null): string
+    protected function defineValueForSummary(mixed $value, ?ElementInterface $element = null): string
     {
         $html = '';
 

@@ -194,7 +194,7 @@ class Password extends Field implements PreviewableFieldInterface, SortableField
         return '';
     }
 
-    protected function defineValueForSummary(mixed $value, ElementInterface $element = null): string
+    protected function defineValueForSummary(mixed $value, ?ElementInterface $element = null): string
     {
         // Mask the value for submissions (but no indication of length)
         if ($value) {
@@ -204,7 +204,7 @@ class Password extends Field implements PreviewableFieldInterface, SortableField
         return '';
     }
 
-    protected function defineValueForExport(mixed $value, ElementInterface $element = null): mixed
+    protected function defineValueForExport(mixed $value, ?ElementInterface $element = null): mixed
     {
         // Hide the hashed password from exports as well
         return $this->getValueForSummary($value, $element);

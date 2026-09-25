@@ -82,7 +82,7 @@ class Formie
         return FormiePlugin::$plugin->getRendering()->renderForm($form, $renderOptions);
     }
 
-    public function renderPage(Form|string|null $form, FieldLayoutPage $page = null, array $renderOptions = []): ?Markup
+    public function renderPage(Form|string|null $form, ?FieldLayoutPage $page = null, array $renderOptions = []): ?Markup
     {
         return FormiePlugin::$plugin->getRendering()->renderPage($form, $page, $renderOptions);
     }
@@ -152,7 +152,7 @@ class Formie
         }
     }
 
-    public function getParsedValue(string $value, Submission $submission, Form $form = null, Notification $notification = null): ?string
+    public function getParsedValue(string $value, Submission $submission, ?Form $form = null, ?Notification $notification = null): ?string
     {
         return Variables::getParsedValue($value, $submission, $form, $notification);
     }

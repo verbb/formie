@@ -64,7 +64,7 @@ class SentNotification extends Element
         ];
     }
 
-    protected static function defineSources(string $context = null): array
+    protected static function defineSources(?string $context = null): array
     {
         $currentUser = Craft::$app->getUser()->getIdentity();
         $forms = Form::find()->all();
@@ -109,7 +109,7 @@ class SentNotification extends Element
         return $sources;
     }
 
-    protected static function defineActions(string $source = null): array
+    protected static function defineActions(?string $source = null): array
     {
         $elementsService = Craft::$app->getElements();
 

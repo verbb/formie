@@ -35,7 +35,7 @@ class Honeypot extends Captcha
         return Craft::t('formie', 'Check for bots that auto-fill forms, by providing an additional hidden field that should be left blank.');
     }
 
-    public function getFrontEndHtml(Form $form, FieldLayoutPage $page = null): string
+    public function getFrontEndHtml(Form $form, ?FieldLayoutPage $page = null): string
     {
         $sessionKey = $this->getSessionKey($form, $page);
 
@@ -49,15 +49,15 @@ class Honeypot extends Captcha
         return $output;
     }
 
-    public function getRefreshJsVariables(Form $form, FieldLayoutPage $page = null): array
+    public function getRefreshJsVariables(Form $form, ?FieldLayoutPage $page = null): array
     {
         return [
             'formId' => $form->getFormId(),
             'sessionKey' => self::HONEYPOT_INPUT_NAME,
         ];
     }
-    
-    public function getGqlVariables(Form $form, FieldLayoutPage $page = null): array
+
+    public function getGqlVariables(Form $form, ?FieldLayoutPage $page = null): array
     {
         return $this->getRefreshJsVariables($form, $page);
     }
@@ -87,7 +87,7 @@ class Honeypot extends Captcha
     // Private Methods
     // =========================================================================
 
-    private function getSessionKey(Form $form, FieldLayoutPage $page = null): string
+    private function getSessionKey(Form $form, ?FieldLayoutPage $page = null): string
     {
         // Default the page to the last page, if not set.
         if (!$page) {

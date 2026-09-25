@@ -45,22 +45,22 @@ class Forms extends Component
     // Public Methods
     // =========================================================================
 
-    public function getFormById(int $id, int $siteId = null): ?Form
+    public function getFormById(int $id, ?int $siteId = null): ?Form
     {
         return Form::find()->id($id)->siteId($siteId)->one();
     }
 
-    public function getFormByHandle(string $handle, int $siteId = null): ?Form
+    public function getFormByHandle(string $handle, ?int $siteId = null): ?Form
     {
         return Form::find()->handle($handle)->siteId($siteId)->one();
     }
 
-    public function getFormByUid(string $uid, int $siteId = null): ?Form
+    public function getFormByUid(string $uid, ?int $siteId = null): ?Form
     {
         return Form::find()->uid($uid)->siteId($siteId)->one();
     }
 
-    public function getFormByLayoutId(int $layoutId, int $siteId = null): ?Form
+    public function getFormByLayoutId(int $layoutId, ?int $siteId = null): ?Form
     {
         return Form::find()->layoutId($layoutId)->siteId($siteId)->one();
     }
@@ -182,7 +182,7 @@ class Forms extends Component
         return Formie::$plugin->getIntegrations()->getCaptchasHtmlForForm($form, $page);
     }
 
-    public function getFormBuilderTabs(Form $form = null, array $variables = []): array
+    public function getFormBuilderTabs(?Form $form = null, array $variables = []): array
     {
         $user = Craft::$app->getUser();
 

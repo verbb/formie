@@ -768,7 +768,7 @@ abstract class ElementField extends Field implements ElementFieldInterface, Inli
     // Protected Methods
     // =========================================================================
 
-    protected function cpInputTemplateVariables(array|ElementQueryInterface $value = null, ?ElementInterface $element = null): array
+    protected function cpInputTemplateVariables(array|ElementQueryInterface|null $value = null, ?ElementInterface $element = null): array
     {
         return [
             'id' => $this->getInputId(),
@@ -843,21 +843,21 @@ abstract class ElementField extends Field implements ElementFieldInterface, Inli
         return $ids;
     }
 
-    protected function defineValueAsString(mixed $value, ElementInterface $element = null): string
+    protected function defineValueAsString(mixed $value, ?ElementInterface $element = null): string
     {
         return implode(', ', array_map(function($item) {
             return $this->getElementLabel($item);
         }, $value->all()));
     }
 
-    protected function defineValueAsJson(mixed $value, ElementInterface $element = null): mixed
+    protected function defineValueAsJson(mixed $value, ?ElementInterface $element = null): mixed
     {
         return array_map(function($item) {
             return $this->_elementToArray($item);
         }, $value->all());
     }
 
-    protected function defineValueForIntegration(mixed $value, IntegrationField $integrationField, IntegrationInterface $integration, ElementInterface $element = null, string $fieldKey = ''): mixed
+    protected function defineValueForIntegration(mixed $value, IntegrationField $integrationField, IntegrationInterface $integration, ?ElementInterface $element = null, string $fieldKey = ''): mixed
     {
         // Set the status to null to include disabled elements
         $value->status(null);

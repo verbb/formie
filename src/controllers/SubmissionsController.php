@@ -112,7 +112,7 @@ class SubmissionsController extends Controller
         ]);
     }
 
-    public function actionEditSubmission(string $formHandle, int $submissionId = null, ?Submission $submission = null, ?string $site = null): Response
+    public function actionEditSubmission(string $formHandle, ?int $submissionId = null, ?Submission $submission = null, ?string $site = null): Response
     {
         $currentUser = Craft::$app->getUser()->getIdentity();
         $sitesService = Craft::$app->getSites();

@@ -1437,7 +1437,7 @@ class Date extends SubField implements InlineEditableFieldInterface, Previewable
         ]);
     }
 
-    protected function defineValueAsString(mixed $value, ElementInterface $element = null): string
+    protected function defineValueAsString(mixed $value, ?ElementInterface $element = null): string
     {
         if ($value instanceof DateTime) {
             $format = null;
@@ -1460,22 +1460,22 @@ class Date extends SubField implements InlineEditableFieldInterface, Previewable
         return '';
     }
 
-    protected function defineValueAsJson(mixed $value, ElementInterface $element = null): mixed
+    protected function defineValueAsJson(mixed $value, ?ElementInterface $element = null): mixed
     {
         return $this->getValueAsString($value, $element);
     }
 
-    protected function defineValueForExport(mixed $value, ElementInterface $element = null): mixed
+    protected function defineValueForExport(mixed $value, ?ElementInterface $element = null): mixed
     {
         return $this->getValueAsString($value, $element);
     }
 
-    protected function defineValueForSummary(mixed $value, ElementInterface $element = null): string
+    protected function defineValueForSummary(mixed $value, ?ElementInterface $element = null): string
     {
         return $this->getValueAsString($value, $element);
     }
 
-    protected function defineValueForIntegration(mixed $value, IntegrationField $integrationField, IntegrationInterface $integration, ElementInterface $element = null, string $fieldKey = ''): mixed
+    protected function defineValueForIntegration(mixed $value, IntegrationField $integrationField, IntegrationInterface $integration, ?ElementInterface $element = null, string $fieldKey = ''): mixed
     {
         // If a string value is requested for a date, return the ISO 8601 date string
         if ($integrationField->getType() === IntegrationField::TYPE_STRING) {

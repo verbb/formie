@@ -80,7 +80,7 @@ abstract class EmailMarketing extends Integration
         return parent::getFieldMappingValues($submission, $fieldMapping, $fields);
     }
 
-    public function getFrontEndJsVariables(FieldInterface $field = null): ?array
+    public function getFrontEndJsVariables(?FieldInterface $field = null): ?array
     {
         return null;
     }

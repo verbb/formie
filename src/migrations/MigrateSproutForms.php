@@ -15,7 +15,6 @@ use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\Address;
 use verbb\formie\models\FieldLayoutPage;
-use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\Name;
 use verbb\formie\models\Notification;
 use verbb\formie\models\Phone;

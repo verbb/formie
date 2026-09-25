@@ -40,7 +40,7 @@ class SentNotificationsController extends Controller
         return $this->renderTemplate('formie/settings/sent-notifications', compact('settings'));
     }
 
-    public function actionEdit(int $sentNotificationId = null, SentNotification $sentNotification = null): Response
+    public function actionEdit(?int $sentNotificationId = null, ?SentNotification $sentNotification = null): Response
     {
         $currentUser = Craft::$app->getUser()->getIdentity();
 

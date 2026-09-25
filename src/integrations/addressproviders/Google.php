@@ -52,7 +52,7 @@ class Google extends AddressProvider
         return Craft::t('formie', 'Use {link} to suggest addresses, for address fields.', ['link' => '[Google Places Autocomplete](https://developers.google.com/maps/documentation/javascript/places-autocomplete)']);
     }
 
-    public function getFrontEndJsVariables(FieldInterface $field = null): ?array
+    public function getFrontEndJsVariables(?FieldInterface $field = null): ?array
     {
         if (!$this->hasValidSettings()) {
             return null;

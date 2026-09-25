@@ -29,7 +29,7 @@ class SupportController extends SettingsAccessController
     // Public Methods
     // =========================================================================
 
-    public function actionIndex(Support $support = null, $error = null): Response
+    public function actionIndex(?Support $support = null, $error = null): Response
     {
         /* @var Settings $settings */
         $settings = Formie::$plugin->getSettings();

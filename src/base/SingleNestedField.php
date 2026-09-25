@@ -180,7 +180,7 @@ abstract class SingleNestedField extends NestedField implements SingleNestedFiel
     // Protected Methods
     // =========================================================================
 
-    protected function defineValueAsString(mixed $value, ElementInterface $element = null): string
+    protected function defineValueAsString(mixed $value, ?ElementInterface $element = null): string
     {
         $values = [];
 
@@ -196,7 +196,7 @@ abstract class SingleNestedField extends NestedField implements SingleNestedFiel
         return implode(', ', $values);
     }
 
-    protected function defineValueAsJson(mixed $value, ElementInterface $element = null): mixed
+    protected function defineValueAsJson(mixed $value, ?ElementInterface $element = null): mixed
     {
         $values = [];
 
@@ -212,7 +212,7 @@ abstract class SingleNestedField extends NestedField implements SingleNestedFiel
         return $values;
     }
 
-    protected function defineValueForExport(mixed $value, ElementInterface $element = null): mixed
+    protected function defineValueForExport(mixed $value, ?ElementInterface $element = null): mixed
     {
         $values = [];
 
@@ -234,7 +234,7 @@ abstract class SingleNestedField extends NestedField implements SingleNestedFiel
         return $values;
     }
 
-    protected function defineValueForSummary(mixed $value, ElementInterface $element = null): string
+    protected function defineValueForSummary(mixed $value, ?ElementInterface $element = null): string
     {
         $values = '';
 
@@ -248,7 +248,7 @@ abstract class SingleNestedField extends NestedField implements SingleNestedFiel
         return Template::raw($values);
     }
 
-    protected function defineValueForIntegration(mixed $value, IntegrationField $integrationField, IntegrationInterface $integration, ElementInterface $element = null, string $fieldKey = ''): mixed
+    protected function defineValueForIntegration(mixed $value, IntegrationField $integrationField, IntegrationInterface $integration, ?ElementInterface $element = null, string $fieldKey = ''): mixed
     {
         // Check if we're trying to get a sub-field value
         if ($fieldKey) {

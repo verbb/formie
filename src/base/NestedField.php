@@ -212,7 +212,7 @@ abstract class NestedField extends Field implements NestedFieldInterface
         return $this->getFields();
     }
 
-    public function getVisibleFields(ElementInterface $element = null): array
+    public function getVisibleFields(?ElementInterface $element = null): array
     {
         $fields = [];
 
@@ -227,7 +227,7 @@ abstract class NestedField extends Field implements NestedFieldInterface
         return $fields;
     }
 
-    public function getEnabledFields(ElementInterface $element = null): array
+    public function getEnabledFields(?ElementInterface $element = null): array
     {
         $fields = [];
 
@@ -242,7 +242,7 @@ abstract class NestedField extends Field implements NestedFieldInterface
         return $fields;
     }
 
-    public function getVisibleEnabledFields(ElementInterface $element = null): array
+    public function getVisibleEnabledFields(?ElementInterface $element = null): array
     {
         $fields = [];
 
@@ -427,7 +427,7 @@ abstract class NestedField extends Field implements NestedFieldInterface
         $method($element, $fieldParams);
     }
 
-    public function getNestedFieldHandleUidMap(array $fields = null, string $handlePrefix = '', string $uidPrefix = ''): array
+    public function getNestedFieldHandleUidMap(?array $fields = null, string $handlePrefix = '', string $uidPrefix = ''): array
     {
         if ($fields === null) {
             // Fetch the top-level fields

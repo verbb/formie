@@ -42,7 +42,7 @@ class Loqate extends AddressProvider
         return Craft::t('formie', 'Use {link} to suggest addresses, for address fields.', ['link' => '[Loqate](https://www.loqate.com/)']);
     }
 
-    public function getFrontEndJsVariables(FieldInterface $field = null): ?array
+    public function getFrontEndJsVariables(?FieldInterface $field = null): ?array
     {
         if (!$this->hasValidSettings()) {
             return null;

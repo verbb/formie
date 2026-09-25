@@ -75,7 +75,7 @@ abstract class AddressProvider extends Integration
         return '';
     }
 
-    public function getFrontEndJsVariables(FieldInterface $field = null): ?array
+    public function getFrontEndJsVariables(?FieldInterface $field = null): ?array
     {
         return null;
     }

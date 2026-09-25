@@ -207,7 +207,7 @@ class Rendering extends Component
         $this->renderForm($form, $renderOptions, false);
     }
 
-    public function renderFormAssets(Form|string|null $form, string $type = null, bool $forceInline = false, array $renderOptions = []): ?Markup
+    public function renderFormAssets(Form|string|null $form, ?string $type = null, bool $forceInline = false, array $renderOptions = []): ?Markup
     {
         // Allow an empty form to fail silently
         if (!($form = $this->_getFormFromTemplate($form))) {

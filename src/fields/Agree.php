@@ -313,12 +313,12 @@ class Agree extends Field implements InlineEditableFieldInterface, PreviewableFi
         ]);
     }
 
-    protected function defineValueAsString(mixed $value, ElementInterface $element = null): string
+    protected function defineValueAsString(mixed $value, ?ElementInterface $element = null): string
     {
         return ($value) ? $this->checkedValue : $this->uncheckedValue;
     }
 
-    protected function defineValueForIntegration(mixed $value, IntegrationField $integrationField, IntegrationInterface $integration, ElementInterface $element = null, string $fieldKey = ''): mixed
+    protected function defineValueForIntegration(mixed $value, IntegrationField $integrationField, IntegrationInterface $integration, ?ElementInterface $element = null, string $fieldKey = ''): mixed
     {
         // If we require a boolean, return that
         if ($integrationField->getType() === IntegrationField::TYPE_BOOLEAN) {

@@ -158,7 +158,7 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         return Db::parseParam($valueSql, $value, caseInsensitive: $caseInsensitive, columnType: Schema::TYPE_JSON);
     }
 
-    protected static function valueSql(array $instances, string $key = null): ?string
+    protected static function valueSql(array $instances, ?string $key = null): ?string
     {
         $valuesSql = array_filter(
             array_map(fn(self $field) => $field->getValueSql($key), $instances),
@@ -1700,7 +1700,7 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         return $value;
     }
 
-    protected function defineValueAsString(mixed $value, ElementInterface $element = null): string
+    protected function defineValueAsString(mixed $value, ?ElementInterface $element = null): string
     {
         return $this->sanitizePlainTextValue((string)$value);
     }
@@ -1723,18 +1723,18 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         return strtr($value, $tokens);
     }
 
-    protected function defineValueAsJson(mixed $value, ElementInterface $element = null): mixed
+    protected function defineValueAsJson(mixed $value, ?ElementInterface $element = null): mixed
     {
         return Json::decode(Json::encode($value));
     }
 
-    protected function defineValueForExport(mixed $value, ElementInterface $element = null): mixed
+    protected function defineValueForExport(mixed $value, ?ElementInterface $element = null): mixed
     {
         // A string-representation will largely suit our needs
         return $this->defineValueAsString($value, $element);
     }
 
-    protected function defineValueForIntegration(mixed $value, IntegrationField $integrationField, IntegrationInterface $integration, ElementInterface $element = null, string $fieldKey = ''): mixed
+    protected function defineValueForIntegration(mixed $value, IntegrationField $integrationField, IntegrationInterface $integration, ?ElementInterface $element = null, string $fieldKey = ''): mixed
     {
         $fieldValue = $this->defineValueAsString($value, $element);
 
@@ -1746,13 +1746,13 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         return Integration::convertValueForIntegration($fieldValue, $integrationField);
     }
 
-    protected function defineValueForSummary(mixed $value, ElementInterface $element = null): string
+    protected function defineValueForSummary(mixed $value, ?ElementInterface $element = null): string
     {
         // A string-representation will largely suit our needs
         return $this->defineValueAsString($value, $element);
     }
 
-    protected function defineValueForEmail(mixed $value, Notification $notification, ElementInterface $element = null): mixed
+    protected function defineValueForEmail(mixed $value, Notification $notification, ?ElementInterface $element = null): mixed
     {
         // Let email templates (or the field) define what email value should be
         return $value;

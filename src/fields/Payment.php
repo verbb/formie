@@ -269,7 +269,7 @@ class Payment extends Field
         ]);
     }
 
-    protected function defineValueAsString(mixed $value, ElementInterface $element = null): string
+    protected function defineValueAsString(mixed $value, ?ElementInterface $element = null): string
     {
         if (is_array($value) || is_object($value)) {
             return Json::encode($value);

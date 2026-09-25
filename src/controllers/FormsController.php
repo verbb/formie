@@ -47,7 +47,7 @@ class FormsController extends Controller
         return $this->renderTemplate('formie/forms/index', []);
     }
 
-    public function actionNew(Form $form = null): Response
+    public function actionNew(?Form $form = null): Response
     {
         $this->requirePermission('formie-createForms');
 
@@ -74,7 +74,7 @@ class FormsController extends Controller
         return $this->renderTemplate('formie/forms/_new', $variables);
     }
 
-    public function actionEdit(int $formId = null, Form $form = null): Response
+    public function actionEdit(?int $formId = null, ?Form $form = null): Response
     {
         $variables = compact('formId', 'form');
 

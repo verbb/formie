@@ -39,7 +39,7 @@ class StencilsController extends SettingsAccessController
         return $this->renderTemplate('formie/settings/stencils', compact('stencils'));
     }
 
-    public function actionNew(Stencil $stencil = null): ?Response
+    public function actionNew(?Stencil $stencil = null): ?Response
     {
         $stencils = Formie::$plugin->getStencils()->getAllStencils();
         $stencilHandles = ArrayHelper::getColumn($stencils, 'handle');
@@ -57,7 +57,7 @@ class StencilsController extends SettingsAccessController
         return $this->renderTemplate('formie/settings/stencils/_new', $variables);
     }
 
-    public function actionEdit(int $id = null, Stencil $stencil = null): Response
+    public function actionEdit(?int $id = null, ?Stencil $stencil = null): Response
     {
         $variables = compact('id', 'stencil');
 

@@ -73,7 +73,7 @@ class Recaptcha extends Captcha
         return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/recaptcha/_plugin-settings', $variables);
     }
 
-    public function getFrontEndHtml(Form $form, FieldLayoutPage $page = null): string
+    public function getFrontEndHtml(Form $form, ?FieldLayoutPage $page = null): string
     {
         return Html::tag('div', null, [
             'class' => 'fui-captcha formie-recaptcha-placeholder',
@@ -81,7 +81,7 @@ class Recaptcha extends Captcha
         ]);
     }
 
-    public function getFrontEndJsVariables(Form $form, FieldLayoutPage $page = null): ?array
+    public function getFrontEndJsVariables(Form $form, ?FieldLayoutPage $page = null): ?array
     {
         $settings = [
             'siteKey' => App::parseEnv($this->siteKey),
@@ -139,7 +139,7 @@ class Recaptcha extends Captcha
         return null;
     }
 
-    public function getGqlVariables(Form $form, FieldLayoutPage $page = null): array
+    public function getGqlVariables(Form $form, ?FieldLayoutPage $page = null): array
     {
         return [
             'formId' => $form->getFormId(),

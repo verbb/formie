@@ -111,7 +111,7 @@ class Form extends Element
         return $context->handle . '_Form';
     }
 
-    public static function defineSources(string $context = null): array
+    public static function defineSources(?string $context = null): array
     {
         $sources = [
             [
@@ -147,7 +147,7 @@ class Form extends Element
         return $sources;
     }
 
-    protected static function defineActions(string $source = null): array
+    protected static function defineActions(?string $source = null): array
     {
         $actions = [];
 
@@ -690,7 +690,7 @@ class Form extends Element
         return $currentPage;
     }
 
-    public function getPreviousPage(FieldLayoutPage $currentPage = null, Submission $submission = null, bool $defaultToFirst = false): ?FieldLayoutPage
+    public function getPreviousPage(?FieldLayoutPage $currentPage = null, ?Submission $submission = null, bool $defaultToFirst = false): ?FieldLayoutPage
     {
         $pages = $this->getPages();
 
@@ -723,7 +723,7 @@ class Form extends Element
         return $prev ?: null;
     }
 
-    public function getNextPage(FieldLayoutPage $currentPage = null, Submission $submission = null): ?FieldLayoutPage
+    public function getNextPage(?FieldLayoutPage $currentPage = null, ?Submission $submission = null): ?FieldLayoutPage
     {
         $pages = $this->getPages();
 
@@ -751,7 +751,7 @@ class Form extends Element
         return $next ?: null;
     }
 
-    public function getCurrentPageIndex(FieldLayoutPage $currentPage = null): int
+    public function getCurrentPageIndex(?FieldLayoutPage $currentPage = null): int
     {
         $pages = $this->getPages();
 
@@ -771,7 +771,7 @@ class Form extends Element
         return 0;
     }
 
-    public function getPageIndex(FieldLayoutPage $page = null): ?int
+    public function getPageIndex(?FieldLayoutPage $page = null): ?int
     {
         $pages = $this->getPages();
 
@@ -783,7 +783,7 @@ class Form extends Element
         return null;
     }
 
-    public function setCurrentPage(FieldLayoutPage $page = null): void
+    public function setCurrentPage(?FieldLayoutPage $page = null): void
     {
         if ($page) {
             $this->getStorage()->setCurrentPageId($this, $page->id);
@@ -795,12 +795,12 @@ class Form extends Element
         $this->getStorage()->resetCurrentPageId($this);
     }
 
-    public function isLastPage(FieldLayoutPage $currentPage = null): bool
+    public function isLastPage(?FieldLayoutPage $currentPage = null): bool
     {
         return !((bool)$this->getNextPage($currentPage));
     }
 
-    public function isFirstPage(FieldLayoutPage $currentPage = null): bool
+    public function isFirstPage(?FieldLayoutPage $currentPage = null): bool
     {
         return !((bool)$this->getPreviousPage($currentPage));
     }
@@ -1885,7 +1885,7 @@ class Form extends Element
         }
     }
 
-    public function getSnapshotData(string $key = null)
+    public function getSnapshotData(?string $key = null)
     {
         if (Craft::$app->getRequest()->getIsConsoleRequest() || !Session::exists()) {
             return [];
