@@ -368,11 +368,15 @@ class Variables
         $notification = $notification ?? new Notification();
 
         foreach ($submission->getFields() as $field) {
-            $value = $submission->getFieldValue($field->fieldKey);
-
-            if ($fieldValue = self::getParsedFieldValue($field, $value, $submission, $notification, $rawValue)) {
-                $values['field.' . $field->fieldKey] = $fieldValue;
+            if ($field->getIsCosmetic()) {
+                continue;
             }
+
+            $value = $submission->getFieldValue($field->fieldKey);
+            $fieldValue = self::getParsedFieldValue($field, $value, $submission, $notification, $rawValue);
+
+            // Keep every real field in the variable map so strict Twig templates can render an empty optional value.
+            $values['field.' . $field->fieldKey] = $fieldValue;
         }
 
         return ArrayHelper::expand($values);
