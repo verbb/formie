@@ -966,6 +966,9 @@ class MigrateFreeform5 extends BasePluginMigrator
                 if (!$attrs && preg_match('/^(?P<handle>[a-zA-Z0-9_]+)(?::(?P<selector>[a-zA-Z0-9_]+))?$/', trim($matches['legacy']), $legacyMatches)) {
                     $handle = trim($legacyMatches['handle']);
                     $selector = trim($legacyMatches['selector'] ?? '');
+                    if ($selector === 'value') {
+                        $selector = '';
+                    }
 
                     if ($field = $this->_form->getFieldByHandle($handle)) {
                         $reference = $field->reference ?? null;

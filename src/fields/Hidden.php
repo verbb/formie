@@ -194,8 +194,6 @@ class Hidden extends Field implements SortableFieldInterface, PreviewableFieldIn
             $inputOptions['value'] = $prefillValue;
         } else if ($this->usesTemplateDefault()) {
             $inputOptions['value'] = $this->getInitialValue($submission ?: $form);
-        } else if ($this->defaultOption === 'custom' && is_string($value) && $submission) {
-            $inputOptions['value'] = References::parseContent($value, $submission);
         }
 
         return $inputOptions;

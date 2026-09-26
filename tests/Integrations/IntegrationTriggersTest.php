@@ -73,12 +73,9 @@ function withCoordinatorTestIntegration(object $form, Integration $integration, 
 }
 
 it('routes workflow integration dispatch through the coordinator', function (): void {
-    $form = new Form();
-    $form->id = 801;
+    $form = formie()->form()->singleLineTextField('name')->create();
 
-    $submission = new Submission();
-    $submission->id = 802;
-    $submission->setForm($form);
+    $submission = formie()->submission($form)->save();
 
     $integration = integrationTriggersTestIntegration('workflowTest');
     $form->settings->integrationPolicies = [
@@ -120,8 +117,7 @@ it('routes workflow integration dispatch through the coordinator', function (): 
 });
 
 it('dispatches cp element saves only when re-run policy allows cp save', function (): void {
-    $form = new Form();
-    $form->id = 901;
+    $form = formie()->form()->singleLineTextField('name')->create();
     $form->settings->integrationPolicies = [
         'rerun' => [
             'coordinatorTest' => [
@@ -130,9 +126,7 @@ it('dispatches cp element saves only when re-run policy allows cp save', functio
         ],
     ];
 
-    $submission = new Submission();
-    $submission->id = 902;
-    $submission->setForm($form);
+    $submission = formie()->submission($form)->save();
 
     $integration = integrationTriggersTestIntegration();
     $triggerCount = 0;
@@ -171,12 +165,9 @@ it('dispatches cp element saves only when re-run policy allows cp save', functio
 });
 
 it('unifies spam unmark notifications and integration dispatch', function (): void {
-    $form = new Form();
-    $form->id = 911;
+    $form = formie()->form()->singleLineTextField('name')->create();
 
-    $submission = new Submission();
-    $submission->id = 912;
-    $submission->setForm($form);
+    $submission = formie()->submission($form)->save();
 
     $integration = integrationTriggersTestIntegration('spamTest');
     $form->settings->integrationPolicies = [

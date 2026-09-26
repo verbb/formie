@@ -1,3 +1,4 @@
+import { parseReference, resolveReference } from '@verbb/formie-core';
 import { fieldKeyToInputName, normalizeFieldKey } from '#utils/field-references.keys';
 import { parseFieldReference } from '#utils/field-references.parser';
 import type {
@@ -42,74 +43,36 @@ function getEntry(registry: FieldValueRegistry, key: string) {
     return registry.get(normalizeFieldKey(key)) || null;
 }
 
-export function resolveFieldReferenceLive(
-    reference: string,
-    registry: FieldValueRegistry,
-): ResolveFieldValueResult {
-    const parsed = parseFieldReference(reference);
-    const key = parsed.key;
-    const entry = getEntry(registry, key);
-
-    if (!entry) {
-        return {
-            key,
-            value: parsed.defaultValue,
-            found: false,
-        };
-    }
-
-    const value = readInputsValue(entry.inputs);
-
-    return {
-        key,
-        value: value === '' && parsed.defaultValue !== '' ? parsed.defaultValue : value,
-        found: true,
-    };
+function resolvedProjection(reference: string, key: string, value: string | string[]): ResolveFieldValueResult {
+    const token = reference.trim().startsWith('{') ? reference : `{field:${encodeURIComponent(key)}}`;
+    const expression = parseReference(token);
+    const id = `field:${expression.identifier}`;
+    const valueId = expression.selector ? `${id}:${expression.selector}` : id;
+    const resolved = resolveReference(token, {
+        definitions: { [id]: { id, selectors: expression.selector ? [expression.selector] : [], availability: { server: true, browser: true } } },
+        values: { [valueId]: value },
+    });
+    return { key, value: resolved.diagnostic ? '' : resolved.value as string | string[], found: !resolved.diagnostic, diagnostic: resolved.diagnostic };
 }
 
-export function resolveFieldReferenceFromFormData(
-    reference: string,
-    formData: FormData,
-    registry?: FieldValueRegistry,
-): ResolveFieldValueResult {
+export function resolveFieldReferenceLive(reference: string, registry: FieldValueRegistry): ResolveFieldValueResult {
     const parsed = parseFieldReference(reference);
     const key = parsed.key;
+    const lookup = parsed.selector ? `${key}.${parsed.selector.replace(/:/g, '.')}` : key;
+    const entry = parsed.isValid ? getEntry(registry, lookup) : null;
+    if (!entry) return { key, value: '', found: false, diagnostic: !parsed.isValid ? 'invalidExpression' : parsed.selector ? 'invalidSelector' : 'missingField' };
+    return resolvedProjection(reference, key, readInputsValue(entry.inputs));
+}
 
-    if (!key) {
-        return {
-            key,
-            value: parsed.defaultValue,
-            found: false,
-        };
-    }
-
-    const entry = registry ? getEntry(registry, key) : null;
-    const names = entry?.names?.length ? entry.names : [fieldKeyToInputName(key)];
-    const values = names.flatMap((name) => {
-        const collected = formData.getAll(name).map((value) => {
-            return String(value ?? '');
-        });
-
-        if (collected.length) {
-            return collected;
-        }
-
-        return formData.getAll(`${name}[]`).map((value) => {
-            return String(value ?? '');
-        });
-    }).filter((value) => value !== '');
-
-    if (!values.length) {
-        return {
-            key,
-            value: parsed.defaultValue,
-            found: false,
-        };
-    }
-
-    return {
-        key,
-        value: values.length > 1 ? values : values[0],
-        found: true,
-    };
+export function resolveFieldReferenceFromFormData(reference: string, formData: FormData, registry?: FieldValueRegistry): ResolveFieldValueResult {
+    const parsed = parseFieldReference(reference);
+    const key = parsed.key;
+    const lookup = parsed.selector ? `${key}.${parsed.selector.replace(/:/g, '.')}` : key;
+    const entry = registry ? getEntry(registry, lookup) : null;
+    if (!parsed.isValid || (registry && !entry)) return { key, value: '', found: false, diagnostic: parsed.isValid ? 'missingField' : 'invalidExpression' };
+    const names = entry?.names?.length ? entry.names : [fieldKeyToInputName(lookup)];
+    const present = !!entry || names.some((name) => formData.has(name) || formData.has(`${name}[]`));
+    if (!present) return { key, value: '', found: false, diagnostic: 'missingField' };
+    const values = names.flatMap((name) => [...formData.getAll(name), ...formData.getAll(`${name}[]`)]).map((value) => String(value ?? ''));
+    return resolvedProjection(reference, key, values.length > 1 ? values : values[0] ?? '');
 }

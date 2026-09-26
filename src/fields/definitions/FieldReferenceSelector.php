@@ -1,12 +1,10 @@
 <?php
 namespace verbb\formie\fields\definitions;
 
-use yii\base\BaseObject;
-
 /**
  * Normalized selector metadata for token UIs and field-reference pickers.
  */
-class FieldReferenceSelector extends BaseObject
+final class FieldReferenceSelector
 {
     // Static Methods
     // =========================================================================
@@ -36,51 +34,27 @@ class FieldReferenceSelector extends BaseObject
     // Properties
     // =========================================================================
 
-    public string $label = '';
-    public string $handle = '';
-    public ?string $condition = null;
-    public bool $supportsFieldSelect = true;
-    public bool $supportsVariablePicker = true;
-    public bool $supportsClient = true;
-    public array $meta = [];
+    public readonly string $label;
+    public readonly string $handle;
+    public readonly ?string $condition;
+    public readonly bool $supportsFieldSelect;
+    public readonly bool $supportsVariablePicker;
+    public readonly bool $supportsClient;
+    public readonly array $meta;
 
     
     // Public Methods
     // =========================================================================
 
-    public function when(?string $condition): self
+    public function __construct(array $config = [])
     {
-        $this->condition = $condition;
-
-        return $this;
-    }
-
-    public function forFieldSelect(bool $enabled = true): self
-    {
-        $this->supportsFieldSelect = $enabled;
-
-        return $this;
-    }
-
-    public function forVariablePicker(bool $enabled = true): self
-    {
-        $this->supportsVariablePicker = $enabled;
-
-        return $this;
-    }
-
-    public function forClient(bool $enabled = true): self
-    {
-        $this->supportsClient = $enabled;
-
-        return $this;
-    }
-
-    public function withMeta(array $meta): self
-    {
-        $this->meta = $meta;
-
-        return $this;
+        $this->label = $config['label'] ?? '';
+        $this->handle = $config['handle'] ?? '';
+        $this->condition = $config['condition'] ?? null;
+        $this->supportsFieldSelect = $config['supportsFieldSelect'] ?? true;
+        $this->supportsVariablePicker = $config['supportsVariablePicker'] ?? true;
+        $this->supportsClient = $config['supportsClient'] ?? true;
+        $this->meta = $config['meta'] ?? [];
     }
 
     public function toArray(): array

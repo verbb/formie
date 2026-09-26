@@ -23,5 +23,6 @@ export type ResolveFieldValueResult = {
     key: string;
     value: string | string[];
     found: boolean;
+    diagnostic?: string;
 };
 //# sourceMappingURL=field-references.types.d.ts.map

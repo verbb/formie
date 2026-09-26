@@ -23,7 +23,7 @@ it('resolves unindexed element property selectors across related elements', func
     expect(ElementReferenceHelper::resolveFromElements($field, [$first], 'title'))
         ->toBe('John (Doe)')
         ->and(ElementReferenceHelper::resolveFromElements($field, [$first, $second], 'title'))
-        ->toBe('John (Doe), Jane')
+        ->toBe(['John (Doe)', 'Jane'])
         ->and(ElementReferenceHelper::resolveFromElements($field, [$first, $second], '0:title'))
         ->toBe('John (Doe)')
         ->and(ElementReferenceHelper::resolveFromElements($field, [$first, $second], '1:title'))

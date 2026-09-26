@@ -2,14 +2,15 @@
 namespace verbb\formie\integrations\emailmarketing;
 
 use verbb\formie\Formie;
-use verbb\formie\base\Integration;
 use verbb\formie\base\EmailMarketing;
+use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\errors\IntegrationException;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationResult;
 
 use Craft;
 use craft\helpers\App;
@@ -81,8 +82,9 @@ class CleverReach extends EmailMarketing implements OAuthProviderInterface
         return new IntegrationFormSettings($settings);
     }
 
-    public function sendPayload(Submission $submission): bool
+    public function sendPayload(Submission $submission): IntegrationResult
     {
+        $this->beginPayloadDelivery($submission);
         try {
             $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping);
             $email = ArrayHelper::remove($fieldValues, 'email');
@@ -101,15 +103,15 @@ class CleverReach extends EmailMarketing implements OAuthProviderInterface
             $response = $this->deliverPayload($submission, "groups/{$this->listId}/receivers/upsert", $payload);
 
             if ($response === false) {
-                return true;
+                return $this->resultForPayload(true);
             }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
-            return false;
+            return $this->resultForPayload(false);
         }
 
-        return true;
+        return $this->resultForPayload(true);
     }
     
 

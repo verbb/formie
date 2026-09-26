@@ -1,23 +1,24 @@
 <?php
 namespace verbb\formie\integrations\emailmarketing;
 
-use verbb\formie\base\Integration;
 use verbb\formie\base\EmailMarketing;
+use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\IntegrationApiErrors;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationResult;
 
 use Craft;
 use craft\helpers\App;
 use craft\helpers\Json;
 
+use Throwable;
+
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
-
-use Throwable;
 
 class CampaignMonitor extends EmailMarketing
 {
@@ -121,8 +122,9 @@ class CampaignMonitor extends EmailMarketing
         return new IntegrationFormSettings($settings);
     }
 
-    public function sendPayload(Submission $submission): bool
+    public function sendPayload(Submission $submission): IntegrationResult
     {
+        $this->beginPayloadDelivery($submission);
         try {
             $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping);
 
@@ -175,19 +177,19 @@ class CampaignMonitor extends EmailMarketing
             $response = $this->deliverPayload($submission, "subscribers/{$this->listId}.json", $payload);
 
             if ($response === false) {
-                return true;
+                return $this->resultForPayload(true);
             }
         } catch (Throwable $e) {
             if ($this->supportsIntegrationApiErrorSeverity()) {
-                return $this->handleSubmissionApiError($e, $submission);
+                return $this->resultForPayload($this->handleSubmissionApiError($e, $submission));
             }
 
             Integration::apiError($this, $e, true, $submission);
 
-            return false;
+            return $this->resultForPayload(false);
         }
 
-        return true;
+        return $this->resultForPayload(true);
     }
 
     public function supportsIntegrationApiErrorSeverity(): bool

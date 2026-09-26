@@ -2,6 +2,7 @@
 namespace verbb\formie\integrations\messaging;
 
 use verbb\formie\Formie;
+use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Messaging;
@@ -9,16 +10,16 @@ use verbb\formie\elements\Submission;
 use verbb\formie\helpers\RichTextHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationResult;
 
 use Craft;
 use craft\helpers\App;
 use craft\helpers\Json;
 
-use League\HTMLToMarkdown\HtmlConverter;
-
 use Throwable;
 
 use GuzzleHttp\Client;
+use League\HTMLToMarkdown\HtmlConverter;
 
 class Discord extends Messaging
 {
@@ -39,7 +40,9 @@ class Discord extends Messaging
     // Properties
     // =========================================================================
 
+    #[FormIntegrationSetting]
     public ?string $webhookUrl = null;
+    #[FormIntegrationSetting]
     public ?string $message = null;
 
 
@@ -56,8 +59,9 @@ class Discord extends Messaging
         return new IntegrationFormSettings([]);
     }
 
-    public function sendPayload(Submission $submission): bool
+    public function sendPayload(Submission $submission): IntegrationResult
     {
+        $this->beginPayloadDelivery($submission);
         try {
             $webhookUrl = App::parseEnv($this->webhookUrl);
             $message = $this->_renderMessage($submission);
@@ -69,15 +73,15 @@ class Discord extends Messaging
             $response = $this->deliverPayloadToPublicEndpoint($submission, $webhookUrl, $payload);
 
             if ($response === false) {
-                return true;
+                return $this->resultForPayload(true);
             }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
-            return false;
+            return $this->resultForPayload(false);
         }
 
-        return true;
+        return $this->resultForPayload(true);
     }
 
     public function fetchConnection(): bool
@@ -98,15 +102,6 @@ class Discord extends Messaging
 
     // Protected Methods
     // =========================================================================
-
-    protected function formSettingAttributes(): array
-    {
-        $settings = parent::formSettingAttributes();
-        $settings[] = 'webhookUrl';
-        $settings[] = 'message';
-
-        return $settings;
-    }
 
     protected function defineRules(): array
     {

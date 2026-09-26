@@ -1,21 +1,22 @@
 <?php
 namespace verbb\formie\integrations\emailmarketing;
 
-use verbb\formie\base\Integration;
 use verbb\formie\base\EmailMarketing;
+use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationResult;
 
 use Craft;
 use craft\helpers\App;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 
-use GuzzleHttp\Client;
-
 use Throwable;
+
+use GuzzleHttp\Client;
 
 class Mailcoach extends EmailMarketing
 {
@@ -80,8 +81,9 @@ class Mailcoach extends EmailMarketing
         return new IntegrationFormSettings($settings);
     }
 
-    public function sendPayload(Submission $submission): bool
+    public function sendPayload(Submission $submission): IntegrationResult
     {
+        $this->beginPayloadDelivery($submission);
         try {
             $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping);
 
@@ -90,7 +92,7 @@ class Mailcoach extends EmailMarketing
             $response = $this->deliverPayload($submission, "email-lists/$this->listId/subscribers", $payload);
 
             if ($response === false) {
-                return true;
+                return $this->resultForPayload(true);
             }
 
             $email = $response['data']['email'] ?? '';
@@ -101,15 +103,15 @@ class Mailcoach extends EmailMarketing
                     'payload' => Json::encode($payload),
                 ]), true);
 
-                return false;
+                return $this->resultForPayload(false);
             }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
-            return false;
+            return $this->resultForPayload(false);
         }
 
-        return true;
+        return $this->resultForPayload(true);
     }
 
     public function fetchConnection(): bool

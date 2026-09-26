@@ -2,13 +2,14 @@
 namespace verbb\formie\integrations\emailmarketing;
 
 use verbb\formie\Formie;
-use verbb\formie\base\Integration;
 use verbb\formie\base\EmailMarketing;
+use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationResult;
 
 use Craft;
 use craft\helpers\App;
@@ -123,8 +124,9 @@ class Drip extends EmailMarketing implements OAuthProviderInterface
         return new IntegrationFormSettings($settings);
     }
 
-    public function sendPayload(Submission $submission): bool
+    public function sendPayload(Submission $submission): IntegrationResult
     {
+        $this->beginPayloadDelivery($submission);
         try {
             $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping);
 
@@ -165,7 +167,7 @@ class Drip extends EmailMarketing implements OAuthProviderInterface
 
             // Allow events to cancel sending
             if (!$this->beforeSendPayload($submission, $endpoint, $payload, $method)) {
-                return true;
+                return $this->resultForPayload(true);
             }
 
             // Fetch the account first
@@ -174,13 +176,13 @@ class Drip extends EmailMarketing implements OAuthProviderInterface
 
             // Allow events to say the response is invalid
             if (!$this->afterSendPayload($submission, 'accounts', $payload, 'GET', $response)) {
-                return true;
+                return $this->resultForPayload(true);
             }
 
             $response = $this->deliverPayload($submission, "{$accountId}/subscribers", $payload);
 
             if ($response === false) {
-                return true;
+                return $this->resultForPayload(true);
             }
 
             $contactId = $response['subscribers'][0]['id'] ?? '';
@@ -191,14 +193,14 @@ class Drip extends EmailMarketing implements OAuthProviderInterface
                     'payload' => Json::encode($payload),
                 ]), true);
 
-                return false;
+                return $this->resultForPayload(false);
             }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
-            return false;
+            return $this->resultForPayload(false);
         }
 
-        return true;
+        return $this->resultForPayload(true);
     }
 }

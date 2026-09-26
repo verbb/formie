@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\integrations\helpdesk;
 
+use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\HelpDesk;
 use verbb\formie\base\Integration;
@@ -9,6 +10,7 @@ use verbb\formie\helpers\RichTextHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationResult;
 
 use Craft;
 use craft\helpers\App;
@@ -16,12 +18,10 @@ use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
 
-use GuzzleHttp\Client;
-
-use League\HTMLToMarkdown\HtmlConverter;
-
 use Throwable;
 
+use GuzzleHttp\Client;
+use League\HTMLToMarkdown\HtmlConverter;
 use verbb\auth\base\OAuthProviderInterface;
 use verbb\auth\models\Token;
 use verbb\auth\providers\Front as FrontProvider;
@@ -50,8 +50,11 @@ class Front extends HelpDesk implements OAuthProviderInterface
     // Properties
     // =========================================================================
 
+    #[FormIntegrationSetting]
     public ?string $message = null;
+    #[FormIntegrationSetting]
     public bool $mapToMessage = false;
+    #[FormIntegrationSetting]
     public ?array $messageFieldMapping = null;
 
 
@@ -116,8 +119,9 @@ class Front extends HelpDesk implements OAuthProviderInterface
         return new IntegrationFormSettings($settings);
     }
 
-    public function sendPayload(Submission $submission): bool
+    public function sendPayload(Submission $submission): IntegrationResult
     {
+        $this->beginPayloadDelivery($submission);
         try {
             if ($this->mapToMessage) {
                 $messageValues = $this->getFieldMappingValues($submission, $this->messageFieldMapping, 'message');
@@ -138,7 +142,7 @@ class Front extends HelpDesk implements OAuthProviderInterface
                 $response = $this->deliverPayload($submission, "channels/{$channelId}/incoming_messages", $payload);
 
                 if ($response === false) {
-                    return true;
+                    return $this->resultForPayload(true);
                 }
 
                 $messageId = $response['message_uid'] ?? '';
@@ -149,31 +153,21 @@ class Front extends HelpDesk implements OAuthProviderInterface
                         'payload' => Json::encode($ticketPayload),
                     ]), true);
 
-                    return false;
+                    return $this->resultForPayload(false);
                 }
             }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
-            return false;
+            return $this->resultForPayload(false);
         }
 
-        return true;
+        return $this->resultForPayload(true);
     }
 
     
     // Protected Methods
     // =========================================================================
-
-    protected function formSettingAttributes(): array
-    {
-        $settings = parent::formSettingAttributes();
-        $settings[] = 'message';
-        $settings[] = 'mapToMessage';
-        $settings[] = 'messageFieldMapping';
-
-        return $settings;
-    }
 
     protected function defineRules(): array
     {

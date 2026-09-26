@@ -2,16 +2,18 @@
 namespace verbb\formie\integrations\crm;
 
 use verbb\formie\Formie;
+use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\Crm;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
-use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\MicrosoftDynamics365RequiredLevelsEvent;
 use verbb\formie\events\MicrosoftDynamics365TargetSchemasEvent;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationResult;
 
 use Craft;
 use craft\helpers\App;
@@ -90,15 +92,25 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
     public ?string $impersonateUserId = null;
     public ?string $apiVersion = 'v9.0';
     public ?string $tenant = 'common';
+    #[FormIntegrationSetting]
     public bool $mapToContact = false;
+    #[FormIntegrationSetting]
     public bool $mapToLead = false;
+    #[FormIntegrationSetting]
     public bool $mapToOpportunity = false;
+    #[FormIntegrationSetting]
     public bool $mapToAccount = false;
+    #[FormIntegrationSetting]
     public bool $mapToIncident = false;
+    #[FormIntegrationSetting]
     public ?array $contactFieldMapping = null;
+    #[FormIntegrationSetting]
     public ?array $leadFieldMapping = null;
+    #[FormIntegrationSetting]
     public ?array $opportunityFieldMapping = null;
+    #[FormIntegrationSetting]
     public ?array $accountFieldMapping = null;
+    #[FormIntegrationSetting]
     public ?array $incidentFieldMapping = null;
 
     private array $_entityOptions = [];
@@ -197,8 +209,9 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
         return new IntegrationFormSettings($settings);
     }
 
-    public function sendPayload(Submission $submission): bool
+    public function sendPayload(Submission $submission): IntegrationResult
     {
+        $this->beginPayloadDelivery($submission);
         try {
             $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
             $leadValues = $this->getFieldMappingValues($submission, $this->leadFieldMapping, 'lead');
@@ -218,7 +231,7 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
                 $response = $this->deliverPayload($submission, 'contacts?$select=contactid', $contactPayload);
 
                 if ($response === false) {
-                    return true;
+                    return $this->resultForPayload(true);
                 }
 
                 $contactId = $response['contactid'] ?? '';
@@ -229,7 +242,7 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
                         'payload' => Json::encode($contactPayload),
                     ]), true);
 
-                    return false;
+                    return $this->resultForPayload(false);
                 }
             }
 
@@ -243,7 +256,7 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
                 $response = $this->deliverPayload($submission, 'accounts?$select=accountid', $accountPayload);
 
                 if ($response === false) {
-                    return true;
+                    return $this->resultForPayload(true);
                 }
 
                 $accountId = $response['accountid'] ?? '';
@@ -254,7 +267,7 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
                         'payload' => Json::encode($accountPayload),
                     ]), true);
 
-                    return false;
+                    return $this->resultForPayload(false);
                 }
             }
 
@@ -278,7 +291,7 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
                 $response = $this->deliverPayload($submission, 'leads?$select=leadid', $leadPayload);
 
                 if ($response === false) {
-                    return true;
+                    return $this->resultForPayload(true);
                 }
 
                 $leadId = $response['leadid'] ?? '';
@@ -289,7 +302,7 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
                         'payload' => Json::encode($leadPayload),
                     ]), true);
 
-                    return false;
+                    return $this->resultForPayload(false);
                 }
             }
 
@@ -307,7 +320,7 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
                 $response = $this->deliverPayload($submission, 'opportunities?$select=opportunityid', $opportunityPayload);
 
                 if ($response === false) {
-                    return true;
+                    return $this->resultForPayload(true);
                 }
 
                 $opportunityId = $response['opportunityid'] ?? '';
@@ -318,7 +331,7 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
                         'payload' => Json::encode($opportunityPayload),
                     ]), true);
 
-                    return false;
+                    return $this->resultForPayload(false);
                 }
             }
 
@@ -332,7 +345,7 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
                 $response = $this->deliverPayload($submission, 'incidents?$select=incidentid', $incidentPayload);
 
                 if ($response === false) {
-                    return true;
+                    return $this->resultForPayload(true);
                 }
 
                 $incidentId = $response['incidentid'] ?? '';
@@ -343,16 +356,16 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
                         'payload' => Json::encode($incidentPayload),
                     ]), true);
 
-                    return false;
+                    return $this->resultForPayload(false);
                 }
             }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
-            return false;
+            return $this->resultForPayload(false);
         }
 
-        return true;
+        return $this->resultForPayload(true);
     }
 
     public function request(string $method, string $uri, array $options = [], bool $decodeJson = true): mixed
@@ -394,23 +407,6 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
 
     // Protected Methods
     // =========================================================================
-
-    protected function formSettingAttributes(): array
-    {
-        $settings = parent::formSettingAttributes();
-        $settings[] = 'mapToContact';
-        $settings[] = 'mapToLead';
-        $settings[] = 'mapToOpportunity';
-        $settings[] = 'mapToAccount';
-        $settings[] = 'mapToIncident';
-        $settings[] = 'contactFieldMapping';
-        $settings[] = 'leadFieldMapping';
-        $settings[] = 'opportunityFieldMapping';
-        $settings[] = 'accountFieldMapping';
-        $settings[] = 'incidentFieldMapping';
-
-        return $settings;
-    }
 
     protected function defineRules(): array
     {

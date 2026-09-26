@@ -117,19 +117,15 @@ protected function defineFormSettingsSchema(FormInterface $form): array
     return $schema;
 }
 
-protected function formSettingAttributes(): array
-{
-    $settings = parent::formSettingAttributes();
-    $settings[] = 'endpointUrl';
+#[\verbb\formie\attributes\FormIntegrationSetting]
+public ?string $endpointUrl = null;
 
-    return $settings;
-}
 ```
 :::
 
 Always start with `parent::defineFormSettingsSchema($form)` unless you have a specific reason not to. The parent schema includes the standard Enabled setting.
 
-Formie 4 only saves and populates form-level integration attributes returned by `formSettingAttributes()`. Add every custom setting used by your form schema to this method. For registered integrations, undeclared values are discarded so form data cannot override plugin-level settings such as credentials or provider base URLs. Opaque settings for a temporarily unavailable integration are retained to avoid data loss, but are not hydrated at runtime.
+Formie 4 only saves and populates form-level integration attributes annotated with `#[FormIntegrationSetting]`. Annotate every existing property used by your form schema. For registered integrations, undeclared values are discarded so form data cannot override plugin-level settings such as credentials or provider base URLs. Opaque settings for a temporarily unavailable integration are retained to avoid data loss, but are not hydrated at runtime.
 
 Custom integrations that send to a URL configured on each form should use `requestPublicEndpoint()` or `deliverPayloadToPublicEndpoint()`. Provider API calls with fixed endpoints should continue to use `request()` or `deliverPayload()`.
 
@@ -1145,9 +1141,7 @@ Deprecated aliases remain available while you upgrade, but new field code should
 
 ## Beta Variable Registration
 
-Formie 4 betas briefly used `RegisterVariablesEvent::register($target, $handle, $label)` and tokens such as `{acme:campaign}`. That API is deprecated.
-
-While [compatibility mode](/get-started/upgrading-from-v3#compatibility-mode) is enabled (the default), Formie still accepts the old registration helper and resolves legacy tokens against the combined handle (`acme_campaign`). Update to `$event->sources[]` and `{custom:handle}` when you can.
+The beta variable registration helpers and fluent builders have been removed. Register typed, namespaced sources and transforms through `ReferenceCatalogue::EVENT_REGISTER` and use `{custom:vendor/name}` tokens. See [Reference Runtime and Variable Picker](#reference-runtime-and-variable-picker) for the API mapping and [Custom Variable Sources](/developers/custom-variable-sources) for a complete example.
 
 ## Additional Deprecated Names
 
@@ -1680,3 +1674,33 @@ Existing Formie 3 JSON and email event constants identify the corresponding cano
 Rich values are immutable after normalisation. Replace assignments to Name/Address properties and option selections with construction of a new value. Date casts use canonical date/time strings; configured display formatting belongs to `getFieldValueAsString()`. Payment values contain submitted parts only; use `submission.getPayments()` and `submission.getSubscriptions()` to retrieve payment records.
 
 Back up the database and retain the original Formie security key before upgrading. Trusted storage accepts existing scalar, UID-keyed nested and exact legacy encrypted representations. New writes encrypt the complete stored representation in a versioned envelope. This is a read adaptation and rewrite-on-save upgrade, so no bulk destructive rewrite is required. Earlier releases cannot read newly encrypted values; restore the pre-upgrade backup when rolling back. Refresh cached forms after deployment so recipient inputs use current opaque option tokens. Previously rendered encrypted recipient tokens are not decrypted from requests.
+
+## Reference Runtime and Variable Picker
+
+Reference slots use one parseable grammar with explicit native-value and text operations. The following Formie 3 tokens remain supported without Twig evaluation: `{field:handle}`, `{field.handle}`, the form/submission/system/site/user catalogue tokens such as `{formName}` and `{userEmail}`, the four date/time presets, and all-fields summary tokens. Simple `{submission.id}`-style aliases remain supported for PDF filenames. Handle resolution stays inside the owning form; ambiguous handles and deleted fields produce diagnostics.
+
+Back up the database before upgrading. The reference-slot migration writes `{kind, value}` objects only within integration field mappings and is idempotent. Existing exact tokens become reference slots; literals retain literal semantics, including decoded provider options. Notification, form, field, redirect and rich-text token strings use compatibility parsing, so an unsafe blanket rewrite is unnecessary. Existing field-reference migrations retain exact instance identity. Roll back by restoring the pre-upgrade database; earlier beta versions do not understand the slot objects.
+
+Environment access changes deliberately: configure `referenceEnvironmentAllowlist` with safe names in `config/formie.php`. A `FORMIE_` prefix does not grant access. Authored notification `$NAME` aliases use the same allowlist. Submitted `$NAME` values remain literal. Secrets are never included in picker values. Header values containing CR, LF or NUL fail; HTML substitutions are escaped once and URL substitutions are encoded as components. A whole legacy URL reference retains exact URL semantics followed by destination validation.
+
+Stored reference slots cannot execute arbitrary Twig filters, globals, functions or object traversal. Move those expressions to deliberately authored template files or [registered reference sources](/developers/custom-variable-sources). Explicit Hidden template mode and HTML template rendering remain separate template surfaces. PDF filenames and upload subpaths preserve their explicit sandboxed template surface. References in those templates use the shared runtime and their resolved values are inserted after rendering, so submitted text never becomes template code. Automation URLs use reference interpolation; move arbitrary expressions there into registered sources. Unknown references are diagnosed instead of collapsing to empty strings, and defaults do not conceal missing sources.
+
+| Formie 3 or Beta API | Supported Contract |
+| --- | --- |
+| `Variables::getParsedValue()` | `References::interpolateText()` with an explicit context and output context; exact destinations use `resolveValue()` |
+| Formie 3 `RegisterVariablesEvent::$variables` / `ParseVariablesEvent::$variables` | Register a `ReferenceSource` through `ReferenceCatalogue::EVENT_REGISTER`; declare a namespaced ID and `FieldValueType` |
+| Beta `VariableSource::create()->types()->resolve()` | `new ReferenceSource(new ReferenceDefinition(...), $resolver)` |
+| Beta `registerVariables`, `registerTransformers` | `registerReferences` with `$event->sources` and `$event->transforms` |
+| Beta fluent `FieldReferences`, `FieldReferenceValue`, `FieldReferenceSelector`, `FieldVariableSource` | Constructor configuration arrays and `FieldReferenceValue::default()` / `property()` / `fromArray()` |
+| Mutable `ReferenceExpression` | Immutable parsed expression from `ReferenceParser::parse()` |
+| Ad hoc reference caches and per-consumer parsers | Shared resolver and catalogue; existing field identity/value owners remain authoritative |
+
+Beta fluent methods, custom token aliases, mutable model duplicates and variable-map resolvers are removed. Re-register beta custom sources as `vendor/name` and update their stored tokens to `{custom:vendor/name}`; core cannot infer third-party ownership or semantics. Formie 3 field email projection adapters remain available through the existing reference-block contract.
+
+A direct fixed child reference is valid. A direct repeater-child reference needs a current row in `ReferenceContext::$rows`; parent collection selectors use `scope=first`, `last`, `index`, `all`, `count` or `rows`. Table columns are selectors on their parent, not field identities. Update code that treated an unscoped child or an unknown extension as an empty value to inspect `ResolvedReference::$diagnostic`.
+
+## Integration Delivery Storage
+
+Back up the database and retain the Formie security key before upgrading. The delivery migration canonicalizes beta `mode: immediate` settings to `execution: synchronous`, renames after-integration notification timing, invalidates old metadata and encrypts literal persisted connection and binding secrets. Environment references remain portable. Existing stable provider responses use a coarse compatibility adapter; new providers should use `IntegrationResult` and child operations.
+
+Existing queued integration and notification locators are read without restoring their old debug payloads. Saved completed or unknown delivery receipts still prevent duplicate writes. Legacy job diagnostics remain accessible through Submission Delivery History after execution; old serialized debug bodies are not rehydrated or rewritten. Downgrading requires the matching pre-upgrade database and code backup.

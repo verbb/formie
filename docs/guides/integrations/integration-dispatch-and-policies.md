@@ -1,131 +1,68 @@
 # Integration Dispatch and Policies
 
-Imagine a contact form that sends to Mailchimp, posts to a CRM, and fires a Slack notification — but only when the user opts in, and only after the submission is saved. Formie separates **what** each integration does (credentials, mapping, API calls) from **when and how** it runs on each submission. The form builder's Integrations tab controls that dispatch behaviour — order, queue vs immediate execution, re-run policies, and per-integration conditions — without changing your integration PHP.
+Use **Forms → your form → Integrations → Settings** to control integration order, notification timing and re-run policies. Global connections and credentials remain under **Formie → Integrations**. Each form owns its enabled bindings, conditions and annotated mapping settings.
 
-This guide walks through configuring those controls on a real multi-integration form.
+## Execution Order
 
-## Where Dispatch Settings Live
+Dispatch settings are available with one integration. Enable dispatch and assign each integration to a lane:
 
-Open **Formie → Forms → {Your Form} → Integrations**. Each integration has its own settings panel. Form-level controls appear under **Integrations → Settings** at the bottom of the tab.
-
-| Setting | Scope | Purpose |
-| --- | --- | --- |
-| **Enabled** | Per integration | Whether the integration runs for this form |
-| **Conditions** | Per integration | Whether the integration runs for a given submission |
-| **Mapping / URL / list** | Per integration | Provider-specific configuration |
-| **Dispatch** | Form | Execution order, queue vs immediate, notification timing |
-| **Per-integration behaviour** | Form | When integrations re-run after the initial submission |
-
-Integration **credentials** (API keys, OAuth connection) are managed under **Formie → Integrations** and are shared across forms. Per-form settings reference those credentials but do not duplicate them.
-
-## Site Scope and Multi-Site
-
-Forms can exist on multiple Craft sites, but integration configuration is **structural** — the same integrations, conditions, and dispatch plan apply on every site where the form is enabled.
-
-What differs per site:
-
-- Translated labels and messages (form builder site overrides)
-- The `siteId` stored on each submission
-
-Integration conditions can target site context using `{submission:site}` variables — site name and handle appear in the condition field picker. Use conditions when one form should send to different providers (or skip dispatch) based on which site received the submission.
-
-For how site availability differs from translation, see [Multi-Site & Translation](/forms/multi-site-and-translation).
-
-## Dispatch Conditions (per Integration)
-
-Each integration can enable **Conditions** to control whether it runs for a particular submission. This is separate from field visibility conditions — it gates the integration trigger itself.
-
-1. Open the integration on the form’s Integrations tab.
-2. Enable **Conditions**.
-3. Build rules using submission fields, status, date, site name, or site handle.
-
-Conditions are evaluated at dispatch time. If rules do not match, the integration is skipped for that submission — no API call, no queue job.
-
-Common patterns:
-
-- Run a CRM integration only when status is **Qualified**
-- Skip marketing integrations for submissions marked as spam (spam submissions skip dispatch by default)
-- Send to a regional automation endpoint only when `{submission:site}` matches a specific site handle
-
-Re-run policies and manual triggers **still respect conditions**. An operator cannot manually re-run an integration whose conditions fail for that submission.
-
-## Integration Dispatch Orchestration
-
-When a form has **two or more** payload integrations enabled, **Integrations → Settings → Dispatch** becomes available.
-
-### Enable Integration Dispatch
-
-Turn on dispatch to run integrations **sequentially** in a defined order instead of independently through the default queue.
-
-| Control | Options | Effect |
-| --- | --- | --- |
-| **Notification timing** | Before integrations / After integrations | When default-timed email notifications send relative to the integration sequence. Individual notifications can override this in Advanced settings. |
-| **Failure policy** | Continue / Stop | Whether later integrations run when one fails |
-| **Step list** | Ordered handles with mode | Execution order and queue vs immediate per integration |
-
-Each step can run as:
-
-- **Queued** — pushed to Craft’s queue (recommended for external APIs)
-- **Immediate** — runs during the submission request before the response returns
-
-Use **Immediate** for element integrations that must finish before notifications or the success page — User registration, Entry creation, and similar flows where the next step depends on the created element.
-
-Formie shows a **Recommended for User & Entry flows** shortcut that enables dispatch, sets notifications to run after integrations, marks User/Entry integrations as immediate, and configures re-run on edit for those integrations.
-
-When dispatch is disabled, enabled integrations run independently using Formie’s global `useQueueForIntegrations` setting — see [Configuration](/get-started/configuration).
-
-### Dispatch Requires Two Active Integrations
-
-Orchestration only runs when at least two integrations are enabled on the form. If dispatch is enabled but only one integration is active, Formie falls back to default behaviour and shows a warning in the builder.
-
-## Re-Run Policies
-
-By default, integrations run **once on submit**. Formie adds per-integration re-run policies under **Integrations → Settings → Per-integration behaviour**.
-
-| Policy | Runs on |
+| Lane | Behavior |
 | --- | --- |
-| **Once on submit** | Initial front-end submission only (default) |
-| **Also when submission is edited** | Submit, front-end edit, and control panel save |
-| **Custom…** | Pick from: Initial submission, Front-end edit, Control panel save, Unmarked as not spam |
+| Synchronous | Runs during the submission request, top to bottom. Use for User or Entry integrations whose result is needed by the success page. |
+| Queued | Runs after the synchronous lane, in the configured order within one durable dispatch job. Enqueued does not mean remotely delivered. |
 
-Re-run policies matter for Entry and User integrations that should update linked elements when an editor changes a submission in the control panel. They also apply when bulk status changes trigger a CP save.
+Move steps within a lane or change their execution setting. Formie always finishes synchronous steps before enqueueing the queued lane; a mixed list cannot interleave request execution with remote queue completion. If global queue use is disabled, queued-lane steps run after synchronous steps in the same request.
 
-Integration conditions still apply on re-runs. Changing a submission’s status does not bypass condition checks.
+**Continue** runs later integrations after a failure. **Stop** records remaining steps as skipped. When dispatch is disabled, the global `useQueueForIntegrations` setting applies.
 
-## Plugin-Wide Settings
+## Notification Timing
 
-These plugin settings affect all forms:
+A form sets the default timing. Each notification can override it in Advanced settings.
 
-| Setting | Location | Recommendation |
+| Timing | Sends when |
+| --- | --- |
+| Before integrations | The submission has been saved and notification conditions pass. |
+| After synchronous integrations | All configured synchronous integrations meet the completion policy. Queued deliveries may still be pending. |
+| After finalized delivery attempts | Every configured integration meets the completion policy for the same execution identity. |
+
+The **Delivery Completion Policy** defaults to requiring **succeeded or skipped** results. Choose **Also allow failed or rejected** for notifications that should send after unsuccessful but known outcomes. An **unknown** outcome blocks after-delivery notifications under either policy until it is reconciled. Pending and running deliveries also block them. Skipped includes disabled integrations, unmet conditions, missing opt-in and steps stopped by an earlier failure.
+
+The recommended User and Entry setup runs element integrations synchronously, sends default notifications after that lane, and enables the selected element integrations to re-run on edit. It does not wait for queued marketing integrations.
+
+## Results and Recovery
+
+| Result | Meaning | Recovery |
 | --- | --- | --- |
-| `useQueueForIntegrations` | **Formie → Settings → General** | Enable on production so API calls do not slow submissions |
-| `queuePriority` | Same | Tune if integration jobs compete with other queue work |
-| `sendIntegrationAlerts` | **Formie → Settings → Integrations** | Email admins when an integration fails |
-| `redirectUri` | Config / env | OAuth redirect override for multi-environment setups |
+| Succeeded | The operation completed. | Formie reuses the recorded result. |
+| Skipped | The operation was ineligible or deliberately not run. | Review conditions, opt-in and the plan. |
+| Rejected | Local validation or the provider refused the operation. | Correct the configuration before starting a new intended run. |
+| Failed | The operation failed; its result states whether retry is safe. | Retry only when the recorded result permits it. |
+| Unknown | The remote service may have accepted the operation. | Confirm the outcome with the provider before reconciliation. |
 
-API keys and secrets should use `.env` variables. Formie resolves env syntax when settings are loaded and does not export resolved secrets to project config — see [Configuration](/get-started/configuration).
+Every integration and notification has a durable attempt. Providers using Formie's request helpers also have child attempts for individual writes. A safe retry retains the execution identity, reuses successful child responses and retries only definitely failed steps. Changed operation parameters cannot reuse an existing child identity. Transport uncertainty stops automatic replay, including when Craft retries a failed queue job.
 
-## How Dispatch Fits the Workflow
+Open **Submission Delivery History**, select an attempt and inspect its result and operation history. Editors with reconciliation permission can record **Confirm delivered** or **Confirm not delivered**, with an audit reason. Reconcile uncertain children before their parent. Confirming delivery does not invent a missing provider response: if subsequent operations require response data that was never recorded, automatic continuation remains blocked. Confirmed non-delivery permits a safe retry of the original parent identity. Notifications also block a new send identity while an earlier delivery remains unresolved. Element integrations retain their created element identity when later operations fail. A new manual run is a separate intended execution and should not be used to work around an unresolved attempt.
 
-Integrations trigger during the **dispatch** stage of the submission workflow — after validation, screening, and save:
+## Manual and Force Runs
 
-1. `dispatch.guardDispatchEligibility` — checks whether dispatch should run
-2. `dispatch.sendNotifications` — may run before or after integrations depending on dispatch plan
-3. `dispatch.triggerIntegrations` — runs enabled integrations that pass conditions and re-run policy
-4. `dispatch.markDispatchFinalized` — records completion
+Manual runs bypass the automatic trigger schedule but still check integration conditions and opt-in. Re-run policies choose which automatic events are eligible: initial submission, front-end editing, control panel saving and unmarking spam.
 
-Edit-existing and save-draft workflow modes skip most dispatch work. Edit-existing can re-run integrations when the re-run policy allows — see [Submission Workflow](/developers/submission-workflow).
+A force run uses the separately permissioned `IntegrationTriggers::forceIntegration()` path and requires permission to save submissions for the form and a reason. It records ordinary eligibility and the conditions/opt-in overrides in immutable execution context. Force does not bypass an unknown prior delivery or destination security checks.
 
-Avoid triggering integrations from `Submission::EVENT_AFTER_SAVE`. That bypasses re-run policies, workflow idempotency, and the CP save vs workflow split. Use `Integrations::EVENT_BEFORE_TRIGGER_INTEGRATION` or `IntegrationTriggers` when you need custom dispatch.
+## Queue Diagnostics
 
-## Putting It Together
+For an identifiable Formie job, Craft's queue detail screen includes **Formie delivery diagnostics**. This opens a Formie-owned Plugin Kit modal. If Craft changes its queue markup or a legacy job has no attempt locator, use **Submission Delivery History** as the stable fallback.
 
-A typical registration form with User, Mailchimp, and Web Request integrations might configure:
+The modal shows mapping inputs, safe submission projections, operation results, provider errors and retry/reconciliation checkpoints. Copy or download the support bundle for troubleshooting. Values are escaped, credential keys and known secrets are redacted, bodies and checkpoint counts are bounded, and both diagnostics permission and the form's submission-view permission are required. Sensitive response export additionally requires its own permission and explicit acknowledgement; exports are audited.
 
-1. **Dispatch enabled** — User → Immediate, Mailchimp → Queued, Web Request → Queued
-2. **Notification timing** — After integrations (activation email needs the user element first)
-3. **User integration re-run** — Also when submission is edited
-4. **Mailchimp conditions** — Only when an Agree field is checked
-5. **Global queue** — `useQueueForIntegrations` enabled
+Operational settings and exact responses are encrypted. Completed evidence is purged after 30 days; unresolved attempts retain the data required for reconciliation. Operation identities and result, retry, reconciliation and export audit checkpoints remain so evidence expiry cannot enable a duplicate write. A response that has expired cannot be replayed to a dependent step. Keep the security key with database backups. Queue jobs themselves contain only stable locators and are never rewritten to add diagnostics.
 
-Submit once from the front end to create the user immediately, queue marketing and automation calls, and send the activation email after the user exists.
+## Network and Credential Settings
+
+Prefer environment references such as `$CRM_API_KEY` for managed credentials. Literal connection settings and permitted per-form secrets are encrypted at rest. Web Request headers and HTTP authentication may resolve `$ENV` references only when the variable name is included in `referenceEnvironmentAllowlist`; this prevents a form editor from forwarding unrelated server secrets. Environment-owned connections remain project-config owned; per-form settings cannot overwrite unannotated credentials or API domains.
+
+Web Request and other form-configured public destinations must use HTTP or HTTPS on ports 80 or 443. Formie rejects loopback, private, link-local, metadata, reserved and transition addresses, checks DNS results, pins the validated address using cURL and disables redirects and proxies. Public destinations use a clean client rather than inheriting another provider's credentials. Authenticated provider calls must remain on their configured provider origin. Maximizer API discovery must resolve to that same origin.
+
+## Workflow and Extension Points
+
+Delivery follows successful submission persistence in the dispatch stage. Queueing records scheduling intent; it does not finalize remote delivery. Avoid invoking integrations from an element after-save hook, which bypasses workflow eligibility and identity. Use the runner and semantic [Integration Events](/developers/events/integration-events). New providers should follow the [custom integration contracts](/developers/custom-integration/overview).

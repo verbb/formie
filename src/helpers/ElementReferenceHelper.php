@@ -7,7 +7,6 @@ use verbb\formie\elements\Submission;
 
 use craft\base\ElementInterface;
 use craft\elements\db\ElementQueryInterface;
-use craft\helpers\Json;
 
 /**
  * Resolves `{field:<ref>:property}` tokens for element relation fields.
@@ -38,9 +37,12 @@ class ElementReferenceHelper
             return $value;
         }
 
-        $elements = self::_elementsFromValue($value);
+        return self::resolveFromValue($field, $value, $selector, $params);
+    }
 
-        return self::resolveFromElements($field, $elements, $selector, $params);
+    public static function resolveFromValue(ElementField $field, mixed $value, string $selector, array $params = []): mixed
+    {
+        return self::resolveFromElements($field, self::_elementsFromValue($value), $selector, $params);
     }
 
     /**
@@ -86,14 +88,7 @@ class ElementReferenceHelper
             return $values[0];
         }
 
-        // Notification bodies expect a single string; match defineValueAsString().
-        return implode(', ', array_map(static function(mixed $value): string {
-            if (is_scalar($value) || $value instanceof \Stringable) {
-                return (string)$value;
-            }
-
-            return Json::encode($value) ?: '';
-        }, $values));
+        return $values;
     }
 
     /**
@@ -122,7 +117,7 @@ class ElementReferenceHelper
     private static function _elementsFromValue(mixed $value): array
     {
         if ($value instanceof ElementQueryInterface) {
-            return $value->all();
+            return (clone $value)->all();
         }
 
         if ($value instanceof ElementInterface) {

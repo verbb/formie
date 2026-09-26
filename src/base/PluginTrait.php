@@ -5,82 +5,89 @@ use verbb\formie\Formie;
 use verbb\formie\cache\RenderCache;
 use verbb\formie\client\bootstrap\FormBootstrapBuilder;
 use verbb\formie\client\bootstrap\FormDefinitionBuilder;
-use verbb\formie\client\modules\ClientModuleManifestBuilder;
 use verbb\formie\client\ClientSessionService;
+use verbb\formie\client\modules\ClientModuleManifestBuilder;
 use verbb\formie\deprecations\PluginDeprecations;
 use verbb\formie\elements\Submission as SubmissionElement;
 use verbb\formie\events\ModifyTwigEnvironmentEvent;
 use verbb\formie\fields\values\FieldValueInterface;
+use verbb\formie\helpers\Plugin as FormiePluginHelper;
+use verbb\formie\helpers\ValidationMessagesHelper;
+use verbb\formie\models\HiddenDefaultTemplateContext;
+use verbb\formie\models\HiddenDefaultTemplateFormContext;
+use verbb\formie\models\HiddenDefaultTemplateRequestContext;
+use verbb\formie\models\HiddenDefaultTemplateSiteContext;
 use verbb\formie\server\ServerRenderPayloadBuilder;
 use verbb\formie\services\CaptchaProviders;
 use verbb\formie\services\Cleanup;
-use verbb\formie\services\Countries;
+use verbb\formie\services\ClientEventTemplates;
 use verbb\formie\services\Compatibility;
+use verbb\formie\services\Countries;
 use verbb\formie\services\CustomFields;
+use verbb\formie\services\DeliveryAttempts;
 use verbb\formie\services\EmailDomains;
 use verbb\formie\services\Emails;
 use verbb\formie\services\EmailTemplates;
 use verbb\formie\services\Factories;
-use verbb\formie\services\FieldTypeDefinitions;
 use verbb\formie\services\FieldPalette;
 use verbb\formie\services\Fields;
+use verbb\formie\services\FieldSiteOverrides;
+use verbb\formie\services\FieldTypeDefinitions;
 use verbb\formie\services\FileUploads;
 use verbb\formie\services\FormDefaults;
 use verbb\formie\services\FormGroupDefaults;
 use verbb\formie\services\FormGroupPolicy;
-use verbb\formie\services\FieldSiteOverrides;
-use verbb\formie\services\FormSiteOverrides;
-use verbb\formie\services\FormSitePropagation;
-use verbb\formie\services\Forms;
 use verbb\formie\services\FormGroups;
 use verbb\formie\services\FormPreview;
+use verbb\formie\services\Forms;
+use verbb\formie\services\FormSiteOverrides;
+use verbb\formie\services\FormSitePropagation;
+use verbb\formie\services\FormStatuses;
 use verbb\formie\services\FormTemplates;
+use verbb\formie\services\FrontendAssets;
+use verbb\formie\services\IntegrationDispatcher;
+use verbb\formie\services\IntegrationRunner;
 use verbb\formie\services\Integrations;
-use verbb\formie\services\IntegrationDispatch;
-use verbb\formie\services\IntegrationExecutor;
 use verbb\formie\services\IntegrationTriggers;
-use verbb\formie\services\NotificationTriggers;
 use verbb\formie\services\Notifications;
+use verbb\formie\services\NotificationTriggers;
+use verbb\formie\services\OptionSources;
 use verbb\formie\services\Payments;
-use verbb\formie\services\Permissions;
-use verbb\formie\services\QuestionnaireResults;
-use verbb\formie\services\QuestionnaireScoring;
 use verbb\formie\services\PdfTemplates;
+use verbb\formie\services\Permissions;
 use verbb\formie\services\Phone;
 use verbb\formie\services\Plans;
-use verbb\formie\services\ClientEventTemplates;
-use verbb\formie\services\OptionSources;
-use verbb\formie\services\Repair;
+use verbb\formie\services\QuestionnaireResults;
+use verbb\formie\services\QuestionnaireScoring;
 use verbb\formie\services\Relations;
+use verbb\formie\services\Rendering;
+use verbb\formie\services\Repair;
 use verbb\formie\services\ReportColumns;
 use verbb\formie\services\ReportEditor;
 use verbb\formie\services\ReportExport;
 use verbb\formie\services\ReportExportFiles;
 use verbb\formie\services\ReportQuery;
-use verbb\formie\services\ReportViewer;
-use verbb\formie\services\ReportScheduledDelivery;
 use verbb\formie\services\Reports;
-use verbb\formie\services\Rendering;
-use verbb\formie\services\FrontendAssets;
-use verbb\formie\services\SentNotifications;
+use verbb\formie\services\ReportScheduledDelivery;
+use verbb\formie\services\ReportViewer;
 use verbb\formie\services\ScheduledReports;
+use verbb\formie\services\SentNotifications;
 use verbb\formie\services\Service;
-use verbb\formie\services\FormStatuses;
 use verbb\formie\services\SpamProtection;
-use verbb\formie\services\SubmissionStatuses;
 use verbb\formie\services\Stencils;
-use verbb\formie\services\Submissions;
-use verbb\formie\services\SubmissionProcessor;
-use verbb\formie\services\SubmissionWorkflow;
-use verbb\formie\services\SubmissionProgress;
 use verbb\formie\services\SubmissionGrants;
 use verbb\formie\services\SubmissionGuards;
 use verbb\formie\services\SubmissionMetadata;
+use verbb\formie\services\SubmissionOperations;
+use verbb\formie\services\SubmissionProcessor;
+use verbb\formie\services\SubmissionProgress;
+use verbb\formie\services\Submissions;
+use verbb\formie\services\SubmissionStatuses;
+use verbb\formie\services\SubmissionWorkflow;
 use verbb\formie\services\Subscriptions;
 use verbb\formie\services\Templates;
 use verbb\formie\services\ThemeConfig;
 use verbb\formie\services\TiptapExtensions;
-use verbb\formie\services\SubmissionOperations;
 use verbb\formie\theme\slots\FieldSlotRegistry;
 use verbb\formie\theme\slots\FormSlotRegistry;
 use verbb\formie\web\assets\cp\CpReactAsset;
@@ -89,21 +96,15 @@ use Craft;
 use craft\elements\User;
 use craft\helpers\App;
 
-use verbb\base\LogTrait;
-use verbb\base\helpers\Plugin;
-use verbb\formie\helpers\Plugin as FormiePluginHelper;
-use verbb\formie\models\HiddenDefaultTemplateContext;
-use verbb\formie\models\HiddenDefaultTemplateFormContext;
-use verbb\formie\models\HiddenDefaultTemplateRequestContext;
-use verbb\formie\models\HiddenDefaultTemplateSiteContext;
-
-use nystudio107\pluginvite\services\VitePluginService;
-
-use ArrayAccess;
-
 use yii\base\Event;
 use yii\base\Model;
 use yii\log\Logger;
+
+use ArrayAccess;
+
+use nystudio107\pluginvite\services\VitePluginService;
+use verbb\base\helpers\Plugin;
+use verbb\base\LogTrait;
 
 trait PluginTrait
 {
@@ -228,8 +229,9 @@ trait PluginTrait
                 'captchaProviders' => CaptchaProviders::class,
                 'cleanup' => Cleanup::class,
                 'integrations' => Integrations::class,
-                'integrationDispatch' => IntegrationDispatch::class,
-                'integrationExecutor' => IntegrationExecutor::class,
+                'integrationDispatcher' => IntegrationDispatcher::class,
+                'integrationRunner' => IntegrationRunner::class,
+                'deliveryAttempts' => DeliveryAttempts::class,
                 'integrationTriggers' => IntegrationTriggers::class,
                 'notificationTriggers' => NotificationTriggers::class,
                 'serverRenderPayloadBuilder' => ServerRenderPayloadBuilder::class,
@@ -499,14 +501,19 @@ trait PluginTrait
         return $this->get('integrations');
     }
 
-    public function getIntegrationDispatch(): IntegrationDispatch
+    public function getIntegrationDispatcher(): IntegrationDispatcher
     {
-        return $this->get('integrationDispatch');
+        return $this->get('integrationDispatcher');
     }
 
-    public function getIntegrationExecutor(): IntegrationExecutor
+    public function getDeliveryAttempts(): DeliveryAttempts
     {
-        return $this->get('integrationExecutor');
+        return $this->get('deliveryAttempts');
+    }
+
+    public function getIntegrationRunner(): IntegrationRunner
+    {
+        return $this->get('integrationRunner');
     }
 
     public function getIntegrationTriggers(): IntegrationTriggers
@@ -763,16 +770,16 @@ trait PluginTrait
             return;
         }
 
-        if (!class_exists(\verbb\formie\helpers\ValidationMessagesHelper::class)) {
+        if (!class_exists(ValidationMessagesHelper::class)) {
             return;
         }
 
-        if (!method_exists(\verbb\formie\helpers\ValidationMessagesHelper::class, 'translationExtractStringList')) {
+        if (!method_exists(ValidationMessagesHelper::class, 'translationExtractStringList')) {
             return;
         }
 
         $event = new $eventClass([
-            'strings' => \verbb\formie\helpers\ValidationMessagesHelper::translationExtractStringList(),
+            'strings' => ValidationMessagesHelper::translationExtractStringList(),
         ]);
 
         $module->trigger(constant($moduleClass . '::EVENT_REGISTER_TRANSLATION_STRINGS'), $event);

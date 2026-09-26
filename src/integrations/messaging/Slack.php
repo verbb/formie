@@ -2,6 +2,7 @@
 namespace verbb\formie\integrations\messaging;
 
 use verbb\formie\Formie;
+use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Messaging;
@@ -9,15 +10,15 @@ use verbb\formie\elements\Submission;
 use verbb\formie\helpers\RichTextHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationResult;
 
 use Craft;
 use craft\helpers\App;
 use craft\helpers\Json;
 
-use League\HTMLToMarkdown\HtmlConverter;
-
 use Throwable;
 
+use League\HTMLToMarkdown\HtmlConverter;
 use verbb\auth\base\OAuthProviderInterface;
 use verbb\auth\models\Token;
 use verbb\auth\providers\Slack as SlackProvider;
@@ -54,10 +55,15 @@ class Slack extends Messaging implements OAuthProviderInterface
     // Properties
     // =========================================================================
 
+    #[FormIntegrationSetting]
     public ?string $channelType = null;
+    #[FormIntegrationSetting]
     public ?string $userId = null;
+    #[FormIntegrationSetting]
     public ?string $channelId = null;
+    #[FormIntegrationSetting]
     public ?string $message = null;
+    #[FormIntegrationSetting]
     public ?string $webhook = null;
 
 
@@ -116,8 +122,9 @@ class Slack extends Messaging implements OAuthProviderInterface
         return new IntegrationFormSettings($settings);
     }
 
-    public function sendPayload(Submission $submission): bool
+    public function sendPayload(Submission $submission): IntegrationResult
     {
+        $this->beginPayloadDelivery($submission);
         try {
             if ($this->channelType === self::TYPE_WEBHOOK) {
                 $payload = [
@@ -138,7 +145,7 @@ class Slack extends Messaging implements OAuthProviderInterface
                 if (!$channel) {
                     Integration::error($this, Craft::t('formie', '“channel” not configured.'), true);
 
-                    return false;
+                    return $this->resultForPayload(false);
                 }
 
                 $payload = [
@@ -150,7 +157,7 @@ class Slack extends Messaging implements OAuthProviderInterface
                 $response = $this->deliverPayload($submission, 'chat.postMessage', $payload);
 
                 if ($response === false) {
-                    return true;
+                    return $this->resultForPayload(true);
                 }
 
                 $isOkay = $response['ok'] ?? '';
@@ -160,33 +167,21 @@ class Slack extends Messaging implements OAuthProviderInterface
                         'response' => Json::encode($response),
                     ]), true);
 
-                    return false;
+                    return $this->resultForPayload(false);
                 }
             }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
-            return false;
+            return $this->resultForPayload(false);
         }
 
-        return true;
+        return $this->resultForPayload(true);
     }
 
     
     // Protected Methods
     // =========================================================================
-
-    protected function formSettingAttributes(): array
-    {
-        $settings = parent::formSettingAttributes();
-        $settings[] = 'channelType';
-        $settings[] = 'userId';
-        $settings[] = 'channelId';
-        $settings[] = 'message';
-        $settings[] = 'webhook';
-
-        return $settings;
-    }
 
     protected function defineRules(): array
     {

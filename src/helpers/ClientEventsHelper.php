@@ -115,7 +115,7 @@ class ClientEventsHelper
                 }
 
                 $rawValue = (string)($row['value'] ?? '');
-                $payload[$key] = self::_stringifyResolvedValue(References::parseValue($rawValue, $submission));
+                $payload[$key] = References::parseContent($rawValue, $submission);
             }
 
             $resolved[] = [

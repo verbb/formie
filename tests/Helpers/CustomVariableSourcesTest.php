@@ -2,124 +2,53 @@
 
 declare(strict_types=1);
 
-use verbb\formie\events\RegisterVariablesEvent;
-use verbb\formie\Formie;
+use verbb\formie\events\RegisterReferencesEvent;
+use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\helpers\References;
 use verbb\formie\helpers\Variables;
-use verbb\formie\variables\VariableSource;
+use verbb\formie\references\ReferenceCatalogue;
+use verbb\formie\references\ReferenceContext;
+use verbb\formie\references\ReferenceDefinition;
+use verbb\formie\references\ReferenceDiagnostic;
+use verbb\formie\references\ReferenceSource;
+use verbb\formie\references\ReferenceTransform;
 use yii\base\Event;
 
-beforeEach(function (): void {
-    Variables::clearRegisteredVariableSourcesCache();
-    Formie::$plugin->getSettings()->compatibilityMode = true;
-});
+afterEach(fn() => Event::off(ReferenceCatalogue::class, ReferenceCatalogue::EVENT_REGISTER));
 
-afterEach(function (): void {
-    Variables::clearRegisteredVariableSourcesCache();
-    Event::off(Variables::class, Variables::EVENT_REGISTER_VARIABLES);
-    Formie::$plugin->getSettings()->compatibilityMode = true;
-});
-
-it('registers custom variable sources for the picker and resolves their values', function (): void {
-    Event::on(Variables::class, Variables::EVENT_REGISTER_VARIABLES, function(RegisterVariablesEvent $event): void {
-        $event->sources[] = VariableSource::create('acme_lead_source', 'Lead source')
-            ->resolve(fn() => 'newsletter');
+it('registers typed namespaced sources without evaluating server values in the picker', function() {
+    $calls = 0;
+    Event::on(ReferenceCatalogue::class, ReferenceCatalogue::EVENT_REGISTER, function(RegisterReferencesEvent $event) use (&$calls) {
+        $event->sources[] = new ReferenceSource(new ReferenceDefinition('acme/campaign', 'Campaign', 'custom', FieldValueType::string()), function() use (&$calls) { $calls++; return 'private-value'; });
     });
-
-    $groups = Variables::getCategoryConfig()['staticGroups'][Variables::GROUP_CUSTOM] ?? [];
-
-    expect($groups)->not->toBeEmpty()
-        ->and($groups[0]['value'] ?? null)->toBe('{custom:acme_lead_source}');
-
-    $form = formie()
-        ->form(['title' => 'Custom Variables'])
-        ->singleLineTextField('name')
-        ->create();
-
-    $submission = formie()->submission($form)->with([
-        'name' => 'Taylor',
-    ])->save();
-
-    $parsed = References::parseContent('Source: {custom:acme_lead_source}', $submission);
-
-    expect($parsed)->toBe('Source: newsletter');
+    $groups = Variables::getCategoryConfig()['staticGroups'][Variables::GROUP_CUSTOM];
+    expect($groups[0]['value'])->toBe('{custom:acme/campaign}')
+        ->and(json_encode($groups))->not->toContain('private-value')->and($calls)->toBe(0);
+    expect(References::resolveValue('{custom:acme/campaign}', new ReferenceContext(permissions: ['server']))->requireValue())->toBe('private-value');
+    expect(References::resolveValue('{custom:acme/campaign}', new ReferenceContext())->diagnostic)->toBe(ReferenceDiagnostic::ForbiddenSource);
 });
 
-it('applies transforms to custom variable source values', function (): void {
-    Event::on(Variables::class, Variables::EVENT_REGISTER_VARIABLES, function(RegisterVariablesEvent $event): void {
-        $event->sources[] = VariableSource::create('acme_score', 'Score')
-            ->types([Variables::TYPE_NUMBER])
-            ->resolve(fn() => 42.6);
+it('requires namespaces and rejects duplicate registrations', function() {
+    expect(fn() => new ReferenceSource(new ReferenceDefinition('unnamespaced', 'Invalid', 'custom', FieldValueType::string()), fn() => 'x'))->toThrow(InvalidArgumentException::class);
+    Event::on(ReferenceCatalogue::class, ReferenceCatalogue::EVENT_REGISTER, function(RegisterReferencesEvent $event) {
+        $source = new ReferenceSource(new ReferenceDefinition('acme/value', 'Value', 'custom', FieldValueType::string()), fn() => 'x');
+        $event->sources = [$source, $source];
     });
-
-    $form = formie()
-        ->form(['title' => 'Custom Variable Transforms'])
-        ->create();
-
-    $submission = formie()->submission($form)->save();
-
-    $parsed = References::parseContent('{custom:acme_score;transform=round}', $submission);
-
-    expect($parsed)->toBe('43');
+    expect(fn() => new ReferenceCatalogue())->toThrow(InvalidArgumentException::class);
 });
 
-it('ignores duplicate custom variable sources', function (): void {
-    Event::on(Variables::class, Variables::EVENT_REGISTER_VARIABLES, function(RegisterVariablesEvent $event): void {
-        $event->sources[] = VariableSource::create('acme_token', 'First')
-            ->resolve(fn() => 'first');
-        $event->sources[] = VariableSource::create('acme_token', 'Duplicate')
-            ->resolve(fn() => 'second');
+it('validates extension input output and availability rather than coercing errors', function() {
+    Event::on(ReferenceCatalogue::class, ReferenceCatalogue::EVENT_REGISTER, function(RegisterReferencesEvent $event) {
+        $event->sources[] = new ReferenceSource(new ReferenceDefinition('acme/value', 'Value', 'custom', FieldValueType::string(), transforms: ['acme/shout']), fn() => 'hello');
+        $event->sources[] = new ReferenceSource(new ReferenceDefinition('acme/invalid', 'Invalid', 'custom', FieldValueType::boolean()), fn() => 'false');
+        $event->transforms[] = new ReferenceTransform('acme/shout', FieldValueType::string(), FieldValueType::string(), fn($value) => strtoupper($value));
     });
-
-    $sources = Variables::getRegisteredVariableSources();
-
-    expect($sources)->toHaveCount(1)
-        ->and($sources[0]->getLabel())->toBe('First');
+    $context = new ReferenceContext(permissions: ['server']);
+    expect(References::resolveValue('{custom:acme/value;transform=acme%2Fshout}', $context)->requireValue())->toBe('HELLO')
+        ->and(References::resolveValue('{custom:acme/invalid}', $context)->diagnostic)->toBe(ReferenceDiagnostic::InvalidType)
+        ->and(References::resolveValue('{custom:acme/value;transform=missing}', $context)->diagnostic)->toBe(ReferenceDiagnostic::UnknownTransform);
 });
 
-it('exposes custom variables under the general picker alias', function (): void {
-    Event::on(Variables::class, Variables::EVENT_REGISTER_VARIABLES, function(RegisterVariablesEvent $event): void {
-        $event->sources[] = VariableSource::create('acme_campaign', 'Campaign code')
-            ->resolve(fn() => 'spring-sale');
-    });
-
-    $aliases = Variables::getCategoryConfig()['groupAliases'][Variables::STATIC_GENERAL] ?? [];
-
-    expect($aliases)->toContain(Variables::GROUP_CUSTOM);
-});
-
-it('supports legacy beta registration and token resolution while compatibility mode is enabled', function (): void {
-    Event::on(Variables::class, Variables::EVENT_REGISTER_VARIABLES, function(RegisterVariablesEvent $event): void {
-        $event->register('acme', 'campaign', 'Campaign code')
-            ->resolve(fn() => 'spring-sale');
-    });
-
-    $sources = Variables::getRegisteredVariableSources();
-
-    expect($sources)->toHaveCount(1)
-        ->and($sources[0]->getHandle())->toBe('acme_campaign')
-        ->and($sources[0]->getToken())->toBe('{custom:acme_campaign}');
-
-    $form = formie()->form(['title' => 'Legacy Custom Variables'])->create();
-    $submission = formie()->submission($form)->save();
-
-    $parsed = References::parseContent('Code: {acme:campaign}', $submission);
-
-    expect($parsed)->toBe('Code: spring-sale');
-});
-
-it('does not resolve legacy custom variable tokens when compatibility mode is disabled', function (): void {
-    Formie::$plugin->getSettings()->compatibilityMode = false;
-
-    Event::on(Variables::class, Variables::EVENT_REGISTER_VARIABLES, function(RegisterVariablesEvent $event): void {
-        $event->sources[] = VariableSource::create('acme_campaign', 'Campaign code')
-            ->resolve(fn() => 'spring-sale');
-    });
-
-    $form = formie()->form(['title' => 'Legacy Custom Variables Disabled'])->create();
-    $submission = formie()->submission($form)->save();
-
-    $parsed = References::parseContent('Code: {acme:campaign}', $submission);
-
-    expect($parsed)->toBe('Code: ');
+it('diagnoses abandoned beta tokens instead of silently returning empty strings', function() {
+    expect(References::resolveValue('{acme:campaign}', new ReferenceContext())->diagnostic)->toBe(ReferenceDiagnostic::UnknownSource);
 });

@@ -1,21 +1,23 @@
 <?php
 namespace verbb\formie\integrations\crm;
 
+use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\Crm;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
-use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\elements\Submission;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationResult;
 
 use Craft;
 use craft\helpers\App;
 use craft\helpers\ArrayHelper;
 
-use GuzzleHttp\Client;
-
 use Throwable;
+
+use GuzzleHttp\Client;
 
 class Klaviyo extends Crm
 {
@@ -33,7 +35,9 @@ class Klaviyo extends Crm
     
     public ?string $publicApiKey = null;
     public ?string $privateApiKey = null;
+    #[FormIntegrationSetting]
     public bool $mapToProfile = false;
+    #[FormIntegrationSetting]
     public ?array $profileFieldMapping = null;
 
 
@@ -109,8 +113,9 @@ class Klaviyo extends Crm
         return new IntegrationFormSettings($settings);
     }
 
-    public function sendPayload(Submission $submission): bool
+    public function sendPayload(Submission $submission): IntegrationResult
     {
+        $this->beginPayloadDelivery($submission);
         try {
             $profileValues = $this->getFieldMappingValues($submission, $this->profileFieldMapping, 'profile');
 
@@ -138,15 +143,15 @@ class Klaviyo extends Crm
             $response = $this->deliverPayload($submission, 'profile-import', $profilePayload);
 
             if ($response === false) {
-                return true;
+                return $this->resultForPayload(true);
             }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
-            return false;
+            return $this->resultForPayload(false);
         }
 
-        return true;
+        return $this->resultForPayload(true);
     }
 
     public function fetchConnection(): bool
@@ -165,15 +170,6 @@ class Klaviyo extends Crm
     
     // Protected Methods
     // =========================================================================
-
-    protected function formSettingAttributes(): array
-    {
-        $settings = parent::formSettingAttributes();
-        $settings[] = 'mapToProfile';
-        $settings[] = 'profileFieldMapping';
-
-        return $settings;
-    }
 
     protected function defineRules(): array
     {

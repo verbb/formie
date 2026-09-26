@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\integrations\helpdesk;
 
+use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\HelpDesk;
 use verbb\formie\base\Integration;
@@ -8,6 +9,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationResult;
 
 use Craft;
 use craft\helpers\App;
@@ -15,9 +17,9 @@ use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
 
-use GuzzleHttp\Client;
-
 use Throwable;
+
+use GuzzleHttp\Client;
 
 class Zendesk extends HelpDesk
 {
@@ -36,7 +38,9 @@ class Zendesk extends HelpDesk
     public ?string $domain = null;
     public ?string $username = null;
     public ?string $apiKey = null;
+    #[FormIntegrationSetting]
     public bool $mapToTicket = false;
+    #[FormIntegrationSetting]
     public ?array $ticketFieldMapping = null;
 
 
@@ -101,8 +105,9 @@ class Zendesk extends HelpDesk
         return new IntegrationFormSettings($settings);
     }
 
-    public function sendPayload(Submission $submission): bool
+    public function sendPayload(Submission $submission): IntegrationResult
     {
+        $this->beginPayloadDelivery($submission);
         try {
             if ($this->mapToTicket) {
                 $ticketValues = $this->getFieldMappingValues($submission, $this->ticketFieldMapping, 'ticket');
@@ -134,7 +139,7 @@ class Zendesk extends HelpDesk
                 $response = $this->deliverPayload($submission, 'tickets.json', $ticketPayload);
 
                 if ($response === false) {
-                    return true;
+                    return $this->resultForPayload(true);
                 }
 
                 $ticketId = $response['ticket']['id'] ?? '';
@@ -145,16 +150,16 @@ class Zendesk extends HelpDesk
                         'payload' => Json::encode($ticketPayload),
                     ]), true);
 
-                    return false;
+                    return $this->resultForPayload(false);
                 }
             }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
-            return false;
+            return $this->resultForPayload(false);
         }
 
-        return true;
+        return $this->resultForPayload(true);
     }
 
     public function fetchConnection(): bool
@@ -173,15 +178,6 @@ class Zendesk extends HelpDesk
     
     // Protected Methods
     // =========================================================================
-
-    protected function formSettingAttributes(): array
-    {
-        $settings = parent::formSettingAttributes();
-        $settings[] = 'mapToTicket';
-        $settings[] = 'ticketFieldMapping';
-
-        return $settings;
-    }
 
     protected function defineRules(): array
     {

@@ -78,7 +78,7 @@ export function parseRowsExpression(expression: string, rowCount: number): numbe
                 [start, end] = [end, start];
             }
 
-            for (let row = start; row <= end; row++) {
+            for (let row = Math.max(1, start); row <= Math.min(rowCount, end); row++) {
                 if (row >= 1 && row <= rowCount) {
                     indices.push(row - 1);
                 }

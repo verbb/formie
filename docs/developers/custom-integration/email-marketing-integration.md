@@ -71,8 +71,9 @@ use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use Throwable;
 
-public function sendPayload(Submission $submission): bool
+public function sendPayload(Submission $submission): \verbb\formie\models\IntegrationResult
 {
+    $this->beginPayloadDelivery($submission);
     try {
         $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping);
         $email = $fieldValues['email'] ?? null;
@@ -82,11 +83,11 @@ public function sendPayload(Submission $submission): bool
             'fields' => $fieldValues,
         ]);
 
-        return $response !== false;
+        return $this->resultForPayload($response !== false);
     } catch (Throwable $e) {
         Integration::apiError($this, $e);
 
-        return false;
+        return $this->resultForPayload(false);
     }
 }
 ```

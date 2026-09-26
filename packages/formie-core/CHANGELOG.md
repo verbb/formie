@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Added
+- Add the shared, versioned reference grammar and typed browser source diagnostics.
+
 ### Changed
 - Describe normalized field values with explicit runtime type metadata and keep browser-input defaults separate from public data projections.
 - Support browser-bound progress, purpose-bound grant exchange, revision sessions and portable Save & Continue responses across REST and GraphQL. Clear exchanged tokens from browser history and preserve scoped upload attachment values.

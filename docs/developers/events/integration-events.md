@@ -792,3 +792,21 @@ Event::on(GoogleSheets::class, GoogleSheets::EVENT_MODIFY_MISCELLANEOUS_PAYLOAD,
     // ...
 });
 ```
+
+## Semantic Delivery Events
+
+Subscribe to `IntegrationRunner::EVENT_EVALUATED`, `EVENT_SKIPPED`, `EVENT_RESULT`, `EVENT_QUEUED` and `EVENT_BATCH_COMPLETED`; to `DeliveryAttempts::EVENT_OPERATION_START`, `EVENT_ATTEMPT_COMPLETED`, `EVENT_RETRY_DECISION` and `EVENT_RECONCILIATION`; or to `IntegrationDispatcher::EVENT_FINALIZED` when all configured integrations meet the form's terminal policy. Queueing is a scheduling event, not remote completion.
+
+These events receive `IntegrationDeliveryEvent`, with immutable `context`, optional normalized `result`, optional `batch` and the durable `attemptUid` where applicable. Read status, eligibility, execution identity, reason and explicit force overrides from these contracts. They do not require access to mutable provider internals or queue payloads. A batch preserves individual results; `EVENT_FINALIZED` is withheld for an unknown outcome and is checkpointed once per execution identity. Existing before/after payload hooks remain available for provider-specific payload modification.
+
+```php
+use verbb\formie\events\IntegrationDeliveryEvent;
+use verbb\formie\services\DeliveryAttempts;
+use yii\base\Event;
+
+Event::on(DeliveryAttempts::class, DeliveryAttempts::EVENT_ATTEMPT_COMPLETED, function(IntegrationDeliveryEvent $event) {
+    $status = $event->result->status->value;
+    $submissionId = $event->context->submissionId;
+    // Update local monitoring using the durable attempt UID.
+});
+```

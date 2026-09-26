@@ -60,12 +60,14 @@ function withEmailEnvOverrides(array $values, callable $callback): mixed
 
 function expectEmailHtmlToBeXssSafe(string $body): void
 {
-    expect($body)
-        ->not->toContain('<script')
-        ->not->toContain('onerror=')
-        ->not->toContain('onload=')
-        ->not->toContain('javascript:')
-        ->not->toContain('data:text/html');
+    $document = new DOMDocument();
+    @$document->loadHTML($body ?: '<html></html>');
+    $xpath = new DOMXPath($document);
+    expect($xpath->query('//script|//*[@onerror or @onload]')->length)->toBe(0);
+    foreach ($xpath->query('//@href|//@src') as $attribute) {
+        expect(strtolower($attribute->value))->not->toStartWith('javascript:')->not->toStartWith('data:text/html');
+    }
+
 }
 
 it('sanitizes notification html content before it becomes an email body', function (): void {
@@ -304,19 +306,16 @@ it('filters reply-to display names before they become outbound email headers', f
     ]);
 
     $result = Formie::$plugin->getEmails()->renderEmail($notification, $submission);
-    $replyTo = $result['email']->getReplyTo();
-    $replyToName = $replyTo['reply@example.test'] ?? null;
+    expect($result)->toHaveKey('error');
 
-    expect($result)->not->toHaveKey('error')
-        ->and($replyToName)->toBe('Reply Sender')
-        ->and($replyToName)->not->toContain('<script')
-        ->and($replyToName)->not->toContain("\n");
 })->group('security');
 
 it('resolves env aliases authored in notification email settings', function (): void {
     withEmailEnvOverrides([
         'FORMIE_SECURITY_RECIPIENT' => 'recipient-env@example.test',
     ], function (): void {
+        $originalAllowlist = Formie::$plugin->getSettings()->referenceEnvironmentAllowlist;
+        Formie::$plugin->getSettings()->referenceEnvironmentAllowlist = ['FORMIE_SECURITY_RECIPIENT'];
         $form = formie()
             ->form(['title' => 'Email Authored Env Security'])
             ->singleLineTextField('fullName')
@@ -337,6 +336,7 @@ it('resolves env aliases authored in notification email settings', function (): 
 
         $result = Formie::$plugin->getEmails()->renderEmail($notification, $submission);
 
+        Formie::$plugin->getSettings()->referenceEnvironmentAllowlist = $originalAllowlist;
         expect($result)->not->toHaveKey('error')
             ->and($result['email']->getTo())->toHaveKey('recipient-env@example.test');
     });

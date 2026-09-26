@@ -156,9 +156,10 @@ class GoToWebinar extends Miscellaneous implements OAuthProviderInterface
         return new IntegrationFormSettings();
     }
 
-    public function sendPayload(Submission $submission): bool
+    public function sendPayload(Submission $submission): \verbb\formie\models\IntegrationResult
     {
-        return true;
+        $this->beginPayloadDelivery($submission);
+        return $this->resultForPayload(true);
     }
 }
 ```

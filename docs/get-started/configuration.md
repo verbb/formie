@@ -21,6 +21,15 @@ For project config, environment variables, and control panel settings across sta
 ## Configuration Options
 
 ::: reference
+### `referenceEnvironmentAllowlist`
+
+**Type:** `array` · **Default:** `[]`
+
+Lists the environment variable names that authored references may resolve, for example `['PUBLIC_CONTACT_EMAIL']`. Only allowlist values safe for the intended output. Names appear in the Variable Picker; values are evaluated on the server and never included in picker metadata. This also applies to authored `$NAME` notification settings. Submitted `$NAME` text stays literal. See [Reference Tokens](/developers/reference-tokens).
+:::
+
+
+::: reference
 ### `pluginName`
 
 **Type:** `string` · **Default:** `'Formie'`

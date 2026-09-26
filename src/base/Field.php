@@ -3,6 +3,7 @@ namespace verbb\formie\base;
 
 use verbb\formie\Formie;
 use verbb\formie\content\FieldStorageCodec;
+use verbb\formie\deprecations\FieldDeprecations;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\FieldElementEvent;
@@ -12,7 +13,6 @@ use verbb\formie\events\ModifyFieldIntegrationValueEvent;
 use verbb\formie\events\ModifyFieldSchemaEvent;
 use verbb\formie\events\ModifyFieldUniqueQueryEvent;
 use verbb\formie\events\ModifyFieldValueEvent;
-use verbb\formie\deprecations\FieldDeprecations;
 use verbb\formie\fields;
 use verbb\formie\fields\coercion\EmptyValueCoercer;
 use verbb\formie\fields\values\FieldValueInterface;
@@ -38,6 +38,8 @@ use verbb\formie\models\Settings;
 use verbb\formie\positions\Hidden as HiddenPosition;
 use verbb\formie\query\FieldValueQueryHelper;
 use verbb\formie\records\FormField as FormFieldRecord;
+use verbb\formie\references\ReferenceContext;
+use verbb\formie\references\ReferenceResolver;
 use verbb\formie\validators\HandleValidator;
 use verbb\formie\validators\LayoutHandleUniqueValidator;
 
@@ -822,7 +824,7 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
             return null;
         }
 
-        $resolvedMatchField = Formie::$plugin->getFields()->getFieldByReference($expression->identifier);
+        $resolvedMatchField = (new ReferenceResolver())->fieldFor($expression->identifier, new ReferenceContext(form: $this->getForm()));
 
         return $resolvedMatchField?->handle ?? null;
     }

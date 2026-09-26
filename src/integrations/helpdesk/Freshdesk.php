@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\integrations\helpdesk;
 
+use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\HelpDesk;
 use verbb\formie\base\Integration;
@@ -11,17 +12,20 @@ use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationResult;
+use verbb\formie\references\ReferenceSlot;
+use verbb\formie\references\ReferenceSlotKind;
 
 use Craft;
 use craft\elements\db\AssetQuery;
 use craft\helpers\App;
 use craft\helpers\Json;
 
-use GuzzleHttp\Psr7\Utils;
+use Throwable;
+
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
-
-use Throwable;
+use GuzzleHttp\Psr7\Utils;
 
 class Freshdesk extends HelpDesk
 {
@@ -39,9 +43,13 @@ class Freshdesk extends HelpDesk
 
     public ?string $apiKey = null;
     public ?string $apiDomain = null;
+    #[FormIntegrationSetting]
     public bool $mapToContact = false;
+    #[FormIntegrationSetting]
     public bool $mapToTicket = false;
+    #[FormIntegrationSetting]
     public ?array $contactFieldMapping = null;
+    #[FormIntegrationSetting]
     public ?array $ticketFieldMapping = null;
     private ?array $_attachments = null;
 
@@ -306,8 +314,9 @@ class Freshdesk extends HelpDesk
         return new IntegrationFormSettings($settings);
     }
 
-    public function sendPayload(Submission $submission): bool
+    public function sendPayload(Submission $submission): IntegrationResult
     {
+        $this->beginPayloadDelivery($submission);
         try {
             // Send Contact payload
             if ($this->mapToContact) {
@@ -434,7 +443,7 @@ class Freshdesk extends HelpDesk
                 $response = $this->deliverPayload($submission, 'tickets', $ticketPayload, 'POST', $contentType);
 
                 if ($response === false) {
-                    return true;
+                    return $this->resultForPayload(true);
                 }
 
                 $ticketId = $response['id'] ?? '';
@@ -445,16 +454,16 @@ class Freshdesk extends HelpDesk
                         'payload' => Json::encode($ticketPayload),
                     ]), true);
 
-                    return false;
+                    return $this->resultForPayload(false);
                 }
             }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
-            return false;
+            return $this->resultForPayload(false);
         }
 
-        return true;
+        return $this->resultForPayload(true);
     }
 
     public function fetchConnection(): bool
@@ -481,8 +490,9 @@ class Freshdesk extends HelpDesk
         }
 
         foreach ($fieldMapping as $tag => $fieldKey) {
+            $slot = ReferenceSlot::fromStored($fieldKey);
             // Don't let in un-mapped fields
-            if ($fieldKey === '') {
+            if ($slot->value === '') {
                 continue;
             }
 
@@ -493,7 +503,7 @@ class Freshdesk extends HelpDesk
                 $name = $tag;
             }
 
-            if (str_contains($fieldKey, '{')) {
+            if ($slot->kind !== ReferenceSlotKind::Literal) {
                 // Handle attachments differently to get file contents
                 if ($tag === 'attachments') {
                     $name .= '[]';
@@ -529,7 +539,7 @@ class Freshdesk extends HelpDesk
                 // Otherwise, might have passed in a direct, static value
                 $fieldValues[] = [
                     'name' => $name,
-                    'contents' => $fieldKey,
+                    'contents' => $slot->value,
                 ];
             }
         }
@@ -550,17 +560,6 @@ class Freshdesk extends HelpDesk
 
     // Protected Methods
     // =========================================================================
-
-    protected function formSettingAttributes(): array
-    {
-        $settings = parent::formSettingAttributes();
-        $settings[] = 'mapToContact';
-        $settings[] = 'mapToTicket';
-        $settings[] = 'contactFieldMapping';
-        $settings[] = 'ticketFieldMapping';
-
-        return $settings;
-    }
 
     protected function defineRules(): array
     {

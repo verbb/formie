@@ -188,6 +188,7 @@ export default defineConfig(async ({ command, mode }) => {
                     'formie-field-palette': path.resolve('./src/field-palette/formie-field-palette.js'),
                     'formie-form-group-settings': path.resolve('./src/form-group-settings/formie-form-group-settings.js'),
                     'formie-reports': path.resolve('./src/reports/formie-reports.js'),
+                    'formie-delivery': path.resolve('./src/delivery/formie-delivery.js'),
                     'formie-tiptap': path.resolve('./src/tiptap/formie-tiptap.js'),
                 },
                 output: {

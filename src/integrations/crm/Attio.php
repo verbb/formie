@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\integrations\crm;
 
+use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\Crm;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
@@ -12,6 +13,7 @@ use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationResult;
 
 use Craft;
 use craft\helpers\App;
@@ -19,9 +21,9 @@ use craft\helpers\Json;
 
 use yii\base\Event;
 
-use GuzzleHttp\Client;
-
 use Throwable;
+
+use GuzzleHttp\Client;
 
 class Attio extends Crm
 {
@@ -55,7 +57,9 @@ class Attio extends Crm
     // =========================================================================
     
     public ?string $apiKey = null;
+    #[FormIntegrationSetting]
     public bool $mapToPeople = false;
+    #[FormIntegrationSetting]
     public ?array $peopleFieldMapping = null;
 
 
@@ -132,8 +136,9 @@ class Attio extends Crm
         return new IntegrationFormSettings($settings);
     }
 
-    public function sendPayload(Submission $submission): bool
+    public function sendPayload(Submission $submission): IntegrationResult
     {
+        $this->beginPayloadDelivery($submission);
         try {
             if ($this->mapToPeople) {
                 $peopleValues = $this->getFieldMappingValues($submission, $this->peopleFieldMapping, 'people');
@@ -147,7 +152,7 @@ class Attio extends Crm
                 $response = $this->deliverPayload($submission, 'objects/people/records?matching_attribute=email_addresses', $payload, 'PUT');
 
                 if ($response === false) {
-                    return true;
+                    return $this->resultForPayload(true);
                 }
 
                 $peopleId = $response['data']['id']['record_id'] ?? '';
@@ -158,16 +163,16 @@ class Attio extends Crm
                         'payload' => Json::encode($payload),
                     ]), true);
 
-                    return false;
+                    return $this->resultForPayload(false);
                 }
             }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
-            return false;
+            return $this->resultForPayload(false);
         }
 
-        return true;
+        return $this->resultForPayload(true);
     }
 
     public function fetchConnection(): bool
@@ -186,15 +191,6 @@ class Attio extends Crm
     
     // Protected Methods
     // =========================================================================
-
-    protected function formSettingAttributes(): array
-    {
-        $settings = parent::formSettingAttributes();
-        $settings[] = 'mapToPeople';
-        $settings[] = 'peopleFieldMapping';
-
-        return $settings;
-    }
 
     protected function defineRules(): array
     {

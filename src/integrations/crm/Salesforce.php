@@ -2,19 +2,21 @@
 namespace verbb\formie\integrations\crm;
 
 use verbb\formie\Formie;
+use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\Crm;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
+use verbb\formie\errors\IntegrationException;
 use verbb\formie\events\ModifyFieldIntegrationValueEvent;
 use verbb\formie\events\ModifyFieldIntegrationValuesEvent;
 use verbb\formie\fields\FileUpload;
-use verbb\formie\helpers\Assets;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\Assets;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\errors\IntegrationException;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationResult;
 
 use Craft;
 use craft\base\LocalFsInterface;
@@ -26,21 +28,19 @@ use craft\helpers\Json;
 
 use yii\base\Event;
 
-use GuzzleHttp\Exception\RequestException;
-
 use DateTime;
 use DateTimeInterface;
 use DateTimeZone;
-use Throwable;
 use Exception;
+use Throwable;
 
+use GuzzleHttp\Exception\RequestException;
+use League\OAuth1\Client\Credentials\TokenCredentials as OAuth1Token;
+use League\OAuth2\Client\Token\AccessToken as OAuth2Token;
 use verbb\auth\base\OAuthProviderInterface;
 use verbb\auth\clients\salesforce\token\SalesforceAccessToken;
 use verbb\auth\models\Token;
 use verbb\auth\providers\Salesforce as SalesforceProvider;
-
-use League\OAuth1\Client\Credentials\TokenCredentials as OAuth1Token;
-use League\OAuth2\Client\Token\AccessToken as OAuth2Token;
 
 class Salesforce extends Crm implements OAuthProviderInterface
 {
@@ -102,24 +102,43 @@ class Salesforce extends Crm implements OAuthProviderInterface
     public bool|string $useCredentials = false;
     public ?string $username = null;
     public ?string $password = null;
+    #[FormIntegrationSetting]
     public bool $mapToContact = false;
+    #[FormIntegrationSetting]
     public bool $mapToLead = false;
+    #[FormIntegrationSetting]
     public bool $mapToOpportunity = false;
+    #[FormIntegrationSetting]
     public bool $mapToAccount = false;
+    #[FormIntegrationSetting]
     public bool $mapToCase = false;
+    #[FormIntegrationSetting]
     public bool $mapToCampaignMember = false;
+    #[FormIntegrationSetting]
     public ?array $contactFieldMapping = null;
+    #[FormIntegrationSetting]
     public ?array $leadFieldMapping = null;
+    #[FormIntegrationSetting]
     public ?array $opportunityFieldMapping = null;
+    #[FormIntegrationSetting]
     public ?array $accountFieldMapping = null;
+    #[FormIntegrationSetting]
     public ?array $caseFieldMapping = null;
+    #[FormIntegrationSetting]
     public ?array $campaignMemberFieldMapping = null;
+    #[FormIntegrationSetting]
     public bool $duplicateLeadTask = false;
+    #[FormIntegrationSetting]
     public string $duplicateLeadTaskSubject = 'Task';
+    #[FormIntegrationSetting]
     public bool $mapToContactAttachments = false;
+    #[FormIntegrationSetting]
     public bool $mapToLeadAttachments = false;
+    #[FormIntegrationSetting]
     public bool $mapToOpportunityAttachments = false;
+    #[FormIntegrationSetting]
     public bool $mapToAccountAttachments = false;
+    #[FormIntegrationSetting]
     public bool $mapToCaseAttachments = false;
 
     private array $users = [];
@@ -337,7 +356,7 @@ class Salesforce extends Crm implements OAuthProviderInterface
         return new IntegrationFormSettings($settings);
     }
 
-    public function getMappedFieldValue(string $mappedFieldValue, Submission $submission, IntegrationField $integrationField): mixed
+    public function getMappedFieldValue(mixed $mappedFieldValue, Submission $submission, IntegrationField $integrationField): mixed
     {
         $value = parent::getMappedFieldValue($mappedFieldValue, $submission, $integrationField);
 
@@ -349,8 +368,9 @@ class Salesforce extends Crm implements OAuthProviderInterface
         return $value;
     }
 
-    public function sendPayload(Submission $submission): bool
+    public function sendPayload(Submission $submission): IntegrationResult
     {
+        $this->beginPayloadDelivery($submission);
         try {
             $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
             $leadValues = $this->getFieldMappingValues($submission, $this->leadFieldMapping, 'lead');
@@ -368,7 +388,7 @@ class Salesforce extends Crm implements OAuthProviderInterface
                 $response = $this->deliverPayload($submission, 'sobjects/Account', $accountPayload);
 
                 if ($response === false) {
-                    return true;
+                    return $this->resultForPayload(true);
                 }
 
                 $accountId = $response['id'] ?? '';
@@ -379,7 +399,7 @@ class Salesforce extends Crm implements OAuthProviderInterface
                         'payload' => Json::encode($accountPayload),
                     ]), true);
 
-                    return false;
+                    return $this->resultForPayload(false);
                 }
 
                 if ($this->mapToAccountAttachments) {
@@ -414,14 +434,14 @@ class Salesforce extends Crm implements OAuthProviderInterface
                     $response = $this->deliverPayload($submission, "sobjects/Contact/$contactId", $contactPayload, 'PATCH');
 
                     if ($response === false) {
-                        return true;
+                        return $this->resultForPayload(true);
                     }
                 } else {
                     // Create the new record
                     $response = $this->deliverPayload($submission, 'sobjects/Contact', $contactPayload);
 
                     if ($response === false) {
-                        return true;
+                        return $this->resultForPayload(true);
                     }
 
                     $contactId = $response['id'] ?? '';
@@ -432,7 +452,7 @@ class Salesforce extends Crm implements OAuthProviderInterface
                             'payload' => Json::encode($contactPayload),
                         ]), true);
 
-                        return false;
+                        return $this->resultForPayload(false);
                     }
 
                     // Have to re-fetch the contact to get more values
@@ -469,7 +489,7 @@ class Salesforce extends Crm implements OAuthProviderInterface
                     $response = $this->deliverPayload($submission, 'sobjects/Lead', $leadPayload);
 
                     if ($response === false) {
-                        return true;
+                        return $this->resultForPayload(true);
                     }
 
                     $leadId = $response['id'] ?? '';
@@ -480,7 +500,7 @@ class Salesforce extends Crm implements OAuthProviderInterface
                             'payload' => Json::encode($leadPayload),
                         ]), true);
 
-                        return false;
+                        return $this->resultForPayload(false);
                     }
 
                     if ($this->mapToLeadAttachments) {
@@ -519,7 +539,7 @@ class Salesforce extends Crm implements OAuthProviderInterface
                                     $response = $this->deliverPayload($submission, 'sobjects/Task', $taskPayload);
 
                                     if ($response === false) {
-                                        return true;
+                                        return $this->resultForPayload(true);
                                     }
 
                                     $taskCreated = true;
@@ -531,7 +551,7 @@ class Salesforce extends Crm implements OAuthProviderInterface
                                 } catch (Throwable $e) {
                                     Integration::apiError($this, $e);
 
-                                    return false;
+                                    return $this->resultForPayload(false);
                                 }
                             }
                         }
@@ -539,7 +559,7 @@ class Salesforce extends Crm implements OAuthProviderInterface
 
                     // Unless we handle the duplicate lead by creating a task, we should show it failed
                     if (!$taskCreated) {
-                        return false;
+                        return $this->resultForPayload(false);
                     }
                 }
             }
@@ -571,7 +591,7 @@ class Salesforce extends Crm implements OAuthProviderInterface
                 $response = $this->deliverPayload($submission, 'sobjects/Opportunity', $opportunityPayload);
 
                 if ($response === false) {
-                    return true;
+                    return $this->resultForPayload(true);
                 }
 
                 $opportunityId = $response['id'] ?? '';
@@ -582,7 +602,7 @@ class Salesforce extends Crm implements OAuthProviderInterface
                         'payload' => Json::encode($opportunityPayload),
                     ]), true);
 
-                    return false;
+                    return $this->resultForPayload(false);
                 }
 
                 if ($this->mapToOpportunityAttachments) {
@@ -604,7 +624,7 @@ class Salesforce extends Crm implements OAuthProviderInterface
                 $response = $this->deliverPayload($submission, 'sobjects/Case', $casePayload);
 
                 if ($response === false) {
-                    return true;
+                    return $this->resultForPayload(true);
                 }
 
                 $caseId = $response['id'] ?? '';
@@ -615,7 +635,7 @@ class Salesforce extends Crm implements OAuthProviderInterface
                         'payload' => Json::encode($casePayload),
                     ]), true);
 
-                    return false;
+                    return $this->resultForPayload(false);
                 }
 
                 if ($this->mapToCaseAttachments) {
@@ -641,7 +661,7 @@ class Salesforce extends Crm implements OAuthProviderInterface
                 $response = $this->deliverPayload($submission, 'sobjects/CampaignMember', $campaignMemberPayload);
 
                 if ($response === false) {
-                    return true;
+                    return $this->resultForPayload(true);
                 }
 
                 $campaignMemberId = $response['id'] ?? '';
@@ -652,47 +672,21 @@ class Salesforce extends Crm implements OAuthProviderInterface
                         'payload' => Json::encode($campaignMemberPayload),
                     ]), true);
 
-                    return false;
+                    return $this->resultForPayload(false);
                 }
             }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
-            return false;
+            return $this->resultForPayload(false);
         }
 
-        return true;
+        return $this->resultForPayload(true);
     }
 
 
     // Protected Methods
     // =========================================================================
-
-    protected function formSettingAttributes(): array
-    {
-        $settings = parent::formSettingAttributes();
-        $settings[] = 'mapToContact';
-        $settings[] = 'mapToLead';
-        $settings[] = 'mapToOpportunity';
-        $settings[] = 'mapToAccount';
-        $settings[] = 'mapToCase';
-        $settings[] = 'mapToCampaignMember';
-        $settings[] = 'contactFieldMapping';
-        $settings[] = 'leadFieldMapping';
-        $settings[] = 'opportunityFieldMapping';
-        $settings[] = 'accountFieldMapping';
-        $settings[] = 'caseFieldMapping';
-        $settings[] = 'campaignMemberFieldMapping';
-        $settings[] = 'duplicateLeadTask';
-        $settings[] = 'duplicateLeadTaskSubject';
-        $settings[] = 'mapToContactAttachments';
-        $settings[] = 'mapToLeadAttachments';
-        $settings[] = 'mapToOpportunityAttachments';
-        $settings[] = 'mapToAccountAttachments';
-        $settings[] = 'mapToCaseAttachments';
-
-        return $settings;
-    }
 
     protected function defineRules(): array
     {

@@ -20,8 +20,9 @@ use verbb\formie\models\Notification;
 use verbb\formie\models\Payment as PaymentModel;
 use verbb\formie\models\PaymentDecision;
 use verbb\formie\models\PaymentFieldPayload;
-use verbb\formie\models\payments\PaymentWebhookCommand;
 use verbb\formie\models\SlotTag;
+use verbb\formie\models\payments\PaymentWebhookCommand;
+use verbb\formie\references\ReferenceContext;
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
@@ -403,7 +404,7 @@ abstract class Payment extends Integration
         if ($amountType === Payment::VALUE_TYPE_FIXED) {
             $amount = PaymentAmountHelper::parseAmount($amountFixed);
         } else if ($amountType === Payment::VALUE_TYPE_DYNAMIC) {
-            $amount = PaymentAmountHelper::parseAmount(References::parseValue($amountVariable, $submission));
+            $amount = PaymentAmountHelper::parseAmount(References::resolveValue($amountVariable, ReferenceContext::forSubmission($submission))->requireValue());
         }
 
         return $amount;
@@ -418,7 +419,7 @@ abstract class Payment extends Integration
         if ($currencyType === Payment::VALUE_TYPE_FIXED) {
             return (string)$currencyFixed;
         } else if ($currencyType === Payment::VALUE_TYPE_DYNAMIC) {
-            return (string)References::parseValue($currencyVariable, $submission);
+            return (string)References::resolveValue($currencyVariable, ReferenceContext::forSubmission($submission))->requireValue();
         }
 
         return $this->getFieldSetting('currency');

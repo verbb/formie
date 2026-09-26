@@ -6,6 +6,7 @@
 - Add `data-formie-validation-skip` so helper controls (such as the Upload Manager browse input) can opt out of client-side validation.
 
 ### Changed
+- Share reference parsing with the Variable Picker and diagnose unavailable browser references.
 - Initialize Opayo through its CSRF-protected payment-session endpoint and display unknown payment outcomes as awaiting reconciliation.
 - Use separate view and delete capabilities for Upload Manager assets.
 - Carry expected submission versions and signed request tokens through submit and page-state requests.

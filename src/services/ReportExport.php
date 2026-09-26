@@ -8,6 +8,7 @@ use verbb\formie\helpers\Variables;
 use verbb\formie\jobs\ExportReport;
 use verbb\formie\models\Report;
 use verbb\formie\models\ReportExportFile;
+use verbb\formie\references\ReferenceContext;
 
 use Craft;
 use craft\base\Component;
@@ -258,11 +259,13 @@ class ReportExport extends Component
         ];
 
         $template = strtr($template, $replacements);
-        $variables = Variables::getContextVariables($date);
-
-        $template = (string)preg_replace_callback('/\{[^{}]+\}/', function(array $matches) use ($variables): string {
-            return Variables::resolveContextReference((string)($matches[0] ?? ''), $variables);
-        }, $template);
+        $context = new ReferenceContext(
+            site: Craft::$app->getSites()->getCurrentSite(),
+            now: \DateTimeImmutable::createFromMutable($date),
+            system: ['name' => (string)\craft\helpers\App::mailSettings()->fromName, 'email' => (string)\craft\helpers\App::mailSettings()->fromEmail, 'replyTo' => (string)\craft\helpers\App::mailSettings()->replyToEmail],
+            report: ['handle' => (string)$report->handle, 'name' => (string)$report->name],
+        );
+        $template = \verbb\formie\helpers\References::interpolateText($template, $context);
 
         return $this->_sanitizeFilename($template);
     }

@@ -2,14 +2,16 @@
 namespace verbb\formie\integrations\crm;
 
 use verbb\formie\Formie;
+use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\Crm;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
-use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationResult;
 
 use Craft;
 use craft\helpers\App;
@@ -46,13 +48,21 @@ class OneCrm extends Crm implements OAuthProviderInterface
     // =========================================================================
 
     public ?string $apiDomain = null;
+    #[FormIntegrationSetting]
     public bool $mapToContact = false;
+    #[FormIntegrationSetting]
     public bool $mapToLead = false;
+    #[FormIntegrationSetting]
     public bool $mapToAccount = false;
+    #[FormIntegrationSetting]
     public bool $mapToOpportunity = false;
+    #[FormIntegrationSetting]
     public ?array $contactFieldMapping = null;
+    #[FormIntegrationSetting]
     public ?array $leadFieldMapping = null;
+    #[FormIntegrationSetting]
     public ?array $accountFieldMapping = null;
+    #[FormIntegrationSetting]
     public ?array $opportunityFieldMapping = null;
 
 
@@ -172,8 +182,9 @@ class OneCrm extends Crm implements OAuthProviderInterface
         return new IntegrationFormSettings($settings);
     }
 
-    public function sendPayload(Submission $submission): bool
+    public function sendPayload(Submission $submission): IntegrationResult
     {
+        $this->beginPayloadDelivery($submission);
         try {
             $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
             $leadValues = $this->getFieldMappingValues($submission, $this->leadFieldMapping, 'lead');
@@ -212,7 +223,7 @@ class OneCrm extends Crm implements OAuthProviderInterface
                 }
 
                 if ($response === false) {
-                    return true;
+                    return $this->resultForPayload(true);
                 }
 
                 $contactId = $existingContactId ?? $response['id'] ?? '';
@@ -245,7 +256,7 @@ class OneCrm extends Crm implements OAuthProviderInterface
                 }
 
                 if ($response === false) {
-                    return true;
+                    return $this->resultForPayload(true);
                 }
 
                 $leadId = $existingLeadId ?? $response['id'] ?? '';
@@ -278,7 +289,7 @@ class OneCrm extends Crm implements OAuthProviderInterface
                 }
 
                 if ($response === false) {
-                    return true;
+                    return $this->resultForPayload(true);
                 }
 
                 $accountId = $existingAccountId ?? $response['id'] ?? '';
@@ -296,7 +307,7 @@ class OneCrm extends Crm implements OAuthProviderInterface
                 $response = $this->deliverPayload($submission, 'data/Opportunity', $opportunityPayload);
 
                 if ($response === false) {
-                    return true;
+                    return $this->resultForPayload(true);
                 }
 
                 $opportunityId = $existingOpportunityId ?? $response['id'] ?? '';
@@ -304,30 +315,15 @@ class OneCrm extends Crm implements OAuthProviderInterface
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
-            return false;
+            return $this->resultForPayload(false);
         }
 
-        return true;
+        return $this->resultForPayload(true);
     }
 
 
     // Protected Methods
     // =========================================================================
-
-    protected function formSettingAttributes(): array
-    {
-        $settings = parent::formSettingAttributes();
-        $settings[] = 'mapToContact';
-        $settings[] = 'mapToLead';
-        $settings[] = 'mapToAccount';
-        $settings[] = 'mapToOpportunity';
-        $settings[] = 'contactFieldMapping';
-        $settings[] = 'leadFieldMapping';
-        $settings[] = 'accountFieldMapping';
-        $settings[] = 'opportunityFieldMapping';
-
-        return $settings;
-    }
 
     protected function defineRules(): array
     {

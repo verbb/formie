@@ -3,6 +3,7 @@ namespace verbb\formie\conditions;
 
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\references\ReferenceException;
 
 use Throwable;
 
@@ -38,6 +39,9 @@ class ConditionSetEvaluator
 
             try {
                 $result = $this->rowEvaluator->evaluate($condition, $submission);
+            } catch (ReferenceException $exception) {
+                \verbb\formie\Formie::warning($exception->getMessage());
+                $result = false;
             } catch (Throwable) {
                 // Treat malformed rows as non-matches and keep evaluating the
                 // rest so stale builder data degrades gracefully.

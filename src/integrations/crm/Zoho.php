@@ -2,6 +2,7 @@
 namespace verbb\formie\integrations\crm;
 
 use verbb\formie\Formie;
+use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\Crm;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
@@ -11,13 +12,14 @@ use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationResult;
 
 use Craft;
 use craft\helpers\App;
 use craft\helpers\Json;
 
-use Throwable;
 use Exception;
+use Throwable;
 
 use verbb\auth\base\OAuthProviderInterface;
 use verbb\auth\models\Token;
@@ -78,15 +80,25 @@ class Zoho extends Crm implements OAuthProviderInterface
     
     public bool|string $useDeveloper = false;
     public ?string $dataCenter = 'US';
+    #[FormIntegrationSetting]
     public bool $mapToContact = false;
+    #[FormIntegrationSetting]
     public bool $mapToDeal = false;
+    #[FormIntegrationSetting]
     public bool $mapToLead = false;
+    #[FormIntegrationSetting]
     public bool $mapToAccount = false;
+    #[FormIntegrationSetting]
     public bool $mapToQuote = false;
+    #[FormIntegrationSetting]
     public ?array $contactFieldMapping = null;
+    #[FormIntegrationSetting]
     public ?array $dealFieldMapping = null;
+    #[FormIntegrationSetting]
     public ?array $leadFieldMapping = null;
+    #[FormIntegrationSetting]
     public ?array $accountFieldMapping = null;
+    #[FormIntegrationSetting]
     public ?array $quoteFieldMapping = null;
 
 
@@ -193,8 +205,9 @@ class Zoho extends Crm implements OAuthProviderInterface
         return new IntegrationFormSettings($settings);
     }
 
-    public function sendPayload(Submission $submission): bool
+    public function sendPayload(Submission $submission): IntegrationResult
     {
+        $this->beginPayloadDelivery($submission);
         try {
             $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
             $dealValues = $this->getFieldMappingValues($submission, $this->dealFieldMapping, 'deal');
@@ -213,7 +226,7 @@ class Zoho extends Crm implements OAuthProviderInterface
                 $response = $this->deliverPayload($submission, 'Contacts/upsert', $contactPayload);
 
                 if ($response === false) {
-                    return true;
+                    return $this->resultForPayload(true);
                 }
 
                 $contactId = $response['data'][0]['details']['id'] ?? '';
@@ -224,7 +237,7 @@ class Zoho extends Crm implements OAuthProviderInterface
                         'payload' => Json::encode($contactPayload),
                     ]), true);
 
-                    return false;
+                    return $this->resultForPayload(false);
                 }
             }
 
@@ -237,7 +250,7 @@ class Zoho extends Crm implements OAuthProviderInterface
                 $response = $this->deliverPayload($submission, 'Accounts/upsert', $accountPayload);
 
                 if ($response === false) {
-                    return true;
+                    return $this->resultForPayload(true);
                 }
 
                 $accountId = $response['data'][0]['details']['id'] ?? '';
@@ -248,7 +261,7 @@ class Zoho extends Crm implements OAuthProviderInterface
                         'payload' => Json::encode($accountPayload),
                     ]), true);
 
-                    return false;
+                    return $this->resultForPayload(false);
                 }
             }
 
@@ -261,7 +274,7 @@ class Zoho extends Crm implements OAuthProviderInterface
                 $response = $this->deliverPayload($submission, 'Quotes/upsert', $quotePayload);
 
                 if ($response === false) {
-                    return true;
+                    return $this->resultForPayload(true);
                 }
 
                 $quoteId = $response['data'][0]['details']['id'] ?? '';
@@ -272,7 +285,7 @@ class Zoho extends Crm implements OAuthProviderInterface
                         'payload' => Json::encode($quotePayload),
                     ]), true);
 
-                    return false;
+                    return $this->resultForPayload(false);
                 }
             }
 
@@ -284,7 +297,7 @@ class Zoho extends Crm implements OAuthProviderInterface
                 $response = $this->deliverPayload($submission, 'Deals', $dealPayload);
 
                 if ($response === false) {
-                    return true;
+                    return $this->resultForPayload(true);
                 }
 
                 $dealId = $response['data'][0]['details']['id'] ?? '';
@@ -295,7 +308,7 @@ class Zoho extends Crm implements OAuthProviderInterface
                         'payload' => Json::encode($dealPayload),
                     ]), true);
 
-                    return false;
+                    return $this->resultForPayload(false);
                 }
 
                 // Connect Contact to Deal
@@ -309,7 +322,7 @@ class Zoho extends Crm implements OAuthProviderInterface
                     $response = $this->deliverPayload($submission, "Contacts/{$contactId}/Deals/{$dealId}", $payload, 'PUT');
 
                     if ($response === false) {
-                        return true;
+                        return $this->resultForPayload(true);
                     }
                 }
             }
@@ -322,7 +335,7 @@ class Zoho extends Crm implements OAuthProviderInterface
                 $response = $this->deliverPayload($submission, 'Leads', $leadPayload);
 
                 if ($response === false) {
-                    return true;
+                    return $this->resultForPayload(true);
                 }
 
                 $leadId = $response['data'][0]['details']['id'] ?? '';
@@ -333,38 +346,21 @@ class Zoho extends Crm implements OAuthProviderInterface
                         'payload' => Json::encode($leadPayload),
                     ]), true);
 
-                    return false;
+                    return $this->resultForPayload(false);
                 }
             }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
-            return false;
+            return $this->resultForPayload(false);
         }
 
-        return true;
+        return $this->resultForPayload(true);
     }
 
     
     // Protected Methods
     // =========================================================================
-
-    protected function formSettingAttributes(): array
-    {
-        $settings = parent::formSettingAttributes();
-        $settings[] = 'mapToContact';
-        $settings[] = 'mapToDeal';
-        $settings[] = 'mapToLead';
-        $settings[] = 'mapToAccount';
-        $settings[] = 'mapToQuote';
-        $settings[] = 'contactFieldMapping';
-        $settings[] = 'dealFieldMapping';
-        $settings[] = 'leadFieldMapping';
-        $settings[] = 'accountFieldMapping';
-        $settings[] = 'quoteFieldMapping';
-
-        return $settings;
-    }
 
     protected function defineRules(): array
     {

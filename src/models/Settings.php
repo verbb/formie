@@ -51,6 +51,7 @@ class Settings extends Model
     public string $pluginName = 'Formie';
     public string $defaultPage = 'forms';
     public bool $compatibilityMode = true;
+    public array $referenceEnvironmentAllowlist = [];
     public bool $staticCacheRefreshOnLoad = false;
     public string $allowedSubmitMethods = self::ALLOWED_SUBMIT_METHODS_BOTH;
 

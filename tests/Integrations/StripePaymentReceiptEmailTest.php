@@ -14,14 +14,14 @@ it('omits stripe receipt_email when the mapped receipt address resolves empty', 
         'providerSettings' => [
             'stripeTest' => [
                 'paymentReceipt' => true,
-                'paymentReceiptEmail' => '{field:missingEmail}',
+                'paymentReceiptEmail' => '{field:email}',
             ],
         ],
     ]);
 
     $integration->setField($paymentField);
 
-    $form = formie()->form(['title' => 'Stripe Receipt Email'])->create();
+    $form = formie()->form(['title' => 'Stripe Receipt Email'])->emailField('email')->create();
     $submission = new Submission();
     $submission->setForm($form);
 

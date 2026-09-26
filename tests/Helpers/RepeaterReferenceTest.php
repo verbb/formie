@@ -180,7 +180,7 @@ it('stringifies repeater scope=all and custom row values in notification content
         ->and(References::parseContent("custom: {$customToken}", $submission))->toBe('custom: a, c, e');
 });
 
-it('returns null for repeater sub-field tokens without scope metadata', function (): void {
+it('diagnoses repeater sub-field tokens without scope metadata', function (): void {
     $rows = [[
         'fields' => [[
             'type' => SingleLineText::class,
@@ -204,5 +204,5 @@ it('returns null for repeater sub-field tokens without scope metadata', function
     ])->save();
 
     expect(RepeaterReferenceHelper::requiresScope($submission, $ref, 'innerText'))->toBeTrue()
-        ->and($submission->getFieldValue(References::field($ref, 'innerText')))->toBeNull();
+        ->and(References::resolveValue(References::field($ref, 'innerText'), \verbb\formie\references\ReferenceContext::forSubmission($submission))->diagnostic)->toBe(\verbb\formie\references\ReferenceDiagnostic::MissingRowScope);
 });

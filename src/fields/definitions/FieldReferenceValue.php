@@ -3,13 +3,13 @@ namespace verbb\formie\fields\definitions;
 
 use verbb\formie\helpers\Variables;
 
-use yii\base\BaseObject;
+
 
 /**
  * Author-facing definition for one field reference value.
  * A single value can drive both selector metadata and variable-picker sources.
  */
-class FieldReferenceValue extends BaseObject
+final class FieldReferenceValue
 {
     // Static Methods
     // =========================================================================
@@ -59,69 +59,33 @@ class FieldReferenceValue extends BaseObject
     // Properties
     // =========================================================================
 
-    public string $handle = '';
-    public ?string $label = null;
-    public string $content = Variables::CONTENT_SINGLE_LINE;
-    public array $variableTypes = [];
-    public bool $default = false;
-    public ?string $condition = null;
-    public bool $supportsFieldSelect = true;
-    public bool $supportsVariablePicker = true;
-    public bool $supportsClient = true;
-    public array $meta = [];
+    public readonly string $handle;
+    public readonly ?string $label;
+    public readonly string $content;
+    public readonly array $variableTypes;
+    public readonly bool $default;
+    public readonly ?string $condition;
+    public readonly bool $supportsFieldSelect;
+    public readonly bool $supportsVariablePicker;
+    public readonly bool $supportsClient;
+    public readonly array $meta;
 
 
     // Public Methods
     // =========================================================================
 
-    public function when(?string $condition): self
+    public function __construct(array $config = [])
     {
-        $this->condition = $condition;
-
-        return $this;
-    }
-
-    public function withContent(string $content): self
-    {
-        $normalized = trim($content);
-        $this->content = $normalized !== '' ? $normalized : Variables::CONTENT_SINGLE_LINE;
-
-        return $this;
-    }
-
-    public function withVariableTypes(array $types): self
-    {
-        $this->variableTypes = array_values(array_unique(array_filter(array_map('strval', $types))));
-
-        return $this;
-    }
-
-    public function forFieldSelect(bool $enabled = true): self
-    {
-        $this->supportsFieldSelect = $enabled;
-
-        return $this;
-    }
-
-    public function forVariablePicker(bool $enabled = true): self
-    {
-        $this->supportsVariablePicker = $enabled;
-
-        return $this;
-    }
-
-    public function forClient(bool $enabled = true): self
-    {
-        $this->supportsClient = $enabled;
-
-        return $this;
-    }
-
-    public function withMeta(array $meta): self
-    {
-        $this->meta = $meta;
-
-        return $this;
+        $this->handle = $config['handle'] ?? '';
+        $this->label = $config['label'] ?? null;
+        $this->content = $config['content'] ?? Variables::CONTENT_SINGLE_LINE;
+        $this->variableTypes = $config['variableTypes'] ?? [];
+        $this->default = $config['default'] ?? false;
+        $this->condition = $config['condition'] ?? null;
+        $this->supportsFieldSelect = $config['supportsFieldSelect'] ?? true;
+        $this->supportsVariablePicker = $config['supportsVariablePicker'] ?? true;
+        $this->supportsClient = $config['supportsClient'] ?? true;
+        $this->meta = $config['meta'] ?? [];
     }
 
     public function toReferenceSelectorDefinition(): ?FieldReferenceSelector
@@ -130,12 +94,11 @@ class FieldReferenceValue extends BaseObject
             return null;
         }
 
-        return FieldReferenceSelector::make($this->handle, $this->label ?? $this->handle)
-            ->when($this->condition)
-            ->forFieldSelect($this->supportsFieldSelect)
-            ->forVariablePicker($this->supportsVariablePicker)
-            ->forClient($this->supportsClient)
-            ->withMeta($this->meta);
+        return FieldReferenceSelector::fromArray([
+            'handle' => $this->handle, 'label' => $this->label ?? $this->handle,
+            'condition' => $this->condition, 'supportsFieldSelect' => $this->supportsFieldSelect,
+            'supportsVariablePicker' => $this->supportsVariablePicker, 'supportsClient' => $this->supportsClient, 'meta' => $this->meta,
+        ]);
     }
 
     public function toDefaultVariableSourceDefinition(): ?FieldVariableSource
@@ -144,13 +107,11 @@ class FieldReferenceValue extends BaseObject
             return null;
         }
 
-        return FieldVariableSource::make('value', $this->label ?? 'Value')
-            ->when($this->condition)
-            ->forVariablePicker($this->supportsVariablePicker)
-            ->forClient($this->supportsClient)
-            ->withContent($this->content)
-            ->withTypes($this->variableTypes)
-            ->withMeta($this->meta);
+        return new FieldVariableSource([
+            'key' => 'value', 'label' => $this->label ?? 'Value', 'selector' => '',
+            'condition' => $this->condition, 'supportsVariablePicker' => $this->supportsVariablePicker,
+            'supportsClient' => $this->supportsClient, 'content' => $this->content, 'types' => $this->variableTypes, 'meta' => $this->meta,
+        ]);
     }
 
     public function toSelectorVariableSourceDefinition(): ?FieldVariableSource
@@ -159,12 +120,10 @@ class FieldReferenceValue extends BaseObject
             return null;
         }
 
-        return FieldVariableSource::make($this->handle, $this->label ?? $this->handle, $this->handle)
-            ->when($this->condition)
-            ->forVariablePicker($this->supportsVariablePicker)
-            ->forClient($this->supportsClient)
-            ->withContent($this->content)
-            ->withTypes($this->variableTypes)
-            ->withMeta($this->meta);
+        return new FieldVariableSource([
+            'key' => $this->handle, 'label' => $this->label ?? 'Value', 'selector' => $this->handle,
+            'condition' => $this->condition, 'supportsVariablePicker' => $this->supportsVariablePicker,
+            'supportsClient' => $this->supportsClient, 'content' => $this->content, 'types' => $this->variableTypes, 'meta' => $this->meta,
+        ]);
     }
 }

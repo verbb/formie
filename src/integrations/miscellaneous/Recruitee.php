@@ -1,8 +1,9 @@
 <?php
 namespace verbb\formie\integrations\miscellaneous;
 
-use verbb\formie\base\Integration;
+use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\FormInterface;
+use verbb\formie\base\Integration;
 use verbb\formie\base\Miscellaneous;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
@@ -10,14 +11,15 @@ use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationResult;
 
 use Craft;
 use craft\helpers\App;
 use craft\helpers\Json;
 
-use GuzzleHttp\Client;
-
 use Throwable;
+
+use GuzzleHttp\Client;
 
 class Recruitee extends Miscellaneous
 {
@@ -35,7 +37,9 @@ class Recruitee extends Miscellaneous
 
     public ?string $apiKey = null;
     public ?string $subdomain = null;
+    #[FormIntegrationSetting]
     public bool $mapToCandidate = false;
+    #[FormIntegrationSetting]
     public ?array $candidateFieldMapping = null;
 
 
@@ -111,8 +115,9 @@ class Recruitee extends Miscellaneous
         return parent::getFieldMappingValues($submission, $fieldMapping, $fields);
     }
 
-    public function sendPayload(Submission $submission): bool
+    public function sendPayload(Submission $submission): IntegrationResult
     {
+        $this->beginPayloadDelivery($submission);
         try {
             $candidateValues = $this->getFieldMappingValues($submission, $this->candidateFieldMapping, 'candidate');
 
@@ -130,7 +135,7 @@ class Recruitee extends Miscellaneous
                 $response = $this->deliverPayload($submission, "offers/{$offerSlug}/candidates", $candidatePayload);
 
                 if ($response === false) {
-                    return true;
+                    return $this->resultForPayload(true);
                 }
 
                 $candidateId = $response['candidate']['id'] ?? '';
@@ -141,16 +146,16 @@ class Recruitee extends Miscellaneous
                         'payload' => Json::encode($candidatePayload),
                     ]), true);
 
-                    return false;
+                    return $this->resultForPayload(false);
                 }
             }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
-            return false;
+            return $this->resultForPayload(false);
         }
 
-        return true;
+        return $this->resultForPayload(true);
     }
 
     public function fetchConnection(): bool
@@ -169,15 +174,6 @@ class Recruitee extends Miscellaneous
     
     // Protected Methods
     // =========================================================================
-
-    protected function formSettingAttributes(): array
-    {
-        $settings = parent::formSettingAttributes();
-        $settings[] = 'mapToCandidate';
-        $settings[] = 'candidateFieldMapping';
-
-        return $settings;
-    }
 
     protected function defineRules(): array
     {

@@ -3,6 +3,7 @@ namespace verbb\formie\models;
 
 use craft\base\Model;
 
+/** @deprecated Stable Formie 3 compatibility. Return IntegrationResult from new providers. */
 class IntegrationResponse extends Model
 {
     // Properties

@@ -11,6 +11,7 @@ use verbb\formie\integrations\messaging\Slack;
 
 class SecurityWebRequestEndpointProbe extends WebRequest
 {
+    protected function createDeliveryHttpHandler(): callable { return $this->getClient()->getConfig('handler'); }
     public function resolveEndpointForTest(string $url, Submission $submission): bool|string|null
     {
         return $this->getEndpointUrl($url, $submission);
@@ -132,7 +133,7 @@ it('sends Slack webhooks without the OAuth provider request path', function (): 
         'message' => 'Hello',
     ]);
 
-    expect($integration->sendPayload($submission))->toBeTrue()
+    expect($integration->sendPayload($submission)->status)->toBe(\verbb\formie\enums\IntegrationStatus::Succeeded)
         ->and($integration->history)->toHaveCount(1)
         ->and($integration->history[0]['request']->hasHeader('Authorization'))->toBeFalse();
 })->group('security');
@@ -157,8 +158,8 @@ it('does not follow HTTP redirects for automation delivery', function (): void {
     $config['allow_redirects'] = false;
     $integration->setClient(new \GuzzleHttp\Client($config));
 
-    // allow_redirects=false returns the 302 instead of chasing Location to a private host.
-    $integration->request('GET', 'http://8.8.8.8/audit-public');
+    // Refuse the redirect without chasing Location to a private host.
+    expect(fn() => $integration->request('GET', 'http://8.8.8.8/audit-public'))->toThrow(\GuzzleHttp\Exception\RequestException::class);
 
     expect($history)->toHaveCount(1)
         ->and((string)$history[0]['request']->getUri())->toBe('http://8.8.8.8/audit-public')

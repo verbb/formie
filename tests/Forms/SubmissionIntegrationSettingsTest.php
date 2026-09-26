@@ -33,9 +33,9 @@ it('isolates per-form integration settings in bulk commands', function (): void 
     $registry->fixture = new \verbb\formie\integrations\emailmarketing\Mailchimp(['name' => 'Private registry fixture', 'handle' => 'privateFixture', 'enabled' => true]);
     $dispatch = new class extends \verbb\formie\services\IntegrationTriggers {
         public array $seen = [];
-        public function dispatchManualIntegration(Integration $integration, Submission $submission): bool|IntegrationResponse {
+        public function dispatchManualIntegration(Integration $integration, Submission $submission): \verbb\formie\models\IntegrationResult {
             $this->seen[] = ['submissionId' => $submission->id, 'form' => $submission->getForm()->title, 'useDoubleOptIn' => $integration->useDoubleOptIn, 'listId' => $integration->listId];
-            return true;
+            return \verbb\formie\models\IntegrationResult::succeeded();
         }
     };
     Formie::$plugin->set('integrations', $registry);

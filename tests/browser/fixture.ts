@@ -42,3 +42,7 @@ import { opayoModule } from '../../packages/formie-browser/src/js/modules/paymen
         on: () => () => {}, emit: async () => {},
     });
 };
+
+import { buildFieldValueRegistry, resolveFieldReferenceLive, resolveFieldReferenceFromFormData } from '../../packages/formie-browser/src/index';
+import { resolveReference } from '../../packages/formie-core/src/index';
+(globalThis as any).referenceBoundary = { buildFieldValueRegistry, resolveFieldReferenceLive, resolveFieldReferenceFromFormData, resolveReference };

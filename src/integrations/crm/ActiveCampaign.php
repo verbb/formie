@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\integrations\crm;
 
+use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\Crm;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
@@ -9,14 +10,15 @@ use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationResult;
 
 use Craft;
 use craft\helpers\App;
 use craft\helpers\Json;
 
-use GuzzleHttp\Client;
-
 use Throwable;
+
+use GuzzleHttp\Client;
 
 class ActiveCampaign extends Crm
 {
@@ -34,11 +36,17 @@ class ActiveCampaign extends Crm
 
     public ?string $apiKey = null;
     public ?string $apiUrl = null;
+    #[FormIntegrationSetting]
     public bool $mapToContact = false;
+    #[FormIntegrationSetting]
     public bool $mapToDeal = false;
+    #[FormIntegrationSetting]
     public bool $mapToAccount = false;
+    #[FormIntegrationSetting]
     public ?array $contactFieldMapping = null;
+    #[FormIntegrationSetting]
     public ?array $dealFieldMapping = null;
+    #[FormIntegrationSetting]
     public ?array $accountFieldMapping = null;
 
 
@@ -213,8 +221,9 @@ class ActiveCampaign extends Crm
         return new IntegrationFormSettings($settings);
     }
 
-    public function sendPayload(Submission $submission): bool
+    public function sendPayload(Submission $submission): IntegrationResult
     {
+        $this->beginPayloadDelivery($submission);
         try {
             $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
             $dealValues = $this->getFieldMappingValues($submission, $this->dealFieldMapping, 'deal');
@@ -245,7 +254,7 @@ class ActiveCampaign extends Crm
                 $response = $this->deliverPayload($submission, 'contact/sync', $contactPayload);
 
                 if ($response === false) {
-                    return true;
+                    return $this->resultForPayload(true);
                 }
 
                 $contactId = $response['contact']['id'] ?? '';
@@ -256,7 +265,7 @@ class ActiveCampaign extends Crm
                         'payload' => Json::encode($contactPayload),
                     ]), true);
 
-                    return false;
+                    return $this->resultForPayload(false);
                 }
 
                 // If we're wanting to add them to a mailing list as well...
@@ -272,7 +281,7 @@ class ActiveCampaign extends Crm
                     $response = $this->deliverPayload($submission, 'contactLists', $payload);
 
                     if ($response === false) {
-                        return true;
+                        return $this->resultForPayload(true);
                     }
                 }
 
@@ -323,7 +332,7 @@ class ActiveCampaign extends Crm
                             $response = $this->deliverPayload($submission, 'contactTags', $tagPayload);
 
                             if ($response === false) {
-                                return true;
+                                return $this->resultForPayload(true);
                             }
                         }
                     }
@@ -361,7 +370,7 @@ class ActiveCampaign extends Crm
                     $response = $this->deliverPayload($submission, 'accounts', $accountPayload);
 
                     if ($response === false) {
-                        return true;
+                        return $this->resultForPayload(true);
                     }
 
                     $accountId = $response['account']['id'] ?? '';
@@ -389,7 +398,7 @@ class ActiveCampaign extends Crm
                         $response = $this->deliverPayload($submission, 'accountContacts', $payload);
 
                         if ($response === false) {
-                            return true;
+                            return $this->resultForPayload(true);
                         }
                     }
                 }
@@ -418,16 +427,16 @@ class ActiveCampaign extends Crm
                 $response = $this->deliverPayload($submission, 'deals', $dealPayload);
 
                 if ($response === false) {
-                    return true;
+                    return $this->resultForPayload(true);
                 }
             }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
-            return false;
+            return $this->resultForPayload(false);
         }
 
-        return true;
+        return $this->resultForPayload(true);
     }
 
     public function fetchConnection(): bool
@@ -446,19 +455,6 @@ class ActiveCampaign extends Crm
     
     // Protected Methods
     // =========================================================================
-
-    protected function formSettingAttributes(): array
-    {
-        $settings = parent::formSettingAttributes();
-        $settings[] = 'mapToContact';
-        $settings[] = 'mapToDeal';
-        $settings[] = 'mapToAccount';
-        $settings[] = 'contactFieldMapping';
-        $settings[] = 'dealFieldMapping';
-        $settings[] = 'accountFieldMapping';
-
-        return $settings;
-    }
 
     protected function defineRules(): array
     {

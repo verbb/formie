@@ -18,19 +18,9 @@ it('sanitizes invalid utf-8 strings for queue job debug data', function (): void
         ->and(mb_check_encoding((string)$sanitized['nested']['value'], 'UTF-8'))->toBeTrue();
 });
 
-it('can serialize a send notification job after sanitizing submission field values', function (): void {
-    $invalidUtf8 = "\xC3\x28";
-    $job = new SendNotification([
-        'submissionId' => 1,
-        'notificationId' => 2,
-    ]);
-    $job->submissionData = [
-        'fields' => ['message' => $invalidUtf8],
-    ];
-
-    $job = QueueJobDataHelper::sanitizeJobObject($job);
-
+it('serializes notification jobs using only a stable attempt locator', function (): void {
+    $job = new SendNotification(['deliveryAttemptUid' => '17854078-7aec-4843-a91b-8a9e1a21f7c0']);
     $serialized = Craft::$app->getQueue()->serializer->serialize($job);
-
-    expect($serialized)->toBeString()->not->toBeEmpty();
+    expect($serialized)->toBeString()->not->toContain('submissionData', 'notificationData', 'email');
+    expect(strlen($serialized))->toBeLessThan(1024);
 });

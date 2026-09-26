@@ -172,25 +172,27 @@ Event::on(MigrateFreeform5::class, MigrateFreeform5::EVENT_MODIFY_SUBMISSION, fu
 
 ## Variable Events
 
-### The `registerVariables` Event
+### The `registerReferences` Event
 
-The event that is triggered to register custom variable sources for the variable picker and server-side reference resolution.
+The event that is triggered when Formie builds its reference catalogue. Add typed, namespaced source and transform definitions to the event. Metadata construction never evaluates source values.
 
 ```php
-use verbb\formie\events\RegisterVariablesEvent;
-use verbb\formie\helpers\Variables;
-use verbb\formie\variables\VariableSource;
+use verbb\formie\events\RegisterReferencesEvent;
+use verbb\formie\fields\definitions\FieldValueType;
+use verbb\formie\references\ReferenceCatalogue;
+use verbb\formie\references\ReferenceDefinition;
+use verbb\formie\references\ReferenceSource;
 use yii\base\Event;
 
-Event::on(Variables::class, Variables::EVENT_REGISTER_VARIABLES, function(RegisterVariablesEvent $event) {
-    $event->sources[] = VariableSource::create('acme_campaign', 'Campaign code')
-        ->resolve(function($submission, $notification) {
-            return 'spring-sale';
-        });
+Event::on(ReferenceCatalogue::class, ReferenceCatalogue::EVENT_REGISTER, function(RegisterReferencesEvent $event) {
+    $event->sources[] = new ReferenceSource(
+        new ReferenceDefinition('acme/campaign', 'Campaign Code', 'custom', FieldValueType::string()),
+        static fn() => 'spring-sale',
+    );
 });
 ```
 
-See [Custom variable sources](/developers/custom-variable-sources) for token rules, picker metadata, transforms, and troubleshooting.
+See [Custom Variable Sources](/developers/custom-variable-sources) for context, availability and transform registration.
 
 ### The `registerClientEventTemplates` Event
 
@@ -219,23 +221,6 @@ Event::on(ClientEventTemplates::class, ClientEventTemplates::EVENT_REGISTER_CLIE
 ```
 
 See [Custom client event templates](/developers/custom-client-event-templates) for template properties, payload rows, page contexts, and troubleshooting.
-
-### The `registerTransformers` Event
-The event that is triggered to register additional variable transformers used when variable values are parsed.
-
-```php
-use Craft;
-use verbb\formie\helpers\Variables;
-use verbb\formie\events\RegisterTransformersEvent;
-use yii\base\Event;
-
-Event::on(Variables::class, Variables::EVENT_REGISTER_TRANSFORMERS, function(RegisterTransformersEvent $event) {
-    $event->transformerRegistry['custom'] = [
-        'label' => Craft::t('site', 'Custom'),
-        'transformer' => CustomVariableTransformer::class,
-    ];
-});
-```
 
 ## Email Domain Events
 

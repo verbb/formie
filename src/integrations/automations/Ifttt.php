@@ -2,20 +2,22 @@
 namespace verbb\formie\integrations\automations;
 
 use verbb\formie\Formie;
+use verbb\formie\attributes\FormIntegrationSetting;
+use verbb\formie\base\Automation;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
-use verbb\formie\base\Automation;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationResult;
 
 use Craft;
 use craft\helpers\App;
 use craft\helpers\Json;
 
-use GuzzleHttp\Client;
-
 use Throwable;
+
+use GuzzleHttp\Client;
 
 class Ifttt extends Automation
 {
@@ -37,6 +39,7 @@ class Ifttt extends Automation
     // =========================================================================
     
     public ?string $webhookKey = null;
+    #[FormIntegrationSetting]
     public ?string $eventName = null;
     
 
@@ -80,23 +83,24 @@ class Ifttt extends Automation
         return new IntegrationFormSettings($settings);
     }
 
-    public function sendPayload(Submission $submission): bool
+    public function sendPayload(Submission $submission): IntegrationResult
     {
+        $this->beginPayloadDelivery($submission);
         try {
             $payload = $this->generatePayloadValues($submission);
 
             $response = $this->deliverPayload($submission, $this->getUrl(), $payload);
 
             if ($response === false) {
-                return true;
+                return $this->resultForPayload(true);
             }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
-            return false;
+            return $this->resultForPayload(false);
         }
 
-        return true;
+        return $this->resultForPayload(true);
     }
 
     public function getUrl(): string
@@ -110,14 +114,6 @@ class Ifttt extends Automation
     
     // Protected Methods
     // =========================================================================
-
-    protected function formSettingAttributes(): array
-    {
-        $settings = parent::formSettingAttributes();
-        $settings[] = 'eventName';
-
-        return $settings;
-    }
 
     protected function defineRules(): array
     {

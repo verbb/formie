@@ -2,10 +2,12 @@
 namespace verbb\formie\base;
 
 use verbb\formie\Formie;
+use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\FormInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\errors\IntegrationException;
+use verbb\formie\errors\IntegrationStepException;
 use verbb\formie\events\IntegrationConnectionEvent;
 use verbb\formie\events\IntegrationFormSettingsEvent;
 use verbb\formie\events\ModifyFieldIntegrationValueEvent;
@@ -16,9 +18,12 @@ use verbb\formie\events\SendIntegrationPayloadEvent;
 use verbb\formie\fields\Agree;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\ConditionsHelper;
+use verbb\formie\helpers\DeliveryAttempt;
+use verbb\formie\helpers\DeliveryDiagnostics;
 use verbb\formie\helpers\IntegrationApiErrors;
 use verbb\formie\helpers\IntegrationHelper;
 use verbb\formie\helpers\IntegrationRerunPolicies;
+use verbb\formie\helpers\IntegrationSecrets;
 use verbb\formie\helpers\IntegrationTriggerEvents;
 use verbb\formie\helpers\References;
 use verbb\formie\helpers\SchemaHelper;
@@ -27,9 +32,13 @@ use verbb\formie\helpers\Table;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\ClientModule;
 use verbb\formie\models\ClientModuleContext;
+use verbb\formie\models\FormIntegration;
 use verbb\formie\models\IntegrationCollection;
+use verbb\formie\models\IntegrationConfig;
+use verbb\formie\models\IntegrationExecutionContext;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationResult;
 use verbb\formie\models\IntegrationSettingsContext;
 use verbb\formie\models\Phone;
 use verbb\formie\models\SlotTag;
@@ -37,6 +46,9 @@ use verbb\formie\models\Stencil;
 use verbb\formie\options\IntegrationOptionSourceHelper;
 use verbb\formie\options\OptionList;
 use verbb\formie\records\Integration as IntegrationRecord;
+use verbb\formie\references\ReferenceContext;
+use verbb\formie\references\ReferenceSlot;
+use verbb\formie\references\ReferenceSlotKind;
 use verbb\formie\services\Integrations as IntegrationsService;
 use verbb\formie\theme\context\RenderContext;
 
@@ -51,15 +63,20 @@ use craft\validators\HandleValidator;
 use craft\validators\UniqueValidator;
 use craft\web\Response;
 
+use yii\helpers\IpHelper;
+
 use Error;
 use Exception;
 use Throwable;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
-
-use yii\helpers\IpHelper;
-
+use GuzzleHttp\Handler\CurlHandler;
+use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Psr7\Request;
+use GuzzleHttp\Psr7\Uri;
+use GuzzleHttp\Psr7\UriResolver;
+use Psr\Http\Message\ResponseInterface;
 use verbb\auth\Auth;
 use verbb\auth\base\OAuthProviderInterface;
 use verbb\auth\base\OAuthProviderTrait;
@@ -145,6 +162,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     public static function info(IntegrationInterface $integration, string $message, bool $throwError = false): void
     {
+        $message = DeliveryDiagnostics::redact($message, $integration instanceof self ? $integration->getDiagnosticSecrets() : []);
         Formie::info($integration->name . ': ' . $message);
 
         if ($throwError) {
@@ -154,6 +172,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     public static function warning(IntegrationInterface $integration, string $message, bool $throwError = false): void
     {
+        $message = DeliveryDiagnostics::redact($message, $integration instanceof self ? $integration->getDiagnosticSecrets() : []);
         Formie::warning($integration->name . ': ' . $message);
 
         if ($throwError) {
@@ -163,6 +182,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     public static function error(IntegrationInterface $integration, string $message, bool $throwError = false): void
     {
+        $message = DeliveryDiagnostics::redact($message, $integration instanceof self ? $integration->getDiagnosticSecrets() : []);
         Formie::error($integration->name . ': ' . $message);
 
         if ($throwError) {
@@ -172,7 +192,16 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     public static function apiError(IntegrationInterface $integration, Error|Exception $exception, bool $throwError = true, ?Submission $submission = null): void
     {
-        $messageText = self::getExceptionLogMessage($exception);
+        if ($integration instanceof self) {
+            $integration->context['deliveryErrorResult'] = $exception instanceof IntegrationStepException
+                ? $exception->result : IntegrationResult::fromException($exception);
+            if ($integration->_deliveryAttemptUid) {
+                Formie::$plugin->getDeliveryAttempts()->checkpoint($integration->_deliveryAttemptUid, 'provider-error', [
+                    'type' => get_class($exception), 'error' => self::getExceptionLogMessage($exception),
+                ], $integration->getDiagnosticSecrets());
+            }
+        }
+        $messageText = DeliveryDiagnostics::redact(self::getExceptionLogMessage($exception), $integration instanceof self ? $integration->getDiagnosticSecrets() : []);
 
         $message = Craft::t('formie', 'API error: “{message}” {file}:{line}', [
             'message' => $messageText,
@@ -185,6 +214,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
             $message .= ' ' . $context;
         }
 
+        $message = DeliveryDiagnostics::redact($message, $integration instanceof self ? $integration->getDiagnosticSecrets() : []);
         Formie::error($integration->name . ': ' . $message);
 
         if ($throwError) {
@@ -339,8 +369,11 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public ?int $sortOrder = null;
     public array $cache = [];
     public ?string $uid = null;
+    #[FormIntegrationSetting]
     public ?string $optInField = null;
+    #[FormIntegrationSetting]
     public bool $enableConditions = false;
+    #[FormIntegrationSetting]
     public ?array $conditions = null;
 
     // Store extra context for when running the integration
@@ -353,6 +386,10 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     // Keep track of whether run in the context of a queue job
     private ?JobInterface $_queueJob = null;
+    private ?IntegrationExecutionContext $_deliveryContext = null;
+    private ?string $_deliveryAttemptUid = null;
+    private array $_deliveryStepCounts = [];
+    private bool $_directDelivery = false;
     private bool|string $_enabled = false;
 
 
@@ -435,10 +472,21 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     public function getFormSettingAttributes(): array
     {
-        return array_values(array_unique(array_filter(
-            $this->formSettingAttributes(),
-            fn($attribute) => is_string($attribute) && $attribute !== '',
-        )));
+        return array_merge(['enabled', 'execution'], FormIntegration::settingAttributes($this));
+    }
+
+    public function __clone(): void
+    {
+        // Cached connections are prototypes, never reusable executions or builder contexts.
+        $this->_client = null;
+        $this->_oauthProvider = null;
+        $this->_queueJob = null;
+        $this->_deliveryContext = null;
+        $this->_deliveryAttemptUid = null;
+        $this->_deliveryStepCounts = [];
+        $this->_directDelivery = false;
+        $this->context = [];
+        $this->settingsContext = clone $this->settingsContext;
     }
 
     public function supportsIntegrationApiErrorSeverity(): bool
@@ -722,7 +770,8 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     {
         // If using the cache (the default), don't fetch it automatically. Just save API requests a tad.
         if ($useCache) {
-            $settings = $this->_getCache('settings') ?: [];
+            $config = $this->getIntegrationConfig();
+            $settings = $config->data;
 
             // Add support for emoji in cached content
             $settings = Json::decode(StringHelper::shortcodesToEmoji((string)Json::encode($settings)));
@@ -762,10 +811,42 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         $this->trigger(self::EVENT_AFTER_FETCH_FORM_SETTINGS, $event);
 
         // Save a serialised version to the cache, that retains classes
-        $this->_setCache(['settings' => $settings->serialize()]);
+        $previous = $this->getIntegrationConfig();
+        $config = new IntegrationConfig(
+            IntegrationSecrets::redactValues(array_merge($previous->data, $settings->serialize()), $this->getDiagnosticSecrets()),
+            $this->getIntegrationConfigKey(),
+            time(),
+        );
+        $this->_setCache(['config' => $config->toStorage()]);
 
         // Always deal with a `IntegrationFormSettings` model
         return $settings;
+    }
+
+    public function getIntegrationConfigKey(): string
+    {
+        // Identity changes invalidate metadata without persisting connection secrets.
+        return hash('sha256', static::class . ':' . ($this->uid ?: $this->id) . ':' . ($this->cache['configGeneration'] ?? 'initial'));
+    }
+
+    public function getIntegrationConfig(): IntegrationConfig
+    {
+        $stored = $this->_getCache('config');
+        if (is_array($stored)) {
+            return IntegrationConfig::fromStorage($stored, $this->getIntegrationConfigKey());
+        }
+        $legacy = $this->_getCache('settings') ?: [];
+        return new IntegrationConfig(
+            IntegrationConfig::encode(IntegrationConfig::decode($legacy)),
+            $this->getIntegrationConfigKey(),
+            0,
+        );
+    }
+
+    public function invalidateIntegrationConfig(): void
+    {
+        unset($this->cache['settings'], $this->cache['config']);
+        $this->_setCache(['configGeneration' => StringHelper::UUID()]);
     }
 
     public function getFormSettingValue(string $key)
@@ -811,32 +892,130 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return UrlHelper::actionUrl(self::OAUTH_CALLBACK_ACTION);
     }
 
+    public function setDeliveryContext(IntegrationExecutionContext $context, string $attemptUid): void
+    {
+        $this->_deliveryContext = $context;
+        $this->_deliveryAttemptUid = $attemptUid;
+        $this->_deliveryStepCounts = [];
+        unset($this->context['deliveryErrorResult'], $this->context['deliverySkipped'], $this->context['deliveryWriteAccepted'], $this->context['deliveryUncertain']);
+    }
+
+    public function getDeliveryAttemptUid(): ?string
+    {
+        return $this->_deliveryAttemptUid;
+    }
+
+    public function getDeliveryExecutionContext(): ?IntegrationExecutionContext
+    {
+        return $this->_deliveryContext;
+    }
+
+    public function beginPayloadDelivery(Submission $submission): void
+    {
+        if (!$this->_deliveryContext) {
+            unset($this->context['deliveryErrorResult'], $this->context['deliverySkipped'], $this->context['deliveryWriteAccepted'], $this->context['deliveryUncertain']);
+            $this->_directDelivery = true;
+            $this->_deliveryContext = new IntegrationExecutionContext(
+                (int)$submission->id, (int)$submission->formId, (string)$this->handle,
+                DeliveryAttempt::workflowIdentity() ?? StringHelper::UUID(), 'synchronous', 'direct',
+            );
+        }
+    }
+
+    public function resultForPayload(mixed $value): IntegrationResult
+    {
+        $errorResult = $this->context['deliveryErrorResult'] ?? null;
+        $errorResult = $value === false || $errorResult?->requiresReconciliation() ? $errorResult : null;
+        $result = $errorResult ?? (!empty($this->context['deliverySkipped']) && empty($this->context['deliveryWriteAccepted'])
+            ? IntegrationResult::skipped('event_or_opt_in')
+            : IntegrationResult::fromLegacy($value,
+                !empty($this->context['deliveryUncertain']) || ($value === false && !empty($this->context['deliveryWriteAccepted'])),
+            ));
+        if ($this->_directDelivery) {
+            if ($this->_deliveryAttemptUid) {
+                Formie::$plugin->getDeliveryAttempts()->completeDirect($this->_deliveryAttemptUid, $result);
+            }
+            $this->_deliveryContext = null;
+            $this->_deliveryAttemptUid = null;
+            $this->_deliveryStepCounts = [];
+            $this->_directDelivery = false;
+        }
+        return $result;
+    }
+
+    public function executeDeliveryWrite(string $method, string $uri, array $options, callable $send, bool $isSideEffect = false): mixed
+    {
+        if (!$this->_deliveryContext || (!$isSideEffect && in_array(strtoupper($method), ['GET', 'HEAD', 'OPTIONS'], true))) {
+            return $send();
+        }
+        if (!$this->_deliveryAttemptUid) {
+            $this->_deliveryAttemptUid = Formie::$plugin->getDeliveryAttempts()->startDirect($this->_deliveryContext);
+        }
+        // The endpoint and occurrence identify a concrete provider operation. Its
+        // payload hash must also match when the same operation is replayed.
+        $key = strtoupper($method) . ':' . hash('sha256', $uri);
+        $ordinal = $this->_deliveryStepCounts[$key] = ($this->_deliveryStepCounts[$key] ?? 0) + 1;
+        $identityOptions = array_diff_key($options, array_flip(['handler', 'curl', 'proxy', 'verify', 'allow_redirects']));
+        return Formie::$plugin->getDeliveryAttempts()->write($this->_deliveryContext, $key . ':' . $ordinal, $this->_deliveryAttemptUid, $identityOptions, $send, ['method' => $method, 'endpoint' => $uri], $this->getDiagnosticSecrets());
+    }
+
+    public function requestWithProviderClient(Client $client, string $method, string $uri, array $options = []): mixed
+    {
+        $origin = new Uri((string)$client->getConfig('base_uri'));
+        $target = UriResolver::resolve($origin, new Uri($uri));
+        if (!$origin->getHost() || strtolower($target->getHost()) !== strtolower($origin->getHost()) || $target->getScheme() !== $origin->getScheme() || $target->getPort() !== $origin->getPort() || $target->getUserInfo() !== '') {
+            throw new IntegrationStepException(IntegrationResult::rejected('provider_origin_mismatch'));
+        }
+        $this->_applyPublicEndpointDnsPin($options, (string)$target);
+        $text = $this->executeDeliveryWrite($method, (string)$target, $options, fn() => $this->_readDeliveryResponse($client->request($method, (string)$target, $options)));
+        if (!in_array(strtoupper($method), ['GET', 'HEAD', 'OPTIONS'], true)) {
+            $this->context['deliveryWriteAccepted'] = true;
+        }
+        return Json::isJsonObject($text) ? Json::decode($text) : $text;
+    }
+
     public function request(string $method, string $uri, array $options = []): mixed
     {
+        $options['allow_redirects'] = false;
+        if (isset($options['base_uri'])) {
+            throw new IntegrationException('A request cannot override the configured provider origin.');
+        }
+        if (!$this instanceof Automation && !$this instanceof Payment) {
+            $base = (string)($this->getClient()->getConfig('base_uri') ?: (static::supportsOAuthConnection() ? $this->getBaseApiUrl($this->getToken()) : ''));
+            $target = UriResolver::resolve(new Uri($base), new Uri($uri));
+            $origin = new Uri($base);
+            if (!$origin->getHost() || strtolower($target->getHost()) !== strtolower($origin->getHost()) || $target->getScheme() !== $origin->getScheme() || $target->getPort() !== $origin->getPort() || $target->getUserInfo() !== '') {
+                throw new IntegrationStepException(IntegrationResult::rejected('provider_origin_mismatch'));
+            }
+            $this->_applyPublicEndpointDnsPin($options, (string)$target);
+        }
+
         $writes = !in_array(strtoupper($method), ['GET', 'HEAD', 'OPTIONS'], true);
         try {
             // If an OAuth-based integration, use the Auth module's client to do the request
             if (static::supportsOAuthConnection()) {
-                $result = $this->OAuthRequest($method, $uri, $options);
+                if (!$this instanceof Payment) {
+                    $this->_secureOAuthClient($base);
+                }
+                $result = $this->executeDeliveryWrite($method, $uri, $options, fn() => $this->OAuthRequest($method, $uri, $options));
                 if ($writes) {
                     $this->context['deliveryWriteAccepted'] = true;
                 }
                 return $result;
             }
 
-            $response = $this->getClient()->request($method, ltrim($uri, '/'), $options);
+            $text = $this->executeDeliveryWrite($method, $uri, $options, fn() => $this->_readDeliveryResponse($this->getClient()->request($method, ltrim($uri, '/'), $options)));
             if ($writes) {
                 $this->context['deliveryWriteAccepted'] = true;
             }
-            $text = (string)$response->getBody()->getContents();
-
             if (Json::isJsonObject($text)) {
                 return Json::decode($text);
             }
 
             return $text;
-        } catch (\Throwable $e) {
-            $response = $e instanceof \GuzzleHttp\Exception\RequestException ? $e->getResponse() : null;
+        } catch (Throwable $e) {
+            $this->context['deliveryErrorResult'] = $e instanceof IntegrationStepException ? $e->result : IntegrationResult::fromException($e);
+            $response = $e instanceof RequestException ? $e->getResponse() : null;
             if ($writes && (!$response || $response->getStatusCode() >= 500 || $response->getStatusCode() === 408)) {
                 $this->context['deliveryUncertain'] = true;
             }
@@ -847,18 +1026,28 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public function requestPublicEndpoint(string $method, string $uri, array $options = []): mixed
     {
         $writes = !in_array(strtoupper($method), ['GET', 'HEAD', 'OPTIONS'], true);
+        foreach (['proxy', 'curl', 'handler', 'base_uri', 'verify', 'cert', 'ssl_key', 'cookies'] as $option) {
+            if (array_key_exists($option, $options)) {
+                throw new IntegrationException('Unsupported public endpoint transport option.');
+            }
+        }
+        foreach (array_keys($options['headers'] ?? []) as $header) {
+            if (in_array(strtolower($header), ['host', 'proxy-authorization', 'cookie'], true)) {
+                throw new IntegrationException('Unsupported public endpoint header.');
+            }
+        }
         $options['allow_redirects'] = false;
+        $options['proxy'] = '';
+        $options['verify'] = true;
 
         try {
             // Use a clean client so provider credentials cannot be forwarded to
             // a form-configured endpoint on an unrelated public host.
-            $response = $this->createPublicEndpointClient($uri)->request($method, $uri, $options);
+            $text = $this->executeDeliveryWrite($method, $uri, $options, fn() => $this->_readDeliveryResponse($this->createPublicEndpointClient($uri)->request($method, $uri, $options)));
 
             if ($writes) {
                 $this->context['deliveryWriteAccepted'] = true;
             }
-
-            $text = (string)$response->getBody()->getContents();
 
             if (Json::isJsonObject($text)) {
                 return Json::decode($text);
@@ -866,6 +1055,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
             return $text;
         } catch (Throwable $e) {
+            $this->context['deliveryErrorResult'] = $e instanceof IntegrationStepException ? $e->result : IntegrationResult::fromException($e);
             $response = $e instanceof RequestException ? $e->getResponse() : null;
 
             if ($writes && (!$response || $response->getStatusCode() >= 500 || $response->getStatusCode() === 408)) {
@@ -880,6 +1070,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     {
         // Allow events to cancel sending
         if (!$this->beforeSendPayload($submission, $endpoint, $payload, $method, $contentType)) {
+            $this->context['deliverySkipped'] = true;
             return false;
         }
 
@@ -899,6 +1090,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public function deliverPayloadToPublicEndpoint(Submission $submission, string $endpoint, mixed $payload, string $method = 'POST', string $contentType = 'json'): mixed
     {
         if (!$this->beforeSendPayload($submission, $endpoint, $payload, $method, $contentType)) {
+            $this->context['deliverySkipped'] = true;
             return false;
         }
 
@@ -932,26 +1124,19 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
             // Get the type of field we are mapping to (for the integration)
             $integrationField = ArrayHelper::firstWhere($fieldSettings, 'handle', $tag) ?? new IntegrationField();
 
-            if (str_contains($fieldKey, '{')) {
-                // Reference tokens opt into Formie's field-resolution pipeline,
-                // including field-specific integration projections, while plain
-                // strings are treated as authored literals.
-                $resolved = Variables::getFieldAndValueForReference($fieldKey, $submission);
-                $rawValue = $resolved['value'];
-                $value = static::convertValueForIntegration($rawValue, $integrationField);
-                $field = $resolved['field'];
-
-                // Most integrations treat empty values as "leave unmapped" to
-                // avoid clearing remote data unintentionally. Element syncing is
-                // the main exception because overwriteValues explicitly opts into
-                // sending blanks as real updates.
-                $shouldSet = !self::_isEmpty($value) || ($this instanceof Element && $this->overwriteValues);
+            $slot = ReferenceSlot::fromStored($rawFieldKey);
+            $context = ReferenceContext::forSubmission($submission);
+            $field = null;
+            $rawValue = null;
+            if ($slot->kind === ReferenceSlotKind::Exact) {
+                $resolved = References::resolveValue((string)$slot->value, $context);
+                $field = $resolved->field;
+                $rawValue = $resolved->requireValue();
             } else {
-                $rawValue = $fieldKey;
-                $value = static::convertValueForIntegration($fieldKey, $integrationField);
-                $field = null;
-                $shouldSet = true;
+                $rawValue = $slot->resolve($context);
             }
+            $value = static::convertValueForIntegration($rawValue, $integrationField);
+            $shouldSet = $slot->kind === ReferenceSlotKind::Literal || !self::_isEmpty($value) || ($this instanceof Element && $this->overwriteValues);
 
             if ($shouldSet) {
                 $eventConfig = [
@@ -1026,26 +1211,32 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     public function populateQueueJobContext($submission, $endpoint, $payload, $method, $contentType): void
     {
-        if (!$this->getQueueJob() || !method_exists($this, 'getClient')) {
-            return;
+        if ($this->_deliveryAttemptUid) {
+            Formie::$plugin->getDeliveryAttempts()->checkpoint($this->_deliveryAttemptUid, 'request-prepared', [
+                'method' => $method, 'endpoint' => $endpoint, 'contentType' => $contentType,
+                'mapping' => $payload,
+            ], $this->getDiagnosticSecrets());
         }
+    }
 
-        $config = $this->getClient()->getConfig();
-
-        $this->getQueueJob()->payload = [
-            'client' => array_filter([
-                'headers' => self::_sanitizeQueueHeaders($config['headers'] ?? null),
-                'verify' => $config['verify'] ?? null,
-                'base_uri' => $config['base_uri'] ?? null,
-                'auth' => isset($config['auth']) ? '[redacted]' : null,
-            ]),
-            'request' => array_filter([
-                'method' => $method,
-                'endpoint' => ltrim((string)$endpoint, '/'),
-                'type' => $contentType,
-                'data' => '[redacted]',
-            ]),
-        ];
+    public function getDiagnosticSecrets(): array
+    {
+        $secrets = [];
+        $collect = function ($value, bool $sensitive = false) use (&$collect, &$secrets): void {
+            if (is_array($value)) {
+                foreach ($value as $key => $item) {
+                    $collect($item, $sensitive || (bool)preg_match('/secret|password|token|api.?key|httpAuth|authorization|webhook|credential|headers|url$/i', (string)$key));
+                }
+            } elseif ($sensitive && is_string($value) && $value !== '') {
+                $secrets[] = $value;
+                $parsed = App::parseEnv($value);
+                if (is_string($parsed) && $parsed !== '') {
+                    $secrets[] = $parsed;
+                }
+            }
+        };
+        $collect($this->getAttributes());
+        return array_values(array_unique($secrets));
     }
 
     public function beforeSendPayload(Submission $submission, string &$endpoint, mixed &$payload, string &$method, string $contentType = 'json'): bool
@@ -1063,11 +1254,13 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         $this->trigger(self::EVENT_BEFORE_SEND_PAYLOAD, $event);
 
         if (!$event->isValid) {
+            $this->context['deliverySkipped'] = true;
             Integration::info($this, 'Sending payload cancelled by event hook.');
         }
 
         // Also, check for opt-in fields. This allows the above event to potentially alter things
         if (!$this->enforceOptInField($submission)) {
+            $this->context['deliverySkipped'] = true;
             Integration::info($this, 'Sending payload cancelled by opt-in field.');
 
             return false;
@@ -1094,6 +1287,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         $this->trigger(self::EVENT_AFTER_SEND_PAYLOAD, $event);
 
         if (!$event->isValid) {
+            $this->context['deliveryErrorResult'] = IntegrationResult::unknown('response_rejected_by_hook');
             Integration::info($this, 'Payload marked as invalid by event hook.');
         }
 
@@ -1102,6 +1296,10 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     public function enforceOptInField(Submission $submission, ?array $variables = null): bool
     {
+        if (in_array('optIn', $this->_deliveryContext?->overrides ?? [], true)) {
+            return true;
+        }
+
         // Default is just always do it!
         if (!$this->optInField) {
             return true;
@@ -1144,16 +1342,23 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return true;
     }
 
-    public function getMappedFieldValue(string $fieldKey, Submission $submission, IntegrationField $integrationField): mixed
+    public function getMappedFieldValue(mixed $fieldKey, Submission $submission, IntegrationField $integrationField): mixed
     {
-        $fieldKey = $this->normalizeFieldMappingValue($fieldKey);
-        $resolved = Variables::getFieldAndValueForReference($fieldKey, $submission);
-        $fieldValue = static::convertValueForIntegration($resolved['value'], $integrationField);
-        $field = $resolved['field'];
+        $slot = ReferenceSlot::fromStored($fieldKey);
+        $context = ReferenceContext::forSubmission($submission);
+        $field = null;
+        if ($slot->kind === ReferenceSlotKind::Exact) {
+            $resolved = References::resolveValue((string)$slot->value, $context);
+            $rawValue = $resolved->requireValue();
+            $field = $resolved->field;
+        } else {
+            $rawValue = $slot->resolve($context);
+        }
+        $fieldValue = static::convertValueForIntegration($rawValue, $integrationField);
 
         $event = new ModifyFieldIntegrationValueEvent([
             'value' => $fieldValue,
-            'rawValue' => $resolved['value'],
+            'rawValue' => $rawValue,
             'field' => $field,
             'submission' => $submission,
             'integrationField' => $integrationField,
@@ -1249,15 +1454,11 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     // Protected Methods
     // =========================================================================
 
-    protected function formSettingAttributes(): array
+    protected function createDeliveryHttpHandler(): callable
     {
-        return [
-            'enabled',
-            'optInField',
-            'enableConditions',
-            'conditions',
-        ];
+        return HandlerStack::create(new CurlHandler());
     }
+
 
     protected function defineRules(): array
     {
@@ -1305,6 +1506,8 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     protected function createPublicEndpointClient(string $endpoint, array $config = []): Client
     {
         $config['allow_redirects'] = false;
+        $config['proxy'] = '';
+        $config['verify'] = true;
         $this->_applyPublicEndpointDnsPin($config, $endpoint);
 
         if (App::devMode() && !array_key_exists('verify', $config)) {
@@ -1657,6 +1860,54 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     // Private Methods
     // =========================================================================
 
+    private function _readDeliveryResponse(ResponseInterface $response): string
+    {
+        if ($response->getStatusCode() >= 300 && $response->getStatusCode() < 400) {
+            throw new RequestException('Integration redirects are not permitted.', new Request('POST', 'https://delivery.invalid'), $response);
+        }
+        return (string)$response->getBody();
+    }
+
+    private function _secureOAuthClient(string $base): void
+    {
+        $provider = $this->getOAuthProvider();
+        $origins = [$base];
+        if (method_exists($provider, 'getBaseAccessTokenUrl')) {
+            $origins[] = $provider->getBaseAccessTokenUrl([]);
+        }
+        $transport = $this->createDeliveryHttpHandler();
+        $config = $this->getClient()->getConfig();
+        $config['allow_redirects'] = false;
+        $config['proxy'] = '';
+        $config['verify'] = true;
+        // OAuth request factories discard transport options. Guard the actual
+        // HTTP handler, including token refresh, rather than the request builder.
+        $config['handler'] = function ($request, $options) use ($transport, $origins) {
+            $target = $request->getUri();
+            $allowed = false;
+            foreach ($origins as $url) {
+                $origin = new Uri($url);
+                if ($target->getScheme() === $origin->getScheme() && strtolower($target->getHost()) === strtolower($origin->getHost()) && $target->getPort() === $origin->getPort() && $target->getUserInfo() === '') {
+                    $allowed = true;
+                    break;
+                }
+            }
+            if (!$allowed) {
+                throw new IntegrationStepException(IntegrationResult::rejected('provider_origin_mismatch'));
+            }
+            $this->_applyPublicEndpointDnsPin($options, (string)$target);
+            unset($options['handler']);
+            return $transport($request, $options)->then(function ($response) use ($request) {
+                if ($response->getStatusCode() >= 300 && $response->getStatusCode() < 400) {
+                    throw new RequestException('Integration redirects are not permitted.', $request, $response);
+                }
+                return $response;
+            });
+        };
+        $this->_client = new Client($config);
+        $provider->setHttpClient($this->_client);
+    }
+
     private function _applyPublicEndpointDnsPin(array &$config, string $url): void
     {
         $parts = parse_url($url);
@@ -1671,6 +1922,16 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         if (!in_array($scheme, ['http', 'https'], true) || $host === '' || isset($parts['user']) || isset($parts['pass'])) {
             throw new IntegrationException(Craft::t('formie', 'Outbound integration URL must use a public HTTP or HTTPS endpoint.'));
         }
+
+        $port = isset($parts['port']) ? (int)$parts['port'] : ($scheme === 'https' ? 443 : 80);
+        if (!in_array($port, [80, 443], true) || !extension_loaded('curl')) {
+            throw new IntegrationException('Public integration endpoints require HTTP(S) on ports 80 or 443 and the cURL transport.');
+        }
+        $config['allow_redirects'] = false;
+        $config['proxy'] = '';
+        $config['verify'] = true;
+        $config['curl'] = [];
+        $config['handler'] = $this->createDeliveryHttpHandler();
 
         if (filter_var($host, FILTER_VALIDATE_IP)) {
             if (!$this->_isPublicEndpointIp($host)) {

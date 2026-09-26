@@ -2,9 +2,10 @@
 namespace verbb\formie\integrations\elements;
 
 use verbb\formie\Formie;
-use verbb\formie\base\Integration;
+use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\Element;
 use verbb\formie\base\FormInterface;
+use verbb\formie\base\Integration;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyFieldIntegrationValueEvent;
@@ -13,10 +14,13 @@ use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
-use verbb\formie\models\IntegrationResponse;
+use verbb\formie\models\IntegrationResult;
 
 use Craft;
 use craft\base\Element as CraftElement;
+use craft\commerce\elements\Product as ProductElement;
+use craft\commerce\elements\Variant;
+use craft\commerce\Plugin as Commerce;
 use craft\elements\User;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
@@ -25,9 +29,7 @@ use craft\web\View;
 
 use yii\base\Event;
 
-use craft\commerce\Plugin as Commerce;
-use craft\commerce\elements\Product as ProductElement;
-use craft\commerce\elements\Variant;
+use Throwable;
 
 class Product extends Element
 {
@@ -48,7 +50,9 @@ class Product extends Element
     // Properties
     // =========================================================================
 
+    #[FormIntegrationSetting]
     public ?int $productTypeId = null;
+    #[FormIntegrationSetting]
     public mixed $defaultAuthorId = null;
 
 
@@ -218,12 +222,13 @@ class Product extends Element
         return $attributes;
     }
 
-    public function sendPayload(Submission $submission)
+    public function sendPayload(Submission $submission): IntegrationResult
     {
+        $this->beginPayloadDelivery($submission);
         if (!$this->productTypeId) {
             Integration::error($this, Craft::t('formie', 'Unable to save element integration. No `productTypeId`.'), true);
 
-            return false;
+            return $this->resultForPayload(false);
         }
 
         try {
@@ -273,7 +278,7 @@ class Product extends Element
 
             // Allow events to cancel sending - return as success            
             if (!$this->beforeSendPayload($submission, $endpoint, $product, $method)) {
-                return true;
+                return $this->resultForPayload(true);
             }
 
             if (!$product->validate()) {
@@ -282,7 +287,7 @@ class Product extends Element
                     'error' => Json::encode($product->getErrors()),
                 ]), true);
 
-                return false;
+                return $this->resultForPayload(false);
             }
 
             if (!Craft::$app->getElements()->saveElement($product)) {
@@ -291,14 +296,16 @@ class Product extends Element
                     'error' => Json::encode($product->getErrors()),
                 ]), true);
 
-                return false;
+                return $this->resultForPayload(false);
             }
+
+            $this->recordDispatchElement($product);
 
             // Allow events to say the response is invalid
             if (!$this->afterSendPayload($submission, '', $product, '', [])) {
-                return true;
+                return $this->resultForPayload(true);
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $error = Craft::t('formie', 'Element integration failed for submission “{submission}”. Error: {error} {file}:{line}', [
                 'error' => Integration::getExceptionLogMessage($e),
                 'file' => $e->getFile(),
@@ -306,12 +313,12 @@ class Product extends Element
                 'submission' => $submission->id,
             ]);
 
-            Formie::error($error);
+            Integration::error($this, $error);
 
-            return new IntegrationResponse(false, [$error]);
+            return $this->resultForPayload(IntegrationResult::fromException($e));
         }
 
-        return true;
+        return $this->resultForPayload(true);
     }
 
     public function getAuthor($form)
@@ -328,15 +335,6 @@ class Product extends Element
     
     // Protected Methods
     // =========================================================================
-
-    protected function formSettingAttributes(): array
-    {
-        $settings = parent::formSettingAttributes();
-        $settings[] = 'productTypeId';
-        $settings[] = 'defaultAuthorId';
-
-        return $settings;
-    }
 
     protected function defineRules(): array
     {

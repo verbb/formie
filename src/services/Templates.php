@@ -1,6 +1,9 @@
 <?php
 namespace verbb\formie\services;
 
+use verbb\formie\references\ReferenceContext;
+use verbb\formie\references\ReferenceOutputContext;
+
 use Craft;
 
 use Closure;
@@ -64,6 +67,24 @@ class Templates extends BaseTemplates
             return $token;
         }, $template);
 
+        if ($object instanceof \verbb\formie\elements\Submission) {
+            $context = ReferenceContext::forSubmission($object, $variables['notification'] ?? null);
+            $template = preg_replace_callback('/(?<!\{)\{([a-zA-Z][^{}]*)\}(?!\})/', static function(array $match) use (&$aliases, $prefix, $context, $autoescape): string {
+                $reference = $match[0];
+                // Bare object-template properties were stable filename/subpath syntax.
+                if (in_array($match[1], ['id', 'uid', 'title', 'url'], true)) {
+                    $reference = '{submission:' . $match[1] . '}';
+                } elseif (preg_match('/^[a-zA-Z][a-zA-Z0-9_.]*$/D', $match[1]) && $context->form->getFieldByHandle(explode('.', $match[1])[0])) {
+                    $reference = '{field:' . $match[1] . '}';
+                }
+                $token = $prefix . count($aliases) . '__';
+                $aliases[$token] = \verbb\formie\helpers\References::interpolateText($reference, $context, $autoescape === false ? ReferenceOutputContext::PlainText : ReferenceOutputContext::Html);
+                return $token;
+            }, $template);
+        }
+
+        // Resolve authored references before rendering, insert their data afterwards.
+        // Neither submitted Twig nor submitted reference syntax gets a second pass.
         return strtr(parent::renderSandboxedObjectTemplate($template, $object, $variables, $autoescape), $aliases);
     }
 

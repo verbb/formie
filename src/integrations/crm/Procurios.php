@@ -2,6 +2,7 @@
 namespace verbb\formie\integrations\crm;
 
 use verbb\formie\Formie;
+use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\Crm;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
@@ -10,6 +11,7 @@ use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationResult;
 
 use Craft;
 use craft\helpers\App;
@@ -45,7 +47,9 @@ class Procurios extends Crm implements OAuthProviderInterface
     // Properties
     // =========================================================================
 
+    #[FormIntegrationSetting]
     public bool $mapToContact = false;
+    #[FormIntegrationSetting]
     public ?array $contactFieldMapping = null;
 
 
@@ -89,8 +93,9 @@ class Procurios extends Crm implements OAuthProviderInterface
         return new IntegrationFormSettings($settings);
     }
 
-    public function sendPayload(Submission $submission): bool
+    public function sendPayload(Submission $submission): IntegrationResult
     {
+        $this->beginPayloadDelivery($submission);
         try {
             $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
 
@@ -102,7 +107,7 @@ class Procurios extends Crm implements OAuthProviderInterface
                 $response = $this->deliverPayload($submission, 'Public/V1/CRM/Contacts', $contactPayload);
 
                 if ($response === false) {
-                    return true;
+                    return $this->resultForPayload(true);
                 }
 
                 $contactId = $existingContactId ?? $response['id'] ?? '';
@@ -110,24 +115,15 @@ class Procurios extends Crm implements OAuthProviderInterface
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
-            return false;
+            return $this->resultForPayload(false);
         }
 
-        return true;
+        return $this->resultForPayload(true);
     }
 
 
     // Protected Methods
     // =========================================================================
-
-    protected function formSettingAttributes(): array
-    {
-        $settings = parent::formSettingAttributes();
-        $settings[] = 'mapToContact';
-        $settings[] = 'contactFieldMapping';
-
-        return $settings;
-    }
 
     protected function defineRules(): array
     {

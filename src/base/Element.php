@@ -1,10 +1,12 @@
 <?php
 namespace verbb\formie\base;
 
-use verbb\formie\base\FormInterface;
 use verbb\formie\Formie;
+use verbb\formie\attributes\FormIntegrationSetting;
+use verbb\formie\base\FormInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\errors\IntegrationStepException;
 use verbb\formie\events\ModifyElementFieldsEvent;
 use verbb\formie\events\ModifyElementMatchEvent;
 use verbb\formie\events\ModifyFieldIntegrationValueEvent;
@@ -17,6 +19,7 @@ use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationResult;
 use verbb\formie\models\Stencil;
 
 use Craft;
@@ -63,11 +66,17 @@ abstract class Element extends Integration
     // Properties
     // =========================================================================
 
+    #[FormIntegrationSetting]
     public array $attributeMapping = [];
+    #[FormIntegrationSetting]
     public array $fieldMapping = [];
+    #[FormIntegrationSetting]
     public bool $updateElement = false;
+    #[FormIntegrationSetting]
     public array $updateElementMapping = [];
+    #[FormIntegrationSetting]
     public bool $updateSearchIndexes = true;
+    #[FormIntegrationSetting]
     public bool $overwriteValues = false;
 
 
@@ -229,19 +238,6 @@ abstract class Element extends Integration
     // Protected Methods
     // =========================================================================
 
-    protected function formSettingAttributes(): array
-    {
-        $settings = parent::formSettingAttributes();
-        $settings[] = 'attributeMapping';
-        $settings[] = 'fieldMapping';
-        $settings[] = 'updateElement';
-        $settings[] = 'updateElementMapping';
-        $settings[] = 'updateSearchIndexes';
-        $settings[] = 'overwriteValues';
-
-        return $settings;
-    }
-
     protected function defineFormSettingsSchema(FormInterface $form): array
     {
         $schema = parent::defineFormSettingsSchema($form);
@@ -353,6 +349,16 @@ abstract class Element extends Integration
 
     protected function defineElementForPayload($elementType, $identifier, $submission, array $criteria = [])
     {
+        if ($uid = $this->getDeliveryAttemptUid()) {
+            $resource = Formie::$plugin->getDeliveryAttempts()->resource($uid);
+            if (($resource['elementType'] ?? null) === $elementType && !empty($resource['elementId'])) {
+                $saved = Craft::$app->getElements()->getElementById((int)$resource['elementId'], $elementType);
+                if ($saved) {
+                    return $saved;
+                }
+                throw new IntegrationStepException(IntegrationResult::unknown('created_element_unavailable'));
+            }
+        }
         $element = new $elementType();
 
         // If we're not wanting to update an element, no need to proceed finding one.
@@ -402,5 +408,8 @@ abstract class Element extends Integration
             'elementId' => (int)$element->id,
             'url' => method_exists($element, 'getUrl') ? (string)$element->getUrl() : null,
         ];
+        if ($uid = $this->getDeliveryAttemptUid()) {
+            Formie::$plugin->getDeliveryAttempts()->recordResource($uid, $this->context['dispatchElement']);
+        }
     }
 }

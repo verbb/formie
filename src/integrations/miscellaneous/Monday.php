@@ -2,8 +2,9 @@
 namespace verbb\formie\integrations\miscellaneous;
 
 use verbb\formie\Formie;
-use verbb\formie\base\Integration;
+use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\FormInterface;
+use verbb\formie\base\Integration;
 use verbb\formie\base\Miscellaneous;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyFieldIntegrationValueEvent;
@@ -13,6 +14,7 @@ use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationResult;
 
 use Craft;
 use craft\helpers\App;
@@ -21,9 +23,9 @@ use craft\helpers\Json;
 
 use yii\base\Event;
 
-use GuzzleHttp\Client;
-
 use Throwable;
+
+use GuzzleHttp\Client;
 
 class Monday extends Miscellaneous
 {
@@ -40,7 +42,9 @@ class Monday extends Miscellaneous
     // =========================================================================
     
     public ?string $apiKey = null;
+    #[FormIntegrationSetting]
     public ?string $boardId = null;
+    #[FormIntegrationSetting]
     public ?array $fieldMapping = null;
 
 
@@ -83,8 +87,9 @@ class Monday extends Miscellaneous
         return new IntegrationFormSettings($settings);
     }
 
-    public function sendPayload(Submission $submission): bool
+    public function sendPayload(Submission $submission): IntegrationResult
     {
+        $this->beginPayloadDelivery($submission);
         try {
             $fields = $this->_getBoardSettings()['fields'] ?? [];
             $boardValues = $this->getFieldMappingValues($submission, $this->fieldMapping, $fields);
@@ -98,7 +103,7 @@ class Monday extends Miscellaneous
                     'id' => $this->boardId,
                 ]), true);
 
-                return false;
+                return $this->resultForPayload(false);
             }
 
             if (!$groupId) {
@@ -106,7 +111,7 @@ class Monday extends Miscellaneous
                     'id' => $this->boardId,
                 ]), true);
 
-                return false;
+                return $this->resultForPayload(false);
             }
 
             $itemPayload = [
@@ -129,7 +134,7 @@ class Monday extends Miscellaneous
             $response = $this->deliverPayload($submission, '/', $itemPayload);
 
             if ($response === false) {
-                return true;
+                return $this->resultForPayload(true);
             }
 
             $itemId = $response['data']['create_item']['id'] ?? '';
@@ -139,15 +144,15 @@ class Monday extends Miscellaneous
                     'response' => Json::encode($response),
                 ]), true);
 
-                return false;
+                return $this->resultForPayload(false);
             }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
-            return false;
+            return $this->resultForPayload(false);
         }
 
-        return true;
+        return $this->resultForPayload(true);
     }
 
     public function fetchConnection(): bool
@@ -177,15 +182,6 @@ class Monday extends Miscellaneous
 
     // Protected Methods
     // =========================================================================
-
-    protected function formSettingAttributes(): array
-    {
-        $settings = parent::formSettingAttributes();
-        $settings[] = 'boardId';
-        $settings[] = 'fieldMapping';
-
-        return $settings;
-    }
 
     protected function defineRules(): array
     {

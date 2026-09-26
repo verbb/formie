@@ -88,3 +88,33 @@ if (!Craft::$app->getUserPermissions()->saveUserPermissions($scopedUser->id, [
 }
 Craft::$app->getProjectConfig()->saveModifiedConfigData();
 file_put_contents(dirname(__DIR__, 2) . '/.cache/verbb-tests/browser-enabled.json', json_encode(['formId' => $form->id, 'journeyId' => $journey->id, 'renderedId' => $rendered->id, 'renderedNativeId' => $native->id]));
+
+$referenceIntegration = new \verbb\formie\integrations\helpdesk\Freshdesk([
+    'name' => 'Browser Freshdesk', 'handle' => 'browserFreshdesk', 'enabled' => true,
+    'apiDomain' => 'https://example.invalid', 'apiKey' => 'synthetic-unused-key',
+]);
+if (!\verbb\formie\Formie::$plugin->getIntegrations()->saveIntegration($referenceIntegration, false)) {
+    throw new RuntimeException('Cannot save reference picker integration fixture.');
+}
+$referenceIntegration->cache = ['connection' => 'success', 'settings' => (new \verbb\formie\models\IntegrationFormSettings([
+    'contact' => [new \verbb\formie\models\IntegrationField(['handle' => 'name', 'name' => 'Contact name'])],
+]))->serialize()];
+Craft::$app->getDb()->createCommand()->update(\verbb\formie\helpers\Table::FORMIE_INTEGRATIONS, ['cache' => \craft\helpers\Json::encode($referenceIntegration->cache)], ['id' => $referenceIntegration->id])->execute();
+$referencePicker = \verbb\formie\Formie::$plugin->getFactories()->form(['title' => 'Reference picker contract', 'handle' => 'referencePickerContract'])
+    ->singleLineTextField('contactName', ['label' => 'Contact name'])
+    ->integrations(['browserFreshdesk' => ['enabled' => true, 'mapToContact' => true, 'contactFieldMapping' => ['name' => ['kind' => 'literal', 'value' => '{field:literal}']]]])
+    ->create();
+file_put_contents(dirname(__DIR__, 2) . '/.cache/verbb-tests/reference-picker.json', json_encode(['formId' => $referencePicker->id]));
+
+// A failed real Craft job exposes diagnostics through Craft's own queue detail UI.
+$deliverySubmission = \verbb\formie\Formie::$plugin->getFactories()->submission($form)->with(['visitorName' => 'Delivery browser fixture', 'visitorEmail' => 'delivery@example.test'])->save();
+$attempts = \verbb\formie\Formie::$plugin->getDeliveryAttempts();
+$deliveryContext = new \verbb\formie\models\IntegrationExecutionContext($deliverySubmission->id, $form->id, '@dispatch', 'browser-delivery', 'queued');
+$deliveryUid = $attempts->prepare($deliveryContext, 'dispatch', ['handles' => ['browserFixture'], 'triggerContext' => [], 'afterNotifications' => false]);
+$attempts->checkpoint($deliveryUid, 'mapping-inputs', ['name' => ['kind' => 'exactReference', 'value' => 'field:visitorName'], 'password' => 'browser-never-display-secret']);
+$attempts->checkpoint($deliveryUid, 'submission-projection', ['visitorName' => 'Delivery browser fixture']);
+$attempts->checkpoint($deliveryUid, 'provider-error', ['status' => 504, 'message' => '<img src=x onerror="window.deliveryInjection=true"> Gateway response lost', 'apiKey' => 'browser-never-display-secret']);
+$attempts->execute($deliveryUid, fn() => \verbb\formie\models\IntegrationResult::unknown('browser_simulated_response_loss'));
+$deliveryJobId = Craft::$app->getQueue()->push(new \verbb\formie\jobs\TriggerIntegration(['deliveryAttemptUid' => $deliveryUid]));
+Craft::$app->getQueue()->run();
+file_put_contents(dirname(__DIR__, 2) . '/.cache/verbb-tests/delivery-browser.json', json_encode(['uid' => $deliveryUid, 'jobId' => $deliveryJobId, 'submissionUrl' => $deliverySubmission->getCpEditUrl(), 'submissionId' => $deliverySubmission->id]));

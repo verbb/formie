@@ -31,12 +31,13 @@ protected function defineFormSettingsSchema(FormInterface $form): array
 ```php
 use verbb\formie\elements\Submission;
 
-public function sendPayload(Submission $submission): bool
+public function sendPayload(Submission $submission): \verbb\formie\models\IntegrationResult
 {
+    $this->beginPayloadDelivery($submission);
     $payload = $this->generatePayloadValues($submission);
     $response = $this->deliverPayload($submission, $this->endpoint, $payload);
 
-    return $response !== false;
+    return $this->resultForPayload($response !== false);
 }
 ```
 

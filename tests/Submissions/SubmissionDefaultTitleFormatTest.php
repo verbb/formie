@@ -23,7 +23,7 @@ it('parses submission title format with variables when defaulting title', functi
 it('falls back to date stamp when submission title format parses empty', function (): void {
     $form = formie()
         ->form(['title' => 'Empty Parsed Title Form'])
-        ->settings(['submissionTitleFormat' => '{field:nonexistentref}'])
+        ->settings(['submissionTitleFormat' => '{field:fullName}'])
         ->singleLineTextField('fullName')
         ->create();
 

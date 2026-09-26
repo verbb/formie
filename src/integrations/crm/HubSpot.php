@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\integrations\crm;
 
+use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\Crm;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
@@ -14,6 +15,7 @@ use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationResult;
 
 use Craft;
 use craft\helpers\App;
@@ -22,10 +24,10 @@ use craft\helpers\Json;
 
 use yii\base\Event;
 
-use GuzzleHttp\Client;
-
 use DateTime;
 use Throwable;
+
+use GuzzleHttp\Client;
 
 class HubSpot extends Crm
 {
@@ -123,16 +125,27 @@ class HubSpot extends Crm
     // =========================================================================
 
     public ?string $accessToken = null;
+    #[FormIntegrationSetting]
     public bool $mapToContact = false;
+    #[FormIntegrationSetting]
     public bool $mapToDeal = false;
+    #[FormIntegrationSetting]
     public bool $mapToCompany = false;
+    #[FormIntegrationSetting]
     public bool $mapToTicket = false;
+    #[FormIntegrationSetting]
     public bool $mapToForm = false;
+    #[FormIntegrationSetting]
     public ?array $contactFieldMapping = null;
+    #[FormIntegrationSetting]
     public ?array $dealFieldMapping = null;
+    #[FormIntegrationSetting]
     public ?array $companyFieldMapping = null;
+    #[FormIntegrationSetting]
     public ?array $ticketFieldMapping = null;
+    #[FormIntegrationSetting]
     public ?array $formFieldMapping = null;
+    #[FormIntegrationSetting]
     public ?string $formId = null;
 
     private ?Client $_formsClient = null;
@@ -460,7 +473,7 @@ class HubSpot extends Crm
 
         // Because we have split settings for partial settings fetches, enssure we populate settings from cache
         // So we need to unserialize the cached form settings, and combine with any new settings and return
-        $cachedSettings = $this->cache['settings'] ?? [];
+        $cachedSettings = $this->getIntegrationConfig()->data;
 
         if ($cachedSettings) {
             $formSettings = new IntegrationFormSettings();
@@ -470,8 +483,9 @@ class HubSpot extends Crm
 
         return new IntegrationFormSettings($settings);
     }
-    public function sendPayload(Submission $submission): bool
+    public function sendPayload(Submission $submission): IntegrationResult
     {
+        $this->beginPayloadDelivery($submission);
         try {
             $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
             $dealValues = $this->getFieldMappingValues($submission, $this->dealFieldMapping, 'deal');
@@ -498,7 +512,7 @@ class HubSpot extends Crm
                 $response = $this->deliverPayload($submission, 'contacts/v1/contact/createOrUpdate/email/' . rawurlencode((string)$email), $contactPayload);
 
                 if ($response === false) {
-                    return true;
+                    return $this->resultForPayload(true);
                 }
 
                 $contactId = $response['vid'] ?? '';
@@ -509,7 +523,7 @@ class HubSpot extends Crm
                         'payload' => Json::encode($contactPayload),
                     ]), true);
 
-                    return false;
+                    return $this->resultForPayload(false);
                 }
             }
 
@@ -534,7 +548,7 @@ class HubSpot extends Crm
                 $response = $this->deliverPayload($submission, 'deals/v1/deal', $dealPayload);
 
                 if ($response === false) {
-                    return true;
+                    return $this->resultForPayload(true);
                 }
 
                 $dealId = $response['dealId'] ?? '';
@@ -545,7 +559,7 @@ class HubSpot extends Crm
                         'payload' => Json::encode($dealPayload),
                     ]), true);
 
-                    return false;
+                    return $this->resultForPayload(false);
                 }
             }
 
@@ -560,7 +574,7 @@ class HubSpot extends Crm
                 if (!$companyName) {
                     Integration::error($this, Craft::t('formie', 'Invalid companyName'), true);
 
-                    return false;
+                    return $this->resultForPayload(false);
                 }
 
                 // Find existing company
@@ -590,7 +604,7 @@ class HubSpot extends Crm
                 }
 
                 if ($response === false) {
-                    return true;
+                    return $this->resultForPayload(true);
                 }
 
                 $companyId = $response['id'] ?? '';
@@ -601,7 +615,7 @@ class HubSpot extends Crm
                         'payload' => Json::encode($companyPayload),
                     ]), true);
 
-                    return false;
+                    return $this->resultForPayload(false);
                 }
             }
 
@@ -616,7 +630,7 @@ class HubSpot extends Crm
                 if (!$ticketSubject) {
                     Integration::error($this, Craft::t('formie', 'Invalid subject'), true);
 
-                    return false;
+                    return $this->resultForPayload(false);
                 }
 
                 // Find existing ticket
@@ -646,7 +660,7 @@ class HubSpot extends Crm
                 }
 
                 if ($response === false) {
-                    return true;
+                    return $this->resultForPayload(true);
                 }
 
                 $ticketId = $response['id'] ?? '';
@@ -657,7 +671,7 @@ class HubSpot extends Crm
                         'payload' => Json::encode($ticketPayload),
                     ]), true);
 
-                    return false;
+                    return $this->resultForPayload(false);
                 }
             }
 
@@ -742,27 +756,26 @@ class HubSpot extends Crm
 
                 // Allow events to cancel sending
                 if (!$this->beforeSendPayload($submission, $endpoint, $payload, $method)) {
-                    return true;
+                    return $this->resultForPayload(true);
                 }
 
-                $response = $this->getFormsClient()->request($method, ltrim($endpoint, '/'), [
+                $response = $this->requestWithProviderClient($this->getFormsClient(), $method, $endpoint, [
                     'json' => $payload,
                 ]);
 
-                $response = Json::decode((string)$response->getBody());
 
                 // Allow events to say the response is invalid
                 if (!$this->afterSendPayload($submission, $endpoint, $payload, $method, $response)) {
-                    return true;
+                    return $this->resultForPayload(true);
                 }
             }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
-            return false;
+            return $this->resultForPayload(false);
         }
 
-        return true;
+        return $this->resultForPayload(true);
     }
 
     public function fetchConnection(): bool
@@ -776,6 +789,13 @@ class HubSpot extends Crm
         }
 
         return true;
+    }
+
+    public function __clone(): void
+    {
+        parent::__clone();
+        $this->_formsClient = null;
+        $this->_uploadClient = null;
     }
 
     public function getFormsClient(): Client
@@ -834,24 +854,6 @@ class HubSpot extends Crm
 
     // Protected Methods
     // =========================================================================
-
-    protected function formSettingAttributes(): array
-    {
-        $settings = parent::formSettingAttributes();
-        $settings[] = 'mapToContact';
-        $settings[] = 'mapToDeal';
-        $settings[] = 'mapToCompany';
-        $settings[] = 'mapToTicket';
-        $settings[] = 'mapToForm';
-        $settings[] = 'contactFieldMapping';
-        $settings[] = 'dealFieldMapping';
-        $settings[] = 'companyFieldMapping';
-        $settings[] = 'ticketFieldMapping';
-        $settings[] = 'formFieldMapping';
-        $settings[] = 'formId';
-
-        return $settings;
-    }
 
     protected function defineRules(): array
     {
@@ -1009,7 +1011,7 @@ class HubSpot extends Crm
                 return null;
             }
 
-            $response = $this->getUploadClient()->request('POST', 'files/v3/files', [
+            $response = $this->requestWithProviderClient($this->getUploadClient(), 'POST', 'files/v3/files', [
                 'multipart' => [
                     [
                         'name' => 'file',
@@ -1033,7 +1035,6 @@ class HubSpot extends Crm
                 ],
             ]);
 
-            $response = Json::decode((string)$response->getBody());
 
             return $response['url'] ?? $response['defaultHostingUrl'] ?? null;
         } catch (Throwable $e) {
@@ -1113,15 +1114,15 @@ class HubSpot extends Crm
 
     private function _getField(string $dataHandle, string $dataId, string $fieldHandle): array
     {
-        $objects = $this->cache['settings'][$dataHandle] ?? [];
+        $objects = $this->getFormSettingValue($dataHandle);
 
         foreach ($objects as $object) {
-            if ($object['id'] === $dataId) {
-                $fields = $object['fields'] ?? [];
+            if (ArrayHelper::getValue($object, 'id') === $dataId) {
+                $fields = ArrayHelper::getValue($object, 'fields', []);
 
                 foreach ($fields as $field) {
-                    if ($field['handle'] === $fieldHandle) {
-                        return $field;
+                    if (ArrayHelper::getValue($field, 'handle') === $fieldHandle) {
+                        return $field instanceof IntegrationField ? $field->toArray() : $field;
                     }
                 }
             }

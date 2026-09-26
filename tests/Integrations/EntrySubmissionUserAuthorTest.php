@@ -51,7 +51,7 @@ it('uses the submission user as the entry author when enabled', function (): voi
     $slug = StringHelper::slugify($title);
     $integration = entryAuthorIntegrationConfig($title, $fallbackUser->id);
 
-    expect($integration->sendPayload($submission))->toBeTrue();
+    expect($integration->sendPayload($submission)->status)->toBe(\verbb\formie\enums\IntegrationStatus::Succeeded);
 
     $entry = EntryElement::find()
         ->status(null)
@@ -83,7 +83,7 @@ it('falls back to the default entry author when no submission user is available'
     $slug = StringHelper::slugify($title);
     $integration = entryAuthorIntegrationConfig($title, $fallbackUser->id);
 
-    expect($integration->sendPayload($submission))->toBeTrue();
+    expect($integration->sendPayload($submission)->status)->toBe(\verbb\formie\enums\IntegrationStatus::Succeeded);
 
     $entry = EntryElement::find()
         ->status(null)

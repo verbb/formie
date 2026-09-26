@@ -2,33 +2,18 @@
 namespace verbb\formie\helpers;
 
 use verbb\formie\Formie;
-use verbb\formie\base\ElementField;
 use verbb\formie\base\FieldInterface;
-use verbb\formie\base\ParentFieldInterface;
-use verbb\formie\base\RepeatableParentFieldInterface;
-use verbb\formie\compatibility\variables\VariableSourceCompatibility;
-use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\events\RegisterTransformersEvent;
-use verbb\formie\events\RegisterVariablesEvent;
-use verbb\formie\fields\Table;
-use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\models\Notification;
-use verbb\formie\models\ReferenceExpression;
-use verbb\formie\variables\VariableSourceInterface;
+use verbb\formie\references\ReferenceCatalogue;
+use verbb\formie\references\ReferenceContext;
+use verbb\formie\references\ReferenceResolver;
 
 use Craft;
-use craft\elements\User;
-use craft\helpers\App;
 use craft\helpers\Json;
-use craft\models\Site;
-use craft\web\twig\variables\CraftVariable;
 
 use yii\base\Event;
-use yii\web\IdentityInterface;
 
-use DateTime;
-use DateTimeZone;
 use Throwable;
 
 class Variables
@@ -116,119 +101,6 @@ class Variables
         ];
     }
 
-    public static function getContextVariables(?DateTime $date = null): array
-    {
-        $timeZone = Craft::$app->getTimeZone();
-        $date ??= new DateTime('now', new DateTimeZone($timeZone));
-        $site = Craft::$app->getSites()->getCurrentSite();
-        $craftMailSettings = App::mailSettings();
-
-        return [
-            'timestamp' => $date->format('Y-m-d H:i:s'),
-            'systemName' => (string)$craftMailSettings->fromName,
-            'systemEmail' => (string)$craftMailSettings->fromEmail,
-            'systemReplyTo' => (string)$craftMailSettings->replyToEmail,
-            'siteName' => (string)$site->name,
-            'siteHandle' => (string)$site->handle,
-            'siteUrl' => (string)$site->getBaseUrl(),
-            'siteLanguage' => (string)$site->language,
-        ];
-    }
-
-    public static function resolveContextReference(string $refValue, array $variables): string
-    {
-        $expr = References::parseReferenceExpression($refValue);
-
-        if (!$expr->isValid) {
-            return '';
-        }
-
-        $key = self::getReferenceVariableKey($expr);
-        $value = ArrayHelper::getValue($variables, $key);
-
-        if ($expr->transformerId !== '' && self::_referenceAllowsTransforms($expr)) {
-            $value = self::applyVariableTransformer($value, $expr->transformerId, $expr->transformerParams);
-        }
-
-        if (($value === null || $value === '') && $expr->default !== '') {
-            $value = $expr->default;
-        }
-
-        if ($value === null) {
-            return '';
-        }
-
-        if (is_array($value)) {
-            $parts = array_filter(array_map(static fn(mixed $item): string => (string)$item, $value));
-
-            return implode(', ', $parts);
-        }
-
-        return (string)$value;
-    }
-
-    public static function getRegisteredVariableSources(): array
-    {
-        if (self::$_registeredVariableSources !== null) {
-            return self::$_registeredVariableSources;
-        }
-
-        $event = new RegisterVariablesEvent([
-            'sources' => [],
-        ]);
-        Event::trigger(self::class, self::EVENT_REGISTER_VARIABLES, $event);
-
-        self::$_registeredVariableSources = self::_sanitizeRegisteredVariableSources($event->sources);
-
-        return self::$_registeredVariableSources;
-    }
-
-    public static function clearRegisteredVariableSourcesCache(): void
-    {
-        self::$_registeredVariableSources = null;
-        self::$_customVariableResolutionCache = [];
-    }
-
-    public static function findRegisteredVariableSource(string $handle): ?VariableSourceInterface
-    {
-        $handle = strtolower(trim($handle));
-
-        if ($handle === '') {
-            return null;
-        }
-
-        foreach (self::getRegisteredVariableSources() as $source) {
-            if ($source->getHandle() === $handle) {
-                return $source;
-            }
-        }
-
-        return null;
-    }
-
-    public static function isReservedVariableTarget(string $target): bool
-    {
-        $target = strtolower(trim($target));
-
-        return $target !== '' && in_array($target, self::RESERVED_VARIABLE_TARGETS, true);
-    }
-
-    public static function resolveRegisteredVariableSourceByHandle(Submission $submission, string $handle): mixed
-    {
-        $source = self::findRegisteredVariableSource($handle);
-
-        if (!$source) {
-            return null;
-        }
-
-        $cacheKey = ($submission->uid ?? 'new') . ':' . $source->getHandle();
-
-        if (!array_key_exists($cacheKey, self::$_customVariableResolutionCache)) {
-            self::$_customVariableResolutionCache[$cacheKey] = $source->resolveValue($submission);
-        }
-
-        return self::$_customVariableResolutionCache[$cacheKey];
-    }
 
     /**
      * Returns variable picker configuration used by variableConfig:
@@ -246,10 +118,7 @@ class Variables
                 self::STATIC_SITE => [self::GROUP_CURRENT_SITE, self::GROUP_CURRENT_USER],
                 self::STATIC_CUSTOM => [self::GROUP_CUSTOM],
             ],
-            'staticGroups' => array_merge(
-                self::_getStaticVariableGroups(),
-                self::_getCustomVariableGroups(),
-            ),
+            'staticGroups' => (new ReferenceCatalogue())->pickerGroups(),
             'transformerRegistry' => self::_getTransformerRegistry(),
         ];
     }
@@ -259,166 +128,29 @@ class Variables
      */
     public static function getVariables(): array
     {
-        return array_merge(
-            self::_getFormVariableDefinitions(),
-            self::_getSubmissionVariableDefinitions(),
-            self::_getSystemVariableDefinitions(),
-            self::_getCurrentTimeVariableDefinitions(),
-            self::_getSiteVariableDefinitions(),
-            self::_getEnvironmentVariableDefinitions(),
-            self::_getUserVariableDefinitions()
-        );
-    }
-
-    /**
-     * Returns the merged variables array (globals + field values) for a submission.
-     * Uses the same cache as getParsedValue, so repeated calls for the same submission are cheap.
-     * Use this when resolving many reference tokens (e.g. integration field mappings) to avoid
-     * rebuilding context and re-parsing all fields on every References::parseValue() call.
-     *
-     *        Summary variables are expensive and intentionally opt-in.
-     */
-    public static function getVariablesForSubmission(Submission $submission, ?Notification $notification = null, bool $includeSummary = false, bool $parseEnvValues = true): array
-    {
-        $form = $submission->form;
-        $notification = $notification ?? new Notification();
-        $cacheKey = self::_getSubmissionRenderCacheKey($submission);
-        $renderCache = Formie::$plugin->getRenderCache();
-
-        if (!$renderCache->getGlobalVariables($cacheKey)) {
-            $currentUser = self::_getCurrentUser($submission);
-            $userId = $currentUser->id ?? '';
-            $userEmail = $currentUser->email ?? '';
-            $username = $currentUser->username ?? '';
-            $userFullName = $currentUser->fullName ?? '';
-            $userFirstName = $currentUser->firstName ?? '';
-            $userLastName = $currentUser->lastName ?? '';
-            $userIp = $submission->ipAddress ?? '';
-
-            $site = self::_getSite($submission);
-            $siteId = $site->id ?? '';
-            $siteName = $site->name ?? '';
-            $siteHandle = $site->handle ?? '';
-            $siteLanguage = $site->language ?? '';
-
-            if ($site) {
-                Craft::$app->getSites()->setCurrentSite($site);
-            }
-
-            $craftMailSettings = App::mailSettings();
-            $systemEmail = $craftMailSettings->fromEmail;
-            $systemReplyTo = $craftMailSettings->replyToEmail;
-            $systemName = $craftMailSettings->fromName;
-
-            $timeZone = Craft::$app->getTimeZone();
-            $now = new DateTime('now', new DateTimeZone($timeZone));
-            $dateCreated = $submission->dateCreated ?? null;
-            $formName = $form?->title ?? '';
-            $formHandle = $form?->handle ?? '';
-            $submissionTitle = $submission?->title ?? '';
-            $submissionStatus = $submission ? ($submission->getStatus() ?? '') : '';
-
-            $variables = [
-                'formName' => $formName,
-                'formHandle' => $formHandle,
-                'submissionTitle' => $submissionTitle,
-                'submissionUrl' => $submission?->getCpEditUrl() ?? '',
-                'submissionId' => $submission->id ?? null,
-                'submissionUid' => $submission->uid ?? null,
-                'submissionDate' => $dateCreated?->format('Y-m-d H:i:s'),
-                'submissionStatus' => $submissionStatus,
-                'submissionSite' => $submission?->siteId ?? null,
-                'systemEmail' => $systemEmail,
-                'systemReplyTo' => $systemReplyTo,
-                'systemName' => $systemName,
-                'craft' => new CraftVariable(),
-                'currentSite' => $site,
-                'currentUser' => $currentUser,
-                'siteName' => $siteName,
-                'siteUrl' => $site->getBaseUrl(),
-                'siteId' => $siteId,
-                'siteHandle' => $siteHandle,
-                'siteLanguage' => $siteLanguage,
-                'timestamp' => $now->format('Y-m-d H:i:s'),
-                'userIp' => $userIp,
-                'userId' => $userId,
-                'userEmail' => $userEmail,
-                'username' => $username,
-                'userFullName' => $userFullName,
-                'userFirstName' => $userFirstName,
-                'userLastName' => $userLastName,
-            ];
-
-            foreach (Craft::$app->getGlobals()->getAllSets() as $globalSet) {
-                $variables[$globalSet->handle] = $globalSet;
-            }
-
-            foreach (self::_getPrefixedEnvironmentVariableKeys(self::ENVIRONMENT_VARIABLE_PREFIX) as $envKey) {
-                $variables['env' . $envKey] = App::env($envKey);
-            }
-
-            $renderCache->setGlobalVariables($cacheKey, $variables);
-        }
-
-        if ($parseEnvValues) {
-            $variables = $renderCache->getResolvedVariables($cacheKey);
-
-            if ($variables === null) {
-                $variables = $renderCache->getVariables($cacheKey);
-
-                foreach ($variables as $key => $variable) {
-                    if (is_string($variable)) {
-                        $variables[$key] = App::parseEnv($variable);
-                    }
+        $variables = [];
+        $walk = static function(array $items) use (&$variables, &$walk): void {
+            foreach ($items as $item) {
+                if (isset($item['value'])) {
+                    $variables[] = $item;
                 }
-
-                $renderCache->setResolvedVariables($cacheKey, $variables);
+                if (isset($item['children'])) {
+                    $walk($item['children']);
+                }
             }
-        } else {
-            $variables = $renderCache->getVariables($cacheKey);
+        };
+        foreach ((new ReferenceCatalogue())->pickerGroups() as $items) {
+            $walk($items);
         }
-
-        if ($includeSummary) {
-            $summaryCacheKey = self::_getSummaryRenderCacheKey($submission, $notification);
-            $summaryVariables = $renderCache->getSummaryVariables($summaryCacheKey);
-
-            if ($summaryVariables === null) {
-                $summaryVariables = self::_getSummaryVariables($submission, $notification);
-                $renderCache->setSummaryVariables($summaryCacheKey, $summaryVariables);
-            }
-
-            $variables = array_merge($variables, $summaryVariables);
-        }
-
-        return self::_appendDispatchVariables($variables, $submission);
+        return $variables;
     }
 
-    /**
-     * Maps a reference expression to the variable key used in the resolution array.
-     * Used by reference resolution and token expansion.
-     */
-    public static function getReferenceVariableKey(ReferenceExpression $expr): string
-    {
-        return self::_referenceToVariableKey($expr);
-    }
-
-    /**
-     * Returns the field for a field reference (e.g. {field:abc} or {field:abc:firstName}), or null
-     * if the reference is not a field reference or the field is not found.
-     *
-     * When you need both the field and the value, use getFieldAndValueForReference() once instead
-     * of calling getFieldForReference() and References::parseValue() separately, to avoid parsing
-     * the reference twice.
-     */
     public static function getFieldForReference(string $refValue, Submission $submission): ?FieldInterface
     {
-        $expr = References::parseReferenceExpression($refValue);
-
-        if (!$expr->isValid || $expr->target !== 'field' || $expr->identifier === '') {
-            return null;
-        }
-
-        return self::_getSubmissionFieldByReference($submission, $expr->identifier);
+        $expression = References::parseReferenceExpression($refValue);
+        return $expression->isValid && $expression->target === 'field'
+            ? (new ReferenceResolver())->fieldFor($expression->identifier, ReferenceContext::forSubmission($submission))
+            : null;
     }
 
     /**
@@ -428,56 +160,8 @@ class Variables
      */
     public static function getFieldAndValueForReference(string $refValue, Submission $submission, ?array $variables = null): array
     {
-        $expr = References::parseReferenceExpression($refValue);
-        $field = null;
-
-        if ($expr->isValid && $expr->target === 'field' && $expr->identifier !== '') {
-            $field = self::_getSubmissionFieldByReference($submission, $expr->identifier);
-        }
-
-        if (!$expr->isValid) {
-            $value = $expr->default !== '' ? $expr->default : null;
-            return ['field' => $field, 'value' => $value];
-        }
-
-        // When the field is found, use the submission as source of truth; otherwise resolve from variables.
-        if ($field !== null) {
-            $value = self::_resolveReferenceFieldValue($submission, $field, $expr->selector, $expr->transformerParams);
-        } else {
-            if ($variables === null) {
-                $variables = self::getVariablesForSubmission($submission);
-            }
-            $key = self::getReferenceVariableKey($expr);
-            $value = ArrayHelper::getValue($variables, $key);
-
-            if ($value === null && $expr->target === 'metadata' && $expr->identifier !== '') {
-                $path = $expr->identifier;
-
-                if ($expr->selector !== '') {
-                    $path .= '.' . str_replace(':', '.', $expr->selector);
-                }
-
-                $value = Formie::$plugin->getSubmissionMetadata()->getValue($submission, $path);
-            }
-
-            if ($value === null && $expr->target === self::TARGET_CUSTOM && $expr->identifier !== '') {
-                $value = self::resolveRegisteredVariableSourceByHandle($submission, $expr->identifier);
-            }
-
-            if ($value === null) {
-                $value = VariableSourceCompatibility::resolveLegacyToken($submission, $expr);
-            }
-        }
-
-        if ($expr->transformerId !== '' && self::_referenceAllowsTransforms($expr)) {
-            $value = self::applyVariableTransformer($value, $expr->transformerId, $expr->transformerParams);
-        }
-
-        if (($value === null || $value === '') && $expr->default !== '') {
-            $value = $expr->default;
-        }
-
-        return ['field' => $field, 'value' => $value];
+        $result = References::resolveValue($refValue, ReferenceContext::forSubmission($submission));
+        return ['field' => $result->field, 'value' => $result->requireValue(), 'result' => $result];
     }
 
     public static function applyVariableTransformer(mixed $value, string $transformerId, array $params = []): mixed
@@ -525,7 +209,8 @@ class Variables
                 }
 
                 try {
-                    return Craft::$app->getFormatter()->asDatetime($value, 'php:' . $pattern);
+                    $date = \verbb\formie\fields\values\DateFieldValue::toDateTime($value);
+                    return $date ? $date->format($pattern) : $value;
                 } catch (Throwable) {
                     return $value;
                 }
@@ -640,140 +325,7 @@ class Variables
         return $value;
     }
 
-    private static function _getFormVariableDefinitions(): array
-    {
-        return [
-            ['label' => Craft::t('formie', 'Form'), 'heading' => true],
-            ['label' => Craft::t('formie', 'All Form Fields'), 'value' => '{allFields}', 'group' => 'selector', 'outputMode' => self::CONTENT_ANY, 'allowTransforms' => false],
-            ['label' => Craft::t('formie', 'All Non Empty Fields'), 'value' => '{allContentFields}', 'group' => 'selector', 'outputMode' => self::CONTENT_ANY, 'allowTransforms' => false],
-            ['label' => Craft::t('formie', 'All Visible Fields'), 'value' => '{allVisibleFields}', 'group' => 'selector', 'outputMode' => self::CONTENT_ANY, 'allowTransforms' => false],
-            [
-                'label' => Craft::t('formie', 'Form'),
-                'children' => [
-                    ['label' => Craft::t('formie', 'Form Name'), 'value' => '{form:name}', 'group' => 'selector', 'outputMode' => 'singleLine'],
-                    ['label' => Craft::t('formie', 'Form Handle'), 'value' => '{form:handle}', 'group' => 'selector', 'outputMode' => 'singleLine'],
-                ],
-            ],
-        ];
-    }
-
-    private static function _getSubmissionVariableDefinitions(): array
-    {
-        return [
-            ['label' => Craft::t('formie', 'Submission'), 'heading' => true],
-            [
-                'label' => Craft::t('formie', 'Submission'),
-                'children' => [
-                    ['label' => Craft::t('formie', 'Submission Title'), 'value' => '{submission:title}', 'group' => 'selector', 'outputMode' => 'singleLine'],
-                    ['label' => Craft::t('formie', 'Submission ID'), 'value' => '{submission:id}', 'group' => 'selector', 'outputMode' => 'singleLine'],
-                    ['label' => Craft::t('formie', 'Submission UID'), 'value' => '{submission:uid}', 'group' => 'selector', 'outputMode' => 'singleLine'],
-                    ['label' => Craft::t('formie', 'Submission URL'), 'value' => '{submission:url}', 'group' => 'selector', 'outputMode' => 'singleLine', 'compatibleWith' => ['url']],
-                    [
-                        'label' => Craft::t('formie', 'Submission Date'),
-                        'value' => '{submission:date}',
-                        'group' => 'selector',
-                        'outputMode' => 'singleLine',
-                        'transformValueTypes' => [self::TYPE_DATE],
-                    ],
-                    ['label' => Craft::t('formie', 'Submission Status'), 'value' => '{submission:status}', 'group' => 'selector', 'outputMode' => 'singleLine'],
-                ],
-            ],
-        ];
-    }
-
-    private static function _getSystemVariableDefinitions(): array
-    {
-        return [
-            ['label' => Craft::t('formie', 'System'), 'heading' => true],
-            [
-                'label' => Craft::t('formie', 'System'),
-                'children' => [
-                    ['label' => Craft::t('formie', 'System Name'), 'value' => '{system:name}', 'group' => 'selector', 'outputMode' => 'singleLine'],
-                    ['label' => Craft::t('formie', 'System Email'), 'value' => '{system:email}', 'group' => 'selector', 'outputMode' => 'singleLine', 'compatibleWith' => ['plainText', 'email']],
-                    ['label' => Craft::t('formie', 'System Reply-To'), 'value' => '{system:replyTo}', 'group' => 'selector', 'outputMode' => 'singleLine', 'compatibleWith' => ['plainText', 'email']],
-                ],
-            ],
-        ];
-    }
-
-    private static function _getCurrentTimeVariableDefinitions(): array
-    {
-        return [
-            ['label' => Craft::t('formie', 'Current Time'), 'heading' => true],
-            [
-                'label' => Craft::t('formie', 'Current Date/Time'),
-                'value' => '{timestamp}',
-                'group' => 'format',
-                'outputMode' => 'singleLine',
-                'transformValueTypes' => [self::TYPE_DATE],
-            ],
-        ];
-    }
-
-    private static function _getSiteVariableDefinitions(): array
-    {
-        return [
-            ['label' => Craft::t('formie', 'Site'), 'heading' => true],
-            [
-                'label' => Craft::t('formie', 'Current Site'),
-                'children' => [
-                    ['label' => Craft::t('formie', 'Site Name'), 'value' => '{site:name}', 'group' => 'selector', 'outputMode' => 'singleLine'],
-                    ['label' => Craft::t('formie', 'Site Handle'), 'value' => '{site:handle}', 'group' => 'selector', 'outputMode' => 'singleLine'],
-                    ['label' => Craft::t('formie', 'Site URL'), 'value' => '{site:url}', 'group' => 'selector', 'outputMode' => 'singleLine', 'compatibleWith' => ['url']],
-                    ['label' => Craft::t('formie', 'Site Language'), 'value' => '{site:language}', 'group' => 'selector', 'outputMode' => 'singleLine'],
-                ],
-            ],
-        ];
-    }
-
-    private static function _getEnvironmentVariableDefinitions(): array
-    {
-        $envKeys = self::_getPrefixedEnvironmentVariableKeys(self::ENVIRONMENT_VARIABLE_PREFIX);
-
-        if ($envKeys === []) {
-            return [];
-        }
-
-        $children = [];
-        foreach ($envKeys as $envKey) {
-            $children[] = [
-                'label' => '$' . $envKey,
-                'value' => '{env:' . $envKey . '}',
-                'group' => 'selector',
-                'outputMode' => 'singleLine',
-                'compatibleWith' => ['plainText', 'email', 'number', 'calculations', 'url'],
-            ];
-        }
-
-        return [
-            ['label' => Craft::t('formie', 'Environment'), 'heading' => true],
-            [
-                'label' => Craft::t('formie', 'Environment'),
-                'children' => $children,
-            ],
-        ];
-    }
-
-    private static function _getUserVariableDefinitions(): array
-    {
-        return [
-            ['label' => Craft::t('formie', 'Users'), 'heading' => true],
-            [
-                'label' => Craft::t('formie', 'Current User'),
-                'children' => [
-                    ['label' => Craft::t('formie', 'User IP Address'), 'value' => '{user:ip}', 'group' => 'selector', 'outputMode' => 'singleLine'],
-                    ['label' => Craft::t('formie', 'User ID'), 'value' => '{user:id}', 'group' => 'selector', 'outputMode' => 'singleLine'],
-                    ['label' => Craft::t('formie', 'User Email'), 'value' => '{user:email}', 'group' => 'selector', 'outputMode' => 'singleLine', 'compatibleWith' => ['plainText', 'email']],
-                    ['label' => Craft::t('formie', 'Username'), 'value' => '{user:username}', 'group' => 'selector', 'outputMode' => 'singleLine'],
-                    ['label' => Craft::t('formie', 'User Full Name'), 'value' => '{user:fullName}', 'group' => 'selector', 'outputMode' => 'singleLine'],
-                    ['label' => Craft::t('formie', 'User First Name'), 'value' => '{user:firstName}', 'group' => 'selector', 'outputMode' => 'singleLine'],
-                    ['label' => Craft::t('formie', 'User Last Name'), 'value' => '{user:lastName}', 'group' => 'selector', 'outputMode' => 'singleLine'],
-                ],
-            ],
-        ];
-    }
-
-    private static function _getStaticVariableGroups(): array
+    public static function getBuiltinPickerGroups(): array
     {
         return [
             self::GROUP_FORM => [
@@ -860,6 +412,8 @@ class Variables
             'value' => $value,
             'content' => $content,
             'types' => array_values(array_unique(array_filter(array_map('strval', $types)))),
+            'valueType' => \verbb\formie\fields\definitions\FieldValueType::storageSafe()->toArray(),
+            'availability' => ['server' => true, 'browser' => false],
         ];
 
         if ($group !== null && $group !== '') {
@@ -880,11 +434,6 @@ class Variables
             'content' => $content,
             'children' => array_values($children),
         ];
-    }
-
-    private static function _referenceAllowsTransforms(ReferenceExpression $expr): bool
-    {
-        return !in_array($expr->target, ['allFields', 'allContentFields', 'allVisibleFields'], true);
     }
 
     private static function _getTransformerRegistry(): array
@@ -1143,12 +692,11 @@ class Variables
             ],
         ];
 
-        $event = new RegisterTransformersEvent([
-            'transformerRegistry' => $transformerRegistry,
-        ]);
-        Event::trigger(self::class, self::EVENT_REGISTER_TRANSFORMERS, $event);
-
-        return self::_sanitizeTransformerRegistry($event->transformerRegistry);
+        $registry = self::_sanitizeTransformerRegistry($transformerRegistry);
+        foreach ((new ReferenceCatalogue())->pickerTransforms() as $type => $transforms) {
+            $registry[$type] = [...($registry[$type] ?? []), ...$transforms];
+        }
+        return $registry;
     }
 
     private static function _sanitizeTransformerRegistry(mixed $registry): array
@@ -1360,126 +908,14 @@ class Variables
         Craft::warning($message . $contextSuffix, __METHOD__);
     }
 
-    private static function _getSubmissionRenderCacheKey(Submission $submission): string
-    {
-        $form = $submission->form;
-
-        // Preview submissions share a display ID but have distinct UIDs.
-        // Keep their variables and field-reference indexes isolated.
-        if ($submission->uid) {
-            return 'submission:' . $submission->uid;
-        }
-
-        if ($submission->id) {
-            return 'submission' . $submission->id;
-        }
-
-        if ($form?->id) {
-            return 'form' . $form->id . ':submission:' . spl_object_id($submission);
-        }
-
-        return 'submission:' . spl_object_id($submission);
-    }
-
-    private static function _getSummaryRenderCacheKey(Submission $submission, Notification $notification): string
-    {
-        $notificationKey = $notification->id
-            ? 'notification' . $notification->id
-            : 'notification:' . spl_object_id($notification);
-        $templateKey = $notification->templateId ? ':template' . $notification->templateId : ':template:default';
-
-        return self::_getSubmissionRenderCacheKey($submission) . ':' . $notificationKey . $templateKey;
-    }
-
-    private static function _getSubmissionFieldByReference(Submission $submission, string $reference): ?FieldInterface
-    {
-        if ($reference === '') {
-            return null;
-        }
-
-        $renderCache = Formie::$plugin->getRenderCache();
-        $cacheKey = self::_getSubmissionRenderCacheKey($submission);
-
-        if (!$renderCache->hasFieldReferenceIndex($cacheKey)) {
-            $fieldsByReference = [];
-
-            // Index Group/Name/Address children too — variable pickers historically emitted
-            // `{field:nestedUid}` for Group kids, which must resolve via valueKey().
-            // Skip Repeater children: those need scoped parent tokens (`scope=first`, etc.).
-            foreach ($submission->getFields() as $field) {
-                self::_indexFieldReference($fieldsByReference, $field);
-            }
-
-            $renderCache->setFieldReferenceIndex($cacheKey, $fieldsByReference);
-        }
-
-        return $renderCache->getFieldByReference($cacheKey, $reference);
-    }
-
-    private static function _indexFieldReference(array &$fieldsByReference, FieldInterface $field): void
-    {
-        $fieldReference = trim((string)($field->reference ?? ''));
-
-        if ($fieldReference !== '') {
-            $fieldsByReference[$fieldReference] = $field;
-        }
-
-        // Repeater rows are multi-valued; bare nested refs cannot pick a row without scope.
-        if ($field instanceof RepeatableParentFieldInterface) {
-            return;
-        }
-
-        if (!($field instanceof ParentFieldInterface)) {
-            return;
-        }
-
-        foreach ($field->getFields() as $nestedField) {
-            self::_indexFieldReference($fieldsByReference, $nestedField);
-        }
-    }
 
     private static function _getPrefixedEnvironmentVariableKeys(string $prefix): array
     {
-        $keys = [];
-        $sources = [$_ENV ?? [], $_SERVER ?? []];
-
-        foreach ($sources as $source) {
-            foreach (array_keys($source) as $key) {
-                if (!is_string($key) || !str_starts_with($key, $prefix)) {
-                    continue;
-                }
-
-                if (!preg_match('/^[A-Z0-9_]+$/', $key)) {
-                    continue;
-                }
-
-                $keys[$key] = true;
-            }
-        }
-
-        $allEnv = getenv();
-
-        if (is_array($allEnv)) {
-            foreach (array_keys($allEnv) as $key) {
-                if (!is_string($key) || !str_starts_with($key, $prefix)) {
-                    continue;
-                }
-
-                if (!preg_match('/^[A-Z0-9_]+$/', $key)) {
-                    continue;
-                }
-
-                $keys[$key] = true;
-            }
-        }
-
-        $envKeys = array_keys($keys);
-        sort($envKeys);
-
-        return $envKeys;
+        // Environment access is opt-in; never enumerate process/server secrets.
+        return array_values(array_filter(Formie::$plugin->getSettings()->referenceEnvironmentAllowlist, static fn($name): bool => is_string($name) && (bool)preg_match('/^[A-Z][A-Z0-9_]*$/D', $name)));
     }
 
-    private static function _getSummaryVariables(Submission $submission, Notification $notification): array
+    public static function getSummaryVariables(Submission $submission, Notification $notification): array
     {
         $allFields = [];
         $allContentFields = [];
@@ -1600,198 +1036,10 @@ class Variables
         return ucwords(strtolower($value));
     }
 
-    private static function _referenceToVariableKey(ReferenceExpression $expr): string
-    {
-        if ($expr->target === 'field') {
-            $path = $expr->identifier;
-
-            if ($expr->selector !== '') {
-                $path .= ':' . $expr->selector;
-            }
-
-            return 'field.' . str_replace(':', '.', $path);
-        }
-
-        if ($expr->target === 'dispatch') {
-            $path = $expr->identifier;
-
-            if ($expr->selector !== '') {
-                $path .= '.' . str_replace(':', '.', $expr->selector);
-            }
-
-            return 'dispatch.' . $path;
-        }
-
-        if ($expr->target === 'metadata') {
-            $path = $expr->identifier;
-
-            if ($expr->selector !== '') {
-                $path .= '.' . str_replace(':', '.', $expr->selector);
-            }
-
-            return 'metadata.' . $path;
-        }
-
-        if ($expr->target === 'timestamp') {
-            return $expr->identifier === '' ? 'timestamp' : $expr->identifier;
-        }
-
-        return $expr->target . ucfirst($expr->identifier);
-    }
-
-    private static function _resolveReferenceFieldValue(
-        Submission $submission,
-        FieldInterface $field,
-        string $selector = '',
-        array $params = [],
-    ): mixed {
-        if ($field instanceof RepeatableParentFieldInterface) {
-            return RepeaterReferenceHelper::resolve($submission, $field, $selector, $params);
-        }
-
-        if ($field instanceof Table) {
-            return TableReferenceHelper::resolve($submission, $field, $selector, $params);
-        }
-
-        // Element relation fields: selectors are related-element properties, not Formie sub-fields.
-        // `{field:uid:title}` must not become getFieldValue('handle.title') (always empty).
-        if ($field instanceof ElementField) {
-            return ElementReferenceHelper::resolve($submission, $field, $selector, $params);
-        }
-
-        // Nested Group (and sub-field) instances carry a dotted valueKey like `group.innerText`.
-        // Bare `$field->handle` misses the parent path and returns empty for nested tokens.
-        $fieldKey = $field->valueKey();
-
-        if ($selector === '') {
-            return $submission->getFieldValue($fieldKey);
-        }
-
-        $path = str_replace(':', '.', $selector);
-
-        return $submission->getFieldValue($fieldKey . '.' . $path);
-    }
-
-    private static function _getCurrentUser(?Submission $submission = null): bool|User|IdentityInterface|null
-    {
-        $currentUser = Craft::$app->getUser()->getIdentity();
-
-        if ($currentUser && Craft::$app->getRequest()->getIsSiteRequest()) {
-            return $currentUser;
-        }
-
-        if ($submission && $submission->getUser()) {
-            return $submission->getUser();
-        }
-
-        return null;
-    }
-
-    private static function _getSite(?Submission $submission): ?Site
-    {
-        $currentSite = Craft::$app->getSites()->getCurrentSite();
-
-        if ($currentSite) {
-            return $currentSite;
-        }
-
-        $siteId = $submission->siteId ?? null;
-
-        if ($siteId) {
-            return Craft::$app->getSites()->getSiteById($siteId);
-        }
-
-        return Craft::$app->getSites()->getPrimarySite();
-    }
-
-    private static function _getCustomVariableGroups(): array
-    {
-        $sources = self::getRegisteredVariableSources();
-
-        if ($sources === []) {
-            return [];
-        }
-
-        $items = array_map(static fn(VariableSourceInterface $source) => $source->toPickerSource(), $sources);
-
-        return [
-            self::GROUP_CUSTOM => $items,
-        ];
-    }
-
-    private static function _sanitizeRegisteredVariableSources(array $sources): array
-    {
-        $sanitized = [];
-        $seen = [];
-
-        foreach ($sources as $source) {
-            if (!$source instanceof VariableSourceInterface) {
-                Formie::warning('Ignoring invalid custom variable source registration entry.');
-                continue;
-            }
-
-            $handle = strtolower(trim($source->getHandle()));
-            $label = trim($source->getLabel());
-
-            if (!self::_isValidCustomVariableHandle($handle) || $label === '') {
-                Formie::warning('Ignoring invalid custom variable source "{handle}".', [
-                    'handle' => $source->getHandle(),
-                ]);
-                continue;
-            }
-
-            if (isset($seen[$handle])) {
-                Formie::warning('Ignoring duplicate custom variable source "{handle}".', [
-                    'handle' => $handle,
-                ]);
-                continue;
-            }
-
-            $seen[$handle] = true;
-            $sanitized[] = $source;
-        }
-
-        return $sanitized;
-    }
-
-    private static function _isValidCustomVariableHandle(string $value): bool
-    {
-        $value = strtolower(trim($value));
-
-        return $value !== '' && (bool)preg_match('/^[a-z][a-z0-9_]*$/', $value);
-    }
-
-    private static function _appendDispatchVariables(array $variables, Submission $submission): array
-    {
-        $context = Formie::$plugin->getIntegrationDispatch()->loadContext($submission);
-        $dispatch = [];
-
-        foreach ($context->results as $handle => $result) {
-            if (!is_array($result)) {
-                continue;
-            }
-
-            $dispatch[$handle] = array_filter([
-                'id' => $result['elementId'] ?? null,
-                'url' => $result['url'] ?? null,
-                'success' => $result['success'] ?? false,
-                'type' => $result['type'] ?? null,
-            ], fn($value) => $value !== null && $value !== '');
-        }
-
-        if ($dispatch) {
-            $variables['dispatch'] = $dispatch;
-        }
-
-        return $variables;
-    }
-
 
     // Constants
     // =========================================================================
 
-    public const EVENT_REGISTER_VARIABLES = 'registerVariables';
-    public const EVENT_REGISTER_TRANSFORMERS = 'registerTransformers';
     public const TARGET_CUSTOM = 'custom';
     public const CONTENT_ANY = 'any';
     public const CONTENT_SINGLE_LINE = 'singleLine';
@@ -1825,27 +1073,4 @@ class Variables
 
     public const ENVIRONMENT_VARIABLE_PREFIX = 'FORMIE_';
 
-    private const RESERVED_VARIABLE_TARGETS = [
-        'field',
-        'form',
-        'submission',
-        'site',
-        'user',
-        'system',
-        'env',
-        'dispatch',
-        'metadata',
-        'timestamp',
-        'allFields',
-        'allContentFields',
-        'allVisibleFields',
-        self::TARGET_CUSTOM,
-    ];
-
-
-    // Properties
-    // =========================================================================
-
-    private static ?array $_registeredVariableSources = null;
-    private static array $_customVariableResolutionCache = [];
 }

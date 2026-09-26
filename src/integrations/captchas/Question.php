@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\integrations\captchas;
 
+use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\Captcha;
 use verbb\formie\base\FormInterface;
 use verbb\formie\elements\Form;
@@ -19,6 +20,7 @@ class Question extends Captcha
     // =========================================================================
 
     public ?string $handle = 'question';
+    #[FormIntegrationSetting]
     public array $questions = [];
 
 
@@ -117,14 +119,6 @@ class Question extends Captcha
 
     // Protected Methods
     // =========================================================================
-
-    protected function formSettingAttributes(): array
-    {
-        $settings = parent::formSettingAttributes();
-        $settings[] = 'questions';
-
-        return $settings;
-    }
 
     protected function defineFormSettingsSchema(FormInterface $form): array
     {

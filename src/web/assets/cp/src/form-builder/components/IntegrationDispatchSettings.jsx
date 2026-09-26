@@ -12,12 +12,14 @@ const DEFAULT_PLAN = {
     enabled: false,
     notificationTiming: 'beforeIntegrations',
     failurePolicy: 'continue',
+    completionPolicy: 'successful',
     steps: [],
 };
 
 const NOTIFICATION_TIMING_OPTIONS = [
     { value: 'beforeIntegrations', label: Craft.t('formie', 'Before integrations') },
-    { value: 'afterIntegrations', label: Craft.t('formie', 'After integrations') },
+    { value: 'afterSynchronousIntegrations', label: Craft.t('formie', 'After synchronous integrations') },
+    { value: 'afterFinalizedDeliveryAttempts', label: Craft.t('formie', 'After finalized delivery attempts') },
 ];
 
 const FAILURE_POLICY_OPTIONS = [
@@ -47,13 +49,13 @@ const isUserOrEntryIntegration = (integration) => {
         || handle === 'entries';
 };
 
-const buildDefaultSteps = (integrations, { immediateForElements = false } = {}) => {
+const buildDefaultSteps = (integrations, { synchronousForElements = false } = {}) => {
     return integrations.map((integration) => {
-        const useImmediate = immediateForElements && isElementIntegration(integration);
+        const useSynchronous = synchronousForElements && isElementIntegration(integration);
 
         return {
             handle: integration.handle,
-            mode: useImmediate ? 'immediate' : 'queued',
+            execution: useSynchronous ? 'synchronous' : 'queued',
         };
     });
 };
@@ -149,11 +151,11 @@ function IntegrationDispatchSettings({
         updatePlan({ steps });
     };
 
-    const updateStepMode = (index, mode) => {
+    const updateStepExecution = (index, execution) => {
         const steps = cloneDeep(ensureCustomSteps());
         steps[index] = {
             ...steps[index],
-            mode,
+            execution,
         };
         updatePlan({ steps });
     };
@@ -161,9 +163,9 @@ function IntegrationDispatchSettings({
     const applyRecommendedSetup = () => {
         updatePlan({
             enabled: true,
-            notificationTiming: 'afterIntegrations',
+            notificationTiming: 'afterSynchronousIntegrations',
             failurePolicy: 'continue',
-            steps: buildDefaultSteps(payloadIntegrations, { immediateForElements: true }),
+            steps: buildDefaultSteps(payloadIntegrations, { synchronousForElements: true }),
         });
 
         if (!parentForm?.setFieldValue) {
@@ -186,7 +188,7 @@ function IntegrationDispatchSettings({
         parentForm.setFieldValue('settings.integrationPolicies.rerun', nextRerun);
     };
 
-    const showDispatchSection = payloadIntegrations.length >= 2;
+    const showDispatchSection = payloadIntegrations.length >= 1;
 
     return (
         <div className="space-y-8">
@@ -203,14 +205,9 @@ function IntegrationDispatchSettings({
                 <section className="space-y-4">
                     <IntegrationSettingsSectionHeading
                         title={Craft.t('formie', 'Dispatch')}
-                        description={Craft.t('formie', 'Control the order integrations run in, whether they execute immediately or via the queue, and when email notifications are sent.')}
+                        description={Craft.t('formie', 'Control the order integrations run in, whether they execute synchronously or via the queue, and when email notifications are sent.')}
                     />
 
-                    {enabledPayloadIntegrations.length < 2 && plan.enabled && (
-                        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-                            {Craft.t('formie', 'Dispatch is enabled, but at least two integrations must be active for orchestration to run on submission.')}
-                        </div>
-                    )}
 
                     {hasEnabledUserOrEntryIntegrations && (
                         <div className="rounded-lg border border-[rgba(51,64,77,.1)] bg-white p-4">
@@ -220,7 +217,7 @@ function IntegrationDispatchSettings({
                                         {Craft.t('formie', 'Recommended for User & Entry flows')}
                                     </div>
                                     <p className="mt-1 text-sm text-gray-500">
-                                        {Craft.t('formie', 'Run element integrations immediately during the submission request, then send notifications afterwards. This helps with activation emails, auto-login, and success page links that depend on created users or entries.')}
+                                        {Craft.t('formie', 'Run element integrations synchronously during the submission request, then send notifications afterwards. This helps with activation emails, auto-login, and success page links that depend on created users or entries.')}
                                     </p>
                                 </div>
                                 <Button
@@ -243,7 +240,7 @@ function IntegrationDispatchSettings({
                                     {Craft.t('formie', 'Enable Integration Dispatch')}
                                 </div>
                                 <p className="mt-1 text-sm text-gray-500">
-                                    {Craft.t('formie', 'Run enabled integrations sequentially in the order below, with control over immediate or queued execution. When disabled, enabled integrations run independently using Formie\'s default queue settings.')}
+                                    {Craft.t('formie', 'Run synchronous integrations in order, then dispatch queued integrations in order. When disabled, enabled integrations run independently using Formie\'s default queue settings.')}
                                 </p>
                             </div>
                             <Lightswitch
@@ -282,6 +279,14 @@ function IntegrationDispatchSettings({
                                 </div>
 
                                 <div>
+                                    <label className="mb-1 block text-sm font-semibold text-gray-900">{Craft.t('formie', 'Delivery Completion Policy')}</label>
+                                    <p className="mb-2 text-sm text-gray-500">{Craft.t('formie', 'Unknown outcomes always require reconciliation before after-delivery notifications can send.')}</p>
+                                    <SelectInput value={plan.completionPolicy} options={[
+                                        { value: 'successful', label: Craft.t('formie', 'Require succeeded or skipped') },
+                                        { value: 'finalized', label: Craft.t('formie', 'Also allow failed or rejected') },
+                                    ]} onChange={(value) => updatePlan({ completionPolicy: value })} />
+                                </div>
+                                <div>
                                     <label className="mb-1 block text-sm font-semibold text-gray-900">
                                         {Craft.t('formie', 'Failure Policy')}
                                     </label>
@@ -304,7 +309,7 @@ function IntegrationDispatchSettings({
                                         {Craft.t('formie', 'Integration Steps')}
                                     </h4>
                                     <p className="mt-1 text-sm text-gray-500">
-                                        {Craft.t('formie', 'Integrations run top to bottom. Use Immediate for element integrations that must finish during the submission request, such as user registration or entry creation. Disabled integrations are skipped at runtime.')}
+                                        {Craft.t('formie', 'Each lane runs top to bottom. Use Synchronous for element integrations that must finish during the submission request, such as user registration or entry creation. Disabled integrations are skipped at runtime.')}
                                     </p>
                                 </div>
 
@@ -316,7 +321,7 @@ function IntegrationDispatchSettings({
                                     onStepsChange={(steps) => {
                                         updatePlan({ steps });
                                     }}
-                                    onStepModeChange={updateStepMode}
+                                    onStepExecutionChange={updateStepExecution}
                                     onMoveStep={moveStep}
                                 />
                             </div>

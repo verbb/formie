@@ -2,9 +2,8 @@
 namespace verbb\formie\conditions;
 
 use verbb\formie\elements\Submission;
-use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\References;
-use verbb\formie\helpers\Variables;
+use verbb\formie\references\ReferenceContext;
 
 class ConditionValueResolver
 {
@@ -13,102 +12,16 @@ class ConditionValueResolver
 
     public function resolveFieldReferenceValue(mixed $fieldReference, Submission $submission): mixed
     {
-        if (!is_string($fieldReference)) {
+        if (!is_string($fieldReference) || $fieldReference === '') {
             return $fieldReference;
         }
-
-        $fieldReference = trim($fieldReference);
-
-        if ($fieldReference === '') {
-            return '';
+        // This is a declared reference operand. Stable plain handles are explicit compatibility selectors.
+        $token = str_starts_with($fieldReference, '{') ? $fieldReference : References::field($fieldReference);
+        $result = References::resolveValue($token, ReferenceContext::forSubmission($submission));
+        $value = $result->requireValue();
+        if ($result->field && $result->expression->selector === '' && $result->expression->transformerId === '' && !$result->expression->transformerParams) {
+            return $result->field->getValueForCondition($value, $submission);
         }
-
-        $expression = References::parseReferenceExpression($fieldReference);
-
-        if ($expression->isValid) {
-            if ($expression->target !== 'field') {
-                // Non-field tokens (`{submission:status}`, `{form:name}`, …) resolve
-                // through the variables map — not content field keys.
-                return Variables::getFieldAndValueForReference($fieldReference, $submission)['value'] ?? null;
-            }
-
-            $resolved = Variables::getFieldAndValueForReference($fieldReference, $submission);
-            $field = $resolved['field'] ?? null;
-
-            if ($field) {
-                $hasReferenceModifiers = $expression->default !== ''
-                    || $expression->transformerId !== ''
-                    || References::hasRepeaterScope($expression);
-
-                if ($hasReferenceModifiers) {
-                    // Once a reference opts into defaults/transformers, compare
-                    // against the resolved expression output rather than the
-                    // field's generic condition projection.
-                    return $resolved['value'] ?? null;
-                }
-
-                $conditionValue = $submission->getFieldValueForCondition($field->handle);
-
-                if ($expression->selector !== '') {
-                    return ArrayHelper::getValue($conditionValue, str_replace(':', '.', $expression->selector));
-                }
-
-                return $conditionValue;
-            }
-
-            $field = $this->_findSubmissionField($submission, $expression->identifier);
-
-            if ($field) {
-                $conditionValue = $submission->getFieldValueForCondition($field->handle);
-
-                if ($expression->selector !== '') {
-                    return ArrayHelper::getValue($conditionValue, str_replace(':', '.', $expression->selector));
-                }
-
-                return $conditionValue;
-            }
-
-            return $resolved['value'] ?? null;
-        }
-
-        // Fallback for plain handles / dot notation.
-        [$handle, $path] = array_pad(explode('.', $fieldReference, 2), 2, null);
-
-        if (!$handle) {
-            return null;
-        }
-
-        $field = $this->_findSubmissionField($submission, $handle);
-        $conditionValue = $submission->getFieldValueForCondition($field?->handle ?? $handle);
-
-        if ($path !== null && $path !== '') {
-            return ArrayHelper::getValue($conditionValue, $path);
-        }
-
-        return $conditionValue;
-    }
-
-    private function _findSubmissionField(Submission $submission, string $identifier): mixed
-    {
-        $identifier = trim($identifier);
-
-        if ($identifier === '') {
-            return null;
-        }
-
-        foreach ($submission->getFields() as $field) {
-            $matches = [
-                (string)($field->handle ?? ''),
-                (string)($field->uid ?? ''),
-                (string)($field->reference ?? ''),
-                $field->valueKey(),
-            ];
-
-            if (in_array($identifier, array_filter($matches), true)) {
-                return $field;
-            }
-        }
-
-        return null;
+        return $value;
     }
 }

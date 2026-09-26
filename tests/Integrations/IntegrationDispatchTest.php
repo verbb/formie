@@ -5,7 +5,7 @@ declare(strict_types=1);
 use verbb\formie\elements\Form;
 use verbb\formie\models\IntegrationDispatchPlan;
 use verbb\formie\models\Notification;
-use verbb\formie\services\IntegrationDispatch;
+use verbb\formie\services\IntegrationDispatcher;
 
 it('resolves integration dispatch steps from explicit plan steps', function (): void {
     $plan = IntegrationDispatchPlan::fromFormSettings([
@@ -17,7 +17,7 @@ it('resolves integration dispatch steps from explicit plan steps', function (): 
     ]);
 
     expect($plan->getOrderedHandles(new Form()))->toBe(['b', 'a'])
-        ->and($plan->getImmediateHandles(new Form()))->toBe(['a'])
+        ->and($plan->getSynchronousHandles(new Form()))->toBe(['a'])
         ->and($plan->getQueuedHandles(new Form()))->toBe(['b']);
 });
 
@@ -32,10 +32,10 @@ it('uses form default notification timing when notification dispatch timing is d
         'dispatchTiming' => Notification::DISPATCH_TIMING_DEFAULT,
     ]);
 
-    $service = new IntegrationDispatch();
+    $service = new IntegrationDispatcher();
 
-    expect($service->shouldSendNotificationAtPhase($notification, $form, IntegrationDispatch::PHASE_BEFORE))->toBeFalse()
-        ->and($service->shouldSendNotificationAtPhase($notification, $form, IntegrationDispatch::PHASE_AFTER))->toBeTrue();
+    expect($service->shouldSendNotificationAtPhase($notification, $form, IntegrationDispatcher::PHASE_BEFORE))->toBeFalse()
+        ->and($service->shouldSendNotificationAtPhase($notification, $form, IntegrationDispatcher::PHASE_AFTER))->toBeTrue();
 });
 
 it('allows per-notification dispatch timing overrides', function (): void {
@@ -49,10 +49,10 @@ it('allows per-notification dispatch timing overrides', function (): void {
         'dispatchTiming' => Notification::DISPATCH_TIMING_AFTER,
     ]);
 
-    $service = new IntegrationDispatch();
+    $service = new IntegrationDispatcher();
 
-    expect($service->shouldSendNotificationAtPhase($notification, $form, IntegrationDispatch::PHASE_BEFORE))->toBeFalse()
-        ->and($service->shouldSendNotificationAtPhase($notification, $form, IntegrationDispatch::PHASE_AFTER))->toBeTrue();
+    expect($service->shouldSendNotificationAtPhase($notification, $form, IntegrationDispatcher::PHASE_BEFORE))->toBeFalse()
+        ->and($service->shouldSendNotificationAtPhase($notification, $form, IntegrationDispatcher::PHASE_AFTER))->toBeTrue();
 });
 
 it('records integration dispatch context results', function (): void {
@@ -88,7 +88,7 @@ it('detects when any notification requires the after-integrations phase', functi
         ]),
     ];
 
-    $service = new IntegrationDispatch();
+    $service = new IntegrationDispatcher();
 
     expect($service->needsAfterNotificationsPhase($form))->toBeTrue();
 });
@@ -99,7 +99,7 @@ it('round trips integration context and reads previously double encoded context'
     $submission = formie()->submission($form)->with(['fullName' => 'Context'])->save();
     $context = new \verbb\formie\models\IntegrationDispatchContext();
     $context->record('example', ['success' => true, 'elementId' => 42]);
-    $service = new IntegrationDispatch();
+    $service = new IntegrationDispatcher();
     $service->saveContext($submission, $context);
     $raw = (new \craft\db\Query())->select(['integrationDispatchContext'])
         ->from(\verbb\formie\helpers\Table::FORMIE_SUBMISSIONS)->where(['id' => $submission->id])->scalar();

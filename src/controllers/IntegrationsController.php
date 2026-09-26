@@ -153,6 +153,7 @@ class IntegrationsController extends Controller
             $this->_requireIntegrationFormPermission($formId);
 
             $integration = Formie::$plugin->getIntegrations()->getIntegrationByHandle($handle);
+            $integration = $integration ? clone $integration : null;
 
             if (!$integration) {
                 throw new BadRequestHttpException(Craft::t('formie', 'Unknown integration: “{handle}”', ['handle' => $handle]));

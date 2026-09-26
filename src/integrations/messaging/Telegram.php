@@ -2,6 +2,7 @@
 namespace verbb\formie\integrations\messaging;
 
 use verbb\formie\Formie;
+use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Messaging;
@@ -9,16 +10,16 @@ use verbb\formie\elements\Submission;
 use verbb\formie\helpers\RichTextHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationResult;
 
 use Craft;
 use craft\helpers\App;
 use craft\helpers\Json;
 
-use League\HTMLToMarkdown\HtmlConverter;
-
 use Throwable;
 
 use GuzzleHttp\Client;
+use League\HTMLToMarkdown\HtmlConverter;
 
 class Telegram extends Messaging
 {
@@ -35,7 +36,9 @@ class Telegram extends Messaging
     // =========================================================================
 
     public ?string $botToken = null;
+    #[FormIntegrationSetting]
     public ?string $chatId = null;
+    #[FormIntegrationSetting]
     public ?string $message = null;
 
 
@@ -52,8 +55,9 @@ class Telegram extends Messaging
         return new IntegrationFormSettings([]);
     }
 
-    public function sendPayload(Submission $submission): bool
+    public function sendPayload(Submission $submission): IntegrationResult
     {
+        $this->beginPayloadDelivery($submission);
         try {
             $chatId = App::parseEnv($this->chatId);
             $botToken = App::parseEnv($this->botToken);
@@ -62,7 +66,7 @@ class Telegram extends Messaging
             if (!$chatId || !$message) {
                 Integration::error($this, Craft::t('formie', 'Missing Chat ID or message.'));
 
-                return false;
+                return $this->resultForPayload(false);
             }
 
             $payload = [
@@ -75,7 +79,7 @@ class Telegram extends Messaging
             $response = $this->deliverPayload($submission, 'sendMessage', $payload, 'POST', 'form_params');
 
             if ($response === false) {
-                return true;
+                return $this->resultForPayload(true);
             }
 
             if ($response->getStatusCode() !== 200) {
@@ -85,15 +89,15 @@ class Telegram extends Messaging
                     'response' => $body,
                 ]), true);
 
-                return false;
+                return $this->resultForPayload(false);
             }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
-            return false;
+            return $this->resultForPayload(false);
         }
 
-        return true;
+        return $this->resultForPayload(true);
     }
 
     public function fetchConnection(): bool
@@ -112,15 +116,6 @@ class Telegram extends Messaging
     
     // Protected Methods
     // =========================================================================
-
-    protected function formSettingAttributes(): array
-    {
-        $settings = parent::formSettingAttributes();
-        $settings[] = 'chatId';
-        $settings[] = 'message';
-
-        return $settings;
-    }
 
     protected function defineRules(): array
     {

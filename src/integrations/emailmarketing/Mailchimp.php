@@ -1,9 +1,10 @@
 <?php
 namespace verbb\formie\integrations\emailmarketing;
 
-use verbb\formie\base\Integration;
+use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\EmailMarketing;
 use verbb\formie\base\FormInterface;
+use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyFieldIntegrationValuesEvent;
 use verbb\formie\fields\values\AddressFieldValue;
@@ -15,15 +16,19 @@ use verbb\formie\helpers\Variables;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationResult;
+use verbb\formie\references\ReferenceSlot;
+use verbb\formie\references\ReferenceSlotKind;
 
 use Craft;
 use craft\helpers\App;
 
-use GuzzleHttp\Client;
-use GuzzleHttp\Exception\RequestException;
+use yii\base\Event;
 
 use Throwable;
-use yii\base\Event;
+
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
 
 class Mailchimp extends EmailMarketing
 {
@@ -61,7 +66,9 @@ class Mailchimp extends EmailMarketing
     // =========================================================================
 
     public ?string $apiKey = null;
+    #[FormIntegrationSetting]
     public bool $appendTags = false;
+    #[FormIntegrationSetting]
     public bool $useDoubleOptIn = false;
 
     // Public Methods
@@ -82,12 +89,12 @@ class Mailchimp extends EmailMarketing
                     continue;
                 }
 
-                $fieldKey = $event->integration->normalizeFieldMappingValue($event->fieldMapping[$tag] ?? '');
-                if ($fieldKey === '' || !str_contains($fieldKey, '{')) {
+                $slot = ReferenceSlot::fromStored($event->fieldMapping[$tag] ?? '');
+                if ($slot->kind !== ReferenceSlotKind::Exact) {
                     continue;
                 }
 
-                $resolved = Variables::getFieldAndValueForReference($fieldKey, $event->submission);
+                $resolved = Variables::getFieldAndValueForReference((string)$slot->value, $event->submission);
                 $rawValue = $resolved['value'];
 
                 if ($rawValue instanceof AddressFieldValue) {
@@ -207,8 +214,9 @@ class Mailchimp extends EmailMarketing
         return new IntegrationFormSettings($settings);
     }
 
-    public function sendPayload(Submission $submission): bool
+    public function sendPayload(Submission $submission): IntegrationResult
     {
+        $this->beginPayloadDelivery($submission);
         try {
             $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping);
 
@@ -256,7 +264,7 @@ class Mailchimp extends EmailMarketing
             $response = $this->deliverPayload($submission, "lists/{$this->listId}/members/$emailHash", $payload, 'PUT');
 
             if ($response === false) {
-                return true;
+                return $this->resultForPayload(true);
             }
 
             // Process any tags, we need to fetch them first, then add or delete them.
@@ -281,15 +289,15 @@ class Mailchimp extends EmailMarketing
             }
         } catch (Throwable $e) {
             if ($this->supportsIntegrationApiErrorSeverity()) {
-                return $this->handleSubmissionApiError($e, $submission);
+                return $this->resultForPayload($this->handleSubmissionApiError($e, $submission));
             }
 
             Integration::apiError($this, $e, true, $submission);
 
-            return false;
+            return $this->resultForPayload(false);
         }
 
-        return true;
+        return $this->resultForPayload(true);
     }
 
     public function supportsIntegrationApiErrorSeverity(): bool
@@ -350,15 +358,6 @@ class Mailchimp extends EmailMarketing
     
     // Protected Methods
     // =========================================================================
-
-    protected function formSettingAttributes(): array
-    {
-        $settings = parent::formSettingAttributes();
-        $settings[] = 'appendTags';
-        $settings[] = 'useDoubleOptIn';
-
-        return $settings;
-    }
 
     protected function defineRules(): array
     {

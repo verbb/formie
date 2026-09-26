@@ -2,6 +2,7 @@
 namespace verbb\formie\base;
 
 use verbb\formie\Formie;
+use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\FormInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
@@ -50,6 +51,7 @@ abstract class Captcha extends Integration
     // Properties
     // =========================================================================
 
+    #[FormIntegrationSetting]
     public bool $showAllPages = false;
     public ?string $spamReason = null;
     public ?bool $saveSpam = null;
@@ -58,6 +60,14 @@ abstract class Captcha extends Integration
 
     // Public Methods
     // =========================================================================
+
+    public function request(string $method, string $uri, array $options = []): mixed
+    {
+        // CAPTCHA verification uses provider-defined absolute endpoints before a
+        // submission exists, rather than a delivery connection's base URI.
+        return $this->requestPublicEndpoint($method, $uri, $options);
+    }
+
 
     public function getType(): string
     {
@@ -149,14 +159,6 @@ abstract class Captcha extends Integration
     
     // Protected Methods
     // =========================================================================
-
-    protected function formSettingAttributes(): array
-    {
-        $settings = parent::formSettingAttributes();
-        $settings[] = 'showAllPages';
-
-        return $settings;
-    }
 
     protected function defineFormSettingsSchema(FormInterface $form): array
     {

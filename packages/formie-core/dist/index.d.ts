@@ -10,4 +10,8 @@ export { countGraphemes, getTextLimitMetrics, getWordCount, normalizeText } from
 export { getFrontendErrorAriaLive, getFrontendFieldErrorId } from './accessibility';
 export type { FrontendErrorAriaLive } from './accessibility';
 export type { FrontendFieldDefinition, FrontendFieldValueContract, FrontendFieldValueStructure, FrontendFieldType, FrontendFieldValueType, FrontendFormDefinition, FrontendFormEnvelope, FrontendFormSession, KnownFrontendFieldType, FrontendPageDefinition, FrontendRowDefinition, FrontendFormEventName, FrontendFormFieldState, FrontendFormInstance, FrontendFormPageState, FrontendFormState, FrontendSubmitAction, FrontendSubmitResult, FrontendTransport, FrontendValidationRule, } from './types';
+export { parseReference, serializeReference } from './references';
+export type { ReferenceExpression } from './references';
+export { resolveReference } from './references';
+export type { ReferenceDefinition, ReferenceContext, ResolvedReference } from './references';
 //# sourceMappingURL=index.d.ts.map

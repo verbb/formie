@@ -114,7 +114,7 @@ class Formie extends Plugin
 
     public bool $hasCpSection = true;
     public bool $hasCpSettings = true;
-    public string $schemaVersion = '4.0.66';
+    public string $schemaVersion = '4.0.68';
     public string $minVersionRequired = '2.1.5';
 
 
@@ -151,6 +151,9 @@ class Formie extends Plugin
             $this->_registerCpRoutes();
             $this->_registerWidgets();
             $this->_registerElementExports();
+            if (str_starts_with(Craft::$app->getRequest()->getPathInfo(), 'utilities/queue-manager')) {
+                \verbb\formie\helpers\Plugin::registerCpAsset('src/delivery/formie-delivery.js');
+            }
         }
 
         if (Craft::$app->getRequest()->getIsConsoleRequest()) {
@@ -507,6 +510,7 @@ class Formie extends Plugin
         Event::on(Gc::class, Gc::EVENT_RUN, function() {
             $console = Craft::$app instanceof ConsoleApplication ? Craft::$app : null;
             $this->getCleanup()->runAll($console);
+            $this->getDeliveryAttempts()->purgeExpiredEvidence();
         });
     }
 

@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\integrations\helpdesk;
 
+use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\HelpDesk;
 use verbb\formie\base\Integration;
@@ -9,6 +10,7 @@ use verbb\formie\helpers\RichTextHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationResult;
 
 use Craft;
 use craft\helpers\App;
@@ -16,12 +18,10 @@ use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
 
-use GuzzleHttp\Client;
-
-use League\HTMLToMarkdown\HtmlConverter;
-
 use Throwable;
 
+use GuzzleHttp\Client;
+use League\HTMLToMarkdown\HtmlConverter;
 use verbb\auth\base\OAuthProviderInterface;
 use verbb\auth\models\Token;
 use verbb\auth\providers\LiveChat as LiveChatProvider;
@@ -51,8 +51,11 @@ class LiveChat extends HelpDesk implements OAuthProviderInterface
     // =========================================================================
 
     public ?string $licenseId = null;
+    #[FormIntegrationSetting]
     public ?string $message = null;
+    #[FormIntegrationSetting]
     public bool $mapToTicket = false;
+    #[FormIntegrationSetting]
     public ?array $ticketFieldMapping = null;
 
 
@@ -100,8 +103,9 @@ class LiveChat extends HelpDesk implements OAuthProviderInterface
         return new IntegrationFormSettings($settings);
     }
 
-    public function sendPayload(Submission $submission): bool
+    public function sendPayload(Submission $submission): IntegrationResult
     {
+        $this->beginPayloadDelivery($submission);
         try {
             $ticketValues = $this->getFieldMappingValues($submission, $this->ticketFieldMapping, 'ticket');
 
@@ -129,7 +133,7 @@ class LiveChat extends HelpDesk implements OAuthProviderInterface
             $response = $this->deliverPayload($submission, 'v2/tickets/new', $payload);
 
             if ($response === false) {
-                return true;
+                return $this->resultForPayload(true);
             }
 
             $ticketId = $response['id'] ?? '';
@@ -140,30 +144,20 @@ class LiveChat extends HelpDesk implements OAuthProviderInterface
                     'payload' => Json::encode($payload),
                 ]), true);
 
-                return false;
+                return $this->resultForPayload(false);
             }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
-            return false;
+            return $this->resultForPayload(false);
         }
 
-        return true;
+        return $this->resultForPayload(true);
     }
 
     
     // Protected Methods
     // =========================================================================
-
-    protected function formSettingAttributes(): array
-    {
-        $settings = parent::formSettingAttributes();
-        $settings[] = 'message';
-        $settings[] = 'mapToTicket';
-        $settings[] = 'ticketFieldMapping';
-
-        return $settings;
-    }
 
     protected function defineRules(): array
     {

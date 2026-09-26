@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\integrations\crm;
 
+use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\Crm;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
@@ -10,6 +11,7 @@ use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationResult;
 
 use Craft;
 use craft\helpers\App;
@@ -44,9 +46,13 @@ class Dotdigital extends Crm
     public ?string $username = null;
     public ?string $password = null;
     public ?string $apiDomain = null;
+    #[FormIntegrationSetting]
     public bool $mapToContact = false;
+    #[FormIntegrationSetting]
     public bool $sendEmailCampaign = false;
+    #[FormIntegrationSetting]
     public ?array $contactFieldMapping = null;
+    #[FormIntegrationSetting]
     public ?array $emailSendMapping = null;
 
 
@@ -214,8 +220,9 @@ class Dotdigital extends Crm
         return new IntegrationFormSettings($settings);
     }
 
-    public function sendPayload(Submission $submission): bool
+    public function sendPayload(Submission $submission): IntegrationResult
     {
+        $this->beginPayloadDelivery($submission);
         try {
             $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
             $contactId = null;
@@ -239,7 +246,7 @@ class Dotdigital extends Crm
                 $response = $this->deliverPayload($submission, 'contacts/with-consent-and-preferences', $contactPayload);
 
                 if ($response === false) {
-                    return true;
+                    return $this->resultForPayload(true);
                 }
 
                 $contactId = $response['contact']['id'] ?? '';
@@ -250,7 +257,7 @@ class Dotdigital extends Crm
                         'payload' => Json::encode($contactPayload),
                     ]), true);
 
-                    return false;
+                    return $this->resultForPayload(false);
                 }
 
                 if ($addressBook) {
@@ -261,7 +268,7 @@ class Dotdigital extends Crm
                     $response = $this->deliverPayload($submission, "address-books/{$addressBook}/contacts", $addressBookPayload);
 
                     if ($response === false) {
-                        return true;
+                        return $this->resultForPayload(true);
                     }
 
                     $contactId = $response['id'] ?? '';
@@ -272,7 +279,7 @@ class Dotdigital extends Crm
                             'payload' => Json::encode($addressBookPayload),
                         ]), true);
 
-                        return false;
+                        return $this->resultForPayload(false);
                     }
                 }
             }
@@ -308,7 +315,7 @@ class Dotdigital extends Crm
                 $response = $this->deliverPayload($submission, 'campaigns/send', $emailCampaignPayload);
 
                 if ($response === false) {
-                    return true;
+                    return $this->resultForPayload(true);
                 }
 
                 $emailCampaignSendId = $response['id'] ?? '';
@@ -319,16 +326,16 @@ class Dotdigital extends Crm
                         'payload' => Json::encode($emailCampaignPayload),
                     ]), true);
 
-                    return false;
+                    return $this->resultForPayload(false);
                 }
             }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
-            return false;
+            return $this->resultForPayload(false);
         }
 
-        return true;
+        return $this->resultForPayload(true);
     }
 
     public function fetchConnection(): bool
@@ -347,17 +354,6 @@ class Dotdigital extends Crm
     
     // Protected Methods
     // =========================================================================
-
-    protected function formSettingAttributes(): array
-    {
-        $settings = parent::formSettingAttributes();
-        $settings[] = 'mapToContact';
-        $settings[] = 'sendEmailCampaign';
-        $settings[] = 'contactFieldMapping';
-        $settings[] = 'emailSendMapping';
-
-        return $settings;
-    }
 
     protected function defineRules(): array
     {

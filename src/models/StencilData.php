@@ -5,6 +5,8 @@ use verbb\formie\Formie;
 use verbb\formie\base\FieldInterface;
 use verbb\formie\base\ParentField;
 use verbb\formie\elements\Form;
+use verbb\formie\helpers\FormSerializer;
+use verbb\formie\helpers\IntegrationSecrets;
 use verbb\formie\helpers\References;
 use verbb\formie\models\FieldLayout;
 use verbb\formie\models\FieldLayoutPage;
@@ -48,21 +50,21 @@ class StencilData extends Model
         $integrations = $settings['integrations'] ?? [];
         $integrations = Formie::$plugin->getIntegrations()->filterAllIntegrationFormSettings($integrations, true);
 
-        $settings['integrations'] = array_filter($integrations, function($integration) {
+        $settings['integrations'] = IntegrationSecrets::protect(array_filter($integrations, function($integration) {
             return isset($integration['enabled']) && $integration['enabled'];
-        });
+        }));
 
         return $settings;
     }
 
     public static function serializeLayoutField(FieldInterface $field): array
     {
-        return (new \verbb\formie\helpers\FormSerializer())->serializeField($field);
+        return (new FormSerializer())->serializeField($field);
     }
 
     public static function getSerializedLayout(FieldLayout $layout): array
     {
-        return (new \verbb\formie\helpers\FormSerializer())->serializeLayout($layout);
+        return (new FormSerializer())->serializeLayout($layout);
     }
 
 
@@ -216,7 +218,7 @@ class StencilData extends Model
 
     private function _createRemappedStencilData(): self
     {
-        $serializer = new \verbb\formie\helpers\FormSerializer();
+        $serializer = new FormSerializer();
         $data = $serializer->prepareCopy($this->getSerializedData(), 'stencil');
         $data['warnings'] = $serializer->warnings;
         $this->warnings = $serializer->warnings;

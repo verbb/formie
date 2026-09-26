@@ -1,0 +1,54 @@
+<?php
+namespace verbb\formie\helpers;
+
+/** Bounded support projections. Exact operational data belongs in encrypted storage. */
+final class DeliveryDiagnostics
+{
+    // Static Methods
+    // =========================================================================
+
+    public static function redact(mixed $value, array $secrets = [], int $depth = 0): mixed
+    {
+        if ($depth > 8) {
+            return '[depth limit]';
+        }
+        if (is_array($value)) {
+            $safe = [];
+            foreach (array_slice($value, 0, 100, true) as $key => $item) {
+                if (preg_match('/password|secret|token|authorization|cookie|api.?key|httpAuth|credential|card.?number|cvv/i', (string)$key)) {
+                    $safe[$key] = '[redacted]';
+                } else {
+                    $safe[$key] = self::redact($item, $secrets, $depth + 1);
+                }
+            }
+            return $safe;
+        }
+        if (is_string($value)) {
+            if (strlen($value) <= 65536 && ($value[0] ?? '') === '{') {
+                $decoded = json_decode($value, true);
+                if (is_array($decoded)) {
+                    return json_encode(self::redact($decoded, $secrets, $depth + 1), JSON_INVALID_UTF8_SUBSTITUTE);
+                }
+            }
+            foreach ($secrets as $secret) {
+                if (is_string($secret) && $secret !== '') {
+                    $value = str_replace($secret, '[redacted]', $value);
+                }
+            }
+            $value = preg_replace('/((?:password|secret|api[_-]?key|access[_-]?token)\s*[:=]\s*)[^\s,;]+/i', '$1[redacted]', $value);
+            $value = preg_replace('/\b(Bearer|Basic)\s+[^\s"<>]+/i', '$1 [redacted]', $value);
+            $value = preg_replace('/([?&](?:[^=&]*(?:token|secret|key|password)[^=&]*)=)[^&#\s]*/i', '$1[redacted]', $value);
+            return mb_substr($value, 0, 2048);
+        }
+        return is_scalar($value) || $value === null ? $value : '[unsupported value]';
+    }
+
+    public static function encode(mixed $value, array $secrets = []): string
+    {
+        $json = json_encode(self::redact($value, $secrets), JSON_INVALID_UTF8_SUBSTITUTE | JSON_PARTIAL_OUTPUT_ON_ERROR);
+        if (strlen($json) > 16384) {
+            return json_encode(['truncated' => true, 'preview' => mb_strcut($json, 0, 8192)], JSON_INVALID_UTF8_SUBSTITUTE);
+        }
+        return $json;
+    }
+}

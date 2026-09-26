@@ -150,8 +150,9 @@ class ExampleEmailMarketing extends EmailMarketing
         return new IntegrationFormSettings($settings);
     }
 
-    public function sendPayload(Submission $submission): bool
+    public function sendPayload(Submission $submission): \verbb\formie\models\IntegrationResult
     {
+        $this->beginPayloadDelivery($submission);
         try {
             $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping);
 
@@ -165,11 +166,11 @@ class ExampleEmailMarketing extends EmailMarketing
 
             $response = $this->deliverPayload($submission, 'contact', $payload);
 
-            return $response !== false;
+            return $this->resultForPayload($response !== false);
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
-            return false;
+            return $this->resultForPayload(false);
         }
     }
 
@@ -349,10 +350,11 @@ use verbb\formie\integrations\emailmarketing\Mailchimp;
 
 class MailchimpCustom extends Mailchimp
 {
-    public function sendPayload(Submission $submission): bool
+    public function sendPayload(Submission $submission): \verbb\formie\models\IntegrationResult
     {
+        $this->beginPayloadDelivery($submission);
         // Custom payload handling, then optionally call parent.
-        return parent::sendPayload($submission);
+        return $this->resultForPayload(parent::sendPayload($submission));
     }
 }
 ```

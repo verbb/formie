@@ -28,4 +28,5 @@ export type ResolveFieldValueResult = {
     key: string;
     value: string | string[];
     found: boolean;
+    diagnostic?: string;
 };

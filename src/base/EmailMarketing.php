@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\base;
 
+use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\FormInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
@@ -30,7 +31,9 @@ abstract class EmailMarketing extends Integration
     // Properties
     // =========================================================================
 
+    #[FormIntegrationSetting]
     public ?array $fieldMapping = null;
+    #[FormIntegrationSetting]
     public ?string $listId = null;
 
 
@@ -83,15 +86,6 @@ abstract class EmailMarketing extends Integration
 
     // Protected Methods
     // =========================================================================
-
-    protected function formSettingAttributes(): array
-    {
-        $settings = parent::formSettingAttributes();
-        $settings[] = 'fieldMapping';
-        $settings[] = 'listId';
-
-        return $settings;
-    }
 
     protected function defineRules(): array
     {

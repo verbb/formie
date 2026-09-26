@@ -34,26 +34,26 @@
       "../../../../packages/formie-browser/dist/chunks/combobox-CJ9uGS09.js"
     ]
   },
-  "../../../../packages/formie-browser/dist/chunks/bpoint-BK0qQFY_.js": {
-    "file": "assets/bpoint-BK0qQFY_-BVPl08wt.js",
-    "name": "bpoint-BK0qQFY_",
-    "src": "../../../../packages/formie-browser/dist/chunks/bpoint-BK0qQFY_.js",
+  "../../../../packages/formie-browser/dist/chunks/bpoint-dQWM0Nf_.js": {
+    "file": "assets/bpoint-dQWM0Nf_-DaJVLwOi.js",
+    "name": "bpoint-dQWM0Nf_",
+    "src": "../../../../packages/formie-browser/dist/chunks/bpoint-dQWM0Nf_.js",
     "isDynamicEntry": true,
     "imports": [
-      "_api-BFwrZJRD-PhbccHjC.js"
+      "_api-CQI_ERER-CgcmHewp.js"
     ]
   },
-  "../../../../packages/formie-browser/dist/chunks/calculations-C62eFkjn.js": {
-    "file": "assets/calculations-C62eFkjn-BrJhdmlv.js",
-    "name": "calculations-C62eFkjn",
-    "src": "../../../../packages/formie-browser/dist/chunks/calculations-C62eFkjn.js",
+  "../../../../packages/formie-browser/dist/chunks/calculations-Km88LoiU.js": {
+    "file": "assets/calculations-Km88LoiU-D65bjZQW.js",
+    "name": "calculations-Km88LoiU",
+    "src": "../../../../packages/formie-browser/dist/chunks/calculations-Km88LoiU.js",
     "isDynamicEntry": true,
     "imports": [
       "_field-references.keys-58ZSTrCW-BTYscFZJ.js",
-      "_field-references.resolver-DVyat1BQ-Mzh5mWjD.js",
+      "_dist-D-zH3M5_-DXJCwD9e.js",
+      "_field-references.resolver-UFZAXOEZ-B9iLaOSB.js",
       "src/submissions/js/formie-submissions.js",
-      "_shared-Bx9s0i0P-SIkaHZle.js",
-      "_dist-jnOmpuYK-CnOLOaFa.js"
+      "_shared-Bx9s0i0P-SIkaHZle.js"
     ]
   },
   "../../../../packages/formie-browser/dist/chunks/captcha-eu-DtJ4kud5.js": {
@@ -87,16 +87,16 @@
       "_styles-BfoIZwJp-VFrCtLDq.js"
     ]
   },
-  "../../../../packages/formie-browser/dist/chunks/conditions-DpKIH-nz.js": {
-    "file": "assets/conditions-DpKIH-nz-ClCYi06L.js",
-    "name": "conditions-DpKIH-nz",
-    "src": "../../../../packages/formie-browser/dist/chunks/conditions-DpKIH-nz.js",
+  "../../../../packages/formie-browser/dist/chunks/conditions-BW9J3QFL.js": {
+    "file": "assets/conditions-BW9J3QFL-DgP3NJ6A.js",
+    "name": "conditions-BW9J3QFL",
+    "src": "../../../../packages/formie-browser/dist/chunks/conditions-BW9J3QFL.js",
     "isDynamicEntry": true,
     "imports": [
       "_field-references.keys-58ZSTrCW-BTYscFZJ.js",
+      "_dist-D-zH3M5_-DXJCwD9e.js",
       "src/submissions/js/formie-submissions.js",
-      "_shared-Bx9s0i0P-SIkaHZle.js",
-      "_dist-jnOmpuYK-CnOLOaFa.js"
+      "_shared-Bx9s0i0P-SIkaHZle.js"
     ]
   },
   "../../../../packages/formie-browser/dist/chunks/custom-google-maps-B40lH0O1.js": {
@@ -118,12 +118,12 @@
     ]
   },
   "../../../../packages/formie-browser/dist/chunks/custom-maps-Dp8LrcQI.js": {
-    "file": "assets/custom-maps-Dp8LrcQI-BmTQswOf.js",
+    "file": "assets/custom-maps-Dp8LrcQI-BcHMM7og.js",
     "name": "custom-maps-Dp8LrcQI",
     "src": "../../../../packages/formie-browser/dist/chunks/custom-maps-Dp8LrcQI.js",
     "isDynamicEntry": true,
     "imports": [
-      "_plugin-kit-DIIhpnIE.js",
+      "_plugin-kit-DKsFSll4.js",
       "_shared-Bx9s0i0P-SIkaHZle.js",
       "_styles-BfoIZwJp-VFrCtLDq.js",
       "_rolldown-runtime-DtPi1Y-2-2FWOM6Ia.js"
@@ -144,14 +144,14 @@
       "_rolldown-runtime-DtPi1Y-2-2FWOM6Ia.js"
     ]
   },
-  "../../../../packages/formie-browser/dist/chunks/eway-dhNGK7_d.js": {
-    "file": "assets/eway-dhNGK7_d-DqTljRnm.js",
-    "name": "eway-dhNGK7_d",
-    "src": "../../../../packages/formie-browser/dist/chunks/eway-dhNGK7_d.js",
+  "../../../../packages/formie-browser/dist/chunks/eway-d7xOzOfj.js": {
+    "file": "assets/eway-d7xOzOfj-fNB2n6G2.js",
+    "name": "eway-d7xOzOfj",
+    "src": "../../../../packages/formie-browser/dist/chunks/eway-d7xOzOfj.js",
     "isDynamicEntry": true,
     "imports": [
       "_async-nPFRNQ06-f6_y1M5p.js",
-      "_api-BFwrZJRD-PhbccHjC.js",
+      "_api-CQI_ERER-CgcmHewp.js",
       "_scripts-CbQ7agX3-C-1aO496.js"
     ]
   },
@@ -168,12 +168,12 @@
     ]
   },
   "../../../../packages/formie-browser/dist/chunks/friendly-captcha-v1-Abcy0iat.js": {
-    "file": "assets/friendly-captcha-v1-Abcy0iat-D1RbdexP.js",
+    "file": "assets/friendly-captcha-v1-Abcy0iat-NAN5LCTa.js",
     "name": "friendly-captcha-v1-Abcy0iat",
     "src": "../../../../packages/formie-browser/dist/chunks/friendly-captcha-v1-Abcy0iat.js",
     "isDynamicEntry": true,
     "imports": [
-      "_plugin-kit-DIIhpnIE.js",
+      "_plugin-kit-DKsFSll4.js",
       "_api-Bdo8IEDo-C2QDz1r1.js"
     ],
     "dynamicImports": [
@@ -181,12 +181,12 @@
     ]
   },
   "../../../../packages/formie-browser/dist/chunks/friendly-captcha-v2-BBq5GuOg.js": {
-    "file": "assets/friendly-captcha-v2-BBq5GuOg-CDLE63od.js",
+    "file": "assets/friendly-captcha-v2-BBq5GuOg-DEnA5tBN.js",
     "name": "friendly-captcha-v2-BBq5GuOg",
     "src": "../../../../packages/formie-browser/dist/chunks/friendly-captcha-v2-BBq5GuOg.js",
     "isDynamicEntry": true,
     "imports": [
-      "_plugin-kit-DIIhpnIE.js",
+      "_plugin-kit-DKsFSll4.js",
       "_api-Bdo8IEDo-C2QDz1r1.js"
     ],
     "dynamicImports": [
@@ -199,13 +199,13 @@
     "src": "../../../../packages/formie-browser/dist/chunks/friendly-challenge-DPG9MJb1.js",
     "isDynamicEntry": true
   },
-  "../../../../packages/formie-browser/dist/chunks/go-cardless-C31ZHwUm.js": {
-    "file": "assets/go-cardless-C31ZHwUm-BVNFz1wQ.js",
-    "name": "go-cardless-C31ZHwUm",
-    "src": "../../../../packages/formie-browser/dist/chunks/go-cardless-C31ZHwUm.js",
+  "../../../../packages/formie-browser/dist/chunks/go-cardless-JgxzOqRf.js": {
+    "file": "assets/go-cardless-JgxzOqRf-Vhu-i-W4.js",
+    "name": "go-cardless-JgxzOqRf",
+    "src": "../../../../packages/formie-browser/dist/chunks/go-cardless-JgxzOqRf.js",
     "isDynamicEntry": true,
     "imports": [
-      "_api-BFwrZJRD-PhbccHjC.js",
+      "_api-CQI_ERER-CgcmHewp.js",
       "src/submissions/js/formie-submissions.js"
     ]
   },
@@ -259,88 +259,88 @@
       "_scripts-CbQ7agX3-C-1aO496.js"
     ]
   },
-  "../../../../packages/formie-browser/dist/chunks/mollie-BU_2LxWN.js": {
-    "file": "assets/mollie-BU_2LxWN-ilyq-mao.js",
-    "name": "mollie-BU_2LxWN",
-    "src": "../../../../packages/formie-browser/dist/chunks/mollie-BU_2LxWN.js",
+  "../../../../packages/formie-browser/dist/chunks/mollie-CppEAadH.js": {
+    "file": "assets/mollie-CppEAadH-jvSsaw4U.js",
+    "name": "mollie-CppEAadH",
+    "src": "../../../../packages/formie-browser/dist/chunks/mollie-CppEAadH.js",
     "isDynamicEntry": true,
     "imports": [
-      "_api-BFwrZJRD-PhbccHjC.js",
+      "_api-CQI_ERER-CgcmHewp.js",
       "src/submissions/js/formie-submissions.js"
     ]
   },
-  "../../../../packages/formie-browser/dist/chunks/moneris-Bha97ov5.js": {
-    "file": "assets/moneris-Bha97ov5-B2_hJu-d.js",
-    "name": "moneris-Bha97ov5",
-    "src": "../../../../packages/formie-browser/dist/chunks/moneris-Bha97ov5.js",
+  "../../../../packages/formie-browser/dist/chunks/moneris-D5d6EdPJ.js": {
+    "file": "assets/moneris-D5d6EdPJ-CLTzZplG.js",
+    "name": "moneris-D5d6EdPJ",
+    "src": "../../../../packages/formie-browser/dist/chunks/moneris-D5d6EdPJ.js",
     "isDynamicEntry": true,
     "imports": [
-      "_api-BFwrZJRD-PhbccHjC.js"
+      "_api-CQI_ERER-CgcmHewp.js"
     ]
   },
-  "../../../../packages/formie-browser/dist/chunks/opayo-Egrxuqsw.js": {
-    "file": "assets/opayo-Egrxuqsw-DChabQLE.js",
-    "name": "opayo-Egrxuqsw",
-    "src": "../../../../packages/formie-browser/dist/chunks/opayo-Egrxuqsw.js",
+  "../../../../packages/formie-browser/dist/chunks/opayo-DB76aIKv.js": {
+    "file": "assets/opayo-DB76aIKv-BWdlPRhf.js",
+    "name": "opayo-DB76aIKv",
+    "src": "../../../../packages/formie-browser/dist/chunks/opayo-DB76aIKv.js",
     "isDynamicEntry": true,
     "imports": [
-      "_api-BFwrZJRD-PhbccHjC.js",
+      "_api-CQI_ERER-CgcmHewp.js",
       "_csrf-DxHg_ZYt-vI6avsCm.js",
       "src/submissions/js/formie-submissions.js",
       "_scripts-CbQ7agX3-C-1aO496.js",
       "_styles-BfoIZwJp-VFrCtLDq.js"
     ]
   },
-  "../../../../packages/formie-browser/dist/chunks/paddle-C3wlGvQV.js": {
-    "file": "assets/paddle-C3wlGvQV-D9gcHkjC.js",
-    "name": "paddle-C3wlGvQV",
-    "src": "../../../../packages/formie-browser/dist/chunks/paddle-C3wlGvQV.js",
+  "../../../../packages/formie-browser/dist/chunks/paddle-Bcf3PPmH.js": {
+    "file": "assets/paddle-Bcf3PPmH-Ca3kw3gj.js",
+    "name": "paddle-Bcf3PPmH",
+    "src": "../../../../packages/formie-browser/dist/chunks/paddle-Bcf3PPmH.js",
     "isDynamicEntry": true,
     "imports": [
-      "_api-BFwrZJRD-PhbccHjC.js",
+      "_api-CQI_ERER-CgcmHewp.js",
       "src/submissions/js/formie-submissions.js",
       "_scripts-CbQ7agX3-C-1aO496.js"
     ]
   },
-  "../../../../packages/formie-browser/dist/chunks/password-validation-BSjeUxCK.js": {
-    "file": "assets/password-validation-BSjeUxCK-CRG1LRyH.js",
-    "name": "password-validation-BSjeUxCK",
-    "src": "../../../../packages/formie-browser/dist/chunks/password-validation-BSjeUxCK.js",
+  "../../../../packages/formie-browser/dist/chunks/password-validation-CBBa0HaC.js": {
+    "file": "assets/password-validation-CBBa0HaC-_-xASLLe.js",
+    "name": "password-validation-CBBa0HaC",
+    "src": "../../../../packages/formie-browser/dist/chunks/password-validation-CBBa0HaC.js",
     "isDynamicEntry": true,
     "imports": [
-      "_shared-Bx9s0i0P-SIkaHZle.js",
-      "_dist-jnOmpuYK-CnOLOaFa.js"
+      "_dist-D-zH3M5_-DXJCwD9e.js",
+      "_shared-Bx9s0i0P-SIkaHZle.js"
     ]
   },
-  "../../../../packages/formie-browser/dist/chunks/paypal-nggJ8TO6.js": {
-    "file": "assets/paypal-nggJ8TO6-B9TQUOav.js",
-    "name": "paypal-nggJ8TO6",
-    "src": "../../../../packages/formie-browser/dist/chunks/paypal-nggJ8TO6.js",
+  "../../../../packages/formie-browser/dist/chunks/paypal-w8B38ASB.js": {
+    "file": "assets/paypal-w8B38ASB-Cqw7MnI5.js",
+    "name": "paypal-w8B38ASB",
+    "src": "../../../../packages/formie-browser/dist/chunks/paypal-w8B38ASB.js",
     "isDynamicEntry": true,
     "imports": [
-      "_api-BFwrZJRD-PhbccHjC.js",
+      "_api-CQI_ERER-CgcmHewp.js",
       "_scripts-CbQ7agX3-C-1aO496.js",
       "_styles-BfoIZwJp-VFrCtLDq.js"
     ]
   },
-  "../../../../packages/formie-browser/dist/chunks/payway-DA8Ybn3J.js": {
-    "file": "assets/payway-DA8Ybn3J-DnBssi_4.js",
-    "name": "payway-DA8Ybn3J",
-    "src": "../../../../packages/formie-browser/dist/chunks/payway-DA8Ybn3J.js",
+  "../../../../packages/formie-browser/dist/chunks/payway-PamEpE_4.js": {
+    "file": "assets/payway-PamEpE_4-D57l74tT.js",
+    "name": "payway-PamEpE_4",
+    "src": "../../../../packages/formie-browser/dist/chunks/payway-PamEpE_4.js",
     "isDynamicEntry": true,
     "imports": [
-      "_api-BFwrZJRD-PhbccHjC.js",
+      "_api-CQI_ERER-CgcmHewp.js",
       "_scripts-CbQ7agX3-C-1aO496.js",
       "_styles-BfoIZwJp-VFrCtLDq.js"
     ]
   },
   "../../../../packages/formie-browser/dist/chunks/phone-country-gBAWit-T.js": {
-    "file": "assets/phone-country-gBAWit-T-fSl8aazK.js",
+    "file": "assets/phone-country-gBAWit-T-BqUpxDYS.js",
     "name": "phone-country-gBAWit-T",
     "src": "../../../../packages/formie-browser/dist/chunks/phone-country-gBAWit-T.js",
     "isDynamicEntry": true,
     "imports": [
-      "_plugin-kit-DIIhpnIE.js",
+      "_plugin-kit-DKsFSll4.js",
       "src/submissions/js/formie-submissions.js",
       "_shared-Bx9s0i0P-SIkaHZle.js",
       "_country-from-ip-BwxKaBuJ-BSsZVXq_.js",
@@ -351,12 +351,12 @@
     ]
   },
   "../../../../packages/formie-browser/dist/chunks/place-kit-D8xs0Y-e.js": {
-    "file": "assets/place-kit-D8xs0Y-e-Dv3xtxpr.js",
+    "file": "assets/place-kit-D8xs0Y-e-D5CkcEoy.js",
     "name": "place-kit-D8xs0Y-e",
     "src": "../../../../packages/formie-browser/dist/chunks/place-kit-D8xs0Y-e.js",
     "isDynamicEntry": true,
     "imports": [
-      "_plugin-kit-DIIhpnIE.js",
+      "_plugin-kit-DKsFSll4.js",
       "_api-DvlROAFO-8iKsx2_T.js",
       "src/submissions/js/formie-submissions.js",
       "_styles-BfoIZwJp-VFrCtLDq.js"
@@ -459,24 +459,24 @@
       "_api-Bdo8IEDo-C2QDz1r1.js"
     ]
   },
-  "../../../../packages/formie-browser/dist/chunks/square-DC4x8k9e.js": {
-    "file": "assets/square-DC4x8k9e-qKwgQIAf.js",
-    "name": "square-DC4x8k9e",
-    "src": "../../../../packages/formie-browser/dist/chunks/square-DC4x8k9e.js",
+  "../../../../packages/formie-browser/dist/chunks/square-Bb0HUwIb.js": {
+    "file": "assets/square-Bb0HUwIb-B7eBsG08.js",
+    "name": "square-Bb0HUwIb",
+    "src": "../../../../packages/formie-browser/dist/chunks/square-Bb0HUwIb.js",
     "isDynamicEntry": true,
     "imports": [
-      "_api-BFwrZJRD-PhbccHjC.js",
+      "_api-CQI_ERER-CgcmHewp.js",
       "_scripts-CbQ7agX3-C-1aO496.js"
     ]
   },
-  "../../../../packages/formie-browser/dist/chunks/stripe-D-0xPo8w.js": {
-    "file": "assets/stripe-D-0xPo8w-Q_dZ5RY6.js",
-    "name": "stripe-D-0xPo8w",
-    "src": "../../../../packages/formie-browser/dist/chunks/stripe-D-0xPo8w.js",
+  "../../../../packages/formie-browser/dist/chunks/stripe-BYHuI2Ex.js": {
+    "file": "assets/stripe-BYHuI2Ex-RWjLvQ8f.js",
+    "name": "stripe-BYHuI2Ex",
+    "src": "../../../../packages/formie-browser/dist/chunks/stripe-BYHuI2Ex.js",
     "isDynamicEntry": true,
     "imports": [
       "_theme-classes-Tv7q7ToE-D7cAYXcn.js",
-      "_api-BFwrZJRD-PhbccHjC.js",
+      "_api-CQI_ERER-CgcmHewp.js",
       "src/submissions/js/formie-submissions.js",
       "_scripts-CbQ7agX3-C-1aO496.js",
       "_styles-BfoIZwJp-VFrCtLDq.js"
@@ -542,16 +542,16 @@
       "_styles-BfoIZwJp-VFrCtLDq.js"
     ]
   },
-  "../../../../packages/formie-browser/dist/chunks/text-limit-HS__ghxB.js": {
-    "file": "assets/text-limit-HS__ghxB-KT-O0J6d.js",
-    "name": "text-limit-HS__ghxB",
-    "src": "../../../../packages/formie-browser/dist/chunks/text-limit-HS__ghxB.js",
+  "../../../../packages/formie-browser/dist/chunks/text-limit-B1r3pDTt.js": {
+    "file": "assets/text-limit-B1r3pDTt-CffLWiyg.js",
+    "name": "text-limit-B1r3pDTt",
+    "src": "../../../../packages/formie-browser/dist/chunks/text-limit-B1r3pDTt.js",
     "isDynamicEntry": true,
     "imports": [
       "_i18n-BY1ds1BL-Dad26dUw.js",
+      "_dist-D-zH3M5_-DXJCwD9e.js",
       "_shared-Bx9s0i0P-SIkaHZle.js",
-      "_styles-BfoIZwJp-VFrCtLDq.js",
-      "_dist-jnOmpuYK-CnOLOaFa.js"
+      "_styles-BfoIZwJp-VFrCtLDq.js"
     ]
   },
   "../../../../packages/formie-browser/dist/chunks/turnstile-CbzvXD52.js": {
@@ -585,29 +585,17 @@
     "src": "../../../../packages/formie-browser/dist/chunks/utils-DpUBPadZ.js",
     "isDynamicEntry": true
   },
-  "_DragHandle-De1yPq45.js": {
-    "file": "assets/DragHandle-De1yPq45.js",
+  "_DragHandle-JfkukcDG.js": {
+    "file": "assets/DragHandle-JfkukcDG.js",
     "name": "DragHandle",
     "imports": [
-      "_plugin-kit-DIIhpnIE.js",
+      "_plugin-kit-DKsFSll4.js",
       "_dndkit-Tbq_EQgB.js"
     ]
   },
   "__survey-presentations-RbSqcQph-RIGYOR8r.js": {
     "file": "assets/_survey-presentations-RbSqcQph-RIGYOR8r.js",
     "name": "_survey-presentations-RbSqcQph"
-  },
-  "_api-BFwrZJRD-PhbccHjC.js": {
-    "file": "assets/api-BFwrZJRD-PhbccHjC.js",
-    "name": "api-BFwrZJRD",
-    "imports": [
-      "_theme-classes-Tv7q7ToE-D7cAYXcn.js",
-      "_i18n-BY1ds1BL-Dad26dUw.js",
-      "_async-nPFRNQ06-f6_y1M5p.js",
-      "_field-references.keys-58ZSTrCW-BTYscFZJ.js",
-      "_field-references.resolver-DVyat1BQ-Mzh5mWjD.js",
-      "src/submissions/js/formie-submissions.js"
-    ]
   },
   "_api-Bdo8IEDo-C2QDz1r1.js": {
     "file": "assets/api-Bdo8IEDo-C2QDz1r1.js",
@@ -616,6 +604,18 @@
       "_theme-classes-Tv7q7ToE-D7cAYXcn.js",
       "_i18n-BY1ds1BL-Dad26dUw.js",
       "_async-nPFRNQ06-f6_y1M5p.js",
+      "src/submissions/js/formie-submissions.js"
+    ]
+  },
+  "_api-CQI_ERER-CgcmHewp.js": {
+    "file": "assets/api-CQI_ERER-CgcmHewp.js",
+    "name": "api-CQI_ERER",
+    "imports": [
+      "_theme-classes-Tv7q7ToE-D7cAYXcn.js",
+      "_i18n-BY1ds1BL-Dad26dUw.js",
+      "_async-nPFRNQ06-f6_y1M5p.js",
+      "_field-references.keys-58ZSTrCW-BTYscFZJ.js",
+      "_field-references.resolver-UFZAXOEZ-B9iLaOSB.js",
       "src/submissions/js/formie-submissions.js"
     ]
   },
@@ -651,9 +651,13 @@
     "file": "assets/data-utils-n4oSH26Q.js",
     "name": "data-utils"
   },
-  "_dist-jnOmpuYK-CnOLOaFa.js": {
-    "file": "assets/dist-jnOmpuYK-CnOLOaFa.js",
-    "name": "dist-jnOmpuYK"
+  "_dist-D-zH3M5_-DXJCwD9e.js": {
+    "file": "assets/dist-D-zH3M5_-DXJCwD9e.js",
+    "name": "dist-D-zH3M5_"
+  },
+  "_dist-Dc78vXVy.js": {
+    "file": "assets/dist-Dc78vXVy.js",
+    "name": "dist"
   },
   "_dndkit-Tbq_EQgB.js": {
     "file": "assets/dndkit-Tbq_EQgB.js",
@@ -666,11 +670,12 @@
     "file": "assets/field-references.keys-58ZSTrCW-BTYscFZJ.js",
     "name": "field-references.keys-58ZSTrCW"
   },
-  "_field-references.resolver-DVyat1BQ-Mzh5mWjD.js": {
-    "file": "assets/field-references.resolver-DVyat1BQ-Mzh5mWjD.js",
-    "name": "field-references.resolver-DVyat1BQ",
+  "_field-references.resolver-UFZAXOEZ-B9iLaOSB.js": {
+    "file": "assets/field-references.resolver-UFZAXOEZ-B9iLaOSB.js",
+    "name": "field-references.resolver-UFZAXOEZ",
     "imports": [
-      "_field-references.keys-58ZSTrCW-BTYscFZJ.js"
+      "_field-references.keys-58ZSTrCW-BTYscFZJ.js",
+      "_dist-D-zH3M5_-DXJCwD9e.js"
     ]
   },
   "_http-D-JExro7-DnobYXzV.js": {
@@ -689,8 +694,8 @@
     "file": "assets/plugin-kit-Cr4oYBfZ.css",
     "src": "_plugin-kit-Cr4oYBfZ.css"
   },
-  "_plugin-kit-DIIhpnIE.js": {
-    "file": "assets/plugin-kit-DIIhpnIE.js",
+  "_plugin-kit-DKsFSll4.js": {
+    "file": "assets/plugin-kit-DKsFSll4.js",
     "name": "plugin-kit",
     "imports": [
       "_rolldown-runtime-hePW80VL.js",
@@ -699,7 +704,7 @@
       "_lit-C7H9X-yg.js"
     ],
     "dynamicImports": [
-      "_plugin-kit-DIIhpnIE.js"
+      "_plugin-kit-DKsFSll4.js"
     ],
     "css": [
       "assets/plugin-kit-Cr4oYBfZ.css"
@@ -725,14 +730,15 @@
       "_scripts-CbQ7agX3-C-1aO496.js"
     ]
   },
-  "_registerFormieOwnedSchemaFields-BEKyMCmq.js": {
-    "file": "assets/registerFormieOwnedSchemaFields-BEKyMCmq.js",
+  "_registerFormieOwnedSchemaFields-Cqn6apzq.js": {
+    "file": "assets/registerFormieOwnedSchemaFields-Cqn6apzq.js",
     "name": "registerFormieOwnedSchemaFields",
     "imports": [
       "_rolldown-runtime-hePW80VL.js",
-      "_plugin-kit-DIIhpnIE.js",
+      "_plugin-kit-DKsFSll4.js",
       "_dndkit-Tbq_EQgB.js",
-      "_plugin-kit-core-DUhJEgnO.js"
+      "_plugin-kit-core-DUhJEgnO.js",
+      "_dist-Dc78vXVy.js"
     ]
   },
   "_rolldown-runtime-DtPi1Y-2-2FWOM6Ia.js": {
@@ -757,27 +763,27 @@
       "src/submissions/js/formie-submissions.js"
     ]
   },
-  "_style-CHgkFxJ4.js": {
-    "file": "assets/style-CHgkFxJ4.js",
+  "_style-BAZVRsAn.js": {
+    "file": "assets/style-BAZVRsAn.js",
     "name": "style",
     "imports": [
       "_rolldown-runtime-hePW80VL.js",
-      "_plugin-kit-DIIhpnIE.js",
+      "_plugin-kit-DKsFSll4.js",
+      "_registerFormieOwnedSchemaFields-Cqn6apzq.js",
       "_dndkit-Tbq_EQgB.js",
-      "_createUid-BtKO1cQV.js",
-      "_utils-CxlNZJQw.js",
-      "_DragHandle-De1yPq45.js"
+      "_utils-DCg2gHLI.js"
     ]
   },
-  "_style-T8yEtRy2.js": {
-    "file": "assets/style-T8yEtRy2.js",
+  "_style-pfj8m0Ak.js": {
+    "file": "assets/style-pfj8m0Ak.js",
     "name": "style",
     "imports": [
       "_rolldown-runtime-hePW80VL.js",
-      "_plugin-kit-DIIhpnIE.js",
-      "_registerFormieOwnedSchemaFields-BEKyMCmq.js",
+      "_plugin-kit-DKsFSll4.js",
       "_dndkit-Tbq_EQgB.js",
-      "_utils-CxlNZJQw.js"
+      "_createUid-BtKO1cQV.js",
+      "_utils-DCg2gHLI.js",
+      "_DragHandle-JfkukcDG.js"
     ]
   },
   "_styles-BfoIZwJp-VFrCtLDq.js": {
@@ -788,12 +794,12 @@
     "file": "assets/theme-classes-Tv7q7ToE-D7cAYXcn.js",
     "name": "theme-classes-Tv7q7ToE"
   },
-  "_utils-CxlNZJQw.js": {
-    "file": "assets/utils-CxlNZJQw.js",
+  "_utils-DCg2gHLI.js": {
+    "file": "assets/utils-DCg2gHLI.js",
     "name": "utils",
     "imports": [
       "_rolldown-runtime-hePW80VL.js",
-      "_plugin-kit-DIIhpnIE.js",
+      "_plugin-kit-DKsFSll4.js",
       "_dndkit-Tbq_EQgB.js",
       "_react-vendor-BTnlI8_O.js"
     ]
@@ -805,11 +811,23 @@
     "isEntry": true,
     "imports": [
       "_rolldown-runtime-hePW80VL.js",
-      "_plugin-kit-DIIhpnIE.js",
-      "_registerFormieOwnedSchemaFields-BEKyMCmq.js",
+      "_plugin-kit-DKsFSll4.js",
+      "_registerFormieOwnedSchemaFields-Cqn6apzq.js",
       "_dndkit-Tbq_EQgB.js",
-      "_utils-CxlNZJQw.js",
-      "_style-T8yEtRy2.js"
+      "_utils-DCg2gHLI.js",
+      "_style-BAZVRsAn.js"
+    ]
+  },
+  "src/delivery/formie-delivery.js": {
+    "file": "assets/formie-delivery-DLN_eO3S.js",
+    "name": "formie-delivery",
+    "src": "src/delivery/formie-delivery.js",
+    "isEntry": true,
+    "imports": [
+      "_rolldown-runtime-hePW80VL.js",
+      "_plugin-kit-DKsFSll4.js",
+      "_dndkit-Tbq_EQgB.js",
+      "_utils-DCg2gHLI.js"
     ]
   },
   "src/field-palette/formie-field-palette.js": {
@@ -820,27 +838,27 @@
     "imports": [
       "_rolldown-runtime-hePW80VL.js",
       "_dndkit-Tbq_EQgB.js",
-      "_utils-CxlNZJQw.js",
-      "_style-CHgkFxJ4.js"
+      "_utils-DCg2gHLI.js",
+      "_style-pfj8m0Ak.js"
     ]
   },
   "src/form-builder/formie-form-builder.js": {
-    "file": "assets/formie-form-builder-De-EzYYW.js",
+    "file": "assets/formie-form-builder-BJLbh8rr.js",
     "name": "formie-form-builder",
     "src": "src/form-builder/formie-form-builder.js",
     "isEntry": true,
     "imports": [
       "_rolldown-runtime-hePW80VL.js",
-      "_plugin-kit-DIIhpnIE.js",
+      "_plugin-kit-DKsFSll4.js",
       "src/tiptap/formie-tiptap.js",
       "src/tiptap/formie-tiptap.js",
-      "_registerFormieOwnedSchemaFields-BEKyMCmq.js",
+      "_registerFormieOwnedSchemaFields-Cqn6apzq.js",
       "_dndkit-Tbq_EQgB.js",
       "_data-utils-n4oSH26Q.js",
       "_createUid-BtKO1cQV.js",
       "_plugin-kit-core-DUhJEgnO.js",
-      "_utils-CxlNZJQw.js",
-      "_DragHandle-De1yPq45.js"
+      "_utils-DCg2gHLI.js",
+      "_dist-Dc78vXVy.js"
     ]
   },
   "src/form-group-settings/formie-form-group-settings.js": {
@@ -850,12 +868,12 @@
     "isEntry": true,
     "imports": [
       "_rolldown-runtime-hePW80VL.js",
-      "_plugin-kit-DIIhpnIE.js",
-      "_registerFormieOwnedSchemaFields-BEKyMCmq.js",
+      "_plugin-kit-DKsFSll4.js",
+      "_registerFormieOwnedSchemaFields-Cqn6apzq.js",
       "_dndkit-Tbq_EQgB.js",
-      "_utils-CxlNZJQw.js",
-      "_style-T8yEtRy2.js",
-      "_style-CHgkFxJ4.js"
+      "_utils-DCg2gHLI.js",
+      "_style-BAZVRsAn.js",
+      "_style-pfj8m0Ak.js"
     ]
   },
   "src/forms/js/formie-forms-index.js": {
@@ -865,25 +883,25 @@
     "isEntry": true
   },
   "src/integration-connect/formie-integration-connect.js": {
-    "file": "assets/formie-integration-connect-DjcZbTx0.js",
+    "file": "assets/formie-integration-connect-BTKsj9z-.js",
     "name": "formie-integration-connect",
     "src": "src/integration-connect/formie-integration-connect.js",
     "isEntry": true,
     "imports": [
-      "_plugin-kit-DIIhpnIE.js"
+      "_plugin-kit-DKsFSll4.js"
     ]
   },
   "src/new-form/formie-new-form.js": {
-    "file": "assets/formie-new-form-pQlO45jt.js",
+    "file": "assets/formie-new-form-CjIY0wTh.js",
     "name": "formie-new-form",
     "src": "src/new-form/formie-new-form.js",
     "isEntry": true,
     "imports": [
       "_rolldown-runtime-hePW80VL.js",
-      "_plugin-kit-DIIhpnIE.js",
+      "_plugin-kit-DKsFSll4.js",
       "_dndkit-Tbq_EQgB.js",
       "_plugin-kit-core-DUhJEgnO.js",
-      "_utils-CxlNZJQw.js"
+      "_utils-DCg2gHLI.js"
     ]
   },
   "src/plugin-settings/js/formie-plugin-settings.js": {
@@ -902,11 +920,11 @@
     "isEntry": true,
     "imports": [
       "_rolldown-runtime-hePW80VL.js",
-      "_plugin-kit-DIIhpnIE.js",
+      "_plugin-kit-DKsFSll4.js",
       "_dndkit-Tbq_EQgB.js",
       "_plugin-kit-core-DUhJEgnO.js",
-      "_utils-CxlNZJQw.js",
-      "_DragHandle-De1yPq45.js"
+      "_utils-DCg2gHLI.js",
+      "_DragHandle-JfkukcDG.js"
     ]
   },
   "src/sent-notifications/js/formie-sent-notifications.js": {
@@ -924,7 +942,8 @@
     "src": "src/submissions/js/formie-submissions.js",
     "isEntry": true,
     "imports": [
-      "_plugin-kit-DIIhpnIE.js"
+      "_plugin-kit-DKsFSll4.js",
+      "_dist-Dc78vXVy.js"
     ],
     "dynamicImports": [
       "../../../../packages/formie-browser/dist/chunks/address-finder-BGumGzzt.js",
@@ -941,10 +960,10 @@
       "../../../../packages/formie-browser/dist/chunks/recaptcha-v3-BnQgTIgY.js",
       "../../../../packages/formie-browser/dist/chunks/snaptcha-NyioM81q.js",
       "../../../../packages/formie-browser/dist/chunks/turnstile-CbzvXD52.js",
-      "../../../../packages/formie-browser/dist/chunks/calculations-C62eFkjn.js",
+      "../../../../packages/formie-browser/dist/chunks/calculations-Km88LoiU.js",
       "../../../../packages/formie-browser/dist/chunks/checkbox-radio-CwY-O1Ld.js",
       "../../../../packages/formie-browser/dist/chunks/combobox-CJ9uGS09.js",
-      "../../../../packages/formie-browser/dist/chunks/conditions-DpKIH-nz.js",
+      "../../../../packages/formie-browser/dist/chunks/conditions-BW9J3QFL.js",
       "../../../../packages/formie-browser/dist/chunks/custom-google-maps-B40lH0O1.js",
       "../../../../packages/formie-browser/dist/chunks/custom-link-CJ1-FjEM.js",
       "../../../../packages/formie-browser/dist/chunks/custom-maps-Dp8LrcQI.js",
@@ -953,7 +972,7 @@
       "../../../../packages/formie-browser/dist/chunks/upload-manager-D1eQXKDO.js",
       "../../../../packages/formie-browser/dist/chunks/hidden-D7_Ch-QN.js",
       "../../../../packages/formie-browser/dist/chunks/phone-country-gBAWit-T.js",
-      "../../../../packages/formie-browser/dist/chunks/password-validation-BSjeUxCK.js",
+      "../../../../packages/formie-browser/dist/chunks/password-validation-CBBa0HaC.js",
       "../../../../packages/formie-browser/dist/chunks/address-country-Rx6GQTND.js",
       "../../../../packages/formie-browser/dist/chunks/address-state-LpuMNcRp.js",
       "../../../../packages/formie-browser/dist/chunks/repeater-BVnPUqTj.js",
@@ -964,18 +983,18 @@
       "../../../../packages/formie-browser/dist/chunks/survey-rank-DN6x4IZM.js",
       "../../../../packages/formie-browser/dist/chunks/survey-rating-BnsNL9U5.js",
       "../../../../packages/formie-browser/dist/chunks/table-CAjCJHrL.js",
-      "../../../../packages/formie-browser/dist/chunks/text-limit-HS__ghxB.js",
-      "../../../../packages/formie-browser/dist/chunks/bpoint-BK0qQFY_.js",
-      "../../../../packages/formie-browser/dist/chunks/eway-dhNGK7_d.js",
-      "../../../../packages/formie-browser/dist/chunks/go-cardless-C31ZHwUm.js",
-      "../../../../packages/formie-browser/dist/chunks/mollie-BU_2LxWN.js",
-      "../../../../packages/formie-browser/dist/chunks/moneris-Bha97ov5.js",
-      "../../../../packages/formie-browser/dist/chunks/opayo-Egrxuqsw.js",
-      "../../../../packages/formie-browser/dist/chunks/paddle-C3wlGvQV.js",
-      "../../../../packages/formie-browser/dist/chunks/paypal-nggJ8TO6.js",
-      "../../../../packages/formie-browser/dist/chunks/payway-DA8Ybn3J.js",
-      "../../../../packages/formie-browser/dist/chunks/square-DC4x8k9e.js",
-      "../../../../packages/formie-browser/dist/chunks/stripe-D-0xPo8w.js"
+      "../../../../packages/formie-browser/dist/chunks/text-limit-B1r3pDTt.js",
+      "../../../../packages/formie-browser/dist/chunks/bpoint-dQWM0Nf_.js",
+      "../../../../packages/formie-browser/dist/chunks/eway-d7xOzOfj.js",
+      "../../../../packages/formie-browser/dist/chunks/go-cardless-JgxzOqRf.js",
+      "../../../../packages/formie-browser/dist/chunks/mollie-CppEAadH.js",
+      "../../../../packages/formie-browser/dist/chunks/moneris-D5d6EdPJ.js",
+      "../../../../packages/formie-browser/dist/chunks/opayo-DB76aIKv.js",
+      "../../../../packages/formie-browser/dist/chunks/paddle-Bcf3PPmH.js",
+      "../../../../packages/formie-browser/dist/chunks/paypal-w8B38ASB.js",
+      "../../../../packages/formie-browser/dist/chunks/payway-PamEpE_4.js",
+      "../../../../packages/formie-browser/dist/chunks/square-Bb0HUwIb.js",
+      "../../../../packages/formie-browser/dist/chunks/stripe-BYHuI2Ex.js"
     ],
     "css": [
       "submissions/css/formie-submissions.css"
@@ -987,7 +1006,7 @@
     "src": "src/tiptap/formie-tiptap.js",
     "isEntry": true,
     "imports": [
-      "_plugin-kit-DIIhpnIE.js"
+      "_plugin-kit-DKsFSll4.js"
     ]
   },
   "src/widgets/js/formie-widgets.js": {

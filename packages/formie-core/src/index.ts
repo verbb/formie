@@ -66,3 +66,7 @@ export type {
     FrontendTransport,
     FrontendValidationRule,
 } from './types';
+export { parseReference, serializeReference } from './references';
+export type { ReferenceExpression } from './references';
+export { resolveReference } from './references';
+export type { ReferenceDefinition, ReferenceContext, ResolvedReference } from './references';

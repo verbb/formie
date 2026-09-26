@@ -259,7 +259,7 @@ class Payments extends Component
         $url = (string)($url ?? '');
 
         if ($url !== '') {
-            $url = References::parseContent($url, $submission);
+            $url = References::parseUrl($url, $submission);
         }
 
         $event = new PaymentSuccessRedirectEvent([

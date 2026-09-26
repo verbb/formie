@@ -45,3 +45,17 @@ $payment = Formie::$plugin->getPayments()->getPaymentById($fixture['paymentIds']
 $check($payment && $payment->subscriptionId === null && $payment->scope['subscriptionId'] === $fixture['subscriptionIds']['active'], 'upgraded payment history and owner snapshot survive subscription deletion');
 $check($app->getDb()->tableExists(\verbb\formie\helpers\Table::FORMIE_WEBHOOK_RECEIPTS), 'encrypted receipt storage exists after populated upgrade');
 echo "Populated Formie 3 → current Formie upgrade contract passed.\n";
+$referenceContext = \verbb\formie\references\ReferenceContext::forSubmission($submission);
+$check(\verbb\formie\helpers\References::resolveValue('{field:' . $field->reference . '}', $referenceContext)->requireValue() === 'Synthetic Ada', 'exact upgraded field instance resolves through the shared runtime');
+$check(\verbb\formie\helpers\References::interpolateText('{field.fullName}', $referenceContext) === 'Synthetic Ada', 'stable Formie 3 dotted field syntax remains compatible');
+$check(\verbb\formie\helpers\References::resolveValue('{env:SECURITY_KEY}', $referenceContext)->diagnostic === \verbb\formie\references\ReferenceDiagnostic::ForbiddenSource, 'upgrade does not implicitly expose environment secrets');
+
+$check($app->getDb()->tableExists(\verbb\formie\services\DeliveryAttempts::TABLE) && $app->getDb()->tableExists(\verbb\formie\services\DeliveryAttempts::DIAGNOSTICS), 'upgrade creates durable delivery and diagnostic stores');
+$rawDelivery = (new \craft\db\Query())->from(\verbb\formie\helpers\Table::FORMIE_INTEGRATIONS)->where(['handle' => 'upgradeDelivery'])->one();
+$check($rawDelivery && !str_contains($rawDelivery['settings'], 'upgrade-literal-api-key'), 'legacy connection literals are encrypted at rest');
+unset($rawDelivery['dateDeleted']);
+$check(Formie::$plugin->getIntegrations()->createIntegration($rawDelivery)->apiKey === 'upgrade-literal-api-key', 'upgraded connection credentials hydrate correctly');
+$rawFormSettings = (new \craft\db\Query())->select('settings')->from(\verbb\formie\helpers\Table::FORMIE_FORMS)->where(['id' => $form->id])->scalar();
+$check(!str_contains($rawFormSettings, 'upgrade-literal-password') && $form->settings->integrations['upgradeWebhook']['httpAuth']['password'] === 'upgrade-literal-password', 'legacy per-form secrets are encrypted and hydrate correctly');
+$check(!str_contains(json_encode($app->getProjectConfig()->get('formie.integrations', true)), 'upgrade-literal-api-key'), 'project config no longer contains the legacy literal credential');
+$check((new \craft\db\Query())->from(\verbb\formie\services\DeliveryAttempts::TABLE)->count() == 0, 'upgrade does not perform or invent external deliveries');

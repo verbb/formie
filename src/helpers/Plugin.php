@@ -81,6 +81,7 @@ class Plugin extends BasePlugin
     public static function registerCpSubmissionsAssets(): void
     {
         self::registerCpAsset('src/submissions/js/formie-submissions.js', CpReactAsset::class, SubmissionsAsset::class);
+        self::registerCpAsset('src/delivery/formie-delivery.js');
     }
 
     public static function registerCpReportsAssets(): void

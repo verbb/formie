@@ -2,10 +2,11 @@
 namespace verbb\formie\integrations\crm;
 
 use verbb\formie\Formie;
+use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\Crm;
+use verbb\formie\base\FixedParentFieldInterface;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
-use verbb\formie\base\FixedParentFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\Group;
@@ -14,14 +15,15 @@ use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationResult;
 
 use Craft;
 use craft\fields\BaseRelationField;
 use craft\helpers\App;
 
-use GuzzleHttp\Client;
-
 use Throwable;
+
+use GuzzleHttp\Client;
 
 class SharpSpring extends Crm
 {
@@ -40,9 +42,13 @@ class SharpSpring extends Crm
     public ?string $accountId = null;
     public ?string $secretKey = null;
     public ?string $formUrl = null;
+    #[FormIntegrationSetting]
     public bool $mapToContact = false;
+    #[FormIntegrationSetting]
     public bool $mapToForm = false;
+    #[FormIntegrationSetting]
     public ?array $contactFieldMapping = null;
+    #[FormIntegrationSetting]
     public ?string $endpoint = null;
 
 
@@ -188,7 +194,7 @@ class SharpSpring extends Crm
 
         // Because we have split settings for partial settings fetches, ensure we populate settings from cache
         // So we need to un-serialize the cached form settings, and combine with any new settings and return
-        $cachedSettings = $this->cache['settings'] ?? [];
+        $cachedSettings = $this->getIntegrationConfig()->data;
 
         if ($cachedSettings) {
             $formSettings = new IntegrationFormSettings();
@@ -199,8 +205,9 @@ class SharpSpring extends Crm
         return new IntegrationFormSettings($settings);
     }
 
-    public function sendPayload(Submission $submission): bool
+    public function sendPayload(Submission $submission): IntegrationResult
     {
+        $this->beginPayloadDelivery($submission);
         try {
             $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
 
@@ -219,7 +226,7 @@ class SharpSpring extends Crm
                 $response = $this->deliverPayload($submission, '', $contactPayload);
 
                 if ($response === false) {
-                    return true;
+                    return $this->resultForPayload(true);
                 }
             }
 
@@ -229,9 +236,9 @@ class SharpSpring extends Crm
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
-            return false;
+            return $this->resultForPayload(false);
         }
-        return true;
+        return $this->resultForPayload(true);
     }
 
     public function fetchConnection(): bool
@@ -250,17 +257,6 @@ class SharpSpring extends Crm
     
     // Protected Methods
     // =========================================================================
-
-    protected function formSettingAttributes(): array
-    {
-        $settings = parent::formSettingAttributes();
-        $settings[] = 'mapToContact';
-        $settings[] = 'mapToForm';
-        $settings[] = 'contactFieldMapping';
-        $settings[] = 'endpoint';
-
-        return $settings;
-    }
 
     protected function defineRules(): array
     {
@@ -371,17 +367,13 @@ class SharpSpring extends Crm
         // Establish tracking by retrieving cookie and setting the field if it's set
         if (isset($_COOKIE['__ss_tk'])) {
             $trackingid__sb = $_COOKIE['__ss_tk'];
-            $serializedValues = $serializedValues['trackingid__sb'] = $trackingid__sb;
+            $serializedValues['trackingid__sb'] = $trackingid__sb;
         }
 
-        // Send the payload to SharpSpring to tell them what fields are available
-        // Create a new client because this isn't the same API as the rest of the integration.
-        $request = Craft::createGuzzleClient()->request('GET', "$formUrl/$endpoint/jsonp", [
-            'verify' => false,
-            'query' => $serializedValues,
-        ]);
-
-        return (string)$request->getBody();
+        // SharpSpring's JSONP endpoint writes despite using GET.
+        $url = "$formUrl/$endpoint/jsonp";
+        $options = ['query' => $serializedValues];
+        return $this->executeDeliveryWrite('GET', $url, $options, fn() => $this->requestPublicEndpoint('GET', $url, $options), true);
     }
 
     private function _serializeValuesForForm($element): array

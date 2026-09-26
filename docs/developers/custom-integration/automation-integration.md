@@ -47,13 +47,14 @@ Use `generatePayloadValues()` when you want Formie’s standard submission paylo
 ```php
 use verbb\formie\elements\Submission;
 
-public function sendPayload(Submission $submission): bool
+public function sendPayload(Submission $submission): \verbb\formie\models\IntegrationResult
 {
+    $this->beginPayloadDelivery($submission);
     $payload = $this->generatePayloadValues($submission);
     $endpoint = $this->getEndpointUrl($this->url, $submission);
     $response = $this->deliverPayload($submission, $endpoint, $payload, $this->method ?: 'POST');
 
-    return $response !== false;
+    return $this->resultForPayload($response !== false);
 }
 ```
 

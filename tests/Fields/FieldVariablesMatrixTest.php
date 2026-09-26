@@ -128,13 +128,13 @@ it('uses email field summary settings for all-fields style variables and normali
     $hiddenField = $form->getFieldByHandle('hiddenFromSummary');
     $legacyField = $form->getFieldByHandle('legacyHiddenFromSummary');
     $allFields = References::parseContent('{allFields}', $submission, ['includeSummary' => true]);
-    $transformedAllFields = References::parseContent('{allFields;transform=lower}', $submission, ['includeSummary' => true]);
+    $transformedAllFields = References::resolveValue('{allFields;transform=lower}', \verbb\formie\references\ReferenceContext::forSubmission($submission));
     $allContentFields = References::parseContent('{allContentFields}', $submission, ['includeSummary' => true]);
     $allVisibleFields = References::parseContent('{allVisibleFields}', $submission, ['includeSummary' => true]);
 
     expect($hiddenField?->includeInEmailFieldSummaries)->toBeFalse()
         ->and($legacyField?->includeInEmailFieldSummaries)->toBeFalse()
-        ->and($transformedAllFields)->toBe($allFields)
+        ->and($transformedAllFields->diagnostic)->toBe(\verbb\formie\references\ReferenceDiagnostic::InvalidType)
         ->and($allFields)->toContain('<strong>Public Name</strong>')
         ->and($allFields)->toContain('Shown')
         ->and($allFields)->toContain('<strong>Empty Response</strong>')

@@ -4,10 +4,12 @@ namespace verbb\formie\services;
 use verbb\formie\Formie;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
+use verbb\formie\enums\SubmissionOperation;
 use verbb\formie\helpers\IntegrationRerunPolicies;
 use verbb\formie\helpers\IntegrationTriggerEvents;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationResponse;
+use verbb\formie\models\IntegrationResult;
 use verbb\formie\models\IntegrationTriggerRequest;
 
 use Craft;
@@ -47,7 +49,7 @@ class IntegrationTriggers extends Component
 
     public function dispatchFromWorkflow(
         Submission $submission,
-        \verbb\formie\enums\SubmissionOperation $operation,
+        SubmissionOperation $operation,
         ?string $triggerEvent = null,
     ): void {
         $this->dispatch(new IntegrationTriggerRequest([
@@ -73,7 +75,7 @@ class IntegrationTriggers extends Component
         $this->dispatch(new IntegrationTriggerRequest([
             'source' => self::SOURCE_CP_ELEMENT_SAVE,
             'submission' => $submission,
-            'operation' => \verbb\formie\enums\SubmissionOperation::REVISE,
+            'operation' => SubmissionOperation::REVISE,
             'triggerEvent' => IntegrationTriggerEvents::CP_SAVE,
         ]));
     }
@@ -94,28 +96,27 @@ class IntegrationTriggers extends Component
         $this->dispatch(new IntegrationTriggerRequest([
             'source' => self::SOURCE_SPAM_UNMARK,
             'submission' => $submission,
-            'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
+            'operation' => SubmissionOperation::SUBMIT,
             'triggerEvent' => IntegrationTriggerEvents::UNMARK_SPAM,
             'operatorInitiated' => true,
         ]));
     }
 
-    public function dispatchManualIntegration(Integration $integration, Submission $submission): bool|IntegrationResponse
+    public function forceIntegration(Integration $integration, Submission $submission, string $reason): IntegrationResult
     {
-        $integration->populateContext($submission);
-        $integration->context['triggerEvent'] = IntegrationTriggerEvents::MANUAL;
-        $integration->context['operatorInitiated'] = true;
+        return Formie::$plugin->getIntegrationRunner()->runIntegration($integration, $submission, StringHelper::UUID(), 'synchronous', [
+            'triggerEvent' => IntegrationTriggerEvents::MANUAL,
+            'operatorInitiated' => true,
+            'force' => true,
+            'reason' => $reason,
+        ]);
+    }
 
-        $response = false;
-        $send = function () use ($integration, $submission, &$response): bool {
-            $response = Formie::$plugin->getIntegrations()->sendIntegrationPayload($integration, $submission);
-            return $response instanceof IntegrationResponse ? $response->success : (bool)$response;
-        };
-        if ($submission->id && $submission->uid) {
-            (new \verbb\formie\helpers\DeliveryAttempt((int)$submission->id, 'integration:' . $integration->handle, StringHelper::UUID()))->execute([], $send);
-        } else {
-            $send();
-        }
-        return $response;
+    public function dispatchManualIntegration(Integration $integration, Submission $submission): IntegrationResult
+    {
+        return Formie::$plugin->getIntegrationRunner()->runIntegration($integration, $submission, StringHelper::UUID(), 'synchronous', [
+            'triggerEvent' => IntegrationTriggerEvents::MANUAL,
+            'operatorInitiated' => true,
+        ]);
     }
 }

@@ -1,9 +1,9 @@
 <?php
 namespace verbb\formie\integrations\emailmarketing;
 
-use verbb\formie\base\Integration;
 use verbb\formie\base\ElementFieldInterface;
 use verbb\formie\base\EmailMarketing;
+use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyFieldIntegrationValueEvent;
 use verbb\formie\fields\MultiLineText;
@@ -13,6 +13,7 @@ use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationResult;
 
 use Craft;
 use craft\fields;
@@ -20,16 +21,16 @@ use craft\helpers\Json;
 
 use yii\base\Event;
 
+use DateTime;
+use DateTimeZone;
+use Throwable;
+
 use putyourlightson\campaign\Campaign as CampaignPlugin;
 use putyourlightson\campaign\elements\ContactElement;
 use putyourlightson\campaign\elements\MailingListElement;
 use putyourlightson\campaign\models\PendingContactModel;
 use putyourlightson\campaign\records\MailingListRecord;
 use putyourlightson\campaign\records\MailingListTypeRecord;
-
-use DateTime;
-use DateTimeZone;
-use Throwable;
 
 class Campaign extends EmailMarketing
 {
@@ -130,15 +131,16 @@ class Campaign extends EmailMarketing
         return new IntegrationFormSettings($settings);
     }
 
-    public function sendPayload(Submission $submission): bool
+    public function sendPayload(Submission $submission): IntegrationResult
     {
+        $this->beginPayloadDelivery($submission);
         try {
             // Get the Campaign mailing list
             $list = CampaignPlugin::$plugin->mailingLists->getMailingListById($this->listId);
 
             if (!$list) {
                 Integration::error($this, 'Unable to find list “' . $this->listId . '”.', true);
-                return false;
+                return $this->resultForPayload(false);
             }
 
             // Fetch our mapped values
@@ -149,7 +151,7 @@ class Campaign extends EmailMarketing
             $method = '';
             
             if (!$this->beforeSendPayload($submission, $endpoint, $fieldValues, $method)) {
-                return true;
+                return $this->resultForPayload(true);
             }
 
             // Pull out email, as it needs to be top level
@@ -164,15 +166,15 @@ class Campaign extends EmailMarketing
                     'errors' => Json::encode($contact->getErrors()),
                 ]), true);
                 
-                return false;
+                return $this->resultForPayload(false);
             }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
-            return false;
+            return $this->resultForPayload(false);
         }
 
-        return true;
+        return $this->resultForPayload(true);
     }
     
 

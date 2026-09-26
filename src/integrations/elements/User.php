@@ -2,18 +2,23 @@
 namespace verbb\formie\integrations\elements;
 
 use verbb\formie\Formie;
-use verbb\formie\base\Integration;
+use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\Element;
 use verbb\formie\base\FormInterface;
+use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
+use verbb\formie\errors\IntegrationStepException;
 use verbb\formie\fields\Password;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\Table;
+use verbb\formie\helpers\Variables;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
-use verbb\formie\models\IntegrationResponse;
+use verbb\formie\models\IntegrationResult;
+use verbb\formie\references\ReferenceSlot;
+use verbb\formie\references\ReferenceSlotKind;
 
 use Craft;
 use craft\elements\Address as AddressElement;
@@ -40,9 +45,13 @@ class User extends Element
     // =========================================================================
 
     public array $groupIds = [];
+    #[FormIntegrationSetting]
     public array $groupUids = [];
+    #[FormIntegrationSetting]
     public bool $activateUser = false;
+    #[FormIntegrationSetting]
     public bool $mergeUserGroups = false;
+    #[FormIntegrationSetting]
     public bool $sendActivationEmail = true;
     public ?AddressElement $address = null;
 
@@ -206,8 +215,9 @@ class User extends Element
         return $attributes;
     }
 
-    public function sendPayload(Submission $submission): IntegrationResponse|bool
+    public function sendPayload(Submission $submission): IntegrationResult
     {
+        $this->beginPayloadDelivery($submission);
         try {
             $generalConfig = Craft::$app->getConfig()->getGeneral();
 
@@ -243,7 +253,7 @@ class User extends Element
                     'type' => $this->handle,
                 ]), true);
 
-                return false;
+                return $this->resultForPayload(false);
             }
 
             if ($userGroups) {
@@ -290,7 +300,7 @@ class User extends Element
 
             // Allow events to cancel sending - return as success
             if (!$this->beforeSendPayload($submission, $endpoint, $user, $method)) {
-                return true;
+                return $this->resultForPayload(true);
             }
 
             if (!$user->validate()) {
@@ -299,7 +309,7 @@ class User extends Element
                     'error' => Json::encode($user->getErrors()),
                 ]), true);
 
-                return false;
+                return $this->resultForPayload(false);
             }
 
             if (!Craft::$app->getElements()->saveElement($user, true, true, $this->updateSearchIndexes)) {
@@ -308,8 +318,10 @@ class User extends Element
                     'error' => Json::encode($user->getErrors()),
                 ]), true);
 
-                return false;
+                return $this->resultForPayload(false);
             }
+
+            $this->recordDispatchElement($user);
 
             // Has a Password field been used to map the value? Do a direct DB update as it's been hashed already.
             // This also needs to be done before sending activation emails
@@ -332,20 +344,25 @@ class User extends Element
                             'error' => Json::encode($user->getErrors()),
                         ]), true);
 
-                        return false;
+                        return $this->resultForPayload(false);
                     }
 
                     $autoLogin = true;
                 }
 
                 if ($this->sendActivationEmail) {
-                    if (!Craft::$app->getUsers()->sendActivationEmail($user)) {
+                    if (!$this->executeDeliveryWrite('MAIL', 'activation:' . $user->id, ['userId' => $user->id, 'email' => $user->email], function () use ($user) {
+                        if (!Craft::$app->getUsers()->sendActivationEmail($user)) {
+                            throw new IntegrationStepException(IntegrationResult::unknown('activation_email_unconfirmed'));
+                        }
+                        return true;
+                    })) {
                         Integration::error($this, Craft::t('formie', 'Unable to send user activation email for “{type}” element integration. Error: {error}.', [
                             'type' => $this->handle,
                             'error' => Json::encode($user->getErrors()),
                         ]), true);
 
-                        return false;
+                        return $this->resultForPayload(false);
                     }
                 }
             }
@@ -359,7 +376,7 @@ class User extends Element
                             'error' => Json::encode($user->getErrors()),
                         ]), true);
 
-                        return false;
+                        return $this->resultForPayload(false);
                 }
             }
 
@@ -374,7 +391,7 @@ class User extends Element
                         'error' => Json::encode($submission->getErrors()),
                     ]), true);
 
-                    return false;
+                    return $this->resultForPayload(false);
                 }
             }
 
@@ -388,13 +405,13 @@ class User extends Element
                         'error' => Json::encode($this->address->getErrors()),
                     ]), true);
 
-                    return false;
+                    return $this->resultForPayload(false);
                 }
             }
 
             // Allow events to say the response is invalid
             if (!$this->afterSendPayload($submission, '', $user, '', [])) {
-                return true;
+                return $this->resultForPayload(true);
             }
 
             // Maybe login the user after activation
@@ -415,12 +432,12 @@ class User extends Element
                 'submission' => $submission->id,
             ]);
 
-            Formie::error($error);
+            Integration::error($this, $error);
 
-            return new IntegrationResponse(false, [$error]);
+            return $this->resultForPayload(IntegrationResult::fromException($e));
         }
 
-        return true;
+        return $this->resultForPayload(true);
     }
 
     public function getGroupOptions(): array
@@ -440,17 +457,6 @@ class User extends Element
 
     // Protected Methods
     // =========================================================================
-
-    protected function formSettingAttributes(): array
-    {
-        $settings = parent::formSettingAttributes();
-        $settings[] = 'groupUids';
-        $settings[] = 'activateUser';
-        $settings[] = 'mergeUserGroups';
-        $settings[] = 'sendActivationEmail';
-
-        return $settings;
-    }
 
     protected function defineRules(): array
     {
@@ -604,19 +610,9 @@ class User extends Element
 
     private function _getPasswordField($submission)
     {
-        $passwordFieldHandle = $this->attributeMapping['newPassword'] ?? '';
-
-        if ($passwordFieldHandle) {
-            $passwordFieldHandle = str_replace(['{field:', '}'], ['', ''], $passwordFieldHandle);
-
-            // Find the form field
-            if ($form = $submission->getForm()) {
-                if ($field = $form->getFieldByHandle($passwordFieldHandle)) {
-                    return $field;
-                }
-            }
-        }
-
-        return null;
+        $slot = ReferenceSlot::fromStored($this->attributeMapping['newPassword'] ?? '');
+        return $slot->kind === ReferenceSlotKind::Exact
+            ? Variables::getFieldForReference((string)$slot->value, $submission)
+            : null;
     }
 }

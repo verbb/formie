@@ -1,24 +1,28 @@
 <?php
 namespace verbb\formie\integrations\crm;
 
+use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\Crm;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
-use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\errors\IntegrationException;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationResult;
 
 use Craft;
 use craft\helpers\App;
 use craft\helpers\Json;
 
-use GuzzleHttp\Client;
-
-use Throwable;
 use Exception;
+use Throwable;
+
+use GuzzleHttp\Client;
+use GuzzleHttp\Psr7\Uri;
 
 class Maximizer extends Crm
 {
@@ -40,9 +44,13 @@ class Maximizer extends Crm
     public ?string $databaseId = null;
     public ?string $vendorId = null;
     public ?string $appKey = null;
+    #[FormIntegrationSetting]
     public bool $mapToContact = false;
+    #[FormIntegrationSetting]
     public bool $mapToOpportunity = false;
+    #[FormIntegrationSetting]
     public ?array $contactFieldMapping = null;
+    #[FormIntegrationSetting]
     public ?array $opportunityFieldMapping = null;
 
 
@@ -94,8 +102,9 @@ class Maximizer extends Crm
         return new IntegrationFormSettings($settings);
     }
 
-    public function sendPayload(Submission $submission): bool
+    public function sendPayload(Submission $submission): IntegrationResult
     {
+        $this->beginPayloadDelivery($submission);
         try {
             $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
             $opportunityValues = $this->getFieldMappingValues($submission, $this->opportunityFieldMapping, 'opportunity');
@@ -116,7 +125,7 @@ class Maximizer extends Crm
                 $response = $this->deliverPayload($submission, 'AbEntryCreate', $contactPayload);
 
                 if ($response === false) {
-                    return true;
+                    return $this->resultForPayload(true);
                 }
 
                 $contactId = $response['AbEntry']['Data']['Key'] ?? null;
@@ -140,7 +149,7 @@ class Maximizer extends Crm
                 $response = $this->deliverPayload($submission, 'OpportunityCreate', $opportunityPayload);
 
                 if ($response === false) {
-                    return true;
+                    return $this->resultForPayload(true);
                 }
 
                 $opportunityId = $response['Opportunity']['Data']['Key'] ?? null;
@@ -153,10 +162,10 @@ class Maximizer extends Crm
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
-            return false;
+            return $this->resultForPayload(false);
         }
 
-        return true;
+        return $this->resultForPayload(true);
     }
 
     public function request(string $method, string $uri, array $options = [], bool $decodeJson = true): mixed
@@ -210,17 +219,6 @@ class Maximizer extends Crm
     // Protected Methods
     // =========================================================================
 
-    protected function formSettingAttributes(): array
-    {
-        $settings = parent::formSettingAttributes();
-        $settings[] = 'mapToContact';
-        $settings[] = 'mapToOpportunity';
-        $settings[] = 'contactFieldMapping';
-        $settings[] = 'opportunityFieldMapping';
-
-        return $settings;
-    }
-
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -250,10 +248,15 @@ class Maximizer extends Crm
     {
         // From the Web Access URL, get the API Base URL
         $webAccessUrl = App::parseEnv($this->webAccessUrl);
-        $baseApiUrl = file_get_contents($webAccessUrl . '?request=api');
+        $baseApiUrl = trim((string)$this->requestPublicEndpoint('GET', $webAccessUrl . '?request=api'));
+        $configured = new Uri($webAccessUrl);
+        $discovered = new Uri($baseApiUrl);
+        if ($configured->getScheme() !== $discovered->getScheme() || $configured->getHost() !== $discovered->getHost() || $configured->getPort() !== $discovered->getPort()) {
+            throw new IntegrationException('Maximizer API discovery must remain on the configured origin.');
+        }
 
         // Then, fetch the token we need to use on every request for this session (10min)
-        $request = Craft::createGuzzleClient()->request('POST', "$baseApiUrl/Data.svc/json/Authenticate", [
+        $response = $this->requestWithProviderClient(Craft::createGuzzleClient(['base_uri' => $baseApiUrl . '/']), 'POST', "$baseApiUrl/Data.svc/json/Authenticate", [
             'json' => [
                 'Database' => App::parseEnv($this->databaseId),
                 'UID' => App::parseEnv($this->username),
@@ -263,7 +266,6 @@ class Maximizer extends Crm
             ],
         ]);
 
-        $response = Json::decode((string)$request->getBody());
         $token = $response['Data']['Token'] ?? '';
 
         return Craft::createGuzzleClient([

@@ -1,4 +1,4 @@
-import { parseTokenWithDefault } from '@verbb/plugin-kit-tiptap-core';
+import { parseReference, serializeReference } from '@verbb/formie-core';
 import {
     createSyntheticRepeaterSubFieldOption,
     getRepeaterBaseToken,
@@ -48,8 +48,8 @@ export const getComparableTokenValue = (tokenValue = '') => {
         return String(tokenValue);
     }
 
-    const [tokenWithoutDefault] = parseTokenWithDefault(tokenValue);
-    return tokenWithoutDefault || tokenValue;
+    const expression = parseReference(tokenValue);
+    return expression.isValid ? serializeReference({ ...expression, default: '' }) : tokenValue;
 };
 
 const variableValuesMatchReference = (tokenValue = '', optionValue = '') => {
@@ -370,115 +370,23 @@ export const buildVariableOptionIndex = (variableCategories = {}, {
 };
 
 export const parseVariableTokenMetadata = (tokenValue = '') => {
-    const raw = String(tokenValue || '');
-    const match = raw.match(/^\{([^}]*)\}$/);
-
-    if (!match) {
-        return {
-            tokenWithoutDefault: raw,
-            defaultIfEmpty: '',
-            transformerId: '',
-            transformerParams: {},
-        };
-    }
-
-    let body = match[1] ?? '';
-    let defaultIfEmpty = '';
-
-    if (body.includes('|')) {
-        const split = body.split('|');
-        body = split.shift() ?? '';
-        defaultIfEmpty = split.join('|').trim();
-    }
-
-    const segments = body.split(';').map((part) => { return part.trim(); }).filter(Boolean);
-    const cleanSegments = [];
-    let transformerId = '';
-    const transformerParams = {};
-    const referenceParams = {};
-
-    segments.forEach((segment) => {
-        if (segment.startsWith('transform=')) {
-            transformerId = decodeURIComponent(segment.slice('transform='.length)).trim();
-            return;
-        }
-
-        if (segment.includes('=')) {
-            const [keyRaw, ...valueParts] = segment.split('=');
-            const key = String(keyRaw || '').trim().toLowerCase();
-            if (!key) {
-                return;
-            }
-
-            const value = decodeURIComponent(valueParts.join('=').trim());
-
-            if (REFERENCE_METADATA_KEYS.has(key)) {
-                referenceParams[key] = value;
-                cleanSegments.push(`${key}=${encodeURIComponent(value)}`);
-                return;
-            }
-
-            transformerParams[key] = value;
-            return;
-        }
-
-        cleanSegments.push(segment);
-    });
-
+    const expression = parseReference(String(tokenValue || ''));
+    if (!expression.isValid) return { tokenWithoutDefault: String(tokenValue || ''), defaultIfEmpty: '', transformerId: '', transformerParams: {}, referenceParams: {}, diagnostic: expression.diagnostic };
+    const referenceParams = Object.fromEntries(Object.entries(expression.transformerParams).filter(([key]) => REFERENCE_METADATA_KEYS.has(key)));
+    const transformerParams = Object.fromEntries(Object.entries(expression.transformerParams).filter(([key]) => !REFERENCE_METADATA_KEYS.has(key)));
     return {
-        tokenWithoutDefault: `{${cleanSegments.join(';')}}`,
-        defaultIfEmpty,
-        transformerId,
+        tokenWithoutDefault: serializeReference({ ...expression, default: '', transformerId: '', transformerParams: referenceParams }),
+        defaultIfEmpty: expression.default,
+        transformerId: expression.transformerId,
         transformerParams,
         referenceParams,
     };
 };
 
-export const serializeVariableTokenMetadata = (baseToken, {
-    defaultIfEmpty = '',
-    transformerId = '',
-    transformerParams = {},
-} = {}) => {
-    const match = String(baseToken || '').match(/^\{([^}]*)\}$/);
-    if (!match) {
-        return String(baseToken || '');
-    }
-
-    const parts = [match[1]];
-    const cleanedTransformerId = String(transformerId || '').trim();
-
-    Object.entries(transformerParams || {}).forEach(([key, value]) => {
-        const cleanedKey = String(key || '').trim();
-        if (!cleanedKey || cleanedKey === 'transform' || !REFERENCE_METADATA_KEYS.has(cleanedKey)) {
-            return;
-        }
-
-        if (parts.some((part) => {
-            return part.startsWith(`${cleanedKey}=`);
-        })) {
-            return;
-        }
-
-        parts.push(`${cleanedKey}=${encodeURIComponent(String(value ?? ''))}`);
-    });
-
-    if (cleanedTransformerId) {
-        parts.push(`transform=${encodeURIComponent(cleanedTransformerId)}`);
-
-        Object.entries(transformerParams || {}).forEach(([key, value]) => {
-            const cleanedKey = String(key || '').trim();
-            if (!cleanedKey || cleanedKey === 'transform' || REFERENCE_METADATA_KEYS.has(cleanedKey)) {
-                return;
-            }
-
-            parts.push(`${cleanedKey}=${encodeURIComponent(String(value ?? ''))}`);
-        });
-    }
-
-    const body = parts.filter(Boolean).join(';');
-    const cleanedDefault = String(defaultIfEmpty || '').trim();
-
-    return cleanedDefault ? `{${body}|${cleanedDefault}}` : `{${body}}`;
+export const serializeVariableTokenMetadata = (baseToken, { defaultIfEmpty = '', transformerId = '', transformerParams = {} } = {}) => {
+    const expression = parseReference(String(baseToken || ''));
+    if (!expression.isValid) return String(baseToken || '');
+    return serializeReference({ ...expression, default: defaultIfEmpty, transformerId, transformerParams: { ...expression.transformerParams, ...transformerParams } });
 };
 
 export const buildVariablePickerGroups = ({
@@ -533,7 +441,7 @@ export const buildVariablePickerGroups = ({
 };
 
 export const buildTransformOptions = (selectedVariableOption, registry = {}) => {
-    if (!selectedVariableOption) {
+    if (!selectedVariableOption || selectedVariableOption.allowTransforms === false) {
         return [];
     }
 
@@ -554,6 +462,12 @@ export const buildTransformOptions = (selectedVariableOption, registry = {}) => 
         }
 
         (Array.isArray(transformers) ? transformers : []).forEach((transformer) => {
+            if (Array.isArray(selectedVariableOption.transforms) && !selectedVariableOption.transforms.includes(transformer.id)) {
+                return;
+            }
+            if (transformer.availability?.server === false) {
+                return;
+            }
             const appliesTo = Array.isArray(transformer.appliesTo) && transformer.appliesTo.length
                 ? transformer.appliesTo
                 : [valueType];

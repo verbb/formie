@@ -2,6 +2,7 @@
 namespace verbb\formie\integrations\captchas;
 
 use verbb\formie\Formie;
+use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\Captcha;
 use verbb\formie\base\FormInterface;
 use verbb\formie\elements\Form;
@@ -49,7 +50,9 @@ class Recaptcha extends Captcha
     public string $scriptLoadingMethod = 'asyncDefer';
     public ?string $enterpriseType = 'score';
     public ?string $projectId = null;
+    #[FormIntegrationSetting]
     public ?string $formAction = null;
+    #[FormIntegrationSetting]
     public ?string $formMinScore = null;
 
 
@@ -277,15 +280,6 @@ class Recaptcha extends Captcha
 
     // Protected Methods
     // =========================================================================
-
-    protected function formSettingAttributes(): array
-    {
-        $settings = parent::formSettingAttributes();
-        $settings[] = 'formAction';
-        $settings[] = 'formMinScore';
-
-        return $settings;
-    }
 
     protected function defineFormSettingsSchema(FormInterface $form): array
     {

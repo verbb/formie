@@ -1,16 +1,18 @@
 <?php
 namespace verbb\formie\integrations\crm;
 
+use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\Crm;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
-use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyFieldIntegrationValueEvent;
 use verbb\formie\fields\Phone;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationResult;
 
 use Craft;
 use craft\helpers\App;
@@ -18,9 +20,9 @@ use craft\helpers\Json;
 
 use yii\base\Event;
 
-use GuzzleHttp\Client;
-
 use Throwable;
+
+use GuzzleHttp\Client;
 
 class Pipedrive extends Crm
 {
@@ -37,16 +39,27 @@ class Pipedrive extends Crm
     // =========================================================================
     
     public ?string $apiKey = null;
+    #[FormIntegrationSetting]
     public bool $mapToPerson = false;
+    #[FormIntegrationSetting]
     public bool $mapToDeal = false;
+    #[FormIntegrationSetting]
     public bool $mapToLead = false;
+    #[FormIntegrationSetting]
     public bool $mapToOrganization = false;
+    #[FormIntegrationSetting]
     public bool $mapToNote = false;
+    #[FormIntegrationSetting]
     public ?array $personFieldMapping = null;
+    #[FormIntegrationSetting]
     public ?array $dealFieldMapping = null;
+    #[FormIntegrationSetting]
     public ?array $leadFieldMapping = null;
+    #[FormIntegrationSetting]
     public ?array $organizationFieldMapping = null;
+    #[FormIntegrationSetting]
     public ?array $noteFieldMapping = null;
+    #[FormIntegrationSetting]
     public bool $mergeMultiOptionFields = false;
 
 
@@ -204,8 +217,9 @@ class Pipedrive extends Crm
         return new IntegrationFormSettings($settings);
     }
 
-    public function sendPayload(Submission $submission): bool
+    public function sendPayload(Submission $submission): IntegrationResult
     {
+        $this->beginPayloadDelivery($submission);
         try {
             $personValues = $this->getFieldMappingValues($submission, $this->personFieldMapping, 'person');
             $dealValues = $this->getFieldMappingValues($submission, $this->dealFieldMapping, 'deal');
@@ -224,7 +238,7 @@ class Pipedrive extends Crm
                 $response = $this->deliverPayload($submission, 'organizations', $organizationPayload);
 
                 if ($response === false) {
-                    return true;
+                    return $this->resultForPayload(true);
                 }
 
                 $organizationId = $response['data']['id'] ?? '';
@@ -235,7 +249,7 @@ class Pipedrive extends Crm
                         'payload' => Json::encode($organizationPayload),
                     ]), true);
 
-                    return false;
+                    return $this->resultForPayload(false);
                 }
 
                 // Add the note separately
@@ -294,7 +308,7 @@ class Pipedrive extends Crm
                 }
 
                 if ($response === false) {
-                    return true;
+                    return $this->resultForPayload(true);
                 }
 
                 $personId = $response['data']['id'] ?? '';
@@ -305,7 +319,7 @@ class Pipedrive extends Crm
                         'payload' => Json::encode($personPayload),
                     ]), true);
 
-                    return false;
+                    return $this->resultForPayload(false);
                 }
 
                 // Add the note separately
@@ -339,7 +353,7 @@ class Pipedrive extends Crm
                 $response = $this->deliverPayload($submission, 'deals', $dealPayload);
 
                 if ($response === false) {
-                    return true;
+                    return $this->resultForPayload(true);
                 }
 
                 $dealId = $response['data']['id'] ?? '';
@@ -350,7 +364,7 @@ class Pipedrive extends Crm
                         'payload' => Json::encode($dealPayload),
                     ]), true);
 
-                    return false;
+                    return $this->resultForPayload(false);
                 }
 
                 // Add the note separately
@@ -393,7 +407,7 @@ class Pipedrive extends Crm
                 $response = $this->deliverPayload($submission, 'leads', $leadPayload);
 
                 if ($response === false) {
-                    return true;
+                    return $this->resultForPayload(true);
                 }
 
                 $leadId = $response['data']['id'] ?? '';
@@ -404,7 +418,7 @@ class Pipedrive extends Crm
                         'payload' => Json::encode($leadPayload),
                     ]), true);
 
-                    return false;
+                    return $this->resultForPayload(false);
                 }
 
                 // Add the note separately
@@ -445,7 +459,7 @@ class Pipedrive extends Crm
                 $response = $this->deliverPayload($submission, 'notes', $notePayload);
 
                 if ($response === false) {
-                    return true;
+                    return $this->resultForPayload(true);
                 }
 
                 $noteId = $response['data']['id'] ?? '';
@@ -456,16 +470,16 @@ class Pipedrive extends Crm
                         'payload' => Json::encode($notePayload),
                     ]), true);
 
-                    return false;
+                    return $this->resultForPayload(false);
                 }
             }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
-            return false;
+            return $this->resultForPayload(false);
         }
 
-        return true;
+        return $this->resultForPayload(true);
     }
 
     public function fetchConnection(): bool
@@ -493,24 +507,6 @@ class Pipedrive extends Crm
     
     // Protected Methods
     // =========================================================================
-
-    protected function formSettingAttributes(): array
-    {
-        $settings = parent::formSettingAttributes();
-        $settings[] = 'mapToPerson';
-        $settings[] = 'mapToDeal';
-        $settings[] = 'mapToLead';
-        $settings[] = 'mapToOrganization';
-        $settings[] = 'mapToNote';
-        $settings[] = 'personFieldMapping';
-        $settings[] = 'dealFieldMapping';
-        $settings[] = 'leadFieldMapping';
-        $settings[] = 'organizationFieldMapping';
-        $settings[] = 'noteFieldMapping';
-        $settings[] = 'mergeMultiOptionFields';
-
-        return $settings;
-    }
 
     protected function defineRules(): array
     {

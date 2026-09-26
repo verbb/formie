@@ -1,37 +1,28 @@
 <?php
 namespace verbb\formie\models;
 
-use craft\base\Model;
-
-class ReferenceExpression extends Model
+/** An immutable syntax tree. Parsing never evaluates templates or application objects. */
+final readonly class ReferenceExpression
 {
-    // Properties
-    // =========================================================================
-
-    public string $raw = '';
-    public string $target = '';
-    public string $identifier = '';
-    public string $selector = '';
-    public string $default = '';
-    public string $transformerId = '';
-    public array $transformerParams = [];
-    public bool $isValid = false;
-
-
     // Public Methods
     // =========================================================================
 
-    public function toArray(array $fields = [], array $expand = [], $recursive = true): array
+    public function __construct(
+        public string $raw = '',
+        public string $target = '',
+        public string $identifier = '',
+        public string $selector = '',
+        public string $default = '',
+        public string $transformerId = '',
+        public array $transformerParams = [],
+        public bool $isValid = false,
+        public int $version = 1,
+        public ?string $diagnostic = null,
+    ) {
+    }
+
+    public function toArray(): array
     {
-        return [
-            'raw' => $this->raw,
-            'target' => $this->target,
-            'identifier' => $this->identifier,
-            'selector' => $this->selector,
-            'default' => $this->default,
-            'transformerId' => $this->transformerId,
-            'transformerParams' => $this->transformerParams,
-            'isValid' => $this->isValid,
-        ];
+        return get_object_vars($this);
     }
 }

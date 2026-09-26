@@ -2,6 +2,7 @@
 namespace verbb\formie\integrations\crm;
 
 use verbb\formie\Formie;
+use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\Crm;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
@@ -16,6 +17,7 @@ use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationResult;
 
 use Craft;
 use craft\helpers\App;
@@ -59,11 +61,17 @@ class Pardot extends Crm implements OAuthProviderInterface
 
     public ?string $businessUnitId = null;
     public bool|string $useSandbox = false;
+    #[FormIntegrationSetting]
     public bool $mapToProspect = false;
+    #[FormIntegrationSetting]
     public bool $mapToOpportunity = false;
+    #[FormIntegrationSetting]
     public bool $enableFormHandler = false;
+    #[FormIntegrationSetting]
     public ?array $prospectFieldMapping = null;
+    #[FormIntegrationSetting]
     public ?array $opportunityFieldMapping = null;
+    #[FormIntegrationSetting]
     public ?string $endpointUrl = null;
 
 
@@ -389,8 +397,9 @@ class Pardot extends Crm implements OAuthProviderInterface
         return new IntegrationFormSettings($settings);
     }
 
-    public function sendPayload(Submission $submission): bool
+    public function sendPayload(Submission $submission): IntegrationResult
     {
+        $this->beginPayloadDelivery($submission);
         try {
             $prospectValues = $this->getFieldMappingValues($submission, $this->prospectFieldMapping, 'prospect');
             $opportunityValues = $this->getFieldMappingValues($submission, $this->opportunityFieldMapping, 'opportunity');
@@ -420,7 +429,7 @@ class Pardot extends Crm implements OAuthProviderInterface
                 }
 
                 if ($response === false) {
-                    return true;
+                    return $this->resultForPayload(true);
                 }
 
                 $prospectId = $response['prospect']['id'] ?? '';
@@ -429,7 +438,7 @@ class Pardot extends Crm implements OAuthProviderInterface
                     if ($message = self::_getApiCompatibilityError($response)) {
                         Integration::error($this, $message, true);
 
-                        return false;
+                        return $this->resultForPayload(false);
                     }
 
                     Integration::error($this, Craft::t('formie', 'Missing return “prospectId” {response}. Sent payload {payload}', [
@@ -437,7 +446,7 @@ class Pardot extends Crm implements OAuthProviderInterface
                         'payload' => Json::encode($prospectPayload),
                     ]), true);
 
-                    return false;
+                    return $this->resultForPayload(false);
                 }
 
                 // If there was a segmented list to add the prospect to...
@@ -459,7 +468,7 @@ class Pardot extends Crm implements OAuthProviderInterface
                 $response = $this->deliverPayload($submission, 'opportunity/version/4/do/create', $opportunityPayload, 'POST', 'form_params');
 
                 if ($response === false) {
-                    return true;
+                    return $this->resultForPayload(true);
                 }
 
                 $opportunityId = $response['opportunity']['id'] ?? '';
@@ -468,7 +477,7 @@ class Pardot extends Crm implements OAuthProviderInterface
                     if ($message = self::_getApiCompatibilityError($response)) {
                         Integration::error($this, $message, true);
 
-                        return false;
+                        return $this->resultForPayload(false);
                     }
 
                     Integration::error($this, Craft::t('formie', 'Missing return “opportunityId” {response}. Sent payload {payload}', [
@@ -476,7 +485,7 @@ class Pardot extends Crm implements OAuthProviderInterface
                         'payload' => Json::encode($opportunityPayload),
                     ]), true);
 
-                    return false;
+                    return $this->resultForPayload(false);
                 }
             }
 
@@ -496,16 +505,16 @@ class Pardot extends Crm implements OAuthProviderInterface
                         'payload' => Json::encode($payload),
                     ]), true);
 
-                    return false;
+                    return $this->resultForPayload(false);
                 }
             }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
-            return false;
+            return $this->resultForPayload(false);
         }
 
-        return true;
+        return $this->resultForPayload(true);
     }
 
     public function populateContext(?Submission $submission = null): void
@@ -529,19 +538,6 @@ class Pardot extends Crm implements OAuthProviderInterface
     
     // Protected Methods
     // =========================================================================
-
-    protected function formSettingAttributes(): array
-    {
-        $settings = parent::formSettingAttributes();
-        $settings[] = 'mapToProspect';
-        $settings[] = 'mapToOpportunity';
-        $settings[] = 'enableFormHandler';
-        $settings[] = 'prospectFieldMapping';
-        $settings[] = 'opportunityFieldMapping';
-        $settings[] = 'endpointUrl';
-
-        return $settings;
-    }
 
     protected function defineRules(): array
     {

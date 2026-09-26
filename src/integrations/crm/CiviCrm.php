@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\integrations\crm;
 
+use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\Crm;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
@@ -8,6 +9,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationResult;
 
 use Craft;
 use craft\helpers\App;
@@ -15,9 +17,9 @@ use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
 
-use GuzzleHttp\Client;
-
 use Throwable;
+
+use GuzzleHttp\Client;
 
 class CiviCrm extends Crm
 {
@@ -36,7 +38,9 @@ class CiviCrm extends Crm
     public ?string $apiKey = null;
     public ?string $siteKey = null;
     public ?string $apiDomain = null;
+    #[FormIntegrationSetting]
     public bool $mapToContact = false;
+    #[FormIntegrationSetting]
     public ?array $contactFieldMapping = null;
 
 
@@ -65,8 +69,9 @@ class CiviCrm extends Crm
         return new IntegrationFormSettings($settings);
     }
 
-    public function sendPayload(Submission $submission): bool
+    public function sendPayload(Submission $submission): IntegrationResult
     {
+        $this->beginPayloadDelivery($submission);
         try {
             if ($this->mapToContact) {
                 $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
@@ -78,7 +83,7 @@ class CiviCrm extends Crm
                 $response = $this->deliverPayload($submission, 'Contact/create', $payload);
 
                 if ($response === false) {
-                    return true;
+                    return $this->resultForPayload(true);
                 }
 
                 $contactId = $response['values'][0]['id'] ?? '';
@@ -89,16 +94,16 @@ class CiviCrm extends Crm
                         'payload' => Json::encode($payload),
                     ]), true);
 
-                    return false;
+                    return $this->resultForPayload(false);
                 }
             }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
-            return false;
+            return $this->resultForPayload(false);
         }
 
-        return true;
+        return $this->resultForPayload(true);
     }
 
     public function fetchConnection(): bool
@@ -117,15 +122,6 @@ class CiviCrm extends Crm
     
     // Protected Methods
     // =========================================================================
-
-    protected function formSettingAttributes(): array
-    {
-        $settings = parent::formSettingAttributes();
-        $settings[] = 'mapToContact';
-        $settings[] = 'contactFieldMapping';
-
-        return $settings;
-    }
 
     protected function defineRules(): array
     {

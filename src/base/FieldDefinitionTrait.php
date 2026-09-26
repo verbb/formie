@@ -114,12 +114,14 @@ trait FieldDefinitionTrait
             }
         }
 
-        return FieldReferences::make()
-            ->withPrimary($this->defineAllowPrimaryReference())
-            ->withPrimaryCondition($defaultValue?->condition)
-            ->withPrimaryTokenSuffix($defaultValue?->handle ?: null)
-            ->withNested($this->defineAllowNestedReference(), $this->defineNestedReferenceMode())
-            ->withSelectors($selectors);
+        return new FieldReferences([
+            'allowPrimary' => $this->defineAllowPrimaryReference(),
+            'primaryCondition' => $defaultValue?->condition,
+            'primaryTokenSuffix' => $defaultValue?->handle ?: null,
+            'allowNested' => $this->defineAllowNestedReference(),
+            'nestedMode' => $this->defineNestedReferenceMode(),
+            'selectors' => $selectors,
+        ]);
     }
 
     // Variable pickers and reference helpers both originate from the same value definitions.
@@ -172,7 +174,7 @@ trait FieldDefinitionTrait
 
         if ($defaultValueKey !== null) {
             foreach ($values as $key => $value) {
-                $value->default = ($key === $defaultValueKey);
+                $values[$key] = FieldReferenceValue::fromArray([...get_object_vars($value), 'default' => $key === $defaultValueKey]);
             }
         }
 

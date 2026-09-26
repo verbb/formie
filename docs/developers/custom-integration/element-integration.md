@@ -50,8 +50,9 @@ In `sendPayload()`, resolve the attribute mapping, resolve the field mapping, se
 ```php
 use verbb\formie\elements\Submission;
 
-public function sendPayload(Submission $submission): bool
+public function sendPayload(Submission $submission): \verbb\formie\models\IntegrationResult
 {
+    $this->beginPayloadDelivery($submission);
     $element = new YourElement();
 
     $attributeValues = $this->getFieldMappingValues($submission, $this->attributeMapping, $this->getElementAttributes());
@@ -65,7 +66,7 @@ public function sendPayload(Submission $submission): bool
 
     $element->setFieldValues($fieldValues);
 
-    return Craft::$app->getElements()->saveElement($element);
+    return $this->resultForPayload(Craft::$app->getElements()->saveElement($element));
 }
 ```
 

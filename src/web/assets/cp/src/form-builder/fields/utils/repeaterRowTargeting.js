@@ -1,3 +1,4 @@
+import { parseReference, serializeReference } from '@verbb/formie-core';
 /** @typedef {'first' | 'last' | 'all' | 'count' | 'index' | 'custom'} RepeaterRowPreset */
 
 import { parseVariableTokenMetadata } from '@form-builder/fields/utils/variablePicker';
@@ -132,17 +133,10 @@ export const createSyntheticTableColumnSubFieldOption = (tokenValue = '', fallba
 };
 
 export const getRepeaterBaseToken = (tokenValue = '') => {
-    const meta = parseVariableTokenMetadata(String(tokenValue || ''));
-    const match = String(meta.tokenWithoutDefault || '').match(/^\{field:([^}]+)\}$/);
-
-    if (match) {
-        const body = match[1];
-        const baseBody = String(body).split(';')[0] ?? '';
-
-        return baseBody ? `{field:${baseBody}}` : '';
-    }
-
-    return '';
+    const expression = parseReference(String(tokenValue || ''));
+    return expression.isValid && expression.target === 'field'
+        ? serializeReference({ ...expression, default: '', transformerId: '', transformerParams: {} })
+        : '';
 };
 
 export const parseRepeaterRowTargeting = (tokenValue = '') => {
@@ -189,13 +183,8 @@ export const buildRepeaterReferenceToken = (baseToken, {
     index = '',
     rowsExpression = '',
 } = {}) => {
-    const match = String(baseToken || '').match(/^\{field:([^}]+)\}$/);
-
-    if (!match) {
-        return String(baseToken || '');
-    }
-
-    const fieldBody = match[1];
+    const expression = parseReference(String(baseToken || ''));
+    if (!expression.isValid || expression.target !== 'field') return String(baseToken || '');
     const referenceParams = {};
 
     if (preset === 'custom') {
@@ -209,17 +198,7 @@ export const buildRepeaterReferenceToken = (baseToken, {
         referenceParams.scope = preset;
     }
 
-    const segments = [fieldBody];
-
-    Object.entries(referenceParams).forEach(([key, value]) => {
-        if (value == null || String(value).trim() === '') {
-            return;
-        }
-
-        segments.push(`${key}=${encodeURIComponent(String(value))}`);
-    });
-
-    return `{field:${segments.join(';')}}`;
+    return serializeReference({ ...expression, transformerParams: referenceParams });
 };
 
 export const applyRepeaterRowTargetingToToken = (tokenValue, targeting) => {

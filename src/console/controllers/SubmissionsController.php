@@ -210,7 +210,7 @@ class SubmissionsController extends Controller
 
             $result = Formie::$plugin->getIntegrationTriggers()->dispatchManualIntegration($formIntegration, $submission);
 
-            if (!($result instanceof IntegrationResponse ? $result->success : $result)) {
+            if (!$result->isSuccessful()) {
                 $failed = true;
                 $this->stderr("Unable to trigger integration for submission #{$submission->id} ..." . PHP_EOL, Console::FG_RED);
 

@@ -1,24 +1,25 @@
 <?php
 namespace verbb\formie\integrations\crm;
 
+use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\Crm;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
-use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationResult;
 
 use Craft;
 use craft\helpers\App;
 use craft\helpers\Json;
 
-use GuzzleHttp\Client;
-
 use Throwable;
 
+use GuzzleHttp\Client;
 
 class Capsule extends Crm
 {
@@ -35,11 +36,17 @@ class Capsule extends Crm
     // =========================================================================
 
     public ?string $apiKey = null;
+    #[FormIntegrationSetting]
     public bool $mapToPeople = false;
+    #[FormIntegrationSetting]
     public bool $mapToOpportunity = false;
+    #[FormIntegrationSetting]
     public bool $mapToTask = false;
+    #[FormIntegrationSetting]
     public ?array $peopleFieldMapping = null;
+    #[FormIntegrationSetting]
     public ?array $opportunityFieldMapping = null;
+    #[FormIntegrationSetting]
     public ?array $taskFieldMapping = null;
 
 
@@ -265,8 +272,9 @@ class Capsule extends Crm
         return new IntegrationFormSettings($settings);
     }
 
-    public function sendPayload(Submission $submission): bool
+    public function sendPayload(Submission $submission): IntegrationResult
     {
+        $this->beginPayloadDelivery($submission);
         try {
             $peopleValues = $this->getFieldMappingValues($submission, $this->peopleFieldMapping, 'people');
             $opportunityValues = $this->getFieldMappingValues($submission, $this->opportunityFieldMapping, 'opportunity');
@@ -292,7 +300,7 @@ class Capsule extends Crm
                 $response = $this->deliverPayload($submission, 'parties', $peoplePayload);
 
                 if ($response === false) {
-                    return true;
+                    return $this->resultForPayload(true);
                 }
 
                 $peopleId = $response['party']['id'] ?? '';
@@ -303,7 +311,7 @@ class Capsule extends Crm
                         'payload' => Json::encode($peoplePayload),
                     ]), true);
 
-                    return false;
+                    return $this->resultForPayload(false);
                 }
             }
 
@@ -321,7 +329,7 @@ class Capsule extends Crm
                 $response = $this->deliverPayload($submission, 'opportunities', $opportunityPayload);
 
                 if ($response === false) {
-                    return true;
+                    return $this->resultForPayload(true);
                 }
 
                 $opportunityId = $response['opportunity']['id'] ?? '';
@@ -332,7 +340,7 @@ class Capsule extends Crm
                         'payload' => Json::encode($opportunityPayload),
                     ]), true);
 
-                    return false;
+                    return $this->resultForPayload(false);
                 }
             }
 
@@ -350,7 +358,7 @@ class Capsule extends Crm
                 $response = $this->deliverPayload($submission, 'tasks', $taskPayload);
 
                 if ($response === false) {
-                    return true;
+                    return $this->resultForPayload(true);
                 }
 
                 $taskId = $response['task']['id'] ?? '';
@@ -361,16 +369,16 @@ class Capsule extends Crm
                         'payload' => Json::encode($taskPayload),
                     ]), true);
 
-                    return false;
+                    return $this->resultForPayload(false);
                 }
             }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
-            return false;
+            return $this->resultForPayload(false);
         }
 
-        return true;
+        return $this->resultForPayload(true);
     }
 
     public function fetchConnection(): bool
@@ -389,19 +397,6 @@ class Capsule extends Crm
     
     // Protected Methods
     // =========================================================================
-
-    protected function formSettingAttributes(): array
-    {
-        $settings = parent::formSettingAttributes();
-        $settings[] = 'mapToPeople';
-        $settings[] = 'mapToOpportunity';
-        $settings[] = 'mapToTask';
-        $settings[] = 'peopleFieldMapping';
-        $settings[] = 'opportunityFieldMapping';
-        $settings[] = 'taskFieldMapping';
-
-        return $settings;
-    }
 
     protected function defineRules(): array
     {

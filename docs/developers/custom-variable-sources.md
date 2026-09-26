@@ -1,124 +1,59 @@
 # Custom Variable Sources
 
-Register your own server-resolved variables for Formie's variable picker. Custom sources appear in the control panel alongside built-in Form, Site, and System variables, and resolve anywhere Formie parses [reference tokens](/developers/reference-tokens) — email notifications, integrations, PDF templates, and more.
-
-## Register a Source
-
-Listen for `Variables::EVENT_REGISTER_VARIABLES` in your module's `init()` method and push one or more sources onto the event — the same pattern Formie uses for fields, integrations, and other registration events.
+Use a custom source when editors need a value from your module in the **Variable Picker**. For example, a campaign service can supply a campaign code to a notification or integration mapping. Register a definition and a resolver in your module's `init()` method. The definition describes the value without fetching it; the resolver receives the explicit submission context when the value is needed.
 
 ```php
-use verbb\formie\events\RegisterVariablesEvent;
-use verbb\formie\helpers\Variables;
-use verbb\formie\variables\VariableSource;
+use verbb\formie\events\RegisterReferencesEvent;
+use verbb\formie\fields\definitions\FieldValueType;
+use verbb\formie\references\ReferenceCatalogue;
+use verbb\formie\references\ReferenceContext;
+use verbb\formie\references\ReferenceDefinition;
+use verbb\formie\references\ReferenceSource;
 use yii\base\Event;
 
-Event::on(Variables::class, Variables::EVENT_REGISTER_VARIABLES, function(RegisterVariablesEvent $event) {
-    $event->sources[] = VariableSource::create('acme_campaign', 'Campaign code')
-        ->resolve(function($submission, $notification) {
-            return Craft::$app->getRequest()->getCookies()->getValue('campaign') ?? '';
-        });
+Event::on(ReferenceCatalogue::class, ReferenceCatalogue::EVENT_REGISTER, function(RegisterReferencesEvent $event) {
+    $event->sources[] = new ReferenceSource(
+        new ReferenceDefinition(
+            id: 'acme/campaign',
+            label: 'Campaign Code',
+            category: 'custom',
+            valueType: FieldValueType::string(),
+            transforms: ['acme/shout'],
+            server: true,
+            browser: false,
+        ),
+        static fn(ReferenceContext $context): string => 'spring-sale',
+    );
 });
 ```
 
-That registers `{custom:acme_campaign}` in the variable picker under **General**.
+Editors can insert `{custom:acme/campaign}`. The picker receives its label, type and availability, never the resolved value or resolver. IDs use `vendor/name`; duplicate IDs and invalid registrations fail explicitly. Use translations for labels when your project supports multiple languages.
 
-## Token Format
+## Context and Return Types
 
-Custom sources use a single `custom` target and a unique handle you control:
+`ReferenceContext` carries the form, submission, site, user, row selections, permissions and output context. The submission factory captures its own site and submitting user; resolution does not switch Craft's current site or borrow the currently logged-in CP operator. Read these context properties instead of mutable global request state. A source can check the context's permissions before returning sensitive application data.
 
-```text
-{custom:handle}
-```
+Return the declared `FieldValueType`. Numeric domain values use decimal strings through `FieldValueType::number()`. Rich objects must declare their class and provide deliberate string/data behaviour at their owning field boundary. A mismatched return value produces `invalidType`. Missing registrations produce `unknownSource`; denied availability produces `forbiddenSource`.
 
-| Part | Rules |
-| --- | --- |
-| `custom` | Fixed target for all module-registered variables. |
-| `handle` | Lowercase letters, numbers, and underscores; must start with a letter. Prefix with your project or plugin name to avoid clashes, e.g. `acme_campaign`. |
+`browser: false` is the default. A declaration of browser availability does not copy server values or PHP callbacks to the browser. Browser code must supply an explicit browser implementation and its permitted values. Never register credentials as picker values.
 
-Built-in targets such as `site`, `user`, and `form` stay reserved for Formie. Your handle only needs to be unique among registered custom sources — `{custom:acme_campaign}` does not collide with `{site:name}` or other built-in tokens.
+## Custom Transforms
 
-## Resolver Callback
-
-The `resolve()` callback runs on the server when Formie needs the value. It receives:
-
-1. `Submission $submission` — the submission being processed.
-2. `Notification|null $notification` — the notification context, when one is available.
-
-Return a scalar or `Stringable` value. Objects are not stringified automatically.
+A transform takes a resolved value and returns a declared output type. Add it to the same registration event:
 
 ```php
-$event->sources[] = VariableSource::create('acme_owner_email', 'Account owner email')
-    ->types([\verbb\formie\helpers\Variables::TYPE_EMAIL])
-    ->resolve(function($submission) {
-        $userId = $submission->getAuthorId();
-        return $userId ? Craft::$app->getUsers()->getUserById($userId)?->email : null;
-    });
+use verbb\formie\references\ReferenceTransform;
+
+$event->transforms[] = new ReferenceTransform(
+    id: 'acme/shout',
+    inputType: FieldValueType::string(),
+    outputType: FieldValueType::string(),
+    transform: static fn(string $value): string => strtoupper($value),
+    server: true,
+    browser: false,
+);
 ```
 
-Values are resolved lazily per submission and cached for the remainder of the request.
+This snippet belongs inside the listener above. List its ID in the source definition’s `transforms` array to allow it for that source. `{custom:acme/campaign;transform=acme%2Fshout}` returns `SPRING-SALE`. The picker groups the transform by its input type. Declare supported parameter names with `parameters: ['suffix']`; the callback receives the value, parameter map and context. Parameter names outside that declaration are rejected. Input/output type failures remain typed diagnostics and do not silently preserve the original value.
 
-## Picker Metadata
-
-Configure each `VariableSource` before pushing it onto `$event->sources`:
-
-::: reference
-### `VariableSource::create($handle, $label)`
-
-**Purpose:** Create a source with a unique handle and author-facing label.
-
-Create a source with a unique handle and author-facing label.
-:::
-
-::: reference
-### `types([...])`
-
-**Purpose:** Hint compatible field types (`Variables::TYPE_TEXT`, `TYPE_EMAIL`, `TYPE_NUMBER`, `TYPE_URL`, `TYPE_DATE`, `TYPE_BOOLEAN`, `TYPE_ARRAY`).
-
-Hint compatible field types (`Variables::TYPE_TEXT`, `TYPE_EMAIL`, `TYPE_NUMBER`, `TYPE_URL`, `TYPE_DATE`, `TYPE_BOOLEAN`, `TYPE_ARRAY`).
-:::
-
-::: reference
-### `content($mode)`
-
-**Purpose:** `Variables::CONTENT_SINGLE_LINE` (default) or `Variables::CONTENT_ANY`.
-
-`Variables::CONTENT_SINGLE_LINE` (default) or `Variables::CONTENT_ANY`.
-:::
-
-::: reference
-### `resolve(callable)`
-
-**Purpose:** Server resolver. Required for values to resolve.
-
-Server resolver. Required for values to resolve.
-:::
-
-
-Custom sources appear anywhere **General** variables are offered, such as notification bodies and many integration mapping fields.
-
-## Transforms
-
-Custom variables support the same transform metadata as built-in variables when the returned value type matches.
-
-```text
-{custom:acme_score;transform=round}
-```
-
-## Troubleshooting
-
-### The Variable Does Not Appear in the Picker
-
-- Confirm the event listener is registered before the form builder loads.
-- Check that the handle uses only lowercase letters, numbers, and underscores.
-- Reload the form builder after changing module code.
-
-### The Token Appears but Resolves Empty
-
-- Confirm `resolve()` is set on the source.
-- Check the resolver return value is not `null` or an empty string.
-- Use an inline default if needed: `{custom:acme_campaign|none}`.
-
-### The Variable Works in Notifications but Not Integrations
-
-- Confirm the integration field accepts **General** variable groups.
-- Some mapping UIs filter by value type; set `types()` to match the destination field.
+See [Reference Tokens](/developers/reference-tokens) for exact resolution, output contexts and handling diagnostics in a consumer.

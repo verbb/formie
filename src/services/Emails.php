@@ -10,10 +10,12 @@ use verbb\formie\fields\FileUpload;
 use verbb\formie\fields\Group;
 use verbb\formie\fields\Repeater;
 use verbb\formie\helpers\Assets;
+use verbb\formie\helpers\DeliveryAttempt;
 use verbb\formie\helpers\References;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\Notification;
 use verbb\formie\models\Settings;
+use verbb\formie\references\ReferenceOutputContext;
 
 use Craft;
 use craft\base\LocalFsInterface;
@@ -273,6 +275,7 @@ class Emails extends Component
         try {
             // Render the body content for the notification
             $parsedContent = References::parseContent($notification->getParsedContent(), $submission, [
+                'outputContext' => ReferenceOutputContext::Html,
                 'notification' => $notification,
                 'includeSummary' => true,
                 'parseEnvValues' => false,
@@ -376,8 +379,8 @@ class Emails extends Component
         }
 
         // When in the context of a queue job, add some extra info
-        if ($queueJob) {
-            $queueJob->email = $this->_serializeEmail($newEmail);
+        if ($queueJob && isset($queueJob->deliveryAttemptUid)) {
+            Formie::$plugin->getDeliveryAttempts()->checkpoint($queueJob->deliveryAttemptUid, 'email-prepared', ['notificationId' => $notification->id]);
         }
 
         // Attach any file uploads
@@ -417,7 +420,7 @@ class Emails extends Component
                 ]);
 
                 Formie::error($error);
-                Formie::error('Email payload: ' . Json::encode($this->_serializeEmail($newEmail)));
+                Formie::error('Email delivery failed. Inspect the notification delivery diagnostics.');
 
                 // Save the sent notification, as failed
                 if ($createSentNotification) {
@@ -444,7 +447,7 @@ class Emails extends Component
                 ]);
 
                 Formie::error($error);
-                Formie::error('Email payload: ' . Json::encode($this->_serializeEmail($newEmail)));
+                Formie::error('Email delivery failed. Inspect the notification delivery diagnostics.');
                 Formie::error('Mailer context: ' . $this->_getMailerFailureContext());
 
                 // Save the sent notification, as failed
@@ -471,7 +474,7 @@ class Emails extends Component
             ]);
 
             Formie::error($error);
-            Formie::error('Email payload: ' . Json::encode($this->_serializeEmail($newEmail)));
+            Formie::error('Email delivery failed. Inspect the notification delivery diagnostics.');
 
             // Save the sent notification, as failed
             Formie::$plugin->getSentNotifications()->saveSentNotification($submission, $notification, $newEmail, false, $error);
@@ -500,7 +503,7 @@ class Emails extends Component
         return ['success' => true];
     }
 
-    public function sendFailAlertEmail(Notification $notification, Submission $submission, $emailResponse): ?array
+    public function sendFailAlertEmail(Notification $notification, Submission $submission, $emailResponse, ?string $deliveryKey = null): ?array
     {
         /* @var Settings $settings */
         $settings = Formie::$plugin->getSettings();
@@ -544,7 +547,7 @@ class Emails extends Component
                     ->composeFromKey('formie_failed_notification', $renderVariables)
                     ->setTo($recipient['email']);
 
-                $mail->send();
+                Formie::$plugin->getDeliveryAttempts()->sendAlert($submission, 'notification-alert:' . $notification->uid, $deliveryKey ?? DeliveryAttempt::workflowIdentity() ?? 'legacy-alert', $recipient['email'], fn() => $mail->send());
             } catch (Throwable $e) {
                 Craft::$app->getErrorHandler()->logException($e);
                 
@@ -578,9 +581,10 @@ class Emails extends Component
     private function _parseNotificationTextSetting(?string $string, Submission $submission, Notification $notification): string
     {
         $string = (string)$string;
-        $string = (string)App::parseEnv($string);
+        $string = preg_replace('/^\$([A-Z][A-Z0-9_]*)$/D', '{env:$1}', $string);
 
         return References::parseContent($string, $submission, [
+            'outputContext' => ReferenceOutputContext::EmailHeader,
             'notification' => $notification,
             'parseEnvValues' => false,
         ]);
@@ -591,6 +595,7 @@ class Emails extends Component
         $emails = $this->_parseAuthoredEmailEnvTokens((string)$emails);
 
         return References::parseListContent($emails, $submission, [
+            'outputContext' => ReferenceOutputContext::EmailHeader,
             'notification' => $notification,
             'parseEnvValues' => false,
         ]);
@@ -609,7 +614,7 @@ class Emails extends Component
                 continue;
             }
 
-            $tokens[$key] = (string)App::parseEnv($token);
+            $tokens[$key] = preg_replace('/^\$([A-Z][A-Z0-9_]*)$/D', '{env:$1}', $token);
         }
 
         return implode('', $tokens);

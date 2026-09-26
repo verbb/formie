@@ -1,9 +1,10 @@
+import { parseReference } from '@verbb/formie-core';
 import { getErrorMessage } from '@verbb/plugin-kit-core';
 import {
     memo, useCallback, useEffect, useMemo, useRef, useState,
 } from 'react';
 
-import { Button, DropdownItem, Icon } from '@verbb/plugin-kit-react/components';
+import { Button, DropdownItem, Icon, Input } from '@verbb/plugin-kit-react/components';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@utils/formieTable';
 import { FieldLayout, useEngineField } from '@verbb/plugin-kit-react/forms';
 
@@ -40,6 +41,7 @@ const MAPPING_VARIABLE_CONFIG = {
 const PROVIDER_OPTIONS_GROUP = 'providerOptions';
 const MODE_FIELD = 'field';
 const MODE_CUSTOM = 'custom';
+const MODE_LITERAL = 'literal';
 const SUCCESS_FEEDBACK_DURATION = 2200;
 const INITIAL_VISIBLE_MAPPING_ROWS = 20;
 const MAPPING_ROW_RENDER_BATCH_SIZE = 40;
@@ -156,6 +158,7 @@ const getMappingMode = (mappingValue, fieldOptionValues) => {
 
 const MappingValueControl = ({
     mappingValue,
+    mappingKind,
     onChange,
     variableCategories,
     baseVariableOptionIndex,
@@ -233,12 +236,12 @@ const MappingValueControl = ({
     }, [mappingValue]);
 
     const [mode, setMode] = useState(() => {
-        return getMappingMode(comparableMappingValue, fieldOptionValues);
+        return mappingKind ? (mappingKind === 'reference' ? MODE_FIELD : mappingKind === 'literal' ? MODE_LITERAL : MODE_CUSTOM) : getMappingMode(comparableMappingValue, fieldOptionValues);
     });
 
     const handleModeChange = (nextModeValue) => {
         const nextMode = Array.isArray(nextModeValue) ? nextModeValue[0] : nextModeValue;
-        if (nextMode !== MODE_FIELD && nextMode !== MODE_CUSTOM) {
+        if (![MODE_FIELD, MODE_CUSTOM, MODE_LITERAL].includes(nextMode)) {
             return;
         }
 
@@ -248,9 +251,9 @@ const MappingValueControl = ({
 
         setMode(nextMode);
 
-        if (nextMode === MODE_FIELD && !fieldOptionValues.has(comparableMappingValue)) {
-            onChange('');
-        }
+        onChange(nextMode === MODE_FIELD
+            ? { kind: 'reference', value: fieldOptionValues.has(comparableMappingValue) ? mappingValue : '' }
+            : { kind: nextMode === MODE_LITERAL ? 'literal' : 'text', value: mappingValue });
     };
 
     const modeSwitchTarget = mode === MODE_FIELD ? MODE_CUSTOM : MODE_FIELD;
@@ -264,7 +267,12 @@ const MappingValueControl = ({
                 {mode === MODE_FIELD ? (
                     <FormBuilderVariablePickerControl
                         value={mappingValue}
-                        onChange={(nextValue) => { onChange(String(nextValue || '')); }}
+                        onChange={(nextValue) => {
+                            const expression = parseReference(String(nextValue || ''));
+                            onChange(expression.target === 'providerOption'
+                                ? { kind: 'literal', value: expression.identifier }
+                                : { kind: 'reference', value: String(nextValue || '') });
+                        }}
                         variableCategories={fieldPickerCategories}
                         variableCategoryLabels={mergedVariableCategoryLabels}
                         variableCategoryOrder={variableCategoryOrder}
@@ -299,9 +307,17 @@ const MappingValueControl = ({
                          * Bordered TipTap + insert-rail + (same as VariablePickerField / v1).
                          * Do not use fitCell — mapping cells keep padded table chrome.
                          */}
-                        <VariablePickerInputCell
+                        {mode === MODE_LITERAL ? (
+                            <Input
+                                value={mappingValue}
+                                aria-label={Craft.t('formie', 'Literal value')}
+                                placeholder={Craft.t('formie', 'Use text exactly as entered')}
+                                onChange={(event) => onChange({ kind: 'literal', value: event.target.value })}
+                                className="min-w-0 flex-1"
+                            />
+                        ) : <VariablePickerInputCell
                             value={mappingValue}
-                            onChange={onChange}
+                            onChange={(nextValue) => onChange({ kind: 'text', value: String(nextValue || '') })}
                             variableCategories={mergedVariableCategories}
                             variableCategoryLabels={mergedVariableCategoryLabels}
                             variableCategoryOrder={variableCategoryOrder}
@@ -320,10 +336,13 @@ const MappingValueControl = ({
                                 '[--pk-tiptap-input-padding-inline-end:2.5rem]',
                                 '[--pk-tiptap-input-font-size:12px]',
                             )}
-                        />
+                        />}
                         <VariablePickerActionsMenu label={Craft.t('formie', 'More actions')} placement="bottom-start">
                             <DropdownItem onPkSelect={() => { handleModeChange(modeSwitchTarget); }}>
                                 {modeSwitchLabel}
+                            </DropdownItem>
+                            <DropdownItem onPkSelect={() => { handleModeChange(mode === MODE_LITERAL ? MODE_CUSTOM : MODE_LITERAL); }}>
+                                {Craft.t('formie', mode === MODE_LITERAL ? 'Use variables in text' : 'Use text exactly as entered')}
                             </DropdownItem>
                         </VariablePickerActionsMenu>
                     </>
@@ -336,6 +355,7 @@ const MappingValueControl = ({
 const MappingRow = memo(({
     integrationField,
     mappingValue,
+    mappingKind,
     onMappingValueChange,
     variableCategories,
     baseVariableOptionIndex,
@@ -345,7 +365,7 @@ const MappingRow = memo(({
     variableCategoryOrder,
 }) => {
     const handleChange = useCallback((nextValue) => {
-        onMappingValueChange(integrationField.handle, String(nextValue || ''));
+        onMappingValueChange(integrationField.handle, nextValue);
     }, [integrationField.handle, onMappingValueChange]);
 
     return (
@@ -362,6 +382,7 @@ const MappingRow = memo(({
             <TableCell className="w-1/2 px-2 py-1">
                 <MappingValueControl
                     mappingValue={mappingValue}
+                    mappingKind={mappingKind}
                     onChange={handleChange}
                     variableCategories={variableCategories}
                     baseVariableOptionIndex={baseVariableOptionIndex}
@@ -691,6 +712,7 @@ const IntegrationFieldMappingField = ({ form, field }) => {
                                         key={integrationField.handle}
                                         integrationField={integrationField}
                                         mappingValue={mappingValue}
+                                        mappingKind={value?.[integrationField.handle]?.kind}
                                         onMappingValueChange={updateMappingValue}
                                         variableCategories={baseVariableCategories}
                                         baseVariableOptionIndex={baseVariableOptionIndex}

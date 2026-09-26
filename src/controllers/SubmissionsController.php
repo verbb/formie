@@ -471,8 +471,8 @@ class SubmissionsController extends Controller
 
         $response = Formie::$plugin->getIntegrationTriggers()->dispatchManualIntegration($resolvedIntegration, $submission);
 
-        if (($response instanceof IntegrationResponse) && !$response->success) {
-            $message = Craft::t('formie', 'Integration failed to run.');
+        if (!$response->isSuccessful()) {
+            $message = Craft::t('formie', 'Integration result: {status}.', ['status' => $response->status->value]);
 
             $this->setFailFlash($message);
 
@@ -748,7 +748,7 @@ class SubmissionsController extends Controller
         $redirect = $this->request->getValidatedBodyParam('redirect');
 
         if (is_string($redirect) && $redirect !== '') {
-            $url = References::parseContent($redirect, $submission);
+            $url = References::parseUrl($redirect, $submission);
             $url = StringHelper::sanitizeRedirectUrl($url);
             $url = FormieUrlHelper::appendRequestQueryString($url);
 
@@ -992,7 +992,7 @@ class SubmissionsController extends Controller
     {
         $redirect = $this->request->getValidatedBodyParam('redirect');
         $url = is_string($redirect) && $redirect !== ''
-            ? References::parseContent($redirect, $submission)
+            ? References::parseUrl($redirect, $submission)
             : null;
 
         if ($url === null || $url === '') {

@@ -134,10 +134,18 @@ Use transform metadata for formatted output — for example `{timestamp;transfor
 
 ### Environment
 
-When Craft environment variables are available, the picker lists `{env:KEY}` tokens for each key. Build them from Twig with:
+Environment references are disabled by default. Add only safe names to `referenceEnvironmentAllowlist` in `config/formie.php`:
+
+```php
+return [
+    'referenceEnvironmentAllowlist' => ['PUBLIC_CONTACT_EMAIL'],
+];
+```
+
+The picker lists only those names and never includes their values. A reference to any other name is denied. Build an allowlisted token from Twig with:
 
 ```twig
-{{ craft.formie.ref('env', 'MY_ENV_KEY') }}
+{{ craft.formie.ref('env', 'PUBLIC_CONTACT_EMAIL') }}
 ```
 
 ## Field Tokens
@@ -222,3 +230,60 @@ References::token('field', 'a1b2c3', 'email', ['scope' => 'all']);
 References::parseContent('{submission:uid}', $submission);
 References::parseValue('{field:a1b2c3}', $submission);
 ```
+
+## Exact Values and Text
+
+Use exact resolution for a slot that expects a value, such as an integration mapping. A Name field returns its `NameFieldValue`, and a relation field returns its normalized query. Use interpolation when the destination is text. It asks the field for its string representation and encodes replacements for the destination.
+
+In PHP code that already has a Formie submission, create the context once and reuse it:
+
+```php
+use verbb\formie\helpers\References;
+use verbb\formie\references\ReferenceContext;
+use verbb\formie\references\ReferenceOutputContext;
+
+$context = ReferenceContext::forSubmission($submission);
+$token = References::field($submission->getForm()->getFieldByHandle('name')->reference);
+$result = References::resolveValue($token, $context);
+
+if ($result->diagnostic !== null) {
+    throw new \RuntimeException($result->diagnostic->value);
+}
+
+$name = $result->value;
+$html = References::interpolateText('Hello ' . $token, $context, ReferenceOutputContext::Html);
+```
+
+The four immutable concepts have separate purposes: `ReferenceDefinition` describes a source for authoring, `ReferenceExpression` holds parsed syntax, `ReferenceContext` supplies evaluation inputs, and `ResolvedReference` holds the native result, field/definition metadata and any diagnostic. `requireValue()` throws `ReferenceException` when a consumer cannot continue after an error. Error messages omit submitted values and secrets.
+
+### Output Contexts
+
+| Context | Replacement behaviour |
+| --- | --- |
+| `PlainText` | Field-owned string value; no HTML interpretation |
+| `Html` | Encode HTML special characters once; registered summary blocks use their trusted field templates |
+| `EmailHeader` | Reject carriage returns, line feeds and NUL characters |
+| `UrlComponent` | Percent-encode a value inserted into an authored URL component |
+| `StructuredData` | Emit JSON-safe data with JSON encoding; whole native values should use exact resolution |
+
+Do not pre-escape values or interpolate once and then reinterpret the result as another reference template. Submitted values containing `$SECRET`, braces or Twig remain data. Authored Twig template files and explicit template fields have their own rendering contract; the reference grammar never executes Twig or PHP.
+
+### Stored Slots
+
+Consumers declare whether a slot accepts `reference`, `text` or `literal`. Integration mappings persist this distinction:
+
+```php
+['kind' => 'reference', 'value' => '{field:instance-reference}']
+['kind' => 'text', 'value' => 'Contact: {field:instance-reference}']
+['kind' => 'literal', 'value' => '{This stays literal}']
+```
+
+The Variable Picker's field mode stores an exact reference. Its custom value editor stores interpolated text. Provider options store literals. The custom editor’s **Use text exactly as entered** action switches to a literal input; **Use variables in text** restores interpolation. A literal never becomes executable because it contains braces.
+
+## Grammar and Diagnostics
+
+The grammar uses `{source:identifier:selector;key=value|default}`. The selector applies to fields. `transform` names a registered transform; `scope`, `index` and `rows` select collection values. Metadata values and defaults are percent-encoded by the serializer, so `;`, `|`, braces, plus signs and percent signs round-trip. Version 1 is implicit; `;v=1` is accepted and unsupported versions produce an invalid-expression diagnostic. Use `References::token()` or `ReferenceParser::serialize()` instead of concatenating untrusted strings.
+
+Exact field references identify one persisted form-field instance. Handles are secondary, form-local selectors; ambiguous handles fail instead of choosing the first match. Fixed child fields have their own references. A direct repeater-child reference requires `ReferenceContext::forSubmission($submission, rows: [$parentReference => 0])`, or select a collection through its parent token. Row indices are zero-based; the picker displays one-based row numbers. Table columns use parent selectors and never become synthetic persisted fields.
+
+Deleted fields produce `missingField`; unscoped repeater children produce `missingRowScope`; undeclared selectors produce `invalidSelector`. Unknown sources and transforms produce `unknownSource` and `unknownTransform`. A default replaces a successfully resolved empty value (null, an empty string or list, or a field value that declares itself empty). Zero and false remain values. It does not hide a deleted field, missing extension or forbidden source.

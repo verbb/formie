@@ -2,16 +2,17 @@
 namespace verbb\formie\integrations\elements;
 
 use verbb\formie\Formie;
-use verbb\formie\base\Integration;
+use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\Element;
 use verbb\formie\base\FormInterface;
+use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
-use verbb\formie\models\IntegrationResponse;
+use verbb\formie\models\IntegrationResult;
 
 use Craft;
 use craft\base\Element as CraftElement;
@@ -35,9 +36,13 @@ class Entry extends Element
     // Properties
     // =========================================================================
 
+    #[FormIntegrationSetting]
     public ?string $entryTypeSection = null;
+    #[FormIntegrationSetting]
     public mixed $defaultAuthorId = null;
+    #[FormIntegrationSetting]
     public bool $useSubmissionUserAsAuthor = false;
+    #[FormIntegrationSetting]
     public ?bool $createDraft = null;
 
 
@@ -185,14 +190,15 @@ class Entry extends Element
         return $attributes;
     }
 
-    public function sendPayload(Submission $submission): IntegrationResponse|bool
+    public function sendPayload(Submission $submission): IntegrationResult
     {
+        $this->beginPayloadDelivery($submission);
         $entriesService = Craft::$app->getEntries();
         
         if (!$this->entryTypeSection || !str_contains($this->entryTypeSection, ':')) {
             Integration::error($this, Craft::t('formie', 'Unable to save element integration. No `entryTypeId`.'), true);
 
-            return false;
+            return $this->resultForPayload(false);
         }
 
         try {
@@ -210,7 +216,7 @@ class Entry extends Element
             if (!$section || !$entryType) {
                 Integration::error($this, Craft::t('formie', 'Unable to save element integration. Missing `section` or `entryType`.'), true);
 
-                return false;
+                return $this->resultForPayload(false);
             }
 
             $entry = $this->getElementForPayload(EntryElement::class, $this->entryTypeSection, $submission, [
@@ -255,7 +261,7 @@ class Entry extends Element
             $entry->updateTitle();
 
             // If we're not mapping to the status, ensure it's inherited from the section's default
-            $statusAttributeMapping = $this->attributeMapping['enabled'] ?? '';
+            $statusAttributeMapping = $this->normalizeFieldMappingValue($this->attributeMapping['enabled'] ?? '');
 
             if ($statusAttributeMapping === '') {
                 $siteSettings = ArrayHelper::firstWhere($section->getSiteSettings(), 'siteId', $entry->siteId);
@@ -276,7 +282,7 @@ class Entry extends Element
 
             // Allow events to cancel sending - return as success            
             if (!$this->beforeSendPayload($submission, $endpoint, $entry, $method)) {
-                return true;
+                return $this->resultForPayload(true);
             }
 
             // Check if we need to create a new draft
@@ -293,7 +299,7 @@ class Entry extends Element
                             'error' => Json::encode($entry->getErrors()),
                         ]), true);
 
-                        return false;
+                        return $this->resultForPayload(false);
                     }
 
                     $this->afterSendPayload($submission, '', $entry, '', []);
@@ -306,7 +312,7 @@ class Entry extends Element
 
                 $this->recordDispatchElement($entry);
 
-                return true;
+                return $this->resultForPayload(true);
             }
 
             if (!$entry->validate()) {
@@ -315,7 +321,7 @@ class Entry extends Element
                     'error' => Json::encode($entry->getErrors()),
                 ]), true);
 
-                return false;
+                return $this->resultForPayload(false);
             }
 
             if (!Craft::$app->getElements()->saveElement($entry, true, true, $this->updateSearchIndexes)) {
@@ -324,12 +330,14 @@ class Entry extends Element
                     'error' => Json::encode($entry->getErrors()),
                 ]), true);
 
-                return false;
+                return $this->resultForPayload(false);
             }
+
+            $this->recordDispatchElement($entry);
 
             // Allow events to say the response is invalid
             if (!$this->afterSendPayload($submission, '', $entry, '', [])) {
-                return true;
+                return $this->resultForPayload(true);
             }
 
             $this->recordDispatchElement($entry);
@@ -342,12 +350,12 @@ class Entry extends Element
                 'submission' => $submission->id,
             ]);
 
-            Formie::error($error);
+            Integration::error($this, $error);
 
-            return new IntegrationResponse(false, [$error]);
+            return $this->resultForPayload(IntegrationResult::fromException($e));
         }
 
-        return true;
+        return $this->resultForPayload(true);
     }
 
     public function getAuthor($form): array
@@ -364,17 +372,6 @@ class Entry extends Element
 
     // Protected Methods
     // =========================================================================
-
-    protected function formSettingAttributes(): array
-    {
-        $settings = parent::formSettingAttributes();
-        $settings[] = 'entryTypeSection';
-        $settings[] = 'defaultAuthorId';
-        $settings[] = 'useSubmissionUserAsAuthor';
-        $settings[] = 'createDraft';
-
-        return $settings;
-    }
 
     protected function defineRules(): array
     {

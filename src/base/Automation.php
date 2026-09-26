@@ -98,8 +98,8 @@ abstract class Automation extends Integration
 
     protected function getEndpointUrl(string $url, Submission $submission): bool|string|null
     {
-        $url = Formie::$plugin->getTemplates()->renderSandboxedObjectTemplate($url, $submission, autoescape: false);
-        $url = trim((string)App::parseEnv($url));
+        $url = preg_replace('/^\$([A-Z][A-Z0-9_]*)$/D', '{env:$1}', $url);
+        $url = \verbb\formie\helpers\References::parseUrl($url, $submission);
 
         return $this->requirePublicHttpEndpoint($url);
     }
@@ -136,6 +136,17 @@ abstract class Automation extends Integration
      */
     public function request(string $method, string $uri, array $options = []): mixed
     {
+        foreach (['proxy', 'curl', 'handler', 'base_uri', 'verify', 'cert', 'ssl_key', 'cookies'] as $option) {
+            if (array_key_exists($option, $options)) {
+                throw new \verbb\formie\errors\IntegrationException('Unsupported public endpoint transport option.');
+            }
+        }
+        foreach (array_keys($options['headers'] ?? []) as $header) {
+            if (in_array(strtolower($header), ['host', 'proxy-authorization', 'cookie'], true)) {
+                throw new \verbb\formie\errors\IntegrationException('Unsupported public endpoint header.');
+            }
+        }
+        $this->requirePublicHttpEndpoint($uri);
         if (preg_match('#^https?://#i', $uri) === 1) {
             $config = $this->getClient()->getConfig();
             $config['allow_redirects'] = false;

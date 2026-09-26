@@ -3,10 +3,17 @@
 ## Unreleased
 
 ### Added
+- Add durable integration and notification delivery history, safe per-operation retries, explicit reconciliation and a Plugin Kit diagnostics modal in Craft’s queue and submission views.
+- Add one typed reference runtime and Variable Picker catalogue, with native exact values, explicit row scopes and context-safe text output.
 - Add versioned, atomic form imports with dependency plans, stable-reference matching and recoverable missing field types.
 - Add portable per-site translations to stencils and copy them into form overrides when creating forms from a stencil. ([#2968](https://github.com/verbb/formie/issues/2968))
 
 ### Changed
+- Separate global integration connections, annotated form bindings and non-secret builder metadata; isolate runtime instances and return explicit integration and batch results.
+- Run synchronous integrations before the queued lane and expose three notification timings with explicit completion policies.
+- Keep queue jobs immutable and small, encrypt literal integration settings and retained responses, and require validated public destinations and provider origins.
+- Store explicit integration mapping slot kinds, preserve Formie 3 tokens through compatibility parsing, and replace beta fluent variable APIs with namespaced source and transform definitions.
+- Require safe environment names to be allowlisted for references; diagnose missing fields and extensions and reject invalid email headers.
 - Make field runtime types explicit, keep precise numeric strings through GraphQL and immutable rich values, and add natural data projections with Formie 3 compatibility adapters.
 - Separate request, browser, condition and storage value paths; encrypt complete structured values and decode legacy encryption only from trusted storage.
 - Return strings for Phone and a consistent Name value in both input modes; replace beta Array/value-class APIs and browser validation names.

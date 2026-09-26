@@ -1,9 +1,11 @@
 <?php
 namespace verbb\formie\models;
 
-use verbb\formie\elements\Submission;
 use verbb\formie\Formie;
+use verbb\formie\elements\Submission;
 use verbb\formie\helpers\References;
+use verbb\formie\references\ReferenceOutputContext;
+
 use verbb\tiptap\Normalizer;
 use verbb\tiptap\RichText as TiptapRichText;
 
@@ -81,7 +83,7 @@ class RichText implements JsonSerializable, Stringable
     {
         return $this->_content->toHtml(
             resolveReferences: $submission
-                ? fn (string $html): string => (string)References::parseContent($html, $submission)
+                ? fn (string $html): string => (string)References::parseContent($html, $submission, ['outputContext' => ReferenceOutputContext::Html])
                 : null,
             nl2br: $nl2br,
             additionalExtensions: self::_getAdditionalExtensions(),

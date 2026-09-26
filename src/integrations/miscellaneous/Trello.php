@@ -1,23 +1,24 @@
 <?php
 namespace verbb\formie\integrations\miscellaneous;
 
-use verbb\formie\base\Integration;
+use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\FormInterface;
+use verbb\formie\base\Integration;
 use verbb\formie\base\Miscellaneous;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\RichTextHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationResult;
 
 use Craft;
 use craft\helpers\App;
 use craft\helpers\Json;
 
-use League\HTMLToMarkdown\HtmlConverter;
-
 use Throwable;
 
+use League\HTMLToMarkdown\HtmlConverter;
 use verbb\auth\base\OAuthProviderInterface;
 use verbb\auth\models\Token;
 use verbb\auth\providers\Trello as TrelloProvider;
@@ -46,9 +47,13 @@ class Trello extends Miscellaneous implements OAuthProviderInterface
     // Properties
     // =========================================================================
 
+    #[FormIntegrationSetting]
     public ?string $boardId = null;
+    #[FormIntegrationSetting]
     public ?string $listId = null;
+    #[FormIntegrationSetting]
     public ?string $cardName = null;
+    #[FormIntegrationSetting]
     public ?string $cardDescription = null;
 
 
@@ -115,8 +120,9 @@ class Trello extends Miscellaneous implements OAuthProviderInterface
         return new IntegrationFormSettings($settings);
     }
 
-    public function sendPayload(Submission $submission): bool
+    public function sendPayload(Submission $submission): IntegrationResult
     {
+        $this->beginPayloadDelivery($submission);
         try {
             $payload = [
                 'name' => $this->cardName,
@@ -128,7 +134,7 @@ class Trello extends Miscellaneous implements OAuthProviderInterface
             $response = $this->deliverPayload($submission, 'cards', $payload);
 
             if ($response === false) {
-                return true;
+                return $this->resultForPayload(true);
             }
 
             $cardId = $response['id'] ?? '';
@@ -138,31 +144,20 @@ class Trello extends Miscellaneous implements OAuthProviderInterface
                     'response' => Json::encode($response),
                 ]), true);
 
-                return false;
+                return $this->resultForPayload(false);
             }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
-            return false;
+            return $this->resultForPayload(false);
         }
 
-        return true;
+        return $this->resultForPayload(true);
     }
 
     
     // Protected Methods
     // =========================================================================
-
-    protected function formSettingAttributes(): array
-    {
-        $settings = parent::formSettingAttributes();
-        $settings[] = 'boardId';
-        $settings[] = 'listId';
-        $settings[] = 'cardName';
-        $settings[] = 'cardDescription';
-
-        return $settings;
-    }
 
     protected function defineRules(): array
     {

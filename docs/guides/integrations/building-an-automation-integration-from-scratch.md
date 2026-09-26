@@ -142,8 +142,9 @@ class ExampleAutomation extends Automation
         return new IntegrationFormSettings(['payload' => $payload]);
     }
 
-    public function sendPayload(Submission $submission): bool
+    public function sendPayload(Submission $submission): \verbb\formie\models\IntegrationResult
     {
+        $this->beginPayloadDelivery($submission);
         try {
             $payload = $this->generatePayloadValues($submission);
 
@@ -155,7 +156,7 @@ class ExampleAutomation extends Automation
                 $this->requestType,
             );
 
-            return $response !== false;
+            return $this->resultForPayload($response !== false);
         } catch (Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}”. Payload: “{payload}”.', [
                 'message' => $e->getMessage(),
@@ -164,7 +165,7 @@ class ExampleAutomation extends Automation
 
             Integration::apiError($this, $e);
 
-            return false;
+            return $this->resultForPayload(false);
         }
     }
 

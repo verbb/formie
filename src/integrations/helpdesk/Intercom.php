@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\integrations\helpdesk;
 
+use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\HelpDesk;
 use verbb\formie\base\Integration;
@@ -9,6 +10,7 @@ use verbb\formie\helpers\RichTextHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationResult;
 
 use Craft;
 use craft\helpers\App;
@@ -16,12 +18,10 @@ use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
 
-use GuzzleHttp\Client;
-
-use League\HTMLToMarkdown\HtmlConverter;
-
 use Throwable;
 
+use GuzzleHttp\Client;
+use League\HTMLToMarkdown\HtmlConverter;
 use verbb\auth\base\OAuthProviderInterface;
 use verbb\auth\models\Token;
 use verbb\auth\providers\Intercom as IntercomProvider;
@@ -50,8 +50,11 @@ class Intercom extends HelpDesk implements OAuthProviderInterface
     // Properties
     // =========================================================================
 
+    #[FormIntegrationSetting]
     public ?string $message = null;
+    #[FormIntegrationSetting]
     public bool $mapToContact = false;
+    #[FormIntegrationSetting]
     public ?array $contactFieldMapping = null;
 
 
@@ -155,8 +158,9 @@ class Intercom extends HelpDesk implements OAuthProviderInterface
         return new IntegrationFormSettings($settings);
     }
 
-    public function sendPayload(Submission $submission): bool
+    public function sendPayload(Submission $submission): IntegrationResult
     {
+        $this->beginPayloadDelivery($submission);
         try {
             if ($this->mapToContact) {
                 $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
@@ -178,7 +182,7 @@ class Intercom extends HelpDesk implements OAuthProviderInterface
                 $contactResponse = $this->deliverPayload($submission, 'contacts', $contactPayload);
 
                 if ($contactResponse === false) {
-                    return true;
+                    return $this->resultForPayload(true);
                 }
 
                 $contactId = $contactResponse['id'] ?? '';
@@ -189,7 +193,7 @@ class Intercom extends HelpDesk implements OAuthProviderInterface
                         'payload' => Json::encode($contactPayload),
                     ]), true);
 
-                    return false;
+                    return $this->resultForPayload(false);
                 }
 
                 $messagePayload = [
@@ -205,7 +209,7 @@ class Intercom extends HelpDesk implements OAuthProviderInterface
                 $messageResponse = $this->deliverPayload($submission, 'messages', $messagePayload);
 
                 if ($messageResponse === false) {
-                    return true;
+                    return $this->resultForPayload(true);
                 }
 
                 $messageId = $messageResponse['id'] ?? '';
@@ -216,31 +220,21 @@ class Intercom extends HelpDesk implements OAuthProviderInterface
                         'payload' => Json::encode($messagePayload),
                     ]), true);
 
-                    return false;
+                    return $this->resultForPayload(false);
                 }
             }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
-            return false;
+            return $this->resultForPayload(false);
         }
 
-        return true;
+        return $this->resultForPayload(true);
     }
 
     
     // Protected Methods
     // =========================================================================
-
-    protected function formSettingAttributes(): array
-    {
-        $settings = parent::formSettingAttributes();
-        $settings[] = 'message';
-        $settings[] = 'mapToContact';
-        $settings[] = 'contactFieldMapping';
-
-        return $settings;
-    }
 
     protected function defineRules(): array
     {

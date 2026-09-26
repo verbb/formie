@@ -9,7 +9,10 @@ use verbb\formie\base\IntegrationInterface;
 use verbb\formie\cache\IntegrationLookupCache;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\enums\IntegrationStatus;
+use verbb\formie\enums\SubmissionOperation;
 use verbb\formie\errors\IntegrationException;
+use verbb\formie\errors\IntegrationStepException;
 use verbb\formie\events\IntegrationEvent;
 use verbb\formie\events\ModifyFormIntegrationEvent;
 use verbb\formie\events\ModifyFormIntegrationsEvent;
@@ -19,6 +22,8 @@ use verbb\formie\events\TriggerIntegrationFailureEvent;
 use verbb\formie\gql\types\input\CaptchaInputType;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\DbSchema;
+use verbb\formie\helpers\DeliveryAttempt;
+use verbb\formie\helpers\IntegrationSecrets;
 use verbb\formie\helpers\IntegrationTriggerEvents;
 use verbb\formie\helpers\Plugin;
 use verbb\formie\helpers\SchemaHelper;
@@ -36,7 +41,9 @@ use verbb\formie\integrations\miscellaneous;
 use verbb\formie\integrations\payments;
 use verbb\formie\jobs\TriggerIntegration;
 use verbb\formie\models\FieldLayoutPage;
+use verbb\formie\models\FormIntegration;
 use verbb\formie\models\IntegrationResponse;
+use verbb\formie\models\IntegrationResult;
 use verbb\formie\models\MissingIntegration;
 use verbb\formie\models\Settings;
 use verbb\formie\records\Integration as IntegrationRecord;
@@ -61,6 +68,7 @@ use yii\base\UnknownPropertyException;
 use yii\db\ActiveRecord;
 use yii\db\Exception;
 
+use InvalidArgumentException;
 use Throwable;
 
 class Integrations extends Component
@@ -352,7 +360,7 @@ class Integrations extends Component
 
     public function triggerIntegrations(
         Submission $submission,
-        \verbb\formie\enums\SubmissionOperation $operation = \verbb\formie\enums\SubmissionOperation::SUBMIT,
+        SubmissionOperation $operation = SubmissionOperation::SUBMIT,
         ?string $triggerEvent = null,
         bool $operatorInitiated = false,
     ): void {
@@ -364,8 +372,8 @@ class Integrations extends Component
 
         $triggerContext = $this->_buildTriggerContext($operation, $triggerEvent, $operatorInitiated);
 
-        if (Formie::$plugin->getIntegrationDispatch()->shouldOrchestrate($form)) {
-            Formie::$plugin->getIntegrationDispatch()->dispatchSubmission(
+        if (Formie::$plugin->getIntegrationDispatcher()->shouldOrchestrate($form)) {
+            Formie::$plugin->getIntegrationDispatcher()->dispatchSubmission(
                 $submission,
                 $operation,
                 $triggerContext,
@@ -374,7 +382,7 @@ class Integrations extends Component
             return;
         }
 
-        $executor = Formie::$plugin->getIntegrationExecutor();
+        $executor = Formie::$plugin->getIntegrationRunner();
         $handles = $executor->resolveLegacyHandles($form);
 
         if (!$handles) {
@@ -392,62 +400,44 @@ class Integrations extends Component
         $executor->runSteps($submission, $handles, $triggerContext);
     }
 
-    public function sendIntegrationPayload(Integration $integration, Submission $submission): bool|IntegrationResponse
+    public function sendIntegrationPayload(Integration $integration, Submission $submission): IntegrationResult
     {
         unset($integration->context['deliveryUncertain'], $integration->context['deliveryWriteAccepted']);
-
         $event = new TriggerIntegrationEvent([
             'submission' => $submission,
             'type' => get_class($integration),
             'integration' => $integration,
         ]);
         $this->trigger(self::EVENT_BEFORE_TRIGGER_INTEGRATION, $event);
-
         if (!$event->isValid) {
-            return true;
+            return IntegrationResult::skipped('event_cancelled');
         }
-
         try {
-            $response = $integration->sendPayLoad($event->submission);
-        } catch (Throwable $e) {
-            if (!empty($integration->context['deliveryUncertain']) || !empty($integration->context['deliveryWriteAccepted'])) {
-                $e = new \verbb\formie\errors\DeliveryOutcomeUnknownException('Delivery outcome unknown. Check the destination before running this integration again.', 0, $e);
+            $response = $integration->sendPayload($event->submission);
+            $errorResult = $integration->context['deliveryErrorResult'] ?? null;
+            $errorResult = $response === false || $errorResult?->requiresReconciliation() ? $errorResult : null;
+            $result = $errorResult ?? IntegrationResult::fromLegacy($response,
+                !empty($integration->context['deliveryUncertain'])
+                || ($response === false && !empty($integration->context['deliveryWriteAccepted'])),
+            );
+            if (!empty($integration->context['deliverySkipped']) && empty($integration->context['deliveryWriteAccepted'])) {
+                $result = IntegrationResult::skipped('event_or_opt_in');
             }
-            $this->handleTriggerIntegrationFailed($integration, $submission, $e);
-            throw $e;
+            if (!in_array($result->status, [IntegrationStatus::Succeeded, IntegrationStatus::Skipped], true)) {
+                $this->handleTriggerIntegrationFailed($integration, $submission, new IntegrationException('Integration delivery ' . $result->status->value), $response instanceof IntegrationResponse ? $response : $result->toStorage());
+            }
+            return $result;
+        } catch (Throwable $error) {
+            $this->handleTriggerIntegrationFailed($integration, $submission, new IntegrationException('Integration delivery failed; inspect delivery diagnostics.'));
+            // Providers may wrap an operation exception with their own API error.
+            $cause = $error;
+            do {
+                if ($cause instanceof IntegrationStepException) {
+                    return $cause->result;
+                }
+            } while ($cause = $cause->getPrevious());
+            return IntegrationResult::fromException($error);
         }
-
-        $succeeded = $response instanceof IntegrationResponse ? $response->success : (bool)$response;
-        if (!$succeeded && (!empty($integration->context['deliveryUncertain']) || !empty($integration->context['deliveryWriteAccepted']))) {
-            $error = new \verbb\formie\errors\DeliveryOutcomeUnknownException('Delivery outcome unknown. Check the destination before running this integration again.');
-            $this->handleTriggerIntegrationFailed($integration, $submission, $error);
-            throw $error;
-        }
-
-        if ($response instanceof IntegrationResponse && !$response->success) {
-            $this->handleTriggerIntegrationFailed(
-                $integration,
-                $submission,
-                new IntegrationException(Craft::t('formie', 'Failed to trigger integration: {message}.', [
-                    'message' => Json::encode($response->message),
-                ])),
-                $response,
-            );
-
-            return $response;
-        }
-
-        if (!$response) {
-            $this->handleTriggerIntegrationFailed(
-                $integration,
-                $submission,
-                new IntegrationException(Craft::t('formie', 'Failed to trigger integration. Check the Formie log files.')),
-            );
-
-            return false;
-        }
-
-        return $response;
     }
 
     public function handleTriggerIntegrationFailed(
@@ -465,10 +455,15 @@ class Integrations extends Component
             $queue = Craft::$app->getQueue();
 
             if ($queue instanceof CraftQueue && method_exists($queue, 'getJobId')) {
-                $currentJobId = (int)$queue->getJobId();
-
-                if ($currentJobId > 0) {
-                    $queueJobId = $currentJobId;
+                // The runner can resume a queued attempt outside an active Craft
+                // worker. Craft's typed getter throws when no job is executing.
+                try {
+                    $currentJobId = (int)$queue->getJobId();
+                    if ($currentJobId > 0) {
+                        $queueJobId = $currentJobId;
+                    }
+                } catch (Throwable) {
+                    $queueJobId = null;
                 }
             }
         }
@@ -539,10 +534,10 @@ class Integrations extends Component
 
         foreach ($recipients as $recipient) {
             try {
-                Craft::$app->getMailer()
+                Formie::$plugin->getDeliveryAttempts()->sendAlert($submission, 'integration-alert:' . $integration->handle, $integration->getDeliveryExecutionContext()?->executionUid ?? DeliveryAttempt::workflowIdentity() ?? 'legacy-alert', $recipient['email'], fn() => Craft::$app->getMailer()
                     ->composeFromKey('formie_failed_integration', $renderVariables)
                     ->setTo($recipient['email'])
-                    ->send();
+                    ->send());
             } catch (Throwable $e) {
                 Craft::$app->getErrorHandler()->logException($e);
 
@@ -626,7 +621,7 @@ class Integrations extends Component
             return [];
         }
 
-        return array_intersect_key($settings, array_fill_keys($integration->getFormSettingAttributes(), true));
+        return FormIntegration::filterSettings($integration, $settings);
     }
 
     public function filterAllIntegrationFormSettings(array $settings, bool $preserveMissing = false): array
@@ -673,20 +668,7 @@ class Integrations extends Component
 
     public function populateIntegrationFromFormSettings(IntegrationInterface $integration, array $settings): IntegrationInterface
     {
-        $settings = $this->filterIntegrationFormSettings($integration, $settings);
-
-        // `enabled` controls whether a form uses the integration. It must not replace
-        // the globally configured integration's enabled state on the runtime clone.
-        unset($settings['enabled']);
-
-        $formIntegration = clone $integration;
-        $formIntegration->setAttributes($settings, false);
-
-        if (is_callable([$formIntegration, 'setClient'])) {
-            $formIntegration->setClient(null);
-        }
-
-        return $formIntegration;
+        return FormIntegration::fromSettings($integration, $settings)->createRuntime($integration);
     }
 
     /**
@@ -739,7 +721,7 @@ class Integrations extends Component
             'type' => get_class($integration),
             'enabled' => $integration->getEnabled(false),
             'sortOrder' => (int)$integration->sortOrder,
-            'settings' => ProjectConfigHelper::packAssociativeArrays($integration->getSettings()),
+            'settings' => ProjectConfigHelper::packAssociativeArrays(IntegrationSecrets::protect($integration->getSettings(), true)),
         ];
     }
 
@@ -826,7 +808,8 @@ class Integrations extends Component
             $integrationRecord->enabled = $data['enabled'];
             $integrationRecord->sortOrder = $data['sortOrder'];
             $integrationRecord->scope = self::SCOPE_PROJECT;
-            $integrationRecord->settings = ProjectConfigHelper::unpackAssociativeArrays($settings);
+            $integrationRecord->settings = IntegrationSecrets::protect(ProjectConfigHelper::unpackAssociativeArrays($settings), true);
+            $integrationRecord->cache = [];
             $integrationRecord->uid = $integrationUid;
 
             // Save the integration
@@ -897,6 +880,10 @@ class Integrations extends Component
 
         if (isset($config['settings']) && is_string($config['settings'])) {
             $config['settings'] = Json::decode($config['settings']);
+        }
+
+        if (isset($config['settings']) && is_array($config['settings'])) {
+            $config['settings'] = IntegrationSecrets::reveal($config['settings']);
         }
 
         // `cache` is stored as JSON in the DB (longText); decode like `settings` so in-memory merge/state stays correct.
@@ -1107,13 +1094,6 @@ class Integrations extends Component
 
     public function getAllEnabledIntegrationsForForm(Form $form): array
     {
-        $cacheKey = $this->_getFormRequestCacheKey($form);
-        $cache = $this->_getLookupCache();
-
-        if (array_key_exists($cacheKey, $cache->enabledIntegrationsByForm)) {
-            return $cache->enabledIntegrationsByForm[$cacheKey];
-        }
-
         $enabledIntegrations = [];
         $integrationsByHandle = [];
         $hasModifyFormIntegrationHandlers = $this->hasEventHandlers(self::EVENT_MODIFY_FORM_INTEGRATION);
@@ -1156,7 +1136,7 @@ class Integrations extends Component
         ]);
         $this->trigger(self::EVENT_MODIFY_FORM_INTEGRATIONS, $event);
 
-        return $cache->enabledIntegrationsByForm[$cacheKey] = $event->integrations;
+        return $event->integrations;
     }
 
     public function getAllCaptchas(): array
@@ -1284,7 +1264,7 @@ class Integrations extends Component
         $handle = trim($handle);
 
         if ($handle === '') {
-            throw new \InvalidArgumentException('Captcha handle is required.');
+            throw new InvalidArgumentException('Captcha handle is required.');
         }
 
         $existing = $this->getCaptchaByHandle($handle);
@@ -1516,7 +1496,8 @@ class Integrations extends Component
             $integrationRecord->enabled = $integration->getEnabled(false);
             $integrationRecord->sortOrder = (int)$integration->sortOrder;
             $integrationRecord->scope = self::SCOPE_SITE;
-            $integrationRecord->settings = $settings;
+            $integrationRecord->settings = IntegrationSecrets::protect($settings, true);
+            $integrationRecord->cache = [];
 
             if ($wasTrashed = (bool)$integrationRecord->dateDeleted) {
                 $integrationRecord->restore();
@@ -1596,13 +1577,13 @@ class Integrations extends Component
     }
 
     private function _buildTriggerContext(
-        \verbb\formie\enums\SubmissionOperation $operation,
+        SubmissionOperation $operation,
         ?string $triggerEvent,
         bool $operatorInitiated,
     ): array {
         return [
             'operation' => $operation,
-            'isSubmissionEdit' => $operation === \verbb\formie\enums\SubmissionOperation::REVISE,
+            'isSubmissionEdit' => $operation === SubmissionOperation::REVISE,
             'triggerEvent' => $triggerEvent ?? IntegrationTriggerEvents::resolveFromOperation($operation),
             'operatorInitiated' => $operatorInitiated,
         ];

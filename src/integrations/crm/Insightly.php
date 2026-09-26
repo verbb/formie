@@ -1,23 +1,25 @@
 <?php
 namespace verbb\formie\integrations\crm;
 
+use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\Crm;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
-use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationResult;
 
 use Craft;
 use craft\helpers\App;
 use craft\helpers\Json;
 
-use GuzzleHttp\Client;
-
 use Throwable;
+
+use GuzzleHttp\Client;
 
 class Insightly extends Crm
 {
@@ -34,9 +36,13 @@ class Insightly extends Crm
     // =========================================================================
     
     public ?string $apiKey = null;
+    #[FormIntegrationSetting]
     public bool $mapToContact = false;
+    #[FormIntegrationSetting]
     public bool $mapToLead = false;
+    #[FormIntegrationSetting]
     public ?array $contactFieldMapping = null;
+    #[FormIntegrationSetting]
     public ?array $leadFieldMapping = null;
 
 
@@ -220,8 +226,9 @@ class Insightly extends Crm
         return new IntegrationFormSettings($settings);
     }
 
-    public function sendPayload(Submission $submission): bool
+    public function sendPayload(Submission $submission): IntegrationResult
     {
+        $this->beginPayloadDelivery($submission);
         try {
             $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
             $leadValues = $this->getFieldMappingValues($submission, $this->leadFieldMapping, 'lead');
@@ -235,7 +242,7 @@ class Insightly extends Crm
             $response = $this->deliverPayload($submission, 'Contacts', $contactPayload);
 
             if ($response === false) {
-                return true;
+                return $this->resultForPayload(true);
             }
 
             $contactId = $response['CONTACT_ID'] ?? '';
@@ -246,7 +253,7 @@ class Insightly extends Crm
                     'payload' => Json::encode($contactPayload),
                 ]), true);
 
-                return false;
+                return $this->resultForPayload(false);
             }
 
             $customFields = $this->_prepCustomFields($leadValues);
@@ -258,7 +265,7 @@ class Insightly extends Crm
             $response = $this->deliverPayload($submission, 'Leads', $leadPayload);
 
             if ($response === false) {
-                return true;
+                return $this->resultForPayload(true);
             }
 
             $leadId = $response['LEAD_ID'] ?? '';
@@ -269,15 +276,15 @@ class Insightly extends Crm
                     'payload' => Json::encode($leadPayload),
                 ]), true);
 
-                return false;
+                return $this->resultForPayload(false);
             }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
-            return false;
+            return $this->resultForPayload(false);
         }
 
-        return true;
+        return $this->resultForPayload(true);
     }
 
     public function fetchConnection(): bool
@@ -296,17 +303,6 @@ class Insightly extends Crm
     
     // Protected Methods
     // =========================================================================
-
-    protected function formSettingAttributes(): array
-    {
-        $settings = parent::formSettingAttributes();
-        $settings[] = 'mapToContact';
-        $settings[] = 'mapToLead';
-        $settings[] = 'contactFieldMapping';
-        $settings[] = 'leadFieldMapping';
-
-        return $settings;
-    }
 
     protected function defineRules(): array
     {

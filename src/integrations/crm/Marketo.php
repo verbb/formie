@@ -2,6 +2,7 @@
 namespace verbb\formie\integrations\crm;
 
 use verbb\formie\Formie;
+use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\Crm;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
@@ -10,6 +11,7 @@ use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationResult;
 
 use Craft;
 use craft\helpers\App;
@@ -46,7 +48,9 @@ class Marketo extends Crm implements OAuthProviderInterface
     // =========================================================================
 
     public ?string $apiDomain = null;
+    #[FormIntegrationSetting]
     public bool $mapToLead = false;
+    #[FormIntegrationSetting]
     public ?array $leadFieldMapping = null;
 
 
@@ -98,8 +102,9 @@ class Marketo extends Crm implements OAuthProviderInterface
         return new IntegrationFormSettings($settings);
     }
 
-    public function sendPayload(Submission $submission): bool
+    public function sendPayload(Submission $submission): IntegrationResult
     {
+        $this->beginPayloadDelivery($submission);
         try {
             $leadValues = $this->getFieldMappingValues($submission, $this->leadFieldMapping, 'lead');
 
@@ -113,30 +118,21 @@ class Marketo extends Crm implements OAuthProviderInterface
                 $response = $this->deliverPayload($submission, 'rest/v1/leads.json', $leadPayload);
 
                 if ($response === false) {
-                    return true;
+                    return $this->resultForPayload(true);
                 }
             }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
-            return false;
+            return $this->resultForPayload(false);
         }
 
-        return true;
+        return $this->resultForPayload(true);
     }
 
 
     // Protected Methods
     // =========================================================================
-
-    protected function formSettingAttributes(): array
-    {
-        $settings = parent::formSettingAttributes();
-        $settings[] = 'mapToLead';
-        $settings[] = 'leadFieldMapping';
-
-        return $settings;
-    }
 
     protected function defineRules(): array
     {

@@ -2,54 +2,29 @@
 namespace verbb\formie\jobs;
 
 use verbb\formie\Formie;
-use verbb\formie\helpers\QueueJobDataHelper;
-use verbb\formie\helpers\Table;
-
-use Craft;
-use craft\db\Query;
-use craft\helpers\Db;
-
-use Throwable;
 
 use yii\queue\ExecEvent;
 
+use Throwable;
+
 trait DebuggableJobTrait
 {
+    // Public Methods
+    // =========================================================================
+
     public function onError(ExecEvent $event): void
     {
-        // Craft serializes queue jobs before execution, so failure-only debug
-        // details need to be written back to the stored queue row explicitly.
-        try {
-            $jobData = (new Query())
-                ->select(['job'])
-                ->from(Table::QUEUE)
-                ->where(['id' => $event->id])
-                ->scalar();
-
-            if (!$jobData) {
-                return;
-            }
-
-            $jobData = Craft::$app->getQueue()->serializer->unserialize($jobData);
-
-            $this->updateDebugJobData($event->job, $jobData);
-
-            $jobData = QueueJobDataHelper::sanitizeJobObject($jobData);
-
-            $jobData = Craft::$app->getQueue()->serializer->serialize($jobData);
-
-            Db::update(Table::QUEUE, ['job' => $jobData], ['id' => $event->id], [], false);
-        } catch (Throwable $e) {
-            Formie::error('Unable to update job info debug: “{message}” {file}:{line}. Trace: “{trace}”', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString(),
-            ]);
+        if (!isset($this->deliveryAttemptUid)) {
+            return;
         }
-    }
-
-    protected function updateDebugJobData(mixed $job, mixed $jobData): void
-    {
+        try {
+            Formie::$plugin->getDeliveryAttempts()->checkpoint($this->deliveryAttemptUid, 'queue-error', [
+                'queueId' => $event->id,
+                'errorType' => $event->error ? get_class($event->error) : null,
+            ]);
+        } catch (Throwable) {
+            // The pre-execution checkpoint remains when storage or the worker fails.
+            Formie::error('Unable to append delivery queue diagnostics.');
+        }
     }
 }

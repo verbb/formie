@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\integrations\crm;
 
+use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\Crm;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
@@ -10,15 +11,16 @@ use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationResult;
 
 use Craft;
 use craft\helpers\App;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
 
-use GuzzleHttp\Client;
-
 use Throwable;
+
+use GuzzleHttp\Client;
 
 class IterableIntegration extends Crm
 {
@@ -35,10 +37,15 @@ class IterableIntegration extends Crm
     // =========================================================================
 
     public ?string $apiKey = null;
+    #[FormIntegrationSetting]
     public bool $mapToUser = false;
+    #[FormIntegrationSetting]
     public bool $mapToMessageType = false;
+    #[FormIntegrationSetting]
     public ?array $userFieldMapping = null;
+    #[FormIntegrationSetting]
     public ?array $messageTypeFieldMapping = null;
+    #[FormIntegrationSetting]
     public ?string $messageTypeId = null;
 
 
@@ -138,7 +145,7 @@ class IterableIntegration extends Crm
 
         // Because we have split settings for partial settings fetches, enssure we populate settings from cache
         // So we need to unserialize the cached form settings, and combine with any new settings and return
-        $cachedSettings = $this->cache['settings'] ?? [];
+        $cachedSettings = $this->getIntegrationConfig()->data;
 
         if ($cachedSettings) {
             $formSettings = new IntegrationFormSettings();
@@ -149,8 +156,9 @@ class IterableIntegration extends Crm
         return new IntegrationFormSettings($settings);
     }
 
-    public function sendPayload(Submission $submission): bool
+    public function sendPayload(Submission $submission): IntegrationResult
     {
+        $this->beginPayloadDelivery($submission);
         try {
             $userValues = $this->getFieldMappingValues($submission, $this->userFieldMapping, 'user');
             $messageTypeValues = $this->getFieldMappingValues($submission, $this->messageTypeFieldMapping, 'messageTypes');
@@ -171,7 +179,7 @@ class IterableIntegration extends Crm
                 $response = $this->deliverPayload($submission, 'users/update', $userPayload);
 
                 if ($response === false) {
-                    return true;
+                    return $this->resultForPayload(true);
                 }
             }
 
@@ -189,7 +197,7 @@ class IterableIntegration extends Crm
                 $response = $this->deliverPayload($submission, 'users/updateSubscriptions', $payload);
 
                 if ($response === false) {
-                    return true;
+                    return $this->resultForPayload(true);
                 }
 
                 $code = $response['code'] ?? '';
@@ -200,16 +208,16 @@ class IterableIntegration extends Crm
                         'payload' => Json::encode($payload),
                     ]), true);
 
-                    return false;
+                    return $this->resultForPayload(false);
                 }
             }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
-            return false;
+            return $this->resultForPayload(false);
         }
 
-        return true;
+        return $this->resultForPayload(true);
     }
 
     public function fetchConnection(): bool
@@ -228,18 +236,6 @@ class IterableIntegration extends Crm
     
     // Protected Methods
     // =========================================================================
-
-    protected function formSettingAttributes(): array
-    {
-        $settings = parent::formSettingAttributes();
-        $settings[] = 'mapToUser';
-        $settings[] = 'mapToMessageType';
-        $settings[] = 'userFieldMapping';
-        $settings[] = 'messageTypeFieldMapping';
-        $settings[] = 'messageTypeId';
-
-        return $settings;
-    }
 
     protected function defineRules(): array
     {

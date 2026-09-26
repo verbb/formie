@@ -3,10 +3,7 @@ namespace verbb\formie\models;
 
 use verbb\formie\helpers\ArrayHelper;
 
-use Craft;
 use craft\base\Model;
-
-use yii\base\InvalidConfigException;
 
 class IntegrationFormSettings extends Model
 {
@@ -49,69 +46,24 @@ class IntegrationFormSettings extends Model
 
     public function serialize()
     {
-        return $this->classToArray($this->collections);
+        return $this->_classToArray($this->collections);
     }
 
     public function unserialize($serialized): void
     {
-        $this->collections = $this->classFromArray($serialized);
+        $this->collections = $this->_classFromArray($serialized);
     }
 
-    private function classToArray(mixed $data): mixed
+    // Private Methods
+    // =========================================================================
+
+    private function _classToArray(mixed $data): mixed
     {
-        if (is_object($data)) {
-            $result = [$this->classKey => get_class($data)];
-
-            foreach (get_object_vars($data) as $property => $value) {
-                if ($property === $this->classKey) {
-                    throw new InvalidConfigException("Object cannot contain $this->classKey property.");
-                }
-
-                $result[$property] = $this->classToArray($value);
-            }
- 
-            return $result;
-        }
-
-        if (is_array($data)) {
-            $result = [];
-
-            foreach ($data as $key => $value) {
-                if ($key === $this->classKey) {
-                    throw new InvalidConfigException("Array cannot contain $this->classKey key.");
-                }
-
-                $result[$key] = $this->classToArray($value);
-            }
-
-            return $result;
-        }
-
-        return $data;
+        return IntegrationConfig::encode($data);
     }
 
-    private function classFromArray(mixed $data): mixed
+    private function _classFromArray(mixed $data): mixed
     {
-        if (!is_array($data)) {
-            return $data;
-        }
-
-        if (!isset($data[$this->classKey])) {
-            $result = [];
-            foreach ($data as $key => $value) {
-                $result[$key] = $this->classFromArray($value);
-            }
-
-            return $result;
-        }
-
-        $config = ['class' => $data[$this->classKey]];
-        unset($data[$this->classKey]);
-        foreach ($data as $property => $value) {
-            $config[$property] = $this->classFromArray($value);
-        }
-
-        return Craft::createObject($config);
+        return IntegrationConfig::decode($data);
     }
-
 }

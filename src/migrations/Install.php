@@ -599,6 +599,8 @@ class Install extends Migration
         ]);
 
 
+        (new m260927_000000_delivery_attempts())->safeUp();
+
     }
 
     public function createIndexes(): void
@@ -725,6 +727,8 @@ class Install extends Migration
         $tables = [
             'formie_webhookreceipts',
             'formie_paymentcapabilities',
+            'formie_delivery_diagnostics',
+            'formie_delivery_attempts',
             'formie_emailtemplates',
             'formie_fieldlayout_pages',
             'formie_fieldlayout_rows',
@@ -861,6 +865,8 @@ class Install extends Migration
     protected function dropForeignKeys(): void
     {
         $tables = [
+            'formie_delivery_diagnostics',
+            'formie_delivery_attempts',
             'formie_emailtemplates',
             'formie_fieldlayout_pages',
             'formie_fieldlayout_rows',

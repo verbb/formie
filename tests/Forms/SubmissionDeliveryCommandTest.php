@@ -66,10 +66,10 @@ it('reports integration delivery outcomes without announcing failed work', funct
     $triggers = new class extends IntegrationTriggers {
         public array $results = [];
         public array $attempts = [];
-        public function dispatchManualIntegration(Integration $integration, Submission $submission): bool|IntegrationResponse {
+        public function dispatchManualIntegration(Integration $integration, Submission $submission): \verbb\formie\models\IntegrationResult {
             $this->attempts[] = $submission->id;
             $result = array_shift($this->results);
-            return is_array($result) ? new IntegrationResponse($result['success']) : $result;
+            return \verbb\formie\models\IntegrationResult::fromLegacy(is_array($result) ? new IntegrationResponse($result['success']) : $result);
         }
     };
     $triggers->results = $results;

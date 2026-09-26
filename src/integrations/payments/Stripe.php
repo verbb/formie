@@ -26,10 +26,11 @@ use verbb\formie\models\Payment as PaymentModel;
 use verbb\formie\models\PaymentAction;
 use verbb\formie\models\PaymentDecision;
 use verbb\formie\models\PaymentMoney;
-use verbb\formie\models\payments\PaymentWebhookCommand;
 use verbb\formie\models\Plan;
 use verbb\formie\models\SlotTag;
 use verbb\formie\models\Subscription;
+use verbb\formie\models\payments\PaymentWebhookCommand;
+use verbb\formie\references\ReferenceContext;
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
@@ -246,7 +247,7 @@ class Stripe extends Payment
         if ($limitType === Payment::VALUE_TYPE_FIXED) {
             $value = $this->getFieldSetting('subscriptionLimitFixed');
         } elseif ($limitType === Payment::VALUE_TYPE_DYNAMIC) {
-            $value = References::parseValue($this->getFieldSetting('subscriptionLimitVariable'), $submission);
+            $value = References::resolveValue($this->getFieldSetting('subscriptionLimitVariable'), ReferenceContext::forSubmission($submission))->requireValue();
         } else {
             return null;
         }
@@ -267,7 +268,7 @@ class Stripe extends Payment
         if ($feeType === Payment::VALUE_TYPE_FIXED) {
             $value = $this->getFieldSetting('subscriptionSetupFeeFixed');
         } elseif ($feeType === Payment::VALUE_TYPE_DYNAMIC) {
-            $value = References::parseValue($this->getFieldSetting('subscriptionSetupFeeVariable'), $submission);
+            $value = References::resolveValue($this->getFieldSetting('subscriptionSetupFeeVariable'), ReferenceContext::forSubmission($submission))->requireValue();
         } else {
             return null;
         }

@@ -1,8 +1,8 @@
 <?php
 namespace verbb\formie\models;
 
-use verbb\formie\elements\Form;
 use verbb\formie\Formie;
+use verbb\formie\elements\Form;
 
 use craft\base\Model;
 
@@ -12,10 +12,11 @@ class IntegrationDispatchPlan extends Model
     // =========================================================================
 
     public const NOTIFICATION_TIMING_BEFORE = 'beforeIntegrations';
-    public const NOTIFICATION_TIMING_AFTER = 'afterIntegrations';
+    public const NOTIFICATION_TIMING_AFTER = 'afterFinalizedDeliveryAttempts';
+    public const NOTIFICATION_TIMING_SYNCHRONOUS = 'afterSynchronousIntegrations';
 
-    public const MODE_IMMEDIATE = 'immediate';
-    public const MODE_QUEUED = 'queued';
+    public const EXECUTION_SYNCHRONOUS = 'synchronous';
+    public const EXECUTION_QUEUED = 'queued';
 
     public const FAILURE_CONTINUE = 'continue';
     public const FAILURE_STOP = 'stop';
@@ -26,9 +27,10 @@ class IntegrationDispatchPlan extends Model
 
     public bool $enabled = false;
     public string $notificationTiming = self::NOTIFICATION_TIMING_BEFORE;
+    public string $completionPolicy = 'successful';
     public string $failurePolicy = self::FAILURE_CONTINUE;
 
-    /** @var array<int, array{handle: string, mode: string}> */
+    /** @var array<int, array{handle: string, execution: string}> */
     public array $steps = [];
 
 
@@ -53,7 +55,8 @@ class IntegrationDispatchPlan extends Model
 
         return new self([
             'enabled' => (bool)($settings['enabled'] ?? false),
-            'notificationTiming' => (string)($settings['notificationTiming'] ?? self::NOTIFICATION_TIMING_BEFORE),
+            'notificationTiming' => ($settings['notificationTiming'] ?? '') === 'afterIntegrations' ? self::NOTIFICATION_TIMING_AFTER : (string)($settings['notificationTiming'] ?? self::NOTIFICATION_TIMING_BEFORE),
+            'completionPolicy' => ($settings['completionPolicy'] ?? '') === 'finalized' ? 'finalized' : 'successful',
             'failurePolicy' => (string)($settings['failurePolicy'] ?? self::FAILURE_CONTINUE),
             'steps' => array_values(array_filter(array_map(static function($step) {
                 if (!is_array($step)) {
@@ -66,15 +69,15 @@ class IntegrationDispatchPlan extends Model
                     return null;
                 }
 
-                $mode = (string)($step['mode'] ?? self::MODE_QUEUED);
+                $execution = (string)($step['execution'] ?? (($step['mode'] ?? '') === 'immediate' ? self::EXECUTION_SYNCHRONOUS : self::EXECUTION_QUEUED));
 
-                if (!in_array($mode, [self::MODE_IMMEDIATE, self::MODE_QUEUED], true)) {
-                    $mode = self::MODE_QUEUED;
+                if (!in_array($execution, [self::EXECUTION_SYNCHRONOUS, self::EXECUTION_QUEUED], true)) {
+                    $execution = self::EXECUTION_QUEUED;
                 }
 
                 return [
                     'handle' => $handle,
-                    'mode' => $mode,
+                    'execution' => $execution,
                 ];
             }, $steps))),
         ]);
@@ -85,15 +88,15 @@ class IntegrationDispatchPlan extends Model
         return $this->enabled;
     }
 
-    public function getStepMode(string $handle): string
+    public function getStepExecution(string $handle): string
     {
         foreach ($this->steps as $step) {
             if (($step['handle'] ?? '') === $handle) {
-                return (string)($step['mode'] ?? self::MODE_QUEUED);
+                return (string)($step['execution'] ?? self::EXECUTION_QUEUED);
             }
         }
 
-        return self::MODE_QUEUED;
+        return self::EXECUTION_QUEUED;
     }
 
     public function resolveSteps(Form $form): array
@@ -112,7 +115,7 @@ class IntegrationDispatchPlan extends Model
 
             $steps[] = [
                 'handle' => $integration->handle,
-                'mode' => self::MODE_QUEUED,
+                'execution' => self::EXECUTION_QUEUED,
             ];
         }
 
@@ -134,14 +137,19 @@ class IntegrationDispatchPlan extends Model
         return array_values(array_map(static fn(array $step) => (string)$step['handle'], $this->resolveSteps($form)));
     }
 
-    public function getImmediateHandles(Form $form): array
+    public function getSynchronousHandles(Form $form): array
     {
-        return array_values(array_filter($this->getOrderedHandles($form), fn(string $handle) => $this->getStepMode($handle) === self::MODE_IMMEDIATE));
+        return array_values(array_filter($this->getOrderedHandles($form), fn(string $handle) => $this->getStepExecution($handle) === self::EXECUTION_SYNCHRONOUS));
     }
 
     public function getQueuedHandles(Form $form): array
     {
-        return array_values(array_filter($this->getOrderedHandles($form), fn(string $handle) => $this->getStepMode($handle) === self::MODE_QUEUED));
+        return array_values(array_filter($this->getOrderedHandles($form), fn(string $handle) => $this->getStepExecution($handle) === self::EXECUTION_QUEUED));
+    }
+
+    public function acceptedStatuses(): array
+    {
+        return $this->completionPolicy === 'finalized' ? ['succeeded', 'skipped', 'failed', 'rejected'] : ['succeeded', 'skipped'];
     }
 
     public function shouldStopOnFailure(): bool
@@ -154,6 +162,7 @@ class IntegrationDispatchPlan extends Model
         return [
             'enabled' => $this->enabled,
             'notificationTiming' => $this->notificationTiming,
+            'completionPolicy' => $this->completionPolicy,
             'failurePolicy' => $this->failurePolicy,
             'steps' => $this->steps,
         ];

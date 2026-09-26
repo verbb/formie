@@ -2,9 +2,10 @@
 namespace verbb\formie\integrations\elements;
 
 use verbb\formie\Formie;
-use verbb\formie\base\Integration;
+use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\Element;
 use verbb\formie\base\FormInterface;
+use verbb\formie\base\Integration;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyFieldIntegrationValueEvent;
@@ -13,7 +14,7 @@ use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
-use verbb\formie\models\IntegrationResponse;
+use verbb\formie\models\IntegrationResult;
 
 use Craft;
 use craft\base\Element as CraftElement;
@@ -25,10 +26,10 @@ use craft\web\View;
 
 use yii\base\Event;
 
-use verbb\events\Events;
-use verbb\events\elements\Event as EventElement;
-
 use Throwable;
+
+use verbb\events\elements\Event as EventElement;
+use verbb\events\Events;
 
 class EventsEvent extends Element
 {
@@ -49,7 +50,9 @@ class EventsEvent extends Element
     // Properties
     // =========================================================================
 
+    #[FormIntegrationSetting]
     public ?int $eventTypeId = null;
+    #[FormIntegrationSetting]
     public int|array|null $defaultAuthorId = null;
 
 
@@ -171,12 +174,13 @@ class EventsEvent extends Element
         return $attributes;
     }
 
-    public function sendPayload(Submission $submission): IntegrationResponse|bool
+    public function sendPayload(Submission $submission): IntegrationResult
     {
+        $this->beginPayloadDelivery($submission);
         if (!$this->eventTypeId) {
             Integration::error($this, Craft::t('formie', 'Unable to save element integration. No `eventTypeId`.'), true);
 
-            return false;
+            return $this->resultForPayload(false);
         }
 
         try {
@@ -225,7 +229,7 @@ class EventsEvent extends Element
 
             // Allow events to cancel sending - return as success            
             if (!$this->beforeSendPayload($submission, $endpoint, $event, $method)) {
-                return true;
+                return $this->resultForPayload(true);
             }
 
             if (!$event->validate()) {
@@ -234,7 +238,7 @@ class EventsEvent extends Element
                     'error' => Json::encode($event->getErrors()),
                 ]), true);
 
-                return false;
+                return $this->resultForPayload(false);
             }
 
             if (!Craft::$app->getElements()->saveElement($event)) {
@@ -243,12 +247,14 @@ class EventsEvent extends Element
                     'error' => Json::encode($event->getErrors()),
                 ]), true);
 
-                return false;
+                return $this->resultForPayload(false);
             }
+
+            $this->recordDispatchElement($event);
 
             // Allow events to say the response is invalid
             if (!$this->afterSendPayload($submission, '', $event, '', [])) {
-                return true;
+                return $this->resultForPayload(true);
             }
         } catch (Throwable $e) {
             $error = Craft::t('formie', 'Element integration failed for submission “{submission}”. Error: {error} {file}:{line}', [
@@ -258,12 +264,12 @@ class EventsEvent extends Element
                 'submission' => $submission->id,
             ]);
 
-            Formie::error($error);
+            Integration::error($this, $error);
 
-            return new IntegrationResponse(false, [$error]);
+            return $this->resultForPayload(IntegrationResult::fromException($e));
         }
 
-        return true;
+        return $this->resultForPayload(true);
     }
 
     public function getAuthor($form): array
@@ -280,15 +286,6 @@ class EventsEvent extends Element
 
     // Protected Methods
     // =========================================================================
-
-    protected function formSettingAttributes(): array
-    {
-        $settings = parent::formSettingAttributes();
-        $settings[] = 'eventTypeId';
-        $settings[] = 'defaultAuthorId';
-
-        return $settings;
-    }
 
     protected function defineRules(): array
     {

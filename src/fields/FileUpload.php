@@ -3,15 +3,15 @@ namespace verbb\formie\fields;
 
 use verbb\formie\Formie;
 use verbb\formie\base\Element;
-use verbb\formie\base\FieldInterface;
 use verbb\formie\base\ElementField;
+use verbb\formie\base\FieldInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\fields\Repeater;
 use verbb\formie\fields\definitions\FieldClientModules;
 use verbb\formie\fields\definitions\FieldReferenceValue;
-use verbb\formie\fields\Repeater;
 use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\gql\types\input\FileUploadInputType;
 use verbb\formie\helpers\ArrayHelper;
@@ -22,10 +22,11 @@ use verbb\formie\helpers\UploadAccess;
 use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\ClientModule;
-use verbb\formie\models\SlotTag;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Settings;
+use verbb\formie\models\SlotTag;
 use verbb\formie\records\Submission as SubmissionRecord;
+use verbb\formie\references\ReferenceException;
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
@@ -1472,7 +1473,7 @@ class FileUpload extends ElementField
             // Prepare the path by parsing tokens and normalizing slashes.
             try {
                 $renderedSubpath = Formie::$plugin->getTemplates()->renderSandboxedObjectTemplate($subpath, $element, autoescape: false);
-            } catch (InvalidConfigException|TwigError $e) {
+            } catch (InvalidConfigException|TwigError|ReferenceException $e) {
                 throw new InvalidSubpathException($subpath, null, 0, $e);
             }
 

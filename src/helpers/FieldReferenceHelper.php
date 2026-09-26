@@ -1,7 +1,6 @@
 <?php
 namespace verbb\formie\helpers;
 
-use verbb\formie\Formie;
 use verbb\formie\base\FieldInterface;
 use verbb\formie\base\ParentFieldInterface;
 
@@ -17,12 +16,6 @@ class FieldReferenceHelper
 
         if (isset($fieldMap[$trimmedReference])) {
             return (string)$fieldMap[$trimmedReference];
-        }
-
-        $field = Formie::$plugin->getFields()->getFieldByReference($trimmedReference);
-
-        if ($field instanceof FieldInterface) {
-            return (string)$field->valueKey();
         }
 
         return $trimmedReference;

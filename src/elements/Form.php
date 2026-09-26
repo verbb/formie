@@ -28,8 +28,10 @@ use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\ConditionsHelper;
 use verbb\formie\helpers\CpSubmissionFieldConditions;
 use verbb\formie\helpers\FieldAttributesHelper;
+use verbb\formie\helpers\FormSerializer;
 use verbb\formie\helpers\HandleHelper;
 use verbb\formie\helpers\Html;
+use verbb\formie\helpers\IntegrationSecrets;
 use verbb\formie\helpers\OptionsMode;
 use verbb\formie\helpers\References;
 use verbb\formie\helpers\RichTextHelper;
@@ -47,12 +49,15 @@ use verbb\formie\models\FormGroup;
 use verbb\formie\models\FormSettings;
 use verbb\formie\models\FormStatus;
 use verbb\formie\models\FormTemplate;
+use verbb\formie\models\LayoutSaveContext;
 use verbb\formie\models\Notification;
 use verbb\formie\models\Settings;
 use verbb\formie\models\SlotTag;
+use verbb\formie\models\StencilData;
 use verbb\formie\models\SubmissionStatus;
 use verbb\formie\options\OptionSourceFieldInterface;
 use verbb\formie\records\Form as FormRecord;
+use verbb\formie\references\ReferenceMigration;
 use verbb\formie\services\Permissions;
 use verbb\formie\services\SubmissionGrants;
 use verbb\formie\services\SubmissionStatuses;
@@ -397,7 +402,7 @@ class Form extends Element implements FormInterface
     public string $builderEntityType = self::BUILDER_ENTITY_TYPE_FORM;
 
     public ?int $pageCount = null;
-    public ?\verbb\formie\models\LayoutSaveContext $layoutSaveContext = null;
+    public ?LayoutSaveContext $layoutSaveContext = null;
 
     private ?FieldLayout $_fieldLayout = null;
     private ?FormLayout $_formLayout = null;
@@ -1588,7 +1593,7 @@ class Form extends Element implements FormInterface
                 $url = $this->settings->submitActionUrl;
 
                 if ($submission instanceof Submission && is_string($url)) {
-                    $url = References::parseContent($url, $submission);
+                    $url = References::parseUrl($url, $submission);
                 }
             }
         }
@@ -2052,11 +2057,11 @@ class Form extends Element implements FormInterface
             ->from(Table::FORMIE_FORMS)
             ->column();
 
-        $serializer = new \verbb\formie\helpers\FormSerializer();
+        $serializer = new FormSerializer();
         $data = $serializer->prepareCopy([
             'pages' => $serializer->serializeLayout($this->getFormLayout()),
             'settings' => $this->settings->toArray(),
-            'notifications' => \verbb\formie\models\StencilData::getSerializedNotifications($this->getNotifications()),
+            'notifications' => StencilData::getSerializedNotifications($this->getNotifications()),
         ], 'duplicate');
         $formLayout = new FormLayout(['pages' => $data['pages']]);
         $formSettings = new FormSettings($data['settings']);
@@ -2069,7 +2074,7 @@ class Form extends Element implements FormInterface
             'formLayout' => $formLayout,
             'notifications' => $notifications,
             'settings' => $formSettings,
-            'layoutSaveContext' => new \verbb\formie\models\LayoutSaveContext('duplicate'),
+            'layoutSaveContext' => new LayoutSaveContext('duplicate'),
         ];
     }
 
@@ -2124,6 +2129,8 @@ class Form extends Element implements FormInterface
             Formie::$plugin->getFormDefaults()->applyCaptchaDefaultsToNewForm($this);
         }
 
+        $this->settings->integrations = ReferenceMigration::integrationSlots($this->settings->integrations);
+
         // Form-scoped data must never persist global integration credentials or endpoints.
         $integrationSettings = $this->settings->integrations ?? [];
         $this->settings->setAttributes([
@@ -2143,7 +2150,7 @@ class Form extends Element implements FormInterface
         ), 'uid');
 
         // Re-establish persisted ownership for every save, preserving only orchestration policy.
-        $context = \verbb\formie\models\LayoutSaveContext::forForm($this, $this->layoutSaveContext?->operation ?? 'save');
+        $context = LayoutSaveContext::forForm($this, $this->layoutSaveContext?->operation ?? 'save');
         $context->trusted = $this->layoutSaveContext?->trusted ?? true;
         $context->remaps = $this->layoutSaveContext?->remaps ?? [];
         $context->updateDefinitions = $this->layoutSaveContext?->updateDefinitions ?? true;
@@ -2171,7 +2178,9 @@ class Form extends Element implements FormInterface
         }
 
         $record->handle = $this->handle;
-        $record->settings = $this->getSettings();
+        $storedSettings = $this->getSettings()->toArray();
+        $storedSettings['integrations'] = IntegrationSecrets::protect((array)($storedSettings['integrations'] ?? []));
+        $record->settings = $storedSettings;
         $record->layoutId = $this->getFormLayout()->id;
         $record->templateId = $this->templateId;
         $record->groupId = $this->groupId ?: null;
@@ -3932,7 +3941,7 @@ class Form extends Element implements FormInterface
             }
 
             return Cp::componentStatusLabelHtml($this) ?? '';
-        } catch (\Throwable) {
+        } catch (Throwable) {
             $label = $this->getFormStatusModel()?->name ?? $this->getStatus();
 
             return $label ? Html::encode($label) : '';

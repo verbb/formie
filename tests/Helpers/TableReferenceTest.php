@@ -63,6 +63,7 @@ it('resolves table column references by row scope', function (): void {
         ->and($submission->getFieldValue(References::field($ref, 'col3', ['scope' => 'count'])))->toBe(3)
         ->and($submission->getFieldValue(References::field($ref, 'col3', ['scope' => 'rows', 'rows' => '1,3'])))->toBe(['2', '5'])
         ->and($submission->getFieldValue(References::field($ref, 'qty', ['scope' => 'all'])))->toBe(['2', '3', '5']);
+    expect(References::parseContent(References::field($ref, 'qty', ['scope' => 'all']), $submission))->toBe('2, 3, 5');
 });
 
 it('requires row scope for table column tokens', function (): void {

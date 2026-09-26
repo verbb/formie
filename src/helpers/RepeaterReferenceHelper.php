@@ -1,9 +1,10 @@
 <?php
 namespace verbb\formie\helpers;
 
-use verbb\formie\base\RepeatableParentFieldInterface;
 use verbb\formie\base\FieldInterface;
+use verbb\formie\base\RepeatableParentFieldInterface;
 use verbb\formie\elements\Submission;
+use verbb\formie\references\ReferenceContext;
 
 class RepeaterReferenceHelper
 {
@@ -27,46 +28,7 @@ class RepeaterReferenceHelper
         string $selector,
         array $params = [],
     ): mixed {
-        if (!$repeaterField instanceof RepeatableParentFieldInterface) {
-            return null;
-        }
-
-        [$subPath, $scope, $index] = self::parseSelectorAndScope($selector, $params);
-
-        if ($scope === null) {
-            return null;
-        }
-
-        if ($scope === self::SCOPE_INDEX && $index === null) {
-            return null;
-        }
-
-        $rows = $submission->getFieldValue($repeaterField->handle);
-        if (!is_array($rows)) {
-            $rows = [];
-        }
-
-        if ($scope === self::SCOPE_COUNT) {
-            return count($rows);
-        }
-
-        $rowValues = [];
-
-        foreach ($rows as $rowIndex => $row) {
-            $rowValues[] = self::_extractRowValue($row, $subPath);
-        }
-
-        return match ($scope) {
-            self::SCOPE_FIRST => $rowValues[0] ?? null,
-            self::SCOPE_LAST => $rowValues !== [] ? $rowValues[array_key_last($rowValues)] : null,
-            self::SCOPE_INDEX => $rowValues[$index] ?? null,
-            self::SCOPE_ALL => array_values(array_filter(
-                $rowValues,
-                static fn(mixed $value): bool => $value !== null && $value !== '',
-            )),
-            self::SCOPE_ROWS => self::_resolveRowsScope($rowValues, $params),
-            default => null,
-        };
+        return References::resolveValue(References::field((string)$repeaterField->reference, $selector, $params), ReferenceContext::forSubmission($submission))->requireValue();
     }
 
     public static function parseSelectorAndScope(string $selector, array $params = []): array
@@ -145,7 +107,7 @@ class RepeaterReferenceHelper
                     [$start, $end] = [$end, $start];
                 }
 
-                for ($row = $start; $row <= $end; $row++) {
+                for ($row = max(1, $start); $row <= min($rowCount, $end); $row++) {
                     if ($row >= 1 && $row <= $rowCount) {
                         $indices[] = $row - 1;
                     }
@@ -182,36 +144,6 @@ class RepeaterReferenceHelper
         return $scope === null && trim($selector) !== '';
     }
 
-    private static function _resolveRowsScope(array $rowValues, array $params): mixed
-    {
-        $rowsExpression = trim((string)($params['rows'] ?? ''));
-
-        if ($rowsExpression === '') {
-            return [];
-        }
-
-        $indices = self::parseRowsExpression($rowsExpression, count($rowValues));
-
-        if ($indices === []) {
-            return [];
-        }
-
-        if (count($indices) === 1) {
-            return $rowValues[$indices[0]] ?? null;
-        }
-
-        $values = [];
-
-        foreach ($indices as $index) {
-            $value = $rowValues[$index] ?? null;
-
-            if ($value !== null && $value !== '') {
-                $values[] = $value;
-            }
-        }
-
-        return array_values($values);
-    }
 
     private static function _filterParityIndices(int $rowCount, bool $odd): array
     {
@@ -246,18 +178,6 @@ class RepeaterReferenceHelper
         ], true) ? $scope : null;
     }
 
-    private static function _extractRowValue(mixed $row, string $subPath): mixed
-    {
-        if ($subPath === '') {
-            return $row;
-        }
-
-        if (!is_array($row)) {
-            return null;
-        }
-
-        return ArrayHelper::getValue($row, $subPath);
-    }
 
     private static function _findFieldByReference(Submission $submission, string $reference): ?FieldInterface
     {

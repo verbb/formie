@@ -9,6 +9,7 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\Payment as PaymentField;
 use verbb\formie\helpers\CpSubmissionFieldConditions;
+use verbb\formie\helpers\IntegrationSecrets;
 use verbb\formie\helpers\SubmissionRedirectRulesHelper;
 
 use Craft;
@@ -18,11 +19,11 @@ use craft\helpers\ArrayHelper;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
 
-use Twig\Error\SyntaxError;
-use Twig\Error\LoaderError;
-
 use DateTime;
 use DateTimeZone;
+
+use Twig\Error\LoaderError;
+use Twig\Error\SyntaxError;
 
 class FormSettings extends Model implements TranslatablePropertiesInterface
 {
@@ -202,6 +203,7 @@ class FormSettings extends Model implements TranslatablePropertiesInterface
 
     public function init(): void
     {
+        $this->integrations = IntegrationSecrets::reveal((array)$this->integrations);
         parent::init();
 
         /* @var Settings $settings */

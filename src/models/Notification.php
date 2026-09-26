@@ -17,10 +17,10 @@ use craft\validators\HandleValidator;
 use craft\validators\UniqueValidator;
 use craft\web\View;
 
-use Twig\Error\LoaderError;
-
 use Exception;
 use Throwable;
+
+use Twig\Error\LoaderError;
 
 class Notification extends Model implements TranslatablePropertiesInterface
 {
@@ -52,7 +52,8 @@ class Notification extends Model implements TranslatablePropertiesInterface
 
     public const DISPATCH_TIMING_DEFAULT = 'default';
     public const DISPATCH_TIMING_BEFORE = 'beforeIntegrations';
-    public const DISPATCH_TIMING_AFTER = 'afterIntegrations';
+    public const DISPATCH_TIMING_AFTER = 'afterFinalizedDeliveryAttempts';
+    public const DISPATCH_TIMING_SYNCHRONOUS = 'afterSynchronousIntegrations';
 
 
     // Properties
@@ -350,6 +351,7 @@ class Notification extends Model implements TranslatablePropertiesInterface
             self::DISPATCH_TIMING_DEFAULT,
             self::DISPATCH_TIMING_BEFORE,
             self::DISPATCH_TIMING_AFTER,
+            self::DISPATCH_TIMING_SYNCHRONOUS,
         ]];
 
         return $rules;

@@ -177,7 +177,8 @@ it('applies only explicitly declared form settings to an integration', function 
     expect($formIntegration)->not->toBe($integration)
         ->and($formIntegration->apiDomain)->toBe('https://example.freshdesk.com')
         ->and($formIntegration->apiKey)->toBe('global-secret')
-        ->and($formIntegration->getEnabled())->toBeTrue()
+        ->and($formIntegration->getEnabled())->toBeFalse()
+        ->and($integration->getEnabled())->toBeTrue()
         ->and($formIntegration->mapToContact)->toBeTrue()
         ->and($formIntegration->contactFieldMapping)->toBe(['email' => 'email'])
         ->and($integration->mapToContact)->toBeFalse()
@@ -255,7 +256,7 @@ it('discards global integration settings when a form is persisted', function ():
         expect($savedSettings)->toBe([
             'enabled' => true,
             'mapToContact' => true,
-            'contactFieldMapping' => ['email' => 'email'],
+            'contactFieldMapping' => ['email' => ['kind' => 'literal', 'value' => 'email']],
         ]);
 
         $stencilSettings = StencilData::getSerializedFormSettings([

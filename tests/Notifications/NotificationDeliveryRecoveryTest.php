@@ -76,3 +76,63 @@ it('queues notifications atomically with an element transaction even when synchr
     }
     expect($count())->toBe($before);
 });
+
+it('blocks a new notification identity after uncertainty and permits an audited same-identity retry', function (): void {
+    $form = formie()->form()->singleLineTextField('name')->create();
+    $submission = formie()->submission($form)->save();
+    $notification = new Notification(['id' => 506, 'uid' => 'reconciled-notification']);
+    $original = Formie::$plugin->getEmails();
+    $identity = Craft::$app->getUser()->getIdentity();
+    $emails = new class extends Emails {
+        public int $calls = 0;
+        public function sendEmail(Notification $notification, \verbb\formie\elements\Submission $submission, mixed $queueJob = null, bool $createSentNotification = true): array {
+            $this->calls++;
+            return $this->calls === 1 ? ['deliveryOutcomeUnknown' => true] : ['success' => true];
+        }
+    };
+    Formie::$plugin->set('emails', $emails);
+    try {
+        $service = Formie::$plugin->getNotifications();
+        expect($service->sendNotificationEmail($notification, $submission, null, 'original')['deliveryOutcomeUnknown'])->toBeTrue();
+        expect($service->sendNotificationEmail($notification, $submission, null, 'new')['deliveryOutcomeUnknown'])->toBeTrue();
+        expect($emails->calls)->toBe(1);
+        $attempts = Formie::$plugin->getDeliveryAttempts();
+        $uid = (new \craft\db\Query())->select('uid')->from($attempts::TABLE)->where(['submissionId' => $submission->id, 'executionUid' => 'original'])->scalar();
+        Craft::$app->getUser()->setIdentity(\craft\elements\User::find()->admin(true)->one());
+        $attempts->reconcile($uid, \verbb\formie\models\IntegrationResult::failed('confirmed_not_delivered', true), 'Provider verified the mail was not accepted.');
+        expect($service->sendNotificationEmail($notification, $submission, null, 'original')['success'])->toBeTrue();
+        expect($emails->calls)->toBe(2);
+    } finally {
+        Formie::$plugin->set('emails', $original);
+        Craft::$app->getUser()->setIdentity($identity);
+    }
+});
+
+it('imports uncertain legacy notification receipts and honors their audited reconciliation', function (): void {
+    $form = formie()->form()->singleLineTextField('name')->create();
+    $submission = formie()->submission($form)->save();
+    $notification = new Notification(['id' => 507, 'uid' => 'legacy-uncertain-notification']);
+    $legacy = new \verbb\formie\helpers\DeliveryAttempt($submission->id, 'notification-send:' . $notification->uid, 'legacy-job');
+    try { $legacy->execute([], fn() => throw new RuntimeException('Response lost')); } catch (Throwable) {}
+    $original = Formie::$plugin->getEmails();
+    $identity = Craft::$app->getUser()->getIdentity();
+    $emails = new class extends Emails {
+        public int $calls = 0;
+        public function sendEmail(Notification $notification, \verbb\formie\elements\Submission $submission, mixed $queueJob = null, bool $createSentNotification = true): array { $this->calls++; return ['success' => true]; }
+    };
+    Formie::$plugin->set('emails', $emails);
+    try {
+        $service = Formie::$plugin->getNotifications();
+        expect($service->sendNotificationEmail($notification, $submission, null, 'legacy-job')['deliveryOutcomeUnknown'])->toBeTrue();
+        expect($emails->calls)->toBe(0);
+        $attempts = Formie::$plugin->getDeliveryAttempts();
+        $uid = (new \craft\db\Query())->select('uid')->from($attempts::TABLE)->where(['submissionId' => $submission->id, 'executionUid' => 'legacy-job'])->scalar();
+        Craft::$app->getUser()->setIdentity(\craft\elements\User::find()->admin(true)->one());
+        $attempts->reconcile($uid, \verbb\formie\models\IntegrationResult::failed('confirmed_not_delivered', true), 'Destination checked.');
+        expect($service->sendNotificationEmail($notification, $submission, null, 'legacy-job')['success'])->toBeTrue();
+        expect($emails->calls)->toBe(1);
+    } finally {
+        Formie::$plugin->set('emails', $original);
+        Craft::$app->getUser()->setIdentity($identity);
+    }
+});

@@ -21,7 +21,7 @@ it('requires exact token strings for parseValue and leaves malformed variants un
 
     $token = References::field((string)$field->reference);
 
-    expect(References::parseValue("  {$token}  ", $submission))->toBeNull()
+    expect(References::parseValue("  {$token}  ", $submission))->toBe('Security Tester')
         ->and(References::parseValue("{$token}extra", $submission))->toBe("{$token}extra");
 })->group('security');
 
@@ -47,7 +47,7 @@ it('stringifies multi-value referenced fields before interpolation', function ()
     expect(References::parseContent("Topics={$token}", $submission))->toBe('Topics=one, two');
 })->group('security');
 
-it('collapses unknown reference targets to empty strings during content parsing', function (): void {
+it('diagnoses unknown reference targets during content parsing', function (): void {
     $form = formie()
         ->form(['title' => 'Reference Unknown Target Security'])
         ->singleLineTextField('fullName')
@@ -58,7 +58,7 @@ it('collapses unknown reference targets to empty strings during content parsing'
         ->with(['fullName' => 'Security Tester'])
         ->save();
 
-    expect(References::parseContent('Value={evil:payload}', $submission))->toBe('Value=');
+    expect(fn() => References::parseContent('Value={evil:payload}', $submission))->toThrow(\verbb\formie\references\ReferenceException::class);
 })->group('security');
 
 it('does not reflect arbitrary origins when graphql origins are enabled without an explicit allowlist', function (): void {

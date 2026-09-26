@@ -1,21 +1,23 @@
 <?php
 namespace verbb\formie\integrations\crm;
 
+use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\Crm;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
-use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\elements\Submission;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationResult;
 
 use Craft;
 use craft\helpers\App;
 use craft\helpers\Json;
 
-use GuzzleHttp\Client;
-
 use Throwable;
+
+use GuzzleHttp\Client;
 
 class VCita extends Crm
 {
@@ -32,7 +34,9 @@ class VCita extends Crm
     // =========================================================================
     
     public ?string $apiKey = null;
+    #[FormIntegrationSetting]
     public bool $mapToClient = false;
+    #[FormIntegrationSetting]
     public ?array $clientFieldMapping = null;
 
 
@@ -112,8 +116,9 @@ class VCita extends Crm
         return new IntegrationFormSettings($settings);
     }
 
-    public function sendPayload(Submission $submission): bool
+    public function sendPayload(Submission $submission): IntegrationResult
     {
+        $this->beginPayloadDelivery($submission);
         try {
             $clientValues = $this->getFieldMappingValues($submission, $this->clientFieldMapping, 'client');
 
@@ -136,7 +141,7 @@ class VCita extends Crm
             }
 
             if ($response === false) {
-                return true;
+                return $this->resultForPayload(true);
             }
 
             $clientId = $response['data']['client']['id'] ?? '';
@@ -147,15 +152,15 @@ class VCita extends Crm
                     'payload' => Json::encode($clientPayload),
                 ]), true);
 
-                return false;
+                return $this->resultForPayload(false);
             }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
-            return false;
+            return $this->resultForPayload(false);
         }
 
-        return true;
+        return $this->resultForPayload(true);
     }
 
     public function fetchConnection(): bool
@@ -174,15 +179,6 @@ class VCita extends Crm
     
     // Protected Methods
     // =========================================================================
-
-    protected function formSettingAttributes(): array
-    {
-        $settings = parent::formSettingAttributes();
-        $settings[] = 'mapToClient';
-        $settings[] = 'clientFieldMapping';
-
-        return $settings;
-    }
 
     protected function defineRules(): array
     {

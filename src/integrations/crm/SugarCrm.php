@@ -2,14 +2,16 @@
 namespace verbb\formie\integrations\crm;
 
 use verbb\formie\Formie;
+use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\Crm;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
-use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\elements\Submission;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationResult;
 
 use Craft;
 use craft\helpers\App;
@@ -17,12 +19,11 @@ use craft\helpers\Json;
 
 use Throwable;
 
+use League\OAuth1\Client\Credentials\TokenCredentials as OAuth1Token;
+use League\OAuth2\Client\Token\AccessToken as OAuth2Token;
 use verbb\auth\base\OAuthProviderInterface;
 use verbb\auth\models\Token;
 use verbb\auth\providers\Sugarcrm as SugarCrmProvider;
-
-use League\OAuth1\Client\Credentials\TokenCredentials as OAuth1Token;
-use League\OAuth2\Client\Token\AccessToken as OAuth2Token;
 
 class SugarCrm extends Crm implements OAuthProviderInterface
 {
@@ -51,13 +52,21 @@ class SugarCrm extends Crm implements OAuthProviderInterface
     public ?string $username = null;
     public ?string $password = null;
     public ?string $apiDomain = null;
+    #[FormIntegrationSetting]
     public bool $mapToContact = false;
+    #[FormIntegrationSetting]
     public bool $mapToLead = false;
+    #[FormIntegrationSetting]
     public bool $mapToOpportunity = false;
+    #[FormIntegrationSetting]
     public bool $mapToAccount = false;
+    #[FormIntegrationSetting]
     public ?array $contactFieldMapping = null;
+    #[FormIntegrationSetting]
     public ?array $leadFieldMapping = null;
+    #[FormIntegrationSetting]
     public ?array $opportunityFieldMapping = null;
+    #[FormIntegrationSetting]
     public ?array $accountFieldMapping = null;
 
 
@@ -179,8 +188,9 @@ class SugarCrm extends Crm implements OAuthProviderInterface
         return new IntegrationFormSettings($settings);
     }
 
-    public function sendPayload(Submission $submission): bool
+    public function sendPayload(Submission $submission): IntegrationResult
     {
+        $this->beginPayloadDelivery($submission);
         try {
             $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
             $leadValues = $this->getFieldMappingValues($submission, $this->leadFieldMapping, 'lead');
@@ -196,7 +206,7 @@ class SugarCrm extends Crm implements OAuthProviderInterface
                 $response = $this->deliverPayload($submission, 'Contacts', $contactPayload);
 
                 if ($response === false) {
-                    return true;
+                    return $this->resultForPayload(true);
                 }
 
                 $contactId = $response['id'] ?? '';
@@ -207,7 +217,7 @@ class SugarCrm extends Crm implements OAuthProviderInterface
                         'payload' => Json::encode($contactPayload),
                     ]), true);
 
-                    return false;
+                    return $this->resultForPayload(false);
                 }
             }
 
@@ -215,7 +225,7 @@ class SugarCrm extends Crm implements OAuthProviderInterface
                 $response = $this->deliverPayload($submission, 'Leads', $leadPayload);
 
                 if ($response === false) {
-                    return true;
+                    return $this->resultForPayload(true);
                 }
 
                 $leadId = $response['id'] ?? '';
@@ -226,7 +236,7 @@ class SugarCrm extends Crm implements OAuthProviderInterface
                         'payload' => Json::encode($leadPayload),
                     ]), true);
 
-                    return false;
+                    return $this->resultForPayload(false);
                 }
             }
 
@@ -234,7 +244,7 @@ class SugarCrm extends Crm implements OAuthProviderInterface
                 $response = $this->deliverPayload($submission, 'Opportunities', $opportunityPayload);
 
                 if ($response === false) {
-                    return true;
+                    return $this->resultForPayload(true);
                 }
 
                 $opportunityId = $response['id'] ?? '';
@@ -245,7 +255,7 @@ class SugarCrm extends Crm implements OAuthProviderInterface
                         'payload' => Json::encode($opportunityPayload),
                     ]), true);
 
-                    return false;
+                    return $this->resultForPayload(false);
                 }
             }
 
@@ -253,7 +263,7 @@ class SugarCrm extends Crm implements OAuthProviderInterface
                 $response = $this->deliverPayload($submission, 'Accounts', $accountPayload);
 
                 if ($response === false) {
-                    return true;
+                    return $this->resultForPayload(true);
                 }
 
                 $accountId = $response['id'] ?? '';
@@ -264,36 +274,21 @@ class SugarCrm extends Crm implements OAuthProviderInterface
                         'payload' => Json::encode($accountPayload),
                     ]), true);
 
-                    return false;
+                    return $this->resultForPayload(false);
                 }
             }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
-            return false;
+            return $this->resultForPayload(false);
         }
 
-        return true;
+        return $this->resultForPayload(true);
     }
 
 
     // Protected Methods
     // =========================================================================
-
-    protected function formSettingAttributes(): array
-    {
-        $settings = parent::formSettingAttributes();
-        $settings[] = 'mapToContact';
-        $settings[] = 'mapToLead';
-        $settings[] = 'mapToOpportunity';
-        $settings[] = 'mapToAccount';
-        $settings[] = 'contactFieldMapping';
-        $settings[] = 'leadFieldMapping';
-        $settings[] = 'opportunityFieldMapping';
-        $settings[] = 'accountFieldMapping';
-
-        return $settings;
-    }
 
     protected function defineRules(): array
     {

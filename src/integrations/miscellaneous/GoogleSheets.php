@@ -2,13 +2,15 @@
 namespace verbb\formie\integrations\miscellaneous;
 
 use verbb\formie\Formie;
-use verbb\formie\base\Integration;
+use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\FormInterface;
+use verbb\formie\base\Integration;
 use verbb\formie\base\Miscellaneous;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationResult;
 
 use Craft;
 use craft\helpers\App;
@@ -45,7 +47,9 @@ class GoogleSheets extends Miscellaneous implements OAuthProviderInterface
 
     public ?string $proxyRedirect = null;
     public ?string $spreadsheetId = null;
+    #[FormIntegrationSetting]
     public ?string $sheetId = null;
+    #[FormIntegrationSetting]
     public ?array $fieldMapping = null;
 
 
@@ -168,8 +172,9 @@ class GoogleSheets extends Miscellaneous implements OAuthProviderInterface
         return new IntegrationFormSettings($settings);
     }
 
-    public function sendPayload(Submission $submission): bool
+    public function sendPayload(Submission $submission): IntegrationResult
     {
+        $this->beginPayloadDelivery($submission);
         try {
             $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping);
 
@@ -198,29 +203,20 @@ class GoogleSheets extends Miscellaneous implements OAuthProviderInterface
             $response = $this->deliverPayload($submission, "{$spreadsheetId}/values/{$range}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS", $payload);
 
             if ($response === false) {
-                return true;
+                return $this->resultForPayload(true);
             }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
-            return false;
+            return $this->resultForPayload(false);
         }
 
-        return true;
+        return $this->resultForPayload(true);
     }
 
     
     // Protected Methods
     // =========================================================================
-
-    protected function formSettingAttributes(): array
-    {
-        $settings = parent::formSettingAttributes();
-        $settings[] = 'sheetId';
-        $settings[] = 'fieldMapping';
-
-        return $settings;
-    }
 
     protected function defineRules(): array
     {

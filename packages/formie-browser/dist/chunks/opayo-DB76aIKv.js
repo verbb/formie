@@ -1,0 +1,180 @@
+import { s as e } from "./event-names-BCI2FLD8.js";
+import { t } from "./api-CQI_ERER.js";
+import { t as n } from "./debug-BV0DvdHx.js";
+import { t as r } from "./csrf-DxHg_ZYt.js";
+import { r as i } from "./scripts-CbQ7agX3.js";
+import { t as a } from "./styles-BfoIZwJp.js";
+//#endregion
+//#region src/js/modules/payments/opayo.ts
+a("opayo", ["@layer formie-theme{.formie-opayo-drop-in{box-sizing:border-box;width:100%;min-height:10rem}}"]);
+var o = "FORMIE_OPAYO_SCRIPT", s = "https://live.opayo.eu.elavon.com/api/v1/js/sagepay.js", c = "https://sandbox.opayo.eu.elavon.com/api/v1/js/sagepay.js", l = "[data-formie-opayo-drop-in]", u = n("payments", "opayo"), d = e("opayo", "challenge"), f = "formie:payment:opayo:challenge:response";
+function p(e) {
+	return e.checkoutMode === "dropIn";
+}
+async function m(e) {
+	let { form: t, handle: n, sessionToken: i, services: a } = e, o = new FormData();
+	r(o, t), o.set("action", "formie/payment-sessions/initialize"), o.append("handle", n), o.append("sessionToken", i);
+	try {
+		let e = await fetch(t.action, {
+			method: "POST",
+			body: o
+		});
+		return e.status < 200 || e.status >= 300 ? (a.addError(`${e.status}: ${e.statusText}`), u.warn("Merchant session request failed.", {
+			status: e.status,
+			statusText: e.statusText
+		}), null) : (await e.json()).merchantSessionKey || (a.addError("Unable to get merchant session."), u.warn("merchantSessionKey missing in session response."), null);
+	} catch {
+		return a.addError("Network error. Please try again."), u.warn("Network error requesting merchant session."), null;
+	}
+}
+function h(e) {
+	return e.id ||= `formie-opayo-drop-in-${Math.random().toString(36).slice(2, 9)}`, e.id;
+}
+var g = t({
+	id: "opayo",
+	defaultRequiredInputSuffixes: ["opayoTokenId"],
+	load: async (e) => {
+		let { provider: t } = e.options, n = t.useSandbox ? c : s, r = p(t) ? "sagepayCheckout" : "sagepayOwnForm";
+		return await i(r, {
+			id: o,
+			src: n,
+			timeoutMs: 1e4
+		}), null;
+	},
+	mount: async ({ field: e, services: t, provider: n }) => {
+		if (!p(n)) return null;
+		let r = t.form, i = window.sagepayCheckout, a = e.querySelector(l);
+		if (!r?.action) return t.addError("Form action is missing."), u.warn("Missing form action before drop-in mount."), null;
+		if (!i) return t.addError("Opayo script failed to load."), u.warn("sagepayCheckout global not available."), null;
+		if (!a) return t.addError("Opayo drop-in container is missing."), u.warn("Drop-in container not found in payment field."), null;
+		let o = n.handle || "opayo", s = await m({
+			form: r,
+			handle: o,
+			sessionToken: n.sessionToken || "",
+			services: t
+		});
+		if (!s) return null;
+		let c = h(a), d = {
+			checkout: null,
+			merchantSessionKey: s,
+			pendingAuthorize: null,
+			retriedTokenise: !1
+		};
+		return d.checkout = i({
+			merchantSessionKey: s,
+			containerSelector: `#${c}`,
+			onTokenise: (e) => {
+				let i = d.pendingAuthorize;
+				if (d.pendingAuthorize = null, !i) {
+					u.warn("Drop-in tokenisation completed without a pending authorize step.");
+					return;
+				}
+				if (e.success && e.cardIdentifier) {
+					t.updateInputs("opayoTokenId", e.cardIdentifier), t.updateInputs("opayoSessionKey", d.merchantSessionKey), u.log("Drop-in tokenization succeeded.", { hasCardIdentifier: !!e.cardIdentifier }), i(!0);
+					return;
+				}
+				if (!d.retriedTokenise) {
+					d.retriedTokenise = !0, m({
+						form: r,
+						handle: o,
+						sessionToken: n.sessionToken || "",
+						services: t
+					}).then((n) => {
+						if (!n) {
+							t.addError(e.errors?.[0]?.message || "Tokenization failed."), u.warn("Drop-in tokenization failed after session refresh.", e), i(!1);
+							return;
+						}
+						d.merchantSessionKey = n, d.pendingAuthorize = i, d.checkout.tokenise({ newMerchantSessionKey: n });
+					});
+					return;
+				}
+				t.addError(e.errors?.[0]?.message || "Tokenization failed."), u.warn("Drop-in tokenization failed.", e), i(!1);
+			}
+		}), u.log("Drop-in checkout mounted.", { containerId: c }), d;
+	},
+	unmount: async ({ widget: e }) => {
+		e?.checkout?.destroy?.();
+	},
+	onBeforeAuthorize: async (e) => {
+		let { field: t, services: n, options: r, provider: i, widget: a } = e, o = i.handle || "opayo", s = n.form;
+		if (!s?.action) return n.addError("Form action is missing."), u.warn("Missing form action before authorize."), !1;
+		if (p(i)) return a ? (a.retriedTokenise = !1, new Promise((e) => {
+			a.pendingAuthorize = e, a.checkout.tokenise();
+		})) : (n.addError("Opayo drop-in checkout is not ready."), u.warn("Drop-in authorize requested before widget mount."), !1);
+		let c = window.sagepayOwnForm;
+		if (!c) return n.addError("Opayo script failed to load."), u.warn("sagepayOwnForm global not available."), !1;
+		let l = t.querySelector("[data-opayo-card=\"cardholder-name\"]")?.value ?? "", d = t.querySelector("[data-opayo-card=\"card-number\"]")?.value ?? "", f = t.querySelector("[data-opayo-card=\"expiry-date\"]")?.value ?? "", h = t.querySelector("[data-opayo-card=\"security-code\"]")?.value ?? "";
+		d = d.replace(/[\s/]/g, ""), f = f.replace(/[\s/]/g, "");
+		let g = await m({
+			form: s,
+			handle: o,
+			sessionToken: i.sessionToken || "",
+			services: n
+		});
+		return g ? new Promise((e) => {
+			c({ merchantSessionKey: g }).tokeniseCardDetails({
+				cardDetails: {
+					cardholderName: l,
+					cardNumber: d,
+					expiryDate: f,
+					securityCode: h
+				},
+				onTokenised: (t) => {
+					t.success && t.cardIdentifier ? (n.updateInputs("opayoTokenId", t.cardIdentifier), n.updateInputs("opayoSessionKey", g), u.log("Tokenization succeeded.", { hasCardIdentifier: !!t.cardIdentifier }), e(!0)) : (n.addError(t.errors?.[0]?.message || "Tokenization failed."), u.warn("Tokenization failed.", t), e(!1));
+				}
+			});
+		}) : !1;
+	},
+	setup: async (e) => {
+		let { services: t } = e;
+		e.target;
+		let n = null, r = !1, i = () => {
+			n?.parentNode && n.parentNode.removeChild(n), n = null;
+		}, a = t.events.onForm(d, ((e) => {
+			let a = e.detail?.data;
+			if (!a?.acsUrl || !a?.creq) return;
+			r = !1, u.log("Received payment challenge event.", {
+				hasAcsUrl: !!a.acsUrl,
+				hasCreq: !!a.creq
+			});
+			let o = t.form?.querySelector("input[name*=\"opayoSessionKey\"]")?.value || "", s = document.createElement("div");
+			s.className = "formie-modal", s.id = `formie-opayo-dialog-${Math.random().toString(36).slice(2, 9)}`, s.innerHTML = "\n                <div class=\"formie-modal-backdrop\" data-dialog-close></div>\n                <div class=\"formie-modal-content\">\n                    <div class=\"formie-loading formie-loading-large\" style=\"--formie-loading-width: 3rem; --formie-loading-height: 3rem; top: 50%; margin-top: -1.5rem;\"></div>\n                    <iframe width=\"100%\" height=\"100%\" style=\"width: 100%; height: 100%; position: relative; z-index: 1;\"></iframe>\n                </div>\n            ";
+			let c = s.querySelector("iframe"), l = (e) => e.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;"), d = a.returnUrl || a.redirectUrl || "", f = `<form action="${l(a.acsUrl)}" method="post">
+                <input type="hidden" name="creq" value="${l(a.creq || "")}" />
+                <input type="hidden" name="threeDSSessionData" value="${l(a.threeDSSessionData || "")}" />
+                <input type="hidden" name="MD" value="${l(o)}" />
+                <input type="hidden" name="TermUrl" value="${l(d)}" />
+                <input type="hidden" name="ThreeDSNotificationURL" value="${l(d)}" />
+            </form><script>document.forms[0].submit();<\/script>`;
+			i(), document.body.appendChild(s), n = s, c?.contentWindow && (c.contentWindow.document.open(), c.contentWindow.document.write(f), c.contentWindow.document.close());
+		})), o = (e) => {
+			if (e.data?.message === f) {
+				if (!n) {
+					u.log("Ignoring 3DS response without active dialog.");
+					return;
+				}
+				if (r) {
+					u.warn("Ignoring duplicate 3DS response while processing.");
+					return;
+				}
+				if (r = !0, u.log("Received payment challenge response message.", e.data?.value), i(), t.removeError(), e.data?.value?.error) {
+					t.addError(e.data.value.error.message), t.releaseSubmitLoading(), r = !1;
+					return;
+				}
+				t.updateInputs("opayo3DSComplete", e.data.value?.transactionId ?? ""), t.triggerSubmit();
+			}
+		};
+		return window.addEventListener("message", o), { destroy: () => {
+			a(), window.removeEventListener("message", o), i(), r = !1;
+		} };
+	},
+	onAfterSubmit: async ({ services: e }) => {
+		e.updateInputs([
+			"opayoTokenId",
+			"opayoSessionKey",
+			"opayo3DSComplete"
+		], "");
+	}
+});
+//#endregion
+export { g as opayoModule };

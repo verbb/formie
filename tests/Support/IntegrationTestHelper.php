@@ -25,7 +25,6 @@ final class IntegrationTestHelper
     public static function primeVariableCacheForSubmission(Submission $submission, ?array $valueOverrides = null): void
     {
         $cacheKey = $submission->id ? 'submission' . $submission->id : 'form' . ($submission->form?->id ?? 'new');
-        Variables::getVariablesForSubmission($submission);
         $fieldVars = self::buildFieldVariablesFromSubmission($submission, $valueOverrides);
         Formie::$plugin->getRenderCache()->setFieldVariables($cacheKey, $fieldVars);
     }

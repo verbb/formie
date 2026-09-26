@@ -2,18 +2,19 @@
 namespace verbb\formie\services;
 
 use verbb\formie\Formie;
+use verbb\formie\elements\Submission;
 use verbb\formie\events\PdfEvent;
 use verbb\formie\events\PdfRenderOptionsEvent;
 use verbb\formie\events\PdfTemplateEvent;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\References;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
-use verbb\formie\elements\Submission;
-use verbb\formie\helpers\References;
 use verbb\formie\models\Notification;
 use verbb\formie\models\PdfTemplate;
 use verbb\formie\models\Settings;
 use verbb\formie\records\PdfTemplate as TemplateRecord;
+use verbb\formie\references\ReferenceOutputContext;
 
 use Craft;
 use craft\base\Component;
@@ -323,7 +324,7 @@ class PdfTemplates extends Component
         ];
 
         $filenameFormat = $pdfTemplate->filenameFormat ?: 'Submission-{submission.id}';
-        $fileName = Formie::$plugin->getTemplates()->renderSandboxedObjectTemplate($filenameFormat, $variables, autoescape: false);
+        $fileName = Formie::$plugin->getTemplates()->renderSandboxedObjectTemplate($filenameFormat, $submission, $variables, autoescape: false);
 
         return $fileName . '.pdf';
     }
@@ -356,6 +357,7 @@ class PdfTemplates extends Component
 
         if ($notification) {
             $parsedContent = References::parseContent($notification->getParsedContent(), $submission, [
+                'outputContext' => ReferenceOutputContext::Html,
                 'notification' => $notification,
                 'includeSummary' => true,
             ]);

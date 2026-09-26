@@ -92,7 +92,7 @@ class StringHelper extends CraftStringHelper
         $cleanUrl = preg_replace('/[\x00-\x1F\x7F]+/u', '', $url) ?? $url;
         $decodedUrl = html_entity_decode($cleanUrl, ENT_QUOTES | ENT_HTML5, 'UTF-8');
         $normalizedUrl = preg_replace('/[\x00-\x20\x7F]+/u', '', $decodedUrl) ?? $decodedUrl;
-        $normalizedUrl = str_replace('\\', '/', $normalizedUrl);
+        $normalizedUrl = str_replace('\\', '/', rawurldecode($normalizedUrl));
 
         if (str_starts_with($normalizedUrl, '//')) {
             return '';

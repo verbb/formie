@@ -1,0 +1,409 @@
+{
+  "src/base/Element.php": [
+    "attributeMapping",
+    "fieldMapping",
+    "updateElement",
+    "updateElementMapping",
+    "updateSearchIndexes",
+    "overwriteValues"
+  ],
+  "src/base/EmailMarketing.php": [
+    "fieldMapping",
+    "listId"
+  ],
+  "src/base/Captcha.php": [
+    "showAllPages"
+  ],
+  "src/base/Integration.php": [
+    "enabled",
+    "optInField",
+    "enableConditions",
+    "conditions"
+  ],
+  "src/integrations/crm/Salesforce.php": [
+    "mapToContact",
+    "mapToLead",
+    "mapToOpportunity",
+    "mapToAccount",
+    "mapToCase",
+    "mapToCampaignMember",
+    "contactFieldMapping",
+    "leadFieldMapping",
+    "opportunityFieldMapping",
+    "accountFieldMapping",
+    "caseFieldMapping",
+    "campaignMemberFieldMapping",
+    "duplicateLeadTask",
+    "duplicateLeadTaskSubject",
+    "mapToContactAttachments",
+    "mapToLeadAttachments",
+    "mapToOpportunityAttachments",
+    "mapToAccountAttachments",
+    "mapToCaseAttachments"
+  ],
+  "src/integrations/crm/SharpSpring.php": [
+    "mapToContact",
+    "mapToForm",
+    "contactFieldMapping",
+    "endpoint"
+  ],
+  "src/integrations/crm/Maximizer.php": [
+    "mapToContact",
+    "mapToOpportunity",
+    "contactFieldMapping",
+    "opportunityFieldMapping"
+  ],
+  "src/integrations/crm/Salesmate.php": [
+    "mapToContact",
+    "contactFieldMapping"
+  ],
+  "src/integrations/crm/VCita.php": [
+    "mapToClient",
+    "clientFieldMapping"
+  ],
+  "src/integrations/crm/Flowlu.php": [
+    "mapToContact",
+    "contactFieldMapping"
+  ],
+  "src/integrations/crm/SuiteCrm.php": [
+    "mapToContact",
+    "contactFieldMapping"
+  ],
+  "src/integrations/crm/Agile.php": [
+    "mapToContact",
+    "mapToDeal",
+    "mapToTask",
+    "contactFieldMapping",
+    "dealFieldMapping",
+    "taskFieldMapping"
+  ],
+  "src/integrations/crm/Scoro.php": [
+    "mapToContact",
+    "contactFieldMapping"
+  ],
+  "src/integrations/crm/Dotdigital.php": [
+    "mapToContact",
+    "sendEmailCampaign",
+    "contactFieldMapping",
+    "emailSendMapping"
+  ],
+  "src/integrations/crm/Xero.php": [
+    "mapToContact",
+    "contactFieldMapping"
+  ],
+  "src/integrations/crm/Zoho.php": [
+    "mapToContact",
+    "mapToDeal",
+    "mapToLead",
+    "mapToAccount",
+    "mapToQuote",
+    "contactFieldMapping",
+    "dealFieldMapping",
+    "leadFieldMapping",
+    "accountFieldMapping",
+    "quoteFieldMapping"
+  ],
+  "src/integrations/crm/SugarCrm.php": [
+    "mapToContact",
+    "mapToLead",
+    "mapToOpportunity",
+    "mapToAccount",
+    "contactFieldMapping",
+    "leadFieldMapping",
+    "opportunityFieldMapping",
+    "accountFieldMapping"
+  ],
+  "src/integrations/crm/IterableIntegration.php": [
+    "mapToUser",
+    "mapToMessageType",
+    "userFieldMapping",
+    "messageTypeFieldMapping",
+    "messageTypeId"
+  ],
+  "src/integrations/crm/HubSpot.php": [
+    "mapToContact",
+    "mapToDeal",
+    "mapToCompany",
+    "mapToTicket",
+    "mapToForm",
+    "contactFieldMapping",
+    "dealFieldMapping",
+    "companyFieldMapping",
+    "ticketFieldMapping",
+    "formFieldMapping",
+    "formId"
+  ],
+  "src/integrations/crm/CiviCrm.php": [
+    "mapToContact",
+    "contactFieldMapping"
+  ],
+  "src/integrations/crm/Pipedrive.php": [
+    "mapToPerson",
+    "mapToDeal",
+    "mapToLead",
+    "mapToOrganization",
+    "mapToNote",
+    "personFieldMapping",
+    "dealFieldMapping",
+    "leadFieldMapping",
+    "organizationFieldMapping",
+    "noteFieldMapping",
+    "mergeMultiOptionFields"
+  ],
+  "src/integrations/crm/Outseta.php": [
+    "mapToPeople",
+    "peopleFieldMapping"
+  ],
+  "src/integrations/crm/Klaviyo.php": [
+    "mapToProfile",
+    "profileFieldMapping"
+  ],
+  "src/integrations/crm/Capsule.php": [
+    "mapToPeople",
+    "mapToOpportunity",
+    "mapToTask",
+    "peopleFieldMapping",
+    "opportunityFieldMapping",
+    "taskFieldMapping"
+  ],
+  "src/integrations/crm/NoCrm.php": [
+    "mapToLead",
+    "leadFieldMapping"
+  ],
+  "src/integrations/crm/Copper.php": [
+    "mapToPeople",
+    "mapToLead",
+    "mapToOpportunity",
+    "mapToTask",
+    "peopleFieldMapping",
+    "leadFieldMapping",
+    "opportunityFieldMapping",
+    "taskFieldMapping"
+  ],
+  "src/integrations/crm/Avochato.php": [
+    "mapToContact",
+    "contactFieldMapping"
+  ],
+  "src/integrations/crm/OneCrm.php": [
+    "mapToContact",
+    "mapToLead",
+    "mapToAccount",
+    "mapToOpportunity",
+    "contactFieldMapping",
+    "leadFieldMapping",
+    "accountFieldMapping",
+    "opportunityFieldMapping"
+  ],
+  "src/integrations/crm/MicrosoftDynamics365.php": [
+    "mapToContact",
+    "mapToLead",
+    "mapToOpportunity",
+    "mapToAccount",
+    "mapToIncident",
+    "contactFieldMapping",
+    "leadFieldMapping",
+    "opportunityFieldMapping",
+    "accountFieldMapping",
+    "incidentFieldMapping"
+  ],
+  "src/integrations/crm/ActiveCampaign.php": [
+    "mapToContact",
+    "mapToDeal",
+    "mapToAccount",
+    "contactFieldMapping",
+    "dealFieldMapping",
+    "accountFieldMapping"
+  ],
+  "src/integrations/crm/Infusionsoft.php": [
+    "mapToContact",
+    "contactFieldMapping"
+  ],
+  "src/integrations/crm/Insightly.php": [
+    "mapToContact",
+    "mapToLead",
+    "contactFieldMapping",
+    "leadFieldMapping"
+  ],
+  "src/integrations/crm/Procurios.php": [
+    "mapToContact",
+    "contactFieldMapping"
+  ],
+  "src/integrations/crm/Pardot.php": [
+    "mapToProspect",
+    "mapToOpportunity",
+    "enableFormHandler",
+    "prospectFieldMapping",
+    "opportunityFieldMapping",
+    "endpointUrl"
+  ],
+  "src/integrations/crm/Attio.php": [
+    "mapToPeople",
+    "peopleFieldMapping"
+  ],
+  "src/integrations/crm/Marketo.php": [
+    "mapToLead",
+    "leadFieldMapping"
+  ],
+  "src/integrations/crm/Mercury.php": [
+    "mapToContact",
+    "mapToOpportunity",
+    "contactFieldMapping",
+    "opportunityFieldMapping"
+  ],
+  "src/integrations/crm/Salesflare.php": [
+    "mapToContact",
+    "contactFieldMapping"
+  ],
+  "src/integrations/crm/Pipeliner.php": [
+    "mapToContact",
+    "contactFieldMapping"
+  ],
+  "src/integrations/crm/Freshsales.php": [
+    "mapToContact",
+    "mapToLead",
+    "mapToDeal",
+    "mapToAccount",
+    "contactFieldMapping",
+    "leadFieldMapping",
+    "dealFieldMapping",
+    "accountFieldMapping"
+  ],
+  "src/integrations/emailmarketing/Mailchimp.php": [
+    "appendTags",
+    "useDoubleOptIn"
+  ],
+  "src/integrations/emailmarketing/Brevo.php": [
+    "useDoubleOptIn",
+    "templateId",
+    "redirectionUrl"
+  ],
+  "src/integrations/miscellaneous/GoogleSheets.php": [
+    "sheetId",
+    "fieldMapping"
+  ],
+  "src/integrations/miscellaneous/Recruitee.php": [
+    "mapToCandidate",
+    "candidateFieldMapping"
+  ],
+  "src/integrations/miscellaneous/Trello.php": [
+    "boardId",
+    "listId",
+    "cardName",
+    "cardDescription"
+  ],
+  "src/integrations/miscellaneous/ClickUp.php": [
+    "listId",
+    "fieldMapping"
+  ],
+  "src/integrations/miscellaneous/Monday.php": [
+    "boardId",
+    "fieldMapping"
+  ],
+  "src/integrations/captchas/Recaptcha.php": [
+    "formAction",
+    "formMinScore"
+  ],
+  "src/integrations/captchas/Question.php": [
+    "questions"
+  ],
+  "src/integrations/elements/Product.php": [
+    "productTypeId",
+    "defaultAuthorId"
+  ],
+  "src/integrations/elements/User.php": [
+    "groupUids",
+    "activateUser",
+    "mergeUserGroups",
+    "sendActivationEmail"
+  ],
+  "src/integrations/elements/Entry.php": [
+    "entryTypeSection",
+    "defaultAuthorId",
+    "useSubmissionUserAsAuthor",
+    "createDraft"
+  ],
+  "src/integrations/elements/EventsEvent.php": [
+    "eventTypeId",
+    "defaultAuthorId"
+  ],
+  "src/integrations/elements/CalendarEvent.php": [
+    "calendarId",
+    "defaultAuthorId"
+  ],
+  "src/integrations/automations/N8n.php": [
+    "webhook"
+  ],
+  "src/integrations/automations/Make.php": [
+    "webhook"
+  ],
+  "src/integrations/automations/Zapier.php": [
+    "webhook"
+  ],
+  "src/integrations/automations/WebRequest.php": [
+    "url",
+    "method",
+    "requestType",
+    "headers",
+    "httpAuth"
+  ],
+  "src/integrations/automations/Ifttt.php": [
+    "eventName"
+  ],
+  "src/integrations/messaging/Plivo.php": [
+    "toNumber",
+    "message"
+  ],
+  "src/integrations/messaging/Telegram.php": [
+    "chatId",
+    "message"
+  ],
+  "src/integrations/messaging/Slack.php": [
+    "channelType",
+    "userId",
+    "channelId",
+    "message",
+    "webhook"
+  ],
+  "src/integrations/messaging/Discord.php": [
+    "webhookUrl",
+    "message"
+  ],
+  "src/integrations/messaging/Twilio.php": [
+    "toNumber",
+    "message"
+  ],
+  "src/integrations/helpdesk/Intercom.php": [
+    "message",
+    "mapToContact",
+    "contactFieldMapping"
+  ],
+  "src/integrations/helpdesk/Zendesk.php": [
+    "mapToTicket",
+    "ticketFieldMapping"
+  ],
+  "src/integrations/helpdesk/Gorgias.php": [
+    "mapToTicket",
+    "ticketFieldMapping"
+  ],
+  "src/integrations/helpdesk/Freshdesk.php": [
+    "mapToContact",
+    "mapToTicket",
+    "contactFieldMapping",
+    "ticketFieldMapping"
+  ],
+  "src/integrations/helpdesk/LiveChat.php": [
+    "message",
+    "mapToTicket",
+    "ticketFieldMapping"
+  ],
+  "src/integrations/helpdesk/HelpScout.php": [
+    "message",
+    "mapToConversation",
+    "conversationFieldMapping"
+  ],
+  "src/integrations/helpdesk/Front.php": [
+    "message",
+    "mapToMessage",
+    "messageFieldMapping"
+  ]
+}

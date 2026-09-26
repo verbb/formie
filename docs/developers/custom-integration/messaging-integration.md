@@ -40,8 +40,9 @@ use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use Throwable;
 
-public function sendPayload(Submission $submission): bool
+public function sendPayload(Submission $submission): \verbb\formie\models\IntegrationResult
 {
+    $this->beginPayloadDelivery($submission);
     try {
         $message = Formie::$plugin->getTemplates()->renderSandboxedObjectTemplate($this->message, $submission, autoescape: false);
 
@@ -50,11 +51,11 @@ public function sendPayload(Submission $submission): bool
             'text' => $message,
         ]);
 
-        return $response !== false;
+        return $this->resultForPayload($response !== false);
     } catch (Throwable $e) {
         Integration::apiError($this, $e);
 
-        return false;
+        return $this->resultForPayload(false);
     }
 }
 ```

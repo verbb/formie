@@ -78,7 +78,7 @@ it('fires EVENT_AFTER_TRIGGER_INTEGRATION_FAILED when sendIntegrationPayload ret
     Event::on(Integrations::class, Integrations::EVENT_AFTER_TRIGGER_INTEGRATION_FAILED, $handler);
 
     try {
-        expect(Formie::$plugin->getIntegrations()->sendIntegrationPayload($integration, $submission))->toBeFalse()
+        expect(Formie::$plugin->getIntegrations()->sendIntegrationPayload($integration, $submission)->isSuccessful())->toBeFalse()
             ->and($fired)->toBeTrue();
     } finally {
         Event::off(Integrations::class, Integrations::EVENT_AFTER_TRIGGER_INTEGRATION_FAILED, $handler);
@@ -114,12 +114,12 @@ it('fires EVENT_AFTER_TRIGGER_INTEGRATION_FAILED when sendIntegrationPayload thr
     Event::on(Integrations::class, Integrations::EVENT_AFTER_TRIGGER_INTEGRATION_FAILED, $handler);
 
     try {
-        Formie::$plugin->getIntegrations()->sendIntegrationPayload($integration, $submission);
-    } catch (IntegrationException) {
+        $result = Formie::$plugin->getIntegrations()->sendIntegrationPayload($integration, $submission);
+        expect($result->status->value)->toBe('unknown');
         expect($event)->not->toBeNull()
             ->and($event->integration->handle)->toBe('throwingIntegration')
             ->and($event->submission->id)->toBe(456)
-            ->and($event->exception->getMessage())->toBe('Boom');
+            ->and($event->exception->getMessage())->not->toContain('Boom');
     } finally {
         Event::off(Integrations::class, Integrations::EVENT_AFTER_TRIGGER_INTEGRATION_FAILED, $handler);
     }
@@ -156,8 +156,8 @@ it('fires EVENT_AFTER_TRIGGER_INTEGRATION_FAILED when sendIntegrationPayload ret
     try {
         $response = Formie::$plugin->getIntegrations()->sendIntegrationPayload($integration, $submission);
 
-        expect($response)->toBeInstanceOf(IntegrationResponse::class)
-            ->and($response->success)->toBeFalse()
+        expect($response)->toBeInstanceOf(\verbb\formie\models\IntegrationResult::class)
+            ->and($response->isSuccessful())->toBeFalse()
             ->and($event)->not->toBeNull()
             ->and($event->integrationResponse)->toBeInstanceOf(IntegrationResponse::class);
     } finally {
@@ -178,7 +178,7 @@ it('does not fire EVENT_AFTER_TRIGGER_INTEGRATION_FAILED when sendIntegrationPay
     Event::on(Integrations::class, Integrations::EVENT_AFTER_TRIGGER_INTEGRATION_FAILED, $handler);
 
     try {
-        expect(Formie::$plugin->getIntegrations()->sendIntegrationPayload($integration, $submission))->toBeTrue()
+        expect(Formie::$plugin->getIntegrations()->sendIntegrationPayload($integration, $submission)->isSuccessful())->toBeTrue()
             ->and($fired)->toBeFalse();
     } finally {
         Event::off(Integrations::class, Integrations::EVENT_AFTER_TRIGGER_INTEGRATION_FAILED, $handler);

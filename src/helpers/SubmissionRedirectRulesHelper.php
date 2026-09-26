@@ -90,7 +90,7 @@ class SubmissionRedirectRulesHelper
         $url = (string)($rule['submitActionUrl'] ?? '');
 
         if ($url !== '') {
-            $url = References::parseContent($url, $submission);
+            $url = References::parseUrl($url, $submission);
         }
 
         return is_string($url) ? $url : '';

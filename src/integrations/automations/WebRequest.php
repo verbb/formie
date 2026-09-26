@@ -2,20 +2,24 @@
 namespace verbb\formie\integrations\automations;
 
 use verbb\formie\Formie;
+use verbb\formie\attributes\FormIntegrationSetting;
+use verbb\formie\base\Automation;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
-use verbb\formie\base\Automation;
 use verbb\formie\elements\Submission;
+use verbb\formie\errors\IntegrationException;
+use verbb\formie\helpers\IntegrationSecrets;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationResult;
 
 use Craft;
 use craft\helpers\App;
 use craft\helpers\Json;
 
-use GuzzleHttp\Client;
-
 use Throwable;
+
+use GuzzleHttp\Client;
 
 class WebRequest extends Automation
 {
@@ -36,10 +40,15 @@ class WebRequest extends Automation
     // Properties
     // =========================================================================
 
+    #[FormIntegrationSetting]
     public ?string $url = null;
+    #[FormIntegrationSetting]
     public string $method = 'POST';
+    #[FormIntegrationSetting]
     public string $requestType = 'json';
+    #[FormIntegrationSetting]
     public array $headers = [];
+    #[FormIntegrationSetting]
     public array $httpAuth = [];
 
 
@@ -92,8 +101,9 @@ class WebRequest extends Automation
         return new IntegrationFormSettings($settings);
     }
 
-    public function sendPayload(Submission $submission): bool
+    public function sendPayload(Submission $submission): IntegrationResult
     {
+        $this->beginPayloadDelivery($submission);
         $payload = [];
         $response = [];
 
@@ -103,7 +113,7 @@ class WebRequest extends Automation
             $response = $this->deliverPayload($submission, $this->getEndpointUrl($this->url, $submission), $payload, $this->method, $this->requestType);
 
             if ($response === false) {
-                return true;
+                return $this->resultForPayload(true);
             }
         } catch (Throwable $e) {
             // Save a different payload to logs
@@ -117,10 +127,10 @@ class WebRequest extends Automation
 
             Integration::apiError($this, $e);
 
-            return false;
+            return $this->resultForPayload(false);
         }
 
-        return true;
+        return $this->resultForPayload(true);
     }
 
     public function allowedGqlSettings(): array
@@ -133,18 +143,6 @@ class WebRequest extends Automation
 
     // Protected Methods
     // =========================================================================
-
-    protected function formSettingAttributes(): array
-    {
-        $settings = parent::formSettingAttributes();
-        $settings[] = 'url';
-        $settings[] = 'method';
-        $settings[] = 'requestType';
-        $settings[] = 'headers';
-        $settings[] = 'httpAuth';
-
-        return $settings;
-    }
 
     protected function defineRules(): array
     {
@@ -161,7 +159,11 @@ class WebRequest extends Automation
 
         if ($this->headers) {
             foreach ($this->headers as $header) {
-                $config['headers'][App::parseEnv($header['key'])] = App::parseEnv($header['value']);
+                $name = IntegrationSecrets::resolveFormValue((string)$header['key']);
+                if (in_array(strtolower($name), ['host', 'proxy-authorization', 'cookie'], true)) {
+                    throw new IntegrationException('Unsupported public endpoint header.');
+                }
+                $config['headers'][$name] = IntegrationSecrets::resolveFormValue((string)$header['value']);
             }
         }
 
@@ -170,7 +172,7 @@ class WebRequest extends Automation
             $password = $this->httpAuth['password'] ?? '';
 
             if ($username || $password) {
-                $config['auth'] = [App::parseEnv($username), App::parseEnv($password)];
+                $config['auth'] = [IntegrationSecrets::resolveFormValue($username), IntegrationSecrets::resolveFormValue($password)];
             }
         }
 

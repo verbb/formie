@@ -49,7 +49,10 @@ it('sanitizes parsed notification content before it becomes pdf html', function 
     expect($pdf)->toBe('stub-pdf')
         ->and($capturedContentHtml)->toContain('safe-text')
         ->and($capturedContentHtml)->not->toContain('<script')
-        ->and($capturedContentHtml)->not->toContain('onerror=');
+        ->and($capturedContentHtml)->toContain('&lt;');
+    $document = new DOMDocument();
+    @$document->loadHTML($capturedContentHtml);
+    expect((new DOMXPath($document))->query('//script|//*[@onerror or @onload]')->length)->toBe(0);
 })->group('security');
 
 it('allows submission attributes and field handles in sandboxed object templates', function (): void {

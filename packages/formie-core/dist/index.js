@@ -3985,4 +3985,193 @@ function Je(e, t) {
 	return `formie-${e.tokens.render || e.id}-${t}-errors`;
 }
 //#endregion
-export { B as FRONTEND_CLIENT_EVENT_NAMES, v as allFields, K as buildActionUrl, Fe as coerceCalculationVariables, O as compositePartDefinitions, We as countGraphemes, z as createFrontendFormInstance, ze as createGraphqlFrontendTransport, ae as createRepeaterRowValue, Le as createRestFrontendTransport, A as defaultValueForField, W as evaluateCalculationExpression, h as evaluateConditionDefinition, j as fieldValueAsStrings, S as fieldValueContract, C as fieldValueStructure, g as finalizeConditionEvaluation, b as findFieldByHandle, y as findFieldById, H as formatCalculationValue, Ne as getCalculationFormula, Pe as getCalculationVariableEntries, qe as getFrontendErrorAriaLive, Je as getFrontendFieldErrorId, Ke as getTextLimitMetrics, Ge as getWordCount, te as isBooleanField, w as isCompositeField, re as isEmailField, E as isFileField, ee as isKnownFrontendFieldType, D as isMultiValueField, ne as isNumericField, T as isRepeatableField, J as loadFrontendEnvelope, Re as loadGraphqlFrontendEnvelope, Ue as normalizeText, U as readCalculationVariableValue, k as repeaterFieldDefinitions, ie as repeaterRowDefinitions, x as serializeFieldValues, M as serializeTransportFieldValues };
+//#region src/references.ts
+var Ye = { username: "user:name" };
+Object.entries({
+	form: ["name", "handle"],
+	submission: [
+		"id",
+		"uid",
+		"title",
+		"url",
+		"date",
+		"site",
+		"status"
+	],
+	site: [
+		"id",
+		"name",
+		"handle",
+		"url",
+		"language"
+	]
+}).forEach(([e, t]) => {
+	t.forEach((t) => {
+		Ye[`${e}.${t}`] = `${e}:${t}`;
+	});
+}), Object.entries({
+	form: ["Name", "Handle"],
+	submission: [
+		"Title",
+		"Url",
+		"Id",
+		"Uid",
+		"Date",
+		"Site",
+		"Status"
+	],
+	system: [
+		"Name",
+		"Email",
+		"ReplyTo"
+	],
+	site: [
+		"Name",
+		"Handle",
+		"Url",
+		"Id",
+		"Language"
+	],
+	user: [
+		"Ip",
+		"Id",
+		"Email",
+		"FullName",
+		"FirstName",
+		"LastName"
+	]
+}).forEach(([e, t]) => {
+	t.forEach((t) => {
+		Ye[e + t] = `${e}:${t[0].toLowerCase()}${t.slice(1)}`;
+	});
+}), Object.entries({
+	dateUs: "m/d/Y",
+	dateInt: "d/m/Y",
+	time12: "h:i a",
+	time24: "H:i"
+}).forEach(([e, t]) => {
+	Ye[e] = `timestamp;transform=format;preset=custom;pattern=${encodeURIComponent(t)}`;
+});
+function Xe(e) {
+	let t = {
+		raw: e,
+		target: "",
+		identifier: "",
+		selector: "",
+		default: "",
+		transformerId: "",
+		transformerParams: {},
+		version: 1,
+		isValid: !1
+	}, n = (e) => ({
+		...t,
+		diagnostic: e
+	}), r = e.trim().match(/^\{([^{}]+)\}$/);
+	if (!r) return n("invalidSyntax");
+	let i = r[1].replace(/^field\./, "field:"), a = i.indexOf("|"), o = a < 0 ? "" : i.slice(a + 1);
+	i = a < 0 ? i : i.slice(0, a);
+	let s = i.indexOf(";"), c = s < 0 ? i : i.slice(0, s);
+	i = (Object.prototype.hasOwnProperty.call(Ye, c) ? Ye[c] : c) + (s < 0 ? "" : i.slice(s));
+	let [l, ...u] = i.split(";"), d = Object.create(null);
+	try {
+		for (let e of u) {
+			let t = e.match(/^([a-zA-Z][a-zA-Z0-9_]*)=(.*)$/);
+			if (!t || Object.prototype.hasOwnProperty.call(d, t[1])) return n("invalidMetadata");
+			d[t[1]] = decodeURIComponent(t[2]);
+		}
+		if ((d.v ?? "1") !== "1") return n("unsupportedVersion");
+		delete d.v;
+		let e = l.indexOf(":"), r = e < 0 ? l : l.slice(0, e), i = e < 0 ? "" : l.slice(e + 1);
+		if (!/^[a-zA-Z][a-zA-Z0-9_-]*$/.test(r)) return n("invalidSource");
+		let a = "";
+		if (r === "field" && i.includes(":")) {
+			let e = i.indexOf(":");
+			a = i.slice(e + 1), i = i.slice(0, e);
+		}
+		if (![
+			"timestamp",
+			"allFields",
+			"allContentFields",
+			"allVisibleFields"
+		].includes(r) && !i || /[\s{}]/.test(i + a)) return n("invalidIdentifier");
+		let s = d.transform ?? "";
+		return delete d.transform, {
+			...t,
+			target: r,
+			identifier: decodeURIComponent(i),
+			selector: decodeURIComponent(a),
+			default: decodeURIComponent(o),
+			transformerId: s,
+			transformerParams: d,
+			isValid: !0
+		};
+	} catch {
+		return n("invalidEncoding");
+	}
+}
+function Ze(e) {
+	if (!e.isValid || e.version !== 1) throw Error("Cannot serialize an invalid reference expression.");
+	let t = (e) => encodeURIComponent(e).replace(/[!'()*]/g, (e) => `%${e.charCodeAt(0).toString(16).toUpperCase()}`), n = (e) => t(e).replace(/%2F/g, "/"), r = e.target;
+	e.identifier && (r += `:${n(e.identifier)}`), e.selector && (r += `:${n(e.selector).replace(/%3A/g, ":")}`), e.transformerId && (r += `;transform=${t(e.transformerId)}`);
+	for (let [n, i] of Object.entries(e.transformerParams)) r += `;${n}=${t(i)}`;
+	return e.default && (r += `|${t(e.default)}`), `{${r}}`;
+}
+function Qe(e, t) {
+	let n = Xe(e);
+	if (!n.isValid) return {
+		expression: n,
+		diagnostic: "invalidExpression"
+	};
+	let r = `${n.target}:${n.identifier}`, i = (e, t) => Object.prototype.hasOwnProperty.call(e, t);
+	if (!i(t.definitions, r)) return {
+		expression: n,
+		diagnostic: n.target === "field" ? "missingField" : "unknownSource"
+	};
+	let a = t.definitions[r];
+	if (!a.availability.browser) return {
+		expression: n,
+		diagnostic: "forbiddenSource"
+	};
+	if (Object.keys(n.transformerParams).some((e) => [
+		"scope",
+		"index",
+		"rows"
+	].includes(e))) return {
+		expression: n,
+		diagnostic: "invalidRowScope"
+	};
+	if (n.selector && !a.selectors?.includes(n.selector)) return {
+		expression: n,
+		diagnostic: "invalidSelector"
+	};
+	let o = n.selector ? `${r}:${n.selector}` : r;
+	if (!i(t.values, o)) return {
+		expression: n,
+		diagnostic: "missingField"
+	};
+	let s = t.values[o];
+	if (n.transformerId) {
+		let e = t.transforms?.[n.transformerId];
+		if (!e) return {
+			expression: n,
+			diagnostic: "unknownTransform"
+		};
+		if (!e.browser) return {
+			expression: n,
+			diagnostic: "forbiddenSource"
+		};
+		if (a.transforms && !a.transforms.includes(n.transformerId) || !e.accepts(s) || Object.keys(n.transformerParams).some((t) => !e.parameters.includes(t)) || (s = e.resolve(s, n.transformerParams), !e.acceptsOutput(s))) return {
+			expression: n,
+			diagnostic: "invalidType"
+		};
+	} else if (Object.keys(n.transformerParams).length) return {
+		expression: n,
+		diagnostic: "invalidExpression"
+	};
+	return (s === "" || s == null || Array.isArray(s) && s.length === 0) && n.default && (s = n.default), {
+		expression: n,
+		value: s
+	};
+}
+//#endregion
+export { B as FRONTEND_CLIENT_EVENT_NAMES, v as allFields, K as buildActionUrl, Fe as coerceCalculationVariables, O as compositePartDefinitions, We as countGraphemes, z as createFrontendFormInstance, ze as createGraphqlFrontendTransport, ae as createRepeaterRowValue, Le as createRestFrontendTransport, A as defaultValueForField, W as evaluateCalculationExpression, h as evaluateConditionDefinition, j as fieldValueAsStrings, S as fieldValueContract, C as fieldValueStructure, g as finalizeConditionEvaluation, b as findFieldByHandle, y as findFieldById, H as formatCalculationValue, Ne as getCalculationFormula, Pe as getCalculationVariableEntries, qe as getFrontendErrorAriaLive, Je as getFrontendFieldErrorId, Ke as getTextLimitMetrics, Ge as getWordCount, te as isBooleanField, w as isCompositeField, re as isEmailField, E as isFileField, ee as isKnownFrontendFieldType, D as isMultiValueField, ne as isNumericField, T as isRepeatableField, J as loadFrontendEnvelope, Re as loadGraphqlFrontendEnvelope, Ue as normalizeText, Xe as parseReference, U as readCalculationVariableValue, k as repeaterFieldDefinitions, ie as repeaterRowDefinitions, Qe as resolveReference, x as serializeFieldValues, Ze as serializeReference, M as serializeTransportFieldValues };

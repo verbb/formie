@@ -15,6 +15,7 @@ $form->setFormLayout(new FieldLayout(['pages' => [['label' => 'Details', 'rows' 
         ['type' => SingleLineText::class, 'label' => 'Company name', 'handle' => 'companyName'],
     ]]]],
 ]]]]]]));
+$form->settings->integrations = ['upgradeWebhook' => ['enabled' => true, 'httpAuth' => ['password' => 'upgrade-literal-password']]];
 $form->setNotifications([new Notification(['name' => 'Receipt', 'handle' => 'receipt', 'enabled' => false, 'subject' => 'Hello {field:fullName}',
     'to' => 'fixture@example.test', 'content' => '<p>Saved {field:fullName}</p>'])]);
 if (!$app->getElements()->saveElement($form)) { throw new RuntimeException(json_encode($form->getErrors())); }
@@ -34,6 +35,8 @@ if (\verbb\formie\helpers\Variables::getParsedValue('Hello {field:fullName}', $s
 }
 $integration = new \verbb\formie\integrations\payments\Stripe(['name' => 'Upgrade finance', 'handle' => 'upgradeFinance']);
 Formie::$plugin->getIntegrations()->saveIntegration($integration, false);
+$deliveryIntegration = new \verbb\formie\integrations\helpdesk\Freshdesk(['name' => 'Upgrade delivery', 'handle' => 'upgradeDelivery', 'apiDomain' => 'https://example.test', 'apiKey' => 'upgrade-literal-api-key']);
+if (!Formie::$plugin->getIntegrations()->saveIntegration($deliveryIntegration, false)) { throw new RuntimeException('Unable to seed legacy connection.'); }
 $subscriptionIds = [];
 foreach (['active', 'cancelled', 'ambiguous'] as $state) {
     $subscription = new \verbb\formie\models\Subscription(['integrationId' => $integration->id, 'submissionId' => $submission->id,

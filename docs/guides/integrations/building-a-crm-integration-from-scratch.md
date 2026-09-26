@@ -177,8 +177,9 @@ class ExampleCrm extends Crm
         }
     }
 
-    public function sendPayload(Submission $submission): bool
+    public function sendPayload(Submission $submission): \verbb\formie\models\IntegrationResult
     {
+        $this->beginPayloadDelivery($submission);
         try {
             if ($this->mapToContact) {
                 $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
@@ -190,7 +191,7 @@ class ExampleCrm extends Crm
                 ]);
 
                 if ($response === false) {
-                    return false;
+                    return $this->resultForPayload(false);
                 }
             }
 
@@ -204,16 +205,16 @@ class ExampleCrm extends Crm
                 ]);
 
                 if ($response === false) {
-                    return false;
+                    return $this->resultForPayload(false);
                 }
             }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
-            return false;
+            return $this->resultForPayload(false);
         }
 
-        return true;
+        return $this->resultForPayload(true);
     }
 
     public function fetchConnection(): bool
@@ -473,8 +474,9 @@ class SalesforceCustom extends Salesforce
         return $settings;
     }
 
-    public function sendPayload(Submission $submission): bool
+    public function sendPayload(Submission $submission): \verbb\formie\models\IntegrationResult
     {
+        $this->beginPayloadDelivery($submission);
         try {
             parent::sendPayload($submission);
 
@@ -484,10 +486,10 @@ class SalesforceCustom extends Salesforce
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
-            return false;
+            return $this->resultForPayload(false);
         }
 
-        return true;
+        return $this->resultForPayload(true);
     }
 }
 ```

@@ -165,7 +165,7 @@ it('dispatches cp element saves through the integration coordinator', function (
         withCpSaveTestIntegration($form, $integration, function () use ($submission): void {
             expect($submission->isIncomplete)->toBeFalse()->and($submission->isSpam)->toBeFalse();
             expect($submission->getForm()->settings->integrationPolicies)->toHaveKey('rerun.cpSaveTest');
-            expect(Formie::$plugin->getIntegrationExecutor()->resolveLegacyHandles($submission->getForm()))->toContain('cpSaveTest');
+            expect(Formie::$plugin->getIntegrationRunner()->resolveLegacyHandles($submission->getForm()))->toContain('cpSaveTest');
             expect(IntegrationRerunPolicies::formHasIntegrationAllowingEvent($submission->getForm(), IntegrationTriggerEvents::CP_SAVE))->toBeTrue();
             Formie::$plugin->getIntegrationTriggers()->dispatchCpElementSave($submission);
         });

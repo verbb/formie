@@ -1,22 +1,24 @@
 <?php
 namespace verbb\formie\integrations\emailmarketing;
 
-use verbb\formie\base\Integration;
+use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\EmailMarketing;
 use verbb\formie\base\FormInterface;
+use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationResult;
 
 use Craft;
 use craft\helpers\App;
 
-use GuzzleHttp\Client;
-
 use Throwable;
+
+use GuzzleHttp\Client;
 
 class Brevo extends EmailMarketing
 {
@@ -32,8 +34,11 @@ class Brevo extends EmailMarketing
     // =========================================================================
 
     public ?string $apiKey = null;
+    #[FormIntegrationSetting]
     public bool $useDoubleOptIn = false;
+    #[FormIntegrationSetting]
     public ?string $templateId = null;
+    #[FormIntegrationSetting]
     public ?string $redirectionUrl = null;
 
     // Public Methods
@@ -78,8 +83,9 @@ class Brevo extends EmailMarketing
         return new IntegrationFormSettings($settings);
     }
 
-    public function sendPayload(Submission $submission): bool
+    public function sendPayload(Submission $submission): IntegrationResult
     {
+        $this->beginPayloadDelivery($submission);
         try {
             $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping);
 
@@ -90,7 +96,7 @@ class Brevo extends EmailMarketing
             if ($listIds === []) {
                 Integration::error($this, Craft::t('formie', 'Unable to add contact to Brevo. No list was configured or mapped.'), true);
 
-                return false;
+                return $this->resultForPayload(false);
             }
 
             if ($this->useDoubleOptIn) {
@@ -119,15 +125,15 @@ class Brevo extends EmailMarketing
             $response = $this->deliverPayload($submission, $endpoint, $payload);
 
             if ($response === false) {
-                return true;
+                return $this->resultForPayload(true);
             }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
-            return false;
+            return $this->resultForPayload(false);
         }
 
-        return true;
+        return $this->resultForPayload(true);
     }
 
     public function fetchConnection(): bool
@@ -152,16 +158,6 @@ class Brevo extends EmailMarketing
     
     // Protected Methods
     // =========================================================================
-
-    protected function formSettingAttributes(): array
-    {
-        $settings = parent::formSettingAttributes();
-        $settings[] = 'useDoubleOptIn';
-        $settings[] = 'templateId';
-        $settings[] = 'redirectionUrl';
-
-        return $settings;
-    }
 
     protected function defineRules(): array
     {

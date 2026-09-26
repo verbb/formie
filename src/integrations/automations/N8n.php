@@ -2,19 +2,21 @@
 namespace verbb\formie\integrations\automations;
 
 use verbb\formie\Formie;
+use verbb\formie\attributes\FormIntegrationSetting;
+use verbb\formie\base\Automation;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
-use verbb\formie\base\Automation;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationResult;
 
 use Craft;
 use craft\helpers\Json;
 
-use GuzzleHttp\Client;
-
 use Throwable;
+
+use GuzzleHttp\Client;
 
 class N8n extends Automation
 {
@@ -35,6 +37,7 @@ class N8n extends Automation
     // Properties
     // =========================================================================
     
+    #[FormIntegrationSetting]
     public ?string $webhook = null;
     
 
@@ -87,8 +90,9 @@ class N8n extends Automation
         return new IntegrationFormSettings($settings);
     }
 
-    public function sendPayload(Submission $submission): bool
+    public function sendPayload(Submission $submission): IntegrationResult
     {
+        $this->beginPayloadDelivery($submission);
         $payload = [];
         $response = [];
 
@@ -98,7 +102,7 @@ class N8n extends Automation
             $response = $this->deliverPayload($submission, $this->getEndpointUrl($this->webhook, $submission), $payload);
 
             if ($response === false) {
-                return true;
+                return $this->resultForPayload(true);
             }
         } catch (Throwable $e) {
             // Save a different payload to logs
@@ -112,10 +116,10 @@ class N8n extends Automation
 
             Integration::apiError($this, $e);
 
-            return false;
+            return $this->resultForPayload(false);
         }
 
-        return true;
+        return $this->resultForPayload(true);
     }
 
     public function allowedGqlSettings(): array
@@ -128,14 +132,6 @@ class N8n extends Automation
     
     // Protected Methods
     // =========================================================================
-
-    protected function formSettingAttributes(): array
-    {
-        $settings = parent::formSettingAttributes();
-        $settings[] = 'webhook';
-
-        return $settings;
-    }
 
     protected function defineRules(): array
     {

@@ -67,7 +67,7 @@ Method | Use
 `fetchConnection()` | Checks whether the integration can connect to the provider.
 `fetchFormSettings()` | Fetches provider data used by the form builder, such as lists, fields, channels or element layouts.
 `defineFormSettingsSchema()` | Defines the integration settings shown inside a form’s Integrations tab.
-`formSettingAttributes()` | Declares which integration attributes Formie may store and populate for each form.
+`#[FormIntegrationSetting]` | Annotates existing properties that Formie may hydrate for each form.
 `sendPayload()` | Sends or saves data after a submission has completed.
 
 `getSettingsHtml()` still exists for plugin-level integration settings in Formie’s settings area. Form-specific integration settings are now defined with `defineFormSettingsSchema()`, not a Twig template.
@@ -94,16 +94,16 @@ protected function defineFormSettingsSchema(FormInterface $form): array
 }
 ```
 
-Every field in the schema that is saved with the form must also be declared by `formSettingAttributes()`. Start with the parent attributes, then append the attributes owned by your integration.
+Annotate every existing property that forms may configure. Inherited annotations are included. Schema nodes, validation rules and method overrides cannot grant access to other properties.
 
 ```php
-protected function formSettingAttributes(): array
-{
-    $settings = parent::formSettingAttributes();
-    $settings[] = 'url';
+use verbb\formie\attributes\FormIntegrationSetting;
 
-    return $settings;
-}
+#[FormIntegrationSetting]
+public ?string $url = null;
+
+#[FormIntegrationSetting]
+public ?array $fieldMapping = null;
 ```
 
 For registered integrations, Formie discards undeclared form values before saving or populating the integration. Settings for an integration whose class is temporarily unavailable are retained as opaque data to avoid destructive form saves, but Formie does not hydrate them into an integration instance. This keeps plugin-level settings such as API keys and base URLs separate from form-level mappings and options.
@@ -217,8 +217,9 @@ use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use Throwable;
 
-public function sendPayload(Submission $submission): bool
+public function sendPayload(Submission $submission): \verbb\formie\models\IntegrationResult
 {
+    $this->beginPayloadDelivery($submission);
     try {
         $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping);
 
@@ -229,15 +230,15 @@ public function sendPayload(Submission $submission): bool
         $response = $this->deliverPayload($submission, 'contacts', $payload);
 
         if ($response === false) {
-            return false;
+            return $this->resultForPayload(false);
         }
     } catch (Throwable $e) {
         Integration::apiError($this, $e);
 
-        return false;
+        return $this->resultForPayload(false);
     }
 
-    return true;
+    return $this->resultForPayload(true);
 }
 ```
 
@@ -296,3 +297,23 @@ The integration type pages cover the details that differ between base classes:
 - [Miscellaneous Integration](/developers/custom-integration/miscellaneous-integration)
 - [Payment Integration](/developers/custom-integration/payment-integration)
 - [OAuth Integration](/developers/custom-integration/oauth-integration)
+
+## Configuration and Delivery Ownership
+
+`Integration` owns the global connection and provider behavior. `FormIntegration` is Formie's immutable binding of enabled state, execution lane and annotated settings; extensions do not create a binding subclass. Formie clones the connection for each binding and attempt. Avoid static mutable provider state and clear additional client caches in `__clone()` after calling the parent implementation.
+
+`IntegrationConfig` stores versioned non-secret builder metadata, its fetch time and invalidation key. Metadata is stale after 24 hours but remains available for display until an explicit refresh. Editing a connection invalidates its metadata. Only inert field and collection metadata is hydrated; arbitrary class names are rejected. `IntegrationField` remains the mapping-field model. Environment references are preferred for credentials. Literal global settings and permitted per-form secrets are encrypted at rest using Formie's Craft-compatible security key; retain that key when restoring data.
+
+`Integrations` registers and persists connections. `IntegrationDispatcher` plans lanes and notification timing. `IntegrationRunner` executes bindings using an immutable `IntegrationExecutionContext`. Run through these services rather than calling a cached provider directly.
+
+## Results and Safe Retries
+
+Return `IntegrationResult` from new providers. `succeeded()` confirms completion; `skipped()` records ineligibility or cancellation; `rejected()` means validation or the provider refused the operation; `failed($code, true)` permits retry only when the operation is known not to have occurred; `unknown()` requires reconciliation. An `IntegrationBatchResult` retains every step result. Returning an arbitrary array or truthy object does not establish success.
+
+Formie records a durable root attempt before executing a provider and a child attempt before each write made through `request()`, `requestPublicEndpoint()` or `requestWithProviderClient()`. Confirmed child responses are encrypted and replayed to dependent steps; their payload hashes must match. Succeeded writes are never repeated, and unknown writes block further runs until an authorized operator confirms the outcome. HTTP errors retain their response contract so providers can handle documented duplicate-record responses. Additional HTTP clients must use `requestWithProviderClient()` with their fixed configured origin. For an API that writes using GET, explicitly wrap the call with `executeDeliveryWrite($method, $url, $options, $send, true)`.
+
+Custom SDKs that bypass these helpers receive the coarse root guard only. Before publishing a Formie 4 provider, wrap each SDK side effect in a named child operation using `DeliveryAttempts::write()` and the runner's execution context and root attempt. Never mark an uncertain transport error as retryable. A confirmed response that has expired cannot be used to resume dependent operations automatically.
+
+Stable Formie 3 providers returning `bool` or `IntegrationResponse` remain callable through the coarse result adapter. Legacy `false` is a non-retryable failure unless the provider supplies more precise evidence through the guarded request path. `IntegrationResponse` remains deprecated because it shipped in Formie 3. New providers should return explicit results and annotate all per-form properties. Payment providers retain `base\Payment` and their separate payment state machine.
+
+Queue jobs contain an attempt UID only. Do not attach submission objects, credentials, payloads or debug data to jobs. Append bounded checkpoints through `DeliveryAttempts::checkpoint()` instead. See [Integration Dispatch and Policies](/guides/integrations/integration-dispatch-and-policies) for operator recovery and [Integration Events](/developers/events/integration-events) for semantic extension events.
