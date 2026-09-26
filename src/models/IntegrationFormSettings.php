@@ -27,6 +27,13 @@ class IntegrationFormSettings extends Model
         $this->collections = $collections;
     }
 
+    public function __clone()
+    {
+        parent::__clone();
+
+        $this->collections = $this->_cloneSettings($this->collections);
+    }
+
     public function getSettings(): array
     {
         return $this->collections;
@@ -55,6 +62,30 @@ class IntegrationFormSettings extends Model
     public function unserialize($serialized): void
     {
         $this->collections = $this->classFromArray($serialized);
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _cloneSettings(mixed $data): mixed
+    {
+        if (is_array($data)) {
+            foreach ($data as $key => $value) {
+                $data[$key] = $this->_cloneSettings($value);
+            }
+        } elseif (is_object($data)) {
+            $data = clone $data;
+
+            // Hydrated collections can contain nested fields and provider-specific models.
+            foreach (get_object_vars($data) as $key => $value) {
+                if (is_array($value) || is_object($value)) {
+                    $data->$key = $this->_cloneSettings($value);
+                }
+            }
+        }
+
+        return $data;
     }
 
     private function classToArray(mixed $data): mixed

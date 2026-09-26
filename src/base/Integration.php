@@ -241,6 +241,8 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     // Keep track of whether run in the context of a queue job
     private ?JobInterface $_queueJob = null;
     private bool|string $_enabled = false;
+    private ?array $_formSettingsCache = null;
+    private ?IntegrationFormSettings $_formSettings = null;
 
 
     // Public Methods
@@ -457,15 +459,24 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         if ($useCache) {
             $settings = $this->getCache('settings') ?: [];
 
-            // Add support for emoji in cached content
-            $settings = Json::decode(StringHelper::shortcodesToEmoji((string)Json::encode($settings)));
+            // Compare the source too, since integrations can replace their public cache directly.
+            if ($this->_formSettings === null || $this->_formSettingsCache !== $settings) {
+                $json = (string)Json::encode($settings);
 
-            // De-serialize it from the cache back into full, nested class objects
-            $formSettings = new IntegrationFormSettings();
-            $formSettings->unserialize($settings);
+                // LitEmoji scans once per known shortcode, even when none are present.
+                if (preg_match('/:[a-zA-Z0-9_+\-]+:/', $json)) {
+                    $json = StringHelper::shortcodesToEmoji($json);
+                }
 
-            // Always deal with a `IntegrationFormSettings` model
-            return $formSettings;
+                $formSettings = new IntegrationFormSettings();
+                $formSettings->unserialize(Json::decode($json));
+
+                $this->_formSettingsCache = $settings;
+                $this->_formSettings = $formSettings;
+            }
+
+            // Preserve independent, mutable results across callers and per-form integration clones.
+            return clone $this->_formSettings;
         }
 
         // Fire a 'beforeFetchFormSettings' event
@@ -994,6 +1005,11 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     private function setCache(array $values): void
     {
+        if (array_key_exists('settings', $values)) {
+            $this->_formSettingsCache = null;
+            $this->_formSettings = null;
+        }
+
         if ($this->cache === null) {
             $this->cache = [];
         }

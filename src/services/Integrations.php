@@ -718,45 +718,7 @@ class Integrations extends Component
 
     public function getAllEnabledIntegrationsForForm(Form $form): array
     {
-        $enabledIntegrations = [];
-
-        // Use all integrations + captchas
-        $integrations = array_merge($this->getAllIntegrations(), $this->getAllCaptchas());
-
-        foreach ($integrations as $key => $integration) {
-            // Fire a 'modifyFormIntegration' event
-            $event = new ModifyFormIntegrationEvent([
-                'integration' => $integration,
-            ]);
-            $this->trigger(self::EVENT_MODIFY_FORM_INTEGRATION, $event);
-
-            $integrations[$key] = $event->integration;
-        }
-
-        // Find all the form-enabled integrations
-        $formIntegrationSettings = $form->settings->integrations ?? [];
-        $enabledFormSettings = ArrayHelper::where($formIntegrationSettings, 'enabled', true);
-
-        foreach ($enabledFormSettings as $handle => $formSettings) {
-            $integration = ArrayHelper::firstWhere($integrations, 'handle', $handle);
-
-            // If this disabled globally? Then don't include it, otherwise populate the settings
-            if ($integration && $integration->getEnabled()) {
-                $integration = $this->populateIntegrationFromFormSettings($integration, $formSettings);
-
-                $enabledIntegrations[] = $integration;
-            }
-        }
-
-        // Fire a 'modifyFormIntegrations' event
-        $event = new ModifyFormIntegrationsEvent([
-            'allIntegrations' => $integrations,
-            'integrations' => $enabledIntegrations,
-            'form' => $form,
-        ]);
-        $this->trigger(self::EVENT_MODIFY_FORM_INTEGRATIONS, $event);
-
-        return $event->integrations;
+        return $this->_getEnabledIntegrationsForForm($form, array_merge($this->getAllIntegrations(), $this->getAllCaptchas()));
     }
 
     public function getAllCaptchas(): array
@@ -800,7 +762,12 @@ class Integrations extends Component
     public function getAllEnabledCaptchasForForm(Form $form, ?FieldLayoutPage $page = null, bool $force = false): array
     {
         $captchas = [];
-        $integrations = $this->getAllEnabledIntegrationsForForm($form);
+        $integrations = null;
+
+        // Hooks may inspect or replace any integration, so retain their full context when registered.
+        if ($this->hasEventHandlers(self::EVENT_MODIFY_FORM_INTEGRATION) || $this->hasEventHandlers(self::EVENT_MODIFY_FORM_INTEGRATIONS)) {
+            $integrations = $this->getAllEnabledIntegrationsForForm($form);
+        }
 
         // If we're editing a submission from the front-end, don't enable captchas
         if ($form->isEditingSubmission()) {
@@ -811,6 +778,9 @@ class Integrations extends Component
         if ($form->settings->disableCaptchas) {
             return $captchas;
         }
+
+        // CAPTCHA discovery should not hydrate unrelated marketing or CRM settings.
+        $integrations ??= $this->_getEnabledIntegrationsForForm($form, $this->getAllCaptchas());
 
         foreach ($integrations as $integration) {
             if ($integration instanceof Captcha) {
@@ -891,6 +861,46 @@ class Integrations extends Component
 
     // Private Methods
     // =========================================================================
+
+    private function _getEnabledIntegrationsForForm(Form $form, array $integrations): array
+    {
+        $enabledIntegrations = [];
+
+        foreach ($integrations as $key => $integration) {
+            // Fire a 'modifyFormIntegration' event
+            $event = new ModifyFormIntegrationEvent([
+                'integration' => $integration,
+            ]);
+            $this->trigger(self::EVENT_MODIFY_FORM_INTEGRATION, $event);
+
+            $integrations[$key] = $event->integration;
+        }
+
+        // Find all the form-enabled integrations
+        $formIntegrationSettings = $form->settings->integrations ?? [];
+        $enabledFormSettings = ArrayHelper::where($formIntegrationSettings, 'enabled', true);
+
+        foreach ($enabledFormSettings as $handle => $formSettings) {
+            $integration = ArrayHelper::firstWhere($integrations, 'handle', $handle);
+
+            // If this disabled globally? Then don't include it, otherwise populate the settings
+            if ($integration && $integration->getEnabled()) {
+                $integration = $this->populateIntegrationFromFormSettings($integration, $formSettings);
+
+                $enabledIntegrations[] = $integration;
+            }
+        }
+
+        // Fire a 'modifyFormIntegrations' event
+        $event = new ModifyFormIntegrationsEvent([
+            'allIntegrations' => $integrations,
+            'integrations' => $enabledIntegrations,
+            'form' => $form,
+        ]);
+        $this->trigger(self::EVENT_MODIFY_FORM_INTEGRATIONS, $event);
+
+        return $event->integrations;
+    }
 
     private function _integrations(): MemoizableArray
     {

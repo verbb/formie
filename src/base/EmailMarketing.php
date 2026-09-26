@@ -96,10 +96,11 @@ abstract class EmailMarketing extends Integration
         // Validate the following when saving form settings
         $rules[] = [['listId'], 'required', 'on' => [Integration::SCENARIO_FORM]];
 
-        $fields = $this->_getListSettings()->fields ?? [];
-
+        // Defining validators also discovers form settings; only load list metadata during validation.
         $rules[] = [
-            ['fieldMapping'], 'validateFieldMapping', 'params' => $fields, 'when' => function($model) {
+            ['fieldMapping'], function(string $attribute) {
+                $this->validateFieldMapping($attribute, $this->_getListSettings()->fields ?? []);
+            }, 'when' => function($model) {
                 return $model->enabled;
             }, 'on' => [Integration::SCENARIO_FORM],
         ];
