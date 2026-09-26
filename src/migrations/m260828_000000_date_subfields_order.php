@@ -72,7 +72,7 @@ class m260828_000000_date_subfields_order extends Migration
         if ($this->db->tableExists(Table::FORMIE_FORM_FIELDS) && $this->db->columnExists(Table::FORMIE_FORM_FIELDS, 'layoutId')) {
             return (new Query())
                 ->select([
-                    'placementId' => 'ff.id',
+                    'instanceId' => 'ff.id',
                     'fieldId' => 'f.id',
                     'handle' => 'f.handle',
                     'type' => 'f.type',
@@ -96,7 +96,7 @@ class m260828_000000_date_subfields_order extends Migration
 
             foreach ($rows as &$row) {
                 // Legacy rows update sortOrder / settings on the same `formie_fields` id.
-                $row['placementId'] = $row['id'];
+                $row['instanceId'] = $row['id'];
                 $row['fieldId'] = $row['id'];
             }
             unset($row);
@@ -130,18 +130,18 @@ class m260828_000000_date_subfields_order extends Migration
             $rank = array_search($subField['handle'], $order, true);
 
             // Keep any subfields not represented in the format in their existing order, at the end
-            $ranks[$subField['placementId']] = [($rank === false ? count($order) : $rank), $index];
+            $ranks[$subField['instanceId']] = [($rank === false ? count($order) : $rank), $index];
         }
 
         uasort($ranks, fn(array $a, array $b): int => $a <=> $b);
 
         $sortOrder = 0;
-        $placementTable = ($this->db->tableExists(Table::FORMIE_FORM_FIELDS) && $this->db->columnExists(Table::FORMIE_FORM_FIELDS, 'layoutId'))
+        $instanceTable = ($this->db->tableExists(Table::FORMIE_FORM_FIELDS) && $this->db->columnExists(Table::FORMIE_FORM_FIELDS, 'layoutId'))
             ? Table::FORMIE_FORM_FIELDS
             : Table::FORMIE_FIELDS;
 
-        foreach (array_keys($ranks) as $placementId) {
-            $this->update($placementTable, ['sortOrder' => $sortOrder++], ['id' => $placementId], [], false);
+        foreach (array_keys($ranks) as $instanceId) {
+            $this->update($instanceTable, ['sortOrder' => $sortOrder++], ['id' => $instanceId], [], false);
         }
     }
 

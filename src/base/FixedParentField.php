@@ -54,6 +54,21 @@ abstract class FixedParentField extends ContainerParentField implements FixedPar
         return $attributes;
     }
 
+    public function getChildFieldTypesByHandle(): array
+    {
+        $types = [];
+        foreach ($this->getNestedLayoutBuilderLayouts() as $rows) {
+            foreach ($rows as $row) {
+                foreach ($row['fields'] ?? [] as $field) {
+                    $handle = $field['handle'] ?? $field['settings']['handle'] ?? '';
+                    $types[$handle][] = $field['type'];
+                }
+            }
+        }
+
+        return $types;
+    }
+
     public function getSubFields(): array
     {
         if ($this->_subFields !== null) {
@@ -133,7 +148,7 @@ abstract class FixedParentField extends ContainerParentField implements FixedPar
     {
         return FieldClientChildren::make(FieldClientChildren::MODEL_FIXED_PARENT)
             ->withChildren(FieldClientChildren::MODE_PARTS)
-            ->withPartFieldResolver(fn() => $this->getFields(false));
+            ->withPartFieldResolver(fn() => $this->getEnabledFields());
     }
 
     protected function getNestedLayoutBuilderLayouts(): array
@@ -158,7 +173,7 @@ abstract class FixedParentField extends ContainerParentField implements FixedPar
         ];
     }
 
-    protected function getNestedLayoutBuilderAllowedFieldTypes(): array
+    public function getNestedLayoutBuilderAllowedFieldTypes(): array
     {
         $types = [];
 

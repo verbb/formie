@@ -47,8 +47,6 @@ class FieldLayoutPage extends SavableComponent implements TranslatableProperties
     private ?FieldLayout $_layout = null;
     private ?FieldLayoutPageSettings $_pageSettings = null;
     private array $_rows = [];
-    private ?array $_cachedFields = null;
-    private ?array $_fieldsByHandle = null;
 
 
     // Public Methods
@@ -115,71 +113,54 @@ class FieldLayoutPage extends SavableComponent implements TranslatableProperties
         $this->_pageSettings = $pageSettings;
     }
 
-    public function getRows(bool $includeDisabled = true): array
+    public function getRows(): array
     {
-        $rows = $this->_rows;
+        return $this->_rows;
+    }
 
-        // Filter out rows that have disabled/hidden fields or are disabled altogether
-        if ($includeDisabled) {
-            return $rows;
-        }
-
-        foreach ($this->_rows as $rowKey => $row) {
-            $fields = $row->getFields($includeDisabled);
-            
-            if (!$fields) {
-                unset($rows[$rowKey]);
-            }
-        }
-
-        return $rows;
+    public function getEnabledRows(): array
+    {
+        return array_values(array_filter($this->getRows(), static fn(FieldLayoutRow $row) => $row->getEnabledFields() !== []));
     }
 
     public function setRows(array $rows): void
     {
         $this->_rows = [];
-        $this->_cachedFields = null;
-        $this->_fieldsByHandle = null;
 
         foreach ($rows as $row) {
             $this->_rows[] = (!($row instanceof FieldLayoutRow)) ? new FieldLayoutRow($row) : $row;
         }
     }
 
-    public function getFields(bool $includeDisabled = true): array
+    public function getFields(): array
     {
-        if ($includeDisabled) {
-            if ($this->_cachedFields === null) {
-                $fields = [];
-
-                foreach ($this->getRows() as $row) {
-                    foreach ($row->getFields() as $field) {
-                        $fields[] = $field;
-                    }
-                }
-
-                $this->_cachedFields = $fields;
-            }
-
-            return $this->_cachedFields;
+        $fields = [];
+        foreach ($this->getRows() as $row) {
+            array_push($fields, ...$row->getFields());
         }
 
-        return array_values(array_filter($this->getFields(), static function(FieldInterface $field): bool {
-            return !$field->getIsDisabled();
-        }));
+        return $fields;
+    }
+
+    public function getEnabledFields(): array
+    {
+        return array_values(array_filter($this->getFields(), static fn(FieldInterface $field) => !$field->getIsDisabled()));
+    }
+
+    public function getFieldsRecursively(): array
+    {
+        return \verbb\formie\helpers\FieldTraversal::recursively($this->getFields());
     }
 
     public function getFieldByHandle(string $handle): ?FieldInterface
     {
-        if ($this->_fieldsByHandle === null) {
-            $this->_fieldsByHandle = [];
-
-            foreach ($this->getFields() as $field) {
-                $this->_fieldsByHandle[$field->handle] = $field;
+        foreach ($this->getFields() as $field) {
+            if ($field->handle === $handle) {
+                return $field;
             }
         }
 
-        return $this->_fieldsByHandle[$handle] ?? null;
+        return null;
     }
 
     public function getFormBuilderConfig(): array
@@ -208,7 +189,7 @@ class FieldLayoutPage extends SavableComponent implements TranslatableProperties
             'settings' => $this->getSettings(),
             'fields' => array_map(static function(FieldInterface $field) {
                 return $field->getClientConfig();
-            }, $this->getFields(false)),
+            }, $this->getEnabledFields()),
         ];
     }
 
@@ -358,7 +339,7 @@ class FieldLayoutPage extends SavableComponent implements TranslatableProperties
 
     public function isLastRow(FieldLayoutRow $row): bool
     {
-        $rows = $this->getRows(false);
+        $rows = $this->getEnabledRows();
 
         if (!$rows) {
             return false;

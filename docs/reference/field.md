@@ -9,7 +9,31 @@ A Field object represents one field instance on a form. This is different from t
 
 **Type:** `string|int|null`
 
-The field ID.
+The form-field instance ID. Submission and client field identity use this instance, not its shared definition.
+:::
+
+::: reference
+### `uid`
+
+**Type:** `string|null`
+
+The form-field instance UID. Copies and new imports receive new instance UIDs.
+:::
+
+::: reference
+### `definitionId`
+
+**Type:** `int|null`
+
+The shared definition's database ID. Synced fields share this value. It is not a submission content key.
+:::
+
+::: reference
+### `definitionUid`
+
+**Type:** `string|null`
+
+The shared definition's portable UID, used when a stencil explicitly preserves a Synced Field relationship.
 :::
 
 ::: reference

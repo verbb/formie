@@ -51,7 +51,7 @@ it('exports and imports form and field site overrides using portable keys', func
 
     $export = ImportExportHelper::generateFormExport($canonicalForm);
 
-    expect($export['exportVersion'])->toBe('v4')
+    expect($export['schemaVersion'])->toBe(1)
         ->and($export['sourceSiteHandle'])->not->toBeEmpty()
         ->and($export['siteOverrides'][$secondarySite->handle]['title'] ?? null)
             ->toBe('Import Export Site Overrides Form (Translated)')

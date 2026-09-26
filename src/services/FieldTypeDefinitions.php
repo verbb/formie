@@ -2,7 +2,7 @@
 namespace verbb\formie\services;
 
 use verbb\formie\cache\FieldTypeDefinitionCache;
-use verbb\formie\base\FieldTypeDefinitionInterface;
+use verbb\formie\base\Field;
 use verbb\formie\fields as formiefields;
 
 use Craft;
@@ -85,8 +85,8 @@ class FieldTypeDefinitions extends Component
             return $this->_getCache()->definitionsByClass[$fieldClass];
         }
 
-        if (!is_subclass_of($fieldClass, FieldTypeDefinitionInterface::class)) {
-            throw new InvalidConfigException("Field type \"{$fieldClass}\" must implement FieldTypeDefinitionInterface.");
+        if (!is_subclass_of($fieldClass, Field::class)) {
+            throw new InvalidConfigException("Field type \"{$fieldClass}\" must extend the Formie base Field class.");
         }
 
         $definition = $fieldClass::getFieldTypeDefinition();

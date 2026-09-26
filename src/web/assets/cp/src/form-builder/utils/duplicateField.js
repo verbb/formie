@@ -4,7 +4,7 @@ import { generateHandle } from '@verbb/plugin-kit-core';
 
 import { assignFieldReferences } from './fieldReferences';
 
-const FIELD_IDENTITY_KEYS = ['id', 'fieldId', 'layoutId', 'pageId', 'rowId', 'uid', 'syncId', 'reference'];
+const FIELD_IDENTITY_KEYS = ['id', 'definitionId', 'layoutId', 'pageId', 'rowId', 'uid', 'definitionUid', 'reference', 'fieldId', 'syncId', 'definitionToken', 'nestedLayoutId'];
 const BUILDER_IDENTITY_RANDOM_LENGTH = 15;
 
 const getFieldHandle = (field) => {
@@ -158,17 +158,21 @@ const buildDuplicatedFieldData = (field, existingHandles = [], options = {}) => 
     const { fieldType = null } = options;
     let duplicatedField = cloneDeep(field);
 
-    FIELD_IDENTITY_KEYS.forEach((key) => {
-        delete duplicatedField[key];
-    });
-
-    if (duplicatedField.settings && typeof duplicatedField.settings === 'object') {
-        duplicatedField.settings = { ...duplicatedField.settings };
-
-        FIELD_IDENTITY_KEYS.forEach((key) => {
-            delete duplicatedField.settings[key];
-        });
-    }
+    const clearIdentities = (value) => {
+        if (!value || typeof value !== 'object') return;
+        FIELD_IDENTITY_KEYS.forEach((key) => { delete value[key]; });
+        value.isSynced = false;
+        if (value.settings) clearIdentities(value.settings);
+        const clearRows = (rows) => {
+            (rows || []).forEach((row) => {
+                ['id', 'uid', 'layoutId', 'pageId'].forEach((key) => { delete row[key]; });
+                (row.fields || []).forEach(clearIdentities);
+            });
+        };
+        clearRows(value.rows);
+        Object.values(value.layouts || {}).forEach(clearRows);
+    };
+    clearIdentities(duplicatedField);
 
     if (fieldType?.isBuilderField) {
         duplicatedField = assignBuilderFieldIdentity(duplicatedField, existingHandles, fieldType);
@@ -182,7 +186,24 @@ const buildDuplicatedFieldData = (field, existingHandles = [], options = {}) => 
 
     duplicatedField._isNew = false;
 
-    return assignFieldReferences(duplicatedField, { forceNew: true });
+    duplicatedField = assignFieldReferences(duplicatedField, { forceNew: true });
+    const references = {};
+    const collect = (source, copy) => {
+        if (!source || !copy || typeof source !== 'object' || typeof copy !== 'object') return;
+        if (source.reference && copy.reference && !references[source.reference]) references[source.reference] = copy.reference;
+        Object.keys(source).forEach((key) => collect(source[key], copy[key]));
+    };
+    collect(field, duplicatedField);
+    const remap = (value) => {
+        if (typeof value === 'string') {
+            return references[value] || value.replace(/\{field:([^:;}|]+)(?=[:;}|])/g,
+                (token, reference) => references[reference] ? `{field:${references[reference]}` : token);
+        }
+        if (Array.isArray(value)) return value.map(remap);
+        if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([key, item]) => [references[key] || key, remap(item)]));
+        return value;
+    };
+    return remap(duplicatedField);
 };
 
 const detachSyncedFieldData = (field) => {
@@ -192,8 +213,8 @@ const detachSyncedFieldData = (field) => {
 
     const detachedField = {
         ...field,
-        fieldId: null,
-        syncId: null,
+        definitionId: null,
+        definitionUid: null,
         isSynced: false,
         usageCount: 1,
     };

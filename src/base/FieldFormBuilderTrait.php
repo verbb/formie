@@ -191,11 +191,11 @@ trait FieldFormBuilderTrait
     {
         $settings = $this->getSettings();
         $settings['id'] = $this->id;
-        $settings['fieldId'] = $this->fieldId;
+        $settings['definitionId'] = $this->definitionId;
+        $settings['definitionUid'] = $this->definitionUid;
         $settings['layoutId'] = $this->layoutId;
         $settings['pageId'] = $this->pageId;
         $settings['rowId'] = $this->rowId;
-        $settings['syncId'] = $this->getIsSynced() ? ($this->fieldId ?? $this->syncId) : null;
         $settings['isSynced'] = $this->getIsSynced();
         $settings['usageCount'] = max((int)($this->usageCount ?? 1), 1);
         $settings['label'] = $this->label;
@@ -379,7 +379,7 @@ trait FieldFormBuilderTrait
             'instructions' => Craft::t('formie', 'Only compatible simple text fields are shown. Existing submissions are not rewritten when this changes.'),
             'warning' => Craft::t('formie', 'Changing this may cause previous submission values to display, validate, or export differently.'),
             'name' => 'type',
-            'if' => 'id && !syncId',
+            'if' => 'id && !isSynced',
             'options' => array_values(array_filter(array_map(static function(string $fieldType): ?array {
                 if (!is_subclass_of($fieldType, Field::class)) {
                     return null;

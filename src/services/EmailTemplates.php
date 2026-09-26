@@ -45,6 +45,11 @@ class EmailTemplates extends Component
     // Public Methods
     // =========================================================================
 
+    public function invalidateCaches(): void
+    {
+        $this->_templates = null;
+    }
+
     public function getAllTemplates(): array
     {
         return $this->_templates()->all();

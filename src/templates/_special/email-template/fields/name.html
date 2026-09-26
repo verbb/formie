@@ -1,6 +1,6 @@
 {% apply spaceless %}
     {% if value and field.settings.useMultipleFields %}
-        {% for field in field.getFields(false) %}
+        {% for field in field.getEnabledFields() %}
             {% set value = submission.getFieldValue(field.valueKey()) ?? field.getInitialValue(submission) %}
 
             {% if field.hasReferenceBlockLabel() %}

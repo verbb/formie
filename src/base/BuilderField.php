@@ -53,7 +53,7 @@ abstract class BuilderField extends CosmeticField implements BuilderFieldInterfa
 
     public function modifyFieldSettings(array $settings): array
     {
-        if (!$this->id && !$this->fieldId) {
+        if (!$this->id && !$this->definitionId) {
             if (empty($settings['label'])) {
                 $settings['label'] = StringHelper::appendRandomString($this->getBuilderIdentityLabelPrefix(), 15);
             }

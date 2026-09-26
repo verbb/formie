@@ -162,6 +162,16 @@ class ImportExportController extends SettingsAccessController
             }
         }
 
+        $plan = ImportExportHelper::planImport($json, $existingForm);
+        foreach ($plan['warnings'] as $warning) {
+            $this->stdout(Html::encode($warning), Console::FG_YELLOW);
+        }
+        foreach ($plan['dependencies'] as $dependency) {
+            $this->stdout(Html::encode($dependency['action'] . ': ' . $dependency['kind'] . ' resource ' . $dependency['handle']));
+        }
+        foreach ($plan['changes'] as $action => $references) {
+            $this->stdout(Html::encode(ucfirst($action) . ': ' . implode(', ', $references)));
+        }
         $summary = ob_get_clean();
 
         $variables = compact('filename', 'summary', 'json', 'existingForm');

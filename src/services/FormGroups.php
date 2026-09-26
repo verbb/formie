@@ -41,6 +41,11 @@ class FormGroups extends Component
     // Public Methods
     // =========================================================================
 
+    public function invalidateCaches(): void
+    {
+        $this->_groups = null;
+    }
+
     public function getAllGroups(): array
     {
         return $this->_groups()->all();

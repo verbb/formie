@@ -57,10 +57,7 @@ abstract class RepeatableParentField extends ParentField implements RepeatablePa
         return $rules;
     }
 
-    public function getFields(bool $includeDisabled = true, string|int|null $rowKey = null): array
-    {
-        return parent::getFields($includeDisabled, $rowKey);
-    }
+
 
     public function validateBlocks(ElementInterface $element): void
     {
@@ -88,7 +85,7 @@ abstract class RepeatableParentField extends ParentField implements RepeatablePa
         }
 
         foreach ($value as $rowKey => $row) {
-            foreach ($this->getFields(true, $rowKey) as $field) {
+            foreach ($this->getFields($rowKey) as $field) {
                 $fieldKey = "$this->handle.$rowKey.$field->handle";
                 $subValue = $element->getFieldValue($fieldKey);
 
@@ -107,7 +104,7 @@ abstract class RepeatableParentField extends ParentField implements RepeatablePa
         // We need to factor in the error message key for Repeater blocks, but at this point we don't know what they are
         // so fudge it a little, and generate 70 label keys, and hope that people aren't making more than 70 rows.
         for ($i = 0; $i < 70; $i++) { 
-            foreach ($this->getFields(true, $i) as $field) {
+            foreach ($this->getFields($i) as $field) {
                 $labels[$field->valueKey()] = $field->label;
             }
         }
@@ -128,7 +125,7 @@ abstract class RepeatableParentField extends ParentField implements RepeatablePa
         $values = [];
 
         foreach ($value as $rowKey => $row) {
-            foreach ($this->getFields(true, $rowKey) as $field) {
+            foreach ($this->getFields($rowKey) as $field) {
                 // Get the value from the field's UID (database) or it's handle (POST)
                 $fieldValue = $row[$field->uid] ?? $row[$field->handle] ?? null;
 
@@ -155,7 +152,7 @@ abstract class RepeatableParentField extends ParentField implements RepeatablePa
 
         // Treat this field like an element, where we should trigger saving for each block and field
         foreach ($value as $rowKey => $row) {
-            foreach ($this->getFields(true, $rowKey) as $field) {
+            foreach ($this->getFields($rowKey) as $field) {
                 if (!$field->beforeElementSave($element, $isNew)) {
                     $hasErrors = true;
                 }
@@ -171,7 +168,7 @@ abstract class RepeatableParentField extends ParentField implements RepeatablePa
 
         // Treat this field like an element, where we should trigger saving for each block and field
         foreach ($value as $rowKey => $row) {
-            foreach ($this->getFields(true, $rowKey) as $field) {
+            foreach ($this->getFields($rowKey) as $field) {
                 $field->afterElementSave($element, $isNew);
             }
         }
@@ -186,7 +183,7 @@ abstract class RepeatableParentField extends ParentField implements RepeatablePa
         $values = [];
 
         foreach ($value as $rowKey => $row) {
-            foreach ($this->getFields(true, $rowKey) as $field) {
+            foreach ($this->getFields($rowKey) as $field) {
                 if ($field->getIsCosmetic() || $field->getIsDisabled()) {
                     continue;
                 }
@@ -217,7 +214,7 @@ abstract class RepeatableParentField extends ParentField implements RepeatablePa
         $values = [];
 
         foreach ($value as $rowKey => $row) {
-            foreach ($this->getFields(true, $rowKey) as $field) {
+            foreach ($this->getFields($rowKey) as $field) {
                 // Accept either stored UID keys or incoming handle keys as input.
                 $fieldValue = $row[$field->uid] ?? $row[$field->handle] ?? null;
                 $targetKey = $keyBy === self::NESTED_KEY_HANDLE ? $field->handle : $field->uid;
@@ -234,7 +231,7 @@ abstract class RepeatableParentField extends ParentField implements RepeatablePa
         $values = [];
 
         foreach ($value as $rowKey => $row) {
-            foreach ($this->getFields(true, $rowKey) as $field) {
+            foreach ($this->getFields($rowKey) as $field) {
                 if ($field->getIsCosmetic() || $field->getIsDisabled()) {
                     continue;
                 }
@@ -265,7 +262,7 @@ abstract class RepeatableParentField extends ParentField implements RepeatablePa
         $values = [];
 
         foreach ($value as $rowKey => $row) {
-            foreach ($this->getFields(true, $rowKey) as $field) {
+            foreach ($this->getFields($rowKey) as $field) {
                 if ($field->getIsCosmetic() || $field->getIsDisabled()) {
                     continue;
                 }
@@ -293,7 +290,7 @@ abstract class RepeatableParentField extends ParentField implements RepeatablePa
         $values = '';
 
         foreach ($value as $rowKey => $row) {
-            foreach ($this->getFields(true, $rowKey) as $field) {
+            foreach ($this->getFields($rowKey) as $field) {
                 if ($field->getIsCosmetic() || $field->getIsHidden() || $field->isConditionallyHidden($element) || $field->getIsDisabled()) {
                     continue;
                 }
@@ -318,7 +315,7 @@ abstract class RepeatableParentField extends ParentField implements RepeatablePa
     {
         return FieldClientChildren::make(FieldClientChildren::MODEL_REPEATABLE_PARENT)
             ->withChildren(FieldClientChildren::MODE_ROWS)
-            ->withRowResolver(fn() => $this->getRows(false));
+            ->withRowResolver(fn() => $this->getEnabledRows());
     }
 
 }

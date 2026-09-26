@@ -61,6 +61,11 @@ class PdfTemplates extends Component
     // Public Methods
     // =========================================================================
 
+    public function invalidateCaches(): void
+    {
+        $this->_templates = null;
+    }
+
     public function getAllTemplates(bool $withTrashed = false): array
     {
         return $this->_templates()->all();

@@ -32,14 +32,19 @@ class MissingField extends Field implements MissingComponentInterface
     public function getFormBuilderSettings(): array
     {
         $settings = [];
+        $settings['id'] = $this->id;
+        $settings['uid'] = $this->uid;
+        $settings['reference'] = $this->reference;
+        $settings['type'] = static::class;
+        $settings['settings'] = $this->settings;
         $settings['isMissing'] = true;
         $settings['expectedType'] = $this->expectedType ?? null;
         $settings['errorMessage'] = $this->errorMessage ?? null;
-        $settings['fieldId'] = $this->fieldId;
+        $settings['definitionId'] = $this->definitionId;
+        $settings['definitionUid'] = $this->definitionUid;
         $settings['layoutId'] = $this->layoutId;
         $settings['pageId'] = $this->pageId;
         $settings['rowId'] = $this->rowId;
-        $settings['syncId'] = $this->getIsSynced() ? ($this->fieldId ?? $this->syncId) : null;
         $settings['label'] = $this->label;
         $settings['handle'] = $this->handle;
         $settings['sortOrder'] = $this->sortOrder;
@@ -56,6 +61,16 @@ class MissingField extends Field implements MissingComponentInterface
 
     // Public Methods
     // =========================================================================
+
+    public function getSettings(): array
+    {
+        return $this->settings ?? [];
+    }
+
+    public function getDefinitionSettings(): array
+    {
+        return $this->settings ?? [];
+    }
 
     public function __set($name, $value)
     {

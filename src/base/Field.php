@@ -140,6 +140,7 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
 
     use FieldDeprecations;
     use FieldDefinitionTrait;
+    use FieldCompatibilityTrait;
     use FieldClientValidationTrait;
     use FieldClientConditionTrait;
     use FieldClientDefinitionTrait;
@@ -399,8 +400,9 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
     public ?int $layoutId = null;
     public ?int $pageId = null;
     public ?int $rowId = null;
-    public ?int $fieldId = null;
-    public ?int $syncId = null;
+    public ?\verbb\formie\models\LayoutSaveContext $layoutSaveContext = null;
+    public ?int $definitionId = null;
+    public ?string $definitionUid = null;
     public ?int $usageCount = null;
     public ?string $label = null;
     public ?string $handle = null;
@@ -452,6 +454,30 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
 
     // Public Methods
     // =========================================================================
+
+    // Formie 3 aliases remain at the PHP/config boundary. Content always uses id/uid.
+    public function getFieldId(): ?int
+    {
+        return $this->definitionId;
+    }
+
+    public function setFieldId(?int $value): void
+    {
+        $this->definitionId = $value;
+    }
+
+    public function getSyncId(): ?int
+    {
+        return $this->getIsSynced() ? $this->definitionId : null;
+    }
+
+    public function setSyncId(?int $value): void
+    {
+        if ($value) {
+            $this->definitionId = $value;
+            $this->isSynced = true;
+        }
+    }
 
     public function __construct(array $config = [])
     {
@@ -897,6 +923,11 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
     public function getParentField(): ?FieldInterface
     {
         return $this->_parentField;
+    }
+
+    public function setParentField(FieldInterface $parent): void
+    {
+        $this->applyParentFieldContext($parent);
     }
 
     public function withParentField(FieldInterface $parent, string|int|null $namespace = null): static
@@ -1420,24 +1451,12 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
         return FieldValueQueryHelper::resolveValueColumnType(static::class, $this->dbTypeForValueSql(), $key);
     }
 
-    private static function _hasLegacyStaticMethodOverride(string $method): bool
-    {
-        $reflection = new \ReflectionMethod(static::class, $method);
-
-        return $reflection->getDeclaringClass()->getName() !== self::class;
-    }
 
     private static function _getDefaultReferenceBlockTemplatePath(): string
     {
         return 'fields/' . static::kebabClassName();
     }
 
-    private function _hasLegacyFieldMethodOverride(string $method): bool
-    {
-        $reflection = new \ReflectionMethod(static::class, $method);
-
-        return $reflection->getDeclaringClass()->getName() !== self::class;
-    }
 
     private function _renderReferenceBlockHtml(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): string|null|bool
     {

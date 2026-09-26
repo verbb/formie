@@ -45,8 +45,8 @@ it('stores synced definition metadata in stencil snapshots', function (): void {
     $serializedField = $stencil->data->getSerializedData()['pages'][0]['rows'][0]['fields'][0] ?? null;
 
     expect($serializedField)->toBeArray()
-        ->and($serializedField['syncedDefinitionHandle'] ?? null)->toBe('email')
-        ->and((int)($serializedField['syncedDefinitionId'] ?? 0))->toBe($sourceField->fieldId);
+        ->and($serializedField['syncedDefinitionUid'] ?? null)->toBe($sourceField->definitionUid)
+        ->and($serializedField)->not->toHaveKey('syncedDefinitionId');
 });
 
 it('materializes new forms with synced fields linked to the shared definition', function (): void {
@@ -104,7 +104,7 @@ it('materializes new forms with synced fields linked to the shared definition', 
     expect($usageCount)->toBeGreaterThan(1);
 });
 
-it('resolves shared definitions by handle when materializing stencils', function (): void {
+it('does not couple legacy handle-only stencils to an arbitrary definition', function (): void {
     $fieldHandle = 'stencilEmail' . uniqid();
     $sourceForm = formie()
         ->form(['title' => 'Stencil Handle Resolve Source', 'handle' => stencilSyncedFieldsHandle('handleSource')])
@@ -148,5 +148,5 @@ it('resolves shared definitions by handle when materializing stencils', function
     ]);
     $stencil->applyStencilToForm($newForm, true);
 
-    expect($newForm->getFieldByHandle($fieldHandle)?->fieldId)->toBe($definitionId);
+    expect($newForm->getFieldByHandle($fieldHandle)?->definitionId)->toBeNull();
 });

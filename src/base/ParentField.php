@@ -62,7 +62,6 @@ abstract class ParentField extends Field implements ParentFieldInterface
 
     private ?FieldLayout $_fieldLayout = null;
     private ?array $_nestedLayoutBuilderConfig = null;
-    private ?array $_fieldsByHandle = null;
 
 
     // Public Methods
@@ -104,12 +103,26 @@ abstract class ParentField extends Field implements ParentFieldInterface
         ]);
     }
 
-    public function getRows(bool $includeDisabled = true, string|int|null $rowKey = null): array
+    public function getRows(string|int|null $rowKey = null): array
     {
-        return array_map(
-            fn(FieldLayoutRow $row) => $row->withParentField($this, $rowKey),
-            $this->getFieldLayout()->getRows($includeDisabled),
-        );
+        $rows = $this->getFieldLayout()->getRows();
+        if ($rowKey === null) {
+            foreach ($rows as $row) {
+                foreach ($row->getFields() as $field) {
+                    $field->setParentField($this);
+                }
+            }
+
+            return $rows;
+        }
+
+        // Repeater values need separate row contexts; ordinary child mutations target the actual graph.
+        return array_map(fn(FieldLayoutRow $row) => $row->withParentField($this, $rowKey), $rows);
+    }
+
+    public function getEnabledRows(string|int|null $rowKey = null): array
+    {
+        return array_values(array_filter($this->getRows($rowKey), static fn(FieldLayoutRow $row) => $row->getEnabledFields() !== []));
     }
 
     public function setRows(array $rows): void
@@ -124,38 +137,32 @@ abstract class ParentField extends Field implements ParentFieldInterface
         }
 
         $this->_nestedLayoutBuilderConfig = null;
-        $this->_fieldsByHandle = null;
     }
 
-    public function getFields(bool $includeDisabled = true, string|int|null $rowKey = null): array
+    public function getFields(string|int|null $rowKey = null): array
     {
         $fields = [];
-
-        foreach ($this->getRows($includeDisabled, $rowKey) as $row) {
-            foreach ($row->getFields($includeDisabled) as $field) {
-                $fields[] = $field;
-            }
+        foreach ($this->getRows($rowKey) as $row) {
+            array_push($fields, ...$row->getFields());
         }
 
         return $fields;
     }
 
+    public function getFieldsRecursively(): array
+    {
+        return \verbb\formie\helpers\FieldTraversal::recursively($this->getFields());
+    }
+
     public function getFieldByHandle(string $handle): ?FieldInterface
     {
-        if ($this->_fieldsByHandle === null) {
-            // Nested-field helpers often probe by handle many times while resolving dot-paths,
-            // projections, and query filters. Cache the flattened child lookup once so repeat
-            // probes don't keep walking every nested row for the same parent field instance.
-            $this->_fieldsByHandle = [];
-
-            foreach ($this->getFields() as $field) {
-                if (isset($field->handle)) {
-                    $this->_fieldsByHandle[$field->handle] = $field;
-                }
+        foreach ($this->getFields() as $field) {
+            if ($field->handle === $handle) {
+                return $field;
             }
         }
 
-        return $this->_fieldsByHandle[$handle] ?? null;
+        return null;
     }
 
     public function getVisibleFields(ElementInterface $element = null): array
@@ -178,7 +185,7 @@ abstract class ParentField extends Field implements ParentFieldInterface
         $fields = [];
 
         foreach ($this->getFields() as $field) {
-            if ($field->getIsCosmetic() || $field->getIsDisabled()) {
+            if ($field->getIsDisabled()) {
                 continue;
             }
 
@@ -229,7 +236,6 @@ abstract class ParentField extends Field implements ParentFieldInterface
     {
         $this->_fieldLayout = $fieldLayout;
         $this->_nestedLayoutBuilderConfig = null;
-        $this->_fieldsByHandle = null;
     }
 
     public function validateFieldLayout(): void
@@ -257,16 +263,16 @@ abstract class ParentField extends Field implements ParentFieldInterface
             return false;
         }
 
-        $syncDefinitionId = $this->syncId ?: $this->fieldId;
+        $syncDefinitionId = $this->definitionId;
 
         if ($isNew && $syncDefinitionId) {
             $definitionField = Formie::$plugin->getFields()->getFieldDefinitionById($syncDefinitionId);
 
-            if ($definitionField instanceof self && $definitionField->nestedLayoutId) {
+            if ($definitionField && ($definitionField->settings['nestedLayoutId'] ?? null)) {
                 // New synced instances must reuse the definition's nested layout. Saving the imported
                 // builder rows here would generate fresh child UIDs and make older submissions unreadable.
-                $this->nestedLayoutId = $definitionField->nestedLayoutId;
-                $this->setFieldLayout($definitionField->getFieldLayout());
+                $this->nestedLayoutId = $definitionField->settings['nestedLayoutId'];
+                $this->setFieldLayout(Formie::$plugin->getFields()->getLayoutById($this->nestedLayoutId));
 
                 return true;
             }
@@ -280,7 +286,7 @@ abstract class ParentField extends Field implements ParentFieldInterface
                 $this->nestedLayoutId = null;
             }
 
-            if (!Formie::$plugin->getFields()->saveLayout($this->getFieldLayout())) {
+            if (!Formie::$plugin->getFields()->saveLayout($this->getFieldLayout(), $this->layoutSaveContext)) {
                 foreach ($this->getFieldLayout()->getPages() as $page) {
                     $errors = ArrayHelper::flatten($page->getErrors());
 
@@ -323,7 +329,7 @@ abstract class ParentField extends Field implements ParentFieldInterface
                 'resolve' => function($source, $arguments) {
                     $includeDisabled = $arguments['includeDisabled'] ?? false;
 
-                    return $source->getRows($includeDisabled);
+                    return $includeDisabled ? $source->getRows() : $source->getEnabledRows();
                 },
             ],
             'fields' => [
@@ -340,7 +346,7 @@ abstract class ParentField extends Field implements ParentFieldInterface
                 'resolve' => function($source, $arguments) {
                     $includeDisabled = $arguments['includeDisabled'] ?? false;
 
-                    return $source->getFields($includeDisabled);
+                    return $includeDisabled ? $source->getFields() : $source->getEnabledFields();
                 },
             ],
         ]);
@@ -461,7 +467,7 @@ abstract class ParentField extends Field implements ParentFieldInterface
         ];
     }
 
-    protected function getNestedLayoutBuilderAllowedFieldTypes(): array
+    public function getNestedLayoutBuilderAllowedFieldTypes(): array
     {
         $registeredFieldTypes = Formie::$plugin->getFields()->getResolvedRegisteredFieldTypes();
         $fieldTypeDefinitions = Formie::$plugin->getFields()->getFieldTypeDefinitions($registeredFieldTypes);
@@ -544,13 +550,14 @@ abstract class ParentField extends Field implements ParentFieldInterface
                     $field->layoutId = null;
                     $field->pageId = null;
                     $field->rowId = null;
-                    $field->reference = null;
-                    $field->uid = '';
-                    // A new parent needs new placements, but explicitly linked
+                    $field->reference ??= \craft\helpers\StringHelper::UUID();
+                    $field->uid ??= \craft\helpers\StringHelper::UUID();
+                    // A new parent needs new field instances, but explicitly linked
                     // child fields must keep their shared definition.
                     if (!$field->getIsSynced()) {
-                        $field->fieldId = null;
-                        $field->syncId = null;
+                        $field->definitionId = null;
+                        $field->definitionUid = null;
+                        $field->isSynced = false;
                         $field->usageCount = null;
                     }
 

@@ -297,7 +297,11 @@ class Stencil extends Model implements FormInterface
     {
         $this->data->populateToForm($form, $regenerateFieldReferences);
 
-        $form->isApplyingStencil = true;
+        foreach ($this->data->warnings as $warning) {
+            Formie::warning($warning);
+        }
+
+        $form->layoutSaveContext = new LayoutSaveContext('stencil');
         $form->setTemplate($this->getTemplate());
         $form->setDefaultStatus($this->getDefaultStatus());
     }

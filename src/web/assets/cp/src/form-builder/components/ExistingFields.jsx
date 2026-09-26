@@ -98,11 +98,11 @@ const getParentFieldFromPages = (pagesSnapshot, nestedPlacement) => {
 
 const META_KEYS_TO_STRIP = new Set([
     'id',
-    'fieldId',
+    'definitionId',
     'layoutId',
     'pageId',
     'rowId',
-    'syncId',
+    'definitionUid',
     'nestedLayoutId',
     'contentTable',
     'settings',
@@ -125,7 +125,7 @@ const stripImportedFieldMeta = (value, { keepTopLevelSync = false, depth = 0 } =
 
     Object.entries(value).forEach(([key, entryValue]) => {
         if (META_KEYS_TO_STRIP.has(key)) {
-            if (keepTopLevelSync && depth === 0 && (key === 'fieldId' || key === 'syncId')) {
+            if (keepTopLevelSync && depth === 0 && (key === 'definitionId' || key === 'definitionUid')) {
                 stripped[key] = entryValue;
             }
 
@@ -176,7 +176,7 @@ const filterFormBySearch = (form, searchTerm) => {
 
             // When selecting all forms, ensure we filter out duplicate synced fields
             if (resolvedForm.key === '*') {
-                const definitionId = field?.fieldId || field?.syncId;
+                const definitionId = field?.definitionId;
 
                 if (field?.isSynced && definitionId && syncedFields.includes(definitionId)) {
                     return false;
@@ -333,8 +333,8 @@ const ExistingFields = ({ onClose, nestedPlacement = null }) => {
             ...data,
             type,
             isSynced: synced,
-            fieldId: synced ? syncSourceId : null,
-            syncId: synced ? syncSourceId : null,
+            definitionId: synced ? syncSourceId : null,
+            definitionToken: synced ? source.definitionToken : null,
         };
     };
 
@@ -684,8 +684,8 @@ const ExistingFields = ({ onClose, nestedPlacement = null }) => {
                 ? selectedFieldConfigById.get(fieldId)
                 : field;
             const syncDefinitionId = Number(
-                resolvedFieldConfig?.fieldId
-                || field?.fieldId
+                resolvedFieldConfig?.definitionId
+                || field?.definitionId
                 || null,
             );
 

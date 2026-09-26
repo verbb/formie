@@ -127,7 +127,7 @@ abstract class ContainerParentField extends ParentField implements ParentFieldIn
     {
         return FieldClientChildren::make(FieldClientChildren::MODEL_CONTAINER_PARENT)
             ->withChildren(FieldClientChildren::MODE_PARTS)
-            ->withPartFieldResolver(fn() => $this->getFields(false));
+            ->withPartFieldResolver(fn() => $this->getEnabledFields());
     }
 
     protected function defineValueAsString(mixed $value, ElementInterface $element = null): string

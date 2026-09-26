@@ -302,7 +302,7 @@ class TriggerIntegration extends CraftBaseJob implements DebuggableJobInterface
             }
 
             $fields[$reference] = [
-                'fieldId' => $field->fieldId ?? null,
+                'fieldId' => $field->definitionId ?? null,
                 'uid' => $field->uid ?? null,
                 'handle' => $field->handle ?? null,
                 'label' => $field->label ?? null,

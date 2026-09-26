@@ -9,7 +9,7 @@
         
         {% namespace namespace %}
             <div class="formie-nested-field-rows" data-formie-nested-field-rows>
-                {% for row in field.getRows(true, index) %}
+                {% for row in field.getRows(index) %}
                     <div class="formie-nested-field-row" data-formie-nested-field-row>
                         {% for field in row.getFields() %}
                             {% include 'formie/_formfields/repeater/field' with {

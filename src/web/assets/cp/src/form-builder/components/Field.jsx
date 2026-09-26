@@ -130,8 +130,8 @@ const Field = ({
         return pages.length > 1 && pageIndex !== pages.length - 1;
     }, [field, pages.length, pageIndex]);
     const isSyncedField = useMemo(() => {
-        return Boolean(field?.isSynced || field?.syncId);
-    }, [field?.isSynced, field?.syncId]);
+        return Boolean(field?.isSynced);
+    }, [field?.isSynced, field?.isSynced]);
     const isEncryptedField = Boolean(field?.enableContentEncryption);
     const isBuilderLocked = Boolean(field?.builderLocked);
     const hasFieldStatusIndicators = isSyncedField
@@ -1025,7 +1025,7 @@ const FieldEditModal = ({
         ? `${resolvedFieldTypeLabel} - ${customFieldAdapterDefinition.label}`
         : resolvedFieldTypeLabel;
     const showFieldTypePill = fieldTypePillLabel !== '';
-    const isSyncedField = Boolean(field?.isSynced || field?.syncId);
+    const isSyncedField = Boolean(field?.isSynced);
     const shouldUseFieldLabel = shouldShowFieldDisplayLabel(field, activeFieldType);
     const fieldDisplayLabel = getFieldDisplayLabel(field, activeFieldType);
     const hasSchemaConfig = Boolean(activeFieldType?.schemaIndex || activeFieldType?.schema);

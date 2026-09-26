@@ -397,7 +397,7 @@ class Form extends Element implements FormInterface
     public string $builderEntityType = self::BUILDER_ENTITY_TYPE_FORM;
 
     public ?int $pageCount = null;
-    public bool $isApplyingStencil = false;
+    public ?\verbb\formie\models\LayoutSaveContext $layoutSaveContext = null;
 
     private ?FieldLayout $_fieldLayout = null;
     private ?FormLayout $_formLayout = null;
@@ -970,9 +970,24 @@ class Form extends Element implements FormInterface
         return $this->getFormLayout()->getPages();
     }
 
-    public function getRows(bool $includeDisabled = true): array
+    public function getEnabledRows(): array
     {
-        return $this->getFormLayout()->getRows($includeDisabled);
+        return $this->getFormLayout()?->getEnabledRows() ?? [];
+    }
+
+    public function getEnabledFields(): array
+    {
+        return $this->getFormLayout()?->getEnabledFields() ?? [];
+    }
+
+    public function getFieldsRecursively(): array
+    {
+        return $this->getFormLayout()?->getFieldsRecursively() ?? [];
+    }
+
+    public function getRows(): array
+    {
+        return $this->getFormLayout()->getRows();
     }
 
     public function getFields(): array
@@ -2037,23 +2052,15 @@ class Form extends Element implements FormInterface
             ->from(Table::FORMIE_FORMS)
             ->column();
 
-        // Clone the layout tree without serializing runtime callbacks or services.
-        $formLayout = clone $this->getFormLayout();
-        $this->_clearLayoutIdentifiers($formLayout);
-
-        $formSettings = clone $this->settings;
-        $formSettings->setForm(null);
-
-        $notifications = [];
-
-        foreach ($this->getNotifications() as $notification) {
-            $newNotification = clone $notification;
-            $newNotification->id = null;
-            $newNotification->formId = null;
-            $newNotification->uid = null;
-
-            $notifications[] = $newNotification;
-        }
+        $serializer = new \verbb\formie\helpers\FormSerializer();
+        $data = $serializer->prepareCopy([
+            'pages' => $serializer->serializeLayout($this->getFormLayout()),
+            'settings' => $this->settings->toArray(),
+            'notifications' => \verbb\formie\models\StencilData::getSerializedNotifications($this->getNotifications()),
+        ], 'duplicate');
+        $formLayout = new FormLayout(['pages' => $data['pages']]);
+        $formSettings = new FormSettings($data['settings']);
+        $notifications = array_map(fn($config) => new Notification($config), $data['notifications']);
 
         // Prepare new data for the duplicated form
         return [
@@ -2062,6 +2069,7 @@ class Form extends Element implements FormInterface
             'formLayout' => $formLayout,
             'notifications' => $notifications,
             'settings' => $formSettings,
+            'layoutSaveContext' => new \verbb\formie\models\LayoutSaveContext('duplicate'),
         ];
     }
 
@@ -2112,7 +2120,7 @@ class Form extends Element implements FormInterface
         }
 
         // If a new form, apply captcha integration defaults - but not if applying a stencil
-        if ($isNew && !$this->isApplyingStencil) {
+        if ($isNew && $this->layoutSaveContext?->operation !== 'stencil') {
             Formie::$plugin->getFormDefaults()->applyCaptchaDefaultsToNewForm($this);
         }
 
@@ -2134,8 +2142,12 @@ class Form extends Element implements FormInterface
             fn(array $field) => is_a($field['type'], Group::class, true),
         ), 'uid');
 
-        // Save the field layout as the last step
-        if (!Formie::$plugin->getFields()->saveLayout($this->getFormLayout())) {
+        // Re-establish persisted ownership for every save, preserving only orchestration policy.
+        $context = \verbb\formie\models\LayoutSaveContext::forForm($this, $this->layoutSaveContext?->operation ?? 'save');
+        $context->trusted = $this->layoutSaveContext?->trusted ?? true;
+        $context->remaps = $this->layoutSaveContext?->remaps ?? [];
+        $context->updateDefinitions = $this->layoutSaveContext?->updateDefinitions ?? true;
+        if (!Formie::$plugin->getFields()->saveLayout($this->getFormLayout(), $context)) {
             $this->addErrors($this->getFormLayout()->getErrors());
 
             return false;
@@ -3827,60 +3839,6 @@ class Form extends Element implements FormInterface
         return $errors;
     }
 
-    private function _clearLayoutIdentifiers(FormLayout $layout): void
-    {
-        $layout->id = null;
-        $layout->uid = '';
-
-        $pages = [];
-        foreach ($layout->getPages() as $sourcePage) {
-            $page = clone $sourcePage;
-            $page->id = null;
-            $page->layoutId = null;
-            $page->uid = '';
-
-            $rows = [];
-            foreach ($page->getRows() as $sourceRow) {
-                $row = clone $sourceRow;
-                $row->id = null;
-                $row->layoutId = null;
-                $row->pageId = null;
-                $row->uid = '';
-
-                $fields = [];
-                foreach ($row->getFields() as $sourceField) {
-                    $field = clone $sourceField;
-                    $field->id = null;
-                    $field->layoutId = null;
-                    $field->pageId = null;
-                    $field->rowId = null;
-                    $field->reference = null;
-                    $field->uid = '';
-
-                    // Duplicates should own independent field definitions, not share synced placements.
-                    $field->fieldId = null;
-                    $field->syncId = null;
-                    $field->isSynced = false;
-                    $field->usageCount = null;
-
-                    if ($field instanceof ParentFieldInterface) {
-                        $nestedLayout = clone $field->getFieldLayout();
-                        $this->_clearLayoutIdentifiers($nestedLayout);
-                        $field->setFieldLayout($nestedLayout);
-
-                        // Set after processing
-                        $field->nestedLayoutId = null;
-                    }
-                    $fields[] = $field;
-                }
-                $row->setFields($fields);
-                $rows[] = $row;
-            }
-            $page->setRows($rows);
-            $pages[] = $page;
-        }
-        $layout->setPages($pages);
-    }
 
     /**
      * Ensures the cached default status is allowed for this form's status policy.

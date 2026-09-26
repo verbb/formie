@@ -35,7 +35,7 @@ const resolveFieldTranslatableProperties = (field) => {
 };
 
 const getFieldDefinitionId = (field) => {
-    const fieldId = field?.fieldId ?? field?.settings?.fieldId ?? field?.syncId ?? field?.settings?.syncId;
+    const fieldId = field?.definitionId ?? field?.settings?.definitionId ?? field?.fieldId ?? field?.settings?.fieldId ?? field?.syncId ?? field?.settings?.syncId;
 
     if (fieldId === null || fieldId === undefined || String(fieldId).trim() === '') {
         return null;

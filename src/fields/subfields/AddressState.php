@@ -271,7 +271,7 @@ class AddressState extends SingleLineText implements ChildFieldInterface
         $parent = $this->getParentField();
 
         if ($parent instanceof Address) {
-            foreach ($parent->getFields(false) as $subField) {
+            foreach ($parent->getEnabledFields() as $subField) {
                 if ($subField instanceof AddressCountry) {
                     $countryOptionValue = $subField->optionValue ?? 'short';
                     break;

@@ -16,6 +16,7 @@ use verbb\formie\models\FieldLayout;
 use verbb\formie\models\FormSettings;
 use verbb\formie\models\FormTemplate;
 use verbb\formie\models\Notification;
+use verbb\formie\models\ImportResult;
 use verbb\formie\models\PdfTemplate;
 use verbb\formie\records\EmailTemplate as EmailTemplateRecord;
 use verbb\formie\records\Form as FormRecord;
@@ -76,7 +77,7 @@ class ImportExportHelper
                 ->one();
 
             // Remove attributes we won't need
-            foreach (['id', 'dateDeleted', 'dateCreated', 'dateUpdated', 'uid'] as $key) {
+            foreach (['id', 'dateDeleted', 'dateCreated', 'dateUpdated'] as $key) {
                 ArrayHelper::remove($data['formTemplate'], $key);
             }
         }
@@ -127,25 +128,7 @@ class ImportExportHelper
             $data['notifications'][$i] = $notification;
         }
 
-        // Get pages/rows/fields
-        $pages = [];
-
-        foreach ($formElement->getPages() as $page) {
-            $pageData = $page->toArray();
-            $pageData['settings'] = $page->getSettings();
-
-            // Remove some attributes
-            foreach (['id', 'formId', 'layoutId', 'sortOrder', 'dateCreated', 'dateUpdated', 'uid'] as $key) {
-                ArrayHelper::remove($pageData, $key);
-            }
-
-            // Get all field settings for all pages/rows (supports nested fields)
-            self::_getFieldInfoForExport($page->getRows(), $pageData);
-
-            $pages[] = $pageData;
-        }
-
-        $data['pages'] = $pages;
+        $data['pages'] = (new FormSerializer())->serializeLayout($formElement->getFormLayout());
 
         // Also save any custom fields' content
         if ($fieldLayout = $formElement->getFieldLayout()) {
@@ -162,30 +145,30 @@ class ImportExportHelper
         }
 
         // Handy to keep track of which version of export logic this is, for importing between systems
-        $data['exportVersion'] = 'v4';
+        $data['schemaVersion'] = FormSerializer::SCHEMA_VERSION;
+        $data['formieVersion'] = Formie::$plugin->getVersion();
+        $data['dependencies'] = self::getDependencyDocuments($data);
+        foreach (['group' => $formElement->getGroup(), 'submissionStatus' => $formElement->getDefaultStatus(), 'formStatus' => $formElement->getFormStatusModel()] as $kind => $resource) {
+            if ($resource) {
+                $data['dependencies'][] = ['kind' => $kind, 'config' => array_intersect_key($resource->getAttributes(), array_flip(['uid', 'name', 'handle', 'description', 'color']))];
+            }
+        }
+        unset($data['groupId'], $data['defaultStatusId'], $data['formStatusId']);
 
         return $data;
     }
 
-    public static function createFormFromImport(array $data, ?Form $form = null): Form
+    public static function createFormFromImport(array $data, ?Form $form = null, ?FormSerializer $serializer = null): Form
     {
-        $existingForm = $form;
-        $existingFields = [];
-
-        // Store the fields on an existing form, so we can retain their IDs later
-        if ($existingForm) {
-            $existingFields = self::_buildFieldMap($existingForm->getFields());
-
-            // Reset the form layout so it's from scratch
-            $form->setFormLayout(new FieldLayout());
-        }
+        $serializer ??= new FormSerializer();
+        $data = self::_applyDependencyDocuments($data);
+        $data = $serializer->prepareImport($data, $form);
 
         if (!$form) {
             $form = new Form();
         }
 
         // Grab all the extra bits from the export that need to be handles separately
-        $exportVersion = ArrayHelper::remove($data, 'exportVersion');
         $settings = Json::decodeIfJson(ArrayHelper::remove($data, 'settings'));
         $pages = ArrayHelper::remove($data, 'pages');
         $formTemplate = ArrayHelper::remove($data, 'formTemplate');
@@ -199,7 +182,7 @@ class ImportExportHelper
         unset($data['fieldLayoutId']);
 
         // Handle base form
-        $form->setAttributes($data, false);
+        $form->setAttributes(array_intersect_key($data, array_flip(FormDocumentSchema::FORM)), false);
 
         if ($sourceSiteHandle) {
             $sourceSiteId = self::_resolveSiteIdByHandle((string)$sourceSiteHandle);
@@ -221,6 +204,8 @@ class ImportExportHelper
 
         // Handle form settings
         $form->settings = new FormSettings();
+        $settings = array_intersect_key($settings ?? [], array_flip(FormDocumentSchema::FORM_SETTINGS));
+        $settings['integrations'] = Formie::$plugin->getIntegrations()->filterAllIntegrationFormSettings($settings['integrations'] ?? [], true);
         $form->settings->setAttributes($settings, false);
 
         // Check if there is an entry selected as the redirect action. If not found, will cause a fatal error
@@ -241,24 +226,16 @@ class ImportExportHelper
             }
         }
 
-        // Traverse import data and update field IDs
-        foreach ($pages as &$page) {
-            self::_updateFieldIdsInImport($page, $existingFields);
-        }
-
-        // Ensure the pages/rows/fields are prepped properly
-        self::_prepFieldsForImport($pages);
-
         // Handle field layout and pages
         $form->getFormLayout()->setPages($pages);
 
         // Handle for template
         if ($formTemplate) {
-            $template = Formie::$plugin->getFormTemplates()->getTemplateByHandle($formTemplate['handle']);
+            $template = self::_resolveResource('form', $formTemplate);
 
             if (!$template) {
                 $template = new FormTemplate();
-                $template->setAttributes($formTemplate, false);
+                $template->setAttributes(array_intersect_key($formTemplate, array_flip(FormDocumentSchema::FORM_TEMPLATE)), false);
             }
 
             $form->setTemplate($template);
@@ -279,25 +256,25 @@ class ImportExportHelper
                 // Find or create the notification, based on the form and notification handle
                 $notification = Formie::$plugin->getNotifications()->getFormNotificationByHandle($form, $notificationData['handle']) ?? new Notification();
 
-                $notification->setAttributes($notificationData, false);
+                $notification->setAttributes(array_intersect_key($notificationData, array_flip(FormDocumentSchema::NOTIFICATION)), false);
 
                 if ($emailTemplate) {
-                    $template = Formie::$plugin->getEmailTemplates()->getTemplateByHandle($emailTemplate['handle']);
+                    $template = self::_resolveResource('email', $emailTemplate);
 
                     if (!$template) {
                         $template = new EmailTemplate();
-                        $template->setAttributes($emailTemplate, false);
+                        $template->setAttributes(array_intersect_key($emailTemplate, array_flip(FormDocumentSchema::EMAIL_TEMPLATE)), false);
                     }
 
                     $notification->setTemplate($template);
                 }
 
                 if ($pdfTemplate) {
-                    $template = Formie::$plugin->getPdfTemplates()->getTemplateByHandle($pdfTemplate['handle']);
+                    $template = self::_resolveResource('pdf', $pdfTemplate);
 
                     if (!$template) {
                         $template = new PdfTemplate();
-                        $template->setAttributes($pdfTemplate, false);
+                        $template->setAttributes(array_intersect_key($pdfTemplate, array_flip(FormDocumentSchema::PDF_TEMPLATE)), false);
                     }
 
                     $notification->setPdfTemplate($template);
@@ -312,217 +289,248 @@ class ImportExportHelper
         return $form;
     }
 
-    public static function importFormFromJson($json, $formAction = "update"): Form
+    public static function createFromImport(array $data): ImportResult
     {
-
-        // Check if this is multiple forms exports (from Forms index) - just use the one
-        if (isset($json[0])) {
-            $json = $json[0];
-        }
-        
-        // Find an existing form with the same handle
-        $existingForm = null;
-        $formHandle = $json['handle'] ?? null;
-
-        if ($formHandle) {
-            $existingForm = Formie::$plugin->getForms()->getFormByHandle($formHandle);
-        }
-
-        $siteOverrides = ArrayHelper::remove($json, 'siteOverrides');
-        $fieldSiteOverrides = ArrayHelper::remove($json, 'fieldSiteOverrides');
-        $importReferences = [];
-        self::_extractImportReferences($json['pages'], $importReferences);
-
-        // When creating a new form, change the handle
-        if ($formAction === 'create') {
-            $formHandles = (new Query())
-                ->select(['handle'])
-                ->from(Table::FORMIE_FORMS)
-                ->column();
-
-            $json['handle'] = HandleHelper::getUniqueHandle($formHandles, $json['handle']);
-        }
-
-        if ($formAction === 'update') {
-            // Update the form (force)
-            $form = self::createFormFromImport($json, $existingForm);
-        } else {
-            // Create the form element, ready to go
-            $form = self::createFormFromImport($json);
-        }
-
-        // Because we also export the UID for forms, we need to check if we're importing a new form, but we've
-        // found a form with the same UID. If this happens, then the original form will be overwritten
-        if ($formAction === 'create') {
-            // Is there already a form that exists with this UID? Then we need to assign a new one.
-            // See discussion https://github.com/verbb/formie/discussions/1696 and actual issue https://github.com/verbb/formie/issues/1725
-            $existingForm = Formie::$plugin->getForms()->getFormByHandle($form->handle);
-
-            if ($existingForm) {
-                $form->uid = StringHelper::UUID();
-            }
-        }
-
-        // Legacy exports may keep placeholder recipient options where label and value match.
-        Recipients::$relaxLegacyOptionValidation = true;
-
-        try {
-            Craft::$app->getElements()->saveElement($form);
-        } finally {
-            Recipients::$relaxLegacyOptionValidation = false;
-        }
-
-         self::_importSiteOverrides(
-             $form,
-             $siteOverrides ?? null,
-             $fieldSiteOverrides ?? null,
-             $importReferences,
-         );
-
-         return $form;
-    
+        return self::_import($data, null);
     }
 
-    private static function _getFieldInfoForExport(array $rows, array &$pageData): void
+    public static function updateFromImport(array $data, Form $form): ImportResult
     {
-        foreach ($rows as $rowId => $row) {
-            foreach ($row['fields'] as $fieldId => $field) {
-                $settings = array_merge([
-                    'label' => $field->label,
-                    'handle' => $field->handle,
-                    'instructions' => $field->getSettings()['instructions'] ?? [],
-                    'required' => $field->required,
-                ], $field->settings);
+        return self::_import($data, $form);
+    }
 
-                ArrayHelper::remove($settings, 'formId');
-                ArrayHelper::remove($settings, 'nestedLayoutId');
+    public static function importFormFromJson($json, $formAction = 'update'): Form
+    {
+        $json = $json[0] ?? $json;
+        $form = $formAction === 'update' ? Formie::$plugin->getForms()->getFormByHandle($json['handle'] ?? '') : null;
 
-                $pageData['rows'][$rowId]['fields'][$fieldId] = [
-                    'type' => get_class($field),
-                    'reference' => $field->reference,
-                    'settings' => $settings,
-                ];
+        return ($form ? self::updateFromImport($json, $form) : self::createFromImport($json))->form;
+    }
 
-                // Handle nested fields
-                if ($field instanceof ParentFieldInterface) {
-                    self::_getFieldInfoForExport($field->getRows(), $pageData['rows'][$rowId]['fields'][$fieldId]['settings']);
+    public static function getDependencyDocuments(array $data): array
+    {
+        if (array_key_exists('dependencies', $data)) {
+            if (!is_array($data['dependencies'])) {
+                throw new Exception('Invalid form dependency manifest.');
+            }
+            foreach ($data['dependencies'] as $dependency) {
+                if (!is_array($dependency) || !in_array($dependency['kind'] ?? null, ['form', 'email', 'pdf', 'group', 'submissionStatus', 'formStatus'], true) || !is_array($dependency['config'] ?? null)) {
+                    throw new Exception('Invalid form dependency.');
+                }
+            }
+
+            return $data['dependencies'];
+        }
+        $dependencies = [];
+        if (!empty($data['formTemplate'])) {
+            $dependencies[] = ['kind' => 'form', 'config' => $data['formTemplate']];
+        }
+        foreach ($data['notifications'] ?? [] as $notification) {
+            foreach (['email', 'pdf'] as $kind) {
+                if (!empty($notification[$kind . 'Template'])) {
+                    $dependencies[] = ['kind' => $kind, 'config' => $notification[$kind . 'Template']];
                 }
             }
         }
+
+        return $dependencies;
     }
 
-    private static function _prepFieldsForImport(array &$pages): void
+    public static function planImport(array $data, ?Form $form = null): array
     {
-        foreach ($pages as $pageKey => &$page) {
-            // Handle Formie v2 exports
-            unset($page['userCondition'], $page['elementCondition']);
-
-            if (isset($page['rows'])) {
-                foreach ($page['rows'] as $rowKey => &$row) {
-                    if (isset($row['fields'])) {
-                        foreach ($row['fields'] as $fieldKey => &$field) {
-                            $type = $field['type'] ?? '';
-
-                            // Handle Formie v2 exports
-                            unset($field['settings']['isNested']);
-
-                            if (isset($field['label'])) {
-                                $field['settings']['label'] = $field['label'];
-                            }
-
-                            if (isset($field['handle'])) {
-                                $field['settings']['handle'] = $field['handle'];
-                            }
-
-                            // This will throw an error for Commerce, where the extended class doesn't exist.
-                            // Which unfortunately means we can't use `class_exists()` because it's the extended
-                            // class that doesn't exist, and that can't be caught for some reason.
-                            if (in_array($type, [fields\Products::class, fields\Variants::class]) && !Plugin::isPluginInstalledAndEnabled('commerce')) {
-                                unset($row['fields'][$fieldKey]);
-                            } else if (!class_exists($type)) {
-                                // Check if the class doesn't exist
-                                unset($row['fields'][$fieldKey]);
-                            }
-
-                            // Check for nested fields
-                            // Handle Formie v2 exports
-                            $nestedRows = $field['rows'] ?? $field['settings']['rows'] ?? [];
-
-                            if ($nestedRows) {
-                                // Create a new variable, so we can use our recursive function
-                                $nestedPages = [['rows' => $nestedRows]];
-
-                                self::_prepFieldsForImport($nestedPages);
-
-                                $field['settings']['rows'] = $nestedPages[0]['rows'];
-                            }
-
-                            self::_normalizeImportedFieldOptions($type, $field);
-                        }
-                    }
-                }
-
-                // Cleanup any isolated fields
-                $page['rows'] = array_filter($page['rows']);
-            }
+        $requested = $data;
+        $data = self::_applyDependencyDocuments($data);
+        $serializer = new FormSerializer();
+        $serializer->prepareImport($data, $form);
+        $resources = [];
+        foreach (self::getDependencyDocuments($data) as $dependency) {
+            $config = $dependency['config'];
+            $template = self::_resolveResource($dependency['kind'], $config);
+            $resources[] = [
+                'kind' => $dependency['kind'],
+                'handle' => $config['handle'] ?? '',
+                'action' => !$template ? 'create' : (($config['uid'] ?? null) === $template->uid ? 'reuseUid' : 'reuseHandle'),
+            ];
         }
-    }
-
-    private static function _normalizeImportedFieldOptions(string $type, array &$field): void
-    {
-        $settings = &$field['settings'];
-
-        if (!is_array($settings)) {
-            return;
+        $warnings = $serializer->warnings;
+        if (!empty($requested['formTemplateUid']) && empty($data['formTemplate'])) {
+            $warnings[] = 'Unavailable form template dependency: ' . $requested['formTemplateUid'];
         }
-
-        if (isset($settings['options']) && is_array($settings['options'])) {
-            if ($type === Recipients::class) {
-                $settings['options'] = FieldOptionHelper::sanitizeRecipientPlaceholderOptions($settings['options']);
-            } elseif (is_subclass_of($type, OptionsField::class) || $type === OptionsField::class) {
-                $settings['options'] = FieldOptionHelper::normalizeOptionRows($settings['options']);
-            }
-        }
-
-        if ($type === fields\Date::class && ($settings['defaultOption'] ?? null) === 'today') {
-            if (isset($settings['rows']) && is_array($settings['rows'])) {
-                self::_clearImportedDateSubFieldDefaultValues($settings['rows']);
-            }
-
-            $settings['layouts'] = is_array($settings['layouts'] ?? null) ? $settings['layouts'] : [];
-            foreach ($settings['layouts'] as &$layoutRows) {
-                if (is_array($layoutRows)) {
-                    self::_clearImportedDateSubFieldDefaultValues($layoutRows);
+        foreach ($requested['notifications'] ?? [] as $key => $notification) {
+            foreach (['email', 'pdf'] as $kind) {
+                if (!empty($notification[$kind . 'TemplateUid']) && empty($data['notifications'][$key][$kind . 'Template'])) {
+                    $warnings[] = 'Unavailable ' . $kind . ' template dependency: ' . $notification[$kind . 'TemplateUid'];
                 }
             }
-            unset($layoutRows);
         }
+        $settings = Json::decodeIfJson($data['settings'] ?? []) ?: [];
+        foreach ($settings['integrations'] ?? [] as $handle => $config) {
+            $integration = Formie::$plugin->getIntegrations()->getIntegrationByHandle($handle)
+                ?? Formie::$plugin->getIntegrations()->getCaptchaByHandle($handle);
+            if (!$integration || $integration instanceof \verbb\formie\models\MissingIntegration) {
+                $warnings[] = "Unavailable integration: $handle. Settings retained.";
+                $resources[] = ['kind' => 'integration', 'handle' => $handle, 'action' => 'missing'];
+            }
+        }
+        foreach ($resources as $resource) {
+            if ($resource['action'] === 'reuseHandle') {
+                $warnings[] = 'Legacy handle fallback: ' . $resource['kind'] . ' resource ' . $resource['handle'];
+            }
+        }
+
+        foreach (['groupId', 'defaultStatusId', 'formStatusId'] as $key) {
+            if (!empty($data[$key])) {
+                $warnings[] = "Legacy $key is environment-specific; the current form or destination default is retained.";
+            }
+        }
+
+        $sites = array_unique(array_filter([
+            $data['sourceSiteHandle'] ?? null,
+            ...array_keys($data['siteOverrides'] ?? []),
+            ...array_keys($data['fieldSiteOverrides'] ?? []),
+        ]));
+        foreach ($sites as $handle) {
+            if (!self::_resolveSiteIdByHandle($handle)) {
+                $warnings[] = "Unavailable site: $handle. Site overrides cannot be applied.";
+                $resources[] = ['kind' => 'site', 'handle' => $handle, 'action' => 'missing'];
+            }
+        }
+        if ($form && isset($data['notifications'])) {
+            $incomingHandles = array_column($data['notifications'] ?? [], 'handle');
+            $serializer->changes['removedNotifications'] = array_values(array_filter(
+                array_map(fn($notification) => $notification->handle, $form->getNotifications()),
+                fn($handle) => !in_array($handle, $incomingHandles, true),
+            ));
+        }
+
+        return ['warnings' => $warnings, 'missingTypes' => array_values(array_unique($serializer->missingTypes)), 'dependencies' => $resources, 'changes' => $serializer->changes];
     }
 
-    private static function _clearImportedDateSubFieldDefaultValues(array &$rows): void
+    private static function _applyDependencyDocuments(array $data): array
     {
-        foreach ($rows as &$row) {
-            if (!is_array($row)) {
-                continue;
-            }
-
-            $row['fields'] = is_array($row['fields'] ?? null) ? $row['fields'] : [];
-            foreach ($row['fields'] as &$field) {
-                if (!is_array($field)) {
+        $dependencies = self::getDependencyDocuments($data);
+        $resolve = static function(string $kind, mixed $reference) use ($dependencies): ?array {
+            foreach ($dependencies as $dependency) {
+                if ($dependency['kind'] !== $kind) {
                     continue;
                 }
-
-                if (array_key_exists('defaultValue', $field)) {
-                    $field['defaultValue'] = null;
-                }
-
-                if (isset($field['settings']) && is_array($field['settings']) && array_key_exists('defaultValue', $field['settings'])) {
-                    $field['settings']['defaultValue'] = null;
+                $config = $dependency['config'];
+                $key = is_array($reference) ? ($reference['uid'] ?? $reference['handle'] ?? null) : $reference;
+                if ($key === null || $key === ($config['uid'] ?? null) || $key === ($config['handle'] ?? null)) {
+                    return $config;
                 }
             }
-            unset($field);
+
+            return is_array($reference) ? $reference : null;
+        };
+        $data['formTemplate'] = $resolve('form', $data['formTemplate'] ?? $data['formTemplateUid'] ?? null);
+        foreach ($data['notifications'] ?? [] as $key => $notification) {
+            foreach (['email', 'pdf'] as $kind) {
+                $reference = $notification[$kind . 'Template'] ?? $notification[$kind . 'TemplateUid'] ?? null;
+                if ($reference !== null) {
+                    $data['notifications'][$key][$kind . 'Template'] = $resolve($kind, $reference);
+                }
+            }
         }
-        unset($row);
+
+        return $data;
+    }
+
+    private static function _resolveResource(string $kind, array $config): mixed
+    {
+        $service = self::_resourceService($kind);
+        $method = match ($kind) { 'group' => 'getGroupBy', 'submissionStatus', 'formStatus' => 'getStatusBy', default => 'getTemplateBy' };
+
+        return (!empty($config['uid']) ? $service->{$method . 'Uid'}($config['uid']) : null)
+            ?? (!empty($config['handle']) ? $service->{$method . 'Handle'}($config['handle']) : null);
+    }
+
+    private static function _resourceService(string $kind): mixed
+    {
+        return match ($kind) {
+            'form' => Formie::$plugin->getFormTemplates(),
+            'email' => Formie::$plugin->getEmailTemplates(),
+            'pdf' => Formie::$plugin->getPdfTemplates(),
+            'group' => Formie::$plugin->getFormGroups(),
+            'submissionStatus' => Formie::$plugin->getSubmissionStatuses(),
+            'formStatus' => Formie::$plugin->getFormStatuses(),
+        };
+    }
+
+    private static function _applyPortableResources(Form $form, array $data): void
+    {
+        foreach (self::getDependencyDocuments($data) as $dependency) {
+            $kind = $dependency['kind'];
+            $property = match ($kind) { 'group' => 'groupId', 'submissionStatus' => 'defaultStatusId', 'formStatus' => 'formStatusId', default => null };
+            if (!$property) {
+                continue;
+            }
+            $resource = self::_resolveResource($kind, $dependency['config']);
+            if (!$resource) {
+                $class = match ($kind) { 'group' => \verbb\formie\models\FormGroup::class, 'submissionStatus' => \verbb\formie\models\SubmissionStatus::class, 'formStatus' => \verbb\formie\models\FormStatus::class };
+                $keys = $kind === 'group' ? ['name', 'handle'] : ['name', 'handle', 'description', 'color'];
+                $resource = new $class(array_intersect_key($dependency['config'], array_flip($keys)));
+                $save = $kind === 'group' ? 'saveGroup' : 'saveStatus';
+                if (!self::_resourceService($kind)->$save($resource)) {
+                    throw new Exception('Unable to import dependency: ' . Json::encode($resource->getErrors()));
+                }
+            }
+            $form->$property = $resource->id;
+        }
+    }
+
+    private static function _import(array $data, ?Form $existing): ImportResult
+    {
+        $plan = self::planImport($data, $existing);
+        $serializer = new FormSerializer();
+        $projectConfig = Craft::$app->getProjectConfig();
+        $writeYaml = $projectConfig->writeYamlAutomatically;
+        if ($writeYaml) {
+            $projectConfig->flush();
+        }
+        // Dependencies share the database transaction; defer their YAML writes until it commits.
+        $projectConfig->writeYamlAutomatically = false;
+        $transaction = Craft::$app->getDb()->beginTransaction();
+        $previousRelaxation = Recipients::$relaxLegacyOptionValidation;
+        try {
+            if (!$existing) {
+                $handles = (new Query())->select('handle')->from(Table::FORMIE_FORMS)->column();
+                $data['handle'] = HandleHelper::getUniqueHandle($handles, $data['handle'] ?? 'importedForm');
+            }
+            $form = self::createFormFromImport($data, $existing, $serializer);
+            self::_applyPortableResources($form, $data);
+            $form->layoutSaveContext = new \verbb\formie\models\LayoutSaveContext($existing ? 'updateImport' : 'createImport');
+            $form->layoutSaveContext->trusted = false;
+            $form->layoutSaveContext->remaps = $serializer->remaps;
+            Recipients::$relaxLegacyOptionValidation = true;
+            if (!Craft::$app->getElements()->saveElement($form)) {
+                throw new Exception('Unable to import form: ' . Json::encode($form->getErrors()));
+            }
+            $siteOverrides = $data['siteOverrides'] ?? null;
+            $fieldOverrides = $data['fieldSiteOverrides'] ?? null;
+            $serializer->remap($siteOverrides);
+            $serializer->remap($fieldOverrides);
+            self::_importSiteOverrides($form, $siteOverrides, $fieldOverrides);
+            $projectConfig->saveModifiedConfigData();
+            $transaction->commit();
+
+            return new ImportResult($form, $plan['warnings'], $plan['missingTypes'], $plan['dependencies'], array_merge($plan['changes'], $serializer->changes), $serializer->remaps);
+        } catch (\Throwable $e) {
+            $transaction->rollBack();
+            $projectConfig->reset();
+            foreach (['form', 'email', 'pdf', 'group', 'submissionStatus', 'formStatus'] as $kind) {
+                self::_resourceService($kind)->invalidateCaches();
+            }
+            Formie::$plugin->getForms()->invalidateFormCaches();
+            Formie::$plugin->getFields()->resetFieldRegistryCache();
+            throw $e;
+        } finally {
+            $projectConfig->writeYamlAutomatically = $writeYaml;
+            if ($writeYaml) {
+                $projectConfig->writeYamlFiles();
+            }
+            Recipients::$relaxLegacyOptionValidation = $previousRelaxation;
+        }
     }
 
     private static function _buildFieldMap(array $fields, string $prefix = ''): array
@@ -541,35 +549,6 @@ class ImportExportHelper
         }
 
         return $fieldMap;
-    }
-
-    private static function _updateFieldIdsInImport(array &$data, array $existingFields, string $prefix = ''): void
-    {
-        if (isset($data['rows'])) {
-            foreach ($data['rows'] as &$row) {
-                if (isset($row['fields'])) {
-                    foreach ($row['fields'] as &$field) {
-                        // Support legacy handling
-                        $handle = $field['handle'] ?? $field['settings']['handle'] ?? null;
-                        $rows = $field['rows'] ?? $field['settings']['rows'] ?? null;
-
-                        $key = $prefix ? "$prefix.{$handle}" : $handle;
-
-                        if (isset($existingFields[$key])) {
-                            $field['id'] = $existingFields[$key]->id;
-                            $field['fieldId'] = $existingFields[$key]->fieldId;
-                            $field['uid'] = $existingFields[$key]->uid;
-                            $field['reference'] = $existingFields[$key]->reference;
-                        }
-
-                        // Recursively handle nested fields
-                        if ($rows && is_array($rows)) {
-                            self::_updateFieldIdsInImport($field['settings'], $existingFields, $key);
-                        }
-                    }
-                }
-            }
-        }
     }
 
     private static function _exportSiteOverrides(Form $form): array
@@ -655,7 +634,7 @@ class ImportExportHelper
 
         foreach ($importReferences as $reference => $path) {
             if (isset($importedFields[$path])) {
-                $fieldReferenceMap[$reference] = (int)$importedFields[$path]->fieldId;
+                $fieldReferenceMap[$reference] = (int)$importedFields[$path]->definitionId;
             }
         }
 
@@ -719,31 +698,6 @@ class ImportExportHelper
         return $site ? (int)$site->id : null;
     }
 
-    private static function _extractImportReferences(array &$pages, array &$references, string $prefix = ''): void
-    {
-        foreach ($pages as &$page) {
-            foreach ($page['rows'] as &$row) {
-                foreach ($row['fields'] as &$field) {
-                    $handle = $field['handle'] ?? $field['settings']['handle'] ?? '';
-                    $path = $prefix ? "$prefix.$handle" : $handle;
-                    $reference = ArrayHelper::remove($field, 'reference');
-
-                    if ($reference) {
-                        // Placement references are globally unique. Keep their portable path
-                        // for translation remapping while the imported field gets a fresh one.
-                        $references[$reference] = $path;
-                    }
-
-                    if (!empty($field['settings']['rows'])) {
-                        $nestedPages = [['rows' => $field['settings']['rows']]];
-                        self::_extractImportReferences($nestedPages, $references, $path);
-                        $field['settings']['rows'] = $nestedPages[0]['rows'];
-                    }
-                }
-            }
-        }
-    }
-
     private static function _buildFieldReferenceMap(Form $form): array
     {
         $map = [];
@@ -760,7 +714,7 @@ class ImportExportHelper
     private static function _collectFieldReferenceMap(FieldInterface $field, array &$map): void
     {
         $reference = trim((string)$field->reference);
-        $fieldId = (int)($field->fieldId ?: 0);
+        $fieldId = (int)($field->definitionId ?: 0);
 
         if ($reference !== '' && $fieldId) {
             $map[$reference] = $fieldId;

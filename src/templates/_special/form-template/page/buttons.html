@@ -1,5 +1,5 @@
 {% set prevPage = form.getPreviousPage(page) %}
-{% set inlineSubmit = page.shouldRenderSubmitOnLastRow(page.getRows(false)|length > 0) %}
+{% set inlineSubmit = page.shouldRenderSubmitOnLastRow(page.getEnabledRows()|length > 0) %}
 
 {% formtag 'pageButtons' %}
     {# Next button goes first. https://stackoverflow.com/a/1963285 #}

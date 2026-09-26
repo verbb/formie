@@ -74,7 +74,7 @@ class FormInterface extends Element
                 'resolve' => function($source, $arguments) {
                     $includeDisabled = $arguments['includeDisabled'] ?? false;
 
-                    return $source->getRows($includeDisabled);
+                    return $includeDisabled ? $source->getRows() : $source->getEnabledRows();
                 },
             ],
             'formFields' => [
@@ -91,7 +91,7 @@ class FormInterface extends Element
                 'resolve' => function($source, $arguments) {
                     $includeDisabled = $arguments['includeDisabled'] ?? false;
 
-                    return $source->getFields($includeDisabled);
+                    return $includeDisabled ? $source->getFields() : $source->getEnabledFields();
                 },
             ],
             'settings' => [

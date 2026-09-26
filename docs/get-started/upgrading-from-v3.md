@@ -1637,3 +1637,24 @@ Formie 4 keeps `verbb\formie\base\Payment`. Custom Formie 3 providers need the f
 Unresolved legacy payments migrate to unknown rather than inventing a confirmed provider result. Successful and failed historical payments retain their meaning and exact stored decimal text. The upgrade preserves payment and subscription identities, linkage and provider snapshots. Existing beta return/status/session URLs and tokens must be regenerated; deploy when active checkout sessions have drained, or arrange a short-lived site-specific forwarding policy that preserves purpose validation. Beta callback aliases are not a permanent API contract.
 
 Webhook signatures must be valid before Formie acknowledges an event. Stripe and GoCardless now retain encrypted authenticated evidence; Mollie URLs include a per-payment secret and use the provider API to authenticate the observed state. Reconfigure registered URLs where needed and retain the Formie security key for historical evidence decryption. See [Payment Integration](../developers/custom-integration/payment-integration) and [Console Commands](../developers/console-commands) for outcomes, replay, diagnostics and retention.
+
+
+## Field Extensions and Portable Forms
+
+Existing field subclasses continue to extend `verbb\formie\base\Field`. Register each concrete class through `Fields::EVENT_REGISTER_FIELDS`; classes that only implement `FieldInterface` are rejected when registration is resolved. Static metadata and inherited builder-schema defaults remain supported. Compatibility detection for legacy field methods stays inside the base field's internal traits.
+
+| Formie 3 PHP/config | Formie 4 canonical API |
+|---|---|
+| `Field`, `id`, `uid` | Preserved; these identify the form-field instance |
+| `fieldId` | `definitionId`; PHP/config alias remains available |
+| `syncId` | Shared `definitionId` plus `isSynced`; legacy PHP/config input remains supported |
+| `getAllFields()` | Preserved as fully hydrated runtime field objects |
+| Boolean field traversal flags | `getFields()`, `getEnabledFields()`, `getFieldsRecursively()` |
+
+Update custom templates that pass traversal flags. For example, replace `row.getFields(false)` with `row.getEnabledFields()` and `page.getRows(false)` with `page.getEnabledRows()`. Repeater row context uses `field.getFields(rowKey)`. Do not change native handle-based input names or replace instance IDs/UIDs in stored content with definition identity.
+
+Exports use integer `schemaVersion` and informational `formieVersion`. Legacy Formie exports pass through the document adapter. New imports and duplicates receive new instance identities and rewritten field references; duplicate definitions are independent. Update imports match stable references first and legacy nested handle paths second, preserving matched instances even after moving or renaming fields. The import preview reports retained, added and removed fields and template, group and status reuse or creation. Dependencies resolve by UID first, with a reported handle fallback. Legacy numeric resource IDs use destination defaults instead of claiming an unrelated local record. The whole import, including site overrides, rolls back on failure.
+
+Unknown, disabled or unregistered imported field types remain recoverable Missing Fields with their settings. Restore and register the owning extension before recovering them. Portable synced links use `syncedDefinitionUid`; beta numeric `syncedDefinitionId` and handle-only stencil links cannot select an arbitrary definition. A stencil whose shared definition cannot be resolved creates an independent definition. Regenerate affected beta stencil snapshots when shared syncing is intended.
+
+Field translations remain sparse and definition-scoped. Keep translatable instance settings out of definition overrides; introducing such a setting requires instance-level translation storage. Blank-form defaults are copied in class, global, group and explicit-value order. Stencils copy their contents and retain the new form's explicit identity; later edits to defaults or stencils do not alter existing forms.

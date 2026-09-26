@@ -69,7 +69,7 @@ class PageInterface extends BaseInterfaceType
                 'resolve' => function($source, $arguments) {
                     $includeDisabled = $arguments['includeDisabled'] ?? false;
 
-                    return $source->getRows($includeDisabled);
+                    return $includeDisabled ? $source->getRows() : $source->getEnabledRows();
                 },
             ],
             'pageFields' => [
@@ -86,7 +86,7 @@ class PageInterface extends BaseInterfaceType
                 'resolve' => function($source, $arguments) {
                     $includeDisabled = $arguments['includeDisabled'] ?? false;
 
-                    return $source->getFields($includeDisabled);
+                    return $includeDisabled ? $source->getFields() : $source->getEnabledFields();
                 },
             ],
             'settings' => [

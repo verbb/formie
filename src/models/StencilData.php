@@ -57,74 +57,12 @@ class StencilData extends Model
 
     public static function serializeLayoutField(FieldInterface $field): array
     {
-        $settings = $field->getSettings();
-        $settings['label'] = $field->label;
-        $settings['handle'] = $field->handle;
-
-        if ($field instanceof ParentField) {
-            $nestedRows = [];
-
-            foreach ($field->getRows() as $row) {
-                $rowData = [];
-
-                foreach ($row->getFields() as $nestedField) {
-                    $rowData['fields'][] = static::serializeLayoutField($nestedField);
-                }
-
-                $nestedRows[] = $rowData;
-            }
-
-            $settings['rows'] = $nestedRows;
-            $settings['nestedLayoutId'] = null;
-        }
-
-        $node = [
-            'type' => get_class($field),
-            'reference' => $field->reference,
-            'settings' => $settings,
-        ];
-
-        if ($field->getIsSynced() && $field->fieldId) {
-            $node['syncedDefinitionHandle'] = $field->handle;
-            $node['syncedDefinitionId'] = $field->fieldId;
-        }
-
-        return $node;
+        return (new \verbb\formie\helpers\FormSerializer())->serializeField($field);
     }
 
     public static function getSerializedLayout(FieldLayout $layout): array
     {
-        $layoutData = [];
-
-        $serializeRows = function($rows) use (&$serializeRows) {
-            $pageData = [];
-
-            foreach ($rows as $rowKey => $row) {
-                $rowData = [];
-
-                foreach ($row->getFields() as $field) {
-                    $rowData['fields'][] = static::serializeLayoutField($field);
-                }
-
-                $pageData[] = $rowData;
-            }
-
-            return $pageData;
-        };
-
-        foreach ($layout->getPages() as $pageKey => $page) {
-            $pageData = [
-                'uid' => $page->uid,
-                'label' => $page->label,
-                'settings' => $page->getPageSettings()?->toArray(),
-            ];
-
-            $pageData['rows'] = $serializeRows($page->getRows());
-
-            $layoutData[] = $pageData;
-        }
-
-        return $layoutData;
+        return (new \verbb\formie\helpers\FormSerializer())->serializeLayout($layout);
     }
 
 
@@ -139,6 +77,7 @@ class StencilData extends Model
     public array $pages = [];
     public array $notifications = [];
     public array $translations = [];
+    public array $warnings = [];
 
 
     // Public Methods
@@ -277,163 +216,11 @@ class StencilData extends Model
 
     private function _createRemappedStencilData(): self
     {
-        $serializedData = $this->getSerializedData();
-        $referenceMap = [];
-        $handleMap = [];
-        $pageUidMap = [];
-        $pages = $serializedData['pages'] ?? [];
+        $serializer = new \verbb\formie\helpers\FormSerializer();
+        $data = $serializer->prepareCopy($this->getSerializedData(), 'stencil');
+        $data['warnings'] = $serializer->warnings;
+        $this->warnings = $serializer->warnings;
 
-        // Assign per-form references for every layout field, including nested sub-fields.
-        // Legacy stencils may omit `reference` entirely and still use `{field:handle}` tokens.
-        $this->_remapSerializedLayoutFieldReferences($pages, $referenceMap, $handleMap, $pageUidMap);
-        $serializedData['pages'] = $pages;
-
-        $translations = $serializedData['translations'] ?? [];
-
-        foreach ($translations as &$translation) {
-            if (!is_array($translation)) {
-                continue;
-            }
-
-            if (isset($translation['pages']) && is_array($translation['pages'])) {
-                $translation['pages'] = $this->_remapSerializedOverrideKeys($translation['pages'], $pageUidMap);
-            }
-
-            if (isset($translation['fieldOverrides']) && is_array($translation['fieldOverrides'])) {
-                $translation['fieldOverrides'] = $this->_remapSerializedOverrideKeys(
-                    $translation['fieldOverrides'],
-                    $referenceMap + $handleMap,
-                );
-            }
-        }
-        unset($translation);
-
-        $serializedData['translations'] = $translations;
-
-        $tokenMap = $referenceMap;
-
-        foreach ($handleMap as $handle => $newReference) {
-            $tokenMap[$handle] = $newReference;
-        }
-
-        $this->_rewriteSerializedFieldReferenceTokensInData($serializedData, $tokenMap);
-
-        return new self($serializedData);
-    }
-
-    private function _remapSerializedLayoutFieldReferences(array &$pages, array &$referenceMap, array &$handleMap, array &$pageUidMap): void
-    {
-        foreach ($pages as &$page) {
-            if (!is_array($page)) {
-                continue;
-            }
-
-            $oldPageUid = trim((string)($page['uid'] ?? ''));
-            $newPageUid = StringHelper::UUID();
-            $page['uid'] = $newPageUid;
-
-            if ($oldPageUid !== '') {
-                $pageUidMap[$oldPageUid] = $newPageUid;
-            }
-
-            $rows = $page['rows'] ?? [];
-
-            foreach ($rows as &$row) {
-                if (!is_array($row)) {
-                    continue;
-                }
-
-                $fields = $row['fields'] ?? [];
-                $this->_remapSerializedRowFieldReferences($fields, $referenceMap, $handleMap);
-                $row['fields'] = $fields;
-            }
-            unset($row);
-
-            $page['rows'] = $rows;
-        }
-        unset($page);
-    }
-
-    private function _remapSerializedOverrideKeys(array $overrides, array $keyMap): array
-    {
-        $remapped = [];
-
-        foreach ($overrides as $key => $value) {
-            $newKey = $keyMap[(string)$key] ?? (string)$key;
-            $remapped[$newKey] = $value;
-        }
-
-        return $remapped;
-    }
-
-    private function _remapSerializedRowFieldReferences(array &$fields, array &$referenceMap, array &$handleMap): void
-    {
-        foreach ($fields as &$field) {
-            if (!is_array($field)) {
-                continue;
-            }
-
-            $oldReference = trim((string)($field['reference'] ?? ''));
-
-            if ($oldReference !== '' && isset($referenceMap[$oldReference])) {
-                $newReference = $referenceMap[$oldReference];
-            } else {
-                $newReference = StringHelper::UUID();
-
-                if ($oldReference !== '') {
-                    $referenceMap[$oldReference] = $newReference;
-                }
-            }
-
-            $field['reference'] = $newReference;
-
-            $handle = trim((string)($field['settings']['handle'] ?? ''));
-
-            if ($handle !== '') {
-                $handleMap[$handle] = $newReference;
-            }
-
-            $nestedRows = $field['settings']['rows'] ?? null;
-
-            if (is_array($nestedRows)) {
-                foreach ($nestedRows as &$nestedRow) {
-                    if (!is_array($nestedRow)) {
-                        continue;
-                    }
-
-                    $nestedFields = $nestedRow['fields'] ?? [];
-                    $this->_remapSerializedRowFieldReferences($nestedFields, $referenceMap, $handleMap);
-                    $nestedRow['fields'] = $nestedFields;
-                }
-                unset($nestedRow);
-            }
-        }
-        unset($field);
-    }
-
-    private function _rewriteSerializedFieldReferenceTokensInData(mixed &$value, array $tokenMap): void
-    {
-        if ($tokenMap === []) {
-            return;
-        }
-
-        if (is_string($value)) {
-            $value = preg_replace_callback('/\{field:[^}]+\}/', function(array $matches) use ($tokenMap): string {
-                $rawToken = (string)($matches[0] ?? '');
-
-                return References::remapFieldReferenceToken($rawToken, $tokenMap);
-            }, $value) ?? $value;
-
-            return;
-        }
-
-        if (!is_array($value)) {
-            return;
-        }
-
-        foreach ($value as &$nestedValue) {
-            $this->_rewriteSerializedFieldReferenceTokensInData($nestedValue, $tokenMap);
-        }
-        unset($nestedValue);
+        return new self($data);
     }
 }

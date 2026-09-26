@@ -5,9 +5,9 @@
     {% if field.settings.useMultipleFields %}
         {% namespace field.handle %}
             <div class="formie-subfield-rows" data-formie-subfield-rows>
-                {% for row in field.getRows(false) %}
+                {% for row in field.getEnabledRows() %}
                     <div class="formie-subfield-row" data-formie-subfield-row>
-                        {% for field in row.getFields(false) %}
+                        {% for field in row.getEnabledFields() %}
                             {% set value = element.getFieldValue(field.valueKey()) ?? field.getInitialValue(element) %}
                             {% set errors = element.getErrors(field.valueKey()) ?? [] %}
 

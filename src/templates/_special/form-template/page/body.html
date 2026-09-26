@@ -1,4 +1,4 @@
-{% set rows = page.getRows(false) %}
+{% set rows = page.getEnabledRows() %}
 {% set inlineSubmit = page.shouldRenderSubmitOnLastRow(rows|length > 0) %}
 
 {% formtag 'pageBody' %}
@@ -7,7 +7,7 @@
             {% set inlineSubmitButton = inlineSubmit and loop.last %}
 
             {% formtag 'row' %}
-                {% for field in row.getFields(false, true, false) %}
+                {% for field in row.getRenderableFields() %}
                     {{ craft.formie.renderField(form, field) }}
                 {% endfor %}
 

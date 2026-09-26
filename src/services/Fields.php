@@ -25,9 +25,11 @@ use verbb\formie\helpers\Table;
 use verbb\formie\helpers\ValidationHelper;
 use verbb\formie\integrations\feedme\elementfields as FeedMeElementField;
 use verbb\formie\integrations\feedme\fields as FeedMeField;
+use verbb\formie\models\FieldDefinition;
 use verbb\formie\models\FieldLayout;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\FieldLayoutRow;
+use verbb\formie\models\LayoutSaveContext;
 use verbb\formie\positions\AboveInput;
 use verbb\formie\positions\BelowInput;
 use verbb\formie\positions\Hidden as HiddenPosition;
@@ -91,8 +93,7 @@ class Fields extends Component
     private ?FieldGqlCache $_fieldGqlCache = null;
     private ?array $_reservedHandles = null;
     private array $_definitionIdsBeingDeleted = [];
-    private static array $_savedSharedDefinitionIds = [];
-    private static int $_layoutSaveDepth = 0;
+
     
 
 
@@ -195,21 +196,13 @@ class Fields extends Component
 
     public function getRegisteredFields(bool $excludeDisabled = true): array
     {
-        $cacheKey = $excludeDisabled ? 'exclude-disabled' : 'include-disabled';
-
-        if (isset($this->_getFieldRegistryCache()->registeredFields[$cacheKey])) {
-            return $this->_getFieldRegistryCache()->registeredFields[$cacheKey];
-        }
-
         $registeredFields = [];
 
         foreach ($this->_getResolvedRegisteredFieldTypes($excludeDisabled) as $class) {
             $registeredFields[$class] = $this->_getRegisteredFieldInstance($class);
         }
 
-        $this->_getFieldRegistryCache()->registeredFields[$cacheKey] = $registeredFields;
-
-        return $this->_getFieldRegistryCache()->registeredFields[$cacheKey];
+        return $registeredFields;
     }
 
     public function getFieldsByType(string $typeClass): array
@@ -365,12 +358,12 @@ class Fields extends Component
 
                 foreach ($fields as $field) {
                     // Only include one instance of a synced field.
-                    if ($field->isSynced && $field->fieldId && in_array($field->fieldId, $syncedDefinitionIds, true)) {
+                    if ($field->isSynced && $field->definitionId && in_array($field->definitionId, $syncedDefinitionIds, true)) {
                         continue;
                     }
 
-                    if ($field->isSynced && $field->fieldId) {
-                        $syncedDefinitionIds[] = $field->fieldId;
+                    if ($field->isSynced && $field->definitionId) {
+                        $syncedDefinitionIds[] = $field->definitionId;
                     }
 
                     $pageFields[] = $allFields[] = $field->getFormBuilderConfig();
@@ -557,8 +550,7 @@ class Fields extends Component
 
             $summary = [
                 'id' => (int)$fieldRecord['id'],
-                'fieldId' => (int)$fieldRecord['fieldId'],
-                'syncId' => ((int)($fieldRecord['usageCount'] ?? 1) > 1) ? (int)$fieldRecord['fieldId'] : null,
+                'definitionId' => (int)$fieldRecord['fieldId'],
                 'isSynced' => (int)($fieldRecord['usageCount'] ?? 1) > 1,
                 'label' => (string)$fieldRecord['label'],
                 'handle' => (string)$fieldRecord['handle'],
@@ -598,7 +590,7 @@ class Fields extends Component
             foreach ($existingFields as $formData) {
                 foreach ($formData['pages'] as $pageData) {
                     foreach ($pageData['fields'] as $fieldData) {
-                        $definitionId = (int)($fieldData['fieldId'] ?? 0);
+                        $definitionId = (int)($fieldData['definitionId'] ?? 0);
 
                         if (!empty($fieldData['isSynced']) && $definitionId && in_array($definitionId, $syncedDefinitions, true)) {
                             continue;
@@ -651,7 +643,7 @@ class Fields extends Component
             ->indexBy('id')
             ->all();
 
-        $placementRecords = (new Query())
+        $instanceRecords = (new Query())
             ->select([
                 'ff.fieldId',
                 'fo.id as formId',
@@ -671,9 +663,9 @@ class Fields extends Component
         $formIds = [];
         $formsByDefinitionId = [];
 
-        foreach ($placementRecords as $placementRecord) {
-            $definitionId = (int)($placementRecord['fieldId'] ?? 0);
-            $formId = (int)($placementRecord['formId'] ?? 0);
+        foreach ($instanceRecords as $instanceRecord) {
+            $definitionId = (int)($instanceRecord['fieldId'] ?? 0);
+            $formId = (int)($instanceRecord['formId'] ?? 0);
 
             if (!$definitionId || !$formId) {
                 continue;
@@ -682,8 +674,8 @@ class Fields extends Component
             $formIds[] = $formId;
             $formsByDefinitionId[$definitionId][$formId] = [
                 'id' => $formId,
-                'title' => (string)($placementRecord['formTitle'] ?? $formId),
-                'handle' => (string)($placementRecord['formHandle'] ?? ''),
+                'title' => (string)($instanceRecord['formTitle'] ?? $formId),
+                'handle' => (string)($instanceRecord['formHandle'] ?? ''),
             ];
         }
 
@@ -782,7 +774,12 @@ class Fields extends Component
 
             $fields[] = [
                 'id' => $id,
-                'field' => $field->getFormBuilderConfig(),
+                'field' => $field->getFormBuilderConfig() + [
+                    'definitionToken' => Craft::$app->getSecurity()->hashData(Json::encode([
+                        'purpose' => 'field-definition', 'definitionId' => $field->definitionId,
+                        'formId' => $excludeForm?->id, 'userId' => Craft::$app->getUser()->getId(),
+                    ])),
+                ],
             ];
         }
 
@@ -791,63 +788,50 @@ class Fields extends Component
 
     public function createField(array $config = []): FieldInterface
     {
-        if (is_string($config)) {
-            $config = ['type' => $config];
-        }
+        return $this->hydrateField($config);
+    }
 
-        $definitionId = (int)($config['fieldId'] ?? $config['syncId'] ?? 0);
-
-        if ($definitionId && isset($config['type'])) {
-            $existingType = (new Query())
-                ->select(['type'])
-                ->from(Table::FORMIE_FIELDS)
-                ->where(['id' => $definitionId])
-                ->scalar();
-
-            if (is_string($existingType) && $existingType !== $config['type']) {
-                $config = $this->_sanitizeCompatibleFieldTypeConfig($config, $existingType, (string)$config['type']);
+    public function hydrateField(array $config): FieldInterface
+    {
+        // This path hydrates trusted persisted/internal config. Request payloads first pass FormSerializer.
+        $type = (string)($config['type'] ?? '');
+        $config = array_merge($config, $config['instanceSettings'] ?? []);
+        unset($config['instanceSettings']);
+        if (!empty($config['syncedDefinitionUid'])) {
+            $config['definitionUid'] = $config['syncedDefinitionUid'];
+            $config['isSynced'] = true;
+            $definition = $this->getFieldDefinitionByUid($config['syncedDefinitionUid']);
+            if ($definition && $definition->type === $type) {
+                $config['definitionId'] = $definition->id;
+                $config['definitionUid'] = $definition->uid;
+                $config['isSynced'] = true;
             }
         }
-
-        // If already a `MissingField` (typically serialized in stencil), convert back
-        if ($config['type'] === formiefields\MissingField::class) {
-            $config = [
-                'type' => $config['settings']['expectedType'],
-                'settings' => $config['settings']['settings'] ?? [],
-            ];
+        unset($config['syncedDefinitionUid']);
+        $settings = Json::decodeIfJson($config['settings'] ?? []) ?: [];
+        if ($type === formiefields\MissingField::class) {
+            $type = (string)($config['expectedType'] ?? $settings['expectedType'] ?? '');
+            $settings = $settings['settings'] ?? $settings;
         }
-
-        // `expectedType` is MissingField recovery metadata, not a concrete field
-        // setting. Drop it before hydrating real field classes from cached/project config.
-        if (isset($config['expectedType'])) {
+        $recoverable = array_key_exists('__formieMissingSettings', $settings);
+        if ($recoverable) {
+            $settings = $settings['__formieMissingSettings'];
+        }
+        unset($config['class'], $config['syncedDefinitionHandle'], $config['syncedDefinitionId']);
+        if (!in_array($type, $this->_getResolvedRegisteredFieldTypes(true), true)) {
+            $identity = array_intersect_key($config, array_flip(['id', 'uid', 'reference', 'definitionId', 'definitionUid', 'fieldId', 'layoutId', 'pageId', 'rowId', 'sortOrder', 'label', 'handle', 'required', 'isSynced', 'usageCount']));
+            $field = new formiefields\MissingField($identity + [
+                'expectedType' => $type,
+                'settings' => $settings,
+                'errorMessage' => "Unavailable field type: $type",
+            ]);
+        } else {
             unset($config['expectedType']);
+            $config['type'] = $type;
+            $config['settings'] = $recoverable ? (new \verbb\formie\helpers\FormSerializer())->recoverSettings($type, $settings) : $settings;
+            $field = ComponentHelper::createComponent($config, Field::class);
         }
-
-        $settings = Json::decodeIfJson($config['settings'] ?? null);
-
-        if (is_array($settings) && isset($settings['expectedType'])) {
-            unset($settings['expectedType']);
-            unset($settings['settings']);
-            $config['settings'] = $settings;
-        } else if ($settings === null && array_key_exists('settings', $config)) {
-            unset($config['settings']);
-        }
-
-        try {
-            $componentConfig = $config;
-            unset($componentConfig['syncedDefinitionHandle'], $componentConfig['syncedDefinitionId']);
-            $field = ComponentHelper::createComponent($componentConfig, FieldInterface::class);
-        } catch (MissingComponentException $e) {
-            $config['errorMessage'] = $e->getMessage();
-            $config['expectedType'] = $config['type'];
-            unset($config['type']);
-
-            $field = new formiefields\MissingField($config);
-        }
-
         $field->afterCreateField($config);
-
-        $this->applySyncedDefinitionFromConfig($field, $config);
 
         return $field;
     }
@@ -869,10 +853,10 @@ class Fields extends Component
     public function getAllFields(): array
     {
         if ($this->_getFieldLookupCache()->fields === null) {
-            // Keep raw field-definition rows cached until a caller actually asks for hydrated field
+            // Keep raw form-field rows cached until a caller actually asks for hydrated field
             // instances. Many requests only need layout/config metadata, so eagerly creating every
             // field object up front recreates the same broad bootstrap cost Craft hit in #13992.
-            $this->_getFieldLookupCache()->fields = (new Query())->from(Table::FORMIE_FIELDS)->all();
+            $this->_getFieldLookupCache()->fields = array_map(fn($record) => $this->_normalizeFormFieldConfig($record), $this->_createFormFieldConfigQuery()->all());
         }
 
         return $this->_hydrateCachedFields($this->_getFieldLookupCache()->fields);
@@ -919,6 +903,7 @@ class Fields extends Component
                     'f.label',
                     'f.handle',
                     'f.type',
+                    'f.uid as definitionUid',
                     'f.settings',
                     'COALESCE(usage.count, 1) as usageCount',
                     'fo.id as formId',
@@ -1111,10 +1096,10 @@ class Fields extends Component
     {
         $fieldRecord = $this->_getFieldConfigById($id);
 
-        return $fieldRecord ? $this->createField($fieldRecord) : null;
+        return $fieldRecord ? $this->hydrateField($fieldRecord) : null;
     }
 
-    public function getFieldDefinitionById(int $id): ?FieldInterface
+    public function getFieldDefinitionById(int $id): ?FieldDefinition
     {
         if (!$id) {
             return null;
@@ -1125,98 +1110,21 @@ class Fields extends Component
             ->where(['id' => $id])
             ->one();
 
-        return $fieldRecord ? $this->createField($fieldRecord) : null;
+        return $fieldRecord ? new FieldDefinition($fieldRecord) : null;
     }
 
-    public function resolveSharedFieldDefinition(string $handle, ?int $preferredDefinitionId = null): ?FieldInterface
+    public function getFieldDefinitionByUid(string $uid): ?FieldDefinition
     {
-        $handle = trim($handle);
+        $record = (new Query())->from(Table::FORMIE_FIELDS)->where(['uid' => $uid])->one();
 
-        if ($handle === '' && !$preferredDefinitionId) {
-            return null;
-        }
-
-        if ($preferredDefinitionId) {
-            $definition = $this->getFieldDefinitionById($preferredDefinitionId);
-
-            if ($definition && (!$handle || $definition->handle === $handle)) {
-                return $definition;
-            }
-        }
-
-        if ($handle === '') {
-            return null;
-        }
-
-        $sharedDefinitionId = (new Query())
-            ->select(['f.id'])
-            ->from(['f' => Table::FORMIE_FIELDS])
-            ->innerJoin(['ff' => Table::FORMIE_FORM_FIELDS], '[[ff.fieldId]] = [[f.id]]')
-            ->where(['f.handle' => $handle])
-            ->groupBy(['f.id'])
-            ->having('COUNT([[ff.id]]) > 1')
-            ->scalar();
-
-        if ($sharedDefinitionId) {
-            return $this->getFieldDefinitionById((int)$sharedDefinitionId);
-        }
-
-        $definitionId = (new Query())
-            ->select(['id'])
-            ->from(Table::FORMIE_FIELDS)
-            ->where(['handle' => $handle])
-            ->scalar();
-
-        return $definitionId ? $this->getFieldDefinitionById((int)$definitionId) : null;
-    }
-
-    public function applySyncedDefinitionFromConfig(FieldInterface $field, array $config): void
-    {
-        $syncedDefinitionHandle = trim((string)($config['syncedDefinitionHandle'] ?? ''));
-        $preferredDefinitionId = (int)($config['syncedDefinitionId'] ?? 0);
-
-        if (!$syncedDefinitionHandle && !$preferredDefinitionId) {
-            $isSynced = !empty($config['isSynced']);
-            $preferredDefinitionId = (int)($config['fieldId'] ?? $config['syncId'] ?? 0);
-
-            if (!$isSynced || !$preferredDefinitionId) {
-                return;
-            }
-
-            $definition = $this->getFieldDefinitionById($preferredDefinitionId);
-
-            if (!$definition) {
-                return;
-            }
-
-            $syncedDefinitionHandle = (string)$definition->handle;
-        }
-
-        $definition = $this->resolveSharedFieldDefinition($syncedDefinitionHandle, $preferredDefinitionId ?: null);
-
-        $definitionId = (int)($definition->fieldId ?: $definition->id ?? 0);
-
-        if (!$definition || !$definitionId) {
-            return;
-        }
-
-        $field->fieldId = $definitionId;
-        $field->syncId = $definitionId;
-        $field->handle = $definition->handle;
-
-        // Keep builder/config labels during save hydration. Stencils and imports may omit a label.
-        if (trim((string)($field->label ?? '')) === '') {
-            $field->label = $definition->label;
-        }
-
-        $field->isSynced = true;
+        return $record ? new FieldDefinition($record) : null;
     }
 
     public function getFieldByReference(string $reference): ?FieldInterface
     {
         $fieldRecord = $this->_getFieldConfigByReference($reference);
 
-        return $fieldRecord ? $this->createField($fieldRecord) : null;
+        return $fieldRecord ? $this->hydrateField($fieldRecord) : null;
     }
 
     public function fieldIncludedInGqlSchema(FieldInterface $field, GqlSchema $schema): bool
@@ -1283,7 +1191,7 @@ class Fields extends Component
 
             $cachedValue = $provider
                 ? $provider::gqlIncludeInSchemaFromConfig($fieldConfig, $schema)
-                : $this->fieldIncludedInGqlSchema($this->createField($fieldConfig), $schema);
+                : $this->fieldIncludedInGqlSchema($this->hydrateField($fieldConfig), $schema);
 
             $this->_getFieldGqlCache()->setConfigIncludeInSchema($fieldCacheKey, $schemaCacheKey, $cachedValue);
         }
@@ -1301,7 +1209,7 @@ class Fields extends Component
 
             $cachedValue = $provider
                 ? $provider::gqlContentTypeFromConfig($fieldConfig)
-                : $this->getFieldContentGqlType($this->createField($fieldConfig));
+                : $this->getFieldContentGqlType($this->hydrateField($fieldConfig));
 
             $this->_getFieldGqlCache()->setConfigContentType($fieldCacheKey, $cachedValue);
         }
@@ -1319,7 +1227,7 @@ class Fields extends Component
 
             $cachedValue = $provider
                 ? $provider::gqlContentQueryArgumentTypeFromConfig($fieldConfig)
-                : $this->getFieldContentGqlQueryArgumentType($this->createField($fieldConfig));
+                : $this->getFieldContentGqlQueryArgumentType($this->hydrateField($fieldConfig));
 
             $this->_getFieldGqlCache()->setConfigQueryArgumentType($fieldCacheKey, $cachedValue);
         }
@@ -1337,7 +1245,7 @@ class Fields extends Component
 
             $cachedValue = $provider
                 ? $provider::gqlContentMutationArgumentTypeFromConfig($fieldConfig)
-                : $this->getFieldContentGqlMutationArgumentType($this->createField($fieldConfig));
+                : $this->getFieldContentGqlMutationArgumentType($this->hydrateField($fieldConfig));
 
             $this->_getFieldGqlCache()->setConfigMutationArgumentType($fieldCacheKey, $cachedValue);
         }
@@ -1345,8 +1253,15 @@ class Fields extends Component
         return $cachedValue;
     }
 
-    public function saveLayout(FieldLayout $layout): bool
+    public function saveLayout(FieldLayout $layout, ?LayoutSaveContext $context = null): bool
     {
+        if ($context === null) {
+            $context = new LayoutSaveContext();
+            if ($layout->id) {
+                $context->includeLayout($layout->id);
+            }
+        }
+        $context->assertLayout($layout->id);
         $isNewLayout = !$layout->id;
 
         if (!$layout->beforeSave($isNewLayout)) {
@@ -1361,9 +1276,6 @@ class Fields extends Component
         $transaction = Craft::$app->getDb()->beginTransaction();
         $layoutId = null;
 
-        if (self::$_layoutSaveDepth++ === 0) {
-            self::$_savedSharedDefinitionIds = [];
-        }
 
         try {
             $layoutRecord = $isNewLayout ? new FieldLayoutRecord() : FieldLayoutRecord::findOne($layout->id);
@@ -1375,13 +1287,14 @@ class Fields extends Component
             $layoutRecord->save(false);
             $layout->id = $layoutRecord->id;
             $layoutId = $layout->id;
+            $context->layouts[$layoutId] = true;
             LayoutHandleUniqueValidator::beginLayoutSaveScope($layout);
 
             foreach ($layout->getPages() as $pageKey => $page) {
                 $page->layoutId = $layout->id;
                 $page->sortOrder = $pageKey;
 
-                if (!$this->savePage($page)) {
+                if (!$this->savePage($page, $context)) {
                     // Bubble-up the page errors with stable page/row/field paths.
                     ValidationHelper::addPrefixedErrors($layout, $page->getErrors(), "pages.$pageKey");
 
@@ -1411,9 +1324,6 @@ class Fields extends Component
             }
         } finally {
             LayoutHandleUniqueValidator::endLayoutSaveScope($layoutId);
-            if (--self::$_layoutSaveDepth === 0) {
-                self::$_savedSharedDefinitionIds = [];
-            }
         }
 
         return false;
@@ -1445,7 +1355,7 @@ class Fields extends Component
         return true;
     }
 
-    public function savePage(FieldLayoutPage $page): bool
+    public function savePage(FieldLayoutPage $page, ?LayoutSaveContext $context = null): bool
     {
         $isNewPage = !$page->id;
 
@@ -1461,6 +1371,10 @@ class Fields extends Component
 
         if (!$pageRecord) {
             throw new Exception('Invalid field page ID: ' . $page->id);
+        }
+
+        if ($page->id && (int)$pageRecord->layoutId !== (int)$page->layoutId) {
+            throw new InvalidConfigException('The layout item belongs to another layout.');
         }
 
         $pageRecord->id = $page->id;
@@ -1485,7 +1399,7 @@ class Fields extends Component
             $row->pageId = $page->id;
             $row->sortOrder = $rowKey;
 
-            if (!$this->saveRow($row)) {
+            if (!$this->saveRow($row, $context)) {
                 // Bubble-up the row errors with stable row/field paths.
                 ValidationHelper::addPrefixedErrors($page, $row->getErrors(), "rows.$rowKey");
 
@@ -1520,7 +1434,7 @@ class Fields extends Component
         return true;
     }
 
-    public function saveRow(FieldLayoutRow $row): bool
+    public function saveRow(FieldLayoutRow $row, ?LayoutSaveContext $context = null): bool
     {
         $isNewRow = !$row->id;
 
@@ -1536,6 +1450,10 @@ class Fields extends Component
 
         if (!$rowRecord) {
             throw new Exception('Invalid field row ID: ' . $row->id);
+        }
+
+        if ($row->id && (int)$rowRecord->layoutId !== (int)$row->layoutId) {
+            throw new InvalidConfigException('The layout item belongs to another layout.');
         }
 
         $rowRecord->id = $row->id;
@@ -1555,7 +1473,7 @@ class Fields extends Component
             $field->rowId = $row->id;
             $field->sortOrder = $fieldKey;
 
-            if (!$this->saveField($field)) {
+            if (!$this->saveField($field, true, $context)) {
                 // Bubble-up field errors with a deterministic field index path.
                 ValidationHelper::addPrefixedErrors($row, $field->getErrors(), "fields.$fieldKey");
 
@@ -1590,103 +1508,122 @@ class Fields extends Component
         return true;
     }
 
-    public function saveField(Field $field, bool $updateSyncedFields = true): bool
+    public function saveField(Field $field, bool $updateSyncedFields = true, ?LayoutSaveContext $context = null): bool
     {
-        $isNewField = !$field->id;
-        $definitionId = $field->fieldId ?: $field->syncId;
-        $fieldRecord = $definitionId ? FieldRecord::findOne($definitionId) : new FieldRecord();
-        $existingDefinitionUsageCount = $definitionId ? (int)((new Query())
-            ->from(Table::FORMIE_FORM_FIELDS)
-            ->where(['fieldId' => $definitionId])
-            ->count() ?: 0) : 0;
-
-        if (!$fieldRecord) {
-            throw new Exception('Invalid field definition ID: ' . $definitionId);
+        if ($context === null) {
+            $context = new LayoutSaveContext();
+            if ($field->layoutId) {
+                $context->includeLayout($field->layoutId);
+            }
         }
+        $context->assertField($field);
+        $field->layoutSaveContext = $context;
+        try {
+            $isNewField = !$field->id;
+            $definitionId = $field->definitionId;
+            $fieldRecord = $definitionId ? FieldRecord::findOne($definitionId) : new FieldRecord();
+            $existingDefinitionUsageCount = $definitionId ? (int)((new Query())
+                ->from(Table::FORMIE_FORM_FIELDS)
+                ->where(['fieldId' => $definitionId])
+                ->count() ?: 0) : 0;
 
-        if ($definitionId && $fieldRecord->type !== $field->type) {
-            if ($existingDefinitionUsageCount > 1) {
-                $field->addError('type', Craft::t('formie', 'Synced fields cannot change field type.'));
+            if (!$fieldRecord) {
+                throw new Exception('Invalid field definition ID: ' . $definitionId);
+            }
 
+            if ($definitionId && !($field instanceof formiefields\MissingField) && $fieldRecord->type !== $field->type) {
+                if ($existingDefinitionUsageCount > 1) {
+                    $field->addError('type', Craft::t('formie', 'Synced fields cannot change field type.'));
+
+                    return false;
+                }
+
+                if (!$this->canChangeFieldType($fieldRecord->type, $field->type)) {
+                    $field->addError('type', Craft::t('formie', 'This field type cannot be changed to the selected field type.'));
+
+                    return false;
+                }
+            }
+
+            if (!$field->beforeSave($isNewField)) {
                 return false;
             }
 
-            if (!$this->canChangeFieldType($fieldRecord->type, $field->type)) {
-                $field->addError('type', Craft::t('formie', 'This field type cannot be changed to the selected field type.'));
-
+            if (!$field->validate()) {
                 return false;
             }
-        }
 
-        if (!$field->beforeSave($isNewField)) {
-            return false;
-        }
-
-        if (!$field->validate()) {
-            return false;
-        }
-
-        LayoutHandleUniqueValidator::registerAssignedHandle((int)$field->layoutId, (string)$field->handle);
-
-        if ($definitionId && $existingDefinitionUsageCount > 1) {
-            $field->handle = $fieldRecord->handle;
-        }
-
-        $skipSharedDefinitionUpdate = $definitionId
-            && $existingDefinitionUsageCount > 1
-            && isset(self::$_savedSharedDefinitionIds[$definitionId]);
-
-        if (!$skipSharedDefinitionUpdate) {
-            $fieldRecord->id = $definitionId;
-            $fieldRecord->label = $field->label;
-            $fieldRecord->handle = $field->handle;
-            $fieldRecord->type = $field->type;
-            $fieldRecord->settings = Json::encode($field->getDefinitionSettings());
-
-            // Check if this is a missing field, and swap back its type. 
-            // This can commonly happen during a migration, not really from normal use.
-            if ($field instanceof formiefields\MissingField) {
-                $fieldRecord->type = $field->expectedType;
-            }
-
-            $fieldRecord->save(false);
+            LayoutHandleUniqueValidator::registerAssignedHandle((int)$field->layoutId, (string)$field->handle);
 
             if ($definitionId && $existingDefinitionUsageCount > 1) {
-                self::$_savedSharedDefinitionIds[$definitionId] = true;
+                $field->handle = $fieldRecord->handle;
             }
+
+            $skipSharedDefinitionUpdate = $definitionId
+                && $existingDefinitionUsageCount > 1
+                && (!$updateSyncedFields || !$context->updateDefinitions || isset($context->savedDefinitions[$definitionId]));
+
+            if (!$skipSharedDefinitionUpdate) {
+                $fieldRecord->id = $definitionId;
+                $fieldRecord->label = $field->label;
+                $fieldRecord->handle = $field->handle;
+                $fieldRecord->type = $field->type;
+                $fieldRecord->settings = Json::encode($field->getDefinitionSettings());
+
+                // Check if this is a missing field, and swap back its type.
+                // This can commonly happen during a migration, not really from normal use.
+                if ($field instanceof formiefields\MissingField) {
+                    $fieldRecord->type = $field->expectedType;
+                    // Keep unavailable configuration inert until the registered type can validate its schema.
+                    $fieldRecord->settings = Json::encode(['__formieMissingSettings' => $field->getSettings()]);
+                }
+
+                $fieldRecord->save(false);
+
+                if ($definitionId && $existingDefinitionUsageCount > 1) {
+                    $context->savedDefinitions[$definitionId] = true;
+                }
+            }
+
+            $formFieldRecord = $isNewField ? new FormFieldRecord() : FormFieldRecord::findOne($field->id);
+
+            if (!$formFieldRecord) {
+                throw new Exception('Invalid form field ID: ' . $field->id);
+            }
+
+            $formFieldRecord->id = $field->id;
+            $formFieldRecord->fieldId = $fieldRecord->id;
+            $formFieldRecord->layoutId = $field->layoutId;
+            $formFieldRecord->pageId = $field->pageId;
+            $formFieldRecord->rowId = $field->rowId;
+            $formFieldRecord->sortOrder = $field->sortOrder;
+            $formFieldRecord->reference = $field->reference ?: StringHelper::UUID();
+            $formFieldRecord->settings = Json::encode($field->getFormFieldSettings());
+            if ($field->uid) {
+                $formFieldRecord->uid = $field->uid;
+            }
+            $formFieldRecord->save(false);
+
+            $field->id = $formFieldRecord->id;
+            $field->definitionId = $fieldRecord->id;
+            $field->definitionUid = $fieldRecord->uid;
+            $field->uid = $formFieldRecord->uid;
+            $field->reference = $formFieldRecord->reference;
+            $field->usageCount = (int)((new Query())
+                ->from(Table::FORMIE_FORM_FIELDS)
+                ->where(['fieldId' => $fieldRecord->id])
+                ->count() ?: 0);
+            $field->isSynced = $field->usageCount > 1;
+
+            $context->fields[$field->id] = $field->definitionId;
+            $field->afterSave($isNewField);
+
+            $this->_resetFieldCaches();
+
+            return true;
+        } finally {
+            $field->layoutSaveContext = null;
         }
-
-        $formFieldRecord = $isNewField ? new FormFieldRecord() : FormFieldRecord::findOne($field->id);
-
-        if (!$formFieldRecord) {
-            throw new Exception('Invalid form field ID: ' . $field->id);
-        }
-
-        $formFieldRecord->id = $field->id;
-        $formFieldRecord->fieldId = $fieldRecord->id;
-        $formFieldRecord->layoutId = $field->layoutId;
-        $formFieldRecord->pageId = $field->pageId;
-        $formFieldRecord->rowId = $field->rowId;
-        $formFieldRecord->sortOrder = $field->sortOrder;
-        $formFieldRecord->reference = $field->reference ?: StringHelper::UUID();
-        $formFieldRecord->settings = Json::encode($field->getFormFieldSettings());
-        $formFieldRecord->save(false);
-
-        $field->id = $formFieldRecord->id;
-        $field->fieldId = $fieldRecord->id;
-        $field->uid = $formFieldRecord->uid;
-        $field->reference = $formFieldRecord->reference;
-        $field->usageCount = (int)((new Query())
-            ->from(Table::FORMIE_FORM_FIELDS)
-            ->where(['fieldId' => $fieldRecord->id])
-            ->count() ?: 0);
-        $field->isSynced = $field->usageCount > 1;
-
-        $field->afterSave($isNewField);
-
-        $this->_resetFieldCaches();
-
-        return true;
     }
     
     public function deleteFieldById(int $id): bool
@@ -1708,14 +1645,17 @@ class Fields extends Component
 
         Db::delete(Table::FORMIE_FORM_FIELDS, ['id' => $field->id]);
 
-        if ($field->fieldId && !(new Query())->from(Table::FORMIE_FORM_FIELDS)->where(['fieldId' => $field->fieldId])->exists()) {
-            $definitionField = $this->getFieldDefinitionById($field->fieldId);
+        if ($field->definitionId && !(new Query())->from(Table::FORMIE_FORM_FIELDS)->where(['fieldId' => $field->definitionId])->exists()) {
+            $definitionField = $this->getFieldDefinitionById($field->definitionId);
 
             if ($definitionField) {
-                $definitionField->afterDelete();
+                // Nested layouts are definition-owned; metadata cleanup must not create a live field.
+                    if ($nestedLayoutId = $definitionField->settings['nestedLayoutId'] ?? null) {
+                        $this->deleteLayoutById((int)$nestedLayoutId);
+                    }
             }
 
-            Db::delete(Table::FORMIE_FIELDS, ['id' => $field->fieldId]);
+            Db::delete(Table::FORMIE_FIELDS, ['id' => $field->definitionId]);
         }
 
         $this->_resetFieldCaches();
@@ -1730,10 +1670,6 @@ class Fields extends Component
 
     public function checkRequiredPlugin(FieldInterface $field): bool
     {
-        if (!method_exists($field, 'getRequiredPlugins')) {
-            throw new MissingComponentException();
-        }
-
         foreach ($field::getRequiredPlugins() as $requiredPlugin) {
             $version = $requiredPlugin['version'] ?? 0;
             $handle = $requiredPlugin['handle'] ?? '';
@@ -1959,6 +1895,7 @@ class Fields extends Component
         return [
             'ff.id as formFieldId',
             'ff.fieldId as fieldDefinitionId',
+            'f.uid as fieldDefinitionUid',
             'ff.layoutId as fieldLayoutId',
             'ff.pageId as fieldPageId',
             'ff.rowId as fieldRowId',
@@ -2014,7 +1951,8 @@ class Fields extends Component
 
         return [
             'id' => $item['formFieldId'],
-            'fieldId' => $item['fieldDefinitionId'],
+            'definitionId' => $item['fieldDefinitionId'],
+            'definitionUid' => $item['fieldDefinitionUid'],
             'layoutId' => $item['fieldLayoutId'],
             'pageId' => $item['fieldPageId'],
             'rowId' => $item['fieldRowId'],
@@ -2028,7 +1966,6 @@ class Fields extends Component
                 : null,
             'usageCount' => $usageCount,
             'isSynced' => $usageCount > 1,
-            'syncId' => $usageCount > 1 ? (int)$item['fieldDefinitionId'] : null,
             'sortOrder' => $item['fieldSortOrder'],
             'dateCreated' => $item['fieldDateCreated'],
             'dateUpdated' => $item['fieldDateUpdated'],
@@ -2051,6 +1988,11 @@ class Fields extends Component
             ])
             ->from(Table::FORMIE_FORM_FIELDS)
             ->groupBy(['fieldId']);
+        $usageQuery->andWhere(['fieldId' => (new Query())->select('ff.fieldId')
+            ->from(['ff' => Table::FORMIE_FORM_FIELDS])
+            ->innerJoin(['l' => Table::FORMIE_FIELD_LAYOUTS], '[[l.id]] = [[ff.layoutId]]')
+            ->where($params)]);
+
 
         // Load the full layout/page/row/field graph in one flat result set, then rebuild the nested
         // model structure in PHP. This keeps the expensive hydration work batched even when the caller
@@ -2159,6 +2101,11 @@ class Fields extends Component
             ])
             ->from(Table::FORMIE_FORM_FIELDS)
             ->groupBy(['fieldId']);
+        $usageQuery->andWhere(['fieldId' => (new Query())->select('ff.fieldId')
+            ->from(['ff' => Table::FORMIE_FORM_FIELDS])
+            ->innerJoin(['p' => Table::FORMIE_FIELD_LAYOUT_PAGES], '[[p.id]] = [[ff.pageId]]')
+            ->where($params)]);
+
 
         // Do a single query here for everything, for performance, then cleanup due to lack of
         // MySQL being able to prefix tables nicely and get a nested structure.
@@ -2227,6 +2174,11 @@ class Fields extends Component
             ])
             ->from(Table::FORMIE_FORM_FIELDS)
             ->groupBy(['fieldId']);
+        $usageQuery->andWhere(['fieldId' => (new Query())->select('ff.fieldId')
+            ->from(['ff' => Table::FORMIE_FORM_FIELDS])
+            ->innerJoin(['r' => Table::FORMIE_FIELD_LAYOUT_ROWS], '[[r.id]] = [[ff.rowId]]')
+            ->where($params)]);
+
 
         // Do a single query here for everything, for performance, then cleanup due to lack of
         // MySQL being able to prefix tables nicely and get a nested structure.
@@ -2297,7 +2249,10 @@ class Fields extends Component
                 $definitionField = $this->getFieldDefinitionById($definitionId);
 
                 if ($definitionField) {
-                    $definitionField->afterDelete();
+                    // Nested layouts are definition-owned; metadata cleanup must not create a live field.
+                    if ($nestedLayoutId = $definitionField->settings['nestedLayoutId'] ?? null) {
+                        $this->deleteLayoutById((int)$nestedLayoutId);
+                    }
                 }
             }
 
@@ -2395,7 +2350,7 @@ class Fields extends Component
                 $keptFieldIds[] = $field->id;
             }
 
-            if (!method_exists($field, 'getRows')) {
+            if (!($field instanceof ParentFieldInterface)) {
                 continue;
             }
 
@@ -2422,6 +2377,12 @@ class Fields extends Component
 
         // Missing Field cannot be removed
         $event->fields[] = formiefields\MissingField::class;
+        foreach ($event->fields as $class) {
+            if (!is_string($class) || !is_subclass_of($class, Field::class) || !(new ReflectionClass($class))->isInstantiable()) {
+                throw new InvalidConfigException('Registered Formie field types must be concrete subclasses of ' . Field::class . ': ' . (is_string($class) ? $class : get_debug_type($class)));
+            }
+        }
+
         $resolvedFieldTypes = array_values(array_unique($event->fields));
 
         if ($excludeDisabled) {
@@ -2438,11 +2399,7 @@ class Fields extends Component
 
     private function _getRegisteredFieldInstance(string $fieldClass): FieldInterface
     {
-        if (!isset($this->_getFieldRegistryCache()->registeredFieldInstancesByType[$fieldClass])) {
-            $this->_getFieldRegistryCache()->registeredFieldInstancesByType[$fieldClass] = new $fieldClass;
-        }
-
-        return $this->_getFieldRegistryCache()->registeredFieldInstancesByType[$fieldClass];
+        return new $fieldClass();
     }
 
     private function _resetFieldCaches(): void
@@ -2503,6 +2460,7 @@ class Fields extends Component
             ->select([
                 'ff.id',
                 'ff.fieldId',
+                'f.uid as definitionUid',
                 'ff.layoutId',
                 'ff.pageId',
                 'ff.rowId',
@@ -2538,7 +2496,8 @@ class Fields extends Component
         $usageCount = max((int)($fieldConfig['usageCount'] ?? 1), 1);
         $fieldConfig['usageCount'] = $usageCount;
         $fieldConfig['isSynced'] = $usageCount > 1;
-        $fieldConfig['syncId'] = $fieldConfig['isSynced'] ? (int)($fieldConfig['fieldId'] ?? 0) : null;
+        $fieldConfig['definitionId'] = (int)($fieldConfig['fieldId'] ?? 0);
+        unset($fieldConfig['fieldId']);
 
         unset($fieldConfig['formFieldSettings']);
 
@@ -2629,7 +2588,7 @@ class Fields extends Component
                 continue;
             }
 
-            $fields[$index] = $this->createField($field);
+            $fields[$index] = $this->hydrateField($field);
         }
 
         return $fields;
@@ -2738,7 +2697,7 @@ class Fields extends Component
         }
 
         try {
-            $field = $this->createField(['type' => $type]);
+            $field = $this->hydrateField(['type' => $type]);
 
             if ($field instanceof Field) {
                 return (string)$field::displayName();

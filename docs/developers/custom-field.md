@@ -21,7 +21,7 @@ Event::on(Fields::class, Fields::EVENT_REGISTER_FIELDS, function(RegisterFieldsE
 });
 ```
 
-Fields should extend `verbb\formie\base\Field`. This gives your field the form-builder schema, front-end rendering, value handling, optional client-rendered configuration, and reference / reference-block rendering behaviour Formie expects.
+Fields must extend `verbb\formie\base\Field`. This gives your field the form-builder schema, front-end rendering, value handling, optional client-rendered configuration, and reference / reference-block rendering behaviour Formie expects.
 
 For fields that contain other fields, extend the parent field class that matches the behaviour you need:
 
@@ -560,3 +560,17 @@ protected function defineFieldSlotTag(string $key, RenderContext $context): ?Slo
     return parent::defineFieldSlotTag($key, $context);
 }
 ```
+
+## Definition and Instance Identity
+
+A `Field` is the full runtime object for one form field. Its `id`, `uid` and stable `reference` identify that instance. Its `definitionId` and `definitionUid` identify the shared field definition. Synced Fields use the same definition while retaining their own top-level instance identities. Label, handle, instructions, placeholder, options and defaults belong to the definition; `required` belongs to the instance.
+
+Use instance identity when working with submission content, client field IDs or errors. Keep the established handle-based native input names and value accessors; do not substitute a definition ID. For example, a saved field's `getClientConfig()['id']` identifies the form field, while `$field->definitionId` is suitable for finding its shared metadata. `Fields::getFieldDefinitionById()` returns an immutable internal `FieldDefinition`, without runtime rendering or save methods. `Fields::getAllFields()` continues to return fully hydrated runtime fields.
+
+Registration requires a concrete subclass of `Field`. `FieldInterface` is available for type hints; implementing that interface independently does not register a valid field. Declare metadata with `defineFieldType()` and the ordinary static methods. The base general-settings and preview schemas are valid defaults. Metadata requests use fresh field prototypes, so extensions must not rely on mutations to a previously returned prototype.
+
+`ParentFieldInterface` identifies a nested container. `ChildFieldInterface` identifies an intrinsic child, such as `firstName`, with a fixed parent/type/handle relationship. A Repeater's arbitrary nested fields are ordinary field instances, not intrinsic children. Use `FixedParentField` for intrinsic parts and `RepeatableParentField` for repeated arbitrary fields.
+
+Use `getFields()` for immediate fields, `getEnabledFields()` to omit disabled fields and `getFieldsRecursively()` for the complete nested graph. Pages and layouts flatten their immediate rows; recursive traversal descends into parent fields. Repeater callers can pass a row key to `getFields($rowKey)` to receive fields with that row's input context.
+
+Field settings returned to the builder are editable data, not permission to replace the field's identity. Builder creation accepts registered types and declared setting attributes. Existing instances must belong to the form, and Synced Fields selections use a server-issued selection token. Do not construct request-supplied component classes or use posted definition IDs as authority.

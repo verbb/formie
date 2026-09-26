@@ -3,9 +3,12 @@
 ## Unreleased
 
 ### Added
+- Add versioned, atomic form imports with dependency plans, stable-reference matching and recoverable missing field types.
 - Add portable per-site translations to stencils and copy them into form overrides when creating forms from a stencil. ([#2968](https://github.com/verbb/formie/issues/2968))
 
 ### Changed
+- Separate shared field definition identity from form-field instances, retain Formie 3 identity aliases and require registered fields to extend the base Field class.
+- Share identity remapping across imports, duplicates and stencils; use portable definition UIDs for Synced Fields and explicit enabled/recursive traversal APIs.
 - Make payment amounts exact, return typed payment decisions and atomically settle payment-backed submissions with recoverable provider evidence.
 - Retain coherent subscription and recurring-payment history; scope cancellation, provider return, status and session authority.
 - Persist encrypted, idempotent webhook receipts with redacted diagnostics and reject unauthenticated provider events.
@@ -19,6 +22,7 @@
 - Render form-authored Twig and object templates in Base's explicit sandbox while retaining Formie 4's reference-token handling.
 
 ### Fixed
+- Enforce field ownership and allowed field types at builder and save boundaries, preserve nested references and refresh layout lookups after descendant changes.
 - Stop invalid submissions before spam screening and CAPTCHA, and keep pending payment submissions incomplete until payment succeeds.
 - Fixed a moderate-severity information disclosure vulnerability. (GHSA-963f-vfpf-f85p)
 - Fixed a high-severity server-side request forgery vulnerability. ([GHSA-82jr-3xc8-86mr](https://github.com/verbb/formie/security/advisories/GHSA-82jr-3xc8-86mr))

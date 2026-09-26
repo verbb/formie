@@ -28,10 +28,6 @@ class FieldLayout extends SavableComponent
     public ?string $type = null;
 
     private array $_pages = [];
-    private ?array $_cachedRows = null;
-    private ?array $_cachedFields = null;
-    private ?array $_fieldsByHandle = null;
-    private ?array $_fieldsById = null;
 
 
     // Public Methods
@@ -70,57 +66,45 @@ class FieldLayout extends SavableComponent
     public function setPages(array $pages): void
     {
         $this->_pages = [];
-        $this->_resetIndexes();
 
         foreach ($pages as $page) {
             $this->_pages[] = (!($page instanceof FieldLayoutPage)) ? new FieldLayoutPage($page) : $page;
         }
     }
 
-    public function getRows(bool $includeDisabled = true): array
+    public function getRows(): array
     {
-        if ($includeDisabled) {
-            if ($this->_cachedRows === null) {
-                $rows = [];
-
-                foreach ($this->getPages() as $page) {
-                    foreach ($page->getRows() as $row) {
-                        $rows[] = $row;
-                    }
-                }
-
-                $this->_cachedRows = $rows;
-            }
-
-            return $this->_cachedRows;
+        $rows = [];
+        foreach ($this->getPages() as $page) {
+            array_push($rows, ...$page->getRows());
         }
 
-        return array_values(array_filter($this->getRows(), static function(FieldLayoutRow $row): bool {
-            return (bool)$row->getFields(false);
-        }));
+        return $rows;
     }
 
-    public function getFields(bool $includeDisabled = true): array
+    public function getEnabledRows(): array
     {
-        if ($includeDisabled) {
-            if ($this->_cachedFields === null) {
-                $fields = [];
+        return array_values(array_filter($this->getRows(), static fn(FieldLayoutRow $row) => $row->getEnabledFields() !== []));
+    }
 
-                foreach ($this->getRows() as $row) {
-                    foreach ($row->getFields() as $field) {
-                        $fields[] = $field;
-                    }
-                }
-
-                $this->_cachedFields = $fields;
-            }
-
-            return $this->_cachedFields;
+    public function getFields(): array
+    {
+        $fields = [];
+        foreach ($this->getRows() as $row) {
+            array_push($fields, ...$row->getFields());
         }
 
-        return array_values(array_filter($this->getFields(), static function(FieldInterface $field): bool {
-            return !$field->getIsDisabled();
-        }));
+        return $fields;
+    }
+
+    public function getEnabledFields(): array
+    {
+        return array_values(array_filter($this->getFields(), static fn(FieldInterface $field) => !$field->getIsDisabled()));
+    }
+
+    public function getFieldsRecursively(): array
+    {
+        return \verbb\formie\helpers\FieldTraversal::recursively($this->getFields());
     }
 
     public function getFieldByHandle(string $handle): ?FieldInterface
@@ -233,41 +217,24 @@ class FieldLayout extends SavableComponent
         }
     }
 
-    private function _resetIndexes(): void
-    {
-        $this->_cachedRows = null;
-        $this->_cachedFields = null;
-        $this->_fieldsByHandle = null;
-        $this->_fieldsById = null;
-    }
-
     private function _getFieldsByHandle(): array
     {
-        if ($this->_fieldsByHandle === null) {
-            $this->_fieldsByHandle = [];
-
-            // Layout lookups are hit repeatedly by forms, rendering, validation and submission access.
-            // Cache the flattened field graph once so repeated handle lookups do not keep traversing
-            // the same page -> row -> field structure on a single request.
-            foreach ($this->getFields() as $field) {
-                $this->_fieldsByHandle[$field->handle] = $field;
-            }
+        $index = [];
+        foreach ($this->getFields() as $field) {
+            $index[$field->handle] = $field;
         }
 
-        return $this->_fieldsByHandle;
+        return $index;
     }
 
     private function _getFieldsById(): array
     {
-        if ($this->_fieldsById === null) {
-            $this->_fieldsById = [];
-
-            foreach ($this->getFields() as $field) {
-                $this->_fieldsById[$field->id] = $field;
-            }
+        $index = [];
+        foreach ($this->getFields() as $field) {
+            $index[$field->id] = $field;
         }
 
-        return $this->_fieldsById;
+        return $index;
     }
 
 }

@@ -71,3 +71,24 @@ test('preserves a dynamic payment amount field after reload', async ({ page }) =
     await expect(dialog.getByRole('button', { name: 'Dynamic Value', exact: true }).first()).toBeVisible();
     await expect(dialog.getByRole('combobox').first()).toHaveValue('Payment total');
 });
+
+test('preserves fixed child settings when saving and reloading the builder', async ({ page }) => {
+    await page.goto('/admin/login');
+    await page.getByRole('textbox', { name: 'Username or Email', exact: true }).fill('admin');
+    await page.locator('input[name="password"]').fill('testing-only-password');
+    await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+    await page.waitForURL(url => !url.pathname.endsWith('/login'));
+    await page.goto('/admin/formie/forms/new');
+    await page.locator('pk-field[data-name="title"]').getByRole('textbox').fill(`Browser nested ${Date.now()}`);
+    await page.getByRole('button', { name: 'Next', exact: true }).click();
+    await page.getByRole('button', { name: 'Add Name', exact: true }).dblclick();
+    const dialog = page.locator('.formie-field-edit-dialog');
+    await dialog.locator('pk-field[data-name="label"]').getByRole('textbox').fill('Contact person');
+    await dialog.getByRole('button', { name: 'Apply', exact: true }).click();
+    await page.getByRole('button', { name: 'Save', exact: true }).click();
+    await expect(page.locator('#notifications').getByText('Form saved.', { exact: true })).toBeVisible();
+    await page.reload();
+    await page.getByRole('button', { name: 'Edit Contact person', exact: true }).click();
+    await expect(dialog.locator('pk-field[data-name="label"]').getByRole('textbox')).toHaveValue('Contact person');
+    await expect(dialog.locator('pk-field[data-name="useMultipleFields"]')).toBeVisible();
+});

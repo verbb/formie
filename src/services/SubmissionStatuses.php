@@ -49,6 +49,11 @@ class SubmissionStatuses extends Component
     // Public Methods
     // =========================================================================
 
+    public function invalidateCaches(): void
+    {
+        $this->_statuses = null;
+    }
+
     public function getAllStatuses(): array
     {
         return $this->_statuses()->all();

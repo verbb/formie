@@ -759,9 +759,24 @@ class Submission extends Element
         return $this->getFormLayout()?->getPages() ?? [];
     }
 
-    public function getRows(bool $includeDisabled = true): array
+    public function getEnabledRows(): array
     {
-        return $this->getFormLayout()?->getRows($includeDisabled) ?? [];
+        return $this->getFormLayout()?->getEnabledRows() ?? [];
+    }
+
+    public function getEnabledFields(): array
+    {
+        return $this->getFormLayout()?->getEnabledFields() ?? [];
+    }
+
+    public function getFieldsRecursively(): array
+    {
+        return $this->getFormLayout()?->getFieldsRecursively() ?? [];
+    }
+
+    public function getRows(): array
+    {
+        return $this->getFormLayout()?->getRows() ?? [];
     }
 
     public function getFields(): array

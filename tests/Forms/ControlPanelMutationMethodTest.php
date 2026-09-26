@@ -77,6 +77,8 @@ it('imports a form on a valid POST', function (): void {
     $location = (new ReflectionMethod($controller, '_resolveImportFileLocation'))->invoke($controller, $filename);
     file_put_contents($location, json_encode($payload, JSON_THROW_ON_ERROR));
     $projectConfig = Craft::$app->getProjectConfig();
+    // Finish the fixture request before reusing its config in a different web application's mutex context.
+    $projectConfig->flush();
     try {
         WebRequestTestHelper::withWebRequestContext(function ($request) use ($filename, $projectConfig): void {
             Craft::$app->set('projectConfig', $projectConfig);

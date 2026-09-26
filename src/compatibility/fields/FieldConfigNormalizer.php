@@ -348,7 +348,6 @@ class FieldConfigNormalizer
             'brandNewField',
             'hasLabel',
             'isNested',
-            'isSynced',
             'allowSelfRelations',
             'localizeRelations',
             'minRelations',

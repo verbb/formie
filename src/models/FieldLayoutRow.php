@@ -38,7 +38,6 @@ class FieldLayoutRow extends SavableComponent
     private ?FieldLayout $_layout = null;
     private ?FieldLayoutPage $_page = null;
     private array $_fields = [];
-    private ?array $_fieldsByHandle = null;
 
 
     // Public Methods
@@ -71,25 +70,24 @@ class FieldLayoutRow extends SavableComponent
         return $this->_page = Formie::$plugin->getFields()->getPageById($this->pageId);
     }
 
-    public function getFields(bool $includeDisabled = true, bool $includeHidden = true, bool $includeBuilderFields = true): array
+    public function getFields(): array
     {
-        $fields = $this->_hydrateFields();
+        return $this->_hydrateFields();
+    }
 
-        foreach ($fields as $fieldKey => $field) {
-            if (!$includeDisabled && $field->getIsDisabled()) {
-                unset($fields[$fieldKey]);
-            }
+    public function getEnabledFields(): array
+    {
+        return array_values(array_filter($this->getFields(), static fn(FieldInterface $field) => !$field->getIsDisabled()));
+    }
 
-            if (!$includeHidden && $field->getIsHidden()) {
-                unset($fields[$fieldKey]);
-            }
+    public function getRenderableFields(): array
+    {
+        return array_values(array_filter($this->getEnabledFields(), static fn(FieldInterface $field) => !$field->getIsBuilderField()));
+    }
 
-            if (!$includeBuilderFields && $field->getIsBuilderField()) {
-                unset($fields[$fieldKey]);
-            }
-        }
-
-        return $fields;
+    public function getFieldsRecursively(): array
+    {
+        return \verbb\formie\helpers\FieldTraversal::recursively($this->getFields());
     }
 
     public function setFields(array $fields): void
@@ -99,7 +97,6 @@ class FieldLayoutRow extends SavableComponent
         // seam lives here as well: layout hydration can stay cheap, while callers still get the same
         // concrete `FieldInterface` instances once they traverse into a row.
         $this->_fields = [];
-        $this->_fieldsByHandle = null;
 
         foreach ($fields as $field) {
             $this->_fields[] = $field;
@@ -113,29 +110,26 @@ class FieldLayoutRow extends SavableComponent
             static fn(FieldInterface $field) => $field->withParentField($parent, $namespace),
             $this->_hydrateFields(),
         );
-        $row->_fieldsByHandle = null;
 
         return $row;
     }
 
     public function getFieldByHandle(string $handle): ?FieldInterface
     {
-        if ($this->_fieldsByHandle === null) {
-            $this->_fieldsByHandle = [];
-
-            foreach ($this->getFields() as $field) {
-                $this->_fieldsByHandle[$field->handle] = $field;
+        foreach ($this->getFields() as $field) {
+            if ($field->handle === $handle) {
+                return $field;
             }
         }
 
-        return $this->_fieldsByHandle[$handle] ?? null;
+        return null;
     }
 
     public function getIsHidden(): bool
     {
         $fields = [];
 
-        foreach ($this->getFields(false) as $field) {
+        foreach ($this->getEnabledFields() as $field) {
             if (!$field->getIsHidden()) {
                 $fields[] = $field;
             }
@@ -166,7 +160,7 @@ class FieldLayoutRow extends SavableComponent
                 }
 
                 return $field->getClientConfig();
-            }, $this->getFields(false)))),
+            }, $this->getEnabledFields()))),
         ];
     }
 
@@ -179,7 +173,7 @@ class FieldLayoutRow extends SavableComponent
                 }
 
                 return $field->getClientPayload();
-            }, $this->getFields(false)))),
+            }, $this->getEnabledFields()))),
         ];
     }
 
@@ -218,10 +212,9 @@ class FieldLayoutRow extends SavableComponent
                 continue;
             }
 
-            $this->_fields[$fieldKey] = $fieldsService->createField($field);
+            $this->_fields[$fieldKey] = $fieldsService->hydrateField($field);
         }
 
-        $this->_fieldsByHandle = null;
 
         return $this->_fields;
     }

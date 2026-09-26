@@ -289,7 +289,7 @@ const NestedFieldEditModal = ({
         ? activeFieldType.label.trim()
         : '';
     const showFieldTypePill = resolvedFieldTypeLabel !== '';
-    const isSyncedField = Boolean(field?.isSynced || field?.syncId);
+    const isSyncedField = Boolean(field?.isSynced);
     const shouldUseFieldLabel = shouldShowFieldDisplayLabel(field, activeFieldType);
     const fieldDisplayLabel = getFieldDisplayLabel(field, activeFieldType);
     const hasSchemaConfig = Boolean(activeFieldType?.schemaIndex || activeFieldType?.schema);
@@ -632,7 +632,7 @@ const NestedFieldCard = ({
         }
         return hasErrorsForPrefix(nestedFieldPrefix);
     }, [formErrors, hasErrorsForPrefix, nestedFieldPath, nestedFieldPrefix]);
-    const isSyncedField = Boolean(nestedField?.isSynced || nestedField?.syncId);
+    const isSyncedField = Boolean(nestedField?.isSynced);
     const hasNestedFieldStatusIndicators = hasConditions || Boolean(nestedField?.enableContentEncryption) || isSyncedField;
     const currentRow = parentRows?.[nestedRowIndex];
     const prevRow = parentRows?.[nestedRowIndex - 1];

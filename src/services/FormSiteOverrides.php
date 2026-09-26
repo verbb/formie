@@ -663,7 +663,7 @@ class FormSiteOverrides extends Component
 
     private function _applyFieldOverridesFromPayload(FieldInterface $field, array $fieldOverrides): void
     {
-        $fieldId = (int)($field->fieldId ?: 0);
+        $fieldId = (int)($field->definitionId ?: 0);
         $resolved = $fieldId ? $this->_resolveFieldOverride($fieldOverrides, ['fieldId' => $fieldId]) : null;
 
         if (is_array($resolved)) {
@@ -1305,7 +1305,7 @@ class FormSiteOverrides extends Component
 
     private function _resolveFieldOverride(array $fieldOverrides, array $field): ?array
     {
-        $fieldId = (int)($field['fieldId'] ?? $field['settings']['fieldId'] ?? $field['syncId'] ?? $field['settings']['syncId'] ?? 0);
+        $fieldId = (int)($field['definitionId'] ?? $field['fieldId'] ?? $field['settings']['definitionId'] ?? $field['settings']['fieldId'] ?? $field['syncId'] ?? $field['settings']['syncId'] ?? 0);
 
         if ($fieldId) {
             if (isset($fieldOverrides[$fieldId]) && is_array($fieldOverrides[$fieldId])) {

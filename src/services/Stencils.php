@@ -63,6 +63,15 @@ class Stencils extends Component
     // Public Methods
     // =========================================================================
 
+    public function createFromStencil(Stencil $stencil, array $identity = []): Form
+    {
+        $identity = array_intersect_key($identity, array_flip(['title', 'handle', 'groupId', 'sourceSiteId']));
+        $form = new Form($identity);
+        $stencil->applyStencilToForm($form, true);
+
+        return $form;
+    }
+
     public function getAllStencils(bool $withTrashed = false): array
     {
         if (!DbSchema::tableExists(Table::FORMIE_STENCILS)) {
@@ -565,7 +574,7 @@ class Stencils extends Component
     private function _collectFieldReferenceMap(FieldInterface $field, array &$map): void
     {
         $reference = trim((string)$field->reference);
-        $fieldId = (int)($field->fieldId ?: 0);
+        $fieldId = (int)($field->definitionId ?: 0);
 
         if ($reference !== '' && $fieldId) {
             $map[$reference] = $fieldId;

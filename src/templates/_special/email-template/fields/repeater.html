@@ -17,7 +17,7 @@
                 </thead>
 
                 <tbody>
-                    {% for field in field.getFields(true, loop.index0) %}
+                    {% for field in field.getFields(loop.index0) %}
                         {% if not field.isConditionallyHidden(submission) %}
                             {% set fieldValue = submission.getFieldValue(field.valueKey()) ?? field.getInitialValue(submission) %}
 

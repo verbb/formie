@@ -560,9 +560,9 @@ class FormSlotRegistry extends Component
         $form = $context->form;
         $page = $context->targetPage ?? $form?->getCurrentPage();
         $pageSettings = $page?->getPageSettings();
-        $fieldCount = $row ? count($row->getFields(false)) : null;
+        $fieldCount = $row ? count($row->getEnabledFields()) : null;
         $isHidden = $row ? $row->getIsHidden() : false;
-        $rows = $page ? $page->getRows(false) : [];
+        $rows = $page ? $page->getEnabledRows() : [];
         $inlineSubmit = $page instanceof FieldLayoutPage
             && $row instanceof FieldLayoutRow
             && $page->shouldRenderSubmitOnLastRow(count($rows) > 0)

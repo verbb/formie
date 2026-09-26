@@ -228,6 +228,11 @@ class Forms extends Component
         $this->_formLookupCaches = [];
     }
 
+    public function duplicateForm(Form $form, array $attributes = []): Form
+    {
+        return Craft::$app->getElements()->duplicateElement($form, array_merge($form->getDuplicateAttributes(), $attributes));
+    }
+
     public function buildFormFromPost(): Form
     {
         $request = Craft::$app->getRequest();
@@ -633,7 +638,11 @@ class Forms extends Component
 
         // Populate the form builder layout (pages/rows/fields)
         if ($pages = $request->getParam('pages')) {
-            $form->getFormLayout()->setPages(Json::decodeIfJson($pages));
+            $serializer = new \verbb\formie\helpers\FormSerializer();
+            $form->getFormLayout()->setPages($serializer->hydrateBuilder(Json::decodeIfJson($pages), $form));
+            $form->layoutSaveContext = new \verbb\formie\models\LayoutSaveContext('builder');
+            $form->layoutSaveContext->trusted = false;
+            $form->layoutSaveContext->remaps = $serializer->remaps;
         }
 
         if (!Formie::$plugin->getSettings()->enableMultiPageForms && count($form->getPages()) > 1) {

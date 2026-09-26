@@ -241,7 +241,7 @@ class FieldSiteOverrides extends Component
 
     private function _collectFieldDefinitionIds(FieldInterface $field, array &$fieldIds): void
     {
-        $fieldId = (int)($field->fieldId ?: 0);
+        $fieldId = (int)($field->definitionId ?: 0);
 
         if ($fieldId) {
             $fieldIds[] = $fieldId;
@@ -297,7 +297,7 @@ class FieldSiteOverrides extends Component
 
     private function _getFieldDefinitionId(array $field): int
     {
-        $fieldId = (int)($field['fieldId'] ?? $field['settings']['fieldId'] ?? $field['syncId'] ?? $field['settings']['syncId'] ?? 0);
+        $fieldId = (int)($field['definitionId'] ?? $field['fieldId'] ?? $field['settings']['definitionId'] ?? $field['settings']['fieldId'] ?? $field['syncId'] ?? $field['settings']['syncId'] ?? 0);
 
         return $fieldId ?: 0;
     }

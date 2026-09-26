@@ -1,7 +1,7 @@
 {% fieldtag 'nestedField' %}
     {% fieldtag 'nestedFieldWrapper' %}
         {% fieldtag 'nestedFieldRows' %}
-            {% for row in field.getRows(true, index) %}
+            {% for row in field.getRows(index) %}
                 {% fieldtag 'nestedFieldRow' %}
                     {% for field in row.getFields() %}
                         {{ craft.formie.renderField(form, field) }}
