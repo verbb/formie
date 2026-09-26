@@ -123,5 +123,5 @@ it('remaps nested translations on create and preserves field identity on update'
         ->and($updatedChild->reference)->toBe($originalReference)
         ->and($overrides->getOverride((int)$originalId, (int)$site->id)['label'] ?? null)->toBe('Translated first name');
     $loaded = \verbb\formie\elements\Submission::find()->id($submission->id)->one();
-    expect($loaded->getFieldValueAsArray('fullName'))->toMatchArray(['firstName' => 'Original', 'lastName' => 'Person']);
+    expect($loaded->getFieldValueAsData('fullName'))->toMatchArray(['firstName' => 'Original', 'lastName' => 'Person']);
 });

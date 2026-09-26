@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\base;
 
+use verbb\formie\content\FieldStorageCodec;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyFieldEmailValueEvent;
 use verbb\formie\events\ModifyFieldIntegrationValueEvent;
@@ -49,9 +50,22 @@ trait FieldValueTrait
         return $event->value;
     }
 
-    public function getValueAsArray(mixed $value, ?ElementInterface $element = null): mixed
+    public function getValueAsData(mixed $value, ?ElementInterface $element = null): mixed
     {
-        $value = $this->defineValueAsArray($value, $element);
+        if (!$this->_projectingLegacyData && $this->_hasLegacyFieldMethodOverride('getValueAsJson')) {
+            \Craft::$app->getDeprecator()->log(static::class . '::getValueAsJson', 'Implement defineValueAsData() instead of overriding getValueAsJson().');
+            $this->_projectingLegacyData = true;
+            try {
+                $value = $this->getValueAsJson($value, $element);
+            } finally {
+                $this->_projectingLegacyData = false;
+            }
+        } else {
+            $value = $this->defineValueAsData($value, $element);
+            if ($this->_projectingLegacyData) {
+                return $value;
+            }
+        }
 
         $event = new ModifyFieldValueEvent([
             'value' => $value,
@@ -59,14 +73,15 @@ trait FieldValueTrait
             'submission' => $element,
         ]);
 
-        $this->trigger(static::EVENT_MODIFY_VALUE_AS_ARRAY, $event);
+        $this->trigger(static::EVENT_MODIFY_VALUE_AS_DATA, $event);
 
-        // Deprecated in 4.0.0 - remove at next breakpoint
-        // Keep the deprecated JSON event wired to the array projection so older
-        // listeners still influence the canonical structured-value path.
-        $this->trigger(static::EVENT_MODIFY_VALUE_AS_JSON, $event);
 
-        return $event->value;
+        return FieldStorageCodec::assertSafe($event->value);
+    }
+
+    public function serializeValueForClientInput(mixed $value, ?ElementInterface $element = null): mixed
+    {
+        return FieldStorageCodec::assertSafe($value);
     }
 
     public function getValueForExport(mixed $value, ?ElementInterface $element = null): mixed
@@ -86,7 +101,7 @@ trait FieldValueTrait
 
     public function getValueForIntegration(mixed $value, IntegrationField $integrationField, IntegrationInterface $integration, ?ElementInterface $element = null, string $fieldKey = ''): mixed
     {
-        $rawValue = $value;
+        $rawValue = $this->_copyProjectionValue($value);
         $value = $this->defineValueForIntegration($value, $integrationField, $integration, $element, $fieldKey);
 
         $event = new ModifyFieldIntegrationValueEvent([
@@ -130,9 +145,6 @@ trait FieldValueTrait
 
         $this->trigger(static::EVENT_MODIFY_VALUE_FOR_REFERENCE, $event);
 
-        // Reference output is the field's canonical singular string-like value,
-        // so keep existing string-value listeners in the loop during migration.
-        $this->trigger(static::EVENT_MODIFY_VALUE_AS_STRING, $event);
 
         return $event->value;
     }
@@ -150,10 +162,6 @@ trait FieldValueTrait
 
         $this->trigger(static::EVENT_MODIFY_VALUE_FOR_REFERENCE_BLOCK, $event);
 
-        // Keep the legacy email event available for older listeners, but route
-        // it through the deprecation bridge so canonical code stays reference-
-        // block first and only logs when the old event is actually in use.
-        $this->triggerDeprecatedEmailValueEvent($event);
 
         return $event->value;
     }
@@ -187,30 +195,14 @@ trait FieldValueTrait
         return ScalarValueCoercer::toScalarString($value);
     }
 
-    protected function defineValueAsArray(mixed $value, ElementInterface $element = null): mixed
+    protected function defineValueAsData(mixed $value, ElementInterface $element = null): mixed
     {
-        $normalizedArrayValue = ArrayValueCoercer::normalizeForField(
-            value: $value,
-            supportsArray: $this->supportsArrayValue(),
-        );
-
-        if ($normalizedArrayValue !== null) {
-            return $normalizedArrayValue;
+        if ($this->_hasLegacyFieldMethodOverride('defineValueAsJson')) {
+            \Craft::$app->getDeprecator()->log(static::class . '::defineValueAsJson', 'Implement defineValueAsData() instead of defineValueAsJson().');
+            return $this->defineValueAsJson($value, $element);
         }
 
-        if ($this->supportsStringValue()) {
-            $stringValue = $this->defineValueAsString($value, $element);
-
-            return $stringValue !== '' ? [$stringValue] : [];
-        }
-
-        $scalarValue = ScalarValueCoercer::normalizeScalarLike($value);
-
-        if (is_scalar($scalarValue)) {
-            return (string)$scalarValue === '' ? [] : [$scalarValue];
-        }
-
-        return Json::decode(Json::encode($value));
+        return FieldStorageCodec::assertSafe($value);
     }
 
     protected function defineValueForExport(mixed $value, ElementInterface $element = null): mixed
@@ -222,7 +214,7 @@ trait FieldValueTrait
     protected function defineValueForIntegration(mixed $value, IntegrationField $integrationField, IntegrationInterface $integration, ElementInterface $element = null, string $fieldKey = ''): mixed
     {
         $fieldValue = $integrationField->getType() === IntegrationField::TYPE_ARRAY
-            ? $this->defineValueAsArray($value, $element)
+            ? $this->defineValueAsData($value, $element)
             : $this->defineValueAsString($value, $element);
 
         return Integration::convertValueForIntegration($fieldValue, $integrationField);
@@ -247,19 +239,29 @@ trait FieldValueTrait
             return $this->defineValueForEmail($value, $notification, $element);
         }
 
-        return $value;
+        return $this->_copyProjectionValue($value);
     }
 
     protected function defineValueForCondition(mixed $value, Submission $submission): mixed
     {
-        // Conditions compare against a stable, comparable shape rather than
-        // field-specific field value objects that may be richer but harder to
-        // reference consistently from rules and expressions.
-        return $this->serializeValue($value, $submission);
+        return $this->defineValueAsData($value, $submission);
     }
 
     protected function defineValueForEmailPreview(FakerFactory $faker): mixed
     {
         return $faker->text;
     }
+
+    // Private Methods
+    // =========================================================================
+
+    private function _copyProjectionValue(mixed $value): mixed
+    {
+        if (is_array($value)) {
+            return array_map(fn($item) => $this->_copyProjectionValue($item), $value);
+        }
+
+        return is_object($value) && !$value instanceof \UnitEnum ? clone $value : $value;
+    }
+
 }

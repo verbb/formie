@@ -8,10 +8,6 @@ class SingleOptionFieldValue implements FieldValueInterface
     // Static Methods
     // =========================================================================
 
-    public static function capabilityTypes(): array
-    {
-        return ['string'];
-    }
 
     public static function toClientValueFrom(mixed $value): mixed
     {
@@ -30,22 +26,23 @@ class SingleOptionFieldValue implements FieldValueInterface
     // Properties
     // =========================================================================
 
-    public ?string $label = null;
-    public ?string $value = null;
-    public bool $selected = false;
-    public bool $valid = true;
+    public readonly ?string $label;
+    public readonly ?string $value;
+    public readonly bool $selected;
+    public readonly bool $valid;
     private array $_options = [];
 
 
     // Public Methods
     // =========================================================================
 
-    public function __construct(?string $label = null, ?string $value = null, bool $selected = false, bool $valid = true)
+    public function __construct(?string $label = null, ?string $value = null, bool $selected = false, bool $valid = true, array $options = [])
     {
         $this->label = $label;
         $this->value = $value;
         $this->selected = $selected;
         $this->valid = $valid;
+        $this->_options = $options;
     }
 
     public function getOptions(): array
@@ -53,10 +50,6 @@ class SingleOptionFieldValue implements FieldValueInterface
         return $this->_options;
     }
 
-    public function setOptions(array $options): void
-    {
-        $this->_options = $options;
-    }
 
     public function getPathValue(string $path): mixed
     {
@@ -78,7 +71,6 @@ class SingleOptionFieldValue implements FieldValueInterface
             'value' => $this->value,
             'selected' => $this->selected,
             'valid' => $this->valid,
-            'options' => array_map(static fn(OptionValue $option) => $option->toArray(), $this->_options),
         ];
     }
 
@@ -94,7 +86,7 @@ class SingleOptionFieldValue implements FieldValueInterface
 
     public function canResolvePath(string $path): bool
     {
-        return $path !== '';
+        return in_array($path, ['label', 'value', 'selected', 'valid'], true);
     }
 
     public function isEmpty(): bool

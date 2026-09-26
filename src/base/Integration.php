@@ -1574,7 +1574,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     protected function generateSubmissionPayloadValues(Submission $submission): array
     {
         $user = $submission->getUser();
-        $submissionContent = $submission->getValuesAsArray();
+        $submissionContent = $submission->getValuesAsData();
         $formAttributes = Json::decode(Json::encode($submission->getForm()->getAttributes()));
 
         $submissionAttributes = $submission->toArray([

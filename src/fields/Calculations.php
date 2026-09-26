@@ -6,7 +6,7 @@ use verbb\formie\base\PreviewableFieldInterface;
 use verbb\formie\base\RepeatableParentFieldInterface;
 use verbb\formie\fields\definitions\FieldClientModules;
 use verbb\formie\fields\definitions\FieldReferenceValue;
-use verbb\formie\fields\values\CalculationFieldValue;
+use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\helpers\FieldReferenceHelper;
 use verbb\formie\helpers\References;
@@ -16,7 +16,6 @@ use verbb\formie\helpers\Variables;
 use verbb\formie\models\ClientModule;
 use verbb\formie\models\SlotTag;
 use verbb\formie\models\RichText;
-
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
@@ -55,6 +54,16 @@ class Calculations extends Field implements PreviewableFieldInterface
 
     // Public Methods
     // =========================================================================
+
+    public function normalizeValue(mixed $value, ?\craft\base\ElementInterface $element): mixed
+    {
+        return \verbb\formie\fields\coercion\DecimalValueCoercer::normalize($value);
+    }
+
+    public function valueType(): FieldValueType
+    {
+        return FieldValueType::number();
+    }
 
     public function __construct(array $config = [])
     {
@@ -417,8 +426,7 @@ class Calculations extends Field implements PreviewableFieldInterface
         ];
     }
 
-    protected function defineValueClass(): ?string
-    {
-        return CalculationFieldValue::class;
-    }
+
+
+
 }

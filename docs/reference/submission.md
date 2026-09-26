@@ -180,7 +180,7 @@ Sets a field value on the submission.
 
 **Returns:** `mixed`
 
-Returns the normal field value for the supplied field key.
+Returns only the normalised runtime value for the supplied field key. It takes no projection argument. Text, Email and Phone return strings; Name always returns a NameFieldValue; dates, selected options and relation queries retain their domain semantics.
 :::
 
 ::: reference
@@ -192,11 +192,11 @@ Returns the field value as a string.
 :::
 
 ::: reference
-### `getFieldValueAsArray()`
+### `getFieldValueAsData()`
 
 **Returns:** `mixed`
 
-Returns the field value as an array.
+Returns the natural JSON-safe field value. Primitive fields return scalars; structured fields return explicit named data.
 :::
 
 ::: reference
@@ -248,11 +248,11 @@ Returns all submitted field values as strings.
 :::
 
 ::: reference
-### `getValuesAsArray()`
+### `getValuesAsData()`
 
 **Returns:** `array`
 
-Returns all submitted field values as arrays.
+Returns a handle-keyed map of natural JSON-safe field data. Individual values may be scalars, null or structured arrays.
 :::
 
 ::: reference

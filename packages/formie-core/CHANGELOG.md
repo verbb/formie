@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Changed
+- Describe normalized field values with explicit runtime type metadata and keep browser-input defaults separate from public data projections.
 - Support browser-bound progress, purpose-bound grant exchange, revision sessions and portable Save & Continue responses across REST and GraphQL. Clear exchanged tokens from browser history and preserve scoped upload attachment values.
 - Carry submission versions and typed outcomes through REST and GraphQL; return expected rejection and conflict payloads to renderers.
 

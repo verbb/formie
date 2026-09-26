@@ -1,7 +1,9 @@
 <?php
 namespace verbb\formie\deprecations;
 
+
 use verbb\formie\Formie;
+use verbb\formie\content\FieldStorageCodec;
 use verbb\formie\elements\Submission;
 use verbb\formie\compatibility\fields\FieldConfigNormalizer;
 use verbb\formie\events\ModifyFieldEmailValueEvent;
@@ -37,9 +39,19 @@ trait FieldDeprecations
     public function getValueAsJson(mixed $value, ?ElementInterface $element = null): mixed
     {
         // Deprecated in 4.0.0
-        Craft::$app->getDeprecator()->log(__METHOD__, 'Field `getValueAsJson()` has been deprecated. Use `getValueAsArray()` instead.');
+        Craft::$app->getDeprecator()->log(__METHOD__, 'Field `getValueAsJson()` has been deprecated. Use `getValueAsData()` instead.');
 
-        return $this->getValueAsArray($value, $element);
+        if (!$this->_projectingLegacyData && $this->_hasLegacyFieldMethodOverride('getValueAsJson')) {
+            $event = new \verbb\formie\events\ModifyFieldValueEvent([
+                'value' => $this->defineValueAsData($value, $element),
+                'field' => $this,
+                'submission' => $element,
+            ]);
+            $this->trigger(static::EVENT_MODIFY_VALUE_AS_DATA, $event);
+            return FieldStorageCodec::assertSafe($event->value);
+        }
+
+        return $this->getValueAsData($value, $element);
     }
 
     public function getFieldKey(): string
@@ -217,10 +229,8 @@ trait FieldDeprecations
 
     protected function defineValueAsJson(mixed $value, ElementInterface $element = null): mixed
     {
-        // Deprecated in 4.0.0
-        Craft::$app->getDeprecator()->log(__METHOD__, 'Field `defineValueAsJson()` has been deprecated. Use `defineValueAsArray()` instead.');
-
-        return $this->defineValueAsArray($value, $element);
+        Craft::$app->getDeprecator()->log(__METHOD__, 'Implement defineValueAsData() instead.');
+        return FieldStorageCodec::assertSafe($value);
     }
 
     protected function defineValueForVariable(mixed $value, Notification $notification, ElementInterface $element = null): mixed

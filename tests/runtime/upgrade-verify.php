@@ -22,7 +22,7 @@ $check($app->getDb()->tableExists(\verbb\formie\helpers\Table::FORMIE_SUBMISSION
 $check(!$app->getDb()->tableExists(\verbb\formie\helpers\Table::FORMIE_SUBMISSION_RESUME_TOKENS), 'upgrade removes plaintext beta resume storage');
 $check($app->getDb()->columnExists(\verbb\formie\helpers\Table::FORMIE_PENDING_UPLOADS, 'contentHash'), 'upgrade creates recoverable upload promotion storage');
 $check((string)$submission->getFieldValue('fullName') === 'Synthetic Ada', 'original text content survived');
-$values = $submission->getValuesAsArray();
+$values = $submission->getValuesAsData();
 $check(($values['company']['companyName'] ?? null) === 'Synthetic Company', 'nested group content survived');
 $field = $form->getFieldByHandle('fullName');
 $check($field->uid === $fixture['fieldUid'] && $field->required, 'field identity and required setting survived');

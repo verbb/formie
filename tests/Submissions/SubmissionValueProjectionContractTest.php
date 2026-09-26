@@ -7,7 +7,7 @@ use verbb\formie\helpers\References;
 use verbb\formie\models\Notification;
 use verbb\formie\models\ValueContext;
 
-it('keeps getFieldValue context projections aligned with wrapper methods', function (): void {
+it('keeps the runtime getter separate from convenience projections', function (): void {
     $form = formie()
         ->form(['title' => 'Submission Projection Context Contract'])
         ->singleLineTextField('fullName')
@@ -21,14 +21,10 @@ it('keeps getFieldValue context projections aligned with wrapper methods', funct
 
     $notification = new Notification(['name' => 'n', 'handle' => 'n' . uniqid()]);
 
-    expect($submission->getFieldValue('fullName', ValueContext::string()))->toBe($submission->getFieldValueAsString('fullName'))
-        ->and($submission->getFieldValue('fullName', ValueContext::json()))->toBe($submission->getFieldValueAsArray('fullName'))
-        ->and($submission->getFieldValue('fullName', ValueContext::export()))->toBe($submission->getFieldValueForExport('fullName'))
-        ->and($submission->getFieldValue('fullName', ValueContext::summary()))->toBe($submission->getFieldValueForSummary('fullName'))
-        ->and($submission->getFieldValue('fullName', ValueContext::reference($notification)))->toBe($submission->getFieldValueForReference('fullName', $notification))
-        ->and($submission->getFieldValue('fullName', ValueContext::referenceBlock($notification)))->toBe($submission->getFieldValueForReferenceBlock('fullName', $notification))
-        ->and($submission->getFieldValue('fullName', ValueContext::email($notification)))->toBe($submission->getFieldValueForEmail('fullName', $notification))
-        ->and($submission->getFieldValue('fullName', ValueContext::variable($notification)))->toBe($submission->getFieldValueForVariable('fullName', $notification));
+    expect((new ReflectionMethod($submission, 'getFieldValue'))->getNumberOfParameters())->toBe(1)
+        ->and($submission->getFieldValue('fullName'))->toBe('Context Contract')
+        ->and($submission->getFieldValueAsData('fullName'))->toBe('Context Contract')
+        ->and($submission->getFieldValueAsJson('fullName'))->toBe('Context Contract');
 });
 
 it('resolves nested group and repeater dot paths from submission values', function (): void {
@@ -122,7 +118,7 @@ it('keeps bulk projection helpers aligned with single-field wrappers', function 
         ->save();
 
     $asString = $submission->getValuesAsString();
-    $asJson = $submission->getValuesAsArray();
+    $asJson = $submission->getValuesAsData();
     $asExport = $submission->getValuesForExport();
     $asSummary = $submission->getValuesForSummary();
 
@@ -132,8 +128,8 @@ it('keeps bulk projection helpers aligned with single-field wrappers', function 
         ->and($asJson)->toHaveKey('email')
         ->and($asString['fullName'])->toBe($submission->getFieldValueAsString('fullName'))
         ->and($asString['email'])->toBe($submission->getFieldValueAsString('email'))
-        ->and($asJson['fullName'])->toBe($submission->getFieldValueAsArray('fullName'))
-        ->and($asJson['email'])->toBe($submission->getFieldValueAsArray('email'));
+        ->and($asJson['fullName'])->toBe($submission->getFieldValueAsData('fullName'))
+        ->and($asJson['email'])->toBe($submission->getFieldValueAsData('email'));
 
     $fullNameLabel = $form->getFieldByHandle('fullName')?->label;
     $emailLabel = $form->getFieldByHandle('email')?->label;

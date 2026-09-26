@@ -7,7 +7,7 @@ use verbb\formie\base\IntegrationInterface;
 use verbb\formie\base\PreviewableFieldInterface;
 use verbb\formie\base\SortableFieldInterface;
 use verbb\formie\fields\definitions\FieldReferenceValue;
-use verbb\formie\fields\values\BooleanFieldValue;
+use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\helpers\Gql as FormieGql;
 use verbb\formie\helpers\RichTextHelper;
 use verbb\formie\helpers\SchemaHelper;
@@ -18,7 +18,6 @@ use verbb\formie\models\SlotTag;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\RichText;
 use verbb\formie\positions\Hidden as HiddenPosition;
-
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
@@ -82,6 +81,11 @@ class Agree extends Field implements SortableFieldInterface, PreviewableFieldInt
     // Public Methods
     // =========================================================================
 
+    public function valueType(): FieldValueType
+    {
+        return FieldValueType::boolean();
+    }
+
     public function __construct(array $config = [])
     {
         // Setuo defaults for some values which can't in in the property definition
@@ -144,7 +148,7 @@ class Agree extends Field implements SortableFieldInterface, PreviewableFieldInt
     public function normalizeValue(mixed $value, ?ElementInterface $element): mixed
     {
         // Allow null value to represent proper empty state
-        return ($value === null) ? null : (bool)$value;
+        return filter_var($value, FILTER_VALIDATE_BOOLEAN);
     }
 
     public function getDescriptionHtml(): Markup
@@ -461,11 +465,6 @@ class Agree extends Field implements SortableFieldInterface, PreviewableFieldInt
                 'variableTypes' => [Variables::TYPE_BOOLEAN],
             ]),
         ];
-    }
-
-    protected function defineValueClass(): ?string
-    {
-        return BooleanFieldValue::class;
     }
 
 

@@ -7,7 +7,7 @@ use verbb\formie\base\PreviewableFieldInterface;
 use verbb\formie\base\SortableFieldInterface;
 use verbb\formie\fields\coercion\StringValueCoercer;
 use verbb\formie\fields\definitions\FieldReferenceValue;
-use verbb\formie\fields\values\StringFieldValue;
+use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\helpers\Variables;
@@ -18,7 +18,6 @@ use verbb\formie\fields\traits\UniqueValueFieldTrait;
 use verbb\formie\elements\Submission;
 use verbb\formie\models\ClientModule;
 use verbb\formie\models\SlotTag;
-
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
@@ -69,6 +68,11 @@ class SingleLineText extends Field implements SortableFieldInterface, Previewabl
     // Public Methods
     // =========================================================================
 
+    public function valueType(): FieldValueType
+    {
+        return FieldValueType::string();
+    }
+
     public function fieldKind(): string
     {
         return self::KIND_TEXT;
@@ -76,13 +80,7 @@ class SingleLineText extends Field implements SortableFieldInterface, Previewabl
 
     public function normalizeValue(mixed $value, ?ElementInterface $element): mixed
     {
-        if ($value === '') {
-            $value = null;
-        }
-
-        $value = parent::normalizeValue($value, $element);
-
-        return ($value === '' || $value === null) ? null : $value;
+        return (string)parent::normalizeValue(is_scalar($value) || $value === null ? $value : \craft\helpers\Json::encode($value), $element);
     }
 
     public function getElementConditionRuleType(): ?string
@@ -293,9 +291,9 @@ class SingleLineText extends Field implements SortableFieldInterface, Previewabl
         return StringValueCoercer::asString($value);
     }
 
-    protected function defineValueAsArray(mixed $value, ElementInterface $element = null): mixed
+    protected function defineValueAsData(mixed $value, ElementInterface $element = null): mixed
     {
-        return StringValueCoercer::asArray($value);
+        return StringValueCoercer::asString($value);
     }
 
     protected function defineReferenceValues(): array
@@ -330,8 +328,5 @@ class SingleLineText extends Field implements SortableFieldInterface, Previewabl
         return $modules;
     }
 
-    protected function defineValueClass(): ?string
-    {
-        return StringFieldValue::class;
-    }
+
 }

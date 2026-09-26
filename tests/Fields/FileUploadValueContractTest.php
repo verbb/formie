@@ -73,7 +73,7 @@ it('keeps unresolved file-upload projections deterministic across wrappers', fun
         ->save();
 
     expect($submission->getFieldValueAsString('attachments'))->toBe('')
-        ->and($submission->getFieldValueAsArray('attachments'))->toBe([])
+        ->and($submission->getFieldValueAsData('attachments'))->toBe([])
         ->and($submission->getFieldValueForExport('attachments'))->toBe('')
         ->and((string)$submission->getFieldValueForSummary('attachments'))->toBe('')
         ->and($submission->serializeFieldValues())->toBe([$form->getFieldByHandle('attachments')->uid => []]);
@@ -85,7 +85,7 @@ it('resolves seeded assets for file-upload projection wrappers', function (): vo
 
     $field = new FileUpload(['handle' => 'attachments']);
     $value = $field->normalizeValue([$asset->id], null);
-    $json = $field->getValueAsArray($value, null);
+    $json = $field->getValueAsData($value, null);
 
     expect($field->serializeValue($value, null))->toBe([$asset->id])
         ->and($field->getValueAsString($value, null))->toContain('seed-upload-contract')

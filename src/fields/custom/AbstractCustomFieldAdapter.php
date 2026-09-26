@@ -6,7 +6,7 @@ use verbb\formie\base\IntegrationInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\CustomField;
-use verbb\formie\fields\values\StringFieldValue;
+use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Notification;
@@ -119,9 +119,9 @@ abstract class AbstractCustomFieldAdapter implements CustomFieldAdapterInterface
         return $this->getSetting($field, 'defaultValue');
     }
 
-    public function getValueClass(CustomField $field): ?string
+    public function valueType(CustomField $field): FieldValueType
     {
-        return StringFieldValue::class;
+        return FieldValueType::storageSafe();
     }
 
     public function normalizeValue(mixed $value, CustomField $field, ?ElementInterface $element): mixed
@@ -201,7 +201,17 @@ abstract class AbstractCustomFieldAdapter implements CustomFieldAdapterInterface
         return '';
     }
 
-    public function getValueAsArray(mixed $value, CustomField $field, ?ElementInterface $element = null): mixed
+    public function decodeValueFromStorage(mixed $value, CustomField $field): mixed
+    {
+        return $value;
+    }
+
+    public function serializeValueForClientInput(mixed $value, CustomField $field, ?ElementInterface $element = null): mixed
+    {
+        return $this->getValueAsData($value, $field, $element);
+    }
+
+    public function getValueAsData(mixed $value, CustomField $field, ?ElementInterface $element = null): mixed
     {
         if (is_array($value)) {
             return $value;
@@ -220,7 +230,7 @@ abstract class AbstractCustomFieldAdapter implements CustomFieldAdapterInterface
     public function getValueForIntegration(mixed $value, CustomField $field, IntegrationField $integrationField, IntegrationInterface $integration, ?ElementInterface $element = null, string $fieldKey = ''): mixed
     {
         $fieldValue = $integrationField->getType() === IntegrationField::TYPE_ARRAY
-            ? $this->getValueAsArray($value, $field, $element)
+            ? $this->getValueAsData($value, $field, $element)
             : $this->getValueAsString($value, $field, $element);
 
         return Integration::convertValueForIntegration($fieldValue, $integrationField);
@@ -243,7 +253,7 @@ abstract class AbstractCustomFieldAdapter implements CustomFieldAdapterInterface
 
     public function getValueForCondition(mixed $value, CustomField $field, Submission $submission): mixed
     {
-        return $this->serializeValue($value, $field, $submission);
+        return $this->getValueAsData($value, $field, $submission);
     }
 
 

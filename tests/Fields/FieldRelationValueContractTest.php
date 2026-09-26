@@ -60,7 +60,7 @@ it('normalizes relation id payloads into fixed-order element queries', function 
 it('resolves seeded relation elements through projection wrappers', function (): void {
     foreach (seededRelationFixtures() as [$field, $id, $expectedString]) {
         $value = $field->normalizeValue([$id], null);
-        $json = $field->getValueAsArray($value, null);
+        $json = $field->getValueAsData($value, null);
 
         expect($field->serializeValue($value, null))->toBe([$id])
             ->and($field->getValueAsString($value, null))->toBe($expectedString)
@@ -82,7 +82,7 @@ it('keeps unresolved relation projection wrappers deterministic', function (): v
 
         expect($field->serializeValue($value, null))->toBe([])
             ->and($field->getValueAsString($value, null))->toBe('')
-            ->and($field->getValueAsArray($value, null))->toBe([])
+            ->and($field->getValueAsData($value, null))->toBe([])
             ->and($field->getValueForExport($value, null))->toBe('')
             ->and((string)$field->getValueForSummary($value, null))->toBe('');
     }

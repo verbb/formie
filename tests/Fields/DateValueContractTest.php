@@ -127,10 +127,10 @@ it('stringifies normalized date values consistently for field output', function 
         'ampm' => 'PM',
     ], null);
 
-    expect((string)$value)->toBe('1984-07-14 18:46')
+    expect((string)$value)->toBe('1984-07-14 18:46:08')
         ->and($field->getValueAsString($value, null))->toBe('1984-07-14 18:46')
         ->and($value->getPathValue('date'))->toBe('1984-07-14')
-        ->and($value->getPathValue('time'))->toBe('18:46');
+        ->and($value->getPathValue('time'))->toBe('18:46:08');
 });
 
 it('resolves single date and time reference selectors from faker preview values', function (): void {

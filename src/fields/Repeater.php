@@ -10,7 +10,7 @@ use verbb\formie\base\RepeatableParentField;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\definitions\FieldClientModules;
 use verbb\formie\fields\definitions\FieldReferences;
-use verbb\formie\fields\values\RepeaterFieldValue;
+use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\gql\interfaces\RowInterface;
 use verbb\formie\gql\types\input\RepeaterInputType;
 use verbb\formie\gql\types\RowType;
@@ -145,6 +145,11 @@ class Repeater extends RepeatableParentField
 
     // Public Methods
     // =========================================================================
+
+    public function valueType(): FieldValueType
+    {
+        return FieldValueType::array();
+    }
 
     public function __construct(array $config = [])
     {
@@ -511,8 +516,5 @@ class Repeater extends RepeatableParentField
         return $modules;
     }
 
-    protected function defineValueClass(): ?string
-    {
-        return RepeaterFieldValue::class;
-    }
+
 }

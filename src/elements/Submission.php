@@ -794,9 +794,9 @@ class Submission extends Element
         return $this->getContentManager()->serializeForDb($this);
     }
 
-    public function getFieldValue(string $fieldKey, mixed $context = null): mixed
+    public function getFieldValue(string $fieldKey): mixed
     {
-        return $this->getContentManager()->getFieldValue($this, $fieldKey, $context);
+        return $this->getContentManager()->getFieldValue($this, $fieldKey);
     }
 
     public function getFieldValuesForField(string $type): array
@@ -1047,37 +1047,37 @@ class Submission extends Element
 
     public function getFieldValueAsString(string $fieldKey): mixed
     {
-        return $this->getFieldValue($fieldKey, ValueContext::string());
+        return $this->getContentManager()->getProjectedFieldValue($this, $fieldKey, ValueContext::string());
     }
 
-    public function getFieldValueAsArray(string $fieldKey): mixed
+    public function getFieldValueAsData(string $fieldKey): mixed
     {
-        return $this->getFieldValue($fieldKey, ValueContext::array());
+        return $this->getContentManager()->getProjectedFieldValue($this, $fieldKey, ValueContext::data());
     }
 
     public function getFieldValueForExport(string $fieldKey): mixed
     {
-        return $this->getFieldValue($fieldKey, ValueContext::export());
+        return $this->getContentManager()->getProjectedFieldValue($this, $fieldKey, ValueContext::export());
     }
 
     public function getFieldValueForSummary(string $fieldKey): mixed
     {
-        return $this->getFieldValue($fieldKey, ValueContext::summary());
+        return $this->getContentManager()->getProjectedFieldValue($this, $fieldKey, ValueContext::summary());
     }
 
     public function getFieldValueForReference(string $fieldKey, mixed $notification = null): mixed
     {
-        return $this->getFieldValue($fieldKey, ValueContext::reference($notification));
+        return $this->getContentManager()->getProjectedFieldValue($this, $fieldKey, ValueContext::reference($notification));
     }
 
     public function getFieldValueForReferenceBlock(string $fieldKey, mixed $notification): mixed
     {
-        return $this->getFieldValue($fieldKey, ValueContext::referenceBlock($notification));
+        return $this->getContentManager()->getProjectedFieldValue($this, $fieldKey, ValueContext::referenceBlock($notification));
     }
 
     public function getFieldValueForIntegration(string $fieldKey, mixed $integrationField, mixed $integration, string $integrationFieldKey = ''): mixed
     {
-        return $this->getFieldValue($fieldKey, ValueContext::integration($integrationField, $integration, $integrationFieldKey));
+        return $this->getContentManager()->getProjectedFieldValue($this, $fieldKey, ValueContext::integration($integrationField, $integration, $integrationFieldKey));
     }
 
     public function getFieldValueForCondition(string $fieldKey): mixed
@@ -1085,7 +1085,7 @@ class Submission extends Element
         // Conditions must always route through the same projection path as the
         // standalone evaluators so builder rules, Twig checks, and workflow
         // logic compare against one canonical representation.
-        return $this->getFieldValue($fieldKey, ValueContext::condition());
+        return $this->getContentManager()->getProjectedFieldValue($this, $fieldKey, ValueContext::condition());
     }
 
     public function getValuesAsString(): array
@@ -1093,9 +1093,9 @@ class Submission extends Element
         return $this->getContentManager()->getValuesAsString($this);
     }
 
-    public function getValuesAsArray(): array
+    public function getValuesAsData(): array
     {
-        return $this->getContentManager()->getValuesAsArray($this);
+        return $this->getContentManager()->getValuesAsData($this);
     }
 
     public function getValuesForExport(): array

@@ -21,12 +21,12 @@ Custom validators still use the same `data-formie-validation` payload as the bui
 
 ### Custom PHP Field
 
-If you are building a custom field in PHP, the normal pattern is to add browser validation rules from `defineValidationRules()`. Formie's field wrapper will then emit `data-formie-validation` for you automatically.
+If you are building a custom field in PHP, the normal pattern is to add browser validation rules from `defineBrowserValidationRules()`. Formie's field wrapper will then emit `data-formie-validation` for you automatically.
 
 ```php
-protected function defineValidationRules(): array
+protected function defineBrowserValidationRules(): array
 {
-    $validators = parent::defineValidationRules();
+    $validators = parent::defineBrowserValidationRules();
     $validators[] = ['type' => 'company-email'];
 
     return $validators;
@@ -35,12 +35,12 @@ protected function defineValidationRules(): array
 
 That is the same pattern Formie's own fields use for rules like `email` and `number`.
 
-If your custom validator needs extra payload options beyond Formie's standard normalised keys, override `validationRules()` instead. The default normalisation currently only keeps `type`, `fieldId`, `fieldHandle`, `min`, and `max`.
+If your custom validator needs extra payload options beyond Formie's standard normalised keys, override `browserValidationRules()` instead. The default normalisation currently only keeps `type`, `fieldId`, `fieldHandle`, `min`, and `max`.
 
 ```php
-public function validationRules(): array
+public function browserValidationRules(): array
 {
-    return array_merge(parent::validationRules(), [
+    return array_merge(parent::browserValidationRules(), [
         [
             'type' => 'company-email',
             'domain' => 'verbb.io',

@@ -2,6 +2,7 @@
 namespace verbb\formie\base;
 
 use verbb\formie\Formie;
+use verbb\formie\content\FieldStorageCodec;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\FieldElementEvent;
@@ -68,12 +69,10 @@ use Twig\Markup;
 
 use yii\helpers\Markdown;
 
-use Arrayable;
 use DateTime;
 use ReflectionException;
 use ReflectionNamedType;
 use ReflectionUnionType;
-use Serializable;
 
 use yii\db\ExpressionInterface;
 use yii\db\Schema;
@@ -96,7 +95,7 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
     public const EVENT_MODIFY_SLOT_TAG = 'modifySlotTag';
     public const EVENT_MODIFY_HTML_TAG = 'modifyHtmlTag';
     public const EVENT_MODIFY_VALUE_AS_STRING = 'modifyValueAsString';
-    public const EVENT_MODIFY_VALUE_AS_ARRAY = 'modifyValueAsArray';
+    public const EVENT_MODIFY_VALUE_AS_DATA = 'modifyValueAsData';
     public const EVENT_MODIFY_VALUE_FOR_EXPORT = 'modifyValueForExport';
     public const EVENT_MODIFY_VALUE_FOR_INTEGRATION = 'modifyValueForIntegration';
     public const EVENT_MODIFY_VALUE_FOR_REFERENCE = 'modifyValueForReference';
@@ -131,8 +130,8 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
     public const KIND_CHECKBOX_GROUP = 'checkbox-group';
 
     // Deprecated
-    public const EVENT_MODIFY_VALUE_AS_JSON = 'modifyValueAsJson';
-    public const EVENT_MODIFY_VALUE_FOR_EMAIL = 'modifyValueForEmail';
+    public const EVENT_MODIFY_VALUE_AS_JSON = self::EVENT_MODIFY_VALUE_AS_DATA;
+    public const EVENT_MODIFY_VALUE_FOR_EMAIL = self::EVENT_MODIFY_VALUE_FOR_REFERENCE_BLOCK;
 
 
     // Traits
@@ -684,6 +683,23 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
     {
     }
 
+    public function mergePartialRequestValue(mixed $previous, mixed $incoming): mixed
+    {
+        return $incoming;
+    }
+
+    public function discardRequestValue(Submission $submission): void
+    {
+        if ($param = $this->requestParamName($submission)) {
+            $state = $submission->getContentState();
+            foreach (array_keys($state->uploadedDataFiles) as $key) {
+                if ($key === $param || str_starts_with($key, $param . '.')) {
+                    unset($state->uploadedDataFiles[$key]);
+                }
+            }
+        }
+    }
+
     public function normalizeValueFromRequest(mixed $value, ?ElementInterface $element): mixed
     {
         return $this->normalizeValue($value, $element);
@@ -691,11 +707,10 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
 
     public function normalizeValue(mixed $value, ?ElementInterface $element): mixed
     {
+        if ($this->valueType()->kind === 'string' && !is_string($value)) {
+            $value = is_scalar($value) || $value === null ? (string)$value : Json::encode(FieldStorageCodec::assertSafe($value));
+        }
         if (is_string($value)) {
-            if ($this->enableContentEncryption || str_contains($value, 'base64:')) {
-                $value = StringHelper::decdec($value);
-            }
-
             // Preserve plain-text field values and only normalize invalid control characters.
             $value = StringHelper::normalizePlainText($value);
             $value = $this->sanitizePlainTextValueIfConfigured($value);
@@ -705,34 +720,43 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
             }
         }
 
-        return $value;
+        return $this->getIsCosmetic() ? null : ($value ?? '');
     }
 
-    public function serializeValueForDb(mixed $value, ElementInterface $element): mixed
+    final public function serializeValueForDb(mixed $value, ?ElementInterface $element = null): mixed
     {
-        return $this->serializeValue($value, $element);
+        if ($this->_hasLegacyFieldMethodOverride('serializeValue')) {
+            Craft::$app->getDeprecator()->log(static::class . '::serializeValue', 'Implement defineValueForDb() instead of overriding serializeValue().');
+        }
+        $stored = $this->_hasLegacyFieldMethodOverride('serializeValue')
+            ? $this->serializeValue($value, $element)
+            : $this->defineValueForDb($value, $element);
+
+        return FieldStorageCodec::encode($stored, (bool)$this->enableContentEncryption);
+    }
+
+    final public function normalizeFieldValue(mixed $value, ?ElementInterface $element = null): mixed
+    {
+        return $this->valueType()->assert($this->normalizeValue($value, $element), static::class . ' [' . $this->handle . ']');
+    }
+
+    public function decodeValueFromStorage(mixed $value): mixed
+    {
+        return FieldStorageCodec::decode($value);
+    }
+
+    final public function normalizeValueFromStorage(mixed $value, ?ElementInterface $element = null): mixed
+    {
+        return $this->normalizeFieldValue($this->decodeValueFromStorage($value), $element);
     }
 
     public function serializeValue(mixed $value, ?ElementInterface $element): mixed
     {
-        if ($value instanceof Serializable) {
-            // If the object explicitly defines its savable value, use that
-            $value = $value->serialize();
-        } else if ($value instanceof Arrayable) {
-            // If it's "arrayable", convert to array
-            $value = $value->toArray();
-        } else if ($value instanceof DateTime || DateTimeHelper::isIso8601($value)) {
-            // Only DateTime objects and ISO-8601 strings should automatically be detected as dates
-            $value = Db::prepareDateForDb($value);
-        }
+        Craft::$app->getDeprecator()->log(__METHOD__, 'Use serializeValueForDb(); custom fields should implement defineValueForDb().');
 
-        // Handle if we need to save field content as encrypted
-        if ($this->enableContentEncryption && is_string($value)) {
-            $value = StringHelper::encenc($value);
-        }
-
-        return $value;
+        return $this->defineValueForDb($value, $element);
     }
+
 
     public function isValueEmpty(mixed $value, ?ElementInterface $element): bool
     {
@@ -744,20 +768,6 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
         return null;
     }
 
-    public function supportsValueCapability(string $capabilityType): bool
-    {
-        return $this->valueClass()->supportsCapability($capabilityType);
-    }
-
-    public function supportsStringValue(): bool
-    {
-        return $this->supportsValueCapability('string');
-    }
-
-    public function supportsArrayValue(): bool
-    {
-        return $this->supportsValueCapability('array');
-    }
 
     public function getValueSql(?string $key = null): ?string
     {
@@ -1148,10 +1158,10 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
         ];
     }
 
-    public function getExportLabel(ElementInterface $element): string
+    public function getExportLabel(?ElementInterface $element): string
     {
         // Check to see if there's another field with the same label
-        foreach ($element->getFields() as $field) {
+        foreach ($element?->getFields() ?? [] as $field) {
             if ($field->id === $this->id) {
                 continue;
             }
@@ -1161,7 +1171,7 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
             }
         }
 
-        return $this->label;
+        return (string)$this->label;
     }
 
     public function getSearchKeywords(mixed $value, ElementInterface $element): string
@@ -1288,13 +1298,22 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
 
     public function copyValue(ElementInterface $from, ElementInterface $to): void
     {
-        $value = $this->serializeValue($from->getFieldValue($this->handle), $from);
-        $to->setFieldValue($this->handle, $value);
+        $value = $this->serializeValueForDb($from->getFieldValue($this->handle), $from);
+        $to->setFieldValue($this->handle, $this->normalizeValueFromStorage($value, $to));
     }
 
 
     // Protected Methods
     // =========================================================================
+
+    protected function defineValueForDb(mixed $value, ?ElementInterface $element): mixed
+    {
+        if ($value instanceof \DateTimeInterface) {
+            return Db::prepareDateForDb($value);
+        }
+
+        return FieldStorageCodec::assertSafe($value);
+    }
 
     protected function defineRules(): array
     {

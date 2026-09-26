@@ -25,7 +25,7 @@ it('supports submission content serialization and projection helper contracts', 
 
     expect($serialized)->toBeArray()
         ->and($submission->getValuesAsString())->toBeArray()
-        ->and($submission->getValuesAsArray())->toBeArray()
+        ->and($submission->getValuesAsData())->toBeArray()
         ->and($submission->getValuesForExport())->toBeArray()
         ->and($submission->getValuesForSummary())->toBeArray();
 });

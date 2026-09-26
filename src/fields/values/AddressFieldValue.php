@@ -13,10 +13,6 @@ class AddressFieldValue extends BaseFieldValue
     // Static Methods
     // =========================================================================
 
-    public static function capabilityTypes(): array
-    {
-        return ['string', 'array'];
-    }
 
     public static function getCountries(string $indexBy = 'code'): array
     {
@@ -40,15 +36,14 @@ class AddressFieldValue extends BaseFieldValue
     // Properties
     // =========================================================================
 
-    public ?string $autoComplete = null;
-    public ?string $address1 = null;
-    public ?string $address2 = null;
-    public ?string $address3 = null;
-    public ?string $city = null;
-    public ?string $state = null;
-    public ?string $zip = null;
-    public ?string $country = null;
-    public ?string $countryOption = null;
+    protected ?string $autoComplete = null;
+    protected ?string $address1 = null;
+    protected ?string $address2 = null;
+    protected ?string $address3 = null;
+    protected ?string $city = null;
+    protected ?string $state = null;
+    protected ?string $zip = null;
+    protected ?string $country = null;
 
 
     // Public Methods
@@ -56,18 +51,14 @@ class AddressFieldValue extends BaseFieldValue
 
     public function __construct(array $config = [])
     {
-        if (isset($config['country']) && $config['country'] instanceof OptionValue) {
-            $countryValue = $config['country']->value ?? '';
-
-            if ($countryValue) {
-                $countryOptions = $config['country']->getOptions();
-
-                if ($countryOption = ArrayHelper::firstWhere($countryOptions, 'value', $countryValue)) {
-                    $config['countryOption'] = $countryOption->label ?? '';
-                }
-            }
+        if (($config['country'] ?? null) instanceof OptionValue) {
+            $config['country'] = $config['country']->value;
         }
-
+        // Read legacy label-only addresses without retaining presentation policy.
+        if (empty($config['country']) && !empty($config['countryOption'])) {
+            $config['country'] = self::nameToCode($config['countryOption']) ?? $config['countryOption'];
+        }
+        unset($config['countryOption']);
         parent::__construct($config);
     }
 
@@ -84,7 +75,7 @@ class AddressFieldValue extends BaseFieldValue
             StringHelper::trim($this->city ?? ''),
             StringHelper::trim($this->state ?? ''),
             StringHelper::trim($this->zip ?? ''),
-            StringHelper::trim($this->countryOption ?? ''),
+            StringHelper::trim($this->country ?? ''),
         ]);
 
         return implode(', ', $address);
@@ -106,7 +97,6 @@ class AddressFieldValue extends BaseFieldValue
             'state' => $this->state,
             'zip' => $this->zip,
             'country' => $this->country,
-            'countryOption' => $this->countryOption,
         ];
     }
 }

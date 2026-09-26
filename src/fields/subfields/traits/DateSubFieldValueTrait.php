@@ -16,16 +16,10 @@ trait DateSubFieldValueTrait
     public function getElementValue(?ElementInterface $element = null): mixed
     {
         if ($element instanceof Submission) {
-            $value = $element->getFieldValue($this->valueKey());
-
-            if (!$this->_isMissingDateSubFieldValue($value)) {
-                return $value;
-            }
-
             $parent = $this->getParentField();
 
             if ($parent instanceof Date) {
-                $parentValue = $element->getFieldValue($parent->handle);
+                $parentValue = $element->getFieldValue($parent->valueKey());
 
                 if (!$this->_isMissingDateSubFieldValue($parentValue)) {
                     $partValue = $this->_resolveDateSubFieldDisplayValue($parent, $parentValue);
@@ -34,6 +28,11 @@ trait DateSubFieldValueTrait
                         return $partValue;
                     }
                 }
+            }
+
+            $value = $element->getFieldValue($this->valueKey());
+            if (!$this->_isMissingDateSubFieldValue($value)) {
+                return $value;
             }
         }
 

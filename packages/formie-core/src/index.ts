@@ -49,7 +49,7 @@ export type {
     FrontendFieldValueContract,
     FrontendFieldValueStructure,
     FrontendFieldType,
-    FrontendFieldValueClass,
+    FrontendFieldValueType,
     FrontendFormDefinition,
     FrontendFormEnvelope,
     FrontendFormSession,

@@ -11,6 +11,7 @@ use verbb\formie\base\PreviewableFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\definitions\FieldReferenceValue;
+use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\fields\values\OptionValue;
 use verbb\formie\fields\values\RecipientsFieldValue;
 use verbb\formie\fields\Hidden as HiddenField;
@@ -34,7 +35,6 @@ use verbb\formie\options\OptionSourceContext;
 use verbb\formie\options\OptionSourceFieldInterface;
 use verbb\formie\options\OptionSourceProviderHelper;
 use verbb\formie\positions\Hidden as HiddenPosition;
-
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
@@ -108,6 +108,11 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
     // Public Methods
     // =========================================================================
 
+    public function valueType(): FieldValueType
+    {
+        return FieldValueType::object(RecipientsFieldValue::class, true);
+    }
+
     public function __construct(array $config = [])
     {
         // Setuo defaults for some values which can't in in the property definition
@@ -171,6 +176,7 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
 
     public function normalizeValue(mixed $value, ?ElementInterface $element): mixed
     {
+        $value = $this->_resolveRecipientInput($value);
         $value = parent::normalizeValue($value, $element);
 
         if ($value instanceof RecipientsFieldValue) {
@@ -222,33 +228,42 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
         } else if ($value !== null) {
             // Ensure we're always dealing with real values. Fake values are used on front-end render.
             // Fake values will exist here if validation for the element fails.
-            $value = $this->getRealValue($value);
+            $value = $this->_resolveRecipientInput($value);
             $value = new RecipientsFieldValue($this->displayType, $value);
         }
 
         return $value;
     }
 
-    public function serializeValue(mixed $value, ?ElementInterface $element): mixed
-    {
-        if ($value instanceof RecipientsFieldValue) {
-            $value = match ($value->displayType()) {
-                'checkboxes' => array_map(static fn(OptionValue $option): array => [
-                    'value' => $option->value,
-                    'label' => $option->getDisplayLabel(),
-                ], $value->selectedOptions()),
-                'hidden' => is_array($value->rawValue()) ? Json::encode($value->rawValue()) : $value->rawValue(),
-                default => ($value->rawValue() === null || $value->rawValue() === '')
-                    ? $value->rawValue()
-                    : [
-                        'value' => $value->rawValue(),
-                        'label' => $value->label(),
-                    ],
-            };
-        }
 
-        return parent::serializeValue($value, $element);
+    public function serializeValueForClientInput(mixed $value, ?ElementInterface $element = null): mixed
+    {
+        if ($value === null) {
+            return null;
+        }
+        if ($this->displayType === 'hidden') {
+            return RecipientTokenHelper::encodeHidden($value->rawValue());
+        }
+        $tokens = [];
+        $selections = $this->displayType === 'checkboxes'
+            ? array_map(static fn($option) => ['value' => $option->value, 'label' => $option->label], $value->selectedOptions())
+            : [['value' => $value->rawValue(), 'label' => $value->label()]];
+        foreach ($selections as $selection) {
+            if ($selection['value'] === null || $selection['value'] === '') {
+                continue;
+            }
+            $token = $selection['value'];
+            foreach ($this->_getResolvedRecipientOptionRows() as $option) {
+                if ($option['value'] === $selection['value'] && ($selection['label'] === null || $option['label'] === $selection['label'])) {
+                    $token = RecipientTokenHelper::encodeOption($option);
+                    break;
+                }
+            }
+            $tokens[] = $token;
+        }
+        return $this->displayType === 'checkboxes' ? $tokens : ($tokens[0] ?? null);
     }
+
 
     public function defineFormBuilderPreviewSchema(): array
     {
@@ -471,47 +486,32 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
         }
     }
 
-    public function getRealValue($value)
+    private function _resolveRecipientInput($value)
     {
-        // This converts front-end-safe recipient tokens back to real addresses,
-        // but still accepts real values when integrations or server-side code set them directly.
-
-        // For any array-compatible field types (and data), recursively iterate each item
         if (is_array($value)) {
-            return array_map(function($item) {
-                return $this->getRealValue($item);
-            }, $value);
+            return array_map(fn($item) => $this->_resolveRecipientInput($item), $value);
         }
-
         if (!is_string($value)) {
             return $value;
         }
-
-        // Legacy positional tokens may still be submitted by forms rendered before this request.
-        if (str_contains($value, 'id:')) {
-            $value = preg_replace_callback('/id:(\d+)/m', function(array $match) use ($value): string {
-                $index = $match[1] ?? 0;
-
-                return $this->getResolvedOptions()[$index]['value'] ?? $value;
-            }, $value);
-        }
-
-        // Hidden recipients and visible recipient options both use encrypted values.
-        if (str_starts_with($value, 'base64:')) {
-            $value = RecipientTokenHelper::decode($value);
-
-            if (is_array($value)) {
-                return implode(',', array_filter($value));
-            }
-
-            // Legacy hidden recipient tokens stored JSON directly before tokens
-            // became typed payloads.
-            if (is_string($value) && Json::isJsonObject($value)) {
-                $value = implode(',', array_filter(Json::decode($value)));
+        foreach ($this->_getResolvedRecipientOptionRows() as $option) {
+            if (hash_equals(RecipientTokenHelper::encodeOption($option), $value)) {
+                return ['id' => $option['id'], 'label' => $option['label'], 'value' => $option['value']];
             }
         }
-
+        if ($this->displayType === 'hidden' && hash_equals(RecipientTokenHelper::encodeHidden($this->defaultValue), $value)) {
+            return $this->defaultValue;
+        }
         return $value;
+    }
+
+    public function getRealValue($value)
+    {
+        $resolved = $this->_resolveRecipientInput($value);
+        if (is_array($resolved) && array_key_exists('value', $resolved)) {
+            return $resolved['value'];
+        }
+        return $resolved;
     }
 
     public function getFakeValue($value)
@@ -519,7 +519,7 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
         $normalized = $this->normalizeValue($value, null);
 
         if ($normalized instanceof RecipientsFieldValue) {
-            return $normalized->toClientValue();
+            return $this->serializeValueForClientInput($normalized);
         }
 
         return $value;
@@ -686,6 +686,37 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
     // Protected Methods
     // =========================================================================
 
+    protected function defineValueForCondition(mixed $value, Submission $submission): mixed
+    {
+        return $this->serializeValueForClientInput($value, $submission);
+    }
+
+    protected function defineValueAsData(mixed $value, ElementInterface $element = null): mixed
+    {
+        return $value?->toValueArray();
+    }
+
+    protected function defineValueForDb(mixed $value, ?ElementInterface $element): mixed
+    {
+        if ($value instanceof RecipientsFieldValue) {
+            $value = match ($value->displayType()) {
+                'checkboxes' => array_map(static fn(OptionValue $option): array => [
+                    'value' => $option->value,
+                    'label' => $option->getDisplayLabel(),
+                ], $value->selectedOptions()),
+                'hidden' => is_array($value->rawValue()) ? Json::encode($value->rawValue()) : $value->rawValue(),
+                default => ($value->rawValue() === null || $value->rawValue() === '')
+                    ? $value->rawValue()
+                    : [
+                        'value' => $value->rawValue(),
+                        'label' => $value->label(),
+                    ],
+            };
+        }
+
+        return parent::defineValueForDb($value, $element);
+    }
+
     protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
     {
         $form = $context->form;
@@ -824,16 +855,6 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
         }
     }
 
-    protected function defineValueForCondition(mixed $value, Submission $submission): mixed
-    {
-        // Recipients fields should use encoded values, because they can't be exposed in HTML source
-        return $this->getValueAsString($this->getFakeValue($value), $submission);
-    }
-
-    protected function defineValueClass(): ?string
-    {
-        return RecipientsFieldValue::class;
-    }
 
     protected function defineReferenceValues(): array
     {

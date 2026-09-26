@@ -6,6 +6,8 @@ use verbb\formie\Formie;
 use verbb\formie\fields\CustomField;
 use verbb\formie\fields\custom\AbstractCustomFieldAdapter;
 use verbb\formie\base\IntegrationInterface;
+use verbb\formie\fields\definitions\FieldValueType;
+use verbb\formie\fields\values\CustomLinkFieldValue;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\ClientModule;
 use verbb\formie\models\IntegrationField;
@@ -256,16 +258,19 @@ class LinkCustomFieldAdapter extends AbstractCustomFieldAdapter
         ];
     }
 
-    public function getValueClass(CustomField $field): ?string
+    public function valueType(CustomField $field): FieldValueType
     {
-        return null;
+        return FieldValueType::object(CustomLinkFieldValue::class, true);
     }
 
     public function normalizeValue(mixed $value, CustomField $field, ?ElementInterface $element): mixed
     {
+        if ($value instanceof LinkData) {
+            return new CustomLinkFieldValue($value);
+        }
         $value = parent::normalizeValue($value, $field, $element);
 
-        if ($value instanceof LinkData || $value === null || $value === '') {
+        if ($value instanceof CustomLinkFieldValue || $value === null || $value === '') {
             return $value ?: null;
         }
 
@@ -287,26 +292,35 @@ class LinkCustomFieldAdapter extends AbstractCustomFieldAdapter
         $linkType = $this->createLinkType($typeId, $field);
         $config = $this->normalizeLinkConfig($value, $field);
 
-        return new LinkData($linkType->normalizeValue($rawValue), $linkType, $config);
+        return new CustomLinkFieldValue(new LinkData($linkType->normalizeValue($rawValue), $linkType, $config));
+    }
+
+    public function decodeValueFromStorage(mixed $value, CustomField $field): mixed
+    {
+        if (!is_array($value) || !isset($value['value'], $value['type'])) {
+            return $value;
+        }
+        $config = array_intersect_key($value, array_flip([...self::ADVANCED_FIELDS, 'label', 'filename']));
+        return new CustomLinkFieldValue(new LinkData($value['value'], $this->createLinkType($value['type'], $field), $config));
     }
 
     public function serializeValue(mixed $value, CustomField $field, ?ElementInterface $element): mixed
     {
         $value = $this->normalizeValue($value, $field, $element);
 
-        return $value instanceof LinkData ? $value->serialize() : null;
+        return $value instanceof CustomLinkFieldValue ? $value->serialize() : null;
     }
 
     public function isValueEmpty(mixed $value, CustomField $field, ?ElementInterface $element): bool
     {
-        return !$this->normalizeValue($value, $field, $element) instanceof LinkData;
+        return !$this->normalizeValue($value, $field, $element) instanceof CustomLinkFieldValue;
     }
 
     public function validateValue(ElementInterface $element, CustomField $field): void
     {
         $value = $this->normalizeValue($element->getFieldValue($field->valueKey()), $field, $element);
 
-        if (!$value instanceof LinkData) {
+        if (!$value instanceof CustomLinkFieldValue) {
             return;
         }
 
@@ -360,32 +374,32 @@ class LinkCustomFieldAdapter extends AbstractCustomFieldAdapter
     {
         $value = $this->normalizeValue($value, $field, $element);
 
-        return $this->createCraftLinkField($field)->getInputHtml($value, $element);
+        return $this->createCraftLinkField($field)->getInputHtml($this->_toCraftValue($value, $field), $element);
     }
 
     public function getPreviewHtml(CustomField $field, mixed $value, ElementInterface $element): string
     {
         $value = $this->normalizeValue($value, $field, $element);
 
-        if (!$value instanceof LinkData) {
+        if (!$value instanceof CustomLinkFieldValue) {
             return '';
         }
 
-        return $this->createCraftLinkField($field)->getPreviewHtml($value, $element);
+        return $this->createCraftLinkField($field)->getPreviewHtml($this->_toCraftValue($value, $field), $element);
     }
 
     public function getValueAsString(mixed $value, CustomField $field, ?ElementInterface $element = null): string
     {
         $value = $this->normalizeValue($value, $field, $element);
 
-        return $value instanceof LinkData ? $value->getUrl() : '';
+        return $value instanceof CustomLinkFieldValue ? $value->getUrl() : '';
     }
 
-    public function getValueAsArray(mixed $value, CustomField $field, ?ElementInterface $element = null): mixed
+    public function getValueAsData(mixed $value, CustomField $field, ?ElementInterface $element = null): mixed
     {
         $value = $this->normalizeValue($value, $field, $element);
 
-        if (!$value instanceof LinkData) {
+        if (!$value instanceof CustomLinkFieldValue) {
             return [];
         }
 
@@ -403,7 +417,7 @@ class LinkCustomFieldAdapter extends AbstractCustomFieldAdapter
     public function getValueForIntegration(mixed $value, CustomField $field, IntegrationField $integrationField, IntegrationInterface $integration, ?ElementInterface $element = null, string $fieldKey = ''): mixed
     {
         return $integrationField->getType() === IntegrationField::TYPE_ARRAY
-            ? $this->getValueAsArray($value, $field, $element)
+            ? $this->getValueAsData($value, $field, $element)
             : $this->getValueAsString($value, $field, $element);
     }
 
@@ -411,14 +425,14 @@ class LinkCustomFieldAdapter extends AbstractCustomFieldAdapter
     {
         $value = $this->normalizeValue($value, $field, $element);
 
-        return $value instanceof LinkData ? $value->getLink() : '';
+        return $value instanceof CustomLinkFieldValue ? $this->_toCraftValue($value, $field)->getLink() : '';
     }
 
 
     // Protected Methods
     // =========================================================================
 
-    protected function renderInputs(CustomField $field, ?LinkData $value, ?Form $form, string $name, string $typeName, string $valueName, string $labelName, string $id, string $dataId): string
+    protected function renderInputs(CustomField $field, ?CustomLinkFieldValue $value, ?Form $form, string $name, string $typeName, string $valueName, string $labelName, string $id, string $dataId): string
     {
         $allowedTypes = $this->getAllowedTypes($field);
         $typeId = $value?->type ?: $this->getDefaultType($field);
@@ -715,4 +729,16 @@ class LinkCustomFieldAdapter extends AbstractCustomFieldAdapter
             default => $field,
         };
     }
+    private function _toCraftValue(?CustomLinkFieldValue $value, CustomField $field): ?LinkData
+    {
+        if ($value === null) {
+            return null;
+        }
+        $parts = $value->serialize();
+        $type = $parts['type'];
+        $raw = $parts['value'];
+        unset($parts['type'], $parts['value']);
+        return new LinkData($raw, $this->createLinkType($type, $field), $parts);
+    }
+
 }

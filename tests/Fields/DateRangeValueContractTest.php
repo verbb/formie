@@ -102,8 +102,8 @@ it('resolves stored range date parts for cp submission sub-fields', function ():
         ->and($field->getSubFieldPartValue($value, 'endDate'))->toBe('2026-06-27')
         ->and($field->getSubFieldPartValue($value, 'startTime'))->toBe('12:00')
         ->and($field->getSubFieldPartValue($value, 'endTime'))->toBe('12:00')
-        ->and($field->resolveNormalizedValuePath($value, 'start'))->toBe('2026-06-16 12:00')
-        ->and($field->resolveNormalizedValuePath($value, 'end'))->toBe('2026-06-27 12:00');
+        ->and($field->resolveNormalizedValuePath($value, 'start'))->toBe('2026-06-16 12:00:00')
+        ->and($field->resolveNormalizedValuePath($value, 'end'))->toBe('2026-06-27 12:00:00');
 });
 
 it('exposes granular range reference selectors for variable pickers', function (): void {

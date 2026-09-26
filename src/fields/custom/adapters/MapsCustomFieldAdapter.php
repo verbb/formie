@@ -5,6 +5,7 @@ use verbb\formie\elements\Form;
 use verbb\formie\Formie;
 use verbb\formie\fields\CustomField;
 use verbb\formie\fields\custom\AbstractCustomFieldAdapter;
+use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\fields\values\CustomMapFieldValue;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\ClientModule;
@@ -219,9 +220,9 @@ class MapsCustomFieldAdapter extends AbstractCustomFieldAdapter
         ];
     }
 
-    public function getValueClass(CustomField $field): ?string
+    public function valueType(CustomField $field): FieldValueType
     {
-        return CustomMapFieldValue::class;
+        return FieldValueType::object(CustomMapFieldValue::class, true);
     }
 
     public function normalizeValue(mixed $value, CustomField $field, ?ElementInterface $element): mixed
@@ -236,15 +237,12 @@ class MapsCustomFieldAdapter extends AbstractCustomFieldAdapter
             return new CustomMapFieldValue($value);
         }
 
-        $mapValue = new CustomMapFieldValue();
-        $mapValue->address = trim((string)$value) ?: $this->getDefaultAddress($field);
-        $mapValue->lat = $this->getNullableFloatSetting($field, 'defaultLat');
-        $mapValue->lng = $this->getNullableFloatSetting($field, 'defaultLng');
-        $mapValue->zoom = $this->getNullableIntSetting($field, 'defaultZoom');
-        $mapValue->parts = null;
-        $mapValue->what3words = null;
-
-        return $mapValue;
+        return new CustomMapFieldValue([
+            'address' => trim((string)$value) ?: $this->getDefaultAddress($field),
+            'lat' => $this->getNullableFloatSetting($field, 'defaultLat'),
+            'lng' => $this->getNullableFloatSetting($field, 'defaultLng'),
+            'zoom' => $this->getNullableIntSetting($field, 'defaultZoom'),
+        ]);
     }
 
     public function serializeValue(mixed $value, CustomField $field, ?ElementInterface $element): mixed
@@ -295,11 +293,11 @@ class MapsCustomFieldAdapter extends AbstractCustomFieldAdapter
         return $value instanceof CustomMapFieldValue ? (string)$value : parent::getValueAsString($value, $field, $element);
     }
 
-    public function getValueAsArray(mixed $value, CustomField $field, ?ElementInterface $element = null): mixed
+    public function getValueAsData(mixed $value, CustomField $field, ?ElementInterface $element = null): mixed
     {
         $value = $this->normalizeValue($value, $field, $element);
 
-        return $value instanceof CustomMapFieldValue ? $value->toValueArray() : parent::getValueAsArray($value, $field, $element);
+        return $value instanceof CustomMapFieldValue ? $value->toValueArray() : parent::getValueAsData($value, $field, $element);
     }
 
 

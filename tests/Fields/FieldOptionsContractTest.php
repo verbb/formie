@@ -77,6 +77,6 @@ it('does not restore checkbox defaults when a submitted checkbox group is explic
         'fullName' => 'Unchecked User',
     ], 'fields');
 
-    expect($submission->getFieldValueAsArray('topics'))->toBe([])
+    expect($submission->getFieldValueAsData('topics'))->toBe([])
         ->and(json_encode($submission->serializeFieldValues()))->not->toContain('one');
 });

@@ -6,10 +6,10 @@ class OptionValue
     // Properties
     // =========================================================================
 
-    public ?string $label = null;
-    public ?string $value = null;
-    public bool $selected = false;
-    public bool $valid = true;
+    public readonly ?string $label;
+    public readonly ?string $value;
+    public readonly bool $selected;
+    public readonly bool $valid;
 
 
     // Public Methods

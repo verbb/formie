@@ -6,25 +6,15 @@ use verbb\formie\helpers\StringHelper;
 
 class NameFieldValue extends BaseFieldValue
 {
-    // Static Methods
-    // =========================================================================
-
-    public static function capabilityTypes(): array
-    {
-        return ['string', 'array'];
-    }
-
-
     // Properties
     // =========================================================================
 
-    public ?string $prefix = null;
-    public ?string $prefixOption = null;
-    public ?string $firstName = null;
-    public ?string $middleName = null;
-    public ?string $lastName = null;
-    public ?string $name = null;
-    public ?bool $isMultiple = null;
+    protected ?string $prefix = null;
+    protected ?string $prefixOption = null;
+    protected ?string $firstName = null;
+    protected ?string $middleName = null;
+    protected ?string $lastName = null;
+    protected ?string $name = null;
 
 
     // Public Methods
@@ -32,28 +22,23 @@ class NameFieldValue extends BaseFieldValue
 
     public function __construct(array $config = [])
     {
-        if (isset($config['prefix']) && $config['prefix'] instanceof OptionValue) {
-            $prefixValue = $config['prefix']->value ?? '';
-
-            if ($prefixValue) {
-                $prefixOptions = $config['prefix']->getOptions();
-
-                if ($prefixOption = ArrayHelper::firstWhere($prefixOptions, 'value', $prefixValue)) {
-                    $config['prefixOption'] = $prefixOption->label ?? '';
+        unset($config['isMultiple']);
+        foreach (['prefix', 'prefixOption', 'firstName', 'middleName', 'lastName', 'name'] as $key) {
+            $value = $config[$key] ?? null;
+            if ($value instanceof SingleOptionFieldValue || $value instanceof OptionValue) {
+                if ($key === 'prefix') {
+                    $config['prefixOption'] = $value->getDisplayLabel();
                 }
+                $value = $value->value;
             }
+            $config[$key] = $value === null ? null : trim(is_scalar($value) ? (string)$value : \craft\helpers\Json::encode($value));
         }
-
         parent::__construct($config);
     }
 
-    public function __toString()
+    public function __toString(): string
     {
-        if ($this->isMultiple) {
-            return $this->getFullName();
-        }
-
-        return (string)$this->name;
+        return $this->getFullName();
     }
 
     public function isEmpty(): bool
@@ -70,13 +55,12 @@ class NameFieldValue extends BaseFieldValue
             'middleName' => $this->middleName,
             'lastName' => $this->lastName,
             'name' => $this->name,
-            'isMultiple' => $this->isMultiple,
         ];
     }
 
     public function getName(): string
     {
-        if (!$this->isMultiple) {
+        if ($this->name !== null && $this->name !== '') {
             return (string)$this->name;
         }
 
@@ -90,7 +74,7 @@ class NameFieldValue extends BaseFieldValue
 
     public function getFullName(): string
     {
-        if (!$this->isMultiple) {
+        if ($this->name !== null && $this->name !== '') {
             return (string)$this->name;
         }
 

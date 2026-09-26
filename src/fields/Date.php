@@ -10,13 +10,14 @@ use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
 use verbb\formie\base\PreviewableFieldInterface;
 use verbb\formie\base\SortableFieldInterface;
+use verbb\formie\content\FieldStorageCodec;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyDateTimeFormatEvent;
 use verbb\formie\events\ModifyFieldValueEvent;
 use verbb\formie\events\RegisterDateTimeFormatOptionsEvent;
 use verbb\formie\fields\definitions\FieldClientModules;
 use verbb\formie\fields\definitions\FieldReferenceValue;
-use verbb\formie\fields\definitions\FieldValueClass;
+use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\fields\subfields\DateYear;
 use verbb\formie\fields\values\DateFieldValue;
 use verbb\formie\fields\values\DateRangeFieldValue;
@@ -470,6 +471,11 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
     // Public Methods
     // =========================================================================
 
+    public function valueType(): FieldValueType
+    {
+        return FieldValueType::object($this->getCollectsRange() ? DateRangeFieldValue::class : DateFieldValue::class, true);
+    }
+
     public function __construct($config = [])
     {
         // Normalize date settings to ensure we strip timezones (they're saved without one)
@@ -583,15 +589,21 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
             $rules[] = [$this->handle, 'validateCollectRange', 'skipOnEmpty' => false];
         }
 
-        if (in_array($this->displayType, ['inputs', 'dropdowns'], true)) {
-            $rules[] = [$this->handle, 'validateDateParts', 'skipOnEmpty' => false];
-        }
+        $rules[] = [$this->handle, 'validateDateParts', 'skipOnEmpty' => false];
 
         return $rules;
     }
 
     public function validateDateParts(ElementInterface $element): void
     {
+        $value = $element->getFieldValue($this->valueKey());
+        $dates = $value instanceof DateRangeFieldValue ? [$value->start, $value->end] : [$value];
+        foreach ($dates as $date) {
+            if ($date instanceof DateFieldValue && !$date->isValid()) {
+                $element->addError($this->valueKey(), $this->getValidationMessage(ValidationMessagesHelper::KEY_INVALID));
+                return;
+            }
+        }
         if (!in_array($this->displayType, ['inputs', 'dropdowns'], true)) {
             return;
         }
@@ -622,7 +634,7 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
 
         $dateTime = DateFieldValue::partsToDateTime($parts);
 
-        if (!$dateTime instanceof DateTime) {
+        if (!$dateTime instanceof DateTime || DateTime::getLastErrors() !== false) {
             return;
         }
 
@@ -802,100 +814,36 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
 
     public function normalizeValue(mixed $value, ?ElementInterface $element): mixed
     {
-        if ($this->getCollectsRange()) {
-            if ($value instanceof DateRangeFieldValue) {
-                if ($value->isEmpty()) {
-                    return null;
-                }
-
-                $this->_applyDisplaySettings($value);
-
-                return $value;
-            }
-
-            if ($value === null || $value === '') {
-                return null;
-            }
-
-            $normalized = DateRangeFieldValue::fromMixed($this->_normalizeInputValue($value));
-
-            if ($normalized->isEmpty()) {
-                return null;
-            }
-
-            $this->_applyDisplaySettings($normalized);
-
-            return $normalized;
-        }
-
-        if ($value instanceof DateFieldValue) {
-            if ($value->isEmpty()) {
-                return null;
-            }
-
-            $this->_applyDisplaySettings($value);
-
+        if ($value instanceof DateFieldValue || $value instanceof DateRangeFieldValue) {
             return $value;
         }
-
-        if ($value === null || $value === '') {
+        if ($value === null || $value === '' || $value === []) {
             return null;
         }
-
-        $value = $this->_normalizeInputValue($value);
-        $normalized = new DateFieldValue($value);
-
-        if ($normalized->isEmpty()) {
-            return null;
-        }
-
-        $this->_applyDisplaySettings($normalized);
-
-        return $normalized;
+        $input = $this->_normalizeInputValue($value);
+        $normalized = $this->getCollectsRange() ? DateRangeFieldValue::fromMixed($input) : new DateFieldValue($input);
+        return $normalized->isEmpty() ? null : $normalized;
     }
 
-    public function serializeValue(mixed $value, ?ElementInterface $element): mixed
+    public function normalizeValueFromRequest(mixed $value, ?ElementInterface $element): mixed
     {
-        if ($this->getCollectsRange()) {
-            if ($value instanceof DateRangeFieldValue) {
-                if ($value->isEmpty()) {
-                    return null;
-                }
-
-                return [
-                    'start' => $value->getStartParts(),
-                    'end' => $value->getEndParts(),
-                ];
-            }
-
-            $value = $this->_normalizeInputValue($value);
-            $normalized = DateRangeFieldValue::fromMixed($value);
-
-            if ($normalized->isEmpty()) {
-                return null;
-            }
-
-            return [
-                'start' => $normalized->getStartParts(),
-                'end' => $normalized->getEndParts(),
-            ];
-        }
-
-        if ($value instanceof DateFieldValue) {
-            $parts = $value->getParts();
-
-            if (empty($parts)) {
-                return null;
-            }
-
-            return $parts;
-        }
-
-        $value = $this->_normalizeInputValue($value);
-        $parts = DateFieldValue::parseParts($value);
-
-        return empty($parts) ? null : $parts;
+        return $this->normalizeValue($value, $element);
     }
+
+    public function decodeValueFromStorage(mixed $value): mixed
+    {
+        return FieldStorageCodec::decode($value);
+    }
+
+    public function serializeValueForClientInput(mixed $value, ?ElementInterface $element = null): mixed
+    {
+        if ($value instanceof DateFieldValue && $value->getRawInput() !== null) {
+            $raw = $value->getRawInput();
+            return is_array($raw) ? $raw : ['date' => $raw];
+        }
+        return $value?->toValueArray();
+    }
+
 
     public function getMinDate()
     {
@@ -1098,52 +1046,61 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
             return $value->value;
         }
 
+        // Input parts use the owning field's display policy, independently of runtime paths.
+        if ($this->getCollectsRange() && preg_match('/^(start|end)(Date|Time)?$/', $handle, $match)) {
+            $range = DateRangeFieldValue::fromMixed($value);
+            $boundary = $range->{$match[1]};
+            if ($boundary->getRawInput() !== null) {
+                $raw = $boundary->getRawInput();
+                $part = strtolower($match[2] ?? 'date');
+                return is_array($raw) ? ($raw[$part] ?? $raw['datetime'] ?? '') : (string)$raw;
+            }
+            $parts = $boundary->getParts();
+            return match ($match[2] ?? '') {
+                'Date' => $this->formatDatePartForDisplay($parts),
+                'Time' => $this->formatTimePartForDisplay($parts),
+                default => $this->formatPartsForDisplay($parts),
+            };
+        }
+
+        if (!$this->getCollectsRange() && in_array($handle, ['date', 'time'], true)) {
+            $date = $value instanceof DateFieldValue ? $value : new DateFieldValue($value);
+            if ($date->getRawInput() === null) {
+                return $handle === 'date' ? $this->formatDatePartForDisplay($date->getParts()) : $this->formatTimePartForDisplay($date->getParts());
+            }
+        }
+
         return $this->resolveNormalizedValuePath($value, $handle);
     }
 
     public function resolveNormalizedValuePath(mixed $value, string $path): mixed
     {
         if ($this->getCollectsRange()) {
-            $rangeValue = $value instanceof DateRangeFieldValue
-                ? $value
-                : DateRangeFieldValue::fromMixed($value);
-
-            $this->_applyDisplaySettings($rangeValue);
-
-            return $rangeValue->getPathValue($path);
+            return DateRangeFieldValue::fromMixed($value)->getPathValue($path);
         }
 
-        $fieldValue = $value instanceof DateFieldValue
-            ? $value
-            : new DateFieldValue(DateFieldValue::parseParts($value));
+        $date = $value instanceof DateFieldValue ? $value : new DateFieldValue($value);
+        if (in_array($path, ['date', 'time'], true) && $date->getRawInput() !== null) {
+            $raw = $date->getRawInput();
+            return is_array($raw) ? ($raw[$path] ?? $raw['datetime'] ?? '') : (string)$raw;
+        }
 
-        $this->_applyDisplaySettings($fieldValue);
-
-        return $fieldValue->getPathValue($path);
+        return $date->getPathValue($path);
     }
 
     public function formatPartsForDisplay(array $parts): string
     {
-        $fieldValue = new DateFieldValue($parts);
-        $this->_applyDisplaySettings($fieldValue);
-
-        return $fieldValue->formatPartsForDisplay($parts);
+        return DateFieldValue::formatPartsWithSettings($parts, $this->getDateFormat() ?: 'Y-m-d', $this->getTimeFormat() ?: 'H:i', !$this->getIsTime(), !$this->getIsDate());
     }
 
     public function formatDatePartForDisplay(array $parts): string
     {
-        $fieldValue = new DateFieldValue($parts);
-        $this->_applyDisplaySettings($fieldValue);
-
-        return $fieldValue->formatDateForDisplay($parts);
+        return DateFieldValue::formatDateWithSettings($parts, $this->getDateFormat() ?: 'Y-m-d');
     }
 
     public function formatTimePartForDisplay(array $parts): string
     {
-        $fieldValue = new DateFieldValue($parts);
-        $this->_applyDisplaySettings($fieldValue);
-
-        return $fieldValue->formatTimeForDisplay($parts);
+        return DateFieldValue::formatTimeWithSettings($parts, $this->getTimeFormat() ?: 'H:i');
     }
 
     public function formatRangeValueForDisplay(mixed $value): string
@@ -1152,15 +1109,12 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
             ? $value
             : DateRangeFieldValue::fromMixed($value);
 
-        if (!$value instanceof DateRangeFieldValue) {
-            $this->_applyDisplaySettings($rangeValue);
-        }
 
         if ($rangeValue->isEmpty()) {
             return '';
         }
 
-        return $rangeValue->formatForDisplay();
+        return implode(' – ', array_filter([$this->formatPartsForDisplay($rangeValue->getStartParts()), $this->formatPartsForDisplay($rangeValue->getEndParts())], static fn($part) => $part !== ''));
     }
 
     public function getRangeBoundaryInputValue(mixed $value, string $side): string
@@ -1604,6 +1558,11 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
     // Protected Methods
     // =========================================================================
 
+    protected function defineValueForDb(mixed $value, ?ElementInterface $element): mixed
+    {
+        return $this->normalizeValue($value, $element)?->toValueArray();
+    }
+
     protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
     {
         $form = $context->form;
@@ -2019,61 +1978,21 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
 
     protected function defineValueAsString(mixed $value, ElementInterface $element = null): string
     {
-        if ($this->getCollectsRange()) {
-            $rangeValue = $value instanceof DateRangeFieldValue
-                ? $value
-                : DateRangeFieldValue::fromMixed($value);
-
-            if ($rangeValue->isEmpty()) {
-                return '';
-            }
-
-            $this->_applyDisplaySettings($rangeValue);
-
-            return $rangeValue->formatForDisplay();
+        $value = $this->normalizeValue($value, $element);
+        if ($value instanceof DateRangeFieldValue) {
+            return implode(' – ', array_filter([$this->formatPartsForDisplay($value->getStartParts()), $this->formatPartsForDisplay($value->getEndParts())], static fn($part) => $part !== ''));
         }
-
-        if ($value instanceof DateFieldValue) {
-            if ($value->isEmpty()) {
-                return '';
-            }
-
-            $this->_applyDisplaySettings($value);
-
-            return $value->formatPartsForDisplay($value->getParts());
-        }
-
-        $fieldValue = new DateFieldValue(DateFieldValue::parseParts($value));
-
-        if ($fieldValue->isEmpty()) {
-            return '';
-        }
-
-        $this->_applyDisplaySettings($fieldValue);
-
-        return $fieldValue->formatPartsForDisplay($fieldValue->getParts());
+        return $value ? ($value->isValid() ? $this->formatPartsForDisplay($value->getParts()) : (string)$value) : '';
     }
 
-    protected function defineValueAsArray(mixed $value, ElementInterface $element = null): mixed
+    protected function defineValueAsData(mixed $value, ElementInterface $element = null): mixed
     {
-        if ($this->getCollectsRange()) {
-            $rangeValue = $value instanceof DateRangeFieldValue
-                ? $value
-                : DateRangeFieldValue::fromMixed($value);
+        return $value?->toValueArray();
+    }
 
-            if ($rangeValue->isEmpty()) {
-                return [];
-            }
-
-            return [
-                'start' => $this->formatPartsForDisplay($rangeValue->getStartParts()),
-                'end' => $this->formatPartsForDisplay($rangeValue->getEndParts()),
-            ];
-        }
-
-        $stringValue = $this->getValueAsString($value, $element);
-
-        return $stringValue !== '' ? [$stringValue] : [];
+    protected function defineValueForCondition(mixed $value, Submission $submission): mixed
+    {
+        return $value?->toValueArray();
     }
 
     protected function defineValueForExport(mixed $value, ElementInterface $element = null): mixed
@@ -2093,37 +2012,28 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
             ];
         }
 
-        return $this->getValueAsString($value, $element);
+        return $this->defineValueAsString($value, $element);
     }
 
     protected function defineValueForSummary(mixed $value, ElementInterface $element = null): string
     {
-        return $this->getValueAsString($value, $element);
+        return $this->defineValueAsString($value, $element);
     }
 
     protected function defineValueForIntegration(mixed $value, IntegrationField $integrationField, IntegrationInterface $integration, ElementInterface $element = null, string $fieldKey = ''): mixed
     {
-        $parts = DateFieldValue::parseParts($value);
-
-        // If a string value is requested for a date, return the ISO 8601 date string
-        if ($integrationField->getType() === IntegrationField::TYPE_STRING) {
-            
+        if ($value instanceof DateFieldValue) {
+            $date = $value->isValid() ? DateFieldValue::partsToDateTime($value->getParts()) : null;
+            return match ($integrationField->getType()) {
+                IntegrationField::TYPE_STRING => (string)$value,
+                IntegrationField::TYPE_DATE => $date?->format('Y-m-d'),
+                IntegrationField::TYPE_DATETIME => $date?->format('Y-m-d H:i:s'),
+                IntegrationField::TYPE_DATECLASS => $date,
+                IntegrationField::TYPE_ARRAY => $value->toValueArray(),
+                default => parent::defineValueForIntegration($value, $integrationField, $integration, $element, $fieldKey),
+            };
         }
-
-        if ($integrationField->getType() === IntegrationField::TYPE_DATE) {
-            
-        }
-
-        if ($integrationField->getType() === IntegrationField::TYPE_DATETIME) {
-            
-        }
-
-        if ($integrationField->getType() === IntegrationField::TYPE_DATECLASS) {
-            
-        }
-
-        // Fetch the default handling
-        return parent::defineValueForIntegration($value, $integrationField, $integration, $element);
+        return parent::defineValueForIntegration($value, $integrationField, $integration, $element, $fieldKey);
     }
 
     protected function defineValueForEmailPreview(FakerFactory $faker): mixed
@@ -2141,9 +2051,9 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
         return $faker->dateTime();
     }
 
-    protected function defineValidationRules(): array
+    protected function defineBrowserValidationRules(): array
     {
-        $validators = parent::defineValidationRules();
+        $validators = parent::defineBrowserValidationRules();
 
         if (!in_array($this->displayType, ['inputs', 'dropdowns'], true)) {
             return $validators;
@@ -2245,10 +2155,6 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
         return $modules;
     }
 
-    protected function defineValueClass(): ?string
-    {
-        return $this->getCollectsRange() ? DateRangeFieldValue::class : DateFieldValue::class;
-    }
 
     protected function defineReferenceValues(): array
     {
@@ -2370,23 +2276,6 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
         return $resolved instanceof DateTime ? $resolved : new DateTime();
     }
 
-    private function _applyDisplaySettings(DateFieldValue|DateRangeFieldValue $value): void
-    {
-        $includeDate = $this->getIsDate() || $this->getIsDateTime();
-        $includeTime = $this->getIsTime() || $this->getIsDateTime();
-
-        if (!$includeDate && !$includeTime) {
-            $includeDate = true;
-            $includeTime = true;
-        }
-
-        $value->applyDisplaySettings(
-            $this->getDateFormat() ?: 'Y-m-d',
-            $this->getTimeFormat() ?: 'H:i',
-            $includeDate,
-            $includeTime,
-        );
-    }
 
     private function _generateOptions(int $start, int $end, ?string $placeholder = null): array
     {
@@ -2454,6 +2343,10 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
             return $value;
         }
 
+        if (isset($value['_input']) || array_intersect(array_keys($value), ['year', 'month', 'day', 'hour', 'minute', 'second'])) {
+            return $value;
+        }
+
         if ($this->getCollectsRange()) {
             return $this->_normalizeRangeInputValue($value);
         }
@@ -2462,36 +2355,7 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
             return $this->_normalizeInputPartsArray($value);
         }
 
-        $datePart = trim((string)($value['date'] ?? ''));
-        $timePart = trim((string)($value['time'] ?? ''));
-        $datetimePart = trim((string)($value['datetime'] ?? ''));
-        $parts = [];
-
-        if ($datetimePart !== '') {
-            $parts = $this->_parseDateTimeByConfiguredFormats($datetimePart);
-
-            if (!empty($parts)) {
-                return DateFieldValue::normalizeParts($parts);
-            }
-        }
-
-        if ($datePart !== '') {
-            $parts = array_merge($parts, $this->_parseDateByConfiguredFormat($datePart));
-        }
-
-        if ($timePart !== '') {
-            $parts = array_merge($parts, $this->_parseTimeByConfiguredFormat($timePart));
-        }
-
-        if (!empty($parts)) {
-            return DateFieldValue::normalizeParts($parts);
-        }
-
-        if ($datetimePart !== '') {
-            return $datetimePart;
-        }
-
-        return $value;
+        return $this->_normalizeSingleCalendarInputValue($value);
     }
 
     private function _normalizeInputPartsArray(array $value): array
@@ -2509,14 +2373,15 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
             $parts[$key] = $partValue;
         }
 
-        return DateFieldValue::normalizeParts($parts);
+        $parts = DateFieldValue::normalizeParts($parts);
+        return $parts || !array_filter($value, static fn($part) => $part !== null && $part !== '') ? $parts : ['_input' => $value];
     }
 
     private function _parseDateByConfiguredFormat(string $value): array
     {
         $date = DateTime::createFromFormat($this->getDateFormat(), $value, new DateTimeZone('UTC'));
 
-        if ($date instanceof DateTime) {
+        if ($date instanceof DateTime && DateTime::getLastErrors() === false) {
             return [
                 'year' => $date->format('Y'),
                 'month' => $date->format('n'),
@@ -2531,7 +2396,7 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
     {
         $time = DateTime::createFromFormat($this->getTimeFormat(), $value, new DateTimeZone('UTC'));
 
-        if ($time instanceof DateTime) {
+        if ($time instanceof DateTime && DateTime::getLastErrors() === false) {
             return [
                 'hour' => $time->format('G'),
                 'minute' => $time->format('i'),
@@ -2554,7 +2419,7 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
         foreach (array_unique($formats) as $format) {
             $dateTime = DateTime::createFromFormat($format, $value, new DateTimeZone('UTC'));
 
-            if (!$dateTime instanceof DateTime) {
+            if (!$dateTime instanceof DateTime || DateTime::getLastErrors() !== false) {
                 continue;
             }
 
@@ -2593,7 +2458,7 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
             }
         }
 
-        return [];
+        return DateFieldValue::parseParts($value);
     }
 
     private function _getMonthOptions(?string $placeholder = null): array
@@ -2712,8 +2577,8 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
     {
         if (isset($value['start']) || isset($value['end'])) {
             return [
-                'start' => $this->_normalizeRangeSideInputValue(is_array($value['start'] ?? null) ? $value['start'] : []),
-                'end' => $this->_normalizeRangeSideInputValue(is_array($value['end'] ?? null) ? $value['end'] : []),
+                'start' => $this->_normalizeRangeSideInputValue($value['start'] ?? []),
+                'end' => $this->_normalizeRangeSideInputValue($value['end'] ?? []),
             ];
         }
 
@@ -2723,8 +2588,11 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
         ];
     }
 
-    private function _normalizeRangeSideInputValue(array $value, ?string $prefix = null): array
+    private function _normalizeRangeSideInputValue(mixed $value, ?string $prefix = null): array
     {
+        if (!is_array($value)) {
+            return (new DateFieldValue($value))->toValueArray();
+        }
         if ($prefix !== null) {
             if ($this->displayType === 'inputs' || $this->displayType === 'dropdowns') {
                 $parts = [];
@@ -2752,48 +2620,38 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
                 'datetime' => $value[$prefix . 'Datetime'] ?? ($value[$prefix . 'DateTime'] ?? ''),
             ];
 
-            return DateFieldValue::parseParts($this->_normalizeSingleCalendarInputValue($sideValue));
+            return $this->_normalizeSingleCalendarInputValue($sideValue);
         }
 
         if ($this->displayType === 'inputs' || $this->displayType === 'dropdowns') {
             return $this->_normalizeInputPartsArray($value);
         }
 
-        return DateFieldValue::parseParts($this->_normalizeSingleCalendarInputValue($value));
+        return $this->_normalizeSingleCalendarInputValue($value);
     }
 
     private function _normalizeSingleCalendarInputValue(array $value): mixed
     {
-        $datePart = trim((string)($value['date'] ?? ''));
-        $timePart = trim((string)($value['time'] ?? ''));
-        $datetimePart = trim((string)($value['datetime'] ?? ''));
+        if (isset($value['_input']) || array_intersect(array_keys($value), DateFieldValue::partKeys())) {
+            return $value;
+        }
         $parts = [];
-
-        if ($datetimePart !== '') {
-            $parts = $this->_parseDateTimeByConfiguredFormats($datetimePart);
-
-            if (!empty($parts)) {
-                return DateFieldValue::normalizeParts($parts);
+        foreach (['datetime', 'date', 'time'] as $key) {
+            $input = trim((string)($value[$key] ?? ''));
+            if ($input === '') {
+                continue;
             }
+            $parsed = match ($key) {
+                'datetime' => $this->_parseDateTimeByConfiguredFormats($input),
+                'date' => $this->_parseDateByConfiguredFormat($input),
+                'time' => $this->_parseTimeByConfiguredFormat($input),
+            };
+            if (!$parsed || !(new DateFieldValue($parsed))->isValid()) {
+                return ['_input' => $value];
+            }
+            $parts = array_merge($parts, $parsed);
         }
-
-        if ($datePart !== '') {
-            $parts = array_merge($parts, $this->_parseDateByConfiguredFormat($datePart));
-        }
-
-        if ($timePart !== '') {
-            $parts = array_merge($parts, $this->_parseTimeByConfiguredFormat($timePart));
-        }
-
-        if (!empty($parts)) {
-            return DateFieldValue::normalizeParts($parts);
-        }
-
-        if ($datetimePart !== '') {
-            return $datetimePart;
-        }
-
-        return $value;
+        return DateFieldValue::normalizeParts($parts);
     }
 
     private function _getDateRangeGqlTypeName(string $suffix): string

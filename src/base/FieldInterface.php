@@ -10,7 +10,7 @@ use verbb\formie\fields\definitions\FieldConditions;
 use verbb\formie\fields\definitions\FieldClientDefinition;
 use verbb\formie\fields\definitions\FieldReferences;
 use verbb\formie\fields\definitions\FieldClientChildren;
-use verbb\formie\fields\definitions\FieldValueClass;
+use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\models\Notification;
 
 use Twig\Markup;
@@ -34,9 +34,9 @@ interface FieldInterface extends SavableComponentInterface, FieldTypeDefinitionI
     public function getClientConfig(): array;
     public function getClientPayload(): array;
     public function getClientInputDefinition(): array;
-    public function validationRules(): array;
+    public function browserValidationRules(): array;
     public function fieldKind(): string;
-    public function valueClass(): FieldValueClass;
+    public function valueType(): FieldValueType;
     public function clientChildren(): FieldClientChildren;
     public function clientDefinition(): FieldClientDefinition;
     public function clientModules(): FieldClientModules;
@@ -61,9 +61,6 @@ interface FieldInterface extends SavableComponentInterface, FieldTypeDefinitionI
     public function getReferenceBlockOptions(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): array;
     public function getReferenceBlockHtml(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): string|null|bool;
     public function getNamespace(): string;
-    public function supportsValueCapability(string $capabilityType): bool;
-    public function supportsStringValue(): bool;
-    public function supportsArrayValue(): bool;
     public function defineFormBuilderGeneralSchema(): array;
     public function defineFormBuilderSettingsSchema(): array;
     public function defineFormBuilderAppearanceSchema(): array;

@@ -70,21 +70,6 @@ class RecipientOptionSelectionHelper
 
     public static function selectionFromValue(mixed $value, mixed $label = null, mixed $id = null): array
     {
-        if (is_string($value) && str_starts_with($value, 'base64:')) {
-            $payload = RecipientTokenHelper::decodePayload($value);
-
-            if (($payload['type'] ?? null) === RecipientTokenHelper::TYPE_OPTION) {
-                return [
-                    'id' => isset($payload['id']) ? (string)$payload['id'] : null,
-                    'label' => isset($payload['label']) ? (string)$payload['label'] : null,
-                    'value' => (string)($payload['value'] ?? ''),
-                    'token' => true,
-                ];
-            }
-
-            $value = RecipientTokenHelper::decode($value);
-        }
-
         if (is_array($value)) {
             $value = implode(',', array_filter($value));
         }

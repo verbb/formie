@@ -4,6 +4,7 @@ namespace verbb\formie\fields\custom\adapters;
 use verbb\formie\elements\Form;
 use verbb\formie\fields\CustomField;
 use verbb\formie\fields\custom\AbstractCustomFieldAdapter;
+use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\fields\values\CustomGoogleMapsAddressFieldValue;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\ClientModule;
@@ -219,9 +220,9 @@ class GoogleMapsCustomFieldAdapter extends AbstractCustomFieldAdapter
         ];
     }
 
-    public function getValueClass(CustomField $field): ?string
+    public function valueType(CustomField $field): FieldValueType
     {
-        return CustomGoogleMapsAddressFieldValue::class;
+        return FieldValueType::object(CustomGoogleMapsAddressFieldValue::class, true);
     }
 
     public function normalizeValue(mixed $value, CustomField $field, ?ElementInterface $element): mixed
@@ -300,11 +301,11 @@ class GoogleMapsCustomFieldAdapter extends AbstractCustomFieldAdapter
         return $value instanceof CustomGoogleMapsAddressFieldValue ? (string)$value : parent::getValueAsString($value, $field, $element);
     }
 
-    public function getValueAsArray(mixed $value, CustomField $field, ?ElementInterface $element = null): mixed
+    public function getValueAsData(mixed $value, CustomField $field, ?ElementInterface $element = null): mixed
     {
         $value = $this->normalizeValue($value, $field, $element);
 
-        return $value instanceof CustomGoogleMapsAddressFieldValue ? $value->toValueArray() : parent::getValueAsArray($value, $field, $element);
+        return $value instanceof CustomGoogleMapsAddressFieldValue ? $value->toValueArray() : parent::getValueAsData($value, $field, $element);
     }
 
 

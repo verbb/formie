@@ -23,13 +23,17 @@ export type FrontendFieldValueStructure =
     | 'container-parent'
     | 'repeatable-parent';
 
-export type FrontendFieldValueClass = {
+export type FrontendFieldValueType = {
+    kind: 'string' | 'boolean' | 'number' | 'object' | 'array' | 'relationQuery' | 'none' | 'storageSafe';
+    nullable: boolean;
+    representation?: 'decimal-string';
+    items?: FrontendFieldValueType;
     class?: string | null;
 };
 
 export type FrontendFieldValueContract = {
     structure: FrontendFieldValueStructure;
-    valueClass?: FrontendFieldValueClass;
+    valueType?: FrontendFieldValueType;
 };
 
 export type FrontendValidationRule = {
@@ -76,7 +80,7 @@ export type FrontendFieldDefinition = {
     validation: FrontendValidationRule[];
     client?: {
         children: { model: FrontendFieldValueStructure; mode?: 'parts' | 'rows' };
-        valueClass?: FrontendFieldValueClass;
+        valueType?: FrontendFieldValueType;
     };
     /** Older bootstrap payloads used runtime.structure. */
     runtime?: FrontendFieldValueContract;

@@ -60,7 +60,7 @@ it('obscures recipients condition values instead of exposing raw recipient paylo
     $normalized = $submission->getFieldValue('department');
     $conditionValue = $submission->getFieldValueForCondition('department');
 
-    expect($conditionValue)->toStartWith('base64:')
+    expect($conditionValue)->toStartWith('recipient:v1:')
         ->and($conditionValue)->not->toContain('sales@example.test')
         ->and($field->serializeValue($normalized, $submission))->toBe(['value' => 'sales@example.test', 'label' => 'Sales']);
 

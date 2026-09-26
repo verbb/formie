@@ -118,7 +118,7 @@ it('resolves dynamic recipient options while keeping front-end obfuscation', fun
     ]);
 
     expect($field->getResolvedOptions()[0]['value'])->toBe('sales@example.com')
-        ->and($field->getFieldOptions()[0]['value'])->toStartWith('base64:')
+        ->and($field->getFieldOptions()[0]['value'])->toStartWith('recipient:v1:')
         ->and($field->getRealValue($field->getFieldOptions()[0]['value']))->toBe('sales@example.com')
         ->and($field->getOptionsMode())->toBe('static');
 })->skip(fn (): bool => !class_exists(\Craft::class) || !\Craft::$app || !\verbb\formie\Formie::$plugin, 'Requires Craft bootstrap');

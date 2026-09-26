@@ -10,8 +10,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyElementFieldQueryEvent;
 use verbb\formie\fields\conditions\ElementFieldConditionRule;
 use verbb\formie\fields\definitions\FieldReferenceValue;
-use verbb\formie\fields\definitions\FieldValueClass;
-use verbb\formie\fields\values\ElementFieldValue;
+use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\fields\values\MultiOptionFieldValue;
 use verbb\formie\fields\values\OptionValue;
 use verbb\formie\fields\values\SingleOptionFieldValue;
@@ -178,6 +177,11 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
     // Public Methods
     // =========================================================================
 
+    public function valueType(): FieldValueType
+    {
+        return FieldValueType::relationQuery(static::elementType());
+    }
+
     public function __construct($config = [])
     {
         // Normalize the options
@@ -256,12 +260,10 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
         return $query;
     }
 
-    public function serializeValue(mixed $value, ?ElementInterface $element): mixed
-    {
-        // Ensure that we allow saving any status elements
-        $value->status(null);
 
-        return $value->ids();
+    public function serializeValueForClientInput(mixed $value, ?ElementInterface $element = null): mixed
+    {
+        return (clone $this->normalizeValue($value, $element))->ids();
     }
 
     public function getElementConditionRuleType(): array|string|null
@@ -419,7 +421,7 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
     public function getPreviewHtml(mixed $value, ElementInterface $element): string
     {
         if ($value instanceof ElementQueryInterface) {
-            return Cp::elementPreviewHtml($value->all());
+            return Cp::elementPreviewHtml((clone $value)->all());
         }
 
         return '';
@@ -540,7 +542,7 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
         if ($this->displayType === 'checkboxes' || $this->getIsMultiDropdown()) {
             $options = [];
 
-            foreach ($value->all() as $element) {
+            foreach ((clone $value)->all() as $element) {
                 $options[] = new OptionValue($this->getElementLabel($element), $element->id, true);
             }
 
@@ -896,6 +898,12 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
     // Protected Methods
     // =========================================================================
 
+    protected function defineValueForDb(mixed $value, ?ElementInterface $element): mixed
+    {
+        $query = clone $this->normalizeValue($value, $element);
+        return $query->status(null)->ids();
+    }
+
     protected static function defineOptionSource(): ?array
     {
         return null;
@@ -1051,9 +1059,10 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
     protected function defineSubmissionHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
         // Ensure that the element query allows all statuses for the CP
+        $value = clone $value;
         $value->status(null);
 
-        return Craft::$app->getView()->renderTemplate($this->cpInputTemplate, $this->cpInputTemplateVariables($value->all(), $element));
+        return Craft::$app->getView()->renderTemplate($this->cpInputTemplate, $this->cpInputTemplateVariables((clone $value)->all(), $element));
     }
 
     protected function availableSources(): array
@@ -1102,19 +1111,27 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
     {
         return implode(', ', array_map(function($item) {
             return $this->getElementLabel($item);
-        }, $value->all()));
+        }, (clone $value)->all()));
     }
 
-    protected function defineValueAsArray(mixed $value, ElementInterface $element = null): mixed
+    protected function defineValueForCondition(mixed $value, Submission $submission): mixed
     {
-        return array_map(function($item) {
-            return $this->_elementToArray($item);
-        }, $value->all());
+        return (clone $this->normalizeValue($value, $submission))->ids();
+    }
+
+    protected function defineValueAsData(mixed $value, ElementInterface $element = null): mixed
+    {
+        return array_map(static fn($item) => [
+            'id' => (int)$item->id,
+            'title' => (string)$item,
+            'url' => $item->getUrl(),
+        ], (clone $this->normalizeValue($value, $element))->all());
     }
 
     protected function defineValueForIntegration(mixed $value, IntegrationField $integrationField, IntegrationInterface $integration, ElementInterface $element = null, string $fieldKey = ''): mixed
     {
-        // Set the status to null to include disabled elements
+        // Project a query copy so consumer criteria never alter the normalized value.
+        $value = clone $value;
         $value->status(null);
 
         // Send through a CSV of element titles, when mapping to a string
@@ -1125,13 +1142,13 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
         if ($integrationField->getType() === IntegrationField::TYPE_ARRAY) {
             // When an array, assume a collection of titles for most integrations, except element integrations
             if ($integration instanceof ElementIntegration) {
-                return $value->ids();
+                return (clone $value)->ids();
             }
 
             // All other instances should use the title (or title-value)
             return array_map(function($item) {
                 return $this->getElementLabel($item);
-            }, $value->all());
+            }, (clone $value)->all());
         }
 
         // When a number, assume a single ID
@@ -1244,10 +1261,6 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
         ];
     }
 
-    protected function defineValueClass(): ?string
-    {
-        return ElementFieldValue::class;
-    }
 
     protected function supportedDefaults(): array
     {

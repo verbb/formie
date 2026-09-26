@@ -38,7 +38,7 @@ it('treats graphql file upload mutation data as non-empty for required validatio
         'filename' => 'testing.png',
     ]]);
 
-    $submission->setFieldValue('resume', $gqlValue);
+    $submission->setFieldValueFromRequest('resume', $gqlValue);
     $value = $submission->getFieldValue('resume');
 
     expect($field->isValueEmpty($value, $submission))->toBeFalse();

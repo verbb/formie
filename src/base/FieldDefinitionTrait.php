@@ -7,7 +7,7 @@ use verbb\formie\fields\definitions\FieldConditions;
 use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\fields\definitions\FieldReferences;
 use verbb\formie\fields\definitions\FieldClientChildren;
-use verbb\formie\fields\definitions\FieldValueClass;
+use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\helpers\ConditionsHelper;
 use Craft;
 
@@ -22,10 +22,10 @@ trait FieldDefinitionTrait
         return self::KIND_CUSTOM;
     }
 
-    // Value classes drive capability checks and client default-value serialization.
-    public function valueClass(): FieldValueClass
+    // The declared type describes normalization; each projection is owned by the field.
+    public function valueType(): FieldValueType
     {
-        return $this->valueClassDefinition();
+        return $this->getIsCosmetic() ? FieldValueType::none() : $this->legacyValueType();
     }
 
     // Client children describe how managed clients should model nested parts or rows.
@@ -83,12 +83,6 @@ trait FieldDefinitionTrait
 
     // Protected Methods
     // =========================================================================
-
-    // Wrap the optional value class in a DTO so capability checks and serialization share one seam.
-    protected function valueClassDefinition(): FieldValueClass
-    {
-        return FieldValueClass::make($this->defineValueClass());
-    }
 
     protected function defineClientChildren(): FieldClientChildren
     {

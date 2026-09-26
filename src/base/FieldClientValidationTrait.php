@@ -8,7 +8,7 @@ trait FieldClientValidationTrait
     // Public Methods
     // =========================================================================
 
-    public function validationRules(): array
+    public function browserValidationRules(): array
     {
         return array_values(array_filter(array_map(function(array $rule) {
             $type = (string)($rule['type'] ?? '');
@@ -44,12 +44,12 @@ trait FieldClientValidationTrait
             }
 
             return $definition;
-        }, array_values($this->defineValidationRules()))));
+        }, array_values($this->defineBrowserValidationRules()))));
     }
 
     public function getValidationRulesJson(): ?string
     {
-        $rules = $this->validationRules();
+        $rules = $this->browserValidationRules();
 
         if (!$rules) {
             return null;
@@ -62,7 +62,7 @@ trait FieldClientValidationTrait
     // Protected Methods
     // =========================================================================
 
-    protected function defineValidationRules(): array
+    protected function defineBrowserValidationRules(): array
     {
         $validators = [];
 

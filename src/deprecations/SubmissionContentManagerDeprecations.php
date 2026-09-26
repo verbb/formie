@@ -13,8 +13,8 @@ trait SubmissionContentManagerDeprecations
     public function getValuesAsJson(Submission $submission): array
     {
         // Deprecated in 4.0.0
-        Craft::$app->getDeprecator()->log(__METHOD__, 'Submission content manager `getValuesAsJson()` has been deprecated. Use `getValuesAsArray()` instead.');
+        Craft::$app->getDeprecator()->log(__METHOD__, 'Submission content manager `getValuesAsJson()` has been deprecated. Use `getValuesAsData()` instead.');
 
-        return $this->getValuesAsArray($submission);
+        return $this->getValuesAsData($submission);
     }
 }

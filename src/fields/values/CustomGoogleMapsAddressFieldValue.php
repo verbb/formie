@@ -9,34 +9,25 @@ use doublesecretagency\googlemaps\models\Address as GoogleMapsAddress;
 
 class CustomGoogleMapsAddressFieldValue extends BaseFieldValue
 {
-    // Static Methods
-    // =========================================================================
-
-    public static function capabilityTypes(): array
-    {
-        return ['string', 'array'];
-    }
-
-
     // Properties
     // =========================================================================
 
-    public ?string $formatted = null;
-    public array|string|null $raw = null;
-    public ?string $name = null;
-    public ?string $street1 = null;
-    public ?string $street2 = null;
-    public ?string $city = null;
-    public ?string $state = null;
-    public ?string $zip = null;
-    public ?string $neighborhood = null;
-    public ?string $county = null;
-    public ?string $country = null;
-    public ?string $countryCode = null;
-    public ?string $placeId = null;
-    public ?float $lat = null;
-    public ?float $lng = null;
-    public ?int $zoom = null;
+    protected ?string $formatted = null;
+    protected array|string|null $raw = null;
+    protected ?string $name = null;
+    protected ?string $street1 = null;
+    protected ?string $street2 = null;
+    protected ?string $city = null;
+    protected ?string $state = null;
+    protected ?string $zip = null;
+    protected ?string $neighborhood = null;
+    protected ?string $county = null;
+    protected ?string $country = null;
+    protected ?string $countryCode = null;
+    protected ?string $placeId = null;
+    protected ?float $lat = null;
+    protected ?float $lng = null;
+    protected ?int $zoom = null;
 
 
     // Public Methods
@@ -63,6 +54,7 @@ class CustomGoogleMapsAddressFieldValue extends BaseFieldValue
             $config['zoom'] = null;
         }
 
+        \verbb\formie\content\FieldStorageCodec::assertSafe($config);
         parent::__construct($config);
     }
 
@@ -122,7 +114,7 @@ class CustomGoogleMapsAddressFieldValue extends BaseFieldValue
 
     public function toValueArray(): array
     {
-        return ArrayHelper::filterEmptyStringsFromArray([
+        return [
             'formatted' => $this->formatted,
             'raw' => $this->raw,
             'name' => $this->name,
@@ -139,6 +131,6 @@ class CustomGoogleMapsAddressFieldValue extends BaseFieldValue
             'lat' => $this->lat,
             'lng' => $this->lng,
             'zoom' => $this->zoom,
-        ]);
+        ];
     }
 }

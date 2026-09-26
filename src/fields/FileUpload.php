@@ -11,9 +11,8 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\definitions\FieldClientModules;
 use verbb\formie\fields\definitions\FieldReferenceValue;
-use verbb\formie\fields\definitions\FieldValueClass;
 use verbb\formie\fields\Repeater;
-use verbb\formie\fields\values\FileUploadFieldValue;
+use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\gql\types\input\FileUploadInputType;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\FieldBuilderPolicy;
@@ -27,7 +26,6 @@ use verbb\formie\models\SlotTag;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Settings;
 use verbb\formie\records\Submission as SubmissionRecord;
-
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
@@ -147,6 +145,11 @@ class FileUpload extends ElementField
     // Public Methods
     // =========================================================================
 
+    public function valueType(): FieldValueType
+    {
+        return FieldValueType::relationQuery(static::elementType());
+    }
+
     public function __construct($config = [])
     {
         // Normalize the options
@@ -228,7 +231,7 @@ class FileUpload extends ElementField
         return array_merge([['label' => Craft::t('formie', 'Select an option'), 'value' => '']], $options);
     }
 
-    public function normalizeValue(mixed $value, ?ElementInterface $element): mixed
+    public function normalizeValueFromRequest(mixed $value, ?ElementInterface $element): mixed
     {
         $uploadedDataFiles = &$this->_getUploadedDataFiles($element);
 
@@ -265,6 +268,14 @@ class FileUpload extends ElementField
             unset($value['mutationData']);
         }
 
+        return parent::normalizeValue($value, $element);
+    }
+
+    public function normalizeValue(mixed $value, ?ElementInterface $element): mixed
+    {
+        if (is_array($value)) {
+            unset($value['mutationData']);
+        }
         return parent::normalizeValue($value, $element);
     }
 
@@ -316,7 +327,7 @@ class FileUpload extends ElementField
         // Get all the value's assets' filenames
         $value = $element->getFieldValue($this->valueKey());
 
-        foreach ($value->all() as $asset) {
+        foreach ((clone $value)->all() as $asset) {
             foreach ($this->getUploadTypeValidationErrors($asset->getFilename()) as $message) {
                 $element->addError($this->valueKey(), $message);
             }
@@ -989,7 +1000,17 @@ class FileUpload extends ElementField
         return implode(', ', array_map(function($item) {
             // Handle when volumes don't have a public URL
             return $item->url ?? $item->filename;
-        }, $value->all()));
+        }, (clone $value)->all()));
+    }
+
+    protected function defineValueAsData(mixed $value, ElementInterface $element = null): mixed
+    {
+        return array_map(static fn($asset) => [
+            'id' => (int)$asset->id,
+            'title' => (string)$asset->title,
+            'filename' => $asset->filename,
+            'url' => $asset->getUrl(),
+        ], (clone $value)->all());
     }
 
     protected function defineValueForIntegration(mixed $value, IntegrationField $integrationField, IntegrationInterface $integration, ElementInterface $element = null, string $fieldKey = ''): mixed
@@ -997,10 +1018,10 @@ class FileUpload extends ElementField
         if ($integrationField->getType() === IntegrationField::TYPE_ARRAY) {
             // For any element integrations, always return IDs (default behaviour)
             if ($integration instanceof Element) {
-                return $value->ids();
+                return (clone $value)->ids();
             }
 
-            $value = $this->getValueAsArray($value, $element);
+            $value = $this->defineValueAsData($value, $element);
 
             return array_map(function($item) {
                 // Handle when volumes don't have a public URL
@@ -1016,7 +1037,7 @@ class FileUpload extends ElementField
     {
         $html = '';
 
-        foreach ($value->all() as $asset) {
+        foreach ((clone $value)->all() as $asset) {
             $url = $this->getSafeElementUrl($asset, $this->emailFieldSummaryValue === 'cpUrl');
 
             if ($url) {
@@ -1118,11 +1139,6 @@ class FileUpload extends ElementField
                 ],
             ]),
         ];
-    }
-
-    protected function defineValueClass(): ?string
-    {
-        return FileUploadFieldValue::class;
     }
 
 

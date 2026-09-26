@@ -48,7 +48,7 @@ it('keeps unresolved commerce relation projections deterministic', function (): 
 
         expect($field->serializeValue($value, null))->toBe([])
             ->and($field->getValueAsString($value, null))->toBe('')
-            ->and($field->getValueAsArray($value, null))->toBe([])
+            ->and($field->getValueAsData($value, null))->toBe([])
             ->and($field->getValueForExport($value, null))->toBe('')
             ->and((string)$field->getValueForSummary($value, null))->toBe('');
     }

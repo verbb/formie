@@ -317,7 +317,7 @@ Author the module as a `FormieModuleDefinition` in that JS file. See [Build a cu
 Scalar fields like URL can rely on Formie's defaults. When your field stores structured data, override the protected `defineValue*()` methods:
 
 - `defineValueAsString()` — exports, summaries
-- `defineValueAsArray()` — array contexts
+- `defineValueAsData()` — array contexts
 - `defineValueForIntegration()` — CRM and automation payloads
 
 Override the `defineValue*()` methods, not the public `getValue*()` wrappers — the public methods fire Formie value events.

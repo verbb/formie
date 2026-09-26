@@ -28,7 +28,7 @@ it('keeps projection parity between field-level and submission wrapper value API
         $value = $submission->getFieldValue($handle);
 
         expect($submission->getFieldValueAsString($handle))->toBe($field?->getValueAsString($value, $submission));
-        expect($submission->getFieldValueAsArray($handle))->toBe($field?->getValueAsArray($value, $submission));
+        expect($submission->getFieldValueAsData($handle))->toBe($field?->getValueAsData($value, $submission));
         expect($submission->getFieldValueForExport($handle))->toBe($field?->getValueForExport($value, $submission));
         expect($submission->getFieldValueForSummary($handle))->toBe($field?->getValueForSummary($value, $submission));
         expect($submission->getFieldValueForReference($handle, $notification))->toBe($field?->getValueForReference($value, $submission));

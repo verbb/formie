@@ -7,6 +7,7 @@ use verbb\formie\base\SortableFieldInterface;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\coercion\StringValueCoercer;
 use verbb\formie\fields\definitions\FieldReferenceValue;
+use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Variables;
@@ -14,10 +15,8 @@ use verbb\formie\fields\conditions\TextFieldConditionRule;
 use verbb\formie\fields\traits\AutocompleteFieldTrait;
 use verbb\formie\fields\traits\TextLimitFieldTrait;
 use verbb\formie\fields\traits\UniqueValueFieldTrait;
-use verbb\formie\fields\values\StringFieldValue;
 use verbb\formie\models\ClientModule;
 use verbb\formie\models\SlotTag;
-
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
@@ -76,6 +75,11 @@ class MultiLineText extends Field implements SortableFieldInterface, Previewable
     // Public Methods
     // =========================================================================
 
+    public function valueType(): FieldValueType
+    {
+        return FieldValueType::string();
+    }
+
     public function fieldKind(): string
     {
         return self::KIND_TEXTAREA;
@@ -92,10 +96,10 @@ class MultiLineText extends Field implements SortableFieldInterface, Previewable
         $value = parent::normalizeValue($value, $element);
 
         if (!$this->useRichText && ($value === '' || $value === null)) {
-            return null;
+            return '';
         }
 
-        return $value;
+        return (string)$value;
     }
 
     protected function shouldTrimNormalizedPlainText(): bool
@@ -452,8 +456,5 @@ class MultiLineText extends Field implements SortableFieldInterface, Previewable
         return !$this->useRichText;
     }
 
-    protected function defineValueClass(): ?string
-    {
-        return StringFieldValue::class;
-    }
+
 }

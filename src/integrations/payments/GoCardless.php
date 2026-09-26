@@ -631,7 +631,7 @@ class GoCardless extends Payment
             $customer['email'] = $value;
         }
 
-        if ($billingAddress && ($address = $submission->getFieldValueAsArray($billingAddress)) && is_array($address)) {
+        if ($billingAddress && ($address = $submission->getFieldValueAsData($billingAddress)) && is_array($address)) {
             $billingDetail['address_line1'] = ArrayHelper::remove($address, 'address1');
             $billingDetail['address_line2'] = ArrayHelper::remove($address, 'address2');
             $billingDetail['city'] = ArrayHelper::remove($address, 'city');

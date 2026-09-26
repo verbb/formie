@@ -6,10 +6,6 @@ class LikertMultipleRowsFieldValue implements FieldValueInterface
     // Static Methods
     // =========================================================================
 
-    public static function capabilityTypes(): array
-    {
-        return ['array'];
-    }
 
     public static function toClientValueFrom(mixed $value): mixed
     {
@@ -53,10 +49,6 @@ class LikertMultipleRowsFieldValue implements FieldValueInterface
         }
     }
 
-    public function setSelection(string $rowKey, SingleOptionFieldValue $selection): void
-    {
-        $this->_selections[$rowKey] = $selection;
-    }
 
     public function getSelection(string $rowKey): ?SingleOptionFieldValue
     {
@@ -155,7 +147,7 @@ class LikertMultipleRowsFieldValue implements FieldValueInterface
 
     public function canResolvePath(string $path): bool
     {
-        return $path !== '';
+        return array_key_exists($path, $this->_selections);
     }
 
     public function getPathValue(string $path): mixed

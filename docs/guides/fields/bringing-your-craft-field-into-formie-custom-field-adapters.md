@@ -140,7 +140,7 @@ Start with the methods your Craft field actually needs:
 | Form builder settings | `getFormBuilderSettingsSchema()`, `getFormBuilderPreviewSchema()` |
 | Front-end rendering | `getInputTemplatePath()` or `renderInput()` if templates are not enough |
 | Value normalisation | `normalizeValue()`, `serializeValue()`, `isValueEmpty()` |
-| Output contexts | `getValueAsString()`, `getValueAsArray()`, `getValueForExport()`, `getValueForIntegration()` |
+| Output contexts | `getValueAsString()`, `getValueAsData()`, `getValueForExport()`, `getValueForIntegration()` |
 | GraphQL | `getContentGqlType()`, `getContentGqlMutationArgumentType()` |
 | Client-rendered forms | `getClientInputDefinition()`, `getClientModules()` |
 

@@ -127,6 +127,11 @@ The field settings.
 
 ## Methods
 
+`valueType()` declares the post-normalisation runtime type. `normalizeFieldValue()` asserts it. All fields accept null input; each field defines its normalised empty value.
+
+`serializeValueForDb()` calls the owning field's protected `defineValueForDb()` and applies whole-value encryption. `serializeValueForClientInput()` supplies browser inputs. These are separate from public data and condition projections; never pass request input to `normalizeValueFromStorage()`.
+
+
 ::: reference
 ### `hasLabel()`
 
@@ -204,11 +209,11 @@ Returns a string representation of a submitted value.
 :::
 
 ::: reference
-### `getValueAsArray()`
+### `getValueAsData()`
 
 **Returns:** `mixed`
 
-Returns an array representation of a submitted value.
+Returns natural JSON-safe data: scalars for primitive fields, named parts or selected records for rich fields.
 :::
 
 ::: reference

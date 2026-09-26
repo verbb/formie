@@ -7,7 +7,7 @@ use verbb\formie\base\IntegrationInterface;
 use verbb\formie\base\PreviewableFieldInterface;
 use verbb\formie\base\SortableFieldInterface;
 use verbb\formie\elements\Submission;
-use verbb\formie\fields\values\StringFieldValue;
+use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
@@ -48,6 +48,11 @@ class Password extends Field implements SortableFieldInterface, PreviewableField
 
     // Public Methods
     // =========================================================================
+
+    public function valueType(): FieldValueType
+    {
+        return FieldValueType::string();
+    }
 
     public function fieldKind(): string
     {
@@ -170,18 +175,6 @@ class Password extends Field implements SortableFieldInterface, PreviewableField
         }
     }
 
-    public function serializeValue(mixed $value, ?ElementInterface $element): mixed
-    {
-        // Only save the password as a hash
-        if ($value) {
-            $value = Craft::$app->getSecurity()->hashPassword($value);
-        } else {
-            // Important to reset to null, to prevent hash discovery from an empty string
-            $value = null;
-        }
-
-        return parent::serializeValue($value, $element);
-    }
 
     public function defineFormBuilderPreviewSchema(): array
     {
@@ -307,6 +300,23 @@ class Password extends Field implements SortableFieldInterface, PreviewableField
     // Protected Methods
     // =========================================================================
 
+    protected function defineValueForDb(mixed $value, ?ElementInterface $element): mixed
+    {
+        // Only save the password as a hash
+        if ($value && password_get_info((string)$value)['algo'] !== null) {
+            return $value;
+        }
+
+        if ($value) {
+            $value = Craft::$app->getSecurity()->hashPassword($value);
+        } else {
+            // Important to reset to null, to prevent hash discovery from an empty string
+            $value = null;
+        }
+
+        return parent::defineValueForDb($value, $element);
+    }
+
     protected function defineRules(): array
     {
         return array_merge(parent::defineRules(), [
@@ -420,10 +430,6 @@ class Password extends Field implements SortableFieldInterface, PreviewableField
             || $this->passwordRequireSpecialCharacter;
     }
 
-    protected function defineValueClass(): ?string
-    {
-        return StringFieldValue::class;
-    }
 
     protected function shouldTrimNormalizedPlainText(): bool
     {

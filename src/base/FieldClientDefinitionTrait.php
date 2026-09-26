@@ -23,7 +23,7 @@ trait FieldClientDefinitionTrait
             'type' => $this->clientDefinition()->type,
             'label' => $this->label,
             'required' => (bool)$this->required,
-            'validation' => $this->validationRules(),
+            'validation' => $this->browserValidationRules(),
             'settings' => $this->getSettings(),
         ];
     }
@@ -41,11 +41,11 @@ trait FieldClientDefinitionTrait
             'type' => $clientDefinition->type,
             'required' => (bool)$this->required,
             'condition' => ConditionsHelper::toComponentConditionDefinition($this->conditions()->toArray()),
-            'validation' => $this->validationRules(),
+            'validation' => $this->browserValidationRules(),
             'input' => $this->getClientInputDefinition(),
             'client' => [
                 'children' => $clientChildren->toArray(),
-                'valueClass' => $this->valueClass()->toArray(),
+                'valueType' => $this->valueType()->toArray(),
             ],
             'moduleRefs' => $this->getClientModuleIds(),
             'meta' => [
@@ -68,7 +68,7 @@ trait FieldClientDefinitionTrait
         $isFileField = $this->fieldKind() === Field::KIND_FILE;
         $initialValue = $isFileField
             ? []
-            : $this->valueClass()->serializeClientValue($this->getInitialValue());
+            : $this->serializeValueForClientInput($this->getInitialValue());
 
         if ($initialValue !== null || !array_key_exists('defaultValue', $contract)) {
             $contract['defaultValue'] = $initialValue;

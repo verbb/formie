@@ -7,8 +7,8 @@ use verbb\formie\base\SortableFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\definitions\FieldClientModules;
-use verbb\formie\fields\values\StringFieldValue;
 use verbb\formie\events\ModifyFieldValueEvent;
+use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\helpers\HiddenDefaultTemplateResolver;
 use verbb\formie\helpers\References;
 use verbb\formie\helpers\SchemaHelper;
@@ -17,7 +17,6 @@ use verbb\formie\models\ClientModule;
 use verbb\formie\positions\Hidden as HiddenPosition;
 use verbb\formie\models\SlotTag;
 use verbb\formie\models\Notification;
-
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
@@ -63,6 +62,11 @@ class Hidden extends Field implements SortableFieldInterface, PreviewableFieldIn
 
     // Public Methods
     // =========================================================================
+
+    public function valueType(): FieldValueType
+    {
+        return FieldValueType::string();
+    }
 
     public function __construct(array $config = [])
     {
@@ -166,29 +170,6 @@ class Hidden extends Field implements SortableFieldInterface, PreviewableFieldIn
         return parent::normalizeValueFromRequest($value, $element);
     }
 
-    public function serializeValue(mixed $value, ?ElementInterface $element): mixed
-    {
-        if ($this->usesTemplateDefault()) {
-            $value = HiddenDefaultTemplateResolver::resolve($this, $element);
-            $element?->setFieldValue($this->handle, $value);
-
-            return parent::serializeValue($value, $element);
-        }
-
-        // Handle variables use in custom fields
-        if ($this->defaultOption === 'custom') {
-            // Only field-authored defaults may resolve references. Non-empty submitted
-            // Hidden values are attacker-controlled and must remain literal.
-            if ($value === '') {
-                $value = References::parseContent((string)$this->defaultValue, $element);
-            }
-
-            // Immediately update the value for the element, so integrations use the up-to-date value
-            $element?->setFieldValue($this->handle, $value);
-        }
-
-        return parent::serializeValue($value, $element);
-    }
 
     public function defineFormBuilderPreviewSchema(): array
     {
@@ -327,6 +308,30 @@ class Hidden extends Field implements SortableFieldInterface, PreviewableFieldIn
     // Protected Methods
     // =========================================================================
 
+    protected function defineValueForDb(mixed $value, ?ElementInterface $element): mixed
+    {
+        if ($this->usesTemplateDefault()) {
+            $value = HiddenDefaultTemplateResolver::resolve($this, $element);
+            $element?->setFieldValue($this->handle, $value);
+
+            return parent::defineValueForDb($value, $element);
+        }
+
+        // Handle variables use in custom fields
+        if ($this->defaultOption === 'custom') {
+            // Only field-authored defaults may resolve references. Non-empty submitted
+            // Hidden values are attacker-controlled and must remain literal.
+            if ($value === '' && $element instanceof Submission) {
+                $value = References::parseContent((string)$this->defaultValue, $element);
+            }
+
+            // Immediately update the value for the element, so integrations use the up-to-date value
+            $element?->setFieldValue($this->handle, $value);
+        }
+
+        return parent::defineValueForDb($value, $element);
+    }
+
     protected function supportedDefaults(): array
     {
         return ['defaultOption', 'defaultTemplate'];
@@ -431,8 +436,5 @@ class Hidden extends Field implements SortableFieldInterface, PreviewableFieldIn
         return $modules;
     }
 
-    protected function defineValueClass(): ?string
-    {
-        return StringFieldValue::class;
-    }
+
 }

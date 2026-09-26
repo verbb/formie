@@ -76,7 +76,9 @@ class SubmissionProcessor extends Component
             function () use ($submission, $form, $progress, $input, $navigation): void {
                 $this->primeSubmission($submission, $form, $progress, $input->siteId);
                 if ($navigation !== NavigationIntent::BACK || Formie::$plugin->getSettings()->enableBackSubmission) {
-                    $submission->setFieldValues($input->values);
+                    foreach ($input->values as $handle => $value) {
+                        $submission->setFieldValueFromRequest($handle, $value);
+                    }
                 }
             },
             $this->_normalizeNullableInt($input->session['currentPageId'] ?? $progress?->currentPageId),

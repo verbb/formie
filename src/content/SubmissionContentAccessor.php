@@ -24,6 +24,26 @@ class SubmissionContentAccessor
 
         $uid = $field->uid;
 
+        if ($state->uploadedDataFiles && !$state->isMergingPartialPayload) {
+            $owner = $field;
+            $segments = $nestedPath === null ? [] : explode('.', $nestedPath);
+            while ($segments && $owner instanceof \verbb\formie\base\ParentFieldInterface) {
+                $row = $owner instanceof \verbb\formie\base\RepeatableParentFieldInterface ? array_shift($segments) : null;
+                $handle = array_shift($segments);
+                $child = null;
+                foreach ($owner->getFields($row) as $candidate) {
+                    if ($candidate->handle === $handle) {
+                        $child = $candidate;
+                        break;
+                    }
+                }
+                $owner = $child;
+            }
+            if ($owner && !$segments) {
+                $owner->discardRequestValue($submission);
+            }
+        }
+
         if ($nestedPath === null) {
             $state->rawValuesByUid[$uid] = $value;
             unset($state->normalizedValuesByUid[$uid]);
@@ -56,6 +76,7 @@ class SubmissionContentAccessor
             throw new InvalidFieldException($fieldHandle);
         }
 
+        $field->valueType()->assert($value, get_class($field) . ' [' . $field->handle . ']');
         $state->rawValuesByUid[$field->uid] = $value;
         $state->normalizedValuesByUid[$field->uid] = $value;
     }
@@ -202,7 +223,7 @@ class SubmissionContentAccessor
         // state so repeated template, export, and workflow reads do not keep
         // re-running field-specific normalization logic.
         $rawValue = $state->rawValuesByUid[$uid] ?? null;
-        $normalizedValue = $field->normalizeValue($rawValue, $submission);
+        $normalizedValue = $field->normalizeFieldValue($rawValue, $submission);
         $state->normalizedValuesByUid[$uid] = $normalizedValue;
         $state->rawValuesByUid[$uid] = $rawValue;
 

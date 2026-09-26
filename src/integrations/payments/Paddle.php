@@ -458,7 +458,7 @@ class Paddle extends Payment
             $payload['customer']['business']['name'] = $billingNameValue;
         }
 
-        if ($billingAddress && ($address = $submission->getFieldValueAsArray($billingAddress)) && is_array($address)) {
+        if ($billingAddress && ($address = $submission->getFieldValueAsData($billingAddress)) && is_array($address)) {
             $payload['customer']['address']['firstLine'] = ArrayHelper::remove($address, 'address1');
             $payload['customer']['address']['city'] = ArrayHelper::remove($address, 'city');
             $payload['customer']['address']['postalCode'] = ArrayHelper::remove($address, 'zip');

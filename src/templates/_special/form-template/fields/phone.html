@@ -1,3 +1,4 @@
+{% set value = field.serializeValueForClientInput(value ?? null, element ?? null) %}
 {{ fieldtag('fieldInput', {
     value: value.number ?? null,
 }) }}

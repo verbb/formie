@@ -121,7 +121,7 @@ return [
 | --- | --- |
 | `craft.formie.renderFormAssets(form)` | `craft.formie.formAssets(form)` |
 | `form.getFormId()` | `form.getRenderId()` |
-| `submission.getValueAsJson()` | `submission.getFieldValueAsArray()` |
+| `submission.getValueAsJson()` | `submission.getFieldValueAsData()` |
 | `onAfterFormieSubmit` | `formie:submit:result` |
 | `getStatuses()` | `getSubmissionStatuses()` |
 | `defineGeneralSchema()` | `defineFormBuilderGeneralSchema()` |

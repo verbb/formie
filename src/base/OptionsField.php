@@ -2,6 +2,7 @@
 namespace verbb\formie\base;
 
 use verbb\formie\Formie;
+use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\helpers\FieldOptionHelper;
 use verbb\formie\helpers\OptionsMode;
 use verbb\formie\base\Field;
@@ -12,7 +13,6 @@ use verbb\formie\base\PreviewableFieldInterface;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\conditions\OptionsFieldConditionRule;
 use verbb\formie\fields\definitions\FieldReferenceValue;
-use verbb\formie\fields\definitions\FieldValueClass;
 use verbb\formie\fields\values\MultiOptionFieldValue;
 use verbb\formie\fields\values\OptionValue;
 use verbb\formie\fields\values\SingleOptionFieldValue;
@@ -320,6 +320,11 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Opti
 
     // Public Methods
     // =========================================================================
+
+    public function valueType(): FieldValueType
+    {
+        return FieldValueType::object($this->multi ? MultiOptionFieldValue::class : SingleOptionFieldValue::class, true);
+    }
 
     public function __construct($config = [])
     {
@@ -725,7 +730,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Opti
                 $selectedOptions[] = new OptionValue($label, $selectedValue, true, $valid);
             }
 
-            $normalizedValue = new MultiOptionFieldValue($selectedOptions);
+            $normalizedValue = new MultiOptionFieldValue($selectedOptions, $options);
         } else if (!empty($selectedValues)) {
             $selectedValue = (string)reset($selectedValues);
             $valid = array_key_exists($selectedValue, $optionLabelsByValue);
@@ -739,44 +744,20 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Opti
                 $valid = true;
             }
 
-            $normalizedValue = new SingleOptionFieldValue($label, $selectedValue, true, $valid);
+            $normalizedValue = new SingleOptionFieldValue($label, $selectedValue, true, $valid, $options);
         } else {
             $normalizedValue = null;
         }
 
-        if ($normalizedValue) {
-            $normalizedValue->setOptions($options);
-        }
 
         return $normalizedValue;
     }
 
-    public function serializeValue(mixed $value, ?ElementInterface $element = null): mixed
+    public function serializeValueForClientInput(mixed $value, ?ElementInterface $element = null): mixed
     {
-        if ($value instanceof MultiOptionFieldValue) {
-            if (!$this->shouldPersistOptionLabels()) {
-                return $value->values();
-            }
-
-            return array_map(static fn(OptionValue $option) => [
-                'value' => $option->value,
-                'label' => $option->getDisplayLabel(),
-            ], $value->all());
-        }
-
-        if ($value instanceof SingleOptionFieldValue) {
-            if (!$this->shouldPersistOptionLabels()) {
-                return $value->value;
-            }
-
-            return [
-                'value' => $value->value,
-                'label' => $value->getDisplayLabel(),
-            ];
-        }
-
-        return parent::serializeValue($value, $element);
+        return $value?->toClientValue();
     }
+
 
     public function getElementConditionRuleType(): array|string|null
     {
@@ -893,6 +874,43 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Opti
     // Protected Methods
     // =========================================================================
 
+    protected function defineValueForCondition(mixed $value, \verbb\formie\elements\Submission $submission): mixed
+    {
+        return $value?->toClientValue();
+    }
+
+    protected function defineValueAsData(mixed $value, ElementInterface $element = null): mixed
+    {
+        return $value?->toValueArray() ?? ($this->multi ? [] : null);
+    }
+
+    protected function defineValueForDb(mixed $value, ?ElementInterface $element = null): mixed
+    {
+        if ($value instanceof MultiOptionFieldValue) {
+            if (!$this->shouldPersistOptionLabels()) {
+                return $value->values();
+            }
+
+            return array_map(static fn(OptionValue $option) => [
+                'value' => $option->value,
+                'label' => $option->getDisplayLabel(),
+            ], $value->all());
+        }
+
+        if ($value instanceof SingleOptionFieldValue) {
+            if (!$this->shouldPersistOptionLabels()) {
+                return $value->value;
+            }
+
+            return [
+                'value' => $value->value,
+                'label' => $value->getDisplayLabel(),
+            ];
+        }
+
+        return parent::defineValueForDb($value, $element);
+    }
+
     abstract protected function optionsSettingLabel(): string;
 
     protected function defineRules(): array
@@ -916,18 +934,6 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Opti
         return '';
     }
 
-    protected function defineValueAsArray(mixed $value, ElementInterface $element = null): mixed
-    {
-        if ($value instanceof MultiOptionFieldValue) {
-            return $value->values();
-        }
-
-        if ($value instanceof SingleOptionFieldValue) {
-            return ($value->value !== null && $value->value !== '') ? [$value->value] : [];
-        }
-
-        return [];
-    }
 
     protected function defineValueForIntegration(mixed $value, IntegrationField $integrationField, IntegrationInterface $integration, ElementInterface $element = null, string $fieldKey = ''): mixed
     {
@@ -976,10 +982,6 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Opti
         return [FormieVariables::TYPE_TEXT];
     }
 
-    protected function defineValueClass(): ?string
-    {
-        return $this->multi ? MultiOptionFieldValue::class : SingleOptionFieldValue::class;
-    }
 
     public function fieldKind(): string
     {

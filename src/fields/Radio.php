@@ -14,7 +14,6 @@ use verbb\formie\helpers\Variables;
 use verbb\formie\models\ClientModule;
 use verbb\formie\models\SlotTag;
 use verbb\formie\positions\Hidden as HiddenPosition;
-
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
@@ -334,9 +333,9 @@ class Radio extends OptionsField implements SortableFieldInterface
         return Craft::t('app', 'Radio Button Options');
     }
 
-    protected function defineValidationRules(): array
+    protected function defineBrowserValidationRules(): array
     {
-        $validators = parent::defineValidationRules();
+        $validators = parent::defineBrowserValidationRules();
 
         foreach ($this->defineOtherOptionValidationRules() as $validator) {
             $validators[] = $validator;

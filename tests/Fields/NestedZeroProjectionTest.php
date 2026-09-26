@@ -20,9 +20,9 @@ it('preserves nested zero values in public and integration projections', functio
     $loaded = Submission::find()->id($submission->id)->one();
     $field = $loaded->getFieldByHandle('details');
     $value = $loaded->getFieldValue('details');
-    $expectedRow = ['code' => '0', 'quantity' => '0'];
+    $expectedRow = $row;
     $expected = $placement === 'group' ? $expectedRow : [$expectedRow];
-    expect($loaded->getValuesAsArray()['details'])->toBe($expected);
+    expect($loaded->getValuesAsData()['details'])->toBe($expected);
     expect($loaded->getValuesAsString()['details'])->toStartWith('0, 0');
     $integration = new class extends Integration {};
     $arrayTarget = new IntegrationField(['handle' => 'target', 'name' => 'Target', 'type' => IntegrationField::TYPE_ARRAY]);

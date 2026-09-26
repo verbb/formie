@@ -20,7 +20,7 @@ class SubmissionContentProjector
 
         return match ($contextType) {
             ValueContext::TYPE_STRING => $field->getValueAsString($value, $submission),
-            ValueContext::TYPE_ARRAY, ValueContext::TYPE_JSON => $field->getValueAsArray($value, $submission),
+            ValueContext::TYPE_DATA, ValueContext::TYPE_JSON => $field->getValueAsData($value, $submission),
             ValueContext::TYPE_EXPORT => $field->getValueForExport($value, $submission),
             ValueContext::TYPE_REFERENCE, ValueContext::TYPE_VARIABLE => $field->getValueForReference($value, $submission),
             ValueContext::TYPE_REFERENCE_BLOCK => isset($contextData['notification'])

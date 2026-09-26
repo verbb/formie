@@ -4,7 +4,7 @@ namespace verbb\formie\models;
 class ValueContext
 {
     public const TYPE_STRING = 'string';
-    public const TYPE_ARRAY = 'array';
+    public const TYPE_DATA = 'data';
     public const TYPE_EXPORT = 'export';
     public const TYPE_REFERENCE = 'reference';
     public const TYPE_REFERENCE_BLOCK = 'referenceBlock';
@@ -28,9 +28,9 @@ class ValueContext
         return new self(self::TYPE_STRING);
     }
 
-    public static function array(): self
+    public static function data(): self
     {
-        return new self(self::TYPE_ARRAY);
+        return new self(self::TYPE_DATA);
     }
 
     public static function json(): self

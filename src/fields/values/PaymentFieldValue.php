@@ -2,6 +2,7 @@
 namespace verbb\formie\fields\values;
 
 use verbb\formie\Formie;
+use verbb\formie\content\FieldStorageCodec;
 use verbb\formie\elements\Submission;
 
 use craft\base\ElementInterface;
@@ -26,11 +27,6 @@ class PaymentFieldValue extends BaseFieldValue
             return $value;
         }
 
-        if (is_object($value) && method_exists($value, 'toArray')) {
-            $array = $value->toArray();
-
-            return is_array($array) ? $array : [];
-        }
 
         return [];
     }
@@ -39,9 +35,7 @@ class PaymentFieldValue extends BaseFieldValue
     // Properties
     // =========================================================================
 
-    public array $parts = [];
-
-    private ?ElementInterface $_element = null;
+    protected array $parts = [];
 
 
     // Public Methods
@@ -50,7 +44,7 @@ class PaymentFieldValue extends BaseFieldValue
     public function __construct(mixed $value = [], array $config = [])
     {
         parent::__construct($config);
-        $this->parts = self::parseParts($value);
+        $this->parts = FieldStorageCodec::assertSafe(self::parseParts($value));
     }
 
     public function __toString(): string
@@ -70,7 +64,7 @@ class PaymentFieldValue extends BaseFieldValue
 
     public function __set(string $name, mixed $value): void
     {
-        $this->parts[$name] = $value;
+        throw new \LogicException('Payment field values are immutable.');
     }
 
     public function __isset(string $name): bool
@@ -80,9 +74,7 @@ class PaymentFieldValue extends BaseFieldValue
 
     public function toValueArray(): array
     {
-        return array_merge([
-            'parts' => $this->parts,
-        ], $this->parts);
+        return $this->parts;
     }
 
     public function getAttributes(): array
@@ -90,28 +82,5 @@ class PaymentFieldValue extends BaseFieldValue
         return $this->parts;
     }
 
-    public function getElement(): ?ElementInterface
-    {
-        return $this->_element;
-    }
 
-    public function setElement(?ElementInterface $value): void
-    {
-        $this->_element = $value;
-    }
-
-    public function getPayment(): ?array
-    {
-        if ($submission = $this->getElement()) {
-            if ($submission instanceof Submission) {
-                if ($payments = Formie::$plugin->getPayments()->getSubmissionPayments($submission)) {
-                    $lastPayment = $payments[count($payments) - 1];
-
-                    return $lastPayment->toArray();
-                }
-            }
-        }
-
-        return null;
-    }
 }

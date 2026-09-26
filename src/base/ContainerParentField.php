@@ -6,6 +6,7 @@ use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
 use verbb\formie\base\ParentFieldInterface;
 use verbb\formie\fields\definitions\FieldClientChildren;
+use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\fields\values\FieldValueInterface;
 use verbb\formie\gql\resolvers\elements\NestedFieldRowResolver;
 use verbb\formie\gql\types\generators\NestedFieldGenerator;
@@ -41,6 +42,56 @@ abstract class ContainerParentField extends ParentField implements ParentFieldIn
 
     // Public Methods
     // =========================================================================
+
+    public function valueType(): FieldValueType
+    {
+        return FieldValueType::array();
+    }
+
+    public function serializeValueForClientInput(mixed $value, ?ElementInterface $element = null): mixed
+    {
+        return $this->projectChildValues($value, $element, fn($field, $child) => $field->serializeValueForClientInput($field->normalizeFieldValue($child, $element), $element));
+    }
+
+    public function mergePartialRequestValue(mixed $previous, mixed $incoming): mixed
+    {
+        if (!is_array($incoming) || $incoming === []) {
+            return $incoming;
+        }
+        if ($previous instanceof FieldValueInterface) {
+            $previous = $previous->toValueArray();
+        }
+        $previous = is_array($previous) ? $previous : [];
+        $result = [];
+        foreach ($this->getFields() as $field) {
+            $prior = $previous[$field->handle] ?? null;
+            $key = array_key_exists($field->uid, $incoming) ? $field->uid : $field->handle;
+            $result[$field->handle] = array_key_exists($key, $incoming)
+                ? $field->mergePartialRequestValue($prior, $incoming[$key])
+                : $prior;
+        }
+        return $result;
+    }
+
+    public function normalizeValueFromRequest(mixed $value, ?ElementInterface $element): mixed
+    {
+        $parts = $this->projectChildValues($value, $element, fn($field, $child) => $field->normalizeValueFromRequest($child, $element));
+        return $this->normalizeValue($parts, $element);
+    }
+
+    public function decodeValueFromStorage(mixed $value): mixed
+    {
+        $value = parent::decodeValueFromStorage($value);
+        if (!is_array($value)) {
+            $value = \craft\helpers\Json::decodeIfJson($value);
+        }
+        // Keep scalar single Name values intact. Fixed Date parts have their own storage shape.
+        if (!is_array($value)) {
+            return $value;
+        }
+        return $this->projectChildValues($value, null, fn($field, $child) => $field->decodeValueFromStorage($child));
+    }
+
 
     public function getElementValidationRules(): array
     {
@@ -86,16 +137,12 @@ abstract class ContainerParentField extends ParentField implements ParentFieldIn
             // Get the value from the field's UID (database) or it's handle (POST)
             $fieldValue = $value[$field->uid] ?? $value[$field->handle] ?? null;
 
-            $values[$field->handle] = $field->normalizeValue($fieldValue, $element);
+            $values[$field->handle] = $field->normalizeFieldValue($fieldValue, $element);
         }
 
         return $values;
     }
 
-    public function serializeValue(mixed $value, ?ElementInterface $element): mixed
-    {
-        return $this->serializeNestedFieldValues($value, $element, self::NESTED_KEY_UID);
-    }
 
     public function beforeElementSave(ElementInterface $element, bool $isNew): bool
     {
@@ -123,6 +170,33 @@ abstract class ContainerParentField extends ParentField implements ParentFieldIn
     // Protected Methods
     // =========================================================================
 
+    protected function projectChildValues(mixed $value, ?ElementInterface $element, callable $project): array
+    {
+        if ($value instanceof FieldValueInterface) {
+            $value = $value->toValueArray();
+        }
+        $value = is_array($value) ? $value : [];
+        $rows = [$value];
+        $result = [];
+        foreach ($rows as $rowKey => $row) {
+            $row = is_array($row) ? $row : [];
+            $result[$rowKey] = [];
+            foreach ($this->getFields() as $field) {
+                if ($field->getIsCosmetic()) {
+                    continue;
+                }
+                $child = $row[$field->uid] ?? $row[$field->handle] ?? null;
+                $result[$rowKey][$field->handle] = $project($field, $child);
+            }
+        }
+        return $result[0] ?? [];
+    }
+
+    protected function defineValueForDb(mixed $value, ?ElementInterface $element): mixed
+    {
+        return $this->serializeNestedFieldValues($value, $element, self::NESTED_KEY_UID);
+    }
+
     protected function defineClientChildren(): FieldClientChildren
     {
         return FieldClientChildren::make(FieldClientChildren::MODEL_CONTAINER_PARENT)
@@ -135,7 +209,8 @@ abstract class ContainerParentField extends ParentField implements ParentFieldIn
         $values = [];
 
         foreach ($this->getEnabledFields($element) as $field) {
-            $subValue = $element->getFieldValue($field->valueKey());
+            $parts = $value instanceof FieldValueInterface ? $value->toValueArray() : (array)$value;
+            $subValue = $field->normalizeFieldValue($parts[$field->handle] ?? $parts[$field->uid] ?? null, $element);
             $valueAsString = $field->getValueAsString($subValue, $element);
 
             if ($valueAsString !== '') {
@@ -146,29 +221,9 @@ abstract class ContainerParentField extends ParentField implements ParentFieldIn
         return implode(', ', $values);
     }
 
-    protected function defineValueAsArray(mixed $value, ElementInterface $element = null): mixed
+    protected function defineValueAsData(mixed $value, ElementInterface $element = null): mixed
     {
-        $values = [];
-
-        foreach ($this->getEnabledFields($element) as $field) {
-            $subValue = $element->getFieldValue($field->valueKey());
-            $valueAsArray = $field->getValueAsArray($subValue, $element);
-
-            if (
-                is_array($valueAsArray)
-                && count($valueAsArray) === 1
-                && array_key_exists(0, $valueAsArray)
-                && !$field->supportsArrayValue()
-            ) {
-                $valueAsArray = $valueAsArray[0];
-            }
-
-            if ($valueAsArray !== null && $valueAsArray !== '' && $valueAsArray !== []) {
-                $values[$field->handle] = $valueAsArray;
-            }
-        }
-
-        return $values;
+        return $this->projectChildValues($value, $element, fn($field, $child) => $field->getValueAsData($field->normalizeFieldValue($child, $element), $element));
     }
 
     protected function defineValueForExport(mixed $value, ElementInterface $element = null): mixed
@@ -180,7 +235,8 @@ abstract class ContainerParentField extends ParentField implements ParentFieldIn
         $values = [];
 
         foreach ($this->getEnabledFields($element) as $field) {
-            $subValue = $element->getFieldValue($field->valueKey());
+            $parts = $value instanceof FieldValueInterface ? $value->toValueArray() : (array)$value;
+            $subValue = $field->normalizeFieldValue($parts[$field->handle] ?? $parts[$field->uid] ?? null, $element);
             $valueForExport = $field->getValueForExport($subValue, $element);
 
             $key = $this->getExportLabel($element);
@@ -213,7 +269,7 @@ abstract class ContainerParentField extends ParentField implements ParentFieldIn
             // Accept either stored UID keys or incoming handle keys as input.
             $fieldValue = $value[$field->uid] ?? $value[$field->handle] ?? null;
             $targetKey = $keyBy === self::NESTED_KEY_HANDLE ? $field->handle : $field->uid;
-            $values[$targetKey] = $field->serializeValue($fieldValue, $element);
+            $values[$targetKey] = $field->serializeValueForDb($field->normalizeFieldValue($fieldValue, $element), $element);
         }
 
         return $values;
@@ -228,7 +284,8 @@ abstract class ContainerParentField extends ParentField implements ParentFieldIn
         $values = '';
 
         foreach ($this->getVisibleEnabledFields($element) as $field) {
-            $subValue = $element->getFieldValue($field->valueKey());
+            $parts = $value instanceof FieldValueInterface ? $value->toValueArray() : (array)$value;
+            $subValue = $field->normalizeFieldValue($parts[$field->handle] ?? $parts[$field->uid] ?? null, $element);
             $summary = $field->getValueForSummary($subValue, $element);
             $summaryHtml = $summary instanceof \Twig\Markup ? (string)$summary : Html::encode((string)$summary);
 
@@ -247,7 +304,8 @@ abstract class ContainerParentField extends ParentField implements ParentFieldIn
             $subFieldKey = implode('.', $subFieldKey);
 
             $subField = $this->getFieldByHandle($subFieldHandle);
-            $subValue = $element->getFieldValue("{$this->valueKey()}.$subFieldHandle");
+            $parts = $value instanceof FieldValueInterface ? $value->toValueArray() : (array)$value;
+            $subValue = $subField->normalizeFieldValue($parts[$subField->handle] ?? $parts[$subField->uid] ?? null, $element);
 
             return $subField->getValueForIntegration($subValue, $integrationField, $integration, $element, $subFieldKey);
         }
@@ -258,7 +316,7 @@ abstract class ContainerParentField extends ParentField implements ParentFieldIn
 
     protected function defineValueForCondition(mixed $value, Submission $submission): mixed
     {
-        return $this->serializeNestedFieldValues($value, $submission, self::NESTED_KEY_HANDLE);
+        return $this->projectChildValues($value, $submission, fn($field, $child) => $field->getValueForCondition($field->normalizeFieldValue($child, $submission), $submission));
     }
 
 }

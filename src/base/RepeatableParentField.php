@@ -1,6 +1,8 @@
 <?php
 namespace verbb\formie\base;
 
+use verbb\formie\fields\definitions\FieldValueType;
+use verbb\formie\fields\values\FieldValueInterface;
 use verbb\formie\base\Field;
 use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
@@ -58,7 +60,6 @@ abstract class RepeatableParentField extends ParentField implements RepeatablePa
     }
 
 
-
     public function validateBlocks(ElementInterface $element): void
     {
         $scenario = $element->getScenario();
@@ -110,6 +111,65 @@ abstract class RepeatableParentField extends ParentField implements RepeatablePa
         }
     }
 
+    public function valueType(): FieldValueType
+    {
+        return FieldValueType::array();
+    }
+
+    public function serializeValueForClientInput(mixed $value, ?ElementInterface $element = null): mixed
+    {
+        return $this->projectChildValues($value, $element, fn($field, $child) => $field->serializeValueForClientInput($field->normalizeFieldValue($child, $element), $element));
+    }
+
+    public function mergePartialRequestValue(mixed $previous, mixed $incoming): mixed
+    {
+        if (!is_array($incoming) || $incoming === []) {
+            return $incoming;
+        }
+        if ($previous instanceof FieldValueInterface) {
+            $previous = $previous->toValueArray();
+        }
+        $previous = is_array($previous) ? $previous : [];
+        $rows = $incoming['rows'] ?? $incoming;
+        $result = [];
+        foreach ($rows as $index => $row) {
+            if (!is_array($row)) {
+                $result[] = $row;
+                continue;
+            }
+            $merged = [];
+            foreach ($this->getFields($index) as $field) {
+                $prior = $previous[$index][$field->handle] ?? null;
+                $key = array_key_exists($field->uid, $row) ? $field->uid : $field->handle;
+                $merged[$field->handle] = array_key_exists($key, $row)
+                    ? $field->mergePartialRequestValue($prior, $row[$key])
+                    : $prior;
+            }
+            $result[] = $merged;
+        }
+        return $result;
+    }
+
+    public function normalizeValueFromRequest(mixed $value, ?ElementInterface $element): mixed
+    {
+        $parts = $this->projectChildValues($value, $element, fn($field, $child) => $field->normalizeValueFromRequest($child, $element));
+        return $this->normalizeValue($parts, $element);
+    }
+
+    public function decodeValueFromStorage(mixed $value): mixed
+    {
+        $value = parent::decodeValueFromStorage($value);
+        if (!is_array($value)) {
+            $value = \craft\helpers\Json::decodeIfJson($value);
+        }
+        // Keep scalar single Name values intact. Fixed Date parts have their own storage shape.
+        if (!is_array($value)) {
+            return $value;
+        }
+        return $this->projectChildValues($value, null, fn($field, $child) => $field->decodeValueFromStorage($child));
+    }
+
+
     public function normalizeValue(mixed $value, ?ElementInterface $element): mixed
     {
         if (!is_array($value)) {
@@ -129,7 +189,7 @@ abstract class RepeatableParentField extends ParentField implements RepeatablePa
                 // Get the value from the field's UID (database) or it's handle (POST)
                 $fieldValue = $row[$field->uid] ?? $row[$field->handle] ?? null;
 
-                $values[$rowKey][$field->handle] = $field->normalizeValue($fieldValue, $element);
+                $values[$rowKey][$field->handle] = $field->normalizeFieldValue($fieldValue, $element);
             }
         }
 
@@ -139,10 +199,6 @@ abstract class RepeatableParentField extends ParentField implements RepeatablePa
         return $values;
     }
 
-    public function serializeValue(mixed $value, ?ElementInterface $element): mixed
-    {
-        return $this->serializeNestedRows($value, $element, self::NESTED_KEY_UID);
-    }
 
     public function beforeElementSave(ElementInterface $element, bool $isNew): bool
     {
@@ -178,6 +234,33 @@ abstract class RepeatableParentField extends ParentField implements RepeatablePa
     // Protected Methods
     // =========================================================================
 
+    protected function projectChildValues(mixed $value, ?ElementInterface $element, callable $project): array
+    {
+        if ($value instanceof FieldValueInterface) {
+            $value = $value->toValueArray();
+        }
+        $value = is_array($value) ? $value : [];
+        $rows = $value['rows'] ?? $value;
+        $result = [];
+        foreach ($rows as $rowKey => $row) {
+            $row = is_array($row) ? $row : [];
+            $result[$rowKey] = [];
+            foreach ($this->getFields($rowKey) as $field) {
+                if ($field->getIsCosmetic()) {
+                    continue;
+                }
+                $child = $row[$field->uid] ?? $row[$field->handle] ?? null;
+                $result[$rowKey][$field->handle] = $project($field, $child);
+            }
+        }
+        return array_values($result);
+    }
+
+    protected function defineValueForDb(mixed $value, ?ElementInterface $element): mixed
+    {
+        return $this->serializeNestedRows($value, $element, self::NESTED_KEY_UID);
+    }
+
     protected function defineValueAsString(mixed $value, ElementInterface $element = null): string
     {
         $values = [];
@@ -188,7 +271,7 @@ abstract class RepeatableParentField extends ParentField implements RepeatablePa
                     continue;
                 }
 
-                $subValue = $element->getFieldValue("$this->handle.$rowKey.$field->handle");
+                $subValue = $field->normalizeFieldValue($row[$field->handle] ?? $row[$field->uid] ?? null, $element);
                 $valueAsString = $field->getValueAsString($subValue, $element);
 
                 if ($valueAsString !== '') {
@@ -200,11 +283,7 @@ abstract class RepeatableParentField extends ParentField implements RepeatablePa
         return implode(', ', $values);
     }
 
-    /**
-     * Repeater storage and repeater condition subjects both serialize nested
-     * child values; the only intentional difference is whether each row is
-     * keyed by child UID (storage) or child handle (condition subjects).
-     */
+    // Store each row through its contextual child fields and instance UIDs.
     protected function serializeNestedRows(mixed $value, ?ElementInterface $element, string $keyBy): array
     {
         if (!is_array($value)) {
@@ -218,7 +297,7 @@ abstract class RepeatableParentField extends ParentField implements RepeatablePa
                 // Accept either stored UID keys or incoming handle keys as input.
                 $fieldValue = $row[$field->uid] ?? $row[$field->handle] ?? null;
                 $targetKey = $keyBy === self::NESTED_KEY_HANDLE ? $field->handle : $field->uid;
-                $values[$rowKey][$targetKey] = $field->serializeValue($fieldValue, $element);
+                $values[$rowKey][$targetKey] = $field->serializeValueForDb($field->normalizeFieldValue($fieldValue, $element), $element);
             }
         }
 
@@ -226,35 +305,9 @@ abstract class RepeatableParentField extends ParentField implements RepeatablePa
         return array_values($values);
     }
 
-    protected function defineValueAsArray(mixed $value, ElementInterface $element = null): mixed
+    protected function defineValueAsData(mixed $value, ElementInterface $element = null): mixed
     {
-        $values = [];
-
-        foreach ($value as $rowKey => $row) {
-            foreach ($this->getFields($rowKey) as $field) {
-                if ($field->getIsCosmetic() || $field->getIsDisabled()) {
-                    continue;
-                }
-
-                $subValue = $element->getFieldValue("$this->handle.$rowKey.$field->handle");
-                $valueAsArray = $field->getValueAsArray($subValue, $element);
-
-                if (
-                    is_array($valueAsArray)
-                    && count($valueAsArray) === 1
-                    && array_key_exists(0, $valueAsArray)
-                    && !$field->supportsArrayValue()
-                ) {
-                    $valueAsArray = $valueAsArray[0];
-                }
-
-                if ($valueAsArray !== null && $valueAsArray !== '' && $valueAsArray !== []) {
-                    $values[$rowKey][$field->handle] = $valueAsArray;
-                }
-            }
-        }
-
-        return $values;
+        return $this->projectChildValues($value, $element, fn($field, $child) => $field->getValueAsData($field->normalizeFieldValue($child, $element), $element));
     }
 
     protected function defineValueForExport(mixed $value, ElementInterface $element = null): mixed
@@ -267,7 +320,7 @@ abstract class RepeatableParentField extends ParentField implements RepeatablePa
                     continue;
                 }
 
-                $subValue = $element->getFieldValue("$this->handle.$rowKey.$field->handle");
+                $subValue = $field->normalizeFieldValue($row[$field->handle] ?? $row[$field->uid] ?? null, $element);
                 $valueForExport = $field->getValueForExport($subValue, $element);
 
                 $key = $this->getExportLabel($element) . ': ' . ($rowKey + 1);
@@ -295,7 +348,7 @@ abstract class RepeatableParentField extends ParentField implements RepeatablePa
                     continue;
                 }
 
-                $subValue = $element->getFieldValue("$this->handle.$rowKey.$field->handle");
+                $subValue = $field->normalizeFieldValue($row[$field->handle] ?? $row[$field->uid] ?? null, $element);
                 $summary = $field->getValueForSummary($subValue, $element);
                 $summaryHtml = $summary instanceof \Twig\Markup ? (string)$summary : Html::encode((string)$summary);
 
@@ -308,7 +361,7 @@ abstract class RepeatableParentField extends ParentField implements RepeatablePa
 
     protected function defineValueForCondition(mixed $value, Submission $submission): mixed
     {
-        return $this->serializeNestedRows($value, $submission, self::NESTED_KEY_HANDLE);
+        return $this->projectChildValues($value, $submission, fn($field, $child) => $field->getValueForCondition($field->normalizeFieldValue($child, $submission), $submission));
     }
 
     protected function defineClientChildren(): FieldClientChildren

@@ -4,20 +4,20 @@ namespace verbb\formie\fields;
 use verbb\formie\base\Field;
 use verbb\formie\base\PreviewableFieldInterface;
 use verbb\formie\base\SortableFieldInterface;
+use verbb\formie\fields\coercion\DecimalValueCoercer;
 use verbb\formie\fields\definitions\FieldReferenceValue;
-use verbb\formie\fields\values\NumberFieldValue;
+use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\fields\traits\UniqueValueFieldTrait;
+use verbb\formie\gql\types\Decimal as NumberType;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\SlotTag;
 use verbb\formie\query\NumericValueQueryHelper;
-
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
 use craft\base\ElementInterface;
-use craft\gql\types\Number as NumberType;
 use craft\helpers\Db;
 use craft\helpers\Localization;
 use craft\i18n\Locale;
@@ -103,12 +103,17 @@ class Number extends Field implements SortableFieldInterface, PreviewableFieldIn
     // Public Methods
     // =========================================================================
 
+    public function valueType(): FieldValueType
+    {
+        return FieldValueType::number();
+    }
+
     public function __construct(array $config = [])
     {
         // Normalize number settings
         foreach (['defaultValue', 'min', 'max'] as $name) {
             if (isset($config[$name]) && is_array($config[$name])) {
-                $config[$name] = Localization::normalizeNumber($config[$name]['value'], $config[$name]['locale']);
+                $config[$name] = DecimalValueCoercer::normalize($config[$name]['value'], $config[$name]['locale']);
             }
         }
 
@@ -155,14 +160,14 @@ class Number extends Field implements SortableFieldInterface, PreviewableFieldIn
                 $value['value'] = trim($value['value']);
             }
 
-            $value = Localization::normalizeNumber($value['value'], $value['locale']);
+            $value = DecimalValueCoercer::normalize($value['value'], is_string($value['locale']) ? $value['locale'] : null);
         }
 
         if ($value === '') {
             return null;
         }
 
-        return (string)$value;
+        return DecimalValueCoercer::normalize($value);
     }
 
     public function getSortOption(): array
@@ -457,15 +462,9 @@ class Number extends Field implements SortableFieldInterface, PreviewableFieldIn
 
     protected function defineSubmissionHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
-        // If decimals is 0 (or null, empty for whatever reason), don't run this
-        if ($value !== null && $this->decimals) {
-            $decimalSeparator = Craft::$app->getLocale()->getNumberSymbol(Locale::SYMBOL_DECIMAL_SEPARATOR);
-            
-            try {
-                $value = number_format($value, $this->decimals, $decimalSeparator, '');
-            } catch (Throwable $e) {
-                // NaN
-            }
+        // Editing must retain all stored digits, even when the configured precision changes.
+        if (is_string($value) && $this->decimals && preg_match('/^([+-]?\d+)(?:\.(\d*))?$/D', $value, $parts)) {
+            $value = $parts[1] . '.' . str_pad($parts[2] ?? '', $this->decimals, '0');
         }
 
         return Craft::$app->getView()->renderTemplate('formie/_formfields/number/input', [
@@ -492,9 +491,9 @@ class Number extends Field implements SortableFieldInterface, PreviewableFieldIn
         ];
     }
 
-    protected function defineValidationRules(): array
+    protected function defineBrowserValidationRules(): array
     {
-        $validators = parent::defineValidationRules();
+        $validators = parent::defineBrowserValidationRules();
         $validators[] = [
             'type' => 'number',
             'min' => $this->limit ? $this->min : null,
@@ -513,8 +512,5 @@ class Number extends Field implements SortableFieldInterface, PreviewableFieldIn
         ]);
     }
 
-    protected function defineValueClass(): ?string
-    {
-        return NumberFieldValue::class;
-    }
+
 }

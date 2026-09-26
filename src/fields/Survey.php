@@ -6,6 +6,7 @@ use verbb\formie\base\Field as FormieField;
 use verbb\formie\base\OptionsField;
 use verbb\formie\base\QuestionnaireFieldInterface;
 use verbb\formie\base\SortableFieldInterface;
+use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\fields\traits\DisplayTypeFieldTrait;
 use verbb\formie\fields\traits\QuestionFieldTrait;
 use verbb\formie\fields\values\LikertMultipleRowsFieldValue;
@@ -18,8 +19,8 @@ use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\models\ClientModule;
 use verbb\formie\models\RichText;
 use verbb\formie\models\SlotTag;
-
 use verbb\formie\elements\Form;
+use verbb\formie\elements\Submission;
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
@@ -606,6 +607,17 @@ class Survey extends OptionsField implements SortableFieldInterface, Questionnai
         return $variables;
     }
 
+    public function valueType(): FieldValueType
+    {
+        if (!$this->usesOptions()) {
+            return $this->getDisplayTypeField()->valueType();
+        }
+        if ($this->displayType === self::DISPLAY_LIKERT && $this->usesLikertMultipleRows()) {
+            return FieldValueType::object(LikertMultipleRowsFieldValue::class, true);
+        }
+        return parent::valueType();
+    }
+
     public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
         if (!$this->usesOptions()) {
@@ -654,7 +666,7 @@ class Survey extends OptionsField implements SortableFieldInterface, Questionnai
             $columnOptions[] = $columnValue;
         }
 
-        $multipleRowsValue = new LikertMultipleRowsFieldValue([], $rowLabels);
+        $selections = [];
 
         foreach ($effectiveRows as $row) {
             $rowKey = (string)$row['value'];
@@ -677,36 +689,48 @@ class Survey extends OptionsField implements SortableFieldInterface, Questionnai
                 $valid = true;
             }
 
-            $multipleRowsValue->setSelection(
-                $rowKey,
-                new SingleOptionFieldValue($columnLabel, $columnValue, true, $valid),
-            );
+            $selections[$rowKey] = new SingleOptionFieldValue($columnLabel, $columnValue, true, $valid);
         }
+
+        $multipleRowsValue = new LikertMultipleRowsFieldValue($selections, $rowLabels);
 
         return $multipleRowsValue->isEmpty() ? null : $multipleRowsValue;
     }
 
-    public function serializeValue(mixed $value, ?ElementInterface $element = null): mixed
+    public function serializeValueForClientInput(mixed $value, ?ElementInterface $element = null): mixed
     {
-        if ($this->displayType === self::DISPLAY_LIKERT && $value instanceof LikertMultipleRowsFieldValue) {
-            if (!$this->shouldPersistOptionLabels()) {
-                return $value->toClientValue();
-            }
-
-            $serialized = [];
-
-            foreach ($value->selections() as $rowKey => $selection) {
-                $serialized[$rowKey] = [
-                    'value' => $selection->value,
-                    'label' => $selection->getDisplayLabel(),
-                ];
-            }
-
-            return $serialized;
-        }
-
-        return parent::serializeValue($value, $element);
+        return !$this->usesOptions() ? $this->getDisplayTypeField()->serializeValueForClientInput($value, $element) : parent::serializeValueForClientInput($value, $element);
     }
+
+    protected function defineValueAsString(mixed $value, ElementInterface $element = null): string
+    {
+        if ($value instanceof LikertMultipleRowsFieldValue) {
+            return $value->toValueString();
+        }
+        return !$this->usesOptions() ? $this->getDisplayTypeField()->defineValueAsString($value, $element) : parent::defineValueAsString($value, $element);
+    }
+
+    protected function defineValueForIntegration(mixed $value, \verbb\formie\models\IntegrationField $integrationField, \verbb\formie\base\IntegrationInterface $integration, ElementInterface $element = null, string $fieldKey = ''): mixed
+    {
+        if ($value instanceof LikertMultipleRowsFieldValue) {
+            return \verbb\formie\base\Integration::convertValueForIntegration(
+                $integrationField->getType() === \verbb\formie\models\IntegrationField::TYPE_ARRAY ? $value->toClientValue() : $value->toValueString(),
+                $integrationField,
+            );
+        }
+        return !$this->usesOptions()
+            ? $this->getDisplayTypeField()->defineValueForIntegration($value, $integrationField, $integration, $element, $fieldKey)
+            : parent::defineValueForIntegration($value, $integrationField, $integration, $element, $fieldKey);
+    }
+
+    protected function defineValueForSummary(mixed $value, ElementInterface $element = null): string
+    {
+        if (!$this->usesOptions() || $value instanceof LikertMultipleRowsFieldValue) {
+            return $this->defineValueAsString($value, $element);
+        }
+        return parent::defineValueForSummary($value, $element);
+    }
+
 
     public function isValueEmpty(mixed $value, ?ElementInterface $element): bool
     {
@@ -901,6 +925,38 @@ class Survey extends OptionsField implements SortableFieldInterface, Questionnai
 
     // Protected Methods
     // =========================================================================
+
+    protected function defineValueForCondition(mixed $value, Submission $submission): mixed
+    {
+        return !$this->usesOptions() ? $this->getDisplayTypeField()->getValueForCondition($value, $submission) : parent::defineValueForCondition($value, $submission);
+    }
+
+    protected function defineValueAsData(mixed $value, ElementInterface $element = null): mixed
+    {
+        return !$this->usesOptions() ? $this->getDisplayTypeField()->defineValueAsData($value, $element) : parent::defineValueAsData($value, $element);
+    }
+
+    protected function defineValueForDb(mixed $value, ?ElementInterface $element = null): mixed
+    {
+        if ($this->displayType === self::DISPLAY_LIKERT && $value instanceof LikertMultipleRowsFieldValue) {
+            if (!$this->shouldPersistOptionLabels()) {
+                return $value->toClientValue();
+            }
+
+            $serialized = [];
+
+            foreach ($value->selections() as $rowKey => $selection) {
+                $serialized[$rowKey] = [
+                    'value' => $selection->value,
+                    'label' => $selection->getDisplayLabel(),
+                ];
+            }
+
+            return $serialized;
+        }
+
+        return parent::defineValueForDb($value, $element);
+    }
 
     protected static function defaultDisplayOptions(string $displayType): ?array
     {

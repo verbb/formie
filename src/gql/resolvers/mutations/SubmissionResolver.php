@@ -150,6 +150,15 @@ class SubmissionResolver extends ElementMutationResolver
         $result = Formie::$plugin->getSubmissionProcessor()->executeMutation($form, $submission, $arguments, function () use ($form, $submission, $arguments, $resolveInfo): void {
         $this->populateElementWithData($submission, $arguments, $resolveInfo);
 
+        // GraphQL coercion produces request shapes (including staged uploads). Route
+        // only submitted fields through the same request boundary as browser payloads.
+        foreach ($submission->getForm()->getFields() as $field) {
+            if (array_key_exists($field->handle, $arguments)) {
+                $raw = $submission->getContentState()->rawValuesByUid[$field->uid] ?? null;
+                $submission->getContentManager()->normalizeSingleFromRequest($submission, $field->handle, $raw);
+            }
+        }
+
         if (!empty($arguments['status'])) {
             $submission->setStatus($arguments['status']);
         }

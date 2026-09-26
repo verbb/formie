@@ -13,7 +13,6 @@ use verbb\formie\events\ModifyMigrationSubmissionEvent;
 use verbb\formie\fields;
 use verbb\formie\fields\values\AddressFieldValue;
 use verbb\formie\fields\values\NameFieldValue;
-use verbb\formie\fields\values\PhoneFieldValue;
 use verbb\formie\helpers\References;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\FieldLayoutPage;
@@ -203,27 +202,26 @@ class MigrateSproutForms extends BasePluginMigrator
                             /* @var \barrelstrength\sproutbasefields\models\Address $value */
                             $value = $entry->getFieldValue($field->handle);
 
-                            $address = new AddressFieldValue();
-                            $address->address1 = $value->address1 ?? '';
-                            $address->address2 = $value->address2 ?? '';
-                            $address->address3 = $value->address3 ?? '';
-                            $address->city = $value->locality ?? '';
-                            $address->state = $value->administrativeArea ?? '';
-                            $address->country = $value->countryCode ?? '';
-
+                            $address = new AddressFieldValue([
+                                'address1' => $value->address1 ?? '',
+                                'address2' => $value->address2 ?? '',
+                                'address3' => $value->address3 ?? '',
+                                'city' => $value->locality ?? '',
+                                'state' => $value->administrativeArea ?? '',
+                                'country' => $value->countryCode ?? '',
+                            ]);
                             $submission->setFieldValue($handle, $address);
                             break;
                         case sproutfields\Name::class:
                             /* @var \barrelstrength\sproutbasefields\models\Name $value */
                             $value = $entry->getFieldValue($field->handle);
 
-                            $name = new NameFieldValue();
-
-                            $name->prefix = $value->prefix ?? '';
-                            $name->firstName = $value->firstName ?? '';
-                            $name->middleName = $value->middleName ?? '';
-                            $name->lastName = $value->lastName ?? '';
-
+                            $name = new NameFieldValue([
+                                'prefix' => $value->prefix ?? '',
+                                'firstName' => $value->firstName ?? '',
+                                'middleName' => $value->middleName ?? '',
+                                'lastName' => $value->lastName ?? '',
+                            ]);
                             $submission->setFieldValue($handle, $name);
                             break;
                         case sproutfields\Phone::class:
@@ -233,16 +231,7 @@ class MigrateSproutForms extends BasePluginMigrator
                             /* @var formfields\Phone $newField */
                             $newField = $this->_form->getFieldByHandle($field->handle);
 
-                            $phone = new PhoneFieldValue();
-                            $phone->number = $value->phone ?? '';
-
-                            $country = $value->country ?? '';
-                            $countryDefaultValue = $value->countryDefaultValue ?? '';
-
-                            $phone->hasCountryCode = (bool)$country;
-                            $phone->country = $country ?: $countryDefaultValue;
-
-                            $submission->setFieldValue($handle, $phone);
+                            $submission->setFieldValue($handle, ['number' => $value->phone ?? '', 'country' => $value->country ?: $value->countryDefaultValue]);
                             break;
                         default:
                             $submission->setFieldValue($handle, $entry->getFieldValue($field->handle));

@@ -92,7 +92,7 @@ it('clears conditionally hidden field values when saving submissions from the co
 
     $saved = \verbb\formie\elements\Submission::find()->id($submission->id)->one();
 
-    expect($saved?->getFieldValue('otherReason'))->toBeNull();
+    expect($saved?->getFieldValue('otherReason'))->toBe('');
 });
 
 it('includes cp conditions modules in submission edit config by default', function (): void {

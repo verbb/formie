@@ -11,7 +11,7 @@ use verbb\formie\base\FixedParentField;
 use verbb\formie\base\PreviewableFieldInterface;
 use verbb\formie\fields\definitions\FieldClientModules;
 use verbb\formie\fields\definitions\FieldReferenceValue;
-use verbb\formie\fields\definitions\FieldValueClass;
+use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\gql\types\AddressType;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\gql\types\input\AddressInputType;
@@ -27,7 +27,6 @@ use verbb\formie\models\ClientModuleContext;
 use verbb\formie\models\SlotTag;
 use verbb\formie\positions\AboveInput;
 use verbb\formie\positions\Hidden as HiddenPosition;
-
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
@@ -89,6 +88,11 @@ class Address extends FixedParentField implements PreviewableFieldInterface
 
     // Public Methods
     // =========================================================================
+
+    public function valueType(): FieldValueType
+    {
+        return FieldValueType::object(AddressFieldValue::class, true);
+    }
 
     public function __construct(array $config = [])
     {
@@ -189,36 +193,20 @@ class Address extends FixedParentField implements PreviewableFieldInterface
 
     public function normalizeValue(mixed $value, ?ElementInterface $element): mixed
     {
-        $value = parent::normalizeValue($value, $element);
-        $value = Json::decodeIfJson($value);
-
         if ($value instanceof AddressFieldValue) {
-            $this->_trimAddressFieldValue($value);
-
-            return $value->isEmpty() ? null : $value;
+            return $value;
         }
-
-        if (is_array($value)) {
-            $address = new AddressFieldValue($value);
-            $this->_trimAddressFieldValue($address);
-
-            // Normalize country to null, due to it being a dropdown
-            if ($address->country === '') {
-                $address->country = null;
+        $value = parent::normalizeValue(Json::decodeIfJson($value), $element);
+        foreach ($value as $key => $part) {
+            if ($part instanceof \verbb\formie\fields\values\SingleOptionFieldValue) {
+                $part = $part->value;
             }
-
-            // Reset any disabled fields that might have content to null
-            foreach ($this->getFields() as $field) {
-                if ($field->getIsDisabled() && property_exists($address, $field->handle)) {
-                    $address->{$field->handle} = null;
-                }
-            }
-
-            return $address->isEmpty() ? null : $address;
+            $value[$key] = $part === null ? null : trim((string)$part);
         }
-
-        return null;
+        $address = new AddressFieldValue($value);
+        return $address->isEmpty() ? null : $address;
     }
+
 
     public function defineFormBuilderPreviewSchema(): array
     {
@@ -357,6 +345,11 @@ class Address extends FixedParentField implements PreviewableFieldInterface
 
     // Protected Methods
     // =========================================================================
+
+    protected function defineValueAsData(mixed $value, ElementInterface $element = null): mixed
+    {
+        return $value?->toValueArray();
+    }
 
     protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
     {
@@ -711,11 +704,6 @@ class Address extends FixedParentField implements PreviewableFieldInterface
         return $modules;
     }
 
-    protected function defineValueClass(): ?string
-    {
-        return AddressFieldValue::class;
-    }
-
 
     // Private Methods
     // =========================================================================
@@ -748,16 +736,5 @@ class Address extends FixedParentField implements PreviewableFieldInterface
         return $addressProviderOptions;
     }
 
-    private function _trimAddressFieldValue(AddressFieldValue $address): void
-    {
-        foreach (['autoComplete', 'address1', 'address2', 'address3', 'city', 'state', 'zip'] as $property) {
-            if (!is_string($address->{$property})) {
-                continue;
-            }
-
-            $trimmed = trim($address->{$property});
-            $address->{$property} = $trimmed === '' ? null : $trimmed;
-        }
-    }
 
 }

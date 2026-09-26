@@ -382,7 +382,6 @@ class Mailchimp extends EmailMarketing
     }
 
 
-
     protected function defineFormSettingsSchema(FormInterface $form): array
     {
         $schema = parent::defineFormSettingsSchema($form);
@@ -483,10 +482,6 @@ class Mailchimp extends EmailMarketing
 
         if ($country !== '' && strlen($country) !== 2) {
             $country = AddressFieldValue::nameToCode($country) ?? $country;
-        }
-
-        if ($country === '' && $address->countryOption) {
-            $country = AddressFieldValue::nameToCode((string)$address->countryOption) ?? '';
         }
 
         return ArrayHelper::filterEmptyStringsFromArray([

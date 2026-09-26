@@ -7,7 +7,7 @@ use verbb\formie\base\PreviewableFieldInterface;
 use verbb\formie\base\SortableFieldInterface;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\definitions\FieldReferenceValue;
-use verbb\formie\fields\values\EmailFieldValue;
+use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\fields\traits\UniqueValueFieldTrait;
@@ -15,7 +15,6 @@ use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\SlotTag;
-
 use verbb\formie\events\ModifyFieldUniqueUserQueryEvent;
 use verbb\formie\theme\context\RenderContext;
 
@@ -84,6 +83,11 @@ class Email extends Field implements SortableFieldInterface, PreviewableFieldInt
 
     // Public Methods
     // =========================================================================
+
+    public function valueType(): FieldValueType
+    {
+        return FieldValueType::string();
+    }
 
     public function themeConfigKey(): string
     {
@@ -429,9 +433,9 @@ class Email extends Field implements SortableFieldInterface, PreviewableFieldInt
         return true;
     }
 
-    protected function defineValidationRules(): array
+    protected function defineBrowserValidationRules(): array
     {
-        $validators = parent::defineValidationRules();
+        $validators = parent::defineBrowserValidationRules();
         $validators[] = ['type' => 'email'];
 
         return $validators;
@@ -444,8 +448,5 @@ class Email extends Field implements SortableFieldInterface, PreviewableFieldInt
         ]);
     }
 
-    protected function defineValueClass(): ?string
-    {
-        return EmailFieldValue::class;
-    }
+
 }

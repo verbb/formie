@@ -396,7 +396,7 @@ class SharpSpring extends Crm
             $rawValue = $element->getFieldValue($field->handle);
 
             if ($field instanceof FixedParentFieldInterface) {
-                $value = $field->getValueAsArray($rawValue, $element);
+                $value = $field->getValueAsData($rawValue, $element);
 
                 if (is_array($value)) {
                     foreach ($value as $k => $v) {

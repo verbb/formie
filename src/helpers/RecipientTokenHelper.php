@@ -17,15 +17,12 @@ class RecipientTokenHelper
 
     public static function encode(mixed $value, string $type): string
     {
-        return StringHelper::encenc(Json::encode([
-            'type' => $type,
-            'value' => $value,
-        ]));
+        return 'recipient:v1:' . hash_hmac('sha256', $type . "\0" . Json::encode($value), \verbb\formie\Formie::$plugin->getSettings()->getSecurityKey());
     }
 
     public static function encodeOption(array $option, int|string|null $index = null): string
     {
-        return StringHelper::encenc(Json::encode(self::optionPayload($option, $index)));
+        return self::encode(self::optionPayload($option, $index), self::TYPE_OPTION);
     }
 
     public static function encodeHidden(mixed $value): string
@@ -35,36 +32,12 @@ class RecipientTokenHelper
 
     public static function decode(string $token): mixed
     {
-        $payload = self::decodePayload($token);
-
-        if (is_array($payload)) {
-            return $payload['value'] ?? '';
-        }
-
-        return StringHelper::decdec($token);
+        return $token;
     }
 
     public static function decodePayload(string $token): ?array
     {
-        $value = StringHelper::decdec($token);
-
-        if (!is_string($value) || !Json::isJsonObject($value)) {
-            return null;
-        }
-
-        $payload = Json::decodeIfJson($value);
-
-        if (!is_array($payload)) {
-            return null;
-        }
-
-        $type = $payload['type'] ?? null;
-
-        if (!in_array($type, [self::TYPE_OPTION, self::TYPE_HIDDEN], true)) {
-            return null;
-        }
-
-        return $payload;
+        return null;
     }
 
     public static function optionPayload(array $option, int|string|null $index = null): array

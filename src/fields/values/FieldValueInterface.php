@@ -6,7 +6,6 @@ interface FieldValueInterface
     // Static Methods
     // =========================================================================
 
-    public static function capabilityTypes(): array;
     public static function toClientValueFrom(mixed $value): mixed;
 
 

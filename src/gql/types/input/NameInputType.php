@@ -96,16 +96,6 @@ class NameInputType extends InputObjectType
 
     public static function normalizeValue($value): mixed
     {
-        if (!empty($value['name'])) {
-            return $value['name'];
-        }
-
-        $nameValue = new NameFieldValue();
-        $nameValue->prefix = $value['prefix'] ?? null;
-        $nameValue->firstName = $value['firstName'] ?? null;
-        $nameValue->middleName = $value['middleName'] ?? null;
-        $nameValue->lastName = $value['lastName'] ?? null;
-
-        return $nameValue;
+        return new NameFieldValue(is_array($value) ? $value : []);
     }
 }

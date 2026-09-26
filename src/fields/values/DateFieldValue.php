@@ -1,6 +1,8 @@
 <?php
 namespace verbb\formie\fields\values;
 
+use verbb\formie\content\FieldStorageCodec;
+
 use craft\helpers\DateTimeHelper;
 
 use DateTime;
@@ -8,14 +10,10 @@ use DateTimeInterface;
 
 class DateFieldValue extends BaseFieldValue
 {
-    use DateDisplaySettingsTrait;
+
     // Static Methods
     // =========================================================================
 
-    public static function capabilityTypes(): array
-    {
-        return ['string', 'date', 'datetime'];
-    }
 
     /**
      * Convert a mixed value (DateTime, FieldValueInterface, object, string, numeric) to a DateTime instance.
@@ -74,6 +72,7 @@ class DateFieldValue extends BaseFieldValue
             'minute' => $dateTime->format('i'),
             'second' => $dateTime->format('s'),
             'ampm' => strtoupper($dateTime->format('A')),
+            'timezone' => $dateTime->getTimezone()->getName(),
         ];
     }
 
@@ -154,6 +153,13 @@ class DateFieldValue extends BaseFieldValue
             $parts['ampm'] = strtoupper((string)$parsed['meridian']);
         }
 
+        if (($parsed['is_localtime'] ?? false) && ($parsed['zone_type'] ?? null) === 1) {
+            $offset = (int)$parsed['zone'];
+            $parts['timezone'] = sprintf('%s%02d:%02d', $offset < 0 ? '-' : '+', intdiv(abs($offset), 3600), intdiv(abs($offset) % 3600, 60));
+        } else if (isset($parsed['tz_id'])) {
+            $parts['timezone'] = $parsed['tz_id'];
+        }
+
         return self::normalizeParts($parts);
     }
 
@@ -181,7 +187,10 @@ class DateFieldValue extends BaseFieldValue
                 continue;
             }
 
-            $normalized[$partKey] = (string)(int)$value;
+            $normalized[$partKey] = is_scalar($value) ? trim((string)$value) : \craft\helpers\Json::encode($value);
+            if ($partKey !== 'timezone' && ctype_digit($normalized[$partKey])) {
+                $normalized[$partKey] = ltrim($normalized[$partKey], '0') ?: '0';
+            }
         }
 
         return $normalized;
@@ -193,8 +202,8 @@ class DateFieldValue extends BaseFieldValue
             $parts,
             'Y-m-d',
             'H:i:s',
-            self::_hasDateParts($parts),
-            self::_hasTimeParts($parts),
+            self::hasCompleteDateParts($parts),
+            (bool)array_intersect(array_keys($parts), ['hour', 'minute', 'second']),
         );
     }
 
@@ -234,15 +243,34 @@ class DateFieldValue extends BaseFieldValue
             return null;
         }
 
+        foreach ($parts as $key => $part) {
+            if (!in_array($key, ['ampm', 'timezone'], true) && !ctype_digit((string)$part)) {
+                return null;
+            }
+        }
+        if ((isset($parts['hour']) && (int)$parts['hour'] > 23) || (isset($parts['minute']) && (int)$parts['minute'] > 59) || (isset($parts['second']) && (int)$parts['second'] > 59)) {
+            return null;
+        }
+
         $year = $hasDate ? (int)$parts['year'] : 1970;
         $month = $hasDate ? (int)$parts['month'] : 1;
         $day = $hasDate ? (int)$parts['day'] : 1;
         $hour = isset($parts['hour']) && $parts['hour'] !== '' ? (int)$parts['hour'] : 0;
         $minute = isset($parts['minute']) && $parts['minute'] !== '' ? (int)$parts['minute'] : 0;
         $second = isset($parts['second']) && $parts['second'] !== '' ? (int)$parts['second'] : 0;
+        if (isset($parts['ampm'])) {
+            if (!in_array($parts['ampm'], ['AM', 'PM'], true)) {
+                return null;
+            }
+            if ($parts['ampm'] === 'AM' && $hour === 12) {
+                $hour = 0;
+            } else if ($parts['ampm'] === 'PM' && $hour < 12) {
+                $hour += 12;
+            }
+        }
 
         try {
-            $dateTime = new DateTime('now', new \DateTimeZone('UTC'));
+            $dateTime = new DateTime('now', new \DateTimeZone($parts['timezone'] ?? 'UTC'));
             $dateTime->setDate($year, $month, $day);
             $dateTime->setTime($hour, $minute, $second);
 
@@ -350,7 +378,7 @@ class DateFieldValue extends BaseFieldValue
     // Constants
     // =========================================================================
 
-    private const PART_KEYS = ['year', 'month', 'day', 'hour', 'minute', 'second', 'ampm'];
+    private const PART_KEYS = ['year', 'month', 'day', 'hour', 'minute', 'second', 'ampm', 'timezone'];
 
     public static function partKeys(): array
     {
@@ -361,7 +389,8 @@ class DateFieldValue extends BaseFieldValue
     // Properties
     // =========================================================================
 
-    public array $parts = [];
+    protected array $parts = [];
+    protected mixed $rawInput = null;
     
 
     // Public Methods
@@ -369,14 +398,26 @@ class DateFieldValue extends BaseFieldValue
 
     public function __construct(mixed $value = [], array $config = [])
     {
-        parent::__construct($config);
+        if ($value instanceof self) {
+            $value = $value->toValueArray();
+        }
+        $this->parts = self::parseParts($value);
+        $this->rawInput = is_array($value) ? ($value['_input'] ?? null) : null;
+        if ($this->rawInput === null && $this->parts === [] && $value !== null && $value !== '' && $value !== []) {
+            $nonEmpty = is_array($value) ? array_filter($value, static fn($part) => $part !== null && $part !== '') : $value;
+            $this->rawInput = $nonEmpty ? $value : null;
+        }
+        FieldStorageCodec::assertSafe($this->rawInput);
+    }
 
-        $this->setParts(self::parseParts($value));
+    public function getRawInput(): mixed
+    {
+        return $this->rawInput;
     }
 
     public function __toString(): string
     {
-        return $this->stringify();
+        return $this->_stringify();
     }
 
     /**
@@ -399,20 +440,27 @@ class DateFieldValue extends BaseFieldValue
 
     public function isEmpty(): bool
     {
-        return empty($this->parts);
+        return empty($this->parts) && $this->rawInput === null;
     }
 
     public function toValueArray(): array
     {
-        return array_merge([
-            'parts' => $this->parts,
-        ], $this->parts);
+        return $this->rawInput === null ? $this->parts : $this->parts + ['_input' => $this->rawInput];
     }
 
-    public function setParts(array $parts): void
+    public function isValid(): bool
     {
-        $this->parts = self::normalizeParts($parts);
+        if ($this->rawInput !== null) {
+            return false;
+        }
+        foreach ($this->parts as $key => $part) {
+            if (!in_array($key, ['ampm', 'timezone'], true) && !ctype_digit((string)$part)) {
+                return false;
+            }
+        }
+        return !self::hasCompleteDateParts($this->parts) && !isset($this->parts['hour']) || self::partsToDateTime($this->parts) !== null;
     }
+
 
     public function getParts(): array
     {
@@ -434,11 +482,11 @@ class DateFieldValue extends BaseFieldValue
     public function getPathValue(string $path): mixed
     {
         if ($path === 'date') {
-            return $this->formatDateForDisplay($this->parts);
+            return self::formatDateWithSettings($this->parts, 'Y-m-d');
         }
 
         if ($path === 'time') {
-            return $this->formatTimeForDisplay($this->parts);
+            return self::formatTimeWithSettings($this->parts, 'H:i:s');
         }
 
         if (in_array($path, self::PART_KEYS, true)) {
@@ -462,8 +510,11 @@ class DateFieldValue extends BaseFieldValue
     // Private Methods
     // =========================================================================
 
-    private function stringify(): string
+    private function _stringify(): string
     {
-        return $this->formatPartsForDisplay($this->parts);
+        if ($this->rawInput !== null) {
+            return is_string($this->rawInput) ? $this->rawInput : '';
+        }
+        return self::partsToString($this->parts);
     }
 }

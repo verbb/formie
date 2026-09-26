@@ -125,7 +125,7 @@ class SubmissionContentNormalizer
                 continue;
             }
 
-            $manager->setRawValue($submission, $field->handle, $value);
+            $manager->setRawValue($submission, $field->handle, $field->decodeValueFromStorage($value));
         }
     }
 

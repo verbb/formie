@@ -314,9 +314,9 @@ abstract class FixedParentField extends ContainerParentField implements FixedPar
         return array_values($normalizedRows);
     }
 
-    protected function defineValueAsArray(mixed $value, ElementInterface $element = null): mixed
+    protected function defineValueAsData(mixed $value, ElementInterface $element = null): mixed
     {
-        $values = parent::defineValueAsArray($value, $element);
+        $values = parent::defineValueAsData($value, $element);
 
         if (!is_array($values)) {
             return [];

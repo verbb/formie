@@ -15,7 +15,7 @@ it('applies nested handle edits over stored UID values while retaining siblings'
     $loaded->setFieldValue('group.message', $replacement);
     expect(Craft::$app->getElements()->saveElement($loaded))->toBeTrue();
     $saved = Submission::find()->id($submission->id)->status(null)->one();
-    expect($saved->getFieldValue('group.message'))->toBe($replacement)
+    expect($saved->getFieldValue('group.message'))->toBe($replacement ?? '')
         ->and($saved->getFieldValue('group.untouched'))->toBe('Keep');
 })->with(['replacement' => ['After'], 'clear' => [null]]);
 
@@ -32,14 +32,14 @@ it('persists explicit null clears without losing untouched or historical values'
     $loaded->setFieldValue('message', null);
     expect(Craft::$app->getElements()->saveElement($loaded))->toBeTrue();
     $reloaded = Submission::find()->id($submission->id)->status(null)->one();
-    expect($reloaded->getFieldValue('message'))->toBeNull()
+    expect($reloaded->getFieldValue('message'))->toBe('')
         ->and($reloaded->getFieldValue('untouched'))->toBe('Keep')
         ->and($reloaded->serializeFieldValues()[$unknown] ?? null)->toBe('Retained');
     // A subsequent metadata-only edit must retain the same content.
     $reloaded->title = 'Metadata only';
     expect(Craft::$app->getElements()->saveElement($reloaded))->toBeTrue();
     $again = Submission::find()->id($submission->id)->status(null)->one();
-    expect($again->getFieldValue('message'))->toBeNull()
+    expect($again->getFieldValue('message'))->toBe('')
         ->and($again->getFieldValue('untouched'))->toBe('Keep')
         ->and($again->serializeFieldValues()[$unknown] ?? null)->toBe('Retained');
 });

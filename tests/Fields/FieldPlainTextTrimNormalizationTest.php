@@ -18,7 +18,7 @@ it('trims leading and trailing whitespace from single-line text fields during no
     $field = new SingleLineText(['handle' => 'message']);
 
     expect($field->normalizeValue('  hello  ', null))->toBe('hello')
-        ->and($field->normalizeValue('   ', null))->toBeNull();
+        ->and($field->normalizeValue('   ', null))->toBe('');
 });
 
 it('trims email values during normalization', function (): void {
@@ -52,7 +52,7 @@ it('trims hidden and phone field values during normalization', function (): void
     $phone = new Phone(['handle' => 'phone']);
 
     expect($hidden->normalizeValue(' abc ', null))->toBe('abc')
-        ->and($phone->normalizeValue(' 0400000000 ', null)->number)->toBe('0400000000');
+        ->and($phone->normalizeValue(' 0400000000 ', null))->toBe('0400000000');
 });
 
 it('trims composite name and address parts during normalization', function (): void {

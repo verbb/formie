@@ -24,7 +24,7 @@ it('returns queried submissions with usable projection/value helper contracts', 
     expect($queried)->not->toBeNull()
         ->and($queried->getFieldValue('fullName'))->not->toBeNull()
         ->and($queried->getValuesAsString())->toBeArray()
-        ->and($queried->getValuesAsArray())->toBeArray()
+        ->and($queried->getValuesAsData())->toBeArray()
         ->and($queried->getValuesForExport())->toBeArray()
         ->and($queried->getValuesForSummary())->toBeArray();
 });

@@ -143,7 +143,12 @@ class SubmissionContentManager
         return $this->_accessor->splitFieldPath($fieldPath);
     }
 
-    public function getFieldValue(Submission $submission, string $fieldPath, mixed $context = null): mixed
+    public function getFieldValue(Submission $submission, string $fieldPath): mixed
+    {
+        return $this->getProjectedFieldValue($submission, $fieldPath, null);
+    }
+
+    public function getProjectedFieldValue(Submission $submission, string $fieldPath, mixed $context): mixed
     {
         if ($this->_looksLikeReferenceToken($fieldPath)) {
             // Resolve full `{field:...}` expressions before splitting on dots so
@@ -162,7 +167,26 @@ class SubmissionContentManager
         [$handle, $nestedPath] = $this->splitFieldPath($fieldPath);
 
         if ($nestedPath !== null) {
-            return $this->getPathValue($submission, $fieldPath);
+            $value = $this->getPathValue($submission, $fieldPath);
+            $field = $this->getFieldByHandle($submission, $handle);
+            $segments = explode('.', $nestedPath);
+            while ($field instanceof ParentFieldInterface && $segments) {
+                $row = $field instanceof RepeatableParentFieldInterface ? array_shift($segments) : null;
+                $childHandle = array_shift($segments);
+                $child = null;
+                foreach ($field->getFields($row) as $candidate) {
+                    if ($candidate->handle === $childHandle) {
+                        $child = $candidate;
+                        break;
+                    }
+                }
+                if (!$child) {
+                    $field = null;
+                    break;
+                }
+                $field = $child;
+            }
+            return $context !== null && $field && !$segments ? $this->projectValueByContext($submission, $field, $field->normalizeFieldValue($value, $submission), $context) : $value;
         }
 
         $fieldValue = $this->getNormalizedValue($submission, $handle);
@@ -248,9 +272,9 @@ class SubmissionContentManager
         return $this->_getNonCosmeticProjectedValues($submission, ValueContext::string());
     }
 
-    public function getValuesAsArray(Submission $submission): array
+    public function getValuesAsData(Submission $submission): array
     {
-        return $this->_getNonCosmeticProjectedValues($submission, ValueContext::array());
+        return $this->_getNonCosmeticProjectedValues($submission, ValueContext::data());
     }
 
     public function getValuesForExport(Submission $submission): array
@@ -258,7 +282,7 @@ class SubmissionContentManager
         $values = [];
 
         foreach ($this->getFieldCollection($submission)->nonCosmetic() as $field) {
-            $valueForExport = $this->getFieldValue($submission, $field->handle, ValueContext::export());
+            $valueForExport = $this->getProjectedFieldValue($submission, $field->handle, ValueContext::export());
 
             // Some fields emit multiple export columns as keyed arrays.
             if (is_array($valueForExport)) {
@@ -281,7 +305,7 @@ class SubmissionContentManager
             }
 
             $value = $this->getFieldValue($submission, $field->handle);
-            $html = $this->getFieldValue($submission, $field->handle, ValueContext::summary());
+            $html = $this->getProjectedFieldValue($submission, $field->handle, ValueContext::summary());
 
             $items[] = [
                 'field' => $field,
@@ -337,33 +361,13 @@ class SubmissionContentManager
             }
         }
 
-        $previousSerializedValue = $field->serializeValue($this->getFieldValue($submission, $fieldHandle), $submission);
-        $this->normalizeSingleFromRequest($submission, $fieldHandle, $value);
-
-        // For partial-page payload mode, merge newly posted values over existing serialized content
-        // to avoid dropping nested keys not present in this request.
         if ($settings->setOnlyCurrentPagePayload) {
-            $incomingSerializedValue = $field->serializeValue($this->getFieldValue($submission, $fieldHandle), $submission);
-            $mergedContent = $this->_mergeContent([
-                $field->uid => $previousSerializedValue,
-            ], [
-                $field->uid => $incomingSerializedValue,
-            ]);
-
-            if (array_key_exists($field->uid, $mergedContent)) {
-                // Rehydrating persisted IDs must not discard unsaved upload bytes. Materialize
-                // the merged value inside this scope, including any nested upload fields.
-                $state = $submission->getContentState();
-                $wasMerging = $state->isMergingPartialPayload;
-                $state->isMergingPartialPayload = true;
-                try {
-                    $submission->setFieldValue($fieldHandle, $mergedContent[$field->uid]);
-                    $this->getFieldValue($submission, $fieldHandle);
-                } finally {
-                    $state->isMergingPartialPayload = $wasMerging;
-                }
-            }
+            // Merge through the owning field before normalization fills missing children.
+            // Ciphertext envelopes are atomic storage values, never mergeable request maps.
+            $previous = $this->getFieldValue($submission, $fieldHandle);
+            $value = $field->mergePartialRequestValue($previous, $value);
         }
+        $this->normalizeSingleFromRequest($submission, $fieldHandle, $value);
     }
 
     public function normalizeFromRequest(Submission $submission, string $paramNamespace = 'fields'): void
@@ -474,47 +478,11 @@ class SubmissionContentManager
         $values = [];
 
         foreach ($this->getFieldCollection($submission)->nonCosmetic() as $field) {
-            $values[$field->handle] = $this->getFieldValue($submission, $field->handle, $context);
+            $values[$field->handle] = $this->getProjectedFieldValue($submission, $field->handle, $context);
         }
 
         return $values;
     }
 
-    private function _mergeContent(array $existing, array $incoming, array $clearKeys = []): array
-    {
-        $merged = $existing;
-
-        foreach ($clearKeys as $clearKey) {
-            unset($merged[$clearKey]);
-        }
-
-        foreach ($incoming as $key => $incomingValue) {
-            if ($incomingValue === '__FORMIE_CLEAR__') {
-                unset($merged[$key]);
-                continue;
-            }
-
-            if (!array_key_exists($key, $merged)) {
-                $merged[$key] = $incomingValue;
-                continue;
-            }
-
-            $existingValue = $merged[$key];
-
-            if (is_array($existingValue) && is_array($incomingValue)) {
-                if (!array_is_list($existingValue) || !array_is_list($incomingValue)) {
-                    $merged[$key] = $this->_mergeContent($existingValue, $incomingValue);
-                } else {
-                    $merged[$key] = $incomingValue;
-                }
-
-                continue;
-            }
-
-            $merged[$key] = $incomingValue;
-        }
-
-        return $merged;
-    }
 
 }

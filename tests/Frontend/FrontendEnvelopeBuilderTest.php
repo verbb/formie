@@ -103,11 +103,11 @@ it('builds a canonical client bootstrap for simple and advanced config fields', 
                     'mode' => 'parts',
                 ],
             ])
-            ->and($contactName['client']['valueClass']['class'] ?? null)->toBe('verbb\\formie\\fields\\values\\NameFieldValue')
+            ->and($contactName['client']['valueType']['class'] ?? null)->toBe('verbb\\formie\\fields\\values\\NameFieldValue')
             ->and($shippingAddress['input']['parts'] ?? [])->not->toBeEmpty()
-            ->and($shippingAddress['client']['valueClass']['class'] ?? null)->toBe('verbb\\formie\\fields\\values\\AddressFieldValue')
+            ->and($shippingAddress['client']['valueType']['class'] ?? null)->toBe('verbb\\formie\\fields\\values\\AddressFieldValue')
             ->and($appointmentDate['input']['parts'] ?? [])->not->toBeEmpty()
-            ->and($appointmentDate['client']['valueClass']['class'] ?? null)->toBe('verbb\\formie\\fields\\values\\DateFieldValue')
+            ->and($appointmentDate['client']['valueType']['class'] ?? null)->toBe('verbb\\formie\\fields\\values\\DateFieldValue')
             ->and($lineItems['input']['rowSchema']['rows'][0]['fields'][0]['handle'] ?? null)->toBe('itemName')
             ->and($lineItems['client'] ?? [])->toMatchArray([
                 'children' => [

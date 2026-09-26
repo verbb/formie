@@ -10,7 +10,7 @@ it('exports number bounds only while limits are enabled', function (bool $limit,
     $payload = $field->getClientPayload();
     $input = $field->getClientInputDefinition();
 
-    expect($field->validationRules())->toBe([$expected])
+    expect($field->browserValidationRules())->toBe([$expected])
         ->and(json_decode($field->getValidationRulesJson(), true))->toBe([$expected])
         ->and($payload['validation'])->toBe([$expected])
         ->and($payload['input']['min'])->toBe($expected['min'])

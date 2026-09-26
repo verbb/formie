@@ -7,24 +7,15 @@ use craft\helpers\Json;
 
 class CustomMapFieldValue extends BaseFieldValue
 {
-    // Static Methods
-    // =========================================================================
-
-    public static function capabilityTypes(): array
-    {
-        return ['string', 'array'];
-    }
-
-
     // Properties
     // =========================================================================
 
-    public ?string $address = null;
-    public ?float $lat = null;
-    public ?float $lng = null;
-    public ?int $zoom = null;
-    public array|string|null $parts = null;
-    public ?string $what3words = null;
+    protected ?string $address = null;
+    protected ?float $lat = null;
+    protected ?float $lng = null;
+    protected ?int $zoom = null;
+    protected array|string|null $parts = null;
+    protected ?string $what3words = null;
 
 
     // Public Methods
@@ -51,6 +42,7 @@ class CustomMapFieldValue extends BaseFieldValue
             $config['zoom'] = null;
         }
 
+        \verbb\formie\content\FieldStorageCodec::assertSafe($config);
         parent::__construct($config);
     }
 
@@ -74,13 +66,13 @@ class CustomMapFieldValue extends BaseFieldValue
 
     public function toValueArray(): array
     {
-        return ArrayHelper::filterEmptyStringsFromArray([
+        return [
             'address' => $this->address,
             'lat' => $this->lat,
             'lng' => $this->lng,
             'zoom' => $this->zoom,
             'parts' => $this->parts,
             'what3words' => $this->what3words,
-        ]);
+        ];
     }
 }

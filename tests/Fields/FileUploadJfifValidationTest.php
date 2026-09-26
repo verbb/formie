@@ -51,7 +51,7 @@ it('rejects jfif uploads during submission validation', function (): void {
     $tempPath = tempnam(sys_get_temp_dir(), 'formie-upload-');
     file_put_contents($tempPath, 'fake jfif content');
 
-    $submission->setFieldValue('attachments', [
+    $submission->setFieldValueFromRequest('attachments', [
         'mutationData' => [[
             'filename' => 'photo.jfif',
             'path' => $tempPath,

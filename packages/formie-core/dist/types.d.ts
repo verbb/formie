@@ -1,12 +1,16 @@
 export type KnownFrontendFieldType = 'single-line-text' | 'multi-line-text' | 'number' | 'email' | 'phone' | 'dropdown' | 'radio' | 'checkboxes' | 'agree' | 'date' | 'name' | 'address' | 'repeater' | 'signature' | 'file';
 export type FrontendFieldType = KnownFrontendFieldType | (string & {});
 export type FrontendFieldValueStructure = 'scalar' | 'fixed-parent' | 'container-parent' | 'repeatable-parent';
-export type FrontendFieldValueClass = {
+export type FrontendFieldValueType = {
+    kind: 'string' | 'boolean' | 'number' | 'object' | 'array' | 'relationQuery' | 'none' | 'storageSafe';
+    nullable: boolean;
+    representation?: 'decimal-string';
+    items?: FrontendFieldValueType;
     class?: string | null;
 };
 export type FrontendFieldValueContract = {
     structure: FrontendFieldValueStructure;
-    valueClass?: FrontendFieldValueClass;
+    valueType?: FrontendFieldValueType;
 };
 export type FrontendValidationRule = {
     type: string;
@@ -52,7 +56,7 @@ export type FrontendFieldDefinition = {
             model: FrontendFieldValueStructure;
             mode?: 'parts' | 'rows';
         };
-        valueClass?: FrontendFieldValueClass;
+        valueType?: FrontendFieldValueType;
     };
     /** Older bootstrap payloads used runtime.structure. */
     runtime?: FrontendFieldValueContract;

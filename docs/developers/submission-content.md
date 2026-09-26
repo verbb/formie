@@ -48,13 +48,9 @@ Use `getFieldValueAsString()` when you need plain text. This is useful for logs,
 
 ::: code-group
 ```php [PHP]
-use verbb\formie\models\ValueContext;
-
 $fullName = $submission->getFieldValueAsString('fullName');
 $message = $submission->getFieldValueAsString('message');
 
-// This is the lower-level equivalent if you need to pass a context explicitly.
-$message = $submission->getFieldValue('message', ValueContext::string());
 ```
 
 ```twig [Twig]
@@ -75,28 +71,24 @@ $values = $submission->getValuesAsString();
 ```
 :::
 
-### Get an Array Value
+### Get Natural Data
 
-Use `getFieldValueAsArray()` when a field has meaningful structure that you want to preserve. This is common for Address, Name, and more complex custom or nested fields.
+Use `getFieldValueAsData()` when a field has meaningful structure that you want to preserve. This is common for Address, Name, and more complex custom or nested fields.
 
 ::: code-group
 ```php [PHP]
-use verbb\formie\models\ValueContext;
+$name = $submission->getFieldValueAsData('fullName');
+$address = $submission->getFieldValueAsData('billingAddress');
 
-$name = $submission->getFieldValueAsArray('fullName');
-$address = $submission->getFieldValueAsArray('billingAddress');
-
-// This is the lower-level equivalent if you need to pass a context explicitly.
-$address = $submission->getFieldValue('billingAddress', ValueContext::array());
 ```
 
 ```twig [Twig]
-{% set name = submission.getFieldValueAsArray('fullName') %}
-{% set address = submission.getFieldValueAsArray('billingAddress') %}
+{% set name = submission.getFieldValueAsData('fullName') %}
+{% set address = submission.getFieldValueAsData('billingAddress') %}
 
 {{ address.address1 }}
-{{ address.locality }}
-{{ address.postalCode }}
+{{ address.city }}
+{{ address.zip }}
 ```
 :::
 
@@ -104,11 +96,11 @@ You can do the same for the whole submission.
 
 ::: code-group
 ```php [PHP]
-$values = $submission->getValuesAsArray();
+$values = $submission->getValuesAsData();
 ```
 
 ```twig [Twig]
-{% set values = submission.getValuesAsArray() %}
+{% set values = submission.getValuesAsData() %}
 ```
 :::
 
@@ -120,13 +112,9 @@ Use `getFieldValueForExport()` or `getValuesForExport()` when the result is goin
 
 ::: code-group
 ```php [PHP]
-use verbb\formie\models\ValueContext;
-
 $paymentTotal = $submission->getFieldValueForExport('payment');
 $exportValues = $submission->getValuesForExport();
 
-// This is the lower-level equivalent if you need to pass a context explicitly.
-$paymentTotal = $submission->getFieldValue('payment', ValueContext::export());
 ```
 
 ```twig [Twig]
@@ -143,13 +131,9 @@ Use `getFieldValueForSummary()` or `getValuesForSummary()` when you are building
 
 ::: code-group
 ```php [PHP]
-use verbb\formie\models\ValueContext;
-
 $summaryValue = $submission->getFieldValueForSummary('billingAddress');
 $summaryItems = $submission->getValuesForSummary();
 
-// This is the lower-level equivalent if you need to pass a context explicitly.
-$summaryValue = $submission->getFieldValue('billingAddress', ValueContext::summary());
 
 foreach ($summaryItems as $item) {
     $field = $item['field'];
@@ -196,7 +180,7 @@ $firstRepeaterEmail = $submission->getFieldValue('attendees.0.email');
 
 This is often the simplest way to pull out one specific nested value without working with the whole structured array.
 
-Date/Time fields also support formatted nested paths such as `eventDate.date`, `eventDate.time`, and, for date ranges, `booking.startDate` or `booking.end`. Composite datetime output uses the field's configured date and time formats, so casting the value object to string matches `getFieldValueAsString()`.
+Date/Time fields also support canonical nested paths such as `eventDate.date`, `eventDate.time`, and, for date ranges, `booking.startDate` or `booking.end`. Date values stringify to canonical ISO-style text. Use `getFieldValueAsString()` for the field's configured date and time display formats.
 
 ### Use Context-Specific Helpers
 
@@ -211,18 +195,11 @@ These are most useful in custom module or plugin code, where you already have th
 
 ::: code-group
 ```php [PHP]
-use verbb\formie\models\ValueContext;
-
 $referenceValue = $submission->getFieldValueForReference('billingAddress', $notification);
 $referenceBlockValue = $submission->getFieldValueForReferenceBlock('billingAddress', $notification);
 $conditionValue = $submission->getFieldValueForCondition('subscribe');
 $integrationValue = $submission->getFieldValueForIntegration('billingAddress', $integrationField, $integration, 'address');
 
-// These are the lower-level equivalents if you need to pass a context explicitly.
-$referenceValue = $submission->getFieldValue('billingAddress', ValueContext::reference($notification));
-$referenceBlockValue = $submission->getFieldValue('billingAddress', ValueContext::referenceBlock($notification));
-$conditionValue = $submission->getFieldValue('subscribe', ValueContext::condition());
-$integrationValue = $submission->getFieldValue('billingAddress', ValueContext::integration($integrationField, $integration, 'address'));
 ```
 
 ```twig [Twig]
@@ -235,4 +212,4 @@ $integrationValue = $submission->getFieldValue('billingAddress', ValueContext::i
 
 Use **reference** when you need the singular, string-like field value. Use **reference block** when you need the richer block value used by notification field rendering.
 
-If you need full control, `getFieldValue()` also accepts an explicit context object, but the convenience methods above are usually clearer.
+`getFieldValue()` accepts only the field key and returns the normalised runtime value. Use these explicit projection helpers for each consumer. The Formie 3 `getFieldValueAsJson()` helper is deprecated and delegates to `getFieldValueAsData()`.

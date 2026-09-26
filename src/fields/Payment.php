@@ -8,7 +8,7 @@ use verbb\formie\base\IntegrationInterface;
 use verbb\formie\base\Payment as PaymentIntegration;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\definitions\FieldClientModules;
-use verbb\formie\fields\definitions\FieldValueClass;
+use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\fields\values\PaymentFieldValue;
 use verbb\formie\gql\types\input\PaymentInputType;
 use verbb\formie\gql\types\Json as GqlJson;
@@ -65,6 +65,11 @@ class Payment extends Field
     // Public Methods
     // =========================================================================
 
+    public function valueType(): FieldValueType
+    {
+        return FieldValueType::object(PaymentFieldValue::class);
+    }
+
     public function fieldKind(): string
     {
         return self::KIND_PAYMENT;
@@ -98,7 +103,6 @@ class Payment extends Field
         }
 
         $data = new PaymentFieldValue($value);
-        $data->setElement($element);
 
         return $data;
     }
@@ -120,17 +124,12 @@ class Payment extends Field
         return PaymentInputType::getType($this);
     }
 
-    public function serializeValue(mixed $value, ?ElementInterface $element): mixed
+
+    public function serializeValueForClientInput(mixed $value, ?ElementInterface $element = null): mixed
     {
-        $value = $this->normalizeValue($value, $element);
-
-        if (!$value instanceof PaymentFieldValue) {
-            return [];
-        }
-
-        // Keep persisted payload canonical as primitive array data.
-        return $value->getAttributes();
+        return $this->normalizeValue($value, $element)->getAttributes();
     }
+
 
     public function defineFormBuilderPreviewSchema(): array
     {
@@ -311,6 +310,23 @@ class Payment extends Field
     // Protected Methods
     // =========================================================================
 
+    protected function defineValueAsData(mixed $value, ElementInterface $element = null): mixed
+    {
+        return $this->normalizeValue($value, $element)->getAttributes();
+    }
+
+    protected function defineValueForDb(mixed $value, ?ElementInterface $element): mixed
+    {
+        $value = $this->normalizeValue($value, $element);
+
+        if (!$value instanceof PaymentFieldValue) {
+            return [];
+        }
+
+        // Keep persisted payload canonical as primitive array data.
+        return $value->getAttributes();
+    }
+
     protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
     {
         if ($integration = $this->getPaymentIntegration()) {
@@ -342,14 +358,6 @@ class Payment extends Field
         return (string)$value;
     }
 
-    protected function defineValueAsArray(mixed $value, ElementInterface $element = null): mixed
-    {
-        if ($value instanceof PaymentFieldValue) {
-            return $value->getAttributes();
-        }
-
-        return parent::defineValueAsArray($value, $element);
-    }
 
     protected function defineValueForEmailPreview(FakerFactory $faker): mixed
     {
@@ -402,11 +410,6 @@ class Payment extends Field
         };
 
         return $modules;
-    }
-
-    protected function defineValueClass(): ?string
-    {
-        return PaymentFieldValue::class;
     }
 
 

@@ -71,7 +71,7 @@ it('normalizes payment values to payment data with stable string and json projec
 
     expect($value)->toBeInstanceOf(PaymentFieldValue::class)
         ->and($field->getValueAsString($value, null))->toBe('{"amount":"10.00","currency":"USD"}')
-        ->and($field->getValueAsArray($value, null))->toBe([
+        ->and($field->getValueAsData($value, null))->toBe([
             'amount' => '10.00',
             'currency' => 'USD',
         ])

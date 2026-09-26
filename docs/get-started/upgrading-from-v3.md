@@ -990,7 +990,7 @@ Use the `getFieldValue*()` methods in place of the older `getValue*()` methods.
 
 ```twig [Formie 4]
 {{ submission.getFieldValueAsString('fullName') }}
-{% set address = submission.getFieldValueAsArray('billingAddress') %}
+{% set address = submission.getFieldValueAsData('billingAddress') %}
 {% set exportValue = submission.getFieldValueForExport('payment') %}
 {% set summaryValue = submission.getFieldValueForSummary('billingAddress') %}
 ```
@@ -1006,7 +1006,7 @@ Use array terminology instead of JSON terminology.
 ```
 
 ```twig [Formie 4]
-{% set values = submission.getValuesAsArray() %}
+{% set values = submission.getValuesAsData() %}
 ```
 :::
 
@@ -1018,7 +1018,7 @@ $values = $submission->getValuesAsJson();
 ```
 
 ```php [Formie 4]
-$values = $submission->getValuesAsArray();
+$values = $submission->getValuesAsData();
 ```
 :::
 
@@ -1034,7 +1034,7 @@ Use the helper that matches the job you are doing.
 {% set value = submission.getFieldValueAsString('billingAddress') %}
 
 {# Array value. Good when a field has meaningful structure. #}
-{% set value = submission.getFieldValueAsArray('billingAddress') %}
+{% set value = submission.getFieldValueAsData('billingAddress') %}
 
 {# Export value. Good for CSVs, spreadsheets, and reports. #}
 {% set value = submission.getFieldValueForExport('billingAddress') %}
@@ -1127,8 +1127,8 @@ Value method changes:
 
 Formie 3 | Formie 4
 --- | ---
-`defineValueAsJson()` | `defineValueAsArray()`
-`getValueAsJson()` | `getValueAsArray()`
+`defineValueAsJson()` | `defineValueAsData()`
+`getValueAsJson()` | `getValueAsData()`
 `defineValueForVariable()` | `defineValueForReference()`
 `getValueForVariable()` | `getValueForReference()`
 `defineValueForVariableRaw()` | `defineValueForReference()`
@@ -1574,10 +1574,10 @@ Formie 3 | Formie 4
 `form.getFormId()` | `form.getRenderId()`
 `form.setFormId()` | `form.setRenderId()`
 `submission.getValueAsString()` | `submission.getFieldValueAsString()`
-`submission.getValueAsJson()` | `submission.getFieldValueAsArray()`
-`submission.getValuesAsJson()` | `submission.getValuesAsArray()`
-`field.getValueAsJson()` | `field.getValueAsArray()`
-`field.defineValueAsJson()` | `field.defineValueAsArray()`
+`submission.getValueAsJson()` | `submission.getFieldValueAsData()`
+`submission.getValuesAsJson()` | `submission.getValuesAsData()`
+`field.getValueAsJson()` | `field.getValueAsData()`
+`field.defineValueAsJson()` | `field.defineValueAsData()`
 `field.getFieldKey()` | `field.valueKey()`
 `field.getErrorKey()` | `field.errorKey()`
 `field.getFullHandle()` | `field.handlePath()`
@@ -1658,3 +1658,25 @@ Exports use integer `schemaVersion` and informational `formieVersion`. Legacy Fo
 Unknown, disabled or unregistered imported field types remain recoverable Missing Fields with their settings. Restore and register the owning extension before recovering them. Portable synced links use `syncedDefinitionUid`; beta numeric `syncedDefinitionId` and handle-only stencil links cannot select an arbitrary definition. A stencil whose shared definition cannot be resolved creates an independent definition. Regenerate affected beta stencil snapshots when shared syncing is intended.
 
 Field translations remain sparse and definition-scoped. Keep translatable instance settings out of definition overrides; introducing such a setting requires instance-level translation storage. Blank-form defaults are copied in class, global, group and explicit-value order. Stencils copy their contents and retain the new form's explicit identity; later edits to defaults or stencils do not alter existing forms.
+
+## Field Value Contracts
+
+Name values now consistently use `NameFieldValue`, including single-name mode. Text, Email and Phone return strings, Agree normalises missing input to false, and Number keeps decimal text without float conversion. Use `getFieldValueAsString()` for human-readable output and `getFieldValueAsData()` for natural JSON-safe data. Update Phone templates that read `.number` or `.country` to use the string or the field's explicit `serializeValueForClientInput()` result.
+
+GraphQL Number fields and numeric Table cells use `FormieDecimal`, which returns decimal strings and preserves literal digits. Change explicitly declared `$amount: Number` variables to `$amount: FormieDecimal` and send decimal variables as strings. JSON numeric variables may have lost precision in the caller before Formie receives them. Malformed text still reaches ordinary field validation. Control-panel number inputs also retain all stored digits when the configured decimal count changes.
+
+| Existing API | Replacement |
+|---|---|
+| Formie 3 `getFieldValueAsJson()` / `getValueAsJson()` | Deprecated adapter to `getFieldValueAsData()` / `getValueAsData()` |
+| Formie 3 `defineValueAsJson()` override | Supported through a deprecated protected-method adapter; implement `defineValueAsData()` |
+| Formie 3 `serializeValue()` override | Supported through the storage adapter; implement `defineValueForDb()` and call `serializeValueForDb()` |
+| Beta `getFieldValueAsArray()` / `getValueAsArray()` | Removed; use the Data APIs |
+| Beta `valueClass()` / `defineValueClass()` wrappers | Declare `valueType()` for the actual normalised value |
+| Beta `validationRules()` / `defineValidationRules()` | `browserValidationRules()` / `defineBrowserValidationRules()` |
+| Beta projection argument to `getFieldValue()` | Use the explicit string/data/export/integration/reference/summary/condition methods |
+
+Existing Formie 3 JSON and email event constants identify the corresponding canonical data and reference-block event. Each projection dispatches one event. Register with the constants rather than hard-coded legacy event strings. A reference projection does not dispatch the public string event.
+
+Rich values are immutable after normalisation. Replace assignments to Name/Address properties and option selections with construction of a new value. Date casts use canonical date/time strings; configured display formatting belongs to `getFieldValueAsString()`. Payment values contain submitted parts only; use `submission.getPayments()` and `submission.getSubscriptions()` to retrieve payment records.
+
+Back up the database and retain the original Formie security key before upgrading. Trusted storage accepts existing scalar, UID-keyed nested and exact legacy encrypted representations. New writes encrypt the complete stored representation in a versioned envelope. This is a read adaptation and rewrite-on-save upgrade, so no bulk destructive rewrite is required. Earlier releases cannot read newly encrypted values; restore the pre-upgrade backup when rolling back. Refresh cached forms after deployment so recipient inputs use current opaque option tokens. Previously rendered encrypted recipient tokens are not decrypted from requests.

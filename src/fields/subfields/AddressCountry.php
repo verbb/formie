@@ -129,7 +129,7 @@ class AddressCountry extends Dropdown implements ChildFieldInterface
         return $this->_getValueLabel($value);
     }
 
-    protected function defineValueAsArray(mixed $value, ElementInterface $element = null): mixed
+    protected function defineValueAsData(mixed $value, ElementInterface $element = null): mixed
     {
         $label = $this->_getValueLabel($value);
 

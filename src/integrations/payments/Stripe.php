@@ -1615,7 +1615,7 @@ class Stripe extends Payment
             $payload['name'] = $billingName;
         }
 
-        if ($billingAddressField && ($billingAddress = $submission->getFieldValueAsArray($billingAddressField))) {
+        if ($billingAddressField && ($billingAddress = $submission->getFieldValueAsData($billingAddressField))) {
             $payload['address']['line1'] = ArrayHelper::remove($billingAddress, 'address1');
             $payload['address']['line2'] = ArrayHelper::remove($billingAddress, 'address2');
             $payload['address']['city'] = ArrayHelper::remove($billingAddress, 'city');

@@ -776,7 +776,7 @@ class Opayo extends Payment
             }
         }
 
-        if ($billingName && ($fullName = $submission->getFieldValueAsArray($billingName))) {
+        if ($billingName && ($fullName = $submission->getFieldValueAsData($billingName))) {
             if ($fullName instanceof NameFieldValue) {
                 $fullName = $fullName->toValueArray();
             }
@@ -792,7 +792,7 @@ class Opayo extends Payment
             }
         }
 
-        if ($billingAddress && ($address = $submission->getFieldValueAsArray($billingAddress))) {
+        if ($billingAddress && ($address = $submission->getFieldValueAsData($billingAddress))) {
             if ($address instanceof AddressFieldValue) {
                 $address = $address->toValueArray();
             }

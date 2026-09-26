@@ -7,14 +7,13 @@ use verbb\formie\base\Field;
 use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
 use verbb\formie\elements\Submission;
+use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\fields\values\ColorFieldValue;
-use verbb\formie\fields\values\TableFieldValue;
 use verbb\formie\fields\definitions\FieldClientModules;
-use verbb\formie\fields\definitions\FieldValueClass;
 use verbb\formie\gql\types\TableRowType;
 use verbb\formie\gql\types\generators\KeyValueGenerator;
 use verbb\formie\gql\types\generators\TableRowTypeGenerator;
@@ -156,6 +155,16 @@ class Table extends Field
 
     // Public Methods
     // =========================================================================
+
+    public function serializeValueForClientInput(mixed $value, ?ElementInterface $element = null): mixed
+    {
+        return $this->defineValueAsData($value, $element);
+    }
+
+    public function valueType(): FieldValueType
+    {
+        return FieldValueType::array(nullable: true);
+    }
 
     public function __construct(array $config = [])
     {
@@ -345,41 +354,6 @@ class Table extends Field
         return $this->_normalizeValueInternal($value, $element, true);
     }
 
-    public function serializeValue(mixed $value, ?ElementInterface $element): mixed
-    {
-        if (!is_array($value) || empty($this->columns)) {
-            return null;
-        }
-
-        $serialized = [];
-        $supportsMb4 = Craft::$app->getDb()->getSupportsMb4();
-
-        foreach ($value as $row) {
-            $serializedRow = [];
-
-            foreach ($this->columns as $colId => $column) {
-                if ($column['type'] === 'heading') {
-                    continue;
-                }
-
-                // Accept both persisted column IDs and client handle keys so
-                // edited builder payloads and normalized row values round-trip
-                // through the same serializer.
-                $value = $row[$colId] ?? ((!empty($column['handle']) && array_key_exists($column['handle'], $row)) ? $row[$column['handle']] : null);
-                $value = $this->_serializeCellValue($column['type'], $value);
-
-                if (is_string($value) && !$supportsMb4) {
-                    $value = StringHelper::emojiToShortcodes(StringHelper::escapeShortcodes($value));
-                }
-
-                $serializedRow[$colId] = parent::serializeValue($value ?? null, $element);
-            }
-
-            $serialized[] = $serializedRow;
-        }
-
-        return $serialized;
-    }
 
     public function getContentGqlType(): Type|array
     {
@@ -452,13 +426,7 @@ class Table extends Field
 
     public function getInitialValue(?ElementInterface $element = null): mixed
     {
-        $value = parent::getInitialValue($element);
-
-        if ($value instanceof TableFieldValue) {
-            return $value;
-        }
-
-        return new TableFieldValue($value, $this->columns);
+        return $this->normalizeValue(parent::getInitialValue($element), $element);
     }
 
     public function beforeSave(bool $isNew): bool
@@ -605,6 +573,56 @@ class Table extends Field
 
     // Protected Methods
     // =========================================================================
+
+    protected function defineValueAsData(mixed $value, ElementInterface $element = null): mixed
+    {
+        $rows = [];
+        foreach ($value ?? [] as $row) {
+            $data = [];
+            foreach ($this->columns ?? [] as $id => $column) {
+                $cell = $row[$id] ?? $row[$column['handle'] ?? $id] ?? null;
+                $data[$column['handle'] ?? $id] = $this->_normalizeCellValueAsString($column['type'], $cell);
+            }
+            $rows[] = $data;
+        }
+        return $rows;
+    }
+
+    protected function defineValueForDb(mixed $value, ?ElementInterface $element): mixed
+    {
+        if (!is_array($value) || empty($this->columns)) {
+            return null;
+        }
+
+        $serialized = [];
+        $supportsMb4 = Craft::$app->getDb()->getSupportsMb4();
+
+        foreach ($value as $row) {
+            $serializedRow = [];
+
+            foreach ($this->columns as $colId => $column) {
+                if ($column['type'] === 'heading') {
+                    continue;
+                }
+
+                // Accept both persisted column IDs and client handle keys so
+                // edited builder payloads and normalized row values round-trip
+                // through the same serializer.
+                $value = $row[$colId] ?? ((!empty($column['handle']) && array_key_exists($column['handle'], $row)) ? $row[$column['handle']] : null);
+                $value = $this->_serializeCellValue($column['type'], $value);
+
+                if (is_string($value) && !$supportsMb4) {
+                    $value = StringHelper::emojiToShortcodes(StringHelper::escapeShortcodes($value));
+                }
+
+                $serializedRow[$colId] = parent::defineValueForDb($value ?? null, $element);
+            }
+
+            $serialized[] = $serializedRow;
+        }
+
+        return $serialized;
+    }
 
     protected function defineAllowPrimaryReference(): bool
     {
@@ -1131,11 +1149,6 @@ class Table extends Field
         return $modules;
     }
 
-    protected function defineValueClass(): ?string
-    {
-        return TableFieldValue::class;
-    }
-
 
     // Private Methods
     // =========================================================================
@@ -1254,10 +1267,11 @@ class Table extends Field
     {
         return match ($type) {
             'color' => $value instanceof ColorFieldValue ? $value->getHex() : ($value ?? ''),
-            'date', 'time' => null,
+            'date', 'time' => $value instanceof \DateTimeInterface ? $value->format($type === 'date' ? 'Y-m-d' : 'H:i:s') : $value,
             default => $value,
         };
     }
+
 
     private function _serializeCellValue(string $type, mixed $value): mixed
     {
@@ -1304,7 +1318,11 @@ class Table extends Field
                 // no break
             case 'date':
             case 'time':
-                return DateTimeHelper::toDateTime($value, false, false) ?: null;
+                if ($value instanceof \DateTimeInterface) {
+                    return \DateTimeImmutable::createFromInterface($value);
+                }
+                $parsed = DateTimeHelper::toDateTime($value, false, false);
+                return $parsed ? \DateTimeImmutable::createFromInterface($parsed) : $value;
         }
 
         return $value;

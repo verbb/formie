@@ -7,6 +7,9 @@
 - Add portable per-site translations to stencils and copy them into form overrides when creating forms from a stencil. ([#2968](https://github.com/verbb/formie/issues/2968))
 
 ### Changed
+- Make field runtime types explicit, keep precise numeric strings through GraphQL and immutable rich values, and add natural data projections with Formie 3 compatibility adapters.
+- Separate request, browser, condition and storage value paths; encrypt complete structured values and decode legacy encryption only from trusted storage.
+- Return strings for Phone and a consistent Name value in both input modes; replace beta Array/value-class APIs and browser validation names.
 - Separate shared field definition identity from form-field instances, retain Formie 3 identity aliases and require registered fields to extend the base Field class.
 - Share identity remapping across imports, duplicates and stencils; use portable definition UIDs for Synced Fields and explicit enabled/recursive traversal APIs.
 - Make payment amounts exact, return typed payment decisions and atomically settle payment-backed submissions with recoverable provider evidence.

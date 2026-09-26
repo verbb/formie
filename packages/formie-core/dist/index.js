@@ -97,7 +97,7 @@ function ee(e) {
 function S(e) {
 	if (e.client?.children) return {
 		structure: e.client.children.model,
-		valueClass: e.client.valueClass
+		valueType: e.client.valueType
 	};
 	if (!e.runtime) throw Error(`Field "${e.handle}" is missing field value metadata.`);
 	return e.runtime;

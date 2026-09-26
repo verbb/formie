@@ -1,3 +1,4 @@
+{% set value = field.serializeValueForClientInput(value ?? null, element ?? null) %}
 {% import '_includes/forms' as forms %}
 
 {% extends 'formie/_formfields/field' %}

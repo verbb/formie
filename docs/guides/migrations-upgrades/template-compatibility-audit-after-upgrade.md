@@ -83,14 +83,14 @@ Update `#{{ id }}` selectors in `{% js %}` blocks and analytics snippets.
 
 {# After #}
 {{ submission.getFieldValueAsString('fullName') }}
-{% set address = submission.getFieldValueAsArray('billingAddress') %}
+{% set address = submission.getFieldValueAsData('billingAddress') %}
 ```
 
 Use the helper that matches the job:
 
 - `getFieldValue()` — natural shape
 - `getFieldValueAsString()` — display, logs
-- `getFieldValueAsArray()` — structured fields
+- `getFieldValueAsData()` — structured fields
 - `getFieldValueForExport()` — CSV/reports
 - `getFieldValueForSummary()` — review screens
 

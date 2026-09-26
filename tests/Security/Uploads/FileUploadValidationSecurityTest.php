@@ -8,7 +8,7 @@ use verbb\formie\elements\Submission;
 
 function seedUploadedFilesForField(object $field, Submission $submission, array $filesByParam): void
 {
-    $submission->setFieldValue($field->handle, ['mutationData' => $filesByParam[$field->handle]]);
+    $submission->setFieldValueFromRequest($field->handle, ['mutationData' => $filesByParam[$field->handle]]);
     $submission->getFieldValue($field->handle);
 }
 

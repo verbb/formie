@@ -13,7 +13,6 @@ use verbb\formie\helpers\Variables;
 use verbb\formie\models\ClientModule;
 use verbb\formie\models\SlotTag;
 use verbb\formie\positions\Hidden as HiddenPosition;
-
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
@@ -405,9 +404,9 @@ class Checkboxes extends OptionsField
         ];
     }
 
-    protected function defineValidationRules(): array
+    protected function defineBrowserValidationRules(): array
     {
-        $validators = parent::defineValidationRules();
+        $validators = parent::defineBrowserValidationRules();
 
         foreach ($this->defineOptionsLimitValidationRules() as $validator) {
             $validators[] = $validator;

@@ -9,5 +9,5 @@ export { allFields, compositePartDefinitions, createRepeaterRowValue, defaultVal
 export { countGraphemes, getTextLimitMetrics, getWordCount, normalizeText } from './text';
 export { getFrontendErrorAriaLive, getFrontendFieldErrorId } from './accessibility';
 export type { FrontendErrorAriaLive } from './accessibility';
-export type { FrontendFieldDefinition, FrontendFieldValueContract, FrontendFieldValueStructure, FrontendFieldType, FrontendFieldValueClass, FrontendFormDefinition, FrontendFormEnvelope, FrontendFormSession, KnownFrontendFieldType, FrontendPageDefinition, FrontendRowDefinition, FrontendFormEventName, FrontendFormFieldState, FrontendFormInstance, FrontendFormPageState, FrontendFormState, FrontendSubmitAction, FrontendSubmitResult, FrontendTransport, FrontendValidationRule, } from './types';
+export type { FrontendFieldDefinition, FrontendFieldValueContract, FrontendFieldValueStructure, FrontendFieldType, FrontendFieldValueType, FrontendFormDefinition, FrontendFormEnvelope, FrontendFormSession, KnownFrontendFieldType, FrontendPageDefinition, FrontendRowDefinition, FrontendFormEventName, FrontendFormFieldState, FrontendFormInstance, FrontendFormPageState, FrontendFormState, FrontendSubmitAction, FrontendSubmitResult, FrontendTransport, FrontendValidationRule, } from './types';
 //# sourceMappingURL=index.d.ts.map

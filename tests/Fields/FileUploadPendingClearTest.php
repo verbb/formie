@@ -12,7 +12,7 @@ it('discards staged data uploads when a submission field is cleared', function (
     $submission = new Submission();
     $submission->setForm($form);
     $submission->title = 'Cleared upload';
-    $submission->setFieldValue('upload', FileUploadInputType::normalizeValue([
+    $submission->setFieldValueFromRequest('upload', FileUploadInputType::normalizeValue([
         ['filename' => 'pending.txt', 'fileData' => 'data:text/plain;base64,' . base64_encode('Pending')],
     ]));
     $field = $form->getFieldByHandle('upload');

@@ -119,8 +119,8 @@ it('keeps recipient obfuscation separate from resolved options', function (): vo
 
     expect($field->getResolvedOptions())->toBe($field->options())
         ->and($field->getResolvedOptions()[0]['value'])->toBe('sales@example.com')
-        ->and($fieldOptions[0]['value'])->toStartWith('base64:')
-        ->and($fieldOptions[1]['value'])->toStartWith('base64:')
+        ->and($fieldOptions[0]['value'])->toStartWith('recipient:v1:')
+        ->and($fieldOptions[1]['value'])->toStartWith('recipient:v1:')
         ->and($field->getRealValue($fieldOptions[0]['value']))->toBe('sales@example.com')
         ->and($field->getRealValue($fieldOptions[1]['value']))->toBe('support@example.com');
 })->skip(fn (): bool => !class_exists(\Craft::class) || !\Craft::$app || !\verbb\formie\Formie::$plugin, 'Requires Craft bootstrap');
@@ -146,7 +146,7 @@ it('decodes recipient option tokens independently of resolved option order', fun
     expect($reorderedField->getRealValue($salesToken))->toBe('sales@example.com');
 })->skip(fn (): bool => !class_exists(\Craft::class) || !\Craft::$app || !\verbb\formie\Formie::$plugin, 'Requires Craft bootstrap');
 
-it('keeps recipient option tokens typed while accepting legacy bare tokens', function (): void {
+it('matches opaque recipient tokens without decrypting legacy request tokens', function (): void {
     $field = new Recipients([
         'displayType' => 'dropdown',
         'options' => [
@@ -158,7 +158,7 @@ it('keeps recipient option tokens typed while accepting legacy bare tokens', fun
     $legacyToken = \verbb\formie\helpers\StringHelper::encenc('legacy@example.com');
 
     expect($field->getRealValue($typedToken))->toBe('sales@example.com')
-        ->and($field->getRealValue($legacyToken))->toBe('legacy@example.com');
+        ->and($field->getRealValue($legacyToken))->toBe($legacyToken);
 })->skip(fn (): bool => !class_exists(\Craft::class) || !\Craft::$app || !\verbb\formie\Formie::$plugin, 'Requires Craft bootstrap');
 
 it('preserves selected recipient labels when options share an email target', function (): void {

@@ -385,24 +385,15 @@ trait OtherOptionFieldTrait
         if (!$this->enableOtherOption || !($value instanceof MultiOptionFieldValue || $value instanceof SingleOptionFieldValue)) {
             return $value;
         }
-
-        $allowed = $this->getValidationOptionValues();
-
+        $options = [];
         foreach ($value instanceof MultiOptionFieldValue ? $value->all() : [$value] as $option) {
-            $optionValue = (string)($option->value ?? '');
-
-            if ($option->valid || $optionValue === '' || in_array($optionValue, $allowed, true)) {
-                continue;
-            }
-
-            $option->valid = true;
-
-            if (trim((string)($option->label ?? '')) === '') {
-                $option->label = $optionValue;
-            }
+            $options[] = new \verbb\formie\fields\values\OptionValue($option->label ?: $option->value, $option->value, $option->selected, true);
         }
-
-        return $value;
+        if ($value instanceof MultiOptionFieldValue) {
+            return new MultiOptionFieldValue($options, $value->getOptions());
+        }
+        $option = $options[0];
+        return new SingleOptionFieldValue($option->label, $option->value, $option->selected, $option->valid, $value->getOptions());
     }
 
     protected function extractSelectedValuesForValidation(mixed $value): array

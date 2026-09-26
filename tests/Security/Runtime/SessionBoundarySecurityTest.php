@@ -334,7 +334,7 @@ it('clears conditionally hidden field values submitted through the client runtim
 
         expect($response->success)->toBeTrue()
             ->and($savedSubmission)->not->toBeNull()
-            ->and($savedSubmission->getFieldValue('otherReason'))->toBeNull();
+            ->and($savedSubmission->getFieldValue('otherReason'))->toBe('');
     }, [
         'method' => 'POST',
         'remoteAddr' => '198.51.100.14',

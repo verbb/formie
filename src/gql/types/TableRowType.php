@@ -5,7 +5,6 @@ use verbb\formie\fields\Table;
 
 use craft\gql\base\ObjectType;
 use craft\gql\types\DateTime;
-use craft\gql\types\Number;
 
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\Type;
@@ -27,7 +26,7 @@ class TableRowType extends ObjectType
         foreach ($columns as $columnDefinition) {
             $cellType = match ($columnDefinition['type']) {
                 'date', 'time' => DateTime::getType(),
-                'number' => Number::getType(),
+                'number' => Decimal::getType(),
                 'lightswitch' => Type::boolean(),
                 default => Type::string(),
             };

@@ -134,11 +134,11 @@ it('smoke checks projection APIs across factory field types and preserves repres
                 if ($method === 'fileUploadField' && $submission === $filledSubmission) {
                     expect($value->ids())->toBe([$asset->id]);
                 }
-                $valueAsArray = $field?->getValueAsArray($value, $submission);
+                $valueAsArray = $field?->getValueAsData($value, $submission);
 
                 $fieldSummary = $field?->getValueForSummary($value, $submission);
                 expect($field?->getValueAsString($value, $submission))->toBeString()
-                    ->and($valueAsArray)->toBeArray();
+                    ->and(json_decode(json_encode($valueAsArray, JSON_THROW_ON_ERROR), true))->toEqual($valueAsArray);
                 expect(is_string($fieldSummary) || $fieldSummary instanceof \Twig\Markup)->toBeTrue();
 
                 $submissionSummary = $submission->getFieldValueForSummary($profile['handle']);
@@ -156,7 +156,7 @@ it('smoke checks projection APIs across factory field types and preserves repres
                 $field?->getValueForEmailPreview($faker);
 
                 expect($submission->getFieldValueAsString($profile['handle']))->toBeString()
-                    ->and($submission->getFieldValueAsArray($profile['handle']))->toBeArray();
+                    ->and($submission->getFieldValueAsData($profile['handle']))->toEqual($valueAsArray);
                 expect(is_string($submissionSummary) || $submissionSummary instanceof \Twig\Markup)->toBeTrue();
 
                 $submission->getFieldValueForReference($profile['handle'], $notification);

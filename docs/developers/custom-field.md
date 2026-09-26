@@ -124,7 +124,7 @@ Returns setting handles that can be configured as organisation-wide defaults in 
 :::
 
 ::: reference
-### `defineValidationRules()`
+### `defineBrowserValidationRules()`
 
 Defines the validation rules sent to Formie’s front-end assets.
 :::
@@ -216,9 +216,9 @@ Defines the field value when Formie needs a string value.
 :::
 
 ::: reference
-### `defineValueAsArray()`
+### `defineValueAsData()`
 
-Defines the field value when Formie needs an array value.
+Defines the natural JSON-safe value. Return useful scalars for primitive fields and explicit named data for structured fields.
 :::
 
 ::: reference
@@ -260,15 +260,65 @@ Defines the kind of field for the client input contract.
 :::
 
 ::: reference
-### `valueClass()`
+### `valueType()`
 
-**Returns:** `verbb\formie\fields\definitions\FieldValueClass`
+**Returns:** `verbb\formie\fields\definitions\FieldValueType`
 
-Declares value capabilities and client-payload serialisation. It does not control the normal PHP/Twig submission value shape on its own.
+Declares the post-normalisation PHP value. Formie asserts this type when normalising submission content and publishes its schema in client metadata. It does not choose storage or public projections.
 :::
 
 
 Refer to the [Field](/reference/field) object documentation for more.
+
+## Normalised Values and Projections
+
+Choose a runtime value that is useful to a template author. Text, Email and Phone return strings; Agree returns a boolean; Number retains a decimal string so PHP floats cannot round large values. Null is accepted as input, but each field defines its own empty result. Name always returns `NameFieldValue`, while Date and option fields preserve their domain objects. Group and Repeater compose their actual child fields, and relation fields return Craft queries.
+
+Declare the runtime contract with `FieldValueType::string()`, `boolean()`, `number()`, `object(MyValue::class)`, `array()` or `relationQuery(MyElement::class)`. Use `none()` for cosmetic fields. Object and array declarations accept a `nullable` argument where null is the normalised empty result. Number describes a numeric domain represented by a string; invalid text remains available to the validator. A type mismatch names the field, actual type and expected declaration.
+
+Numeric GraphQL fields use `verbb\formie\gql\types\Decimal::getType()` to preserve the decimal-string runtime contract. Craft's `Number` scalar converts through PHP floats; use `FormieDecimal` for exact literals and string variables.
+
+For a string field, the following methods belong inside your Field subclass:
+
+```php
+public function valueType(): \verbb\formie\fields\definitions\FieldValueType
+{
+    return \verbb\formie\fields\definitions\FieldValueType::string();
+}
+
+public function normalizeValue(mixed $value, ?\craft\base\ElementInterface $element): mixed
+{
+    return trim((string)($value ?? ''));
+}
+```
+
+A rich value should expose read-only domain parts and an explicit property-path allowlist. Construct it once during normalisation. Keep field presentation settings, submission objects and service lookups outside the value. Repeated normalisation and every projection must leave the original unchanged.
+
+Keep these boundaries separate:
+
+| Method | Purpose |
+|---|---|
+| `normalizeValueFromRequest()` | Adapt browser and multipart input, then normalise; never decrypt or discard malformed input before validation |
+| `normalizeValue()` | Produce the declared runtime value idempotently |
+| `defineValueForDb()` | Return a deliberate, lossless scalar/array storage representation |
+| `serializeValueForDb()` | Final persistence entry point; applies whole-value encryption after the owning storage hook |
+| `defineValueAsData()` | Return natural JSON-safe data for application consumers |
+| `serializeValueForClientInput()` | Return the browser input shape, which may differ from natural data |
+| `defineValueForCondition()` | Return comparable values without using database serialisation |
+
+Formie decodes trusted stored values before ordinary normalisation. Do not call storage decoding from request handlers. The base serializer rejects arbitrary objects, including objects implementing Arrayable or Serializable. A rich field must deliberately turn its domain parts into storage data. Nested storage uses child instance UIDs, and nested public data composes each contextual child's data projection.
+
+String, data, export, integration, reference, reference block and summary projections each dispatch their own event. Reuse a protected projection implementation when appropriate; calling another public projection from your hook would also fire that projection's event. `EVENT_MODIFY_VALUE_AS_DATA` listeners receive a JSON-safe result and must return JSON-safe data.
+
+For a form containing a Name field with handle `contactName`, these Twig calls serve different purposes:
+
+```twig
+{% set name = submission.getFieldValue('contactName') %}
+<p>{{ submission.getFieldValueAsString('contactName') }}</p>
+{% set parts = submission.getFieldValueAsData('contactName') %}
+```
+
+`name` is the immutable Name value in both UI modes. `parts` contains `name`, `prefix`, `prefixOption`, `firstName`, `middleName` and `lastName`; the single-name input uses `name`. Option data contains selected value, label and validity metadata without the available-option catalogue. Relation data is a list of selected `id`, `title` and `url` records; File Upload also includes `filename`. The Link adapter returns an immutable `CustomLinkFieldValue` with URL, label and submitted attributes; native Craft input rendering receives a separate reconstructed object. Use the field's integration, export or reference methods when those consumers require a different shape.
 
 ## Custom Field Adapters
 
@@ -284,9 +334,11 @@ Each adapter is responsible for:
 - defining adapter-specific form-builder settings,
 - rendering front-end and control panel submission inputs,
 - normalizing and serializing submitted values,
-- returning string, array, reference, summary, export and integration values,
+- returning string, natural data, browser input, reference, summary, export and integration values,
 - declaring GraphQL content and mutation shapes,
 - declaring client-rendered input metadata.
+
+Adapters declare `valueType($field)` and implement `serializeValueForClientInput()` independently of `getValueAsData()`. Use `decodeValueFromStorage()` for trusted legacy shapes; it is never called for request input. The default browser method deliberately shares the adapter data shape; override it when browser inputs require a different representation.
 
 Built-in adapters include:
 
@@ -378,7 +430,7 @@ When an adapter supports a structured value, implement these methods together:
 - `serializeValue()`
 - `isValueEmpty()`
 - `getValueAsString()`
-- `getValueAsArray()`
+- `getValueAsData()`
 - `getContentGqlType()`
 - `getContentGqlMutationArgumentType()`
 
@@ -469,7 +521,7 @@ These are defined in functions, which are respectively:
 - `getReferenceBlockTemplatePath()`
 - `defineFormBuilderPreviewSchema()`
 - `getInputTemplateVariables()`
-- `defineValueAsString()`, `defineValueAsArray()`, `defineValueForReference()`, `defineValueForReferenceBlock()`, `defineValueForExport()` or `defineValueForSummary()` when the default value handling is not enough.
+- `defineValueAsString()`, `defineValueAsData()`, `defineValueForReference()`, `defineValueForReferenceBlock()`, `defineValueForExport()` or `defineValueForSummary()` when the default value handling is not enough.
 
 ```php
 public static function getInputTemplatePath(): string

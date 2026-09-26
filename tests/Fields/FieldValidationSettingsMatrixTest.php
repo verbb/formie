@@ -191,7 +191,7 @@ it('supports getValueAs* and getValueFor* contracts for representative fields', 
         $value = $submission->getFieldValue($handle);
 
         expect($field?->getValueAsString($value, $submission))->not->toBeNull();
-        expect($field?->getValueAsArray($value, $submission))->not->toBeNull();
+        expect($field?->getValueAsData($value, $submission))->not->toBeNull();
         expect($field?->getValueForExport($value, $submission))->not->toBeNull();
         expect($field?->getValueForSummary($value, $submission))->not->toBeNull();
         expect($field?->getValueForCondition($value, $submission))->not->toBeNull();

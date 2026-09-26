@@ -10,7 +10,7 @@
             {% for row in field.getEnabledRows() %}
                 <div class="formie-subfield-row" data-formie-subfield-row>
                     {% for field in row.getEnabledFields() %}
-                        {% set value = element.getFieldValue(field.valueKey()) ?? field.getInitialValue(element) %}
+                        {% set value = field.getElementValue(element) %}
                         {% set errors = element.getErrors(field.valueKey()) ?? [] %}
 
                         {{ field.getSubmissionHtml(value, element) }}
@@ -35,7 +35,7 @@
             {% for row in field.getEnabledRows() %}
                 <div class="formie-subfield-row" data-formie-subfield-row>
                     {% for field in row.getEnabledFields() %}
-                        {% set value = element.getFieldValue(field.valueKey()) ?? field.getInitialValue(element) %}
+                        {% set value = field.getElementValue(element) %}
                         {% set errors = element.getErrors(field.valueKey()) ?? [] %}
 
                         {{ field.getSubmissionHtml(value, element) }}

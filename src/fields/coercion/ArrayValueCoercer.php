@@ -48,32 +48,5 @@ final class ArrayValueCoercer
         return [$value];
     }
 
-    public static function normalizeForField(mixed $value, bool $supportsArray): ?array
-    {
-        if ($value === null) {
-            return [];
-        }
 
-        if ($value instanceof FieldValueInterface && $supportsArray) {
-            return $value->toValueArray();
-        }
-
-        if (is_array($value)) {
-            return $value;
-        }
-
-        if ($value instanceof Arrayable) {
-            return $value->toArray();
-        }
-
-        if ($value instanceof Serializable) {
-            $value = $value->serialize();
-        }
-
-        if (is_iterable($value)) {
-            return ArrayHelper::toArray($value);
-        }
-
-        return null;
-    }
 }

@@ -13,7 +13,7 @@ it('validates decoded data uploads against file constraints', function (array $s
     $submission = new Submission();
     $submission->setForm($form);
     // The claimed MIME deliberately disagrees with the bytes in the spoofed image case.
-    $submission->setFieldValue('upload', FileUploadInputType::normalizeValue([
+    $submission->setFieldValueFromRequest('upload', FileUploadInputType::normalizeValue([
         ['filename' => $filename, 'fileData' => 'data:image/png;base64,' . base64_encode($contents)],
     ]));
     $submission->getFieldValue('upload');
@@ -46,3 +46,20 @@ it('saves canonical client file data alongside retained assets', function (bool 
     $newAssets = array_values(array_filter($assets, fn($item) => $item->id != $asset->id));
     expect(file_get_contents($newAssets[0]->getCopyOfFile()))->toBe('New content');
 })->with([false, true]);
+
+
+it('routes client submission upload envelopes through request normalization', function (): void {
+    UploadTestHelper::ensureUploadVolume();
+    $form = formie()->form()->fileUploadField('upload', ['restrictFiles' => false])->settings(['disableCaptchas' => true])->create();
+    \Tests\Support\WebRequestTestHelper::withWebRequestContext(function () use ($form) {
+        $result = runClientSubmission(new \verbb\formie\client\models\SubmitRequest([
+            'handle' => $form->handle,
+            'session' => ['version' => 0, 'tokens' => ['request' => $form->getRequestToken()]],
+            'values' => ['upload' => [['filename' => 'client-boundary.txt', 'fileData' => 'data:text/plain;base64,' . base64_encode('Client boundary bytes')]]],
+        ]))->toArrayRecursive();
+        expect($result['success'])->toBeTrue();
+        $saved = Submission::find()->formId($form->id)->status(null)->isIncomplete(null)->isSpam(null)->one();
+        $asset = $saved->getFieldValue('upload')->one();
+        expect(file_get_contents($asset->getCopyOfFile()))->toBe('Client boundary bytes');
+    }, ['method' => 'POST', 'headers' => ['Accept' => 'application/json']]);
+});

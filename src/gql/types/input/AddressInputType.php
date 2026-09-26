@@ -81,20 +81,6 @@ class AddressInputType extends InputObjectType
 
     public static function normalizeValue($value): mixed
     {
-        if (!empty($value['name'])) {
-            return $value['name'];
-        }
-
-        $addressValue = new AddressFieldValue();
-        $addressValue->autoComplete = $value['autoComplete'] ?? null;
-        $addressValue->address1 = $value['address1'] ?? null;
-        $addressValue->address2 = $value['address2'] ?? null;
-        $addressValue->address3 = $value['address3'] ?? null;
-        $addressValue->city = $value['city'] ?? null;
-        $addressValue->state = $value['state'] ?? null;
-        $addressValue->zip = $value['zip'] ?? null;
-        $addressValue->country = $value['country'] ?? null;
-
-        return $addressValue;
+        return new AddressFieldValue(is_array($value) ? $value : []);
     }
 }

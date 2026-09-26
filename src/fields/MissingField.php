@@ -4,6 +4,7 @@ namespace verbb\formie\fields;
 use verbb\formie\Formie;
 use verbb\formie\base\Field;
 use verbb\formie\elements\Submission;
+use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\Notification;
 
@@ -62,6 +63,11 @@ class MissingField extends Field implements MissingComponentInterface
     // Public Methods
     // =========================================================================
 
+    public function valueType(): FieldValueType
+    {
+        return FieldValueType::storageSafe();
+    }
+
     public function getSettings(): array
     {
         return $this->settings ?? [];
@@ -110,5 +116,11 @@ class MissingField extends Field implements MissingComponentInterface
         return Craft::$app->getView()->renderTemplate('formie/_formfields/missing/input', [
             'error' => $error,
         ]);
+    }
+
+
+    public function normalizeValue(mixed $value, ?\craft\base\ElementInterface $element): mixed
+    {
+        return $value;
     }
 }

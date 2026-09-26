@@ -6,11 +6,13 @@ use verbb\formie\base\Field;
 use verbb\formie\base\IntegrationInterface;
 use verbb\formie\base\PreviewableFieldInterface;
 use verbb\formie\base\SortableFieldInterface;
+use verbb\formie\content\FieldStorageCodec;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyFieldValueEvent;
 use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\fields\custom\CustomFieldAdapterInterface;
+use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\IntegrationField;
@@ -62,6 +64,22 @@ class CustomField extends Field implements SortableFieldInterface, PreviewableFi
 
     // Public Methods
     // =========================================================================
+
+    public function decodeValueFromStorage(mixed $value): mixed
+    {
+        return $this->getAdapter()->decodeValueFromStorage(parent::decodeValueFromStorage($value), $this);
+    }
+
+    public function serializeValueForClientInput(mixed $value, ?ElementInterface $element = null): mixed
+    {
+        return FieldStorageCodec::assertSafe($this->getAdapter()->serializeValueForClientInput($value, $this, $element));
+    }
+
+    public function valueType(): FieldValueType
+    {
+        $type = $this->getAdapter()->valueType($this);
+        return $type;
+    }
 
     public function settingsAttributes(): array
     {
@@ -115,12 +133,6 @@ class CustomField extends Field implements SortableFieldInterface, PreviewableFi
         return $this->getAdapter()->normalizeValue($value, $this, $element);
     }
 
-    public function serializeValue(mixed $value, ?ElementInterface $element): mixed
-    {
-        $value = $this->getAdapter()->serializeValue($value, $this, $element);
-
-        return parent::serializeValue($value, $element);
-    }
 
     public function isValueEmpty(mixed $value, ?ElementInterface $element): bool
     {
@@ -259,6 +271,13 @@ class CustomField extends Field implements SortableFieldInterface, PreviewableFi
     // Protected Methods
     // =========================================================================
 
+    protected function defineValueForDb(mixed $value, ?ElementInterface $element): mixed
+    {
+        $value = $this->getAdapter()->serializeValue($value, $this, $element);
+
+        return parent::defineValueForDb($value, $element);
+    }
+
     protected function defineSubmissionHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
         return $this->getAdapter()->getCpInputHtml($this, $value, $element, $inline);
@@ -277,10 +296,6 @@ class CustomField extends Field implements SortableFieldInterface, PreviewableFi
         return $rules;
     }
 
-    protected function defineValueClass(): ?string
-    {
-        return $this->getAdapter()->getValueClass($this);
-    }
 
     protected function defineClientInput(): array
     {
@@ -300,9 +315,10 @@ class CustomField extends Field implements SortableFieldInterface, PreviewableFi
         return $this->getAdapter()->getValueAsString($value, $this, $element);
     }
 
-    protected function defineValueAsArray(mixed $value, ElementInterface $element = null): mixed
+
+    protected function defineValueAsData(mixed $value, ElementInterface $element = null): mixed
     {
-        return $this->getAdapter()->getValueAsArray($value, $this, $element);
+        return $this->getAdapter()->getValueAsData($value, $this, $element);
     }
 
     protected function defineValueForExport(mixed $value, ElementInterface $element = null): mixed

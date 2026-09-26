@@ -279,7 +279,7 @@ Event::on(SingleLineText::class, SingleLineText::EVENT_MODIFY_VALUE_AS_STRING, f
 ```
 
 ### The `modifyValueAsJson` Event
-The event that is triggered when preparing a field's value to be represented as a JSON object. You can use this on any class that extends the `verbb\formie\base\Field` class.
+Deprecated Formie 3 constant: `EVENT_MODIFY_VALUE_AS_JSON` aliases `EVENT_MODIFY_VALUE_AS_DATA`. Register with the data constant for new code; only one event is dispatched per data projection. You can use this on any class that extends the `verbb\formie\base\Field` class.
 
 Modify the `value` event property to set the value used.
 
@@ -298,8 +298,8 @@ Event::on(SingleLineText::class, SingleLineText::EVENT_MODIFY_VALUE_AS_JSON, fun
 });
 ```
 
-### The `modifyValueAsArray` Event
-The event that is triggered when preparing a field's value to be represented as an array. You can use this on any class that extends the `verbb\formie\base\Field` class.
+### The `modifyValueAsData` Event
+Triggered when projecting natural JSON-safe data, which may be a scalar, null or structured array. This event does not run during database or browser-input serialization. You can use this on any class that extends the `verbb\formie\base\Field` class.
 
 Modify the `value` event property to set the value used.
 
@@ -308,7 +308,7 @@ use verbb\formie\fields\SingleLineText;
 use verbb\formie\events\ModifyFieldValueEvent;
 use yii\base\Event;
 
-Event::on(SingleLineText::class, SingleLineText::EVENT_MODIFY_VALUE_AS_ARRAY, function(ModifyFieldValueEvent $event) {
+Event::on(SingleLineText::class, SingleLineText::EVENT_MODIFY_VALUE_AS_DATA, function(ModifyFieldValueEvent $event) {
     $field = $event->field;
     $value = $event->value;
     $submission = $event->submission;

@@ -11,10 +11,6 @@ class RecipientsFieldValue implements FieldValueInterface
     // Static Methods
     // =========================================================================
 
-    public static function capabilityTypes(): array
-    {
-        return ['string', 'array'];
-    }
 
     public static function toClientValueFrom(mixed $value): mixed
     {
@@ -76,10 +72,6 @@ class RecipientsFieldValue implements FieldValueInterface
         return $this->_valid;
     }
 
-    public function setOptions(array $options): void
-    {
-        $this->_options = $options;
-    }
 
     public function getOptions(): array
     {
@@ -134,7 +126,6 @@ class RecipientsFieldValue implements FieldValueInterface
                 'value' => $this->_rawValue,
                 'selected' => $this->_rawValue !== null && $this->_rawValue !== '',
                 'valid' => $this->_valid,
-                'options' => array_map(static fn(OptionValue $option) => $option->toArray(), $this->_options),
             ];
         }
 
@@ -206,7 +197,7 @@ class RecipientsFieldValue implements FieldValueInterface
 
     public function canResolvePath(string $path): bool
     {
-        return $path !== '';
+        return in_array($path, array_keys($this->toValueArray()), true);
     }
 
     public function getPathValue(string $path): mixed

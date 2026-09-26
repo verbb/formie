@@ -13,10 +13,6 @@ class MultiOptionFieldValue implements FieldValueInterface, IteratorAggregate, C
     // Static Methods
     // =========================================================================
 
-    public static function capabilityTypes(): array
-    {
-        return ['string', 'array'];
-    }
 
     public static function toClientValueFrom(mixed $value): mixed
     {
@@ -52,9 +48,10 @@ class MultiOptionFieldValue implements FieldValueInterface, IteratorAggregate, C
     // Public Methods
     // =========================================================================
 
-    public function __construct(array $options = [])
+    public function __construct(array $options = [], array $catalogue = [])
     {
         $this->_selectedOptions = $options;
+        $this->_options = $catalogue;
     }
 
     public function getOptions(): array
@@ -62,10 +59,6 @@ class MultiOptionFieldValue implements FieldValueInterface, IteratorAggregate, C
         return $this->_options;
     }
 
-    public function setOptions(array $options): void
-    {
-        $this->_options = $options;
-    }
 
     public function all(): array
     {
@@ -163,6 +156,6 @@ class MultiOptionFieldValue implements FieldValueInterface, IteratorAggregate, C
     {
         $firstSegment = explode('.', $path)[0] ?? '';
 
-        return $firstSegment !== '' && ctype_digit($firstSegment);
+        return preg_match('/^\d+(?:\.(?:value|label|selected|valid))?$/D', $path) === 1;
     }
 }

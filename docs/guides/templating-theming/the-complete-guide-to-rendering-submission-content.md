@@ -61,13 +61,13 @@ Pick the helper that matches your output context — full examples live on [Subm
 | --- | --- |
 | `getFieldValue()` | Default value; fine for simple fields |
 | `getFieldValueAsString()` | Plain text — logs, labels, simple output |
-| `getFieldValueAsArray()` | Structured data — Address, Name, nested fields |
+| `getFieldValueAsData()` | Structured data — Address, Name, nested fields |
 | `getFieldValueForSummary()` | Review screens, confirmation HTML |
 | `getFieldValueForExport()` | CSV, spreadsheets, reports |
 | `getFieldValueForReference()` | Singular string for notifications/integrations |
 | `getFieldValueForReferenceBlock()` | Rich block HTML for notification field rendering |
 
-Submission-wide equivalents: `getValuesAsString()`, `getValuesAsArray()`, `getValuesForSummary()`, `getValuesForExport()`.
+Submission-wide equivalents: `getValuesAsString()`, `getValuesAsData()`, `getValuesForSummary()`, `getValuesForExport()`.
 
 Use dot notation for nested paths (`billingAddress.postalCode`, `attendees.0.email`) — see [Work with nested field paths](/developers/submission-content#work-with-nested-field-paths).
 
@@ -93,14 +93,14 @@ For HTML-aware output per field, use summary or reference-block helpers — see 
 
 ### Address and Name
 
-Prefer `getFieldValueAsArray()` or dot notation. String output collapses to a single line:
+Prefer `getFieldValueAsData()` or dot notation. String output collapses to a single line:
 
 ```twig
 {# Single line #}
 {{ submission.getFieldValueAsString('billingAddress') }}
 
 {# Parts #}
-{% set address = submission.getFieldValueAsArray('billingAddress') %}
+{% set address = submission.getFieldValueAsData('billingAddress') %}
 {{ address.address1 }}, {{ address.locality }}
 ```
 
@@ -109,7 +109,7 @@ Prefer `getFieldValueAsArray()` or dot notation. String output collapses to a si
 These return structured arrays. Loop rows explicitly:
 
 ```twig
-{% set attendees = submission.getFieldValueAsArray('attendees') %}
+{% set attendees = submission.getFieldValueAsData('attendees') %}
 
 {% for row in attendees %}
     <p>{{ row.firstName }} — {{ row.email }}</p>
@@ -173,7 +173,7 @@ Read methods are the same — you are still working with a `Submission` element.
 {{ submission.getFieldValueAsString('message') }}
 
 {# Structured #}
-{% set name = submission.getFieldValueAsArray('fullName') %}
+{% set name = submission.getFieldValueAsData('fullName') %}
 
 {# Nested path #}
 {{ submission.getFieldValue('billingAddress.postalCode') }}

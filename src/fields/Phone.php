@@ -9,7 +9,7 @@ use verbb\formie\base\SortableFieldInterface;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\definitions\FieldClientModules;
 use verbb\formie\fields\definitions\FieldReferenceValue;
-use verbb\formie\fields\definitions\FieldValueClass;
+use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\gql\types\generators\CountryOptionGenerator;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\FieldBuilderPolicy;
@@ -18,10 +18,8 @@ use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Variables;
-use verbb\formie\fields\values\PhoneFieldValue;
 use verbb\formie\models\ClientModule;
 use verbb\formie\models\SlotTag;
-
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
@@ -116,6 +114,11 @@ class Phone extends Field implements SortableFieldInterface, PreviewableFieldInt
     // Public Methods
     // =========================================================================
 
+    public function valueType(): FieldValueType
+    {
+        return FieldValueType::string();
+    }
+
     public function __construct(array $config = [])
     {
         unset(
@@ -160,34 +163,45 @@ class Phone extends Field implements SortableFieldInterface, PreviewableFieldInt
 
     public function isValueEmpty(mixed $value, ?ElementInterface $element): bool
     {
-        if ($value instanceof PhoneFieldValue && !$value->number) {
-            return true;
-        }
-
-        return parent::isValueEmpty($value, $element);
+        return $value === null || $value === '';
     }
 
     public function normalizeValue(mixed $value, ?ElementInterface $element): mixed
     {
-        $value = parent::normalizeValue($value, $element);
         $value = Json::decodeIfJson($value);
-
-        if ($value instanceof PhoneFieldValue) {
-            return $value;
+        $country = is_array($value) ? ($value['country'] ?? $this->countryDefaultValue) : $this->countryDefaultValue;
+        $number = is_array($value) ? (array_key_exists('number', $value) ? $value['number'] : (isset($value['country']) || $value === [] ? '' : $value)) : $value;
+        if ($number !== null && !is_scalar($number)) {
+            \verbb\formie\content\FieldStorageCodec::assertSafe($number);
+            $number = Json::encode($number);
         }
-
-        if (is_array($value)) {
-            $phone = new PhoneFieldValue($value);
-            $phone->hasCountryCode = isset($value['country']);
-
-            return $phone;
+        $number = trim((string)$number);
+        if ($number === '') {
+            return '';
         }
+        try {
+            $util = PhoneNumberUtil::getInstance();
+            $parsed = $util->parse($number, $country ?: null);
+            if ($util->isValidNumber($parsed)) {
+                return $util->format($parsed, PhoneNumberFormat::E164);
+            }
+        } catch (\Throwable) {
+        }
+        // Invalid user input remains visible and available for validation.
+        return $number;
+    }
 
-        $phone = new PhoneFieldValue();
-        $phone->number = $value;
-        $phone->hasCountryCode = false;
-
-        return $phone;
+    public function serializeValueForClientInput(mixed $value, ?ElementInterface $element = null): mixed
+    {
+        $number = $this->normalizeValue($value, $element);
+        $country = $this->countryDefaultValue;
+        try {
+            $util = PhoneNumberUtil::getInstance();
+            $parsed = $util->parse($number, $country ?: null);
+            $country = $util->getRegionCodeForNumber($parsed) ?: $country;
+        } catch (\Throwable) {
+        }
+        return ['number' => $number, 'country' => $country];
     }
 
     public function defineFormBuilderPreviewSchema(): array
@@ -411,18 +425,6 @@ class Phone extends Field implements SortableFieldInterface, PreviewableFieldInt
 
     protected function defineValueForEmailPreview(FakerFactory $faker): mixed
     {
-        if ($this->countryEnabled) {
-            $number = $faker->e164PhoneNumber;
-
-            $phoneUtil = PhoneNumberUtil::getInstance();
-            $numberProto = $phoneUtil->parse($number);
-
-            return new PhoneFieldValue([
-                'number' => $number,
-                'country' => $phoneUtil->getRegionCodeForNumber($numberProto),
-            ]);
-        }
-
         return $faker->phoneNumber;
     }
 
@@ -458,10 +460,6 @@ class Phone extends Field implements SortableFieldInterface, PreviewableFieldInt
         return $modules;
     }
 
-    protected function defineValueClass(): ?string
-    {
-        return PhoneFieldValue::class;
-    }
 
     protected function defineReferenceValues(): array
     {

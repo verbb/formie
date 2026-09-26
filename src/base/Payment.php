@@ -580,7 +580,7 @@ abstract class Payment extends Integration
         if ($field = $this->getField()) {
             // Resolve as the field's array projection; payment integrations then
             // interpret provider-specific keys from this canonical payload.
-            $value = $submission->getFieldValueAsArray($field->valueKey());
+            $value = $submission->getFieldValueAsData($field->valueKey());
 
             return new PaymentFieldPayload($this->handle ?? '', $field->valueKey(), is_array($value) ? $value : []);
         }

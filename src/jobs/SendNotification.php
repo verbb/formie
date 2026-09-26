@@ -143,7 +143,7 @@ class SendNotification extends CraftBaseJob implements DebuggableJobInterface
         ]);
 
         $submissionData['form'] = $submission->getFormHandle();
-        $submissionData['fields'] = QueueJobDataHelper::sanitizeForSerialization($submission->getValuesAsArray());
+        $submissionData['fields'] = QueueJobDataHelper::sanitizeForSerialization($submission->getValuesAsData());
 
         return QueueJobDataHelper::sanitizeForSerialization($submissionData);
     }

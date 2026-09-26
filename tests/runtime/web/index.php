@@ -72,7 +72,7 @@ if ($path === '/browser-saved') {
     $rows = \verbb\formie\elements\Submission::find()->formId($fixture[$journey ? 'journeyId' : 'formId'])->status(null)->isIncomplete(false)->isSpam(false)->all();
     header('Content-Type: application/json');
     echo json_encode(array_map(fn($row) => $journey
-        ? ['id' => $row->id, 'name' => $row->getFieldValue('visitorName'), 'items' => $row->getFieldValueAsArray('items'), 'files' => array_map(fn($asset) => ['filename' => $asset->filename, 'contents' => $asset->getContents()], $row->getFieldValue('attachment')->all())]
+        ? ['id' => $row->id, 'name' => $row->getFieldValue('visitorName'), 'items' => $row->getFieldValueAsData('items'), 'files' => array_map(fn($asset) => ['filename' => $asset->filename, 'contents' => $asset->getContents()], $row->getFieldValue('attachment')->all())]
         : ['id' => $row->id, 'name' => $row->getFieldValue('visitorName'), 'email' => $row->getFieldValue('visitorEmail')], $rows));
     exit;
 }

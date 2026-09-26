@@ -3,14 +3,10 @@ namespace verbb\formie\fields\values;
 
 class DateRangeFieldValue extends BaseFieldValue
 {
-    use DateDisplaySettingsTrait;
+
     // Static Methods
     // =========================================================================
 
-    public static function capabilityTypes(): array
-    {
-        return ['string', 'date', 'datetime'];
-    }
 
     public static function partKeys(): array
     {
@@ -37,33 +33,15 @@ class DateRangeFieldValue extends BaseFieldValue
 
     public static function fromMixed(mixed $value): self
     {
-        if ($value instanceof self) {
-            return $value;
-        }
-
-        if (!is_array($value)) {
-            return new self();
-        }
-
-        if (isset($value['start']) || isset($value['end'])) {
-            return new self([
-                'start' => self::parseSideParts($value['start'] ?? []),
-                'end' => self::parseSideParts($value['end'] ?? []),
-            ]);
-        }
-
-        return new self([
-            'start' => self::_parseFlatSideParts($value, 'start'),
-            'end' => self::_parseFlatSideParts($value, 'end'),
-        ]);
+        return $value instanceof self ? $value : new self($value);
     }
 
 
     // Properties
     // =========================================================================
 
-    public array $start = [];
-    public array $end = [];
+    public readonly DateFieldValue $start;
+    public readonly DateFieldValue $end;
 
 
     // Public Methods
@@ -71,24 +49,9 @@ class DateRangeFieldValue extends BaseFieldValue
 
     public function __construct(mixed $value = [], array $config = [])
     {
-        if (is_array($value) && (isset($value['start']) || isset($value['end']))) {
-            $this->setStartParts($value['start'] ?? []);
-            $this->setEndParts($value['end'] ?? []);
-            parent::__construct($config);
-
-            return;
-        }
-
-        if (is_array($value) && $value !== []) {
-            $parsed = self::fromMixed($value);
-            $this->start = $parsed->start;
-            $this->end = $parsed->end;
-            parent::__construct($config);
-
-            return;
-        }
-
-        parent::__construct($config);
+        $value = is_array($value) ? $value : ['start' => $value];
+        $this->start = new DateFieldValue($value['start'] ?? self::_parseFlatSideParts($value, 'start'));
+        $this->end = new DateFieldValue($value['end'] ?? self::_parseFlatSideParts($value, 'end'));
     }
 
     public function __toString(): string
@@ -102,8 +65,8 @@ class DateRangeFieldValue extends BaseFieldValue
             return '';
         }
 
-        $start = $this->formatPartsForDisplay($this->start);
-        $end = $this->formatPartsForDisplay($this->end);
+        $start = (string)$this->start;
+        $end = (string)$this->end;
 
         if ($start === '' && $end === '') {
             return '';
@@ -118,51 +81,24 @@ class DateRangeFieldValue extends BaseFieldValue
 
     public function isEmpty(): bool
     {
-        return empty($this->start) && empty($this->end);
+        return $this->start->isEmpty() && $this->end->isEmpty();
     }
 
     public function toValueArray(): array
     {
-        $value = [
-            'start' => $this->start,
-            'end' => $this->end,
-        ];
-
-        foreach (self::sidePrefixes() as $side) {
-            $parts = $side === 'start' ? $this->start : $this->end;
-
-            foreach (self::partKeys() as $partKey) {
-                if (array_key_exists($partKey, $parts)) {
-                    $value[$side . ucfirst($partKey)] = $parts[$partKey];
-                }
-            }
-
-            $value[$side . 'Date'] = $this->formatDateForDisplay($parts);
-            $value[$side . 'Time'] = $this->formatTimeForDisplay($parts);
-        }
-
-        return $value;
+        return ['start' => $this->start->toValueArray(), 'end' => $this->end->toValueArray()];
     }
 
     public function getStartParts(): array
     {
-        return $this->start;
+        return $this->start->getParts();
     }
 
     public function getEndParts(): array
     {
-        return $this->end;
+        return $this->end->getParts();
     }
 
-    public function setStartParts(mixed $parts): void
-    {
-        $this->start = DateFieldValue::normalizeParts(self::parseSideParts($parts));
-    }
-
-    public function setEndParts(mixed $parts): void
-    {
-        $this->end = DateFieldValue::normalizeParts(self::parseSideParts($parts));
-    }
 
     /**
      * Virtual start/end (and side-part) keys for ArrayHelper property access.
@@ -194,11 +130,11 @@ class DateRangeFieldValue extends BaseFieldValue
     public function getPathValue(string $path): mixed
     {
         if ($path === 'start') {
-            return $this->formatPartsForDisplay($this->start);
+            return (string)$this->start;
         }
 
         if ($path === 'end') {
-            return $this->formatPartsForDisplay($this->end);
+            return (string)$this->end;
         }
 
         $resolved = $this->_resolveSidePartKey($path);
@@ -208,14 +144,14 @@ class DateRangeFieldValue extends BaseFieldValue
         }
 
         [$side, $partKey] = $resolved;
-        $parts = $side === 'start' ? $this->start : $this->end;
+        $parts = $side === 'start' ? $this->getStartParts() : $this->getEndParts();
 
         if ($partKey === 'date') {
-            return $this->formatDateForDisplay($parts);
+            return DateFieldValue::formatDateWithSettings($parts, 'Y-m-d');
         }
 
         if ($partKey === 'time') {
-            return $this->formatTimeForDisplay($parts);
+            return DateFieldValue::formatTimeWithSettings($parts, 'H:i:s');
         }
 
         return $parts[$partKey] ?? null;

@@ -8,10 +8,6 @@ abstract class BaseFieldValue implements FieldValueInterface
     // Static Methods
     // =========================================================================
 
-    public static function capabilityTypes(): array
-    {
-        return [];
-    }
 
     public static function toClientValueFrom(mixed $value): mixed
     {
@@ -39,15 +35,27 @@ abstract class BaseFieldValue implements FieldValueInterface
         }
     }
 
-    public function toArray(): array
+    public function __get(string $name): mixed
     {
-        return get_object_vars($this);
+        return $this->canResolvePath($name) ? $this->getPathValue($name) : null;
     }
 
-    public function toValueArray(): array
+    public function __isset(string $name): bool
     {
-        return $this->toArray();
+        return $this->canResolvePath($name) && $this->getPathValue($name) !== null;
     }
+
+    public function __set(string $name, mixed $value): void
+    {
+        throw new \LogicException('Normalized field values are immutable. Construct a new value instead.');
+    }
+
+    public function toArray(): array
+    {
+        return $this->toValueArray();
+    }
+
+    abstract public function toValueArray(): array;
 
     public function toClientValue(): mixed
     {
@@ -61,11 +69,11 @@ abstract class BaseFieldValue implements FieldValueInterface
 
     public function canResolvePath(string $path): bool
     {
-        return $path !== '';
+        return in_array($path, array_keys($this->toValueArray()), true);
     }
 
     public function getPathValue(string $path): mixed
     {
-        return $this->canResolvePath($path) ? ArrayHelper::getValue($this->toValueArray(), $path) : $this;
+        return $this->canResolvePath($path) ? ArrayHelper::getValue($this->toValueArray(), $path) : null;
     }
 }

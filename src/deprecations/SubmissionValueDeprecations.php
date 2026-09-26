@@ -19,9 +19,9 @@ trait SubmissionValueDeprecations
     public function getValueAsJson(string $fieldHandle): mixed
     {
         // Deprecated in 4.0.0
-        Craft::$app->getDeprecator()->log(__METHOD__, 'Submission `getValueAsJson()` has been deprecated. Use `getFieldValueAsArray()` instead.');
+        Craft::$app->getDeprecator()->log(__METHOD__, 'Submission `getValueAsJson()` has been deprecated. Use `getFieldValueAsData()` instead.');
 
-        return $this->getFieldValueAsArray($fieldHandle);
+        return $this->getFieldValueAsData($fieldHandle);
     }
 
     public function getValueForExport(string $fieldHandle): mixed
@@ -43,17 +43,17 @@ trait SubmissionValueDeprecations
     public function getFieldValueAsJson(string $fieldHandle): mixed
     {
         // Deprecated in 4.0.0
-        Craft::$app->getDeprecator()->log(__METHOD__, 'Submission `getFieldValueAsJson()` has been deprecated. Use `getFieldValueAsArray()` instead.');
+        Craft::$app->getDeprecator()->log(__METHOD__, 'Submission `getFieldValueAsJson()` has been deprecated. Use `getFieldValueAsData()` instead.');
 
-        return $this->getFieldValueAsArray($fieldHandle);
+        return $this->getFieldValueAsData($fieldHandle);
     }
 
     public function getValuesAsJson(): array
     {
         // Deprecated in 4.0.0
-        Craft::$app->getDeprecator()->log(__METHOD__, 'Submission `getValuesAsJson()` has been deprecated. Use `getValuesAsArray()` instead.');
+        Craft::$app->getDeprecator()->log(__METHOD__, 'Submission `getValuesAsJson()` has been deprecated. Use `getValuesAsData()` instead.');
 
-        return $this->getValuesAsArray();
+        return $this->getValuesAsData();
     }
 
     public function getFieldValueForEmail(string $fieldHandle, mixed $notification): mixed

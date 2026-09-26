@@ -8,6 +8,7 @@ use verbb\formie\base\PreviewableFieldInterface;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\definitions\FieldClientModules;
 use verbb\formie\fields\definitions\FieldReferenceValue;
+use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\helpers\FieldAccess;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
@@ -58,6 +59,11 @@ class Signature extends Field implements PreviewableFieldInterface
 
     // Public Methods
     // =========================================================================
+
+    public function valueType(): FieldValueType
+    {
+        return FieldValueType::string();
+    }
 
     public function fieldKind(): string
     {
