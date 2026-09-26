@@ -222,7 +222,7 @@ Key | Description
 
 **BYO:** Redirect users to Mollie checkout (no upfront field values).
 
-Formie returns `paymentRedirectUrl` or `paymentAction.type: redirect`. Send the user to the URL, then rely on webhook/callback completion or poll via resubmit with the same session.
+Formie returns `paymentRedirectUrl` or `paymentAction.type: redirect`. Send the user to the URL, then rely on verified webhook completion or the scoped status/reconciliation URL. Browser return parameters cannot confirm success.
 
 ### GoCardless
 
@@ -241,3 +241,7 @@ No upfront payment input keys. Follow Paddle’s checkout flow; Formie processes
 
 Collect payment field values on the final page only. Use `setFormieClientPage` to persist earlier pages, then submit when the user reaches the payment page.
 
+
+## Unknown And Cancelled Outcomes
+
+Inspect `paymentStatus` alongside the submission outcome. `unknown` means the provider may have accepted the request; keep the submission incomplete and use its reconciliation continuation. Do not create another charge or invent a new operation identity to escape uncertainty. `pending` is a known asynchronous provider state. `cancelled` is explicit cancellation and retains its payment-specific status even though the enclosing submission outcome is payment-failed. Redirects remain action-required outcomes with a redirect action.

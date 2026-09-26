@@ -22,6 +22,7 @@ use verbb\formie\models\ClientModuleContext;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Payment as PaymentModel;
 use verbb\formie\models\PaymentDecision;
+use verbb\formie\models\PaymentMoney;
 use verbb\formie\models\Plan;
 
 use Craft;
@@ -104,7 +105,7 @@ class PayPal extends Payment
         ]);
     }
 
-    public function processPayment(Submission $submission): PaymentDecision
+    protected function executePayment(Submission $submission): PaymentDecision
     {
         $mutex = Craft::$app->getMutex();
         $lock = 'formie.paypal.' . hash('sha256', $submission->id . ':' . $this->getField()?->id);
@@ -422,10 +423,10 @@ class PayPal extends Payment
         return 'formie-' . $submission->uid . '-' . $fieldId;
     }
 
-    private function _paymentAmount(float $amount, string $currency): array
+    private function _paymentAmount(string|int|float $amount, string $currency): array
     {
         $digits = (new \Money\Currencies\ISOCurrencies())->subunitFor(new \Money\Currency($currency));
-        return ['value' => number_format($amount, $digits, '.', ''), 'currency_code' => $currency];
+        return ['value' => PaymentMoney::fromDecimal((string)$amount, $currency)->decimal(), 'currency_code' => $currency];
     }
 
     private function _verifyAmount(array $actual, array $expected): void
@@ -441,7 +442,7 @@ class PayPal extends Payment
         }
     }
 
-    private function _paymentRecord(Submission $submission, int $fieldId, float $amount, string $currency): PaymentModel
+    private function _paymentRecord(Submission $submission, int $fieldId, string|int|float $amount, string $currency): PaymentModel
     {
         foreach (Formie::$plugin->getPayments()->getSubmissionPayments($submission) as $payment) {
             if ($payment->integrationId === $this->id && $payment->fieldId === $fieldId) {
@@ -583,13 +584,13 @@ class PayPal extends Payment
             if ($e instanceof DeliveryOutcomeUnknownException) {
                 if ($submission->id && $field?->id && $this->id) {
                     $payment ??= $this->_paymentRecord($submission, (int)$field->id, $amount, $currency);
-                    $payment->status = PaymentModel::STATUS_PROCESSING;
+                    $payment->status = PaymentModel::STATUS_UNKNOWN;
                     $payment->message = 'PayPal payment outcome requires confirmation.';
                     if (!Formie::$plugin->getPayments()->savePayment($payment)) {
                         throw $e;
                     }
                 }
-                return PaymentDecision::pending($message, $this->handle, $payment?->reference);
+                return PaymentDecision::unknown($message, $this->handle, $payment?->reference);
             }
             return PaymentDecision::failed($message, $this->handle);
         }

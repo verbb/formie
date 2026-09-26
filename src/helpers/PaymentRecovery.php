@@ -10,6 +10,7 @@ use verbb\formie\integrations\payments\Moneris;
 use verbb\formie\integrations\payments\Opayo;
 use verbb\formie\integrations\payments\Paddle;
 use verbb\formie\models\Payment;
+use verbb\formie\models\PaymentMoney;
 
 use Craft;
 use craft\db\Query;
@@ -39,13 +40,15 @@ class PaymentRecovery
             'currency' => $payment->currency,
             'status' => $payment->status,
             'reference' => $payment->reference,
+            'version' => $payment->version, 'history' => $payment->history,
+            'submissionTransition' => $payment->scope['submissionTransition'] ?? null,
             'merchantReference' => (new PaymentAttempt($payment))->merchantReference(),
             'deliveryState' => $meta['state'] ?? null,
             'startedAt' => isset($meta['startedAt']) ? gmdate('c', $meta['startedAt']) : null,
         ];
     }
 
-    public static function resolve(int $paymentId, string $outcome, float $amount, string $currency, string $reference, string $note): Payment
+    public static function resolve(int $paymentId, string $outcome, string|int|float $amount, string $currency, string $reference, string $note): Payment
     {
         $payment = self::_load($paymentId);
         $mutex = Craft::$app->getMutex();
@@ -58,7 +61,7 @@ class PaymentRecovery
         try {
             $payment = self::_load($paymentId);
 
-            if (!in_array($payment->status, [Payment::STATUS_PENDING, Payment::STATUS_PROCESSING, Payment::STATUS_REDIRECT], true)) {
+            if (!in_array($payment->status, [Payment::STATUS_UNKNOWN, Payment::STATUS_PENDING, Payment::STATUS_PROCESSING, Payment::STATUS_REDIRECT], true)) {
                 throw new RuntimeException('Only unresolved payments can be resolved.');
             }
 
@@ -75,8 +78,8 @@ class PaymentRecovery
                 throw new RuntimeException('This payment uses a different recovery flow. Use its gateway status check.');
             }
 
-            if (!in_array($outcome, [Payment::STATUS_SUCCESS, Payment::STATUS_FAILED], true) || !is_finite($amount)
-                || abs($amount - $payment->amount) > 0.00000001 || $currency !== $payment->currency
+            if (!in_array($outcome, [Payment::STATUS_SUCCESS, Payment::STATUS_FAILED], true)
+                || !PaymentMoney::fromDecimal((string)$amount, $currency)->equals(PaymentMoney::fromDecimal($payment->amount, (string)$payment->currency)) || $currency !== $payment->currency
                 || trim($note) === '' || strlen($note) > 2000 || strlen($reference) > 255) {
                 throw new RuntimeException('Supply a verified outcome, the exact amount and currency, and a recovery note.');
             }
@@ -120,13 +123,13 @@ class PaymentRecovery
         $payment = self::_load($paymentId);
         $integration = $payment->getIntegration();
 
-        if (!$integration instanceof PaymentIntegration || (!$payment->reference && !$integration instanceof Eway)
+        if (!$integration instanceof PaymentIntegration
             || (new ReflectionMethod($integration, 'getTransaction'))->getDeclaringClass()->getName() === PaymentIntegration::class) {
             throw new RuntimeException('Automatic lookup is unavailable. Check the merchant reference in the gateway, then record its verified outcome.');
         }
 
         $integration->setField($payment->getField());
-        $integration->getTransaction($payment);
+        Formie::$plugin->getPayments()->observeProvider(fn() => $integration->getTransaction($payment));
 
         return self::_load($paymentId);
     }
@@ -135,7 +138,7 @@ class PaymentRecovery
     {
         $payment = self::_load($paymentId);
 
-        if ($payment->status !== Payment::STATUS_SUCCESS) {
+        if ($payment->status !== Payment::STATUS_SUCCESS && ($payment->scope['providerOutcome']['status'] ?? null) !== Payment::STATUS_SUCCESS) {
             throw new RuntimeException('Only a verified successful payment can resume submission processing.');
         }
 

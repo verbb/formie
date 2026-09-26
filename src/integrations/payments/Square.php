@@ -5,6 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Payment;
 use verbb\formie\elements\Submission;
+use verbb\formie\errors\DeliveryOutcomeUnknownException;
 use verbb\formie\events\ModifyPaymentCurrencyOptionsEvent;
 use verbb\formie\events\ModifyPaymentPayloadEvent;
 use verbb\formie\events\PaymentReceiveWebhookEvent;
@@ -15,6 +16,7 @@ use verbb\formie\models\ClientModule;
 use verbb\formie\models\ClientModuleContext;
 use verbb\formie\models\Payment as PaymentModel;
 use verbb\formie\models\PaymentDecision;
+use verbb\formie\models\PaymentMoney;
 use verbb\formie\models\Plan;
 
 use Craft;
@@ -91,7 +93,7 @@ class Square extends Payment
         ]);
     }
 
-    public function processPayment(Submission $submission): PaymentDecision
+    protected function executePayment(Submission $submission): PaymentDecision
     {
         $response = null;
         $result = false;
@@ -124,7 +126,7 @@ class Square extends Payment
             }
 
             // Prepare Square API payload
-            $formattedAmount = (int)round($amount * 100); // Amount in the smallest currency unit
+            $formattedAmount = PaymentMoney::fromDecimal((string)$amount, $currency)->integer(); // Amount in the smallest currency unit
 
             $payload = [
                 'source_id' => $squarePaymentId,
@@ -158,7 +160,7 @@ class Square extends Payment
                 throw new Exception('Payment not completed successfully.');
             }
 
-            $payment = Formie::$plugin->getPayments()->getPaymentByReference($data['id']) ?? new PaymentModel();
+            $payment = Formie::$plugin->getPayments()->getPaymentByReference($data['id'], $this->id) ?? Formie::$plugin->getPayments()->prepareAttempt($this, $submission);
             $payment->integrationId = $this->id;
             $payment->submissionId = $submission->id;
             $payment->fieldId = $field->id;
@@ -169,7 +171,7 @@ class Square extends Payment
             $payment->response = $response;
 
             if (!Formie::$plugin->getPayments()->savePayment($payment)) {
-                throw new \verbb\formie\errors\DeliveryOutcomeUnknownException('Unable to save the accepted payment.');
+                throw new DeliveryOutcomeUnknownException('Unable to save the accepted payment.');
             }
 
             $result = true;
@@ -186,21 +188,21 @@ class Square extends Payment
 
             $this->addFieldError($submission, $e->getMessage());
             
-            $payment = new PaymentModel();
+            $payment = Formie::$plugin->getPayments()->prepareAttempt($this, $submission);
             $payment->integrationId = $this->id;
             $payment->submissionId = $submission->id;
             $payment->fieldId = $field->id;
             $payment->amount = $amount;
             $payment->currency = $currency;
-            $uncertain = $e instanceof \verbb\formie\errors\DeliveryOutcomeUnknownException;
-            $payment->status = $uncertain ? PaymentModel::STATUS_PROCESSING : PaymentModel::STATUS_FAILED;
+            $uncertain = $e instanceof DeliveryOutcomeUnknownException;
+            $payment->status = $uncertain ? PaymentModel::STATUS_UNKNOWN : PaymentModel::STATUS_FAILED;
             $payment->reference = null;
             $payment->response = ['message' => $e->getMessage()];
 
             Formie::$plugin->getPayments()->savePayment($payment);
 
             return $uncertain
-                ? PaymentDecision::pending($e->getMessage(), $this->handle)
+                ? PaymentDecision::unknown('The provider outcome requires reconciliation.', $this->handle)
                 : PaymentDecision::failed($e->getMessage(), $this->handle);
         }
 

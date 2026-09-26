@@ -2,12 +2,15 @@
 namespace verbb\formie\services;
 
 use verbb\formie\Formie;
+use verbb\formie\helpers\Table;
 
 use Craft;
 use craft\console\Application as ConsoleApplication;
 use craft\console\Controller;
 use craft\helpers\App;
 use craft\helpers\Console;
+
+use InvalidArgumentException;
 
 /**
  * Orchestrates Formie data retention and cleanup tasks.
@@ -25,6 +28,7 @@ class Cleanup extends Service
     public const TASK_REPORT_EXPORTS = 'report-exports';
     public const TASK_SUBMISSION_GRANTS = 'submission-grants';
     public const TASK_SUBMISSION_OPERATIONS = 'submission-operations';
+    public const TASK_PAYMENT_CAPABILITIES = 'payment-capabilities';
     public const TASK_SUBMISSION_PROGRESS = 'submission-progress';
 
 
@@ -37,6 +41,7 @@ class Cleanup extends Service
     public static function taskHandles(): array
     {
         return [
+            self::TASK_PAYMENT_CAPABILITIES,
             self::TASK_SUBMISSION_OPERATIONS,
             self::TASK_INCOMPLETE_SUBMISSIONS,
             self::TASK_DATA_RETENTION_SUBMISSIONS,
@@ -75,7 +80,7 @@ class Cleanup extends Service
         $tasks = $this->_tasks($console);
 
         if (!isset($tasks[$handle])) {
-            throw new \InvalidArgumentException("Unknown cleanup task: $handle");
+            throw new InvalidArgumentException("Unknown cleanup task: $handle");
         }
 
         $task = $tasks[$handle];
@@ -92,6 +97,10 @@ class Cleanup extends Service
     private function _tasks(Controller|ConsoleApplication|null $console): array
     {
         return [
+            self::TASK_PAYMENT_CAPABILITIES => [
+                'label' => 'purging expired payment capabilities',
+                'run' => fn() => Craft::$app->getDb()->createCommand()->delete(Table::FORMIE_PAYMENT_CAPABILITIES, ['<', 'expiresAt', time() - 86400])->execute(),
+            ],
             self::TASK_SUBMISSION_OPERATIONS => [
                 'label' => 'purging expired submission operation receipts',
                 'run' => fn() => Formie::$plugin->getSubmissionOperations()->prune(),

@@ -331,7 +331,7 @@ function isPaymentFollowUpResult(result: FormSubmitResult): boolean {
     const meta = (result.meta || {}) as Record<string, unknown>;
     const paymentStatus = String(meta.paymentStatus || '');
 
-    return paymentStatus === 'actionRequired' || paymentStatus === 'pending';
+    return paymentStatus === 'actionRequired' || paymentStatus === 'pending' || paymentStatus === 'unknown';
 }
 
 export function renderFormNotice(form: HTMLFormElement, message: string): void {

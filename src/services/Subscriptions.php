@@ -8,6 +8,7 @@ use verbb\formie\events\SubscriptionEvent;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
+use verbb\formie\models\payments\CancelSubscriptionCommand;
 use verbb\formie\models\Subscription;
 use verbb\formie\records\Subscription as SubscriptionRecord;
 
@@ -24,9 +25,9 @@ use yii\base\Exception;
 use yii\base\NotSupportedException;
 use yii\web\ServerErrorHttpException;
 
-use Throwable;
-
 use DateTime;
+use RuntimeException;
+use Throwable;
 
 class Subscriptions extends Component
 {
@@ -53,6 +54,52 @@ class Subscriptions extends Component
     // Public Methods
     // =========================================================================
 
+    /** The transport must verify a cancellation-only capability or trusted administrative authority. */
+    public function cancelAuthorized(Subscription $subscription, CancelSubscriptionCommand $command): bool
+    {
+        $lock = 'formie.subscription-cancel.' . $subscription->id;
+        $mutex = Craft::$app->getMutex();
+        if (!$mutex->acquire($lock, 10)) {
+            throw new RuntimeException('Cancellation is already being processed.');
+        }
+        try {
+            $current = $this->getSubscriptionById($subscription->id);
+            $command->authorize($current);
+            if ($current->getState()->isTerminal() || $current->status === 'cancelling') {
+                $subscription->status = $current->status;
+                return true;
+            }
+            if (!empty($current->scope['cancellationRequested'])) {
+                return false;
+            }
+            if (!$current->reference || !$current->getIntegration()) {
+                return false;
+            }
+            $this->trigger(self::EVENT_BEFORE_CANCEL_SUBSCRIPTION, new SubscriptionEvent(['subscription' => $current]));
+            $current->scope = array_merge($current->scope ?? [], ['cancellationRequested' => gmdate('c')]);
+            $current->status = 'cancelling';
+            $this->saveSubscription($current);
+            // No database transaction spans the remote call. Unknown cancellation never retries blindly.
+            try {
+                $result = $current->getIntegration()->cancelSubscription($current->reference, []);
+            } catch (Throwable) {
+                $result = null;
+            }
+            $current = $this->getSubscriptionById($current->id);
+            if (!$result) {
+                $current->status = 'unknown';
+                $this->saveSubscription($current);
+                $subscription->status = $current->status;
+                return false;
+            }
+            $subscription->status = $current->status;
+            $this->trigger(self::EVENT_AFTER_CANCEL_SUBSCRIPTION, new SubscriptionEvent(['subscription' => $current]));
+            return true;
+        } finally {
+            $mutex->release($lock);
+        }
+    }
+
     public function getAllSubscriptions(): array
     {
         return array_map(static function(array $result): Subscription {
@@ -65,7 +112,7 @@ class Subscriptions extends Component
         return $this->_findSubscription(['id' => $id]);
     }
 
-    public function getSubscriptionByReference(string $reference): ?Subscription
+    public function getSubscriptionByReference(string $reference, ?int $integrationId = null): ?Subscription
     {
         $reference = trim($reference);
 
@@ -73,7 +120,7 @@ class Subscriptions extends Component
             return null;
         }
 
-        return $this->_findSubscription(['reference' => $reference]);
+        return $this->_findSubscription(array_filter(['reference' => $reference, 'integrationId' => $integrationId], static fn($value) => $value !== null));
     }
 
     public function getSubmissionSubscriptions(Submission $submission): array
@@ -116,10 +163,39 @@ class Subscriptions extends Component
             return false;
         }
 
+        $lock = 'formie.financial-row.subscription.' . ($subscription->id ?? $subscription->idempotencyKey ?? 'new');
+        $mutex = Craft::$app->getMutex();
+        if (!$mutex->acquire($lock, 10)) {
+            throw new RuntimeException('Financial state is being updated.');
+        }
         $transaction = Craft::$app->getDb()->beginTransaction();
 
         try {
             $subscriptionRecord = $this->_getSubscriptionRecord($subscription->id);
+            if (!$subscriptionRecord->getIsNewRecord() && (int)$subscriptionRecord->version !== $subscription->version) {
+                throw new RuntimeException('Financial state changed. Reload before retrying.');
+            }
+            if (!$subscriptionRecord->getIsNewRecord()) {
+                foreach (['integrationId', 'submissionId', 'fieldId'] as $owner) {
+                    if ($subscriptionRecord->$owner !== $subscription->$owner) {
+                        throw new RuntimeException('Financial ownership cannot be changed.');
+                    }
+                }
+            }
+            $subscription->version++;
+            $subscription->idempotencyKey ??= bin2hex(random_bytes(24));
+            if (!$subscriptionRecord->getIsNewRecord() && in_array($subscriptionRecord->status, ['cancelled', 'expired'], true)) {
+                $subscription->status = $subscriptionRecord->status;
+            }
+            $subscriptionRecord->status = $subscription->status;
+            $subscriptionRecord->archivedAt = $subscription->archivedAt;
+            $subscriptionRecord->providerUpdatedAt = $subscription->providerUpdatedAt;
+            $subscription->scope ??= ['submissionId' => $subscription->submissionId, 'integrationId' => $subscription->integrationId, 'fieldId' => $subscription->fieldId];
+            $subscription->history = array_slice(array_merge($subscription->history ?? [], [['status' => $subscription->status, 'at' => gmdate('c'), 'version' => $subscription->version, 'providerStatus' => $subscription->subscriptionData['status'] ?? null]]), -100);
+            $subscriptionRecord->version = $subscription->version;
+            $subscriptionRecord->idempotencyKey = $subscription->idempotencyKey;
+            $subscriptionRecord->scope = $subscription->scope;
+            $subscriptionRecord->history = $subscription->history;
             $subscriptionRecord->integrationId = $subscription->integrationId;
             $subscriptionRecord->submissionId = $subscription->submissionId;
             $subscriptionRecord->fieldId = $subscription->fieldId;
@@ -128,22 +204,23 @@ class Subscriptions extends Component
             $subscriptionRecord->subscriptionData = $subscription->subscriptionData;
             $subscriptionRecord->trialDays = $subscription->trialDays;
             $subscriptionRecord->nextPaymentDate = $subscription->nextPaymentDate;
-            $subscriptionRecord->hasStarted = $subscription->hasStarted;
-            $subscriptionRecord->isSuspended = $subscription->isSuspended;
             $subscriptionRecord->dateSuspended = $subscription->dateSuspended;
-            $subscriptionRecord->isCanceled = $subscription->isCanceled;
             $subscriptionRecord->dateCanceled = $subscription->dateCanceled;
-            $subscriptionRecord->isExpired = $subscription->isExpired;
             $subscriptionRecord->dateExpired = $subscription->dateExpired;
 
-            $subscriptionRecord->save(false);
+            if (!$subscriptionRecord->save(false)) {
+                throw new RuntimeException('Unable to save subscription.');
+            }
 
             $subscription->id = $subscriptionRecord->id;
+            $subscription->uid = $subscriptionRecord->uid;
 
             $transaction->commit();
         } catch (Throwable $e) {
             $transaction->rollBack();
             throw $e;
+        } finally {
+            $mutex->release($lock);
         }
 
         // Clear caches
@@ -180,9 +257,8 @@ class Subscriptions extends Component
             ]));
         }
 
-        Db::delete(Table::FORMIE_SUBSCRIPTIONS, [
-            'uid' => $subscription->uid,
-        ]);
+        $subscription->archivedAt = new DateTime();
+        $this->saveSubscription($subscription, false);
 
         // Clear caches
         $this->_subscriptionByKey = [];
@@ -199,7 +275,7 @@ class Subscriptions extends Component
 
     public function expireSubscription(Subscription $subscription, DateTime $dateTime = null): bool
     {
-        $subscription->isExpired = true;
+        $subscription->status = 'expired';
         $subscription->dateExpired = $dateTime;
 
         if (!$subscription->dateExpired) {
@@ -231,6 +307,9 @@ class Subscriptions extends Component
 
     public function receivePayment(Subscription $subscription, DateTime $paidUntil): bool
     {
+        if ($subscription->nextPaymentDate && $subscription->nextPaymentDate >= $paidUntil) {
+            return true;
+        }
         if ($this->hasEventHandlers(self::EVENT_RECEIVE_SUBSCRIPTION_PAYMENT)) {
             $this->trigger(self::EVENT_RECEIVE_SUBSCRIPTION_PAYMENT, new SubscriptionEvent([
                 'subscription' => $subscription,
@@ -248,15 +327,8 @@ class Subscriptions extends Component
 
     private function _findSubscription(array $where): ?Subscription
     {
-        $cacheKey = Json::encode($where);
-
-        if (array_key_exists($cacheKey, $this->_subscriptionByKey)) {
-            return $this->_subscriptionByKey[$cacheKey];
-        }
-
-        $result = $this->_createSubscriptionsQuery()->where($where)->one();
+        $result = Craft::$app->getDb()->useMaster(fn() => $this->_createSubscriptionsQuery()->where($where)->one());
         $subscription = $result ? new Subscription($result) : null;
-        $this->_subscriptionByKey[$cacheKey] = $subscription;
 
         return $subscription;
     }
@@ -265,7 +337,7 @@ class Subscriptions extends Component
     {
         return (new Query())
             ->select([
-                'id',
+                'id', 'version', 'status', 'history', 'scope', 'idempotencyKey', 'archivedAt', 'providerUpdatedAt',
                 'integrationId',
                 'submissionId',
                 'fieldId',
@@ -274,12 +346,8 @@ class Subscriptions extends Component
                 'subscriptionData',
                 'trialDays',
                 'nextPaymentDate',
-                'hasStarted',
-                'isSuspended',
                 'dateSuspended',
-                'isCanceled',
                 'dateCanceled',
-                'isExpired',
                 'dateExpired',
                 'dateCreated',
                 'dateUpdated',

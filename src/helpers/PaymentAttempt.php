@@ -8,6 +8,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\errors\DeliveryOutcomeUnknownException;
 use verbb\formie\models\Payment;
 use verbb\formie\models\PaymentDecision;
+use verbb\formie\models\PaymentMoney;
 
 use Craft;
 use craft\helpers\App;
@@ -23,7 +24,7 @@ class PaymentAttempt
     // Static Methods
     // =========================================================================
 
-    public static function run(PaymentIntegration $integration, Submission $submission, float $amount, ?string $currency, array $account, callable $process, bool $allowCreate = true): PaymentDecision
+    public static function run(PaymentIntegration $integration, Submission $submission, string|int|float $amount, ?string $currency, array $account, callable $process, bool $allowCreate = true): PaymentDecision
     {
         $mutex = Craft::$app->getMutex();
         $lock = self::lockName((int)$submission->id, (int)$integration->id, (int)$integration->getField()?->id);
@@ -37,11 +38,11 @@ class PaymentAttempt
             // attempt, including when the site uses lagging read replicas.
             $db->enableSlaves = false;
 
-            if (!$submission->id || !$integration->id || !$integration->getField()?->id || !is_finite($amount) || $amount <= 0 || !$currency) {
+            if (!$submission->id || !$integration->id || !$integration->getField()?->id || PaymentMoney::fromDecimal((string)$amount, (string)$currency)->minor === '0' || str_starts_with((string)$amount, '-') || !$currency) {
                 throw new RuntimeException('Invalid payment owner, amount or currency.');
             }
 
-            $amount = round($amount, (new ISOCurrencies())->subunitFor(new Currency($currency)));
+            $amount = PaymentMoney::fromDecimal((string)$amount, $currency)->decimal();
 
             if ($amount <= 0) {
                 throw new RuntimeException('The payment amount is below the currency’s smallest unit.');
@@ -67,7 +68,7 @@ class PaymentAttempt
                 }
             }
 
-            if ($payment && ($payment->currency !== $currency || abs($payment->amount - $amount) > 0.00000001)) {
+            if ($payment && ($payment->currency !== $currency || !PaymentMoney::fromDecimal($payment->amount, $currency)->equals(PaymentMoney::fromDecimal($amount, $currency)))) {
                 throw new RuntimeException('The payment amount changed. Review the existing payment before retrying.');
             }
 
@@ -99,7 +100,7 @@ class PaymentAttempt
 
             // A retry cannot establish the original account or outcome. Keep
             // earlier unverified attempts unresolved until an operator checks them.
-            if (!$isNew && !$knownOwner) {
+            if (!$isNew && !$knownOwner && (!($payment->scope['initial'] ?? false) || $payment->reference || $payment->response)) {
                 throw new DeliveryOutcomeUnknownException('This earlier payment has no saved outcome. Check the gateway before retrying.');
             }
 
@@ -107,7 +108,7 @@ class PaymentAttempt
 
             return $process($payment, $attempt);
         } catch (Throwable $e) {
-            $unknown = $e instanceof DeliveryOutcomeUnknownException;
+            $unknown = $e instanceof DeliveryOutcomeUnknownException || ($attempt && $attempt->hasSent());
 
             if ($attempt) {
                 try {
@@ -123,7 +124,7 @@ class PaymentAttempt
             }
 
             return $unknown
-                ? PaymentDecision::pending($e->getMessage(), $integration->handle, $attempt?->payment->reference)
+                ? PaymentDecision::unknown($e->getMessage(), $integration->handle, $attempt?->payment->reference)
                 : PaymentDecision::failed($e->getMessage(), $integration->handle, $attempt?->payment->reference);
         } finally {
             $db->enableSlaves = $enableSlaves;
@@ -248,7 +249,7 @@ class PaymentAttempt
             return;
         }
 
-        $this->payment->status = $unknown ? Payment::STATUS_PENDING : Payment::STATUS_FAILED;
+        $this->payment->status = $unknown ? Payment::STATUS_UNKNOWN : Payment::STATUS_FAILED;
         $this->payment->message = $message;
         $this->save();
     }

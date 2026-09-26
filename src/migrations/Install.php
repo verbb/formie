@@ -3,21 +3,21 @@ namespace verbb\formie\migrations;
 
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
-use verbb\formie\elements\Submission;
 use verbb\formie\elements\SentNotification;
+use verbb\formie\elements\Submission;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\FormStatus;
-use verbb\formie\models\SubmissionStatus;
 use verbb\formie\models\Stencil;
 use verbb\formie\models\StencilData;
+use verbb\formie\models\SubmissionStatus;
 use verbb\formie\services\CaptchaProviders;
 use verbb\formie\services\FormGroups;
 use verbb\formie\services\FormStatuses;
 use verbb\formie\services\Reports;
 use verbb\formie\services\ScheduledReports;
 use verbb\formie\services\SpamProtection;
-use verbb\formie\services\SubmissionStatuses;
 use verbb\formie\services\Stencils;
+use verbb\formie\services\SubmissionStatuses;
 
 use Craft;
 use craft\db\Migration;
@@ -49,6 +49,7 @@ class Install extends Migration
         $this->addForeignKeys();
         (new m260926_000000_submission_operations())->safeUp();
         (new m260926_010000_submission_continuity())->safeUp();
+        (new m260926_020000_payment_boundary())->safeUp();
 
         return true;
     }
@@ -722,6 +723,8 @@ class Install extends Migration
     public function removeTables(): void
     {
         $tables = [
+            'formie_webhookreceipts',
+            'formie_paymentcapabilities',
             'formie_emailtemplates',
             'formie_fieldlayout_pages',
             'formie_fieldlayout_rows',

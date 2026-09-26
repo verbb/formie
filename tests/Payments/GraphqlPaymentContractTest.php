@@ -37,7 +37,7 @@ function createStripeGraphqlPaymentFixture(): array
 it('serializes payment follow-up fields on submit results', function(): void {
     $result = new SubmitResult([
         'success' => false,
-        'paymentStatus' => PaymentDecision::STATUS_ACTION_REQUIRED,
+        'paymentStatus' => PaymentDecision::STATUS_ACTION_REQUIRED->value,
         'paymentMessage' => 'Confirm your payment.',
         'paymentAction' => [
             'type' => 'confirm',
@@ -45,7 +45,7 @@ it('serializes payment follow-up fields on submit results', function(): void {
             'payload' => ['clientSecret' => 'pi_secret'],
         ],
         'paymentDecision' => [
-            'status' => PaymentDecision::STATUS_ACTION_REQUIRED,
+            'status' => PaymentDecision::STATUS_ACTION_REQUIRED->value,
         ],
         'keepSubmitLoading' => true,
     ]);
@@ -64,11 +64,11 @@ it('maps submission payment responses onto client submit result fields', functio
     $method->setAccessible(true);
 
     $fields = $method->invoke($processor, new SubmissionResponse([
-        'paymentStatus' => PaymentDecision::STATUS_PENDING,
+        'paymentStatus' => PaymentDecision::STATUS_PENDING->value,
         'paymentMessage' => 'Waiting for payment confirmation.',
         'paymentRedirectUrl' => 'https://example.test/pay',
         'paymentAction' => ['type' => 'redirect'],
-        'paymentDecision' => ['status' => PaymentDecision::STATUS_PENDING],
+        'paymentDecision' => ['status' => PaymentDecision::STATUS_PENDING->value],
     ]));
 
     expect($fields)->toMatchArray([
@@ -103,3 +103,11 @@ it('declares stripe graphql payment input keys on the integration', function(): 
     expect($integration->getGraphqlPaymentInputFieldKeys($field))
         ->toContain('stripePaymentIntentId', 'stripePaymentId', 'stripeSubscriptionId');
 });
+
+it('preserves unknown and cancellation payment detail in shared transport results', function (string $status, bool $loading): void {
+    $method = new ReflectionMethod(SubmissionProcessor::class, '_resolvePaymentSubmitResultFields');
+    $fields = $method->invoke(Formie::$plugin->getSubmissionProcessor(), new SubmissionResponse([
+        'paymentStatus' => $status, 'paymentMessage' => 'Provider outcome', 'paymentDecision' => ['status' => $status],
+    ]));
+    expect($fields['paymentStatus'])->toBe($status)->and($fields['paymentDecision']['status'])->toBe($status)->and($fields['keepSubmitLoading'])->toBe($loading);
+})->with([['unknown', true], ['cancelled', false]]);

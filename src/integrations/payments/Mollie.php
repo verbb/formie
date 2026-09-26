@@ -5,6 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Payment;
 use verbb\formie\elements\Submission;
+use verbb\formie\enums\PaymentResumeMode;
 use verbb\formie\events\ModifyPaymentPayloadEvent;
 use verbb\formie\events\PaymentReceiveWebhookEvent;
 use verbb\formie\fields;
@@ -12,6 +13,7 @@ use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\DeliveryAttempt;
 use verbb\formie\helpers\PaymentAccess;
 use verbb\formie\helpers\PaymentAttempt;
+use verbb\formie\helpers\PaymentWebhookReceipt;
 use verbb\formie\helpers\References;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
@@ -22,6 +24,8 @@ use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Payment as PaymentModel;
 use verbb\formie\models\PaymentAction;
 use verbb\formie\models\PaymentDecision;
+use verbb\formie\models\PaymentMoney;
+use verbb\formie\models\payments\PaymentWebhookCommand;
 use verbb\formie\models\Plan;
 
 use Craft;
@@ -33,6 +37,7 @@ use craft\helpers\UrlHelper;
 use craft\web\Response;
 
 use yii\base\Event;
+use yii\web\ForbiddenHttpException;
 
 use Exception;
 use Throwable;
@@ -91,7 +96,7 @@ class Mollie extends Payment
 
     public function getReturnUrl(array $params = []): string
     {
-        $endpoint = 'formie/payment-webhooks/status';
+        $endpoint = 'formie/payment-return/index';
 
         if (Craft::$app->getConfig()->getGeneral()->headlessMode) {
             $url = UrlHelper::actionUrl($endpoint, $params);
@@ -119,7 +124,7 @@ class Mollie extends Payment
         ]);
     }
 
-    public function processPayment(Submission $submission): PaymentDecision
+    protected function executePayment(Submission $submission): PaymentDecision
     {
         if (!$this->beforeProcessPayment($submission)) {
             return PaymentDecision::notRequired();
@@ -132,8 +137,9 @@ class Mollie extends Payment
         ], fn(PaymentModel $payment, PaymentAttempt $attempt) => $this->_processPayment($submission, $payment, $attempt));
     }
 
-    public function processWebhook(): Response
+    public function processWebhook(?PaymentWebhookCommand $command = null): Response
     {
+        $command ??= PaymentWebhookCommand::fromRequest((int)$this->id);
         $request = Craft::$app->getRequest();
         $response = Craft::$app->getResponse();
         $response->format = Response::FORMAT_RAW;
@@ -142,12 +148,14 @@ class Mollie extends Payment
 
         if (!is_string($paymentId) || $paymentId === '') {
             Integration::error($this, 'Mollie webhook triggered with no payment ID.');
+            $response->setStatusCode(400);
             $response->data = 'error';
 
             return $response;
         }
 
-        $response->data = 'success';
+        $response->setStatusCode(403);
+        $response->data = 'error';
 
         if (strlen($paymentId) > 255 || !preg_match('/^tr_[a-zA-Z0-9]+$/', $paymentId)) {
             return $response;
@@ -170,7 +178,7 @@ class Mollie extends Payment
 
                 $row = Craft::$app->getDb()->useMaster(fn() => (new Query())->from(Table::FORMIE_PAYMENTS)->where([
                     'id' => $localId, 'integrationId' => $this->id, 'reference' => null,
-                    'status' => [PaymentModel::STATUS_PENDING, PaymentModel::STATUS_REDIRECT],
+                    'status' => [PaymentModel::STATUS_UNKNOWN, PaymentModel::STATUS_PENDING, PaymentModel::STATUS_REDIRECT],
                 ])->one());
 
                 if (!$row || !hash_equals($this->_webhookRecoveryToken(new PaymentModel($row)), $token)) {
@@ -178,6 +186,10 @@ class Mollie extends Payment
                 }
             }
 
+            $secret = (string)$request->getQueryParam('recoveryToken');
+            if (!hash_equals($this->_webhookRecoveryToken(new PaymentModel($row)), $secret)) {
+                throw new ForbiddenHttpException('Invalid webhook secret.');
+            }
             $payment = new PaymentModel($row);
             $formiePaymentId = $payment->id;
             $molliePayment = $this->request('GET', 'payments/' . rawurlencode($paymentId));
@@ -186,6 +198,7 @@ class Mollie extends Payment
                 throw new Exception('Mollie returned a different payment reference.');
             }
 
+            PaymentWebhookReceipt::process($this, hash('sha256', (string)App::parseEnv($this->apiKey)), $paymentId . ':' . ($molliePayment['status'] ?? 'unknown'), $command->body, ['Content-Type' => $request->getHeaders()->get('Content-Type')], function () use ($payment, $molliePayment, $paymentId, $formiePaymentId): void {
             $this->_updateFormiePaymentStatus($payment, $molliePayment);
 
             Integration::info($this, 'Webhook processed: Mollie payment ' . $paymentId . ', Formie payment id ' . $formiePaymentId . ', Mollie status "' . ($molliePayment['status'] ?? '') . '", Formie status "' . $payment->status . '".', false);
@@ -197,6 +210,8 @@ class Mollie extends Payment
                 ]));
             }
 
+            });
+            $response->setStatusCode(200);
             $response->data = 'success';
         } catch (Throwable $e) {
             Integration::apiError($this, $e, false);
@@ -392,7 +407,7 @@ class Mollie extends Payment
                 'value' => $this->_formatAmount($amount, $currency),
             ],
             'redirectUrl' => $this->getReturnUrl([
-                'statusToken' => PaymentAccess::issueStatusToken($payment),
+                'statusToken' => PaymentAccess::issueStatusToken($payment, mode: PaymentResumeMode::RECONCILE),
             ]),
             'webhookUrl' => UrlHelper::urlWithParams($this->getRedirectUri(), [
                 'formiePaymentId' => $payment->id,
@@ -539,7 +554,7 @@ class Mollie extends Payment
 
             if (!$current->reference) {
                 if (($molliePayment['metadata']['formiePaymentUid'] ?? null) !== $current->uid
-                    || !in_array($current->status, [PaymentModel::STATUS_PENDING, PaymentModel::STATUS_REDIRECT], true)
+                    || !in_array($current->status, [PaymentModel::STATUS_UNKNOWN, PaymentModel::STATUS_PENDING, PaymentModel::STATUS_REDIRECT], true)
                     || !(new DeliveryAttempt((int)$current->submissionId, 'payment-purchase', (string)$current->uid))->getMetadata()) {
                     throw new Exception('This Mollie payment is not awaiting a creation result.');
                 }
@@ -553,8 +568,10 @@ class Mollie extends Payment
                 $current->response = $molliePayment;
                 $current->status = match ($status) {
                     'paid' => PaymentModel::STATUS_SUCCESS,
-                    'failed', 'expired', 'canceled' => PaymentModel::STATUS_FAILED,
-                    default => PaymentModel::STATUS_PENDING,
+                    'failed', 'expired' => PaymentModel::STATUS_FAILED,
+                    'canceled' => PaymentModel::STATUS_CANCELLED,
+                    'open', 'pending', 'authorized' => PaymentModel::STATUS_PENDING,
+                    default => PaymentModel::STATUS_UNKNOWN,
                 };
                 $current->message = $current->status === PaymentModel::STATUS_FAILED ? $this->_resolveMollieFailureMessage($molliePayment, $status) : null;
 
@@ -578,9 +595,9 @@ class Mollie extends Payment
         }
     }
 
-    private function _formatAmount(float $amount, string $currency): string
+    private function _formatAmount(string|int|float $amount, string $currency): string
     {
-        return number_format($amount, (new ISOCurrencies())->subunitFor(new Currency($currency)), '.', '');
+        return PaymentMoney::fromDecimal((string)$amount, $currency)->decimal();
     }
 
     private function _extractMollieErrorMessage(Throwable $e, mixed $response, mixed $currency, mixed $amount): string
@@ -610,7 +627,7 @@ class Mollie extends Payment
 
         if (str_contains(strtolower($detail), 'no suitable payment methods found')) {
             $currencyValue = strtoupper(trim((string)$currency));
-            $amountValue = number_format((float)$amount, 2, '.', '');
+            $amountValue = (string)$amount;
 
             return Craft::t('formie', 'No suitable payment methods found in Mollie for {currency} {amount}. Check your Mollie profile payment methods and currency support.', [
                 'currency' => $currencyValue ?: 'configured currency',

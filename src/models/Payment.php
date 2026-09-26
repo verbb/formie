@@ -21,6 +21,8 @@ class Payment extends Model
     public const STATUS_SUCCESS = 'success';
     public const STATUS_FAILED = 'failed';
     public const STATUS_PROCESSING = 'processing';
+    public const STATUS_UNKNOWN = 'unknown';
+    public const STATUS_CANCELLED = 'cancelled';
 
 
     // Properties
@@ -31,7 +33,11 @@ class Payment extends Model
     public ?int $submissionId = null;
     public ?int $fieldId = null;
     public ?int $subscriptionId = null;
-    public float $amount;
+    public string $amount = '0';
+    public int $version = 0;
+    public ?string $idempotencyKey = null;
+    public ?array $history = null;
+    public ?array $scope = null;
     public ?string $currency = null;
     public ?string $status = null;
     public ?string $reference = null;
@@ -55,6 +61,7 @@ class Payment extends Model
 
     public function getIntegration(): ?IntegrationInterface
     {
+        if (!$this->integrationId) { return null; }
         if (!isset($this->_integration)) {
             $this->_integration = Formie::$plugin->getIntegrations()->getIntegrationById($this->integrationId);
         }
@@ -64,6 +71,7 @@ class Payment extends Model
 
     public function getSubmission(): ?Submission
     {
+        if (!$this->submissionId) { return null; }
         if (!isset($this->_submission)) {
             $this->_submission = Formie::$plugin->getSubmissions()->getSubmissionById($this->submissionId);
         }
@@ -73,6 +81,7 @@ class Payment extends Model
 
     public function getField(): ?PaymentField
     {
+        if (!$this->fieldId) { return null; }
         if (!isset($this->_field)) {
             $this->_field = Formie::$plugin->getFields()->getFieldById($this->fieldId);
         }
@@ -82,6 +91,7 @@ class Payment extends Model
 
     public function getSubscription(): ?Subscription
     {
+        if (!$this->subscriptionId) { return null; }
         if (!isset($this->_subscription)) {
             $this->_subscription = Formie::$plugin->getSubscriptions()->getSubscriptionById($this->subscriptionId);
         }

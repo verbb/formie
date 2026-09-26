@@ -32,3 +32,13 @@ function mount() {
 document.querySelector('#unmount')!.addEventListener('click', () => { teardown?.(); teardown = undefined; });
 document.querySelector('#mount')!.addEventListener('click', mount);
 mount();
+
+// Synthetic provider harness: production module, isolated SDK and session response.
+import { opayoModule } from '../../packages/formie-browser/src/js/modules/payments/opayo';
+(globalThis as any).mountPaymentBoundary = async (form: HTMLFormElement) => {
+    return opayoModule.setup({ formId: 'payment-boundary', form, root: form,
+        target: form.querySelector('[data-formie-field-type="payment"]')!, scope: 'field', state: {},
+        options: { handle: 'payment', checkoutMode: 'dropIn', sessionToken: 'scoped-session-token', useSandbox: true },
+        on: () => () => {}, emit: async () => {},
+    });
+};

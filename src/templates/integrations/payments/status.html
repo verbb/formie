@@ -37,24 +37,15 @@
     let pollInterval = 3000;
     let pollCount = 0;
     let maxPolls = 20; // e.g. 60 seconds
-    let checkGatewayEveryMs = 10000;
-    let elapsedMs = 0;
-    let nextGatewayCheckAtMs = 0;
 
-    const pollStatusUrl = "{{ (pollStatusUrl ?? actionUrl('formie/payment-webhooks/poll-status'))|e('js') }}";
+    const pollStatusUrl = "{{ (pollStatusUrl ?? actionUrl('formie/payment-status/poll-status'))|e('js') }}";
 
     const interval = setInterval(async () => {
         pollCount++;
-        elapsedMs += pollInterval;
 
         const params = new URLSearchParams({
             statusToken: '{{ statusToken }}',
         });
-
-        if (elapsedMs >= nextGatewayCheckAtMs) {
-            params.append('checkGateway', '1');
-            nextGatewayCheckAtMs += checkGatewayEveryMs;
-        }
 
         try {
             const res = await fetch(pollStatusUrl + '?' + params.toString(), {
@@ -88,7 +79,7 @@
                 }
                 window.location.href = json.redirectUrl;
                 clearInterval(interval);
-            } else if (json.status === 'failed') {
+            } else if (json.status === 'failed' || json.status === 'cancelled') {
                 if (json.redirectUrl) {
                     window.location.href = json.redirectUrl;
                     clearInterval(interval);

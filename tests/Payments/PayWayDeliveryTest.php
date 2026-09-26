@@ -50,10 +50,10 @@ function payWayDeliveryFixture(): array
 it('reuses the PayWay key after a lost response and reconciles one local payment', function (): void {
     [$integration, $submission] = payWayDeliveryFixture();
     $integration->loseResponse = true;
-    expect($integration->processPayment($submission)->status)->toBe('pending');
-    expect($integration->processPayment($submission)->status)->toBe('succeeded');
-    expect($integration->processPayment($submission)->status)->toBe('succeeded');
-    expect(array_column($integration->requests, 0))->toBe(['POST', 'POST', 'GET'])
+    expect($integration->processPayment($submission)->status->value)->toBe('unknown');
+    expect($integration->processPayment($submission)->status->value)->toBe('succeeded');
+    expect($integration->processPayment($submission)->status->value)->toBe('succeeded');
+    expect(array_column($integration->requests, 0))->toBe(['POST', 'POST'])
         ->and($integration->requests[0][2]['headers']['Idempotency-Key'])->toBe($integration->requests[1][2]['headers']['Idempotency-Key']);
     expect((int)(new \craft\db\Query())->from(Table::FORMIE_PAYMENTS)->where(['submissionId' => $submission->id])->count())->toBe(1);
 });
@@ -61,7 +61,7 @@ it('reuses the PayWay key after a lost response and reconciles one local payment
 it('does not accept mismatched PayWay transaction details', function (array $overrides): void {
     [$integration, $submission] = payWayDeliveryFixture();
     $integration->responseOverrides = $overrides;
-    expect($integration->processPayment($submission)->status)->toBe('pending');
+    expect($integration->processPayment($submission)->status->value)->toBe('unknown');
     expect((int)(new \craft\db\Query())->from(Table::FORMIE_PAYMENTS)->where(['submissionId' => $submission->id, 'status' => 'success'])->count())->toBe(0);
 })->with([
     'amount' => [['principalAmount' => 1]],
@@ -74,22 +74,22 @@ it('does not accept mismatched PayWay transaction details', function (array $ove
 it('keeps PayWay pending and declined states distinct from success', function (string $remote, string $expected): void {
     [$integration, $submission] = payWayDeliveryFixture();
     $integration->responseOverrides = ['status' => $remote];
-    expect($integration->processPayment($submission)->status)->toBe($expected);
+    expect($integration->processPayment($submission)->status->value)->toBe($expected);
 })->with([['pending', 'pending'], ['suspended', 'pending'], ['declined', 'failed']]);
 
 it('stops PayWay retries when the token or account changes after an uncertain write', function (string $property): void {
     [$integration, $submission] = payWayDeliveryFixture();
     $integration->loseResponse = true;
-    expect($integration->processPayment($submission)->status)->toBe('pending');
+    expect($integration->processPayment($submission)->status->value)->toBe('unknown');
     $integration->$property = 'changed';
-    expect($integration->processPayment($submission)->status)->not->toBe('succeeded');
+    expect($integration->processPayment($submission)->status->value)->not->toBe('succeeded');
     expect($integration->requests)->toHaveCount(1);
 })->with(['token', 'secretKey']);
 
 it('reconciles a pending PayWay transaction without creating another charge', function (): void {
     [$integration, $submission] = payWayDeliveryFixture();
     $integration->responseOverrides = ['status' => 'pending'];
-    expect($integration->processPayment($submission)->status)->toBe('pending');
+    expect($integration->processPayment($submission)->status->value)->toBe('pending');
     $payment = Formie::$plugin->getPayments()->getSubmissionPayments($submission)[0];
     $integration->responseOverrides = ['status' => 'approved'];
     $integration->getTransaction($payment);

@@ -20,6 +20,7 @@ use verbb\formie\models\ClientModuleContext;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Payment as PaymentModel;
 use verbb\formie\models\PaymentDecision;
+use verbb\formie\models\PaymentMoney;
 use verbb\formie\models\Plan;
 
 use Craft;
@@ -79,7 +80,7 @@ class Bpoint extends Payment
         return App::parseEnv($this->username) && App::parseEnv($this->password) && App::parseEnv($this->merchantNumber);
     }
 
-    public function processPayment(Submission $submission): PaymentDecision
+    protected function executePayment(Submission $submission): PaymentDecision
     {
         if (!$this->beforeProcessPayment($submission)) {
             return PaymentDecision::notRequired();
@@ -301,7 +302,7 @@ class Bpoint extends Payment
 
         $txnReq = [
             'Action' => 'payment',
-            'Amount' => (int)round($amount * (10 ** (new ISOCurrencies())->subunitFor(new Currency($currency)))),
+            'Amount' => PaymentMoney::fromDecimal((string)$amount, $currency)->integer(),
             'Currency' => $currency,
             'MerchantReference' => $attempt->merchantReference(),
             'Crn1' => (string)$submission->id,

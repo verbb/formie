@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use verbb\formie\controllers\PaymentWebhooksController;
+use verbb\formie\controllers\PaymentStatusController;
 use verbb\formie\Formie;
 use verbb\formie\helpers\PaymentAccess;
 use verbb\formie\integrations\payments\Mollie;
@@ -53,7 +54,7 @@ it('resolves failed external payment redirects back to the stored form url', fun
             'statusToken' => $statusToken,
         ]);
 
-        $controller = new PaymentWebhooksController('formie-payment-failure', Craft::$app);
+        $controller = new PaymentStatusController('formie-payment-failure', Craft::$app);
         $response = $controller->actionPollStatus();
 
         expect($response->data['status'] ?? null)->toBe('failed')

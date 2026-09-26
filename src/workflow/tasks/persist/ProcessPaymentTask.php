@@ -6,15 +6,18 @@ use verbb\formie\base\Payment as PaymentIntegration;
 use verbb\formie\elements\Submission;
 use verbb\formie\enums\NavigationIntent;
 use verbb\formie\enums\SubmissionOperation;
+use verbb\formie\enums\SubmissionOutcomeType;
 use verbb\formie\fields as formiefields;
 use verbb\formie\models\Payment as PaymentModel;
 use verbb\formie\models\PaymentDecision;
+use verbb\formie\models\PaymentMoney;
 use verbb\formie\workflow\tasks\TaskInterface;
 use verbb\formie\workflow\tasks\TaskResult;
 use verbb\formie\workflow\WorkflowContext;
 
 use Craft;
 
+use RuntimeException;
 use Throwable;
 
 use Money\Currencies\ISOCurrencies;
@@ -33,7 +36,7 @@ class ProcessPaymentTask implements TaskInterface
 
         $decision = $context->command->operation === SubmissionOperation::PAYMENT_REPLAY
             ? $this->_replayStoredPayments($context)
-            : $this->_processPayments($context);
+            : Formie::$plugin->getPayments()->observeProvider(fn() => $this->_processPayments($context));
         $context->paymentDecision = $decision;
         $submission = $context->command->submission;
         $requiresPayment = $context->taskState['payment.required'] ?? false;
@@ -43,22 +46,43 @@ class ProcessPaymentTask implements TaskInterface
             $context->becameComplete = $completed && $submission->isIncomplete;
             $submission->isIncomplete = !$completed;
 
-            if (!Craft::$app->getElements()->saveElement($submission, false)) {
-                throw new \RuntimeException('Unable to persist payment/submission state.');
+            $transaction = Craft::$app->getDb()->beginTransaction();
+            try {
+                // Commit the durable provider result and completion decision together.
+                // Provider requests and evidence recording have already finished outside this transaction.
+                foreach (Formie::$plugin->getPayments()->getSubmissionPayments($submission) as $payment) {
+                    if ($payment->scope['initial'] ?? false) {
+                        if (($payment->scope['providerOutcome']['status'] ?? null) === PaymentModel::STATUS_SUCCESS) {
+                            $payment->status = PaymentModel::STATUS_SUCCESS;
+                        }
+                        $payment->scope['submissionTransition'] = ['complete' => $completed, 'decision' => $decision->status->value,
+                            'operationId' => $context->command->operationId, 'expectedVersion' => $context->command->expectedVersion];
+                        if (!Formie::$plugin->getPayments()->commitTransition($payment)) {
+                            throw new RuntimeException('Unable to persist the payment transition.');
+                        }
+                    }
+                }
+                if (!Craft::$app->getElements()->saveElement($submission, false)) {
+                    throw new RuntimeException('Unable to persist payment/submission state.');
+                }
+                $transaction->commit();
+            } catch (Throwable $e) {
+                $transaction->rollBack();
+                throw $e;
             }
             $context->processingSuccess = true;
             $context->taskState['save.success'] = true;
         }
 
         $type = match ($decision->status) {
-            PaymentDecision::STATUS_FAILED => \verbb\formie\enums\SubmissionOutcomeType::PAYMENT_FAILED,
-            PaymentDecision::STATUS_ACTION_REQUIRED => \verbb\formie\enums\SubmissionOutcomeType::PAYMENT_ACTION_REQUIRED,
-            PaymentDecision::STATUS_PENDING => \verbb\formie\enums\SubmissionOutcomeType::PAYMENT_PENDING,
+            PaymentDecision::STATUS_CANCELLED, PaymentDecision::STATUS_FAILED => SubmissionOutcomeType::PAYMENT_FAILED,
+            PaymentDecision::STATUS_ACTION_REQUIRED => SubmissionOutcomeType::PAYMENT_ACTION_REQUIRED,
+            PaymentDecision::STATUS_UNKNOWN, PaymentDecision::STATUS_PENDING => SubmissionOutcomeType::PAYMENT_PENDING,
             default => null,
         };
 
         if ($type !== null) {
-            if ($type !== \verbb\formie\enums\SubmissionOutcomeType::PAYMENT_FAILED) {
+            if ($type !== SubmissionOutcomeType::PAYMENT_FAILED) {
                 $submission->clearErrors();
             }
             return TaskResult::stop($context->result($type));
@@ -123,7 +147,7 @@ class ProcessPaymentTask implements TaskInterface
                 : PaymentDecision::failed(null, $paymentIntegration->handle ?? null);
             $decision = $decision->merge($fieldDecision);
 
-            if (in_array($fieldDecision->status, [PaymentDecision::STATUS_FAILED, PaymentDecision::STATUS_ACTION_REQUIRED, PaymentDecision::STATUS_PENDING], true)) {
+            if (in_array($fieldDecision->status, [PaymentDecision::STATUS_UNKNOWN, PaymentDecision::STATUS_CANCELLED, PaymentDecision::STATUS_FAILED, PaymentDecision::STATUS_ACTION_REQUIRED, PaymentDecision::STATUS_PENDING], true)) {
                 break;
             }
         }
@@ -167,6 +191,10 @@ class ProcessPaymentTask implements TaskInterface
 
             $paymentIntegration->setField($field);
 
+            if (($storedPayment->scope['providerOutcome']['status'] ?? null) === PaymentModel::STATUS_SUCCESS) {
+                $storedPayment->status = PaymentModel::STATUS_SUCCESS;
+            }
+
             // Gateway success verifies the original purchase. Completion also
             // requires that purchase to cover the submission as it exists now.
             if ($storedPayment->status === PaymentModel::STATUS_SUCCESS
@@ -179,7 +207,7 @@ class ProcessPaymentTask implements TaskInterface
 
             $decision = $decision->merge($this->_decisionFromStoredPayment($storedPayment, $paymentIntegration->handle ?? null));
 
-            if (in_array($decision->status, [PaymentDecision::STATUS_FAILED, PaymentDecision::STATUS_PENDING, PaymentDecision::STATUS_ACTION_REQUIRED], true)) {
+            if (in_array($decision->status, [PaymentDecision::STATUS_UNKNOWN, PaymentDecision::STATUS_CANCELLED, PaymentDecision::STATUS_FAILED, PaymentDecision::STATUS_PENDING, PaymentDecision::STATUS_ACTION_REQUIRED], true)) {
                 break;
             }
         }
@@ -196,11 +224,9 @@ class ProcessPaymentTask implements TaskInterface
                 return false;
             }
 
-            $precision = (new ISOCurrencies())->subunitFor(new Currency($currency));
-            $amount = $integration->getPaymentAmount($submission);
-
-            return is_finite($amount) && is_finite($payment->amount) && $amount > 0
-                && abs(round($amount, $precision) - round($payment->amount, $precision)) < 0.00000001;
+            $amount = PaymentMoney::fromDecimal((string)$integration->getPaymentAmount($submission), $currency);
+            return $amount->minor !== '0' && !str_starts_with($amount->minor, '-')
+                && $amount->equals(PaymentMoney::fromDecimal($payment->amount, $currency));
         } catch (Throwable) {
             // Missing or invalid provider settings cannot establish a paid total.
             return false;
@@ -210,7 +236,7 @@ class ProcessPaymentTask implements TaskInterface
     private function _resolveLatestStoredPayment(array $payments, int $fieldId, int $integrationId): ?PaymentModel
     {
         foreach (array_reverse($payments) as $payment) {
-            if (!$payment instanceof PaymentModel) {
+            if (!$payment instanceof PaymentModel || ($payment->subscriptionId && !($payment->scope['initial'] ?? false))) {
                 continue;
             }
 
@@ -238,7 +264,8 @@ class ProcessPaymentTask implements TaskInterface
             PaymentModel::STATUS_REDIRECT,
             PaymentModel::STATUS_PENDING,
             PaymentModel::STATUS_PROCESSING => PaymentDecision::pending($payment->message, $provider, $payment->reference),
-            default => PaymentDecision::notRequired(),
+            PaymentModel::STATUS_CANCELLED => PaymentDecision::cancelled($payment->message, $provider, $payment->reference),
+            default => PaymentDecision::unknown($payment->message, $provider, $payment->reference),
         };
     }
 }

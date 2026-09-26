@@ -47,12 +47,12 @@ it('keeps Moneris outcomes durable and retries only a confirmed decline', functi
     expect($firstPayment->status)->toBe(match ($outcome) {
         'approved' => Payment::STATUS_SUCCESS,
         'declined' => Payment::STATUS_FAILED,
-        default => Payment::STATUS_PENDING,
+        default => Payment::STATUS_UNKNOWN,
     });
     $xml = new SimpleXMLElement((string)$history[0]['request']->getBody());
     expect((string)$xml->res_purchase_cc->order_id)->toBe((new PaymentAttempt($firstPayment))->merchantReference());
     $secondDecision = $integration->processPayment($submission);
-    expect($secondDecision->status === 'succeeded')->toBe(in_array($outcome, ['approved', 'declined'], true));
+    expect($secondDecision->status->value === 'succeeded')->toBe(in_array($outcome, ['approved', 'declined'], true));
     expect($history)->toHaveCount($outcome === 'declined' ? 2 : 1);
     expect(Formie::$plugin->getPayments()->getSubmissionPayments($submission))->toHaveCount($outcome === 'declined' ? 2 : 1);
 })->with(['approved', 'declined', 'timed-out', 'incomplete', 'lost-response']);

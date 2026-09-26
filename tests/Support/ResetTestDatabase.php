@@ -18,6 +18,8 @@ final class ResetTestDatabase
 
         // Payment subscriptions use RESTRICT on submissionId, so clear payment rows first.
         $truncateTables = [
+            Table::FORMIE_WEBHOOK_RECEIPTS,
+            Table::FORMIE_PAYMENT_CAPABILITIES,
             Table::FORMIE_PAYMENTS,
             Table::FORMIE_SUBSCRIPTIONS,
             Table::FORMIE_SUBMISSION_WORKFLOW,

@@ -33,7 +33,7 @@ it('keeps Moneris tokens as XML text without changing transaction parameters', f
     $submission = formie()->submission($form)->save();
     $integration->setField($form->getFieldByHandle('payment'));
     $integration->fixtureClient = new Client(['handler' => $handler, 'base_uri' => 'https://example.test/']);
-    expect($integration->processPayment($submission)->status)->toBe('succeeded');
+    expect($integration->processPayment($submission)->status->value)->toBe('succeeded');
     expect($history)->toHaveCount(1);
     $body = (string)$history[0]['request']->getBody();
     expect($body)->toContain('<request>');

@@ -89,18 +89,22 @@ it('applies redirect scheme safety to payment success redirect urls', function (
     'protocol relative' => ['//evil.example.test/path'],
 ])->group('security');
 
-it('sanitizes stripe callback origin before redirecting', function (string $target): void {
+it('ignores untrusted origins on the provider return endpoint', function (string $target): void {
     $integration = new Stripe([
         'name' => 'Security Stripe',
         'handle' => 'securityStripe',
     ]);
 
-    WebRequestTestHelper::withWebRequestContext(function ($request) use ($integration, $target): void {
+    Formie::$plugin->getIntegrations()->saveIntegration($integration, false);
+    $payment = new \verbb\formie\models\Payment(['integrationId' => $integration->id, 'amount' => '1.00', 'currency' => 'USD', 'status' => 'pending']);
+    Formie::$plugin->getPayments()->savePayment($payment);
+    $token = \verbb\formie\helpers\PaymentAccess::issueStatusToken($payment);
+    WebRequestTestHelper::withWebRequestContext(function ($request) use ($integration, $target, $token): void {
         $request->setQueryParams([
-            'origin' => $target,
+            'origin' => $target, 'statusToken' => $token,
         ]);
 
-        $response = $integration->processCallback();
+        $response = (new \verbb\formie\controllers\PaymentReturnController('payment-return', Craft::$app))->actionIndex();
 
         expect((string)$response->getHeaders()->get('Location'))
             ->not->toContain('evil.example.test')

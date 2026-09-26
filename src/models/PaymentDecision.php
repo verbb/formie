@@ -1,37 +1,12 @@
 <?php
 namespace verbb\formie\models;
 
+use verbb\formie\enums\PaymentDecisionStatus;
+
 use craft\base\Model;
 
 class PaymentDecision extends Model
 {
-    // Constants
-    // =========================================================================
-
-    public const STATUS_NOT_REQUIRED = 'notRequired';
-    public const STATUS_SUCCEEDED = 'succeeded';
-    public const STATUS_FAILED = 'failed';
-    public const STATUS_ACTION_REQUIRED = 'actionRequired';
-    public const STATUS_PENDING = 'pending';
-
-    public const ACTION_TYPE_REDIRECT = PaymentAction::TYPE_REDIRECT;
-    public const ACTION_TYPE_CONFIRM = PaymentAction::TYPE_CONFIRM;
-    public const ACTION_TYPE_CHALLENGE = PaymentAction::TYPE_CHALLENGE;
-    public const ACTION_TYPE_INITIALIZE = PaymentAction::TYPE_INITIALIZE;
-
-
-    // Properties
-    // =========================================================================
-
-    public string $status = self::STATUS_NOT_REQUIRED;
-    public ?string $message = null;
-    public ?string $redirectUrl = null;
-    public ?array $action = null;
-    public ?string $provider = null;
-    public ?string $reference = null;
-    public array $meta = [];
-
-
     // Static Methods
     // =========================================================================
 
@@ -97,6 +72,16 @@ class PaymentDecision extends Model
         ], $config));
     }
 
+    public static function unknown(?string $message = null, ?string $provider = null, ?string $reference = null): self
+    {
+        return new self(['status' => self::STATUS_UNKNOWN, 'message' => $message, 'provider' => $provider, 'reference' => $reference]);
+    }
+
+    public static function cancelled(?string $message = null, ?string $provider = null, ?string $reference = null): self
+    {
+        return new self(['status' => self::STATUS_CANCELLED, 'message' => $message, 'provider' => $provider, 'reference' => $reference]);
+    }
+
     public static function pending(?string $message = null, ?string $provider = null, ?string $reference = null): self
     {
         return new self([
@@ -128,6 +113,35 @@ class PaymentDecision extends Model
     }
 
 
+    // Constants
+    // =========================================================================
+
+    public const STATUS_NOT_REQUIRED = PaymentDecisionStatus::NOT_REQUIRED;
+    public const STATUS_SUCCEEDED = PaymentDecisionStatus::SUCCEEDED;
+    public const STATUS_FAILED = PaymentDecisionStatus::FAILED;
+    public const STATUS_ACTION_REQUIRED = PaymentDecisionStatus::ACTION_REQUIRED;
+    public const STATUS_PENDING = PaymentDecisionStatus::PENDING;
+    public const STATUS_UNKNOWN = PaymentDecisionStatus::UNKNOWN;
+    public const STATUS_CANCELLED = PaymentDecisionStatus::CANCELLED;
+
+    public const ACTION_TYPE_REDIRECT = PaymentAction::TYPE_REDIRECT;
+    public const ACTION_TYPE_CONFIRM = PaymentAction::TYPE_CONFIRM;
+    public const ACTION_TYPE_CHALLENGE = PaymentAction::TYPE_CHALLENGE;
+    public const ACTION_TYPE_INITIALIZE = PaymentAction::TYPE_INITIALIZE;
+
+
+    // Properties
+    // =========================================================================
+
+    public PaymentDecisionStatus $status = self::STATUS_NOT_REQUIRED;
+    public ?string $message = null;
+    public ?string $redirectUrl = null;
+    public ?array $action = null;
+    public ?string $provider = null;
+    public ?string $reference = null;
+    public array $meta = [];
+
+
     // Public Methods
     // =========================================================================
 
@@ -143,7 +157,7 @@ class PaymentDecision extends Model
     public function toArray(array $fields = [], array $expand = [], $recursive = true): array
     {
         return [
-            'status' => $this->status,
+            'status' => $this->status->value,
             'message' => $this->message,
             'redirectUrl' => $this->redirectUrl,
             'action' => $this->action,
@@ -157,9 +171,11 @@ class PaymentDecision extends Model
     // Private Methods
     // =========================================================================
 
-    private function _priority(string $status): int
+    private function _priority(PaymentDecisionStatus $status): int
     {
         return match ($status) {
+            self::STATUS_UNKNOWN => 7,
+            self::STATUS_CANCELLED => 6,
             self::STATUS_FAILED => 5,
             self::STATUS_ACTION_REQUIRED => 4,
             self::STATUS_PENDING => 3,

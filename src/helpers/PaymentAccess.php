@@ -2,6 +2,8 @@
 namespace verbb\formie\helpers;
 
 use verbb\formie\Formie;
+use verbb\formie\enums\PaymentResumeMode;
+use verbb\formie\fields\Payment;
 use verbb\formie\models\Payment as PaymentModel;
 
 use Craft;
@@ -19,140 +21,55 @@ final class PaymentAccess
     // Static Methods
     // =========================================================================
 
-    public static function issueStatusToken(PaymentModel $payment, ?int $issuedAt = null): ?string
+    public static function issueStatusToken(PaymentModel $payment, ?int $issuedAt = null, PaymentResumeMode $mode = PaymentResumeMode::STATUS): ?string
     {
-        $paymentUid = trim((string)($payment->uid ?? ''));
-        $paymentId = (int)($payment->id ?? 0);
-
-        if ($paymentUid === '' || $paymentId <= 0) {
+        if (!$payment->id || !$payment->uid) {
             return null;
         }
-
-        $issuedAt ??= time();
-        $payload = Json::encode([
-            'paymentUid' => $paymentUid,
-            'paymentId' => $paymentId,
-            'issuedAt' => $issuedAt,
-            'expiresAt' => $issuedAt + self::STATUS_TOKEN_TTL_SECONDS,
-        ]);
-
-        $key = Formie::$plugin->getSettings()->getSecurityKey();
-        $encrypted = Craft::$app->getSecurity()->encryptByKey($payload, $key);
-
-        if (!is_string($encrypted) || $encrypted === '') {
-            return null;
-        }
-
-        return base64_encode($encrypted);
+        return PaymentCapabilities::issue($mode->value, $payment->id, ['paymentUid' => $payment->uid,
+            'integrationId' => $payment->integrationId, 'submissionId' => $payment->submissionId],
+            (($issuedAt ?? time()) + self::STATUS_TOKEN_TTL_SECONDS - time()));
     }
 
     public static function resolveStatusToken(?string $token): ?array
     {
-        if (!is_string($token) || trim($token) === '') {
+        if (!$token) {
             return null;
         }
-
-        $decoded = base64_decode(trim($token), true);
-
-        if (!is_string($decoded) || $decoded === '') {
-            return null;
+        foreach (['status', 'reconcile'] as $purpose) {
+            if ($row = PaymentCapabilities::resolve($token, $purpose)) {
+                $payment = Formie::$plugin->getPayments()->getPaymentById((int)$row['resourceId']);
+                $scope = $row['scope'];
+                if ($payment && $payment->uid === ($scope['paymentUid'] ?? null)
+                    && $payment->integrationId === ($scope['integrationId'] ?? null)
+                    && $payment->submissionId === ($scope['submissionId'] ?? null)) {
+                    return ['paymentUid' => $payment->uid, 'paymentId' => $payment->id, 'purpose' => $purpose, 'expiresAt' => $row['expiresAt']];
+                }
+            }
         }
-
-        $key = Formie::$plugin->getSettings()->getSecurityKey();
-        $decrypted = Craft::$app->getSecurity()->decryptByKey($decoded, $key);
-
-        if (!is_string($decrypted) || $decrypted === '') {
-            return null;
-        }
-
-        $payload = Json::decodeIfJson($decrypted);
-
-        if (!is_array($payload)) {
-            return null;
-        }
-
-        $paymentUid = isset($payload['paymentUid']) && is_string($payload['paymentUid']) ? trim($payload['paymentUid']) : '';
-        $paymentId = isset($payload['paymentId']) ? (int)$payload['paymentId'] : 0;
-        $expiresAt = isset($payload['expiresAt']) ? (int)$payload['expiresAt'] : 0;
-
-        if ($paymentUid === '' || $paymentId <= 0 || $expiresAt <= time()) {
-            return null;
-        }
-
-        return [
-            'paymentUid' => $paymentUid,
-            'paymentId' => $paymentId,
-            'expiresAt' => $expiresAt,
-        ];
+        return null;
     }
 
-    public static function issueProviderSessionToken(string $provider, int $integrationId, string $integrationHandle, ?int $issuedAt = null): ?string
+    public static function issueProviderSessionToken(string $provider, int $integrationId, string $integrationHandle, ?int $issuedAt = null, ?int $formId = null, ?int $fieldId = null, ?int $siteId = null): ?string
     {
-        $provider = trim($provider);
-        $integrationHandle = trim($integrationHandle);
-
-        if ($provider === '' || $integrationId <= 0 || $integrationHandle === '') {
-            return null;
-        }
-
-        $issuedAt ??= time();
-        $payload = Json::encode([
-            'provider' => $provider,
-            'integrationId' => $integrationId,
-            'integrationHandle' => $integrationHandle,
-            'issuedAt' => $issuedAt,
-            'expiresAt' => $issuedAt + self::PROVIDER_SESSION_TOKEN_TTL_SECONDS,
-        ]);
-
-        $key = Formie::$plugin->getSettings()->getSecurityKey();
-        $encrypted = Craft::$app->getSecurity()->encryptByKey($payload, $key);
-
-        if (!is_string($encrypted) || $encrypted === '') {
-            return null;
-        }
-
-        return base64_encode($encrypted);
+        if (!$formId || !$fieldId || !$siteId || $integrationId <= 0) { return null; }
+        return PaymentCapabilities::issue('session', $integrationId, ['provider' => $provider, 'integrationHandle' => $integrationHandle,
+            'formId' => $formId, 'fieldId' => $fieldId, 'siteId' => $siteId], (($issuedAt ?? time()) + self::PROVIDER_SESSION_TOKEN_TTL_SECONDS - time()));
     }
 
     public static function resolveProviderSessionToken(?string $token, string $provider): ?array
     {
-        if (!is_string($token) || trim($token) === '') {
-            return null;
+        $row = $token ? PaymentCapabilities::resolve($token, 'session') : null;
+        if (!$row || ($row['scope']['provider'] ?? null) !== $provider) { return null; }
+        $scope = $row['scope'];
+        $form = Formie::$plugin->getForms()->getFormById((int)$scope['formId'], (int)$scope['siteId']);
+        if (!$form || !$form->enabled) { return null; }
+        foreach ($form->getFields() as $field) {
+            if ((int)$field->id === (int)$scope['fieldId'] && $field instanceof Payment && !$field->getIsDisabled()
+                && (int)$field->getPaymentIntegration()?->id === (int)$row['resourceId']) {
+                return $scope + ['integrationId' => (int)$row['resourceId'], 'expiresAt' => (int)$row['expiresAt']];
+            }
         }
-
-        $decoded = base64_decode(trim($token), true);
-
-        if (!is_string($decoded) || $decoded === '') {
-            return null;
-        }
-
-        $key = Formie::$plugin->getSettings()->getSecurityKey();
-        $decrypted = Craft::$app->getSecurity()->decryptByKey($decoded, $key);
-
-        if (!is_string($decrypted) || $decrypted === '') {
-            return null;
-        }
-
-        $payload = Json::decodeIfJson($decrypted);
-
-        if (!is_array($payload)) {
-            return null;
-        }
-
-        $tokenProvider = isset($payload['provider']) && is_string($payload['provider']) ? trim($payload['provider']) : '';
-        $integrationId = isset($payload['integrationId']) ? (int)$payload['integrationId'] : 0;
-        $integrationHandle = isset($payload['integrationHandle']) && is_string($payload['integrationHandle']) ? trim($payload['integrationHandle']) : '';
-        $expiresAt = isset($payload['expiresAt']) ? (int)$payload['expiresAt'] : 0;
-
-        if ($tokenProvider !== trim($provider) || $integrationId <= 0 || $integrationHandle === '' || $expiresAt <= time()) {
-            return null;
-        }
-
-        return [
-            'provider' => $tokenProvider,
-            'integrationId' => $integrationId,
-            'integrationHandle' => $integrationHandle,
-            'expiresAt' => $expiresAt,
-        ];
+        return null;
     }
 }

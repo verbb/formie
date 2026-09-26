@@ -1617,3 +1617,23 @@ Database table `formie_statuses` | `formie_submission_statuses`
 Submissions index **Export** button | **Formie → Reports** → run report → **Export**
 
 The beta client `continuationToken` field is removed. Ordinary continuation returns `session.continuation.progressId`, which only locates the browser-authorised progress row. Portable credentials use the explicit `grantToken`/`grantPurpose` bootstrap options. Beta cleanup commands are now `formie/gc/prune-submission-progress` and `formie/gc/prune-submission-grants`.
+
+## Payment And Subscription Boundary
+
+Formie 4 keeps `verbb\formie\base\Payment`. Custom Formie 3 providers need the following explicit upgrade mappings; provider-specific event names survive where their semantics remain valid.
+
+| Formie 3 contract | Formie 4 mapping |
+| --- | --- |
+| Provider `processPayment(): bool` | Implement protected `executePayment(): PaymentDecision`; inherit `processPayment()` so durable intent, locking and uncertainty handling cannot be bypassed. Boolean success cannot express pending or unknown. |
+| Floating point `Payment.amount` and conversions | Decimal strings and `PaymentMoney`; reject precision loss. `getAmount()` and `getPaymentAmount()` retain numeric-compatible return signatures for old extensions, but native adapters return exact strings or integer minor units. Update extension calculations to exact strings. |
+| Payment before/after events and payload events | Existing event names/classes and their boolean legacy result projection remain. Payment authority and provider verification must still succeed. |
+| `getPaymentByReference()` / `getSubscriptionByReference()` | Optional integration ID scopes the lookup. Native provider adapters always pass it. Identifiers alone never authorize public requests. |
+| Subscription boolean flags | Read-only `hasStarted`, `isSuspended`, `isCanceled`, `isExpired` projections remain. Write the coherent `status` instead. Contradictory legacy flags migrate to unknown with original flags retained in history. |
+| Subscription deletion | Archive through the service. Financial foreign keys use SET NULL and preserve owner snapshots. |
+| Generic callback handlers | Move to the return, status, session or provider-challenge endpoint matching the operation. No generic public callback dispatcher remains. |
+| Cancellation links | Reissue cancellation-only capabilities. Other submission/status/resume credentials cannot cancel subscriptions. GET only displays confirmation; POST requires CSRF. |
+| Stripe `invoice.created` automatic payment request | Stripe automatic collection owns charging. Formie observes the invoice instead of issuing an unreceipted additional pay request. Paid/failed invoices create distinct history. |
+
+Unresolved legacy payments migrate to unknown rather than inventing a confirmed provider result. Successful and failed historical payments retain their meaning and exact stored decimal text. The upgrade preserves payment and subscription identities, linkage and provider snapshots. Existing beta return/status/session URLs and tokens must be regenerated; deploy when active checkout sessions have drained, or arrange a short-lived site-specific forwarding policy that preserves purpose validation. Beta callback aliases are not a permanent API contract.
+
+Webhook signatures must be valid before Formie acknowledges an event. Stripe and GoCardless now retain encrypted authenticated evidence; Mollie URLs include a per-payment secret and use the provider API to authenticate the observed state. Reconfigure registered URLs where needed and retain the Formie security key for historical evidence decryption. See [Payment Integration](../developers/custom-integration/payment-integration) and [Console Commands](../developers/console-commands) for outcomes, replay, diagnostics and retention.

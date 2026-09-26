@@ -324,3 +324,11 @@ After verifying a successful payment, resume the submission’s remaining proces
 This can run the form’s configured notifications and integrations. Formie reuses its saved workflow state to avoid repeating completed delivery steps. If processing fails, the payment remains successful; resolve the reported processing error before running the command again.
 
 The saved payment must match the submission’s current amount and currency. If the submission or payment settings changed while checkout was pending, review the difference before resuming. The original successful charge remains recorded, and a mismatch keeps the submission incomplete without creating another charge.
+
+### Webhook Receipts
+
+`./craft formie/payments/receipts 0 100` lists up to 100 receipts after the supplied ID, including state history, attempts, safe errors and the escaped redacted display projection. It never decrypts raw provider payloads. `./craft formie/payments/evidence 123` explicitly exports the exact decrypted body for receipt 123 to standard output; use it only in a trusted terminal and handle the output as private provider/customer data.
+
+Receipts progress through received, verified, processing and processed/ignored, with failed handling retained as reconciliation. Retries reuse the same receipt. Financial rows and encrypted webhook evidence have indefinite retention; automatic cleanup only removes expired payment capabilities after a one-day grace period. Payment and subscription histories keep the most recent 100 transitions. Preserve the Formie security key with backups. A processed receipt may still require payment/submission reconciliation after an interrupted completion commit; inspect the payment's version, history and submission-transition receipt before resuming it.
+
+A payment in `unknown` must be reconciled against its original account and immutable amount. Automatic lookup is available only when the adapter implements it and has a usable provider reference. Otherwise, use the verified operator resolution flow above. In particular, a lost Opayo challenge response never repeats the challenge automatically. Broader queue/delivery diagnostics are separate from these payment receipts.

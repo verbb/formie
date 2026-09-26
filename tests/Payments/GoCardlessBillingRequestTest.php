@@ -77,7 +77,7 @@ it('creates a billing request flow during payment processing', function(): void 
         ['referrer' => 'https://example.test/donate'],
     );
 
-    expect($decision->status)->toBe('actionRequired')
+    expect($decision->status->value)->toBe('actionRequired')
         ->and($decision->action['payload']['redirectUrl'] ?? null)->toContain('pay.gocardless.com')
         ->and($integration->requests[0]['uri'])->toBe('billing_requests')
         ->and($integration->requests[0]['options']['json']['billing_requests']['mandate_request']['scheme'])->toBe('bacs')
@@ -166,6 +166,7 @@ it('creates a mandate payment after the billing request is fulfilled', function(
                 return [
                     'payments' => [
                         'id' => 'PM123',
+                        'amount' => 2500, 'currency' => 'GBP',
                         'status' => 'pending_submission',
                         'metadata' => [
                             'formiePaymentId' => $options['json']['payments']['metadata']['formiePaymentId'] ?? null,
@@ -303,7 +304,7 @@ it('creates a subscription after the billing request is fulfilled', function(): 
     $integration->getTransactionStatus($payment);
 
     $payment = Formie::$plugin->getPayments()->getPaymentById((int)$payment->id);
-    $subscription = Formie::$plugin->getSubscriptions()->getSubscriptionByReference('SB123');
+    $subscription = Formie::$plugin->getSubscriptions()->getSubscriptionByReference('SB123', $integration->id);
 
     expect($payment->reference)->toBe('SB123')
         ->and($payment->status)->toBe(PaymentModel::STATUS_SUCCESS)

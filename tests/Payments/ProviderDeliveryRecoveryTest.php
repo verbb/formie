@@ -98,11 +98,11 @@ it('reuses the Square payment key after a lost response and saves one successful
     ])->create();
     $submission = formie()->submission($form)->save();
     $integration->setField($form->getFieldByHandle('payment'));
-    expect($integration->processPayment($submission)->status)->toBe('pending');
-    expect($integration->processPayment($submission)->status)->toBe('succeeded');
-    expect($integration->processPayment($submission)->status)->toBe('succeeded');
+    expect($integration->processPayment($submission)->status->value)->toBe('unknown');
+    expect($integration->processPayment($submission)->status->value)->toBe('succeeded');
+    expect($integration->processPayment($submission)->status->value)->toBe('succeeded');
     expect($integration->keys)->toHaveCount(2)->and($integration->keys[0])->toBe($integration->keys[1]);
-    expect($integration->reads)->toBe(1);
+    expect($integration->reads)->toBe(0);
     expect((int)(new \craft\db\Query())->from(\verbb\formie\helpers\Table::FORMIE_PAYMENTS)
         ->where(['submissionId' => $submission->id, 'reference' => 'square-payment-1'])->count())->toBe(1);
 });

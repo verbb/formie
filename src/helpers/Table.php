@@ -29,6 +29,8 @@ abstract class Table extends CraftTable
     public const FORMIE_CAPTCHA_PROVIDERS = '{{%formie_captcha_providers}}';
     public const FORMIE_SPAM_SETTINGS = '{{%formie_spam_settings}}';
     public const FORMIE_NOTIFICATIONS = '{{%formie_notifications}}';
+    public const FORMIE_WEBHOOK_RECEIPTS = '{{%formie_webhookreceipts}}';
+    public const FORMIE_PAYMENT_CAPABILITIES = '{{%formie_paymentcapabilities}}';
     public const FORMIE_PAYMENTS = '{{%formie_payments}}';
     public const FORMIE_PAYMENT_PLANS = '{{%formie_payments_plans}}';
     public const FORMIE_SUBSCRIPTIONS = '{{%formie_payments_subscriptions}}';

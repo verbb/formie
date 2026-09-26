@@ -2,6 +2,7 @@
 namespace verbb\formie\console\controllers;
 
 use verbb\formie\helpers\PaymentRecovery;
+use verbb\formie\helpers\PaymentWebhookReceipt;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\Payment;
 
@@ -33,7 +34,7 @@ class PaymentsController extends Controller
     public function actionIndex(int $afterId = 0, int $limit = 100): int
     {
         $ids = (new Query())->select('id')->from(Table::FORMIE_PAYMENTS)
-            ->where(['status' => [Payment::STATUS_PENDING, Payment::STATUS_PROCESSING, Payment::STATUS_REDIRECT]])
+            ->where(['status' => [Payment::STATUS_UNKNOWN, Payment::STATUS_PENDING, Payment::STATUS_PROCESSING, Payment::STATUS_REDIRECT]])
             ->andWhere(['>', 'id', $afterId])->orderBy(['id' => SORT_ASC])->limit(max(1, min(500, $limit)))->column();
 
         foreach ($ids as $id) {
@@ -46,6 +47,23 @@ class PaymentsController extends Controller
     /**
      * Shows the persisted owner, amount and references for one payment.
      */
+    public function actionReceipts(int $afterId = 0, int $limit = 100): int
+    {
+        $rows = (new Query())->select(['id', 'integrationId', 'environment', 'eventId', 'status', 'attempts', 'receivedAt', 'processedAt', 'error', 'display', 'history'])
+            ->from(Table::FORMIE_WEBHOOK_RECEIPTS)->where(['>', 'id', $afterId])->orderBy(['id' => SORT_ASC])->limit(max(1, min(500, $limit)))->all();
+        foreach ($rows as $row) {
+            $this->stdout(Json::encode($row) . PHP_EOL);
+        }
+        return ExitCode::OK;
+    }
+
+    public function actionEvidence(int $receiptId): int
+    {
+        // Explicit privileged export; ordinary receipt listings never decrypt evidence.
+        $this->stdout(PaymentWebhookReceipt::evidence($receiptId));
+        return ExitCode::OK;
+    }
+
     public function actionInspect(int $paymentId): int
     {
         $this->stdout(Json::encode(PaymentRecovery::inspect($paymentId), JSON_PRETTY_PRINT) . PHP_EOL);
@@ -65,7 +83,7 @@ class PaymentsController extends Controller
     /**
      * Records an outcome independently verified in the gateway dashboard.
      */
-    public function actionResolve(int $paymentId, string $outcome, float $amount, string $currency, string $reference, string $note): int
+    public function actionResolve(int $paymentId, string $outcome, string $amount, string $currency, string $reference, string $note): int
     {
         $this->actionInspect($paymentId);
         $this->stdout('Requested outcome: ' . $outcome . ', ' . $amount . ' ' . $currency . ', reference ' . $reference . PHP_EOL);

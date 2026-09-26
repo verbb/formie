@@ -14,8 +14,9 @@ use verbb\formie\fields;
 use verbb\formie\fields\values\AddressFieldValue;
 use verbb\formie\fields\values\NameFieldValue;
 use verbb\formie\helpers\ArrayHelper;
-use verbb\formie\helpers\PaymentAttempt;
 use verbb\formie\helpers\PaymentAccess;
+use verbb\formie\helpers\PaymentAttempt;
+use verbb\formie\helpers\PaymentCapabilities;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
@@ -24,6 +25,8 @@ use verbb\formie\models\ClientModuleContext;
 use verbb\formie\models\Payment as PaymentModel;
 use verbb\formie\models\PaymentAction;
 use verbb\formie\models\PaymentDecision;
+use verbb\formie\models\PaymentMoney;
+use verbb\formie\models\payments\PaymentSessionCommand;
 use verbb\formie\models\Plan;
 use verbb\formie\models\SlotTag;
 use verbb\formie\theme\context\RenderContext;
@@ -41,14 +44,13 @@ use yii\base\Event;
 use yii\web\BadRequestHttpException;
 use yii\web\TooManyRequestsHttpException;
 
-use GuzzleHttp\Client;
-use GuzzleHttp\Exception\RequestException;
-
-use Throwable;
 use Exception;
+use Throwable;
 
 use CommerceGuys\Addressing\Country\CountryRepository;
 use CommerceGuys\Addressing\Subdivision\SubdivisionRepository;
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
 
 class Opayo extends Payment
 {
@@ -77,25 +79,17 @@ class Opayo extends Payment
     {
         return true;
     }
-    
-    public static function toOpayoAmount(float $amount, string $currency): float
-    {
-        if (in_array(strtoupper($currency), self::ZERO_DECIMAL_CURRENCIES)) {
-            return $amount;
-        }
 
-        return round($amount * 100);
+    public static function toOpayoAmount(string|int|float $amount, string $currency): int
+    {
+        return PaymentMoney::fromDecimal((string)$amount, $currency)->integer();
     }
 
-    public static function fromOpayoAmount(float $amount, string $currency): float
+    public static function fromOpayoAmount(string|int|float $amount, string $currency): string
     {
-        if (in_array(strtoupper($currency), self::ZERO_DECIMAL_CURRENCIES)) {
-            return $amount;
-        }
-
-        return $amount * 0.01;
+        return PaymentMoney::fromMinor((string)$amount, $currency)->decimal();
     }
-    
+
 
     // Properties
     // =========================================================================
@@ -142,10 +136,10 @@ class Opayo extends Payment
     public function getReturnUrl(): string
     {
         if (Craft::$app->getConfig()->getGeneral()->headlessMode) {
-            return UrlHelper::actionUrl('formie/payment-webhooks/process-callback', ['handle' => $this->handle]);
+            return UrlHelper::actionUrl('formie/payment-challenges/complete', ['handle' => $this->handle]);
         }
 
-        return UrlHelper::siteUrl('formie/payment-webhooks/process-callback', ['handle' => $this->handle]);
+        return UrlHelper::siteUrl('formie/payment-challenges/complete', ['handle' => $this->handle]);
     }
 
     public function getClientModule(ClientModuleContext $context): ?ClientModule
@@ -165,7 +159,7 @@ class Opayo extends Payment
                 'amountType' => $this->getFieldSetting('amountType'),
                 'amountFixed' => $this->getFieldSetting('amountFixed'),
                 'amountVariable' => $this->normalizeClientFieldReference($this->getFieldSetting('amountVariable')),
-                'sessionToken' => PaymentAccess::issueProviderSessionToken('opayo', (int)$this->id, (string)$this->handle),
+                'sessionToken' => PaymentAccess::issueProviderSessionToken('opayo', (int)$this->id, (string)$this->handle, formId: $context->form?->id, fieldId: $context->field?->id, siteId: $context->form?->siteId),
                 'checkoutMode' => $this->getCheckoutMode(),
                 'requiredInputSuffixes' => ['opayoTokenId'],
                 'waitForValueMs' => 2500,
@@ -178,13 +172,13 @@ class Opayo extends Payment
         return ['opayoSessionKey', 'opayo3DSComplete'];
     }
 
-    public function getAmount(Submission $submission): float
+    public function getAmount(Submission $submission): string|int|float
     {
         // Ensure the amount is converted to Stripe for zero-decimal currencies
         return self::toOpayoAmount(parent::getAmount($submission), $this->getCurrency($submission));
     }
 
-    public function getPaymentAmount(Submission $submission): float
+    public function getPaymentAmount(Submission $submission): string|int|float
     {
         return self::fromOpayoAmount($this->getAmount($submission), (string)$this->getCurrency($submission));
     }
@@ -194,7 +188,7 @@ class Opayo extends Payment
         return (string)$this->getFieldSetting('currency');
     }
 
-    public function processPayment(Submission $submission): PaymentDecision
+    protected function executePayment(Submission $submission): PaymentDecision
     {
         if (!$this->beforeProcessPayment($submission)) {
             return PaymentDecision::notRequired();
@@ -210,16 +204,14 @@ class Opayo extends Payment
         ], fn(PaymentModel $payment, PaymentAttempt $attempt) => $this->_processPayment($submission, $payment, $attempt));
     }
 
-    public function processCallback(): Response
+    public function initializeSession(?PaymentSessionCommand $command = null): Response
     {
         $request = Craft::$app->getRequest();
         $callbackResponse = Craft::$app->getResponse();
-        $callbackResponse->format = Response::FORMAT_RAW;
-
-        // Check to see if we're requesting a merchant session key - the first step
-        if ($request->getParam('merchantSessionKey')) {
             $callbackResponse->format = Response::FORMAT_JSON;
-            $sessionToken = (string)$request->getParam('sessionToken');
+            $command ??= new PaymentSessionCommand((string)$request->getParam('sessionToken'), $this->id);
+            $command->authorize('opayo');
+            $sessionToken = $command->token;
 
             $this->_requireValidMerchantSessionToken($sessionToken);
             $this->_enforceMerchantSessionRateLimit($sessionToken);
@@ -238,17 +230,23 @@ class Opayo extends Payment
                 ];
             }
 
-            return $callbackResponse;
-        }
-        
+        return $callbackResponse;
+    }
+
+    public function completeChallenge(): Response
+    {
+        $request = Craft::$app->getRequest();
+        $callbackResponse = Craft::$app->getResponse();
+        $callbackResponse->format = Response::FORMAT_RAW;
         $cres = $request->getParam('cres');
         $token = $request->getParam('threeDSSessionData');
-        $identity = is_string($token) ? PaymentAccess::resolveStatusToken($token) : null;
+        $identity = is_string($token) ? PaymentCapabilities::resolve($token, 'challenge') : null;
         $payments = Formie::$plugin->getPayments();
-        $payment = $identity ? $payments->getPaymentByUid($identity['paymentUid']) : null;
+        $payment = $identity ? $payments->getPaymentById((int)$identity['resourceId']) : null;
 
         if (!is_string($cres) || $cres === '' || !$payment
-            || $payment->id !== $identity['paymentId']
+            || $payment->id !== (int)$identity['resourceId']
+            || ($identity['scope']['paymentUid'] ?? null) !== $payment->uid
             || $payment->integrationId !== $this->id || !$payment->reference) {
             throw new BadRequestHttpException('Invalid Opayo challenge.');
         }
@@ -275,17 +273,28 @@ class Opayo extends Payment
             $payment = new PaymentModel($row);
 
             if ($payment->status !== PaymentModel::STATUS_SUCCESS) {
-                if ($payment->status !== PaymentModel::STATUS_PENDING) {
+                if (!in_array($payment->status, [PaymentModel::STATUS_PENDING, PaymentModel::STATUS_UNKNOWN], true)) {
                     throw new Exception('Opayo payment is not awaiting a challenge.');
                 }
 
-                $response = $this->request('POST', 'transactions/' . rawurlencode($transactionId) . '/3d-secure-challenge', [
-                    'json' => ['threeDSSessionData' => $transactionId, 'cRes' => $cres],
-                ]);
+                if (!empty($payment->scope['challengeSent'])) {
+                    $this->getTransaction($payment);
+                    if ($payment->status !== PaymentModel::STATUS_SUCCESS) {
+                        throw new Exception('Challenge outcome requires reconciliation.');
+                    }
+                    $response = $payment->response;
+                } else {
+                    $payment->scope['challengeSent'] = gmdate('c');
+                    $payments->savePayment($payment);
+                    $response = $this->request('POST', 'transactions/' . rawurlencode($transactionId) . '/3d-secure-challenge', [
+                        'json' => ['threeDSSessionData' => $transactionId, 'cRes' => $cres],
+                    ]);
 
-                if (($response['status'] ?? null) !== 'Ok'
-                    || (isset($response['transactionId']) && $response['transactionId'] !== $transactionId)) {
-                    throw new Exception('Opayo has not verified the payment.');
+                    if (($response['status'] ?? null) !== 'Ok'
+                        || (isset($response['transactionId']) && $response['transactionId'] !== $transactionId)) {
+                        throw new Exception('Opayo has not verified the payment.');
+                    }
+
                 }
 
                 $payment->status = PaymentModel::STATUS_SUCCESS;
@@ -299,8 +308,11 @@ class Opayo extends Payment
             $responseData = ['success' => true, 'transactionId' => $transactionId];
         } catch (Throwable $e) {
             // Error 1017 (operation not allowed) is not proof of payment. Leave
-            // uncertain outcomes pending for reconciliation rather than granting
+            // uncertain outcomes unknown for reconciliation rather than granting
             // access or overwriting stored ownership from callback parameters.
+            $payment = $payments->getPaymentById($payment->id);
+            $payment->status = PaymentModel::STATUS_UNKNOWN;
+            $payments->savePayment($payment);
             Integration::apiError($this, $e, false);
             $responseData = ['error' => ['message' => Craft::t('formie', 'Unable to verify your payment. Please try again or contact support.')]];
         } finally {
@@ -596,7 +608,7 @@ class Opayo extends Payment
 
         // Check if we've returned from a 3DS challenge. We've already captured the payment, and recorded the successful payment.
         if ($opayo3DSComplete) {
-            $payment = Formie::$plugin->getPayments()->getPaymentByReference($opayo3DSComplete);
+            $payment = Formie::$plugin->getPayments()->getPaymentByReference($opayo3DSComplete, $this->id);
 
             // A known reference is not proof of a successful payment, nor may
             // one submission reuse another visitor's completed challenge.
@@ -666,7 +678,7 @@ class Opayo extends Payment
 
             // The callback carries only a signed, expiring capability; all
             // ownership and monetary values are reloaded from this payment.
-            $threeDSSessionData = PaymentAccess::issueStatusToken($payment);
+            $threeDSSessionData = PaymentCapabilities::issue('challenge', (int)$payment->id, ['paymentUid' => $payment->uid], 1800);
 
             if (!$threeDSSessionData) {
                 throw new Exception('Unable to create the Opayo challenge token.');
@@ -879,6 +891,7 @@ class Opayo extends Payment
         $mutex = Craft::$app->getMutex();
         $now = time();
         $lockAcquired = $mutex?->acquire($mutexKey, 3) ?? false;
+        if (!$lockAcquired) { throw new \yii\web\TooManyRequestsHttpException('Payment session is busy.'); }
 
         try {
             $entry = $cache->get($cacheKey);

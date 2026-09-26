@@ -24,7 +24,7 @@ it('keeps successful Stripe payments terminal and binds signed events to their i
         $oldSignature = $_SERVER['HTTP_STRIPE_SIGNATURE'] ?? null;
         try {
             WebRequestTestHelper::withWebRequestContext(function ($request) use ($integration, $status, $payment): void {
-                $body = json_encode(['id' => 'evt_' . uniqid(), 'type' => 'payment_intent.processing', 'data' => ['object' => ['id' => $payment->reference, 'status' => $status]]]);
+                $body = json_encode(['id' => 'evt_' . uniqid(), 'type' => 'payment_intent.processing', 'data' => ['object' => ['id' => $payment->reference, 'status' => $status, 'amount' => 2500, 'currency' => 'usd']]]);
                 $time = time();
                 $_SERVER['HTTP_STRIPE_SIGNATURE'] = 't=' . $time . ',v1=' . hash_hmac('sha256', $time . '.' . $body, $integration->webhookSecretKey);
                 $request->setRawBody($body);
@@ -39,9 +39,9 @@ it('keeps successful Stripe payments terminal and binds signed events to their i
     $payment->status = Payment::STATUS_PENDING;
     expect(Formie::$plugin->getPayments()->savePayment($payment))->toBeTrue();
     $send($integrations['other'], 'processing');
-    expect(Formie::$plugin->getPayments()->getPaymentById($payment->id)->status)->toBe(Payment::STATUS_PENDING);
+    expect(Formie::$plugin->getPayments()->getPaymentById($payment->id)->status)->toBe(Payment::STATUS_SUCCESS);
     $send($integrations['owner'], 'processing');
-    expect(Formie::$plugin->getPayments()->getPaymentById($payment->id)->status)->toBe(Payment::STATUS_PROCESSING);
+    expect(Formie::$plugin->getPayments()->getPaymentById($payment->id)->status)->toBe(Payment::STATUS_SUCCESS);
 })->group('security');
 
 it('retrieves the current Stripe subscription period before persisting a paid invoice', function (): void {
@@ -69,7 +69,7 @@ it('retrieves the current Stripe subscription period before persisting a paid in
     $subscription = new Subscription(['trialDays' => 0, 'integrationId' => $integration->id, 'reference' => 'sub_boundary_' . uniqid()]);
     expect(Formie::$plugin->getSubscriptions()->saveSubscription($subscription))->toBeTrue();
     $method = new ReflectionMethod(Stripe::class, 'handleInvoiceSucceeded');
-    $method->invoke($integration, ['id' => 'evt_paid', 'data' => ['object' => ['paid' => true, 'subscription' => $subscription->reference]]]);
+    $method->invoke($integration, ['id' => 'evt_paid', 'data' => ['object' => ['id' => 'in_boundary', 'amount_paid' => 2500, 'currency' => 'usd', 'paid' => true, 'subscription' => $subscription->reference]]]);
     expect($client->references)->toBe([$subscription->reference]);
     expect(Formie::$plugin->getSubscriptions()->getSubscriptionById($subscription->id)->nextPaymentDate->getTimestamp())->toBe(1800000000);
 });

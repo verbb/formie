@@ -278,13 +278,14 @@
       "_api-BFwrZJRD-PhbccHjC.js"
     ]
   },
-  "../../../../packages/formie-browser/dist/chunks/opayo-Dkgo2u6b.js": {
-    "file": "assets/opayo-Dkgo2u6b-kQjoCTu0.js",
-    "name": "opayo-Dkgo2u6b",
-    "src": "../../../../packages/formie-browser/dist/chunks/opayo-Dkgo2u6b.js",
+  "../../../../packages/formie-browser/dist/chunks/opayo-Egrxuqsw.js": {
+    "file": "assets/opayo-Egrxuqsw-DChabQLE.js",
+    "name": "opayo-Egrxuqsw",
+    "src": "../../../../packages/formie-browser/dist/chunks/opayo-Egrxuqsw.js",
     "isDynamicEntry": true,
     "imports": [
       "_api-BFwrZJRD-PhbccHjC.js",
+      "_csrf-DxHg_ZYt-vI6avsCm.js",
       "src/submissions/js/formie-submissions.js",
       "_scripts-CbQ7agX3-C-1aO496.js",
       "_styles-BfoIZwJp-VFrCtLDq.js"
@@ -564,12 +565,13 @@
     ]
   },
   "../../../../packages/formie-browser/dist/chunks/upload-manager-D1eQXKDO.js": {
-    "file": "assets/upload-manager-D1eQXKDO-C26LlC2z.js",
+    "file": "assets/upload-manager-D1eQXKDO-9uoJ6TVe.js",
     "name": "upload-manager-D1eQXKDO",
     "src": "../../../../packages/formie-browser/dist/chunks/upload-manager-D1eQXKDO.js",
     "isDynamicEntry": true,
     "imports": [
       "_field-references.keys-58ZSTrCW-BTYscFZJ.js",
+      "_csrf-DxHg_ZYt-vI6avsCm.js",
       "_http-D-JExro7-DnobYXzV.js",
       "src/submissions/js/formie-submissions.js",
       "_shared-Bx9s0i0P-SIkaHZle.js",
@@ -640,6 +642,10 @@
   "_createUid-BtKO1cQV.js": {
     "file": "assets/createUid-BtKO1cQV.js",
     "name": "createUid"
+  },
+  "_csrf-DxHg_ZYt-vI6avsCm.js": {
+    "file": "assets/csrf-DxHg_ZYt-vI6avsCm.js",
+    "name": "csrf-DxHg_ZYt"
   },
   "_data-utils-n4oSH26Q.js": {
     "file": "assets/data-utils-n4oSH26Q.js",
@@ -964,7 +970,7 @@
       "../../../../packages/formie-browser/dist/chunks/go-cardless-C31ZHwUm.js",
       "../../../../packages/formie-browser/dist/chunks/mollie-BU_2LxWN.js",
       "../../../../packages/formie-browser/dist/chunks/moneris-Bha97ov5.js",
-      "../../../../packages/formie-browser/dist/chunks/opayo-Dkgo2u6b.js",
+      "../../../../packages/formie-browser/dist/chunks/opayo-Egrxuqsw.js",
       "../../../../packages/formie-browser/dist/chunks/paddle-C3wlGvQV.js",
       "../../../../packages/formie-browser/dist/chunks/paypal-nggJ8TO6.js",
       "../../../../packages/formie-browser/dist/chunks/payway-DA8Ybn3J.js",

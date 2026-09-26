@@ -7,4 +7,4 @@ $integration = \verbb\formie\Formie::$plugin->getIntegrations()->getIntegrationB
 $submission = \verbb\formie\Formie::$plugin->getSubmissions()->getSubmissionById((int)$argv[2]);
 $integration->setField($submission->getForm()->getFieldByHandle('payment'));
 $integration->configureCapture($argv[3], ($argv[4] ?? '') === 'interrupt');
-echo $integration->processPayment($submission)->status;
+echo $integration->processPayment($submission)->status->value;

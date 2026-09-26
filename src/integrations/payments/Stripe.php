@@ -7,11 +7,15 @@ use verbb\formie\base\FieldInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Payment;
 use verbb\formie\elements\Submission;
+use verbb\formie\enums\PaymentResumeMode;
 use verbb\formie\events\ModifyPaymentPayloadEvent;
 use verbb\formie\events\PaymentReceiveWebhookEvent;
 use verbb\formie\fields;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\DeliveryAttempt;
+use verbb\formie\helpers\PaymentAccess;
 use verbb\formie\helpers\PaymentAmountHelper;
+use verbb\formie\helpers\PaymentWebhookReceipt;
 use verbb\formie\helpers\References;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
@@ -21,6 +25,8 @@ use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Payment as PaymentModel;
 use verbb\formie\models\PaymentAction;
 use verbb\formie\models\PaymentDecision;
+use verbb\formie\models\PaymentMoney;
+use verbb\formie\models\payments\PaymentWebhookCommand;
 use verbb\formie\models\Plan;
 use verbb\formie\models\SlotTag;
 use verbb\formie\models\Subscription;
@@ -37,9 +43,10 @@ use yii\base\Event;
 use yii\web\NotFoundHttpException;
 
 use Exception;
+use InvalidArgumentException;
+use NumberFormatter;
 use Throwable;
 
-use NumberFormatter;
 use Stripe\Customer;
 use Stripe\Event as StripeEvent;
 use Stripe\Exception as StripeException;
@@ -59,24 +66,20 @@ class Stripe extends Payment
         return 'Stripe';
     }
 
-    public static function toStripeAmount(float $amount, string $currency): int
+    public static function toStripeAmount(string|int|float $amount, string $currency): int
     {
-        if (in_array(strtoupper($currency), self::ZERO_DECIMAL_CURRENCIES)) {
-            return (int)ceil($amount);
-        }
-
-        // Floating-point multiplication can put an exact price just above its
-        // minor unit. Rounding up would then charge an extra cent.
-        return (int)round($amount * 100);
+        $money = PaymentMoney::fromDecimal((string)$amount, $currency);
+        // Stripe retains two-decimal API units for these zero-decimal currencies.
+        return in_array(strtoupper($currency), ['ISK', 'UGX'], true) ? PaymentMoney::fromMinor($money->minor . '00', $currency)->integer() : $money->integer();
     }
 
-    public static function fromStripeAmount(float $amount, string $currency): float
+    public static function fromStripeAmount(string|int|float $amount, string $currency): string
     {
-        if (in_array(strtoupper($currency), self::ZERO_DECIMAL_CURRENCIES)) {
-            return $amount;
+        if (in_array(strtoupper($currency), ['ISK', 'UGX'], true)) {
+            if (!str_ends_with((string)$amount, '00') && (string)$amount !== '0') { throw new InvalidArgumentException('Invalid Stripe zero-decimal amount.'); }
+            $amount = (string)$amount === '0' ? '0' : substr((string)$amount, 0, -2);
         }
-
-        return $amount * 0.01;
+        return PaymentMoney::fromMinor((string)$amount, $currency)->decimal();
     }
 
     public static function getSiteCurrency(): ?string
@@ -150,7 +153,7 @@ class Stripe extends Payment
         $amountVariable = $this->normalizeClientFieldReference($this->getFieldSetting('amountVariable'));
 
         if ($amountType === Payment::VALUE_TYPE_FIXED) {
-            $amount = self::toStripeAmount((float)$amountFixed, $currency);
+            $amount = self::toStripeAmount((string)$amountFixed, $currency);
         } else if ($amountType === Payment::VALUE_TYPE_DYNAMIC) {
             $amount = $amountVariable;
         }
@@ -214,8 +217,9 @@ class Stripe extends Payment
 
     public function getReturnUrl(Submission $submission): string
     {
-        $url = 'formie/payment-webhooks/process-callback';
-        $params = ['token' => $submission->uid, 'handle' => $this->handle];
+        $url = 'formie/payment-return/index';
+        $payment = Formie::$plugin->getPayments()->prepareAttempt($this, $submission);
+        $params = ['statusToken' => PaymentAccess::issueStatusToken($payment, mode: PaymentResumeMode::RECONCILE)];
 
         if (Craft::$app->getConfig()->getGeneral()->headlessMode) {
             return UrlHelper::actionUrl($url, $params);
@@ -224,13 +228,13 @@ class Stripe extends Payment
         return UrlHelper::siteUrl($url, $params);
     }
 
-    public function getAmount(Submission $submission): float
+    public function getAmount(Submission $submission): string|int|float
     {
         // Ensure the amount is converted to Stripe for zero-decimal currencies
         return self::toStripeAmount(parent::getAmount($submission), $this->getCurrency($submission));
     }
 
-    public function getPaymentAmount(Submission $submission): float
+    public function getPaymentAmount(Submission $submission): string|int|float
     {
         return self::fromStripeAmount($this->getAmount($submission), (string)$this->getCurrency($submission));
     }
@@ -283,7 +287,7 @@ class Stripe extends Payment
         return self::toStripeAmount($amount, $currency);
     }
 
-    public function processPayment(Submission $submission): PaymentDecision
+    protected function executePayment(Submission $submission): PaymentDecision
     {
         $result = false;
 
@@ -319,6 +323,21 @@ class Stripe extends Payment
             }
         }
 
+        if ($type === self::PAYMENT_TYPE_SUBSCRIPTION && $latestPayment?->subscriptionId) {
+            $subscription = $latestPayment->getSubscription();
+            if ($subscription && in_array($subscription->status, ['active', 'cancelling'], true)) {
+                return PaymentDecision::succeeded($this->handle, $subscription->reference);
+            }
+            if ($subscription?->getState()->isTerminal()) {
+                return PaymentDecision::cancelled(null, $this->handle, $subscription->reference);
+            }
+            if ($subscription && empty($subscription->subscriptionData['pending_setup_intent']['client_secret'])
+                && empty($subscription->subscriptionData['latest_invoice']['payment_intent']['client_secret'])) {
+                return $subscription->status === 'unknown' ? PaymentDecision::unknown(null, $this->handle, $subscription->reference)
+                    : PaymentDecision::pending(null, $this->handle, $subscription->reference);
+            }
+        }
+
         if ($latestPayment) {
             return match ((string)$latestPayment->status) {
                 PaymentModel::STATUS_SUCCESS => PaymentDecision::succeeded($this->handle, $latestPayment->reference),
@@ -329,7 +348,9 @@ class Stripe extends Payment
                         ->withMessage($latestPayment->message ?: Craft::t('formie', 'Additional payment confirmation is required to continue.'))
                         ->resumeMode(PaymentAction::RESUME_MODE_CALLBACK, $this->getReturnUrl($submission))
                 ),
-                PaymentModel::STATUS_PENDING, PaymentModel::STATUS_PROCESSING => PaymentDecision::requiresAction(
+                PaymentModel::STATUS_PROCESSING => PaymentDecision::pending($latestPayment->message, $this->handle, $latestPayment->reference),
+                PaymentModel::STATUS_CANCELLED => PaymentDecision::cancelled($latestPayment->message, $this->handle, $latestPayment->reference),
+                PaymentModel::STATUS_PENDING => PaymentDecision::requiresAction(
                     $latestPayment->reference,
                     PaymentAction::confirmEvent('formie:payment:stripe:confirm')
                         ->forProvider($this->handle)
@@ -337,7 +358,7 @@ class Stripe extends Payment
                         ->resumeMode(PaymentAction::RESUME_MODE_CALLBACK, $this->getReturnUrl($submission))
                 ),
                 PaymentModel::STATUS_FAILED => PaymentDecision::failed($latestPayment->message, $this->handle, $latestPayment->reference),
-                default => $result ? PaymentDecision::succeeded($this->handle) : PaymentDecision::failed(null, $this->handle),
+                default => PaymentDecision::unknown(null, $this->handle, $latestPayment->reference),
             };
         }
 
@@ -359,13 +380,15 @@ class Stripe extends Payment
                 $stripeSubscription = $this->getStripe()->subscriptions->retrieve($subscriptionId);
 
                 if ($stripeSubscription) {
-                    $subscription = Formie::$plugin->getSubscriptions()->getSubscriptionByReference($stripeSubscription->id);
+                    $subscription = Formie::$plugin->getSubscriptions()->getSubscriptionByReference($stripeSubscription->id, $this->id);
 
-                    if ($subscription) {
+                    if ($subscription && (int)$subscription->submissionId === (int)$submission->id
+                        && (int)$subscription->integrationId === (int)$this->id && (int)$subscription->fieldId === (int)$field->id
+                        && !$subscription->getState()->isTerminal()) {
                         $subscription->reference = $stripeSubscription->id;
                         $subscription->subscriptionData = $stripeSubscription->toArray();
 
-                        $this->_setSubscriptionStatusData($subscription, $stripeSubscription);
+                        $this->_setSubscriptionStatusData($subscription);
 
                         Formie::$plugin->getSubscriptions()->saveSubscription($subscription);
                     } else {
@@ -375,7 +398,8 @@ class Stripe extends Payment
                     throw new Exception('Unable to find Stripe subscription by "' . $subscriptionId . '".');
                 }
 
-                return true;
+                $this->_addStripeSubscriptionConfirmSubmitData($submission, $stripeSubscription);
+                return in_array($stripeSubscription->status, ['active', 'trialing'], true);
             }
 
             // Get or create the plan (product) first
@@ -446,7 +470,7 @@ class Stripe extends Payment
             }
 
             // Create and record our Formie subscription
-            $subscription = new Subscription();
+            $subscription = Formie::$plugin->getPayments()->prepareSubscription($this, $submission);
             $subscription->integrationId = $this->id;
             $subscription->submissionId = $submission->id;
             $subscription->fieldId = $field->id;
@@ -465,7 +489,7 @@ class Stripe extends Payment
 
             $subscription->trialDays = 0;
 
-            $this->_setSubscriptionStatusData($subscription, $response);
+            $this->_setSubscriptionStatusData($subscription);
 
             Formie::$plugin->getSubscriptions()->saveSubscription($subscription);
 
@@ -488,7 +512,7 @@ class Stripe extends Payment
             $message = $this->getFriendlyPaymentErrorMessage($e);
             $this->addFieldError($submission, Craft::t('formie', 'A payment error has occurred “{message}”.', ['message' => $message]));
 
-            return false;
+            throw $e;
         }
 
         return true;
@@ -508,7 +532,7 @@ class Stripe extends Payment
                 $paymentIntent = $this->getStripe()->paymentIntents->retrieve($paymentIntentId);
 
                 if ($paymentIntent) {
-                    $payment = Formie::$plugin->getPayments()->getPaymentByReference($paymentIntent->id);
+                    $payment = Formie::$plugin->getPayments()->getPaymentByReference($paymentIntent->id, $this->id);
 
                     if (!$payment) {
                         throw new Exception('Unable to find payment by "' . $paymentIntent->id . '".');
@@ -516,7 +540,7 @@ class Stripe extends Payment
 
                     // A PaymentIntent can only belong to one submission. If a stale
                     // hidden input is replayed on a new submission, fail safely.
-                    if ((int)$payment->submissionId !== (int)$submission->id) {
+                    if ((int)$payment->submissionId !== (int)$submission->id || (int)$payment->fieldId !== (int)$field->id) {
                         Integration::warning($this, Craft::t('formie', 'Rejected Stripe PaymentIntent "{intentId}" reuse for submission "{submissionUid}". Intent belongs to submission ID {existingSubmissionId}.', [
                             'intentId' => $paymentIntent->id,
                             'submissionUid' => (string)($submission->uid ?? $submission->id ?? 'unknown'),
@@ -525,7 +549,13 @@ class Stripe extends Payment
 
                         $this->addFieldError($submission, Craft::t('formie', 'Your previous payment session is no longer valid. Please refresh the payment details and try again.'));
 
-                        return false;
+                        throw new Exception('Stripe PaymentIntent ownership mismatch.');
+                    }
+
+                    if (!isset($paymentIntent->amount, $paymentIntent->currency)
+                        || !PaymentMoney::fromDecimal(self::fromStripeAmount((string)$paymentIntent->amount, strtoupper($paymentIntent->currency)), strtoupper($paymentIntent->currency))
+                            ->equals(PaymentMoney::fromDecimal($payment->amount, (string)$payment->currency))) {
+                        throw new Exception('Stripe payment snapshot mismatch.');
                     }
 
                     if ($paymentIntent->status === PaymentIntent::STATUS_SUCCEEDED) {
@@ -574,7 +604,7 @@ class Stripe extends Payment
                         $this->addFieldError($submission, $payment->message);
                         return false;
                     } else {
-                        $payment->status = PaymentModel::STATUS_FAILED;
+                        $payment->status = $this->_getPaymentStatusFromPaymentIntentStatus($paymentIntent->status);
                         $payment->reference = $paymentIntent->id;
                         $payment->response = $paymentIntent->toArray();
                         $payment->message = $paymentIntent->last_payment_error?->message ?? Craft::t('formie', 'Unable to confirm payment intent "{status}".', [
@@ -660,7 +690,7 @@ class Stripe extends Payment
             $response = $this->_createResourceOnce($submission, 'paymentIntents', 'payment-intent-create', $event->payload);
 
             // Save a pending payment before we head back to the front-end
-            $payment = Formie::$plugin->getPayments()->getPaymentByReference($response->id) ?? new PaymentModel();
+            $payment = Formie::$plugin->getPayments()->getPaymentByReference($response->id, $this->id) ?? Formie::$plugin->getPayments()->prepareAttempt($this, $submission);
             $payment->integrationId = $this->id;
             $payment->submissionId = $submission->id;
             $payment->fieldId = $field->id;
@@ -686,7 +716,7 @@ class Stripe extends Payment
         } catch (StripeException\CardException $e) {
             $body = $e->getJsonBody();
 
-            $payment = new PaymentModel();
+            $payment = Formie::$plugin->getPayments()->prepareAttempt($this, $submission);
             $payment->integrationId = $this->id;
             $payment->submissionId = $submission->id;
             $payment->fieldId = $field->id;
@@ -704,30 +734,9 @@ class Stripe extends Payment
 
             return false;
         } catch (StripeException\ApiErrorException $e) {
-            $body = $e->getJsonBody();
-            $message = $body['error']['message'] ?? $e->getMessage();
-
-            if (str_contains(strtolower((string)$message), 'idempotent')) {
-                $message = Craft::t('formie', 'Payment setup was already in progress. Please try submitting again.');
-            }
-
-            $payment = new PaymentModel();
-            $payment->integrationId = $this->id;
-            $payment->submissionId = $submission->id;
-            $payment->fieldId = $field->id;
-            $payment->amount = self::fromStripeAmount($amount, $currency);
-            $payment->currency = $currency;
-            $payment->status = PaymentModel::STATUS_FAILED;
-            $payment->reference = null;
-            $payment->code = $body['error']['code'] ?? $body['error']['type'] ?? $e->getStripeCode();
-            $payment->message = $message;
-            $payment->response = $body;
-
-            Formie::$plugin->getPayments()->savePayment($payment);
-
-            $this->addFieldError($submission, $payment->message);
-
-            return false;
+            // The provider may have accepted a request before the response failed.
+            // Resource receipts determine whether a later retry is safe.
+            throw $e;
         } catch (Throwable $e) {
             // Save a different payload to logs
             Integration::error($this, Craft::t('formie', 'Payment error: “{message}” {file}:{line}. Payload: “{payload}”. Response: “{response}”', [
@@ -744,108 +753,45 @@ class Stripe extends Payment
             $message = $this->getFriendlyPaymentErrorMessage($e);
             $this->addFieldError($submission, Craft::t('formie', 'A payment error has occurred “{message}”.', ['message' => $message]));
 
-            return false;
+            throw $e;
         }
 
         return true;
     }
 
-    public function processCallback(): Response
+    public function getTransaction(PaymentModel $payment): void
     {
-        $form = null;
-        $origin = '/';
-
-        try {
-            $request = Craft::$app->getRequest();
-            $genericPaymentError = Craft::t('formie', 'We were unable to verify your payment. Please try again or contact support.');
-
-            $origin = StringHelper::sanitizeRedirectUrl((string)$request->getParam('origin'));
-            $token = $request->getParam('token');
-            $paymentIntentId = $request->getParam('payment_intent');
-
-            if (!$token) {
-                throw new NotFoundHttpException($genericPaymentError);
-            }
-
-            $submission = Submission::find()->isIncomplete(true)->uid($token)->one();
-
-            if (!$submission) {
-                throw new NotFoundHttpException($genericPaymentError);
-            }
-
-            $form = $submission->form;
-
-            if (!$paymentIntentId) {
-                throw new NotFoundHttpException($genericPaymentError);
-            }
-
-            $payment = Formie::$plugin->getPayments()->getPaymentByReference($paymentIntentId);
-
-            if (!$payment) {
-                throw new NotFoundHttpException($genericPaymentError);
-            }
-
-            if ((int)$payment->submissionId !== (int)$submission->id) {
-                throw new NotFoundHttpException($genericPaymentError);
-            }
-
-            $paymentIntent = $this->getStripe()->paymentIntents->retrieve($paymentIntentId);
-
-            if (!$paymentIntent) {
-                throw new NotFoundHttpException($genericPaymentError);
-            }
-
-            if (!$this->_isProcessablePaymentIntentStatus($paymentIntent->status)) {
-                $payment->status = PaymentModel::STATUS_FAILED;
-                $payment->reference = $paymentIntentId;
-
-                Formie::$plugin->getPayments()->savePayment($payment);
-
-                throw new Exception($genericPaymentError);
-            }
-
-            // Complete the submission and lodge the payment
-            $payment->status = $this->_getPaymentStatusFromPaymentIntentStatus($paymentIntent->status);
-            $payment->reference = $paymentIntentId;
-
-            Formie::$plugin->getPayments()->savePayment($payment);
-            $replay = Formie::$plugin->getSubmissionProcessor()->executePaymentReplay($payment);
-
-            if (!$replay->response?->success) {
-                throw new Exception(Craft::t('formie', 'Unable to finalize submission after payment confirmation.'));
-            }
-
-            Formie::$plugin->getService()->setFlash($form->id, 'submitted', true);
-            Formie::$plugin->getService()->setNotice($form->id, $form->settings->getSubmitActionMessage($submission));
-        } catch (Throwable $e) {
-            // Save a different payload to logs
-            Integration::error($this, Craft::t('formie', 'Payment error: “{message}” {file}:{line}. Payload: “{payload}”. Response: “{response}”', [
-                'message' => Integration::getExceptionLogMessage($e),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ]));
-
-            if ($form) {
-                Formie::$plugin->getService()->setError($form->id, Craft::t('formie', 'We were unable to verify your payment. Please try again or contact support.'));
-            }
+        if ((int)$payment->integrationId !== (int)$this->id) { throw new Exception('Payment provider mismatch.'); }
+        if ($payment->subscriptionId) {
+            $subscription = $payment->getSubscription();
+            if (!$subscription?->reference) { return; }
+            $remote = $this->getStripe()->subscriptions->retrieve($subscription->reference);
+            $subscription->subscriptionData = $remote->toArray();
+            $this->_setSubscriptionStatusData($subscription);
+            Formie::$plugin->getSubscriptions()->saveSubscription($subscription);
+            $this->_syncInitialSubscriptionPayment($subscription);
+            return;
         }
-
-        // Check the form settings for what needs to be done, as we're returning from offssite
-        if ($form && ($redirect = $form->getRedirectUrl())) {
-            $origin = $redirect;
+        if (!$payment->reference) { return; }
+        $remote = $this->getStripe()->paymentIntents->retrieve($payment->reference);
+        if ($remote->id !== $payment->reference
+            || !PaymentMoney::fromDecimal(self::fromStripeAmount((string)$remote->amount, strtoupper($remote->currency)), strtoupper($remote->currency))->equals(PaymentMoney::fromDecimal($payment->amount, (string)$payment->currency))) {
+            throw new Exception('Stripe payment snapshot mismatch.');
         }
-
-        return Craft::$app->getResponse()->redirect($origin ?: '/');
+        $payment->status = $this->_getPaymentStatusFromPaymentIntentStatus($remote->status);
+        $payment->response = $remote->toArray();
+        Formie::$plugin->getPayments()->savePayment($payment);
     }
 
-    public function processWebhook(): Response
+    public function processWebhook(?PaymentWebhookCommand $command = null): Response
     {
-        $rawData = Craft::$app->getRequest()->getRawBody();
+        $command ??= PaymentWebhookCommand::fromRequest((int)$this->id);
+        $rawData = $command->body;
         $response = Craft::$app->getResponse();
         $response->format = Response::FORMAT_RAW;
 
         $secret = App::parseEnv($this->webhookSecretKey);
-        $stripeSignature = $_SERVER['HTTP_STRIPE_SIGNATURE'] ?? '';
+        $stripeSignature = $command->header('Stripe-Signature');
 
         if (!$secret || !$stripeSignature) {
             Integration::error($this, 'Webhook not signed or signing secret not set.');
@@ -860,7 +806,8 @@ class Stripe extends Payment
             StripeWebhook::constructEvent($rawData, $stripeSignature, $secret);
         } catch (Throwable $e) {
             Integration::error($this, 'Webhook signature check failed: ' . Integration::getExceptionLogMessage($e));
-            $response->data = 'ok';
+            $response->setStatusCode(400);
+            $response->data = 'error';
 
             return $response;
         }
@@ -869,6 +816,7 @@ class Stripe extends Payment
 
         if ($data) {
             try {
+                PaymentWebhookReceipt::process($this, !empty($data['livemode']) ? 'live' : 'test', (string)($data['id'] ?? ''), $rawData, ['Stripe-Signature' => $stripeSignature], function () use ($data): void {
                 if ($data['type'] === StripeEvent::CUSTOMER_SUBSCRIPTION_CREATED) {
                     $this->handleSubscriptionCreated($data);
                 } else if ($data['type'] === StripeEvent::CUSTOMER_SUBSCRIPTION_DELETED) {
@@ -894,6 +842,12 @@ class Stripe extends Payment
                 } else if ($data['type'] === StripeEvent::PAYMENT_INTENT_SUCCEEDED) {
                     $this->handlePaymentIntent($data);
                 }
+            if ($this->hasEventHandlers(self::EVENT_RECEIVE_WEBHOOK)) {
+                $this->trigger(self::EVENT_RECEIVE_WEBHOOK, new PaymentReceiveWebhookEvent([
+                    'webhookData' => $data,
+                ]));
+            }
+                });
             } catch (Throwable $e) {
                 Integration::apiError($this, $e, false);
                 $response->setStatusCode(500);
@@ -902,11 +856,7 @@ class Stripe extends Payment
                 return $response;
             }
 
-            if ($this->hasEventHandlers(self::EVENT_RECEIVE_WEBHOOK)) {
-                $this->trigger(self::EVENT_RECEIVE_WEBHOOK, new PaymentReceiveWebhookEvent([
-                    'webhookData' => $data,
-                ]));
-            }
+
         } else {
             Integration::error($this, 'Could not decode JSON payload.');
         }
@@ -929,7 +879,7 @@ class Stripe extends Payment
                 $response = $stripeSubscription->save();
             }
 
-            $subscription = Formie::$plugin->getSubscriptions()->getSubscriptionByReference($reference);
+            $subscription = Formie::$plugin->getSubscriptions()->getSubscriptionByReference($reference, $this->id);
 
             if ($subscription) {
                 $subscription->subscriptionData = $response->toArray();
@@ -1336,56 +1286,38 @@ class Stripe extends Payment
         $stripeInvoice = $data['data']['object'];
 
         $subscriptionReference = $stripeInvoice['subscription'] ?? null;
-        $subscription = $subscriptionReference ? Formie::$plugin->getSubscriptions()->getSubscriptionByReference($subscriptionReference) : null;
+        $subscription = $subscriptionReference ? Formie::$plugin->getSubscriptions()->getSubscriptionByReference($subscriptionReference, $this->id) : null;
 
         if (!$subscription || (int)$subscription->integrationId !== (int)$this->id) {
             return;
         }
 
-        $canBePaid = empty($stripeInvoice['paid'])
-            && ($stripeInvoice['collection_method'] ?? $stripeInvoice['billing'] ?? null) === 'charge_automatically';
-
-        if ($canBePaid) {
-            $invoice = $this->getStripe()->invoices->retrieve($stripeInvoice['id']);
-            $invoice->pay();
-        }
+        // Stripe's automatic collection owns charging. Invoice creation is only an observation.
     }
 
     protected function handleInvoiceSucceeded(array $data): void
     {
-        $stripeInvoice = $data['data']['object'];
-
-        // Sanity check
-        if (!$stripeInvoice['paid']) {
-            return;
-        }
-
-        $subscriptionReference = $stripeInvoice['subscription'];
-
-        $counter = 0;
-        $limit = 5;
-
-        do {
-            // Handle cases when Stripe sends us a webhook so soon that we haven't processed the subscription that triggered the webhook
-            sleep(1);
-            $subscription = Formie::$plugin->getSubscriptions()->getSubscriptionByReference($subscriptionReference);
-            $counter++;
-        } while (!$subscription && $counter < $limit);
-
+        $invoice = $data['data']['object'];
+        if (empty($invoice['paid'])) { return; }
+        $subscription = Formie::$plugin->getSubscriptions()->getSubscriptionByReference((string)($invoice['subscription'] ?? ''), $this->id);
         if (!$subscription) {
-            throw new Exception('Subscription with the reference “' . $subscriptionReference . '” not found when processing webhook ' . $data['id']);
+            $remote = $this->getStripe()->subscriptions->retrieve((string)($invoice['subscription'] ?? ''));
+            $subscription = $this->_resolveWebhookSubscription($remote->toArray());
         }
-
-        if ((int)$subscription->integrationId !== (int)$this->id) {
-            return;
-        }
-
-        $stripeSubscription = $this->getStripe()->subscriptions->retrieve($subscription->reference);
-        $nextPaymentDate = DateTimeHelper::toDateTime($stripeSubscription['current_period_end']);
-
-        if (!$nextPaymentDate || !Formie::$plugin->getSubscriptions()->receivePayment($subscription, $nextPaymentDate)) {
-            throw new Exception('Unable to record the subscription payment period.');
-        }
+        if (!$subscription) { return; }
+        if ((int)$subscription->integrationId !== (int)$this->id) { return; }
+        Formie::$plugin->getPayments()->recordRecurring($subscription, $invoice['id'],
+            self::fromStripeAmount((string)$invoice['amount_paid'], strtoupper($invoice['currency'])),
+            strtoupper($invoice['currency']), PaymentModel::STATUS_SUCCESS, $invoice);
+        $previousPeriod = $subscription->nextPaymentDate;
+        $remote = $this->getStripe()->subscriptions->retrieve($subscription->reference);
+        $subscription->subscriptionData = $remote->toArray();
+        $this->_setSubscriptionStatusData($subscription);
+        $subscription->nextPaymentDate = $previousPeriod;
+        Formie::$plugin->getSubscriptions()->saveSubscription($subscription);
+        $date = DateTimeHelper::toDateTime($remote['current_period_end']);
+        if ($date) { Formie::$plugin->getSubscriptions()->receivePayment($subscription, $date); }
+        $this->_syncInitialSubscriptionPayment($subscription);
     }
 
     protected function handleInvoiceFailed(array $data): void
@@ -1399,12 +1331,17 @@ class Stripe extends Payment
 
         $subscriptionReference = $stripeInvoice['subscription'] ?? null;
 
-        if (!$subscriptionReference || !($subscription = Formie::$plugin->getSubscriptions()->getSubscriptionByReference($subscriptionReference)) || (int)$subscription->integrationId !== (int)$this->id) {
+        if (!$subscriptionReference || !($subscription = Formie::$plugin->getSubscriptions()->getSubscriptionByReference($subscriptionReference, $this->id)) || (int)$subscription->integrationId !== (int)$this->id) {
             Integration::info($this, 'Subscription with the reference “' . $subscriptionReference . '” not found when processing webhook ' . $data['id']);
 
             return;
         }
 
+        if (!empty($stripeInvoice['id']) && isset($stripeInvoice['amount_due'], $stripeInvoice['currency'])) {
+            Formie::$plugin->getPayments()->recordRecurring($subscription, $stripeInvoice['id'],
+                self::fromStripeAmount((string)$stripeInvoice['amount_due'], strtoupper($stripeInvoice['currency'])),
+                strtoupper($stripeInvoice['currency']), PaymentModel::STATUS_FAILED, $stripeInvoice);
+        }
         $stripeSubscription = $this->getStripe()->subscriptions->retrieve($subscription->reference, [
             'expand' => ['latest_invoice.payment_intent'],
         ]);
@@ -1435,14 +1372,14 @@ class Stripe extends Payment
 
     protected function handleSubscriptionCreated(array $data): void
     {
-        // Nothing for now
+        $this->handleSubscriptionUpdated($data);
     }
 
     protected function handleSubscriptionExpired(array $data): void
     {
         $stripeSubscription = $data['data']['object'];
 
-        $subscription = Formie::$plugin->getSubscriptions()->getSubscriptionByReference($stripeSubscription['id']);
+        $subscription = Formie::$plugin->getSubscriptions()->getSubscriptionByReference($stripeSubscription['id'], $this->id);
 
         if (!$subscription || (int)$subscription->integrationId !== (int)$this->id) {
             Integration::info($this, 'Subscription with the reference “' . $stripeSubscription['id'] . '” not found when processing webhook ' . $data['id']);
@@ -1456,7 +1393,7 @@ class Stripe extends Payment
     protected function handleSubscriptionUpdated(array $data): void
     {
         $stripeSubscription = $data['data']['object'];
-        $subscription = Formie::$plugin->getSubscriptions()->getSubscriptionByReference($stripeSubscription['id']);
+        $subscription = $this->_resolveWebhookSubscription($stripeSubscription);
 
         if (!$subscription || (int)$subscription->integrationId !== (int)$this->id) {
             Integration::info($this, 'Subscription with the reference “' . $stripeSubscription['id'] . '” not found when processing webhook ' . $data['id']);
@@ -1465,7 +1402,8 @@ class Stripe extends Payment
         }
 
         // See if we care about this subscription at all
-        $subscription->subscriptionData = $data['data']['object'];
+        $remote = $this->getStripe()->subscriptions->retrieve($subscription->reference);
+        $subscription->subscriptionData = $remote->toArray();
 
         $this->_setSubscriptionStatusData($subscription);
 
@@ -1475,7 +1413,7 @@ class Stripe extends Payment
             $planReference = $data['data']['object']['plan']['id'];
             $plan = Formie::$plugin->getPlans()->getPlanByReference($planReference);
 
-            if ($plan) {
+            if ($plan && (int)$plan->integrationId === (int)$this->id) {
                 $subscription->planId = $plan->id;
             } else {
                 Integration::info($this, $subscription->reference . ' was switched to a plan on Stripe that does not exist on this Site. (event "' . $data['id'] . '")');
@@ -1483,6 +1421,7 @@ class Stripe extends Payment
         }
 
         Formie::$plugin->getSubscriptions()->updateSubscription($subscription);
+        $this->_syncInitialSubscriptionPayment($subscription);
     }
 
     protected function handlePaymentIntent(array $data): void
@@ -1492,9 +1431,22 @@ class Stripe extends Payment
         $paymentIntentStatus = $paymentIntent['status'] ?? null;
 
         if ($paymentIntent && $paymentIntentId) {
-            $payment = Formie::$plugin->getPayments()->getPaymentByReference($paymentIntentId);
+            $payment = Formie::$plugin->getPayments()->getPaymentByReference($paymentIntentId, $this->id);
 
+            if (!$payment && !empty($paymentIntent['metadata']['formiePaymentUid'])) {
+                $candidate = Formie::$plugin->getPayments()->getPaymentByUid($paymentIntent['metadata']['formiePaymentUid']);
+                if ($candidate && $candidate->integrationId === $this->id && !$candidate->reference && ($candidate->scope['initial'] ?? false)) {
+                    $payment = $candidate;
+                    $payment->reference = $paymentIntentId;
+                }
+            }
             if ($payment && (int)$payment->integrationId === (int)$this->id) {
+                if (!isset($paymentIntent['amount'], $paymentIntent['currency'])
+                    || !PaymentMoney::fromDecimal(self::fromStripeAmount((string)$paymentIntent['amount'], strtoupper($paymentIntent['currency'])), strtoupper($paymentIntent['currency']))
+                        ->equals(PaymentMoney::fromDecimal($payment->amount, $payment->currency))) {
+                    throw new Exception('Stripe webhook amount or currency mismatch.');
+                }
+                $payment->response = $paymentIntent;
                 // Stripe may deliver earlier processing/failure events after success.
                 // Successful intents are terminal; retries may still resume pending workflow work.
                 if ($payment->status !== PaymentModel::STATUS_SUCCESS) {
@@ -1528,15 +1480,14 @@ class Stripe extends Payment
 
     private function _getPaymentStatusFromPaymentIntentStatus(?string $status): string
     {
-        if ($status === PaymentIntent::STATUS_SUCCEEDED) {
-            return PaymentModel::STATUS_SUCCESS;
-        }
-
-        if ($status === self::STRIPE_PAYMENT_INTENT_STATUS_PROCESSING) {
-            return PaymentModel::STATUS_PROCESSING;
-        }
-
-        return PaymentModel::STATUS_FAILED;
+        return match ($status) {
+            PaymentIntent::STATUS_SUCCEEDED => PaymentModel::STATUS_SUCCESS,
+            PaymentIntent::STATUS_PROCESSING, 'requires_capture' => PaymentModel::STATUS_PROCESSING,
+            PaymentIntent::STATUS_REQUIRES_ACTION, PaymentIntent::STATUS_REQUIRES_CONFIRMATION => PaymentModel::STATUS_PENDING,
+            PaymentIntent::STATUS_REQUIRES_PAYMENT_METHOD => PaymentModel::STATUS_FAILED,
+            PaymentIntent::STATUS_CANCELED => PaymentModel::STATUS_CANCELLED,
+            default => PaymentModel::STATUS_UNKNOWN,
+        };
     }
 
     private function _getOrCreatePlan(Submission $submission): mixed
@@ -1807,7 +1758,8 @@ class Stripe extends Payment
         $clientSecret = $stripeSubscription->latest_invoice->payment_intent->client_secret ?? null;
 
         if (!$clientSecret) {
-            throw new Exception(Craft::t('formie', 'Unable to resolve Stripe payment confirmation for this subscription.'));
+            // Active, terminal and asynchronously pending subscriptions may have no browser action.
+            return;
         }
 
         $submission->getForm()->addSubmitData([
@@ -1858,6 +1810,42 @@ class Stripe extends Payment
         }
     }
 
+    private function _resolveWebhookSubscription(array $remote): ?Subscription
+    {
+        $subscriptions = Formie::$plugin->getSubscriptions();
+        $reference = (string)($remote['id'] ?? '');
+        if ($existing = $subscriptions->getSubscriptionByReference($reference, $this->id)) {
+            return $existing;
+        }
+        $uid = $remote['metadata']['formieSubscriptionUid'] ?? null;
+        $candidate = $uid ? $subscriptions->getSubscriptionByUid($uid) : null;
+        if (!$candidate || $candidate->integrationId !== $this->id || $candidate->reference || !($candidate->scope['initial'] ?? false)) {
+            return null;
+        }
+        $candidate->reference = $reference;
+        $candidate->subscriptionData = $remote;
+        $this->_setSubscriptionStatusData($candidate);
+        $subscriptions->saveSubscription($candidate);
+        return $candidate;
+    }
+
+    private function _syncInitialSubscriptionPayment(Subscription $subscription): void
+    {
+        if (!$submission = $subscription->getSubmission()) { return; }
+        foreach (Formie::$plugin->getPayments()->getSubmissionPayments($submission) as $payment) {
+            if ($payment->subscriptionId !== $subscription->id || !($payment->scope['initial'] ?? false)) { continue; }
+            $payment->status = match ($subscription->status) {
+                'active', 'cancelling' => PaymentModel::STATUS_SUCCESS,
+                'cancelled', 'expired' => PaymentModel::STATUS_CANCELLED,
+                'unknown' => PaymentModel::STATUS_UNKNOWN,
+                default => PaymentModel::STATUS_PENDING,
+            };
+            $payment->reference ??= $subscription->reference;
+            Formie::$plugin->getPayments()->savePayment($payment);
+            Formie::$plugin->getSubmissionProcessor()->replayPaymentIfSuccessful($payment);
+        }
+    }
+
     private function _setSubscriptionStatusData(Subscription $subscription): void
     {
         $data = $subscription->subscriptionData;
@@ -1866,41 +1854,17 @@ class Stripe extends Payment
         $endedAt = $data['ended_at'] ?? null;
         $status = $data['status'] ?? null;
 
-        // Somebody didn't manage to provide/authenticate a payment method
-        if ($status === 'incomplete_expired') {
-            $subscription->isExpired = true;
-            $subscription->dateExpired = $endedAt ? DateTimeHelper::toDateTime($endedAt) : null;
-            $subscription->isCanceled = false;
-            $subscription->dateCanceled = null;
-            $subscription->nextPaymentDate = null;
-        }
-
-        // Definitely not suspended
-        if ($status === 'active') {
-            $subscription->isSuspended = false;
-            $subscription->dateSuspended = null;
-        }
-
-        // Suspend this and make a guess at the suspension date
-        if ($status === 'past_due') {
-            $timeLastInvoiceCreated = $data['latest_invoice']['created'] ?? null;
-            $dateSuspended = $timeLastInvoiceCreated ? DateTimeHelper::toDateTime($timeLastInvoiceCreated) : null;
-            $subscription->dateSuspended = $subscription->isSuspended ? $subscription->dateSuspended : $dateSuspended;
-            $subscription->isSuspended = true;
-        }
-
-        if ($status === 'canceled') {
-            $subscription->isExpired = true;
-            $subscription->dateExpired = $endedAt ? DateTimeHelper::toDateTime($endedAt) : null;
-        }
-
-        // Make sure we mark this as started, if appropriate
-        $subscription->hasStarted = !in_array($status, ['incomplete', 'incomplete_expired']);
-
-        // Update all the other tidbits
-        $subscription->isCanceled = (bool)$canceledAt;
+        $subscription->status = match ($status) {
+            'active', 'trialing' => !empty($data['cancel_at_period_end']) ? 'cancelling' : 'active',
+            'incomplete' => 'pending',
+            'incomplete_expired' => 'expired',
+            'canceled' => 'cancelled',
+            'past_due', 'unpaid', 'paused' => 'suspended',
+            default => 'unknown',
+        };
         $subscription->dateCanceled = $canceledAt ? DateTimeHelper::toDateTime($canceledAt) : null;
-        $subscription->nextPaymentDate = DateTimeHelper::toDateTime($data['current_period_end']);
+        $subscription->dateExpired = $endedAt ? DateTimeHelper::toDateTime($endedAt) : null;
+        $subscription->nextPaymentDate = isset($data['current_period_end']) ? DateTimeHelper::toDateTime($data['current_period_end']) : null;
     }
 
     private function _getLatestPendingPaymentForField(Submission $submission, int $fieldId): ?PaymentModel
@@ -1924,6 +1888,13 @@ class Stripe extends Payment
 
     private function _createResourceOnce(Submission $submission, string $resource, string $action, array $payload): mixed
     {
+        if ($this->id && $this->getField()?->id && in_array($resource, ['paymentIntents', 'subscriptions'], true)) {
+            $payment = Formie::$plugin->getPayments()->prepareAttempt($this, $submission);
+            $payload['metadata']['formiePaymentUid'] = $payment->uid;
+            if ($resource === 'subscriptions') {
+                $payload['metadata']['formieSubscriptionUid'] = Formie::$plugin->getPayments()->prepareSubscription($this, $submission)->uid;
+            }
+        }
         $service = $this->getStripe()->$resource;
         $identity = $this->_getIdempotencyKey($submission, $action);
         $providerKey = $action === 'payment-intent-create' ? $this->_getIdempotencyKey($submission, $action, [
@@ -1932,7 +1903,7 @@ class Stripe extends Payment
             'fieldId' => $this->getField()?->id,
         ]) : $identity;
 
-        return (new \verbb\formie\helpers\DeliveryAttempt((int)$submission->id, $resource, $identity, $providerKey))->execute(
+        return (new DeliveryAttempt((int)$submission->id, $resource, $identity, $providerKey))->execute(
             $payload,
             fn(string $key) => $service->create($payload, ['idempotency_key' => $key]),
             23 * 3600,

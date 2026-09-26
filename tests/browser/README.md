@@ -9,7 +9,7 @@ in Chromium, and submit through real Craft REST actions. Saved content is checke
 through a read-only route restricted to the synthetic fixture form. The multi-page React journey checks retained nested values, the exact uploaded file
 contents after Back/Next navigation, and one saved submission after duplicate clicks.
 A control-panel journey creates a form, adds a field, and verifies its exact label
-and placeholder after saving and reloading. No transport response is mocked. The web entry point returns 404 unless the owned disposable
+and placeholder after saving and reloading. Submission transport responses are not mocked. The payment-module contract uses a synthetic Opayo SDK and session response to inspect the exact request body without contacting a live payment provider. The web entry point returns 404 unless the owned disposable
 runtime was explicitly provisioned for browser tests. A subsequent PHP test run
 removes that marker. Run PHP and browser suites serially because they share this
 runtime. Failures retain a Playwright trace and HTML report.

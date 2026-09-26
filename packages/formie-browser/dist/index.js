@@ -889,7 +889,7 @@ function Ot(e, t) {
 function kt(e) {
 	if (e.ok || e.keepSubmitLoading !== !0) return !1;
 	let t = e.meta || {}, n = String(t.paymentStatus || "");
-	return n === "actionRequired" || n === "pending";
+	return n === "actionRequired" || n === "pending" || n === "unknown";
 }
 function At(e, t) {
 	let n = yt(e), r = bt(e, n);
@@ -1090,7 +1090,7 @@ var Rt = class {
 	"go-cardless": () => import("./chunks/go-cardless-C31ZHwUm.js").then((e) => e.goCardlessModule),
 	mollie: () => import("./chunks/mollie-BU_2LxWN.js").then((e) => e.mollieModule),
 	moneris: () => import("./chunks/moneris-Bha97ov5.js").then((e) => e.monerisModule),
-	opayo: () => import("./chunks/opayo-Dkgo2u6b.js").then((e) => e.opayoModule),
+	opayo: () => import("./chunks/opayo-Egrxuqsw.js").then((e) => e.opayoModule),
 	paddle: () => import("./chunks/paddle-C3wlGvQV.js").then((e) => e.paddleModule),
 	paypal: () => import("./chunks/paypal-nggJ8TO6.js").then((e) => e.paypalModule),
 	payway: () => import("./chunks/payway-DA8Ybn3J.js").then((e) => e.paywayModule),

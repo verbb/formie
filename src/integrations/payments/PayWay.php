@@ -22,6 +22,7 @@ use verbb\formie\models\ClientModuleContext;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Payment as PaymentModel;
 use verbb\formie\models\PaymentDecision;
+use verbb\formie\models\PaymentMoney;
 use verbb\formie\models\Plan;
 
 use Craft;
@@ -111,7 +112,7 @@ class PayWay extends Payment
         ]);
     }
 
-    public function processPayment(Submission $submission): PaymentDecision
+    protected function executePayment(Submission $submission): PaymentDecision
     {
         $mutex = Craft::$app->getMutex();
         $lock = 'formie.payway.' . hash('sha256', $submission->id . ':' . $this->getField()?->id);
@@ -135,7 +136,7 @@ class PayWay extends Payment
             throw new Exception('Invalid PayWay payment context.');
         }
         $response = $this->request('GET', 'transactions/' . rawurlencode($payment->reference));
-        $this->_validateTransaction($response, $submission, (float)$payment->amount, (string)$payment->currency);
+        $this->_validateTransaction($response, $submission, (string)$payment->amount, (string)$payment->currency);
         if ((string)$response['transactionId'] !== $payment->reference) {
             throw new DeliveryOutcomeUnknownException('PayWay returned a different transaction.');
         }
@@ -334,7 +335,7 @@ class PayWay extends Payment
             ]);
             $this->trigger(self::EVENT_MODIFY_PAYLOAD, $event);
 
-            $this->_validateTransaction(['transactionId' => 'request'] + $event->payload, $submission, (float)$amount, (string)$currency);
+            $this->_validateTransaction(['transactionId' => 'request'] + $event->payload, $submission, (string)$amount, (string)$currency);
 
             // PayWay retains idempotency keys for 24 hours; leave a safety margin.
             $response = (new DeliveryAttempt((int)$submission->id, 'payway:' . $this->id . ':' . $field->id, (string)$submission->uid))->execute(
@@ -347,8 +348,8 @@ class PayWay extends Payment
                 fn(array $data) => (string)($data['transactionId'] ?? ''),
                 fn(string $reference) => $this->request('GET', 'transactions/' . rawurlencode($reference)),
             );
-            $this->_validateTransaction($response, $submission, (float)$amount, (string)$currency);
-            $payment = Formie::$plugin->getPayments()->getPaymentByReference((string)$response['transactionId']);
+            $this->_validateTransaction($response, $submission, (string)$amount, (string)$currency);
+            $payment = Formie::$plugin->getPayments()->getPaymentByReference((string)$response['transactionId'], $this->id);
             if ($payment && ($payment->submissionId !== $submission->id || $payment->fieldId !== $field->id || $payment->integrationId !== $this->id)) {
                 throw new DeliveryOutcomeUnknownException('PayWay transaction belongs to another payment.');
             }
@@ -359,7 +360,7 @@ class PayWay extends Payment
                 $status = 'pending';
             }
 
-            $payment ??= new PaymentModel();
+            $payment ??= Formie::$plugin->getPayments()->prepareAttempt($this, $submission);
             $payment->integrationId = $this->id;
             $payment->submissionId = $submission->id;
             $payment->fieldId = $field->id;
@@ -383,7 +384,7 @@ class PayWay extends Payment
 
             $result = $status === 'approved' || $status === 'approved*';
         } catch (DeliveryOutcomeUnknownException $e) {
-            return PaymentDecision::pending($e->getMessage(), $this->handle);
+            return PaymentDecision::unknown($e->getMessage(), $this->handle);
         } catch (Throwable $e) {
             $message = $this->getFriendlyPaymentErrorMessage($e);
             $this->addFieldError($submission, Craft::t('formie', 'A payment error has occurred “{message}”.', ['message' => $message]));
@@ -408,12 +409,12 @@ class PayWay extends Payment
         return PaymentDecision::succeeded($this->handle);
     }
 
-    private function _validateTransaction(array $response, Submission $submission, float $amount, string $currency): void
+    private function _validateTransaction(array $response, Submission $submission, string|int|float $amount, string $currency): void
     {
         if (empty($response['transactionId'])
             || strtolower((string)($response['currency'] ?? '')) !== strtolower($currency)
             || !isset($response['principalAmount']) || !is_numeric($response['principalAmount'])
-            || number_format((float)$response['principalAmount'], 2, '.', '') !== number_format($amount, 2, '.', '')
+            || PaymentMoney::fromDecimal((string)$response['principalAmount'], $currency)->decimal() !== PaymentMoney::fromDecimal((string)$amount, $currency)->decimal()
             || (string)($response['orderNumber'] ?? '') !== (string)$submission->id
             || (string)($response['customerNumber'] ?? '') !== (string)$submission->id
             || ($response['transactionType'] ?? '') !== 'payment') {

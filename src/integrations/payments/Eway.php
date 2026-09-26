@@ -21,6 +21,7 @@ use verbb\formie\models\ClientModuleContext;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Payment as PaymentModel;
 use verbb\formie\models\PaymentDecision;
+use verbb\formie\models\PaymentMoney;
 use verbb\formie\models\Plan;
 
 use Craft;
@@ -103,7 +104,7 @@ class Eway extends Payment
         ]);
     }
 
-    public function processPayment(Submission $submission): PaymentDecision
+    protected function executePayment(Submission $submission): PaymentDecision
     {
         if (!$this->beforeProcessPayment($submission)) {
             return PaymentDecision::notRequired();
@@ -473,9 +474,9 @@ class Eway extends Payment
         return $result ? PaymentDecision::succeeded($this->handle) : PaymentDecision::failed(null, $this->handle);
     }
 
-    private function _minorAmount(float $amount, string $currency): int
+    private function _minorAmount(string|int|float $amount, string $currency): int
     {
-        return (int)round($amount * (10 ** (new ISOCurrencies())->subunitFor(new Currency($currency))));
+        return PaymentMoney::fromDecimal((string)$amount, $currency)->integer();
     }
 
     private function _normalizeExpiry(string $expiryDate): array

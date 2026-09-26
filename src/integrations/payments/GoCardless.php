@@ -5,11 +5,15 @@ use verbb\formie\Formie;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Payment;
 use verbb\formie\elements\Submission;
+use verbb\formie\enums\PaymentResumeMode;
+use verbb\formie\errors\DeliveryOutcomeUnknownException;
 use verbb\formie\events\ModifyPaymentPayloadEvent;
 use verbb\formie\events\PaymentReceiveWebhookEvent;
 use verbb\formie\fields;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\DeliveryAttempt;
 use verbb\formie\helpers\PaymentAccess;
+use verbb\formie\helpers\PaymentWebhookReceipt;
 use verbb\formie\helpers\References;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\ClientModule;
@@ -17,6 +21,8 @@ use verbb\formie\models\ClientModuleContext;
 use verbb\formie\models\Payment as PaymentModel;
 use verbb\formie\models\PaymentAction;
 use verbb\formie\models\PaymentDecision;
+use verbb\formie\models\PaymentMoney;
+use verbb\formie\models\payments\PaymentWebhookCommand;
 use verbb\formie\models\Subscription;
 
 use Craft;
@@ -26,6 +32,7 @@ use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 use craft\web\Response;
 
+use DateTime;
 use Exception;
 use Throwable;
 
@@ -80,7 +87,7 @@ class GoCardless extends Payment
 
     public function getReturnUrl(array $params = []): string
     {
-        $endpoint = 'formie/payment-webhooks/status';
+        $endpoint = 'formie/payment-return/index';
 
         if (Craft::$app->getConfig()->getGeneral()->headlessMode) {
             $url = UrlHelper::actionUrl($endpoint, $params);
@@ -108,14 +115,14 @@ class GoCardless extends Payment
         ]);
     }
 
-    public function processPayment(Submission $submission): PaymentDecision
+    protected function executePayment(Submission $submission): PaymentDecision
     {
         $response = null;
         $field = $this->getField();
         $amount = $this->getAmount($submission);
         $currency = (string)$this->getFieldSetting('currency');
 
-        $payment = new PaymentModel();
+        $payment = Formie::$plugin->getPayments()->prepareAttempt($this, $submission);
         $payment->integrationId = $this->id;
         $payment->submissionId = $submission->id;
         $payment->fieldId = $field->id;
@@ -133,7 +140,7 @@ class GoCardless extends Payment
             Formie::$plugin->getPayments()->savePayment($payment);
 
             $returnUrl = $this->getReturnUrl([
-                'statusToken' => PaymentAccess::issueStatusToken($payment),
+                'statusToken' => PaymentAccess::issueStatusToken($payment, mode: PaymentResumeMode::RECONCILE),
             ]);
 
             $billingRequestPayload = $this->_buildBillingRequestPayload($payment, $submission);
@@ -145,9 +152,7 @@ class GoCardless extends Payment
             ]);
             $this->trigger(self::EVENT_MODIFY_PAYLOAD, $event);
 
-            $response = $this->request('POST', 'billing_requests', [
-                'json' => ['billing_requests' => $event->payload],
-            ]);
+            $response = $this->_createResourceOnce($payment, 'billing_requests', $event->payload, '-billing-request');
             $billingRequest = $response['billing_requests'] ?? [];
 
             if (empty($billingRequest['id'])) {
@@ -156,17 +161,10 @@ class GoCardless extends Payment
 
             $this->_collectBillingCustomerDetails((string)$billingRequest['id'], $submission);
 
-            $flowResponse = $this->request('POST', 'billing_request_flows', [
-                'json' => [
-                    'billing_request_flows' => [
-                        'redirect_uri' => $returnUrl,
-                        'exit_uri' => $returnUrl,
-                        'links' => [
-                            'billing_request' => $billingRequest['id'],
-                        ],
-                    ],
-                ],
-            ]);
+            $flowResponse = $this->_createResourceOnce($payment, 'billing_request_flows', [
+                'redirect_uri' => $returnUrl, 'exit_uri' => $returnUrl,
+                'links' => ['billing_request' => $billingRequest['id']],
+            ], '-billing-flow');
             $flow = $flowResponse['billing_request_flows'] ?? [];
             $authorisationUrl = (string)($flow['authorisation_url'] ?? '');
 
@@ -212,26 +210,28 @@ class GoCardless extends Payment
             $userMessage = Craft::t('formie', 'Unable to process your payment right now. Please try again.');
             $this->addFieldError($submission, $userMessage);
 
-            $payment->status = PaymentModel::STATUS_FAILED;
+            $payment->status = PaymentModel::STATUS_UNKNOWN;
             $payment->response = ['message' => $userMessage];
 
             Formie::$plugin->getPayments()->savePayment($payment);
 
-            return PaymentDecision::failed($userMessage, $this->handle, $payment->reference);
+            return PaymentDecision::unknown($userMessage, $this->handle, $payment->reference);
         }
     }
 
-    public function processWebhook(): Response
+    public function processWebhook(?PaymentWebhookCommand $command = null): Response
     {
-        $rawBody = Craft::$app->getRequest()->getRawBody();
+        $command ??= PaymentWebhookCommand::fromRequest((int)$this->id);
+        $rawBody = $command->body;
         $response = Craft::$app->getResponse();
         $response->format = Response::FORMAT_RAW;
         $secret = trim((string)App::parseEnv($this->webhookSecretKey));
-        $signature = trim((string)(Craft::$app->getRequest()->getHeaders()->get('Webhook-Signature') ?? ''));
+        $signature = trim((string)($command->header('Webhook-Signature') ?? ''));
 
         if (!$secret || !$signature) {
             Integration::error($this, 'Webhook not signed or signing secret not set.');
-            $response->data = 'success';
+            $response->setStatusCode(400);
+            $response->data = 'error';
 
             return $response;
         }
@@ -240,7 +240,8 @@ class GoCardless extends Payment
 
         if (!hash_equals($expectedSignature, $signature)) {
             Integration::error($this, 'Webhook signature check failed.');
-            $response->data = 'success';
+            $response->setStatusCode(400);
+            $response->data = 'error';
 
             return $response;
         }
@@ -250,33 +251,31 @@ class GoCardless extends Payment
             $events = $payload['events'] ?? [];
 
             foreach ($events as $event) {
-                $resourceType = (string)($event['resource_type'] ?? '');
-                $action = (string)($event['action'] ?? '');
-
-                if ($resourceType === 'payments') {
-                    $this->_processPaymentWebhookEvent($event);
-                    continue;
-                }
-
-                if ($resourceType === 'billing_requests') {
-                    $this->_processBillingRequestWebhookEvent($event, $action);
-                    continue;
-                }
-
-                if ($resourceType === 'subscriptions') {
-                    $this->_processSubscriptionWebhookEvent($event, $action);
-                }
-            }
-
-            if ($this->hasEventHandlers(self::EVENT_RECEIVE_WEBHOOK)) {
-                $this->trigger(self::EVENT_RECEIVE_WEBHOOK, new PaymentReceiveWebhookEvent([
-                    'webhookData' => $payload,
-                ]));
+                PaymentWebhookReceipt::process($this, hash('sha256', (string)App::parseEnv($this->accessToken)), (string)($event['id'] ?? ''), $rawBody, ['Webhook-Signature' => $signature], function () use ($event): bool {
+                    $resourceType = (string)($event['resource_type'] ?? '');
+                    $action = (string)($event['action'] ?? '');
+                    switch ($resourceType) {
+                        case 'payments':
+                            $this->_processPaymentWebhookEvent($event);
+                            break;
+                        case 'billing_requests':
+                            $this->_processBillingRequestWebhookEvent($event, $action);
+                            break;
+                        case 'subscriptions':
+                            $this->_processSubscriptionWebhookEvent($event, $action);
+                            break;
+                        default:
+                            return false;
+                    }
+                    $this->trigger(self::EVENT_RECEIVE_WEBHOOK, new PaymentReceiveWebhookEvent(['webhookData' => ['events' => [$event]]]));
+                    return true;
+                }, Json::encode($event));
             }
 
             $response->data = 'success';
         } catch (Throwable $e) {
             Integration::apiError($this, $e, false);
+            $response->setStatusCode(500);
             $response->data = 'error';
         }
 
@@ -285,21 +284,17 @@ class GoCardless extends Payment
 
     public function getTransaction(PaymentModel $payment): void
     {
-        if (!$payment->reference) {
-            throw new Exception('Missing GoCardless payment reference.');
+        if ((int)$payment->integrationId !== (int)$this->id) { throw new Exception('Payment provider mismatch.'); }
+        if ($field = $payment->getField()) { $this->setField($field); }
+        if ($payment->subscriptionId && $payment->reference) {
+            $this->_refreshGoCardlessSubscription($payment);
+        } elseif (!$payment->reference) {
+            $this->_syncPaymentFromBillingRequestReturn($payment);
+        } else {
+            $remote = $this->request('GET', 'payments/' . rawurlencode($payment->reference))['payments'] ?? [];
+            if (!$remote) { throw new Exception('Unable to resolve GoCardless payment.'); }
+            $this->_updatePaymentStatus($payment, $remote);
         }
-
-        if (in_array($payment->status, [PaymentModel::STATUS_SUCCESS, PaymentModel::STATUS_FAILED], true)) {
-            return;
-        }
-
-        $gcPayment = $this->request('GET', "payments/{$payment->reference}")['payments'] ?? [];
-
-        if (!$gcPayment) {
-            throw new Exception('Unable to resolve GoCardless payment.');
-        }
-
-        $this->_updatePaymentStatus($payment, $gcPayment);
     }
 
     public function getTransactionStatus(PaymentModel $payment): void
@@ -338,7 +333,7 @@ class GoCardless extends Payment
                 return null;
             }
 
-            $subscription = Formie::$plugin->getSubscriptions()->getSubscriptionByReference($reference);
+            $subscription = Formie::$plugin->getSubscriptions()->getSubscriptionByReference($reference, $this->id);
 
             if ($subscription) {
                 $subscription->subscriptionData = $response;
@@ -738,16 +733,6 @@ class GoCardless extends Payment
 
     private function _resolveBillingRequestId(PaymentModel $payment): ?string
     {
-        $request = Craft::$app->getRequest();
-
-        if ($request->getIsWebRequest()) {
-            $queryBillingRequestId = trim((string)$request->getParam('billing_request_id'));
-
-            if ($queryBillingRequestId !== '') {
-                return $queryBillingRequestId;
-            }
-        }
-
         $stored = is_array($payment->response) ? $payment->response : [];
 
         return $stored['billingRequest']['id']
@@ -834,7 +819,7 @@ class GoCardless extends Payment
 
         $payment = Formie::$plugin->getPayments()->getPaymentById((int)$formiePaymentId);
 
-        if (!$payment) {
+        if (!$payment || (int)$payment->integrationId !== (int)$this->id) {
             Integration::error($this, "No Formie payment found for ID: {$formiePaymentId}");
             return;
         }
@@ -867,7 +852,7 @@ class GoCardless extends Payment
 
         $payment = Formie::$plugin->getPayments()->getPaymentById((int)$formiePaymentId);
 
-        if (!$payment) {
+        if (!$payment || (int)$payment->integrationId !== (int)$this->id) {
             Integration::error($this, "No Formie payment found for billing request ID: {$formiePaymentId}");
             return;
         }
@@ -876,6 +861,10 @@ class GoCardless extends Payment
             $this->setField($field);
         }
 
+        $storedId = $payment->response['billingRequest']['id'] ?? null;
+        if ($storedId && $storedId !== $billingRequestId) { throw new Exception('Billing request ownership mismatch.'); }
+        $payment->response = array_merge($payment->response ?? [], ['billingRequest' => $billingRequest]);
+        Formie::$plugin->getPayments()->savePayment($payment);
         $this->_syncPaymentFromBillingRequestReturn($payment);
     }
 
@@ -885,6 +874,12 @@ class GoCardless extends Payment
             return;
         }
 
+        if ((int)$payment->integrationId !== (int)$this->id
+            || ($payment->reference && $payment->reference !== ($gcPayment['id'] ?? null))
+            || (string)($gcPayment['metadata']['formiePaymentId'] ?? '') !== (string)$payment->id
+            || !PaymentMoney::fromMinor((string)($gcPayment['amount'] ?? ''), strtoupper((string)($gcPayment['currency'] ?? '')))->equals(PaymentMoney::fromDecimal($payment->amount, (string)$payment->currency))) {
+            throw new Exception('GoCardless payment ownership or amount could not be verified.');
+        }
         $status = $gcPayment['status'] ?? '';
 
         switch ($status) {
@@ -892,8 +887,10 @@ class GoCardless extends Payment
             case 'paid_out':
                 $payment->status = PaymentModel::STATUS_SUCCESS;
                 break;
-            case 'failed':
             case 'cancelled':
+                $payment->status = PaymentModel::STATUS_CANCELLED;
+                break;
+            case 'failed':
             case 'charged_back':
             case 'customer_approval_denied':
                 $payment->status = PaymentModel::STATUS_FAILED;
@@ -926,7 +923,7 @@ class GoCardless extends Payment
     private function _createGoCardlessPaymentForMandate(PaymentModel $payment, Submission $submission, string $mandateId): array
     {
         $currency = (string)$payment->currency;
-        $amountMinor = $this->_amountToMinorUnits((float)$payment->amount, $currency);
+        $amountMinor = $this->_amountToMinorUnits((string)$payment->amount, $currency);
 
         if ($amountMinor < 1) {
             throw new Exception(Craft::t('formie', 'The payment amount is too small for GoCardless.'));
@@ -970,7 +967,7 @@ class GoCardless extends Payment
         $key = substr($payment->uid . $suffix, 0, 120);
         $fetch = fn(string $id) => $this->request('GET', $resource . '/' . rawurlencode($id));
 
-        return (new \verbb\formie\helpers\DeliveryAttempt((int)$payment->submissionId, 'gocardless:' . $resource, $key, $key))->execute(
+        return (new DeliveryAttempt((int)$payment->submissionId, 'gocardless:' . $resource, $key, $key))->execute(
             $payload,
             function (string $requestKey) use ($resource, $payload, $fetch): array {
                 try {
@@ -987,7 +984,7 @@ class GoCardless extends Payment
                                 try {
                                     return $fetch($error['links']['conflicting_resource_id']);
                                 } catch (Throwable $lookupError) {
-                                    throw new \verbb\formie\errors\DeliveryOutcomeUnknownException('Unable to retrieve the already accepted GoCardless resource.', 0, $lookupError);
+                                    throw new DeliveryOutcomeUnknownException('Unable to retrieve the already accepted GoCardless resource.', 0, $lookupError);
                                 }
                             }
                         }
@@ -1028,7 +1025,7 @@ class GoCardless extends Payment
     private function _createGoCardlessSubscriptionForMandate(PaymentModel $payment, Submission $submission, string $mandateId): array
     {
         $currency = strtoupper((string)$payment->currency);
-        $amountMinor = $this->_amountToMinorUnits((float)$payment->amount, $currency);
+        $amountMinor = $this->_amountToMinorUnits((string)$payment->amount, $currency);
 
         if ($amountMinor < 1) {
             throw new Exception(Craft::t('formie', 'The payment amount is too small for GoCardless.'));
@@ -1067,7 +1064,8 @@ class GoCardless extends Payment
 
     private function _finalizeSubscriptionPayment(PaymentModel $payment, Submission $submission, array $gcSubscription): void
     {
-        $subscription = new Subscription();
+        $subscription = Formie::$plugin->getPayments()->prepareSubscription($this, $submission);
+        $payment = Formie::$plugin->getPayments()->getPaymentById($payment->id);
         $subscription->integrationId = $this->id;
         $subscription->submissionId = $submission->id;
         $subscription->fieldId = $payment->fieldId;
@@ -1121,7 +1119,7 @@ class GoCardless extends Payment
 
         $subscription = $payment->subscriptionId
             ? Formie::$plugin->getSubscriptions()->getSubscriptionById((int)$payment->subscriptionId)
-            : Formie::$plugin->getSubscriptions()->getSubscriptionByReference((string)$subscriptionReference);
+            : Formie::$plugin->getSubscriptions()->getSubscriptionByReference((string)$subscriptionReference, $this->id);
 
         if ($subscription) {
             $subscription->subscriptionData = $gcSubscription;
@@ -1156,16 +1154,18 @@ class GoCardless extends Payment
     {
         $status = (string)($gcSubscription['status'] ?? '');
 
-        $subscription->isCanceled = $status === 'cancelled';
-        $subscription->isExpired = $status === 'finished';
-        $subscription->hasStarted = in_array($status, ['active', 'finished', 'cancelled'], true);
+        $subscription->status = match ($status) {
+            'active' => 'active', 'cancelled' => 'cancelled', 'finished' => 'expired',
+            'pending_customer_approval' => 'pending', 'customer_approval_denied' => 'cancelled',
+            default => 'unknown',
+        };
 
         if ($subscription->isCanceled && !$subscription->dateCanceled) {
-            $subscription->dateCanceled = DateTimeHelper::toDateTime(new \DateTime());
+            $subscription->dateCanceled = DateTimeHelper::toDateTime(new DateTime());
         }
 
         if ($subscription->isExpired && !$subscription->dateExpired) {
-            $subscription->dateExpired = DateTimeHelper::toDateTime(new \DateTime());
+            $subscription->dateExpired = DateTimeHelper::toDateTime(new DateTime());
         }
 
         $nextChargeDate = $gcSubscription['upcoming_payments'][0]['charge_date'] ?? null;
@@ -1177,9 +1177,9 @@ class GoCardless extends Payment
 
     private function _processSubscriptionPaymentWebhook(array $gcPayment, string $gcSubscriptionId): void
     {
-        $subscription = Formie::$plugin->getSubscriptions()->getSubscriptionByReference($gcSubscriptionId);
+        $subscription = Formie::$plugin->getSubscriptions()->getSubscriptionByReference($gcSubscriptionId, $this->id);
 
-        if (!$subscription) {
+        if (!$subscription || (int)$subscription->integrationId !== (int)$this->id) {
             return;
         }
 
@@ -1196,6 +1196,15 @@ class GoCardless extends Payment
         }
 
         $status = (string)($gcPayment['status'] ?? '');
+        Formie::$plugin->getPayments()->recordRecurring($subscription, (string)$gcPayment['id'],
+            PaymentMoney::fromMinor((string)$gcPayment['amount'], strtoupper($gcPayment['currency']))->decimal(),
+            strtoupper($gcPayment['currency']), match ($status) {
+                'confirmed', 'paid_out' => PaymentModel::STATUS_SUCCESS,
+                'cancelled' => PaymentModel::STATUS_CANCELLED,
+                'failed', 'charged_back', 'customer_approval_denied' => PaymentModel::STATUS_FAILED,
+                default => PaymentModel::STATUS_PENDING,
+            }, $gcPayment);
+
 
         if (in_array($status, ['confirmed', 'paid_out'], true) && !empty($gcSubscription['upcoming_payments'][0]['charge_date'])) {
             Formie::$plugin->getSubscriptions()->receivePayment(
@@ -1217,9 +1226,9 @@ class GoCardless extends Payment
             return;
         }
 
-        $subscription = Formie::$plugin->getSubscriptions()->getSubscriptionByReference((string)$resourceId);
+        $subscription = Formie::$plugin->getSubscriptions()->getSubscriptionByReference((string)$resourceId, $this->id);
 
-        if (!$subscription) {
+        if (!$subscription || (int)$subscription->integrationId !== (int)$this->id) {
             return;
         }
 
@@ -1245,7 +1254,7 @@ class GoCardless extends Payment
 
         $payment = Formie::$plugin->getPayments()->getPaymentById((int)$formiePaymentId);
 
-        if (!$payment) {
+        if (!$payment || (int)$payment->integrationId !== (int)$this->id) {
             return;
         }
 
@@ -1256,7 +1265,7 @@ class GoCardless extends Payment
         $this->_refreshGoCardlessSubscription($payment, $gcSubscription);
     }
 
-    private function _amountToMinorUnits(float $amount, string $currencyCode): int
+    private function _amountToMinorUnits(string|int|float $amount, string $currencyCode): int
     {
         $currencyCode = strtoupper($currencyCode);
 
@@ -1265,9 +1274,9 @@ class GoCardless extends Payment
             $currency = new Currency($currencyCode);
             $subunit = $currencies->subunitFor($currency);
 
-            return (int)round($amount * (10 ** $subunit));
+            return PaymentMoney::fromDecimal((string)$amount, $currencyCode)->integer();
         } catch (Throwable) {
-            return (int)round($amount * 100);
+            return PaymentMoney::fromDecimal((string)$amount, $currencyCode)->integer();
         }
     }
 }

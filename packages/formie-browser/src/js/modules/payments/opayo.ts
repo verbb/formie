@@ -3,6 +3,7 @@ import opayoCss from '#theme-css/integrations/_opayo.css?inline';
 import { definePaymentModule } from '#modules/payments/api';
 import { ensureModuleStyles } from '#modules/styles';
 import { createDebug } from '#utils/debug';
+import { appendFormCsrfToFormData } from '#utils/csrf';
 import { getPaymentProviderActionEventName } from '#utils/event-names';
 import { loadScriptAndEnsureGlobal } from '#utils/scripts';
 
@@ -82,8 +83,8 @@ async function requestMerchantSessionKey(args: {
 }): Promise<string | null> {
     const { form, handle, sessionToken, services } = args;
     const formData = new FormData();
-    formData.append('action', 'formie/payment-webhooks/process-callback');
-    formData.append('merchantSessionKey', 'true');
+    appendFormCsrfToFormData(formData, form);
+    formData.set('action', 'formie/payment-sessions/initialize');
     formData.append('handle', handle);
     formData.append('sessionToken', sessionToken);
 
@@ -108,7 +109,7 @@ async function requestMerchantSessionKey(args: {
 
         if (!merchantSessionKey) {
             services.addError('Unable to get merchant session.');
-            debug.warn('merchantSessionKey missing in callback response.');
+            debug.warn('merchantSessionKey missing in session response.');
 
             return null;
         }

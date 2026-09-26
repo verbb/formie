@@ -11,6 +11,7 @@ use verbb\formie\enums\SubmissionAuthorityType;
 use verbb\formie\enums\SubmissionOperation;
 use verbb\formie\enums\SubmissionOutcomeType;
 use verbb\formie\enums\SubmissionPolicy;
+use verbb\formie\errors\StateConflict;
 use verbb\formie\errors\SubmissionUnavailableException;
 use verbb\formie\helpers\ClientEventsHelper;
 use verbb\formie\helpers\StringHelper;
@@ -18,12 +19,13 @@ use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\ManagedSubmissionRequest;
 use verbb\formie\models\Payment as PaymentModel;
 use verbb\formie\models\PaymentDecision;
+use verbb\formie\models\Settings;
 use verbb\formie\models\SubmissionAuthority;
 use verbb\formie\models\SubmissionCommand;
 use verbb\formie\models\SubmissionExecutionResult;
 use verbb\formie\models\SubmissionOutcome;
-use verbb\formie\models\SubmissionResponse;
 use verbb\formie\models\SubmissionProgress as ProgressState;
+use verbb\formie\models\SubmissionResponse;
 
 use Craft;
 use craft\helpers\UrlHelper;
@@ -181,7 +183,7 @@ class SubmissionProcessor extends Component
 
     public function replayPaymentIfSuccessful(PaymentModel $payment): ?SubmissionExecutionResult
     {
-        if ($payment->status !== PaymentModel::STATUS_SUCCESS) {
+        if ($payment->status !== PaymentModel::STATUS_SUCCESS && ($payment->scope['providerOutcome']['status'] ?? null) !== PaymentModel::STATUS_SUCCESS) {
             return null;
         }
 
@@ -376,7 +378,7 @@ class SubmissionProcessor extends Component
             if ($guardReason !== null) {
                 // Cheap bot checks can deliberately fake success, but never persist posted input.
                 return new SubmissionOutcome(SubmissionOutcomeType::REJECTED, data: [
-                    'fakeSuccess' => Formie::$plugin->getSettings()->spamBehaviour === \verbb\formie\models\Settings::SPAM_BEHAVIOUR_SUCCESS,
+                    'fakeSuccess' => Formie::$plugin->getSettings()->spamBehaviour === Settings::SPAM_BEHAVIOUR_SUCCESS,
                 ]);
             }
             if ($command->isInteractive() && $command->submission->id) {
@@ -388,7 +390,7 @@ class SubmissionProcessor extends Component
             if ($command->isInteractive() && !$command->submission->id) {
                 $current = Formie::$plugin->getSubmissionProgress()->getProgressState($command->form);
                 if ($current?->submissionId && $command->form->settings->automaticSubmissionState) {
-                    throw new \verbb\formie\errors\StateConflict($current->version);
+                    throw new StateConflict($current->version);
                 }
             }
             $populate();
@@ -632,8 +634,9 @@ class SubmissionProcessor extends Component
 
         if (!$response->success) {
             $paymentFollowUpRequired = in_array($response->paymentStatus, [
-                PaymentDecision::STATUS_ACTION_REQUIRED,
-                PaymentDecision::STATUS_PENDING,
+                PaymentDecision::STATUS_ACTION_REQUIRED->value,
+                PaymentDecision::STATUS_UNKNOWN->value,
+                PaymentDecision::STATUS_PENDING->value,
             ], true);
 
             if ($paymentFollowUpRequired) {
@@ -711,8 +714,9 @@ class SubmissionProcessor extends Component
         $fields = [
             'paymentStatus' => $response->paymentStatus,
             'keepSubmitLoading' => in_array($response->paymentStatus, [
-                PaymentDecision::STATUS_ACTION_REQUIRED,
-                PaymentDecision::STATUS_PENDING,
+                PaymentDecision::STATUS_ACTION_REQUIRED->value,
+                PaymentDecision::STATUS_UNKNOWN->value,
+                PaymentDecision::STATUS_PENDING->value,
             ], true),
         ];
 

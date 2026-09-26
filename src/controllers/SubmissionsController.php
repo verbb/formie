@@ -3,8 +3,11 @@ namespace verbb\formie\controllers;
 
 use verbb\formie\Formie;
 use verbb\formie\base\Field;
+use verbb\formie\client\models\PageTransitionRequest;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\enums\SubmissionAuthorityType;
+use verbb\formie\enums\SubmissionOperation;
 use verbb\formie\errors\SubmissionUnavailableException;
 use verbb\formie\helpers\ClientEventsHelper;
 use verbb\formie\helpers\ConditionsHelper;
@@ -12,32 +15,33 @@ use verbb\formie\helpers\References;
 use verbb\formie\helpers\SetPageReturnUrlHelper;
 use verbb\formie\helpers\SiteHelper;
 use verbb\formie\helpers\StringHelper;
-use verbb\formie\helpers\TypeHelper;
 use verbb\formie\helpers\Table;
+use verbb\formie\helpers\TypeHelper;
 use verbb\formie\helpers\UrlHelper as FormieUrlHelper;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\IntegrationResponse;
 use verbb\formie\models\ManagedSubmissionRequest;
+use verbb\formie\models\PaymentDecision;
 use verbb\formie\models\Settings;
 use verbb\formie\models\SubmissionCommand;
-use verbb\formie\enums\SubmissionOperation;
-use verbb\formie\enums\SubmissionAuthorityType;
 use verbb\formie\models\SubmissionResponse;
-use verbb\formie\models\PaymentDecision;
 use verbb\formie\services\SubmissionProgress;
 use verbb\formie\services\SubmissionWorkflow;
+
 use Craft;
+use craft\db\Query;
 use craft\helpers\Html;
 use craft\helpers\UrlHelper;
 use craft\models\Site;
 use craft\web\Controller;
-use craft\db\Query;
 
 use yii\web\BadRequestHttpException;
 use yii\web\ForbiddenHttpException;
 use yii\web\HttpException;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
+
+use InvalidArgumentException;
 
 class SubmissionsController extends Controller
 {
@@ -557,7 +561,7 @@ class SubmissionsController extends Controller
             $form->setDraftContext($draftContext);
         }
 
-        $session = Formie::$plugin->getClientSessionService()->persistPageState(new \verbb\formie\client\models\PageTransitionRequest([
+        $session = Formie::$plugin->getClientSessionService()->persistPageState(new PageTransitionRequest([
             'handle' => $handle,
             'targetPageId' => (string)$pageId,
             'session' => [
@@ -809,8 +813,9 @@ class SubmissionsController extends Controller
             $payload['errors'] = $submission->getErrors();
             $payload['errors'] = StringHelper::sanitizeMessageHtmlRecursive($payload['errors']);
             $payload['keepSubmitLoading'] = in_array($response->paymentStatus, [
-                PaymentDecision::STATUS_ACTION_REQUIRED,
-                PaymentDecision::STATUS_PENDING,
+                PaymentDecision::STATUS_ACTION_REQUIRED->value,
+                PaymentDecision::STATUS_UNKNOWN->value,
+                PaymentDecision::STATUS_PENDING->value,
             ], true);
 
             if ($response->paymentRedirectUrl) {
@@ -1106,7 +1111,7 @@ class SubmissionsController extends Controller
 
         try {
             return TypeHelper::parseTypedParam($value, $type, $default);
-        } catch (\InvalidArgumentException $e) {
+        } catch (InvalidArgumentException $e) {
             throw new BadRequestHttpException('Request has invalid param ' . $name, 0, $e);
         }
     }

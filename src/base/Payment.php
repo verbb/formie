@@ -5,23 +5,23 @@ use verbb\formie\Formie;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyPaymentCurrencyOptionsEvent;
-use verbb\formie\events\PaymentIntegrationProcessEvent;
 use verbb\formie\events\PaymentCallbackEvent;
+use verbb\formie\events\PaymentIntegrationProcessEvent;
 use verbb\formie\events\PaymentWebhookEvent;
 use verbb\formie\fields\Payment as PaymentField;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\FieldReferenceHelper;
-use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\PaymentAmountHelper;
 use verbb\formie\helpers\References;
-use verbb\formie\models\Payment as PaymentRecordModel;
-use verbb\formie\models\PaymentDecision;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\ClientModule;
 use verbb\formie\models\ClientModuleContext;
-use verbb\formie\models\SlotTag;
 use verbb\formie\models\Notification;
 use verbb\formie\models\Payment as PaymentModel;
+use verbb\formie\models\PaymentDecision;
 use verbb\formie\models\PaymentFieldPayload;
+use verbb\formie\models\payments\PaymentWebhookCommand;
+use verbb\formie\models\SlotTag;
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
@@ -35,11 +35,11 @@ use yii\web\BadRequestHttpException;
 use yii\web\Response;
 
 use NumberFormatter;
+use RuntimeException;
 use Throwable;
 
-use Twig\Markup;
-
 use Money\Currencies\ISOCurrencies;
+use Twig\Markup;
 
 abstract class Payment extends Integration
 {
@@ -144,17 +144,6 @@ abstract class Payment extends Integration
         return $defaults;
     }
 
-    public function processPayment(Submission $submission): PaymentDecision
-    {
-        return PaymentDecision::notRequired();
-    }
-
-    public function resolvePaymentDecision(Submission $submission): PaymentDecision
-    {
-        return $this->processPayment($submission);
-    }
-
-
     // Properties
     // =========================================================================
 
@@ -165,6 +154,70 @@ abstract class Payment extends Integration
 
     // Public Methods
     // =========================================================================
+
+    public function processPayment(Submission $submission): PaymentDecision
+    {
+        $lock = 'formie.payment-execution.' . $submission->id . '.' . $this->id . '.' . $this->getField()?->id;
+        $mutex = Craft::$app->getMutex();
+        if (!$mutex->acquire($lock, 10)) {
+            return PaymentDecision::pending('Payment is already being processed.', $this->handle);
+        }
+        $payment = null;
+        $db = Craft::$app->getDb();
+        $enableSlaves = $db->enableSlaves;
+        $db->enableSlaves = false;
+        try {
+            if (Craft::$app->getDb()->getTransaction()?->getIsActive()) {
+                throw new RuntimeException('Commit the submission before provider execution.');
+            }
+            $payments = Formie::$plugin->getPayments();
+            $payment = $payments->prepareAttempt($this, $submission);
+            if ($payment->status === PaymentModel::STATUS_SUCCESS || ($payment->scope['providerOutcome']['status'] ?? null) === PaymentModel::STATUS_SUCCESS) {
+                return PaymentDecision::succeeded($this->handle, $payment->reference);
+            }
+            if (!($payment->scope['initial'] ?? false)) {
+                $payment->status = PaymentModel::STATUS_UNKNOWN;
+                $payments->savePayment($payment);
+                return PaymentDecision::unknown('The provider outcome requires reconciliation.', $this->handle, $payment->reference);
+            }
+            if ($payment->status === PaymentModel::STATUS_CANCELLED) {
+                return PaymentDecision::cancelled($payment->message, $this->handle, $payment->reference);
+            }
+            if ($this->getFieldSetting('type') === self::PAYMENT_TYPE_SUBSCRIPTION) {
+                $payments->prepareSubscription($this, $submission);
+            }
+            $decision = $this->executePayment($submission);
+            $payment = $payments->getPaymentById($payment->id);
+            $payment->status = match ($decision->status) {
+                PaymentDecision::STATUS_SUCCEEDED => PaymentModel::STATUS_SUCCESS,
+                PaymentDecision::STATUS_FAILED => PaymentModel::STATUS_FAILED,
+                PaymentDecision::STATUS_CANCELLED => PaymentModel::STATUS_CANCELLED,
+                PaymentDecision::STATUS_UNKNOWN => PaymentModel::STATUS_UNKNOWN,
+                PaymentDecision::STATUS_ACTION_REQUIRED => $payment->status,
+                default => $payment->status,
+            };
+            $payments->savePayment($payment);
+            return $decision;
+        } catch (Throwable $e) {
+            if ($payment) {
+                $payment = Formie::$plugin->getPayments()->getPaymentById($payment->id);
+                $payment->status = PaymentModel::STATUS_UNKNOWN;
+                $payment->message = 'Provider outcome requires reconciliation.';
+                Formie::$plugin->getPayments()->savePayment($payment);
+            }
+            return $payment ? PaymentDecision::unknown('Unable to confirm the payment outcome.', $this->handle, $payment->reference)
+                : PaymentDecision::failed('Unable to establish the payment amount and ownership.', $this->handle);
+        } finally {
+            $db->enableSlaves = $enableSlaves;
+            $mutex->release($lock);
+        }
+    }
+
+
+    public function resolvePaymentDecision(Submission $submission): PaymentDecision
+    {
+        return $this->processPayment($submission);
+    }
 
     public function getType(): string
     {
@@ -340,7 +393,7 @@ abstract class Payment extends Integration
         return StringHelper::toCamelCase($this->handle . 'Payment');
     }
 
-    public function getAmount(Submission $submission): float
+    public function getAmount(Submission $submission): string|int|float
     {
         $amount = 0;
         $amountType = $this->getFieldSetting('amountType');
@@ -375,12 +428,12 @@ abstract class Payment extends Integration
      * Resolve the amount in the major currency units stored on payment records.
      * Providers whose getAmount() returns API units must convert them here.
      */
-    public function getPaymentAmount(Submission $submission): float
+    public function getPaymentAmount(Submission $submission): string|int|float
     {
         return $this->getAmount($submission);
     }
 
-    public function processWebhooks(): Response
+    public function processWebhooks(?PaymentWebhookCommand $command = null): Response
     {
         $response = null;
 
@@ -393,7 +446,9 @@ abstract class Payment extends Integration
 
         try {
             if ($this->supportsWebhooks()) {
-                $response = $this->processWebhook();
+                $command ??= PaymentWebhookCommand::fromRequest($this->id);
+                if ($command->integrationId !== $this->id) { throw new BadRequestHttpException('Webhook integration mismatch.'); }
+                $response = $this->processWebhook($command);
             } else {
                 throw new BadRequestHttpException('Integration does not support webhooks.');
             }
@@ -460,12 +515,12 @@ abstract class Payment extends Integration
         return $response;
     }
 
-    public function getTransaction(PaymentRecordModel $payment): void
+    public function getTransaction(PaymentModel $payment): void
     {
 
     }
 
-    public function getTransactionStatus(PaymentRecordModel $payment): void
+    public function getTransactionStatus(PaymentModel $payment): void
     {
 
     }
@@ -499,6 +554,11 @@ abstract class Payment extends Integration
 
     // Protected Methods
     // =========================================================================
+
+    protected function executePayment(Submission $submission): PaymentDecision
+    {
+        return PaymentDecision::notRequired();
+    }
 
     protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
     {

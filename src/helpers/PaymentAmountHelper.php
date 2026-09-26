@@ -1,21 +1,23 @@
 <?php
 namespace verbb\formie\helpers;
 
+use InvalidArgumentException;
+
 class PaymentAmountHelper
 {
     // Static Methods
     // =========================================================================
 
-    public static function parseAmount(mixed $value): float
+    public static function parseAmount(mixed $value): string
     {
         if (is_int($value) || is_float($value)) {
-            return (float)$value;
+            return (string)$value;
         }
 
         $string = trim((string)$value);
 
         if ($string === '') {
-            return 0.0;
+            return '0';
         }
 
         $symbols = ['$', '€', '£', '¥', '₣', '₹', '₻', '₽', '₾', '₺', '₼', '₸', '฿', '원', '₫', '₱', '₳', '₵'];
@@ -25,7 +27,7 @@ class PaymentAmountHelper
         $sanitized = preg_replace('/[^\d.,-]/', '', $string) ?? '';
 
         if ($sanitized === '' || $sanitized === '-') {
-            return 0.0;
+            return '0';
         }
 
         $hasComma = str_contains($sanitized, ',');
@@ -50,6 +52,10 @@ class PaymentAmountHelper
             $sanitized = str_replace(',', '', $sanitized);
         }
 
-        return (float)$sanitized;
+        if (!preg_match('/^-?[0-9]+(?:\.[0-9]+)?$/D', $sanitized)) {
+            throw new InvalidArgumentException('Invalid payment amount.');
+        }
+
+        return $sanitized;
     }
 }

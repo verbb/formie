@@ -32,4 +32,16 @@ $check($notification !== null && $notification->name === 'Receipt' && !$notifica
 $check(str_contains((string)\verbb\formie\helpers\References::parseContent($notification->subject, $submission), 'Synthetic Ada'), 'migrated notification field reference resolves original content');
 $check(\verbb\formie\helpers\References::parseContent($notification->getParsedContent(), $submission) === '<p>Saved Synthetic Ada</p>', 'notification body preserves its content and field value');
 $check($app->getElements()->saveElement($submission, false) && $submission->stateVersion > 0, 'saving an upgraded submission advances its version');
+foreach (['active' => 'active', 'cancelled' => 'cancelled', 'ambiguous' => 'unknown'] as $legacy => $expected) {
+    $subscription = Formie::$plugin->getSubscriptions()->getSubscriptionById($fixture['subscriptionIds'][$legacy]);
+    $check($subscription->status === $expected && !empty($subscription->history), 'legacy ' . $legacy . ' subscription has a coherent status and retained history');
+}
+foreach (['success' => 'success', 'pending' => 'unknown'] as $legacy => $expected) {
+    $payment = Formie::$plugin->getPayments()->getPaymentById($fixture['paymentIds'][$legacy]);
+    $check($payment->status === $expected && $payment->amount === '25.0100', 'exact legacy amount and ' . $legacy . ' payment certainty survived');
+}
+$app->getDb()->createCommand()->delete(\verbb\formie\helpers\Table::FORMIE_SUBSCRIPTIONS, ['id' => $fixture['subscriptionIds']['active']])->execute();
+$payment = Formie::$plugin->getPayments()->getPaymentById($fixture['paymentIds']['success']);
+$check($payment && $payment->subscriptionId === null && $payment->scope['subscriptionId'] === $fixture['subscriptionIds']['active'], 'upgraded payment history and owner snapshot survive subscription deletion');
+$check($app->getDb()->tableExists(\verbb\formie\helpers\Table::FORMIE_WEBHOOK_RECEIPTS), 'encrypted receipt storage exists after populated upgrade');
 echo "Populated Formie 3 → current Formie upgrade contract passed.\n";

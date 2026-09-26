@@ -12,13 +12,14 @@ use verbb\formie\fields;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\DeliveryAttempt;
 use verbb\formie\helpers\PaymentAttempt;
-use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\References;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\ClientModule;
 use verbb\formie\models\ClientModuleContext;
 use verbb\formie\models\Payment as PaymentModel;
 use verbb\formie\models\PaymentAction;
 use verbb\formie\models\PaymentDecision;
+use verbb\formie\models\PaymentMoney;
 use verbb\formie\models\Plan;
 
 use Craft;
@@ -37,7 +38,6 @@ use Throwable;
 use GuzzleHttp\Client;
 use Money\Currencies\ISOCurrencies;
 use Money\Currency;
-
 
 class Paddle extends Payment
 {
@@ -97,7 +97,7 @@ class Paddle extends Payment
         ]);
     }
 
-    public function processPayment(Submission $submission): PaymentDecision
+    protected function executePayment(Submission $submission): PaymentDecision
     {
         if (!$this->beforeProcessPayment($submission)) {
             return PaymentDecision::notRequired();
@@ -120,7 +120,12 @@ class Paddle extends Payment
         $transaction = $this->request('GET', 'transactions/' . rawurlencode($payment->reference))['data'] ?? [];
         $this->_verifyTransaction($payment, $transaction);
         $payment->response = $transaction;
-        $payment->status = PaymentModel::STATUS_SUCCESS;
+        $payment->status = match ($transaction['status'] ?? null) {
+            'paid', 'completed' => PaymentModel::STATUS_SUCCESS,
+            'canceled' => PaymentModel::STATUS_CANCELLED,
+            'draft', 'ready', 'billed', 'past_due' => PaymentModel::STATUS_PENDING,
+            default => PaymentModel::STATUS_UNKNOWN,
+        };
 
         if (!Formie::$plugin->getPayments()->savePayment($payment)) {
             throw new Exception('Unable to save the verified Paddle payment.');
@@ -314,7 +319,12 @@ class Paddle extends Payment
 
             $this->getTransaction($payment);
 
-            return PaymentDecision::succeeded($this->handle, $payment->reference);
+            return match ($payment->status) {
+                PaymentModel::STATUS_SUCCESS => PaymentDecision::succeeded($this->handle, $payment->reference),
+                PaymentModel::STATUS_CANCELLED => PaymentDecision::cancelled(null, $this->handle, $payment->reference),
+                PaymentModel::STATUS_PENDING => PaymentDecision::pending(null, $this->handle, $payment->reference),
+                default => PaymentDecision::unknown(null, $this->handle, $payment->reference),
+            };
         }
 
         if ($payment?->status === PaymentModel::STATUS_SUCCESS) {
@@ -415,7 +425,6 @@ class Paddle extends Payment
         $expected = $this->_minorAmount($payment->amount, $payment->currency);
 
         if (($transaction['id'] ?? null) !== $payment->reference
-            || !in_array($transaction['status'] ?? null, ['paid', 'completed'], true)
             || ($transaction['currency_code'] ?? null) !== $payment->currency
             || !is_array($items) || count($items) !== 1
             || ($items[0]['quantity'] ?? null) !== 1
@@ -423,16 +432,16 @@ class Paddle extends Payment
             || (string)($price['amount'] ?? '') !== $expected
             || !is_string($total) || !ctype_digit($total)
             // Paddle may add tax to the configured price; it may not collect less.
-            || (float)$total < (float)$expected) {
+            || bccomp((string)$total, (string)$expected, 0) < 0) {
             throw new Exception('Paddle has not verified the expected payment.');
         }
     }
 
-    private function _minorAmount(float $amount, string $currency): string
+    private function _minorAmount(string|int|float $amount, string $currency): string
     {
         $digits = (new ISOCurrencies())->subunitFor(new Currency($currency));
 
-        return number_format(round($amount * (10 ** $digits)), 0, '.', '');
+        return PaymentMoney::fromDecimal((string)$amount, $currency)->minor;
     }
 
 

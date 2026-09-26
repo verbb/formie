@@ -15,6 +15,7 @@ use verbb\formie\controllers\AddressController;
 use verbb\formie\controllers\FileUploadController;
 use verbb\formie\controllers\FieldsController;
 use verbb\formie\controllers\PaymentWebhooksController;
+use verbb\formie\controllers\PaymentStatusController;
 use verbb\formie\controllers\PaymentSubscriptionsController;
 use verbb\formie\controllers\TestController;
 use verbb\formie\helpers\FieldAccess;
@@ -119,8 +120,7 @@ function createPaymentFixture(array $overrides = [], bool $stubGateway = false):
 
 function createOpayoCallbackFixture(): Opayo
 {
-    return new class([
-        'id' => random_int(10000, 99999),
+    $integration = new class([
         'name' => 'Security Opayo Integration',
         'handle' => 'securityOpayo' . uniqid(),
         'vendorName' => 'test-vendor',
@@ -134,7 +134,12 @@ function createOpayoCallbackFixture(): Opayo
             ];
         }
     };
+    Formie::$plugin->getIntegrations()->saveIntegration($integration, false);
+    $form = formie()->form()->paymentField('payment', ['paymentIntegration' => $integration->handle, 'paymentIntegrationType' => Opayo::class])->create();
+    $integration->context['form'] = $form;
+    return $integration;
 }
+
 
 it('requires a field access token for anonymous summary rendering', function (): void {
     $form = formie()
@@ -246,7 +251,7 @@ it('rejects raw payment uids for anonymous payment polling', function (): void {
             'paymentUid' => (string)$payment->uid,
         ]);
 
-        $controller = new PaymentWebhooksController('formie-payment-security', Craft::$app);
+        $controller = new PaymentStatusController('formie-payment-security', Craft::$app);
 
         expect(fn() => $controller->actionPollStatus())
             ->toThrow(BadRequestHttpException::class, 'Request missing required param');
@@ -262,7 +267,7 @@ it('treats payment status polling as an opaque token capability', function (): v
             'statusToken' => $statusToken,
         ]);
 
-        $controller = new PaymentWebhooksController('formie-payment-security', Craft::$app);
+        $controller = new PaymentStatusController('formie-payment-security', Craft::$app);
         $response = $controller->actionPollStatus();
 
         expect($response->data['status'] ?? null)->toBe('pending');
@@ -278,7 +283,7 @@ it('rejects expired payment status tokens', function (): void {
             'statusToken' => $statusToken,
         ]);
 
-        $controller = new PaymentWebhooksController('formie-payment-security', Craft::$app);
+        $controller = new PaymentStatusController('formie-payment-security', Craft::$app);
 
         expect(fn() => $controller->actionPollStatus())->toThrow(NotFoundHttpException::class);
     });
@@ -293,7 +298,7 @@ it('rate limits anonymous payment status polling by token and client', function 
             'statusToken' => $statusToken,
         ]);
 
-        $controller = new PaymentWebhooksController('formie-payment-security', Craft::$app);
+        $controller = new PaymentStatusController('formie-payment-security', Craft::$app);
 
         for ($i = 0; $i < 120; $i++) {
             expect($controller->actionPollStatus()->data['status'] ?? null)->toBe('pending');
@@ -323,7 +328,7 @@ it('requires an opayo session token before issuing merchant session keys', funct
             'merchantSessionKey' => 'true',
         ]);
 
-        expect(fn() => $integration->processCallback())->toThrow(BadRequestHttpException::class);
+        expect(fn() => $integration->initializeSession())->toThrow(\yii\web\ForbiddenHttpException::class);
     }, [
         'method' => 'POST',
     ]);
@@ -331,7 +336,7 @@ it('requires an opayo session token before issuing merchant session keys', funct
 
 it('rejects expired opayo merchant session tokens', function (): void {
     $integration = createOpayoCallbackFixture();
-    $sessionToken = PaymentAccess::issueProviderSessionToken('opayo', (int)$integration->id, (string)$integration->handle, time() - 3600);
+    $sessionToken = PaymentAccess::issueProviderSessionToken('opayo', (int)$integration->id, (string)$integration->handle, time() - 3600, $integration->context['form']->id, $integration->context['form']->getFieldByHandle('payment')->id, $integration->context['form']->siteId);
 
     WebRequestTestHelper::withWebRequestContext(function ($request) use ($integration, $sessionToken): void {
         $request->setBodyParams([
@@ -339,7 +344,7 @@ it('rejects expired opayo merchant session tokens', function (): void {
             'sessionToken' => $sessionToken,
         ]);
 
-        expect(fn() => $integration->processCallback())->toThrow(BadRequestHttpException::class);
+        expect(fn() => $integration->initializeSession())->toThrow(\yii\web\ForbiddenHttpException::class);
     }, [
         'method' => 'POST',
     ]);
@@ -347,7 +352,7 @@ it('rejects expired opayo merchant session tokens', function (): void {
 
 it('rate limits opayo merchant session keys by token and client', function (): void {
     $integration = createOpayoCallbackFixture();
-    $sessionToken = PaymentAccess::issueProviderSessionToken('opayo', (int)$integration->id, (string)$integration->handle);
+    $sessionToken = PaymentAccess::issueProviderSessionToken('opayo', (int)$integration->id, (string)$integration->handle, null, $integration->context['form']->id, $integration->context['form']->getFieldByHandle('payment')->id, $integration->context['form']->siteId);
 
     WebRequestTestHelper::withWebRequestContext(function ($request) use ($integration, $sessionToken): void {
         $request->setBodyParams([
@@ -356,10 +361,10 @@ it('rate limits opayo merchant session keys by token and client', function (): v
         ]);
 
         for ($i = 0; $i < 20; $i++) {
-            expect($integration->processCallback()->data['merchantSessionKey'] ?? null)->toBe('test-merchant-session-key');
+            expect($integration->initializeSession()->data['merchantSessionKey'] ?? null)->toBe('test-merchant-session-key');
         }
 
-        expect(fn() => $integration->processCallback())->toThrow(TooManyRequestsHttpException::class);
+        expect(fn() => $integration->initializeSession())->toThrow(TooManyRequestsHttpException::class);
     }, [
         'method' => 'POST',
         'remoteAddr' => '198.51.100.40',
@@ -549,7 +554,8 @@ it('requires a valid gocardless webhook signature before processing webhook payl
 
             $response = $integration->processWebhook();
 
-            expect($response->data)->toBe('success')
+            expect($response->data)->toBe('error')
+                ->and($response->statusCode)->toBeGreaterThanOrEqual(400)
                 ->and($integration->requested)->toBeFalse();
         }, [
             'method' => 'POST',
@@ -558,7 +564,6 @@ it('requires a valid gocardless webhook signature before processing webhook payl
 })->group('security');
 
 it('accepts correctly signed gocardless webhook payloads before processing them', function (): void {
-    $payment = createPaymentFixture();
     $integration = new class([
         'name' => 'Security GoCardless',
         'handle' => 'securityGoCardless' . uniqid(),
@@ -572,7 +577,7 @@ it('accepts correctly signed gocardless webhook payloads before processing them'
             $this->requested = true;
 
             return ['payments' => [
-                'id' => 'PM123',
+                'id' => 'PM123', 'amount' => 1000, 'currency' => 'AUD',
                 'status' => 'confirmed',
                 'metadata' => [
                     'formiePaymentId' => (string)$this->context['paymentId'],
@@ -580,6 +585,8 @@ it('accepts correctly signed gocardless webhook payloads before processing them'
             ]];
         }
     };
+    Formie::$plugin->getIntegrations()->saveIntegration($integration, false);
+    $payment = createPaymentFixture(['integrationId' => $integration->id, 'reference' => null]);
     $integration->context['paymentId'] = (int)$payment->id;
 
     withEnvOverrides([
@@ -588,7 +595,7 @@ it('accepts correctly signed gocardless webhook payloads before processing them'
     ], function () use ($integration, $payment): void {
         $payload = json_encode([
             'events' => [[
-                'resource_type' => 'payments',
+                'id' => 'EV_contract', 'resource_type' => 'payments',
                 'links' => [
                     'payment' => 'PM123',
                 ],
@@ -638,7 +645,8 @@ it('ignores unknown mollie webhook references before requesting provider status'
 
             $response = $integration->processWebhook();
 
-            expect($response->data)->toBe('success')
+            expect($response->data)->toBe('error')
+                ->and($response->statusCode)->toBeGreaterThanOrEqual(400)
                 ->and($integration->requested)->toBeFalse();
         }, [
             'method' => 'POST',
@@ -658,7 +666,8 @@ it('rate limits anonymous payment webhook requests by handle reference and clien
         $controller = new PaymentWebhooksController('formie-payment-security', Craft::$app);
 
         for ($i = 0; $i < 60; $i++) {
-            expect($controller->actionProcessWebhook()->data)->toBe('success');
+            expect($controller->actionProcessWebhook()->data)->toBe('error');
+            expect(Craft::$app->getResponse()->statusCode)->toBe(403);
         }
 
         expect(fn() => $controller->actionProcessWebhook())->toThrow(TooManyRequestsHttpException::class);
@@ -668,7 +677,7 @@ it('rate limits anonymous payment webhook requests by handle reference and clien
     ]);
 })->group('security');
 
-it('rate limits anonymous payment callback requests by handle reference and client', function (): void {
+it('rate limits repeated anonymous webhook requests by handle reference and client', function (): void {
     $integration = createPaymentIntegrationFixture();
 
     WebRequestTestHelper::withWebRequestContext(function ($request) use ($integration): void {
@@ -679,10 +688,10 @@ it('rate limits anonymous payment callback requests by handle reference and clie
         $controller = new PaymentWebhooksController('formie-payment-security', Craft::$app);
 
         for ($i = 0; $i < 60; $i++) {
-            $controller->actionProcessCallback();
+            $controller->actionProcessWebhook();
         }
 
-        expect(fn() => $controller->actionProcessCallback())->toThrow(TooManyRequestsHttpException::class);
+        expect(fn() => $controller->actionProcessWebhook())->toThrow(TooManyRequestsHttpException::class);
     }, [
         'method' => 'POST',
         'remoteAddr' => '198.51.100.58',
@@ -715,12 +724,13 @@ it('renders a confirmation page before executing subscription cancel links via g
         'trialDays' => 0,
     ]);
     expect(Formie::$plugin->getSubscriptions()->saveSubscription($subscription, false))->toBeTrue();
-    $hash = Craft::$app->getSecurity()->hashData((string)$subscription->reference);
+    parse_str(parse_url($subscription->getCancelUrl(), PHP_URL_QUERY), $cancelParams);
+    $hash = $cancelParams['token'];
 
     WebRequestTestHelper::withWebRequestContext(function ($request) use ($subscription, $hash): void {
         $request->setQueryParams([
             'id' => (int)$subscription->id,
-            'hash' => $hash,
+            'token' => $hash,
         ]);
 
         $controller = new PaymentSubscriptionsController('formie-subscription-security', Craft::$app);

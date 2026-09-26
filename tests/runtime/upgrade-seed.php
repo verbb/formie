@@ -10,6 +10,7 @@ if (Formie::$plugin->version !== '3.1.39') { throw new RuntimeException('The fix
 $form = new Form(['title' => 'Upgrade contract', 'handle' => 'upgradeContract']);
 $form->setFormLayout(new FieldLayout(['pages' => [['label' => 'Details', 'rows' => [['fields' => [
     ['type' => SingleLineText::class, 'label' => 'Full name', 'handle' => 'fullName', 'required' => true],
+    ['type' => \verbb\formie\fields\Payment::class, 'label' => 'Payment', 'handle' => 'payment'],
     ['type' => Group::class, 'label' => 'Company', 'handle' => 'company', 'rows' => [['fields' => [
         ['type' => SingleLineText::class, 'label' => 'Company name', 'handle' => 'companyName'],
     ]]]],
@@ -31,8 +32,25 @@ if ((string)$saved->getFieldValue('fullName') !== 'Synthetic Ada') { throw new R
 if (\verbb\formie\helpers\Variables::getParsedValue('Hello {field:fullName}', $saved) !== 'Hello Synthetic Ada') {
     throw new RuntimeException('Legacy notification reference does not resolve before migration.');
 }
+$integration = new \verbb\formie\integrations\payments\Stripe(['name' => 'Upgrade finance', 'handle' => 'upgradeFinance']);
+Formie::$plugin->getIntegrations()->saveIntegration($integration, false);
+$subscriptionIds = [];
+foreach (['active', 'cancelled', 'ambiguous'] as $state) {
+    $subscription = new \verbb\formie\models\Subscription(['integrationId' => $integration->id, 'submissionId' => $submission->id,
+        'reference' => 'sub_upgrade_' . $state, 'trialDays' => 0, 'hasStarted' => true,
+        'isCanceled' => $state !== 'active', 'isSuspended' => $state === 'ambiguous']);
+    if (!Formie::$plugin->getSubscriptions()->saveSubscription($subscription)) { throw new RuntimeException('Unable to seed financial history.'); }
+    $subscriptionIds[$state] = $subscription->id;
+}
+$paymentIds = [];
+foreach (['success', 'pending'] as $status) {
+    $payment = new \verbb\formie\models\Payment(['integrationId' => $integration->id, 'submissionId' => $submission->id,
+        'fieldId' => $form->getFieldByHandle('payment')->id, 'subscriptionId' => $subscriptionIds['active'], 'reference' => 'pi_upgrade_' . $status, 'amount' => 25.01, 'currency' => 'USD', 'status' => $status]);
+    if (!Formie::$plugin->getPayments()->savePayment($payment)) { throw new RuntimeException('Unable to seed payment.'); }
+    $paymentIds[$status] = $payment->id;
+}
 file_put_contents(dirname(__DIR__, 2) . '/.cache/verbb-tests/upgrade-fixture.json', json_encode([
-    'from' => Formie::$plugin->version, 'formId' => $form->id, 'sharedFormId' => $shared->id, 'submissionId' => $submission->id,
+    'subscriptionIds' => $subscriptionIds, 'paymentIds' => $paymentIds, 'from' => Formie::$plugin->version, 'formId' => $form->id, 'sharedFormId' => $shared->id, 'submissionId' => $submission->id,
     'fieldUid' => $form->getFieldByHandle('fullName')->uid,
 ], JSON_PRETTY_PRINT));
 echo "Persisted Formie 3 forms, shared field, nested content and notification.\n";

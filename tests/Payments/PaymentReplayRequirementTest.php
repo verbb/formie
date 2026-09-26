@@ -29,14 +29,17 @@ it('reconciles hosted payment completion with the current submission requirement
     Craft::$app->getElements()->saveElement($submission, false);
     $integration->setField($form->getFieldByHandle('payment'));
     \Tests\Support\WebRequestTestHelper::withWebRequestContext(function () use ($integration, $submission, $currentAmount): void {
-        expect($integration->getAmount($submission))->toBe(25.0);
-        expect($integration->processPayment($submission)->status)->toBe('actionRequired');
+        expect($integration->getAmount($submission))->toBe('25');
+        expect($integration->processPayment($submission)->status->value)->toBe('actionRequired');
         $submission->setFieldValue('total', $currentAmount);
         $retry = runSubmissionCommand(submissionCommand([
             'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
             'form' => $submission->getForm(), 'submission' => $submission, 'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
         ]));
         expect($retry->paymentStatus)->toBe($currentAmount === 25 ? 'actionRequired' : 'failed');
+        parse_str(parse_url($integration->created['webhookUrl'], PHP_URL_QUERY), $webhookQuery);
+        Craft::$app->getRequest()->setQueryParams($webhookQuery);
+        Craft::$app->getRequest()->setRawBody(http_build_query(['id' => 'tr_audit' . $integration->id]));
         Craft::$app->getRequest()->setBodyParams(['id' => 'tr_audit' . $integration->id]);
         $result = $integration->processWebhook();
         $saved = Submission::find()->id($submission->id)->status(null)->isIncomplete(null)->one();
@@ -44,7 +47,7 @@ it('reconciles hosted payment completion with the current submission requirement
         $payments = Formie::$plugin->getPayments()->getSubmissionPayments($saved);
         expect($payments)->toHaveCount(1);
         expect($payments[0]->status)->toBe('success');
-        expect($payments[0]->amount)->toBe(25.0);
+        expect($payments[0]->amount)->toBe('25.00');
         // A repeated authoritative callback preserves both the receipt and completion decision.
         $integration->processWebhook();
         $again = Submission::find()->id($saved->id)->status(null)->isIncomplete(null)->one();
@@ -91,12 +94,12 @@ it('compares stored payments using each provider currency unit and current setti
     expect($saved->isIncomplete)->toBe(!$matches);
     expect(Formie::$plugin->getPayments()->getPaymentById($payment->id)->status)->toBe('success');
 })->with([
-    ['Stripe', 'USD', 19.994, 19.99, true],
-    ['Stripe', 'JPY', 19.1, 20, true],
+    ['Stripe', 'USD', 19.994, 19.99, false],
+    ['Stripe', 'JPY', 19.1, 20, false],
     ['Stripe', 'USD', 20.99, 19.99, false],
-    ['Opayo', 'GBP', 19.994, 19.99, true],
+    ['Opayo', 'GBP', 19.994, 19.99, false],
     ['Opayo', 'GBP', 20.99, 19.99, false],
-    ['Eway', 'BHD', 19.9994, 19.999, true],
+    ['Eway', 'BHD', 19.9994, 19.999, false],
     ['Mollie', 'EUR', 25, 25, false],
     ['Mollie', 'USD', 25, 25, true],
 ]);

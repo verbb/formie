@@ -18,6 +18,7 @@ use verbb\formie\models\ClientModuleContext;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Payment as PaymentModel;
 use verbb\formie\models\PaymentDecision;
+use verbb\formie\models\PaymentMoney;
 use verbb\formie\models\Plan;
 
 use Craft;
@@ -30,11 +31,11 @@ use craft\web\Response;
 
 use yii\base\Event;
 
-use GuzzleHttp\Client;
-use SimpleXMLElement;
-
-use Throwable;
 use Exception;
+use SimpleXMLElement;
+use Throwable;
+
+use GuzzleHttp\Client;
 
 class Moneris extends Payment
 {
@@ -101,7 +102,7 @@ class Moneris extends Payment
         ]);
     }
 
-    public function processPayment(Submission $submission): PaymentDecision
+    protected function executePayment(Submission $submission): PaymentDecision
     {
         if (!$this->beforeProcessPayment($submission)) {
             return PaymentDecision::notRequired();
@@ -263,7 +264,7 @@ class Moneris extends Payment
         }
 
         $orderId = $attempt->merchantReference();
-        $formattedAmount = number_format($amount, 2, '.', '');
+        $formattedAmount = PaymentMoney::fromDecimal((string)$amount, $currency)->decimal();
         $storeId = htmlspecialchars((string)App::parseEnv($this->storeId), ENT_XML1 | ENT_QUOTES, 'UTF-8');
         $apiToken = htmlspecialchars((string)App::parseEnv($this->apiToken), ENT_XML1 | ENT_QUOTES, 'UTF-8');
         // The token comes from the browser. Keep it inside its text node so

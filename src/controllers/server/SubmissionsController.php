@@ -7,6 +7,8 @@ use verbb\formie\controllers\AnonymousSiteRequestGuardTrait;
 use verbb\formie\controllers\CrossOriginRequestTrait;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\enums\SubmissionAuthorityType;
+use verbb\formie\enums\SubmissionOperation;
 use verbb\formie\errors\SubmissionUnavailableException;
 use verbb\formie\helpers\ClientEventsHelper;
 use verbb\formie\helpers\SiteHelper;
@@ -14,8 +16,6 @@ use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\ManagedSubmissionRequest;
 use verbb\formie\models\PaymentDecision;
 use verbb\formie\models\SubmissionCommand;
-use verbb\formie\enums\SubmissionOperation;
-use verbb\formie\enums\SubmissionAuthorityType;
 use verbb\formie\models\SubmissionResponse;
 use verbb\formie\services\SubmissionWorkflow;
 
@@ -239,8 +239,9 @@ class SubmissionsController extends Controller
             $payload['errors'] = $submission->getErrors();
             $payload['errors'] = StringHelper::sanitizeMessageHtmlRecursive($payload['errors']);
             $payload['keepSubmitLoading'] = in_array($response->paymentStatus, [
-                PaymentDecision::STATUS_ACTION_REQUIRED,
-                PaymentDecision::STATUS_PENDING,
+                PaymentDecision::STATUS_ACTION_REQUIRED->value,
+                PaymentDecision::STATUS_UNKNOWN->value,
+                PaymentDecision::STATUS_PENDING->value,
             ], true);
 
             if ($response->paymentRedirectUrl) {

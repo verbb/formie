@@ -6,6 +6,9 @@
 - Add portable per-site translations to stencils and copy them into form overrides when creating forms from a stencil. ([#2968](https://github.com/verbb/formie/issues/2968))
 
 ### Changed
+- Make payment amounts exact, return typed payment decisions and atomically settle payment-backed submissions with recoverable provider evidence.
+- Retain coherent subscription and recurring-payment history; scope cancellation, provider return, status and session authority.
+- Persist encrypted, idempotent webhook receipts with redacted diagnostics and reject unauthenticated provider events.
 - Store canonical journey progress in the database and use purpose-bound, expiring grants for Save & Continue and authorised editing across browsers.
 - Bind accepted uploads to their form, field and owner before dispatch, with durable promotion recovery and scoped upload capabilities.
 - Remove beta draft-storage APIs, etags and `maxSavedDraftsPerSession`; existing beta resume links must be reissued after upgrading.

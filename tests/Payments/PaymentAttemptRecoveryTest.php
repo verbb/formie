@@ -64,9 +64,9 @@ it('sends one purchase and reuses its persisted receipt on repeated submissions'
     WebRequestTestHelper::withWebRequestContext(function () use ($integration, $submission, $provider): void {
         $expected = $provider === 'mollie' ? 'actionRequired' : 'succeeded';
         $decision = $integration->processPayment($submission);
-        test()->assertSame($expected, $decision->status, (string)$decision->message);
+        test()->assertSame($expected, $decision->status->value, (string)$decision->message);
         $decision = $integration->processPayment($submission);
-        test()->assertSame($expected, $decision->status, (string)$decision->message);
+        test()->assertSame($expected, $decision->status->value, (string)$decision->message);
         expect($integration->requests)->toHaveCount(1);
         $payments = Formie::$plugin->getPayments()->getSubmissionPayments($submission);
         expect($payments)->toHaveCount(1)->and($payments[0]->reference)->not->toBeEmpty();
@@ -79,17 +79,17 @@ it('keeps lost responses pending and blocks another charge across retries and ch
     [$integration, $submission] = paymentAttemptFixture($provider);
     $integration->timeout = true;
     WebRequestTestHelper::withWebRequestContext(function () use ($integration, $submission, $provider): void {
-        expect($integration->processPayment($submission)->status)->toBe('pending');
+        expect($integration->processPayment($submission)->status->value)->toBe('unknown');
         $payment = Formie::$plugin->getPayments()->getSubmissionPayments($submission)[0];
         $integration->timeout = false;
-        expect($integration->processPayment($submission)->status)->not->toBe('succeeded');
+        expect($integration->processPayment($submission)->status->value)->not->toBe('succeeded');
         if ($provider === 'bpoint') { $integration->merchantNumber = 'changed-account'; }
         elseif ($provider === 'opayo') { $integration->integrationKey = 'changed-account'; }
         else { $integration->apiKey = 'changed-account'; }
-        expect($integration->processPayment($submission)->status)->not->toBe('succeeded');
+        expect($integration->processPayment($submission)->status->value)->not->toBe('succeeded');
         expect($integration->requests)->toHaveCount(1);
         $payments = Formie::$plugin->getPayments()->getSubmissionPayments($submission);
-        expect($payments)->toHaveCount(1)->and($payments[0]->id)->toBe($payment->id)->and($payments[0]->status)->toBe(Payment::STATUS_PENDING);
+        expect($payments)->toHaveCount(1)->and($payments[0]->id)->toBe($payment->id)->and($payments[0]->status)->toBe(Payment::STATUS_UNKNOWN);
     });
 })->with(['eway', 'bpoint', 'opayo', 'mollie']);
 
@@ -102,9 +102,9 @@ it('allows a new payment only after a confirmed decline', function (string $prov
         'opayo' => ['status' => 'NotAuthed', 'statusDetail' => 'Declined'],
     };
     WebRequestTestHelper::withWebRequestContext(function () use ($integration, $submission, $success): void {
-        expect($integration->processPayment($submission)->status)->toBe('failed');
+        expect($integration->processPayment($submission)->status->value)->toBe('failed');
         $integration->receipt = $success;
-        expect($integration->processPayment($submission)->status)->toBe('succeeded');
+        expect($integration->processPayment($submission)->status->value)->toBe('succeeded');
         $payments = Formie::$plugin->getPayments()->getSubmissionPayments($submission);
         expect($payments)->toHaveCount(2)->and($payments[0]->status)->toBe(Payment::STATUS_FAILED)->and($payments[1]->status)->toBe(Payment::STATUS_SUCCESS);
     });
@@ -122,10 +122,10 @@ it('recovers a successful gateway receipt after the final payment save failed', 
     };
     Formie::$plugin->set('payments', $service);
     try {
-        expect($integration->processPayment($submission)->status)->not->toBe('succeeded');
+        expect($integration->processPayment($submission)->status->value)->not->toBe('succeeded');
         $service->failSuccess = false;
         $integration->payload = [];
-        expect($integration->processPayment($submission)->status)->toBe('succeeded');
+        expect($integration->processPayment($submission)->status->value)->toBe('succeeded');
         expect($integration->requests)->toHaveCount(1)->and($service->getSubmissionPayments($submission))->toHaveCount(1);
     } finally { Formie::$plugin->set('payments', $original); }
 });
@@ -133,7 +133,7 @@ it('recovers a successful gateway receipt after the final payment save failed', 
 it('records a verified operator outcome and prevents a recovered charge from being sent again', function (): void {
     [$integration, $submission] = paymentAttemptFixture('eway');
     $integration->timeout = true;
-    expect($integration->processPayment($submission)->status)->toBe('pending');
+    expect($integration->processPayment($submission)->status->value)->toBe('unknown');
     $payment = Formie::$plugin->getPayments()->getSubmissionPayments($submission)[0];
     $inspection = PaymentRecovery::inspect($payment->id);
     expect($inspection['deliveryState'])->toBe('unknown')->and($inspection['merchantReference'])->toStartWith('fm');
@@ -141,7 +141,7 @@ it('records a verified operator outcome and prevents a recovered charge from bei
     expect(fn() => PaymentRecovery::resolve($payment->id, 'success', 25, 'USD', '', 'Verified in test gateway'))->toThrow(RuntimeException::class);
     $resolved = PaymentRecovery::resolve($payment->id, 'success', 25, 'USD', 'verified-' . uniqid(), 'Operator test: verified amount and receipt in gateway');
     expect($resolved->status)->toBe('success')->and($resolved->note)->toContain('Operator test');
-    expect($integration->processPayment($submission)->status)->toBe('succeeded');
+    expect($integration->processPayment($submission)->status->value)->toBe('succeeded');
     expect($integration->requests)->toHaveCount(1);
 });
 
@@ -159,8 +159,8 @@ it('uses committed payment ownership when a read replica has not received the fi
     };
     Formie::$plugin->set('payments', $service);
     try {
-        expect($integration->processPayment($submission)->status)->toBe('succeeded');
-        expect($integration->processPayment($submission)->status)->toBe('succeeded');
+        expect($integration->processPayment($submission)->status->value)->toBe('succeeded');
+        expect($integration->processPayment($submission)->status->value)->toBe('succeeded');
         expect($integration->requests)->toHaveCount(1)->and($db->enableSlaves)->toBeTrue();
     } finally {
         $db->enableSlaves = $previous;
@@ -176,10 +176,10 @@ it('keeps ambiguous gateway failures unresolved without issuing a second request
         'opayo' => ['status' => 'Error', 'statusDetail' => 'Unknown error'],
     };
     WebRequestTestHelper::withWebRequestContext(function () use ($integration, $submission): void {
-        expect($integration->processPayment($submission)->status)->not->toBe('succeeded');
-        expect($integration->processPayment($submission)->status)->not->toBe('succeeded');
+        expect($integration->processPayment($submission)->status->value)->not->toBe('succeeded');
+        expect($integration->processPayment($submission)->status->value)->not->toBe('succeeded');
         $payments = Formie::$plugin->getPayments()->getSubmissionPayments($submission);
-        expect($payments)->toHaveCount(1)->and($payments[0]->status)->toBe(Payment::STATUS_PENDING)->and($integration->requests)->toHaveCount(1);
+        expect($payments)->toHaveCount(1)->and($payments[0]->status)->toBe(Payment::STATUS_UNKNOWN)->and($integration->requests)->toHaveCount(1);
     });
 })->with(['eway', 'bpoint', 'opayo']);
 
@@ -189,19 +189,21 @@ it('permits retry after an operator verifies no charge and rejects duplicate rec
     $integration->processPayment($submission);
     $payment = Formie::$plugin->getPayments()->getSubmissionPayments($submission)[0];
     $other = clone $payment;
-    $other->id = null; $other->uid = null; $other->reference = 'already-used-' . uniqid(); $other->status = Payment::STATUS_SUCCESS;
+    $other->id = null;
+    $other->idempotencyKey = null;
+    $other->version = 0; $other->uid = null; $other->reference = 'already-used-' . uniqid(); $other->status = Payment::STATUS_SUCCESS;
     expect(Formie::$plugin->getPayments()->savePayment($other))->toBeTrue();
     expect(fn() => PaymentRecovery::resolve($payment->id, 'success', 25, 'USD', $other->reference, 'Verified test'))->toThrow(RuntimeException::class, 'another payment');
     Formie::$plugin->getPayments()->deletePayment($other);
     PaymentRecovery::resolve($payment->id, 'failed', 25, 'USD', '', 'Operator test: gateway confirms no charge or open authorisation');
     $integration->timeout = false;
-    expect($integration->processPayment($submission)->status)->toBe('succeeded')->and($integration->requests)->toHaveCount(2);
+    expect($integration->processPayment($submission)->status->value)->toBe('succeeded')->and($integration->requests)->toHaveCount(2);
 });
 
 it('rejects mismatched Mollie status responses and does not downgrade completed payments', function (): void {
     [$integration, $submission] = paymentAttemptFixture('mollie');
     WebRequestTestHelper::withWebRequestContext(function () use ($integration, $submission): void {
-        expect($integration->processPayment($submission)->status)->toBe('actionRequired');
+        expect($integration->processPayment($submission)->status->value)->toBe('actionRequired');
         $payment = Formie::$plugin->getPayments()->getSubmissionPayments($submission)[0];
         $integration->receipt = ['id' => $payment->reference, 'metadata' => ['formiePaymentId' => $payment->id], 'amount' => ['currency' => 'USD', 'value' => '1.00'], 'status' => 'paid'];
         expect(fn() => $integration->getTransaction($payment))->toThrow(Exception::class, 'amount');
@@ -225,7 +227,7 @@ it('rejects mismatched Mollie status responses and does not downgrade completed 
 it('recovers an Eway timeout by querying its unique invoice reference without another purchase', function (string $variant): void {
     [$integration, $submission] = paymentAttemptFixture('eway');
     $integration->timeout = true;
-    expect($integration->processPayment($submission)->status)->toBe('pending');
+    expect($integration->processPayment($submission)->status->value)->toBe('unknown');
     $payment = Formie::$plugin->getPayments()->getSubmissionPayments($submission)[0];
     $reference = (new PaymentAttempt($payment))->merchantReference();
     $integration->timeout = false;
@@ -240,10 +242,10 @@ it('recovers an Eway timeout by querying its unique invoice reference without an
     if ($variant === 'valid') {
         $integration->getTransaction($payment);
         expect($payment->status)->toBe(Payment::STATUS_SUCCESS);
-        expect($integration->processPayment($submission)->status)->toBe('succeeded');
+        expect($integration->processPayment($submission)->status->value)->toBe('succeeded');
     } else {
         expect(fn() => $integration->getTransaction($payment))->toThrow(Exception::class);
-        expect(Formie::$plugin->getPayments()->getPaymentById($payment->id)->status)->toBe(Payment::STATUS_PENDING);
+        expect(Formie::$plugin->getPayments()->getPaymentById($payment->id)->status)->toBe(Payment::STATUS_UNKNOWN);
     }
     expect(array_column($integration->requests, 0))->toBe(['POST', 'GET']);
     expect($integration->requests[1][1])->toBe('Transaction/InvoiceRef/' . $reference);
@@ -253,7 +255,7 @@ it('recovers a lost Mollie creation response only with its signed URL and authen
     [$integration, $submission] = paymentAttemptFixture('mollie');
     WebRequestTestHelper::withWebRequestContext(function () use ($integration, $submission, $variant): void {
         $integration->timeout = true;
-        expect($integration->processPayment($submission)->status)->toBe('pending');
+        expect($integration->processPayment($submission)->status->value)->toBe('unknown');
         $payment = Formie::$plugin->getPayments()->getSubmissionPayments($submission)[0];
         $integration->timeout = false;
         $id = 'tr_' . bin2hex(random_bytes(6));
@@ -270,16 +272,16 @@ it('recovers a lost Mollie creation response only with its signed URL and authen
         $fake = new class extends \verbb\formie\services\SubmissionProcessor { public function replayPaymentIfSuccessful(Payment $payment): ?\verbb\formie\models\SubmissionExecutionResult { return null; } };
         Formie::$plugin->set('submissionProcessor', $fake);
         try {
-            expect($integration->processWebhook()->data)->toBe(in_array($variant, ['metadata', 'amount']) ? 'error' : 'success');
+            expect($integration->processWebhook()->data)->toBe($variant === 'valid' ? 'success' : 'error');
             $saved = Formie::$plugin->getPayments()->getPaymentById($payment->id);
             if ($variant === 'valid') {
-                expect($saved->status)->toBe(Payment::STATUS_SUCCESS)->and($saved->reference)->toBe($id);
-                expect($integration->processPayment($submission)->status)->toBe('succeeded');
+                expect($saved->status)->toBe(Payment::STATUS_PROCESSING)->and($saved->scope['providerOutcome']['status'])->toBe(Payment::STATUS_SUCCESS)->and($saved->reference)->toBe($id);
+                expect($integration->processPayment($submission)->status->value)->toBe('succeeded');
                 Craft::$app->getRequest()->setQueryParams([]);
-                expect($integration->processWebhook()->data)->toBe('success');
-                expect(array_column($integration->requests, 0))->toBe(['POST', 'GET', 'GET']);
+                expect($integration->processWebhook()->data)->toBe('error');
+                expect(array_column($integration->requests, 0))->toBe(['POST', 'GET']);
             } else {
-                expect($saved->status)->toBe(Payment::STATUS_PENDING)->and($saved->reference)->toBeNull();
+                expect($saved->status)->toBe(Payment::STATUS_UNKNOWN)->and($saved->reference)->toBeNull();
                 expect(array_column($integration->requests, 0))->toBe(in_array($variant, ['metadata', 'amount']) ? ['POST', 'GET'] : ['POST']);
             }
         } finally { Formie::$plugin->set('submissionProcessor', $original); }
@@ -292,10 +294,10 @@ it('distinguishes explicit Mollie API rejections from ambiguous HTTP failures', 
         $body = $validBody ? json_encode(['status' => $status, 'detail' => 'No suitable payment methods found']) : '<html>Upstream error</html>';
         $integration->requestError = new \GuzzleHttp\Exception\RequestException('Request failed', new Request('POST', 'https://example.test'), new \GuzzleHttp\Psr7\Response($status, [], $body));
         $decision = $integration->processPayment($submission);
-        expect($decision->status)->toBe($rejected ? 'failed' : 'pending');
+        expect($decision->status->value)->toBe($rejected ? 'failed' : 'unknown');
         if ($rejected) { expect($decision->message)->toContain('Check your Mollie profile payment methods'); }
         $integration->requestError = null;
-        expect($integration->processPayment($submission)->status)->toBe($rejected ? 'actionRequired' : 'failed');
+        expect($integration->processPayment($submission)->status->value)->toBe($rejected ? 'actionRequired' : 'unknown');
         expect($integration->requests)->toHaveCount($rejected ? 2 : 1);
         expect(Formie::$plugin->getPayments()->getSubmissionPayments($submission))->toHaveCount($rejected ? 2 : 1);
     });
@@ -309,13 +311,13 @@ it('keeps persisted payment amounts aligned with the currency unit on retry', fu
     WebRequestTestHelper::withWebRequestContext(function () use ($integration, $submission, $provider, $expected): void {
         $first = $integration->processPayment($submission);
         $second = $integration->processPayment($submission);
-        expect($first->status)->toBe($provider === 'mollie' ? 'actionRequired' : 'succeeded')->and($second->status)->toBe($first->status);
+        expect($first->status->value)->toBe($provider === 'mollie' ? 'actionRequired' : 'succeeded')->and($second->status->value)->toBe($first->status->value);
         $body = $integration->requests[0][2]['json'];
         $actual = match ($provider) { 'eway' => $body['Payment']['TotalAmount'], 'bpoint' => $body['TxnReq']['Amount'], 'mollie' => $body['amount']['value'] };
         expect($actual)->toBe($expected)->and($integration->requests)->toHaveCount(1);
     });
 })->with([
-    ['eway', 'USD', 1.234567, 123],
+    ['eway', 'USD', 1.23, 123],
     ['eway', 'JPY', 25.0, 25],
     ['bpoint', 'JPY', 25.0, 25],
     ['mollie', 'JPY', 25.0, '25'],
@@ -361,9 +363,9 @@ it('does not resend after a worker exits immediately after the gateway accepts a
         test()->assertSame(37, $first->getExitCode(), $first->getErrorOutput() . $first->getOutput());
         $retry = new \Symfony\Component\Process\Process($command);
         $retry->run();
-        expect(trim($retry->getOutput()))->toBe('pending')->and(file($path))->toHaveCount(1);
+        expect(trim($retry->getOutput()))->toBe('unknown')->and(file($path))->toHaveCount(1);
         $payments = Formie::$plugin->getPayments()->getSubmissionPayments($submission);
-        expect($payments)->toHaveCount(1)->and($payments[0]->status)->toBe(Payment::STATUS_PENDING);
+        expect($payments)->toHaveCount(1)->and($payments[0]->status)->toBe(Payment::STATUS_UNKNOWN);
     } finally { @unlink($path); }
 });
 
@@ -383,14 +385,14 @@ it('keeps unverified earlier attempts pending until an operator records their ou
 
     for ($retry = 0; $retry < 3; $retry++) {
         $integration->apiKey = 'current-account-' . $retry;
-        expect($integration->processPayment($submission)->status)->toBe('pending');
-        expect(Formie::$plugin->getPayments()->getPaymentById($payment->id)->status)->toBe(Payment::STATUS_PENDING);
+        expect($integration->processPayment($submission)->status->value)->toBe('unknown');
+        expect(Formie::$plugin->getPayments()->getPaymentById($payment->id)->status)->toBe(Payment::STATUS_UNKNOWN);
     }
 
     expect($integration->requests)->toBe([]);
     expect((new DeliveryAttempt((int)$submission->id, 'payment-owner', (string)$payment->uid))->getMetadata())->toBeNull();
     $reference = $payment->reference ?: ($outcome === 'success' ? 'verified-' . uniqid() : '');
     PaymentRecovery::resolve($payment->id, $outcome, 25, 'USD', $reference, 'Operator independently verified the original gateway account and outcome.');
-    expect($integration->processPayment($submission)->status)->toBe('succeeded');
+    expect($integration->processPayment($submission)->status->value)->toBe('succeeded');
     expect($integration->requests)->toHaveCount($outcome === 'success' ? 0 : 1);
 })->with(['success', 'failed'])->with(['empty', 'reference', 'receipt']);

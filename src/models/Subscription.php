@@ -4,8 +4,11 @@ namespace verbb\formie\models;
 use verbb\formie\Formie;
 use verbb\formie\base\IntegrationInterface;
 use verbb\formie\elements\Submission;
+use verbb\formie\enums\SubscriptionStatus;
 use verbb\formie\fields\Payment as PaymentField;
+use verbb\formie\helpers\PaymentCapabilities;
 
+use Craft;
 use craft\base\Model;
 use craft\helpers\UrlHelper;
 
@@ -27,25 +30,29 @@ class Subscription extends Model
     // =========================================================================
 
     public ?int $id = null;
+    public int $version = 0;
+    public ?array $history = null;
+    public ?array $scope = null;
+    public ?string $idempotencyKey = null;
+    public ?DateTime $archivedAt = null;
+    public ?int $providerUpdatedAt = null;
+
     public ?int $integrationId = null;
     public ?int $submissionId = null;
     public ?int $fieldId = null;
     public ?int $planId = null;
     public ?string $reference = null;
     public ?array $subscriptionData = null;
-    public ?int $trialDays = null;
+    public ?int $trialDays = 0;
     public ?DateTime $nextPaymentDate = null;
-    public bool $hasStarted = true;
-    public bool $isSuspended = false;
     public ?DateTime $dateSuspended = null;
-    public bool $isCanceled = false;
     public ?DateTime $dateCanceled = null;
-    public bool $isExpired = false;
     public ?DateTime $dateExpired = null;
     public ?DateTime $dateCreated = null;
     public ?DateTime $dateUpdated = null;
     public ?string $uid = null;
 
+    private SubscriptionStatus $_status = SubscriptionStatus::PENDING;
     private ?IntegrationInterface $_integration = null;
     private ?Submission $_submission = null;
     private ?PaymentField $_field = null;
@@ -57,6 +64,7 @@ class Subscription extends Model
 
     public function getIntegration(): ?IntegrationInterface
     {
+        if (!$this->integrationId) { return null; }
         if (!isset($this->_integration)) {
             $this->_integration = Formie::$plugin->getIntegrations()->getIntegrationById($this->integrationId);
         }
@@ -66,6 +74,7 @@ class Subscription extends Model
 
     public function getSubmission(): ?Submission
     {
+        if (!$this->submissionId) { return null; }
         if (!isset($this->_submission)) {
             $this->_submission = Formie::$plugin->getSubmissions()->getSubmissionById($this->submissionId);
         }
@@ -75,6 +84,7 @@ class Subscription extends Model
 
     public function getField(): ?PaymentField
     {
+        if (!$this->fieldId) { return null; }
         if (!isset($this->_field)) {
             $this->_field = Formie::$plugin->getFields()->getFieldById($this->fieldId);
         }
@@ -84,6 +94,7 @@ class Subscription extends Model
 
     public function getPlan(): ?Plan
     {
+        if (!$this->planId) { return null; }
         if (!isset($this->_plan)) {
             $this->_plan = Formie::$plugin->getPlans()->getPlanById($this->planId);
         }
@@ -112,23 +123,46 @@ class Subscription extends Model
         return $created->add(new DateInterval('P' . $this->trialDays . 'D'));
     }
 
-    public function getStatus(): ?string
+    public function getStatus(): string
     {
-        if ($this->isExpired) {
-            return self::STATUS_EXPIRED;
-        }
-
-        if ($this->isCanceled) {
-            return self::STATUS_CANCELLED;
-        }
-
-        return $this->isSuspended ? self::STATUS_SUSPENDED : self::STATUS_ACTIVE;
+        return $this->_status->value;
     }
+
+    public function setStatus(string|SubscriptionStatus $status): void
+    {
+        $this->_status = is_string($status) ? SubscriptionStatus::from($status) : $status;
+    }
+
+    public function getState(): SubscriptionStatus
+    {
+        return $this->_status;
+    }
+
+    // Stable template projections; the aggregate has only one authoritative state.
+    public function getHasStarted(): bool
+    {
+        return !in_array($this->_status, [SubscriptionStatus::PENDING, SubscriptionStatus::UNKNOWN], true);
+    }
+
+    public function getIsSuspended(): bool
+    {
+        return $this->_status === SubscriptionStatus::SUSPENDED;
+    }
+
+    public function getIsCanceled(): bool
+    {
+        return in_array($this->_status, [SubscriptionStatus::CANCELLED, SubscriptionStatus::CANCELLING], true);
+    }
+
+    public function getIsExpired(): bool
+    {
+        return $this->_status === SubscriptionStatus::EXPIRED;
+    }
+
 
     public function getCancelUrl(): string
     {
-        $reference = Craft::$app->getSecurity()->hashData($this->reference);
-
-        return UrlHelper::actionUrl('formie/payment-subscriptions/cancel', ['id' => $this->id, 'hash' => $reference]);
+        $token = PaymentCapabilities::issue('cancel', (int)$this->id, ['subscriptionUid' => $this->uid, 'integrationId' => $this->integrationId, 'submissionId' => $this->submissionId], 86400);
+        return UrlHelper::actionUrl('formie/payment-subscriptions/cancel', ['id' => $this->id, 'token' => $token]);
     }
 }

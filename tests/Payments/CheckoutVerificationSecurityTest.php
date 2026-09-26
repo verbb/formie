@@ -72,8 +72,9 @@ function checkoutVerificationFixture(string $provider): array
 it('does not accept browser checkout data as proof of a Paddle payment', function (): void {
     [$integration, $submission] = checkoutVerificationFixture('paddle');
     $integration->payload = ['paddleCheckoutData' => ['id' => 'forged-checkout', 'transaction_id' => 'txn_' . str_repeat('a', 26)]];
-    expect($integration->processPayment($submission)->status)->toBe('failed');
-    expect(Formie::$plugin->getPayments()->getSubmissionPayments($submission))->toBe([]);
+    expect($integration->processPayment($submission)->status->value)->toBe('failed');
+    expect(Formie::$plugin->getPayments()->getSubmissionPayments($submission))->toHaveCount(1);
+    expect(Formie::$plugin->getPayments()->getSubmissionPayments($submission)[0]->status)->toBe(Payment::STATUS_FAILED);
 });
 
 it('requires a successful Opayo payment belonging to the current submission and field', function (string $difference): void {
@@ -107,10 +108,10 @@ it('requires a successful Opayo payment belonging to the current submission and 
     }
     $integration->payload = ['opayo3DSComplete' => $payment->reference];
 
-    expect($integration->processPayment($submission)->status)->toBe($difference === 'valid' ? 'succeeded' : 'failed');
+    expect($integration->processPayment($submission)->status->value)->toBe($difference === 'valid' ? 'succeeded' : ($difference === 'pending' ? 'unknown' : 'failed'));
     expect($integration->requests)->toBe([]);
     $stored = Formie::$plugin->getPayments()->getPaymentById($payment->id);
-    expect($stored->status)->toBe($payment->status)
+    expect($stored->status)->toBe($difference === 'pending' ? Payment::STATUS_UNKNOWN : $payment->status)
         ->and($stored->submissionId)->toBe($payment->submissionId)
         ->and($stored->amount)->toBe($payment->amount);
 })->with(['valid', 'pending', 'failed', 'submission', 'field', 'integration', 'amount', 'currency']);
@@ -118,7 +119,7 @@ it('requires a successful Opayo payment belonging to the current submission and 
 it('creates one Paddle transaction and verifies its server response before completing the same payment', function (string $variant): void {
     [$integration, $submission, $field] = checkoutVerificationFixture('paddle');
     $decision = $integration->processPayment($submission);
-    expect($decision->status)->toBe('actionRequired');
+    expect($decision->status->value)->toBe('actionRequired');
     $rows = Formie::$plugin->getPayments()->getSubmissionPayments($submission);
     expect($rows)->toHaveCount(1);
     $payment = $rows[0];
@@ -151,14 +152,20 @@ it('creates one Paddle transaction and verifies its server response before compl
     if ($variant === 'changed-amount') { $field->providerSettings[$integration->handle]['amountFixed'] = 30; }
 
     $valid = in_array($variant, ['completed', 'paid', 'tax'], true);
-    expect($integration->processPayment($submission)->status)->toBe($valid ? 'succeeded' : 'failed');
+    $expected = $valid ? 'succeeded' : match ($variant) {
+        'draft', 'ready', 'past_due' => 'pending',
+        'canceled' => 'cancelled',
+        'changed-amount' => 'failed',
+        default => 'unknown',
+    };
+    expect($integration->processPayment($submission)->status->value)->toBe($expected);
     $saved = Formie::$plugin->getPayments()->getPaymentById($payment->id);
-    expect($saved->status)->toBe($valid ? Payment::STATUS_SUCCESS : Payment::STATUS_PENDING)
+    expect($saved->status)->toBe($valid ? Payment::STATUS_SUCCESS : match ($expected) { 'cancelled' => Payment::STATUS_CANCELLED, 'unknown' => Payment::STATUS_UNKNOWN, default => Payment::STATUS_PENDING })
         ->and($saved->submissionId)->toBe($submission->id)
-        ->and($saved->amount)->toBe(25.0);
+        ->and($saved->amount)->toBe('25.00');
     expect(Formie::$plugin->getPayments()->getSubmissionPayments($submission))->toHaveCount(1);
     if ($valid) {
-        expect($integration->processPayment($submission)->status)->toBe('succeeded');
+        expect($integration->processPayment($submission)->status->value)->toBe('succeeded');
         expect(Formie::$plugin->getPayments()->getSubmissionPayments($submission))->toHaveCount(1);
     }
 })->with(['completed', 'paid', 'tax', 'draft', 'ready', 'canceled', 'past_due', 'currency', 'underpaid', 'price', 'quantity', 'reference', 'missing-total', 'borrowed-checkout', 'changed-amount']);
@@ -171,7 +178,7 @@ it('binds Opayo callbacks to a valid payment capability and preserves the stored
         'reference' => 'opayo-' . bin2hex(random_bytes(10)),
     ]);
     expect(Formie::$plugin->getPayments()->savePayment($payment))->toBeTrue();
-    $token = \verbb\formie\helpers\PaymentAccess::issueStatusToken($payment, $variant === 'expired' ? time() - 90000 : null);
+    $token = \verbb\formie\helpers\PaymentCapabilities::issue('challenge', $payment->id, ['paymentUid' => $payment->uid], $variant === 'expired' ? -1 : 1800);
     if ($variant === 'unsigned') {
         $token = base64_encode(json_encode(['reference' => $payment->reference, 'submissionId' => $submission->id + 1, 'amount' => 1, 'currency' => 'EUR']));
     }
@@ -184,7 +191,7 @@ it('binds Opayo callbacks to a valid payment capability and preserves the stored
     }
 
     $invoke = function () use ($integration, $token) {
-        return \Tests\Support\WebRequestTestHelper::withWebRequestContext(fn() => $integration->processCallback()->data, [
+        return \Tests\Support\WebRequestTestHelper::withWebRequestContext(fn() => $integration->completeChallenge()->data, [
             'method' => 'POST', 'bodyParams' => ['cres' => 'synthetic-challenge', 'threeDSSessionData' => $token],
         ]);
     };
@@ -196,10 +203,10 @@ it('binds Opayo callbacks to a valid payment capability and preserves the stored
         expect(str_contains($response, '"success":true'))->toBe($variant === 'valid');
     }
     $stored = Formie::$plugin->getPayments()->getPaymentById($payment->id);
-    expect($stored->status)->toBe($variant === 'valid' ? Payment::STATUS_SUCCESS : Payment::STATUS_PENDING)
+    expect($stored->status)->toBe($variant === 'valid' ? Payment::STATUS_SUCCESS : (in_array($variant, ['unsigned', 'expired', 'integration'], true) ? Payment::STATUS_PENDING : Payment::STATUS_UNKNOWN))
         ->and($stored->submissionId)->toBe($submission->id)
         ->and($stored->fieldId)->toBe($field->id)
-        ->and($stored->amount)->toBe(25.0)
+        ->and($stored->amount)->toBe('25.00')
         ->and($stored->currency)->toBe('USD');
     if ($variant === 'valid') {
         expect($invoke())->toContain('"success":true');
@@ -213,21 +220,21 @@ it('issues the Opayo challenge token from the persisted payment and completes th
     $integration->payload = ['opayoTokenId' => 'test-card-token', 'opayoSessionKey' => 'test-session'];
     $integration->response = ['status' => '3DAuth', 'transactionId' => $reference, 'acsUrl' => 'https://example.test/challenge', 'cReq' => 'test-request'];
     $decision = \Tests\Support\WebRequestTestHelper::withWebRequestContext(fn() => $integration->processPayment($submission), ['method' => 'POST']);
-    expect($decision->status)->toBe('actionRequired');
+    expect($decision->status->value)->toBe('actionRequired');
     $token = $decision->action['payload']['threeDSSessionData'];
-    $identity = \verbb\formie\helpers\PaymentAccess::resolveStatusToken($token);
+    $identity = \verbb\formie\helpers\PaymentCapabilities::resolve($token, 'challenge');
     expect($identity)->not->toBeNull();
-    $stored = Formie::$plugin->getPayments()->getPaymentById($identity['paymentId']);
+    $stored = Formie::$plugin->getPayments()->getPaymentById((int)$identity['resourceId']);
     expect($stored->reference)->toBe($reference)
         ->and($stored->submissionId)->toBe($submission->id)
         ->and($stored->fieldId)->toBe($field->id)
         ->and($stored->status)->toBe(Payment::STATUS_PENDING);
     $integration->response = ['status' => 'Ok', 'transactionId' => $reference];
-    \Tests\Support\WebRequestTestHelper::withWebRequestContext(fn() => $integration->processCallback(), [
+    \Tests\Support\WebRequestTestHelper::withWebRequestContext(fn() => $integration->completeChallenge(), [
         'method' => 'POST', 'bodyParams' => ['cres' => 'synthetic-challenge', 'threeDSSessionData' => $token],
     ]);
     $integration->payload = ['opayo3DSComplete' => $reference];
-    expect($integration->processPayment($submission)->status)->toBe('succeeded');
+    expect($integration->processPayment($submission)->status->value)->toBe('succeeded');
     expect(array_column($integration->requests, 1))->toBe(['transactions', 'transactions/' . $reference . '/3d-secure-challenge']);
     expect(Formie::$plugin->getPayments()->getSubmissionPayments($submission))->toHaveCount(1);
 });
@@ -235,7 +242,7 @@ it('issues the Opayo challenge token from the persisted payment and completes th
 it('creates Paddle prices in the currency minor unit', function (string $currency, string $expected): void {
     [$integration, $submission, $field] = checkoutVerificationFixture('paddle');
     $field->providerSettings[$integration->handle]['currency'] = $currency;
-    expect($integration->processPayment($submission)->status)->toBe('actionRequired');
+    expect($integration->processPayment($submission)->status->value)->toBe('actionRequired');
     expect($integration->requests[1][2]['json']['unit_price'])->toBe(['amount' => $expected, 'currency_code' => $currency]);
 })->with([['USD', '2500'], ['JPY', '25']]);
 
@@ -243,11 +250,11 @@ it('creates Paddle prices in the currency minor unit', function (string $currenc
 it('does not repeat interrupted Paddle product, price or transaction creation', function (string $resource): void {
     [$integration, $submission] = checkoutVerificationFixture('paddle');
     $integration->loseResponseFor = $resource;
-    expect($integration->processPayment($submission)->status)->toBe('pending');
+    expect($integration->processPayment($submission)->status->value)->toBe('unknown');
     $integration->loseResponseFor = null;
-    expect($integration->processPayment($submission)->status)->toBe('pending');
+    expect($integration->processPayment($submission)->status->value)->toBe('unknown');
     $writes = array_values(array_filter($integration->requests, fn($request) => $request[0] === 'POST'));
     foreach (array_count_values(array_column($writes, 1)) as $count) { expect($count)->toBe(1); }
     $payments = Formie::$plugin->getPayments()->getSubmissionPayments($submission);
-    expect($payments)->toHaveCount(1)->and($payments[0]->status)->toBe(Payment::STATUS_PENDING);
+    expect($payments)->toHaveCount(1)->and($payments[0]->status)->toBe(Payment::STATUS_UNKNOWN);
 })->with(['products', 'prices', 'transactions']);

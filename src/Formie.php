@@ -2,11 +2,11 @@
 namespace verbb\formie;
 
 use verbb\formie\base\PluginTrait;
+use verbb\formie\elements\db\SubmissionQuery as DbSubmissionQuery;
+use verbb\formie\elements\exporters\FormExport;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\SentNotification;
 use verbb\formie\elements\Submission;
-use verbb\formie\elements\db\SubmissionQuery as DbSubmissionQuery;
-use verbb\formie\elements\exporters\FormExport;
 use verbb\formie\fields\Forms;
 use verbb\formie\fields\Submissions;
 use verbb\formie\gql\interfaces\FieldInterface;
@@ -30,8 +30,8 @@ use verbb\formie\jobs\DebuggableJobInterface;
 use verbb\formie\models\Settings;
 use verbb\formie\services\CaptchaProviders as CaptchaProvidersService;
 use verbb\formie\services\EmailTemplates as EmailTemplatesService;
-use verbb\formie\services\FormStatuses as FormStatusesService;
 use verbb\formie\services\FormGroups as FormGroupsService;
+use verbb\formie\services\FormStatuses as FormStatusesService;
 use verbb\formie\services\FormTemplates as FormTemplatesService;
 use verbb\formie\services\Integrations as IntegrationsService;
 use verbb\formie\services\PdfTemplates as PdfTemplatesService;
@@ -39,8 +39,8 @@ use verbb\formie\services\Permissions;
 use verbb\formie\services\Reports as ReportsService;
 use verbb\formie\services\ScheduledReports as ScheduledReportsService;
 use verbb\formie\services\SpamProtection as SpamProtectionService;
-use verbb\formie\services\SubmissionStatuses as SubmissionStatusesService;
 use verbb\formie\services\Stencils as StencilsService;
+use verbb\formie\services\SubmissionStatuses as SubmissionStatusesService;
 use verbb\formie\variables\Formie as FormieVariable;
 use verbb\formie\web\twig\Extension;
 use verbb\formie\widgets\RecentSubmissions;
@@ -48,13 +48,13 @@ use verbb\formie\widgets\RecentSubmissions;
 use Craft;
 use craft\base\Model;
 use craft\base\Plugin;
-use craft\controllers\UsersController;
 use craft\console\Application as ConsoleApplication;
 use craft\console\Controller as ConsoleController;
 use craft\console\controllers\ResaveController;
-use craft\elements\User as UserElement;
+use craft\controllers\UsersController;
 use craft\elements\exporters\Expanded;
 use craft\elements\exporters\Raw;
+use craft\elements\User as UserElement;
 use craft\enums\CmsEdition;
 use craft\events\DefineConsoleActionsEvent;
 use craft\events\ExecuteGqlQueryEvent;
@@ -62,8 +62,8 @@ use craft\events\FieldLayoutEvent;
 use craft\events\PluginEvent;
 use craft\events\RebuildConfigEvent;
 use craft\events\RegisterComponentTypesEvent;
-use craft\events\RegisterElementSourcesEvent;
 use craft\events\RegisterElementExportersEvent;
+use craft\events\RegisterElementSourcesEvent;
 use craft\events\RegisterEmailMessagesEvent;
 use craft\events\RegisterGqlMutationsEvent;
 use craft\events\RegisterGqlQueriesEvent;
@@ -72,8 +72,15 @@ use craft\events\RegisterGqlTypesEvent;
 use craft\events\RegisterTemplateRootsEvent;
 use craft\events\RegisterUrlRulesEvent;
 use craft\events\RegisterUserPermissionsEvent;
+use craft\feedme\events\RegisterFeedMeElementsEvent;
+use craft\feedme\events\RegisterFeedMeFieldsEvent;
+use craft\feedme\services\Elements as FeedMeElements;
+use craft\feedme\services\Fields as FeedMeFields;
 use craft\fields\Link;
+use craft\gatsbyhelper\events\RegisterSourceNodeTypesEvent;
+use craft\gatsbyhelper\services\SourceNodes;
 use craft\helpers\Cp;
+use craft\helpers\UrlHelper;
 use craft\queue\Queue;
 use craft\services\Dashboard;
 use craft\services\Elements;
@@ -86,18 +93,9 @@ use craft\services\ProjectConfig;
 use craft\services\Search;
 use craft\services\SystemMessages;
 use craft\services\UserPermissions;
-use craft\helpers\UrlHelper;
 use craft\web\twig\variables\CraftVariable;
 use craft\web\UrlManager;
 use craft\web\View;
-
-use craft\gatsbyhelper\events\RegisterSourceNodeTypesEvent;
-use craft\gatsbyhelper\services\SourceNodes;
-
-use craft\feedme\events\RegisterFeedMeElementsEvent;
-use craft\feedme\events\RegisterFeedMeFieldsEvent;
-use craft\feedme\services\Elements as FeedMeElements;
-use craft\feedme\services\Fields as FeedMeFields;
 
 use yii\base\Event;
 use yii\queue\ExecEvent;
@@ -116,7 +114,7 @@ class Formie extends Plugin
 
     public bool $hasCpSection = true;
     public bool $hasCpSettings = true;
-    public string $schemaVersion = '4.0.65';
+    public string $schemaVersion = '4.0.66';
     public string $minVersionRequired = '2.1.5';
 
 
@@ -275,9 +273,10 @@ class Formie extends Plugin
             $event->rules['formie/file-upload/delete'] = 'formie/file-upload/delete';
             $event->rules['formie/file-upload/hydrate'] = 'formie/file-upload/hydrate';
             $event->rules['formie/payment-webhooks/process-webhook'] = 'formie/payment-webhooks/process-webhook';
-            $event->rules['formie/payment-webhooks/process-callback'] = 'formie/payment-webhooks/process-callback';
-            $event->rules['formie/payment-webhooks/status'] = 'formie/payment-webhooks/status';
-            $event->rules['formie/payment-webhooks/poll-status'] = 'formie/payment-webhooks/poll-status';
+            $event->rules['formie/payment-return/index'] = 'formie/payment-return/index';
+            $event->rules['formie/payment-challenges/complete'] = 'formie/payment-challenges/complete';
+            $event->rules['formie/payment-status/status'] = 'formie/payment-status/status';
+            $event->rules['formie/payment-status/poll-status'] = 'formie/payment-status/poll-status';
         });
     }
 
