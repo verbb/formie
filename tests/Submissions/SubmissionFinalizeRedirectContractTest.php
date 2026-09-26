@@ -21,7 +21,7 @@ it('resolves url redirect targets and tab behavior contract from form settings',
 
     expect(Craft::$app->getElements()->saveElement($form))->toBeTrue();
 
-    $clientConfig = $form->getClientConfig();
+    $clientConfig = $form->getCpEditConfig();
     $settings = $clientConfig['settings'] ?? [];
 
     expect($form->getRedirectUrl())->toContain('example.test/redirect-url')
@@ -66,7 +66,7 @@ it('resolves entry redirect targets and tab behavior contract from form settings
 
     expect(Craft::$app->getElements()->saveElement($form))->toBeTrue();
 
-    $clientConfig = $form->getClientConfig();
+    $clientConfig = $form->getCpEditConfig();
     $settings = $clientConfig['settings'] ?? [];
 
     expect((string)$form->getRedirectUrl())->toContain('formie-seed-entry')

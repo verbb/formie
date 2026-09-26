@@ -7,7 +7,7 @@ Pick **one** primary package for your stack. Each installs what it needs (`@verb
 | **`@verbb/formie-browser`** | Vanilla JS/ESM, Craft Twig templates, bundlers without React/Vue—HTML forms, captchas, GraphQL/REST render, `createFormieClient()`. |
 | **`@verbb/formie-react`** | React apps: `<FormieForm />`, hooks, client-rendered forms (definition + form instance). |
 | **`@verbb/formie-vue`** | Vue 3 apps: `<FormieForm />`, composables, client-rendered forms. |
-| **`@verbb/formie-web-components`** | Custom elements: `formie-form` (server-rendered with browser behavior), `formie-core-form` (client-rendered forms), `registerFormieWebComponents()`. |
+| **`@verbb/formie-web-components`** | Custom elements: `formie-form` (server-rendered with browser behavior), `formie-client-form` (client-rendered forms), `registerFormieWebComponents()`. |
 
 `@verbb/formie-core` is the shared **definition + form engine + transport** layer. App authors normally depend on it only indirectly.
 

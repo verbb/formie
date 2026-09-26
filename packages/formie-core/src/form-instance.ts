@@ -1,6 +1,7 @@
+import { assertClientFormBootstrap } from './contract';
 import { evaluateConditionDefinition, finalizeConditionEvaluation } from './conditions';
 import { validateCompositeDateParts } from './date-parts-validation';
-import { FrontendEventEmitter } from './events';
+import { ClientEventEmitter } from './events';
 import {
     allFields,
     compositePartDefinitions,
@@ -19,18 +20,18 @@ import {
     repeaterFieldDefinitions,
 } from './schema';
 import type {
-    FrontendFieldDefinition,
-    FrontendFormEnvelope,
-    FrontendFormInstance,
-    FrontendFormState,
-    FrontendSubmitAction,
-    FrontendSubmitResult,
-    FrontendTransport,
+    ClientFieldDefinition,
+    ClientFormBootstrap,
+    ClientFormInstance,
+    ClientFormState,
+    ClientSubmitAction,
+    ClientSubmitResult,
+    ClientTransport,
 } from './types';
 
-type CreateFrontendFormInstanceOptions = {
-    envelope: FrontendFormEnvelope;
-    transport: FrontendTransport;
+type CreateClientFormInstanceOptions = {
+    envelope: ClientFormBootstrap;
+    transport: ClientTransport;
 };
 
 function cloneValue<T>(value: T): T {
@@ -55,7 +56,7 @@ function cloneValue<T>(value: T): T {
     })) as T;
 }
 
-function cloneState(state: FrontendFormState): FrontendFormState {
+function cloneState(state: ClientFormState): ClientFormState {
     return {
         ...state,
         session: {
@@ -88,13 +89,13 @@ function cloneState(state: FrontendFormState): FrontendFormState {
     };
 }
 
-function initialValues(envelope: FrontendFormEnvelope): Record<string, unknown> {
+function initialValues(envelope: ClientFormBootstrap): Record<string, unknown> {
     return Object.fromEntries(allFields(envelope.definition).map((field) => {
         return [field.id, defaultValueForField(field)];
     }));
 }
 
-function initialFieldStates(definition: FrontendFormEnvelope['definition']): FrontendFormState['fieldStates'] {
+function initialFieldStates(definition: ClientFormBootstrap['definition']): ClientFormState['fieldStates'] {
     return Object.fromEntries(allFields(definition).map((field) => {
         return [field.id, {
             hidden: field.meta?.hidden === true,
@@ -103,13 +104,13 @@ function initialFieldStates(definition: FrontendFormEnvelope['definition']): Fro
     }));
 }
 
-function initialPageStates(definition: FrontendFormEnvelope['definition']): FrontendFormState['pageStates'] {
+function initialPageStates(definition: ClientFormBootstrap['definition']): ClientFormState['pageStates'] {
     return Object.fromEntries(definition.pages.map((page) => {
         return [page.id, { hidden: false }];
     }));
 }
 
-function fieldIdsForPage(state: FrontendFormState, pageId: string): string[] {
+function fieldIdsForPage(state: ClientFormState, pageId: string): string[] {
     const page = state.definition.pages.find((item) => item.id === pageId);
 
     if (!page) {
@@ -128,13 +129,13 @@ function fieldIdsForPage(state: FrontendFormState, pageId: string): string[] {
 }
 
 function resolveConditionField(
-    definition: FrontendFormState['definition'],
-    rule: NonNullable<FrontendFieldDefinition['condition']>['rules'][number],
-): FrontendFieldDefinition | undefined {
+    definition: ClientFormState['definition'],
+    rule: NonNullable<ClientFieldDefinition['condition']>['rules'][number],
+): ClientFieldDefinition | undefined {
     return findFieldById(definition, rule.fieldId) || findFieldByHandle(definition, rule.fieldId);
 }
 
-function evaluateFieldStates(state: FrontendFormState): FrontendFormState['fieldStates'] {
+function evaluateFieldStates(state: ClientFormState): ClientFormState['fieldStates'] {
     const nextFieldStates = initialFieldStates(state.definition);
 
     allFields(state.definition).forEach((field) => {
@@ -183,14 +184,14 @@ function evaluateFieldStates(state: FrontendFormState): FrontendFormState['field
     return nextFieldStates;
 }
 
-function clearValueForHiddenField(field: FrontendFieldDefinition): unknown {
+function clearValueForHiddenField(field: ClientFieldDefinition): unknown {
     return defaultValueForField(field);
 }
 
 function clearHiddenFieldValues(
-    state: FrontendFormState,
-    previousFieldStates: FrontendFormState['fieldStates'],
-    nextFieldStates: FrontendFormState['fieldStates'],
+    state: ClientFormState,
+    previousFieldStates: ClientFormState['fieldStates'],
+    nextFieldStates: ClientFormState['fieldStates'],
 ): Record<string, unknown> {
     let nextValues = state.values;
 
@@ -220,9 +221,9 @@ function clearHiddenFieldValues(
 }
 
 function evaluatePageStates(
-    state: FrontendFormState,
-    fieldStates: FrontendFormState['fieldStates'],
-): FrontendFormState['pageStates'] {
+    state: ClientFormState,
+    fieldStates: ClientFormState['fieldStates'],
+): ClientFormState['pageStates'] {
     return Object.fromEntries(state.definition.pages.map((page) => {
         const condition = page.condition;
 
@@ -251,8 +252,8 @@ function evaluatePageStates(
 }
 
 function resolveCurrentPageId(
-    definition: FrontendFormState['definition'],
-    pageStates: FrontendFormState['pageStates'],
+    definition: ClientFormState['definition'],
+    pageStates: ClientFormState['pageStates'],
     preferredPageId?: string | null,
 ): string {
     const fallbackPageId = definition.pages[0]?.id || '';
@@ -267,7 +268,7 @@ function resolveCurrentPageId(
         : preferredPageId;
 }
 
-function applyDerivedState(current: FrontendFormState): FrontendFormState {
+function applyDerivedState(current: ClientFormState): ClientFormState {
     let nextState = current;
 
     for (let iteration = 0; iteration < 3; iteration += 1) {
@@ -304,7 +305,7 @@ function applyDerivedState(current: FrontendFormState): FrontendFormState {
     };
 }
 
-function isEmptyValue(field: FrontendFieldDefinition, value: unknown): boolean {
+function isEmptyValue(field: ClientFieldDefinition, value: unknown): boolean {
     if (field.type === 'checkboxes') {
         return !Array.isArray(value) || value.length === 0;
     }
@@ -334,14 +335,14 @@ function isEmptyValue(field: FrontendFieldDefinition, value: unknown): boolean {
     return false;
 }
 
-function fieldLabel(field: FrontendFieldDefinition): string {
+function fieldLabel(field: ClientFieldDefinition): string {
     return field.label?.trim() || field.handle;
 }
 
 function validateFieldValue(
-    field: FrontendFieldDefinition,
+    field: ClientFieldDefinition,
     value: unknown,
-    state: FrontendFormState,
+    state: ClientFormState,
     errorKey: string,
     output: Record<string, string[]>,
 ): void {
@@ -462,8 +463,8 @@ function validateFieldValue(
     }
 }
 
-function validateCurrentPage(state: FrontendFormState): FrontendFormState['errors'] {
-    const errors: FrontendFormState['errors'] = {
+function validateCurrentPage(state: ClientFormState): ClientFormState['errors'] {
+    const errors: ClientFormState['errors'] = {
         form: [],
         fields: {},
         pages: {},
@@ -486,15 +487,16 @@ function validateCurrentPage(state: FrontendFormState): FrontendFormState['error
     return errors;
 }
 
-export function createFrontendFormInstance({ envelope, transport }: CreateFrontendFormInstanceOptions): FrontendFormInstance {
-    const emitter = new FrontendEventEmitter();
-    const subscribers = new Set<(state: FrontendFormState) => void>();
+export function createClientFormInstance({ envelope, transport }: CreateClientFormInstanceOptions): ClientFormInstance {
+    assertClientFormBootstrap(envelope);
+    const emitter = new ClientEventEmitter();
+    const subscribers = new Set<(state: ClientFormState) => void>();
     const defaults = initialValues(envelope);
 
     // Bumped on destroy so stale async completions cannot revive state.
     let operationGeneration = 0;
 
-    let state: FrontendFormState = {
+    let state: ClientFormState = {
         status: 'ready',
         definition: envelope.definition,
         session: envelope.session,
@@ -522,7 +524,7 @@ export function createFrontendFormInstance({ envelope, transport }: CreateFronte
         });
     };
 
-    const setState = (updater: (current: FrontendFormState) => FrontendFormState) => {
+    const setState = (updater: (current: ClientFormState) => ClientFormState) => {
         // Destruction is terminal — ignore late transport completions.
         if (state.status === 'destroyed') {
             return;
@@ -536,7 +538,12 @@ export function createFrontendFormInstance({ envelope, transport }: CreateFronte
         return state.status === 'destroyed' || generation !== operationGeneration;
     };
 
-    const instance: FrontendFormInstance = {
+    let browserModuleGuard: () => void = () => undefined;
+    let prepareBrowserModules: (action: ClientSubmitAction) => Promise<Record<string, unknown>> = async() => ({});
+    const instance: ClientFormInstance = {
+        setBrowserModuleGuard(guard) { browserModuleGuard = guard; },
+        getBrowserRequestOptions() { return { profile: 'same-origin-browser', ...transport.browserRequestOptions }; },
+        setBrowserModulePreparation(prepare) { prepareBrowserModules = prepare; },
         id: envelope.session.id,
         getState() {
             return cloneState(state);
@@ -580,6 +587,7 @@ export function createFrontendFormInstance({ envelope, transport }: CreateFronte
             }));
         },
         async submit(action) {
+            browserModuleGuard();
             if (state.status === 'destroyed') {
                 return {
                     success: false,
@@ -593,7 +601,7 @@ export function createFrontendFormInstance({ envelope, transport }: CreateFronte
                         error: 'Form instance has been destroyed.',
                     },
                     session: state.session,
-                } satisfies FrontendSubmitResult;
+                } satisfies ClientSubmitResult;
             }
 
             // Reject overlapping submits on the shared imperative API.
@@ -610,18 +618,18 @@ export function createFrontendFormInstance({ envelope, transport }: CreateFronte
                         error: 'A submission is already in progress.',
                     },
                     session: state.session,
-                } satisfies FrontendSubmitResult;
+                } satisfies ClientSubmitResult;
             }
 
             const page = state.definition.pages.find((item) => item.id === state.currentPageId);
-            const requestedAction: FrontendSubmitAction = action || page?.actions.primary.type || 'submit';
+            const requestedAction: ClientSubmitAction = action || page?.actions.primary.type || 'submit';
             const transportAction = requestedAction === 'next' ? 'submit' : requestedAction;
 
             if (transportAction !== 'back' && transportAction !== 'save' && state.definition.settings.validation.onSubmit) {
                 const errors = validateCurrentPage(state);
 
                 if (errors.form.length > 0 || Object.keys(errors.fields).length > 0) {
-                    const result: FrontendSubmitResult = {
+                    const result: ClientSubmitResult = {
                         success: false,
                         isFinalPage: false,
                         errors,
@@ -655,7 +663,10 @@ export function createFrontendFormInstance({ envelope, transport }: CreateFronte
             }));
 
             try {
+                const browserData = await prepareBrowserModules(transportAction);
+                if (isStale(generation)) throw new Error('Submission was cancelled before sending.');
                 const result = await transport.submit({
+                    browserData,
                     definition: state.definition,
                     session: state.session,
                     values: state.values,
@@ -686,7 +697,7 @@ export function createFrontendFormInstance({ envelope, transport }: CreateFronte
                 return result;
             } catch (error) {
                 const message = error instanceof Error ? error.message : 'Submission failed.';
-                const result: FrontendSubmitResult = {
+                const result: ClientSubmitResult = {
                     success: false,
                     isFinalPage: false,
                     errors: {

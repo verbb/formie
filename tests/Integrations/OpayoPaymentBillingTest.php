@@ -92,7 +92,7 @@ it('includes checkout mode in the client module config', function (): void {
     $paymentField = new PaymentField(['handle' => 'payment']);
     $integration->setField($paymentField);
 
-    $module = $integration->getClientModule(new \verbb\formie\models\ClientModuleContext([
+    $module = $integration->getBrowserModule(new \verbb\formie\models\BrowserModuleContext([
         'field' => $paymentField,
     ]));
 

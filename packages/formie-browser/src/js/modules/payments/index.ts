@@ -1,6 +1,6 @@
-import type { FormieModuleDefinition } from '#contracts/modules';
+import type { BrowserModuleDefinition } from '#contracts/modules';
 
-export const builtinPaymentModuleLoaders: Record<string, () => Promise<FormieModuleDefinition>> = {
+export const builtinPaymentModuleLoaders: Record<string, () => Promise<BrowserModuleDefinition>> = {
     // Keep payment providers lazy and separately addressable so forms only ship
     // the payment SDK wrapper code they actually declare in their manifest.
     'bpoint': () => import('#modules/payments/bpoint').then((module) => module.bpointModule),

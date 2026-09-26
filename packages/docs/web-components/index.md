@@ -1,13 +1,13 @@
 # Web Components
 
-Use `@verbb/formie-web-components` when you want portable custom elements around Formie: **server-rendered forms** (server-rendered form markup) or **client-rendered forms** (client-rendered UI in `<formie-core-form>`).
+Use `@verbb/formie-web-components` when you want portable custom elements around Formie: **server-rendered forms** (server-rendered form markup) or **client-rendered forms** (client-rendered UI in `<formie-client-form>`).
 
 If you want to see the full Web Components integration in action, use the [Web Components starter](https://formie-starters.verbb.io/web-components) as a complete example app.
 
 The package exposes two hosts:
 
 - **`formie-form`** — server-rendered forms via `@verbb/formie-browser` (themes, server-rendered markup, browser events).
-- **`formie-core-form`** — Definition + `@verbb/formie-core` form engine (REST/GraphQL envelope load, client-rendered field tree, optional registry overrides for custom elements).
+- **`formie-client-form`** — Definition + `@verbb/formie-core` form engine (REST/GraphQL envelope load, client-rendered field tree, optional registry overrides for custom elements).
 
 If Craft is already rendering the final form HTML directly into the page and you do not need a custom element at the mount point, use the [Browser](/browser/) docs instead.
 
@@ -15,7 +15,7 @@ If Craft is already rendering the final form HTML directly into the page and you
 
 Use server-rendered forms when:
 
-- you want a plain HTML/JS embed and Formie-owned markup
+- you want a plain HTML/JS embed and server-rendered markup
 - you want the browser package theme, events, and modules
 - **`formie-form`** is enough for your mount story
 
@@ -33,7 +33,7 @@ Start with [Server-rendered](/web-components/server-rendered/overview).
 
 Use client-rendered forms when:
 
-- you want `<formie-core-form>` to render the form UI
+- you want `<formie-client-form>` to render the form UI
 - you are fine styling that output yourself (or reusing class names from the default renderer)
 - you may replace pieces with **custom elements** via `FormieRegistry` (whole **field** hosts, field controls only, optional layout regions)
 
@@ -51,9 +51,9 @@ Use **GraphQL** when the initial HTML payload should come from your GraphQL laye
 
 Set `transport` and `endpoint` on `<formie-form>` (or as properties). For object options such as `themeConfig` or a preloaded `payload`, use **JavaScript properties** on the element or `createFormieClient()`.
 
-### Client-Rendered Forms (`formie-core-form`)
+### Client-Rendered Forms (`formie-client-form`)
 
-Use **REST** when you want the default client definition envelope load and submit flow against Formie’s frontend actions.
+Use **REST** when you want the default client definition envelope load and submit flow against Formie’s public actions.
 
 Use **GraphQL** when the envelope and mutations should go through GraphQL; Formie uses GraphQL for submit, session refresh, and page changes when `transport="graphql"`.
 

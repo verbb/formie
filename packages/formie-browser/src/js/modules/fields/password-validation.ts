@@ -1,6 +1,6 @@
 import { getTextLimitMetrics } from '@verbb/formie-core';
 
-import type { FormieModuleDefinition } from '#contracts/modules';
+import type { BrowserModuleDefinition } from '#contracts/modules';
 import { getModuleFieldTarget, releaseFormValidators, retainFormValidators } from '#modules/fields/shared';
 
 const INPUT_SELECTOR = 'input[data-formie-password-input]';
@@ -104,8 +104,10 @@ function unregisterValidators(form: HTMLFormElement | null): void {
     releaseFormValidators(form, VALIDATOR_SCOPE, PASSWORD_VALIDATORS);
 }
 
-export const passwordValidationModule: FormieModuleDefinition = {
-    id: 'password-validation',
+export const passwordValidationModule: BrowserModuleDefinition = {
+    moduleId: 'formie:password-validation',
+    version: 1,
+    surfaces: ['server-rendered', 'client-rendered', 'cp-edit'],
     kind: 'field',
     match: (ctx) => {
         return !!ctx.target.querySelector(`${INPUT_SELECTOR}[data-formie-password-min-length], ${INPUT_SELECTOR}[data-formie-password-require-uppercase], ${INPUT_SELECTOR}[data-formie-password-require-lowercase], ${INPUT_SELECTOR}[data-formie-password-require-special-character]`);

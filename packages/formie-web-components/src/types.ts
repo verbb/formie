@@ -1,4 +1,4 @@
-import type { FrontendErrorAriaLive, FrontendFieldDefinition } from '@verbb/formie-core';
+import type { ClientErrorAriaLive, ClientFieldDefinition } from '@verbb/formie-core';
 
 /** Dispatched as `formie-control-value-change` from custom field controls (`bubbles` + `composed`). */
 export const FORMIE_CONTROL_VALUE_EVENT = 'formie-control-value-change';
@@ -8,12 +8,12 @@ export const FORMIE_CONTROL_VALUE_EVENT = 'formie-control-value-change';
  * Set as properties on the host; listen for {@link FORMIE_CONTROL_VALUE_EVENT}.
  */
 export type FormieFieldControlElement = HTMLElement & {
-    field: FrontendFieldDefinition;
+    field: ClientFieldDefinition;
     value: unknown;
     errorKey: string;
     errors: string[];
     errorId: string;
-    errorAriaLive: FrontendErrorAriaLive;
+    errorAriaLive: ClientErrorAriaLive;
     disabled: boolean;
     hidden: boolean;
 };
@@ -24,11 +24,11 @@ export type FormieFieldControlElement = HTMLElement & {
  * Use a **default slot** (or light DOM projection) where the control is rendered.
  */
 export type FormieFieldElement = HTMLElement & {
-    field: FrontendFieldDefinition;
+    field: ClientFieldDefinition;
     errors: string[];
     errorId: string;
-    errorAriaLive: FrontendErrorAriaLive;
+    errorAriaLive: ClientErrorAriaLive;
 };
 
-/** Keys for optional custom elements that replace default layout regions on `<formie-core-form>`. */
+/** Keys for optional custom elements that replace default layout regions on `<formie-client-form>`. */
 export type FormieRegionKey = 'form' | 'page' | 'errorSummary' | 'loading' | 'pageActions';

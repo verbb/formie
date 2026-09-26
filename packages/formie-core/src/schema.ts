@@ -1,13 +1,13 @@
 import type {
-    FrontendFieldDefinition,
-    FrontendFieldValueContract,
-    FrontendFormDefinition,
-    FrontendRowDefinition,
-    FrontendFormEnvelope,
-    KnownFrontendFieldType,
+    ClientFieldDefinition,
+    ClientFieldValueContract,
+    ClientFormDefinition,
+    ClientRowDefinition,
+    ClientFormBootstrap,
+    KnownClientFieldType,
 } from './types';
 
-const KNOWN_FRONTEND_FIELD_TYPES = new Set<KnownFrontendFieldType>([
+const KNOWN_FRONTEND_FIELD_TYPES = new Set<KnownClientFieldType>([
     'single-line-text',
     'multi-line-text',
     'number',
@@ -25,21 +25,21 @@ const KNOWN_FRONTEND_FIELD_TYPES = new Set<KnownFrontendFieldType>([
     'file',
 ]);
 
-export function allFields(definition: FrontendFormDefinition | FrontendFormEnvelope['definition']): FrontendFieldDefinition[] {
+export function allFields(definition: ClientFormDefinition | ClientFormBootstrap['definition']): ClientFieldDefinition[] {
     return definition.pages.flatMap((page) => {
         return page.rows.flatMap((row) => row.fields);
     });
 }
 
-export function findFieldById(definition: FrontendFormDefinition | FrontendFormEnvelope['definition'], fieldId: string): FrontendFieldDefinition | undefined {
+export function findFieldById(definition: ClientFormDefinition | ClientFormBootstrap['definition'], fieldId: string): ClientFieldDefinition | undefined {
     return allFields(definition).find((field) => field.id === fieldId);
 }
 
-export function findFieldByHandle(definition: FrontendFormDefinition | FrontendFormEnvelope['definition'], fieldHandle: string): FrontendFieldDefinition | undefined {
+export function findFieldByHandle(definition: ClientFormDefinition | ClientFormBootstrap['definition'], fieldHandle: string): ClientFieldDefinition | undefined {
     return allFields(definition).find((field) => field.handle === fieldHandle);
 }
 
-export function serializeFieldValues(definition: FrontendFormDefinition, values: Record<string, unknown>): Record<string, unknown> {
+export function serializeFieldValues(definition: ClientFormDefinition, values: Record<string, unknown>): Record<string, unknown> {
     return Object.fromEntries(Object.entries(values).map(([fieldId, value]) => {
         const field = findFieldById(definition, fieldId);
 
@@ -47,11 +47,11 @@ export function serializeFieldValues(definition: FrontendFormDefinition, values:
     }));
 }
 
-export function isKnownFrontendFieldType(fieldType: string): fieldType is KnownFrontendFieldType {
-    return KNOWN_FRONTEND_FIELD_TYPES.has(fieldType as KnownFrontendFieldType);
+export function isKnownClientFieldType(fieldType: string): fieldType is KnownClientFieldType {
+    return KNOWN_FRONTEND_FIELD_TYPES.has(fieldType as KnownClientFieldType);
 }
 
-export function fieldValueContract(field: FrontendFieldDefinition): FrontendFieldValueContract {
+export function fieldValueContract(field: ClientFieldDefinition): ClientFieldValueContract {
     if (field.client?.children) {
         return { structure: field.client.children.model, valueType: field.client.valueType };
     }
@@ -62,23 +62,23 @@ export function fieldValueContract(field: FrontendFieldDefinition): FrontendFiel
     return field.runtime;
 }
 
-export function fieldValueStructure(field: FrontendFieldDefinition): FrontendFieldValueContract['structure'] {
+export function fieldValueStructure(field: ClientFieldDefinition): ClientFieldValueContract['structure'] {
     return fieldValueContract(field).structure;
 }
 
-export function isCompositeField(field: FrontendFieldDefinition): boolean {
+export function isCompositeField(field: ClientFieldDefinition): boolean {
     return fieldValueStructure(field) === 'fixed-parent' && compositePartDefinitions(field).length > 0;
 }
 
-export function isRepeatableField(field: FrontendFieldDefinition): boolean {
+export function isRepeatableField(field: ClientFieldDefinition): boolean {
     return fieldValueStructure(field) === 'repeatable-parent';
 }
 
-export function isFileField(field: FrontendFieldDefinition): boolean {
+export function isFileField(field: ClientFieldDefinition): boolean {
     return field.type === 'file' || field.input.fieldKind === 'file';
 }
 
-export function isMultiValueField(field: FrontendFieldDefinition): boolean {
+export function isMultiValueField(field: ClientFieldDefinition): boolean {
     const contract = field.input;
 
     return isFileField(field)
@@ -86,23 +86,23 @@ export function isMultiValueField(field: FrontendFieldDefinition): boolean {
         || (field.type === 'dropdown' && contract.multiple === true);
 }
 
-export function isBooleanField(field: FrontendFieldDefinition): boolean {
+export function isBooleanField(field: ClientFieldDefinition): boolean {
     return field.type === 'agree' || field.input.fieldKind === 'boolean';
 }
 
-export function isNumericField(field: FrontendFieldDefinition): boolean {
+export function isNumericField(field: ClientFieldDefinition): boolean {
     return field.type === 'number';
 }
 
-export function isEmailField(field: FrontendFieldDefinition): boolean {
+export function isEmailField(field: ClientFieldDefinition): boolean {
     return field.type === 'email';
 }
 
-export function compositePartDefinitions(field: FrontendFieldDefinition): FrontendFieldDefinition[] {
+export function compositePartDefinitions(field: ClientFieldDefinition): ClientFieldDefinition[] {
     const contract = field.input;
 
     if (Array.isArray(contract.parts)) {
-        return contract.parts.filter((part): part is FrontendFieldDefinition => {
+        return contract.parts.filter((part): part is ClientFieldDefinition => {
             return !!part && typeof part === 'object' && 'handle' in part && 'type' in part;
         });
     }
@@ -110,7 +110,7 @@ export function compositePartDefinitions(field: FrontendFieldDefinition): Fronte
     return [];
 }
 
-export function repeaterRowDefinitions(field: FrontendFieldDefinition): FrontendRowDefinition[] {
+export function repeaterRowDefinitions(field: ClientFieldDefinition): ClientRowDefinition[] {
     const contract = field.input;
     const rowSchema = contract.rowSchema;
 
@@ -118,14 +118,14 @@ export function repeaterRowDefinitions(field: FrontendFieldDefinition): Frontend
         return [];
     }
 
-    return (rowSchema as { rows: FrontendRowDefinition[] }).rows;
+    return (rowSchema as { rows: ClientRowDefinition[] }).rows;
 }
 
-export function repeaterFieldDefinitions(field: FrontendFieldDefinition): FrontendFieldDefinition[] {
+export function repeaterFieldDefinitions(field: ClientFieldDefinition): ClientFieldDefinition[] {
     return repeaterRowDefinitions(field).flatMap((row) => row.fields);
 }
 
-export function defaultValueForField(field: FrontendFieldDefinition): unknown {
+export function defaultValueForField(field: ClientFieldDefinition): unknown {
     const contract = field.input;
 
     if (field.type === 'checkboxes') {
@@ -183,13 +183,13 @@ export function defaultValueForField(field: FrontendFieldDefinition): unknown {
     return contract.defaultValue ?? '';
 }
 
-export function createRepeaterRowValue(field: FrontendFieldDefinition): Record<string, unknown> {
+export function createRepeaterRowValue(field: ClientFieldDefinition): Record<string, unknown> {
     return Object.fromEntries(repeaterFieldDefinitions(field).map((rowField) => {
         return [rowField.handle, defaultValueForField(rowField)];
     }));
 }
 
-export function fieldValueAsStrings(field: FrontendFieldDefinition, value: unknown): string[] {
+export function fieldValueAsStrings(field: ClientFieldDefinition, value: unknown): string[] {
     if (field.type === 'checkboxes' || isFileField(field) || isMultiValueField(field)) {
         return Array.isArray(value) ? value.flatMap((item) => fieldValueAsStrings(field, item)) : [];
     }
@@ -246,21 +246,6 @@ function isBlobLike(value: unknown): value is Blob {
     return typeof Blob !== 'undefined' && value instanceof Blob;
 }
 
-async function blobToDataUrl(value: Blob): Promise<string> {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-
-        reader.onerror = () => {
-            reject(reader.error || new Error('Unable to read file.'));
-        };
-        reader.onload = () => {
-            resolve(typeof reader.result === 'string' ? reader.result : '');
-        };
-
-        reader.readAsDataURL(value);
-    });
-}
-
 async function serializeFileEntries(value: unknown): Promise<SerializableFileValue[]> {
     const entries = Array.isArray(value) ? value : [];
     const output = await Promise.all(entries.map(async(entry) => {
@@ -287,10 +272,7 @@ async function serializeFileEntries(value: unknown): Promise<SerializableFileVal
         }
 
         if (isBlobLike(entry)) {
-            return {
-                fileData: await blobToDataUrl(entry),
-                filename: 'name' in entry && typeof entry.name === 'string' ? entry.name : 'upload.bin',
-            };
+            throw new Error('Files must be staged before serialization. Use a Formie REST or GraphQL transport.');
         }
 
         return null;
@@ -299,7 +281,7 @@ async function serializeFileEntries(value: unknown): Promise<SerializableFileVal
     return output.filter((entry) => entry !== null);
 }
 
-async function serializeStructuredValue(fields: FrontendFieldDefinition[], value: unknown): Promise<Record<string, unknown>> {
+async function serializeStructuredValue(fields: ClientFieldDefinition[], value: unknown): Promise<Record<string, unknown>> {
     const currentValue = value && typeof value === 'object' ? value as Record<string, unknown> : {};
     const output: Record<string, unknown> = {
         ...currentValue,
@@ -312,7 +294,7 @@ async function serializeStructuredValue(fields: FrontendFieldDefinition[], value
     return output;
 }
 
-async function serializeRepeaterValue(field: FrontendFieldDefinition, value: unknown): Promise<unknown[]> {
+async function serializeRepeaterValue(field: ClientFieldDefinition, value: unknown): Promise<unknown[]> {
     const rowFields = repeaterFieldDefinitions(field);
 
     if (rowFields.length === 0 || !Array.isArray(value)) {
@@ -324,7 +306,7 @@ async function serializeRepeaterValue(field: FrontendFieldDefinition, value: unk
     }));
 }
 
-async function serializeFieldValue(field: FrontendFieldDefinition, value: unknown): Promise<unknown> {
+async function serializeFieldValue(field: ClientFieldDefinition, value: unknown): Promise<unknown> {
     if (isFileField(field)) {
         return serializeFileEntries(value);
     }
@@ -340,7 +322,7 @@ async function serializeFieldValue(field: FrontendFieldDefinition, value: unknow
     return value;
 }
 
-export async function serializeTransportFieldValues(definition: FrontendFormDefinition, values: Record<string, unknown>): Promise<Record<string, unknown>> {
+export async function serializeTransportFieldValues(definition: ClientFormDefinition, values: Record<string, unknown>): Promise<Record<string, unknown>> {
     const entries = await Promise.all(Object.entries(values).map(async([fieldId, value]) => {
         const field = findFieldById(definition, fieldId);
 

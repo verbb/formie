@@ -1,14 +1,17 @@
+import { browserRequest, type BrowserRequestOptions } from './request-profile';
+import { stageTransportFiles } from './uploads';
+import { assertClientFormBootstrap } from './contract';
 import type {
-    FrontendFormDefinition,
-    FrontendFormEnvelope,
-    FrontendFormSession,
-    FrontendSubmitResult,
-    FrontendTransport,
+    ClientFormDefinition,
+    ClientFormBootstrap,
+    ClientFormSession,
+    ClientSubmitResult,
+    ClientTransport,
 } from './types';
 import { serializeTransportFieldValues } from './schema';
 import { clearExchangedGrant } from './grants';
 
-export type RestFrontendTransportOptions = {
+export type RestClientTransportOptions = BrowserRequestOptions & {
     /**
      * Craft web root used to build action URLs.
      * Absolute examples: `https://example.test/` or `https://example.test/craft/`.
@@ -54,8 +57,8 @@ export function buildActionUrl(baseUrl: string, path: string): string {
     return `${normalizedBaseUrl.replace(/\/+$/, '')}${normalizedPath}`;
 }
 
-async function requestJson<T>(url: string, init: RequestInit): Promise<T> {
-    const response = await fetch(url, init);
+async function requestJson<T>(url: string, init: RequestInit, options: BrowserRequestOptions): Promise<T> {
+    const response = await browserRequest(url, init, options);
 
     const payload = await response.json();
     if (!response.ok && !(typeof payload.outcome === 'string' && [403, 409, 422, 429].includes(response.status))) {
@@ -65,7 +68,7 @@ async function requestJson<T>(url: string, init: RequestInit): Promise<T> {
     return payload as T;
 }
 
-function appendCsrfToken(body: Record<string, unknown>, session?: FrontendFormSession | null): void {
+function appendCsrfToken(body: Record<string, unknown>, session?: ClientFormSession | null): void {
     const csrf = session?.tokens?.csrf;
 
     if (!csrf?.name || !csrf.value) {
@@ -75,7 +78,7 @@ function appendCsrfToken(body: Record<string, unknown>, session?: FrontendFormSe
     body[csrf.name] = csrf.value;
 }
 
-export async function loadFrontendEnvelope(options: RestFrontendTransportOptions): Promise<FrontendFormEnvelope> {
+export async function loadClientFormBootstrap(options: RestClientTransportOptions): Promise<ClientFormBootstrap> {
     const url = buildActionUrl(options.endpoint, '/actions/formie/client/forms/load');
     const body = JSON.stringify({
         handle: options.formHandle,
@@ -85,43 +88,46 @@ export async function loadFrontendEnvelope(options: RestFrontendTransportOptions
         draftContext: options.draftContext,
     });
 
-    const envelope = await requestJson<FrontendFormEnvelope>(url, {
+    const envelope = await requestJson<ClientFormBootstrap>(url, {
         method: 'POST',
         credentials: options.credentials ?? 'same-origin',
         headers: {
             'Content-Type': 'application/json',
         },
         body,
-    });
+    }, options);
+    assertClientFormBootstrap(envelope);
     clearExchangedGrant(options.grantToken);
     return envelope;
 }
 
-export function createRestFrontendTransport(options: RestFrontendTransportOptions): FrontendTransport {
+export function createRestClientTransport(options: RestClientTransportOptions): ClientTransport {
     return {
-        async submit({ definition, session, values, action }): Promise<FrontendSubmitResult> {
+        browserRequestOptions: { profile: options.profile ?? 'same-origin-browser', publicSession: options.publicSession },
+        async submit({ definition, session, values, action, browserData }): Promise<ClientSubmitResult> {
             const url = buildActionUrl(options.endpoint, '/actions/formie/client/submissions/submit');
-            const serializedValues = await serializeTransportFieldValues(definition, values);
+            const serializedValues = await serializeTransportFieldValues(definition, await stageTransportFiles(definition, session, values, options));
             const body: Record<string, unknown> = {
                 handle: options.formHandle,
                 siteId: options.siteId,
                 action,
+                browserData,
                 session,
                 values: serializedValues,
             };
 
             appendCsrfToken(body, session);
 
-            return requestJson<FrontendSubmitResult>(url, {
+            return requestJson<ClientSubmitResult>(url, {
                 method: 'POST',
                 credentials: options.credentials ?? 'same-origin',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(body),
-            });
+            }, options);
         },
-        async refreshSession({ session }): Promise<FrontendFormSession> {
+        async refreshSession({ session }): Promise<ClientFormSession> {
             const url = buildActionUrl(options.endpoint, '/actions/formie/client/sessions/refresh');
             const body: Record<string, unknown> = {
                 handle: options.formHandle,
@@ -131,18 +137,18 @@ export function createRestFrontendTransport(options: RestFrontendTransportOption
 
             appendCsrfToken(body, session);
 
-            return requestJson<FrontendFormSession>(url, {
+            return requestJson<ClientFormSession>(url, {
                 method: 'POST',
                 credentials: options.credentials ?? 'same-origin',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(body),
-            });
+            }, options);
         },
-        async setPage({ definition, session, values, currentPageId, targetPageId }): Promise<FrontendFormSession> {
+        async setPage({ definition, session, values, currentPageId, targetPageId }): Promise<ClientFormSession> {
             const url = buildActionUrl(options.endpoint, '/actions/formie/client/forms/page');
-            const serializedValues = await serializeTransportFieldValues(definition, values);
+            const serializedValues = await serializeTransportFieldValues(definition, await stageTransportFiles(definition, session, values, options));
             const body: Record<string, unknown> = {
                 handle: options.formHandle,
                 siteId: options.siteId,
@@ -154,14 +160,14 @@ export function createRestFrontendTransport(options: RestFrontendTransportOption
 
             appendCsrfToken(body, session);
 
-            return requestJson<FrontendFormSession>(url, {
+            return requestJson<ClientFormSession>(url, {
                 method: 'POST',
                 credentials: options.credentials ?? 'same-origin',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(body),
-            });
+            }, options);
         },
     };
 }

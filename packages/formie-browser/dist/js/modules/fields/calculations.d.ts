@@ -1,3 +1,3 @@
-import type { FormieModuleDefinition } from '#contracts/modules';
-export declare const calculationsModule: FormieModuleDefinition;
+import type { BrowserModuleDefinition } from '#contracts/modules';
+export declare const calculationsModule: BrowserModuleDefinition;
 //# sourceMappingURL=calculations.d.ts.map

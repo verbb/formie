@@ -291,13 +291,13 @@ Reload the control panel. Your **URL** field should appear in the field picker. 
 When a field needs companion JavaScript, register a client module so Formie lazy-loads it only when the field is on the form:
 
 ```php
-use verbb\formie\models\ClientModule;
+use verbb\formie\models\BrowserModuleEntry;
 
-protected function defineClientModules(): array
+protected function defineBrowserModules(): array
 {
-    $modules = parent::defineClientModules();
+    $modules = parent::defineBrowserModules();
 
-    $modules[] = new ClientModule([
+    $modules[] = new BrowserModuleEntry([
         'id' => 'url-field',
         'type' => 'field',
         'src' => '/assets/formie/url-field-module.js',

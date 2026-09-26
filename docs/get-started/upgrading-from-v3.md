@@ -132,9 +132,9 @@ Custom integrations that send to a URL configured on each form should use `reque
 ### Captchas and Address Providers
 
 > [!CAUTION]
-> Custom captchas and address providers need to move to client modules, and any front-end behaviour for them needs to be adapted to Formie's browser module system.
+> Custom captchas and address providers need to move to browser modules, and any front-end behaviour for them needs to be adapted to Formie's browser module system.
 
-Captchas and address providers now use client modules instead of ad-hoc JavaScript variables. In practice, that means moving both the PHP side and the front-end side of the integration to the current browser module approach.
+Captchas and address providers now use browser modules instead of ad-hoc JavaScript variables. In practice, that means moving both the PHP side and the front-end side of the integration to the current browser module approach.
 
 ::: code-group
 ```php [Formie 3]
@@ -148,12 +148,12 @@ public function getFrontEndJsVariables(Form $form, $page = null)
 ```
 
 ```php [Formie 4]
-use verbb\formie\models\ClientModule;
-use verbb\formie\models\ClientModuleContext;
+use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\models\BrowserModuleContext;
 
-public function getClientModule(ClientModuleContext $context): ?ClientModule
+public function getBrowserModule(BrowserModuleContext $context): ?BrowserModuleEntry
 {
-    return new ClientModule([
+    return new BrowserModuleEntry([
         'id' => 'my-captcha',
         'src' => $this->scriptUrl,
         'config' => [
@@ -1595,7 +1595,7 @@ Formie 3 | Formie 4
 `getPreviewInputHtml()` | `defineFormBuilderPreviewSchema()`
 `getFrontEndInputTemplatePath()` | `getInputTemplatePath()`
 `getFormSettingsHtml()` for integration form settings | `defineFormSettingsSchema()`
-`getFrontEndJsVariables()` for captchas/providers | `getClientModule()`
+`getFrontEndJsVariables()` for captchas/providers | `getBrowserModule()`
 `enableJsEvents` | `enableClientEvents`
 `jsGtmEventOptions` | `clientEventFields`
 `onAfterFormieSubmit` | `formie:submit:result`
@@ -1704,3 +1704,9 @@ A direct fixed child reference is valid. A direct repeater-child reference needs
 Back up the database and retain the Formie security key before upgrading. The delivery migration canonicalizes beta `mode: immediate` settings to `execution: synchronous`, renames after-integration notification timing, invalidates old metadata and encrypts literal persisted connection and binding secrets. Environment references remain portable. Existing stable provider responses use a coarse compatibility adapter; new providers should use `IntegrationResult` and child operations.
 
 Existing queued integration and notification locators are read without restoring their old debug payloads. Saved completed or unknown delivery receipts still prevent duplicate writes. Legacy job diagnostics remain accessible through Submission Delivery History after execution; old serialized debug bodies are not rehydrated or rewritten. Downgrading requires the matching pre-upgrade database and code backup.
+
+## Browser module declarations
+
+Formie 4 distinguishes server-rendered HTML from client-rendered definitions. Browser modules apply to either product; CP edit configuration uses `getCpEditConfig()`. Public field definitions use `getClientRenderedDefinition()` and `getClientRenderedInput()`. Custom module declarations use `BrowserModuleEntry`, with a namespaced `moduleId`, unique occurrence key, explicit surfaces and form-field UID targets. The versioned manifest contains no executable `src` URLs.
+
+Stable `getFrontEndJsModules()` declarations are adapted with a deprecation warning. Register third-party JavaScript in your trusted application bundle under `legacy:<kebab-name>`; old source URLs are ignored. Repeated declarations remain distinct. Formie 4 beta `ClientModule` shapes and `frontend`/`src` module properties are replaced directly. The npm bootstrap now requires `contractVersion: 1`, and the client-rendered web component is `<formie-client-form>`.

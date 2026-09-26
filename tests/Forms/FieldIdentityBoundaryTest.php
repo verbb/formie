@@ -23,7 +23,7 @@ it('separates immutable definition metadata from runtime instance and keeps PHP 
         ->and($definition)->not->toBeInstanceOf(Field::class)
         ->and($definition->uid)->toBe($field->definitionUid)
         ->and($field->fieldId)->toBe($field->definitionId)
-        ->and($field->getClientConfig()['id'])->toBe((string)$field->id);
+        ->and($field->getCpEditConfig()['id'])->toBe((string)$field->id);
     $alias = new Email(['fieldId' => $field->definitionId, 'syncId' => $field->definitionId]);
     expect($alias->definitionId)->toBe($field->definitionId)->and($alias->isSynced)->toBeTrue();
 });

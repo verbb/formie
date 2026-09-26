@@ -1,3 +1,6 @@
+import { appendFormCsrfToFormData } from '#utils/csrf';
+import { browserRequest } from '@verbb/formie-core';
+import { getFormBrowserRequestOptions } from '#utils/request-profile';
 import { defineAddressModule } from '#modules/address/api';
 import type { AddressHostServices } from '#modules/address/host';
 import { getAddressProviderEventName } from '#utils/event-names';
@@ -7,6 +10,7 @@ type GoogleMaps = typeof google;
 
 type GoogleAddressProviderOptions = {
     apiKey?: string;
+    geocodeEndpoint?: string;
     options?: Record<string, unknown>;
     countryDefaultValue?: string;
 };
@@ -231,7 +235,7 @@ export const googleAddressModule = defineAddressModule<
     GoogleMaps,
     google.maps.places.PlaceAutocompleteElement
 >({
-    id: 'google-address',
+    moduleId: 'formie:google-address',
     load: async ({ options }) => {
         const apiKey = options.provider.apiKey;
 
@@ -335,10 +339,10 @@ export const googleAddressModule = defineAddressModule<
 
         return autocomplete;
     },
-    onCurrentLocation: async (position, { field, services }) => {
+    onCurrentLocation: async (position, { field, services, provider }) => {
         const { latitude, longitude } = position.coords;
         const form = services.form;
-        const actionUrl = form?.action || window.location.href;
+        const actionUrl = provider.geocodeEndpoint || form?.action || window.location.href;
         const fieldHandle = field.getAttribute('data-formie-field-handle')?.trim();
         const formHandle = (form?.querySelector('[name="handle"]') as HTMLInputElement | null)?.value?.trim();
 
@@ -346,20 +350,20 @@ export const googleAddressModule = defineAddressModule<
 
         try {
             const formData = new FormData();
+            if (form) appendFormCsrfToFormData(formData, form);
             formData.append('action', 'formie/address/google-places-geocode');
             formData.append('latlng', `${latitude},${longitude}`);
             formData.append('handle', formHandle);
             formData.append('fieldHandle', fieldHandle);
 
-            const response = await fetch(actionUrl, {
+            const response = await browserRequest(actionUrl, {
                 method: 'POST',
                 body: formData,
-                credentials: 'include',
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest',
                     Accept: 'application/json',
                 },
-            });
+            }, getFormBrowserRequestOptions(form));
 
             const data = await response.json();
 

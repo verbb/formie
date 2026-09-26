@@ -1,2 +1,2 @@
-export declare const loqateModule: import("../../..").FormieModuleDefinition;
+export declare const loqateModule: import("../../..").BrowserModuleDefinition;
 //# sourceMappingURL=loqate.d.ts.map

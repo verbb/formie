@@ -44,7 +44,7 @@ class TiptapExtensions extends Component
         return $extensions;
     }
 
-    public function getClientConfig(): array
+    public function getCpEditConfig(): array
     {
         $this->_resolve();
 

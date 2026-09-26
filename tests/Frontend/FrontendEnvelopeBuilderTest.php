@@ -51,7 +51,7 @@ it('builds a canonical client bootstrap for simple and advanced config fields', 
             'handle' => $form->handle,
         ]))->toArrayRecursive();
 
-        expect($bootstrap)->toHaveKeys(['schemaVersion', 'definition', 'session'])
+        expect($bootstrap)->toHaveKeys(['contractVersion', 'definition', 'session'])
             ->and($bootstrap)->not->toHaveKeys(['version', 'mode', 'transport'])
             ->and($bootstrap['definition']['handle'])->toBe($form->handle)
             ->and($bootstrap['definition']['pages'])->toHaveCount(1)
@@ -103,11 +103,11 @@ it('builds a canonical client bootstrap for simple and advanced config fields', 
                     'mode' => 'parts',
                 ],
             ])
-            ->and($contactName['client']['valueType']['class'] ?? null)->toBe('verbb\\formie\\fields\\values\\NameFieldValue')
+            ->and($contactName['client']['valueType']['class'] ?? null)->toBeNull()
             ->and($shippingAddress['input']['parts'] ?? [])->not->toBeEmpty()
-            ->and($shippingAddress['client']['valueType']['class'] ?? null)->toBe('verbb\\formie\\fields\\values\\AddressFieldValue')
+            ->and($shippingAddress['client']['valueType']['class'] ?? null)->toBeNull()
             ->and($appointmentDate['input']['parts'] ?? [])->not->toBeEmpty()
-            ->and($appointmentDate['client']['valueType']['class'] ?? null)->toBe('verbb\\formie\\fields\\values\\DateFieldValue')
+            ->and($appointmentDate['client']['valueType']['class'] ?? null)->toBeNull()
             ->and($lineItems['input']['rowSchema']['rows'][0]['fields'][0]['handle'] ?? null)->toBe('itemName')
             ->and($lineItems['client'] ?? [])->toMatchArray([
                 'children' => [
@@ -122,7 +122,7 @@ it('builds a canonical client bootstrap for simple and advanced config fields', 
                     'model' => 'scalar',
                 ],
             ])
-            ->and($signature['moduleRefs'] ?? [])->toContain('signature');
+            ->and($signature['moduleRefs'] ?? [])->toContain('formie:signature');
     });
 });
 

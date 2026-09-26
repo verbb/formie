@@ -449,9 +449,9 @@ class Agree extends Field implements SortableFieldInterface, PreviewableFieldInt
         return parent::defineValueForIntegration($value, $integrationField, $integration, $element);
     }
 
-    protected function defineClientInput(): array
+    protected function defineClientRenderedInput(): array
     {
-        return array_merge(parent::defineClientInput(), [
+        return array_merge(parent::defineClientRenderedInput(), [
             'checkedValue' => $this->checkedValue,
             'uncheckedValue' => $this->uncheckedValue,
             'descriptionHtml' => (string)$this->getDescriptionHtml(),

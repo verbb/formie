@@ -26,7 +26,6 @@ class FormsController extends Controller
     // =========================================================================
 
     use CrossOriginRequestTrait;
-    use ClientGuestCsrfTrait;
     use AnonymousSiteRequestGuardTrait;
 
 
@@ -36,12 +35,16 @@ class FormsController extends Controller
     public function beforeAction($action): bool
     {
         $this->forbidGuestControlPanelAnonymousActions($action->id);
+        $profile = \verbb\formie\helpers\BrowserRequestProfile::enter($action->id === 'load');
+        if ($profile === \verbb\formie\helpers\BrowserRequestProfile::CROSS_ORIGIN) {
+            $this->enableCsrfValidation = false;
+        }
         // Initial bootstrap supplies the token required by subsequent mutations.
         // It reads a public form and retains the endpoint's CORS policy.
         if ($action->id === 'load') {
             $this->enableCsrfValidation = false;
         } else {
-            $this->configureGuestCsrfValidation(['page']);
+            $this->enableCsrfValidation = $profile === \verbb\formie\helpers\BrowserRequestProfile::SAME_ORIGIN;
         }
 
         return parent::beforeAction($action);

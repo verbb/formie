@@ -142,7 +142,7 @@ Start with the methods your Craft field actually needs:
 | Value normalisation | `normalizeValue()`, `serializeValue()`, `isValueEmpty()` |
 | Output contexts | `getValueAsString()`, `getValueAsData()`, `getValueForExport()`, `getValueForIntegration()` |
 | GraphQL | `getContentGqlType()`, `getContentGqlMutationArgumentType()` |
-| Client-rendered forms | `getClientInputDefinition()`, `getClientModules()` |
+| Client-rendered forms | `getClientRenderedInput()`, `getBrowserModules()` |
 
 For structured values (maps, addresses, multi-part data), implement the value and GraphQL methods together so every output path sees the same shape.
 

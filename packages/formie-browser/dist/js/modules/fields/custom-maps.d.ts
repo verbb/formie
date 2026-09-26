@@ -1,3 +1,3 @@
-import type { FormieModuleDefinition } from '#contracts/modules';
-export declare const customMapsModule: FormieModuleDefinition;
+import type { BrowserModuleDefinition } from '#contracts/modules';
+export declare const customMapsModule: BrowserModuleDefinition;
 //# sourceMappingURL=custom-maps.d.ts.map

@@ -1,6 +1,6 @@
-import type { FormieModuleDefinition } from '#contracts/modules';
+import type { BrowserModuleDefinition } from '#contracts/modules';
 
-export const builtinAddressModuleLoaders: Record<string, () => Promise<FormieModuleDefinition>> = {
+export const builtinAddressModuleLoaders: Record<string, () => Promise<BrowserModuleDefinition>> = {
     // Address providers stay behind lazy importer entries because their SDKs are
     // optional and often much heavier than the base form client.
     'address-finder': () => import('#modules/address/address-finder').then((m) => m.addressFinderModule),

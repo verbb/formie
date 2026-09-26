@@ -1,2 +1,2 @@
-export declare const recaptchaEnterpriseModule: import("../../..").FormieModuleDefinition;
+export declare const recaptchaEnterpriseModule: import("../../..").BrowserModuleDefinition;
 //# sourceMappingURL=recaptcha-enterprise.d.ts.map

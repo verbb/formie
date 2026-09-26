@@ -1,4 +1,5 @@
-export type RequestJsonOptions = {
+import { type BrowserRequestOptions } from '@verbb/formie-core';
+export type RequestJsonOptions = BrowserRequestOptions & {
     method?: string;
     body?: BodyInit | null;
     headers?: Record<string, string>;

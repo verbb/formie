@@ -23,7 +23,6 @@ class SubmissionsController extends Controller
     // =========================================================================
 
     use CrossOriginRequestTrait;
-    use ClientGuestCsrfTrait;
     use AnonymousSiteRequestGuardTrait;
 
     
@@ -33,7 +32,11 @@ class SubmissionsController extends Controller
     public function beforeAction($action): bool
     {
         $this->forbidGuestControlPanelAnonymousActions($action->id);
-        $this->configureGuestCsrfValidation(['submit']);
+        $profile = \verbb\formie\helpers\BrowserRequestProfile::enter($action->id === 'load');
+        if ($profile === \verbb\formie\helpers\BrowserRequestProfile::CROSS_ORIGIN) {
+            $this->enableCsrfValidation = false;
+        }
+        $this->enableCsrfValidation = $profile === \verbb\formie\helpers\BrowserRequestProfile::SAME_ORIGIN;
 
         return parent::beforeAction($action);
     }
@@ -53,6 +56,7 @@ class SubmissionsController extends Controller
             'siteId' => SiteHelper::resolveSiteIdFromRequest(),
             'session' => (array)$this->request->getBodyParam('session', []),
             'values' => (array)$this->request->getBodyParam('values', []),
+            'browserData' => (array)$this->request->getBodyParam('browserData', []),
         ]), \verbb\formie\enums\SubmissionAuthorityType::VISITOR);
 
         $this->response->setNoCacheHeaders();

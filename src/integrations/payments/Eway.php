@@ -16,8 +16,8 @@ use verbb\formie\helpers\PaymentAttempt;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\helpers\Variables;
-use verbb\formie\models\ClientModule;
-use verbb\formie\models\ClientModuleContext;
+use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\models\BrowserModuleContext;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Payment as PaymentModel;
 use verbb\formie\models\PaymentDecision;
@@ -86,7 +86,7 @@ class Eway extends Payment
         return App::parseEnv($this->apiKey) && App::parseEnv($this->apiPassword) && App::parseEnv($this->clientSideEncryptionKey);
     }
 
-    public function getClientModule(ClientModuleContext $context): ?ClientModule
+    public function getBrowserModule(BrowserModuleContext $context): ?BrowserModuleEntry
     {
         if (!$this->hasValidSettings()) {
             return null;
@@ -94,8 +94,9 @@ class Eway extends Payment
 
         $this->setField($context->field);
 
-        return new ClientModule([
-            'id' => 'eway',
+        return new BrowserModuleEntry([
+            'moduleId' => 'formie:eway',
+            'surfaces' => [BrowserModuleEntry::SURFACE_SERVER_RENDERED, BrowserModuleEntry::SURFACE_CLIENT_RENDERED],
             'config' => [
                 'cseKey' => App::parseEnv($this->clientSideEncryptionKey),
                 'requiredInputSuffixes' => ['ewayTokenData'],

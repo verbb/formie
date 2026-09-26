@@ -19,8 +19,8 @@ use verbb\formie\helpers\PaymentWebhookReceipt;
 use verbb\formie\helpers\References;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
-use verbb\formie\models\ClientModule;
-use verbb\formie\models\ClientModuleContext;
+use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\models\BrowserModuleContext;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Payment as PaymentModel;
 use verbb\formie\models\PaymentAction;
@@ -165,7 +165,7 @@ class Stripe extends Payment
         ];
     }
 
-    public function getClientModule(ClientModuleContext $context): ?ClientModule
+    public function getBrowserModule(BrowserModuleContext $context): ?BrowserModuleEntry
     {
         if (!$this->hasValidSettings()) {
             return null;
@@ -194,8 +194,9 @@ class Stripe extends Payment
         $hideIcon = $this->getFieldSetting('hideIcon', false);
         $paymentType = $this->getFieldSetting('type', 'single');
 
-        return new ClientModule([
-            'id' => 'stripe',
+        return new BrowserModuleEntry([
+            'moduleId' => 'formie:stripe',
+            'surfaces' => [BrowserModuleEntry::SURFACE_SERVER_RENDERED, BrowserModuleEntry::SURFACE_CLIENT_RENDERED],
             'config' => [
                 'publishableKey' => App::parseEnv($this->publishableKey),
                 'billingDetails' => $billingDetails,

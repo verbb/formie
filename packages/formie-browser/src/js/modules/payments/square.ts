@@ -23,7 +23,7 @@ type SquareProviderOptions = {
 const SCRIPT_ID = 'FORMIE_SQUARE_SCRIPT';
 
 export const squareModule = definePaymentModule<SquareProviderOptions, SquareGlobal | null, SquareCard | null>({
-    id: 'square',
+    moduleId: 'formie:square',
     defaultRequiredInputSuffixes: ['squarePaymentId'],
     load: async(ctx) => {
         const { provider } = ctx.options;
@@ -73,7 +73,7 @@ export const squareModule = definePaymentModule<SquareProviderOptions, SquareGlo
     unmount: async() => {
         // Square card doesn't expose destroy, detach handled by removing element
     },
-    onBeforeAuthorize: async(args) => {
+    onBeforePayment: async(args) => {
         const { widget, services } = args;
 
         if (!widget) {

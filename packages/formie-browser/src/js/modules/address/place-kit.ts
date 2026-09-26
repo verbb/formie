@@ -28,7 +28,7 @@ export const placeKitModule = defineAddressModule<
     (apiKey: string, options: Record<string, unknown>) => PlaceKitPicker,
     PlaceKitPicker
 >({
-    id: 'place-kit',
+    moduleId: 'formie:place-kit',
     load: async () => {
         const module = await import('@placekit/autocomplete-js');
 

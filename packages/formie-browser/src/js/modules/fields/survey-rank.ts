@@ -1,6 +1,6 @@
 import surveyPresentationsCss from '#theme-css/fields/_survey-presentations.css?inline';
 
-import type { FormieModuleDefinition } from '#contracts/modules';
+import type { BrowserModuleDefinition } from '#contracts/modules';
 import { dispatchFieldEvent } from '#modules/fields/shared';
 import { ensureModuleStyles } from '#modules/styles';
 import { createDebug } from '#utils/debug';
@@ -338,8 +338,10 @@ function bindRankField(field: HTMLElement): () => void {
     };
 }
 
-export const surveyRankModule: FormieModuleDefinition = {
-    id: MODULE_ID,
+export const surveyRankModule: BrowserModuleDefinition = {
+    moduleId: `formie:${MODULE_ID}`,
+    version: 1,
+    surfaces: ['server-rendered', 'client-rendered', 'cp-edit'],
     kind: 'field',
     match: (ctx) => {
         return ctx.target instanceof HTMLElement && (

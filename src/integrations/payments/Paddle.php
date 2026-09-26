@@ -14,8 +14,8 @@ use verbb\formie\helpers\DeliveryAttempt;
 use verbb\formie\helpers\PaymentAttempt;
 use verbb\formie\helpers\References;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\models\ClientModule;
-use verbb\formie\models\ClientModuleContext;
+use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\models\BrowserModuleContext;
 use verbb\formie\models\Payment as PaymentModel;
 use verbb\formie\models\PaymentAction;
 use verbb\formie\models\PaymentDecision;
@@ -77,7 +77,7 @@ class Paddle extends Payment
         return App::parseEnv($this->apiKey) && App::parseEnv($this->clientSideToken);
     }
 
-    public function getClientModule(ClientModuleContext $context): ?ClientModule
+    public function getBrowserModule(BrowserModuleContext $context): ?BrowserModuleEntry
     {
         if (!$this->hasValidSettings()) {
             return null;
@@ -86,8 +86,9 @@ class Paddle extends Payment
         $this->setField($context->field);
         $useSandbox = App::parseBooleanEnv($this->useSandbox);
 
-        return new ClientModule([
-            'id' => 'paddle',
+        return new BrowserModuleEntry([
+            'moduleId' => 'formie:paddle',
+            'surfaces' => [BrowserModuleEntry::SURFACE_SERVER_RENDERED, BrowserModuleEntry::SURFACE_CLIENT_RENDERED],
             'config' => [
                 'clientSideToken' => App::parseEnv($this->clientSideToken),
                 'environment' => $useSandbox ? 'sandbox' : 'production',

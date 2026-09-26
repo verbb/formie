@@ -151,7 +151,7 @@ class FieldLayoutRow extends SavableComponent
         ];
     }
 
-    public function getClientConfig(): array
+    public function getCpEditConfig(): array
     {
         return [
             'fields' => array_values(array_filter(array_map(static function(FieldInterface $field) {
@@ -159,12 +159,12 @@ class FieldLayoutRow extends SavableComponent
                     return null;
                 }
 
-                return $field->getClientConfig();
+                return $field->getCpEditConfig();
             }, $this->getEnabledFields()))),
         ];
     }
 
-    public function getClientPayload(): array
+    public function getClientRenderedDefinition(): array
     {
         return [
             'fields' => array_values(array_filter(array_map(static function(FieldInterface $field) {
@@ -172,7 +172,7 @@ class FieldLayoutRow extends SavableComponent
                     return null;
                 }
 
-                return $field->getClientPayload();
+                return $field->getClientRenderedDefinition();
             }, $this->getEnabledFields()))),
         ];
     }

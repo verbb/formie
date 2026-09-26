@@ -3,7 +3,7 @@
 Custom elements for Formie’s browser runtime:
 
 - **`formie-form`** — server-rendered forms via `@verbb/formie-browser` (`createFormieClient`, themes, server-rendered markup).
-- **`formie-core-form`** — Definition + `@verbb/formie-core` runtime (REST/GraphQL envelope load, Lit field tree, optional registry overrides).
+- **`formie-client-form`** — client-rendered forms with `@verbb/formie-core` (REST/GraphQL bootstrap load, Lit field tree, optional registry overrides).
 - **`formie-internal-signature`** — Internal element used by the core form renderer for draw-signature fields (registered with the public elements).
 
 ## Install
@@ -35,11 +35,11 @@ Server-rendered forms:
 Client-rendered runtime UI:
 
 ```html
-<formie-core-form
+<formie-client-form
   form-handle="contactForm"
   endpoint="https://your-craft.test"
   transport="rest"
-></formie-core-form>
+></formie-client-form>
 ```
 
 ## Public API

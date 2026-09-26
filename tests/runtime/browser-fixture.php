@@ -118,3 +118,5 @@ $attempts->execute($deliveryUid, fn() => \verbb\formie\models\IntegrationResult:
 $deliveryJobId = Craft::$app->getQueue()->push(new \verbb\formie\jobs\TriggerIntegration(['deliveryAttemptUid' => $deliveryUid]));
 Craft::$app->getQueue()->run();
 file_put_contents(dirname(__DIR__, 2) . '/.cache/verbb-tests/delivery-browser.json', json_encode(['uid' => $deliveryUid, 'jobId' => $deliveryJobId, 'submissionUrl' => $deliverySubmission->getCpEditUrl(), 'submissionId' => $deliverySubmission->id]));
+
+require __DIR__ . '/browser-graphql-fixture.php';

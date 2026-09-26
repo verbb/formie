@@ -3,12 +3,15 @@
 ## Unreleased
 
 ### Added
+- Add one versioned browser-module manifest with trusted executable IDs, repeated occurrence keys, dynamic target reconciliation and required/optional failure diagnostics.
 - Add durable integration and notification delivery history, safe per-operation retries, explicit reconciliation and a Plugin Kit diagnostics modal in Craft’s queue and submission views.
 - Add one typed reference runtime and Variable Picker catalogue, with native exact values, explicit row scopes and context-safe text output.
 - Add versioned, atomic form imports with dependency plans, stable-reference matching and recoverable missing field types.
 - Add portable per-site translations to stencils and copy them into form overrides when creating forms from a stencil. ([#2968](https://github.com/verbb/formie/issues/2968))
 
 ### Changed
+- Standardise server-rendered and client-rendered products, separate CP edit configuration, and enforce the client-rendered contract across React, Vue and Web Components.
+- Require Formie origin allowlisting and explicit cross-origin public session credentials; share staged uploads and backend submission results across rendering products.
 - Separate global integration connections, annotated form bindings and non-secret builder metadata; isolate runtime instances and return explicit integration and batch results.
 - Run synchronous integrations before the queued lane and expose three notification timings with explicit completion policies.
 - Keep queue jobs immutable and small, encrypt literal integration settings and retained responses, and require validated public destinations and provider origins.
@@ -725,19 +728,19 @@
 - Add `craft.formie.frontendAssets()` for shared front-end asset output.
 - Add new `FormTemplate` output locations: `PAGE_HEADER`, `PAGE_FOOTER`, `INSIDE_FORM`, and `MANUAL`.
 - Add `initJs` and `useObserver` rendering options for controlling Formie front-end initialization.
-- Add client/server rendering services for Formie-managed HTML and client-rendered consumers, including `ClientSessionService`, `FormBootstrapBuilder`, `FormDefinitionBuilder`, `ClientModuleManifestBuilder`, and `ServerRenderPayloadBuilder`.
+- Add client/server rendering services for Formie-managed HTML and client-rendered consumers, including `ClientSessionService`, `FormBootstrapBuilder`, `FormDefinitionBuilder`, `BrowserModuleManifestBuilder`, and `ServerRenderPayloadBuilder`.
 - Add client request/response models including `FormSession`, `LoadContext`, `FormDefinition`, `FormBootstrap`, `SubmitRequest`, `PageTransitionRequest`, `SessionRefreshRequest`, and `SubmitResult`.
 - Add client controllers for loading forms, changing pages, refreshing sessions, and submitting client-rendered forms.
 - Add `FrontendAssets` as the canonical shared front-end asset service.
-- Add `ClientModule`, `ClientModuleContext`, and `RenderFrame` models.
-- Add `IntegrationInterface::getClientModule()` for front-end module registration by integrations, captchas, address providers, and payments.
-- Add `ClientModule` manifests with render-target metadata for front-end module hydration.
+- Add `BrowserModuleEntry`, `BrowserModuleContext`, and `RenderFrame` models.
+- Add `IntegrationInterface::getBrowserModule()` for front-end module registration by integrations, captchas, address providers, and payments.
+- Add `BrowserModuleEntry` manifests with render-target metadata for front-end module hydration.
 - Add `hydrateFormieModules()` support for hydrating individual Formie modules without mounting a full form client.
 - Add the `@verbb/formie-core` package for framework-agnostic form definitions, transports, field helpers, conditions, calculations, and client-rendered form state.
 - Add the `@verbb/formie-browser` package as Formie’s canonical browser runtime for server-rendered forms.
 - Add the `@verbb/formie-react` package with `FormieForm`, `FormieClientForm`, `useFormieHtml()`, `useFormieClient()`, `useFormie()`, `useFormieField()`, `useFormiePage()`, `useFormieInstance()`, and `useFormieSlot()`.
 - Add the `@verbb/formie-vue` package with matching server-rendered and client-rendered Vue APIs.
-- Add the `@verbb/formie-web-components` package with `formie-form`, `formie-core-form`, `registerFormieWebComponents()`, `FormieRegistry`, and `createFormieRegistry()`.
+- Add the `@verbb/formie-web-components` package with `formie-form`, `formie-client-form`, `registerFormieWebComponents()`, `FormieRegistry`, and `createFormieRegistry()`.
 - Add REST and GraphQL transports for client-rendered forms.
 - Add `createFormieClient()`, `formie()`, `FormieValidator`, `ModuleRegistry`, `defineCaptchaModule()`, `definePassiveCaptchaModule()`, `definePaymentModule()`, and `defineAddressModule()` to the browser package.
 - Add browser CSS exports for Formie’s base, theme, and combined CSS.
@@ -778,7 +781,7 @@
 - Move the public ready event from `formie:runtime:ready` to `formie:client:ready`.
 - Move runtime/client PHP namespaces toward `client` naming, while keeping selected `runtime` class aliases in Compatibility Mode.
 - Rename runtime JS translation hooks to frontend JS translation hooks: `Rendering::EVENT_MODIFY_FRONTEND_JS_TRANSLATIONS`, `ModifyFrontendJsTranslationsEvent`, and `Rendering::getFrontendJsTranslations()`.
-- Replace `RuntimeModule` and `RuntimeModuleContext` terminology with `ClientModule` and `ClientModuleContext`.
+- Replace `RuntimeModule` and `RuntimeModuleContext` terminology with `BrowserModuleEntry` and `BrowserModuleContext`.
 - Replace `RuntimeRenderFrame` terminology with `RenderFrame`.
 - Rename `RuntimeAssets` to `FrontendAssets`.
 - Replace `renderFormAssets()`, `registerFormAssets()`, `renderFormCss()`, and `renderFormJs()` with `formAssets()`.
@@ -904,7 +907,7 @@
 - Deprecated legacy theme config root keys including `radio`, `date`, `email`, `hidden`, and `phone`. Use `radioButtons`, `dateTime`, `emailAddress`, `hiddenField`, and `phoneNumber`.
 - Deprecated legacy schema config keys including `limitType`, `limitAmount`, `subfieldLabelPosition`, `includeInEmail`, and `emailValue`.
 - Deprecated `Integration::getFormSettingsHtml()` for builder settings. Use `Integration::defineFormSettingsSchema()`.
-- Deprecated custom integration front-end variable output via `getFrontEndJsVariables()`. Use `IntegrationInterface::getClientModule()`.
+- Deprecated custom integration front-end variable output via `getFrontEndJsVariables()`. Use `IntegrationInterface::getBrowserModule()`.
 - Deprecated standalone `Submissions::processPayments()` usage. Payments now run through workflow tasks.
 - Deprecated selected submission dispatch pass-through methods on `Submissions`; use the canonical workflow, notification, integration, and payment services.
 - Deprecated runtime-named PHP classes in favor of client/frontend names where aliases are provided by Compatibility Mode.

@@ -35,7 +35,7 @@ export const loqateModule = defineAddressModule<
     PcaGlobal,
     PcaAddressInstance
 >({
-    id: 'loqate',
+    moduleId: 'formie:loqate',
     load: async () => {
         await loadScriptAndEnsureGlobal<PcaGlobal>('pca', {
             id: SCRIPT_ID,

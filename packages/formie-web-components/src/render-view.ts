@@ -1,19 +1,19 @@
 import {
     compositePartDefinitions,
     createRepeaterRowValue,
-    getFrontendErrorAriaLive,
-    getFrontendFieldErrorId,
+    getClientErrorAriaLive,
+    getClientFieldErrorId,
     isCompositeField,
     isFileField,
-    isKnownFrontendFieldType,
+    isKnownClientFieldType,
     isRepeatableField,
     repeaterRowDefinitions,
-    type FrontendFieldDefinition,
-    type FrontendErrorAriaLive,
-    type FrontendFormDefinition,
-    type FrontendFormInstance,
-    type FrontendFormState,
-    type FrontendRowDefinition,
+    type ClientFieldDefinition,
+    type ClientErrorAriaLive,
+    type ClientFormDefinition,
+    type ClientFormInstance,
+    type ClientFormState,
+    type ClientRowDefinition,
 } from '@verbb/formie-core';
 import { html, nothing, type TemplateResult } from 'lit';
 import { html as staticHtml, unsafeStatic } from 'lit/static-html.js';
@@ -30,8 +30,8 @@ export type FormieRenderHost = LitElement & {
 
 export type RenderViewContext = {
     registry: FormieRegistry;
-    state: FrontendFormState;
-    instance: FrontendFormInstance;
+    state: ClientFormState;
+    instance: ClientFormInstance;
     host: FormieRenderHost;
     formClass: string;
 };
@@ -45,12 +45,12 @@ function st(tag: string) {
 function bindRegistryControlHost(
     host: Element | undefined,
     registryTag: string,
-    field: FrontendFieldDefinition,
+    field: ClientFieldDefinition,
     value: unknown,
     errorKey: string,
     errors: string[],
     errorId: string,
-    errorAriaLive: FrontendErrorAriaLive,
+    errorAriaLive: ClientErrorAriaLive,
     disabled: boolean,
     hidden: boolean,
     onChange: (v: unknown) => void,
@@ -84,12 +84,12 @@ function bindRegistryControlHost(
 function renderRegistryControl(
     ctx: RenderViewContext,
     registryTag: string,
-    field: FrontendFieldDefinition,
+    field: ClientFieldDefinition,
     value: unknown,
     errorKey: string,
     errors: string[],
     errorId: string,
-    errorAriaLive: FrontendErrorAriaLive,
+    errorAriaLive: ClientErrorAriaLive,
     disabled: boolean,
     hidden: boolean,
     onChange: (v: unknown) => void,
@@ -104,10 +104,10 @@ function renderRegistryControl(
 
 function wrapField(
     ctx: RenderViewContext,
-    field: FrontendFieldDefinition,
+    field: ClientFieldDefinition,
     errors: string[],
     errorId: string,
-    errorAriaLive: FrontendErrorAriaLive,
+    errorAriaLive: ClientErrorAriaLive,
     control: TemplateResult,
     layout: 'default' | 'compositePart' = 'default',
 ): TemplateResult {
@@ -127,9 +127,9 @@ function wrapField(
 }
 
 /** Matches Vue starter name-part layout: one bordered card on the parent, parts inside the grid. */
-function wrapCompositePartField(field: FrontendFieldDefinition, errors: string[], errorId: string, errorAriaLive: FrontendErrorAriaLive, control: TemplateResult): TemplateResult {
+function wrapCompositePartField(field: ClientFieldDefinition, errors: string[], errorId: string, errorAriaLive: ClientErrorAriaLive, control: TemplateResult): TemplateResult {
     return html`
-        <div class="starter-component-subfield" data-formie-field-type=${field.type}>
+        <div class="starter-component-subfield" data-formie-field-type=${field.type} data-formie-field-uid=${field.uid} data-formie-field-handle=${field.handle}>
             ${field.label
                 ? html`<label class="starter-component-subfield-label">${field.label}</label>`
                 : nothing}
@@ -141,9 +141,9 @@ function wrapCompositePartField(field: FrontendFieldDefinition, errors: string[]
     `;
 }
 
-function wrapDefaultField(field: FrontendFieldDefinition, errors: string[], errorId: string, errorAriaLive: FrontendErrorAriaLive, control: TemplateResult): TemplateResult {
+function wrapDefaultField(field: ClientFieldDefinition, errors: string[], errorId: string, errorAriaLive: ClientErrorAriaLive, control: TemplateResult): TemplateResult {
     return html`
-        <div class="starter-component-card" data-formie-field-type=${field.type}>
+        <div class="starter-component-card" data-formie-field-type=${field.type} data-formie-field-uid=${field.uid} data-formie-field-handle=${field.handle}>
             ${field.label
                 ? html`<label class="starter-component-label">${field.label}</label>`
                 : nothing}
@@ -159,7 +159,7 @@ function wrapDefaultField(field: FrontendFieldDefinition, errors: string[], erro
 }
 
 function renderNestedInput(
-    field: FrontendFieldDefinition,
+    field: ClientFieldDefinition,
     value: unknown,
     disabled: boolean,
     setValue: (v: unknown) => void,
@@ -377,7 +377,7 @@ function renderDefaultControl(ctx: RenderViewContext, props: FieldNodeProps): Te
         `;
     }
 
-    if (!isKnownFrontendFieldType(rendererType)) {
+    if (!isKnownClientFieldType(rendererType)) {
         return html`<div class="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
             Unknown field type:
             ${String(field.meta?.fieldType ?? field.type)}
@@ -388,7 +388,7 @@ function renderDefaultControl(ctx: RenderViewContext, props: FieldNodeProps): Te
 }
 
 function renderFile(
-    field: FrontendFieldDefinition,
+    field: ClientFieldDefinition,
     value: unknown,
     disabled: boolean,
     setValue: (v: unknown) => void,
@@ -536,12 +536,12 @@ function renderRepeater(ctx: RenderViewContext, props: FieldNodeProps): Template
 }
 
 type FieldNodeProps = {
-    field: FrontendFieldDefinition;
+    field: ClientFieldDefinition;
     value: unknown;
     errors: string[];
     errorKey: string;
     errorId?: string;
-    errorAriaLive?: FrontendErrorAriaLive;
+    errorAriaLive?: ClientErrorAriaLive;
     disabled: boolean;
     setValue(v: unknown): void;
 };
@@ -560,8 +560,8 @@ function renderFieldNode(
     }
 
     const rendererType = resolveFieldRendererType(field);
-    const errorId = getFrontendFieldErrorId(ctx.state.session, errorKey);
-    const errorAriaLive = getFrontendErrorAriaLive(ctx.state.definition);
+    const errorId = getClientFieldErrorId(ctx.state.session, errorKey);
+    const errorAriaLive = getClientErrorAriaLive(ctx.state.definition);
     const regTag =
         ctx.registry.fieldControls[field.type] || ctx.registry.fieldControls[rendererType] || null;
 
@@ -579,11 +579,11 @@ function renderFieldNode(
 
 function renderNestedRow(
     ctx: RenderViewContext,
-    row: FrontendRowDefinition,
+    row: ClientRowDefinition,
     values: Record<string, unknown>,
     errorPrefix: string,
     disabled: boolean | undefined,
-    setFieldValue: (f: FrontendFieldDefinition, v: unknown) => void,
+    setFieldValue: (f: ClientFieldDefinition, v: unknown) => void,
 ): TemplateResult {
     return html`
         <div class="starter-core-row grid gap-4">
@@ -605,7 +605,7 @@ function renderNestedRow(
     `;
 }
 
-function renderTopLevelRow(ctx: RenderViewContext, row: FrontendRowDefinition): TemplateResult {
+function renderTopLevelRow(ctx: RenderViewContext, row: ClientRowDefinition): TemplateResult {
     return html`
         <div class="starter-core-row grid gap-4">
             ${row.fields.map((field) => {
@@ -720,7 +720,7 @@ export function renderFormView(ctx: RenderViewContext): TemplateResult {
 
 function renderFormPage(
     ctx: RenderViewContext,
-    page: FrontendFormDefinition['pages'][number],
+    page: ClientFormDefinition['pages'][number],
 ): TemplateResult {
     const pageRegionTag = ctx.registry.regions.page;
 

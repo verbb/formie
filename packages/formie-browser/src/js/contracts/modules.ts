@@ -1,5 +1,5 @@
 import type { FormAction, FormMode, SubmitStage } from '#contracts/common';
-import type { FormModuleManifest, FormModuleTargetType, FormSubmitResult } from '#contracts/schema';
+import type { BrowserModuleEntry, FormModuleTargetType, FormSubmitResult } from '#contracts/schema';
 
 export type ModuleMatchContext = {
     root: Element;
@@ -7,7 +7,7 @@ export type ModuleMatchContext = {
     target: Element;
     scope: FormModuleTargetType;
     mode: FormMode;
-    manifestItem: FormModuleManifest;
+    manifestItem: BrowserModuleEntry;
 };
 
 export type ModuleHookContext = {
@@ -20,6 +20,8 @@ export type ModuleHookContext = {
 };
 
 export type ModuleSetupContext = ModuleHookContext & {
+    entryKey?: string;
+    surface?: import('@verbb/formie-core').BrowserSurface;
     options?: Record<string, unknown>;
     on: (eventName: string, callback: (payload: unknown) => void) => () => void;
     emit: (eventName: string, payload?: unknown) => Promise<void>;
@@ -39,15 +41,22 @@ export type SubmitHookContext = {
     abortReason: () => string | undefined;
 };
 
-export type FormieModuleInstance = {
+export type BrowserModuleInstance = {
+    assertReady?: () => void;
+    key?: string;
+    moduleId?: string;
+    target?: Element;
+    update?: (ctx: ModuleSetupContext) => void | Promise<void>;
     destroy: () => void | Promise<void>;
     onBeforeStage?: (ctx: SubmitHookContext) => void | Promise<void>;
     onAfterStage?: (ctx: SubmitHookContext, result?: FormSubmitResult) => void | Promise<void>;
 };
 
-export type FormieModuleDefinition = {
-    id: string;
+export type BrowserModuleDefinition = {
+    moduleId: string;
+    version: 1;
+    surfaces: import('@verbb/formie-core').BrowserSurface[];
     kind: 'field' | 'captcha' | 'payment' | 'address' | 'core';
     match: (ctx: ModuleMatchContext) => boolean;
-    setup: (ctx: ModuleSetupContext) => Promise<FormieModuleInstance | void>;
+    setup: (ctx: ModuleSetupContext) => Promise<BrowserModuleInstance | void>;
 };

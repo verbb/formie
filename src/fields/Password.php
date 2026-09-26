@@ -11,8 +11,8 @@ use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
-use verbb\formie\models\ClientModule;
-use verbb\formie\models\ClientModuleContext;
+use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\models\BrowserModuleContext;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Notification;
 use verbb\formie\models\SlotTag;
@@ -324,9 +324,9 @@ class Password extends Field implements SortableFieldInterface, PreviewableField
         ]);
     }
 
-    protected function defineClientInput(): array
+    protected function defineClientRenderedInput(): array
     {
-        return array_merge(parent::defineClientInput(), [
+        return array_merge(parent::defineClientRenderedInput(), [
             'inputType' => 'password',
         ]);
     }
@@ -407,14 +407,15 @@ class Password extends Field implements SortableFieldInterface, PreviewableField
         return '•••••••••••••••••••••';
     }
 
-    protected function defineClientModules(): array
+    protected function defineBrowserModules(): array
     {
-        $modules = parent::defineClientModules();
+        $modules = parent::defineBrowserModules();
 
         if ($this->hasPasswordValidationRules()) {
-            $modules[] = function(ClientModuleContext $context) {
-                return new ClientModule([
-                    'id' => 'password-validation',
+            $modules[] = function(BrowserModuleContext $context) {
+                return new BrowserModuleEntry([
+                    'moduleId' => 'formie:password-validation',
+                    'surfaces' => [BrowserModuleEntry::SURFACE_SERVER_RENDERED, BrowserModuleEntry::SURFACE_CLIENT_RENDERED, BrowserModuleEntry::SURFACE_CP_EDIT],
                 ]);
             };
         }

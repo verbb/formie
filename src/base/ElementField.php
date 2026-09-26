@@ -977,10 +977,10 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
         return parent::defineFieldSlotTag($key, $context);
     }
 
-    protected function defineClientInput(): array
+    protected function defineClientRenderedInput(): array
     {
         $displayType = (string)($this->displayType ?? 'dropdown');
-        $clientInput = parent::defineClientInput();
+        $clientInput = parent::defineClientRenderedInput();
         $clientInput['multiple'] = $this->getIsMultiOptionsField();
         $clientInput['layout'] = in_array($displayType, ['radio', 'checkboxes'], true) ? ($this->layout ?? 'vertical') : null;
         $clientInput['useSearchable'] = $this->useSearchable;
@@ -1012,11 +1012,11 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
         ];
     }
 
-    protected function defineClientModules(): array
+    protected function defineBrowserModules(): array
     {
-        $modules = parent::defineClientModules();
+        $modules = parent::defineBrowserModules();
 
-        foreach ($this->defineSearchableDropdownClientModules() as $module) {
+        foreach ($this->defineSearchableDropdownBrowserModules() as $module) {
             $modules[] = $module;
         }
 

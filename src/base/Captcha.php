@@ -9,8 +9,8 @@ use verbb\formie\elements\Submission;
 use verbb\formie\events\CaptchaValidateSubmissionEvent;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
-use verbb\formie\models\ClientModule;
-use verbb\formie\models\ClientModuleContext;
+use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\models\BrowserModuleContext;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\Stencil;
 
@@ -102,7 +102,7 @@ abstract class Captcha extends Integration
         return '';
     }
 
-    public function getClientModule(ClientModuleContext $context): ?ClientModule
+    public function getBrowserModule(BrowserModuleContext $context): ?BrowserModuleEntry
     {
         return null;
     }
@@ -214,6 +214,11 @@ abstract class Captcha extends Integration
 
     protected function getCaptchaValue(Submission $submission, string $name): mixed
     {
+        $browserValue = $submission->getCaptchaData($name);
+        if (is_array($browserValue)) {
+            return $browserValue['value'] ?? null;
+        }
+
         // For GQL requests, we set the data on the submission
         $gqlHandle = $this->getGqlHandle();
         $captchaValue = $submission->getCaptchaData($gqlHandle);

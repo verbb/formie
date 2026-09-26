@@ -2,8 +2,8 @@
 namespace verbb\formie\integrations\addressproviders;
 
 use verbb\formie\base\AddressProvider;
-use verbb\formie\models\ClientModule;
-use verbb\formie\models\ClientModuleContext;
+use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\models\BrowserModuleContext;
 
 use Craft;
 use craft\helpers\App;
@@ -53,17 +53,19 @@ class Google extends AddressProvider
         return Craft::t('formie', 'Use {link} to suggest addresses, for address fields.', ['link' => '[Google Places Autocomplete](https://developers.google.com/maps/documentation/javascript/places-autocomplete)']);
     }
 
-    public function getClientModule(ClientModuleContext $context): ?ClientModule
+    public function getBrowserModule(BrowserModuleContext $context): ?BrowserModuleEntry
     {
         if (!$this->hasValidSettings()) {
             return null;
         }
 
-        return new ClientModule([
-            'id' => 'google-address',
+        return new BrowserModuleEntry([
+            'moduleId' => 'formie:google-address',
+            'surfaces' => [BrowserModuleEntry::SURFACE_SERVER_RENDERED, BrowserModuleEntry::SURFACE_CLIENT_RENDERED, BrowserModuleEntry::SURFACE_CP_EDIT],
             'config' => [
                 'apiKey' => App::parseEnv($this->apiKey),
                 'options' => $this->_getOptions(),
+                'geocodeEndpoint' => \craft\helpers\UrlHelper::actionUrl('formie/address/google-places-geocode'),
             ],
         ]);
     }

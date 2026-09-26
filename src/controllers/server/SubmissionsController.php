@@ -55,6 +55,7 @@ class SubmissionsController extends Controller
 
     public function beforeAction($action): bool
     {
+        $profile = \verbb\formie\helpers\BrowserRequestProfile::enter();
         $this->forbidGuestControlPanelAnonymousActions($action->id);
 
         if (in_array($action->id, ['submit', 'set-page', 'clear-submission'], true)) {
@@ -67,6 +68,12 @@ class SubmissionsController extends Controller
 
         if ($this->request->getIsLivePreview() || $this->request->getIsPreview()) {
             $this->enableCsrfValidation = false;
+        }
+
+        if ($profile === \verbb\formie\helpers\BrowserRequestProfile::CROSS_ORIGIN) {
+            $this->enableCsrfValidation = false;
+        } elseif ($this->request->getHeaders()->has('X-Formie-Profile')) {
+            $this->enableCsrfValidation = true;
         }
 
         return parent::beforeAction($action);

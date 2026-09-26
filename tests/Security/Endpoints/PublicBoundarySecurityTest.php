@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use Craft;
 use craft\web\Request;
 use verbb\formie\helpers\CrossOriginRequestHelper;
 
@@ -24,18 +23,18 @@ it('recognizes only formie action routes as formie action paths', function (): v
 })->group('security');
 
 it('allows localhost origins only for local-dev hosts when graphql origins are disabled', function (): void {
-    $generalConfig = Craft::$app->getConfig()->getGeneral();
-    $originalAllowedOrigins = $generalConfig->allowedGraphqlOrigins;
+    $generalConfig = \verbb\formie\Formie::$plugin->getSettings();
+    $originalAllowedOrigins = $generalConfig->allowedOrigins;
     $request = new Request();
     $request->setHostInfo('http://craft.local.test');
     $request->getHeaders()->set('Origin', 'http://localhost:3000');
 
     try {
-        $generalConfig->allowedGraphqlOrigins = false;
+        $generalConfig->allowedOrigins = [];
 
         expect(CrossOriginRequestHelper::resolveAllowedOrigin($request))
-            ->toBe('http://localhost:3000');
+            ->toBeNull();
     } finally {
-        $generalConfig->allowedGraphqlOrigins = $originalAllowedOrigins;
+        $generalConfig->allowedOrigins = $originalAllowedOrigins;
     }
 })->group('security');

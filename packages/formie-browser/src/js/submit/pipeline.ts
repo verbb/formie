@@ -17,8 +17,8 @@ export type SubmitPipelineContext = {
 
 type StageRunner = (ctx: SubmitPipelineContext) => Promise<FormSubmitResult | null>;
 
-const STAGES: SubmitStage[] = ['prepare', 'normalize', 'validate', 'screen', 'authorize', 'dispatch', 'finalize'];
-const PREFLIGHT_STAGES: SubmitStage[] = ['prepare', 'normalize', 'validate', 'screen', 'authorize'];
+const STAGES: SubmitStage[] = ['prepare', 'validate', 'challenge', 'payment', 'send', 'result'];
+const PREFLIGHT_STAGES: SubmitStage[] = ['prepare', 'validate', 'challenge', 'payment'];
 const debug = createDebug('general', 'pipeline');
 
 function getAbortedResult(stage: SubmitStage, reason?: string): FormSubmitResult {
@@ -231,9 +231,6 @@ export async function runSubmitPipeline(
             ctx.formData.set('submitAction', ctx.action);
             return null;
         },
-        normalize: async() => {
-            return null;
-        },
         validate: async(ctx) => {
             if (ctx.action !== 'submit') {
                 // Back/save actions bypass final validation so they can persist
@@ -290,13 +287,13 @@ export async function runSubmitPipeline(
 
             return null;
         },
-        screen: async() => {
+        challenge: async() => {
             return null;
         },
-        authorize: async() => {
+        payment: async() => {
             return null;
         },
-        dispatch: async(ctx) => {
+        send: async(ctx) => {
             // Rehydrate just-in-time so provider hooks can mutate hidden inputs
             // during `screen` / `authorize` and still be submitted.
             ctx.formData = buildSubmitFormData(ctx.form, ctx.action);
@@ -306,7 +303,7 @@ export async function runSubmitPipeline(
             // success and failure outcomes (e.g. provider token/element resets).
             return result;
         },
-        finalize: async(resultCtx) => {
+        result: async(resultCtx) => {
             if (!dispatchResult) {
                 return null;
             }
@@ -469,7 +466,7 @@ export async function runSubmitPipeline(
 
     const successResult: FormSubmitResult = dispatchResult || {
         ok: true,
-        stage: options.preflightOnly ? 'authorize' : 'finalize',
+        stage: options.preflightOnly ? 'payment' : 'result',
         message: options.preflightOnly ? 'Submission preflight completed.' : 'Submission completed.',
     };
 

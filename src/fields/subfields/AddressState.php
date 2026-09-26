@@ -6,7 +6,7 @@ use verbb\formie\fields\Address;
 use verbb\formie\fields\SingleLineText;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\Variables;
-use verbb\formie\models\ClientModule;
+use verbb\formie\models\BrowserModuleEntry;
 use verbb\formie\models\SlotTag;
 use verbb\formie\theme\context\RenderContext;
 
@@ -247,9 +247,9 @@ class AddressState extends SingleLineText implements ChildFieldInterface
         return parent::defineFieldSlotTag($key, $context);
     }
 
-    protected function defineClientInput(): array
+    protected function defineClientRenderedInput(): array
     {
-        return array_merge(parent::defineClientInput(), [
+        return array_merge(parent::defineClientRenderedInput(), [
             'inputMode' => $this->inputMode,
             'hideWhenUnused' => $this->hideWhenUnused,
             'useSearchable' => $this->useSearchable,
@@ -259,9 +259,9 @@ class AddressState extends SingleLineText implements ChildFieldInterface
         ]);
     }
 
-    protected function defineClientModules(): array
+    protected function defineBrowserModules(): array
     {
-        $modules = parent::defineClientModules();
+        $modules = parent::defineBrowserModules();
 
         if (!$this->usesDynamicSubdivisions()) {
             return $modules;
@@ -279,8 +279,9 @@ class AddressState extends SingleLineText implements ChildFieldInterface
             }
         }
 
-        $modules[] = new ClientModule([
-            'id' => 'address-state',
+        $modules[] = new BrowserModuleEntry([
+            'moduleId' => 'formie:address-state',
+            'surfaces' => [BrowserModuleEntry::SURFACE_SERVER_RENDERED, BrowserModuleEntry::SURFACE_CLIENT_RENDERED, BrowserModuleEntry::SURFACE_CP_EDIT],
             'config' => [
                 'inputMode' => $this->inputMode,
                 'hideWhenUnused' => $this->hideWhenUnused,
@@ -290,7 +291,7 @@ class AddressState extends SingleLineText implements ChildFieldInterface
                 'optionValue' => $this->optionValue,
                 'countryOptionValue' => $countryOptionValue,
                 'placeholder' => $this->placeholder ?: null,
-                'subdivisionsAction' => 'formie/address/subdivisions',
+                'subdivisionsAction' => \craft\helpers\UrlHelper::actionUrl('formie/address/subdivisions'),
             ],
         ]);
 

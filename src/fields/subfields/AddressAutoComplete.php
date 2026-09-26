@@ -142,9 +142,9 @@ class AddressAutoComplete extends SingleLineText implements ChildFieldInterface
         return $tag;
     }
 
-    protected function defineClientInput(): array
+    protected function defineClientRenderedInput(): array
     {
-        return array_merge(parent::defineClientInput(), [
+        return array_merge(parent::defineClientRenderedInput(), [
             'inputType' => 'search',
         ]);
     }

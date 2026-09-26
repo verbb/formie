@@ -60,7 +60,7 @@ Start with [Server-rendered](/vue/server-rendered/overview).
 
 Use client-rendered forms when:
 
-- Vue should render the form UI instead of mounting Formie-owned HTML
+- Vue should render the form UI instead of mounting server-rendered HTML
 - you are happy to take on more implementation work in exchange for full UI control
 - you need `components`, `fieldComponents`, or `slots` on `<FormieClientForm />`
 - you want form composables such as `useFormie()` and `useFormieField()`
@@ -77,7 +77,7 @@ Use REST when:
 
 - you want the simplest transport story
 - you want the closest fit to the client-rendered controllers
-- you are wiring the app against Formie's standard frontend actions
+- you are wiring the app against Formie's standard public actions
 
 Use GraphQL when:
 

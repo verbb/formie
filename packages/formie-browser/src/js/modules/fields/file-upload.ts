@@ -1,6 +1,6 @@
 import fileUploadCss from '#theme-css/fields/_file.css?inline';
 
-import type { FormieModuleDefinition } from '#contracts/modules';
+import type { BrowserModuleDefinition } from '#contracts/modules';
 import { dispatchFieldEvent, releaseFormValidators, retainFormValidators } from '#modules/fields/shared';
 import { ensureModuleStyles } from '#modules/styles';
 import { getFieldModuleEventName, getFileUploadEventName, getFormStateEventName } from '#utils/event-names';
@@ -425,6 +425,7 @@ async function hydrateUploadedAssets(field: HTMLElement, input: HTMLInputElement
 
     const hydrateEndpoint = input.getAttribute(HYDRATE_ENDPOINT_ATTR)?.trim() || '/actions/formie/file-upload/hydrate';
     const response = await requestJson<FileUploadHydrateResponse>(hydrateEndpoint, {
+        profile: field.closest('form')?.dataset.formieRequestProfile as import('@verbb/formie-core').BrowserRequestOptions['profile'],
         method: 'POST',
         body: buildHydrateFormData(field, input, assetIds),
     });
@@ -657,8 +658,10 @@ function bindFileUploadInput(field: HTMLElement, input: HTMLInputElement, form: 
     };
 }
 
-export const fileUploadModule: FormieModuleDefinition = {
-    id: MODULE_ID,
+export const fileUploadModule: BrowserModuleDefinition = {
+    moduleId: `formie:${MODULE_ID}`,
+    version: 1,
+    surfaces: ['server-rendered', 'client-rendered', 'cp-edit'],
     kind: 'field',
     match: (ctx) => {
         return !!ctx.target.querySelector(INPUT_SELECTOR);

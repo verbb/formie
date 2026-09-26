@@ -1,5 +1,6 @@
-import type { FrontendFormEnvelope, FrontendTransport } from './types';
-export type GraphqlFrontendTransportOptions = {
+import { type BrowserRequestOptions } from './request-profile';
+import type { ClientFormBootstrap, ClientTransport } from './types';
+export type GraphqlClientTransportOptions = BrowserRequestOptions & {
     endpoint: string;
     formHandle: string;
     siteId?: number;
@@ -8,6 +9,6 @@ export type GraphqlFrontendTransportOptions = {
     grantPurpose?: 'continue-incomplete' | 'revise-complete';
     draftContext?: string;
 };
-export declare function loadGraphqlFrontendEnvelope(options: GraphqlFrontendTransportOptions): Promise<FrontendFormEnvelope>;
-export declare function createGraphqlFrontendTransport(options: GraphqlFrontendTransportOptions): FrontendTransport;
+export declare function loadGraphqlClientFormBootstrap(options: GraphqlClientTransportOptions): Promise<ClientFormBootstrap>;
+export declare function createGraphqlClientTransport(options: GraphqlClientTransportOptions): ClientTransport;
 //# sourceMappingURL=graphql.d.ts.map

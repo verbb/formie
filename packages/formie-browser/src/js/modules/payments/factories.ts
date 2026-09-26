@@ -1,6 +1,6 @@
 import type {
-    FormieModuleDefinition,
-    FormieModuleInstance,
+    BrowserModuleDefinition,
+    BrowserModuleInstance,
     ModuleSetupContext,
 } from '#contracts/modules';
 import { DEFAULT_REQUIRED_INPUT_SUFFIXES } from '#modules/payments/constants';
@@ -37,7 +37,7 @@ export type ManagedPaymentModuleAdapter<
     TApi,
     TWidget,
 > = {
-    id: string;
+    moduleId: string;
     defaultRequiredInputSuffixes?: string[];
     load: (ctx: PaymentModuleSetupContext<TProvider>) => Promise<TApi>;
     /** Redirect-only providers (Mollie, GoCardless): attach listeners, return destroy. No mount needed. */
@@ -57,7 +57,7 @@ export type ManagedPaymentModuleAdapter<
         options: NormalizedPaymentModuleOptions<TProvider>;
         provider: TProvider;
     }) => Promise<void> | void;
-    onBeforeAuthorize?: (args: {
+    onBeforePayment?: (args: {
         api: TApi;
         widget: TWidget | null;
         field: Element;
@@ -66,7 +66,7 @@ export type ManagedPaymentModuleAdapter<
         provider: TProvider;
         stageCtx: import('#contracts/modules').SubmitHookContext;
     }) => Promise<boolean> | boolean;
-    /** Called after dispatch (on any result) to reset hidden inputs, clear UI, etc. */
+    /** Called after send (on any result) to reset hidden inputs, clear UI, etc. */
     onAfterSubmit?: (args: {
         field: Element;
         services: PaymentHostServices;
@@ -80,13 +80,15 @@ export function createManagedPaymentModule<
     TProvider extends Record<string, unknown>,
     TApi,
     TWidget,
->(adapter: ManagedPaymentModuleAdapter<TProvider, TApi, TWidget>): FormieModuleDefinition {
+>(adapter: ManagedPaymentModuleAdapter<TProvider, TApi, TWidget>): BrowserModuleDefinition {
     const defaultSuffixes = adapter.defaultRequiredInputSuffixes
-        ?? DEFAULT_REQUIRED_INPUT_SUFFIXES[adapter.id]
+        ?? DEFAULT_REQUIRED_INPUT_SUFFIXES[adapter.moduleId.split(':')[1]]
         ?? [];
 
     return {
-        id: adapter.id,
+        moduleId: adapter.moduleId,
+        version: 1,
+        surfaces: ['server-rendered', 'client-rendered'],
         kind: 'payment',
         match: (ctx) => {
             return !!(ctx.target.querySelector('[data-formie-field-type="payment"]')
@@ -98,12 +100,12 @@ export function createManagedPaymentModule<
             const registry = fieldWithRegistry.__formiePaymentModuleRegistry || {};
             fieldWithRegistry.__formiePaymentModuleRegistry = registry;
 
-            // Defensive singleton guard per field/provider: if this module somehow
-            // gets initialized again without teardown, clean the previous instance first.
-            const previous = registry[adapter.id];
+            // Each configured occurrence owns its provider state independently.
+            const occurrenceKey = ctx.entryKey ?? adapter.moduleId;
+            const previous = registry[occurrenceKey];
             if (previous?.destroy) {
                 debug.warn('Found stale payment module instance; destroying previous.', {
-                    moduleId: adapter.id,
+                    moduleId: adapter.moduleId,
                 });
                 try {
                     await previous.destroy();
@@ -113,7 +115,7 @@ export function createManagedPaymentModule<
             }
 
             const options = normalizePaymentModuleOptions<TProvider>(
-                adapter.id,
+                adapter.moduleId.split(':')[1],
                 ctx.options || {},
                 {
                     defaultRequiredInputSuffixes: defaultSuffixes,
@@ -135,7 +137,7 @@ export function createManagedPaymentModule<
 
             const getApi = async(): Promise<TApi> => {
                 if (!apiPromise) {
-                    debug.log('Loading payment provider API.', { moduleId: adapter.id });
+                    debug.log('Loading payment provider API.', { moduleId: adapter.moduleId });
                     apiPromise = adapter.load(setupCtx);
                 }
 
@@ -158,15 +160,16 @@ export function createManagedPaymentModule<
                         provider: options.provider,
                     });
                     debug.log('Payment widget mounted.', {
-                        moduleId: adapter.id,
+                        moduleId: adapter.moduleId,
                         handle: options.handle,
                     });
-                } catch {
-                    // Mount failed; widget stays null
+                } catch (error) {
+                    // Propagate initialization failure to the required/optional policy.
                     debug.warn('Payment widget mount failed.', {
-                        moduleId: adapter.id,
+                        moduleId: adapter.moduleId,
                         handle: options.handle,
                     });
+                    throw error;
                 }
             };
 
@@ -208,7 +211,7 @@ export function createManagedPaymentModule<
 
             const destroy = async() => {
                 debug.log('Destroying payment module.', {
-                    moduleId: adapter.id,
+                    moduleId: adapter.moduleId,
                     handle: options.handle,
                 });
                 cleanups.forEach((c) => c());
@@ -225,21 +228,21 @@ export function createManagedPaymentModule<
                         provider: options.provider,
                     });
                     debug.log('Payment widget unmounted.', {
-                        moduleId: adapter.id,
+                        moduleId: adapter.moduleId,
                         handle: options.handle,
                     });
                 }
 
-                if (registry[adapter.id]?.destroy === destroy) {
-                    delete registry[adapter.id];
+                if (registry[occurrenceKey]?.destroy === destroy) {
+                    delete registry[occurrenceKey];
                 }
                 debug.log('Payment module destroy complete.', {
-                    moduleId: adapter.id,
+                    moduleId: adapter.moduleId,
                     handle: options.handle,
                 });
             };
 
-            registry[adapter.id] = { destroy };
+            registry[occurrenceKey] = { destroy };
 
             return {
                 destroy,
@@ -249,7 +252,7 @@ export function createManagedPaymentModule<
                         return;
                     }
 
-                    if (stageCtx.stage !== 'authorize' || stageCtx.action !== 'submit') {
+                    if (stageCtx.stage !== 'payment' || stageCtx.action !== 'submit') {
                         return;
                     }
 
@@ -263,10 +266,10 @@ export function createManagedPaymentModule<
                     await ensureMounted();
                     const api = await getApi();
 
-                    if (adapter.onBeforeAuthorize) {
+                    if (adapter.onBeforePayment) {
                         if (!authorizeInFlight) {
                             authorizeInFlight = (async() => {
-                                return adapter.onBeforeAuthorize!({
+                                return adapter.onBeforePayment!({
                                     api,
                                     widget,
                                     field: ctx.target,
@@ -281,8 +284,8 @@ export function createManagedPaymentModule<
                         }
 
                         const ok = await authorizeInFlight;
-                        debug.log('onBeforeAuthorize resolved.', {
-                            moduleId: adapter.id,
+                        debug.log('onBeforePayment resolved.', {
+                            moduleId: adapter.moduleId,
                             handle: options.handle,
                             ok,
                         });
@@ -309,7 +312,7 @@ export function createManagedPaymentModule<
 
                     if (!result.ok) {
                         debug.warn('Required payment input(s) missing.', {
-                            moduleId: adapter.id,
+                            moduleId: adapter.moduleId,
                             handle: options.handle,
                             missingSuffix: result.missingSuffix,
                         });
@@ -317,7 +320,7 @@ export function createManagedPaymentModule<
                     }
                 },
                 onAfterStage: async(stagePayload, result) => {
-                    if (stagePayload.stage !== 'dispatch' || !adapter.onAfterSubmit) {
+                    if (stagePayload.stage !== 'send' || !adapter.onAfterSubmit) {
                         return;
                     }
 

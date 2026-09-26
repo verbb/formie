@@ -30,8 +30,8 @@ use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\helpers\Variables;
-use verbb\formie\models\ClientModule;
-use verbb\formie\models\ClientModuleContext;
+use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\models\BrowserModuleContext;
 use verbb\formie\models\FormIntegration;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationConfig;
@@ -674,7 +674,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return $event->schema;
     }
 
-    public function getClientModule(ClientModuleContext $context): ?ClientModule
+    public function getBrowserModule(BrowserModuleContext $context): ?BrowserModuleEntry
     {
         return null;
     }

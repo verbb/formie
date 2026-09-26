@@ -1,16 +1,16 @@
-export type FrontendConditionRule = {
+export type ClientConditionRule = {
     condition: string;
     value?: unknown;
 };
-export type FrontendConditionSettings = {
+export type ClientConditionSettings = {
     showRule: 'show' | 'hide';
     conditionRule: 'all' | 'any';
-    conditions: FrontendConditionRule[];
+    conditions: ClientConditionRule[];
 };
-export declare function evaluateConditionDefinition(condition: FrontendConditionRule, actualValues: string[], options?: {
+export declare function evaluateConditionDefinition(condition: ClientConditionRule, actualValues: string[], options?: {
     visibility?: boolean | null;
 }): boolean;
-export declare function finalizeConditionEvaluation(settings: Pick<FrontendConditionSettings, 'conditionRule' | 'showRule'>, results: boolean[]): {
+export declare function finalizeConditionEvaluation(settings: Pick<ClientConditionSettings, 'conditionRule' | 'showRule'>, results: boolean[]): {
     finalResult: boolean;
     shouldHide: boolean;
 };

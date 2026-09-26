@@ -479,7 +479,7 @@ class Forms extends Component
             'pageSettingsSchema' => $form->definePageSettingsSchema(),
             'pageButtonSettingsSchema' => $form->definePageButtonSettingsSchema(),
             'clientEventTemplates' => Formie::$plugin->getClientEventTemplates()->getBuilderConfig(),
-            'tiptap' => Formie::$plugin->getTiptapExtensions()->getClientConfig(),
+            'tiptap' => Formie::$plugin->getTiptapExtensions()->getCpEditConfig(),
             'schema' => $compiledSchema['schema'],
             'schemaIndex' => $compiledSchema,
         ];

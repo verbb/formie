@@ -441,9 +441,9 @@ class Email extends Field implements SortableFieldInterface, PreviewableFieldInt
         return $validators;
     }
 
-    protected function defineClientInput(): array
+    protected function defineClientRenderedInput(): array
     {
-        return array_merge(parent::defineClientInput(), [
+        return array_merge(parent::defineClientRenderedInput(), [
             'inputType' => 'email',
         ]);
     }

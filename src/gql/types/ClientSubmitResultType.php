@@ -62,6 +62,8 @@ class ClientSubmitResultType extends ObjectType
                     'name' => 'session',
                     'type' => ClientSessionType::getType(),
                 ],
+                'completion' => ['type' => Json::getType()],
+                'redirect' => ['type' => Json::getType()],
                 'quizResult' => [
                     'name' => 'quizResult',
                     'type' => ArrayType::getType(),

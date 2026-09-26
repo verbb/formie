@@ -111,9 +111,9 @@ trait QuestionFieldTrait
         return $this->getQuestionHtml();
     }
 
-    public function getClientPayload(): array
+    public function getClientRenderedDefinition(): array
     {
-        $payload = parent::getClientPayload();
+        $payload = parent::getClientRenderedDefinition();
         $html = $this->getQuestionHtml()->__toString();
 
         if ($html !== '') {

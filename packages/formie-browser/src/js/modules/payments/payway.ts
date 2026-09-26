@@ -25,7 +25,7 @@ type PayWayProviderOptions = {
 const SCRIPT_ID = 'FORMIE_PAYWAY_SCRIPT';
 
 export const paywayModule = definePaymentModule<PayWayProviderOptions, null, PayWayFrame | null>({
-    id: 'payway',
+    moduleId: 'formie:payway',
     defaultRequiredInputSuffixes: ['paywayTokenId'],
     load: async (ctx) => {
         const { provider } = ctx.options;
@@ -79,7 +79,7 @@ export const paywayModule = definePaymentModule<PayWayProviderOptions, null, Pay
     unmount: async (args) => {
         args.widget?.destroy();
     },
-    onBeforeAuthorize: async (args) => {
+    onBeforePayment: async (args) => {
         const { widget, services } = args;
 
         if (!widget) {

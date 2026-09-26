@@ -1,12 +1,13 @@
-import type { FormieModuleDefinition, ModuleRegistrationOptions } from '#contracts/modules';
+import type { BrowserModuleDefinition, ModuleRegistrationOptions } from '#contracts/modules';
 
 export class ModuleRegistry {
-    private modules = new Map<string, FormieModuleDefinition>();
+    private modules = new Map<string, BrowserModuleDefinition>();
 
-    register(moduleDefinition: FormieModuleDefinition, options: ModuleRegistrationOptions = {}): boolean {
-        // The registry is intentionally lightweight: the loader handles lazy
-        // resolution, while this class only tracks already-available definitions.
-        const existing = this.modules.get(moduleDefinition.id);
+    register(moduleDefinition: BrowserModuleDefinition, options: ModuleRegistrationOptions = {}): boolean {
+        if (!/^[a-z][a-z0-9.-]*:[a-z][a-z0-9.-]*$/.test(moduleDefinition.moduleId) || (moduleDefinition.version !== 1 || !Array.isArray(moduleDefinition.surfaces) || moduleDefinition.surfaces.some((surface) => !['server-rendered', 'client-rendered', 'cp-edit'].includes(surface)))) {
+            throw new Error('Unsupported browser module definition. Register a namespaced moduleId compatible with version 1.');
+        }
+        const existing = this.modules.get(moduleDefinition.moduleId);
 
         if (existing === moduleDefinition) {
             return true;
@@ -14,13 +15,13 @@ export class ModuleRegistry {
 
         if (existing && !options.replace) {
             console.warn(
-                `[formie] Module "${moduleDefinition.id}" is already registered. `
+                `[formie] Module "${moduleDefinition.moduleId}" is already registered. `
                 + 'Pass { replace: true } to override the existing definition.',
             );
             return false;
         }
 
-        this.modules.set(moduleDefinition.id, moduleDefinition);
+        this.modules.set(moduleDefinition.moduleId, moduleDefinition);
         return true;
     }
 
@@ -28,11 +29,14 @@ export class ModuleRegistry {
         this.modules.delete(moduleId);
     }
 
-    get(moduleId: string): FormieModuleDefinition | null {
+    get(moduleId: string): BrowserModuleDefinition | null {
         return this.modules.get(moduleId) || null;
     }
 
-    getAll(): FormieModuleDefinition[] {
+    getAll(): BrowserModuleDefinition[] {
         return Array.from(this.modules.values());
     }
 }
+
+/** Trusted application registrations shared by client-rendered framework hosts. */
+export const clientRenderedModuleRegistry = new ModuleRegistry();

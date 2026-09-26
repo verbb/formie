@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use Tests\Support\WebRequestTestHelper;
-use Craft;
 use verbb\formie\Formie;
 use verbb\formie\helpers\CpSubmissionFieldConditions;
 it('resolves cp submission field condition settings from form and plugin defaults', function (): void {
@@ -101,9 +100,9 @@ it('includes cp conditions modules in submission edit config by default', functi
     ]);
 
     $moduleIds = array_values(array_map(
-        static fn(array $module): string => (string)$module['id'],
-        $form->getClientConfig()['modules'] ?? [],
+        static fn(array $module): string => (string)$module['moduleId'],
+        $form->getCpEditConfig()['modules']['entries'] ?? [],
     ));
 
-    expect($moduleIds)->toContain('conditions');
+    expect($moduleIds)->toContain('formie:conditions');
 });

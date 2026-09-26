@@ -1,3 +1,3 @@
-import type { FormieModuleDefinition } from '#contracts/modules';
-export declare const hiddenModule: FormieModuleDefinition;
+import type { BrowserModuleDefinition } from '#contracts/modules';
+export declare const hiddenModule: BrowserModuleDefinition;
 //# sourceMappingURL=hidden.d.ts.map

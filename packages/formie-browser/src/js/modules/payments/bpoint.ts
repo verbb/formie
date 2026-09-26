@@ -8,12 +8,12 @@ type BpointCardData = {
 };
 
 export const bpointModule = definePaymentModule<Record<string, never>, null, null>({
-    id: 'bpoint',
+    moduleId: 'formie:bpoint',
     defaultRequiredInputSuffixes: ['bpointToken'],
     load: async() => {
         return null;
     },
-    onBeforeAuthorize: async({ field, services }) => {
+    onBeforePayment: async({ field, services }) => {
         const existingValue = (field.querySelector('input[name$="[bpointToken]"]') as HTMLInputElement | null)?.value || '';
         if (existingValue.trim() !== '') {
             return true;

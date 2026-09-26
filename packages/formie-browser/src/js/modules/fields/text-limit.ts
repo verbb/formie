@@ -2,7 +2,7 @@ import textLimitCss from '#theme-css/fields/_text-limit.css?inline';
 
 import { getTextLimitMetrics } from '@verbb/formie-core';
 
-import type { FormieModuleDefinition } from '#contracts/modules';
+import type { BrowserModuleDefinition } from '#contracts/modules';
 import { getModuleFieldTarget, releaseFormValidators, retainFormValidators } from '#modules/fields/shared';
 import { ensureModuleStyles } from '#modules/styles';
 import { t } from '#utils/i18n';
@@ -282,8 +282,10 @@ function updateCounter(input: HTMLInputElement | HTMLTextAreaElement): void {
     }
 }
 
-export const textLimitModule: FormieModuleDefinition = {
-    id: 'text-limit',
+export const textLimitModule: BrowserModuleDefinition = {
+    moduleId: 'formie:text-limit',
+    version: 1,
+    surfaces: ['server-rendered', 'client-rendered', 'cp-edit'],
     kind: 'field',
     match: (ctx) => {
         return !!ctx.target.querySelector(INPUT_SELECTOR);

@@ -35,7 +35,7 @@ async function waitForRecaptchaResponse(api: RecaptchaGlobal, widgetId: number |
 }
 
 export const recaptchaV2InvisibleModule = defineCaptchaModule<RecaptchaProviderOptions, RecaptchaGlobal, RecaptchaWidgetState>({
-    id: 'recaptcha-v2-invisible',
+    moduleId: 'formie:recaptcha-v2-invisible',
     defaultPlaceholderSelector: '[data-recaptcha-placeholder]',
     defaultTokenFieldNames: ['g-recaptcha-response'],
     load: ({ options }) => {
@@ -79,7 +79,7 @@ export const recaptchaV2InvisibleModule = defineCaptchaModule<RecaptchaProviderO
             });
         });
     },
-    screen: async({ api, widget, placeholder, services, stageCtx }) => {
+    challenge: async({ api, widget, placeholder, services, stageCtx }) => {
         // If we already have a token, do not re-execute the invisible widget.
         if (services.tokens.has()) {
             return;

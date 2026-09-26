@@ -1,4 +1,4 @@
-import type { FormieModuleDefinition } from '#contracts/modules';
+import type { BrowserModuleDefinition } from '#contracts/modules';
 import { CONDITION_SELECTOR, getConditionNodes, parseConditionSettings } from '#modules/fields/conditions/config';
 import { applyConditionVisibility } from '#modules/fields/conditions/effects';
 import { evaluateConditionSettings } from '#modules/fields/conditions/evaluator';
@@ -27,8 +27,10 @@ function uniqueConditionInputs(inputs: ConditionInput[]): ConditionInput[] {
     });
 }
 
-export const conditionsModule: FormieModuleDefinition = {
-    id: 'conditions',
+export const conditionsModule: BrowserModuleDefinition = {
+    moduleId: 'formie:conditions',
+    version: 1,
+    surfaces: ['server-rendered', 'client-rendered', 'cp-edit'],
     kind: 'field',
     match: (ctx) => {
         return ctx.target instanceof HTMLElement && (

@@ -120,7 +120,7 @@ function showPlaceholderMessage(placeholder: HTMLElement | null, themeSource: El
 }
 
 export const stripeModule = definePaymentModule<StripeProviderOptions, StripeInstance | null, StripeWidget | null>({
-    id: 'stripe',
+    moduleId: 'formie:stripe',
     defaultRequiredInputSuffixes: ['stripePaymentIntentId'],
     load: async (ctx) => {
         const { provider } = ctx.options;
@@ -288,7 +288,7 @@ export const stripeModule = definePaymentModule<StripeProviderOptions, StripeIns
         stripeField.__formieStripeDynamicUnbind?.();
         stripeField.__formieStripeDynamicUnbind = null;
     },
-    onBeforeAuthorize: async (args) => {
+    onBeforePayment: async (args) => {
         const { widget, services, field } = args;
         const stripeField = field as StripeFieldState;
         let activeWidget = widget;

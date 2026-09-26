@@ -1,4 +1,4 @@
-import type { FormieModuleDefinition, ModuleSetupContext } from '#contracts/modules';
+import type { BrowserModuleDefinition, ModuleSetupContext } from '#contracts/modules';
 import { type NormalizedPaymentModuleOptions, type PaymentHostServices } from '#modules/payments/host';
 export type PaymentModuleSetupContext<TProvider extends Record<string, unknown>> = Omit<ModuleSetupContext, 'options'> & {
     options: NormalizedPaymentModuleOptions<TProvider>;
@@ -13,7 +13,7 @@ export type PaymentAfterSubmitResult = {
     remount?: boolean;
 };
 export type ManagedPaymentModuleAdapter<TProvider extends Record<string, unknown>, TApi, TWidget> = {
-    id: string;
+    moduleId: string;
     defaultRequiredInputSuffixes?: string[];
     load: (ctx: PaymentModuleSetupContext<TProvider>) => Promise<TApi>;
     /** Redirect-only providers (Mollie, GoCardless): attach listeners, return destroy. No mount needed. */
@@ -35,7 +35,7 @@ export type ManagedPaymentModuleAdapter<TProvider extends Record<string, unknown
         options: NormalizedPaymentModuleOptions<TProvider>;
         provider: TProvider;
     }) => Promise<void> | void;
-    onBeforeAuthorize?: (args: {
+    onBeforePayment?: (args: {
         api: TApi;
         widget: TWidget | null;
         field: Element;
@@ -44,7 +44,7 @@ export type ManagedPaymentModuleAdapter<TProvider extends Record<string, unknown
         provider: TProvider;
         stageCtx: import('#contracts/modules').SubmitHookContext;
     }) => Promise<boolean> | boolean;
-    /** Called after dispatch (on any result) to reset hidden inputs, clear UI, etc. */
+    /** Called after send (on any result) to reset hidden inputs, clear UI, etc. */
     onAfterSubmit?: (args: {
         field: Element;
         services: PaymentHostServices;
@@ -53,6 +53,6 @@ export type ManagedPaymentModuleAdapter<TProvider extends Record<string, unknown
         result?: import('#contracts/schema').FormSubmitResult;
     }) => void | Promise<void> | PaymentAfterSubmitResult | Promise<PaymentAfterSubmitResult>;
 };
-export declare function createManagedPaymentModule<TProvider extends Record<string, unknown>, TApi, TWidget>(adapter: ManagedPaymentModuleAdapter<TProvider, TApi, TWidget>): FormieModuleDefinition;
+export declare function createManagedPaymentModule<TProvider extends Record<string, unknown>, TApi, TWidget>(adapter: ManagedPaymentModuleAdapter<TProvider, TApi, TWidget>): BrowserModuleDefinition;
 export {};
 //# sourceMappingURL=factories.d.ts.map

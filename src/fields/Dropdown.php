@@ -284,20 +284,20 @@ class Dropdown extends OptionsField implements SortableFieldInterface
         return $rules;
     }
 
-    protected function defineClientModules(): array
+    protected function defineBrowserModules(): array
     {
-        $modules = parent::defineClientModules();
+        $modules = parent::defineBrowserModules();
 
-        foreach ($this->defineSearchableDropdownClientModules() as $module) {
+        foreach ($this->defineSearchableDropdownBrowserModules() as $module) {
             $modules[] = $module;
         }
 
         return $modules;
     }
 
-    protected function defineClientInput(): array
+    protected function defineClientRenderedInput(): array
     {
-        return array_merge(parent::defineClientInput(), $this->getOptionsLimitClientInput(), [
+        return array_merge(parent::defineClientRenderedInput(), $this->getOptionsLimitClientInput(), [
             'autocomplete' => $this->getAutocompleteCoreAttribute(),
             'useSearchable' => $this->useSearchable,
         ]);

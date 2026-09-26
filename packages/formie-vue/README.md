@@ -1,6 +1,6 @@
 # @verbb/formie-vue
 
-Vue bindings for Formie's server-rendered and client-rendered front-end packages.
+Vue bindings for Formie's server-rendered and client-rendered browser packages.
 
 ## Install
 

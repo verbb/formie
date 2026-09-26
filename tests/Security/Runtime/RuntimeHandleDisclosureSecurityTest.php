@@ -9,13 +9,13 @@ it('returns a generic error for unknown client submit handles', function (): voi
     $missingHandle = 'security-missing-submit-' . uniqid();
 
     try {
-        ClientFormResolver::submitForm(null, [
+        \Tests\Support\WebRequestTestHelper::withWebRequestContext(fn() => ClientFormResolver::submitForm(null, [
             'input' => [
                 'handle' => $missingHandle,
                 'session' => [],
                 'values' => [],
             ],
-        ]);
+        ]));
 
         $this->fail('Expected a bad request exception for unknown handle.');
     } catch (BadRequestHttpException $exception) {
@@ -29,12 +29,12 @@ it('returns a generic error for unknown client refresh handles', function (): vo
     $missingHandle = 'security-missing-refresh-' . uniqid();
 
     try {
-        ClientFormResolver::refreshSession(null, [
+        \Tests\Support\WebRequestTestHelper::withWebRequestContext(fn() => ClientFormResolver::refreshSession(null, [
             'input' => [
                 'handle' => $missingHandle,
                 'session' => [],
             ],
-        ]);
+        ]));
 
         $this->fail('Expected a bad request exception for unknown handle.');
     } catch (BadRequestHttpException $exception) {
@@ -48,13 +48,13 @@ it('returns a generic error for unknown client page-transition handles', functio
     $missingHandle = 'security-missing-page-' . uniqid();
 
     try {
-        ClientFormResolver::setPage(null, [
+        \Tests\Support\WebRequestTestHelper::withWebRequestContext(fn() => ClientFormResolver::setPage(null, [
             'input' => [
                 'handle' => $missingHandle,
                 'session' => [],
                 'values' => [],
             ],
-        ]);
+        ]));
 
         $this->fail('Expected a bad request exception for unknown handle.');
     } catch (BadRequestHttpException $exception) {

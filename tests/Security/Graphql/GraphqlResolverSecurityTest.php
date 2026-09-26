@@ -15,9 +15,9 @@ it('returns a generic not-found message for unknown client form handles', functi
     $missingHandle = 'security-missing-client-' . uniqid();
 
     try {
-        ClientFormResolver::resolveForm(null, [
+        \Tests\Support\WebRequestTestHelper::withWebRequestContext(fn() => ClientFormResolver::resolveForm(null, [
             'handle' => $missingHandle,
-        ]);
+        ]));
 
         $this->fail('Expected a not-found exception for unknown handle.');
     } catch (NotFoundHttpException $exception) {
@@ -31,9 +31,9 @@ it('returns a generic not-found message for unknown html form handles', function
     $missingHandle = 'security-missing-html-' . uniqid();
 
     try {
-        HtmlFormResolver::resolve(null, [
+        \Tests\Support\WebRequestTestHelper::withWebRequestContext(fn() => HtmlFormResolver::resolve(null, [
             'handle' => $missingHandle,
-        ]);
+        ]));
 
         $this->fail('Expected a not-found exception for unknown handle.');
     } catch (NotFoundHttpException $exception) {
@@ -56,9 +56,9 @@ it('hides unreadable client form handles behind not-found responses', function (
     withGraphqlSchemaScope([
         'formieForms.' . $allowedForm->uid . ':read',
     ], function () use ($blockedForm): void {
-        expect(fn() => ClientFormResolver::resolveForm(null, [
+        expect(fn() => \Tests\Support\WebRequestTestHelper::withWebRequestContext(fn() => ClientFormResolver::resolveForm(null, [
             'handle' => (string)$blockedForm->handle,
-        ]))->toThrow(NotFoundHttpException::class, 'Form not found');
+        ])))->toThrow(NotFoundHttpException::class, 'Form not found');
     });
 })->group('security');
 
@@ -75,9 +75,9 @@ it('hides unreadable html form handles behind not-found responses', function ():
     withGraphqlSchemaScope([
         'formieForms.' . $allowedForm->uid . ':read',
     ], function () use ($blockedForm): void {
-        expect(fn() => HtmlFormResolver::resolve(null, [
+        expect(fn() => \Tests\Support\WebRequestTestHelper::withWebRequestContext(fn() => HtmlFormResolver::resolve(null, [
             'handle' => (string)$blockedForm->handle,
-        ]))->toThrow(NotFoundHttpException::class, 'Form not found');
+        ])))->toThrow(NotFoundHttpException::class, 'Form not found');
     });
 })->group('security');
 
@@ -90,12 +90,12 @@ it('requires submission mutation scopes for client graphql session mutations', f
     withGraphqlSchemaScope([
         'formieForms.' . $form->uid . ':read',
     ], function () use ($form): void {
-        expect(fn() => ClientFormResolver::refreshSession(null, [
+        expect(fn() => \Tests\Support\WebRequestTestHelper::withWebRequestContext(fn() => ClientFormResolver::refreshSession(null, [
             'input' => [
                 'handle' => (string)$form->handle,
                 'session' => [],
             ],
-        ]))->toThrow(Error::class, 'Unable to perform the action.');
+        ])))->toThrow(Error::class, 'Unable to perform the action.');
     });
 })->group('security');
 
@@ -108,7 +108,7 @@ it('requires submission mutation scopes for client graphql submit mutations', fu
     withGraphqlSchemaScope([
         'formieForms.' . $form->uid . ':read',
     ], function () use ($form): void {
-        expect(fn() => ClientFormResolver::submitForm(null, [
+        expect(fn() => \Tests\Support\WebRequestTestHelper::withWebRequestContext(fn() => ClientFormResolver::submitForm(null, [
             'input' => [
                 'handle' => (string)$form->handle,
                 'session' => [],
@@ -116,7 +116,7 @@ it('requires submission mutation scopes for client graphql submit mutations', fu
                     'fullName' => 'Security Tester',
                 ],
             ],
-        ]))->toThrow(Error::class, 'Unable to perform the action.');
+        ])))->toThrow(Error::class, 'Unable to perform the action.');
     });
 })->group('security');
 

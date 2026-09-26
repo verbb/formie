@@ -5,7 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\client\bootstrap\FormBootstrapBuilder;
 use verbb\formie\client\bootstrap\FormDefinitionBuilder;
 use verbb\formie\client\ClientSessionService;
-use verbb\formie\client\modules\ClientModuleManifestBuilder;
+use verbb\formie\client\modules\BrowserModuleManifestBuilder;
 use verbb\formie\server\ServerRenderPayloadBuilder;
 
 use Craft;
@@ -44,10 +44,10 @@ class ClientCompatibility
         return $this->plugin->getServerRenderPayloadBuilder();
     }
 
-    public function getModuleManifestBuilder(): ClientModuleManifestBuilder
+    public function getModuleManifestBuilder(): BrowserModuleManifestBuilder
     {
-        Craft::$app->getDeprecator()->log(__METHOD__, 'Client compatibility `getModuleManifestBuilder()` has been deprecated. Use `getClientModuleManifestBuilder()` instead.');
+        Craft::$app->getDeprecator()->log(__METHOD__, 'Client compatibility `getModuleManifestBuilder()` has been deprecated. Use `getBrowserModuleManifestBuilder()` instead.');
 
-        return $this->plugin->getClientModuleManifestBuilder();
+        return $this->plugin->getBrowserModuleManifestBuilder();
     }
 }

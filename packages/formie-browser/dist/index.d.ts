@@ -1,7 +1,7 @@
 export { createFormieClient } from '#core/create-formie-client';
 export { hydrateFormieModules } from '#core/hydrate-modules';
 export { formie } from '#core/formie';
-export { ModuleRegistry } from '#modules/registry';
+export { ModuleRegistry, clientRenderedModuleRegistry } from '#modules/registry';
 export { FormieValidator } from '#validation/validator';
 export { bindLegacyDomEventCompatibility } from '#compatibility/dom-adapter';
 export { bindLegacyValidatorCompatibility } from '#compatibility/validator-adapter';
@@ -21,10 +21,11 @@ export type { FormieModuleHydrator, FormieModuleHydratorOptions } from '#core/hy
 export type { FormieApp, FormieElementTarget, FormieEvent, FormieOptions } from '#core/formie';
 export type { LegacyBridgeDisposition, LegacyCompatibilityOptions, LegacyDomEventBridge, LegacyValidatorEventBridge, ResolvedLegacyCompatibilityOptions, } from '#compatibility/event-map';
 export type { FormAction, FormMode, FormTransport, SubmitStage } from '#contracts/common';
-export type { FormieModuleDefinition, FormieModuleInstance, ModuleHookContext, ModuleMatchContext, ModuleRegistrationOptions, ModuleSetupContext, SubmitHookContext, } from '#contracts/modules';
-export type { FormRefreshTokensPayload, FormDefinitionField, FormDefinitionPage, FormDefinitionPayload, FormEndpointPayload, FormModuleManifest, FormModuleTarget, FormModuleTargetType, FormRedirect, FormSubmitResult, } from '#contracts/schema';
+export type { BrowserModuleDefinition, BrowserModuleInstance, ModuleHookContext, ModuleMatchContext, ModuleRegistrationOptions, ModuleSetupContext, SubmitHookContext, } from '#contracts/modules';
+export type { FormRefreshTokensPayload, FormEndpointPayload, BrowserModuleEntry, FormModuleTarget, FormModuleTargetType, FormRedirect, FormSubmitResult, } from '#contracts/schema';
 export type { ThemeClassMap } from '#contracts/theme';
 export type { ValidationConfig, ValidationContext, ValidationError, ValidationInput, ValidationRuleDefinition, ValidationRules, ValidationRuleValue, } from '#validation/types';
 export type { TranslationReplacements } from '#utils/i18n';
 export type { FieldReferenceTransform, FieldValueRegistry, FieldValueRegistryEntry, ParsedFieldReference, ResolveFieldValueResult, } from '#utils/field-references';
+export { mountClientRenderedModules } from '#core/client-rendered-modules';
 //# sourceMappingURL=index.d.ts.map

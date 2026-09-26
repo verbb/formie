@@ -9,7 +9,7 @@ use verbb\formie\base\IntegrationInterface;
 use verbb\formie\base\FixedParentFieldInterface;
 use verbb\formie\base\FixedParentField;
 use verbb\formie\base\PreviewableFieldInterface;
-use verbb\formie\fields\definitions\FieldClientModules;
+use verbb\formie\fields\definitions\FieldBrowserModules;
 use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\gql\types\AddressType;
@@ -22,8 +22,8 @@ use verbb\formie\helpers\Table;
 use verbb\formie\helpers\Variables;
 use verbb\formie\integrations\addressproviders\Google;
 use verbb\formie\fields\subfields\AddressCountry;
-use verbb\formie\models\ClientModule;
-use verbb\formie\models\ClientModuleContext;
+use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\models\BrowserModuleContext;
 use verbb\formie\models\SlotTag;
 use verbb\formie\positions\AboveInput;
 use verbb\formie\positions\Hidden as HiddenPosition;
@@ -645,48 +645,49 @@ class Address extends FixedParentField implements PreviewableFieldInterface
         ];
     }
 
-    protected function defineClientModules(): array
+    protected function defineBrowserModules(): array
     {
-        $modules = parent::defineClientModules();
+        $modules = parent::defineBrowserModules();
 
         $countrySubfield = $this->getFieldByHandle('country');
 
         if ($countrySubfield instanceof AddressCountry && $countrySubfield->enabled && $this->countryPreselectFromIp) {
-            $modules[] = new ClientModule([
-                'id' => 'address-country',
+            $modules[] = new BrowserModuleEntry([
+                'moduleId' => 'formie:address-country',
+                'surfaces' => [BrowserModuleEntry::SURFACE_SERVER_RENDERED, BrowserModuleEntry::SURFACE_CLIENT_RENDERED, BrowserModuleEntry::SURFACE_CP_EDIT],
                 'config' => [
                     'countryPreselectFromIp' => true,
                     'countryAllowed' => $this->countryAllowed,
                     'countryOptionValue' => $countrySubfield->optionValue ?? 'short',
-                    'countryFromIpAction' => 'formie/address/country-from-ip',
+                    'countryFromIpAction' => \craft\helpers\UrlHelper::actionUrl('formie/address/country-from-ip'),
                 ],
             ]);
         }
 
-        $modules[] = function(ClientModuleContext $context) {
+        $modules[] = function(BrowserModuleContext $context) {
             $integration = $this->getAddressProviderIntegration();
 
             if (!$integration) {
                 return null;
             }
 
-            $clientModule = $integration->getClientModule(new ClientModuleContext([
+            $browserModule = $integration->getBrowserModule(new BrowserModuleContext([
                 'form' => $context->form,
                 'field' => $this,
                 'integration' => $integration,
-                'renderTarget' => $context->renderTarget,
+                'surface' => $context->surface,
             ]));
 
-            if (!$clientModule?->id) {
+            if (!$browserModule?->moduleId) {
                 return null;
             }
 
-            if (!$clientModule->type) {
-                $clientModule->type = 'address';
+            if (!$browserModule->type) {
+                $browserModule->type = 'address';
             }
 
-            if (!$clientModule->targets) {
-                $clientModule->targets = $context->getTargets();
+            if (!$browserModule->targets) {
+                $browserModule->targets = $context->getTargets();
             }
 
             if ($integration instanceof Google) {
@@ -694,11 +695,11 @@ class Address extends FixedParentField implements PreviewableFieldInterface
                 $countryDefaultValue = $autoComplete->countryDefaultValue ?? null;
 
                 if ($countryDefaultValue) {
-                    $clientModule->config['countryDefaultValue'] = $countryDefaultValue;
+                    $browserModule->config['countryDefaultValue'] = $countryDefaultValue;
                 }
             }
 
-            return $clientModule;
+            return $browserModule;
         };
 
         return $modules;

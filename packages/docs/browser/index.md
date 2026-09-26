@@ -1,19 +1,19 @@
 # Browser
 
-The Browser docs cover the front-end JavaScript and CSS used by Formie’s rendered forms.
+The Browser docs cover the browser JavaScript and CSS used by Formie’s rendered forms.
 
 If you are coming from the Formie plugin docs, this is where to look when you want to understand or customise what happens in the browser: JavaScript events, submit handling, validation, field modules, rendered markup, CSS variables, and the default theme CSS.
 
 There are two common paths:
 
-- **Plugin-rendered forms** - Craft renders the form HTML and Formie’s normal front-end assets enhance it. Use these docs to find events, CSS hooks, module behaviour, and markup contracts.
-- **Your own frontend bundle** - You import `@verbb/formie-browser`, decide when forms mount, and choose whether to load Formie’s CSS or provide your own. Use this path when you disable Formie’s automatic JavaScript, load forms from an endpoint, or need lower-level client control.
+- **Server-rendered forms** - Craft renders the form HTML and Formie’s normal browser assets enhance it. Use these docs to find events, CSS hooks, module behaviour, and markup contracts.
+- **Your own browser bundle** - You import `@verbb/formie-browser`, decide when forms mount, and choose whether to load Formie’s CSS or provide your own. Use this path when you disable Formie’s automatic JavaScript, load forms from an endpoint, or need lower-level client control.
 
-If React, Vue, or Web Components owns the form surface, use those package docs instead. They build on the same front-end concepts, but the integration point is the framework component rather than a Craft-rendered form already on the page.
+If React, Vue, or Web Components owns the form surface, use those package docs instead. They build on the same browser concepts, but the integration point is the framework component rather than a Craft-rendered form already on the page.
 
 ## Installation
 
-You only need to install `@verbb/formie-browser` when your own build imports the package. Plugin-rendered forms can use the assets emitted by Formie without installing the npm package in your project.
+You only need to install `@verbb/formie-browser` when your own build imports the package. Server-rendered forms can use the assets emitted by Formie without installing the npm package in your project.
 
 ```bash
 npm install @verbb/formie-browser
@@ -27,7 +27,7 @@ import '@verbb/formie-browser/css/formie.css';
 
 ## If Formie Already Renders the Form
 
-For most Craft-rendered forms, Formie outputs the markup, startup script, translations, modules, and CSS links needed for the front end. You do not need to recreate that setup from npm just to listen for events or adjust styling.
+For most Craft-rendered forms, Formie outputs the markup, startup script, translations, modules, and CSS links needed in the browser. You do not need to recreate that setup from npm just to listen for events or adjust styling.
 
 Start here when you want to customise what the plugin already provides:
 
@@ -37,11 +37,11 @@ Start here when you want to customise what the plugin already provides:
 - [CSS variables](/browser/ui-reference/css-variables) for changing the default theme without replacing templates.
 - [Modules](/browser/modules/) for field, captcha, address, and payment behaviour.
 
-If you are moving old event listeners or custom scripts from older plugin-rendered forms, see [Migrating from Formie Plugin](/browser/behavior/migrating-from-formie-plugin).
+If you are moving old event listeners or custom scripts from older server-rendered forms, see [Migrating from Formie Plugin](/browser/behavior/migrating-from-formie-plugin).
 
 ## If Your Bundle Initializes Forms
 
-Use `@verbb/formie-browser` when Formie still owns the rendered HTML and browser behaviour, but your frontend bundle owns mounting.
+Use `@verbb/formie-browser` when Formie still owns the rendered HTML and browser behaviour, but your browser bundle owns mounting.
 
 Start with `formie({ element })`. It wraps the lower-level browser client with DOM-ready handling, mounts the matched form elements, and gives you simple success and error hooks.
 
@@ -125,7 +125,7 @@ await formie({
 });
 ```
 
-On plugin-rendered pages, Craft can also output Formie's startup script and an inline JSON translations seed for you. `formie()` is for the cases where you want to take over mounting timing from your own bundle, not for re-creating the whole plugin startup layer.
+On server-rendered pages, Craft can also output Formie's startup script and an inline JSON translations seed for you. `formie()` is for the cases where you want to take over mounting timing from your own bundle, not for re-creating the whole plugin startup layer.
 
 ## When You Need the Advanced Client
 
@@ -149,3 +149,7 @@ If Formie is still outputting its browser script for you and you only need to ta
 - [Validation](/browser/validation/)
 - [Modules](/browser/modules/)
 - [UI reference](/browser/ui-reference/)
+
+## Rendering contracts
+
+See [Rendering products and request profiles](/browser/rendering-contract) for the versioned client-rendered bootstrap, module lifecycle, transport boundaries and Formie 4 beta migration.

@@ -142,9 +142,10 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
     use FieldDeprecations;
     use FieldDefinitionTrait;
     use FieldCompatibilityTrait;
-    use FieldClientValidationTrait;
-    use FieldClientConditionTrait;
-    use FieldClientDefinitionTrait;
+    use FieldBrowserValidationTrait;
+    use FieldBrowserConditionTrait;
+    use FieldClientRenderedDefinitionTrait;
+    use FieldCpEditConfigTrait;
     use FieldServerRenderTrait;
     use FieldValueTrait;
     use FieldFormBuilderTrait;

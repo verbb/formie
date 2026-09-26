@@ -1,11 +1,11 @@
-import { isKnownFrontendFieldType, type FrontendFieldDefinition } from '@verbb/formie-core';
+import { isKnownClientFieldType, type ClientFieldDefinition } from '@verbb/formie-core';
 
-export function isFieldDefinition(candidate: unknown): candidate is FrontendFieldDefinition {
+export function isFieldDefinition(candidate: unknown): candidate is ClientFieldDefinition {
     return !!candidate && typeof candidate === 'object' && 'id' in candidate && 'handle' in candidate && 'type' in candidate;
 }
 
-export function resolveFieldRendererType(field: FrontendFieldDefinition): FrontendFieldDefinition['type'] {
-    if (isKnownFrontendFieldType(field.type)) {
+export function resolveFieldRendererType(field: ClientFieldDefinition): ClientFieldDefinition['type'] {
+    if (isKnownClientFieldType(field.type)) {
         return field.type;
     }
 

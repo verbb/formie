@@ -34,12 +34,16 @@ it('rejects a missing csrf token and accepts the same request with its valid tok
 it('limits browser access to bootstrap tokens to configured origins', function (string $origin, ?string $allowed): void {
     $form = formie()->form()->singleLineTextField('name')->create();
     WebRequestTestHelper::withWebRequestContext(function () use ($form, $allowed): void {
-        Craft::$app->getConfig()->getGeneral()->allowedGraphqlOrigins = ['https://frontend.example.test'];
+        Formie::$plugin->getSettings()->allowedOrigins = ['https://frontend.example.test'];
+        if (!$allowed) {
+            expect(fn() => (new \verbb\formie\controllers\client\FormsController('forms', Formie::$plugin))->runAction('load'))->toThrow(\yii\web\ForbiddenHttpException::class);
+            return;
+        }
         $response = (new \verbb\formie\controllers\client\FormsController('forms', Formie::$plugin))->runAction('load');
         expect($response->data['definition']['handle'])->toBe($form->handle)
             ->and($response->getHeaders()->get('Access-Control-Allow-Origin'))->toBe($allowed)
             ->and($response->getHeaders()->get('Access-Control-Allow-Credentials'))->toBe($allowed ? 'true' : null);
-    }, ['method' => 'POST', 'bodyParams' => ['handle' => $form->handle], 'headers' => ['Accept' => 'application/json', 'Origin' => $origin]]);
+    }, ['method' => 'POST', 'bodyParams' => ['handle' => $form->handle], 'headers' => ['Accept' => 'application/json', 'Origin' => $origin, 'X-Formie-Profile' => 'cross-origin-public']]);
 })->with([
     'configured browser' => ['https://frontend.example.test', 'https://frontend.example.test'],
     'untrusted browser' => ['https://untrusted.example.test', null],

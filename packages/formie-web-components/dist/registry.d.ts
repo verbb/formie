@@ -1,7 +1,7 @@
 import type { FormieRegionKey } from './types.js';
 export declare function assertValidCustomElementName(name: string): void;
 /**
- * UI overrides for `<formie-core-form>`. Assign to `formie-core-form.registry` or mutate the
+ * UI overrides for `<formie-client-form>`. Assign to `formie-client-form.registry` or mutate the
  * default singleton from {@link getFormieRegistry}.
  */
 export declare class FormieRegistry {

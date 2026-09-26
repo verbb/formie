@@ -8,7 +8,7 @@ use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
 use verbb\formie\base\RepeatableParentFieldInterface;
 use verbb\formie\elements\Submission;
-use verbb\formie\fields\definitions\FieldClientChildren;
+use verbb\formie\fields\definitions\FieldClientRenderedChildren;
 use verbb\formie\gql\interfaces\RowInterface;
 use verbb\formie\gql\types\input\RepeaterInputType;
 use verbb\formie\gql\types\RowType;
@@ -364,10 +364,10 @@ abstract class RepeatableParentField extends ParentField implements RepeatablePa
         return $this->projectChildValues($value, $submission, fn($field, $child) => $field->getValueForCondition($field->normalizeFieldValue($child, $submission), $submission));
     }
 
-    protected function defineClientChildren(): FieldClientChildren
+    protected function defineClientRenderedChildren(): FieldClientRenderedChildren
     {
-        return FieldClientChildren::make(FieldClientChildren::MODEL_REPEATABLE_PARENT)
-            ->withChildren(FieldClientChildren::MODE_ROWS)
+        return FieldClientRenderedChildren::make(FieldClientRenderedChildren::MODEL_REPEATABLE_PARENT)
+            ->withChildren(FieldClientRenderedChildren::MODE_ROWS)
             ->withRowResolver(fn() => $this->getEnabledRows());
     }
 

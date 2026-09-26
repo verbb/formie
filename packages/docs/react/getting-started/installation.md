@@ -33,7 +33,7 @@ Client-rendered forms do not require the browser theme. Only import it if you in
 - client-rendered forms need either a `source` definition or both `endpoint` and `formHandle`.
 - For REST, pass the Craft base URL. Formie resolves the browser action endpoints for you.
 - For GraphQL, pass the GraphQL endpoint directly. On many installs that is `/api`.
-- If your frontend and Craft live on different domains, point `endpoint` at the Craft site, not the frontend app.
+- If your application and Craft live on different domains, point `endpoint` at the Craft site, not the application.
 - If Craft control panel lives under something like `/admin`, do not use the CP URL. Use the Craft site root for REST, or the GraphQL endpoint for GraphQL.
 
 ## React App Notes

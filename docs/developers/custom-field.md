@@ -2,7 +2,7 @@
 
 You can add your own fields to Formie in two ways: register a full Formie field type, or register an adapter for the built-in **Custom Field** field type when you want to expose a Craft field through Formie.
 
-Use a full Formie field when you own the complete field behaviour. Use a Custom Field adapter when you want one Formie field type to bridge to a Craft field or plugin-provided Craft field with explicit support for front-end rendering, value handling, exports, integrations and GraphQL.
+Use a full Formie field when you own the complete field behaviour. Use a Custom Field adapter when you want one Formie field type to bridge to a Craft field or plugin-provided Craft field with explicit support for server-rendered markup, value handling, exports, integrations and GraphQL.
 
 ## Register a Formie Field Type
 
@@ -21,7 +21,7 @@ Event::on(Fields::class, Fields::EVENT_REGISTER_FIELDS, function(RegisterFieldsE
 });
 ```
 
-Fields must extend `verbb\formie\base\Field`. This gives your field the form-builder schema, front-end rendering, value handling, optional client-rendered configuration, and reference / reference-block rendering behaviour Formie expects.
+Fields must extend `verbb\formie\base\Field`. This gives your field the form-builder schema, server-rendered markup, value handling, optional client-rendered configuration, and reference / reference-block rendering behaviour Formie expects.
 
 For fields that contain other fields, extend the parent field class that matches the behaviour you need:
 
@@ -50,7 +50,7 @@ Returns the name to be used for the field.
 
 **Returns:** `string`
 
-Returns the path to the front-end template for this field.
+Returns the path to the server-rendered template for this field.
 :::
 
 ::: reference
@@ -126,7 +126,7 @@ Returns setting handles that can be configured as organisation-wide defaults in 
 ::: reference
 ### `defineBrowserValidationRules()`
 
-Defines the validation rules sent to Formie’s front-end assets.
+Defines the validation rules sent to Formie’s browser assets.
 :::
 
 ::: reference
@@ -136,39 +136,39 @@ Defines server-side Yii validation rules for the field model.
 :::
 
 ::: reference
-### `defineClientInput()`
+### `defineClientRenderedInput()`
 
 Adds input-specific configuration to the client-rendered field definition.
 :::
 
 ::: reference
-### `clientDefinition()`
+### `clientRenderedDefinition()`
 
-**Returns:** `verbb\formie\fields\definitions\FieldClientDefinition`
+**Returns:** `verbb\formie\fields\definitions\FieldClientRenderedDefinition`
 
-Declares the base field type and input metadata used in the structured client payload.
+Declares the base field type and input metadata used in the structured client-rendered payload.
 :::
 
 ::: reference
-### `clientChildren()`
+### `clientRenderedChildren()`
 
-**Returns:** `verbb\formie\fields\definitions\FieldClientChildren`
+**Returns:** `verbb\formie\fields\definitions\FieldClientRenderedChildren`
 
-Declares whether the client payload is scalar, part-based, or row-based for nested fields.
+Declares whether the client-rendered payload is scalar, part-based, or row-based for nested fields.
 :::
 
 ::: reference
-### `defineClientModules()`
+### `defineBrowserModules()`
 
-Registers optional client modules the field needs in client-rendered flows.
+Declares browser modules with explicit supported surfaces and a required/optional failure policy.
 :::
 
 ::: reference
-### `clientModules()`
+### `browserModules()`
 
-**Returns:** `verbb\formie\fields\definitions\FieldClientModules`
+**Returns:** `verbb\formie\fields\definitions\FieldBrowserModules`
 
-Returns the normalised client-module manifest entries for browser-managed field behaviour.
+Returns the normalised browser-module entries for browser-managed field behaviour.
 :::
 
 ::: reference
@@ -206,7 +206,7 @@ Defines the HTML tag and attributes used by `fieldtag()` slots in the field’s 
 
 **Returns:** `array`
 
-Adds variables available to the front-end field template.
+Adds variables available to the server-rendered field template.
 :::
 
 ::: reference
@@ -332,7 +332,7 @@ Each adapter is responsible for:
 
 - declaring the Craft field classes it supports,
 - defining adapter-specific form-builder settings,
-- rendering front-end and control panel submission inputs,
+- rendering server-rendered and control panel submission inputs,
 - normalizing and serializing submitted values,
 - returning string, natural data, browser input, reference, summary, export and integration values,
 - declaring GraphQL content and mutation shapes,
@@ -422,7 +422,7 @@ Custom Field uses JSON storage so adapters can support scalar and structured val
 
 The adapter is selected when the field is created and is not editable afterward. Treat the adapter class stored in `customFieldAdapter` as part of the field’s storage contract.
 
-The selected adapter’s builder settings are stored in `customFieldAdapterSettings`. The adapter owns the meaning of those settings, including defaults used by `getDefaultValue()`, front-end rendering and client input metadata.
+The selected adapter’s builder settings are stored in `customFieldAdapterSettings`. The adapter owns the meaning of those settings, including defaults used by `getDefaultValue()`, server-rendered markup and client input metadata.
 
 When an adapter supports a structured value, implement these methods together:
 
@@ -434,7 +434,7 @@ When an adapter supports a structured value, implement these methods together:
 - `getContentGqlType()`
 - `getContentGqlMutationArgumentType()`
 
-This keeps front-end submissions, GraphQL submissions, email summaries, exports and integrations aligned.
+This keeps server-rendered submissions, GraphQL submissions, email summaries, exports and integrations aligned.
 
 ## Settings Schema
 Custom field settings are defined with schema, not Twig templates. The schema tells the form builder which inputs to show, which setting each input saves to, and how the UI should be grouped.
@@ -511,7 +511,7 @@ To expose organisation-wide defaults for your field type, opt in with `supported
 There are also a number of rendering pieces custom fields should provide. These are namely:
 
 - Twig template for when shown as a reference block.
-- Twig template for the front-end.
+- Twig template for server-rendered forms.
 - Schema for the preview of the field in the form builder.
 - Value methods for exports, summaries and submission previews when the field stores a non-simple value.
 
@@ -617,7 +617,7 @@ protected function defineFieldSlotTag(string $key, RenderContext $context): ?Slo
 
 A `Field` is the full runtime object for one form field. Its `id`, `uid` and stable `reference` identify that instance. Its `definitionId` and `definitionUid` identify the shared field definition. Synced Fields use the same definition while retaining their own top-level instance identities. Label, handle, instructions, placeholder, options and defaults belong to the definition; `required` belongs to the instance.
 
-Use instance identity when working with submission content, client field IDs or errors. Keep the established handle-based native input names and value accessors; do not substitute a definition ID. For example, a saved field's `getClientConfig()['id']` identifies the form field, while `$field->definitionId` is suitable for finding its shared metadata. `Fields::getFieldDefinitionById()` returns an immutable internal `FieldDefinition`, without runtime rendering or save methods. `Fields::getAllFields()` continues to return fully hydrated runtime fields.
+Use instance identity when working with submission content, client field IDs or errors. Keep the established handle-based native input names and value accessors; do not substitute a definition ID. For example, a saved field's `getCpEditConfig()['id']` identifies the form field, while `$field->definitionId` is suitable for finding its shared metadata. `Fields::getFieldDefinitionById()` returns an immutable internal `FieldDefinition`, without runtime rendering or save methods. `Fields::getAllFields()` continues to return fully hydrated runtime fields.
 
 Registration requires a concrete subclass of `Field`. `FieldInterface` is available for type hints; implementing that interface independently does not register a valid field. Declare metadata with `defineFieldType()` and the ordinary static methods. The base general-settings and preview schemas are valid defaults. Metadata requests use fresh field prototypes, so extensions must not rely on mutations to a previously returned prototype.
 

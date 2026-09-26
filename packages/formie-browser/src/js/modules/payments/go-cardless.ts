@@ -9,7 +9,7 @@ type GoCardlessProviderOptions = {
 const REDIRECT_EVENT = getPaymentProviderActionEventName('go-cardless', 'redirect');
 
 export const goCardlessModule = definePaymentModule<GoCardlessProviderOptions, null, null>({
-    id: 'go-cardless',
+    moduleId: 'formie:go-cardless',
     defaultRequiredInputSuffixes: [],
     load: async() => null,
     setup: async({ services, root }) => {

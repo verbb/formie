@@ -1,2 +1,2 @@
-export declare const addressFinderModule: import("../../..").FormieModuleDefinition;
+export declare const addressFinderModule: import("../../..").BrowserModuleDefinition;
 //# sourceMappingURL=address-finder.d.ts.map

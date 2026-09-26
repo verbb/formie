@@ -18,7 +18,7 @@ export const friendlyCaptchaV2Module = defineCaptchaModule<
     FriendlyCaptchaSdkModule,
     FriendlyCaptchaWidget
 >({
-    id: 'friendly-captcha-v2',
+    moduleId: 'formie:friendly-captcha-v2',
     defaultPlaceholderSelector: '[data-friendly-captcha-placeholder]',
     defaultTokenFieldNames: ['frc-captcha-response'],
     load: async () => {
@@ -64,7 +64,7 @@ export const friendlyCaptchaV2Module = defineCaptchaModule<
 
         return widget;
     },
-    screen: async ({ widget, placeholder, services, stageCtx }) => {
+    challenge: async ({ widget, placeholder, services, stageCtx }) => {
         // As with v1, start the challenge only if no token is currently present.
         if (services.tokens.has()) {
             return;

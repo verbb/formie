@@ -1,5 +1,5 @@
 import type { FormAction, FormieClient, FormieFormInstance, FormMountOptions, FormEndpointPayload, FormTransport, FormSubmitResult } from '@verbb/formie-browser';
-import type { FrontendFieldType, FrontendFormInstance, FrontendSubmitResult } from '@verbb/formie-core';
+import type { ClientFieldType, ClientFormInstance, ClientSubmitResult } from '@verbb/formie-core';
 import { createElement } from 'react';
 import type { RefObject } from 'react';
 import { type FormieDefinitionSource, type FormieFieldComponentProps, type FormieReactComponents, type FormieReactEvent, type FormieSlotComponentProps } from './definition-form';
@@ -9,6 +9,7 @@ export type FormieHtmlSource = {
 export type FormieFormProps = {
     source?: FormieHtmlSource;
     transport?: FormTransport;
+    profile?: FormMountOptions['profile'];
     endpoint?: string;
     formHandle?: string;
     staticCache?: boolean;
@@ -33,27 +34,28 @@ export type FormieFormProps = {
 export type FormieClientFormProps = {
     source?: FormieDefinitionSource;
     transport?: FormTransport;
+    profile?: FormMountOptions['profile'];
     endpoint?: string;
     formHandle?: string;
     siteId?: number;
     components?: FormieReactComponents;
-    fieldComponents?: Partial<Record<FrontendFieldType, (props: FormieFieldComponentProps) => ReturnType<typeof createElement> | null>>;
+    fieldComponents?: Partial<Record<ClientFieldType, (props: FormieFieldComponentProps) => ReturnType<typeof createElement> | null>>;
     slots?: Partial<Record<string, (props: FormieSlotComponentProps) => ReturnType<typeof createElement> | null>>;
     className?: string;
-    onMount?: (instance: FrontendFormInstance) => void;
-    onReady?: (instance: FrontendFormInstance) => void;
+    onMount?: (instance: ClientFormInstance) => void;
+    onReady?: (instance: ClientFormInstance) => void;
     onUnmount?: () => void;
-    onResult?: (result: FrontendSubmitResult) => void;
-    onSuccess?: (result: FrontendSubmitResult) => void;
-    onError?: (result: FrontendSubmitResult) => void;
-    onSubmitResult?: (result: FrontendSubmitResult) => void;
-    onSubmitSuccess?: (result: FrontendSubmitResult) => void;
-    onSubmitError?: (result: FrontendSubmitResult) => void;
+    onResult?: (result: ClientSubmitResult) => void;
+    onSuccess?: (result: ClientSubmitResult) => void;
+    onError?: (result: ClientSubmitResult) => void;
+    onSubmitResult?: (result: ClientSubmitResult) => void;
+    onSubmitSuccess?: (result: ClientSubmitResult) => void;
+    onSubmitError?: (result: ClientSubmitResult) => void;
     onEvent?: (event: FormieReactEvent) => void;
 };
 export type FormieHtmlOptions = Omit<FormMountOptions, 'mode'>;
-export declare function FormieForm({ source, transport, endpoint, formHandle, staticCache, refreshTokens, locale, siteId, autoVisible, theme, themeConfig, className, onMount, onReady, onUnmount, onResult, onSuccess, onError, onSubmitResult, onSubmitSuccess, onSubmitError, onEvent, }: FormieFormProps): import("react").FunctionComponentElement<FormieFormProps>;
-export declare function FormieClientForm({ source, transport, endpoint, formHandle, siteId, components, fieldComponents, slots, className, onMount, onReady, onUnmount, onResult, onSuccess, onError, onSubmitResult, onSubmitSuccess, onSubmitError, onEvent, }: FormieClientFormProps): import("react").FunctionComponentElement<import("./definition-form").DefinitionFormViewProps>;
+export declare function FormieForm({ source, transport, profile, endpoint, formHandle, staticCache, refreshTokens, locale, siteId, autoVisible, theme, themeConfig, className, onMount, onReady, onUnmount, onResult, onSuccess, onError, onSubmitResult, onSubmitSuccess, onSubmitError, onEvent, }: FormieFormProps): import("react").FunctionComponentElement<FormieFormProps>;
+export declare function FormieClientForm({ source, transport, profile, endpoint, formHandle, siteId, components, fieldComponents, slots, className, onMount, onReady, onUnmount, onResult, onSuccess, onError, onSubmitResult, onSubmitSuccess, onSubmitError, onEvent, }: FormieClientFormProps): import("react").FunctionComponentElement<import("./definition-form").DefinitionFormViewProps>;
 export declare function useFormieClient(): FormieClient;
 export type UseFormieHtmlState = {
     instance: FormieFormInstance | null;
@@ -65,8 +67,8 @@ export declare function useFormieHtml(options: FormieHtmlOptions): {
     state: UseFormieHtmlState;
     submit: (action?: FormAction) => Promise<FormSubmitResult | null>;
 };
-export type { FormAction, FormEventUnsubscribe, FormDefinitionPayload, FormEndpointPayload, FormieClient, FormieFormInstance, FormMountOptions, FormSubmitResult, } from '@verbb/formie-browser';
-export type { FrontendFieldDefinition, FrontendFieldType, FrontendFormDefinition, FrontendFormEnvelope, FrontendFormSession, FrontendFormInstance, FrontendFormState, FrontendSubmitResult, } from '@verbb/formie-core';
+export type { FormAction, FormEventUnsubscribe, FormEndpointPayload, FormieClient, FormieFormInstance, FormMountOptions, FormSubmitResult, } from '@verbb/formie-browser';
+export type { ClientFieldDefinition, ClientFieldType, ClientFormDefinition, ClientFormBootstrap, ClientFormSession, ClientFormInstance, ClientFormState, ClientSubmitResult, } from '@verbb/formie-core';
 export type { FormieDefinitionSource, FormieFieldComponentProps, FormieFormComponentProps, FormiePageComponentProps, FormieFieldProps, FormieErrorSummaryProps, FormieReactComponents, FormieReactEvent, FormieSlotComponentProps, } from './definition-form';
 export { useFormie, useFormieField, useFormiePage, useFormieInstance, useFormieSlot, } from './definition-form';
 //# sourceMappingURL=index.d.ts.map

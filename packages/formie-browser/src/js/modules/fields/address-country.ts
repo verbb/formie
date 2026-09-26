@@ -1,4 +1,4 @@
-import type { FormieModuleDefinition } from '#contracts/modules';
+import type { BrowserModuleDefinition } from '#contracts/modules';
 import { ADDRESS_SELECTORS, findAddressFieldInput } from '#modules/address/constants';
 import { getModuleFieldContainers } from '#modules/fields/shared';
 import { fetchCountryFromIp } from '#utils/country-from-ip';
@@ -85,7 +85,7 @@ async function preselectCountry(
         return;
     }
 
-    const response = await fetchCountryFromIp(options.countryFromIpAction);
+    const response = await fetchCountryFromIp(options.countryFromIpAction, addressRoot.closest('form'));
 
     if (!response?.countryCode) {
         return;
@@ -116,8 +116,10 @@ async function preselectCountry(
     debug.log('Preselected country from IP.', { selectValue });
 }
 
-export const addressCountryModule: FormieModuleDefinition = {
-    id: MODULE_ID,
+export const addressCountryModule: BrowserModuleDefinition = {
+    moduleId: `formie:${MODULE_ID}`,
+    version: 1,
+    surfaces: ['server-rendered', 'client-rendered', 'cp-edit'],
     kind: 'field',
     match: (ctx) => {
         return !!ctx.target.querySelector(COUNTRY_SELECTOR);

@@ -4,7 +4,7 @@ namespace verbb\formie\base;
 use verbb\formie\Formie;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyNestedFieldLayoutEvent;
-use verbb\formie\fields\definitions\FieldClientChildren;
+use verbb\formie\fields\definitions\FieldClientRenderedChildren;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\FieldLayout;
@@ -144,10 +144,10 @@ abstract class FixedParentField extends ContainerParentField implements FixedPar
         return [];
     }
 
-    protected function defineClientChildren(): FieldClientChildren
+    protected function defineClientRenderedChildren(): FieldClientRenderedChildren
     {
-        return FieldClientChildren::make(FieldClientChildren::MODEL_FIXED_PARENT)
-            ->withChildren(FieldClientChildren::MODE_PARTS)
+        return FieldClientRenderedChildren::make(FieldClientRenderedChildren::MODEL_FIXED_PARENT)
+            ->withChildren(FieldClientRenderedChildren::MODE_PARTS)
             ->withPartFieldResolver(fn() => $this->getEnabledFields());
     }
 

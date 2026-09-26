@@ -180,7 +180,7 @@ class FieldLayoutPage extends SavableComponent implements TranslatableProperties
         ];
     }
 
-    public function getClientConfig(): array
+    public function getCpEditConfig(): array
     {
         return [
             'id' => (string)$this->id,
@@ -188,12 +188,12 @@ class FieldLayoutPage extends SavableComponent implements TranslatableProperties
             'label' => $this->label,
             'settings' => $this->getSettings(),
             'fields' => array_map(static function(FieldInterface $field) {
-                return $field->getClientConfig();
+                return $field->getCpEditConfig();
             }, $this->getEnabledFields()),
         ];
     }
 
-    public function getClientPayload(Form $form, int $index): array
+    public function getClientRenderedDefinition(Form $form, int $index): array
     {
         $pageSettings = $this->getPageSettings();
         // Prefer submission-aware last-page when editing/resuming so primary action is submit
@@ -219,9 +219,9 @@ class FieldLayoutPage extends SavableComponent implements TranslatableProperties
             'id' => (string)$this->id,
             'key' => 'page-' . ($index + 1),
             'label' => $this->label,
-            'condition' => ConditionsHelper::toComponentConditionDefinition($this->getClientConditions()),
+            'condition' => ConditionsHelper::toComponentConditionDefinition($this->getBrowserConditions()),
             'rows' => array_values(array_map(static function(FieldLayoutRow $row) {
-                return $row->getClientPayload();
+                return $row->getClientRenderedDefinition();
             }, $this->getRows())),
             'actions' => [
                 'primary' => [
@@ -293,7 +293,7 @@ class FieldLayoutPage extends SavableComponent implements TranslatableProperties
         return $conditions;
     }
 
-    public function getClientConditions(): array
+    public function getBrowserConditions(): array
     {
         $conditions = $this->getConditions();
 
@@ -316,7 +316,7 @@ class FieldLayoutPage extends SavableComponent implements TranslatableProperties
             return null;
         }
 
-        $conditions = $this->getClientConditions();
+        $conditions = $this->getBrowserConditions();
 
         if (!$conditions) {
             return null;

@@ -1,4 +1,4 @@
-import type { FormieModuleDefinition } from '#contracts/modules';
+import type { BrowserModuleDefinition } from '#contracts/modules';
 import { isPaymentFieldActive } from '#modules/payments/utils';
 
 type PaymentProviderConfig = {
@@ -94,8 +94,10 @@ async function waitForRequiredInputs(root: Element, requiredInputSuffixes: strin
     return hasAllRequiredInputs(root, requiredInputSuffixes);
 }
 
-export const paymentModule: FormieModuleDefinition = {
-    id: 'payment',
+export const paymentModule: BrowserModuleDefinition = {
+    moduleId: 'formie:payment',
+    version: 1,
+    surfaces: ['server-rendered', 'client-rendered', 'cp-edit'],
     kind: 'payment',
     match: () => true,
     setup: async(ctx) => {
@@ -112,7 +114,7 @@ export const paymentModule: FormieModuleDefinition = {
                 void ctx.emit('formie:module:payment:destroy', {});
             },
             onBeforeStage: async(stageCtx) => {
-                if (stageCtx.stage !== 'authorize') {
+                if (stageCtx.stage !== 'payment') {
                     return;
                 }
 
@@ -133,12 +135,12 @@ export const paymentModule: FormieModuleDefinition = {
                     return;
                 }
 
-                await ctx.emit('formie:payment:authorize:before', {
+                await ctx.emit('formie:payment:payment:before', {
                     action: stageCtx.action,
                 });
 
                 for (const provider of providers) {
-                    await ctx.emit('formie:payment:provider:authorize:before', {
+                    await ctx.emit('formie:payment:provider:payment:before', {
                         provider,
                         action: stageCtx.action,
                     });
@@ -155,14 +157,14 @@ export const paymentModule: FormieModuleDefinition = {
                         const message = provider.errorMessage || 'Payment authorization is incomplete.';
                         stageCtx.abort(message);
 
-                        await ctx.emit('formie:payment:provider:authorize:error', {
+                        await ctx.emit('formie:payment:provider:payment:error', {
                             reason: 'missing-payment-token',
                             provider,
                             action: stageCtx.action,
                             missingSuffix: result.missingSuffix,
                         });
 
-                        await ctx.emit('formie:payment:authorize:error', {
+                        await ctx.emit('formie:payment:payment:error', {
                             reason: 'missing-payment-token',
                             providerHandle: provider.handle,
                             missingSuffix: result.missingSuffix,
@@ -172,18 +174,18 @@ export const paymentModule: FormieModuleDefinition = {
                         return;
                     }
 
-                    await ctx.emit('formie:payment:provider:authorize:after', {
+                    await ctx.emit('formie:payment:provider:payment:after', {
                         provider,
                         action: stageCtx.action,
                     });
                 }
             },
             onAfterStage: async(stageCtx, result) => {
-                if (stageCtx.stage !== 'authorize') {
+                if (stageCtx.stage !== 'payment') {
                     return;
                 }
 
-                await ctx.emit('formie:payment:authorize:after', {
+                await ctx.emit('formie:payment:payment:after', {
                     action: stageCtx.action,
                     result,
                 });

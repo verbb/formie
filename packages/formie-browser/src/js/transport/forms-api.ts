@@ -1,3 +1,4 @@
+import { browserRequest, type BrowserRequestOptions } from '@verbb/formie-core';
 import type { FormEndpointPayload, FormSubmitResult } from '#contracts/schema';
 import { appendFormCsrfToFormData } from '#utils/csrf';
 import { createDebug } from '#utils/debug';
@@ -85,6 +86,12 @@ function normalizePayload(payload: Record<string, unknown>, fallbackFormError?: 
 
     const result: FormSubmitResult = {
         ok: success,
+        outcome: typeof payload.outcome === 'string' ? payload.outcome : undefined,
+        version: typeof payload.version === 'number' ? payload.version : null,
+        submissionUid: typeof payload.submissionUid === 'string' ? payload.submissionUid : null,
+        errors: payload.errors,
+        session: payload.session,
+        completion: payload.completion as FormSubmitResult['completion'],
         action: (payload.submitAction === 'back' || payload.submitAction === 'save' || payload.submitAction === 'submit')
             ? payload.submitAction
             : undefined,
@@ -115,7 +122,7 @@ function normalizePayload(payload: Record<string, unknown>, fallbackFormError?: 
     return result;
 }
 
-export async function requestRender(endpoint: string, handle: string, renderOptions: Record<string, unknown> = {}): Promise<FormEndpointPayload> {
+export async function requestRender(endpoint: string, handle: string, renderOptions: Record<string, unknown> = {}, requestOptions: BrowserRequestOptions = {}): Promise<FormEndpointPayload> {
     const body = JSON.stringify({
         handle,
         renderOptions,
@@ -123,6 +130,7 @@ export async function requestRender(endpoint: string, handle: string, renderOpti
 
     debug.log('requestRender start.', { endpoint, handle });
     const result = await requestJson<FormEndpointPayload>(endpoint, {
+        ...requestOptions,
         method: 'POST',
         body,
         headers: {
@@ -135,7 +143,7 @@ export async function requestRender(endpoint: string, handle: string, renderOpti
     return result;
 }
 
-export async function requestGraphqlRender(endpoint: string, handle: string, renderOptions: Record<string, unknown> = {}): Promise<FormEndpointPayload> {
+export async function requestGraphqlRender(endpoint: string, handle: string, renderOptions: Record<string, unknown> = {}, requestOptions: BrowserRequestOptions = {}): Promise<FormEndpointPayload> {
     const query = `
 query FormieHtmlForm($handle: String!, $input: ServerRenderPayloadInput) {
   formieHtmlForm(handle: $handle, input: $input) {
@@ -152,6 +160,7 @@ query FormieHtmlForm($handle: String!, $input: ServerRenderPayloadInput) {
 
     debug.log('requestGraphqlRender start.', { endpoint, handle });
     const result = await requestJson<GraphqlResponse<GraphqlFormQueryResult>>(endpoint, {
+        ...requestOptions,
         method: 'POST',
         body,
         headers: {
@@ -175,7 +184,7 @@ query FormieHtmlForm($handle: String!, $input: ServerRenderPayloadInput) {
     return payload;
 }
 
-export async function requestRefreshTokens(endpoint: string, handle: string, renderId?: string): Promise<FormEndpointPayload['refreshTokens']> {
+export async function requestRefreshTokens(endpoint: string, handle: string, renderId?: string, requestOptions: BrowserRequestOptions = {}): Promise<FormEndpointPayload['refreshTokens']> {
     const url = new URL(endpoint, window.location.origin);
     url.searchParams.set('handle', handle);
 
@@ -188,7 +197,7 @@ export async function requestRefreshTokens(endpoint: string, handle: string, ren
         handle,
         hasRenderId: !!renderId,
     });
-    const response = await requestJson<FormEndpointPayload>(url.toString());
+    const response = await requestJson<FormEndpointPayload>(url.toString(), requestOptions);
     debug.log('requestRefreshTokens complete.', {
         hasRefreshTokens: !!response.refreshTokens,
     });
@@ -235,6 +244,7 @@ export async function requestSetPage(url: string, form?: HTMLFormElement, pageId
     }>(requestUrl.toString(), {
         method: 'POST',
         body,
+        profile: form?.dataset.formieRequestProfile as BrowserRequestOptions['profile'],
     });
     if (form && result.session) {
         const session = result.session;
@@ -268,22 +278,21 @@ export function clearSubmissionOnUnload(endpoint: string, form: HTMLFormElement)
     });
 
     try {
-        if (typeof navigator.sendBeacon === 'function' && navigator.sendBeacon(requestUrl.toString(), body)) {
+        if (form.dataset.formieRequestProfile !== 'cross-origin-public' && typeof navigator.sendBeacon === 'function' && navigator.sendBeacon(requestUrl.toString(), body)) {
             return;
         }
     } catch (_error) {
         // Fall back to keepalive fetch below when Beacon is unavailable or rejects the payload.
     }
 
-    void fetch(requestUrl.toString(), {
+    void browserRequest(requestUrl.toString(), {
         method: 'POST',
         body,
-        credentials: 'include',
         keepalive: true,
         headers: {
             Accept: 'application/json',
         },
-    });
+    }, { profile: form.dataset.formieRequestProfile as BrowserRequestOptions['profile'] });
 }
 
 export async function submitForm(form: HTMLFormElement, formData: FormData): Promise<FormSubmitResult> {
@@ -296,14 +305,13 @@ export async function submitForm(form: HTMLFormElement, formData: FormData): Pro
         action,
         submitAction: formData.get('submitAction'),
     });
-    const response = await fetch(action, {
+    const response = await browserRequest(action, {
         method,
         body: formData,
-        credentials: 'include',
         headers: {
             Accept: 'application/json',
         },
-    });
+    }, { profile: form.dataset.formieRequestProfile as BrowserRequestOptions['profile'] });
 
     const contentType = response.headers.get('content-type') || '';
 

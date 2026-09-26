@@ -10,7 +10,7 @@ use verbb\formie\base\IntegrationInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\Repeater;
-use verbb\formie\fields\definitions\FieldClientModules;
+use verbb\formie\fields\definitions\FieldBrowserModules;
 use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\gql\types\input\FileUploadInputType;
@@ -21,7 +21,7 @@ use verbb\formie\helpers\Table;
 use verbb\formie\helpers\UploadAccess;
 use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\helpers\Variables;
-use verbb\formie\models\ClientModule;
+use verbb\formie\models\BrowserModuleEntry;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Settings;
 use verbb\formie\models\SlotTag;
@@ -1056,9 +1056,9 @@ class FileUpload extends ElementField
         return Asset::find()->limit(1);
     }
 
-    protected function defineClientInput(): array
+    protected function defineClientRenderedInput(): array
     {
-        return array_merge(parent::defineClientInput(), [
+        return array_merge(parent::defineClientRenderedInput(), [
             'displayType' => $this->displayType,
             'multiple' => (int)($this->limitFiles ?? 0) !== 1,
             'limitFiles' => $this->limitFiles !== null ? (int)$this->limitFiles : null,
@@ -1069,14 +1069,14 @@ class FileUpload extends ElementField
         ]);
     }
 
-    protected function defineClientModules(): array
+    protected function defineBrowserModules(): array
     {
-        $modules = parent::defineClientModules();
+        $modules = parent::defineBrowserModules();
 
         if ($this->displayType === 'uploadManager') {
-            $modules[] = new ClientModule([
-                'id' => 'upload-manager',
-                'renderTargets' => [ClientModule::RENDER_TARGET_FRONTEND],
+            $modules[] = new BrowserModuleEntry([
+                'moduleId' => 'formie:upload-manager',
+                'surfaces' => [BrowserModuleEntry::SURFACE_SERVER_RENDERED, BrowserModuleEntry::SURFACE_CLIENT_RENDERED],
                 'config' => [
                     'uploadEndpoint' => UrlHelper::actionUrl('formie/file-upload/upload'),
                     'deleteEndpoint' => UrlHelper::actionUrl('formie/file-upload/delete'),
@@ -1089,9 +1089,9 @@ class FileUpload extends ElementField
                 ],
             ]);
         } else {
-            $modules[] = new ClientModule([
-                'id' => 'file-upload',
-                'renderTargets' => [ClientModule::RENDER_TARGET_FRONTEND],
+            $modules[] = new BrowserModuleEntry([
+                'moduleId' => 'formie:file-upload',
+                'surfaces' => [BrowserModuleEntry::SURFACE_SERVER_RENDERED, BrowserModuleEntry::SURFACE_CLIENT_RENDERED],
             ]);
         }
 

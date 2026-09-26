@@ -1,4 +1,4 @@
-import type { FormieModuleDefinition } from '#contracts/modules';
+import type { BrowserModuleDefinition } from '#contracts/modules';
 import { dispatchFieldEvent, escapeSelectorValue, releaseFormValidators, retainFormValidators } from '#modules/fields/shared';
 import { createDebug } from '#utils/debug';
 
@@ -380,8 +380,10 @@ function bindField(field: HTMLElement): () => void {
     };
 }
 
-export const checkboxRadioModule: FormieModuleDefinition = {
-    id: MODULE_ID,
+export const checkboxRadioModule: BrowserModuleDefinition = {
+    moduleId: `formie:${MODULE_ID}`,
+    version: 1,
+    surfaces: ['server-rendered', 'client-rendered', 'cp-edit'],
     kind: 'field',
     match: (ctx) => {
         return ctx.target instanceof HTMLElement && (

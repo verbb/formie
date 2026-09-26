@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test('Opayo session initialization uses scoped authority and custom CSRF without sending form or card data', async ({ page }) => {
     let body = '';
-    await page.route('**/payment-session-fixture', async route => {
+    await page.route('**/actions/formie/payment-sessions/initialize', async route => {
         body = route.request().postData() || '';
         await route.fulfill({ contentType: 'application/json', body: JSON.stringify({ merchantSessionKey: 'test-session-key' }) });
     });

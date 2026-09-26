@@ -129,12 +129,12 @@ trait DisplayTypeFieldTrait
         }
     }
 
-    protected function definePresentationFieldClientModules(): array
+    protected function definePresentationFieldBrowserModules(): array
     {
         $field = $this->getDisplayTypeField();
 
         if ($field instanceof FormieField) {
-            return $field->collectClientModules();
+            return $field->collectBrowserModules();
         }
 
         return [];

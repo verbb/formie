@@ -69,7 +69,7 @@ async function ensureEwayEncryptApi(): Promise<EwayEncryptApi> {
 }
 
 export const ewayModule = definePaymentModule<EwayProviderOptions, EwayEncryptApi | null, null>({
-    id: 'eway',
+    moduleId: 'formie:eway',
     defaultRequiredInputSuffixes: ['ewayTokenData'],
     load: async(ctx) => {
         const { provider } = ctx.options;
@@ -82,7 +82,7 @@ export const ewayModule = definePaymentModule<EwayProviderOptions, EwayEncryptAp
 
         return ensureEwayEncryptApi();
     },
-    onBeforeAuthorize: async(args) => {
+    onBeforePayment: async(args) => {
         const { field, services, provider, api } = args;
         const cseKey = provider.cseKey as string | undefined;
 

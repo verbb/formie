@@ -22,7 +22,6 @@ class SessionsController extends Controller
     // =========================================================================
 
     use CrossOriginRequestTrait;
-    use ClientGuestCsrfTrait;
     use AnonymousSiteRequestGuardTrait;
     
 
@@ -32,7 +31,11 @@ class SessionsController extends Controller
     public function beforeAction($action): bool
     {
         $this->forbidGuestControlPanelAnonymousActions($action->id);
-        $this->configureGuestCsrfValidation(['refresh']);
+        $profile = \verbb\formie\helpers\BrowserRequestProfile::enter($action->id === 'load');
+        if ($profile === \verbb\formie\helpers\BrowserRequestProfile::CROSS_ORIGIN) {
+            $this->enableCsrfValidation = false;
+        }
+        $this->enableCsrfValidation = $profile === \verbb\formie\helpers\BrowserRequestProfile::SAME_ORIGIN;
 
         return parent::beforeAction($action);
     }

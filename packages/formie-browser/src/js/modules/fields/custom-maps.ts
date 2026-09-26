@@ -1,4 +1,4 @@
-import type { FormieModuleDefinition } from '#contracts/modules';
+import type { BrowserModuleDefinition } from '#contracts/modules';
 import type * as Leaflet from 'leaflet';
 import leafletCss from 'leaflet/dist/leaflet.css?inline';
 import { getModuleFieldTarget, observeMatchingElements } from '#modules/fields/shared';
@@ -313,8 +313,10 @@ function initCustomMaps(root: HTMLElement): () => void {
     };
 }
 
-export const customMapsModule: FormieModuleDefinition = {
-    id: MODULE_ID,
+export const customMapsModule: BrowserModuleDefinition = {
+    moduleId: `formie:${MODULE_ID}`,
+    version: 1,
+    surfaces: ['server-rendered', 'client-rendered', 'cp-edit'],
     kind: 'field',
     match: ({ target }) => {
         return target instanceof Element && (

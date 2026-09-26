@@ -1,27 +1,28 @@
+import { mountClientRenderedModules } from '@verbb/formie-browser';
 import {
-    FRONTEND_CLIENT_EVENT_NAMES,
+    CLIENT_FORM_EVENT_NAMES,
     compositePartDefinitions,
     createRepeaterRowValue,
-    createFrontendFormInstance,
-    getFrontendErrorAriaLive,
-    getFrontendFieldErrorId,
-    createGraphqlFrontendTransport,
-    createRestFrontendTransport,
+    createClientFormInstance,
+    getClientErrorAriaLive,
+    getClientFieldErrorId,
+    createGraphqlClientTransport,
+    createRestClientTransport,
     isCompositeField,
     isFileField,
-    isKnownFrontendFieldType,
+    isKnownClientFieldType,
     isRepeatableField,
-    loadFrontendEnvelope,
-    loadGraphqlFrontendEnvelope,
+    loadClientFormBootstrap,
+    loadGraphqlClientFormBootstrap,
     repeaterRowDefinitions,
-    type FrontendFieldDefinition,
-    type FrontendErrorAriaLive,
-    type FrontendFormDefinition,
-    type FrontendFormEnvelope,
-    type FrontendFormSession,
-    type FrontendFormInstance,
-    type FrontendFormState,
-    type FrontendSubmitResult,
+    type ClientFieldDefinition,
+    type ClientErrorAriaLive,
+    type ClientFormDefinition,
+    type ClientFormBootstrap,
+    type ClientFormSession,
+    type ClientFormInstance,
+    type ClientFormState,
+    type ClientSubmitResult,
 } from '@verbb/formie-core';
 import {
     createContext,
@@ -39,29 +40,33 @@ export type FormieDefinitionSource =
     | {
         transport: 'rest';
         endpoint: string;
+        profile?: 'same-origin-browser' | 'cross-origin-public';
         formHandle: string;
         siteId?: number;
     }
     | {
         transport: 'graphql';
         endpoint: string;
+        profile?: 'same-origin-browser' | 'cross-origin-public';
         formHandle: string;
         siteId?: number;
     }
     | {
-        definition: FrontendFormEnvelope;
+        definition: ClientFormBootstrap;
         transport: {
             type: 'rest';
             endpoint: string;
+        profile?: 'same-origin-browser' | 'cross-origin-public';
             formHandle: string;
             siteId?: number;
         };
     }
     | {
-        definition: FrontendFormEnvelope;
+        definition: ClientFormBootstrap;
         transport: {
             type: 'graphql';
             endpoint: string;
+        profile?: 'same-origin-browser' | 'cross-origin-public';
             formHandle: string;
             siteId?: number;
         };
@@ -73,25 +78,25 @@ export type FormieReactEvent = {
 };
 
 export type FormieFormComponentProps = {
-    definition: FrontendFormDefinition;
-    session: FrontendFormSession;
-    state: FrontendFormState;
+    definition: ClientFormDefinition;
+    session: ClientFormSession;
+    state: ClientFormState;
     children?: ReactNode;
     className?: string;
     onSubmit: () => void;
 };
 
 export type FormiePageComponentProps = {
-    page: FrontendFormDefinition['pages'][number];
-    state: FrontendFormState;
+    page: ClientFormDefinition['pages'][number];
+    state: ClientFormState;
     children?: ReactNode;
 };
 
 export type FormieFieldProps = {
-    field: FrontendFieldDefinition;
+    field: ClientFieldDefinition;
     errors: string[];
     errorId: string;
-    errorAriaLive: FrontendErrorAriaLive;
+    errorAriaLive: ClientErrorAriaLive;
     children?: ReactNode;
 };
 
@@ -100,12 +105,12 @@ export type FormieErrorSummaryProps = {
 };
 
 export type FormieFieldComponentProps = {
-    field: FrontendFieldDefinition;
+    field: ClientFieldDefinition;
     value: unknown;
     errors: string[];
     errorKey: string;
     errorId: string;
-    errorAriaLive: FrontendErrorAriaLive;
+    errorAriaLive: ClientErrorAriaLive;
     disabled: boolean;
     hidden: boolean;
     setValue(value: unknown): void;
@@ -125,8 +130,8 @@ export type FormieReactComponents = {
 };
 
 type FormieDefinitionContextValue = {
-    instance: FrontendFormInstance;
-    state: FrontendFormState;
+    instance: ClientFormInstance;
+    state: ClientFormState;
     components: FormieReactComponents;
     fieldComponents: Partial<Record<string, (props: FormieFieldComponentProps) => ReactNode>>;
     slots: Partial<Record<string, (props: FormieSlotComponentProps) => ReactNode>>;
@@ -138,21 +143,23 @@ function isInlineDefinitionSource(source: FormieDefinitionSource): source is Ext
     return 'definition' in source;
 }
 
-async function resolveDefinitionEnvelope(source: FormieDefinitionSource): Promise<FrontendFormEnvelope> {
+async function resolveDefinitionEnvelope(source: FormieDefinitionSource): Promise<ClientFormBootstrap> {
     if (isInlineDefinitionSource(source)) {
         return source.definition;
     }
 
     if (source.transport === 'graphql') {
-        return loadGraphqlFrontendEnvelope({
+        return loadGraphqlClientFormBootstrap({
             endpoint: source.endpoint,
+        profile: source.profile,
             formHandle: source.formHandle,
             siteId: source.siteId,
         });
     }
 
-    return loadFrontendEnvelope({
+    return loadClientFormBootstrap({
         endpoint: source.endpoint,
+        profile: source.profile,
         formHandle: source.formHandle,
         siteId: source.siteId,
     });
@@ -164,15 +171,16 @@ function resolveDefinitionTransport(source: FormieDefinitionSource) {
         : {
             type: source.transport,
             endpoint: source.endpoint,
+        profile: source.profile,
             formHandle: source.formHandle,
             siteId: source.siteId,
         };
 
     if (transportSource.type === 'graphql') {
-        return createGraphqlFrontendTransport(transportSource);
+        return createGraphqlClientTransport(transportSource);
     }
 
-    return createRestFrontendTransport(transportSource);
+    return createRestClientTransport(transportSource);
 }
 
 function DefaultErrorSummary({ errors }: FormieErrorSummaryProps) {
@@ -206,7 +214,9 @@ function DefaultField({ field, errors, errorId, errorAriaLive, children }: Formi
 
     return createElement('div', {
         className: 'formie-react-field',
-        'data-field-type': field.type,
+        'data-formie-field-type': field.type,
+        'data-formie-field-uid': field.uid,
+        'data-formie-field-handle': field.handle,
     }, [
         field.label ? renderSlot('label', createElement('label', {
             key: 'label',
@@ -241,6 +251,21 @@ function DefaultField({ field, errors, errorId, errorAriaLive, children }: Formi
     ]);
 }
 
+function BrowserModuleHost({ children }: { children: ReactNode }) {
+    const { instance } = useDefinitionContext();
+    const root = useRef<HTMLDivElement>(null);
+    useEffect(() => {
+        let disposed = false;
+        let host: Awaited<ReturnType<typeof mountClientRenderedModules>> | undefined;
+        instance.setBrowserModuleGuard(() => { throw new Error('Form features are still loading.'); });
+        void mountClientRenderedModules(root.current!, instance).then((mounted: Awaited<ReturnType<typeof mountClientRenderedModules>>) => {
+            if (disposed) void mounted.destroy(); else host = mounted;
+        });
+        return () => { disposed = true; void host?.destroy(); };
+    }, [instance]);
+    return createElement('div', { ref: root }, children);
+}
+
 function DefaultForm({ definition, session, state, children, className, onSubmit }: FormieFormComponentProps) {
     return createElement('form', {
         className,
@@ -258,6 +283,7 @@ function DefaultForm({ definition, session, state, children, className, onSubmit
 function DefaultPage({ page, children }: FormiePageComponentProps) {
     return createElement('section', {
         'data-page-id': page.id,
+        'data-formie-page-id': page.id,
         className: 'formie-react-page',
     }, children);
 }
@@ -266,18 +292,18 @@ function useDefinitionContext(): FormieDefinitionContextValue {
     const context = useContext(FormieDefinitionContext);
 
     if (!context) {
-        throw new Error('Formie definition hooks must be used within a client-rendered <FormieForm />.');
+        throw new Error('Formie definition hooks must be used within a client-rendered <FormieClientForm />.');
     }
 
     return context;
 }
 
-function isFieldDefinition(candidate: unknown): candidate is FrontendFieldDefinition {
+function isFieldDefinition(candidate: unknown): candidate is ClientFieldDefinition {
     return !!candidate && typeof candidate === 'object' && 'id' in candidate && 'handle' in candidate && 'type' in candidate;
 }
 
-function resolveFieldRendererType(field: FrontendFieldDefinition): FrontendFieldDefinition['type'] {
-    if (isKnownFrontendFieldType(field.type)) {
+function resolveFieldRendererType(field: ClientFieldDefinition): ClientFieldDefinition['type'] {
+    if (isKnownClientFieldType(field.type)) {
         return field.type;
     }
 
@@ -310,7 +336,7 @@ function errorReferenceAttributes(errors: string[], errorId: string) {
     } : {};
 }
 
-function renderNestedFieldInput(field: FrontendFieldDefinition, value: unknown, disabled: boolean, setValue: (value: unknown) => void, errors: string[] = [], errorId = ''): ReactNode {
+function renderNestedFieldInput(field: ClientFieldDefinition, value: unknown, disabled: boolean, setValue: (value: unknown) => void, errors: string[] = [], errorId = ''): ReactNode {
     const contract = field.input;
 
     if (field.type === 'multi-line-text') {
@@ -376,11 +402,11 @@ function renderNestedFieldInput(field: FrontendFieldDefinition, value: unknown, 
     });
 }
 
-function resolveFieldModule(field: FrontendFieldDefinition, definition: FrontendFormDefinition, capability: string) {
+function resolveFieldModule(field: ClientFieldDefinition, definition: ClientFormDefinition, capability: string) {
     const refs = new Set(field.moduleRefs || []);
 
-    return definition.modules.find((module) => {
-        return refs.has(module.id) && module.capability === capability;
+    return definition.modules.entries.find((module) => {
+        return module.targets.some((target) => target.targetType === 'field' && target.targetId === field.uid) && module.capability === (capability === 'draw-signature' ? 'signature' : capability);
     }) || null;
 }
 
@@ -864,7 +890,7 @@ function defaultFieldRenderer(props: FormieFieldComponentProps): ReactNode {
         ]);
     }
 
-    if (!isKnownFrontendFieldType(rendererType)) {
+    if (!isKnownClientFieldType(rendererType)) {
         return createElement('div', {
             className: 'formie-react-unsupported',
         }, `Unsupported field type: ${String(field.meta?.fieldType ?? field.type)}`);
@@ -881,7 +907,7 @@ function ConfigFieldNode({
     disabled,
     setValue,
 }: {
-    field: FrontendFieldDefinition;
+    field: ClientFieldDefinition;
     value: unknown;
     errors: string[];
     errorKey: string;
@@ -899,8 +925,8 @@ function ConfigFieldNode({
     const rendererType = resolveFieldRendererType(field);
     const renderer = fieldComponents[field.type] || fieldComponents[rendererType] || defaultFieldRenderer;
     const Field = components.Field || DefaultField;
-    const errorId = getFrontendFieldErrorId(state.session, errorKey);
-    const errorAriaLive = getFrontendErrorAriaLive(state.definition);
+    const errorId = getClientFieldErrorId(state.session, errorKey);
+    const errorAriaLive = getClientErrorAriaLive(state.definition);
 
     return createElement(Field, {
         field,
@@ -921,7 +947,7 @@ function ConfigFieldNode({
     });
 }
 
-function ConfigField({ field }: { field: FrontendFieldDefinition }) {
+function ConfigField({ field }: { field: ClientFieldDefinition }) {
     const { state, instance } = useDefinitionContext();
     const fieldState = state.fieldStates[field.id];
 
@@ -945,12 +971,12 @@ function ConfigRow({
     disabled,
     setFieldValue,
 }: {
-    row: FrontendFormDefinition['pages'][number]['rows'][number];
+    row: ClientFormDefinition['pages'][number]['rows'][number];
     rowIndex: number;
     values?: Record<string, unknown>;
     errorPrefix?: string;
     disabled?: boolean;
-    setFieldValue?: (field: FrontendFieldDefinition, nextValue: unknown) => void;
+    setFieldValue?: (field: ClientFieldDefinition, nextValue: unknown) => void;
 }) {
     const { state } = useDefinitionContext();
 
@@ -1071,15 +1097,15 @@ export type DefinitionFormViewProps = {
     fieldComponents?: Partial<Record<string, (props: FormieFieldComponentProps) => ReactNode>>;
     slots?: Partial<Record<string, (props: FormieSlotComponentProps) => ReactNode>>;
     className?: string;
-    onMount?: (instance: FrontendFormInstance) => void;
-    onReady?: (instance: FrontendFormInstance) => void;
+    onMount?: (instance: ClientFormInstance) => void;
+    onReady?: (instance: ClientFormInstance) => void;
     onUnmount?: () => void;
-    onResult?: (result: FrontendSubmitResult) => void;
-    onSuccess?: (result: FrontendSubmitResult) => void;
-    onError?: (result: FrontendSubmitResult) => void;
-    onSubmitResult?: (result: FrontendSubmitResult) => void;
-    onSubmitSuccess?: (result: FrontendSubmitResult) => void;
-    onSubmitError?: (result: FrontendSubmitResult) => void;
+    onResult?: (result: ClientSubmitResult) => void;
+    onSuccess?: (result: ClientSubmitResult) => void;
+    onError?: (result: ClientSubmitResult) => void;
+    onSubmitResult?: (result: ClientSubmitResult) => void;
+    onSubmitSuccess?: (result: ClientSubmitResult) => void;
+    onSubmitError?: (result: ClientSubmitResult) => void;
     onEvent?: (event: FormieReactEvent) => void;
 };
 
@@ -1112,8 +1138,8 @@ export function DefinitionFormView({
     onSubmitError,
     onEvent,
 }: DefinitionFormViewProps) {
-    const [instance, setInstance] = useState<FrontendFormInstance | null>(null);
-    const [state, setState] = useState<FrontendFormState | null>(null);
+    const [instance, setInstance] = useState<ClientFormInstance | null>(null);
+    const [state, setState] = useState<ClientFormState | null>(null);
     const [error, setError] = useState<Error | null>(null);
     const onMountRef = useRef(onMount);
     const onReadyRef = useRef(onReady);
@@ -1181,7 +1207,7 @@ export function DefinitionFormView({
                 const envelope = await resolveDefinitionEnvelope(sourceRef.current);
                 const transport = resolveDefinitionTransport(sourceRef.current);
 
-                const nextInstance = createFrontendFormInstance({
+                const nextInstance = createClientFormInstance({
                     envelope,
                     transport,
                 });
@@ -1202,7 +1228,7 @@ export function DefinitionFormView({
                         setState(nextState);
                     }),
                     nextInstance.on('formie:submit:result', (payload) => {
-                        const result = payload as FrontendSubmitResult;
+                        const result = payload as ClientSubmitResult;
                         invokeDistinctCallbacks(onSubmitResultRef.current, onResultRef.current, result);
 
                         if (result.success) {
@@ -1211,7 +1237,7 @@ export function DefinitionFormView({
                             invokeDistinctCallbacks(onSubmitErrorRef.current, onErrorRef.current, result);
                         }
                     }),
-                    ...FRONTEND_CLIENT_EVENT_NAMES.map((eventName) => {
+                    ...CLIENT_FORM_EVENT_NAMES.map((eventName) => {
                         return nextInstance.on(eventName, (payload) => {
                             onEventRef.current?.({
                                 name: eventName,
@@ -1269,9 +1295,7 @@ export function DefinitionFormView({
 
     return createElement(FormieDefinitionContext.Provider, {
         value: contextValue,
-        children: createElement(ConfigRenderer, {
-            className,
-        }),
+        children: createElement(BrowserModuleHost, { children: createElement(ConfigRenderer, { className }) }),
     });
 }
 

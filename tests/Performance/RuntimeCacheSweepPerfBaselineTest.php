@@ -56,7 +56,7 @@ it('captures runtime cache sweep baselines', function (): void {
         $result = [];
 
         for ($i = 0; $i < 200; $i++) {
-            $result[] = Formie::$plugin->getClientModuleManifestBuilder()->buildCanonical($form);
+            $result[] = Formie::$plugin->getBrowserModuleManifestBuilder()->buildCanonical($form);
         }
 
         return $result;

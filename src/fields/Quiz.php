@@ -352,9 +352,9 @@ class Quiz extends OptionsField implements SortableFieldInterface, Questionnaire
         return $values;
     }
 
-    public function defineClientInput(): array
+    public function defineClientRenderedInput(): array
     {
-        $contract = parent::defineClientInput();
+        $contract = parent::defineClientRenderedInput();
         $contract['randomizeOptions'] = $this->randomizeOptions;
 
         return $contract;
@@ -365,11 +365,11 @@ class Quiz extends OptionsField implements SortableFieldInterface, Questionnaire
         return $this->fieldType;
     }
 
-    protected function defineClientModules(): array
+    protected function defineBrowserModules(): array
     {
-        $modules = parent::defineClientModules();
+        $modules = parent::defineBrowserModules();
 
-        foreach ($this->definePresentationFieldClientModules() as $module) {
+        foreach ($this->definePresentationFieldBrowserModules() as $module) {
             $modules[] = $module;
         }
 

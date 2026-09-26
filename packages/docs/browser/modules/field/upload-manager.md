@@ -4,7 +4,7 @@ Upload manager enhances File Upload fields when **Display type** is **Upload Man
 
 ## When It Loads
 
-Formie adds the `upload-manager` module to a form’s client module manifest when a File Upload field uses **Upload Manager (Advanced)**. The `file-upload` module is not loaded for those fields.
+Formie adds the `upload-manager` module to a form’s browser-module manifest when a File Upload field uses **Upload Manager (Advanced)**. The `file-upload` module is not loaded for those fields.
 
 Simple **File Input** fields continue to use the [file-upload module](/browser/modules/field/file-upload).
 

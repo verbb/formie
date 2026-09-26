@@ -7,7 +7,7 @@ beforeEach(fn() => \Tests\Support\UploadTestHelper::ensureUploadVolume());
 use verbb\formie\fields\FileUpload;
 use verbb\formie\Formie;
 use verbb\formie\helpers\FieldBuilderPolicy;
-use verbb\formie\models\ClientModule;
+use verbb\formie\models\BrowserModuleEntry;
 use verbb\formie\theme\context\RenderContext;
 
 it('registers the file-upload module for simple display type', function (): void {
@@ -18,11 +18,11 @@ it('registers the file-upload module for simple display type', function (): void
         ])
         ->create();
 
-    $modules = Formie::$plugin->getClientModuleManifestBuilder()->buildCanonical($form, ClientModule::RENDER_TARGET_FRONTEND);
-    $moduleIds = array_map(static fn(array $module): string => (string)($module['id'] ?? ''), $modules);
+    $modules = Formie::$plugin->getBrowserModuleManifestBuilder()->buildCanonical($form, BrowserModuleEntry::SURFACE_SERVER_RENDERED)['entries'];
+    $moduleIds = array_map(static fn(array $module): string => (string)($module['moduleId'] ?? ''), $modules);
 
-    expect($moduleIds)->toContain('file-upload')
-        ->and($moduleIds)->not->toContain('upload-manager');
+    expect($moduleIds)->toContain('formie:file-upload')
+        ->and($moduleIds)->not->toContain('formie:upload-manager');
 });
 
 it('registers the upload-manager module for advanced display type', function (): void {
@@ -33,17 +33,17 @@ it('registers the upload-manager module for advanced display type', function ():
         ])
         ->create();
 
-    $modules = Formie::$plugin->getClientModuleManifestBuilder()->buildCanonical($form, ClientModule::RENDER_TARGET_FRONTEND);
-    $uploadManagerModule = current(array_filter($modules, static fn(array $module): bool => ($module['id'] ?? null) === 'upload-manager')) ?: null;
+    $modules = Formie::$plugin->getBrowserModuleManifestBuilder()->buildCanonical($form, BrowserModuleEntry::SURFACE_SERVER_RENDERED)['entries'];
+    $uploadManagerModule = current(array_filter($modules, static fn(array $module): bool => ($module['moduleId'] ?? null) === 'formie:upload-manager')) ?: null;
 
     expect($uploadManagerModule)->not->toBeNull()
         ->and($uploadManagerModule['config']['uploadEndpoint'] ?? null)->toContain('formie/file-upload/upload')
         ->and($uploadManagerModule['config']['deleteEndpoint'] ?? null)->toContain('formie/file-upload/delete')
         ->and($uploadManagerModule['config']['hydrateEndpoint'] ?? null)->toContain('formie/file-upload/hydrate');
 
-    $moduleIds = array_map(static fn(array $module): string => (string)($module['id'] ?? ''), $modules);
+    $moduleIds = array_map(static fn(array $module): string => (string)($module['moduleId'] ?? ''), $modules);
 
-    expect($moduleIds)->not->toContain('file-upload');
+    expect($moduleIds)->not->toContain('formie:file-upload');
 });
 
 it('defaults email field summary value for new file upload fields', function (): void {

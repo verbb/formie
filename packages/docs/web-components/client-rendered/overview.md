@@ -1,13 +1,13 @@
 # Overview
 
-Choose client-rendered forms when you want **`<formie-core-form>`** to load Formie’s client definition envelope and render the form UI inside the element, instead of mounting server-rendered HTML like `<formie-form>`.
+Choose client-rendered forms when you want **`<formie-client-form>`** to load Formie’s client definition envelope and render the form UI inside the element, instead of mounting server-rendered HTML like `<formie-form>`.
 
 If you want to see client-rendered forms in a fuller app setup, use the [Web Components starter](https://formie-starters.verbb.io/web-components) as a working example.
 
 In this setup:
 
 - the host renders from Formie’s client definition
-- the front-end form behaviour owns state, pages, validation, and submission
+- the client-rendered engine owns state, pages, validation, and submission
 - you can swap **field** hosts, **field controls**, and some layout regions using **custom elements** registered on `FormieRegistry` (see [Component customisation](/web-components/client-rendered/component-customization))
 
 ## Custom Element
@@ -21,17 +21,17 @@ Start with a declarative host:
   registerFormieWebComponents();
 </script>
 
-<formie-core-form
+<formie-client-form
   form-handle="contactForm"
   endpoint="https://formie.test"
   transport="rest"
-></formie-core-form>
+></formie-client-form>
 ```
 
 You can set the same options from JavaScript (`element.transport = 'graphql'`, and so on). Known options are reflected as attributes where practical; complex values use properties only (for example `registry`).
 
 > [!TIP]
-> `<formie-core-form>` is built with [Lit](https://lit.dev/). You do not need to install or learn Lit to use the element in your app.
+> `<formie-client-form>` is built with [Lit](https://lit.dev/). You do not need to install or learn Lit to use the element in your app.
 
 
 ### Attributes and Properties
@@ -53,12 +53,12 @@ After the element connects and loads, you can use:
 
 | API | Description |
 | --- | --- |
-| `getFormieInstance()` | Returns `FrontendFormInstance \| null`. |
+| `getFormieInstance()` | Returns `ClientFormInstance \| null`. |
 | `reload()` | Reloads the envelope and rebuilds the form instance (async). |
 
 ```html
 <script type="module">
-  const el = document.querySelector('formie-core-form');
+  const el = document.querySelector('formie-client-form');
 
   el?.addEventListener('formie:client:ready', () => {
     console.log('Form instance:', el.getFormieInstance());
@@ -93,7 +93,7 @@ Load `formieClientForm`:
 ```graphql
 query ClientForm($handle: String!, $siteId: Int) {
   formieClientForm(handle: $handle, siteId: $siteId) {
-    schemaVersion
+    contractVersion
     definition
     session {
       id
@@ -105,7 +105,7 @@ query ClientForm($handle: String!, $siteId: Int) {
 }
 ```
 
-Point `<formie-core-form transport="graphql" endpoint="…">` at your GraphQL HTTP endpoint. The element performs the envelope load using the same shape the core client expects.
+Point `<formie-client-form transport="graphql" endpoint="…">` at your GraphQL HTTP endpoint. The element performs the envelope load using the same shape the core client expects.
 
 ## Manual GraphQL Mutations
 
@@ -138,8 +138,8 @@ mutation SubmitForm($input: FormieClientSubmitInput!) {
 }
 ```
 
-When you use `<formie-core-form transport="graphql">`, the built-in transport calls these for you.
+When you use `<formie-client-form transport="graphql">`, the built-in transport calls these for you.
 
 ## Preloaded Envelope
 
-`<formie-core-form>` always loads the envelope from the network using `endpoint`, `form-handle`, and `transport`. To hydrate from a payload you already have, instantiate the form engine with `@verbb/formie-core` in your own module instead of this element, or keep using [server-rendered forms](/web-components/server-rendered/overview) with a preloaded `payload` on `<formie-form>` where that fits.
+`<formie-client-form>` always loads the envelope from the network using `endpoint`, `form-handle`, and `transport`. To hydrate from a payload you already have, instantiate the form engine with `@verbb/formie-core` in your own module instead of this element, or keep using [server-rendered forms](/web-components/server-rendered/overview) with a preloaded `payload` on `<formie-form>` where that fits.

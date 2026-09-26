@@ -1,18 +1,19 @@
-export type KnownFrontendFieldType = 'single-line-text' | 'multi-line-text' | 'number' | 'email' | 'phone' | 'dropdown' | 'radio' | 'checkboxes' | 'agree' | 'date' | 'name' | 'address' | 'repeater' | 'signature' | 'file';
-export type FrontendFieldType = KnownFrontendFieldType | (string & {});
-export type FrontendFieldValueStructure = 'scalar' | 'fixed-parent' | 'container-parent' | 'repeatable-parent';
-export type FrontendFieldValueType = {
+import type { BrowserModuleManifest } from './browser-modules';
+export type KnownClientFieldType = 'single-line-text' | 'multi-line-text' | 'number' | 'email' | 'phone' | 'dropdown' | 'radio' | 'checkboxes' | 'agree' | 'date' | 'name' | 'address' | 'repeater' | 'signature' | 'file';
+export type ClientFieldType = KnownClientFieldType | (string & {});
+export type ClientFieldValueStructure = 'scalar' | 'fixed-parent' | 'container-parent' | 'repeatable-parent';
+export type ClientFieldValueType = {
     kind: 'string' | 'boolean' | 'number' | 'object' | 'array' | 'relationQuery' | 'none' | 'storageSafe';
     nullable: boolean;
     representation?: 'decimal-string';
-    items?: FrontendFieldValueType;
+    items?: ClientFieldValueType;
     class?: string | null;
 };
-export type FrontendFieldValueContract = {
-    structure: FrontendFieldValueStructure;
-    valueType?: FrontendFieldValueType;
+export type ClientFieldValueContract = {
+    structure: ClientFieldValueStructure;
+    valueType?: ClientFieldValueType;
 };
-export type FrontendValidationRule = {
+export type ClientValidationRule = {
     type: string;
     fieldId?: string | null;
     fieldHandle?: string | null;
@@ -21,24 +22,14 @@ export type FrontendValidationRule = {
     minDate?: string | null;
     maxDate?: string | null;
 };
-export type FrontendModuleTarget = {
-    targetType: 'form' | 'page' | 'field' | 'slot';
-    targetId: string;
-};
-export type FrontendModuleManifest = {
-    id: string;
-    type: 'field' | 'captcha' | 'address' | 'payment' | 'custom';
-    capability: string;
-    targets: FrontendModuleTarget[];
-    config?: Record<string, unknown>;
-};
-export type FrontendFieldDefinition = {
+export type ClientFieldDefinition = {
+    uid: string;
     id: string;
     key: string;
     handle: string;
     label?: string | null;
     instructions?: string | null;
-    type: FrontendFieldType;
+    type: ClientFieldType;
     required: boolean;
     condition?: {
         mode: 'all' | 'any';
@@ -50,29 +41,29 @@ export type FrontendFieldDefinition = {
             value: unknown;
         }>;
     } | null;
-    validation: FrontendValidationRule[];
+    validation: ClientValidationRule[];
     client?: {
         children: {
-            model: FrontendFieldValueStructure;
+            model: ClientFieldValueStructure;
             mode?: 'parts' | 'rows';
         };
-        valueType?: FrontendFieldValueType;
+        valueType?: ClientFieldValueType;
     };
     /** Older bootstrap payloads used runtime.structure. */
-    runtime?: FrontendFieldValueContract;
+    runtime?: ClientFieldValueContract;
     input: Record<string, unknown>;
     moduleRefs?: string[];
     meta?: Record<string, unknown>;
 };
-export type FrontendRowDefinition = {
-    fields: FrontendFieldDefinition[];
+export type ClientRowDefinition = {
+    fields: ClientFieldDefinition[];
 };
-export type FrontendPageDefinition = {
+export type ClientPageDefinition = {
     id: string;
     key: string;
     label?: string | null;
-    condition?: FrontendFieldDefinition['condition'];
-    rows: FrontendRowDefinition[];
+    condition?: ClientFieldDefinition['condition'];
+    rows: ClientRowDefinition[];
     actions: {
         primary: {
             type: 'next' | 'submit';
@@ -84,7 +75,7 @@ export type FrontendPageDefinition = {
         }>;
     };
 };
-export type FrontendFormDefinition = {
+export type ClientFormDefinition = {
     id: string;
     handle: string;
     title?: string | null;
@@ -104,10 +95,11 @@ export type FrontendFormDefinition = {
             calculation: 'completion' | 'page-position' | string;
         };
     };
-    pages: FrontendPageDefinition[];
-    modules: FrontendModuleManifest[];
+    pages: ClientPageDefinition[];
+    modules: BrowserModuleManifest;
     submission: {
         endpoint: string;
+        uploadEndpoint?: string;
         method: 'POST';
         encoding: string;
         actions: Array<'back' | 'save' | 'submit'>;
@@ -117,7 +109,7 @@ export type FrontendFormDefinition = {
         };
     };
 };
-export type FrontendFormSession = {
+export type ClientFormSession = {
     version: number;
     id: string;
     currentPageId: string;
@@ -142,12 +134,12 @@ export type FrontendFormSession = {
         [key: string]: unknown;
     } | null;
 };
-export type FrontendFormEnvelope = {
-    schemaVersion: 1;
-    definition: FrontendFormDefinition;
-    session: FrontendFormSession;
+export type ClientFormBootstrap = {
+    contractVersion: 1;
+    definition: ClientFormDefinition;
+    session: ClientFormSession;
 };
-export type FrontendSubmitResult = {
+export type ClientSubmitResult = {
     outcome?: string;
     version?: number | null;
     success: boolean;
@@ -168,7 +160,12 @@ export type FrontendSubmitResult = {
         notice?: string | null;
         error?: string | null;
     };
-    session?: FrontendFormSession | null;
+    session?: ClientFormSession | null;
+    completion?: Record<string, unknown> | null;
+    redirect?: {
+        url: string;
+        target?: string;
+    } | null;
     quizResult?: Record<string, unknown> | null;
     clientEvents?: Array<Record<string, unknown>>;
     paymentStatus?: string | null;
@@ -178,57 +175,62 @@ export type FrontendSubmitResult = {
     paymentDecision?: Record<string, unknown> | null;
     keepSubmitLoading?: boolean;
 };
-export type FrontendFormFieldState = {
+export type ClientFormFieldState = {
     hidden: boolean;
     disabled: boolean;
 };
-export type FrontendFormPageState = {
+export type ClientFormPageState = {
     hidden: boolean;
 };
-export type FrontendFormState = {
+export type ClientFormState = {
     status: 'idle' | 'loading' | 'ready' | 'submitting' | 'refreshing' | 'destroyed';
-    definition: FrontendFormDefinition;
-    session: FrontendFormSession;
+    definition: ClientFormDefinition;
+    session: ClientFormSession;
     values: Record<string, unknown>;
-    errors: FrontendSubmitResult['errors'];
-    fieldStates: Record<string, FrontendFormFieldState>;
-    pageStates: Record<string, FrontendFormPageState>;
+    errors: ClientSubmitResult['errors'];
+    fieldStates: Record<string, ClientFormFieldState>;
+    pageStates: Record<string, ClientFormPageState>;
     currentPageId: string;
-    lastSubmitResult?: FrontendSubmitResult | null;
+    lastSubmitResult?: ClientSubmitResult | null;
 };
-export type FrontendSubmitAction = 'back' | 'save' | 'next' | 'submit' | 'revise';
-export type FrontendFormEventName = 'formie:client:ready' | 'formie:submit:result' | 'formie:page:navigate' | 'formie:page:navigate:error' | 'formie:session:refreshed' | 'formie:session:refresh:error' | 'formie:state:reset';
-export type FrontendTransport = {
+export type ClientSubmitAction = 'back' | 'save' | 'next' | 'submit' | 'revise';
+export type ClientFormEventName = 'formie:client:ready' | 'formie:submit:result' | 'formie:page:navigate' | 'formie:page:navigate:error' | 'formie:session:refreshed' | 'formie:session:refresh:error' | 'formie:state:reset';
+export type ClientTransport = {
+    browserRequestOptions?: import('./request-profile').BrowserRequestOptions;
     submit(input: {
-        definition: FrontendFormDefinition;
-        session: FrontendFormSession;
+        definition: ClientFormDefinition;
+        session: ClientFormSession;
         values: Record<string, unknown>;
         action: 'back' | 'save' | 'submit' | 'revise';
-    }): Promise<FrontendSubmitResult>;
+        browserData?: Record<string, unknown>;
+    }): Promise<ClientSubmitResult>;
     refreshSession(input: {
         formHandle: string;
         siteId?: number;
-        session: FrontendFormSession;
-    }): Promise<FrontendFormSession>;
+        session: ClientFormSession;
+    }): Promise<ClientFormSession>;
     setPage?(input: {
-        definition: FrontendFormDefinition;
-        session: FrontendFormSession;
+        definition: ClientFormDefinition;
+        session: ClientFormSession;
         values: Record<string, unknown>;
         currentPageId?: string;
         targetPageId: string;
-    }): Promise<FrontendFormSession>;
+    }): Promise<ClientFormSession>;
 };
-export type FrontendFormInstance = {
+export type ClientFormInstance = {
+    getBrowserRequestOptions(): import('./request-profile').BrowserRequestOptions;
+    setBrowserModuleGuard(guard: () => void): void;
+    setBrowserModulePreparation(prepare: (action: ClientSubmitAction) => Promise<Record<string, unknown>>): void;
     id: string;
-    getState(): FrontendFormState;
-    subscribe(listener: (state: FrontendFormState) => void): () => void;
+    getState(): ClientFormState;
+    subscribe(listener: (state: ClientFormState) => void): () => void;
     setValue(fieldId: string, value: unknown): void;
     patchValues(values: Record<string, unknown>): void;
-    submit(action?: FrontendSubmitAction): Promise<FrontendSubmitResult>;
+    submit(action?: ClientSubmitAction): Promise<ClientSubmitResult>;
     setPage(pageId: string): Promise<void>;
     refreshSession(): Promise<void>;
     reset(): void;
     destroy(): Promise<void>;
-    on(eventName: FrontendFormEventName | (string & {}), callback: (payload: unknown) => void): () => void;
+    on(eventName: ClientFormEventName | (string & {}), callback: (payload: unknown) => void): () => void;
 };
 //# sourceMappingURL=types.d.ts.map

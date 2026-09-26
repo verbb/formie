@@ -17,8 +17,8 @@ use verbb\formie\helpers\DeliveryAttempt;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Variables;
-use verbb\formie\models\ClientModule;
-use verbb\formie\models\ClientModuleContext;
+use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\models\BrowserModuleContext;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Payment as PaymentModel;
 use verbb\formie\models\PaymentDecision;
@@ -75,7 +75,7 @@ class PayPal extends Payment
         return App::parseEnv($this->clientId) && App::parseEnv($this->clientSecret);
     }
 
-    public function getClientModule(ClientModuleContext $context): ?ClientModule
+    public function getBrowserModule(BrowserModuleContext $context): ?BrowserModuleEntry
     {
         if (!$this->hasValidSettings()) {
             return null;
@@ -83,8 +83,9 @@ class PayPal extends Payment
 
         $this->setField($context->field);
 
-        return new ClientModule([
-            'id' => 'paypal',
+        return new BrowserModuleEntry([
+            'moduleId' => 'formie:paypal',
+            'surfaces' => [BrowserModuleEntry::SURFACE_SERVER_RENDERED, BrowserModuleEntry::SURFACE_CLIENT_RENDERED],
             'config' => [
                 'clientId' => App::parseEnv($this->clientId),
                 'useSandbox' => App::parseBooleanEnv($this->useSandbox),

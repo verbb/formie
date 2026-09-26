@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use verbb\formie\Formie;
 use verbb\formie\helpers\References;
-use verbb\formie\models\ClientModule;
+use verbb\formie\models\BrowserModuleEntry;
 use verbb\formie\theme\context\RenderContext;
 
 it('enforces password validation rules', function (): void {
@@ -82,11 +82,11 @@ it('renders password validation client attributes and registers the client modul
         ->and($tag?->attributes['data']['formie-password-require-uppercase'] ?? null)->toBeTrue();
 
     $moduleIds = array_values(array_map(
-        static fn(array $module): string => (string)$module['id'],
-        Formie::$plugin->getClientModuleManifestBuilder()->buildCanonical($form, ClientModule::RENDER_TARGET_FRONTEND),
+        static fn(array $module): string => (string)$module['moduleId'],
+        Formie::$plugin->getBrowserModuleManifestBuilder()->buildCanonical($form, BrowserModuleEntry::SURFACE_SERVER_RENDERED)['entries'],
     ));
 
-    expect($moduleIds)->toContain('password-validation');
+    expect($moduleIds)->toContain('formie:password-validation');
 });
 
 it('does not register password validation modules when disabled', function (): void {
@@ -96,11 +96,11 @@ it('does not register password validation modules when disabled', function (): v
         ->create();
 
     $moduleIds = array_values(array_map(
-        static fn(array $module): string => (string)$module['id'],
-        Formie::$plugin->getClientModuleManifestBuilder()->buildCanonical($form, ClientModule::RENDER_TARGET_FRONTEND),
+        static fn(array $module): string => (string)$module['moduleId'],
+        Formie::$plugin->getBrowserModuleManifestBuilder()->buildCanonical($form, BrowserModuleEntry::SURFACE_SERVER_RENDERED)['entries'],
     ));
 
-    expect($moduleIds)->not->toContain('password-validation');
+    expect($moduleIds)->not->toContain('formie:password-validation');
 });
 
 it('still enforces match field validation for password fields', function (): void {

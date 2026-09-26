@@ -5,5 +5,5 @@ declare global {
         };
     }
 }
-export declare const ewayModule: import("../../..").FormieModuleDefinition;
+export declare const ewayModule: import("../../..").BrowserModuleDefinition;
 //# sourceMappingURL=eway.d.ts.map

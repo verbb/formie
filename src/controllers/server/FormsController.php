@@ -35,6 +35,7 @@ class FormsController extends Controller
 
     public function beforeAction($action): bool
     {
+        \verbb\formie\helpers\BrowserRequestProfile::enter(true);
         $this->forbidGuestControlPanelAnonymousActions($action->id);
 
         if (in_array($action->id, ['refresh-tokens', 'render'], true)) {

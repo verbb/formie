@@ -60,7 +60,7 @@ Run the full [template compatibility audit](/guides/migrations-upgrades/template
 
 - Field schema methods renamed to `defineFormBuilder*Schema()`
 - Integration settings use `defineFormSettingsSchema()` not Twig HTML
-- Captchas/address providers use `getClientModule()` not `getFrontEndJsVariables()`
+- Captchas/address providers use `getBrowserModule()` not `getFrontEndJsVariables()`
 - Notification events on `Notifications` service; integration events on `Integrations`
 - Dispatch via `IntegrationTriggers` / `Notifications` services, not `Submissions` helpers
 - Submission status classes: `SubmissionStatuses`, `SubmissionStatus`

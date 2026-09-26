@@ -79,6 +79,10 @@ class SubmissionsController extends Controller
     public function beforeAction($action): bool
     {
         $settings = Formie::$plugin->getSettings();
+        $publicProfile = null;
+        if (in_array($action->id, ['submit', 'set-page', 'clear-submission'], true)) {
+            $publicProfile = \verbb\formie\helpers\BrowserRequestProfile::enter();
+        }
 
         $this->forbidGuestControlPanelAnonymousActions($action->id);
 
@@ -97,6 +101,12 @@ class SubmissionsController extends Controller
         // Check for live preview requests, or unpublished pages
         if ($this->request->getIsLivePreview() || $this->request->getIsPreview()) {
             $this->enableCsrfValidation = false;
+        }
+
+        if ($publicProfile === \verbb\formie\helpers\BrowserRequestProfile::CROSS_ORIGIN) {
+            $this->enableCsrfValidation = false;
+        } elseif ($publicProfile && $this->request->getHeaders()->has('X-Formie-Profile')) {
+            $this->enableCsrfValidation = true;
         }
 
         return parent::beforeAction($action);
@@ -243,7 +253,7 @@ class SubmissionsController extends Controller
             $variables['title'] = Craft::t('formie', 'Create a new submission');
         }
 
-        $formConfigJson = $form->getClientConfig();
+        $formConfigJson = $form->getCpEditConfig();
 
         // Add some settings just for submission editing
         $formConfigJson['settings']['outputJs'] = false;

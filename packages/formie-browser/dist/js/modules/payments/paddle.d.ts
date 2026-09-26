@@ -1,2 +1,2 @@
-export declare const paddleModule: import("../../..").FormieModuleDefinition;
+export declare const paddleModule: import("../../..").BrowserModuleDefinition;
 //# sourceMappingURL=paddle.d.ts.map

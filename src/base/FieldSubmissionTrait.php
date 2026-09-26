@@ -28,6 +28,7 @@ trait FieldSubmissionTrait
         $fieldAttributes = [
             'data-type' => get_class($this),
             'data-formie-field-handle' => (string)$this->valueKey(),
+            'data-formie-field-uid' => (string)$this->uid,
             'data-formie-field-type' => static::kebabClassName(),
         ];
 

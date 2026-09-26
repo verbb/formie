@@ -1,8 +1,8 @@
 <?php
 namespace verbb\formie\base;
 
-use verbb\formie\models\ClientModule;
-use verbb\formie\models\ClientModuleContext;
+use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\models\BrowserModuleContext;
 
 use craft\base\SavableComponentInterface;
 
@@ -10,7 +10,7 @@ interface IntegrationInterface extends SavableComponentInterface
 {
     public function getFormSettingAttributes(): array;
     public function getFormSettingsSchema(FormInterface $form): array;
-    public function getClientModule(ClientModuleContext $context): ?ClientModule;
+    public function getBrowserModule(BrowserModuleContext $context): ?BrowserModuleEntry;
 
     /**
      * Returns the CP icon URL for use in builder summaries/lists.

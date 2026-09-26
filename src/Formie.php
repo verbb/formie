@@ -285,6 +285,25 @@ class Formie extends Plugin
 
     private function _registerClientCorsHandler(): void
     {
+        Event::on(\craft\services\Gql::class, \craft\services\Gql::EVENT_BEFORE_EXECUTE_GQL_QUERY, function(\craft\events\ExecuteGqlQueryEvent $event) {
+            // These queries issue visitor-bound credentials. A shared GraphQL
+            // result cache must never replay another visitor's bootstrap or HTML.
+            if (preg_match('/\\b(formieClientForm|formieHtmlForm)\\b/', $event->query)) {
+                Craft::$app->getConfig()->getGeneral()->enableGraphqlCaching = false;
+                if (Craft::$app->getResponse() instanceof WebResponse) {
+                    Craft::$app->getResponse()->setNoCacheHeaders();
+                }
+            }
+        });
+        // Formie public GraphQL adapters declare their profile header. Their CORS
+        // policy belongs to Formie rather than Craft's administrative API defaults.
+        Event::on(\craft\controllers\GraphqlController::class, \yii\base\Controller::EVENT_BEFORE_ACTION, function() {
+            $request = Craft::$app->getRequest();
+            $preflightHeaders = strtolower((string)$request->getHeaders()->get('Access-Control-Request-Headers', ''));
+            if ($request->getHeaders()->has('X-Formie-Profile') || ($request->getIsOptions() && str_contains($preflightHeaders, 'x-formie-profile'))) {
+                CrossOriginRequestHelper::applyHeaders($request, Craft::$app->getResponse());
+            }
+        });
         Event::on(WebResponse::class, WebResponse::EVENT_BEFORE_SEND, function() {
             $request = Craft::$app->getRequest();
 

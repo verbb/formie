@@ -1,4 +1,4 @@
-export const FRONTEND_CLIENT_EVENT_NAMES = [
+export const CLIENT_FORM_EVENT_NAMES = [
     'formie:client:ready',
     'formie:submit:result',
     'formie:page:navigate',

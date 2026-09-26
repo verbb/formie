@@ -1,6 +1,6 @@
-import type { FormieModuleDefinition } from '#contracts/modules';
+import type { BrowserModuleDefinition } from '#contracts/modules';
 
-export const builtinCaptchaModuleLoaders: Record<string, () => Promise<FormieModuleDefinition>> = {
+export const builtinCaptchaModuleLoaders: Record<string, () => Promise<BrowserModuleDefinition>> = {
     // Module ids map directly to importer functions so the loader can fetch only
     // the captcha chunks required by the current form manifest.
     'captcha-eu': () => import('#modules/captchas/captcha-eu').then((module) => module.captchaEuModule),

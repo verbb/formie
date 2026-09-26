@@ -503,9 +503,9 @@ class Number extends Field implements SortableFieldInterface, PreviewableFieldIn
         return $validators;
     }
 
-    protected function defineClientInput(): array
+    protected function defineClientRenderedInput(): array
     {
-        return array_merge(parent::defineClientInput(), [
+        return array_merge(parent::defineClientRenderedInput(), [
             'min' => $this->limit ? $this->min : null,
             'max' => $this->limit ? $this->max : null,
             'inputType' => 'number',

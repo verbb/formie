@@ -56,9 +56,9 @@ async function initSubmissionModules(root = document) {
         }
 
         const config = parseConfigAttribute(target);
-        const modules = Array.isArray(config?.modules) ? config.modules : [];
+        const modules = config?.modules ?? { contractVersion: 1, entries: [] };
 
-        if (modules.length === 0) {
+        if (modules.entries?.length === 0) {
             return;
         }
 
@@ -66,7 +66,7 @@ async function initSubmissionModules(root = document) {
             root: target,
             form: target.closest('form'),
             modules,
-            mode: 'server-rendered',
+            surface: 'cp-edit',
         });
 
         cpModuleHydrators.set(target, hydrator);

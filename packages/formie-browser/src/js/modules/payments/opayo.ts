@@ -1,3 +1,5 @@
+import { getFormBrowserRequestOptions } from '#utils/request-profile';
+import { browserRequest, type BrowserRequestOptions } from '@verbb/formie-core';
 import opayoCss from '#theme-css/integrations/_opayo.css?inline';
 
 import { definePaymentModule } from '#modules/payments/api';
@@ -51,6 +53,7 @@ type OpayoProviderOptions = {
     useSandbox?: boolean;
     handle?: string;
     sessionToken?: string | null;
+    sessionEndpoint?: string;
     checkoutMode?: OpayoCheckoutMode;
 };
 
@@ -77,6 +80,7 @@ async function requestMerchantSessionKey(args: {
     form: HTMLFormElement;
     handle: string;
     sessionToken: string;
+    sessionEndpoint?: string;
     services: {
         addError: (message: string) => void;
     };
@@ -89,10 +93,10 @@ async function requestMerchantSessionKey(args: {
     formData.append('sessionToken', sessionToken);
 
     try {
-        const res = await fetch(form.action, {
+        const res = await browserRequest(args.sessionEndpoint || form.action, {
             method: 'POST',
             body: formData,
-        });
+        }, getFormBrowserRequestOptions(form));
 
         if (res.status < 200 || res.status >= 300) {
             services.addError(`${res.status}: ${res.statusText}`);
@@ -132,7 +136,7 @@ function ensureDropInContainerId(container: HTMLElement): string {
 }
 
 export const opayoModule = definePaymentModule<OpayoProviderOptions, null, OpayoDropInWidget | null>({
-    id: 'opayo',
+    moduleId: 'formie:opayo',
     defaultRequiredInputSuffixes: ['opayoTokenId'],
     load: async(ctx) => {
         const { provider } = ctx.options;
@@ -183,6 +187,7 @@ export const opayoModule = definePaymentModule<OpayoProviderOptions, null, Opayo
             form,
             handle,
             sessionToken: provider.sessionToken || '',
+            sessionEndpoint: provider.sessionEndpoint,
             services,
         });
 
@@ -227,6 +232,7 @@ export const opayoModule = definePaymentModule<OpayoProviderOptions, null, Opayo
                         form,
                         handle,
                         sessionToken: provider.sessionToken || '',
+            sessionEndpoint: provider.sessionEndpoint,
                         services,
                     }).then((newMerchantSessionKey) => {
                         if (!newMerchantSessionKey) {
@@ -258,7 +264,7 @@ export const opayoModule = definePaymentModule<OpayoProviderOptions, null, Opayo
     unmount: async({ widget }) => {
         widget?.checkout?.destroy?.();
     },
-    onBeforeAuthorize: async(args) => {
+    onBeforePayment: async(args) => {
         const { field, services, options, provider, widget } = args;
         const handle = (provider.handle || 'opayo') as string;
         const form = services.form;
@@ -307,6 +313,7 @@ export const opayoModule = definePaymentModule<OpayoProviderOptions, null, Opayo
             form,
             handle,
             sessionToken: provider.sessionToken || '',
+            sessionEndpoint: provider.sessionEndpoint,
             services,
         });
 

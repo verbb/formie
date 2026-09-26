@@ -1,7 +1,7 @@
 export { createFormieClient } from '#core/create-formie-client';
 export { hydrateFormieModules } from '#core/hydrate-modules';
 export { formie } from '#core/formie';
-export { ModuleRegistry } from '#modules/registry';
+export { ModuleRegistry, clientRenderedModuleRegistry } from '#modules/registry';
 export { FormieValidator } from '#validation/validator';
 export { bindLegacyDomEventCompatibility } from '#compatibility/dom-adapter';
 export { bindLegacyValidatorCompatibility } from '#compatibility/validator-adapter';
@@ -85,8 +85,8 @@ export type {
 } from '#compatibility/event-map';
 export type { FormAction, FormMode, FormTransport, SubmitStage } from '#contracts/common';
 export type {
-    FormieModuleDefinition,
-    FormieModuleInstance,
+    BrowserModuleDefinition,
+    BrowserModuleInstance,
     ModuleHookContext,
     ModuleMatchContext,
     ModuleRegistrationOptions,
@@ -95,11 +95,8 @@ export type {
 } from '#contracts/modules';
 export type {
     FormRefreshTokensPayload,
-    FormDefinitionField,
-    FormDefinitionPage,
-    FormDefinitionPayload,
     FormEndpointPayload,
-    FormModuleManifest,
+    BrowserModuleEntry,
     FormModuleTarget,
     FormModuleTargetType,
     FormRedirect,
@@ -123,3 +120,5 @@ export type {
     ParsedFieldReference,
     ResolveFieldValueResult,
 } from '#utils/field-references';
+
+export { mountClientRenderedModules } from '#core/client-rendered-modules';

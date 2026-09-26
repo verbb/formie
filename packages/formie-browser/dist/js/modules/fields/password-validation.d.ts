@@ -1,3 +1,3 @@
-import type { FormieModuleDefinition } from '#contracts/modules';
-export declare const passwordValidationModule: FormieModuleDefinition;
+import type { BrowserModuleDefinition } from '#contracts/modules';
+export declare const passwordValidationModule: BrowserModuleDefinition;
 //# sourceMappingURL=password-validation.d.ts.map

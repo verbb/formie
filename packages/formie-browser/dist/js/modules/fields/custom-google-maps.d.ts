@@ -1,4 +1,4 @@
-import type { FormieModuleDefinition } from '#contracts/modules';
+import type { BrowserModuleDefinition } from '#contracts/modules';
 type LatLng = {
     lat: number;
     lng: number;
@@ -59,6 +59,6 @@ declare global {
         google?: GoogleMapsNamespace;
     }
 }
-export declare const customGoogleMapsModule: FormieModuleDefinition;
+export declare const customGoogleMapsModule: BrowserModuleDefinition;
 export {};
 //# sourceMappingURL=custom-google-maps.d.ts.map

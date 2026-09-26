@@ -1,5 +1,5 @@
 import type { FormAction, FormieClient, FormieFormInstance, FormMountOptions, FormEndpointPayload, FormTransport, FormSubmitResult } from '@verbb/formie-browser';
-import type { FrontendFieldType, FrontendFormInstance, FrontendSubmitResult } from '@verbb/formie-core';
+import type { ClientFieldType, ClientFormInstance, ClientSubmitResult } from '@verbb/formie-core';
 import { type Component, type PropType, type Ref, type ShallowRef } from 'vue';
 import { type FormieDefinitionSource, type FormieVueComponents, type FormieVueEvent, useFormie, useFormieField, useFormiePage, useFormieInstance, useFormieSlot } from './definition-form';
 export type FormieHtmlSource = {
@@ -8,6 +8,7 @@ export type FormieHtmlSource = {
 export type FormieFormProps = {
     source?: FormieHtmlSource;
     transport?: FormTransport;
+    profile?: FormMountOptions['profile'];
     endpoint?: string;
     formHandle?: string;
     staticCache?: boolean;
@@ -32,22 +33,23 @@ export type FormieFormProps = {
 export type FormieClientFormProps = {
     source?: FormieDefinitionSource;
     transport?: FormTransport;
+    profile?: FormMountOptions['profile'];
     endpoint?: string;
     formHandle?: string;
     siteId?: number;
     components?: FormieVueComponents;
-    fieldComponents?: Partial<Record<FrontendFieldType, Component>>;
+    fieldComponents?: Partial<Record<ClientFieldType, Component>>;
     slots?: Partial<Record<string, Component>>;
     className?: string;
-    onMount?: (instance: FrontendFormInstance) => void;
-    onReady?: (instance: FrontendFormInstance) => void;
+    onMount?: (instance: ClientFormInstance) => void;
+    onReady?: (instance: ClientFormInstance) => void;
     onUnmount?: () => void;
-    onResult?: (result: FrontendSubmitResult) => void;
-    onSuccess?: (result: FrontendSubmitResult) => void;
-    onError?: (result: FrontendSubmitResult) => void;
-    onSubmitResult?: (result: FrontendSubmitResult) => void;
-    onSubmitSuccess?: (result: FrontendSubmitResult) => void;
-    onSubmitError?: (result: FrontendSubmitResult) => void;
+    onResult?: (result: ClientSubmitResult) => void;
+    onSuccess?: (result: ClientSubmitResult) => void;
+    onError?: (result: ClientSubmitResult) => void;
+    onSubmitResult?: (result: ClientSubmitResult) => void;
+    onSubmitSuccess?: (result: ClientSubmitResult) => void;
+    onSubmitError?: (result: ClientSubmitResult) => void;
     onEvent?: (event: FormieVueEvent) => void;
 };
 export type FormieHtmlOptions = Omit<FormMountOptions, 'mode'>;
@@ -68,6 +70,10 @@ export declare const FormieForm: import("vue").DefineComponent<import("vue").Ext
         readonly type: PropType<FormieFormProps["source"]>;
         readonly default: any;
     };
+    readonly profile: {
+        readonly type: PropType<FormMountOptions["profile"]>;
+        readonly default: "same-origin-browser";
+    };
     readonly transport: {
         readonly type: PropType<FormTransport | undefined>;
         readonly default: any;
@@ -159,6 +165,10 @@ export declare const FormieForm: import("vue").DefineComponent<import("vue").Ext
         readonly type: PropType<FormieFormProps["source"]>;
         readonly default: any;
     };
+    readonly profile: {
+        readonly type: PropType<FormMountOptions["profile"]>;
+        readonly default: "same-origin-browser";
+    };
     readonly transport: {
         readonly type: PropType<FormTransport | undefined>;
         readonly default: any;
@@ -255,6 +265,9 @@ export declare const FormieForm: import("vue").DefineComponent<import("vue").Ext
     "onSubmit-success"?: (...args: any[]) => any;
     "onSubmit-error"?: (...args: any[]) => any;
 }>, {
+    readonly endpoint: string;
+    readonly formHandle: string;
+    readonly siteId: number;
     readonly onError: (result: FormSubmitResult) => void;
     readonly source: FormieHtmlSource;
     readonly className: string;
@@ -267,11 +280,9 @@ export declare const FormieForm: import("vue").DefineComponent<import("vue").Ext
     readonly onSubmitSuccess: (result: FormSubmitResult) => void;
     readonly onSubmitError: (result: FormSubmitResult) => void;
     readonly onEvent: (event: FormieVueEvent) => void;
+    readonly profile: FormMountOptions;
     readonly theme: any;
     readonly themeConfig: any;
-    readonly endpoint: string;
-    readonly formHandle: string;
-    readonly siteId: number;
     readonly transport: any;
     readonly staticCache: boolean;
     readonly refreshTokens: boolean;
@@ -282,6 +293,10 @@ export declare const FormieClientForm: import("vue").DefineComponent<import("vue
     readonly source: {
         readonly type: PropType<FormieClientFormProps["source"]>;
         readonly default: any;
+    };
+    readonly profile: {
+        readonly type: PropType<FormMountOptions["profile"]>;
+        readonly default: "same-origin-browser";
     };
     readonly transport: {
         readonly type: PropType<FormTransport | undefined>;
@@ -304,7 +319,7 @@ export declare const FormieClientForm: import("vue").DefineComponent<import("vue
         readonly default: any;
     };
     readonly fieldComponents: {
-        readonly type: PropType<Partial<Record<FrontendFieldType, Component>> | undefined>;
+        readonly type: PropType<Partial<Record<ClientFieldType, Component>> | undefined>;
         readonly default: any;
     };
     readonly slots: {
@@ -362,6 +377,10 @@ export declare const FormieClientForm: import("vue").DefineComponent<import("vue
         readonly type: PropType<FormieClientFormProps["source"]>;
         readonly default: any;
     };
+    readonly profile: {
+        readonly type: PropType<FormMountOptions["profile"]>;
+        readonly default: "same-origin-browser";
+    };
     readonly transport: {
         readonly type: PropType<FormTransport | undefined>;
         readonly default: any;
@@ -383,7 +402,7 @@ export declare const FormieClientForm: import("vue").DefineComponent<import("vue
         readonly default: any;
     };
     readonly fieldComponents: {
-        readonly type: PropType<Partial<Record<FrontendFieldType, Component>> | undefined>;
+        readonly type: PropType<Partial<Record<ClientFieldType, Component>> | undefined>;
         readonly default: any;
     };
     readonly slots: {
@@ -446,28 +465,29 @@ export declare const FormieClientForm: import("vue").DefineComponent<import("vue
     "onSubmit-success"?: (...args: any[]) => any;
     "onSubmit-error"?: (...args: any[]) => any;
 }>, {
-    readonly onError: (result: FrontendSubmitResult) => void;
+    readonly endpoint: string;
+    readonly formHandle: string;
+    readonly siteId: number;
+    readonly onError: (result: ClientSubmitResult) => void;
     readonly source: FormieDefinitionSource;
     readonly components: FormieVueComponents;
     readonly slots: Partial<Record<string, Component>>;
     readonly className: string;
-    readonly fieldComponents: Partial<Record<FrontendFieldType, Component>>;
-    readonly onMount: (instance: FrontendFormInstance) => void;
-    readonly onReady: (instance: FrontendFormInstance) => void;
+    readonly fieldComponents: Partial<Record<ClientFieldType, Component>>;
+    readonly onMount: (instance: ClientFormInstance) => void;
+    readonly onReady: (instance: ClientFormInstance) => void;
     readonly onUnmount: () => void;
-    readonly onResult: (result: FrontendSubmitResult) => void;
-    readonly onSuccess: (result: FrontendSubmitResult) => void;
-    readonly onSubmitResult: (result: FrontendSubmitResult) => void;
-    readonly onSubmitSuccess: (result: FrontendSubmitResult) => void;
-    readonly onSubmitError: (result: FrontendSubmitResult) => void;
+    readonly onResult: (result: ClientSubmitResult) => void;
+    readonly onSuccess: (result: ClientSubmitResult) => void;
+    readonly onSubmitResult: (result: ClientSubmitResult) => void;
+    readonly onSubmitSuccess: (result: ClientSubmitResult) => void;
+    readonly onSubmitError: (result: ClientSubmitResult) => void;
     readonly onEvent: (event: FormieVueEvent) => void;
-    readonly endpoint: string;
-    readonly formHandle: string;
-    readonly siteId: number;
+    readonly profile: FormMountOptions;
     readonly transport: any;
 }, {}, {}, {}, string, import("vue").ComponentProvideOptions, true, {}, any>;
-export type { FormAction, FormEventUnsubscribe, FormDefinitionPayload, FormEndpointPayload, FormieClient, FormieFormInstance, FormMountOptions, FormSubmitResult, } from '@verbb/formie-browser';
-export type { FrontendFieldDefinition, FrontendFieldType, FrontendFormDefinition, FrontendFormEnvelope, FrontendFormSession, FrontendFormInstance, FrontendFormState, FrontendSubmitResult, } from '@verbb/formie-core';
+export type { FormAction, FormEventUnsubscribe, FormEndpointPayload, FormieClient, FormieFormInstance, FormMountOptions, FormSubmitResult, } from '@verbb/formie-browser';
+export type { ClientFieldDefinition, ClientFieldType, ClientFormDefinition, ClientFormBootstrap, ClientFormSession, ClientFormInstance, ClientFormState, ClientSubmitResult, } from '@verbb/formie-core';
 export type { FormieDefinitionSource, FormieErrorSummaryProps, FormieFieldComponentProps, FormieFieldProps, FormieFormComponentProps, FormiePageComponentProps, FormieSlotComponentProps, FormieVueComponents, FormieVueEvent, } from './definition-form';
 export { useFormie, useFormieField, useFormiePage, useFormieInstance, useFormieSlot, };
 //# sourceMappingURL=index.d.ts.map

@@ -15,7 +15,7 @@ use verbb\formie\fields\conditions\TextFieldConditionRule;
 use verbb\formie\fields\traits\AutocompleteFieldTrait;
 use verbb\formie\fields\traits\TextLimitFieldTrait;
 use verbb\formie\fields\traits\UniqueValueFieldTrait;
-use verbb\formie\models\ClientModule;
+use verbb\formie\models\BrowserModuleEntry;
 use verbb\formie\models\SlotTag;
 use verbb\formie\theme\context\RenderContext;
 
@@ -385,7 +385,7 @@ class MultiLineText extends Field implements SortableFieldInterface, Previewable
             'value' => $value,
             'field' => $this,
             'form' => $form,
-            'textLimitConfig' => $this->getTextLimitClientConfig(ClientModule::RENDER_TARGET_CP_EDIT),
+            'textLimitConfig' => $this->getTextLimitClientConfig(BrowserModuleEntry::SURFACE_CP_EDIT),
         ]);
     }
 
@@ -426,22 +426,23 @@ class MultiLineText extends Field implements SortableFieldInterface, Previewable
         ];
     }
 
-    protected function defineClientInput(): array
+    protected function defineClientRenderedInput(): array
     {
-        return array_merge(parent::defineClientInput(), $this->getTextLimitClientInput());
+        return array_merge(parent::defineClientRenderedInput(), $this->getTextLimitClientInput());
     }
 
-    protected function defineClientModules(): array
+    protected function defineBrowserModules(): array
     {
-        $modules = parent::defineClientModules();
+        $modules = parent::defineBrowserModules();
 
-        foreach ($this->defineTextLimitClientModules() as $module) {
+        foreach ($this->defineTextLimitBrowserModules() as $module) {
             $modules[] = $module;
         }
 
         if ($this->useRichText) {
-            $modules[] = new ClientModule([
-                'id' => 'rich-text',
+            $modules[] = new BrowserModuleEntry([
+                'moduleId' => 'formie:rich-text',
+                'surfaces' => [BrowserModuleEntry::SURFACE_SERVER_RENDERED, BrowserModuleEntry::SURFACE_CLIENT_RENDERED, BrowserModuleEntry::SURFACE_CP_EDIT],
                 'config' => [
                     'buttons' => $this->getRichTextButtons(),
                 ],

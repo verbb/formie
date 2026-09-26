@@ -19,7 +19,7 @@ it('validates number bounds only while the persisted limit setting is enabled', 
     expect(Craft::$app->getElements()->saveElement($form))->toBeTrue();
     $reloaded = Form::find()->withoutCpIndexScope()->id($form->id)->siteId($form->siteId)->status(null)->one();
     expect($reloaded->getFieldByHandle('quantity')->limit)->toBeFalse();
-    $payload = $reloaded->getFieldByHandle('quantity')->getClientPayload();
+    $payload = $reloaded->getFieldByHandle('quantity')->getClientRenderedDefinition();
     expect($payload['input']['min'])->toBeNull()->and($payload['input']['max'])->toBeNull();
     expect($payload['validation'])->toBe([['type' => 'number', 'min' => null, 'max' => null]]);
     $unlimited = $make($reloaded);

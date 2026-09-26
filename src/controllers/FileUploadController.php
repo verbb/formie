@@ -40,6 +40,21 @@ class FileUploadController extends Controller
     // Public Methods
     // =========================================================================
 
+    public function beforeAction($action): bool
+    {
+        $profile = \verbb\formie\helpers\BrowserRequestProfile::enter();
+        if ($profile === \verbb\formie\helpers\BrowserRequestProfile::CROSS_ORIGIN) {
+            $this->enableCsrfValidation = false;
+        }
+        \verbb\formie\helpers\CrossOriginRequestHelper::applyHeaders($this->request, $this->response);
+        if ($this->request->getIsOptions()) {
+            $this->response->setStatusCode(204);
+            return false;
+        }
+
+        return parent::beforeAction($action);
+    }
+
     public function actionUpload(): Response
     {
         $this->requirePostRequest();

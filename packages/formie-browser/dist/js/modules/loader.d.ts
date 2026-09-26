@@ -1,11 +1,20 @@
-import type { FormieModuleInstance, ModuleMatchContext, ModuleSetupContext } from '#contracts/modules';
-import type { FormModuleManifest } from '#contracts/schema';
+import { type BrowserModuleManifest, type BrowserSurface } from '@verbb/formie-core';
+import type { BrowserModuleInstance, ModuleSetupContext } from '#contracts/modules';
 import { ModuleRegistry } from '#modules/registry';
+export type BrowserModuleRuntime = BrowserModuleInstance[] & {
+    updateManifest: (manifest: BrowserModuleManifest) => Promise<void>;
+};
 type ModuleLoadContext = {
     registry: ModuleRegistry;
     setupContext: ModuleSetupContext;
-    matchContext: Omit<ModuleMatchContext, 'target' | 'scope' | 'manifestItem'>;
+    matchContext: {
+        root: Element;
+        form: HTMLFormElement | null;
+        mode?: string;
+        surface?: BrowserSurface;
+    };
 };
-export declare function loadModulesFromManifest(manifest: FormModuleManifest[], ctx: ModuleLoadContext): Promise<FormieModuleInstance[]>;
+/** Reconcile declaration key + DOM occurrence, including targets added by repeaters. */
+export declare function loadModulesFromManifest(manifest: BrowserModuleManifest, ctx: ModuleLoadContext): Promise<BrowserModuleRuntime>;
 export {};
 //# sourceMappingURL=loader.d.ts.map

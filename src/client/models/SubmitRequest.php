@@ -15,4 +15,5 @@ class SubmitRequest extends BaseClientModel
     public ?int $siteId = null;
     public array $session = [];
     public array $values = [];
+    public array $browserData = [];
 }

@@ -55,6 +55,7 @@ export class FormieFormElement extends HTMLElement {
         return [
             'mode',
             'transport',
+            'request-profile',
             'theme',
             'form-handle',
             'endpoint',
@@ -290,6 +291,7 @@ export class FormieFormElement extends HTMLElement {
         const refreshTokens = this.refreshTokens;
 
         return {
+            profile: this.optionState.profile ?? (this.getAttribute('request-profile') as FormMountOptions['profile']) ?? 'same-origin-browser',
             mode: this.mode,
             transport,
             theme: this.theme,

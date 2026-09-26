@@ -18,7 +18,7 @@ Once mounted, Formie handles the normal browser layer for you, including:
 - file upload, captcha, and payment module setup
 - browser events such as `formie:mount:after` and `formie:submit:result`
 
-This page covers the cases where you want to keep Formie-rendered HTML, disable automatic initialisation, and then initialise those forms from your own frontend bundle when your page lifecycle says it is ready.
+This page covers the cases where you want to keep server-rendered HTML, disable automatic initialisation, and then initialise those forms from your own browser bundle when your page lifecycle says it is ready.
 
 ## Disable Auto-Init
 
@@ -91,7 +91,7 @@ await formie({
 });
 ```
 
-Plugin-rendered pages also seed browser translations for you through an inline JSON script tag, so validation and UI messages still work when your own bundle calls `formie()`.
+Server-rendered pages also seed browser translations for you through an inline JSON script tag, so validation and UI messages still work when your own bundle calls `formie()`.
 
 This is helpful when:
 

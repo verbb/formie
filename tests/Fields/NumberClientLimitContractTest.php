@@ -7,8 +7,8 @@ use verbb\formie\fields\Number;
 it('exports number bounds only while limits are enabled', function (bool $limit, int|float|null $min, int|float|null $max): void {
     $field = new Number(['handle' => 'quantity', 'label' => 'Quantity', 'limit' => $limit, 'min' => $min, 'max' => $max]);
     $expected = ['type' => 'number', 'min' => $limit ? $min : null, 'max' => $limit ? $max : null];
-    $payload = $field->getClientPayload();
-    $input = $field->getClientInputDefinition();
+    $payload = $field->getClientRenderedDefinition();
+    $input = $field->getClientRenderedInput();
 
     expect($field->browserValidationRules())->toBe([$expected])
         ->and(json_decode($field->getValidationRulesJson(), true))->toBe([$expected])

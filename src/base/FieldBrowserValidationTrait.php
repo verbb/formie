@@ -1,0 +1,82 @@
+<?php
+namespace verbb\formie\base;
+
+use craft\helpers\Json;
+
+trait FieldBrowserValidationTrait
+{
+    // Public Methods
+    // =========================================================================
+
+    public function browserValidationRules(): array
+    {
+        return array_values(array_filter(array_map(function(array $rule) {
+            $type = (string)($rule['type'] ?? '');
+
+            if ($type === '') {
+                return null;
+            }
+
+            $definition = ['type' => $type];
+
+            if (array_key_exists('fieldId', $rule)) {
+                $definition['fieldId'] = $rule['fieldId'];
+            }
+
+            if (array_key_exists('fieldHandle', $rule)) {
+                $definition['fieldHandle'] = $rule['fieldHandle'];
+            }
+
+            if (array_key_exists('min', $rule)) {
+                $definition['min'] = $rule['min'];
+            }
+
+            if (array_key_exists('max', $rule)) {
+                $definition['max'] = $rule['max'];
+            }
+
+            if (array_key_exists('minDate', $rule)) {
+                $definition['minDate'] = $rule['minDate'];
+            }
+
+            if (array_key_exists('maxDate', $rule)) {
+                $definition['maxDate'] = $rule['maxDate'];
+            }
+
+            return $definition;
+        }, array_values($this->defineBrowserValidationRules()))));
+    }
+
+    public function getValidationRulesJson(): ?string
+    {
+        $rules = $this->browserValidationRules();
+
+        if (!$rules) {
+            return null;
+        }
+
+        return Json::encode($rules);
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineBrowserValidationRules(): array
+    {
+        $validators = [];
+
+        if ($this->required) {
+            $validators[] = ['type' => 'required'];
+        }
+
+        if ($matchField = $this->getMatchField()) {
+            $validators[] = [
+                'type' => 'match',
+                'fieldHandle' => $matchField,
+            ];
+        }
+
+        return $validators;
+    }
+}

@@ -10,7 +10,7 @@ type MollieProviderOptions = {
 const REDIRECT_EVENT = getPaymentProviderActionEventName('mollie', 'redirect');
 
 export const mollieModule = definePaymentModule<MollieProviderOptions, null, null>({
-    id: 'mollie',
+    moduleId: 'formie:mollie',
     defaultRequiredInputSuffixes: [],
     load: async() => null,
     setup: async({ services, root }) => {

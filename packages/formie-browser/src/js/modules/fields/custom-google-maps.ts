@@ -1,4 +1,4 @@
-import type { FormieModuleDefinition } from '#contracts/modules';
+import type { BrowserModuleDefinition } from '#contracts/modules';
 import { getModuleFieldTarget, observeMatchingElements } from '#modules/fields/shared';
 
 const MODULE_ID = 'custom-google-maps';
@@ -390,8 +390,10 @@ function initCustomGoogleMaps(root: HTMLElement): () => void {
     };
 }
 
-export const customGoogleMapsModule: FormieModuleDefinition = {
-    id: MODULE_ID,
+export const customGoogleMapsModule: BrowserModuleDefinition = {
+    moduleId: `formie:${MODULE_ID}`,
+    version: 1,
+    surfaces: ['server-rendered', 'client-rendered', 'cp-edit'],
     kind: 'field',
     match: ({ target }) => {
         return target instanceof Element && (

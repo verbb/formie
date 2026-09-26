@@ -12,7 +12,7 @@ it('exposes expected form builder and runtime config contracts', function (): vo
         ])
         ->create();
 
-    $runtimeConfig = $form->getClientConfig();
+    $runtimeConfig = $form->getCpEditConfig();
     $settings = $runtimeConfig['settings'] ?? [];
 
     expect($runtimeConfig)->toHaveKeys(['formId', 'handle', 'settings', 'pages', 'modules'])

@@ -5,7 +5,7 @@ import { defineConfig } from 'vitepress';
 const formieBrowserSource = fileURLToPath(new URL('../../formie-browser/src', import.meta.url));
 
 export default defineConfig({
-    title: 'Formie Frontend',
+    title: 'Formie Browser and Frameworks',
     description: 'Core package documentation for theming, modules, and framework adapters.',
     base: '/formie/',
     cleanUrls: true,

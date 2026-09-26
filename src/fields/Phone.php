@@ -7,7 +7,7 @@ use verbb\formie\base\Field;
 use verbb\formie\base\PreviewableFieldInterface;
 use verbb\formie\base\SortableFieldInterface;
 use verbb\formie\elements\Submission;
-use verbb\formie\fields\definitions\FieldClientModules;
+use verbb\formie\fields\definitions\FieldBrowserModules;
 use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\gql\types\generators\CountryOptionGenerator;
@@ -18,7 +18,7 @@ use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Variables;
-use verbb\formie\models\ClientModule;
+use verbb\formie\models\BrowserModuleEntry;
 use verbb\formie\models\SlotTag;
 use verbb\formie\theme\context\RenderContext;
 
@@ -432,26 +432,27 @@ class Phone extends Field implements SortableFieldInterface, PreviewableFieldInt
     // Private Methods
     // =========================================================================
 
-    protected function defineClientInput(): array
+    protected function defineClientRenderedInput(): array
     {
-        return array_merge(parent::defineClientInput(), [
+        return array_merge(parent::defineClientRenderedInput(), [
             'countryEnabled' => $this->countryEnabled,
             'countryDefaultValue' => $this->countryDefaultValue,
         ]);
     }
 
-    protected function defineClientModules(): array
+    protected function defineBrowserModules(): array
     {
-        $modules = parent::defineClientModules();
+        $modules = parent::defineBrowserModules();
 
         if ($this->countryEnabled) {
-            $modules[] = new ClientModule([
-                'id' => 'phone-country',
+            $modules[] = new BrowserModuleEntry([
+                'moduleId' => 'formie:phone-country',
+                'surfaces' => [BrowserModuleEntry::SURFACE_SERVER_RENDERED, BrowserModuleEntry::SURFACE_CLIENT_RENDERED, BrowserModuleEntry::SURFACE_CP_EDIT],
                 'config' => [
                     'countryDefaultValue' => $this->countryDefaultValue,
                     'countryAllowed' => $this->countryAllowed,
                     'countryPreselectFromIp' => $this->countryPreselectFromIp,
-                    'countryFromIpAction' => 'formie/address/country-from-ip',
+                    'countryFromIpAction' => \craft\helpers\UrlHelper::actionUrl('formie/address/country-from-ip'),
                     'language' => $this->_getMatchedLanguageId() ?? 'en',
                 ],
             ]);

@@ -14,8 +14,8 @@ use verbb\formie\helpers\FieldReferenceHelper;
 use verbb\formie\helpers\PaymentAmountHelper;
 use verbb\formie\helpers\References;
 use verbb\formie\helpers\StringHelper;
-use verbb\formie\models\ClientModule;
-use verbb\formie\models\ClientModuleContext;
+use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\models\BrowserModuleContext;
 use verbb\formie\models\Notification;
 use verbb\formie\models\Payment as PaymentModel;
 use verbb\formie\models\PaymentDecision;
@@ -321,7 +321,7 @@ abstract class Payment extends Integration
         return [];
     }
 
-    public function getClientModule(ClientModuleContext $context): ?ClientModule
+    public function getBrowserModule(BrowserModuleContext $context): ?BrowserModuleEntry
     {
         return null;
     }
@@ -330,11 +330,11 @@ abstract class Payment extends Integration
     {
         $this->setField($field);
 
-        $module = $this->getClientModule(new ClientModuleContext([
+        $module = $this->getBrowserModule(new BrowserModuleContext([
             'form' => $field->getForm(),
             'field' => $field,
             'integration' => $this,
-            'renderTarget' => ClientModule::RENDER_TARGET_FRONTEND,
+            'surface' => BrowserModuleEntry::SURFACE_SERVER_RENDERED,
         ]));
 
         $required = [];

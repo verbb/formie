@@ -1,6 +1,6 @@
 import TomSelect from 'tom-select/dist/esm/tom-select.complete.js';
 
-import type { FormieModuleDefinition } from '#contracts/modules';
+import type { BrowserModuleDefinition } from '#contracts/modules';
 import comboboxThemeCss from '#theme-css/fields/_combobox.css?inline';
 import { dispatchFieldEvent, getModuleFieldContainers } from '#modules/fields/shared';
 import { ensureModuleStyles } from '#modules/styles';
@@ -148,8 +148,10 @@ export function initFormieCombobox(select: SelectElement, options: FormieCombobo
     };
 }
 
-export const comboboxModule: FormieModuleDefinition = {
-    id: MODULE_ID,
+export const comboboxModule: BrowserModuleDefinition = {
+    moduleId: `formie:${MODULE_ID}`,
+    version: 1,
+    surfaces: ['server-rendered', 'client-rendered', 'cp-edit'],
     kind: 'field',
     match: (ctx) => {
         return !!ctx.target.querySelector(SELECT_SELECTOR);

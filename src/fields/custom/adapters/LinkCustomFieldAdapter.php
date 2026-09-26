@@ -9,7 +9,7 @@ use verbb\formie\base\IntegrationInterface;
 use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\fields\values\CustomLinkFieldValue;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\models\ClientModule;
+use verbb\formie\models\BrowserModuleEntry;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Notification;
 use verbb\formie\models\SlotTag;
@@ -244,16 +244,16 @@ class LinkCustomFieldAdapter extends AbstractCustomFieldAdapter
         ];
     }
 
-    public function getClientModules(CustomField $field): array
+    public function getBrowserModules(CustomField $field): array
     {
         if (count($this->getAllowedTypes($field)) <= 1) {
             return [];
         }
 
         return [
-            new ClientModule([
-                'id' => 'custom-link',
-                'renderTargets' => [ClientModule::RENDER_TARGET_FRONTEND],
+            new BrowserModuleEntry([
+                'moduleId' => 'formie:custom-link',
+                'surfaces' => [BrowserModuleEntry::SURFACE_SERVER_RENDERED, BrowserModuleEntry::SURFACE_CLIENT_RENDERED],
             ]),
         ];
     }

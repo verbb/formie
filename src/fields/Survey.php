@@ -16,7 +16,7 @@ use verbb\formie\helpers\OptionsMode;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\SurveyPresentationDefaults;
 use verbb\formie\helpers\ValidationMessagesHelper;
-use verbb\formie\models\ClientModule;
+use verbb\formie\models\BrowserModuleEntry;
 use verbb\formie\models\RichText;
 use verbb\formie\models\SlotTag;
 use verbb\formie\elements\Form;
@@ -894,19 +894,19 @@ class Survey extends OptionsField implements SortableFieldInterface, Questionnai
         return $this->displayType;
     }
 
-    protected function defineClientModules(): array
+    protected function defineBrowserModules(): array
     {
-        $modules = parent::defineClientModules();
+        $modules = parent::defineBrowserModules();
 
         if (in_array($this->displayType, [self::DISPLAY_LIKERT, self::DISPLAY_RANK, self::DISPLAY_RATING], true)) {
-            foreach ($this->defineSurveyPresentationClientModules() as $module) {
+            foreach ($this->defineSurveyPresentationBrowserModules() as $module) {
                 $modules[] = $module;
             }
 
             return $modules;
         }
 
-        foreach ($this->definePresentationFieldClientModules() as $module) {
+        foreach ($this->definePresentationFieldBrowserModules() as $module) {
             $modules[] = $module;
         }
 
@@ -1199,29 +1199,29 @@ class Survey extends OptionsField implements SortableFieldInterface, Questionnai
         }
     }
 
-    protected function defineSurveyPresentationClientModules(): array
+    protected function defineSurveyPresentationBrowserModules(): array
     {
         return match ($this->displayType) {
             self::DISPLAY_LIKERT => [
-                new ClientModule([
-                    'id' => 'survey-likert',
-                    'renderTargets' => [ClientModule::RENDER_TARGET_FRONTEND],
+                new BrowserModuleEntry([
+                    'moduleId' => 'formie:survey-likert',
+                    'surfaces' => [BrowserModuleEntry::SURFACE_SERVER_RENDERED, BrowserModuleEntry::SURFACE_CLIENT_RENDERED],
                 ]),
-                new ClientModule([
-                    'id' => 'checkbox-radio',
-                    'renderTargets' => [ClientModule::RENDER_TARGET_FRONTEND],
+                new BrowserModuleEntry([
+                    'moduleId' => 'formie:checkbox-radio',
+                    'surfaces' => [BrowserModuleEntry::SURFACE_SERVER_RENDERED, BrowserModuleEntry::SURFACE_CLIENT_RENDERED],
                 ]),
             ],
             self::DISPLAY_RANK => [
-                new ClientModule([
-                    'id' => 'survey-rank',
-                    'renderTargets' => [ClientModule::RENDER_TARGET_FRONTEND],
+                new BrowserModuleEntry([
+                    'moduleId' => 'formie:survey-rank',
+                    'surfaces' => [BrowserModuleEntry::SURFACE_SERVER_RENDERED, BrowserModuleEntry::SURFACE_CLIENT_RENDERED],
                 ]),
             ],
             self::DISPLAY_RATING => [
-                new ClientModule([
-                    'id' => 'survey-rating',
-                    'renderTargets' => [ClientModule::RENDER_TARGET_FRONTEND],
+                new BrowserModuleEntry([
+                    'moduleId' => 'formie:survey-rating',
+                    'surfaces' => [BrowserModuleEntry::SURFACE_SERVER_RENDERED, BrowserModuleEntry::SURFACE_CLIENT_RENDERED],
                 ]),
             ],
             default => [],

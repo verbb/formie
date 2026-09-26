@@ -144,7 +144,7 @@ Event::on(Rendering::class, Rendering::EVENT_MODIFY_FORM_RENDER_OPTIONS, functio
 ```
 
 ### The `modifyFrontendJsTranslations` Event
-The event that is triggered to modify or define additional translation strings for Formie's front-end JavaScript.
+The event that is triggered to modify or define additional translation strings for Formie's browser JavaScript.
 
 Those strings are encoded into the inline JSON translation seed that Formie outputs alongside its browser assets, and are then merged into the browser package's translation store at startup.
 

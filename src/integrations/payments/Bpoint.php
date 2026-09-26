@@ -15,8 +15,8 @@ use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\PaymentAttempt;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\Variables;
-use verbb\formie\models\ClientModule;
-use verbb\formie\models\ClientModuleContext;
+use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\models\BrowserModuleContext;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Payment as PaymentModel;
 use verbb\formie\models\PaymentDecision;
@@ -108,7 +108,7 @@ class Bpoint extends Payment
         return true;
     }
 
-    public function getClientModule(ClientModuleContext $context): ?ClientModule
+    public function getBrowserModule(BrowserModuleContext $context): ?BrowserModuleEntry
     {
         if (!$this->hasValidSettings()) {
             return null;
@@ -116,8 +116,9 @@ class Bpoint extends Payment
 
         $this->setField($context->field);
 
-        return new ClientModule([
-            'id' => 'bpoint',
+        return new BrowserModuleEntry([
+            'moduleId' => 'formie:bpoint',
+            'surfaces' => [BrowserModuleEntry::SURFACE_SERVER_RENDERED, BrowserModuleEntry::SURFACE_CLIENT_RENDERED],
             'config' => [
                 'requiredInputSuffixes' => ['bpointToken'],
                 'waitForValueMs' => 2500,

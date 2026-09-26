@@ -7,7 +7,7 @@ use verbb\formie\fields\custom\AbstractCustomFieldAdapter;
 use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\fields\values\CustomGoogleMapsAddressFieldValue;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\models\ClientModule;
+use verbb\formie\models\BrowserModuleEntry;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -210,12 +210,12 @@ class GoogleMapsCustomFieldAdapter extends AbstractCustomFieldAdapter
         ];
     }
 
-    public function getClientModules(CustomField $field): array
+    public function getBrowserModules(CustomField $field): array
     {
         return [
-            new ClientModule([
-                'id' => 'custom-google-maps',
-                'renderTargets' => [ClientModule::RENDER_TARGET_FRONTEND],
+            new BrowserModuleEntry([
+                'moduleId' => 'formie:custom-google-maps',
+                'surfaces' => [BrowserModuleEntry::SURFACE_SERVER_RENDERED, BrowserModuleEntry::SURFACE_CLIENT_RENDERED],
             ]),
         ];
     }

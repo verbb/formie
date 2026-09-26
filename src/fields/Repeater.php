@@ -8,7 +8,7 @@ use verbb\formie\base\IntegrationInterface;
 use verbb\formie\base\RepeatableParentFieldInterface;
 use verbb\formie\base\RepeatableParentField;
 use verbb\formie\elements\Submission;
-use verbb\formie\fields\definitions\FieldClientModules;
+use verbb\formie\fields\definitions\FieldBrowserModules;
 use verbb\formie\fields\definitions\FieldReferences;
 use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\gql\interfaces\RowInterface;
@@ -16,7 +16,7 @@ use verbb\formie\gql\types\input\RepeaterInputType;
 use verbb\formie\gql\types\RowType;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\models\ClientModule;
+use verbb\formie\models\BrowserModuleEntry;
 use verbb\formie\models\DynamicModel;
 use verbb\formie\models\SlotTag;
 use verbb\formie\models\IntegrationField;
@@ -497,20 +497,21 @@ class Repeater extends RepeatableParentField
         return 'childrenOnly';
     }
 
-    protected function defineClientInput(): array
+    protected function defineClientRenderedInput(): array
     {
-        return array_merge(parent::defineClientInput(), [
+        return array_merge(parent::defineClientRenderedInput(), [
             'minRows' => $this->minRows,
             'maxRows' => $this->maxRows,
             'addLabel' => $this->addLabel,
         ]);
     }
 
-    protected function defineClientModules(): array
+    protected function defineBrowserModules(): array
     {
-        $modules = parent::defineClientModules();
-        $modules[] = new ClientModule([
-            'id' => 'repeater',
+        $modules = parent::defineBrowserModules();
+        $modules[] = new BrowserModuleEntry([
+            'moduleId' => 'formie:repeater',
+            'surfaces' => [BrowserModuleEntry::SURFACE_SERVER_RENDERED, BrowserModuleEntry::SURFACE_CLIENT_RENDERED, BrowserModuleEntry::SURFACE_CP_EDIT],
         ]);
 
         return $modules;

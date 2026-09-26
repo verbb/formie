@@ -86,7 +86,7 @@ mergeFormieTranslations({
 console.log(t('The request timed out.'));
 ```
 
-On plugin-rendered Craft pages, Formie can seed those translations for you through an inline JSON script tag. Reach for `mergeFormieTranslations()` when your own app owns the locale, such as in headless or fully custom bundle setups.
+On server-rendered Craft pages, Formie can seed those translations for you through an inline JSON script tag. Reach for `mergeFormieTranslations()` when your own app owns the locale, such as in headless or fully custom bundle setups.
 
 ### Event Names
 
@@ -114,7 +114,7 @@ When you import `createFormieClient()` directly, you own client creation and lif
 
 ## When to Use Manual Initialisation Instead
 
-Use [Manual initialisation](/browser/behavior/manual-initialization) when Formie is still rendering the form HTML for you, but you want to turn off auto-init and initialise those roots from your own frontend bundle.
+Use [Manual initialisation](/browser/behavior/manual-initialization) when Formie is still rendering the form HTML for you, but you want to turn off auto-init and initialise those roots from your own browser bundle.
 
 ## Related Pages
 

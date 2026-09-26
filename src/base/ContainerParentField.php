@@ -5,7 +5,7 @@ use verbb\formie\base\Field;
 use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
 use verbb\formie\base\ParentFieldInterface;
-use verbb\formie\fields\definitions\FieldClientChildren;
+use verbb\formie\fields\definitions\FieldClientRenderedChildren;
 use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\fields\values\FieldValueInterface;
 use verbb\formie\gql\resolvers\elements\NestedFieldRowResolver;
@@ -197,10 +197,10 @@ abstract class ContainerParentField extends ParentField implements ParentFieldIn
         return $this->serializeNestedFieldValues($value, $element, self::NESTED_KEY_UID);
     }
 
-    protected function defineClientChildren(): FieldClientChildren
+    protected function defineClientRenderedChildren(): FieldClientRenderedChildren
     {
-        return FieldClientChildren::make(FieldClientChildren::MODEL_CONTAINER_PARENT)
-            ->withChildren(FieldClientChildren::MODE_PARTS)
+        return FieldClientRenderedChildren::make(FieldClientRenderedChildren::MODEL_CONTAINER_PARENT)
+            ->withChildren(FieldClientRenderedChildren::MODE_PARTS)
             ->withPartFieldResolver(fn() => $this->getEnabledFields());
     }
 

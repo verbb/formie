@@ -1,6 +1,6 @@
 # Styling
 
-If you are using **client-rendered forms** (`<formie-core-form>`), the element owns the visible structure, so style it with your own CSS; you do not need the browser theme unless you want shared tokens. See [Client-rendered forms](/web-components/client-rendered/overview).
+If you are using **client-rendered forms** (`<formie-client-form>`), the element owns the visible structure, so style it with your own CSS; you do not need the browser theme unless you want shared tokens. See [Client-rendered forms](/web-components/client-rendered/overview).
 
 Web Components **server-rendered forms** (`<formie-form>`) mount the browser-owned Formie UI, so the styling surface is the same browser theme surface used by `@verbb/formie-browser`.
 
@@ -204,6 +204,6 @@ The safe rule is:
 1. tokens first
 2. `themeConfig` second
 3. targeted CSS third
-4. structural replacement only when you are leaving server-rendered forms behind (for example moving to `<formie-core-form>` or `createFormieClient()` with a different strategy)
+4. structural replacement only when you are leaving server-rendered forms behind (for example moving to `<formie-client-form>` or `createFormieClient()` with a different strategy)
 
 If you find yourself fighting the shipped HTML structure with heavier CSS, that is usually a sign you want **client-rendered forms** or a lower-level client mount instead.

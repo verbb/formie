@@ -96,10 +96,10 @@ const extractMonerisToken = (payload: unknown): MonerisTokenResult => {
 };
 
 export const monerisModule = definePaymentModule<MonerisProviderOptions, null, null>({
-    id: 'moneris',
+    moduleId: 'formie:moneris',
     defaultRequiredInputSuffixes: ['monerisTokenId'],
     load: async() => null,
-    onBeforeAuthorize: async(args) => {
+    onBeforePayment: async(args) => {
         const { field, services, options } = args;
         const fieldState = field as MonerisFieldState;
         const provider = options.provider as MonerisProviderOptions;

@@ -1,6 +1,6 @@
 import type {
-    FormieModuleDefinition,
-    FormieModuleInstance,
+    BrowserModuleDefinition,
+    BrowserModuleInstance,
     ModuleSetupContext,
     SubmitHookContext,
 } from '#contracts/modules';
@@ -21,11 +21,11 @@ type Cleanup = () => void;
 const debug = createDebug('captchas');
 
 type CaptchaModuleFactory<TProvider extends Record<string, unknown>> = {
-    id: string;
+    moduleId: string;
     defaultPlaceholderSelector: string;
     defaultTokenFieldNames?: string[];
     defaultWaitForValueMs?: number;
-    setup: (ctx: CaptchaModuleSetupContext<TProvider>) => Promise<FormieModuleInstance | void>;
+    setup: (ctx: CaptchaModuleSetupContext<TProvider>) => Promise<BrowserModuleInstance | void>;
 };
 
 export type ManagedCaptchaModuleAdapter<
@@ -33,7 +33,7 @@ export type ManagedCaptchaModuleAdapter<
     TApi,
     TWidget,
 > = {
-    id: string;
+    moduleId: string;
     defaultPlaceholderSelector: string;
     defaultTokenFieldNames?: string[];
     load: (ctx: CaptchaModuleSetupContext<TProvider>) => Promise<TApi>;
@@ -45,7 +45,7 @@ export type ManagedCaptchaModuleAdapter<
         options: NormalizedCaptchaModuleOptions<TProvider>;
         provider: TProvider;
     }) => Promise<TWidget> | TWidget;
-    screen: (args: {
+    challenge: (args: {
         api: TApi;
         widget: TWidget;
         placeholder: HTMLElement;
@@ -79,14 +79,16 @@ export type CaptchaModuleSetupContext<TProvider extends Record<string, unknown>>
 };
 
 export function createCaptchaModule<TProvider extends Record<string, unknown> = Record<string, unknown>>({
-    id,
+    moduleId,
     defaultPlaceholderSelector,
     defaultTokenFieldNames = [],
     defaultWaitForValueMs = DEFAULT_WAIT_FOR_VALUE_MS,
     setup,
-}: CaptchaModuleFactory<TProvider>): FormieModuleDefinition {
+}: CaptchaModuleFactory<TProvider>): BrowserModuleDefinition {
     return {
-        id,
+        moduleId,
+        version: 1,
+        surfaces: ['server-rendered', 'client-rendered'],
         kind: 'captcha',
         match: () => true,
         setup: async(ctx) => {
@@ -95,47 +97,58 @@ export function createCaptchaModule<TProvider extends Record<string, unknown> = 
             // 1. normalized options from the backend manifest
             // 2. shared host services for placeholders, errors, tokens, and
             //    refresh-token events
-            const options = normalizeCaptchaModuleOptions<TProvider>(id, ctx.options || {}, {
+            const options = normalizeCaptchaModuleOptions<TProvider>(moduleId.split(':')[1], ctx.options || {}, {
                 defaultPlaceholderSelector,
                 defaultTokenFieldNames,
                 defaultWaitForValueMs,
             });
             debug.log('Setup module.', {
-                moduleId: id,
+                moduleId: moduleId,
                 placeholderSelector: options.ui.placeholderSelector,
                 tokenFieldNames: options.transport.tokenFieldNames,
             });
+            let placeholder: HTMLElement | undefined;
+            if (ctx.surface === 'client-rendered' && !ctx.root.querySelector(options.ui.placeholderSelector)) {
+                const attribute = /^\[(data-[a-z0-9-]+)\]$/.exec(options.ui.placeholderSelector)?.[1];
+                if (!attribute) throw new Error('The CAPTCHA needs a supported placeholder in the client-rendered form.');
+                placeholder = document.createElement('div');
+                placeholder.setAttribute(attribute, '');
+                (ctx.form ?? ctx.root).append(placeholder);
+            }
             const services = createCaptchaHostServices(ctx, options);
 
-            return setup({
+            const instance = await setup({
                 ...ctx,
                 options,
                 services,
             });
+            if (!instance) { placeholder?.remove(); return; }
+            const destroy = instance.destroy;
+            return { ...instance, destroy: async() => { await destroy(); placeholder?.remove(); } };
         },
     };
 }
 
 export function createPassiveCaptchaModule({
-    id,
+    moduleId,
     defaultPlaceholderSelector,
     defaultTokenFieldNames = [],
     defaultWaitForValueMs = DEFAULT_WAIT_FOR_VALUE_MS,
 }: {
-    id: string;
+    moduleId: string;
     defaultPlaceholderSelector: string;
     defaultTokenFieldNames?: string[];
     defaultWaitForValueMs?: number;
-}): FormieModuleDefinition {
+}): BrowserModuleDefinition {
     return createCaptchaModule<Record<string, never>>({
-        id,
+        moduleId,
         defaultPlaceholderSelector,
         defaultTokenFieldNames,
         defaultWaitForValueMs,
         setup: async({ services, options, root }) => {
             // Passive captchas do not have a browser SDK or visible widget.
             // Their lifecycle is basically "keep the hidden transport input in
-            // sync, then verify it still exists at screen-stage submit time".
+            // sync, then verify it still exists at challenge-stage submit time".
             const cleanups: Cleanup[] = [];
             let activePlaceholder = services.placeholder.getPrimary();
             let sessionKey = options.transport.sessionKey;
@@ -159,7 +172,7 @@ export function createPassiveCaptchaModule({
                 (placeholder) => {
                     activePlaceholder = placeholder;
                     debug.log('Passive placeholder visible.', {
-                        moduleId: id,
+                        moduleId: moduleId,
                     });
                     renderPlaceholder(placeholder);
                 },
@@ -193,7 +206,7 @@ export function createPassiveCaptchaModule({
                     });
                 },
                 onBeforeStage: async(stageCtx) => {
-                    if (stageCtx.stage !== 'screen' || stageCtx.action !== 'submit') {
+                    if (stageCtx.stage !== 'challenge' || stageCtx.action !== 'submit') {
                         return;
                     }
 
@@ -209,7 +222,7 @@ export function createPassiveCaptchaModule({
                         const message = services.errors.getDefaultMessage();
                         services.errors.show(message, activePlaceholder);
                         debug.warn('Passive captcha missing token.', {
-                            moduleId: id,
+                            moduleId: moduleId,
                             tokenFieldNames,
                         });
                         stageCtx.abort(message);
@@ -224,9 +237,9 @@ export function createManagedCaptchaModule<
     TProvider extends Record<string, unknown>,
     TApi,
     TWidget,
->(adapter: ManagedCaptchaModuleAdapter<TProvider, TApi, TWidget>): FormieModuleDefinition {
+>(adapter: ManagedCaptchaModuleAdapter<TProvider, TApi, TWidget>): BrowserModuleDefinition {
     return createCaptchaModule<TProvider>({
-        id: adapter.id,
+        moduleId: adapter.moduleId,
         defaultPlaceholderSelector: adapter.defaultPlaceholderSelector,
         defaultTokenFieldNames: adapter.defaultTokenFieldNames,
         setup: async(ctx) => {
@@ -234,7 +247,7 @@ export function createManagedCaptchaModule<
             // owns only the generic plumbing:
             // - load the provider API once
             // - mount/unmount when placeholders appear/disappear
-            // - call the provider's `screen()` at submit time
+            // - call the provider's `challenge()` at submit time
             //
             // It intentionally does not know provider policy such as "execute
             // now" vs "must already be solved" - that stays in each module.
@@ -243,13 +256,14 @@ export function createManagedCaptchaModule<
             const mountPromises = new Map<HTMLElement, Promise<void>>();
             let activePlaceholder = ctx.services.placeholder.getPrimary();
             let destroyed = false;
+            let initializationError: unknown;
 
             let apiPromise: Promise<TApi> | null = null;
 
             const getApi = async(): Promise<TApi> => {
                 if (!apiPromise) {
                     debug.log('Loading captcha provider API.', {
-                        moduleId: adapter.id,
+                        moduleId: adapter.moduleId,
                     });
                     apiPromise = adapter.load(ctx);
                 }
@@ -284,7 +298,7 @@ export function createManagedCaptchaModule<
                 placeholder.innerHTML = '';
                 ctx.services.tokens.clear();
                 debug.log('Unmounted captcha placeholder widget.', {
-                    moduleId: adapter.id,
+                    moduleId: adapter.moduleId,
                 });
 
                 if (activePlaceholder === placeholder) {
@@ -293,9 +307,8 @@ export function createManagedCaptchaModule<
             };
 
             const mountPlaceholder = async(placeholder: HTMLElement) => {
-                if (destroyed || mountedWidgets.has(placeholder) || mountPromises.has(placeholder)) {
-                    return;
-                }
+                if (destroyed || mountedWidgets.has(placeholder)) return;
+                if (mountPromises.has(placeholder)) return mountPromises.get(placeholder);
 
                 // Guard against repeated visibility events or rapid DOM churn
                 // by tracking an in-flight mount promise per placeholder.
@@ -322,7 +335,7 @@ export function createManagedCaptchaModule<
                     mountedWidgets.set(placeholder, widget);
                     activePlaceholder = placeholder;
                     debug.log('Mounted captcha placeholder widget.', {
-                        moduleId: adapter.id,
+                        moduleId: adapter.moduleId,
                     });
                 })().finally(() => {
                     mountPromises.delete(placeholder);
@@ -336,7 +349,7 @@ export function createManagedCaptchaModule<
             const visibility = ctx.services.placeholder.observe(
                 (placeholder) => {
                     activePlaceholder = placeholder;
-                    void mountPlaceholder(placeholder);
+                    void mountPlaceholder(placeholder).catch((error) => { initializationError = error; });
                 },
                 (placeholder) => {
                     void unmountPlaceholder(placeholder);
@@ -399,7 +412,7 @@ export function createManagedCaptchaModule<
                     return;
                 }
 
-                if (detail?.ok === false && detail?.stage === 'screen') {
+                if (detail?.ok === false && detail?.stage === 'challenge') {
                     return;
                 }
 
@@ -420,7 +433,18 @@ export function createManagedCaptchaModule<
                 }));
             }
 
+            visibility.reconcileImmediate();
+            try {
+                await Promise.all([...mountPromises.values()]);
+                if (initializationError) throw initializationError;
+            } catch (error) {
+                destroyed = true;
+                cleanups.forEach((cleanup) => cleanup());
+                throw error;
+            }
+
             return {
+                assertReady: () => { if (initializationError) throw initializationError; },
                 destroy: async() => {
                     destroyed = true;
                     cleanups.forEach((cleanup) => {
@@ -432,21 +456,21 @@ export function createManagedCaptchaModule<
                     }
                 },
                 onBeforeStage: async(stageCtx) => {
-                    if (stageCtx.stage !== 'screen' || stageCtx.action !== 'submit') {
+                    if (stageCtx.stage !== 'challenge' || stageCtx.action !== 'submit') {
                         return;
                     }
 
                     // Reconcile immediately so captcha placeholders on the newly
-                    // visible page are mounted before screen-stage policy runs.
+                    // visible page are mounted before challenge-stage policy runs.
                     visibility.reconcileImmediate();
 
-                    // By the time provider `screen()` runs, the widget is
+                    // By the time provider `challenge()` runs, the widget is
                     // guaranteed to be mounted and the active placeholder is
                     // resolved. That lets provider code focus on challenge
                     // policy rather than generic lifecycle setup.
                     const visiblePlaceholders = visibility.getVisible();
 
-                    // Captcha fields on hidden pages should not run in screen stage.
+                    // Captcha fields on hidden pages should not run in challenge stage.
                     if (visiblePlaceholders.length === 0) {
                         return;
                     }
@@ -464,8 +488,8 @@ export function createManagedCaptchaModule<
                     if (!widget) {
                         const message = ctx.services.errors.getDefaultMessage();
                         ctx.services.errors.show(message, placeholder);
-                        debug.warn('Captcha widget unavailable at screen stage.', {
-                            moduleId: adapter.id,
+                        debug.warn('Captcha widget unavailable at challenge stage.', {
+                            moduleId: adapter.moduleId,
                         });
                         stageCtx.abort(message);
                         return;
@@ -473,7 +497,7 @@ export function createManagedCaptchaModule<
 
                     const api = await getApi();
 
-                    await adapter.screen({
+                    await adapter.challenge({
                         api,
                         widget,
                         placeholder,

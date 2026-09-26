@@ -1,4 +1,4 @@
-import type { FrontendFieldDefinition } from './types';
+import type { ClientFieldDefinition } from './types';
 import { compositePartDefinitions } from './schema';
 
 function partValue(value: unknown): string {
@@ -9,14 +9,14 @@ function partValue(value: unknown): string {
     return String(value).trim();
 }
 
-function enabledDatePartHandles(field: FrontendFieldDefinition): string[] {
+function enabledDatePartHandles(field: ClientFieldDefinition): string[] {
     return compositePartDefinitions(field)
         .filter((part) => part.meta?.hidden !== true)
         .map((part) => part.handle)
         .filter((handle) => ['year', 'month', 'day'].includes(handle));
 }
 
-function hasCompleteDateParts(values: Record<string, unknown>, field: FrontendFieldDefinition): boolean {
+function hasCompleteDateParts(values: Record<string, unknown>, field: ClientFieldDefinition): boolean {
     const handles = enabledDatePartHandles(field);
 
     if (handles.length === 0) {
@@ -50,7 +50,7 @@ function buildDateTime(values: Record<string, unknown>): Date {
 }
 
 export function validateCompositeDateParts(
-    field: FrontendFieldDefinition,
+    field: ClientFieldDefinition,
     value: unknown,
     errorKey: string,
     output: Record<string, string[]>,

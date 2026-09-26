@@ -53,7 +53,7 @@ it('keeps finalize submit actions stable across ajax and page-reload submit meth
         'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
     ]));
 
-    $clientConfig = $form->getClientConfig();
+    $clientConfig = $form->getCpEditConfig();
     $settings = $clientConfig['settings'] ?? [];
 
     expect($response->success)->toBeTrue(json_encode($response->submission->getErrors()))

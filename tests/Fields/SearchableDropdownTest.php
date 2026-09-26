@@ -5,7 +5,7 @@ declare(strict_types=1);
 use verbb\formie\compatibility\fields\FieldConfigNormalizer;
 use verbb\formie\fields\Dropdown;
 use verbb\formie\Formie;
-use verbb\formie\models\ClientModule;
+use verbb\formie\models\BrowserModuleEntry;
 use verbb\formie\theme\context\RenderContext;
 
 it('includes combobox modules for searchable dropdown fields on the frontend', function (): void {
@@ -28,12 +28,12 @@ it('includes combobox modules for searchable dropdown fields on the frontend', f
         ])
         ->create();
 
-    $builder = Formie::$plugin->getClientModuleManifestBuilder();
-    $frontendModules = $builder->buildCanonical($form, ClientModule::RENDER_TARGET_FRONTEND);
-    $frontendModuleIds = array_values(array_map(static fn(array $module): string => (string)$module['id'], $frontendModules));
-    $comboboxModules = array_values(array_filter($frontendModules, static fn(array $module): bool => ($module['id'] ?? null) === 'combobox'));
+    $builder = Formie::$plugin->getBrowserModuleManifestBuilder();
+    $frontendModules = $builder->buildCanonical($form, BrowserModuleEntry::SURFACE_SERVER_RENDERED)['entries'];
+    $frontendModuleIds = array_values(array_map(static fn(array $module): string => (string)$module['moduleId'], $frontendModules));
+    $comboboxModules = array_values(array_filter($frontendModules, static fn(array $module): bool => ($module['moduleId'] ?? null) === 'formie:combobox'));
 
-    expect($frontendModuleIds)->toContain('combobox')
+    expect($frontendModuleIds)->toContain('formie:combobox')
         ->and($comboboxModules)->toHaveCount(2);
 
     $multipleFlags = array_values(array_map(static fn(array $module): ?bool => $module['config']['multiple'] ?? null, $comboboxModules));
@@ -53,13 +53,13 @@ it('does not include combobox modules when searchable dropdown is disabled', fun
         ])
         ->create();
 
-    $builder = Formie::$plugin->getClientModuleManifestBuilder();
+    $builder = Formie::$plugin->getBrowserModuleManifestBuilder();
     $frontendModuleIds = array_values(array_map(
-        static fn(array $module): string => (string)$module['id'],
-        $builder->buildCanonical($form, ClientModule::RENDER_TARGET_FRONTEND),
+        static fn(array $module): string => (string)$module['moduleId'],
+        $builder->buildCanonical($form, BrowserModuleEntry::SURFACE_SERVER_RENDERED)['entries'],
     ));
 
-    expect($frontendModuleIds)->not->toContain('combobox');
+    expect($frontendModuleIds)->not->toContain('formie:combobox');
 });
 
 it('renders combobox data attributes when searchable dropdown is enabled', function (): void {

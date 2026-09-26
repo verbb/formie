@@ -1,3 +1,5 @@
+import { setFormBrowserRequestOptions } from '#utils/request-profile';
+import { assertBrowserModuleManifest } from '@verbb/formie-core';
 import type {
     FormieClient,
     FormieFormInstance,
@@ -7,8 +9,8 @@ import { bindLegacyDomEventCompatibility } from '#compatibility/dom-adapter';
 import { resolveLegacyCompatibilityOptions } from '#compatibility/event-map';
 import { bindLegacyValidatorCompatibility } from '#compatibility/validator-adapter';
 import type { FormAction, FormMode, FormTransport } from '#contracts/common';
-import type { FormieModuleDefinition, FormieModuleInstance } from '#contracts/modules';
-import type { FormEndpointPayload, FormModuleManifest, FormSubmitResult } from '#contracts/schema';
+import type { BrowserModuleDefinition, BrowserModuleInstance } from '#contracts/modules';
+import type { FormEndpointPayload, BrowserModuleEntry, FormSubmitResult } from '#contracts/schema';
 import type { ThemeClassMap } from '#contracts/theme';
 import { dispatchFormieDomEvent } from '#core/dom-events';
 import { getErrorAriaLivePreference } from '#core/error-aria-live';
@@ -41,7 +43,7 @@ type InternalInstanceState = {
     bus: EventBus;
     form: HTMLFormElement | null;
     validator: FormieValidator | null;
-    modules: FormieModuleInstance[];
+    modules: BrowserModuleInstance[];
     unbinds: Array<() => void>;
     instance: FormieFormInstance;
 };
@@ -90,6 +92,7 @@ function inferOptionsFromElement(target: Element): FormMountOptions {
     return {
         mode: 'server-rendered',
         transport: (dataset.formieTransport as FormTransport) || 'rest',
+        profile: dataset.formieRequestProfile as FormMountOptions['profile'],
         formHandle: dataset.formieHandle,
         endpoint: dataset.formieEndpoint,
         staticCache: inferStaticCacheOnLoadFromDataset(dataset),
@@ -99,7 +102,10 @@ function inferOptionsFromElement(target: Element): FormMountOptions {
 }
 
 function normalizeMode(mode: FormMountOptions['mode'] | undefined): FormMode {
-    return mode || 'server-rendered';
+    if (mode && mode !== 'server-rendered') {
+        throw new Error('@verbb/formie-browser enhances server-rendered HTML only. Use @verbb/formie-core for client-rendered forms.');
+    }
+    return 'server-rendered';
 }
 
 function normalizeTransport(transport: FormMountOptions['transport'] | undefined): FormTransport {
@@ -153,7 +159,7 @@ function resolveHeadlessEndpoint(baseOrEndpoint: string | undefined, actionPath:
         return actionPath;
     }
 
-    if (candidate.includes('/actions/')) {
+    if (candidate.includes(actionPath)) {
         return candidate;
     }
 
@@ -228,11 +234,7 @@ function normalizeHeadlessManagedUrls(target: Element, form: HTMLFormElement, op
     });
 }
 
-function ensureSupportedHeadlessTransport(transport: FormTransport, mode: FormMode): void {
-    if (transport === 'graphql' && mode !== 'server-rendered') {
-        throw new Error(`Formie ${mode} mode does not support GraphQL transport yet.`);
-    }
-}
+
 
 function parseBooleanDatasetValue(value: string | undefined): boolean {
     if (value == null) {
@@ -339,6 +341,7 @@ function parseJsonAttribute<T>(element: Element | null, attributeName: string): 
     try {
         return JSON.parse(rawValue) as T;
     } catch (error) {
+        if (attributeName === 'data-formie-modules') throw new Error('Invalid browser-module manifest JSON. Update Formie and its browser packages together.');
         console.error(`[formie] Failed to parse ${attributeName}.`, error);
         return null;
     }
@@ -480,7 +483,6 @@ async function ensureHtmlRender(target: Element, options: FormMountOptions): Pro
         return options.payload;
     }
 
-    ensureSupportedHeadlessTransport(transport, mode);
 
     const hasForm = !!getFormFromTarget(target);
     const formHandle = options.formHandle || (target as HTMLElement).dataset.formieHandle;
@@ -503,11 +505,11 @@ async function ensureHtmlRender(target: Element, options: FormMountOptions): Pro
         ? resolveGraphqlEndpoint(options, target)
         : resolveHtmlRenderEndpoint(options, target);
     const payload = transport === 'graphql'
-        ? await requestGraphqlRender(endpoint, formHandle, renderOptions)
+        ? await requestGraphqlRender(endpoint, formHandle, renderOptions, options)
         : await requestRender(endpoint, formHandle, {
             ...renderOptions,
             endpoint,
-        });
+        }, options);
 
     if (payload?.html) {
         (target as HTMLElement).innerHTML = payload.html;
@@ -521,7 +523,6 @@ async function refreshTokensAfterSubmitIfNeeded(target: Element, options: FormMo
         return;
     }
 
-    ensureSupportedHeadlessTransport(normalizeTransport(options.transport), normalizeMode(options.mode));
 
     const formHandle = options.formHandle || (target as HTMLElement).dataset.formieHandle;
     if (!formHandle) {
@@ -533,7 +534,7 @@ async function refreshTokensAfterSubmitIfNeeded(target: Element, options: FormMo
     const endpoint = resolveRefreshTokensEndpoint(options, target);
     const renderIdInput = form.querySelector('input[name="renderId"]') as HTMLInputElement | null;
     const renderId = renderIdInput?.value || undefined;
-    const refreshTokens = await requestRefreshTokens(endpoint, formHandle, renderId);
+    const refreshTokens = await requestRefreshTokens(endpoint, formHandle, renderId, options);
     applyRefreshTokensToForm(form, refreshTokens);
     dispatchFormieDomEvent(target, 'formie:refresh-tokens:refreshed', refreshTokens);
 }
@@ -546,6 +547,8 @@ function bindFormEvents(
     validator: FormieValidator | null,
     unbinds: Array<() => void>,
 ): void {
+    form.dataset.formieRequestProfile = options.profile ?? 'same-origin-browser';
+    if (options.profile === 'cross-origin-public') form.dataset.formieSubmitMethod = 'ajax';
     const submitMethod = String(
         form.dataset.formieSubmitMethod || '',
     ).trim().toLowerCase();
@@ -842,7 +845,6 @@ async function refreshTokensIfNeeded(target: Element, options: FormMountOptions,
         return;
     }
 
-    ensureSupportedHeadlessTransport(normalizeTransport(options.transport), normalizeMode(options.mode));
 
     const formHandle = options.formHandle || (target as HTMLElement).dataset.formieHandle;
     const endpoint = resolveRefreshTokensEndpoint(options, target);
@@ -855,7 +857,7 @@ async function refreshTokensIfNeeded(target: Element, options: FormMountOptions,
 
     // Refresh-tokens-before-ready is the cache-safe path: forms can render from SSR/cache
     // and still receive fresh transport tokens before the user submits anything.
-    const refreshTokens = await requestRefreshTokens(endpoint, formHandle, renderId);
+    const refreshTokens = await requestRefreshTokens(endpoint, formHandle, renderId, options);
 
     if (!refreshTokens || !form) {
         return;
@@ -871,14 +873,14 @@ export function createFormieClient(): FormieClient {
     const moduleRegistry = new ModuleRegistry();
     const pendingVisibilityMounts = new Map<Element, () => void>();
     const pendingUnmounts = new Map<Element, Promise<void>>();
-    const stageNames: Array<'prepare' | 'normalize' | 'validate' | 'screen' | 'authorize' | 'dispatch' | 'finalize'> = [
+    const stageNames: Array<'prepare' | 'normalize' | 'validate' | 'challenge' | 'payment' | 'send' | 'result'> = [
         'prepare',
         'normalize',
         'validate',
-        'screen',
-        'authorize',
-        'dispatch',
-        'finalize',
+        'challenge',
+        'payment',
+        'send',
+        'result',
     ];
 
     const unmount = async(target: Element): Promise<void> => {
@@ -969,18 +971,31 @@ export function createFormieClient(): FormieClient {
         };
         const compatibilityOptions = resolveLegacyCompatibilityOptions(normalizedOptions.compatibility);
 
-        if (normalizedOptions.mode !== 'server-rendered' && !getFormFromTarget(target)) {
-            throw new Error(`Formie ${normalizedOptions.mode} mode is not implemented yet in the browser client.`);
-        }
 
         const renderPayload = await ensureHtmlRender(target, normalizedOptions);
         const form = getFormFromTarget(target);
+        if (form) setFormBrowserRequestOptions(form, normalizedOptions);
         normalizedOptions.staticCache =
             options.staticCache ??
             (form
                 ? inferStaticCacheOnLoadFromDataset(form.dataset)
                 : inferStaticCacheOnLoadFromDataset((target as HTMLElement).dataset));
-        const embeddedPayload = getEmbeddedPayload(target, form);
+        let embeddedPayload: FormEndpointPayload | null;
+        try {
+            embeddedPayload = getEmbeddedPayload(target, form);
+            if (renderPayload?.modules) assertBrowserModuleManifest(renderPayload.modules);
+            if (embeddedPayload?.modules) assertBrowserModuleManifest(embeddedPayload.modules);
+        } catch (error) {
+            // Unknown semantics must not fall back to an unguarded native send.
+            if (form) {
+                form.addEventListener('submit', (event) => { event.preventDefault(); event.stopImmediatePropagation(); }, true);
+                const alert = document.createElement('div');
+                alert.setAttribute('role', 'alert');
+                alert.textContent = 'This form requires a compatible Formie browser package. Update Formie and its browser packages together.';
+                form.prepend(alert);
+            }
+            throw error;
+        }
         const payload = renderPayload || embeddedPayload
             ? {
                 ...(renderPayload || {}),
@@ -989,14 +1004,13 @@ export function createFormieClient(): FormieClient {
             : null;
         const themeClassMap = payload?.theme as ThemeClassMap | undefined;
         const stateStore: Record<string, unknown> = {};
-        const moduleManifest = ((payload?.modules || []) as FormModuleManifest[]).filter((item) => {
-            return !!item?.id && !!item?.type;
-        });
+        const moduleManifest = payload?.modules ?? { contractVersion: 1, entries: [] };
+        assertBrowserModuleManifest(moduleManifest);
         debug.log('Resolved mount payload.', {
             target: getTargetDebugLabel(target),
             hasRenderPayload: !!renderPayload,
             hasEmbeddedPayload: !!embeddedPayload,
-            moduleCount: moduleManifest.length,
+            moduleCount: moduleManifest.entries.length,
         });
         const resolvedThemeClassMap = registerThemeClassMap(target, themeClassMap, form);
 
@@ -1213,7 +1227,7 @@ export function createFormieClient(): FormieClient {
             const beforeUnbind = bus.on(`formie:stage:${stageName}:before`, async(payload) => {
                 for (const moduleInstance of modules) {
                     if (moduleInstance.onBeforeStage) {
-                        await moduleInstance.onBeforeStage(payload as Parameters<NonNullable<FormieModuleInstance['onBeforeStage']>>[0]);
+                        await moduleInstance.onBeforeStage(payload as Parameters<NonNullable<BrowserModuleInstance['onBeforeStage']>>[0]);
                     }
                 }
             });
@@ -1225,7 +1239,7 @@ export function createFormieClient(): FormieClient {
             const afterUnbind = bus.on(`formie:stage:${stageName}:after`, async(payload) => {
                 const stagePayload = payload as {
                     result?: FormSubmitResult;
-                } & Parameters<NonNullable<FormieModuleInstance['onAfterStage']>>[0];
+                } & Parameters<NonNullable<BrowserModuleInstance['onAfterStage']>>[0];
 
                 for (const moduleInstance of modules) {
                     if (moduleInstance.onAfterStage) {
@@ -1437,7 +1451,7 @@ export function createFormieClient(): FormieClient {
             return;
         }
 
-        const refreshTokens = await requestRefreshTokens(endpoint, formHandle, renderId);
+        const refreshTokens = await requestRefreshTokens(endpoint, formHandle, renderId, options);
 
         if (!refreshTokens) {
             return;
@@ -1448,7 +1462,7 @@ export function createFormieClient(): FormieClient {
     };
 
     const registerModule = (
-        moduleDefinition: FormieModuleDefinition,
+        moduleDefinition: BrowserModuleDefinition,
         options?: Parameters<ModuleRegistry['register']>[1],
     ): boolean => {
         return moduleRegistry.register(moduleDefinition, options);
@@ -1458,7 +1472,7 @@ export function createFormieClient(): FormieClient {
         moduleRegistry.unregister(moduleId);
     };
 
-    const getRegisteredModules = (): FormieModuleDefinition[] => {
+    const getRegisteredModules = (): BrowserModuleDefinition[] => {
         return moduleRegistry.getAll();
     };
 

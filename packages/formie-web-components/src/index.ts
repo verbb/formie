@@ -1,4 +1,4 @@
-import { FormieCoreForm } from './formie-core-form.js';
+import { FormieClientFormElement } from './formie-client-form.js';
 import { FormieFormElement } from './form-element.js';
 import { FormieInternalSignature } from './signature-element.js';
 
@@ -15,7 +15,7 @@ export {
 } from './registry.js';
 export type { FormieRenderHost, RenderViewContext } from './render-view.js';
 export { renderErrorView, renderFormView, renderLoadingView } from './render-view.js';
-export { FormieCoreForm } from './formie-core-form.js';
+export { FormieClientFormElement } from './formie-client-form.js';
 export { FormieInternalSignature } from './signature-element.js';
 export { isFieldDefinition, resolveFieldRendererType } from './field-utils.js';
 
@@ -23,7 +23,7 @@ let allRegistered = false;
 
 /**
  * Registers all Formie custom elements: `formie-form` (server-rendered forms via formie-browser),
- * `formie-core-form` (definition-driven UI), and `formie-internal-signature`.
+ * `formie-client-form` (definition-driven UI), and `formie-internal-signature`.
  * Safe to call more than once.
  */
 export function registerFormieWebComponents(): void {
@@ -41,15 +41,14 @@ export function registerFormieWebComponents(): void {
         customElements.define('formie-internal-signature', FormieInternalSignature);
     }
 
-    if (!customElements.get('formie-core-form')) {
-        customElements.define('formie-core-form', FormieCoreForm);
+    if (!customElements.get('formie-client-form')) {
+        customElements.define('formie-client-form', FormieClientFormElement);
     }
 }
 
 export { createFormieClient } from '@verbb/formie-browser';
 export type {
     FormAction,
-    FormDefinitionPayload,
     FormEndpointPayload,
     FormEventUnsubscribe,
     FormMountOptions,

@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Changed
+- Consume the canonical versioned client-rendered bootstrap and shared browser-module host with explicit request profiles and staged uploads.
+
 ### Fixed
 - Keep field error regions mounted without reserving empty layout space, respect Formie's announcement preference, and associate invalid controls with their messages. ([#2954](https://github.com/verbb/formie/issues/2954))
 - Give default text controls accessible names and focus the first invalid input after submission.

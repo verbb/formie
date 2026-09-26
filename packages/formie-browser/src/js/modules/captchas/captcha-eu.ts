@@ -34,7 +34,7 @@ async function loadCaptchaEuGlobal(options: CaptchaEuProviderOptions): Promise<C
 }
 
 export const captchaEuModule = defineCaptchaModule<CaptchaEuProviderOptions, CaptchaEuGlobal, HTMLElement>({
-    id: 'captcha-eu',
+    moduleId: 'formie:captcha-eu',
     defaultPlaceholderSelector: '[data-captcha-eu-placeholder]',
     defaultTokenFieldNames: ['captcha-eu-token'],
     load: ({ options }) => {
@@ -69,7 +69,7 @@ export const captchaEuModule = defineCaptchaModule<CaptchaEuProviderOptions, Cap
 
         return container;
     },
-    screen: async ({ placeholder, services, stageCtx }) => {
+    challenge: async ({ placeholder, services, stageCtx }) => {
         // Captcha.eu solves through its own widget lifecycle and callback. By
         // screen time we only need to wait for the shared transport layer to
         // contain the provider payload.

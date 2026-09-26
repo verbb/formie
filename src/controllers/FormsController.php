@@ -71,6 +71,7 @@ class FormsController extends Controller
         }
 
         if (in_array($action->id, ['render', 'refresh-tokens'], true)) {
+            \verbb\formie\helpers\BrowserRequestProfile::enter(true);
             $this->enableCsrfValidation = false;
         }
 

@@ -1,4 +1,4 @@
-import type { FormieModuleDefinition } from '#contracts/modules';
+import type { BrowserModuleDefinition } from '#contracts/modules';
 import { getModuleFieldContainers } from '#modules/fields/shared';
 
 const INPUT_SELECTOR = 'input[data-formie-hidden-input]';
@@ -22,8 +22,10 @@ function getCookieValue(name: string): string | null {
     return null;
 }
 
-export const hiddenModule: FormieModuleDefinition = {
-    id: 'hidden',
+export const hiddenModule: BrowserModuleDefinition = {
+    moduleId: 'formie:hidden',
+    version: 1,
+    surfaces: ['server-rendered', 'client-rendered', 'cp-edit'],
     kind: 'field',
     match: (ctx) => {
         return !!ctx.target.querySelector(INPUT_SELECTOR);

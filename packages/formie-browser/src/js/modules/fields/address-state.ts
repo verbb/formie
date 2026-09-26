@@ -1,4 +1,6 @@
-import type { FormieModuleDefinition } from '#contracts/modules';
+import { browserRequest, type BrowserRequestOptions } from '@verbb/formie-core';
+import { getFormBrowserRequestOptions } from '#utils/request-profile';
+import type { BrowserModuleDefinition } from '#contracts/modules';
 import { ADDRESS_SELECTORS } from '#modules/address/constants';
 import { initFormieCombobox } from '#modules/fields/combobox';
 import { dispatchFieldEvent, getModuleFieldContainers } from '#modules/fields/shared';
@@ -212,7 +214,7 @@ function reconcileAutofillValue(fieldState: FieldState): void {
 }
 
 function buildSubdivisionsUrl(action: string, country: string, optionLabel: string, optionValue: string): string {
-    const url = new URL(action.startsWith('/') ? action : `/actions/${action}`, window.location.origin);
+    const url = new URL(/^https?:\/\//.test(action) || action.startsWith('/') ? action : `/actions/${action}`, window.location.origin);
     url.searchParams.set('country', country);
     url.searchParams.set('optionLabel', optionLabel);
     url.searchParams.set('optionValue', optionValue);
@@ -238,6 +240,7 @@ async function fetchSubdivisions(
     optionLabel: string,
     optionValue: string,
     action: string,
+    requestOptions: BrowserRequestOptions,
 ): Promise<SubdivisionsResponse | null> {
     const cacheKey = getSubdivisionsCacheKey(country, optionLabel, optionValue, action);
 
@@ -248,11 +251,11 @@ async function fetchSubdivisions(
     if (!subdivisionInflight.has(cacheKey)) {
         subdivisionInflight.set(cacheKey, (async() => {
             try {
-                const response = await fetch(buildSubdivisionsUrl(action, country, optionLabel, optionValue), {
+                const response = await browserRequest(buildSubdivisionsUrl(action, country, optionLabel, optionValue), {
                     headers: {
                         Accept: 'application/json',
                     },
-                });
+                }, requestOptions);
 
                 if (!response.ok) {
                     subdivisionDataCache.set(cacheKey, null);
@@ -632,7 +635,7 @@ async function applyCountryState(
         showFetchingUI(fieldState);
     }
 
-    const response = await fetchSubdivisions(country, optionLabel, optionValue, subdivisionsAction);
+    const response = await fetchSubdivisions(country, optionLabel, optionValue, subdivisionsAction, getFormBrowserRequestOptions(fieldState.addressRoot.closest('form')));
 
     if (fetchGeneration !== fieldState.fetchGeneration) {
         return;
@@ -923,8 +926,10 @@ function initAddressStateField(field: HTMLElement, options: AddressStateOptions)
     };
 }
 
-export const addressStateModule: FormieModuleDefinition = {
-    id: MODULE_ID,
+export const addressStateModule: BrowserModuleDefinition = {
+    moduleId: `formie:${MODULE_ID}`,
+    version: 1,
+    surfaces: ['server-rendered', 'client-rendered', 'cp-edit'],
     kind: 'field',
     match: (ctx) => {
         return !!ctx.target.querySelector(STATE_DYNAMIC_SELECTOR);

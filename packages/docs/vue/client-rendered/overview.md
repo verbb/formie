@@ -43,7 +43,7 @@ This is the simplest client-rendered entry point.
 | `siteId` | `number` | No | Requests the form for a specific site. |
 | `source` | `FormieDefinitionSource` | No | Uses a preloaded client definition envelope and transport metadata. |
 | `components` | `FormieVueComponents` | No | Replaces top-level `Form`, `Page`, **`Field`**, or error-summary components. |
-| `fieldComponents` | `map` | No | Replaces specific field-type renderers. Keys are `FrontendFieldType` values and values are Vue components. |
+| `fieldComponents` | `map` | No | Replaces specific field-type renderers. Keys are `ClientFieldType` values and values are Vue components. |
 | `slots` | `map` | No | Intercepts smaller layout regions inside the default component tree. Keys are slot names and values are Vue components. |
 | `className` | `string` | No | Adds a class to the rendered form root. |
 
@@ -55,15 +55,15 @@ For the common path, start with `onReady`, `onSuccess`, and `onError`.
 
 | Name (prop) | Emit name | Description |
 | --- | --- | --- |
-| `onMount` | `mount` | Called after the form instance mounts. Receives a `FrontendFormInstance`. |
-| `onReady` | `ready` | Called when the form instance is ready for use. Receives a `FrontendFormInstance`. |
+| `onMount` | `mount` | Called after the form instance mounts. Receives a `ClientFormInstance`. |
+| `onReady` | `ready` | Called when the form instance is ready for use. Receives a `ClientFormInstance`. |
 | `onUnmount` | `unmount` | Called after the form is unmounted. |
-| `onResult` | `result` | Called for every submit result. Receives a `FrontendSubmitResult`. |
-| `onSuccess` | `success` | Called when submit succeeds. Receives a `FrontendSubmitResult`. |
-| `onError` | `error` | Called when submit fails. Receives a `FrontendSubmitResult`. |
-| `onSubmitResult` | `submit-result` | Called for every submit result. Receives a `FrontendSubmitResult`. |
-| `onSubmitSuccess` | `submit-success` | Called when submit succeeds. Receives a `FrontendSubmitResult`. |
-| `onSubmitError` | `submit-error` | Called when submit fails. Receives a `FrontendSubmitResult`. |
+| `onResult` | `result` | Called for every submit result. Receives a `ClientSubmitResult`. |
+| `onSuccess` | `success` | Called when submit succeeds. Receives a `ClientSubmitResult`. |
+| `onError` | `error` | Called when submit fails. Receives a `ClientSubmitResult`. |
+| `onSubmitResult` | `submit-result` | Called for every submit result. Receives a `ClientSubmitResult`. |
+| `onSubmitSuccess` | `submit-success` | Called when submit succeeds. Receives a `ClientSubmitResult`. |
+| `onSubmitError` | `submit-error` | Called when submit fails. Receives a `ClientSubmitResult`. |
 | `onEvent` | `event` | Called for client events exposed through the Vue wrapper. Receives a `FormieVueEvent`. |
 
 The `onSubmit*` props and `submit-*` events remain available as the more explicit lower-level aliases.
@@ -106,7 +106,7 @@ Use REST when:
 
 - you want the simplest transport story
 - you want the closest fit to the client-rendered controllers
-- you are wiring the app against Formie's standard frontend actions
+- you are wiring the app against Formie's standard public actions
 
 Use GraphQL when:
 
@@ -123,7 +123,7 @@ For GraphQL client-rendered forms, load `formieClientForm`:
 ```graphql
 query ClientForm($handle: String!, $siteId: Int) {
   formieClientForm(handle: $handle, siteId: $siteId) {
-    schemaVersion
+    contractVersion
     definition
     session {
       id
@@ -135,7 +135,7 @@ query ClientForm($handle: String!, $siteId: Int) {
 }
 ```
 
-That query returns the `FrontendFormEnvelope` Vue needs: `schemaVersion`, `definition`, and `session`.
+That query returns the `ClientFormBootstrap` Vue needs: `contractVersion`, `definition`, and `session`.
 
 ## Manual GraphQL Mutations
 
@@ -177,12 +177,12 @@ If your app already fetched the client definition envelope, pass it into `source
 ```vue
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
-import { FormieClientForm, type FrontendFormEnvelope } from '@verbb/formie-vue';
+import { FormieClientForm, type ClientFormBootstrap } from '@verbb/formie-vue';
 
 const query = `
 query ClientForm($handle: String!, $siteId: Int) {
   formieClientForm(handle: $handle, siteId: $siteId) {
-    schemaVersion
+    contractVersion
     definition
     session {
       id
@@ -193,7 +193,7 @@ query ClientForm($handle: String!, $siteId: Int) {
   }
 }`;
 
-async function loadClientEnvelope(endpoint: string, handle: string): Promise<FrontendFormEnvelope> {
+async function loadClientEnvelope(endpoint: string, handle: string): Promise<ClientFormBootstrap> {
   const response = await fetch(endpoint, {
     method: 'POST',
     headers: {
@@ -216,7 +216,7 @@ async function loadClientEnvelope(endpoint: string, handle: string): Promise<Fro
   return body.data.formieClientForm;
 }
 
-const envelope = ref<FrontendFormEnvelope | null>(null);
+const envelope = ref<ClientFormBootstrap | null>(null);
 
 onMounted(() => {
   void loadClientEnvelope('https://formie.test/api', 'contactForm').then((result) => {

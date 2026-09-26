@@ -35,6 +35,6 @@ declare global {
         sagepayCheckout?: SagePayCheckoutGlobal;
     }
 }
-export declare const opayoModule: import("../../..").FormieModuleDefinition;
+export declare const opayoModule: import("../../..").BrowserModuleDefinition;
 export {};
 //# sourceMappingURL=opayo.d.ts.map

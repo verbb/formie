@@ -14,7 +14,7 @@ use verbb\formie\gql\queries\SubmissionQuery;
 use verbb\formie\gql\types\generators\FormGenerator;
 use verbb\formie\gql\types\generators\SubmissionGenerator;
 use verbb\formie\helpers\Table;
-use verbb\formie\models\ClientModule;
+use verbb\formie\models\BrowserModuleEntry;
 use yii\console\ExitCode;
 
 $pluginRoot = dirname(__DIR__, 2);
@@ -580,7 +580,7 @@ function runClientManifestPerfScenario(array $profile, int $iterations): array
     $moduleCounts = [];
 
     for ($i = 0; $i < $iterations; $i++) {
-        $moduleCounts[] = count(Formie::$plugin->getClientModuleManifestBuilder()->buildCanonical($form, ClientModule::RENDER_TARGET_FRONTEND));
+        $moduleCounts[] = count(Formie::$plugin->getBrowserModuleManifestBuilder()->buildCanonical($form, BrowserModuleEntry::SURFACE_SERVER_RENDERED));
     }
 
     return ['moduleCounts' => summarizePerfValues($moduleCounts)];

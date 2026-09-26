@@ -101,7 +101,7 @@ Returns the page conditions.
 :::
 
 ::: reference
-### `getClientConditions()`
+### `getBrowserConditions()`
 
 **Returns:** `array`
 

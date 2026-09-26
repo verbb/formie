@@ -6,6 +6,7 @@
 - Add the shared, versioned reference grammar and typed browser source diagnostics.
 
 ### Changed
+- Version the client-rendered bootstrap and module contract, enforce explicit request profiles, stage selected files and expose shared browser-module host seams.
 - Describe normalized field values with explicit runtime type metadata and keep browser-input defaults separate from public data projections.
 - Support browser-bound progress, purpose-bound grant exchange, revision sessions and portable Save & Continue responses across REST and GraphQL. Clear exchanged tokens from browser history and preserve scoped upload attachment values.
 - Carry submission versions and typed outcomes through REST and GraphQL; return expected rejection and conflict payloads to renderers.
@@ -37,7 +38,7 @@
 ## 1.0.9 - 2026-06-25
 
 ### Added
-- Extend `FrontendSubmitResult` and `submitFormieClientForm` GraphQL selections with payment follow-up fields (`paymentStatus`, `paymentMessage`, `paymentRedirectUrl`, `paymentAction`, `paymentDecision`, `keepSubmitLoading`), plus `quizResult` and `clientEvents`. ([#1375](https://github.com/verbb/formie/issues/1375))
+- Extend `ClientSubmitResult` and `submitFormieClientForm` GraphQL selections with payment follow-up fields (`paymentStatus`, `paymentMessage`, `paymentRedirectUrl`, `paymentAction`, `paymentDecision`, `keepSubmitLoading`), plus `quizResult` and `clientEvents`. ([#1375](https://github.com/verbb/formie/issues/1375))
 
 ## 1.0.8 - 2026-06-24
 

@@ -4,7 +4,7 @@
 
 ## What You Can Customise
 
-`<formie-core-form>` renders from the client definition. Overrides go on **`FormieRegistry`**:
+`<formie-client-form>` renders from the client definition. Overrides go on **`FormieRegistry`**:
 
 - **`registerField(tagName)`** — one custom element wraps each question: label, instructions, the control (projected as child content or via a slot), and errors.
 - **`registerFieldControl(fieldKey, tagName)`** — only the control for a given field type or renderer key (e.g. `single-line-text`).
@@ -17,7 +17,7 @@ Define your custom elements with **`customElements.define`** before you call the
 - Use **`registerField`** when you want one custom element to own the full field layout around the control.
 - Use **`registerFieldControl`** when the default field layout is fine but a specific field type needs a custom input.
 - Use **`registerRegion`** when you want to replace loading UI, page actions, error summary, or other named regions.
-- Listen on **`formie-core-form`** for composed **`formie:*`** events, or use **`getFormieInstance()`** after **`formie:client:ready`**, when you need imperative access to form state and actions from script.
+- Listen on **`formie-client-form`** for composed **`formie:*`** events, or use **`getFormieInstance()`** after **`formie:client:ready`**, when you need imperative access to form state and actions from script.
 
 ## Combined Example
 
@@ -172,7 +172,7 @@ registerFormieWebComponents();
 getFormieRegistry().registerField('starter-field');
 getFormieRegistry().registerFieldControl('single-line-text', 'starter-text-field');
 
-const el = document.createElement('formie-core-form');
+const el = document.createElement('formie-client-form');
 el.endpoint = 'https://formie.test';
 el.formHandle = 'contactForm';
 el.transport = 'rest';
@@ -242,7 +242,7 @@ customElements.define('my-single-line-text', SingleLineTextField);
 registerFormieWebComponents();
 getFormieRegistry().registerFieldControl('single-line-text', 'my-single-line-text');
 
-const el = document.createElement('formie-core-form');
+const el = document.createElement('formie-client-form');
 el.endpoint = 'https://formie.test';
 el.formHandle = 'contactForm';
 el.transport = 'rest';
@@ -257,7 +257,7 @@ document.body.append(el);
 
 The host does not expose a hook-style API. Use either:
 
-- **Composed events** on **`formie-core-form`** (e.g. **`formie:submit:result`**, **`formie:client:ready`** — full list on the [overview](/web-components/client-rendered/overview) page), or
+- **Composed events** on **`formie-client-form`** (e.g. **`formie:submit:result`**, **`formie:client:ready`** — full list on the [overview](/web-components/client-rendered/overview) page), or
 - **`el.getFormieInstance()`** once the form client is ready, for **`subscribe`**, **`submit`**, and related APIs.
 
 ```js
@@ -265,7 +265,7 @@ import { registerFormieWebComponents } from '@verbb/formie-web-components';
 
 registerFormieWebComponents();
 
-const el = document.createElement('formie-core-form');
+const el = document.createElement('formie-client-form');
 el.endpoint = 'https://formie.test';
 el.formHandle = 'contactForm';
 el.transport = 'rest';
@@ -284,4 +284,4 @@ document.body.append(el);
 
 ## Deeper Rendering
 
-For a host other than **`formie-core-form`**, or a fully custom DOM tree, use **`renderFormView`** and **`@verbb/formie-core`** directly. Prefer **`FormieRegistry`** + **`formie-core-form`** until you need that escape hatch.
+For a host other than **`formie-client-form`**, or a fully custom DOM tree, use **`renderFormView`** and **`@verbb/formie-core`** directly. Prefer **`FormieRegistry`** + **`formie-client-form`** until you need that escape hatch.

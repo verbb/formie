@@ -1,7 +1,7 @@
 import SignaturePad from 'signature_pad';
 import signatureCss from '#theme-css/fields/_signature.css?inline';
 
-import type { FormieModuleDefinition } from '#contracts/modules';
+import type { BrowserModuleDefinition } from '#contracts/modules';
 import { dispatchFieldEvent, getModuleFieldContainers } from '#modules/fields/shared';
 import { ensureModuleStyles } from '#modules/styles';
 
@@ -378,8 +378,10 @@ function initSignatureField(
     };
 }
 
-export const signatureModule: FormieModuleDefinition = {
-    id: MODULE_ID,
+export const signatureModule: BrowserModuleDefinition = {
+    moduleId: `formie:${MODULE_ID}`,
+    version: 1,
+    surfaces: ['server-rendered', 'client-rendered', 'cp-edit'],
     kind: 'field',
     match: (ctx) => {
         return !!ctx.target.querySelector(CANVAS_SELECTOR);

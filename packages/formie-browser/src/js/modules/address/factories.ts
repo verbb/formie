@@ -1,6 +1,6 @@
 import type {
-    FormieModuleDefinition,
-    FormieModuleInstance,
+    BrowserModuleDefinition,
+    BrowserModuleInstance,
     ModuleSetupContext,
 } from '#contracts/modules';
 import {
@@ -30,7 +30,7 @@ export type ManagedAddressModuleAdapter<
     TApi,
     TWidget,
 > = {
-    id: string;
+    moduleId: string;
     load: (ctx: AddressModuleSetupContext<TProvider>) => Promise<TApi>;
     mount: (args: {
         api: TApi;
@@ -61,9 +61,11 @@ export function createManagedAddressModule<
     TProvider extends Record<string, unknown>,
     TApi,
     TWidget,
->(adapter: ManagedAddressModuleAdapter<TProvider, TApi, TWidget>): FormieModuleDefinition {
+>(adapter: ManagedAddressModuleAdapter<TProvider, TApi, TWidget>): BrowserModuleDefinition {
     return {
-        id: adapter.id,
+        moduleId: adapter.moduleId,
+        version: 1,
+        surfaces: ['server-rendered', 'client-rendered', 'cp-edit'],
         kind: 'address',
         match: (ctx) => {
             const input = ctx.target.querySelector('[data-formie-address-autocomplete-input]');
@@ -71,10 +73,10 @@ export function createManagedAddressModule<
             return !!input;
         },
         setup: async (ctx) => {
-            const options = normalizeAddressModuleOptions<TProvider>(adapter.id, ctx.options || {});
+            const options = normalizeAddressModuleOptions<TProvider>(adapter.moduleId.split(':')[1], ctx.options || {});
             const services = createAddressHostServices(ctx);
             debug.log('Setup module.', {
-                moduleId: adapter.id,
+                moduleId: adapter.moduleId,
             });
 
             const setupCtx: AddressModuleSetupContext<TProvider> = {
@@ -90,11 +92,11 @@ export function createManagedAddressModule<
 
             if (!input) {
                 console.warn(
-                    `[formie] Address module "${adapter.id}" skipped: no autocomplete input found in target. ` +
+                    `[formie] Address module "${adapter.moduleId}" skipped: no autocomplete input found in target. ` +
                     'Ensure the Address field has the Auto-Complete subfield enabled.',
                 );
                 debug.warn('Autocomplete input missing; skipping module.', {
-                    moduleId: adapter.id,
+                    moduleId: adapter.moduleId,
                 });
                 return {
                     destroy: () => { },
@@ -104,7 +106,7 @@ export function createManagedAddressModule<
             const getApi = async(): Promise<TApi> => {
                 if (!apiPromise) {
                     debug.log('Loading provider API.', {
-                        moduleId: adapter.id,
+                        moduleId: adapter.moduleId,
                     });
                     apiPromise = adapter.load(setupCtx);
                 }
@@ -126,7 +128,7 @@ export function createManagedAddressModule<
                     provider: options.provider,
                 });
                 debug.log('Widget mounted.', {
-                    moduleId: adapter.id,
+                    moduleId: adapter.moduleId,
                 });
             };
 
@@ -178,7 +180,7 @@ export function createManagedAddressModule<
             return {
                 destroy: async () => {
                     debug.log('Destroying module.', {
-                        moduleId: adapter.id,
+                        moduleId: adapter.moduleId,
                     });
                     cleanups.forEach((c) => c());
 
@@ -193,7 +195,7 @@ export function createManagedAddressModule<
                             provider: options.provider,
                         });
                         debug.log('Widget unmounted.', {
-                            moduleId: adapter.id,
+                            moduleId: adapter.moduleId,
                         });
                     }
                 },

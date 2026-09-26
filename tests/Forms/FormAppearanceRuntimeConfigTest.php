@@ -51,7 +51,7 @@ it('emits runtime frontend variables for loading indicator and scroll behavior',
 
     expect(Craft::$app->elements->saveElement($form))->toBeTrue();
 
-    $clientConfig = $form->getClientConfig();
+    $clientConfig = $form->getCpEditConfig();
     $settings = $clientConfig['settings'] ?? [];
 
     expect($settings['submitMethod'] ?? null)->toBe('ajax')

@@ -1,5 +1,5 @@
 import TomSelect from 'tom-select/dist/esm/tom-select.complete.js';
-import type { FormieModuleDefinition } from '#contracts/modules';
+import type { BrowserModuleDefinition } from '#contracts/modules';
 export type FormieComboboxOptions = {
     multiple?: boolean;
     placeholder?: string | null;
@@ -12,6 +12,6 @@ type SelectElement = HTMLSelectElement & {
     _formieTomSelect?: TomSelectInstance;
 };
 export declare function initFormieCombobox(select: SelectElement, options?: FormieComboboxOptions): () => void;
-export declare const comboboxModule: FormieModuleDefinition;
+export declare const comboboxModule: BrowserModuleDefinition;
 export {};
 //# sourceMappingURL=combobox.d.ts.map

@@ -10,6 +10,8 @@ class HtmlFormResolver
 {
     public static function resolve(mixed $source, array $arguments): array
     {
+        \verbb\formie\helpers\BrowserRequestProfile::enter(true);
+        \verbb\formie\helpers\CrossOriginRequestHelper::applyHeaders(\Craft::$app->getRequest(), \Craft::$app->getResponse());
         $form = GqlHelper::findReadableFormByHandle(
             (string)($arguments['handle'] ?? ''),
             isset($arguments['siteId']) ? (int)$arguments['siteId'] : null

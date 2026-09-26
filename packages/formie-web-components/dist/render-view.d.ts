@@ -1,4 +1,4 @@
-import { type FrontendFormInstance, type FrontendFormState } from '@verbb/formie-core';
+import { type ClientFormInstance, type ClientFormState } from '@verbb/formie-core';
 import { type TemplateResult } from 'lit';
 import { type FormieRegistry } from './registry.js';
 import type { LitElement } from 'lit';
@@ -7,8 +7,8 @@ export type FormieRenderHost = LitElement & {
 };
 export type RenderViewContext = {
     registry: FormieRegistry;
-    state: FrontendFormState;
-    instance: FrontendFormInstance;
+    state: ClientFormState;
+    instance: ClientFormInstance;
     host: FormieRenderHost;
     formClass: string;
 };

@@ -8,7 +8,7 @@ interface DisplayTypeFieldInterface
      *
      * Used by display-type wrapper fields (Quiz, Survey, Recipients, element fields, etc.)
      * so shared input templates run against a genuine field class with the correct
-     * properties, slot tags, and client modules.
+     * properties, slot tags, and browser modules.
      */
     public function getDisplayTypeField(): ?FieldInterface;
 

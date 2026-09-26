@@ -14,6 +14,6 @@ class FormDefinitionBuilder extends Component
 
     public function build(Form $form, LoadContext $context): FormDefinition
     {
-        return $form->getClientPayload($context);
+        return $form->getClientRenderedDefinition($context);
     }
 }

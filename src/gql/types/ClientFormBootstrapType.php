@@ -21,8 +21,8 @@ class ClientFormBootstrapType extends ObjectType
         return GqlEntityRegistry::getEntity(self::getName()) ?: GqlEntityRegistry::createEntity(self::getName(), new self([
             'name' => self::getName(),
             'fields' => [
-                'schemaVersion' => [
-                    'name' => 'schemaVersion',
+                'contractVersion' => [
+                    'name' => 'contractVersion',
                     'type' => Type::nonNull(Type::int()),
                 ],
                 'definition' => [

@@ -44,8 +44,6 @@ class AliasBootstrap
             ['verbb\\formie\\client\\models\\SessionRefreshRequest', 'verbb\\formie\\runtime\\models\\SessionRefreshRequest'],
             ['verbb\\formie\\client\\models\\SubmitRequest', 'verbb\\formie\\runtime\\models\\SubmitRequest'],
             ['verbb\\formie\\events\\ModifyFrontendJsTranslationsEvent', 'verbb\\formie\\events\\ModifyRuntimeJsTranslationsEvent'],
-            ['verbb\\formie\\models\\ClientModule', 'verbb\\formie\\models\\RuntimeModule'],
-            ['verbb\\formie\\models\\ClientModuleContext', 'verbb\\formie\\models\\RuntimeModuleContext'],
             ['verbb\\formie\\models\\RenderFrame', 'verbb\\formie\\models\\RuntimeRenderFrame'],
             ['verbb\\formie\\services\\FrontendAssets', 'verbb\\formie\\services\\RuntimeAssets'],
             ['verbb\\formie\\compatibility\\client\\ClientCompatibility', 'verbb\\formie\\compatibility\\runtime\\RuntimeCompatibility'],

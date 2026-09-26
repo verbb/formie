@@ -1,6 +1,6 @@
-import type { FormieModuleDefinition } from '#contracts/modules';
+import type { BrowserModuleDefinition } from '#contracts/modules';
 
-export const builtinFieldModuleLoaders: Record<string, () => Promise<FormieModuleDefinition>> = {
+export const builtinFieldModuleLoaders: Record<string, () => Promise<BrowserModuleDefinition>> = {
     // Keep the builtin map flat and explicit so manifest ids remain the source of
     // truth for lazy-loading first-party field enhancements.
     'calculations': () => import('#modules/fields/calculations').then((module) => module.calculationsModule),

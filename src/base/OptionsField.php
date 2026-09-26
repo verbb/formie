@@ -539,9 +539,9 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Opti
         return $settings;
     }
 
-    public function getClientConfig(): array
+    public function getCpEditConfig(): array
     {
-        $config = parent::getClientConfig();
+        $config = parent::getCpEditConfig();
 
         if ($this->getOptionsMode() !== OptionsMode::STATIC) {
             // CP submission editing consumes the thin client config rather than
@@ -994,7 +994,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Opti
         };
     }
 
-    protected function defineClientInput(): array
+    protected function defineClientRenderedInput(): array
     {
         $displayType = (string)($this->displayType ?? 'dropdown');
         $contract = [
@@ -1023,7 +1023,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Opti
             $contract['max'] = $this->max ?? null;
         }
 
-        return array_merge(parent::defineClientInput(), $contract);
+        return array_merge(parent::defineClientRenderedInput(), $contract);
     }
 
     protected function defineValueForSummary(mixed $value, ElementInterface $element = null): string

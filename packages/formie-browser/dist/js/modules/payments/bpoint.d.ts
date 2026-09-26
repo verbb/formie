@@ -1,2 +1,2 @@
-export declare const bpointModule: import("../../..").FormieModuleDefinition;
+export declare const bpointModule: import("../../..").BrowserModuleDefinition;
 //# sourceMappingURL=bpoint.d.ts.map

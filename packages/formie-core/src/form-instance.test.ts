@@ -1,10 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createFrontendFormInstance } from './form-instance';
-import type { FrontendFieldDefinition, FrontendFormEnvelope, FrontendFormSession, FrontendTransport } from './types';
+import { createClientFormInstance } from './form-instance';
+import type { ClientFieldDefinition, ClientFormBootstrap, ClientFormSession, ClientTransport } from './types';
 
-function createTextField(id: string, handle: string, overrides: Partial<FrontendFieldDefinition> = {}): FrontendFieldDefinition {
+function createTextField(id: string, handle: string, overrides: Partial<ClientFieldDefinition> = {}): ClientFieldDefinition {
     return {
         id,
+        uid: id,
         key: id,
         handle,
         label: handle,
@@ -24,9 +25,9 @@ function createTextField(id: string, handle: string, overrides: Partial<Frontend
     };
 }
 
-function createEnvelope(fields: FrontendFieldDefinition[], session: Partial<FrontendFormSession> = {}): FrontendFormEnvelope {
+function createEnvelope(fields: ClientFieldDefinition[], session: Partial<ClientFormSession> = {}): ClientFormBootstrap {
     return {
-        schemaVersion: 1,
+        contractVersion: 1,
         definition: {
             id: 'form-1',
             handle: 'contactForm',
@@ -82,7 +83,7 @@ function createEnvelope(fields: FrontendFieldDefinition[], session: Partial<Fron
                     },
                 },
             ],
-            modules: [],
+            modules: { contractVersion: 1, entries: [] },
             submission: {
                 endpoint: '/actions/formie/client/submissions/submit',
                 method: 'POST',
@@ -106,7 +107,7 @@ function createEnvelope(fields: FrontendFieldDefinition[], session: Partial<Fron
     };
 }
 
-function createTransport(overrides: Partial<FrontendTransport> = {}): FrontendTransport {
+function createTransport(overrides: Partial<ClientTransport> = {}): ClientTransport {
     return {
         submit: async({ session }) => ({
             success: true,
@@ -133,9 +134,9 @@ function createTransport(overrides: Partial<FrontendTransport> = {}): FrontendTr
     };
 }
 
-describe('createFrontendFormInstance', () => {
+describe('createClientFormInstance', () => {
     it('derives field and page visibility from conditions', () => {
-        const runtime = createFrontendFormInstance({
+        const runtime = createClientFormInstance({
             envelope: createEnvelope([
                 createTextField('trigger', 'trigger'),
                 createTextField('conditional', 'conditional', {
@@ -166,7 +167,7 @@ describe('createFrontendFormInstance', () => {
     });
 
     it('clears newly hidden values when conditions hide a field', () => {
-        const runtime = createFrontendFormInstance({
+        const runtime = createClientFormInstance({
             envelope: createEnvelope([
                 createTextField('trigger', 'trigger'),
                 createTextField('conditional', 'conditional', {
@@ -196,7 +197,7 @@ describe('createFrontendFormInstance', () => {
     });
 
     it('supports notContains condition operators', () => {
-        const runtime = createFrontendFormInstance({
+        const runtime = createClientFormInstance({
             envelope: createEnvelope([
                 createTextField('trigger', 'trigger'),
                 createTextField('conditional', 'conditional', {
@@ -222,7 +223,7 @@ describe('createFrontendFormInstance', () => {
     });
 
     it('evaluates repeater values in conditions', () => {
-        const runtime = createFrontendFormInstance({
+        const runtime = createClientFormInstance({
             envelope: createEnvelope([
                 {
                     id: 'items',
@@ -275,7 +276,7 @@ describe('createFrontendFormInstance', () => {
     });
 
     it('uses the page primary action when submit is called without an explicit action', async() => {
-        const submit = vi.fn<FrontendTransport['submit']>(async({ session, action }) => ({
+        const submit = vi.fn<ClientTransport['submit']>(async({ session, action }) => ({
             success: true,
             isFinalPage: false,
             currentPageId: 'page-2',
@@ -293,7 +294,7 @@ describe('createFrontendFormInstance', () => {
         }));
         const envelope = createEnvelope([createTextField('trigger', 'trigger')]);
         envelope.definition.pages[0].actions.primary.type = 'next';
-        const runtime = createFrontendFormInstance({
+        const runtime = createClientFormInstance({
             envelope,
             transport: createTransport({
                 submit,
@@ -310,7 +311,7 @@ describe('createFrontendFormInstance', () => {
     });
 
     it('recovers cleanly from submit transport errors', async() => {
-        const runtime = createFrontendFormInstance({
+        const runtime = createClientFormInstance({
             envelope: createEnvelope([createTextField('trigger', 'trigger')]),
             transport: createTransport({
                 submit: async() => {
@@ -328,7 +329,7 @@ describe('createFrontendFormInstance', () => {
     });
 
     it('validates match, number, url, and min/max checkbox rules', async() => {
-        const runtime = createFrontendFormInstance({
+        const runtime = createClientFormInstance({
             envelope: createEnvelope([
                 createTextField('email', 'email'),
                 createTextField('confirm', 'confirm', {
@@ -399,7 +400,7 @@ describe('createFrontendFormInstance', () => {
     });
 
     it('skips client-side submit validation when onSubmit is disabled', async() => {
-        const submit = vi.fn<FrontendTransport['submit']>(async({ session }) => ({
+        const submit = vi.fn<ClientTransport['submit']>(async({ session }) => ({
             success: true,
             isFinalPage: false,
             currentPageId: 'page-2',
@@ -421,7 +422,7 @@ describe('createFrontendFormInstance', () => {
             }),
         ]);
         envelope.definition.settings.validation.onSubmit = false;
-        const runtime = createFrontendFormInstance({
+        const runtime = createClientFormInstance({
             envelope,
             transport: createTransport({
                 submit,
@@ -436,7 +437,7 @@ describe('createFrontendFormInstance', () => {
     });
 
     it('resets values and navigation back to the initial session state', async() => {
-        const runtime = createFrontendFormInstance({
+        const runtime = createClientFormInstance({
             envelope: createEnvelope([createTextField('trigger', 'trigger')]),
             transport: createTransport(),
         });
@@ -453,7 +454,7 @@ describe('createFrontendFormInstance', () => {
     });
 
     it('emits the client ready event after subscribers can attach', async() => {
-        const runtime = createFrontendFormInstance({
+        const runtime = createClientFormInstance({
             envelope: createEnvelope([createTextField('trigger', 'trigger')]),
             transport: createTransport(),
         });
@@ -467,7 +468,7 @@ describe('createFrontendFormInstance', () => {
 
     it('rejects concurrent submit calls and keeps destroy terminal', async() => {
         const pending: Array<(value: any) => void> = [];
-        const transport: FrontendTransport = {
+        const transport: ClientTransport = {
             ...createTransport(),
             submit: vi.fn(() => new Promise((resolve) => {
                 pending.push(resolve);
@@ -476,7 +477,7 @@ describe('createFrontendFormInstance', () => {
         const envelope = createEnvelope([createTextField('trigger', 'trigger')]);
         envelope.definition.settings.validation.onSubmit = false;
 
-        const runtime = createFrontendFormInstance({
+        const runtime = createClientFormInstance({
             envelope,
             transport,
         });
@@ -506,17 +507,19 @@ describe('createFrontendFormInstance', () => {
     it('ignores a pending submission after reset and allows a fresh submission', async() => {
         const pending: Array<(value: any) => void> = [];
         const transport = createTransport({ submit: vi.fn(() => new Promise((resolve) => pending.push(resolve))) });
-        const runtime = createFrontendFormInstance({
+        const runtime = createClientFormInstance({
             envelope: createEnvelope([createTextField('trigger', 'trigger')]),
             transport,
         });
         const listener = vi.fn();
         runtime.on('formie:submit:result', listener);
         const old = runtime.submit('submit');
+        await vi.waitFor(() => expect(pending).toHaveLength(1));
         runtime.reset();
         expect(runtime.getState().status).toBe('ready');
         runtime.setValue('trigger', 'yes');
         const fresh = runtime.submit('submit');
+        await vi.waitFor(() => expect(pending).toHaveLength(2));
         const response = (page: string) => ({
             success: true, isFinalPage: true, currentPageId: page,
             errors: { form: [], fields: {}, pages: {} }, messages: {},
@@ -534,12 +537,12 @@ describe('createFrontendFormInstance', () => {
     });
 
     it.each([true, false])('keeps newer navigation when an older refresh finishes (remote: %s)', async(remote) => {
-        let finishRefresh!: (session: FrontendFormSession) => void;
+        let finishRefresh!: (session: ClientFormSession) => void;
         const transport = createTransport({
             refreshSession: vi.fn(() => new Promise((resolve) => { finishRefresh = resolve; })),
         });
         if (!remote) transport.setPage = undefined;
-        const runtime = createFrontendFormInstance({
+        const runtime = createClientFormInstance({
             envelope: createEnvelope([createTextField('trigger', 'trigger')]), transport,
         });
         runtime.setValue('trigger', 'yes');

@@ -1,28 +1,32 @@
-import { type FrontendFieldDefinition, type FrontendErrorAriaLive, type FrontendFormDefinition, type FrontendFormEnvelope, type FrontendFormSession, type FrontendFormInstance, type FrontendFormState, type FrontendSubmitResult } from '@verbb/formie-core';
+import { type ClientFieldDefinition, type ClientErrorAriaLive, type ClientFormDefinition, type ClientFormBootstrap, type ClientFormSession, type ClientFormInstance, type ClientFormState, type ClientSubmitResult } from '@verbb/formie-core';
 import { type Component, type ComputedRef, type PropType, type ShallowRef, type VNode } from 'vue';
 export type FormieDefinitionSource = {
     transport: 'rest';
     endpoint: string;
+    profile?: 'same-origin-browser' | 'cross-origin-public';
     formHandle: string;
     siteId?: number;
 } | {
     transport: 'graphql';
     endpoint: string;
+    profile?: 'same-origin-browser' | 'cross-origin-public';
     formHandle: string;
     siteId?: number;
 } | {
-    definition: FrontendFormEnvelope;
+    definition: ClientFormBootstrap;
     transport: {
         type: 'rest';
         endpoint: string;
+        profile?: 'same-origin-browser' | 'cross-origin-public';
         formHandle: string;
         siteId?: number;
     };
 } | {
-    definition: FrontendFormEnvelope;
+    definition: ClientFormBootstrap;
     transport: {
         type: 'graphql';
         endpoint: string;
+        profile?: 'same-origin-browser' | 'cross-origin-public';
         formHandle: string;
         siteId?: number;
     };
@@ -32,32 +36,32 @@ export type FormieVueEvent = {
     payload: unknown;
 };
 export type FormieFormComponentProps = {
-    definition: FrontendFormDefinition;
-    session: FrontendFormSession;
-    state: FrontendFormState;
+    definition: ClientFormDefinition;
+    session: ClientFormSession;
+    state: ClientFormState;
     className?: string;
     onSubmit: () => void;
 };
 export type FormiePageComponentProps = {
-    page: FrontendFormDefinition['pages'][number];
-    state: FrontendFormState;
+    page: ClientFormDefinition['pages'][number];
+    state: ClientFormState;
 };
 export type FormieFieldProps = {
-    field: FrontendFieldDefinition;
+    field: ClientFieldDefinition;
     errors: string[];
     errorId: string;
-    errorAriaLive: FrontendErrorAriaLive;
+    errorAriaLive: ClientErrorAriaLive;
 };
 export type FormieErrorSummaryProps = {
     errors: string[];
 };
 export type FormieFieldComponentProps = {
-    field: FrontendFieldDefinition;
+    field: ClientFieldDefinition;
     value: unknown;
     errors: string[];
     errorKey: string;
     errorId: string;
-    errorAriaLive: FrontendErrorAriaLive;
+    errorAriaLive: ClientErrorAriaLive;
     disabled: boolean;
     hidden: boolean;
     setValue: (value: unknown) => void;
@@ -94,11 +98,11 @@ export declare const DefinitionFormView: import("vue").DefineComponent<import("v
         readonly default: any;
     };
     readonly onMount: {
-        readonly type: PropType<(instance: FrontendFormInstance) => void>;
+        readonly type: PropType<(instance: ClientFormInstance) => void>;
         readonly default: any;
     };
     readonly onReady: {
-        readonly type: PropType<(instance: FrontendFormInstance) => void>;
+        readonly type: PropType<(instance: ClientFormInstance) => void>;
         readonly default: any;
     };
     readonly onUnmount: {
@@ -106,27 +110,27 @@ export declare const DefinitionFormView: import("vue").DefineComponent<import("v
         readonly default: any;
     };
     readonly onResult: {
-        readonly type: PropType<(result: FrontendSubmitResult) => void>;
+        readonly type: PropType<(result: ClientSubmitResult) => void>;
         readonly default: any;
     };
     readonly onSuccess: {
-        readonly type: PropType<(result: FrontendSubmitResult) => void>;
+        readonly type: PropType<(result: ClientSubmitResult) => void>;
         readonly default: any;
     };
     readonly onError: {
-        readonly type: PropType<(result: FrontendSubmitResult) => void>;
+        readonly type: PropType<(result: ClientSubmitResult) => void>;
         readonly default: any;
     };
     readonly onSubmitResult: {
-        readonly type: PropType<(result: FrontendSubmitResult) => void>;
+        readonly type: PropType<(result: ClientSubmitResult) => void>;
         readonly default: any;
     };
     readonly onSubmitSuccess: {
-        readonly type: PropType<(result: FrontendSubmitResult) => void>;
+        readonly type: PropType<(result: ClientSubmitResult) => void>;
         readonly default: any;
     };
     readonly onSubmitError: {
-        readonly type: PropType<(result: FrontendSubmitResult) => void>;
+        readonly type: PropType<(result: ClientSubmitResult) => void>;
         readonly default: any;
     };
     readonly onEvent: {
@@ -157,11 +161,11 @@ export declare const DefinitionFormView: import("vue").DefineComponent<import("v
         readonly default: any;
     };
     readonly onMount: {
-        readonly type: PropType<(instance: FrontendFormInstance) => void>;
+        readonly type: PropType<(instance: ClientFormInstance) => void>;
         readonly default: any;
     };
     readonly onReady: {
-        readonly type: PropType<(instance: FrontendFormInstance) => void>;
+        readonly type: PropType<(instance: ClientFormInstance) => void>;
         readonly default: any;
     };
     readonly onUnmount: {
@@ -169,27 +173,27 @@ export declare const DefinitionFormView: import("vue").DefineComponent<import("v
         readonly default: any;
     };
     readonly onResult: {
-        readonly type: PropType<(result: FrontendSubmitResult) => void>;
+        readonly type: PropType<(result: ClientSubmitResult) => void>;
         readonly default: any;
     };
     readonly onSuccess: {
-        readonly type: PropType<(result: FrontendSubmitResult) => void>;
+        readonly type: PropType<(result: ClientSubmitResult) => void>;
         readonly default: any;
     };
     readonly onError: {
-        readonly type: PropType<(result: FrontendSubmitResult) => void>;
+        readonly type: PropType<(result: ClientSubmitResult) => void>;
         readonly default: any;
     };
     readonly onSubmitResult: {
-        readonly type: PropType<(result: FrontendSubmitResult) => void>;
+        readonly type: PropType<(result: ClientSubmitResult) => void>;
         readonly default: any;
     };
     readonly onSubmitSuccess: {
-        readonly type: PropType<(result: FrontendSubmitResult) => void>;
+        readonly type: PropType<(result: ClientSubmitResult) => void>;
         readonly default: any;
     };
     readonly onSubmitError: {
-        readonly type: PropType<(result: FrontendSubmitResult) => void>;
+        readonly type: PropType<(result: ClientSubmitResult) => void>;
         readonly default: any;
     };
     readonly onEvent: {
@@ -208,29 +212,29 @@ export declare const DefinitionFormView: import("vue").DefineComponent<import("v
     "onSubmit-success"?: (...args: any[]) => any;
     "onSubmit-error"?: (...args: any[]) => any;
 }>, {
-    readonly onError: (result: FrontendSubmitResult) => void;
+    readonly onError: (result: ClientSubmitResult) => void;
     readonly components: FormieVueComponents;
     readonly slots: Partial<Record<string, Component>>;
     readonly className: string;
     readonly fieldComponents: Partial<Record<string, Component>>;
-    readonly onMount: (instance: FrontendFormInstance) => void;
-    readonly onReady: (instance: FrontendFormInstance) => void;
+    readonly onMount: (instance: ClientFormInstance) => void;
+    readonly onReady: (instance: ClientFormInstance) => void;
     readonly onUnmount: () => void;
-    readonly onResult: (result: FrontendSubmitResult) => void;
-    readonly onSuccess: (result: FrontendSubmitResult) => void;
-    readonly onSubmitResult: (result: FrontendSubmitResult) => void;
-    readonly onSubmitSuccess: (result: FrontendSubmitResult) => void;
-    readonly onSubmitError: (result: FrontendSubmitResult) => void;
+    readonly onResult: (result: ClientSubmitResult) => void;
+    readonly onSuccess: (result: ClientSubmitResult) => void;
+    readonly onSubmitResult: (result: ClientSubmitResult) => void;
+    readonly onSubmitSuccess: (result: ClientSubmitResult) => void;
+    readonly onSubmitError: (result: ClientSubmitResult) => void;
     readonly onEvent: (event: FormieVueEvent) => void;
 }, {}, {}, {}, string, import("vue").ComponentProvideOptions, true, {}, any>;
 export declare function useFormie(): {
-    definition: ComputedRef<FrontendFormDefinition>;
-    session: ComputedRef<FrontendFormSession>;
-    state: ShallowRef<FrontendFormState>;
-    instance: ShallowRef<FrontendFormInstance>;
+    definition: ComputedRef<ClientFormDefinition>;
+    session: ComputedRef<ClientFormSession>;
+    state: ShallowRef<ClientFormState>;
+    instance: ShallowRef<ClientFormInstance>;
 };
 export declare function useFormieField(fieldId: string): {
-    field: ComputedRef<FrontendFieldDefinition>;
+    field: ComputedRef<ClientFieldDefinition>;
     value: ComputedRef<unknown>;
     errors: ComputedRef<string[]>;
     hidden: ComputedRef<boolean>;
@@ -238,10 +242,10 @@ export declare function useFormieField(fieldId: string): {
     setValue(value: unknown): void;
 };
 export declare function useFormiePage(pageId: string): {
-    page: ComputedRef<import("@verbb/formie-core").FrontendPageDefinition>;
+    page: ComputedRef<import("@verbb/formie-core").ClientPageDefinition>;
     isCurrent: ComputedRef<boolean>;
     hidden: ComputedRef<boolean>;
 };
-export declare function useFormieInstance(): ShallowRef<FrontendFormInstance>;
+export declare function useFormieInstance(): ShallowRef<ClientFormInstance>;
 export declare function useFormieSlot(key: string): ComputedRef<Component>;
 //# sourceMappingURL=definition-form.d.ts.map

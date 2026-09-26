@@ -41,6 +41,7 @@ class ClientSubmitInputType extends InputObjectType
                     'name' => 'session',
                     'type' => ArrayType::getType(),
                 ],
+                'browserData' => ['type' => ArrayType::getType()],
                 'values' => [
                     'name' => 'values',
                     'type' => ArrayType::getType(),

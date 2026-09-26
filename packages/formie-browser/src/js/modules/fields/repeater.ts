@@ -1,6 +1,6 @@
 import repeaterCss from '#theme-css/fields/_repeater.css?inline';
 
-import type { FormieModuleDefinition } from '#contracts/modules';
+import type { BrowserModuleDefinition } from '#contracts/modules';
 import { dispatchFieldEvent, getTemplateSource, getTemplateSourceHtml } from '#modules/fields/shared';
 import { ensureModuleStyles } from '#modules/styles';
 import { sleep } from '#utils/async';
@@ -188,8 +188,10 @@ function bindRepeaterField(field: HTMLElement): () => void {
     };
 }
 
-export const repeaterModule: FormieModuleDefinition = {
-    id: MODULE_ID,
+export const repeaterModule: BrowserModuleDefinition = {
+    moduleId: `formie:${MODULE_ID}`,
+    version: 1,
+    surfaces: ['server-rendered', 'client-rendered', 'cp-edit'],
     kind: 'field',
     match: (ctx) => {
         return ctx.target instanceof HTMLElement && (

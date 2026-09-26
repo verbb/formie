@@ -9,7 +9,7 @@ import {
     type CalculationVariableEntry,
 } from '@verbb/formie-core';
 
-import type { FormieModuleDefinition } from '#contracts/modules';
+import type { BrowserModuleDefinition } from '#contracts/modules';
 import { dispatchFieldEvent, getModuleFieldContainers } from '#modules/fields/shared';
 import { buildFieldValueRegistry, fieldKeyToInputName, normalizeFieldKey, resolveFieldReferenceLive } from '#utils/field-references';
 import { getRowScopedWatchNames, resolveRowScopedFieldReference, type RowScopeParams } from '#utils/field-references.row-scope';
@@ -263,8 +263,10 @@ function bindCalculationsField(root: Element, field: HTMLElement, input: HTMLInp
     };
 }
 
-export const calculationsModule: FormieModuleDefinition = {
-    id: MODULE_ID,
+export const calculationsModule: BrowserModuleDefinition = {
+    moduleId: `formie:${MODULE_ID}`,
+    version: 1,
+    surfaces: ['server-rendered', 'client-rendered', 'cp-edit'],
     kind: 'field',
     match: (ctx) => {
         return !!ctx.target.querySelector(INPUT_SELECTOR);

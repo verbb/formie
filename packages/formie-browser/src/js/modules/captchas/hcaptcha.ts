@@ -66,7 +66,7 @@ async function loadHcaptchaGlobal(options: HcaptchaProviderOptions): Promise<Hca
 }
 
 export const hcaptchaModule = defineCaptchaModule<HcaptchaProviderOptions, HcaptchaGlobal, number | string>({
-    id: 'hcaptcha',
+    moduleId: 'formie:hcaptcha',
     defaultPlaceholderSelector: '[data-hcaptcha-placeholder]',
     defaultTokenFieldNames: ['h-captcha-response'],
     load: ({ options }) => {
@@ -77,7 +77,7 @@ export const hcaptchaModule = defineCaptchaModule<HcaptchaProviderOptions, Hcapt
     },
     mount: ({ api, container, provider, services }) => {
         // Mount only renders/configures the widget. It does not decide whether
-        // a submit should be blocked; that responsibility lives in `screen()`.
+        // a submit should be blocked; that responsibility lives in `challenge()`.
         return api.render(container, {
             sitekey: provider.siteKey || '',
             theme: provider.theme || 'light',
@@ -113,10 +113,10 @@ export const hcaptchaModule = defineCaptchaModule<HcaptchaProviderOptions, Hcapt
             },
         });
     },
-    screen: ({ api, widget, placeholder, services, stageCtx }) => {
-        // `screen()` runs at submit time. By the time we get here the widget is
+    challenge: ({ api, widget, placeholder, services, stageCtx }) => {
+        // `challenge()` runs at submit time. By the time we get here the widget is
         // already mounted, so this method only answers "do we have a valid
-        // token yet, and if not, can we get one before the screen stage ends?"
+        // token yet, and if not, can we get one before the challenge stage ends?"
         if (services.tokens.has()) {
             // Users can complete hCaptcha before clicking submit. In that case
             // there is nothing to do; we already have the token the backend

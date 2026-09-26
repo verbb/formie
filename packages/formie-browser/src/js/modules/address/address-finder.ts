@@ -28,7 +28,7 @@ export const addressFinderModule = defineAddressModule<
     AddressFinderGlobal,
     AddressFinderWidget
 >({
-    id: 'address-finder',
+    moduleId: 'formie:address-finder',
     load: async () => {
         return loadScriptAndEnsureGlobal<AddressFinderGlobal>('AddressFinder', {
             id: SCRIPT_ID,

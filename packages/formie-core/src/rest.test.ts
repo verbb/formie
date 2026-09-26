@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { buildActionUrl, createRestFrontendTransport } from './rest';
-import type { FrontendFormDefinition, FrontendFormSession } from './types';
+import { buildActionUrl, createRestClientTransport } from './rest';
+import type { ClientFormDefinition, ClientFormSession } from './types';
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -25,10 +25,10 @@ describe('submission outcomes', () => {
     it.each([[422, 'validationFailed'], [409, 'stateConflict'], [403, 'rejected']])('preserves a domain outcome with HTTP %s', async (status, outcome) => {
         const payload = { success: false, outcome, version: 2, errors: { fields: { name: ['Required'] } } };
         vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify(payload), { status: Number(status) })));
-        const transport = createRestFrontendTransport({ endpoint: '/', formHandle: 'contact' });
+        const transport = createRestClientTransport({ endpoint: '/', formHandle: 'contact' });
         const result = await transport.submit({
-            definition: { pages: [] } as unknown as FrontendFormDefinition,
-            session: { version: 1, tokens: {} } as FrontendFormSession,
+            definition: { pages: [] } as unknown as ClientFormDefinition,
+            session: { version: 1, tokens: {} } as ClientFormSession,
             values: {}, action: 'submit',
         });
         expect(result).toEqual(payload);
@@ -36,10 +36,10 @@ describe('submission outcomes', () => {
 
     it('keeps unexpected server errors as transport failures', async () => {
         vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ message: 'Internal failure' }), { status: 500 })));
-        const transport = createRestFrontendTransport({ endpoint: '/', formHandle: 'contact' });
+        const transport = createRestClientTransport({ endpoint: '/', formHandle: 'contact' });
         await expect(transport.submit({
-            definition: { pages: [] } as unknown as FrontendFormDefinition,
-            session: { version: 1, tokens: {} } as FrontendFormSession,
+            definition: { pages: [] } as unknown as ClientFormDefinition,
+            session: { version: 1, tokens: {} } as ClientFormSession,
             values: {}, action: 'submit',
         })).rejects.toThrow('Request failed with status 500.');
     });

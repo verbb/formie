@@ -3,8 +3,8 @@ namespace verbb\formie\integrations\addressproviders;
 
 use verbb\formie\Formie;
 use verbb\formie\base\AddressProvider;
-use verbb\formie\models\ClientModule;
-use verbb\formie\models\ClientModuleContext;
+use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\models\BrowserModuleContext;
 
 use Craft;
 use craft\helpers\App;
@@ -43,14 +43,15 @@ class Loqate extends AddressProvider
         return Craft::t('formie', 'Use {link} to suggest addresses, for address fields.', ['link' => '[Loqate](https://www.loqate.com/)']);
     }
 
-    public function getClientModule(ClientModuleContext $context): ?ClientModule
+    public function getBrowserModule(BrowserModuleContext $context): ?BrowserModuleEntry
     {
         if (!$this->hasValidSettings()) {
             return null;
         }
 
-        return new ClientModule([
-            'id' => 'loqate',
+        return new BrowserModuleEntry([
+            'moduleId' => 'formie:loqate',
+            'surfaces' => [BrowserModuleEntry::SURFACE_SERVER_RENDERED, BrowserModuleEntry::SURFACE_CLIENT_RENDERED, BrowserModuleEntry::SURFACE_CP_EDIT],
             'config' => [
                 'apiKey' => App::parseEnv($this->apiKey),
                 'namespace' => $context->field ? Formie::$plugin->getService()->getFieldNamespaceForScript($context->field) : '',

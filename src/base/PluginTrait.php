@@ -6,7 +6,7 @@ use verbb\formie\cache\RenderCache;
 use verbb\formie\client\bootstrap\FormBootstrapBuilder;
 use verbb\formie\client\bootstrap\FormDefinitionBuilder;
 use verbb\formie\client\ClientSessionService;
-use verbb\formie\client\modules\ClientModuleManifestBuilder;
+use verbb\formie\client\modules\BrowserModuleManifestBuilder;
 use verbb\formie\deprecations\PluginDeprecations;
 use verbb\formie\elements\Submission as SubmissionElement;
 use verbb\formie\events\ModifyTwigEnvironmentEvent;
@@ -235,7 +235,7 @@ trait PluginTrait
                 'integrationTriggers' => IntegrationTriggers::class,
                 'notificationTriggers' => NotificationTriggers::class,
                 'serverRenderPayloadBuilder' => ServerRenderPayloadBuilder::class,
-                'clientModuleManifestBuilder' => ClientModuleManifestBuilder::class,
+                'browserModuleManifestBuilder' => BrowserModuleManifestBuilder::class,
                 'notifications' => Notifications::class,
                 'payments' => Payments::class,
                 'permissions' => Permissions::class,
@@ -421,9 +421,9 @@ trait PluginTrait
         return $this->get('serverRenderPayloadBuilder');
     }
 
-    public function getClientModuleManifestBuilder(): ClientModuleManifestBuilder
+    public function getBrowserModuleManifestBuilder(): BrowserModuleManifestBuilder
     {
-        return $this->get('clientModuleManifestBuilder');
+        return $this->get('browserModuleManifestBuilder');
     }
 
     public function getClientSessionService(): ClientSessionService

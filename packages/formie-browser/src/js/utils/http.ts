@@ -1,4 +1,5 @@
-export type RequestJsonOptions = {
+import { browserRequest, type BrowserRequestOptions } from '@verbb/formie-core';
+export type RequestJsonOptions = BrowserRequestOptions & {
     method?: string;
     body?: BodyInit | null;
     headers?: Record<string, string>;
@@ -16,7 +17,7 @@ async function request(url: string | URL, options: RequestJsonOptions = {}): Pro
     delete headers['X-Requested-With'];
     delete headers['x-requested-with'];
 
-    return fetch(String(url), {
+    return browserRequest(String(url), {
         method: options.method || 'GET',
         body: options.body ?? null,
         signal: options.signal,
@@ -26,8 +27,7 @@ async function request(url: string | URL, options: RequestJsonOptions = {}): Pro
         // `include` + `Access-Control-Allow-Origin: *` is invalid; many Craft GraphQL setups use `*`.
         // `same-origin` keeps cookies for same-host deployments and avoids credentialed cross-origin
         // fetches (e.g. Vite on localhost → ddev HTTPS) so wildcard CORS can succeed.
-        credentials: 'same-origin',
-    });
+    }, options);
 }
 
 export async function requestJson<T>(url: string | URL, options: RequestJsonOptions = {}): Promise<T> {

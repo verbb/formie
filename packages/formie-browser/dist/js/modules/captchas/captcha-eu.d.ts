@@ -1,2 +1,2 @@
-export declare const captchaEuModule: import("../../..").FormieModuleDefinition;
+export declare const captchaEuModule: import("../../..").BrowserModuleDefinition;
 //# sourceMappingURL=captcha-eu.d.ts.map

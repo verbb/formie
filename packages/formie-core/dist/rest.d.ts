@@ -1,5 +1,6 @@
-import type { FrontendFormEnvelope, FrontendTransport } from './types';
-export type RestFrontendTransportOptions = {
+import { type BrowserRequestOptions } from './request-profile';
+import type { ClientFormBootstrap, ClientTransport } from './types';
+export type RestClientTransportOptions = BrowserRequestOptions & {
     /**
      * Craft web root used to build action URLs.
      * Absolute examples: `https://example.test/` or `https://example.test/craft/`.
@@ -19,6 +20,6 @@ export type RestFrontendTransportOptions = {
  * Absolute bases keep their pathname (subdirectory installs); absolute action paths are not treated as origin-only.
  */
 export declare function buildActionUrl(baseUrl: string, path: string): string;
-export declare function loadFrontendEnvelope(options: RestFrontendTransportOptions): Promise<FrontendFormEnvelope>;
-export declare function createRestFrontendTransport(options: RestFrontendTransportOptions): FrontendTransport;
+export declare function loadClientFormBootstrap(options: RestClientTransportOptions): Promise<ClientFormBootstrap>;
+export declare function createRestClientTransport(options: RestClientTransportOptions): ClientTransport;
 //# sourceMappingURL=rest.d.ts.map

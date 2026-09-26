@@ -2,7 +2,7 @@ import flatpickr from 'flatpickr';
 import * as flatpickrLocales from 'flatpickr/dist/l10n/index.js';
 import flatpickrCss from 'flatpickr/dist/flatpickr.css?inline';
 
-import type { FormieModuleDefinition } from '#contracts/modules';
+import type { BrowserModuleDefinition } from '#contracts/modules';
 import { dispatchFieldEvent, getModuleFieldContainers } from '#modules/fields/shared';
 import { ensureModuleStyles } from '#modules/styles';
 import { createDebug } from '#utils/debug';
@@ -328,8 +328,10 @@ function initDatePicker(input: FlatpickrInput, options: DatePickerOptions): () =
     };
 }
 
-export const datePickerModule: FormieModuleDefinition = {
-    id: MODULE_ID,
+export const datePickerModule: BrowserModuleDefinition = {
+    moduleId: `formie:${MODULE_ID}`,
+    version: 1,
+    surfaces: ['server-rendered', 'client-rendered', 'cp-edit'],
     kind: 'field',
     match: (ctx) => {
         return !!ctx.target.querySelector(INPUT_SELECTOR);

@@ -13,7 +13,7 @@ import {
 // instance so it can participate in the same submit lifecycle as other
 // providers, but most of the work happens at screen time.
 export const recaptchaV3Module = defineCaptchaModule<RecaptchaProviderOptions, RecaptchaGlobal, number | string>({
-    id: 'recaptcha-v3',
+    moduleId: 'formie:recaptcha-v3',
     defaultPlaceholderSelector: '[data-recaptcha-placeholder]',
     defaultTokenFieldNames: ['g-recaptcha-response'],
     load: ({ options }) => {
@@ -31,7 +31,7 @@ export const recaptchaV3Module = defineCaptchaModule<RecaptchaProviderOptions, R
             });
         });
     },
-    screen: async({ api, provider, placeholder, services, stageCtx }) => {
+    challenge: async({ api, provider, placeholder, services, stageCtx }) => {
         // If a token already exists we can skip execution, which matters for
         // re-renders or multi-step flows where the same challenge was already
         // completed very recently.

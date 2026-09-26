@@ -23,7 +23,7 @@ type RecaptchaEnterpriseProviderOptions = RecaptchaProviderOptions & {
 // Shared captcha services should not know about any of those distinctions, so
 // this module owns the branching itself.
 export const recaptchaEnterpriseModule = defineCaptchaModule<RecaptchaEnterpriseProviderOptions, RecaptchaGlobal, number | string>({
-    id: 'recaptcha-enterprise',
+    moduleId: 'formie:recaptcha-enterprise',
     defaultPlaceholderSelector: '[data-recaptcha-placeholder]',
     defaultTokenFieldNames: ['g-recaptcha-response'],
     load: ({ options }) => {
@@ -75,7 +75,7 @@ export const recaptchaEnterpriseModule = defineCaptchaModule<RecaptchaEnterprise
             });
         });
     },
-    screen: async({ api, widget, provider, placeholder, services, stageCtx }) => {
+    challenge: async({ api, widget, provider, placeholder, services, stageCtx }) => {
         const enterpriseApi = api.enterprise || api;
 
         if (provider.enterpriseType === 'checkbox') {

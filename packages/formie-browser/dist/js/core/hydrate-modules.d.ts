@@ -1,22 +1,26 @@
 import type { FormEventUnsubscribe } from '#contracts/client';
 import type { FormMode } from '#contracts/common';
-import type { FormieModuleDefinition, ModuleRegistrationOptions } from '#contracts/modules';
-import type { FormModuleManifest } from '#contracts/schema';
+import type { BrowserModuleDefinition, ModuleRegistrationOptions } from '#contracts/modules';
 import { ModuleRegistry } from '#modules/registry';
 export type FormieModuleHydratorOptions = {
     root: Element;
     form?: HTMLFormElement | null;
-    modules?: FormModuleManifest[];
+    modules?: import('@verbb/formie-core').BrowserModuleManifest;
+    surface?: import('@verbb/formie-core').BrowserSurface;
     mode?: FormMode;
     registry?: ModuleRegistry;
 };
 export type FormieModuleHydrator = {
+    assertReady: () => void;
+    prepare: (action: import('@verbb/formie-core').ClientSubmitAction) => Promise<Record<string, unknown>>;
+    result: (result: import('#contracts/schema').FormSubmitResult) => Promise<void>;
+    update: (manifest: import('@verbb/formie-core').BrowserModuleManifest) => Promise<void>;
     destroy: () => Promise<void>;
     on: (eventName: string, callback: (payload: unknown) => void | Promise<void>) => FormEventUnsubscribe;
     emit: (eventName: string, payload?: unknown) => Promise<void>;
-    registerModule: (moduleDefinition: FormieModuleDefinition, options?: ModuleRegistrationOptions) => boolean;
+    registerModule: (moduleDefinition: BrowserModuleDefinition, options?: ModuleRegistrationOptions) => boolean;
     unregisterModule: (moduleId: string) => void;
-    getRegisteredModules: () => FormieModuleDefinition[];
+    getRegisteredModules: () => BrowserModuleDefinition[];
 };
 export declare function hydrateFormieModules(options: FormieModuleHydratorOptions): Promise<FormieModuleHydrator>;
 //# sourceMappingURL=hydrate-modules.d.ts.map

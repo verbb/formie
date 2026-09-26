@@ -1,8 +1,9 @@
+import { browserRequestHeaders, type BrowserRequestOptions } from '@verbb/formie-core';
 import Uppy from '@uppy/core';
 import XHRUpload from '@uppy/xhr-upload';
 import uploadManagerCss from '#theme-css/fields/_upload-manager.css?inline';
 
-import type { FormieModuleDefinition } from '#contracts/modules';
+import type { BrowserModuleDefinition } from '#contracts/modules';
 import { dispatchFieldEvent, releaseFormValidators, retainFormValidators } from '#modules/fields/shared';
 import { ensureModuleStyles } from '#modules/styles';
 import { getFieldModuleEventName, getFormStateEventName } from '#utils/event-names';
@@ -776,7 +777,7 @@ function bindUploadManagerField(field: HTMLElement, form: HTMLFormElement | null
         endpoint: uploadEndpoint,
         fieldName: 'file',
         formData: true,
-        withCredentials: true,
+        withCredentials: resolvedForm?.dataset.formieRequestProfile !== 'cross-origin-public',
         timeout: UPLOAD_XHR_TIMEOUT_MS,
         shouldRetry: shouldRetryUpload,
         headers: {
@@ -803,6 +804,7 @@ function bindUploadManagerField(field: HTMLElement, form: HTMLFormElement | null
             }
         },
         onBeforeRequest(xhr, _retryCount, files) {
+            browserRequestHeaders(uploadEndpoint, { profile: resolvedForm?.dataset.formieRequestProfile as BrowserRequestOptions['profile'] }).forEach((value, name) => xhr.setRequestHeader(name, value));
             // Header works regardless of csrfTokenName / allowedMetaFields.
             const csrf = getFormCsrfToken(resolvedForm);
 
@@ -969,6 +971,7 @@ function bindUploadManagerField(field: HTMLElement, form: HTMLFormElement | null
 
             try {
                 await requestJson<DeleteResponse>(deleteEndpoint, {
+                    profile: resolvedForm?.dataset.formieRequestProfile as BrowserRequestOptions['profile'],
                     method: 'POST',
                     body,
                 });
@@ -1015,6 +1018,7 @@ function bindUploadManagerField(field: HTMLElement, form: HTMLFormElement | null
 
         try {
             const response = await requestJson<HydrateResponse>(hydrateEndpoint, {
+                profile: resolvedForm?.dataset.formieRequestProfile as BrowserRequestOptions['profile'],
                 method: 'POST',
                 body: buildHydrateFormData(resolvedForm, field, assetIds, uploadTokens),
             });
@@ -1282,8 +1286,10 @@ function bindUploadManagerField(field: HTMLElement, form: HTMLFormElement | null
     };
 }
 
-export const uploadManagerModule: FormieModuleDefinition = {
-    id: MODULE_ID,
+export const uploadManagerModule: BrowserModuleDefinition = {
+    moduleId: `formie:${MODULE_ID}`,
+    version: 1,
+    surfaces: ['server-rendered', 'client-rendered', 'cp-edit'],
     kind: 'field',
     match: (ctx) => {
         return !!ctx.target.querySelector(ROOT_SELECTOR);

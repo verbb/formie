@@ -41,6 +41,22 @@ class PaymentStatusController extends Controller
     // Public Methods
     // =========================================================================
 
+    public function beforeAction($action): bool
+    {
+        $profile = \verbb\formie\helpers\BrowserRequestProfile::enter();
+        \verbb\formie\helpers\CrossOriginRequestHelper::applyHeaders($this->request, $this->response);
+        if ($profile === \verbb\formie\helpers\BrowserRequestProfile::CROSS_ORIGIN) {
+            $this->enableCsrfValidation = false;
+        }
+
+        if ($this->request->getIsOptions()) {
+            $this->response->setStatusCode(204);
+            return false;
+        }
+
+        return parent::beforeAction($action);
+    }
+
     public function actionPollStatus(): Response
     {
         $payment = $this->_requirePaymentFromStatusToken();

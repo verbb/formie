@@ -1,2 +1,2 @@
-export declare const paywayModule: import("../../..").FormieModuleDefinition;
+export declare const paywayModule: import("../../..").BrowserModuleDefinition;
 //# sourceMappingURL=payway.d.ts.map

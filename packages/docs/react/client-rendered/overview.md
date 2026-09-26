@@ -43,7 +43,7 @@ This is the simplest client-rendered entry point.
 | `siteId` | `number` | No | Requests the form for a specific site. |
 | `source` | `FormieDefinitionSource` | No | Uses a preloaded client definition envelope and transport metadata. |
 | `components` | `FormieReactComponents` | No | Replaces top-level `Form`, `Page`, **`Field`**, or error-summary components. |
-| `fieldComponents` | `map` | No | Replaces specific field-type renderers. Keys are `FrontendFieldType` values and values are React components. |
+| `fieldComponents` | `map` | No | Replaces specific field-type renderers. Keys are `ClientFieldType` values and values are React components. |
 | `slots` | `map` | No | Intercepts smaller layout regions inside the default component tree. Keys are slot names and values are React components. |
 | `className` | `string` | No | Adds a class to the rendered form root. |
 
@@ -55,15 +55,15 @@ For the common path, start with `onReady`, `onSuccess`, and `onError`.
 
 | Name | Type | Description |
 | --- | --- | --- |
-| `onMount` | `function` | Called after the form instance mounts. Receives a `FrontendFormInstance`. |
-| `onReady` | `function` | Called when the form instance is ready for use. Receives a `FrontendFormInstance`. |
+| `onMount` | `function` | Called after the form instance mounts. Receives a `ClientFormInstance`. |
+| `onReady` | `function` | Called when the form instance is ready for use. Receives a `ClientFormInstance`. |
 | `onUnmount` | `function` | Called after the form is unmounted. |
-| `onResult` | `function` | Called for every submit result. Receives a `FrontendSubmitResult`. |
-| `onSuccess` | `function` | Called when submit succeeds. Receives a `FrontendSubmitResult`. |
-| `onError` | `function` | Called when submit fails. Receives a `FrontendSubmitResult`. |
-| `onSubmitResult` | `function` | Called for every submit result. Receives a `FrontendSubmitResult`. |
-| `onSubmitSuccess` | `function` | Called when submit succeeds. Receives a `FrontendSubmitResult`. |
-| `onSubmitError` | `function` | Called when submit fails. Receives a `FrontendSubmitResult`. |
+| `onResult` | `function` | Called for every submit result. Receives a `ClientSubmitResult`. |
+| `onSuccess` | `function` | Called when submit succeeds. Receives a `ClientSubmitResult`. |
+| `onError` | `function` | Called when submit fails. Receives a `ClientSubmitResult`. |
+| `onSubmitResult` | `function` | Called for every submit result. Receives a `ClientSubmitResult`. |
+| `onSubmitSuccess` | `function` | Called when submit succeeds. Receives a `ClientSubmitResult`. |
+| `onSubmitError` | `function` | Called when submit fails. Receives a `ClientSubmitResult`. |
 | `onEvent` | `function` | Called for client events exposed through the React wrapper. Receives a `FormieReactEvent`. |
 
 The `onSubmit*` names remain available as the more explicit lower-level aliases.
@@ -100,7 +100,7 @@ Use REST when:
 
 - you want the simplest transport story
 - you want the closest fit to the client-rendered controllers
-- you are wiring the app against Formie's standard frontend actions
+- you are wiring the app against Formie's standard public actions
 
 Use GraphQL when:
 
@@ -117,7 +117,7 @@ For GraphQL client-rendered forms, load `formieClientForm`:
 ```graphql
 query ClientForm($handle: String!, $siteId: Int) {
   formieClientForm(handle: $handle, siteId: $siteId) {
-    schemaVersion
+    contractVersion
     definition
     session {
       id
@@ -129,7 +129,7 @@ query ClientForm($handle: String!, $siteId: Int) {
 }
 ```
 
-That query returns the `FrontendFormEnvelope` React needs: `schemaVersion`, `definition`, and `session`.
+That query returns the `ClientFormBootstrap` React needs: `contractVersion`, `definition`, and `session`.
 
 ## Manual GraphQL Mutations
 
@@ -170,12 +170,12 @@ If your app already fetched the client definition envelope, pass it into `source
 
 ```tsx
 import { useEffect, useState } from 'react';
-import { FormieClientForm, type FrontendFormEnvelope } from '@verbb/formie-react';
+import { FormieClientForm, type ClientFormBootstrap } from '@verbb/formie-react';
 
 const query = `
 query ClientForm($handle: String!, $siteId: Int) {
   formieClientForm(handle: $handle, siteId: $siteId) {
-    schemaVersion
+    contractVersion
     definition
     session {
       id
@@ -186,7 +186,7 @@ query ClientForm($handle: String!, $siteId: Int) {
   }
 }`;
 
-async function loadClientEnvelope(endpoint: string, handle: string): Promise<FrontendFormEnvelope> {
+async function loadClientEnvelope(endpoint: string, handle: string): Promise<ClientFormBootstrap> {
   const response = await fetch(endpoint, {
     method: 'POST',
     headers: {
@@ -210,7 +210,7 @@ async function loadClientEnvelope(endpoint: string, handle: string): Promise<Fro
 }
 
 export function ContactScreen() {
-  const [envelope, setEnvelope] = useState<FrontendFormEnvelope | null>(null);
+  const [envelope, setEnvelope] = useState<ClientFormBootstrap | null>(null);
 
   useEffect(() => {
     void loadClientEnvelope('https://formie.test/api', 'contactForm').then(setEnvelope);

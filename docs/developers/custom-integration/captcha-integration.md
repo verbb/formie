@@ -1,13 +1,13 @@
 # Captcha Integration
 
-Captcha integrations extend `Captcha`. They do not send payloads to another app like CRM or email marketing integrations do. Their job is to render whatever the captcha provider needs on the front end, collect a token or response value, then verify that value before Formie continues processing the submission.
+Captcha integrations extend `Captcha`. They do not send payloads to another app like CRM or email marketing integrations do. Their job is to render whatever the captcha provider needs in the browser, collect a token or response value, then verify that value before Formie continues processing the submission.
 
-The front-end and back-end pieces work together:
+The browser and server pieces work together:
 
 1. `renderHtml()` outputs the captcha placeholder or hidden input.
-2. `getClientModule()` registers any front-end module the captcha needs.
-3. The front-end module loads the provider script, renders the widget and writes the provider token into a normal posted value.
-4. When the form is submitted, Formie runs the captcha during the submission screening stage.
+2. `getBrowserModule()` registers any browser module the captcha needs.
+3. The browser module loads the provider script, renders the widget and writes the provider token into a normal posted value.
+4. When the form is submitted, Formie runs the captcha during the browser challenge stage.
 5. `validateSubmission()` reads the submitted value and verifies it with the provider.
 6. If validation returns `true`, Formie continues processing the submission. If it returns `false`, the submission is blocked as spam.
 
@@ -22,8 +22,8 @@ use verbb\formie\base\Captcha;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\models\FieldLayoutPage;
-use verbb\formie\models\ClientModule;
-use verbb\formie\models\ClientModuleContext;
+use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\models\BrowserModuleContext;
 
 class ExampleCaptcha extends Captcha
 {
@@ -43,15 +43,14 @@ class ExampleCaptcha extends Captcha
         ]);
     }
 
-    public function getClientModule(ClientModuleContext $context): ?ClientModule
+    public function getBrowserModule(BrowserModuleContext $context): ?BrowserModuleEntry
     {
         if (!$context->form) {
             return null;
         }
 
-        return new ClientModule([
-            'id' => 'example-captcha',
-            'src' => '/assets/formie/example-captcha.js',
+        return new BrowserModuleEntry([
+            'moduleId' => 'example:example-captcha',
             'config' => [
                 'placeholderSelector' => '[data-example-captcha-placeholder]',
                 'siteKey' => App::parseEnv($this->siteKey),
@@ -95,7 +94,7 @@ Captcha integrations usually focus on these methods:
 Method | Use
 --- | ---
 `renderHtml()` | Outputs the captcha markup for the form.
-`getClientModule()` | Registers front-end behaviour for the captcha, when needed.
+`getBrowserModule()` | Registers browser behaviour for the captcha, when needed.
 `getRefreshJsVariables()` | Returns data used when refreshing captcha tokens.
 `getGqlVariables()` | Returns GraphQL mutation variables for the captcha.
 `validateSubmission()` | Validates the submitted captcha value.
@@ -125,10 +124,10 @@ protected function defineFormSettingsSchema(FormInterface $form): array
 
 <span id="front-end-behavior"></span>
 
-## Front-End Behaviour
-Use `renderHtml()` for markup and `getClientModule()` when the captcha needs JavaScript behaviour. The client module keeps captcha behaviour attached to the form lifecycle, so it can mount when the form appears, clean itself up when the form is replaced, and run checks before Formie submits the form.
+## Browser Behaviour
+Use `renderHtml()` for markup and `getBrowserModule()` when the captcha needs JavaScript behaviour. The browser module keeps captcha behaviour attached to the form lifecycle, so it can mount when the form appears, clean itself up when the form is replaced, and run checks before Formie submits the form.
 
-Captcha modules should usually use `defineCaptchaModule()` from `@verbb/formie-browser`. It gives you shared services for finding placeholders, writing submitted token values, rendering inline errors and blocking the screen stage when the provider cannot produce a token.
+Captcha modules should usually use `defineCaptchaModule()` from `@verbb/formie-browser`. It gives you shared services for finding placeholders, writing submitted token values, rendering inline errors and blocking the challenge stage when the provider cannot produce a token.
 
 ```ts
 import { defineCaptchaModule } from '@verbb/formie-browser';
@@ -158,7 +157,7 @@ async function loadExampleCaptchaApi(): Promise<ExampleCaptchaApi> {
 }
 
 export default defineCaptchaModule<ExampleCaptchaOptions, ExampleCaptchaApi, ReturnType<ExampleCaptchaApi['render']>>({
-  id: 'example-captcha',
+  moduleId: 'example:example-captcha',
   defaultPlaceholderSelector: '[data-example-captcha-placeholder]',
   defaultTokenFieldNames: ['example-captcha-token'],
 
@@ -182,7 +181,7 @@ export default defineCaptchaModule<ExampleCaptchaOptions, ExampleCaptchaApi, Ret
     });
   },
 
-  screen: async ({ widget, placeholder, services, stageCtx }) => {
+  challenge: async ({ widget, placeholder, services, stageCtx }) => {
     if (!services.tokens.has()) {
       const token = await widget.execute();
 
@@ -211,6 +210,6 @@ export default defineCaptchaModule<ExampleCaptchaOptions, ExampleCaptchaApi, Ret
 });
 ```
 
-In this example, the PHP integration registers the module with `new ClientModule([...])`, and the browser module writes the solved token to `example-captcha-token`. That is the same name `validateSubmission()` reads with `getCaptchaValue()`.
+In this example, the PHP integration registers the module with `new BrowserModuleEntry([...])`, and the browser module writes the solved token to `example-captcha-token`. That is the same name `validateSubmission()` reads with `getCaptchaValue()`.
 
-`getRefreshJsVariables()` is available for captcha providers that need data when Formie refreshes captcha-related front-end state. `getGqlVariables()` is available when a captcha needs to expose values for GraphQL mutation handling.
+`getRefreshJsVariables()` is available for captcha providers that need data when Formie refreshes captcha-related browser state. `getGqlVariables()` is available when a captcha needs to expose values for GraphQL mutation handling.

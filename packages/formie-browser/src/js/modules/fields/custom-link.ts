@@ -1,4 +1,4 @@
-import type { FormieModuleDefinition } from '#contracts/modules';
+import type { BrowserModuleDefinition } from '#contracts/modules';
 import { getModuleFieldTarget, observeMatchingElements } from '#modules/fields/shared';
 
 const MODULE_ID = 'custom-link';
@@ -69,8 +69,10 @@ function initCustomLink(link: HTMLElement): () => void {
     };
 }
 
-export const customLinkModule: FormieModuleDefinition = {
-    id: MODULE_ID,
+export const customLinkModule: BrowserModuleDefinition = {
+    moduleId: `formie:${MODULE_ID}`,
+    version: 1,
+    surfaces: ['server-rendered', 'client-rendered', 'cp-edit'],
     kind: 'field',
     match: ({ target }) => {
         return target instanceof Element && (

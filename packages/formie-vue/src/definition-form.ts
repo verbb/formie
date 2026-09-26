@@ -1,28 +1,29 @@
+import { mountClientRenderedModules } from '@verbb/formie-browser';
 import {
-    FRONTEND_CLIENT_EVENT_NAMES,
+    CLIENT_FORM_EVENT_NAMES,
     compositePartDefinitions,
-    createFrontendFormInstance,
-    getFrontendErrorAriaLive,
-    getFrontendFieldErrorId,
-    createGraphqlFrontendTransport,
+    createClientFormInstance,
+    getClientErrorAriaLive,
+    getClientFieldErrorId,
+    createGraphqlClientTransport,
     createRepeaterRowValue,
-    createRestFrontendTransport,
+    createRestClientTransport,
     isCompositeField,
     isFileField,
-    isKnownFrontendFieldType,
+    isKnownClientFieldType,
     isRepeatableField,
-    loadFrontendEnvelope,
-    loadGraphqlFrontendEnvelope,
+    loadClientFormBootstrap,
+    loadGraphqlClientFormBootstrap,
     repeaterRowDefinitions,
-    type FrontendFieldDefinition,
-    type FrontendErrorAriaLive,
-    type FrontendFieldType,
-    type FrontendFormDefinition,
-    type FrontendFormEnvelope,
-    type FrontendFormSession,
-    type FrontendFormInstance,
-    type FrontendFormState,
-    type FrontendSubmitResult,
+    type ClientFieldDefinition,
+    type ClientErrorAriaLive,
+    type ClientFieldType,
+    type ClientFormDefinition,
+    type ClientFormBootstrap,
+    type ClientFormSession,
+    type ClientFormInstance,
+    type ClientFormState,
+    type ClientSubmitResult,
 } from '@verbb/formie-core';
 import {
     computed,
@@ -48,29 +49,33 @@ export type FormieDefinitionSource =
     | {
         transport: 'rest';
         endpoint: string;
+        profile?: 'same-origin-browser' | 'cross-origin-public';
         formHandle: string;
         siteId?: number;
     }
     | {
         transport: 'graphql';
         endpoint: string;
+        profile?: 'same-origin-browser' | 'cross-origin-public';
         formHandle: string;
         siteId?: number;
     }
     | {
-        definition: FrontendFormEnvelope;
+        definition: ClientFormBootstrap;
         transport: {
             type: 'rest';
             endpoint: string;
+        profile?: 'same-origin-browser' | 'cross-origin-public';
             formHandle: string;
             siteId?: number;
         };
     }
     | {
-        definition: FrontendFormEnvelope;
+        definition: ClientFormBootstrap;
         transport: {
             type: 'graphql';
             endpoint: string;
+        profile?: 'same-origin-browser' | 'cross-origin-public';
             formHandle: string;
             siteId?: number;
         };
@@ -82,23 +87,23 @@ export type FormieVueEvent = {
 };
 
 export type FormieFormComponentProps = {
-    definition: FrontendFormDefinition;
-    session: FrontendFormSession;
-    state: FrontendFormState;
+    definition: ClientFormDefinition;
+    session: ClientFormSession;
+    state: ClientFormState;
     className?: string;
     onSubmit: () => void;
 };
 
 export type FormiePageComponentProps = {
-    page: FrontendFormDefinition['pages'][number];
-    state: FrontendFormState;
+    page: ClientFormDefinition['pages'][number];
+    state: ClientFormState;
 };
 
 export type FormieFieldProps = {
-    field: FrontendFieldDefinition;
+    field: ClientFieldDefinition;
     errors: string[];
     errorId: string;
-    errorAriaLive: FrontendErrorAriaLive;
+    errorAriaLive: ClientErrorAriaLive;
 };
 
 export type FormieErrorSummaryProps = {
@@ -106,12 +111,12 @@ export type FormieErrorSummaryProps = {
 };
 
 export type FormieFieldComponentProps = {
-    field: FrontendFieldDefinition;
+    field: ClientFieldDefinition;
     value: unknown;
     errors: string[];
     errorKey: string;
     errorId: string;
-    errorAriaLive: FrontendErrorAriaLive;
+    errorAriaLive: ClientErrorAriaLive;
     disabled: boolean;
     hidden: boolean;
     setValue: (value: unknown) => void;
@@ -130,8 +135,8 @@ export type FormieVueComponents = {
 };
 
 type FormieDefinitionContextValue = {
-    instance: ShallowRef<FrontendFormInstance | null>;
-    state: ShallowRef<FrontendFormState | null>;
+    instance: ShallowRef<ClientFormInstance | null>;
+    state: ShallowRef<ClientFormState | null>;
     components: ComputedRef<FormieVueComponents>;
     fieldComponents: ComputedRef<Partial<Record<string, Component>>>;
     slots: ComputedRef<Partial<Record<string, Component>>>;
@@ -141,7 +146,7 @@ const FORMIE_DEFINITION_CONTEXT = Symbol('formie-definition-context');
 
 const fieldComponentProps = {
     field: {
-        type: Object as PropType<FrontendFieldDefinition>,
+        type: Object as PropType<ClientFieldDefinition>,
         required: true,
     },
     value: {
@@ -161,7 +166,7 @@ const fieldComponentProps = {
         default: '',
     },
     errorAriaLive: {
-        type: String as PropType<FrontendErrorAriaLive>,
+        type: String as PropType<ClientErrorAriaLive>,
         default: 'polite',
     },
     disabled: {
@@ -188,25 +193,27 @@ function useDefinitionContext(): FormieDefinitionContextValue {
     return context;
 }
 
-function isInlineDefinitionSource(source: FormieDefinitionSource): source is Extract<FormieDefinitionSource, { definition: FrontendFormEnvelope }> {
+function isInlineDefinitionSource(source: FormieDefinitionSource): source is Extract<FormieDefinitionSource, { definition: ClientFormBootstrap }> {
     return 'definition' in source;
 }
 
-async function resolveDefinitionEnvelope(source: FormieDefinitionSource): Promise<FrontendFormEnvelope> {
+async function resolveDefinitionEnvelope(source: FormieDefinitionSource): Promise<ClientFormBootstrap> {
     if (isInlineDefinitionSource(source)) {
         return source.definition;
     }
 
     if (source.transport === 'graphql') {
-        return loadGraphqlFrontendEnvelope({
+        return loadGraphqlClientFormBootstrap({
             endpoint: source.endpoint,
+        profile: source.profile,
             formHandle: source.formHandle,
             siteId: source.siteId,
         });
     }
 
-    return loadFrontendEnvelope({
+    return loadClientFormBootstrap({
         endpoint: source.endpoint,
+        profile: source.profile,
         formHandle: source.formHandle,
         siteId: source.siteId,
     });
@@ -218,23 +225,24 @@ function resolveDefinitionTransport(source: FormieDefinitionSource) {
         : {
             type: source.transport,
             endpoint: source.endpoint,
+        profile: source.profile,
             formHandle: source.formHandle,
             siteId: source.siteId,
         };
 
     if (transportSource.type === 'graphql') {
-        return createGraphqlFrontendTransport(transportSource);
+        return createGraphqlClientTransport(transportSource);
     }
 
-    return createRestFrontendTransport(transportSource);
+    return createRestClientTransport(transportSource);
 }
 
-function flattenFields(definition: FrontendFormDefinition): FrontendFieldDefinition[] {
+function flattenFields(definition: ClientFormDefinition): ClientFieldDefinition[] {
     return definition.pages.flatMap((page) => page.rows).flatMap((row) => row.fields);
 }
 
-function resolveFieldRendererType(field: FrontendFieldDefinition): FrontendFieldDefinition['type'] {
-    if (isKnownFrontendFieldType(field.type)) {
+function resolveFieldRendererType(field: ClientFieldDefinition): ClientFieldDefinition['type'] {
+    if (isKnownClientFieldType(field.type)) {
         return field.type;
     }
 
@@ -259,11 +267,11 @@ function resolveFieldRendererType(field: FrontendFieldDefinition): FrontendField
     return field.type;
 }
 
-function resolveFieldModule(field: FrontendFieldDefinition, definition: FrontendFormDefinition, capability: string) {
+function resolveFieldModule(field: ClientFieldDefinition, definition: ClientFormDefinition, capability: string) {
     const refs = new Set(field.moduleRefs || []);
 
-    return definition.modules.find((module) => {
-        return refs.has(module.id) && module.capability === capability;
+    return definition.modules.entries.find((module) => {
+        return module.targets.some((target) => target.targetType === 'field' && target.targetId === field.uid) && module.capability === (capability === 'draw-signature' ? 'signature' : capability);
     }) || null;
 }
 
@@ -298,7 +306,7 @@ const DefaultErrorSummary = defineComponent({
             required: true,
         },
         errorAriaLive: {
-            type: String as PropType<FrontendErrorAriaLive>,
+            type: String as PropType<ClientErrorAriaLive>,
             required: true,
         },
     },
@@ -325,7 +333,7 @@ const DefaultField = defineComponent({
     name: 'FormieVueDefaultField',
     props: {
         field: {
-            type: Object as PropType<FrontendFieldDefinition>,
+            type: Object as PropType<ClientFieldDefinition>,
             required: true,
         },
         errors: {
@@ -337,7 +345,7 @@ const DefaultField = defineComponent({
             required: true,
         },
         errorAriaLive: {
-            type: String as PropType<FrontendErrorAriaLive>,
+            type: String as PropType<ClientErrorAriaLive>,
             required: true,
         },
     },
@@ -349,7 +357,9 @@ const DefaultField = defineComponent({
 
             return h('div', {
                 class: 'formie-vue-field',
-                'data-field-type': props.field.type,
+                'data-formie-field-uid': props.field.uid,
+                'data-formie-field-handle': props.field.handle,
+                'data-formie-field-type': props.field.type,
             }, [
                 props.field.label
                     ? renderSlotWrapper(context, 'label', h('label', {
@@ -395,19 +405,36 @@ const DefaultField = defineComponent({
     },
 });
 
+const BrowserModuleHost = defineComponent({
+    setup(_props, { slots }) {
+        const context = useDefinitionContext();
+        const root = ref<HTMLDivElement | null>(null);
+        let disposed = false;
+        let host: Awaited<ReturnType<typeof mountClientRenderedModules>> | undefined;
+        onMounted(async() => {
+            const instance = context.instance.value!;
+            instance.setBrowserModuleGuard(() => { throw new Error('Form features are still loading.'); });
+            const mounted = await mountClientRenderedModules(root.value!, instance);
+            if (disposed) void mounted.destroy(); else host = mounted;
+        });
+        onBeforeUnmount(() => { disposed = true; void host?.destroy(); });
+        return () => h('div', { ref: root }, slots.default?.());
+    },
+});
+
 const DefaultForm = defineComponent({
     name: 'FormieVueDefaultForm',
     props: {
         definition: {
-            type: Object as PropType<FrontendFormDefinition>,
+            type: Object as PropType<ClientFormDefinition>,
             required: true,
         },
         session: {
-            type: Object as PropType<FrontendFormSession>,
+            type: Object as PropType<ClientFormSession>,
             required: true,
         },
         state: {
-            type: Object as PropType<FrontendFormState>,
+            type: Object as PropType<ClientFormState>,
             required: true,
         },
         className: {
@@ -438,11 +465,11 @@ const DefaultPage = defineComponent({
     name: 'FormieVueDefaultPage',
     props: {
         page: {
-            type: Object as PropType<FrontendFormDefinition['pages'][number]>,
+            type: Object as PropType<ClientFormDefinition['pages'][number]>,
             required: true,
         },
         state: {
-            type: Object as PropType<FrontendFormState>,
+            type: Object as PropType<ClientFormState>,
             required: true,
         },
     },
@@ -470,8 +497,8 @@ const SignatureFieldInput = defineComponent({
         } | null>(null);
         const loadError = ref<string | null>(null);
         const moduleConfig = computed(() => resolveFieldModule(props.field, context.state.value?.definition || {
-            modules: [],
-        } as FrontendFormDefinition, 'draw-signature')?.config);
+            modules: { contractVersion: 1, entries: [] },
+        } as ClientFormDefinition, 'draw-signature')?.config);
         const backgroundColor = computed(() => {
             const options = moduleConfig.value?.options as Record<string, unknown> | undefined;
 
@@ -748,8 +775,8 @@ const ConfigFieldNode = defineComponent({
             const rendererType = resolveFieldRendererType(props.field);
             const renderer = context.fieldComponents.value[props.field.type] || context.fieldComponents.value[rendererType] || DefaultFieldInput;
             const FieldComponent = context.components.value.Field || DefaultField;
-            const errorId = getFrontendFieldErrorId(state.session, props.errorKey);
-            const errorAriaLive = getFrontendErrorAriaLive(state.definition);
+            const errorId = getClientFieldErrorId(state.session, props.errorKey);
+            const errorAriaLive = getClientErrorAriaLive(state.definition);
 
             return h(FieldComponent, {
                 field: props.field,
@@ -779,7 +806,7 @@ const ConfigField = defineComponent({
     name: 'FormieVueConfigField',
     props: {
         field: {
-            type: Object as PropType<FrontendFieldDefinition>,
+            type: Object as PropType<ClientFieldDefinition>,
             required: true,
         },
     },
@@ -815,7 +842,7 @@ const ConfigRow = defineComponent({
     name: 'FormieVueConfigRow',
     props: {
         row: {
-            type: Object as PropType<FrontendFormDefinition['pages'][number]['rows'][number]>,
+            type: Object as PropType<ClientFormDefinition['pages'][number]['rows'][number]>,
             required: true,
         },
         rowIndex: {
@@ -835,7 +862,7 @@ const ConfigRow = defineComponent({
             default: false,
         },
         setFieldValue: {
-            type: Function as PropType<((field: FrontendFieldDefinition, nextValue: unknown) => void) | undefined>,
+            type: Function as PropType<((field: ClientFieldDefinition, nextValue: unknown) => void) | undefined>,
             default: undefined,
         },
     },
@@ -924,7 +951,7 @@ const RepeaterFieldInput = defineComponent({
                                 values: rowValue,
                                 errorPrefix: `${props.errorKey}.${rowIndex}`,
                                 disabled: props.disabled,
-                                setFieldValue(rowField: FrontendFieldDefinition, nextValue: unknown) {
+                                setFieldValue(rowField: ClientFieldDefinition, nextValue: unknown) {
                                     const nextRows = currentRows.map((candidate, candidateIndex) => {
                                         if (candidateIndex !== rowIndex) {
                                             return candidate;
@@ -983,7 +1010,7 @@ function errorReferenceAttributes(errors: string[], errorId: string) {
     } : {};
 }
 
-function renderNestedFieldInput(field: FrontendFieldDefinition, value: unknown, disabled: boolean, setValue: (value: unknown) => void, errors: string[] = [], errorId = '') {
+function renderNestedFieldInput(field: ClientFieldDefinition, value: unknown, disabled: boolean, setValue: (value: unknown) => void, errors: string[] = [], errorId = '') {
     const contract = field.input;
 
     if (field.type === 'multi-line-text') {
@@ -1176,7 +1203,7 @@ const DefaultFieldInput = defineComponent({
                 ]);
             }
 
-            if (!isKnownFrontendFieldType(rendererType)) {
+            if (!isKnownClientFieldType(rendererType)) {
                 return h('div', {
                     class: 'formie-vue-unsupported',
                 }, `Unsupported field type: ${String(props.field.meta?.fieldType ?? props.field.type)}`);
@@ -1328,11 +1355,11 @@ const definitionFormViewProps = {
         default: undefined,
     },
     onMount: {
-        type: Function as PropType<(instance: FrontendFormInstance) => void>,
+        type: Function as PropType<(instance: ClientFormInstance) => void>,
         default: undefined,
     },
     onReady: {
-        type: Function as PropType<(instance: FrontendFormInstance) => void>,
+        type: Function as PropType<(instance: ClientFormInstance) => void>,
         default: undefined,
     },
     onUnmount: {
@@ -1340,27 +1367,27 @@ const definitionFormViewProps = {
         default: undefined,
     },
     onResult: {
-        type: Function as PropType<(result: FrontendSubmitResult) => void>,
+        type: Function as PropType<(result: ClientSubmitResult) => void>,
         default: undefined,
     },
     onSuccess: {
-        type: Function as PropType<(result: FrontendSubmitResult) => void>,
+        type: Function as PropType<(result: ClientSubmitResult) => void>,
         default: undefined,
     },
     onError: {
-        type: Function as PropType<(result: FrontendSubmitResult) => void>,
+        type: Function as PropType<(result: ClientSubmitResult) => void>,
         default: undefined,
     },
     onSubmitResult: {
-        type: Function as PropType<(result: FrontendSubmitResult) => void>,
+        type: Function as PropType<(result: ClientSubmitResult) => void>,
         default: undefined,
     },
     onSubmitSuccess: {
-        type: Function as PropType<(result: FrontendSubmitResult) => void>,
+        type: Function as PropType<(result: ClientSubmitResult) => void>,
         default: undefined,
     },
     onSubmitError: {
-        type: Function as PropType<(result: FrontendSubmitResult) => void>,
+        type: Function as PropType<(result: ClientSubmitResult) => void>,
         default: undefined,
     },
     onEvent: {
@@ -1386,8 +1413,8 @@ export const DefinitionFormView = defineComponent({
     props: definitionFormViewProps,
     emits: ['mount', 'ready', 'unmount', 'result', 'success', 'error', 'submit-result', 'submit-success', 'submit-error', 'event'],
     setup(props, { emit }) {
-        const instance = shallowRef<FrontendFormInstance | null>(null);
-        const state = shallowRef<FrontendFormState | null>(null);
+        const instance = shallowRef<ClientFormInstance | null>(null);
+        const state = shallowRef<ClientFormState | null>(null);
         const error = ref<Error | null>(null);
         const componentsRef = computed(() => props.components || {});
         const fieldComponentsRef = computed(() => props.fieldComponents || {});
@@ -1405,14 +1432,14 @@ export const DefinitionFormView = defineComponent({
 
         watch(sourceKey, (_nextValue, _previousValue, onCleanup) => {
             let disposed = false;
-            let currentInstance: FrontendFormInstance | null = null;
+            let currentInstance: ClientFormInstance | null = null;
             let cleanup = () => undefined;
 
             const load = async() => {
                 try {
                     const envelope = await resolveDefinitionEnvelope(props.source);
                     const transport = resolveDefinitionTransport(props.source);
-                    const nextInstance = createFrontendFormInstance({
+                    const nextInstance = createClientFormInstance({
                         envelope,
                         transport,
                     });
@@ -1436,7 +1463,7 @@ export const DefinitionFormView = defineComponent({
                             state.value = nextState;
                         }),
                         nextInstance.on('formie:submit:result', (payload) => {
-                            const result = payload as FrontendSubmitResult;
+                            const result = payload as ClientSubmitResult;
                             invokeDistinctCallbacks(props.onSubmitResult, props.onResult, result);
                             emit('result', result);
                             emit('submit-result', result);
@@ -1451,7 +1478,7 @@ export const DefinitionFormView = defineComponent({
                                 emit('submit-error', result);
                             }
                         }),
-                        ...FRONTEND_CLIENT_EVENT_NAMES.map((eventName) => {
+                        ...CLIENT_FORM_EVENT_NAMES.map((eventName) => {
                             return nextInstance.on(eventName, (payload) => {
                                 const event = {
                                     name: eventName,
@@ -1502,9 +1529,7 @@ export const DefinitionFormView = defineComponent({
                 }, 'Loading form...');
             }
 
-            return h(ConfigRenderer, {
-                className: props.className,
-            });
+            return h(BrowserModuleHost, {}, { default: () => h(ConfigRenderer, { className: props.className }) });
         };
     },
 });

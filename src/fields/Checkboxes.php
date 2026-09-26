@@ -4,13 +4,13 @@ namespace verbb\formie\fields;
 use verbb\formie\base\FieldInterface;
 use verbb\formie\base\OptionsField;
 use verbb\formie\fields\values\MultiOptionFieldValue;
-use verbb\formie\fields\definitions\FieldClientModules;
+use verbb\formie\fields\definitions\FieldBrowserModules;
 use verbb\formie\fields\traits\OptionsLimitFieldTrait;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Variables;
-use verbb\formie\models\ClientModule;
+use verbb\formie\models\BrowserModuleEntry;
 use verbb\formie\models\SlotTag;
 use verbb\formie\positions\Hidden as HiddenPosition;
 use verbb\formie\theme\context\RenderContext;
@@ -415,17 +415,17 @@ class Checkboxes extends OptionsField
         return $validators;
     }
 
-    protected function defineClientInput(): array
+    protected function defineClientRenderedInput(): array
     {
-        return array_merge(parent::defineClientInput(), $this->getOptionsLimitClientInput());
+        return array_merge(parent::defineClientRenderedInput(), $this->getOptionsLimitClientInput());
     }
 
-    protected function defineClientModules(): array
+    protected function defineBrowserModules(): array
     {
-        $modules = parent::defineClientModules();
-        $modules[] = new ClientModule([
-            'id' => 'checkbox-radio',
-            'renderTargets' => [ClientModule::RENDER_TARGET_FRONTEND],
+        $modules = parent::defineBrowserModules();
+        $modules[] = new BrowserModuleEntry([
+            'moduleId' => 'formie:checkbox-radio',
+            'surfaces' => [BrowserModuleEntry::SURFACE_SERVER_RENDERED, BrowserModuleEntry::SURFACE_CLIENT_RENDERED],
         ]);
 
         return $modules;

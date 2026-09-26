@@ -1,9 +1,9 @@
 import { html, LitElement, css } from 'lit';
 import { property, state } from 'lit/decorators.js';
-import type { FrontendFieldDefinition, FrontendFormDefinition } from '@verbb/formie-core';
+import type { ClientFieldDefinition, ClientFormDefinition } from '@verbb/formie-core';
 import { FORMIE_CONTROL_VALUE_EVENT } from './types.js';
 
-/** Internal `<formie-internal-signature>` used by `<formie-core-form>` for draw-signature fields. */
+/** Internal `<formie-internal-signature>` used by `<formie-client-form>` for draw-signature fields. */
 export class FormieInternalSignature extends LitElement {
     static override styles = css`
         :host {
@@ -42,10 +42,10 @@ export class FormieInternalSignature extends LitElement {
     `;
 
     @property({ attribute: false })
-    field!: FrontendFieldDefinition;
+    field!: ClientFieldDefinition;
 
     @property({ attribute: false })
-    modules: FrontendFormDefinition['modules'] = [];
+    modules: ClientFormDefinition['modules'] = { contractVersion: 1, entries: [] };
 
     @property({ type: String })
     value = '';
@@ -134,8 +134,8 @@ export class FormieInternalSignature extends LitElement {
 
     private resolveDrawModuleConfig(): { options?: Record<string, unknown> } | null {
         const refs = new Set(this.field.moduleRefs || []);
-        const mod = this.modules.find((m) => {
-            return refs.has(m.id) && m.capability === 'draw-signature';
+        const mod = this.modules.entries.find((m) => {
+            return m.targets.some((target) => target.targetType === 'field' && target.targetId === this.field.uid) && m.capability === 'signature';
         });
 
         return mod && typeof mod.config === 'object' && mod.config

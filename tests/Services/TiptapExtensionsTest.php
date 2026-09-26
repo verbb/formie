@@ -35,7 +35,7 @@ it('shares registered TipTap extensions and declarative styles with PHP and clie
 
     try {
         $service = new TiptapExtensions();
-        $config = $service->getClientConfig();
+        $config = $service->getCpEditConfig();
 
         expect($config['extensionIds'])->toBe(['tests/annotation'])
             ->and($config['textStyles'][0]['attribute'])->toBe('textTransform');

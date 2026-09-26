@@ -147,6 +147,8 @@ class SubmissionResolver extends ElementMutationResolver
             throw new Error('Impossible to change the form of an existing submission');
         }
 
+        \verbb\formie\helpers\BrowserRequestProfile::enterAdministrative();
+
         $result = Formie::$plugin->getSubmissionProcessor()->executeMutation($form, $submission, $arguments, function () use ($form, $submission, $arguments, $resolveInfo): void {
         $this->populateElementWithData($submission, $arguments, $resolveInfo);
 
@@ -216,6 +218,8 @@ class SubmissionResolver extends ElementMutationResolver
         if (!$canDeleteAll && !$canDelete) {
             throw new Error('Unable to perform the action.');
         }
+
+        \verbb\formie\helpers\BrowserRequestProfile::enterAdministrative();
 
         return $elementService->deleteElementById($submissionId, Submission::class, $siteId);
     }

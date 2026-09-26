@@ -187,7 +187,7 @@ it('rejects arbitrary final asset IDs through every submission adapter', functio
             ]), \verbb\formie\enums\SubmissionAuthorityType::VISITOR);
             expect($result->response->outcome->type->value)->toBe('validationFailed');
         } else {
-            $input = ['handle' => $form->handle, 'session' => ['version' => 0, 'tokens' => ['request' => $token]], 'values' => ['document' => [$asset->id]]];
+            $input = ['handle' => $form->handle, 'session' => ['version' => 0, 'tokens' => ['request' => $token, 'csrf' => ['name' => $request->csrfParam, 'value' => $request->getCsrfToken()]]], 'values' => ['document' => [$asset->id]]];
             if ($transport === 'graphql') {
                 $gql = Craft::$app->getGql();
                 try { $previous = $gql->getActiveSchema(); } catch (\craft\errors\GqlException) { $previous = null; }

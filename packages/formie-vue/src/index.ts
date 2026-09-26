@@ -10,9 +10,9 @@ import type {
     FormSubmitResult,
 } from '@verbb/formie-browser';
 import type {
-    FrontendFieldType,
-    FrontendFormInstance,
-    FrontendSubmitResult,
+    ClientFieldType,
+    ClientFormInstance,
+    ClientSubmitResult,
 } from '@verbb/formie-core';
 import {
     computed,
@@ -52,6 +52,7 @@ export type FormieHtmlSource = {
 export type FormieFormProps = {
     source?: FormieHtmlSource;
     transport?: FormTransport;
+    profile?: FormMountOptions['profile'];
     endpoint?: string;
     formHandle?: string;
     staticCache?: boolean;
@@ -77,22 +78,23 @@ export type FormieFormProps = {
 export type FormieClientFormProps = {
     source?: FormieDefinitionSource;
     transport?: FormTransport;
+    profile?: FormMountOptions['profile'];
     endpoint?: string;
     formHandle?: string;
     siteId?: number;
     components?: FormieVueComponents;
-    fieldComponents?: Partial<Record<FrontendFieldType, Component>>;
+    fieldComponents?: Partial<Record<ClientFieldType, Component>>;
     slots?: Partial<Record<string, Component>>;
     className?: string;
-    onMount?: (instance: FrontendFormInstance) => void;
-    onReady?: (instance: FrontendFormInstance) => void;
+    onMount?: (instance: ClientFormInstance) => void;
+    onReady?: (instance: ClientFormInstance) => void;
     onUnmount?: () => void;
-    onResult?: (result: FrontendSubmitResult) => void;
-    onSuccess?: (result: FrontendSubmitResult) => void;
-    onError?: (result: FrontendSubmitResult) => void;
-    onSubmitResult?: (result: FrontendSubmitResult) => void;
-    onSubmitSuccess?: (result: FrontendSubmitResult) => void;
-    onSubmitError?: (result: FrontendSubmitResult) => void;
+    onResult?: (result: ClientSubmitResult) => void;
+    onSuccess?: (result: ClientSubmitResult) => void;
+    onError?: (result: ClientSubmitResult) => void;
+    onSubmitResult?: (result: ClientSubmitResult) => void;
+    onSubmitSuccess?: (result: ClientSubmitResult) => void;
+    onSubmitError?: (result: ClientSubmitResult) => void;
     onEvent?: (event: FormieVueEvent) => void;
 };
 
@@ -102,7 +104,7 @@ function isHtmlSource(source: FormieFormProps['source']): source is FormieHtmlSo
     return !!source && 'payload' in source;
 }
 
-function isSubmitSuccess(result: FormSubmitResult | FrontendSubmitResult): boolean {
+function isSubmitSuccess(result: FormSubmitResult | ClientSubmitResult): boolean {
     return 'success' in result ? result.success : result.ok;
 }
 
@@ -128,6 +130,7 @@ function buildMountOptions(props: FormieFormProps): FormMountOptions {
     return {
         mode: 'server-rendered',
         transport,
+        profile: props.profile,
         endpoint: props.endpoint,
         formHandle: props.formHandle,
         payload: isHtmlSource(props.source) ? props.source.payload : undefined,
@@ -163,6 +166,7 @@ function resolveDefinitionSource(props: FormieClientFormProps): FormieDefinition
         endpoint,
         formHandle,
         siteId: props.siteId,
+        profile: props.profile,
     };
 }
 
@@ -355,6 +359,7 @@ const formieFormProps = {
         type: Object as PropType<FormieFormProps['source']>,
         default: undefined,
     },
+    profile: { type: String as PropType<FormMountOptions['profile']>, default: 'same-origin-browser' },
     transport: {
         type: String as PropType<FormTransport | undefined>,
         default: undefined,
@@ -446,6 +451,7 @@ const formieClientFormProps = {
         type: Object as PropType<FormieClientFormProps['source']>,
         default: undefined,
     },
+    profile: { type: String as PropType<FormMountOptions['profile']>, default: 'same-origin-browser' },
     transport: {
         type: String as PropType<FormTransport | undefined>,
         default: undefined,
@@ -467,7 +473,7 @@ const formieClientFormProps = {
         default: undefined,
     },
     fieldComponents: {
-        type: Object as PropType<Partial<Record<FrontendFieldType, Component>> | undefined>,
+        type: Object as PropType<Partial<Record<ClientFieldType, Component>> | undefined>,
         default: undefined,
     },
     slots: {
@@ -528,6 +534,7 @@ export const FormieForm = defineComponent({
         return () => {
             const sharedOptions: FormieFormProps = {
                 source: props.source,
+                profile: props.profile,
                 transport: props.transport,
                 endpoint: props.endpoint,
                 formHandle: props.formHandle,
@@ -576,6 +583,7 @@ export const FormieClientForm = defineComponent({
         return () => h(DefinitionFormView, {
             source: resolveDefinitionSource({
                 source: props.source,
+                profile: props.profile,
                 transport: props.transport,
                 endpoint: props.endpoint,
                 formHandle: props.formHandle,
@@ -599,11 +607,11 @@ export const FormieClientForm = defineComponent({
             fieldComponents: props.fieldComponents,
             slots: props.slots,
             className: props.className,
-            onMount: (instance: FrontendFormInstance) => {
+            onMount: (instance: ClientFormInstance) => {
                 props.onMount?.(instance);
                 emit('mount', instance);
             },
-            onReady: (instance: FrontendFormInstance) => {
+            onReady: (instance: ClientFormInstance) => {
                 props.onReady?.(instance);
                 emit('ready', instance);
             },
@@ -611,19 +619,19 @@ export const FormieClientForm = defineComponent({
                 props.onUnmount?.();
                 emit('unmount');
             },
-            onSubmitResult: (result: FrontendSubmitResult) => {
+            onSubmitResult: (result: ClientSubmitResult) => {
                 props.onSubmitResult?.(result);
                 props.onResult?.(result);
                 emit('result', result);
                 emit('submit-result', result);
             },
-            onSubmitSuccess: (result: FrontendSubmitResult) => {
+            onSubmitSuccess: (result: ClientSubmitResult) => {
                 props.onSubmitSuccess?.(result);
                 props.onSuccess?.(result);
                 emit('success', result);
                 emit('submit-success', result);
             },
-            onSubmitError: (result: FrontendSubmitResult) => {
+            onSubmitError: (result: ClientSubmitResult) => {
                 props.onSubmitError?.(result);
                 props.onError?.(result);
                 emit('error', result);
@@ -640,7 +648,6 @@ export const FormieClientForm = defineComponent({
 export type {
     FormAction,
     FormEventUnsubscribe,
-    FormDefinitionPayload,
     FormEndpointPayload,
     FormieClient,
     FormieFormInstance,
@@ -648,14 +655,14 @@ export type {
     FormSubmitResult,
 } from '@verbb/formie-browser';
 export type {
-    FrontendFieldDefinition,
-    FrontendFieldType,
-    FrontendFormDefinition,
-    FrontendFormEnvelope,
-    FrontendFormSession,
-    FrontendFormInstance,
-    FrontendFormState,
-    FrontendSubmitResult,
+    ClientFieldDefinition,
+    ClientFieldType,
+    ClientFormDefinition,
+    ClientFormBootstrap,
+    ClientFormSession,
+    ClientFormInstance,
+    ClientFormState,
+    ClientSubmitResult,
 } from '@verbb/formie-core';
 export type {
     FormieDefinitionSource,

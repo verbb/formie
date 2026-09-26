@@ -15,7 +15,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyDateTimeFormatEvent;
 use verbb\formie\events\ModifyFieldValueEvent;
 use verbb\formie\events\RegisterDateTimeFormatOptionsEvent;
-use verbb\formie\fields\definitions\FieldClientModules;
+use verbb\formie\fields\definitions\FieldBrowserModules;
 use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\fields\subfields\DateYear;
@@ -29,7 +29,7 @@ use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\helpers\Variables;
-use verbb\formie\models\ClientModule;
+use verbb\formie\models\BrowserModuleEntry;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Notification;
 use verbb\formie\models\SlotTag;
@@ -2074,9 +2074,9 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
         return $validators;
     }
 
-    protected function defineClientInput(): array
+    protected function defineClientRenderedInput(): array
     {
-        $input = array_merge(parent::defineClientInput(), [
+        $input = array_merge(parent::defineClientRenderedInput(), [
             'collectMode' => $this->collectMode,
             'dateEnabled' => $this->getIsDate(),
             'timeEnabled' => $this->getIsTime(),
@@ -2089,9 +2089,9 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
         return $input;
     }
 
-    protected function defineClientModules(): array
+    protected function defineBrowserModules(): array
     {
-        $modules = parent::defineClientModules();
+        $modules = parent::defineBrowserModules();
 
         if ($this->displayType === 'datePicker') {
             $locale = Craft::$app->getLocale()->id;
@@ -2133,8 +2133,9 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
                 $datePickerOptions[$key]['value'] = Json::decodeIfJson($option['value']);
             }
 
-            $modules[] = new ClientModule([
-                'id' => 'date-picker',
+            $modules[] = new BrowserModuleEntry([
+                'moduleId' => 'formie:date-picker',
+                'surfaces' => [BrowserModuleEntry::SURFACE_SERVER_RENDERED, BrowserModuleEntry::SURFACE_CLIENT_RENDERED, BrowserModuleEntry::SURFACE_CP_EDIT],
                 'config' => [
                     'includeFlatpickrCss' => Formie::$plugin->getSettings()->includeFlatpickrCss,
                     'datePickerOptions' => $datePickerOptions,

@@ -1,31 +1,6 @@
+import type { BrowserModuleManifest } from '@verbb/formie-core';
 import type { FormAction, SubmitStage } from '#contracts/common';
 import type { ThemeClassMap } from '#contracts/theme';
-
-export type FormDefinitionField = {
-    id: string;
-    uid?: string;
-    handle: string;
-    type: string;
-    label?: string;
-    required?: boolean;
-    settings?: Record<string, unknown>;
-    children?: FormDefinitionField[];
-};
-
-export type FormDefinitionPage = {
-    id: string;
-    name?: string;
-    fields: FormDefinitionField[];
-    settings?: Record<string, unknown>;
-};
-
-export type FormDefinitionPayload = {
-    formId?: string;
-    handle?: string;
-    pages?: FormDefinitionPage[];
-    settings?: Record<string, unknown>;
-    theme?: ThemeClassMap;
-};
 
 export type FormRefreshTokensPayload = {
     csrf?: {
@@ -50,6 +25,12 @@ export type FormClientEvent = {
 
 export type FormSubmitResult = {
     ok: boolean;
+    outcome?: string;
+    version?: number | null;
+    submissionUid?: string | null;
+    errors?: unknown;
+    session?: unknown;
+    completion?: Record<string, unknown> | null;
     action?: FormAction;
     stage?: SubmitStage;
     code?: string;
@@ -68,22 +49,10 @@ export type FormSubmitResult = {
 export type FormEndpointPayload = {
     html?: string;
     theme?: ThemeClassMap;
-    modules?: FormModuleManifest[];
+    modules?: BrowserModuleManifest;
     refreshTokens?: FormRefreshTokensPayload;
 };
 
-export type FormModuleTargetType = 'form' | 'field' | 'page' | 'button' | 'selector';
-
-export type FormModuleTarget = {
-    targetType: FormModuleTargetType;
-    targetId: string;
-};
-
-export type FormModuleManifest = {
-    id: string;
-    src?: string;
-    type: string;
-    targets?: FormModuleTarget[];
-    renderTargets?: string[];
-    config?: Record<string, unknown>;
-};
+export type { BrowserModuleEntry, BrowserModuleManifest } from '@verbb/formie-core';
+export type FormModuleTarget = import('@verbb/formie-core').BrowserModuleTarget;
+export type FormModuleTargetType = FormModuleTarget['targetType'];

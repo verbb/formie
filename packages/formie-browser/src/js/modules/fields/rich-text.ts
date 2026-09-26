@@ -21,7 +21,7 @@ import strikethroughIcon from '#icons/rich-text/strikethrough.svg?raw';
 import ulistIcon from '#icons/rich-text/ulist.svg?raw';
 import underlineIcon from '#icons/rich-text/underline.svg?raw';
 
-import type { FormieModuleDefinition } from '#contracts/modules';
+import type { BrowserModuleDefinition } from '#contracts/modules';
 import { dispatchFieldEvent, getModuleFieldContainers } from '#modules/fields/shared';
 import { ensureModuleStyles } from '#modules/styles';
 
@@ -182,8 +182,10 @@ function initRichTextField(container: HTMLElement, input: RichTextInput, options
     };
 }
 
-export const richTextModule: FormieModuleDefinition = {
-    id: MODULE_ID,
+export const richTextModule: BrowserModuleDefinition = {
+    moduleId: `formie:${MODULE_ID}`,
+    version: 1,
+    surfaces: ['server-rendered', 'client-rendered', 'cp-edit'],
     kind: 'field',
     match: (ctx) => {
         return ctx.target instanceof HTMLElement && hasRichTextField(ctx.target);

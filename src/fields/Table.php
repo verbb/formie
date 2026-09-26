@@ -13,11 +13,11 @@ use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\fields\values\ColorFieldValue;
-use verbb\formie\fields\definitions\FieldClientModules;
+use verbb\formie\fields\definitions\FieldBrowserModules;
 use verbb\formie\gql\types\TableRowType;
 use verbb\formie\gql\types\generators\KeyValueGenerator;
 use verbb\formie\gql\types\generators\TableRowTypeGenerator;
-use verbb\formie\models\ClientModule;
+use verbb\formie\models\BrowserModuleEntry;
 use verbb\formie\models\SlotTag;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Notification;
@@ -1120,9 +1120,9 @@ class Table extends Field
         return Template::raw(Html::tag('table', $thead . $tbody));
     }
 
-    protected function defineClientInput(): array
+    protected function defineClientRenderedInput(): array
     {
-        return array_merge(parent::defineClientInput(), [
+        return array_merge(parent::defineClientRenderedInput(), [
             'staticRows' => $this->staticRows,
             'static' => $this->static,
             'addRowLabel' => $this->addRowLabel,
@@ -1134,13 +1134,13 @@ class Table extends Field
         ]);
     }
 
-    protected function defineClientModules(): array
+    protected function defineBrowserModules(): array
     {
-        $modules = parent::defineClientModules();
+        $modules = parent::defineBrowserModules();
         
-        $modules[] = new ClientModule([
-            'id' => 'table',
-            'renderTargets' => [ClientModule::RENDER_TARGET_FRONTEND],
+        $modules[] = new BrowserModuleEntry([
+            'moduleId' => 'formie:table',
+            'surfaces' => [BrowserModuleEntry::SURFACE_SERVER_RENDERED, BrowserModuleEntry::SURFACE_CLIENT_RENDERED],
             'config' => [
                 'static' => $this->static,
             ],

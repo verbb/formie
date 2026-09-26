@@ -92,6 +92,7 @@ class Settings extends Model
     // Submissions
     public int $maxIncompleteSubmissionAge = 30;
     public bool $enableCsrfValidationForGuests = true;
+    public array $allowedOrigins = [];
     public bool $useQueueForNotifications = true;
     public bool $useQueueForIntegrations = true;
     public ?int $queuePriority = null;

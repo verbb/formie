@@ -1,11 +1,11 @@
-import type { FormieModuleDefinition, ModuleSetupContext } from '#contracts/modules';
+import type { BrowserModuleDefinition, ModuleSetupContext } from '#contracts/modules';
 import { type AddressHostServices, type NormalizedAddressModuleOptions } from '#modules/address/host';
 export type AddressModuleSetupContext<TProvider extends Record<string, unknown>> = Omit<ModuleSetupContext, 'options'> & {
     options: NormalizedAddressModuleOptions<TProvider>;
     services: AddressHostServices;
 };
 export type ManagedAddressModuleAdapter<TProvider extends Record<string, unknown>, TApi, TWidget> = {
-    id: string;
+    moduleId: string;
     load: (ctx: AddressModuleSetupContext<TProvider>) => Promise<TApi>;
     mount: (args: {
         api: TApi;
@@ -31,5 +31,5 @@ export type ManagedAddressModuleAdapter<TProvider extends Record<string, unknown
         provider: TProvider;
     }) => void | Promise<void>;
 };
-export declare function createManagedAddressModule<TProvider extends Record<string, unknown>, TApi, TWidget>(adapter: ManagedAddressModuleAdapter<TProvider, TApi, TWidget>): FormieModuleDefinition;
+export declare function createManagedAddressModule<TProvider extends Record<string, unknown>, TApi, TWidget>(adapter: ManagedAddressModuleAdapter<TProvider, TApi, TWidget>): BrowserModuleDefinition;
 //# sourceMappingURL=factories.d.ts.map

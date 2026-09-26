@@ -1,12 +1,12 @@
 <?php
 namespace verbb\formie\base;
 
-use verbb\formie\fields\definitions\FieldClientDefinition;
-use verbb\formie\fields\definitions\FieldClientModules;
+use verbb\formie\fields\definitions\FieldClientRenderedDefinition;
+use verbb\formie\fields\definitions\FieldBrowserModules;
 use verbb\formie\fields\definitions\FieldConditions;
 use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\fields\definitions\FieldReferences;
-use verbb\formie\fields\definitions\FieldClientChildren;
+use verbb\formie\fields\definitions\FieldClientRenderedChildren;
 use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\helpers\ConditionsHelper;
 use Craft;
@@ -15,6 +15,12 @@ trait FieldDefinitionTrait
 {
     // Public Methods
     // =========================================================================
+
+    /** @deprecated Declare browserModules() using registered module IDs. */
+    public function getFrontEndJsModules(): ?array
+    {
+        return null;
+    }
 
     // Field kind is a lightweight client/config hint, not the normalized PHP value type.
     public function fieldKind(): string
@@ -29,23 +35,23 @@ trait FieldDefinitionTrait
     }
 
     // Client children describe how managed clients should model nested parts or rows.
-    public function clientChildren(): FieldClientChildren
+    public function clientRenderedChildren(): FieldClientRenderedChildren
     {
-        return $this->defineClientChildren();
+        return $this->defineClientRenderedChildren();
     }
 
     // Base type/input metadata for REST, GraphQL, and other client-rendered consumers.
-    public function clientDefinition(): FieldClientDefinition
+    public function clientRenderedDefinition(): FieldClientRenderedDefinition
     {
-        return FieldClientDefinition::make(type: $this->defineClientType())
-            ->withInputDefinition($this->defineClientInput());
+        return FieldClientRenderedDefinition::make(type: $this->defineClientRenderedType())
+            ->withInputDefinition($this->defineClientRenderedInput());
     }
 
     // Lazy browser modules the field needs when Formie manages client behavior.
-    public function clientModules(): FieldClientModules
+    public function browserModules(): FieldBrowserModules
     {
-        return FieldClientModules::make()
-            ->withModules($this->defineClientModules());
+        return FieldBrowserModules::make()
+            ->withModules(array_merge($this->defineBrowserModules(), \verbb\formie\compatibility\fields\LegacyBrowserModules::fromField($this)));
     }
 
     // Reference selectors feed token UIs and server-side variable resolution.
@@ -84,17 +90,17 @@ trait FieldDefinitionTrait
     // Protected Methods
     // =========================================================================
 
-    protected function defineClientChildren(): FieldClientChildren
+    protected function defineClientRenderedChildren(): FieldClientRenderedChildren
     {
-        return FieldClientChildren::make();
+        return FieldClientRenderedChildren::make();
     }
 
-    protected function defineClientType(): string
+    protected function defineClientRenderedType(): string
     {
         return static::kebabClassName();
     }
 
-    protected function defineClientModuleConfig(): array
+    protected function defineBrowserModuleConfig(): array
     {
         return [];
     }
@@ -215,7 +221,7 @@ trait FieldDefinitionTrait
         return FieldConditions::make($conditions);
     }
 
-    protected function defineClientInput(): array
+    protected function defineClientRenderedInput(): array
     {
         $input = [];
 
@@ -226,14 +232,14 @@ trait FieldDefinitionTrait
         return $input;
     }
 
-    protected function defineClientModules(): array
+    protected function defineBrowserModules(): array
     {
         return [];
     }
 
-    public function collectClientModules(): array
+    public function collectBrowserModules(): array
     {
-        return $this->defineClientModules();
+        return $this->defineBrowserModules();
     }
 
     protected function defineAllowPrimaryReference(): bool

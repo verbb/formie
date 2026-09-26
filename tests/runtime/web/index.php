@@ -22,6 +22,19 @@ if (str_starts_with($path, '/cpresources/')) {
 }
 $app = require CRAFT_VENDOR_PATH . '/craftcms/cms/bootstrap/web.php';
 $app->edition = \craft\enums\CmsEdition::Pro;
+\verbb\formie\Formie::$plugin->getSettings()->allowedOrigins = ['http://localhost:4179'];
+// Fixed, read-only parity fixture; never accepts a caller-selected form or setting.
+if ($path === '/browser-module-parity') {
+    $fixture = json_decode(file_get_contents($runtime . '/browser-enabled.json'), true);
+    $form = \verbb\formie\elements\Form::find()->id($fixture['journeyId'])->one();
+    $manifest = \verbb\formie\Formie::$plugin->getBrowserModuleManifestBuilder()->buildCanonical($form);
+    $bootstrap = \verbb\formie\Formie::$plugin->getClientFormBootstrapBuilder()->build($form, new \verbb\formie\client\models\LoadContext())->toArrayRecursive();
+    $app->getResponse()->format = \yii\web\Response::FORMAT_JSON;
+    $graphql = $app->getGql()->executeQuery($app->getGql()->getPublicSchema(), '{ formieClientForm(handle: "browserJourney") { contractVersion definition } }');
+    $app->getResponse()->data = ['server' => $manifest, 'bootstrap' => $bootstrap['definition']['modules'], 'graphql' => $graphql];
+    $app->getResponse()->send();
+    exit;
+}
 if ($path === '/browser-rendered' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $fixture = json_decode(file_get_contents($runtime . '/browser-enabled.json'), true);
     $form = \verbb\formie\elements\Form::find()->id($fixture[($_GET['method'] ?? '') === 'native' ? 'renderedNativeId' : 'renderedId'])->one();

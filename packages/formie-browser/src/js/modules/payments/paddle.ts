@@ -29,7 +29,7 @@ const SCRIPT_ID = 'FORMIE_PADDLE_SCRIPT';
 const CHECKOUT_EVENT = getPaymentProviderActionEventName('paddle', 'initialize');
 
 export const paddleModule = definePaymentModule<PaddleProviderOptions, null, null>({
-    id: 'paddle',
+    moduleId: 'formie:paddle',
     defaultRequiredInputSuffixes: ['paddleCheckoutData'],
     load: async() => null,
     setup: async(ctx) => {

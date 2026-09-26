@@ -323,83 +323,83 @@ document.addEventListener('formie:stage:validate:after', (event) => {
 });
 ```
 
-#### The `formie:stage:screen:before` Event
+#### The `formie:stage:challenge:before` Event
 
 The event that is triggered before Formie enters the screening stage.
 
 ```js
-document.addEventListener('formie:stage:screen:before', (event) => {
-  console.log('Before screen:', event.detail);
+document.addEventListener('formie:stage:challenge:before', (event) => {
+  console.log('Before challenge:', event.detail);
 });
 ```
 
-#### The `formie:stage:screen:after` Event
+#### The `formie:stage:challenge:after` Event
 
 The event that is triggered after Formie has completed the screening stage.
 
 ```js
-document.addEventListener('formie:stage:screen:after', (event) => {
-  console.log('After screen:', event.detail);
+document.addEventListener('formie:stage:challenge:after', (event) => {
+  console.log('After challenge:', event.detail);
 });
 ```
 
-#### The `formie:stage:authorize:before` Event
+#### The `formie:stage:payment:before` Event
 
 The event that is triggered before Formie enters the authorisation stage.
 
 ```js
-document.addEventListener('formie:stage:authorize:before', (event) => {
-  console.log('Before authorize:', event.detail);
+document.addEventListener('formie:stage:payment:before', (event) => {
+  console.log('Before payment:', event.detail);
 });
 ```
 
-#### The `formie:stage:authorize:after` Event
+#### The `formie:stage:payment:after` Event
 
 The event that is triggered after Formie has completed the authorisation stage.
 
 ```js
-document.addEventListener('formie:stage:authorize:after', (event) => {
-  console.log('After authorize:', event.detail);
+document.addEventListener('formie:stage:payment:after', (event) => {
+  console.log('After payment:', event.detail);
 });
 ```
 
-#### The `formie:stage:dispatch:before` Event
+#### The `formie:stage:send:before` Event
 
 The event that is triggered before Formie enters the dispatch stage.
 
 ```js
-document.addEventListener('formie:stage:dispatch:before', (event) => {
-  console.log('Before dispatch:', event.detail);
+document.addEventListener('formie:stage:send:before', (event) => {
+  console.log('Before send:', event.detail);
 });
 ```
 
-#### The `formie:stage:dispatch:after` Event
+#### The `formie:stage:send:after` Event
 
 The event that is triggered after Formie has completed the dispatch stage.
 
 ```js
-document.addEventListener('formie:stage:dispatch:after', (event) => {
-  console.log('After dispatch:', event.detail);
+document.addEventListener('formie:stage:send:after', (event) => {
+  console.log('After send:', event.detail);
 });
 ```
 
-#### The `formie:stage:finalize:before` Event
+#### The `formie:stage:result:before` Event
 
 The event that is triggered before Formie enters the finalize stage.
 
 ```js
-document.addEventListener('formie:stage:finalize:before', (event) => {
-  console.log('Before finalize:', event.detail);
+document.addEventListener('formie:stage:result:before', (event) => {
+  console.log('Before result:', event.detail);
 });
 ```
 
-#### The `formie:stage:finalize:after` Event
+#### The `formie:stage:result:after` Event
 
 The event that is triggered after Formie has completed the finalize stage.
 
 ```js
-document.addEventListener('formie:stage:finalize:after', (event) => {
-  console.log('After finalize:', event.detail);
+document.addEventListener('formie:stage:result:after', (event) => {
+  console.log('After result:', event.detail);
 });
 ```
 

@@ -1,6 +1,6 @@
 import summaryCss from '#theme-css/fields/_summary.css?inline';
 
-import type { FormieModuleDefinition } from '#contracts/modules';
+import type { BrowserModuleDefinition } from '#contracts/modules';
 import { dispatchFieldEvent, getModuleFieldContainers } from '#modules/fields/shared';
 import { ensureModuleStyles } from '#modules/styles';
 import { toggleThemeClasses } from '#theme/theme-classes';
@@ -256,8 +256,10 @@ function initSummaryField(field: HTMLElement, root: Element): () => void {
     };
 }
 
-export const summaryModule: FormieModuleDefinition = {
-    id: MODULE_ID,
+export const summaryModule: BrowserModuleDefinition = {
+    moduleId: `formie:${MODULE_ID}`,
+    version: 1,
+    surfaces: ['server-rendered', 'client-rendered', 'cp-edit'],
     kind: 'field',
     match: (ctx) => {
         return !!ctx.target.querySelector(BLOCKS_SELECTOR);

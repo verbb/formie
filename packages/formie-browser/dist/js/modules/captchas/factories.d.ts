@@ -1,14 +1,14 @@
-import type { FormieModuleDefinition, FormieModuleInstance, ModuleSetupContext, SubmitHookContext } from '#contracts/modules';
+import type { BrowserModuleDefinition, BrowserModuleInstance, ModuleSetupContext, SubmitHookContext } from '#contracts/modules';
 import { type CaptchaHostServices, type NormalizedCaptchaModuleOptions } from '#modules/captchas/host';
 type CaptchaModuleFactory<TProvider extends Record<string, unknown>> = {
-    id: string;
+    moduleId: string;
     defaultPlaceholderSelector: string;
     defaultTokenFieldNames?: string[];
     defaultWaitForValueMs?: number;
-    setup: (ctx: CaptchaModuleSetupContext<TProvider>) => Promise<FormieModuleInstance | void>;
+    setup: (ctx: CaptchaModuleSetupContext<TProvider>) => Promise<BrowserModuleInstance | void>;
 };
 export type ManagedCaptchaModuleAdapter<TProvider extends Record<string, unknown>, TApi, TWidget> = {
-    id: string;
+    moduleId: string;
     defaultPlaceholderSelector: string;
     defaultTokenFieldNames?: string[];
     load: (ctx: CaptchaModuleSetupContext<TProvider>) => Promise<TApi>;
@@ -20,7 +20,7 @@ export type ManagedCaptchaModuleAdapter<TProvider extends Record<string, unknown
         options: NormalizedCaptchaModuleOptions<TProvider>;
         provider: TProvider;
     }) => Promise<TWidget> | TWidget;
-    screen: (args: {
+    challenge: (args: {
         api: TApi;
         widget: TWidget;
         placeholder: HTMLElement;
@@ -51,13 +51,13 @@ export type CaptchaModuleSetupContext<TProvider extends Record<string, unknown>>
     options: NormalizedCaptchaModuleOptions<TProvider>;
     services: CaptchaHostServices;
 };
-export declare function createCaptchaModule<TProvider extends Record<string, unknown> = Record<string, unknown>>({ id, defaultPlaceholderSelector, defaultTokenFieldNames, defaultWaitForValueMs, setup, }: CaptchaModuleFactory<TProvider>): FormieModuleDefinition;
-export declare function createPassiveCaptchaModule({ id, defaultPlaceholderSelector, defaultTokenFieldNames, defaultWaitForValueMs, }: {
-    id: string;
+export declare function createCaptchaModule<TProvider extends Record<string, unknown> = Record<string, unknown>>({ moduleId, defaultPlaceholderSelector, defaultTokenFieldNames, defaultWaitForValueMs, setup, }: CaptchaModuleFactory<TProvider>): BrowserModuleDefinition;
+export declare function createPassiveCaptchaModule({ moduleId, defaultPlaceholderSelector, defaultTokenFieldNames, defaultWaitForValueMs, }: {
+    moduleId: string;
     defaultPlaceholderSelector: string;
     defaultTokenFieldNames?: string[];
     defaultWaitForValueMs?: number;
-}): FormieModuleDefinition;
-export declare function createManagedCaptchaModule<TProvider extends Record<string, unknown>, TApi, TWidget>(adapter: ManagedCaptchaModuleAdapter<TProvider, TApi, TWidget>): FormieModuleDefinition;
+}): BrowserModuleDefinition;
+export declare function createManagedCaptchaModule<TProvider extends Record<string, unknown>, TApi, TWidget>(adapter: ManagedCaptchaModuleAdapter<TProvider, TApi, TWidget>): BrowserModuleDefinition;
 export {};
 //# sourceMappingURL=factories.d.ts.map

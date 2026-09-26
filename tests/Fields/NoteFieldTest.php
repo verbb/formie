@@ -67,7 +67,7 @@ it('excludes builder note fields from front-end client payload', function (): vo
     $handles = [];
 
     foreach ($page?->getRows() ?? [] as $row) {
-        foreach ($row->getClientPayload()['fields'] as $fieldPayload) {
+        foreach ($row->getClientRenderedDefinition()['fields'] as $fieldPayload) {
             $handles[] = $fieldPayload['handle'];
         }
     }

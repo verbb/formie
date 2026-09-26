@@ -1,3 +1,5 @@
+import { browserRequest } from '@verbb/formie-core';
+import { getFormBrowserRequestOptions } from './request-profile';
 export type CountryFromIpResponse = {
     countryCode?: string | null;
     countryName?: string | null;
@@ -5,23 +7,25 @@ export type CountryFromIpResponse = {
 
 const DEFAULT_COUNTRY_FROM_IP_ACTION = 'formie/address/country-from-ip';
 
-let cachedLookup: Promise<CountryFromIpResponse | null> | null = null;
+const cachedLookups = new Map<string, Promise<CountryFromIpResponse | null>>();
 
 function buildActionUrl(action: string): string {
-    return new URL(action.startsWith('/') ? action : `/actions/${action}`, window.location.origin).toString();
+    return new URL(/^https?:\/\//.test(action) || action.startsWith('/') ? action : `/actions/${action}`, window.location.origin).toString();
 }
 
 export async function fetchCountryFromIp(
     action: string = DEFAULT_COUNTRY_FROM_IP_ACTION,
+    form?: HTMLFormElement | null,
 ): Promise<CountryFromIpResponse | null> {
-    if (!cachedLookup) {
-        cachedLookup = (async () => {
+    const key = buildActionUrl(action);
+    if (!cachedLookups.has(key)) {
+        cachedLookups.set(key, (async () => {
             try {
-                const response = await fetch(buildActionUrl(action), {
+                const response = await browserRequest(key, {
                     headers: {
                         Accept: 'application/json',
                     },
-                });
+                }, getFormBrowserRequestOptions(form));
 
                 if (!response.ok) {
                     return null;
@@ -37,17 +41,18 @@ export async function fetchCountryFromIp(
             } catch {
                 return null;
             }
-        })();
+        })());
     }
 
-    return cachedLookup;
+    return cachedLookups.get(key)!;
 }
 
 export function createGeoIpLookup(
     action: string = DEFAULT_COUNTRY_FROM_IP_ACTION,
+    form?: HTMLFormElement | null,
 ): (callback: (countryCode: string) => void) => void {
     return (callback) => {
-        void fetchCountryFromIp(action).then((data) => {
+        void fetchCountryFromIp(action, form).then((data) => {
             callback(data?.countryCode?.toLowerCase() || '');
         });
     };

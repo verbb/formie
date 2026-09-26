@@ -1,11 +1,13 @@
 import type { LegacyCompatibilityOptions } from '#compatibility/event-map';
 import type { FormAction, FormMode, FormTransport } from '#contracts/common';
-import type { FormieModuleDefinition, ModuleRegistrationOptions } from '#contracts/modules';
+import type { BrowserModuleDefinition, ModuleRegistrationOptions } from '#contracts/modules';
 import type { FormEndpointPayload, FormSubmitResult } from '#contracts/schema';
 
 export type FormMountOptions = {
     mode: FormMode;
+    /** REST/GraphQL select the HTML source; submission always uses the normal form endpoint. */
     transport?: FormTransport;
+    profile?: import('@verbb/formie-core').BrowserRequestOptions['profile'];
     formHandle?: string;
     endpoint?: string;
     payload?: FormEndpointPayload;
@@ -35,9 +37,9 @@ export type FormieClient = {
     update: (target: Element, options: Partial<FormMountOptions>) => Promise<FormieFormInstance>;
     getInstance: (target: Element) => FormieFormInstance | null;
     refreshForCache: (targetOrId: Element | string) => Promise<void>;
-    registerModule: (moduleDefinition: FormieModuleDefinition, options?: ModuleRegistrationOptions) => boolean;
+    registerModule: (moduleDefinition: BrowserModuleDefinition, options?: ModuleRegistrationOptions) => boolean;
     unregisterModule: (moduleId: string) => void;
-    getRegisteredModules: () => FormieModuleDefinition[];
+    getRegisteredModules: () => BrowserModuleDefinition[];
     scan: (root?: ParentNode) => Promise<FormieFormInstance[]>;
     observe: (root?: ParentNode) => () => void;
 };

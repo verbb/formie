@@ -1,6 +1,6 @@
 type EventCallback = (payload: unknown) => void;
 
-export class FrontendEventEmitter {
+export class ClientEventEmitter {
     private listeners = new Map<string, Set<EventCallback>>();
 
     on(eventName: string, callback: EventCallback): () => void {

@@ -109,7 +109,7 @@ abstract class AbstractCustomFieldAdapter implements CustomFieldAdapterInterface
         return [];
     }
 
-    public function getClientModules(CustomField $field): array
+    public function getBrowserModules(CustomField $field): array
     {
         return [];
     }

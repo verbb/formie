@@ -84,7 +84,7 @@ function getScriptUrl(clientId: string, currency: string): string {
 }
 
 export const paypalModule = definePaymentModule<PayPalProviderOptions, PayPalGlobal | null, PayPalButtonsInstance | null>({
-    id: 'paypal',
+    moduleId: 'formie:paypal',
     defaultRequiredInputSuffixes: ['paypalOrderId', 'paypalAuthId'],
     load: async (ctx) => {
         const { provider } = ctx.options;

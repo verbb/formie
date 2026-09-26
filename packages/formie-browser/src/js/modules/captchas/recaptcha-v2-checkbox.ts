@@ -11,7 +11,7 @@ import {
 // invisible/score flows is that we never trigger execution ourselves; the user
 // must solve the already-rendered widget before submit succeeds.
 export const recaptchaV2CheckboxModule = defineCaptchaModule<RecaptchaProviderOptions, RecaptchaGlobal, number | string>({
-    id: 'recaptcha-v2-checkbox',
+    moduleId: 'formie:recaptcha-v2-checkbox',
     defaultPlaceholderSelector: '[data-recaptcha-placeholder]',
     defaultTokenFieldNames: ['g-recaptcha-response'],
     load: ({ options }) => {
@@ -29,7 +29,7 @@ export const recaptchaV2CheckboxModule = defineCaptchaModule<RecaptchaProviderOp
                     callback: (token?: string) => {
                         // Checkbox mode solves interactively before submit, so
                         // the callback is the point where the transport layer
-                        // finally becomes "screen-stage ready".
+                        // finally becomes "challenge-stage ready".
                         if (typeof token === 'string' && token.trim() !== '') {
                             services.tokens.write(token.trim());
                         }
@@ -47,7 +47,7 @@ export const recaptchaV2CheckboxModule = defineCaptchaModule<RecaptchaProviderOp
             });
         });
     },
-    screen: ({ placeholder, services, stageCtx }) => {
+    challenge: ({ placeholder, services, stageCtx }) => {
         // Checkbox mode does not execute at submit time. We simply check if the
         // user already solved it; if not, abort immediately with a field-style
         // error and let the user interact with the widget.

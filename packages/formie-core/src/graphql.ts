@@ -1,14 +1,17 @@
+import { browserRequest, type BrowserRequestOptions } from './request-profile';
+import { stageTransportFiles } from './uploads';
+import { assertClientFormBootstrap } from './contract';
 import type {
-    FrontendFormDefinition,
-    FrontendFormEnvelope,
-    FrontendFormSession,
-    FrontendSubmitResult,
-    FrontendTransport,
+    ClientFormDefinition,
+    ClientFormBootstrap,
+    ClientFormSession,
+    ClientSubmitResult,
+    ClientTransport,
 } from './types';
 import { serializeTransportFieldValues } from './schema';
 import { clearExchangedGrant } from './grants';
 
-export type GraphqlFrontendTransportOptions = {
+export type GraphqlClientTransportOptions = BrowserRequestOptions & {
     endpoint: string;
     formHandle: string;
     siteId?: number;
@@ -23,7 +26,7 @@ type GraphqlResponse<T> = {
     errors?: Array<{ message?: string }>;
 };
 
-const FRONTEND_SESSION_SELECTION = `
+const CLIENT_SESSION_SELECTION = `
     id
     version
     currentPageId
@@ -31,7 +34,7 @@ const FRONTEND_SESSION_SELECTION = `
     continuation
 `;
 
-const FRONTEND_SUBMIT_RESULT_SELECTION = `
+const CLIENT_SUBMIT_RESULT_SELECTION = `
     success
     outcome
     version
@@ -53,9 +56,11 @@ const FRONTEND_SUBMIT_RESULT_SELECTION = `
     paymentDecision
     keepSubmitLoading
     session {
-        ${FRONTEND_SESSION_SELECTION}
+        ${CLIENT_SESSION_SELECTION}
     }
     quizResult
+    completion
+    redirect
 `;
 
 function buildGraphqlUrl(endpoint: string): string {
@@ -72,8 +77,8 @@ function buildGraphqlUrl(endpoint: string): string {
     return normalizedEndpoint;
 }
 
-async function requestGraphql<T>(options: GraphqlFrontendTransportOptions, query: string, variables: Record<string, unknown>): Promise<T> {
-    const response = await fetch(buildGraphqlUrl(options.endpoint), {
+async function requestGraphql<T>(options: GraphqlClientTransportOptions, query: string, variables: Record<string, unknown>): Promise<T> {
+    const response = await browserRequest(buildGraphqlUrl(options.endpoint), {
         method: 'POST',
         // Default `same-origin`: credentialed cross-origin + `Allow-Origin: *` is invalid in browsers.
         credentials: options.credentials ?? 'same-origin',
@@ -85,7 +90,7 @@ async function requestGraphql<T>(options: GraphqlFrontendTransportOptions, query
             query,
             variables,
         }),
-    });
+    }, options);
 
     if (!response.ok) {
         throw new Error(`Request failed with status ${response.status}.`);
@@ -104,18 +109,18 @@ async function requestGraphql<T>(options: GraphqlFrontendTransportOptions, query
     return payload.data;
 }
 
-export async function loadGraphqlFrontendEnvelope(options: GraphqlFrontendTransportOptions): Promise<FrontendFormEnvelope> {
+export async function loadGraphqlClientFormBootstrap(options: GraphqlClientTransportOptions): Promise<ClientFormBootstrap> {
     const data = await requestGraphql<{
-        formieClientForm?: FrontendFormEnvelope | null;
+        formieClientForm?: ClientFormBootstrap | null;
     }>(
         options,
         `
             query ClientForm($handle: String!, $siteId: Int, $grantToken: String, $grantPurpose: String, $draftContext: String) {
                 formieClientForm(handle: $handle, siteId: $siteId, grantToken: $grantToken, grantPurpose: $grantPurpose, draftContext: $draftContext) {
-                    schemaVersion
+                    contractVersion
                     definition
                     session {
-                        ${FRONTEND_SESSION_SELECTION}
+                        ${CLIENT_SESSION_SELECTION}
                     }
                 }
             }
@@ -133,17 +138,19 @@ export async function loadGraphqlFrontendEnvelope(options: GraphqlFrontendTransp
         throw new Error('No client form definition was returned.');
     }
 
+    assertClientFormBootstrap(data.formieClientForm);
     clearExchangedGrant(options.grantToken);
     return data.formieClientForm;
 }
 
-export function createGraphqlFrontendTransport(options: GraphqlFrontendTransportOptions): FrontendTransport {
+export function createGraphqlClientTransport(options: GraphqlClientTransportOptions): ClientTransport {
     return {
-        async submit({ definition, session, values, action }): Promise<FrontendSubmitResult> {
-            const serializedValues = await serializeTransportFieldValues(definition, values);
+        browserRequestOptions: { profile: options.profile ?? 'same-origin-browser', publicSession: options.publicSession },
+        async submit({ definition, session, values, action, browserData }): Promise<ClientSubmitResult> {
+            const serializedValues = await serializeTransportFieldValues(definition, await stageTransportFiles(definition, session, values, options));
 
             const data = await requestGraphql<{
-                submitFormieClientForm?: FrontendSubmitResult | null;
+                submitFormieClientForm?: ClientSubmitResult | null;
             }>(
                 options,
                 `
@@ -151,7 +158,7 @@ export function createGraphqlFrontendTransport(options: GraphqlFrontendTransport
                         $input: FormieClientSubmitInput!
                     ) {
                         submitFormieClientForm(input: $input) {
-                            ${FRONTEND_SUBMIT_RESULT_SELECTION}
+                            ${CLIENT_SUBMIT_RESULT_SELECTION}
                         }
                     }
                 `,
@@ -160,6 +167,7 @@ export function createGraphqlFrontendTransport(options: GraphqlFrontendTransport
                         handle: options.formHandle,
                         siteId: options.siteId,
                         action,
+                browserData,
                         session,
                         values: serializedValues,
                     },
@@ -172,9 +180,9 @@ export function createGraphqlFrontendTransport(options: GraphqlFrontendTransport
 
             return data.submitFormieClientForm;
         },
-        async refreshSession({ session }): Promise<FrontendFormSession> {
+        async refreshSession({ session }): Promise<ClientFormSession> {
             const data = await requestGraphql<{
-                refreshFormieClientSession?: FrontendFormSession | null;
+                refreshFormieClientSession?: ClientFormSession | null;
             }>(
                 options,
                 `
@@ -182,7 +190,7 @@ export function createGraphqlFrontendTransport(options: GraphqlFrontendTransport
                         $input: FormieClientSessionRefreshInput!
                     ) {
                         refreshFormieClientSession(input: $input) {
-                            ${FRONTEND_SESSION_SELECTION}
+                            ${CLIENT_SESSION_SELECTION}
                         }
                     }
                 `,
@@ -201,11 +209,11 @@ export function createGraphqlFrontendTransport(options: GraphqlFrontendTransport
 
             return data.refreshFormieClientSession;
         },
-        async setPage({ definition, session, values, currentPageId, targetPageId }): Promise<FrontendFormSession> {
-            const serializedValues = await serializeTransportFieldValues(definition, values);
+        async setPage({ definition, session, values, currentPageId, targetPageId }): Promise<ClientFormSession> {
+            const serializedValues = await serializeTransportFieldValues(definition, await stageTransportFiles(definition, session, values, options));
 
             const data = await requestGraphql<{
-                setFormieClientPage?: FrontendFormSession | null;
+                setFormieClientPage?: ClientFormSession | null;
             }>(
                 options,
                 `
@@ -213,7 +221,7 @@ export function createGraphqlFrontendTransport(options: GraphqlFrontendTransport
                         $input: FormieClientSetPageInput!
                     ) {
                         setFormieClientPage(input: $input) {
-                            ${FRONTEND_SESSION_SELECTION}
+                            ${CLIENT_SESSION_SELECTION}
                         }
                     }
                 `,

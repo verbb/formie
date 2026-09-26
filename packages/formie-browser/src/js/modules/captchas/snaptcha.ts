@@ -5,6 +5,6 @@ import { definePassiveCaptchaModule } from '#modules/captchas/api';
 // good fit here because the provider is really just about keeping a hidden
 // transport value in sync across renders and token refreshes.
 export const snaptchaModule = definePassiveCaptchaModule({
-    id: 'snaptcha',
+    moduleId: 'formie:snaptcha',
     defaultPlaceholderSelector: '[data-snaptcha-captcha-placeholder]',
 });

@@ -1,7 +1,7 @@
 import intlTelInput from 'intl-tel-input';
 import intlTelInputCss from 'intl-tel-input/styles?inline';
 
-import type { FormieModuleDefinition } from '#contracts/modules';
+import type { BrowserModuleDefinition } from '#contracts/modules';
 import { dispatchFieldEvent, getModuleFieldContainers, releaseFormValidators, retainFormValidators } from '#modules/fields/shared';
 import { ensureModuleStyles } from '#modules/styles';
 import { createGeoIpLookup } from '#utils/country-from-ip';
@@ -81,7 +81,7 @@ function unregisterValidators(form: HTMLFormElement | null): void {
     releaseFormValidators(form, VALIDATOR_SCOPE, [PHONE_COUNTRY_VALIDATOR]);
 }
 
-function buildOptions(options: PhoneCountryOptions): Record<string, unknown> {
+function buildOptions(options: PhoneCountryOptions, form: HTMLFormElement | null): Record<string, unknown> {
     const intlOptions: Record<string, unknown> = {
         allowDropdown: true,
         nationalMode: false,
@@ -116,7 +116,7 @@ function buildOptions(options: PhoneCountryOptions): Record<string, unknown> {
         intlOptions.initialCountry = options.countryDefaultValue.toLowerCase();
     } else if (options.countryPreselectFromIp) {
         intlOptions.initialCountry = 'auto';
-        intlOptions.geoIpLookup = createGeoIpLookup(options.countryFromIpAction);
+        intlOptions.geoIpLookup = createGeoIpLookup(options.countryFromIpAction, form);
     }
 
     if (Array.isArray(intlOptions.onlyCountries) && typeof intlOptions.initialCountry === 'string') {
@@ -130,7 +130,7 @@ function buildOptions(options: PhoneCountryOptions): Record<string, unknown> {
 }
 
 function initPhoneField(phoneInput: PhoneInput, countryInput: HTMLInputElement, options: PhoneCountryOptions): () => void {
-    const intlOptions = buildOptions(options);
+    const intlOptions = buildOptions(options, phoneInput.closest('form'));
 
     dispatchFieldEvent(phoneInput, MODULE_ID, 'before-init', {
         phoneCountry: phoneInput,
@@ -213,8 +213,10 @@ function initPhoneField(phoneInput: PhoneInput, countryInput: HTMLInputElement, 
     };
 }
 
-export const phoneCountryModule: FormieModuleDefinition = {
-    id: MODULE_ID,
+export const phoneCountryModule: BrowserModuleDefinition = {
+    moduleId: `formie:${MODULE_ID}`,
+    version: 1,
+    surfaces: ['server-rendered', 'client-rendered', 'cp-edit'],
     kind: 'field',
     match: (ctx) => {
         return !!ctx.target.querySelector(PHONE_SELECTOR);

@@ -8,7 +8,7 @@ use verbb\formie\fields\custom\AbstractCustomFieldAdapter;
 use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\fields\values\CustomMapFieldValue;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\models\ClientModule;
+use verbb\formie\models\BrowserModuleEntry;
 use verbb\formie\models\SlotTag;
 use verbb\formie\theme\context\RenderContext;
 use verbb\formie\web\twig\Extension as FormieTwigExtension;
@@ -210,12 +210,12 @@ class MapsCustomFieldAdapter extends AbstractCustomFieldAdapter
         ];
     }
 
-    public function getClientModules(CustomField $field): array
+    public function getBrowserModules(CustomField $field): array
     {
         return [
-            new ClientModule([
-                'id' => 'custom-maps',
-                'renderTargets' => [ClientModule::RENDER_TARGET_FRONTEND],
+            new BrowserModuleEntry([
+                'moduleId' => 'formie:custom-maps',
+                'surfaces' => [BrowserModuleEntry::SURFACE_SERVER_RENDERED, BrowserModuleEntry::SURFACE_CLIENT_RENDERED],
             ]),
         ];
     }

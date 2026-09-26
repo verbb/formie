@@ -297,17 +297,17 @@ class CustomField extends Field implements SortableFieldInterface, PreviewableFi
     }
 
 
-    protected function defineClientInput(): array
+    protected function defineClientRenderedInput(): array
     {
-        return array_merge(parent::defineClientInput(), [
+        return array_merge(parent::defineClientRenderedInput(), [
             'customFieldAdapter' => $this->customFieldAdapter,
             'customFieldAdapterSettings' => $this->getCustomFieldAdapterSettings(),
         ], $this->getAdapter()->getClientInput($this));
     }
 
-    protected function defineClientModules(): array
+    protected function defineBrowserModules(): array
     {
-        return array_merge(parent::defineClientModules(), $this->getAdapter()->getClientModules($this));
+        return array_merge(parent::defineBrowserModules(), $this->getAdapter()->getBrowserModules($this));
     }
 
     protected function defineValueAsString(mixed $value, ElementInterface $element = null): string

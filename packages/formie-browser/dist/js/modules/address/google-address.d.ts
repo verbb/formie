@@ -1,9 +1,10 @@
 type GoogleAddressProviderOptions = {
     apiKey?: string;
+    geocodeEndpoint?: string;
     options?: Record<string, unknown>;
     countryDefaultValue?: string;
 };
 export declare function buildGoogleAutocompleteOptions(provider: GoogleAddressProviderOptions): Record<string, unknown>;
-export declare const googleAddressModule: import("../../..").FormieModuleDefinition;
+export declare const googleAddressModule: import("../../..").BrowserModuleDefinition;
 export {};
 //# sourceMappingURL=google-address.d.ts.map

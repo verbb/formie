@@ -18,8 +18,8 @@ use verbb\formie\helpers\References;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
-use verbb\formie\models\ClientModule;
-use verbb\formie\models\ClientModuleContext;
+use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\models\BrowserModuleContext;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Payment as PaymentModel;
 use verbb\formie\models\PaymentAction;
@@ -107,7 +107,7 @@ class Mollie extends Payment
         return Payment::applyPaymentWebhookProxy($url);
     }
 
-    public function getClientModule(ClientModuleContext $context): ?ClientModule
+    public function getBrowserModule(BrowserModuleContext $context): ?BrowserModuleEntry
     {
         if (!$this->hasValidSettings()) {
             return null;
@@ -115,8 +115,9 @@ class Mollie extends Payment
 
         $this->setField($context->field);
 
-        return new ClientModule([
-            'id' => 'mollie',
+        return new BrowserModuleEntry([
+            'moduleId' => 'formie:mollie',
+            'surfaces' => [BrowserModuleEntry::SURFACE_SERVER_RENDERED, BrowserModuleEntry::SURFACE_CLIENT_RENDERED],
             'config' => [
                 'requiredInputSuffixes' => [],
                 'waitForValueMs' => 2500,

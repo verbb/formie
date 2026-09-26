@@ -1,3 +1,3 @@
-import type { FormieModuleDefinition } from '#contracts/modules';
-export declare const repeaterModule: FormieModuleDefinition;
+import type { BrowserModuleDefinition } from '#contracts/modules';
+export declare const repeaterModule: BrowserModuleDefinition;
 //# sourceMappingURL=repeater.d.ts.map

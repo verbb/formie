@@ -7,15 +7,15 @@ use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
 use verbb\formie\base\Payment as PaymentIntegration;
 use verbb\formie\elements\Submission;
-use verbb\formie\fields\definitions\FieldClientModules;
+use verbb\formie\fields\definitions\FieldBrowserModules;
 use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\fields\values\PaymentFieldValue;
 use verbb\formie\gql\types\input\PaymentInputType;
 use verbb\formie\gql\types\Json as GqlJson;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
-use verbb\formie\models\ClientModule;
-use verbb\formie\models\ClientModuleContext;
+use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\models\BrowserModuleContext;
 use verbb\formie\models\Notification;
 use verbb\formie\models\SlotTag;
 use verbb\formie\options\predefined\Currencies;
@@ -365,48 +365,47 @@ class Payment extends Field
         return [];
     }
 
-    protected function defineClientInput(): array
+    protected function defineClientRenderedInput(): array
     {
-        return array_merge(parent::defineClientInput(), [
+        return array_merge(parent::defineClientRenderedInput(), [
             'integration' => $this->paymentIntegration,
-            'providerSettings' => $this->providerSettings,
         ]);
     }
 
-    protected function defineClientModules(): array
+    protected function defineBrowserModules(): array
     {
-        $modules = parent::defineClientModules();
-        $modules[] = function(ClientModuleContext $context) {
+        $modules = parent::defineBrowserModules();
+        $modules[] = function(BrowserModuleContext $context) {
             $integration = $this->getPaymentIntegration();
 
             if (!$integration) {
                 return null;
             }
 
-            $clientModule = $integration->getClientModule(new ClientModuleContext([
+            $browserModule = $integration->getBrowserModule(new BrowserModuleContext([
                 'form' => $context->form,
                 'field' => $this,
                 'integration' => $integration,
-                'renderTarget' => $context->renderTarget,
+                'surface' => $context->surface,
             ]));
 
-            if (!$clientModule?->id) {
+            if (!$browserModule?->moduleId) {
                 return null;
             }
 
-            if (!$clientModule->type) {
-                $clientModule->type = $integration->getType();
+            if (!$browserModule->type) {
+                $browserModule->type = $integration->getType();
             }
 
-            if (!$clientModule->targets) {
-                $clientModule->targets = $context->getTargets();
+            if (!$browserModule->targets) {
+                $browserModule->targets = $context->getTargets();
             }
 
-            if (!$clientModule->renderTargets) {
-                $clientModule->renderTargets = [ClientModule::RENDER_TARGET_FRONTEND];
+            if (!$browserModule->surfaces) {
+                $browserModule->surfaces = [BrowserModuleEntry::SURFACE_SERVER_RENDERED];
             }
 
-            return $clientModule;
+            return $browserModule;
         };
 
         return $modules;

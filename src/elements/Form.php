@@ -41,7 +41,7 @@ use verbb\formie\helpers\SubmissionLimitHelper;
 use verbb\formie\helpers\SubmissionRedirectRulesHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\helpers\Variables;
-use verbb\formie\models\ClientModule;
+use verbb\formie\models\BrowserModuleEntry;
 use verbb\formie\models\FieldLayout as FormLayout;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\FieldLayoutPageSettings;
@@ -893,13 +893,13 @@ class Form extends Element implements FormInterface
         return Formie::$plugin->getNotifications()->getNotificationsConfig($this->getNotifications());
     }
 
-    public function getClientConfig(): array
+    public function getCpEditConfig(): array
     {
         return [
             'formId' => (string)$this->id,
             'handle' => $this->handle,
             'pages' => array_map(static function(FieldLayoutPage $page) {
-                return $page->getClientConfig();
+                return $page->getCpEditConfig();
             }, $this->getPages()),
             'settings' => [
                 'currentPageId' => (string)($this->getCurrentPage()?->id ?? ''),
@@ -913,14 +913,14 @@ class Form extends Element implements FormInterface
                 'validationOnSubmit' => (bool)$this->settings->validationOnSubmit,
                 'disableSubmitButtonUntilValid' => (bool)$this->settings->disableSubmitButtonUntilValid,
             ],
-            'modules' => Formie::$plugin->getClientModuleManifestBuilder()->buildCanonical($this, ClientModule::RENDER_TARGET_CP_EDIT),
+            'modules' => Formie::$plugin->getBrowserModuleManifestBuilder()->buildCanonical($this, BrowserModuleEntry::SURFACE_CP_EDIT),
         ];
     }
 
-    public function getClientPayload(LoadContext $context): FormDefinition
+    public function getClientRenderedDefinition(LoadContext $context): FormDefinition
     {
         $pages = array_map(function(FieldLayoutPage $page, int $index) {
-            return $page->getClientPayload($this, $index);
+            return $page->getClientRenderedDefinition($this, $index);
         }, $this->getPages(), array_keys($this->getPages()));
 
         return new FormDefinition([
@@ -945,11 +945,12 @@ class Form extends Element implements FormInterface
                 ],
             ],
             'pages' => $pages,
-            'modules' => Formie::$plugin->getClientModuleManifestBuilder()->buildCanonical($this, ClientModule::RENDER_TARGET_FRONTEND),
+            'modules' => Formie::$plugin->getBrowserModuleManifestBuilder()->buildCanonical($this, BrowserModuleEntry::SURFACE_SERVER_RENDERED),
             'submission' => [
                 'endpoint' => UrlHelper::actionUrl('formie/client/submissions/submit'),
                 'method' => 'POST',
                 'encoding' => 'application/json',
+                'uploadEndpoint' => UrlHelper::actionUrl('formie/file-upload/upload'),
                 'actions' => ['back', 'save', 'submit'],
                 'response' => [
                     'successMessageMode' => 'inline',

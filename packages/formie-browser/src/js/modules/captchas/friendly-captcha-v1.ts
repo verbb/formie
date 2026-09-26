@@ -16,7 +16,7 @@ export const friendlyCaptchaV1Module = defineCaptchaModule<
     FriendlyChallengeModule,
     import('friendly-challenge').WidgetInstance
 >({
-    id: 'friendly-captcha-v1',
+    moduleId: 'formie:friendly-captcha-v1',
     defaultPlaceholderSelector: '[data-friendly-captcha-placeholder]',
     defaultTokenFieldNames: ['frc-captcha-solution'],
     load: async() => {
@@ -53,7 +53,7 @@ export const friendlyCaptchaV1Module = defineCaptchaModule<
             },
         });
     },
-    screen: async({ widget, placeholder, services, stageCtx }) => {
+    challenge: async({ widget, placeholder, services, stageCtx }) => {
         // FriendlyCaptcha is started programmatically on submit when needed.
         if (services.tokens.has()) {
             return;

@@ -1,17 +1,17 @@
 # Payment Integration
 
-Payment integrations extend `Payment`. They are used by Payment fields to collect payment details, authorize or tokenize payment information on the front end, then complete the payment on the server while Formie processes the submission.
+Payment integrations extend `Payment`. They are used by Payment fields to collect payment details, authorize or tokenize payment information in the browser, then complete the payment on the server while Formie processes the submission.
 
 Payment integrations are field-driven. A user creates the payment integration in Formie’s plugin settings, adds a Payment field to a form, then chooses that provider in the Payment field’s settings.
 
-The front-end and back-end pieces work together:
+The browser and server pieces work together:
 
 1. The user creates and configures the payment provider in Formie’s plugin settings.
 2. The user adds a Payment field to a form and selects that provider.
 3. `renderFieldHtml()` renders the provider’s Payment field template.
-4. `getClientModule()` registers any front-end module the provider needs.
-5. The front-end module mounts the provider UI and writes the token, payment id or authorisation value into hidden Payment field inputs.
-6. During the authorize stage, the module can block submission if the payment UI has not produced the required value.
+4. `getBrowserModule()` registers any browser module the provider needs.
+5. The browser module mounts the provider UI and writes the token, payment id or authorisation value into hidden Payment field inputs.
+6. During the browser payment stage, the module can block submission if the payment UI has not produced the required value.
 7. The inherited `processPayment()` establishes the durable attempt and lock, then calls your protected `executePayment()` method, which returns a typed `PaymentDecision`.
 8. If the provider uses redirects, challenges or webhooks, the integration handles the follow-up provider response and updates the payment record.
 
@@ -29,8 +29,8 @@ use verbb\formie\base\Payment;
 use verbb\formie\elements\Submission;
 use verbb\formie\models\Payment as PaymentModel;
 use verbb\formie\models\PaymentDecision;
-use verbb\formie\models\ClientModule;
-use verbb\formie\models\ClientModuleContext;
+use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\models\BrowserModuleContext;
 use Throwable;
 
 class ExamplePayment extends Payment
@@ -48,7 +48,7 @@ class ExamplePayment extends Payment
         return App::parseEnv($this->publishableKey) && App::parseEnv($this->secretKey);
     }
 
-    public function getClientModule(ClientModuleContext $context): ?ClientModule
+    public function getBrowserModule(BrowserModuleContext $context): ?BrowserModuleEntry
     {
         if (!$this->hasValidSettings()) {
             return null;
@@ -56,9 +56,8 @@ class ExamplePayment extends Payment
 
         $this->setField($context->field);
 
-        return new ClientModule([
-            'id' => 'example-payment',
-            'src' => '/assets/formie/example-payment.js',
+        return new BrowserModuleEntry([
+            'moduleId' => 'example:example-payment',
             'config' => [
                 'publishableKey' => App::parseEnv($this->publishableKey),
                 'amountType' => $this->getFieldSetting('amountType'),
@@ -165,11 +164,11 @@ Payment integrations render their field template from `integrations/payments/{ha
 <div data-example-payment-card></div>
 ```
 
-The hidden input suffix should match the value written by the front-end module and the value read in `executePayment()`.
+The hidden input suffix should match the value written by the browser module and the value read in `executePayment()`.
 
-## Client Modules
+## Browser Modules
 
-Payment provider modules should usually use `definePaymentModule()` from `@verbb/formie-browser`. It gives you shared services for updating hidden payment inputs, showing payment errors, resolving dynamic amounts and currencies, and participating in Formie’s authorize stage.
+Payment provider modules should usually use `definePaymentModule()` from `@verbb/formie-browser`. It gives you shared services for updating hidden payment inputs, showing payment errors, resolving dynamic amounts and currencies, and participating in Formie’s browser payment stage.
 
 ```ts
 import { definePaymentModule } from '@verbb/formie-browser';
@@ -218,7 +217,7 @@ async function loadExamplePaymentApi(): Promise<ExamplePaymentApi> {
 }
 
 export default definePaymentModule<ExamplePaymentOptions, ExamplePaymentApi, ReturnType<ExamplePaymentApi['mountCard']>>({
-  id: 'example-payment',
+  moduleId: 'example:example-payment',
   defaultRequiredInputSuffixes: ['examplePaymentToken'],
 
   load: () => {
@@ -248,7 +247,7 @@ export default definePaymentModule<ExamplePaymentOptions, ExamplePaymentApi, Ret
     });
   },
 
-  onBeforeAuthorize: async ({ widget, services }) => {
+  onBeforePayment: async ({ widget, services }) => {
     if (!widget) {
       services.addError('Payment form is not ready.');
 
@@ -278,7 +277,7 @@ export default definePaymentModule<ExamplePaymentOptions, ExamplePaymentApi, Ret
 });
 ```
 
-`onBeforeAuthorize()` runs before Formie dispatches the submission. Use it when the provider needs to tokenize card details, confirm a wallet payment or produce an id that the server must receive. Return `false` to stop submission and keep the user on the form.
+`onBeforePayment()` runs before Formie dispatches the submission. Use it when the provider needs to tokenize card details, confirm a wallet payment or produce an id that the server must receive. Return `false` to stop submission and keep the user on the form.
 
 ## Methods
 
@@ -287,7 +286,7 @@ Payment integrations commonly use these methods:
 Method | Use
 --- | ---
 `renderFieldHtml()` | Renders the provider’s Payment field template.
-`getClientModule()` | Registers front-end behaviour for the Payment field.
+`getBrowserModule()` | Registers browser behaviour for the Payment field.
 `executePayment()` | Provider implementation called by the inherited locked, durable `processPayment()` boundary.
 `getAmount()` | Resolves the configured fixed or dynamic amount from the Payment field.
 `getCurrency()` | Resolves the configured fixed or dynamic currency from the Payment field.

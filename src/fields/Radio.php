@@ -6,12 +6,12 @@ use verbb\formie\base\OptionsField;
 use verbb\formie\base\SortableFieldInterface;
 use verbb\formie\fields\values\SingleOptionFieldValue;
 use verbb\formie\fields\traits\OtherOptionFieldTrait;
-use verbb\formie\fields\definitions\FieldClientModules;
+use verbb\formie\fields\definitions\FieldBrowserModules;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Variables;
-use verbb\formie\models\ClientModule;
+use verbb\formie\models\BrowserModuleEntry;
 use verbb\formie\models\SlotTag;
 use verbb\formie\positions\Hidden as HiddenPosition;
 use verbb\formie\theme\context\RenderContext;
@@ -344,12 +344,12 @@ class Radio extends OptionsField implements SortableFieldInterface
         return $validators;
     }
 
-    protected function defineClientModules(): array
+    protected function defineBrowserModules(): array
     {
-        $modules = parent::defineClientModules();
-        $modules[] = new ClientModule([
-            'id' => 'checkbox-radio',
-            'renderTargets' => [ClientModule::RENDER_TARGET_FRONTEND],
+        $modules = parent::defineBrowserModules();
+        $modules[] = new BrowserModuleEntry([
+            'moduleId' => 'formie:checkbox-radio',
+            'surfaces' => [BrowserModuleEntry::SURFACE_SERVER_RENDERED, BrowserModuleEntry::SURFACE_CLIENT_RENDERED],
         ]);
 
         return $modules;

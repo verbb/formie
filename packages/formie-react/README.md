@@ -1,8 +1,8 @@
 # @verbb/formie-react
 
-React bindings for Formie's front-end stack:
+React bindings for Formie's browser and client-rendered packages:
 
-- `server-rendered` wraps `@verbb/formie-browser` for Formie-owned rendering.
+- `server-rendered` wraps `@verbb/formie-browser` for server-rendered markup.
 - `client-rendered` composes `@verbb/formie-core` for app-owned rendering over REST or GraphQL.
 
 ## Install
@@ -39,7 +39,7 @@ export function ContactForm({ payload }: { payload: FormEndpointPayload }) {
 }
 ```
 
-Client-rendered forms can read and submit through the canonical front-end contract:
+Client-rendered forms can read and submit through the canonical client-rendered contract:
 
 ```tsx
 import { FormieClientForm } from '@verbb/formie-react';

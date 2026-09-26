@@ -2,16 +2,16 @@
 
 Address provider integrations extend `AddressProvider`. They are used by Address fields for address lookup, autocomplete and current-location support.
 
-Address providers are configured at the plugin settings level, then selected on the Auto-Complete sub-field inside an Address field. They do not create submissions, send payloads or add form-level settings. Most of the work is connecting the Address field’s autocomplete input to the provider’s front-end SDK, then copying the selected address parts back into Formie’s address sub-fields.
+Address providers are configured at the plugin settings level, then selected on the Auto-Complete sub-field inside an Address field. They do not create submissions, send payloads or add form-level settings. Most of the work is connecting the Address field’s autocomplete input to the provider’s browser SDK, then copying the selected address parts back into Formie’s address sub-fields.
 
-The front-end and back-end pieces work together:
+The browser and server pieces work together:
 
 1. The user creates and configures the address provider in Formie’s plugin settings.
 2. The user edits an Address field and selects that provider on the Auto-Complete sub-field.
 3. The Address field renders its normal autocomplete input and address sub-fields.
-4. `getClientModule()` registers a front-end module for that Address field.
-5. The front-end module loads the provider SDK, attaches autocomplete to the Address field and writes selected address parts back to Formie inputs.
-6. If the provider supports current-location lookup, `supportsCurrentLocation()` enables the field setting, and the front-end module can handle the browser geolocation result.
+4. `getBrowserModule()` registers a browser module for that Address field.
+5. The browser module loads the provider SDK, attaches autocomplete to the Address field and writes selected address parts back to Formie inputs.
+6. If the provider supports current-location lookup, `supportsCurrentLocation()` enables the field setting, and the browser module can handle the browser geolocation result.
 
 ## PHP Integration
 
@@ -19,8 +19,8 @@ The front-end and back-end pieces work together:
 use Craft;
 use craft\helpers\App;
 use verbb\formie\base\AddressProvider;
-use verbb\formie\models\ClientModule;
-use verbb\formie\models\ClientModuleContext;
+use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\models\BrowserModuleContext;
 
 class ExampleAddressProvider extends AddressProvider
 {
@@ -34,15 +34,14 @@ class ExampleAddressProvider extends AddressProvider
         return true;
     }
 
-    public function getClientModule(ClientModuleContext $context): ?ClientModule
+    public function getBrowserModule(BrowserModuleContext $context): ?BrowserModuleEntry
     {
         if (!$this->hasValidSettings()) {
             return null;
         }
 
-        return new ClientModule([
-            'id' => 'example-address-provider',
-            'src' => '/assets/formie/example-address-provider.js',
+        return new BrowserModuleEntry([
+            'moduleId' => 'example:example-address-provider',
             'config' => [
                 'apiKey' => App::parseEnv($this->apiKey),
                 'countryCode' => $this->countryCode,
@@ -57,9 +56,9 @@ class ExampleAddressProvider extends AddressProvider
 }
 ```
 
-`getClientModule()` should return `null` if the provider is not configured enough to run. For third-party modules, set `src` on the `ClientModule` to a public module file path.
+`getBrowserModule()` should return `null` if the provider is not configured enough to run. Register third-party code in your trusted application bundle under the entry’s namespaced `moduleId`. Entries never contain executable `src` URLs.
 
-## Client Modules
+## Browser Modules
 
 Address provider modules should usually use `defineAddressModule()` from `@verbb/formie-browser`. It gives you shared services for finding the Address field’s autocomplete input, setting address sub-field values, listening for the current-location button and cleaning up when the form is replaced.
 
@@ -101,7 +100,7 @@ async function loadExampleAddressApi(): Promise<ExampleAddressApi> {
 }
 
 export default defineAddressModule<ExampleAddressOptions, ExampleAddressApi, ReturnType<ExampleAddressApi['createAutocomplete']>>({
-  id: 'example-address-provider',
+  moduleId: 'example:example-address-provider',
 
   load: () => {
     return loadExampleAddressApi();
@@ -161,7 +160,7 @@ Address providers usually focus on these methods:
 
 Method | Use
 --- | ---
-`getClientModule()` | Registers front-end behaviour for the Address field.
+`getBrowserModule()` | Registers browser behaviour for the Address field.
 `supportsCurrentLocation()` | Enables current-location support for providers that can handle it.
 `getSettingsHtml()` | Renders plugin-level settings for the provider.
 `hasValidSettings()` | Confirms the provider has enough settings to run.

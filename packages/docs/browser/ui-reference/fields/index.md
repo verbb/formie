@@ -12,7 +12,7 @@ That includes:
 
 For full Twig overrides, start with [Form](/browser/ui-reference/components/form) and [Field](/browser/ui-reference/components/field) before drilling into the field-specific pages.
 
-Normal Formie-rendered output already includes these hooks for you. The attribute tables on these pages matter most when you are overriding templates, auditing generated markup, or mapping the default UI into another rendering surface.
+Normal server-rendered output already includes these hooks for you. The attribute tables on these pages matter most when you are overriding templates, auditing generated markup, or mapping the default UI into another rendering surface.
 
 Those requirements often span more than one element: a field wrapper, one or more form controls, and sometimes supporting nodes such as hidden inputs, error containers, or subfield rows. The field pages should call out that ownership explicitly rather than imply everything belongs on a single element.
 

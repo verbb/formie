@@ -34,7 +34,7 @@ it('keeps runtime config json parseable and stable for core keys', function (): 
         ->submitAction('url', ['url' => 'https://example.test/thanks', 'tab' => 'same-tab'])
         ->create();
 
-    $config = $form->getClientConfig();
+    $config = $form->getCpEditConfig();
 
     $settings = $config['settings'] ?? [];
 

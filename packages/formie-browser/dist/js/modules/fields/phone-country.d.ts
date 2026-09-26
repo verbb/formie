@@ -1,3 +1,3 @@
-import type { FormieModuleDefinition } from '#contracts/modules';
-export declare const phoneCountryModule: FormieModuleDefinition;
+import type { BrowserModuleDefinition } from '#contracts/modules';
+export declare const phoneCountryModule: BrowserModuleDefinition;
 //# sourceMappingURL=phone-country.d.ts.map

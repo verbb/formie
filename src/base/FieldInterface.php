@@ -5,11 +5,11 @@ use craft\base\ElementInterface;
 use craft\base\SavableComponentInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\fields\definitions\FieldClientModules;
+use verbb\formie\fields\definitions\FieldBrowserModules;
 use verbb\formie\fields\definitions\FieldConditions;
-use verbb\formie\fields\definitions\FieldClientDefinition;
+use verbb\formie\fields\definitions\FieldClientRenderedDefinition;
 use verbb\formie\fields\definitions\FieldReferences;
-use verbb\formie\fields\definitions\FieldClientChildren;
+use verbb\formie\fields\definitions\FieldClientRenderedChildren;
 use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\models\Notification;
 
@@ -31,15 +31,15 @@ interface FieldInterface extends SavableComponentInterface, FieldTypeDefinitionI
 
     public function themeConfigKey(): string;
     public function getFormBuilderSchema(): array;
-    public function getClientConfig(): array;
-    public function getClientPayload(): array;
-    public function getClientInputDefinition(): array;
+    public function getCpEditConfig(): array;
+    public function getClientRenderedDefinition(): array;
+    public function getClientRenderedInput(): array;
     public function browserValidationRules(): array;
     public function fieldKind(): string;
     public function valueType(): FieldValueType;
-    public function clientChildren(): FieldClientChildren;
-    public function clientDefinition(): FieldClientDefinition;
-    public function clientModules(): FieldClientModules;
+    public function clientRenderedChildren(): FieldClientRenderedChildren;
+    public function clientRenderedDefinition(): FieldClientRenderedDefinition;
+    public function browserModules(): FieldBrowserModules;
     public function references(): FieldReferences;
     public function variableSources(): array;
     public function conditions(): FieldConditions;

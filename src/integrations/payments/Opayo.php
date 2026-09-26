@@ -20,8 +20,8 @@ use verbb\formie\helpers\PaymentCapabilities;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
-use verbb\formie\models\ClientModule;
-use verbb\formie\models\ClientModuleContext;
+use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\models\BrowserModuleContext;
 use verbb\formie\models\Payment as PaymentModel;
 use verbb\formie\models\PaymentAction;
 use verbb\formie\models\PaymentDecision;
@@ -142,7 +142,7 @@ class Opayo extends Payment
         return UrlHelper::siteUrl('formie/payment-challenges/complete', ['handle' => $this->handle]);
     }
 
-    public function getClientModule(ClientModuleContext $context): ?ClientModule
+    public function getBrowserModule(BrowserModuleContext $context): ?BrowserModuleEntry
     {
         if (!$this->hasValidSettings()) {
             return null;
@@ -150,8 +150,9 @@ class Opayo extends Payment
 
         $this->setField($context->field);
 
-        return new ClientModule([
-            'id' => 'opayo',
+        return new BrowserModuleEntry([
+            'moduleId' => 'formie:opayo',
+            'surfaces' => [BrowserModuleEntry::SURFACE_SERVER_RENDERED, BrowserModuleEntry::SURFACE_CLIENT_RENDERED],
             'config' => [
                 'handle' => $this->handle,
                 'useSandbox' => App::parseBooleanEnv($this->useSandbox),
@@ -159,6 +160,7 @@ class Opayo extends Payment
                 'amountType' => $this->getFieldSetting('amountType'),
                 'amountFixed' => $this->getFieldSetting('amountFixed'),
                 'amountVariable' => $this->normalizeClientFieldReference($this->getFieldSetting('amountVariable')),
+                'sessionEndpoint' => \craft\helpers\UrlHelper::actionUrl('formie/payment-sessions/initialize'),
                 'sessionToken' => PaymentAccess::issueProviderSessionToken('opayo', (int)$this->id, (string)$this->handle, formId: $context->form?->id, fieldId: $context->field?->id, siteId: $context->form?->siteId),
                 'checkoutMode' => $this->getCheckoutMode(),
                 'requiredInputSuffixes' => ['opayoTokenId'],

@@ -72,11 +72,25 @@ class SubmissionProcessor extends Component
             $form, $submission, $operation, $navigation, $authorityType,
             isset($input->session['version']) ? (int)$input->session['version'] : ($submission->id ? null : 0),
             $input->operationId ?? $token, $token,
-            ['values' => $input->values, 'action' => $input->action, 'page' => $input->session['currentPageId'] ?? null, 'target' => $input->targetPageId, 'version' => $input->session['version'] ?? null, 'continuation' => $input->session['continuation'] ?? null],
+            ['browserData' => $input->browserData, 'values' => $input->values, 'action' => $input->action, 'page' => $input->session['currentPageId'] ?? null, 'target' => $input->targetPageId, 'version' => $input->session['version'] ?? null, 'continuation' => $input->session['continuation'] ?? null],
             function () use ($submission, $form, $progress, $input, $navigation): void {
                 $this->primeSubmission($submission, $form, $progress, $input->siteId);
+                foreach ($input->browserData as $name => $value) {
+                    if (is_string($name) && is_scalar($value)) {
+                        $submission->setCaptchaData($name, ['value' => (string)$value]);
+                    }
+                }
+                // Module-owned payment token inputs supplement only declared payment
+                // fields, never request credentials, grants or administrative options.
+                $values = $input->values;
+                parse_str(http_build_query($input->browserData), $moduleInputs);
+                foreach (($moduleInputs['fields'] ?? []) as $handle => $value) {
+                    if ($form->getFieldByHandle($handle) instanceof \verbb\formie\fields\Payment) {
+                        $values[$handle] = $value;
+                    }
+                }
                 if ($navigation !== NavigationIntent::BACK || Formie::$plugin->getSettings()->enableBackSubmission) {
-                    foreach ($input->values as $handle => $value) {
+                    foreach ($values as $handle => $value) {
                         $submission->setFieldValueFromRequest($handle, $value);
                     }
                 }
@@ -703,6 +717,8 @@ class SubmissionProcessor extends Component
             ],
             'session' => $session,
             'quizResult' => $response->quizResult,
+            'completion' => $response->outcome->data['completion'] ?? null,
+            'redirect' => $response->outcome->data['redirect'] ?? null,
             'clientEvents' => $clientEvents,
         ], $this->_resolvePaymentSubmitResultFields($response), $savePayload));
     }

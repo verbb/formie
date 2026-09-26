@@ -352,9 +352,9 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
         return $settings;
     }
 
-    public function getClientConfig(): array
+    public function getCpEditConfig(): array
     {
-        $config = parent::getClientConfig();
+        $config = parent::getCpEditConfig();
 
         if ($this->getOptionsMode() !== OptionsMode::STATIC) {
             // CP submission editing consumes the thin client config rather than
@@ -867,9 +867,9 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
         ];
     }
 
-    protected function defineClientInput(): array
+    protected function defineClientRenderedInput(): array
     {
-        $clientInput = parent::defineClientInput();
+        $clientInput = parent::defineClientRenderedInput();
         $clientInput['obfuscated'] = true;
         $clientInput['multiple'] = $this->displayType === 'checkboxes';
 
@@ -904,11 +904,11 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
         return $rules;
     }
 
-    protected function defineClientModules(): array
+    protected function defineBrowserModules(): array
     {
-        $modules = parent::defineClientModules();
+        $modules = parent::defineBrowserModules();
 
-        foreach ($this->defineSearchableDropdownClientModules() as $module) {
+        foreach ($this->defineSearchableDropdownBrowserModules() as $module) {
             $modules[] = $module;
         }
 

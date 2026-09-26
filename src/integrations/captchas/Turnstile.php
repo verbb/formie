@@ -6,8 +6,8 @@ use verbb\formie\base\FormInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
-use verbb\formie\models\ClientModule;
-use verbb\formie\models\ClientModuleContext;
+use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\models\BrowserModuleContext;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\Stencil;
 
@@ -59,14 +59,15 @@ class Turnstile extends Captcha
         ]);
     }
 
-    public function getClientModule(ClientModuleContext $context): ?ClientModule
+    public function getBrowserModule(BrowserModuleContext $context): ?BrowserModuleEntry
     {
         if (!$context->form) {
             return null;
         }
 
-        return new ClientModule([
-            'id' => 'turnstile',
+        return new BrowserModuleEntry([
+            'moduleId' => 'formie:turnstile',
+            'surfaces' => [BrowserModuleEntry::SURFACE_SERVER_RENDERED, BrowserModuleEntry::SURFACE_CLIENT_RENDERED],
             'config' => [
                 'handle' => $this->handle,
                 'placeholderSelector' => '[data-turnstile-placeholder]',

@@ -10,9 +10,9 @@ import type {
     FormSubmitResult,
 } from '@verbb/formie-browser';
 import type {
-    FrontendFieldType,
-    FrontendFormInstance,
-    FrontendSubmitResult,
+    ClientFieldType,
+    ClientFormInstance,
+    ClientSubmitResult,
 } from '@verbb/formie-core';
 import { createElement, useEffect, useMemo, useRef, useState } from 'react';
 import type { RefObject } from 'react';
@@ -38,6 +38,7 @@ export type FormieHtmlSource = {
 export type FormieFormProps = {
     source?: FormieHtmlSource;
     transport?: FormTransport;
+    profile?: FormMountOptions['profile'];
     endpoint?: string;
     formHandle?: string;
     staticCache?: boolean;
@@ -63,22 +64,23 @@ export type FormieFormProps = {
 export type FormieClientFormProps = {
     source?: FormieDefinitionSource;
     transport?: FormTransport;
+    profile?: FormMountOptions['profile'];
     endpoint?: string;
     formHandle?: string;
     siteId?: number;
     components?: FormieReactComponents;
-    fieldComponents?: Partial<Record<FrontendFieldType, (props: FormieFieldComponentProps) => ReturnType<typeof createElement> | null>>;
+    fieldComponents?: Partial<Record<ClientFieldType, (props: FormieFieldComponentProps) => ReturnType<typeof createElement> | null>>;
     slots?: Partial<Record<string, (props: FormieSlotComponentProps) => ReturnType<typeof createElement> | null>>;
     className?: string;
-    onMount?: (instance: FrontendFormInstance) => void;
-    onReady?: (instance: FrontendFormInstance) => void;
+    onMount?: (instance: ClientFormInstance) => void;
+    onReady?: (instance: ClientFormInstance) => void;
     onUnmount?: () => void;
-    onResult?: (result: FrontendSubmitResult) => void;
-    onSuccess?: (result: FrontendSubmitResult) => void;
-    onError?: (result: FrontendSubmitResult) => void;
-    onSubmitResult?: (result: FrontendSubmitResult) => void;
-    onSubmitSuccess?: (result: FrontendSubmitResult) => void;
-    onSubmitError?: (result: FrontendSubmitResult) => void;
+    onResult?: (result: ClientSubmitResult) => void;
+    onSuccess?: (result: ClientSubmitResult) => void;
+    onError?: (result: ClientSubmitResult) => void;
+    onSubmitResult?: (result: ClientSubmitResult) => void;
+    onSubmitSuccess?: (result: ClientSubmitResult) => void;
+    onSubmitError?: (result: ClientSubmitResult) => void;
     onEvent?: (event: FormieReactEvent) => void;
 };
 
@@ -88,7 +90,7 @@ function isHtmlSource(source: FormieFormProps['source']): source is FormieHtmlSo
     return !!source && 'payload' in source;
 }
 
-function isSubmitSuccess(result: FormSubmitResult | FrontendSubmitResult): boolean {
+function isSubmitSuccess(result: FormSubmitResult | ClientSubmitResult): boolean {
     return 'success' in result ? result.success : result.ok;
 }
 
@@ -114,6 +116,7 @@ function buildMountOptions(props: FormieFormProps): FormMountOptions {
     return {
         mode: 'server-rendered',
         transport,
+        profile: props.profile,
         endpoint: props.endpoint,
         formHandle: props.formHandle,
         payload: isHtmlSource(props.source) ? props.source.payload : undefined,
@@ -149,6 +152,7 @@ function resolveDefinitionSource(props: FormieClientFormProps): FormieDefinition
         endpoint,
         formHandle,
         siteId: props.siteId,
+        profile: props.profile,
     };
 }
 
@@ -157,6 +161,7 @@ type HtmlFormViewProps = FormieFormProps;
 function HtmlFormView({
     source,
     transport,
+    profile,
     endpoint,
     formHandle,
     staticCache,
@@ -193,6 +198,7 @@ function HtmlFormView({
     const options = useMemo(() => {
         return buildMountOptions({
             transport,
+            profile,
             endpoint,
             formHandle,
             staticCache,
@@ -206,6 +212,7 @@ function HtmlFormView({
         });
     }, [
         transport,
+        profile,
         endpoint,
         formHandle,
         staticCache,
@@ -309,6 +316,7 @@ function HtmlFormView({
 export function FormieForm({
     source,
     transport,
+    profile,
     endpoint,
     formHandle,
     staticCache,
@@ -333,6 +341,7 @@ export function FormieForm({
     return createElement(HtmlFormView, {
         source,
         transport,
+        profile,
         endpoint,
         formHandle,
         staticCache,
@@ -359,6 +368,7 @@ export function FormieForm({
 export function FormieClientForm({
     source,
     transport,
+    profile,
     endpoint,
     formHandle,
     siteId,
@@ -381,6 +391,7 @@ export function FormieClientForm({
         source: resolveDefinitionSource({
             source,
             transport,
+            profile,
             endpoint,
             formHandle,
             siteId,
@@ -522,7 +533,6 @@ export function useFormieHtml(options: FormieHtmlOptions): {
 export type {
     FormAction,
     FormEventUnsubscribe,
-    FormDefinitionPayload,
     FormEndpointPayload,
     FormieClient,
     FormieFormInstance,
@@ -530,14 +540,14 @@ export type {
     FormSubmitResult,
 } from '@verbb/formie-browser';
 export type {
-    FrontendFieldDefinition,
-    FrontendFieldType,
-    FrontendFormDefinition,
-    FrontendFormEnvelope,
-    FrontendFormSession,
-    FrontendFormInstance,
-    FrontendFormState,
-    FrontendSubmitResult,
+    ClientFieldDefinition,
+    ClientFieldType,
+    ClientFormDefinition,
+    ClientFormBootstrap,
+    ClientFormSession,
+    ClientFormInstance,
+    ClientFormState,
+    ClientSubmitResult,
 } from '@verbb/formie-core';
 export type {
     FormieDefinitionSource,

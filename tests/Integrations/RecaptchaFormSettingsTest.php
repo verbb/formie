@@ -5,7 +5,7 @@ declare(strict_types=1);
 use verbb\formie\elements\Form;
 use verbb\formie\Formie;
 use verbb\formie\integrations\captchas\Recaptcha;
-use verbb\formie\models\ClientModuleContext;
+use verbb\formie\models\BrowserModuleContext;
 use verbb\formie\services\Integrations;
 
 beforeEach(function (): void {
@@ -138,7 +138,7 @@ it('resolves form-level reCAPTCHA action and minimum score overrides for enabled
         ->and(invokeRecaptchaMethod($recaptcha, '_getRecaptchaAction'))->toBe('contact-form')
         ->and(invokeRecaptchaMethod($recaptcha, '_getMinScore'))->toBe(0.8);
 
-    $module = $recaptcha->getClientModule(new ClientModuleContext([
+    $module = $recaptcha->getBrowserModule(new BrowserModuleContext([
         'form' => $form,
     ]));
 

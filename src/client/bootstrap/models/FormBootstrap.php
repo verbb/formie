@@ -9,7 +9,7 @@ class FormBootstrap extends BaseClientModel
     // Properties
     // =========================================================================
 
-    public int $schemaVersion = 1;
+    public int $contractVersion = 1;
     public FormDefinition $definition;
     public FormSession $session;
 
@@ -23,5 +23,25 @@ class FormBootstrap extends BaseClientModel
         $this->session = new FormSession();
 
         parent::__construct($config);
+
+        $this->_assertVersion();
+    }
+
+    public function toArrayRecursive(): array
+    {
+        $this->_assertVersion();
+
+        return parent::toArrayRecursive();
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _assertVersion(): void
+    {
+        if ($this->contractVersion !== 1) {
+            throw new \InvalidArgumentException('Unsupported client-rendered contractVersion. Update Formie and its browser packages together.');
+        }
     }
 }

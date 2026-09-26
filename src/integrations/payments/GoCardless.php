@@ -16,8 +16,8 @@ use verbb\formie\helpers\PaymentAccess;
 use verbb\formie\helpers\PaymentWebhookReceipt;
 use verbb\formie\helpers\References;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\models\ClientModule;
-use verbb\formie\models\ClientModuleContext;
+use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\models\BrowserModuleContext;
 use verbb\formie\models\Payment as PaymentModel;
 use verbb\formie\models\PaymentAction;
 use verbb\formie\models\PaymentDecision;
@@ -98,7 +98,7 @@ class GoCardless extends Payment
         return Payment::applyPaymentWebhookProxy($url);
     }
 
-    public function getClientModule(ClientModuleContext $context): ?ClientModule
+    public function getBrowserModule(BrowserModuleContext $context): ?BrowserModuleEntry
     {
         if (!$this->hasValidSettings()) {
             return null;
@@ -106,8 +106,9 @@ class GoCardless extends Payment
 
         $this->setField($context->field);
 
-        return new ClientModule([
-            'id' => 'go-cardless',
+        return new BrowserModuleEntry([
+            'moduleId' => 'formie:go-cardless',
+            'surfaces' => [BrowserModuleEntry::SURFACE_SERVER_RENDERED, BrowserModuleEntry::SURFACE_CLIENT_RENDERED],
             'config' => [
                 'requiredInputSuffixes' => [],
                 'waitForValueMs' => 2500,

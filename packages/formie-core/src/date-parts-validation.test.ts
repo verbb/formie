@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { isValidCalendarDate, validateCompositeDateParts } from './date-parts-validation';
-import type { FrontendFieldDefinition } from './types';
+import type { ClientFieldDefinition } from './types';
 
-function createDateField(overrides: Partial<FrontendFieldDefinition> = {}): FrontendFieldDefinition {
+function createDateField(overrides: Partial<ClientFieldDefinition> = {}): ClientFieldDefinition {
     return {
         id: 'date-1',
         key: 'field-eventDate',

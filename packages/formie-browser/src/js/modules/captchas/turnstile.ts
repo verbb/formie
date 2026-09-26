@@ -51,7 +51,7 @@ async function loadTurnstileGlobal(options: TurnstileProviderOptions): Promise<T
 }
 
 export const turnstileModule = defineCaptchaModule<TurnstileProviderOptions, TurnstileGlobal, string>({
-    id: 'turnstile',
+    moduleId: 'formie:turnstile',
     defaultPlaceholderSelector: '[data-turnstile-placeholder]',
     defaultTokenFieldNames: ['cf-turnstile-response'],
     load: ({ options }) => {
@@ -102,7 +102,7 @@ export const turnstileModule = defineCaptchaModule<TurnstileProviderOptions, Tur
             },
         });
     },
-    screen: ({ api, widget, placeholder, services, provider, stageCtx }) => {
+    challenge: ({ api, widget, placeholder, services, provider, stageCtx }) => {
         // Submit-time rule: if a valid token already exists, do nothing. This
         // covers cases where Turnstile solved itself on load or before submit.
         if (services.tokens.has()) {
@@ -115,7 +115,7 @@ export const turnstileModule = defineCaptchaModule<TurnstileProviderOptions, Tur
         api.execute(widget);
         return services.tokens.wait(getTurnstileWaitForValueMs(provider)).then((hasToken) => {
             if (!hasToken) {
-                // No token arrived in time, so block the screen stage and show
+                // No token arrived in time, so block the challenge stage and show
                 // the shared themed inline error next to the active placeholder.
                 const message = services.errors.getDefaultMessage();
                 services.errors.show(message, placeholder);

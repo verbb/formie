@@ -4,11 +4,11 @@ namespace verbb\formie\fields;
 use verbb\formie\base\CosmeticField;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\fields\definitions\FieldClientModules;
+use verbb\formie\fields\definitions\FieldBrowserModules;
 use verbb\formie\helpers\FieldAccess;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
-use verbb\formie\models\ClientModule;
+use verbb\formie\models\BrowserModuleEntry;
 use verbb\formie\models\SlotTag;
 use verbb\formie\models\Notification;
 
@@ -216,12 +216,13 @@ class Summary extends CosmeticField
         ]);
     }
 
-    protected function defineClientModules(): array
+    protected function defineBrowserModules(): array
     {
-        $modules = parent::defineClientModules();
+        $modules = parent::defineBrowserModules();
         
-        $modules[] = new ClientModule([
-            'id' => 'summary',
+        $modules[] = new BrowserModuleEntry([
+            'moduleId' => 'formie:summary',
+            'surfaces' => [BrowserModuleEntry::SURFACE_SERVER_RENDERED, BrowserModuleEntry::SURFACE_CLIENT_RENDERED, BrowserModuleEntry::SURFACE_CP_EDIT],
             'config' => [
                 'fieldId' => (string)$this->id,
             ],

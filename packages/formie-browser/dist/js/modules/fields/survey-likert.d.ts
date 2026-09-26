@@ -1,3 +1,3 @@
-import type { FormieModuleDefinition } from '#contracts/modules';
-export declare const surveyLikertModule: FormieModuleDefinition;
+import type { BrowserModuleDefinition } from '#contracts/modules';
+export declare const surveyLikertModule: BrowserModuleDefinition;
 //# sourceMappingURL=survey-likert.d.ts.map

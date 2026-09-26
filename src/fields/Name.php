@@ -12,7 +12,7 @@ use verbb\formie\base\PreviewableFieldInterface;
 use verbb\formie\base\SortableFieldInterface;
 use verbb\formie\content\FieldStorageCodec;
 use verbb\formie\elements\Submission;
-use verbb\formie\fields\definitions\FieldClientChildren;
+use verbb\formie\fields\definitions\FieldClientRenderedChildren;
 use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\gql\types\NameType;
@@ -585,9 +585,9 @@ class Name extends FixedParentField implements SortableFieldInterface, Previewab
         return $faker->name;
     }
 
-    protected function defineClientInput(): array
+    protected function defineClientRenderedInput(): array
     {
-        return array_merge(parent::defineClientInput(), [
+        return array_merge(parent::defineClientRenderedInput(), [
             'multiple' => (bool)$this->useMultipleFields,
         ]);
     }

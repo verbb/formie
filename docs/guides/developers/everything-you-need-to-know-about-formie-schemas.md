@@ -106,7 +106,7 @@ Always start with `parent::defineFormSettingsSchema($form)` unless you have a sp
 
 ## Settings Schema vs Front-End Modules
 
-Schema covers **control panel configuration**. Captchas and address providers also need **client modules** (`getClientModule()`) for browser behaviour — schema alone does not inject JavaScript.
+Schema covers **control panel configuration**. Captchas and address providers also need **browser modules** (`getBrowserModule()`) for browser behaviour — schema alone does not inject JavaScript.
 
 See [Captcha Integration](/developers/custom-integration/captcha-integration) for the full split.
 
