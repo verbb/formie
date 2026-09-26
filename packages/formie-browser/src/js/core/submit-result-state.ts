@@ -390,12 +390,12 @@ function syncSubmissionIdentity(form: HTMLFormElement, result: FormSubmitResult)
         setHiddenInputValue(form, 'submissionUid', submissionUid);
     }
 
-    const continuationToken = (result.meta?.session as { continuation?: { continuationToken?: unknown } } | undefined)
-        ?.continuation?.continuationToken;
-    if (typeof continuationToken === 'string' && continuationToken.trim() !== '') {
-        setHiddenInputValue(form, 'continuationToken', continuationToken);
+    const progressId = (result.meta?.session as { continuation?: { progressId?: unknown } } | undefined)
+        ?.continuation?.progressId;
+    if (typeof progressId === 'string' && progressId.trim() !== '') {
+        setHiddenInputValue(form, 'progressId', progressId);
     } else {
-        removeHiddenInput(form, 'continuationToken');
+        removeHiddenInput(form, 'progressId');
     }
 }
 
@@ -464,7 +464,7 @@ function resetSubmissionState(form: HTMLFormElement, options: ResetSubmissionSta
     removeHiddenInput(form, 'submissionId');
     setHiddenInputValue(form, 'expectedVersion', '0');
     removeHiddenInput(form, 'submissionUid');
-    removeHiddenInput(form, 'continuationToken');
+    removeHiddenInput(form, 'progressId');
     removeHiddenInput(form, 'pageId');
     clearResumeTokenState(form);
     validator?.resetLiveState();

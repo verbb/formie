@@ -185,7 +185,10 @@ async function se(e) {
 }
 async function ce(e) {
 	let t = Array.isArray(e) ? e : [];
-	return (await Promise.all(t.map(async (e) => typeof e == "number" ? { assetId: e } : e && typeof e == "object" && "assetId" in e && typeof e.assetId == "number" ? {
+	return (await Promise.all(t.map(async (e) => typeof e == "number" ? { assetId: e } : e && typeof e == "object" && typeof e.uploadUid == "string" && typeof e.attachToken == "string" ? {
+		uploadUid: e.uploadUid,
+		attachToken: e.attachToken
+	} : e && typeof e == "object" && "assetId" in e && typeof e.assetId == "number" ? {
 		assetId: e.assetId,
 		filename: typeof e.filename == "string" ? e.filename : void 0
 	} : e && typeof e == "object" && "fileData" in e && typeof e.fileData == "string" ? {
@@ -2359,7 +2362,7 @@ var B = [
 			}, c = e, r = (l = t) === void 0 ? /* @__PURE__ */ new Date() : l instanceof Date ? new Date(l) : /* @__PURE__ */ new Date(1e3 * Number(l)), c.replace(a, o);
 			var c, l;
 		}
-		let ke = "[ \\t]+", P = "[ \\t]*", F = "(?:([ap])\\.?m\\.?([\\t ]|$))", I = "(2[0-4]|[01]?[0-9])", L = "([01][0-9]|2[0-4])", R = "(0?[1-9]|1[0-2])", z = "([0-5]?[0-9])", B = "([0-5][0-9])", Ae = "(60|[0-5]?[0-9])", V = "(60|[0-5][0-9])", je = "(?:\\.([0-9]+))", Me = "sunday|monday|tuesday|wednesday|thursday|friday|saturday|sun|mon|tue|wed|thu|fri|sat|weekdays?", Ne = "next|last|previous|this", Pe = "(?:second|sec|minute|min|hour|day|fortnight|forthnight|month|year)s?|weeks|" + Me, H = "([0-9]{1,4})", U = "([0-9]{4})", W = "(1[0-2]|0?[0-9])", G = "(0[0-9]|1[0-2])", K = "(?:(3[01]|[0-2]?[0-9])(?:st|nd|rd|th)?)", q = "(0[0-9]|[1-2][0-9]|3[01])", Fe = "january|february|march|april|may|june|july|august|september|october|november|december", Ie = "jan|feb|mar|apr|may|jun|jul|aug|sept?|oct|nov|dec", J = "(" + Fe + "|" + Ie + "|i[vx]|vi{0,3}|xi{0,2}|i{1,3})", Y = "((?:GMT)?([+-])" + I + ":?" + z + "?)", Le = J + "[ .\\t-]*" + K + "[,.stndrh\\t ]*";
+		let ke = "[ \\t]+", P = "[ \\t]*", F = "(?:([ap])\\.?m\\.?([\\t ]|$))", I = "(2[0-4]|[01]?[0-9])", L = "([01][0-9]|2[0-4])", R = "(0?[1-9]|1[0-2])", z = "([0-5]?[0-9])", B = "([0-5][0-9])", Ae = "(60|[0-5]?[0-9])", V = "(60|[0-5][0-9])", je = "(?:\\.([0-9]+))", Me = "sunday|monday|tuesday|wednesday|thursday|friday|saturday|sun|mon|tue|wed|thu|fri|sat|weekdays?", Ne = "next|last|previous|this", Pe = "(?:second|sec|minute|min|hour|day|fortnight|forthnight|month|year)s?|weeks|" + Me, Fe = "([0-9]{1,4})", H = "([0-9]{4})", U = "(1[0-2]|0?[0-9])", W = "(0[0-9]|1[0-2])", G = "(?:(3[01]|[0-2]?[0-9])(?:st|nd|rd|th)?)", K = "(0[0-9]|[1-2][0-9]|3[01])", Ie = "january|february|march|april|may|june|july|august|september|october|november|december", q = "jan|feb|mar|apr|may|jun|jul|aug|sept?|oct|nov|dec", J = "(" + Ie + "|" + q + "|i[vx]|vi{0,3}|xi{0,2}|i{1,3})", Le = "((?:GMT)?([+-])" + I + ":?" + z + "?)", Y = J + "[ .\\t-]*" + G + "[,.stndrh\\t ]*";
 		function X(e, t) {
 			switch (t?.toLowerCase()) {
 				case "a":
@@ -2687,42 +2690,42 @@ var B = [
 				}
 			},
 			soap: {
-				regex: RegExp("^" + U + "-" + G + "-" + q + "T" + L + ":" + B + ":" + V + je + Y + "?", "i"),
+				regex: RegExp("^" + H + "-" + W + "-" + K + "T" + L + ":" + B + ":" + V + je + Le + "?", "i"),
 				name: "soap",
 				callback(e, t, n, r, i, a, o, s, c) {
 					return this.ymd(+t, n - 1, +r) && this.time(+i, +a, +o, +s.substr(0, 3)) && this.zone(ze(c));
 				}
 			},
 			wddx: {
-				regex: RegExp("^" + U + "-" + W + "-" + K + "T" + I + ":" + z + ":" + Ae),
+				regex: RegExp("^" + H + "-" + U + "-" + G + "T" + I + ":" + z + ":" + Ae),
 				name: "wddx",
 				callback(e, t, n, r, i, a, o) {
 					return this.ymd(+t, n - 1, +r) && this.time(+i, +a, +o, 0);
 				}
 			},
 			exif: {
-				regex: RegExp("^" + U + ":" + G + ":" + q + " " + L + ":" + B + ":" + V, "i"),
+				regex: RegExp("^" + H + ":" + W + ":" + K + " " + L + ":" + B + ":" + V, "i"),
 				name: "exif",
 				callback(e, t, n, r, i, a, o) {
 					return this.ymd(+t, n - 1, +r) && this.time(+i, +a, +o, 0);
 				}
 			},
 			xmlRpc: {
-				regex: RegExp("^" + U + G + q + "T" + I + ":" + B + ":" + V),
+				regex: RegExp("^" + H + W + K + "T" + I + ":" + B + ":" + V),
 				name: "xmlrpc",
 				callback(e, t, n, r, i, a, o) {
 					return this.ymd(+t, n - 1, +r) && this.time(+i, +a, +o, 0);
 				}
 			},
 			xmlRpcNoColon: {
-				regex: RegExp("^" + U + G + q + "[Tt]" + I + B + V),
+				regex: RegExp("^" + H + W + K + "[Tt]" + I + B + V),
 				name: "xmlrpcnocolon",
 				callback(e, t, n, r, i, a, o) {
 					return this.ymd(+t, n - 1, +r) && this.time(+i, +a, +o, 0);
 				}
 			},
 			clf: {
-				regex: RegExp("^" + K + "/(" + Ie + ")/" + U + ":" + L + ":" + B + ":" + V + ke + Y, "i"),
+				regex: RegExp("^" + G + "/(" + q + ")/" + H + ":" + L + ":" + B + ":" + V + ke + Le, "i"),
 				name: "clf",
 				callback(e, t, n, r, i, a, o, s) {
 					return this.ymd(+r, Q(n), +t) && this.time(+i, +a, +o, 0) && this.zone(ze(s));
@@ -2736,21 +2739,21 @@ var B = [
 				}
 			},
 			dateTextual: {
-				regex: RegExp("^" + J + "[ .\\t-]*" + K + "[,.stndrh\\t ]+" + H, "i"),
+				regex: RegExp("^" + J + "[ .\\t-]*" + G + "[,.stndrh\\t ]+" + Fe, "i"),
 				name: "datetextual",
 				callback(e, t, n, r) {
 					return this.ymd(Z(r), Q(t), +n);
 				}
 			},
 			pointedDate4: {
-				regex: RegExp("^" + K + "[.\\t-]" + W + "[.-]" + U),
+				regex: RegExp("^" + G + "[.\\t-]" + U + "[.-]" + H),
 				name: "pointeddate4",
 				callback(e, t, n, r) {
 					return this.ymd(+r, n - 1, +t);
 				}
 			},
 			pointedDate2: {
-				regex: RegExp("^" + K + "[.\\t]" + W + "\\.([0-9]{2})"),
+				regex: RegExp("^" + G + "[.\\t]" + U + "\\.([0-9]{2})"),
 				name: "pointeddate2",
 				callback(e, t, n, r) {
 					return this.ymd(Z(r), n - 1, +t);
@@ -2764,14 +2767,14 @@ var B = [
 				}
 			},
 			dateNoColon: {
-				regex: RegExp("^" + U + G + q),
+				regex: RegExp("^" + H + W + K),
 				name: "datenocolon",
 				callback(e, t, n, r) {
 					return this.ymd(+t, n - 1, +r);
 				}
 			},
 			pgydotd: {
-				regex: RegExp("^" + U + "\\.?(00[1-9]|0[1-9][0-9]|[12][0-9][0-9]|3[0-5][0-9]|36[0-6])"),
+				regex: RegExp("^" + H + "\\.?(00[1-9]|0[1-9][0-9]|[12][0-9][0-9]|3[0-5][0-9]|36[0-6])"),
 				name: "pgydotd",
 				callback(e, t, n) {
 					return this.ymd(+t, 0, +n);
@@ -2792,42 +2795,42 @@ var B = [
 				}
 			},
 			iso8601dateSlash: {
-				regex: RegExp("^" + U + "/" + G + "/" + q + "/"),
+				regex: RegExp("^" + H + "/" + W + "/" + K + "/"),
 				name: "iso8601dateslash",
 				callback(e, t, n, r) {
 					return this.ymd(+t, n - 1, +r);
 				}
 			},
 			dateSlash: {
-				regex: RegExp("^" + U + "/" + W + "/" + K),
+				regex: RegExp("^" + H + "/" + U + "/" + G),
 				name: "dateslash",
 				callback(e, t, n, r) {
 					return this.ymd(+t, n - 1, +r);
 				}
 			},
 			american: {
-				regex: RegExp("^" + W + "/" + K + "/" + H),
+				regex: RegExp("^" + U + "/" + G + "/" + Fe),
 				name: "american",
 				callback(e, t, n, r) {
 					return this.ymd(Z(r), t - 1, +n);
 				}
 			},
 			americanShort: {
-				regex: RegExp("^" + W + "/" + K),
+				regex: RegExp("^" + U + "/" + G),
 				name: "americanshort",
 				callback(e, t, n) {
 					return this.ymd(this.y, t - 1, +n);
 				}
 			},
 			gnuDateShortOrIso8601date2: {
-				regex: RegExp("^" + H + "-" + W + "-" + K),
+				regex: RegExp("^" + Fe + "-" + U + "-" + G),
 				name: "gnudateshort | iso8601date2",
 				callback(e, t, n, r) {
 					return this.ymd(Z(t), n - 1, +r);
 				}
 			},
 			iso8601date4: {
-				regex: RegExp("^([+-]?[0-9]{4})-" + G + "-" + q),
+				regex: RegExp("^([+-]?[0-9]{4})-" + W + "-" + K),
 				name: "iso8601date4",
 				callback(e, t, n, r) {
 					return this.ymd(+t, n - 1, +r);
@@ -2845,63 +2848,63 @@ var B = [
 				}
 			},
 			gnuDateShorter: {
-				regex: RegExp("^" + U + "-" + W),
+				regex: RegExp("^" + H + "-" + U),
 				name: "gnudateshorter",
 				callback(e, t, n) {
 					return this.ymd(+t, n - 1, 1);
 				}
 			},
 			pgTextReverse: {
-				regex: RegExp("^(\\d{3,4}|[4-9]\\d|3[2-9])-(" + Ie + ")-" + q, "i"),
+				regex: RegExp("^(\\d{3,4}|[4-9]\\d|3[2-9])-(" + q + ")-" + K, "i"),
 				name: "pgtextreverse",
 				callback(e, t, n, r) {
 					return this.ymd(Z(t), Q(n), +r);
 				}
 			},
 			dateFull: {
-				regex: RegExp("^" + K + "[ \\t.-]*" + J + "[ \\t.-]*" + H, "i"),
+				regex: RegExp("^" + G + "[ \\t.-]*" + J + "[ \\t.-]*" + Fe, "i"),
 				name: "datefull",
 				callback(e, t, n, r) {
 					return this.ymd(Z(r), Q(n), +t);
 				}
 			},
 			dateNoDay: {
-				regex: RegExp("^" + J + "[ .\\t-]*" + U, "i"),
+				regex: RegExp("^" + J + "[ .\\t-]*" + H, "i"),
 				name: "datenoday",
 				callback(e, t, n) {
 					return this.ymd(+n, Q(t), 1);
 				}
 			},
 			dateNoDayRev: {
-				regex: RegExp("^" + U + "[ .\\t-]*" + J, "i"),
+				regex: RegExp("^" + H + "[ .\\t-]*" + J, "i"),
 				name: "datenodayrev",
 				callback(e, t, n) {
 					return this.ymd(+t, Q(n), 1);
 				}
 			},
 			pgTextShort: {
-				regex: RegExp("^(" + Ie + ")-" + q + "-" + H, "i"),
+				regex: RegExp("^(" + q + ")-" + K + "-" + Fe, "i"),
 				name: "pgtextshort",
 				callback(e, t, n, r) {
 					return this.ymd(Z(r), Q(t), +n);
 				}
 			},
 			dateNoYear: {
-				regex: RegExp("^" + Le, "i"),
+				regex: RegExp("^" + Y, "i"),
 				name: "datenoyear",
 				callback(e, t, n) {
 					return this.ymd(this.y, Q(t), +n);
 				}
 			},
 			dateNoYearRev: {
-				regex: RegExp("^" + K + "[ .\\t-]*" + J, "i"),
+				regex: RegExp("^" + G + "[ .\\t-]*" + J, "i"),
 				name: "datenoyearrev",
 				callback(e, t, n) {
 					return this.ymd(this.y, Q(n), +t);
 				}
 			},
 			isoWeekDay: {
-				regex: RegExp("^" + U + "-?W(0[1-9]|[1-4][0-9]|5[0-3])(?:-?([0-7]))?"),
+				regex: RegExp("^" + H + "-?W(0[1-9]|[1-4][0-9]|5[0-3])(?:-?([0-7]))?"),
 				name: "isoweekday | isoweek",
 				callback(e, t, n, r) {
 					let i = r ? +r : 1;
@@ -3081,14 +3084,14 @@ var B = [
 				}
 			},
 			monthFullOrMonthAbbr: {
-				regex: RegExp("^(" + Fe + "|" + Ie + ")", "i"),
+				regex: RegExp("^(" + Ie + "|" + q + ")", "i"),
 				name: "monthfull | monthabbr",
 				callback(e, t) {
 					return this.ymd(this.y, Q(t), this.d);
 				}
 			},
 			tzCorrection: {
-				regex: RegExp("^" + Y, "i"),
+				regex: RegExp("^" + Le, "i"),
 				name: "tzcorrection",
 				callback(e) {
 					return this.zone(ze(e));
@@ -3110,7 +3113,7 @@ var B = [
 				}
 			},
 			year4: {
-				regex: RegExp("^" + U),
+				regex: RegExp("^" + H),
 				name: "year4",
 				callback(e, t) {
 					return this.y = +t, !0;
@@ -3121,28 +3124,28 @@ var B = [
 				name: "whitespace"
 			},
 			dateShortWithTimeLong: {
-				regex: RegExp("^" + Le + "t?" + I + "[:.]" + z + "[:.]" + Ae, "i"),
+				regex: RegExp("^" + Y + "t?" + I + "[:.]" + z + "[:.]" + Ae, "i"),
 				name: "dateshortwithtimelong",
 				callback(e, t, n, r, i, a) {
 					return this.ymd(this.y, Q(t), +n) && this.time(+r, +i, +a, 0);
 				}
 			},
 			dateShortWithTimeLong12: {
-				regex: RegExp("^" + Le + R + "[:.]" + z + "[:.]" + V + P + F, "i"),
+				regex: RegExp("^" + Y + R + "[:.]" + z + "[:.]" + V + P + F, "i"),
 				name: "dateshortwithtimelong12",
 				callback(e, t, n, r, i, a, o) {
 					return this.ymd(this.y, Q(t), +n) && this.time(X(+r, o), +i, +a, 0);
 				}
 			},
 			dateShortWithTimeShort: {
-				regex: RegExp("^" + Le + "t?" + I + "[:.]" + z, "i"),
+				regex: RegExp("^" + Y + "t?" + I + "[:.]" + z, "i"),
 				name: "dateshortwithtimeshort",
 				callback(e, t, n, r, i) {
 					return this.ymd(this.y, Q(t), +n) && this.time(+r, +i, 0, 0);
 				}
 			},
 			dateShortWithTimeShort12: {
-				regex: RegExp("^" + Le + R + "[:.]" + B + P + F, "i"),
+				regex: RegExp("^" + Y + R + "[:.]" + B + P + F, "i"),
 				name: "dateshortwithtimeshort12",
 				callback(e, t, n, r, i, a) {
 					return this.ymd(this.y, Q(t), +n) && this.time(X(+r, a), +i, 0, 0);
@@ -3687,7 +3690,7 @@ function Ne(e) {
 function Pe(e) {
 	return Object.entries(e.formula?.variables || {}).filter((e) => !!e[1]?.sourceKey);
 }
-function H(e, t) {
+function Fe(e, t) {
 	return Object.entries(e).forEach(([t, n]) => {
 		if (Array.isArray(n)) {
 			let r = n.map((e) => typeof e == "string" && e.trim() !== "" && !Number.isNaN(Number(e)) ? Number(e) : e), i = r.filter((e) => typeof e == "number");
@@ -3697,19 +3700,31 @@ function H(e, t) {
 		typeof n == "string" && n.trim() !== "" && !Number.isNaN(Number(n)) && (e[t] = Number(n));
 	}), e;
 }
-function U(e, t) {
+function H(e, t) {
 	if (t.formatting !== "number") return typeof e == "number" || typeof e == "string" ? e : "";
 	let n = e;
 	Array.isArray(n) && (n = n.reduce((e, t) => e + Number(t || 0), 0));
 	let r = typeof t.decimals == "number" ? t.decimals : 0, i = Number(n || 0).toFixed(r);
 	return `${t.prefix || ""}${i}${t.suffix || ""}`;
 }
-function W(e, t) {
+function U(e, t) {
 	let n = e.type?.endsWith("\\Number");
 	return e.type?.endsWith("\\Checkboxes") ? Array.isArray(t) ? t.length ? t : "" : t ? [t] : "" : Array.isArray(t) ? t.length ? n ? t.map((e) => Number(e || 0)) : t : "" : n ? Number(t || 0) : t;
 }
-function G(e, t, n) {
-	return U(Me().evaluate(e, t), n);
+function W(e, t, n) {
+	return H(Me().evaluate(e, t), n);
+}
+//#endregion
+//#region src/grants.ts
+function G(e) {
+	if (!e || typeof window > "u") return;
+	let t = new URL(window.location.href), n = !1;
+	for (let r of [
+		"grantToken",
+		"resumeToken",
+		"submissionEditToken"
+	]) t.searchParams.get(r) === e && (t.searchParams.delete(r), n = !0);
+	n && window.history.replaceState(window.history.state, "", t);
 }
 //#endregion
 //#region src/rest.ts
@@ -3723,7 +3738,7 @@ function K(e, t) {
 	let r = e.trim();
 	return !r || r === "/" ? n : `${r.replace(/\/+$/, "")}${n}`;
 }
-async function q(e, t) {
+async function Ie(e, t) {
 	let n = await fetch(e, t), r = await n.json();
 	if (!n.ok && !(typeof r.outcome == "string" && [
 		403,
@@ -3733,23 +3748,26 @@ async function q(e, t) {
 	].includes(n.status))) throw Error(`Request failed with status ${n.status}.`);
 	return r;
 }
-function Fe(e, t) {
+function q(e, t) {
 	let n = t?.tokens?.csrf;
 	n?.name && n.value && (e[n.name] = n.value);
 }
-async function Ie(e) {
+async function J(e) {
 	let t = K(e.endpoint, "/actions/formie/client/forms/load"), n = JSON.stringify({
 		handle: e.formHandle,
-		siteId: e.siteId
-	});
-	return q(t, {
+		siteId: e.siteId,
+		grantToken: e.grantToken,
+		grantPurpose: e.grantPurpose,
+		draftContext: e.draftContext
+	}), r = await Ie(t, {
 		method: "POST",
 		credentials: e.credentials ?? "same-origin",
 		headers: { "Content-Type": "application/json" },
 		body: n
 	});
+	return G(e.grantToken), r;
 }
-function J(e) {
+function Le(e) {
 	return {
 		async submit({ definition: t, session: n, values: r, action: i }) {
 			let a = K(e.endpoint, "/actions/formie/client/submissions/submit"), o = await M(t, r), s = {
@@ -3759,7 +3777,7 @@ function J(e) {
 				session: n,
 				values: o
 			};
-			return Fe(s, n), q(a, {
+			return q(s, n), Ie(a, {
 				method: "POST",
 				credentials: e.credentials ?? "same-origin",
 				headers: { "Content-Type": "application/json" },
@@ -3772,7 +3790,7 @@ function J(e) {
 				siteId: e.siteId,
 				session: t
 			};
-			return Fe(r, t), q(n, {
+			return q(r, t), Ie(n, {
 				method: "POST",
 				credentials: e.credentials ?? "same-origin",
 				headers: { "Content-Type": "application/json" },
@@ -3788,7 +3806,7 @@ function J(e) {
 				session: n,
 				values: s
 			};
-			return Fe(c, n), q(o, {
+			return q(c, n), Ie(o, {
 				method: "POST",
 				credentials: e.credentials ?? "same-origin",
 				headers: { "Content-Type": "application/json" },
@@ -3799,11 +3817,14 @@ function J(e) {
 }
 //#endregion
 //#region src/graphql.ts
-var Y = "\n    id\n    version\n    currentPageId\n    tokens\n    continuation\n", Le = `
+var Y = "\n    id\n    version\n    currentPageId\n    tokens\n    continuation\n", X = `
     success
     outcome
     version
     submissionUid
+    resumeToken
+    resumeUrl
+    resumeTokenExpiresAt
     currentPageId
     nextPageId
     previousPageId
@@ -3822,13 +3843,13 @@ var Y = "\n    id\n    version\n    currentPageId\n    tokens\n    continuation\
     }
     quizResult
 `;
-function X(e) {
+function Z(e) {
 	if (e.startsWith("http://") || e.startsWith("https://")) return e;
 	let t = e.trim();
 	return !t || t === "/" ? "/api" : t;
 }
-async function Z(e, t, n) {
-	let r = await fetch(X(e.endpoint), {
+async function Q(e, t, n) {
+	let r = await fetch(Z(e.endpoint), {
 		method: "POST",
 		credentials: e.credentials ?? "same-origin",
 		headers: {
@@ -3846,10 +3867,10 @@ async function Z(e, t, n) {
 	if (!i.data) throw Error("GraphQL returned no data.");
 	return i.data;
 }
-async function Q(e) {
-	let t = await Z(e, `
-            query ClientForm($handle: String!, $siteId: Int) {
-                formieClientForm(handle: $handle, siteId: $siteId) {
+async function Re(e) {
+	let t = await Q(e, `
+            query ClientForm($handle: String!, $siteId: Int, $grantToken: String, $grantPurpose: String, $draftContext: String) {
+                formieClientForm(handle: $handle, siteId: $siteId, grantToken: $grantToken, grantPurpose: $grantPurpose, draftContext: $draftContext) {
                     schemaVersion
                     definition
                     session {
@@ -3859,20 +3880,23 @@ async function Q(e) {
             }
         `, {
 		handle: e.formHandle,
-		siteId: e.siteId
+		siteId: e.siteId,
+		grantToken: e.grantToken,
+		grantPurpose: e.grantPurpose,
+		draftContext: e.draftContext
 	});
 	if (!t.formieClientForm) throw Error("No client form definition was returned.");
-	return t.formieClientForm;
+	return G(e.grantToken), t.formieClientForm;
 }
-function Re(e) {
+function ze(e) {
 	return {
 		async submit({ definition: t, session: n, values: r, action: i }) {
-			let a = await M(t, r), o = await Z(e, `
+			let a = await M(t, r), o = await Q(e, `
                     mutation SubmitFormieClientForm(
                         $input: FormieClientSubmitInput!
                     ) {
                         submitFormieClientForm(input: $input) {
-                            ${Le}
+                            ${X}
                         }
                     }
                 `, { input: {
@@ -3886,7 +3910,7 @@ function Re(e) {
 			return o.submitFormieClientForm;
 		},
 		async refreshSession({ session: t }) {
-			let n = await Z(e, `
+			let n = await Q(e, `
                     mutation RefreshFormieClientSession(
                         $input: FormieClientSessionRefreshInput!
                     ) {
@@ -3903,7 +3927,7 @@ function Re(e) {
 			return n.refreshFormieClientSession;
 		},
 		async setPage({ definition: t, session: n, values: r, currentPageId: i, targetPageId: a }) {
-			let o = await M(t, r), s = await Z(e, `
+			let o = await M(t, r), s = await Q(e, `
                     mutation SetFormieClientPage(
                         $input: FormieClientSetPageInput!
                     ) {
@@ -3926,39 +3950,39 @@ function Re(e) {
 }
 //#endregion
 //#region src/text.ts
-var ze = (() => {
+var Be = (() => {
 	let e = Intl.Segmenter;
 	return e ? new e(void 0, { granularity: "grapheme" }) : null;
-})(), Be = /[\p{L}\p{N}\p{M}]+(?:['’._-][\p{L}\p{N}\p{M}]+)*/gu;
-function $(e) {
+})(), $ = /[\p{L}\p{N}\p{M}]+(?:['’._-][\p{L}\p{N}\p{M}]+)*/gu;
+function Ve(e) {
 	return typeof DOMParser < "u" ? new DOMParser().parseFromString(e, "text/html").body.textContent || "" : e.replace(/<[^>]*>/g, " ");
 }
-function Ve(e) {
-	return $(e);
-}
 function He(e) {
-	return Ve(e).replace(/[\s\t\n\r]+/g, " ").trim();
+	return Ve(e);
 }
 function Ue(e) {
-	return ze ? Array.from(ze.segment(e)).length : Array.from(e).length;
+	return He(e).replace(/[\s\t\n\r]+/g, " ").trim();
 }
 function We(e) {
-	return e.match(Be)?.length || 0;
+	return Be ? Array.from(Be.segment(e)).length : Array.from(e).length;
 }
 function Ge(e) {
-	let t = Ve(e), n = He(e);
+	return e.match($)?.length || 0;
+}
+function Ke(e) {
+	let t = He(e), n = Ue(e);
 	return {
-		graphemeCount: Ue(t),
-		wordCount: We(n)
+		graphemeCount: We(t),
+		wordCount: Ge(n)
 	};
 }
 //#endregion
 //#region src/accessibility.ts
-function Ke(e) {
+function qe(e) {
 	return e.settings.validation.errorAriaLive || "polite";
 }
-function qe(e, t) {
+function Je(e, t) {
 	return `formie-${e.tokens.render || e.id}-${t}-errors`;
 }
 //#endregion
-export { B as FRONTEND_CLIENT_EVENT_NAMES, v as allFields, K as buildActionUrl, H as coerceCalculationVariables, O as compositePartDefinitions, Ue as countGraphemes, z as createFrontendFormInstance, Re as createGraphqlFrontendTransport, ae as createRepeaterRowValue, J as createRestFrontendTransport, A as defaultValueForField, G as evaluateCalculationExpression, h as evaluateConditionDefinition, j as fieldValueAsStrings, S as fieldValueContract, C as fieldValueStructure, g as finalizeConditionEvaluation, b as findFieldByHandle, y as findFieldById, U as formatCalculationValue, Ne as getCalculationFormula, Pe as getCalculationVariableEntries, Ke as getFrontendErrorAriaLive, qe as getFrontendFieldErrorId, Ge as getTextLimitMetrics, We as getWordCount, te as isBooleanField, w as isCompositeField, re as isEmailField, E as isFileField, ee as isKnownFrontendFieldType, D as isMultiValueField, ne as isNumericField, T as isRepeatableField, Ie as loadFrontendEnvelope, Q as loadGraphqlFrontendEnvelope, He as normalizeText, W as readCalculationVariableValue, k as repeaterFieldDefinitions, ie as repeaterRowDefinitions, x as serializeFieldValues, M as serializeTransportFieldValues };
+export { B as FRONTEND_CLIENT_EVENT_NAMES, v as allFields, K as buildActionUrl, Fe as coerceCalculationVariables, O as compositePartDefinitions, We as countGraphemes, z as createFrontendFormInstance, ze as createGraphqlFrontendTransport, ae as createRepeaterRowValue, Le as createRestFrontendTransport, A as defaultValueForField, W as evaluateCalculationExpression, h as evaluateConditionDefinition, j as fieldValueAsStrings, S as fieldValueContract, C as fieldValueStructure, g as finalizeConditionEvaluation, b as findFieldByHandle, y as findFieldById, H as formatCalculationValue, Ne as getCalculationFormula, Pe as getCalculationVariableEntries, qe as getFrontendErrorAriaLive, Je as getFrontendFieldErrorId, Ke as getTextLimitMetrics, Ge as getWordCount, te as isBooleanField, w as isCompositeField, re as isEmailField, E as isFileField, ee as isKnownFrontendFieldType, D as isMultiValueField, ne as isNumericField, T as isRepeatableField, J as loadFrontendEnvelope, Re as loadGraphqlFrontendEnvelope, Ue as normalizeText, U as readCalculationVariableValue, k as repeaterFieldDefinitions, ie as repeaterRowDefinitions, x as serializeFieldValues, M as serializeTransportFieldValues };

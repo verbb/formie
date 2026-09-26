@@ -58,4 +58,6 @@ Include this alongside the edit grant and request token in a custom edit form:
 {{ hiddenInput('expectedVersion', submission.stateVersion) }}
 ```
 
- The version identifies the state the visitor edited. A stale version is rejected before posted values are applied; reload the record and review the changes before trying again. A submission ID or UID alone does not authorise editing.
+The version identifies the state the visitor edited. A stale version is rejected before posted values are applied; reload the record and review the changes before trying again. A submission ID or UID alone does not authorise editing.
+
+Edit grants are hashed, expiring and revocable. A completed submission uses a Revise grant; an incomplete submission uses Continue and the Submit operation. Re-render the authorised edit form if a grant expires.

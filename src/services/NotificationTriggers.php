@@ -14,7 +14,7 @@ class NotificationTriggers extends Component
 
     public function dispatchStatusChange(Submission $submission): void
     {
-        if ($submission->isNewSubmission || !$submission->hasStatusChanged()) {
+        if (!$submission->id || !$submission->hasStatusChanged()) {
             return;
         }
 

@@ -72,12 +72,12 @@ use verbb\formie\services\Stencils;
 use verbb\formie\services\Submissions;
 use verbb\formie\services\SubmissionProcessor;
 use verbb\formie\services\SubmissionWorkflow;
-use verbb\formie\services\SubmissionDrafts;
+use verbb\formie\services\SubmissionProgress;
+use verbb\formie\services\SubmissionGrants;
 use verbb\formie\services\SubmissionGuards;
 use verbb\formie\services\SubmissionMetadata;
 use verbb\formie\services\Subscriptions;
 use verbb\formie\services\Templates;
-use verbb\formie\services\StorageManager;
 use verbb\formie\services\ThemeConfig;
 use verbb\formie\services\TiptapExtensions;
 use verbb\formie\services\SubmissionOperations;
@@ -266,11 +266,11 @@ trait PluginTrait
                 'statuses' => SubmissionStatuses::class,
                 'formStatuses' => FormStatuses::class,
                 'stencils' => Stencils::class,
-                'storageManager' => StorageManager::class,
                 'submissions' => Submissions::class,
                 'submissionProcessor' => SubmissionProcessor::class,
                 'submissionGuards' => SubmissionGuards::class,
-                'submissionDrafts' => SubmissionDrafts::class,
+                'submissionProgress' => SubmissionProgress::class,
+                'submissionGrants' => SubmissionGrants::class,
                 'submissionMetadata' => SubmissionMetadata::class,
                 'submissionWorkflow' => SubmissionWorkflow::class,
                 'subscriptions' => Subscriptions::class,
@@ -694,14 +694,14 @@ trait PluginTrait
         return $this->get('submissionOperations');
     }
 
-    public function getSubmissionDrafts(): SubmissionDrafts
+    public function getSubmissionGrants(): SubmissionGrants
     {
-        return $this->get('submissionDrafts');
+        return $this->get('submissionGrants');
     }
 
-    public function getStorageManager(): StorageManager
+    public function getSubmissionProgress(): SubmissionProgress
     {
-        return $this->get('storageManager');
+        return $this->get('submissionProgress');
     }
 
     public function getThemeConfigService(): ThemeConfig

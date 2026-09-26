@@ -3,12 +3,11 @@
 declare(strict_types=1);
 
 use craft\db\Query;
+use verbb\formie\Formie;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\Notification;
 use verbb\formie\models\SubmissionCommand;
 use verbb\formie\services\SubmissionWorkflow;
-use verbb\formie\services\SubmissionDrafts;
-use verbb\formie\state\DraftSubmissionState;
 
 it('keeps projection parity between field-level and submission wrapper value APIs', function (): void {
     $form = formie()
@@ -129,38 +128,14 @@ it('deduplicates post-submit workflow markers by idempotency key', function (): 
         ->and((int)$countAfterDifferentKey)->toBeGreaterThan((int)$countAfterSecond);
 });
 
-it('keeps deterministic last-write behavior for concurrent draft-state saves', function (): void {
-    $form = formie()
-        ->form(['title' => 'Draft Concurrency'])
-        ->singleLineTextField('fullName')
-        ->create();
-
-    $managerA = new SubmissionDrafts();
-    $managerB = new SubmissionDrafts();
-
-    $context = ['scope' => 'concurrency', 'instance' => 'same'];
-    $key = $managerA->resolveFormInstanceKey($form, null, $context);
-
-    $stateA = new DraftSubmissionState([
-        'formInstanceKey' => $key,
-        'content' => ['fieldUid' => 'valueA'],
-        'snapshot' => ['writer' => 'A'],
-        'version' => 1,
-    ]);
-
-    $stateB = new DraftSubmissionState([
-        'formInstanceKey' => $key,
-        'content' => ['fieldUid' => 'valueB'],
-        'snapshot' => ['writer' => 'B'],
-        'version' => 2,
-    ]);
-
-    $managerA->saveDraftState($stateA);
-    $managerB->saveDraftState($stateB);
-
-    $loaded = $managerA->loadDraftState($key);
-
-    expect($loaded)->not->toBeNull()
-        ->and($loaded?->content['fieldUid'] ?? null)->toBe('valueB')
-        ->and($loaded?->snapshot['writer'] ?? null)->toBe('B');
+it('rejects the second provisional progress writer at the same version', function (): void {
+    $form = formie()->form()->singleLineTextField('fullName')->create();
+    $service = Formie::$plugin->getSubmissionProgress();
+    $a = $service->upsertPageState($form);
+    $b = clone $a;
+    $a->content = ['fullName' => 'first'];
+    $service->saveProgress($a);
+    $b->content = ['fullName' => 'stale'];
+    expect(fn() => $service->saveProgress($b))->toThrow(\yii\web\ConflictHttpException::class);
+    expect($service->loadProgress($a->id)->content)->toBe(['fullName' => 'first']);
 });

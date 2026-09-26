@@ -22,6 +22,9 @@ class ClientSubmitResultType extends ObjectType
             'name' => self::getName(),
             'fields' => [
                 'outcome' => ['name' => 'outcome', 'type' => Type::string()],
+                'resumeToken' => ['type' => Type::string()],
+                'resumeUrl' => ['type' => Type::string()],
+                'resumeTokenExpiresAt' => ['type' => Type::int()],
                 'version' => ['name' => 'version', 'type' => Type::int()],
                 'success' => [
                     'name' => 'success',

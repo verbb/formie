@@ -37,7 +37,7 @@ On the form **Settings** tab, enable **Restore In-Progress Submissions Automatic
 - **Enabled** — Formie restores the incomplete submission on return
 - **Disabled** — Form starts fresh unless the user opens a resume link
 
-Automatic state uses database-backed submission state.
+Automatic state uses one database progress record and a browser binding. Page navigation does not create a portable link.
 
 ## Step 3 — Add a Save Button
 
@@ -48,7 +48,7 @@ On the page where users should be able to save deliberately:
 3. Set **Save Button Label** (for example `Save and finish later`)
 4. Choose link vs button display if your template supports it
 
-When clicked, Formie creates a **resume link** with a token tied to that in-progress submission. The link works across browsers and devices — treat it like private access to a draft, especially for forms collecting personal data.
+When clicked, Formie creates a **resume link** with a token tied to that in-progress submission. The link associates each browser with the same progress record without invalidating earlier browsers. The link works across browsers and devices — treat it like private access to a draft, especially for forms collecting personal data.
 
 > Anyone with a resume link can continue that in-progress submission.
 
@@ -61,7 +61,6 @@ Align plugin settings with how long users might wait before returning:
 | `saveResumeTokenTtlDays` | 14 | How long resume links stay valid |
 | `maxIncompleteSubmissionAge` | 30 | When incomplete submissions are removed by scheduled cleanup |
 | `submissionStateRetentionDays` | 30 | Retention for front-end submission state |
-| `maxSavedDraftsPerSession` | 10 | Saved drafts per browser session |
 
 ```php [config/formie.php]
 return [

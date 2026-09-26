@@ -6,117 +6,35 @@ use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\Name;
-use verbb\formie\services\SubmissionDrafts;
-use verbb\formie\state\DraftSubmissionState;
 
-it('isolates draft progression content for same-form multiple instances and different forms', function (): void {
-    $formA = formie()
-        ->form([
-            'title' => 'Isolation Form A',
-            'handle' => isolationMatrixHandle(),
-        ])
-        ->singleLineTextField('headline')
-        ->create();
-
-    $formB = formie()
-        ->form([
-            'title' => 'Isolation Form B',
-            'handle' => isolationMatrixHandle(),
-        ])
-        ->singleLineTextField('headline')
-        ->create();
-
-    $submissionDrafts = Formie::$plugin->getSubmissionDrafts();
-
-    $sameFormInstanceA = $submissionDrafts->resolveFormInstanceKey($formA, null, [
-        'scope' => 'submit',
-        'instance' => 'render-a',
-    ]);
-    $sameFormInstanceB = $submissionDrafts->resolveFormInstanceKey($formA, null, [
-        'scope' => 'submit',
-        'instance' => 'render-b',
-    ]);
-    $differentFormInstance = $submissionDrafts->resolveFormInstanceKey($formB, null, [
-        'scope' => 'submit',
-        'instance' => 'render-a',
-    ]);
-
-    $submissionDrafts->saveDraftState(new DraftSubmissionState([
-        'formInstanceKey' => $sameFormInstanceA,
-        'content' => ['headline' => 'same-form-a'],
-        'snapshot' => ['instance' => 'a'],
-        'version' => 1,
-    ]));
-    $submissionDrafts->saveDraftState(new DraftSubmissionState([
-        'formInstanceKey' => $sameFormInstanceB,
-        'content' => ['headline' => 'same-form-b'],
-        'snapshot' => ['instance' => 'b'],
-        'version' => 1,
-    ]));
-    $submissionDrafts->saveDraftState(new DraftSubmissionState([
-        'formInstanceKey' => $differentFormInstance,
-        'content' => ['headline' => 'different-form'],
-        'snapshot' => ['instance' => 'different'],
-        'version' => 1,
-    ]));
-
-    $loadedA = $submissionDrafts->loadDraftState($sameFormInstanceA);
-    $loadedB = $submissionDrafts->loadDraftState($sameFormInstanceB);
-    $loadedDifferent = $submissionDrafts->loadDraftState($differentFormInstance);
-
-    expect($loadedA?->content['headline'] ?? null)->toBe('same-form-a')
-        ->and($loadedB?->content['headline'] ?? null)->toBe('same-form-b')
-        ->and($loadedDifferent?->content['headline'] ?? null)->toBe('different-form');
+it('isolates progress for separate form contexts and forms', function (): void {
+    $formA = formie()->form()->singleLineTextField('headline')->create();
+    $formB = formie()->form()->singleLineTextField('headline')->create();
+    $service = Formie::$plugin->getSubmissionProgress();
+    $formA->setDraftContext('render-a');
+    $a = $service->upsertPageState($formA);
+    $a->content = ['headline' => 'same-form-a'];
+    $service->saveProgress($a);
+    $formA->setDraftContext('render-b');
+    $b = $service->upsertPageState($formA);
+    $b->content = ['headline' => 'same-form-b'];
+    $service->saveProgress($b);
+    $other = $service->upsertPageState($formB);
+    expect($a->id)->not->toBe($b->id)->not->toBe($other->id)
+        ->and($service->getProgressState($formA)->content['headline'])->toBe('same-form-b');
+    $formA->setDraftContext('render-a');
+    expect($service->getProgressState($formA)->content['headline'])->toBe('same-form-a');
 });
 
-it('issues resume tokens and rehydrates saved content in a new submission instance', function (): void {
-    $form = formie()
-        ->form([
-            'title' => 'Resume Matrix',
-            'handle' => isolationMatrixHandle(),
-        ])
-        ->singleLineTextField('fullName')
-        ->emailField('email')
-        ->create();
-
-    $submission = formie()
-        ->submission($form)
-        ->with([
-            'fullName' => 'Resume Value',
-            'email' => 'resume@example.test',
-        ])
-        ->save();
-
-    $submissionDrafts = new SubmissionDrafts();
-    $key = $submissionDrafts->resolveFormInstanceKey($form, null, [
-        'scope' => 'resume-matrix',
-        'instance' => 'primary',
-    ]);
-    $state = new DraftSubmissionState([
-        'formInstanceKey' => $key,
-        'submissionId' => (int)$submission->id,
-        'content' => $submission->serializeFieldValues(),
-        'snapshot' => ['source' => 'resume-matrix'],
-        'version' => 1,
-    ]);
-
-    $savedState = $submissionDrafts->saveDraftState($state);
-    $resumeToken = $submissionDrafts->issueResumeToken($savedState);
-    $verified = $submissionDrafts->verifyResumeToken($resumeToken->token, [SubmissionDrafts::RESUME_CAPABILITY_READ]);
-    $loadedByToken = $verified ? $submissionDrafts->loadDraftState($verified) : null;
-
-    $rehydrated = new Submission();
-    $rehydrated->setForm($form);
-
-    if (is_array($loadedByToken?->content)) {
-        $rehydrated->getContentManager()->normalizeFromDb($rehydrated, $loadedByToken->content);
-    }
-
-    expect($resumeToken->token)->not->toBeEmpty()
-        ->and($verified)->not->toBeNull()
-        ->and($loadedByToken)->not->toBeNull()
-        ->and($rehydrated->getFieldValue('fullName'))->toBe('Resume Value')
-        ->and($rehydrated->getFieldValue('email'))->toBe('resume@example.test');
+it('resolves saved content from the durable submission through a continue grant', function (): void {
+    [$form, $submission] = continuitySubmission();
+    $progress = Formie::$plugin->getSubmissionProgress()->upsertProgressState($form, $submission);
+    $grants = Formie::$plugin->getSubmissionGrants();
+    $grant = $grants->issue($submission, \verbb\formie\services\SubmissionGrants::CONTINUE, $progress->id);
+    $verified = $grants->verify($grant->token, \verbb\formie\services\SubmissionGrants::CONTINUE, $form);
+    $loaded = Submission::find()->id($verified->submissionId)->isIncomplete(true)->status(null)->one();
+    expect($loaded->getFieldValue('message'))->toBe('Canonical content')
+        ->and(Formie::$plugin->getSubmissionProgress()->loadProgress($verified->progressId)->content)->toBe([]);
 });
 
 it('retains advanced values independently across different multipage forms', function (): void {

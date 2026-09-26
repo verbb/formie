@@ -8,9 +8,7 @@ use verbb\formie\controllers\client\FormsController as ClientFormsController;
 use verbb\formie\models\Settings;
 use verbb\formie\client\models\PageTransitionRequest;
 use verbb\formie\client\models\SubmitRequest;
-use verbb\formie\services\SubmissionDrafts;
 use verbb\formie\client\models\SessionRefreshRequest;
-use verbb\formie\state\DraftSubmissionState;
 use verbb\formie\services\SubmissionWorkflow;
 use craft\helpers\UrlHelper;
 use yii\web\MethodNotAllowedHttpException;
@@ -35,79 +33,22 @@ it('binds draft context tokens to the issuing form', function (): void {
         ->and($formB->resolveDraftContextToken($token))->toBeNull();
 })->group('security');
 
-it('enforces resume token capabilities without allowing escalation', function (): void {
-    $form = formie()
-        ->form(['title' => 'Resume Capability Security'])
-        ->singleLineTextField('fullName')
-        ->create();
-
-    $submissionDrafts = new SubmissionDrafts();
-    $key = $submissionDrafts->resolveFormInstanceKey($form, null, [
-        'scope' => 'security-resume-capability',
-        'instance' => 'read-only',
-    ]);
-    $state = new DraftSubmissionState([
-        'formInstanceKey' => $key,
-        'content' => ['fullName' => 'Security Tester'],
-        'snapshot' => [],
-        'version' => 1,
-    ]);
-
-    $submissionDrafts->saveDraftState($state);
-    $token = $submissionDrafts->issueResumeToken($state, [SubmissionDrafts::RESUME_CAPABILITY_READ]);
-
-    expect($submissionDrafts->verifyResumeToken($token->token, [SubmissionDrafts::RESUME_CAPABILITY_READ]))->not->toBeNull()
-        ->and($submissionDrafts->verifyResumeToken($token->token, [SubmissionDrafts::RESUME_CAPABILITY_UPDATE]))->toBeNull();
+it('enforces grant purpose and revocation without escalation', function (): void {
+    [$form, $submission] = continuitySubmission();
+    $grants = Formie::$plugin->getSubmissionGrants();
+    $grant = $grants->issue($submission, \verbb\formie\services\SubmissionGrants::CONTINUE);
+    expect($grants->verify($grant->token, \verbb\formie\services\SubmissionGrants::REVISE, $form))->toBeNull();
+    $grants->revoke($grant->id);
+    expect($grants->verify($grant->token, \verbb\formie\services\SubmissionGrants::CONTINUE, $form))->toBeNull();
 })->group('security');
 
-it('rejects revoked resume tokens', function (): void {
-    $form = formie()
-        ->form(['title' => 'Resume Revocation Security'])
-        ->singleLineTextField('fullName')
-        ->create();
-
-    $submissionDrafts = new SubmissionDrafts();
-    $key = $submissionDrafts->resolveFormInstanceKey($form, null, [
-        'scope' => 'security-resume-revoke',
-        'instance' => 'revoke',
-    ]);
-    $state = new DraftSubmissionState([
-        'formInstanceKey' => $key,
-        'content' => ['fullName' => 'Security Tester'],
-        'snapshot' => [],
-        'version' => 1,
-    ]);
-
-    $submissionDrafts->saveDraftState($state);
-    $token = $submissionDrafts->issueResumeToken($state);
-
-    expect($submissionDrafts->revokeResumeToken($token->token))->toBeTrue()
-        ->and($submissionDrafts->verifyResumeToken($token->token, [SubmissionDrafts::RESUME_CAPABILITY_READ]))->toBeNull();
-})->group('security');
-
-it('invalidates resume tokens when their draft state is deleted', function (): void {
-    $form = formie()
-        ->form(['title' => 'Resume Delete Security'])
-        ->singleLineTextField('fullName')
-        ->create();
-
-    $submissionDrafts = new SubmissionDrafts();
-    $key = $submissionDrafts->resolveFormInstanceKey($form, null, [
-        'scope' => 'security-resume-delete',
-        'instance' => 'delete',
-    ]);
-    $state = new DraftSubmissionState([
-        'formInstanceKey' => $key,
-        'content' => ['fullName' => 'Security Tester'],
-        'snapshot' => [],
-        'version' => 1,
-    ]);
-
-    $savedState = $submissionDrafts->saveDraftState($state);
-    $token = $submissionDrafts->issueResumeToken($savedState);
-    $submissionDrafts->deleteDraftState($savedState);
-
-    expect($submissionDrafts->verifyResumeToken($token->token, [SubmissionDrafts::RESUME_CAPABILITY_READ]))->toBeNull();
+it('invalidates grants when their canonical progress is deleted', function (): void {
+    [$form, $submission] = continuitySubmission();
+    $progress = Formie::$plugin->getSubmissionProgress()->upsertProgressState($form, $submission);
+    $grants = Formie::$plugin->getSubmissionGrants();
+    $grant = $grants->issue($submission, \verbb\formie\services\SubmissionGrants::CONTINUE, $progress->id);
+    Formie::$plugin->getSubmissionProgress()->deleteProgress($progress->id);
+    expect($grants->verify($grant->token, \verbb\formie\services\SubmissionGrants::CONTINUE, $form))->toBeNull();
 })->group('security');
 
 it('reissues refresh-session tokens instead of trusting attacker supplied token blobs', function (): void {

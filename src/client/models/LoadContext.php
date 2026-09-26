@@ -11,4 +11,7 @@ class LoadContext extends BaseClientModel
     public string $handle = '';
     public ?int $siteId = null;
     public ?string $locale = null;
+    public ?string $grantToken = null;
+    public string $grantPurpose = 'continue-incomplete';
+    public ?string $draftContext = null;
 }

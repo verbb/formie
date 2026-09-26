@@ -11,7 +11,7 @@ use verbb\formie\enums\SubmissionAuthorityType;
 use verbb\formie\enums\SubmissionOperation;
 use verbb\formie\enums\SubmissionOutcomeType;
 use verbb\formie\enums\SubmissionPolicy;
-use verbb\formie\errors\StaleSubmissionStateException;
+use verbb\formie\errors\SubmissionUnavailableException;
 use verbb\formie\helpers\ClientEventsHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\FieldLayoutPage;
@@ -23,7 +23,7 @@ use verbb\formie\models\SubmissionCommand;
 use verbb\formie\models\SubmissionExecutionResult;
 use verbb\formie\models\SubmissionOutcome;
 use verbb\formie\models\SubmissionResponse;
-use verbb\formie\state\DraftSubmissionState;
+use verbb\formie\models\SubmissionProgress as ProgressState;
 
 use Craft;
 use craft\helpers\UrlHelper;
@@ -45,10 +45,26 @@ class SubmissionProcessor extends Component
         $form = $this->requireFormByHandle($input->handle, $input->siteId);
         $this->applyFormRequestContext($form, $input->session['tokens']['render'] ?? null, $input->session['continuation']['draftContext'] ?? null, $input->session['tokens']['request'] ?? null);
         $progress = $this->resolveProgressState($form);
-        $submission = $this->resolveClientContinuationSubmission($form, $progress, (array)($input->session['continuation'] ?? [])) ?? new Submission();
+        $revise = $input->action === 'revise' || ($input->session['continuation']['purpose'] ?? null) === SubmissionGrants::REVISE;
+        if ($revise) {
+            $continuation = $input->session['continuation'] ?? [];
+            $grant = !empty($continuation['grantToken'])
+                ? Formie::$plugin->getSubmissionGrants()->exchange($continuation['grantToken'], SubmissionGrants::REVISE, $form)
+                : Formie::$plugin->getSubmissionGrants()->bound($form, SubmissionGrants::REVISE, (int)($continuation['submissionId'] ?? 0));
+            if (!$grant) {
+                throw new ForbiddenHttpException('Submission is unavailable.');
+            }
+            $submission = $this->_findSubmissionById($grant->submissionId, false, (int)$form->id);
+            if (!$submission) {
+                throw new ForbiddenHttpException('Submission is unavailable.');
+            }
+            $form->setSubmission($submission);
+        } else {
+            $submission = $this->resolveClientContinuationSubmission($form, $progress, (array)($input->session['continuation'] ?? [])) ?? new Submission();
+        }
         $submission->setForm($form);
-        $operation = $input->action === 'save' ? SubmissionOperation::SAVE_DRAFT : SubmissionOperation::SUBMIT;
-        $navigation = $this->_navigation($input->action, $input->targetPageId);
+        $operation = $revise ? SubmissionOperation::REVISE : ($input->action === 'save' ? SubmissionOperation::SAVE_DRAFT : SubmissionOperation::SUBMIT);
+        $navigation = $revise ? NavigationIntent::STAY : $this->_navigation($input->action, $input->targetPageId);
         $token = $input->session['tokens']['request'] ?? null;
         $result = $this->_executeResolved(
             $form, $submission, $operation, $navigation, $authorityType,
@@ -178,6 +194,25 @@ class SubmissionProcessor extends Component
         return $this->executePaymentReplay($payment);
     }
 
+    public function exchangeGrant(Form $form, string $token, string $purpose): Submission
+    {
+        $grant = Formie::$plugin->getSubmissionGrants()->exchange($token, $purpose, $form);
+        $submission = $grant ? $this->_findSubmissionById($grant->submissionId, $purpose === SubmissionGrants::CONTINUE, (int)$form->id) : null;
+        if (!$submission) {
+            throw new ForbiddenHttpException('Submission is unavailable.');
+        }
+        if ($purpose === SubmissionGrants::REVISE) {
+            $form->setSubmission($submission);
+        } else {
+            $form->setCurrentSubmission($submission);
+            $progress = $grant->progressId ? Formie::$plugin->getSubmissionProgress()->loadProgress($grant->progressId) : null;
+            if ($progress?->currentPageId) {
+                $form->setCurrentPage($this->_resolvePageById($form, $progress->currentPageId));
+            }
+        }
+        return $submission;
+    }
+
     public function requireFormByHandle(string $handle, ?int $siteId = null): Form
     {
         $form = Formie::$plugin->getForms()->getFormByHandle($handle, $siteId);
@@ -189,9 +224,9 @@ class SubmissionProcessor extends Component
         return $form;
     }
 
-    public function resolveProgressState(Form $form): ?DraftSubmissionState
+    public function resolveProgressState(Form $form): ?ProgressState
     {
-        return Formie::$plugin->getSubmissionDrafts()->getProgressState($form);
+        return Formie::$plugin->getSubmissionProgress()->getProgressState($form);
     }
 
     public function applyFormRequestContext(Form $form, ?string $renderId = null, ?string $draftContext = null, ?string $requestToken = null): void
@@ -209,7 +244,7 @@ class SubmissionProcessor extends Component
         }
     }
 
-    public function resolveContinuationSubmission(Form $form, ?DraftSubmissionState $progressState = null, ?string $submissionUid = null, ?bool $isIncomplete = true): ?Submission
+    public function resolveContinuationSubmission(Form $form, ?ProgressState $progressState = null, ?string $submissionUid = null, ?bool $isIncomplete = true): ?Submission
     {
         if ($progressState?->submissionId && $this->_mayUseProgressStateForContinuation($form, $submissionUid, $progressState)) {
             $submission = $this->_findSubmissionById((int)$progressState->submissionId, $isIncomplete, (int)$form->id);
@@ -224,17 +259,18 @@ class SubmissionProcessor extends Component
 
     public function resolveClientContinuationSubmission(
         Form $form,
-        ?DraftSubmissionState $progressState = null,
+        ?ProgressState $progressState = null,
         array $continuation = [],
         ?bool $isIncomplete = true
     ): ?Submission {
-        $continuationSubmissionId = $this->_resolveSubmissionIdFromContinuationToken($form, $continuation);
+        $continuationSubmissionId = $this->_resolveSubmissionIdFromClientGrant($form, $continuation);
 
         // Prefer an explicit client continuation token. When automatic restore is
         // off, bare progress alone must not revive a previous visit.
         if ($progressState?->submissionId) {
             $progressSubmissionId = (int)$progressState->submissionId;
             $mayUseProgress = $form->settings->automaticSubmissionState
+                || ((int)($continuation['progressId'] ?? 0) === $progressState->id)
                 || ($continuationSubmissionId !== null && $continuationSubmissionId === $progressSubmissionId);
 
             if ($mayUseProgress) {
@@ -253,7 +289,7 @@ class SubmissionProcessor extends Component
         return $this->_findSubmissionById($continuationSubmissionId, $isIncomplete, (int)$form->id);
     }
 
-    public function primeSubmission(Submission $submission, Form $form, ?DraftSubmissionState $progressState = null, ?int $siteId = null): void
+    public function primeSubmission(Submission $submission, Form $form, ?ProgressState $progressState = null, ?int $siteId = null): void
     {
         $submission->setForm($form);
         $submission->siteId = $siteId ?? $submission->siteId ?? Craft::$app->getSites()->getCurrentSite()->id;
@@ -273,17 +309,18 @@ class SubmissionProcessor extends Component
 
     public function createSaveResumePayload(Form $form, Submission $submission, string $baseUrl): array
     {
-        $submissionDrafts = Formie::$plugin->getSubmissionDrafts();
-        $draftState = $submissionDrafts->upsertProgressState($form, $submission, $form->getCurrentPage()?->id);
+        $submissionProgress = Formie::$plugin->getSubmissionProgress();
+        // A receipt retry must not recreate authority after a grant was revoked.
+        if (!Formie::$plugin->getSubmissionGrants()->bound($form, SubmissionGrants::CONTINUE, (int)$submission->id)) {
+            throw new ForbiddenHttpException('Submission is unavailable.');
+        }
+        $draftState = $submissionProgress->getProgressState($form);
 
         if (!$draftState) {
             return [];
         }
 
-        $resumeToken = $submissionDrafts->issueResumeToken($draftState, [
-            SubmissionDrafts::RESUME_CAPABILITY_READ,
-            SubmissionDrafts::RESUME_CAPABILITY_UPDATE,
-        ]);
+        $resumeToken = Formie::$plugin->getSubmissionGrants()->issue($submission, SubmissionGrants::CONTINUE, $draftState->id);
 
         return [
             'resumeToken' => $resumeToken->token,
@@ -342,8 +379,19 @@ class SubmissionProcessor extends Component
                     'fakeSuccess' => Formie::$plugin->getSettings()->spamBehaviour === \verbb\formie\models\Settings::SPAM_BEHAVIOUR_SUCCESS,
                 ]);
             }
+            if ($command->isInteractive() && $command->submission->id) {
+                $purpose = $command->submission->isIncomplete ? SubmissionGrants::CONTINUE : SubmissionGrants::REVISE;
+                if (!Formie::$plugin->getSubmissionGrants()->bound($command->form, $purpose, (int)$command->submission->id)) {
+                    throw new ForbiddenHttpException('Submission is unavailable.');
+                }
+            }
+            if ($command->isInteractive() && !$command->submission->id) {
+                $current = Formie::$plugin->getSubmissionProgress()->getProgressState($command->form);
+                if ($current?->submissionId && $command->form->settings->automaticSubmissionState) {
+                    throw new \verbb\formie\errors\StateConflict($current->version);
+                }
+            }
             $populate();
-            $command->submission->isNewSubmission = in_array($command->operation, [SubmissionOperation::SUBMIT, SubmissionOperation::PAYMENT_REPLAY], true);
             return Formie::$plugin->getSubmissionWorkflow()->process($command);
         });
         // A lost-response retry may resolve a new in-memory element. Restore the durable identity for adapters.
@@ -411,14 +459,14 @@ class SubmissionProcessor extends Component
 
     private function _resolveManagedContinuationSubmission(
         Form $form,
-        ?DraftSubmissionState $progressState = null,
+        ?ProgressState $progressState = null,
         ?int $submissionId = null,
         ?string $resumeToken = null,
         ?string $submissionUid = null,
         ?bool $isIncomplete = true
     ): ?Submission {
         $submissionId = $this->_normalizeNullableInt($submissionId)
-            ?? $this->_resolveSubmissionIdFromResumeToken($form, $resumeToken);
+            ?? $this->_resolveSubmissionIdFromSubmissionGrant($form, $resumeToken);
 
         if (!$submissionId && $progressState?->submissionId) {
             $progressSubmissionId = (int)$progressState->submissionId;
@@ -428,7 +476,7 @@ class SubmissionProcessor extends Component
             if ($this->_mayUseProgressStateForContinuation($form, $submissionUid, $progressState)) {
                 $submissionId = $progressSubmissionId;
             } else {
-                Formie::$plugin->getSubmissionDrafts()->clearProgressState($form);
+                Formie::$plugin->getSubmissionProgress()->clearProgressState($form);
             }
         }
 
@@ -439,7 +487,7 @@ class SubmissionProcessor extends Component
                 // Managed resume tokens are expected to point at a specific
                 // draft. Starting a fresh submission instead would silently
                 // discard the caller's continuation state.
-                throw new StaleSubmissionStateException($form, 'submissionId', (string)$submissionId);
+                throw new SubmissionUnavailableException($form, 'submissionId', (string)$submissionId);
             }
 
             return $submission;
@@ -458,7 +506,7 @@ class SubmissionProcessor extends Component
     private function _mayUseProgressStateForContinuation(
         Form $form,
         ?string $submissionUid,
-        ?DraftSubmissionState $progressState,
+        ?ProgressState $progressState,
     ): bool {
         if (!$progressState?->submissionId) {
             return false;
@@ -476,7 +524,7 @@ class SubmissionProcessor extends Component
     private function _authorizeVisitor(
         Form $form,
         ManagedSubmissionRequest $request,
-        ?DraftSubmissionState $progressState,
+        ?ProgressState $progressState,
         Submission $submission
     ): void {
         // Front-end save-submission is edit-only. Anonymous callers must use submit
@@ -624,6 +672,11 @@ class SubmissionProcessor extends Component
             )
             : [];
 
+        $savePayload = [];
+        if ($response->outcome->type === SubmissionOutcomeType::DRAFT_SAVED) {
+            $requestUrl = Craft::$app->getRequest();
+            $savePayload = $this->createSaveResumePayload($form, $submission, $this->resolveTrustedResumeBaseUrl($requestUrl->getReferrer(), ''));
+        }
         return new SubmitResult(array_merge([
             'success' => $response->success,
             'outcome' => $response->outcome->type->value,
@@ -646,7 +699,7 @@ class SubmissionProcessor extends Component
             'session' => $session,
             'quizResult' => $response->quizResult,
             'clientEvents' => $clientEvents,
-        ], $this->_resolvePaymentSubmitResultFields($response)));
+        ], $this->_resolvePaymentSubmitResultFields($response), $savePayload));
     }
 
     private function _resolvePaymentSubmitResultFields(SubmissionResponse $response): array
@@ -682,32 +735,30 @@ class SubmissionProcessor extends Component
         return $fields;
     }
 
-    private function _resolveSubmissionIdFromResumeToken(Form $form, ?string $resumeToken, array $capabilities = [SubmissionDrafts::RESUME_CAPABILITY_UPDATE]): ?int
+    private function _resolveSubmissionIdFromSubmissionGrant(Form $form, ?string $resumeToken, string $purpose = SubmissionGrants::CONTINUE): ?int
     {
         if (!is_string($resumeToken) || trim($resumeToken) === '') {
             return null;
         }
 
-        $verifiedResumeToken = Formie::$plugin->getSubmissionDrafts()->verifyResumeToken(trim($resumeToken), $capabilities);
+        $verifiedSubmissionGrant = Formie::$plugin->getSubmissionGrants()->exchange(trim($resumeToken), $purpose, $form);
 
-        if (!$verifiedResumeToken || $verifiedResumeToken->formId !== (int)$form->id || !$verifiedResumeToken->submissionId) {
+        if (!$verifiedSubmissionGrant || $verifiedSubmissionGrant->formId !== (int)$form->id || !$verifiedSubmissionGrant->submissionId) {
             throw new BadRequestHttpException('Invalid or expired resume token.');
         }
 
-        return (int)$verifiedResumeToken->submissionId;
+        return (int)$verifiedSubmissionGrant->submissionId;
     }
 
-    private function _resolveSubmissionIdFromContinuationToken(Form $form, array $continuation = []): ?int
+    private function _resolveSubmissionIdFromClientGrant(Form $form, array $continuation = []): ?int
     {
-        $token = $continuation['continuationToken'] ?? ($continuation['resumeToken'] ?? null);
+        $token = $continuation['grantToken'] ?? null;
 
         if (!is_string($token) || trim($token) === '') {
             return null;
         }
 
-        $verifiedToken = Formie::$plugin->getSubmissionDrafts()->verifyResumeToken(trim($token), [
-            SubmissionDrafts::RESUME_CAPABILITY_UPDATE,
-        ]);
+        $verifiedToken = Formie::$plugin->getSubmissionGrants()->exchange(trim($token), SubmissionGrants::CONTINUE, $form);
 
         if (!$verifiedToken || $verifiedToken->formId !== (int)$form->id || !$verifiedToken->submissionId) {
             return null;
@@ -719,12 +770,10 @@ class SubmissionProcessor extends Component
     private function _validateSubmissionEditToken(Form $form, Submission $submission, ?string $token): bool
     {
         if (!is_string($token) || trim($token) === '') {
-            return false;
+            return Formie::$plugin->getSubmissionGrants()->bound($form, $submission->isIncomplete ? SubmissionGrants::CONTINUE : SubmissionGrants::REVISE, (int)$submission->id) !== null;
         }
 
-        $verifiedToken = Formie::$plugin->getSubmissionDrafts()->verifyResumeToken(trim($token), [
-            SubmissionDrafts::RESUME_CAPABILITY_EDIT,
-        ]);
+        $verifiedToken = Formie::$plugin->getSubmissionGrants()->exchange(trim($token), $submission->isIncomplete ? SubmissionGrants::CONTINUE : SubmissionGrants::REVISE, $form, (int)$submission->id);
 
         return $verifiedToken !== null &&
             (int)$verifiedToken->formId === (int)$form->id &&
@@ -734,12 +783,10 @@ class SubmissionProcessor extends Component
     private function _validateSubmissionUpdateToken(Form $form, Submission $submission, ?string $token): bool
     {
         if (!is_string($token) || trim($token) === '') {
-            return false;
+            return Formie::$plugin->getSubmissionGrants()->bound($form, $submission->isIncomplete ? SubmissionGrants::CONTINUE : SubmissionGrants::REVISE, (int)$submission->id) !== null;
         }
 
-        $verifiedToken = Formie::$plugin->getSubmissionDrafts()->verifyResumeToken(trim($token), [
-            SubmissionDrafts::RESUME_CAPABILITY_UPDATE,
-        ]);
+        $verifiedToken = Formie::$plugin->getSubmissionGrants()->exchange(trim($token), SubmissionGrants::CONTINUE, $form);
 
         return $verifiedToken !== null &&
             (int)$verifiedToken->formId === (int)$form->id &&

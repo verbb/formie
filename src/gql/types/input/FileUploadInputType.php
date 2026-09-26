@@ -2,6 +2,7 @@
 namespace verbb\formie\gql\types\input;
 
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\UploadAccess;
 
 use Craft;
 use craft\base\Field as CraftField;
@@ -33,6 +34,8 @@ class FileUploadInputType extends InputObjectType
         $argumentType = GqlEntityRegistry::createEntity($typeName, new InputObjectType([
             'name' => $typeName,
             'fields' => [
+                'uploadUid' => ['type' => Type::string(), 'description' => 'The staged upload identity. Requires an attach capability.'],
+                'attachToken' => ['type' => Type::string(), 'description' => 'The purpose-bound capability returned by upload creation.'],
                 'fileData' => [
                     'name' => 'fileData',
                     'type' => Type::string(),
@@ -61,6 +64,13 @@ class FileUploadInputType extends InputObjectType
         $newValues = [];
 
         foreach ($values as $key => $value) {
+            if (!empty($value['uploadUid'])) {
+                $upload = UploadAccess::resolveToken($value['attachToken'] ?? null, 'attach');
+                if (!$upload || !hash_equals($upload['uid'], $value['uploadUid'])) {
+                    throw new UserError('Invalid upload capability.');
+                }
+                $value['assetId'] = (int)$upload['assetId'];
+            }
             // Translate `fileData` to `data` which the Craft Assets field natively supports. Also handle filename.
             if (!empty($value['fileData'])) {
                 $dataString = ArrayHelper::remove($value, 'fileData');

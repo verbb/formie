@@ -21,8 +21,8 @@ final class ResetTestDatabase
             Table::FORMIE_PAYMENTS,
             Table::FORMIE_SUBSCRIPTIONS,
             Table::FORMIE_SUBMISSION_WORKFLOW,
-            Table::FORMIE_SUBMISSION_DRAFTS,
-            Table::FORMIE_SUBMISSION_RESUME_TOKENS,
+            Table::FORMIE_SUBMISSION_PROGRESS,
+            Table::FORMIE_SUBMISSION_GRANTS,
             Table::FORMIE_SUBMISSION_QUIZ_RESULTS,
             Table::FORMIE_PENDING_UPLOADS,
         ];

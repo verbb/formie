@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use verbb\formie\Formie;
 use verbb\formie\models\ManagedSubmissionRequest;
-use verbb\formie\services\SubmissionDrafts;
 use verbb\formie\services\SubmissionWorkflow;
 use Tests\Support\WebRequestTestHelper;
 
@@ -65,12 +64,9 @@ it('resolves runtime continuation only when presented with a valid continuation 
 
     $submission->isIncomplete = true;
     expect(Craft::$app->getElements()->saveElement($submission))->toBeTrue();
-    Formie::$plugin->getSubmissionDrafts()->upsertProgressState($form, $submission, $form->getCurrentPage()?->id);
+    Formie::$plugin->getSubmissionProgress()->upsertProgressState($form, $submission, $form->getCurrentPage()?->id);
     $resolved = Formie::$plugin->getSubmissionProcessor()->resolveClientContinuationSubmission($form, null, [
-        'continuationToken' => Formie::$plugin->getSubmissionDrafts()->issueResumeToken(
-            Formie::$plugin->getSubmissionDrafts()->getProgressState($form),
-            [SubmissionDrafts::RESUME_CAPABILITY_UPDATE]
-        )->token,
+        'grantToken' => Formie::$plugin->getSubmissionGrants()->issue($submission, \verbb\formie\services\SubmissionGrants::CONTINUE, Formie::$plugin->getSubmissionProgress()->getProgressState($form)->id)->token,
     ]);
 
     expect($resolved?->uid)->toBe((string)$submission->uid);

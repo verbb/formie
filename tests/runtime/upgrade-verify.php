@@ -17,6 +17,10 @@ $submission = Submission::find()->id($fixture['submissionId'])->status(null)->on
 $check($form !== null && $shared !== null && $submission !== null, 'original form and submission identities survived');
 $check($submission->stateVersion === 0, 'existing submissions receive an initial version without changing their content');
 $check($app->getDb()->tableExists(\verbb\formie\helpers\Table::FORMIE_SUBMISSION_OPERATIONS), 'upgrade creates durable submission operation storage');
+$check($app->getDb()->tableExists(\verbb\formie\helpers\Table::FORMIE_SUBMISSION_PROGRESS), 'upgrade creates canonical progress storage');
+$check($app->getDb()->tableExists(\verbb\formie\helpers\Table::FORMIE_SUBMISSION_GRANTS), 'upgrade creates hash-only purpose-bound grant storage');
+$check(!$app->getDb()->tableExists(\verbb\formie\helpers\Table::FORMIE_SUBMISSION_RESUME_TOKENS), 'upgrade removes plaintext beta resume storage');
+$check($app->getDb()->columnExists(\verbb\formie\helpers\Table::FORMIE_PENDING_UPLOADS, 'contentHash'), 'upgrade creates recoverable upload promotion storage');
 $check((string)$submission->getFieldValue('fullName') === 'Synthetic Ada', 'original text content survived');
 $values = $submission->getValuesAsArray();
 $check(($values['company']['companyName'] ?? null) === 'Synthetic Company', 'nested group content survived');

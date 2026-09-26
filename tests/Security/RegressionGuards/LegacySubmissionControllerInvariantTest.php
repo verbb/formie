@@ -77,7 +77,7 @@ it('does not bind legacy anonymous page flows to raw submission uids', function 
 
         $controller = new SubmissionsController('formie-submissions-security', Craft::$app);
         $response = $controller->actionSetPage();
-        $progressState = Formie::$plugin->getSubmissionDrafts()->getProgressState($formA);
+        $progressState = Formie::$plugin->getSubmissionProgress()->getProgressState($formA);
 
         expect($response->data['success'] ?? null)->toBeTrue()
             ->and($progressState?->submissionId)->not->toBe((int)$submissionB->id);

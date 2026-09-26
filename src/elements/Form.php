@@ -54,9 +54,8 @@ use verbb\formie\models\SubmissionStatus;
 use verbb\formie\options\OptionSourceFieldInterface;
 use verbb\formie\records\Form as FormRecord;
 use verbb\formie\services\Permissions;
-use verbb\formie\services\SubmissionDrafts;
+use verbb\formie\services\SubmissionGrants;
 use verbb\formie\services\SubmissionStatuses;
-use verbb\formie\state\ResumeToken;
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
@@ -1251,7 +1250,7 @@ class Form extends Element implements FormInterface
             return $this->_currentSubmission = $this->_editingSubmission;
         }
 
-        $this->_hydrateCurrentSubmissionFromResumeToken();
+        $this->_hydrateCurrentSubmissionFromSubmissionGrant();
 
         if ($this->_currentSubmission) {
             return $this->_currentSubmission;
@@ -1427,7 +1426,7 @@ class Form extends Element implements FormInterface
         }
 
         if ($this->_submissionEditToken === null) {
-            $this->_submissionEditToken = Formie::$plugin->getSubmissionDrafts()->issueSubmissionEditToken($this, $this->_editingSubmission)?->token;
+            $this->_submissionEditToken = Formie::$plugin->getSubmissionGrants()->issue($this->_editingSubmission, ($this->_editingSubmission->isIncomplete ? SubmissionGrants::CONTINUE : SubmissionGrants::REVISE))?->token;
         }
 
         return $this->_submissionEditToken;
@@ -3648,8 +3647,8 @@ class Form extends Element implements FormInterface
             return;
         }
 
-        $submissionDrafts = Formie::$plugin->getSubmissionDrafts();
-        $draftState = $submissionDrafts->getProgressState($this);
+        $submissionProgress = Formie::$plugin->getSubmissionProgress();
+        $draftState = $submissionProgress->getProgressState($this);
 
         if (!$draftState) {
             return;
@@ -3678,10 +3677,6 @@ class Form extends Element implements FormInterface
 
         if (!$submission || (int)$submission->formId !== (int)$this->id) {
             return;
-        }
-
-        if (is_array($draftState->content) && $draftState->content) {
-            $submission->getContentManager()->normalizeFromDb($submission, $draftState->content);
         }
 
         $this->_currentSubmission = $submission;
@@ -3750,7 +3745,7 @@ class Form extends Element implements FormInterface
         }
     }
 
-    private function _hydrateCurrentSubmissionFromResumeToken(): void
+    private function _hydrateCurrentSubmissionFromSubmissionGrant(): void
     {
         if ($this->_resumeTokenHydrated) {
             return;
@@ -3774,59 +3769,25 @@ class Form extends Element implements FormInterface
             return;
         }
 
-        $submissionDrafts = Formie::$plugin->getSubmissionDrafts();
-        $verifiedResumeToken = $submissionDrafts->verifyResumeToken($resumeToken, [
-            SubmissionDrafts::RESUME_CAPABILITY_UPDATE,
-        ]);
-
-        if (!$verifiedResumeToken || (int)$verifiedResumeToken->formId !== (int)$this->id || !$verifiedResumeToken->submissionId) {
+        $grant = Formie::$plugin->getSubmissionGrants()->exchange($resumeToken, SubmissionGrants::CONTINUE, $this);
+        if (!$grant) {
             return;
         }
-
-        $submission = Submission::find()
-            ->id((int)$verifiedResumeToken->submissionId)
-            ->isIncomplete(true)
-            ->status(null)
-            ->one();
-
-        if (!$submission || (int)$submission->formId !== (int)$this->id) {
+        $submission = Submission::find()->id($grant->submissionId)->siteId($grant->siteId)->isIncomplete(true)->status(null)->one();
+        if (!$submission) {
             return;
         }
-
-        $draftState = $submissionDrafts->loadDraftState(new ResumeToken([
-            'token' => $resumeToken,
-        ]));
-
-        if ($draftState && $draftState->formInstanceKey) {
-            $previousState = clone $draftState;
-            $previousStorageKey = $previousState->formInstanceKey->toStorageKey();
-            $nextFormInstanceKey = $submissionDrafts->resolveFormInstanceKey($this, null, [
-                'scope' => 'submit',
-                'instance' => $this->getSubmitStateKey(),
-            ]);
-
-            // Resume links can be opened in a different render/session context
-            // than the one that originally created the draft. Rebind the draft to
-            // the active form-instance key so later page navigation and autosave
-            // requests continue on the caller's current continuity stream.
-            $draftState->formInstanceKey = $nextFormInstanceKey;
-            $draftState->submissionId = (int)$submission->id;
-            $submissionDrafts->saveDraftState($draftState);
-
-            if ($previousStorageKey !== $nextFormInstanceKey->toStorageKey()) {
-                $submissionDrafts->deleteDraftState($previousState);
-            }
-
-            if ($draftState->currentPageId) {
-                foreach ($this->getPages() as $page) {
-                    if ((int)$page->id === (int)$draftState->currentPageId) {
-                        $this->setCurrentPage($page);
-                        break;
-                    }
+        $progress = $grant->progressId ? Formie::$plugin->getSubmissionProgress()->loadProgress($grant->progressId) : null;
+        if ($progress?->currentPageId) {
+            foreach ($this->getPages() as $page) {
+                if ((int)$page->id === $progress->currentPageId) {
+                    $this->setCurrentPage($page);
+                    break;
                 }
             }
         }
-
+        // The exchanged credential must not remain in address bars or referrers.
+        Craft::$app->getView()->registerJs("const u = new URL(window.location.href); u.searchParams.delete('resumeToken'); history.replaceState(history.state, '', u);", \yii\web\View::POS_END);
         $this->_currentSubmission = $submission;
     }
 
@@ -3837,6 +3798,7 @@ class Form extends Element implements FormInterface
 
         $headers->set('Cache-Control', 'private, no-store, no-cache, must-revalidate, max-age=0');
         $headers->set('Pragma', 'no-cache');
+        $headers->set('Referrer-Policy', 'no-referrer');
         $headers->set('Expires', '0');
     }
 

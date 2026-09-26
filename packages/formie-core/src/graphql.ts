@@ -6,12 +6,16 @@ import type {
     FrontendTransport,
 } from './types';
 import { serializeTransportFieldValues } from './schema';
+import { clearExchangedGrant } from './grants';
 
 export type GraphqlFrontendTransportOptions = {
     endpoint: string;
     formHandle: string;
     siteId?: number;
     credentials?: RequestCredentials;
+    grantToken?: string;
+    grantPurpose?: 'continue-incomplete' | 'revise-complete';
+    draftContext?: string;
 };
 
 type GraphqlResponse<T> = {
@@ -32,6 +36,9 @@ const FRONTEND_SUBMIT_RESULT_SELECTION = `
     outcome
     version
     submissionUid
+    resumeToken
+    resumeUrl
+    resumeTokenExpiresAt
     currentPageId
     nextPageId
     previousPageId
@@ -103,8 +110,8 @@ export async function loadGraphqlFrontendEnvelope(options: GraphqlFrontendTransp
     }>(
         options,
         `
-            query ClientForm($handle: String!, $siteId: Int) {
-                formieClientForm(handle: $handle, siteId: $siteId) {
+            query ClientForm($handle: String!, $siteId: Int, $grantToken: String, $grantPurpose: String, $draftContext: String) {
+                formieClientForm(handle: $handle, siteId: $siteId, grantToken: $grantToken, grantPurpose: $grantPurpose, draftContext: $draftContext) {
                     schemaVersion
                     definition
                     session {
@@ -116,6 +123,9 @@ export async function loadGraphqlFrontendEnvelope(options: GraphqlFrontendTransp
         {
             handle: options.formHandle,
             siteId: options.siteId,
+            grantToken: options.grantToken,
+            grantPurpose: options.grantPurpose,
+            draftContext: options.draftContext,
         },
     );
 
@@ -123,6 +133,7 @@ export async function loadGraphqlFrontendEnvelope(options: GraphqlFrontendTransp
         throw new Error('No client form definition was returned.');
     }
 
+    clearExchangedGrant(options.grantToken);
     return data.formieClientForm;
 }
 

@@ -53,6 +53,7 @@ type UploadResponse = {
     filename?: string;
     url?: string | null;
     uploadToken?: string | null;
+    deleteToken?: string | null;
     errors?: Record<string, string[]>;
 };
 
@@ -67,12 +68,14 @@ type HydrateResponse = {
         filename?: string;
         url?: string | null;
         uploadToken?: string | null;
+    deleteToken?: string | null;
     }>;
 };
 
 type ManagedFile = {
     assetId: number | null;
     uploadToken: string | null;
+    deleteToken?: string | null;
     filename: string;
     uppyFileId: string | null;
     listItem: HTMLElement;
@@ -220,7 +223,7 @@ function getUploadContext(form: HTMLFormElement | null, field: HTMLElement, drop
         return context;
     }
 
-    const passthroughNames = ['renderId', 'draftContextToken', 'draftContext', 'submissionId', 'resumeToken', 'continuationToken', 'submissionUid'] as const;
+    const passthroughNames = ['renderId', 'draftContextToken', 'draftContext', 'submissionId', 'siteId', 'submissionEditToken', 'resumeToken', 'submissionUid'] as const;
 
     passthroughNames.forEach((name) => {
         const input = form.querySelector(`input[name="${name}"]`);
@@ -254,7 +257,7 @@ function buildHydrateFormData(
         body.append('fieldHandle', fieldHandle);
     }
 
-    const passthroughNames = ['submissionUid', 'resumeToken', 'continuationToken'] as const;
+    const passthroughNames = ['submissionUid', 'resumeToken', 'submissionEditToken', 'siteId', 'renderId', 'draftContext', 'draftContextToken'] as const;
 
     passthroughNames.forEach((name) => {
         const input = form?.querySelector(`input[name="${name}"]`);
@@ -787,6 +790,9 @@ function bindUploadManagerField(field: HTMLElement, form: HTMLFormElement | null
             'draftContextToken',
             'draftContext',
             'submissionId',
+            'siteId',
+            'submissionEditToken',
+            'resumeToken',
             ...(initialCsrf ? [initialCsrf.name] : []),
         ],
         getResponseData(xhr) {
@@ -958,7 +964,7 @@ function bindUploadManagerField(field: HTMLElement, form: HTMLFormElement | null
             body.append('assetId', String(managedFile.assetId));
 
             if (managedFile.uploadToken) {
-                body.append('uploadToken', managedFile.uploadToken);
+                body.append('uploadToken', managedFile.deleteToken || '');
             }
 
             try {
@@ -979,7 +985,7 @@ function bindUploadManagerField(field: HTMLElement, form: HTMLFormElement | null
         syncSortControls();
     };
 
-    const addManagedFileFromAsset = (assetId: number, filename: string, uploadToken: string | null = null) => {
+    const addManagedFileFromAsset = (assetId: number, filename: string, uploadToken: string | null = null, deleteToken: string | null = null) => {
         const { listItem, removeButton, sortUpButton, sortDownButton } = createListItem(field, filename);
         listItem.classList.add('is-complete');
         fileList.append(listItem);
@@ -987,6 +993,7 @@ function bindUploadManagerField(field: HTMLElement, form: HTMLFormElement | null
         const managedFile: ManagedFile = {
             assetId,
             uploadToken,
+            deleteToken,
             filename,
             uppyFileId: null,
             listItem,
@@ -1036,6 +1043,7 @@ function bindUploadManagerField(field: HTMLElement, form: HTMLFormElement | null
                     assetId,
                     asset.filename || `Asset #${assetId}`,
                     toTrimmedString(asset.uploadToken) || uploadTokens[assetId] || null,
+                    toTrimmedString(asset.deleteToken) || null,
                 );
             });
 
@@ -1115,6 +1123,7 @@ function bindUploadManagerField(field: HTMLElement, form: HTMLFormElement | null
 
         managedFile.assetId = assetId;
         managedFile.uploadToken = toTrimmedString(body.uploadToken) || null;
+        managedFile.deleteToken = toTrimmedString(body.deleteToken) || null;
         managedFile.filename = body.filename || managedFile.filename;
         markUploadComplete(managedFile.listItem);
         syncUploadedAssetsEvent(state);

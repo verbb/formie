@@ -465,7 +465,6 @@ class Submission extends Element
     public ?array $metadata = null;
     public ?array $integrationDispatchContext = null;
     public ?bool $validateCurrentPageOnly = null;
-    public bool $isNewSubmission = false;
 
     private ?Form $_form = null;
     private ?SubmissionStatus $_status = null;
@@ -1338,6 +1337,9 @@ class Submission extends Element
         // Check if we have any assets to delete
         if ($this->_assetsToDelete) {
             foreach ($this->_assetsToDelete as $asset) {
+                if (Formie::$plugin->getFileUploads()->isReferenced((int)$asset->id, (int)$this->id)) {
+                    continue;
+                }
                 if (!$elementsService->deleteElement($asset)) {
                     Formie::error("Unable to delete file ”{$asset->id}” for submission ”{$this->id}”: " . Json::encode($asset->getErrors()) . ".");
                 }

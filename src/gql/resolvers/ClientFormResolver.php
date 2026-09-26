@@ -31,6 +31,9 @@ class ClientFormResolver
             'handle' => (string)($arguments['handle'] ?? ''),
             'siteId' => isset($arguments['siteId']) ? (int)$arguments['siteId'] : null,
             'locale' => $arguments['locale'] ?? null,
+            'grantToken' => ($arguments['grantToken'] ?? null),
+            'grantPurpose' => (string)($arguments['grantPurpose'] ?? 'continue-incomplete'),
+            'draftContext' => ($arguments['draftContext'] ?? null),
         ]));
 
         return $bootstrap->toArrayRecursive();

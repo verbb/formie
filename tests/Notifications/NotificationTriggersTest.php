@@ -16,7 +16,6 @@ function notificationTriggersSubmissionWithStatusChange(SubmissionStatus $previo
 {
     $submission = new Submission();
     $submission->id = 7001;
-    $submission->isNewSubmission = false;
     $submission->setStatus($current);
 
     $reflection = new \ReflectionClass($submission);
@@ -127,8 +126,6 @@ it('does not send status-change notifications for initial submissions', function
     ]);
 
     $submission = new Submission();
-    $submission->id = 7004;
-    $submission->isNewSubmission = true;
     $submission->setForm($form);
     $submission->setStatus($accepted);
 

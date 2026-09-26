@@ -48,6 +48,7 @@ class Install extends Migration
         $this->createIndexes();
         $this->addForeignKeys();
         (new m260926_000000_submission_operations())->safeUp();
+        (new m260926_010000_submission_continuity())->safeUp();
 
         return true;
     }
@@ -596,34 +597,7 @@ class Install extends Migration
             'uid' => $this->uid(),
         ]);
 
-        $this->archiveTableIfExists(Table::FORMIE_SUBMISSION_DRAFTS);
-        $this->createTable(Table::FORMIE_SUBMISSION_DRAFTS, [
-            'id' => $this->primaryKey(),
-            'storageKey' => $this->string(255)->notNull(),
-            'value' => $this->mediumText(),
-            'dateExpires' => $this->dateTime(),
-            'dateCreated' => $this->dateTime()->notNull(),
-            'dateUpdated' => $this->dateTime()->notNull(),
-            'uid' => $this->uid(),
-        ]);
 
-        $this->archiveTableIfExists(Table::FORMIE_SUBMISSION_RESUME_TOKENS);
-        $this->createTable(Table::FORMIE_SUBMISSION_RESUME_TOKENS, [
-            'id' => $this->primaryKey(),
-            'token' => $this->string(128)->notNull(),
-            'storageKey' => $this->string(255)->notNull(),
-            'formId' => $this->integer()->notNull(),
-            'siteId' => $this->integer()->notNull(),
-            'submissionId' => $this->integer(),
-            'capabilities' => $this->text(),
-            'issuedAt' => $this->integer(),
-            'expiresAt' => $this->integer(),
-            'revokedAt' => $this->integer(),
-            'dateExpires' => $this->dateTime(),
-            'dateCreated' => $this->dateTime()->notNull(),
-            'dateUpdated' => $this->dateTime()->notNull(),
-            'uid' => $this->uid(),
-        ]);
     }
 
     public function createIndexes(): void
@@ -685,11 +659,6 @@ class Install extends Migration
         $this->createIndex(null, Table::FORMIE_PENDING_UPLOADS, 'assetId', true);
         $this->createIndex(null, Table::FORMIE_PENDING_UPLOADS, 'submissionId', false);
         $this->createIndex(null, Table::FORMIE_PENDING_UPLOADS, ['isFinalized', 'dateUpdated'], false);
-        $this->createIndex(null, Table::FORMIE_SUBMISSION_DRAFTS, 'storageKey', true);
-        $this->createIndex(null, Table::FORMIE_SUBMISSION_DRAFTS, 'dateExpires', false);
-        $this->createIndex(null, Table::FORMIE_SUBMISSION_RESUME_TOKENS, 'token', true);
-        $this->createIndex(null, Table::FORMIE_SUBMISSION_RESUME_TOKENS, 'storageKey', false);
-        $this->createIndex(null, Table::FORMIE_SUBMISSION_RESUME_TOKENS, 'dateExpires', false);
     }
 
     public function addForeignKeys(): void
@@ -748,9 +717,6 @@ class Install extends Migration
         $this->addForeignKey(null, Table::FORMIE_SUBMISSION_WORKFLOW, ['submissionId'], Table::FORMIE_SUBMISSIONS, ['id'], 'CASCADE', null);
         $this->addForeignKey(null, Table::FORMIE_PENDING_UPLOADS, ['assetId'], '{{%assets}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, Table::FORMIE_PENDING_UPLOADS, ['submissionId'], Table::FORMIE_SUBMISSIONS, ['id'], 'CASCADE', null);
-        $this->addForeignKey(null, Table::FORMIE_SUBMISSION_RESUME_TOKENS, ['formId'], Table::FORMIE_FORMS, ['id'], 'CASCADE', null);
-        $this->addForeignKey(null, Table::FORMIE_SUBMISSION_RESUME_TOKENS, ['siteId'], '{{%sites}}', ['id'], 'CASCADE', null);
-        $this->addForeignKey(null, Table::FORMIE_SUBMISSION_RESUME_TOKENS, ['submissionId'], Table::FORMIE_SUBMISSIONS, ['id'], 'SET NULL', null);
     }
 
     public function removeTables(): void
@@ -786,6 +752,8 @@ class Install extends Migration
             'formie_submissions',
             'formie_submission_quiz_results',
             'formie_submission_operations',
+            'formie_submission_progress',
+            'formie_submission_grants',
             'formie_submission_workflow',
             'formie_pending_uploads',
             'formie_submission_drafts',
@@ -920,6 +888,8 @@ class Install extends Migration
             'formie_submissions',
             'formie_submission_quiz_results',
             'formie_submission_operations',
+            'formie_submission_progress',
+            'formie_submission_grants',
             'formie_submission_workflow',
             'formie_pending_uploads',
             'formie_submission_drafts',

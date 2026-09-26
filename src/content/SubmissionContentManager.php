@@ -342,12 +342,9 @@ class SubmissionContentManager
 
         // For partial-page payload mode, merge newly posted values over existing serialized content
         // to avoid dropping nested keys not present in this request.
-        if (
-            $settings->setOnlyCurrentPagePayload
-            && ($submissionDrafts = Formie::$plugin->getSubmissionDrafts())
-        ) {
+        if ($settings->setOnlyCurrentPagePayload) {
             $incomingSerializedValue = $field->serializeValue($this->getFieldValue($submission, $fieldHandle), $submission);
-            $mergedContent = $submissionDrafts->mergeDraftContentByUid([
+            $mergedContent = $this->_mergeContent([
                 $field->uid => $previousSerializedValue,
             ], [
                 $field->uid => $incomingSerializedValue,
@@ -482,4 +479,42 @@ class SubmissionContentManager
 
         return $values;
     }
+
+    private function _mergeContent(array $existing, array $incoming, array $clearKeys = []): array
+    {
+        $merged = $existing;
+
+        foreach ($clearKeys as $clearKey) {
+            unset($merged[$clearKey]);
+        }
+
+        foreach ($incoming as $key => $incomingValue) {
+            if ($incomingValue === '__FORMIE_CLEAR__') {
+                unset($merged[$key]);
+                continue;
+            }
+
+            if (!array_key_exists($key, $merged)) {
+                $merged[$key] = $incomingValue;
+                continue;
+            }
+
+            $existingValue = $merged[$key];
+
+            if (is_array($existingValue) && is_array($incomingValue)) {
+                if (!array_is_list($existingValue) || !array_is_list($incomingValue)) {
+                    $merged[$key] = $this->_mergeContent($existingValue, $incomingValue);
+                } else {
+                    $merged[$key] = $incomingValue;
+                }
+
+                continue;
+            }
+
+            $merged[$key] = $incomingValue;
+        }
+
+        return $merged;
+    }
+
 }

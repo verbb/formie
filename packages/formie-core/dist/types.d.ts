@@ -128,7 +128,10 @@ export type FrontendFormSession = {
     };
     continuation?: {
         submissionUid?: string;
-        continuationToken?: string;
+        progressId?: string;
+        grantToken?: string;
+        purpose?: 'continue-incomplete' | 'revise-complete';
+        submissionId?: number;
         draftContext?: string;
         draftContextToken?: string;
         resumeUrl?: string;
@@ -145,6 +148,9 @@ export type FrontendSubmitResult = {
     version?: number | null;
     success: boolean;
     submissionUid?: string | null;
+    resumeToken?: string | null;
+    resumeUrl?: string | null;
+    resumeTokenExpiresAt?: number | null;
     currentPageId?: string | null;
     nextPageId?: string | null;
     previousPageId?: string | null;
@@ -186,14 +192,14 @@ export type FrontendFormState = {
     currentPageId: string;
     lastSubmitResult?: FrontendSubmitResult | null;
 };
-export type FrontendSubmitAction = 'back' | 'save' | 'next' | 'submit';
+export type FrontendSubmitAction = 'back' | 'save' | 'next' | 'submit' | 'revise';
 export type FrontendFormEventName = 'formie:client:ready' | 'formie:submit:result' | 'formie:page:navigate' | 'formie:page:navigate:error' | 'formie:session:refreshed' | 'formie:session:refresh:error' | 'formie:state:reset';
 export type FrontendTransport = {
     submit(input: {
         definition: FrontendFormDefinition;
         session: FrontendFormSession;
         values: Record<string, unknown>;
-        action: 'back' | 'save' | 'submit';
+        action: 'back' | 'save' | 'submit' | 'revise';
     }): Promise<FrontendSubmitResult>;
     refreshSession(input: {
         formHandle: string;

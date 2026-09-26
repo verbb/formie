@@ -13,6 +13,9 @@ class SubmitResult extends BaseClientModel
     public ?int $version = null;
     public int $httpStatus = 200;
     public ?string $submissionUid = null;
+    public ?string $resumeToken = null;
+    public ?string $resumeUrl = null;
+    public ?int $resumeTokenExpiresAt = null;
     public ?string $currentPageId = null;
     public ?string $nextPageId = null;
     public ?string $previousPageId = null;

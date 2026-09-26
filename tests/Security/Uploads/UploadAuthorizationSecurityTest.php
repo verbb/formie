@@ -16,7 +16,7 @@ it('refuses to delete finalized tracked uploads anonymously', function (): void 
     $volume = UploadTestHelper::ensureUploadVolume();
     $form = formie()
         ->form(['title' => 'Upload Authorization Finalized Security'])
-        ->singleLineTextField('fullName')
+        ->singleLineTextField('fullName')->fileUploadField('documents', ['restrictFiles' => false])
         ->create();
     $submission = formie()
         ->submission($form)
@@ -25,6 +25,9 @@ it('refuses to delete finalized tracked uploads anonymously', function (): void 
 
     $asset = UploadTestHelper::seedAsset('finalized-authorization.txt', 'finalized', $volume);
     Formie::$plugin->getFileUploads()->trackSubmissionAsset($asset, (int)$form->id, (int)$submission->id, 'field-finalized');
+    $submission->setFieldValue('documents', [$asset->id]);
+    Craft::$app->getElements()->saveElement($submission, false);
+    Craft::$app->getDb()->createCommand()->update(Table::FORMIE_PENDING_UPLOADS, ['state' => 'bound'], ['assetId' => $asset->id])->execute();
     Formie::$plugin->getFileUploads()->finalizeSubmissionUploads((int)$submission->id);
 
     $removed = Formie::$plugin->getFileUploads()->removeUploadByAssetId((int)$asset->id);
@@ -41,11 +44,11 @@ it('filters tracked upload metadata by form and field context', function (): voi
     $volume = UploadTestHelper::ensureUploadVolume();
     $formA = formie()
         ->form(['title' => 'Upload Authorization Context A'])
-        ->singleLineTextField('fullName')
+        ->singleLineTextField('fullName')->fileUploadField('documents', ['restrictFiles' => false])
         ->create();
     $formB = formie()
         ->form(['title' => 'Upload Authorization Context B'])
-        ->singleLineTextField('fullName')
+        ->singleLineTextField('fullName')->fileUploadField('documents', ['restrictFiles' => false])
         ->create();
 
     $assetA = UploadTestHelper::seedAsset('context-alpha-a.txt', 'a', $volume);

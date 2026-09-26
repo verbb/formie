@@ -141,6 +141,7 @@ class FileUpload extends ElementField
 
     private array $_assetsToDelete = [];
     private array $_uploadedDataFiles = [];
+    private static ?\WeakMap $_stagedElements = null;
 
 
     // Public Methods
@@ -182,6 +183,11 @@ class FileUpload extends ElementField
         }
 
         return UploadAccess::issueToken($assetId, $formId, $fieldUid);
+    }
+
+    public function getUploadFolderForSubmission(Submission $submission): VolumeFolder
+    {
+        return $this->_uploadFolder($submission);
     }
 
     public function getFieldTypeConfigData(): array
@@ -237,7 +243,7 @@ class FileUpload extends ElementField
 
         if (is_array($value) && !isset($value['mutationData']) && array_is_list($value)) {
             foreach ($value as $item) {
-                if (is_array($item) && (isset($item['assetId']) || isset($item['fileData']))) {
+                if (is_array($item) && (isset($item['assetId']) || isset($item['fileData']) || isset($item['uploadUid']))) {
                     // Client envelopes and GraphQL share one decoder and retained-ID contract.
                     $value = FileUploadInputType::normalizeValue(array_map(
                         fn($entry) => is_numeric($entry) ? ['assetId' => (int)$entry] : $entry,
@@ -713,6 +719,21 @@ class FileUpload extends ElementField
     {
         $uploadedDataFiles = &$this->_getUploadedDataFiles($element);
 
+        // Draft and back-navigation commands still enforce file policy before provider writes.
+        $this->validateFileType($element);
+        if ($this->limitFiles) {
+            $this->validateFileLimit($element);
+        }
+        if ($this->sizeLimit) {
+            $this->validateMaxFileSize($element);
+        }
+        if ($this->sizeMinLimit) {
+            $this->validateMinFileSize($element);
+        }
+        if ($element->hasErrors($this->valueKey())) {
+            return false;
+        }
+
         if (!parent::beforeElementSave($element, $isNew)) {
             return false;
         }
@@ -756,47 +777,26 @@ class FileUpload extends ElementField
         return true;
     }
 
+    public function stageUploads(ElementInterface $element): void
+    {
+        $this->_processAssets($element, true);
+        self::$_stagedElements ??= new \WeakMap();
+        $keys = self::$_stagedElements[$element] ?? [];
+        $keys[$this->valueKey()] = true;
+        self::$_stagedElements[$element] = $keys;
+    }
+
     public function afterElementSave(ElementInterface $element, bool $isNew): void
     {
         // Process any uploads and turn into assets
         $this->_processAssets($element);
 
-        $elementService = Craft::$app->getElements();
-
-        // Were any assets marked as to be deleted?
-        if ($this->_assetsToDelete) {
-            $assets = Asset::find()->id($this->_assetsToDelete)->all();
-
-            foreach ($assets as $asset) {
-                $elementService->deleteElement($asset, true);
-            }
-        }
-
-        // Rename files, if enabled
-        if ($this->filenameFormat) {
-            if ($filenameFormat = References::parseContent($this->filenameFormat, $element)) {
-                $assets = $element->getFieldValue($this->valueKey())->all();
-
-                foreach ($assets as $key => $asset) {
-                    $suffix = ($key > 0) ? '_' . $key : '';
-
-                    // Introduce an additional suffix for repeaters
-                    // if ($element instanceof NestedFieldRow) {
-                    //     if ($element->getField() instanceof Repeater) {
-                    //         $suffix = '_' . $element->sortOrder . $suffix;
-                    //     }
-                    // }
-
-                    $filename = $filenameFormat . $suffix;
-                    $asset->newFilename = Assets::prepareAssetName($filename . '.' . $asset->getExtension());
-                    $asset->title = Assets::filename2Title($filename);
-
-                    $elementService->saveElement($asset);
-                }
-            }
-        }
-
         parent::afterElementSave($element, $isNew);
+        if (isset(self::$_stagedElements[$element])) {
+            $keys = self::$_stagedElements[$element];
+            unset($keys[$this->valueKey()]);
+            self::$_stagedElements[$element] = $keys;
+        }
     }
 
     public function getContentGqlMutationArgumentType(): Type|array
@@ -1129,8 +1129,11 @@ class FileUpload extends ElementField
     // Private Methods
     // =========================================================================
 
-    private function _processAssets(ElementInterface $element): void
+    private function _processAssets(ElementInterface $element, bool $staging = false): void
     {
+        if (self::$_stagedElements[$element][$this->valueKey()] ?? false) {
+            return;
+        }
         $uploadedDataFiles = &$this->_getUploadedDataFiles($element);
         $query = $element->getFieldValue($this->valueKey());
         $assetsService = Craft::$app->getAssets();
@@ -1152,7 +1155,7 @@ class FileUpload extends ElementField
         $uploadedFiles = $this->_getUploadedFiles($element);
 
         if (!empty($uploadedFiles)) {
-            $uploadFolderId = $getUploadFolderId();
+            $uploadFolderId = $staging ? $assetsService->getUserTemporaryUploadFolder()->id : $getUploadFolderId();
 
             if ($uploadFolderId === null) {
                 return;
@@ -1206,7 +1209,7 @@ class FileUpload extends ElementField
 
             if (!empty($assetIds)) {
                 // Add the newly uploaded IDs to the mix.
-                if (is_array($query->id)) {
+                if (is_array($query->id) && !$this->_assetsToDelete) {
                     $query = $this->normalizeValue(array_merge($query->id, $assetIds), $element);
                 } else {
                     $query = $this->normalizeValue($assetIds, $element);
@@ -1247,39 +1250,13 @@ class FileUpload extends ElementField
                 return;
             }
 
-            $assetsToMove = array_filter($assets, function(Asset $asset) use ($rootRestrictedFolderId, $assetsService) {
-                if ($asset->folderId === $rootRestrictedFolderId) {
-                    return false;
-                }
-
-                $rootRestrictedFolder = $assetsService->getFolderById($rootRestrictedFolderId);
-
-                return (
-                    $asset->volumeId !== $rootRestrictedFolder->volumeId ||
-                    !str_starts_with($asset->folderPath, $rootRestrictedFolder->path)
-                );
-            });
-
-            if (!empty($assetsToMove)) {
-                $uploadFolder = $assetsService->getFolderById($getUploadFolderId());
-
-                // Resolve all conflicts by keeping both
-                foreach ($assetsToMove as $asset) {
-                    $asset->avoidFilenameConflicts = true;
-
-                    try {
-                        $assetsService->moveAsset($asset, $uploadFolder);
-                    } catch (FsObjectNotFoundException $e) {
-                        // Don't freak out about that.
-                        Formie::info('Couldn’t move asset because the file doesn’t exist: ' . $e->getMessage());
-                    }
-                }
-            }
+            // Workflow promotion runs after the element transaction commits, before Dispatch.
+            // This field hook persists accepted asset references only.
 
             // We now need to update the submission with the IDs of asset for this field, so do a direct record update
             // because this is triggered after the element has been saved, and we don't want to end up in a loop.
             // Using direct queries is also too risky with JSON columns and database engines.
-            if ($record = SubmissionRecord::findOne($element->id)) {
+            if (!$staging && ($record = SubmissionRecord::findOne($element->id))) {
                 // Re-serializing submission values will include IDs now
                 $record->content = $element->serializeFieldValues();
 
@@ -1423,6 +1400,9 @@ class FileUpload extends ElementField
 
     private function _getUploadedFiles(ElementInterface $element): array
     {
+        if (self::$_stagedElements[$element][$this->valueKey()] ?? false) {
+            return [];
+        }
         $uploadedDataFiles = &$this->_getUploadedDataFiles($element);
         $files = [];
 

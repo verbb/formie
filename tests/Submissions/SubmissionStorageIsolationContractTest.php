@@ -3,8 +3,6 @@
 declare(strict_types=1);
 
 use verbb\formie\Formie;
-use verbb\formie\services\SubmissionDrafts;
-use verbb\formie\state\DraftSubmissionState;
 
 it('exposes a single canonical progression store behavior', function (): void {
     $settings = Formie::$plugin->getSettings();
@@ -56,89 +54,18 @@ it('keeps request token generation callable and resettable', function (): void {
         ->and($tokenB)->not->toBeEmpty();
 });
 
-it('uses configured resume token ttl days when issuing save tokens', function (): void {
+it('uses configured grant expiry and rejects altered credentials', function (): void {
     $settings = Formie::$plugin->getSettings();
-    $originalTtlDays = $settings->saveResumeTokenTtlDays;
+    $old = $settings->saveResumeTokenTtlDays;
     $settings->saveResumeTokenTtlDays = 2;
-
-    $form = formie()
-        ->form(['title' => 'Resume TTL'])
-        ->singleLineTextField('fullName')
-        ->create();
-
     try {
-        $submissionDrafts = new SubmissionDrafts();
-        $key = $submissionDrafts->resolveFormInstanceKey($form, null, [
-            'scope' => 'resume-ttl',
-            'instance' => 'test',
-        ]);
-
-        $state = new DraftSubmissionState([
-            'formInstanceKey' => $key,
-            'content' => [],
-            'snapshot' => [],
-            'version' => 1,
-        ]);
-
-        $submissionDrafts->saveDraftState($state);
-        $token = $submissionDrafts->issueResumeToken($state);
-
-        expect($token->expiresAt)->not->toBeNull()
-            ->and($token->issuedAt)->not->toBeNull()
-            ->and(($token->expiresAt - $token->issuedAt))->toBeGreaterThanOrEqual(172799)
-            ->and(($token->expiresAt - $token->issuedAt))->toBeLessThanOrEqual(172801);
+        [$form, $submission] = continuitySubmission();
+        $service = Formie::$plugin->getSubmissionGrants();
+        $grant = $service->issue($submission, \verbb\formie\services\SubmissionGrants::CONTINUE);
+        expect($grant->expiresAt - time())->toBeGreaterThanOrEqual(172799)->toBeLessThanOrEqual(172800)
+            ->and($service->verify($grant->token, \verbb\formie\services\SubmissionGrants::CONTINUE, $form))->not->toBeNull()
+            ->and($service->verify($grant->token . 'altered', \verbb\formie\services\SubmissionGrants::CONTINUE, $form))->toBeNull();
     } finally {
-        $settings->saveResumeTokenTtlDays = $originalTtlDays;
+        $settings->saveResumeTokenTtlDays = $old;
     }
-});
-
-it('issues and validates resume tokens for payload-first draft state', function (): void {
-    $form = formie()
-        ->form(['title' => 'Session Draft Limit'])
-        ->singleLineTextField('fullName')
-        ->create();
-
-    $submissionDrafts = new SubmissionDrafts();
-    $key = $submissionDrafts->resolveFormInstanceKey($form, null, [
-        'scope' => 'state-token',
-        'instance' => 'validation',
-    ]);
-    $state = new DraftSubmissionState([
-        'formInstanceKey' => $key,
-        'content' => ['fullName' => 'Token User'],
-        'snapshot' => [],
-        'version' => 1,
-    ]);
-
-    $submissionDrafts->saveDraftState($state);
-    $token = $submissionDrafts->issueResumeToken($state);
-    $verified = $submissionDrafts->verifyResumeToken($token->token, [SubmissionDrafts::RESUME_CAPABILITY_READ]);
-
-    expect($token->token)->not->toBeEmpty()
-        ->and($verified)->not->toBeNull()
-        ->and((int)($verified?->formId ?? 0))->toBe((int)$form->id);
-});
-
-it('rejects tampered payload-first resume tokens', function (): void {
-    $form = formie()
-        ->form(['title' => 'State Token Tamper'])
-        ->singleLineTextField('fullName')
-        ->create();
-
-    $submissionDrafts = new SubmissionDrafts();
-    $key = $submissionDrafts->resolveFormInstanceKey($form, null, [
-        'scope' => 'state-token',
-        'instance' => 'tamper',
-    ]);
-    $state = new DraftSubmissionState([
-        'formInstanceKey' => $key,
-        'content' => ['fullName' => 'Token User'],
-        'snapshot' => [],
-        'version' => 1,
-    ]);
-    $submissionDrafts->saveDraftState($state);
-    $token = $submissionDrafts->issueResumeToken($state);
-    $tamperedToken = substr($token->token, 0, -2) . 'ab';
-
-    expect($submissionDrafts->verifyResumeToken($tamperedToken, [SubmissionDrafts::RESUME_CAPABILITY_READ]))->toBeNull();
 });

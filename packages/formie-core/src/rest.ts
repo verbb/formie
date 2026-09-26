@@ -6,6 +6,7 @@ import type {
     FrontendTransport,
 } from './types';
 import { serializeTransportFieldValues } from './schema';
+import { clearExchangedGrant } from './grants';
 
 export type RestFrontendTransportOptions = {
     /**
@@ -18,6 +19,9 @@ export type RestFrontendTransportOptions = {
     formHandle: string;
     siteId?: number;
     credentials?: RequestCredentials;
+    grantToken?: string;
+    grantPurpose?: 'continue-incomplete' | 'revise-complete';
+    draftContext?: string;
 };
 
 /**
@@ -76,9 +80,12 @@ export async function loadFrontendEnvelope(options: RestFrontendTransportOptions
     const body = JSON.stringify({
         handle: options.formHandle,
         siteId: options.siteId,
+        grantToken: options.grantToken,
+        grantPurpose: options.grantPurpose,
+        draftContext: options.draftContext,
     });
 
-    return requestJson<FrontendFormEnvelope>(url, {
+    const envelope = await requestJson<FrontendFormEnvelope>(url, {
         method: 'POST',
         credentials: options.credentials ?? 'same-origin',
         headers: {
@@ -86,6 +93,8 @@ export async function loadFrontendEnvelope(options: RestFrontendTransportOptions
         },
         body,
     });
+    clearExchangedGrant(options.grantToken);
+    return envelope;
 }
 
 export function createRestFrontendTransport(options: RestFrontendTransportOptions): FrontendTransport {

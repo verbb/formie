@@ -21,6 +21,13 @@ class FormBootstrapBuilder extends Component
             true,
         );
 
+        if ($context->draftContext !== null) {
+            $form->setDraftContext($context->draftContext);
+        }
+        if ($context->grantToken) {
+            Formie::$plugin->getSubmissionProcessor()->exchangeGrant($form, $context->grantToken, $context->grantPurpose);
+        }
+
         $definition = Formie::$plugin->getClientFormDefinitionBuilder()->build($form, $context);
         $session = Formie::$plugin->getClientSessionService()->issueInitialSession($form, null, true);
 

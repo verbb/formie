@@ -118,21 +118,21 @@ class GcController extends Controller
     }
 
     /**
-     * Removes stale submission states.
+     * Removes expired submission grants.
      */
-    public function actionPruneSubmissionStates(): int
+    public function actionPruneSubmissionGrants(): int
     {
-        Formie::$plugin->getCleanup()->runTask(Cleanup::TASK_SUBMISSION_STATES, $this);
+        Formie::$plugin->getCleanup()->runTask(Cleanup::TASK_SUBMISSION_GRANTS, $this);
 
         return ExitCode::OK;
     }
 
     /**
-     * Removes expired submission draft storage rows.
+     * Removes expired submission progress.
      */
-    public function actionPruneDraftStorage(): int
+    public function actionPruneSubmissionProgress(): int
     {
-        Formie::$plugin->getCleanup()->runTask(Cleanup::TASK_DRAFT_STORAGE, $this);
+        Formie::$plugin->getCleanup()->runTask(Cleanup::TASK_SUBMISSION_PROGRESS, $this);
 
         return ExitCode::OK;
     }

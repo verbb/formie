@@ -2,6 +2,7 @@
 namespace verbb\formie\services;
 
 use verbb\formie\enums\SubmissionOutcomeType;
+use verbb\formie\errors\StateConflict;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\SubmissionCommand;
 use verbb\formie\models\SubmissionOutcome;
@@ -90,7 +91,11 @@ class SubmissionOperations extends Component
                 ])->execute();
             }
 
-            $outcome = $execute();
+            try {
+                $outcome = $execute();
+            } catch (StateConflict $e) {
+                $outcome = $this->_conflict($command, 'staleVersion', $e->currentVersion);
+            }
             if (!$outcome instanceof SubmissionOutcome) {
                 throw new RuntimeException('Submission execution must produce a domain outcome.');
             }

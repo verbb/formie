@@ -4,114 +4,60 @@ namespace verbb\formie\helpers;
 use verbb\formie\Formie;
 
 use Craft;
+use craft\db\Query;
 use craft\helpers\Json;
 
-/**
- * Issues unguessable upload capabilities bound to asset + form + field.
- * Numeric asset IDs alone must not authorize hydrate/delete for guests.
- */
+/** Durable, purpose-bound upload capabilities. Tokens are returned once; only hashes persist. */
 final class UploadAccess
 {
-    // Constants
-    // =========================================================================
-
-    private const MIN_TTL_SECONDS = 86400;
-    private const MAX_TTL_SECONDS = 7776000;
-
-
     // Static Methods
     // =========================================================================
 
-    public static function issueToken(int $assetId, int $formId, string $fieldUid, ?int $issuedAt = null): ?string
+    public static function issueToken(int $assetId, int $formId, string $fieldUid, string $purpose = 'view'): ?string
     {
-        $fieldUid = trim($fieldUid);
-
-        if ($assetId <= 0 || $formId <= 0 || $fieldUid === '') {
-            return null;
+        $mutex = Craft::$app->getMutex();
+        $key = 'formie.upload-capability.' . $assetId;
+        if (!$mutex->acquire($key, 5)) {
+            throw new \RuntimeException('Upload capability is busy.');
         }
-
-        $issuedAt ??= time();
-        $payload = Json::encode([
-            'assetId' => $assetId,
-            'formId' => $formId,
-            'fieldUid' => $fieldUid,
-            'issuedAt' => $issuedAt,
-            'expiresAt' => $issuedAt + self::_tokenTtlSeconds(),
-        ]);
-
-        $key = Formie::$plugin->getSettings()->getSecurityKey();
-        $encrypted = Craft::$app->getSecurity()->encryptByKey($payload, $key);
-
-        if (!is_string($encrypted) || $encrypted === '') {
-            return null;
+        try {
+            $row = Formie::$plugin->getFileUploads()->getTrackedUploadByAssetId($assetId, $formId, $fieldUid);
+            if (!$row || !in_array($purpose, ['view', 'attach', 'delete'], true) || (int)$row['expiresAt'] <= time() || in_array($row['state'], ['expired', 'rejected'], true)) {
+                return null;
+            }
+            $token = Craft::$app->getSecurity()->generateRandomString(64);
+            $hashes = Json::decodeIfJson($row['capabilities']) ?: [];
+            // Multiple renders/devices may retain valid capabilities until expiry or explicit revocation.
+            $hashes[$purpose] = array_slice(array_merge($hashes[$purpose] ?? [], ['v1:' . hash('sha256', $token)]), -16);
+            Craft::$app->getDb()->createCommand()->update(Table::FORMIE_PENDING_UPLOADS, ['capabilities' => Json::encode($hashes)], ['assetId' => $assetId])->execute();
+            return $row['uid'] . '.' . $token;
+        } finally {
+            $mutex->release($key);
         }
-
-        return base64_encode($encrypted);
     }
 
-    public static function resolveToken(?string $token): ?array
+    public static function resolveToken(?string $token, string $purpose = 'view'): ?array
     {
-        if (!is_string($token) || trim($token) === '') {
+        if (!$token || !str_contains($token, '.')) {
             return null;
         }
-
-        $decoded = base64_decode(trim($token), true);
-
-        if (!is_string($decoded) || $decoded === '') {
+        [$uid, $secret] = explode('.', $token, 2);
+        $row = (new Query())->from(Table::FORMIE_PENDING_UPLOADS)->where(['uid' => $uid])->one();
+        if (!$row || (int)$row['expiresAt'] <= time() || in_array($row['state'], ['expired', 'rejected'], true)) {
             return null;
         }
-
-        $key = Formie::$plugin->getSettings()->getSecurityKey();
-        $decrypted = Craft::$app->getSecurity()->decryptByKey($decoded, $key);
-
-        if (!is_string($decrypted) || $decrypted === '') {
-            return null;
+        $hashes = Json::decodeIfJson($row['capabilities']) ?: [];
+        foreach ($hashes[$purpose] ?? [] as $hash) {
+            if (hash_equals($hash, 'v1:' . hash('sha256', $secret))) {
+                return $row;
+            }
         }
-
-        $payload = Json::decodeIfJson($decrypted);
-
-        if (!is_array($payload)) {
-            return null;
-        }
-
-        $assetId = isset($payload['assetId']) ? (int)$payload['assetId'] : 0;
-        $formId = isset($payload['formId']) ? (int)$payload['formId'] : 0;
-        $fieldUid = isset($payload['fieldUid']) && is_string($payload['fieldUid']) ? trim($payload['fieldUid']) : '';
-        $expiresAt = isset($payload['expiresAt']) ? (int)$payload['expiresAt'] : 0;
-
-        if ($assetId <= 0 || $formId <= 0 || $fieldUid === '' || $expiresAt <= time()) {
-            return null;
-        }
-
-        return [
-            'assetId' => $assetId,
-            'formId' => $formId,
-            'fieldUid' => $fieldUid,
-            'expiresAt' => $expiresAt,
-        ];
+        return null;
     }
 
-    public static function matches(int $assetId, int $formId, string $fieldUid, ?string $token): bool
+    public static function matches(int $assetId, int $formId, string $fieldUid, ?string $token, string $purpose = 'view'): bool
     {
-        $resolved = self::resolveToken($token);
-
-        if (!$resolved) {
-            return false;
-        }
-
-        return $resolved['assetId'] === $assetId
-            && $resolved['formId'] === $formId
-            && $resolved['fieldUid'] === trim($fieldUid);
-    }
-
-    private static function _tokenTtlSeconds(): int
-    {
-        $days = (int)Formie::$plugin->getSettings()->maxIncompleteSubmissionAge;
-
-        if ($days <= 0) {
-            $days = 30;
-        }
-
-        return max(self::MIN_TTL_SECONDS, min(self::MAX_TTL_SECONDS, $days * 86400));
+        $row = self::resolveToken($token, $purpose);
+        return $row && (int)$row['assetId'] === $assetId && (int)$row['formId'] === $formId && $row['fieldUid'] === $fieldUid;
     }
 }

@@ -80,6 +80,7 @@ it('hydrates submission-linked assets when a capability token is provided', func
         ->submission($form)
         ->with(['documents' => [$asset->id]])
         ->save();
+    Formie::$plugin->getFileUploads()->trackSubmissionAsset($asset, (int)$form->id, (int)$submission->id, $field->uid, $form, 'documents');
     $token = UploadAccess::issueToken((int)$asset->id, (int)$form->id, (string)$field->uid);
 
     WebRequestTestHelper::withWebRequestContext(function ($request) use ($form, $submission, $asset, $token): void {

@@ -60,7 +60,7 @@ it('persists frontend page navigation through the session service', function(): 
     expect($session['currentPageId'])->toBe((string)$pages[1]->id);
 });
 
-it('issues opaque runtime continuation tokens instead of exposing submission uids in session payloads', function(): void {
+it('issues browser-bound progress references without portable bearer tokens', function(): void {
     $form = formie()
         ->form(['title' => 'Frontend Continuation Token'])
         ->singleLineTextField('firstName')
@@ -73,14 +73,14 @@ it('issues opaque runtime continuation tokens instead of exposing submission uid
     $submission->isIncomplete = true;
     expect(Craft::$app->getElements()->saveElement($submission))->toBeTrue();
     $session = WebRequestTestHelper::withWebRequestContext(function () use ($form, $submission): array {
-        Formie::$plugin->getSubmissionDrafts()->upsertProgressState($form, $submission, $form->getCurrentPage()?->id);
+        Formie::$plugin->getSubmissionProgress()->upsertProgressState($form, $submission, $form->getCurrentPage()?->id);
         return Formie::$plugin->getClientSessionService()->issueInitialSession($form)->toArrayRecursive();
     }, [
         'method' => 'POST',
     ]);
 
-    expect($session['continuation']['continuationToken'] ?? null)->toBeString()
-        ->and($session['continuation']['continuationToken'] ?? '')->not->toContain((string)$submission->uid)
+    expect($session['continuation']['progressId'] ?? null)->toBeString()
+        ->and($session['continuation']['progressId'] ?? '')->not->toContain((string)$submission->uid)
         ->and($session['continuation']['submissionUid'] ?? null)->toBeNull();
 });
 

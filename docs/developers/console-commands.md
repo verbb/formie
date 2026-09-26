@@ -152,7 +152,7 @@ Runs every Formie cleanup and retention task. This is included in `./craft formi
 
 Option | Description
 --- | ---
-`--only` | Comma-separated cleanup task handles. Omit to run all tasks. Handles: `incomplete-submissions`, `data-retention-submissions`, `sent-notifications`, `file-upload-asset-retention`, `stale-pending-uploads`, `report-exports`, `submission-states`, `draft-storage`.
+`--only` | Comma-separated cleanup task handles. Omit to run all tasks. Handles: `incomplete-submissions`, `data-retention-submissions`, `sent-notifications`, `file-upload-asset-retention`, `stale-pending-uploads`, `report-exports`, `submission-grants`, `submission-progress`, `submission-operations`.
 
 ### Prune Incomplete Submissions
 Deletes any incomplete submissions that exceed the "Maximum Incomplete Submission Age" plugin setting.
@@ -175,18 +175,18 @@ Deletes sent notifications that exceed the plugin's maximum age setting.
 ./craft formie/gc/prune-sent-notifications
 ```
 
-### Prune Submission States
-Deletes stale submission draft state records.
+### Prune Submission Grants
+Deletes expired purpose-bound submission grants.
 
 ```shell
-./craft formie/gc/prune-submission-states
+./craft formie/gc/prune-submission-grants
 ```
 
-### Prune Draft Storage
-Deletes expired submission draft storage rows.
+### Prune Submission Progress
+Deletes expired canonical submission progress rows.
 
 ```shell
-./craft formie/gc/prune-draft-storage
+./craft formie/gc/prune-submission-progress
 ```
 
 ### Prune File Upload Asset Retention

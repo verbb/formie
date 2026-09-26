@@ -7,7 +7,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\fields\FileUpload;
 use verbb\formie\helpers\FileUploadRetentionHelper;
 use verbb\formie\helpers\UploadAccess;
-use verbb\formie\services\SubmissionDrafts;
+use verbb\formie\services\SubmissionGrants;
 
 use Craft;
 use craft\elements\Asset;
@@ -58,7 +58,7 @@ class FileUploadController extends Controller
             throw new BadRequestHttpException('Missing handle or fieldHandle.');
         }
 
-        $form = Formie::$plugin->getForms()->getFormByHandle($formHandle);
+        $form = Formie::$plugin->getForms()->getFormByHandle($formHandle, \verbb\formie\helpers\SiteHelper::resolveSiteIdFromRequest());
 
         if (!$form) {
             throw new BadRequestHttpException('Invalid form handle.');
@@ -120,7 +120,9 @@ class FileUploadController extends Controller
             $asset,
             (int)$form->id,
             $submissionId,
-            $field->uid
+            $field->uid,
+            $form,
+            $fieldHandle
         );
 
         $uploadToken = UploadAccess::issueToken((int)$asset->id, (int)$form->id, (string)$field->uid);
@@ -131,6 +133,9 @@ class FileUploadController extends Controller
             'filename' => $asset->filename,
             'url' => $asset->url,
             'uploadToken' => $uploadToken,
+            'uploadUid' => Formie::$plugin->getFileUploads()->getTrackedUploadByAssetId((int)$asset->id)['uid'],
+            'deleteToken' => UploadAccess::issueToken((int)$asset->id, (int)$form->id, (string)$field->uid, purpose: 'delete'),
+            'attachToken' => UploadAccess::issueToken((int)$asset->id, (int)$form->id, (string)$field->uid, purpose: 'attach'),
             'inputKey' => $inputKey !== '' ? $inputKey : null,
         ]);
     }
@@ -145,7 +150,7 @@ class FileUploadController extends Controller
         [$form, $field] = $this->_resolveUploadContext();
 
         // Capability tokens bind asset+form+field; CSRF alone is not ownership.
-        if (!UploadAccess::matches($assetId, (int)$form->id, (string)$field->uid, $uploadToken)) {
+        if (!UploadAccess::matches($assetId, (int)$form->id, (string)$field->uid, $uploadToken, 'delete')) {
             throw new BadRequestHttpException('Invalid upload capability.');
         }
 
@@ -208,15 +213,20 @@ class FileUploadController extends Controller
                 $token = UploadAccess::issueToken($assetId, $formId, $fieldUid);
             }
 
+            $tracked = Formie::$plugin->getFileUploads()->getTrackedUploadByAssetId($assetId, $formId, $fieldUid);
+            $mayDelete = $tracked && $tracked['state'] === 'staged'
+                && (int)$tracked['siteId'] === (int)$form->siteId
+                && hash_equals((string)$tracked['browserHash'], Formie::$plugin->getSubmissionGrants()->browserHash($form));
             $assetMap[$assetId] = [
                 'assetId' => $assetId,
                 'filename' => (string)$asset->filename,
                 'url' => $asset->url ?: null,
                 'uploadToken' => $token,
+                'deleteToken' => $mayDelete ? UploadAccess::issueToken($assetId, $formId, $fieldUid, purpose: 'delete') : null,
             ];
         }
 
-        $uploads = Formie::$plugin->getFileUploads()->getUploadMetadata($authorizedAssetIds, $formId, $fieldUid);
+        $uploads = array_map(static fn($row) => array_intersect_key($row, array_flip(['uid', 'assetId', 'state', 'isFinalized', 'expiresAt'])), Formie::$plugin->getFileUploads()->getUploadMetadata($authorizedAssetIds, $formId, $fieldUid));
 
         return $this->asJson([
             'success' => true,
@@ -263,6 +273,9 @@ class FileUploadController extends Controller
 
         $submission = Submission::find()
             ->uid($submissionUid)
+            ->siteId((int)$form->siteId)
+            ->isIncomplete(null)
+            ->isSpam(null)
             ->formId((int)$form->id)
             ->status(null)
             ->one();
@@ -285,11 +298,11 @@ class FileUploadController extends Controller
         return array_values(array_intersect($assetIds, $allowedIds));
     }
 
-    private function _canAccessSubmissionUploads(Form $form, Submission $submission): bool
+    private function _canAccessSubmissionUploads(Form $form, Submission $submission, bool $write = false): bool
     {
         $user = Craft::$app->getUser()->getIdentity();
 
-        if ($user && Formie::$plugin->getPermissions()->canViewSubmissions($user, $form)) {
+        if ($user && ($write ? Formie::$plugin->getPermissions()->canSaveSubmissions($user, $form) : Formie::$plugin->getPermissions()->canViewSubmissions($user, $form))) {
             return true;
         }
 
@@ -297,34 +310,25 @@ class FileUploadController extends Controller
             return false;
         }
 
-        $progressState = Formie::$plugin->getSubmissionDrafts()->getProgressState($form);
+        $progressState = Formie::$plugin->getSubmissionProgress()->getProgressState($form);
 
         if ($progressState && (int)$progressState->submissionId === (int)$submission->id) {
             return true;
         }
 
-        $resumeToken = trim((string)$this->request->getBodyParam('resumeToken', ''));
-
-        if ($resumeToken === '') {
-            $resumeToken = trim((string)$this->request->getBodyParam('continuationToken', ''));
+        $purpose = $submission->isIncomplete ? SubmissionGrants::CONTINUE : SubmissionGrants::REVISE;
+        if (Formie::$plugin->getSubmissionGrants()->bound($form, $purpose, (int)$submission->id)) {
+            return true;
         }
+        $resumeToken = trim((string)$this->request->getBodyParam('submissionEditToken', $this->request->getBodyParam('resumeToken', '')));
 
         if ($resumeToken === '') {
             return false;
         }
 
-        $verified = Formie::$plugin->getSubmissionDrafts()->verifyResumeToken($resumeToken, [
-            SubmissionDrafts::RESUME_CAPABILITY_READ,
-        ]);
+        $purpose = $submission->isIncomplete ? SubmissionGrants::CONTINUE : SubmissionGrants::REVISE;
+        return Formie::$plugin->getSubmissionGrants()->exchange($resumeToken, $purpose, $form, (int)$submission->id) !== null;
 
-        if (!$verified && $resumeToken !== '') {
-            // Edit tokens only carry `edit`; accept those for hydrate of the same submission.
-            $verified = Formie::$plugin->getSubmissionDrafts()->verifyResumeToken($resumeToken, [
-                SubmissionDrafts::RESUME_CAPABILITY_EDIT,
-            ]);
-        }
-
-        return $verified !== null && (int)($verified->submissionId ?? 0) === (int)$submission->id;
     }
 
     private function _resolveUploadContext(): array
@@ -336,12 +340,17 @@ class FileUploadController extends Controller
             throw new BadRequestHttpException('Invalid upload context.');
         }
 
-        $form = Formie::$plugin->getForms()->getFormByHandle($formHandle);
+        $form = Formie::$plugin->getForms()->getFormByHandle($formHandle, \verbb\formie\helpers\SiteHelper::resolveSiteIdFromRequest());
 
         if (!$form) {
             throw new BadRequestHttpException('Invalid upload context.');
         }
 
+        $contextToken = $this->request->getBodyParam('draftContextToken');
+        Formie::$plugin->getSubmissionProcessor()->applyFormRequestContext($form,
+            $this->request->getBodyParam('renderId'),
+            $contextToken ? $form->resolveDraftContextToken($contextToken) : $this->request->getBodyParam('draftContext'),
+        );
         $field = FileUploadRetentionHelper::resolveFileUploadFieldForContentKey($form, $fieldHandle);
 
         if (!$field) {
@@ -357,22 +366,15 @@ class FileUploadController extends Controller
             return null;
         }
 
-        if (Craft::$app->getRequest()->getIsSiteRequest() && Craft::$app->getUser()->getIsGuest()) {
-            $progressState = Formie::$plugin->getSubmissionDrafts()->getProgressState($form);
-
-            if (!$progressState || (int)$progressState->submissionId !== $submissionId) {
-                throw new BadRequestHttpException('Invalid upload submission.');
-            }
-        }
-
         $submission = Submission::find()
             ->id($submissionId)
             ->formId((int)$form->id)
-            ->isIncomplete(true)
+            ->isIncomplete(null)
+            ->siteId((int)$form->siteId)
             ->isSpam(null)
             ->one();
 
-        if (!$submission) {
+        if (!$submission || !$this->_canAccessSubmissionUploads($form, $submission, true)) {
             throw new BadRequestHttpException('Invalid upload submission.');
         }
 

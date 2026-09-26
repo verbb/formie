@@ -122,7 +122,7 @@ it('allows hydrate and delete when a matching upload capability token is supplie
             'handle' => (string)$form->handle,
             'fieldHandle' => (string)$field->handle,
             'assetId' => (int)$asset->id,
-            'uploadToken' => $token,
+            'uploadToken' => UploadAccess::issueToken((int)$asset->id, (int)$form->id, (string)$field->uid, purpose: 'delete'),
         ]);
 
         $deletePayload = decodeUploadOwnershipPayload($controller->actionDelete()->data);

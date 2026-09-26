@@ -23,7 +23,7 @@ it('does not advertise continuation tokens from leftover progress when automatic
     expect(Craft::$app->getElements()->saveElement($submission))->toBeTrue();
 
     $session = WebRequestTestHelper::withWebRequestContext(function () use ($form, $submission): array {
-        Formie::$plugin->getSubmissionDrafts()->upsertProgressState($form, $submission, $form->getCurrentPage()?->id);
+        Formie::$plugin->getSubmissionProgress()->upsertProgressState($form, $submission, $form->getCurrentPage()?->id);
 
         return Formie::$plugin->getClientSessionService()->issueInitialSession($form)->toArrayRecursive();
     }, [
@@ -53,7 +53,7 @@ it('starts a new managed submission instead of bare progress when automatic rest
     expect(Craft::$app->getElements()->saveElement($prior))->toBeTrue();
 
     $result = WebRequestTestHelper::withWebRequestContext(function () use ($form, $pages, $prior) {
-        Formie::$plugin->getSubmissionDrafts()->upsertProgressState($form, $prior, $pages[1]->id);
+        Formie::$plugin->getSubmissionProgress()->upsertProgressState($form, $prior, $pages[1]->id);
 
         return runManagedSubmission(new ManagedSubmissionRequest([
             'handle' => $form->handle,
@@ -98,7 +98,7 @@ it('continues the same managed submission when submissionUid matches progress wi
     expect(Craft::$app->getElements()->saveElement($submission))->toBeTrue();
 
     $result = WebRequestTestHelper::withWebRequestContext(function () use ($form, $pages, $submission) {
-        Formie::$plugin->getSubmissionDrafts()->upsertProgressState($form, $submission, $pages[0]->id);
+        Formie::$plugin->getSubmissionProgress()->upsertProgressState($form, $submission, $pages[0]->id);
 
         return runManagedSubmission(new ManagedSubmissionRequest([
             'handle' => $form->handle,

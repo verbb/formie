@@ -7,7 +7,7 @@ use verbb\formie\controllers\AnonymousSiteRequestGuardTrait;
 use verbb\formie\controllers\CrossOriginRequestTrait;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\errors\StaleSubmissionStateException;
+use verbb\formie\errors\SubmissionUnavailableException;
 use verbb\formie\helpers\ClientEventsHelper;
 use verbb\formie\helpers\SiteHelper;
 use verbb\formie\helpers\StringHelper;
@@ -95,13 +95,13 @@ class SubmissionsController extends Controller
                 'requestToken' => $this->_stringParam('requestToken'),
                 'draftContext' => $this->_nullableStringParam('draftContext'),
                 'draftContextToken' => $this->_nullableStringParam('draftContextToken'),
-                'resumeToken' => $this->_nullableStringParam('resumeToken') ?? $this->_nullableStringParam('continuationToken'),
+                'resumeToken' => $this->_nullableStringParam('resumeToken'),
                 'submissionUid' => $this->_nullableStringParam('submissionUid'),
                 'submitAction' => $this->_nullableStringParam('submitAction'),
                 'pageId' => $this->_nullableIntParam('pageId'),
                 'targetPageId' => $this->_nullableIntParam('targetPageId'),
             ]), SubmissionAuthorityType::VISITOR);
-        } catch (StaleSubmissionStateException $exception) {
+        } catch (SubmissionUnavailableException $exception) {
             return $this->_staleSubmissionStateResponse($exception->form, $exception->source, $exception->value);
         }
 
@@ -157,7 +157,7 @@ class SubmissionsController extends Controller
                 'continuation' => array_filter([
                     'draftContext' => $this->_nullableStringParam('draftContext'),
                     'draftContextToken' => $this->_nullableStringParam('draftContextToken'),
-                    'continuationToken' => $this->_nullableStringParam('continuationToken'),
+                    'progressId' => $this->_nullableStringParam('progressId'),
                 ], static function($value) {
                     return $value !== null && $value !== '';
                 }),
@@ -199,7 +199,7 @@ class SubmissionsController extends Controller
             $this->_nullableStringParam('renderId'),
             $draftContext,
         );
-        Formie::$plugin->getSubmissionDrafts()->clearProgressState($form);
+        Formie::$plugin->getSubmissionProgress()->clearProgressState($form);
         $this->response->setNoCacheHeaders();
 
         return $this->asJson([
@@ -348,7 +348,7 @@ class SubmissionsController extends Controller
             'value' => $value,
         ]);
 
-        Formie::$plugin->getSubmissionDrafts()->clearProgressState($form);
+        Formie::$plugin->getSubmissionProgress()->clearProgressState($form);
         $this->response->setNoCacheHeaders();
 
         return $this->asJson([

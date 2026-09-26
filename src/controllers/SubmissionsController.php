@@ -5,7 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\base\Field;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\errors\StaleSubmissionStateException;
+use verbb\formie\errors\SubmissionUnavailableException;
 use verbb\formie\helpers\ClientEventsHelper;
 use verbb\formie\helpers\ConditionsHelper;
 use verbb\formie\helpers\References;
@@ -24,7 +24,7 @@ use verbb\formie\enums\SubmissionOperation;
 use verbb\formie\enums\SubmissionAuthorityType;
 use verbb\formie\models\SubmissionResponse;
 use verbb\formie\models\PaymentDecision;
-use verbb\formie\services\SubmissionDrafts;
+use verbb\formie\services\SubmissionProgress;
 use verbb\formie\services\SubmissionWorkflow;
 use Craft;
 use craft\helpers\Html;
@@ -563,7 +563,7 @@ class SubmissionsController extends Controller
             'session' => [
                 'tokens' => ['render' => $renderId, 'request' => $this->request->getBodyParam('requestToken')],
                 'version' => $this->request->getBodyParam('expectedVersion'),
-                'continuation' => ['draftContext' => $draftContext],
+                'continuation' => ['draftContext' => $draftContext, 'progressId' => $this->request->getBodyParam('progressId')],
             ],
         ]), true);
 
@@ -619,7 +619,7 @@ class SubmissionsController extends Controller
                 'fieldParamNamespace' => $this->_namespace,
                 'userId' => $cpUserId,
             ]), $authorityType);
-        } catch (StaleSubmissionStateException $exception) {
+        } catch (SubmissionUnavailableException $exception) {
             return $this->_handleStaleSubmissionState($exception->form, $exception->source, $exception->value);
         }
 
@@ -944,7 +944,7 @@ class SubmissionsController extends Controller
             'value' => (string)$value,
         ]);
 
-        Formie::$plugin->getSubmissionDrafts()->clearProgressState($form);
+        Formie::$plugin->getSubmissionProgress()->clearProgressState($form);
 
         if ($this->request->getAcceptsJson()) {
             return $this->asJson([

@@ -40,11 +40,6 @@ class SubmissionArguments extends ElementMutationArguments
                 'type' => Type::string(),
                 'description' => 'Optional request token for duplicate-submit/replay protection.',
             ],
-            'isNewSubmission' => [
-                'name' => 'isNewSubmission',
-                'type' => Type::boolean(),
-                'description' => 'The submission’s "new" state. Useful to toggle when editing existing and submissions.',
-            ],
         ]);
     }
 }

@@ -10,7 +10,7 @@ const DIRTY_TRACKING_IGNORED_FIELD_NAMES = new Set([
     'pageId',
     'draftContextToken',
     'draftContext',
-    'continuationToken',
+    'progressId',
 ]);
 
 function serializeStableValue(value: unknown, seen: WeakSet<object>): string {

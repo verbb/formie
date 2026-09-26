@@ -66,7 +66,6 @@ Argument | Type | Description
 `operationId` | `String` | Stable identity for retrying the same administrative operation.
 `expectedVersion` | `Int` | Required for an existing submission; use its current `stateVersion`.
 `requestToken` | `String` | Optional operation identity when `operationId` is omitted.
-`isNewSubmission` | `Boolean` | Useful when editing an existing submission and you need to control whether it is treated as new.
 `...` |  | Additional arguments are generated from the form’s field layout.
 
 Query the form’s fields and include `inputTypeName` when you need to discover the correct variable type for each field.
@@ -313,7 +312,6 @@ Argument | Type | Description
 `operationId` | `String` | Stable identity for retrying the same administrative operation.
 `expectedVersion` | `Int` | Required for an existing submission; use its current `stateVersion`.
 `requestToken` | `String` | Optional operation identity when `operationId` is omitted.
-`isNewSubmission` | `Boolean` | Useful when editing an existing submission and you need to control whether it is treated as new.
 
 `saveSubmission` returns `SubmissionInterface`. Use inline fragments on the form-specific submission type when you need field values in the response.
 
@@ -369,3 +367,6 @@ The mutation returns `true` when the submission was deleted.
 Payment fields require provider UI in your front-end (Stripe.js, PayPal SDK, and so on). Formie accepts provider references via GraphQL and returns structured payment follow-up metadata on submit.
 
 Use `submitFormieClientForm` for headless payment flows so session continuity and 3DS replay work correctly. See [Headless Payments](/graphql/headless-payments) for the full BYO guide and per-provider reference keys.
+
+
+Upload values may use `{ uploadUid, attachToken }` from the upload response. Asset IDs alone are accepted only for proven browser-owned staged uploads or existing assets on an authorised revision. View and delete tokens cannot be used as attach credentials.

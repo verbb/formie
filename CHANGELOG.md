@@ -6,6 +6,9 @@
 - Add portable per-site translations to stencils and copy them into form overrides when creating forms from a stencil. ([#2968](https://github.com/verbb/formie/issues/2968))
 
 ### Changed
+- Store canonical journey progress in the database and use purpose-bound, expiring grants for Save & Continue and authorised editing across browsers.
+- Bind accepted uploads to their form, field and owner before dispatch, with durable promotion recovery and scoped upload capabilities.
+- Remove beta draft-storage APIs, etags and `maxSavedDraftsPerSession`; existing beta resume links must be reissued after upgrading.
 - Replace beta submission workflow APIs with explicit operations, authorised commands, typed outcomes and six fixed stages with operation-scoped custom tasks.
 - Require expected submission versions and retain bounded durable retry receipts to prevent duplicate and stale writes.
 - Require integrations to explicitly declare attributes that can be configured per form.

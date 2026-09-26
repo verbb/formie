@@ -108,7 +108,6 @@ class Settings extends Model
     public int $reportScheduledExportExpiryHours = 48;
     public bool $reportExportSingleUseDownload = true;
     public int $saveResumeTokenTtlDays = 14;
-    public int $maxSavedDraftsPerSession = 10;
     public int $anonymousClientBootstrapRateLimit = 30;
     public int $anonymousClientRefreshRateLimit = 120;
     public int $anonymousClientRateWindowSeconds = 60;
@@ -451,7 +450,6 @@ class Settings extends Model
         $rules[] = [['maxEmailAttachmentSizeMb'], 'number', 'integerOnly' => true, 'min' => 0];
         $rules[] = [['submissionStateRetentionDays'], 'number', 'integerOnly' => true, 'min' => 1];
         $rules[] = [['saveResumeTokenTtlDays'], 'number', 'integerOnly' => true, 'min' => 1];
-        $rules[] = [['maxSavedDraftsPerSession'], 'number', 'integerOnly' => true, 'min' => 0];
         $rules[] = [['anonymousClientBootstrapRateLimit', 'anonymousClientRefreshRateLimit'], 'number', 'integerOnly' => true, 'min' => 0];
         $rules[] = [['anonymousClientRateWindowSeconds'], 'number', 'integerOnly' => true, 'min' => 1];
         $rules[] = [['plainTextHtmlSanitizationMode'], 'in', 'range' => [

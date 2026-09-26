@@ -6,6 +6,7 @@
 - Add `data-formie-validation-skip` so helper controls (such as the Upload Manager browse input) can opt out of client-side validation.
 
 ### Changed
+- Use separate view and delete capabilities for Upload Manager assets.
 - Carry expected submission versions and signed request tokens through submit and page-state requests.
 
 ### Fixed

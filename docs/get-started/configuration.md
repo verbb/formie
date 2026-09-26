@@ -405,16 +405,7 @@ Sets how long incomplete submission state can be kept for save-and-resume and fr
 
 **Type:** `int` · **Default:** `14`
 
-Sets how long a save-and-resume token remains valid.
-:::
-
-
-::: reference
-#### `maxSavedDraftsPerSession`
-
-**Type:** `int` · **Default:** `10`
-
-Limits how many saved drafts can be created in one browser session.
+Sets how long a portable Save & Continue grant remains valid. Its expiry cannot exceed the incomplete submission’s retention deadline.
 :::
 
 

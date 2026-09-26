@@ -2,6 +2,7 @@
 namespace verbb\formie\workflow\tasks\persist;
 
 use verbb\formie\Formie;
+use verbb\formie\enums\SubmissionOutcomeType;
 use verbb\formie\workflow\tasks\TaskInterface;
 use verbb\formie\workflow\tasks\TaskResult;
 use verbb\formie\workflow\WorkflowContext;
@@ -25,15 +26,40 @@ class PersistSubmissionTask implements TaskInterface
             return TaskResult::continue();
         }
 
-        // Validate owns validation. Draft persistence must never re-enable it.
-        if (!Craft::$app->getElements()->saveElement($submission, false)) {
-            throw new RuntimeException('Unable to persist the accepted submission.');
+        $uploads = Formie::$plugin->getFileUploads();
+        if (!$uploads->stageAccepted($submission)) {
+            return TaskResult::stop($context->result(SubmissionOutcomeType::VALIDATION_FAILED));
         }
+        return $uploads->withUploadLocks($submission, function () use ($uploads, $submission, $context): TaskResult {
+            try {
+                $bound = $uploads->bindAccepted($context->command);
+            } catch (\yii\web\ForbiddenHttpException $e) {
+                $submission->addError('form', $e->getMessage());
+                return TaskResult::stop($context->result(SubmissionOutcomeType::VALIDATION_FAILED));
+            }
 
-        Formie::$plugin->getSubmissionOperations()->bindSubmission($context->command, (int)$submission->id);
-        $context->processingSuccess = true;
-        $context->taskState['save.success'] = true;
+            // Validate owns content validation; field persistence also enforces mandatory upload policy.
+            try {
+                if (!Craft::$app->getElements()->saveElement($submission, false)) {
+                    $uploads->releaseUnpersistedBindings($bound);
+                    if ($submission->hasErrors()) {
+                        return TaskResult::stop($context->result(SubmissionOutcomeType::VALIDATION_FAILED));
+                    }
+                    throw new RuntimeException('Unable to persist the accepted submission.');
+                }
+            } catch (\Throwable $e) {
+                $uploads->releaseUnpersistedBindings($bound);
+                throw $e;
+            }
 
-        return TaskResult::continue();
+            Formie::$plugin->getSubmissionOperations()->bindSubmission($context->command, (int)$submission->id);
+            $uploads->bindPersisted($submission);
+            $uploads->promoteAccepted($submission);
+            $uploads->releaseRemoved($submission);
+            $context->processingSuccess = true;
+            $context->taskState['save.success'] = true;
+
+            return TaskResult::continue();
+        });
     }
 }

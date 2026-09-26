@@ -7,8 +7,6 @@ use verbb\formie\elements\Submission;
 use verbb\formie\client\models\FormSession;
 use verbb\formie\client\models\PageTransitionRequest;
 use verbb\formie\client\models\SessionRefreshRequest;
-use verbb\formie\services\SubmissionDrafts;
-use verbb\formie\state\DraftSubmissionState;
 
 use Craft;
 
@@ -40,6 +38,14 @@ class ClientSessionService extends Component
     public function refreshSession(SessionRefreshRequest $request, bool $enforceAbuseLimit = false): FormSession
     {
         $form = Formie::$plugin->getSubmissionProcessor()->requireFormByHandle($request->handle, $request->siteId);
+        Formie::$plugin->getSubmissionProcessor()->applyFormRequestContext($form, null, $request->session['continuation']['draftContext'] ?? null);
+        if (($request->session['continuation']['purpose'] ?? null) === \verbb\formie\services\SubmissionGrants::REVISE) {
+            $grant = Formie::$plugin->getSubmissionGrants()->bound($form, \verbb\formie\services\SubmissionGrants::REVISE, (int)($request->session['continuation']['submissionId'] ?? 0));
+            if (!$grant) {
+                throw new \yii\web\ForbiddenHttpException('Submission is unavailable.');
+            }
+            $form->setSubmission(Submission::find()->id($grant->submissionId)->isIncomplete(false)->status(null)->one());
+        }
         $currentPageId = (string)($request->session['currentPageId'] ?? ($form->getCurrentPage()?->id ?? ''));
 
         if ($enforceAbuseLimit) {
@@ -141,46 +147,31 @@ class ClientSessionService extends Component
 
     private function _buildContinuation(Form $form, ?bool $includeProgressContinuation = null): ?array
     {
-        $progressState = Formie::$plugin->getSubmissionDrafts()->getProgressState($form);
+        if ($form->isEditingSubmission() && ($submission = $form->getCurrentSubmission()) && !$submission->isIncomplete) {
+            return [
+                'purpose' => \verbb\formie\services\SubmissionGrants::REVISE,
+                'submissionId' => (int)$submission->id,
+                'draftContext' => $form->getDraftContext(),
+                'draftContextToken' => $form->getDraftContextToken(),
+            ];
+        }
+        $progressState = Formie::$plugin->getSubmissionProgress()->getProgressState($form);
         // Default follows the form setting: automatic restore advertises leftover
-        // progress on bootstrap; disabled forms only get a token when a caller
+        // progress on bootstrap; disabled forms only get a progress reference when a caller
         // forces include (e.g. post-submit session rebuild for the next page).
         $includeProgressContinuation ??= $form->settings->automaticSubmissionState;
-        $continuationToken = $includeProgressContinuation
-            ? $this->_resolveContinuationToken($progressState)
+        $progressId = $includeProgressContinuation
+            ? ($progressState?->id ? (string)$progressState->id : null)
             : null;
         $continuation = array_filter([
             'draftContext' => $form->getDraftContext(),
             'draftContextToken' => $form->getDraftContextToken(),
-            'continuationToken' => $continuationToken,
+            'progressId' => $progressId,
         ], static function($value) {
             return $value !== null && $value !== '';
         });
 
         return $continuation ?: null;
-    }
-
-    private function _resolveContinuationToken(?DraftSubmissionState $progressState = null): ?string
-    {
-        if (!$progressState?->submissionId) {
-            return null;
-        }
-
-        $submissionDrafts = Formie::$plugin->getSubmissionDrafts();
-        $existingToken = is_string($progressState->resumeToken) ? trim($progressState->resumeToken) : '';
-
-        if ($existingToken !== '' && $submissionDrafts->verifyResumeToken($existingToken, [
-            SubmissionDrafts::RESUME_CAPABILITY_UPDATE,
-        ])) {
-            return $existingToken;
-        }
-
-        // Browser-managed flows only need an update-scoped token here. Reuse an
-        // existing valid token when possible so refresh/bootstrap calls keep the
-        // same continuation identity instead of rotating on every request.
-        return $submissionDrafts->issueResumeToken($progressState, [
-            SubmissionDrafts::RESUME_CAPABILITY_UPDATE,
-        ])->token;
     }
 
     private function _enforceAnonymousClientRateLimit(Form $form, string $scope): void

@@ -10,6 +10,9 @@ export type RestFrontendTransportOptions = {
     formHandle: string;
     siteId?: number;
     credentials?: RequestCredentials;
+    grantToken?: string;
+    grantPurpose?: 'continue-incomplete' | 'revise-complete';
+    draftContext?: string;
 };
 /**
  * Join an install/web base with a root-relative Craft action path.

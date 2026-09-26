@@ -23,9 +23,9 @@ class Cleanup extends Service
     public const TASK_FILE_UPLOAD_ASSET_RETENTION = 'file-upload-asset-retention';
     public const TASK_STALE_PENDING_UPLOADS = 'stale-pending-uploads';
     public const TASK_REPORT_EXPORTS = 'report-exports';
-    public const TASK_SUBMISSION_STATES = 'submission-states';
+    public const TASK_SUBMISSION_GRANTS = 'submission-grants';
     public const TASK_SUBMISSION_OPERATIONS = 'submission-operations';
-    public const TASK_DRAFT_STORAGE = 'draft-storage';
+    public const TASK_SUBMISSION_PROGRESS = 'submission-progress';
 
 
     // Public Methods
@@ -44,8 +44,8 @@ class Cleanup extends Service
             self::TASK_FILE_UPLOAD_ASSET_RETENTION,
             self::TASK_STALE_PENDING_UPLOADS,
             self::TASK_REPORT_EXPORTS,
-            self::TASK_SUBMISSION_STATES,
-            self::TASK_DRAFT_STORAGE,
+            self::TASK_SUBMISSION_GRANTS,
+            self::TASK_SUBMISSION_PROGRESS,
         ];
     }
 
@@ -132,23 +132,23 @@ class Cleanup extends Service
                     }
                 },
             ],
-            self::TASK_SUBMISSION_STATES => [
-                'label' => 'pruning stale Formie submission states',
+            self::TASK_SUBMISSION_GRANTS => [
+                'label' => 'pruning expired Formie submission grants',
                 'run' => function() use ($console): void {
-                    $count = Formie::$plugin->getSubmissionDrafts()->pruneDraftStates();
+                    $count = Formie::$plugin->getSubmissionGrants()->prune();
 
                     if ($console instanceof Controller && $count > 0) {
-                        $console->stdout("Pruned submission states: $count" . PHP_EOL, Console::FG_GREEN);
+                        $console->stdout("Pruned submission grants: $count" . PHP_EOL, Console::FG_GREEN);
                     }
                 },
             ],
-            self::TASK_DRAFT_STORAGE => [
-                'label' => 'pruning expired Formie draft storage',
+            self::TASK_SUBMISSION_PROGRESS => [
+                'label' => 'pruning expired Formie submission progress',
                 'run' => function() use ($console): void {
-                    $count = Formie::$plugin->getSubmissionDrafts()->pruneExpiredDraftStorage();
+                    $count = Formie::$plugin->getSubmissionProgress()->pruneProgress();
 
                     if ($console instanceof Controller && $count > 0) {
-                        $console->stdout("Pruned draft storage rows: $count" . PHP_EOL, Console::FG_GREEN);
+                        $console->stdout("Pruned progress rows: $count" . PHP_EOL, Console::FG_GREEN);
                     }
                 },
             ],

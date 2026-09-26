@@ -160,7 +160,7 @@ it('does not mark edit-existing workflow saves as new submissions', function ():
     $response = editInvariantsRunEditExisting($form, $existing, cpRequest: false);
 
     expect($response->success)->toBeTrue()
-        ->and($response->submission->isNewSubmission)->toBeFalse();
+        ->and($response->outcome->type)->toBe(\verbb\formie\enums\SubmissionOutcomeType::REVISED);
 });
 
 it('keeps completed front-end edits complete without visitor page-flow side effects', function (): void {
@@ -183,7 +183,7 @@ it('keeps completed front-end edits complete without visitor page-flow side effe
     $reloaded = Submission::find()->id($submission->id)->status(null)->isIncomplete(null)->one();
 
     expect($editResponse->success)->toBeTrue()
-        ->and($editResponse->submission->isNewSubmission)->toBeFalse()
+        ->and($editResponse->outcome->type)->toBe(\verbb\formie\enums\SubmissionOutcomeType::REVISED)
         ->and($reloaded->isIncomplete)->toBeFalse()
         ->and($reloaded->statusId)->toBe($custom->id)
         ->and($reloaded->getFieldValue('pageOne'))->toBe('one-edited');
@@ -201,7 +201,7 @@ it('still allows incomplete front-end edits to progress through multi-page flow'
     $response = editInvariantsRunEditExisting($form, $editing, pageId: (int)$pages[0]->id, cpRequest: false);
 
     expect($response->success)->toBeTrue()
-        ->and($response->submission->isNewSubmission)->toBeFalse()
+        ->and($response->outcome->type)->toBe(\verbb\formie\enums\SubmissionOutcomeType::PAGE_CHANGED)
         ->and($response->submission->isIncomplete)->toBeTrue()
         ->and($response->nextPage?->id)->toBe($pages[1]->id);
 
@@ -263,7 +263,7 @@ it('sends status-change notifications when cp workflow saves change the submissi
             ]), \verbb\formie\enums\SubmissionAuthorityType::CONTROL_PANEL);
 
             expect($result->response->success)->toBeTrue()
-                ->and($result->response->submission->isNewSubmission)->toBeFalse();
+                ->and($result->response->outcome->type)->toBe(\verbb\formie\enums\SubmissionOutcomeType::REVISED);
         }, [
             'statusId' => (int)$evaluated->id,
             'fields' => [

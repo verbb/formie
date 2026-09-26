@@ -235,6 +235,8 @@ export function fieldValueAsStrings(field: FrontendFieldDefinition, value: unkno
 }
 
 type SerializableFileValue = {
+    uploadUid?: string;
+    attachToken?: string;
     assetId?: number;
     fileData?: string;
     filename?: string;
@@ -264,6 +266,10 @@ async function serializeFileEntries(value: unknown): Promise<SerializableFileVal
     const output = await Promise.all(entries.map(async(entry) => {
         if (typeof entry === 'number') {
             return { assetId: entry };
+        }
+
+        if (entry && typeof entry === 'object' && typeof entry.uploadUid === 'string' && typeof entry.attachToken === 'string') {
+            return { uploadUid: entry.uploadUid, attachToken: entry.attachToken };
         }
 
         if (entry && typeof entry === 'object' && 'assetId' in entry && typeof entry.assetId === 'number') {

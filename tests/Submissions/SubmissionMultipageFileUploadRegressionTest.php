@@ -43,6 +43,11 @@ it('keeps file upload values stable across multipage submit steps with full payl
     $groupAsset = UploadTestHelper::seedAsset('mp-group.txt', 'group', $volume);
     $repeaterAsset = UploadTestHelper::seedAsset('mp-repeater.txt', 'repeater', $volume);
 
+    foreach ([[$topAsset, 'topUpload'], [$groupAsset, 'groupUpload.nestedUpload'], [$repeaterAsset, 'repeatUpload.0.nestedUpload']] as [$asset, $key]) {
+        $field = \verbb\formie\helpers\FileUploadRetentionHelper::resolveFileUploadFieldForContentKey($form, $key);
+        Formie::$plugin->getFileUploads()->trackSubmissionAsset($asset, (int)$form->id, null, $field->uid, $form, $key);
+    }
+
     $submission = new Submission();
     $submission->setForm($form);
 

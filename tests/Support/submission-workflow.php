@@ -65,3 +65,14 @@ function withSubmissionGuardsPostContext(callable $callback, array $bodyParams =
         'formStartedAt' => (string)((int)(microtime(true) * 1000) - 10000), 'formieHoneypot' => '',
     ]]);
 }
+
+function continuitySubmission(): array
+{
+    $form = formie()->form()->singleLineTextField('message')->create();
+    $submission = new \verbb\formie\elements\Submission();
+    $submission->setForm($form);
+    $submission->isIncomplete = true;
+    $submission->setFieldValue('message', 'Canonical content');
+    Craft::$app->getElements()->saveElement($submission, false);
+    return [$form, $submission];
+}

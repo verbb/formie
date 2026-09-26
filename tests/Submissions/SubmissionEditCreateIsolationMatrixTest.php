@@ -72,20 +72,11 @@ it('isolates draft state keys between edit-existing and create-new contexts for 
         ->with(['fullName' => 'Existing'])
         ->save();
 
-    $submissionDrafts = Formie::$plugin->getSubmissionDrafts();
+    $grants = Formie::$plugin->getSubmissionGrants();
+    $edit = $grants->issue($existing, \verbb\formie\services\SubmissionGrants::REVISE);
+    expect($grants->verify($edit->token, \verbb\formie\services\SubmissionGrants::CONTINUE, $form))->toBeNull()
+        ->and(Formie::$plugin->getSubmissionProgress()->getProgressState($form))->toBeNull();
 
-    $editKey = $submissionDrafts->resolveFormInstanceKey($form, $existing, [
-        'scope' => 'submit',
-        'instance' => 'render-shared',
-    ]);
-    $createKey = $submissionDrafts->resolveFormInstanceKey($form, null, [
-        'scope' => 'submit',
-        'instance' => 'render-shared',
-    ]);
-
-    expect($editKey->submissionId)->toBe((int)$existing->id)
-        ->and($createKey->submissionId)->toBeNull()
-        ->and($editKey->fingerprint)->not->toBe($createKey->fingerprint);
 });
 
 it('uses explicit managed submission ids when saving existing submissions', function (): void {
