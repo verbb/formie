@@ -431,6 +431,7 @@ class Form extends Element implements FormInterface
     private array $_previousGroupFieldUids = [];
     private array $_pendingStencilTranslations = [];
     private array $_submissionsToDelete = [];
+    private array $_uploadsToDelete = [];
 
     private ?string $_sessionKey = null;
     private static array $_renderSequenceCounters = [];
@@ -2164,6 +2165,14 @@ class Form extends Element implements FormInterface
             $submission->setForm($this);
         }
 
+        $this->_uploadsToDelete = [];
+        if ($this->hardDelete && $this->fileUploadsAction === 'delete') {
+            $this->_uploadsToDelete = Formie::$plugin->getFileUploads()->getUploadsForFormDeletion(
+                (int)$this->id,
+                array_map(static fn(Submission $submission): int => (int)$submission->id, $this->_submissionsToDelete),
+            );
+        }
+
         return true;
     }
 
@@ -2179,7 +2188,10 @@ class Form extends Element implements FormInterface
             }
         }
 
+        Formie::$plugin->getFileUploads()->deleteSubmissionUploads($this->_uploadsToDelete);
+
         $this->_submissionsToDelete = [];
+        $this->_uploadsToDelete = [];
 
         if ($this->hardDelete && $this->layoutId) {
             Formie::$plugin->getFields()->deleteLayoutById($this->layoutId);

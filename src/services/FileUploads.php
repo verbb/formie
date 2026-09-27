@@ -289,6 +289,18 @@ class FileUploads extends Component
         ])->all();
     }
 
+    public function getUploadsForFormDeletion(int $formId, array $submissionIds): array
+    {
+        if (!$submissionIds) {
+            return [];
+        }
+
+        return (new Query())->from(Table::FORMIE_PENDING_UPLOADS)->where([
+            'formId' => $formId,
+            'submissionId' => array_map('intval', $submissionIds),
+        ])->all();
+    }
+
     public function deleteSubmissionUploads(array $uploads): void
     {
         foreach ($uploads as $upload) {
@@ -316,7 +328,11 @@ class FileUploads extends Component
             }
             try {
                 $tracked = $this->getTrackedUploadByAssetId($assetId);
-                if (!$tracked || $tracked['uid'] !== $upload['uid'] || $this->isReferenced($assetId)) {
+                if (!$tracked || $tracked['uid'] !== $upload['uid'] || $this->isReferenced(
+                    $assetId,
+                    (int)$upload['submissionId'],
+                    $upload['contentKey'],
+                )) {
                     continue;
                 }
                 $this->_deleteTrackedAsset($tracked);

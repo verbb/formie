@@ -57,14 +57,21 @@ it('permanently removes child elements and configured uploads when deleting a fo
     $asset = UploadTestHelper::seedAsset('form-cascade.txt', 'owned cascade fixture', $volume);
     $layoutId = $form->layoutId;
     $ids = [];
+    $uploadOwner = null;
     foreach (['complete', 'incomplete', 'spam', 'previouslyTrashed'] as $state) {
         $submission = formie()->submission($form)->with(['message' => $state, 'documents' => $state === 'complete' ? [$asset->id] : []])->save();
         $submission->isIncomplete = $state === 'incomplete';
         $submission->isSpam = $state === 'spam';
         expect(Craft::$app->getElements()->saveElement($submission))->toBeTrue();
         $ids[] = $submission->id;
+        if ($state === 'complete') {
+            $uploadOwner = $submission;
+        }
         if ($state === 'previouslyTrashed') { expect(Craft::$app->getElements()->deleteElement($submission))->toBeTrue(); }
     }
+    $uploads = \verbb\formie\Formie::$plugin->getFileUploads();
+    $uploads->trackSubmissionAsset($asset, (int)$form->id, (int)$uploadOwner->id, $form->getFieldByHandle('documents')->uid, $form, 'documents');
+    $uploads->bindPersisted($uploadOwner);
     if ($trashFirst) {
         expect(Craft::$app->getElements()->deleteElement($form))->toBeTrue();
         expect(Asset::find()->id($asset->id)->one())->not->toBeNull();

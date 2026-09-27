@@ -47,10 +47,6 @@ class Install extends Migration
         $this->createTables();
         $this->createIndexes();
         $this->addForeignKeys();
-        (new m260926_000000_submission_operations())->safeUp();
-        (new m260926_010000_submission_continuity())->safeUp();
-        (new m260926_020000_payment_boundary())->safeUp();
-        (new m260927_050000_submission_dispatches())->safeUp();
 
         return true;
     }
@@ -329,19 +325,23 @@ class Install extends Migration
         $this->archiveTableIfExists(Table::FORMIE_PAYMENTS);
         $this->createTable(Table::FORMIE_PAYMENTS, [
             'id' => $this->primaryKey(),
-            'integrationId' => $this->integer()->notNull(),
-            'submissionId' => $this->integer()->notNull(),
-            'fieldId' => $this->integer()->notNull(),
+            'integrationId' => $this->integer(),
+            'submissionId' => $this->integer(),
+            'fieldId' => $this->integer(),
             'subscriptionId' => $this->integer(),
-            'amount' => $this->decimal(14, 4),
+            'amount' => $this->string(80),
             'currency' => $this->string(),
-            'status' => $this->enum('status', ['pending', 'redirect', 'success', 'failed', 'processing'])->notNull(),
+            'status' => $this->string(32)->notNull(),
             'reference' => $this->string(),
             'code' => $this->string(),
             'message' => $this->text(),
             'redirectUrl' => $this->text(),
             'note' => $this->mediumText(),
             'response' => $this->text(),
+            'version' => $this->integer()->notNull()->defaultValue(0),
+            'history' => $this->mediumText(),
+            'scope' => $this->text(),
+            'idempotencyKey' => $this->string(80),
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),
             'uid' => $this->uid(),
@@ -371,20 +371,54 @@ class Install extends Migration
             'submissionId' => $this->integer(),
             'fieldId' => $this->integer(),
             'planId' => $this->integer(),
-            'reference' => $this->string()->notNull(),
+            'reference' => $this->string(),
             'subscriptionData' => $this->text(),
             'trialDays' => $this->integer()->notNull(),
             'nextPaymentDate' => $this->dateTime(),
-            'hasStarted' => $this->boolean()->notNull()->defaultValue(true),
-            'isSuspended' => $this->boolean()->notNull()->defaultValue(false),
             'dateSuspended' => $this->dateTime(),
-            'isCanceled' => $this->boolean()->notNull(),
             'dateCanceled' => $this->dateTime(),
-            'isExpired' => $this->boolean()->notNull(),
             'dateExpired' => $this->dateTime(),
+            'version' => $this->integer()->notNull()->defaultValue(0),
+            'history' => $this->mediumText(),
+            'scope' => $this->text(),
+            'idempotencyKey' => $this->string(80),
+            'status' => $this->string(32)->notNull()->defaultValue('unknown'),
+            'archivedAt' => $this->dateTime(),
+            'providerUpdatedAt' => $this->bigInteger(),
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),
             'uid' => $this->uid(),
+        ]);
+
+        $this->archiveTableIfExists(Table::FORMIE_WEBHOOK_RECEIPTS);
+        $this->createTable(Table::FORMIE_WEBHOOK_RECEIPTS, [
+            'id' => $this->primaryKey(),
+            'identity' => $this->char(64)->notNull(),
+            'integrationId' => $this->integer()->notNull(),
+            'environment' => $this->string(80)->notNull(),
+            'eventId' => $this->string(255)->notNull(),
+            'bodyHash' => $this->char(64)->notNull(),
+            'eventHash' => $this->char(64)->notNull(),
+            'history' => $this->mediumText()->notNull(),
+            'body' => $this->mediumText()->notNull(),
+            'headers' => $this->text()->notNull(),
+            'display' => $this->mediumText()->notNull(),
+            'status' => $this->string(32)->notNull(),
+            'attempts' => $this->integer()->notNull()->defaultValue(0),
+            'error' => $this->text(),
+            'receivedAt' => $this->dateTime()->notNull(),
+            'processedAt' => $this->dateTime(),
+        ]);
+
+        $this->archiveTableIfExists(Table::FORMIE_PAYMENT_CAPABILITIES);
+        $this->createTable(Table::FORMIE_PAYMENT_CAPABILITIES, [
+            'id' => $this->primaryKey(),
+            'tokenHash' => $this->char(64)->notNull(),
+            'purpose' => $this->string(32)->notNull(),
+            'resourceId' => $this->integer()->notNull(),
+            'scope' => $this->text()->notNull(),
+            'expiresAt' => $this->integer()->notNull(),
+            'revokedAt' => $this->integer(),
         ]);
 
         $this->archiveTableIfExists(Table::FORMIE_PDF_TEMPLATES);
@@ -555,6 +589,8 @@ class Install extends Migration
             'ipAddress' => $this->string(),
             'signatureAccessKey' => $this->string(64),
             'legacySignatureAccess' => $this->boolean()->notNull()->defaultValue(false),
+            'stateVersion' => $this->integer()->notNull()->defaultValue(0),
+            'metadata' => $this->json(),
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),
             'uid' => $this->uid(),
@@ -571,6 +607,51 @@ class Install extends Migration
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),
             'uid' => $this->uid(),
+        ]);
+
+        $this->archiveTableIfExists(Table::FORMIE_SUBMISSION_OPERATIONS);
+        $this->createTable(Table::FORMIE_SUBMISSION_OPERATIONS, [
+            'id' => $this->primaryKey(),
+            'operationHash' => $this->char(64)->notNull(),
+            'requestHash' => $this->char(64),
+            'fingerprint' => $this->char(64)->notNull(),
+            'formId' => $this->integer()->notNull(),
+            'submissionId' => $this->integer(),
+            'operation' => $this->string(32)->notNull(),
+            'state' => $this->string(16)->notNull(),
+            'outcome' => $this->mediumText(),
+            'dateCreated' => $this->dateTime()->notNull(),
+            'dateUpdated' => $this->dateTime()->notNull(),
+            'expiresAt' => $this->dateTime()->notNull(),
+        ]);
+
+        $this->archiveTableIfExists(Table::FORMIE_SUBMISSION_PROGRESS);
+        $this->createTable(Table::FORMIE_SUBMISSION_PROGRESS, [
+            'id' => $this->primaryKey(),
+            'formId' => $this->integer()->notNull(),
+            'siteId' => $this->integer()->notNull(),
+            'submissionId' => $this->integer(),
+            'browserHash' => $this->char(64)->notNull(),
+            'currentPageId' => $this->integer(),
+            'content' => $this->mediumText(),
+            'version' => $this->integer()->notNull()->defaultValue(0),
+            'expiresAt' => $this->integer()->notNull(),
+        ]);
+
+        $this->archiveTableIfExists(Table::FORMIE_SUBMISSION_GRANTS);
+        $this->createTable(Table::FORMIE_SUBMISSION_GRANTS, [
+            'id' => $this->primaryKey(),
+            'tokenHash' => $this->string(80),
+            'bindingHash' => $this->char(64),
+            'parentId' => $this->integer(),
+            'progressId' => $this->integer(),
+            'submissionId' => $this->integer(),
+            'formId' => $this->integer()->notNull(),
+            'siteId' => $this->integer()->notNull(),
+            'purpose' => $this->string(32)->notNull(),
+            'expiresAt' => $this->integer()->notNull(),
+            'revokedAt' => $this->integer(),
+            'dateCreated' => $this->dateTime()->notNull(),
         ]);
 
         $this->archiveTableIfExists(Table::FORMIE_SUBMISSION_WORKFLOW);
@@ -595,15 +676,95 @@ class Install extends Migration
             'submissionId' => $this->integer(),
             'fieldUid' => $this->string(64),
             'isFinalized' => $this->boolean()->notNull()->defaultValue(false),
+            'state' => $this->string(16)->notNull()->defaultValue('staged'),
+            'siteId' => $this->integer(),
+            'browserHash' => $this->char(64),
+            'contentKey' => $this->string(255),
+            'progressId' => $this->integer(),
+            'expiresAt' => $this->integer(),
+            'capabilities' => $this->text(),
+            'promotionFolderId' => $this->integer(),
+            'promotionFilename' => $this->string(255),
+            'promotionSourceFolderId' => $this->integer(),
+            'contentHash' => $this->char(64),
+            'promotionState' => $this->string(16),
+            'failureCode' => $this->string(64),
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),
             'uid' => $this->uid(),
         ]);
 
+        $this->archiveTableIfExists('{{%formie_delivery_attempts}}');
+        $this->createTable('{{%formie_delivery_attempts}}', [
+            'id' => $this->primaryKey(),
+            'uid' => $this->uid()->notNull(),
+            'identity' => $this->string(64)->notNull(),
+            'submissionId' => $this->integer()->notNull(),
+            'formId' => $this->integer()->notNull(),
+            'binding' => $this->string(255)->notNull(),
+            'step' => $this->string(255)->notNull(),
+            'parentUid' => $this->string(36),
+            'executionUid' => $this->string(255)->notNull(),
+            'execution' => $this->string(16)->notNull(),
+            'status' => $this->string(16)->notNull()->defaultValue('pending'),
+            'payloadHash' => $this->string(64),
+            'requestKey' => $this->uid()->notNull(),
+            'result' => $this->text(),
+            'data' => $this->mediumText(),
+            'response' => $this->mediumText(),
+            'startedAt' => $this->dateTime(),
+            'completedAt' => $this->dateTime(),
+            'dateCreated' => $this->dateTime()->notNull(),
+            'dateUpdated' => $this->dateTime()->notNull(),
+        ]);
 
-        (new m260927_000000_delivery_attempts())->safeUp();
-        (new m260927_010000_instance_configuration())->safeUp();
-        (new m260927_040000_integration_run_contexts())->safeUp();
+        $this->archiveTableIfExists('{{%formie_delivery_diagnostics}}');
+        $this->createTable('{{%formie_delivery_diagnostics}}', [
+            'id' => $this->primaryKey(),
+            'attemptId' => $this->integer()->notNull(),
+            'checkpoint' => $this->string(64)->notNull(),
+            'data' => $this->text()->notNull(),
+            'dateCreated' => $this->dateTime()->notNull(),
+        ]);
+
+        $this->archiveTableIfExists('{{%formie_instance_configs}}');
+        $this->createTable('{{%formie_instance_configs}}', [
+            'id' => $this->primaryKey(),
+            'tokenHash' => $this->string(64)->notNull(),
+            'formId' => $this->integer()->notNull(),
+            'siteId' => $this->integer()->notNull(),
+            'config' => $this->mediumText()->notNull(),
+            'expiresAt' => $this->integer()->notNull(),
+        ]);
+
+        $this->archiveTableIfExists('{{%formie_integration_run_contexts}}');
+        $this->createTable('{{%formie_integration_run_contexts}}', [
+            'id' => $this->primaryKey(),
+            'submissionId' => $this->integer()->notNull(),
+            'runUid' => $this->string(255)->notNull(),
+            'context' => $this->mediumText()->notNull(),
+            'dateCreated' => $this->dateTime()->notNull(),
+            'dateUpdated' => $this->dateTime()->notNull(),
+        ]);
+
+        $this->archiveTableIfExists('{{%formie_submission_dispatches}}');
+        $this->createTable('{{%formie_submission_dispatches}}', [
+            'id' => $this->primaryKey(),
+            'submissionId' => $this->integer()->notNull(),
+            'uid' => $this->string(255)->notNull(),
+            'identity' => $this->string(64)->notNull(),
+            'kind' => $this->string(32)->notNull(),
+            'status' => $this->string(32)->notNull(),
+            'submissionVersion' => $this->integer()->notNull(),
+            'command' => $this->text(),
+            'schedulingComplete' => $this->boolean()->notNull()->defaultValue(false),
+            'failureCode' => $this->string(64),
+            'scheduledAt' => $this->dateTime(),
+            'startedAt' => $this->dateTime(),
+            'completedAt' => $this->dateTime(),
+            'dateCreated' => $this->dateTime()->notNull(),
+            'dateUpdated' => $this->dateTime()->notNull(),
+        ]);
 
     }
 
@@ -639,6 +800,7 @@ class Install extends Migration
         $this->createIndex(null, Table::FORMIE_PAYMENTS, 'fieldId', false);
         $this->createIndex(null, Table::FORMIE_PAYMENTS, 'submissionId', false);
         $this->createIndex(null, Table::FORMIE_PAYMENTS, 'reference', false);
+        $this->createIndex(null, Table::FORMIE_PAYMENTS, 'idempotencyKey', true);
         $this->createIndex(null, Table::FORMIE_PAYMENT_PLANS, 'integrationId', false);
         $this->createIndex(null, Table::FORMIE_PAYMENT_PLANS, 'handle', true);
         $this->createIndex(null, Table::FORMIE_PAYMENT_PLANS, 'reference', false);
@@ -649,7 +811,9 @@ class Install extends Migration
         $this->createIndex(null, Table::FORMIE_SUBSCRIPTIONS, 'reference', false);
         $this->createIndex(null, Table::FORMIE_SUBSCRIPTIONS, 'nextPaymentDate', false);
         $this->createIndex(null, Table::FORMIE_SUBSCRIPTIONS, 'dateExpired', false);
-        $this->createIndex(null, Table::FORMIE_SUBSCRIPTIONS, 'dateExpired', false);
+        $this->createIndex(null, Table::FORMIE_SUBSCRIPTIONS, 'idempotencyKey', true);
+        $this->createIndex(null, Table::FORMIE_WEBHOOK_RECEIPTS, 'identity', true);
+        $this->createIndex(null, Table::FORMIE_PAYMENT_CAPABILITIES, 'tokenHash', true);
         $this->createIndex(null, Table::FORMIE_RELATIONS, ['sourceId', 'sourceSiteId', 'targetId'], true);
         $this->createIndex(null, Table::FORMIE_RELATIONS, ['sourceId'], false);
         $this->createIndex(null, Table::FORMIE_RELATIONS, ['targetId'], false);
@@ -661,11 +825,30 @@ class Install extends Migration
         $this->createIndex(null, Table::FORMIE_SUBMISSIONS, 'userId', false);
         $this->createIndex(null, Table::FORMIE_SUBMISSIONS, 'updatedById', false);
         $this->createIndex(null, Table::FORMIE_SUBMISSION_QUIZ_RESULTS, 'submissionId', true);
+        $this->createIndex(null, Table::FORMIE_SUBMISSION_OPERATIONS, 'operationHash', true);
+        $this->createIndex(null, Table::FORMIE_SUBMISSION_OPERATIONS, 'expiresAt', false);
+        $this->createIndex(null, Table::FORMIE_SUBMISSION_OPERATIONS, 'requestHash', true);
+        $this->createIndex(null, Table::FORMIE_SUBMISSION_PROGRESS, 'submissionId', true);
+        $this->createIndex(null, Table::FORMIE_SUBMISSION_PROGRESS, 'expiresAt', false);
+        $this->createIndex(null, Table::FORMIE_SUBMISSION_GRANTS, 'tokenHash', true);
+        $this->createIndex(null, Table::FORMIE_SUBMISSION_GRANTS, ['formId', 'siteId', 'bindingHash'], false);
+        $this->createIndex(null, Table::FORMIE_SUBMISSION_GRANTS, 'expiresAt', false);
         $this->createIndex(null, Table::FORMIE_SUBMISSION_WORKFLOW, 'submissionId', false);
         $this->createIndex(null, Table::FORMIE_SUBMISSION_WORKFLOW, ['submissionId', 'stage', 'idempotencyKey'], true);
         $this->createIndex(null, Table::FORMIE_PENDING_UPLOADS, 'assetId', true);
         $this->createIndex(null, Table::FORMIE_PENDING_UPLOADS, 'submissionId', false);
         $this->createIndex(null, Table::FORMIE_PENDING_UPLOADS, ['isFinalized', 'dateUpdated'], false);
+        $this->createIndex(null, '{{%formie_delivery_attempts}}', 'uid', true);
+        $this->createIndex(null, '{{%formie_delivery_attempts}}', 'identity', true);
+        $this->createIndex(null, '{{%formie_delivery_attempts}}', ['submissionId', 'executionUid'], false);
+        $this->createIndex(null, '{{%formie_delivery_attempts}}', 'parentUid', false);
+        $this->createIndex(null, '{{%formie_delivery_diagnostics}}', ['attemptId', 'id'], false);
+        $this->createIndex(null, '{{%formie_instance_configs}}', 'tokenHash', true);
+        $this->createIndex(null, '{{%formie_instance_configs}}', 'expiresAt', false);
+        $this->createIndex(null, '{{%formie_integration_run_contexts}}', ['submissionId', 'runUid'], true);
+        $this->createIndex(null, '{{%formie_submission_dispatches}}', 'identity', true);
+        $this->createIndex(null, '{{%formie_submission_dispatches}}', ['submissionId', 'uid'], true);
+        $this->createIndex(null, '{{%formie_submission_dispatches}}', ['schedulingComplete', 'status', 'scheduledAt'], false);
     }
 
     public function addForeignKeys(): void
@@ -695,15 +878,15 @@ class Install extends Migration
         $this->addForeignKey(null, Table::FORMIE_NOTIFICATIONS, ['formId'], Table::FORMIE_FORMS, ['id'], 'CASCADE', null);
         $this->addForeignKey(null, Table::FORMIE_NOTIFICATIONS, ['templateId'], Table::FORMIE_EMAIL_TEMPLATES, ['id'], 'SET NULL', null);
         $this->addForeignKey(null, Table::FORMIE_NOTIFICATIONS, ['pdfTemplateId'], Table::FORMIE_PDF_TEMPLATES, ['id'], 'SET NULL', null);
-        $this->addForeignKey(null, Table::FORMIE_PAYMENTS, ['submissionId'], Table::FORMIE_SUBMISSIONS, ['id'], 'CASCADE', null);
-        $this->addForeignKey(null, Table::FORMIE_PAYMENTS, ['subscriptionId'], Table::FORMIE_SUBSCRIPTIONS, ['id'], 'CASCADE', null);
-        $this->addForeignKey(null, Table::FORMIE_PAYMENTS, ['fieldId'], Table::FORMIE_FORM_FIELDS, ['id'], 'CASCADE', null);
-        $this->addForeignKey(null, Table::FORMIE_PAYMENTS, ['integrationId'], Table::FORMIE_INTEGRATIONS, ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, Table::FORMIE_PAYMENTS, ['submissionId'], Table::FORMIE_SUBMISSIONS, ['id'], 'SET NULL', null);
+        $this->addForeignKey(null, Table::FORMIE_PAYMENTS, ['subscriptionId'], Table::FORMIE_SUBSCRIPTIONS, ['id'], 'SET NULL', null);
+        $this->addForeignKey(null, Table::FORMIE_PAYMENTS, ['fieldId'], Table::FORMIE_FORM_FIELDS, ['id'], 'SET NULL', null);
+        $this->addForeignKey(null, Table::FORMIE_PAYMENTS, ['integrationId'], Table::FORMIE_INTEGRATIONS, ['id'], 'SET NULL', null);
         $this->addForeignKey(null, Table::FORMIE_PAYMENT_PLANS, ['integrationId'], Table::FORMIE_INTEGRATIONS, ['id'], 'CASCADE', null);
-        $this->addForeignKey(null, Table::FORMIE_SUBSCRIPTIONS, ['integrationId'], Table::FORMIE_INTEGRATIONS, ['id'], 'RESTRICT', null);
-        $this->addForeignKey(null, Table::FORMIE_SUBSCRIPTIONS, ['submissionId'], Table::FORMIE_SUBMISSIONS, ['id'], 'RESTRICT', null);
-        $this->addForeignKey(null, Table::FORMIE_SUBSCRIPTIONS, ['fieldId'], Table::FORMIE_FORM_FIELDS, ['id'], 'RESTRICT', null);
-        $this->addForeignKey(null, Table::FORMIE_SUBSCRIPTIONS, ['planId'], Table::FORMIE_PAYMENT_PLANS, ['id'], 'RESTRICT', null);
+        $this->addForeignKey(null, Table::FORMIE_SUBSCRIPTIONS, ['integrationId'], Table::FORMIE_INTEGRATIONS, ['id'], 'SET NULL', null);
+        $this->addForeignKey(null, Table::FORMIE_SUBSCRIPTIONS, ['submissionId'], Table::FORMIE_SUBMISSIONS, ['id'], 'SET NULL', null);
+        $this->addForeignKey(null, Table::FORMIE_SUBSCRIPTIONS, ['fieldId'], Table::FORMIE_FORM_FIELDS, ['id'], 'SET NULL', null);
+        $this->addForeignKey(null, Table::FORMIE_SUBSCRIPTIONS, ['planId'], Table::FORMIE_PAYMENT_PLANS, ['id'], 'SET NULL', null);
         $this->addForeignKey(null, Table::FORMIE_RELATIONS, ['sourceId'], '{{%elements}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, Table::FORMIE_SCHEDULED_REPORTS, ['reportId'], Table::FORMIE_REPORTS, ['id'], 'CASCADE', null);
         $this->addForeignKey(null, Table::FORMIE_REPORT_EXPORTS, ['reportId'], Table::FORMIE_REPORTS, ['id'], 'CASCADE', null);
@@ -721,9 +904,24 @@ class Install extends Migration
         $this->addForeignKey(null, Table::FORMIE_SUBMISSIONS, ['userId'], '{{%users}}', ['id'], 'SET NULL', null);
         $this->addForeignKey(null, Table::FORMIE_SUBMISSIONS, ['updatedById'], '{{%users}}', ['id'], 'SET NULL', null);
         $this->addForeignKey(null, Table::FORMIE_SUBMISSION_QUIZ_RESULTS, ['submissionId'], Table::FORMIE_SUBMISSIONS, ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, Table::FORMIE_SUBMISSION_OPERATIONS, ['formId'], Table::FORMIE_FORMS, ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, Table::FORMIE_SUBMISSION_OPERATIONS, ['submissionId'], Table::FORMIE_SUBMISSIONS, ['id'], 'SET NULL', null);
+        $this->addForeignKey(null, Table::FORMIE_SUBMISSION_PROGRESS, ['submissionId'], Table::FORMIE_SUBMISSIONS, ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, Table::FORMIE_SUBMISSION_PROGRESS, ['formId'], Table::FORMIE_FORMS, ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, Table::FORMIE_SUBMISSION_PROGRESS, ['siteId'], '{{%sites}}', ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, Table::FORMIE_SUBMISSION_GRANTS, ['parentId'], Table::FORMIE_SUBMISSION_GRANTS, ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, Table::FORMIE_SUBMISSION_GRANTS, ['progressId'], Table::FORMIE_SUBMISSION_PROGRESS, ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, Table::FORMIE_SUBMISSION_GRANTS, ['submissionId'], Table::FORMIE_SUBMISSIONS, ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, Table::FORMIE_SUBMISSION_GRANTS, ['formId'], Table::FORMIE_FORMS, ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, Table::FORMIE_SUBMISSION_GRANTS, ['siteId'], '{{%sites}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, Table::FORMIE_SUBMISSION_WORKFLOW, ['submissionId'], Table::FORMIE_SUBMISSIONS, ['id'], 'CASCADE', null);
         $this->addForeignKey(null, Table::FORMIE_PENDING_UPLOADS, ['assetId'], '{{%assets}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, Table::FORMIE_PENDING_UPLOADS, ['submissionId'], Table::FORMIE_SUBMISSIONS, ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, '{{%formie_delivery_attempts}}', ['submissionId'], Table::FORMIE_SUBMISSIONS, ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, '{{%formie_delivery_diagnostics}}', ['attemptId'], '{{%formie_delivery_attempts}}', ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, '{{%formie_instance_configs}}', ['formId'], Table::FORMIE_FORMS, ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, '{{%formie_integration_run_contexts}}', ['submissionId'], Table::FORMIE_SUBMISSIONS, ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, '{{%formie_submission_dispatches}}', ['submissionId'], Table::FORMIE_SUBMISSIONS, ['id'], 'CASCADE', null);
     }
 
     public function removeTables(): void
