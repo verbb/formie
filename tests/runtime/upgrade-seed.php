@@ -12,14 +12,14 @@ $form->setFormLayout(new FieldLayout(['pages' => [['label' => 'Details', 'rows' 
     ['type' => SingleLineText::class, 'label' => 'Full name', 'handle' => 'fullName', 'required' => true, 'prePopulate' => 'legacyName'],
     ['type' => \verbb\formie\fields\Hidden::class, 'label' => 'Legacy date', 'handle' => 'legacyDate', 'defaultOption' => 'dateInt'],
     ['type' => \verbb\formie\fields\Payment::class, 'label' => 'Payment', 'handle' => 'payment'],
-    ['type' => Group::class, 'label' => 'Company', 'handle' => 'company', 'rows' => [['fields' => [
+    ['type' => Group::class, 'label' => 'Company', 'handle' => 'company', 'enableConditions' => true, 'conditions' => ['conditionRule' => 'all', 'showRule' => 'show', 'conditions' => [['field' => 'fullName', 'condition' => '=', 'value' => 'Synthetic Ada']]], 'rows' => [['fields' => [
         ['type' => SingleLineText::class, 'label' => 'Company name', 'handle' => 'companyName'],
     ]]]],
 ]]]]]]));
 $form->settings->submitAction = 'url';
 $form->settings->submitActionUrl = '/upgraded-completion';
 $form->settings->integrations = ['upgradeWebhook' => ['enabled' => true, 'httpAuth' => ['password' => 'upgrade-literal-password']]];
-$form->setNotifications([new Notification(['name' => 'Receipt', 'handle' => 'receipt', 'enabled' => false, 'subject' => 'Hello {field:fullName}',
+$form->setNotifications([new Notification(['name' => 'Receipt', 'handle' => 'receipt', 'enabled' => false, 'enableConditions' => true, 'conditions' => ['conditionRule' => 'all', 'showRule' => 'show', 'conditions' => [['field' => 'fullName', 'condition' => '=', 'value' => 'Synthetic Ada']]], 'subject' => 'Hello {field:fullName}',
     'to' => 'fixture@example.test', 'content' => '<p>Saved {field:fullName}</p>'])]);
 if (!$app->getElements()->saveElement($form)) { throw new RuntimeException(json_encode($form->getErrors())); }
 $shared = new Form(['title' => 'Shared upgrade contract', 'handle' => 'sharedUpgradeContract']);

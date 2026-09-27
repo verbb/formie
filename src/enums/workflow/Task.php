@@ -9,11 +9,12 @@ enum Task: string
     case PREFLIGHT_RESOLVE_NAVIGATION_INTENT = 'preflight.resolveNavigationIntent';
     case PREFLIGHT_APPLY_SUBMISSION_DEFAULTS = 'preflight.applySubmissionDefaults';
     case PREFLIGHT_CLEAR_HIDDEN_VALUES = 'preflight.clearHiddenValues';
-    case PREFLIGHT_ENFORCE_PROGRESSION = 'preflight.enforceProgression';
     case PREFLIGHT_RESOLVE_TRANSITION = 'preflight.resolveTransition';
     case PREFLIGHT_CAPTURE_METADATA = 'preflight.captureMetadata';
     case PREFLIGHT_APPLY_STATUS_RULES = 'preflight.applyStatusRules';
     case VALIDATE_SUBMISSION = 'validate.submission';
+    case VALIDATE_ENFORCE_PROGRESSION = 'validate.enforceProgression';
+    case VALIDATE_RESOLVE_TRANSITION = 'validate.resolveTransition';
     case SCREEN_EVALUATE_SPAM = 'screen.evaluateSpam';
     case SCREEN_VERIFY_CAPTCHA = 'screen.verifyCaptcha';
     case PERSIST_SUBMISSION = 'persist.submission';

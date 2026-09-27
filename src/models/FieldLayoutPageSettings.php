@@ -125,17 +125,7 @@ class FieldLayoutPageSettings extends Model implements TranslatablePropertiesInt
 
     public function getConditions(): array
     {
-        // Filter out any un-set conditions
-        $conditions = $this->nextButtonConditions ?? [];
-        $conditionRows = $conditions['conditions'] ?? [];
-
-        foreach ($conditionRows as $key => $condition) {
-            if (!($condition['condition'] ?? null)) {
-                unset($conditions['conditions'][$key]);
-            }
-        }
-
-        return $conditions;
+        return $this->nextButtonConditions ?? [];
     }
 
     public function getConditionsJson(): ?string

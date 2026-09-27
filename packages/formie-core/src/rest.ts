@@ -148,7 +148,7 @@ export function createRestClientTransport(options: RestClientTransportOptions): 
                 body: JSON.stringify(body),
             }, options);
         },
-        async setPage({ definition, session, values, currentPageId, targetPageId }): Promise<ClientFormSession> {
+        async setPage({ definition, session, values, currentPageId, targetPageId }): Promise<ClientSubmitResult> {
             const url = buildActionUrl(options.endpoint, '/actions/formie/client/forms/page');
             const serializedValues = await serializeTransportFieldValues(definition, await stageTransportFiles(definition, session, values, options));
             const body: Record<string, unknown> = {
@@ -162,7 +162,7 @@ export function createRestClientTransport(options: RestClientTransportOptions): 
 
             appendCsrfToken(body, session);
 
-            return requestJson<ClientFormSession>(url, {
+            return requestJson<ClientSubmitResult>(url, {
                 method: 'POST',
                 credentials: options.credentials ?? 'same-origin',
                 headers: {

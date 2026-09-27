@@ -151,10 +151,11 @@ class SubmissionsController extends Controller
             throw new BadRequestHttpException('Missing required pageId.');
         }
 
-        $session = Formie::$plugin->getClientSessionService()->persistPageState(new PageTransitionRequest([
+        $result = Formie::$plugin->getClientSessionService()->persistPageState(new PageTransitionRequest([
             'handle' => $handle,
             'siteId' => $siteId,
             'targetPageId' => (string)$pageId,
+            'values' => $this->request->getBodyParam('fields', []),
             'session' => [
                 'version' => $this->_nullableIntParam('expectedVersion'),
                 'tokens' => [
@@ -171,11 +172,13 @@ class SubmissionsController extends Controller
             ],
         ]), true);
         $this->response->setNoCacheHeaders();
+        $this->response->setStatusCode($result->httpStatus);
 
         return $this->asJson([
-            'success' => true,
-            'pageId' => $pageId,
-                'session' => $session->toArrayRecursive(),
+            'success' => $result->success,
+            'pageId' => $result->currentPageId,
+            'errors' => \verbb\formie\models\SubmissionErrors::fromClient($result->errors, Formie::$plugin->getForms()->getFormByHandle($handle))->toLegacy(),
+            'session' => $result->session?->toArrayRecursive(),
         ]);
     }
 
@@ -243,8 +246,7 @@ class SubmissionsController extends Controller
         }
 
         if (!$response->success) {
-            $payload['errors'] = $submission->getErrors();
-            $payload['errors'] = StringHelper::sanitizeMessageHtmlRecursive($payload['errors']);
+            $payload['errors'] = \verbb\formie\models\SubmissionErrors::fromSubmission($submission)->toLegacy();
             $payload['keepSubmitLoading'] = in_array($response->paymentStatus, [
                 PaymentDecision::STATUS_ACTION_REQUIRED->value,
                 PaymentDecision::STATUS_UNKNOWN->value,

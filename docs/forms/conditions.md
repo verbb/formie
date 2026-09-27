@@ -45,3 +45,11 @@ That avoids the common problem of a form being blocked by a field the person can
 ## Control Panel Submissions
 
 When editing a submission in the control panel, Formie can apply the same field and page conditions used on the front end. Configure the default under **Formie → Settings → Submissions**, or override per form. See [Submissions](/submissions/submissions#edit-submissions-in-the-control-panel).
+
+## Choosing Sources and Comparisons
+
+New field rules use earlier fields or preceding siblings. Page visibility uses previous pages; page-button rules can use the whole current page. The comparison menu follows the selected field's value type. Text comparisons are case-sensitive and text ordering is alphabetical; Number fields compare numeric values. Options match their complete stored values.
+
+Formie clears hidden and disabled answers before validating or saving, including values inside Groups and Repeaters. Changing an answer can therefore remove content that is no longer relevant. An invalid show rule keeps its field hidden, while an invalid hide rule keeps it visible. Invalid navigation, notification and integration rules block that operation and record a diagnostic. Correct missing references or dependency cycles in the builder before publishing the form.
+
+Visitors cannot bypass page requirements by changing a posted page target. A blocked Next action stays on the current page and shows an error; Back and Save Draft do not validate the page. Validation messages point to the exact control, including the affected repeater row.

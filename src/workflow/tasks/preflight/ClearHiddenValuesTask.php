@@ -14,14 +14,12 @@ class ClearHiddenValuesTask implements TaskInterface
     {
         $submission = $context->command->submission;
 
-        if (!$context->command->clearConditionallyHiddenFields) {
-            return TaskResult::continue();
-        }
-
-        foreach ($context->command->form->getFields() as $field) {
-            if ($field->isConditionallyHidden($submission)) {
-                $submission->setFieldValue($field->handle, null);
-            }
+        try {
+            (new \verbb\formie\conditions\ConditionVisibility())->clear($submission);
+        } catch (\RuntimeException $exception) {
+            \verbb\formie\Formie::warning($exception->getMessage());
+            $submission->addError('form', \Craft::t('formie', 'This form has an invalid condition configuration.'));
+            return TaskResult::stop($context->result(\verbb\formie\enums\SubmissionOutcomeType::VALIDATION_FAILED));
         }
 
         return TaskResult::continue();

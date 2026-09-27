@@ -17,37 +17,24 @@ trait FieldBrowserValidationTrait
                 return null;
             }
 
-            $definition = ['type' => $type];
-
-            if (array_key_exists('fieldId', $rule)) {
-                $definition['fieldId'] = $rule['fieldId'];
+            $definition = $rule;
+            $params = array_intersect_key($rule, array_flip(['min', 'max', 'limit', 'value']));
+            if ($type === 'match') {
+                $params['value'] = $this->getForm()?->getFieldByHandle($this->getMatchField())?->label ?? '';
             }
-
-            if (array_key_exists('fieldHandle', $rule)) {
-                $definition['fieldHandle'] = $rule['fieldHandle'];
+            $keys = match ($type) {
+                'number' => ['number', 'numberMin', 'numberMax'],
+                'minmaxOptions' => ['minOptions', 'maxOptions'],
+                default => [$type],
+            };
+            foreach ($keys as $key) {
+                $definition['messages'][$key] = \verbb\formie\models\SubmissionErrors::plainText($this->getValidationMessage($key, $params));
             }
-
-            if (array_key_exists('min', $rule)) {
-                $definition['min'] = $rule['min'];
-            }
-
-            if (array_key_exists('max', $rule)) {
-                $definition['max'] = $rule['max'];
-            }
-
-            if (array_key_exists('minDate', $rule)) {
-                $definition['minDate'] = $rule['minDate'];
-            }
-
-            if (array_key_exists('maxDate', $rule)) {
-                $definition['maxDate'] = $rule['maxDate'];
-            }
-
             return $definition;
         }, array_values($this->defineBrowserValidationRules()))));
     }
 
-    public function getValidationRulesJson(): ?string
+    public function getBrowserValidationRulesJson(): ?string
     {
         $rules = $this->browserValidationRules();
 

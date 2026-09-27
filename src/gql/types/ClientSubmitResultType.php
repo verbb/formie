@@ -21,6 +21,7 @@ class ClientSubmitResultType extends ObjectType
         return GqlEntityRegistry::getEntity(self::getName()) ?: GqlEntityRegistry::createEntity(self::getName(), new self([
             'name' => self::getName(),
             'fields' => [
+                'httpStatus' => ['type' => Type::int()],
                 'outcome' => ['name' => 'outcome', 'type' => Type::string()],
                 'resumeToken' => ['type' => Type::string()],
                 'resumeUrl' => ['type' => Type::string()],

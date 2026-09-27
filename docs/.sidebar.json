@@ -336,6 +336,7 @@
                 ]
             },
             "developers/submission-workflow",
+            "developers/conditions-and-validation",
             "developers/submission-content",
             "developers/schema",
             "developers/custom-field",

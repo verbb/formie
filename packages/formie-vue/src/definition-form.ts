@@ -1,3 +1,4 @@
+import { clientActionAllowed } from '@verbb/formie-core';
 import { mountClientRenderedModules } from '@verbb/formie-browser';
 import {
     CLIENT_FORM_EVENT_NAMES,
@@ -901,8 +902,8 @@ const ConfigRow = defineComponent({
                     value: props.values[field.handle],
                     errors: state.errors.fields[errorKey] || [],
                     errorKey,
-                    disabled: props.disabled === true || state.fieldStates[field.id]?.disabled === true,
-                    hidden: state.fieldStates[field.id]?.hidden === true,
+                    disabled: props.disabled === true || state.fieldStates[errorKey]?.disabled === true,
+                    hidden: state.fieldStates[errorKey]?.hidden === true,
                     setValue(nextValue: unknown) {
                         props.setFieldValue?.(field, nextValue);
                     },
@@ -1255,6 +1256,7 @@ const ConfigPageActions = defineComponent({
             buttons.push(h('button', {
                 key: page.actions.primary.type,
                 type: 'submit',
+                disabled: !clientActionAllowed(state),
             }, page.actions.primary.label));
 
             return h('div', {

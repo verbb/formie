@@ -1,0 +1,902 @@
+[
+    {
+        "name": "text =",
+        "type": "text",
+        "operator": "=",
+        "actual": "hello world",
+        "expected": "world",
+        "result": false
+    },
+    {
+        "name": "text !=",
+        "type": "text",
+        "operator": "!=",
+        "actual": "hello world",
+        "expected": "world",
+        "result": true
+    },
+    {
+        "name": "text >",
+        "type": "text",
+        "operator": ">",
+        "actual": "hello world",
+        "expected": "world",
+        "result": false
+    },
+    {
+        "name": "text <",
+        "type": "text",
+        "operator": "<",
+        "actual": "hello world",
+        "expected": "world",
+        "result": true
+    },
+    {
+        "name": "text contains",
+        "type": "text",
+        "operator": "contains",
+        "actual": "hello world",
+        "expected": "world",
+        "result": true
+    },
+    {
+        "name": "text notContains",
+        "type": "text",
+        "operator": "notContains",
+        "actual": "hello world",
+        "expected": "world",
+        "result": false
+    },
+    {
+        "name": "text startsWith",
+        "type": "text",
+        "operator": "startsWith",
+        "actual": "hello world",
+        "expected": "world",
+        "result": false
+    },
+    {
+        "name": "text endsWith",
+        "type": "text",
+        "operator": "endsWith",
+        "actual": "hello world",
+        "expected": "world",
+        "result": true
+    },
+    {
+        "name": "text empty",
+        "type": "text",
+        "operator": "empty",
+        "actual": "hello world",
+        "expected": "world",
+        "result": false
+    },
+    {
+        "name": "text notEmpty",
+        "type": "text",
+        "operator": "notEmpty",
+        "actual": "hello world",
+        "expected": "world",
+        "result": true
+    },
+    {
+        "name": "text exact 10 2",
+        "type": "text",
+        "operator": "=",
+        "actual": "10",
+        "expected": "2",
+        "result": false
+    },
+    {
+        "name": "text exact 02 2",
+        "type": "text",
+        "operator": "=",
+        "actual": "02",
+        "expected": "2",
+        "result": false
+    },
+    {
+        "name": "text exact true yes",
+        "type": "text",
+        "operator": "=",
+        "actual": "true",
+        "expected": "yes",
+        "result": false
+    },
+    {
+        "name": "text exact 0 false",
+        "type": "text",
+        "operator": "=",
+        "actual": "0",
+        "expected": "false",
+        "result": false
+    },
+    {
+        "name": "text numeric lexical",
+        "type": "text",
+        "operator": ">",
+        "actual": "10",
+        "expected": "2",
+        "result": false
+    },
+    {
+        "name": "number 10",
+        "type": "number",
+        "operator": ">",
+        "actual": "10",
+        "expected": "2",
+        "result": true
+    },
+    {
+        "name": "number 02",
+        "type": "number",
+        "operator": ">",
+        "actual": "02",
+        "expected": "2",
+        "result": false
+    },
+    {
+        "name": "number  3.2 ",
+        "type": "number",
+        "operator": ">",
+        "actual": " 3.2 ",
+        "expected": "2",
+        "result": true
+    },
+    {
+        "name": "number 1e2",
+        "type": "number",
+        "operator": ">",
+        "actual": "1e2",
+        "expected": "3",
+        "result": true
+    },
+    {
+        "name": "number 2oops",
+        "type": "number",
+        "operator": ">",
+        "actual": "2oops",
+        "expected": "1",
+        "result": null
+    },
+    {
+        "name": "number ",
+        "type": "number",
+        "operator": ">",
+        "actual": "",
+        "expected": "1",
+        "result": null
+    },
+    {
+        "name": "number None",
+        "type": "number",
+        "operator": ">",
+        "actual": null,
+        "expected": "1",
+        "result": null
+    },
+    {
+        "name": "number Infinity",
+        "type": "number",
+        "operator": ">",
+        "actual": "Infinity",
+        "expected": "1",
+        "result": null
+    },
+    {
+        "name": "number 0x10",
+        "type": "number",
+        "operator": ">",
+        "actual": "0x10",
+        "expected": "1",
+        "result": null
+    },
+    {
+        "name": "number 1e309",
+        "type": "number",
+        "operator": ">",
+        "actual": "1e309",
+        "expected": "0",
+        "result": null
+    },
+    {
+        "name": "numeric equals 02",
+        "type": "number",
+        "operator": "=",
+        "actual": "02",
+        "expected": 2,
+        "result": true
+    },
+    {
+        "name": "numeric equals 2.0",
+        "type": "number",
+        "operator": "=",
+        "actual": "2.0",
+        "expected": "2",
+        "result": true
+    },
+    {
+        "name": "numeric equals no",
+        "type": "number",
+        "operator": "=",
+        "actual": "no",
+        "expected": "0",
+        "result": null
+    },
+    {
+        "name": "boolean Trueyes",
+        "type": "boolean",
+        "operator": "=",
+        "actual": true,
+        "expected": "yes",
+        "result": true
+    },
+    {
+        "name": "boolean Falseoff",
+        "type": "boolean",
+        "operator": "=",
+        "actual": false,
+        "expected": "off",
+        "result": true
+    },
+    {
+        "name": "boolean True0",
+        "type": "boolean",
+        "operator": "=",
+        "actual": true,
+        "expected": "0",
+        "result": false
+    },
+    {
+        "name": "boolean Falseunknown",
+        "type": "boolean",
+        "operator": "=",
+        "actual": false,
+        "expected": "unknown",
+        "result": null
+    },
+    {
+        "name": "empty text 0",
+        "type": "text",
+        "operator": "empty",
+        "actual": null,
+        "expected": null,
+        "result": true
+    },
+    {
+        "name": "empty text 1",
+        "type": "text",
+        "operator": "empty",
+        "actual": "",
+        "expected": null,
+        "result": true
+    },
+    {
+        "name": "empty text 2",
+        "type": "text",
+        "operator": "empty",
+        "actual": " \t\n",
+        "expected": null,
+        "result": true
+    },
+    {
+        "name": "empty text 3",
+        "type": "text",
+        "operator": "empty",
+        "actual": [],
+        "expected": null,
+        "result": true
+    },
+    {
+        "name": "empty text 4",
+        "type": "text",
+        "operator": "empty",
+        "actual": "0",
+        "expected": null,
+        "result": false
+    },
+    {
+        "name": "empty text 5",
+        "type": "text",
+        "operator": "empty",
+        "actual": 0,
+        "expected": null,
+        "result": false
+    },
+    {
+        "name": "empty text 6",
+        "type": "text",
+        "operator": "empty",
+        "actual": false,
+        "expected": null,
+        "result": false
+    },
+    {
+        "name": "empty text 7",
+        "type": "text",
+        "operator": "empty",
+        "actual": [
+            ""
+        ],
+        "expected": null,
+        "result": false
+    },
+    {
+        "name": "empty number 0",
+        "type": "number",
+        "operator": "empty",
+        "actual": null,
+        "expected": null,
+        "result": true
+    },
+    {
+        "name": "empty number 1",
+        "type": "number",
+        "operator": "empty",
+        "actual": "",
+        "expected": null,
+        "result": true
+    },
+    {
+        "name": "empty number 2",
+        "type": "number",
+        "operator": "empty",
+        "actual": " \t\n",
+        "expected": null,
+        "result": true
+    },
+    {
+        "name": "empty number 3",
+        "type": "number",
+        "operator": "empty",
+        "actual": [],
+        "expected": null,
+        "result": true
+    },
+    {
+        "name": "empty number 4",
+        "type": "number",
+        "operator": "empty",
+        "actual": "0",
+        "expected": null,
+        "result": false
+    },
+    {
+        "name": "empty number 5",
+        "type": "number",
+        "operator": "empty",
+        "actual": 0,
+        "expected": null,
+        "result": false
+    },
+    {
+        "name": "empty number 6",
+        "type": "number",
+        "operator": "empty",
+        "actual": false,
+        "expected": null,
+        "result": false
+    },
+    {
+        "name": "empty number 7",
+        "type": "number",
+        "operator": "empty",
+        "actual": [
+            ""
+        ],
+        "expected": null,
+        "result": false
+    },
+    {
+        "name": "empty boolean 0",
+        "type": "boolean",
+        "operator": "empty",
+        "actual": null,
+        "expected": null,
+        "result": true
+    },
+    {
+        "name": "empty boolean 1",
+        "type": "boolean",
+        "operator": "empty",
+        "actual": "",
+        "expected": null,
+        "result": true
+    },
+    {
+        "name": "empty boolean 2",
+        "type": "boolean",
+        "operator": "empty",
+        "actual": " \t\n",
+        "expected": null,
+        "result": true
+    },
+    {
+        "name": "empty boolean 3",
+        "type": "boolean",
+        "operator": "empty",
+        "actual": [],
+        "expected": null,
+        "result": true
+    },
+    {
+        "name": "empty boolean 4",
+        "type": "boolean",
+        "operator": "empty",
+        "actual": "0",
+        "expected": null,
+        "result": false
+    },
+    {
+        "name": "empty boolean 5",
+        "type": "boolean",
+        "operator": "empty",
+        "actual": 0,
+        "expected": null,
+        "result": false
+    },
+    {
+        "name": "empty boolean 6",
+        "type": "boolean",
+        "operator": "empty",
+        "actual": false,
+        "expected": null,
+        "result": false
+    },
+    {
+        "name": "empty boolean 7",
+        "type": "boolean",
+        "operator": "empty",
+        "actual": [
+            ""
+        ],
+        "expected": null,
+        "result": false
+    },
+    {
+        "name": "empty collection 0",
+        "type": "collection",
+        "operator": "empty",
+        "actual": null,
+        "expected": null,
+        "result": true
+    },
+    {
+        "name": "empty collection 1",
+        "type": "collection",
+        "operator": "empty",
+        "actual": "",
+        "expected": null,
+        "result": true
+    },
+    {
+        "name": "empty collection 2",
+        "type": "collection",
+        "operator": "empty",
+        "actual": " \t\n",
+        "expected": null,
+        "result": true
+    },
+    {
+        "name": "empty collection 3",
+        "type": "collection",
+        "operator": "empty",
+        "actual": [],
+        "expected": null,
+        "result": true
+    },
+    {
+        "name": "empty collection 4",
+        "type": "collection",
+        "operator": "empty",
+        "actual": "0",
+        "expected": null,
+        "result": false
+    },
+    {
+        "name": "empty collection 5",
+        "type": "collection",
+        "operator": "empty",
+        "actual": 0,
+        "expected": null,
+        "result": false
+    },
+    {
+        "name": "empty collection 6",
+        "type": "collection",
+        "operator": "empty",
+        "actual": false,
+        "expected": null,
+        "result": false
+    },
+    {
+        "name": "empty collection 7",
+        "type": "collection",
+        "operator": "empty",
+        "actual": [
+            ""
+        ],
+        "expected": null,
+        "result": false
+    },
+    {
+        "name": "options =",
+        "type": "collection",
+        "operator": "=",
+        "actual": [
+            "alpha",
+            "beta"
+        ],
+        "expected": "beta",
+        "result": true
+    },
+    {
+        "name": "options !=",
+        "type": "collection",
+        "operator": "!=",
+        "actual": [
+            "alpha",
+            "beta"
+        ],
+        "expected": "beta",
+        "result": false
+    },
+    {
+        "name": "options contains",
+        "type": "collection",
+        "operator": "contains",
+        "actual": [
+            "alpha",
+            "beta"
+        ],
+        "expected": "beta",
+        "result": true
+    },
+    {
+        "name": "options notContains",
+        "type": "collection",
+        "operator": "notContains",
+        "actual": [
+            "alpha",
+            "beta"
+        ],
+        "expected": "beta",
+        "result": false
+    },
+    {
+        "name": "membership no substring",
+        "type": "collection",
+        "operator": "contains",
+        "actual": [
+            "alpha"
+        ],
+        "expected": "alp",
+        "result": false
+    },
+    {
+        "name": "relation IDs",
+        "type": "collection",
+        "operator": "=",
+        "actual": [
+            12,
+            13
+        ],
+        "expected": "13",
+        "result": true
+    },
+    {
+        "name": "nested collection",
+        "type": "collection",
+        "operator": "contains",
+        "actual": [
+            {
+                "name": "alpha"
+            },
+            {
+                "name": "beta"
+            }
+        ],
+        "expected": "beta",
+        "result": true
+    },
+    {
+        "name": "unsupported collection ordering",
+        "type": "collection",
+        "operator": ">",
+        "actual": [
+            1
+        ],
+        "expected": 0,
+        "result": null
+    },
+    {
+        "name": "unsupported numeric substring",
+        "type": "number",
+        "operator": "contains",
+        "actual": "12",
+        "expected": "1",
+        "result": null
+    },
+    {
+        "name": "unknown operator",
+        "type": "text",
+        "operator": "wut",
+        "actual": "hello",
+        "expected": "hello",
+        "result": null
+    },
+    {
+        "name": "object text invalid",
+        "type": "text",
+        "operator": "=",
+        "actual": {
+            "x": "a"
+        },
+        "expected": "a",
+        "result": null
+    },
+    {
+        "name": "calendar date2024-02-29",
+        "type": "date",
+        "operator": ">",
+        "actual": "2024-02-29",
+        "expected": "2024-02-28",
+        "result": true
+    },
+    {
+        "name": "calendar date2025-02-29",
+        "type": "date",
+        "operator": ">",
+        "actual": "2025-02-29",
+        "expected": "2025-02-28",
+        "result": null
+    },
+    {
+        "name": "calendar date2024-13-01",
+        "type": "date",
+        "operator": ">",
+        "actual": "2024-13-01",
+        "expected": "2024-01-01",
+        "result": null
+    },
+    {
+        "name": "calendar date{'year': '2024', 'month': '2', 'day': '29'}",
+        "type": "date",
+        "operator": ">",
+        "actual": {
+            "year": "2024",
+            "month": "2",
+            "day": "29"
+        },
+        "expected": "2024-02-28",
+        "result": true
+    },
+    {
+        "name": "calendar time12:30",
+        "type": "time",
+        "operator": ">",
+        "actual": "12:30",
+        "expected": "12:29:59",
+        "result": true
+    },
+    {
+        "name": "calendar time24:00",
+        "type": "time",
+        "operator": ">",
+        "actual": "24:00",
+        "expected": "12:00",
+        "result": null
+    },
+    {
+        "name": "calendar datetime2024-02-29T12:00:00Z",
+        "type": "datetime",
+        "operator": ">",
+        "actual": "2024-02-29T12:00:00Z",
+        "expected": "2024-02-29T11:00:00Z",
+        "result": true
+    },
+    {
+        "name": "calendar datetime2024-02-29T12:00:00+01:00",
+        "type": "datetime",
+        "operator": ">",
+        "actual": "2024-02-29T12:00:00+01:00",
+        "expected": "2024-02-29T11:30:00Z",
+        "result": false
+    },
+    {
+        "name": "calendar datetime2024-02-29 12:00:00",
+        "type": "datetime",
+        "operator": ">",
+        "actual": "2024-02-29 12:00:00",
+        "expected": "2024-02-29T00:00:00Z",
+        "result": null
+    },
+    {
+        "name": "time parts",
+        "operator": "=",
+        "type": "time",
+        "actual": {
+            "hour": "12",
+            "minute": "05",
+            "ampm": "PM"
+        },
+        "expected": "12:05:00",
+        "result": true
+    },
+    {
+        "name": "time invalid parts",
+        "operator": "=",
+        "type": "time",
+        "actual": {
+            "hour": "24",
+            "minute": "00"
+        },
+        "expected": "00:00",
+        "result": null
+    },
+    {
+        "name": "datetime parts UTC",
+        "operator": "=",
+        "type": "datetime",
+        "actual": {
+            "year": "2026",
+            "month": "9",
+            "day": "27",
+            "hour": "12",
+            "minute": "0"
+        },
+        "expected": "2026-09-27T12:00:00Z",
+        "result": true
+    },
+    {
+        "name": "datetime parts regional",
+        "operator": "=",
+        "type": "datetime",
+        "actual": {
+            "year": "2026",
+            "month": "9",
+            "day": "27",
+            "hour": "12",
+            "minute": "0",
+            "timezone": "Australia/Melbourne"
+        },
+        "expected": "2026-09-27T02:00:00Z",
+        "result": true
+    },
+    {
+        "name": "datetime gap",
+        "operator": "=",
+        "type": "datetime",
+        "actual": {
+            "year": "2026",
+            "month": "10",
+            "day": "4",
+            "hour": "2",
+            "minute": "30",
+            "timezone": "Australia/Melbourne"
+        },
+        "expected": "2026-10-04T00:00:00Z",
+        "result": null
+    },
+    {
+        "name": "datetime ambiguous",
+        "operator": "=",
+        "type": "datetime",
+        "actual": {
+            "year": "2026",
+            "month": "4",
+            "day": "5",
+            "hour": "2",
+            "minute": "30",
+            "timezone": "Australia/Melbourne"
+        },
+        "expected": "2026-04-05T00:00:00Z",
+        "result": null
+    },
+    {
+        "name": "date invalid part",
+        "operator": "=",
+        "type": "date",
+        "actual": {
+            "year": "2026bad",
+            "month": "9",
+            "day": "27"
+        },
+        "expected": "2026-09-27",
+        "result": null
+    },
+    {
+        "name": "Empty collection cannot conceal an invalid comparison operand",
+        "type": "collection",
+        "operator": "contains",
+        "actual": [],
+        "expected": [
+            [
+                "invalid"
+            ]
+        ],
+        "result": null
+    },
+    {
+        "name": "Collection comparison maps are invalid operands",
+        "type": "collection",
+        "operator": "contains",
+        "actual": [],
+        "expected": {
+            "invalid": "value"
+        },
+        "result": null
+    },
+    {
+        "name": "precision text",
+        "type": "text",
+        "operator": "=",
+        "actual": 1.2345678901234567,
+        "expected": "1.2345678901234567",
+        "result": true
+    },
+    {
+        "name": "fixed large text",
+        "type": "text",
+        "operator": "=",
+        "actual": 1e+20,
+        "expected": "100000000000000000000",
+        "result": true
+    },
+    {
+        "name": "fixed small text",
+        "type": "text",
+        "operator": "=",
+        "actual": 1e-06,
+        "expected": "0.000001",
+        "result": true
+    },
+    {
+        "name": "scientific small text",
+        "type": "text",
+        "operator": "=",
+        "actual": 1e-07,
+        "expected": "1e-7",
+        "result": true
+    },
+    {
+        "name": "scientific large text",
+        "type": "text",
+        "operator": "=",
+        "actual": 1e+21,
+        "expected": "1e+21",
+        "result": true
+    },
+    {
+        "name": "numeric form feed",
+        "type": "number",
+        "operator": "=",
+        "actual": "\f1\f",
+        "expected": 1,
+        "result": true
+    },
+    {
+        "name": "numeric nul invalid",
+        "type": "number",
+        "operator": "=",
+        "actual": "\u00001\u0000",
+        "expected": 1,
+        "result": null
+    },
+    {
+        "name": "boolean form feed",
+        "type": "boolean",
+        "operator": "=",
+        "actual": "\ftrue\f",
+        "expected": true,
+        "result": true
+    },
+    {
+        "name": "boolean nul invalid",
+        "type": "boolean",
+        "operator": "=",
+        "actual": "\u0000true\u0000",
+        "expected": true,
+        "result": null
+    }
+]

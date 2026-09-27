@@ -36,7 +36,7 @@ class ClientFormMutation extends Mutation
                     'input' => Type::nonNull(ClientSetPageInputType::getType()),
                 ],
                 'resolve' => ClientFormResolver::class . '::setPage',
-                'type' => ClientSessionType::getType(),
+                'type' => ClientSubmitResultType::getType(),
             ],
             'submitFormieClientForm' => [
                 'name' => 'submitFormieClientForm',

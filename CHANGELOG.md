@@ -12,6 +12,8 @@
 - Add portable per-site translations to stencils and copy them into form overrides when creating forms from a stencil. ([#2968](https://github.com/verbb/formie/issues/2968))
 
 ### Changed
+- Share versioned tri-state conditions and plain-text validation rules across PHP and browser consumers; enforce recursive hidden-value clearing and server-authoritative navigation.
+- Preserve exact nested submission error paths, return typed page-transition results, and distinguish skipped side effects from invalid condition configuration.
 - Preserve explicit empty values, enforce server-populated values across resume, capture query prefill once, and evaluate Hidden value sources without changing reusable field definitions.
 - Standardise server-rendered and client-rendered products, separate CP edit configuration, and enforce the client-rendered contract across React, Vue and Web Components.
 - Require Formie origin allowlisting and explicit cross-origin public session credentials; share staged uploads and backend submission results across rendering products.

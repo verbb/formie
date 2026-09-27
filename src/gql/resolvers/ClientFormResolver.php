@@ -84,7 +84,7 @@ class ClientFormResolver
         );
 
         if (!GqlHelper::canReadForm($form) || !GqlHelper::canMutateSubmissionsForForm($form)) {
-            throw new Error('Unable to perform the action.');
+            return \verbb\formie\client\models\SubmitResult::rejection(403)->toArrayRecursive();
         }
 
         if (!\Craft::$app->getRequest()->getIsPost()) {
@@ -119,7 +119,7 @@ class ClientFormResolver
         );
 
         if (!GqlHelper::canReadForm($form) || !GqlHelper::canMutateSubmissionsForForm($form)) {
-            throw new Error('Unable to perform the action.');
+            return \verbb\formie\client\models\SubmitResult::rejection(403)->toArrayRecursive();
         }
 
         if (!\Craft::$app->getRequest()->getIsPost()) {

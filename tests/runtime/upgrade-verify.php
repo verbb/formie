@@ -65,3 +65,11 @@ $check($form->settings->completionBehavior === 'redirect' && $form->settings->co
 $check($form->getFieldByHandle('fullName')->prefillQueryParam === 'legacyName', 'legacy query prefill name survives as prefillQueryParam');
 $check($form->getFieldByHandle('legacyDate')->valueSource === 'dateInt', 'legacy Hidden defaultOption survives as valueSource');
 $check(!str_contains((string)(new \craft\db\Query())->select('settings')->from(\verbb\formie\helpers\Table::FORMIE_FORM_FIELDS)->where(['id' => $form->getFieldByHandle('fullName')->id])->scalar(), 'prePopulate'), 'stored field instances use the canonical prefill key');
+
+$companyConditions = $form->getFieldByHandle('company')->getConditions();
+$check(($companyConditions['version'] ?? null) === 1 && ($companyConditions['conditions'][0]['legacyForward'] ?? false), 'stable Formie 3 field conditions receive schema version and legacy dependency policy');
+$check(\verbb\formie\helpers\ConditionsHelper::evaluate($companyConditions, $submission)->value === true, 'upgraded field conditions evaluate original normalized content');
+$check(($notification->conditions['version'] ?? null) === 1 && \verbb\formie\helpers\ConditionsHelper::evaluate($notification->conditions, $submission, 'notification')->value === true, 'upgraded notification conditions use the same canonical evaluator');
+$submission->addError('field:company.companyName', '<b>Example error.</b>');
+$check($submission->getSubmissionErrors()->toLegacy() === ['company.companyName' => ['Example error.']], 'legacy nested errors preserve complete value paths as safe text');
+$check(isset($submission->getSubmissionErrors()->toClient()['fields'][$form->getFieldByHandle('company')->id . '.companyName']), 'upgraded nested client errors use the form-field instance identity');

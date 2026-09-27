@@ -2,77 +2,34 @@
 namespace verbb\formie\conditions;
 
 use verbb\formie\elements\Submission;
-use verbb\formie\helpers\ArrayHelper;
-use verbb\formie\references\ReferenceException;
 
-use Throwable;
-
-class ConditionSetEvaluator
+final class ConditionSetEvaluator
 {
-    // Properties
-    // =========================================================================
-
-    private ConditionRowEvaluator $rowEvaluator;
-
-
     // Public Methods
     // =========================================================================
-    
-    public function __construct(ConditionRowEvaluator $rowEvaluator)
-    {
-        $this->rowEvaluator = $rowEvaluator;
-    }
 
-    public function evaluateRows(array $conditions, Submission $submission, ?callable $callback = null): array
+    public function evaluate(ConditionSet $set, Submission $submission, array $rows = []): ConditionEvaluation
     {
+        if ($set->version !== ConditionOperator::schema()['version'] || !in_array($set->mode, ['all', 'any'], true) || !in_array($set->effect, ['show', 'hide', 'enable', 'disable'], true)) {
+            return ConditionEvaluation::invalid('invalidSchema');
+        }
         $results = [];
-
-        foreach ($conditions as $condition) {
-            $variables = [
-                'field' => $condition['field'] ?? '',
-                'value' => $condition['value'] ?? '',
-            ];
-
-            if (!trim(ArrayHelper::recursiveImplode($variables, ''))) {
-                continue;
-            }
-
-            try {
-                $result = $this->rowEvaluator->evaluate($condition, $submission);
-            } catch (ReferenceException $exception) {
-                \verbb\formie\Formie::warning($exception->getMessage());
-                $result = false;
-            } catch (Throwable) {
-                // Treat malformed rows as non-matches and keep evaluating the
-                // rest so stale builder data degrades gracefully.
-                continue;
-            }
-
-            if ($callback) {
-                $callbackResult = $callback($result, $condition);
-
-                if ($callbackResult) {
-                    $results[] = $callbackResult;
-                }
-            } else {
-                $results[] = $result;
+        $diagnostics = [];
+        foreach ($set->rules as $index => $rule) {
+            $result = (new ConditionRowEvaluator())->evaluate($rule, $submission, $rows);
+            $results[] = $result->value;
+            foreach ($result->diagnostics as $diagnostic) {
+                $diagnostics[] = [...$diagnostic, 'rule' => $index];
             }
         }
-
-        return $results;
+        if ($diagnostics) {
+            return new ConditionEvaluation(null, $diagnostics);
+        }
+        return new ConditionEvaluation($set->mode === 'all' ? !in_array(false, $results, true) : in_array(true, $results, true));
     }
 
-    public function matches(array $conditionSettings, Submission $submission): bool
+    public function matchingRules(ConditionSet $set, Submission $submission): array
     {
-        $conditions = $conditionSettings['conditions'] ?? [];
-        $conditionRule = (string)($conditionSettings['conditionRule'] ?? 'all');
-
-        $results = $this->evaluateRows($conditions, $submission);
-
-        if ($conditionRule === 'all') {
-            return (bool)array_product($results);
-        }
-
-        return in_array(true, $results, true);
+        return array_values(array_filter($set->rules, static fn(ConditionRule $rule): bool => (new ConditionRowEvaluator())->evaluate($rule, $submission)->matches()));
     }
 }

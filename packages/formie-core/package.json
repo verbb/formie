@@ -34,7 +34,7 @@
     "access": "public"
   },
   "scripts": {
-    "build": "vite build && npx tsc -p tsconfig.json",
+    "build": "node ../../scripts/build-condition-schema.mjs && vite build && npx tsc -p tsconfig.json",
     "test": "vitest run"
   },
   "dependencies": {

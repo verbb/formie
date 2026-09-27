@@ -1095,33 +1095,7 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
 
     public function isConditionallyHidden(Submission $submission): bool
     {
-        $isFieldHidden = false;
-        $isPageHidden = false;
-
-        // Check if the field itself is hidden
-        if ($this->enableConditions) {
-            $conditionSettings = $this->getConditions();
-            $conditions = $conditionSettings['conditions'] ?? [];
-
-            if ($conditionSettings && $conditions) {
-                // A `true` result means the field passed the evaluation and that it has a value, whilst a `false` result means
-                // it didn't (for instance the field doesn't have a value)
-                $result = ConditionsHelper::getConditionalTestResult($conditionSettings, $submission);
-
-                // Depending on if we show or hide the field when evaluating. If `false` and set to show, it means
-                // the field is hidden and the conditions to show it isn't met. Therefore, report back that this field is hidden.
-                if (($result && $conditionSettings['showRule'] !== 'show') || (!$result && $conditionSettings['showRule'] === 'show')) {
-                    $isFieldHidden = true;
-                }
-            }
-        }
-
-        // Also check if the field is in a hidden page
-        if (!$isFieldHidden && $page = $this->getPage($submission)) {
-            $isPageHidden = $page->isConditionallyHidden($submission);
-        }
-
-        return $isFieldHidden || $isPageHidden;
+        return \verbb\formie\conditions\ConditionVisibility::hidden($this, $submission);
     }
 
     public function getReferenceBlockHtml(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): string|null|bool

@@ -107,7 +107,7 @@ trait FieldServerRenderTrait
         $templateVars = $frame?->getTemplateVars() ?? [];
 
         $submission = $form->getCurrentSubmission();
-        $errors = $submission ? $submission->getErrors($this->errorKey()) : [];
+        $errors = $submission ? $submission->getSubmissionErrors()->forValuePath($this->errorKey()) : [];
 
         $inputName = FieldRenderCallContext::get('inputName');
 

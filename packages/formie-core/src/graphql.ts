@@ -211,11 +211,11 @@ export function createGraphqlClientTransport(options: GraphqlClientTransportOpti
 
             return data.refreshFormieClientSession;
         },
-        async setPage({ definition, session, values, currentPageId, targetPageId }): Promise<ClientFormSession> {
+        async setPage({ definition, session, values, currentPageId, targetPageId }): Promise<ClientSubmitResult> {
             const serializedValues = await serializeTransportFieldValues(definition, await stageTransportFiles(definition, session, values, options));
 
             const data = await requestGraphql<{
-                setFormieClientPage?: ClientFormSession | null;
+                setFormieClientPage?: ClientSubmitResult | null;
             }>(
                 options,
                 `
@@ -223,7 +223,7 @@ export function createGraphqlClientTransport(options: GraphqlClientTransportOpti
                         $input: FormieClientSetPageInput!
                     ) {
                         setFormieClientPage(input: $input) {
-                            ${CLIENT_SESSION_SELECTION}
+                            success outcome httpStatus errors messages currentPageId nextPageId version session { ${CLIENT_SESSION_SELECTION} }
                         }
                     }
                 `,

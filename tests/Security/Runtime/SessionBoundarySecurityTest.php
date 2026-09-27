@@ -242,13 +242,13 @@ it('shares refresh abuse limits across token refresh and page transitions', func
             $session = Formie::$plugin->getClientSessionService()->issueInitialSession($form)->toArrayRecursive();
             Formie::$plugin->getClientSessionService()->buildTokenPayload($form, true);
 
-            expect(fn() => Formie::$plugin->getClientSessionService()->persistPageState(new PageTransitionRequest([
+            expect(Formie::$plugin->getClientSessionService()->persistPageState(new PageTransitionRequest([
                 'handle' => (string)$form->handle,
                 'siteId' => (int)$form->siteId,
                 'targetPageId' => (string)$pages[1]->id,
                 'session' => $session,
                 'values' => [],
-            ]), true))->toThrow(TooManyRequestsHttpException::class);
+            ]), true)->httpStatus)->toBe(429);
 
             expect((int)$response->getHeaders()->get('Retry-After'))->toBeGreaterThanOrEqual(1)->toBeLessThanOrEqual(60);
         }, [
@@ -282,14 +282,14 @@ it('rate limits anonymous runtime submit requests with the shared refresh abuse 
         WebRequestTestHelper::withWebRequestContext(function ($request, $response) use ($form): void {
             Formie::$plugin->getClientSessionService()->buildTokenPayload($form, true);
 
-            expect(fn() => runClientSubmission(new SubmitRequest([
+            expect(runClientSubmission(new SubmitRequest([
                 'handle' => (string)$form->handle,
                 'siteId' => (int)$form->siteId,
                 'session' => Formie::$plugin->getClientSessionService()->issueInitialSession($form)->toArrayRecursive(),
                 'values' => [
                     'firstName' => 'Security Tester',
                 ],
-            ])))->toThrow(TooManyRequestsHttpException::class);
+            ]))->httpStatus)->toBe(429);
 
             expect((int)$response->getHeaders()->get('Retry-After'))->toBeGreaterThanOrEqual(1)->toBeLessThanOrEqual(60);
         }, [

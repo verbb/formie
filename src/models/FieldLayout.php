@@ -153,7 +153,7 @@ class FieldLayout extends SavableComponent
                 return false;
             }
 
-            if ($field->isConditionallyHidden($element)) {
+            if (\verbb\formie\conditions\ConditionVisibility::unavailable($field, $element)) {
                 return false;
             }
 

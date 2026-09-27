@@ -618,6 +618,11 @@ class Form extends Element implements FormInterface
     public function validateFormLayout(): void
     {
         $formLayout = $this->getFormLayout();
+        try {
+            (new \verbb\formie\conditions\ConditionGraph())->orderedFields($this);
+        } catch (\RuntimeException $exception) {
+            $this->addError('formLayout', $exception->getMessage());
+        }
 
         if (!$formLayout->validate()) {
             // Element models can't handle nested errors

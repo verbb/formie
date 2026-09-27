@@ -1,0 +1,69 @@
+{
+    "version": 1,
+    "operators": {
+        "=": [
+            "text",
+            "number",
+            "boolean",
+            "date",
+            "time",
+            "datetime",
+            "collection"
+        ],
+        "!=": [
+            "text",
+            "number",
+            "boolean",
+            "date",
+            "time",
+            "datetime",
+            "collection"
+        ],
+        ">": [
+            "text",
+            "number",
+            "date",
+            "time",
+            "datetime"
+        ],
+        "<": [
+            "text",
+            "number",
+            "date",
+            "time",
+            "datetime"
+        ],
+        "contains": [
+            "text",
+            "collection"
+        ],
+        "notContains": [
+            "text",
+            "collection"
+        ],
+        "startsWith": [
+            "text"
+        ],
+        "endsWith": [
+            "text"
+        ],
+        "empty": [
+            "text",
+            "number",
+            "boolean",
+            "date",
+            "time",
+            "datetime",
+            "collection"
+        ],
+        "notEmpty": [
+            "text",
+            "number",
+            "boolean",
+            "date",
+            "time",
+            "datetime",
+            "collection"
+        ]
+    }
+}

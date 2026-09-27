@@ -6,6 +6,8 @@
 - Add `data-formie-validation-skip` so helper controls (such as the Upload Manager browse input) can opt out of client-side validation.
 
 ### Changed
+- Share versioned tri-state conditions and plain-text validation rules across PHP and browser consumers; enforce recursive hidden-value clearing and server-authoritative navigation.
+- Preserve exact nested submission error paths, return typed page-transition results, and distinguish skipped side effects from invalid condition configuration.
 - Consume the shared completion outcome and preserve the server-owned configuration and query-prefill boundary.
 - Resolve trusted versioned browser modules, reconcile occurrence lifecycles and failures, and restrict full form mounts to server-rendered HTML.
 - Share reference parsing with the Variable Picker and diagnose unavailable browser references.

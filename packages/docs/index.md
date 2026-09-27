@@ -20,3 +20,5 @@ onMounted(() => {
 # Redirecting
 
 Continue to [Browser](/browser/).
+
+See [Conditions and Validation](/browser/conditions-and-validation) for shared operators, nested errors and server authority.

@@ -132,10 +132,6 @@ class Notifications extends Component
         $settings = Formie::$plugin->getSettings();
         $useQueue ??= $settings->useQueueForNotifications;
 
-        if (!$this->evaluateConditions($notification, $submission)) {
-            return;
-        }
-
         $deliveryKey ??= DeliveryAttempt::workflowIdentity() ?? StringHelper::UUID();
         $db = Craft::$app->getDb();
         $inTransaction = (bool)$db->getTransaction()?->getIsActive();
@@ -177,6 +173,15 @@ class Notifications extends Component
     public function sendNotificationEmail(Notification $notification, Submission $submission, $queueJob = null, ?string $deliveryKey = null): array|bool
     {
         if (!$submission->id || !$submission->uid) {
+            if ($notification->enableConditions) {
+                $evaluation = ConditionsHelper::evaluate($notification->conditions ?? [], $submission, 'notification');
+                if ($evaluation->value === null) {
+                    return (new IntegrationResult(IntegrationStatus::Rejected, code: 'invalid_conditions', diagnostics: $evaluation->diagnostics))->toStorage() + ['success' => false];
+                }
+                if (!$this->evaluateConditions($notification, $submission)) {
+                    return IntegrationResult::skipped('conditions')->toStorage() + ['success' => true];
+                }
+            }
             return $this->_sendNotificationEmail($notification, $submission, $queueJob, $deliveryKey);
         }
         $mutex = Craft::$app->getMutex();
@@ -577,25 +582,11 @@ class Notifications extends Component
 
     public function evaluateConditions($notification, Submission $submission): bool
     {
-        if ($notification->enableConditions) {
-            $conditionSettings = $notification->conditions ?? [];
-            $conditions = $conditionSettings['conditions'] ?? [];
-
-            if ($conditionSettings && $conditions) {
-                $result = ConditionsHelper::getConditionalTestResult($conditionSettings, $submission);
-
-                // Notification conditions are authored as "match rows" plus a
-                // separate send/don't-send rule. Inverting here preserves that
-                // builder model instead of forcing authors to negate each row.
-                if ($conditionSettings['sendRule'] === 'send') {
-                    return $result;
-                }
-
-                return !$result;
-            }
+        if (!$notification->enableConditions) {
+            return true;
         }
-
-        return true;
+        $settings = $notification->conditions ?? [];
+        return ConditionsHelper::evaluate($settings, $submission, 'notification')->permits(($settings['sendRule'] ?? 'send') === 'send');
     }
 
     public function getNotificationsSchema(): array
@@ -1068,6 +1059,10 @@ class Notifications extends Component
         }
         $diagnostics = $queueJob ?? new SendNotification(['deliveryAttemptUid' => $uid]);
         $result = $attempts->execute($uid, function () use ($notification, $submission, $diagnostics, $deliveryKey): IntegrationResult {
+            $evaluation = $notification->enableConditions ? ConditionsHelper::evaluate($notification->conditions ?? [], $submission, 'notification') : null;
+            if ($evaluation && $evaluation->value === null) {
+                return new IntegrationResult(IntegrationStatus::Rejected, code: 'invalid_conditions', diagnostics: $evaluation->diagnostics);
+            }
             if (!$this->evaluateConditions($notification, $submission)) {
                 return IntegrationResult::skipped('conditions');
             }

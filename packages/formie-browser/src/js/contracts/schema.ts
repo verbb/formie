@@ -37,7 +37,6 @@ export type FormSubmitResult = {
     message?: string;
     keepSubmitLoading?: boolean;
     fieldErrors?: Record<string, string[]>;
-    pageFieldErrors?: Record<string, Record<string, string[]>>;
     formErrors?: string[];
     nextPage?: { id: string } | null;
     redirect?: FormRedirect | null;

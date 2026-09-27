@@ -3,9 +3,7 @@
 declare(strict_types=1);
 
 use Tests\Support\MaliciousPayloads;
-use Craft;
 use craft\web\View;
-use function htmlspecialchars;
 use verbb\formie\Formie;
 use verbb\formie\controllers\SubmissionsController;
 use verbb\formie\controllers\server\SubmissionsController as ServerSubmissionsController;
@@ -232,7 +230,7 @@ it('sanitizes page-reload success flash content while preserving safe html', fun
         ->and($html)->not->toContain('onerror=');
 })->group('security');
 
-it('sanitizes submit json form errors while preserving safe html links', function (): void {
+it('returns plain text form errors through legacy ajax', function (): void {
     $form = formie()
         ->form(['title' => 'JSON Error Message Security'])
         ->settings(['disableCaptchas' => true])
@@ -261,7 +259,7 @@ it('sanitizes submit json form errors while preserving safe html links', functio
     $formErrors = $payload['errors']['form'] ?? [];
 
     expect($formErrors)->not->toBeEmpty()
-        ->and($formErrors[0] ?? '')->toContain('<a href="https://example.com/help">Help</a>')
+        ->and($formErrors[0] ?? '')->toBe('Please retry. Helpalert("xss")')
         ->and($formErrors[0] ?? '')->not->toContain('<script');
 })->group('security');
 

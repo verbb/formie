@@ -21,7 +21,7 @@ it('validates number bounds only while the persisted limit setting is enabled', 
     expect($reloaded->getFieldByHandle('quantity')->limit)->toBeFalse();
     $payload = $reloaded->getFieldByHandle('quantity')->getClientRenderedDefinition();
     expect($payload['input']['min'])->toBeNull()->and($payload['input']['max'])->toBeNull();
-    expect($payload['validation'])->toBe([['type' => 'number', 'min' => null, 'max' => null]]);
+    expect($payload['validation'][0])->toMatchArray(['type' => 'number', 'min' => null, 'max' => null])->and($payload['validation'][0]['messages']['number'])->toBeString();
     $unlimited = $make($reloaded);
     $numeric = is_numeric($value);
     expect($unlimited->validate())->toBe($numeric);

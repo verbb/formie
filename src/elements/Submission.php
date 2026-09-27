@@ -689,6 +689,11 @@ class Submission extends Element
         }
     }
 
+    public function getSubmissionErrors(): \verbb\formie\models\SubmissionErrors
+    {
+        return \verbb\formie\models\SubmissionErrors::fromSubmission($this);
+    }
+
     public function validate($attributeNames = null, $clearErrors = true): bool
     {
         $this->_validationAttributeNames = $attributeNames ? array_flip((array)$attributeNames) : null;

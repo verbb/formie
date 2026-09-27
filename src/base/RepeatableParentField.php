@@ -91,7 +91,7 @@ abstract class RepeatableParentField extends ParentField implements RepeatablePa
                 $subValue = $element->getFieldValue($fieldKey);
 
                 // No need to validate if the field is conditionally hidden or disabled
-                if ($field->isConditionallyHidden($element) || $field->getIsDisabled()) {
+                if (\verbb\formie\conditions\ConditionVisibility::unavailable($field, $element) || $field->getIsDisabled()) {
                     continue;
                 }
 
@@ -344,7 +344,7 @@ abstract class RepeatableParentField extends ParentField implements RepeatablePa
 
         foreach ($value as $rowKey => $row) {
             foreach ($this->getFields($rowKey) as $field) {
-                if ($field->getIsCosmetic() || $field->getIsHidden() || $field->isConditionallyHidden($element) || $field->getIsDisabled()) {
+                if ($field->getIsCosmetic() || $field->getIsHidden() || \verbb\formie\conditions\ConditionVisibility::unavailable($field, $element) || $field->getIsDisabled()) {
                     continue;
                 }
 

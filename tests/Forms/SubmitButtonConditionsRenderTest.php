@@ -30,7 +30,7 @@ it('renders submit button conditions for the front-end conditions module', funct
     $form->setFormLayout($layout);
 
     expect($page->getSubmitButtonConditionsJson())->not->toBeNull()
-        ->and($page->getSubmitButtonClientConditions()['conditions'][0]['source']['handle'] ?? null)->toBe('enquiryType');
+        ->and($page->getSubmitButtonClientConditions()['rules'][0]['source']['handle'] ?? null)->toBe('enquiryType');
 
     $view = Craft::$app->getView();
     $oldTemplateMode = $view->getTemplateMode();

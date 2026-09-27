@@ -22,7 +22,7 @@ import {
     hasServerRenderedValidationErrors,
 } from '#core/validation-focus';
 import { clearSubmitFeedback, executeAjaxSubmitFlow, shouldKeepSubmitLoading } from '#core/submit-flow';
-import { applySubmitResultUi } from '#core/submit-result-ui';
+import { applySubmitResultUi, renderFieldErrors, renderFormErrors } from '#core/submit-result-ui';
 import { applyPageState, clearSubmitLoading, setSubmitLoading } from '#core/submit-result-state';
 import { EventBus } from '#events/event-bus';
 import { ModuleRegistry } from '#modules/registry';
@@ -630,8 +630,7 @@ function bindFormEvents(
                 return;
             }
 
-            // Ajax multipage navigation updates UI immediately, then persists page
-            // continuity in the background so refresh/recovery stays in sync.
+            // The server validates forward navigation before selecting the page.
             event.preventDefault();
 
             const currentTarget = event.currentTarget as HTMLAnchorElement | null;
@@ -642,7 +641,6 @@ function bindFormEvents(
                 return;
             }
 
-            applyPageState(form, nextPageId);
             dispatchFormieDomEvent(target, 'formie:page:navigate', {
                 pageId: nextPageId,
                 href,
@@ -650,6 +648,15 @@ function bindFormEvents(
 
             try {
                 const response = await requestSetPage(href, form, nextPageId);
+                if (response.pageId) applyPageState(form, String(response.pageId));
+                if (!response.success) {
+                    const { form: formErrors = [], ...fieldErrors } = response.errors ?? {};
+                    clearSubmitFeedback(form);
+                    renderFieldErrors(form, fieldErrors);
+                    renderFormErrors(form, formErrors);
+                    focusFirstValidationError(form);
+                    return;
+                }
 
                 dispatchFormieDomEvent(target, 'formie:page:navigate:after', {
                     pageId: nextPageId,

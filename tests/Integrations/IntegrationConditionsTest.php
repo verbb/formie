@@ -104,3 +104,24 @@ it('includes integration condition settings in the form settings schema', functi
         ->and($fieldNames)->toContain('enableConditions')
         ->and($fieldNames)->toContain('conditions');
 });
+
+it('never inverts an invalid integration condition into permission', function (): void {
+    $integration = integrationConditionsTestIntegration(['enableConditions' => true, 'conditions' => [
+        'triggerRule' => 'notTrigger', 'conditionRule' => 'all', 'conditions' => [['field' => '{field:missing}', 'condition' => '=', 'value' => 'yes']],
+    ]]);
+    expect($integration->shouldTrigger(new Submission()))->toBeFalse();
+});
+
+it('records rejected invalid integration conditions separately from skipped false conditions', function (): void {
+    $form = formie()->form()->singleLineTextField('answer')->create();
+    $submission = formie()->submission($form)->with(['answer' => 'no'])->save();
+    $integration = integrationConditionsTestIntegration(['handle' => 'conditionProbe', 'enableConditions' => true, 'conditions' => [
+        'triggerRule' => 'trigger', 'conditionRule' => 'all', 'conditions' => [['field' => '{field:missing}', 'condition' => '=', 'value' => 'yes']],
+    ]]);
+    $runner = Formie::$plugin->getIntegrationRunner();
+    $invalid = $runner->runIntegration($integration, $submission, 'invalid-conditions', 'synchronous');
+    expect($invalid->status)->toBe(\verbb\formie\enums\IntegrationStatus::Rejected);
+    $integration->conditions['conditions'][0]['field'] = '{field:answer}';
+    $skipped = $runner->runIntegration($integration, $submission, 'false-conditions', 'synchronous');
+    expect($skipped->status)->toBe(\verbb\formie\enums\IntegrationStatus::Skipped);
+});

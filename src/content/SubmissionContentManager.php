@@ -322,17 +322,7 @@ class SubmissionContentManager
         $this->normalizeFromRequest($submission, $paramNamespace);
         (new \verbb\formie\services\RuntimeConfiguration())->applyValues($submission);
 
-        // Exclude conditionally hidden field content for incomplete submissions only.
-        if ($submission->isIncomplete) {
-            // Stay on the cached collection here as well so every top-level submission field scan
-            // in this manager goes through the same request-local indexes and filtered subsets.
-            foreach ($this->getFieldCollection($submission)->all() as $field) {
-                if ($field->isConditionallyHidden($submission)) {
-                    $submission->setFieldValue($field->handle, null);
-                }
-            }
-
-        }
+        // Authoritative clearing occurs after all values are applied in the workflow.
     }
 
     public function setFieldValueFromRequest(Submission $submission, string $fieldHandle, mixed $value): void

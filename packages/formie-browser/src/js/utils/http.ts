@@ -6,7 +6,7 @@ export type RequestJsonOptions = BrowserRequestOptions & {
     signal?: AbortSignal;
 };
 
-async function request(url: string | URL, options: RequestJsonOptions = {}): Promise<Response> {
+export async function request(url: string | URL, options: RequestJsonOptions = {}): Promise<Response> {
     // Do not send `X-Requested-With` here: it is not CORS-safelisted, and Craft GraphQL CORS
     // often omits it from `Access-Control-Allow-Headers` (breaks localhost → ddev, starters, etc.).
     // `Accept` + JSON `Content-Type` are enough for Formie/Craft JSON endpoints.

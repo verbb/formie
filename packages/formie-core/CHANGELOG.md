@@ -6,6 +6,8 @@
 - Add the shared, versioned reference grammar and typed browser source diagnostics.
 
 ### Changed
+- Share versioned tri-state conditions and plain-text validation rules across PHP and browser consumers; enforce recursive hidden-value clearing and server-authoritative navigation.
+- Preserve exact nested submission error paths, return typed page-transition results, and distinguish skipped side effects from invalid condition configuration.
 - Consume the shared completion outcome and preserve the server-owned configuration and query-prefill boundary.
 - Version the client-rendered bootstrap and module contract, enforce explicit request profiles, stage selected files and expose shared browser-module host seams.
 - Describe normalized field values with explicit runtime type metadata and keep browser-input defaults separate from public data projections.

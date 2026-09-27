@@ -41,65 +41,14 @@ class SubmissionProcessor extends Component
 
     public function execute(SubmitRequest $input, SubmissionAuthorityType $authorityType): SubmitResult
     {
-        if ($authorityType !== SubmissionAuthorityType::VISITOR) {
-            throw new ForbiddenHttpException('This adapter requires visitor authority.');
-        }
-        $form = $this->requireFormByHandle($input->handle, $input->siteId);
-        $this->applyFormRequestContext($form, $input->session['tokens']['render'] ?? null, $input->session['continuation']['draftContext'] ?? null, $input->session['tokens']['request'] ?? null);
-        $progress = $this->resolveProgressState($form);
-        $revise = $input->action === 'revise' || ($input->session['continuation']['purpose'] ?? null) === SubmissionGrants::REVISE;
-        if ($revise) {
-            $continuation = $input->session['continuation'] ?? [];
-            $grant = !empty($continuation['grantToken'])
-                ? Formie::$plugin->getSubmissionGrants()->exchange($continuation['grantToken'], SubmissionGrants::REVISE, $form)
-                : Formie::$plugin->getSubmissionGrants()->bound($form, SubmissionGrants::REVISE, (int)($continuation['submissionId'] ?? 0));
-            if (!$grant) {
-                throw new ForbiddenHttpException('Submission is unavailable.');
+        try {
+            return $this->_executeClient($input, $authorityType);
+        } catch (\yii\web\HttpException $exception) {
+            if (!in_array($exception->statusCode, [403, 429], true)) {
+                throw $exception;
             }
-            $submission = $this->_findSubmissionById($grant->submissionId, false, (int)$form->id);
-            if (!$submission) {
-                throw new ForbiddenHttpException('Submission is unavailable.');
-            }
-            $form->setSubmission($submission);
-        } else {
-            $submission = $this->resolveClientContinuationSubmission($form, $progress, (array)($input->session['continuation'] ?? [])) ?? new Submission();
+            return SubmitResult::rejection($exception->statusCode);
         }
-        $submission->setForm($form);
-        $operation = $revise ? SubmissionOperation::REVISE : ($input->action === 'save' ? SubmissionOperation::SAVE_DRAFT : SubmissionOperation::SUBMIT);
-        $navigation = $revise ? NavigationIntent::STAY : $this->_navigation($input->action, $input->targetPageId);
-        $token = $input->session['tokens']['request'] ?? null;
-        $result = $this->_executeResolved(
-            $form, $submission, $operation, $navigation, $authorityType,
-            isset($input->session['version']) ? (int)$input->session['version'] : ($submission->id ? null : 0),
-            $input->operationId ?? $token, $token,
-            ['browserData' => $input->browserData, 'values' => $input->values, 'action' => $input->action, 'page' => $input->session['currentPageId'] ?? null, 'target' => $input->targetPageId, 'version' => $input->session['version'] ?? null, 'continuation' => $input->session['continuation'] ?? null],
-            function () use ($submission, $form, $progress, $input, $navigation): void {
-                $this->primeSubmission($submission, $form, $progress, $input->siteId);
-                foreach ($input->browserData as $name => $value) {
-                    if (is_string($name) && is_scalar($value)) {
-                        $submission->setCaptchaData($name, ['value' => (string)$value]);
-                    }
-                }
-                // Module-owned payment token inputs supplement only declared payment
-                // fields, never request credentials, grants or administrative options.
-                $values = $input->values;
-                parse_str(http_build_query($input->browserData), $moduleInputs);
-                foreach (($moduleInputs['fields'] ?? []) as $handle => $value) {
-                    if ($form->getFieldByHandle($handle) instanceof \verbb\formie\fields\Payment) {
-                        $values[$handle] = $value;
-                    }
-                }
-                if ($navigation !== NavigationIntent::BACK || Formie::$plugin->getSettings()->enableBackSubmission) {
-                    foreach ($values as $handle => $value) {
-                        $submission->setFieldValueFromRequest($handle, $value);
-                    }
-                }
-            },
-            $this->_normalizeNullableInt($input->session['currentPageId'] ?? $progress?->currentPageId),
-            $input->targetPageId,
-        );
-        $form->resetRequestToken();
-        return $this->_buildClientResult($result->command, $result->response, $input);
     }
 
     public function executeManaged(ManagedSubmissionRequest $input, SubmissionAuthorityType $authorityType): SubmissionExecutionResult
@@ -366,6 +315,69 @@ class SubmissionProcessor extends Component
     // Private Methods
     // =========================================================================
 
+    private function _executeClient(SubmitRequest $input, SubmissionAuthorityType $authorityType): SubmitResult
+    {
+        if ($authorityType !== SubmissionAuthorityType::VISITOR) {
+            throw new ForbiddenHttpException('This adapter requires visitor authority.');
+        }
+        $form = $this->requireFormByHandle($input->handle, $input->siteId);
+        $this->applyFormRequestContext($form, $input->session['tokens']['render'] ?? null, $input->session['continuation']['draftContext'] ?? null, $input->session['tokens']['request'] ?? null);
+        $progress = $this->resolveProgressState($form);
+        $revise = $input->action === 'revise' || ($input->session['continuation']['purpose'] ?? null) === SubmissionGrants::REVISE;
+        if ($revise) {
+            $continuation = $input->session['continuation'] ?? [];
+            $grant = !empty($continuation['grantToken'])
+                ? Formie::$plugin->getSubmissionGrants()->exchange($continuation['grantToken'], SubmissionGrants::REVISE, $form)
+                : Formie::$plugin->getSubmissionGrants()->bound($form, SubmissionGrants::REVISE, (int)($continuation['submissionId'] ?? 0));
+            if (!$grant) {
+                throw new ForbiddenHttpException('Submission is unavailable.');
+            }
+            $submission = $this->_findSubmissionById($grant->submissionId, false, (int)$form->id);
+            if (!$submission) {
+                throw new ForbiddenHttpException('Submission is unavailable.');
+            }
+            $form->setSubmission($submission);
+        } else {
+            $submission = $this->resolveClientContinuationSubmission($form, $progress, (array)($input->session['continuation'] ?? [])) ?? new Submission();
+        }
+        $submission->setForm($form);
+        $operation = $revise ? SubmissionOperation::REVISE : ($input->action === 'save' ? SubmissionOperation::SAVE_DRAFT : SubmissionOperation::SUBMIT);
+        $navigation = $revise ? NavigationIntent::STAY : $this->_navigation($input->action, $input->targetPageId);
+        $token = $input->session['tokens']['request'] ?? null;
+        $result = $this->_executeResolved(
+            $form, $submission, $operation, $navigation, $authorityType,
+            isset($input->session['version']) ? (int)$input->session['version'] : ($submission->id ? null : 0),
+            $input->operationId ?? $token, $token,
+            ['browserData' => $input->browserData, 'values' => $input->values, 'action' => $input->action, 'page' => $input->session['currentPageId'] ?? null, 'target' => $input->targetPageId, 'version' => $input->session['version'] ?? null, 'continuation' => $input->session['continuation'] ?? null],
+            function () use ($submission, $form, $progress, $input, $navigation): void {
+                $this->primeSubmission($submission, $form, $progress, $input->siteId);
+                foreach ($input->browserData as $name => $value) {
+                    if (is_string($name) && is_scalar($value)) {
+                        $submission->setCaptchaData($name, ['value' => (string)$value]);
+                    }
+                }
+                // Module-owned payment token inputs supplement only declared payment
+                // fields, never request credentials, grants or administrative options.
+                $values = $input->values;
+                parse_str(http_build_query($input->browserData), $moduleInputs);
+                foreach (($moduleInputs['fields'] ?? []) as $handle => $value) {
+                    if ($form->getFieldByHandle($handle) instanceof \verbb\formie\fields\Payment) {
+                        $values[$handle] = $value;
+                    }
+                }
+                if ($navigation !== NavigationIntent::BACK || Formie::$plugin->getSettings()->enableBackSubmission) {
+                    foreach ($values as $handle => $value) {
+                        $submission->setFieldValueFromRequest($handle, $value);
+                    }
+                }
+            },
+            $this->_normalizeNullableInt($input->session['currentPageId'] ?? $progress?->currentPageId),
+            $input->targetPageId,
+        );
+        $form->resetRequestToken();
+        return $this->_buildClientResult($result->command, $result->response, $input);
+    }
+
     private function _executeResolved(
         Form $form, Submission $submission, SubmissionOperation $operation, NavigationIntent $navigation,
         SubmissionAuthorityType $authorityType, ?int $expectedVersion, ?string $operationId, ?string $requestToken,
@@ -583,36 +595,12 @@ class SubmissionProcessor extends Component
         $form = $submissionRequest->form;
         $submission = $response->submission;
         $submitAction = $response->submitAction;
-        $fieldIdByHandle = [];
+        $domainErrors = \verbb\formie\models\SubmissionErrors::fromSubmission($submission);
+        $canonicalErrors = $domainErrors->toClient();
+        $rawErrors = ['form' => $canonicalErrors['form']];
+        $fieldErrors = $canonicalErrors['fields'];
 
-        foreach ($form->getFields() as $field) {
-            $fieldIdByHandle[$field->handle] = (string)$field->id;
-        }
-
-        $rawErrors = $submission->getErrors();
-        $fieldErrors = [];
-
-        foreach ($rawErrors as $key => $messages) {
-            if ($key === 'form') {
-                continue;
-            }
-
-            // The client addresses fields by builder IDs, but server-side
-            // validation keys are handle-based (and may include nested paths).
-            // Rewrite them here so the client can attach messages to the same
-            // field instances the user is editing.
-            $segments = explode('.', (string)$key);
-            $topLevelHandle = array_shift($segments) ?: '';
-            $resolvedKey = $fieldIdByHandle[$topLevelHandle] ?? $topLevelHandle ?: $key;
-
-            if ($segments) {
-                $resolvedKey .= '.' . implode('.', $segments);
-            }
-
-            $fieldErrors[$resolvedKey] = StringHelper::sanitizeMessageHtmlRecursive($messages);
-        }
-
-        $currentPage = $response->nextPage ?: $this->_resolvePageById($form, $request->session['currentPageId'] ?? null) ?: $form->getCurrentPage();
+        $currentPage = $this->_resolvePageById($form, $domainErrors->firstPageId()) ?: $response->nextPage ?: $form->getCurrentPage();
         $previousPage = $currentPage ? $form->getPreviousPage($currentPage, $submission) : null;
         $nextPageId = $response->nextPage?->id ? (string)$response->nextPage->id : null;
         $currentPageId = $currentPage?->id ? (string)$currentPage->id : null;
@@ -664,7 +652,7 @@ class SubmissionProcessor extends Component
                 $error = $errorMessages
                     ? StringHelper::sanitizeMessageHtml(implode(' ', $errorMessages))
                     : StringHelper::sanitizeMessageHtml($form->settings->getErrorMessage());
-                $rawErrors['form'] = StringHelper::sanitizeMessageHtmlRecursive($rawErrors['form'] ?? []);
+                $rawErrors['form'] = array_map([\verbb\formie\models\SubmissionErrors::class, 'plainText'], $rawErrors['form'] ?? []);
             }
         }
 
@@ -707,7 +695,6 @@ class SubmissionProcessor extends Component
             'errors' => [
                 'form' => $rawErrors['form'] ?? [],
                 'fields' => $fieldErrors,
-                'pages' => [],
             ],
             'messages' => [
                 'notice' => $notice,

@@ -2,7 +2,7 @@ import { browserRequest, type BrowserRequestOptions } from '@verbb/formie-core';
 import type { FormEndpointPayload, FormSubmitResult } from '#contracts/schema';
 import { appendFormCsrfToFormData } from '#utils/csrf';
 import { createDebug } from '#utils/debug';
-import { requestJson } from '#utils/http';
+import { request, requestJson } from '#utils/http';
 
 const debug = createDebug('general', 'transport');
 
@@ -27,40 +27,11 @@ function toServerRenderPayloadInput(renderOptions: Record<string, unknown>): Rec
     return input;
 }
 
-function flattenErrors(errors: unknown, path = '', output: Record<string, string[]> = {}): Record<string, string[]> {
-    if (Array.isArray(errors)) {
-        const messages = errors
-            .map((value) => {
-                return typeof value === 'string' ? value : String(value ?? '');
-            })
-            .filter((value) => {
-                return value.trim() !== '';
-            });
-
-        if (path && messages.length) {
-            output[path] = (output[path] || []).concat(messages);
-        }
-
-        return output;
-    }
-
-    // Craft/Formie error payloads can be nested by page/field/path. Flatten first
-    // so the browser client can map them back onto field handles consistently.
-    if (errors && typeof errors === 'object') {
-        Object.entries(errors as Record<string, unknown>).forEach(([key, value]) => {
-            const nextPath = path ? `${path}.${key}` : key;
-            flattenErrors(value, nextPath, output);
-        });
-    }
-
-    return output;
-}
-
 function normalizePayload(payload: Record<string, unknown>, fallbackFormError?: string): FormSubmitResult {
     const success = payload.success === true;
     const keepSubmitLoading = payload.keepSubmitLoading === true;
     const errors = payload.errors;
-    const fieldErrorsFlat = flattenErrors(errors || {});
+    const fieldErrorsFlat: Record<string, string[]> = Object.fromEntries(Object.entries(errors && typeof errors === 'object' ? errors : {}).map(([path, messages]) => [path, Array.isArray(messages) ? messages.filter((message): message is string => typeof message === 'string') : []]));
     const formErrors = fieldErrorsFlat.form || [];
     const fieldErrors: Record<string, string[]> = {};
 
@@ -69,10 +40,8 @@ function normalizePayload(payload: Record<string, unknown>, fallbackFormError?: 
             return;
         }
 
-        // The client renders field errors against top-level field handles even when
-        // the backend returns deeper nested keys for subfields or row paths.
-        const topKey = key.split('.')[0];
-        fieldErrors[topKey] = (fieldErrors[topKey] || []).concat(value);
+        // The server normalises Yii keys; retain the entire control value path.
+        fieldErrors[key] = value;
     });
 
     const resolvedFormErrors = !success && formErrors.length === 0 && Object.keys(fieldErrors).length > 0
@@ -210,6 +179,7 @@ export async function requestRefreshTokens(endpoint: string, handle: string, ren
 export async function requestSetPage(url: string, form?: HTMLFormElement, pageId?: string): Promise<{
     success?: boolean;
     pageId?: string | number;
+    errors?: Record<string, string[]>;
 }> {
     const requestUrl = new URL(url, window.location.origin);
     const body = new FormData();
@@ -233,21 +203,24 @@ export async function requestSetPage(url: string, form?: HTMLFormElement, pageId
         });
 
         appendFormCsrfToFormData(body, form);
+        for (const [name, value] of new FormData(form)) {
+            if (name.startsWith('fields[')) body.append(name, value);
+        }
     }
 
     debug.log('requestSetPage start.', {
         requestUrl: requestUrl.toString(),
         pageId: pageId || null,
     });
-    const result = await requestJson<{
+    const response = await request(requestUrl.toString(), {
+        method: 'POST', body, profile: form?.dataset.formieRequestProfile as BrowserRequestOptions['profile'],
+    });
+    const result = await response.json() as {
         success?: boolean;
         pageId?: string | number;
+        errors?: Record<string, string[]>;
         session?: { version: number; tokens?: { request?: string } };
-    }>(requestUrl.toString(), {
-        method: 'POST',
-        body,
-        profile: form?.dataset.formieRequestProfile as BrowserRequestOptions['profile'],
-    });
+    };
     if (form && result.session) {
         const session = result.session;
         const version = form.querySelector<HTMLInputElement>('input[name="expectedVersion"]');

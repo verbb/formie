@@ -138,3 +138,12 @@ foreach (['message', 'redirect', 'reload', 'reset'] as $behavior) {
     $completionPayments[$behavior] = \verbb\formie\helpers\PaymentAccess::issueStatusToken($payment);
 }
 file_put_contents(dirname(__DIR__, 2) . '/.cache/verbb-tests/completion-payments.json', json_encode($completionPayments));
+
+$conditionForm = \verbb\formie\Formie::$plugin->getFactories()->form(['title' => 'Condition validation contract', 'handle' => 'conditionContract'])
+    ->settings(['disableCaptchas' => true, 'submitMethod' => 'ajax'])
+    ->singleLineTextField('marker', ['label' => 'Marker'])
+    ->dropdownField('allow', ['label' => 'Allow details', 'options' => [['label' => 'No', 'value' => 'no'], ['label' => 'Yes', 'value' => 'yes']]])
+    ->singleLineTextField('secret', ['label' => 'Conditional details', 'enableConditions' => true, 'conditions' => ['conditionRule' => 'all', 'showRule' => 'show', 'conditions' => [['field' => 'allow', 'condition' => '=', 'value' => 'yes']]]])
+    ->repeaterField('people', ['rows' => [['fields' => [[
+        'type' => \verbb\formie\fields\Email::class, 'handle' => 'email', 'label' => 'Row email', 'required' => true,
+    ]]]]])->create();

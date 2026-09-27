@@ -131,6 +131,13 @@ if ($path === '/browser-bundle') {
     readfile($runtime . '/browser/fixture.js');
     exit;
 }
+if ($path === '/browser-conditions-saved') {
+    $form = \verbb\formie\elements\Form::find()->handle('conditionContract')->one();
+    $rows = \verbb\formie\elements\Submission::find()->formId($form->id)->status(null)->isIncomplete(null)->isSpam(null)->all();
+    header('Content-Type: application/json');
+    echo json_encode(array_map(fn($row) => ['marker' => $row->getFieldValue('marker'), 'secret' => $row->getFieldValue('secret'), 'people' => $row->getFieldValueAsData('people')], $rows));
+    exit;
+}
 if ($path === '/browser-saved') {
     $fixture = json_decode(file_get_contents($runtime . '/browser-enabled.json'), true);
     $journey = isset($_GET['journey']);

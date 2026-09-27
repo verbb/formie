@@ -1,4 +1,4 @@
-import { applyConditionSource } from '#modules/fields/conditions/transforms';
+import { selectConditionRows } from '@verbb/formie-core';
 import type { ConditionInput, ConditionSource } from '#modules/fields/conditions/types';
 
 function getInputKey(input: ConditionInput, index: number): string {
@@ -105,11 +105,34 @@ export function readConditionValues(inputs: ConditionInput[], source: ConditionS
         return readInputGroupValues(group, source?.selector || '');
     });
 
-    return applyConditionSource(rawValues, source);
+    return (rawValues.length === 0 || rawValues.every((value) => value === '')) && source?.defaultValue ? [source.defaultValue] : rawValues;
 }
 
-export function isConditionValueEmpty(values: string[]): boolean {
-    return values.length === 0 || values.every((value) => {
-        return value.trim() === '';
-    });
+// DOM controls adapt to the same normalized condition projection as client-rendered values.
+export function readConditionProjection(inputs: ConditionInput[], source: ConditionSource | null, type: import('@verbb/formie-core').ConditionValueType, currentRow?: number): unknown {
+    if (source?.transformerParams.scope) {
+        const grouped = new Map<string, ConditionInput[]>();
+        for (const input of inputs) {
+            const row = input.name.match(/\[([0-9]+)\]/)?.[1];
+            if (row != null) grouped.set(row, [...(grouped.get(row) ?? []), input]);
+        }
+        const rows = [...grouped.values()].map((group) => readConditionProjection(group, { ...source, transformerParams: {} }, type === 'collection' ? (group.length > 1 ? 'collection' : 'text') : type));
+        const selected = selectConditionRows(rows, source.transformerParams, currentRow);
+        if (selected.diagnostic) return { conditionDiagnostic: selected.diagnostic };
+        return source.transformerParams.scope === 'rows' && !Array.isArray(selected.value) ? [selected.value] : selected.value;
+    }
+    if (type === 'boolean') {
+        const checkbox = inputs.find((input) => input instanceof HTMLInputElement && input.type === 'checkbox') as HTMLInputElement | undefined;
+        if (checkbox) return checkbox.checked;
+    }
+    if (['date', 'time', 'datetime'].includes(type)) {
+        const parts: Record<string, string> = {};
+        for (const input of inputs) {
+            const key = input.name.match(/\[(year|month|day|hour|minute|second|ampm|timezone)\]$/)?.[1];
+            if (key && input.value !== '') parts[key] = input.value;
+        }
+        if (Object.keys(parts).length) return parts;
+    }
+    const values = readConditionValues(inputs, source);
+    return type === 'collection' ? values : values[0] ?? null;
 }

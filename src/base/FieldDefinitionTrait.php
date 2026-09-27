@@ -74,16 +74,7 @@ trait FieldDefinitionTrait
 
     public function getConditions(): array
     {
-        $conditions = $this->conditions ?? [];
-        $conditionRows = $conditions['conditions'] ?? [];
-
-        foreach ($conditionRows as $key => $condition) {
-            if (!($condition['condition'] ?? null)) {
-                unset($conditions['conditions'][$key]);
-            }
-        }
-
-        return $conditions;
+        return $this->conditions ?? [];
     }
     
 

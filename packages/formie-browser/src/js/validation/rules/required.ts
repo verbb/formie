@@ -1,3 +1,4 @@
+import { validateBrowserValue } from '@verbb/formie-core';
 import type { ValidationRuleDefinition } from '#validation/types';
 
 const required: ValidationRuleDefinition = {
@@ -18,7 +19,7 @@ const required: ValidationRuleDefinition = {
             return input instanceof HTMLInputElement ? input.checked : true;
         }
 
-        return input.value.trim() !== '';
+        return validateBrowserValue(input.value, { type: 'required' }) === null;
     },
     message: ({ input, label, t }) => {
         return input.getAttribute('data-formie-required-message')

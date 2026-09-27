@@ -112,7 +112,7 @@ abstract class ContainerParentField extends ParentField implements ParentFieldIn
             $value = $element->getFieldValue($field->valueKey());
 
             // No need to validate if the field is conditionally hidden or disabled
-            if ($field->isConditionallyHidden($element) || $field->getIsDisabled()) {
+            if (\verbb\formie\conditions\ConditionVisibility::unavailable($field, $element) || $field->getIsDisabled()) {
                 continue;
             }
 

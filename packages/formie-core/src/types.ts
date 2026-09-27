@@ -38,6 +38,8 @@ export type ClientFieldValueContract = {
 };
 
 export type ClientValidationRule = {
+    message?: string;
+    messages?: Record<string, string>;
     type: string;
     fieldId?: string | null;
     fieldHandle?: string | null;
@@ -57,6 +59,7 @@ export type ClientFieldDefinition = {
     type: ClientFieldType;
     required: boolean;
     condition?: {
+        version?: number;
         mode: 'all' | 'any';
         effect: 'show' | 'hide' | 'enable' | 'disable';
         clearOnHide?: boolean;
@@ -64,6 +67,10 @@ export type ClientFieldDefinition = {
             fieldId: string;
             operator: string;
             value: unknown;
+            field?: string;
+            source?: { selector?: string; handle?: string; target?: string; defaultValue?: string; transformerId?: string; transformerParams?: Record<string, string>; isValid?: boolean };
+            valueType?: import('./conditions').ConditionValueType;
+            browserSafe?: boolean;
         }>;
     } | null;
     validation: ClientValidationRule[];
@@ -90,6 +97,7 @@ export type ClientPageDefinition = {
     rows: ClientRowDefinition[];
     actions: {
         primary: {
+            condition?: ClientFieldDefinition['condition'];
             type: 'next' | 'submit';
             label: string;
         };
@@ -182,7 +190,6 @@ export type ClientSubmitResult = {
     errors: {
         form: string[];
         fields: Record<string, string[]>;
-        pages: Record<string, string[]>;
     };
     messages: {
         notice?: string | null;
@@ -253,7 +260,7 @@ export type ClientTransport = {
         values: Record<string, unknown>;
         currentPageId?: string;
         targetPageId: string;
-    }): Promise<ClientFormSession>;
+    }): Promise<ClientSubmitResult>;
 };
 
 export type ClientFormInstance = {

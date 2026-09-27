@@ -1,5 +1,6 @@
+import { deriveConditionState, clientActionAllowed } from './condition-state';
+import { validateBrowserValue } from './validation';
 import { assertClientFormBootstrap } from './contract';
-import { evaluateConditionDefinition, finalizeConditionEvaluation } from './conditions';
 import { validateCompositeDateParts } from './date-parts-validation';
 import { ClientEventEmitter } from './events';
 import {
@@ -68,7 +69,6 @@ function cloneState(state: ClientFormState): ClientFormState {
         errors: {
             form: [...state.errors.form],
             fields: Object.fromEntries(Object.entries(state.errors.fields).map(([key, value]) => [key, [...value]])),
-            pages: Object.fromEntries(Object.entries(state.errors.pages).map(([key, value]) => [key, [...value]])),
         },
         fieldStates: Object.fromEntries(Object.entries(state.fieldStates).map(([key, value]) => [key, { ...value }])),
         pageStates: Object.fromEntries(Object.entries(state.pageStates).map(([key, value]) => [key, { ...value }])),
@@ -77,7 +77,6 @@ function cloneState(state: ClientFormState): ClientFormState {
             errors: {
                 form: [...state.lastSubmitResult.errors.form],
                 fields: Object.fromEntries(Object.entries(state.lastSubmitResult.errors.fields).map(([key, value]) => [key, [...value]])),
-                pages: Object.fromEntries(Object.entries(state.lastSubmitResult.errors.pages).map(([key, value]) => [key, [...value]])),
             },
             messages: { ...state.lastSubmitResult.messages },
             session: state.lastSubmitResult.session ? {
@@ -128,181 +127,8 @@ function fieldIdsForPage(state: ClientFormState, pageId: string): string[] {
     return output;
 }
 
-function resolveConditionField(
-    definition: ClientFormState['definition'],
-    rule: NonNullable<ClientFieldDefinition['condition']>['rules'][number],
-): ClientFieldDefinition | undefined {
-    return findFieldById(definition, rule.fieldId) || findFieldByHandle(definition, rule.fieldId);
-}
-
-function evaluateFieldStates(state: ClientFormState): ClientFormState['fieldStates'] {
-    const nextFieldStates = initialFieldStates(state.definition);
-
-    allFields(state.definition).forEach((field) => {
-        const condition = field.condition;
-
-        if (!condition || condition.rules.length === 0) {
-            return;
-        }
-
-        const results = condition.rules.map((rule) => {
-            const sourceField = resolveConditionField(state.definition, rule);
-            const visibility = sourceField ? nextFieldStates[sourceField.id]?.hidden !== true : null;
-
-            return evaluateConditionDefinition({
-                condition: rule.operator,
-                value: rule.value,
-            }, sourceField ? fieldValueAsStrings(sourceField, state.values[sourceField.id]) : [], {
-                visibility,
-            });
-        });
-
-        if (condition.effect === 'show' || condition.effect === 'hide') {
-            const { shouldHide } = finalizeConditionEvaluation({
-                conditionRule: condition.mode,
-                showRule: condition.effect === 'show' ? 'show' : 'hide',
-            }, results);
-
-            nextFieldStates[field.id] = {
-                ...nextFieldStates[field.id],
-                hidden: nextFieldStates[field.id].hidden || shouldHide,
-            };
-
-            return;
-        }
-
-        const matches = condition.mode === 'any'
-            ? results.includes(true)
-            : results.every((result) => result === true);
-
-        nextFieldStates[field.id] = {
-            ...nextFieldStates[field.id],
-            disabled: nextFieldStates[field.id].disabled || (condition.effect === 'disable' ? matches : !matches),
-        };
-    });
-
-    return nextFieldStates;
-}
-
-function clearValueForHiddenField(field: ClientFieldDefinition): unknown {
-    return defaultValueForField(field);
-}
-
-function clearHiddenFieldValues(
-    state: ClientFormState,
-    previousFieldStates: ClientFormState['fieldStates'],
-    nextFieldStates: ClientFormState['fieldStates'],
-): Record<string, unknown> {
-    let nextValues = state.values;
-
-    allFields(state.definition).forEach((field) => {
-        const condition = field.condition;
-        const wasHidden = previousFieldStates[field.id]?.hidden === true;
-        const isHidden = nextFieldStates[field.id]?.hidden === true;
-        const shouldClearOnHide = condition?.clearOnHide !== false;
-
-        if (!isHidden || wasHidden || !shouldClearOnHide) {
-            return;
-        }
-
-        const clearedValue = clearValueForHiddenField(field);
-
-        if (nextValues[field.id] === clearedValue) {
-            return;
-        }
-
-        nextValues = {
-            ...nextValues,
-            [field.id]: clearedValue,
-        };
-    });
-
-    return nextValues;
-}
-
-function evaluatePageStates(
-    state: ClientFormState,
-    fieldStates: ClientFormState['fieldStates'],
-): ClientFormState['pageStates'] {
-    return Object.fromEntries(state.definition.pages.map((page) => {
-        const condition = page.condition;
-
-        if (!condition || condition.rules.length === 0) {
-            return [page.id, { hidden: false }];
-        }
-
-        const results = condition.rules.map((rule) => {
-            const sourceField = resolveConditionField(state.definition, rule);
-            const visibility = sourceField ? fieldStates[sourceField.id]?.hidden !== true : null;
-
-            return evaluateConditionDefinition({
-                condition: rule.operator,
-                value: rule.value,
-            }, sourceField ? fieldValueAsStrings(sourceField, state.values[sourceField.id]) : [], {
-                visibility,
-            });
-        });
-        const { shouldHide } = finalizeConditionEvaluation({
-            conditionRule: condition.mode,
-            showRule: condition.effect === 'show' ? 'show' : 'hide',
-        }, results);
-
-        return [page.id, { hidden: shouldHide }];
-    }));
-}
-
-function resolveCurrentPageId(
-    definition: ClientFormState['definition'],
-    pageStates: ClientFormState['pageStates'],
-    preferredPageId?: string | null,
-): string {
-    const fallbackPageId = definition.pages[0]?.id || '';
-    const firstVisiblePageId = definition.pages.find((page) => pageStates[page.id]?.hidden !== true)?.id || fallbackPageId;
-
-    if (!preferredPageId) {
-        return firstVisiblePageId;
-    }
-
-    return pageStates[preferredPageId]?.hidden === true
-        ? firstVisiblePageId
-        : preferredPageId;
-}
-
-function applyDerivedState(current: ClientFormState): ClientFormState {
-    let nextState = current;
-
-    for (let iteration = 0; iteration < 3; iteration += 1) {
-        const fieldStates = evaluateFieldStates(nextState);
-        const nextValues = clearHiddenFieldValues(nextState, nextState.fieldStates, fieldStates);
-
-        if (nextValues !== nextState.values) {
-            nextState = {
-                ...nextState,
-                values: nextValues,
-                fieldStates,
-            };
-            continue;
-        }
-
-        const pageStates = evaluatePageStates(nextState, fieldStates);
-
-        return {
-            ...nextState,
-            fieldStates,
-            pageStates,
-            currentPageId: resolveCurrentPageId(nextState.definition, pageStates, nextState.currentPageId),
-        };
-    }
-
-    const fieldStates = evaluateFieldStates(nextState);
-    const pageStates = evaluatePageStates(nextState, fieldStates);
-
-    return {
-        ...nextState,
-        fieldStates,
-        pageStates,
-        currentPageId: resolveCurrentPageId(nextState.definition, pageStates, nextState.currentPageId),
-    };
+function applyDerivedState(state: ClientFormState): ClientFormState {
+    return deriveConditionState(state);
 }
 
 function isEmptyValue(field: ClientFieldDefinition, value: unknown): boolean {
@@ -346,84 +172,17 @@ function validateFieldValue(
     errorKey: string,
     output: Record<string, string[]>,
 ): void {
-    const ruleTypes = new Set(field.validation.map((rule) => rule.type));
-    const contract = field.input;
-
-    if ((field.required || ruleTypes.has('required')) && isEmptyValue(field, value)) {
-        output[errorKey] = [`${fieldLabel(field)} cannot be blank.`];
-        return;
-    }
-
-    if ((isEmailField(field) || ruleTypes.has('email')) && typeof value === 'string' && value.trim() !== '') {
-        const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-
-        if (!isValid) {
-            output[errorKey] = [`${fieldLabel(field)} is not a valid email address.`];
-            return;
-        }
-    }
-
-    if ((isNumericField(field) || ruleTypes.has('number')) && typeof value === 'string' && value.trim() !== '') {
-        const numericValue = Number.parseFloat(value);
-
-        if (!Number.isFinite(numericValue)) {
-            output[errorKey] = [`${fieldLabel(field)} is not a valid number.`];
-            return;
-        }
-
-        const numberRule = field.validation.find((rule) => rule.type === 'number');
-        const min = Number(contract.min ?? numberRule?.min ?? Number.NaN);
-        const max = Number(contract.max ?? numberRule?.max ?? Number.NaN);
-
-        if (Number.isFinite(min) && numericValue < min) {
-            output[errorKey] = [`${fieldLabel(field)} must be no less than ${min}.`];
-            return;
-        }
-
-        if (Number.isFinite(max) && numericValue > max) {
-            output[errorKey] = [`${fieldLabel(field)} must be no greater than ${max}.`];
-            return;
-        }
-    }
-
-    if (ruleTypes.has('url') && typeof value === 'string' && value.trim() !== '') {
-        try {
-            new URL(value);
-        } catch {
-            output[errorKey] = [`${fieldLabel(field)} is not a valid URL.`];
-            return;
-        }
-    }
-
-    const matchRule = field.validation.find((rule) => rule.type === 'match');
-
-    if (matchRule && typeof value === 'string' && value.trim() !== '') {
-        const sourceField = (matchRule.fieldId ? findFieldById(state.definition, matchRule.fieldId) : undefined)
-            || (matchRule.fieldHandle ? findFieldByHandle(state.definition, matchRule.fieldHandle) : undefined);
-        const sourceValue = sourceField ? state.values[sourceField.id] : undefined;
-
-        if (typeof sourceValue === 'string' && sourceValue !== value) {
-            const matchLabel = sourceField ? fieldLabel(sourceField) : field.handle;
-
-            output[errorKey] = [`${fieldLabel(field)} must match ${matchLabel}.`];
-            return;
-        }
-    }
-
-    if (ruleTypes.has('minmaxOptions') && Array.isArray(value)) {
-        const optionsRule = field.validation.find((rule) => rule.type === 'minmaxOptions');
-        const min = Number(contract.min ?? optionsRule?.min ?? Number.NaN);
-        const max = Number(contract.max ?? optionsRule?.max ?? Number.NaN);
-
-        if (Number.isFinite(min) && value.length < min) {
-            output[errorKey] = [`Please select at least ${min} option${min === 1 ? '' : 's'}.`];
-            return;
-        }
-
-        if (Number.isFinite(max) && value.length > max) {
-            output[errorKey] = [`Please select no more than ${max} option${max === 1 ? '' : 's'}.`];
-            return;
-        }
+    if (state.fieldStates[errorKey]?.hidden || state.fieldStates[errorKey]?.disabled) return;
+    const rules = field.validation.slice();
+    if (field.required && !rules.some((rule) => rule.type === 'required')) rules.unshift({ type: 'required' });
+    for (const rule of rules) {
+        const source = (rule.fieldId ? findFieldById(state.definition, rule.fieldId) : undefined) || (rule.fieldHandle ? findFieldByHandle(state.definition, rule.fieldHandle) : undefined);
+        const message = validateBrowserValue(value, rule, {
+            label: fieldLabel(field), empty: isEmptyValue(field, value),
+            comparison: source ? state.values[source.id] : undefined,
+            comparisonLabel: source ? fieldLabel(source) : undefined,
+        });
+        if (message) { output[errorKey] = [message]; return; }
     }
 
     if (isCompositeField(field)) {
@@ -467,7 +226,6 @@ function validateCurrentPage(state: ClientFormState): ClientFormState['errors'] 
     const errors: ClientFormState['errors'] = {
         form: [],
         fields: {},
-        pages: {},
     };
 
     fieldIdsForPage(state, state.currentPageId).forEach((fieldId) => {
@@ -504,7 +262,6 @@ export function createClientFormInstance({ envelope, transport }: CreateClientFo
         errors: {
             form: [],
             fields: {},
-            pages: {},
         },
         fieldStates: initialFieldStates(envelope.definition),
         pageStates: initialPageStates(envelope.definition),
@@ -595,7 +352,6 @@ export function createClientFormInstance({ envelope, transport }: CreateClientFo
                     errors: {
                         form: ['Form instance has been destroyed.'],
                         fields: {},
-                        pages: {},
                     },
                     messages: {
                         error: 'Form instance has been destroyed.',
@@ -612,7 +368,6 @@ export function createClientFormInstance({ envelope, transport }: CreateClientFo
                     errors: {
                         form: ['A submission is already in progress.'],
                         fields: {},
-                        pages: {},
                     },
                     messages: {
                         error: 'A submission is already in progress.',
@@ -658,7 +413,6 @@ export function createClientFormInstance({ envelope, transport }: CreateClientFo
                 errors: {
                     form: [],
                     fields: {},
-                    pages: {},
                 },
             }));
 
@@ -703,7 +457,6 @@ export function createClientFormInstance({ envelope, transport }: CreateClientFo
                     errors: {
                         form: [message],
                         fields: {},
-                        pages: {},
                     },
                     messages: {
                         error: message,
@@ -751,7 +504,7 @@ export function createClientFormInstance({ envelope, transport }: CreateClientFo
             }));
 
             try {
-                const session = await transport.setPage({
+                const result = await transport.setPage({
                     definition: state.definition,
                     session: state.session,
                     values: state.values,
@@ -763,6 +516,12 @@ export function createClientFormInstance({ envelope, transport }: CreateClientFo
                     return;
                 }
 
+                if (!result.success || !result.session) {
+                    setState((current) => ({ ...current, status: 'ready', errors: result.errors, lastSubmitResult: result }));
+                    emitter.emit('formie:submit:result', result);
+                    return;
+                }
+                const session = result.session;
                 setState((current) => applyDerivedState({
                     ...current,
                     status: 'ready',
@@ -847,7 +606,6 @@ export function createClientFormInstance({ envelope, transport }: CreateClientFo
                 errors: {
                     form: [],
                     fields: {},
-                    pages: {},
                 },
                 currentPageId: envelope.session.currentPageId || envelope.definition.settings.initialPageId,
                 lastSubmitResult: null,

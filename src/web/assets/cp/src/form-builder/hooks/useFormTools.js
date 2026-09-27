@@ -1303,7 +1303,7 @@ const buildFieldReferenceOptions = (field, config, visited = new Set()) => {
         });
     }
 
-    return options;
+    return options.map((option) => ({ ...option, conditionOperators: option.conditionOperators ?? fieldTypeConfig.conditionOperators, conditionValueType: option.conditionValueType ?? fieldTypeConfig.conditionValueType }));
 };
 
 const getFieldReferenceOptions = (values = {}, options = {}) => {

@@ -200,6 +200,8 @@ class IntegrationRunner extends Component
     {
         $integration = clone $connection;
         $integration->populateContext($submission);
+        $conditionEvaluation = $integration->enableConditions ? \verbb\formie\helpers\ConditionsHelper::evaluate($integration->conditions ?? [], $submission, 'integration') : null;
+        $invalidConditions = $conditionEvaluation && $conditionEvaluation->value === null;
         $eligible = $integration->shouldTrigger($submission, $triggerContext) && $integration->enforceOptInField($submission);
         $overrides = [];
         $reason = ($triggerContext['operatorInitiated'] ?? false) ? 'manual' : 'automatic';
@@ -220,9 +222,9 @@ class IntegrationRunner extends Component
         }
         $context = new IntegrationExecutionContext((int)$submission->id, (int)$submission->formId, (string)$integration->handle, $executionKey, $execution, $reason, $eligible, $overrides);
         $this->trigger(self::EVENT_EVALUATED, new IntegrationDeliveryEvent(['context' => $context]));
-        if (!$eligible && !$overrides) {
-            $result = IntegrationResult::skipped();
-            $this->trigger(self::EVENT_SKIPPED, new IntegrationDeliveryEvent(['context' => $context, 'result' => $result]));
+        if ($invalidConditions || (!$eligible && !$overrides)) {
+            $result = $invalidConditions ? new IntegrationResult(IntegrationStatus::Rejected, code: 'invalid_conditions', diagnostics: $conditionEvaluation->diagnostics) : IntegrationResult::skipped('conditions');
+            $this->trigger($invalidConditions ? self::EVENT_RESULT : self::EVENT_SKIPPED, new IntegrationDeliveryEvent(['context' => $context, 'result' => $result]));
             $attempts = Formie::$plugin->getDeliveryAttempts();
             $uid = $attempts->prepare($context, 'integration');
             $attempts->execute($uid, fn() => $result);

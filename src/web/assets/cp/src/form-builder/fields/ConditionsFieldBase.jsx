@@ -1,3 +1,4 @@
+import { precedingConditionValues } from '@form-builder/utils/conditionSources';
 import { useEffect, useMemo, useState } from 'react';
 
 import { useTranslation } from '@verbb/plugin-kit-react/hooks';
@@ -171,8 +172,9 @@ function ConditionsFieldBase({
             referenceContext,
         };
     }, [resolvedFieldSelectionPageScope, currentPageIndex, maxPageIndex, resolvedExcludeSelfInFieldOptions, currentFieldId, referenceContext]);
+    const sourceValues = resolvedExcludeSelfInFieldOptions ? precedingConditionValues(formValues, currentFieldId) : formValues;
     const variableCategories = useMemo(() => {
-        return resolveVariableCategories(variableCategoriesConfig || {}, formValues, conditionVariableConfig, {
+        return resolveVariableCategories(variableCategoriesConfig || {}, sourceValues, conditionVariableConfig, {
             getFieldTypeByType,
             form,
         });
@@ -210,7 +212,8 @@ function ConditionsFieldBase({
     const { modifyValueColumn } = useMemo(() => {
         return buildConditionFieldPicker({
             baseFieldOptions: fieldOptions,
-            formValues,
+            formValues: sourceValues,
+            conditionOptions,
             getFieldTypeByType,
             t,
             fieldReferenceOptions: {
@@ -312,7 +315,7 @@ function ConditionsFieldBase({
                     ]}
                     rows={settings.conditions}
                     onChange={(data) => {
-                        const nextSettings = { ...settings, conditions: data };
+                        const nextSettings = { ...settings, version: 1, conditions: data.map((row) => ({ ...row, legacyForward: settings.conditions.some((existing) => existing.field === row.field && existing.legacyForward !== false) })) };
                         setSettings(nextSettings);
                         setValue(nextSettings);
                         setTouched();

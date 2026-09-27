@@ -108,7 +108,7 @@ it('requires submission mutation scopes for client graphql submit mutations', fu
     withGraphqlSchemaScope([
         'formieForms.' . $form->uid . ':read',
     ], function () use ($form): void {
-        expect(fn() => \Tests\Support\WebRequestTestHelper::withWebRequestContext(fn() => ClientFormResolver::submitForm(null, [
+        $result = \Tests\Support\WebRequestTestHelper::withWebRequestContext(fn() => ClientFormResolver::submitForm(null, [
             'input' => [
                 'handle' => (string)$form->handle,
                 'session' => [],
@@ -116,7 +116,8 @@ it('requires submission mutation scopes for client graphql submit mutations', fu
                     'fullName' => 'Security Tester',
                 ],
             ],
-        ])))->toThrow(Error::class, 'Unable to perform the action.');
+        ]));
+        expect($result['success'])->toBeFalse()->and($result['httpStatus'])->toBe(403)->and($result['errors']['form'])->toBe(['Unable to perform the action.']);
     });
 })->group('security');
 

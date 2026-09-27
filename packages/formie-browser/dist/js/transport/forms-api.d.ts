@@ -6,6 +6,7 @@ export declare function requestRefreshTokens(endpoint: string, handle: string, r
 export declare function requestSetPage(url: string, form?: HTMLFormElement, pageId?: string): Promise<{
     success?: boolean;
     pageId?: string | number;
+    errors?: Record<string, string[]>;
 }>;
 export declare function clearSubmissionOnUnload(endpoint: string, form: HTMLFormElement): void;
 export declare function submitForm(form: HTMLFormElement, formData: FormData): Promise<FormSubmitResult>;

@@ -34,8 +34,8 @@ class EnforceProgressionTask implements TaskInterface
         $conditions = $page?->getSubmitButtonConditions() ?? [];
 
         if ($page?->hasSubmitButtonConditions() && $conditions) {
-            $matches = ConditionsHelper::getConditionalTestResult($conditions, $command->submission);
-            $allowed = ($conditions['showRule'] ?? 'show') === 'show' ? $matches : !$matches;
+            $evaluation = ConditionsHelper::evaluate($conditions, $command->submission, 'routing');
+            $allowed = $evaluation->permits(($conditions['showRule'] ?? 'show') === 'show');
 
             if (!$allowed) {
                 $command->submission->addError('form', Craft::t('formie', 'Complete the requirements on this page before continuing.'));

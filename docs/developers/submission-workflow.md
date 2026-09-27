@@ -10,8 +10,8 @@ Use a [custom task](/guides/submissions-workflows/adding-a-custom-workflow-task-
 
 | Stage | Public Task Anchors |
 | --- | --- |
-| `preflight` | `preflight.resolveNavigationIntent`, `preflight.applySubmissionDefaults`, `preflight.clearHiddenValues`, `preflight.enforceProgression`, `preflight.resolveTransition`, `preflight.captureMetadata`, `preflight.applyStatusRules` |
-| `validate` | `validate.submission` |
+| `preflight` | `preflight.resolveNavigationIntent`, `preflight.applySubmissionDefaults`, `preflight.clearHiddenValues`, `preflight.resolveTransition`, `preflight.captureMetadata`, `preflight.applyStatusRules` |
+| `validate` | `validate.submission`, `validate.enforceProgression`, `validate.resolveTransition` |
 | `screen` | `screen.evaluateSpam`, `screen.verifyCaptcha` |
 | `persist` | `persist.submission`, `persist.processPayment`, `persist.questionnaireResult` |
 | `dispatch` | `dispatch.sendNotifications`, `dispatch.triggerIntegrations`, `dispatch.sendSpamNotifications` |
@@ -106,3 +106,5 @@ Uploads have durable staged, bound and finalized states. Final binding checks th
 Promotion runs after submission persistence and before Dispatch. Native multipart/base64 files are staged before the submission transaction. Sorted upload locks protect binding through persistence and promotion; cleanup skips active claims, and recovery serializes moves using the same locks. A durable exact destination, source identity, content fingerprint and `moving` marker precede the filesystem/provider operation; success records `moved`. Provider failure preserves a bounded failure code and prevents Dispatch. After diagnosing the provider failure, trusted maintenance code can call `getFileUploads()->recoverPromotions($submissionId)` to finish outstanding moves. If a provider completed a move before Craft committed its asset metadata, recovery verifies the destination's content fingerprint and repairs that metadata instead of repeating the move. This does not replay payments or notifications; reconcile the interrupted command receipt separately before resuming those effects.
 
 Scheduled cleanup expires grants and abandoned progress/uploads. Referenced assets and valid bound/finalized uploads are protected from abandoned-upload cleanup. An interrupted claim that never persisted a submission reference can expire after its lease; removal or replacement of a field value releases only unreferenced uploads. Files shared by other submissions remain protected. Grant expiry is capped by progress and target-submission retention, including form data retention. Upload view, attach and delete capabilities expire with their upload record; rendering refreshes capabilities only while the record remains available. These records contain sensitive scope and lifecycle metadata: restrict database and maintenance access to administrators, and use the configured retention settings rather than exporting them to application logs.
+
+Forward progression and route selection run after successful field validation. The preflight transition anchor is reserved for Back and Stay. See [Conditions and Validation](/developers/conditions-and-validation) for visibility, clearing, scopes and error identity.

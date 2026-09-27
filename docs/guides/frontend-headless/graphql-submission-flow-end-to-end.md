@@ -228,15 +228,17 @@ For navigation without a normal submit, use:
 ```graphql
 mutation ChangeContactPage($input: FormieClientSetPageInput!) {
     setFormieClientPage(input: $input) {
-        id
+        success
+        outcome
+        httpStatus
+        errors
         currentPageId
-        tokens
-        continuation
+        session { id currentPageId tokens continuation }
     }
 }
 ```
 
-Its input contains `handle`, the current `session`, `currentPageId`, `targetPageId` and `values`. Use page IDs from the definition and returned session, not hard-coded labels. Replace your session with the result. Page navigation is not a substitute for submitting and validating the final page.
+Its input contains `handle`, the current `session`, `currentPageId`, `targetPageId` and `values`. Use page IDs from the definition and returned session, not hard-coded labels. Replace your session with `result.session` when present and display `result.errors` when `success` is false. Page navigation is not a substitute for submitting and validating the final page.
 
 The single-page UI above must be extended to render each page before using a multi-page form. [Formie's frontend packages](https://docs.verbb.io/formie/react/) provide that rendering and navigation flow.
 

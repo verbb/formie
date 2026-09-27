@@ -258,7 +258,9 @@ export function renderFieldErrors(form: HTMLFormElement, fieldErrors: Record<str
     const errorAriaLive = resolveSubmitErrorAriaLive(getErrorAriaLivePreference(form));
 
     Object.entries(fieldErrors).forEach(([handle, messages]) => {
-        const fieldNode = form.querySelector(`[data-formie-field-handle="${handle}"]`);
+        const inputName = `fields[${handle.split('.').join('][')}]`;
+        const exactInput = form.querySelector(`[name="${CSS.escape(inputName)}"], [name="${CSS.escape(inputName + '[]')}"]`);
+        const fieldNode = exactInput?.closest('[data-formie-field-handle]') || form.querySelector(`[data-formie-field-handle="${CSS.escape(handle)}"]`);
 
         if (!fieldNode) {
             return;

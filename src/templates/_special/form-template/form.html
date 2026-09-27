@@ -1,7 +1,7 @@
 {% apply spaceless %}
     {% set showForm = form.isAvailable() %}
     {% set currentPage = form.getCurrentPage() %}
-    {% set errors = submission.getErrors('form') ?? null %}
+    {% set errors = submission.submissionErrors.forValuePath('form') ?? null %}
 
     {% set submitted = craft.formie.plugin.service.getFlash(form.getFlashNamespace(), 'submitted') %}
     {% set flashNotice = craft.formie.plugin.service.getFlash(form.getFlashNamespace(), 'notice') %}

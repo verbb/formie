@@ -227,6 +227,7 @@ class FieldLayoutPage extends SavableComponent implements TranslatableProperties
                 'primary' => [
                     'type' => $isLastPage ? 'submit' : 'next',
                     'label' => $pageSettings->submitButtonLabel,
+                    'condition' => $this->hasSubmitButtonConditions() ? ConditionsHelper::toComponentConditionDefinition($this->getSubmitButtonClientConditions()) : null,
                 ],
                 'secondary' => $secondaryActions,
             ],
@@ -253,24 +254,11 @@ class FieldLayoutPage extends SavableComponent implements TranslatableProperties
 
     public function isConditionallyHidden(Submission $submission): bool
     {
-        if ($this->hasConditions()) {
-            $conditionSettings = $this->getConditions();
-            $conditions = $conditionSettings['conditions'] ?? [];
-
-            if ($conditionSettings && $conditions) {
-                // A `true` result means the field passed the evaluation and that it has a value, whilst a `false` result means
-                // it didn't (for instance the field doesn't have a value)
-                $result = ConditionsHelper::getConditionalTestResult($conditionSettings, $submission);
-
-                // Depending on if we show or hide the field when evaluating. If `false` and set to show, it means
-                // the field is hidden and the conditions to show it isn't met. Therefore, report back that this field is hidden.
-                if (($result && $conditionSettings['showRule'] !== 'show') || (!$result && $conditionSettings['showRule'] === 'show')) {
-                    return true;
-                }
-            }
+        if (!$this->hasConditions()) {
+            return false;
         }
-
-        return false;
+        $settings = $this->getConditions();
+        return ConditionsHelper::evaluate($settings, $submission)->hides($settings['showRule'] ?? $settings['effect'] ?? 'show');
     }
 
     public function hasConditions(): bool
@@ -280,17 +268,7 @@ class FieldLayoutPage extends SavableComponent implements TranslatableProperties
 
     public function getConditions(): array
     {
-        // Filter out any un-set conditions
-        $conditions = $this->getPageSettings()->pageConditions ?? [];
-        $conditionRows = $conditions['conditions'] ?? [];
-
-        foreach ($conditionRows as $key => $condition) {
-            if (!($condition['condition'] ?? null)) {
-                unset($conditions['conditions'][$key]);
-            }
-        }
-
-        return $conditions;
+        return $this->getPageSettings()->pageConditions ?? [];
     }
 
     public function getBrowserConditions(): array
@@ -402,23 +380,10 @@ class FieldLayoutPage extends SavableComponent implements TranslatableProperties
     public function getFieldErrors(?Submission $submission): array
     {
         $errors = [];
-
-        // Ensure that we recursively check for nested/subfields for errors
-        $getFieldErrors = function(array $fields) use ($submission, &$errors, &$getFieldErrors) {
-            foreach ($fields as $field) {
-                $errors[$field->valueKey()] = $submission->getErrors()[$field->valueKey()] ?? null;
-
-                if ($field instanceof ParentFieldInterface) {
-                    $getFieldErrors($field->getFields());
-                }
-            }
-        };
-
-        if ($submission) {
-            $getFieldErrors($this->getFields());
+        foreach ($submission?->getSubmissionErrors()->forPage((int)$this->id) ?? [] as $item) {
+            $errors[$item['valuePath']][] = $item['message'];
         }
-
-        return array_filter($errors);
+        return $errors;
     }
 
 

@@ -1,3 +1,4 @@
+import { validateBrowserValue } from '@verbb/formie-core';
 import type { ValidationRuleDefinition } from '#validation/types';
 import { getComparableInput, getLabelText } from '#validation/rules/shared';
 
@@ -9,7 +10,7 @@ const match: ValidationRuleDefinition = {
             return true;
         }
 
-        return sourceInput.value === ctx.input.value;
+        return validateBrowserValue(ctx.input.value, { type: 'match' }, { comparison: sourceInput.value }) === null;
     },
     message: (ctx) => {
         const sourceInput = getComparableInput(ctx);

@@ -1188,20 +1188,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         }
 
         $conditionSettings = $this->conditions ?? [];
-        $conditions = $conditionSettings['conditions'] ?? [];
-
-        if (!$conditionSettings || !$conditions) {
-            return true;
-        }
-
-        $result = ConditionsHelper::getConditionalTestResult($conditionSettings, $submission);
-        $triggerRule = (string)($conditionSettings['triggerRule'] ?? 'trigger');
-
-        if ($triggerRule === 'trigger') {
-            return $result;
-        }
-
-        return !$result;
+        return ConditionsHelper::evaluate($conditionSettings, $submission, 'integration')->permits(($conditionSettings['triggerRule'] ?? 'trigger') === 'trigger');
     }
 
     public function populateContext(?Submission $submission = null): void

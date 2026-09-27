@@ -117,10 +117,11 @@ export function queryConditionInputs(
     }
 
     const escapedFieldHandle = escapeSelectorValue(source.handle);
+    const explicitScope = Boolean(source.transformerParams.scope);
     const fieldMatches = Array.from(root.querySelectorAll(`[data-formie-field-handle="${escapedFieldHandle}"]`));
 
     if (fieldMatches.length) {
-        return preferSameRow(targetNode, fieldMatches).flatMap((fieldNode) => {
+        return (explicitScope ? fieldMatches : preferSameRow(targetNode, fieldMatches)).flatMap((fieldNode) => {
             return filterInputsBySelector(getFieldInputs(fieldNode), source.selector);
         });
     }
@@ -135,7 +136,7 @@ export function queryConditionInputs(
     });
 
     if (direct.length || multi.length) {
-        return preferSameRow(targetNode, [...direct, ...multi]);
+        return explicitScope ? [...direct, ...multi] : preferSameRow(targetNode, [...direct, ...multi]);
     }
 
     if (!source.handle.includes('__ROW__')) {
@@ -144,7 +145,7 @@ export function queryConditionInputs(
 
     const rowToken = getNodeRowToken(targetNode);
 
-    if (rowToken) {
+    if (rowToken && !explicitScope) {
         const rowFieldName = fieldKeyToInputName(source.handle.replace(/__ROW__/g, rowToken));
         const escapedRowFieldName = escapeSelectorValue(rowFieldName);
         const rowDirect = Array.from(root.querySelectorAll(`[name="${escapedRowFieldName}"]`)).filter((element): element is ConditionInput => {
@@ -157,6 +158,10 @@ export function queryConditionInputs(
         if (rowDirect.length || rowMulti.length) {
             return [...rowDirect, ...rowMulti];
         }
+    }
+
+    if (!explicitScope) {
+        return [];
     }
 
     const regexString = fieldKeyToInputName(source.handle)

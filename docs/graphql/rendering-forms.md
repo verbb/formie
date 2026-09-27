@@ -116,3 +116,5 @@ Mutation | Purpose
 `setFormieClientPage` | Saves page navigation state for multi-page forms.
 
 Forms with Payment fields should use `submitFormieClientForm` in headless front-ends. See [Headless Payments](/graphql/headless-payments).
+
+Submit and page mutations return expected domain failures in result data. Inspect `success`, `outcome`, `httpStatus` and `errors`; keep the current page on a rejected transition. `errors.fields` retains exact keys such as `123.1.email`, with a form-field instance ID at the root. Messages are plain text. See [Conditions and Validation](/developers/conditions-and-validation).

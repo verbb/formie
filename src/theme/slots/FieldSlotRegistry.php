@@ -43,7 +43,7 @@ class FieldSlotRegistry extends Component
     private function _field(RenderContext $context): SlotTag
     {
         $field = $context->field;
-        $validation = $field?->getValidationRulesJson();
+        $validation = $field?->getBrowserValidationRulesJson();
         $isConditionallyHidden = $context->fieldIsConditionallyHidden();
 
         return SlotTag::make('div')

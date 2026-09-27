@@ -20,7 +20,7 @@ trait FieldSubmissionTrait
     public function getSubmissionHtml(mixed $value, ?ElementInterface $element): Markup
     {
         $input = $this->defineSubmissionHtml($value, $element, false);
-        $errors = $element ? $element->getErrors($this->handle) : '';
+        $errors = $element instanceof Submission ? $element->getSubmissionErrors()->forValuePath($this->errorKey()) : [];
 
         // CP edit fields need stable module/validation selectors even when the host
         // UI chrome stays Craft-native, so expose the same field identity markers

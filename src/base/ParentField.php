@@ -170,7 +170,7 @@ abstract class ParentField extends Field implements ParentFieldInterface
         $fields = [];
 
         foreach ($this->getFields() as $field) {
-            if ($field->getIsHidden() || $field->isConditionallyHidden($element) || $field->getIsDisabled()) {
+            if ($field->getIsHidden() || \verbb\formie\conditions\ConditionVisibility::unavailable($field, $element) || $field->getIsDisabled()) {
                 continue;
             }
 
@@ -200,7 +200,7 @@ abstract class ParentField extends Field implements ParentFieldInterface
         $fields = [];
 
         foreach ($this->getFields() as $field) {
-            if ($field->getIsCosmetic() || $field->getIsHidden() || $field->isConditionallyHidden($element) || $field->getIsDisabled()) {
+            if ($field->getIsCosmetic() || $field->getIsHidden() || \verbb\formie\conditions\ConditionVisibility::unavailable($field, $element) || $field->getIsDisabled()) {
                 continue;
             }
 

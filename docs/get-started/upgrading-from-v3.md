@@ -1729,3 +1729,13 @@ Schema 4.0.69 adds encrypted instance configuration storage. Back up the databas
 Review external completion destinations and add their exact origins to `completionRedirectAllowedOrigins`. Query forwarding now defaults to five UTM parameters; add required campaign keys to `completionQueryAllowlist`. An empty allowlist disables forwarding. Explicitly empty posted values remain empty, including Hidden fields. Query input is captured only when a new form instance starts.
 
 Runtime overrides are deliberately allowlisted. Remove attempts to override identities, provider credentials or global integration settings. Custom fields opt their supported settings in through `runtimeOverridableSettings()`. See [Overriding Settings](/templates/overriding-settings) and [Completion and Redirects](/templates/completion-and-redirects).
+
+## Conditions and Validation
+
+Formie 4 accepts the stable Formie 3 `showRule`, `conditionRule` and `conditions` arrays and migrates them to the versioned condition contract. Known `==`, `equals` and `notEquals` aliases normalize to `=`, `=` and `!=`. Stable condition context selectors such as `{submission:formName}`, `{submission:siteName}`, `{submission:siteHandle}` and `{submission:dateCreated}` normalize to the shared form, site and submission sources. Unknown rules remain diagnosable invalid configuration. Existing acyclic forward references retain dependency ordering; new builder rules select preceding sources, and cycles must be corrected.
+
+Check conditions that depended on Formie 3's inconsistent PHP/browser coercion. Text ordering is lexical, numeric ordering requires a complete finite numeric value, and collection comparisons match whole projected values. Invalid conditions no longer become permission when inverted. Review date/time rules for complete values and explicit offsets where local times are ambiguous.
+
+Hidden and disabled public values are cleared recursively before validation, including nested and repeater values. Browser-posted page targets cannot bypass progression rules. Validation errors are plain text and retain complete nested paths. Stable Formie 3 AJAX still uses handle-based error keys and may return HTTP 200; the client-rendered APIs use form-field instance IDs and typed domain outcomes.
+
+For beta integrations, replace `getValidationRulesJson()` with `getBrowserValidationRulesJson()`, remove `errors.pages` handling, and derive page summaries from field errors and the current layout. `setFormieClientPage` now returns a submit result containing `success`, `errors`, `httpStatus` and `session`; keep the current page when it fails. See [Conditions and Validation](/developers/conditions-and-validation).

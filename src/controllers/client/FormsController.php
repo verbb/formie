@@ -87,7 +87,7 @@ class FormsController extends Controller
 
         $this->requirePostRequest();
 
-        $session = Formie::$plugin->getClientSessionService()->persistPageState(new PageTransitionRequest([
+        $result = Formie::$plugin->getClientSessionService()->persistPageState(new PageTransitionRequest([
             'handle' => (string)$this->request->getBodyParam('handle', $this->request->getParam('handle', '')),
             'siteId' => SiteHelper::resolveSiteIdFromRequest(),
             'currentPageId' => $this->request->getBodyParam('currentPageId'),
@@ -98,8 +98,9 @@ class FormsController extends Controller
         ]), true);
 
         $this->response->setNoCacheHeaders();
+        $this->response->setStatusCode($result->httpStatus);
 
-        return $this->asJson($session->toArrayRecursive());
+        return $this->asJson($result->toArrayRecursive());
     }
 
 

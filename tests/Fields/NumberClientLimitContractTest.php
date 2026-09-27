@@ -7,11 +7,12 @@ use verbb\formie\fields\Number;
 it('exports number bounds only while limits are enabled', function (bool $limit, int|float|null $min, int|float|null $max): void {
     $field = new Number(['handle' => 'quantity', 'label' => 'Quantity', 'limit' => $limit, 'min' => $min, 'max' => $max]);
     $expected = ['type' => 'number', 'min' => $limit ? $min : null, 'max' => $limit ? $max : null];
+    $expected['messages'] = ['number' => 'Quantity is not a valid number.', 'numberMin' => 'Quantity must be no less than ' . ($expected['min'] ?? '') . '.', 'numberMax' => 'Quantity must be no greater than ' . ($expected['max'] ?? '') . '.'];
     $payload = $field->getClientRenderedDefinition();
     $input = $field->getClientRenderedInput();
 
     expect($field->browserValidationRules())->toBe([$expected])
-        ->and(json_decode($field->getValidationRulesJson(), true))->toBe([$expected])
+        ->and(json_decode($field->getBrowserValidationRulesJson(), true))->toBe([$expected])
         ->and($payload['validation'])->toBe([$expected])
         ->and($payload['input']['min'])->toBe($expected['min'])
         ->and($payload['input']['max'])->toBe($expected['max'])

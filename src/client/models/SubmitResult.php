@@ -5,6 +5,16 @@ use verbb\formie\client\BaseClientModel;
 
 class SubmitResult extends BaseClientModel
 {
+    // Static Methods
+    // =========================================================================
+
+    public static function rejection(int $status): self
+    {
+        $message = $status === 429 ? \Craft::t('formie', 'Please retry shortly.') : \Craft::t('formie', 'Unable to perform the action.');
+        return new self(['httpStatus' => $status, 'outcome' => 'rejected', 'errors' => ['form' => [$message], 'fields' => []], 'messages' => ['notice' => null, 'error' => $message]]);
+    }
+
+
     // Properties
     // =========================================================================
 
@@ -24,7 +34,6 @@ class SubmitResult extends BaseClientModel
     public array $errors = [
         'form' => [],
         'fields' => [],
-        'pages' => [],
     ];
 
     public array $messages = [

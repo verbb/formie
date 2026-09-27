@@ -1,4 +1,3 @@
-import { applyConditionSource } from '#modules/fields/conditions/transforms';
 import type { ConditionSource } from '#modules/fields/conditions/types';
 
 export const SUBMISSION_CONTEXT_ATTR = 'data-formie-submission';
@@ -77,5 +76,5 @@ export function readSubmissionConditionValues(
         value = source.defaultValue;
     }
 
-    return applyConditionSource([value], source);
+    return [value];
 }

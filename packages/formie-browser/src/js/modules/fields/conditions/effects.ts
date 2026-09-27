@@ -35,7 +35,7 @@ function clearConditionNodeValues(node: Element): void {
                     option.selected = false;
                 });
             } else {
-                element.selectedIndex = 0;
+                element.selectedIndex = -1;
             }
         }
 
@@ -214,8 +214,15 @@ export function applyConditionVisibility(
     node: Element,
     hidden: boolean,
     clearOnHide: boolean,
-    options: { displayMode?: 'hide' | 'muted' } = {},
+    options: { displayMode?: 'hide' | 'muted'; disabledOnly?: boolean } = {},
 ): boolean {
+    if (options.disabledOnly) {
+        const changed = node.hasAttribute('data-formie-conditionally-disabled') !== hidden;
+        node.toggleAttribute('data-formie-conditionally-disabled', hidden);
+        syncDisabledState(node, hidden);
+        if (hidden && clearOnHide && changed) clearConditionNodeValues(node);
+        return changed;
+    }
     if (options.displayMode === 'muted') {
         return applyMutedConditionVisibility(node, hidden);
     }

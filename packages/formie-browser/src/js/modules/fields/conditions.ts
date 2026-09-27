@@ -11,7 +11,6 @@ import type { ConditionEntry, ConditionInput } from '#modules/fields/conditions/
 import { getConditionInputEventNames } from '#modules/fields/conditions/values';
 import { createDebug } from '#utils/debug';
 
-const MAX_EVALUATION_PASSES = 4;
 const debug = createDebug('conditions');
 
 function uniqueConditionInputs(inputs: ConditionInput[]): ConditionInput[] {
@@ -48,6 +47,7 @@ export const conditionsModule: BrowserModuleDefinition = {
 
         const sourceUnbinds: Array<() => void> = [];
         let entries: ConditionEntry[] = [];
+        let cycles = new Set<Element>();
         let evaluationQueued = false;
         let rebuildQueued = false;
 
@@ -62,7 +62,7 @@ export const conditionsModule: BrowserModuleDefinition = {
             return getConditionNodes(scopeRoot).flatMap((node) => {
                 const settings = parseConditionSettings(node);
 
-                if (!settings || !settings.conditions.length) {
+                if (!settings) {
                     return [];
                 }
 
@@ -78,6 +78,34 @@ export const conditionsModule: BrowserModuleDefinition = {
             });
         };
 
+        const orderEntries = (items: ConditionEntry[]): ConditionEntry[] => {
+            const byNode = new Map(items.map((entry) => [entry.node, entry]));
+            const visited = new Set<Element>();
+            const visiting: Element[] = [];
+            const ordered: ConditionEntry[] = [];
+            cycles = new Set();
+            const visit = (entry: ConditionEntry): void => {
+                if (visited.has(entry.node)) return;
+                const index = visiting.indexOf(entry.node);
+                if (index >= 0) { visiting.slice(index).forEach((node) => cycles.add(node)); return; }
+                visiting.push(entry.node);
+                const ancestors = (node: Element | null) => {
+                    for (let current = node?.closest(CONDITION_SELECTOR); current; current = current.parentElement?.closest(CONDITION_SELECTOR)) {
+                        const dependency = byNode.get(current);
+                        if (dependency) visit(dependency);
+                    }
+                };
+                ancestors(entry.node.parentElement);
+                entry.sourceInputs.forEach((input) => ancestors(input));
+                visiting.pop();
+                visited.add(entry.node);
+                ordered.push(entry);
+            };
+            items.forEach(visit);
+            if (cycles.size) debug.warn('Condition dependency cycle.', { count: cycles.size });
+            return ordered;
+        };
+
         const cpDisplayMode = ctx.options?.cpDisplayMode === 'muted' ? 'muted' : 'hide';
         let isApplyingConditions = false;
 
@@ -85,7 +113,7 @@ export const conditionsModule: BrowserModuleDefinition = {
             let hasStateChanges = false;
 
             entries.forEach((entry) => {
-                const result = evaluateConditionSettings(entry.settings, (condition) => {
+                const result = cycles.has(entry.node) ? { finalResult: false, shouldHide: ['show', 'enable'].includes(entry.settings.showRule), diagnostics: [{ code: 'dependencyCycle' }] } : evaluateConditionSettings(entry.settings, (condition) => {
                     return queryConditionInputs(scopeRoot, entry.node, condition);
                 }, {
                     root: scopeRoot,
@@ -100,7 +128,7 @@ export const conditionsModule: BrowserModuleDefinition = {
                     entry.node,
                     result.shouldHide,
                     entry.settings.clearOnHide,
-                    { displayMode },
+                    { displayMode, disabledOnly: ['enable', 'disable'].includes(entry.settings.showRule) },
                 );
                 hasStateChanges = hasStateChanges || stateChanged;
                 debug.log('Condition evaluated.', {
@@ -114,6 +142,7 @@ export const conditionsModule: BrowserModuleDefinition = {
                     shouldHide: result.shouldHide,
                     finalResult: result.finalResult,
                     clearOnHide: entry.settings.clearOnHide,
+                    diagnostics: cycles.has(entry.node) ? [{ code: 'dependencyCycle' }] : [],
                 });
             });
 
@@ -128,15 +157,7 @@ export const conditionsModule: BrowserModuleDefinition = {
             isApplyingConditions = true;
 
             try {
-                for (let pass = 0; pass < MAX_EVALUATION_PASSES; pass += 1) {
-                    if (!runEvaluationPass()) {
-                        break;
-                    }
-
-                    if (pass === MAX_EVALUATION_PASSES - 1) {
-                        debug.warn('Reached max evaluation passes.', { maxPasses: MAX_EVALUATION_PASSES });
-                    }
-                }
+                runEvaluationPass();
             } finally {
                 isApplyingConditions = false;
             }
@@ -209,7 +230,7 @@ export const conditionsModule: BrowserModuleDefinition = {
 
         const rebuild = (): void => {
             cleanupSourceBindings();
-            entries = buildEntries();
+            entries = orderEntries(buildEntries());
             bindSourceInputs();
             debug.log('Rebuilt condition graph.', {
                 entryCount: entries.length,

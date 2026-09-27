@@ -181,7 +181,7 @@ class SubmissionResolver extends ElementMutationResolver
         $success = $response->success;
 
         if (!$success || $submission->hasErrors() || !$submission->id) {
-            $errors = StringHelper::sanitizeMessageHtmlRecursive($submission->getErrors());
+            $errors = \verbb\formie\models\SubmissionErrors::fromSubmission($submission)->toLegacy();
 
             throw new Error(Json::encode($errors), null, null, [], null, null, [
                 'category' => 'validation',

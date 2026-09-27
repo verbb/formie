@@ -1,3 +1,4 @@
+import { clientActionAllowed } from '@verbb/formie-core';
 import { mountClientRenderedModules } from '@verbb/formie-browser';
 import {
     CLIENT_FORM_EVENT_NAMES,
@@ -274,13 +275,18 @@ function BrowserModuleHost({ children }: { children: ReactNode }) {
 }
 
 function DefaultForm({ definition, session, state, children, className, onSubmit }: FormieFormComponentProps) {
+    const root = useRef<HTMLFormElement>(null);
+    useEffect(() => {
+        if (state.lastSubmitResult?.success === false) {
+            root.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
+        }
+    }, [state.lastSubmitResult]);
     return createElement('form', {
+        ref: root,
         className,
         onSubmit: async (event: Event) => {
             event.preventDefault();
-            const form = event.currentTarget as HTMLFormElement;
             await onSubmit();
-            requestAnimationFrame(() => form.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus());
         },
         'data-formie-definition': definition.handle,
         'data-formie-render-id': session.tokens.render,
@@ -922,7 +928,7 @@ function ConfigFieldNode({
     setValue(nextValue: unknown): void;
 }) {
     const { components, fieldComponents, state } = useDefinitionContext();
-    const fieldState = state.fieldStates[field.id];
+    const fieldState = state.fieldStates[errorKey];
     const hidden = fieldState?.hidden === true;
 
     if (hidden) {
@@ -1005,7 +1011,7 @@ function ConfigRow({
             value: values[field.handle],
             errors: state.errors.fields[errorKey] || [],
             errorKey,
-            disabled: disabled === true || state.fieldStates[field.id]?.disabled === true,
+            disabled: disabled === true || state.fieldStates[errorKey]?.disabled === true,
             setValue(nextValue) {
                 setFieldValue(field, nextValue);
             },
@@ -1036,6 +1042,7 @@ function ConfigPageActions() {
     buttons.push(createElement('button', {
         key: page.actions.primary.type,
         type: 'submit',
+        disabled: !clientActionAllowed(state),
     }, page.actions.primary.label));
 
     return createElement('div', {

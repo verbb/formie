@@ -13,7 +13,7 @@ function parseConditionSource(value: unknown): ConditionSource | null {
     return {
         raw: typeof candidate.raw === 'string' ? candidate.raw : '',
         target: typeof candidate.target === 'string' ? candidate.target : '',
-        handle: typeof candidate.handle === 'string' ? candidate.handle : '',
+        handle: typeof candidate.domHandle === 'string' ? candidate.domHandle : typeof candidate.handle === 'string' ? candidate.handle : '',
         selector: typeof candidate.selector === 'string' ? candidate.selector : '',
         defaultValue: typeof candidate.defaultValue === 'string' ? candidate.defaultValue : '',
         transformerId: typeof candidate.transformerId === 'string' ? candidate.transformerId : '',
@@ -45,35 +45,32 @@ export function parseConditionSettings(node: Element): ParsedConditionSettings |
 
     try {
         const parsed = JSON.parse(raw) as Record<string, unknown>;
-        const conditions = Array.isArray(parsed.conditions)
-            ? parsed.conditions.filter((condition): condition is ConditionDefinition => {
-                if (!condition || typeof condition !== 'object') {
-                    return false;
-                }
-
-                const candidate = condition as Record<string, unknown>;
-                return typeof candidate.field === 'string' && typeof candidate.condition === 'string';
-            }).map((condition) => {
-                const candidate = condition as Record<string, unknown>;
-
+        const effect = String(parsed.effect ?? parsed.showRule ?? 'show');
+        const valid = (parsed.version == null || parsed.version === 1) && ['all', 'any'].includes(String(parsed.mode ?? parsed.conditionRule ?? 'all')) && ['show', 'hide', 'enable', 'disable'].includes(effect);
+        const rawRules = valid ? parsed.rules ?? parsed.conditions : [null];
+        const conditions = Array.isArray(rawRules)
+            ? rawRules.map((row) => {
+                const candidate = row && typeof row === 'object' ? row as Record<string, unknown> : {};
                 return {
-                    field: condition.field,
+                    field: typeof candidate.field === 'string' ? candidate.field : '',
                     source: parseConditionSource(candidate.source),
-                    condition: condition.condition,
-                    value: condition.value,
+                    condition: String(candidate.operator ?? candidate.condition ?? ''),
+                    valueType: candidate.valueType as ConditionDefinition['valueType'],
+                    browserSafe: candidate.browserSafe !== false,
+                    value: candidate.value,
                 };
             })
-            : [];
+            : [{ field: '', condition: '', value: null, browserSafe: false }];
 
         return {
-            showRule: parsed.showRule === 'hide' ? 'hide' : 'show',
-            conditionRule: parsed.conditionRule === 'any' ? 'any' : 'all',
+            showRule: ['hide', 'enable', 'disable'].includes(effect) ? effect as ParsedConditionSettings['showRule'] : 'show',
+            conditionRule: (parsed.mode ?? parsed.conditionRule) === 'any' ? 'any' : 'all',
             clearOnHide: parsed.clearOnHide !== false,
             isNested: Boolean(parsed.isNested),
             conditions,
         };
     } catch (error) {
-        console.error('[formie] Invalid condition JSON.', error);
-        return null;
+        console.error('[formie] Invalid condition JSON.');
+        return { showRule: 'show', conditionRule: 'all', clearOnHide: true, isNested: false, conditions: [{ field: '', condition: '', browserSafe: false }] };
     }
 }

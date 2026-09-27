@@ -17,6 +17,14 @@ class ValidateSubmissionTask implements TaskInterface
     {
         $command = $context->command;
         $submission = $command->submission;
+        if ($command->usesVisitorProgression() && $command->navigation === \verbb\formie\enums\NavigationIntent::TARGET) {
+            foreach ($command->form->getPages() as $page) {
+                if ($command->targetPageId === (int)$page->id && $command->form->getPageIndex($page) <= $command->form->getPageIndex($command->form->getCurrentPage())) {
+                    return TaskResult::continue();
+                }
+            }
+        }
+        $context->attemptedCompletion = $command->usesVisitorProgression() && $command->navigation === \verbb\formie\enums\NavigationIntent::ADVANCE && $command->form->getNextPage($command->form->getCurrentPage(), $submission) === null;
         $submission->setScenario(Element::SCENARIO_LIVE);
         $submission->validateCurrentPageOnly = $command->usesVisitorProgression() && !$context->attemptedCompletion;
         $submission->validate();
@@ -28,7 +36,9 @@ class ValidateSubmissionTask implements TaskInterface
             }
         }
 
-        return TaskResult::continue();
+        return $submission->hasErrors()
+            ? TaskResult::stop($context->result(\verbb\formie\enums\SubmissionOutcomeType::VALIDATION_FAILED))
+            : TaskResult::continue();
     }
 
 }

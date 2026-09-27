@@ -573,9 +573,10 @@ class SubmissionsController extends Controller
             $form->setDraftContext($draftContext);
         }
 
-        $session = Formie::$plugin->getClientSessionService()->persistPageState(new PageTransitionRequest([
+        $result = Formie::$plugin->getClientSessionService()->persistPageState(new PageTransitionRequest([
             'handle' => $handle,
             'targetPageId' => (string)$pageId,
+            'values' => $this->request->getBodyParam('fields', []),
             'session' => [
                 'tokens' => ['render' => $renderId, 'request' => $this->request->getBodyParam('requestToken')],
                 'version' => $this->request->getBodyParam('expectedVersion'),
@@ -586,12 +587,16 @@ class SubmissionsController extends Controller
         $redirectBase = SetPageReturnUrlHelper::resolveLegacySetPageRedirectUrl($this->request);
         if ($this->request->getAcceptsJson()) {
             return $this->asJson([
-                'success' => true,
-                'pageId' => $pageId,
-                'session' => $session->toArrayRecursive(),
+                'success' => $result->success,
+                'pageId' => $result->currentPageId,
+                'errors' => \verbb\formie\models\SubmissionErrors::fromClient($result->errors, $form)->toLegacy(),
+                'session' => $result->session?->toArrayRecursive(),
             ]);
         }
 
+        if (!$result->success) {
+            Formie::$plugin->getService()->setError($form->getFlashNamespace(), implode(' ', $result->errors['form'] ?: [Craft::t('formie', 'Please correct the form errors before continuing.')]));
+        }
         return $this->redirect($redirectBase);
     }
 
@@ -656,7 +661,7 @@ class SubmissionsController extends Controller
                 ));
             }
 
-            $formErrorMessages = $responseSubmission->getErrors('form');
+            $formErrorMessages = $responseSubmission->getSubmissionErrors()->forValuePath('form');
             $flashError = $formErrorMessages
                 ? implode('<br>', $formErrorMessages)
                 : $form->settings->getErrorMessage();
@@ -666,7 +671,7 @@ class SubmissionsController extends Controller
             Craft::$app->getUrlManager()->setRouteParams([
                 'form' => $response->form,
                 'submission' => $responseSubmission,
-                'errors' => $responseSubmission->errors,
+                'errors' => $responseSubmission->getSubmissionErrors()->toLegacy(),
             ]);
 
             return null;
@@ -802,8 +807,7 @@ class SubmissionsController extends Controller
         }
 
         if (!$response->success) {
-            $payload['errors'] = $submission->getErrors();
-            $payload['errors'] = StringHelper::sanitizeMessageHtmlRecursive($payload['errors']);
+            $payload['errors'] = \verbb\formie\models\SubmissionErrors::fromSubmission($submission)->toLegacy();
             $payload['keepSubmitLoading'] = in_array($response->paymentStatus, [
                 PaymentDecision::STATUS_ACTION_REQUIRED->value,
                 PaymentDecision::STATUS_UNKNOWN->value,

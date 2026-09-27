@@ -1,0 +1,463 @@
+import { c as e, d as t, l as n } from "./dist-1mhMV4JB.js";
+import { t as r } from "./debug-BV0DvdHx.js";
+import { t as i } from "./field-references.keys-58ZSTrCW.js";
+import { n as a } from "./shared-Bx9s0i0P.js";
+//#region src/js/modules/fields/conditions/config.ts
+var o = "[data-formie-conditions]";
+function s(e) {
+	if (!e || typeof e != "object") return null;
+	let t = e, n = t.transformerParams;
+	return {
+		raw: typeof t.raw == "string" ? t.raw : "",
+		target: typeof t.target == "string" ? t.target : "",
+		handle: typeof t.domHandle == "string" ? t.domHandle : typeof t.handle == "string" ? t.handle : "",
+		selector: typeof t.selector == "string" ? t.selector : "",
+		defaultValue: typeof t.defaultValue == "string" ? t.defaultValue : "",
+		transformerId: typeof t.transformerId == "string" ? t.transformerId : "",
+		transformerParams: n && typeof n == "object" ? Object.fromEntries(Object.entries(n).map(([e, t]) => [e, String(t ?? "")])) : {},
+		isValid: t.isValid !== !1
+	};
+}
+function c(e) {
+	let t = Array.from(e.querySelectorAll(o));
+	return e.matches("[data-formie-conditions]") ? [e, ...t] : t;
+}
+function l(e) {
+	let t = e.getAttribute("data-formie-conditions");
+	if (!t) return null;
+	try {
+		let e = JSON.parse(t), n = String(e.effect ?? e.showRule ?? "show"), r = (e.version == null || e.version === 1) && ["all", "any"].includes(String(e.mode ?? e.conditionRule ?? "all")) && [
+			"show",
+			"hide",
+			"enable",
+			"disable"
+		].includes(n) ? e.rules ?? e.conditions : [null], i = Array.isArray(r) ? r.map((e) => {
+			let t = e && typeof e == "object" ? e : {};
+			return {
+				field: typeof t.field == "string" ? t.field : "",
+				source: s(t.source),
+				condition: String(t.operator ?? t.condition ?? ""),
+				valueType: t.valueType,
+				browserSafe: t.browserSafe !== !1,
+				value: t.value
+			};
+		}) : [{
+			field: "",
+			condition: "",
+			value: null,
+			browserSafe: !1
+		}];
+		return {
+			showRule: [
+				"hide",
+				"enable",
+				"disable"
+			].includes(n) ? n : "show",
+			conditionRule: (e.mode ?? e.conditionRule) === "any" ? "any" : "all",
+			clearOnHide: e.clearOnHide !== !1,
+			isNested: !!e.isNested,
+			conditions: i
+		};
+	} catch {
+		return console.error("[formie] Invalid condition JSON."), {
+			showRule: "show",
+			conditionRule: "all",
+			clearOnHide: !0,
+			isNested: !1,
+			conditions: [{
+				field: "",
+				condition: "",
+				browserSafe: !1
+			}]
+		};
+	}
+}
+//#endregion
+//#region src/js/modules/fields/conditions/effects.ts
+var u = "data-formie-conditions-disabled", d = "data-formie-preserve-disabled", f = "data-formie-conditionally-hidden", p = "data-formie-page-hidden", m = "formie-conditionally-hidden", h = "fui-cp-muted-conditional-field", g = "fui-cp-muted-conditional-field--expanded", _ = "data-formie-cp-muted", v = "formie-page-hidden", y = "data-formie-row-hidden", b = "formie-row-hidden", x = "data-formie-field-count", S = "[data-formie-row], [data-formie-subfield-row], [data-formie-nested-field-row]", C = ":scope > [data-formie-field]";
+function w(e) {
+	e.querySelectorAll("input, select, textarea").forEach((e) => {
+		(e instanceof HTMLInputElement || e instanceof HTMLSelectElement || e instanceof HTMLTextAreaElement) && (e instanceof HTMLInputElement && (e.type === "checkbox" || e.type === "radio" ? e.checked = !1 : e.type !== "hidden" && (e.value = "")), e instanceof HTMLSelectElement && (e.multiple ? Array.from(e.options).forEach((e) => {
+			e.selected = !1;
+		}) : e.selectedIndex = -1), e instanceof HTMLTextAreaElement && (e.value = ""));
+	});
+}
+function ee(e, t) {
+	let n = e.hasAttribute("data-formie-page"), r = n ? p : f, i = n ? v : m, a = e.hasAttribute(r);
+	return t ? (a || e.setAttribute(r, "true"), e.classList.contains(i) || e.classList.add(i)) : (a && e.removeAttribute(r), e.classList.contains(i) && e.classList.remove(i)), a !== t;
+}
+var T = "button[type=\"submit\"], button[data-formie-action], input[type=\"submit\"]";
+function E(e, t) {
+	if (e instanceof HTMLButtonElement || e instanceof HTMLInputElement) {
+		if (t) {
+			e.hasAttribute(u) || (e.hasAttribute("disabled") && e.setAttribute(d, "true"), e.setAttribute(u, "true")), e.setAttribute("disabled", "true");
+			return;
+		}
+		e.hasAttribute(u) && (e.hasAttribute(d) ? (e.setAttribute("disabled", "true"), e.removeAttribute(d)) : e.removeAttribute("disabled"), e.removeAttribute(u));
+	}
+}
+function D(e, t) {
+	e.matches(T) && E(e, t), e.querySelectorAll(T).forEach((e) => {
+		E(e, t);
+	}), e.querySelectorAll("input, textarea, select").forEach((e) => {
+		if (t) {
+			e.hasAttribute(u) || (e.hasAttribute("disabled") && e.setAttribute(d, "true"), e.setAttribute(u, "true")), e.setAttribute("disabled", "true");
+			return;
+		}
+		e.hasAttribute(u) && (e.hasAttribute(d) ? (e.setAttribute("disabled", "true"), e.removeAttribute(d)) : e.removeAttribute("disabled"), e.removeAttribute(u));
+	});
+}
+function te(e) {
+	return !e.hasAttribute(f) && !e.hasAttribute(p) && !e.hasAttribute(y) && !e.hasAttribute("hidden");
+}
+function O(e) {
+	let t = Array.from(e.querySelectorAll(C)).filter((e) => te(e)).length;
+	if (t > 0) {
+		let n = String(t);
+		e.getAttribute(x) !== n && e.setAttribute(x, n), e.hasAttribute(y) && e.removeAttribute(y), e.classList.contains(b) && e.classList.remove(b);
+		return;
+	}
+	e.hasAttribute(x) && e.removeAttribute(x), e.hasAttribute(y) || e.setAttribute(y, "true"), e.classList.contains(b) || e.classList.add(b);
+}
+function k(e) {
+	e.removeAttribute(_), e.classList.remove(h), e.classList.remove(g);
+}
+function A(e) {
+	e.removeAttribute(f), e.removeAttribute(p), e.classList.remove(m), e.classList.remove(v);
+}
+function j(e) {
+	let t = e.closest(S);
+	for (; t;) O(t), t = t.parentElement?.closest(S) || null;
+}
+function M(e, t, n, r = {}) {
+	if (r.disabledOnly) {
+		let r = e.hasAttribute("data-formie-conditionally-disabled") !== t;
+		return e.toggleAttribute("data-formie-conditionally-disabled", t), D(e, t), t && n && r && w(e), r;
+	}
+	if (r.displayMode === "muted") return N(e, t);
+	let i = !1;
+	return (e.hasAttribute(_) || e.classList.contains(h) || e.classList.contains(g)) && (k(e), i = !0), i = ee(e, t) || i, D(e, t), j(e), t && n && i && w(e), i;
+}
+function N(e, t) {
+	let n = !1;
+	return t ? ((e.hasAttribute(f) || e.hasAttribute(p) || e.classList.contains(m) || e.classList.contains(v)) && (A(e), n = !0), e.hasAttribute(_) || (e.setAttribute(_, "true"), n = !0), e.classList.contains(h) || (e.classList.add(h), n = !0)) : ((e.hasAttribute(_) || e.classList.contains(h) || e.classList.contains(g)) && (k(e), n = !0), (e.hasAttribute(f) || e.hasAttribute(p) || e.classList.contains(m) || e.classList.contains(v)) && (A(e), n = !0)), j(e), n;
+}
+//#endregion
+//#region src/js/modules/fields/conditions/references.ts
+var P = "input, select, textarea", F = "[data-formie-repeater-item], [data-formie-table-row]";
+function I(e) {
+	return e instanceof HTMLInputElement || e instanceof HTMLSelectElement || e instanceof HTMLTextAreaElement;
+}
+function ne(e) {
+	let t = e.querySelector(P);
+	if (!t) return null;
+	let n = t.getAttribute("name") || "", r = Array.from(n.matchAll(/\[(\d+)\]/g));
+	return r.length && r[r.length - 1]?.[1] || null;
+}
+function L(e) {
+	return e.closest(F);
+}
+function re(e) {
+	return Array.from(e.querySelectorAll(P)).filter((e) => I(e));
+}
+function ie(e) {
+	let t = e.getAttribute("name") || "";
+	return Array.from(t.matchAll(/\[([^\]]+)\]/g)).map((e) => e[1] || "").filter(Boolean);
+}
+function ae(e, t) {
+	if (!t) return !0;
+	let n = t.split(/[.:]/).filter(Boolean);
+	if (!n.length) return !0;
+	let r = ie(e);
+	return r.length < n.length ? !1 : n.every((e, t) => r[r.length - n.length + t] === e);
+}
+function oe(e, t) {
+	if (!t) return e;
+	let n = e.filter((e) => ae(e, t));
+	return n.length ? n : e;
+}
+function R(e, t) {
+	let n = L(e);
+	if (!n) return t;
+	let r = t.filter((e) => L(e) === n);
+	return r.length ? r : t;
+}
+function z(e) {
+	return !e.source?.target || !e.source.handle ? null : e.source.target === "field" || e.source.target === "submission" ? e.source : null;
+}
+function B(e, t, n) {
+	let r = z(n);
+	if (!r || r.target !== "field" || !r.handle) return [];
+	let o = a(r.handle), s = !!r.transformerParams.scope, c = Array.from(e.querySelectorAll(`[data-formie-field-handle="${o}"]`));
+	if (c.length) return (s ? c : R(t, c)).flatMap((e) => oe(re(e), r.selector));
+	let l = i(r.handle), u = a(l), d = Array.from(e.querySelectorAll(`[name="${u}"]`)).filter((e) => I(e)), f = Array.from(e.querySelectorAll(`[name="${u}[]"]`)).filter((e) => I(e));
+	if (d.length || f.length) return s ? [...d, ...f] : R(t, [...d, ...f]);
+	if (!r.handle.includes("__ROW__")) return [];
+	let p = ne(t);
+	if (p && !s) {
+		let t = i(r.handle.replace(/__ROW__/g, p)), n = a(t), o = Array.from(e.querySelectorAll(`[name="${n}"]`)).filter((e) => I(e)), s = Array.from(e.querySelectorAll(`[name="${n}[]"]`)).filter((e) => I(e));
+		if (o.length || s.length) return [...o, ...s];
+	}
+	if (!s) return [];
+	let m = i(r.handle).replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/__ROW__/g, "\\d+"), h = new RegExp(m);
+	return Array.from(e.querySelectorAll("[name]")).filter((e) => I(e) && h.test(e.getAttribute("name") || ""));
+}
+//#endregion
+//#region src/js/modules/fields/conditions/submission-context.ts
+var V = "data-formie-submission", H = "formie:submission-context-change";
+function U(e) {
+	return !!e && typeof e == "object" && !Array.isArray(e);
+}
+function W(e, t = e) {
+	return t.closest(`[${V}]`) || (e instanceof Element && e.hasAttribute("data-formie-submission") ? e : e.querySelector(`[${V}]`));
+}
+function G(e, t = e) {
+	let n = W(e, t)?.getAttribute(V);
+	if (!n) return {};
+	try {
+		let e = JSON.parse(n);
+		return U(e) ? Object.fromEntries(Object.entries(e).map(([e, t]) => [e, t == null ? "" : String(t)])) : {};
+	} catch (e) {
+		return console.error("[formie] Invalid submission context JSON.", e), {};
+	}
+}
+function K(e, t, n = e) {
+	let r = G(e, n), i = String(t.handle || "").trim(), a = "";
+	return i !== "" && (a = Object.prototype.hasOwnProperty.call(r, i) ? r[i] ?? "" : r[`submission${i.charAt(0).toUpperCase()}${i.slice(1)}`] ?? ""), a === "" && t.defaultValue && (a = t.defaultValue), [a];
+}
+//#endregion
+//#region src/js/modules/fields/conditions/values.ts
+function q(e, t) {
+	return e.name || `__condition_input_${t}`;
+}
+function J(e) {
+	return (e.id ? e.ownerDocument.querySelector(`label[for="${e.id}"]`)?.textContent?.trim() : "") || e.closest("label")?.textContent?.trim() || "";
+}
+function se(e, t = "") {
+	let n = e[0];
+	if (!n) return [];
+	if (n instanceof HTMLInputElement) {
+		if (n.type === "checkbox") {
+			let n = e.filter((e) => e instanceof HTMLInputElement && e.checked);
+			return t === "label" ? n.map((e) => J(e)).filter(Boolean) : n.map((e) => e.value);
+		}
+		if (n.type === "radio") {
+			let n = e.filter((e) => e instanceof HTMLInputElement && e.checked);
+			return t === "label" ? n.map((e) => J(e)).filter(Boolean) : n.map((e) => e.value);
+		}
+		if (n.type === "file") return Array.from(n.files || []).map((e) => e.name);
+	}
+	return n instanceof HTMLSelectElement && n.multiple ? t === "label" ? Array.from(n.selectedOptions).map((e) => e.label || e.text) : Array.from(n.selectedOptions).map((e) => e.value) : n instanceof HTMLSelectElement && t === "label" ? Array.from(n.selectedOptions).map((e) => e.label || e.text) : e.map((e) => e.value);
+}
+function Y(e) {
+	return ["input", "change"];
+}
+function X(e, t = null) {
+	let n = /* @__PURE__ */ new Map();
+	e.forEach((e, t) => {
+		let r = q(e, t), i = n.get(r) || [];
+		i.push(e), n.set(r, i);
+	});
+	let r = Array.from(n.values()).flatMap((e) => se(e, t?.selector || ""));
+	return (r.length === 0 || r.every((e) => e === "")) && t?.defaultValue ? [t.defaultValue] : r;
+}
+function Z(e, n, r, i) {
+	if (n?.transformerParams.scope) {
+		let a = /* @__PURE__ */ new Map();
+		for (let t of e) {
+			let e = t.name.match(/\[([0-9]+)\]/)?.[1];
+			e != null && a.set(e, [...a.get(e) ?? [], t]);
+		}
+		let o = [...a.values()].map((e) => Z(e, {
+			...n,
+			transformerParams: {}
+		}, r === "collection" ? e.length > 1 ? "collection" : "text" : r)), s = t(o, n.transformerParams, i);
+		return s.diagnostic ? { conditionDiagnostic: s.diagnostic } : n.transformerParams.scope === "rows" && !Array.isArray(s.value) ? [s.value] : s.value;
+	}
+	if (r === "boolean") {
+		let t = e.find((e) => e instanceof HTMLInputElement && e.type === "checkbox");
+		if (t) return t.checked;
+	}
+	if ([
+		"date",
+		"time",
+		"datetime"
+	].includes(r)) {
+		let t = {};
+		for (let n of e) {
+			let e = n.name.match(/\[(year|month|day|hour|minute|second|ampm|timezone)\]$/)?.[1];
+			e && n.value !== "" && (t[e] = n.value);
+		}
+		if (Object.keys(t).length) return t;
+	}
+	let a = X(e, n);
+	return r === "collection" ? a : a[0] ?? null;
+}
+//#endregion
+//#region src/js/modules/fields/conditions/evaluator.ts
+function ce(t, r, i = {}) {
+	let a = i.root, o = i.from || a, s = t.conditions.map((t) => {
+		let n = r(t), i = z(t), s = i?.target === "submission" && a && o ? K(a, i, o) : X(n, i);
+		if (t.browserSafe === !1 || i?.transformerId || i?.isValid === !1 || !n.length && i?.target !== "submission") return {
+			value: null,
+			diagnostics: [{ code: "unresolvedReference" }]
+		};
+		let c = t.valueType ?? (s.length > 1 ? "collection" : "text"), l = i?.target === "submission" ? c === "collection" ? s : s[0] ?? null : Z(n, i, c, Number(o?.querySelector("input,select,textarea")?.getAttribute("name")?.match(/\[([0-9]+)\]/)?.[1]));
+		return l && typeof l == "object" && "conditionDiagnostic" in l ? {
+			value: null,
+			diagnostics: [{ code: String(l.conditionDiagnostic) }]
+		} : e(t.condition, l, t.value, c);
+	});
+	return n(t, s);
+}
+//#endregion
+//#region src/js/modules/fields/conditions.ts
+var Q = r("conditions");
+function $(e) {
+	let t = /* @__PURE__ */ new Set();
+	return e.filter((e) => !t.has(e) && (t.add(e), !0));
+}
+var le = {
+	moduleId: "formie:conditions",
+	version: 1,
+	surfaces: [
+		"server-rendered",
+		"client-rendered",
+		"cp-edit"
+	],
+	kind: "field",
+	match: (e) => e.target instanceof HTMLElement && (e.target.matches("[data-formie-conditions]") || !!e.target.querySelector("[data-formie-conditions]")),
+	setup: async (e) => {
+		let t = e.target instanceof HTMLElement ? e.target : e.root;
+		if (!c(t).length) {
+			Q.log("No condition nodes in scope.");
+			return;
+		}
+		let n = [], r = [], i = /* @__PURE__ */ new Set(), a = !1, s = !1, u = () => {
+			n.forEach((e) => {
+				e();
+			}), n.length = 0;
+		}, d = () => c(t).flatMap((e) => {
+			let n = l(e);
+			return n ? [{
+				node: e,
+				settings: n,
+				sourceInputs: $(n.conditions.flatMap((n) => B(t, e, n)))
+			}] : [];
+		}), f = (e) => {
+			let t = new Map(e.map((e) => [e.node, e])), n = /* @__PURE__ */ new Set(), r = [], a = [];
+			i = /* @__PURE__ */ new Set();
+			let s = (e) => {
+				if (n.has(e.node)) return;
+				let c = r.indexOf(e.node);
+				if (c >= 0) {
+					r.slice(c).forEach((e) => i.add(e));
+					return;
+				}
+				r.push(e.node);
+				let l = (e) => {
+					for (let n = e?.closest(o); n; n = n.parentElement?.closest(o)) {
+						let e = t.get(n);
+						e && s(e);
+					}
+				};
+				l(e.node.parentElement), e.sourceInputs.forEach((e) => l(e)), r.pop(), n.add(e.node), a.push(e);
+			};
+			return e.forEach(s), i.size && Q.warn("Condition dependency cycle.", { count: i.size }), a;
+		}, p = e.options?.cpDisplayMode === "muted" ? "muted" : "hide", m = !1, h = () => {
+			let n = !1;
+			return r.forEach((r) => {
+				let a = i.has(r.node) ? {
+					finalResult: !1,
+					shouldHide: ["show", "enable"].includes(r.settings.showRule),
+					diagnostics: [{ code: "dependencyCycle" }]
+				} : ce(r.settings, (e) => B(t, r.node, e), {
+					root: t,
+					from: r.node
+				}), o = r.node.hasAttribute("data-formie-page") ? "hide" : p, s = M(r.node, a.shouldHide, r.settings.clearOnHide, {
+					displayMode: o,
+					disabledOnly: ["enable", "disable"].includes(r.settings.showRule)
+				});
+				n ||= s, Q.log("Condition evaluated.", {
+					shouldHide: a.shouldHide,
+					finalResult: a.finalResult,
+					stateChanged: s
+				}), e.emit("formie:conditions:evaluated", {
+					node: r.node,
+					shouldHide: a.shouldHide,
+					finalResult: a.finalResult,
+					clearOnHide: r.settings.clearOnHide,
+					diagnostics: i.has(r.node) ? [{ code: "dependencyCycle" }] : []
+				});
+			}), n;
+		}, g = () => {
+			if (!m) {
+				m = !0;
+				try {
+					h();
+				} finally {
+					m = !1;
+				}
+			}
+		}, _ = () => {
+			m || a || (a = !0, requestAnimationFrame(() => {
+				a = !1, !m && g();
+			}));
+		}, v = () => {
+			if ($(r.flatMap((e) => e.sourceInputs)).forEach((e) => {
+				let t = () => {
+					_();
+				};
+				Y(e).forEach((n) => {
+					e.addEventListener(n, t);
+				}), n.push(() => {
+					Y(e).forEach((n) => {
+						e.removeEventListener(n, t);
+					});
+				});
+			}), e.form) {
+				let t = () => {
+					window.setTimeout(() => {
+						_();
+					}, 0);
+				};
+				e.form.addEventListener("reset", t), n.push(() => {
+					e.form?.removeEventListener("reset", t);
+				});
+				let r = () => {
+					_();
+				};
+				e.form.addEventListener(H, r), n.push(() => {
+					e.form?.removeEventListener(H, r);
+				});
+			}
+		}, y = () => {
+			u(), r = f(d()), v(), Q.log("Rebuilt condition graph.", { entryCount: r.length }), _();
+		}, b = () => {
+			m || s || (s = !0, requestAnimationFrame(() => {
+				s = !1, !m && y();
+			}));
+		}, x = new MutationObserver((e) => {
+			if (m) return;
+			let t = e.some((e) => e.type === "childList" && (e.addedNodes.length > 0 || e.removedNodes.length > 0)), n = e.some((e) => e.type === "attributes");
+			t ? b() : n && _();
+		});
+		return x.observe(t, {
+			childList: !0,
+			subtree: !0,
+			attributes: !0,
+			attributeFilter: [
+				"hidden",
+				"aria-hidden",
+				"data-formie-conditionally-hidden",
+				"data-formie-page-hidden",
+				"data-formie-row-hidden",
+				V
+			]
+		}), y(), await e.emit("formie:module:conditions:init", { count: r.length }), Q.log("Module setup complete.", { entryCount: r.length }), { destroy: () => {
+			u(), x.disconnect(), Q.log("Module destroy."), e.emit("formie:module:conditions:destroy", {});
+		} };
+	}
+};
+//#endregion
+export { le as conditionsModule };

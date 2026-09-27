@@ -15,11 +15,13 @@ export type ConditionDefinition = {
     field: string;
     source?: ConditionSource | null;
     condition: string;
+    valueType?: import('@verbb/formie-core').ConditionValueType;
+    browserSafe?: boolean;
     value?: unknown;
 };
 
 export type ParsedConditionSettings = {
-    showRule: 'show' | 'hide';
+    showRule: 'show' | 'hide' | 'enable' | 'disable';
     conditionRule: 'all' | 'any';
     clearOnHide: boolean;
     isNested: boolean;

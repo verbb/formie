@@ -56,7 +56,7 @@ class ClientSessionService extends Component
         return $this->_buildSession($form, $currentPageId);
     }
 
-    public function persistPageState(PageTransitionRequest $request, bool $enforceAbuseLimit = false): FormSession
+    public function persistPageState(PageTransitionRequest $request, bool $enforceAbuseLimit = false): \verbb\formie\client\models\SubmitResult
     {
         $result = Formie::$plugin->getSubmissionProcessor()->execute(new \verbb\formie\client\models\SubmitRequest([
             'handle' => $request->handle,
@@ -67,10 +67,7 @@ class ClientSessionService extends Component
             'values' => $request->values,
             'operationId' => $request->operationId,
         ]), \verbb\formie\enums\SubmissionAuthorityType::VISITOR);
-        if (!$result->success) {
-            throw new \yii\web\HttpException($result->httpStatus, 'Page state could not be updated.');
-        }
-        return $result->session;
+        return $result;
     }
 
 

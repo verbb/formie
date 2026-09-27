@@ -1,32 +1,9 @@
-import { evaluateConditionDefinition, finalizeConditionEvaluation } from '@verbb/formie-core';
+import { evaluateCondition, finalizeConditionEvaluation } from '@verbb/formie-core';
 
-import type { ConditionDefinition, ParsedConditionSettings, ConditionInput } from '#modules/fields/conditions/types';
+import type { ConditionDefinition, ParsedConditionSettings } from '#modules/fields/conditions/types';
 import { resolveConditionSource } from '#modules/fields/conditions/references';
 import { readSubmissionConditionValues } from '#modules/fields/conditions/submission-context';
-import { readConditionValues } from '#modules/fields/conditions/values';
-
-function isInputVisible(input: ConditionInput): boolean {
-    if (
-        input.closest('[data-formie-conditionally-hidden]')
-        || input.closest('[data-formie-page-hidden]')
-        || input.closest('[hidden]')
-        || input.closest('[aria-hidden="true"]')
-    ) {
-        return false;
-    }
-
-    return !!(input.offsetWidth || input.offsetHeight || input.getClientRects().length);
-}
-
-function getConditionVisibility(inputs: ConditionInput[]): boolean | null {
-    if (!inputs.length) {
-        return null;
-    }
-
-    return inputs.some((input) => {
-        return isInputVisible(input);
-    });
-}
+import { readConditionValues, readConditionProjection } from '#modules/fields/conditions/values';
 
 export function evaluateConditionSettings(
     settings: ParsedConditionSettings,
@@ -48,9 +25,11 @@ export function evaluateConditionSettings(
             ? readSubmissionConditionValues(root, source, from)
             : readConditionValues(inputs, source);
 
-        return evaluateConditionDefinition(condition, actualValues, {
-            visibility: getConditionVisibility(inputs),
-        });
+        if (condition.browserSafe === false || Boolean(source?.transformerId) || source?.isValid === false || (!inputs.length && source?.target !== 'submission')) return { value: null, diagnostics: [{ code: 'unresolvedReference' }] };
+        const type = condition.valueType ?? (actualValues.length > 1 ? 'collection' : 'text');
+        const value = source?.target === 'submission' ? (type === 'collection' ? actualValues : actualValues[0] ?? null) : readConditionProjection(inputs, source, type, Number(from?.querySelector('input,select,textarea')?.getAttribute('name')?.match(/\[([0-9]+)\]/)?.[1]));
+        if (value && typeof value === 'object' && 'conditionDiagnostic' in value) return { value: null, diagnostics: [{ code: String(value.conditionDiagnostic) }] };
+        return evaluateCondition(condition.condition, value, condition.value, type);
     });
 
     return finalizeConditionEvaluation(settings, groupedResults);

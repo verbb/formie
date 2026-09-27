@@ -117,7 +117,6 @@ function createTransport(overrides: Partial<ClientTransport> = {}): ClientTransp
             errors: {
                 form: [],
                 fields: {},
-                pages: {},
             },
             messages: {},
             session: {
@@ -127,8 +126,9 @@ function createTransport(overrides: Partial<ClientTransport> = {}): ClientTransp
         }),
         refreshSession: async({ session }) => session,
         setPage: async({ session, targetPageId }) => ({
-            ...session,
-            currentPageId: targetPageId,
+            success: true, isFinalPage: false, currentPageId: targetPageId,
+            errors: { form: [], fields: {} }, messages: {},
+            session: { ...session, currentPageId: targetPageId },
         }),
         ...overrides,
     };
@@ -193,7 +193,7 @@ describe('createClientFormInstance', () => {
         runtime.setValue('trigger', 'no');
 
         expect(runtime.getState().fieldStates.conditional.hidden).toBe(true);
-        expect(runtime.getState().values.conditional).toBe('');
+        expect(runtime.getState().values.conditional).toBeNull();
     });
 
     it('supports notContains condition operators', () => {
@@ -258,7 +258,7 @@ describe('createClientFormInstance', () => {
                         rules: [{
                             fieldId: 'items',
                             operator: 'contains',
-                            value: 'Widget',
+                            value: 'Widget A',
                         }],
                     },
                 }),
@@ -284,7 +284,6 @@ describe('createClientFormInstance', () => {
             errors: {
                 form: [],
                 fields: {},
-                pages: {},
             },
             messages: {},
             session: {
@@ -408,7 +407,6 @@ describe('createClientFormInstance', () => {
             errors: {
                 form: [],
                 fields: {},
-                pages: {},
             },
             messages: {},
             session: {
@@ -496,7 +494,7 @@ describe('createClientFormInstance', () => {
         pending.forEach((resolve) => resolve({
             success: true,
             isFinalPage: true,
-            errors: { form: [], fields: {}, pages: {} },
+            errors: { form: [], fields: {} },
             messages: {},
             session: sessionSnapshot,
         }));
@@ -522,7 +520,7 @@ describe('createClientFormInstance', () => {
         await vi.waitFor(() => expect(pending).toHaveLength(2));
         const response = (page: string) => ({
             success: true, isFinalPage: true, currentPageId: page,
-            errors: { form: [], fields: {}, pages: {} }, messages: {},
+            errors: { form: [], fields: {} }, messages: {},
         });
         pending[0](response('obsolete-page'));
         await old;

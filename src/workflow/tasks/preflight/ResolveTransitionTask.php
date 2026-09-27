@@ -21,6 +21,18 @@ class ResolveTransitionTask implements TaskInterface
         $form = $command->form;
         $submission = $command->submission;
         $current = $form->getCurrentPage();
+        if ($submission->hasErrors() && !in_array($command->navigation, [NavigationIntent::BACK, NavigationIntent::STAY], true)) {
+            return TaskResult::stop($context->result(SubmissionOutcomeType::VALIDATION_FAILED));
+        }
+        // Page visibility is optimistic in the browser; an invalid route must never become completion.
+        if (in_array($command->navigation, [NavigationIntent::ADVANCE, NavigationIntent::TARGET], true)) {
+            foreach ($form->getPages() as $page) {
+                if ($page->hasConditions() && \verbb\formie\helpers\ConditionsHelper::evaluate($page->getConditions(), $submission, 'routing')->value === null) {
+                    $submission->addError('form', Craft::t('formie', 'The requested page is unavailable.'));
+                    return TaskResult::stop($context->result(SubmissionOutcomeType::VALIDATION_FAILED));
+                }
+            }
+        }
         $next = match ($command->navigation) {
             NavigationIntent::BACK => $form->getPreviousPage($current, $submission, true) ?? $current,
             NavigationIntent::STAY => $current,
@@ -46,7 +58,7 @@ class ResolveTransitionTask implements TaskInterface
 
             if (!$next) {
                 $submission->addError('form', Craft::t('formie', 'The requested page is unavailable.'));
-                return TaskResult::stop($context->result(SubmissionOutcomeType::REJECTED));
+                return TaskResult::stop($context->result(SubmissionOutcomeType::VALIDATION_FAILED));
             }
         }
 

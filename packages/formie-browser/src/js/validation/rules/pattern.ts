@@ -1,15 +1,10 @@
+import { validateBrowserValue } from '@verbb/formie-core';
 import type { ValidationRuleDefinition } from '#validation/types';
 
 const pattern: ValidationRuleDefinition = {
     rule: ({ input, config }) => {
-        const rawPattern = input.getAttribute('pattern');
-        const patternToMatch = rawPattern ? new RegExp(`^(?:${rawPattern})$`) : config.patterns[input.type];
-
-        if (!patternToMatch || !input.value || input.value.length < 1) {
-            return true;
-        }
-
-        return patternToMatch.test(input.value);
+        const pattern = input.getAttribute('pattern') || config.patterns[input.type];
+        return validateBrowserValue(input.value, { type: 'pattern', pattern }) === null;
     },
     message: ({ input, label, t }) => {
         const messages = {

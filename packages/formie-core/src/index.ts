@@ -77,3 +77,13 @@ export * from './contract';
 export type { RequestProfile, BrowserRequestOptions } from './request-profile';
 
 export { browserRequest, browserRequestHeaders } from './request-profile';
+
+export { evaluateCondition, combineConditions, conditionNumber } from './conditions';
+export type { ConditionEvaluation, ConditionValueType } from './conditions';
+
+export { validateBrowserValue, browserValueEmpty, registerBrowserValidationRule } from './validation';
+export type { BrowserValidationRule, BrowserValidationContext } from './validation';
+
+export { clientActionAllowed, evaluateClientCondition } from './condition-state';
+
+export { selectConditionRows } from './condition-projections';

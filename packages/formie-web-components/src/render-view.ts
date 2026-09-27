@@ -1,3 +1,4 @@
+import { clientActionAllowed } from '@verbb/formie-core';
 import {
     compositePartDefinitions,
     createRepeaterRowValue,
@@ -552,7 +553,7 @@ function renderFieldNode(
     fieldLayout: 'default' | 'compositePart' = 'default',
 ): TemplateResult {
     const { field, value, errors, errorKey, disabled, setValue } = props;
-    const fieldState = ctx.state.fieldStates[field.id];
+    const fieldState = ctx.state.fieldStates[errorKey];
     const hidden = fieldState?.hidden === true;
 
     if (hidden) {
@@ -595,7 +596,7 @@ function renderNestedRow(
                     value: values[field.handle],
                     errors: ctx.state.errors.fields[ek] || [],
                     errorKey: ek,
-                    disabled: disabled === true || ctx.state.fieldStates[field.id]?.disabled === true,
+                    disabled: disabled === true || ctx.state.fieldStates[ek]?.disabled === true,
                     setValue(v) {
                         setFieldValue(field, v);
                     },
@@ -659,7 +660,7 @@ function renderPageActions(ctx: RenderViewContext): TemplateResult {
     return html`
         <div class="formie-page-actions">
             ${secondary}
-            <button type="submit">${page.actions.primary.label}</button>
+            <button type="submit" ?disabled=${!clientActionAllowed(ctx.state)}>${page.actions.primary.label}</button>
         </div>
     `;
 }

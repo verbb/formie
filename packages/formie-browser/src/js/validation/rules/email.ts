@@ -1,12 +1,10 @@
+import { validateBrowserValue } from '@verbb/formie-core';
 import type { ValidationRuleDefinition } from '#validation/types';
 
 const email: ValidationRuleDefinition = {
     rule: ({ input, getRule }) => {
-        if (!getRule('email') || !input.value || input.value.length < 1) {
-            return true;
-        }
-
-        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.value);
+        const rule = getRule('email');
+        return !rule || validateBrowserValue(input.value, { ...(typeof rule === 'object' ? rule : {}), type: 'email' }) === null;
     },
     message: ({ input, label, t }) => {
         return input.getAttribute('data-formie-validation-email-message')

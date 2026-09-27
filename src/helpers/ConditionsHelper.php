@@ -2,9 +2,7 @@
 namespace verbb\formie\helpers;
 
 use verbb\formie\conditions\ConditionOperator;
-use verbb\formie\conditions\ConditionRowEvaluator;
 use verbb\formie\conditions\ConditionSetEvaluator;
-use verbb\formie\conditions\ConditionValueResolver;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\Formie;
@@ -16,21 +14,39 @@ use craft\models\Site;
 
 class ConditionsHelper
 {
-    // Properties
-    // =========================================================================
-
-    private static ?ConditionSetEvaluator $_setEvaluator = null;
     // Static Methods
     // =========================================================================
 
+    public static function evaluate(array $settings, Submission $submission, string $purpose = 'visibility', array $rows = []): \verbb\formie\conditions\ConditionEvaluation
+    {
+        return (new ConditionSetEvaluator())->evaluate(\verbb\formie\conditions\ConditionSet::fromArray($settings, $purpose), $submission, $rows);
+    }
+
+    public static function matchingRules(array $rules, Submission $submission): array
+    {
+        return array_map(static fn($rule): array => $rule->metadata, (new ConditionSetEvaluator())->matchingRules(\verbb\formie\conditions\ConditionSet::fromArray(['conditions' => $rules], 'recipients'), $submission));
+    }
+
+    // Stable Formie 3 callback compatibility lives at the boundary, never in predicate evaluation.
     public static function evaluateConditions(array $conditions, Submission $submission, $callback = null): array
     {
-        return self::_getSetEvaluator()->evaluateRows($conditions, $submission, $callback);
+        $results = [];
+        foreach ($conditions as $row) {
+            $result = self::evaluate(['conditions' => [$row]], $submission)->matches();
+            if ($callback) {
+                if ($value = $callback($result, $row)) {
+                    $results[] = $value;
+                }
+            } else {
+                $results[] = $result;
+            }
+        }
+        return $results;
     }
 
     public static function getConditionalTestResult(array $conditionSettings, Submission $submission): bool
     {
-        return self::_getSetEvaluator()->matches($conditionSettings, $submission);
+        return self::evaluate($conditionSettings, $submission)->matches();
     }
 
     public static function getConditionOptions(): array
@@ -42,6 +58,7 @@ class ConditionsHelper
             ['label' => Craft::t('formie', 'greater than'), 'value' => ConditionOperator::GT],
             ['label' => Craft::t('formie', 'less than'), 'value' => ConditionOperator::LT],
             ['label' => Craft::t('formie', 'contains'), 'value' => ConditionOperator::CONTAINS],
+            ['label' => Craft::t('formie', 'does not contain'), 'value' => ConditionOperator::NOT_CONTAINS],
             ['label' => Craft::t('formie', 'starts with'), 'value' => ConditionOperator::STARTS_WITH],
             ['label' => Craft::t('formie', 'ends with'), 'value' => ConditionOperator::ENDS_WITH],
             ['label' => Craft::t('formie', 'is empty'), 'value' => ConditionOperator::EMPTY],
@@ -157,21 +174,7 @@ class ConditionsHelper
 
     public static function normalizeClientConditions(array $conditions, Form $form): array
     {
-        $fieldMap = self::getClientFieldReferenceMap($form);
-
-        foreach (($conditions['conditions'] ?? []) as $index => $condition) {
-            $fieldReference = $condition['field'] ?? null;
-
-            if (!is_string($fieldReference) || $fieldReference === '') {
-                continue;
-            }
-
-            $source = self::_buildClientConditionSource($fieldReference, $fieldMap);
-            $conditions['conditions'][$index]['field'] = self::_normalizeClientFieldReference($fieldReference, $source);
-            $conditions['conditions'][$index]['source'] = $source;
-        }
-
-        return $conditions;
+        return (new \verbb\formie\conditions\ConditionCompiler())->compile(\verbb\formie\conditions\ConditionSet::fromArray($conditions), $form);
     }
 
     /**
@@ -208,36 +211,10 @@ class ConditionsHelper
 
     public static function toComponentConditionDefinition(array $conditions): ?array
     {
-        if (!$conditions || !($conditions['conditions'] ?? null)) {
+        if (!$conditions) {
             return null;
         }
-
-        $effect = ($conditions['showRule'] ?? 'show') === 'show' ? 'show' : 'hide';
-        $rules = array_values(array_filter(array_map(static function(array $rule) {
-            $field = $rule['field'] ?? null;
-            $fieldId = $field['field'] ?? $field['fieldId'] ?? null;
-
-            if (!$fieldId) {
-                return null;
-            }
-
-            return [
-                'fieldId' => (string)$fieldId,
-                'operator' => (string)($rule['condition'] ?? '=='),
-                'value' => $rule['value'] ?? null,
-            ];
-        }, $conditions['conditions'])));
-
-        if (!$rules) {
-            return null;
-        }
-
-        return [
-            'mode' => ($conditions['match'] ?? 'all') === 'any' ? 'any' : 'all',
-            'effect' => $effect,
-            'clearOnHide' => ($conditions['clearOnHide'] ?? true) !== false,
-            'rules' => $rules,
-        ];
+        return isset($conditions['version'], $conditions['rules']) ? $conditions : (new \verbb\formie\conditions\ConditionCompiler())->compile(\verbb\formie\conditions\ConditionSet::fromArray($conditions));
     }
 
     private static function _selectOptionsWithPlaceholder(array $options): array
@@ -247,119 +224,4 @@ class ConditionsHelper
         ], $options);
     }
 
-    private static function _getSetEvaluator(): ConditionSetEvaluator
-    {
-        if (!self::$_setEvaluator) {
-            self::$_setEvaluator = new ConditionSetEvaluator(
-                new ConditionRowEvaluator(
-                    new ConditionValueResolver()
-                )
-            );
-        }
-
-        return self::$_setEvaluator;
-    }
-
-    private static function _normalizeClientFieldReference(string $fieldReference, ?array $source = null): string
-    {
-        $trimmedReference = trim($fieldReference);
-
-        if ($trimmedReference === '') {
-            return $fieldReference;
-        }
-
-        if (($source['target'] ?? '') === 'field' && !empty($source['handle'])) {
-            return self::_buildFieldReferenceToken($source);
-        }
-
-        return $trimmedReference;
-    }
-
-    private static function _buildClientConditionSource(string $fieldReference, array $fieldMap): ?array
-    {
-        $trimmedReference = trim($fieldReference);
-
-        if ($trimmedReference === '') {
-            return null;
-        }
-
-        $expression = References::parseReferenceExpression($trimmedReference);
-
-        if ($expression->isValid) {
-            if ($expression->target !== 'field') {
-                return [
-                    'raw' => $trimmedReference,
-                    'target' => $expression->target,
-                    // Property key for client snapshots (`status`, `title`, …).
-                    'handle' => $expression->identifier,
-                    'selector' => $expression->selector,
-                    'defaultValue' => $expression->default,
-                    'transformerId' => $expression->transformerId,
-                    'transformerParams' => $expression->transformerParams,
-                    'isValid' => $expression->identifier !== '',
-                ];
-            }
-
-            return [
-                'raw' => $trimmedReference,
-                'target' => 'field',
-                'handle' => self::_resolveClientFieldHandle($expression->identifier, $fieldMap),
-                'selector' => $expression->selector,
-                'defaultValue' => $expression->default,
-                'transformerId' => $expression->transformerId,
-                'transformerParams' => $expression->transformerParams,
-                'isValid' => $expression->identifier !== '',
-            ];
-        }
-
-        [$handle, $path] = array_pad(explode('.', $trimmedReference, 2), 2, '');
-
-        return [
-            'raw' => $trimmedReference,
-            'target' => 'field',
-            'handle' => self::_resolveClientFieldHandle($handle, $fieldMap),
-            'selector' => str_replace('.', ':', $path),
-            'defaultValue' => '',
-            'transformerId' => '',
-            'transformerParams' => [],
-            'isValid' => $handle !== '',
-        ];
-    }
-
-    private static function _buildFieldReferenceToken(array $source): string
-    {
-        $token = References::field((string)($source['handle'] ?? ''), ($source['selector'] ?? '') ?: null);
-        $transformerId = trim((string)($source['transformerId'] ?? ''));
-        $transformerParams = is_array($source['transformerParams'] ?? null) ? $source['transformerParams'] : [];
-
-        if ($transformerId !== '') {
-            $trimmedToken = preg_replace('/\}$/', '', $token);
-            $metadata = ';transform=' . urlencode($transformerId);
-
-            foreach ($transformerParams as $key => $value) {
-                $normalizedKey = trim((string)$key);
-
-                if ($normalizedKey === '' || $normalizedKey === 'transform') {
-                    continue;
-                }
-
-                $metadata .= ';' . $normalizedKey . '=' . urlencode((string)$value);
-            }
-
-            $token = $trimmedToken . $metadata . '}';
-        }
-
-        $defaultValue = trim((string)($source['defaultValue'] ?? ''));
-
-        if ($defaultValue !== '') {
-            $token = References::withDefault($token, $defaultValue);
-        }
-
-        return $token;
-    }
-
-    private static function _resolveClientFieldHandle(string $reference, array $fieldMap): string
-    {
-        return FieldReferenceHelper::resolveClientFieldKey($reference, $fieldMap);
-    }
 }

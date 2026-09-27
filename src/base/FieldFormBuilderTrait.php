@@ -37,6 +37,8 @@ trait FieldFormBuilderTrait
             'preview' => $preview,
             'hasLabel' => $this->hasLabel(),
             'hasConditions' => $this->hasConditions(),
+            'conditionOperators' => $this->getConditionOperators(),
+            'conditionValueType' => $this->getConditionValueType(),
             'isSynced' => $this->getIsSynced(),
             'labelPositions' => Formie::$plugin->getFields()->getLabelPositionsOptions($this),
             'instructionsPositions' => Formie::$plugin->getFields()->getInstructionsPositionsOptions($this),

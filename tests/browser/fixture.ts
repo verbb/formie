@@ -65,3 +65,20 @@ import { hydrateFormieModules, ModuleRegistry, mountClientRenderedModules } from
 
 import { bindLegacyDomEventCompatibility, resolveLegacyCompatibilityOptions, createFormieClient } from '../../packages/formie-browser/src/index';
 (globalThis as any).legacyModules = { bindLegacyDomEventCompatibility, resolveLegacyCompatibilityOptions, createFormieClient };
+
+import { evaluateCondition } from '../../packages/formie-core/src/index';
+(globalThis as any).conditionBoundary = { evaluateCondition };
+
+import { parseConditionSettings } from '../../packages/formie-browser/src/js/modules/fields/conditions/config';
+import { queryConditionInputs } from '../../packages/formie-browser/src/js/modules/fields/conditions/references';
+import { evaluateConditionSettings } from '../../packages/formie-browser/src/js/modules/fields/conditions/evaluator';
+import { applyConditionVisibility } from '../../packages/formie-browser/src/js/modules/fields/conditions/effects';
+(globalThis as any).conditionDomBoundary = (root: Element, target: Element) => {
+    const settings = parseConditionSettings(target)!;
+    const result = evaluateConditionSettings(settings, (condition) => queryConditionInputs(root, target, condition), { root, from: target });
+    applyConditionVisibility(target, result.shouldHide, settings.clearOnHide, { disabledOnly: ['enable', 'disable'].includes(settings.showRule) });
+    return result;
+};
+
+import { conditionsModule } from '../../packages/formie-browser/src/js/modules/fields/conditions';
+(globalThis as any).mountConditionsBoundary = async (root: HTMLElement) => conditionsModule.setup({ formId: 'condition-graph', form: null, root, target: root, scope: 'form', state: {}, options: {}, on: () => () => {}, emit: async () => {} });

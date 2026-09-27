@@ -170,11 +170,7 @@ class Notification extends Model implements TranslatablePropertiesInterface
                     }
                 }
 
-                $results = ConditionsHelper::evaluateConditions($toRecipients, $submission, function($result, $condition) {
-                    if ($result) {
-                        return $condition['email'];
-                    }
-                });
+                $results = array_column(ConditionsHelper::matchingRules($toRecipients, $submission), 'email');
 
                 return implode(',', $results);
             }
